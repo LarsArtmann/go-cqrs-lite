@@ -1,6 +1,6 @@
 # Domain-Aware CQRS Linter: Research and Design
 
-> **Date**: 2026-07-16
+> **Date**: 2026-07-16 (revised)
 > **Scope**: Design a domain-aware linter for `go-cqrs-lite` consumers
 > **Based on**: Analysis of 22 consumer projects, existing tooling (`cqrs-gen`, `api-stability`, `doc-check`), and the `go-structure-linter` architecture
 > **Companion document**: [Consumer Projects Analysis](../../../docs/go-cqrs-lite-consumer-projects-analysis.md)
@@ -13,10 +13,16 @@
 2. [Architecture Options](#2-architecture-options)
 3. [Rule Catalog](#3-rule-catalog)
 4. [Detection Logic](#4-detection-logic)
-5. [Auto-Fix Capabilities](#5-auto-fix-capabilities)
-6. [Recommendation Engine](#6-recommendation-engine)
-7. [Implementation Blueprint](#7-implementation-blueprint)
-8. [Priority Matrix](#8-priority-matrix)
+5. [False-Positive Mitigation](#5-false-positive-mitigation)
+6. [Auto-Fix Capabilities](#6-auto-fix-capabilities)
+7. [Recommendation Engine](#7-recommendation-engine)
+8. [Test Fixture Strategy](#8-test-fixture-strategy)
+9. [Performance and Caching](#9-performance-and-caching)
+10. [Implementation Blueprint](#10-implementation-blueprint)
+11. [Priority Matrix](#11-priority-matrix)
+12. Appendix A: Issues by Project
+13. Appendix B: Library Improvement Feedforward
+14. Appendix C: Pipeline Architecture Diagram
 
 ---
 
@@ -33,6 +39,7 @@ The linter should be built as a **standalone tool** using the `go-structure-lint
 - **12 rules** detect correctness bugs (silent data loss, broken idempotency)
 - **20 rules** detect API misuse (wrong function, wrong pattern)
 - **15 rules** detect boilerplate (redundant code, missing helpers)
+- **11 of 22 projects** have at least one Critical or High severity violation
 
 ---
 
@@ -43,29 +50,31 @@ The linter should be built as a **standalone tool** using the `go-structure-lint
 **Pros:**
 
 - Integrates with existing CI (golangci-lint, go vet)
-- Type information available (`pass.TypesInfo`)
+- Type information available (`pass.TypesInfo`, `pass.Pkg.Imports`)
 - Per-package incremental analysis
+- Mature ecosystem — consumers already know how to configure it
 
 **Cons:**
 
-- Per-package scope - cannot check cross-module invariants
-- No project-level context (directory structure, go.mod analysis)
-- Requires golangci-lint knowledge for consumers
-- Limited auto-fix support in the framework
+- Per-package scope — `analysis.Pass` covers one package at a time. Cross-package rules (E004: event-not-in-catalog, E005: command-without-handler) require a `analysis.Pass` of `fact` types or a driver that aggregates multiple passes. This is possible but cumbersome.
+- No project-level context (directory structure, go.mod analysis). The analyzer cannot inspect the filesystem layout.
+- Auto-fix via `analysis.SuggestedFixes` is limited — no dry-run, no compile-check, no batch rollback.
+- Consumers must configure golangci-lint to enable it.
 
-**Best for:** Single-function semantic checks (purity, error handling)
+**Best for:** Single-function semantic checks (C005, C006, C007) where type information and incremental analysis matter.
 
 ### Option B: Standalone Tool (go-structure-linter architecture) - RECOMMENDED
 
 **Pros:**
 
-- Cross-file, cross-module analysis (the rules need this)
+- Cross-file, cross-module analysis — the rules need this (E004, E005, E006 require scanning all packages and cross-referencing)
 - Project-level context (go.mod, directory structure, module graph)
-- Proven architecture across 2 existing tools
-- Rich auto-fix support (DryRunFix, ApplyFix, ValidateFix)
+- Proven architecture across 2 existing tools (`go-structure-linter` has 70 rules, `golangci-lint-auto-configure`)
+- Rich auto-fix support (DryRunFix, ApplyFix, ValidateFix with compile-check)
 - `go-finding` for unified output (SARIF, JSON, console, GitHub Annotations)
-- SDK for programmatic use
+- SDK for programmatic use (`sdk.New -> Lint -> Result`)
 - Already has CQRS-aware AST scanning (from `cqrs-gen`)
+- Supports `go-finding/pipeline` for parallel rule execution with panic recovery
 
 **Cons:**
 
@@ -74,32 +83,58 @@ The linter should be built as a **standalone tool** using the `go-structure-lint
 
 ### Option C: Hybrid (both)
 
-Build the standalone tool for project-level rules AND a `go/analysis` plugin for per-function rules. The standalone tool can shell out to or embed the analyzer.
+Build the standalone tool for project-level rules AND ship a `go/analysis` plugin that wraps the per-function rules for golangci-lint consumers. The standalone tool uses `golang.org/x/tools/go/packages` with `packages.NeedTypes | packages.NeedTypesInfo | packages.NeedSyntax` to get full type information — the `go/analysis` plugin is a thin adapter.
 
-**Verdict:** Start with **Option B** (standalone tool). It covers all identified rules. Add `go/analysis` plugin later if golangci-lint integration is requested.
+**Verdict:** Start with **Option B** (standalone tool). It covers all identified rules and has the richest auto-fix support. Add `go/analysis` plugin (Option C) later if golangci-lint integration is requested.
+
+### Type Information Strategy
+
+The standalone tool uses `golang.org/x/tools/go/packages` to load type information:
+
+```go
+cfg := &packages.Config{
+    Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo |
+          packages.NeedSyntax | packages.NeedImports,
+    Tests: false,
+}
+pkgs, err := packages.Load(cfg, "./...")
+```
+
+This gives us:
+
+- `pkg.TypesInfo` — type checking results (types of expressions, method sets)
+- `pkg.Syntax` — parsed AST files (`[]*ast.File`)
+- `pkg.Types` — the `*types.Package` for cross-referencing
+- `pkg.Imports` — imported packages (to check which go-cqrs-lite modules are used)
+
+All AST inspection builds on the patterns already proven in `cqrs-gen` (see Section 4).
 
 ---
 
 ## 3. Rule Catalog
 
-### Category 1: Correctness (Bug Detection) - 12 rules
+### 3.1 Category 1: Correctness (Bug Detection) - 12 rules
 
 These rules detect bugs that cause silent data loss, broken idempotency, or incorrect behavior.
 
-| ID   | Rule                               | Severity | Auto-Fix | Projects Affected                           |
-| ---- | ---------------------------------- | -------- | -------- | ------------------------------------------- |
-| C001 | `missing-tx-commit`                | Critical | Yes      | DiscordSync                                 |
-| C002 | `broken-command-id`                | Critical | Yes      | Kernovia                                    |
-| C003 | `silent-unknown-event-fold`        | High     | Yes      | KeyCountdown                                |
-| C004 | `checkpoint-before-async-complete` | High     | No       | DiscordSync                                 |
-| C005 | `raw-json-unmarshal-payload`       | High     | Yes      | storbi, KeyCountdown                        |
-| C006 | `manual-version-arithmetic`        | Medium   | Yes      | SBTS, Standup-Killer, KeyCountdown, Zlota44 |
-| C007 | `time-now-in-decider`              | Medium   | No       | Zlota44, Kernovia, SEC                      |
-| C008 | `float64-for-money`                | Medium   | No       | Zlota44                                     |
-| C009 | `panic-in-production-path`         | Medium   | No       | DiscordSync (4 sites)                       |
-| C010 | `swallowed-error-in-fold`          | Medium   | Yes      | SEC                                         |
-| C011 | `nondeterministic-decider`         | Medium   | No       | SEC (diceService)                           |
-| C012 | `missing-error-return-in-with-tx`  | Critical | Yes      | DiscordSync                                 |
+| ID   | Rule                               | Severity | Auto-Fix | Confidence | Projects Affected                           |
+| ---- | ---------------------------------- | -------- | -------- | ---------- | ------------------------------------------- |
+| C001 | `missing-tx-commit`                | Critical | Yes      | High       | DiscordSync                                 |
+| C002 | `broken-command-id`                | Critical | Yes      | High       | Kernovia                                    |
+| C003 | `silent-unknown-event-fold`        | High     | Yes      | High       | KeyCountdown                                |
+| C004 | `checkpoint-before-async-complete` | High     | No       | Medium     | DiscordSync                                 |
+| C005 | `raw-json-unmarshal-payload`       | High     | Yes      | High       | storbi, KeyCountdown                        |
+| C006 | `manual-version-arithmetic`        | Medium   | Yes      | High       | SBTS, Standup-Killer, KeyCountdown, Zlota44 |
+| C007 | `time-now-in-decider`              | Medium   | No       | Medium     | Zlota44, Kernovia, SEC                      |
+| C008 | `float64-for-money`                | Medium   | No       | Medium     | Zlota44                                     |
+| C009 | `panic-in-production-path`         | Medium   | No       | High       | DiscordSync (4 sites)                       |
+| C010 | `swallowed-error-in-fold`          | Medium   | Yes      | High       | SEC                                         |
+| C011 | `nondeterministic-decider`         | Medium   | No       | Low        | SEC (diceService)                           |
+| C012 | `missing-error-return-in-with-tx`  | Critical | Yes      | High       | DiscordSync                                 |
+
+> **Confidence** indicates how certain the rule is that a finding is a real issue, not a false positive. High = near-zero false positives. Low = requires human judgment.
+
+---
 
 #### C001: Missing Transaction Commit
 
@@ -109,20 +144,66 @@ These rules detect bugs that cause silent data loss, broken idempotency, or inco
 
 ```go
 // BAD: if body returns nil without committing, data is silently lost
-func withTx(ctx, db, body) error {
+func withTx(ctx context.Context, db *sql.DB, body func(*sql.Tx) error) error {
     tx, _ := db.BeginTx(ctx, nil)
     if err := body(tx); err != nil { _ = tx.Rollback(); return err }
     return nil  // BUG: should be tx.Commit()
 }
 ```
 
-**Auto-fix:** Change `return nil` to `return tx.Commit()` in the success path of transaction wrapper functions.
+**Detection logic (concrete AST):**
 
-**Detection logic:**
+```
+1. Walk ast.FuncDecl nodes with return type `error` (single return value)
+2. In the function body, find a call to (*sql.DB).BeginTx or (*sql.DB).Begin
+   — AST: ast.CallExpr where Fun is ast.SelectorExpr with Sel.Name == "BeginTx" or "Begin"
+3. Identify the tx variable name from the LHS of the assignment
+4. Walk all return statements in the function
+5. If any return statement returns nil AND tx.Commit() is never called
+   in the same function → FLAG
+```
 
-1. Find functions that call `db.BeginTx` or `sql.DB.BeginTx`
-2. Check if the function returns `error` as last return value
-3. Check if the success path (no error from body) returns `nil` instead of `tx.Commit()`
+**AST selector (Go pseudo-code):**
+
+```go
+ast.Inspect(funcDecl, func(n ast.Node) bool {
+    // Step 2: find BeginTx call
+    call, ok := n.(*ast.CallExpr)
+    if !ok { return true }
+    sel, ok := call.Fun.(*ast.SelectorExpr)
+    if !ok { return true }
+    if sel.Sel.Name != "BeginTx" && sel.Sel.Name != "Begin" { return true }
+
+    // Step 3: get tx variable name
+    txVarName := getAssignedVarName(funcDecl, call)  // e.g., "tx"
+
+    // Step 4: check all return statements
+    hasCommit := containsCallTo(funcDecl, txVarName, "Commit")
+    hasNilReturn := hasReturnNil(funcDecl)
+
+    // Step 5: flag
+    if hasNilReturn && !hasCommit {
+        return Issue{Rule: "C001", ...}
+    }
+    return true
+})
+```
+
+**False-positive scenarios:**
+
+- Function delegates to `body(tx)` which calls `tx.Commit()` internally (this IS the bug — the convention is undocumented and fragile). Suppression: `//cqrs-lint:ignore(C001) body commits intentionally`
+- Function uses `defer tx.Commit()` — this is valid, the linter should check for `defer` before flagging.
+
+**Auto-fix:**
+
+```go
+// OLD: return nil
+// NEW: return tx.Commit()
+```
+
+Risk: **Low** — unambiguous when tx variable is identified.
+
+---
 
 #### C002: Broken Command ID
 
@@ -137,49 +218,119 @@ func (c LoadPluginCommand) ID() cqrsid.CommandID {
 }
 ```
 
-**Auto-fix:** Replace manual interface implementation with `*command.BasicCommand` embedding.
+**Detection logic (concrete AST):**
 
-**Detection logic:**
+```
+1. Walk ast.FuncDecl nodes where:
+   - Recv != nil (it's a method)
+   - Name.Name == "ID"
+   - Return type is CommandID (resolved via packages.TypesInfo)
+2. Check the function body for a return statement
+3. If the return value is a composite literal with empty fields: ast.CompositeLit
+   with Elts == nil or len(Elts) == 0 → FLAG
+```
 
-1. Find types implementing `ID() CommandID` (or returning a `CommandID`)
-2. Check if the return statement returns a composite literal `{}` or zero value
-3. Flag as broken
+**AST selector:**
+
+```go
+for _, decl := range file.Decls {
+    fn, ok := decl.(*ast.FuncDecl)
+    if !ok || fn.Recv == nil || fn.Name.Name != "ID" { continue }
+
+    // Check return type resolves to CommandID
+    if !returnsCommandID(fn, typeInfo) { continue }
+
+    // Check for zero-value return
+    ast.Inspect(fn.Body, func(n ast.Node) bool {
+        ret, ok := n.(*ast.ReturnStmt)
+        if !ok { return true }
+        for _, expr := range ret.Results {
+            lit, ok := expr.(*ast.CompositeLit)
+            if ok && (lit.Elts == nil || len(lit.Elts) == 0) {
+                return Issue{Rule: "C002", ...}
+            }
+        }
+        return true
+    })
+}
+```
+
+**False-positive scenarios:**
+
+- Legitimate zero CommandID in test code — suppressed by `_test.go` exclusion.
+- Struct that genuinely has no ID concept — unlikely if it implements `ID() CommandID`.
+
+**Auto-fix:** Replace manual `Type()/AggregateID()/ID()` methods with `*command.BasicCommand` embedding. Risk: **Medium** — changes struct layout. Requires compile-check.
+
+---
 
 #### C003: Silent Unknown Event in Fold
 
-**Detects:** Fold functions that silently return unchanged state for unrecognized event types instead of returning an error.
+**Detects:** Fold functions that silently return unchanged state for unrecognized event types.
 
 **Pattern:**
 
 ```go
 // BAD: corrupt event streams go undetected
-func fold(state State, evt event.Event) (State, error) {
+func foldLock(state LockState, evt event.Event) (LockState, error) {
+    next := state
     switch evt.Type() {
-    case eventCreated: // ...
-    case eventUpdated: // ...
+    case eventLockStarted: // ...
+    case eventTimeAdded: // ...
     default:
         return state, nil  // BUG: should return error
     }
+    return next, nil
 }
 ```
 
-**Auto-fix:** Change `return state, nil` to `return state, fmt.Errorf("unknown event type: %s", evt.Type())` in the default case.
+**Detection logic (concrete AST):**
 
-**Detection logic:**
+```
+1. Identify fold functions:
+   - Signature: func(X, event.Event) (X, error) where X is any type
+   - Detection: ast.FuncDecl with exactly 2 params, 2 returns
+     - Param 1 type resolves to X
+     - Param 2 type resolves to event.Event (via typesInfo)
+     - Return 1 type resolves to X (same as param 1)
+     - Return 2 type is error
+2. In the fold function body, find ast.SwitchStmt where the tag is a call
+   to evt.Type() (SelectorExpr with Sel.Name == "Type")
+3. Find the ast.CaseClause with List == nil (this is the `default:` case)
+4. In the default case body, check for a return statement returning nil
+   as the second return value → FLAG
+```
 
-1. Find functions matching the fold signature: `func(Type, event.Event) (Type, error)`
-2. Check if there's a `switch evt.Type()` with a `default:` case
-3. Check if the default case returns `nil` error
+**False-positive scenarios:**
+
+- Intentional fallthrough for forward-compatibility (event stream from a newer version includes types the old code doesn't know). Suppression: `//cqrs-lint:ignore(C003) forward-compatible fold`
+- Fold function that is not a real event fold (coincidental signature match). Mitigated by checking the second param type resolves to `event.Event`.
+
+**Auto-fix:**
+
+```go
+// OLD:
+default:
+    return state, nil
+
+// NEW:
+default:
+    return state, fmt.Errorf("fold: unknown event type: %s", evt.Type())
+```
+
+Risk: **Low** — unambiguous.
+
+---
 
 #### C004: Checkpoint Before Async Complete
 
-**Detects:** Projection handlers that enqueue async work and return nil immediately, allowing the checkpoint to advance before the work completes.
+**Detects:** Projection handlers that enqueue async work and return nil immediately.
 
 **Pattern:**
 
 ```go
 // BAD: checkpoint advances before download completes
-func (p *Projection) Handle(ctx, evt) error {
+func (p *AttachmentProjection) Handle(ctx context.Context, evt event.Event) error {
     p.queue <- evt  // enqueue async work
     return nil      // checkpoint advances, work may never complete if process crashes
 }
@@ -187,9 +338,23 @@ func (p *Projection) Handle(ctx, evt) error {
 
 **Detection logic:**
 
-1. Find projection `Handle` methods
-2. Check if they write to a channel or start a goroutine
-3. Check if they return nil immediately after
+```
+1. Find types implementing projection.Projection (Has method Handle(ctx, event.Event) error,
+   Name() string, EventTypes() []event.Type)
+2. In the Handle method body, look for:
+   a. Send to channel: ast.SendStmt (ch <- value)
+   b. Goroutine launch: ast.GoStmt
+3. If either is found AND the method returns nil (ast.ReturnStmt with nil result) → FLAG
+```
+
+**False-positive scenarios:**
+
+- Fire-and-forget notification that doesn't affect data integrity (e.g., logging). Suppression: `//cqrs-lint:ignore(C004) notification only`.
+- Queue with its own checkpoint mechanism — needs manual review.
+
+**Auto-fix:** None. Requires architectural decision (inline the work, or use projectionhost with a different projection that handles the async lifecycle).
+
+---
 
 #### C005: Raw json.Unmarshal for Event Payload
 
@@ -206,12 +371,63 @@ json.Unmarshal(evt.Payload(), &p)
 p, err := event.DecodePayloadAuto[MyPayload](evt)
 ```
 
-**Auto-fix:** Replace with `event.DecodePayloadAuto[T](evt)` call.
+**Detection logic (concrete AST):**
 
-**Detection logic:**
+```
+1. Walk ast.CallExpr nodes where Fun is ast.SelectorExpr:
+   - X is an ast.Ident with Name == "json"
+   - Sel.Name is "Unmarshal" or "NewDecoder"
+2. For json.Unmarshal: check first argument is a method call to .Payload()
+   — ast.CallExpr with Fun = ast.SelectorExpr{Sel.Name: "Payload"}
+3. For json.NewDecoder: check the argument is a call to .Payload()
+4. If the argument to .Payload() is an event type (resolved via typesInfo) → FLAG
+```
 
-1. Find call expressions to `json.Unmarshal` or `json.NewDecoder` where the first argument is `.Payload()` on an event type
-2. Flag and suggest `DecodePayloadAuto`
+**AST selector:**
+
+```go
+ast.Inspect(file, func(n ast.Node) bool {
+    call, ok := n.(*ast.CallExpr)
+    if !ok { return true }
+    sel, ok := call.Fun.(*ast.SelectorExpr)
+    if !ok { return true }
+
+    // Check: json.Unmarshal(...)
+    ident, ok := sel.X.(*ast.Ident)
+    if !ok || ident.Name != "json" { return true }
+    if sel.Sel.Name != "Unmarshal" && sel.Sel.Name != "NewDecoder" { return true }
+
+    // Check: first arg is .Payload() call
+    if len(call.Args) > 0 {
+        if isPayloadCall(call.Args[0]) {
+            return Issue{Rule: "C005", ...}
+        }
+    }
+    return true
+})
+```
+
+**False-positive scenarios:**
+
+- Decoding a non-event payload (e.g., HTTP request body that happens to be in a file importing event types). Mitigated by checking the receiver of `.Payload()` resolves to `event.Event` or `*event.ImmutableEvent`.
+
+**Auto-fix:**
+
+```go
+// OLD:
+var p MyPayload
+json.Unmarshal(evt.Payload(), &p)
+
+// NEW:
+p, err := event.DecodePayloadAuto[MyPayload](evt)
+if err != nil {
+    return fmt.Errorf("decode payload: %w", err)
+}
+```
+
+Risk: **Medium** — requires knowing the payload type `T` and the event variable name. The linter can infer both from the AST context (the `&p` target gives the type, the `.Payload()` receiver gives the event variable).
+
+---
 
 #### C006: Manual Version Arithmetic
 
@@ -220,68 +436,155 @@ p, err := event.DecodePayloadAuto[MyPayload](evt)
 **Pattern:**
 
 ```go
-// BAD: manual arithmetic
+// BAD: manual arithmetic, prone to off-by-one
 evt, _ := event.NewEvent(type, id, aggType, event.Version(version.Int()+1), payload)
 
 // GOOD: use the method
 evt, _ := event.NewEvent(type, id, aggType, version.Increment(), payload)
 ```
 
-**Auto-fix:** Replace `event.Version(X.Int()+1)` with `X.Increment()`.
+**Detection logic (concrete AST):**
 
-**Detection logic:**
+```
+1. Walk ast.CallExpr nodes where Fun resolves to event.Version (type conversion)
+   — ast.CallExpr with Fun = ast.SelectorExpr{X.Ident.Name: "event", Sel.Name: "Version"}
+2. Check the single argument is a BinaryExpr with Op == token.ADD
+3. Check the left side is a call to .Int() and the right side is a literal 1
+   — BinaryExpr.X is ast.CallExpr{Fun: SelectorExpr{Sel.Name: "Int"}}
+   — BinaryExpr.Y is ast.BasicLit with Value "1"
+4. → FLAG
+```
 
-1. Find `event.Version(` calls
-2. Check if the argument is `X.Int() + 1` pattern
-3. Suggest `.Increment()`
+**AST selector:**
+
+```go
+ast.Inspect(file, func(n ast.Node) bool {
+    call, ok := n.(*ast.CallExpr)
+    if !ok { return true }
+    sel, ok := call.Fun.(*ast.SelectorExpr)
+    if !ok { return true }
+    ident, ok := sel.X.(*ast.Ident)
+    if !ok || ident.Name != "event" || sel.Sel.Name != "Version" { return true }
+
+    if len(call.Args) != 1 { return true }
+    binExpr, ok := call.Args[0].(*ast.BinaryExpr)
+    if !ok || binExpr.Op != token.ADD { return true }
+
+    // Left: X.Int()
+    leftCall, ok := binExpr.X.(*ast.CallExpr)
+    if !ok { return true }
+    leftSel, ok := leftCall.Fun.(*ast.SelectorExpr)
+    if !ok || leftSel.Sel.Name != "Int" { return true }
+
+    // Right: literal 1
+    lit, ok := binExpr.Y.(*ast.BasicLit)
+    if !ok || lit.Value != "1" { return true }
+
+    return Issue{Rule: "C006", ...}
+})
+```
+
+**False-positive scenarios:** None. The pattern is unambiguous.
+
+**Auto-fix:**
+
+```go
+// OLD: event.Version(version.Int()+1)
+// NEW: version.Increment()
+// The version variable name comes from leftCall.Fun.X (the receiver of .Int())
+```
+
+Risk: **Low** — mechanical text replacement.
+
+---
 
 #### C007: time.Now() in Decider
 
-**Detects:** Calls to `time.Now()` inside decider functions (decide/Apply/fold).
+**Detects:** Calls to `time.Now()` inside decider closures or fold functions.
 
 **Pattern:**
 
 ```go
-// BAD: non-deterministic, untestable
-func decideX(...) func(State, Version) ([]Event, error) {
-    return func(state State, ver Version) ([]Event, error) {
-        evt := NewEvent(..., time.Now())  // BUG: non-deterministic
-        return []Event{evt}, nil
+// BAD: non-deterministic, untestable, non-replayable
+func decideDiscover(aggID id.AggregateID, kwNumber string) func(property.State, event.Version) ([]event.Event, error) {
+    return func(state property.State, version event.Version) ([]event.Event, error) {
+        now := time.Now()  // BUG: different result every time
+        evt, _ := event.New(eventDiscovered, aggID, aggregateType, version.Increment(), Payload{FoundAt: now})
+        return []event.Event{evt}, nil
     }
 }
 ```
 
 **Detection logic:**
 
-1. Find functions matching decide signature (returning `func(State, Version) ([]Event, error)`)
-2. AST-walk the closure body for `time.Now()` calls
-3. Also check fold functions for `time.Now()`
+```
+1. Identify decider decide functions:
+   - Functions returning func(X, event.Version) ([]event.Event, error) — the closure factory
+   - Or the closures themselves: func(X, event.Version) ([]event.Event, error)
+2. Identify fold functions: func(X, event.Event) (X, error)
+3. Walk the body of these functions/closures
+4. Find ast.CallExpr to time.Now():
+   — Fun = ast.SelectorExpr{X.Ident.Name: "time", Sel.Name: "Now"}
+5. → FLAG
+```
+
+**False-positive scenarios:**
+
+- **Domain where wall-clock IS the logic** — e.g., a timeout decider that checks `time.Now().After(deadline)`. This is semantically correct but makes the decider non-replayable. Suppression: `//cqrs-lint:ignore(C007) wall-clock is domain logic`.
+- Time used for ordering/metadata, not for the decision itself. The linter cannot distinguish — hence Medium confidence.
+
+**Auto-fix:** None. Requires injecting a clock interface or passing timestamps via command fields.
+
+---
 
 #### C008: float64 for Monetary Values
 
-**Detects:** `float64` fields in event payloads or state structs where the field name suggests money (Amount, Price, Cost, Value, Balance, etc.).
+**Detects:** `float64` fields in event payload or state structs where the field name suggests money.
 
 **Detection logic:**
 
-1. Find struct fields with `float64` type
-2. Check if field name matches monetary patterns: `Amount|Price|Cost|Value|Balance|Fee|Total|Subtotal|Tax|Discount|Payment|Charge|Salary|Wage|Revenue|Profit|Loss|Deposit|Withdrawal`
-3. Suggest `int64` (cents) or `decimal.Decimal`
+```
+1. Walk ast.StructType nodes (in event payload types or decider state types)
+2. For each ast.Field, check if the type is ast.Ident{Name: "float64"}
+3. Check the field name against a monetary pattern regex:
+   ^(?i).*(amount|price|cost|value|balance|fee|total|subtotal|tax|discount|payment|charge|salary|wage|revenue|profit|loss|deposit|withdrawal).*
+4. → FLAG
+```
+
+**False-positive scenarios:**
+
+- `TaxRate float64` (0.0-1.0 ratio, not a monetary amount) — pattern match on "tax" is too broad. Mitigated by excluding field names ending in "Rate", "Percentage", "Ratio", "Factor".
+- Non-monetary values named `Value` (e.g., `SensorValue float64`). Low confidence — hence Medium severity.
+
+**Auto-fix:** None. Migration to `int64` cents changes the serialized format.
+
+---
 
 #### C009: Panic in Production Code
 
 **Detects:** `panic()` calls in non-test, non-init Go files.
 
-**Auto-fix:** None (requires manual judgment), but can suggest `return error`.
-
 **Detection logic:**
 
-1. Find `panic(` call expressions
-2. Exclude `_test.go` files and `init()` functions
-3. Flag with context about what would need to change
+```
+1. Walk ast.CallExpr where Fun is ast.Ident{Name: "panic"}
+2. Exclude _test.go files
+3. Exclude init() functions (ast.FuncDecl.Name.Name == "init")
+4. Exclude sync.OnceValue / sync.OnceFunc closures (acceptable for init-time panics)
+5. → FLAG
+```
+
+**False-positive scenarios:**
+
+- `mustXxx()` constructor functions where panic IS the documented contract (e.g., `template.Must`). Suppression: `//cqrs-lint:ignore(C009) must-constructor`. Or detect the `Must` prefix on the containing function and suppress automatically.
+
+**Auto-fix:** None. Each case requires manual judgment.
+
+---
 
 #### C010: Swallowed Error in Fold
 
-**Detects:** Fold function cases that ignore decode errors.
+**Detects:** Fold function cases that ignore decode errors via `_ :=`.
 
 **Pattern:**
 
@@ -299,64 +602,83 @@ case eventCreated:
     }
 ```
 
-**Auto-fix:** Propagate the error: `if err != nil { return state, fmt.Errorf("...: %w", err) }`.
-
 **Detection logic:**
 
-1. Find assignments with `_ :=` in fold function bodies
-2. Check if the right side is a function that returns `(T, error)`
-
-#### C011: Nondeterministic Decider
-
-**Detects:** Decider decide functions that take service dependencies (non-pure inputs).
-
-**Pattern:**
-
-```go
-// QUESTIONABLE: diceService makes decider impure
-func DecidePlayRound(state State, cmd Cmd, dice DiceService) ([]Event, error)
+```
+1. Inside fold functions (same identification as C003)
+2. Find ast.AssignStmt where the LHS includes ast.Ident{Name: "_"}
+   and the RHS is a function call returning (T, error)
+3. Check if the function called is a decode/decode-payload function:
+   — Name matches DecodePayload, decodePayload, DecodePayloadAuto
+   — Or resolves to event.DecodePayload[T] via typesInfo
+4. → FLAG
 ```
 
-**Detection logic:**
+**False-positive scenarios:**
 
-1. Find decide functions (returning `([]event.Event, error)` or `func(...) ([]event.Event, error)`)
-2. Check if they take non-value parameters (interfaces, function types)
-3. Flag as potentially impure (informational, not necessarily wrong)
+- Intentional best-effort decode with fallback default. Suppression: `//cqrs-lint:ignore(C010) best-effort decode`.
 
-#### C012: Missing Error Return in withTx
-
-**Detects:** Transaction wrapper functions that don't commit on success (more general version of C001).
-
-**Detection logic:** Same as C001 but also catches patterns where the commit is conditionally skipped.
+**Auto-fix:** Replace `_, ` with `err, ` and add error check. Risk: **Low**.
 
 ---
 
-### Category 2: API Misuse - 20 rules
+#### C011: Nondeterministic Decider
+
+**Detects:** Decider decide functions that take service dependencies (non-value parameters types).
+
+**Detection logic:**
+
+```
+1. Find decide functions (returning func(X, event.Version) ([]event.Event, error))
+2. Check the outer function's parameters (not the closure's)
+3. If any parameter type is an interface, func type, or pointer to a non-domain type → FLAG
+4. Exclude parameters of type context.Context, id.AggregateID, and value types
+```
+
+**False-positive scenarios:**
+
+- Services like `Clock`, `Random` that are intentionally injected for testability. This IS the issue — the decider is impure by design. Low confidence because it's a design trade-off, not a bug.
+
+**Auto-fix:** None. Design-level change required.
+
+---
+
+#### C012: Missing Error Return in withTx (general C001)
+
+**Detects:** Same as C001 but also catches patterns where the commit is conditionally skipped (e.g., read-only transactions that don't need commit but don't rollback either).
+
+**Detection logic:** Same as C001, but also flags functions that call `BeginTx` and return without calling either `Commit()` or `Rollback()`.
+
+---
+
+### 3.2 Category 2: API Misuse - 20 rules
 
 These rules detect incorrect use of go-cqrs-lite APIs.
 
-| ID   | Rule                             | Severity      | Auto-Fix | Projects Affected          |
-| ---- | -------------------------------- | ------------- | -------- | -------------------------- |
-| A001 | `manual-command-interface`       | High          | Yes      | storbi, Kernovia           |
-| A002 | `event-newevent-manual-marshal`  | High          | Yes      | Zlota44                    |
-| A003 | `explicit-codec-in-decode`       | Medium        | Yes      | Zlota44                    |
-| A004 | `untyped-dispatch-register`      | Medium        | Yes      | storbi, Standup-Killer     |
-| A005 | `custom-projection-runner`       | High          | No       | SBTS, DiscordSync          |
-| A006 | `adapter-layer-wrapping`         | Medium        | No       | PapDashboard, KeyCountdown |
-| A007 | `dual-model-oo-plus-functional`  | Critical      | No       | SBTS, KeyCountdown         |
-| A008 | `parallel-type-system`           | Critical      | No       | SBTS                       |
-| A009 | `missing-stack-preset`           | Low           | No       | All v3 projects            |
-| A010 | `custom-error-types`             | Medium        | No       | SBTS                       |
-| A011 | `inconsistent-json-key-casing`   | Low           | No       | Kernovia                   |
-| A012 | `missing-tombstone-handling`     | Medium        | No       | Various                    |
-| A013 | `pointer-vs-value-basic-command` | Low           | No       | KeyCountdown, KeyHolderAI  |
-| A014 | `deprecated-api-usage`           | Low           | Yes      | cqrs-htmx                  |
-| A015 | `global-mutable-state`           | High          | No       | cqrs-htmx, SEC             |
-| A016 | `missing-idempotency-middleware` | Medium        | No       | Various                    |
-| A017 | `missing-snapshot-strategy`      | Low           | No       | Large aggregate projects   |
-| A018 | `no-actual-event-sourcing`       | Informational | No       | KeyHolderAI, Cyberdom      |
-| A019 | `vendored-cqrs`                  | Medium        | No       | StopTube                   |
-| A020 | `event-store-as-append-log`      | Medium        | No       | DiscordSync                |
+| ID   | Rule                             | Severity      | Auto-Fix | Confidence | Projects Affected          |
+| ---- | -------------------------------- | ------------- | -------- | ---------- | -------------------------- |
+| A001 | `manual-command-interface`       | High          | Yes      | High       | storbi, Kernovia           |
+| A002 | `event-newevent-manual-marshal`  | High          | Yes      | High       | Zlota44                    |
+| A003 | `explicit-codec-in-decode`       | Medium        | Yes      | High       | Zlota44                    |
+| A004 | `untyped-dispatch-register`      | Medium        | Yes      | High       | storbi, Standup-Killer     |
+| A005 | `custom-projection-runner`       | High          | No       | Medium     | SBTS, DiscordSync          |
+| A006 | `adapter-layer-wrapping`         | Medium        | No       | Medium     | PapDashboard, KeyCountdown |
+| A007 | `dual-model-oo-plus-functional`  | Critical      | No       | High       | SBTS, KeyCountdown         |
+| A008 | `parallel-type-system`           | Critical      | No       | High       | SBTS                       |
+| A009 | `missing-stack-preset`           | Low           | No       | Medium     | All v3 projects            |
+| A010 | `custom-error-types`             | Medium        | No       | Medium     | SBTS                       |
+| A011 | `inconsistent-json-key-casing`   | Low           | No       | Low        | Kernovia                   |
+| A012 | `missing-tombstone-handling`     | Medium        | No       | Low        | Various                    |
+| A013 | `pointer-vs-value-basic-command` | Low           | No       | High       | KeyCountdown, KeyHolderAI  |
+| A014 | `deprecated-api-usage`           | Low           | Yes      | High       | cqrs-htmx                  |
+| A015 | `global-mutable-state`           | High          | No       | High       | cqrs-htmx, SEC             |
+| A016 | `missing-idempotency-middleware` | Medium        | No       | Low        | Various                    |
+| A017 | `missing-snapshot-strategy`      | Low           | No       | Low        | Large aggregate projects   |
+| A018 | `no-actual-event-sourcing`       | Informational | No       | High       | KeyHolderAI, Cyberdom      |
+| A019 | `vendored-cqrs`                  | Medium        | No       | High       | StopTube                   |
+| A020 | `event-store-as-append-log`      | Medium        | No       | Medium     | DiscordSync                |
+
+---
 
 #### A001: Manual Command Interface
 
@@ -366,187 +688,262 @@ These rules detect incorrect use of go-cqrs-lite APIs.
 
 ```go
 // BAD: 4 methods of boilerplate per command
-type CreateItemCommand struct {
-    id    id.AggregateID
+type CreateItemCmd struct {
+    id       id.AggregateID
     itemType string
 }
-func (c CreateItemCommand) Type() command.Type { return cmdCreateItem }
-func (c CreateItemCommand) AggregateID() id.AggregateID { return c.id }
-func (c CreateItemCommand) ID() command.CommandID { return c.cmdID }
+func (c *CreateItemCmd) Type() command.Type      { return CommandCreateItem }
+func (c *CreateItemCmd) AggregateID() id.AggregateID { return c.id }
+func (c *CreateItemCmd) ID() command.CommandID   { return c.cmdID }
 
 // GOOD: embedding provides all three
-type CreateItemCommand struct {
+type CreateItemCmd struct {
     *command.BasicCommand
     itemType string
 }
 ```
 
-**Auto-fix:** Add `*command.BasicCommand` embedding, remove manual method implementations, update constructor to call `command.New()`.
+**Detection logic (concrete AST):**
 
-**Detection logic:**
+```
+1. Collect all struct types (ast.StructType in ast.TypeSpec)
+2. For each struct, check if it has methods Type(), AggregateID(), ID():
+   — Scan ast.FuncDecl with Recv != nil where Recv type matches the struct
+   — Collect method names
+3. If the struct has all three methods AND does NOT embed *command.BasicCommand
+   (check ast.StructType.Fields for an embedded field whose type is
+   ast.StarExpr{X: ast.SelectorExpr{Sel.Name: "BasicCommand"}})
+   → FLAG
+```
 
-1. Find structs with methods matching `Type() command.Type` or `Type() string`
-2. Check if the struct embeds `*command.BasicCommand` or `command.BasicCommand`
-3. If not embedded but methods exist, flag
+**False-positive scenarios:**
+
+- Command type from a different framework (not go-cqrs-lite). Mitigated by checking the return types resolve to `command.Type`, `id.AggregateID`, `command.CommandID`.
+- Third-party command interface that happens to use the same method names. Unlikely.
+
+**Auto-fix:** Add `*command.BasicCommand` field, remove manual method implementations, update constructor. Risk: **Medium** — changes struct initialization.
+
+---
 
 #### A002: event.NewEvent with Manual Marshal
 
 **Detects:** Using `event.NewEvent` (which requires pre-marshaled `[]byte`) instead of `event.New` (which takes typed payload and auto-marshals).
 
-**Pattern:**
+**Detection logic (concrete AST):**
 
-```go
-// BAD: manual marshaling
-payload, _ := json.Marshal(data)
-evt, _ := event.NewEvent(type, id, aggType, version, payload)
-
-// GOOD: typed, auto-marshaled
-evt, _ := event.New(type, id, aggType, version, data)
+```
+1. Walk ast.CallExpr where:
+   Fun = ast.SelectorExpr{X.Ident.Name: "event", Sel.Name: "NewEvent"}
+2. Check if the 5th argument (payload position) is:
+   a. A call to json.Marshal / cbor.Marshal / codec.Encode
+   b. A []byte variable (resolved via typesInfo)
+3. If the payload is pre-marshaled bytes → FLAG
+4. If the payload is a typed value (struct, map) → DON'T FLAG (valid usage for
+   raw byte payloads)
 ```
 
-**Auto-fix:** Replace `event.NewEvent(type, id, aggType, ver, marshaledBytes)` with `event.New(type, id, aggType, ver, typedPayload)`.
+**False-positive scenarios:**
 
-**Detection logic:**
+- Legitimate raw-byte payloads (e.g., pre-signed binary blobs). Suppression: `//cqrs-lint:ignore(A002) raw byte payload`.
 
-1. Find calls to `event.NewEvent`
-2. Check if the payload argument is a `[]byte` (from `json.Marshal` or similar)
-3. Suggest `event.New` with the original typed value
+**Auto-fix:** Replace with `event.New(type, id, aggType, version, originalValue)` using the pre-marshal value. Risk: **Medium**.
+
+---
 
 #### A003: Explicit Codec in Decode
 
 **Detects:** `event.DecodePayload[T](evt, codecInstance)` instead of `event.DecodePayloadAuto[T](evt)`.
 
-**Auto-fix:** Replace with `DecodePayloadAuto[T](evt)`.
+**Detection logic:**
 
-**Detection logic:** Find `DecodePayload[` calls with a second codec argument.
+```
+1. Walk ast.CallExpr where:
+   Fun = ast.IndexExpr or ast.IndexListExpr (generic instantiation)
+   with X = ast.SelectorExpr{Sel.Name: "DecodePayload"}
+2. Check if there are 2 arguments (evt, codec)
+3. If second argument is a codec instance → FLAG
+```
+
+**Auto-fix:** Replace `DecodePayload[T](evt, codec)` with `DecodePayloadAuto[T](evt)`. Risk: **Low**.
+
+---
 
 #### A004: Untyped Dispatch Register
 
-**Detects:** `dispatcher.Register(type, handler)` with manual type assertion instead of `command.RegisterTyped` / `query.RegisterTyped`.
+**Detects:** `dispatcher.Register(type, handler)` with manual type assertion.
 
-**Pattern:**
+**Detection logic (concrete AST):**
 
-```go
-// BAD: untyped, manual assertion
-disp.Register(cmdType, func(ctx context.Context, cmd command.Command) error {
-    c, ok := cmd.(*MyCmd)  //nolint:forcetypeassert
-    if !ok { return err }
-    // ...
-})
-
-// GOOD: type-safe
-command.RegisterTyped(dispatcher, cmdType, func(ctx context.Context, c *MyCmd) error {
-    // ...
-})
+```
+1. Walk ast.CallExpr where Fun = ast.SelectorExpr{Sel.Name: "Register"}
+2. Check the second argument (the handler) is an ast.FuncLit (function literal)
+3. In the function literal body, look for:
+   a. Type assertion: ast.TypeAssertStmt
+   b. Or: ast.TypeSwitchStmt with a case matching *ConcreteCmd
+4. If a type assertion on the command parameter is found → FLAG
 ```
 
-**Auto-fix:** Convert to `RegisterTyped` call.
+**False-positive scenarios:**
 
-**Detection logic:**
+- Custom dispatcher that doesn't have a `RegisterTyped` equivalent. Check if `command.RegisterTyped` is available in the project's dependencies.
 
-1. Find `.Register(` calls on a dispatcher
-2. Check if the handler function contains a type assertion on the command argument
-3. Suggest `RegisterTyped`
+**Auto-fix:** Convert to `command.RegisterTyped(dispatcher, cmdType, func(ctx, c *ConcreteCmd) error { ... })`. Risk: **Medium**.
+
+---
 
 #### A005: Custom Projection Runner
 
 **Detects:** Manual `bus.SubscribeAll` + switch-based event handling loops instead of `projectionhost.Host`.
 
-**Pattern:**
+**Detection logic:**
 
-```go
-// BAD: no checkpoint, no DLQ, no crash recovery
-bus.SubscribeAll(func(ctx, evt) {
-    switch evt.Type() {
-    case eventX: // handle
-    }
-})
-
-// GOOD: managed lifecycle
-host, _ := projectionhost.New(journal, checkpointStore, opts...)
-host.Register(&MyProjection{})
-go host.Start(ctx)
+```
+1. Walk ast.CallExpr where Fun = ast.SelectorExpr{Sel.Name: "SubscribeAll"}
+2. Check the callback argument for a switch-on-event-type pattern:
+   — ast.FuncLit containing ast.SwitchStmt with tag = call to .Type()
+3. Check if projectionhost is imported in any file in the module
+4. If SubscribeAll + switch pattern found AND no projectionhost import → FLAG
+5. If projectionhost IS imported but this specific projection uses SubscribeAll
+   instead of being registered with the host → FLAG (informational)
 ```
 
-**Detection logic:**
+**False-positive scenarios:**
 
-1. Find `bus.SubscribeAll` calls
-2. Check if the callback contains a `switch evt.Type()` or `if evt.Type() ==` pattern
-3. Check if `projectionhost` is imported in the same module
-4. If not using projectionhost, flag
+- Legitimate use of SubscribeAll for cross-cutting concerns (logging, audit). Suppression: `//cqrs-lint:ignore(A005) audit handler`.
+- Projection that needs custom ordering or batching not supported by projectionhost.
 
-#### A006: Adapter Layer Wrapping
-
-**Detects:** Types that wrap go-cqrs-lite interfaces and add conversion methods (WrapEvent/UnwrapEvent, ToEvent/FromEvent).
-
-**Detection logic:**
-
-1. Find types with methods like `Wrap*`, `Unwrap*`, `To*`, `From*` that convert to/from go-cqrs-lite types
-2. Find types implementing go-cqrs-lite interfaces (Store, Bus, EventSink) through delegation to a wrapped type
-3. Flag as unnecessary indirection
-
-#### A007: Dual Model (OO + Functional)
-
-**Detects:** Projects that have both an OO aggregate pattern (struct with `uncommittedEvents`, `addEvent`, `MarkEventsAsCommitted`) AND a functional decider pattern.
-
-**Detection logic:**
-
-1. Find structs with fields named `uncommittedEvents`, `pendingEvents`, or similar
-2. Find methods named `addEvent`, `markEventsAsCommitted`, `apply`, `getUncommittedEvents`
-3. Cross-reference: if the same project also has `decider.Decider[T]` or `Fold*` functions
-4. Flag as dual model
-
-#### A008: Parallel Type System
-
-**Detects:** Custom types that duplicate go-cqrs-lite domain types (AggregateID, Version, CommandType, EventType, EventID, CommandID).
-
-**Detection logic:**
-
-1. Find type definitions for types named `AggregateID`, `Version`, `CommandType`, `EventType`, `EventID`, `CommandID`
-2. Check if they are NOT aliases (`= id.AggregateID` etc.)
-3. Flag as parallel type system
-
-#### A009: Missing Stack Preset
-
-**Detects:** Projects that manually wire event store + bus + repository instead of using `stack/sqlite`, `stack/postgres`, etc.
-
-**Detection logic:**
-
-1. Find code that calls `storage.NewSQLiteEventStore` + `watermill.NewEventBus` + `decider.NewRepository` in sequence
-2. Check if `stack/` is NOT imported
-3. Suggest using stack preset
-
-#### A010: Custom Error Types
-
-**Detects:** Custom error struct types (`ValidationError`, `DomainError`) instead of using `go-error-family`.
-
-**Detection logic:**
-
-1. Find types implementing `Error() string` that are NOT from go-error-family
-2. Check if they have `Field`, `Value`, `Message` or `Operation`, `Entity` fields
-3. Suggest using `errorfamily.NewRejection`, `errorfamily.NewConflict`, etc.
-
-#### A015: Global Mutable State
-
-**Detects:** Package-level mutable variables (not constants) that are modified by exported setter functions.
-
-**Pattern:**
-
-```go
-// BAD: package-level singleton, unsafe for multiple instances
-var globalRegistry *Registry
-func SetRegistry(r *Registry) { globalRegistry = r }
-```
-
-**Detection logic:**
-
-1. Find `var` declarations at package level (not `const`)
-2. Find exported functions that assign to them
-3. Flag as global mutable state
+**Auto-fix:** None. Architectural migration required.
 
 ---
 
-### Category 3: Boilerplate Detection - 15 rules
+#### A006: Adapter Layer Wrapping
+
+**Detects:** Types that wrap go-cqrs-lite interfaces with conversion methods.
+
+**Detection logic:**
+
+```
+1. Find types with methods matching pattern:
+   - WrapEvent(), UnwrapEvent(), ToEvent(), FromEvent()
+   - WrapStore(), ToStore(), etc.
+2. Check if the type has a field that holds a go-cqrs-lite type
+   (resolved via typesInfo)
+3. If the type wraps a go-cqrs-lite interface and adds conversion → FLAG
+```
+
+**False-positive scenarios:**
+
+- Legitimate adapter pattern (e.g., wrapping a remote store with retry). Suppression via comment.
+
+---
+
+#### A007: Dual Model (OO + Functional)
+
+**Detects:** Projects that maintain both an OO aggregate pattern AND a functional decider pattern.
+
+**Detection logic:**
+
+```
+1. Find OO aggregate markers:
+   — Structs with fields named: uncommittedEvents, pendingEvents, events
+   — Methods named: addEvent, markEventsAsCommitted, getUncommittedEvents, apply
+2. Find functional decider markers:
+   — Variables of type decider.Decider[T]
+   — Functions with fold signature: func(X, event.Event) (X, error)
+3. If BOTH found in the same project → FLAG (one issue per project, not per file)
+```
+
+**False-positive scenarios:**
+
+- Migration in progress (the OO model is being phased out). The linter should report this as Critical with a migration suggestion, not suppress it.
+
+---
+
+#### A008: Parallel Type System
+
+**Detects:** Custom types that duplicate go-cqrs-lite domain types.
+
+**Detection logic:**
+
+```
+1. Find type declarations (ast.TypeSpec) where the name is one of:
+   AggregateID, Version, CommandType, EventType, EventID, CommandID
+2. Check if the type definition is NOT a type alias:
+   — ast.TypeSpec with Assign != 0 means it's an alias (type X = Y)
+   — Non-alias definitions (type X string, type X int64) → FLAG
+3. Check if the project also imports id/, event/, command/
+4. If parallel types exist alongside go-cqrs-lite imports → FLAG
+```
+
+**False-positive scenarios:** None. The pattern is unambiguous.
+
+---
+
+#### A009: Missing Stack Preset
+
+**Detects:** Projects that manually wire event store + bus + repository.
+
+**Detection logic:**
+
+```
+1. Scan go.mod for imports of stack/sqlite, stack/postgres, stack/pebble
+2. Scan Go source for calls to:
+   - storage.NewSQLiteEventStore
+   - watermill.NewEventBus
+   - decider.NewRepository
+3. If all 3+ calls found AND no stack/ import → FLAG
+```
+
+**False-positive scenarios:**
+
+- Project on v3 where stack presets don't exist or are incomplete. The linter should check the go-cqrs-lite version and only suggest stacks if available.
+
+---
+
+#### A010: Custom Error Types
+
+**Detects:** Custom error struct types instead of `go-error-family`.
+
+**Detection logic:**
+
+```
+1. Find structs implementing Error() string:
+   — ast.FuncDecl with Name "Error", 0 params, 1 return (string)
+2. Check the struct fields for error-pattern fields:
+   Field, Value, Message, Operation, Entity, Code
+3. If the struct is NOT from go-error-family package → FLAG
+4. Exclude stdlib error types (errors.New, fmt.Errorf)
+```
+
+**False-positive scenarios:**
+
+- Domain-specific errors that genuinely need custom structure. Suppression via comment.
+
+---
+
+#### A015: Global Mutable State
+
+**Detects:** Package-level mutable variables modified by exported setter functions.
+
+**Detection logic (concrete AST):**
+
+```
+1. Find ast.GenDecl with Tok == token.VAR at package level
+   (top-level decl, not inside a function)
+2. For each var, check if any exported function assigns to it:
+   — Walk ast.FuncDecl with Name.IsExported()
+   — In the body, look for ast.AssignStmt where the LHS is the var name
+3. If an exported setter exists → FLAG
+```
+
+**False-positive scenarios:**
+
+- `sync.Once` guarded initialization (acceptable). Check for `sync.Once` in the same file.
+- Test-only mutable state in `_test.go` files (excluded).
+
+---
+
+### 3.3 Category 3: Boilerplate Detection - 15 rules
 
 These rules detect repetitive code that could be replaced by library helpers or code generation.
 
@@ -570,28 +967,28 @@ These rules detect repetitive code that could be replaced by library helpers or 
 
 #### B001: Single-Event Creation Helper
 
-**Detects:** The universal pattern of creating a single event from a typed payload.
-
-**Pattern:**
-
-```go
-// This exists in EVERY project under different names:
-func singleEvent(t event.Type, aggID id.AggregateID, aggType string, ver event.Version, payload any, opts ...event.Option) ([]event.Event, error) {
-    evt, err := event.NewEvent(t, aggID, aggType, ver, payload, opts...)
-    if err != nil {
-        return nil, fmt.Errorf("create event %s: %w", t, err)
-    }
-    return []event.Event{evt}, nil
-}
-```
+**Detects:** The universal pattern of creating a single event from a typed payload. Every project reimplements this under different names.
 
 **Detection logic:**
 
-1. Find functions that call `event.NewEvent` or `event.New` and wrap the result in `[]event.Event{}`
-2. Check function signature: takes event type, aggregate ID, version, payload -> returns `([]event.Event, error)`
-3. Flag and suggest using a shared library helper
+```
+1. Find functions with signature matching:
+   (event.Type, id.AggregateID, string, event.Version, any, ...event.Option) -> ([]event.Event, error)
+2. Check if the body calls event.New or event.NewEvent and wraps in []event.Event{}
+3. Count call sites of this function
+4. If >3 call sites → FLAG as boilerplate (suggest library function)
+```
 
-**Auto-fix:** Replace all call sites with a library-provided `event.Single(...)` function (if added to the library).
+**Detection for variants** (named differently per project):
+
+```
+The function name pattern: ^(single|make|create|must).*[Ee]vent$
+Or functions calling event.New/event.NewEvent where the return wraps to []event.Event{}
+```
+
+**Auto-fix:** Replace all call sites with `event.Single(...)` if that library function is added (see Appendix B). Risk: **Low**.
+
+---
 
 #### B002: Repository Wiring Boilerplate
 
@@ -599,9 +996,20 @@ func singleEvent(t event.Type, aggID id.AggregateID, aggType string, ver event.V
 
 **Detection logic:**
 
-1. Find functions that call 3+ of these in sequence: `storage.NewSQLiteEventStore`, `watermill.NewEventBus`, `bus.Use(`, `decider.NewRepository`, `snapshot.New*Store`
-2. Check if `stack/sqlite` or `stack/postgres` is imported
-3. If not, suggest migrating to stack preset
+```
+1. Find functions that call 3+ of these in sequence (within the same function body):
+   - storage.NewSQLiteEventStore / storage.NewSQLEventStore
+   - watermill.NewEventBus / event.NewBus
+   - bus.Use( (any middleware chain)
+   - decider.NewRepository
+   - snapshot.New*Store
+2. Check if stack/sqlite or stack/postgres is imported in go.mod
+3. If manual wiring + no stack import → FLAG
+```
+
+**Auto-fix:** None (migration to stack presets requires restructuring). Provide migration guide instead.
+
+---
 
 #### B003: Read Model Projection Boilerplate
 
@@ -609,275 +1017,606 @@ func singleEvent(t event.Type, aggID id.AggregateID, aggType string, ver event.V
 
 **Detection logic:**
 
-1. Find `bus.SubscribeAll` callbacks
-2. Check for `switch evt.Type()` pattern
-3. Check if `projectionhost` is used anywhere in the module
-4. Suggest `projectionhost.Host` with typed projections
+```
+1. Find bus.SubscribeAll callbacks (same as A005)
+2. Count the number of cases in the switch evt.Type() statement
+3. If >5 cases → FLAG as boilerplate (suggest typed Projection + projectionhost)
+```
+
+**Auto-fix:** Generate a typed `projection.Projection` implementation from the switch cases. Risk: **High** — generates new code that must be registered.
 
 ---
 
-### Category 4: Consistency - 5 rules
+### 3.4 Category 4: Consistency - 5 rules
 
-| ID   | Rule                             | Severity      | Auto-Fix |
-| ---- | -------------------------------- | ------------- | -------- |
-| D001 | `inconsistent-command-embedding` | Low           | No       |
-| D002 | `version-fragmentation`          | Informational | No       |
-| D003 | `inconsistent-logging-library`   | Low           | No       |
-| D004 | `inconsistent-json-key-casing`   | Low           | No       |
-| D005 | `stale-documentation-version`    | Medium        | No       |
+| ID   | Rule                             | Severity      | Auto-Fix | Description                                                                              |
+| ---- | -------------------------------- | ------------- | -------- | ---------------------------------------------------------------------------------------- |
+| D001 | `inconsistent-command-embedding` | Low           | No       | Some commands embed `*BasicCommand`, others use value `BasicCommand`, others are manual. |
+| D002 | `version-fragmentation`          | Informational | No       | Project pins go-cqrs-lite at an older version when newer is available.                   |
+| D003 | `inconsistent-logging-library`   | Low           | No       | Project mixes `log/slog`, `charm.land/log`, and `go.uber.org/zap`.                       |
+| D004 | `inconsistent-json-key-casing`   | Low           | No       | Some event payloads use camelCase JSON keys, others use snake_case.                      |
+| D005 | `stale-documentation-version`    | Medium        | No       | AGENTS.md or README references a different go-cqrs-lite version than go.mod.             |
+
+#### D001: Inconsistent Command Embedding
+
+**Detection logic:**
+
+```
+1. Collect all command structs in the project (same as A001)
+2. Classify embedding: *command.BasicCommand (pointer), command.BasicCommand (value), manual
+3. If the project has >1 style → FLAG (one issue per project)
+```
+
+#### D002: Version Fragmentation
+
+**Detection logic:**
+
+```
+1. Parse go.mod for go-cqrs-lite version
+2. Compare against latest tagged release (from git tags or module proxy)
+3. If >2 minor versions behind → FLAG (informational)
+```
+
+#### D004: Inconsistent JSON Key Casing
+
+**Detection logic:**
+
+```
+1. Collect all event payload struct fields with json: tags
+2. Categorize: camelCase, snake_case, PascalCase
+3. If >1 casing style in the same module → FLAG
+```
 
 ---
 
-### Category 5: Architecture - 7 rules
+### 3.5 Category 5: Architecture - 7 rules
 
-| ID   | Rule                        | Severity | Auto-Fix |
-| ---- | --------------------------- | -------- | -------- |
-| E001 | `layer-violation`           | High     | No       |
-| E002 | `circular-dependency`       | High     | No       |
-| E003 | `missing-module-boundary`   | Medium   | No       |
-| E004 | `event-type-not-in-catalog` | Medium   | Yes      |
-| E005 | `command-without-handler`   | High     | No       |
-| E006 | `event-without-projection`  | Medium   | No       |
-| E007 | `query-without-handler`     | High     | No       |
+| ID   | Rule                        | Severity | Auto-Fix | Description                                                             |
+| ---- | --------------------------- | -------- | -------- | ----------------------------------------------------------------------- |
+| E001 | `layer-violation`           | High     | No       | Tier 0 module (id, codec) imports Tier 3+ module (decider, middleware). |
+| E002 | `circular-dependency`       | High     | No       | Two go-cqrs-lite modules import each other (should never happen).       |
+| E003 | `missing-module-boundary`   | Medium   | No       | All code in one package without internal/ boundaries.                   |
+| E004 | `event-type-not-in-catalog` | Medium   | Yes      | Event types emitted by deciders but missing from catalog registry.      |
+| E005 | `command-without-handler`   | High     | No       | Command types defined but never registered with a dispatcher.           |
+| E006 | `event-without-projection`  | Medium   | No       | Events emitted by deciders but no projection handles them.              |
+| E007 | `query-without-handler`     | High     | No       | Query types defined but never registered with a dispatcher.             |
+
+#### E001: Layer Violation
+
+**Detection logic:**
+
+```
+1. Parse go.mod for the project's module path
+2. Check which go-cqrs-lite modules are imported
+3. Map modules to tiers (from ADR-0046 four-tier model):
+   Tier 0: id/, dispatcher/, codec/, kv/, dedup/
+   Tier 1: event/, command/, query/, scheduling/, metadata/
+   Tier 2: schema/, snapshot/, projection/, idempotency/, deriver/
+   Tier 3: decider/, graph/, scenario/, projectionhost/, listing/
+   Tier 4: storage/, middleware/, signing/, encryption/, otel/, watermill/, transport/
+   Tier 5: stack/
+4. If a Tier N module imports a Tier N+2+ module → FLAG
+   (Tier N importing N+1 is allowed — that's the normal dependency direction)
+```
+
+**Note:** This rule applies to go-cqrs-lite internal modules. For consumers, the rule checks whether a consumer's go.mod has unnecessary transitive deps due to importing high-tier modules when a low-tier module would suffice.
 
 #### E004: Event Type Not in Catalog
 
-**Detects:** Event types used in deciders but not registered in the catalog.
-
-**Auto-fix:** Add `catalog.Event[PayloadType](eventType, ...)` call.
-
 **Detection logic:**
 
-1. Collect all `event.Type` constants
-2. Collect all `event.NewEvent`/`event.New` calls to see which types are emitted
-3. Collect all `catalog.Event[` calls
-4. Diff: types emitted but not in catalog
+```
+1. Collect all event types emitted (from event.New/event.NewEvent calls)
+2. Collect all catalog registrations (catalog.Event[T](type, ...) calls)
+3. Diff: emitted types not in catalog → FLAG
+```
+
+**Auto-fix:** Add missing `catalog.Event[PayloadType](eventType, ...)` call. Risk: **Low**.
 
 #### E005: Command Without Handler
 
-**Detects:** Command types that are defined but never registered with a dispatcher.
-
 **Detection logic:**
 
-1. Find all command type constants and structs embedding `BasicCommand`
-2. Find all `command.RegisterTyped` calls
-3. Diff: commands defined but never registered
+```
+1. Collect all command types (constants and structs embedding BasicCommand)
+2. Collect all command.RegisterTyped / dispatcher.Register calls
+3. Diff: commands defined but never registered → FLAG
+```
 
 ---
 
-### Category 6: Security - 3 rules
+### 3.6 Category 6: Security - 3 rules
 
-| ID   | Rule                                        | Severity | Auto-Fix |
-| ---- | ------------------------------------------- | -------- | -------- |
-| S001 | `hardcoded-secrets-in-events`               | Critical | No       |
-| S002 | `missing-encryption-for-sensitive-payloads` | High     | No       |
-| S003 | `missing-event-signing`                     | Medium   | No       |
+| ID   | Rule                                        | Severity | Auto-Fix | Description                                                                             |
+| ---- | ------------------------------------------- | -------- | -------- | --------------------------------------------------------------------------------------- |
+| S001 | `hardcoded-secrets-in-events`               | Critical | No       | Event payload or metadata contains what looks like an API key, token, or password.      |
+| S002 | `missing-encryption-for-sensitive-payloads` | High     | No       | Event payloads containing PII fields (email, SSN, phone) without encryption middleware. |
+| S003 | `missing-event-signing`                     | Medium   | No       | Event store in production without signing middleware (tamper detection).                |
+
+#### S001: Hardcoded Secrets in Events
+
+**Detection logic:**
+
+```
+1. Walk event payload struct fields
+2. Check field names against secret patterns:
+   ^(?i).*(api[_-]?key|secret|token|password|passwd|credential|private[_-]?key|access[_-]?key).*
+3. If field type is string or []byte and matches → FLAG
+4. Also check string literals in event.New/event.NewEvent calls for
+   high-entropy patterns (base64, hex, 32+ chars)
+```
+
+**False-positive scenarios:**
+
+- Token hash (not the raw token). Suppression: `//cqrs-lint:ignore(S001) hashed value`.
+- Test fixtures with fake tokens. Excluded by `_test.go` filter.
 
 ---
 
 ## 4. Detection Logic
 
-### 4.1 AST Analysis Layer
+### 4.1 Three Analysis Layers
 
-The linter needs three levels of analysis:
+The linter operates at three levels, each building on the previous:
 
-#### Level 1: File-level AST (from `cqrs-gen`)
+#### Layer 1: File-level AST (from `cqrs-gen`)
 
-Already implemented in `cmd/cqrs-gen/main.go`. Scans for:
+Already proven in `cmd/cqrs-gen/main.go`. Key patterns:
 
-- `//cqrs:command`, `//cqrs:event`, `//cqrs:query` markers
-- Struct tags: `cqrs:"command:CreateUser"`
-- Type declarations with their fields and methods
-- Function signatures matching CQRS patterns
-
-**Enhancement needed:** Also scan for:
-
-- `event.NewEvent` vs `event.New` calls
-- `json.Unmarshal(evt.Payload()` patterns
-- `time.Now()` inside specific function types
-- `panic()` calls
-- Manual interface implementations (Type/AggregateID/ID methods)
-
-#### Level 2: Type-level cross-reference
-
-Using `go/types` package to resolve types across files:
-
-- Which types embed `*command.BasicCommand`?
-- Which functions have the fold signature `func(S, event.Event) (S, error)`?
-- Which types implement `projection.Projection`?
-- Which types implement `command.Command`?
-
-**Implementation:** Use `golang.org/x/tools/go/packages` to load type information:
+**Type declaration scanning** (from `cqrs-gen:165-175`):
 
 ```go
-cfg := &packages.Config{Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo | packages.NeedSyntax}
-pkgs, _ := packages.Load(cfg, "./...")
+for _, decl := range f.Decls {
+    genDecl, ok := decl.(*ast.GenDecl)
+    if !ok || genDecl.Tok != token.TYPE { continue }
+    for _, spec := range genDecl.Specs {
+        ts, ok := spec.(*ast.TypeSpec)
+        if !ok { continue }
+        // ts.Name.Name = type name
+        // ts.Type = *ast.StructType, *ast.InterfaceType, etc.
+    }
+}
 ```
 
-#### Level 3: Project-level structural
+**Marker comment extraction** (from `cqrs-gen:205-217`):
+
+```go
+func extractMarker(doc *ast.CommentGroup, prefix string) string {
+    if doc == nil { return "" }
+    for _, c := range doc.List {
+        if after, ok := strings.CutPrefix(c.Text, prefix); ok {
+            return after
+        }
+    }
+    return ""
+}
+```
+
+**Struct tag extraction** (from `cqrs-gen:227-251`):
+
+```go
+func extractStructTag(st *ast.StructType, key string) string {
+    for _, field := range st.Fields.List {
+        if field.Tag == nil { continue }
+        tagValue := strings.Trim(field.Tag.Value, "`")
+        cqrsTag := reflect.StructTag(tagValue).Get("cqrs")
+        // parse "command:CreateUser" format
+    }
+}
+```
+
+**Enhancement needed for the linter:** Also scan for:
+
+- `event.NewEvent` vs `event.New` calls (ast.CallExpr pattern matching)
+- `json.Unmarshal(evt.Payload()` patterns (call chain analysis)
+- `time.Now()` inside specific function types (context-aware walk)
+- `panic()` calls (simple ast.CallExpr match)
+- Manual interface implementations (method set collection per type)
+- `return nil` in functions that create transactions (return-statement analysis)
+
+#### Layer 2: Type-level cross-reference
+
+Using `go/types` (via `packages.Load`) to resolve types across files:
+
+```go
+// Resolve whether a type embeds *command.BasicCommand
+func embedsBasicCommand(named *types.Named) bool {
+    // Walk the struct's embedded fields
+    s, ok := named.Underlying().(*types.Struct)
+    if !ok { return false }
+    for i := 0; i < s.NumFields(); i++ {
+        f := s.Field(i)
+        if f.Embedded() {
+            // Check if the type path matches command.BasicCommand
+            if named, ok := f.Type().(*types.Named); ok {
+                obj := named.Obj()
+                if obj.Pkg().Path() == "github.com/larsartmann/go-cqrs-lite/command" &&
+                   obj.Name() == "BasicCommand" {
+                    return true
+                }
+            }
+            // Also check pointer-to-named for *BasicCommand
+            if ptr, ok := f.Type().(*types.Pointer); ok {
+                if named, ok := ptr.Elem().(*types.Named); ok {
+                    obj := named.Obj()
+                    if obj.Pkg().Path() == "..." && obj.Name() == "BasicCommand" {
+                        return true
+                    }
+                }
+            }
+        }
+    }
+    return false
+}
+```
+
+**Key type checks the linter performs:**
+
+| Check                                  | How                                                                         |
+| -------------------------------------- | --------------------------------------------------------------------------- |
+| Is this a command struct?              | Embeds `*command.BasicCommand` or implements `Type() command.Type`          |
+| Is this a fold function?               | Signature `func(S, event.Event) (S, error)` — checked via `types.Signature` |
+| Is this a decide function?             | Returns `func(S, event.Version) ([]event.Event, error)`                     |
+| Is this a projection?                  | Implements `projection.Projection` (method set check)                       |
+| Is this an event payload?              | Used as 5th arg to `event.New` or `event.NewEvent`                          |
+| Does this type come from go-cqrs-lite? | `types.Named.Obj().Pkg().Path()` contains `go-cqrs-lite`                    |
+
+#### Layer 3: Project-level structural
 
 Using filesystem analysis (from `go-structure-linter`):
 
 - Module dependencies (parse `go.mod` files)
 - Directory structure (aggregate/command/event/projection organization)
 - Presence of stack presets vs manual wiring
-- Version of go-cqrs-lite being used
+- Version of go-cqrs-lite being used (from go.mod require/replace)
+- Whether `projectionhost` is imported (for A005 rule)
+- Whether `stack/` is imported (for A009 rule)
 
-### 4.2 Rule Implementation Pattern
+### 4.2 CQRS Type Registry
 
-Each rule follows this structure:
-
-```go
-type CQRSLintRule struct {
-    Name        string
-    Description string
-    Category    RuleCategory
-    Severity    Severity
-    EnableByDefault bool
-}
-
-func (r *CQRSLintRule) Check(ctx *AnalysisContext) []Issue {
-    // ctx provides:
-    // - Parsed AST for all Go files
-    // - Type information (go/types)
-    // - Project structure (go.mod, directory tree)
-    // - CQRS type registry (commands, events, queries, projections)
-
-    var issues []Issue
-    for _, file := range ctx.GoFiles {
-        ast.Inspect(file.AST, func(n ast.Node) bool {
-            // Pattern-specific detection logic
-            if r.matches(n, ctx) {
-                issues = append(issues, Issue{
-                    Rule:     r.Name,
-                    File:     file.Path,
-                    Line:     position(n),
-                    Message:  r.formatMessage(n),
-                    Fix:      r.autoFix(n, ctx),
-                })
-            }
-            return true
-        })
-    }
-    return issues
-}
-```
-
-### 4.3 CQRS Type Registry
-
-The linter builds a registry of all CQRS types in the project:
+The linter builds a registry of all CQRS types in one pass, shared across all rules:
 
 ```go
 type CQRSRegistry struct {
-    Commands   []CommandInfo    // structs embedding BasicCommand or implementing Command
-    Events     []EventInfo      // event type constants + payload types
-    Queries    []QueryInfo      // query type constants + result types
-    Deciders   []DeciderInfo    // Decider[T] instances + decide/fold functions
-    Projections []ProjectionInfo // Projection implementations
-    Aggregates []AggregateInfo  // inferred from deciders
+    Commands    []CommandInfo
+    Events      []EventInfo
+    Queries     []QueryInfo
+    Deciders    []DeciderInfo
+    Projections []ProjectionInfo
+    Aggregates  []AggregateInfo
+    Folds       []FoldInfo
 }
 
 type CommandInfo struct {
-    Name          string
-    Type          command.Type
-    StructName    string
+    Name           string
+    Type           string         // command type constant value
+    StructName     string
+    File           string
+    EmbedsBasicCmd bool           // *command.BasicCommand?
+    EmbeddingStyle string         // "pointer", "value", "manual"
+    HasHandler     bool           // registered with RegisterTyped?
+    HasIdempotency bool           // has IdempotencyKey()?
+}
+
+type EventInfo struct {
+    TypeConstant string          // event type string value
+    PayloadType  string          // struct name used as payload
+    File         string
+    InCatalog    bool            // registered with catalog.Event?
+    InProjection bool            // handled by at least one projection?
+}
+
+type FoldInfo struct {
+    FuncName      string
     File          string
-    HasBasicCmd   bool   // embeds *command.BasicCommand?
-    HasHandler    bool   // registered with RegisterTyped?
-    HasIdempotency bool  // has IdempotencyKey()?
+    StateType     string         // the S in func(S, event.Event) (S, error)
+    HasDefaultErr bool           // does the switch default case return error?
+    EventTypes    []string       // event types handled in switch cases
 }
 ```
 
-This registry is built once during analysis and shared across all rules.
+**Building the registry:**
+
+```go
+func BuildRegistry(pkgs []*packages.Package) *CQRSRegistry {
+    reg := &CQRSRegistry{}
+    for _, pkg := range pkgs {
+        for _, file := range pkg.Syntax {
+            // Scan type declarations (from cqrs-gen pattern)
+            for _, decl := range file.Decls {
+                switch d := decl.(type) {
+                case *ast.GenDecl:
+                    reg.scanGenDecl(d, pkg)
+                case *ast.FuncDecl:
+                    reg.scanFuncDecl(d, pkg)
+                }
+            }
+            // Scan call expressions for registrations
+            ast.Inspect(file, func(n ast.Node) bool {
+                reg.scanCallExpr(n, pkg)
+                return true
+            })
+        }
+    }
+    reg.crossReference()  // link commands to handlers, events to projections
+    return reg
+}
+```
+
+### 4.3 Rule Implementation Pattern
+
+Each rule receives the pre-built registry + raw AST access:
+
+```go
+type Rule interface {
+    Meta() RuleMeta
+    Check(ctx *AnalysisContext) []Issue
+}
+
+type AnalysisContext struct {
+    Registry  *CQRSRegistry
+    Packages  []*packages.Package
+    Project   *ProjectInfo    // go.mod data, directory structure
+    Fset      *token.FileSet
+}
+
+type Issue struct {
+    Rule       string
+    File       string
+    Line       int
+    Column     int
+    Message    string
+    Suggestion string
+    Confidence Confidence       // High, Medium, Low
+    Fix        *SuggestedFix    // nil if not auto-fixable
+}
+```
+
+### 4.4 Generated Code Detection
+
+The linter skips generated files to avoid false positives from `cqrs-gen` output:
+
+**Detection strategy:**
+
+```go
+func isGeneratedFile(path string, file *ast.File) bool {
+    // Check 1: Standard "Code generated" header (Go convention)
+    for _, cg := range file.Comments {
+        for _, c := range cg.List {
+            if strings.Contains(c.Text, "Code generated") &&
+               strings.Contains(c.Text, "DO NOT EDIT") {
+                return true
+            }
+        }
+    }
+    // Check 2: cqrs-gen output marker
+    for _, cg := range file.Comments {
+        if strings.Contains(cg.Text(), "// Code generated by cqrs-gen") {
+            return true
+        }
+    }
+    // Check 3: File name convention
+    base := filepath.Base(path)
+    if strings.HasSuffix(base, "_gen.go") || strings.HasSuffix(base, ".gen.go") {
+        return true
+    }
+    return false
+}
+```
 
 ---
 
-## 5. Auto-Fix Capabilities
+## 5. False-Positive Mitigation
 
-### 5.1 Auto-Fixable Rules (18 rules)
+### 5.1 Suppression Comments
 
-| Rule      | Auto-Fix Description                                          | Risk Level |
-| --------- | ------------------------------------------------------------- | ---------- |
-| C001      | `return nil` -> `return tx.Commit()` in tx wrappers           | Low        |
-| C002      | Add `*command.BasicCommand` embedding, remove manual methods  | Medium     |
-| C003      | Add error return in fold default case                         | Low        |
-| C005      | `json.Unmarshal` -> `DecodePayloadAuto[T]`                    | Medium     |
-| C006      | `Version(x.Int()+1)` -> `x.Increment()`                       | Low        |
-| C010      | Propagate swallowed decode errors                             | Low        |
-| A001      | Add `*command.BasicCommand` embedding                         | Medium     |
-| A002      | `event.NewEvent` -> `event.New` with typed payload            | Medium     |
-| A003      | `DecodePayload[T](evt, codec)` -> `DecodePayloadAuto[T](evt)` | Low        |
-| A004      | `Register` -> `RegisterTyped`                                 | Medium     |
-| B001      | Replace `singleEvent` helpers with library function           | Low        |
-| B003      | Wrap manual projections in `projectionhost`                   | High       |
-| B006      | Centralize FK stub SQL                                        | Medium     |
-| B008      | Replace custom retry with `retry.Do`                          | Medium     |
-| B011/B012 | Replace `mustMarshal`/`makeEvent` with library helper         | Low        |
-| E004      | Add missing catalog entries                                   | Low        |
+Standard suppression syntax:
 
-### 5.2 Auto-Fix Safety Model
+```go
+//cqrs-lint:ignore(C007) wall-clock is domain logic
+now := time.Now()
+```
 
-Following the `go-structure-linter` pattern:
+**Parsing:**
+
+```go
+func parseSuppression(file *ast.File) map[int][]string {
+    // Returns map of line number -> []rule IDs to suppress
+    suppressions := make(map[int][]string)
+    for _, cg := range file.Comments {
+        for _, c := range cg.List {
+            if after, ok := strings.CutPrefix(c.Text, "//cqrs-lint:ignore("); ok {
+                // Parse: C007) reason
+                parts := strings.SplitN(after, ")", 2)
+                ruleID := strings.TrimSpace(parts[0])
+                line := getLineFromPos(c.Slash, fset)
+                suppressions[line] = append(suppressions[line], ruleID)
+            }
+        }
+    }
+    return suppressions
+}
+```
+
+**Scope:** Suppression applies to the next statement after the comment (same as `//nolint` in golangci-lint). For function-level suppression, place the comment on the function declaration:
+
+```go
+//cqrs-lint:ignore(C009) must-constructor panics by design
+func MustNewRepository(...) *Repository {
+    if err != nil { panic(err) }
+}
+```
+
+### 5.2 File-Level and Package-Level Suppression
+
+```go
+//cqrs-lint:ignore-file(A018) command-bus pattern only, no event sourcing intended
+package main
+```
+
+```yaml
+# .cqrs-lint.yml — package-level suppression
+ignore:
+  rules:
+    A018:
+      - "internal/dispatch/**" # command bus only
+    C007:
+      - "**/*_time_test.go" # time-dependent tests
+```
+
+### 5.3 Confidence Scoring
+
+Every issue carries a Confidence level. Rules with Low confidence (C007, C011, A011, A012, A016, A017) have inherent ambiguity. The linter should:
+
+1. Default to reporting all confidences (user filters via `--min-confidence`)
+2. In CI mode (`--ci`), only report Medium+ confidence
+3. In the console output, visually distinguish confidence levels
+
+### 5.4 Per-Rule Severity Override
+
+Users can override severity per rule in `.cqrs-lint.yml`:
+
+```yaml
+severity:
+  C007: informational # downgrade from Medium
+  A018: informational # "no actual ES" -> just info, not actionable
+```
+
+---
+
+## 6. Auto-Fix Capabilities
+
+### 6.1 Auto-Fixable Rules (18 rules)
+
+| Rule      | Auto-Fix Description                                          | Risk Level | Confidence |
+| --------- | ------------------------------------------------------------- | ---------- | ---------- |
+| C001      | `return nil` to `return tx.Commit()` in tx wrappers           | Low        | High       |
+| C002      | Add `*command.BasicCommand` embedding, remove manual methods  | Medium     | High       |
+| C003      | Add error return in fold default case                         | Low        | High       |
+| C005      | `json.Unmarshal` to `DecodePayloadAuto[T]`                    | Medium     | High       |
+| C006      | `Version(x.Int()+1)` to `x.Increment()`                       | Low        | High       |
+| C010      | Propagate swallowed decode errors                             | Low        | High       |
+| A001      | Add `*command.BasicCommand` embedding                         | Medium     | High       |
+| A002      | `event.NewEvent` to `event.New` with typed payload            | Medium     | High       |
+| A003      | `DecodePayload[T](evt, codec)` to `DecodePayloadAuto[T](evt)` | Low        | High       |
+| A004      | `Register` to `RegisterTyped`                                 | Medium     | High       |
+| B001      | Replace `singleEvent` helpers with library function           | Low        | High       |
+| B003      | Wrap manual projections in `projectionhost`                   | High       | Medium     |
+| B006      | Centralize FK stub SQL                                        | Medium     | High       |
+| B008      | Replace custom retry with `retry.Do`                          | Medium     | High       |
+| B011/B012 | Replace `mustMarshal`/`makeEvent` with library helper         | Low        | High       |
+| E004      | Add missing catalog entries                                   | Low        | High       |
+
+### 6.2 Auto-Fix Safety Model
+
+Following the `go-structure-linter` `FixableRule` pattern:
 
 ```go
 type FixableRule interface {
-    DryRunFix(path string, issue Issue) (diff string, err error)  // preview
-    ApplyFix(path string, issue Issue) (outcome FixOutcome, err error)  // apply
-    ValidateFix(path string, issue Issue) error  // verify
+    DryRunFix(ctx *AnalysisContext, issue Issue) (diff string, err error)
+    ApplyFix(ctx *AnalysisContext, issue Issue) (FixOutcome, error)
+    ValidateFix(ctx *AnalysisContext, issue Issue) error
 }
 ```
 
 **Safety levels:**
 
-- **Safe**: Only adds code (missing error handling, missing catalog entries)
-- **Moderate**: Modifies code patterns (json.Unmarshal -> DecodePayloadAuto, manual version -> Increment)
-- **Risky**: Restructures types (adds BasicCommand embedding, removes manual methods) - requires compilation verification
+| Level        | Description                | Examples                                   | Pre-checks                |
+| ------------ | -------------------------- | ------------------------------------------ | ------------------------- |
+| **Safe**     | Only adds code, no removal | C003 (add error), E004 (add catalog entry) | None                      |
+| **Moderate** | Modifies code patterns     | C005, C006, A002, A003                     | Compile-check             |
+| **Risky**    | Restructures types         | C002, A001, A004                           | Compile-check + `--force` |
 
-All risky fixes must:
+### 6.3 Fix Transaction
 
-1. Run `go build` after applying
-2. Revert on compilation failure
-3. Require `--force` flag or interactive confirmation
-
-### 5.3 Fix Transaction
+All fixes are transactional — if any fix breaks compilation, ALL fixes in the batch are rolled back:
 
 ```go
 type FixTransaction struct {
-    backups map[string][]byte  // original file content
+    backups map[string][]byte  // original file content keyed by path
     applied []FixOperation
+}
+
+func (t *FixTransaction) Apply(ctx *AnalysisContext, issue Issue) error {
+    path := issue.File
+    if _, ok := t.backups[path]; !ok {
+        content, err := os.ReadFile(path)
+        if err != nil { return err }
+        t.backups[path] = content
+    }
+    // Apply the fix (modify file in place)
+    if err := issue.Fix.Apply(ctx, issue); err != nil {
+        return err
+    }
+    t.applied = append(t.applied, FixOperation{Issue: issue})
+    return nil
 }
 
 func (t *FixTransaction) Commit() error {
     // Verify all changes compile
-    if err := goBuild(); err != nil {
-        return t.Rollback()  // restore all files
+    if err := compileCheck(); err != nil {
+        return t.Rollback()  // restore all backed-up files
+    }
+    return nil
+}
+
+func (t *FixTransaction) Rollback() error {
+    for path, content := range t.backups {
+        if err := os.WriteFile(path, content, 0644); err != nil {
+            return err
+        }
     }
     return nil
 }
 ```
 
+### 6.4 Concrete Auto-Fix Example: C006
+
+```go
+func (r *ManualVersionArithmeticRule) ApplyFix(
+    ctx *AnalysisContext, issue Issue,
+) (FixOutcome, error) {
+    // Read the file
+    content, _ := os.ReadFile(issue.File)
+
+    // The issue carries the position of the event.Version( call
+    // and the receiver variable name from the AST analysis
+    oldText := fmt.Sprintf("event.Version(%s.Int()+1)", issue.Metadata["versionVar"])
+    newText := fmt.Sprintf("%s.Increment()", issue.Metadata["versionVar"])
+
+    newContent := strings.Replace(string(content), oldText, newText, 1)
+
+    if err := os.WriteFile(issue.File, []byte(newContent), 0644); err != nil {
+        return FixOutcome{}, err
+    }
+    return FixOutcome{Fixed: true, ChangedFiles: []string{issue.File}}, nil
+}
+```
+
 ---
 
-## 6. Recommendation Engine
+## 7. Recommendation Engine
 
-Beyond finding violations, the linter should provide actionable recommendations.
+Beyond finding violations, the linter provides actionable recommendations.
 
-### 6.1 Pattern Recommendations
+### 7.1 Pattern Recommendations
 
-| Trigger                                     | Recommendation                                            |
-| ------------------------------------------- | --------------------------------------------------------- |
-| Project has >5 commands                     | Consider using `cqrs-gen` for handler registration        |
-| Project has >3 projections                  | Migrate to `projectionhost.Host`                          |
-| Project manually wires event store + bus    | Migrate to `stack/sqlite` or `stack/postgres`             |
-| Project uses `fmt.Errorf` for domain errors | Adopt `go-error-family` for classification                |
-| Project on v3                               | Plan migration to v4                                      |
-| Aggregate has >100 events without snapshots | Add `snapshot.EveryNEvents(50)`                           |
-| Projection handles events synchronously     | Consider `projectionhost.WithBatchSize(100)`              |
-| Decider doesn't use correlation enricher    | Add `decider.WithEnricher(correlation.ContextEnricher())` |
+| Trigger                                            | Recommendation                                            | Priority |
+| -------------------------------------------------- | --------------------------------------------------------- | -------- |
+| Project has >5 commands                            | Consider using `cqrs-gen` for handler registration        | Medium   |
+| Project has >3 projections                         | Migrate to `projectionhost.Host`                          | High     |
+| Project manually wires event store + bus           | Migrate to `stack/sqlite` or `stack/postgres`             | Medium   |
+| Project uses `fmt.Errorf` for domain errors        | Adopt `go-error-family` for classification                | High     |
+| Project on v3                                      | Plan migration to v4                                      | Medium   |
+| Aggregate has >100 events without snapshots        | Add `snapshot.EveryNEvents(50)`                           | Medium   |
+| Projection handles events synchronously            | Consider `projectionhost.WithBatchSize(100)`              | Low      |
+| Decider doesn't use correlation enricher           | Add `decider.WithEnricher(correlation.ContextEnricher())` | Low      |
+| No `scenario` BDD tests found                      | Consider `scenario.Given/When/Then` for decider tests     | Low      |
+| No idempotency middleware on command dispatcher    | Add `middleware.CommandIdempotency(store, ttl, nil)`      | Medium   |
+| No OTel middleware                                 | Add `middleware.NewOTelBundle(tracer, meter)`             | Low      |
+| Event payload with sensitive fields, no encryption | Add `encryption.EncryptMiddleware`                        | High     |
 
-### 6.2 Health Score
-
-The linter can compute a "CQRS Health Score" per project:
+### 7.2 Health Score
 
 ```
 Score = 100
@@ -885,25 +1624,221 @@ Score = 100
 - 5 points per High violation
 - 2 points per Medium violation
 - 1 point per Low violation
-- 5 points per category of universal boilerplate
+- 5 points per category of universal boilerplate (capped at 15)
+
+Minimum score: 0
 ```
 
-Projects scoring <60 should be flagged for refactoring.
+| Score Range | Status          | Action                      |
+| ----------- | --------------- | --------------------------- |
+| 90-100      | Excellent       | No action needed            |
+| 70-89       | Good            | Address Medium+ issues      |
+| 50-69       | Needs Attention | Address High+ issues first  |
+| 0-49        | Critical        | Systemic refactoring needed |
 
-### 6.3 Migration Path Suggestions
+### 7.3 Migration Path Suggestions
 
-For projects with systemic issues (dual model, parallel types), suggest a step-by-step migration plan:
+For projects with systemic issues, the linter generates a step-by-step plan:
 
-1. Add the correct pattern alongside the old one
-2. Migrate consumers one at a time
-3. Remove the old pattern
-4. Verify with the linter (score should improve)
+```json
+{
+  "migration_plan": {
+    "project": "standard-bug-tracking-schema",
+    "health_score": 25,
+    "steps": [
+      {
+        "priority": 1,
+        "rule": "A008",
+        "action": "Replace types.AggregateID with id.AggregateID across all files",
+        "estimated_files": 15,
+        "risk": "Medium"
+      },
+      {
+        "priority": 2,
+        "rule": "A007",
+        "action": "Delete OO aggregate model (types.Issue with uncommittedEvents), keep functional decider",
+        "estimated_files": 8,
+        "risk": "High"
+      },
+      {
+        "priority": 3,
+        "rule": "A005",
+        "action": "Replace custom projectionRunner with projectionhost.Host",
+        "estimated_files": 3,
+        "risk": "Medium"
+      }
+    ]
+  }
+}
+```
 
 ---
 
-## 7. Implementation Blueprint
+## 8. Test Fixture Strategy
 
-### 7.1 Module Structure
+### 8.1 Fixture Format
+
+Each rule has a test fixture directory:
+
+```
+testdata/
+  C001_missing-tx-commit/
+    bad.go              # Input with the violation
+    good.go             # Input with the fix applied
+    expected.json       # Expected issues (rule, line, message)
+    expected_fix.go     # Expected file content after auto-fix
+  C003_silent-unknown-event-fold/
+    bad.go
+    good.go
+    expected.json
+  ...
+```
+
+### 8.2 Fixture Example: C006
+
+**`testdata/C006_manual-version-arithmetic/bad.go`:**
+
+```go
+package testdata
+
+import (
+    "github.com/larsartmann/go-cqrs-lite/event"
+)
+
+func createEvent(version event.Version) {
+    // BAD: manual arithmetic
+    _ = event.Version(version.Int() + 1)
+}
+```
+
+**`testdata/C006_manual-version-arithmetic/good.go`:**
+
+```go
+package testdata
+
+import (
+    "github.com/larsartmann/go-cqrs-lite/event"
+)
+
+func createEvent(version event.Version) {
+    _ = version.Increment()
+}
+```
+
+**`testdata/C006_manual-version-arithmetic/expected.json`:**
+
+```json
+[
+  {
+    "rule": "C006",
+    "line": 8,
+    "column": 9,
+    "message": "Manual version arithmetic: use version.Increment() instead of event.Version(version.Int()+1)",
+    "confidence": "High",
+    "fixable": true
+  }
+]
+```
+
+### 8.3 Test Runner
+
+```go
+func TestRules(t *testing.T) {
+    fixtures, _ := filepath.Glob("testdata/*")
+    for _, fixture := range fixtures {
+        ruleID := strings.Split(filepath.Base(fixture), "_")[0]
+        t.Run(ruleID, func(t *testing.T) {
+            // Run linter on bad.go
+            issues := runLint(filepath.Join(fixture, "bad.go"))
+            // Compare against expected.json
+            expected := loadExpected(filepath.Join(fixture, "expected.json"))
+            assertIssuesMatch(t, issues, expected)
+
+            // If auto-fixable, verify the fix
+            if len(issues) > 0 && issues[0].Fix != nil {
+                applyFix(t, filepath.Join(fixture, "bad.go"), issues[0])
+                fixedContent, _ := os.ReadFile(filepath.Join(fixture, "bad.go"))
+                expectedFix, _ := os.ReadFile(filepath.Join(fixture, "expected_fix.go"))
+                require.Equal(t, string(expectedFix), string(fixedContent))
+            }
+        })
+    }
+}
+```
+
+### 8.4 False-Positive Test Fixtures
+
+Each rule also has a `false_positive/` subdirectory to verify it doesn't flag legitimate patterns:
+
+```
+testdata/C007_time-now-in-decider/
+  bad.go                           # time.Now() in decider → flagged
+  good.go                          # time injected via command → not flagged
+  false_positive/
+    wall_clock_logic.go            # time.Now() with suppression → not flagged
+    non_decider_context.go         # time.Now() outside decider → not flagged
+```
+
+---
+
+## 9. Performance and Caching
+
+### 9.1 Package Loading Strategy
+
+`packages.Load` is the expensive step. For a 900-file project like Kernovia:
+
+```
+Naive:        packages.Load(cfg, "./...")       ~8-12 seconds
+Cached:       packages.Load with build cache     ~2-4 seconds (warm)
+Incremental:  Only changed packages              ~0.5-1 second
+```
+
+**Strategy:**
+
+1. Use `packages.NeedSyntax | packages.NeedTypesInfo` (minimum required for type resolution)
+2. Cache the `CQRSRegistry` to disk (`.cqrs-lint-cache/`) keyed by Go file hash
+3. On subsequent runs, only re-parse changed files
+4. For CI (fresh checkout), no cache — full load is acceptable
+
+### 9.2 Parallel Rule Execution
+
+Using `go-finding/pipeline` (from `go-structure-linter`):
+
+```go
+// Each rule becomes a pipeline.Detector
+detectors := rulesToDetectors(enabledRules, registry, fset)
+cfg := pipeline.Config{
+    Workers:    runtime.NumCPU(),
+    StopOnPanic: false,  // collect all findings even if one rule panics
+}
+result := pipeline.New(cfg, projectPath, detectors...).Run(ctx)
+```
+
+**Panic recovery:** Each rule runs in a goroutine with `recover()`. Panics are converted to synthetic high-severity findings: `"rule C007 panicked: <stack trace>"`.
+
+### 9.3 Fast Mode
+
+For pre-commit hooks, a `--fast` flag runs only Critical and High correctness rules:
+
+```
+Full mode:     All 47 rules               ~8-12 seconds (cold), ~4 seconds (warm)
+Fast mode:     C001, C002, C003, C005     ~2 seconds (cold), ~1 second (warm)
+Health score:  Count violations only       ~2 seconds (cold), ~1 second (warm)
+```
+
+### 9.4 Memory Budget
+
+For large projects, the AST + type info can consume significant memory. Strategy:
+
+1. Parse files lazily (only when a rule needs them)
+2. Drop type info for packages that have no CQRS types
+3. Cap concurrency at `runtime.NumCPU()` to avoid OOM on large repos
+
+---
+
+## 10. Implementation Blueprint
+
+### 10.1 Module Structure
 
 ```
 cmd/cqrs-lint/
@@ -938,27 +1873,34 @@ pkg/
 internal/
     ast/                       # AST helpers (CQRS type detection, pattern matching)
     packages/                  # go/packages loader configuration
+    suppression/               # Suppression comment parsing
+    generated/                 # Generated file detection
+testdata/                      # Test fixtures per rule
 ```
 
-### 7.2 Dependencies
+### 10.2 Dependencies
 
 ```
-golang.org/x/tools/go/packages   # Type-aware package loading
-golang.org/x/tools/go/ast/       # AST inspection helpers
+golang.org/x/tools/go/packages     # Type-aware package loading
+golang.org/x/tools/go/ast/         # AST inspection helpers (astutil.Apply)
 github.com/larsartmann/go-finding  # Unified finding model + pipeline
 github.com/larsartmann/go-error-family  # Classified errors
-github.com/spf13/cobra            # CLI
+github.com/spf13/cobra             # CLI
+github.com/charmbracelet/fang      # CLI UX
 ```
 
-### 7.3 Integration Points
+### 10.3 Integration Points
 
-1. **golangci-lint**: Can wrap as a `go/analysis` plugin for per-function rules
-2. **CI**: SARIF output for GitHub Code Scanning
-3. **Pre-commit**: Fast mode (correctness rules only) for commit hooks
-4. **Editor**: LSP integration for real-time feedback
-5. **cqrs-gen**: The linter and generator share the same AST scanning foundation
+| Integration                 | How                                                                 | Priority |
+| --------------------------- | ------------------------------------------------------------------- | -------- |
+| **CI (GitHub Actions)**     | SARIF output via `--format sarif`, uploaded to GitHub Code Scanning | Phase 1  |
+| **Pre-commit hook**         | `cqrs-lint --fast` for instant feedback on correctness rules        | Phase 1  |
+| **golangci-lint**           | Wrap per-function rules as `go/analysis.Analyzer` plugin            | Phase 3  |
+| **cqrs-gen**                | Share AST scanning code; linter validates what generator produces   | Phase 2  |
+| **Editor (LSP)**            | `cqrs-lint lsp` mode for real-time diagnostics                      | Phase 4  |
+| **CI on go-cqrs-lite repo** | Lint all 22 consumer projects on version bumps                      | Phase 3  |
 
-### 7.4 Execution Modes
+### 10.4 Execution Modes
 
 ```bash
 # Full analysis (all rules)
@@ -970,13 +1912,16 @@ cqrs-lint --only correctness ./...
 # Specific rule
 cqrs-lint --rule C001 ./...
 
+# Fast mode (Critical + High correctness only)
+cqrs-lint --fast ./...
+
 # Auto-fix (safe fixes only)
 cqrs-lint --fix --safe-only ./...
 
-# Auto-fix (all fixes, requires confirmation)
+# Auto-fix (all fixes, requires confirmation for risky ones)
 cqrs-lint --fix ./...
 
-# Dry-run (preview fixes)
+# Dry-run (preview fixes as diff)
 cqrs-lint --fix --dry-run ./...
 
 # Health score
@@ -984,20 +1929,26 @@ cqrs-lint --health-score ./...
 
 # SARIF for CI
 cqrs-lint --format sarif ./... > results.sarif
+
+# Migration plan (JSON output)
+cqrs-lint --migration-plan --format json ./...
+
+# Specific directory only
+cqrs-lint ./internal/domain/...
 ```
 
-### 7.5 Rule Configuration
+### 10.5 Rule Configuration
 
 ```yaml
 # .cqrs-lint.yml
 rules:
   correctness:
-    all: true # enable all correctness rules
+    all: true
   api:
     all: true
     exclude: [A018] # don't flag "no actual event sourcing" (intentional)
   boilerplate:
-    all: false # boilerplate is informational by default
+    all: false
     include: [B002, B003] # but check for missing stack presets
   consistency:
     all: true
@@ -1007,18 +1958,25 @@ rules:
     all: true
 
 severity:
-  # Override default severity per rule
+  C007: informational # downgrade time.Now() in decider
   A018: informational # "no actual ES" -> just info
+
+ignore:
+  rules:
+    C009:
+      - "**/must*.go" # Must constructors panic by design
+    A005:
+      - "internal/audit/**" # Audit handler uses SubscribeAll
 
 fix:
   safe_only: false
-  require_compilation: true # verify fixes compile
-  backup: true # keep .bak files
+  require_compilation: true
+  backup: true
 ```
 
 ---
 
-## 8. Priority Matrix
+## 11. Priority Matrix
 
 ### Phase 1: Critical Correctness Rules (MVP)
 
@@ -1066,34 +2024,100 @@ fix:
 
 ## Appendix A: Cross-Reference - Issues by Project
 
-| Project        | Critical Issues | High Issues      | Medium Issues          | Low Issues |
-| -------------- | --------------- | ---------------- | ---------------------- | ---------- |
-| DiscordSync    | C001, C012      | C004, C009       | A020, B006, B008       | B009, B010 |
-| SBTS           | A007, A008      | A005, A010, C006 | A009, B002             | B005, B011 |
-| KeyCountdown   | A007            | C003             | A006, A013             | B005       |
-| Kernovia       | C002            | A015             | C007, A001, D004       | B010       |
-| storbi         | A018            | A001, C005       | A010, D003             | D005       |
-| Zlota44        | -               | A002             | C007, C008, A003, C006 | -          |
-| PapDashboard   | -               | A006             | B003                   | -          |
-| Standup-Killer | -               | -                | A004, C006             | B012       |
-| SEC            | -               | C011             | A015                   | -          |
-| KeyHolderAI    | -               | A018             | A013                   | -          |
-| Cyberdom       | -               | A018             | A006                   | -          |
-| StopTube       | -               | A019             | -                      | -          |
-| crush-daily    | -               | -                | -                      | -          |
-| bank-sync      | -               | -                | -                      | -          |
-| InboxClean     | -               | -                | -                      | -          |
-| go-localsync   | -               | -                | C002(panic)            | -          |
-| cqrs-htmx      | -               | A015             | A014                   | -          |
+| Project        | Critical   | High             | Medium                 | Low        |
+| -------------- | ---------- | ---------------- | ---------------------- | ---------- |
+| DiscordSync    | C001, C012 | C004, C009       | A020, B006, B008       | B009, B010 |
+| SBTS           | A007, A008 | A005, A010, C006 | A009, B002             | B005, B011 |
+| KeyCountdown   | A007       | C003             | A006, A013             | B005       |
+| Kernovia       | C002       | A015             | C007, A001, D004       | B010       |
+| storbi         | A018       | A001, C005       | A010, D003             | D005       |
+| Zlota44        | -          | A002             | C007, C008, A003, C006 | -          |
+| PapDashboard   | -          | A006             | B003                   | -          |
+| Standup-Killer | -          | -                | A004, C006             | B012       |
+| SEC            | -          | C011             | A015                   | -          |
+| KeyHolderAI    | -          | A018             | A013                   | -          |
+| Cyberdom       | -          | A018             | A006                   | -          |
+| StopTube       | -          | A019             | -                      | -          |
+| crush-daily    | -          | -                | -                      | -          |
+| bank-sync      | -          | -                | -                      | -          |
+| InboxClean     | -          | -                | -                      | -          |
+| go-localsync   | -          | -                | C002(panic)            | -          |
+| cqrs-htmx      | -          | A015             | A014                   | -          |
 
-## Appendix B: Rule to Library Improvement Feedforward
+## Appendix B: Library Improvement Feedforward
 
 Some linter findings suggest library-level improvements that would eliminate entire rule categories:
 
-| Linter Rule                       | Library Improvement                                                               | Eliminates                       |
-| --------------------------------- | --------------------------------------------------------------------------------- | -------------------------------- |
-| B001 (single-event helper)        | Add `event.Single(type, id, aggType, version, payload, opts...) ([]Event, error)` | B001, B011, B012 in ALL projects |
-| B002 (repository wiring)          | Better `stack/` preset documentation + `stack.QuickSetup()`                       | B002 in ALL v3 projects          |
-| A013 (pointer vs value embedding) | Document canonical form in `command.BasicCommand` docs                            | A013                             |
-| C006 (manual version arithmetic)  | Consider deprecating `Version.Int()` (force `.Increment()`)                       | C006                             |
-| A009 (missing stack preset)       | Add migration guide in release notes                                              | A009                             |
+| Linter Rule                          | Library Improvement                                                               | Eliminates                       |
+| ------------------------------------ | --------------------------------------------------------------------------------- | -------------------------------- |
+| B001 (single-event helper)           | Add `event.Single(type, id, aggType, version, payload, opts...) ([]Event, error)` | B001, B011, B012 in ALL projects |
+| B002 (repository wiring)             | Better `stack/` preset documentation + `stack.QuickSetup()`                       | B002 in ALL v3 projects          |
+| A013 (pointer vs value embedding)    | Document canonical form in `command.BasicCommand` docs                            | A013                             |
+| C006 (manual version arithmetic)     | Consider deprecating `Version.Int()` (force `.Increment()`)                       | C006                             |
+| A009 (missing stack preset)          | Add migration guide in release notes                                              | A009                             |
+| C003 (silent unknown event fold)     | Add `decider.StrictFold[T](foldFunc)` that errors on unknown events by default    | C003                             |
+| B007 (repeated handler registration) | Add `command.RegisterAll(dispatcher, registrations...)` variadic helper           | B007                             |
+| A004 (untyped register)              | Deprecate `dispatcher.Register` in favor of `RegisterTyped` only                  | A004                             |
+
+## Appendix C: Pipeline Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         cqrs-lint pipeline                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────┐  │
+│  │  CLI / SDK   │───▶│  Config      │───▶│  Package Loader      │  │
+│  │  (cobra)     │    │  (.cqrs-lint │    │  (go/packages)       │  │
+│  │              │    │   .yml)      │    │  AST + Types + Info  │  │
+│  └──────────────┘    └──────────────┘    └──────────┬───────────┘  │
+│                                                     │              │
+│                                          ┌──────────▼───────────┐  │
+│                                          │  CQRSRegistry Builder │  │
+│                                          │  (commands, events,   │  │
+│                                          │   deciders, folds,    │  │
+│                                          │   projections, etc.)  │  │
+│                                          └──────────┬───────────┘  │
+│                                                     │              │
+│  ┌──────────────────────────────────────────────────▼───────────┐  │
+│  │              go-finding/pipeline (parallel)                   │  │
+│  │                                                               │  │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐           │  │
+│  │  │ C-rules │ │ A-rules │ │ B-rules │ │ E-rules │ ...        │  │
+│  │  │ (12)    │ │ (20)    │ │ (15)    │ │ (7)     │            │  │
+│  │  └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘            │  │
+│  │       │           │           │           │                   │  │
+│  │       └───────────┴───────────┴───────────┘                  │  │
+│  │                       │                                       │  │
+│  │              ┌────────▼────────┐                             │  │
+│  │              │ Suppression     │                             │  │
+│  │              │ Filter          │                             │  │
+│  │              └────────┬────────┘                             │  │
+│  └───────────────────────┼─────────────────────────────────────┘  │
+│                          │                                          │
+│               ┌──────────▼──────────┐                              │
+│               │  []Issue            │                              │
+│               │  (with SuggestedFix)│                              │
+│               └──────────┬──────────┘                              │
+│                          │                                          │
+│           ┌──────────────┼──────────────┐                          │
+│           ▼              ▼              ▼                           │
+│  ┌──────────────┐ ┌────────────┐ ┌──────────────┐                 │
+│  │ Console      │ │ JSON       │ │ SARIF        │                 │
+│  │ (human)      │ │ (machine)  │ │ (CI/GitHub)  │                 │
+│  └──────────────┘ └────────────┘ └──────────────┘                 │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │  Auto-Fix Path (--fix)                                       │  │
+│  │                                                              │  │
+│  │  Issues ──▶ FixTransaction ──▶ Apply ──▶ Compile Check       │  │
+│  │                                        │                     │  │
+│  │                                   ┌────┴────┐                │  │
+│  │                                   │         │                │  │
+│  │                                 Pass      Fail               │  │
+│  │                                   │         │                │  │
+│  │                              Commit    Rollback              │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
