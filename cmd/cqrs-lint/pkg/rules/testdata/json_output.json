@@ -24,9 +24,6 @@
   ],
   "summary": {
     "total": 0,
-    "bySeverity": {},
-    "filesAffected": 0,
-    "filesScanned": 0,
-    "suppressed": 0
+    "bySeverity": {}
   }
 }

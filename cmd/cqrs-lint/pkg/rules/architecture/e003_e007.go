@@ -97,38 +97,6 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
-			registeredQueries := make(map[string]bool)
-
-			for _, gf := range ctx.GoFiles {
-				if gf.IsTest {
-					continue
-				}
-
-				ast.Inspect(gf.AST, func(n ast.Node) bool {
-					call, ok := n.(*ast.CallExpr)
-					if !ok {
-						return true
-					}
-
-					sel, ok := call.Fun.(*ast.SelectorExpr)
-					if !ok {
-						return true
-					}
-
-					if sel.Sel.Name == "RegisterTyped" || sel.Sel.Name == "RegisterQuery" {
-						for _, arg := range call.Args {
-							if lit, ok := arg.(*ast.CompositeLit); ok {
-								if id, ok := lit.Type.(*ast.Ident); ok {
-									registeredQueries[id.Name] = true
-								}
-							}
-						}
-					}
-
-					return true
-				})
-			}
-
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
 					continue
@@ -149,7 +117,7 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if registeredQueries[ts.Name.Name] {
+					if ctx.Registry.IsCommandRegistered(ts.Name.Name) {
 						return true
 					}
 

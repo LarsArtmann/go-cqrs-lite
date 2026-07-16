@@ -134,7 +134,7 @@ func capturePayloadTypeFromVar(
 	call *ast.CallExpr,
 	varAssigns map[string]string,
 ) {
-	sel, ok := call.Fun.(*ast.SelectorExpr)
+	sel, ok := SelectorFromExpr(call.Fun)
 	if !ok {
 		return
 	}

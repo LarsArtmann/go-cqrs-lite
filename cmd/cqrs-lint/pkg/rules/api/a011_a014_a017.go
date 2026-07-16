@@ -134,7 +134,7 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					sel, ok := call.Fun.(*ast.SelectorExpr)
+					sel, ok := analyzer.SelectorFromExpr(call.Fun)
 					if !ok {
 						return true
 					}
@@ -207,7 +207,7 @@ func NewA017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					sel, ok := call.Fun.(*ast.SelectorExpr)
+					sel, ok := analyzer.SelectorFromExpr(call.Fun)
 					if !ok || sel.Sel.Name != "NewRepository" {
 						return true
 					}
@@ -216,7 +216,7 @@ func NewA017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					for _, arg := range call.Args {
 						if fnCall, ok := arg.(*ast.CallExpr); ok {
-							if fnSel, ok := fnCall.Fun.(*ast.SelectorExpr); ok {
+							if fnSel, ok := analyzer.SelectorFromExpr(fnCall.Fun); ok {
 								if fnSel.Sel.Name == "WithSnapshotStore" ||
 									fnSel.Sel.Name == "WithSnapshotStrategy" ||
 									fnSel.Sel.Name == "WithStateCache" {

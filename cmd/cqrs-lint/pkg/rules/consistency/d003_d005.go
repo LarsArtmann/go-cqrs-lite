@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -186,9 +187,17 @@ func extractCQRSVersion(content, modVersion string) string {
 		}
 
 		for field := range strings.FieldsSeq(line) {
-			if strings.HasPrefix(field, "v") && len(field) > 2 {
-				versions = append(versions, field)
+			if !strings.HasPrefix(field, "v") || len(field) < 3 {
+				continue
 			}
+
+			// Skip migration arrows like "v2→v3" — these describe historical
+			// migrations, not current version claims.
+			if strings.Contains(field, "→") || strings.Contains(field, "->") {
+				continue
+			}
+
+			versions = append(versions, field)
 		}
 	}
 
@@ -196,5 +205,59 @@ func extractCQRSVersion(content, modVersion string) string {
 		return modVersion
 	}
 
-	return versions[0]
+	docVersion := versions[0]
+
+	// Wildcard compatibility: "v4.0.x" matches any "v4.0.N" in go.mod.
+	if isVersionCompatible(docVersion, modVersion) {
+		return modVersion
+	}
+
+	return docVersion
+}
+
+// isVersionCompatible checks whether a doc version reference is compatible
+// with the go.mod version. This handles:
+//   - Wildcards: "v4.0.x" matches "v4.0.0", "v4.0.1", etc.
+//   - Major.minor only: "v4.0" matches "v4.0.0"
+func isVersionCompatible(docVersion, modVersion string) bool {
+	docParts := parseVersionParts(docVersion)
+	modParts := parseVersionParts(modVersion)
+
+	if len(docParts) == 0 || len(modParts) == 0 {
+		return false
+	}
+
+	for i := range docParts {
+		if i >= len(modParts) {
+			break
+		}
+
+		// Wildcard "x" matches any number
+		if docParts[i] == "x" || docParts[i] == "X" {
+			continue
+		}
+
+		if docParts[i] != modParts[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+// parseVersionParts splits a version string like "v4.0.1" into ["4", "0", "1"].
+// Returns nil if the input doesn't look like a semantic version.
+func parseVersionParts(v string) []string {
+	v = strings.TrimPrefix(v, "v")
+	if v == "" {
+		return nil
+	}
+
+	parts := strings.Split(v, ".")
+
+	if slices.Contains(parts, "") {
+		return nil
+	}
+
+	return parts
 }

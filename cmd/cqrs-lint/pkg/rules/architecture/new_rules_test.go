@@ -134,6 +134,48 @@ type CreateUser struct {
 	assertRule(t, findings, "E005", 1)
 }
 
+// --- E005: Command registered via closure-based RegisterTyped is NOT flagged
+
+func TestE005_NoFindingWhenRegisteredViaClosure(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+type CreateUser struct {
+	*BasicCommand
+	Name string
+}
+
+func register() {
+	command.RegisterTyped(dispatcher, createUserType, func(ctx context.Context, c *CreateUser) error {
+		return nil
+	})
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE005Detector(ctx))
+	assertRule(t, findings, "E005", 0)
+}
+
+// --- E005: Non-CQRS type with Type() method (e.g., pflag.Value) is NOT flagged
+
+func TestE005_NoFindingForPflagValueType(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"flag.go": `package main
+
+type idFlag[T any] struct {
+	flagType string
+	value    T
+}
+
+func (f *idFlag[T]) Type() string { return f.flagType }
+func (f *idFlag[T]) String() string { return "" }
+func (f *idFlag[T]) Set(s string) error { return nil }
+`,
+	})
+	findings := runDetector(t, architecture.NewE005Detector(ctx))
+	assertRule(t, findings, "E005", 0)
+}
+
 // --- E006: Event without projection ---
 
 func TestE006_NoFindingOnEmptyRegistry(t *testing.T) {
@@ -180,6 +222,27 @@ func TestE007_NoFindingForNonQueryStruct(t *testing.T) {
 
 type User struct {
 	ID string
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE007Detector(ctx))
+	assertRule(t, findings, "E007", 0)
+}
+
+// --- E007: Query registered via closure-based RegisterTyped is NOT flagged
+
+func TestE007_NoFindingWhenRegisteredViaClosure(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"queries.go": `package main
+
+type GetUserQuery struct {
+	ID string
+}
+
+func register() {
+	query.RegisterTyped(dispatcher, getUserType, func(ctx context.Context, q *GetUserQuery) (*User, error) {
+		return nil, nil
+	})
 }
 `,
 	})

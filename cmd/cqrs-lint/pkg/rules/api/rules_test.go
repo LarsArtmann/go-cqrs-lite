@@ -94,3 +94,37 @@ type AggregateID string
 	findings := runDetector(t, api.NewA008Detector(ctx))
 	assertRule(t, findings, "A008", 0)
 }
+
+// --- A017: Repository with generic snapshot options is NOT flagged
+
+func TestA017_NoFindingWithGenericSnapshotStore(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"infra.go": `package main
+
+func setup() {
+	repo, _ := decider.NewRepository(
+		store, bus, deciderInstance,
+		decider.WithSnapshotStore[MyState](snapStore),
+		decider.WithSnapshotStrategy[MyState](strategy),
+	)
+	_ = repo
+}
+`,
+	})
+	findings := runDetector(t, api.NewA017Detector(ctx))
+	assertRule(t, findings, "A017", 0)
+}
+
+func TestA017_DetectsMissingSnapshotStrategy(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"infra.go": `package main
+
+func setup() {
+	repo, _ := decider.NewRepository(store, bus, deciderInstance)
+	_ = repo
+}
+`,
+	})
+	findings := runDetector(t, api.NewA017Detector(ctx))
+	assertRule(t, findings, "A017", 1)
+}

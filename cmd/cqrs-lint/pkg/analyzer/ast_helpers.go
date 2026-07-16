@@ -6,6 +6,39 @@ import (
 	"strings"
 )
 
+// unwrapSelector unwraps generic instantiation wrappers (IndexExpr, IndexListExpr)
+// to find the underlying SelectorExpr. This handles calls like:
+//
+//	decider.WithSnapshotStore[State](store)   → IndexExpr wrapping SelectorExpr
+//	query.RegisterTyped[Q, R](d, t, handler)   → IndexListExpr wrapping SelectorExpr
+//
+// Returns nil if no SelectorExpr is found.
+func unwrapSelector(expr ast.Expr) *ast.SelectorExpr {
+	switch e := expr.(type) {
+	case *ast.SelectorExpr:
+		return e
+	case *ast.IndexExpr: // generic: X[T]
+		return unwrapSelector(e.X)
+	case *ast.IndexListExpr: // generic: X[T, U]
+		return unwrapSelector(e.X)
+	default:
+		return nil
+	}
+}
+
+// SelectorFromExpr extracts a SelectorExpr from an expression, unwrapping
+// generic instantiation wrappers. Returns (nil, false) if not found.
+// This is a drop-in replacement for call.Fun.(*ast.SelectorExpr) that also
+// handles generic function calls like pkg.Func[T](args).
+func SelectorFromExpr(expr ast.Expr) (*ast.SelectorExpr, bool) {
+	sel := unwrapSelector(expr)
+	if sel == nil {
+		return nil, false
+	}
+
+	return sel, true
+}
+
 func recvTypeName(fn *ast.FuncDecl) string {
 	if fn.Recv == nil || len(fn.Recv.List) == 0 {
 		return ""

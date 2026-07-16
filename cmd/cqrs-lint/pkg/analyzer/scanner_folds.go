@@ -59,16 +59,21 @@ func scanIDMethod(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl, pos token.
 	})
 }
 
-// scanTypedMethod registers Type() and AggregateID() methods on structs as
-// potential command types. Combined with BasicCommand embedding or ID() method,
-// this catches commands with manual interfaces.
-func scanTypedMethod(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl, pos token.Position) {
+// scanTypedMethod marks existing commands that have a Type() or AggregateID()
+// method. A Type() method ALONE is NOT sufficient to identify a CQRS command
+// — many non-CQRS types have Type() methods (pflag.Value, fmt.Stringer, etc.).
+// Only types already registered as commands (via BasicCommand embed or ID()
+// method) are marked.
+func scanTypedMethod(ctx *AnalysisContext, _ *GoFile, fn *ast.FuncDecl, _ token.Position) {
 	recvType := recvTypeName(fn)
 	if recvType == "" {
 		return
 	}
 
-	findOrCreateCommand(ctx, recvType, gf, pos)
+	cmd := ctx.Registry.CommandByName(recvType)
+	if cmd != nil {
+		cmd.ManualType = true
+	}
 }
 
 func findOrCreateCommand(

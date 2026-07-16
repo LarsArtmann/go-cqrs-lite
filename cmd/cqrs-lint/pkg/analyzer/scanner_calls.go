@@ -8,7 +8,7 @@ import (
 // scanCallExpr inspects call expressions for event.New/NewEvent,
 // RegisterTyped, catalog.Event, and similar CQRS API calls.
 func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
-	sel, ok := call.Fun.(*ast.SelectorExpr)
+	sel, ok := SelectorFromExpr(call.Fun)
 	if !ok {
 		return
 	}
@@ -42,8 +42,10 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 
 		capturePayloadType(ctx, call)
 
-	case funcName == "RegisterTyped":
-		ctx.Registry.CommandTypesRegistered[handlerTypeFromCall(call)] = true
+	case funcName == "RegisterTyped" || funcName == "RegisterQuery":
+		if handlerType := handlerTypeFromCall(call); handlerType != "" {
+			ctx.Registry.CommandTypesRegistered[handlerType] = true
+		}
 
 	case funcName == "Event" && pkgName == "catalog":
 		if len(call.Args) > 0 {
@@ -60,6 +62,15 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 	}
 }
 
+// handlerTypeFromCall extracts the handler type name from a RegisterTyped or
+// RegisterQuery call. It handles three registration patterns:
+//
+//  1. Composite literal:     RegisterTyped(d, MyCommand{})      → "MyCommand"
+//  2. Constructor call:      RegisterTyped(d, NewMyCommand())    → "NewMyCommand(...)"
+//  3. Closure handler:       RegisterTyped(d, type, func(ctx, c *MyCommand) error {...})
+//
+// For closures, the handler type is extracted from the first non-context
+// parameter of the function literal's signature.
 func handlerTypeFromCall(call *ast.CallExpr) string {
 	for _, arg := range call.Args {
 		switch a := arg.(type) {
@@ -67,8 +78,35 @@ func handlerTypeFromCall(call *ast.CallExpr) string {
 			if id, ok := a.Type.(*ast.Ident); ok {
 				return id.Name
 			}
+		case *ast.FuncLit:
+			return handlerTypeFromClosure(a)
 		case *ast.CallExpr:
 			return ExprString(a)
+		}
+	}
+
+	return ""
+}
+
+// handlerTypeFromClosure extracts the handler type from a function literal's
+// parameter list. It finds the first parameter that is a pointer to a named
+// type (e.g., *MyCommand) or a named type (e.g., MyQuery), skipping
+// context.Context parameters.
+func handlerTypeFromClosure(fn *ast.FuncLit) string {
+	if fn.Type == nil || fn.Type.Params == nil {
+		return ""
+	}
+
+	for _, param := range fn.Type.Params.List {
+		switch t := param.Type.(type) {
+		case *ast.StarExpr:
+			if id, ok := t.X.(*ast.Ident); ok {
+				return id.Name
+			}
+		case *ast.Ident:
+			// Skip context.Context-like params that are just Idents
+			// (context.Context itself is a SelectorExpr, so it won't match here)
+			return t.Name
 		}
 	}
 

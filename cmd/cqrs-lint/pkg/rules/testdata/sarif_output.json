@@ -24,9 +24,7 @@
                 },
                 "region": {
                   "startLine": 10,
-                  "startColumn": 5,
-                  "endLine": 0,
-                  "endColumn": 0
+                  "startColumn": 5
                 }
               }
             }
@@ -36,17 +34,17 @@
               "description": {
                 "text": "Fix this issue"
               },
-              "artifactChanges": []
+              "artifactChanges": null
             }
           ],
           "rank": 75,
           "properties": {
             "go-finding/category": "correctness",
             "go-finding/confidence": 0.75,
-            "go-finding/suggestion": "Fix this issue",
+            "go-finding/fixStrategy": "none",
             "go-finding/id": "cqrs-lint:C001:example.go:10:5",
             "go-finding/severity": "error",
-            "go-finding/fixStrategy": "none",
+            "go-finding/suggestion": "Fix this issue",
             "go-finding/toolName": "cqrs-lint"
           }
         }
