@@ -42,6 +42,21 @@ jobs:
         run: cd cmd/doc-check && GOWORK=off go run .
         # No explicit args needed: auto-discovers repo root + all .agents/skills/*/references/*.md
 
+      - name: Documentation assertions
+        run: |
+          # CHANGELOG must have exactly one [Unreleased]
+          count=$(grep -cE '^## \[Unreleased\]' CHANGELOG.md)
+          [ "$count" -eq 1 ] || { echo "::error::Found $count [Unreleased] sections (expected 1)"; exit 1; }
+          # No stale module counts in core docs
+          grep -rnE '\b(28|48|49)\s*(go\.mod|modules)' --include='*.md' \
+            README.md AGENTS.md FEATURES.md CONTRIBUTING.md docs/README.md \
+            docs/v4-WISHLIST.md ROADMAP.md TODO_LIST.md 2>/dev/null \
+            | grep -v 'archive/' && { echo "::error::Stale module count in docs"; exit 1; } || true
+          # License must match
+          head -1 LICENSE | grep -qi proprietary && \
+            grep -qi proprietary README.md || { echo "::error::License mismatch"; exit 1; }
+          echo "All doc assertions passed"
+
       - name: Generate coverage
         run: nix run .#coverage
 

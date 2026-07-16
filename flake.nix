@@ -320,6 +320,17 @@
               ${pkgs.gitleaks}/bin/gitleaks detect --source . --no-banner --no-git
               echo "==> Secret scan complete"
             '';
+
+            verify = mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash ] ''
+              ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
+              echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
+              echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
+              echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 && \
+              echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 && \
+              echo "=== Lint ===" && nix run .#lint && \
+              echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md) && \
+              echo "✅ All verification checks passed"
+            '';
           };
         };
     };
