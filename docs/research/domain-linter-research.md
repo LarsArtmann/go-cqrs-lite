@@ -10,19 +10,20 @@
 ## Table of Contents
 
 1. [Executive Summary](#1-executive-summary)
-2. [Architecture Options](#2-architecture-options)
-3. [Rule Catalog](#3-rule-catalog)
-4. [Detection Logic](#4-detection-logic)
-5. [False-Positive Mitigation](#5-false-positive-mitigation)
-6. [Auto-Fix Capabilities](#6-auto-fix-capabilities)
-7. [Recommendation Engine](#7-recommendation-engine)
-8. [Test Fixture Strategy](#8-test-fixture-strategy)
-9. [Performance and Caching](#9-performance-and-caching)
-10. [Implementation Blueprint](#10-implementation-blueprint)
-11. [Priority Matrix](#11-priority-matrix)
-12. Appendix A: Issues by Project
-13. Appendix B: Library Improvement Feedforward
-14. Appendix C: Pipeline Architecture Diagram
+2. [End-User Perspective](#2-end-user-perspective)
+3. [Architecture Options](#3-architecture-options)
+4. [Rule Catalog](#4-rule-catalog)
+5. [Detection Logic](#5-detection-logic)
+6. [False-Positive Mitigation](#6-false-positive-mitigation)
+7. [Auto-Fix Capabilities](#7-auto-fix-capabilities)
+8. [Recommendation Engine](#8-recommendation-engine)
+9. [Test Fixture Strategy](#9-test-fixture-strategy)
+10. [Performance and Caching](#10-performance-and-caching)
+11. [Implementation Blueprint](#11-implementation-blueprint)
+12. [Priority Matrix](#12-priority-matrix)
+13. Appendix A: Issues by Project
+14. Appendix B: Library Improvement Feedforward
+15. Appendix C: Pipeline Architecture Diagram
 
 ---
 
@@ -43,7 +44,148 @@ The linter should be built as a **standalone tool** using the `go-structure-lint
 
 ---
 
-## 2. Architecture Options
+## 2. End-User Perspective
+
+This section describes what the linter does from the perspective of a developer using `go-cqrs-lite` in their project. It is the product vision; sections 3+ cover the technical design.
+
+### 2.1 The Core Experience
+
+You run `cqrs-lint ./...` against your Go codebase. It tells you **which bugs you have, which APIs you're misusing, and which boilerplate you're repeating** — with file:line precision.
+
+Example output for a project with issues:
+
+```
+internal/cqrs/commands.go:30  C002  CRITICAL  Command ID() returns zero value — breaks idempotency + tracing
+internal/cqrs/commands.go:18  A001  HIGH      Manual command interface — embed *command.BasicCommand instead
+internal/cqrs/decide.go:62    C007  MEDIUM    time.Now() inside decider — non-deterministic, untestable
+internal/cqrs/events.go:28    D004  LOW       snake_case JSON keys — other payloads use camelCase
+
+Health Score: 72/100 (Good)
+```
+
+### 2.2 Three Layers of Value
+
+#### Layer 1: It catches bugs you cannot see
+
+The **correctness rules** (C001-C012) find real bugs that cause silent failures. These are structural patterns, not logic errors — you would not find them by reading your own code:
+
+- **Silent data loss** — your transaction wrapper returns `nil` instead of `tx.Commit()`, so writes that do not explicitly commit vanish with no error.
+- **Broken idempotency** — your `ID()` returns a zero value, so duplicate commands are not detected and the same operation executes twice.
+- **Corrupt stream blindness** — your fold function silently ignores unknown event types, so a corrupted event stream looks healthy.
+- **Checkpoint races** — your projection enqueues async work and returns nil, so the checkpoint advances before the work completes. A crash means permanent data loss.
+
+These rules justify the linter's existence. They find the bugs your code review misses.
+
+#### Layer 2: It tells you you are using the library wrong
+
+The **API misuse rules** (A001-A020) catch patterns where you are working _against_ the library instead of _with_ it:
+
+- You manually implement `Type()/AggregateID()/ID()` on every command when embedding `*command.BasicCommand` gives you all three for free.
+- You call `event.NewEvent(type, id, aggType, ver, json.Marshal(payload))` when `event.New(type, id, aggType, ver, payload)` auto-marshals.
+- You build a custom projection runner with `bus.SubscribeAll` + manual switch when `projectionhost.Host` gives you checkpoint persistence, dead-letter queues, and crash recovery.
+- You have duplicated the library's type system (`types.AggregateID string` alongside `id.AggregateID`).
+
+#### Layer 3: It eliminates repetitive boilerplate
+
+The **boilerplate rules** (B001-B015) notice you have written the same helper function that every other consumer also writes:
+
+- That `singleEvent()` / `makeEvent()` / `mustMarshal()` function in your decide file — every project has one. The linter flags it and suggests the library should provide `event.Single(...)`.
+- Your 200-line repository wiring function that calls `NewSQLiteEventStore` + `NewEventBus` + `NewRepository` in sequence — the `stack/sqlite` preset does this in one call.
+
+### 2.3 Auto-Fix: It Does Not Just Complain, It Fixes
+
+```bash
+cqrs-lint --fix --dry-run ./...
+```
+
+Shows a diff of what it would change:
+
+```diff
+- event.Version(version.Int()+1)
++ version.Increment()
+```
+
+```diff
+- var p MyPayload
+- json.Unmarshal(evt.Payload(), &p)
++ p, err := event.DecodePayloadAuto[MyPayload](evt)
++ if err != nil {
++     return fmt.Errorf("decode payload: %w", err)
++ }
+```
+
+```bash
+cqrs-lint --fix ./...
+```
+
+Applies the fixes, runs `go build`, and if anything breaks, **rolls everything back automatically**.
+
+18 of the 47 rules are auto-fixable. Safe fixes (add error handling, use `.Increment()`) apply silently. Risky fixes (restructure command types to embed `BasicCommand`) require confirmation.
+
+### 2.4 Suppression: When the Linter Is Wrong
+
+```go
+//cqrs-lint:ignore(C007) wall-clock is domain logic
+now := time.Now()
+```
+
+The linter respects `//cqrs-lint:ignore(rule-id) reason` comments, `.cqrs-lint.yml` config for package-level exclusions, and per-rule severity overrides. Every finding carries a confidence level (High/Medium/Low) so you can filter noisy rules with `--min-confidence high`.
+
+### 2.5 CI Integration
+
+```yaml
+# .github/workflows/lint.yml
+- run: cqrs-lint --format sarif ./... > results.sarif
+- uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: results.sarif
+```
+
+Findings appear as GitHub PR annotations directly on the offending lines.
+
+### 2.6 Pre-Commit Hook
+
+```bash
+cqrs-lint --fast ./...
+```
+
+Runs only the 4-5 Critical/High correctness rules. Completes in 1-2 seconds. Blocks the commit if there is a real bug.
+
+### 2.7 Health Score
+
+```bash
+cqrs-lint --health-score ./...
+```
+
+```
+Score: 72/100 (Good)
+
+Breakdown:
+  -20  2x Critical (C002 broken command ID)
+   -5  1x High (A001 manual command interface)
+   -2  1x Medium (C007 time.Now in decider)
+   -1  1x Low (D004 inconsistent casing)
+
+Compare: crush-daily 100, bank-sync 100, SBTS 25
+```
+
+Gives you a single number to track improvement over time. Projects below 50 need systematic refactoring.
+
+### 2.8 Summary
+
+| What                           | How                                                        |
+| ------------------------------ | ---------------------------------------------------------- |
+| **Catches silent bugs**        | 12 correctness rules (data loss, idempotency, corruption)  |
+| **Fixes API misuse**           | 20 API rules (wrong function, wrong pattern, anti-pattern) |
+| **Eliminates boilerplate**     | 15 boilerplate rules (repetitive code, missing helpers)    |
+| **Auto-fixes 18 rules**        | With compile-check and automatic rollback                  |
+| **Suppresses false positives** | Inline comments + config file + confidence scoring         |
+| **Integrates with CI**         | SARIF output for GitHub, fast mode for pre-commit          |
+| **Tracks progress**            | Health score per project                                   |
+
+---
+
+## 3. Architecture Options
 
 ### Option A: `go/analysis` Plugin (golangci-lint integration)
 
@@ -107,13 +249,13 @@ This gives us:
 - `pkg.Types` — the `*types.Package` for cross-referencing
 - `pkg.Imports` — imported packages (to check which go-cqrs-lite modules are used)
 
-All AST inspection builds on the patterns already proven in `cqrs-gen` (see Section 4).
+All AST inspection builds on the patterns already proven in `cqrs-gen` (see Section 5).
 
 ---
 
-## 3. Rule Catalog
+## 4. Rule Catalog
 
-### 3.1 Category 1: Correctness (Bug Detection) - 12 rules
+### 4.1 Category 1: Correctness (Bug Detection) - 12 rules
 
 These rules detect bugs that cause silent data loss, broken idempotency, or incorrect behavior.
 
@@ -651,7 +793,7 @@ case eventCreated:
 
 ---
 
-### 3.2 Category 2: API Misuse - 20 rules
+### 4.2 Category 2: API Misuse - 20 rules
 
 These rules detect incorrect use of go-cqrs-lite APIs.
 
@@ -943,7 +1085,7 @@ type CreateItemCmd struct {
 
 ---
 
-### 3.3 Category 3: Boilerplate Detection - 15 rules
+### 4.3 Category 3: Boilerplate Detection - 15 rules
 
 These rules detect repetitive code that could be replaced by library helpers or code generation.
 
@@ -1027,7 +1169,7 @@ Or functions calling event.New/event.NewEvent where the return wraps to []event.
 
 ---
 
-### 3.4 Category 4: Consistency - 5 rules
+### 4.4 Category 4: Consistency - 5 rules
 
 | ID   | Rule                             | Severity      | Auto-Fix | Description                                                                              |
 | ---- | -------------------------------- | ------------- | -------- | ---------------------------------------------------------------------------------------- |
@@ -1069,7 +1211,7 @@ Or functions calling event.New/event.NewEvent where the return wraps to []event.
 
 ---
 
-### 3.5 Category 5: Architecture - 7 rules
+### 4.5 Category 5: Architecture - 7 rules
 
 | ID   | Rule                        | Severity | Auto-Fix | Description                                                             |
 | ---- | --------------------------- | -------- | -------- | ----------------------------------------------------------------------- |
@@ -1125,7 +1267,7 @@ Or functions calling event.New/event.NewEvent where the return wraps to []event.
 
 ---
 
-### 3.6 Category 6: Security - 3 rules
+### 4.6 Category 6: Security - 3 rules
 
 | ID   | Rule                                        | Severity | Auto-Fix | Description                                                                             |
 | ---- | ------------------------------------------- | -------- | -------- | --------------------------------------------------------------------------------------- |
@@ -1153,9 +1295,9 @@ Or functions calling event.New/event.NewEvent where the return wraps to []event.
 
 ---
 
-## 4. Detection Logic
+## 5. Detection Logic
 
-### 4.1 Three Analysis Layers
+### 5.1 Three Analysis Layers
 
 The linter operates at three levels, each building on the previous:
 
@@ -1272,7 +1414,7 @@ Using filesystem analysis (from `go-structure-linter`):
 - Whether `projectionhost` is imported (for A005 rule)
 - Whether `stack/` is imported (for A009 rule)
 
-### 4.2 CQRS Type Registry
+### 5.2 CQRS Type Registry
 
 The linter builds a registry of all CQRS types in one pass, shared across all rules:
 
@@ -1343,7 +1485,7 @@ func BuildRegistry(pkgs []*packages.Package) *CQRSRegistry {
 }
 ```
 
-### 4.3 Rule Implementation Pattern
+### 5.3 Rule Implementation Pattern
 
 Each rule receives the pre-built registry + raw AST access:
 
@@ -1372,7 +1514,7 @@ type Issue struct {
 }
 ```
 
-### 4.4 Generated Code Detection
+### 5.4 Generated Code Detection
 
 The linter skips generated files to avoid false positives from `cqrs-gen` output:
 
@@ -1406,9 +1548,9 @@ func isGeneratedFile(path string, file *ast.File) bool {
 
 ---
 
-## 5. False-Positive Mitigation
+## 6. False-Positive Mitigation
 
-### 5.1 Suppression Comments
+### 6.1 Suppression Comments
 
 Standard suppression syntax:
 
@@ -1447,7 +1589,7 @@ func MustNewRepository(...) *Repository {
 }
 ```
 
-### 5.2 File-Level and Package-Level Suppression
+### 6.2 File-Level and Package-Level Suppression
 
 ```go
 //cqrs-lint:ignore-file(A018) command-bus pattern only, no event sourcing intended
@@ -1464,7 +1606,7 @@ ignore:
       - "**/*_time_test.go" # time-dependent tests
 ```
 
-### 5.3 Confidence Scoring
+### 6.3 Confidence Scoring
 
 Every issue carries a Confidence level. Rules with Low confidence (C007, C011, A011, A012, A016, A017) have inherent ambiguity. The linter should:
 
@@ -1472,7 +1614,7 @@ Every issue carries a Confidence level. Rules with Low confidence (C007, C011, A
 2. In CI mode (`--ci`), only report Medium+ confidence
 3. In the console output, visually distinguish confidence levels
 
-### 5.4 Per-Rule Severity Override
+### 6.4 Per-Rule Severity Override
 
 Users can override severity per rule in `.cqrs-lint.yml`:
 
@@ -1484,9 +1626,9 @@ severity:
 
 ---
 
-## 6. Auto-Fix Capabilities
+## 7. Auto-Fix Capabilities
 
-### 6.1 Auto-Fixable Rules (18 rules)
+### 7.1 Auto-Fixable Rules (18 rules)
 
 | Rule      | Auto-Fix Description                                          | Risk Level | Confidence |
 | --------- | ------------------------------------------------------------- | ---------- | ---------- |
@@ -1507,7 +1649,7 @@ severity:
 | B011/B012 | Replace `mustMarshal`/`makeEvent` with library helper         | Low        | High       |
 | E004      | Add missing catalog entries                                   | Low        | High       |
 
-### 6.2 Auto-Fix Safety Model
+### 7.2 Auto-Fix Safety Model
 
 Following the `go-structure-linter` `FixableRule` pattern:
 
@@ -1527,7 +1669,7 @@ type FixableRule interface {
 | **Moderate** | Modifies code patterns     | C005, C006, A002, A003                     | Compile-check             |
 | **Risky**    | Restructures types         | C002, A001, A004                           | Compile-check + `--force` |
 
-### 6.3 Fix Transaction
+### 7.3 Fix Transaction
 
 All fixes are transactional — if any fix breaks compilation, ALL fixes in the batch are rolled back:
 
@@ -1570,7 +1712,7 @@ func (t *FixTransaction) Rollback() error {
 }
 ```
 
-### 6.4 Concrete Auto-Fix Example: C006
+### 7.4 Concrete Auto-Fix Example: C006
 
 ```go
 func (r *ManualVersionArithmeticRule) ApplyFix(
@@ -1595,11 +1737,11 @@ func (r *ManualVersionArithmeticRule) ApplyFix(
 
 ---
 
-## 7. Recommendation Engine
+## 8. Recommendation Engine
 
 Beyond finding violations, the linter provides actionable recommendations.
 
-### 7.1 Pattern Recommendations
+### 8.1 Pattern Recommendations
 
 | Trigger                                            | Recommendation                                            | Priority |
 | -------------------------------------------------- | --------------------------------------------------------- | -------- |
@@ -1616,7 +1758,7 @@ Beyond finding violations, the linter provides actionable recommendations.
 | No OTel middleware                                 | Add `middleware.NewOTelBundle(tracer, meter)`             | Low      |
 | Event payload with sensitive fields, no encryption | Add `encryption.EncryptMiddleware`                        | High     |
 
-### 7.2 Health Score
+### 8.2 Health Score
 
 ```
 Score = 100
@@ -1636,7 +1778,7 @@ Minimum score: 0
 | 50-69       | Needs Attention | Address High+ issues first  |
 | 0-49        | Critical        | Systemic refactoring needed |
 
-### 7.3 Migration Path Suggestions
+### 8.3 Migration Path Suggestions
 
 For projects with systemic issues, the linter generates a step-by-step plan:
 
@@ -1674,9 +1816,9 @@ For projects with systemic issues, the linter generates a step-by-step plan:
 
 ---
 
-## 8. Test Fixture Strategy
+## 9. Test Fixture Strategy
 
-### 8.1 Fixture Format
+### 9.1 Fixture Format
 
 Each rule has a test fixture directory:
 
@@ -1694,7 +1836,7 @@ testdata/
   ...
 ```
 
-### 8.2 Fixture Example: C006
+### 9.2 Fixture Example: C006
 
 **`testdata/C006_manual-version-arithmetic/bad.go`:**
 
@@ -1740,7 +1882,7 @@ func createEvent(version event.Version) {
 ]
 ```
 
-### 8.3 Test Runner
+### 9.3 Test Runner
 
 ```go
 func TestRules(t *testing.T) {
@@ -1766,7 +1908,7 @@ func TestRules(t *testing.T) {
 }
 ```
 
-### 8.4 False-Positive Test Fixtures
+### 9.4 False-Positive Test Fixtures
 
 Each rule also has a `false_positive/` subdirectory to verify it doesn't flag legitimate patterns:
 
@@ -1781,9 +1923,9 @@ testdata/C007_time-now-in-decider/
 
 ---
 
-## 9. Performance and Caching
+## 10. Performance and Caching
 
-### 9.1 Package Loading Strategy
+### 10.1 Package Loading Strategy
 
 `packages.Load` is the expensive step. For a 900-file project like Kernovia:
 
@@ -1800,7 +1942,7 @@ Incremental:  Only changed packages              ~0.5-1 second
 3. On subsequent runs, only re-parse changed files
 4. For CI (fresh checkout), no cache — full load is acceptable
 
-### 9.2 Parallel Rule Execution
+### 10.2 Parallel Rule Execution
 
 Using `go-finding/pipeline` (from `go-structure-linter`):
 
@@ -1816,7 +1958,7 @@ result := pipeline.New(cfg, projectPath, detectors...).Run(ctx)
 
 **Panic recovery:** Each rule runs in a goroutine with `recover()`. Panics are converted to synthetic high-severity findings: `"rule C007 panicked: <stack trace>"`.
 
-### 9.3 Fast Mode
+### 10.3 Fast Mode
 
 For pre-commit hooks, a `--fast` flag runs only Critical and High correctness rules:
 
@@ -1826,7 +1968,7 @@ Fast mode:     C001, C002, C003, C005     ~2 seconds (cold), ~1 second (warm)
 Health score:  Count violations only       ~2 seconds (cold), ~1 second (warm)
 ```
 
-### 9.4 Memory Budget
+### 10.4 Memory Budget
 
 For large projects, the AST + type info can consume significant memory. Strategy:
 
@@ -1836,9 +1978,9 @@ For large projects, the AST + type info can consume significant memory. Strategy
 
 ---
 
-## 10. Implementation Blueprint
+## 11. Implementation Blueprint
 
-### 10.1 Module Structure
+### 11.1 Module Structure
 
 ```
 cmd/cqrs-lint/
@@ -1878,7 +2020,7 @@ internal/
 testdata/                      # Test fixtures per rule
 ```
 
-### 10.2 Dependencies
+### 11.2 Dependencies
 
 ```
 golang.org/x/tools/go/packages     # Type-aware package loading
@@ -1889,7 +2031,7 @@ github.com/spf13/cobra             # CLI
 github.com/charmbracelet/fang      # CLI UX
 ```
 
-### 10.3 Integration Points
+### 11.3 Integration Points
 
 | Integration                 | How                                                                 | Priority |
 | --------------------------- | ------------------------------------------------------------------- | -------- |
@@ -1900,7 +2042,7 @@ github.com/charmbracelet/fang      # CLI UX
 | **Editor (LSP)**            | `cqrs-lint lsp` mode for real-time diagnostics                      | Phase 4  |
 | **CI on go-cqrs-lite repo** | Lint all 22 consumer projects on version bumps                      | Phase 3  |
 
-### 10.4 Execution Modes
+### 11.4 Execution Modes
 
 ```bash
 # Full analysis (all rules)
@@ -1937,7 +2079,7 @@ cqrs-lint --migration-plan --format json ./...
 cqrs-lint ./internal/domain/...
 ```
 
-### 10.5 Rule Configuration
+### 11.5 Rule Configuration
 
 ```yaml
 # .cqrs-lint.yml
@@ -1976,7 +2118,7 @@ fix:
 
 ---
 
-## 11. Priority Matrix
+## 12. Priority Matrix
 
 ### Phase 1: Critical Correctness Rules (MVP)
 
