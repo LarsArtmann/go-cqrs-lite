@@ -185,12 +185,13 @@ The C010 detector tries to match `fold.FuncName` against `fn.Name.Name`, but `Fu
 
 ### Immediate (blocks CI / correctness)
 
-1. **Split `correctness/rules.go` (756 lines) into one file per rule** — `c001.go`, `c002.go`, `c003.go`, etc. Move shared helpers to `helpers.go`.
-2. **Split `api/rules.go` (465 lines) into one file per rule** — `a001.go`, `a002.go`, etc.
-3. **Split `analyzer/builder.go` (412 lines)** — separate AST scanner from helper functions.
-4. **Fix suppression filter** — parse AST comments at the finding's line instead of checking Snippet.
-5. **Remove `_ = sel` dead code** in `api/rules.go`.
-6. **Fix C010 method-name matching** — use `funcName(fn)` instead of `fn.Name.Name`.
+1. **Migrate to cmdguard CLI** — replace 320 lines of hand-rolled flag parsing with cmdguard struct-tag flags. Decision made: YES, do this before building more features.
+2. **Split `correctness/rules.go` (756 lines) into one file per rule** — `c001.go`, `c002.go`, `c003.go`, etc. Move shared helpers to `helpers.go`.
+3. **Split `api/rules.go` (465 lines) into one file per rule** — `a001.go`, `a002.go`, etc.
+4. **Split `analyzer/builder.go` (412 lines)** — separate AST scanner from helper functions.
+5. **Fix suppression filter** — parse AST comments at the finding's line instead of checking Snippet.
+6. **Remove `_ = sel` dead code** in `api/rules.go`.
+7. **Fix C010 method-name matching** — use `funcName(fn)` instead of `fn.Name.Name`.
 
 ### Near-term (improves quality)
 
@@ -216,16 +217,17 @@ The C010 detector tries to match `fold.FuncName` against `fn.Name.Name`, but `Fu
 
 ## 7. Next 50 Things To Get Done
 
-### Splitting & CI fixes (Priority 1)
+### Splitting, cmdguard migration & CI fixes (Priority 1)
 
-1. Split `pkg/rules/correctness/rules.go` into `c001.go`, `c002.go`, `c003.go`, `c005.go`, `c006.go`, `c007.go`, `c008.go`, `c009.go`, `c010.go`, `c012.go`, `helpers.go`
-2. Split `pkg/rules/api/rules.go` into `a001.go` through `a008.go`
-3. Split `pkg/analyzer/builder.go` into `scanner.go` + `helpers.go`
-4. Fix suppression filter to parse AST comments at finding position
-5. Remove `_ = sel` dead code in `api/rules.go`
-6. Fix C010 method-name matching logic
-7. Run `nix fmt` on all new files
-8. Verify CI passes (`nix run .#build`)
+1. **Migrate CLI to cmdguard** — replace hand-rolled `main.go` flag parsing with cmdguard struct-tag flags, config file loading, doctor command, output format bridge
+2. Split `pkg/rules/correctness/rules.go` into `c001.go`, `c002.go`, `c003.go`, `c005.go`, `c006.go`, `c007.go`, `c008.go`, `c009.go`, `c010.go`, `c012.go`, `helpers.go`
+3. Split `pkg/rules/api/rules.go` into `a001.go` through `a008.go`
+4. Split `pkg/analyzer/builder.go` into `scanner.go` + `helpers.go`
+5. Fix suppression filter to parse AST comments at finding position
+6. Remove `_ = sel` dead code in `api/rules.go`
+7. Fix C010 method-name matching logic
+8. Run `nix fmt` on all new files
+9. Verify CI passes (`nix run .#build`)
 
 ### Missing rules (Priority 2)
 
@@ -280,23 +282,26 @@ The C010 detector tries to match `fold.FuncName` against `fn.Name.Name`, but `Fu
 
 ---
 
-## 8. Top 2 Questions
+## 8. Decisions Resolved
 
-### Q1: Should cqrs-lint be a separate Go module or a cmd/ subdirectory of go-cqrs-lite?
+### D1: cqrs-lint stays in go-cqrs-lite as `cmd/cqrs-lint`
 
-Currently it's `github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint` — a cmd subdirectory like cqrs-gen. But cqrs-lint is more than a code generator; it's a full analysis tool with its own package structure (`pkg/analyzer`, `pkg/rules/*`, `pkg/fix`, `pkg/suppression`). It also depends on go-finding and go-finding/pipeline, which none of the library modules depend on.
+**Decision:** Keep it in the monorepo. Despite having more package structure than cqrs-gen or doc-check, it belongs here because:
 
-Should it be broken out into its own repository (`github.com/larsartmann/cqrs-lint`) for cleaner dependency isolation? Or stay as a cmd to keep the analysis tooling versioned alongside the library it lints?
+- It lints go-cqrs-lite consumers — versioning must track the library
+- The library and linter evolve together (new rules fire on new API patterns)
+- No external consumers of cqrs-lint exist outside this ecosystem
 
-### Q2: The research doc designed for cmdguard CLI scaffolding but we hand-rolled the CLI. Should we migrate?
+### D2: Migrate CLI to cmdguard — YES
 
-The research doc (Section 4.4) specified using `cmdguard` for CLI scaffolding — struct-tag flags, config files, doctor command, output formats. The actual implementation hand-rolls CLI parsing in `main.go` (320 lines of flag parsing, switch statements, manual help text). This works but:
+**Decision:** The hand-rolled CLI in `main.go` (320 lines of manual flag parsing) must be replaced with `cmdguard`. The research doc (Section 4.4) already designed the exact integration. Benefits:
 
-- Missing: config file support, struct-tag validation, typo suggestions, automatic help generation
-- Risk: the hand-rolled CLI diverges from the research design intent
-- Tradeoff: migrating to cmdguard adds a dependency but eliminates ~200 lines of boilerplate
-
-Should we migrate now (before more features are built on the hand-rolled CLI) or keep the simple approach?
+- Eliminates ~200 lines of boilerplate flag/help/config code
+- Adds config file support (`.cqrs-lint.json`) for free
+- Adds doctor command, typo suggestions, automatic help generation
+- Adds output format integration via cmdguard's go-output bridge
+- Struct-tag flags are type-safe and validated at construction
+- This should be done **before** building more features on the hand-rolled CLI
 
 ---
 
