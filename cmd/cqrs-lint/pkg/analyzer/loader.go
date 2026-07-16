@@ -137,7 +137,27 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 		}
 	}
 
+	filterEventPayloads(ctx)
+
 	return ctx, nil
+}
+
+// filterEventPayloads removes structs from Registry.Events that are not
+// actual event payloads (i.e., not used as arguments to event.New/NewEvent).
+// scanGenDecl registers ALL structs; this post-pass keeps only real event payloads.
+func filterEventPayloads(ctx *AnalysisContext) {
+	if len(ctx.Registry.EventPayloadTypes) == 0 {
+		ctx.Registry.Events = nil
+		return
+	}
+
+	filtered := ctx.Registry.Events[:0]
+	for _, evt := range ctx.Registry.Events {
+		if ctx.Registry.EventPayloadTypes[evt.Name] {
+			filtered = append(filtered, evt)
+		}
+	}
+	ctx.Registry.Events = filtered
 }
 
 // BuildContextFromPackages creates an AnalysisContext from pre-loaded packages.

@@ -16,6 +16,8 @@ type CQRSRegistry struct {
 	EventTypesInCatalog map[string]bool
 	// CommandTypesRegistered tracks command types registered via RegisterTyped.
 	CommandTypesRegistered map[string]bool
+	// EventPayloadTypes tracks struct type names used as payload args to event.New().
+	EventPayloadTypes map[string]bool
 }
 
 // NewCQRSRegistry creates an empty registry.
@@ -24,6 +26,7 @@ func NewCQRSRegistry() *CQRSRegistry {
 		EventTypesEmitted:      make(map[string]string),
 		EventTypesInCatalog:    make(map[string]bool),
 		CommandTypesRegistered: make(map[string]bool),
+		EventPayloadTypes:      make(map[string]bool),
 	}
 }
 
