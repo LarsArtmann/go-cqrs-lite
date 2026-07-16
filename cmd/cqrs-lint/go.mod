@@ -3,9 +3,9 @@ module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint
 go 1.26.4
 
 require (
-	github.com/larsartmann/cmdguard/v3 v3.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-finding v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/cmdguard/v3 v3.0.0
+	github.com/larsartmann/go-finding v1.2.0
+	github.com/larsartmann/go-finding/pipeline v0.1.0
 	github.com/larsartmann/go-output v0.30.4
 	github.com/larsartmann/go-output/table v0.30.4
 	github.com/spf13/cobra v1.10.2
@@ -66,10 +66,4 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
-)
-
-replace (
-	github.com/larsartmann/cmdguard/v3 => ../../../cmdguard
-	github.com/larsartmann/go-finding => ../../../go-finding
-	github.com/larsartmann/go-finding/pipeline => ../../../go-finding/pipeline
 )
