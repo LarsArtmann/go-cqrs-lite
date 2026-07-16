@@ -19,6 +19,44 @@ func TestC004_NoFindingWithoutProjections(t *testing.T) {
 	assertRule(t, findings, "C004", 0)
 }
 
+func TestC004_DetectsAsyncProjection(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"proj.go": `package main
+
+import "projection"
+
+func setup() {
+	p := projection.NewProjection("users", func(evt Event) error {
+		go processAsync(evt)
+		return nil
+	}, nil)
+	_ = p
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC004Detector(ctx))
+	assertRule(t, findings, "C004", 1)
+}
+
+func TestC004_NoFindingOnSyncProjection(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"proj.go": `package main
+
+import "projection"
+
+func setup() {
+	p := projection.NewProjection("users", func(evt Event) error {
+		processSync(evt)
+		return nil
+	}, nil)
+	_ = p
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC004Detector(ctx))
+	assertRule(t, findings, "C004", 0)
+}
+
 // --- C011: Nondeterministic decider ---
 
 func TestC011_DetectsRandInDecider(t *testing.T) {

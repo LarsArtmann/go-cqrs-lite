@@ -115,6 +115,11 @@ func scanProjectionRegistration(ctx *AnalysisContext, gf *GoFile, call *ast.Call
 				}
 			}
 		}
+
+		// Check if any handler argument is a function literal that launches goroutines.
+		if fn := extractHandlerFuncLit(arg); fn != nil {
+			info.HasAsync = hasAsyncInBody(fn.Body)
+		}
 	}
 
 	ctx.Registry.Projections = append(ctx.Registry.Projections, info)
@@ -151,4 +156,32 @@ func scanProjectionSubscription(
 			EventTypes: []string{eventTypeStr},
 		})
 	}
+}
+
+// extractHandlerFuncLit unwraps function literal arguments (closure handlers).
+func extractHandlerFuncLit(expr ast.Expr) *ast.FuncLit {
+	if fn, ok := expr.(*ast.FuncLit); ok {
+		return fn
+	}
+
+	return nil
+}
+
+// hasAsyncInBody checks if a function body contains a go statement (goroutine launch).
+func hasAsyncInBody(body *ast.BlockStmt) bool {
+	if body == nil {
+		return false
+	}
+
+	hasGo := false
+
+	ast.Inspect(body, func(n ast.Node) bool {
+		if _, ok := n.(*ast.GoStmt); ok {
+			hasGo = true
+			return false
+		}
+		return true
+	})
+
+	return hasGo
 }
