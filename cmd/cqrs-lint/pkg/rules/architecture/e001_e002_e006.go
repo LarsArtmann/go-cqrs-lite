@@ -82,23 +82,59 @@ func NewE001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // E002: Circular dependency.
-// Detects two go-cqrs-lite modules importing each other.
+// Detects packages in the analyzed project that import each other.
 func NewE002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"E002-circular-dependency",
 		func(_ context.Context) ([]finding.Finding, error) {
-			return nil, nil
-		},
-	)
-}
+			var findings []finding.Finding
 
-// E003: Missing module boundary.
-// Detects all CQRS code in one package without internal/ boundaries.
-func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
-	return finding.NamedDetectorFunc(
-		"E003-missing-module-boundary",
-		func(_ context.Context) ([]finding.Finding, error) {
-			return nil, nil
+			seen := make(map[string]bool)
+
+			for _, pkg := range ctx.Packages {
+				if pkg.PkgPath == "" {
+					continue
+				}
+
+				for _, imp := range pkg.Imports {
+					if imp == nil || imp.PkgPath == "" {
+						continue
+					}
+
+					for _, reversePkg := range ctx.Packages {
+						if reversePkg.PkgPath != imp.PkgPath {
+							continue
+						}
+
+						for _, reverseImp := range reversePkg.Imports {
+							if reverseImp != nil && reverseImp.PkgPath == pkg.PkgPath {
+								key := pkg.PkgPath + " <-> " + imp.PkgPath
+								if seen[key] || seen[imp.PkgPath+" <-> "+pkg.PkgPath] {
+									continue
+								}
+
+								seen[key] = true
+
+								f, err := finding.NewBuilder(
+									"E002", toolName,
+									fmt.Sprintf("Circular dependency: %s ↔ %s", pkg.PkgPath, imp.PkgPath),
+									finding.SeverityError,
+									finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
+								).
+									WithCategory(finding.CategoryStructure).
+									WithConfidence(finding.ConfidenceHigh).
+									WithSuggestion("Break the cycle by extracting shared code into a third package").
+									Build()
+								if err == nil {
+									findings = append(findings, f)
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return findings, nil
 		},
 	)
 }
@@ -145,17 +181,6 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			return findings, nil
-		},
-	)
-}
-
-// E007: Query without handler.
-// Detects query types defined but never registered with a dispatcher.
-func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
-	return finding.NamedDetectorFunc(
-		"E007-query-without-handler",
-		func(_ context.Context) ([]finding.Finding, error) {
-			return nil, nil
 		},
 	)
 }

@@ -14,7 +14,7 @@ type RuleInfo struct {
 // AllRules returns metadata for all available rules.
 
 func AllRules() []RuleInfo {
-	return append(coreRules(), extraRules()...)
+	return append(append(coreRules(), extraRules()...), extraRulesNew()...)
 }
 
 func coreRules() []RuleInfo {

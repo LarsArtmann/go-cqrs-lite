@@ -89,6 +89,7 @@
             "stack/turso"
             "stack/bench"
             "cmd/cqrs-gen"
+            "cmd/cqrs-lint"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 

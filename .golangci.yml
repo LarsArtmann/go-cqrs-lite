@@ -155,6 +155,7 @@ linters:
             - go/ast
             - go/parser
             - go/token
+            - go/types
             - golang.org/x/tools
             - golang.org/x/crypto
             - golang.org/x/sync
@@ -164,6 +165,33 @@ linters:
             - github.com/jackc/pgx
             - google.golang.org/grpc
             - google.golang.org/protobuf
+            # cqrs-lint tooling dependencies (cmd/cqrs-lint module)
+            - github.com/larsartmann/go-finding
+            - github.com/larsartmann/cmdguard
+            - github.com/spf13/cobra
+            - github.com/spf13/pflag
+            - charm.land
+            - github.com/charmbracelet
+            - github.com/samber/do
+            - github.com/samber/go-type-to-string
+            - github.com/larsartmann/go-output
+            - github.com/LarsArtmann/gogenfilter
+            - github.com/a-h/templ
+            - github.com/bmatcuk/doublestar
+            - github.com/clipperhouse
+            - github.com/lucasb-eyer/go-colorful
+            - github.com/mattn/go-runewidth
+            - github.com/muesli
+            - github.com/pelletier/go-toml
+            - github.com/rivo/uniseg
+            - github.com/segmentio/asm
+            - github.com/xo/terminfo
+            - go.uber.org/multierr
+            - github.com/inconshreveable/mousetrap
+            - golang.org/x/mod
+            - golang.org/x/term
+            - golang.org/x/text
+            - golang.org/x/sys
     exhaustruct:
       exclude:
         - os/exec.Cmd
@@ -434,6 +462,22 @@ linters:
           - dupword
           - forbidigo
           - gosec
+      - path: cmd/cqrs-lint/
+        linters:
+          - exhaustruct
+          - funlen
+          - gocognit
+          - goconst
+          - godoclint
+          - gosec
+          - mnd
+          - nestif
+          - nonamedreturns
+          - varnamelen
+          - wrapcheck
+          - forbidigo
+          - wsl_v5
+          - nlreturn
       - path: watermill/
         linters:
           - wsl_v5

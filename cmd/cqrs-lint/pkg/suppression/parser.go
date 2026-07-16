@@ -38,7 +38,7 @@ func (c *lineCache) getLines(path string) []string {
 
 		return nil
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var lines []string
 

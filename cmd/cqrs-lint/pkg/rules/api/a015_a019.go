@@ -37,9 +37,15 @@ func NewA015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 
 						name := vs.Names[0].Name
-						if !strings.Contains(strings.ToLower(name), "cache") &&
-							!strings.Contains(strings.ToLower(name), "registry") &&
-							!strings.Contains(strings.ToLower(name), "instance") {
+						lower := strings.ToLower(name)
+
+						if strings.HasPrefix(name, "Err") || strings.HasPrefix(name, "Sentinel") {
+							continue
+						}
+
+						if !strings.Contains(lower, "cache") &&
+							!strings.Contains(lower, "registry") &&
+							!strings.Contains(lower, "instance") {
 							continue
 						}
 

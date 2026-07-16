@@ -1,6 +1,7 @@
 package suppression_test
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -36,7 +37,7 @@ func TestNewSuppressionFilter_MarksSuppressedFindings(t *testing.T) {
 		WithSnippet("//cqrs-lint:ignore(C007) wall-clock is domain logic\nnow := time.Now()").
 		Build()
 
-	out, err := filter.Transform(nil, []finding.Finding{f})
+	out, err := filter.Transform(context.TODO(), []finding.Finding{f})
 	if err != nil {
 		t.Fatalf("Transform() error: %v", err)
 	}
@@ -56,7 +57,7 @@ func TestNewSuppressionFilter_DoesNotMarkUnsuppressed(t *testing.T) {
 		finding.SeverityWarning, finding.Pos("test.go", 5, 1),
 	).Build()
 
-	out, err := filter.Transform(nil, []finding.Finding{f})
+	out, err := filter.Transform(context.TODO(), []finding.Finding{f})
 	if err != nil {
 		t.Fatalf("Transform() error: %v", err)
 	}
@@ -93,7 +94,7 @@ func fold() {
 		finding.SeverityWarning, finding.Pos(finding.FilePath(filePath), 7, 2),
 	).Build()
 
-	out, err := filter.Transform(nil, []finding.Finding{f})
+	out, err := filter.Transform(context.TODO(), []finding.Finding{f})
 	if err != nil {
 		t.Fatalf("Transform() error: %v", err)
 	}

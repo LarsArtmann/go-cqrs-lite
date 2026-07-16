@@ -2,6 +2,7 @@ package api
 
 import (
 	"go/ast"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
@@ -44,4 +45,33 @@ func baseTypeName(expr ast.Expr) string {
 	}
 
 	return ""
+}
+
+func selectorPackage(sel *ast.SelectorExpr) string {
+	if ident, ok := sel.X.(*ast.Ident); ok {
+		return ident.Name
+	}
+
+	return ""
+}
+
+func extractJSONTag(tag string) string {
+	idx := strings.Index(tag, `json:"`)
+	if idx < 0 {
+		return ""
+	}
+
+	start := idx + len(`json:"`)
+
+	end := strings.Index(tag[start:], `"`)
+	if end < 0 {
+		return ""
+	}
+
+	value := tag[start : start+end]
+	if comma := strings.Index(value, ","); comma >= 0 {
+		value = value[:comma]
+	}
+
+	return value
 }

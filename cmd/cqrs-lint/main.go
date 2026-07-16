@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -21,6 +22,10 @@ import (
 )
 
 const version = "0.1.0"
+
+// errFindingsWithErrors signals that error-severity findings were found.
+// Returned from run() so cmdguard sets a non-zero exit code.
+var errFindingsWithErrors = errors.New("findings with error severity")
 
 // AppConfig holds all CLI configuration via cmdguard struct tags.
 type AppConfig struct {
@@ -79,52 +84,12 @@ func main() {
 		}
 
 		cfg.Path = absPath
-		ctx := cmd.Context()
 
-		return run(ctx, cfg)
+		return run(cmd.Context(), cfg)
 	}
 
-	rulesCmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
-		"rules",
-		cmdguard.NoFlags{},
-		func(_ context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
-			fmt.Print(rules.ListRules())
-
-			return nil
-		},
-		cmdguard.WithShort("List all available rules"),
-		cmdguard.WithNoArgs(),
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating rules command: %v\n", err)
-		os.Exit(1)
-	}
-
-	if err := cmdguard.AddCommand(cli, rulesCmd); err != nil {
-		fmt.Fprintf(os.Stderr, "Error adding rules command: %v\n", err)
-		os.Exit(1)
-	}
-
-	versionCmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
-		"version",
-		cmdguard.NoFlags{},
-		func(_ context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
-			fmt.Printf("cqrs-lint %s\n", version)
-
-			return nil
-		},
-		cmdguard.WithShort("Print version"),
-		cmdguard.WithNoArgs(),
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating version command: %v\n", err)
-		os.Exit(1)
-	}
-
-	if err := cmdguard.AddCommand(cli, versionCmd); err != nil {
-		fmt.Fprintf(os.Stderr, "Error adding version command: %v\n", err)
-		os.Exit(1)
-	}
+	setupRulesCommand(cli)
+	setupVersionCommand(cli)
 
 	ctx := context.Background()
 	cli.ExecuteAndExit(ctx)
@@ -202,14 +167,22 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		)
 	}
 
-	if err := outputFindings(activeFindings, cfg); err != nil {
+	if err := outputFindings(ctx, activeFindings, cfg); err != nil {
 		return fmt.Errorf("output: %w", err)
 	}
 
+	hasErrors := false
+
 	for _, f := range activeFindings {
 		if f.Severity >= finding.SeverityError {
-			os.Exit(1)
+			hasErrors = true
+
+			break
 		}
+	}
+
+	if hasErrors {
+		return errFindingsWithErrors
 	}
 
 	return nil
@@ -298,7 +271,7 @@ func parseConfidence(s string) finding.Confidence {
 	}
 }
 
-func outputFindings(findings []finding.Finding, cfg *AppConfig) error {
+func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppConfig) error {
 	report := finding.NewReport(finding.ToolInfo{Name: "cqrs-lint", Version: version})
 	report.AddFindings(findings)
 
@@ -312,7 +285,7 @@ func outputFindings(findings []finding.Finding, cfg *AppConfig) error {
 		fmt.Println(json)
 
 	case "sarif":
-		err := report.WriteSARIF(context.Background(), os.Stdout)
+		err := report.WriteSARIF(ctx, os.Stdout)
 		if err != nil {
 			return err
 		}

@@ -1,0 +1,190 @@
+package boilerplate
+
+import (
+	"context"
+	"fmt"
+	"go/ast"
+	"go/token"
+	"strings"
+
+	"github.com/larsartmann/go-finding"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+)
+
+// B006: Duplicate foreign-key stub SQL.
+// Detects repeated string literals containing SQL REFERENCES clauses
+// that are copy-pasted instead of centralized.
+func NewB006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
+	return finding.NamedDetectorFunc(
+		"B006-duplicate-fk-stub-sql",
+		func(_ context.Context) ([]finding.Finding, error) {
+			fkCounts := make(map[string]int)
+			fkPositions := make(map[string]token.Position)
+
+			for _, gf := range ctx.GoFiles {
+				if gf.IsTest {
+					continue
+				}
+
+				ast.Inspect(gf.AST, func(n ast.Node) bool {
+					lit, ok := n.(*ast.BasicLit)
+					if !ok || lit.Kind != token.STRING {
+						return true
+					}
+
+					val := strings.ToUpper(strings.Trim(lit.Value, "\"`'"))
+					if !strings.Contains(val, "REFERENCES") {
+						return true
+					}
+
+					fkCounts[val]++
+					if fkCounts[val] == 1 {
+						fkPositions[val] = ctx.Fset.Position(lit.Pos())
+					}
+
+					return true
+				})
+			}
+
+			var findings []finding.Finding
+
+			for sql, count := range fkCounts {
+				if count < 2 {
+					continue
+				}
+
+				pos := fkPositions[sql]
+
+				preview := sql
+				if len(preview) > 60 {
+					preview = preview[:60] + "..."
+				}
+
+				f, err := finding.NewBuilder(
+					"B006",
+					toolName,
+					fmt.Sprintf(
+						"Foreign-key SQL duplicated %d times: %q — centralize as a shared constant",
+						count,
+						preview,
+					),
+					finding.SeverityInfo,
+					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+				).
+					WithCategory(finding.CategoryBestPractice).
+					WithConfidence(finding.ConfidenceHigh).
+					WithSuggestion("Extract FK SQL into a shared constant or migration helper").
+					Build()
+				if err != nil {
+					continue
+				}
+
+				findings = append(findings, f)
+			}
+
+			return findings, nil
+		},
+	)
+}
+
+// B007: Repeated handler registration.
+// Detects 3+ consecutive Register/RegisterTyped calls that could be table-driven.
+func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
+	return finding.NamedDetectorFunc(
+		"B007-repeated-handler-registration",
+		func(_ context.Context) ([]finding.Finding, error) {
+			var findings []finding.Finding
+
+			for _, gf := range ctx.GoFiles {
+				if gf.IsTest {
+					continue
+				}
+
+				ast.Inspect(gf.AST, func(n ast.Node) bool {
+					fn, ok := n.(*ast.FuncDecl)
+					if !ok || fn.Body == nil {
+						return true
+					}
+
+					registerCount := 0
+
+					var firstPos token.Position
+
+					for _, stmt := range fn.Body.List {
+						exprStmt, ok := stmt.(*ast.ExprStmt)
+						if !ok {
+							if registerCount >= 3 {
+								reportRepeatedRegistration(
+									&findings,
+									fn.Name.Name,
+									registerCount,
+									firstPos,
+								)
+							}
+
+							registerCount = 0
+
+							continue
+						}
+
+						call, ok := exprStmt.X.(*ast.CallExpr)
+						if !ok {
+							continue
+						}
+
+						sel, ok := call.Fun.(*ast.SelectorExpr)
+						if !ok {
+							continue
+						}
+
+						if sel.Sel.Name == "Register" || sel.Sel.Name == "RegisterTyped" ||
+							sel.Sel.Name == "Handle" || sel.Sel.Name == "Subscribe" {
+							if registerCount == 0 {
+								firstPos = ctx.Fset.Position(call.Pos())
+							}
+
+							registerCount++
+						}
+					}
+
+					if registerCount >= 3 {
+						reportRepeatedRegistration(&findings, fn.Name.Name, registerCount, firstPos)
+					}
+
+					return true
+				})
+			}
+
+			return findings, nil
+		},
+	)
+}
+
+func reportRepeatedRegistration(
+	findings *[]finding.Finding,
+	funcName string,
+	count int,
+	pos token.Position,
+) {
+	f, err := finding.NewBuilder(
+		"B007",
+		toolName,
+		fmt.Sprintf(
+			"%d consecutive handler registrations in %s — use a table-driven or variadic approach",
+			count,
+			funcName,
+		),
+		finding.SeverityInfo,
+		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+	).
+		WithCategory(finding.CategoryBestPractice).
+		WithConfidence(finding.ConfidenceHigh).
+		WithSuggestion("Collect handlers into a slice and register them in a loop, or use a variadic helper").
+		Build()
+	if err != nil {
+		return
+	}
+
+	*findings = append(*findings, f)
+}

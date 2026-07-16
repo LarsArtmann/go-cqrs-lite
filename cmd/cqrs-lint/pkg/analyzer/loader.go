@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"fmt"
 	"go/token"
 	"path/filepath"
 	"strings"
@@ -22,7 +23,7 @@ func LoadPackages(dir string) ([]*packages.Package, *token.FileSet, error) {
 
 	pkgs, err := packages.Load(cfg, "./...")
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("load packages: %w", err)
 	}
 
 	return pkgs, fset, nil

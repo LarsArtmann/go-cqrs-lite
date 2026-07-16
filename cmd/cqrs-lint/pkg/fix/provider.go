@@ -36,8 +36,8 @@ func (p *CQRSFixProvider) Edits(content []byte, f finding.Finding) ([]pipeline.F
 		beforeCode = old
 	}
 
-	if new, ok := f.Metadata["newExpr"]; ok {
-		afterCode = new
+	if after, ok := f.Metadata["newExpr"]; ok {
+		afterCode = after
 	}
 
 	if beforeCode == "" {
