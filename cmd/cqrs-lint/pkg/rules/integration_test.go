@@ -2,6 +2,7 @@ package rules_test
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
@@ -115,6 +116,81 @@ func TestIntegration_FilterByCategory(t *testing.T) {
 		}
 		if !found {
 			t.Errorf("detector %s should be in correctness category", d.Name())
+		}
+	}
+}
+
+// TestIntegration_FilterByRuleIDs verifies individual rule ID filtering works.
+func TestIntegration_FilterByRuleIDs(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := findProjectRoot(t)
+	tmPath := filepath.Join(projectRoot, "example", "taskmanager")
+
+	actx, err := analyzer.BuildContext(tmPath)
+	if err != nil {
+		t.Fatalf("BuildContext: %v", err)
+	}
+
+	if len(actx.GoFiles) == 0 {
+		t.Skip("no Go files found")
+	}
+
+	all := rules.RegisterAll(actx)
+	filtered := rules.FilterByRuleIDs(all, []string{"C001", "C002"})
+
+	if len(filtered) != 2 {
+		t.Fatalf("expected 2 detectors for C001,C002, got %d", len(filtered))
+	}
+
+	if !strings.HasPrefix(filtered[0].Name(), "C001") {
+		t.Errorf("first detector should be C001, got %s", filtered[0].Name())
+	}
+}
+
+// TestUnit_FilterByRuleIDs verifies individual rule ID filtering works without needing a real project.
+func TestUnit_FilterByRuleIDs(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	all := rules.RegisterAll(ctx)
+	if len(all) == 0 {
+		t.Fatal("expected detectors from RegisterAll")
+	}
+
+	filtered := rules.FilterByRuleIDs(all, []string{"C001", "C002"})
+	if len(filtered) != 2 {
+		t.Fatalf("expected 2 detectors for C001,C002, got %d", len(filtered))
+	}
+
+	for _, d := range filtered {
+		if !strings.HasPrefix(d.Name(), "C00") {
+			t.Errorf("detector %s should start with C00", d.Name())
+		}
+	}
+}
+
+// TestUnit_IsRuleID tests the rule ID detection function.
+func TestUnit_IsRuleID(t *testing.T) {
+	tests := []struct {
+		input string
+		want  bool
+	}{
+		{"C001", true},
+		{"A019", true},
+		{"S003", true},
+		{"E007", true},
+		{"B015", true},
+		{"D005", true},
+		{"correctness", false},
+		{"api", false},
+		{"C01", false},
+		{"c001", true},
+		{"", false},
+	}
+	for _, tt := range tests {
+		if got := rules.IsRuleID(tt.input); got != tt.want {
+			t.Errorf("IsRuleID(%q) = %v, want %v", tt.input, got, tt.want)
 		}
 	}
 }

@@ -2,6 +2,7 @@ package security
 
 import (
 	"context"
+	"go/ast"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -15,16 +16,59 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"S002-missing-encryption-for-sensitive-payloads",
 		func(_ context.Context) ([]finding.Finding, error) {
-			piiFields := []string{"email", "phone", "ssn", "password", "address", "creditcard"}
+			piiFields := []string{
+				"email",
+				"phone",
+				"ssn",
+				"password",
+				"address",
+				"creditcard",
+				"credit_card",
+			}
 
 			hasPII := false
 
+			// Check event payload type names for PII keywords.
 			for _, evt := range ctx.Registry.Events {
 				name := strings.ToLower(evt.Name)
 				for _, pii := range piiFields {
 					if strings.Contains(name, pii) {
 						hasPII = true
 
+						break
+					}
+				}
+			}
+
+			// Also check struct field names for PII keywords.
+			if !hasPII {
+				for _, gf := range ctx.GoFiles {
+					if gf.IsTest {
+						continue
+					}
+
+					ast.Inspect(gf.AST, func(n ast.Node) bool {
+						st, ok := n.(*ast.StructType)
+						if !ok || st.Fields == nil {
+							return true
+						}
+
+						for _, field := range st.Fields.List {
+							for _, name := range field.Names {
+								lname := strings.ToLower(name.Name)
+								for _, pii := range piiFields {
+									if strings.Contains(lname, pii) {
+										hasPII = true
+
+										return false
+									}
+								}
+							}
+						}
+
+						return true
+					})
+					if hasPII {
 						break
 					}
 				}

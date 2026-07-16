@@ -41,7 +41,7 @@ func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			for _, fold := range ctx.Registry.Folds {
-				pkg := fold.File
+				pkg := fold.Package
 				if pkgConstructs[pkg] == nil {
 					pkgConstructs[pkg] = make(map[string]bool)
 				}

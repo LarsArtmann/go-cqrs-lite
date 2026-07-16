@@ -84,6 +84,7 @@ func NewC006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							"oldExpr": oldExpr,
 							"newExpr": newExpr,
 						}).
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						return true

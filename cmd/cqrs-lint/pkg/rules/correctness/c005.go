@@ -70,6 +70,7 @@ func NewC005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithConfidence(finding.ConfidenceHigh).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Use event.DecodePayloadAuto[YourPayload](evt) for automatic codec detection and schema versioning").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						return true

@@ -129,6 +129,7 @@ func detectFoldFunc(
 
 	info := &FoldInfo{
 		FuncName:  funcName(fn),
+		Package:   gf.Pkg.PkgPath,
 		File:      gf.Path,
 		Pos:       pos,
 		StateType: stateType,

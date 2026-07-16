@@ -63,6 +63,7 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 										WithCategory(finding.CategoryCorrectness).
 										WithConfidence(finding.ConfidenceMedium).
 										WithSuggestion("Use shopspring/decimal or int64 cents instead of float64 for monetary values").
+										WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 										Build()
 									if err != nil {
 										return true

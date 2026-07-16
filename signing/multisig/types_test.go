@@ -3,7 +3,7 @@ package multisig_test
 import (
 	"bytes"
 	"crypto/ed25519"
-	"encoding/json"
+	"encoding/json/v2"
 	"testing"
 	"time"
 

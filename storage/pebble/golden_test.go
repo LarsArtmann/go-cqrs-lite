@@ -1,7 +1,8 @@
 package pebble_test
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"path/filepath"
 	"testing"
@@ -94,7 +95,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 		}
 	}
 
-	got, err := json.MarshalIndent(snaps, "", "  ")
+	got, err := json.Marshal(snaps, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

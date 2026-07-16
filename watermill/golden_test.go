@@ -2,7 +2,8 @@ package watermill_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"path/filepath"
 	"testing"
@@ -82,7 +83,7 @@ func snapshotMetadata(t *testing.T, msg *message.Message) {
 		sorted[k] = v
 	}
 
-	got, err := json.MarshalIndent(sorted, "", "  ")
+	got, err := json.Marshal(sorted, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

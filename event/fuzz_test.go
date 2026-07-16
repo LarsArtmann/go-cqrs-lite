@@ -1,7 +1,7 @@
 package event_test
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
 	"strings"
 	"testing"
 
@@ -122,7 +122,7 @@ func FuzzDecodePayload(f *testing.F) {
 
 		evt, err := event.NewEvent(
 			event.Type("test"), aggID, id.AggregateType("Test"),
-			event.Version(1), json.RawMessage(payloadJSON),
+			event.Version(1), jsontext.Value(payloadJSON),
 		)
 		if err != nil {
 			return

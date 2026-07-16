@@ -43,6 +43,7 @@ func NewC009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion("Return an error instead of panicking. Panics crash the process and bypass error handling middleware.").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						return true

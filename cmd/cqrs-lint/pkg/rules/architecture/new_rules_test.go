@@ -3,6 +3,8 @@ package architecture_test
 import (
 	"testing"
 
+	"golang.org/x/tools/go/packages"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/architecture"
 )
@@ -27,14 +29,55 @@ func TestE002_NoCrashOnEmptyContext(t *testing.T) {
 	assertRule(t, findings, "E002", 0)
 }
 
-// --- E003: Missing module boundary ---
+// --- E002: Positive test — circular dependency ---
 
-func TestE003_NoCrashOnEmptyContext(t *testing.T) {
+func TestE002_DetectsCircularDependency(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
+	ctx.Packages = []*packages.Package{
+		{
+			PkgPath: "example.com/app/moduleA",
+			Imports: map[string]*packages.Package{
+				"example.com/app/moduleB": {PkgPath: "example.com/app/moduleB"},
+			},
+		},
+		{
+			PkgPath: "example.com/app/moduleB",
+			Imports: map[string]*packages.Package{
+				"example.com/app/moduleA": {PkgPath: "example.com/app/moduleA"},
+			},
+		},
+	}
+	findings := runDetector(t, architecture.NewE002Detector(ctx))
+	assertRule(t, findings, "E002", 1)
+}
+
+// --- E003: Positive test — missing module boundary ---
+
+func TestE003_DetectsMixedConcerns(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"domain.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+type CreateOrder struct {
+	*command.BasicCommand
+}
+
+type OrderCreated struct {
+	Name string
+}
+
+type State struct{ Count int }
+
+func fold(s State, evt event.Event) (State, error) {
+	return s, nil
+}
+`,
+	})
 	findings := runDetector(t, architecture.NewE003Detector(ctx))
-	assertRule(t, findings, "E003", 0)
+	assertRule(t, findings, "E003", 1)
 }
 
 // --- E004: Event not in catalog ---

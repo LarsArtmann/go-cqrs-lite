@@ -28,20 +28,24 @@ const version = "0.1.0"
 var errFindingsWithErrors = errors.New("findings with error severity")
 
 // AppConfig holds all CLI configuration via cmdguard struct tags.
+//
+//nolint:tagalign,golines // tagalign and golines conflict on struct tag alignment
 type AppConfig struct {
 	cmdguard.Config
 
-	Path          string `default:"."     flag:"path"           help:"Path to lint"`
-	Format        string `default:"text"  flag:"format"         help:"Output format: text, json, sarif, markdown"       short:"o"`
-	MinSeverity   string `default:"info"  flag:"min-severity"   help:"Minimum severity: info, warning, error, critical"`
-	MinConfidence string `default:"low"   flag:"min-confidence" help:"Minimum confidence: low, medium, high"`
-	Fix           bool   `default:"false" flag:"fix"            help:"Apply auto-fixes"`
-	DryRun        bool   `default:"false" flag:"dry-run"        help:"Show fixes without applying"`
-	FastMode      bool   `default:"false" flag:"fast"           help:"Run only Critical/High correctness rules"`
-	HealthScore   bool   `default:"false" flag:"health-score"   help:"Print only the health score"`
-	Categories    string `default:""      flag:"only"           help:"Run only specific categories (comma-separated)"`
-	Verbose       bool   `default:"false" flag:"verbose"        help:"Verbose output"`
-	Quiet         bool   `default:"false" flag:"quiet"          help:"Suppress non-finding output"                      short:"q"`
+	Path          string `default:"." flag:"path" help:"Path to lint"`
+	Format        string `default:"text" flag:"format" help:"Output format" short:"o"`
+	MinSeverity   string `default:"info" flag:"min-severity" help:"Minimum severity"`
+	MinConfidence string `default:"low" flag:"min-confidence" help:"Minimum confidence"`
+	Fix           bool   `default:"false" flag:"fix" help:"Apply auto-fixes"`
+	DryRun        bool   `default:"false" flag:"dry-run" help:"Show fixes without applying"`
+	FastMode      bool   `default:"false" flag:"fast" help:"Critical correctness rules only"`
+	HealthScore   bool   `default:"false" flag:"health-score" help:"Print only the health score"`
+	Categories    string `default:"" flag:"only" help:"Filter by category or rule IDs"`
+	Exclude       string `default:"" flag:"exclude" help:"Exclude paths (comma-separated)"`
+	Color         string `default:"auto" flag:"color" help:"Colored output: auto,always,never"`
+	Verbose       bool   `default:"false" flag:"verbose" help:"Verbose output"`
+	Quiet         bool   `default:"false" flag:"quiet" help:"Suppress non-finding output" short:"q"`
 }
 
 func main() {
@@ -88,8 +92,20 @@ func main() {
 		return run(cmd.Context(), cfg)
 	}
 
-	setupRulesCommand(cli)
-	setupVersionCommand(cli)
+	if err := setupRulesCommand(cli); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := setupVersionCommand(cli); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := setupInitCommand(cli); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
 
 	ctx := context.Background()
 	cli.ExecuteAndExit(ctx)
@@ -117,7 +133,12 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	} else {
 		detectors = rules.RegisterAll(actx)
 		if cfg.Categories != "" {
-			detectors = rules.FilterByCategory(detectors, strings.Split(cfg.Categories, ","))
+			parts := strings.Split(cfg.Categories, ",")
+			if rules.IsRuleID(parts[0]) {
+				detectors = rules.FilterByRuleIDs(detectors, parts)
+			} else {
+				detectors = rules.FilterByCategory(detectors, parts)
+			}
 		}
 	}
 
@@ -147,6 +168,9 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	}
 
 	allFindings := collectFindings(result)
+	if cfg.Exclude != "" {
+		allFindings = filterByExcludedPaths(allFindings, strings.Split(cfg.Exclude, ","))
+	}
 	activeFindings := filterBySeverity(allFindings, cfg.MinSeverity)
 	activeFindings = filterByConfidence(activeFindings, cfg.MinConfidence)
 
@@ -174,7 +198,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	hasErrors := false
 
 	for _, f := range activeFindings {
-		if f.Severity >= finding.SeverityError {
+		if f.Severity.Compare(finding.SeverityError) >= 0 {
 			hasErrors = true
 
 			break
@@ -186,89 +210,6 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	}
 
 	return nil
-}
-
-func collectFindings(result *pipeline.PipelineResult) []finding.Finding {
-	var all []finding.Finding
-	for _, iter := range result.Iterations {
-		all = append(all, iter.Findings()...)
-	}
-
-	if result.Verification != nil {
-		all = append(all, result.Verification.Remaining...)
-		all = append(all, result.Verification.NewFindings...)
-	}
-
-	seen := make(map[finding.ID]bool)
-
-	var unique []finding.Finding
-
-	for _, f := range all {
-		if seen[f.ID] {
-			continue
-		}
-
-		seen[f.ID] = true
-		unique = append(unique, f)
-	}
-
-	return unique
-}
-
-func filterBySeverity(findings []finding.Finding, minSev string) []finding.Finding {
-	minS := parseSeverity(minSev)
-
-	var result []finding.Finding
-
-	for _, f := range findings {
-		if f.Severity >= minS {
-			result = append(result, f)
-		}
-	}
-
-	return result
-}
-
-func filterByConfidence(findings []finding.Finding, minConf string) []finding.Finding {
-	minC := parseConfidence(minConf)
-
-	var result []finding.Finding
-
-	for _, f := range findings {
-		if f.Confidence >= minC {
-			result = append(result, f)
-		}
-	}
-
-	return result
-}
-
-func parseSeverity(s string) finding.Severity {
-	switch strings.ToLower(s) {
-	case "critical":
-		return finding.SeverityCritical
-	case "error":
-		return finding.SeverityError
-	case "warning":
-		return finding.SeverityWarning
-	case "info":
-		return finding.SeverityInfo
-	default:
-		return finding.SeverityInfo
-	}
-}
-
-func parseConfidence(s string) finding.Confidence {
-	switch strings.ToLower(s) {
-	case "high":
-		return finding.ConfidenceHigh
-	case "medium":
-		return finding.ConfidenceMedium
-	case "low":
-		return finding.ConfidenceLow
-	default:
-		return finding.ConfidenceLow
-	}
 }
 
 func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppConfig) error {
@@ -302,6 +243,11 @@ func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppCon
 				fmt.Println("No findings. Clean!")
 			}
 
+			return nil
+		}
+
+		if cfg.Color == "always" || (cfg.Color != "never" && shouldUseColor(cfg.Color, os.Stdout)) {
+			formatColoredText(os.Stdout, findings, cfg.Color)
 			return nil
 		}
 

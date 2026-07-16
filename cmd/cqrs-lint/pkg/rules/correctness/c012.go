@@ -61,6 +61,7 @@ func NewC012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion(fmt.Sprintf("Check the error from %s(tx) and return it if non-nil", bodyVar)).
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						continue

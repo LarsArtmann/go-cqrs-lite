@@ -1,7 +1,8 @@
 package turso_test
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"path/filepath"
 	"testing"
@@ -17,7 +18,7 @@ func TestGolden_ErrorMessages(t *testing.T) {
 		"ErrMemorySync": turso.ErrMemorySync.Error(),
 	}
 
-	got, err := json.MarshalIndent(errors, "", "  ")
+	got, err := json.Marshal(errors, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

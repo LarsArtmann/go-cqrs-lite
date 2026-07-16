@@ -146,7 +146,9 @@ func NewB008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 								return true
 							}
 
-							if sel.Sel.Name == "Sleep" {
+							if sel.Sel.Name == "Sleep" || sel.Sel.Name == "After" ||
+								sel.Sel.Name == "NewTimer" ||
+								sel.Sel.Name == "NewTicker" {
 								hasSleep = true
 
 								return false

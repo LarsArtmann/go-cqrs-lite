@@ -3,7 +3,8 @@ package integration_test
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -139,7 +140,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 		})
 	}
 
-	data, err := json.MarshalIndent(serialized, "", "  ")
+	data, err := json.Marshal(serialized, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

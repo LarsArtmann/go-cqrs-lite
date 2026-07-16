@@ -1,7 +1,8 @@
 package snapshot_test
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"path/filepath"
 	"testing"
@@ -46,7 +47,7 @@ func TestGolden_SnapshotStructure(t *testing.T) {
 		CreatedAt:     time.Date(2026, 6, 1, 12, 0, 0, 0, time.UTC),
 	}
 
-	got, err := json.MarshalIndent(struct {
+	got, err := json.Marshal(struct {
 		AggregateID   string `json:"aggregateId"`
 		AggregateType string `json:"aggregateType"`
 		Version       int    `json:"version"`
@@ -58,7 +59,7 @@ func TestGolden_SnapshotStructure(t *testing.T) {
 		Version:       snap.Version.Int(),
 		State:         string(snap.State),
 		CreatedAt:     snap.CreatedAt.Format(time.RFC3339Nano),
-	}, "", "  ")
+	}, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
@@ -87,7 +88,7 @@ func TestGolden_EveryNEventsStrategy(t *testing.T) {
 		}
 	}
 
-	got, err := json.MarshalIndent(entries, "", "  ")
+	got, err := json.Marshal(entries, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

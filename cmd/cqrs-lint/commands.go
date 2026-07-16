@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 
 	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules"
 )
 
-func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) {
+func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 	cmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
 		"rules",
 		cmdguard.NoFlags{},
@@ -23,17 +22,17 @@ func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) {
 		cmdguard.WithNoArgs(),
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating rules command: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("create rules command: %w", err)
 	}
 
 	if err := cmdguard.AddCommand(cli, cmd); err != nil {
-		fmt.Fprintf(os.Stderr, "Error adding rules command: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("add rules command: %w", err)
 	}
+
+	return nil
 }
 
-func setupVersionCommand(cli *cmdguard.CLI[AppConfig]) {
+func setupVersionCommand(cli *cmdguard.CLI[AppConfig]) error {
 	cmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
 		"version",
 		cmdguard.NoFlags{},
@@ -46,12 +45,12 @@ func setupVersionCommand(cli *cmdguard.CLI[AppConfig]) {
 		cmdguard.WithNoArgs(),
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating version command: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("create version command: %w", err)
 	}
 
 	if err := cmdguard.AddCommand(cli, cmd); err != nil {
-		fmt.Fprintf(os.Stderr, "Error adding version command: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("add version command: %w", err)
 	}
+
+	return nil
 }

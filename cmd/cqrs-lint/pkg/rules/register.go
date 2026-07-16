@@ -106,7 +106,7 @@ func FilterByCategory(all []finding.Detector, categories []string) []finding.Det
 
 	catSet := make(map[string]bool)
 	for _, c := range categories {
-		catSet[c] = true
+		catSet[strings.TrimSpace(c)] = true
 	}
 
 	var result []finding.Detector
@@ -118,6 +118,50 @@ func FilterByCategory(all []finding.Detector, categories []string) []finding.Det
 	}
 
 	return result
+}
+
+// FilterByRuleIDs returns only detectors whose name starts with one of the given rule IDs.
+// Rule IDs are case-insensitive and matched as prefixes (e.g., "C001" matches "C001-broken-command-id").
+func FilterByRuleIDs(all []finding.Detector, ruleIDs []string) []finding.Detector {
+	if len(ruleIDs) == 0 {
+		return all
+	}
+
+	idSet := make(map[string]bool)
+	for _, id := range ruleIDs {
+		idSet[strings.ToUpper(strings.TrimSpace(id))] = true
+	}
+
+	var result []finding.Detector
+	for _, d := range all {
+		for id := range idSet {
+			if strings.HasPrefix(d.Name(), id) {
+				result = append(result, d)
+
+				break
+			}
+		}
+	}
+
+	return result
+}
+
+// IsRuleID returns true if s looks like a rule ID (uppercase letter + 3 digits, e.g., "C001").
+func IsRuleID(s string) bool {
+	s = strings.ToUpper(strings.TrimSpace(s))
+	if len(s) < 4 {
+		return false
+	}
+	if s[0] < 'A' || s[0] > 'Z' {
+		return false
+	}
+	for i := 1; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+
+	return true
 }
 
 func detectorCategory(name string) string {

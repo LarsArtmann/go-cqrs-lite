@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -136,7 +136,7 @@ func TestIntegration_HTTPAPI(t *testing.T) {
 	var createResp struct {
 		ID string `json:"id"`
 	}
-	_ = json.NewDecoder(resp.Body).Decode(&createResp)
+	_ = json.UnmarshalRead(resp.Body, &createResp)
 
 	if createResp.ID == "" {
 		t.Fatal("create: empty task ID")
@@ -161,7 +161,7 @@ func TestIntegration_HTTPAPI(t *testing.T) {
 	}
 
 	var task TaskView
-	_ = json.NewDecoder(resp2.Body).Decode(&task)
+	_ = json.UnmarshalRead(resp2.Body, &task)
 
 	if task.Title != "HTTP Task" {
 		t.Errorf("title: got %q, want %q", task.Title, "HTTP Task")
@@ -186,7 +186,7 @@ func TestIntegration_HTTPAPI(t *testing.T) {
 		Tasks []*TaskView `json:"tasks"`
 		Count int         `json:"count"`
 	}
-	_ = json.NewDecoder(resp3.Body).Decode(&listResp)
+	_ = json.UnmarshalRead(resp3.Body, &listResp)
 
 	if listResp.Count < 1 {
 		t.Errorf("list count: got %d, want >= 1", listResp.Count)

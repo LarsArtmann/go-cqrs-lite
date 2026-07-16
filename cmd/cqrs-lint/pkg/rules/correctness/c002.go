@@ -31,6 +31,7 @@ func NewC002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithConfidence(finding.ConfidenceHigh).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion("Generate a unique CommandID per instance, or embed *command.BasicCommand which provides ID() automatically").
+					WithSnippet(ctx.SourceLine(cmd.File, cmd.Pos.Line)).
 					Build()
 				if err != nil {
 					continue

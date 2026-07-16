@@ -2,7 +2,7 @@ package id
 
 import (
 	"encoding"
-	"encoding/json"
+	"encoding/json/v2"
 	"testing"
 )
 

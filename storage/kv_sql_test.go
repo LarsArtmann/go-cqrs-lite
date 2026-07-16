@@ -3,6 +3,7 @@ package storage_test
 import (
 	"context"
 	"errors"
+	"slices"
 	"testing"
 
 	_ "modernc.org/sqlite" // pure-Go SQLite driver
@@ -126,24 +127,24 @@ func TestSQLKVStore_Iterator(t *testing.T) {
 	// Empty prefix → all keys in lexicographic order, with matching values.
 	allKeys, allVals := collectIter(t, store, nil)
 	wantAll := []string{"plain", "todos:1", "todos:2", "users:1"}
-	if !equalKeys(allKeys, wantAll) {
+	if !slices.Equal(allKeys, wantAll) {
 		t.Fatalf("iter all: got %v, want %v", allKeys, wantAll)
 	}
 
 	wantVals := []string{"d", "a", "b", "c"}
-	if !equalKeys(allVals, wantVals) {
+	if !slices.Equal(allVals, wantVals) {
 		t.Fatalf("iter all values: got %v, want %v", allVals, wantVals)
 	}
 
 	// Prefix "todos:" → only todos: keys, ordered.
 	todos, _ := collectIter(t, store, []byte("todos:"))
-	if !equalKeys(todos, []string{"todos:1", "todos:2"}) {
+	if !slices.Equal(todos, []string{"todos:1", "todos:2"}) {
 		t.Fatalf("iter todos: got %v, want [todos:1 todos:2]", todos)
 	}
 
 	// Prefix "users:" → single key.
 	users, _ := collectIter(t, store, []byte("users:"))
-	if !equalKeys(users, []string{"users:1"}) {
+	if !slices.Equal(users, []string{"users:1"}) {
 		t.Fatalf("iter users: got %v, want [users:1]", users)
 	}
 
@@ -249,18 +250,4 @@ func collectIter(t *testing.T, store *storage.SQLKVStore, prefix []byte) ([]stri
 	}
 
 	return keys, vals
-}
-
-func equalKeys(got, want []string) bool {
-	if len(got) != len(want) {
-		return false
-	}
-
-	for i := range got {
-		if got[i] != want[i] {
-			return false
-		}
-	}
-
-	return true
 }

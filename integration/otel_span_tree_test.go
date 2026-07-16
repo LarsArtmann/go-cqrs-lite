@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"slices"
 	"sort"
 	"testing"
 
@@ -135,7 +136,7 @@ func TestOTel_SpanTree_EndToEnd(t *testing.T) {
 	expected := []string{"command.handle", "decider.execute", "decider.load"}
 
 	for _, want := range expected {
-		if !containsStr(names, want) {
+		if !slices.Contains(names, want) {
 			t.Errorf("expected span %q in tree, got: %v", want, names)
 		}
 	}
@@ -187,14 +188,4 @@ func buildParentMap(spans []tracetest.SpanStub) map[string]string {
 	}
 
 	return result
-}
-
-func containsStr(slice []string, val string) bool {
-	for _, s := range slice {
-		if s == val {
-			return true
-		}
-	}
-
-	return false
 }

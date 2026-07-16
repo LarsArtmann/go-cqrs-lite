@@ -1,0 +1,32 @@
+{
+  "tool": {
+    "name": "cqrs-lint",
+    "version": "0.1.0"
+  },
+  "findings": [
+    {
+      "id": "cqrs-lint:C001:example.go:10:5",
+      "rule": "C001",
+      "toolName": "cqrs-lint",
+      "message": "test finding for golden file",
+      "severity": "error",
+      "position": {
+        "file": "example.go",
+        "line": 10,
+        "column": 5,
+        "offset": -1
+      },
+      "category": "correctness",
+      "fixStrategy": "none",
+      "suggestion": "Fix this issue",
+      "confidence": 0.75
+    }
+  ],
+  "summary": {
+    "total": 0,
+    "bySeverity": {},
+    "filesAffected": 0,
+    "filesScanned": 0,
+    "suppressed": 0
+  }
+}

@@ -43,10 +43,46 @@ func TestS001_DetectsHardcodedKey(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"config.go": `package main
 
-const apiKey = "sk-1234567890abcdef1234567890abcdef"
+func init() {
+	apiKey := "supersecretvalue123"
+	_ = apiKey
+}
 `,
 	})
 	findings := runDetector(t, security.NewS001Detector(ctx))
-	// The detector may or may not flag this depending on its heuristics
-	_ = findings
+	assertRule(t, findings, "S001", 1)
+}
+
+// --- S002: Positive test — PII event without encryption ---
+
+func TestS002_DetectsPIIWithoutEncryption(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+type UserEmailChanged struct {
+	Email string
+}
+`,
+	})
+	findings := runDetector(t, security.NewS002Detector(ctx))
+	assertRule(t, findings, "S002", 1)
+}
+
+// --- S003: Positive test — event store without signing ---
+
+func TestS003_DetectsMissingSigning(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"fold.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+type State struct{ Count int }
+
+func fold(s State, evt event.Event) (State, error) {
+	return s, nil
+}
+`,
+	})
+	findings := runDetector(t, security.NewS003Detector(ctx))
+	assertRule(t, findings, "S003", 1)
 }

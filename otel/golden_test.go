@@ -1,7 +1,8 @@
 package otel_test
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"fmt"
 	"os"
@@ -35,7 +36,7 @@ func TestGolden_AttributeConstants(t *testing.T) {
 		"KindQuery":            otel.KindQuery,
 	}
 
-	got, err := json.MarshalIndent(constants, "", "  ")
+	got, err := json.Marshal(constants, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
@@ -46,7 +47,11 @@ func TestGolden_AttributeConstants(t *testing.T) {
 func TestGolden_CommandAttrs(t *testing.T) {
 	attrs := otel.CommandAttrs("CreateUser", fixedID("01HK1540X0841Y0A6BSX1VKR95"))
 
-	got, err := json.MarshalIndent(attrsToMap(attrs), "", "  ")
+	got, err := json.Marshal(
+		attrsToMap(attrs),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
@@ -57,7 +62,11 @@ func TestGolden_CommandAttrs(t *testing.T) {
 func TestGolden_EventAttrs(t *testing.T) {
 	attrs := otel.EventAttrs("UserCreated", fixedID("01HK1540X0841Y0A6BSX1VKR95"), "User")
 
-	got, err := json.MarshalIndent(attrsToMap(attrs), "", "  ")
+	got, err := json.Marshal(
+		attrsToMap(attrs),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
@@ -68,7 +77,11 @@ func TestGolden_EventAttrs(t *testing.T) {
 func TestGolden_QueryAttrs(t *testing.T) {
 	attrs := otel.QueryAttrs("GetUser")
 
-	got, err := json.MarshalIndent(attrsToMap(attrs), "", "  ")
+	got, err := json.Marshal(
+		attrsToMap(attrs),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

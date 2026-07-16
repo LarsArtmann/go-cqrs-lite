@@ -1,7 +1,7 @@
 package schema_test
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/schema"

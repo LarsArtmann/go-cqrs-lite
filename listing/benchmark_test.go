@@ -2,7 +2,7 @@ package listing_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -26,7 +26,7 @@ func seedBenchAggregates(
 
 	for range n {
 		aggID := id.NewAggregateID()
-		payload, _ := json.Marshal( //nolint:errchkjson
+		payload, _ := json.Marshal(
 			map[string]string{payloadKey: payloadVal},
 		)
 		evt, _ := event.NewEvent(
@@ -96,7 +96,7 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 
 	for range 500 {
 		aggID := id.NewAggregateID()
-		payload, _ := json.Marshal( //nolint:errchkjson
+		payload, _ := json.Marshal(
 			map[string]string{"name": "doc"},
 		)
 		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
@@ -109,7 +109,7 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 
 	for range 200 {
 		aggID := id.NewAggregateID()
-		payload, _ := json.Marshal( //nolint:errchkjson
+		payload, _ := json.Marshal(
 			map[string]string{"name": "deleted"},
 		)
 		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)

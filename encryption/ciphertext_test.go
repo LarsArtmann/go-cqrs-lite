@@ -1,7 +1,7 @@
 package encryption_test
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/encryption/v4"

@@ -68,6 +68,7 @@ func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithBeforeCode("return nil").
 						WithAfterCode(fmt.Sprintf("return %s.Commit()", txVar)).
 						WithMetadata(map[string]string{"txVar": txVar}).
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
 						continue

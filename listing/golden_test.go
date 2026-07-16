@@ -1,7 +1,8 @@
 package listing_test
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"path/filepath"
 	"testing"
@@ -68,7 +69,7 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 		},
 	}
 
-	got, err := json.MarshalIndent(statuses, "", "  ")
+	got, err := json.Marshal(statuses, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
@@ -98,7 +99,7 @@ func TestGolden_PageJSON(t *testing.T) {
 		HasMore: true,
 	}
 
-	got, err := json.MarshalIndent(page, "", "  ")
+	got, err := json.Marshal(page, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

@@ -1,7 +1,7 @@
 package rules
 
-// extraRulesNew returns metadata for newer rules (batch 2).
-func extraRulesNew() []RuleInfo {
+// extraRulesBatch2 returns metadata for newer rules (batch 2).
+func extraRulesBatch2() []RuleInfo {
 	return []RuleInfo{
 		{
 			ID:          "A011",

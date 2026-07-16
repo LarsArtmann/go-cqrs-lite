@@ -1,7 +1,8 @@
 package middleware_test
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"path/filepath"
 	"testing"
@@ -47,7 +48,7 @@ func TestGolden_RetryConfigValidation(t *testing.T) {
 		},
 	}
 
-	got, err := json.MarshalIndent(cases, "", "  ")
+	got, err := json.Marshal(cases, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

@@ -6,6 +6,8 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"os"
+	"strings"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -35,6 +37,7 @@ type EventInfo struct {
 // FoldInfo describes a fold/apply function.
 type FoldInfo struct {
 	FuncName    string
+	Package     string
 	File        string
 	Pos         token.Position
 	StateType   string
@@ -90,6 +93,26 @@ type GoFile struct {
 	Pkg    *packages.Package
 	AST    *ast.File
 	IsTest bool
+}
+
+// SourceLine reads the source file at the given line number and returns the trimmed line.
+// Returns empty string if the file cannot be read or the line is out of range.
+func (ctx *AnalysisContext) SourceLine(filename string, line int) string {
+	if filename == "" || line <= 0 {
+		return ""
+	}
+
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return ""
+	}
+
+	lines := strings.Split(string(data), "\n")
+	if line > len(lines) {
+		return ""
+	}
+
+	return strings.TrimSpace(lines[line-1])
 }
 
 // IsCQRSImport returns true if the package imports any go-cqrs-lite module.

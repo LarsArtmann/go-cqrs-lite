@@ -1,7 +1,7 @@
 package catalog_test
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

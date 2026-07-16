@@ -2,7 +2,7 @@ package docserver
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -67,7 +67,7 @@ func testServer(t *testing.T) *DocsServer {
 func decodeJSON(t *testing.T, recorder *httptest.ResponseRecorder) map[string]any {
 	t.Helper()
 	var doc map[string]any
-	if err := json.NewDecoder(recorder.Body).Decode(&doc); err != nil {
+	if err := json.UnmarshalRead(recorder.Body, &doc); err != nil {
 		t.Fatalf("failed to decode JSON: %v", err)
 	}
 
@@ -238,7 +238,7 @@ func TestDocsServer_CatalogJSON(t *testing.T) {
 	}
 
 	var cat map[string]any
-	if err := json.NewDecoder(recorder.Body).Decode(&cat); err != nil {
+	if err := json.UnmarshalRead(recorder.Body, &cat); err != nil {
 		t.Fatalf("failed to decode JSON: %v", err)
 	}
 

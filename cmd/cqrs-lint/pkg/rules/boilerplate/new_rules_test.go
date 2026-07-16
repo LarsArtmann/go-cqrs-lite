@@ -234,6 +234,20 @@ func TestB013_NoFindingWithoutRepository(t *testing.T) {
 	assertRule(t, findings, "B013", 0)
 }
 
+func TestB013_DetectsMissingCorrelation(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"repo.go": `package main
+
+func setup() {
+	repo := decider.NewRepository(store, bus, d)
+	_ = repo
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB013Detector(ctx))
+	assertRule(t, findings, "B013", 1)
+}
+
 // --- B014: Missing OTel middleware ---
 
 func TestB014_NoFindingWithoutMiddleware(t *testing.T) {
@@ -242,6 +256,20 @@ func TestB014_NoFindingWithoutMiddleware(t *testing.T) {
 	})
 	findings := runDetector(t, boilerplate.NewB014Detector(ctx))
 	assertRule(t, findings, "B014", 0)
+}
+
+func TestB014_DetectsMissingOTel(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup(bus *EventBus) {
+	bus.Use(loggingMiddleware)
+	bus.UsePublish(retryMiddleware)
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB014Detector(ctx))
+	assertRule(t, findings, "B014", 1)
 }
 
 // --- B004: Command constructor boilerplate ---
@@ -272,4 +300,18 @@ func TestB015_NoCrashOnEmptyContext(t *testing.T) {
 	})
 	findings := runDetector(t, boilerplate.NewB015Detector(ctx))
 	assertRule(t, findings, "B015", 0)
+}
+
+func TestB015_DetectsMissingTestUtils(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+		"main_test.go": `package main
+
+import "testing"
+
+func TestSomething(t *testing.T) {}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB015Detector(ctx))
+	assertRule(t, findings, "B015", 1)
 }

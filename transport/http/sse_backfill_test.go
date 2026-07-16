@@ -2,7 +2,8 @@ package http
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -104,13 +105,13 @@ func TestBackfillHandler_ReturnsEvents(t *testing.T) {
 	}
 
 	type item struct {
-		ID      string          `json:"id"`
-		Type    string          `json:"type"`
-		Payload json.RawMessage `json:"payload"`
+		ID      string         `json:"id"`
+		Type    string         `json:"type"`
+		Payload jsontext.Value `json:"payload"`
 	}
 
 	var items []item
-	if err := json.NewDecoder(rec.Body).Decode(&items); err != nil {
+	if err := json.UnmarshalRead(rec.Body, &items); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
 

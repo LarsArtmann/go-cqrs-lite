@@ -2,7 +2,7 @@ package encryption
 
 import (
 	"crypto/rand"
-	"encoding/json"
+	"encoding/json/v2"
 	"testing"
 )
 

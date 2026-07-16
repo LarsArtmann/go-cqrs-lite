@@ -58,6 +58,7 @@ func NewC007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceMedium).
 							WithSuggestion("Pass time as a parameter or inject a clock interface for deterministic testing").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
 						if err != nil {
 							return true

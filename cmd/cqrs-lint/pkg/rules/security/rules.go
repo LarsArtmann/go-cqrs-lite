@@ -80,6 +80,7 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 									WithCategory(finding.CategorySecurity).
 									WithConfidence(finding.ConfidenceMedium).
 									WithSuggestion("Load secrets from environment variables (os.Getenv) or a secret manager, never hardcode them").
+									WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 									Build()
 								if err == nil {
 									findings = append(findings, f)

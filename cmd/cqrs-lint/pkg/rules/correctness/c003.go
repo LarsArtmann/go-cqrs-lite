@@ -33,6 +33,7 @@ func NewC003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithSuggestion("Return an error in the default case: return state, fmt.Errorf(\"fold: unknown event type: %s\", evt.Type())").
 					WithBeforeCode("return state, nil").
 					WithAfterCode(`return state, fmt.Errorf("fold: unknown event type: %s", evt.Type())`).
+					WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).
 					Build()
 				if err != nil {
 					continue

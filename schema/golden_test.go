@@ -1,7 +1,8 @@
 package schema_test
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"path/filepath"
 	"testing"
@@ -97,7 +98,7 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 		}
 	}
 
-	got, err := json.MarshalIndent(snapshots, "", "  ")
+	got, err := json.Marshal(snapshots, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

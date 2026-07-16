@@ -1,7 +1,8 @@
 package signing_test
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"path/filepath"
 	"testing"
@@ -33,7 +34,11 @@ func TestGolden_HMACSignedEvent(t *testing.T) {
 		t.Fatalf("attach: %v", err)
 	}
 
-	got, err := json.MarshalIndent(signed.Metadata(), "", "  ")
+	got, err := json.Marshal(
+		signed.Metadata(),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
@@ -49,7 +54,7 @@ func TestGolden_HMACSignedEvent(t *testing.T) {
 func TestGolden_SignatureJSONEncoding(t *testing.T) {
 	sig := signing.Signature([]byte("deterministic-signature-for-golden-test"))
 
-	got, err := json.MarshalIndent(sig, "", "  ")
+	got, err := json.Marshal(sig, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

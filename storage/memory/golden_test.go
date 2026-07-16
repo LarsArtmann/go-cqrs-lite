@@ -1,7 +1,8 @@
 package memory_test
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"flag"
 	"path/filepath"
 	"testing"
@@ -84,7 +85,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 		}
 	}
 
-	got, err := json.MarshalIndent(snaps, "", "  ")
+	got, err := json.Marshal(snaps, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
@@ -126,7 +127,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 		t.Fatalf("load: %v", err)
 	}
 
-	got, err := json.MarshalIndent(struct {
+	got, err := json.Marshal(struct {
 		AggregateID   string `json:"aggregateId"`
 		AggregateType string `json:"aggregateType"`
 		Version       int    `json:"version"`
@@ -138,7 +139,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 		Version:       loaded.Version.Int(),
 		State:         string(loaded.State),
 		CreatedAt:     loaded.CreatedAt.Format(time.RFC3339Nano),
-	}, "", "  ")
+	}, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}

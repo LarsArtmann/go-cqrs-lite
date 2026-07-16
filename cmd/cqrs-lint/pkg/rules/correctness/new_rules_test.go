@@ -32,9 +32,7 @@ func decide(state int) (int, error) {
 `,
 	})
 	findings := runDetector(t, correctness.NewC011Detector(ctx))
-	// isLikelyDecider may not match since it checks function signature heuristics
-	// The test verifies no panic and correct behavior
-	_ = findings
+	assertRule(t, findings, "C011", 1)
 }
 
 func TestC011_NoFindingInTestFiles(t *testing.T) {
@@ -57,23 +55,26 @@ func TestC010_DetectsSwallowedError(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"fold.go": `package main
 
-import "github.com/larsartmann/go-cqrs-lite/event/v4"
+import (
+	"encoding/json"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+)
 
 type State struct{ Count int }
+type Payload struct{ N int }
 
 func fold(s State, evt event.Event) (State, error) {
 	next := s
-	switch evt.Type() {
-	case "incremented":
-		_ = evt.Payload()
-	}
+	var p Payload
+	_ = json.Unmarshal(evt.Payload(), &p)
+	next.Count += p.N
 	return next, nil
 }
 `,
 	})
 	findings := runDetector(t, correctness.NewC010Detector(ctx))
-	// The detector checks for error from decode/unmarshal discarded
-	_ = findings
+	assertRule(t, findings, "C010", 1)
 }
 
 func TestC010_NoCrashOnEmptyInput(t *testing.T) {
@@ -136,15 +137,17 @@ func TestC002_DetectsZeroID(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"cmd.go": `package main
 
+type CommandID struct{ Value string }
+
 type MyCmd struct{}
 
-func (c *MyCmd) ID() string {
-	return ""
+func (c *MyCmd) ID() CommandID {
+	return CommandID{}
 }
 `,
 	})
 	findings := runDetector(t, correctness.NewC002Detector(ctx))
-	_ = findings
+	assertRule(t, findings, "C002", 1)
 }
 
 func TestC002_NoCrashOnEmptyInput(t *testing.T) {

@@ -33,6 +33,7 @@ func NewC004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryCorrectness).
 					WithConfidence(finding.ConfidenceMedium).
 					WithSuggestion("Make Handle synchronous, or use projectionhost with ordered delivery and retry").
+					WithSnippet(ctx.SourceLine(proj.File, proj.Pos.Line)).
 					Build()
 				if err != nil {
 					continue
@@ -100,6 +101,7 @@ func NewC011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceLow).
 							WithSuggestion("Inject randomness via command parameters or a clock/seed interface").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
 						if err != nil {
 							return true
