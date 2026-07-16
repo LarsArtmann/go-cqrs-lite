@@ -362,7 +362,7 @@ That's the goal.
 
 **Reviewer:** maintainer (Crush)
 **Date:** 2026-07-17
-**Verdict:** the *instincts* are right (make the secure path easy, fix detectors, evidence-driven). The *packaging* is wrong — it bundles three independent debates into one, and the deployment taxonomy over-generalizes from N=2 consumers.
+**Verdict:** the _instincts_ are right (make the secure path easy, fix detectors, evidence-driven). The _packaging_ is wrong — it bundles three independent debates into one, and the deployment taxonomy over-generalizes from N=2 consumers.
 
 ### PRO — genuinely good ideas
 
@@ -388,14 +388,14 @@ That's the goal.
 
 Instead of `"kind": "local-cli"` (fuzzy, hard to auto-detect, drifts constantly), declare **which go-cqrs-lite features the consumer uses**. Each flag maps 1:1 to a library module, and auto-detection is a reliable import + constructor scan:
 
-| Feature flag      | Values                                  | go-cqrs-lite module            | Auto-detect signal                  |
-| ----------------- | --------------------------------------- | ------------------------------ | ----------------------------------- |
-| `store`           | sqlite, postgres, pebble, memory, turso, custom, none | `stack/*`, `storage/*`         | stack preset import                 |
-| `command-flow`    | read-only, sync, commands               | `command/`, `decider/`         | `command.Dispatcher` + `Dispatch()` |
-| `server`          | true, false                             | `transport/http/`, `transport/grpc/` | `net/http` / `grpc.NewServer`       |
-| `soft-delete`     | true, false                             | event tombstone                | tombstone-like event type names     |
-| `tracing`         | off, on                                 | `otel/`, `middleware` OTel     | otel import + middleware wiring     |
-| `snapshot`        | off, on                                 | `snapshot/`                    | snapshot store usage                |
+| Feature flag   | Values                                                | go-cqrs-lite module                  | Auto-detect signal                  |
+| -------------- | ----------------------------------------------------- | ------------------------------------ | ----------------------------------- |
+| `store`        | sqlite, postgres, pebble, memory, turso, custom, none | `stack/*`, `storage/*`               | stack preset import                 |
+| `command-flow` | read-only, sync, commands                             | `command/`, `decider/`               | `command.Dispatcher` + `Dispatch()` |
+| `server`       | true, false                                           | `transport/http/`, `transport/grpc/` | `net/http` / `grpc.NewServer`       |
+| `soft-delete`  | true, false                                           | event tombstone                      | tombstone-like event type names     |
+| `tracing`      | off, on                                               | `otel/`, `middleware` OTel           | otel import + middleware wiring     |
+| `snapshot`     | off, on                                               | `snapshot/`                          | snapshot store usage                |
 
 **Why this is better:**
 
@@ -422,11 +422,11 @@ What genuinely **remains** is smaller than this doc implies:
 
 ### Recommendation
 
-| Do now                                                       | Do later                                          | Drop                                  |
-| ------------------------------------------------------------ | ------------------------------------------------- | ------------------------------------- |
+| Do now                                                        | Do later                                         | Drop                                  |
+| ------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------- |
 | Centralize heuristics → `FeatureProfile` (feature vocabulary) | `WithEncryptionFromEnv` / `WithObservability`    | `WithSecurity(SecurityConfig)` struct |
-| `features` config section + auto-detect                      | `encryption.GenerateKey()` first-run UX          | The 5-axis deployment taxonomy        |
-| `cqrs-lint doctor` to print detected features                | Property detectors (write-after-init) as primary | Auto-detection as "fallback"          |
-| Split the proposal into 3 independent PRs                    |                                                   |                                       |
+| `features` config section + auto-detect                       | `encryption.GenerateKey()` first-run UX          | The 5-axis deployment taxonomy        |
+| `cqrs-lint doctor` to print detected features                 | Property detectors (write-after-init) as primary | Auto-detection as "fallback"          |
+| Split the proposal into 3 independent PRs                     |                                                  |                                       |
 
-The proposal's *instincts* are right; the *packaging* and *vocabulary* need this pivot. See `docs/planning/2026-07-17_01-45_feature-profile-and-detector-consolidation.md` for the execution plan.
+The proposal's _instincts_ are right; the _packaging_ and _vocabulary_ need this pivot. See `docs/planning/2026-07-17_01-45_feature-profile-and-detector-consolidation.md` for the execution plan.
