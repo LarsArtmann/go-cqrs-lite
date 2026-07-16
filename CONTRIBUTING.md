@@ -262,3 +262,43 @@ positions if placed first.
 Never mark a task complete without reading the actual code path it covers.
 Grep ALL documentation for related references after adding or removing public
 API. Run `nix run .#test`, not just `go test` on changed modules.
+
+## Release Process
+
+### Per-module tagging
+
+Each module is independently versioned via git tags. Module paths with `/v4`
+suffix use semver (e.g., `event/v4.0.0`, `retry/v4.0.1`). Modules without a
+version suffix (e.g., `cmd/cqrs-lint`) use `v0.x.y` pre-v1 tags.
+
+```bash
+# 1. Verify everything passes
+nix run .#build && nix run .#test && nix run .#lint
+
+# 2. Create annotated tag (NEVER lightweight tags)
+git tag -a "event/v4.0.1" -m "event/v4.0.1: Brief description of changes"
+
+# 3. Verify tag
+git cat-file -t "event/v4.0.1"  # should print "tag"
+
+# 4. Push tags (requires explicit approval)
+git push origin "event/v4.0.1"
+
+# 5. Verify Go proxy picks it up (after GitHub Actions CI passes)
+GOPROXY=proxy.golang.org go list -m "github.com/larsartmann/go-cqrs-lite/event/v4@v4.0.1"
+```
+
+### Critical rules
+
+- **NEVER commit code that doesn't compile.** Run `go build ./...` before every commit.
+- **NEVER push tags without running the full verification gate** (`nix run .#build && nix run .#test && nix run .#lint`).
+- **ALWAYS use annotated tags** (`git tag -a`), never lightweight tags.
+- **ALWAYS update CHANGELOG.md** with release notes before tagging.
+- **ALWAYS update `docs/api_surface.txt`** when adding new exported symbols (`cd cmd/api-stability && GOWORK=off go run . -update`).
+
+### Release CI
+
+The `release.yml` workflow triggers on any tag matching `v*` or `*/v*`. It:
+1. Auto-discovers all modules from `go.work`
+2. Builds, tests (with `-race`), and runs `govulncheck` on each module independently (GOWORK=off)
+3. Creates a GitHub Release with auto-generated notes
