@@ -30,7 +30,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.0-00010101000000-000000000000 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect

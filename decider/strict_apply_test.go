@@ -1,6 +1,7 @@
 package decider
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -60,6 +61,9 @@ func TestStrictApply_UnknownEvent(t *testing.T) {
 	if err == nil {
 		t.Fatal("StrictApply() should return error for unknown event type")
 	}
+	if !errors.Is(err, ErrStrictApplyUnknownType) {
+		t.Errorf("StrictApply() error should wrap ErrStrictApplyUnknownType, got: %v", err)
+	}
 }
 
 func TestStrictApply_PassesThroughErrors(t *testing.T) {
@@ -76,8 +80,8 @@ func TestStrictApply_PassesThroughErrors(t *testing.T) {
 	}
 }
 
-var errTestApply = errApplySentinel("test apply error")
+var errTestApply = errApplySentinelError("test apply error")
 
-type errApplySentinel string
+type errApplySentinelError string
 
-func (e errApplySentinel) Error() string { return string(e) }
+func (e errApplySentinelError) Error() string { return string(e) }

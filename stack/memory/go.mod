@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.0-00010101000000-000000000000
