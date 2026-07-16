@@ -2,6 +2,8 @@ github.com/fxamacker/cbor/v2 v2.9.2 h1:X4Ksno9+x3cz0TZv69ec1hxP/+tymuR8PXQJyDwfh
 github.com/fxamacker/cbor/v2 v2.9.2/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/larsartmann/go-branded-id v0.3.1 h1:n53Vz3MCUy3S8YfW/v+zxL/qT96iiXZOT6p46HZysyA=
 github.com/larsartmann/go-branded-id v0.3.1/go.mod h1:fiv3t1PyNCITnE/8KtymGCUz7tQRuQxF+8oqNdFmA/Y=
+github.com/larsartmann/go-branded-id v0.3.2 h1:Vbe5/LRuR2ycDFpDKuuuG8brBRYvSYcOU1nqV8IIZPI=
+github.com/larsartmann/go-branded-id v0.3.2/go.mod h1:xoQYcGTGrMqRYB8cMKHe2efq8S6stQGg3nW4DzXVWpA=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-20260711202820-6d093b4c0e3f h1:/NDyNQpKzvZqSgpx8vGAJGPzL3Tka7WvlcK9m5GsVww=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-20260711202820-6d093b4c0e3f/go.mod h1:ynDsyIzY0WltWvG9PKoCWSkXCrOPOLpOU+RwYr3P3U4=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 h1:OzwLALOUvTELaWeHRN1kY1Rvr+QAWMkmxC+PrlN4upE=

@@ -1,0 +1,25 @@
+name: cqrs-lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - name: Build cqrs-lint
+        working-directory: cmd/cqrs-lint
+        run: go build -tags "goexperiment.jsonv2" -o /tmp/cqrs-lint .
+      - name: Run cqrs-lint
+        run: /tmp/cqrs-lint ./... --format sarif > cqrs-lint-results.sarif
+        continue-on-error: true
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: cqrs-lint-results.sarif
