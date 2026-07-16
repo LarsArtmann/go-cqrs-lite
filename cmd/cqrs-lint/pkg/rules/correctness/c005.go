@@ -57,6 +57,12 @@ func NewC005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					if !isPayloadCall(payloadArg) {
 						return true
 					}
+					// json.Unmarshal inside schema.NewUpcaster closures is the
+					// correct API — upcasters operate on arbitrary event types
+					// via map[string]any, not typed payloads.
+					if analyzer.IsInsideUpcasterClosure(gf, call) {
+						return true
+					}
 
 					pos := ctx.Fset.Position(call.Pos())
 

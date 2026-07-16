@@ -134,10 +134,16 @@ func NewA010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // A012: Missing tombstone handling.
 // Detects fold/apply functions that don't check for tombstone events.
+// Only flags when the project's event types include tombstone-like names
+// (Deleted, Removed, Archived) — domains without soft-delete don't need it.
 func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A012-missing-tombstone-handling",
 		func(_ context.Context) ([]finding.Finding, error) {
+			if !hasTombstoneLikeEvents(ctx) {
+				return nil, nil
+			}
+
 			var findings []finding.Finding
 
 			for _, fold := range ctx.Registry.Folds {
@@ -170,6 +176,21 @@ func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// hasTombstoneLikeEvents returns true if any emitted event type name contains
+// words associated with soft-delete (Deleted, Removed, Archived, Tombstoned).
+func hasTombstoneLikeEvents(ctx *analyzer.AnalysisContext) bool {
+	for eventType := range ctx.Registry.EventTypesEmitted {
+		lower := strings.ToLower(eventType)
+		for _, keyword := range []string{"deleted", "removed", "archived", "tombstoned"} {
+			if strings.Contains(lower, keyword) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // A013: Pointer vs value BasicCommand embedding.

@@ -140,6 +140,10 @@ func TestA015_DetectsGlobalCache(t *testing.T) {
 		"state.go": `package main
 
 var globalCache = make(map[string]string)
+
+func update(key, val string) {
+	globalCache[key] = val
+}
 `,
 	})
 	findings := runDetector(t, api.NewA015Detector(ctx))
@@ -162,6 +166,26 @@ func TestA015_NoFindingForNonMutableVar(t *testing.T) {
 		"state.go": `package main
 
 var defaultTimeout = 30 * time.Second
+`,
+	})
+	findings := runDetector(t, api.NewA015Detector(ctx))
+	assertRule(t, findings, "A015", 0)
+}
+
+// --- A015: Read-only global registry (initialized at load, never written) ---
+
+func TestA015_NoFindingForReadOnlyGlobal(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"state.go": `package main
+
+var providerRegistry = map[string]string{
+		"wise": "Wise API",
+		"demo": "Demo Bank",
+}
+
+func lookup(key string) string {
+	return providerRegistry[key]
+}
 `,
 	})
 	findings := runDetector(t, api.NewA015Detector(ctx))
@@ -326,6 +350,10 @@ func fold(s State, evt event.Event) (State, error) {
 	}
 	return s, nil
 }
+
+func emitDelete() {
+	event.New("user.deleted", id, "User", 1, payload)
+}
 `,
 	})
 	findings := runDetector(t, api.NewA012Detector(ctx))
@@ -341,6 +369,7 @@ func TestA016_DetectsMissingIdempotency(t *testing.T) {
 func setup() {
 	d := dispatcher.NewDispatcher()
 	d.Use(loggingMiddleware)
+	d.Dispatch(ctx, cmd)
 }
 `,
 	})
@@ -355,6 +384,23 @@ func TestA016_NoFindingWithIdempotency(t *testing.T) {
 func setup() {
 	d := dispatcher.NewDispatcher()
 	d.Use(middleware.CommandIdempotency(store, ttl, nil))
+	d.Dispatch(ctx, cmd)
+}
+`,
+	})
+	findings := runDetector(t, api.NewA016Detector(ctx))
+	assertRule(t, findings, "A016", 0)
+}
+
+// --- A016: Dispatcher that never dispatches is NOT flagged ---
+
+func TestA016_NoFindingForReadOnlyDispatcher(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	d := dispatcher.NewDispatcher()
+	d.Use(loggingMiddleware)
 }
 `,
 	})

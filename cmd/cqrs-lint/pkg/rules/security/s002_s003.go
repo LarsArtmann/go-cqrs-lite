@@ -13,6 +13,7 @@ import (
 
 // S002: Missing encryption for sensitive payloads.
 // Detects event payload structs with PII fields (email, SSN, phone) without encryption middleware.
+// Downgrades to INFO when the project appears to be local-only (SQLite, no HTTP server).
 func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"S002-missing-encryption-for-sensitive-payloads",
@@ -68,15 +69,26 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				pos.Filename = filepath.Join(ctx.ProjectRoot, "go.mod")
 			}
 
+			severity := finding.SeverityError
+			confidence := finding.ConfidenceMedium
+			suggestion := "Add encryption.EncryptMiddleware(enc) to your bus.UsePublish chain"
+
+			if isLocalOnlyProject(ctx) {
+				severity = finding.SeverityInfo
+				confidence = finding.ConfidenceLow
+				suggestion = "This appears to be a local-only project (SQLite, no HTTP server). Consider adding encryption if the data may be exposed to networks"
+			}
+
 			f, err := finding.NewBuilder(
-				"S002", toolName,
+				"S002",
+				toolName,
 				"Event payloads contain PII fields but no encryption middleware — data is stored in plaintext",
-				finding.SeverityError,
+				severity,
 				finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 			).
 				WithCategory(finding.CategorySecurity).
-				WithConfidence(finding.ConfidenceMedium).
-				WithSuggestion("Add encryption.EncryptMiddleware(enc) to your bus.UsePublish chain").
+				WithConfidence(confidence).
+				WithSuggestion(suggestion).
 				WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 				Build()
 			if err == nil {
@@ -86,6 +98,34 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// isLocalOnlyProject returns true if the project uses SQLite and does not
+// import net/http — indicating a local-only CLI tool where encryption is
+// lower priority.
+func isLocalOnlyProject(ctx *analyzer.AnalysisContext) bool {
+	hasSQLite := false
+	hasHTTPServer := false
+
+	for _, pkg := range ctx.Packages {
+		for _, imp := range pkg.Imports {
+			if imp == nil {
+				continue
+			}
+
+			if strings.Contains(imp.PkgPath, "mattn/go-sqlite3") ||
+				strings.Contains(imp.PkgPath, "modernc.org/sqlite") ||
+				strings.Contains(imp.PkgPath, "database/sql") {
+				hasSQLite = true
+			}
+
+			if imp.PkgPath == "net/http" {
+				hasHTTPServer = true
+			}
+		}
+	}
+
+	return hasSQLite && !hasHTTPServer
 }
 
 func findPIIInPayloadStructs(
