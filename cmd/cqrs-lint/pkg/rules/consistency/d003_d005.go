@@ -18,28 +18,39 @@ func NewD003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		"D003-inconsistent-logging-library",
 		func(_ context.Context) ([]finding.Finding, error) {
 			loggingImports := make(map[string]bool)
+			firstFile := ""
+			firstLine := 0
 
-			for _, pkg := range ctx.Packages {
-				for _, imp := range pkg.Imports {
-					if imp == nil {
+			for _, gf := range ctx.GoFiles {
+				if gf.IsTest {
+					continue
+				}
+
+				for _, imp := range gf.AST.Imports {
+					path := strings.Trim(imp.Path.Value, `"`)
+					lib := ""
+
+					switch {
+					case strings.Contains(path, "/log/slog") || path == "log/slog":
+						lib = "log/slog"
+					case strings.Contains(path, "charm.land/log"):
+						lib = "charm.land/log"
+					case strings.Contains(path, "go.uber.org/zap"):
+						lib = "go.uber.org/zap"
+					case strings.Contains(path, "github.com/rs/zerolog"):
+						lib = "zerolog"
+					}
+
+					if lib == "" {
 						continue
 					}
 
-					path := imp.PkgPath
-					if strings.Contains(path, "/log/slog") || path == "log/slog" {
-						loggingImports["log/slog"] = true
-					}
+					loggingImports[lib] = true
 
-					if strings.Contains(path, "charm.land/log") {
-						loggingImports["charm.land/log"] = true
-					}
-
-					if strings.Contains(path, "go.uber.org/zap") {
-						loggingImports["go.uber.org/zap"] = true
-					}
-
-					if strings.Contains(path, "github.com/rs/zerolog") {
-						loggingImports["zerolog"] = true
+					if firstFile == "" {
+						pos := ctx.Fset.Position(imp.Pos())
+						firstFile = pos.Filename
+						firstLine = pos.Line
 					}
 				}
 			}
@@ -64,11 +75,12 @@ func NewD003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					strings.Join(libs, ", "),
 				),
 				finding.SeverityInfo,
-				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
+				finding.Pos(finding.FilePath(firstFile), firstLine, 1),
 			).
 				WithCategory(finding.CategoryNaming).
 				WithConfidence(finding.ConfidenceHigh).
 				WithSuggestion("Standardize on log/slog (Go stdlib) for structured logging consistency").
+				WithSnippet(ctx.SourceLine(firstFile, firstLine)).
 				Build()
 			if err == nil {
 				findings = append(findings, f)

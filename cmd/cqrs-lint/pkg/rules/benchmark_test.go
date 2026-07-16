@@ -2,8 +2,10 @@ package rules_test
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -108,5 +110,62 @@ func TestGoldenFile_JSONOutput(t *testing.T) {
 
 	if strings.TrimRight(string(expected), "\n") != jsonOut {
 		t.Errorf("JSON output changed from golden file. Run with UPDATE_GOLDEN=1 to update.")
+	}
+}
+
+// TestGoldenFile_SARIFOutput verifies SARIF output format stability.
+// Uses JSON structural comparison because SARIF properties are serialized
+// from Go maps with non-deterministic key ordering.
+func TestGoldenFile_SARIFOutput(t *testing.T) {
+	t.Parallel()
+
+	f, err := finding.NewBuilder(
+		"C001", "cqrs-lint",
+		"test finding for golden file",
+		finding.SeverityError,
+		finding.Pos(finding.FilePath("example.go"), 10, 5),
+	).
+		WithCategory(finding.CategoryCorrectness).
+		WithConfidence(finding.ConfidenceHigh).
+		WithSuggestion("Fix this issue").
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	report := finding.NewReport(finding.ToolInfo{Name: "cqrs-lint", Version: "0.1.0"})
+	report.AddFindings([]finding.Finding{f})
+
+	sarifOut, err := report.ToSARIF()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	goldenPath := filepath.Join("testdata", "sarif_output.json")
+	if os.Getenv("UPDATE_GOLDEN") == "1" {
+		_ = os.MkdirAll("testdata", 0o755)
+		if err := os.WriteFile(goldenPath, append(sarifOut, '\n'), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	expected, err := os.ReadFile(goldenPath)
+	if err != nil {
+		t.Skipf("golden file not found (run with UPDATE_GOLDEN=1 to create): %v", err)
+	}
+
+	var expectedJSON, actualJSON any
+	if err := json.Unmarshal(expected, &expectedJSON); err != nil {
+		t.Fatalf("failed to parse golden SARIF: %v", err)
+	}
+
+	if err := json.Unmarshal(sarifOut, &actualJSON); err != nil {
+		t.Fatalf("failed to parse actual SARIF: %v", err)
+	}
+
+	if !reflect.DeepEqual(expectedJSON, actualJSON) {
+		t.Errorf(
+			"SARIF output structure changed from golden file. Run with UPDATE_GOLDEN=1 to update.",
+		)
 	}
 }

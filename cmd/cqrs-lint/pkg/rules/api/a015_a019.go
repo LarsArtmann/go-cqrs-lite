@@ -117,6 +117,8 @@ func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			hasDispatcher := false
+			dispFile := ""
+			dispLine := 0
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -136,6 +138,9 @@ func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					if sel.Sel.Name == "NewDispatcher" || sel.Sel.Name == "Use" {
 						hasDispatcher = true
+						p := ctx.Fset.Position(call.Pos())
+						dispFile = p.Filename
+						dispLine = p.Line
 
 						return false
 					}
@@ -152,11 +157,12 @@ func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"A016", toolName,
 				"Command dispatcher lacks idempotency middleware — duplicate commands may execute twice",
 				finding.SeverityWarning,
-				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
+				finding.Pos(finding.FilePath(dispFile), dispLine, 1),
 			).
 				WithCategory(finding.CategoryBestPractice).
 				WithConfidence(finding.ConfidenceLow).
 				WithSuggestion("Add middleware.CommandIdempotency(store, ttl, nil) to your dispatcher").
+				WithSnippet(ctx.SourceLine(dispFile, dispLine)).
 				Build()
 			if err == nil {
 				findings = append(findings, f)

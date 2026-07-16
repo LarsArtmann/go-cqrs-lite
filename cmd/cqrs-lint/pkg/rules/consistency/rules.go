@@ -25,25 +25,42 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			hasDotNotation := false
 			hasNoDotNotation := false
+			firstFile := ""
+			firstLine := 0
 
-			for eventType := range ctx.Registry.EventTypesEmitted {
+			for eventType, emission := range ctx.Registry.EventTypesEmitted {
 				if strings.Contains(eventType, ".") {
 					hasDotNotation = true
 				} else {
 					hasNoDotNotation = true
 				}
+
+				if firstFile == "" && emission.File != "" {
+					firstFile = emission.File
+					firstLine = emission.Line
+				}
 			}
 
 			if hasDotNotation && hasNoDotNotation {
+				pos := finding.Pos(finding.FilePath(firstFile), firstLine, 1)
+				if firstFile == "" {
+					pos = finding.Pos(
+						finding.FilePath(filepath.Join(ctx.ProjectRoot, "go.mod")),
+						1,
+						1,
+					)
+				}
+
 				f, err := finding.NewBuilder(
 					"D001", toolName,
 					"Inconsistent event type naming — some use dot notation (user.created), others don't (UserCreated)",
 					finding.SeverityInfo,
-					finding.Pos(finding.FilePath(filepath.Join(ctx.ProjectRoot, "go.mod")), 1, 1),
+					pos,
 				).
 					WithCategory(finding.CategoryStyle).
 					WithConfidence(finding.ConfidenceMedium).
 					WithSuggestion("Pick one convention: dot notation (domain.event) or PascalCase (DomainEvent) and use it consistently").
+					WithSnippet(ctx.SourceLine(firstFile, firstLine)).
 					Build()
 				if err == nil {
 					findings = append(findings, f)

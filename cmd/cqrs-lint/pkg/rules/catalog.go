@@ -11,13 +11,19 @@ type RuleInfo struct {
 	AutoFix     bool
 }
 
-// AllRules returns metadata for all available rules.
-
+// AllRules returns metadata for all available rules, organized by category.
 func AllRules() []RuleInfo {
-	return append(append(coreRules(), extraRules()...), extraRulesBatch2()...)
+	return append(append(append(append(append(
+		correctnessRules(),
+		apiRules()...,
+	),
+		boilerplateRules()...),
+		consistencyRules()...),
+		architectureRules()...),
+		securityRules()...)
 }
 
-func coreRules() []RuleInfo {
+func correctnessRules() []RuleInfo {
 	return []RuleInfo{
 		{
 			ID:          "C001",
@@ -45,6 +51,15 @@ func coreRules() []RuleInfo {
 			Confidence:  "high",
 			Description: "Fold function silently ignores unknown event types",
 			AutoFix:     true,
+		},
+		{
+			ID:          "C004",
+			Name:        "checkpoint-before-async-complete",
+			Category:    "correctness",
+			Severity:    "error",
+			Confidence:  "medium",
+			Description: "Projection launches async work — checkpoint may save before completion",
+			AutoFix:     false,
 		},
 		{
 			ID:          "C005",
@@ -101,6 +116,15 @@ func coreRules() []RuleInfo {
 			AutoFix:     false,
 		},
 		{
+			ID:          "C011",
+			Name:        "nondeterministic-decider",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "low",
+			Description: "rand.* call inside decider — non-deterministic replay",
+			AutoFix:     false,
+		},
+		{
 			ID:          "C012",
 			Name:        "missing-error-return-in-with-tx",
 			Category:    "correctness",
@@ -109,6 +133,11 @@ func coreRules() []RuleInfo {
 			Description: "withTx ignores body error — failures silently lost",
 			AutoFix:     false,
 		},
+	}
+}
+
+func apiRules() []RuleInfo {
+	return []RuleInfo{
 		{
 			ID:          "A001",
 			Name:        "manual-command-interface",
@@ -179,6 +208,105 @@ func coreRules() []RuleInfo {
 			Severity:    "error",
 			Confidence:  "high",
 			Description: "Custom AggregateID/Version types duplicating go-cqrs-lite",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A009",
+			Name:        "missing-stack-preset",
+			Category:    "api",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Project does not use a stack/ preset",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A010",
+			Name:        "custom-error-types",
+			Category:    "api",
+			Severity:    "warning",
+			Confidence:  "low",
+			Description: "Custom error interface duplicating go-error-family",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A011",
+			Name:        "inconsistent-json-key-casing-event-payloads",
+			Category:    "api",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Event payload structs with mixed JSON key casing",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A012",
+			Name:        "missing-tombstone-handling",
+			Category:    "api",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Fold function does not check for tombstone events",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A013",
+			Name:        "pointer-vs-value-basic-command",
+			Category:    "api",
+			Severity:    "info",
+			Confidence:  "high",
+			Description: "Command embeds *BasicCommand (pointer) instead of value",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A014",
+			Name:        "deprecated-api-usage",
+			Category:    "api",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Calls to deprecated APIs (event.NewEvent, dispatcher.Register)",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A015",
+			Name:        "global-mutable-state",
+			Category:    "api",
+			Severity:    "error",
+			Confidence:  "medium",
+			Description: "Global mutable variable — race condition risk",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A016",
+			Name:        "missing-idempotency-middleware",
+			Category:    "api",
+			Severity:    "warning",
+			Confidence:  "low",
+			Description: "Command dispatcher lacks idempotency middleware",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A017",
+			Name:        "missing-snapshot-strategy",
+			Category:    "api",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Repository without snapshot strategy — slow for large aggregates",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A018",
+			Name:        "no-actual-event-sourcing",
+			Category:    "api",
+			Severity:    "info",
+			Confidence:  "high",
+			Description: "Imports go-cqrs-lite but never calls Save/Publish",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A019",
+			Name:        "vendored-cqrs",
+			Category:    "api",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Vendored copy of go-cqrs-lite detected",
 			AutoFix:     false,
 		},
 	}

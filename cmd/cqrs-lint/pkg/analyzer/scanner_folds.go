@@ -33,10 +33,6 @@ func scanFuncDecl(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl) {
 	}
 }
 
-func isIDMethod(fn *ast.FuncDecl) bool {
-	return fn.Recv != nil && fn.Name != nil && fn.Name.Name == "ID"
-}
-
 func scanIDMethod(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl, pos token.Position) {
 	recvType := recvTypeName(fn)
 	if recvType == "" {

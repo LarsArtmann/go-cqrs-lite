@@ -7,6 +7,77 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/boilerplate"
 )
 
+// --- B002: Manual repository wiring ---
+
+func TestB002_DetectsManualWiring(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	store := storage.NewEventStore(db)
+	bus := event.NewBus(store)
+	repo := decider.NewRepository(store, bus, d)
+	_ = repo
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB002Detector(ctx))
+	assertRule(t, findings, "B002", 1)
+}
+
+func TestB002_NoFindingForSimpleFunc(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB002Detector(ctx))
+	assertRule(t, findings, "B002", 0)
+}
+
+// --- B003: SubscribeAll with large switch ---
+
+func TestB003_DetectsLargeSwitch(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"proj.go": `package main
+
+func subscribe(bus *Bus) {
+	bus.SubscribeAll(func(evt Event) {
+		switch evt.Type() {
+		case "a":
+		case "b":
+		case "c":
+		case "d":
+		case "e":
+		case "f":
+		}
+	})
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB003Detector(ctx))
+	assertRule(t, findings, "B003", 1)
+}
+
+func TestB003_NoFindingForSmallSwitch(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"proj.go": `package main
+
+func subscribe(bus *Bus) {
+	bus.SubscribeAll(func(evt Event) {
+		switch evt.Type() {
+		case "a":
+		case "b":
+		}
+	})
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB003Detector(ctx))
+	assertRule(t, findings, "B003", 0)
+}
+
 // --- B006: Duplicate FK stub SQL ---
 
 func TestB006_DetectsDuplicateFK(t *testing.T) {

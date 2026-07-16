@@ -99,6 +99,8 @@ func NewB013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			hasCausality := false
 			hasRepository := false
+			repoFile := ""
+			repoLine := 0
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -123,6 +125,9 @@ func NewB013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					if sel.Sel.Name == "NewRepository" {
 						hasRepository = true
+						p := ctx.Fset.Position(call.Pos())
+						repoFile = p.Filename
+						repoLine = p.Line
 					}
 
 					return true
@@ -137,11 +142,12 @@ func NewB013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"B013", toolName,
 				"Repository created without correlation enricher — command→event traceability is lost",
 				finding.SeverityWarning,
-				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
+				finding.Pos(finding.FilePath(repoFile), repoLine, 1),
 			).
 				WithCategory(finding.CategoryBestPractice).
 				WithConfidence(finding.ConfidenceMedium).
 				WithSuggestion("Use event.WithCommandCausality(ctx, cmdType, cmdID) in your decide function").
+				WithSnippet(ctx.SourceLine(repoFile, repoLine)).
 				Build()
 			if err == nil {
 				findings = append(findings, f)
@@ -162,6 +168,8 @@ func NewB014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			hasOTel := false
 			hasMiddleware := false
+			mwFile := ""
+			mwLine := 0
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -188,6 +196,9 @@ func NewB014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					if sel.Sel.Name == "Use" || sel.Sel.Name == "UsePublish" {
 						hasMiddleware = true
+						p := ctx.Fset.Position(call.Pos())
+						mwFile = p.Filename
+						mwLine = p.Line
 					}
 
 					return true
@@ -202,11 +213,12 @@ func NewB014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"B014", toolName,
 				"Event bus / command dispatcher lacks OTel tracing middleware — no distributed tracing visibility",
 				finding.SeverityInfo,
-				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
+				finding.Pos(finding.FilePath(mwFile), mwLine, 1),
 			).
 				WithCategory(finding.CategoryBestPractice).
 				WithConfidence(finding.ConfidenceLow).
 				WithSuggestion("Add middleware.NewOTelBundle(tracer, meter) and register Event()/Command()/Query() middleware").
+				WithSnippet(ctx.SourceLine(mwFile, mwLine)).
 				Build()
 			if err == nil {
 				findings = append(findings, f)

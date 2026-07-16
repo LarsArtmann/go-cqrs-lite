@@ -3,6 +3,8 @@ package api_test
 import (
 	"testing"
 
+	"golang.org/x/tools/go/packages"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/api"
 )
@@ -305,4 +307,77 @@ var d = decider.Decider[OrderState]{
 	})
 	findings := runDetector(t, api.NewA007Detector(ctx))
 	assertRule(t, findings, "A007", 1)
+}
+
+// --- A012: Positive test — fold with switch but no tombstone handling ---
+
+func TestA012_DetectsFoldWithoutTombstoneCheck(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"fold.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+type State struct{ Count int }
+
+func fold(s State, evt event.Event) (State, error) {
+	switch evt.Type() {
+	case "created":
+		s.Count++
+	}
+	return s, nil
+}
+`,
+	})
+	findings := runDetector(t, api.NewA012Detector(ctx))
+	assertRule(t, findings, "A012", 1)
+}
+
+// --- A016: Positive test — dispatcher with Use but no idempotency ---
+
+func TestA016_DetectsMissingIdempotency(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	d := dispatcher.NewDispatcher()
+	d.Use(loggingMiddleware)
+}
+`,
+	})
+	findings := runDetector(t, api.NewA016Detector(ctx))
+	assertRule(t, findings, "A016", 1)
+}
+
+func TestA016_NoFindingWithIdempotency(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	d := dispatcher.NewDispatcher()
+	d.Use(middleware.CommandIdempotency(store, ttl, nil))
+}
+`,
+	})
+	findings := runDetector(t, api.NewA016Detector(ctx))
+	assertRule(t, findings, "A016", 0)
+}
+
+// --- A019: Positive test — vendored cqrs import ---
+
+func TestA019_DetectsVendoredCqrs(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	ctx.Packages = []*packages.Package{
+		{
+			PkgPath: "example.com/app",
+			Imports: map[string]*packages.Package{
+				"vendor/github.com/larsartmann/go-cqrs-lite/event/v4": {
+					PkgPath: "vendor/github.com/larsartmann/go-cqrs-lite/event/v4",
+				},
+			},
+		},
+	}
+	findings := runDetector(t, api.NewA019Detector(ctx))
+	assertRule(t, findings, "A019", 1)
 }

@@ -19,6 +19,24 @@ func TestE001_NoCrashOnEmptyContext(t *testing.T) {
 	assertRule(t, findings, "E001", 0)
 }
 
+func TestE001_DetectsLayerViolation(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	ctx.Packages = []*packages.Package{
+		{
+			PkgPath: "github.com/larsartmann/go-cqrs-lite/codec",
+			Imports: map[string]*packages.Package{
+				"github.com/larsartmann/go-cqrs-lite/decider": {
+					PkgPath: "github.com/larsartmann/go-cqrs-lite/decider",
+				},
+			},
+		},
+	}
+	findings := runDetector(t, architecture.NewE001Detector(ctx))
+	assertRule(t, findings, "E001", 1)
+}
+
 // --- E002: Circular dependency ---
 
 func TestE002_NoCrashOnEmptyContext(t *testing.T) {

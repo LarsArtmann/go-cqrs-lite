@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"golang.org/x/tools/go/packages"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/consistency"
 )
@@ -55,17 +53,23 @@ func TestD003_NoCrashOnEmptyContext(t *testing.T) {
 
 func TestD003_DetectsMixedLogging(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go": `package main`,
+		"a.go": `package main
+
+import (
+	"log/slog"
+)
+
+var _ = slog.Default
+`,
+		"b.go": `package main
+
+import (
+	"go.uber.org/zap"
+)
+
+var _ = zap.New
+`,
 	})
-	ctx.Packages = []*packages.Package{
-		{
-			PkgPath: "example.com/app",
-			Imports: map[string]*packages.Package{
-				"log/slog":        {PkgPath: "log/slog"},
-				"go.uber.org/zap": {PkgPath: "go.uber.org/zap"},
-			},
-		},
-	}
 	findings := runDetector(t, consistency.NewD003Detector(ctx))
 	assertRule(t, findings, "D003", 1)
 }

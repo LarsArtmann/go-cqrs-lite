@@ -1,0 +1,56 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "cqrs-lint",
+          "version": "0.1.0"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "C001",
+          "level": "error",
+          "message": {
+            "text": "test finding for golden file"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "example.go"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 5,
+                  "endLine": 0,
+                  "endColumn": 0
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "Fix this issue"
+              },
+              "artifactChanges": []
+            }
+          ],
+          "rank": 75,
+          "properties": {
+            "go-finding/category": "correctness",
+            "go-finding/confidence": 0.75,
+            "go-finding/suggestion": "Fix this issue",
+            "go-finding/id": "cqrs-lint:C001:example.go:10:5",
+            "go-finding/severity": "error",
+            "go-finding/fixStrategy": "none",
+            "go-finding/toolName": "cqrs-lint"
+          }
+        }
+      ]
+    }
+  ]
+}
