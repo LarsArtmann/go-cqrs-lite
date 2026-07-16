@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -33,7 +34,7 @@ func NewA011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					name := ts.Name.Name
-					if !looksLikeEventPayload(name) {
+					if !slices.Contains() {
 						return true
 					}
 
@@ -77,18 +78,6 @@ func NewA011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-func looksLikeEventPayload(name string) bool {
-	suffixes := []string{"Created", "Updated", "Deleted", "Removed", "Added", "Changed", "Event"}
-
-	for _, s := range suffixes {
-		if strings.HasSuffix(name, s) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func countJSONKeyCasings(st *ast.StructType) (int, int) {
