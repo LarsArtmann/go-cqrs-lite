@@ -15,10 +15,16 @@ import (
 // Detects package-level var declarations that are mutated at runtime.
 // Only flags globals that are actually written to after initialization
 // (not read-only lookup tables initialized at package load).
+// Suppressed for local-only systems (no server) — race conditions require
+// concurrent access, which only happens in server deployments.
 func NewA015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A015-global-mutable-state",
 		func(_ context.Context) ([]finding.Finding, error) {
+			if !ctx.FeatureProfile.HasServer {
+				return nil, nil
+			}
+
 			var findings []finding.Finding
 
 			candidates := collectGlobalMutables(ctx)
@@ -158,17 +164,20 @@ func isGlobalWrittenAfterInit(ctx *analyzer.AnalysisContext, varName string) boo
 
 // A016: Missing idempotency middleware.
 // Detects command dispatchers without idempotency middleware.
-// Only flags when dispatchers are actually used for Dispatch() calls —
-// read-only dispatchers (e.g., dashboards that never dispatch commands)
-// are not at risk of duplicate execution.
+// Only flags when the consumer actually dispatches commands (CommandFlowCommands).
+// Read-only systems (no dispatcher) and sync/batch systems are not at risk.
+// Detection of command-flow now lives in ctx.FeatureProfile (centralized).
 func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A016-missing-idempotency-middleware",
 		func(_ context.Context) ([]finding.Finding, error) {
-			var findings []finding.Finding
+			if ctx.FeatureProfile.CommandFlow != analyzer.CommandFlowCommands {
+				return nil, nil
+			}
 
 			hasIdempotency := false
-			hasDispatch := false
+			dispFile := ""
+			dispLine := 0
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -192,54 +201,23 @@ func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return false
 					}
 
-					if sel.Sel.Name == "Dispatch" {
-						hasDispatch = true
-					}
-
-					return true
-				})
-			}
-
-			if hasIdempotency || !hasDispatch {
-				return nil, nil
-			}
-
-			hasDispatcher := false
-			dispFile := ""
-			dispLine := 0
-
-			for _, gf := range ctx.GoFiles {
-				if gf.IsTest {
-					continue
-				}
-
-				ast.Inspect(gf.AST, func(n ast.Node) bool {
-					call, ok := n.(*ast.CallExpr)
-					if !ok {
-						return true
-					}
-
-					sel, ok := analyzer.SelectorFromExpr(call.Fun)
-					if !ok {
-						return true
-					}
-
 					if sel.Sel.Name == "NewDispatcher" || sel.Sel.Name == "Use" {
-						hasDispatcher = true
-						p := ctx.Fset.Position(call.Pos())
-						dispFile = p.Filename
-						dispLine = p.Line
-
-						return false
+						if dispFile == "" {
+							p := ctx.Fset.Position(call.Pos())
+							dispFile = p.Filename
+							dispLine = p.Line
+						}
 					}
 
 					return true
 				})
 			}
 
-			if !hasDispatcher {
+			if hasIdempotency || dispFile == "" {
 				return nil, nil
 			}
+
+			var findings []finding.Finding
 
 			f, err := finding.NewBuilder(
 				"A016", toolName,

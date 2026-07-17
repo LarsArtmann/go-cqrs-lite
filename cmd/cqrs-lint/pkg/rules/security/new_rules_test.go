@@ -87,6 +87,7 @@ func saveEvents(store event.Store, ref event.AggregateRef, events []event.Event)
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 	findings := runDetector(t, security.NewS003Detector(ctx))
 	assertRule(t, findings, "S003", 1)
 }

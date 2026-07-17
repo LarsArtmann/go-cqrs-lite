@@ -186,6 +186,14 @@ func extractCQRSVersion(content, modVersion string) string {
 			continue
 		}
 
+		// Skip markdown headings (ADR titles, section headers) — these contain
+		// historical version references like "ADR-0044: Migrate from v3 to v4"
+		// that describe past migrations, not current version claims.
+		trimmed := strings.TrimLeft(line, " \t")
+		if strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+
 		for field := range strings.FieldsSeq(line) {
 			if !strings.HasPrefix(field, "v") || len(field) < 3 {
 				continue

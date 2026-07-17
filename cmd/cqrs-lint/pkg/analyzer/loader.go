@@ -127,6 +127,8 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 
 	filterEventPayloads(ctx)
 
+	ctx.FeatureProfile = DetectFeatures(ctx)
+
 	return ctx, nil
 }
 

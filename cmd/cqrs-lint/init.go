@@ -16,7 +16,9 @@ const configTemplate = `{
   "min-confidence": "low",
   "format": "text",
   "exclude": [],
-  "only": ""
+  "only": "",
+  "features": {},
+  "preset": ""
 }
 `
 

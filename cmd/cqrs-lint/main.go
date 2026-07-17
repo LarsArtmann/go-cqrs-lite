@@ -35,19 +35,26 @@ var errFindingsWithErrors = errors.New("findings with error severity")
 type AppConfig struct {
 	cmdguard.Config
 
-	Path          string `default:"." flag:"path" help:"Path to lint"`
-	Format        string `default:"text" flag:"format" help:"Output format" short:"o"`
-	MinSeverity   string `default:"info" flag:"min-severity" help:"Minimum severity"`
-	MinConfidence string `default:"low" flag:"min-confidence" help:"Minimum confidence"`
-	Fix           bool   `default:"false" flag:"fix" help:"Apply auto-fixes"`
-	DryRun        bool   `default:"false" flag:"dry-run" help:"Show fixes without applying"`
-	FastMode      bool   `default:"false" flag:"fast" help:"Critical correctness rules only"`
-	HealthScore   bool   `default:"false" flag:"health-score" help:"Print only the health score"`
-	Categories    string `default:"" flag:"only" help:"Filter by category or rule IDs"`
-	Exclude       string `default:"" flag:"exclude" help:"Exclude paths (comma-separated)"`
-	Color         string `default:"auto" flag:"color" help:"Colored output: auto,always,never"`
-	Verbose       bool   `default:"false" flag:"verbose" help:"Verbose output"`
-	Quiet         bool   `default:"false" flag:"quiet" help:"Suppress non-finding output" short:"q"`
+	Path          string `default:"."     flag:"path"           help:"Path to lint"`
+	Format        string `default:"text"  flag:"format"         help:"Output format"                     short:"o"`
+	MinSeverity   string `default:"info"  flag:"min-severity"   help:"Minimum severity"`
+	MinConfidence string `default:"low"   flag:"min-confidence" help:"Minimum confidence"`
+	Fix           bool   `default:"false" flag:"fix"            help:"Apply auto-fixes"`
+	DryRun        bool   `default:"false" flag:"dry-run"        help:"Show fixes without applying"`
+	FastMode      bool   `default:"false" flag:"fast"           help:"Critical correctness rules only"`
+	HealthScore   bool   `default:"false" flag:"health-score"   help:"Print only the health score"`
+	Categories    string `default:""      flag:"only"           help:"Filter by category or rule IDs"`
+	Exclude       string `default:""      flag:"exclude"        help:"Exclude paths (comma-separated)"`
+	Color         string `default:"auto"  flag:"color"          help:"Colored output: auto,always,never"`
+	Verbose       bool   `default:"false" flag:"verbose"        help:"Verbose output"`
+	Quiet         bool   `default:"false" flag:"quiet"          help:"Suppress non-finding output"       short:"q"`
+
+	// Features declares which go-cqrs-lite modules the consumer uses.
+	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.
+	Features analyzer.ConfigFeatures `json:"features,omitempty"`
+	// Preset is a named set of feature-flag defaults (sugar over Features).
+	// Explicit Features flags always override preset values.
+	Preset analyzer.ConfigPreset `default:"" json:"preset,omitempty"`
 }
 
 func main() {
@@ -108,6 +115,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := setupDoctorCommand(cli); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
 	ctx := context.Background()
 	cli.ExecuteAndExit(ctx)
 }
@@ -119,6 +131,13 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	if err != nil {
 		return fmt.Errorf("load packages: %w", err)
 	}
+
+	// Apply config-declared feature overrides on top of auto-detection.
+	actx.FeatureProfile = analyzer.ResolveFeatureProfile(
+		cfg.Features,
+		cfg.Preset,
+		actx.FeatureProfile,
+	)
 
 	if len(actx.GoFiles) == 0 {
 		if !cfg.Quiet {
@@ -189,6 +208,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		modules := countModules(actx.GoFiles)
 		fmt.Fprintf(os.Stderr, "Modules: %d  Detectors: %d  Findings: %d (before filtering)\n\n",
 			modules, len(detectors), len(allFindings))
+		fmt.Fprintf(os.Stderr, "Feature profile:\n%s\n", actx.FeatureProfile.String())
 		printDetectorTimings(os.Stderr, result.Metrics)
 	}
 

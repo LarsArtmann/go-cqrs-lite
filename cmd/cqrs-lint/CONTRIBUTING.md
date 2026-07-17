@@ -118,6 +118,40 @@ GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1
 - No panics in detector code — always return `([]finding.Finding, error)`
 - Test files are skipped by all AST-scanning detectors (`gf.IsTest`)
 
+## Detector Conventions
+
+### Consult FeatureProfile, not private heuristics
+
+Rules that depend on deployment context (server vs CLI, read-only vs commands,
+soft-delete domain, tracing) MUST consult `ctx.FeatureProfile` instead of
+re-deriving project context with private heuristic functions. This centralizes
+"what kind of system is this?" in one place.
+
+```go
+// CORRECT — consult the centralized feature profile
+if !ctx.FeatureProfile.HasServer {
+    return nil, nil // local-only system, suppress
+}
+
+// WRONG — private heuristic that duplicates DetectFeatures
+func isLocalOnly(ctx *AnalysisContext) bool { ... }
+```
+
+### Use SelectorFromExpr for all call matching
+
+All detectors that match function calls MUST use `analyzer.SelectorFromExpr`
+instead of direct `call.Fun.(*ast.SelectorExpr)` type assertions. Direct
+assertions are blind to generic calls like `decider.WithSnapshotStore[State](store)`.
+
+```go
+// CORRECT — handles generic instantiation wrappers
+sel, ok := analyzer.SelectorFromExpr(call.Fun)
+if !ok { return true }
+
+// WRONG — panics or silently skips generic calls
+sel := call.Fun.(*ast.SelectorExpr)
+```
+
 ## Architecture
 
 ```
@@ -128,8 +162,13 @@ cmd/cqrs-lint/
 ├── color.go         # Colored terminal output
 ├── commands.go      # Rules/version subcommands
 ├── init.go          # Init subcommand
+├── doctor.go        # Doctor subcommand (feature profile detection)
 ├── pkg/
-│   ├── analyzer/    # CQRS pattern scanning, registry, test helpers
+│   ├── analyzer/    # CQRS pattern scanning, registry, feature profile, test helpers
+│   │   ├── feature_profile.go  # FeatureProfile types, ConfigFeatures, presets
+│   │   ├── feature_detect.go   # DetectFeatures (centralized context detection)
+│   │   ├── ast_helpers.go      # SelectorFromExpr, unwrapSelector (generics support)
+│   │   └── ...
 │   ├── rules/       # Rule catalog, registration, filtering
 │   │   ├── correctness/   # C001-C012
 │   │   ├── api/           # A001-A019

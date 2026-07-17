@@ -146,6 +146,7 @@ func update(key, val string) {
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 	findings := runDetector(t, api.NewA015Detector(ctx))
 	assertRule(t, findings, "A015", 1)
 }

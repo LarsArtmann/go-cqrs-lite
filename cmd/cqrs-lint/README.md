@@ -43,6 +43,53 @@ echo '{"min-severity":"warning","format":"json"}' > .cqrs-lint.json
 cqrs-lint ./...
 ```
 
+## Feature Profiles
+
+cqrs-lint auto-detects which go-cqrs-lite features your project uses and adapts
+its rules accordingly. Run `cqrs-lint doctor` to see what was detected:
+
+```bash
+cqrs-lint doctor
+```
+
+You can override auto-detection in `.cqrs-lint.json`:
+
+```json
+{
+  "features": {
+    "store": "sqlite",
+    "command-flow": "sync",
+    "server": false,
+    "soft-delete": true,
+    "tracing": "off",
+    "snapshot": "off"
+  }
+}
+```
+
+Each flag maps to a go-cqrs-lite module. Rules that depend on deployment
+context (S002 encryption, S003 signing, A015 global mutable, A016 idempotency,
+B014 OTel) consult these flags instead of guessing.
+
+### Presets
+
+For convenience, named presets set common flag combinations:
+
+```json
+{
+  "preset": "local-cli"
+}
+```
+
+| Preset       | Effect                                                                      |
+| ------------ | --------------------------------------------------------------------------- |
+| `local-cli`  | `server: false`, `tracing: off`                                             |
+| `production` | `server: true`, `tracing: on`                                               |
+| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` |
+| `read-only`  | `command-flow: read-only`                                                   |
+
+Explicit `features` flags always override preset values.
+
 ## Rule Count
 
 **60 rules** across 6 categories: correctness (12), API misuse (19), boilerplate (15), consistency (4), architecture (7), security (3).

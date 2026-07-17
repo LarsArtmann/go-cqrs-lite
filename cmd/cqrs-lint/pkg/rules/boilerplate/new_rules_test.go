@@ -339,6 +339,7 @@ func setup(bus *EventBus) {
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 	findings := runDetector(t, boilerplate.NewB014Detector(ctx))
 	assertRule(t, findings, "B014", 1)
 }

@@ -39,15 +39,28 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
+			suggestion := "Use stack/sqlite.New(dsn) or stack/pebble.New(dir) for one-call setup with sane defaults"
+			switch ctx.FeatureProfile.Store {
+			case analyzer.StoreSQLite:
+				suggestion = "Use stack/sqlite.New(dsn) for one-call setup with sane defaults"
+			case analyzer.StorePostgres:
+				suggestion = "Use stack/postgres.New(dsn) for one-call setup with sane defaults"
+			case analyzer.StorePebble:
+				suggestion = "Use stack/pebble.New(dir) for one-call setup with sane defaults"
+			case analyzer.StoreCustom:
+				suggestion = "Consider using a stack/ preset for boilerplate-free setup, or keep custom wiring if you need full control"
+			}
+
 			f, err := finding.NewBuilder(
-				"A009", toolName,
+				"A009",
+				toolName,
 				"Project does not use a stack/ preset — manual wiring is error-prone and misses defaults",
 				finding.SeverityInfo,
 				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
 			).
 				WithCategory(finding.CategoryBestPractice).
 				WithConfidence(finding.ConfidenceMedium).
-				WithSuggestion("Use stack/sqlite.New(dsn) or stack/pebble.New(dir) for one-call setup with sane defaults").
+				WithSuggestion(suggestion).
 				Build()
 			if err == nil {
 				findings = append(findings, f)
@@ -136,11 +149,12 @@ func NewA010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // Detects fold/apply functions that don't check for tombstone events.
 // Only flags when the project's event types include tombstone-like names
 // (Deleted, Removed, Archived) — domains without soft-delete don't need it.
+// Detection now consults ctx.FeatureProfile.HasSoftDelete (centralized).
 func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A012-missing-tombstone-handling",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !hasTombstoneLikeEvents(ctx) {
+			if !ctx.FeatureProfile.HasSoftDelete {
 				return nil, nil
 			}
 
@@ -178,20 +192,8 @@ func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// hasTombstoneLikeEvents returns true if any emitted event type name contains
-// words associated with soft-delete (Deleted, Removed, Archived, Tombstoned).
-func hasTombstoneLikeEvents(ctx *analyzer.AnalysisContext) bool {
-	for eventType := range ctx.Registry.EventTypesEmitted {
-		lower := strings.ToLower(eventType)
-		for _, keyword := range []string{"deleted", "removed", "archived", "tombstoned"} {
-			if strings.Contains(lower, keyword) {
-				return true
-			}
-		}
-	}
-
-	return false
-}
+// hasTombstoneLikeEvents has been replaced by ctx.FeatureProfile.HasSoftDelete.
+// Soft-delete detection now lives centrally in analyzer.DetectFeatures.
 
 // A013: Pointer vs value BasicCommand embedding.
 func NewA013Detector(ctx *analyzer.AnalysisContext) finding.Detector {

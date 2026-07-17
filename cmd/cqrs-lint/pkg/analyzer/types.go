@@ -82,6 +82,11 @@ type AnalysisContext struct {
 	// AllGoFiles is a flat list of all Go source files for easy iteration.
 	GoFiles []*GoFile
 
+	// FeatureProfile centralizes "what kind of system is this?" as feature flags.
+	// Detectors consult this instead of independently re-deriving project context.
+	// Computed once in BuildContext after the scan completes.
+	FeatureProfile FeatureProfile
+
 	// lineCache caches file contents for SourceLine to avoid repeated disk reads.
 	lineCache sync.Map // filename → []string
 }

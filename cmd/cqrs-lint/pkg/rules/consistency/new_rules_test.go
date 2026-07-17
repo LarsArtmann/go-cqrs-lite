@@ -139,3 +139,25 @@ func TestD005_NoFindingForMigrationArrow(t *testing.T) {
 	findings := runDetector(t, consistency.NewD005Detector(ctx))
 	assertRule(t, findings, "D005", 0)
 }
+
+func TestD005_NoFindingForADRTitleHeading(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(
+		"module example.com/app\n\nrequire github.com/larsartmann/go-cqrs-lite v4.0.0\n",
+	),
+		0o644)
+	_ = os.WriteFile(filepath.Join(tmpDir, "README.md"), []byte(
+		"### ADR-0044: go-cqrs-lite v3 to v4 Migration\n\nThis project uses go-cqrs-lite.\n",
+	),
+		0o644)
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	ctx.ProjectRoot = tmpDir
+
+	findings := runDetector(t, consistency.NewD005Detector(ctx))
+	assertRule(t, findings, "D005", 0)
+}

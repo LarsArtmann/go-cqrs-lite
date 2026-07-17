@@ -46,5 +46,7 @@ func BuildContextFromSource(t *testing.T, sources map[string]string) *AnalysisCo
 		}
 	}
 
+	ctx.FeatureProfile = DetectFeatures(ctx)
+
 	return ctx
 }

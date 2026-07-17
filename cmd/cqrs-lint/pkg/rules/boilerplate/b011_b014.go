@@ -160,10 +160,16 @@ func NewB013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // B014: Missing OTel middleware.
 // Detects bus/dispatcher setups without tracing middleware.
+// Suppressed for local-only systems (no server) — distributed tracing adds
+// overhead without value for single-user CLI tools.
 func NewB014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B014-missing-otel-middleware",
 		func(_ context.Context) ([]finding.Finding, error) {
+			if !ctx.FeatureProfile.HasServer {
+				return nil, nil
+			}
+
 			var findings []finding.Finding
 
 			hasOTel := false
