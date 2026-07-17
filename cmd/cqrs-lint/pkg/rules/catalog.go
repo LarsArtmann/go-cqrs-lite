@@ -133,6 +133,15 @@ func correctnessRules() []RuleInfo {
 			Description: "withTx ignores body error — failures silently lost",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C013",
+			Name:        "time-time-in-event-payload",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "time.Time field in event payload loses timezone via CBOR epoch encoding",
+			AutoFix:     false,
+		},
 	}
 }
 
