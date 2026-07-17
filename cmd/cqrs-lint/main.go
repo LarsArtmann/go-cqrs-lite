@@ -169,6 +169,18 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	actx.RulesConfig = cfg.Rules
 
 	if len(actx.GoFiles) == 0 {
+		if len(actx.LoadErrors) > 0 {
+			fmt.Fprintln(os.Stderr, "cqrs-lint: could not analyze any packages.")
+			fmt.Fprintln(os.Stderr)
+			fmt.Fprintln(os.Stderr, "This usually means the project does not compile. Package loading reported errors:")
+			fmt.Fprintln(os.Stderr)
+			printLoadErrors(os.Stderr, actx.LoadErrors)
+			fmt.Fprintln(os.Stderr)
+			fmt.Fprintln(os.Stderr, "Fix the build errors above (try `go build ./...`), then re-run cqrs-lint.")
+			fmt.Fprintln(os.Stderr, "Nothing was analyzed; this is not a clean bill of health.")
+			return errFindingsWithErrors
+		}
+
 		if !cfg.Quiet {
 			fmt.Fprintln(os.Stderr, "No Go files importing go-cqrs-lite found. Nothing to lint.")
 		}
@@ -312,6 +324,20 @@ func shouldExitWithError(cfg *AppConfig, activeFindings []finding.Finding) error
 	}
 
 	return nil
+}
+
+// printLoadErrors writes per-package load errors to w in a readable format.
+func printLoadErrors(w io.Writer, errors []analyzer.PackageLoadError) {
+	for _, le := range errors {
+		if le.PkgPath != "" {
+			fmt.Fprintf(w, "  %s (%s):\n", le.Module, le.PkgPath)
+		} else {
+			fmt.Fprintf(w, "  %s:\n", le.Module)
+		}
+		for _, msg := range le.Errors {
+			fmt.Fprintf(w, "    %s\n", msg)
+		}
+	}
 }
 
 func countModules(files []*analyzer.GoFile) int {

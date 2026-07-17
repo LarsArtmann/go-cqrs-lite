@@ -93,8 +93,21 @@ type AnalysisContext struct {
 	// Wired in main.go run(); zero in unit tests (BuildContextFromSource).
 	RulesConfig RulesConfig
 
+	// LoadErrors holds per-package errors encountered during BuildContext.
+	// Non-empty means the analysis is partial; callers should warn the user.
+	LoadErrors []PackageLoadError
+
 	// lineCache caches file contents for SourceLine to avoid repeated disk reads.
 	lineCache sync.Map // filename → []string
+}
+
+// PackageLoadError describes a package that failed to load during analysis.
+// The analysis may still proceed with the remaining packages, but the caller
+// should surface these errors so the user knows the result is partial.
+type PackageLoadError struct {
+	Module  string   // go.mod directory (filesystem path)
+	PkgPath string   // offending package import path, empty if the whole module failed
+	Errors  []string // human-readable error messages
 }
 
 // GoFile wraps a parsed Go file with its package context.

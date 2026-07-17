@@ -9,16 +9,19 @@
 
 ## Executive Summary
 
-Ran cqrs-lint v0.2.1 against the full SEC codebase (69 Go files). The tool
-reported **30 findings** across 10 distinct rules. After source-level
-verification of every finding AND inspection of the detector source code:
+Ran cqrs-lint v0.2.1 against the full SEC codebase (69 Go files). The initial
+run (v0.2.0, before code fixes) produced **32 findings** across 12 distinct
+rules. After fixing the 2 valid findings (D002, D005) and re-running v0.2.1,
+**30 findings** remain — all false positives or opinion-level suggestions.
+Source-level verification of every finding AND inspection of the detector
+source code:
 
 | Category                               | Count | Action taken                                                 |
 | -------------------------------------- | ----- | ------------------------------------------------------------ |
 | **Valid findings (code defect)**       | 1     | Fixed — D002 mixed JSON casing                               |
 | **Valid findings (doc drift)**         | 1     | Fixed — D005 version regex misattribution                    |
 | **False positives (detector bug)**     | 23    | NOT suppressible via config — reported here for upstream fix |
-| **Opinion-level suggestions declined**  | 7     | B004×5, B010×1, B014×1 — architecture choice, not a defect    |
+| **Opinion-level suggestions declined** | 7     | B004×5, B010×1, B014×1 — architecture choice, not a defect   |
 
 Signal-to-noise ratio: **2/30 actionable (7%)**. The dominant noise source is
 E005/E007 (15 of 23 false positives) — the handler-registration scanner cannot

@@ -86,6 +86,10 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 	for _, dir := range modDirs {
 		pkgs, err := loadFromDir(dir, fset)
 		if err != nil {
+			ctx.LoadErrors = append(ctx.LoadErrors, PackageLoadError{
+				Module: dir,
+				Errors: []string{err.Error()},
+			})
 			continue
 		}
 
@@ -93,6 +97,15 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 
 		for _, pkg := range pkgs {
 			if len(pkg.Errors) > 0 {
+				msgs := make([]string, 0, len(pkg.Errors))
+				for _, e := range pkg.Errors {
+					msgs = append(msgs, e.Error())
+				}
+				ctx.LoadErrors = append(ctx.LoadErrors, PackageLoadError{
+					Module:  dir,
+					PkgPath: pkg.PkgPath,
+					Errors:  msgs,
+				})
 				continue
 			}
 
