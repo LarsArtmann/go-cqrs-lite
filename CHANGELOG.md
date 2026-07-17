@@ -6,6 +6,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### cqrs-lint v0.2.2 — loader error surfacing + --strict flag
+
+**Fixed:**
+
+- **Silent "Nothing to lint" on broken builds** — when `go/packages` failed to
+  load packages (e.g., unresolvable dependencies from the go-cqrs-lite v4.0.0
+  publish bug), the loader silently `continue`d past errors and produced an
+  empty `AnalysisContext`. cqrs-lint then reported "No Go files importing
+  go-cqrs-lite found. Nothing to lint." — a clean bill of health on a broken
+  project. Now `BuildContext` collects per-package and per-module errors into
+  `AnalysisContext.LoadErrors` and the main `run()` function surfaces them
+  with a clear diagnostic and a non-zero exit code.
+- **Doctor/lint split-brain on errored packages** — `doctor` read
+  `ctx.Packages` (which includes errored packages) for feature detection while
+  `lint` read `ctx.GoFiles` (which excludes them). The two commands could
+  disagree on the project's feature profile. Now `DetectFeatures` skips
+  packages with errors, making `lint` and `doctor` read the same data.
+- **Doctor silently ignored `BuildContext` errors** — the `doctor` command
+  called `BuildContext` but discarded the `LoadErrors` field. Now prints a
+  "WARNING: package loading was partial" block with per-package error details.
+- **Feature detection used unreliable import metadata** — errored packages
+  may have incomplete `Imports` slices. `DetectFeatures` now skips packages
+  with `len(pkg.Errors) > 0` in its import-based detection pass.
+
+**Added:**
+
+- **`--strict-load` flag** — exits non-zero if any packages failed to load, even
+  when some packages were analyzed successfully. Without `--strict-load`, cqrs-lint
+  proceeds with partial analysis and prints a warning.
+- **Partial analysis warning** — in non-strict mode, when some packages loaded
+  with errors but others succeeded, cqrs-lint prints a warning with the error
+  count and suggests `--verbose` or `--strict-load`.
+- **Message split for empty analysis** — "No Go files found. Nothing to lint."
+  (no `.go` files at all) vs "Found Go files but none import go-cqrs-lite.
+  Nothing to lint." (packages loaded, none import go-cqrs-lite). The old
+  message conflated both cases.
+- **`--verbose` load error display** — the `--verbose` output now includes a
+  "Load errors (N):" section with per-package details.
+- **Integration tests for loader error handling** — tests for broken modules,
+  clean modules, syntax errors, strict mode, message split, and exit codes.
+
+**Changed:**
+
+- **`AnalysisContext.LoadErrors` field** — new `[]PackageLoadError` field holds
+  per-package load errors collected during `BuildContext`. The
+  `PackageLoadError` struct carries `Module`, `PkgPath`, and `Errors` fields.
+- **`printLoadErrors` helper** — shared between `run()` and `doctor` for
+  consistent error formatting.
+
 ### cqrs-lint v0.2.1 — health score correctness + show-suppressed
 
 **Fixed:**

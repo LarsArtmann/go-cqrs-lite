@@ -24,7 +24,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/suppression"
 )
 
-const version = "0.2.1"
+const version = "0.2.2"
 
 // errFindingsWithErrors signals that error-severity findings were found.
 // Returned from run() so cmdguard sets a non-zero exit code.
@@ -37,7 +37,7 @@ type AppConfig struct {
 	cmdguard.Config
 
 	Path           string `default:"."     flag:"path"            help:"Path to lint"`
-	Format         string `default:"text"  flag:"format"          help:"Output format"                                              short:"o"`
+	Format         string `default:"text"  flag:"format"          help:"Output format"                                                   short:"o"`
 	MinSeverity    string `default:"info"  flag:"min-severity"    help:"Minimum severity"`
 	MinConfidence  string `default:"low"   flag:"min-confidence"  help:"Minimum confidence"`
 	Fix            bool   `default:"false" flag:"fix"             help:"Apply auto-fixes"`
@@ -48,9 +48,10 @@ type AppConfig struct {
 	Exclude        string `default:""      flag:"exclude"         help:"Exclude paths (comma-separated)"`
 	Color          string `default:"auto"  flag:"color"           help:"Colored output: auto,always,never"`
 	Verbose        bool   `default:"false" flag:"verbose"         help:"Verbose output"`
-	Quiet          bool   `default:"false" flag:"quiet"           help:"Suppress non-finding output"                                short:"q"`
+	Quiet          bool   `default:"false" flag:"quiet"           help:"Suppress non-finding output"                                     short:"q"`
 	FPSuspects     bool   `default:"false" flag:"fp-suspects"     help:"Show only low-confidence findings (likely false positives)"`
 	ShowSuppressed bool   `default:"false" flag:"show-suppressed" help:"Show suppressed findings with their suppression reason"`
+	StrictLoad     bool   `default:"false" flag:"strict-load"     help:"Exit non-zero if any packages failed to load (partial analysis)"`
 
 	// Features declares which go-cqrs-lite modules the consumer uses.
 	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.
@@ -168,6 +169,21 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	cfg.Rules.Validate(os.Stderr, rawRules)
 	actx.RulesConfig = cfg.Rules
 
+	// --strict-load: any package load error is fatal, even if some packages loaded.
+	if cfg.StrictLoad && len(actx.LoadErrors) > 0 {
+		fmt.Fprintln(os.Stderr, "cqrs-lint: --strict-load mode — package loading reported errors:")
+		fmt.Fprintln(os.Stderr)
+		printLoadErrors(os.Stderr, actx.LoadErrors)
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintf(
+			os.Stderr,
+			"Analyzed %d file(s) with %d load error(s). --strict-load requires zero load errors.\n",
+			len(actx.GoFiles),
+			len(actx.LoadErrors),
+		)
+		return errFindingsWithErrors
+	}
+
 	if len(actx.GoFiles) == 0 {
 		if len(actx.LoadErrors) > 0 {
 			fmt.Fprintln(os.Stderr, "cqrs-lint: could not analyze any packages.")
@@ -188,10 +204,28 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		}
 
 		if !cfg.Quiet {
-			fmt.Fprintln(os.Stderr, "No Go files importing go-cqrs-lite found. Nothing to lint.")
+			if len(actx.Packages) > 0 {
+				fmt.Fprintln(
+					os.Stderr,
+					"Found Go files but none import go-cqrs-lite. Nothing to lint.",
+				)
+			} else {
+				fmt.Fprintln(os.Stderr, "No Go files found. Nothing to lint.")
+			}
 		}
 
 		return nil
+	}
+
+	// Warn about partial analysis (non-strict mode with load errors).
+	if !cfg.Quiet && len(actx.LoadErrors) > 0 {
+		fmt.Fprintf(
+			os.Stderr,
+			"WARNING: %d package(s) failed to load; analysis is partial.\n",
+			len(actx.LoadErrors),
+		)
+		fmt.Fprintln(os.Stderr, "Use --verbose for details or --strict to fail on any load error.")
+		fmt.Fprintln(os.Stderr)
 	}
 
 	var detectors []finding.Detector

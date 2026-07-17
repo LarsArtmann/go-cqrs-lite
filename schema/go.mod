@@ -7,7 +7,7 @@ require github.com/larsartmann/go-error-family v0.7.0
 require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.0.0
+	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
 	pgregory.net/rapid v1.3.0
