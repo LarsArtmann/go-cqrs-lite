@@ -382,3 +382,35 @@ func TestShouldExitWithError_NormalMode(t *testing.T) {
 		t.Errorf("warning-only should not trigger exit, got %v", err)
 	}
 }
+
+func TestFormatSuppressedFindings(t *testing.T) {
+	t.Parallel()
+
+	suppressed, _ := finding.NewBuilder(
+		"C007", "test", "missing error classification",
+		finding.SeverityError,
+		finding.Pos(finding.FilePath("main.go"), 42, 10),
+	).Build()
+	suppressed.Suppression = &finding.Suppression{
+		Kind:   finding.SuppressionInSource,
+		Rule:   "C007",
+		Reason: "false positive — already classified upstream",
+	}
+
+	var buf strings.Builder
+	formatSuppressedFindings(&buf, []finding.Finding{suppressed}, parseColorMode("never"))
+
+	out := buf.String()
+	if !strings.Contains(out, "Suppressed Findings (1)") {
+		t.Errorf("output should contain header, got:\n%s", out)
+	}
+	if !strings.Contains(out, "C007") {
+		t.Errorf("output should contain rule ID, got:\n%s", out)
+	}
+	if !strings.Contains(out, "false positive — already classified upstream") {
+		t.Errorf("output should contain suppression reason, got:\n%s", out)
+	}
+	if !strings.Contains(out, "main.go:42:10") {
+		t.Errorf("output should contain file location, got:\n%s", out)
+	}
+}

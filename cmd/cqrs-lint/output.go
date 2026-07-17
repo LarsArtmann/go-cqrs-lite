@@ -193,6 +193,40 @@ func val(cond bool, ifTrue, ifFalse string) string {
 	return ifFalse
 }
 
+// formatSuppressedFindings prints suppressed findings with their suppression
+// reason, for use with --show-suppressed. These findings are excluded from
+// the normal output, health score, and exit-code check — this is an audit view.
+func formatSuppressedFindings(w io.Writer, findings []finding.Finding, cm output.ColorMode) {
+	useColor := shouldColor(cm, w)
+
+	_, _ = fmt.Fprintf(w, "\n--- Suppressed Findings (%d) ---\n\n", len(findings))
+
+	for _, f := range findings {
+		sevStr := strings.ToUpper(f.Severity.String())
+		if useColor {
+			sevStr = ansiGray + sevStr + ansiReset
+		}
+
+		location := fmt.Sprintf("%s:%d:%d", f.Position.File, f.Position.Line, f.Position.Column)
+
+		_, _ = fmt.Fprintf(w, "%s %s %s\n", sevStr, location, f.Message)
+
+		if f.Rule != "" {
+			_, _ = fmt.Fprintf(w, "  [%s]\n", f.Rule)
+		}
+
+		if f.Suppression != nil {
+			reason := f.Suppression.Reason
+			if reason == "" {
+				reason = "(no reason given)"
+			}
+			_, _ = fmt.Fprintf(w, "  Suppressed: %s\n", reason)
+		}
+
+		_, _ = fmt.Fprintln(w)
+	}
+}
+
 func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppConfig) error {
 	report := finding.NewReport(finding.ToolInfo{Name: "cqrs-lint", Version: version})
 	report.AddFindings(findings)

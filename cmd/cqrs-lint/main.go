@@ -36,20 +36,21 @@ var errFindingsWithErrors = errors.New("findings with error severity")
 type AppConfig struct {
 	cmdguard.Config
 
-	Path          string `default:"."     flag:"path"           help:"Path to lint"`
-	Format        string `default:"text"  flag:"format"         help:"Output format"                                              short:"o"`
-	MinSeverity   string `default:"info"  flag:"min-severity"   help:"Minimum severity"`
-	MinConfidence string `default:"low"   flag:"min-confidence" help:"Minimum confidence"`
-	Fix           bool   `default:"false" flag:"fix"            help:"Apply auto-fixes"`
-	DryRun        bool   `default:"false" flag:"dry-run"        help:"Show fixes without applying"`
-	FastMode      bool   `default:"false" flag:"fast"           help:"Critical correctness rules only"`
-	HealthScore   bool   `default:"false" flag:"health-score"   help:"Print only the health score"`
-	Categories    string `default:""      flag:"only"           help:"Filter by category or rule IDs"`
-	Exclude       string `default:""      flag:"exclude"        help:"Exclude paths (comma-separated)"`
-	Color         string `default:"auto"  flag:"color"          help:"Colored output: auto,always,never"`
-	Verbose       bool   `default:"false" flag:"verbose"        help:"Verbose output"`
-	Quiet         bool   `default:"false" flag:"quiet"          help:"Suppress non-finding output"                                short:"q"`
-	FPSuspects    bool   `default:"false" flag:"fp-suspects"    help:"Show only low-confidence findings (likely false positives)"`
+	Path           string `default:"."     flag:"path"            help:"Path to lint"`
+	Format         string `default:"text"  flag:"format"          help:"Output format"                                              short:"o"`
+	MinSeverity    string `default:"info"  flag:"min-severity"    help:"Minimum severity"`
+	MinConfidence  string `default:"low"   flag:"min-confidence"  help:"Minimum confidence"`
+	Fix            bool   `default:"false" flag:"fix"             help:"Apply auto-fixes"`
+	DryRun         bool   `default:"false" flag:"dry-run"         help:"Show fixes without applying"`
+	FastMode       bool   `default:"false" flag:"fast"            help:"Critical correctness rules only"`
+	HealthScore    bool   `default:"false" flag:"health-score"    help:"Print only the health score"`
+	Categories     string `default:""      flag:"only"            help:"Filter by category or rule IDs"`
+	Exclude        string `default:""      flag:"exclude"         help:"Exclude paths (comma-separated)"`
+	Color          string `default:"auto"  flag:"color"           help:"Colored output: auto,always,never"`
+	Verbose        bool   `default:"false" flag:"verbose"         help:"Verbose output"`
+	Quiet          bool   `default:"false" flag:"quiet"           help:"Suppress non-finding output"                                short:"q"`
+	FPSuspects     bool   `default:"false" flag:"fp-suspects"     help:"Show only low-confidence findings (likely false positives)"`
+	ShowSuppressed bool   `default:"false" flag:"show-suppressed" help:"Show suppressed findings with their suppression reason"`
 
 	// Features declares which go-cqrs-lite modules the consumer uses.
 	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.
@@ -266,6 +267,10 @@ func run(ctx context.Context, cfg *AppConfig) error {
 
 	if err := outputFindings(ctx, activeFindings, cfg); err != nil {
 		return fmt.Errorf("output: %w", err)
+	}
+
+	if cfg.ShowSuppressed && len(suppressedFindings) > 0 && !cfg.Quiet {
+		formatSuppressedFindings(os.Stdout, suppressedFindings, parseColorMode(cfg.Color))
 	}
 
 	if cfg.HealthScore {

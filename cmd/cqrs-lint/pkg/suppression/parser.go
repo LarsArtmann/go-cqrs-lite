@@ -3,6 +3,7 @@ package suppression
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -49,10 +50,12 @@ func (c *lineCache) getLines(path string) []string {
 		lines = append(lines, scanner.Text())
 	}
 
-	// Check for read errors (e.g., bufio.ErrTooLong when a line exceeds the
+	// Log scanner errors (e.g., bufio.ErrTooLong when a line exceeds the
 	// 1MB buffer). Lines collected before the error are still valid for
 	// suppression matching, so we cache partial results regardless.
-	_ = scanner.Err()
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: suppression scan of %s: %v\n", path, err)
+	}
 
 	c.files[path] = lines
 
