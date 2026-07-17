@@ -1,7 +1,11 @@
 package analyzer
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
+
+	"golang.org/x/tools/go/packages"
 )
 
 func TestDetectFeatures_LocalCLI(t *testing.T) {
@@ -235,5 +239,195 @@ func TestResolvePreset_None(t *testing.T) {
 	cf := ResolvePreset(PresetNone)
 	if cf.Server != nil || cf.Tracing != nil {
 		t.Error("PresetNone should return empty ConfigFeatures")
+	}
+}
+
+// TestToConfigFeatures_OmitsUnknownFields is the regression test for the
+// doctor trailing-comma bug. When tracing and snapshot are both unknown, the
+// old hand-formatted JSON emitted a trailing comma after "soft-delete". The
+// fix builds ConfigFeatures via ToConfigFeatures and serializes with
+// encoding/json, which can never produce a trailing comma.
+func TestToConfigFeatures_OmitsUnknownFields(t *testing.T) {
+	t.Parallel()
+
+	fp := FeatureProfile{
+		HasServer:     false,
+		HasSoftDelete: false,
+	}
+
+	cf := fp.ToConfigFeatures()
+
+	if cf.Store != nil {
+		t.Errorf("unknown Store should be omitted, got %v", *cf.Store)
+	}
+	if cf.CommandFlow != nil {
+		t.Errorf("unknown CommandFlow should be omitted, got %v", *cf.CommandFlow)
+	}
+	if cf.Tracing != nil {
+		t.Errorf("unknown Tracing should be omitted, got %v", *cf.Tracing)
+	}
+	if cf.Snapshot != nil {
+		t.Errorf("unknown Snapshot should be omitted, got %v", *cf.Snapshot)
+	}
+	if cf.Server == nil || *cf.Server != false {
+		t.Error("server is a meaningful bool and should always be included")
+	}
+	if cf.SoftDelete == nil || *cf.SoftDelete != false {
+		t.Error("soft-delete is a meaningful bool and should always be included")
+	}
+}
+
+func TestToConfigFeatures_IncludesKnownFields(t *testing.T) {
+	t.Parallel()
+
+	fp := FeatureProfile{
+		Store:         StorePostgres,
+		CommandFlow:   CommandFlowCommands,
+		HasServer:     true,
+		HasSoftDelete: true,
+		Tracing:       TracingOn,
+		Snapshot:      SnapshotOn,
+	}
+
+	cf := fp.ToConfigFeatures()
+
+	if cf.Store == nil || *cf.Store != StorePostgres {
+		t.Error("detected Store should be included")
+	}
+	if cf.CommandFlow == nil || *cf.CommandFlow != CommandFlowCommands {
+		t.Error("detected CommandFlow should be included")
+	}
+	if cf.Tracing == nil || *cf.Tracing != TracingOn {
+		t.Error("detected Tracing should be included")
+	}
+	if cf.Snapshot == nil || *cf.Snapshot != SnapshotOn {
+		t.Error("detected Snapshot should be included")
+	}
+}
+
+// TestToConfigFeatures_JSONAlwaysValid guards the doctor output across every
+// realistic profile shape: the marshaled suggestion must parse back as JSON and
+// must never contain a trailing comma.
+func TestToConfigFeatures_JSONAlwaysValid(t *testing.T) {
+	t.Parallel()
+
+	profiles := map[string]FeatureProfile{
+		"all-unknown":           {},
+		"server-only":           {HasServer: true, HasSoftDelete: false},
+		"tracing-only-unknown":  {HasServer: false, HasSoftDelete: false, Snapshot: SnapshotOn},
+		"snapshot-only-unknown": {HasServer: false, HasSoftDelete: false, Tracing: TracingOn},
+		"fully-detected": {
+			Store: StoreSQLite, CommandFlow: CommandFlowCommands,
+			HasServer: true, HasSoftDelete: true, Tracing: TracingOn, Snapshot: SnapshotOn,
+		},
+		"store-none": {Store: StoreNone, HasServer: false, HasSoftDelete: false},
+	}
+
+	for name, fp := range profiles {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			raw, err := json.MarshalIndent(
+				map[string]ConfigFeatures{"features": fp.ToConfigFeatures()}, "", "  ",
+			)
+			if err != nil {
+				t.Fatalf("marshal failed: %v", err)
+			}
+
+			if strings.Contains(string(raw), ",\n  }") || strings.Contains(string(raw), ",\n}") {
+				t.Errorf("JSON contains a trailing comma:\n%s", raw)
+			}
+
+			var back map[string]ConfigFeatures
+			if err := json.Unmarshal(raw, &back); err != nil {
+				t.Fatalf("doctor output is not valid JSON (%v):\n%s", err, raw)
+			}
+		})
+	}
+}
+
+// --- DetectFeatures precision tests ---
+
+func TestDetectFeatures_HTTPServer(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "net/http"
+
+func serve() {
+	http.ListenAndServe(":8080", nil)
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Error("http.ListenAndServe should detect HasServer=true")
+	}
+}
+
+func TestDetectFeatures_GRPCServer(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func serve() {
+	srv := grpc.NewServer()
+	_ = srv
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Error("grpc.NewServer should detect HasServer=true")
+	}
+}
+
+func TestDetectFeatures_Tracing(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func setup(bus *Bus) {
+	bus.Use(middleware.EventTracing(tracer))
+}
+`,
+	})
+	ctx.Packages = []*packages.Package{
+		{
+			PkgPath: "example.com/app",
+			Imports: map[string]*packages.Package{
+				"go.opentelemetry.io/otel": {PkgPath: "go.opentelemetry.io/otel"},
+			},
+		},
+	}
+
+	fp := DetectFeatures(ctx)
+	if fp.Tracing != TracingOn {
+		t.Errorf("otel import + EventTracing middleware should detect Tracing=on, got %s", fp.Tracing)
+	}
+}
+
+func TestDetectFeatures_Snapshot(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"repo.go": `package main
+
+func setup() {
+	repo := decider.NewRepository(store, bus, d, decider.WithSnapshotStore(snap))
+	_ = repo
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if fp.Snapshot != SnapshotOn {
+		t.Errorf("WithSnapshotStore call should detect Snapshot=on, got %s", fp.Snapshot)
 	}
 }

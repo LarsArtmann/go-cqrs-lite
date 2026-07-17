@@ -192,9 +192,6 @@ func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// hasTombstoneLikeEvents has been replaced by ctx.FeatureProfile.HasSoftDelete.
-// Soft-delete detection now lives centrally in analyzer.DetectFeatures.
-
 // A013: Pointer vs value BasicCommand embedding.
 func NewA013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

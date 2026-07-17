@@ -101,11 +101,27 @@ type ConfigFeatures struct {
 type ConfigPreset string
 
 const (
-	PresetNone       ConfigPreset = ""
-	PresetLocalCLI   ConfigPreset = "local-cli"
+	PresetNone ConfigPreset = ""
+	// PresetLocalCLI is for single-user CLIs and local tools: no network
+	// server, so encryption/signing/racing/tracing rules are downgraded or
+	// suppressed. Pins Server=false and Tracing=off; leaves Store,
+	// CommandFlow, SoftDelete, and Snapshot to auto-detection since local
+	// tools vary widely.
+	PresetLocalCLI ConfigPreset = "local-cli"
+	// PresetProduction is for deployed services: pins Server=true (concurrency
+	// and network exposure are real) and Tracing=on (observability matters).
+	// Leaves persistence/command/snapshot choices to auto-detection so it fits
+	// any backend.
 	PresetProduction ConfigPreset = "production"
-	PresetLibrary    ConfigPreset = "library"
-	PresetReadOnly   ConfigPreset = "read-only"
+	// PresetLibrary is for modules consumed by other Go programs: no server of
+	// their own, no command dispatch (they expose types, not handlers), no
+	// tracing setup, no snapshots. This silences rules that only make sense
+	// for runnable applications.
+	PresetLibrary ConfigPreset = "library"
+	// PresetReadOnly is the narrowest preset: it only pins CommandFlow to
+	// read-only, suppressing idempotency and command-flow rules. Use it when a
+	// service consumes events/queries but never dispatches commands.
+	PresetReadOnly ConfigPreset = "read-only"
 )
 
 // Presets maps preset names to their feature-flag defaults. A nil pointer
@@ -199,7 +215,29 @@ func mergeConfigFeatures(dst *ConfigFeatures, src ConfigFeatures) {
 	}
 }
 
-//go:fix inline
-func ptr[T any](v T) *T {
-	return new(v)
+// ToConfigFeatures is the inverse of ResolveFeatureProfile: it projects a
+// resolved FeatureProfile back into a ConfigFeatures, including only the flags
+// that carry meaningful (non-unknown) values. The doctor command uses this to
+// emit a copy-pasteable, always-valid JSON config suggestion. Because the
+// result is built from explicit pointers and serialized via encoding/json,
+// it can never produce the trailing-comma corruption that hand-formatted JSON
+// is prone to.
+func (fp FeatureProfile) ToConfigFeatures() ConfigFeatures {
+	cf := ConfigFeatures{
+		Server:     &fp.HasServer,
+		SoftDelete: &fp.HasSoftDelete,
+	}
+	if fp.Store != "" && fp.Store != StoreUnknown && fp.Store != StoreNone {
+		cf.Store = &fp.Store
+	}
+	if fp.CommandFlow != "" && fp.CommandFlow != CommandFlowUnknown {
+		cf.CommandFlow = &fp.CommandFlow
+	}
+	if fp.Tracing != "" && fp.Tracing != TracingUnknown {
+		cf.Tracing = &fp.Tracing
+	}
+	if fp.Snapshot != "" && fp.Snapshot != SnapshotUnknown {
+		cf.Snapshot = &fp.Snapshot
+	}
+	return cf
 }

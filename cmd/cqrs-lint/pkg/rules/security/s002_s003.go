@@ -100,9 +100,6 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// isLocalOnlyProject has been replaced by ctx.FeatureProfile.HasServer.
-// Store/server detection now lives centrally in analyzer.DetectFeatures.
-
 func findPIIInPayloadStructs(
 	ctx *analyzer.AnalysisContext,
 	piiFields []string,

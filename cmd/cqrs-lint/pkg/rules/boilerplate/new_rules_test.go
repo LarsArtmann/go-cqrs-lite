@@ -344,6 +344,24 @@ func setup(bus *EventBus) {
 	assertRule(t, findings, "B014", 1)
 }
 
+// TestB014_SuppressedForNoServer: the same middleware fixture fires when
+// HasServer=true (above); a local-only project is suppressed because
+// distributed tracing is noise for CLI tools.
+func TestB014_SuppressedForNoServer(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup(bus *EventBus) {
+	bus.Use(loggingMiddleware)
+	bus.UsePublish(retryMiddleware)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = false
+	findings := runDetector(t, boilerplate.NewB014Detector(ctx))
+	assertRule(t, findings, "B014", 0)
+}
+
 // --- B004: Command constructor boilerplate ---
 
 func TestB004_NoFindingWithoutCommands(t *testing.T) {

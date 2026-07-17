@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"strings"
 	"testing"
 
 	"golang.org/x/tools/go/packages"
@@ -427,4 +428,103 @@ func TestA019_DetectsVendoredCqrs(t *testing.T) {
 	}
 	findings := runDetector(t, api.NewA019Detector(ctx))
 	assertRule(t, findings, "A019", 1)
+}
+
+// --- FeatureProfile suppression guards ---
+// Each test reuses a fixture that WOULD fire, then proves the profile gate
+// suppresses it. Together with the positive tests above, they pin the toggle.
+
+// TestA015_SuppressedForNoServer: the globalCache fixture fires when
+// HasServer=true (see TestA015_DetectsGlobalCache); a local-only project is
+// suppressed because race conditions need concurrent access.
+func TestA015_SuppressedForNoServer(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"state.go": `package main
+
+var globalCache = make(map[string]string)
+
+func update(key, val string) {
+	globalCache[key] = val
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = false
+	findings := runDetector(t, api.NewA015Detector(ctx))
+	assertRule(t, findings, "A015", 0)
+}
+
+// TestA016_SuppressedForReadOnlyFlow: the dispatcher+Dispatch fixture fires
+// when CommandFlow=Commands (see TestA016_DetectsMissingIdempotency); a
+// read-only flow is suppressed because no commands are executed.
+func TestA016_SuppressedForReadOnlyFlow(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	d := dispatcher.NewDispatcher()
+	d.Use(loggingMiddleware)
+	d.Dispatch(ctx, cmd)
+}
+`,
+	})
+	ctx.FeatureProfile.CommandFlow = analyzer.CommandFlowReadOnly
+	findings := runDetector(t, api.NewA016Detector(ctx))
+	assertRule(t, findings, "A016", 0)
+}
+
+// TestA012_SuppressedForNoSoftDelete: the fold+deleted-event fixture fires
+// when HasSoftDelete=true (see TestA012_DetectsFoldWithoutTombstoneCheck); a
+// domain without soft-delete is suppressed.
+func TestA012_SuppressedForNoSoftDelete(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"fold.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+type State struct{ Count int }
+
+func fold(s State, evt event.Event) (State, error) {
+	switch evt.Type() {
+	case "created":
+		s.Count++
+	}
+	return s, nil
+}
+
+func emitDelete() {
+	event.New("user.deleted", id, "User", 1, payload)
+}
+`,
+	})
+	ctx.FeatureProfile.HasSoftDelete = false
+	findings := runDetector(t, api.NewA012Detector(ctx))
+	assertRule(t, findings, "A012", 0)
+}
+
+// TestA009_AdaptiveSuggestion proves the suggestion text adapts to the detected
+// Store backend, pointing the user at the matching stack/ preset.
+func TestA009_AdaptiveSuggestion(t *testing.T) {
+	cases := []struct {
+		name      string
+		store     analyzer.StoreKind
+		wantInSug string
+	}{
+		{"sqlite", analyzer.StoreSQLite, "stack/sqlite"},
+		{"postgres", analyzer.StorePostgres, "stack/postgres"},
+		{"pebble", analyzer.StorePebble, "stack/pebble"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := analyzer.BuildContextFromSource(t, map[string]string{
+				"main.go": `package main`,
+			})
+			ctx.FeatureProfile.Store = tc.store
+			findings := runDetector(t, api.NewA009Detector(ctx))
+			assertRule(t, findings, "A009", 1)
+			if !strings.Contains(findings[0].Suggestion, tc.wantInSug) {
+				t.Errorf("Store=%s: suggestion should mention %q, got %q",
+					tc.store, tc.wantInSug, findings[0].Suggestion)
+			}
+		})
+	}
 }

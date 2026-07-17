@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
@@ -26,24 +27,15 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 			fmt.Print(profile)
 			fmt.Println()
 
+			features := profile.ToConfigFeatures()
+			raw, err := json.MarshalIndent(map[string]analyzer.ConfigFeatures{"features": features}, "", "  ")
+			if err != nil {
+				return fmt.Errorf("marshal suggested features: %w", err)
+			}
+
 			fmt.Println("Suggested .cqrs-lint.json features section:")
 			fmt.Println()
-			fmt.Printf("  \"features\": {\n")
-			if profile.Store != analyzer.StoreUnknown && profile.Store != analyzer.StoreNone {
-				fmt.Printf("    \"store\": \"%s\",\n", profile.Store)
-			}
-			if profile.CommandFlow != analyzer.CommandFlowUnknown {
-				fmt.Printf("    \"command-flow\": \"%s\",\n", profile.CommandFlow)
-			}
-			fmt.Printf("    \"server\": %t,\n", profile.HasServer)
-			fmt.Printf("    \"soft-delete\": %t,\n", profile.HasSoftDelete)
-			if profile.Tracing != analyzer.TracingUnknown {
-				fmt.Printf("    \"tracing\": \"%s\",\n", profile.Tracing)
-			}
-			if profile.Snapshot != analyzer.SnapshotUnknown {
-				fmt.Printf("    \"snapshot\": \"%s\"\n", profile.Snapshot)
-			}
-			fmt.Printf("  }\n")
+			fmt.Println(string(raw))
 
 			return nil
 		},
