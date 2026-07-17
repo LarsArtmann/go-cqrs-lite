@@ -409,7 +409,10 @@ func setup(bus *Bus) {
 
 	fp := DetectFeatures(ctx)
 	if fp.Tracing != TracingOn {
-		t.Errorf("otel import + EventTracing middleware should detect Tracing=on, got %s", fp.Tracing)
+		t.Errorf(
+			"otel import + EventTracing middleware should detect Tracing=on, got %s",
+			fp.Tracing,
+		)
 	}
 }
 

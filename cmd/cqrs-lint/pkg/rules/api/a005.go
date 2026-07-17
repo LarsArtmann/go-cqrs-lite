@@ -4,6 +4,7 @@ import (
 	"context"
 	"go/ast"
 	"go/token"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -13,6 +14,13 @@ import (
 
 // A005: Custom projection runner.
 // Detects bus.SubscribeAll + manual switch without projectionhost.
+//
+// To avoid false positives on fire-and-forget fan-out subscribers (SSE
+// broadcasters, stats notifiers), the rule inspects the SubscribeAll callback
+// body and suppresses when it contains broadcast/notify signals (Notify,
+// Broadcast, Send) and NO persistence signals (Save, Set, Upsert, ...).
+// Persistence writes are the defining trait of a real projection; pure
+// broadcasts never persist. See feedback: docs/feedback/2026-07-16_DiscordSync.
 func NewA005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A005-custom-projection-runner",
@@ -60,6 +68,13 @@ func NewA005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					if !usesProjectionHost {
+						// Inspect each SubscribeAll callback: if it only
+						// broadcasts/notifies without persisting, it's a
+						// fire-and-forget fan-out, not a manual projection.
+						if !isManualProjection(ctx, gf.AST) {
+							continue
+						}
+
 						f, err := finding.NewBuilder(
 							"A005", toolName,
 							"Manual projection via bus.SubscribeAll — use projectionhost.Host for checkpoint persistence, dead-letter queues, and crash recovery",
@@ -81,4 +96,110 @@ func NewA005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// isManualProjection reports whether any bus.SubscribeAll callback in the file
+// looks like a genuine manual projection (writes to a store) rather than a
+// pure broadcast/notify fan-out.
+//
+// A callback is treated as a NON-projection (fan-out) only when it contains a
+// broadcast/notify call and no persistence call. Everything else — empty
+// bodies, delegating helpers, persistence writes — is conservatively reported.
+func isManualProjection(ctx *analyzer.AnalysisContext, fileAST *ast.File) bool {
+	anyProjectionCandidate := false
+
+	ast.Inspect(fileAST, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		sel, ok := analyzer.SelectorFromExpr(call.Fun)
+		if !ok || sel.Sel.Name != "SubscribeAll" {
+			return true
+		}
+
+		callback := extractCallbackFuncLit(call)
+		if callback == nil {
+			// Named-function subscriber — can't inspect the body. Treat as
+			// projection candidate (conservative).
+			anyProjectionCandidate = true
+
+			return true
+		}
+
+		hasBroadcast, hasPersist := classifyCallbackBody(callback.Body)
+		// Suppress only for the clear fan-out shape: broadcasts without any
+		// persistence. Anything else stays a candidate.
+		if hasPersist || !hasBroadcast {
+			anyProjectionCandidate = true
+		}
+
+		return true
+	})
+
+	return anyProjectionCandidate
+}
+
+// extractCallbackFuncLit returns the FuncLit callback passed to SubscribeAll,
+// or nil if the argument is not a function literal.
+func extractCallbackFuncLit(call *ast.CallExpr) *ast.FuncLit {
+	for _, v := range slices.Backward(call.Args) {
+		if fn, ok := v.(*ast.FuncLit); ok {
+			return fn
+		}
+	}
+
+	return nil
+}
+
+// classifyCallbackBody inspects a SubscribeAll callback body and reports
+// whether it contains broadcast/notify calls and/or persistence calls.
+func classifyCallbackBody(body *ast.BlockStmt) (hasBroadcast, hasPersist bool) {
+	if body == nil {
+		return false, false
+	}
+
+	ast.Inspect(body, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		sel, ok := analyzer.SelectorFromExpr(call.Fun)
+		if !ok {
+			return true
+		}
+
+		method := sel.Sel.Name
+
+		if !hasBroadcast && isBroadcastSignal(method) {
+			hasBroadcast = true
+		}
+
+		if !hasPersist && isPersistenceSignal(method) {
+			hasPersist = true
+		}
+
+		return !hasBroadcast || !hasPersist
+	})
+
+	return hasBroadcast, hasPersist
+}
+
+// isBroadcastSignal reports whether a method name looks like fire-and-forget
+// fan-out (SSE push, stats notification) rather than state mutation.
+func isBroadcastSignal(method string) bool {
+	return slices.Contains([]string{
+		"Notify", "Broadcast", "Multicast", "Fanout", "FanOut", "Push", "Send",
+	}, method)
+}
+
+// isPersistenceSignal reports whether a method name looks like a store write
+// (the defining trait of a projection).
+func isPersistenceSignal(method string) bool {
+	return slices.Contains([]string{
+		"Save", "Set", "Upsert", "Insert", "Update", "Delete", "Remove",
+		"Exec", "ExecContext", "Materialize", "Apply", "Persist", "Commit", "Put",
+	}, method)
 }

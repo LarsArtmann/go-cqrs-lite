@@ -28,7 +28,11 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 			fmt.Println()
 
 			features := profile.ToConfigFeatures()
-			raw, err := json.MarshalIndent(map[string]analyzer.ConfigFeatures{"features": features}, "", "  ")
+			raw, err := json.MarshalIndent(
+				map[string]analyzer.ConfigFeatures{"features": features},
+				"",
+				"  ",
+			)
 			if err != nil {
 				return fmt.Errorf("marshal suggested features: %w", err)
 			}

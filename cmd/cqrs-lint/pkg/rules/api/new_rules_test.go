@@ -303,13 +303,40 @@ func TestA005_DetectsSubscribeAllWithoutProjectionHost(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"proj.go": `package main
 
-func setup(bus EventBus) {
-	bus.SubscribeAll(func(evt Event) {})
+func setup(bus EventBus, store Store) {
+	bus.SubscribeAll(func(evt Event) {
+		store.Save(evt.ID, evt)
+	})
 }
 `,
 	})
 	findings := runDetector(t, api.NewA005Detector(ctx))
 	assertRule(t, findings, "A005", 1)
+}
+
+// A005 must NOT flag SubscribeAll callbacks that only broadcast/notify —
+// SSE fan-out and stats notifiers are fire-and-forget, not projections.
+// Regression test for the DiscordSync false positives (server.go stats
+// notifier + sse.go broadcaster).
+func TestA005_NoFindingForBroadcastFanOut(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"sse.go": `package main
+
+func setupSSE(bus EventBus, broker *Broker) {
+	bus.SubscribeAll(func(evt Event) {
+		broker.Broadcast(evt)
+	})
+}
+
+func setupStats(bus EventBus, notifier *Notifier) {
+	bus.SubscribeAll(func(evt Event) {
+		notifier.Notify()
+	})
+}
+`,
+	})
+	findings := runDetector(t, api.NewA005Detector(ctx))
+	assertRule(t, findings, "A005", 0)
 }
 
 func TestA007_DetectsDualModel(t *testing.T) {

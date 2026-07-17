@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -195,7 +196,7 @@ func extractCQRSVersion(content, modVersion string) string {
 		}
 
 		for field := range strings.FieldsSeq(line) {
-			if !strings.HasPrefix(field, "v") || len(field) < 3 {
+			if !looksLikeVersionToken(field) {
 				continue
 			}
 
@@ -269,3 +270,18 @@ func parseVersionParts(v string) []string {
 
 	return parts
 }
+
+// looksLikeVersionToken reports whether a whitespace-delimited token has the
+// shape of a Go module version reference: a leading "v" + digit(s) + "." +
+// digit(s), e.g. v4.0, v4.0.1, v4.0.x.
+//
+// This rejects prose words that merely start with "v" — "via", "version",
+// "very", "vectors" — AND bare major versions like "v3"/"v4" that are
+// ambiguous in prose ("v3 Migration", "v4 release"). A real version reference
+// always includes at least major.minor. See feedback:
+// docs/feedback/2026-07-16_DiscordSync (D005 false positive on "via go-cqrs-lite").
+func looksLikeVersionToken(field string) bool {
+	return versionTokenRe.MatchString(field)
+}
+
+var versionTokenRe = regexp.MustCompile(`^v\d+\.\d+`)

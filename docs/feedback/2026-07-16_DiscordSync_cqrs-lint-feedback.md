@@ -8,6 +8,16 @@
 > [TODO_LIST.md](../../TODO_LIST.md) for current state.
 > Last documentation health audit: 2026-07-16.
 
+<!-- resolution-banner -->
+
+> **Linter response (2026-07-17):** All seven suggested improvements triaged.
+> Four implemented (C001 closure-trace, C008 money corroboration, D005 version
+> regex, A005 broadcast vs projection), two already addressed via the
+> FeatureProfile + EventTypesEmitted registry work (A016, E006), D004 removed,
+> and D002 left as a legitimate per-file consistency check (external-contract
+> detection needs a config allowlist — tracked as a follow-up). See the
+> "Resolution Log" section at the end of this file.
+
 **Consumer:** [DiscordSync](https://github.com/LarsArtmann/DiscordSync) — Discord backup bot
 **Version used:** go-cqrs-lite v4.0.0 (flake pin at `c34dd604`)
 **lint version:** `go run -tags "goexperiment.jsonv2" ./cmd/cqrs-lint/` (master, 2026-07-16)
@@ -384,3 +394,20 @@ Ranked by impact (would remove the most false positives):
 | D002 | Info     | 18    | Intentional                    | None — Discord API uses snake_case                     |
 | D004 | Info     | 1     | Intentional                    | None — same as D002, project-wide                      |
 | E006 | Info     | 1     | False positive                 | None — SQL row struct, not an event type               |
+
+---
+
+## Resolution Log (2026-07-17)
+
+Re-triaged against current `cmd/cqrs-lint` source. Status of each suggested
+improvement:
+
+| #   | Suggestion                                 | Status      | Detail                                                                                                                                                                               |
+| --- | ------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | C001 — trace closures                      | **DONE**    | `txVarEscapesToArg` skips when the tx variable is passed as a call argument (closure-helper pattern). Existing test updated to a genuine missing-commit case; regression test added. |
+| 2   | C008 — require multiple money signals      | **DONE**    | Split into strong fields (amount/price/cost/balance/fee — fire alone) and weak fields (value/total/charge/payment/salary — need money struct/package name).                          |
+| 3   | E006 — cross-reference event registry      | **DONE**    | Already uses `ctx.Registry.EventTypesEmitted`, populated only from `event.New()`/`event.NewEvent()` calls. SQL row structs are never registered.                                     |
+| 4   | A005 — check callback behavior             | **DONE**    | `classifyCallbackBody` suppresses when the SubscribeAll callback has broadcast/notify calls (Notify/Broadcast/Send) and no persistence calls (Save/Set/Upsert/...).                  |
+| 5   | A016 — verify dispatcher type              | **DONE**    | Gated by `FeatureProfile.CommandFlow`; read-only / event-sourcing-only systems never fire.                                                                                           |
+| 6   | D005 — skip empty/non-version tokens       | **DONE**    | `looksLikeVersionToken` requires `v\d+\.\d+` shape, rejecting "via"/"version" and bare "v3"/"v4" prose words.                                                                        |
+| 7   | D002/D004 — respect external API contracts | **PARTIAL** | D004 removed. D002 remains a per-file consistency check; external-contract detection needs a config allowlist (tracked as a follow-up, low priority).                                |

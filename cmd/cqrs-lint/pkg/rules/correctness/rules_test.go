@@ -129,12 +129,9 @@ import (
 	"database/sql"
 )
 
-func withTx(ctx context.Context, db *sql.DB, body func(*sql.Tx) error) error {
+func writeNoCommit(ctx context.Context, db *sql.DB) error {
 	tx, _ := db.BeginTx(ctx, nil)
-	if err := body(tx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
+	_, _ = tx.Exec("INSERT INTO t VALUES (1)")
 	return nil
 }
 `,
@@ -152,13 +149,37 @@ import (
 	"database/sql"
 )
 
+func writeWithCommit(ctx context.Context, db *sql.DB) error {
+	tx, _ := db.BeginTx(ctx, nil)
+	_, _ = tx.Exec("INSERT INTO t VALUES (1)")
+	return tx.Commit()
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC001Detector(ctx))
+	assertRule(t, findings, "C001", 0)
+}
+
+// C001 must NOT flag closure-based transaction helpers where the tx variable
+// escapes to a callback that contractually owns the commit. Suggesting
+// `return tx.Commit()` here would double-commit (sql.ErrTxDone).
+// Regression test for the DiscordSync false positive.
+func TestC001_NoFindingWhenTxEscapesToCallback(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"tx.go": `package main
+
+import (
+	"context"
+	"database/sql"
+)
+
 func withTx(ctx context.Context, db *sql.DB, body func(*sql.Tx) error) error {
 	tx, _ := db.BeginTx(ctx, nil)
 	if err := body(tx); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
-	return tx.Commit()
+	return nil
 }
 `,
 	})
@@ -284,6 +305,42 @@ type Config struct {
 	})
 	findings := runDetector(t, correctness.NewC008Detector(ctx))
 	assertRule(t, findings, "C008", 0)
+}
+
+// C008 must NOT flag a generic "value" field in an observability struct —
+// the weak "value" signal needs a money-related struct/package name.
+// Regression test for the DiscordSync false positives (rateTracker.value,
+// SparklineSample.LagValue).
+func TestC008_NoFindingForValueInObservabilityStruct(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"obs.go": `package main
+
+type SparklineSample struct {
+	LagValue float64
+}
+
+type rateTracker struct {
+	value float64
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC008Detector(ctx))
+	assertRule(t, findings, "C008", 0)
+}
+
+// C008 flags a weak "value" field when the enclosing struct name corroborates
+// a monetary context.
+func TestC008_FindingForValueInMonetaryStruct(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+type Wallet struct {
+	Value float64
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC008Detector(ctx))
+	assertRule(t, findings, "C008", 1)
 }
 
 // --- C002: Broken Command ID ---

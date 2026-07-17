@@ -11,6 +11,12 @@ import (
 )
 
 // Detects withTx-like helpers that call BeginTx but return nil instead of tx.Commit().
+//
+// CAUTION: when the tx variable escapes to a callback/closure argument
+// (e.g. `body(tx)` in a closure-based transaction helper), the commit cannot
+// be statically verified in this function body — the callback contractually
+// owns it. Flagging would suggest a "fix" (return tx.Commit()) that
+// double-commits. Such cases are skipped via txVarEscapesToArg.
 func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C001-missing-tx-commit",
@@ -42,6 +48,10 @@ func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					if hasCommitCall(fn, txVar) {
+						continue
+					}
+
+					if txVarEscapesToArg(fn, txVar) {
 						continue
 					}
 

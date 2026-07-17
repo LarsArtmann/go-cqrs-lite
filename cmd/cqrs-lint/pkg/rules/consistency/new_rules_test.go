@@ -161,3 +161,28 @@ func TestD005_NoFindingForADRTitleHeading(t *testing.T) {
 	findings := runDetector(t, consistency.NewD005Detector(ctx))
 	assertRule(t, findings, "D005", 0)
 }
+
+// D005 must NOT treat prose words like "via" as a version token. The old
+// HasPrefix("v") && len >= 3 check collected "via" from "via go-cqrs-lite"
+// and flagged a bogus version mismatch. Regression for DiscordSync feedback.
+func TestD005_NoFindingForProseWordVia(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(
+		"module example.com/app\n\nrequire github.com/larsartmann/go-cqrs-lite v4.0.0\n",
+	),
+		0o644)
+	_ = os.WriteFile(filepath.Join(tmpDir, "README.md"), []byte(
+		"# App\n\nEvents are persisted via go-cqrs-lite and replayed on startup.\n",
+	),
+		0o644)
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	ctx.ProjectRoot = tmpDir
+
+	findings := runDetector(t, consistency.NewD005Detector(ctx))
+	assertRule(t, findings, "D005", 0)
+}
