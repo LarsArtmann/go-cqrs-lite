@@ -96,15 +96,29 @@ Neither answer is correct without understanding **what threat the key is suppose
 
 An encryption key protects data-at-rest against an attacker who has the storage medium (the SQLite file) but not the key. The key's value comes entirely from **separation from the ciphertext.** If the key and the ciphertext live on the same disk and the attacker has the disk, the encryption is theater.
 
-### The four key-source strategies
+### The key-source strategies
 
-| Strategy                        | Key location                                          | Disk theft                        | Friction      | When appropriate               |
-| ------------------------------- | ----------------------------------------------------- | --------------------------------- | ------------- | ------------------------------ |
-| **Raw key (env/file)**          | Env var, separate config file                         | ✅ Protected (if env not on disk) | High (manual) | Servers, CI, explicit security |
-| **Derived key (HKDF)**          | Derived from master at runtime                        | ✅ Protected                      | Medium        | Multi-tenant, KMS-backed       |
-| **Machine-bound (OS keychain)** | macOS Keychain / Linux secret-service / Windows DPAPI | ✅ Protected                      | **Zero**      | Local tools, CLI apps          |
-| **Auto-gen on disk**            | `~/.config/app/key` (plaintext file)                  | ❌ **Useless**                    | Zero          | **Never** (theater)            |
-| **Passphrase (argon2id)**       | User's memory                                         | ✅ Protected                      | Medium        | High-security, human-operated  |
+| Strategy                        | Key location                                          | Disk theft                             | Friction | When appropriate              |
+| ------------------------------- | ----------------------------------------------------- | -------------------------------------- | -------- | ----------------------------- |
+| **Machine-bound (OS keychain)** | macOS Keychain / Linux secret-service / Windows DPAPI | ✅ Protected                           | **Zero** | Local tools, CLI apps (ideal) |
+| **Derived key (HKDF)**          | Derived from master at runtime                        | ✅ Protected                           | Medium   | Multi-tenant, KMS-backed      |
+| **Passphrase (argon2id)**       | User's memory                                         | ✅ Protected                           | Medium   | High-security, human-operated |
+| **Raw key (env var)**           | Env var                                               | ⚠️ Weak — leaks to all child processes | Low      | CI/automation only (NOT prod) |
+| **Raw key (separated file)**    | Config file with `chmod 600`, separate volume         | Medium (if separated)                  | Low      | Server, headless fallback     |
+| **Auto-gen on disk**            | `~/.config/app/key` (plaintext file)                  | ❌ **Useless**                         | Zero     | **Never** (theater)           |
+
+### Why environment variables are a weak key source
+
+Env vars are convenient but **insecure for encryption keys.** They leak through multiple attack vectors:
+
+- **`/proc/<pid>/environ`** — any process the user runs can read ALL env vars. Malware, a malicious npm package, even a poorly-written shell script gets the key for free. No privilege escalation needed.
+- **Child process inheritance** — every subprocess bank-sync spawns inherits the key automatically, widening the exposure surface.
+- **Shell history** — `export BANK_SYNC_ENCRYPTION_KEY=...` persists forever in `.bash_history` / `.zshhistory`.
+- **Crash dumps / `gdb attach`** — `show environ` or core dumps expose the key to any debugger.
+- **Container inspection** — `docker inspect`, `kubectl describe pod` — visible to anyone with cluster read access.
+- **Systemd units / `.env` files** — stored in plaintext wherever the process is launched from.
+
+For a **financial tool** where the key protects transaction data, "any process the user runs can read the key" is a real problem. Env vars are acceptable for CI/automation where the environment is ephemeral and controlled. They are **not** acceptable as the primary key source for a local tool running on a developer's laptop.
 
 ### The trap of "auto-generate to disk"
 
@@ -133,16 +147,20 @@ The key is generated once, stored in the OS keychain (bound to the user session,
 
 ### Resolution for bank-sync
 
-| Option                | Threat mitigated              | Key-loss risk           | Friction | Verdict                     |
-| --------------------- | ----------------------------- | ----------------------- | -------- | --------------------------- |
-| Auto-gen to disk      | Partial-file leak only        | **High** (catastrophic) | Zero     | ❌ Theater + data-loss risk |
-| Explicit env var      | Disk theft (if env separated) | Low (user chose)        | High     | ✅ Honest, current approach |
-| OS keychain           | Disk theft                    | Low (OS-managed)        | Zero     | ✅✅ Ideal, future work     |
-| Passphrase (argon2id) | Disk theft                    | Low (user memorizes)    | Medium   | ✅ High-security option     |
+| Option                | Threat mitigated              | Key-loss risk           | Friction | Verdict                                                 |
+| --------------------- | ----------------------------- | ----------------------- | -------- | ------------------------------------------------------- |
+| OS keychain           | Disk theft                    | Low (OS-managed)        | Zero     | ✅✅ **Correct default for a local tool**               |
+| Passphrase (argon2id) | Disk theft                    | Low (user memorizes)    | Medium   | ✅ High-security option                                 |
+| Explicit env var      | Disk theft (if env separated) | Low (user chose)        | Low      | ⚠️ CI/headless fallback only — leaks to child processes |
+| Auto-gen to disk      | Partial-file leak only        | **High** (catastrophic) | Zero     | ❌ Theater + data-loss risk                             |
 
-**bank-sync's current approach (explicit env var) is the correct default for a financial tool.** Auto-generation would create unrecoverable data loss for no real security gain. The WARNING log ("set an encryption key to enable at-rest encryption") is the right UX — it informs without forcing.
+**The correct default for bank-sync is OS keychain integration**, not env vars.
 
-The SDK's job is to make the explicit path as smooth as possible, which today it doesn't.
+bank-sync's **current** approach (explicit env var) was originally endorsed as "the correct default for a financial tool." That was **wrong.** Env vars leak to every child process via `/proc/<pid>/environ` — for a financial tool, "any process can read the key" is unacceptable. The env-var path should remain as a **CI/headless fallback** for automation where the environment is ephemeral.
+
+The ideal path is OS keychain (`KeyProvider` implemented consumer-side using `security`/`secret-tool`/DPAPI): zero friction after setup, disk-theft safe, and the key never touches the filesystem in plaintext. This is how Chrome, 1Password, and every modern local app handle "encryption by default."
+
+The SDK's job is to make the keychain path as smooth as possible by providing the `KeyProvider` interface + `GenerateKey()` primitives. The consumer implements the platform-specific keychain access — the SDK shouldn't depend on CGO/dbus/Win32.
 
 ---
 
@@ -219,11 +237,13 @@ type KeyProvider interface {
 Built-in providers (the SDK provides the common cases; consumers add their own):
 
 ```go
-// From environment variable
+// From environment variable — dev/test/CI convenience ONLY.
+// Env vars leak to all child processes via /proc/<pid>/environ and
+// persist in shell history. Do NOT use as the primary key source in production.
 func EnvKeyProvider(varName string) KeyProvider
 
-// From base64 string (already decoded — for config-file integration)
-func StaticKeyProvider(base64Key string) KeyProvider
+// From raw bytes (already decoded — for programmatic/testing use)
+func StaticKeyProvider(key []byte) KeyProvider
 
 // No key configured (returns ErrNoKey) — explicit "encryption off"
 func NoKeyProvider() KeyProvider

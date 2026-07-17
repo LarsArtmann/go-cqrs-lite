@@ -95,13 +95,13 @@ The stack internally calls `provider.Key()` once at startup.
 
 **Key-source security hierarchy (for consumers choosing a provider):**
 
-| Source                          | Disk-theft safe | Friction | Notes                                      |
-| ------------------------------- | --------------- | -------- | ------------------------------------------ |
-| OS keychain (Keyring/DPAPI)     | ✅ Yes          | Zero     | Ideal for local tools — bound to user session |
-| Passphrase → argon2id           | ✅ Yes          | High     | Key never persists; user types each startup   |
-| File with `chmod 600` (separated) | Medium        | Low      | Acceptable if on a separate volume/key drive  |
-| Environment variable            | ❌ Weak         | Low      | Leaks via `/proc`, child processes, shell history |
-| Plaintext file next to DB       | ❌ No           | Zero     | Security theater + data-loss risk             |
+| Source                            | Disk-theft safe | Friction | Notes                                             |
+| --------------------------------- | --------------- | -------- | ------------------------------------------------- |
+| OS keychain (Keyring/DPAPI)       | ✅ Yes          | Zero     | Ideal for local tools — bound to user session     |
+| Passphrase → argon2id             | ✅ Yes          | High     | Key never persists; user types each startup       |
+| File with `chmod 600` (separated) | Medium          | Low      | Acceptable if on a separate volume/key drive      |
+| Environment variable              | ❌ Weak         | Low      | Leaks via `/proc`, child processes, shell history |
+| Plaintext file next to DB         | ❌ No           | Zero     | Security theater + data-loss risk                 |
 
 **Why this matters:** S002 (encryption) fires on every consumer with PII. The SDK should make
 compliance trivial, not something each consumer must figure out from scratch. This is the "pit
@@ -261,19 +261,29 @@ I initially dismissed S002 for bank-sync as "local single-user tool." I was wron
 
 ### What the SDK should do
 
-The encryption gap is not a linter problem — it's an **SDK ergonomics problem.** If wiring encryption were `stack.WithEncryptionFromEnv("KEY")` (one line), no consumer would skip it. The current 5-step manual wiring is the barrier.
+The encryption gap is not a linter problem — it's an **SDK ergonomics problem.** If wiring encryption were `stack.WithEncryption(provider)` (one line), no consumer would skip it. The current 5-step manual wiring is the barrier.
+
+> **Note (2026-07-17):** The original text recommended `WithEncryptionFromEnv("KEY")`. That was
+> revised to `WithEncryption(provider KeyProvider)` because env vars are insecure for encryption
+> keys — they leak to all child processes via `/proc/<pid>/environ`, shell history, and crash dumps.
+> See [2026-07-17_bank-sync_encryption-key-management-standardization.md](./2026-07-17_bank-sync_encryption-key-management-standardization.md)
+> for the full key-source security hierarchy.
 
 **Action items for the SDK:**
 
-1. Ship `stack.WithEncryption` / `stack.WithEncryptionFromEnv` (Part 1.1)
-2. Document key generation in the stack preset quickstart (not buried in the encryption module)
-3. Make `cqrs-lint init` generate a `.cqrs-lint.json` with `"data": "pii"` if PII fields are detected, so S002 fires from day one
+1. Ship `encryption.KeyProvider` interface + `stack.WithEncryption(provider)` (Part 1.1, revised)
+2. Ship `encryption.NewEncryptedSnapshotStore` (see [2026-07-17_bank-sync_snapshot-encryption-gap.md](./2026-07-17_bank-sync_snapshot-encryption-gap.md))
+3. Ship `encryption.GenerateKey()` / `GenerateKeyBase64()` / `ValidateKey()` / `DecodeKeyBase64()` helpers
+4. Document key-source security hierarchy in encryption README (keychain > passphrase > file > env var > plaintext-on-disk)
+5. Make `cqrs-lint init` generate a `.cqrs-lint.json` with `"data": "pii"` if PII fields are detected, so S002 fires from day one
 
 **Action items for bank-sync (the consumer):**
 
-1. Generate an encryption key on first run (store in `~/.config/bank-sync/key`)
-2. Wire `EncryptMiddleware` + `DecryptMiddleware` on the event bus
-3. Document that the key file must be backed up (data is unrecoverable without it)
+1. ~~Generate an encryption key on first run (store in `~/.config/bank-sync/key`)~~ **WRONG — auto-gen-to-disk is security theater.** Key + ciphertext on the same disk = zero protection + catastrophic data-loss risk.
+2. Implement `KeyProvider` backed by OS keychain (macOS Keychain / Linux secret-service / Windows DPAPI) — the correct zero-friction, disk-theft-safe path for a local tool
+3. Wire `EncryptMiddleware` + `DecryptMiddleware` on the event bus
+4. Wire encrypted snapshot store (or codec-composition workaround until SDK ships it)
+5. Document that the key must be backed up (data is unrecoverable without it)
 
 ---
 
@@ -308,13 +318,12 @@ Data from two consumers (bank-sync + DiscordSync) reveals which rules provide va
 
 ### SDK changes (go-cqrs-lite)
 
-| Priority | Change                                             | Impact                                       | Effort |
-| -------- | -------------------------------------------------- | -------------------------------------------- | ------ |
-| **P0**   | `stack.WithEncryptionFromEnv`                      | Every PII consumer gets encryption trivially | Medium |
-| **P1**   | `stack.WithSigning` / `WithSigningFromEnv`         | Tamper detection one-liner                   | Medium |
-| **P1**   | `stack.WithObservability`                          | OTel one-liner, eliminates B014              | Low    |
-| **P2**   | `stack.WithSecurity(SecurityConfig)`               | Unified security wiring                      | Medium |
-| **P2**   | Key generation helper (`encryption.GenerateKey()`) | First-run UX                                 | Low    |
+| Priority | Change                                                      | Impact                                                                        | Effort |
+| -------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------- | ------ |
+| **P0**   | `encryption.KeyProvider` + `stack.WithEncryption(provider)` | Every PII consumer gets encryption trivially; forces secure key-source choice | Medium |
+| **P0**   | `encryption.NewEncryptedSnapshotStore`                      | Closes the encryption-with-a-hole gap                                         | Medium |
+| **P1**   | `encryption.GenerateKey()` / `ValidateKey()` helpers        | Eliminates hand-rolled crypto/rand                                            | Low    |
+| **P1**   | `stack.WithSigning(provider)` / `WithObservability`         | Tamper detection + OTel one-liners                                            | Medium |
 
 ### Linter changes (cqrs-lint)
 
@@ -391,7 +400,7 @@ That's the goal.
 
 ### PRO — genuinely good ideas
 
-1. **"Pit of success" SDK one-liners are correct and important.** Wiring encryption in 5 manual steps IS why consumers skip it. `WithEncryptionFromEnv("KEY")` is the right shape — functional option, composable, matches the existing `middleware.NewOTelBundle` precedent.
+1. **"Pit of success" SDK one-liners are correct and important.** Wiring encryption in 5 manual steps IS why consumers skip it. `WithEncryption(provider KeyProvider)` is the right shape — functional option, composable, source-agnostic. (Original text endorsed `WithEncryptionFromEnv`; revised because env vars are insecure for keys — see [key management standardization](./2026-07-17_bank-sync_encryption-key-management-standardization.md).)
 2. **The "hard floor" guardrail is well-designed.** "Declarations can only suppress, never enable" + non-suppressible S001/S002/C001-C012/E001-E002 prevents score-gaming.
 3. **The encryption argument (Part 3) is well-reasoned.** Laptop theft, cloud sync, accidental commit — "local tool" really isn't an excuse.
 4. **Evidence-based framing (39→8 findings).** Two consumers with concrete FP counts is the right kind of data to drive decisions.
@@ -443,13 +452,13 @@ What genuinely **remains** is smaller than this doc implies:
 - ✅ Per-detector heuristics — DONE (but **scattered across 3 files** — the architectural smell)
 - ❌ Centralize the 3 scattered heuristics into one `FeatureProfile` (the architectural cleanup)
 - ❌ `features` config section in `.cqrs-lint.json` + AppConfig
-- ❌ SDK one-liners (`WithEncryptionFromEnv`, etc.) — **lower priority** (PII is not the current focus)
+- ❌ SDK one-liners (`WithEncryption(provider)`, etc.) — **lower priority** (PII is not the current focus)
 
 ### Recommendation
 
 | Do now                                                        | Do later                                         | Drop                                  |
 | ------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------- |
-| Centralize heuristics → `FeatureProfile` (feature vocabulary) | `WithEncryptionFromEnv` / `WithObservability`    | `WithSecurity(SecurityConfig)` struct |
+| Centralize heuristics → `FeatureProfile` (feature vocabulary) | `WithEncryption(provider)` / `GenerateKey()`     | `WithSecurity(SecurityConfig)` struct |
 | `features` config section + auto-detect                       | `encryption.GenerateKey()` first-run UX          | The 5-axis deployment taxonomy        |
 | `cqrs-lint doctor` to print detected features                 | Property detectors (write-after-init) as primary | Auto-detection as "fallback"          |
 | Split the proposal into 3 independent PRs                     |                                                  |                                       |
