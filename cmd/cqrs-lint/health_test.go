@@ -218,3 +218,66 @@ func TestComputeHealthScore_InfoCapDoesNotAffectHigherSeverities(t *testing.T) {
 		t.Errorf("critical + capped info: expected score 70, got %d", hs.Score)
 	}
 }
+
+// The tunable cap: consumers can raise/lower it via .cqrs-lint.json.
+// A cap of 5 means 50 info findings cost only -5, not -20.
+func TestComputeHealthScore_TunableCap(t *testing.T) {
+	t.Parallel()
+
+	findings := make([]finding.Finding, 0, 50)
+	for i := 0; i < 50; i++ {
+		f, _ := finding.NewBuilder(
+			"D002", "test", "style nit",
+			finding.SeverityInfo,
+			finding.Pos(finding.FilePath("test.go"), 1, 1),
+		).Build()
+		findings = append(findings, f)
+	}
+
+	hsDefault := ComputeHealthScore(findings)
+	hsTight := ComputeHealthScoreWithCap(findings, 5)
+
+	if hsDefault.Score != 80 {
+		t.Errorf("default cap: expected 80, got %d", hsDefault.Score)
+	}
+	// Cap 5 → 50 info capped at 5 → score 95.
+	if hsTight.Score != 95 {
+		t.Errorf("cap=5: expected 95, got %d", hsTight.Score)
+	}
+}
+
+// When the Info cap truncates deductions, InfoCapped + InfoRawDeduction expose
+// the uncapped total for verbose-mode transparency.
+func TestComputeHealthScore_InfoCappedTransparency(t *testing.T) {
+	t.Parallel()
+
+	findings := make([]finding.Finding, 0, 30)
+	for i := 0; i < 30; i++ {
+		f, _ := finding.NewBuilder(
+			"D002", "test", "style nit",
+			finding.SeverityInfo,
+			finding.Pos(finding.FilePath("test.go"), 1, 1),
+		).Build()
+		findings = append(findings, f)
+	}
+
+	hs := ComputeHealthScore(findings)
+
+	if !hs.InfoCapped {
+		t.Error("expected InfoCapped=true when 30 info findings exceed the 20 cap")
+	}
+	if hs.InfoRawDeduction != 30 {
+		t.Errorf("InfoRawDeduction = %d, want 30", hs.InfoRawDeduction)
+	}
+
+	// Under the cap → no transparency fields set.
+	small, _ := finding.NewBuilder(
+		"D002", "test", "style nit",
+		finding.SeverityInfo,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).Build()
+	hsSmall := ComputeHealthScore([]finding.Finding{small})
+	if hsSmall.InfoCapped {
+		t.Error("expected InfoCapped=false when info is under the cap")
+	}
+}

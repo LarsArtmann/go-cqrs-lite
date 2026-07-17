@@ -132,7 +132,14 @@ func renderHealthScore(hs HealthScore, colorMode output.ColorMode) string {
 		return scoreTable + "\n"
 	}
 
-	return scoreTable + "\n" + breakdownTable + "\n"
+	result := scoreTable + "\n" + breakdownTable + "\n"
+
+	if hs.InfoCapped {
+		result += fmt.Sprintf("Info deductions capped: raw -%d → capped at -%d\n",
+			hs.InfoRawDeduction, defaultInfoDeductionCap)
+	}
+
+	return result
 }
 
 func formatFindingsText(w io.Writer, findings []finding.Finding, cm output.ColorMode) {

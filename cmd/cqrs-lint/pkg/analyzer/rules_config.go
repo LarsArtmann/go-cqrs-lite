@@ -1,5 +1,12 @@
 package analyzer
 
+import (
+	"encoding/json/v2"
+	"fmt"
+	"io"
+	"strings"
+)
+
 // RulesConfig holds rule-specific configuration that detectors consult to
 // suppress domain-specific false positives. Populated from the "rules" key in
 // .cqrs-lint.json. Fields are intentionally narrow: each one targets a
@@ -23,4 +30,60 @@ type RulesConfig struct {
 	// on the struct's doc comment; it suppresses the same rule without needing
 	// config. Both mechanisms stack: a struct is excluded if either matches.
 	ExternalAPIStructPrefixes []string `json:"external-api-struct-prefixes,omitempty"`
+}
+
+// knownRulesConfigKeys is the set of valid keys under "rules" in
+// .cqrs-lint.json. Any other key is a likely typo and is reported by Validate.
+var knownRulesConfigKeys = map[string]bool{
+	"external-api-struct-prefixes": true,
+}
+
+// Validate checks the rules config for common misconfigurations and writes
+// human-readable warnings to w. It also normalizes the config in place
+// (trimming whitespace, dropping empty/duplicate prefixes).
+//
+// rawRulesJSON is the unparsed JSON of the "rules" object from the config file
+// (may be nil/empty when no config file is present). When non-empty, unknown
+// keys are flagged as likely typos so a misspelled field name doesn't silently
+// disable an override.
+//
+// This closes the silent-failure gap noted in the round-2 self-critique (§d-6):
+// a typo like "external-api-prefixes" (missing "struct") or
+// "external-api-struct-prefixes": "Discord" (string instead of array) previously
+// failed without any diagnostic.
+func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
+	if rc == nil {
+		return
+	}
+
+	// Normalize prefix list: trim, drop empties, deduplicate (order-preserving).
+	seen := make(map[string]bool)
+	cleaned := rc.ExternalAPIStructPrefixes[:0]
+
+	for _, p := range rc.ExternalAPIStructPrefixes {
+		trimmed := strings.TrimSpace(p)
+		if trimmed == "" || seen[trimmed] {
+			continue
+		}
+		seen[trimmed] = true
+		cleaned = append(cleaned, trimmed)
+	}
+
+	rc.ExternalAPIStructPrefixes = cleaned
+
+	// Check for unknown keys in the raw JSON (catches typos).
+	if len(rawRulesJSON) > 0 {
+		var raw map[string]any
+		if err := json.Unmarshal(rawRulesJSON, &raw); err == nil {
+			for key := range raw {
+				if !knownRulesConfigKeys[key] {
+					fmt.Fprintf(
+						w,
+						"warning: unknown rules config key %q (known: external-api-struct-prefixes)\n",
+						key,
+					)
+				}
+			}
+		}
+	}
 }

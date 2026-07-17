@@ -13,6 +13,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/api"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/consistency"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
 )
 
@@ -66,6 +68,77 @@ func BenchmarkFilterByRuleIDs(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		_ = rules.FilterByRuleIDs(all, []string{"C001", "C002", "C003"})
+	}
+}
+
+// BenchmarkDetectorC008 benchmarks the C008 (float64-for-money) detector on a
+// fixture with both strong and weak money fields plus a non-monetary project
+// signal (exercises the projectHasMonetarySignal pre-scan).
+func BenchmarkDetectorC008(b *testing.B) {
+	ctx := analyzer.BuildContextFromSource(&testing.T{}, map[string]string{
+		"model.go": `package main
+
+type Order struct {
+	Amount   float64
+	Quantity int
+}
+
+type Stats struct {
+	Total float64
+}
+`,
+	})
+	det := correctness.NewC008Detector(ctx)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		_, _ = det.Detect(context.Background())
+	}
+}
+
+// BenchmarkDetectorD002 benchmarks the D002 (mixed JSON casing) detector with
+// the external-API opt-out configured, exercising collectExternalAPIStructs.
+func BenchmarkDetectorD002(b *testing.B) {
+	ctx := analyzer.BuildContextFromSource(&testing.T{}, map[string]string{
+		"model.go": `package main
+
+type DiscordMessage struct {
+	Content string ` + "`json:\"content\"`" + `
+	GuildID string ` + "`json:\"guild_id\"`" + `
+}
+
+type Response struct {
+	MessageID string ` + "`json:\"messageId\"`" + `
+}
+`,
+	})
+	ctx.RulesConfig.ExternalAPIStructPrefixes = []string{"Discord"}
+	det := consistency.NewD002Detector(ctx)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		_, _ = det.Detect(context.Background())
+	}
+}
+
+// BenchmarkDetectorA005 benchmarks the A005 (SubscribeAll without projection)
+// detector on a fixture with broadcast fan-out (exercises classifyCallbackBody).
+func BenchmarkDetectorA005(b *testing.B) {
+	ctx := analyzer.BuildContextFromSource(&testing.T{}, map[string]string{
+		"sse.go": `package main
+
+func setup(bus EventBus, broker *Broker) {
+	bus.SubscribeAll(func(evt Event) {
+		broker.Broadcast(evt)
+	})
+}
+`,
+	})
+	det := api.NewA005Detector(ctx)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		_, _ = det.Detect(context.Background())
 	}
 }
 

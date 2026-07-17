@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"io"
@@ -58,6 +59,19 @@ type AppConfig struct {
 	// Rules carries rule-specific overrides (e.g. external-API struct prefixes
 	// for D002). See analyzer.RulesConfig docs for each field.
 	Rules analyzer.RulesConfig `json:"rules,omitempty"`
+	// Health carries health-score tuning (e.g. the Info-deduction cap).
+	Health HealthConfig `json:"health,omitempty"`
+}
+
+// HealthConfig tunes the health-score computation. All fields default to zero,
+// which preserves the standard scoring behavior.
+//
+//	{"health": {"info-cap": 15}}
+//
+// InfoCap caps the total penalty from Info-severity findings. 0 means use the
+// built-in default (20). A negative value is treated as 0 (no cap).
+type HealthConfig struct {
+	InfoCap int `json:"info-cap,omitempty"`
 }
 
 func main() {
@@ -145,6 +159,13 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	// Rule-specific overrides (external-API allowlists, etc.).
 	actx.RulesConfig = cfg.Rules
 
+	// Validate + normalize rule overrides: warn on typos, unknown keys, and
+	// empty/duplicate prefixes. Closes the silent-failure gap where a typo'd
+	// config key (e.g. "external-api-prefixes") silently disabled an override.
+	rawRules := loadRawRulesJSON()
+	cfg.Rules.Validate(os.Stderr, rawRules)
+	actx.RulesConfig = cfg.Rules
+
 	if len(actx.GoFiles) == 0 {
 		if !cfg.Quiet {
 			fmt.Fprintln(os.Stderr, "No Go files importing go-cqrs-lite found. Nothing to lint.")
@@ -223,7 +244,11 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	}
 
 	if cfg.HealthScore {
-		hs := ComputeHealthScore(activeFindings)
+		infoCap := cfg.Health.InfoCap
+		if infoCap == 0 {
+			infoCap = defaultInfoDeductionCap
+		}
+		hs := ComputeHealthScoreWithCap(activeFindings, infoCap)
 		fmt.Print(renderHealthScore(hs, parseColorMode(cfg.Color)))
 	}
 
@@ -250,6 +275,30 @@ func countModules(files []*analyzer.GoFile) int {
 		seen[filepath.Dir(f.Path)] = true
 	}
 	return len(seen)
+}
+
+// loadRawRulesJSON reads .cqrs-lint.json from the current directory and returns
+// the raw JSON of the "rules" key (for unknown-key validation). Returns nil if
+// the file is absent, unreadable, or has no "rules" key — validation is
+// best-effort and must never block a lint run.
+func loadRawRulesJSON() []byte {
+	data, err := os.ReadFile(".cqrs-lint.json")
+	if err != nil {
+		return nil
+	}
+
+	var top map[string]any
+	if err := json.Unmarshal(data, &top); err != nil {
+		return nil
+	}
+
+	if rules, ok := top["rules"]; ok {
+		if reencoded, err := json.Marshal(rules); err == nil {
+			return reencoded
+		}
+	}
+
+	return nil
 }
 
 func printDetectorTimings(w io.Writer, snap pipeline.MetricsSnapshot) {

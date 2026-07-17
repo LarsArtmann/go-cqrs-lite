@@ -20,17 +20,33 @@ type HealthScore struct {
 	Score     int
 	Grade     string
 	Breakdown map[string]int
+	// InfoCapped is true when the raw Info deductions exceeded the cap and were
+	// truncated. Exposed for --verbose transparency.
+	InfoCapped bool
+	// InfoRawDeduction is the uncapped Info total (only meaningful when InfoCapped).
+	InfoRawDeduction int
 }
 
-// maxInfoDeduction caps the total health-score penalty attributable to
+// defaultInfoDeductionCap caps the total health-score penalty attributable to
 // Info-severity findings. Info is the noisiest tier (style nits, low-confidence
 // heuristic matches) and without a cap a single chatty rule can dominate the
 // score: 18 D002 info findings used to cost -18, more than a Critical
 // correctness bug. Capping Info at 20% keeps heuristic noise from drowning real
 // issues. See item f-15 in the DiscordSync feedback triage.
-const maxInfoDeduction = 20
+//
+// The cap is tunable via .cqrs-lint.json -> "health": {"info-cap": N}.
+// ComputeHealthScore uses this default; ComputeHealthScoreWithCap accepts an
+// explicit value.
+const defaultInfoDeductionCap = 20
 
-// ComputeHealthScore calculates the health score from findings.
+// ComputeHealthScore calculates the health score using the default Info cap.
+func ComputeHealthScore(findings []finding.Finding) HealthScore {
+	return ComputeHealthScoreWithCap(findings, defaultInfoDeductionCap)
+}
+
+// ComputeHealthScoreWithCap calculates the health score with a caller-specified
+// Info-deduction cap. Pass defaultInfoDeductionCap for the standard behavior, or
+// a custom value from .cqrs-lint.json -> "health": {"info-cap": N}.
 //
 // Two fairness adjustments over a naive severity sum:
 //   - Confidence weighting: each finding's deduction is scaled by how certain
@@ -38,16 +54,22 @@ const maxInfoDeduction = 20
 //     75%; Low pays 50%. No confidence info (the zero value) is treated as full
 //     weight so findings that don't declare a confidence keep their original
 //     impact.
-//   - Info cap: total Info-severity deductions are capped at
-//     maxInfoDeduction so a flood of style nits can't outweigh real bugs.
+//   - Info cap: total Info-severity deductions are capped at infoCap so a flood
+//     of style nits can't outweigh real bugs.
 //
-// The Breakdown map reports per-rule weighted deductions (rounded) for display;
-// when the Info cap applies, the displayed Info deductions may sum to more than
-// the capped contribution reflected in Score. That's intentional — the
-// breakdown shows "what's noisy", the score shows "the actual penalty".
-func ComputeHealthScore(findings []finding.Finding) HealthScore {
+// The Breakdown map reports per-rule weighted deductions (rounded once at the
+// end from the accumulated float64 totals, so the breakdown is consistent with
+// the Score). When the Info cap applies, InfoCapped and InfoRawDeduction expose
+// the uncapped total for verbose-mode transparency.
+func ComputeHealthScoreWithCap(findings []finding.Finding, infoCap int) HealthScore {
+	if infoCap < 0 {
+		infoCap = defaultInfoDeductionCap
+	}
+
 	var totalCritical, totalError, totalWarning, totalInfo float64
-	breakdown := make(map[string]int)
+	// Accumulate unrounded per-rule deductions to avoid per-finding rounding
+	// drift (round-2 self-critique d-5).
+	rawBreakdown := make(map[string]float64)
 
 	for _, f := range findings {
 		if f.Suppression != nil {
@@ -61,28 +83,35 @@ func ComputeHealthScore(findings []finding.Finding) HealthScore {
 		case finding.SeverityCritical:
 			d := 10 * weight
 			totalCritical += d
-			breakdown[key] += int(math.Round(d))
+			rawBreakdown[key] += d
 		case finding.SeverityError:
 			d := 5 * weight
 			totalError += d
-			breakdown[key] += int(math.Round(d))
+			rawBreakdown[key] += d
 		case finding.SeverityWarning:
 			d := 2 * weight
 			totalWarning += d
-			breakdown[key] += int(math.Round(d))
+			rawBreakdown[key] += d
 		case finding.SeverityInfo:
 			d := weight
 			totalInfo += d
-			breakdown[key] += int(math.Round(d))
+			rawBreakdown[key] += d
 		}
 	}
 
-	if totalInfo > maxInfoDeduction {
-		totalInfo = maxInfoDeduction
+	uncappedInfo := totalInfo
+	if totalInfo > float64(infoCap) {
+		totalInfo = float64(infoCap)
 	}
 
 	total := totalCritical + totalError + totalWarning + totalInfo
 	score := max(100-int(math.Round(total)), 0)
+
+	// Round the breakdown once from accumulated floats for consistency.
+	breakdown := make(map[string]int, len(rawBreakdown))
+	for key, d := range rawBreakdown {
+		breakdown[key] = int(math.Round(d))
+	}
 
 	grade := "Needs Improvement"
 
@@ -95,11 +124,17 @@ func ComputeHealthScore(findings []finding.Finding) HealthScore {
 		grade = "Fair"
 	}
 
-	return HealthScore{
+	hs := HealthScore{
 		Score:     score,
 		Grade:     grade,
 		Breakdown: breakdown,
 	}
+	if uncappedInfo > float64(infoCap) {
+		hs.InfoCapped = true
+		hs.InfoRawDeduction = int(math.Round(uncappedInfo))
+	}
+
+	return hs
 }
 
 // confidenceWeight maps a finding's confidence to a health-score multiplier.

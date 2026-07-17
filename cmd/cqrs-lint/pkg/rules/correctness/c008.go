@@ -172,6 +172,11 @@ func scanMoneyFields(
 // the project carries a money keyword. This is the project-level "is this
 // plausibly a payments/billing app?" signal that C008 consults to downgrade
 // findings on non-monetary codebases.
+//
+// Struct names live at the top level (GenDecl → TypeSpec), so we iterate
+// declarations directly instead of a full ast.Inspect tree walk. This skips all
+// function bodies and expressions, cutting the cost of the project pre-scan on
+// large consumer repos (round-2 self-critique §d-2).
 func projectHasMonetarySignal(ctx *analyzer.AnalysisContext, moneyStructKeywords []string) bool {
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
@@ -182,29 +187,22 @@ func projectHasMonetarySignal(ctx *analyzer.AnalysisContext, moneyStructKeywords
 			return true
 		}
 
-		hit := false
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if hit {
-				return false
-			}
-
-			ts, ok := n.(*ast.TypeSpec)
+		for _, decl := range gf.AST.Decls {
+			gd, ok := decl.(*ast.GenDecl)
 			if !ok {
-				return true
+				continue
 			}
 
-			if isMoneyStructName(ts.Name.Name, moneyStructKeywords) {
-				hit = true
+			for _, spec := range gd.Specs {
+				ts, ok := spec.(*ast.TypeSpec)
+				if !ok {
+					continue
+				}
 
-				return false
+				if isMoneyStructName(ts.Name.Name, moneyStructKeywords) {
+					return true
+				}
 			}
-
-			return true
-		})
-
-		if hit {
-			return true
 		}
 	}
 

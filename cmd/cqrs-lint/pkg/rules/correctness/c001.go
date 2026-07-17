@@ -43,26 +43,23 @@ func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						continue
 					}
 
-					if hasDeferCommit(fn, txVar) {
-						continue
-					}
+					// Single-pass collection of every tx signal C001 needs
+					// (commit/defer-commit/return-nil/escape/used), replacing five
+					// separate ast.Inspect walks.
+					tx := analyzeTxUsage(fn, txVar)
 
-					if hasCommitCall(fn, txVar) {
-						continue
-					}
-
-					if txVarEscapesToArg(fn, txVar) {
+					if tx.deferCommit || tx.commitCalled || tx.escapesToArg {
 						continue
 					}
 
 					// Fire when there's either a bare success-path return
-					// (hasReturnNil) OR the tx is actually used (txIsUsed). tx usage
+					// (returnsNil) OR the tx is actually used (txUsed). tx usage
 					// is the stronger signal: if tx.Exec/tx.Query ran and the tx is
 					// never committed and doesn't escape to a callback, the work is
 					// lost regardless of the function's return shape. Requiring
-					// hasReturnNil alone missed functions that return a sentinel or
+					// returnsNil alone missed functions that return a sentinel or
 					// wrapped error after using tx.
-					if !hasReturnNil(fn) && !txIsUsed(fn, txVar) {
+					if !tx.returnsNil && !tx.txUsed {
 						continue
 					}
 

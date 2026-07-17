@@ -104,135 +104,80 @@ func containsNode(parent, target ast.Node) bool {
 	return found
 }
 
-func hasCommitCall(fn *ast.FuncDecl, txVar string) bool {
-	found := false
-
-	ast.Inspect(fn, func(n ast.Node) bool {
-		if found {
-			return false
-		}
-
-		call, ok := n.(*ast.CallExpr)
-		if !ok {
-			return true
-		}
-
-		sel, ok := analyzer.SelectorFromExpr(call.Fun)
-		if !ok {
-			return true
-		}
-
-		if id, ok := sel.X.(*ast.Ident); ok && id.Name == txVar && sel.Sel.Name == "Commit" {
-			found = true
-		}
-
-		return true
-	})
-
-	return found
+// txAnalysis collects every tx-related signal C001 needs from a single AST
+// walk of the function body, instead of one walk per signal. Filled by
+// analyzeTxUsage.
+type txAnalysis struct {
+	commitCalled bool // tx.Commit() appears as a direct call
+	deferCommit  bool // defer tx.Commit() appears
+	returnsNil   bool // a bare `return nil` success path exists
+	escapesToArg bool // tx is passed as a call argument (callback-helper pattern)
+	txUsed       bool // tx.<Method>() called where Method is not Commit/Rollback
 }
 
-func hasDeferCommit(fn *ast.FuncDecl, txVar string) bool {
-	found := false
+// analyzeTxUsage walks the function body once and collects every tx signal C001
+// consults. This replaces five separate ast.Inspect walks (hasCommitCall,
+// hasDeferCommit, hasReturnNil, txVarEscapesToArg, txIsUsed) with a single
+// traversal, eliminating the O(functions × 5 × AST-size) cost flagged in the
+// round-2 self-critique (§d-1).
+func analyzeTxUsage(fn *ast.FuncDecl, txVar string) txAnalysis {
+	a := txAnalysis{}
 
 	ast.Inspect(fn, func(n ast.Node) bool {
-		if found {
-			return false
-		}
+		switch node := n.(type) {
+		case *ast.DeferStmt:
+			if node.Call == nil {
+				return true
+			}
+			if sel, ok := analyzer.SelectorFromExpr(node.Call.Fun); ok {
+				if id, ok := sel.X.(*ast.Ident); ok && id.Name == txVar &&
+					sel.Sel.Name == "Commit" {
+					a.deferCommit = true
+				}
+			}
 
-		deferStmt, ok := n.(*ast.DeferStmt)
-		if !ok {
-			return true
-		}
+		case *ast.ReturnStmt:
+			if !a.returnsNil {
+				for _, result := range node.Results {
+					if id, ok := result.(*ast.Ident); ok && id.Name == "nil" {
+						a.returnsNil = true
+					}
+				}
+			}
 
-		call := deferStmt.Call
-		if call == nil {
-			return true
-		}
+		case *ast.CallExpr:
+			// Direct tx.Commit() call.
+			if sel, ok := analyzer.SelectorFromExpr(node.Fun); ok {
+				if id, ok := sel.X.(*ast.Ident); ok && id.Name == txVar &&
+					sel.Sel.Name == "Commit" {
+					a.commitCalled = true
+				}
+			}
+			// tx passed as an argument to any call (callback-helper escape).
+			for _, arg := range node.Args {
+				if exprReferencesIdent(arg, txVar) {
+					a.escapesToArg = true
+				}
+			}
 
-		sel, ok := analyzer.SelectorFromExpr(call.Fun)
-		if !ok {
-			return true
-		}
-
-		if id, ok := sel.X.(*ast.Ident); ok && id.Name == txVar && sel.Sel.Name == "Commit" {
-			found = true
-		}
-
-		return true
-	})
-
-	return found
-}
-
-func hasReturnNil(fn *ast.FuncDecl) bool {
-	found := false
-
-	ast.Inspect(fn, func(n ast.Node) bool {
-		if found {
-			return false
-		}
-
-		ret, ok := n.(*ast.ReturnStmt)
-		if !ok {
-			return true
-		}
-
-		for _, result := range ret.Results {
-			if id, ok := result.(*ast.Ident); ok && id.Name == "nil" {
-				found = true
-
-				return false
+		case *ast.SelectorExpr:
+			// tx.<Method> where Method is not a lifecycle method = real use.
+			id, ok := node.X.(*ast.Ident)
+			if !ok || id.Name != txVar {
+				return true
+			}
+			switch node.Sel.Name {
+			case "Commit", "Rollback":
+				// lifecycle — not a "use"
+			default:
+				a.txUsed = true
 			}
 		}
 
 		return true
 	})
 
-	return found
-}
-
-// txVarEscapesToArg reports whether the tx variable is passed as an argument
-// to any call expression within the function body (excluding the BeginTx call
-// that produced it). This covers the closure/callback transaction-helper
-// pattern that C001 cannot evaluate statically:
-//
-//	func withTx(db *sql.DB, body func(*sql.Tx) error) error {
-//	    tx, err := db.BeginTx(ctx, nil)
-//	    if err != nil { return err }
-//	    if err := body(tx); err != nil { return err } // tx escapes to body
-//	    return nil // body contractually commits; flagging this would double-commit
-//	}
-//
-// When tx escapes to a callback, the commit cannot be verified within the
-// helper's own body, so C001 must not flag it. Method calls on tx itself
-// (tx.Commit, tx.Exec, tx.Rollback) are NOT escapes — tx is the receiver of
-// the SelectorExpr in call.Fun, not an argument in call.Args.
-func txVarEscapesToArg(fn *ast.FuncDecl, txVar string) bool {
-	found := false
-
-	ast.Inspect(fn, func(n ast.Node) bool {
-		if found {
-			return false
-		}
-
-		call, ok := n.(*ast.CallExpr)
-		if !ok {
-			return true
-		}
-
-		for _, arg := range call.Args {
-			if exprReferencesIdent(arg, txVar) {
-				found = true
-
-				return false
-			}
-		}
-
-		return true
-	})
-
-	return found
+	return a
 }
 
 // exprReferencesIdent reports whether expr is, or address-of, the named ident.
@@ -261,35 +206,3 @@ func exprReferencesIdent(expr ast.Expr, name string) bool {
 // if the tx is used at all and never committed (and doesn't escape to a
 // callback that owns the commit), the work is silently lost regardless of the
 // function's return shape. See item f-7 in the DiscordSync feedback triage.
-func txIsUsed(fn *ast.FuncDecl, txVar string) bool {
-	used := false
-
-	ast.Inspect(fn, func(n ast.Node) bool {
-		if used {
-			return false
-		}
-
-		sel, ok := n.(*ast.SelectorExpr)
-		if !ok {
-			return true
-		}
-
-		id, ok := sel.X.(*ast.Ident)
-		if !ok || id.Name != txVar {
-			return true
-		}
-
-		// Lifecycle methods don't count as "use" — they're the commit/abort
-		// signals checked separately by hasCommitCall/hasDeferCommit.
-		switch sel.Sel.Name {
-		case "Commit", "Rollback":
-			return true
-		}
-
-		used = true
-
-		return false
-	})
-
-	return used
-}
