@@ -36,7 +36,10 @@ var _ Codec = CBORCompactCodec{}
 // as canonicalEncMode/canonicalDecMode in cbor.go — the options are hardcoded
 // valid constants, so mode creation cannot fail.
 var compactEncMode = sync.OnceValue(func() cbor.EncMode {
-	mode, err := cbor.CoreDetEncOptions().EncMode()
+	opts := cbor.CoreDetEncOptions()
+	opts.Time = cbor.TimeUnixDynamic
+
+	mode, err := opts.EncMode()
 	if err != nil {
 		panic(fmt.Sprintf("codec: compact CBOR EncMode creation failed: %v", err))
 	}

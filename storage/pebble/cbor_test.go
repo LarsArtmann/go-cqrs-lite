@@ -128,6 +128,49 @@ func TestDeserializeEvent_CBORRoundTrip(t *testing.T) {
 	}
 }
 
+func TestDeserializeEvent_OccurredAtIsUTC(t *testing.T) {
+	t.Parallel()
+
+	store := newPebbleTestStore(t)
+	aggID := id.NewAggregateID()
+
+	// Use a time with sub-second precision to verify it survives the int64 UnixNano path.
+	original := time.Date(2026, 7, 17, 14, 30, 45, 123456789, time.UTC)
+
+	evt, err := event.NewEvent("TimedEvent", aggID, "Timer", event.Version(1),
+		[]byte(`{}`), event.WithOccurredAt(original))
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	data, err := store.serializeEvent(evt)
+	if err != nil {
+		t.Fatalf("serialize: %v", err)
+	}
+
+	got, err := store.deserializeEvent(data)
+	if err != nil {
+		t.Fatalf("deserialize: %v", err)
+	}
+
+	// The instant must be exactly preserved (int64 UnixNano, no float drift).
+	if !got.OccurredAt().Equal(original) {
+		t.Errorf("OccurredAt instant mismatch: want %v, got %v", original, got.OccurredAt())
+	}
+
+	// The deserialized time MUST be in UTC, not time.Local.
+	if got.OccurredAt().Location() != time.UTC {
+		t.Errorf("OccurredAt must be UTC after deserialization, got location %v",
+			got.OccurredAt().Location())
+	}
+
+	// Exact UnixNano match (int64 path, not float).
+	if got.OccurredAt().UnixNano() != original.UnixNano() {
+		t.Errorf("OccurredAt UnixNano: want %d, got %d",
+			original.UnixNano(), got.OccurredAt().UnixNano())
+	}
+}
+
 func TestSerializeEvent_NoBase64(t *testing.T) {
 	t.Parallel()
 

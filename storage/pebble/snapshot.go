@@ -259,7 +259,7 @@ func (s *serializableSnapshot) toSnapshot(ref id.AggregateRef) *snapshot.Snapsho
 		AggregateType: ref.Type,
 		Version:       event.Version(s.Version),
 		State:         s.State,
-		CreatedAt:     time.Unix(0, s.CreatedAt),
+		CreatedAt:     time.Unix(0, s.CreatedAt).UTC(),
 	}
 }
 

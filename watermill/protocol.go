@@ -211,7 +211,8 @@ func parseOptionalFields(md message.Metadata) ([]event.Option, error) {
 				"parse occurred_at",
 			)
 		}
-		opts = append(opts, event.WithOccurredAt(occurredAt))
+
+		opts = append(opts, event.WithOccurredAt(occurredAt.UTC()))
 	}
 
 	return opts, nil

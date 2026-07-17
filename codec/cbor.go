@@ -25,7 +25,10 @@ var _ Codec = CBORCodec{}
 // in practice — mirroring the library's own `var defaultEncMode, _ = ...`.
 // If this ever panics, it means a dependency upgrade broke option semantics.
 var canonicalEncMode = sync.OnceValue(func() cbor.EncMode {
-	mode, err := cbor.CanonicalEncOptions().EncMode()
+	opts := cbor.CanonicalEncOptions()
+	opts.Time = cbor.TimeUnixDynamic
+
+	mode, err := opts.EncMode()
 	if err != nil {
 		panic(fmt.Sprintf("codec: canonical CBOR EncMode creation failed: %v", err))
 	}

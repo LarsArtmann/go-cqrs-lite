@@ -70,7 +70,7 @@ func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedComman
 		ref,
 		serialized.Payload,
 		command.WithPersistedCommandID(serialized.ID),
-		command.WithReceivedAt(time.Unix(0, serialized.ReceivedAt)),
+		command.WithReceivedAt(time.Unix(0, serialized.ReceivedAt).UTC()),
 		command.WithCommandMetadata(serialized.Metadata),
 	)
 	if err != nil {

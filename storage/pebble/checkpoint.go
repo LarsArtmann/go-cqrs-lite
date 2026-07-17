@@ -212,7 +212,7 @@ func deserializeCheckpoint(data []byte) (event.Checkpoint, error) {
 
 	return event.Checkpoint{
 		EventID:     s.EventID,
-		ProcessedAt: time.Unix(0, s.ProcessedAt),
+		ProcessedAt: time.Unix(0, s.ProcessedAt).UTC(),
 	}, nil
 }
 

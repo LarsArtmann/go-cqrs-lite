@@ -332,6 +332,143 @@ func TestCBORCodec_RoundTrip_Time(t *testing.T) {
 	}
 }
 
+func TestCBORCodec_RoundTrip_TimeSubSecondPrecision(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	original := time.Date(2026, 7, 17, 14, 30, 45, 123456789, time.UTC)
+
+	data, err := c.Encode(original)
+	if err != nil {
+		t.Fatalf("Encode(time with nanos) error: %v", err)
+	}
+
+	var decoded time.Time
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		t.Fatalf("Decode(time) error: %v", err)
+	}
+
+	// TimeUnixDynamic uses float64, which has ~165ns drift per round-trip.
+	// 1 microsecond tolerance is generous but proves sub-second precision survived.
+	delta := decoded.Sub(original)
+	if delta < 0 {
+		delta = -delta
+	}
+
+	if delta > time.Microsecond {
+		t.Errorf(
+			"sub-second precision lost: original=%v decoded=%v delta=%v (max %v)",
+			original, decoded, delta, time.Microsecond,
+		)
+	}
+}
+
+func TestCBORCodec_RoundTrip_TimeInPayloadStruct(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	type eventPayload struct {
+		Name      string    `json:"name"`
+		CreatedAt time.Time `json:"created_at"`
+	}
+
+	original := eventPayload{
+		Name:      "test",
+		CreatedAt: time.Date(2026, 7, 17, 14, 30, 45, 987654321, time.UTC),
+	}
+
+	data, err := c.Encode(original)
+	if err != nil {
+		t.Fatalf("Encode error: %v", err)
+	}
+
+	var decoded eventPayload
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		t.Fatalf("Decode error: %v", err)
+	}
+
+	delta := decoded.CreatedAt.Sub(original.CreatedAt)
+	if delta < 0 {
+		delta = -delta
+	}
+
+	if delta > time.Microsecond {
+		t.Errorf(
+			"payload time precision lost: original=%v decoded=%v delta=%v",
+			original.CreatedAt, decoded.CreatedAt, delta,
+		)
+	}
+
+	if decoded.Name != original.Name {
+		t.Errorf("name mismatch: got %q, want %q", decoded.Name, original.Name)
+	}
+}
+
+func TestCBORCompactCodec_RoundTrip_TimeSubSecondPrecision(t *testing.T) {
+	t.Parallel()
+	c := CBORCompactCodec{}
+
+	original := time.Date(2026, 7, 17, 14, 30, 45, 123456789, time.UTC)
+
+	data, err := c.Encode(original)
+	if err != nil {
+		t.Fatalf("Encode(time with nanos) error: %v", err)
+	}
+
+	var decoded time.Time
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		t.Fatalf("Decode(time) error: %v", err)
+	}
+
+	delta := decoded.Sub(original)
+	if delta < 0 {
+		delta = -delta
+	}
+
+	if delta > time.Microsecond {
+		t.Errorf(
+			"compact codec sub-second precision lost: original=%v decoded=%v delta=%v",
+			original, decoded, delta,
+		)
+	}
+}
+
+func TestCBORCodec_RoundTrip_TimeInstantFromNonUTCLocation(t *testing.T) {
+	t.Parallel()
+	c := CBORCodec{}
+
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		t.Fatalf("LoadLocation error: %v", err)
+	}
+
+	// 2026-07-17T09:30:45.500000000-05:00 == 2026-07-17T14:30:45.500000000Z
+	original := time.Date(2026, 7, 17, 9, 30, 45, 500000000, loc)
+
+	data, err := c.Encode(original)
+	if err != nil {
+		t.Fatalf("Encode error: %v", err)
+	}
+
+	var decoded time.Time
+	err = c.Decode(data, &decoded)
+	if err != nil {
+		t.Fatalf("Decode error: %v", err)
+	}
+
+	// The INSTANT must be preserved even though the timezone/location is not.
+	// TimeUnixDynamic encodes the Unix epoch, which is timezone-independent.
+	if !decoded.Equal(original) {
+		t.Errorf(
+			"instant mismatch: original=%v (UnixNano=%d) decoded=%v (UnixNano=%d)",
+			original, original.UnixNano(), decoded, decoded.UnixNano(),
+		)
+	}
+}
+
 func TestCBORCodec_RoundTrip_ByteSlice(t *testing.T) {
 	t.Parallel()
 	c := CBORCodec{}

@@ -59,7 +59,7 @@ func (s *QueryStore) deserializeQuery(data []byte) (*query.PersistedQuery, error
 		query.Type(serialized.Type),
 		serialized.Payload,
 		query.WithQueryID(serialized.ID),
-		query.WithQueryReceivedAt(time.Unix(0, serialized.ReceivedAt)),
+		query.WithQueryReceivedAt(time.Unix(0, serialized.ReceivedAt).UTC()),
 		query.WithQueryMetadata(serialized.Metadata),
 	)
 	if err != nil {

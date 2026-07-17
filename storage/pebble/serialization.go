@@ -94,7 +94,7 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 		s.ID, event.Type(s.Type), id.AggregateType(s.AggregateType), s.AggregateID,
 		s.Version, s.SchemaVersion,
 		s.Payload, metadataJSON,
-		time.Unix(0, s.OccurredAt),
+		time.Unix(0, s.OccurredAt).UTC(),
 		codec.Encoding(s.Encoding),
 		"pebble",
 	)
