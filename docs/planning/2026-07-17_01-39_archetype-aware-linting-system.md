@@ -6,13 +6,13 @@
 >
 > The centralization insight (one source of truth for project context, consulted by all detectors instead of scattered heuristics) is identical in both plans. The difference is purely the **vocabulary**:
 >
-> | This plan (01-39) | Superseding plan (01-45) |
-> |---|---|
-> | Deployment archetypes: `LocalCLI`, `SingleProcess`, `Distributed` | Feature flags grounded in library modules: `store: sqlite`, `command-flow: sync` |
-> | Named profile bundles: `local-cli`, `production`, `library`, `auto` | Per-feature declaration — no preset bundles |
-> | Auto-detect signals are fuzzy (HTTP import → "distributed") | Auto-detect signals map 1:1 to go-cqrs-lite modules |
-> | Tries to model `DataKind` (PII, Financial) — brittle string matching | Explicitly rejects PII auto-detection as out of scope |
-> | ~8 hours, 68 tasks | ~6.5 hours, 43 tasks (detector fixes already shipped) |
+> | This plan (01-39)                                                    | Superseding plan (01-45)                                                         |
+> | -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+> | Deployment archetypes: `LocalCLI`, `SingleProcess`, `Distributed`    | Feature flags grounded in library modules: `store: sqlite`, `command-flow: sync` |
+> | Named profile bundles: `local-cli`, `production`, `library`, `auto`  | Per-feature declaration — no preset bundles                                      |
+> | Auto-detect signals are fuzzy (HTTP import → "distributed")          | Auto-detect signals map 1:1 to go-cqrs-lite modules                              |
+> | Tries to model `DataKind` (PII, Financial) — brittle string matching | Explicitly rejects PII auto-detection as out of scope                            |
+> | ~8 hours, 68 tasks                                                   | ~6.5 hours, 43 tasks (detector fixes already shipped)                            |
 >
 > **Why the feature-flag vocabulary won:**
 >

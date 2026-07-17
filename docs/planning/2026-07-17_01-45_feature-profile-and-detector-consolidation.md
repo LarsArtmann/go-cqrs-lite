@@ -17,14 +17,14 @@ cqrs-lint has **3 scattered heuristic functions** that each independently re-der
 
 **Adopted:** feature flags mapping 1:1 to go-cqrs-lite modules. **Rejected:** deployment archetypes (`local-cli`/`server`/`library`) — fuzzy, drift, built from N=2.
 
-| Feature flag   | Values                                   | go-cqrs-lite module                  | Auto-detect signal                          |
-| -------------- | ---------------------------------------- | ------------------------------------ | ------------------------------------------- |
-| `store`        | sqlite/postgres/pebble/memory/turso/custom/none | `stack/*`, `storage/*`              | stack preset import                         |
-| `command-flow` | read-only/sync/commands                  | `command/`, `decider/`               | `command.Dispatcher` + `Dispatch()`         |
-| `server`       | true/false                               | `transport/http/`, `transport/grpc/` | `ListenAndServe` / `grpc.NewServer`         |
-| `soft-delete`  | true/false                               | event tombstone                      | tombstone-like event type names             |
-| `tracing`      | off/on                                   | `otel/`, `middleware` OTel           | otel import + middleware wiring             |
-| `snapshot`     | off/on                                   | `snapshot/`                          | snapshot store / `WithSnapshotStore` usage  |
+| Feature flag   | Values                                          | go-cqrs-lite module                  | Auto-detect signal                         |
+| -------------- | ----------------------------------------------- | ------------------------------------ | ------------------------------------------ |
+| `store`        | sqlite/postgres/pebble/memory/turso/custom/none | `stack/*`, `storage/*`               | stack preset import                        |
+| `command-flow` | read-only/sync/commands                         | `command/`, `decider/`               | `command.Dispatcher` + `Dispatch()`        |
+| `server`       | true/false                                      | `transport/http/`, `transport/grpc/` | `ListenAndServe` / `grpc.NewServer`        |
+| `soft-delete`  | true/false                                      | event tombstone                      | tombstone-like event type names            |
+| `tracing`      | off/on                                          | `otel/`, `middleware` OTel           | otel import + middleware wiring            |
+| `snapshot`     | off/on                                          | `snapshot/`                          | snapshot store / `WithSnapshotStore` usage |
 
 **Presets = sugar over flags.** `"preset": "local-cli"` is a macro that expands to a set of flag values; explicit flags always override the preset. Flags are the source of truth; presets are convenience.
 
@@ -82,79 +82,79 @@ Legend — **Pri**: P0 blocks everything / highest value · P1 high value · P2 
 
 ### P0 — Foundation + Core Fix (1% → 51%)
 
-| ID  | Task                                                                  | Impact | Effort | Dep     |
-| --- | --------------------------------------------------------------------- | ------ | ------ | ------- |
-| T01 | Create `pkg/analyzer/feature_profile.go`, package decl, imports       | H      | 5      | —       |
-| T02 | Define `StoreKind` + constants (sqlite/postgres/pebble/memory/turso/custom/none/unknown) | H | 8 | T01 |
-| T03 | Define `CommandFlowKind` + constants (read-only/sync/commands/unknown) | H | 6   | T01     |
-| T04 | Define `TracingKind` + constants (off/on/unknown)                     | M      | 5      | T01     |
-| T05 | Define `SnapshotKind` + constants (off/on/unknown)                    | M      | 5      | T01     |
-| T06 | Define `FeatureProfile` struct (all fields) + doc comment             | H      | 10     | T02-T05 |
-| T07 | Add `FeatureProfile.String()` (human-readable, doctor/verbose)        | M      | 8      | T06     |
-| T08 | Create `pkg/analyzer/feature_detect.go` + `DetectFeatures` signature  | H      | 5      | T06     |
-| T09 | Port `isLocalOnlyProject` → `detectStore(ctx)` (stack import scan)    | H      | 12     | T08     |
-| T10 | Port `hasTombstoneLikeEvents` → `detectSoftDelete(ctx)`               | H      | 10     | T08     |
-| T11 | Port `hasDispatch/hasDispatcher` → `detectCommandFlow(ctx)`           | H      | 12     | T08     |
-| T12 | Add `detectServer(ctx)` (net/http ListenAndServe / grpc.NewServer)    | M      | 10     | T08     |
-| T13 | Add `detectTracing(ctx)` (otel import + middleware wiring)            | M      | 8      | T08     |
-| T14 | Add `detectSnapshot(ctx)` (snapshot store / WithSnapshotStore)        | M      | 10     | T08     |
-| T15 | Wire all detect* into `DetectFeatures()` body                         | H      | 8      | T09-T14 |
-| T16 | Define `ConfigFeatures` struct (flags as `*T` for "was set?")         | H      | 12     | T06     |
-| T17 | Add `Features ConfigFeatures` field to `AppConfig` + json tag         | H      | 5      | T16     |
-| T18 | Add `"features"` section to `configTemplate` in `init.go`             | M      | 8      | T17     |
-| T19 | Build + verify config loads with empty features                       | M      | 5      | T18     |
-| T20 | Add `FeatureProfile` field to `AnalysisContext` (types.go)            | H      | 5      | T06     |
-| T21 | Compute `DetectFeatures(ctx)` in `BuildContext()` after scan          | H      | 10     | T15,T20 |
-| T22 | Rewire S002: `isLocalOnlyProject` → `ctx.FeatureProfile.Store`        | H      | 10     | T21     |
-| T23 | Rewire A012: `hasTombstoneLikeEvents` → `ctx.FeatureProfile.HasSoftDelete` | H | 10 | T21  |
-| T24 | Rewire A016: `hasDispatch/hasDispatcher` → `ctx.FeatureProfile.CommandFlow` | H | 12 | T21 |
-| T25 | Delete `isLocalOnlyProject` (s002_s003.go)                            | L      | 5      | T22     |
-| T26 | Delete `hasTombstoneLikeEvents` (a009_a013.go)                        | L      | 5      | T23     |
-| T27 | Delete `hasDispatch/hasDispatcher` tracking (a015_a019.go)            | L      | 8      | T24     |
-| T28 | `go test ./... -count=1` (all existing tests pass)                    | H      | 8      | T22-T27 |
+| ID  | Task                                                                                     | Impact | Effort | Dep     |
+| --- | ---------------------------------------------------------------------------------------- | ------ | ------ | ------- |
+| T01 | Create `pkg/analyzer/feature_profile.go`, package decl, imports                          | H      | 5      | —       |
+| T02 | Define `StoreKind` + constants (sqlite/postgres/pebble/memory/turso/custom/none/unknown) | H      | 8      | T01     |
+| T03 | Define `CommandFlowKind` + constants (read-only/sync/commands/unknown)                   | H      | 6      | T01     |
+| T04 | Define `TracingKind` + constants (off/on/unknown)                                        | M      | 5      | T01     |
+| T05 | Define `SnapshotKind` + constants (off/on/unknown)                                       | M      | 5      | T01     |
+| T06 | Define `FeatureProfile` struct (all fields) + doc comment                                | H      | 10     | T02-T05 |
+| T07 | Add `FeatureProfile.String()` (human-readable, doctor/verbose)                           | M      | 8      | T06     |
+| T08 | Create `pkg/analyzer/feature_detect.go` + `DetectFeatures` signature                     | H      | 5      | T06     |
+| T09 | Port `isLocalOnlyProject` → `detectStore(ctx)` (stack import scan)                       | H      | 12     | T08     |
+| T10 | Port `hasTombstoneLikeEvents` → `detectSoftDelete(ctx)`                                  | H      | 10     | T08     |
+| T11 | Port `hasDispatch/hasDispatcher` → `detectCommandFlow(ctx)`                              | H      | 12     | T08     |
+| T12 | Add `detectServer(ctx)` (net/http ListenAndServe / grpc.NewServer)                       | M      | 10     | T08     |
+| T13 | Add `detectTracing(ctx)` (otel import + middleware wiring)                               | M      | 8      | T08     |
+| T14 | Add `detectSnapshot(ctx)` (snapshot store / WithSnapshotStore)                           | M      | 10     | T08     |
+| T15 | Wire all detect* into `DetectFeatures()` body                                            | H      | 8      | T09-T14 |
+| T16 | Define `ConfigFeatures` struct (flags as `*T` for "was set?")                            | H      | 12     | T06     |
+| T17 | Add `Features ConfigFeatures` field to `AppConfig` + json tag                            | H      | 5      | T16     |
+| T18 | Add `"features"` section to `configTemplate` in `init.go`                                | M      | 8      | T17     |
+| T19 | Build + verify config loads with empty features                                          | M      | 5      | T18     |
+| T20 | Add `FeatureProfile` field to `AnalysisContext` (types.go)                               | H      | 5      | T06     |
+| T21 | Compute `DetectFeatures(ctx)` in `BuildContext()` after scan                             | H      | 10     | T15,T20 |
+| T22 | Rewire S002: `isLocalOnlyProject` → `ctx.FeatureProfile.Store`                           | H      | 10     | T21     |
+| T23 | Rewire A012: `hasTombstoneLikeEvents` → `ctx.FeatureProfile.HasSoftDelete`               | H      | 10     | T21     |
+| T24 | Rewire A016: `hasDispatch/hasDispatcher` → `ctx.FeatureProfile.CommandFlow`              | H      | 12     | T21     |
+| T25 | Delete `isLocalOnlyProject` (s002_s003.go)                                               | L      | 5      | T22     |
+| T26 | Delete `hasTombstoneLikeEvents` (a009_a013.go)                                           | L      | 5      | T23     |
+| T27 | Delete `hasDispatch/hasDispatcher` tracking (a015_a019.go)                               | L      | 8      | T24     |
+| T28 | `go test ./... -count=1` (all existing tests pass)                                       | H      | 8      | T22-T27 |
 
 ### P1 — Override + Visibility (4% → 64%)
 
-| ID  | Task                                                                  | Impact | Effort | Dep     |
-| --- | --------------------------------------------------------------------- | ------ | ------ | ------- |
-| T29 | Implement `ResolveFeatureProfile(cfg, detected)` (per-field override) | H      | 12     | T16,T21 |
-| T30 | Wire `ResolveFeatureProfile` into `BuildContext` (cfg overrides detect) | H    | 8      | T29     |
-| T31 | Test: config `command-flow: sync` overrides detected `commands`       | M      | 10     | T30     |
-| T32 | Test: config `store: postgres` overrides detected `sqlite`            | M      | 8      | T30     |
-| T33 | Create `doctor.go` with cmdguard command structure                    | M      | 8      | T15     |
-| T34 | doctor: call `DetectFeatures`, print feature table                    | H      | 10     | T33     |
-| T35 | doctor: print suggested `"features"` JSON config block                | M      | 8      | T34     |
-| T36 | Register `doctor` subcommand in main.go                               | M      | 5      | T33     |
-| T37 | Test: `cqrs-lint doctor` runs and prints                              | M      | 8      | T36     |
+| ID  | Task                                                                    | Impact | Effort | Dep     |
+| --- | ----------------------------------------------------------------------- | ------ | ------ | ------- |
+| T29 | Implement `ResolveFeatureProfile(cfg, detected)` (per-field override)   | H      | 12     | T16,T21 |
+| T30 | Wire `ResolveFeatureProfile` into `BuildContext` (cfg overrides detect) | H      | 8      | T29     |
+| T31 | Test: config `command-flow: sync` overrides detected `commands`         | M      | 10     | T30     |
+| T32 | Test: config `store: postgres` overrides detected `sqlite`              | M      | 8      | T30     |
+| T33 | Create `doctor.go` with cmdguard command structure                      | M      | 8      | T15     |
+| T34 | doctor: call `DetectFeatures`, print feature table                      | H      | 10     | T33     |
+| T35 | doctor: print suggested `"features"` JSON config block                  | M      | 8      | T34     |
+| T36 | Register `doctor` subcommand in main.go                                 | M      | 5      | T33     |
+| T37 | Test: `cqrs-lint doctor` runs and prints                                | M      | 8      | T36     |
 
 ### P2 — Completeness: Full Wiring + Presets + Tests + Docs (20% → 80%)
 
-| ID  | Task                                                                  | Impact | Effort | Dep     |
-| --- | --------------------------------------------------------------------- | ------ | ------ | ------- |
-| T38 | Rewire S003 (signing) → `ctx.FeatureProfile.HasServer`                | M      | 10     | T21     |
-| T39 | Rewire B014 (OTel) → `ctx.FeatureProfile.Tracing` + `HasServer`       | M      | 10     | T21     |
-| T40 | Rewire A017 (snapshot) → `ctx.FeatureProfile.Snapshot`                | M      | 8      | T21     |
-| T41 | Rewire A015 (global mutable) → `HasServer` + write-after-init         | M      | 12     | T21     |
-| T42 | Rewire A009 (stack preset) suggestion adapts to `ctx.FeatureProfile.Store` | M | 10 | T21  |
-| T43 | `go test ./... -count=1` after P2 rewiring                            | H      | 8      | T38-T42 |
-| T44 | Define `Presets` map: local-cli/production/library/read-only → flags  | M      | 12     | T16     |
-| T45 | Add `"preset"` field to `AppConfig`                                   | L      | 5      | T44     |
-| T46 | Implement `ResolvePreset(name) ConfigFeatures`                        | M      | 5      | T44     |
-| T47 | Apply preset first, then explicit flags override (in BuildContext)    | M      | 12     | T30,T46 |
-| T48 | Test preset expansion (local-cli → expected flag set)                 | M      | 10     | T47     |
-| T49 | feature_detect_test.go: local-cli fixture detection                   | H      | 12     | T15     |
-| T50 | feature_detect_test.go: server fixture detection                      | M      | 10     | T15     |
-| T51 | feature_detect_test.go: library/none detection                        | M      | 8      | T15     |
-| T52 | Resolution override-priority test                                     | H      | 10     | T30     |
-| T53 | Rewired S002/A012/A016 suppression tests                              | H      | 12     | T22-T24 |
-| T54 | Rewired S003/B014/A017 suppression tests                              | M      | 12     | T38-T40 |
-| T55 | Meta-test: all detectors against rich fixture, no panics              | M      | 10     | T43     |
-| T56 | README: `features` section + config examples                          | M      | 12     | T30     |
-| T57 | README: doctor command section                                        | L      | 8      | T36     |
-| T58 | README: presets section                                               | L      | 8      | T48     |
-| T59 | CONTRIBUTING: "detectors MUST consult FeatureProfile"                 | M      | 10     | T43     |
-| T60 | CONTRIBUTING: "detectors MUST use SelectorFromExpr"                   | L      | 8      | —       |
-| T61 | AGENTS.md: update cqrs-lint description w/ feature-profile            | M      | 8      | T43     |
+| ID  | Task                                                                       | Impact | Effort | Dep     |
+| --- | -------------------------------------------------------------------------- | ------ | ------ | ------- |
+| T38 | Rewire S003 (signing) → `ctx.FeatureProfile.HasServer`                     | M      | 10     | T21     |
+| T39 | Rewire B014 (OTel) → `ctx.FeatureProfile.Tracing` + `HasServer`            | M      | 10     | T21     |
+| T40 | Rewire A017 (snapshot) → `ctx.FeatureProfile.Snapshot`                     | M      | 8      | T21     |
+| T41 | Rewire A015 (global mutable) → `HasServer` + write-after-init              | M      | 12     | T21     |
+| T42 | Rewire A009 (stack preset) suggestion adapts to `ctx.FeatureProfile.Store` | M      | 10     | T21     |
+| T43 | `go test ./... -count=1` after P2 rewiring                                 | H      | 8      | T38-T42 |
+| T44 | Define `Presets` map: local-cli/production/library/read-only → flags       | M      | 12     | T16     |
+| T45 | Add `"preset"` field to `AppConfig`                                        | L      | 5      | T44     |
+| T46 | Implement `ResolvePreset(name) ConfigFeatures`                             | M      | 5      | T44     |
+| T47 | Apply preset first, then explicit flags override (in BuildContext)         | M      | 12     | T30,T46 |
+| T48 | Test preset expansion (local-cli → expected flag set)                      | M      | 10     | T47     |
+| T49 | feature_detect_test.go: local-cli fixture detection                        | H      | 12     | T15     |
+| T50 | feature_detect_test.go: server fixture detection                           | M      | 10     | T15     |
+| T51 | feature_detect_test.go: library/none detection                             | M      | 8      | T15     |
+| T52 | Resolution override-priority test                                          | H      | 10     | T30     |
+| T53 | Rewired S002/A012/A016 suppression tests                                   | H      | 12     | T22-T24 |
+| T54 | Rewired S003/B014/A017 suppression tests                                   | M      | 12     | T38-T40 |
+| T55 | Meta-test: all detectors against rich fixture, no panics                   | M      | 10     | T43     |
+| T56 | README: `features` section + config examples                               | M      | 12     | T30     |
+| T57 | README: doctor command section                                             | L      | 8      | T36     |
+| T58 | README: presets section                                                    | L      | 8      | T48     |
+| T59 | CONTRIBUTING: "detectors MUST consult FeatureProfile"                      | M      | 10     | T43     |
+| T60 | CONTRIBUTING: "detectors MUST use SelectorFromExpr"                        | L      | 8      | —       |
+| T61 | AGENTS.md: update cqrs-lint description w/ feature-profile                 | M      | 8      | T43     |
 
 ### P3 — Polish
 
@@ -169,13 +169,13 @@ Legend — **Pri**: P0 blocks everything / highest value · P1 high value · P2 
 
 ## Totals
 
-| Pri | Tasks | Minutes | Hours | What it delivers                       |
-| --- | ----- | ------- | ----- | -------------------------------------- |
-| P0  | 28    | 233     | ~3.9  | Foundation + core FP fix (1% → 51%)    |
-| P1  | 9     | 77      | ~1.3  | Override + visibility (4% → 64%)       |
-| P2  | 24    | 247     | ~4.1  | Full wiring + presets + tests + docs   |
-| P3  | 4     | 38      | ~0.6  | Polish                                 |
-| All | **65**| **595** | **~10** | **Complete feature-profile linting** |
+| Pri | Tasks  | Minutes | Hours   | What it delivers                     |
+| --- | ------ | ------- | ------- | ------------------------------------ |
+| P0  | 28     | 233     | ~3.9    | Foundation + core FP fix (1% → 51%)  |
+| P1  | 9      | 77      | ~1.3    | Override + visibility (4% → 64%)     |
+| P2  | 24     | 247     | ~4.1    | Full wiring + presets + tests + docs |
+| P3  | 4      | 38      | ~0.6    | Polish                               |
+| All | **65** | **595** | **~10** | **Complete feature-profile linting** |
 
 ---
 
@@ -190,10 +190,10 @@ Legend — **Pri**: P0 blocks everything / highest value · P1 high value · P2 
 
 ## Verschlimmbessern guard
 
-| Risk                                       | Mitigation                                                                |
-| ------------------------------------------ | ------------------------------------------------------------------------- |
-| Vocabulary grows unbounded                 | Each flag maps 1:1 to a module; bounded by the library                    |
-| Auto-detect disagrees with reality         | Config always overrides; `doctor` shows what was detected                 |
-| Rewiring causes regression                 | Each rewire followed by `go test`; P0 rewires 3, P2 rewires the rest      |
-| Existing `.cqrs-lint.json` breaks          | `features` optional; missing = full auto-detect = current behavior        |
-| Over-centralizing makes detectors dumber   | Detectors keep their RULE logic; read `ctx.FeatureProfile.X` not a private heuristic |
+| Risk                                     | Mitigation                                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| Vocabulary grows unbounded               | Each flag maps 1:1 to a module; bounded by the library                               |
+| Auto-detect disagrees with reality       | Config always overrides; `doctor` shows what was detected                            |
+| Rewiring causes regression               | Each rewire followed by `go test`; P0 rewires 3, P2 rewires the rest                 |
+| Existing `.cqrs-lint.json` breaks        | `features` optional; missing = full auto-detect = current behavior                   |
+| Over-centralizing makes detectors dumber | Detectors keep their RULE logic; read `ctx.FeatureProfile.X` not a private heuristic |
