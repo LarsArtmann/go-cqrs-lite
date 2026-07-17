@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cqrs-lint v0.2.1 Brutal Self-Review</title>
+<style>
+:root {
+  --color-graphite: #0e0e10; --color-graphite-2: #18181d; --color-graphite-3: #16161a;
+  --color-bone: #f4f4f0; --color-red: #ff6b6b; --color-blue: #6eb5ff;
+  --color-yellow: #f4d35e; --color-amber: #ffb347;
+  --surface: var(--color-graphite); --surface-raised: var(--color-graphite-2);
+  --surface-sunken: var(--color-graphite-3); --text: var(--color-bone);
+  --text-muted: rgba(244,244,240,0.72); --text-faint: rgba(244,244,240,0.45);
+  --border: rgba(244,244,240,0.12); --border-strong: rgba(244,244,240,0.25);
+  --accent: var(--color-amber); --problem: var(--color-red);
+  --solution: var(--color-blue); --warning: var(--color-yellow);
+  --radius: 0px;
+  --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--surface); color: var(--text); font-family: var(--font-body); line-height: 1.6; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+h1 { font-family: var(--font-heading); font-weight: 900; font-size: 2rem; margin-bottom: 0.5rem; }
+h2 { font-family: var(--font-heading); font-weight: 800; font-size: 1.4rem; margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+h2 .num { color: var(--accent); font-weight: 900; margin-right: 0.5rem; }
+h3 { font-weight: 700; font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+p { margin-bottom: 0.75rem; color: var(--text-muted); }
+code, pre { font-family: var(--font-mono); font-size: 0.875rem; }
+code { background: var(--surface-sunken); padding: 0.15rem 0.4rem; color: var(--color-yellow); }
+.hero { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+.hero-badge { display: inline-block; background: var(--accent); color: var(--surface); font-weight: 800; font-size: 0.75rem; padding: 0.25rem 0.75rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.hero-subtitle { color: var(--text-muted); font-size: 1rem; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.stat-card { background: var(--surface-raised); padding: 1.25rem; border-left: 3px solid var(--border-strong); }
+.stat-card.stat-good { border-color: var(--solution); }
+.stat-card.stat-bad { border-color: var(--problem); }
+.stat-card.stat-warn { border-color: var(--warning); }
+.stat-value { font-size: 2rem; font-weight: 900; font-family: var(--font-heading); }
+.stat-label { font-size: 0.8rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+.card { background: var(--surface-raised); padding: 1.25rem; margin-bottom: 1rem; border-left: 3px solid var(--border-strong); }
+.card-problem { border-color: var(--problem); }
+.card-solution { border-color: var(--solution); }
+.card-warning { border-color: var(--warning); }
+.card h3 { color: var(--text); }
+.card p { color: var(--text-muted); }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.875rem; }
+th { text-align: left; padding: 0.6rem 0.75rem; background: var(--surface-sunken); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: var(--text-faint); }
+td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-muted); }
+tr:hover td { background: var(--surface-sunken); }
+.badge { display: inline-block; padding: 0.15rem 0.5rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.badge-critical { background: var(--problem); color: var(--surface); }
+.badge-high { background: var(--warning); color: var(--surface); }
+.badge-medium { background: var(--accent); color: var(--surface); }
+.badge-low { background: var(--border-strong); color: var(--text); }
+.badge-fixed { background: var(--solution); color: var(--surface); }
+.callout { padding: 1rem 1.25rem; margin: 1rem 0; border-left: 3px solid; }
+.callout-solution { border-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, transparent); }
+.callout-warning { border-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, transparent); }
+.callout strong { color: var(--text); }
+.footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text-faint); font-size: 0.8rem; }
+.migration-step { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: flex-start; }
+.migration-num { background: var(--accent); color: var(--surface); font-weight: 900; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.875rem; }
+.migration-content h4 { font-weight: 700; margin-bottom: 0.25rem; }
+.migration-content p { font-size: 0.875rem; margin-bottom: 0; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Brutal Self-Review &middot; 2026-07-17</div>
+  <h1>cqrs-lint v0.2.1 — Post-Review Hardening</h1>
+  <p class="hero-subtitle">Honest assessment of what was forgotten, what was stupid, and what was fixed in this session.</p>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card stat-bad"><div class="stat-value">4</div><div class="stat-label">Bugs Fixed</div></div>
+  <div class="stat-card stat-good"><div class="stat-value">8</div><div class="stat-label">Tests Added</div></div>
+  <div class="stat-card stat-warn"><div class="stat-value">2</div><div class="stat-label">Features Added</div></div>
+  <div class="stat-card stat-good"><div class="stat-value">7</div><div class="stat-label">Commits</div></div>
+</div>
+
+<h2><span class="num">01</span>What Did I Forget?</h2>
+
+<div class="card card-problem">
+  <h3>Health score computed on filtered findings</h3>
+  <p><code>main.go:275</code> passed <code>activeFindings</code> (post severity/confidence filtering) to <code>ComputeHealthScoreWithCap</code>. This meant <code>--min-severity error --health-score</code> would give a misleadingly high score because warnings/info were excluded from the computation. The health score should be a stable project-health metric independent of display filters.</p>
+  <p><strong>Root cause:</strong> The health score was wired into the wrong stage of the pipeline — after display filtering instead of after suppression filtering.</p>
+</div>
+
+<div class="card card-problem">
+  <h3>InfoCapped display used hardcoded constant</h3>
+  <p><code>output.go:139</code> displayed <code>defaultInfoDeductionCap</code> (the constant 20) instead of the actual configured cap. If a consumer set <code>{"health": {"info-cap": 15}}</code>, the display still said "capped at -20". The <code>HealthScore</code> struct didn't carry the cap it was computed with.</p>
+</div>
+
+<div class="card card-problem">
+  <h3>No integration test for suppression end-to-end</h3>
+  <p>The suppression leak bug survived 2 releases because no test verified the full path: detect &rarr; suppress &rarr; filter &rarr; output. Unit tests tested the filter function in isolation, but no test verified that a suppressed finding was actually excluded from the final output and health score.</p>
+</div>
+
+<div class="card card-problem">
+  <h3>scanner.Err() was silenced, not handled</h3>
+  <p><code>_ = scanner.Err()</code> silenced the lint warning but didn't help users debug missing suppressions. A scanner error means suppression comments might be missed, and the user had no visibility into this.</p>
+</div>
+
+<h2><span class="num">02</span>What Is Stupid?</h2>
+
+<div class="card card-warning">
+  <h3>Health score depending on display filters</h3>
+  <p>This is architecturally wrong. Health = project quality metric. It should not change based on what you choose to <em>display</em>. The score should see ALL unsuppressed findings regardless of severity/confidence thresholds.</p>
+</div>
+
+<div class="card card-warning">
+  <h3>renderHealthScore reaching into a package constant</h3>
+  <p>The display function referenced <code>defaultInfoDeductionCap</code> directly instead of receiving the data it needed. This is a violation of dependency injection — the function should be self-contained given its input struct.</p>
+</div>
+
+<div class="card card-warning">
+  <h3>filterSuppressed discarded suppressed findings</h3>
+  <p>It returned <code>(active, count)</code> — the suppressed findings were thrown away. This meant there was no way to audit suppressions without re-scanning source files. The <code>doctor</code> command had a separate <code>countSuppressions</code> function that re-parsed ASTs, creating a potential split brain.</p>
+</div>
+
+<h2><span class="num">03</span>What Could I Still Improve?</h2>
+
+<div class="card card-solution">
+  <h3>Done this session</h3>
+  <p>All four bugs above are fixed. The integration test that would have caught the suppression leak now exists. The scanner error is logged. The health score is stable across display filters. The InfoCapped display shows the correct cap.</p>
+</div>
+
+<div class="card">
+  <h3>Remaining items (lower priority)</h3>
+  <p>&bull; Make <code>--fp-suspects</code> threshold configurable (<code>--max-confidence</code>)<br>
+  &bull; Property-based tests with <code>rapid</code> for filter functions<br>
+  &bull; <code>--baseline</code> flag for comparing against a known-good finding set<br>
+  &bull; Diff-aware mode: only report findings on changed lines<br>
+  &bull; <code>cqrs-lint explain RULE</code> command for detailed rule docs</p>
+</div>
+
+<h2><span class="num">04</span>Execution Plan — Completed Tasks</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>T1-2</td><td>Add InfoCapApplied to HealthScore + fix renderHealthScore</td><td><span class="badge badge-critical">Critical</span></td><td>XS</td><td><span class="badge badge-fixed">Done</span></td></tr>
+    <tr><td>T3</td><td>Fix health score input: use unsuppressedFindings</td><td><span class="badge badge-critical">Critical</span></td><td>XS</td><td><span class="badge badge-fixed">Done</span></td></tr>
+    <tr><td>T4-5</td><td>Test InfoCapped display + health score filter independence</td><td><span class="badge badge-high">High</span></td><td>S</td><td><span class="badge badge-fixed">Done</span></td></tr>
+    <tr><td>T6-7</td><td>Integration tests: suppression exclusion + fp-suspects exit 0</td><td><span class="badge badge-high">High</span></td><td>S</td><td><span class="badge badge-fixed">Done</span></td></tr>
+    <tr><td>T8-9</td><td>Pre-allocate slices + refactor filterSuppressed return type</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td><span class="badge badge-fixed">Done</span></td></tr>
+    <tr><td>T10</td><td>Log scanner.Err() warning instead of discarding</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td><span class="badge badge-fixed">Done</span></td></tr>
+    <tr><td>T11-12</td><td>Add --show-suppressed flag + test</td><td><span class="badge badge-medium">Medium</span></td><td>S</td><td><span class="badge badge-fixed">Done</span></td></tr>
+    <tr><td>T13-15</td><td>Update README, CHANGELOG, bump version to 0.2.1</td><td><span class="badge badge-low">Low</span></td><td>S</td><td><span class="badge badge-fixed">Done</span></td></tr>
+    <tr><td>T16</td><td>Full verification gate (build/vet/test/race/fmt)</td><td><span class="badge badge-high">High</span></td><td>S</td><td><span class="badge badge-fixed">Done</span></td></tr>
+  </tbody>
+</table>
+
+<h2><span class="num">05</span>Verification Results</h2>
+
+<div class="callout callout-solution">
+  <strong>All gates green:</strong>
+  <br>&bull; <code>go build</code> &mdash; OK
+  <br>&bull; <code>go vet</code> &mdash; OK
+  <br>&bull; <code>go test ./...</code> &mdash; 11/11 packages OK
+  <br>&bull; <code>go test -race</code> &mdash; OK
+  <br>&bull; <code>gofmt -l</code> &mdash; clean
+  <br>&bull; BuildFlow pre-commit &mdash; passed (only pre-existing nix-checker warnings)
+</div>
+
+<h2><span class="num">06</span>Type Model Improvements</h2>
+
+<div class="card card-solution">
+  <h3>HealthScore now carries the cap it was computed with</h3>
+  <p>Added <code>InfoCapApplied int</code> to the <code>HealthScore</code> struct. This makes the struct self-describing — the display function no longer needs to reach into a package constant. This is the "make impossible states unrepresentable" principle applied to display data: the struct carries everything needed to render it correctly.</p>
+</div>
+
+<div class="card card-solution">
+  <h3>filterSuppressed returns both active and suppressed slices</h3>
+  <p>Changed from <code>([]Finding, int)</code> to <code>(active, suppressed []Finding)</code>. The suppressed findings are retained rather than discarded, enabling the <code>--show-suppressed</code> feature without a second pass. This eliminates the split brain between <code>filterSuppressed</code> and <code>countSuppressions</code> in <code>doctor.go</code>.</p>
+</div>
+
+<div class="card card-solution">
+  <h3>Extracted shouldExitWithError as a testable function</h3>
+  <p>The exit-code decision was inline in <code>run()</code>, making it untestable without loading Go packages. Now it's a standalone function that both <code>run()</code> and tests can call. This follows the principle of separating decision logic from I/O logic.</p>
+</div>
+
+<h2><span class="num">07</span>Did I Lie?</h2>
+
+<div class="card card-warning">
+  <h3>No, but the prior session's "all green" was hiding real issues</h3>
+  <p>The prior session claimed all verification gates were green. They were — but the gates only test what's tested. The health score bug, the InfoCapped display bug, and the missing integration test were all invisible to the test suite. "All tests pass" is not the same as "the code is correct." The tests were green because they didn't test the invariants that were broken.</p>
+</div>
+
+<div class="callout callout-warning">
+  <strong>Lesson:</strong> A test suite that passes on broken code is not a green test suite — it's a blind one. The suppression bug survived 2 releases because the tests tested the filter function in isolation but never verified the end-to-end path. Integration tests are not optional for trust-critical features.
+</div>
+
+<div class="footer">
+  Generated 2026-07-17 &middot; cqrs-lint v0.2.1 &middot; 4 bugs fixed, 2 features added, 8 tests added
+</div>
+
+</body>
+</html>
