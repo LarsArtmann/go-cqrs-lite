@@ -192,7 +192,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	}
 
 	pipeConfig := pipeline.Config{
-		MaxIterations:       1,
+		MaxIterations:       5,
 		ParallelDetectors:   true,
 		GracefulDegradation: true,
 		DryRun:              !cfg.Fix,
@@ -247,6 +247,17 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		if suppressedCount > 0 {
 			fmt.Fprintf(os.Stderr, "%d finding(s) suppressed by inline comments\n", suppressedCount)
 		}
+
+		goFilePaths := make([]string, 0, len(actx.GoFiles))
+		for _, gf := range actx.GoFiles {
+			goFilePaths = append(goFilePaths, gf.Path)
+		}
+
+		stale := suppression.DetectStaleSuppressions(goFilePaths, unsuppressedFindings)
+		for _, s := range stale {
+			fmt.Fprintln(os.Stderr, suppression.FormatStaleWarning(s))
+		}
+
 		if cfg.FPSuspects {
 			fmt.Fprintf(os.Stderr,
 				"Showing %d low-confidence finding(s) — likely false positives.\n"+

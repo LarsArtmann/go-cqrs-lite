@@ -55,10 +55,6 @@ github.com/larsartmann/cmdguard/v3 v3.0.0 h1:nzdNgrp+8bS7eMEv0/K9E5V1FAkNvDpTLLh
 github.com/larsartmann/cmdguard/v3 v3.0.0/go.mod h1:bKe1hamL8SsBxQrRDrp89C1e83m7y8DCRsOvo0XW7b0=
 github.com/larsartmann/go-branded-id v0.3.2 h1:Vbe5/LRuR2ycDFpDKuuuG8brBRYvSYcOU1nqV8IIZPI=
 github.com/larsartmann/go-branded-id v0.3.2/go.mod h1:xoQYcGTGrMqRYB8cMKHe2efq8S6stQGg3nW4DzXVWpA=
-github.com/larsartmann/go-finding v1.2.0 h1:mPqDOGO6j+kWvU2tDlWz22txzb6y4sby2Mx/Ab5e7F4=
-github.com/larsartmann/go-finding v1.2.0/go.mod h1:MPGTywEmN+4qN2h4q8JadfitXG30/M+halVB257POrg=
-github.com/larsartmann/go-finding/pipeline v0.1.0 h1:8beUdDy7Y1PgFpPNHp7/mlaKFtjzLuhlCVhiTpabthY=
-github.com/larsartmann/go-finding/pipeline v0.1.0/go.mod h1:oQjsasOD96p0eq0X7IC5zt1HP1zbOYHVWC22J8y4t5o=
 github.com/larsartmann/go-output v0.31.0 h1:3rx70ieCARLBeHtHEWpZaeqjtUXSoOJ5fEDEosRkadE=
 github.com/larsartmann/go-output v0.31.0/go.mod h1:Splm88N0+LoqjdLzsrgiIL2cMMPCXCOL7OKtpXz/2ak=
 github.com/larsartmann/go-output/d2 v0.31.0 h1:AZzR8jUAbh4+OWdtfT/r0YodTgRI7MYJbDvdb894NZQ=

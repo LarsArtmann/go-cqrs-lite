@@ -67,3 +67,7 @@ require (
 	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 )
+
+replace github.com/larsartmann/go-finding => /home/lars/projects/go-finding
+
+replace github.com/larsartmann/go-finding/pipeline => /home/lars/projects/go-finding/pipeline
