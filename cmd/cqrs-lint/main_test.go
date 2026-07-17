@@ -190,12 +190,12 @@ func TestFilterSuppressed(t *testing.T) {
 		},
 	}
 
-	active, suppressedCount := filterSuppressed(findings)
+	active, suppressed := filterSuppressed(findings)
 	if len(active) != 2 {
 		t.Errorf("active count: got %d, want 2", len(active))
 	}
-	if suppressedCount != 2 {
-		t.Errorf("suppressed count: got %d, want 2", suppressedCount)
+	if len(suppressed) != 2 {
+		t.Errorf("suppressed count: got %d, want 2", len(suppressed))
 	}
 	for _, f := range active {
 		if f.Suppression != nil {
@@ -212,24 +212,24 @@ func TestFilterSuppressed_AllActive(t *testing.T) {
 		{ID: finding.ID("b")},
 	}
 
-	active, suppressedCount := filterSuppressed(findings)
+	active, suppressed := filterSuppressed(findings)
 	if len(active) != 2 {
 		t.Errorf("active count: got %d, want 2", len(active))
 	}
-	if suppressedCount != 0 {
-		t.Errorf("suppressed count: got %d, want 0", suppressedCount)
+	if len(suppressed) != 0 {
+		t.Errorf("suppressed count: got %d, want 0", len(suppressed))
 	}
 }
 
 func TestFilterSuppressed_Empty(t *testing.T) {
 	t.Parallel()
 
-	active, suppressedCount := filterSuppressed(nil)
+	active, suppressed := filterSuppressed(nil)
 	if len(active) != 0 {
 		t.Errorf("active count: got %d, want 0", len(active))
 	}
-	if suppressedCount != 0 {
-		t.Errorf("suppressed count: got %d, want 0", suppressedCount)
+	if len(suppressed) != 0 {
+		t.Errorf("suppressed count: got %d, want 0", len(suppressed))
 	}
 }
 
@@ -306,7 +306,8 @@ func TestSuppressionEndToEnd(t *testing.T) {
 	allFindings := []finding.Finding{activeErr, suppressedErr, activeInfo}
 
 	// Step 1: filterSuppressed splits active from suppressed.
-	unsuppressed, suppressedCount := filterSuppressed(allFindings)
+	unsuppressed, suppressedFindings := filterSuppressed(allFindings)
+	suppressedCount := len(suppressedFindings)
 	if suppressedCount != 1 {
 		t.Fatalf("suppressed count: got %d, want 1", suppressedCount)
 	}

@@ -221,9 +221,10 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	}
 
 	// Split suppressed findings (//cqrs-lint:ignore) from active ones.
-	// allFindings retains the full count for verbose output; unsuppressedFindings
-	// feeds the severity/confidence filters and all downstream paths.
-	unsuppressedFindings, suppressedCount := filterSuppressed(allFindings)
+	// unsuppressedFindings feeds the severity/confidence filters and health
+	// score. suppressedFindings is retained for --show-suppressed auditing.
+	unsuppressedFindings, suppressedFindings := filterSuppressed(allFindings)
+	suppressedCount := len(suppressedFindings)
 
 	activeFindings := filterBySeverity(unsuppressedFindings, cfg.MinSeverity)
 	if cfg.FPSuspects {

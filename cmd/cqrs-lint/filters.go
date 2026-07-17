@@ -21,7 +21,7 @@ func collectFindings(result *pipeline.PipelineResult) []finding.Finding {
 
 	seen := make(map[finding.ID]bool)
 
-	var unique []finding.Finding
+	unique := make([]finding.Finding, 0, len(all))
 
 	for _, f := range all {
 		if seen[f.ID] {
@@ -38,7 +38,7 @@ func collectFindings(result *pipeline.PipelineResult) []finding.Finding {
 func filterBySeverity(findings []finding.Finding, minSev string) []finding.Finding {
 	minS := parseSeverity(minSev)
 
-	var result []finding.Finding
+	result := make([]finding.Finding, 0, len(findings))
 
 	for _, f := range findings {
 		if f.Severity.Compare(minS) >= 0 {
@@ -52,7 +52,7 @@ func filterBySeverity(findings []finding.Finding, minSev string) []finding.Findi
 func filterByConfidence(findings []finding.Finding, minConf string) []finding.Finding {
 	minC := parseConfidence(minConf)
 
-	var result []finding.Finding
+	result := make([]finding.Finding, 0, len(findings))
 
 	for _, f := range findings {
 		if f.Confidence >= minC {
@@ -63,18 +63,18 @@ func filterByConfidence(findings []finding.Finding, minConf string) []finding.Fi
 	return result
 }
 
-// filterSuppressed removes findings marked as suppressed by inline
-// //cqrs-lint:ignore(RULE) comments and returns the active findings along
-// with the count of suppressed ones. Suppressed findings are excluded from
-// all output formats, health score, and the error-exit check.
-func filterSuppressed(findings []finding.Finding) ([]finding.Finding, int) {
-	var active []finding.Finding
-
-	suppressed := 0
+// filterSuppressed splits findings into active and suppressed sets based
+// on the Suppression field (set by //cqrs-lint:ignore(RULE) comments).
+// Returns both slices: active findings feed severity/confidence filters,
+// health score, and the error-exit check. Suppressed findings are retained
+// for --show-suppressed auditing.
+func filterSuppressed(findings []finding.Finding) (active, suppressed []finding.Finding) {
+	active = make([]finding.Finding, 0, len(findings))
+	suppressed = make([]finding.Finding, 0)
 
 	for _, f := range findings {
 		if f.Suppression != nil {
-			suppressed++
+			suppressed = append(suppressed, f)
 		} else {
 			active = append(active, f)
 		}
@@ -120,7 +120,7 @@ func filterByExcludedPaths(findings []finding.Finding, patterns []string) []find
 // the ones most likely to be false positives. Used by --fp-suspects mode
 // to help consumers batch-review low-confidence findings for suppression.
 func filterFPSuspects(findings []finding.Finding) []finding.Finding {
-	var result []finding.Finding
+	result := make([]finding.Finding, 0, len(findings))
 
 	for _, f := range findings {
 		if f.Confidence < finding.ConfidenceMedium {
