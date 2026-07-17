@@ -35,7 +35,7 @@ name heuristics, all fixable with targeted improvements.
 
 ---
 
-## Part 1: False Positives — Detector Bugs (26 findings)
+## Part 1: False Positives — Detector Bugs (23 findings)
 
 ### Bug 1: E005/E007 can't trace RegisterTyped through package-qualified Type constants (15 findings)
 

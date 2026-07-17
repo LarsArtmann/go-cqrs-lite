@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
@@ -19,6 +20,24 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 			actx, err := analyzer.BuildContext(cfg.Path)
 			if err != nil {
 				return fmt.Errorf("load packages: %w", err)
+			}
+
+			if len(actx.LoadErrors) > 0 {
+				fmt.Fprintln(
+					os.Stderr,
+					"WARNING: package loading was partial; the profile below may be incomplete or misleading.",
+				)
+				for _, le := range actx.LoadErrors {
+					if le.PkgPath != "" {
+						fmt.Fprintf(os.Stderr, "  %s (%s):\n", le.Module, le.PkgPath)
+					} else {
+						fmt.Fprintf(os.Stderr, "  %s:\n", le.Module)
+					}
+					for _, msg := range le.Errors {
+						fmt.Fprintf(os.Stderr, "    %s\n", msg)
+					}
+				}
+				fmt.Fprintln(os.Stderr)
 			}
 
 			profile := actx.FeatureProfile

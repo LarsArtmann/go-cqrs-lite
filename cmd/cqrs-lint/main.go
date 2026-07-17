@@ -172,11 +172,17 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		if len(actx.LoadErrors) > 0 {
 			fmt.Fprintln(os.Stderr, "cqrs-lint: could not analyze any packages.")
 			fmt.Fprintln(os.Stderr)
-			fmt.Fprintln(os.Stderr, "This usually means the project does not compile. Package loading reported errors:")
+			fmt.Fprintln(
+				os.Stderr,
+				"This usually means the project does not compile. Package loading reported errors:",
+			)
 			fmt.Fprintln(os.Stderr)
 			printLoadErrors(os.Stderr, actx.LoadErrors)
 			fmt.Fprintln(os.Stderr)
-			fmt.Fprintln(os.Stderr, "Fix the build errors above (try `go build ./...`), then re-run cqrs-lint.")
+			fmt.Fprintln(
+				os.Stderr,
+				"Fix the build errors above (try `go build ./...`), then re-run cqrs-lint.",
+			)
 			fmt.Fprintln(os.Stderr, "Nothing was analyzed; this is not a clean bill of health.")
 			return errFindingsWithErrors
 		}
@@ -285,6 +291,11 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		fmt.Fprintf(os.Stderr, "Modules: %d  Detectors: %d  Findings: %d (before filtering)\n\n",
 			modules, len(detectors), len(allFindings))
 		fmt.Fprintf(os.Stderr, "Feature profile:\n%s\n", actx.FeatureProfile.String())
+		if len(actx.LoadErrors) > 0 {
+			fmt.Fprintf(os.Stderr, "Load errors (%d):\n", len(actx.LoadErrors))
+			printLoadErrors(os.Stderr, actx.LoadErrors)
+			fmt.Fprintln(os.Stderr)
+		}
 		printDetectorTimings(os.Stderr, result.Metrics)
 	}
 

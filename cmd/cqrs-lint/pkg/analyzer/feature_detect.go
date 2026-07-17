@@ -25,7 +25,11 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 	hasSnapshotUsage := false
 
 	// Pass 1: import-based detection (store, tracing, snapshot presence).
+	// Skip packages with errors — their import metadata may be unreliable.
 	for _, pkg := range ctx.Packages {
+		if len(pkg.Errors) > 0 {
+			continue
+		}
 		for _, imp := range pkg.Imports {
 			if imp == nil {
 				continue
