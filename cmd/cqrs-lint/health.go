@@ -25,6 +25,10 @@ type HealthScore struct {
 	InfoCapped bool
 	// InfoRawDeduction is the uncapped Info total (only meaningful when InfoCapped).
 	InfoRawDeduction int
+	// InfoCapApplied is the actual cap value used in the computation. Exposed so
+	// renderHealthScore can display the correct cap (which may differ from the
+	// default when the consumer set a custom value via HealthConfig.InfoCap).
+	InfoCapApplied int
 }
 
 // defaultInfoDeductionCap caps the total health-score penalty attributable to
@@ -125,9 +129,10 @@ func ComputeHealthScoreWithCap(findings []finding.Finding, infoCap int) HealthSc
 	}
 
 	hs := HealthScore{
-		Score:     score,
-		Grade:     grade,
-		Breakdown: breakdown,
+		Score:          score,
+		Grade:          grade,
+		Breakdown:      breakdown,
+		InfoCapApplied: infoCap,
 	}
 	if uncappedInfo > float64(infoCap) {
 		hs.InfoCapped = true

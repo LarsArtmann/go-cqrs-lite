@@ -272,7 +272,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		if infoCap == 0 {
 			infoCap = defaultInfoDeductionCap
 		}
-		hs := ComputeHealthScoreWithCap(activeFindings, infoCap)
+		hs := ComputeHealthScoreWithCap(unsuppressedFindings, infoCap)
 		fmt.Print(renderHealthScore(hs, parseColorMode(cfg.Color)))
 	}
 

@@ -136,7 +136,7 @@ func renderHealthScore(hs HealthScore, colorMode output.ColorMode) string {
 
 	if hs.InfoCapped {
 		result += fmt.Sprintf("Info deductions capped: raw -%d → capped at -%d\n",
-			hs.InfoRawDeduction, defaultInfoDeductionCap)
+			hs.InfoRawDeduction, hs.InfoCapApplied)
 	}
 
 	return result
