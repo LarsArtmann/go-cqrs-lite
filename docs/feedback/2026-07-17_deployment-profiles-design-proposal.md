@@ -30,11 +30,22 @@ These repeat across consumers because the linter has no concept of **what kind o
 
 ## Part 1: SDK Changes — Make the Right Thing Easy
 
-### 1.1 `stack.WithEncryption` — One-liner encryption wiring
+### 1.1 `stack.WithEncryption` — One-liner encryption wiring (revised: KeyProvider-based)
+
+> **Correction (2026-07-17):** The original proposal used `WithEncryptionFromEnv("KEY")` as the
+> primary API. That was wrong — **environment variables are insecure for encryption keys.**
+> They leak to every child process via `/proc/<pid>/environ`, persist in shell history, appear
+> in crash dumps and `docker inspect`, and are readable by any process the user runs. Baking
+> an insecure source into the API name as the recommended default is misleading.
+>
+> The revised proposal uses a `KeyProvider` interface (defined in
+> [2026-07-17_bank-sync_encryption-key-management-standardization.md](./2026-07-17_bank-sync_encryption-key-management-standardization.md))
+> as the canonical abstraction. `EnvKeyProvider` still exists as a convenience but carries a
+> doc-comment warning about env-var exposure.
 
 **Problem:** Today, wiring encryption requires 5 manual steps:
 
-1. Generate/load a 32-byte key (where? how? env var? file?)
+1. Generate/load a 32-byte key (where? how? OS keychain? file?)
 2. `encryption.NewAES256GCM(key)`
 3. `encryption.EncryptMiddleware(encrypter)` on `bus.UsePublish(...)`
 4. `encryption.DecryptMiddleware(decrypter)` on `bus.Use(...)`
@@ -42,35 +53,60 @@ These repeat across consumers because the linter has no concept of **what kind o
 
 bank-sync doesn't do this because it's 5 steps of plumbing for a local CLI. DiscordSync doesn't do it either. **If encryption were a one-liner, both would have it.**
 
-**Proposal:** Add `stack.WithEncryption` to the stack options:
+**Proposal:** Add `stack.WithEncryption` accepting an `encryption.KeyProvider`:
 
 ```go
-// Option A: Key from environment variable (production-recommended)
+// Primary API — one entry point, any key source
 bundle, err := sqlite.New("bank.db",
-    stack.WithEncryptionFromEnv("BANK_SYNC_ENCRYPTION_KEY"),
+    stack.WithEncryption(myKeyProvider),
 )
 
-// Option B: Key from explicit bytes (testing, local tools with generated key file)
-bundle, err := sqlite.New("bank.db",
-    stack.WithEncryption(keyBytes),
-)
-
-// Option C: Key rotation with a resolver (advanced)
-bundle, err := sqlite.New("bank.db",
-    stack.WithEncryptionResolver(resolver),
-)
+// Built-in providers (in the encryption package):
+//   encryption.StaticKeyProvider(keyBytes)    // raw bytes (testing, programmatic)
+//   encryption.EnvKeyProvider("MY_KEY_VAR")    // dev/test convenience — NOT production
+//   encryption.NoKeyProvider()                 // explicit "encryption off"
+//
+// Consumer-implemented providers (NOT in the SDK — platform-specific):
+//   keychainKeyProvider{service: "bank-sync"}   // macOS Keychain / Linux secret-service / DPAPI
+//   passphraseKeyProvider{...}                  // argon2id derivation from user passphrase
 ```
 
-`WithEncryptionFromEnv` reads a base64-encoded 32-byte key from an environment variable. If the variable is absent, it returns a clear error:
+`KeyProvider` is a single-method interface:
 
+```go
+type KeyProvider interface {
+    Key() (key []byte, err error)  // returns ErrNoKey if unconfigured
+}
 ```
-encryption key not found: set BANK_SYNC_ENCRYPTION_KEY to a base64-encoded
-32-byte key. Generate one with: openssl rand -base64 32
-```
 
-The stack internally wires `EncryptMiddleware` on publish and `DecryptMiddleware` on subscribe. The consumer never touches middleware directly.
+The consumer plugs in their key source; the SDK wires the cipher, `EncryptMiddleware`,
+`DecryptMiddleware`, and (once available) encrypted snapshot store — all from one option.
+The stack internally calls `provider.Key()` once at startup.
 
-**Why this matters:** S002 (encryption) fires on every consumer with PII. The SDK should make compliance trivial, not something each consumer must figure out from scratch. This is the "pit of success" principle — the easiest path should be the secure path.
+**Why `KeyProvider` instead of `WithEncryptionFromEnv`:**
+
+- Env vars are insecure (see correction above). The API should not privilege an insecure source.
+- `KeyProvider` forces the consumer to think about where the key comes from — which is the
+  entire point of encryption.
+- Extensible without SDK changes: a consumer adding OS keychain support implements one method,
+  no new `With*` function needed.
+- Usable at any layer (not just `stack`): bank-sync wires the decider directly, not via `stack`,
+  but still benefits from `KeyProvider` as the standard interface.
+
+**Key-source security hierarchy (for consumers choosing a provider):**
+
+| Source                          | Disk-theft safe | Friction | Notes                                      |
+| ------------------------------- | --------------- | -------- | ------------------------------------------ |
+| OS keychain (Keyring/DPAPI)     | ✅ Yes          | Zero     | Ideal for local tools — bound to user session |
+| Passphrase → argon2id           | ✅ Yes          | High     | Key never persists; user types each startup   |
+| File with `chmod 600` (separated) | Medium        | Low      | Acceptable if on a separate volume/key drive  |
+| Environment variable            | ❌ Weak         | Low      | Leaks via `/proc`, child processes, shell history |
+| Plaintext file next to DB       | ❌ No           | Zero     | Security theater + data-loss risk             |
+
+**Why this matters:** S002 (encryption) fires on every consumer with PII. The SDK should make
+compliance trivial, not something each consumer must figure out from scratch. This is the "pit
+of success" principle — the easiest path should be the secure path. But the secure path means
+keychain, not env var.
 
 ### 1.2 `stack.WithSigning` — One-liner tamper detection
 
@@ -92,25 +128,14 @@ This eliminates B014 (missing OTel) as a finding for any stack consumer.
 
 ### 1.4 The missing `SecurityBundle`
 
-The encryption + signing + observability one-liners are individual options. But they share a theme: **security and operational middleware that every production deployment should have.** Consider a higher-level bundle:
+> **Dropped (per Appendix A review):** `WithSecurity(SecurityConfig)` with a struct was correctly
+> identified as leaky — it reinvents functional options and loses compile-time safety. The
+> individual `WithEncryption(provider)`, `WithSigning(provider)`, `WithObservability(...)`
+> options are the right granularity. No bundle struct needed.
 
-```go
-type SecurityConfig struct {
-    EncryptionKey  []byte    // required if DataSensitivity != "none"
-    SigningKey     []byte    // required for multi-user or shared stores
-    Tracer         trace.Tracer
-    Meter          metric.Meter
-}
-
-bundle, err := sqlite.New("bank.db",
-    stack.WithSecurity(stack.SecurityConfig{
-        EncryptionKey: keyFromEnv("ENCRYPTION_KEY"),
-        Tracer:        otelTracer,
-    }),
-)
-```
-
-`WithSecurity` wires encryption, signing (if key present), and OTel (if tracer present) in the recommended order. Missing required fields produce clear errors with remediation instructions.
+The encryption + signing + observability one-liners are individual options. They share a theme:
+**security and operational middleware.** But bundling them into a struct loses the composability
+of functional options. Keep them separate — consumers compose what they need.
 
 ---
 
