@@ -19,20 +19,25 @@ import (
 // only when it carries a STRONG money signal on its own (amount, price, cost,
 // balance, fee) OR when a WEAK signal is corroborated by a money-related
 // struct/package name. See feedback: docs/feedback/2026-07-16_DiscordSync.
-func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
-	// strongMoneyFields are unambiguous enough to flag on field name alone.
-	strongMoneyFields := []string{"amount", "price", "cost", "balance", "fee"}
-	// weakMoneyFields are generic (value, total) — only flag when the
-	// enclosing struct/package name also looks monetary.
-	weakMoneyFields := []string{"value", "total", "charge", "payment", "salary"}
-	// moneyStructKeywords corroborate weak field names.
-	moneyStructKeywords := []string{
-		"order", "invoice", "payment", "price", "cost", "balance",
-		"account", "billing", "transaction", "money", "cart",
-		"purchase", "refund", "tax", "wallet", "subscription",
-		"charge", "fee", "salary", "payroll", "fund", "deposit",
-	}
 
+// strongMoneyFields are unambiguous enough to flag on field name alone.
+var strongMoneyFields = []string{"amount", "price", "cost", "balance", "fee"}
+
+// weakMoneyFields are generic (value, total) — only flag when the enclosing
+// struct/package name also looks monetary.
+var weakMoneyFields = []string{"value", "total", "charge", "payment", "salary"}
+
+// moneyKeywords is the unified set of monetary terms used for struct-name,
+// package-path, and embedded-type corroboration. Previously duplicated across
+// moneyKeywords (local var) and packageLooksMonetary (hardcoded list).
+var moneyKeywords = []string{
+	"order", "invoice", "payment", "price", "cost", "balance",
+	"account", "billing", "transaction", "money", "cart",
+	"purchase", "refund", "tax", "wallet", "subscription",
+	"charge", "fee", "salary", "payroll", "fund", "deposit",
+}
+
+func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C008-float64-for-money",
 		func(_ context.Context) ([]finding.Finding, error) {
@@ -44,7 +49,7 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			// those findings to Info/Low rather than polluting a non-monetary
 			// codebase with Warning/Medium noise. Covers item f-8 in the
 			// DiscordSync feedback triage.
-			projectMonetary := projectHasMonetarySignal(ctx, moneyStructKeywords)
+			projectMonetary := projectHasMonetarySignal(ctx, moneyKeywords)
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -70,8 +75,8 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					handled[st] = true
 
 					structMoney := pkgMoney ||
-						isMoneyStructName(ts.Name.Name, moneyStructKeywords) ||
-						hasMoneyEmbed(st, moneyStructKeywords)
+						isMoneyStructName(ts.Name.Name, moneyKeywords) ||
+						hasMoneyEmbed(st, moneyKeywords)
 					findings = append(findings, scanMoneyFields(
 						ctx, st, structMoney, projectMonetary,
 						strongMoneyFields, weakMoneyFields,
@@ -179,7 +184,7 @@ func scanMoneyFields(
 // declarations directly instead of a full ast.Inspect tree walk. This skips all
 // function bodies and expressions, cutting the cost of the project pre-scan on
 // large consumer repos (round-2 self-critique §d-2).
-func projectHasMonetarySignal(ctx *analyzer.AnalysisContext, moneyStructKeywords []string) bool {
+func projectHasMonetarySignal(ctx *analyzer.AnalysisContext, moneyKeywords []string) bool {
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
 			continue
@@ -201,7 +206,7 @@ func projectHasMonetarySignal(ctx *analyzer.AnalysisContext, moneyStructKeywords
 					continue
 				}
 
-				if isMoneyStructName(ts.Name.Name, moneyStructKeywords) {
+				if isMoneyStructName(ts.Name.Name, moneyKeywords) {
 					return true
 				}
 			}
@@ -215,7 +220,7 @@ func projectHasMonetarySignal(ctx *analyzer.AnalysisContext, moneyStructKeywords
 // name contains a monetary keyword (e.g. `type Order struct { MoneyMixin; ... }`).
 // This catches money fields inherited via embedding without requiring cross-file
 // type resolution — a conservative heuristic.
-func hasMoneyEmbed(st *ast.StructType, moneyStructKeywords []string) bool {
+func hasMoneyEmbed(st *ast.StructType, moneyKeywords []string) bool {
 	if st.Fields == nil {
 		return false
 	}
@@ -237,7 +242,7 @@ func hasMoneyEmbed(st *ast.StructType, moneyStructKeywords []string) bool {
 			name = t.Sel.Name
 		}
 
-		if name != "" && isMoneyStructName(name, moneyStructKeywords) {
+		if name != "" && isMoneyStructName(name, moneyKeywords) {
 			return true
 		}
 	}
@@ -257,24 +262,23 @@ func matchesAny(name string, terms []string) bool {
 }
 
 // isMoneyStructName reports whether a struct name contains a monetary keyword.
-func isMoneyStructName(structName string, moneyStructKeywords []string) bool {
+func isMoneyStructName(structName string, moneyKeywords []string) bool {
 	lower := strings.ToLower(structName)
 
-	return matchesAny(lower, moneyStructKeywords)
+	return matchesAny(lower, moneyKeywords)
 }
 
 // packageLooksMonetary reports whether the package path suggests a monetary
-// domain (e.g. ".../billing", ".../payments").
+// domain (e.g. ".../billing", ".../payments"). Uses the shared moneyKeywords
+// list — previously had a separate hardcoded list that drifted from
+// moneyStructKeywords.
 func packageLooksMonetary(pkgPath string) bool {
 	if pkgPath == "" {
 		return false
 	}
 
 	lower := strings.ToLower(pkgPath)
-	for _, seg := range []string{
-		"billing", "payment", "invoice", "order", "checkout",
-		"price", "wallet", "refund", "subscription", "payroll", "accounting",
-	} {
+	for _, seg := range moneyKeywords {
 		if strings.Contains(lower, "/"+seg) || strings.HasSuffix(lower, seg) || lower == seg {
 			return true
 		}
