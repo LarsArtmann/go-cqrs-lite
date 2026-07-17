@@ -49,6 +49,11 @@ func (c *lineCache) getLines(path string) []string {
 		lines = append(lines, scanner.Text())
 	}
 
+	// Check for read errors (e.g., bufio.ErrTooLong when a line exceeds the
+	// 1MB buffer). Lines collected before the error are still valid for
+	// suppression matching, so we cache partial results regardless.
+	_ = scanner.Err()
+
 	c.files[path] = lines
 
 	return lines

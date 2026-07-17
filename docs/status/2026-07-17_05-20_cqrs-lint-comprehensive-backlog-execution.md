@@ -100,16 +100,50 @@
 | 3   | Type-information-aware rules (go/types for A016) | XL effort: requires type checker integration                  |
 | 4   | Cross-rule correlation (C001+C009 escalate)      | M effort: needs pipeline post-processor                       |
 | 5   | Auto-fix mode expansion (--fix for more rules)   | XL effort: per-rule fix strategies                            |
-| 6   | Telemetry for suppression rates                  | L effort: opt-in infra                                        |
+| 6   | ~~Telemetry for suppression rates~~              | **DONE (post-v0.2.0):** suppression count in output + doctor  |
 | 7   | Multi-module workspace support (go.work dedup)   | XL effort: cross-module finding dedup                         |
 | 8   | Versioned rule sets                              | L effort: rule-version pinning system                         |
 | 9   | Migration assistant (pre-v4 API detection)       | XL effort: legacy pattern database                            |
-| 10  | `--fp-suspects` mode                             | M effort: low-confidence filtering UI                         |
+| 10  | ~~`--fp-suspects` mode~~                         | **DONE (post-v0.2.0):** implemented + tested + documented     |
 | 11  | SARIF suppress suggestions                       | Depends on go-finding library SARIF format                    |
-| 12  | `cqrs-lint config init` generator                | M effort: template generator                                  |
+| 12  | ~~`cqrs-lint config init` generator~~            | **DONE (already existed as `cqrs-lint init`)**                |
 | 13  | Property-based tests (rapid) for C008/D005       | Lower ROI than hand-written tests already covering edge cases |
 | 14  | Extract shared `asthelpers` package              | M effort refactor; current helpers are clean and scoped       |
 | 15  | Per-rule Info sub-cap                            | Current global cap works well; per-rule adds complexity       |
+
+---
+
+## d) POST-v0.2.0 HARDENING (2026-07-17 continuation)
+
+After the v0.2.0 tag, a review pass found two real bugs and one high-value
+deferred item that was feasible to implement immediately.
+
+### Fixed — real bugs
+
+- **Suppressed findings shown in output** — `//cqrs-lint:ignore(RULE)` comments
+  marked findings via the `Suppression` field, but `collectFindings` did not
+  filter them. Suppressed findings appeared in text/JSON/SARIF output, health
+  score, and the error-exit check. Fixed by adding `filterSuppressed()` which
+  splits suppressed from active findings before any downstream processing.
+  A summary count is printed to stderr.
+- **scanner.Err() unchecked in suppression parser** — `bufio.Scanner` errors
+  (e.g., `bufio.ErrTooLong` on >1MB lines) were silently dropped. The scannererr
+  linter flagged this. Fixed by calling `scanner.Err()` after the Scan loop;
+  partial lines before the error are still cached for suppression matching.
+
+### Added — `--fp-suspects` mode
+
+- `--fp-suspects` flag surfaces only low-confidence findings (below Medium
+  confidence), which are the most likely false positives. Advisory mode:
+  never affects the exit code. Includes a header explaining the findings are
+  suspects and how to suppress them.
+- 5 new tests: `TestFilterSuppressed`, `TestFilterSuppressed_AllActive`,
+  `TestFilterSuppressed_Empty`, `TestFilterFPSuspects`,
+  `TestFilterFPSuspects_Empty`.
+
+### Verification
+
+All green: build, vet, test (11/11 packages), race, gofmt, nix fmt.
 
 ---
 

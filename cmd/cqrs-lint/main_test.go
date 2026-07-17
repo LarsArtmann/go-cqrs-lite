@@ -172,3 +172,101 @@ func TestVersionConstant(t *testing.T) {
 		t.Error("version should contain a dot (semver)")
 	}
 }
+
+func TestFilterSuppressed(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{ID: finding.ID("active-1")},
+		{ID: finding.ID("active-2")},
+		{
+			ID:          finding.ID("suppressed-1"),
+			Suppression: &finding.Suppression{Kind: finding.SuppressionInSource},
+		},
+		{
+			ID:          finding.ID("suppressed-2"),
+			Suppression: &finding.Suppression{Kind: finding.SuppressionInSource},
+		},
+	}
+
+	active, suppressedCount := filterSuppressed(findings)
+	if len(active) != 2 {
+		t.Errorf("active count: got %d, want 2", len(active))
+	}
+	if suppressedCount != 2 {
+		t.Errorf("suppressed count: got %d, want 2", suppressedCount)
+	}
+	for _, f := range active {
+		if f.Suppression != nil {
+			t.Errorf("active finding %s should not be suppressed", f.ID)
+		}
+	}
+}
+
+func TestFilterSuppressed_AllActive(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{ID: finding.ID("a")},
+		{ID: finding.ID("b")},
+	}
+
+	active, suppressedCount := filterSuppressed(findings)
+	if len(active) != 2 {
+		t.Errorf("active count: got %d, want 2", len(active))
+	}
+	if suppressedCount != 0 {
+		t.Errorf("suppressed count: got %d, want 0", suppressedCount)
+	}
+}
+
+func TestFilterSuppressed_Empty(t *testing.T) {
+	t.Parallel()
+
+	active, suppressedCount := filterSuppressed(nil)
+	if len(active) != 0 {
+		t.Errorf("active count: got %d, want 0", len(active))
+	}
+	if suppressedCount != 0 {
+		t.Errorf("suppressed count: got %d, want 0", suppressedCount)
+	}
+}
+
+func TestFilterFPSuspects(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{ID: finding.ID("high"), Confidence: finding.ConfidenceHigh},
+		{ID: finding.ID("medium"), Confidence: finding.ConfidenceMedium},
+		{ID: finding.ID("low1"), Confidence: finding.ConfidenceLow},
+		{ID: finding.ID("low2"), Confidence: finding.ConfidenceLow},
+		{ID: finding.ID("none"), Confidence: finding.ConfidenceNone},
+	}
+
+	suspects := filterFPSuspects(findings)
+	if len(suspects) != 3 {
+		t.Fatalf("suspects count: got %d, want 3 (low1, low2, none)", len(suspects))
+	}
+
+	seen := make(map[finding.ID]bool)
+	for _, f := range suspects {
+		seen[f.ID] = true
+		if f.Confidence >= finding.ConfidenceMedium {
+			t.Errorf("finding %s has confidence >= Medium, should be filtered out", f.ID)
+		}
+	}
+	for _, id := range []finding.ID{"low1", "low2", "none"} {
+		if !seen[id] {
+			t.Errorf("finding %s should be in suspects", id)
+		}
+	}
+}
+
+func TestFilterFPSuspects_Empty(t *testing.T) {
+	t.Parallel()
+
+	suspects := filterFPSuspects(nil)
+	if len(suspects) != 0 {
+		t.Errorf("suspects count: got %d, want 0", len(suspects))
+	}
+}

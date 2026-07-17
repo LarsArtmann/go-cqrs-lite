@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### cqrs-lint — post-v0.2.0 hardening
+
+**Fixed:**
+
+- **Suppressed findings shown in output** — `//cqrs-lint:ignore(RULE)` comments
+  marked findings as suppressed but they still appeared in all output formats.
+  Now properly filtered from output, health score, and the error-exit check.
+  A summary count is printed to stderr.
+- **scanner.Err() unchecked** — the suppression parser's `bufio.Scanner` errors
+  (e.g., buffer overflow on >1MB lines) were silently dropped. Now checked;
+  partial lines before the error are still cached for suppression matching.
+
+**Added:**
+
+- **`--fp-suspects` flag** — surfaces only low-confidence findings (below Medium
+  confidence), which are the most likely false positives. Advisory mode: never
+  affects the exit code. Helps consumers batch-review potential FPs.
+- **Suppression count in output** — the main lint run now reports how many
+  findings were suppressed by inline comments.
+
 ### Documentation Health
 
 - **Historical artifact banners** — All 41 `docs/*2026-07-1*.md` session reports

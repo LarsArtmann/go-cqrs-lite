@@ -37,7 +37,7 @@ type AppConfig struct {
 	cmdguard.Config
 
 	Path          string `default:"."     flag:"path"           help:"Path to lint"`
-	Format        string `default:"text"  flag:"format"         help:"Output format"                     short:"o"`
+	Format        string `default:"text"  flag:"format"         help:"Output format"                                              short:"o"`
 	MinSeverity   string `default:"info"  flag:"min-severity"   help:"Minimum severity"`
 	MinConfidence string `default:"low"   flag:"min-confidence" help:"Minimum confidence"`
 	Fix           bool   `default:"false" flag:"fix"            help:"Apply auto-fixes"`
@@ -48,7 +48,8 @@ type AppConfig struct {
 	Exclude       string `default:""      flag:"exclude"        help:"Exclude paths (comma-separated)"`
 	Color         string `default:"auto"  flag:"color"          help:"Colored output: auto,always,never"`
 	Verbose       bool   `default:"false" flag:"verbose"        help:"Verbose output"`
-	Quiet         bool   `default:"false" flag:"quiet"          help:"Suppress non-finding output"       short:"q"`
+	Quiet         bool   `default:"false" flag:"quiet"          help:"Suppress non-finding output"                                short:"q"`
+	FPSuspects    bool   `default:"false" flag:"fp-suspects"    help:"Show only low-confidence findings (likely false positives)"`
 
 	// Features declares which go-cqrs-lite modules the consumer uses.
 	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.
@@ -218,17 +219,40 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	if cfg.Exclude != "" {
 		allFindings = filterByExcludedPaths(allFindings, strings.Split(cfg.Exclude, ","))
 	}
-	activeFindings := filterBySeverity(allFindings, cfg.MinSeverity)
-	activeFindings = filterByConfidence(activeFindings, cfg.MinConfidence)
+
+	// Split suppressed findings (//cqrs-lint:ignore) from active ones.
+	// allFindings retains the full count for verbose output; unsuppressedFindings
+	// feeds the severity/confidence filters and all downstream paths.
+	unsuppressedFindings, suppressedCount := filterSuppressed(allFindings)
+
+	activeFindings := filterBySeverity(unsuppressedFindings, cfg.MinSeverity)
+	if cfg.FPSuspects {
+		// --fp-suspects: show only low-confidence findings (likely false
+		// positives). Overrides the normal confidence filter.
+		activeFindings = filterFPSuspects(activeFindings)
+	} else {
+		activeFindings = filterByConfidence(activeFindings, cfg.MinConfidence)
+	}
 
 	if !cfg.Quiet && cfg.Format == "text" {
 		elapsed := time.Since(start)
 		fmt.Fprintf(
 			os.Stderr,
-			"Analyzed %d files in %s\n\n",
+			"Analyzed %d files in %s\n",
 			len(actx.GoFiles),
 			elapsed.Round(time.Millisecond),
 		)
+		if suppressedCount > 0 {
+			fmt.Fprintf(os.Stderr, "%d finding(s) suppressed by inline comments\n", suppressedCount)
+		}
+		if cfg.FPSuspects {
+			fmt.Fprintf(os.Stderr,
+				"Showing %d low-confidence finding(s) — likely false positives.\n"+
+					"Suppress confirmed FPs with //cqrs-lint:ignore(RULE)\n",
+				len(activeFindings))
+		}
+
+		fmt.Fprintln(os.Stderr)
 	}
 
 	if cfg.Verbose && !cfg.Quiet {
@@ -250,6 +274,11 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		}
 		hs := ComputeHealthScoreWithCap(activeFindings, infoCap)
 		fmt.Print(renderHealthScore(hs, parseColorMode(cfg.Color)))
+	}
+
+	// --fp-suspects is advisory: never exit non-zero based on suspect findings.
+	if cfg.FPSuspects {
+		return nil
 	}
 
 	hasErrors := false

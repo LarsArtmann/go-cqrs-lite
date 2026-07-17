@@ -63,6 +63,26 @@ func filterByConfidence(findings []finding.Finding, minConf string) []finding.Fi
 	return result
 }
 
+// filterSuppressed removes findings marked as suppressed by inline
+// //cqrs-lint:ignore(RULE) comments and returns the active findings along
+// with the count of suppressed ones. Suppressed findings are excluded from
+// all output formats, health score, and the error-exit check.
+func filterSuppressed(findings []finding.Finding) ([]finding.Finding, int) {
+	var active []finding.Finding
+
+	suppressed := 0
+
+	for _, f := range findings {
+		if f.Suppression != nil {
+			suppressed++
+		} else {
+			active = append(active, f)
+		}
+	}
+
+	return active, suppressed
+}
+
 func filterByExcludedPaths(findings []finding.Finding, patterns []string) []finding.Finding {
 	if len(patterns) == 0 {
 		return findings
@@ -89,6 +109,21 @@ func filterByExcludedPaths(findings []finding.Finding, patterns []string) []find
 			}
 		}
 		if !excluded {
+			result = append(result, f)
+		}
+	}
+
+	return result
+}
+
+// filterFPSuspects returns only findings with confidence below Medium —
+// the ones most likely to be false positives. Used by --fp-suspects mode
+// to help consumers batch-review low-confidence findings for suppression.
+func filterFPSuspects(findings []finding.Finding) []finding.Finding {
+	var result []finding.Finding
+
+	for _, f := range findings {
+		if f.Confidence < finding.ConfidenceMedium {
 			result = append(result, f)
 		}
 	}

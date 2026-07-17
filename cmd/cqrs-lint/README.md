@@ -199,6 +199,7 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 | `--dry-run`        |       | false   | Show fixes without applying                      |
 | `--fast`           |       | false   | Run only Critical correctness rules              |
 | `--health-score`   |       | false   | Print the health score after findings            |
+| `--fp-suspects`    |       | false   | Show only low-confidence findings (likely FPs)   |
 | `--only`           |       |         | Filter by category or rule IDs (comma-separated) |
 | `--exclude`        |       |         | Exclude paths (comma-separated)                  |
 | `--color`          |       | auto    | Colored output: auto, always, never              |
@@ -297,6 +298,24 @@ type DiscordMessage struct {
 The marker works on both single `type Foo struct{}` declarations and grouped
 `type ( ... )` blocks (place it on the struct's own doc line inside the group).
 For bulk exclusion prefer the `rules.external-api-struct-prefixes` config above.
+
+Suppressed findings are excluded from all output formats, the health score, and
+the error-exit check. The lint run prints a count of suppressed findings to
+stderr for visibility.
+
+### Reviewing False Positives
+
+Use `--fp-suspects` to surface only low-confidence findings — the ones most
+likely to be false positives:
+
+```bash
+cqrs-lint --fp-suspects --path ./...
+```
+
+This filters to findings below Medium confidence and prints them with a
+header explaining they are advisory. The exit code is always 0 in this mode,
+making it safe to run in CI alongside the normal lint step. Review the
+suspects and suppress confirmed false positives with `//cqrs-lint:ignore(RULE)`.
 
 ## Auto-Fix
 
