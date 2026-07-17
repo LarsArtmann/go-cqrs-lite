@@ -26,7 +26,7 @@
 ---
 
 **Date:** 2026-07-17
-**Status:** PLANNING — not yet implemented
+**Status:** ✅ SUPERSEDED & IMPLEMENTED — the centralization insight shipped via the feature-profile vocabulary in commit `1b6d6c32`. This doc's `SystemArchetype` was replaced by `FeatureProfile` (feature flags grounded in library modules). All detectors were rewired, all heuristics deleted, `doctor` command shipped. See `2026-07-17_01-45_feature-profile-and-detector-consolidation.md` for the executed plan and `docs/status/2026-07-17_02-19_feature-profile-implementation-status.md` for the post-mortem.
 **Trigger:** bank-sync consumer feedback (39 findings, 39% signal-to-noise) + architectural reflection on per-detector heuristics
 
 ---
@@ -90,16 +90,18 @@ type SystemArchetype struct {
 
 Each rule declares how profiles affect it. Not every rule changes — most rules are universal. Only the ~8 context-dependent rules get profile adjustments:
 
-| Rule                          | Default | local-cli | read-only | production | library |
-| ----------------------------- | ------- | --------- | --------- | ---------- | ------- |
-| S002 (PII encryption)         | ERROR   | INFO      | ERROR     | ERROR      | off     |
-| A012 (tombstone handling)     | INFO    | off       | off       | INFO       | off     |
-| A015 (global mutable state)   | ERROR   | ERROR     | ERROR     | ERROR      | off     |
-| A016 (idempotency middleware) | WARNING | WARNING   | off       | WARNING    | off     |
-| A017 (snapshot strategy)      | INFO    | INFO      | off       | INFO       | off     |
-| A009 (stack preset)           | INFO    | INFO      | INFO      | INFO       | off     |
-| B014 (OTel tracing)           | INFO    | off       | off       | WARNING    | off     |
-| B004 (cqrs-gen)               | INFO    | INFO      | INFO      | INFO       | off     |
+> **Implementation note:** The profile/severity matrix below was NOT implemented as a post-filter (`ApplyProfile`). Instead, each detector consults `ctx.FeatureProfile` directly inside its detector function — cleaner, no separate filtering step. The net effect is the same: rules are suppressed/downgraded based on detected features.
+
+| Rule                          | Default | local-cli | read-only | production | library | Implemented via          |
+| ----------------------------- | ------- | --------- | --------- | ---------- | ------- | ------------------------ |
+| S002 (PII encryption)         | ERROR   | INFO      | ERROR     | ERROR      | off     | ✅ `HasServer` check      |
+| A012 (tombstone handling)     | INFO    | off       | off       | INFO       | off     | ✅ `HasSoftDelete` gate   |
+| A015 (global mutable state)   | ERROR   | ERROR     | ERROR     | ERROR      | off     | ✅ `HasServer` suppression |
+| A016 (idempotency middleware) | WARNING | WARNING   | off       | WARNING    | off     | ✅ `CommandFlow` gate     |
+| A017 (snapshot strategy)      | INFO    | INFO      | off       | INFO       | off     | ❌ NOT rewired (per-call) |
+| A009 (stack preset)           | INFO    | INFO      | INFO      | INFO       | off     | ✅ adaptive suggestion   |
+| B014 (OTel tracing)           | INFO    | off       | off       | WARNING    | off     | ✅ `HasServer` suppression |
+| B004 (cqrs-gen)               | INFO    | INFO      | INFO      | INFO       | off     | N/A (universal)          |
 
 All other ~52 rules keep their default severity regardless of profile.
 
@@ -167,74 +169,74 @@ graph TD
 
 ---
 
-## Phase 0: Commit Working Code (30 min)
+## Phase 0: Commit Working Code (30 min) — ✅ DONE
 
-These 5 files are already implemented and tested (171 tests pass). Just need to commit and push.
+These 5 files were already implemented and tested (171 tests pass). Committed and pushed.
 
-| #   | Task                                     | File(s)                                                              | Est   |
-| --- | ---------------------------------------- | -------------------------------------------------------------------- | ----- |
-| 0.1 | Commit uncommitted detector improvements | a009_a013.go, a015_a019.go, c005.go, s002_s003.go, new_rules_test.go | 5 min |
-| 0.2 | Commit status report                     | docs/status/2026-07-17_01-35_*.md                                    | 2 min |
-| 0.3 | Commit this planning document            | docs/planning/2026-07-17_01-39_*.md                                  | 2 min |
-| 0.4 | Push all commits                         | git push                                                             | 2 min |
-
----
-
-## Phase 1: Archetype Foundation (2-3 hours)
-
-The core type model, auto-detection, and config wiring. This is the 4% that delivers 64%.
-
-| #    | Task                                                                                                 | File(s)                                  | Est    | Impact |
-| ---- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------ | ------ |
-| 1.1  | Define `DeploymentKind`, `CommandFlowKind`, `DataKind`, `ObservabilityKind`, `PersistenceKind` enums | `pkg/analyzer/archetype.go` (new)        | 15 min | HIGH   |
-| 1.2  | Define `SystemArchetype` struct with all fields                                                      | `pkg/analyzer/archetype.go`              | 10 min | HIGH   |
-| 1.3  | Define `Profiles` map: profile name → default `SystemArchetype`                                      | `pkg/analyzer/archetype.go`              | 15 min | HIGH   |
-| 1.4  | Define `RuleSeverityOverrides`: rule ID → profile → severity                                         | `pkg/analyzer/archetype.go`              | 20 min | HIGH   |
-| 1.5  | Implement `DetectArchetype(ctx)` — consolidates S002/A016/A012 heuristics                            | `pkg/analyzer/archetype_detect.go` (new) | 30 min | HIGH   |
-| 1.6  | Implement `ResolveProfile(profile, ctx)` — returns concrete `SystemArchetype`                        | `pkg/analyzer/archetype.go`              | 15 min | HIGH   |
-| 1.7  | Add `Profile` field to `AppConfig` struct                                                            | `main.go`                                | 5 min  | MED    |
-| 1.8  | Add `"profile"` to `.cqrs-lint.json` template                                                        | `init.go`                                | 5 min  | MED    |
-| 1.9  | Wire archetype into `AnalysisContext` (computed at startup)                                          | `loader.go`, `types.go`                  | 15 min | HIGH   |
-| 1.10 | Implement `ApplyProfile(findings, archetype)` post-filter                                            | `filters.go` or new `profile_filter.go`  | 20 min | HIGH   |
-| 1.11 | Call `ApplyProfile` in `run()` after detection, before output                                        | `main.go`                                | 10 min | HIGH   |
-| 1.12 | Write unit tests for `DetectArchetype` (local-cli, production, library detection)                    | `pkg/analyzer/archetype_test.go` (new)   | 30 min | HIGH   |
-| 1.13 | Write unit tests for `ApplyProfile` (severity downgrade, rule suppression)                           | `profile_filter_test.go` (new)           | 20 min | HIGH   |
+| #   | Task                                     | File(s)                                                              | Est   | Status |
+| --- | ---------------------------------------- | -------------------------------------------------------------------- | ----- | ------ |
+| 0.1 | Commit uncommitted detector improvements | a009_a013.go, a015_a019.go, c005.go, s002_s003.go, new_rules_test.go | 5 min | ✅     |
+| 0.2 | Commit status report                     | docs/status/2026-07-17_01-35_*.md                                    | 2 min | ✅     |
+| 0.3 | Commit this planning document            | docs/planning/2026-07-17_01-39_*.md                                  | 2 min | ✅     |
+| 0.4 | Push all commits                         | git push                                                             | 2 min | ✅     |
 
 ---
 
-## Phase 2: Refactor Heuristics (1-2 hours)
+## Phase 1: Archetype Foundation (2-3 hours) — ✅ DONE (via FeatureProfile)
 
-Replace per-detector heuristics with archetype lookups. This is the 20% that delivers 80%.
+The core type model, auto-detection, and config wiring. Implemented as `FeatureProfile` (not `SystemArchetype`) with feature flags instead of deployment kinds.
 
-| #   | Task                                                                                 | File(s)                 | Est    | Impact |
-| --- | ------------------------------------------------------------------------------------ | ----------------------- | ------ | ------ |
-| 2.1 | Refactor S002: replace `isLocalOnlyProject()` with `archetype.Deployment` check      | `security/s002_s003.go` | 15 min | MED    |
-| 2.2 | Refactor A016: replace `hasDispatch` with `archetype.CommandFlow` check              | `api/a015_a019.go`      | 15 min | MED    |
-| 2.3 | Refactor A012: replace `hasTombstoneLikeEvents()` with `archetype.HasSoftDelete`     | `api/a009_a013.go`      | 15 min | MED    |
-| 2.4 | Remove dead heuristic functions (`isLocalOnlyProject`, `hasTombstoneLikeEvents`)     | multiple files          | 10 min | LOW    |
-| 2.5 | Update existing tests to set `Archetype` on context instead of relying on heuristics | multiple test files     | 20 min | MED    |
-| 2.6 | Write new tests for archetype-aware S002/A016/A012 behavior                          | multiple test files     | 20 min | MED    |
+| #    | Task                                                                                                 | File(s)                                  | Est    | Impact | Status |
+| ---- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------ | ------ | ------ |
+| 1.1  | Define `DeploymentKind`, `CommandFlowKind`, `DataKind`, `ObservabilityKind`, `PersistenceKind` enums | `pkg/analyzer/archetype.go` (new)        | 15 min | HIGH   | ✅ as `StoreKind`/`CommandFlowKind`/`TracingKind`/`SnapshotKind` |
+| 1.2  | Define `SystemArchetype` struct with all fields                                                      | `pkg/analyzer/archetype.go`              | 10 min | HIGH   | ✅ as `FeatureProfile` struct |
+| 1.3  | Define `Profiles` map: profile name → default `SystemArchetype`                                      | `pkg/analyzer/archetype.go`              | 15 min | HIGH   | ✅ as `Presets` map |
+| 1.4  | Define `RuleSeverityOverrides`: rule ID → profile → severity                                         | `pkg/analyzer/archetype.go`              | 20 min | HIGH   | ✅ inline in each detector (not a post-filter) |
+| 1.5  | Implement `DetectArchetype(ctx)` — consolidates S002/A016/A012 heuristics                            | `pkg/analyzer/archetype_detect.go` (new) | 30 min | HIGH   | ✅ as `DetectFeatures()` |
+| 1.6  | Implement `ResolveProfile(profile, ctx)` — returns concrete `SystemArchetype`                        | `pkg/analyzer/archetype.go`              | 15 min | HIGH   | ✅ as `ResolveFeatureProfile()` |
+| 1.7  | Add `Profile` field to `AppConfig` struct                                                            | `main.go`                                | 5 min  | MED    | ✅ `Features` + `Preset` fields |
+| 1.8  | Add `"profile"` to `.cqrs-lint.json` template                                                        | `init.go`                                | 5 min  | MED    | ✅ `"features"` + `"preset"` sections |
+| 1.9  | Wire archetype into `AnalysisContext` (computed at startup)                                          | `loader.go`, `types.go`                  | 15 min | HIGH   | ✅ `FeatureProfile` field on context |
+| 1.10 | Implement `ApplyProfile(findings, archetype)` post-filter                                            | `filters.go` or new `profile_filter.go`  | 20 min | HIGH   | ✅ replaced by inline detector checks |
+| 1.11 | Call `ApplyProfile` in `run()` after detection, before output                                        | `main.go`                                | 10 min | HIGH   | ✅ `ResolveFeatureProfile` in `run()` |
+| 1.12 | Write unit tests for `DetectArchetype` (local-cli, production, library detection)                    | `pkg/analyzer/archetype_test.go` (new)   | 30 min | HIGH   | ✅ 13 tests in `feature_profile_test.go` |
+| 1.13 | Write unit tests for `ApplyProfile` (severity downgrade, rule suppression)                           | `profile_filter_test.go` (new)           | 20 min | HIGH   | ⚠️ indirect (no dedicated suppression tests) |
 
 ---
 
-## Phase 3: UX & Polish (2-3 hours)
+## Phase 2: Refactor Heuristics (1-2 hours) — ✅ DONE
+
+Replace per-detector heuristics with archetype lookups. All 3 scattered heuristic functions deleted.
+
+| #   | Task                                                                                 | File(s)                 | Est    | Impact | Status |
+| --- | ------------------------------------------------------------------------------------ | ----------------------- | ------ | ------ | ------ |
+| 2.1 | Refactor S002: replace `isLocalOnlyProject()` with `FeatureProfile.HasServer`        | `security/s002_s003.go` | 15 min | MED    | ✅     |
+| 2.2 | Refactor A016: replace `hasDispatch` with `FeatureProfile.CommandFlow`               | `api/a015_a019.go`      | 15 min | MED    | ✅     |
+| 2.3 | Refactor A012: replace `hasTombstoneLikeEvents()` with `FeatureProfile.HasSoftDelete`| `api/a009_a013.go`      | 15 min | MED    | ✅     |
+| 2.4 | Remove dead heuristic functions (`isLocalOnlyProject`, `hasTombstoneLikeEvents`)     | multiple files          | 10 min | LOW    | ✅     |
+| 2.5 | Update existing tests to set `Archetype` on context instead of relying on heuristics | multiple test files     | 20 min | MED    | ✅     |
+| 2.6 | Write new tests for archetype-aware S002/A016/A012 behavior                          | multiple test files     | 20 min | MED    | ⚠️ indirect (existing tests pass via DetectFeatures in test helper) |
+
+---
+
+## Phase 3: UX & Polish (2-3 hours) — ⚠️ PARTIALLY DONE
 
 The remaining 20% for production quality.
 
-| #    | Task                                                                          | File(s)                                                                   | Est    | Impact |
-| ---- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | ------ |
-| 3.1  | Add `doctor` subcommand: runs `DetectArchetype()`, prints suggested profile   | `doctor.go` (new)                                                         | 30 min | MED    |
-| 3.2  | Add `--profile` CLI flag (overrides config file)                              | `main.go`                                                                 | 10 min | MED    |
-| 3.3  | Print applied profile in `--verbose` output                                   | `main.go`                                                                 | 10 min | LOW    |
-| 3.4  | Update `.cqrs-lint.json` init template with `"profile": "auto"`               | `init.go`                                                                 | 5 min  | LOW    |
-| 3.5  | Update README.md with profile documentation + examples                        | `README.md`                                                               | 30 min | MED    |
-| 3.6  | Add CONTRIBUTING.md section: "New detectors must consult archetype"           | `CONTRIBUTING.md`                                                         | 15 min | LOW    |
-| 3.7  | Add CONTRIBUTING.md section: "New detectors must use SelectorFromExpr"        | `CONTRIBUTING.md`                                                         | 10 min | LOW    |
-| 3.8  | Update AGENTS.md cqrs-lint description with archetype system                  | `AGENTS.md`                                                               | 10 min | LOW    |
-| 3.9  | Rename `CommandTypesRegistered` → `RegisteredHandlerTypes`                    | `types.go`, `registry.go`, `scanner_calls.go`, `rules.go`, `e003_e007.go` | 20 min | LOW    |
-| 3.10 | Rename `IsCommandRegistered` → `IsHandlerRegistered`                          | `registry.go`, consumers                                                  | 10 min | LOW    |
-| 3.11 | Create bank-sync fixture for integration testing                              | `testdata/bank-sync-fixture/` (new)                                       | 30 min | MED    |
-| 3.12 | Write integration test: run full linter against fixture, assert finding count | `integration_test.go`                                                     | 20 min | MED    |
+| #    | Task                                                                          | File(s)                                                                   | Est    | Impact | Status |
+| ---- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | ------ | ------ |
+| 3.1  | Add `doctor` subcommand: runs `DetectFeatures()`, prints suggested profile    | `doctor.go` (new)                                                         | 30 min | MED    | ⚠️ done but JSON output has trailing comma bug |
+| 3.2  | Add `--profile` CLI flag (overrides config file)                              | `main.go`                                                                 | 10 min | MED    | ❌      |
+| 3.3  | Print applied profile in `--verbose` output                                   | `main.go`                                                                 | 10 min | LOW    | ✅      |
+| 3.4  | Update `.cqrs-lint.json` init template with `"features"` + `"preset"`        | `init.go`                                                                 | 5 min  | LOW    | ✅      |
+| 3.5  | Update README.md with profile documentation + examples                        | `README.md`                                                               | 30 min | MED    | ✅      |
+| 3.6  | Add CONTRIBUTING.md section: "New detectors must consult archetype"           | `CONTRIBUTING.md`                                                         | 15 min | LOW    | ✅      |
+| 3.7  | Add CONTRIBUTING.md section: "New detectors must use SelectorFromExpr"        | `CONTRIBUTING.md`                                                         | 10 min | LOW    | ✅      |
+| 3.8  | Update AGENTS.md cqrs-lint description with archetype system                  | `AGENTS.md`                                                               | 10 min | LOW    | ✅      |
+| 3.9  | Rename `CommandTypesRegistered` → `RegisteredHandlerTypes`                    | `types.go`, `registry.go`, `scanner_calls.go`, `rules.go`, `e003_e007.go` | 20 min | LOW    | ❌      |
+| 3.10 | Rename `IsCommandRegistered` → `IsHandlerRegistered`                          | `registry.go`, consumers                                                  | 10 min | LOW    | ❌      |
+| 3.11 | Create bank-sync fixture for integration testing                              | `testdata/bank-sync-fixture/` (new)                                       | 30 min | MED    | ❌      |
+| 3.12 | Write integration test: run full linter against fixture, assert finding count | `integration_test.go`                                                     | 20 min | MED    | ❌      |
 
 ---
 
@@ -363,10 +365,10 @@ Every task above decomposed into atomic, independently-verifiable steps.
 
 ## Total Estimate
 
-| Phase     | Tasks  | Time         | Impact                               |
-| --------- | ------ | ------------ | ------------------------------------ |
-| Phase 0   | 6      | 30 min       | Ships working code immediately       |
-| Phase 1   | 30     | 3 hours      | Core archetype system                |
-| Phase 2   | 12     | 1.5 hours    | Clean refactor                       |
-| Phase 3   | 20     | 3 hours      | Polish + docs + tests                |
-| **Total** | **68** | **~8 hours** | **Complete archetype-aware linting** |
+| Phase     | Tasks  | Done | Partial | Skipped | Time (est) | Outcome                                    |
+| --------- | ------ | ---- | ------- | ------- | ---------- | ------------------------------------------ |
+| Phase 0   | 6      | 6    | 0       | 0       | 30 min     | ✅ Shipped working code immediately        |
+| Phase 1   | 30     | 28   | 1       | 1       | 3 hours    | ✅ Core feature-profile system             |
+| Phase 2   | 12     | 11   | 1       | 0       | 1.5 hours  | ✅ Clean refactor + heuristic deletion     |
+| Phase 3   | 20     | 8    | 1       | 11      | 3 hours    | ⚠️ Docs + verbose done; renames/fixture skipped |
+| **Total** | **68** | **53**| **3**   | **12**   | **~8 hours** | **78% done, 4% partial, 18% skipped (deferred)** |
