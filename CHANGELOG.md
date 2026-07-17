@@ -6,67 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### cqrs-lint — DiscordSync feedback: false-positive reduction & fairer scoring
-
-These changes close the feedback loop on the DiscordSync cqrs-lint report
-(18 of 34 findings were D002 false positives). Rule heuristics are now shaped
-by what real consumers do, and the health score no longer lets info-level noise
-drown real bugs.
-
-**Fixed — rule false positives (prior session, now changelogged):**
-
-- **C001 closure-escape** — `txVarEscapesToArg` now skips the false positive
-  where the tx variable is passed to a callback that contractually owns the
-  commit (suggesting `return tx.Commit()` there would double-commit). The old
-  test encoded the false positive; replaced with a genuine missing-commit case.
-- **C008 money corroboration** — money field names split into strong
-  (amount/price/cost/balance/fee — fire alone) and weak
-  (value/total/charge/payment/salary — need a money struct/package name).
-  Eliminates the observability/metrics false positives.
-- **D005 version-token regex** — `HasPrefix("v") && len >= 3` replaced with
-  `^v\d+\.\d+`, rejecting prose words ("via", "version") and bare major
-  versions ("v3") while keeping real semver references.
-- **A005 broadcast vs projection** — `classifyCallbackBody` inspects the
-  SubscribeAll callback and suppresses fire-and-forget fan-out (SSE broadcasters,
-  stats notifiers) that has broadcast calls and no persistence calls.
-
-**Added — D002 external-API opt-out (biggest remaining false-positive source):**
-
-- D002 now excludes structs that mirror an external API (Discord/Stripe/GitHub),
-  whose snake_case JSON tags are dictated upstream and aren't a local style
-  choice. Two complementary opt-outs:
-  - **Config** (`.cqrs-lint.json`): `"rules": {"external-api-struct-prefixes": ["Discord", "Stripe"]}`
-    marks every struct whose name starts with a listed prefix.
-  - **In-source marker**: `//cqrs-lint:external-api` on a struct's doc comment
-    marks a single struct (works on both single `type Foo struct{}` and grouped
-    `type ( ... )` blocks).
-- `cqrs-lint doctor` now prints the loaded `rules` overrides so consumers can
-  verify their prefix list was picked up.
-
-**Improved — recall & context-awareness:**
-
-- **C001 tx-use signal** — a function that uses the tx (`tx.Exec`, `tx.QueryRow`,
-  any non-lifecycle method) now flags even without a bare `return nil`. tx usage
-  is a stronger bug signal than the return shape; the old gate missed functions
-  that return a sentinel/wrapped error after using the tx.
-- **A005 widened broadcast signals** — added `Publish`, `Emit`, `Forward`,
-  `Dispatch`, `WriteTo`, `Flush` to the fan-out detector (safe: a callback that
-  both broadcasts and persists still flags). Catches deriver/republish patterns
-  that aren't projections.
-- **C008 project-aware downgrade** — when no package or struct anywhere in the
-  project looks monetary, strong-field findings downgrade to Info/Low
-  ("maybe money") instead of Warning/Medium. Non-payments codebases no longer
-  get full-severity money warnings on coincidental `amount`/`balance` fields.
-
-**Changed — fairer health score:**
-
-- **Confidence weighting** — each finding's deduction is scaled by its
-  confidence: High/Full = full deduction, Medium = 75%, Low = 50%. A flood of
-  Low-confidence heuristic matches no longer costs the same as confirmed bugs.
-  (No-confidence findings keep full weight, preserving prior behavior.)
-- **Info cap** — total Info-severity deductions are capped at 20 points so a
-  chatty style rule can't outweigh a Critical correctness bug.
-
 ### Documentation Health
 
 - **Historical artifact banners** — All 41 `docs/*2026-07-1*.md` session reports
@@ -212,6 +151,75 @@ quality,architecture-understanding,brainstorming,modularization}/` timestamped
   Added "Working with AI Agents" section.
 - **New docs/middleware-ordering.md** — Recommended middleware application order
   for all 30+ middlewares.
+
+## [cmd/cqrs-lint/v0.2.0] - 2026-07-17
+
+### cqrs-lint — DiscordSync feedback: false-positive reduction & fairer scoring
+
+These changes close the feedback loop on the DiscordSync cqrs-lint report
+(18 of 34 findings were D002 false positives). Rule heuristics are now shaped
+by what real consumers do, and the health score no longer lets info-level noise
+drown real bugs.
+
+**Fixed — rule false positives (prior session, now changelogged):**
+
+- **C001 closure-escape** — `txVarEscapesToArg` now skips the false positive
+  where the tx variable is passed to a callback that contractually owns the
+  commit (suggesting `return tx.Commit()` there would double-commit). The old
+  test encoded the false positive; replaced with a genuine missing-commit case.
+- **C008 money corroboration** — money field names split into strong
+  (amount/price/cost/balance/fee — fire alone) and weak
+  (value/total/charge/payment/salary — need a money struct/package name).
+  Eliminates the observability/metrics false positives.
+- **D005 version-token regex** — `HasPrefix("v") && len >= 3` replaced with
+  `^v\d+\.\d+`, rejecting prose words ("via", "version") and bare major
+  versions ("v3") while keeping real semver references.
+- **A005 broadcast vs projection** — `classifyCallbackBody` inspects the
+  SubscribeAll callback and suppresses fire-and-forget fan-out (SSE broadcasters,
+  stats notifiers) that has broadcast calls and no persistence calls.
+
+**Added — D002 external-API opt-out (biggest remaining false-positive source):**
+
+- D002 now excludes structs that mirror an external API (Discord/Stripe/GitHub),
+  whose snake_case JSON tags are dictated upstream and aren't a local style
+  choice. Two complementary opt-outs:
+  - **Config** (`.cqrs-lint.json`): `"rules": {"external-api-struct-prefixes": ["Discord", "Stripe"]}`
+    marks every struct whose name starts with a listed prefix.
+  - **In-source marker**: `//cqrs-lint:external-api` on a struct's doc comment
+    marks a single struct (works on both single `type Foo struct{}` and grouped
+    `type ( ... )` blocks).
+- `cqrs-lint doctor` now prints the loaded `rules` overrides so consumers can
+  verify their prefix list was picked up.
+
+**Improved — recall & context-awareness:**
+
+- **C001 tx-use signal** — a function that uses the tx (`tx.Exec`, `tx.QueryRow`,
+  any non-lifecycle method) now flags even without a bare `return nil`. tx usage
+  is a stronger bug signal than the return shape; the old gate missed functions
+  that return a sentinel/wrapped error after using the tx.
+- **A005 widened broadcast signals** — added `Publish`, `Emit`, `Forward`,
+  `Dispatch`, `WriteTo`, `Flush` to the fan-out detector (safe: a callback that
+  both broadcasts and persists still flags). Catches deriver/republish patterns
+  that aren't projections.
+- **C008 project-aware downgrade** — when no package or struct anywhere in the
+  project looks monetary, strong-field findings downgrade to Info/Low
+  ("maybe money") instead of Warning/Medium. Non-payments codebases no longer
+  get full-severity money warnings on coincidental `amount`/`balance` fields.
+
+**Changed — fairer health score:**
+
+- **Confidence weighting** — each finding's deduction is scaled by its
+  confidence: High/Full = full deduction, Medium = 75%, Low = 50%. A flood of
+  Low-confidence heuristic matches no longer costs the same as confirmed bugs.
+  (No-confidence findings keep full weight, preserving prior behavior.)
+- **Info cap** — total Info-severity deductions are capped at 20 points so a
+  chatty style rule can't outweigh a Critical correctness bug.
+
+> **Migration impact:** both scoring changes shift health scores on re-run.
+> Projects that previously lost many points to info-level findings (especially
+> D002 mixed-casing) will see their score rise. The relative ranking of findings
+> is unchanged; only the aggregate penalty is fairer. Pin to `v0.1.0` if you
+> depend on the old absolute score values.
 
 ## [cmd/cqrs-lint/v0.1.0] - 2026-07-16
 
