@@ -219,6 +219,36 @@ A `.cqrs-lint.json` file in the project root is auto-loaded:
 }
 ```
 
+### Health Scoring
+
+The `--health-score` flag computes a 0-100 score from findings. Two fairness
+adjustments prevent heuristic noise from drowning real bugs:
+
+- **Confidence weighting** — each finding's deduction is scaled by its confidence:
+
+  | Confidence | Multiplier | Example |
+  |---|---|---|
+  | High / Full | 1.0 (100%) | Structural pattern match |
+  | Medium | 0.75 (75%) | Name + shape heuristic |
+  | Low | 0.5 (50%) | Coincidental field name |
+  | none | 1.0 (100%) | Preserves prior behavior |
+
+- **Severity deductions** — Critical: -10, Error: -5, Warning: -2, Info: -1
+  (before confidence weighting).
+
+- **Info cap** — total Info deductions are capped (default 20) so a chatty style
+  rule can't outweigh a Critical correctness bug. Tunable via:
+
+  ```json
+  {
+    "health": {
+      "info-cap": 15
+    }
+  }
+  ```
+
+  When the cap applies, `--verbose` output shows the raw vs capped deduction.
+
 ### Rule Overrides
 
 Some rules read project-specific overrides from the `"rules"` key so you can
@@ -322,11 +352,43 @@ Register it in `pkg/rules/register.go`. Write tests using `analyzer.BuildContext
 
 ## CI Integration
 
+### GitHub Actions (SARIF upload)
+
 ```yaml
 # .github/workflows/cqrs-lint.yml
-- name: Run cqrs-lint
-  run: cqrs-lint --format sarif ./... > results.sarif
-- uses: github/codeql-action/upload-sarif@v3
-  with:
-    sarif_file: results.sarif
+name: cqrs-lint
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Install cqrs-lint
+        run: go install -tags "goexperiment.jsonv2" github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint@latest
+      - name: Run cqrs-lint
+        run: cqrs-lint --format sarif --path ./... > results.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+```
+
+### Health-score gate
+
+Fail CI when the score drops below a threshold:
+
+```bash
+cqrs-lint --health-score --path ./...
+# Outputs just the numeric score — use in a script:
+SCORE=$(cqrs-lint --health-score --path ./...)
+[ "$SCORE" -ge 75 ] || exit 1
+```
+
+### Pre-commit hook
+
+```bash
+# .git/hooks/pre-commit
+cqrs-lint --fast --path ./... || exit 1
 ```
