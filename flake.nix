@@ -25,6 +25,26 @@
       url = "git+ssh://git@github.com/LarsArtmann/go-finding?ref=master";
       flake = false;
     };
+    cmdguard = {
+      url = "git+ssh://git@github.com/LarsArtmann/cmdguard?ref=master";
+      flake = false;
+    };
+    go-output = {
+      url = "git+ssh://git@github.com/LarsArtmann/go-output?ref=master";
+      flake = false;
+    };
+    gogenfilter = {
+      url = "git+ssh://git@github.com/LarsArtmann/gogenfilter?ref=master";
+      flake = false;
+    };
+    go-branded-id = {
+      url = "git+ssh://git@github.com/LarsArtmann/go-branded-id?ref=master";
+      flake = false;
+    };
+    samber-do-auditlog = {
+      url = "git+ssh://git@github.com/LarsArtmann/samber-do-auditlog?ref=master";
+      flake = false;
+    };
   };
 
   outputs =
@@ -36,6 +56,11 @@
       systems,
       go-nix-helpers,
       go-finding,
+      cmdguard,
+      go-output,
+      gogenfilter,
+      go-branded-id,
+      samber-do-auditlog,
     }:
     let
       # Prepared source for building cmd/cqrs-lint as a distributable binary.
@@ -69,9 +94,27 @@
           };
           deps = {
             "github.com/larsartmann/go-finding" = go-finding;
+            "github.com/larsartmann/cmdguard/v3" = cmdguard;
+            "github.com/larsartmann/go-output" = go-output;
+            "github.com/LarsArtmann/gogenfilter/v3" = gogenfilter;
+            "github.com/larsartmann/go-branded-id" = go-branded-id;
+            "github.com/larsartmann/samber-do-auditlog" = samber-do-auditlog;
           };
           subModules = {
             "github.com/larsartmann/go-finding" = [ "pipeline" ];
+            "github.com/larsartmann/go-output" = [
+              "d2"
+              "daghtml"
+              "delimited"
+              "escape"
+              "graph"
+              "markdown"
+              "markup"
+              "plantuml"
+              "serialization"
+              "table"
+              "tree"
+            ];
           };
         };
     in
@@ -256,7 +299,7 @@
 
             src = mkCqrsLintSource pkgs;
 
-            vendorHash = lib.fakeHash;
+            vendorHash = "sha256-iYsgtIvIluo0ZSr5trFHWfG2RZ+DYdlxG/IFxHycw0Y=";
             proxyVendor = true;
 
             subPackages = [ "." ];
@@ -269,8 +312,14 @@
             env = {
               CGO_ENABLED = "0";
               GOWORK = "off";
-              GOFLAGS = "-mod=mod -tags=goexperiment.jsonv2";
             };
+
+            # buildGoModule silently drops GOEXPERIMENT from env (not in its
+            # whitelist), so export it in preBuild. The "goexperiment.jsonv2"
+            # build tag is set internally by the toolchain from GOEXPERIMENT.
+            preBuild = ''
+              export GOEXPERIMENT=jsonv2
+            '';
 
             doCheck = false;
 
@@ -428,5 +477,11 @@
             '';
           };
         };
+
+      flake = {
+        overlays.cqrs-lint = final: _prev: {
+          cqrs-lint = self.packages.${final.stdenv.system}.cqrs-lint;
+        };
+      };
     };
 }
