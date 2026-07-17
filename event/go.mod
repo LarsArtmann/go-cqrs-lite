@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/event/v4
 go 1.26.4
 
 require (
+	github.com/fxamacker/cbor/v2 v2.9.2
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.1
@@ -18,7 +19,6 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
