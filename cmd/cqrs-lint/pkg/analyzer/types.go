@@ -87,6 +87,12 @@ type AnalysisContext struct {
 	// Computed once in BuildContext after the scan completes.
 	FeatureProfile FeatureProfile
 
+	// RulesConfig carries rule-specific overrides from .cqrs-lint.json (the
+	// "rules" key). Detectors consult it to suppress documented false-positive
+	// patterns. Zero value = no overrides = detectors behave as before.
+	// Wired in main.go run(); zero in unit tests (BuildContextFromSource).
+	RulesConfig RulesConfig
+
 	// lineCache caches file contents for SourceLine to avoid repeated disk reads.
 	lineCache sync.Map // filename → []string
 }

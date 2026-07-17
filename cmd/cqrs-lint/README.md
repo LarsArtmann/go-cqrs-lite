@@ -157,12 +157,12 @@ Explicit `features` flags always override preset values.
 
 ## Consistency Rules
 
-| ID   | Rule                         | Severity | Description                                  |
-| ---- | ---------------------------- | -------- | -------------------------------------------- |
-| D001 | inconsistent-event-naming    | Info     | Mixed dot notation and PascalCase            |
-| D002 | inconsistent-json-casing     | Info     | Mixed camelCase and snake_case JSON tags     |
-| D003 | inconsistent-logging-library | Info     | Project mixes multiple logging libraries     |
-| D005 | stale-documentation-version  | Warning  | Docs reference different version than go.mod |
+| ID   | Rule                         | Severity | Description                                                                                                      |
+| ---- | ---------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| D001 | inconsistent-event-naming    | Info     | Mixed dot notation and PascalCase                                                                                |
+| D002 | inconsistent-json-casing     | Info     | Mixed camelCase and snake_case JSON tags (excludes external-API mirrors — see [Rule Overrides](#rule-overrides)) |
+| D003 | inconsistent-logging-library | Info     | Project mixes multiple logging libraries                                                                         |
+| D005 | stale-documentation-version  | Warning  | Docs reference different version than go.mod                                                                     |
 
 ## Architecture Rules
 
@@ -219,6 +219,31 @@ A `.cqrs-lint.json` file in the project root is auto-loaded:
 }
 ```
 
+### Rule Overrides
+
+Some rules read project-specific overrides from the `"rules"` key so you can
+tell cqrs-lint about intentional patterns it would otherwise flag.
+
+**D002 — external-API struct prefixes**
+
+D002 flags files that mix `camelCase` and `snake_case` JSON tags. If your code
+mirrors an external API (Discord, Stripe, GitHub) whose snake_case tags you
+can't change, exclude those structs so they don't count toward the mix:
+
+```json
+{
+  "rules": {
+    "external-api-struct-prefixes": ["Discord", "Stripe", "GitHub"]
+  }
+}
+```
+
+Every struct whose name starts with a listed prefix is treated as an external
+mirror. For one-off cases, use the in-source marker instead (see
+[Suppression](#suppression)). Both mechanisms stack.
+
+Run `cqrs-lint doctor` to confirm your overrides were loaded.
+
 ## Suppression
 
 Inline suppression for false positives:
@@ -227,6 +252,21 @@ Inline suppression for false positives:
 //cqrs-lint:ignore(C007) wall-clock is domain logic
 now := time.Now()
 ```
+
+**D002 external-API marker** — excludes a single struct from the mixed-casing
+check when its snake_case JSON tags mirror an external API:
+
+```go
+//cqrs-lint:external-api
+type DiscordMessage struct {
+	Content string `json:"content"`
+	GuildID string `json:"guild_id"`
+}
+```
+
+The marker works on both single `type Foo struct{}` declarations and grouped
+`type ( ... )` blocks (place it on the struct's own doc line inside the group).
+For bulk exclusion prefer the `rules.external-api-struct-prefixes` config above.
 
 ## Auto-Fix
 

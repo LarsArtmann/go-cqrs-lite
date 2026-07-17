@@ -339,6 +339,63 @@ func setupStats(bus EventBus, notifier *Notifier) {
 	assertRule(t, findings, "A005", 0)
 }
 
+// A005 must NOT flag SubscribeAll callbacks that use the widened broadcast
+// signal set (Publish, Emit, Forward, Dispatch, WriteTo, Flush). These are
+// fire-and-forget distribution verbs, not projection persistence writes. A
+// callback that republishes an event or forwards to another sink isn't a
+// projection and shouldn't be told to use projectionhost.
+func TestA005_NoFindingForWidenedBroadcastSignals(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"fanout.go": `package main
+
+func republish(bus EventBus, out EventBus) {
+	bus.SubscribeAll(func(evt Event) {
+		out.Publish(evt)
+	})
+}
+
+func emitStats(bus EventBus, emitter *Emitter) {
+	bus.SubscribeAll(func(evt Event) {
+		emitter.Emit(evt)
+	})
+}
+
+func forwardAll(bus EventBus, fwd *Forwarder) {
+	bus.SubscribeAll(func(evt Event) {
+		fwd.Forward(evt)
+	})
+}
+
+func dispatchDerived(bus EventBus, cmdBus CommandBus) {
+	bus.SubscribeAll(func(evt Event) {
+		cmdBus.Dispatch(evt)
+	})
+}
+`,
+	})
+	findings := runDetector(t, api.NewA005Detector(ctx))
+	assertRule(t, findings, "A005", 0)
+}
+
+// A005 must STILL flag a callback that both broadcasts AND persists — the
+// persistence write is the defining trait of a projection. Guards against the
+// widened broadcast list swallowing real manual projections.
+func TestA005_FiresWhenCallbackBroadcastsAndPersists(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"proj.go": `package main
+
+func setup(bus EventBus, store Store, out EventBus) {
+	bus.SubscribeAll(func(evt Event) {
+		store.Save(evt.ID, evt)
+		out.Publish(evt)
+	})
+}
+`,
+	})
+	findings := runDetector(t, api.NewA005Detector(ctx))
+	assertRule(t, findings, "A005", 1)
+}
+
 func TestA007_DetectsDualModel(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"oo.go": `package main

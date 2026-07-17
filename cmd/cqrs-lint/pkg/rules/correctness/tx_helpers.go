@@ -248,3 +248,48 @@ func exprReferencesIdent(expr ast.Expr, name string) bool {
 
 	return false
 }
+
+// txIsUsed reports whether the transaction variable has any method called on
+// it other than the lifecycle methods Commit and Rollback. This covers
+// tx.Exec/ExecContext, tx.Query/QueryContext/QueryRow/QueryRowContext,
+// tx.Prepare/PrepareContext, tx.Stmt/StmtContext, and sqlx extras
+// (NamedExec, Get, Select, MustExec) by shape rather than by enumerating
+// every name: any `tx.<Method>(...)` selector that isn't Commit/Rollback
+// counts as a real use.
+//
+// C001 treats tx usage as a stronger bug signal than a bare `return nil`:
+// if the tx is used at all and never committed (and doesn't escape to a
+// callback that owns the commit), the work is silently lost regardless of the
+// function's return shape. See item f-7 in the DiscordSync feedback triage.
+func txIsUsed(fn *ast.FuncDecl, txVar string) bool {
+	used := false
+
+	ast.Inspect(fn, func(n ast.Node) bool {
+		if used {
+			return false
+		}
+
+		sel, ok := n.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+
+		id, ok := sel.X.(*ast.Ident)
+		if !ok || id.Name != txVar {
+			return true
+		}
+
+		// Lifecycle methods don't count as "use" — they're the commit/abort
+		// signals checked separately by hasCommitCall/hasDeferCommit.
+		switch sel.Sel.Name {
+		case "Commit", "Rollback":
+			return true
+		}
+
+		used = true
+
+		return false
+	})
+
+	return used
+}

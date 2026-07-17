@@ -74,6 +74,33 @@ var _ = zap.New
 	assertRule(t, findings, "D003", 1)
 }
 
+// D003 must NOT fire when the project standardizes on a single logging
+// library, even across many files. Covers item f-12 in the DiscordSync feedback
+// triage: the happy path (one library) had no explicit test, only the implicit
+// empty-context no-crash check.
+func TestD003_NoFindingForSingleLibrary(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"a.go": `package main
+
+import (
+	"log/slog"
+)
+
+var _ = slog.Default
+`,
+		"b.go": `package main
+
+import (
+	"log/slog"
+)
+
+var _ = slog.Info
+`,
+	})
+	findings := runDetector(t, consistency.NewD003Detector(ctx))
+	assertRule(t, findings, "D003", 0)
+}
+
 // --- D005: Positive test — stale documentation version ---
 
 func TestD005_DetectsStaleDocVersion(t *testing.T) {

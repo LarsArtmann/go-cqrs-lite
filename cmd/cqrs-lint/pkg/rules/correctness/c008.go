@@ -38,12 +38,20 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
+			// Project-level monetary signal: if NO package path or struct name
+			// anywhere in the project looks monetary, then strong field names
+			// (amount, balance) are probably not about money either — downgrade
+			// those findings to Info/Low rather than polluting a non-monetary
+			// codebase with Warning/Medium noise. Covers item f-8 in the
+			// DiscordSync feedback triage.
+			projectMonetary := projectHasMonetarySignal(ctx, moneyStructKeywords)
+
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
 					continue
 				}
 
-				pkgMoney := packageLooksMonetary(gf.Pkg.PkgPath)
+				pkgMoney := packageLooksMonetary(gf.Pkg.PkgPath) || projectMonetary
 
 				handled := make(map[*ast.StructType]bool)
 
@@ -63,7 +71,8 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					structMoney := pkgMoney || isMoneyStructName(ts.Name.Name, moneyStructKeywords)
 					findings = append(findings, scanMoneyFields(
-						ctx, st, structMoney, strongMoneyFields, weakMoneyFields,
+						ctx, st, structMoney, projectMonetary,
+						strongMoneyFields, weakMoneyFields,
 					)...)
 
 					return true
@@ -77,7 +86,8 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					findings = append(findings, scanMoneyFields(
-						ctx, st, pkgMoney, strongMoneyFields, weakMoneyFields,
+						ctx, st, pkgMoney, projectMonetary,
+						strongMoneyFields, weakMoneyFields,
 					)...)
 
 					return true
@@ -92,13 +102,26 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // scanMoneyFields returns findings for float64 fields that match the money
 // heuristic. structMoney indicates whether the enclosing context (struct or
 // package) already carries a money signal, allowing weak field names to fire.
+// projectMonetary, when false, downgrades strong-field findings to Info/Low —
+// a non-monetary project's "amount"/"balance" is probably not about money.
 func scanMoneyFields(
 	ctx *analyzer.AnalysisContext,
 	st *ast.StructType,
 	structMoney bool,
+	projectMonetary bool,
 	strongMoneyFields, weakMoneyFields []string,
 ) []finding.Finding {
 	var findings []finding.Finding
+
+	severity := finding.SeverityWarning
+	confidence := finding.ConfidenceMedium
+	if !projectMonetary {
+		// No package or struct anywhere in the project looks monetary. Strong
+		// field names (amount, price) stay reportable — they're suspicious — but
+		// read as "maybe money" rather than "almost certainly money".
+		severity = finding.SeverityInfo
+		confidence = finding.ConfidenceLow
+	}
 
 	for _, field := range st.Fields.List {
 		if !isFloat64(field.Type) {
@@ -128,11 +151,11 @@ func scanMoneyFields(
 					"Field %s is float64 — use decimal or integer cents for money to avoid rounding errors",
 					name.Name,
 				),
-				finding.SeverityWarning,
+				severity,
 				finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 			).
 				WithCategory(finding.CategoryCorrectness).
-				WithConfidence(finding.ConfidenceMedium).
+				WithConfidence(confidence).
 				WithSuggestion("Use shopspring/decimal or int64 cents instead of float64 for monetary values").
 				WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 				Build()
@@ -143,6 +166,49 @@ func scanMoneyFields(
 	}
 
 	return findings
+}
+
+// projectHasMonetarySignal reports whether any package path or named struct in
+// the project carries a money keyword. This is the project-level "is this
+// plausibly a payments/billing app?" signal that C008 consults to downgrade
+// findings on non-monetary codebases.
+func projectHasMonetarySignal(ctx *analyzer.AnalysisContext, moneyStructKeywords []string) bool {
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		if packageLooksMonetary(gf.Pkg.PkgPath) {
+			return true
+		}
+
+		hit := false
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			if hit {
+				return false
+			}
+
+			ts, ok := n.(*ast.TypeSpec)
+			if !ok {
+				return true
+			}
+
+			if isMoneyStructName(ts.Name.Name, moneyStructKeywords) {
+				hit = true
+
+				return false
+			}
+
+			return true
+		})
+
+		if hit {
+			return true
+		}
+	}
+
+	return false
 }
 
 // matchesAny reports whether name contains any of the substrings.

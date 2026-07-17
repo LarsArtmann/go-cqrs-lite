@@ -55,6 +55,9 @@ type AppConfig struct {
 	// Preset is a named set of feature-flag defaults (sugar over Features).
 	// Explicit Features flags always override preset values.
 	Preset analyzer.ConfigPreset `default:"" json:"preset,omitempty"`
+	// Rules carries rule-specific overrides (e.g. external-API struct prefixes
+	// for D002). See analyzer.RulesConfig docs for each field.
+	Rules analyzer.RulesConfig `json:"rules,omitempty"`
 }
 
 func main() {
@@ -138,6 +141,9 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		cfg.Preset,
 		actx.FeatureProfile,
 	)
+
+	// Rule-specific overrides (external-API allowlists, etc.).
+	actx.RulesConfig = cfg.Rules
 
 	if len(actx.GoFiles) == 0 {
 		if !cfg.Quiet {

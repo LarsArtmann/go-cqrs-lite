@@ -41,6 +41,25 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 			fmt.Println()
 			fmt.Println(string(raw))
 
+			// Surface any loaded rule overrides so consumers can verify their
+			// config (e.g. that D002 external-api-struct-prefixes were picked
+			// up) without having to re-read the JSON file.
+			if len(cfg.Rules.ExternalAPIStructPrefixes) > 0 {
+				rulesRaw, err := json.MarshalIndent(
+					map[string]analyzer.RulesConfig{"rules": cfg.Rules},
+					"",
+					"  ",
+				)
+				if err != nil {
+					return fmt.Errorf("marshal rules config: %w", err)
+				}
+
+				fmt.Println()
+				fmt.Println("Loaded rules overrides from .cqrs-lint.json:")
+				fmt.Println()
+				fmt.Println(string(rulesRaw))
+			}
+
 			return nil
 		},
 		cmdguard.WithShort("Detect and display the project's go-cqrs-lite feature profile"),

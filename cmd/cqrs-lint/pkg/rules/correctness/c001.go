@@ -55,7 +55,14 @@ func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						continue
 					}
 
-					if !hasReturnNil(fn) {
+					// Fire when there's either a bare success-path return
+					// (hasReturnNil) OR the tx is actually used (txIsUsed). tx usage
+					// is the stronger signal: if tx.Exec/tx.Query ran and the tx is
+					// never committed and doesn't escape to a callback, the work is
+					// lost regardless of the function's return shape. Requiring
+					// hasReturnNil alone missed functions that return a sentinel or
+					// wrapped error after using tx.
+					if !hasReturnNil(fn) && !txIsUsed(fn, txVar) {
 						continue
 					}
 

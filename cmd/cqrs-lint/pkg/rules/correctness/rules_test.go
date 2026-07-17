@@ -187,6 +187,55 @@ func withTx(ctx context.Context, db *sql.DB, body func(*sql.Tx) error) error {
 	assertRule(t, findings, "C001", 0)
 }
 
+// C001 must flag a function that uses the tx (tx.Exec) and never commits,
+// even when there is no bare `return nil` success path. tx usage is a stronger
+// bug signal than the return shape: the Exec ran, the tx is abandoned, the work
+// is silently rolled back. Covers item f-7 in the DiscordSync feedback triage.
+func TestC001_DetectsTxUsedWithoutBareReturnNil(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"tx.go": `package main
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+)
+
+func writeAndReturnSentinel(ctx context.Context, db *sql.DB) error {
+	tx, _ := db.BeginTx(ctx, nil)
+	_, _ = tx.Exec("INSERT INTO t VALUES (1)")
+	return errors.New("sentinel")
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC001Detector(ctx))
+	assertRule(t, findings, "C001", 1)
+}
+
+// C001 must NOT flag a function that begins a tx but neither uses it nor
+// returns nil — there's no work to lose and no clean fix to suggest. Guards
+// against txIsUsed widening the rule into noise on degenerate stubs.
+func TestC001_NoFindingWhenTxUnusedAndNoReturnNil(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"tx.go": `package main
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+)
+
+func stub(ctx context.Context, db *sql.DB) error {
+	tx, _ := db.BeginTx(ctx, nil)
+	_ = tx
+	return errors.New("not implemented")
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC001Detector(ctx))
+	assertRule(t, findings, "C001", 0)
+}
+
 // --- C005: Raw json.Unmarshal on Event Payload ---
 
 func TestC005_DetectsRawJSONUnmarshal(t *testing.T) {
@@ -341,6 +390,71 @@ type Wallet struct {
 	})
 	findings := runDetector(t, correctness.NewC008Detector(ctx))
 	assertRule(t, findings, "C008", 1)
+}
+
+// C008 downgrades strong-field findings (amount, balance) to Info/Low when the
+// project has no monetary signal anywhere — no money-named package or struct.
+// A lone "amount" in a non-payments codebase is suspicious but uncertain, so it
+// shouldn't cost the same health-score points as a confirmed money field.
+// Covers item f-8 in the DiscordSync feedback triage.
+func TestC008_DowngradesStrongFieldWhenProjectNotMonetary(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"buffer.go": `package main
+
+type Buffer struct {
+	Amount float64
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC008Detector(ctx))
+	if len(findings) != 1 {
+		t.Fatalf("expected 1 C008 finding, got %d", len(findings))
+	}
+
+	if findings[0].Severity != finding.SeverityInfo {
+		t.Errorf("expected Info severity in non-monetary project, got %s", findings[0].Severity)
+	}
+
+	if findings[0].Confidence != finding.ConfidenceLow {
+		t.Errorf("expected Low confidence in non-monetary project, got %s", findings[0].Confidence)
+	}
+}
+
+// C008 keeps strong-field findings at Warning/Medium when the project DOES have
+// a monetary signal (here: a money-named struct in the same project). Guards
+// against the project-downgrade suppressing real money fields in payments apps.
+func TestC008_KeepsWarningInMonetaryProject(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"buffer.go": `package main
+
+type Buffer struct {
+	Amount float64
+}
+
+type Wallet struct {
+	Balance float64
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC008Detector(ctx))
+	// Wallet/Balance is unambiguously monetary → full severity. Buffer/Amount
+	// is corroborated by the project signal too, so both stay Warning/Medium.
+	count := 0
+	for _, f := range findings {
+		if string(f.Rule) != "C008" {
+			continue
+		}
+		count++
+		if f.Severity != finding.SeverityWarning {
+			t.Errorf("expected Warning in monetary project, got %s", f.Severity)
+		}
+		if f.Confidence != finding.ConfidenceMedium {
+			t.Errorf("expected Medium confidence in monetary project, got %s", f.Confidence)
+		}
+	}
+	if count == 0 {
+		t.Fatal("expected at least one C008 finding in a monetary project")
+	}
 }
 
 // --- C002: Broken Command ID ---

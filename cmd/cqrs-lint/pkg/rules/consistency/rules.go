@@ -73,7 +73,13 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // D002: Inconsistent JSON casing.
-// Detects mixing camelCase and snake_case in JSON struct tags within the same package.
+// Detects mixing camelCase and snake_case in JSON struct tags within the same
+// package.
+//
+// Structs that mirror an external API (Discord, Stripe, GitHub) are excluded:
+// their snake_case JSON tags are dictated by the upstream API and are not a
+// style choice the consumer can change. See collectExternalAPIStructs for the
+// two opt-out mechanisms (config prefix list + //cqrs-lint:external-api marker).
 func NewD002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"D002-inconsistent-json-casing",
@@ -85,12 +91,19 @@ func NewD002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
+				external := collectExternalAPIStructs(gf.AST, ctx.RulesConfig)
+
 				hasCamel := false
 				hasSnake := false
 
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					st, ok := n.(*ast.StructType)
 					if !ok || st.Fields == nil {
+						return true
+					}
+
+					// Skip structs marked as mirroring an external API.
+					if external[st] {
 						return true
 					}
 

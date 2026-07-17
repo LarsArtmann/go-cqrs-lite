@@ -136,3 +136,85 @@ func createTestFindings() []finding.Finding {
 
 	return findings
 }
+
+// Confidence weighting: a Low-confidence finding costs less than a High one.
+// Guards against a flood of Low-confidence heuristic matches dominating the
+// score. Covers item f-16 in the DiscordSync feedback triage.
+func TestComputeHealthScore_ConfidenceWeighting(t *testing.T) {
+	t.Parallel()
+
+	high, _ := finding.NewBuilder(
+		"C001", "test", "sure bug",
+		finding.SeverityCritical,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).WithConfidence(finding.ConfidenceHigh).Build()
+
+	low, _ := finding.NewBuilder(
+		"C002", "test", "maybe bug",
+		finding.SeverityCritical,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).WithConfidence(finding.ConfidenceLow).Build()
+
+	hs := ComputeHealthScore([]finding.Finding{high, low})
+
+	// High (1.0): 10, Low (0.5): 5 → total 15 → score 85.
+	if hs.Score != 85 {
+		t.Errorf("High(10)+Low(5): expected score 85, got %d", hs.Score)
+	}
+}
+
+// Info cap: many Info-severity findings can't tank the score. 50 info findings
+// would naïvely cost -50; the 20% cap limits them to -20. Covers item f-15 in
+// the DiscordSync feedback triage (18 D002 infos out-scoring real bugs).
+func TestComputeHealthScore_InfoCap(t *testing.T) {
+	t.Parallel()
+
+	findings := make([]finding.Finding, 0, 50)
+
+	for i := 0; i < 50; i++ {
+		f, _ := finding.NewBuilder(
+			"D002", "test", "style nit",
+			finding.SeverityInfo,
+			finding.Pos(finding.FilePath("test.go"), 1, 1),
+		).Build()
+		findings = append(findings, f)
+	}
+
+	hs := ComputeHealthScore(findings)
+
+	// 50 info * 1.0 weight = 50, capped at 20 → score 80.
+	if hs.Score != 80 {
+		t.Errorf("50 info findings capped at 20: expected score 80, got %d", hs.Score)
+	}
+}
+
+// The Info cap must NOT suppress Critical/Error/warning deductions. A project
+// with a real bug AND lots of info noise should still feel the bug.
+func TestComputeHealthScore_InfoCapDoesNotAffectHigherSeverities(t *testing.T) {
+	t.Parallel()
+
+	var findings []finding.Finding
+
+	critical, _ := finding.NewBuilder(
+		"C001", "test", "real bug",
+		finding.SeverityCritical,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).Build()
+	findings = append(findings, critical)
+
+	for i := 0; i < 50; i++ {
+		f, _ := finding.NewBuilder(
+			"D002", "test", "style nit",
+			finding.SeverityInfo,
+			finding.Pos(finding.FilePath("test.go"), 1, 1),
+		).Build()
+		findings = append(findings, f)
+	}
+
+	hs := ComputeHealthScore(findings)
+
+	// Critical (10) + info capped (20) = 30 → score 70.
+	if hs.Score != 70 {
+		t.Errorf("critical + capped info: expected score 70, got %d", hs.Score)
+	}
+}

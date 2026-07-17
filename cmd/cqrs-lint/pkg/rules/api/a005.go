@@ -71,7 +71,7 @@ func NewA005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						// Inspect each SubscribeAll callback: if it only
 						// broadcasts/notifies without persisting, it's a
 						// fire-and-forget fan-out, not a manual projection.
-						if !isManualProjection(ctx, gf.AST) {
+						if !isManualProjection(gf.AST) {
 							continue
 						}
 
@@ -105,7 +105,7 @@ func NewA005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // A callback is treated as a NON-projection (fan-out) only when it contains a
 // broadcast/notify call and no persistence call. Everything else — empty
 // bodies, delegating helpers, persistence writes — is conservatively reported.
-func isManualProjection(ctx *analyzer.AnalysisContext, fileAST *ast.File) bool {
+func isManualProjection(fileAST *ast.File) bool {
 	anyProjectionCandidate := false
 
 	ast.Inspect(fileAST, func(n ast.Node) bool {
@@ -188,10 +188,17 @@ func classifyCallbackBody(body *ast.BlockStmt) (hasBroadcast, hasPersist bool) {
 }
 
 // isBroadcastSignal reports whether a method name looks like fire-and-forget
-// fan-out (SSE push, stats notification) rather than state mutation.
+// fan-out (SSE/WS push, event republish, command forwarding, stats
+// notification) rather than state mutation.
+//
+// Broadcast signals only matter when a SubscribeAll callback has NO
+// persistence signal: a callback that both broadcasts and persists still flags
+// as a projection (the persistence write is the defining trait). So widening
+// this list is safe — it only suppresses pure non-persistent fan-out.
 func isBroadcastSignal(method string) bool {
 	return slices.Contains([]string{
-		"Notify", "Broadcast", "Multicast", "Fanout", "FanOut", "Push", "Send",
+		"Broadcast", "Dispatch", "Emit", "FanOut", "Fanout", "Flush",
+		"Forward", "Multicast", "Notify", "Publish", "Push", "Send", "WriteTo",
 	}, method)
 }
 
