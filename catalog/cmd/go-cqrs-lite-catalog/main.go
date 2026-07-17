@@ -118,32 +118,43 @@ func writeJSON(path string, v any) error {
 func writeLLMsTxt(path string, cat *catalog.Catalog) error {
 	content := fmt.Sprintf("# %s\n\n> Auto-generated catalog summary.\n\n", cat.Title)
 
-	var contentSb116 strings.Builder
+	var (
+		contentSb116 strings.Builder
+		contentSb122 strings.Builder
+	)
+
 	for _, svc := range cat.Services {
-		contentSb116.WriteString(fmt.Sprintf("## %s (%s)\n\n", svc.Name, svc.ID))
+		fmt.Fprintf(&contentSb116, "## %s (%s)\n\n", svc.Name, svc.ID)
 
 		var contentSb119 strings.Builder
 		for _, cmd := range svc.Commands {
-			contentSb119.WriteString(fmt.Sprintf("- Command: %s", cmd.Name))
+			fmt.Fprintf(&contentSb119, "- Command: %s", cmd.Name)
+
 			if cmd.Operation != nil {
-				contentSb119.WriteString(fmt.Sprintf(" [%s %s]", cmd.Operation.Method, cmd.Operation.Path))
+				fmt.Fprintf(&contentSb119, " [%s %s]", cmd.Operation.Method, cmd.Operation.Path)
 			}
 
 			contentSb119.WriteString("\n")
 		}
-		content += contentSb119.String()
+
+		contentSb122.WriteString(contentSb119.String())
 
 		var contentSb127 strings.Builder
 		for _, q := range svc.Queries {
-			contentSb127.WriteString(fmt.Sprintf("- Query: %s", q.Name))
+			fmt.Fprintf(&contentSb127, "- Query: %s", q.Name)
+
 			if q.Operation != nil {
-				contentSb127.WriteString(fmt.Sprintf(" [%s %s]", q.Operation.Method, q.Operation.Path))
+				fmt.Fprintf(&contentSb127, " [%s %s]", q.Operation.Method, q.Operation.Path)
 			}
 
 			contentSb127.WriteString("\n")
 		}
-		content += contentSb127.String()
+
+		contentSb122.WriteString(contentSb127.String())
 	}
+
+	content += contentSb122.String()
+
 	content += contentSb116.String()
 
 	return os.WriteFile(path, []byte(content), 0o644)
