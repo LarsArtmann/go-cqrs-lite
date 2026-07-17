@@ -10,13 +10,19 @@
 
 <!-- resolution-banner -->
 
-> **Linter response (2026-07-17):** All seven suggested improvements triaged.
-> Four implemented (C001 closure-trace, C008 money corroboration, D005 version
-> regex, A005 broadcast vs projection), two already addressed via the
-> FeatureProfile + EventTypesEmitted registry work (A016, E006), D004 removed,
-> and D002 left as a legitimate per-file consistency check (external-contract
-> detection needs a config allowlist — tracked as a follow-up). See the
-> "Resolution Log" section at the end of this file.
+> **Linter response (2026-07-17, updated 04:13):** All seven suggested
+> improvements triaged. Round 1 implemented four rules (C001 closure-trace, C008
+> money corroboration, D005 version regex, A005 broadcast vs projection); A016
+> and E006 were already addressed via the FeatureProfile +
+> EventTypesEmitted registry work; D004 was removed. **Round 2 closed the
+> biggest gap** — D002 now ships a dual opt-out (config `external-api-struct-
+> prefixes` + in-source `//cqrs-lint:external-api` marker), plus fairness fixes
+> to the health score (confidence weighting + Info cap), C001 tx-use detection,
+> A005 widened broadcast signals, and C008 project-aware downgrade. See the
+> "Resolution Log" section at the end of this file, the round-1 triage
+> (`docs/status/2026-07-17_03-38_cqrs-lint-discordsync-feedback-triage.md`), and
+> the round-2 report
+> (`docs/status/2026-07-17_04-13_cqrs-lint-discordsync-feedback-round2.md`).
 
 **Consumer:** [DiscordSync](https://github.com/LarsArtmann/DiscordSync) — Discord backup bot
 **Version used:** go-cqrs-lite v4.0.0 (flake pin at `c34dd604`)
@@ -179,6 +185,12 @@ parameter, the commit cannot be statically verified within the function body.
 
 ### E006: `GCSMigrationCandidate` emitted but no projection handles it
 
+<!-- resolved-2026-07-17 -->
+
+> **[RESOLVED]** E006 already cross-references `ctx.Registry.EventTypesEmitted`,
+> populated only from `event.New()`/`event.NewEvent()` calls. SQL row structs
+> like `GCSMigrationCandidate` are never registered, so this no longer fires.
+
 **Verdict: FALSE POSITIVE. Not an event type.**
 
 `GCSMigrationCandidate` is a SQL row struct (`db/attachment_downloads.go:55`)
@@ -192,6 +204,11 @@ conventions.
 ---
 
 ### A016: Command dispatcher lacks idempotency middleware
+
+<!-- resolved-2026-07-17 -->
+
+> **[RESOLVED]** A016 is now gated by `FeatureProfile.CommandFlow`;
+> event-sourcing-only systems (no command dispatcher) never fire.
 
 **Verdict: FALSE POSITIVE. No command dispatcher exists.**
 
@@ -274,6 +291,13 @@ refactor.
 ---
 
 ### D002 / D004: Mixed JSON key casing (19 files, 492 tags)
+
+<!-- resolved-2026-07-17-0413 -->
+
+> **[RESOLVED]** D004 was removed. D002 now ships a dual opt-out: config
+> (`external-api-struct-prefixes`, e.g. `["Discord"]`) and an in-source marker
+> (`//cqrs-lint:external-api`) on the struct doc comment. Both work for single
+> and grouped type declarations.
 
 **Verdict: INTENTIONAL. Snake_case comes from Discord's API.**
 
@@ -410,4 +434,4 @@ improvement:
 | 4   | A005 — check callback behavior             | **DONE**    | `classifyCallbackBody` suppresses when the SubscribeAll callback has broadcast/notify calls (Notify/Broadcast/Send) and no persistence calls (Save/Set/Upsert/...).                  |
 | 5   | A016 — verify dispatcher type              | **DONE**    | Gated by `FeatureProfile.CommandFlow`; read-only / event-sourcing-only systems never fire.                                                                                           |
 | 6   | D005 — skip empty/non-version tokens       | **DONE**    | `looksLikeVersionToken` requires `v\d+\.\d+` shape, rejecting "via"/"version" and bare "v3"/"v4" prose words.                                                                        |
-| 7   | D002/D004 — respect external API contracts | **PARTIAL** | D004 removed. D002 remains a per-file consistency check; external-contract detection needs a config allowlist (tracked as a follow-up, low priority).                                |
+| 7   | D002/D004 — respect external API contracts | **DONE**    | D004 removed. D002 ships a dual opt-out (round-2): config `external-api-struct-prefixes` + in-source `//cqrs-lint:external-api` marker. See round-2 report §a1.                                          |
