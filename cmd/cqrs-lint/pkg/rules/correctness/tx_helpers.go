@@ -39,7 +39,7 @@ func findBeginTxVar(fn *ast.FuncDecl) string {
 			return true
 		}
 
-		if sel.Sel.Name != "BeginTx" && sel.Sel.Name != "Begin" {
+		if sel.Sel.Name != "BeginTx" && sel.Sel.Name != "Begin" && sel.Sel.Name != "Beginx" {
 			return true
 		}
 

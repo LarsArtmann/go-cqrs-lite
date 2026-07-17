@@ -91,6 +91,11 @@ func NewB006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // B007: Repeated handler registration.
 // Detects 3+ consecutive Register/RegisterTyped calls that could be table-driven.
+//
+// Scope: this rule covers CQRS handler registration (Register, RegisterTyped,
+// Handle, Subscribe) ONLY. It does NOT fire on stdlib http.ServeMux.HandleFunc
+// chains — Go 1.22+ pattern routing with per-route middleware is idiomatic and
+// not a boilerplate smell. See the DiscordSync feedback (B007 was a non-issue).
 func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B007-repeated-handler-registration",

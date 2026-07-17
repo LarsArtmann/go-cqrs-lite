@@ -475,3 +475,56 @@ func (c CreateCmd) ID() CommandID {
 	findings := runDetector(t, correctness.NewC002Detector(ctx))
 	assertRule(t, findings, "C002", 1)
 }
+
+// C008 must detect money fields exposed via embedded structs. An embedded
+// MoneyMixin whose name carries a money keyword should set structMoney=true so
+// weak fields (value, total) in the same struct fire. Covers item f-10/21.
+func TestC008_EmbeddedMoneyStruct(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+type MoneyMixin struct {
+	Amount float64
+}
+
+// Order embeds MoneyMixin — the money signal propagates via the embed.
+type Order struct {
+	MoneyMixin
+	Total float64
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC008Detector(ctx))
+	// MoneyMixin/Amount should fire (strong field). Order/Total should fire
+	// too (weak field, but structMoney is true via the MoneyMixin embed).
+	count := 0
+	for _, f := range findings {
+		if string(f.Rule) == "C008" {
+			count++
+		}
+	}
+	if count < 2 {
+		t.Errorf("expected at least 2 C008 findings (Amount + Total via embed), got %d", count)
+	}
+}
+
+// C001 must also detect sqlx.Beginx as a tx-begin call (not just database/sql
+// BeginTx/Begin). Covers item f-13/22.
+func TestC001_DetectsSqlxBeginx(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"tx.go": `package main
+
+import (
+	"context"
+)
+
+func writeNoCommit(ctx context.Context, db DB) error {
+	tx := db.Beginx()
+	tx.Exec("INSERT INTO t VALUES (1)")
+	return nil
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC001Detector(ctx))
+	assertRule(t, findings, "C001", 1)
+}

@@ -21,6 +21,26 @@ func TestA009_FiresWithoutStackPreset(t *testing.T) {
 	assertRule(t, findings, "A009", 1)
 }
 
+// A009 must NOT fire when the project uses the storage/ facade directly — this
+// signals an intentional shared-DB architecture (one *sql.DB across CQRS +
+// relational reads) that stack/ presets don't support. Covers item f-14/16.
+func TestA009_NoFindingForStorageFacadeArchitecture(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	// Simulate a storage/ import by populating Packages.
+	ctx.Packages = []*packages.Package{{
+		PkgPath: "example.com/myapp",
+		Imports: map[string]*packages.Package{
+			"github.com/larsartmann/go-cqrs-lite/storage": {
+				PkgPath: "github.com/larsartmann/go-cqrs-lite/storage",
+			},
+		},
+	}}
+	findings := runDetector(t, api.NewA009Detector(ctx))
+	assertRule(t, findings, "A009", 0)
+}
+
 // --- A010: Custom error types ---
 
 func TestA010_DetectsCustomErrorInterface(t *testing.T) {

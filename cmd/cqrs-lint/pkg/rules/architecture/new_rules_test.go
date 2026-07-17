@@ -199,6 +199,29 @@ func emit() {
 	assertRule(t, findings, "E006", 1)
 }
 
+// E006 must NOT flag a SQL row struct whose name coincidentally matches an event
+// naming pattern (e.g. "Candidate") but is never emitted via event.New(). The
+// registry only tracks types actually emitted, so pure data structs are safe.
+// Regression for the DiscordSync false positive on GCSMigrationCandidate.
+func TestE006_NoFindingForSQLRowStructNamedCandidate(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"db.go": `package main
+
+// GCSMigrationCandidate is a SQL row struct, NOT an emitted event type.
+type GCSMigrationCandidate struct {
+	ID     string
+	Status string
+}
+
+func GetCandidates() []GCSMigrationCandidate {
+	return nil
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE006Detector(ctx))
+	assertRule(t, findings, "E006", 0)
+}
+
 // --- E007: Query without handler ---
 
 func TestE007_DetectsUnregisteredQuery(t *testing.T) {

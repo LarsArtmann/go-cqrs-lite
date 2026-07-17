@@ -69,7 +69,9 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					handled[st] = true
 
-					structMoney := pkgMoney || isMoneyStructName(ts.Name.Name, moneyStructKeywords)
+					structMoney := pkgMoney ||
+						isMoneyStructName(ts.Name.Name, moneyStructKeywords) ||
+						hasMoneyEmbed(st, moneyStructKeywords)
 					findings = append(findings, scanMoneyFields(
 						ctx, st, structMoney, projectMonetary,
 						strongMoneyFields, weakMoneyFields,
@@ -203,6 +205,40 @@ func projectHasMonetarySignal(ctx *analyzer.AnalysisContext, moneyStructKeywords
 					return true
 				}
 			}
+		}
+	}
+
+	return false
+}
+
+// hasMoneyEmbed reports whether the struct embeds an anonymous field whose type
+// name contains a monetary keyword (e.g. `type Order struct { MoneyMixin; ... }`).
+// This catches money fields inherited via embedding without requiring cross-file
+// type resolution — a conservative heuristic.
+func hasMoneyEmbed(st *ast.StructType, moneyStructKeywords []string) bool {
+	if st.Fields == nil {
+		return false
+	}
+
+	for _, field := range st.Fields.List {
+		if len(field.Names) > 0 {
+			continue // embedded fields have no names
+		}
+
+		var name string
+		switch t := field.Type.(type) {
+		case *ast.Ident:
+			name = t.Name
+		case *ast.StarExpr:
+			if id, ok := t.X.(*ast.Ident); ok {
+				name = id.Name
+			}
+		case *ast.SelectorExpr:
+			name = t.Sel.Name
+		}
+
+		if name != "" && isMoneyStructName(name, moneyStructKeywords) {
+			return true
 		}
 	}
 

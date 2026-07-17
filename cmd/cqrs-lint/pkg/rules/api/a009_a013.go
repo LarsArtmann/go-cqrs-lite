@@ -18,6 +18,7 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		"A009-missing-stack-preset",
 		func(_ context.Context) ([]finding.Finding, error) {
 			hasStackPreset := false
+			hasStorageFacade := false
 
 			for _, pkg := range ctx.Packages {
 				for _, imp := range pkg.Imports {
@@ -27,13 +28,20 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					if strings.Contains(imp.PkgPath, "go-cqrs-lite/stack/") {
 						hasStackPreset = true
+					}
 
-						break
+					// Using the storage/ facade directly (NewSQLBackend, RelationalProjection,
+					// SQLViewStore, ...) signals an intentional custom-wiring architecture
+					// (shared *sql.DB across CQRS + relational reads) that stack/ presets
+					// don't support. Suppress A009 in that case — it's not a missing-preset
+					// mistake, it's a deliberate design choice.
+					if strings.Contains(imp.PkgPath, "go-cqrs-lite/storage") {
+						hasStorageFacade = true
 					}
 				}
 			}
 
-			if hasStackPreset {
+			if hasStackPreset || hasStorageFacade {
 				return nil, nil
 			}
 

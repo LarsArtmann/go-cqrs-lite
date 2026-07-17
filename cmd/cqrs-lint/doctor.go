@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
 
@@ -60,6 +61,20 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 				fmt.Println(string(rulesRaw))
 			}
 
+			// Count inline suppressions per rule so consumers see which rules
+			// they are ignoring - a high suppression rate signals the heuristic
+			// may need tuning.
+			suppressionCounts := countSuppressions(actx)
+			if len(suppressionCounts) > 0 {
+				fmt.Println()
+				fmt.Println("Inline suppression counts (//cqrs-lint:ignore(RULE)):")
+				fmt.Println()
+
+				for rule, count := range suppressionCounts {
+					fmt.Printf("  %s: %d suppressed\n", rule, count)
+				}
+			}
+
 			return nil
 		},
 		cmdguard.WithShort("Detect and display the project's go-cqrs-lite feature profile"),
@@ -74,4 +89,40 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 	}
 
 	return nil
+}
+
+// countSuppressions scans all Go files for //cqrs-lint:ignore(RULE) comments
+// and returns a map of rule ID to suppression count. This helps consumers spot
+// rules with high suppression rates, which signals the heuristic may need tuning.
+func countSuppressions(actx *analyzer.AnalysisContext) map[string]int {
+	counts := make(map[string]int)
+
+	for _, gf := range actx.GoFiles {
+		if gf.AST == nil {
+			continue
+		}
+
+		for _, group := range gf.AST.Comments {
+			for _, c := range group.List {
+				text := c.Text
+				idx := strings.Index(text, "cqrs-lint:ignore(")
+				if idx < 0 {
+					continue
+				}
+
+				start := idx + len("cqrs-lint:ignore(")
+				end := strings.Index(text[start:], ")")
+				if end < 0 {
+					continue
+				}
+
+				rule := strings.TrimSpace(text[start : start+end])
+				if rule != "" {
+					counts[rule]++
+				}
+			}
+		}
+	}
+
+	return counts
 }
