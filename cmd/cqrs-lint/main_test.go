@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
@@ -268,5 +269,115 @@ func TestFilterFPSuspects_Empty(t *testing.T) {
 	suspects := filterFPSuspects(nil)
 	if len(suspects) != 0 {
 		t.Errorf("suspects count: got %d, want 0", len(suspects))
+	}
+}
+
+// TestSuppressionEndToEnd verifies the full suppression pipeline:
+// findings with Suppression set are excluded from active findings,
+// health score, and do not contribute to the finding count. This test
+// would have caught the original suppression leak bug (v0.1.0–v0.2.0).
+func TestSuppressionEndToEnd(t *testing.T) {
+	t.Parallel()
+
+	// Build a mix: 1 active error, 1 suppressed error, 1 active info.
+	activeErr, _ := finding.NewBuilder(
+		"C001", "test", "real bug",
+		finding.SeverityError,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).Build()
+
+	suppressedErr, _ := finding.NewBuilder(
+		"C002", "test", "suppressed bug",
+		finding.SeverityError,
+		finding.Pos(finding.FilePath("test.go"), 2, 1),
+	).Build()
+	suppressedErr.Suppression = &finding.Suppression{
+		Kind:   finding.SuppressionInSource,
+		Rule:   "C002",
+		Reason: "false positive",
+	}
+
+	activeInfo, _ := finding.NewBuilder(
+		"D002", "test", "style nit",
+		finding.SeverityInfo,
+		finding.Pos(finding.FilePath("test.go"), 3, 1),
+	).Build()
+
+	allFindings := []finding.Finding{activeErr, suppressedErr, activeInfo}
+
+	// Step 1: filterSuppressed splits active from suppressed.
+	unsuppressed, suppressedCount := filterSuppressed(allFindings)
+	if suppressedCount != 1 {
+		t.Fatalf("suppressed count: got %d, want 1", suppressedCount)
+	}
+	if len(unsuppressed) != 2 {
+		t.Fatalf("unsuppressed count: got %d, want 2", len(unsuppressed))
+	}
+
+	// Step 2: health score computed on unsuppressed — suppressed error
+	// must NOT count. Active error costs -5, active info costs -1 → score 94.
+	hs := ComputeHealthScoreWithCap(unsuppressed, defaultInfoDeductionCap)
+	if hs.Score != 94 {
+		t.Errorf("health score: got %d, want 94 (100-5 error-1 info)", hs.Score)
+	}
+
+	// Step 3: exit-code check on unsuppressed — suppressed error doesn't trigger.
+	exitErr := shouldExitWithError(&AppConfig{}, unsuppressed)
+	if !errors.Is(exitErr, errFindingsWithErrors) {
+		t.Errorf("exit: active error should trigger errFindingsWithErrors, got %v", exitErr)
+	}
+
+	// Step 4: verify suppressed finding is absent from unsuppressed set.
+	for _, f := range unsuppressed {
+		if f.Suppression != nil {
+			t.Errorf("suppressed finding %s should not be in unsuppressed set", f.ID)
+		}
+	}
+}
+
+// TestShouldExitWithError_FPSuspectsMode verifies that --fp-suspects always
+// returns nil (advisory mode) even when Error-severity findings are present.
+func TestShouldExitWithError_FPSuspectsMode(t *testing.T) {
+	t.Parallel()
+
+	errFinding, _ := finding.NewBuilder(
+		"C001", "test", "error",
+		finding.SeverityError,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).WithConfidence(finding.ConfidenceLow).Build()
+
+	cfg := &AppConfig{FPSuspects: true}
+	err := shouldExitWithError(cfg, []finding.Finding{errFinding})
+	if err != nil {
+		t.Errorf("fp-suspects mode should always return nil, got %v", err)
+	}
+}
+
+// TestShouldExitWithError_NormalMode verifies that error-severity findings
+// trigger errFindingsWithErrors in normal (non-fp-suspects) mode.
+func TestShouldExitWithError_NormalMode(t *testing.T) {
+	t.Parallel()
+
+	errFinding, _ := finding.NewBuilder(
+		"C001", "test", "error",
+		finding.SeverityError,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).Build()
+
+	cfg := &AppConfig{}
+	err := shouldExitWithError(cfg, []finding.Finding{errFinding})
+	if !errors.Is(err, errFindingsWithErrors) {
+		t.Errorf("normal mode with error finding: got %v, want errFindingsWithErrors", err)
+	}
+
+	// Warning-only → no error exit.
+	warnFinding, _ := finding.NewBuilder(
+		"C002", "test", "warning",
+		finding.SeverityWarning,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).Build()
+	err = shouldExitWithError(cfg, []finding.Finding{warnFinding})
+	if err != nil {
+		t.Errorf("warning-only should not trigger exit, got %v", err)
 	}
 }

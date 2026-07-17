@@ -276,23 +276,22 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		fmt.Print(renderHealthScore(hs, parseColorMode(cfg.Color)))
 	}
 
+	return shouldExitWithError(cfg, activeFindings)
+}
+
+// shouldExitWithError determines the exit-code decision based on active
+// findings and mode. Returns nil for success, errFindingsWithErrors for
+// failure. In --fp-suspects mode, always returns nil (advisory mode).
+func shouldExitWithError(cfg *AppConfig, activeFindings []finding.Finding) error {
 	// --fp-suspects is advisory: never exit non-zero based on suspect findings.
 	if cfg.FPSuspects {
 		return nil
 	}
 
-	hasErrors := false
-
 	for _, f := range activeFindings {
 		if f.Severity.Compare(finding.SeverityError) >= 0 {
-			hasErrors = true
-
-			break
+			return errFindingsWithErrors
 		}
-	}
-
-	if hasErrors {
-		return errFindingsWithErrors
 	}
 
 	return nil
