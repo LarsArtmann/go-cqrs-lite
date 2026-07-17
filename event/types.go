@@ -17,7 +17,9 @@ import (
 type Clock func() time.Time
 
 // DefaultClock is the clock used when no WithClock option is provided.
-var defaultClock Clock = time.Now //nolint:gochecknoglobals // package-level default, intentionally mutable via tests
+// It returns UTC to ensure event timestamps are always timezone-safe,
+// even when the server's local timezone differs from UTC.
+var defaultClock Clock = func() time.Time { return time.Now().UTC() } //nolint:gochecknoglobals // package-level default, intentionally mutable via tests
 
 // Source identifies where an event originated (e.g., "api", "scheduler", "cli").
 // Using a phantom type prevents accidental mixing with other string fields.

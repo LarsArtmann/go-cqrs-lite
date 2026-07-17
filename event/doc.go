@@ -15,7 +15,7 @@
 //
 //	events, err := event.NewEvents(aggID, "User", 0,
 //	    []event.Type{"user.created", "user.email_verified"},
-//	    []any{UserCreated{Name: "Alice"}, EmailVerified{At: time.Now()}},
+//	    []any{UserCreated{Name: "Alice"}, EmailVerified{At: time.Now().UTC()}},
 //	)
 //
 // # Store Interface (ISP Split)
@@ -30,6 +30,15 @@
 //
 // Five families: Rejection, Conflict, Transient, Infrastructure, Corruption.
 // Use NewRejection, NewConflict, etc. for classified errors.
+//
+// # Time Handling
+//
+// time.Time values in event payloads MUST be UTC-normalized before encoding.
+// The CBOR codec encodes time as epoch (stripping timezone), so non-UTC times
+// are silently corrupted. Use time.Now().UTC() or the Instant type.
+//
+// For wall-clock times ("9am, for whom?"), NEVER use time.Time — use WallTime
+// or a string with explicit IANA timezone. See docs/TIMEZONE_HANDLING.md.
 //
 // # Sub-packages
 //
