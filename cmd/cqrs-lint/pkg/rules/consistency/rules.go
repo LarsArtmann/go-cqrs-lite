@@ -73,8 +73,15 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // D002: Inconsistent JSON casing.
-// Detects mixing camelCase and snake_case in JSON struct tags within the same
-// package.
+// Detects individual structs that mix camelCase and snake_case JSON tags.
+// A struct with `json:"firstName"` and `json:"guild_id"` will serialize
+// inconsistently — this is always a bug within a single DTO/event type.
+//
+// Cross-struct mixing (struct A all camelCase, struct B all snake_case) is
+// NOT flagged: different structs may legitimately follow different conventions
+// (API types vs event payloads). The previous file-level check was the #1 noise
+// source across all consumers (33x on KeyCountdown, 20x on DiscordSync) because
+// it fired on legitimate cross-struct patterns and reported at line 1:1.
 //
 // Structs that mirror an external API (Discord, Stripe, GitHub) are excluded:
 // their snake_case JSON tags are dictated by the upstream API and are not a
@@ -93,60 +100,62 @@ func NewD002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				external := collectExternalAPIStructs(gf.AST, ctx.RulesConfig)
 
-				hasCamel := false
-				hasSnake := false
-
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
-					st, ok := n.(*ast.StructType)
+					ts, ok := n.(*ast.TypeSpec)
+					if !ok {
+						return true
+					}
+
+					st, ok := ts.Type.(*ast.StructType)
 					if !ok || st.Fields == nil {
 						return true
 					}
 
-					// Skip structs marked as mirroring an external API.
 					if external[st] {
 						return true
 					}
+
+					hasCamel := false
+					hasSnake := false
 
 					for _, field := range st.Fields.List {
 						if field.Tag == nil {
 							continue
 						}
 
-						tag := field.Tag.Value
-
-						jsonTag := analyzer.ExtractJSONTag(tag)
+						jsonTag := analyzer.ExtractJSONTag(field.Tag.Value)
 						if jsonTag == "" || jsonTag == "-" {
 							continue
 						}
 
 						if strings.Contains(jsonTag, "_") {
 							hasSnake = true
-						} else if hasLower(jsonTag) {
+						} else if isCamelCase(jsonTag) {
 							hasCamel = true
+						}
+					}
+
+					if hasCamel && hasSnake {
+						pos := ctx.Fset.Position(ts.Pos())
+
+						f, err := finding.NewBuilder(
+							"D002", toolName,
+							fmt.Sprintf("Struct %s mixes camelCase and snake_case JSON tags — pick one convention", ts.Name.Name),
+							finding.SeverityInfo,
+							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+						).
+							WithCategory(finding.CategoryStyle).
+							WithConfidence(finding.ConfidenceLow).
+							WithSuggestion("Pick one JSON key casing convention for this struct — camelCase for API types, snake_case for event payloads").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+							Build()
+						if err == nil {
+							findings = append(findings, f)
 						}
 					}
 
 					return true
 				})
-
-				if hasCamel && hasSnake {
-					pos := ctx.Fset.Position(gf.AST.Pos())
-
-					f, err := finding.NewBuilder(
-						"D002", toolName,
-						fmt.Sprintf("File %s mixes camelCase and snake_case JSON tags — pick one convention", gf.Path),
-						finding.SeverityInfo,
-						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
-					).
-						WithCategory(finding.CategoryStyle).
-						WithConfidence(finding.ConfidenceLow).
-						WithSuggestion("Pick one JSON key casing convention — camelCase for API types, snake_case for event payloads").
-						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
-						Build()
-					if err == nil {
-						findings = append(findings, f)
-					}
-				}
 			}
 
 			return findings, nil
@@ -154,10 +163,24 @@ func NewD002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-func hasLower(s string) bool {
-	if s == "" {
+// isCamelCase reports whether a JSON tag uses camelCase convention.
+// A tag is camelCase when it has no underscores and contains at least one
+// uppercase letter after the first character (e.g. "firstName", "guildId").
+// Single-word tags like "id", "content", "name" are NEUTRAL — they don't
+// indicate a casing convention either way and must not be counted as camelCase.
+// This eliminates the false positive where structs like {content, guild_id}
+// were flagged as "mixing camelCase and snake_case" even though "content" is
+// just a single lowercase word consistent with snake_case convention.
+func isCamelCase(s string) bool {
+	if strings.Contains(s, "_") {
 		return false
 	}
 
-	return s[0] >= 'a' && s[0] <= 'z'
+	for i := 1; i < len(s); i++ {
+		if s[i] >= 'A' && s[i] <= 'Z' {
+			return true
+		}
+	}
+
+	return false
 }

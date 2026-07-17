@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go/format"
 	"strings"
 )
 
@@ -31,7 +32,7 @@ func writeCommandHandler(b *strings.Builder, e Entry) {
 		b,
 		"// Register%sHandler registers a typed handler for %s commands.\n",
 		e.StructName,
-		e.CommandType,
+		e.TypeName,
 	)
 	fmt.Fprintf(
 		b,
@@ -39,7 +40,7 @@ func writeCommandHandler(b *strings.Builder, e Entry) {
 		e.StructName,
 		e.StructName,
 	)
-	fmt.Fprintf(b, "\treturn command.RegisterTyped(d, %q, handler)\n", e.CommandType)
+	fmt.Fprintf(b, "\treturn command.RegisterTyped(d, %q, handler)\n", e.TypeName)
 	b.WriteString("}\n\n")
 }
 
@@ -48,7 +49,7 @@ func writeQueryHandler(b *strings.Builder, e Entry) {
 		b,
 		"// Register%sHandler registers a typed handler for %s queries.\n",
 		e.StructName,
-		e.CommandType,
+		e.TypeName,
 	)
 	fmt.Fprintf(
 		b,
@@ -60,7 +61,7 @@ func writeQueryHandler(b *strings.Builder, e Entry) {
 		b,
 		"\treturn query.RegisterTyped[*%s, R](d, %q, handler)\n",
 		e.StructName,
-		e.CommandType,
+		e.TypeName,
 	)
 	b.WriteString("}\n\n")
 }
@@ -70,7 +71,7 @@ func writeEventHandler(b *strings.Builder, e Entry) {
 		b,
 		"// Register%sHandler registers a typed event handler for %s events.\n",
 		e.StructName,
-		e.CommandType,
+		e.TypeName,
 	)
 	fmt.Fprintf(
 		b,
@@ -81,7 +82,7 @@ func writeEventHandler(b *strings.Builder, e Entry) {
 	fmt.Fprintf(
 		b,
 		"\treturn bus.Subscribe(event.Type(%q), func(ctx context.Context, evt event.Event) error {\n",
-		e.CommandType,
+		e.TypeName,
 	)
 	fmt.Fprintf(b, "\t\tp, err := event.DecodePayload[%s](evt, c)\n", e.StructName)
 	b.WriteString("\t\tif err != nil {\n")
@@ -92,8 +93,12 @@ func writeEventHandler(b *strings.Builder, e Entry) {
 	b.WriteString("}\n\n")
 }
 
-func generate(pkg, genType string, entries []Entry) string {
-	spec := genSpecs[genType]
+// generate renders the registration boilerplate and runs it through go/format
+// so the emitted file is always valid, gofmt-clean Go. A parse failure here
+// signals a bug in the generator itself (a template referencing a bad name),
+// not a user error — hence the returned error.
+func generate(pkg, handlerType string, entries []Entry) (string, error) {
+	spec := genSpecs[handlerType]
 
 	var b strings.Builder
 
@@ -105,5 +110,15 @@ func generate(pkg, genType string, entries []Entry) string {
 		spec.writeEntry(&b, e)
 	}
 
-	return b.String()
+	formatted, err := format.Source([]byte(b.String()))
+	if err != nil {
+		return "", fmt.Errorf(
+			"format generated %s handlers: %w\n--- generated source ---\n%s",
+			handlerType,
+			err,
+			b.String(),
+		)
+	}
+
+	return string(formatted), nil
 }

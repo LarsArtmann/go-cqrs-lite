@@ -40,11 +40,19 @@ type DiscordMessage struct {
 	AuthorID string ` + "`json:\"author_id\"`" + `
 }
 
-// InternalResponse is a local HTTP API response struct using camelCase. Mixing
-// it with the snake_case Discord structs in the same file is what triggers D002.
+// InternalResponse is a local HTTP API response struct using camelCase.
 type InternalResponse struct {
 	MessageID string ` + "`json:\"messageId\"`" + `
 	ChannelID string ` + "`json:\"channelId\"`" + `
+}
+
+// DiscordWebhook has a genuine casing bug: snake_case guild_id mixed with
+// camelCase webhookId. D002 per-struct should flag this. The "Discord" prefix
+// opt-out can exclude it (simulating a consumer who accepts the mix as
+// mirroring the upstream API).
+type DiscordWebhook struct {
+	GuildID   string ` + "`json:\"guild_id\"`" + `
+	WebhookID string ` + "`json:\"webhookId\"`" + `
 }
 `,
 	"discord_member.go": `package app
@@ -52,6 +60,11 @@ type InternalResponse struct {
 type DiscordMember struct {
 	UserID string ` + "`json:\"user_id\"`" + `
 	Nick   string ` + "`json:\"nick\"`" + `
+}
+
+type DiscordMemberUpdate struct {
+	UserID     string ` + "`json:\"user_id\"`" + `
+	UpdateType string ` + "`json:\"updateType\"`" + `
 }
 
 type MemberView struct {
@@ -64,6 +77,11 @@ type MemberView struct {
 type DiscordRole struct {
 	RoleID string ` + "`json:\"role_id\"`" + `
 	Color  int    ` + "`json:\"color\"`" + `
+}
+
+type DiscordRoleAssign struct {
+	RoleID   string ` + "`json:\"role_id\"`" + `
+	AssignID string ` + "`json:\"assignId\"`" + `
 }
 
 type RoleSummary struct {
@@ -213,7 +231,7 @@ func severityForRule(findings []finding.Finding, ruleID string) (finding.Severit
 // TestDiscordSyncFixture_FixedRulesBehaveCorrectly proves the round-1/round-2
 // fixes behave correctly *in aggregate* on a DiscordSync-shaped project:
 //
-//   - D002 fires on the mixed-casing file (the opt-out isn't configured yet).
+//   - D002 fires on the DiscordWebhook struct that genuinely mixes casing.
 //   - C001 fires exactly once (the genuine bug) and NOT on the closure helper.
 //   - C008 downgrades to Info (no monetary project signal).
 //   - A005 does not fire on broadcast fan-out callbacks.
@@ -223,9 +241,9 @@ func TestDiscordSyncFixture_FixedRulesBehaveCorrectly(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, discordsyncLikeSources)
 	findings := runAllDetectors(t, ctx)
 
-	t.Run("D002_fires_without_opt_out", func(t *testing.T) {
+	t.Run("D002_fires_on_struct_with_internal_mix", func(t *testing.T) {
 		if got := countByRule(findings, "D002"); got == 0 {
-			t.Errorf("D002 should fire on mixed-casing file without opt-out, got 0 findings")
+			t.Errorf("D002 should fire on DiscordWebhook (struct mixes casing), got 0 findings")
 		}
 	})
 
@@ -254,13 +272,13 @@ func TestDiscordSyncFixture_FixedRulesBehaveCorrectly(t *testing.T) {
 }
 
 // TestDiscordSyncFixture_D002ConfigImprovesHealthScore proves the end-to-end
-// customer-visible win: configuring the D002 external-API prefix both eliminates
-// the false-positive findings AND raises the health score. This is the aggregate
-// proof that was missing from the unit-level round-1/round-2 tests.
+// customer-visible win: configuring the D002 external-API prefix excludes the
+// DiscordWebhook struct (which genuinely mixes casing), reducing D002 findings
+// and raising the health score.
 func TestDiscordSyncFixture_D002ConfigImprovesHealthScore(t *testing.T) {
 	t.Parallel()
 
-	// Baseline: no config — D002 fires on the Discord mirror structs.
+	// Baseline: no config — D002 fires on DiscordWebhook.
 	baseCtx := analyzer.BuildContextFromSource(t, discordsyncLikeSources)
 	baseFindings := runAllDetectors(t, baseCtx)
 	baseD002 := countByRule(baseFindings, "D002")
@@ -270,7 +288,7 @@ func TestDiscordSyncFixture_D002ConfigImprovesHealthScore(t *testing.T) {
 		t.Fatal("baseline D002 should fire without config")
 	}
 
-	// Configured: external-API prefix "Discord" excludes the mirror structs.
+	// Configured: external-API prefix "Discord" excludes DiscordWebhook.
 	cfgCtx := analyzer.BuildContextFromSource(t, discordsyncLikeSources)
 	cfgCtx.RulesConfig.ExternalAPIStructPrefixes = []string{"Discord"}
 	cfgFindings := runAllDetectors(t, cfgCtx)
@@ -300,6 +318,7 @@ func TestDiscordSyncFixture_MarkerSuppressesD002(t *testing.T) {
 //cqrs-lint:external-api
 type DiscordMessage struct {
 	Content string ` + "`json:\"content\"`" + `
+	GuildID string ` + "`json:\"guild_id\"`" + `
 	MsgID   string ` + "`json:\"msgId\"`" + `
 }
 `,

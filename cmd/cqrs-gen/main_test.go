@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"go/format"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,7 +50,7 @@ type Unmarked struct{}
 func assertEntry(t *testing.T, entry Entry, idx, cmdType, structName string) {
 	t.Helper()
 
-	if entry.CommandType != cmdType || entry.StructName != structName {
+	if entry.TypeName != cmdType || entry.StructName != structName {
 		t.Errorf("entry[%s] = %+v", idx, entry)
 	}
 }
@@ -86,10 +88,13 @@ func TestGenerate_Command(t *testing.T) {
 	t.Parallel()
 
 	entries := []Entry{
-		{CommandType: "CreateUser", StructName: "CreateUserCmd"},
+		{TypeName: "CreateUser", StructName: "CreateUserCmd"},
 	}
 
-	code := generate("handlers", "command", entries)
+	code, err := generate("handlers", "command", entries)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !strings.Contains(code, "package handlers") {
 		t.Error("missing package declaration")
@@ -108,10 +113,13 @@ func TestGenerate_Query(t *testing.T) {
 	t.Parallel()
 
 	entries := []Entry{
-		{CommandType: "GetUser", StructName: "GetUserQuery"},
+		{TypeName: "GetUser", StructName: "GetUserQuery"},
 	}
 
-	code := generate("handlers", "query", entries)
+	code, err := generate("handlers", "query", entries)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/query/v4") {
 		t.Error("missing query import")
@@ -134,11 +142,95 @@ func TestGenerate_Query(t *testing.T) {
 	}
 }
 
-func TestExtractMarker(t *testing.T) {
+func TestGenerate_ValidGoSyntax(t *testing.T) {
 	t.Parallel()
 
-	// Cannot test extractMarker directly without parsing a real AST,
-	// but the scanFile tests cover it end-to-end.
+	for _, handlerType := range []string{genTypeCommand, genTypeQuery, genTypeEvent} {
+		entries := []Entry{
+			{TypeName: "CreateUser", StructName: "CreateUserCmd", PackageName: "example"},
+		}
+		code, err := generate("example", handlerType, entries)
+		if err != nil {
+			t.Errorf("generate(%q) returned error: %v", handlerType, err)
+			continue
+		}
+		// generate already runs format.Source, but re-checking here pins the
+		// contract: the emitted file must stay valid, parseable Go.
+		if _, err := format.Source([]byte(code)); err != nil {
+			t.Errorf("generated %q code is not valid Go: %v\n%s", handlerType, err, code)
+		}
+	}
+}
+
+func TestScanPath_SkipsVendorAndHiddenDirs(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+
+	vendor := filepath.Join(tmp, "vendor")
+	if err := os.Mkdir(vendor, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	writeTempGoFile(
+		t,
+		vendor,
+		"v.go",
+		"package vendor\n\n//cqrs:command VendorCmd\ntype VendorCmd struct{}\n",
+	)
+
+	hidden := filepath.Join(tmp, ".hidden")
+	if err := os.Mkdir(hidden, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	writeTempGoFile(
+		t,
+		hidden,
+		"h.go",
+		"package hidden\n\n//cqrs:command HiddenCmd\ntype HiddenCmd struct{}\n",
+	)
+
+	// Top-level marker must still be discovered despite the pruned subtrees.
+	writeTempGoFile(
+		t,
+		tmp,
+		"top.go",
+		"package example\n\n//cqrs:command TopCmd\ntype TopCmd struct{}\n",
+	)
+
+	entries, err := scanPath(tmp, "command")
+	if err != nil {
+		t.Fatalf("scanPath: %v", err)
+	}
+
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry (top-level only), got %d: %+v", len(entries), entries)
+	}
+	if entries[0].StructName != "TopCmd" {
+		t.Errorf("expected TopCmd, got %s", entries[0].StructName)
+	}
+}
+
+func TestDedupEntries_DropsDuplicateStructNames(t *testing.T) {
+	t.Parallel()
+
+	entries := []Entry{
+		{TypeName: "CreateUser", StructName: "CreateUserCmd", PackageName: "a"},
+		{TypeName: "CreateUser", StructName: "CreateUserCmd", PackageName: "b"}, // duplicate name
+		{TypeName: "DeleteUser", StructName: "DeleteUserCmd", PackageName: "a"},
+	}
+
+	var buf bytes.Buffer
+	deduped := dedupEntries(&buf, entries)
+
+	if len(deduped) != 2 {
+		t.Fatalf("expected 2 entries after dedup, got %d", len(deduped))
+	}
+	if deduped[0].StructName != "CreateUserCmd" || deduped[1].StructName != "DeleteUserCmd" {
+		t.Errorf("unexpected dedup order: %+v", deduped)
+	}
+	if !strings.Contains(buf.String(), "duplicate struct") {
+		t.Errorf("expected duplicate warning, got: %s", buf.String())
+	}
 }
 
 func TestScanPath_NonExistentDir(t *testing.T) {
@@ -261,11 +353,14 @@ func TestGenerate_MultipleEntries(t *testing.T) {
 	t.Parallel()
 
 	entries := []Entry{
-		{CommandType: "CreateUser", StructName: "CreateUserCmd", PackagePath: "example"},
-		{CommandType: "DeleteUser", StructName: "DeleteUserCmd", PackagePath: "example"},
+		{TypeName: "CreateUser", StructName: "CreateUserCmd", PackageName: "example"},
+		{TypeName: "DeleteUser", StructName: "DeleteUserCmd", PackageName: "example"},
 	}
 
-	code := generate("handlers", "command", entries)
+	code, err := generate("handlers", "command", entries)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !strings.Contains(code, "RegisterCreateUserCmdHandler") {
 		t.Error("missing CreateUserCmd handler")
@@ -278,8 +373,11 @@ func TestGenerate_MultipleEntries(t *testing.T) {
 func TestGenerate_PackageName(t *testing.T) {
 	t.Parallel()
 
-	entries := []Entry{{CommandType: "Test", StructName: "TestCmd"}}
-	code := generate("mypkg", "command", entries)
+	entries := []Entry{{TypeName: "Test", StructName: "TestCmd"}}
+	code, err := generate("mypkg", "command", entries)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !strings.Contains(code, "package mypkg") {
 		t.Error("expected package name 'mypkg'")
@@ -289,8 +387,11 @@ func TestGenerate_PackageName(t *testing.T) {
 func TestGenerate_QueryImports(t *testing.T) {
 	t.Parallel()
 
-	entries := []Entry{{CommandType: "GetUser", StructName: "GetUserQuery"}}
-	code := generate("handlers", "query", entries)
+	entries := []Entry{{TypeName: "GetUser", StructName: "GetUserQuery"}}
+	code, err := generate("handlers", "query", entries)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !strings.Contains(code, "query") {
 		t.Error("missing query import")
@@ -379,15 +480,6 @@ type CreateUserCmd struct{}`
 
 	if len(entries) != 2 {
 		t.Errorf("expected 2 entries across 2 dirs, got %d", len(entries))
-	}
-}
-
-func TestMustAbs(t *testing.T) {
-	t.Parallel()
-
-	result := absOr(".")
-	if !filepath.IsAbs(result) {
-		t.Errorf("expected absolute path, got %s", result)
 	}
 }
 
@@ -483,9 +575,9 @@ type CreateUserCmd struct {
 		t.Fatalf("expected 1 entry, got %d", len(entries))
 	}
 
-	if entries[0].CommandType != "FromComment" {
+	if entries[0].TypeName != "FromComment" {
 		t.Errorf("expected comment marker 'FromComment' to win, got %q",
-			entries[0].CommandType)
+			entries[0].TypeName)
 	}
 }
 
@@ -613,10 +705,13 @@ func TestGenerate_Event(t *testing.T) {
 	t.Parallel()
 
 	entries := []Entry{
-		{CommandType: "UserCreated", StructName: "UserCreatedPayload"},
+		{TypeName: "UserCreated", StructName: "UserCreatedPayload"},
 	}
 
-	code := generate("handlers", "event", entries)
+	code, err := generate("handlers", "event", entries)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/event/v4") {
 		t.Error("missing event import")
@@ -682,7 +777,7 @@ func TestScanFile_EventStructTag(t *testing.T) {
 		t.Fatalf("expected 1 entry, got %d", len(entries))
 	}
 
-	if entries[0].CommandType != "UserCreated" {
-		t.Errorf("CommandType = %q, want %q", entries[0].CommandType, "UserCreated")
+	if entries[0].TypeName != "UserCreated" {
+		t.Errorf("TypeName = %q, want %q", entries[0].TypeName, "UserCreated")
 	}
 }

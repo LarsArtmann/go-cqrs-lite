@@ -90,7 +90,13 @@ func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // E007: Query without handler.
-// Detects query types defined but never registered with a dispatcher.
+// Detects query types (struct names ending in "Query") defined but never
+// registered with a dispatcher via RegisterTyped or RegisterQuery.
+//
+// "Request" suffix was removed from the heuristic because it matches HTTP
+// request DTOs (LoginRequest, RegisterRequest) that are not CQRS queries.
+// Confidence is Low because query registration can happen via patterns the
+// analyzer doesn't track (e.g., direct dispatcher.Register with a string type).
 func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"E007-query-without-handler",
@@ -130,7 +136,7 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
 						WithCategory(finding.CategoryStructure).
-						WithConfidence(finding.ConfidenceMedium).
+						WithConfidence(finding.ConfidenceLow).
 						WithSuggestion("Register the query via query.RegisterTyped or dispatcher.RegisterTyped").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
@@ -150,5 +156,5 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 func isLikelyQuery(_ *ast.StructType, name string) bool {
-	return strings.HasSuffix(name, "Query") || strings.HasSuffix(name, "Request")
+	return strings.HasSuffix(name, "Query")
 }

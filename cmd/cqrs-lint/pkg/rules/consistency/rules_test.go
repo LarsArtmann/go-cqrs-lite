@@ -64,17 +64,13 @@ type User struct {
 	assertRule(t, findings, "D002", 0)
 }
 
-// D002 must NOT fire when a file mixes camelCase consumer types with
-// snake_case structs that mirror an external API (Discord/Stripe/GitHub).
-// This is the biggest false-positive source in real consumer code (18 of 34
-// DiscordSync findings). Two opt-outs are supported: an in-source marker and a
-// config prefix list. These tests prove both, plus a regression that the same
-// file still fires WITHOUT suppression.
+// D002 reports per-struct, not per-file. Cross-struct mixing (struct A all
+// camelCase, struct B all snake_case) is legitimate: different structs may
+// follow different conventions (API types vs event payloads). Single-word tags
+// like "content" and "nick" are NEUTRAL — they don't count as camelCase.
+// This test proves cross-struct mixing no longer fires.
 
-func TestD002_FiresForCrossStructMixWithoutSuppression(t *testing.T) {
-	// Same shape as the suppression tests below but with NO opt-out. Proves the
-	// cross-struct mix (consumer camelCase + external mirror snake_case) still
-	// triggers D002 so the suppression isn't silently swallowing real findings.
+func TestD002_NoFindingForCrossStructMix(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"model.go": `package main
 
@@ -89,7 +85,7 @@ type User struct {
 `,
 	})
 	findings := runDetector(t, consistency.NewD002Detector(ctx))
-	assertRule(t, findings, "D002", 1)
+	assertRule(t, findings, "D002", 0)
 }
 
 func TestD002_NoFindingWhenExternalAPIMarkerPresent(t *testing.T) {
@@ -161,17 +157,14 @@ type User struct {
 
 func TestD002_FiresWhenPrefixDoesNotMatch(t *testing.T) {
 	// A configured prefix that does NOT match the struct name must not
-	// suppress — guards against the suppression being too broad.
+	// suppress. DiscordWebhook genuinely mixes snake_case and camelCase
+	// internally — the non-matching "Stripe" prefix must not exclude it.
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"model.go": `package main
 
-type DiscordMessage struct {
-	Content string ` + "`json:\"content\"`" + `
-	GuildID string ` + "`json:\"guild_id\"`" + `
-}
-
-type User struct {
-	FirstName string ` + "`json:\"firstName\"`" + `
+type DiscordWebhook struct {
+	GuildID   string ` + "`json:\"guild_id\"`" + `
+	WebhookID string ` + "`json:\"webhookId\"`" + `
 }
 `,
 	})

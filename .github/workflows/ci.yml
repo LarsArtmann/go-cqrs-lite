@@ -4,21 +4,21 @@ on:
   push:
     branches: [master, main]
     paths-ignore:
-    - '**/*.md'
-    - docs/**
-    - LICENSE
-    - .gitignore
-    - '**/*.svg'
-    - '**/*.png'
+      - "**/*.md"
+      - docs/**
+      - LICENSE
+      - .gitignore
+      - "**/*.svg"
+      - "**/*.png"
   pull_request:
     branches: [master, main]
     paths-ignore:
-    - '**/*.md'
-    - docs/**
-    - LICENSE
-    - .gitignore
-    - '**/*.svg'
-    - '**/*.png'
+      - "**/*.md"
+      - docs/**
+      - LICENSE
+      - .gitignore
+      - "**/*.svg"
+      - "**/*.png"
 
 env:
   GOEXPERIMENT: jsonv2
@@ -28,56 +28,57 @@ jobs:
     name: Nix Flake Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Check formatting
-      run: nix fmt -- --fail-on-change
+      - name: Check formatting
+        run: nix fmt -- --fail-on-change
 
-    - name: Build
-      run: nix run .#build
+      - name: Build
+        run: nix run .#build
 
-    - name: Vet
-      run: nix run .#vet
+      - name: Vet
+        run: nix run .#vet
 
-    - name: Test
-      run: nix run .#test
+      - name: Test
+        run: nix run .#test
 
-    - name: Test with race detector
-      run: nix run .#test-race
+      - name: Test with race detector
+        run: nix run .#test-race
 
-    - name: Lint
-      run: nix run .#lint
+      - name: Lint
+        run: nix run .#lint
 
-    - name: Doc cross-reference check
-      run: cd cmd/doc-check && GOWORK=off go run .
-        # No explicit args needed: auto-discovers repo root + all .agents/skills/*/references/*.md
+      - name: Doc cross-reference check
+        run:
+          cd cmd/doc-check && GOWORK=off go run .
+          # No explicit args needed: auto-discovers repo root + all .agents/skills/*/references/*.md
 
-    - name: Documentation assertions
-      run: |
-        # CHANGELOG must have exactly one [Unreleased]
-        count=$(grep -cE '^## \[Unreleased\]' CHANGELOG.md)
-        [ "$count" -eq 1 ] || { echo "::error::Found $count [Unreleased] sections (expected 1)"; exit 1; }
-        # No stale module counts in core docs
-        grep -rnE '\b(28|48|49)\s*(go\.mod|modules)' --include='*.md' \
-          README.md AGENTS.md FEATURES.md CONTRIBUTING.md docs/README.md \
-          docs/v4-WISHLIST.md ROADMAP.md TODO_LIST.md 2>/dev/null \
-          | grep -v 'archive/' && { echo "::error::Stale module count in docs"; exit 1; } || true
-        # License must match
-        head -1 LICENSE | grep -qi proprietary && \
-          grep -qi proprietary README.md || { echo "::error::License mismatch"; exit 1; }
-        echo "All doc assertions passed"
+      - name: Documentation assertions
+        run: |
+          # CHANGELOG must have exactly one [Unreleased]
+          count=$(grep -cE '^## \[Unreleased\]' CHANGELOG.md)
+          [ "$count" -eq 1 ] || { echo "::error::Found $count [Unreleased] sections (expected 1)"; exit 1; }
+          # No stale module counts in core docs
+          grep -rnE '\b(28|48|49)\s*(go\.mod|modules)' --include='*.md' \
+            README.md AGENTS.md FEATURES.md CONTRIBUTING.md docs/README.md \
+            docs/v4-WISHLIST.md ROADMAP.md TODO_LIST.md 2>/dev/null \
+            | grep -v 'archive/' && { echo "::error::Stale module count in docs"; exit 1; } || true
+          # License must match
+          head -1 LICENSE | grep -qi proprietary && \
+            grep -qi proprietary README.md || { echo "::error::License mismatch"; exit 1; }
+          echo "All doc assertions passed"
 
-    - name: Generate coverage
-      run: nix run .#coverage
+      - name: Generate coverage
+        run: nix run .#coverage
 
-    - uses: codecov/codecov-action@v4
-      with:
-        files: coverage.out
-        fail_ci_if_error: false
+      - uses: codecov/codecov-action@v4
+        with:
+          files: coverage.out
+          fail_ci_if_error: false
 
     timeout-minutes: 15
   per-module-test:
@@ -89,14 +90,14 @@ jobs:
         module: ${{ fromJSON(needs.discover-modules.outputs.modules) }}
     needs: discover-modules
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Test module in isolation
-      run: (cd ${{ matrix.module }} && GOWORK=off go test ./... -count=1 -race)
+      - name: Test module in isolation
+        run: (cd ${{ matrix.module }} && GOWORK=off go test ./... -count=1 -race)
 
     timeout-minutes: 15
   discover-modules:
@@ -105,275 +106,275 @@ jobs:
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Find all go.mod modules
-      id: set-modules
-      run: |
-        modules=$(find . -name go.mod -not -path './vendor/*' \
-          | sed 's|/go.mod||' | sed 's|^\./||' | sort \
-          | jq -R . | jq -s .)
-        echo "modules=$modules" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - name: Find all go.mod modules
+        id: set-modules
+        run: |
+          modules=$(find . -name go.mod -not -path './vendor/*' \
+            | sed 's|/go.mod||' | sed 's|^\./||' | sort \
+            | jq -R . | jq -s .)
+          echo "modules=$modules" >> "$GITHUB_OUTPUT"
 
     timeout-minutes: 15
   module-isolation:
     name: Module Isolation Build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: DeterminateSystems/nix-installer-action@v17
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
-    - name: Verify every module builds under GOWORK=off
-      run: nix run .#check-isolation
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - name: Verify every module builds under GOWORK=off
+        run: nix run .#check-isolation
 
     timeout-minutes: 15
   doc-stub-check:
     name: Doc Stub Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: DeterminateSystems/nix-installer-action@v17
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
-    - name: Fail on placeholder doc.go stubs
-      run: nix run .#check-doc-stubs
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - name: Fail on placeholder doc.go stubs
+        run: nix run .#check-doc-stubs
 
     timeout-minutes: 15
   coverage-gate:
     name: Minimum Coverage (80%)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Check per-package coverage >= 80%
-      run: |
-        pkgs=$(go list ./... | grep -v '/example/')
-        failed=false
-        for pkg in $pkgs; do
-          output=$(go test -coverprofile=/dev/null -covermode=set "$pkg" 2>&1)
-          pct=$(echo "$output" | grep -oP 'coverage: \K[0-9.]+')
-          if [ -n "$pct" ]; then
-            int_pct=$(echo "$pct" | cut -d. -f1)
-            if [ "$int_pct" -lt 80 ]; then
-              echo "::warning::$pkg coverage ${pct}% < 80%"
-              failed=true
-            else
-              echo "  $pkg: ${pct}%"
+      - name: Check per-package coverage >= 80%
+        run: |
+          pkgs=$(go list ./... | grep -v '/example/')
+          failed=false
+          for pkg in $pkgs; do
+            output=$(go test -coverprofile=/dev/null -covermode=set "$pkg" 2>&1)
+            pct=$(echo "$output" | grep -oP 'coverage: \K[0-9.]+')
+            if [ -n "$pct" ]; then
+              int_pct=$(echo "$pct" | cut -d. -f1)
+              if [ "$int_pct" -lt 80 ]; then
+                echo "::warning::$pkg coverage ${pct}% < 80%"
+                failed=true
+              else
+                echo "  $pkg: ${pct}%"
+              fi
             fi
+          done
+          if [ "$failed" = true ]; then
+            echo "::error::One or more packages below 80% coverage"
+            exit 1
           fi
-        done
-        if [ "$failed" = true ]; then
-          echo "::error::One or more packages below 80% coverage"
-          exit 1
-        fi
 
     timeout-minutes: 15
   api-stability:
     name: API Stability Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Verify API surface matches golden file
-      run: cd cmd/api-stability && GOWORK=off go run main.go
+      - name: Verify API surface matches golden file
+        run: cd cmd/api-stability && GOWORK=off go run main.go
 
     timeout-minutes: 15
   replace-directives:
     name: Replace Directives Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Verify go.mod replace directives match go.work
-      run: bash scripts/check-replace-directives.sh
+      - name: Verify go.mod replace directives match go.work
+        run: bash scripts/check-replace-directives.sh
 
     timeout-minutes: 15
   go-work-sync:
     name: go.work sync check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Verify go.work is synced
-      run: |
-        cp go.work go.work.before
-        go work sync
-        if ! diff -q go.work.before go.work > /dev/null 2>&1; then
-          echo "::error::go.work is out of sync. Run 'go work sync' and commit the changes."
-          diff go.work.before go.work
-          exit 1
-        fi
-        echo "go.work is synced"
+      - name: Verify go.work is synced
+        run: |
+          cp go.work go.work.before
+          go work sync
+          if ! diff -q go.work.before go.work > /dev/null 2>&1; then
+            echo "::error::go.work is out of sync. Run 'go work sync' and commit the changes."
+            diff go.work.before go.work
+            exit 1
+          fi
+          echo "go.work is synced"
 
     timeout-minutes: 15
   file-size-gate:
     name: File Size Check (max 350 lines)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Check production files <= 350 lines
-      run: |
-        failed=false
-        while IFS= read -r f; do
-          lines=$(wc -l < "$f")
-          if [ "$lines" -gt 350 ]; then
-            echo "::error::$f has $lines lines (max 350)"
-            failed=true
+      - name: Check production files <= 350 lines
+        run: |
+          failed=false
+          while IFS= read -r f; do
+            lines=$(wc -l < "$f")
+            if [ "$lines" -gt 350 ]; then
+              echo "::error::$f has $lines lines (max 350)"
+              failed=true
+            fi
+          done < <(find . -name "*.go" -not -name "*_test.go" \
+            -not -path "*/example/*" \
+            -not -path "*/testdata/*" \
+            -not -path "*/internal/cattest/*" \
+            -not -path "*/.git/*")
+          if [ "$failed" = true ]; then
+            echo "::error::One or more production files exceed 350 lines"
+            exit 1
           fi
-        done < <(find . -name "*.go" -not -name "*_test.go" \
-          -not -path "*/example/*" \
-          -not -path "*/testdata/*" \
-          -not -path "*/internal/cattest/*" \
-          -not -path "*/.git/*")
-        if [ "$failed" = true ]; then
-          echo "::error::One or more production files exceed 350 lines"
-          exit 1
-        fi
 
     timeout-minutes: 15
   benchmark:
     name: Performance Benchmarks
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Run benchmarks
-      run: nix run .#bench 2>&1 | tee benchmark-results.txt
+      - name: Run benchmarks
+        run: nix run .#bench 2>&1 | tee benchmark-results.txt
 
-    - name: Check for regressions (>2x slowdown vs main)
-      run: |
-        if git show origin/${{ github.base_ref || 'master' }}:benchmark-baseline.txt >/dev/null 2>&1; then
-          echo "Baseline found, comparing..."
-          git show origin/${{ github.base_ref || 'master' }}:benchmark-baseline.txt > baseline.txt
-          grep -E '^Benchmark' benchmark-results.txt | while read -r line; do
-            name=$(echo "$line" | awk '{print $1}')
-            ns=$(echo "$line" | awk '{print $3}')
-            base_ns=$(grep "^${name} " baseline.txt 2>/dev/null | awk '{print $3}')
-            if [ -n "$base_ns" ] && [ -n "$ns" ]; then
-              ratio=$(echo "scale=2; $ns / $base_ns" | bc)
-              echo "  $name: ${ns}ns (baseline: ${base_ns}ns, ratio: ${ratio}x)"
-              threshold=$(echo "$ratio > 2.0" | bc)
-              if [ "$threshold" -eq 1 ]; then
-                echo "::warning::$name regressed ${ratio}x vs baseline (${base_ns}ns → ${ns}ns)"
+      - name: Check for regressions (>2x slowdown vs main)
+        run: |
+          if git show origin/${{ github.base_ref || 'master' }}:benchmark-baseline.txt >/dev/null 2>&1; then
+            echo "Baseline found, comparing..."
+            git show origin/${{ github.base_ref || 'master' }}:benchmark-baseline.txt > baseline.txt
+            grep -E '^Benchmark' benchmark-results.txt | while read -r line; do
+              name=$(echo "$line" | awk '{print $1}')
+              ns=$(echo "$line" | awk '{print $3}')
+              base_ns=$(grep "^${name} " baseline.txt 2>/dev/null | awk '{print $3}')
+              if [ -n "$base_ns" ] && [ -n "$ns" ]; then
+                ratio=$(echo "scale=2; $ns / $base_ns" | bc)
+                echo "  $name: ${ns}ns (baseline: ${base_ns}ns, ratio: ${ratio}x)"
+                threshold=$(echo "$ratio > 2.0" | bc)
+                if [ "$threshold" -eq 1 ]; then
+                  echo "::warning::$name regressed ${ratio}x vs baseline (${base_ns}ns → ${ns}ns)"
+                fi
               fi
-            fi
-          done
-        else
-          echo "No baseline found. Skipping comparison."
-        fi
+            done
+          else
+            echo "No baseline found. Skipping comparison."
+          fi
 
-    - name: Upload benchmark results
-      uses: actions/upload-artifact@v4
-      with:
-        name: benchmark-results
-        path: benchmark-results.txt
-        retention-days: 30
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark-results.txt
+          retention-days: 30
 
     timeout-minutes: 15
   gosec:
     name: Security Scan (gosec)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Run gosec on core modules
-      run: |
-        nix-shell -p gosec --run "gosec -fmt sarif -out gosec.sarif ./event/... ./command/... ./query/... ./decider/... ./storage/... ./middleware/... ./signing/... ./listing/... ./transport/http/..."
+      - name: Run gosec on core modules
+        run: |
+          nix-shell -p gosec --run "gosec -fmt sarif -out gosec.sarif ./event/... ./command/... ./query/... ./decider/... ./storage/... ./middleware/... ./signing/... ./listing/... ./transport/http/..."
 
-    - name: Upload SARIF to GitHub
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: gosec.sarif
-        category: gosec
+      - name: Upload SARIF to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gosec.sarif
+          category: gosec
 
     timeout-minutes: 15
   module-layers:
     name: Module Layer Architecture Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Verify module dependency layers
-      run: bash scripts/check-module-layers.sh
+      - name: Verify module dependency layers
+        run: bash scripts/check-module-layers.sh
 
-    - name: Check version drift
-      run: bash scripts/check-version-drift.sh
+      - name: Check version drift
+        run: bash scripts/check-version-drift.sh
 
     timeout-minutes: 15
   govulncheck:
     name: Vulnerability Check (govulncheck)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Run govulncheck
-      run: |
-        nix-shell -p go -p govulncheck --run \
-          "govulncheck ./..."
+      - name: Run govulncheck
+        run: |
+          nix-shell -p go -p govulncheck --run \
+            "govulncheck ./..."
 
     timeout-minutes: 15
   docker-build:
     name: Docker Build (example/user)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build for linux/amd64
-      run: docker build --platform linux/amd64 -t user:amd64 ./example/user
+      - name: Build for linux/amd64
+        run: docker build --platform linux/amd64 -t user:amd64 ./example/user
 
-    - name: Build for linux/arm64
-      run: docker build --platform linux/arm64 -t user:arm64 ./example/user
+      - name: Build for linux/arm64
+        run: docker build --platform linux/arm64 -t user:arm64 ./example/user
 
     timeout-minutes: 15
   wasm-compile:
     name: WASM Compilation Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Verify core modules compile to WASM
-      run: |
-        for mod in id codec dispatcher event command query decider; do
-          echo "==> WASM build: $mod"
-          (cd "$mod" && GOOS=js GOARCH=wasm GOWORK=off go build ./...)
-        done
+      - name: Verify core modules compile to WASM
+        run: |
+          for mod in id codec dispatcher event command query decider; do
+            echo "==> WASM build: $mod"
+            (cd "$mod" && GOOS=js GOARCH=wasm GOWORK=off go build ./...)
+          done
 
     timeout-minutes: 15
   postgres-integration:
@@ -388,7 +389,7 @@ jobs:
           POSTGRES_PASSWORD: cqrs
           POSTGRES_DB: cqrs_test
         ports:
-        - 5432:5432
+          - 5432:5432
         options: >-
           --health-cmd "pg_isready -U cqrs"
           --health-interval 5s
@@ -396,23 +397,23 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Run PostgreSQL integration tests
-      env:
-        DATABASE_URL: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
-        POSTGRES_TEST_DSN: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
-      run: |
-        cd storage && GOWORK=off go test -tags=integration -v -count=1 \
-          -run TestPostgres ./...
-        # stack/postgres uses pgx directly (PgxListener + PostgresBus wiring).
-        # -tags=integration enables the LISTEN/NOTIFY round-trip tests that
-        # validate the full preset against a real Postgres instance.
-        cd ../stack/postgres && GOWORK=off go test -tags=integration -v -count=1 ./...
+      - name: Run PostgreSQL integration tests
+        env:
+          DATABASE_URL: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
+          POSTGRES_TEST_DSN: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
+        run: |
+          cd storage && GOWORK=off go test -tags=integration -v -count=1 \
+            -run TestPostgres ./...
+          # stack/postgres uses pgx directly (PgxListener + PostgresBus wiring).
+          # -tags=integration enables the LISTEN/NOTIFY round-trip tests that
+          # validate the full preset against a real Postgres instance.
+          cd ../stack/postgres && GOWORK=off go test -tags=integration -v -count=1 ./...
 
     timeout-minutes: 15
   turso-sync:
@@ -424,74 +425,74 @@ jobs:
     #   TURSO_SYNC_TOKEN — Turso auth token
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: DeterminateSystems/nix-installer-action@v17
+      - uses: DeterminateSystems/nix-installer-action@v17
 
-    - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-    - name: Run Turso sync contract tests
-      env:
-        TURSO_SYNC_URL: ${{ secrets.TURSO_SYNC_URL }}
-        TURSO_SYNC_TOKEN: ${{ secrets.TURSO_SYNC_TOKEN }}
-      run: |
-        cd stack/turso && GOWORK=off go test -v -count=1 -run TestNewSync ./...
+      - name: Run Turso sync contract tests
+        env:
+          TURSO_SYNC_URL: ${{ secrets.TURSO_SYNC_URL }}
+          TURSO_SYNC_TOKEN: ${{ secrets.TURSO_SYNC_TOKEN }}
+        run: |
+          cd stack/turso && GOWORK=off go test -v -count=1 -run TestNewSync ./...
 
     timeout-minutes: 15
   skill-health:
     name: Skill Health (frontmatter + line-count + TOC)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Validate Crush skill structure
-      run: |
-        set -e
-        failed=false
-        for skill_md in .agents/skills/*/SKILL.md; do
-          skill_dir=$(dirname "$skill_md")
-          skill_name=$(basename "$skill_dir")
-          echo "==> Checking skill: $skill_name"
+      - name: Validate Crush skill structure
+        run: |
+          set -e
+          failed=false
+          for skill_md in .agents/skills/*/SKILL.md; do
+            skill_dir=$(dirname "$skill_md")
+            skill_name=$(basename "$skill_dir")
+            echo "==> Checking skill: $skill_name"
 
-          # 1. YAML frontmatter present and well-formed (starts/ends with ---).
-          head -1 "$skill_md" | grep -qx -- '---' || {
-            echo "::error::$skill_md: missing YAML frontmatter opening ---"; failed=true; continue; }
-          awk 'NR>1 && /^---$/{found=1; exit} END{ if(!found){ print "::error::'"$skill_md"': missing YAML frontmatter closing ---" > "/dev/stderr"; exit 1 } }' "$skill_md" || { failed=true; continue; }
+            # 1. YAML frontmatter present and well-formed (starts/ends with ---).
+            head -1 "$skill_md" | grep -qx -- '---' || {
+              echo "::error::$skill_md: missing YAML frontmatter opening ---"; failed=true; continue; }
+            awk 'NR>1 && /^---$/{found=1; exit} END{ if(!found){ print "::error::'"$skill_md"': missing YAML frontmatter closing ---" > "/dev/stderr"; exit 1 } }' "$skill_md" || { failed=true; continue; }
 
-          # 2. Required fields: name + description.
-          frontmatter=$(awk 'NR==1{next} /^---$/{exit} {print}' "$skill_md")
-          echo "$frontmatter" | grep -qE '^name:' || { echo "::error::$skill_md: missing 'name:' field"; failed=true; }
-          echo "$frontmatter" | grep -qE '^description:' || { echo "::error::$skill_md: missing 'description:' field"; failed=true; }
-          desc_len=$(echo "$frontmatter" | grep -E '^description:' | wc -c)
-          [ "$desc_len" -lt 40 ] && { echo "::error::$skill_md: description too short (${desc_len} chars) — must be a real trigger"; failed=true; }
+            # 2. Required fields: name + description.
+            frontmatter=$(awk 'NR==1{next} /^---$/{exit} {print}' "$skill_md")
+            echo "$frontmatter" | grep -qE '^name:' || { echo "::error::$skill_md: missing 'name:' field"; failed=true; }
+            echo "$frontmatter" | grep -qE '^description:' || { echo "::error::$skill_md: missing 'description:' field"; failed=true; }
+            desc_len=$(echo "$frontmatter" | grep -E '^description:' | wc -c)
+            [ "$desc_len" -lt 40 ] && { echo "::error::$skill_md: description too short (${desc_len} chars) — must be a real trigger"; failed=true; }
 
-          # 3. Core SKILL.md should stay under 500 lines (skill-creator guideline).
-          lines=$(wc -l < "$skill_md")
-          if [ "$lines" -gt 500 ]; then
-            echo "::error::$skill_md: ${lines} lines exceeds 500-line core guideline (split into references/)"
-            failed=true
-          fi
-          echo "   core: ${lines} lines"
-        done
-
-        # 4. Reference files over 300 lines must include a table of contents.
-        for ref in .agents/skills/*/references/*.md; do
-          [ -f "$ref" ] || continue
-          lines=$(wc -l < "$ref")
-          if [ "$lines" -gt 300 ]; then
-            grep -qiE '\*\*Contents|## (Contents|Table of Contents)|^- \[' "$ref" || {
-              echo "::error::$ref: ${lines} lines but no table of contents (>300-line guideline)"
+            # 3. Core SKILL.md should stay under 500 lines (skill-creator guideline).
+            lines=$(wc -l < "$skill_md")
+            if [ "$lines" -gt 500 ]; then
+              echo "::error::$skill_md: ${lines} lines exceeds 500-line core guideline (split into references/)"
               failed=true
-            }
-          fi
-          echo "   ref $(basename "$ref"): ${lines} lines"
-        done
+            fi
+            echo "   core: ${lines} lines"
+          done
 
-        if [ "$failed" = true ]; then
-          echo "::error::Skill health checks failed"
-          exit 1
-        fi
-        echo "✓ All skill health checks passed"
+          # 4. Reference files over 300 lines must include a table of contents.
+          for ref in .agents/skills/*/references/*.md; do
+            [ -f "$ref" ] || continue
+            lines=$(wc -l < "$ref")
+            if [ "$lines" -gt 300 ]; then
+              grep -qiE '\*\*Contents|## (Contents|Table of Contents)|^- \[' "$ref" || {
+                echo "::error::$ref: ${lines} lines but no table of contents (>300-line guideline)"
+                failed=true
+              }
+            fi
+            echo "   ref $(basename "$ref"): ${lines} lines"
+          done
+
+          if [ "$failed" = true ]; then
+            echo "::error::Skill health checks failed"
+            exit 1
+          fi
+          echo "✓ All skill health checks passed"
     timeout-minutes: 15
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

@@ -234,9 +234,27 @@ type GetUserQuery struct {
 `,
 	})
 	findings := runDetector(t, architecture.NewE007Detector(ctx))
-	// The rule checks for structs ending in "Query" or "Request"
-	// that aren't registered via RegisterTyped
 	assertRule(t, findings, "E007", 1)
+}
+
+// E007 must NOT fire on "*Request" types. These are HTTP/gRPC request DTOs,
+// not CQRS queries. The heuristic only matches "*Query" suffix.
+
+func TestE007_NoFindingForRequestTypes(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"api.go": `package main
+
+type LoginRequest struct {
+	Email string
+}
+
+type RegisterRequest struct {
+	Email string
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE007Detector(ctx))
+	assertRule(t, findings, "E007", 0)
 }
 
 func TestE007_NoFindingForNonQueryStruct(t *testing.T) {

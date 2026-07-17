@@ -7,7 +7,8 @@
 //	cqrs-gen -type=query -output=queries_gen.go ./...
 //	cqrs-gen -type=event -output=events_gen.go ./...
 //
-// Marker comments in source code:
+// Marker comments in source code (the identifier after the kind becomes the
+// registered command/query/event type):
 //
 //	//cqrs:command CreateUser
 //	//cqrs:query GetUser
@@ -24,13 +25,12 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -41,12 +41,16 @@ const (
 
 //nolint:gochecknoglobals // CLI flags
 var (
-	genType    = flag.String("type", genTypeCommand, "handler type to generate: command or query")
+	genType = flag.String(
+		"type",
+		genTypeCommand,
+		"handler type to generate: command, query, or event",
+	)
 	outputFile = flag.String("output", "handlers_gen.go", "output file path")
 	pkgName    = flag.String(
 		"pkg",
 		"",
-		"package name for generated file (defaults to current directory)",
+		"package name for generated file (defaults to the scanned source package)",
 	)
 )
 
@@ -55,9 +59,13 @@ func main() {
 	os.Exit(run(*genType, *outputFile, *pkgName, flag.Args()))
 }
 
-func run(genType, outputFile, pkg string, paths []string) int {
-	if genType != genTypeCommand && genType != genTypeQuery && genType != genTypeEvent {
-		fmt.Fprintf(os.Stderr, "invalid type %q: must be 'command', 'query', or 'event'\n", genType)
+func run(handlerType, outputFile, pkg string, paths []string) int {
+	if handlerType != genTypeCommand && handlerType != genTypeQuery && handlerType != genTypeEvent {
+		fmt.Fprintf(
+			os.Stderr,
+			"invalid type %q: must be 'command', 'query', or 'event'\n",
+			handlerType,
+		)
 		return 1
 	}
 
@@ -65,7 +73,7 @@ func run(genType, outputFile, pkg string, paths []string) int {
 		paths = []string{"."}
 	}
 
-	entries, err := scan(paths, genType)
+	entries, err := scan(paths, handlerType)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "scan: %v\n", err)
 		return 1
@@ -76,11 +84,19 @@ func run(genType, outputFile, pkg string, paths []string) int {
 		return 0
 	}
 
+	entries = dedupEntries(os.Stderr, entries)
+
 	if pkg == "" {
-		pkg = filepath.Base(absOr(paths[0]))
+		// The source package name is always a valid Go identifier; a directory
+		// or file path is not (e.g. "handlers_gen.go" or "src").
+		pkg = entries[0].PackageName
 	}
 
-	code := generate(pkg, genType, entries)
+	code, err := generate(pkg, handlerType, entries)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "generate: %v\n", err)
+		return 1
+	}
 
 	if err := os.WriteFile(outputFile, []byte(code), 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "write: %v\n", err)
@@ -91,29 +107,25 @@ func run(genType, outputFile, pkg string, paths []string) int {
 	return 0
 }
 
-func absOr(p string) string {
-	abs, err := filepath.Abs(p)
-	if err != nil {
-		return p
-	}
-	return abs
-}
-
 // Entry represents a single discovered cqrs marker.
 type Entry struct {
-	CommandType string
-	StructName  string
-	PackagePath string
+	// TypeName is the marker value: the command/query/event type string passed
+	// to RegisterTyped / Subscribe (e.g. "CreateUser", "GetUser", "UserCreated").
+	TypeName string
+	// StructName is the Go type name the marker was attached to.
+	StructName string
+	// PackageName is the Go package name of the source file (f.Name.Name), used
+	// as the default package for the generated file.
+	PackageName string
 }
 
-func scan(paths []string, genType string) ([]Entry, error) {
+func scan(paths []string, handlerType string) ([]Entry, error) {
 	var entries []Entry
 
 	for _, path := range paths {
-		found, err := scanPath(path, genType)
+		found, err := scanPath(path, handlerType)
 		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(err, "cqrs_gen.scan",
-				"scan path "+path)
+			return nil, fmt.Errorf("scan path %s: %w", path, err)
 		}
 		entries = append(entries, found...)
 	}
@@ -121,27 +133,26 @@ func scan(paths []string, genType string) ([]Entry, error) {
 	return entries, nil
 }
 
-func scanPath(root, genType string) ([]Entry, error) {
+func scanPath(root, handlerType string) ([]Entry, error) {
 	var entries []Entry
 
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return errorfamily.WrapInfrastructure(err, "cqrs_gen.walk",
-				"walk "+path)
+			return fmt.Errorf("walk %s: %w", path, err)
 		}
-		if d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+		if d.IsDir() {
+			if shouldSkipDir(d.Name()) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
 			return nil
 		}
 
-		found, err := scanFile(path, genType)
+		found, err := scanFile(path, handlerType)
 		if err != nil {
-			return errorfamily.Wrapf(
-				err,
-				errorfamily.Infrastructure,
-				"cqrs_gen.scan",
-				"scan %s",
-				path,
-			)
+			return fmt.Errorf("scan %s: %w", path, err)
 		}
 		entries = append(entries, found...)
 		return nil
@@ -150,17 +161,52 @@ func scanPath(root, genType string) ([]Entry, error) {
 	return entries, err
 }
 
-func scanFile(path, genType string) ([]Entry, error) {
+// shouldSkipDir reports whether a directory tree should be excluded from the
+// scan. Hidden directories (".git", ".idea"), dependency trees ("vendor",
+// "node_modules"), and fixture dirs ("testdata") never carry cqrs markers and
+// only slow the walk or risk false matches against third-party code.
+func shouldSkipDir(name string) bool {
+	if name == "vendor" || name == "node_modules" || name == "testdata" {
+		return true
+	}
+
+	return strings.HasPrefix(name, ".")
+}
+
+// dedupEntries drops entries that share a StructName with an earlier entry.
+// Two structs with the same name cannot coexist in one generated file
+// (duplicate RegisterXxxHandler declarations), so the first wins and later
+// collisions are reported so the caller can split the run if both are needed.
+func dedupEntries(w io.Writer, entries []Entry) []Entry {
+	seen := make(map[string]struct{}, len(entries))
+	deduped := make([]Entry, 0, len(entries))
+
+	for _, e := range entries {
+		if _, ok := seen[e.StructName]; ok {
+			fmt.Fprintf(
+				w,
+				"warning: duplicate struct %q skipped (already registered)\n",
+				e.StructName,
+			)
+			continue
+		}
+		seen[e.StructName] = struct{}{}
+		deduped = append(deduped, e)
+	}
+
+	return deduped
+}
+
+func scanFile(path, handlerType string) ([]Entry, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "cqrs_gen.parse",
-			"parse "+path)
+		return nil, fmt.Errorf("parse %s: %w", path, err)
 	}
 
 	var entries []Entry
-	prefix := "//cqrs:" + genType + " "
-	tagKey := genType
+	prefix := "//cqrs:" + handlerType + " "
+	tagKey := handlerType
 
 	for _, decl := range f.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
@@ -175,26 +221,26 @@ func scanFile(path, genType string) ([]Entry, error) {
 			}
 
 			// Check comment marker first (backward compat)
-			cmdType := extractMarker(genDecl.Doc, prefix)
-			if cmdType == "" {
-				cmdType = extractMarker(ts.Doc, prefix)
+			markerValue := extractMarker(genDecl.Doc, prefix)
+			if markerValue == "" {
+				markerValue = extractMarker(ts.Doc, prefix)
 			}
 
 			// Fall back to struct tag
-			if cmdType == "" {
+			if markerValue == "" {
 				if structType, ok := ts.Type.(*ast.StructType); ok {
-					cmdType = extractStructTag(structType, tagKey)
+					markerValue = extractStructTag(structType, tagKey)
 				}
 			}
 
-			if cmdType == "" {
+			if markerValue == "" {
 				continue
 			}
 
 			entries = append(entries, Entry{
-				CommandType: cmdType,
+				TypeName:    markerValue,
 				StructName:  ts.Name.Name,
-				PackagePath: f.Name.Name,
+				PackageName: f.Name.Name,
 			})
 		}
 	}
@@ -234,8 +280,11 @@ func extractStructTag(st *ast.StructType, key string) string {
 			continue
 		}
 
-		tagValue := strings.Trim(field.Tag.Value, "`")
-		cqrsTag := reflect.StructTag(tagValue).Get("cqrs")
+		// field.Tag.Value is the raw literal including backticks; strip exactly
+		// one leading and one trailing backtick rather than treating "`" as a
+		// trim cutset.
+		raw := strings.TrimSuffix(strings.TrimPrefix(field.Tag.Value, "`"), "`")
+		cqrsTag := reflect.StructTag(raw).Get("cqrs")
 		if cqrsTag == "" {
 			continue
 		}

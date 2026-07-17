@@ -12,6 +12,19 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     systems.url = "github:nix-systems/default";
+
+    # Build infrastructure for distributable CLI packages (cmd/cqrs-lint, etc.)
+    # These are `flake = false` tarballs — fetched via SSH at eval time, used as
+    # local replace targets by mkPreparedSource so the Nix sandbox (no SSH keys)
+    # can build private deps without network access.
+    go-nix-helpers = {
+      url = "git+ssh://git@github.com/LarsArtmann/go-nix-helpers?ref=master";
+      flake = false;
+    };
+    go-finding = {
+      url = "git+ssh://git@github.com/LarsArtmann/go-finding?ref=master";
+      flake = false;
+    };
   };
 
   outputs =
@@ -21,7 +34,47 @@
       flake-parts,
       treefmt-nix,
       systems,
+      go-nix-helpers,
+      go-finding,
     }:
+    let
+      # Prepared source for building cmd/cqrs-lint as a distributable binary.
+      # Only go-finding is private (GOPRIVATE); all other LarsArtmann deps are
+      # public and served by proxy.golang.org during the vendor phase.
+      version = self.rev or self.dirtyRev or "dev";
+
+      mkCqrsLintSource =
+        pkgs:
+        let
+          inherit (pkgs) lib;
+          mkPreparedSourceFn = import (go-nix-helpers + "/mkPreparedSource.nix") {
+            inherit pkgs lib;
+            goPkg = pkgs.go_1_26;
+          };
+        in
+        mkPreparedSourceFn {
+          name = "cqrs-lint";
+          inherit version;
+          src = builtins.path {
+            path = ./cmd/cqrs-lint;
+            name = "source";
+            filter =
+              path: type:
+              !(builtins.elem (baseNameOf path) [
+                "flake.lock"
+                ".envrc"
+                "CONTRIBUTING.md"
+                "README.md"
+              ]);
+          };
+          deps = {
+            "github.com/larsartmann/go-finding" = go-finding;
+          };
+          subModules = {
+            "github.com/larsartmann/go-finding" = [ "pipeline" ];
+          };
+        };
+    in
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import systems;
 
@@ -189,6 +242,48 @@
                   github = "LarsArtmann";
                 }
               ];
+              platforms = platforms.unix;
+            };
+          };
+
+          # Domain-aware linter for go-cqrs-lite consumers.
+          # Built from cmd/cqrs-lint/ which has its own go.mod (standalone module).
+          # Only go-finding is replaced via mkPreparedSource (private repo);
+          # all other LarsArtmann deps are public and served by proxy.golang.org.
+          packages.cqrs-lint = (pkgs.buildGoModule.override { go = pkgs.go_1_26; }) {
+            pname = "cqrs-lint";
+            inherit version;
+
+            src = mkCqrsLintSource pkgs;
+
+            vendorHash = lib.fakeHash;
+            proxyVendor = true;
+
+            subPackages = [ "." ];
+
+            ldflags = [
+              "-s"
+              "-w"
+            ];
+
+            env = {
+              CGO_ENABLED = "0";
+              GOWORK = "off";
+              GOFLAGS = "-mod=mod -tags=goexperiment.jsonv2";
+            };
+
+            doCheck = false;
+
+            meta = with lib; {
+              description = "Domain-aware linter for go-cqrs-lite consumers";
+              license = licenses.mit;
+              maintainers = [
+                {
+                  name = "Lars Artmann";
+                  github = "LarsArtmann";
+                }
+              ];
+              mainProgram = "cqrs-lint";
               platforms = platforms.unix;
             };
           };
