@@ -281,3 +281,88 @@ func TestComputeHealthScore_InfoCappedTransparency(t *testing.T) {
 		t.Error("expected InfoCapped=false when info is under the cap")
 	}
 }
+
+// When the Info cap is customized, the HealthScore must carry the actual cap
+// used so renderHealthScore shows the correct value (not the hardcoded default).
+func TestComputeHealthScore_InfoCapAppliedReflectsCustomCap(t *testing.T) {
+	t.Parallel()
+
+	findings := make([]finding.Finding, 0, 30)
+	for i := 0; i < 30; i++ {
+		f, _ := finding.NewBuilder(
+			"D002", "test", "style nit",
+			finding.SeverityInfo,
+			finding.Pos(finding.FilePath("test.go"), 1, 1),
+		).Build()
+		findings = append(findings, f)
+	}
+
+	hsDefault := ComputeHealthScore(findings)
+	hsCustom := ComputeHealthScoreWithCap(findings, 10)
+
+	if hsDefault.InfoCapApplied != defaultInfoDeductionCap {
+		t.Errorf("default cap: InfoCapApplied = %d, want %d",
+			hsDefault.InfoCapApplied, defaultInfoDeductionCap)
+	}
+	if hsCustom.InfoCapApplied != 10 {
+		t.Errorf("custom cap=10: InfoCapApplied = %d, want 10", hsCustom.InfoCapApplied)
+	}
+
+	out := renderHealthScore(hsCustom, parseColorMode("never"))
+	if !strings.Contains(out, "capped at -10") {
+		t.Errorf("display should show custom cap -10, got:\n%s", out)
+	}
+	if strings.Contains(out, "capped at -20") {
+		t.Error("display should NOT show default cap -20 when custom cap=10 was used")
+	}
+}
+
+// The health score must be computed on ALL unsuppressed findings, not the
+// severity-filtered display set. This test proves the invariant matters:
+// filtering out warnings/info before computing gives a misleadingly high score.
+func TestComputeHealthScore_ProducesDifferentResultOnFilteredSet(t *testing.T) {
+	t.Parallel()
+
+	var findings []finding.Finding
+
+	critical, _ := finding.NewBuilder(
+		"C001", "test", "real bug",
+		finding.SeverityCritical,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).Build()
+	findings = append(findings, critical)
+
+	warning, _ := finding.NewBuilder(
+		"C002", "test", "warning issue",
+		finding.SeverityWarning,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).Build()
+	findings = append(findings, warning)
+
+	info, _ := finding.NewBuilder(
+		"D002", "test", "style nit",
+		finding.SeverityInfo,
+		finding.Pos(finding.FilePath("test.go"), 1, 1),
+	).Build()
+	findings = append(findings, info)
+
+	// Full set (what the health score SHOULD see).
+	fullScore := ComputeHealthScore(findings).Score
+
+	// Simulate --min-severity=critical filtering out the warning+info.
+	errorOnly := filterBySeverity(findings, "critical")
+	filteredScore := ComputeHealthScore(errorOnly).Score
+
+	if fullScore == filteredScore {
+		t.Errorf("health score on full set (%d) should differ from filtered set (%d) "+
+			"— if equal, the severity filter is leaking into health score",
+			fullScore, filteredScore)
+	}
+	if filteredScore > fullScore {
+		// Filtered set has fewer findings → higher score. This proves the fix
+		// matters: without it, --min-severity would inflate the health score.
+		return
+	}
+
+	t.Errorf("filtered score (%d) should be higher than full score (%d)", filteredScore, fullScore)
+}
