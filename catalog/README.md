@@ -122,6 +122,86 @@ schema := catalog.SchemaFromType[User]()
 | `format`      | `format:"email"`           | JSON Schema format             |
 | `enum`        | `enum:"active,inactive"`   | Enum values                    |
 | `default`     | `default:"active"`         | Default value                  |
+| `query`       | `query:"limit"`            | OpenAPI query parameter        |
+| `path`        | `path:"userId"`            | OpenAPI path parameter         |
+| `header`      | `header:"X-API-Key"`       | OpenAPI header parameter       |
+| `cookie`      | `cookie:"session"`         | OpenAPI cookie parameter       |
+
+## REST API Documentation
+
+Catalog generates **real OpenAPI specs for REST endpoints**, not just event documentation.
+
+### Operations (`MsgOperation`)
+
+Map any command or query to an HTTP endpoint:
+
+```go
+builder.AddService("user-svc", "User Service", "1.0.0", "Manages users",
+    catalog.Command[CreateUserCmd]("user.create",
+        catalog.MsgOperation("POST", "/api/v2/users", "201", "400"),
+        catalog.Response[UserDTO]("201", "User created"),
+        catalog.Response[ErrorBody]("400", "Validation error"),
+        catalog.MsgSecurity("bearerAuth"),
+    ),
+    catalog.Query[ListUsersQuery]("user.list",
+        catalog.MsgOperation("GET", "/api/v2/users"),
+    ),
+)
+```
+
+The OpenAPI exporter renders these as real paths with the correct HTTP method, status codes, and response schemas. GET and POST on the same path coexist in one `PathItem`.
+
+### Typed Responses
+
+Add response schemas auto-derived from Go types:
+
+```go
+catalog.Command[CreateUserCmd]("user.create",
+    catalog.Response[UserDTO]("201", "Created"),     // schema from UserDTO
+    catalog.Response[ErrorBody]("400", "Bad Request"), // schema from ErrorBody
+    catalog.WithResponse("204", "No Content"),        // no body schema
+)
+```
+
+### Security Schemes
+
+Define authentication methods and attach them to messages:
+
+```go
+reg.AddSecurityScheme(catalog.SecurityScheme{
+    ID: "bearerAuth", Type: "http", Scheme: "bearer", BearerFormat: "JWT",
+})
+
+builder.AddService("api", "API", "1.0.0", "...",
+    catalog.Command[CreateUserCmd]("user.create",
+        catalog.MsgSecurity("bearerAuth"),
+    ),
+)
+```
+
+### Validation
+
+`Catalog.Validate()` detects duplicate operation paths, missing response schemas, and incomplete operations:
+
+```go
+cat := builder.Build()
+violations := cat.Validate()
+// violations: []Violation with Path + Message for each issue
+```
+
+### CLI
+
+```bash
+go run ./cmd/go-cqrs-lite-catalog -format openapi -o ./docs
+go run ./cmd/go-cqrs-lite-catalog -format d2 -o ./docs
+```
+
+## Optional Packages
+
+| Package             | Purpose                                                        |
+| ------------------- | -------------------------------------------------------------- |
+| `catalog/httptyped` | Generic typed request/response envelopes (no framework needed) |
+| `catalog/huma`      | Experimental Huma router adapter (no direct Huma dependency)   |
 
 ## Registry API
 

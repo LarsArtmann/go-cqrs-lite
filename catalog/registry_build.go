@@ -4,7 +4,7 @@ func (r *Registry) Build() *Catalog {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	return &Catalog{
+	cat := &Catalog{
 		Title:        Title(r.title),
 		Version:      Version(r.version),
 		Services:     sortedCopy(r.services, copyService),
@@ -19,4 +19,10 @@ func (r *Registry) Build() *Catalog {
 		Agents:       sortedCopy(r.agents, copyAgent),
 		CustomDocs:   sortedCopy(r.customDocs, copyCustomDoc),
 	}
+
+	for _, ss := range r.secSchemes {
+		cat.SecuritySchemes = append(cat.SecuritySchemes, ss)
+	}
+
+	return cat
 }

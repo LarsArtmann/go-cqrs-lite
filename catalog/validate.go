@@ -40,9 +40,10 @@ func (c *Catalog) Validate() []Violation {
 	}
 
 	seenMsgIDs := make(map[MessageID]string)
+	seenOpPaths := make(map[string]string)
 
 	for _, svc := range c.Services {
-		violations = append(violations, validateService(seenMsgIDs, svc)...)
+		violations = append(violations, validateService(seenMsgIDs, seenOpPaths, svc)...)
 	}
 
 	for _, domain := range c.Domains {
@@ -85,7 +86,11 @@ func validateCustomDoc(doc CustomDoc) []Violation {
 	return violations
 }
 
-func validateService(seenMsgIDs map[MessageID]string, svc Service) []Violation {
+func validateService(
+	seenMsgIDs map[MessageID]string,
+	seenOpPaths map[string]string,
+	svc Service,
+) []Violation {
 	var violations []Violation
 
 	if svc.ID == "" {
@@ -96,15 +101,21 @@ func validateService(seenMsgIDs map[MessageID]string, svc Service) []Violation {
 	}
 
 	for _, cmd := range svc.Commands {
-		violations = append(violations, validateMessage(seenMsgIDs, "command", svc.ID, cmd)...)
+		violations = append(
+			violations,
+			validateMessage(seenMsgIDs, seenOpPaths, "command", svc.ID, cmd)...)
 	}
 
 	for _, evt := range svc.Events {
-		violations = append(violations, validateMessage(seenMsgIDs, "event", svc.ID, evt)...)
+		violations = append(
+			violations,
+			validateMessage(seenMsgIDs, seenOpPaths, "event", svc.ID, evt)...)
 	}
 
 	for _, q := range svc.Queries {
-		violations = append(violations, validateMessage(seenMsgIDs, "query", svc.ID, q)...)
+		violations = append(
+			violations,
+			validateMessage(seenMsgIDs, seenOpPaths, "query", svc.ID, q)...)
 	}
 
 	return violations
@@ -112,6 +123,7 @@ func validateService(seenMsgIDs map[MessageID]string, svc Service) []Violation {
 
 func validateMessage(
 	seenMsgIDs map[MessageID]string,
+	seenOpPaths map[string]string,
 	kind string,
 	svcID ServiceID,
 	msg Message,
@@ -136,6 +148,47 @@ func validateMessage(
 		})
 	} else {
 		seenMsgIDs[id] = path
+	}
+
+	violations = append(violations, validateOperation(seenOpPaths, path, msg)...)
+
+	return violations
+}
+
+func validateOperation(seenOpPaths map[string]string, path string, msg Message) []Violation {
+	var violations []Violation
+
+	if msg.Operation == nil {
+		return nil
+	}
+
+	if msg.Operation.Method != "" && msg.Operation.Path == "" {
+		violations = append(violations, Violation{
+			Path:    path + ".operation",
+			Message: "operation method is set but path is empty",
+		})
+	}
+
+	if msg.Operation.Method != "" && msg.Operation.Path != "" {
+		opKey := fmt.Sprintf("%s %s", msg.Operation.Method, msg.Operation.Path)
+
+		if prev, exists := seenOpPaths[opKey]; exists {
+			violations = append(violations, Violation{
+				Path:    path + ".operation",
+				Message: fmt.Sprintf("duplicate operation %q (also in %s)", opKey, prev),
+			})
+		} else {
+			seenOpPaths[opKey] = path
+		}
+	}
+
+	for _, resp := range msg.Responses {
+		if len(resp.StatusCode) == 3 && resp.StatusCode[0] == '2' && resp.Schema == nil {
+			violations = append(violations, Violation{
+				Path:    fmt.Sprintf("%s.responses[%s]", path, resp.StatusCode),
+				Message: "2xx response has no body schema",
+			})
+		}
 	}
 
 	return violations

@@ -1,6 +1,8 @@
 package catalog
 
 import (
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"reflect"
 	"strings"
 	"unicode"
@@ -29,8 +31,11 @@ type messageBuilder struct {
 	producers []ServiceID
 	consumers []ServiceID
 	op        *Operation
+	responses []ResponseSpec
+	examples  []jsontext.Value
 	badges    []Badge
 	repo      *Repository
+	security  []string
 }
 
 func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
@@ -47,8 +52,11 @@ func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
 		Producers:  m.producers,
 		Consumers:  m.consumers,
 		Operation:  m.op,
+		Responses:  m.responses,
+		Examples:   m.examples,
 		Badges:     m.badges,
 		Repository: m.repo,
+		Security:   m.security,
 	}
 
 	switch m.kind {
@@ -117,6 +125,63 @@ func Consumers(ids ...ServiceID) MessageOption {
 func MsgOperation(method, path string, statusCodes ...string) MessageOption {
 	return func(m *messageBuilder) {
 		m.op = &Operation{Method: Method(method), Path: path, StatusCodes: statusCodes}
+	}
+}
+
+// Response adds a typed response with a body schema auto-derived from T.
+func Response[T any](statusCode, description string) MessageOption {
+	return func(m *messageBuilder) {
+		m.responses = append(m.responses, ResponseSpec{
+			StatusCode:  statusCode,
+			Description: description,
+			Schema:      schema.FromType[T](),
+		})
+	}
+}
+
+// WithResponse adds a typed response without a body schema (e.g. 204 No Content).
+func WithResponse(statusCode, description string) MessageOption {
+	return func(m *messageBuilder) {
+		m.responses = append(m.responses, ResponseSpec{
+			StatusCode:  statusCode,
+			Description: description,
+		})
+	}
+}
+
+// WithParam adds an HTTP parameter to this message.
+func WithParam(name, location, description string, required bool) MessageOption {
+	return func(m *messageBuilder) {
+		if m.schema == nil {
+			m.schema = &Schema{Type: TypeObject, Properties: map[string]Property{}}
+		}
+
+		if m.schema.Parameters == nil {
+			m.schema.Parameters = []Parameter{}
+		}
+
+		m.schema.Parameters = append(m.schema.Parameters, Parameter{
+			Name: name, In: location, Description: description, Required: required,
+		})
+	}
+}
+
+// WithExample adds an example payload to this message.
+func WithExample(value any) MessageOption {
+	return func(m *messageBuilder) {
+		raw, err := json.Marshal(value, json.Deterministic(true))
+		if err != nil {
+			return
+		}
+
+		m.examples = append(m.examples, jsontext.Value(raw))
+	}
+}
+
+// MsgSecurity attaches security scheme IDs to this message.
+func MsgSecurity(schemeIDs ...string) MessageOption {
+	return func(m *messageBuilder) {
+		m.security = schemeIDs
 	}
 }
 

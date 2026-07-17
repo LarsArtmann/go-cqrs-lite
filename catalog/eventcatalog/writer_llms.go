@@ -84,7 +84,18 @@ func writeLLMsTxtMessages(buf *strings.Builder, section string, msgs []catalog.M
 	fmt.Fprintf(buf, "\n### %s\n", section)
 
 	for _, msg := range msgs {
-		fmt.Fprintf(buf, "- %s (v%s): %s\n", msg.Name, msg.Version, msg.Summary)
+		line := fmt.Sprintf("- %s (v%s): %s", msg.Name, msg.Version, msg.Summary)
+
+		if msg.Operation != nil && msg.Operation.Method != "" {
+			line += fmt.Sprintf(" [%s %s]", msg.Operation.Method, msg.Operation.Path)
+		}
+
+		buf.WriteString(line)
+		buf.WriteString("\n")
+
+		for _, resp := range msg.Responses {
+			fmt.Fprintf(buf, "  - Response %s: %s\n", resp.StatusCode, resp.Description)
+		}
 	}
 }
 

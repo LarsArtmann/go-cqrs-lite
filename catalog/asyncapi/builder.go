@@ -307,6 +307,10 @@ func kindToTagName(kind catalog.MessageKind) string {
 func buildTags(kind messageKind, serviceID catalog.ServiceID, msg catalog.Message) []Tag {
 	tags := []Tag{{Name: string(kind)}, {Name: string(serviceID)}}
 
+	if msg.Operation != nil && msg.Operation.Method != "" {
+		tags = append(tags, Tag{Name: "http:" + string(msg.Operation.Method)})
+	}
+
 	if msg.Deprecated {
 		tags = append(tags, Tag{Name: "deprecated"})
 	}

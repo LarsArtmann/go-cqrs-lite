@@ -45,14 +45,14 @@
 
 ### Detector Accuracy (Band 5)
 
-| Rule | Improvement | Tests |
-|---|---|---|
-| C008 | Embedded struct money detection (`MoneyMixin` pattern) | `TestC008_EmbeddedMoneyStruct` |
-| C001 | `sqlx.Beginx` support (not just `database/sql` Begin/BeginTx) | `TestC001_DetectsSqlxBeginx` |
-| A009 | Suppresses when `storage/` facade imported (shared-DB architecture) | `TestA009_NoFindingForStorageFacadeArchitecture` |
-| E006 | Verified SQL row structs (`*Candidate`) not registered as events | `TestE006_NoFindingForSQLRowStructNamedCandidate` |
-| B007 | Documented scope: CQRS registration only, not `mux.HandleFunc` | — |
-| D002 | `json:"-"` skip already handled (verified) | — |
+| Rule | Improvement                                                         | Tests                                             |
+| ---- | ------------------------------------------------------------------- | ------------------------------------------------- |
+| C008 | Embedded struct money detection (`MoneyMixin` pattern)              | `TestC008_EmbeddedMoneyStruct`                    |
+| C001 | `sqlx.Beginx` support (not just `database/sql` Begin/BeginTx)       | `TestC001_DetectsSqlxBeginx`                      |
+| A009 | Suppresses when `storage/` facade imported (shared-DB architecture) | `TestA009_NoFindingForStorageFacadeArchitecture`  |
+| E006 | Verified SQL row structs (`*Candidate`) not registered as events    | `TestE006_NoFindingForSQLRowStructNamedCandidate` |
+| B007 | Documented scope: CQRS registration only, not `mux.HandleFunc`      | —                                                 |
+| D002 | `json:"-"` skip already handled (verified)                          | —                                                 |
 
 ### Doctor Command (Band 5)
 
@@ -93,29 +93,30 @@
 
 ## b) DEFERRED (blocked or XL-effort)
 
-| # | Item | Why deferred |
-|---|---|---|
-| 1 | Re-verify against real DiscordSync repo | BLOCKED: needs external repo clone/access |
-| 2 | Second consumer feedback pass | BLOCKED: no second consumer identified |
-| 3 | Type-information-aware rules (go/types for A016) | XL effort: requires type checker integration |
-| 4 | Cross-rule correlation (C001+C009 escalate) | M effort: needs pipeline post-processor |
-| 5 | Auto-fix mode expansion (--fix for more rules) | XL effort: per-rule fix strategies |
-| 6 | Telemetry for suppression rates | L effort: opt-in infra |
-| 7 | Multi-module workspace support (go.work dedup) | XL effort: cross-module finding dedup |
-| 8 | Versioned rule sets | L effort: rule-version pinning system |
-| 9 | Migration assistant (pre-v4 API detection) | XL effort: legacy pattern database |
-| 10 | `--fp-suspects` mode | M effort: low-confidence filtering UI |
-| 11 | SARIF suppress suggestions | Depends on go-finding library SARIF format |
-| 12 | `cqrs-lint config init` generator | M effort: template generator |
-| 13 | Property-based tests (rapid) for C008/D005 | Lower ROI than hand-written tests already covering edge cases |
-| 14 | Extract shared `asthelpers` package | M effort refactor; current helpers are clean and scoped |
-| 15 | Per-rule Info sub-cap | Current global cap works well; per-rule adds complexity |
+| #   | Item                                             | Why deferred                                                  |
+| --- | ------------------------------------------------ | ------------------------------------------------------------- |
+| 1   | Re-verify against real DiscordSync repo          | BLOCKED: needs external repo clone/access                     |
+| 2   | Second consumer feedback pass                    | BLOCKED: no second consumer identified                        |
+| 3   | Type-information-aware rules (go/types for A016) | XL effort: requires type checker integration                  |
+| 4   | Cross-rule correlation (C001+C009 escalate)      | M effort: needs pipeline post-processor                       |
+| 5   | Auto-fix mode expansion (--fix for more rules)   | XL effort: per-rule fix strategies                            |
+| 6   | Telemetry for suppression rates                  | L effort: opt-in infra                                        |
+| 7   | Multi-module workspace support (go.work dedup)   | XL effort: cross-module finding dedup                         |
+| 8   | Versioned rule sets                              | L effort: rule-version pinning system                         |
+| 9   | Migration assistant (pre-v4 API detection)       | XL effort: legacy pattern database                            |
+| 10  | `--fp-suspects` mode                             | M effort: low-confidence filtering UI                         |
+| 11  | SARIF suppress suggestions                       | Depends on go-finding library SARIF format                    |
+| 12  | `cqrs-lint config init` generator                | M effort: template generator                                  |
+| 13  | Property-based tests (rapid) for C008/D005       | Lower ROI than hand-written tests already covering edge cases |
+| 14  | Extract shared `asthelpers` package              | M effort refactor; current helpers are clean and scoped       |
+| 15  | Per-rule Info sub-cap                            | Current global cap works well; per-rule adds complexity       |
 
 ---
 
 ## c) VERIFICATION
 
 All green:
+
 - `go build -tags "goexperiment.jsonv2" ./...`
 - `go vet -tags "goexperiment.jsonv2" ./...`
 - `go test -tags "goexperiment.jsonv2" ./...` (11/11 packages)

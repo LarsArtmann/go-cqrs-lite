@@ -16,7 +16,7 @@
 > and E006 were already addressed via the FeatureProfile +
 > EventTypesEmitted registry work; D004 was removed. **Round 2 closed the
 > biggest gap** — D002 now ships a dual opt-out (config `external-api-struct-
-> prefixes` + in-source `//cqrs-lint:external-api` marker), plus fairness fixes
+prefixes` + in-source `//cqrs-lint:external-api` marker), plus fairness fixes
 > to the health score (confidence weighting + Info cap), C001 tx-use detection,
 > A005 widened broadcast signals, and C008 project-aware downgrade. See the
 > "Resolution Log" section at the end of this file, the round-1 triage
@@ -426,12 +426,12 @@ Ranked by impact (would remove the most false positives):
 Re-triaged against current `cmd/cqrs-lint` source. Status of each suggested
 improvement:
 
-| #   | Suggestion                                 | Status      | Detail                                                                                                                                                                               |
-| --- | ------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | C001 — trace closures                      | **DONE**    | `txVarEscapesToArg` skips when the tx variable is passed as a call argument (closure-helper pattern). Existing test updated to a genuine missing-commit case; regression test added. |
-| 2   | C008 — require multiple money signals      | **DONE**    | Split into strong fields (amount/price/cost/balance/fee — fire alone) and weak fields (value/total/charge/payment/salary — need money struct/package name).                          |
-| 3   | E006 — cross-reference event registry      | **DONE**    | Already uses `ctx.Registry.EventTypesEmitted`, populated only from `event.New()`/`event.NewEvent()` calls. SQL row structs are never registered.                                     |
-| 4   | A005 — check callback behavior             | **DONE**    | `classifyCallbackBody` suppresses when the SubscribeAll callback has broadcast/notify calls (Notify/Broadcast/Send) and no persistence calls (Save/Set/Upsert/...).                  |
-| 5   | A016 — verify dispatcher type              | **DONE**    | Gated by `FeatureProfile.CommandFlow`; read-only / event-sourcing-only systems never fire.                                                                                           |
-| 6   | D005 — skip empty/non-version tokens       | **DONE**    | `looksLikeVersionToken` requires `v\d+\.\d+` shape, rejecting "via"/"version" and bare "v3"/"v4" prose words.                                                                        |
-| 7   | D002/D004 — respect external API contracts | **DONE**    | D004 removed. D002 ships a dual opt-out (round-2): config `external-api-struct-prefixes` + in-source `//cqrs-lint:external-api` marker. See round-2 report §a1.                                          |
+| #   | Suggestion                                 | Status   | Detail                                                                                                                                                                               |
+| --- | ------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | C001 — trace closures                      | **DONE** | `txVarEscapesToArg` skips when the tx variable is passed as a call argument (closure-helper pattern). Existing test updated to a genuine missing-commit case; regression test added. |
+| 2   | C008 — require multiple money signals      | **DONE** | Split into strong fields (amount/price/cost/balance/fee — fire alone) and weak fields (value/total/charge/payment/salary — need money struct/package name).                          |
+| 3   | E006 — cross-reference event registry      | **DONE** | Already uses `ctx.Registry.EventTypesEmitted`, populated only from `event.New()`/`event.NewEvent()` calls. SQL row structs are never registered.                                     |
+| 4   | A005 — check callback behavior             | **DONE** | `classifyCallbackBody` suppresses when the SubscribeAll callback has broadcast/notify calls (Notify/Broadcast/Send) and no persistence calls (Save/Set/Upsert/...).                  |
+| 5   | A016 — verify dispatcher type              | **DONE** | Gated by `FeatureProfile.CommandFlow`; read-only / event-sourcing-only systems never fire.                                                                                           |
+| 6   | D005 — skip empty/non-version tokens       | **DONE** | `looksLikeVersionToken` requires `v\d+\.\d+` shape, rejecting "via"/"version" and bare "v3"/"v4" prose words.                                                                        |
+| 7   | D002/D004 — respect external API contracts | **DONE** | D004 removed. D002 ships a dual opt-out (round-2): config `external-api-struct-prefixes` + in-source `//cqrs-lint:external-api` marker. See round-2 report §a1.                      |

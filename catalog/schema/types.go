@@ -22,6 +22,18 @@ type Schema struct {
 	Required   []string            `json:"required,omitempty"`
 	Items      *Property           `json:"items,omitempty"`
 	Examples   []jsontext.Value    `json:"examples,omitempty"`
+	Parameters []Parameter         `json:"-"`
+}
+
+// Parameter represents an HTTP parameter extracted from struct tags
+// (query, path, header, cookie). These are not serialized to JSON schema
+// output but are consumed by OpenAPI exporters.
+type Parameter struct {
+	Name        string
+	In          string // "query", "path", "header", "cookie"
+	Description string
+	Required    bool
+	Schema      *Property
 }
 
 type Property struct {

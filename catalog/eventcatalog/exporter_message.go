@@ -36,6 +36,7 @@ func (e *Exporter) writeMessage(
 		Producers:  toPointers(msg.Producers),
 		Consumers:  toPointers(msg.Consumers),
 		Operation:  toOperation(msg.Operation),
+		Responses:  toResponses(msg.Responses),
 		Badges:     toBadges(msg.Badges),
 		Repository: toRepository(msg.Repository),
 	}

@@ -121,6 +121,8 @@ const (
 
 type Property = schema.Property
 
+type Parameter = schema.Parameter
+
 type Message struct {
 	Kind        MessageKind       `json:"kind"`
 	ID          MessageID         `json:"id"`
@@ -140,8 +142,10 @@ type Message struct {
 	Producers   []ServiceID       `json:"producers,omitempty"`
 	Consumers   []ServiceID       `json:"consumers,omitempty"`
 	Operation   *Operation        `json:"operation,omitempty"`
+	Responses   []ResponseSpec    `json:"responses,omitempty"`
 	Badges      []Badge           `json:"badges,omitempty"`
 	Repository  *Repository       `json:"repository,omitempty"`
+	Security    []string          `json:"security,omitempty"`
 }
 
 type Service struct {
@@ -202,19 +206,20 @@ type Channel struct {
 }
 
 type Catalog struct {
-	Title        Title         `json:"title"`
-	Version      Version       `json:"version"`
-	Services     []Service     `json:"services"`
-	Domains      []Domain      `json:"domains,omitempty"`
-	Channels     []Channel     `json:"channels,omitempty"`
-	DataStores   []DataStore   `json:"dataStores,omitempty"`
-	Flows        []Flow        `json:"flows,omitempty"`
-	Teams        []Team        `json:"teams,omitempty"`
-	Users        []User        `json:"users,omitempty"`
-	Entities     []Entity      `json:"entities,omitempty"`
-	DataProducts []DataProduct `json:"dataProducts,omitempty"`
-	Agents       []Agent       `json:"agents,omitempty"`
-	CustomDocs   []CustomDoc   `json:"customDocs,omitempty"`
+	Title           Title            `json:"title"`
+	Version         Version          `json:"version"`
+	Services        []Service        `json:"services"`
+	Domains         []Domain         `json:"domains,omitempty"`
+	Channels        []Channel        `json:"channels,omitempty"`
+	DataStores      []DataStore      `json:"dataStores,omitempty"`
+	Flows           []Flow           `json:"flows,omitempty"`
+	Teams           []Team           `json:"teams,omitempty"`
+	Users           []User           `json:"users,omitempty"`
+	Entities        []Entity         `json:"entities,omitempty"`
+	DataProducts    []DataProduct    `json:"dataProducts,omitempty"`
+	Agents          []Agent          `json:"agents,omitempty"`
+	CustomDocs      []CustomDoc      `json:"customDocs,omitempty"`
+	SecuritySchemes []SecurityScheme `json:"securitySchemes,omitempty"`
 }
 
 // Key returns the unique key for the message: msg.ID if set, otherwise msg.Name.

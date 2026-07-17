@@ -226,12 +226,12 @@ adjustments prevent heuristic noise from drowning real bugs:
 
 - **Confidence weighting** — each finding's deduction is scaled by its confidence:
 
-  | Confidence | Multiplier | Example |
-  |---|---|---|
+  | Confidence  | Multiplier | Example                  |
+  | ----------- | ---------- | ------------------------ |
   | High / Full | 1.0 (100%) | Structural pattern match |
-  | Medium | 0.75 (75%) | Name + shape heuristic |
-  | Low | 0.5 (50%) | Coincidental field name |
-  | none | 1.0 (100%) | Preserves prior behavior |
+  | Medium      | 0.75 (75%) | Name + shape heuristic   |
+  | Low         | 0.5 (50%)  | Coincidental field name  |
+  | none        | 1.0 (100%) | Preserves prior behavior |
 
 - **Severity deductions** — Critical: -10, Error: -5, Warning: -2, Info: -1
   (before confidence weighting).

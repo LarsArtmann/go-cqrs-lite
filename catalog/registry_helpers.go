@@ -43,8 +43,10 @@ func copyMessage(m Message) Message {
 		Producers:   copySlice(m.Producers),
 		Consumers:   copySlice(m.Consumers),
 		Operation:   copyOperation(m.Operation),
+		Responses:   copyResponseSpecs(m.Responses),
 		Badges:      copyBadges(m.Badges),
 		Repository:  copyRepository(m.Repository),
+		Security:    copySlice(m.Security),
 	}
 }
 
@@ -66,6 +68,25 @@ func copyOperation(op *Operation) *Operation {
 		Path:        op.Path,
 		StatusCodes: copySlice(op.StatusCodes),
 	}
+}
+
+func copyResponseSpecs(specs []ResponseSpec) []ResponseSpec {
+	if specs == nil {
+		return nil
+	}
+
+	copies := make([]ResponseSpec, len(specs))
+
+	for i, s := range specs {
+		copies[i] = ResponseSpec{
+			StatusCode:  s.StatusCode,
+			Description: s.Description,
+			Schema:      s.Schema,
+			Examples:    copySlice(s.Examples),
+		}
+	}
+
+	return copies
 }
 
 func copyRepository(r *Repository) *Repository {

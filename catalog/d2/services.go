@@ -127,6 +127,10 @@ func (e *Exporter) writeMessageNode(
 		label += fmt.Sprintf(" (v%s)", msg.Version)
 	}
 
+	if msg.Operation != nil && msg.Operation.Method != "" {
+		label += fmt.Sprintf(" [%s %s]", msg.Operation.Method, msg.Operation.Path)
+	}
+
 	fmt.Fprintf(buf, "    label: %q\n", label)
 
 	tooltip := e.buildTooltip(msg)

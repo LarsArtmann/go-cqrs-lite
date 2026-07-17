@@ -76,3 +76,10 @@ func (r *Registry) AddCustomDoc(doc CustomDoc) {
 
 	r.customDocs[doc.ID] = copyPtr(copyCustomDoc, doc)
 }
+
+func (r *Registry) AddSecurityScheme(ss SecurityScheme) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.secSchemes[ss.ID] = ss
+}

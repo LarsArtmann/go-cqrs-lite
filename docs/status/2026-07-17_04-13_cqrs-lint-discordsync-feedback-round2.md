@@ -22,24 +22,24 @@ false-positive noise in the entire DiscordSync report (18 of 34 findings)"
 and self-criticized leaving it partial. This session closed it with **two
 stackable opt-outs**:
 
-| Mechanism | Where | Granularity | Use case |
-|---|---|---|---|
-| **Config** `"rules": {"external-api-struct-prefixes": ["Discord"]}` | `.cqrs-lint.json` | Bulk — all structs whose name starts with a prefix | "Discord's whole API is snake_case" |
-| **In-source marker** `//cqrs-lint:external-api` | struct doc comment | Per-struct | One-off mirror types |
+| Mechanism                                                           | Where              | Granularity                                        | Use case                            |
+| ------------------------------------------------------------------- | ------------------ | -------------------------------------------------- | ----------------------------------- |
+| **Config** `"rules": {"external-api-struct-prefixes": ["Discord"]}` | `.cqrs-lint.json`  | Bulk — all structs whose name starts with a prefix | "Discord's whole API is snake_case" |
+| **In-source marker** `//cqrs-lint:external-api`                     | struct doc comment | Per-struct                                         | One-off mirror types                |
 
 Both work on single `type Foo struct{}` AND grouped `type ( ... )` blocks (the
 marker lives on the TypeSpec's doc for grouped blocks, the GenDecl's doc for
 single — handled separately in `collectExternalAPIStructs`).
 
-| File | Change |
-|---|---|
-| `pkg/analyzer/rules_config.go` (NEW) | `RulesConfig` type + `ExternalAPIStructPrefixes []string` |
-| `pkg/analyzer/types.go` | `AnalysisContext.RulesConfig` field |
-| `pkg/rules/consistency/d002_external.go` (NEW) | `collectExternalAPIStructs`, `fileContainsMarker`, `isExternalAPIStruct` |
-| `pkg/rules/consistency/rules.go` | D002 calls `collectExternalAPIStructs` and skips flagged structs |
-| `main.go` | `AppConfig.Rules` field + wired into `actx.RulesConfig` |
-| `doctor.go` | prints loaded `rules` overrides (DX: verify your prefix list loaded) |
-| `rules_test.go` | **5 new tests**: fires-without-suppression, marker-present, marker-on-grouped-block, config-prefix, prefix-doesn't-match |
+| File                                           | Change                                                                                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `pkg/analyzer/rules_config.go` (NEW)           | `RulesConfig` type + `ExternalAPIStructPrefixes []string`                                                                |
+| `pkg/analyzer/types.go`                        | `AnalysisContext.RulesConfig` field                                                                                      |
+| `pkg/rules/consistency/d002_external.go` (NEW) | `collectExternalAPIStructs`, `fileContainsMarker`, `isExternalAPIStruct`                                                 |
+| `pkg/rules/consistency/rules.go`               | D002 calls `collectExternalAPIStructs` and skips flagged structs                                                         |
+| `main.go`                                      | `AppConfig.Rules` field + wired into `actx.RulesConfig`                                                                  |
+| `doctor.go`                                    | prints loaded `rules` overrides (DX: verify your prefix list loaded)                                                     |
+| `rules_test.go`                                | **5 new tests**: fires-without-suppression, marker-present, marker-on-grouped-block, config-prefix, prefix-doesn't-match |
 
 ### a2. C001 — tx-use signal (prior §f-7)
 
@@ -103,8 +103,8 @@ beyond the 'no finding' implicit case." Added explicit
   session's fixes (now changelogged) AND this session's additions, with
   consumer-facing "what changed for me" framing.
 - **README.md** — new **Rule Overrides** subsection documenting the D002 config
-  + the `//cqrs-lint:external-api` marker; D002 table row updated with a link;
-  Suppression section expanded with the marker syntax + an example.
+  - the `//cqrs-lint:external-api` marker; D002 table row updated with a link;
+    Suppression section expanded with the marker syntax + an example.
 
 ### Verification (all green)
 
@@ -122,22 +122,22 @@ TestCriticalDetectorsInstantiate             ✅
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's done | What's missing |
-|---|---|---|---|
-| 1 | **D002 end-to-end proof** | Config + marker both implemented, unit-tested across single/grouped/empty cases | **No synthetic DiscordSync-like fixture** proving the 18 findings actually drop on a real-shaped project. Unit tests prove each behavior in isolation; the *sum* is asserted only indirectly. (Prior §d-4, §f-5) |
-| 2 | **Feedback-doc historical drift** | CHANGELOG now records that A016/E006/D004 are resolved | The feedback doc *body* (`docs/feedback/2026-07-16_DiscordSync_cqrs-lint-feedback.md`) still describes A016/E006/D004 as open/false-positive. A strikethrough/`[RESOLVED]` pass would be cleaner. (Prior §b-2, §f-26) |
+| #   | Item                              | What's done                                                                     | What's missing                                                                                                                                                                                                        |
+| --- | --------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **D002 end-to-end proof**         | Config + marker both implemented, unit-tested across single/grouped/empty cases | **No synthetic DiscordSync-like fixture** proving the 18 findings actually drop on a real-shaped project. Unit tests prove each behavior in isolation; the _sum_ is asserted only indirectly. (Prior §d-4, §f-5)      |
+| 2   | **Feedback-doc historical drift** | CHANGELOG now records that A016/E006/D004 are resolved                          | The feedback doc _body_ (`docs/feedback/2026-07-16_DiscordSync_cqrs-lint-feedback.md`) still describes A016/E006/D004 as open/false-positive. A strikethrough/`[RESOLVED]` pass would be cleaner. (Prior §b-2, §f-26) |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Item | Why not |
-|---|---|---|
-| 1 | **Re-tag cqrs-lint** (prior §f-2, §e-8) | I don't push or tag without an explicit ask. The CHANGELOG is release-ready; a `v0.2.0` tag is one command away once you approve. |
-| 2 | **Re-verify against real DiscordSync repo** (prior §f-6) | Needs external repo access / clone. Unit tests cover each behavior; a clone-and-run would prove the aggregate health-score move. |
-| 3 | **Property-based tests (rapid)** for C008/D005 (prior §f-24) | Listed for completeness; the hand-written tests already cover the documented edge cases. Low marginal value until a second consumer exposes a gap. |
-| 4 | **`cqrs-lint rules` listing** already exists (prior §f-31 was already done — `main.go:82` wires `setupRulesCommand`). Confirmed not actually open. |
-| 5 | **Dogfooding** `cqrs-lint` on `cmd/cqrs-lint/` itself (prior §f-40) | Would surface self-findings; deferred since it's a meta-concern, not a consumer-facing gap. |
+| #   | Item                                                                                                                                               | Why not                                                                                                                                            |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Re-tag cqrs-lint** (prior §f-2, §e-8)                                                                                                            | I don't push or tag without an explicit ask. The CHANGELOG is release-ready; a `v0.2.0` tag is one command away once you approve.                  |
+| 2   | **Re-verify against real DiscordSync repo** (prior §f-6)                                                                                           | Needs external repo access / clone. Unit tests cover each behavior; a clone-and-run would prove the aggregate health-score move.                   |
+| 3   | **Property-based tests (rapid)** for C008/D005 (prior §f-24)                                                                                       | Listed for completeness; the hand-written tests already cover the documented edge cases. Low marginal value until a second consumer exposes a gap. |
+| 4   | **`cqrs-lint rules` listing** already exists (prior §f-31 was already done — `main.go:82` wires `setupRulesCommand`). Confirmed not actually open. |
+| 5   | **Dogfooding** `cqrs-lint` on `cmd/cqrs-lint/` itself (prior §f-40)                                                                                | Would surface self-findings; deferred since it's a meta-concern, not a consumer-facing gap.                                                        |
 
 ---
 
@@ -147,7 +147,7 @@ TestCriticalDetectorsInstantiate             ✅
    could have folded it into the existing `hasCommitCall`/`hasDeferCommit`
    single-pass walks instead of adding a third `ast.Inspect`. On a large
    consumer repo this is measurable. It works and reads cleanly, but it's not
-   the *best* solution — it's the *fastest to write*. Exactly the anti-pattern
+   the _best_ solution — it's the _fastest to write_. Exactly the anti-pattern
    the project's own principles flag. (prior §f-33, §f-36)
 2. **`projectHasMonetarySignal` walks the whole AST again per project** (on top
    of the per-file passes). Same class of mistake as #1 — I reached for a
@@ -159,7 +159,7 @@ TestCriticalDetectorsInstantiate             ✅
 4. **C008 severity downgrade is asserted by string comparison, not by a typed
    assertion.** The test checks `f.Severity != finding.SeverityInfo` — correct,
    but if the `finding` package ever changes `Severity.String()` the test still
-   passes while the *displayed* grade could drift. Minor, but it's the kind of
+   passes while the _displayed_ grade could drift. Minor, but it's the kind of
    stringly-typed check the project conventions warn against.
 5. **The Info-cap math rounds per-finding then sums, vs. summing-then-rounding.**
    `breakdown[key] += int(math.Round(d))` can drift by ±1 from the actual
@@ -181,17 +181,17 @@ TestCriticalDetectorsInstantiate             ✅
 1. **Rules still don't share AST traversal.** `txIsUsed`,
    `projectHasMonetarySignal`, and `collectExternalAPIStructs` each re-walk. The
    prior triage's §e-5 (shared `asthelpers` package) is now more urgent — I
-   added *another* two pattern-matchers instead of consolidating.
+   added _another_ two pattern-matchers instead of consolidating.
 2. **`RulesConfig` is the right shape but under-extensible.** It has one field.
    The moment a second rule needs config (e.g. D003 allowed-logging-libraries,
    A009 shared-DB allowlist), the pattern is established — good — but there's no
    config-schema doc or `cqrs-lint config --init` generator yet.
 3. **The Info cap is a blunt instrument.** 20 points is a magic number with no
-   empirical basis. A project with 25 *genuine* style issues still gets capped
+   empirical basis. A project with 25 _genuine_ style issues still gets capped
    at 20, hiding 5 real findings' worth of signal. A percentile-based cap or a
    per-rule cap would be more honest. (prior §e-3 extended)
 4. **Confidence weighting interacts oddly with the Info cap.** Low-confidence
-   Info findings get discounted *twice*: once by the 0.5 weight, once by the
+   Info findings get discounted _twice_: once by the 0.5 weight, once by the
    cap. That's arguably correct (they're doubly uncertain) but it's not
    documented and could surprise consumers comparing `--verbose` counts to the
    score.
@@ -204,13 +204,13 @@ TestCriticalDetectorsInstantiate             ✅
    formatting/lint wrapper which may apply additional rules (golines at 120).
    The diff is probably fine, but I didn't verify against the project's actual
    gate.
-6. **No CHANGELOG entry for the *process* change** (health-score weighting is a
+6. **No CHANGELOG entry for the _process_ change** (health-score weighting is a
    scoring-semantics change, not just a bug fix). Consumers who pinned their
    expectation to "Info = -1 each" will see scores move on re-run. The
    CHANGELOG mentions it but doesn't call out the migration impact loudly.
 7. **I didn't update the prior triage doc.** The 03:38 report still says D002 is
    "the real unfinished business" — now resolved. A one-line `[RESOLVED
-   2026-07-17 04:13]` banner at its §d-1 would prevent a future reader from
+2026-07-17 04:13]` banner at its §d-1 would prevent a future reader from
    re-triaging a closed item.
 
 ---
@@ -332,7 +332,7 @@ Ranked by impact × effort. ✅ = already done this session.
    runs. You may have a stronger prior.
 
 3. **For D002, is the config-prefix approach the right primary mechanism, or
-   should detection be *automatic* (e.g. detect `import "github.com/bwmarrin/discordgo"`
+   should detection be _automatic_ (e.g. detect `import "github.com/bwmarrin/discordgo"`
    and auto-suppress snake_case on structs whose names match Discord API
    shapes)?**
    I went with explicit opt-in (config + marker) because it's honest and

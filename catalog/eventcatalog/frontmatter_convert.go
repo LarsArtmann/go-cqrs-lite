@@ -76,6 +76,22 @@ func toOperation(op *catalog.Operation) *operationFM {
 	}
 }
 
+func toResponses(specs []catalog.ResponseSpec) []responseFM {
+	if len(specs) == 0 {
+		return nil
+	}
+
+	out := make([]responseFM, len(specs))
+	for i, s := range specs {
+		out[i] = responseFM{
+			StatusCode:  s.StatusCode,
+			Description: s.Description,
+		}
+	}
+
+	return out
+}
+
 func toSpecifications(specs []catalog.Specification) []specificationFM {
 	if len(specs) == 0 {
 		return nil

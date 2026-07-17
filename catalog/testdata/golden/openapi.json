@@ -62,7 +62,7 @@
         ],
         "summary": "Event: Order Created",
         "description": "Order was created",
-        "operationId": "eventOrdercreated",
+        "operationId": "postOrdercreated",
         "deprecated": false,
         "requestBody": {
           "description": "Order Created event payload",

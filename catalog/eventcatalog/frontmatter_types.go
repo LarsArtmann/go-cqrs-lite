@@ -28,6 +28,11 @@ type operationFM struct {
 	StatusCodes []string `yaml:"statusCodes,omitempty,flow"`
 }
 
+type responseFM struct {
+	StatusCode  string `yaml:"statusCode"`
+	Description string `yaml:"description,omitempty"`
+}
+
 type specificationFM struct {
 	Type string `yaml:"type"`
 	Path string `yaml:"path"`
@@ -88,6 +93,7 @@ type messageFM struct {
 	Producers  []pointer         `yaml:"producers,omitempty"`
 	Consumers  []pointer         `yaml:"consumers,omitempty"`
 	Operation  *operationFM      `yaml:"operation,omitempty"`
+	Responses  []responseFM      `yaml:"responses,omitempty"`
 	Badges     []badgeFM         `yaml:"badges,omitempty"`
 	Repository *repositoryFM     `yaml:"repository,omitempty"`
 	SchemaPath string            `yaml:"schemaPath,omitempty"`

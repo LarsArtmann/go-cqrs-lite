@@ -129,8 +129,14 @@ func structSchema(t reflect.Type) *Schema {
 
 	var required []string
 
+	var params []Parameter
+
 	for field := range t.Fields() {
-		name, prop, omit, include := fieldToProperty(field)
+		name, prop, omit, include, param := fieldToProperty(field)
+		if param.In != "" {
+			params = append(params, param)
+		}
+
 		if !include {
 			continue
 		}
@@ -142,21 +148,49 @@ func structSchema(t reflect.Type) *Schema {
 		}
 	}
 
-	return &Schema{
+	s := &Schema{
 		Type:       TypeObject,
 		Properties: props,
 		Required:   required,
 	}
+
+	if len(params) > 0 {
+		s.Parameters = params
+	}
+
+	return s
 }
 
-func fieldToProperty(field reflect.StructField) (string, Property, bool, bool) {
+const (
+	paramQuery  = "query"
+	paramPath   = "path"
+	paramHeader = "header"
+	paramCookie = "cookie"
+)
+
+func fieldToProperty(field reflect.StructField) (string, Property, bool, bool, Parameter) {
 	if !field.IsExported() || field.Anonymous {
-		return "", Property{}, false, false
+		return "", Property{}, false, false, Parameter{}
 	}
+
+	paramLoc, paramName := readParamLocation(field)
 
 	jsonTag := field.Tag.Get("json")
 	if jsonTag == "-" {
-		return "", Property{}, false, false
+		if paramLoc != "" {
+			pName := cmp.Or(paramName, field.Name)
+			prop := *propertyFromReflect(field.Type)
+
+			return "", Property{}, false, false, Parameter{
+				Name:        pName,
+				In:          paramLoc,
+				Description: tagValue(field, "doc", "description"),
+				Required:    paramLoc == paramPath,
+				Schema:      &prop,
+			}
+		}
+
+		return "", Property{}, false, false, Parameter{}
 	}
 
 	name, omit := parseJSONTag(jsonTag)
@@ -188,7 +222,19 @@ func fieldToProperty(field reflect.StructField) (string, Property, bool, bool) {
 		prop.Pattern = v
 	}
 
-	return name, prop, omit, true
+	if paramLoc != "" {
+		pName := cmp.Or(paramName, name)
+
+		return name, prop, omit, true, Parameter{
+			Name:        pName,
+			In:          paramLoc,
+			Description: prop.Description,
+			Required:    paramLoc == paramPath || !omit,
+			Schema:      &prop,
+		}
+	}
+
+	return name, prop, omit, true, Parameter{}
 }
 
 func collectionSchema(t reflect.Type) *Property {
@@ -291,4 +337,19 @@ func tagValue(field reflect.StructField, tags ...string) string {
 	}
 
 	return ""
+}
+
+func readParamLocation(field reflect.StructField) (location, name string) {
+	for _, loc := range [...]struct{ tag, value string }{
+		{paramQuery, paramQuery},
+		{paramPath, paramPath},
+		{paramHeader, paramHeader},
+		{paramCookie, paramCookie},
+	} {
+		if v := field.Tag.Get(loc.tag); v != "" {
+			return loc.value, strings.Split(v, ",")[0]
+		}
+	}
+
+	return "", ""
 }

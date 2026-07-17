@@ -27,6 +27,7 @@ type Registry struct {
 	dataProducts map[DataProductID]*DataProduct
 	agents       map[AgentID]*Agent
 	customDocs   map[CustomDocID]*CustomDoc
+	secSchemes   map[string]SecurityScheme
 }
 
 // NewRegistry creates a new catalog registry with the given title and version.
@@ -46,6 +47,7 @@ func NewRegistry(title, version string) *Registry {
 		dataProducts: make(map[DataProductID]*DataProduct),
 		agents:       make(map[AgentID]*Agent),
 		customDocs:   make(map[CustomDocID]*CustomDoc),
+		secSchemes:   make(map[string]SecurityScheme),
 	}
 }
 
