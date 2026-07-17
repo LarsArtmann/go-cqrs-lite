@@ -22,17 +22,27 @@ mode used by the `codec/` module, ensuring signing-safe deterministic encoding.
 
 ### Envelope Structure
 
+The actual on-disk struct is `serializableEvent` (see `storage/pebble/serialization.go`).
+fxamacker/cbor reads `json` struct tags by default, so no separate `cbor` tags are needed:
+
 ```go
-type envelope struct {
-    Payload       []byte    `cbor:"payload"`
-    EventID       string    `cbor:"eventID"`     // events only
-    Type          string    `cbor:"type"`         // events only
-    AggregateRef  string    `cbor:"aggregateRef"`
-    Version       int       `cbor:"version"`
-    OccurredAt    time.Time `cbor:"occurredAt"`
-    Metadata      []byte    `cbor:"metadata"`     // JSON-encoded event.Metadata
+type serializableEvent struct {
+    ID            id.EventID     `json:"id"`
+    Type          string         `json:"type"`
+    AggregateID   id.AggregateID `json:"aggregate_id"`
+    AggregateType string         `json:"aggregate_type"`
+    Version       int            `json:"version"`
+    SchemaVersion int            `json:"schema_version,omitempty"`
+    Payload       []byte         `json:"payload"`
+    OccurredAt    int64          `json:"occurred_at"` // Unix nanoseconds — NOT time.Time
+    Metadata      event.Metadata `json:"metadata"`
+    Encoding      string         `json:"encoding,omitempty"`
 }
 ```
+
+`OccurredAt` is stored as `int64` Unix nanoseconds, not `time.Time`, to ensure
+exact precision and timezone-independent storage. Deserialization reconstructs
+the time via `time.Unix(0, s.OccurredAt).UTC()` — always UTC, never `time.Local`.
 
 ### Key Layout
 

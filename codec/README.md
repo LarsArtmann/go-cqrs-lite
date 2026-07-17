@@ -221,6 +221,19 @@ data, _ := codec.CBOREncMode().Marshal(payload)
 _ = codec.CBORDecMode().Unmarshal(data, &payload)
 ```
 
+## Time Handling
+
+CBOR codecs use `TimeUnixDynamic` — float64 epoch with sub-second precision (9 bytes).
+This preserves nanosecond values in `time.Time` payload fields (within ~165ns float drift).
+
+**Convention:** All `time.Time` in event payloads MUST be `.UTC()` before encoding.
+Epoch values carry no timezone; decoded times reconstruct in `time.Local`, not the
+original location. Normalizing to UTC at encode time eliminates this ambiguity.
+
+**Wall-clock times** (recurring schedules, business hours) must NOT use `time.Time` —
+store wall time components + IANA timezone name instead. See
+[docs/TIMEZONE_HANDLING.md](../docs/TIMEZONE_HANDLING.md) for the full guide.
+
 ## Related Modules
 
 - [**event**](../event/README.md) — `DecodePayload[T]` accepts a `Codec` to decode payloads
