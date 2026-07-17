@@ -24,7 +24,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/suppression"
 )
 
-const version = "0.2.0"
+const version = "0.2.1"
 
 // errFindingsWithErrors signals that error-severity findings were found.
 // Returned from run() so cmdguard sets a non-zero exit code.

@@ -6,25 +6,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### cqrs-lint — post-v0.2.0 hardening
+### cqrs-lint v0.2.1 — health score correctness + show-suppressed
 
 **Fixed:**
 
-- **Suppressed findings shown in output** — `//cqrs-lint:ignore(RULE)` comments
-  marked findings as suppressed but they still appeared in all output formats.
-  Now properly filtered from output, health score, and the error-exit check.
-  A summary count is printed to stderr.
-- **scanner.Err() unchecked** — the suppression parser's `bufio.Scanner` errors
-  (e.g., buffer overflow on >1MB lines) were silently dropped. Now checked;
-  partial lines before the error are still cached for suppression matching.
+- **Health score computed on filtered findings** — the health score was
+  computed on display-filtered findings (post severity/confidence filtering)
+  instead of all unsuppressed findings. This meant `--min-severity`,
+  `--min-confidence`, and `--fp-suspects` would change the health score,
+  making it an unreliable project-health metric. Now computed on all
+  unsuppressed findings.
+- **InfoCapped display showed wrong cap value** — the health score display
+  hardcoded the default cap (20) instead of showing the actual configured cap
+  from `{"health": {"info-cap": N}}`. Added `InfoCapApplied` to HealthScore.
+- **Suppressed findings shown in output** — `//cqrs-lint:ignore(RULE)`
+  comments marked findings as suppressed but they still appeared in all
+  output formats. Now properly filtered from output, health score, and the
+  error-exit check. A summary count is printed to stderr.
+- **scanner.Err() unchecked** — the suppression parser's `bufio.Scanner`
+  errors (e.g., buffer overflow on >1MB lines) were silently dropped. Now
+  logged to stderr as a warning.
 
 **Added:**
 
-- **`--fp-suspects` flag** — surfaces only low-confidence findings (below Medium
-  confidence), which are the most likely false positives. Advisory mode: never
-  affects the exit code. Helps consumers batch-review potential FPs.
+- **`--show-suppressed` flag** — lists suppressed findings with their file
+  location, rule ID, and suppression reason. An audit view beyond the
+  counts-only `cqrs-lint doctor`.
+- **`--fp-suspects` flag** — surfaces only low-confidence findings (below
+  Medium confidence), which are the most likely false positives. Advisory
+  mode: exit code is always 0.
 - **Suppression count in output** — the main lint run now reports how many
   findings were suppressed by inline comments.
+
+**Changed:**
+
+- **`filterSuppressed` returns both active and suppressed slices** — enables
+  the `--show-suppressed` feature and eliminates the need for a second pass.
+- **Pre-allocated filter result slices** — `filterBySeverity`,
+  `filterByConfidence`, `filterSuppressed`, `filterFPSuspects`, and
+  `collectFindings` dedup now pre-allocate to avoid reallocation.
+- **Extracted `shouldExitWithError`** — the exit-code decision is now a
+  testable function instead of inline logic in `run()`.
 
 ### Documentation Health
 

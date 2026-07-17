@@ -190,22 +190,23 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 
 ### Flags
 
-| Flag               | Short | Default | Description                                      |
-| ------------------ | ----- | ------- | ------------------------------------------------ |
-| `--format`         | `-o`  | text    | Output format: text, json, sarif, markdown       |
-| `--min-severity`   |       | info    | Minimum severity: info, warning, error, critical |
-| `--min-confidence` |       | low     | Minimum confidence: low, medium, high            |
-| `--fix`            |       | false   | Apply auto-fixes                                 |
-| `--dry-run`        |       | false   | Show fixes without applying                      |
-| `--fast`           |       | false   | Run only Critical correctness rules              |
-| `--health-score`   |       | false   | Print the health score after findings            |
-| `--fp-suspects`    |       | false   | Show only low-confidence findings (likely FPs)   |
-| `--only`           |       |         | Filter by category or rule IDs (comma-separated) |
-| `--exclude`        |       |         | Exclude paths (comma-separated)                  |
-| `--color`          |       | auto    | Colored output: auto, always, never              |
-| `--verbose`        |       | false   | Verbose output (module grouping, stats)          |
-| `--quiet`          | `-q`  | false   | Suppress non-finding output                      |
-| `--config`         | `-c`  |         | Path to config file                              |
+| Flag                | Short | Default | Description                                                        |
+| ------------------- | ----- | ------- | ------------------------------------------------------------------ |
+| `--format`          | `-o`  | text    | Output format: text, json, sarif, markdown                         |
+| `--min-severity`    |       | info    | Minimum severity: info, warning, error, critical                   |
+| `--min-confidence`  |       | low     | Minimum confidence: low, medium, high                              |
+| `--fix`             |       | false   | Apply auto-fixes                                                   |
+| `--dry-run`         |       | false   | Show fixes without applying                                        |
+| `--fast`            |       | false   | Run only Critical correctness rules                                |
+| `--health-score`    |       | false   | Print the health score after findings                              |
+| `--fp-suspects`     |       | false   | Show only low-confidence findings (likely FPs). Exit code always 0 |
+| `--show-suppressed` |       | false   | Show suppressed findings with their suppression reason             |
+| `--only`            |       |         | Filter by category or rule IDs (comma-separated)                   |
+| `--exclude`         |       |         | Exclude paths (comma-separated)                                    |
+| `--color`           |       | auto    | Colored output: auto, always, never                                |
+| `--verbose`         |       | false   | Verbose output (module grouping, stats)                            |
+| `--quiet`           | `-q`  | false   | Suppress non-finding output                                        |
+| `--config`          | `-c`  |         | Path to config file                                                |
 
 ### Config File
 
