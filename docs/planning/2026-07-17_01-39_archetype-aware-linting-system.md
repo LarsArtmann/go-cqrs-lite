@@ -1,5 +1,30 @@
 # cqrs-lint: Archetype-Aware Linting System
 
+> **⚠ SUPERSEDED — Prependix**
+>
+> **This document's execution plan is superseded by [`2026-07-17_01-45_feature-profile-and-detector-consolidation.md`](2026-07-17_01-45_feature-profile-and-detector-consolidation.md).**
+>
+> The centralization insight (one source of truth for project context, consulted by all detectors instead of scattered heuristics) is identical in both plans. The difference is purely the **vocabulary**:
+>
+> | This plan (01-39) | Superseding plan (01-45) |
+> |---|---|
+> | Deployment archetypes: `LocalCLI`, `SingleProcess`, `Distributed` | Feature flags grounded in library modules: `store: sqlite`, `command-flow: sync` |
+> | Named profile bundles: `local-cli`, `production`, `library`, `auto` | Per-feature declaration — no preset bundles |
+> | Auto-detect signals are fuzzy (HTTP import → "distributed") | Auto-detect signals map 1:1 to go-cqrs-lite modules |
+> | Tries to model `DataKind` (PII, Financial) — brittle string matching | Explicitly rejects PII auto-detection as out of scope |
+> | ~8 hours, 68 tasks | ~6.5 hours, 43 tasks (detector fixes already shipped) |
+>
+> **Why the feature-flag vocabulary won:**
+>
+> 1. **Maps 1:1 to the library.** `"command-flow": "sync"` is unambiguous — it refers to `command.Dispatcher` usage. `"deployment": "local-cli"` required interpretation.
+> 2. **Bounded growth.** Each feature flag corresponds to a library module. Adding a flag means adding a module. Deployment archetypes are unbounded imagination.
+> 3. **No preset boxes.** Per-feature flags compose freely; profile bundles force consumers into categories that may not fit.
+> 4. **Shorter.** The 01-45 plan correctly recognizes the detector fixes are already shipped — remaining work is purely the centralization refactor.
+>
+> **This document is kept for historical context. Do not execute the phases below — execute the 01-45 plan instead.**
+
+---
+
 **Date:** 2026-07-17
 **Status:** PLANNING — not yet implemented
 **Trigger:** bank-sync consumer feedback (39 findings, 39% signal-to-noise) + architectural reflection on per-detector heuristics
@@ -345,28 +370,3 @@ Every task above decomposed into atomic, independently-verifiable steps.
 | Phase 2   | 12     | 1.5 hours    | Clean refactor                       |
 | Phase 3   | 20     | 3 hours      | Polish + docs + tests                |
 | **Total** | **68** | **~8 hours** | **Complete archetype-aware linting** |
-
----
-
-## Appendix: SUPERSEDED by feature-profile plan
-
-**This document's execution plan is superseded by [`2026-07-17_01-45_feature-profile-and-detector-consolidation.md`](2026-07-17_01-45_feature-profile-and-detector-consolidation.md).**
-
-The centralization insight (one source of truth for project context, consulted by all detectors instead of scattered heuristics) is identical in both plans. The difference is purely the **vocabulary**:
-
-| This plan (01-39) | Superseding plan (01-45) |
-|---|---|
-| Deployment archetypes: `LocalCLI`, `SingleProcess`, `Distributed` | Feature flags grounded in library modules: `store: sqlite`, `command-flow: sync` |
-| Named profile bundles: `local-cli`, `production`, `library`, `auto` | Per-feature declaration — no preset bundles |
-| Auto-detect signals are fuzzy (HTTP import → "distributed") | Auto-detect signals map 1:1 to go-cqrs-lite modules |
-| Tries to model `DataKind` (PII, Financial) — brittle string matching | Explicitly rejects PII auto-detection as out of scope |
-| ~8 hours, 68 tasks | ~6.5 hours, 43 tasks (detector fixes already shipped) |
-
-**Why the feature-flag vocabulary won:**
-
-1. **Maps 1:1 to the library.** `"command-flow": "sync"` is unambiguous — it refers to `command.Dispatcher` usage. `"deployment": "local-cli"` required interpretation.
-2. **Bounded growth.** Each feature flag corresponds to a library module. Adding a flag means adding a module. Deployment archetypes are unbounded imagination.
-3. **No preset boxes.** Per-feature flags compose freely; profile bundles force consumers into categories that may not fit.
-4. **Shorter.** The 01-45 plan correctly recognizes the detector fixes are already shipped — remaining work is purely the centralization refactor.
-
-**This document is kept for historical context. Do not execute Phase 1-3 below — execute the 01-45 plan instead.**
