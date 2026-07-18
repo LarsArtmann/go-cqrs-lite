@@ -79,6 +79,12 @@ type IndexSpec struct {
 	// Columns are the indexed column names. Composite indexes list
 	// multiple columns in order.
 	Columns []string
+	// Where optionally adds a partial-index predicate, producing
+	// `CREATE INDEX ... WHERE <where>`. Empty means a full (non-partial)
+	// index. Use partial indexes to keep frequently-filtered subsets small
+	// (e.g. `WHERE deleted_at IS NULL`). The caller is responsible for the
+	// SQL syntax — it is appended verbatim, no parameterisation.
+	Where string
 }
 
 // SQLViewStore is a [kv.ViewStore] backed by a dedicated SQL table with real
@@ -255,6 +261,9 @@ func (s *SQLViewStore[V, K]) createIndexes(ctx context.Context) error {
 	for _, idx := range s.mapper.Indexes {
 		stmt := fmt.Sprintf("CREATE INDEX IF NOT EXISTS %s ON %s (%s)",
 			idx.Name, s.mapper.Table, strings.Join(idx.Columns, ", "))
+		if idx.Where != "" {
+			stmt += " WHERE " + idx.Where
+		}
 		if _, err := s.DB.ExecContext(ctx, stmt); err != nil {
 			return errorfamily.WrapInfrastructure(err, "storage.view.create_index",
 				"create index "+idx.Name)

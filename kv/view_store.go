@@ -34,8 +34,21 @@ type ViewQuery struct {
 	Conditions []Condition
 	OrderBy    string
 	Desc       bool
-	Limit      int
-	Offset     int
+	// Order is a multi-column ORDER BY specification. When non-empty, it takes
+	// precedence over OrderBy/Desc. Each clause carries its own direction,
+	// enabling composite indexes with mixed ASC/DESC (e.g. created_at DESC,
+	// id DESC) that a single OrderBy+Desc pair cannot express. See [OrderClause].
+	Order  []OrderClause
+	Limit  int
+	Offset int
+	// Keyset enables keyset (seek/cursor) pagination. When non-nil with at
+	// least one Value, the query appends a WHERE predicate returning only rows
+	// strictly AFTER the cursor position in the effective sort order, then
+	// applies Limit. This is the scalable alternative to Offset: performance is
+	// stable regardless of depth, and concurrent inserts do not shift the
+	// window. Offset is ignored when Keyset is set. See [Keyset] for the
+	// tiebreaker contract.
+	Keyset *Keyset
 
 	// RawWhere is an additional WHERE clause AND-joined with Conditions.
 	// This is an escape hatch for predicates that cannot be expressed via
@@ -166,6 +179,36 @@ const (
 	OpIsNull    Operator = "IS NULL"
 	OpIsNotNull Operator = "IS NOT NULL"
 )
+
+// OrderClause is a single column/direction pair in a multi-column ORDER BY.
+// See [ViewQuery.Order].
+type OrderClause struct {
+	Column string
+	Desc   bool
+}
+
+// Keyset describes a keyset (seek/cursor) pagination position for
+// [ViewQuery.Keyset]. The cursor tracks the sort columns; the query returns
+// only rows strictly after the cursor in the effective ORDER BY direction.
+//
+// Columns are the sort columns the cursor tracks, in order. Values are the
+// last-seen value for each column (the cursor), in the same order. A nil or
+// zero-length Values means "no cursor" (start from the beginning) — no cursor
+// predicate is added, so the query returns the first page.
+//
+// Tiebreaker contract: the effective sort order must be a TOTAL order for
+// keyset pagination to be deterministic. When Columns is empty it defaults to
+// the effective ORDER BY columns plus the view's key column appended last (the
+// unique tiebreaker). If you set Columns explicitly, ensure the last column is
+// unique (typically the primary key) to break ties — otherwise rows with equal
+// cursor values may be skipped or repeated across pages.
+//
+// Direction follows the effective ORDER BY: descending sorts compare with "<",
+// ascending with ">". Callers do not pass a separate cursor direction.
+type Keyset struct {
+	Columns []string
+	Values  []any
+}
 
 // Compile-time assertion: *TypedStore satisfies ViewStore.
 var _ ViewStore[any, dummyStringer] = (*TypedStore[any, dummyStringer])(nil)
