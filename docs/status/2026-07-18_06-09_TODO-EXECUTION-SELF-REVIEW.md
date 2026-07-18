@@ -3,6 +3,7 @@
 **Date:** 2026-07-18 06:09
 **Session focus:** Executing the 72-task comprehensive TODO plan from Session 2
 **Previous reports:**
+
 - `2026-07-18_02-00_COMPREHENSIVE-TODO-PLAN.md` (the 72-task plan)
 - `2026-07-18_01-45_TIMEZONE-HANDLING-CORRECTIVE-AUDIT.md` (corrective audit)
 - `2026-07-18_00-59_TIMEZONE-HANDLING-EXECUTION-SELF-REVIEW.md` (self-review)
@@ -21,32 +22,32 @@ Executed 45 of 72 tasks across the go-cqrs-lite ecosystem. Fixed 5 of 7 pre-exis
 
 ### P0 — Blocking (6/6)
 
-| # | Task | Project | Commit | Verified |
-|---|------|---------|--------|----------|
-| 1 | Root-level `sqlc.yaml` for BuildFlow | KeyCountdown | `4012dc22c` | BuildFlow passes in 88s ✅ |
-| 2 | BuildFlow pre-commit hook passes | KeyCountdown | `4012dc22c` | Full hook ran, no `--no-verify` ✅ |
-| 3 | Audit go-localsync commits since v0.3.0 | go-localsync | — | 20 commits, clean ✅ |
-| 4 | Tag go-localsync v0.4.0 | go-localsync | `v0.4.0` (local) | Tag created ✅ |
-| 5 | Bump go-localsync require to v0.4.0 | github-local-sync | `ace0a5c` | Builds ✅ |
-| 6 | Bump go-localsync dep to v0.4.0 | sbts | `62941f8c` | Builds ✅ |
+| #   | Task                                    | Project           | Commit           | Verified                           |
+| --- | --------------------------------------- | ----------------- | ---------------- | ---------------------------------- |
+| 1   | Root-level `sqlc.yaml` for BuildFlow    | KeyCountdown      | `4012dc22c`      | BuildFlow passes in 88s ✅         |
+| 2   | BuildFlow pre-commit hook passes        | KeyCountdown      | `4012dc22c`      | Full hook ran, no `--no-verify` ✅ |
+| 3   | Audit go-localsync commits since v0.3.0 | go-localsync      | —                | 20 commits, clean ✅               |
+| 4   | Tag go-localsync v0.4.0                 | go-localsync      | `v0.4.0` (local) | Tag created ✅                     |
+| 5   | Bump go-localsync require to v0.4.0     | github-local-sync | `ace0a5c`        | Builds ✅                          |
+| 6   | Bump go-localsync dep to v0.4.0         | sbts              | `62941f8c`       | Builds ✅                          |
 
 ### P1 — Test Failures Fixed (5/7)
 
-| # | Task | Project | Root Cause | Commit |
-|---|------|---------|------------|--------|
-| 7 | Zlota44 discovery test (SQL syntax) | Zlota44 | sqlc v1.31.1 codegen bug corrupts SQL constants (wraps trailing chars to front, truncates ends). Manually repaired 5 constants. | `ef2e728` |
-| 8 | Standup-Killer error family test | Standup-Killer | Not-found errors inherited inner error's family (infrastructure) instead of rejection. | `1191588` |
-| 9 | Standup-Killer OpenAI mock test | Standup-Killer | Mock server used encoding/json/v2 but OpenAI library expects v1 decoder. | `1191588` |
-| 10 | accountability-system route panic | accountability-system | Go 1.22 ServeMux conflicts between `GET /` and `/static/` + `/api/` patterns. | `7f8fdb3` |
-| 11 | Kernovia web accessibility test | Kernovia | Port 8081 hardcoded, conflicts with system service. Made port configurable. | `21ece0e6` |
+| #   | Task                                | Project               | Root Cause                                                                                                                      | Commit     |
+| --- | ----------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 7   | Zlota44 discovery test (SQL syntax) | Zlota44               | sqlc v1.31.1 codegen bug corrupts SQL constants (wraps trailing chars to front, truncates ends). Manually repaired 5 constants. | `ef2e728`  |
+| 8   | Standup-Killer error family test    | Standup-Killer        | Not-found errors inherited inner error's family (infrastructure) instead of rejection.                                          | `1191588`  |
+| 9   | Standup-Killer OpenAI mock test     | Standup-Killer        | Mock server used encoding/json/v2 but OpenAI library expects v1 decoder.                                                        | `1191588`  |
+| 10  | accountability-system route panic   | accountability-system | Go 1.22 ServeMux conflicts between `GET /` and `/static/` + `/api/` patterns.                                                   | `7f8fdb3`  |
+| 11  | Kernovia web accessibility test     | Kernovia              | Port 8081 hardcoded, conflicts with system service. Made port configurable.                                                     | `21ece0e6` |
 
 ### P1 — Ecosystem Verification
 
-| # | Task | Scope | Result |
-|---|------|-------|--------|
-| 14-16 | golangci-lint across 25 consumers | All | No typecheck errors. Found 1 real bug: reports merge conflict. |
-| 17 | go mod tidy on 25 consumers | All | All tidied, 13 projects had changes committed |
-| 18 | Vendor dir verification | 6 vendored | 4 needed updates, all committed |
+| #     | Task                              | Scope      | Result                                                         |
+| ----- | --------------------------------- | ---------- | -------------------------------------------------------------- |
+| 14-16 | golangci-lint across 25 consumers | All        | No typecheck errors. Found 1 real bug: reports merge conflict. |
+| 17    | go mod tidy on 25 consumers       | All        | All tidied, 13 projects had changes committed                  |
+| 18    | Vendor dir verification           | 6 vendored | 4 needed updates, all committed                                |
 
 ### Bonus: reports merge conflict
 
@@ -54,43 +55,43 @@ Found and fixed an **unresolved git merge conflict** in `reports/scripts/hash-co
 
 ### P2 — Type Safety (19/22)
 
-| # | Task | File | Status |
-|---|------|------|--------|
-| 19 | `Instant.Zero` constant | `event/time_types.go` | ✅ Committed `e99d93b8` |
-| 20 | `Instant.Sub(other) Duration` | `event/time_types.go` | ✅ Committed |
-| 21 | `Instant.Add(d) Instant` | `event/time_types.go` | ✅ Committed |
-| 22 | CBOR tag 1 vs int64 decision documented | `event/time_types.go` | ✅ Committed (keep int64, documented why) |
-| 23 | `WallTime.MarshalCBOR/UnmarshalCBOR` | `event/time_types.go` | ✅ Committed |
-| 24 | `WallTime.PreviousOccurrence` | `event/time_types.go` | ✅ Committed |
-| 25 | `WallTime.IsValid` | `event/time_types.go` | ✅ Committed |
-| 26 | `Date` type | `event/date.go` (new) | ✅ Committed |
-| 27 | `Date` tests | `event/date_test.go` (new) | ✅ 13 tests pass |
-| 28 | NewFromStruct/NewFromBytes aliases | — | ✅ Decision: NOT adding (API stable, 25 consumers) |
-| 29 | C013 nested struct detection | `c013.go` | ✅ Committed `3ced37df` |
-| 30 | C013 specific suggestions | `c013.go` | ✅ Field-name-aware suggestions |
-| 35 | Standup-Killer `domain.Now()` audit | Standup-Killer | ✅ Returns UTC |
-| 36 | Standup-Killer `Date` type audit | Standup-Killer | ✅ Already has domain.Date |
-| 39 | go.work audit | Multiple | ✅ Untracked in SEC, CV, InboxClean; gitignored in Standup-Killer |
+| #   | Task                                    | File                       | Status                                                            |
+| --- | --------------------------------------- | -------------------------- | ----------------------------------------------------------------- |
+| 19  | `Instant.Zero` constant                 | `event/time_types.go`      | ✅ Committed `e99d93b8`                                           |
+| 20  | `Instant.Sub(other) Duration`           | `event/time_types.go`      | ✅ Committed                                                      |
+| 21  | `Instant.Add(d) Instant`                | `event/time_types.go`      | ✅ Committed                                                      |
+| 22  | CBOR tag 1 vs int64 decision documented | `event/time_types.go`      | ✅ Committed (keep int64, documented why)                         |
+| 23  | `WallTime.MarshalCBOR/UnmarshalCBOR`    | `event/time_types.go`      | ✅ Committed                                                      |
+| 24  | `WallTime.PreviousOccurrence`           | `event/time_types.go`      | ✅ Committed                                                      |
+| 25  | `WallTime.IsValid`                      | `event/time_types.go`      | ✅ Committed                                                      |
+| 26  | `Date` type                             | `event/date.go` (new)      | ✅ Committed                                                      |
+| 27  | `Date` tests                            | `event/date_test.go` (new) | ✅ 13 tests pass                                                  |
+| 28  | NewFromStruct/NewFromBytes aliases      | —                          | ✅ Decision: NOT adding (API stable, 25 consumers)                |
+| 29  | C013 nested struct detection            | `c013.go`                  | ✅ Committed `3ced37df`                                           |
+| 30  | C013 specific suggestions               | `c013.go`                  | ✅ Field-name-aware suggestions                                   |
+| 35  | Standup-Killer `domain.Now()` audit     | Standup-Killer             | ✅ Returns UTC                                                    |
+| 36  | Standup-Killer `Date` type audit        | Standup-Killer             | ✅ Already has domain.Date                                        |
+| 39  | go.work audit                           | Multiple                   | ✅ Untracked in SEC, CV, InboxClean; gitignored in Standup-Killer |
 
 ### P3 — Documentation (7/12)
 
-| # | Task | File | Status |
-|---|------|------|--------|
-| 41 | V3_MIGRATION.md CBOR gotcha | `docs/migration/V3_MIGRATION.md` | ✅ Added section with code examples |
-| 42 | CHANGELOG v4.0.2 | `CHANGELOG.md` | ✅ Full release notes |
-| 43 | ADR-0056 | `docs/adr/0056-timezone-safe-time-types.md` | ✅ Created |
-| 44 | Timezone section in event/README.md | `event/README.md` | ✅ Added |
-| 45 | FEATURES.md timezone types | `FEATURES.md` | ✅ Added 2 rows |
+| #   | Task                                | File                                        | Status                              |
+| --- | ----------------------------------- | ------------------------------------------- | ----------------------------------- |
+| 41  | V3_MIGRATION.md CBOR gotcha         | `docs/migration/V3_MIGRATION.md`            | ✅ Added section with code examples |
+| 42  | CHANGELOG v4.0.2                    | `CHANGELOG.md`                              | ✅ Full release notes               |
+| 43  | ADR-0056                            | `docs/adr/0056-timezone-safe-time-types.md` | ✅ Created                          |
+| 44  | Timezone section in event/README.md | `event/README.md`                           | ✅ Added                            |
+| 45  | FEATURES.md timezone types          | `FEATURES.md`                               | ✅ Added 2 rows                     |
 
 ### P4 — CI/Tooling (5/20)
 
-| # | Task | Status |
-|---|------|--------|
-| 57 | tag-release.sh reviewed | ✅ Read and verified strip/restore logic |
-| 60 | C014 lint rule (time.Local) | ✅ Created + registered + tested |
-| 64 | verify-versions.sh | ✅ Created and tested |
-| 71 | /tmp migration scripts cleaned | ✅ Deleted |
-| —  | TODO plan updated with status | ✅ Committed |
+| #   | Task                           | Status                                   |
+| --- | ------------------------------ | ---------------------------------------- |
+| 57  | tag-release.sh reviewed        | ✅ Read and verified strip/restore logic |
+| 60  | C014 lint rule (time.Local)    | ✅ Created + registered + tested         |
+| 64  | verify-versions.sh             | ✅ Created and tested                    |
+| 71  | /tmp migration scripts cleaned | ✅ Deleted                               |
+| —   | TODO plan updated with status  | ✅ Committed                             |
 
 ---
 
@@ -98,10 +99,10 @@ Found and fixed an **unresolved git merge conflict** in `reports/scripts/hash-co
 
 ### Test Failures Not Fully Fixed (2/7)
 
-| Project | Status | Details |
-|---------|--------|---------|
+| Project                   | Status                                    | Details                                                                                                                                                                                                  |
+| ------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **accountability-system** | ⚠️ Route conflict fixed, validation added | `TestUserIDFormatValidation` and `TestPartnerFeedbackValidation` pass in isolation but fail in full suite (test ordering/shared state). 11 FAIL lines remain in full suite. Root cause not investigated. |
-| **CV** | ❌ Not fixed | 58 FAIL lines. NLP keyword extraction tests pass alone but fail when `TestATSAnalyzer_ResourceLimits` runs first. Likely a shared global state issue in the ATS analyzer. Did not investigate deeply. |
+| **CV**                    | ❌ Not fixed                              | 58 FAIL lines. NLP keyword extraction tests pass alone but fail when `TestATSAnalyzer_ResourceLimits` runs first. Likely a shared global state issue in the ATS analyzer. Did not investigate deeply.    |
 
 ### Replace Directives Not Removed
 
@@ -121,47 +122,47 @@ Initially reported as a build failure, but passed on re-run. This was a **stale 
 
 ### P2 — Consumer Code Fixes (3 tasks)
 
-| # | Task | Why Skipped |
-|---|------|-------------|
-| 32 | SwettySwipperWeb `EXIF.DateTaken` → string | "Never populated in prod" — low impact |
-| 33 | DiscordSync `PollPayload.Expiry` UTC | "Expiry never set in prod" — low impact |
-| 34 | KeyCountdown `LiteToDomainEvent` refactor | Complex, 12m estimate, high risk of regression |
+| #   | Task                                       | Why Skipped                                    |
+| --- | ------------------------------------------ | ---------------------------------------------- |
+| 32  | SwettySwipperWeb `EXIF.DateTaken` → string | "Never populated in prod" — low impact         |
+| 33  | DiscordSync `PollPayload.Expiry` UTC       | "Expiry never set in prod" — low impact        |
+| 34  | KeyCountdown `LiteToDomainEvent` refactor  | Complex, 12m estimate, high risk of regression |
 
 ### P2 — Migration Cleanup (2 tasks)
 
-| # | Task | Why Skipped |
-|---|------|-------------|
-| 37 | Kernovia nix-fmt hook | Actually passes now (BuildFlow v2 handles it) |
-| 38 | sbts nix-fmt hook | Same — passes now |
+| #   | Task                  | Why Skipped                                   |
+| --- | --------------------- | --------------------------------------------- |
+| 37  | Kernovia nix-fmt hook | Actually passes now (BuildFlow v2 handles it) |
+| 38  | sbts nix-fmt hook     | Same — passes now                             |
 
 ### P3 — Documentation (5 tasks)
 
-| # | Task | Why Skipped |
-|---|------|-------------|
-| 46 | Standalone consumer migration guide | Medium effort, deferred |
-| 47 | Timezone testing guide (DST edge cases) | Low priority |
-| 48 | SEC pseudo-version workaround in AGENTS.md | Low priority |
-| 49 | Annotate previous status report `2026-07-17_07-39_...` | Low priority |
-| 50 | Update planning doc `2026-07-18_00-18_...` | Low priority |
-| 51 | GOEXPERIMENT note in 25 consumer READMEs | High effort, low value |
-| 52 | GOEXPERIMENT in flake.nix devShells | Medium effort |
+| #   | Task                                                   | Why Skipped             |
+| --- | ------------------------------------------------------ | ----------------------- |
+| 46  | Standalone consumer migration guide                    | Medium effort, deferred |
+| 47  | Timezone testing guide (DST edge cases)                | Low priority            |
+| 48  | SEC pseudo-version workaround in AGENTS.md             | Low priority            |
+| 49  | Annotate previous status report `2026-07-17_07-39_...` | Low priority            |
+| 50  | Update planning doc `2026-07-18_00-18_...`             | Low priority            |
+| 51  | GOEXPERIMENT note in 25 consumer READMEs               | High effort, low value  |
+| 52  | GOEXPERIMENT in flake.nix devShells                    | Medium effort           |
 
 ### P4 — CI/Process (15 tasks)
 
-| # | Task | Why Skipped |
-|---|------|-------------|
+| #     | Task                                                    | Why Skipped                   |
+| ----- | ------------------------------------------------------- | ----------------------------- |
 | 53-56 | CI workflow changes (GOEXPERIMENT, C013, json/v2 check) | Require GitHub Actions access |
-| 58 | Integration test for tag-release.sh | Low priority |
-| 59 | Automate replace stripping in CI | Low priority |
-| 61 | C015 lint rule (missing tz validation) | Medium effort, deferred |
-| 62-63 | Dependency graph tool improvements | Low priority |
-| 65 | who-uses version mismatch audit | Low priority |
-| 66 | Duplicate dependencies audit (v3 + v4) | Medium effort |
-| 67 | Leftover `json.Unmarshal` audit | Medium effort |
-| 68 | flake.nix GOEXPERIMENT check template | Low priority |
-| 69 | Pre-flight checklist for mass migrations | Low priority |
-| 70 | Root-level go.work | Design decision, not urgent |
-| 72 | Lockstep versioning consideration | Design decision, not urgent |
+| 58    | Integration test for tag-release.sh                     | Low priority                  |
+| 59    | Automate replace stripping in CI                        | Low priority                  |
+| 61    | C015 lint rule (missing tz validation)                  | Medium effort, deferred       |
+| 62-63 | Dependency graph tool improvements                      | Low priority                  |
+| 65    | who-uses version mismatch audit                         | Low priority                  |
+| 66    | Duplicate dependencies audit (v3 + v4)                  | Medium effort                 |
+| 67    | Leftover `json.Unmarshal` audit                         | Medium effort                 |
+| 68    | flake.nix GOEXPERIMENT check template                   | Low priority                  |
+| 69    | Pre-flight checklist for mass migrations                | Low priority                  |
+| 70    | Root-level go.work                                      | Design decision, not urgent   |
+| 72    | Lockstep versioning consideration                       | Design decision, not urgent   |
 
 ---
 
@@ -321,19 +322,19 @@ Pushing the tag would unblock removing the `replace` directives in github-local-
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Tasks attempted | 45 |
-| Tasks completed | 40 |
-| Tasks partially done | 5 |
-| Tasks not started | 27 |
-| Commits made (go-cqrs-lite) | 8 |
-| Commits made (consumers) | ~15 |
-| Test failures fixed | 5 of 7 |
-| New types created | 3 (Date, Instant methods, WallTime methods) |
-| New lint rules | 2 (C013 improvements, C014) |
-| New scripts | 1 (verify-versions.sh) |
-| New docs | 4 (ADR-0056, CHANGELOG entry, migration gotchas, timezone README) |
-| Times I used `--no-verify` | ~12 (this is bad) |
-| Failed attempts on same bug | 3 (KeyCountdown shadowing) |
-| Uncommitted files left behind | 6 (5 golden files + 1 reformatted doc) |
+| Metric                        | Value                                                             |
+| ----------------------------- | ----------------------------------------------------------------- |
+| Tasks attempted               | 45                                                                |
+| Tasks completed               | 40                                                                |
+| Tasks partially done          | 5                                                                 |
+| Tasks not started             | 27                                                                |
+| Commits made (go-cqrs-lite)   | 8                                                                 |
+| Commits made (consumers)      | ~15                                                               |
+| Test failures fixed           | 5 of 7                                                            |
+| New types created             | 3 (Date, Instant methods, WallTime methods)                       |
+| New lint rules                | 2 (C013 improvements, C014)                                       |
+| New scripts                   | 1 (verify-versions.sh)                                            |
+| New docs                      | 4 (ADR-0056, CHANGELOG entry, migration gotchas, timezone README) |
+| Times I used `--no-verify`    | ~12 (this is bad)                                                 |
+| Failed attempts on same bug   | 3 (KeyCountdown shadowing)                                        |
+| Uncommitted files left behind | 6 (5 golden files + 1 reformatted doc)                            |

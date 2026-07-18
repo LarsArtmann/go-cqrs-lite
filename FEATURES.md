@@ -284,20 +284,20 @@ as a library primitive.
 
 > `import "github.com/larsartmann/go-cqrs-lite/codec/v4"`
 
-| Feature            | Detail                                                                        | Status |
-| ------------------ | ----------------------------------------------------------------------------- | ------ |
-| Codec interface    | `Codec` — `Encoding()`, `Encode(v)`, `Decode(data, v)`                        | ✅     |
-| JSON codec         | `JSONCodec` — standard JSON encoding                                          | ✅     |
-| CBOR codec         | `CBORCodec` — deterministic canonical CBOR with sorted map keys               | ✅     |
-| CBOR compact codec | `CBORCompactCodec` — ~35% smaller via `toarray` positional mode               | ✅     |
-| Raw passthrough    | `RawCodec` — `[]byte` pass-through (no encoding)                              | ✅     |
-| BufferEncoder      | Optional `BufferEncoder` interface — zero-alloc encoding into caller buffer   | ✅     |
-| CBOR diagnostic    | `Diagnose(data)` — human-readable CBOR output for debugging                   | ✅     |
-| Encoding constants | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                                 | ✅     |
-| Envelope wrapping  | `WrapEncode`/`UnwrapDecode` — self-describing blind stores (ADR-0044)         | ✅     |
-| CBOR default       | All codec defaults flipped to CBOR (ADR-0053) — backward-compat via envelopes | ✅     |
-| Timezone-safe types| `Instant`, `WallTime`, `Date` — prevent CBOR timezone loss in event payloads (ADR-0056) | ✅ |
-| C013 lint rule     | Detects `time.Time` fields in event payloads, suggests timezone-safe alternatives | ✅ |
+| Feature             | Detail                                                                                  | Status |
+| ------------------- | --------------------------------------------------------------------------------------- | ------ |
+| Codec interface     | `Codec` — `Encoding()`, `Encode(v)`, `Decode(data, v)`                                  | ✅     |
+| JSON codec          | `JSONCodec` — standard JSON encoding                                                    | ✅     |
+| CBOR codec          | `CBORCodec` — deterministic canonical CBOR with sorted map keys                         | ✅     |
+| CBOR compact codec  | `CBORCompactCodec` — ~35% smaller via `toarray` positional mode                         | ✅     |
+| Raw passthrough     | `RawCodec` — `[]byte` pass-through (no encoding)                                        | ✅     |
+| BufferEncoder       | Optional `BufferEncoder` interface — zero-alloc encoding into caller buffer             | ✅     |
+| CBOR diagnostic     | `Diagnose(data)` — human-readable CBOR output for debugging                             | ✅     |
+| Encoding constants  | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                                           | ✅     |
+| Envelope wrapping   | `WrapEncode`/`UnwrapDecode` — self-describing blind stores (ADR-0044)                   | ✅     |
+| CBOR default        | All codec defaults flipped to CBOR (ADR-0053) — backward-compat via envelopes           | ✅     |
+| Timezone-safe types | `Instant`, `WallTime`, `Date` — prevent CBOR timezone loss in event payloads (ADR-0056) | ✅     |
+| C013 lint rule      | Detects `time.Time` fields in event payloads, suggests timezone-safe alternatives       | ✅     |
 
 ---
 
