@@ -828,6 +828,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 - **Process safety: NEVER commit code that doesn't compile** — Commit `b3931503` shipped `slices.Contains()` with zero arguments, breaking the entire `cmd/cqrs-lint/pkg/rules/api` package. The BuildFlow pre-commit hook catches this. If you bypass it, run `go build ./...` manually before committing. A meta-test in `cmd/cqrs-lint/pkg/rules/meta_test.go` now instantiates all 60 detectors to guard against broken constructors.
 - **Verification gate: `nix run .#verify`** — One command: build + vet + test + race + lint + doc-check + doc-assertions. Run before tagging releases.
 - **Release process** — See `CONTRIBUTING.md` → Release Process. Per-module annotated tags via `scripts/tag-release.sh`. Never use lightweight tags.
+- **NEVER use `git checkout <commit> -- .`** — This destructively overwrites the working tree. To inspect or test code at a specific commit, use `git worktree add /tmp/work <commit>` instead. Worktrees are isolated, non-destructive, and cleanable with `git worktree remove`.
 
 ## Dependencies
 
