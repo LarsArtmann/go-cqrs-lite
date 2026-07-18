@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
@@ -143,7 +144,15 @@ func ensurePathItem(doc *Document, path string) *PathItem {
 }
 
 // setOperation assigns an [Operation] to the correct HTTP-method field of a [PathItem].
+// If the method slot is already occupied, the new operation replaces the old one
+// and a warning is printed to stderr — this usually indicates a duplicate
+// (method, path) pair in the catalog that [catalog.Catalog.Validate] would flag.
 func setOperation(item *PathItem, method string, op *Operation) {
+	if existing := item.operationFor(method); existing != nil {
+		log.Printf("warn: openapi: duplicate operation %s %s — overwriting %q with %q",
+			method, op.OperationID, existing.OperationID, op.OperationID)
+	}
+
 	switch method {
 	case httpGet:
 		item.Get = op
@@ -157,6 +166,23 @@ func setOperation(item *PathItem, method string, op *Operation) {
 		item.Patch = op
 	default:
 		item.Post = op
+	}
+}
+
+func (item *PathItem) operationFor(method string) *Operation {
+	switch method {
+	case httpGet:
+		return item.Get
+	case httpPost:
+		return item.Post
+	case httpPut:
+		return item.Put
+	case httpDelete:
+		return item.Delete
+	case httpPatch:
+		return item.Patch
+	default:
+		return nil
 	}
 }
 
