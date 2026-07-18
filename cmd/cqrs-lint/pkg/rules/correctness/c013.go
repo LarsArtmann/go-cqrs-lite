@@ -18,6 +18,8 @@ import (
 // Heuristic: flags time.Time or *time.Time fields in structs whose names
 // suggest they are event payloads (ending in Event, Payload, or EventData),
 // or in structs defined in files named events.go/payloads.go.
+//
+// Also detects time.Time fields in anonymous nested structs within event payloads.
 func NewC013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C013-time-time-in-event-payload",
@@ -51,38 +53,7 @@ func NewC013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							continue
 						}
 
-						for _, field := range structType.Fields.List {
-							if isTimeType(field.Type) && !hasAllowPragma(ctx, gf.Path, field) {
-								pos := ctx.Fset.Position(field.Pos())
-								fieldName := getFieldNames(field)
-
-								f, err := finding.NewBuilder(
-									"C013",
-									toolName,
-									fmt.Sprintf(
-										"Struct %s has %s of type time.Time — timezone info is lost via CBOR epoch encoding",
-										structName,
-										fieldName,
-									),
-									finding.SeverityWarning,
-									finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
-								).
-									WithCategory(finding.CategoryCorrectness).
-									WithConfidence(finding.ConfidenceMedium).
-									WithSuggestion(
-										"Use event.Instant for unique moments (created_at, occurred_at) " +
-											"or event.WallTime for local times (schedules, reminders). " +
-											"See docs/TIMEZONE_HANDLING.md for guidance.",
-									).
-									WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
-									Build()
-								if err != nil {
-									continue
-								}
-
-								findings = append(findings, f)
-							}
-						}
+						checkStructFields(ctx, gf, structName, structType.Fields, &findings)
 					}
 				}
 			}
@@ -90,6 +61,111 @@ func NewC013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// checkStructFields checks all fields in a struct for time.Time usage,
+// recursing into anonymous nested structs.
+func checkStructFields(
+	ctx *analyzer.AnalysisContext,
+	gf *analyzer.GoFile,
+	structName string,
+	fields *ast.FieldList,
+	findings *[]finding.Finding,
+) {
+	if fields == nil {
+		return
+	}
+
+	for _, field := range fields.List {
+		if isTimeType(field.Type) && !hasAllowPragma(ctx, gf.Path, field) {
+			reportTimeField(ctx, gf, structName, field, findings)
+		}
+
+		if nested, ok := field.Type.(*ast.StructType); ok {
+			nestedName := structName + "."
+			if len(field.Names) > 0 {
+				nestedName += field.Names[0].Name
+			} else {
+				nestedName += "anonymous"
+			}
+			checkStructFields(ctx, gf, nestedName, nested.Fields, findings)
+		}
+	}
+}
+
+// reportTimeField creates a finding for a time.Time field with a specific suggestion.
+func reportTimeField(
+	ctx *analyzer.AnalysisContext,
+	gf *analyzer.GoFile,
+	structName string,
+	field *ast.Field,
+	findings *[]finding.Finding,
+) {
+	pos := ctx.Fset.Position(field.Pos())
+	fieldName := getFieldNames(field)
+	suggestion := suggestReplacement(fieldName)
+
+	f, err := finding.NewBuilder(
+		"C013",
+		toolName,
+		fmt.Sprintf(
+			"Struct %s has %s of type time.Time — timezone info is lost via CBOR epoch encoding",
+			structName,
+			fieldName,
+		),
+		finding.SeverityWarning,
+		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+	).
+		WithCategory(finding.CategoryCorrectness).
+		WithConfidence(finding.ConfidenceMedium).
+		WithSuggestion(suggestion).
+		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+		Build()
+	if err != nil {
+		return
+	}
+
+	*findings = append(*findings, f)
+}
+
+// suggestReplacement returns a specific replacement recommendation
+// based on the field name semantics.
+func suggestReplacement(fieldName string) string {
+	lower := strings.ToLower(fieldName)
+
+	if strings.Contains(lower, "schedule") ||
+		strings.Contains(lower, "reminder") ||
+		strings.Contains(lower, "business_hour") ||
+		strings.Contains(lower, "meeting") ||
+		strings.Contains(lower, "alarm") {
+		return "Use event.WallTime for this local time-of-day field. " +
+			"Example: WallTime{Hour: 9, Minute: 0, Location: \"America/New_York\"}. " +
+			"See docs/TIMEZONE_HANDLING.md."
+	}
+
+	timestampFields := []string{
+		"created", "updated", "occurred", "deleted", "expires", "expired",
+		"timestamp", "at_time", "processed", "completed", "started",
+		"ended", "locked", "unlocked", "revoked", "sent", "received",
+		"discovered", "last_login", "submitted", "accepted", "rejected",
+	}
+
+	for _, tf := range timestampFields {
+		if strings.Contains(lower, tf) {
+			return fmt.Sprintf(
+				"Use event.Instant for this timestamp field. "+
+					"Example: replace `%s time.Time` with `%s event.Instant`, "+
+					"and use event.NewInstant(time.Now()) at construction. "+
+					"See docs/TIMEZONE_HANDLING.md.",
+				fieldName, fieldName,
+			)
+		}
+	}
+
+	return "Use event.Instant for unique moments (created_at, occurred_at) " +
+		"or event.WallTime for local times (schedules, reminders). " +
+		"For calendar dates (birth dates, employment dates), use event.Date. " +
+		"See docs/TIMEZONE_HANDLING.md for guidance."
 }
 
 // looksLikeEventPayload checks if a struct name or file path suggests
@@ -103,7 +179,6 @@ func looksLikeEventPayload(structName, filePath string) bool {
 		}
 	}
 
-	// Also match files named events.go or payloads.go
 	base := filePath
 	if idx := strings.LastIndex(base, "/"); idx >= 0 {
 		base = base[idx+1:]
@@ -148,7 +223,6 @@ func getFieldNames(field *ast.Field) string {
 // hasAllowPragma checks if the field has a //cqrs-lint:allow-time-time
 // comment in its doc or line comment.
 func hasAllowPragma(ctx *analyzer.AnalysisContext, filePath string, field *ast.Field) bool {
-	// Check doc comment (comment group above the field)
 	if field.Doc != nil {
 		for _, comment := range field.Doc.List {
 			if strings.Contains(comment.Text, "cqrs-lint:allow-time-time") {
@@ -157,7 +231,6 @@ func hasAllowPragma(ctx *analyzer.AnalysisContext, filePath string, field *ast.F
 		}
 	}
 
-	// Check inline comment (comment on the same line)
 	if field.Comment != nil {
 		for _, comment := range field.Comment.List {
 			if strings.Contains(comment.Text, "cqrs-lint:allow-time-time") {
@@ -166,7 +239,6 @@ func hasAllowPragma(ctx *analyzer.AnalysisContext, filePath string, field *ast.F
 		}
 	}
 
-	// Also check the source line itself and the line before
 	pos := ctx.Fset.Position(field.Pos())
 	if line := ctx.SourceLine(
 		filePath,
