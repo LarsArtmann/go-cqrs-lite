@@ -116,6 +116,24 @@ return event.NewCorruption("store.invalid_event", "checksum mismatch")
 | `go-error-family` | Error classification taxonomy (5 families) |
 | `samber/ro`       | Reactive event streams (bus subscriptions) |
 
+## Timezone-Safe Time Types
+
+CBOR encoding of `time.Time` loses timezone information. Use these types in event payloads instead:
+
+- **`event.Instant`** — UTC-normalized timestamp for unique moments (created_at, occurred_at)
+- **`event.WallTime`** — Local time-of-day with IANA timezone (schedules, reminders, business hours)
+- **`event.Date`** — Calendar date without time (birth dates, employment dates)
+
+See [`docs/TIMEZONE_HANDLING.md`](../docs/TIMEZONE_HANDLING.md) for the full guide.
+
+```go
+type CheckinSubmitted struct {
+    MemberID  string        `json:"memberId"`
+    CreatedAt event.Instant `json:"createdAt"`
+    Date      event.Date    `json:"date"`
+}
+```
+
 ## Related Modules
 
 - [**command/v2**](../command/README.md) — Command dispatch, typed handlers, middleware

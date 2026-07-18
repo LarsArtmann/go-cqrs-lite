@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.0.2] - 2026-07-18
+
+### CBOR time encoding fix + timezone-safe types
+
+**Fixed:**
+
+- **CBOR time encoding loses nanosecond precision** — `CanonicalEncOptions()`
+  defaulted `Time` to `TimeUnix` (epoch seconds, no nanos, no timezone). Changed
+  to `TimeUnixDynamic` (float64, preserves nanoseconds, ~165ns drift).
+  Affects all user-defined payload structs with `time.Time` fields.
+- **`event.defaultClock` returned local time** — changed to return UTC.
+- **Pebble storage and Watermill protocol** did not normalize timezone on
+  deserialization. Now explicitly call `.UTC()`.
+
+**Added:**
+
+- **`event.Instant`** — UTC-normalized timestamp type for event payloads.
+  Wraps `time.Time`, enforces UTC at construction, marshals to int64 UnixNano
+  via CBOR (exact precision, no timezone loss).
+- **`event.WallTime`** — Time-of-day type tied to an IANA timezone.
+  DST-aware `NextOccurrence` and `PreviousOccurrence` methods.
+- **`event.Date`** — Calendar date type (year, month, day) without time.
+  Timezone-agnostic; prevents off-by-one-day bugs.
+- **`event.Zero`** constant — zero-value `Instant` for "no timestamp".
+- **`Instant.Sub`, `Instant.Add`** — UTC-preserving arithmetic.
+- **`WallTime.IsValid`, `WallTime.MarshalCBOR/UnmarshalCBOR`**.
+- **C013 lint rule** — detects `time.Time` fields in event payload structs.
+  Now detects nested anonymous struct fields and gives specific suggestions.
+- **`docs/TIMEZONE_HANDLING.md`** — comprehensive timezone handling guide.
+- **`event/doc.go`** — package-level documentation with time handling conventions.
+
+**Tags:** `codec/v4.0.2`, `event/v4.0.2`, `storage/pebble/v4.0.1`, `watermill/v4.0.2`
+
 ### cqrs-lint v0.2.2 — loader error surfacing + --strict flag
 
 **Fixed:**

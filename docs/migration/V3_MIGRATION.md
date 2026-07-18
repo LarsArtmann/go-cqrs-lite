@@ -201,3 +201,50 @@ file exists behind the tag. Migration deferred until Go stdlib stabilizes json/v
 
 17-field `catalog.Message` and 16-field `catalog.Service` structs need splitting
 into Message + MessageMeta. Deferred to v4 — lower priority, internal types only.
+
+---
+
+## Common Pitfalls (v4)
+
+### CBOR + time.Time loses timezone information
+
+**Symptom:** Event payload fields of type `time.Time` lose timezone information
+when encoded via CBOR. After decode, the time may shift by hours depending on
+the server's local timezone.
+
+**Root cause:** CBOR's `CanonicalEncOptions()` defaults `Time` to `TimeUnix`
+(epoch seconds, no nanos, no timezone). The codec now uses `TimeUnixDynamic`
+(float64, preserves nanoseconds), but timezone info is still discarded.
+
+**Fix:** Use the timezone-safe types introduced in v4.0.2:
+
+- `event.Instant` — for unique physical moments (created_at, occurred_at). Stored as int64 UnixNano, exact precision.
+- `event.WallTime` — for local times of day (schedules, reminders). Stores hour/minute/IANA timezone.
+- `event.Date` — for calendar dates (birth dates, employment dates). Timezone-agnostic.
+
+Alternatively, call `.UTC()` on `time.Time` values before encoding:
+
+```go
+// Before (timezone lost):
+type MyPayload struct {
+    CreatedAt time.Time `json:"createdAt"`
+}
+
+// After (timezone-safe):
+type MyPayload struct {
+    CreatedAt event.Instant `json:"createdAt"`
+}
+```
+
+Run `cqrs-lint` with the C013 rule to find all `time.Time` fields in event payloads.
+
+### GOEXPERIMENT=jsonv2 is required
+
+All builds and tests require `GOEXPERIMENT=jsonv2` since v4 switched to
+`encoding/json/v2`. Set it in your shell, flake.nix devShell, and CI workflows:
+
+```bash
+export GOEXPERIMENT=jsonv2
+go build ./...
+go test ./...
+```

@@ -296,6 +296,8 @@ as a library primitive.
 | Encoding constants | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                                 | ✅     |
 | Envelope wrapping  | `WrapEncode`/`UnwrapDecode` — self-describing blind stores (ADR-0044)         | ✅     |
 | CBOR default       | All codec defaults flipped to CBOR (ADR-0053) — backward-compat via envelopes | ✅     |
+| Timezone-safe types| `Instant`, `WallTime`, `Date` — prevent CBOR timezone loss in event payloads (ADR-0056) | ✅ |
+| C013 lint rule     | Detects `time.Time` fields in event payloads, suggests timezone-safe alternatives | ✅ |
 
 ---
 
