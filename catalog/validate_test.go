@@ -264,3 +264,146 @@ func TestValidate_EntityDuplicateProperty(t *testing.T) {
 		t.Fatalf("expected duplicate property violation, got: %v", violations)
 	}
 }
+
+func TestValidate_DuplicateOperationPath(t *testing.T) {
+	t.Parallel()
+
+	cat := &Catalog{
+		Title:   "Test",
+		Version: "1.0.0",
+		Services: []Service{
+			{
+				ID: "svc",
+				Commands: []Message{
+					{
+						ID:        "cmd.a",
+						Kind:      CommandMessage,
+						Name:      "A",
+						Operation: &Operation{Method: "POST", Path: "/api/items"},
+					},
+					{
+						ID:        "cmd.b",
+						Kind:      CommandMessage,
+						Name:      "B",
+						Operation: &Operation{Method: "POST", Path: "/api/items"},
+					},
+				},
+			},
+		},
+	}
+
+	violations := cat.Validate()
+	found := false
+	for _, v := range violations {
+		if strings.Contains(v.Message, "duplicate operation") &&
+			strings.Contains(v.Message, "POST /api/items") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected duplicate operation violation, got: %v", violations)
+	}
+}
+
+func TestValidate_OperationMethodWithoutPath(t *testing.T) {
+	t.Parallel()
+
+	cat := &Catalog{
+		Title:   "Test",
+		Version: "1.0.0",
+		Services: []Service{
+			{
+				ID: "svc",
+				Commands: []Message{
+					{
+						ID:        "cmd.a",
+						Kind:      CommandMessage,
+						Name:      "A",
+						Operation: &Operation{Method: "POST", Path: ""},
+					},
+				},
+			},
+		},
+	}
+
+	violations := cat.Validate()
+	found := false
+	for _, v := range violations {
+		if strings.Contains(v.Message, "method is set but path is empty") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected method-without-path violation, got: %v", violations)
+	}
+}
+
+func TestValidate_Response2xxWithoutSchema(t *testing.T) {
+	t.Parallel()
+
+	cat := &Catalog{
+		Title:   "Test",
+		Version: "1.0.0",
+		Services: []Service{
+			{
+				ID: "svc",
+				Commands: []Message{
+					{
+						ID:   "cmd.a",
+						Kind: CommandMessage,
+						Name: "A",
+						Responses: []ResponseSpec{
+							{StatusCode: "200", Description: "OK"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	violations := cat.Validate()
+	found := false
+	for _, v := range violations {
+		if strings.Contains(v.Message, "2xx response has no body schema") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected 2xx-without-schema violation, got: %v", violations)
+	}
+}
+
+func TestValidate_Response2xxWithSchema_NoViolation(t *testing.T) {
+	t.Parallel()
+
+	cat := &Catalog{
+		Title:   "Test",
+		Version: "1.0.0",
+		Services: []Service{
+			{
+				ID: "svc",
+				Commands: []Message{
+					{
+						ID:   "cmd.a",
+						Kind: CommandMessage,
+						Name: "A",
+						Responses: []ResponseSpec{
+							{
+								StatusCode:  "200",
+								Description: "OK",
+								Schema:      &Schema{Type: TypeObject},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	violations := cat.Validate()
+	for _, v := range violations {
+		if strings.Contains(v.Message, "2xx response has no body schema") {
+			t.Fatalf("did not expect 2xx-without-schema violation, got: %v", v)
+		}
+	}
+}

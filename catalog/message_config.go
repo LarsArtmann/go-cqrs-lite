@@ -39,7 +39,7 @@ type messageBuilder struct {
 }
 
 func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
-	msg := Message{ //nolint:exhaustruct // optional fields omitted by design
+	msg := Message{
 		Kind:       m.kind,
 		ID:         m.id,
 		Name:       Name(m.name),
@@ -234,7 +234,7 @@ func newMessageBuilder[T any](
 	name := camelCaseToHuman(rt.Name())
 	sch := schema.FromReflect(rt)
 
-	msgBuilder := &messageBuilder{ //nolint:exhaustruct // optional fields omitted by design
+	msgBuilder := &messageBuilder{
 		kind:      kind,
 		id:        id,
 		name:      name,

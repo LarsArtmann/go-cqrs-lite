@@ -339,7 +339,7 @@ func tagValue(field reflect.StructField, tags ...string) string {
 	return ""
 }
 
-func readParamLocation(field reflect.StructField) (location, name string) {
+func readParamLocation(field reflect.StructField) (string, string) {
 	for _, loc := range [...]struct{ tag, value string }{
 		{paramQuery, paramQuery},
 		{paramPath, paramPath},

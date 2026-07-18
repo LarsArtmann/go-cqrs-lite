@@ -103,19 +103,22 @@ func validateService(
 	for _, cmd := range svc.Commands {
 		violations = append(
 			violations,
-			validateMessage(seenMsgIDs, seenOpPaths, "command", svc.ID, cmd)...)
+			validateMessage(seenMsgIDs, seenOpPaths, "command", svc.ID, cmd)...,
+		)
 	}
 
 	for _, evt := range svc.Events {
 		violations = append(
 			violations,
-			validateMessage(seenMsgIDs, seenOpPaths, "event", svc.ID, evt)...)
+			validateMessage(seenMsgIDs, seenOpPaths, "event", svc.ID, evt)...,
+		)
 	}
 
 	for _, q := range svc.Queries {
 		violations = append(
 			violations,
-			validateMessage(seenMsgIDs, seenOpPaths, "query", svc.ID, q)...)
+			validateMessage(seenMsgIDs, seenOpPaths, "query", svc.ID, q)...,
+		)
 	}
 
 	return violations
@@ -158,28 +161,10 @@ func validateMessage(
 func validateOperation(seenOpPaths map[string]string, path string, msg Message) []Violation {
 	var violations []Violation
 
-	if msg.Operation == nil {
-		return nil
-	}
-
-	if msg.Operation.Method != "" && msg.Operation.Path == "" {
-		violations = append(violations, Violation{
-			Path:    path + ".operation",
-			Message: "operation method is set but path is empty",
-		})
-	}
-
-	if msg.Operation.Method != "" && msg.Operation.Path != "" {
-		opKey := fmt.Sprintf("%s %s", msg.Operation.Method, msg.Operation.Path)
-
-		if prev, exists := seenOpPaths[opKey]; exists {
-			violations = append(violations, Violation{
-				Path:    path + ".operation",
-				Message: fmt.Sprintf("duplicate operation %q (also in %s)", opKey, prev),
-			})
-		} else {
-			seenOpPaths[opKey] = path
-		}
+	if msg.Operation != nil {
+		violations = append(
+			violations,
+			validateOperationDetails(seenOpPaths, path, msg.Operation)...)
 	}
 
 	for _, resp := range msg.Responses {
@@ -188,6 +173,36 @@ func validateOperation(seenOpPaths map[string]string, path string, msg Message) 
 				Path:    fmt.Sprintf("%s.responses[%s]", path, resp.StatusCode),
 				Message: "2xx response has no body schema",
 			})
+		}
+	}
+
+	return violations
+}
+
+func validateOperationDetails(
+	seenOpPaths map[string]string,
+	path string,
+	op *Operation,
+) []Violation {
+	var violations []Violation
+
+	if op.Method != "" && op.Path == "" {
+		violations = append(violations, Violation{
+			Path:    path + ".operation",
+			Message: "operation method is set but path is empty",
+		})
+	}
+
+	if op.Method != "" && op.Path != "" {
+		opKey := fmt.Sprintf("%s %s", op.Method, op.Path)
+
+		if prev, exists := seenOpPaths[opKey]; exists {
+			violations = append(violations, Violation{
+				Path:    path + ".operation",
+				Message: fmt.Sprintf("duplicate operation %q (also in %s)", opKey, prev),
+			})
+		} else {
+			seenOpPaths[opKey] = path
 		}
 	}
 
