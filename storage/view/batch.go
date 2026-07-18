@@ -79,7 +79,7 @@ func (s *SQLViewStore[V, K]) batchChunk(ctx context.Context, items []kv.ViewItem
 		s.buildConflictSet(cols[1:]),
 	)
 
-	if _, err := s.DB.ExecContext(ctx, q, args...); err != nil {
+	if _, err := s.executor().ExecContext(ctx, q, args...); err != nil {
 		return errorfamily.WrapTransient(err, "storage.view.batch_chunk", "batch insert chunk")
 	}
 
@@ -101,7 +101,7 @@ func columnNames[V any](cols []ViewColumn[V]) []string {
 func (s *SQLViewStore[V, K]) DeleteAll(ctx context.Context) error {
 	q := "DELETE FROM " + s.mapper.Table
 
-	if _, err := s.DB.ExecContext(ctx, q); err != nil {
+	if _, err := s.executor().ExecContext(ctx, q); err != nil {
 		return errorfamily.WrapTransient(err, "storage.view.delete_all", "delete all records")
 	}
 

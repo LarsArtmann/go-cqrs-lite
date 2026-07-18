@@ -95,7 +95,7 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 		args = append(args, -1, q.Offset)
 	}
 
-	rows, err := s.DB.QueryContext(ctx, b.String(), args...)
+	rows, err := s.executor().QueryContext(ctx, b.String(), args...)
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "storage.view.query", "query view records")
 	}

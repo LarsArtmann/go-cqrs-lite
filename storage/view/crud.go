@@ -17,7 +17,7 @@ func (s *SQLViewStore[V, K]) Get(ctx context.Context, key K) (*V, error) {
 	q := fmt.Sprintf("SELECT %s FROM %s WHERE key = %s",
 		s.selectCols, s.mapper.Table, s.Dialect.Placeholder(1))
 
-	row := s.DB.QueryRowContext(ctx, q, s.keyString(key))
+	row := s.executor().QueryRowContext(ctx, q, s.keyString(key))
 
 	val, err := s.mapper.ScanRow(row.Scan)
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *SQLViewStore[V, K]) Set(ctx context.Context, key K, val *V) error {
 		s.buildConflictSet(cols[1:]),
 	)
 
-	_, err := s.DB.ExecContext(ctx, q, args...)
+	_, err := s.executor().ExecContext(ctx, q, args...)
 	if err != nil {
 		return errorfamily.WrapTransient(err, "storage.view.set",
 			fmt.Sprintf("set key %q", key.String()))
@@ -87,7 +87,7 @@ func (s *SQLViewStore[V, K]) buildConflictSet(dataCols []string) string {
 func (s *SQLViewStore[V, K]) Delete(ctx context.Context, key K) error {
 	q := fmt.Sprintf("DELETE FROM %s WHERE key = %s", s.mapper.Table, s.Dialect.Placeholder(1))
 
-	_, err := s.DB.ExecContext(ctx, q, s.keyString(key))
+	_, err := s.executor().ExecContext(ctx, q, s.keyString(key))
 	if err != nil {
 		return errorfamily.WrapTransient(err, "storage.view.delete",
 			fmt.Sprintf("delete key %q", key.String()))
@@ -111,7 +111,7 @@ func (s *SQLViewStore[V, K]) Scan(ctx context.Context, prefix []byte) ([]*V, err
 		q = fmt.Sprintf("SELECT %s FROM %s ORDER BY key", s.selectCols, s.mapper.Table)
 	}
 
-	rows, err := s.DB.QueryContext(ctx, q, args...)
+	rows, err := s.executor().QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "storage.view.scan", "scan records")
 	}

@@ -38,7 +38,7 @@ func (s *SQLViewStore[V, K]) Count(ctx context.Context, q kv.ViewQuery) (int64, 
 
 	var count int64
 
-	err := s.DB.QueryRowContext(ctx, b.String(), args...).Scan(&count)
+	err := s.executor().QueryRowContext(ctx, b.String(), args...).Scan(&count)
 	if err != nil {
 		return 0, errorfamily.WrapTransient(err, "storage.view.count", "count records")
 	}
