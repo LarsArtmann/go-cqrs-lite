@@ -196,6 +196,85 @@ go run ./cmd/go-cqrs-lite-catalog -format openapi -o ./docs
 go run ./cmd/go-cqrs-lite-catalog -format d2 -o ./docs
 ```
 
+### Shortcut Constructors
+
+For REST-heavy services, use the method-specific shortcuts to reduce boilerplate:
+
+```go
+// DELETE[T] / PUT[T] / PATCH[T] pre-tag the message with the HTTP method + path
+builder.AddService("user-svc", "User Service", "1.0.0", "Users",
+    catalog.DELETE[struct{}]("user.delete", "/api/users/{id}"),
+    catalog.PUT[UpdateUserCmd]("user.replace", "/api/users/{id}"),
+    catalog.PATCH[PatchUserCmd]("user.patch", "/api/users/{id}"),
+)
+
+// WithOperation[T] combines MsgOperation + Response[T] in one call
+catalog.Command[CreateUserCmd]("user.create",
+    catalog.WithOperation[UserDTO]("POST", "/api/users", "201"),
+)
+```
+
+### Output Formats
+
+**OpenAPI** — Each operation becomes a path entry with method, responses, and security:
+
+```json
+{
+  "paths": {
+    "/api/users": {
+      "post": {
+        "operationId": "postUserCreate",
+        "responses": {
+          "201": { "description": "User created", "content": { "application/json": { ... } } }
+        }
+      },
+      "get": { "operationId": "getUserList", ... }
+    }
+  }
+}
+```
+
+**AsyncAPI** — REST operations appear as HTTP-channel messages tagged `http:GET` / `http:POST`:
+
+```yaml
+channels:
+  /api/users:
+    address: /api/users
+    messages:
+      user.create:
+        contentType: application/json
+        payload: { ... }
+```
+
+**D2** — Operation labels render on service diagram edges:
+
+```
+order-svc -> order-svc: [POST /api/orders] Create Order
+order-svc -> order-svc: [GET /api/orders/{id}] Get Order
+```
+
+### Response Precedence
+
+When multiple response sources are configured, the exporter applies this precedence:
+
+1. **`Message.Responses`** (explicit `ResponseSpec` entries) — highest priority
+2. **`Operation.StatusCodes`** (from `MsgOperation("POST", path, "201", "400")`)
+3. **Exporter defaults** (200+400 for commands, 200+404 for queries) — lowest priority
+
+### Parameter Extraction
+
+Query and path parameters are auto-extracted from the message schema:
+
+- **ID fields** — A field named `id` or `*_id` becomes a path parameter (`/{id}`)
+- **Explicit parameters** — `Schema.Parameters` with `In: "query"|"path"|"header"` gives full control
+
+```go
+type ListUsersQuery struct {
+    Limit int `json:"limit"`
+}
+// → GET /api/users?limit={limit}
+```
+
 ## Optional Packages
 
 | Package             | Purpose                                                        |
