@@ -28,7 +28,11 @@ import (
 
 var errUnknownFormat = errors.New("unknown format")
 
-const filePermUserOnly = 0o600
+const (
+	filePermUserOnly = 0o600
+	demoVersion      = "1.0.0"
+	itemsPath        = "/api/items"
+)
 
 func main() {
 	format := flag.String("format", "openapi", "output format: openapi, asyncapi, d2, llms")
@@ -60,15 +64,19 @@ func buildDemoCatalog(title, version string) *catalog.Catalog {
 			{
 				ID:      "item.create",
 				Name:    "CreateItem",
-				Version: "1.0.0",
+				Version: demoVersion,
 				Kind:    catalog.CommandMessage,
 				Operation: &catalog.Operation{
 					Method:      "POST",
-					Path:        "/api/items",
+					Path:        itemsPath,
 					StatusCodes: []string{"201", "400"},
 				},
 				Responses: []catalog.ResponseSpec{
-					{StatusCode: "201", Description: "Item created"},
+					{
+						StatusCode:  "201",
+						Description: "Item created",
+						Schema:      &catalog.Schema{Type: catalog.TypeObject},
+					},
 				},
 			},
 		},
@@ -76,11 +84,11 @@ func buildDemoCatalog(title, version string) *catalog.Catalog {
 			{
 				ID:      "item.list",
 				Name:    "ListItems",
-				Version: "1.0.0",
+				Version: demoVersion,
 				Kind:    catalog.QueryMessage,
 				Operation: &catalog.Operation{
 					Method: "GET",
-					Path:   "/api/items",
+					Path:   itemsPath,
 				},
 			},
 		},
