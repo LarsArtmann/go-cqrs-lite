@@ -494,6 +494,31 @@ jobs:
           fi
           echo "✓ All skill health checks passed"
     timeout-minutes: 15
+  catalog-golden-freshness:
+    name: Catalog Golden File Freshness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Verify catalog golden files are up-to-date
+        run: |
+          cd catalog
+          GOWORK=off go test ./asyncapi/ ./eventcatalog/ ./openapi/ ./d2/ \
+            -run TestGolden -count=1 -update 2>&1 | tee /dev/null
+          if ! git diff --exit-code -- testdata/golden/; then
+            echo "::error::Catalog golden files are stale. Run:"
+            echo "::error::  cd catalog && GOWORK=off go test ./asyncapi/ ./eventcatalog/ ./openapi/ ./d2/ -run TestGolden -update"
+            echo "::error::Then commit the refreshed golden files."
+            git diff --stat -- testdata/golden/
+            exit 1
+          fi
+          echo "✓ All catalog golden files are fresh"
+
+    timeout-minutes: 15
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

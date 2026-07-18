@@ -164,3 +164,86 @@ func TestIntegration_FullEventCatalogExport(t *testing.T) {
 		}
 	}
 }
+
+// TestIntegration_RestOperationsExport verifies that messages with explicit
+// operations and typed responses export correct frontmatter and schema files.
+func TestIntegration_RestOperationsExport(t *testing.T) {
+	t.Parallel()
+
+	reg := catalog.NewRegistry("REST API", "1.0.0")
+
+	reg.AddService(catalog.Service{
+		ID: "user-svc", Name: "User Service", Version: "1.0.0",
+		Summary: "User management REST API",
+		Commands: []catalog.Message{
+			{
+				Kind: catalog.CommandMessage,
+				ID:   "CreateUser", Name: "CreateUser", Version: "1.0.0",
+				Operation: &catalog.Operation{
+					Method: "POST", Path: "/api/users", StatusCodes: []string{"201", "400"},
+				},
+				Responses: []catalog.ResponseSpec{
+					{
+						StatusCode: "201", Description: "User created",
+						Schema: &catalog.Schema{Type: catalog.TypeObject},
+					},
+				},
+			},
+		},
+		Queries: []catalog.Message{
+			{
+				Kind: catalog.QueryMessage,
+				ID:   "GetUser", Name: "GetUser", Version: "1.0.0",
+				Operation: &catalog.Operation{Method: "GET", Path: "/api/users/{id}"},
+			},
+		},
+	})
+
+	cat := reg.Build()
+
+	tmpDir := t.TempDir()
+	exp := eventcatalog.NewExporter(tmpDir)
+	if err := exp.Export(cat); err != nil {
+		t.Fatalf("Export failed: %v", err)
+	}
+
+	// Verify command MDX has operation and response frontmatter
+	cmdPath := filepath.Join(tmpDir, "services/user-svc/commands/CreateUser/index.mdx")
+	cmdData, err := os.ReadFile(cmdPath)
+	if err != nil {
+		t.Fatalf("read command MDX: %v", err)
+	}
+
+	cmdContent := string(cmdData)
+	if !strings.Contains(cmdContent, "method: POST") {
+		t.Error("command MDX missing operation method")
+	}
+
+	if !strings.Contains(cmdContent, "path: /api/users") {
+		t.Error("command MDX missing operation path")
+	}
+
+	if !strings.Contains(cmdContent, "responses:") {
+		t.Error("command MDX missing responses frontmatter")
+	}
+
+	if !strings.Contains(cmdContent, "statusCode: \"201\"") {
+		t.Error("command MDX missing response status code")
+	}
+
+	// Verify query MDX has GET operation
+	qryPath := filepath.Join(tmpDir, "services/user-svc/queries/GetUser/index.mdx")
+	qryData, err := os.ReadFile(qryPath)
+	if err != nil {
+		t.Fatalf("read query MDX: %v", err)
+	}
+
+	qryContent := string(qryData)
+	if !strings.Contains(qryContent, "method: GET") {
+		t.Error("query MDX missing operation method")
+	}
+
+	if !strings.Contains(qryContent, "path: /api/users/{id}") {
+		t.Error("query MDX missing operation path")
+	}
+}

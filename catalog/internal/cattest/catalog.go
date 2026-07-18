@@ -57,6 +57,47 @@ func BuildTestCatalog() *catalog.Catalog {
 	return reg.Build()
 }
 
+// BuildTestCatalogWithOps returns a catalog where messages carry explicit
+// Operation and ResponseSpec data, exercising the REST export paths that
+// BuildTestCatalog (which has no operations) does not cover.
+func BuildTestCatalogWithOps() *catalog.Catalog {
+	reg := catalog.NewRegistry("REST API", testVersion)
+	reg.AddService(catalog.Service{
+		ID: "order-svc", Name: "Order Service", Version: testVersion, Summary: "Manages orders",
+	})
+	reg.AddCommand("order-svc", catalog.Message{
+		Kind:    catalog.CommandMessage,
+		ID:      "CreateOrder",
+		Name:    "Create Order",
+		Version: testVersion,
+		Summary: "Create a new order",
+		Operation: &catalog.Operation{
+			Method:      "POST",
+			Path:        "/api/orders",
+			StatusCodes: []string{"201", "400"},
+		},
+		Responses: []catalog.ResponseSpec{
+			{
+				StatusCode:  "201",
+				Description: "Order created",
+				Schema:      &catalog.Schema{Type: catalog.TypeObject},
+			},
+		},
+	})
+	reg.AddQuery("order-svc", catalog.Message{
+		Kind: catalog.QueryMessage, ID: "GetOrder", Name: "Get Order",
+		Version: testVersion, Summary: "Get order by ID",
+		Operation: &catalog.Operation{Method: "GET", Path: "/api/orders/{id}"},
+	})
+	reg.AddEvent("order-svc", catalog.Message{
+		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created",
+		Version: testVersion, Summary: "Order was created", Direction: catalog.Sends,
+		Operation: &catalog.Operation{Method: "POST", Path: "/api/orders/events"},
+	})
+
+	return reg.Build()
+}
+
 func AssertGolden(t *testing.T, goldenPath string, got []byte, update bool, mismatchMsg string) {
 	t.Helper()
 

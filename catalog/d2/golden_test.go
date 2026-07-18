@@ -13,7 +13,7 @@ import (
 )
 
 //nolint:gochecknoglobals // golden test pattern requires package-level flag
-var d2Update = flag.Bool("update-d2", false, "update d2 golden files")
+var d2Update = flag.Bool("update", false, "update golden files")
 
 func TestGolden_D2Export(t *testing.T) {
 	cat := cattest.BuildTestCatalog()
@@ -39,7 +39,7 @@ func TestGolden_D2Export(t *testing.T) {
 	wantNorm := normalizeD2(string(want))
 	if gotNorm != wantNorm {
 		t.Errorf(
-			"D2 diagram mismatch (run with -update-d2 to refresh golden files)\ngot len=%d, want len=%d",
+			"D2 diagram mismatch (run with -update to refresh golden files)\ngot len=%d, want len=%d",
 			len(gotNorm),
 			len(wantNorm),
 		)
@@ -47,6 +47,37 @@ func TestGolden_D2Export(t *testing.T) {
 }
 
 var blankLineRe = regexp.MustCompile(`\n{2,}`)
+
+func TestGolden_D2WithOps(t *testing.T) {
+	cat := cattest.BuildTestCatalogWithOps()
+	exp := d2.NewExporter("REST API", "1.0.0")
+	got := exp.Export(cat)
+
+	goldenPath := filepath.Join("..", "testdata", "golden", "diagram-with-ops.d2")
+
+	if *d2Update {
+		if err := os.WriteFile(goldenPath, []byte(got), 0o644); err != nil {
+			t.Fatalf("write golden: %v", err)
+		}
+
+		return
+	}
+
+	want, err := os.ReadFile(goldenPath)
+	if err != nil {
+		t.Fatalf("read golden: %v", err)
+	}
+
+	gotNorm := normalizeD2(got)
+	wantNorm := normalizeD2(string(want))
+	if gotNorm != wantNorm {
+		t.Errorf(
+			"D2 diagram (with ops) mismatch (run with -update to refresh golden files)\ngot len=%d, want len=%d",
+			len(gotNorm),
+			len(wantNorm),
+		)
+	}
+}
 
 func normalizeD2(s string) string {
 	s = strings.TrimSpace(s)

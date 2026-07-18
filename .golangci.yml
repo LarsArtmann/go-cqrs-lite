@@ -292,6 +292,7 @@ linters:
           - exhaustruct
           - gosec
           - err113
+          - goconst
       - path: upcaster\.go$
         linters:
           - unparam

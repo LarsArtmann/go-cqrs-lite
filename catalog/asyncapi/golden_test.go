@@ -39,3 +39,22 @@ func TestGolden_AsyncAPIYAML(t *testing.T) {
 	cattest.AssertGolden(t, filepath.Join(cattest.GoldenDir(), "asyncapi.yaml"),
 		got, *update, "AsyncAPI YAML mismatch (run with -update to refresh golden files)")
 }
+
+func TestGolden_AsyncAPIWithOps(t *testing.T) {
+	cat := cattest.BuildTestCatalogWithOps()
+	exp := asyncapi.NewExporter("REST API", "1.0.0")
+	doc := exp.Export(cat)
+
+	got, err := doc.MarshalJSON()
+	if err != nil {
+		t.Fatalf("MarshalJSON: %v", err)
+	}
+
+	cattest.AssertGolden(
+		t,
+		filepath.Join(cattest.GoldenDir(), "asyncapi-with-ops.json"),
+		got,
+		*update,
+		"AsyncAPI JSON (with ops) mismatch (run with -update to refresh golden files)",
+	)
+}

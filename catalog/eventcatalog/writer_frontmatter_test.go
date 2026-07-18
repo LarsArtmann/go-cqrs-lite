@@ -120,3 +120,42 @@ func frontmatterAssertContains(t *testing.T, content string, expected ...string)
 		}
 	}
 }
+
+func TestRenderMDX_WithResponses(t *testing.T) {
+	t.Parallel()
+
+	msg := catalog.Message{
+		Kind: catalog.CommandMessage,
+		ID:   "CreateUser",
+		Name: "Create User",
+		Responses: []catalog.ResponseSpec{
+			{
+				StatusCode:  "201",
+				Description: "User created",
+				Schema:      &catalog.Schema{Type: catalog.TypeObject},
+			},
+			{StatusCode: "400", Description: "Bad request"},
+		},
+	}
+
+	fm := messageFM{
+		ID:        string(catalog.Key(msg)),
+		Name:      string(msg.Name),
+		Version:   "1.0.0",
+		Responses: toResponses(msg.Responses),
+	}
+
+	out, err := renderMDX(fm, string(msg.Name), "", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	frontmatterAssertContains(
+		t, out,
+		"responses:",
+		"statusCode: \"201\"",
+		"description: User created",
+		"statusCode: \"400\"",
+		"description: Bad request",
+	)
+}
