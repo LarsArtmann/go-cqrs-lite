@@ -31,6 +31,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		correctness.NewC011Detector(ctx),
 		correctness.NewC012Detector(ctx),
 		correctness.NewC013Detector(ctx),
+		correctness.NewC014Detector(ctx),
 		// API
 		api.NewA001Detector(ctx),
 		api.NewA002Detector(ctx),
