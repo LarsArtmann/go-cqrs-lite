@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"sync"
 	"testing"
@@ -233,15 +232,7 @@ func TestSSEHandler_WireFormat(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=test", nil)
-	rec := httptest.NewRecorder()
-
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
+	rec, stop := startSSE(broker, "test", "")
 
 	// Wait for client registration
 	deadline := time.Now().Add(2 * time.Second)
@@ -269,13 +260,7 @@ func TestSSEHandler_WireFormat(t *testing.T) {
 	}
 
 	time.Sleep(100 * time.Millisecond)
-	cancel()
-
-	select {
-	case <-done:
-	case <-time.After(2 * time.Second):
-		t.Fatal("timeout waiting for handler")
-	}
+	stop()
 
 	body := rec.Body.String()
 
@@ -303,19 +288,9 @@ func TestSSEHandler_StatusOK(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=test", nil)
-	rec := httptest.NewRecorder()
-
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	rec, stop := startSSE(broker, "test", "")
 	time.Sleep(50 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("expected status 200, got %d", rec.Code)
@@ -342,26 +317,9 @@ func TestSSEHandler_ConcurrentClients(t *testing.T) {
 		go func(n int) {
 			defer wg.Done()
 
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-
-			req := httptest.NewRequestWithContext(
-				ctx,
-				http.MethodGet,
-				"/events?client="+strings.Repeat("c", n+1),
-				nil,
-			)
-			rec := httptest.NewRecorder()
-
-			handlerDone := make(chan struct{})
-			go func() {
-				defer close(handlerDone)
-				SSEHandler(broker).ServeHTTP(rec, req)
-			}()
-
+			_, stop := startSSE(broker, strings.Repeat("c", n+1), "")
 			time.Sleep(50 * time.Millisecond)
-			cancel()
-			<-handlerDone
+			stop()
 		}(i)
 	}
 
@@ -374,27 +332,11 @@ func TestSSEHandler_ConcurrentClients(t *testing.T) {
 }
 
 func TestSSEHandler_LastEventID_Reconnect(t *testing.T) {
-	store := eventtest.NewFakeStore()
+	store, events := newFakeStoreWithEvents(t, "TestEvent", "Test",
+		[]byte(`{"seq":1}`), []byte(`{"seq":2}`))
+
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
-
-	// Save two events to the store (journal).
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
-
-	evt1, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":1}`))
-	if err != nil {
-		t.Fatalf("create evt1: %v", err)
-	}
-
-	evt2, err := event.NewEvent("TestEvent", aggID, "Test", 2, []byte(`{"seq":2}`))
-	if err != nil {
-		t.Fatalf("create evt2: %v", err)
-	}
-
-	if err := store.Save(context.Background(), ref, []event.Event{evt1, evt2}, 0); err != nil {
-		t.Fatalf("save events: %v", err)
-	}
 
 	broker, err := NewSSEBroker(bus, WithReconnectJournal(store, 100))
 	if err != nil {
@@ -402,28 +344,10 @@ func TestSSEHandler_LastEventID_Reconnect(t *testing.T) {
 	}
 	defer broker.Close()
 
-	// Reconnect with Last-Event-ID = evt1.ID() → should replay evt2.
-	ctx, cancel := context.WithCancel(context.Background())
-
-	req := httptest.NewRequestWithContext(
-		ctx, http.MethodGet, "/events?client=reconnect", nil,
-	)
-	req.Header.Set("Last-Event-ID", evt1.ID().String())
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
-	// Give the handler time to complete the replay.
+	// Reconnect with Last-Event-ID = events[0].ID() → should replay events[1].
+	rec, stop := startSSE(broker, "reconnect", events[0].ID().String())
 	time.Sleep(100 * time.Millisecond)
-
-	// Stop the handler and wait for it to finish before reading the body.
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 
@@ -438,28 +362,13 @@ func TestSSEHandler_LastEventID_Reconnect(t *testing.T) {
 
 func TestSSEHandler_ReplayDedup_NoDuplicates(t *testing.T) {
 	// Verify that events replayed from journal are NOT re-delivered via
-	// the live bus. This is the real dedup test: evt1 is in the journal
-	// AND published live after the client connects with Last-Event-ID=evt0.
-	store := eventtest.NewFakeStore()
+	// the live bus. This is the real dedup test: events[1] is in the journal
+	// AND published live after the client connects with Last-Event-ID=events[0].
+	store, events := newFakeStoreWithEvents(t, "TestEvent", "Test",
+		[]byte(`{"seq":0}`), []byte(`{"seq":1}`))
+
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
-
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
-
-	evt0, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":0}`))
-	if err != nil {
-		t.Fatalf("create evt0: %v", err)
-	}
-
-	evt1, err := event.NewEvent("TestEvent", aggID, "Test", 2, []byte(`{"seq":1}`))
-	if err != nil {
-		t.Fatalf("create evt1: %v", err)
-	}
-
-	if err := store.Save(context.Background(), ref, []event.Event{evt0, evt1}, 0); err != nil {
-		t.Fatalf("save: %v", err)
-	}
 
 	broker, err := NewSSEBroker(bus, WithReconnectJournal(store, 100))
 	if err != nil {
@@ -467,31 +376,18 @@ func TestSSEHandler_ReplayDedup_NoDuplicates(t *testing.T) {
 	}
 	defer broker.Close()
 
-	// Connect with Last-Event-ID=evt0 → replays evt1 from journal.
-	ctx, cancel := context.WithCancel(context.Background())
-
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=dedup", nil)
-	req.Header.Set("Last-Event-ID", evt0.ID().String())
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	// Connect with Last-Event-ID=events[0] → replays events[1] from journal.
+	rec, stop := startSSE(broker, "dedup", events[0].ID().String())
 	time.Sleep(100 * time.Millisecond)
 
-	// Publish evt1 again via live bus — should be suppressed by dedup
+	// Publish events[1] again via live bus — should be suppressed by dedup
 	// because it was already replayed from the journal.
-	if err := bus.Publish(context.Background(), evt1); err != nil {
+	if err := bus.Publish(context.Background(), events[1]); err != nil {
 		t.Fatalf("publish: %v", err)
 	}
 
 	time.Sleep(100 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 	count := strings.Count(body, `{"seq":1}`)
@@ -508,31 +404,17 @@ func TestSSEHandler_ReplayDedup_NoDuplicates(t *testing.T) {
 func TestSSEHandler_UnlimitedReplay(t *testing.T) {
 	// Verify that replayLimit <= 0 streams ALL events from the journal
 	// in batches, not just the first 1000 (or batch size).
-	store := eventtest.NewFakeStore()
+	const totalEvents = 600 // > sseReplayBatchSize (500) to force multiple batches
+
+	payloads := make([][]byte, totalEvents)
+	for i := range payloads {
+		payloads[i] = fmt.Appendf(nil, `{"seq":%d}`, i)
+	}
+
+	store, events := newFakeStoreWithEvents(t, "TestEvent", "Test", payloads...)
+
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
-
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
-
-	// Create more events than sseReplayBatchSize (500) to force multiple batches.
-	// We need them in the global journal, so we save them all to one aggregate.
-	const totalEvents = 600
-
-	events := make([]event.Event, totalEvents)
-	for i := range totalEvents {
-		evt, err := event.NewEvent("TestEvent", aggID, "Test", event.Version(i+1),
-			fmt.Appendf(nil, `{"seq":%d}`, i))
-		if err != nil {
-			t.Fatalf("create event %d: %v", i, err)
-		}
-
-		events[i] = evt
-	}
-
-	if err := store.Save(context.Background(), ref, events, 0); err != nil {
-		t.Fatalf("save events: %v", err)
-	}
 
 	// Unlimited replay (0 = unlimited streaming).
 	broker, err := NewSSEBroker(bus, WithReconnectJournal(store, 0))
@@ -542,23 +424,9 @@ func TestSSEHandler_UnlimitedReplay(t *testing.T) {
 	defer broker.Close()
 
 	// Connect with Last-Event-ID = first event → should replay events[1..599].
-	ctx, cancel := context.WithCancel(context.Background())
-
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=unlimited", nil)
-	req.Header.Set("Last-Event-ID", events[0].ID().String())
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
-	// Give the handler time to complete the batched replay.
+	rec, stop := startSSE(broker, "unlimited", events[0].ID().String())
 	time.Sleep(200 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 
@@ -583,26 +451,11 @@ func TestSSEHandler_UnlimitedReplay(t *testing.T) {
 func TestSSEHandler_ReplayTimeout_SendsAdvisoryEvent(t *testing.T) {
 	// When replayTimeout fires before the journal read completes, the broker
 	// must send an SSEReplayIncompleteEvent advisory and switch to live.
-	store := eventtest.NewFakeStore()
+	store, events := newFakeStoreWithEvents(t, "TestEvent", "Test",
+		[]byte(`{"seq":0}`), []byte(`{"seq":1}`))
+
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
-
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
-
-	evt0, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":0}`))
-	if err != nil {
-		t.Fatalf("create evt0: %v", err)
-	}
-
-	evt1, err := event.NewEvent("TestEvent", aggID, "Test", 2, []byte(`{"seq":1}`))
-	if err != nil {
-		t.Fatalf("create evt1: %v", err)
-	}
-
-	if err := store.Save(context.Background(), ref, []event.Event{evt0, evt1}, 0); err != nil {
-		t.Fatalf("save: %v", err)
-	}
 
 	// Wrap the store with a 200ms delay so the 10ms timeout fires mid-read.
 	slowStore := testutil.NewDelayedJournal(store, 200*time.Millisecond)
@@ -617,23 +470,9 @@ func TestSSEHandler_ReplayTimeout_SendsAdvisoryEvent(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=timeout", nil)
-	req.Header.Set("Last-Event-ID", evt0.ID().String())
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
-	// Wait for the timeout to fire and the advisory to be written.
+	rec, stop := startSSE(broker, "timeout", events[0].ID().String())
 	time.Sleep(200 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 

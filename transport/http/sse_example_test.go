@@ -2,8 +2,6 @@ package http
 
 import (
 	"context"
-	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -61,17 +59,7 @@ func TestSSEExample_OfflineReconnection(t *testing.T) {
 
 	// Phase 2: client reconnects with Last-Event-ID = docCreated.
 	// The broker should replay docUpdated, then switch to live.
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=doc-client", nil)
-	req.Header.Set("Last-Event-ID", docCreated.ID().String())
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
+	rec, stop := startSSE(broker, "doc-client", docCreated.ID().String())
 
 	time.Sleep(100 * time.Millisecond)
 
@@ -84,8 +72,7 @@ func TestSSEExample_OfflineReconnection(t *testing.T) {
 	}
 
 	time.Sleep(100 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 

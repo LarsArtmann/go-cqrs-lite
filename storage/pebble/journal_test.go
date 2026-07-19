@@ -106,23 +106,37 @@ func TestEventStore_ReadAll_MultipleAggregates(t *testing.T) {
 	}
 }
 
-func TestEventStore_ReadFrom_AfterFirstEvent(t *testing.T) {
-	t.Parallel()
-
-	store := newPebbleTestStore(t)
+// saveThreeTimestampedEvents creates 3 events on a fresh "Issue" aggregate with
+// nanosecond-spaced timestamps and saves them to a new Pebble store. Returns
+// the store and the three events. Extracted to deduplicate the ReadFrom tests.
+func saveThreeTimestampedEvents(t *testing.T) (store *EventStore, evt1, evt2, evt3 event.Event) {
+	t.Helper()
+	store = newPebbleTestStore(t)
 	cfg := issueStoreConfig()
 	aggID := id.NewAggregateID()
 	ref := id.NewAggregateRef("Issue", aggID)
 
 	now := time.Now()
-	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
-	evt2 := cfg.NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
-	evt3 := cfg.NewTestEvent(t, aggID, 3, event.WithOccurredAt(now.Add(2*time.Nanosecond)))
+	evt1 = cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
+	evt2 = cfg.NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
+	evt3 = cfg.NewTestEvent(t, aggID, 3, event.WithOccurredAt(now.Add(2*time.Nanosecond)))
 
-	err := store.Save(context.Background(), ref, []event.Event{evt1, evt2, evt3}, event.Version(0))
-	if err != nil {
+	if err := store.Save(
+		context.Background(),
+		ref,
+		[]event.Event{evt1, evt2, evt3},
+		event.Version(0),
+	); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
+
+	return store, evt1, evt2, evt3
+}
+
+func TestEventStore_ReadFrom_AfterFirstEvent(t *testing.T) {
+	t.Parallel()
+
+	store, evt1, evt2, evt3 := saveThreeTimestampedEvents(t)
 
 	events, err := store.ReadFrom(context.Background(), evt1.ID(), 0)
 	if err != nil {
@@ -145,20 +159,7 @@ func TestEventStore_ReadFrom_AfterFirstEvent(t *testing.T) {
 func TestEventStore_ReadFrom_WithLimit(t *testing.T) {
 	t.Parallel()
 
-	store := newPebbleTestStore(t)
-	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Issue", aggID)
-
-	now := time.Now()
-	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
-	evt2 := cfg.NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
-	evt3 := cfg.NewTestEvent(t, aggID, 3, event.WithOccurredAt(now.Add(2*time.Nanosecond)))
-
-	err := store.Save(context.Background(), ref, []event.Event{evt1, evt2, evt3}, event.Version(0))
-	if err != nil {
-		t.Fatalf("Save: %v", err)
-	}
+	store, evt1, evt2, _ := saveThreeTimestampedEvents(t)
 
 	events, err := store.ReadFrom(context.Background(), evt1.ID(), 1)
 	if err != nil {

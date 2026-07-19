@@ -9,6 +9,11 @@
 package sqlopt
 
 import (
+	"database/sql"
+	"io"
+
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
@@ -52,4 +57,182 @@ func QueryStoreOptions(backend *storage.SQLBackend) []stack.Option {
 	}
 
 	return opts
+}
+
+// SecondaryStoreOptions opens a secondary database backend (via openBackend)
+// and converts it to stack.Options using optionBuilder. Returns nil when
+// secondaryDSN is empty. On failure, cleanup is called so the caller's
+// primary resources are released.
+//
+// dialect and label produce meaningful error locations, e.g.
+// dialect="sqlite", label="event" → "sqlite_preset.open_event_db".
+func SecondaryStoreOptions(
+	secondaryDSN, dialect, label string,
+	openBackend func(dsn string) (*storage.SQLBackend, io.Closer, error),
+	optionBuilder func(*storage.SQLBackend) []stack.Option,
+	cleanup func(),
+) ([]stack.Option, error) {
+	if secondaryDSN == "" {
+		return nil, nil
+	}
+
+	backend, closer, err := openBackend(secondaryDSN)
+	if err != nil {
+		cleanup()
+
+		return nil, errorfamily.WrapInfrastructure(err,
+			dialect+"_preset.open_"+label+"_db", "open "+label+" database")
+	}
+
+	opts := optionBuilder(backend)
+	opts = append(opts, stack.WithCloser(closer))
+
+	return opts, nil
+}
+
+// MultiDBOverrides handles both event-DB and query-DB overrides in one call.
+// It is the common multi-DB pattern shared by every SQL preset.
+func MultiDBOverrides(
+	eventDSN, queryDSN, dialect string,
+	openBackend func(dsn string) (*storage.SQLBackend, io.Closer, error),
+	cleanup func(),
+) ([]stack.Option, error) {
+	evtOpts, err := SecondaryStoreOptions(eventDSN, dialect, "event",
+		openBackend, EventStoreOptions, cleanup)
+	if err != nil {
+		return nil, err
+	}
+
+	qOpts, err := SecondaryStoreOptions(queryDSN, dialect, "query",
+		openBackend, QueryStoreOptions, cleanup)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(evtOpts, qOpts...), nil
+}
+
+// InitStack opens the primary backend, assembles base options, and applies
+// multi-DB overrides. Returns the assembled options, the primary backend and
+// DB handle (for FinalizeBundle), and a closePrimary cleanup function.
+func InitStack(
+	dsn, dialect, eventDSN, queryDSN string,
+	openBackend func(dsn string) (*sql.DB, *storage.SQLBackend, error),
+	openSecondary func(dsn string) (*storage.SQLBackend, io.Closer, error),
+) ([]stack.Option, *storage.SQLBackend, *sql.DB, func(), error) {
+	sqlDB, backend, err := openBackend(dsn)
+	if err != nil {
+		return nil, nil, nil, nil, errorfamily.WrapInfrastructure(err,
+			dialect+"_preset.open_backend", "open primary backend")
+	}
+
+	opts := AllOptions(backend)
+	closePrimary := func() { _ = backend.Close(); _ = sqlDB.Close() }
+
+	multiOpts, err := MultiDBOverrides(eventDSN, queryDSN, dialect,
+		openSecondary, closePrimary)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	opts = append(opts, multiOpts...)
+
+	return opts, backend, sqlDB, closePrimary, nil
+}
+
+// FinalizeBundle appends view options, lifecycle closers, and calls stack.New.
+// Shared by SQL presets to eliminate the identical tail of newBundle.
+func FinalizeBundle(
+	stackOpts []stack.Option,
+	backend *storage.SQLBackend,
+	sqlDB *sql.DB,
+	dialect, viewDSN string,
+	openDB func(dsn string) (*sql.DB, error),
+	newBackend func(db *sql.DB) (*storage.SQLBackend, error),
+) (*stack.Bundle, error) {
+	viewOpts, err := ViewOptions(viewDSN, dialect, backend, sqlDB, openDB, newBackend)
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err,
+			dialect+"_preset.view_options", "build view options")
+	}
+
+	stackOpts = append(stackOpts, viewOpts...)
+	stackOpts = append(
+		stackOpts,
+		stack.WithDatabase(sqlDB),
+		stack.WithCloser(backend),
+		stack.WithCloser(stack.NewFuncCloser(sqlDB.Close)),
+	)
+
+	b, err := stack.New(stackOpts...)
+	if err != nil {
+		_ = backend.Close()
+		_ = sqlDB.Close()
+
+		return nil, errorfamily.WrapInfrastructure(err,
+			dialect+"_preset.wire_bundle", "wire "+dialect+" bundle")
+	}
+
+	return b, nil
+}
+
+// ViewOptions builds read-model options from either a separate view database
+// (when viewDSN is set) or the primary backend's KV store. The dialect
+// parameter produces meaningful error locations. The openDB and newBackend
+// callbacks are preset-specific (e.g. SQLite applies WAL/PRAGMA, Postgres
+// applies schema migration).
+func ViewOptions(
+	viewDSN, dialect string,
+	primary *storage.SQLBackend,
+	sqlDB *sql.DB,
+	openDB func(dsn string) (*sql.DB, error),
+	newBackend func(db *sql.DB) (*storage.SQLBackend, error),
+) ([]stack.Option, error) {
+	if viewDSN == "" {
+		kvStore, err := primary.KVStore()
+		if err != nil {
+			_ = primary.Close()
+			_ = sqlDB.Close()
+
+			return nil, errorfamily.WrapInfrastructure(err,
+				dialect+".kv_store", "create KV store")
+		}
+
+		return []stack.Option{stack.WithReadModels(kvStore)}, nil
+	}
+
+	viewDB, err := openDB(viewDSN)
+	if err != nil {
+		_ = primary.Close()
+		_ = sqlDB.Close()
+
+		return nil, errorfamily.WrapInfrastructure(err,
+			dialect+".open_view_db", "open view database")
+	}
+
+	viewBackend, err := newBackend(viewDB)
+	if err != nil {
+		_ = primary.Close()
+		_ = sqlDB.Close()
+		_ = viewDB.Close()
+
+		return nil, errorfamily.WrapInfrastructure(err,
+			dialect+".create_view_backend", "create view backend")
+	}
+
+	kvStore, err := viewBackend.KVStore()
+	if err != nil {
+		_ = viewBackend.Close()
+		_ = primary.Close()
+		_ = sqlDB.Close()
+
+		return nil, errorfamily.WrapInfrastructure(err,
+			dialect+".view_kv_store", "create KV store for view database")
+	}
+
+	return []stack.Option{
+		stack.WithReadModels(kvStore),
+		stack.WithCloser(viewBackend),
+		stack.WithCloser(stack.NewFuncCloser(viewDB.Close)),
+	}, nil
 }

@@ -6,8 +6,6 @@ import (
 	"encoding/json/v2"
 	"slices"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
@@ -49,24 +47,9 @@ func (s Signature) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes a URL-safe base64 JSON string into the signature.
 // Falls back to standard base64 for backward compatibility.
 func (s *Signature) UnmarshalJSON(data []byte) error {
-	var encoded string
-
-	err := json.Unmarshal(data, &encoded, json.MatchCaseInsensitiveNames(true))
+	decoded, err := event.UnmarshalBase64JSON(data, "signing", "signature")
 	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"signing.unmarshal_signature",
-			"unmarshal signature string",
-		)
-	}
-
-	decoded, err := event.DecodeBase64String(encoded)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"signing.decode_signature",
-			"decode signature base64",
-		)
+		return err
 	}
 
 	*s = decoded

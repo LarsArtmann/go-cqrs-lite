@@ -83,6 +83,42 @@ func newBusTestStore(t *testing.T) *storage.SQLEventStore {
 	return store
 }
 
+func newBusWithSavedEvent(t *testing.T, eventType event.Type) (
+	bus *storage.PostgresBus, evt event.Event, listener *mockListener,
+) {
+	t.Helper()
+	store := newBusTestStore(t)
+	db, _ := storage.OpenSQLiteInMemory()
+	t.Cleanup(func() { _ = db.Close() })
+
+	listener = newMockListener()
+
+	var err error
+	bus, err = storage.NewPostgresBus(
+		db, store, listener,
+		storage.WithRefetchDelay(time.Millisecond),
+		storage.WithNotifyFunc(noopNotify),
+	)
+	if err != nil {
+		t.Fatalf("NewPostgresBus: %v", err)
+	}
+
+	t.Cleanup(func() { _ = bus.Close() })
+
+	aggID := id.NewAggregateID()
+	evt, err = event.NewEvent(eventType, aggID, "Test", event.Version(1), []byte(`{}`))
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if err := store.AppendBatch(context.Background(),
+		id.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+
+	return bus, evt, listener
+}
+
 func TestPostgresBus_NilDB(t *testing.T) {
 	t.Parallel()
 
@@ -161,33 +197,7 @@ func TestPostgresBus_ListenError(t *testing.T) {
 func TestPostgresBus_SubscribeAndPublish(t *testing.T) {
 	t.Parallel()
 
-	store := newBusTestStore(t)
-	db, _ := storage.OpenSQLiteInMemory()
-	t.Cleanup(func() { _ = db.Close() })
-
-	listener := newMockListener()
-
-	bus, err := storage.NewPostgresBus(
-		db, store, listener,
-		storage.WithRefetchDelay(time.Millisecond),
-		storage.WithNotifyFunc(noopNotify),
-	)
-	if err != nil {
-		t.Fatalf("NewPostgresBus: %v", err)
-	}
-
-	t.Cleanup(func() { _ = bus.Close() })
-
-	aggID := id.NewAggregateID()
-	evt, err := event.NewEvent("test.created", aggID, "Test", event.Version(1), []byte(`{}`))
-	if err != nil {
-		t.Fatalf("NewEvent: %v", err)
-	}
-
-	if err := store.AppendBatch(context.Background(),
-		id.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
-		t.Fatalf("AppendBatch: %v", err)
-	}
+	bus, evt, _ := newBusWithSavedEvent(t, "test.created")
 
 	var (
 		received atomic.Int64
@@ -219,33 +229,7 @@ func TestPostgresBus_SubscribeAndPublish(t *testing.T) {
 func TestPostgresBus_NotificationRefetch(t *testing.T) {
 	t.Parallel()
 
-	store := newBusTestStore(t)
-	db, _ := storage.OpenSQLiteInMemory()
-	t.Cleanup(func() { _ = db.Close() })
-
-	listener := newMockListener()
-
-	bus, err := storage.NewPostgresBus(
-		db, store, listener,
-		storage.WithRefetchDelay(time.Millisecond),
-		storage.WithNotifyFunc(noopNotify),
-	)
-	if err != nil {
-		t.Fatalf("NewPostgresBus: %v", err)
-	}
-
-	t.Cleanup(func() { _ = bus.Close() })
-
-	aggID := id.NewAggregateID()
-	evt, err := event.NewEvent("test.updated", aggID, "Test", event.Version(1), []byte(`{}`))
-	if err != nil {
-		t.Fatalf("NewEvent: %v", err)
-	}
-
-	if err := store.AppendBatch(context.Background(),
-		id.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
-		t.Fatalf("AppendBatch: %v", err)
-	}
+	bus, evt, listener := newBusWithSavedEvent(t, "test.updated")
 
 	var (
 		received atomic.Int64
@@ -267,7 +251,7 @@ func TestPostgresBus_NotificationRefetch(t *testing.T) {
 		"eid": evt.ID().String(),
 		"et":  "test.updated",
 		"at":  "Test",
-		"aid": aggID.String(),
+		"aid": evt.AggregateID().String(),
 		"v":   1,
 	})
 	if marshalErr != nil {

@@ -110,50 +110,21 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 }
 
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
-	sqlDB, backend, err := openBackend(dsn, cfg)
+	stackOpts, backend, sqlDB, closePrimary, err := sqlopt.InitStack(
+		dsn,
+		"postgres",
+		cfg.eventDSN,
+		cfg.queryDSN,
+		func(d string) (*sql.DB, *storage.SQLBackend, error) { return openBackend(d, cfg) },
+		func(d string) (*storage.SQLBackend, io.Closer, error) { return openSecondaryBackend(d, cfg) },
+	)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.open_backend",
-			"open primary backend")
-	}
-
-	stackOpts := sqlopt.AllOptions(backend)
-
-	// Override: event-sourcing stores (events, snapshots, checkpoints) from a
-	// separate database if configured.
-	if cfg.eventDSN != "" {
-		evtBackend, evtCloser, eErr := openSecondaryBackend(cfg.eventDSN, cfg)
-		if eErr != nil {
-			_ = backend.Close()
-			_ = sqlDB.Close()
-
-			return nil, errorfamily.WrapInfrastructure(eErr, "postgres_preset.open_event_db",
-				"open event database")
-		}
-
-		stackOpts = append(stackOpts, sqlopt.EventStoreOptions(evtBackend)...)
-		stackOpts = append(stackOpts, stack.WithCloser(evtCloser))
-	}
-
-	// Override: command and query audit stores from a separate database if
-	// configured.
-	if cfg.queryDSN != "" {
-		qBackend, qCloser, qErr := openSecondaryBackend(cfg.queryDSN, cfg)
-		if qErr != nil {
-			_ = backend.Close()
-			_ = sqlDB.Close()
-
-			return nil, errorfamily.WrapInfrastructure(qErr, "postgres_preset.open_query_db",
-				"open query database")
-		}
-
-		stackOpts = append(stackOpts, sqlopt.QueryStoreOptions(qBackend)...)
-		stackOpts = append(stackOpts, stack.WithCloser(qCloser))
+		return nil, err
 	}
 
 	bus, busCleanup, err := buildBus(sqlDB, backend.EventStore(), cfg)
 	if err != nil {
-		_ = backend.Close()
-		_ = sqlDB.Close()
+		closePrimary()
 
 		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.bus",
 			"build event bus")
@@ -165,31 +136,9 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		stackOpts = append(stackOpts, stack.WithCloser(busCleanup))
 	}
 
-	viewOpts, err := buildViewOptions(cfg, backend, sqlDB)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.view_options",
-			"build view options")
-	}
-
-	stackOpts = append(stackOpts, viewOpts...)
-
-	stackOpts = append(
-		stackOpts,
-		stack.WithDatabase(sqlDB),
-		stack.WithCloser(backend),
-		stack.WithCloser(stack.NewFuncCloser(sqlDB.Close)),
-	)
-
-	b, err := stack.New(stackOpts...)
-	if err != nil {
-		_ = backend.Close()
-		_ = sqlDB.Close()
-
-		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.wire_bundle",
-			"wire postgres bundle")
-	}
-
-	return b, nil
+	return sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "postgres", cfg.viewDSN,
+		func(dsn string) (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
+		storage.NewSQLBackend)
 }
 
 // openBackend opens the database, applies schema, and returns both the *sql.DB

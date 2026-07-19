@@ -3,8 +3,6 @@ package http
 import (
 	"context"
 	"encoding/json/v2"
-	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -21,30 +19,18 @@ import (
 func TestSSEHandler_ByteBudget_StopsReplayEarly(t *testing.T) {
 	t.Parallel()
 
-	store := eventtest.NewFakeStore()
-	bus := eventtest.NewFakeBus()
-	defer bus.Close()
-
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Big", aggID)
-
 	// 10 events × ~50 bytes each = ~500 bytes total. Budget of 150 → ~3 events.
 	const eventCount = 10
-	events := make([]event.Event, 0, eventCount)
-
-	for i := range eventCount {
-		evt, err := event.NewEvent("BigEvent", aggID, "Big", 1,
-			[]byte(`{"payload":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}`))
-		if err != nil {
-			t.Fatalf("create evt %d: %v", i, err)
-		}
-
-		events = append(events, evt)
+	payload := []byte(`{"payload":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}`)
+	payloads := make([][]byte, eventCount)
+	for i := range payloads {
+		payloads[i] = payload
 	}
 
-	if err := store.Save(context.Background(), ref, events, 0); err != nil {
-		t.Fatalf("save: %v", err)
-	}
+	store, events := newFakeStoreWithEvents(t, "BigEvent", "Big", payloads...)
+
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
 
 	broker, err := NewSSEBroker(
 		bus,
@@ -56,21 +42,13 @@ func TestSSEHandler_ByteBudget_StopsReplayEarly(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=bytebudget", nil)
-	req.Header.Set("Last-Event-ID", events[0].ID().String()) // cursor → replay events[1..]
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	rec, stop := startSSE(
+		broker,
+		"bytebudget",
+		events[0].ID().String(),
+	) // cursor → replay events[1..]
 	time.Sleep(200 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 
@@ -104,29 +82,17 @@ func TestSSEHandler_ByteBudget_StopsReplayEarly(t *testing.T) {
 func TestSSEHandler_ByteBudget_DisabledSentinel(t *testing.T) {
 	t.Parallel()
 
-	store := eventtest.NewFakeStore()
+	const eventCount = 10
+	payload := []byte(`{"payload":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}`)
+	payloads := make([][]byte, eventCount)
+	for i := range payloads {
+		payloads[i] = payload
+	}
+
+	store, events := newFakeStoreWithEvents(t, "BigEvent", "Big", payloads...)
+
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
-
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Big", aggID)
-
-	const eventCount = 10
-	events := make([]event.Event, 0, eventCount)
-
-	for i := range eventCount {
-		evt, err := event.NewEvent("BigEvent", aggID, "Big", 1,
-			[]byte(`{"payload":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}`))
-		if err != nil {
-			t.Fatalf("create evt %d: %v", i, err)
-		}
-
-		events = append(events, evt)
-	}
-
-	if err := store.Save(context.Background(), ref, events, 0); err != nil {
-		t.Fatalf("save: %v", err)
-	}
 
 	broker, err := NewSSEBroker(
 		bus,
@@ -138,21 +104,9 @@ func TestSSEHandler_ByteBudget_DisabledSentinel(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=no-budget", nil)
-	req.Header.Set("Last-Event-ID", events[0].ID().String())
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	rec, stop := startSSE(broker, "no-budget", events[0].ID().String())
 	time.Sleep(200 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 
@@ -174,26 +128,11 @@ func TestSSEHandler_ByteBudget_DisabledSentinel(t *testing.T) {
 func TestSSEHandler_DedupRingCapacity_Custom(t *testing.T) {
 	t.Parallel()
 
-	store := eventtest.NewFakeStore()
+	store, events := newFakeStoreWithEvents(t, "TestEvent", "Test",
+		[]byte(`{"seq":0}`), []byte(`{"seq":1}`))
+
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
-
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
-
-	evt0, err := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":0}`))
-	if err != nil {
-		t.Fatalf("create evt0: %v", err)
-	}
-
-	evt1, err := event.NewEvent("TestEvent", aggID, "Test", 2, []byte(`{"seq":1}`))
-	if err != nil {
-		t.Fatalf("create evt1: %v", err)
-	}
-
-	if err := store.Save(context.Background(), ref, []event.Event{evt0, evt1}, 0); err != nil {
-		t.Fatalf("save: %v", err)
-	}
 
 	broker, err := NewSSEBroker(
 		bus,
@@ -205,29 +144,17 @@ func TestSSEHandler_DedupRingCapacity_Custom(t *testing.T) {
 	}
 	defer broker.Close()
 
-	// Replay from evt0 → only evt1 is replayed and added to the ring.
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=tiny-ring", nil)
-	req.Header.Set("Last-Event-ID", evt0.ID().String())
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	// Replay from events[0] → only events[1] is replayed and added to the ring.
+	rec, stop := startSSE(broker, "tiny-ring", events[0].ID().String())
 	time.Sleep(100 * time.Millisecond)
 
-	// Now publish evt1 live — it should be suppressed by the dedup ring.
-	if err := bus.Publish(context.Background(), evt1); err != nil {
+	// Now publish events[1] live — it should be suppressed by the dedup ring.
+	if err := bus.Publish(context.Background(), events[1]); err != nil {
 		t.Fatalf("publish evt1 live: %v", err)
 	}
 
 	time.Sleep(100 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 	count := strings.Count(body, `{"seq":1}`)
@@ -257,16 +184,7 @@ func TestSSEHandler_EventFilter(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=filter", nil)
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	rec, stop := startSSE(broker, "filter", "")
 	time.Sleep(50 * time.Millisecond)
 
 	aggID := id.NewAggregateID()
@@ -278,8 +196,7 @@ func TestSSEHandler_EventFilter(t *testing.T) {
 	_ = bus.Publish(context.Background(), rejected)
 
 	time.Sleep(50 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 
@@ -306,19 +223,9 @@ func TestSSEHandler_RetryField(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=retry", nil)
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	rec, stop := startSSE(broker, "retry", "")
 	time.Sleep(50 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 
@@ -340,23 +247,12 @@ func TestSSEHandler_ConcurrentClose(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=conc", nil)
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	_, stop := startSSE(broker, "conc", "")
 	time.Sleep(50 * time.Millisecond)
 
 	// Close while the handler is running — should not panic.
 	broker.Close()
-
-	cancel()
-	<-done
+	stop()
 }
 
 // TestSSEHandler_ByteBudget_LargePayload verifies that the byte budget
@@ -364,36 +260,23 @@ func TestSSEHandler_ConcurrentClose(t *testing.T) {
 func TestSSEHandler_ByteBudget_LargePayload(t *testing.T) {
 	t.Parallel()
 
-	store := eventtest.NewFakeStore()
-	bus := eventtest.NewFakeBus()
-	defer bus.Close()
-
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Big", aggID)
-
 	// Create 5 events, each with ~100KB payload → 500KB total.
 	// Budget of 250KB → ~2-3 events before cutoff.
 	const payloadSize = 100 * 1024 // 100KB
 	const eventCount = 5
 
-	events := make([]event.Event, 0, eventCount)
-	for i := range eventCount {
-		payload := make([]byte, payloadSize)
-		for j := range payload {
-			payload[j] = byte('A' + (i % 26))
+	payloads := make([][]byte, eventCount)
+	for i := range payloads {
+		payloads[i] = make([]byte, payloadSize)
+		for j := range payloads[i] {
+			payloads[i][j] = byte('A' + (i % 26))
 		}
-
-		evt, err := event.NewEvent("BigEvent", aggID, "Big", event.Version(i+1), payload)
-		if err != nil {
-			t.Fatalf("create event %d: %v", i, err)
-		}
-
-		events = append(events, evt)
 	}
 
-	if err := store.Save(context.Background(), ref, events, 0); err != nil {
-		t.Fatalf("save events: %v", err)
-	}
+	store, events := newFakeStoreWithEvents(t, "BigEvent", "Big", payloads...)
+
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
 
 	broker, err := NewSSEBroker(
 		bus,
@@ -405,21 +288,13 @@ func TestSSEHandler_ByteBudget_LargePayload(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=big-payload", nil)
-	req.Header.Set("Last-Event-ID", events[0].ID().String()) // cursor → replay events[1..]
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	rec, stop := startSSE(
+		broker,
+		"big-payload",
+		events[0].ID().String(),
+	) // cursor → replay events[1..]
 	time.Sleep(200 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 
@@ -459,16 +334,7 @@ func TestSSEHandler_PayloadTransform_Live(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=xform-live", nil)
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	rec, stop := startSSE(broker, "xform-live", "")
 	time.Sleep(50 * time.Millisecond)
 
 	aggID := id.NewAggregateID()
@@ -476,8 +342,7 @@ func TestSSEHandler_PayloadTransform_Live(t *testing.T) {
 	_ = bus.Publish(context.Background(), evt)
 
 	time.Sleep(100 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 
@@ -527,18 +392,7 @@ func TestSSEHandler_PayloadTransform_CBOR_ToJSON_BrowserFlow(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=cbor-json", nil)
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	rec, stop := startSSE(broker, "cbor-json", "")
 	time.Sleep(50 * time.Millisecond)
 
 	aggID := id.NewAggregateID()
@@ -563,8 +417,7 @@ func TestSSEHandler_PayloadTransform_CBOR_ToJSON_BrowserFlow(t *testing.T) {
 	}
 
 	time.Sleep(100 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 
@@ -583,19 +436,11 @@ func TestSSEHandler_PayloadTransform_CBOR_ToJSON_BrowserFlow(t *testing.T) {
 func TestSSEHandler_PayloadTransform_Replay(t *testing.T) {
 	t.Parallel()
 
-	store := eventtest.NewFakeStore()
+	store, events := newFakeStoreWithEvents(t, "TestEvent", "Test",
+		[]byte(`{"seq":0}`), []byte(`{"seq":1}`))
+
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
-
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
-
-	evt0, _ := event.NewEvent("TestEvent", aggID, "Test", 1, []byte(`{"seq":0}`))
-	evt1, _ := event.NewEvent("TestEvent", aggID, "Test", 2, []byte(`{"seq":1}`))
-
-	if err := store.Save(context.Background(), ref, []event.Event{evt0, evt1}, 0); err != nil {
-		t.Fatalf("save: %v", err)
-	}
 
 	broker, err := NewSSEBroker(
 		bus,
@@ -615,21 +460,9 @@ func TestSSEHandler_PayloadTransform_Replay(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events?client=xform-replay", nil)
-	req.Header.Set("Last-Event-ID", evt0.ID().String())
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	rec, stop := startSSE(broker, "xform-replay", events[0].ID().String())
 	time.Sleep(200 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 

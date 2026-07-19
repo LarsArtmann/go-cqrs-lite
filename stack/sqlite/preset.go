@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -114,77 +115,24 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 }
 
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
-	sqlDB, backend, err := openBackend(dsn, cfg)
+	stackOpts, backend, sqlDB, _, err := sqlopt.InitStack(
+		dsn,
+		"sqlite",
+		cfg.eventDSN,
+		cfg.queryDSN,
+		func(d string) (*sql.DB, *storage.SQLBackend, error) { return openBackend(d, cfg) },
+		func(d string) (*storage.SQLBackend, io.Closer, error) { return openSecondaryBackend(d, cfg) },
+	)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.open_backend",
-			"open primary backend")
-	}
-
-	stackOpts := sqlopt.AllOptions(backend)
-
-	// Override: event-sourcing stores (events, snapshots, checkpoints) from a
-	// separate database if configured.
-	if cfg.eventDSN != "" {
-		evtBackend, evtCloser, eErr := openSecondaryBackend(cfg.eventDSN, cfg)
-		if eErr != nil {
-			_ = backend.Close()
-			_ = sqlDB.Close()
-
-			return nil, errorfamily.WrapInfrastructure(eErr, "sqlite_preset.open_event_db",
-				"open event database")
-		}
-
-		stackOpts = append(stackOpts, sqlopt.EventStoreOptions(evtBackend)...)
-		stackOpts = append(stackOpts, stack.WithCloser(evtCloser))
-	}
-
-	// Override: command and query audit stores from a separate database if
-	// configured.
-	if cfg.queryDSN != "" {
-		qBackend, qCloser, qErr := openSecondaryBackend(cfg.queryDSN, cfg)
-		if qErr != nil {
-			_ = backend.Close()
-			_ = sqlDB.Close()
-
-			return nil, errorfamily.WrapInfrastructure(qErr, "sqlite_preset.open_query_db",
-				"open query database")
-		}
-
-		stackOpts = append(stackOpts, sqlopt.QueryStoreOptions(qBackend)...)
-		stackOpts = append(stackOpts, stack.WithCloser(qCloser))
+		return nil, err
 	}
 
 	// Bus is in-process GoChannel (SQLite has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 
-	viewOpts, err := buildViewOptions(cfg, backend, sqlDB)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.view_options",
-			"build view options")
-	}
-
-	stackOpts = append(stackOpts, viewOpts...)
-
-	// Register lifecycle: backend closes stores, dbCloser closes the DB.
-	// Order matters — stores must close before the DB.
-	stackOpts = append(
-		stackOpts,
-		stack.WithDatabase(sqlDB),
-		stack.WithCloser(backend),
-		stack.WithCloser(stack.NewFuncCloser(sqlDB.Close)),
-	)
-
-	b, err := stack.New(stackOpts...)
-	if err != nil {
-		_ = backend.Close()
-
-		_ = sqlDB.Close()
-
-		return nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.wire_bundle",
-			"wire sqlite bundle")
-	}
-
-	return b, nil
+	return sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "sqlite", cfg.viewDSN,
+		func(dsn string) (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
+		storage.NewSQLiteBackend)
 }
 
 // openBackend opens the database, applies pragmas and schema, and returns

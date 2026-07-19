@@ -2,8 +2,6 @@ package http
 
 import (
 	"context"
-	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -63,24 +61,9 @@ func TestSSEHandler_ReplayWithRealMemoryStore(t *testing.T) {
 	defer broker.Close()
 
 	// Reconnect with Last-Event-ID = evt1 → must replay evt2 AND evt3 only.
-	ctx, cancel := context.WithCancel(context.Background())
-
-	req := httptest.NewRequestWithContext(
-		ctx, http.MethodGet, "/events?client=memory-replay", nil,
-	)
-	req.Header.Set("Last-Event-ID", evt1.ID().String())
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
+	rec, stop := startSSE(broker, "memory-replay", evt1.ID().String())
 	time.Sleep(150 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 
@@ -135,27 +118,10 @@ func TestSSEHandler_UnlimitedReplayWithRealMemoryStore(t *testing.T) {
 	}
 	defer broker.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-
-	req := httptest.NewRequestWithContext(
-		ctx, http.MethodGet, "/events?client=bulk-memory", nil,
-	)
-
 	// Last-Event-ID = first event → replays events[1..total-1] via batched streaming.
-	req.Header.Set("Last-Event-ID", events[0].ID().String())
-
-	rec := httptest.NewRecorder()
-	done := make(chan struct{})
-
-	go func() {
-		defer close(done)
-		SSEHandler(broker).ServeHTTP(rec, req)
-	}()
-
-	// Wait long enough for all batches to drain.
+	rec, stop := startSSE(broker, "bulk-memory", events[0].ID().String())
 	time.Sleep(500 * time.Millisecond)
-	cancel()
-	<-done
+	stop()
 
 	body := rec.Body.String()
 	got := strings.Count(body, "event: BulkEvent")

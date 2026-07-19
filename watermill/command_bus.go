@@ -12,7 +12,6 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // CommandBus is a full command.Bus implementation backed by a Watermill
@@ -85,8 +84,7 @@ func (b *CommandBus) Publish(_ context.Context, cmds ...command.Command) error {
 	if b.closed {
 		b.mu.Unlock()
 
-		return errorfamily.WrapInfrastructure(event.ErrBusClosed,
-			"watermill.command_bus_publish", "command bus is closed")
+		return errBusClosed("watermill.command_bus_publish", "command")
 	}
 
 	topic := b.topic
@@ -112,36 +110,16 @@ func (b *CommandBus) Publish(_ context.Context, cmds ...command.Command) error {
 
 // Subscribe registers a handler for a specific command type.
 func (b *CommandBus) Subscribe(cmdType command.Type, handler command.Handler) error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	if b.closed {
-		return errorfamily.WrapInfrastructure(event.ErrBusClosed,
-			"watermill.command_bus_subscribe", "command bus is closed")
-	}
-
-	b.typeHandlers[cmdType] = append(b.typeHandlers[cmdType], handler)
-	b.rebuildHandlerChain()
-	b.ensureSubscriptionLocked()
-
-	return nil
+	return registerTypedHandler(&b.mu, b.closed, b.typeHandlers, cmdType, handler,
+		"watermill.command_bus_subscribe", "command",
+		b.rebuildHandlerChain, b.ensureSubscriptionLocked)
 }
 
 // SubscribeAll registers a catch-all handler that receives every command.
 func (b *CommandBus) SubscribeAll(handler command.Handler) error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	if b.closed {
-		return errorfamily.WrapInfrastructure(event.ErrBusClosed,
-			"watermill.command_bus_subscribe_all", "command bus is closed")
-	}
-
-	b.allHandlers = append(b.allHandlers, handler)
-	b.rebuildHandlerChain()
-	b.ensureSubscriptionLocked()
-
-	return nil
+	return registerAllHandler(&b.mu, b.closed, &b.allHandlers, handler,
+		"watermill.command_bus_subscribe_all", "command",
+		b.rebuildHandlerChain, b.ensureSubscriptionLocked)
 }
 
 // Use adds middleware that wraps all command handlers.
