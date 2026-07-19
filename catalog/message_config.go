@@ -223,38 +223,6 @@ func Query[T any](id MessageID, opts ...MessageOption) MessageConfig {
 	return newMessageBuilder[T](QueryMessage, id, Receives, opts)
 }
 
-// DELETE creates a command message pre-tagged with an HTTP DELETE operation.
-// The schema is auto-derived from T. Equivalent to:
-//
-//	catalog.Command[T](id, catalog.MsgOperation("DELETE", path), opts...)
-func DELETE[T any](id MessageID, path string, opts ...MessageOption) MessageConfig {
-	return Command[T](id, append([]MessageOption{MsgOperation("DELETE", path)}, opts...)...)
-}
-
-// PUT creates a command message pre-tagged with an HTTP PUT operation.
-func PUT[T any](id MessageID, path string, opts ...MessageOption) MessageConfig {
-	return Command[T](id, append([]MessageOption{MsgOperation("PUT", path)}, opts...)...)
-}
-
-// PATCH creates a command message pre-tagged with an HTTP PATCH operation.
-func PATCH[T any](id MessageID, path string, opts ...MessageOption) MessageConfig {
-	return Command[T](id, append([]MessageOption{MsgOperation("PATCH", path)}, opts...)...)
-}
-
-// WithOperation is a composite MessageOption that sets the HTTP operation
-// (method + path) and a typed success response in a single call, reducing
-// boilerplate when registering REST endpoints:
-//
-//	catalog.Command[CreateUserCmd]("user.create",
-//	    catalog.WithOperation[UserDTO]("POST", "/api/users", "201"),
-//	)
-func WithOperation[T any](method Method, path, successCode string) MessageOption {
-	return func(m *messageBuilder) {
-		MsgOperation(string(method), path)(m)
-		Response[T](successCode, "")(m)
-	}
-}
-
 func newMessageBuilder[T any](
 	kind MessageKind,
 	id MessageID,

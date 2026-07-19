@@ -113,6 +113,9 @@ audit-log.*
 workflow-audit-log.*
 .buildflow-workflow-baseline.json
 
+## AI assistant state files (never track these)
+.ai-run-state.json
+
 ## Go
 go.work
 

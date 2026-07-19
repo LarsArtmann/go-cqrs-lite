@@ -135,3 +135,60 @@ func TestBuilder_MessageOption_Repository(t *testing.T) {
 		t.Errorf("expected Go, got %s", cmd.Repository.Language)
 	}
 }
+
+func TestHttpStatusDescription_KnownCodes(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]string{
+		"200": "OK",
+		"201": "Created",
+		"202": "Accepted",
+		"204": "No Content",
+	}
+
+	for code, want := range cases {
+		if got := catalog.HttpStatusDescription(code); got != want {
+			t.Errorf("HttpStatusDescription(%q) = %q, want %q", code, got, want)
+		}
+	}
+}
+
+func TestHttpStatusDescription_UnknownCodeFallback(t *testing.T) {
+	t.Parallel()
+
+	if got := catalog.HttpStatusDescription("210"); got != "Success" {
+		t.Errorf("HttpStatusDescription(\"210\") = %q, want \"Success\"", got)
+	}
+}
+
+// TestWithOperation_DefaultDescription verifies that WithOperation derives a
+// spec-compliant non-empty description from the success code, so the generated
+// OpenAPI document never violates the 3.0 spec (Response.description is REQUIRED
+// and must be non-empty).
+func TestWithOperation_DefaultDescription(t *testing.T) {
+	t.Parallel()
+
+	b := catalog.NewBuilder("Test", "1.0.0")
+	b.AddService(
+		"svc", "Service", "1.0.0", "test",
+		catalog.Command[struct{}](
+			"cmd",
+			catalog.WithOperation[struct{}]("POST", "/api/items", "201"),
+		),
+	)
+
+	cat := b.Build()
+	cmd := cat.Services[0].Commands[0]
+
+	if len(cmd.Responses) != 1 {
+		t.Fatalf("expected 1 response, got %d", len(cmd.Responses))
+	}
+
+	if cmd.Responses[0].Description == "" {
+		t.Fatal("expected non-empty description, got empty string (violates OpenAPI 3.0 spec)")
+	}
+
+	if cmd.Responses[0].Description != "Created" {
+		t.Errorf("expected \"Created\", got %q", cmd.Responses[0].Description)
+	}
+}
