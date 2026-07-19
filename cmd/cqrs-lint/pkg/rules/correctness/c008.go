@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"slices"
 )
 
 // C008: float64 for money.

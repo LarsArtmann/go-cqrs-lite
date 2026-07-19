@@ -1,11 +1,11 @@
 package analyzer
 
 import (
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"strings"
 	"testing"
 
-	"encoding/json/jsontext"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -329,7 +329,12 @@ func TestToConfigFeatures_JSONAlwaysValid(t *testing.T) {
 			t.Parallel()
 
 			raw, err := json.Marshal(
-				map[string]ConfigFeatures{"features": fp.ToConfigFeatures()}, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+				map[string]ConfigFeatures{
+					"features": fp.ToConfigFeatures(),
+				},
+				jsontext.WithIndentPrefix(""),
+				jsontext.WithIndent("  "),
+			)
 			if err != nil {
 				t.Fatalf("marshal failed: %v", err)
 			}

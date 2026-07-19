@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"os"
@@ -9,7 +10,6 @@ import (
 
 	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
 
-	"encoding/json/jsontext"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
@@ -55,7 +55,8 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 					"",
 				), jsontext.WithIndent(
 					"  ",
-				))
+				),
+			)
 			if err != nil {
 				return fmt.Errorf("marshal suggested features: %w", err)
 			}
@@ -74,7 +75,8 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 						"",
 					), jsontext.WithIndent(
 						"  ",
-					))
+					),
+				)
 				if err != nil {
 					return fmt.Errorf("marshal rules config: %w", err)
 				}
