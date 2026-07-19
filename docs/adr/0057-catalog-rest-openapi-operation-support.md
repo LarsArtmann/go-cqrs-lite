@@ -11,12 +11,14 @@ flows — commands, events, and queries mapped to EventCatalog MDX pages,
 AsyncAPI specs, and D2 diagrams. It had no concept of HTTP REST endpoints.
 
 Consumers like DiscordSync expose both:
+
 - **CQRS events** (Discord Gateway → event store → projections)
 - **REST API endpoints** (`GET /api/messages`, `POST /api/backfill/restart`, ...)
 
 The OpenAPI exporter auto-derived paths (`/api/<service>/<message>`) that didn't
 match the real HTTP routes, making the generated OpenAPI spec useless for REST
 discovery. There was no way to declare:
+
 - The actual HTTP method (GET, POST, PUT, DELETE, PATCH)
 - The actual URL path (`/api/users/{id}`)
 - Typed response schemas per status code
@@ -66,12 +68,14 @@ catalog.Command[CreateUserCmd]("user.create",
 ## Consequences
 
 **Positive:**
+
 - REST endpoints appear in generated documentation with their real paths
 - Typed responses give consumers accurate API contracts
 - Security requirements surface in the OpenAPI spec
 - Catalog.Validate() catches duplicate routes and missing schemas at startup
 
 **Negative:**
+
 - Catalog registration is more verbose for REST-heavy services
 - Operation adds a new axis of variation on Message (kind × direction × operation)
 - The `httptyped` and `huma` packages are optional dependencies that consumers

@@ -3,6 +3,7 @@
 **Date:** 2026-07-18 07:50
 **Session focus:** Executing the 27 deferred tasks from Session 3's self-review
 **Previous reports:**
+
 - `2026-07-18_06-09_TODO-EXECUTION-SELF-REVIEW.md` (Session 3 self-review)
 - `2026-07-18_02-00_COMPREHENSIVE-TODO-PLAN.md` (the 72-task plan)
 - `2026-07-18_01-45_TIMEZONE-HANDLING-CORRECTIVE-AUDIT.md` (corrective audit)
@@ -21,26 +22,26 @@ Executed all immediate cleanup tasks and high-priority test fixes from Session 3
 
 ### Immediate Cleanup (4 tasks)
 
-| # | Task | Project | Key Finding |
-| --- | --- | --- | --- |
-| 1 | Commit 8 uncommitted files | go-cqrs-lite | Golden files (json/v2 format), FEATURES.md table alignment, status doc reformatting |
-| 2 | Remove replace directives | github-local-sync, sbts | Tag v0.4.0 was **already pushed** to remote — prior session's note was wrong |
-| 3 | Delete /tmp/cqrs-lint binary | /tmp | 20MB binary removed via `trash` |
-| 4 | GOPRIVATE configuration fix | github-local-sync, sbts | `go-localsync` is private but NOT in GOPRIVATE — required `GOPRIVATE=github.com/larsartmann/*` for module resolution |
+| #   | Task                         | Project                 | Key Finding                                                                                                          |
+| --- | ---------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1   | Commit 8 uncommitted files   | go-cqrs-lite            | Golden files (json/v2 format), FEATURES.md table alignment, status doc reformatting                                  |
+| 2   | Remove replace directives    | github-local-sync, sbts | Tag v0.4.0 was **already pushed** to remote — prior session's note was wrong                                         |
+| 3   | Delete /tmp/cqrs-lint binary | /tmp                    | 20MB binary removed via `trash`                                                                                      |
+| 4   | GOPRIVATE configuration fix  | github-local-sync, sbts | `go-localsync` is private but NOT in GOPRIVATE — required `GOPRIVATE=github.com/larsartmann/*` for module resolution |
 
 ### Commits
 
-| Commit | Project | Description |
-| --- | --- | --- |
-| `48468e63` | go-cqrs-lite | Update codec golden files for json/v2 compact array format |
-| `bf909f7c` | go-cqrs-lite | Reformat FEATURES table and status report tables for alignment |
-| `e04bb87` | github-local-sync | Remove replace directive for go-localsync v0.4.0 |
-| `3bdfb60e` | sbts | Remove replace directive for go-localsync v0.4.0 |
-| `e963fa1cb` | KeyCountdown | Use two-step assignment to prevent gofumpt shadowing |
-| `5d14f976b` | KeyCountdown | go mod tidy cleanup — remove unused indirect deps |
-| `6f35763` | Zlota44 | Add sqlc regeneration guard comment to queries.sql.go |
-| `e7cc24a8` | CV | NLP analyzer keyword extraction and technical skills detection fixes |
-| `ed40253` | accountability-system | Wire up validator in test handler and use binding tag name |
+| Commit      | Project               | Description                                                          |
+| ----------- | --------------------- | -------------------------------------------------------------------- |
+| `48468e63`  | go-cqrs-lite          | Update codec golden files for json/v2 compact array format           |
+| `bf909f7c`  | go-cqrs-lite          | Reformat FEATURES table and status report tables for alignment       |
+| `e04bb87`   | github-local-sync     | Remove replace directive for go-localsync v0.4.0                     |
+| `3bdfb60e`  | sbts                  | Remove replace directive for go-localsync v0.4.0                     |
+| `e963fa1cb` | KeyCountdown          | Use two-step assignment to prevent gofumpt shadowing                 |
+| `5d14f976b` | KeyCountdown          | go mod tidy cleanup — remove unused indirect deps                    |
+| `6f35763`   | Zlota44               | Add sqlc regeneration guard comment to queries.sql.go                |
+| `e7cc24a8`  | CV                    | NLP analyzer keyword extraction and technical skills detection fixes |
+| `ed40253`   | accountability-system | Wire up validator in test handler and use binding tag name           |
 
 ---
 
@@ -61,6 +62,7 @@ Executed all immediate cleanup tasks and high-priority test fixes from Session 3
 **Prior session claimed:** "gofumpt converts `=` to `:=` on struct field assignments"
 
 **Actual investigation:**
+
 - gofumpt standalone does NOT convert `s.ctx = ctx` to `s.ctx := ctx`
 - Individual linters (gocritic, errcheck, wastedassign, etc.) do NOT convert
 - The conversion ONLY happens when multiple linters run together with `--fix` in golangci-lint v2.12.2
@@ -70,6 +72,7 @@ Executed all immediate cleanup tasks and high-priority test fixes from Session 3
 **Root cause:** golangci-lint v2.12.2's multi-linter autofix pipeline has a bug where it converts `=` to `:=` on struct field assignments, producing `non-name X on left side of :=` compile errors.
 
 **Fix applied:**
+
 1. `internal/validation/security.go` — Two-step assignment pattern (local `:=` then single-value `=` to struct fields) with `//nolint:all` on the function
 2. `internal/logging/aggregation.go` — Two-step assignment pattern (local `:=` then single-value `=` to package-level var)
 
@@ -79,12 +82,12 @@ Executed all immediate cleanup tasks and high-priority test fixes from Session 3
 
 **Actual:** Tests fail in isolation too. Four root causes:
 
-| # | Root Cause | Fix |
-| --- | --- | --- |
-| 1 | `"go"` is a stop word — filtered out before technical skills check | `isValidTerm` now checks `isTechnicalTerm` before the stop word filter |
-| 2 | Multi-word phrases ("machine learning") never extracted — tokenizer splits on whitespace | `extractTerms` now checks consecutive word pairs against the technical skills regex |
-| 3 | Terms with zero positions (stemming artifacts) survived TF-IDF | `buildKeywordContexts` now skips terms where `findWordPositions` returns empty |
-| 4 | `findWordPositions` only matched single words — couldn't find multi-word phrases | Now checks consecutive word pairs for multi-word phrase matching |
+| #   | Root Cause                                                                               | Fix                                                                                 |
+| --- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1   | `"go"` is a stop word — filtered out before technical skills check                       | `isValidTerm` now checks `isTechnicalTerm` before the stop word filter              |
+| 2   | Multi-word phrases ("machine learning") never extracted — tokenizer splits on whitespace | `extractTerms` now checks consecutive word pairs against the technical skills regex |
+| 3   | Terms with zero positions (stemming artifacts) survived TF-IDF                           | `buildKeywordContexts` now skips terms where `findWordPositions` returns empty      |
+| 4   | `findWordPositions` only matched single words — couldn't find multi-word phrases         | Now checks consecutive word pairs for multi-word phrase matching                    |
 
 **Test expectation fix:** `cloud_platforms` test expected "gcp" from text "Google Cloud Platform" — changed text to use "GCP" directly.
 
@@ -97,6 +100,7 @@ Executed all immediate cleanup tasks and high-priority test fixes from Session 3
 **Actual:** Tests fail in isolation. The `createValidationHandler` test helper decoded JSON but **never ran validation** — the `binding` tags were completely ignored.
 
 **Two bugs:**
+
 1. `createValidationHandler` used `json.NewDecoder().Decode()` without calling `validator.Struct()` — fixed to use `middleware.ValidateJSON()`
 2. The validator used default `validate` tag but all project structs use Gin-style `binding` tags — fixed with `v.SetTagName("binding")`
 
@@ -125,16 +129,16 @@ All 10 key consumer projects build cleanly:
 
 ## Remaining Work
 
-| Priority | Task | Details |
-| --- | --- | --- |
-| HIGH | CV ScoringEngine tests | Readability scoring, content length evaluation, comprehensive algorithm validation |
-| HIGH | CV JobMatcher tests | AnalyzeJobMatch, CalculateExperienceMatchScore, integration test |
-| HIGH | CV HypermatchSkillsMatcher tests | BasicFunctionality, Performance |
-| HIGH | accountability-system TestFeatures/TestHandlers | BDD integration tests with 401 auth errors |
-| MEDIUM | GOPRIVATE in NixOS config | Add `github.com/larsartmann/*` wildcard to shell profile or home-manager config |
-| MEDIUM | KeyCountdown vendor gitignore | `vendor/` in .gitignore blocks BuildFlow pre-commit re-staging of vendor/modules.txt |
-| LOW | Per-project README updates | Document timezone-safe types, C013/C014 lint rules |
-| LOW | CI workflow changes | GitHub Actions, automated test runs |
+| Priority | Task                                            | Details                                                                              |
+| -------- | ----------------------------------------------- | ------------------------------------------------------------------------------------ |
+| HIGH     | CV ScoringEngine tests                          | Readability scoring, content length evaluation, comprehensive algorithm validation   |
+| HIGH     | CV JobMatcher tests                             | AnalyzeJobMatch, CalculateExperienceMatchScore, integration test                     |
+| HIGH     | CV HypermatchSkillsMatcher tests                | BasicFunctionality, Performance                                                      |
+| HIGH     | accountability-system TestFeatures/TestHandlers | BDD integration tests with 401 auth errors                                           |
+| MEDIUM   | GOPRIVATE in NixOS config                       | Add `github.com/larsartmann/*` wildcard to shell profile or home-manager config      |
+| MEDIUM   | KeyCountdown vendor gitignore                   | `vendor/` in .gitignore blocks BuildFlow pre-commit re-staging of vendor/modules.txt |
+| LOW      | Per-project README updates                      | Document timezone-safe types, C013/C014 lint rules                                   |
+| LOW      | CI workflow changes                             | GitHub Actions, automated test runs                                                  |
 
 ---
 
@@ -150,6 +154,7 @@ All 10 key consumer projects build cleanly:
 ### golangci-lint v2.12.2 Bug
 
 The multi-linter autofix pipeline has a confirmed bug that converts valid `=` assignments to invalid `:=` syntax on selector expressions. This affects:
+
 - Multi-value assignments to package-level variables
 - Multi-value assignments to struct fields
 - Single-value assignments to struct fields

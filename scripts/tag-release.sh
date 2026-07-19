@@ -76,6 +76,33 @@ find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= r
   done < <(grep '=>' "$gomod" 2>/dev/null || true)
 done
 
+# CRITICAL: re-resolve requires after stripping replaces.
+# Without this, the require lines still point at the pseudo-versions
+# (v4.0.0-00010101000000-000000000000) that were valid only while the
+# local replaces masked them. `go mod tidy` with replaces gone forces Go
+# to resolve each require to a real published tag, producing clean go.mod
+# files that downstream consumers can build without their own replaces.
+# GOWORK=off is mandatory — the workspace's use directives would otherwise
+# re-inject local paths and skip proxy resolution.
+echo "Re-resolving requires (go mod tidy with replaces stripped)..."
+find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= read -r gomod; do
+  dir="$(dirname "$gomod")"
+  (cd "$dir" && GOWORK=off go mod tidy -e 2>/dev/null || true)
+done
+
+# Verify: no pseudo-versions remain in any go.mod being tagged.
+echo "Verifying no pseudo-versions remain..."
+pseudo_count=$(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -exec grep -l "00010101000000" {} + 2>/dev/null | wc -l)
+if [ "$pseudo_count" -gt 0 ]; then
+  echo "WARNING: $pseudo_count go.mod file(s) still contain pseudo-version requires."
+  echo "These modules will break downstream consumers. Files:"
+  find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -exec grep -l "00010101000000" {} + 2>/dev/null
+  echo ""
+  echo "Aborting release. Manually verify the listed go.mod files have real tag requires"
+  echo "before re-running this script."
+  exit 1
+fi
+
 # Create temporary commit with stripped go.mod files
 git add -A
 temp_msg="chore(release): strip replace directives for ${tag}"
