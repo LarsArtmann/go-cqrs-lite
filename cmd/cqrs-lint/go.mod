@@ -4,8 +4,8 @@ go 1.26.4
 
 require (
 	github.com/larsartmann/cmdguard/v3 v3.0.0
-	github.com/larsartmann/go-finding v1.2.0
-	github.com/larsartmann/go-finding/pipeline v0.1.0
+	github.com/larsartmann/go-finding v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-output v0.31.0
 	github.com/larsartmann/go-output/table v0.31.0
 	github.com/spf13/cobra v1.10.2
@@ -21,7 +21,7 @@ require (
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260713092251-4bee1914c0cf // indirect
 	github.com/charmbracelet/x/ansi v0.11.7 // indirect
-	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260713092006-0d683c34c74b // indirect
+	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260719004043-bb9a97036f23 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -50,8 +50,6 @@ require (
 	github.com/muesli/mango-cobra v1.3.0 // indirect
 	github.com/muesli/mango-pflag v0.2.0 // indirect
 	github.com/muesli/roff v0.1.0 // indirect
-	github.com/onsi/ginkgo/v2 v2.32.0 // indirect
-	github.com/onsi/gomega v1.42.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/samber/do/v2 v2.0.0 // indirect

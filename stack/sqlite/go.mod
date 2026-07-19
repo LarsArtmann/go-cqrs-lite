@@ -4,15 +4,15 @@ go 1.26.4
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-error-family v0.7.0
 	modernc.org/sqlite v1.54.0
 )
@@ -27,15 +27,15 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.0.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -58,7 +58,7 @@ require (
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.74.1 // indirect
+	modernc.org/libc v1.74.2 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )

@@ -173,11 +173,17 @@ func classifyCallbackBody(body *ast.BlockStmt) (hasBroadcast, hasPersist bool) {
 
 		method := sel.Sel.Name
 
-		if !hasBroadcast && isBroadcastSignal(method) {
+		if !hasBroadcast && slices.Contains([]string{
+			"Broadcast", "Dispatch", "Emit", "FanOut", "Fanout", "Flush",
+			"Forward", "Multicast", "Notify", "Publish", "Push", "Send", "WriteTo",
+		}, method) {
 			hasBroadcast = true
 		}
 
-		if !hasPersist && isPersistenceSignal(method) {
+		if !hasPersist && slices.Contains([]string{
+			"Save", "Set", "Upsert", "Insert", "Update", "Delete", "Remove",
+			"Exec", "ExecContext", "Materialize", "Apply", "Persist", "Commit", "Put",
+		}, method) {
 			hasPersist = true
 		}
 
@@ -185,28 +191,4 @@ func classifyCallbackBody(body *ast.BlockStmt) (hasBroadcast, hasPersist bool) {
 	})
 
 	return hasBroadcast, hasPersist
-}
-
-// isBroadcastSignal reports whether a method name looks like fire-and-forget
-// fan-out (SSE/WS push, event republish, command forwarding, stats
-// notification) rather than state mutation.
-//
-// Broadcast signals only matter when a SubscribeAll callback has NO
-// persistence signal: a callback that both broadcasts and persists still flags
-// as a projection (the persistence write is the defining trait). So widening
-// this list is safe — it only suppresses pure non-persistent fan-out.
-func isBroadcastSignal(method string) bool {
-	return slices.Contains([]string{
-		"Broadcast", "Dispatch", "Emit", "FanOut", "Fanout", "Flush",
-		"Forward", "Multicast", "Notify", "Publish", "Push", "Send", "WriteTo",
-	}, method)
-}
-
-// isPersistenceSignal reports whether a method name looks like a store write
-// (the defining trait of a projection).
-func isPersistenceSignal(method string) bool {
-	return slices.Contains([]string{
-		"Save", "Set", "Upsert", "Insert", "Update", "Delete", "Remove",
-		"Exec", "ExecContext", "Materialize", "Apply", "Persist", "Commit", "Put",
-	}, method)
 }

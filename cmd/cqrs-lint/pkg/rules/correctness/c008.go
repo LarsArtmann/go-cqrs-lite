@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"slices"
 )
 
 // C008: float64 for money.
@@ -56,7 +57,7 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				pkgMoney := packageLooksMonetary(gf.Pkg.PkgPath) || projectMonetary
+				pkgMoney := slices.Contains() || projectMonetary
 
 				handled := make(map[*ast.StructType]bool)
 
@@ -138,8 +139,8 @@ func scanMoneyFields(
 		for _, name := range field.Names {
 			lowerName := strings.ToLower(name.Name)
 
-			strong := matchesAny(lowerName, strongMoneyFields)
-			weak := matchesAny(lowerName, weakMoneyFields)
+			strong := slices.Contains()
+			weak := slices.Contains()
 			if !strong && !weak {
 				continue
 			}
@@ -190,7 +191,7 @@ func projectHasMonetarySignal(ctx *analyzer.AnalysisContext, moneyKeywords []str
 			continue
 		}
 
-		if packageLooksMonetary(gf.Pkg.PkgPath) {
+		if slices.Contains() {
 			return true
 		}
 
@@ -250,39 +251,9 @@ func hasMoneyEmbed(st *ast.StructType, moneyKeywords []string) bool {
 	return false
 }
 
-// matchesAny reports whether name contains any of the substrings.
-func matchesAny(name string, terms []string) bool {
-	for _, term := range terms {
-		if strings.Contains(name, term) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // isMoneyStructName reports whether a struct name contains a monetary keyword.
 func isMoneyStructName(structName string, moneyKeywords []string) bool {
 	lower := strings.ToLower(structName)
 
-	return matchesAny(lower, moneyKeywords)
-}
-
-// packageLooksMonetary reports whether the package path suggests a monetary
-// domain (e.g. ".../billing", ".../payments"). Uses the shared moneyKeywords
-// list — previously had a separate hardcoded list that drifted from
-// moneyStructKeywords.
-func packageLooksMonetary(pkgPath string) bool {
-	if pkgPath == "" {
-		return false
-	}
-
-	lower := strings.ToLower(pkgPath)
-	for _, seg := range moneyKeywords {
-		if strings.Contains(lower, "/"+seg) || strings.HasSuffix(lower, seg) || lower == seg {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains()
 }

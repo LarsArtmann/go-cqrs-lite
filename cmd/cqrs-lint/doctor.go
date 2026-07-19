@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"os"
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
 
+	"encoding/json/jsontext"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
@@ -48,11 +49,13 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 			fmt.Println()
 
 			features := profile.ToConfigFeatures()
-			raw, err := json.MarshalIndent(
+			raw, err := json.Marshal(
 				map[string]analyzer.ConfigFeatures{"features": features},
-				"",
-				"  ",
-			)
+				jsontext.WithIndentPrefix(
+					"",
+				), jsontext.WithIndent(
+					"  ",
+				))
 			if err != nil {
 				return fmt.Errorf("marshal suggested features: %w", err)
 			}
@@ -65,11 +68,13 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 			// config (e.g. that D002 external-api-struct-prefixes were picked
 			// up) without having to re-read the JSON file.
 			if len(cfg.Rules.ExternalAPIStructPrefixes) > 0 {
-				rulesRaw, err := json.MarshalIndent(
+				rulesRaw, err := json.Marshal(
 					map[string]analyzer.RulesConfig{"rules": cfg.Rules},
-					"",
-					"  ",
-				)
+					jsontext.WithIndentPrefix(
+						"",
+					), jsontext.WithIndent(
+						"  ",
+					))
 				if err != nil {
 					return fmt.Errorf("marshal rules config: %w", err)
 				}

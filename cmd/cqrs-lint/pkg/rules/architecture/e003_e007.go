@@ -119,7 +119,7 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if !isLikelyQuery(st, ts.Name.Name) {
+					if !strings.HasSuffix(ts.Name.Name, "Query") {
 						return true
 					}
 
@@ -153,8 +153,4 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-func isLikelyQuery(_ *ast.StructType, name string) bool {
-	return strings.HasSuffix(name, "Query")
 }

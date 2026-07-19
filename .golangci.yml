@@ -22,6 +22,7 @@ linters:
     - bidichk
     - bodyclose
     - canonicalheader
+    - clickhouselint
     - containedctx
     - contextcheck
     - copyloopvar
@@ -58,6 +59,7 @@ linters:
     - godot
     - godox
     - goheader
+    - gomoddirectives
     - gomodguard_v2
     - goprintffuncname
     - gosec
@@ -71,6 +73,7 @@ linters:
     - interfacebloat
     - intrange
     - iotamixing
+    - ireturn
     - loggercheck
     - maintidx
     - makezero
@@ -107,6 +110,7 @@ linters:
     - tagliatelle
     - testableexamples
     - testifylint
+    - testpackage
     - thelper
     - tparallel
     - unconvert
@@ -165,7 +169,6 @@ linters:
             - github.com/jackc/pgx
             - google.golang.org/grpc
             - google.golang.org/protobuf
-            # cqrs-lint tooling dependencies (cmd/cqrs-lint module)
             - github.com/larsartmann/go-finding
             - github.com/larsartmann/cmdguard
             - github.com/spf13/cobra
@@ -206,6 +209,15 @@ linters:
     gocritic:
       disabled-checks:
         - ifElseChain
+    gomoddirectives:
+      replace-local: true
+    ireturn:
+      allow:
+        - error
+        - empty
+        - anon
+        - stdlib
+        - generic
     makezero:
       always: false
     revive:
