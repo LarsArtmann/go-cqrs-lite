@@ -140,6 +140,7 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 
 	filterEventPayloads(ctx)
 	ResolveRegisteredTypeConsts(ctx.Registry)
+	ResolveHandlerMethods(ctx)
 
 	ctx.FeatureProfile = DetectFeatures(ctx)
 

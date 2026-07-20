@@ -41,6 +41,13 @@ type CQRSRegistry struct {
 	// so that the fold's FuncName and the StrictApply arg resolve to the same
 	// key regardless of qualification. See browser-history feedback (B005).
 	StrictApplyFolds map[string]bool
+
+	// pendingHandlerMethods records method names passed as handler arguments to
+	// RegisterTyped/RegisterQuery whose target type could not be extracted at
+	// the call site (method values like `h.handleCreateGame`). Resolved in a
+	// post-pass by finding the method's FuncDecl and extracting the command/
+	// query type from its parameter list. See SEC consumer feedback.
+	pendingHandlerMethods map[string]bool
 }
 
 // NewCQRSRegistry creates an empty registry.
@@ -52,6 +59,7 @@ func NewCQRSRegistry() *CQRSRegistry {
 		EventPayloadTypes:      make(map[string]bool),
 		TypeConstValues:        make(map[string]string),
 		StrictApplyFolds:       make(map[string]bool),
+		pendingHandlerMethods:  make(map[string]bool),
 	}
 }
 

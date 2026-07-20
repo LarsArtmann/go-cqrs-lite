@@ -3,11 +3,22 @@ package analyzer
 import (
 	"go/ast"
 	"slices"
+	"strings"
 )
 
 // scanCallExpr inspects call expressions for event.New/NewEvent,
 // RegisterTyped, catalog.Event, and similar CQRS API calls.
 func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
+	// Generic type-instantiation calls (requireCommandType[*MyCommand](cmd),
+	// requireQueryType[*MyQuery](q)) have call.Fun as *ast.IndexExpr, not
+	// *ast.SelectorExpr. Handle them before the SelectorExpr path. These calls
+	// unambiguously identify handler bodies: a command/query struct that
+	// appears as a generic type argument is being handled. This suppresses
+	// E005/E007 for handlers registered via string-typed APIs
+	// (dispatcher.Register with command.Type constants) whose handler→struct
+	// link the analyzer cannot otherwise trace.
+	scanGenericHandlerCall(ctx, call)
+
 	sel, ok := SelectorFromExpr(call.Fun)
 	if !ok {
 		return
@@ -46,11 +57,17 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 		if handlerType := handlerTypeFromCall(call); handlerType != "" {
 			ctx.Registry.CommandTypesRegistered[handlerType] = true
 		} else {
-			// Handler type could not be extracted (e.g. method value
-			// `NewHandler(rm).Handle`). Record the type-constant arg so it
-			// can be resolved to a struct name in a post-pass. The type
-			// constant is conventionally the SECOND argument (after the
-			// dispatcher): RegisterTyped(disp, typeConst, handler).
+			// Handler type could not be extracted from the call args directly.
+			// Try two fallback strategies:
+			//   1. If the handler arg is a method value (h.handleX), record the
+			//      method name for a post-pass that finds the FuncDecl and
+			//      extracts the param type. Covers SEC's typed handler methods.
+			//   2. Record the type-constant arg for const-value resolution.
+			//      Covers consumers whose const values are struct names.
+			if methodName := methodNameFromHandlerArg(call); methodName != "" {
+				ctx.Registry.pendingHandlerMethods[methodName] = true
+			}
+
 			recordTypeConstArg(ctx, call, 1)
 		}
 
@@ -117,7 +134,8 @@ func handlerTypeFromCall(call *ast.CallExpr) string {
 // handlerTypeFromClosure extracts the handler type from a function literal's
 // parameter list. It finds the first parameter that is a pointer to a named
 // type (e.g., *MyCommand) or a named type (e.g., MyQuery), skipping
-// context.Context parameters.
+// context.Context parameters. Handles both bare identifiers (*MyCommand) and
+// package-qualified types (*pkg.MyCommand → "MyCommand").
 func handlerTypeFromClosure(fn *ast.FuncLit) string {
 	if fn.Type == nil || fn.Type.Params == nil {
 		return ""
@@ -126,9 +144,7 @@ func handlerTypeFromClosure(fn *ast.FuncLit) string {
 	for _, param := range fn.Type.Params.List {
 		switch t := param.Type.(type) {
 		case *ast.StarExpr:
-			if id, ok := t.X.(*ast.Ident); ok {
-				return id.Name
-			}
+			return lastIdentSegment(t.X)
 		case *ast.Ident:
 			// Skip context.Context-like params that are just Idents
 			// (context.Context itself is a SelectorExpr, so it won't match here)
@@ -266,6 +282,31 @@ func constNameFromExpr(expr ast.Expr) string {
 	return ""
 }
 
+// methodNameFromHandlerArg extracts the method name from a RegisterTyped/
+// RegisterQuery handler argument when it is a method value (e.g.
+// `h.handleCreateGame` → "handleCreateGame"). Returns "" for non-method-value
+// handlers (closures, constructor calls). The handler is conventionally the
+// LAST argument of RegisterTyped.
+func methodNameFromHandlerArg(call *ast.CallExpr) string {
+	if len(call.Args) < 3 {
+		return ""
+	}
+
+	handler := call.Args[len(call.Args)-1]
+	sel, ok := handler.(*ast.SelectorExpr)
+	if !ok {
+		return ""
+	}
+
+	// Only record if the qualifier is an *ast.Ident (a variable like `h`, not
+	// a package qualifier or a call chain like `NewHandler(rm).Handle`).
+	if _, ok := sel.X.(*ast.Ident); !ok {
+		return ""
+	}
+
+	return sel.Sel.Name
+}
+
 // foldNameFromStrictApplyArg extracts the fold function name from the first
 // argument of a decider.StrictApply call. The fold arg may be a bare function
 // identifier (Fold) or a method value (aggregate.Fold, h.Fold). Returns the
@@ -287,6 +328,8 @@ func lastIdentSegment(expr ast.Expr) string {
 		return e.Name
 	case *ast.SelectorExpr:
 		return e.Sel.Name
+	case *ast.StarExpr:
+		return lastIdentSegment(e.X)
 	}
 
 	return ""
@@ -309,4 +352,61 @@ func hasAsyncInBody(body *ast.BlockStmt) bool {
 	})
 
 	return hasGo
+}
+
+// scanGenericHandlerCall detects generic type-instantiation calls whose type
+// argument is a command or query struct — e.g.
+//
+//	requireCommandType[*MyCommand](cmd)
+//	requireQueryType[*MyQuery](q)
+//
+// These calls appear inside handler method bodies and unambiguously identify
+// which struct the handler processes. This suppresses E005/E007 even when
+// registration uses a string-typed API (dispatcher.Register with
+// command.Type constants whose value is an event-style string like
+// "browser_history.extract_history") because the handler→struct link is
+// recovered from the generic type argument, not from the const value.
+//
+// The match is intentionally general — any generic instantiation X[*T](...)
+// or X[T](...) where T ends in "Command" or "Query" is treated as evidence
+// that T is handled. This avoids hard-coding consumer-specific helper names
+// (requireCommandType, mustCommand, castQuery, …) while keeping the false
+// positive risk negligible: a Command/Query-suffixed type used as a generic
+// argument is overwhelmingly a handler type assertion.
+func scanGenericHandlerCall(ctx *AnalysisContext, call *ast.CallExpr) {
+	var typeArgs []ast.Expr
+
+	switch fn := call.Fun.(type) {
+	case *ast.IndexExpr:
+		typeArgs = []ast.Expr{fn.Index}
+	case *ast.IndexListExpr:
+		typeArgs = fn.Indices
+	default:
+		return
+	}
+
+	for _, ta := range typeArgs {
+		name := typeNameFromGenericArg(ta)
+		if name == "" {
+			continue
+		}
+
+		if strings.HasSuffix(name, "Command") || strings.HasSuffix(name, "Query") {
+			ctx.Registry.CommandTypesRegistered[name] = true
+		}
+	}
+}
+
+// typeNameFromGenericArg extracts the struct name from a generic type argument
+// expression, stripping a leading pointer indirection: *MyCommand → MyCommand.
+func typeNameFromGenericArg(expr ast.Expr) string {
+	if star, ok := expr.(*ast.StarExpr); ok {
+		expr = star.X
+	}
+
+	if id, ok := expr.(*ast.Ident); ok {
+		return id.Name
+	}
+
+	return ""
 }

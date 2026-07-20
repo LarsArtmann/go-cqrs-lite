@@ -400,23 +400,63 @@ All three detector bugs reported in Part 2 were fixed in `cmd/cqrs-lint`.
 The build was also unblocked (c008.go and e003_e007.go were left in a
 non-compiling WIP state by a prior commit, blocking all verification).
 
-| Bug | Finding(s)  | Status   | Detail                                                                                                                                                                                                                                                                                                                                                                                                          |
-| --- | ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | E005 ×3     | **DONE** | `scanCallExpr` now has a `funcName == "Register"` branch. Type-constant args (bare `*ast.Ident` or `*ast.SelectorExpr`) are recorded and resolved to struct names via const-decl cross-referencing (`ResolveRegisteredTypeConsts` post-pass). The const value is matched against command struct names, suppressing E005. Regression tests: `TestE005_NoFindingWhenRegisteredViaDispatcherRegisterAndTypeConst`. |
-| 2   | E007 ×6     | **DONE** | `handlerTypeFromCall` is unchanged for closures (already worked), but the unresolved-method-value path now records the type-constant arg (arg[1] of `RegisterTyped`) for the same post-pass resolution. Regression tests: `TestE007_NoFindingWhenRegisteredViaTypeConstAndMethodValue`, `TestE007_FiresWhenTypeConstExistsButIsNeverRegistered` (guards against over-broad suppression).                        |
-| 3   | B007 ×1     | **DONE** | `nonCQRSRegisterPackages` denylist (`huma`, `http`, `mux`, `chi`, `gin`, `echo`, `fiber`, `grpc`) consulted via `analyzer.SelectorPackage(sel)`. Variable qualifiers (`d`, `cmdDisp`) are never denied — the idiomatic CQRS pattern. Regression tests: `TestB007_NoFindingForHumaRegister`, `TestB007_CountsCQRSButSkipsHumaInSameFunction`.                                                                    |
-| 4   | B005 latent | **DONE** | `StrictApplyFolds` registry set populated by scanning `decider.StrictApply(foldName, ...)` calls. B005 suppresses folds whose `FuncName` (or its trailing identifier segment, to handle method receivers) is in the set. Regression tests: `TestB005_NoFindingWhenFoldIsWrappedInStrictApply`, `TestB005_FiresForUnwrappedFoldWhenAnotherFoldIsWrapped`.                                                        |
+| Bug | Finding(s)  | Status   | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| --- | ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | E005 ×3     | **DONE** | **Primary fix**: `scanGenericHandlerCall` detects generic type-instantiation calls `requireCommandType[*T](cmd)` in handler bodies and marks T as registered — this is how browser-history actually links handlers to command structs (the const value is an event-style string `"browser_history.extract_history"`, not a struct name, so const-value resolution alone cannot bridge the gap). **Secondary path**: const-decl cross-referencing (`ResolveRegisteredTypeConsts`) handles consumers whose const values ARE struct names. Regression tests: `TestE005_NoFindingWhenRegisteredViaDispatcherRegisterAndTypeConst`, `TestE005_NoFindingWhenHandlerUsesRequireCommandType`. |
+| 2   | E007 ×6     | **DONE** | Same generic type-scanning fix: `requireQueryType[*T](q)` marks T as registered. Also removes a redundant `*ast.StructType` assertion that rejected non-struct query types. Regression tests: `TestE007_NoFindingWhenRegisteredViaTypeConstAndMethodValue`, `TestE007_FiresWhenTypeConstExistsButIsNeverRegistered` (guards against over-broad suppression), `TestE007_NoFindingWhenHandlerUsesRequireQueryType`.                                                                                                                                                                                                                                                                     |
+| 3   | B007 ×1     | **DONE** | `nonCQRSRegisterPackages` denylist (`huma`, `http`, `mux`, `chi`, `gin`, `echo`, `fiber`, `grpc`) consulted via `analyzer.SelectorPackage(sel)`. Variable qualifiers (`d`, `cmdDisp`) are never denied — the idiomatic CQRS pattern. Regression tests: `TestB007_NoFindingForHumaRegister`, `TestB007_CountsCQRSButSkipsHumaInSameFunction`.                                                                                                                                                                                                                                                                                                                                          |
+| 4   | B005 latent | **DONE** | `StrictApplyFolds` registry set populated by scanning `decider.StrictApply(foldName, ...)` calls. B005 suppresses folds whose `FuncName` (or its trailing identifier segment, to handle method receivers) is in the set. Regression tests: `TestB005_NoFindingWhenFoldIsWrappedInStrictApply`, `TestB005_FiresForUnwrappedFoldWhenAnotherFoldIsWrapped`.                                                                                                                                                                                                                                                                                                                              |
 
-**Scope of E005/E007 fix**: the const-resolution path handles the idiomatic
-`const X query.Type = "StructName"` pattern (browser-history). Consumers using
-event-style const values (`"task.create"`) with **closures** are already
-handled by `handlerTypeFromCall` (taskmanager). The narrow gap — method-value
-handler + non-struct-name const value — is documented as a known limitation
-in `ResolveRegisteredTypeConsts`; it produces a false positive, which is the
-pre-fix behavior and not a regression.
+**How the E005/E007 fix works**: browser-history registers commands via
+`dispatcher.Register(typeConst, handler)` and queries via
+`query.RegisterTyped(disp, typeConst, methodValue)`. The type constants use
+event-style string values (`"browser_history.extract_history"`), not struct
+names. The handler→struct link is only visible inside handler bodies through
+generic type assertions: `requireCommandType[*ExtractVisitCommand](cmd)`.
+`scanGenericHandlerCall` recovers this link by detecting any generic
+instantiation `X[*T](...)` or `X[T](...)` where T ends in "Command" or "Query",
+and marking T as registered in `CommandTypesRegistered`. This is intentionally
+general — it does not depend on consumer-specific helper function names.
 
-**Verification**: full `cmd/cqrs-lint` test suite passes including 8 new
-regression tests; `go test -race ./pkg/...` clean; `go build ./...` clean.
+**Additional patterns recognized** (added during cross-consumer verification):
+
+1. **Generic type assertions** (`requireCommandType[*T]`) — browser-history.
+2. **Package-qualified closure params** (`func(ctx, cmd *pkg.MyCmd)`) —
+   `handlerTypeFromClosure` now extracts the trailing identifier from
+   SelectorExpr params via `lastIdentSegment`. Fixes SwettySwipper closures.
+3. **Method-value handlers** (`RegisterTyped(disp, typeConst, h.handleX)`) —
+   when the handler is a method value, the method name is recorded and
+   resolved in a post-pass (`ResolveHandlerMethods`) by finding the FuncDecl
+   and extracting the command/query type from its parameter list. Fixes SEC.
+4. **Type assertions in opaque closures** (`cmd.(*MyCmd)`) —
+   `scanTypeAssertion` detects `*ast.TypeAssertExpr` nodes where the asserted
+   type ends in "Command"/"Cmd"/"Query" and marks it as registered. Fixes
+   SwettySwipper's RegisterAll map pattern (closures that take
+   `corecmd.Command` interface and type-assert internally).
+5. **`lastIdentSegment` now handles `*ast.StarExpr`** — type assertions like
+   `cmd.(*MyCmd)` have the asserted type as `*ast.StarExpr`, not bare Ident.
+
+**End-to-end verification** (2026-07-20): ran the rebuilt `cqrs-lint` binary
+against **7 consumer repos** (all local sibling checkouts):
+
+| Repo            | Files | E005 | E007 | B007 | B005 | Notes                                                                     |
+| --------------- | ----- | ---- | ---- | ---- | ---- | ------------------------------------------------------------------------- |
+| browser-history | 30    | 0    | 0    | 0    | 0    | All 10 reported FPs resolved                                              |
+| bank-sync       | 47    | 0    | 0    | 0    | 1    | B005 is a correct finding (unwrapped fold)                                |
+| DiscordSync     | 204   | 0    | 0    | 0    | 0    | Clean                                                                     |
+| cqrs-htmx       | 146   | 0    | 1    | 0    | 4    | 1 E007 in example/basic (unexported type, no evidence)                    |
+| Cyberdom        | 13    | 0    | 0    | 0    | 0    | Clean                                                                     |
+| SEC             | 75    | 0    | 0    | 0    | 0    | All E005/E007 resolved (method-value pattern)                             |
+| SwettySwipper   | 132   | 2    | 5    | 0    | 6    | 2 E005 = handlers with zero type-level evidence; 5 E007 = opaque closures |
+
+**Total: from 44 false positives across all consumers to 8 remaining**, all of
+which are either legitimate gaps (handlers that don't reference the command
+type at all) or use patterns with zero type-level evidence the analyzer can
+trace. The 8 remaining are documented known limitations.
+
+**Verification**: full `cmd/cqrs-lint` test suite passes including 12 new
+regression tests; `go test -race ./pkg/...` clean; `go vet` clean; `nix fmt`
+clean.
 
 **Part 1 (4 fixes) and Part 3 (3 intentional deviations)** require no upstream
 action — they were applied or declined in the consumer's repo.

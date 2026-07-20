@@ -215,6 +215,140 @@ func register(cmdDisp *dispatcher) {
 	assertRule(t, findings, "E005", 0)
 }
 
+// TestE005_NoFindingWhenHandlerUsesRequireCommandType verifies E005 is
+// suppressed when a handler body contains a generic type assertion
+// requireCommandType[*MyCommand](cmd). This is the browser-history pattern:
+// registration uses dispatcher.Register(typeConst, handler) with an
+// event-style const value ("browser_history.extract_history"), so the
+// handler→struct link is only recoverable from the generic type argument
+// inside the handler body, not from the const value or registration call.
+func TestE005_NoFindingWhenHandlerUsesRequireCommandType(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"commands.go": `package main
+
+type ExtractVisitCommand struct {
+	URL string
+}
+`,
+		"handlers.go": `package main
+
+func handleVisit(cmd any) error {
+	_, err := requireCommandType[*ExtractVisitCommand](cmd, "*ExtractVisitCommand")
+	return err
+}
+
+func requireCommandType[T any](cmd any, expected string) (T, error) {
+	var zero T
+	return zero, nil
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE005Detector(ctx))
+	assertRule(t, findings, "E005", 0)
+}
+
+// TestE005_NoFindingWhenClosureUsesPackageQualifiedType verifies E005 is
+// suppressed when a RegisterTyped closure takes a package-qualified pointer
+// type: func(ctx, cmd *pkg.MyCmd) error. The handlerTypeFromClosure function
+// extracts the trailing identifier ("MyCmd") from SelectorExpr params.
+// This is the SwettySwipper pattern.
+func TestE005_NoFindingWhenClosureUsesPackageQualifiedType(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"commands.go": `package main
+
+type CreateBattleCmd struct {
+	ID string
+}
+`,
+		"register.go": `package main
+
+import "context"
+
+func register(d *dispatcher) {
+	_ = d.RegisterTyped("create_battle", func(ctx context.Context, cmd *battle.CreateBattleCmd) error {
+		return nil
+	})
+}
+
+type dispatcher struct{}
+
+func (d *dispatcher) RegisterTyped(t string, h interface{}) error { return nil }
+
+type contextType struct{}
+
+type battle struct{}
+`,
+	})
+	findings := runDetector(t, architecture.NewE005Detector(ctx))
+	assertRule(t, findings, "E005", 0)
+}
+
+// TestE005_NoFindingWhenHandlerUsesMethodValue verifies E005 is suppressed
+// when RegisterTyped takes a method value (h.handleX) and the method's
+// FuncDecl has a typed parameter (*MyCmd). This is the SEC pattern.
+func TestE005_NoFindingWhenHandlerUsesMethodValue(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"commands.go": `package main
+
+type CreateGameCmd struct {
+	ID string
+}
+`,
+		"register.go": `package main
+
+import "context"
+
+type GameCommandHandler struct{}
+
+func (h *GameCommandHandler) Register(d *dispatcher) error {
+	return d.RegisterTyped("create_game", h.handleCreateGame)
+}
+
+func (h *GameCommandHandler) handleCreateGame(ctx context.Context, cmd *CreateGameCmd) error {
+	return nil
+}
+
+type dispatcher struct{}
+
+func (d *dispatcher) RegisterTyped(t string, h interface{}) error { return nil }
+`,
+	})
+	findings := runDetector(t, architecture.NewE005Detector(ctx))
+	assertRule(t, findings, "E005", 0)
+}
+
+// TestE005_NoFindingWhenHandlerUsesTypeAssertion verifies E005 is suppressed
+// when a handler closure type-asserts the command: cmd.(*MyCmd). This is the
+// SwettySwipper RegisterAll pattern — closures take corecmd.Command (interface)
+// and type-assert internally.
+func TestE005_NoFindingWhenHandlerUsesTypeAssertion(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"commands.go": `package main
+
+type CreateBattleCmd struct {
+	ID string
+}
+`,
+		"register.go": `package main
+
+func register(d *dispatcher) {
+	d.Register("create_battle", func(cmd interface{}) error {
+		c, ok := cmd.(*CreateBattleCmd)
+		_ = c
+		_ = ok
+		return nil
+	})
+}
+
+type dispatcher struct{}
+
+func (d *dispatcher) Register(t string, h interface{}) {}
+`,
+	})
+	findings := runDetector(t, architecture.NewE005Detector(ctx))
+	assertRule(t, findings, "E005", 0)
+}
+
 // --- E006: Event without projection ---
 
 func TestE006_NoFindingOnEmptyRegistry(t *testing.T) {
@@ -388,4 +522,35 @@ const GetUserQueryType query.Type = "GetUserQuery"
 	})
 	findings := runDetector(t, architecture.NewE007Detector(ctx))
 	assertRule(t, findings, "E007", 1)
+}
+
+// TestE007_NoFindingWhenHandlerUsesRequireQueryType verifies E007 is suppressed
+// when a handler body contains a generic type assertion
+// requireQueryType[*MyQuery](q). Mirrors the browser-history pattern where
+// query registration uses query.RegisterTyped with a type constant whose value
+// is an event-style string, and the handler→struct link is only visible in the
+// handler body via the generic type argument.
+func TestE007_NoFindingWhenHandlerUsesRequireQueryType(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"queries.go": `package main
+
+type GetVisitQuery struct {
+	VisitID string
+}
+`,
+		"handlers.go": `package main
+
+func handleVisit(q any) error {
+	_, err := requireQueryType[*GetVisitQuery](q, "*GetVisitQuery")
+	return err
+}
+
+func requireQueryType[T any](q any, expected string) (T, error) {
+	var zero T
+	return zero, nil
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE007Detector(ctx))
+	assertRule(t, findings, "E007", 0)
 }
