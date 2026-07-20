@@ -24,9 +24,7 @@ func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 		cqrsotel.SpanKindClient,
 	)
 	defer span.End()
-	query := `SELECT ` + sqlpkg.EventColumns + `
-		FROM ` + sqlpkg.TableEvents + ` ORDER BY occurred_at ASC`
-	rows, err := s.DB.QueryContext(ctx, query)
+	rows, err := s.DB.QueryContext(ctx, sqlpkg.AllEventsQuery)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 		return nil, errorfamily.WrapInfrastructure(
@@ -84,16 +82,18 @@ func (s *SQLEventStore) ReadFrom(
 		p1,
 		p2,
 	)
-	args := sqlpkg.CursorArgs(afterEventID.String())
-	if limit > 0 {
-		query += " LIMIT " + p3
-		args = append(args, limit)
-	}
-	rows, err := s.DB.QueryContext(ctx, query, args...)
+	rows, err := sqlpkg.QueryFromPosition(
+		ctx,
+		s.DB,
+		span,
+		query,
+		afterEventID.String(),
+		limit,
+		p3,
+		"events",
+	)
 	if err != nil {
-		cqrsotel.RecordError(span, err)
-		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_position",
-			fmt.Sprintf("query events from position (limit=%d)", limit))
+		return nil, err
 	}
 	defer sqlpkg.CloseRows(rows)
 	events, scanErr := s.scanEvents(rows)

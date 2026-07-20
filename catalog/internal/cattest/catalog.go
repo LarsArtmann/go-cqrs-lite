@@ -17,6 +17,20 @@ func Build(tb testing.TB, r *catalog.Registry) *catalog.Catalog {
 	return r.Build()
 }
 
+const testCatalogName = "TestCatalog"
+
+// NewTestRegistry creates a registry named "TestCatalog" at "1.0.0" with the
+// given services pre-registered. It is the standard setup for eventcatalog
+// exporter tests.
+func NewTestRegistry(services ...catalog.Service) *catalog.Registry {
+	reg := catalog.NewRegistry(testCatalogName, testVersion)
+	for _, svc := range services {
+		reg.AddService(svc)
+	}
+
+	return reg
+}
+
 const testVersion = "1.0.0"
 
 const testCreateOrderMsgID catalog.MessageID = "CreateOrder"

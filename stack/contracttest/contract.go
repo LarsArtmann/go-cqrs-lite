@@ -57,11 +57,14 @@ func RunSuite(t *testing.T, factory Factory) {
 // boilerplate repeated in every contract subtest.
 func newBundle(t *testing.T, factory Factory) *stack.Bundle {
 	t.Helper()
+
 	b, err := factory(t)
 	if err != nil {
 		t.Fatalf("factory: %v", err)
 	}
+
 	t.Cleanup(func() { _ = b.Close() })
+
 	return b
 }
 

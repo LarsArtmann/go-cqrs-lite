@@ -266,7 +266,7 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 		WritesTo:       toPointers(svc.WritesTo),
 		ReadsFrom:      toPointers(svc.ReadsFrom),
 		Entities:       svc.Entities,
-		Flows:          flowIDsToStrings(svc.Flows),
+		Flows:          stringIDsToStrings(svc.Flows),
 		ExternalSystem: svc.ExternalSystem,
 		Badges:         toBadges(svc.Badges),
 		Repository:     toRepository(svc.Repository),
@@ -282,19 +282,6 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 	}
 
 	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
-}
-
-func flowIDsToStrings(ids []catalog.FlowID) []string {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	out := make([]string, len(ids))
-	for i, id := range ids {
-		out[i] = string(id)
-	}
-
-	return out
 }
 
 func (e *Exporter) writeDomain(domain catalog.Domain) error {
@@ -325,7 +312,7 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 		Sends:              toRefs(domain.Sends),
 		Receives:           toRefs(domain.Receives),
 		Entities:           domain.Entities,
-		Flows:              flowIDsToStrings(domain.Flows),
+		Flows:              stringIDsToStrings(domain.Flows),
 		Domains:            domainIDs,
 		DataProducts:       dpDataIDs,
 		UbiquitousLanguage: toUbiquitousLanguage(domain.UbiquitousLanguage),

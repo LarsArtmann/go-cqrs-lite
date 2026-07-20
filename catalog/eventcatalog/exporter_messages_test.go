@@ -11,8 +11,7 @@ import (
 func TestExporter_Export_Event(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID: "payment-svc", Name: "Payment Service", Version: "1.0.0",
 	})
 	reg.AddEvent("payment-svc", catalog.Message{
@@ -45,7 +44,7 @@ func TestExporter_Export_Event(t *testing.T) {
 func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddServiceWithQuery(
 		t,
 		reg,
@@ -107,8 +106,9 @@ func TestExporter_Export_Config(t *testing.T) {
 func TestExporter_Export_MultipleServices(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(
+		catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"},
+	)
 	reg.AddService(catalog.Service{ID: "svc-b", Name: "Service B", Version: "1.0.0"})
 	reg.AddCommand("svc-a", newCommand("CmdA"))
 	reg.AddEvent("svc-b", catalog.Message{

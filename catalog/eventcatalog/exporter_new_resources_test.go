@@ -14,7 +14,7 @@ import (
 func TestExporter_Entity(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddEntity(catalog.Entity{
 		ID:      "order-entity",
 		Name:    "Order",
@@ -49,7 +49,7 @@ func TestExporter_Entity(t *testing.T) {
 func TestExporter_EntityWithoutSchema(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddEntity(catalog.Entity{
 		ID:      "user-entity",
 		Name:    "User",
@@ -67,7 +67,7 @@ func TestExporter_EntityWithoutSchema(t *testing.T) {
 func TestExporter_DataProductWithContract(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDataProduct(catalog.DataProduct{
 		ID:      "user-analytics",
 		Name:    "User Analytics",
@@ -100,7 +100,7 @@ func TestExporter_DataProductWithContract(t *testing.T) {
 func TestExporter_DataStoreWithNewFields(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDataStore(catalog.DataStore{
 		ID:            "primary-db",
 		Name:          "Primary DB",
@@ -126,7 +126,7 @@ func TestExporter_MessageWithDeprecationInfo(t *testing.T) {
 
 	deprecationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{
 		ID:      "svc",
 		Name:    "Service",
@@ -159,7 +159,7 @@ func TestExporter_MessageWithDeprecationInfo(t *testing.T) {
 func TestExporter_MessageWithChannels(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{
 		ID:      "svc",
 		Name:    "Service",
@@ -189,7 +189,7 @@ func TestExporter_MessageWithChannels(t *testing.T) {
 func TestExporter_MessageWithSchemas(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{
 		ID:      "svc",
 		Name:    "Service",
@@ -223,7 +223,7 @@ func TestExporter_MessageWithSchemas(t *testing.T) {
 func TestExporter_CustomDoc(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddCustomDoc(catalog.CustomDoc{
 		ID:      "adr-001",
 		Title:   "ADR-001: Use Event Sourcing",
@@ -248,7 +248,7 @@ func TestExporter_CustomDoc(t *testing.T) {
 func TestExporter_CustomDocDefaultSlug(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddCustomDoc(catalog.CustomDoc{
 		ID:    "architecture",
 		Title: "Architecture Overview",
@@ -267,7 +267,7 @@ func TestExporter_CustomDocDefaultSlug(t *testing.T) {
 func TestExporter_EntityWithProperties(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddEntity(catalog.Entity{
 		ID:            "order-aggregate",
 		Name:          "Order",
@@ -309,7 +309,7 @@ func TestExporter_EntityWithProperties(t *testing.T) {
 func TestExporter_DataProduct(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDataProduct(catalog.DataProduct{
 		ID:      "order-analytics",
 		Name:    "Order Analytics",
@@ -342,7 +342,7 @@ func TestExporter_DataProduct(t *testing.T) {
 func TestExporter_Agent(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddAgent(catalog.Agent{
 		ID:      "order-bot",
 		Name:    "Order Bot",
@@ -392,7 +392,7 @@ func TestExporter_Agent(t *testing.T) {
 func TestExporter_AgentMinimal(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddAgent(catalog.Agent{
 		ID:      "simple-bot",
 		Name:    "Simple Bot",
@@ -414,7 +414,7 @@ func TestExporter_AgentMinimal(t *testing.T) {
 func TestExporter_DomainWithUbiquitousLanguage(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDomain(catalog.Domain{
 		ID:      "orders",
 		Name:    "Orders",
@@ -444,8 +444,7 @@ func TestExporter_DomainWithUbiquitousLanguage(t *testing.T) {
 func TestExporter_ServiceExternalSystem(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID: "stripe", Name: "Stripe", Version: "1.0.0",
 		ExternalSystem: true,
 	})
@@ -461,8 +460,7 @@ func TestExporter_ServiceExternalSystem(t *testing.T) {
 func TestExporter_ServiceNotExternal(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID: "internal-svc", Name: "Internal", Version: "1.0.0",
 	})
 
@@ -477,7 +475,7 @@ func TestExporter_ServiceNotExternal(t *testing.T) {
 func TestExporter_FlowStepWithNewTypes(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDataStore(catalog.DataStore{
 		ID: "db", Name: "DB", Version: "1.0.0", ContainerType: "database",
 	})
@@ -521,7 +519,7 @@ func TestExporter_FlowStepWithNewTypes(t *testing.T) {
 func TestExporter_FlowStepSubFlow(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddFlow(catalog.Flow{
 		ID: "parent-flow", Name: "Parent", Version: "1.0.0",
 		Steps: []catalog.FlowStep{
@@ -543,8 +541,7 @@ func TestExporter_FlowStepSubFlow(t *testing.T) {
 func TestExporter_SchemasTxt(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
 		Kind: catalog.CommandMessage, ID: "DoThing", Name: "DoThing", Version: "1.0.0",
 		Schema: &catalog.Schema{

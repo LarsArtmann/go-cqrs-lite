@@ -32,6 +32,16 @@ func (s Signature) Equal(other Signature) bool {
 	return hmac.Equal(s, other)
 }
 
+// compareSig returns ErrInvalidSignature when expected and actual differ,
+// nil when they match. Shared verify logic across all signer implementations.
+func compareSig(expected, actual Signature) error {
+	if !expected.Equal(actual) {
+		return ErrInvalidSignature
+	}
+
+	return nil
+}
+
 // String returns the URL-safe base64 encoding of the signature.
 func (s Signature) String() string {
 	return base64.URLEncoding.EncodeToString(s)

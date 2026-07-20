@@ -59,11 +59,8 @@ func (a *EventStore) Load(
 	ctx context.Context,
 	ref id.AggregateRef,
 ) ([]event.Event, error) {
-	_, span := startAggregateSpan(ctx, "pebble.event.load", ref)
+	span, prefix, upperBound := a.startLoadSpan(ctx, "pebble.event.load", ref)
 	defer span.End()
-
-	prefix := a.aggregatePrefix(ref)
-	upperBound := a.aggregateUpperBound(ref)
 
 	events, err := a.iterateEvents(prefix, upperBound, nil)
 	if err != nil {
@@ -85,12 +82,13 @@ func (a *EventStore) LoadFromVersion(
 	ref id.AggregateRef,
 	version event.Version,
 ) ([]event.Event, error) {
-	_, span := startAggregateSpan(ctx, "pebble.event.load_from_version", ref,
-		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int()))
+	span, lowerBound, upperBound := a.startLoadFromVersionSpan(
+		ctx,
+		"pebble.event.load_from_version",
+		ref,
+		version,
+	)
 	defer span.End()
-
-	lowerBound := a.eventKey(ref, version+1)
-	upperBound := a.aggregateUpperBound(ref)
 
 	events, err := a.iterateEvents(lowerBound, upperBound, nil)
 	if err != nil {

@@ -1,7 +1,6 @@
 package relational
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -18,8 +17,7 @@ import (
 func TestRelationalDenormalization_FKQueries(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	proj, err := NewRelationalProjection("denorm", discordSchema(), db, sqlpkg.SQLiteDialect{},
 		handleMessagesCreated, nil)
@@ -168,8 +166,7 @@ func TestRelationalDenormalization_FKQueries(t *testing.T) {
 func TestRelationalDenormalization_AggregateColumns(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	proj, err := NewRelationalProjection("denorm2", discordSchema(), db, sqlpkg.SQLiteDialect{},
 		handleMessagesCreated, nil)

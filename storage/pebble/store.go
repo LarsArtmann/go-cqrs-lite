@@ -90,6 +90,37 @@ func (a *EventStore) aggregateUpperBound(
 	return fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
 }
 
+// startLoadSpan creates an aggregate span and returns the key range for a
+// full aggregate scan. The caller must defer span.End().
+func (a *EventStore) startLoadSpan(
+	ctx context.Context,
+	spanName string,
+	ref id.AggregateRef,
+) (cqrsotel.Span, []byte, []byte) {
+	_, span := startAggregateSpan(ctx, spanName, ref)
+	return span, a.aggregatePrefix(ref), a.aggregateUpperBound(ref)
+}
+
+// startLoadFromVersionSpan creates an aggregate span with a version attribute
+// and returns the key range starting from version+1. The caller must defer
+// span.End().
+func (a *EventStore) startLoadFromVersionSpan(
+	ctx context.Context,
+	spanName string,
+	ref id.AggregateRef,
+	version event.Version,
+) (cqrsotel.Span, []byte, []byte) {
+	_, span := startAggregateSpan(ctx, spanName, ref,
+		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int()))
+	return span, a.eventKey(ref, version+1), a.aggregateUpperBound(ref)
+}
+
+// journalBounds returns the lower/upper key range for scanning the entire
+// global journal (all events ordered by occurrence time).
+func (a *EventStore) journalBounds() ([]byte, []byte) {
+	return []byte(a.journalPrefix), []byte(a.journalPrefix + "\xff")
+}
+
 // Save implements event.Store.Save with per-aggregate locking for concurrency safety.
 func (a *EventStore) Save(
 	ctx context.Context,

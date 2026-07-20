@@ -91,11 +91,11 @@
     "go-output": {
       "flake": false,
       "locked": {
-        "lastModified": 1784353263,
-        "narHash": "sha256-gAA9rIlFZUbEWJLlvf9j88c3iZRspiVJDUy4mDtaF1U=",
+        "lastModified": 1784430132,
+        "narHash": "sha256-8TqcnwoaSe8zSnvrmlA1X3uHPyEe3S0A9tb2RTryGss=",
         "ref": "master",
-        "rev": "00f9a89a9b86cc682285d4ef9a7a34d3f2d0514b",
-        "revCount": 1041,
+        "rev": "33ca9f8857a3c5b01468e356ebaf4753bc0b3835",
+        "revCount": 1042,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/go-output"
       },

@@ -13,8 +13,7 @@ import (
 func TestExporter_Export_NoSchema(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", newCommand("NoSchema"))
 
 	tmpDir := exportCatalog(t, reg)
@@ -53,8 +52,7 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 func TestExporter_Export_NoSchemaPathWhenNoSchema(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      "NoSchema",
@@ -75,8 +73,9 @@ func TestExporter_Export_NoSchemaPathWhenNoSchema(t *testing.T) {
 func TestExporter_Export_ServiceSendsReceives(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(
+		catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"},
+	)
 	reg.AddEvent("order-svc", newEvent("OrderCreated", "OrderCreated", catalog.Sends))
 	reg.AddEvent("order-svc", newEvent("PaymentProcessed", "PaymentProcessed", catalog.Receives))
 

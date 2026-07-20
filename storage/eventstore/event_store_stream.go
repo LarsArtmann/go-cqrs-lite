@@ -129,9 +129,7 @@ func (s *SQLEventStore) ReadStream(ctx context.Context) (event.EventIterator, er
 		cqrsotel.SpanKindClient)
 	defer span.End()
 
-	query := `SELECT ` + sqlpkg.EventColumns + `
-		FROM ` + sqlpkg.TableEvents + ` ORDER BY occurred_at ASC`
-	rows, err := s.DB.QueryContext(ctx, query)
+	rows, err := s.DB.QueryContext(ctx, sqlpkg.AllEventsQuery)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 

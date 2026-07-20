@@ -72,9 +72,5 @@ func (s *hmacSigner) Verify(evt event.Event, sig Signature) error {
 		return err
 	}
 
-	if !expected.Equal(sig) {
-		return ErrInvalidSignature
-	}
-
-	return nil
+	return compareSig(expected, sig)
 }

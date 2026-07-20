@@ -83,16 +83,23 @@ func (s *DeciderScenario[Cmd, State]) When(
 	return s
 }
 
-// Then asserts that the decide function produced the expected event types.
-// It compares event types (not payloads) — use ThenFull for deep comparison.
-func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
+// requireWhen aborts the test if When was not called first. methodName is the
+// name of the Then* variant that the caller belongs to, used in the failure
+// message to pinpoint which assertion was misused.
+func (s *DeciderScenario[Cmd, State]) requireWhen(methodName string) {
 	s.t.Helper()
 
 	if s.decide == nil {
-		s.t.Fatal("testing: call When() before Then()")
+		s.t.Fatal("testing: call When() before " + methodName + "()")
 	}
+}
 
+// foldGiven folds the Given events into a fresh copy of the initial state.
+// Aborts the test on fold error. Used at the start of every Then* method to
+// reconstruct the precondition state before invoking decide.
+func (s *DeciderScenario[Cmd, State]) foldGiven() State {
 	state := s.initial
+
 	for _, evt := range s.given {
 		var err error
 
@@ -101,6 +108,17 @@ func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
 			s.t.Fatalf("Given: fold failed: %v", err)
 		}
 	}
+
+	return state
+}
+
+// Then asserts that the decide function produced the expected event types.
+// It compares event types (not payloads) — use ThenFull for deep comparison.
+func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
+	s.t.Helper()
+	s.requireWhen("Then")
+
+	state := s.foldGiven()
 
 	events, err := s.decide(state, s.cmd)
 	if err != nil {
@@ -120,20 +138,9 @@ func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
 // ThenError asserts that the decide function returns an error matching target.
 func (s *DeciderScenario[Cmd, State]) ThenError(target error) {
 	s.t.Helper()
+	s.requireWhen("ThenError")
 
-	if s.decide == nil {
-		s.t.Fatal("testing: call When() before ThenError()")
-	}
-
-	state := s.initial
-	for _, evt := range s.given {
-		var err error
-
-		state, err = s.apply(state, evt)
-		if err != nil {
-			s.t.Fatalf("Given: fold failed: %v", err)
-		}
-	}
+	state := s.foldGiven()
 
 	_, err := s.decide(state, s.cmd)
 	if err == nil {
@@ -152,10 +159,7 @@ func (s *DeciderScenario[Cmd, State]) ThenState(
 	expected State,
 ) {
 	s.t.Helper()
-
-	if s.decide == nil {
-		s.t.Fatal("testing: call When() before ThenState()")
-	}
+	s.requireWhen("ThenState")
 
 	state := initial
 

@@ -88,15 +88,14 @@ func (s *MemoryTimerStore[P]) Due(_ context.Context, now time.Time) ([]Timer[P],
 }
 
 func (s *MemoryTimerStore[P]) MarkFired(_ context.Context, id TimerID) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	delete(s.timers, id)
-
-	return nil
+	return s.deleteTimer(id)
 }
 
 func (s *MemoryTimerStore[P]) Cancel(_ context.Context, id TimerID) error {
+	return s.deleteTimer(id)
+}
+
+func (s *MemoryTimerStore[P]) deleteTimer(id TimerID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

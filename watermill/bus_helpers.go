@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -140,4 +139,32 @@ func appendMiddleware[M any](
 
 	*middleware = append(*middleware, mw...)
 	rebuild()
+}
+
+// registerSubscriberHandler stores a topic→handler mapping under a mutex.
+// Shared between SubscriberAdapter and CommandSubscriberAdapter.
+func registerSubscriberHandler[H any](
+	mu *sync.Mutex,
+	handlers map[string]H,
+	topic string,
+	handler H,
+) {
+	mu.Lock()
+	handlers[topic] = handler
+	mu.Unlock()
+}
+
+// dispatchCached reads a handler function under a mutex and invokes it outside
+// the lock. Shared between CommandBus.dispatchLocal and EventBus.dispatchLocal.
+func dispatchCached[M any](
+	mu *sync.Mutex,
+	cached func(context.Context, M) error,
+	ctx context.Context,
+	msg M,
+) error {
+	mu.Lock()
+	handler := cached
+	mu.Unlock()
+
+	return handler(ctx, msg)
 }

@@ -42,7 +42,7 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 	args := []any{}
 	paramIdx := 1
 
-	if condClause, condArgs := buildWhereClause(
+	if condClause, condArgs := sqlpkg.BuildWhereClause(
 		q.Conditions,
 		s.Dialect.Placeholder,
 	); condClause != "" {

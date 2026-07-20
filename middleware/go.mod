@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-error-family v0.7.0
@@ -35,6 +35,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/retry/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect

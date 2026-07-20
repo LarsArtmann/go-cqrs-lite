@@ -98,15 +98,13 @@ func (s *MemoryStore) getEvents(
 	ref id.AggregateRef,
 	op string,
 ) ([]event.Event, error) {
-	err := s.CheckClosed(event.ErrStoreClosed)
-	if err != nil {
-		return nil, errorfamily.Wrapf(
-			err,
-			errorfamily.Infrastructure,
-			"memory.load_failed",
-			"memory store %s failed",
-			op,
-		)
+	if err := wrapClosedf(
+		s.CheckClosed(event.ErrStoreClosed),
+		"memory.load_failed",
+		"memory store %s failed",
+		op,
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()
@@ -151,13 +149,12 @@ func copyEvents(events []event.Event) []event.Event {
 }
 
 func (s *MemoryStore) ReadAll(_ context.Context) ([]event.Event, error) {
-	err := s.CheckClosed(event.ErrStoreClosed)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"memory.read_all_failed",
-			"memory store read all",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(event.ErrStoreClosed),
+		"memory.read_all_failed",
+		"memory store read all",
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()
@@ -173,15 +170,13 @@ func (s *MemoryStore) ReadFrom(
 	afterEventID id.EventID,
 	limit int,
 ) ([]event.Event, error) {
-	err := s.CheckClosed(event.ErrStoreClosed)
-	if err != nil {
-		return nil, errorfamily.Wrapf(
-			err,
-			errorfamily.Infrastructure,
-			"memory.read_from_failed",
-			"memory store read from (limit=%d) failed",
-			limit,
-		)
+	if err := wrapClosedf(
+		s.CheckClosed(event.ErrStoreClosed),
+		"memory.read_from_failed",
+		"memory store read from (limit=%d) failed",
+		limit,
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()

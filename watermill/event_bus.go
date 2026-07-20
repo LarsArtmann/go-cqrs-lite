@@ -131,12 +131,14 @@ func (b *EventBus) SubscribeAll(handler event.Handler) error {
 // Use adds middleware that wraps all event handlers.
 func (b *EventBus) Use(mw ...event.Middleware) error {
 	appendMiddleware(&b.mu, &b.middleware, mw, b.rebuildHandlerChain)
+
 	return nil
 }
 
 // UsePublish adds middleware that wraps the Publish path.
 func (b *EventBus) UsePublish(mw ...event.PublishMiddleware) error {
 	appendMiddleware(&b.mu, &b.publishMiddleware, mw, b.rebuildPublisherChain)
+
 	return nil
 }
 
@@ -152,7 +154,7 @@ func (b *EventBus) Close() error {
 
 	b.closed = true
 
-	b.subscriptionState.shutdown()
+	b.shutdown()
 
 	backend := b.backend
 

@@ -14,8 +14,9 @@ func TestExporter_Export_Channel(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(
+		catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"},
+	)
 	reg.AddChannel(catalog.Channel{
 		ID:        "order-events",
 		Name:      "Order Events",
@@ -53,7 +54,7 @@ func TestExporter_Export_ChannelWithParams(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddChannel(catalog.Channel{
 		ID:      "order-events",
 		Name:    "Order Events",
@@ -91,7 +92,7 @@ func TestExporter_Export_DataStore(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDataStore(catalog.DataStore{
 		ID:             "orders-db",
 		Name:           "Orders Database",
@@ -130,7 +131,7 @@ func TestExporter_Export_Flow(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddFlow(catalog.Flow{
 		ID: "create-order", Name: "Create Order Flow", Version: "1.0.0",
 		Summary: "Complete order creation flow",
@@ -176,7 +177,7 @@ func TestExporter_Export_Team(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddTeam(catalog.Team{
 		ID:      "order-team",
 		Name:    "Order Team",
@@ -211,7 +212,7 @@ func TestExporter_Export_User(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddUser(catalog.User{
 		ID:    "alice",
 		Name:  "Alice Smith",
@@ -244,7 +245,7 @@ func TestExporter_Export_ServiceWithBaseConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	visualiser := false
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{
 		ID: "svc", Name: "Service", Version: "1.0.0",
 		BaseConfig: catalog.BaseConfig{
@@ -285,7 +286,7 @@ func TestExporter_Export_TeamWithSource(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddTeam(catalog.Team{
 		ID:       "platform-team",
 		Name:     "Platform",
@@ -320,7 +321,7 @@ func TestExporter_Export_UserWithSource(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddUser(catalog.User{
 		ID:       "bob",
 		Name:     "Bob Jones",
@@ -354,7 +355,7 @@ func TestExporter_Export_ServiceWithBadges(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{
 		ID: "order-svc", Name: "Order Service", Version: "1.0.0",
 		Badges: []catalog.Badge{
@@ -389,8 +390,9 @@ func TestExporter_Export_ServiceWithBadges(t *testing.T) {
 func TestAutoDerive_ProducersConsumers(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(
+		catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"},
+	)
 	reg.AddEvent("order-svc", newEvent("OrderCreated", "Order Created", catalog.Sends))
 	reg.AddService(catalog.Service{ID: "notif-svc", Name: "Notification Service", Version: "1.0.0"})
 	reg.AddEvent("notif-svc", newEvent("OrderCreated", "Order Created", catalog.Receives))
@@ -424,8 +426,9 @@ func TestExporter_Export_MessageWithProducersConsumers(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(
+		catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"},
+	)
 	reg.AddEvent("order-svc", newEvent("OrderCreated", "Order Created", catalog.Sends))
 
 	cat := reg.Build()
@@ -511,8 +514,7 @@ func TestLLMsTxt_AllResourceTypes(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID: "order-svc", Name: "Order Service", Version: "1.0.0",
 		Summary: "Manages orders",
 	})

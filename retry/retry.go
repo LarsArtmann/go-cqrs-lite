@@ -102,10 +102,20 @@ func Do(ctx context.Context, config Config, fn AttemptFunc) error {
 // The result is capped at MaxDelay. Exported so callers can preview or
 // log the planned delay without executing the retry loop.
 func Backoff(config Config, attempt int) time.Duration {
+	return ComputeDelay(config.InitialDelay, config.MaxDelay, config.Multiplier, attempt)
+}
+
+// ComputeDelay calculates the exponential backoff delay with jitter from raw
+// parameters, without requiring a [Config]. The delay for attempt n is:
+//
+//	initial * multiplier^(n-1) + random jitter (up to 50% of the delay)
+//
+// The result is capped at max.
+func ComputeDelay(initial, max time.Duration, multiplier float64, attempt int) time.Duration {
 	delay := time.Duration(
-		float64(config.InitialDelay) * math.Pow(config.Multiplier, float64(attempt-1)),
+		float64(initial) * math.Pow(multiplier, float64(attempt-1)),
 	)
-	delay = min(delay, config.MaxDelay)
+	delay = min(delay, max)
 
 	delay += time.Duration(
 		rand.Int64N(int64(delay) / 2), //nolint:mnd,gosec // jitter divisor; weak rand fine

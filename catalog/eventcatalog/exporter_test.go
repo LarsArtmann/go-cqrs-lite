@@ -89,8 +89,7 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID: "order-svc", Name: "Order Service", Version: "1.0.0", Summary: "Manages orders",
 	})
 	reg.AddCommand("order-svc", catalog.Message{

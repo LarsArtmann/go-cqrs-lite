@@ -130,10 +130,7 @@ func (s *CommandStore) ReadFrom(
 		cqrsotel.WithAttributes(cqrsotel.AttrInt("limit", limit)))
 	defer span.End()
 
-	skipID := ""
-	if !afterCommandID.IsZero() {
-		skipID = afterCommandID.String()
-	}
+	skipID := idOrEmpty(afterCommandID)
 
 	cmds, err := s.scanCommands(
 		[]byte(s.journalPrefix),

@@ -78,7 +78,7 @@ func (s *RelationalStore) Count(
 
 	fmt.Fprintf(&b, "SELECT COUNT(*) FROM %s", table)
 
-	whereClause, args := buildWhereClause(
+	whereClause, args := sqlpkg.BuildWhereClause(
 		formatConditions(conditions, s.dialect),
 		s.dialect.Placeholder,
 	)
@@ -151,7 +151,7 @@ func (s *RelationalStore) Query(
 
 	fmt.Fprintf(&b, "SELECT %s FROM %s", colList, table)
 
-	whereClause, args := buildWhereClause(
+	whereClause, args := sqlpkg.BuildWhereClause(
 		formatConditions(q.Conditions, s.dialect),
 		s.dialect.Placeholder,
 	)

@@ -47,13 +47,12 @@ func (s *MemoryCommandStore) Save(
 	ref command.AggregateRef,
 	cmd *command.PersistedCommand,
 ) error {
-	err := s.CheckClosed(command.ErrStoreClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"memory.save_failed",
-			"memory command store save",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(command.ErrStoreClosed),
+		"memory.save_failed",
+		"memory command store save",
+	); err != nil {
+		return err
 	}
 
 	s.mu.Lock()
@@ -76,13 +75,12 @@ func (s *MemoryCommandStore) AppendBatch(
 	ref command.AggregateRef,
 	cmds []*command.PersistedCommand,
 ) error {
-	err := s.CheckClosed(command.ErrStoreClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"memory.append_batch_failed",
-			"memory command store append batch",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(command.ErrStoreClosed),
+		"memory.append_batch_failed",
+		"memory command store append batch",
+	); err != nil {
+		return err
 	}
 
 	s.mu.Lock()
@@ -161,13 +159,12 @@ func (s *MemoryCommandStore) Close() error {
 // (which matches ReceivedAt order since commands are appended on receipt).
 // Implements command.CommandJournal.
 func (s *MemoryCommandStore) ReadAll(_ context.Context) ([]*command.PersistedCommand, error) {
-	err := s.CheckClosed(command.ErrStoreClosed)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"memory.readall_failed",
-			"memory command journal readall",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(command.ErrStoreClosed),
+		"memory.readall_failed",
+		"memory command journal readall",
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()
@@ -183,13 +180,12 @@ func (s *MemoryCommandStore) ReadFrom(
 	afterCommandID id.CommandID,
 	limit int,
 ) ([]*command.PersistedCommand, error) {
-	err := s.CheckClosed(command.ErrStoreClosed)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"memory.readfrom_failed",
-			"memory command journal readfrom",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(command.ErrStoreClosed),
+		"memory.readfrom_failed",
+		"memory command journal readfrom",
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()
@@ -239,15 +235,13 @@ func (s *MemoryCommandStore) loadFiltered(
 	op string,
 	filter func([]*command.PersistedCommand) []*command.PersistedCommand,
 ) ([]*command.PersistedCommand, error) {
-	err := s.CheckClosed(command.ErrStoreClosed)
-	if err != nil {
-		return nil, errorfamily.Wrapf(
-			err,
-			errorfamily.Infrastructure,
-			"memory.load_failed",
-			"memory command store %s failed",
-			op,
-		)
+	if err := wrapClosedf(
+		s.CheckClosed(command.ErrStoreClosed),
+		"memory.load_failed",
+		"memory command store %s failed",
+		op,
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()

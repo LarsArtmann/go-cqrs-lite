@@ -11,7 +11,7 @@ import (
 func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddServiceWithSummary(t, reg, "svc", "Service", "2.0.0", "A test service")
 
 	tmpDir := exportCatalog(t, reg)
@@ -29,7 +29,7 @@ func TestExporter_Export_YAMLFrontmatter(t *testing.T) {
 func TestExporter_Export_CommandsAndQueriesMergedIntoReceives(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("order-svc"), "Order Service", "1.0.0")
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind:    catalog.CommandMessage,

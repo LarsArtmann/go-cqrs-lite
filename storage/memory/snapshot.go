@@ -4,8 +4,6 @@ import (
 	"context"
 	"sync"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -34,13 +32,12 @@ func NewMemorySnapshotStore() *MemorySnapshotStore {
 }
 
 func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) error {
-	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"memory.snapshot_save_failed",
-			"snapshot store save",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(snappkg.ErrSnapshotStoreClosed),
+		"memory.snapshot_save_failed",
+		"snapshot store save",
+	); err != nil {
+		return err
 	}
 
 	s.mu.Lock()
@@ -62,13 +59,12 @@ func (s *MemorySnapshotStore) Load(
 	_ context.Context,
 	ref id.AggregateRef,
 ) (*snappkg.Snapshot, error) {
-	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"memory.snapshot_load_failed",
-			"snapshot store load",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(snappkg.ErrSnapshotStoreClosed),
+		"memory.snapshot_load_failed",
+		"snapshot store load",
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()
@@ -91,13 +87,12 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 	ref id.AggregateRef,
 	version event.Version,
 ) (*snappkg.Snapshot, error) {
-	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"memory.snapshot_load_at_version_failed",
-			"snapshot store load at version",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(snappkg.ErrSnapshotStoreClosed),
+		"memory.snapshot_load_at_version_failed",
+		"snapshot store load at version",
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()
@@ -134,13 +129,12 @@ func (s *MemorySnapshotStore) Delete(
 	_ context.Context,
 	ref id.AggregateRef,
 ) error {
-	err := s.CheckClosed(snappkg.ErrSnapshotStoreClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"memory.snapshot_delete_failed",
-			"snapshot store delete",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(snappkg.ErrSnapshotStoreClosed),
+		"memory.snapshot_delete_failed",
+		"snapshot store delete",
+	); err != nil {
+		return err
 	}
 
 	s.mu.Lock()

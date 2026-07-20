@@ -70,10 +70,7 @@ func (s *QueryStore) ReadQueriesFrom(
 		cqrsotel.WithAttributes(cqrsotel.AttrInt("limit", limit)))
 	defer span.End()
 
-	skipID := ""
-	if !afterRequestID.IsZero() {
-		skipID = afterRequestID.String()
-	}
+	skipID := idOrEmpty(afterRequestID)
 
 	queries, err := s.scanQueries(limit, skipID, nil)
 	if err != nil {

@@ -7,8 +7,6 @@ import (
 	"sync"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -38,13 +36,12 @@ func NewMemoryQueryStore() *MemoryQueryStore {
 }
 
 func (s *MemoryQueryStore) SaveQuery(_ context.Context, q *query.PersistedQuery) error {
-	err := s.CheckClosed(query.ErrStoreClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"memory.save_query_failed",
-			"memory query store save",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(query.ErrStoreClosed),
+		"memory.save_query_failed",
+		"memory query store save",
+	); err != nil {
+		return err
 	}
 
 	s.mu.Lock()
@@ -60,13 +57,12 @@ func (s *MemoryQueryStore) LoadQueries(
 	_ context.Context,
 	after time.Time,
 ) ([]*query.PersistedQuery, error) {
-	err := s.CheckClosed(query.ErrStoreClosed)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"memory.load_queries_failed",
-			"memory query store load queries",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(query.ErrStoreClosed),
+		"memory.load_queries_failed",
+		"memory query store load queries",
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()
@@ -84,13 +80,12 @@ func (s *MemoryQueryStore) LoadQueries(
 }
 
 func (s *MemoryQueryStore) ReadAllQueries(_ context.Context) ([]*query.PersistedQuery, error) {
-	err := s.CheckClosed(query.ErrStoreClosed)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"memory.readall_queries_failed",
-			"memory query journal readall",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(query.ErrStoreClosed),
+		"memory.readall_queries_failed",
+		"memory query journal readall",
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()
@@ -104,13 +99,12 @@ func (s *MemoryQueryStore) ReadQueriesFrom(
 	afterRequestID id.RequestID,
 	limit int,
 ) ([]*query.PersistedQuery, error) {
-	err := s.CheckClosed(query.ErrStoreClosed)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"memory.readqueries_from_failed",
-			"memory query journal readfrom",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(query.ErrStoreClosed),
+		"memory.readqueries_from_failed",
+		"memory query journal readfrom",
+	); err != nil {
+		return nil, err
 	}
 
 	s.mu.RLock()

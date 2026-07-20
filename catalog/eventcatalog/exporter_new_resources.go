@@ -101,7 +101,7 @@ func (e *Exporter) writeAgent(agent catalog.Agent) error {
 		WritesTo:  toPointers(agent.WritesTo),
 		Model:     toAgentModel(agent.Model),
 		Tools:     toAgentTools(agent.Tools),
-		Flows:     flowIDsToStrings(agent.Flows),
+		Flows:     stringIDsToStrings(agent.Flows),
 		Badges:    toBadges(agent.Badges),
 	}
 

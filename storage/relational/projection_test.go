@@ -173,6 +173,12 @@ func openRelationalDB(t *testing.T) *sql.DB {
 	return db
 }
 
+func openRelationalCtx(t *testing.T) (*sql.DB, context.Context) {
+	t.Helper()
+
+	return openRelationalDB(t), context.Background()
+}
+
 func newEvent(t *testing.T, eventType string, payload any) cqrsevent.Event {
 	t.Helper()
 
@@ -203,8 +209,7 @@ func newEvent(t *testing.T, eventType string, payload any) cqrsevent.Event {
 func TestRelationalProjection_MultiTableAtomicWrite(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	proj, err := NewRelationalProjection(
 		"discord-messages", discordSchema(), db, sqlpkg.SQLiteDialect{},
@@ -265,8 +270,7 @@ func TestRelationalProjection_MultiTableAtomicWrite(t *testing.T) {
 func TestRelationalProjection_AtomicRollbackOnError(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	wantErr := errors.New("boom mid-handler")
 
@@ -315,8 +319,7 @@ func TestRelationalProjection_AtomicRollbackOnError(t *testing.T) {
 func TestRelationalProjection_IdempotentReplay(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	proj, err := NewRelationalProjection("idem", discordSchema(), db, sqlpkg.SQLiteDialect{},
 		handleMessagesCreated, nil)
@@ -343,8 +346,7 @@ func TestRelationalProjection_IdempotentReplay(t *testing.T) {
 func TestRelationalProjection_JunctionTable(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	handler := func(ctx context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
 		// Composite-PK junction row; Ensure defaults conflict to the 3-col PK.
@@ -377,8 +379,7 @@ func TestRelationalProjection_JunctionTable(t *testing.T) {
 func TestRelationalProjection_ReadThenWriteHistory(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	// Seed a message.
 	seed, err := NewRelationalProjection("seed", discordSchema(), db, sqlpkg.SQLiteDialect{},
@@ -448,8 +449,7 @@ func TestRelationalProjection_ReadThenWriteHistory(t *testing.T) {
 func TestRelationalStore_CountAndCountMany(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	proj, err := NewRelationalProjection("s", discordSchema(), db, sqlpkg.SQLiteDialect{},
 		handleMessagesCreated, nil)
@@ -504,8 +504,7 @@ func TestRelationalStore_CountAndCountMany(t *testing.T) {
 func TestRelationalStore_CursorPagination(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	proj, err := NewRelationalProjection("p", discordSchema(), db, sqlpkg.SQLiteDialect{},
 		handleMessagesCreated, nil)
@@ -697,8 +696,7 @@ func TestNewRelationalProjection_RejectsBadInputs(t *testing.T) {
 func TestRelationalProjection_DeleteWhereAndQueryOneMissing(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	// Seed two messages.
 	seed, err := NewRelationalProjection("seed", discordSchema(), db, sqlpkg.SQLiteDialect{},
@@ -778,8 +776,7 @@ func TestRelationalProjection_WithoutAutoMigrate(t *testing.T) {
 func TestRelationalStore_DefaultOrderOnNoPKTable(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	// message_edits has no declared PrimaryKey → default OrderBy is "rowid".
 	proj, err := NewRelationalProjection("ed", discordSchema(), db, sqlpkg.SQLiteDialect{},
@@ -831,8 +828,7 @@ func assertCount(t *testing.T, db *sql.DB, table string, want int64) {
 func TestRelationalProjection_RejectsUnknownColumn(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	handler := func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
 		return sink.Upsert(ctx, "guilds", Row{
@@ -862,8 +858,7 @@ func TestRelationalProjection_RejectsUnknownColumn(t *testing.T) {
 func TestRelationalProjection_RejectsUnknownTable(t *testing.T) {
 	t.Parallel()
 
-	db := openRelationalDB(t)
-	ctx := context.Background()
+	db, ctx := openRelationalCtx(t)
 
 	handler := func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
 		return sink.Upsert(ctx, "nonexistent_table", Row{"id": "x"})

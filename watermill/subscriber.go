@@ -63,9 +63,7 @@ func (a *SubscriberAdapter) Subscribe(
 		)
 	}
 
-	a.handlersMu.Lock()
-	a.handlers[topic] = handler
-	a.handlersMu.Unlock()
+	registerSubscriberHandler(&a.handlersMu, a.handlers, topic, handler)
 
 	return a.outputCh, nil
 }

@@ -31,10 +31,15 @@ func CloseRows(rows *sql.Rows) {
 	_ = rows.Close()
 }
 
-// CursorArgs builds the args slice for composite-cursor pagination, where the
-// same cursor ID fills two placeholders (a self-JOIN key and a WHERE bound).
-func CursorArgs(cursorID string) []any {
-	return []any{cursorID, cursorID}
+// AppendLimit appends a " LIMIT <placeholder>" clause to the query and the
+// limit value to args when limit > 0. Returns the query and args unchanged
+// when limit is zero or negative.
+func AppendLimit(query string, args []any, limit int, placeholder string) (string, []any) {
+	if limit > 0 {
+		return query + " LIMIT " + placeholder, append(args, limit)
+	}
+
+	return query, args
 }
 
 // ScanSlice is a generic helper that deduplicates event scanning.

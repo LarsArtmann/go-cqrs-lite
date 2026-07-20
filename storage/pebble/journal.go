@@ -31,8 +31,7 @@ func (a *EventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 		cqrsotel.SpanKindClient)
 	defer span.End()
 
-	lowerBound := []byte(a.journalPrefix)
-	upperBound := []byte(a.journalPrefix + "\xff")
+	lowerBound, upperBound := a.journalBounds()
 
 	events, err := a.iterateEvents(lowerBound, upperBound, nil)
 	if err != nil {

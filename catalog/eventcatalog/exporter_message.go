@@ -30,7 +30,7 @@ func (e *Exporter) writeMessage(
 		Deprecated: toDeprecated(msg.Deprecated, msg.Deprecation),
 		Owners:     msg.Owners,
 		Labels:     msg.Labels,
-		Channels:   channelIDsToStrings(msg.Channels),
+		Channels:   stringIDsToStrings(msg.Channels),
 		Schemas:    toSchemas(msg.Schemas),
 		Changelog:  toChangelog(msg.Changelog),
 		Producers:  toPointers(msg.Producers),

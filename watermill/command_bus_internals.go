@@ -44,11 +44,7 @@ func (b *CommandBus) rebuildHandlerChain() {
 }
 
 func (b *CommandBus) dispatchLocal(ctx context.Context, cmd command.Command) error {
-	b.mu.Lock()
-	handler := b.cachedHandler
-	b.mu.Unlock()
-
-	return handler(ctx, cmd)
+	return dispatchCached(&b.mu, b.cachedHandler, ctx, cmd)
 }
 
 func (b *CommandBus) ensureSubscriptionLocked() {

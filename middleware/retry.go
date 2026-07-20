@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"math"
-	"math/rand/v2"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -14,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	retrypkg "github.com/larsartmann/go-cqrs-lite/retry/v4"
 )
 
 // NewRetry returns a generic middleware that retries on retryable errors.
@@ -138,14 +137,5 @@ func retry(
 }
 
 func backoff(config RetryConfig, attempt int) time.Duration {
-	delay := time.Duration(
-		float64(config.InitialDelay) * math.Pow(config.Multiplier, float64(attempt-1)),
-	)
-	delay = min(delay, config.MaxDelay)
-
-	delay += time.Duration(
-		rand.Int64N(int64(delay) / 2), //nolint:mnd,gosec // jitter divisor; weak rand fine
-	)
-
-	return delay
+	return retrypkg.ComputeDelay(config.InitialDelay, config.MaxDelay, config.Multiplier, attempt)
 }

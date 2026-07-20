@@ -92,18 +92,28 @@ func (d Date) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.String())
 }
 
+// parseDateInto parses s and stores the result in d. Used by both UnmarshalJSON
+// and UnmarshalCBOR so the two decoders stay in lockstep — without this helper,
+// adding a new validation rule would require remembering to touch both.
+func (d *Date) parseDateInto(s string) error {
+	parsed, err := NewDateFromString(s)
+	if err != nil {
+		return err
+	}
+
+	*d = parsed
+
+	return nil
+}
+
 // UnmarshalJSON implements json.Unmarshaler, parsing a "2006-01-02" string.
 func (d *Date) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return fmt.Errorf("date: failed to unmarshal JSON: %w", err)
 	}
-	parsed, err := NewDateFromString(s)
-	if err != nil {
-		return err
-	}
-	*d = parsed
-	return nil
+
+	return d.parseDateInto(s)
 }
 
 // MarshalCBOR implements cbor.Marshaler, encoding as a "2006-01-02" string.
@@ -117,10 +127,6 @@ func (d *Date) UnmarshalCBOR(data []byte) error {
 	if err := cbor.Unmarshal(data, &s); err != nil {
 		return fmt.Errorf("date: failed to unmarshal CBOR: %w", err)
 	}
-	parsed, err := NewDateFromString(s)
-	if err != nil {
-		return err
-	}
-	*d = parsed
-	return nil
+
+	return d.parseDateInto(s)
 }

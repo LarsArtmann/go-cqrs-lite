@@ -15,13 +15,7 @@ import (
 func TestNewOTelBundle(t *testing.T) {
 	t.Parallel()
 
-	tracer := sdktrace.NewTracerProvider().Tracer("test")
-	meter := metric.NewMeterProvider().Meter("test")
-
-	bundle, err := NewOTelBundle(tracer, meter)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	bundle := newTestBundle(t)
 
 	if bundle == nil {
 		t.Fatal("expected non-nil bundle")
@@ -39,13 +33,7 @@ func TestNewOTelBundle(t *testing.T) {
 func TestOTelBundle_CommandMiddleware(t *testing.T) {
 	t.Parallel()
 
-	tracer := sdktrace.NewTracerProvider().Tracer("test")
-	meter := metric.NewMeterProvider().Meter("test")
-
-	bundle, err := NewOTelBundle(tracer, meter)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	bundle := newTestBundle(t)
 
 	mws := bundle.Command()
 	if len(mws) != 2 {
@@ -55,7 +43,7 @@ func TestOTelBundle_CommandMiddleware(t *testing.T) {
 	handler := mws[0](mws[1](NoopCommandHandler()))
 	cmd := &testCommand{aggregateID: id.NewAggregateID()}
 
-	err = handler(context.Background(), cmd)
+	err := handler(context.Background(), cmd)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -64,13 +52,7 @@ func TestOTelBundle_CommandMiddleware(t *testing.T) {
 func TestOTelBundle_EventMiddleware(t *testing.T) {
 	t.Parallel()
 
-	tracer := sdktrace.NewTracerProvider().Tracer("test")
-	meter := metric.NewMeterProvider().Meter("test")
-
-	bundle, err := NewOTelBundle(tracer, meter)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	bundle := newTestBundle(t)
 
 	mws := bundle.Event()
 	if len(mws) != 2 {
@@ -93,13 +75,7 @@ func TestOTelBundle_EventMiddleware(t *testing.T) {
 func TestOTelBundle_QueryMiddleware(t *testing.T) {
 	t.Parallel()
 
-	tracer := sdktrace.NewTracerProvider().Tracer("test")
-	meter := metric.NewMeterProvider().Meter("test")
-
-	bundle, err := NewOTelBundle(tracer, meter)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	bundle := newTestBundle(t)
 
 	mws := bundle.Query()
 	if len(mws) != 2 {
@@ -109,7 +85,7 @@ func TestOTelBundle_QueryMiddleware(t *testing.T) {
 	handler := mws[0](mws[1](noopQueryHandler()))
 	q := &testQuery{}
 
-	_, err = handler(context.Background(), q)
+	_, err := handler(context.Background(), q)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -118,13 +94,7 @@ func TestOTelBundle_QueryMiddleware(t *testing.T) {
 func TestOTelBundle_PublishMiddleware(t *testing.T) {
 	t.Parallel()
 
-	tracer := sdktrace.NewTracerProvider().Tracer("test")
-	meter := metric.NewMeterProvider().Meter("test")
-
-	bundle, err := NewOTelBundle(tracer, meter)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	bundle := newTestBundle(t)
 
 	mws := bundle.Publish()
 	if len(mws) != 1 {
@@ -207,13 +177,7 @@ func TestOTelBundle_NilMeterWithoutDisableReturnsError(t *testing.T) {
 func TestOTelBundle_CorrelationEnricher(t *testing.T) {
 	t.Parallel()
 
-	tracer := sdktrace.NewTracerProvider().Tracer("test")
-	meter := metric.NewMeterProvider().Meter("test")
-
-	bundle, err := NewOTelBundle(tracer, meter)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	bundle := newTestBundle(t)
 
 	enricher := bundle.CorrelationEnricher()
 	if enricher == nil {

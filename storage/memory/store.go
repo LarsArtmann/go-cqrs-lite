@@ -47,9 +47,12 @@ func (s *MemoryStore) Save(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
-	err := s.CheckClosed(event.ErrStoreClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "memory.save_failed", "memory store save")
+	if err := wrapClosed(
+		s.CheckClosed(event.ErrStoreClosed),
+		"memory.save_failed",
+		"memory store save",
+	); err != nil {
+		return err
 	}
 
 	s.mu.Lock()
@@ -58,7 +61,7 @@ func (s *MemoryStore) Save(
 	key := ref.StreamKey()
 	streamLen := len(s.streamIndex[key])
 
-	err = event.CheckVersionConflict(streamLen, expectedVersion)
+	err := event.CheckVersionConflict(streamLen, expectedVersion)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "memory.save_failed", "memory store save")
 	}
@@ -74,13 +77,12 @@ func (s *MemoryStore) AppendBatch(
 	ref id.AggregateRef,
 	events []event.Event,
 ) error {
-	err := s.CheckClosed(event.ErrStoreClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"memory.append_batch_failed",
-			"memory store append batch",
-		)
+	if err := wrapClosed(
+		s.CheckClosed(event.ErrStoreClosed),
+		"memory.append_batch_failed",
+		"memory store append batch",
+	); err != nil {
+		return err
 	}
 
 	s.mu.Lock()

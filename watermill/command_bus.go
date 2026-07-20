@@ -123,6 +123,7 @@ func (b *CommandBus) SubscribeAll(handler command.Handler) error {
 // Use adds middleware that wraps all command handlers.
 func (b *CommandBus) Use(mw ...command.Middleware) error {
 	appendMiddleware(&b.mu, &b.middleware, mw, b.rebuildHandlerChain)
+
 	return nil
 }
 
@@ -137,7 +138,7 @@ func (b *CommandBus) Close() error {
 
 	b.closed = true
 
-	b.subscriptionState.shutdown()
+	b.shutdown()
 
 	if b.backend != nil {
 		return b.backend.Close()

@@ -14,8 +14,7 @@ func TestExporter_Export_WriteServiceError(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 
 	cat := reg.Build()
 
@@ -44,8 +43,7 @@ func TestExporter_Export_WriteMessageError(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
 		Kind: catalog.CommandMessage, ID: "Cmd", Name: "Cmd", Version: "1.0.0",
 	})
@@ -58,7 +56,7 @@ func TestExporter_Export_WriteDomainError(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDomain(
 		catalog.Domain{
 			ID: "dom", Name: "Dom",
@@ -110,7 +108,7 @@ func TestExporter_Export_WriteConfigAndLLMsErrors(t *testing.T) {
 			t.Parallel()
 			tmpDir := t.TempDir()
 
-			reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+			reg := cattest.NewTestRegistry()
 			cat := reg.Build()
 
 			err := os.Chmod(tmpDir, tt.chmod)
@@ -133,8 +131,7 @@ func TestExporter_Export_MessageWithSchemaWriteError(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	cattest.AddCommandWithSchema(
 		t,
 		reg,
@@ -193,8 +190,7 @@ func TestExporter_Export_SchemaDirPermissionError(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      "Cmd",
@@ -233,8 +229,7 @@ func TestExporter_Export_EventWriteError(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddEvent("svc", catalog.Message{
 		Kind: catalog.EventMessage, ID: "Evt", Name: "Evt", Version: "1.0.0",
 	})
@@ -247,8 +242,7 @@ func TestExporter_Export_QueryWriteError(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddQuery("svc", catalog.Message{
 		Kind: catalog.QueryMessage, ID: "Qry", Name: "Qry", Version: "1.0.0",
 	})
@@ -261,8 +255,7 @@ func TestExporter_Export_MessageSummaryWithSchema(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      "Cmd",

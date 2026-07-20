@@ -124,11 +124,8 @@ func (a *EventStore) LoadStream(
 	ctx context.Context,
 	ref id.AggregateRef,
 ) (event.EventIterator, error) {
-	_, span := startAggregateSpan(ctx, "pebble.event.load_stream", ref)
+	span, lower, upper := a.startLoadSpan(ctx, "pebble.event.load_stream", ref)
 	defer span.End()
-
-	lower := a.aggregatePrefix(ref)
-	upper := a.aggregateUpperBound(ref)
 
 	return a.newPebbleIterator(lower, upper, "", 0)
 }
@@ -139,12 +136,13 @@ func (a *EventStore) LoadStreamFromVersion(
 	ref id.AggregateRef,
 	version event.Version,
 ) (event.EventIterator, error) {
-	_, span := startAggregateSpan(ctx, "pebble.event.load_stream_from_version", ref,
-		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int()))
+	span, lower, upper := a.startLoadFromVersionSpan(
+		ctx,
+		"pebble.event.load_stream_from_version",
+		ref,
+		version,
+	)
 	defer span.End()
-
-	lower := a.eventKey(ref, version+1)
-	upper := a.aggregateUpperBound(ref)
 
 	return a.newPebbleIterator(lower, upper, "", 0)
 }
@@ -155,8 +153,7 @@ func (a *EventStore) ReadStream(ctx context.Context) (event.EventIterator, error
 		cqrsotel.SpanKindClient)
 	defer span.End()
 
-	lower := []byte(a.journalPrefix)
-	upper := []byte(a.journalPrefix + "\xff")
+	lower, upper := a.journalBounds()
 
 	return a.newPebbleIterator(lower, upper, "", 0)
 }

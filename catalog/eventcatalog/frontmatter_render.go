@@ -92,7 +92,7 @@ func toDeprecated(deprecated bool, info *catalog.DeprecationInfo) any {
 	return nil
 }
 
-func channelIDsToStrings(ids []catalog.ChannelID) []string {
+func stringIDsToStrings[T ~string](ids []T) []string {
 	if len(ids) == 0 {
 		return nil
 	}

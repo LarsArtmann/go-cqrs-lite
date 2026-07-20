@@ -51,3 +51,17 @@ func startProjectionSpan(
 		),
 	)
 }
+
+// idOrEmpty returns the string form of id, or "" when id is the zero value.
+// Used to convert optional cursor IDs (CommandID, RequestID, EventID) into
+// the skip-ID parameter for pebble scans.
+func idOrEmpty[T interface {
+	IsZero() bool
+	String() string
+}](id T) string {
+	if id.IsZero() {
+		return ""
+	}
+
+	return id.String()
+}

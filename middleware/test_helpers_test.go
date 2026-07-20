@@ -5,6 +5,10 @@ import (
 	"errors"
 	"log/slog"
 	"sync"
+	"testing"
+
+	"go.opentelemetry.io/otel/sdk/metric"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -131,4 +135,18 @@ func callbackQueryHandler(called *bool) func(context.Context, query.Query) (any,
 
 		return nil, nil
 	}
+}
+
+func newTestBundle(t *testing.T) *OTelBundle {
+	t.Helper()
+
+	tracer := sdktrace.NewTracerProvider().Tracer("test")
+	meter := metric.NewMeterProvider().Meter("test")
+
+	bundle, err := NewOTelBundle(tracer, meter)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	return bundle
 }

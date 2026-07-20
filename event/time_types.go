@@ -169,6 +169,21 @@ func NewWallTimeMust(hour, minute int, location string) WallTime {
 	return wt
 }
 
+// loadLocationSafe returns the WallTime's IANA location, falling back to UTC
+// if the location cannot be loaded. The location is validated at construction
+// time (NewWallTime), so this fallback only triggers for WallTimes built
+// directly from struct literals (e.g. decoded from JSON without validation).
+// We fall back rather than panic so that a corrupted Location does not crash
+// production callers.
+func (w WallTime) loadLocationSafe() *time.Location {
+	loc, err := time.LoadLocation(w.Location)
+	if err != nil {
+		return time.UTC
+	}
+
+	return loc
+}
+
 // NextOccurrence returns the next time this wall time occurs in its timezone,
 // at or after the given reference time. If the wall time has already passed
 // today in the target timezone, it returns tomorrow's occurrence.
@@ -177,12 +192,7 @@ func NewWallTimeMust(hour, minute int, location string) WallTime {
 // automatically. "9am America/New_York" will be 14:00Z in winter (EST, UTC-5)
 // and 13:00Z in summer (EDT, UTC-4).
 func (w WallTime) NextOccurrence(after time.Time) time.Time {
-	loc, err := time.LoadLocation(w.Location)
-	if err != nil {
-		// Should not happen — validated at construction. Fall back to UTC
-		// to avoid panicking in production.
-		loc = time.UTC
-	}
+	loc := w.loadLocationSafe()
 
 	// Convert "after" to the target timezone to determine the local date.
 	afterLocal := after.In(loc)
@@ -238,10 +248,7 @@ func (w WallTime) IsValid() bool {
 //
 // This method is DST-aware, just like NextOccurrence.
 func (w WallTime) PreviousOccurrence(before time.Time) time.Time {
-	loc, err := time.LoadLocation(w.Location)
-	if err != nil {
-		loc = time.UTC
-	}
+	loc := w.loadLocationSafe()
 
 	beforeLocal := before.In(loc)
 

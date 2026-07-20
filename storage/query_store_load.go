@@ -134,17 +134,18 @@ func (s *SQLQueryStore) ReadQueriesFrom(
 		ORDER BY e.received_at ASC, e.id ASC`,
 		p1, p2,
 	)
-	args := sqlpkg.CursorArgs(afterRequestID.String())
-	if limit > 0 {
-		sqlText += " LIMIT " + p3
-		args = append(args, limit)
-	}
-
-	rows, err := s.DB.QueryContext(ctx, sqlText, args...)
+	rows, err := sqlpkg.QueryFromPosition(
+		ctx,
+		s.DB,
+		span,
+		sqlText,
+		afterRequestID.String(),
+		limit,
+		p3,
+		"queries",
+	)
 	if err != nil {
-		cqrsotel.RecordError(span, err)
-		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_position",
-			fmt.Sprintf("query queries from position (limit=%d)", limit))
+		return nil, err
 	}
 	defer sqlpkg.CloseRows(rows)
 

@@ -95,17 +95,18 @@ func (s *SQLCommandStore) ReadFrom(
 		p1,
 		p2,
 	)
-	args := sqlpkg.CursorArgs(afterCommandID.String())
-	if limit > 0 {
-		query += " LIMIT " + p3
-		args = append(args, limit)
-	}
-
-	rows, err := s.DB.QueryContext(ctx, query, args...)
+	rows, err := sqlpkg.QueryFromPosition(
+		ctx,
+		s.DB,
+		span,
+		query,
+		afterCommandID.String(),
+		limit,
+		p3,
+		"commands",
+	)
 	if err != nil {
-		cqrsotel.RecordError(span, err)
-		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_position",
-			fmt.Sprintf("query commands from position (limit=%d)", limit))
+		return nil, err
 	}
 	defer sqlpkg.CloseRows(rows)
 

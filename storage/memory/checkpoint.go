@@ -4,8 +4,6 @@ import (
 	"context"
 	"sync"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -32,10 +30,13 @@ func (s *MemoryCheckpointStore) Load(
 	_ context.Context,
 	projectionName string,
 ) (event.Checkpoint, error) {
-	err := s.CheckClosed(dispatcher.ErrDispatcherClosed)
-	if err != nil {
-		return event.Checkpoint{}, errorfamily.Wrapf(err, errorfamily.Infrastructure,
-			"memory.checkpoint_load", "load checkpoint for projection %q", projectionName)
+	if err := wrapClosedf(
+		s.CheckClosed(dispatcher.ErrDispatcherClosed),
+		"memory.checkpoint_load",
+		"load checkpoint for projection %q",
+		projectionName,
+	); err != nil {
+		return event.Checkpoint{}, err
 	}
 
 	s.mu.RLock()
@@ -50,10 +51,13 @@ func (s *MemoryCheckpointStore) Save(
 	projectionName string,
 	checkpoint event.Checkpoint,
 ) error {
-	err := s.CheckClosed(dispatcher.ErrDispatcherClosed)
-	if err != nil {
-		return errorfamily.Wrapf(err, errorfamily.Infrastructure,
-			"memory.checkpoint_save", "save checkpoint for projection %q", projectionName)
+	if err := wrapClosedf(
+		s.CheckClosed(dispatcher.ErrDispatcherClosed),
+		"memory.checkpoint_save",
+		"save checkpoint for projection %q",
+		projectionName,
+	); err != nil {
+		return err
 	}
 
 	s.mu.Lock()
