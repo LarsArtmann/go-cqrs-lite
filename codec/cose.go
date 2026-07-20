@@ -115,6 +115,14 @@ func MarshalCOSEProtectedHeader(headers map[int64]any) ([]byte, error) {
 	return CBOREncMode().Marshal(headers) //nolint:wrapcheck // thin wrapper over CBOR mode
 }
 
+// COSEAlgHeader returns the CBOR-encoded protected header for a COSE message
+// that carries only the algorithm identifier (alg). This is the common case
+// for COSE_Encrypt0 and COSE_Sign1 messages where the protected header
+// contains no additional parameters.
+func COSEAlgHeader(alg int64) ([]byte, error) {
+	return MarshalCOSEProtectedHeader(map[int64]any{COSEHeaderAlg: alg})
+}
+
 // UnmarshalCOSEProtectedHeader deserializes a COSE protected header map from its
 // CBOR-encoded form.
 func UnmarshalCOSEProtectedHeader(data []byte) (map[int64]any, error) {

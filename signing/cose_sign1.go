@@ -32,9 +32,7 @@ func SignCOSE1(evt event.Event, signer COSESigner, opts ...COSESignOption) ([]by
 
 	alg := signer.COSEAlgorithm()
 
-	protected, err := codec.MarshalCOSEProtectedHeader(map[int64]any{
-		codec.COSEHeaderAlg: alg,
-	})
+	protected, err := codec.COSEAlgHeader(alg)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err,
