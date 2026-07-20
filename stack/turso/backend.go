@@ -56,7 +56,7 @@ func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
 		}
 	}
 
-	if cfg.autoMigrate {
+	if cfg.AutoMigrate {
 		var err error
 		if cfg.optimize {
 			err = cqrsturso.InitSchemaWithIndexesAndOptimizations(ctx, sqlDB)

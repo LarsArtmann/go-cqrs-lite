@@ -34,11 +34,7 @@ func SignCOSE1(evt event.Event, signer COSESigner, opts ...COSESignOption) ([]by
 
 	protected, err := codec.COSEAlgHeader(alg)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"signing.cose_marshal_protected",
-			"marshal COSE protected header",
-		)
+		return nil, err
 	}
 
 	payload := canonicalPayload(evt)

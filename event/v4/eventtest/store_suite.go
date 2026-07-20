@@ -148,9 +148,8 @@ func TestStoreConcurrencyConflict(t *testing.T, store event.Store, cfg StoreTest
 func TestStoreAppendBatch(t *testing.T, store event.Store, cfg StoreTestConfig) {
 	t.Helper()
 
-	aggID := id.NewAggregateID()
-	evt1 := cfg.NewTestEvent(t, aggID, 1)
-	evt2 := cfg.NewTestEvent(t, aggID, 2)
+	aggID, evts := newTestEvents(t, cfg, 1, 2)
+	evt1, evt2 := evts[0], evts[1]
 
 	err := store.AppendBatch(
 		context.Background(),
@@ -178,15 +177,12 @@ func TestStoreAppendBatch(t *testing.T, store event.Store, cfg StoreTestConfig) 
 func TestStoreLoadFromVersion(t *testing.T, store event.Store, cfg StoreTestConfig) {
 	t.Helper()
 
-	aggID := id.NewAggregateID()
-	evt1 := cfg.NewTestEvent(t, aggID, 1)
-	evt2 := cfg.NewTestEvent(t, aggID, 2)
-	evt3 := cfg.NewTestEvent(t, aggID, 3)
+	aggID, evts := newTestEvents(t, cfg, 1, 2, 3)
 
 	err := store.AppendBatch(
 		context.Background(),
 		id.NewAggregateRef(cfg.AggType, aggID),
-		[]event.Event{evt1, evt2, evt3},
+		evts,
 	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
@@ -206,6 +202,25 @@ func TestStoreLoadFromVersion(t *testing.T, store event.Store, cfg StoreTestConf
 	}
 
 	AssertEventVersion(t, loaded, 0, 2)
+}
+
+// newTestEvents creates a fresh aggregate and one test event per requested
+// version. Centralises the "create aggID, then N events at versions 1..N"
+// setup pattern shared by every store-suite test in this file.
+func newTestEvents(
+	t *testing.T,
+	cfg StoreTestConfig,
+	versions ...int,
+) (id.AggregateID, []event.Event) {
+	t.Helper()
+
+	aggID := id.NewAggregateID()
+	evts := make([]event.Event, len(versions))
+	for i, v := range versions {
+		evts[i] = cfg.NewTestEvent(t, aggID, event.Version(v))
+	}
+
+	return aggID, evts
 }
 
 // TestStoreMetadataRoundtrip tests that metadata survives save/load.

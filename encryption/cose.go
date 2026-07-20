@@ -166,11 +166,7 @@ func EncryptCOSE0(plaintext []byte, enc COSEEncrypter, opts ...COSEEncryptOption
 
 	protected, err := codec.COSEAlgHeader(alg)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"encryption.cose_marshal_protected",
-			"marshal COSE protected header",
-		)
+		return nil, err
 	}
 
 	externalAAD := cfg.externalAAD

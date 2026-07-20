@@ -128,6 +128,14 @@ func registerAllHandler[H any](
 // because adding middleware after close is harmless (Close tears down the
 // subscription goroutine, not the middleware chain) and middleware does not
 // require a running subscription.
+//
+// Note: storage/pg_bus_dispatch.go has a near-identical helper for
+// PostgresBus with the same shape but sync.Locker instead of *sync.Mutex.
+// The two implementations remain independent because they live in two
+// unrelated transport adapters that don't share a dependency on each
+// other, and the helper itself is 4 lines of trivial lock+append+rebuild —
+// below the threshold where extraction pays for itself. See AGENTS.md
+// ("Eliminate harmful code duplication" skill, "acceptable" case).
 func appendMiddleware[M any](
 	mu *sync.Mutex,
 	middleware *[]M,

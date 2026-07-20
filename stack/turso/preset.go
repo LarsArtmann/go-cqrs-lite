@@ -15,18 +15,21 @@ import (
 type Option func(*config)
 
 type config struct {
-	autoMigrate bool
+	sqlopt.DSNConfig
+
 	optimize    bool
 	foreignKeys bool
 	wal         bool
-	eventPath   string // override path for event store
-	queryPath   string // override path for query/command audit store
-	viewPath    string // override path for read-model KV store
 	syncOpts    []cqrsturso.SyncOption
 }
 
 func defaultConfig() config {
-	return config{autoMigrate: true, optimize: false, foreignKeys: false, wal: true}
+	return config{
+		DSNConfig:   sqlopt.DSNConfig{AutoMigrate: true},
+		optimize:    false,
+		foreignKeys: false,
+		wal:         true,
+	}
 }
 
 // WithoutWAL disables WAL mode. By default New enables WAL plus a busy
@@ -41,7 +44,7 @@ func WithoutWAL() Option {
 // yourself (e.g. via a migration tool). By default New creates all required
 // tables.
 func WithoutAutoMigrate() Option {
-	return func(c *config) { c.autoMigrate = false }
+	return func(c *config) { c.WithoutAutoMigrate() }
 }
 
 // WithOptimizations applies CQRS-optimized indexes and performance PRAGMAs
@@ -68,20 +71,20 @@ func WithForeignKeys() Option {
 // the primary path. The deployer chooses this when isolating write-heavy event
 // streams from query traffic.
 func WithEventDB(path string) Option {
-	return func(c *config) { c.eventPath = path }
+	return func(c *config) { c.SetEventDB(path) }
 }
 
 // WithQueryDB sets a separate database path for the command and query audit
 // stores. When set, persisted commands and queries go to this database.
 func WithQueryDB(path string) Option {
-	return func(c *config) { c.queryPath = path }
+	return func(c *config) { c.SetQueryDB(path) }
 }
 
 // WithViewDB sets a separate database path for the read-model KV store. When
 // set, materialized views are persisted to this database, isolating read-model
 // scans from the event store.
 func WithViewDB(path string) Option {
-	return func(c *config) { c.viewPath = path }
+	return func(c *config) { c.SetViewDB(path) }
 }
 
 // WithSyncOptions passes advanced configuration to the underlying Turso sync
@@ -153,7 +156,7 @@ func NewSync(
 		opt(&cfg)
 	}
 
-	if cfg.eventPath != "" || cfg.queryPath != "" || cfg.viewPath != "" {
+	if cfg.EventDSN != "" || cfg.QueryDSN != "" || cfg.ViewDSN != "" {
 		return nil, errorfamily.NewRejection("turso_preset.multi_db_incompatible",
 			"turso: multi-DB options (WithEventDB, WithQueryDB, WithViewDB) "+
 				"are incompatible with NewSync — all stores must share one "+
@@ -175,8 +178,8 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 
 	// Override: event-sourcing stores (events, snapshots, checkpoints) from a
 	// separate database if configured.
-	if cfg.eventPath != "" {
-		evtBackend, evtCloser, eErr := openSecondaryBackend(cfg.eventPath, cfg)
+	if cfg.EventDSN != "" {
+		evtBackend, evtCloser, eErr := openSecondaryBackend(cfg.EventDSN, cfg)
 		if eErr != nil {
 			_ = backend.Close()
 			_ = sqlDB.Close()
@@ -191,8 +194,8 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 
 	// Override: command and query audit stores from a separate database if
 	// configured.
-	if cfg.queryPath != "" {
-		qBackend, qCloser, qErr := openSecondaryBackend(cfg.queryPath, cfg)
+	if cfg.QueryDSN != "" {
+		qBackend, qCloser, qErr := openSecondaryBackend(cfg.QueryDSN, cfg)
 		if qErr != nil {
 			_ = backend.Close()
 			_ = sqlDB.Close()

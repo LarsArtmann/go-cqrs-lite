@@ -34,107 +34,124 @@ func (s *MemStore) checkClosed() error {
 	return nil
 }
 
-func (s *MemStore) Get(_ context.Context, key []byte) ([]byte, error) {
+// withRLock acquires s's read lock for the duration of fn, returning ErrClosed
+// if the store has already been shut down. The read-lock idom duplicates across
+// every read-side method (Get, Has, Batch, NewIterator); centralising it here
+// removes the four-line `RLock/defer/checkEarly-return` preamble from each
+// public method in exchange for one closure allocation per call. MemStore is
+// the in-memory test backend, so closure allocation overhead is acceptable.
+func (s *MemStore) withRLock(fn func()) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	err := s.checkClosed()
+	if err := s.checkClosed(); err != nil {
+		return err
+	}
+
+	fn()
+
+	return nil
+}
+
+// withLock acquires s's write lock for the duration of fn, returning ErrClosed
+// if the store has already been shut down. See [withRLock] for the rationale.
+func (s *MemStore) withLock(fn func()) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if err := s.checkClosed(); err != nil {
+		return err
+	}
+
+	fn()
+
+	return nil
+}
+
+func (s *MemStore) Get(_ context.Context, key []byte) ([]byte, error) {
+	var (
+		val   []byte
+		found bool
+	)
+
+	err := s.withRLock(func() {
+		v, ok := s.data[string(key)]
+		if !ok {
+			return
+		}
+
+		val = slices.Clone(v)
+		found = true
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	val, ok := s.data[string(key)]
-	if !ok {
+	if !found {
 		return nil, ErrNotFound
 	}
 
-	return slices.Clone(val), nil
+	return val, nil
 }
 
 func (s *MemStore) Has(_ context.Context, key []byte) (bool, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	var ok bool
 
-	err := s.checkClosed()
+	err := s.withRLock(func() { _, ok = s.data[string(key)] })
 	if err != nil {
 		return false, err
 	}
-
-	_, ok := s.data[string(key)]
 
 	return ok, nil
 }
 
 func (s *MemStore) Set(_ context.Context, key, value []byte) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	err := s.checkClosed()
-	if err != nil {
-		return err
-	}
-
-	s.data[string(key)] = slices.Clone(value)
-
-	return nil
+	return s.withLock(func() { s.data[string(key)] = slices.Clone(value) })
 }
 
 func (s *MemStore) Delete(_ context.Context, key []byte) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	err := s.checkClosed()
-	if err != nil {
-		return err
-	}
-
-	delete(s.data, string(key))
-
-	return nil
+	return s.withLock(func() { delete(s.data, string(key)) })
 }
 
 // SetIfAbsent atomically sets the value only if the key does not currently
 // exist. Returns true if the set succeeded, false if the key already existed.
 func (s *MemStore) SetIfAbsent(_ context.Context, key, value []byte) (bool, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	var inserted bool
 
-	if err := s.checkClosed(); err != nil {
+	err := s.withLock(func() {
+		k := string(key)
+		if _, exists := s.data[k]; exists {
+			return
+		}
+
+		s.data[k] = slices.Clone(value)
+		inserted = true
+	})
+	if err != nil {
 		return false, err
 	}
 
-	k := string(key)
-	if _, exists := s.data[k]; exists {
-		return false, nil
-	}
-
-	s.data[k] = slices.Clone(value)
-
-	return true, nil
+	return inserted, nil
 }
 
 func (s *MemStore) Batch(_ context.Context) (Batch, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	var batch *memBatch
 
-	err := s.checkClosed()
+	err := s.withRLock(func() { batch = &memBatch{store: s} })
 	if err != nil {
 		return nil, err
 	}
 
-	return &memBatch{store: s}, nil //nolint:exhaustruct // zero-value fields are intentional
+	return batch, nil
 }
 
 func (s *MemStore) NewIterator(_ context.Context, prefix []byte) (Iterator, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	var pairs []memKV
 
-	err := s.checkClosed()
+	err := s.withRLock(func() { pairs = collectSorted(s.data, prefix) })
 	if err != nil {
 		return nil, err
 	}
-
-	pairs := collectSorted(s.data, prefix)
 
 	return &memIterator{pairs: pairs}, nil //nolint:exhaustruct // zero-value fields are intentional
 }

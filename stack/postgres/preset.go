@@ -19,27 +19,25 @@ import (
 type Option func(*config)
 
 type config struct {
-	autoMigrate bool
-	eventDSN    string                       // override DSN for event store
-	queryDSN    string                       // override DSN for query/command audit store
-	viewDSN     string                       // override DSN for read-model KV store
-	listener    storage.NotificationListener // nil → in-memory bus
-	busOpts     []storage.PostgresBusOption  // forwarded when listener != nil
+	sqlopt.DSNConfig
+
+	listener storage.NotificationListener // nil → in-memory bus
+	busOpts  []storage.PostgresBusOption  // forwarded when listener != nil
 }
 
 func defaultConfig() config {
 	return config{ //nolint:exhaustruct // options fill fields
-		autoMigrate: true,
-		eventDSN:    "",
-		queryDSN:    "",
-		viewDSN:     "",
+		DSNConfig: sqlopt.DSNConfig{
+			AutoMigrate: true,
+		},
 	}
 }
 
 // WithoutAutoMigrate skips schema creation. Use this when you manage schemas
-// yourself (e.g. via a migration tool). By default New creates all required tables.
+// yourself (e.g. via a migration tool). By default New creates all required
+// tables.
 func WithoutAutoMigrate() Option {
-	return func(c *config) { c.autoMigrate = false }
+	return func(c *config) { c.WithoutAutoMigrate() }
 }
 
 // WithEventDB sets a separate DSN for the event store. When set, events,
@@ -47,20 +45,20 @@ func WithoutAutoMigrate() Option {
 // primary DSN. The deployer chooses this when isolating write-heavy event
 // streams from query traffic.
 func WithEventDB(dsn string) Option {
-	return func(c *config) { c.eventDSN = dsn }
+	return func(c *config) { c.SetEventDB(dsn) }
 }
 
 // WithQueryDB sets a separate DSN for the command and query audit stores.
 // When set, persisted commands and queries go to this database.
 func WithQueryDB(dsn string) Option {
-	return func(c *config) { c.queryDSN = dsn }
+	return func(c *config) { c.SetQueryDB(dsn) }
 }
 
 // WithViewDB sets a separate DSN for the read-model KV store. When set,
 // materialized views are persisted to this database, isolating read-model
 // scans from the event store.
 func WithViewDB(dsn string) Option {
-	return func(c *config) { c.viewDSN = dsn }
+	return func(c *config) { c.SetViewDB(dsn) }
 }
 
 // WithDistributedBus enables cross-process event propagation via Postgres
@@ -113,8 +111,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	stackOpts, backend, sqlDB, closePrimary, err := sqlopt.InitStack(
 		dsn,
 		"postgres",
-		cfg.eventDSN,
-		cfg.queryDSN,
+		cfg.EventDSN,
+		cfg.QueryDSN,
 		func(d string) (*sql.DB, *storage.SQLBackend, error) { return openBackend(d, cfg) },
 		func(d string) (*storage.SQLBackend, io.Closer, error) { return openSecondaryBackend(d, cfg) },
 	)
@@ -136,7 +134,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		stackOpts = append(stackOpts, stack.WithCloser(busCleanup))
 	}
 
-	return sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "postgres", cfg.viewDSN,
+	return sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "postgres", cfg.ViewDSN,
 		func(dsn string) (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
 		storage.NewSQLBackend)
 }
@@ -152,7 +150,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 
 	ctx := context.Background()
 
-	if cfg.autoMigrate {
+	if cfg.AutoMigrate {
 		err = storage.PostgresInitSchema(ctx, sqlDB)
 		if err != nil {
 			_ = sqlDB.Close()

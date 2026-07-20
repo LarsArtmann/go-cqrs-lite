@@ -3,10 +3,9 @@ package signing
 import (
 	"crypto/hmac"
 	"encoding/base64"
-	"encoding/json/v2"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
 // Signature is an opaque, serializable event signature.
@@ -49,15 +48,13 @@ func (s Signature) String() string {
 
 // MarshalJSON encodes the signature as a URL-safe base64 JSON string.
 func (s Signature) MarshalJSON() ([]byte, error) {
-	encoded := base64.URLEncoding.EncodeToString(s)
-
-	return json.Marshal(encoded, json.Deterministic(true)) //nolint:wrapcheck // signature encoding
+	return codec.MarshalBase64JSON(s)
 }
 
 // UnmarshalJSON decodes a URL-safe base64 JSON string into the signature.
 // Falls back to standard base64 for backward compatibility.
 func (s *Signature) UnmarshalJSON(data []byte) error {
-	decoded, err := event.UnmarshalBase64JSON(data, "signing", "signature")
+	decoded, err := codec.UnmarshalBase64JSON(data, "signing", "signature")
 	if err != nil {
 		return err
 	}

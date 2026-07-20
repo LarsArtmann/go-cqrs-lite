@@ -10,13 +10,13 @@ import (
 )
 
 // buildViewOptions creates read-model options from either a separate view DB
-// (when cfg.viewPath is set) or the primary backend's KV store.
+// (when cfg.ViewDSN is set) or the primary backend's KV store.
 func buildViewOptions(
 	cfg config,
 	backend *storage.SQLBackend,
 	sqlDB *sql.DB,
 ) ([]stack.Option, error) {
-	if cfg.viewPath == "" {
+	if cfg.ViewDSN == "" {
 		return buildPrimaryViewOptions(backend, sqlDB)
 	}
 
@@ -44,7 +44,7 @@ func buildSecondaryViewOptions(
 	backend *storage.SQLBackend,
 	sqlDB *sql.DB,
 ) ([]stack.Option, error) {
-	viewDB, err := openSecondaryDB(cfg.viewPath, cfg)
+	viewDB, err := openSecondaryDB(cfg.ViewDSN, cfg)
 	if err != nil {
 		_ = backend.Close()
 		_ = sqlDB.Close()

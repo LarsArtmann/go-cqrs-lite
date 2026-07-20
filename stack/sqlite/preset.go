@@ -18,13 +18,11 @@ import (
 type Option func(*config)
 
 type config struct {
+	sqlopt.DSNConfig
+
 	wal         bool
 	optimize    bool
 	foreignKeys bool
-	autoMigrate bool
-	eventDSN    string // override DSN for event store
-	queryDSN    string // override DSN for query/command audit store
-	viewDSN     string // override DSN for read-model KV store
 }
 
 func defaultConfig() config {
@@ -32,10 +30,9 @@ func defaultConfig() config {
 		wal:         true,
 		optimize:    false,
 		foreignKeys: false,
-		autoMigrate: true,
-		eventDSN:    "",
-		queryDSN:    "",
-		viewDSN:     "",
+		DSNConfig: sqlopt.DSNConfig{
+			AutoMigrate: true,
+		},
 	}
 }
 
@@ -67,7 +64,7 @@ func WithForeignKeys() Option {
 // yourself (e.g. via a migration tool). By default New creates all required
 // tables.
 func WithoutAutoMigrate() Option {
-	return func(c *config) { c.autoMigrate = false }
+	return func(c *config) { c.WithoutAutoMigrate() }
 }
 
 // WithEventDB sets a separate DSN for the event store. When set, events,
@@ -75,20 +72,20 @@ func WithoutAutoMigrate() Option {
 // primary DSN. The deployer chooses this when isolating write-heavy event
 // streams from query traffic.
 func WithEventDB(dsn string) Option {
-	return func(c *config) { c.eventDSN = dsn }
+	return func(c *config) { c.SetEventDB(dsn) }
 }
 
 // WithQueryDB sets a separate DSN for the command and query audit stores.
 // When set, persisted commands and queries go to this database.
 func WithQueryDB(dsn string) Option {
-	return func(c *config) { c.queryDSN = dsn }
+	return func(c *config) { c.SetQueryDB(dsn) }
 }
 
 // WithViewDB sets a separate DSN for the read-model KV store. When set,
 // materialized views are persisted to this database, isolating read-model
 // scans from the event store.
 func WithViewDB(dsn string) Option {
-	return func(c *config) { c.viewDSN = dsn }
+	return func(c *config) { c.SetViewDB(dsn) }
 }
 
 // New opens a SQLite database at dsn, configures it, and returns a
@@ -118,8 +115,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	stackOpts, backend, sqlDB, _, err := sqlopt.InitStack(
 		dsn,
 		"sqlite",
-		cfg.eventDSN,
-		cfg.queryDSN,
+		cfg.EventDSN,
+		cfg.QueryDSN,
 		func(d string) (*sql.DB, *storage.SQLBackend, error) { return openBackend(d, cfg) },
 		func(d string) (*storage.SQLBackend, io.Closer, error) { return openSecondaryBackend(d, cfg) },
 	)
@@ -130,7 +127,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	// Bus is in-process GoChannel (SQLite has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 
-	return sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "sqlite", cfg.viewDSN,
+	return sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "sqlite", cfg.ViewDSN,
 		func(dsn string) (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
 		storage.NewSQLiteBackend)
 }
@@ -169,7 +166,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		}
 	}
 
-	if cfg.autoMigrate {
+	if cfg.AutoMigrate {
 		err = storage.SQLiteInitSchema(ctx, sqlDB)
 		if err != nil {
 			_ = sqlDB.Close()

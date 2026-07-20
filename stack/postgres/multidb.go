@@ -21,7 +21,7 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 			fmt.Sprintf("open %q", dsn))
 	}
 
-	if cfg.autoMigrate {
+	if cfg.AutoMigrate {
 		ctx := context.Background()
 
 		err = storage.PostgresInitSchema(ctx, sqlDB)

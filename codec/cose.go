@@ -119,8 +119,17 @@ func MarshalCOSEProtectedHeader(headers map[int64]any) ([]byte, error) {
 // that carries only the algorithm identifier (alg). This is the common case
 // for COSE_Encrypt0 and COSE_Sign1 messages where the protected header
 // contains no additional parameters.
+//
+// The returned error is already wrapped as an Infrastructure error so
+// callers (encryption, signing) don't need per-module error wrapping.
 func COSEAlgHeader(alg int64) ([]byte, error) {
-	return MarshalCOSEProtectedHeader(map[int64]any{COSEHeaderAlg: alg})
+	data, err := MarshalCOSEProtectedHeader(map[int64]any{COSEHeaderAlg: alg})
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err,
+			"codec.cose_marshal_protected", "marshal COSE protected header")
+	}
+
+	return data, nil
 }
 
 // UnmarshalCOSEProtectedHeader deserializes a COSE protected header map from its

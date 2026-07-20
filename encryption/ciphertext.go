@@ -3,10 +3,9 @@ package encryption
 import (
 	"crypto/subtle"
 	"encoding/base64"
-	"encoding/json/v2"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
 type Ciphertext []byte //nolint:recvcheck // value receiver for immutable type
@@ -24,13 +23,11 @@ func (c Ciphertext) String() string {
 }
 
 func (c Ciphertext) MarshalJSON() ([]byte, error) {
-	encoded := base64.URLEncoding.EncodeToString(c)
-
-	return json.Marshal(encoded, json.Deterministic(true)) //nolint:wrapcheck // ciphertext encoding
+	return codec.MarshalBase64JSON(c)
 }
 
 func (c *Ciphertext) UnmarshalJSON(data []byte) error {
-	decoded, err := event.UnmarshalBase64JSON(data, "encryption", "ciphertext")
+	decoded, err := codec.UnmarshalBase64JSON(data, "encryption", "ciphertext")
 	if err != nil {
 		return err
 	}

@@ -43,7 +43,7 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 		}
 	}
 
-	if cfg.autoMigrate {
+	if cfg.AutoMigrate {
 		err = storage.SQLiteInitSchema(ctx, sqlDB)
 		if err != nil {
 			_ = sqlDB.Close()
