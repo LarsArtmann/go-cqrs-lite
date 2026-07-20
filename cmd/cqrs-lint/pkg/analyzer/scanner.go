@@ -32,6 +32,11 @@ func scanFile(ctx *AnalysisContext, gf *GoFile) {
 }
 
 func scanGenDecl(ctx *AnalysisContext, gf *GoFile, decl *ast.GenDecl) {
+	if decl.Tok == token.CONST {
+		scanConstDecl(ctx, gf, decl)
+		return
+	}
+
 	if decl.Tok != token.TYPE {
 		return
 	}
@@ -163,4 +168,119 @@ func capturePayloadTypeFromVar(
 	if typeName, ok := varAssigns[ident.Name]; ok {
 		ctx.Registry.EventPayloadTypes[typeName] = true
 	}
+}
+
+// scanConstDecl records command.Type / query.Type constant declarations so
+// that type-constant arguments passed to Register/RegisterTyped can be
+// resolved to their struct names later. Recognizes both forms:
+//
+//	const GetVisitQueryType query.Type = "GetVisitQuery"
+//	const cmdCreate command.Type = "create"
+//
+// Only constants whose declared type is exactly command.Type or query.Type
+// (a SelectorExpr ending in ".Type") are recorded — this avoids capturing
+// unrelated string constants. See browser-history feedback (E005/E007).
+func scanConstDecl(ctx *AnalysisContext, _ *GoFile, decl *ast.GenDecl) {
+	for _, spec := range decl.Specs {
+		vs, ok := spec.(*ast.ValueSpec)
+		if !ok || len(vs.Values) == 0 {
+			continue
+		}
+
+		if !isCommandOrQueryType(vs.Type) {
+			continue
+		}
+
+		val := stringLit(vs.Values[0])
+		if val == "" {
+			continue
+		}
+
+		for _, name := range vs.Names {
+			ctx.Registry.TypeConstValues[name.Name] = val
+		}
+	}
+}
+
+// isCommandOrQueryType reports whether expr is "command.Type" or "query.Type"
+// (a SelectorExpr whose Sel is "Type" and whose qualifier contains "command"
+// or "query").
+func isCommandOrQueryType(expr ast.Expr) bool {
+	sel, ok := expr.(*ast.SelectorExpr)
+	if !ok || sel.Sel == nil {
+		return false
+	}
+
+	if sel.Sel.Name != "Type" {
+		return false
+	}
+
+	pkg := SelectorPackage(sel)
+
+	return pkg == "command" || pkg == "query"
+}
+
+// ResolveRegisteredTypeConsts resolves type-constant arguments recorded during
+// scanning to their target command/query struct names and marks those structs
+// as registered. Must run AFTER all files have been scanned, because the const
+// declaration and the Register call may live in different files or packages.
+//
+// For each recorded const name, looks up its string value in TypeConstValues.
+// If the value matches a known command or query struct name, marks that struct
+// registered. This is a no-op when no type constants were recorded.
+func ResolveRegisteredTypeConsts(reg *CQRSRegistry) {
+	if len(reg.registeredTypeConsts) == 0 || len(reg.TypeConstValues) == 0 {
+		return
+	}
+
+	known := make(map[string]bool, len(reg.Commands)+len(reg.Events))
+	for _, cmd := range reg.Commands {
+		known[cmd.Name] = true
+	}
+
+	// Query types are not in a separate registry slice — they are detected by
+	// the E007 rule via the "Query" suffix at the call site. To support
+	// suppressing E007, we accept any const value that resembles a struct name
+	// (Capitalized identifier). The IsCommandRegistered check is shared by both
+	// E005 (commands) and E007 (queries), so marking a value here suppresses
+	// both.
+	for _, constName := range reg.registeredTypeConsts {
+		val, ok := reg.TypeConstValues[constName]
+		if !ok || val == "" {
+			continue
+		}
+
+		// Mark the value as registered. For commands this directly suppresses
+		// E005. For queries, E007 consults IsCommandRegistered (shared map),
+		// so this suppresses E007 as well.
+		if known[val] || looksLikeStructName(val) {
+			reg.CommandTypesRegistered[val] = true
+		}
+	}
+}
+
+// looksLikeStructName reports whether s is a plausible exported Go struct name
+// (starts with an uppercase letter and contains only identifier characters).
+// Used to decide whether a type-constant value should suppress E005/E007 even
+// when the struct isn't in the Commands slice (queries aren't pre-registered).
+func looksLikeStructName(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	first := s[0]
+
+	if first < 'A' || first > 'Z' {
+		return false
+	}
+
+	for i := 1; i < len(s); i++ {
+		c := s[i]
+		isAlphaNum := (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'
+		if !isAlphaNum {
+			return false
+		}
+	}
+
+	return true
 }

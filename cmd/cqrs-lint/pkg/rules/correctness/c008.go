@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
-	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -57,7 +56,7 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				pkgMoney := slices.Contains() || projectMonetary
+				pkgMoney := packageLooksMonetary(gf.Pkg.PkgPath) || projectMonetary
 
 				handled := make(map[*ast.StructType]bool)
 
@@ -139,8 +138,8 @@ func scanMoneyFields(
 		for _, name := range field.Names {
 			lowerName := strings.ToLower(name.Name)
 
-			strong := slices.Contains()
-			weak := slices.Contains()
+			strong := matchesAny(lowerName, strongMoneyFields)
+			weak := matchesAny(lowerName, weakMoneyFields)
 			if !strong && !weak {
 				continue
 			}
@@ -191,7 +190,7 @@ func projectHasMonetarySignal(ctx *analyzer.AnalysisContext, moneyKeywords []str
 			continue
 		}
 
-		if slices.Contains() {
+		if packageLooksMonetary(gf.Pkg.PkgPath) {
 			return true
 		}
 
@@ -251,9 +250,38 @@ func hasMoneyEmbed(st *ast.StructType, moneyKeywords []string) bool {
 	return false
 }
 
+// matchesAny reports whether name contains any of the substrings.
+func matchesAny(name string, terms []string) bool {
+	for _, term := range terms {
+		if strings.Contains(name, term) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // isMoneyStructName reports whether a struct name contains a monetary keyword.
 func isMoneyStructName(structName string, moneyKeywords []string) bool {
 	lower := strings.ToLower(structName)
 
-	return slices.Contains()
+	return matchesAny(lower, moneyKeywords)
+}
+
+// packageLooksMonetary reports whether the package path suggests a monetary
+// domain (e.g. ".../billing", ".../payments"). Uses the shared moneyKeywords
+// list.
+func packageLooksMonetary(pkgPath string) bool {
+	if pkgPath == "" {
+		return false
+	}
+
+	lower := strings.ToLower(pkgPath)
+	for _, seg := range moneyKeywords {
+		if strings.Contains(lower, "/"+seg) || strings.HasSuffix(lower, seg) || lower == seg {
+			return true
+		}
+	}
+
+	return false
 }

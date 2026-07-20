@@ -114,11 +114,6 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					st, ok := ts.Type.(*ast.StructType)
-					if !ok {
-						return true
-					}
-
 					if !strings.HasSuffix(ts.Name.Name, "Query") {
 						return true
 					}

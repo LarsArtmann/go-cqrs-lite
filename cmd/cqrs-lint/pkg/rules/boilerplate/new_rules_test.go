@@ -135,6 +135,52 @@ func setup(d *Dispatcher) {
 	assertRule(t, findings, "B007", 0)
 }
 
+// B007 must NOT fire on third-party Register calls whose method name collides
+// with CQRS but serves a different purpose. huma.Register is a generic HTTP
+// route registration; collecting routes into a table would erase Huma's type
+// safety. Regression for the browser-history false positive (12 huma.Register
+// calls flagged). The denylist also covers http, mux, chi, gin, echo, fiber,
+// and grpc.
+
+func TestB007_NoFindingForHumaRegister(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"routes.go": `package main
+
+func registerRoutes(api huma.API) {
+	huma.Register(api, op1, s.health)
+	huma.Register(api, op2, s.extract)
+	huma.Register(api, op3, s.create)
+	huma.Register(api, op4, s.list)
+	huma.Register(api, op5, s.get)
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB007Detector(ctx))
+	assertRule(t, findings, "B007", 0)
+}
+
+// B007 counts CQRS registrations qualified by a variable (the idiomatic
+// pattern) even when third-party Register calls are interleaved in the same
+// function body. The denylist filters per-call, not per-function.
+
+func TestB007_CountsCQRSButSkipsHumaInSameFunction(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup(d *Dispatcher, api huma.API) {
+	d.Register("cmd1", h1)
+	d.Register("cmd2", h2)
+	d.Register("cmd3", h3)
+	huma.Register(api, op1, s.health)
+	huma.Register(api, op2, s.extract)
+	huma.Register(api, op3, s.create)
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB007Detector(ctx))
+	assertRule(t, findings, "B007", 1)
+}
+
 // --- B008: Manual retry ---
 
 func TestB008_DetectsManualRetry(t *testing.T) {
@@ -414,6 +460,80 @@ func fold(state int, event event.Event) (int, error) {
 	default:
 		return state, nil
 	}
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB005Detector(ctx))
+	assertRule(t, findings, "B005", 1)
+}
+
+// B005 must NOT fire when the fold function is already wrapped in
+// decider.StrictApply — the suggestion is already implemented. The detector
+// matches the fold by the trailing identifier of its name, so both bare
+// (foldCounter) and method-qualified ((d).foldCounter) names are suppressed.
+// Regression for the browser-history latent gap (B005 fires after adopting
+// StrictApply because the detector has no suppression logic).
+
+func TestB005_NoFindingWhenFoldIsWrappedInStrictApply(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"fold.go": `package main
+
+func foldCounter(state int, event event.Event) (int, error) {
+	switch event.Type() {
+	case "incremented":
+		return state + 1, nil
+	default:
+		return state, nil
+	}
+}
+`,
+		"decider.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/decider"
+
+var CounterDecider = decider.Decider[int]{
+	Initial: 0,
+	Apply:   decider.StrictApply(foldCounter, []event.Type{"incremented"}),
+}
+`,
+	})
+	findings := runDetector(t, boilerplate.NewB005Detector(ctx))
+	assertRule(t, findings, "B005", 0)
+}
+
+// B005 must still fire for a fold that is NOT wrapped in StrictApply even when
+// another fold in the same package IS wrapped. Guards against over-broad
+// suppression.
+
+func TestB005_FiresForUnwrappedFoldWhenAnotherFoldIsWrapped(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"fold.go": `package main
+
+func foldCounter(state int, event event.Event) (int, error) {
+	switch event.Type() {
+	case "incremented":
+		return state + 1, nil
+	default:
+		return state, nil
+	}
+}
+
+func foldUnwrapped(state int, event event.Event) (int, error) {
+	switch event.Type() {
+	case "other":
+		return state + 1, nil
+	default:
+		return state, nil
+	}
+}
+`,
+		"decider.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/decider"
+
+var CounterDecider = decider.Decider[int]{
+	Initial: 0,
+	Apply:   decider.StrictApply(foldCounter, []event.Type{"incremented"}),
 }
 `,
 	})

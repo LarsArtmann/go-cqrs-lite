@@ -54,6 +54,13 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // B005: Fold switch boilerplate.
 // Detects fold functions with large switch statements that could use a dispatch map.
+//
+// Suppression: if the fold function is already wrapped in a
+// decider.StrictApply call (tracked in Registry.StrictApplyFolds), the
+// suggestion is already implemented and the finding is suppressed. The fold
+// is matched by the last identifier segment of its FuncName, so a method
+// receiver or package qualifier does not prevent suppression. See
+// browser-history feedback (B005 latent gap).
 func NewB005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B005-fold-switch-boilerplate",
@@ -62,6 +69,11 @@ func NewB005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for _, fold := range ctx.Registry.Folds {
 				if !fold.HasSwitch {
+					continue
+				}
+
+				if ctx.Registry.StrictApplyFolds[fold.FuncName] ||
+					ctx.Registry.StrictApplyFolds[lastSegmentOfFoldName(fold.FuncName)] {
 					continue
 				}
 
@@ -196,4 +208,18 @@ func NewB008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// lastSegmentOfFoldName returns the trailing identifier of a fold FuncName as
+// produced by analyzer.funcName. FuncName for a method is "(Recv).name"; for a
+// package-qualified call it is collapsed by ExprString. We split on the last
+// "." to get the trailing identifier, so StrictApplyFolds (which stores the
+// trailing identifier of the decider.StrictApply arg) matches regardless of
+// how the fold was named.
+func lastSegmentOfFoldName(name string) string {
+	if i := strings.LastIndex(name, "."); i >= 0 {
+		return name[i+1:]
+	}
+
+	return name
 }

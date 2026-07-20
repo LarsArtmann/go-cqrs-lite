@@ -96,6 +96,24 @@ func NewB006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // Handle, Subscribe) ONLY. It does NOT fire on stdlib http.ServeMux.HandleFunc
 // chains — Go 1.22+ pattern routing with per-route middleware is idiomatic and
 // not a boilerplate smell. See the DiscordSync feedback (B007 was a non-issue).
+//
+// To avoid false positives on third-party frameworks whose API collides with
+// CQRS naming (e.g. huma.Register, grpc.Server.Register), a denylist of
+// non-CQRS package qualifiers is consulted. Registration calls qualified by a
+// denylisted package are not counted. Variable qualifiers (d.Register,
+// cmdDisp.Register) are always counted — they are the idiomatic CQRS pattern.
+// See the browser-history feedback (B007 fired on 12 huma.Register calls).
+var nonCQRSRegisterPackages = map[string]bool{
+	"huma":  true, // Huma v2 HTTP framework: huma.Register[I,O,Body]
+	"http":  true, // net/http
+	"mux":   true, // gorilla/mux
+	"chi":   true, // go-chi/chi
+	"gin":   true, // gin-gonic/gin
+	"echo":  true, // labstack/echo
+	"fiber": true, // gofiber/fiber
+	"grpc":  true, // grpc-go Server.Register (proto service registration)
+}
+
 func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B007-repeated-handler-registration",
@@ -147,6 +165,14 @@ func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						if sel.Sel.Name == "Register" || sel.Sel.Name == "RegisterTyped" ||
 							sel.Sel.Name == "Handle" || sel.Sel.Name == "Subscribe" {
+							// Skip third-party Register APIs (huma, grpc, etc.) whose
+							// method name collides with CQRS but serves a different
+							// purpose. Variable qualifiers (d, cmdDisp) are never
+							// denylisted — they are the idiomatic CQRS pattern.
+							if nonCQRSRegisterPackages[analyzer.SelectorPackage(sel)] {
+								continue
+							}
+
 							if registerCount == 0 {
 								firstPos = ctx.Fset.Position(call.Pos())
 							}

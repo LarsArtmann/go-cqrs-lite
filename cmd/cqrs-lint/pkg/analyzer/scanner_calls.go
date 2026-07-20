@@ -45,7 +45,24 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 	case funcName == "RegisterTyped" || funcName == "RegisterQuery":
 		if handlerType := handlerTypeFromCall(call); handlerType != "" {
 			ctx.Registry.CommandTypesRegistered[handlerType] = true
+		} else {
+			// Handler type could not be extracted (e.g. method value
+			// `NewHandler(rm).Handle`). Record the type-constant arg so it
+			// can be resolved to a struct name in a post-pass. The type
+			// constant is conventionally the SECOND argument (after the
+			// dispatcher): RegisterTyped(disp, typeConst, handler).
+			recordTypeConstArg(ctx, call, 1)
 		}
+
+	case funcName == "Register" && pkgName != "event":
+		// Plain dispatcher.Register(typeConst, handler) — the string-type-based
+		// command registration API. The handler type is not visible in the call
+		// (it lives inside the handler body), so record the type-constant arg
+		// for post-pass resolution. pkgName != "event" excludes event bus
+		// Subscribe-style calls that happen to be named "Register" — though
+		// such collisions are rare, the guard is cheap. See browser-history
+		// feedback (E005 false positives on dispatcher.Register).
+		recordTypeConstArg(ctx, call, 0)
 
 	case funcName == "Event" && pkgName == "catalog":
 		if len(call.Args) > 0 {
@@ -59,6 +76,15 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 
 	case funcName == "Subscribe":
 		scanProjectionSubscription(ctx, gf, call)
+
+	case funcName == "StrictApply" && pkgName == "decider":
+		// decider.StrictApply(foldFunc, knownTypes) — record the fold function
+		// name so B005 can suppress its "use decider.StrictApply" suggestion
+		// when the suggestion is already implemented. See browser-history
+		// feedback (B005 latent gap).
+		if name := foldNameFromStrictApplyArg(call); name != "" {
+			ctx.Registry.StrictApplyFolds[name] = true
+		}
 	}
 }
 
@@ -203,6 +229,67 @@ func extractHandlerFuncLit(expr ast.Expr) *ast.FuncLit {
 	}
 
 	return nil
+}
+
+// recordTypeConstArg records a type-constant argument for post-pass resolution.
+// The argument may be a bare identifier (GetVisitQueryType) or a selector
+// expression (projection.GetVisitQueryType); only the final identifier is
+// recorded, since const declarations are package-scoped and cross-package
+// matching by bare name is sufficient for suppression (a collision would only
+// cause a false negative — a suppressed finding — which is acceptable). No-op
+// for composite literals, closures, and constructor calls — those are handled
+// directly by handlerTypeFromCall.
+func recordTypeConstArg(ctx *AnalysisContext, call *ast.CallExpr, argIndex int) {
+	if argIndex < 0 || argIndex >= len(call.Args) {
+		return
+	}
+
+	name := constNameFromExpr(call.Args[argIndex])
+	if name != "" {
+		ctx.Registry.registeredTypeConsts = append(ctx.Registry.registeredTypeConsts, name)
+	}
+}
+
+// constNameFromExpr extracts a bare constant identifier name from an argument
+// expression. Returns "" for expressions that are not simple constant references
+// (composite literals, closures, constructor calls, string literals).
+func constNameFromExpr(expr ast.Expr) string {
+	switch e := expr.(type) {
+	case *ast.Ident:
+		// Bare constant: GetVisitQueryType
+		return e.Name
+	case *ast.SelectorExpr:
+		// Package-qualified constant: projection.GetVisitQueryType
+		return e.Sel.Name
+	}
+
+	return ""
+}
+
+// foldNameFromStrictApplyArg extracts the fold function name from the first
+// argument of a decider.StrictApply call. The fold arg may be a bare function
+// identifier (Fold) or a method value (aggregate.Fold, h.Fold). Returns the
+// last identifier segment so it matches FoldInfo.FuncName's last segment
+// regardless of receiver/package qualification.
+func foldNameFromStrictApplyArg(call *ast.CallExpr) string {
+	if len(call.Args) == 0 {
+		return ""
+	}
+
+	return lastIdentSegment(call.Args[0])
+}
+
+// lastIdentSegment returns the trailing identifier of an expression: the Sel
+// name for a SelectorExpr (a.b.Fold → Fold), the Name for an Ident, or "".
+func lastIdentSegment(expr ast.Expr) string {
+	switch e := expr.(type) {
+	case *ast.Ident:
+		return e.Name
+	case *ast.SelectorExpr:
+		return e.Sel.Name
+	}
+
+	return ""
 }
 
 // hasAsyncInBody checks if a function body contains a go statement (goroutine launch).

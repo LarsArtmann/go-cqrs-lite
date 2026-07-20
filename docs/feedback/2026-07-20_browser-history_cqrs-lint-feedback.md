@@ -391,3 +391,32 @@ also include domain-specific validation that a generator can't express.
 2. **B007**: Filter by package qualifier — `huma.Register` is not CQRS registration.
 3. **B005**: Detect `decider.StrictApply` wrapping — don't suggest a fix that's
    already applied.
+
+---
+
+## Resolution Log (2026-07-20)
+
+All three detector bugs reported in Part 2 were fixed in `cmd/cqrs-lint`.
+The build was also unblocked (c008.go and e003_e007.go were left in a
+non-compiling WIP state by a prior commit, blocking all verification).
+
+| Bug | Finding(s)  | Status   | Detail                                                                                                                                                                                                                                                                                                                                                                                                          |
+| --- | ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | E005 ×3     | **DONE** | `scanCallExpr` now has a `funcName == "Register"` branch. Type-constant args (bare `*ast.Ident` or `*ast.SelectorExpr`) are recorded and resolved to struct names via const-decl cross-referencing (`ResolveRegisteredTypeConsts` post-pass). The const value is matched against command struct names, suppressing E005. Regression tests: `TestE005_NoFindingWhenRegisteredViaDispatcherRegisterAndTypeConst`. |
+| 2   | E007 ×6     | **DONE** | `handlerTypeFromCall` is unchanged for closures (already worked), but the unresolved-method-value path now records the type-constant arg (arg[1] of `RegisterTyped`) for the same post-pass resolution. Regression tests: `TestE007_NoFindingWhenRegisteredViaTypeConstAndMethodValue`, `TestE007_FiresWhenTypeConstExistsButIsNeverRegistered` (guards against over-broad suppression).                        |
+| 3   | B007 ×1     | **DONE** | `nonCQRSRegisterPackages` denylist (`huma`, `http`, `mux`, `chi`, `gin`, `echo`, `fiber`, `grpc`) consulted via `analyzer.SelectorPackage(sel)`. Variable qualifiers (`d`, `cmdDisp`) are never denied — the idiomatic CQRS pattern. Regression tests: `TestB007_NoFindingForHumaRegister`, `TestB007_CountsCQRSButSkipsHumaInSameFunction`.                                                                    |
+| 4   | B005 latent | **DONE** | `StrictApplyFolds` registry set populated by scanning `decider.StrictApply(foldName, ...)` calls. B005 suppresses folds whose `FuncName` (or its trailing identifier segment, to handle method receivers) is in the set. Regression tests: `TestB005_NoFindingWhenFoldIsWrappedInStrictApply`, `TestB005_FiresForUnwrappedFoldWhenAnotherFoldIsWrapped`.                                                        |
+
+**Scope of E005/E007 fix**: the const-resolution path handles the idiomatic
+`const X query.Type = "StructName"` pattern (browser-history). Consumers using
+event-style const values (`"task.create"`) with **closures** are already
+handled by `handlerTypeFromCall` (taskmanager). The narrow gap — method-value
+handler + non-struct-name const value — is documented as a known limitation
+in `ResolveRegisteredTypeConsts`; it produces a false positive, which is the
+pre-fix behavior and not a regression.
+
+**Verification**: full `cmd/cqrs-lint` test suite passes including 8 new
+regression tests; `go test -race ./pkg/...` clean; `go build ./...` clean.
+
+**Part 1 (4 fixes) and Part 3 (3 intentional deviations)** require no upstream
+action — they were applied or declined in the consumer's repo.

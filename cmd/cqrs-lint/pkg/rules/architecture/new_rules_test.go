@@ -176,6 +176,45 @@ func (f *idFlag[T]) Set(s string) error { return nil }
 	assertRule(t, findings, "E005", 0)
 }
 
+// E005 must NOT fire when a command is registered via plain dispatcher.Register
+// (the string-type-based API) with a command.Type constant and a method value.
+// The command struct name is resolved by cross-referencing the const declaration.
+// Regression for the browser-history false positives (3 E005 findings on
+// ExtractVisitCommand, ClassifyURLCommand, DeleteVisitCommand).
+
+func TestE005_NoFindingWhenRegisteredViaDispatcherRegisterAndTypeConst(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"commands.go": `package main
+
+type ExtractVisitCommand struct {
+	*command.BasicCommand
+	UserID string
+}
+
+type DeleteVisitCommand struct {
+	*command.BasicCommand
+	VisitID string
+}
+`,
+		"consts.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/command/v4"
+
+const CommandExtractHistory command.Type = "ExtractVisitCommand"
+const CommandDeleteVisit command.Type = "DeleteVisitCommand"
+`,
+		"register.go": `package main
+
+func register(cmdDisp *dispatcher) {
+	cmdDisp.Register(aggregate.CommandExtractHistory, extractHandler.Handle)
+	cmdDisp.Register(aggregate.CommandDeleteVisit, deleteHandler.Handle)
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE005Detector(ctx))
+	assertRule(t, findings, "E005", 0)
+}
+
 // --- E006: Event without projection ---
 
 func TestE006_NoFindingOnEmptyRegistry(t *testing.T) {
@@ -289,4 +328,64 @@ func register() {
 	})
 	findings := runDetector(t, architecture.NewE007Detector(ctx))
 	assertRule(t, findings, "E007", 0)
+}
+
+// E007 must NOT fire when a query is registered via RegisterTyped with a
+// type constant (SelectorExpr) and a method value (SelectorExpr). The handler
+// type cannot be extracted from the call args directly, but the type constant
+// resolves to the query struct name via a const declaration cross-reference.
+// Regression for the browser-history false positives (6 E007 findings).
+
+func TestE007_NoFindingWhenRegisteredViaTypeConstAndMethodValue(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"queries.go": `package main
+
+type GetVisitQuery struct {
+	ID string
+}
+
+type ListVisitsQuery struct {
+	Limit int
+}
+`,
+		"consts.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/query/v4"
+
+const GetVisitQueryType query.Type = "GetVisitQuery"
+const ListVisitsQueryType query.Type = "ListVisitsQuery"
+`,
+		"register.go": `package main
+
+func register(disp *queryDispatcher) {
+	query.RegisterTyped(disp, projection.GetVisitQueryType, projection.NewGetVisitHandler(rm).Handle)
+	query.RegisterTyped(disp, projection.ListVisitsQueryType, projection.NewListVisitsHandler(rm).Handle)
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE007Detector(ctx))
+	assertRule(t, findings, "E007", 0)
+}
+
+// E007 must fire when a type constant is NOT registered: the const declaration
+// exists but no Register/RegisterTyped call references it. This guards against
+// the suppression becoming too broad.
+
+func TestE007_FiresWhenTypeConstExistsButIsNeverRegistered(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"queries.go": `package main
+
+type GetUserQuery struct {
+	ID string
+}
+`,
+		"consts.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/query/v4"
+
+const GetUserQueryType query.Type = "GetUserQuery"
+`,
+	})
+	findings := runDetector(t, architecture.NewE007Detector(ctx))
+	assertRule(t, findings, "E007", 1)
 }

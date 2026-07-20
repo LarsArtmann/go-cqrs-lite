@@ -17,6 +17,30 @@ type CQRSRegistry struct {
 	CommandTypesRegistered map[string]bool
 	// EventPayloadTypes tracks struct type names used as payload args to event.New().
 	EventPayloadTypes map[string]bool
+
+	// TypeConstValues maps a command.Type/query.Type constant name to its
+	// string value, e.g. "GetVisitQueryType" → "GetVisitQuery". Populated by
+	// scanning const declarations whose type is command.Type or query.Type.
+	// Used to resolve type-constant arguments passed to Register/RegisterTyped
+	// when the handler type cannot be extracted directly (method values, bare
+	// identifiers). See browser-history feedback (E005/E007 false positives).
+	TypeConstValues map[string]string
+
+	// registeredTypeConsts records const names (bare identifier or selector's
+	// Sel.Name) passed to Register/RegisterTyped whose target struct could not
+	// be resolved at the call site. Resolved against TypeConstValues in a
+	// post-pass after all files are scanned (the const decl may be in another
+	// file/package).
+	registeredTypeConsts []string
+
+	// StrictApplyFolds records the set of fold function names that have been
+	// wrapped in a decider.StrictApply call. B005 consults this to suppress the
+	// "use decider.StrictApply" suggestion when it has already been adopted.
+	// Keys are matched by the LAST identifier segment of the function name
+	// (e.g. "foldCounter" for "(Decider).foldCounter" and bare "foldCounter"),
+	// so that the fold's FuncName and the StrictApply arg resolve to the same
+	// key regardless of qualification. See browser-history feedback (B005).
+	StrictApplyFolds map[string]bool
 }
 
 // NewCQRSRegistry creates an empty registry.
@@ -26,6 +50,8 @@ func NewCQRSRegistry() *CQRSRegistry {
 		EventTypesInCatalog:    make(map[string]bool),
 		CommandTypesRegistered: make(map[string]bool),
 		EventPayloadTypes:      make(map[string]bool),
+		TypeConstValues:        make(map[string]string),
+		StrictApplyFolds:       make(map[string]bool),
 	}
 }
 
