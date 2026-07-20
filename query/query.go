@@ -49,13 +49,13 @@ type Metadata struct {
 
 // NewMetadata creates a Metadata with zero-value fields.
 // The Custom map is lazily initialized on first write via EnsureCustom.
-func NewMetadata() Metadata {
-	var m Metadata
-
-	return m
-}
+func NewMetadata() Metadata { return Metadata{} }
 
 // Clone returns a deep copy of the metadata.
+//
+// This wrapper exists because Go has no covariant return types: the embedded
+// CustomData.Clone returns CustomData[MetadataKey], not query.Metadata.
+// The same boilerplate appears in command/metadata.go — see ADR-0031.
 func (m Metadata) Clone() Metadata {
 	return Metadata{CustomData: m.CustomData.Clone()}
 }

@@ -228,13 +228,17 @@ func FuzzCompareIDs(f *testing.F) {
 // FuzzParse_TypeSafety ensures Parse returns errors for invalid ULID strings
 // regardless of the brand type.
 func FuzzParse_TypeSafety(f *testing.F) {
-	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W")
-	f.Add("")
-	f.Add("not-a-ulid")
-	f.Add("ZZZZZZZZZZZZZZZZZZZZZZZZZZ")
-	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V")      // truncated
-	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W!!!") // extra bytes
-	f.Add("01h4s2z4qx8n1p5k3m7r9t0v2w")    // lowercase
+	for _, s := range []string{
+		"01H4S2Z4QX8N1P5K3M7R9T0V2W",
+		"",
+		"not-a-ulid",
+		"ZZZZZZZZZZZZZZZZZZZZZZZZZZ",
+		"01H4S2Z4QX8N1P5K3M7R9T0V",      // truncated
+		"01H4S2Z4QX8N1P5K3M7R9T0V2W!!!", // extra bytes
+		"01h4s2z4qx8n1p5k3m7r9t0v2w",    // lowercase
+	} {
+		f.Add(s)
+	}
 
 	f.Fuzz(func(t *testing.T, input string) {
 		// Parse for both AggregateID (strict ULID) and AggregateID (string)

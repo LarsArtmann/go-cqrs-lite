@@ -1,17 +1,23 @@
 package postgres
 
 import (
-	"database/sql"
 	"fmt"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // ErrNoDatabase is returned when the Bundle was not created by an SQL preset
 // and therefore has no *sql.DB handle for SQLViewModel.
+//
+// Retained as a package-level sentinel for API compatibility: callers using
+// errors.Is(err, postgres.ErrNoDatabase) still match because errorfamily.Rejection
+// compares error code + family, not pointer identity. The actual error is now
+// constructed inside [sqlopt.SQLViewModel].
 var ErrNoDatabase = errorfamily.NewRejection("postgres.no_database",
 	"postgres preset: bundle has no SQL database handle")
 
@@ -30,16 +36,5 @@ func SQLViewModel[V any, K fmt.Stringer](
 	b *stack.Bundle,
 	mapper storage.ViewMapper[V],
 ) (*storage.SQLViewStore[V, K], error) {
-	db, ok := b.Database().(*sql.DB)
-	if !ok || db == nil {
-		return nil, ErrNoDatabase
-	}
-
-	store, err := storage.NewSQLViewStore[V, K](db, mapper)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "postgres.create_view_model",
-			"create view model")
-	}
-
-	return store, nil
+	return sqlopt.SQLViewModel[V, K](b, sqlpkg.PostgresDialect{}, mapper, "postgres")
 }

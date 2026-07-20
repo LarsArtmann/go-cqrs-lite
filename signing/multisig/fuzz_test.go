@@ -193,17 +193,19 @@ func FuzzMultiSig_ReplaceActor(f *testing.F) {
 // events with arbitrary (often malformed) JSON in the multi-sig metadata slot.
 // Must always return an error, never panic.
 func FuzzMultiSig_ExtractFromCorruptJSON(f *testing.F) {
-	f.Add("")
-	f.Add("null")
-	f.Add(`{"entries":[]}`)
-	f.Add(`{"entries":[{}]}`)
-	f.Add(`{`)
-	f.Add(`not json at all`)
-	f.Add(`"just a string"`)
-	f.Add(
+	for _, s := range []string{
+		"",
+		"null",
+		`{"entries":[]}`,
+		`{"entries":[{}]}`,
+		`{`,
+		`not json at all`,
+		`"just a string"`,
 		`{"entries":[{"actor":"a","algorithm":"HMAC-SHA256","sig":"AAAA","signedAt":"2024-01-01T00:00:00Z"}]}`,
-	)
-	f.Add(`{"entries":[{"actor":"","algorithm":"","sig":"","signedAt":""}]}`)
+		`{"entries":[{"actor":"","algorithm":"","sig":"","signedAt":""}]}`,
+	} {
+		f.Add(s)
+	}
 
 	f.Fuzz(func(t *testing.T, jsonValue string) {
 		evt, err := event.NewEvent(

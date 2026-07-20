@@ -11,13 +11,17 @@ import (
 )
 
 func FuzzJSONCodec_Roundtrip(f *testing.F) {
-	f.Add(`{"name":"Alice","age":30}`)
-	f.Add(`{}`)
-	f.Add(`null`)
-	f.Add(`[]`)
-	f.Add(`"hello"`)
-	f.Add(`42`)
-	f.Add(`true`)
+	for _, s := range []string{
+		`{"name":"Alice","age":30}`,
+		`{}`,
+		`null`,
+		`[]`,
+		`"hello"`,
+		`42`,
+		`true`,
+	} {
+		f.Add(s)
+	}
 
 	f.Fuzz(func(t *testing.T, input string) {
 		if !utf8.ValidString(input) {

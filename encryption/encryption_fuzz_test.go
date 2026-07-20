@@ -169,13 +169,17 @@ func FuzzAttachExtractCiphertext(f *testing.F) {
 // values. The function must always return either nil error or a Rejection
 // for unknown algorithms — never panic.
 func FuzzExtractAlgorithm(f *testing.F) {
-	f.Add("")
-	f.Add("aes-256-gcm")
-	f.Add("xchacha20-poly1305")
-	f.Add("totally-fake-cipher")
-	f.Add("AES-256-GCM")
-	f.Add("'a'")
-	f.Add("🚫")
+	for _, s := range []string{
+		"",
+		"aes-256-gcm",
+		"xchacha20-poly1305",
+		"totally-fake-cipher",
+		"AES-256-GCM",
+		"'a'",
+		"🚫",
+	} {
+		f.Add(s)
+	}
 
 	f.Fuzz(func(t *testing.T, algValue string) {
 		evt, ok := fuzzEvent(t, "evt", "A", 1, 1, nil)

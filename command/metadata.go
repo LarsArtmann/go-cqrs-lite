@@ -24,13 +24,15 @@ type Metadata struct {
 
 // NewMetadata creates a Metadata with zero-value fields.
 // The Custom map is lazily initialized on first write via EnsureCustom.
-func NewMetadata() Metadata {
-	var m Metadata
-
-	return m
-}
+func NewMetadata() Metadata { return Metadata{} }
 
 // Clone returns a deep copy of the metadata.
+//
+// This wrapper exists because Go has no covariant return types: the embedded
+// CustomData.Clone returns CustomData[MetadataKey], not command.Metadata.
+// The same boilerplate appears in query/query.go — see ADR-0031. Extracting
+// to a generic helper would require more callback parameters than these
+// one-line wrappers save, so the duplication is intentional.
 func (m Metadata) Clone() Metadata {
 	return Metadata{CustomData: m.CustomData.Clone()}
 }
@@ -38,6 +40,8 @@ func (m Metadata) Clone() Metadata {
 // Merge returns a new Metadata with non-zero tracing fields and all Custom
 // entries from other overlaid onto m. Useful for middleware that enriches
 // command metadata (e.g. correlation ID from context).
+//
+// Same Go no-covariant-returns constraint as Clone — see comment above.
 func (m Metadata) Merge(other Metadata) Metadata {
 	return Metadata{CustomData: m.CustomData.Merge(other.CustomData)}
 }

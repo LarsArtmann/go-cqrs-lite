@@ -297,13 +297,17 @@ func FuzzEd25519_TamperReject(f *testing.F) {
 // inputs. Both standard and URL-safe base64 should decode where possible;
 // malformed input must produce errors, never panic.
 func FuzzSignature_UnmarshalJSON(f *testing.F) {
-	f.Add(`"hello"`)
-	f.Add(`""`)
-	f.Add(`null`)
-	f.Add(`123`)
-	f.Add(`"!!!"`)
-	f.Add(`"AAAAAAAAAAAAAAAAAAAAAA=="`) // valid URL-safe base64
-	f.Add(`"AAAA"`)
+	for _, s := range []string{
+		`"hello"`,
+		`""`,
+		`null`,
+		`123`,
+		`"!!!"`,
+		`"AAAAAAAAAAAAAAAAAAAAAA=="`, // valid URL-safe base64
+		`"AAAA"`,
+	} {
+		f.Add(s)
+	}
 
 	f.Fuzz(func(t *testing.T, input string) {
 		var sig signing.Signature
