@@ -48,7 +48,7 @@ func (s *SQLEventStore) LoadByEventID(
 			"query event by ID "+eventID.String())
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	if !rows.Next() {
 		if err := rows.Err(); err != nil {

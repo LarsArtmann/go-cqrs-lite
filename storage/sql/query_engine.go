@@ -104,7 +104,7 @@ func QueryRows[T any](
 		return nil, cfg.WrapError(err, "storage.query_"+cfg.Table,
 			p.ErrMsg+fmt.Sprintf(" (%s=%v, where=%s)", aggType, aggID, p.Where))
 	}
-	defer func() { _ = rows.Close() }()
+	defer CloseRows(rows)
 
 	results, err := cfg.ScanRows(rows)
 	if err != nil {

@@ -71,7 +71,7 @@ func (r *SQLAggregateReader) ListWithStatus(
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "listing.sql_list", "listing sql list")
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	items, err := scanAggregateStatuses(rows)
 	if err != nil {

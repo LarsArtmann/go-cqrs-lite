@@ -8,6 +8,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // Query runs a filtered, ordered, paginated query. See [kv.ViewQuery] for
@@ -100,7 +101,7 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 		return nil, errorfamily.WrapTransient(err, "storage.view.query", "query view records")
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	return s.scanRows(rows)
 }

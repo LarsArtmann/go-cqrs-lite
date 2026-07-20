@@ -42,7 +42,7 @@ func (s *SQLQueryStore) LoadQueries(
 		return nil, errorfamily.WrapInfrastructure(err, "storage.query_queries",
 			"query queries after timestamp")
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	queries, scanErr := s.scanQueries(rows)
 	if scanErr != nil {
@@ -80,7 +80,7 @@ func (s *SQLQueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQ
 			"query all queries",
 		)
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	queries, scanErr := s.scanQueries(rows)
 	if scanErr != nil {
@@ -134,7 +134,7 @@ func (s *SQLQueryStore) ReadQueriesFrom(
 		ORDER BY e.received_at ASC, e.id ASC`,
 		p1, p2,
 	)
-	args := []any{afterRequestID.String(), afterRequestID.String()}
+	args := sqlpkg.CursorArgs(afterRequestID.String())
 	if limit > 0 {
 		sqlText += " LIMIT " + p3
 		args = append(args, limit)
@@ -146,7 +146,7 @@ func (s *SQLQueryStore) ReadQueriesFrom(
 		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_position",
 			fmt.Sprintf("query queries from position (limit=%d)", limit))
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	queries, scanErr := s.scanQueries(rows)
 	if scanErr != nil {
@@ -176,7 +176,7 @@ func (s *SQLQueryStore) loadQueriesFromStart(
 		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_start",
 			fmt.Sprintf("query queries from start (limit=%d)", limit))
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	return s.scanQueries(rows)
 }

@@ -195,7 +195,7 @@ func (s *RelationalStore) Query(
 			"query "+table)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	for rows.Next() {
 		if err := scanFn(rows.Scan); err != nil {

@@ -39,7 +39,7 @@ func (s *SQLCommandStore) ReadAll(ctx context.Context) ([]*command.PersistedComm
 			"query all commands",
 		)
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	cmds, scanErr := s.scanCommands(rows)
 	if scanErr != nil {
@@ -95,7 +95,7 @@ func (s *SQLCommandStore) ReadFrom(
 		p1,
 		p2,
 	)
-	args := []any{afterCommandID.String(), afterCommandID.String()}
+	args := sqlpkg.CursorArgs(afterCommandID.String())
 	if limit > 0 {
 		query += " LIMIT " + p3
 		args = append(args, limit)
@@ -107,7 +107,7 @@ func (s *SQLCommandStore) ReadFrom(
 		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_position",
 			fmt.Sprintf("query commands from position (limit=%d)", limit))
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	cmds, scanErr := s.scanCommands(rows)
 	if scanErr != nil {
@@ -137,7 +137,7 @@ func (s *SQLCommandStore) loadCommandsFromStart(
 		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_start",
 			fmt.Sprintf("query commands from start (limit=%d)", limit))
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	return s.scanCommands(rows)
 }

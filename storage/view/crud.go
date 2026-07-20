@@ -10,6 +10,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // Get retrieves the record for key. Returns [kv.ErrNotFound] if no row exists.
@@ -116,7 +117,7 @@ func (s *SQLViewStore[V, K]) Scan(ctx context.Context, prefix []byte) ([]*V, err
 		return nil, errorfamily.WrapTransient(err, "storage.view.scan", "scan records")
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	return s.scanRows(rows)
 }

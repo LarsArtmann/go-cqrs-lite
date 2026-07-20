@@ -24,6 +24,19 @@ func SQLiteSchema() string {
 	return sqlite.EventSchema()
 }
 
+// CloseRows closes *sql.Rows, suppressing the always-nil error. Intended for
+// use with defer: `defer sqlpkg.CloseRows(rows)`. Replaces the verbose
+// `defer func() { _ = rows.Close() }()` idiom.
+func CloseRows(rows *sql.Rows) {
+	_ = rows.Close()
+}
+
+// CursorArgs builds the args slice for composite-cursor pagination, where the
+// same cursor ID fills two placeholders (a self-JOIN key and a WHERE bound).
+func CursorArgs(cursorID string) []any {
+	return []any{cursorID, cursorID}
+}
+
 // ScanSlice is a generic helper that deduplicates event scanning.
 func ScanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error) {
 	result := make([]T, 0, 64)

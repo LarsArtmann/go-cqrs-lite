@@ -34,9 +34,7 @@ type CommandBus struct {
 	allHandlers   []command.Handler
 	typeHandlers  map[command.Type][]command.Handler
 
-	subCtx     context.Context //nolint:containedctx // lifecycle context; created from context.Background(), cancelled on Close
-	subCancel  context.CancelFunc
-	subStarted bool
+	subscriptionState
 }
 
 var (
@@ -124,12 +122,7 @@ func (b *CommandBus) SubscribeAll(handler command.Handler) error {
 
 // Use adds middleware that wraps all command handlers.
 func (b *CommandBus) Use(mw ...command.Middleware) error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	b.middleware = append(b.middleware, mw...)
-	b.rebuildHandlerChain()
-
+	appendMiddleware(&b.mu, &b.middleware, mw, b.rebuildHandlerChain)
 	return nil
 }
 
@@ -144,9 +137,7 @@ func (b *CommandBus) Close() error {
 
 	b.closed = true
 
-	if b.subCancel != nil {
-		b.subCancel()
-	}
+	b.subscriptionState.shutdown()
 
 	if b.backend != nil {
 		return b.backend.Close()

@@ -116,7 +116,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 		return nil, errorfamily.WrapInfrastructure(err, "storage.due_timers",
 			"query due timers")
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 
 	var due []scheduling.Timer[P]
 
@@ -170,9 +170,15 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 	return due, nil
 }
 
-// MarkFired removes a timer after it has been dispatched.
-func (s *SQLTimerStore[P]) MarkFired(ctx context.Context, id scheduling.TimerID) error {
-	ctx, span := s.startSpan(ctx, "timer.mark_fired", id)
+// deleteTimer is the shared implementation for MarkFired and Cancel: both
+// execute the same DELETE query, differing only in span/error names so callers
+// can distinguish the operation in traces and error reports.
+func (s *SQLTimerStore[P]) deleteTimer(
+	ctx context.Context,
+	id scheduling.TimerID,
+	spanName, errCode string,
+) error {
+	ctx, span := s.startSpan(ctx, spanName, id)
 	defer span.End()
 
 	query := "DELETE FROM timers WHERE id = " + s.Dialect.Placeholder(1)
@@ -180,28 +186,20 @@ func (s *SQLTimerStore[P]) MarkFired(ctx context.Context, id scheduling.TimerID)
 	if _, err := s.DB.ExecContext(ctx, query, id); err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return errorfamily.WrapInfrastructure(err, "storage.mark_timer_fired",
-			"delete timer "+id)
+		return errorfamily.WrapInfrastructure(err, errCode, "delete timer "+id)
 	}
 
 	return nil
 }
 
+// MarkFired removes a timer after it has been dispatched.
+func (s *SQLTimerStore[P]) MarkFired(ctx context.Context, id scheduling.TimerID) error {
+	return s.deleteTimer(ctx, id, "timer.mark_fired", "storage.mark_timer_fired")
+}
+
 // Cancel removes a timer before it fires.
 func (s *SQLTimerStore[P]) Cancel(ctx context.Context, id scheduling.TimerID) error {
-	ctx, span := s.startSpan(ctx, "timer.cancel", id)
-	defer span.End()
-
-	query := "DELETE FROM timers WHERE id = " + s.Dialect.Placeholder(1)
-
-	if _, err := s.DB.ExecContext(ctx, query, id); err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return errorfamily.WrapInfrastructure(err, "storage.cancel_timer",
-			"delete timer "+id)
-	}
-
-	return nil
+	return s.deleteTimer(ctx, id, "timer.cancel", "storage.cancel_timer")
 }
 
 func (s *SQLTimerStore[P]) startSpan(

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json/v2"
 	"slices"
+	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -157,24 +158,23 @@ func (b *PostgresBus) SubscribeAll(handler event.Handler) error {
 	return nil
 }
 
+// appendMiddleware is the shared Use/UsePublish body: lock, append, rebuild.
+// Uses sync.Locker so it works with both sync.Mutex and sync.RWMutex.
+func appendMiddleware[M any](mu sync.Locker, middleware *[]M, mw []M, rebuild func()) {
+	mu.Lock()
+	defer mu.Unlock()
+	*middleware = append(*middleware, mw...)
+	rebuild()
+}
+
 // Use adds middleware that wraps all event handlers.
 func (b *PostgresBus) Use(mw ...event.Middleware) error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	b.middleware = append(b.middleware, mw...)
-	b.rebuildHandlerChain()
-
+	appendMiddleware(&b.mu, &b.middleware, mw, b.rebuildHandlerChain)
 	return nil
 }
 
 // UsePublish adds middleware that wraps the Publish path.
 func (b *PostgresBus) UsePublish(mw ...event.PublishMiddleware) error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	b.publishMiddleware = append(b.publishMiddleware, mw...)
-	b.rebuildPublisherChain()
-
+	appendMiddleware(&b.mu, &b.publishMiddleware, mw, b.rebuildPublisherChain)
 	return nil
 }

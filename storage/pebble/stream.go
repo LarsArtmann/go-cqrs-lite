@@ -85,22 +85,12 @@ func (it *pebbleEventIterator) Next() (event.Event, error) {
 }
 
 func (it *pebbleEventIterator) Close() error {
-	if it.closed {
-		return nil
-	}
-
-	it.closed = true
-
-	err := it.iter.Close()
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"pebble.stream.close_iterator",
-			"close pebble iterator",
-		)
-	}
-
-	return nil
+	return closeIterator(
+		&it.closed,
+		it.iter,
+		"pebble.stream.close_iterator",
+		"close pebble iterator",
+	)
 }
 
 // newPebbleIterator creates a pebbleEventIterator over the given key range.

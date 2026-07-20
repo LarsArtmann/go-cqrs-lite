@@ -17,6 +17,24 @@ type pebbleIterator struct {
 
 var _ kv.Iterator = (*pebbleIterator)(nil)
 
+// closeIterator is the shared idempotent Close for both pebbleIterator and
+// pebbleEventIterator. Both wrap a *pebble.Iterator, guard against double-close
+// via a *bool flag, and wrap the underlying error with errorfamily — differing
+// only in the error code and message string.
+func closeIterator(closed *bool, iter *pebble.Iterator, errCode, msg string) error {
+	if *closed {
+		return nil
+	}
+
+	*closed = true
+
+	if err := iter.Close(); err != nil {
+		return errorfamily.WrapInfrastructure(err, errCode, msg)
+	}
+
+	return nil
+}
+
 func (it *pebbleIterator) Next() bool {
 	if it.closed {
 		return false
@@ -50,17 +68,5 @@ func (it *pebbleIterator) Error() error {
 }
 
 func (it *pebbleIterator) Close() error {
-	if it.closed {
-		return nil
-	}
-
-	it.closed = true
-
-	err := it.iter.Close()
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "pebble.iterator.close",
-			"close iterator")
-	}
-
-	return nil
+	return closeIterator(&it.closed, it.iter, "pebble.iterator.close", "close iterator")
 }

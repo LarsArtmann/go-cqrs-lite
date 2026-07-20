@@ -35,7 +35,7 @@ func (s *SQLEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 			"query all events",
 		)
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 	events, scanErr := s.scanEvents(rows)
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
@@ -84,7 +84,7 @@ func (s *SQLEventStore) ReadFrom(
 		p1,
 		p2,
 	)
-	args := []any{afterEventID.String(), afterEventID.String()}
+	args := sqlpkg.CursorArgs(afterEventID.String())
 	if limit > 0 {
 		query += " LIMIT " + p3
 		args = append(args, limit)
@@ -95,7 +95,7 @@ func (s *SQLEventStore) ReadFrom(
 		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_position",
 			fmt.Sprintf("query events from position (limit=%d)", limit))
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 	events, scanErr := s.scanEvents(rows)
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
@@ -118,6 +118,6 @@ func (s *SQLEventStore) loadAllFromStart(ctx context.Context, limit int) ([]even
 		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_start",
 			fmt.Sprintf("query events from start (limit=%d)", limit))
 	}
-	defer func() { _ = rows.Close() }()
+	defer sqlpkg.CloseRows(rows)
 	return s.scanEvents(rows)
 }

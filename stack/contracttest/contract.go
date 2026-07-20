@@ -53,16 +53,23 @@ func RunSuite(t *testing.T, factory Factory) {
 	t.Run("CloseIdempotent", func(t *testing.T) { testCloseIdempotent(t, factory) })
 }
 
-func testBundleFields(t *testing.T, factory Factory) {
+// newBundle calls the factory and registers Close as t.Cleanup, reducing
+// boilerplate repeated in every contract subtest.
+func newBundle(t *testing.T, factory Factory) *stack.Bundle {
 	t.Helper()
-	t.Parallel()
-
 	b, err := factory(t)
 	if err != nil {
 		t.Fatalf("factory: %v", err)
 	}
+	t.Cleanup(func() { _ = b.Close() })
+	return b
+}
 
-	defer func() { _ = b.Close() }()
+func testBundleFields(t *testing.T, factory Factory) {
+	t.Helper()
+	t.Parallel()
+
+	b := newBundle(t, factory)
 
 	if b.EventSink == nil {
 		t.Error("EventSink is nil")
@@ -93,12 +100,7 @@ func testEventRoundtrip(t *testing.T, factory Factory) {
 	t.Helper()
 	t.Parallel()
 
-	b, err := factory(t)
-	if err != nil {
-		t.Fatalf("factory: %v", err)
-	}
-
-	defer func() { _ = b.Close() }()
+	b := newBundle(t, factory)
 
 	ctx := context.Background()
 	aggID := id.NewAggregateID()
@@ -143,12 +145,7 @@ func testCommandRoundtrip(t *testing.T, factory Factory) {
 	t.Helper()
 	t.Parallel()
 
-	b, err := factory(t)
-	if err != nil {
-		t.Fatalf("factory: %v", err)
-	}
-
-	defer func() { _ = b.Close() }()
+	b := newBundle(t, factory)
 
 	if b.CommandSink == nil {
 		t.Skip("CommandSink not available")
@@ -183,12 +180,7 @@ func testReadModelRoundtrip(t *testing.T, factory Factory) {
 	t.Helper()
 	t.Parallel()
 
-	b, err := factory(t)
-	if err != nil {
-		t.Fatalf("factory: %v", err)
-	}
-
-	defer func() { _ = b.Close() }()
+	b := newBundle(t, factory)
 
 	store, err := stack.ReadModel[contractView, contractKey](
 		b, codec.JSONCodec{},

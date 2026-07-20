@@ -4,6 +4,8 @@ import (
 	"context"
 	"slices"
 
+	"github.com/ThreeDotsLabs/watermill/message"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 
@@ -50,54 +52,37 @@ func (b *CommandBus) dispatchLocal(ctx context.Context, cmd command.Command) err
 }
 
 func (b *CommandBus) ensureSubscriptionLocked() {
-	if b.subStarted {
-		return
-	}
+	b.ensureStarted(b.subscriber, b.topic, b.logger, b.runCommandLoop)
+}
 
-	b.subCtx, b.subCancel = context.WithCancel(context.Background())
-
-	msgs, err := b.subscriber.Subscribe(b.subCtx, b.topic)
-	if err != nil {
-		b.logger.ErrorContext(b.subCtx, "watermill: subscribe failed",
-			"error", err, "topic", b.topic)
-		b.subCancel()
-		b.subCtx = nil
-		b.subCancel = nil
-
-		return
-	}
-
-	b.subStarted = true
-
-	go func() {
-		for {
-			select {
-			case msg, ok := <-msgs:
-				if !ok {
-					return
-				}
-
-				cmd, decodeErr := MessageToCommand(b.topic, msg)
-				if decodeErr != nil {
-					b.logger.ErrorContext(b.subCtx, "watermill: decode command message failed",
-						"error", decodeErr)
-					msg.Ack()
-
-					continue
-				}
-
-				if dispatchErr := b.dispatchLocal(b.subCtx, cmd); dispatchErr != nil {
-					b.logger.ErrorContext(b.subCtx, "watermill: dispatch command failed",
-						"command_type", cmd.Type(), "error", dispatchErr)
-					msg.Ack()
-
-					continue
-				}
-
-				msg.Ack()
-			case <-b.subCtx.Done():
+func (b *CommandBus) runCommandLoop(ctx context.Context, msgs <-chan *message.Message) {
+	for {
+		select {
+		case msg, ok := <-msgs:
+			if !ok {
 				return
 			}
+
+			cmd, decodeErr := MessageToCommand(b.topic, msg)
+			if decodeErr != nil {
+				b.logger.ErrorContext(ctx, "watermill: decode command message failed",
+					"error", decodeErr)
+				msg.Ack()
+
+				continue
+			}
+
+			if dispatchErr := b.dispatchLocal(ctx, cmd); dispatchErr != nil {
+				b.logger.ErrorContext(ctx, "watermill: dispatch command failed",
+					"command_type", cmd.Type(), "error", dispatchErr)
+				msg.Ack()
+
+				continue
+			}
+
+			msg.Ack()
+		case <-ctx.Done():
+			return
 		}
-	}()
+	}
 }
