@@ -18,8 +18,8 @@ import (
 //	    []event.Type{"user.reactivated", "order.restored"}, // rebirth types
 //	))
 func StatusMiddleware(deleteTypes, rebirthTypes []event.Type) event.PublishMiddleware {
-	deletes := makeTypeSet(deleteTypes)
-	rebirths := makeTypeSet(rebirthTypes)
+	deletes := event.NewTypeSet(deleteTypes)
+	rebirths := event.NewTypeSet(rebirthTypes)
 
 	return func(next event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
@@ -91,14 +91,4 @@ func CacheInvalidationMiddleware(reader CacheInvalidator) event.PublishMiddlewar
 			return nil
 		})
 	}
-}
-
-func makeTypeSet(types []event.Type) map[event.Type]struct{} {
-	set := make(map[event.Type]struct{}, len(types))
-
-	for _, t := range types {
-		set[t] = struct{}{}
-	}
-
-	return set
 }

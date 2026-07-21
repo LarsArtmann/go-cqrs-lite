@@ -184,6 +184,21 @@ func (w WallTime) loadLocationSafe() *time.Location {
 	return loc
 }
 
+// todaysOccurrence returns the time.Time for today's date in ref's timezone
+// at this WallTime's hour and minute. Shared by NextOccurrence and
+// PreviousOccurrence; callers adjust the date forward or backward.
+func (w WallTime) todaysOccurrence(ref time.Time) time.Time {
+	loc := w.loadLocationSafe()
+
+	refLocal := ref.In(loc)
+
+	return time.Date(
+		refLocal.Year(), refLocal.Month(), refLocal.Day(),
+		w.Hour, w.Minute, 0, 0,
+		loc,
+	)
+}
+
 // NextOccurrence returns the next time this wall time occurs in its timezone,
 // at or after the given reference time. If the wall time has already passed
 // today in the target timezone, it returns tomorrow's occurrence.
@@ -192,17 +207,7 @@ func (w WallTime) loadLocationSafe() *time.Location {
 // automatically. "9am America/New_York" will be 14:00Z in winter (EST, UTC-5)
 // and 13:00Z in summer (EDT, UTC-4).
 func (w WallTime) NextOccurrence(after time.Time) time.Time {
-	loc := w.loadLocationSafe()
-
-	// Convert "after" to the target timezone to determine the local date.
-	afterLocal := after.In(loc)
-
-	// Construct today's occurrence.
-	next := time.Date(
-		afterLocal.Year(), afterLocal.Month(), afterLocal.Day(),
-		w.Hour, w.Minute, 0, 0,
-		loc,
-	)
+	next := w.todaysOccurrence(after)
 
 	// If it already passed today, advance to tomorrow.
 	if !next.After(after) {
@@ -248,15 +253,7 @@ func (w WallTime) IsValid() bool {
 //
 // This method is DST-aware, just like NextOccurrence.
 func (w WallTime) PreviousOccurrence(before time.Time) time.Time {
-	loc := w.loadLocationSafe()
-
-	beforeLocal := before.In(loc)
-
-	prev := time.Date(
-		beforeLocal.Year(), beforeLocal.Month(), beforeLocal.Day(),
-		w.Hour, w.Minute, 0, 0,
-		loc,
-	)
+	prev := w.todaysOccurrence(before)
 
 	if !prev.Before(before) {
 		prev = prev.AddDate(0, 0, -1)

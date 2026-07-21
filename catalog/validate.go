@@ -210,15 +210,24 @@ func validateOperationDetails(
 	return violations
 }
 
+// requireID returns a violation when id is empty. prefix is the collection key
+// used in the path (e.g. "domains"); label is the human-readable kind used in
+// the message (e.g. "data product").
+func requireID[ID ~string](id ID, name Name, prefix, label string) []Violation {
+	if id == "" {
+		return []Violation{{
+			Path:    fmt.Sprintf("%s[%s].id", prefix, name),
+			Message: label + " ID must not be empty",
+		}}
+	}
+
+	return nil
+}
+
 func validateDomain(domain Domain) []Violation {
 	var violations []Violation
 
-	if domain.ID == "" {
-		violations = append(violations, Violation{
-			Path:    fmt.Sprintf("domains[%s].id", domain.Name),
-			Message: "domain ID must not be empty",
-		})
-	}
+	violations = append(violations, requireID(domain.ID, domain.Name, "domains", "domain")...)
 
 	seen := make(map[ServiceID]bool, len(domain.Services))
 
@@ -239,12 +248,7 @@ func validateDomain(domain Domain) []Violation {
 func validateChannel(ch Channel) []Violation {
 	var violations []Violation
 
-	if ch.ID == "" {
-		violations = append(violations, Violation{
-			Path:    fmt.Sprintf("channels[%s].id", ch.Name),
-			Message: "channel ID must not be empty",
-		})
-	}
+	violations = append(violations, requireID(ch.ID, ch.Name, "channels", "channel")...)
 
 	seen := make(map[MessageID]bool, len(ch.Messages))
 
@@ -265,12 +269,7 @@ func validateChannel(ch Channel) []Violation {
 func validateEntity(entity Entity) []Violation {
 	var violations []Violation
 
-	if entity.ID == "" {
-		violations = append(violations, Violation{
-			Path:    fmt.Sprintf("entities[%s].id", entity.Name),
-			Message: "entity ID must not be empty",
-		})
-	}
+	violations = append(violations, requireID(entity.ID, entity.Name, "entities", "entity")...)
 
 	seenProps := make(map[string]bool, len(entity.Properties))
 	for _, prop := range entity.Properties {
@@ -304,27 +303,9 @@ func validateEntity(entity Entity) []Violation {
 }
 
 func validateDataProduct(dp DataProduct) []Violation {
-	var violations []Violation
-
-	if dp.ID == "" {
-		violations = append(violations, Violation{
-			Path:    fmt.Sprintf("dataProducts[%s].id", dp.Name),
-			Message: "data product ID must not be empty",
-		})
-	}
-
-	return violations
+	return requireID(dp.ID, dp.Name, "dataProducts", "data product")
 }
 
 func validateAgent(agent Agent) []Violation {
-	var violations []Violation
-
-	if agent.ID == "" {
-		violations = append(violations, Violation{
-			Path:    fmt.Sprintf("agents[%s].id", agent.Name),
-			Message: "agent ID must not be empty",
-		})
-	}
-
-	return violations
+	return requireID(agent.ID, agent.Name, "agents", "agent")
 }

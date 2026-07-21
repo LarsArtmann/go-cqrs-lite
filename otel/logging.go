@@ -16,27 +16,30 @@ func ComponentLogger(logger *slog.Logger) *slog.Logger {
 // TraceIDFromContext extracts the trace ID from the context. Returns "none"
 // if no span is active.
 func TraceIDFromContext(ctx context.Context) string {
-	span := trace.SpanFromContext(ctx)
-	spanCtx := span.SpanContext()
-
-	if !spanCtx.IsValid() {
-		return "none"
-	}
-
-	return spanCtx.TraceID().String()
+	return spanIDOrNone(ctx, func(spanCtx trace.SpanContext) string {
+		return spanCtx.TraceID().String()
+	})
 }
 
 // SpanIDFromContext extracts the span ID from the context. Returns "none"
 // if no span is active.
 func SpanIDFromContext(ctx context.Context) string {
-	span := trace.SpanFromContext(ctx)
-	spanCtx := span.SpanContext()
+	return spanIDOrNone(ctx, func(spanCtx trace.SpanContext) string {
+		return spanCtx.SpanID().String()
+	})
+}
 
+// spanIDOrNone extracts the active span context and returns either the
+// caller-selected ID string (when the span is valid) or "none". Shared by
+// TraceIDFromContext and SpanIDFromContext to keep the validity check and
+// fallback string in one place.
+func spanIDOrNone(ctx context.Context, pick func(trace.SpanContext) string) string {
+	spanCtx := trace.SpanFromContext(ctx).SpanContext()
 	if !spanCtx.IsValid() {
 		return "none"
 	}
 
-	return spanCtx.SpanID().String()
+	return pick(spanCtx)
 }
 
 // ContextLogger returns an *slog.Logger that includes trace_id and span_id

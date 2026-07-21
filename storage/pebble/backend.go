@@ -111,13 +111,7 @@ func (b *Backend) ReadModels() kv.Store { return b.readMods }
 // Close closes all stores and the underlying *pebble.DB.
 // After Close, all store operations will return ErrClosed.
 func (b *Backend) Close() error {
-	err := b.database.Close()
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "pebble.close_backend",
-			"close pebble database")
-	}
-
-	return nil
+	return closeAndWrap(b.database, "pebble.close_backend", "close pebble database")
 }
 
 // GracefulClose is like Close but bounded by the given context. If the

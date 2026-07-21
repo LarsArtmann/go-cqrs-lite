@@ -107,9 +107,7 @@ func (s *CommandStore) ReadFrom(
 	afterCommandID id.CommandID,
 	limit int,
 ) ([]*command.PersistedCommand, error) {
-	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.command.read_from",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrInt("limit", limit)))
+	span := startLimitSpan(ctx, "pebble.command.read_from", limit)
 	defer span.End()
 
 	skipID := idOrEmpty(afterCommandID)

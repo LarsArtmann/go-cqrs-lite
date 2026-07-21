@@ -259,13 +259,7 @@ func (adapter *KVAdapter) Close() error {
 		return nil
 	}
 
-	err := adapter.database.Close()
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "pebble.adapter.close",
-			"close database")
-	}
-
-	return nil
+	return closeAndWrap(adapter.database, "pebble.adapter.close", "close database")
 }
 
 // ── prefixUpperBound ─────────────────────────────────────────

@@ -33,6 +33,17 @@ func execDDL(ctx context.Context, db *sql.DB, ddls []string) error {
 	return nil
 }
 
+// execPragmas runs each PRAGMA statement against db, wrapping the first failure
+// with errCode. Shared by SQLiteEnableWAL and SQLiteApplyOptimizations.
+func execPragmas(ctx context.Context, db *sql.DB, pragmas []string, errCode string) error {
+	for _, pragma := range pragmas {
+		if _, err := db.ExecContext(ctx, pragma); err != nil {
+			return errorfamily.WrapInfrastructure(err, errCode, "exec "+pragma)
+		}
+	}
+	return nil
+}
+
 func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 	return execDDL(ctx, db, []string{sqlpkg.SQLiteSchemaEmbed()})
 }
@@ -42,17 +53,11 @@ func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 // an fsync per transaction — 3-10x faster than FULL) and busy_timeout=5000
 // (eliminates "database is locked" errors under concurrency).
 func SQLiteEnableWAL(ctx context.Context, db *sql.DB) error {
-	pragmas := []string{
+	return execPragmas(ctx, db, []string{
 		"PRAGMA journal_mode=WAL",
 		"PRAGMA synchronous=NORMAL",
 		"PRAGMA busy_timeout=5000",
-	}
-	for _, pragma := range pragmas {
-		if _, err := db.ExecContext(ctx, pragma); err != nil {
-			return errorfamily.WrapInfrastructure(err, "storage.enable_wal", "exec "+pragma)
-		}
-	}
-	return nil
+	}, "storage.enable_wal")
 }
 
 // SQLiteEnableForeignKeys turns on SQLite foreign-key enforcement for the
@@ -75,21 +80,11 @@ func SQLiteEnableForeignKeys(ctx context.Context, db *sql.DB) error {
 // mmap_size=256 MB. These are safe, portable SQLite settings that improve
 // throughput without durability trade-offs. Call after schema creation.
 func SQLiteApplyOptimizations(ctx context.Context, db *sql.DB) error {
-	pragmas := []string{
+	return execPragmas(ctx, db, []string{
 		"PRAGMA cache_size=-65536",   // 64 MB page cache
 		"PRAGMA temp_store=MEMORY",   // avoid temp files on disk
 		"PRAGMA mmap_size=268435456", // 256 MB memory-mapped I/O
-	}
-	for _, pragma := range pragmas {
-		if _, err := db.ExecContext(ctx, pragma); err != nil {
-			return errorfamily.WrapInfrastructure(
-				err,
-				"storage.apply_optimizations",
-				"exec "+pragma,
-			)
-		}
-	}
-	return nil
+	}, "storage.apply_optimizations")
 }
 
 // ConfigureSQLitePool caps the connection pool at 1 for SQLite — WAL mode

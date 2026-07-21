@@ -2,7 +2,6 @@ package pebble
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -114,14 +113,7 @@ func (s *QueryStore) SaveQuery(
 }
 
 func (s *QueryStore) queryExists(key []byte) bool {
-	_, closer, err := s.db.Get(key)
-	if err == nil {
-		_ = closer.Close()
-
-		return true
-	}
-
-	return !errors.Is(err, pebble.ErrNotFound)
+	return keyExists(s.db, key)
 }
 
 // ── Key generation ──────────────────────────────────────────────────────────

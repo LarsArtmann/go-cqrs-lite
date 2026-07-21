@@ -399,11 +399,5 @@ func buildTypeSet(types []event.Type) map[event.Type]struct{} {
 		return nil
 	}
 
-	m := make(map[event.Type]struct{}, len(types))
-
-	for _, t := range types {
-		m[t] = struct{}{}
-	}
-
-	return m
+	return event.NewTypeSet(types)
 }

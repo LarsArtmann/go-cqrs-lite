@@ -1,7 +1,6 @@
 package id
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"time"
@@ -144,15 +143,7 @@ func AggregateTimestamp(id AggregateID) (time.Time, error) {
 // The resulting ID is NOT a ULID — IsAggregateIDULID returns false, and
 // AggregateTimestamp returns an error.
 func DeriveAggregateID(namespace string, keys ...string) AggregateID {
-	h := sha256.New()
-	_, _ = h.Write([]byte(namespace))
-
-	for _, k := range keys {
-		_, _ = h.Write([]byte{0})
-		_, _ = h.Write([]byte(k))
-	}
-
-	return cbid.NewID[AggregateMarker](hex.EncodeToString(h.Sum(nil)))
+	return cbid.NewID[AggregateMarker](hex.EncodeToString(hashNamespacedKeys(namespace, keys...)))
 }
 
 // AggregateIDFrom creates an AggregateID from any fmt.Stringer.

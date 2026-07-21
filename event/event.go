@@ -27,6 +27,18 @@ func ParseType(s string) (Type, error) {
 	return Type(s), nil
 }
 
+// NewTypeSet converts a slice of event types into a set for O(1) membership
+// checks. Returns a non-nil empty map when types is empty.
+func NewTypeSet(types []Type) map[Type]struct{} {
+	set := make(map[Type]struct{}, len(types))
+
+	for _, t := range types {
+		set[t] = struct{}{}
+	}
+
+	return set
+}
+
 // Event is the concrete domain-event type: a pointer to [ImmutableEvent].
 //
 // It is a type alias (not an interface) because ImmutableEvent is the single

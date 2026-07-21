@@ -2,7 +2,6 @@ package pebble
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -203,14 +202,7 @@ func (s *CommandStore) AppendBatch(
 }
 
 func (s *CommandStore) commandExists(journalKey []byte) bool {
-	_, closer, err := s.db.Get(journalKey)
-	if err == nil {
-		_ = closer.Close()
-
-		return true
-	}
-
-	return !errors.Is(err, pebble.ErrNotFound)
+	return keyExists(s.db, journalKey)
 }
 
 func (s *CommandStore) writeCommandToBatch(

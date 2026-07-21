@@ -2,6 +2,7 @@ package pebble
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -138,6 +139,31 @@ func checkIteratorError(iter *pebble.Iterator) error {
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "pebble.iterator_error",
 			"iterator error")
+	}
+
+	return nil
+}
+
+// keyExists reports whether the given key is present in the database. Returns
+// true for any non-ErrNotFound error — the caller treats unknown errors as
+// "key might exist, don't risk a duplicate write". Shared by CommandStore
+// and QueryStore for their idempotent Save paths.
+func keyExists(db *pebble.DB, key []byte) bool {
+	_, closer, err := db.Get(key)
+	if err == nil {
+		_ = closer.Close()
+
+		return true
+	}
+
+	return !errors.Is(err, pebble.ErrNotFound)
+}
+
+// closeAndWrap closes db and wraps any failure with the given errorfamily code
+// and message. Shared by KVAdapter.Close and Backend.Close.
+func closeAndWrap(db *pebble.DB, code, msg string) error {
+	if err := db.Close(); err != nil {
+		return errorfamily.WrapInfrastructure(err, code, msg)
 	}
 
 	return nil

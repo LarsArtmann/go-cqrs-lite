@@ -29,17 +29,12 @@ const (
 )
 
 func ExtractAlgorithm(evt event.Event) (Algorithm, error) {
-	if evt == nil {
-		return "", ErrNilEvent
+	v, ok, err := extractCustomString(evt, AlgorithmKey)
+	if err != nil {
+		return "", err
 	}
 
-	md := evt.Metadata()
-	if md.Custom == nil {
-		return "", nil
-	}
-
-	v, ok := md.Custom[AlgorithmKey]
-	if !ok || v == "" {
+	if !ok {
 		return "", nil
 	}
 
@@ -55,21 +50,40 @@ func ExtractAlgorithm(evt event.Event) (Algorithm, error) {
 }
 
 func ExtractKeyID(evt event.Event) (KeyID, error) {
-	if evt == nil {
-		return "", ErrNilEvent
+	v, ok, err := extractCustomString(evt, KeyIDKey)
+	if err != nil {
+		return "", err
 	}
 
-	md := evt.Metadata()
-	if md.Custom == nil {
-		return "", nil
-	}
-
-	v, ok := md.Custom[KeyIDKey]
 	if !ok {
 		return "", nil
 	}
 
 	return KeyID(v), nil
+}
+
+// extractCustomString is the shared nil-check + Custom-map-lookup helper for
+// ExtractAlgorithm and ExtractKeyID. Returns (value, found, error):
+//   - evt == nil → ("", false, ErrNilEvent)
+//   - md.Custom == nil → ("", false, nil)
+//   - key absent or empty → ("", false, nil)
+//   - otherwise → (value, true, nil)
+func extractCustomString(evt event.Event, key event.MetadataKey) (string, bool, error) {
+	if evt == nil {
+		return "", false, ErrNilEvent
+	}
+
+	md := evt.Metadata()
+	if md.Custom == nil {
+		return "", false, nil
+	}
+
+	v, ok := md.Custom[key]
+	if !ok || v == "" {
+		return "", false, nil
+	}
+
+	return v, true, nil
 }
 
 // KeyResolver selects a Decrypter based on the key ID embedded in an encrypted event.

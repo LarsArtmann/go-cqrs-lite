@@ -128,15 +128,26 @@ func (s *SnapshotStore) Save(
 }
 
 // Load returns the latest snapshot for the aggregate.
+// startSnapshotSpan opens an aggregate span named spanName and returns it
+// alongside the computed snapshot key. Shared by Load and Delete so the
+// span+key boilerplate stays in one place.
+func (s *SnapshotStore) startSnapshotSpan(
+	ctx context.Context,
+	spanName string,
+	ref id.AggregateRef,
+) (cqrsotel.Span, []byte) {
+	_, span := startAggregateSpan(ctx, spanName, ref)
+
+	return span, s.snapshotKey(ref.Type, ref.ID)
+}
+
 // Returns snapshot.ErrSnapshotNotFound when no snapshot exists.
 func (s *SnapshotStore) Load(
 	ctx context.Context,
 	ref id.AggregateRef,
 ) (*snapshot.Snapshot, error) {
-	_, span := startAggregateSpan(ctx, "pebble.snapshot.load", ref)
+	span, key := s.startSnapshotSpan(ctx, "pebble.snapshot.load", ref)
 	defer span.End()
-
-	key := s.snapshotKey(ref.Type, ref.ID)
 
 	raw, found, err := s.loadRaw(key)
 	if err != nil {
@@ -188,10 +199,8 @@ func (s *SnapshotStore) Delete(
 	ctx context.Context,
 	ref id.AggregateRef,
 ) error {
-	_, span := startAggregateSpan(ctx, "pebble.snapshot.delete", ref)
+	span, key := s.startSnapshotSpan(ctx, "pebble.snapshot.delete", ref)
 	defer span.End()
-
-	key := s.snapshotKey(ref.Type, ref.ID)
 
 	err := s.db.Delete(key, s.writeOptions())
 	if err != nil {

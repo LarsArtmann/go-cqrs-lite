@@ -1,8 +1,6 @@
 package id
 
 import (
-	"crypto/sha256"
-
 	cbid "github.com/larsartmann/go-branded-id"
 	"github.com/oklog/ulid/v2"
 )
@@ -49,18 +47,10 @@ const (
 // Use [IsDerivedCommandID] to check whether a CommandID was produced by
 // DeriveCommandID (timestamp is zero) vs [NewCommandID] (real timestamp).
 func DeriveCommandID(namespace string, keys ...string) CommandID {
-	h := sha256.New()
-	_, _ = h.Write([]byte(namespace))
-
-	for _, k := range keys {
-		_, _ = h.Write([]byte{0})
-		_, _ = h.Write([]byte(k))
-	}
-
 	var derived ulid.ULID
 	copy(
 		derived[ulidTimestampLen:],
-		h.Sum(nil)[:ulidRandomLen],
+		hashNamespacedKeys(namespace, keys...)[:ulidRandomLen],
 	) // entropy into randomness; timestamp stays zero
 
 	return cbid.NewID[CommandMarker](derived)

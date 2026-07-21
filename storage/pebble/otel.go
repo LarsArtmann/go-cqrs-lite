@@ -104,3 +104,15 @@ func reportScanErr(span cqrsotel.Span, err error, code, msg string) error {
 
 	return errorfamily.WrapInfrastructure(err, code, msg)
 }
+
+// startLimitSpan opens a SpanKindClient span stamped with the "limit"
+// attribute. Shared by the ReadFrom-style methods on EventStore (journal +
+// stream), CommandStore, and QueryStore so the limit-attribute shape lives
+// in one place.
+func startLimitSpan(ctx context.Context, spanName string, limit int) cqrsotel.Span {
+	_, span := cqrsotel.StartSpan(ctx, tracer(), spanName,
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(cqrsotel.AttrInt("limit", limit)))
+
+	return span
+}

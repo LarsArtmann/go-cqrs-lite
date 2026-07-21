@@ -59,9 +59,7 @@ func (a *EventStore) ReadFrom(
 	afterEventID id.EventID,
 	limit int,
 ) ([]event.Event, error) {
-	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.journal.read_from",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrInt("limit", limit)))
+	span := startLimitSpan(ctx, "pebble.journal.read_from", limit)
 	defer span.End()
 
 	upperBound := []byte(a.journalPrefix + "\xff")

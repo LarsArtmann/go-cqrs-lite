@@ -171,9 +171,7 @@ func (a *EventStore) ReadStreamFrom(
 	afterEventID id.EventID,
 	limit int,
 ) (event.EventIterator, error) {
-	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.journal.read_stream_from",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrInt("limit", limit)))
+	span := startLimitSpan(ctx, "pebble.journal.read_stream_from", limit)
 	defer span.End()
 
 	upper := []byte(a.journalPrefix + "\xff")

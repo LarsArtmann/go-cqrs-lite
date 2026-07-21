@@ -51,9 +51,7 @@ func (s *QueryStore) ReadQueriesFrom(
 	afterRequestID id.RequestID,
 	limit int,
 ) ([]*query.PersistedQuery, error) {
-	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.query.read_from",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrInt("limit", limit)))
+	span := startLimitSpan(ctx, "pebble.query.read_from", limit)
 	defer span.End()
 
 	skipID := idOrEmpty(afterRequestID)
