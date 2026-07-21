@@ -2,8 +2,6 @@ package encryption
 
 import (
 	"crypto/cipher"
-	"crypto/rand"
-	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 	"golang.org/x/crypto/chacha20poly1305"
@@ -42,56 +40,10 @@ func NewXChaCha20Poly1305(key []byte) (*xchacha20, error) {
 func (e *xchacha20) Algorithm() Algorithm { return XChaCha20Poly1305 }
 
 func (e *xchacha20) Encrypt(plaintext []byte) (Ciphertext, error) {
-	if len(plaintext) == 0 {
-		return nil, nil
-	}
-
-	nonce := make([]byte, xchacha20NonceSize)
-	if _, err := io.ReadFull(
-		rand.Reader,
-		nonce,
-	); err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"encryption.xchacha20_nonce_gen",
-			"generate nonce",
-		)
-	}
-
-	sealed := e.aead.Seal(nil, nonce, plaintext, nil)
-
-	result := make([]byte, 0, xchacha20NonceSize+len(sealed))
-	result = append(result, nonce...)
-	result = append(result, sealed...)
-
-	return Ciphertext(result), nil
+	return aeadEncrypt(e.aead, plaintext, xchacha20NonceSize, "encryption.xchacha20_nonce_gen")
 }
 
 func (e *xchacha20) Decrypt(ciphertext Ciphertext) ([]byte, error) {
-	if ciphertext.IsZero() {
-		return nil, nil
-	}
-
-	if len(ciphertext) < xchacha20NonceSize+e.aead.Overhead() {
-		return nil, errorfamily.Wrapf(
-			ErrDecryptionFailed, errorfamily.Rejection,
-			"encryption.xchacha20_ciphertext_too_short",
-			"ciphertext length %d < minimum %d",
-			len(ciphertext), xchacha20NonceSize+e.aead.Overhead(),
-		)
-	}
-
-	nonce := ciphertext[:xchacha20NonceSize]
-	data := ciphertext[xchacha20NonceSize:]
-
-	plaintext, err := e.aead.Open(nil, nonce, data, nil)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"encryption.xchacha20_decrypt",
-			"decrypt ciphertext",
-		)
-	}
-
-	return plaintext, nil
+	return aeadDecrypt(e.aead, ciphertext, xchacha20NonceSize,
+		"encryption.xchacha20_ciphertext_too_short", "encryption.xchacha20_decrypt")
 }

@@ -18,10 +18,38 @@ func marshalCBOR(v any) ([]byte, error) {
 	return codec.CBOREncMode().Marshal(v)
 }
 
+// marshalCBOROrErr marshals v to CBOR and wraps any failure as Corruption
+// with the given code/msg. Caller passes a stable code (e.g.
+// "pebble.serialize_event") and a short human-readable msg.
+func marshalCBOROrErr(v any, code, msg string) ([]byte, error) {
+	data, err := marshalCBOR(v)
+	if err != nil {
+		return nil, errorfamily.WrapCorruption(err, code, msg)
+	}
+	return data, nil
+}
+
 // unmarshalCBOR deserializes CBOR data using the canonical decoding mode
 // with duplicate map key enforcement. Delegates to codec.CBORDecMode.
 func unmarshalCBOR(data []byte, v any) error {
 	return codec.CBORDecMode().Unmarshal(data, v)
+}
+
+// unmarshalCBOROrJSON detects CBOR vs legacy JSON and decodes into target,
+// wrapping any failure as Corruption with the given code/msg. The JSON branch
+// is kept for backward compatibility with envelopes written before the CBOR
+// migration.
+func unmarshalCBOROrJSON(data []byte, target any, code, msg string) error {
+	var err error
+	if isCBOR(data) {
+		err = unmarshalCBOR(data, target)
+	} else {
+		err = json.Unmarshal(data, target) //nolint:nolintlint // legacy JSON fallback for backward compat
+	}
+	if err != nil {
+		return errorfamily.WrapCorruption(err, code, msg)
+	}
+	return nil
 }
 
 // isCBOR detects CBOR-encoded data by checking for CBOR major type 5 (map).
@@ -54,12 +82,7 @@ func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 		Encoding:      string(evt.Encoding()),
 	}
 
-	data, err := marshalCBOR(s)
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(err, "pebble.serialize_event", "marshal event")
-	}
-
-	return data, nil
+	return marshalCBOROrErr(s, "pebble.serialize_event", "marshal event")
 }
 
 // deserializeEvent converts CBOR (or legacy JSON) to a CQRS-compatible event.
@@ -68,20 +91,9 @@ func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 	var s serializableEvent
 
-	var err error
-
-	if isCBOR(data) {
-		err = unmarshalCBOR(data, &s)
-	} else {
-		err = json.Unmarshal(
-			data,
-			&s,
-		) //nolint:nolintlint // legacy JSON fallback for backward compat
-	}
-
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(err, "pebble.unmarshal_event",
-			"failed to unmarshal event")
+	if err := unmarshalCBOROrJSON(data, &s, "pebble.unmarshal_event",
+		"failed to unmarshal event"); err != nil {
+		return nil, err
 	}
 
 	metadataJSON, err := event.MarshalMetadataJSON(s.Metadata, "pebble.marshal_metadata")

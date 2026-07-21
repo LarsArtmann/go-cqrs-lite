@@ -25,16 +25,9 @@ func (s *QueryStore) LoadQueries(
 	queries, err := s.scanQueries(0, "", func(q *query.PersistedQuery) bool {
 		return q.ReceivedAt().After(after)
 	})
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.query_load_queries",
-			"load queries after timestamp")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
-
-	return queries, nil
+	return finalizeScan(span, queries, err, "pebble.query_load_queries",
+		"load queries after timestamp", "query.count")
 }
 
 // ReadAllQueries returns all queries, ordered by request ID (time-ordered).
@@ -45,16 +38,9 @@ func (s *QueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuer
 	defer span.End()
 
 	queries, err := s.scanQueries(0, "", nil)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.query_read_all",
-			"read all queries from journal")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
-
-	return queries, nil
+	return finalizeScan(span, queries, err, "pebble.query_read_all",
+		"read all queries from journal", "query.count")
 }
 
 // ReadQueriesFrom returns queries after the given RequestID, ordered by ID.
@@ -73,16 +59,9 @@ func (s *QueryStore) ReadQueriesFrom(
 	skipID := idOrEmpty(afterRequestID)
 
 	queries, err := s.scanQueries(limit, skipID, nil)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.query_read_from",
-			"read queries from journal after checkpoint")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
-
-	return queries, nil
+	return finalizeScan(span, queries, err, "pebble.query_read_from",
+		"read queries from journal after checkpoint", "query.count")
 }
 
 // scanQueries iterates over the query journal key space.

@@ -26,13 +26,8 @@ func (e *Exporter) writeFlow(f catalog.Flow) error {
 		Steps:   toFlowSteps(f.Steps),
 	}
 
-	content, err := renderMDX(fm, string(f.Name), string(f.Summary), true)
-	if err != nil {
-		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_resources_extra.1b",
-			"render flow %s: %v", f.ID, err)
-	}
-
-	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
+	return e.writeResourceMDX(fm, string(f.Name), string(f.Summary),
+		filepath.Join(dir, indexFile), "catalog.exporter_resources_extra.1b", "flow", string(f.ID), true)
 }
 
 func (e *Exporter) writeTeam(team catalog.Team) error {
@@ -57,13 +52,8 @@ func (e *Exporter) writeTeam(team catalog.Team) error {
 		Source:                toSource(team.Source),
 	}
 
-	content, err := renderMDX(fm, string(team.Name), "", false)
-	if err != nil {
-		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_resources_extra.2b",
-			"render team %s: %v", team.ID, err)
-	}
-
-	return e.writeMDXFile(filepath.Join(dir, string(team.ID)+".mdx"), content)
+	return e.writeResourceMDX(fm, string(team.Name), "",
+		filepath.Join(dir, string(team.ID)+".mdx"), "catalog.exporter_resources_extra.2b", "team", string(team.ID), false)
 }
 
 func (e *Exporter) writeUser(user catalog.User) error {
@@ -86,11 +76,6 @@ func (e *Exporter) writeUser(user catalog.User) error {
 		Source:                toSource(user.Source),
 	}
 
-	content, err := renderMDX(fm, string(user.Name), "", false)
-	if err != nil {
-		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_resources_extra.3b",
-			"render user %s: %v", user.ID, err)
-	}
-
-	return e.writeMDXFile(filepath.Join(dir, string(user.ID)+".mdx"), content)
+	return e.writeResourceMDX(fm, string(user.Name), "",
+		filepath.Join(dir, string(user.ID)+".mdx"), "catalog.exporter_resources_extra.3b", "user", string(user.ID), false)
 }

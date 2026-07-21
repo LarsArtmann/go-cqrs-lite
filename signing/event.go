@@ -60,17 +60,10 @@ func AttachSignature(evt event.Event, sig Signature) (event.Event, error) {
 // ExtractSignature retrieves the signature from an event's custom metadata.
 // Returns ErrNilSignature if no signature is present.
 func ExtractSignature(evt event.Event) (Signature, error) {
-	if evt == nil {
-		return nil, ErrNilEvent
-	}
-
-	decoded, found, err := event.ExtractCustomBytes(evt, MetadataKey)
+	decoded, found, err := event.ExtractCustomBytesChecked(evt, MetadataKey,
+		ErrNilEvent, "signing.extract", "extract signature from event")
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"signing.extract",
-			"extract signature from event",
-		)
+		return nil, err
 	}
 
 	if !found {

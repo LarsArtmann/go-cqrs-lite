@@ -106,15 +106,7 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 		cmdguard.WithShort("Detect and display the project's go-cqrs-lite feature profile"),
 		cmdguard.WithNoArgs(),
 	)
-	if err != nil {
-		return fmt.Errorf("create doctor command: %w", err)
-	}
-
-	if err := cmdguard.AddCommand(cli, cmd); err != nil {
-		return fmt.Errorf("add doctor command: %w", err)
-	}
-
-	return nil
+	return registerCommand(cli, "doctor", cmd, err)
 }
 
 // countSuppressions scans all Go files for //cqrs-lint:ignore(RULE) comments

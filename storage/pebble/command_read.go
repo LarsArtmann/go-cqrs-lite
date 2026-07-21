@@ -25,16 +25,9 @@ func (s *CommandStore) Load(
 		s.commandAggregateUpperBound(ref),
 		0, "", nil,
 	)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_load",
-			"load commands for aggregate")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
-
-	return cmds, nil
+	return finalizeScan(span, cmds, err, "pebble.command_load",
+		"load commands for aggregate", "command.count")
 }
 
 // LoadFromTimestamp retrieves commands where ReceivedAt > after.
@@ -57,9 +50,7 @@ func (s *CommandStore) LoadFromTimestamp(
 		func(cmd *command.PersistedCommand) bool { return cmd.ReceivedAt().After(after) },
 	)
 	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_load_from_timestamp",
+		return nil, reportScanErr(span, err, "pebble.command_load_from_timestamp",
 			"load commands after timestamp")
 	}
 
@@ -84,9 +75,7 @@ func (s *CommandStore) LoadToTimestamp(
 		},
 	)
 	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_load_to_timestamp",
+		return nil, reportScanErr(span, err, "pebble.command_load_to_timestamp",
 			"load commands up to timestamp")
 	}
 
@@ -105,16 +94,9 @@ func (s *CommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand
 		[]byte(s.journalPrefix+"\xff"),
 		0, "", nil,
 	)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_read_all",
-			"read all commands from journal")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
-
-	return cmds, nil
+	return finalizeScan(span, cmds, err, "pebble.command_read_all",
+		"read all commands from journal", "command.count")
 }
 
 // ReadFrom returns commands after the given CommandID, ordered by ID.
@@ -137,16 +119,9 @@ func (s *CommandStore) ReadFrom(
 		[]byte(s.journalPrefix+"\xff"),
 		limit, skipID, nil,
 	)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.command_read_from",
-			"read commands from journal after checkpoint")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
-
-	return cmds, nil
+	return finalizeScan(span, cmds, err, "pebble.command_read_from",
+		"read commands from journal after checkpoint", "command.count")
 }
 
 // scanCommands iterates over the given key range, deserializing commands.

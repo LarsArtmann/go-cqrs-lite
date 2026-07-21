@@ -105,12 +105,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, query Query) (any, error) {
 }
 
 func (d *Dispatcher) ensureOpen(code, msg string) error {
-	closedErr := d.inner.CheckClosed(ErrDispatcherClosed)
-	if closedErr != nil {
-		return errorfamily.WrapInfrastructure(closedErr, code, msg)
-	}
-
-	return nil
+	return d.inner.WrapCheckClosed(ErrDispatcherClosed, code, msg)
 }
 
 // DispatchTyped sends a query and returns a typed result.
@@ -135,11 +130,5 @@ func DispatchTyped[T any](ctx context.Context, d *Dispatcher, query Query) (T, e
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	closeErr := d.inner.Close()
-	if closeErr != nil {
-		return errorfamily.WrapInfrastructure(closeErr, "query.dispatcher_close",
-			"close query dispatcher")
-	}
-
-	return nil
+	return d.inner.WrapClose("query.dispatcher_close", "close query dispatcher")
 }

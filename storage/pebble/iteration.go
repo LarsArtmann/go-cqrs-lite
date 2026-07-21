@@ -63,16 +63,9 @@ func (a *EventStore) Load(
 	defer span.End()
 
 	events, err := a.iterateEvents(prefix, upperBound, nil)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.event_load",
-			"load events for aggregate")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
-
-	return events, nil
+	return finalizeScan(span, events, err, "pebble.event_load",
+		"load events for aggregate", "event.count")
 }
 
 // LoadFromVersion implements event.Store.LoadFromVersion.
@@ -91,16 +84,9 @@ func (a *EventStore) LoadFromVersion(
 	defer span.End()
 
 	events, err := a.iterateEvents(lowerBound, upperBound, nil)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.event_load_from_version",
-			"load events from version")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
-
-	return events, nil
+	return finalizeScan(span, events, err, "pebble.event_load_from_version",
+		"load events from version", "event.count")
 }
 
 // loadFiltered iterates events and returns them filtered by predicate.
@@ -138,16 +124,9 @@ func (a *EventStore) LoadToVersion(
 	upperBound := a.eventKey(ref, maxVersion+1)
 
 	events, err := a.loadFiltered(ref, upperBound, nil)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.event_load_to_version",
-			"load events up to version")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
-
-	return events, nil
+	return finalizeScan(span, events, err, "pebble.event_load_to_version",
+		"load events up to version", "event.count")
 }
 
 // LoadToTimestamp retrieves events where OccurredAt <= maxTime.
@@ -168,14 +147,7 @@ func (a *EventStore) LoadToTimestamp(
 	}
 
 	events, err := a.loadFiltered(ref, upperBound, predicate)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.event_load_to_timestamp",
-			"load events up to timestamp")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
-
-	return events, nil
+	return finalizeScan(span, events, err, "pebble.event_load_to_timestamp",
+		"load events up to timestamp", "event.count")
 }

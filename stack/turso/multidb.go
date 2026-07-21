@@ -7,7 +7,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
@@ -19,22 +19,10 @@ func openSecondaryBackend(
 	dbPath string,
 	cfg config,
 ) (*storage.SQLBackend, io.Closer, error) {
-	secDB, err := openSecondaryDB(dbPath, cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	secBackend, err := cqrsturso.NewBackend(secDB)
-	if err != nil {
-		_ = secDB.Close()
-
-		return nil, nil, errorfamily.WrapInfrastructure(err, "turso.create_secondary_backend",
-			fmt.Sprintf("create backend for %q", dbPath))
-	}
-
-	closer := stack.NewMultiCloser(secBackend, stack.NewFuncCloser(secDB.Close))
-
-	return secBackend, closer, nil
+	return sqlopt.NewSecondaryBackend(dbPath,
+		func() (*sql.DB, error) { return openSecondaryDB(dbPath, cfg) },
+		cqrsturso.NewBackend,
+		"turso.create_secondary_backend")
 }
 
 // openSecondaryDB opens and configures a secondary Turso database.

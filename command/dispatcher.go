@@ -83,21 +83,10 @@ func (d *Dispatcher) Dispatch(ctx context.Context, cmd Command) error {
 }
 
 func (d *Dispatcher) checkClosed(code, msg string) error {
-	err := d.inner.CheckClosed(ErrDispatcherClosed)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, code, msg)
-	}
-
-	return nil
+	return d.inner.WrapCheckClosed(ErrDispatcherClosed, code, msg)
 }
 
 // Close marks the dispatcher as closed.
 func (d *Dispatcher) Close() error {
-	err := d.inner.Close()
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "command.dispatcher_close",
-			"close command dispatcher")
-	}
-
-	return nil
+	return d.inner.WrapClose("command.dispatcher_close", "close command dispatcher")
 }

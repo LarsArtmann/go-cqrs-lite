@@ -21,6 +21,18 @@ func (e *Exporter) writeMDXFile(path, content string) error {
 	)
 }
 
+// writeResourceMDX renders frontmatter to MDX and writes it to targetPath.
+// On render failure, returns an Infrastructure error tagged with errorCode
+// and identifying resourceKind/resourceID for diagnosis.
+func (e *Exporter) writeResourceMDX(fm any, name, summary, targetPath, errorCode, resourceKind, resourceID string, includeGraph bool) error {
+	content, err := renderMDX(fm, name, summary, includeGraph)
+	if err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, errorCode,
+			"render %s %s: %v", resourceKind, resourceID, err)
+	}
+	return e.writeMDXFile(targetPath, content)
+}
+
 func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 	schemaDir := filepath.Join(dir, "schemas")
 

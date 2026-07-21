@@ -7,6 +7,19 @@ import (
 	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
 )
 
+// registerCommand wraps the create-and-add pattern shared by every subcommand:
+// it surfaces NewCommand failures as "create <name> command" and AddCommand
+// failures as "add <name> command".
+func registerCommand[F any](cli *cmdguard.CLI[AppConfig], name string, cmd cmdguard.Command[AppConfig, F], err error) error {
+	if err != nil {
+		return fmt.Errorf("create %s command: %w", name, err)
+	}
+	if err := cmdguard.AddCommand(cli, cmd); err != nil {
+		return fmt.Errorf("add %s command: %w", name, err)
+	}
+	return nil
+}
+
 func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 	cmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
 		"rules",
@@ -24,15 +37,7 @@ func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 		cmdguard.WithShort("List all available rules"),
 		cmdguard.WithNoArgs(),
 	)
-	if err != nil {
-		return fmt.Errorf("create rules command: %w", err)
-	}
-
-	if err := cmdguard.AddCommand(cli, cmd); err != nil {
-		return fmt.Errorf("add rules command: %w", err)
-	}
-
-	return nil
+	return registerCommand(cli, "rules", cmd, err)
 }
 
 func setupVersionCommand(cli *cmdguard.CLI[AppConfig]) error {
@@ -47,13 +52,5 @@ func setupVersionCommand(cli *cmdguard.CLI[AppConfig]) error {
 		cmdguard.WithShort("Print version"),
 		cmdguard.WithNoArgs(),
 	)
-	if err != nil {
-		return fmt.Errorf("create version command: %w", err)
-	}
-
-	if err := cmdguard.AddCommand(cli, cmd); err != nil {
-		return fmt.Errorf("add version command: %w", err)
-	}
-
-	return nil
+	return registerCommand(cli, "version", cmd, err)
 }

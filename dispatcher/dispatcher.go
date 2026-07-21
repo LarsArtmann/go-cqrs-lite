@@ -185,3 +185,26 @@ func (d *Dispatcher[H, M]) IsClosed() bool {
 func (d *Dispatcher[H, M]) CheckClosed(closedErr error) error {
 	return d.lifecycle.CheckClosed(closedErr)
 }
+
+// WrapClose closes the dispatcher and wraps any failure as an Infrastructure
+// error with the given code/msg. Used by typed wrappers (command.Dispatcher,
+// query.Dispatcher) to share the close-and-wrap idiom across CQRS message
+// kinds without re-implementing it in each package.
+func (d *Dispatcher[H, M]) WrapClose(code, msg string) error {
+	if err := d.Close(); err != nil {
+		return errorfamily.WrapInfrastructure(err, code, msg)
+	}
+
+	return nil
+}
+
+// WrapCheckClosed calls CheckClosed and wraps any failure as an Infrastructure
+// error with the given code/msg. Used by typed wrappers to share the
+// check-and-wrap idiom.
+func (d *Dispatcher[H, M]) WrapCheckClosed(closedErr error, code, msg string) error {
+	if err := d.CheckClosed(closedErr); err != nil {
+		return errorfamily.WrapInfrastructure(err, code, msg)
+	}
+
+	return nil
+}

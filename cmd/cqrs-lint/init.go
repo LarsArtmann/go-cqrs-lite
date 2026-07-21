@@ -42,13 +42,5 @@ func setupInitCommand(cli *cmdguard.CLI[AppConfig]) error {
 		cmdguard.WithShort("Create a .cqrs-lint.json config file with defaults"),
 		cmdguard.WithNoArgs(),
 	)
-	if err != nil {
-		return fmt.Errorf("create init command: %w", err)
-	}
-
-	if err := cmdguard.AddCommand(cli, cmd); err != nil {
-		return fmt.Errorf("add init command: %w", err)
-	}
-
-	return nil
+	return registerCommand(cli, "init", cmd, err)
 }

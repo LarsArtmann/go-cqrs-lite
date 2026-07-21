@@ -74,17 +74,10 @@ func AttachEncryption(
 }
 
 func ExtractCiphertext(evt event.Event) (Ciphertext, error) {
-	if evt == nil {
-		return nil, ErrNilEvent
-	}
-
-	decoded, found, err := event.ExtractCustomBytes(evt, MetadataKey)
+	decoded, found, err := event.ExtractCustomBytesChecked(evt, MetadataKey,
+		ErrNilEvent, "encryption.extract", "extract ciphertext from event")
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"encryption.extract",
-			"extract ciphertext from event",
-		)
+		return nil, err
 	}
 
 	if !found {

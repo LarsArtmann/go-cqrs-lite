@@ -10,6 +10,7 @@ package sqlopt
 
 import (
 	"database/sql"
+	"fmt"
 	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -17,6 +18,40 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
+
+// NewSecondaryBackend wraps the create-secondary-backend pattern shared by the
+// postgres, sqlite, and turso presets: open the secondary DB via openDB,
+// construct its backend via newBackend, and return both along with a closer
+// that releases both. On any create failure the secondary DB is closed and an
+// Infrastructure error is returned tagged with errCode.
+//
+// dsn is the connection string — purely diagnostic in the error message.
+// openDB returns the opened *sql.DB (preset-specific: applies WAL/PRAGMA etc).
+// newBackend converts the *sql.DB into a *storage.SQLBackend.
+// errCode is the stable errorfamily code, e.g. "sqlite.create_backend".
+func NewSecondaryBackend(
+	dsn string,
+	openDB func() (*sql.DB, error),
+	newBackend func(*sql.DB) (*storage.SQLBackend, error),
+	errCode string,
+) (*storage.SQLBackend, io.Closer, error) {
+	secDB, err := openDB()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	secBackend, err := newBackend(secDB)
+	if err != nil {
+		_ = secDB.Close()
+
+		return nil, nil, errorfamily.WrapInfrastructure(err, errCode,
+			fmt.Sprintf("create backend for %q", dsn))
+	}
+
+	closer := stack.NewMultiCloser(secBackend, stack.NewFuncCloser(secDB.Close))
+
+	return secBackend, closer, nil
+}
 
 // AllOptions assembles the full stack.Option set from a storage.SQLBackend.
 // The event store is always present (eager); the lazy stores (command, query,

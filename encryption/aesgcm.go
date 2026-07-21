@@ -3,8 +3,6 @@ package encryption
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
-	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -60,48 +58,10 @@ func NewAES256GCM(key []byte) (*aes256gcm, error) {
 func (e *aes256gcm) Algorithm() Algorithm { return AES256GCM }
 
 func (e *aes256gcm) Encrypt(plaintext []byte) (Ciphertext, error) {
-	if len(plaintext) == 0 {
-		return nil, nil
-	}
-
-	nonce := make([]byte, aesGCMNonceSize)
-	if _, err := io.ReadFull(
-		rand.Reader,
-		nonce,
-	); err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "encryption.nonce_gen", "generate nonce")
-	}
-
-	sealed := e.aead.Seal(nil, nonce, plaintext, nil)
-
-	result := make([]byte, 0, aesGCMNonceSize+len(sealed))
-	result = append(result, nonce...)
-	result = append(result, sealed...)
-
-	return Ciphertext(result), nil
+	return aeadEncrypt(e.aead, plaintext, aesGCMNonceSize, "encryption.nonce_gen")
 }
 
 func (e *aes256gcm) Decrypt(ciphertext Ciphertext) ([]byte, error) {
-	if ciphertext.IsZero() {
-		return nil, nil
-	}
-
-	if len(ciphertext) < aesGCMNonceSize+e.aead.Overhead() {
-		return nil, errorfamily.Wrapf(
-			ErrDecryptionFailed, errorfamily.Rejection,
-			"encryption.ciphertext_too_short",
-			"ciphertext length %d < minimum %d",
-			len(ciphertext), aesGCMNonceSize+e.aead.Overhead(),
-		)
-	}
-
-	nonce := ciphertext[:aesGCMNonceSize]
-	data := ciphertext[aesGCMNonceSize:]
-
-	plaintext, err := e.aead.Open(nil, nonce, data, nil)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "encryption.decrypt", "decrypt ciphertext")
-	}
-
-	return plaintext, nil
+	return aeadDecrypt(e.aead, ciphertext, aesGCMNonceSize,
+		"encryption.ciphertext_too_short", "encryption.decrypt")
 }

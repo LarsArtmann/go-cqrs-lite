@@ -8,7 +8,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
 
@@ -43,20 +43,8 @@ func openSecondaryBackend(
 	dsn string,
 	cfg config,
 ) (*storage.SQLBackend, io.Closer, error) {
-	secDB, err := openSecondaryDB(dsn, cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	secBackend, err := storage.NewSQLBackend(secDB)
-	if err != nil {
-		_ = secDB.Close()
-
-		return nil, nil, errorfamily.WrapInfrastructure(err, "postgres.create_backend",
-			fmt.Sprintf("create backend for %q", dsn))
-	}
-
-	closer := stack.NewMultiCloser(secBackend, stack.NewFuncCloser(secDB.Close))
-
-	return secBackend, closer, nil
+	return sqlopt.NewSecondaryBackend(dsn,
+		func() (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
+		storage.NewSQLBackend,
+		"postgres.create_backend")
 }

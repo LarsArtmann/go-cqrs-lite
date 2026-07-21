@@ -1,7 +1,6 @@
 package pebble
 
 import (
-	"encoding/json/v2"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -28,31 +27,15 @@ func (s *QueryStore) serializeQuery(q *query.PersistedQuery) ([]byte, error) {
 		Metadata:   q.Metadata(),
 	}
 
-	data, err := marshalCBOR(serialized)
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(err, "pebble.serialize_query", "marshal query")
-	}
-
-	return data, nil
+	return marshalCBOROrErr(serialized, "pebble.serialize_query", "marshal query")
 }
 
 func (s *QueryStore) deserializeQuery(data []byte) (*query.PersistedQuery, error) {
 	var serialized serializableQuery
 
-	var err error
-
-	if isCBOR(data) {
-		err = unmarshalCBOR(data, &serialized)
-	} else {
-		err = json.Unmarshal(
-			data,
-			&serialized,
-		) //nolint:nolintlint // legacy JSON fallback for backward compat
-	}
-
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(err, "pebble.unmarshal_query",
-			"failed to unmarshal query")
+	if err := unmarshalCBOROrJSON(data, &serialized, "pebble.unmarshal_query",
+		"failed to unmarshal query"); err != nil {
+		return nil, err
 	}
 
 	q, err := query.NewPersistedQuery(

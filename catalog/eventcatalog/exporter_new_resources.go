@@ -72,13 +72,8 @@ func (e *Exporter) writeDataProduct(dp catalog.DataProduct) error {
 		Badges:  toBadges(dp.Badges),
 	}
 
-	content, err := renderMDX(fm, string(dp.Name), string(dp.Summary), true)
-	if err != nil {
-		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_new.4",
-			"render data product %s: %v", dp.ID, err)
-	}
-
-	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
+	return e.writeResourceMDX(fm, string(dp.Name), string(dp.Summary),
+		filepath.Join(dir, indexFile), "catalog.exporter_new.4", "data product", string(dp.ID), true)
 }
 
 func (e *Exporter) writeAgent(agent catalog.Agent) error {
@@ -105,11 +100,6 @@ func (e *Exporter) writeAgent(agent catalog.Agent) error {
 		Badges:    toBadges(agent.Badges),
 	}
 
-	content, err := renderMDX(fm, string(agent.Name), string(agent.Summary), true)
-	if err != nil {
-		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_new.6",
-			"render agent %s: %v", agent.ID, err)
-	}
-
-	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
+	return e.writeResourceMDX(fm, string(agent.Name), string(agent.Summary),
+		filepath.Join(dir, indexFile), "catalog.exporter_new.6", "agent", string(agent.ID), true)
 }

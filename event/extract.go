@@ -32,3 +32,31 @@ func ExtractCustomBytes(evt Event, key MetadataKey) ([]byte, bool, error) {
 
 	return decoded, true, nil
 }
+
+// ExtractCustomBytesChecked is the nil-checked, error-wrapped variant of
+// ExtractCustomBytes. Returns (bytes, found, error):
+//   - evt == nil → returns (nil, false, nilEvtErr)
+//   - ExtractCustomBytes failure → returns (nil, false, WrapInfrastructure(err, wrapCode, wrapMsg))
+//   - otherwise → forwards the underlying (decoded, found, nil) triple.
+//
+// Shared by encryption.ExtractCiphertext and signing.ExtractSignature so the
+// nil-check + error-wrap boilerplate lives in one place. Callers still own the
+// typed-not-found error (ErrNilCiphertext / ErrNilSignature) since those are
+// per-package sentinels.
+func ExtractCustomBytesChecked(
+	evt Event,
+	key MetadataKey,
+	nilEvtErr error,
+	wrapCode, wrapMsg string,
+) ([]byte, bool, error) {
+	if evt == nil {
+		return nil, false, nilEvtErr
+	}
+
+	decoded, found, err := ExtractCustomBytes(evt, key)
+	if err != nil {
+		return nil, false, errorfamily.WrapInfrastructure(err, wrapCode, wrapMsg)
+	}
+
+	return decoded, found, nil
+}

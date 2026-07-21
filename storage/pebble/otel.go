@@ -3,6 +3,7 @@ package pebble
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
@@ -64,4 +65,42 @@ func idOrEmpty[T interface {
 	}
 
 	return id.String()
+}
+
+// finalizeScan records err (if any) on span, otherwise stamps countAttr with
+// the result count. Replaces the
+//
+//	if err != nil { RecordError; return nil, WrapInfrastructure }
+//	span.SetAttributes(AttrInt(countAttr, len(items)))
+//	return items, nil
+//
+// idiom that appears in every pebble read path. itemsOut is returned
+// unchanged on success so callers can write `return finalizeScan(...)`.
+func finalizeScan[T any](
+	span cqrsotel.Span,
+	itemsOut []T,
+	err error,
+	code, msg, countAttr string,
+) ([]T, error) {
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, errorfamily.WrapInfrastructure(err, code, msg)
+	}
+
+	span.SetAttributes(cqrsotel.AttrInt(countAttr, len(itemsOut)))
+
+	return itemsOut, nil
+}
+
+// reportScanErr records err on span and returns it wrapped as Infrastructure.
+// Use for read paths that do not stamp a count attribute — replaces the
+//
+//	if err != nil { RecordError; return nil, WrapInfrastructure }
+//
+// idiom.
+func reportScanErr(span cqrsotel.Span, err error, code, msg string) error {
+	cqrsotel.RecordError(span, err)
+
+	return errorfamily.WrapInfrastructure(err, code, msg)
 }

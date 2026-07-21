@@ -53,42 +53,39 @@ func (s *SQLQueryStore) LoadQueries(
 	return queries, scanErr
 }
 
+// queryJournalReader builds a fresh JournalReader over the queries table.
+func (s *SQLQueryStore) queryJournalReader() *sqlpkg.JournalReader[*query.PersistedQuery] {
+	return &sqlpkg.JournalReader[*query.PersistedQuery]{
+		DB:          s.DB,
+		Dialect:     s.Dialect,
+		CheckClosed: s.checkClosed,
+
+		SpanNameAll:  "query.store.read_all",
+		SpanNameFrom: "query.store.read_from",
+		CountAttr:    "query.count",
+
+		ErrCodeAll:        "storage.query_all_queries",
+		ErrCodeReadFrom:   "storage.query_read_from",
+		ErrCodeFromStart:  "storage.read_queries_from_start",
+		ErrCodeQueryStart: "storage.query_from_start",
+		ErrCodeScan:       "storage.scan_from_position",
+
+		EntityNoun:       "query",
+		EntityNounPlural: "queries",
+
+		Table:           sqlpkg.TableQueries,
+		AllColumns:      sqlpkg.QueryColumns,
+		PositionColumns: "e.id, e.query_type, e.payload, e.metadata, e.received_at",
+		TimestampColumn: "received_at",
+
+		Scan: s.scanQueries,
+	}
+}
+
 // ReadAllQueries returns all queries across the system, ordered by received_at.
 // Implements query.QueryJournal.
 func (s *SQLQueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuery, error) {
-	if err := s.checkClosed(); err != nil {
-		return nil, err
-	}
-
-	ctx, span := cqrsotel.StartSpan(
-		ctx,
-		sqlpkg.Tracer(),
-		"query.store.read_all",
-		cqrsotel.SpanKindClient,
-	)
-	defer span.End()
-
-	sqlText := `SELECT ` + sqlpkg.QueryColumns + `
-		FROM ` + sqlpkg.TableQueries + ` ORDER BY received_at ASC`
-
-	rows, err := s.DB.QueryContext(ctx, sqlText)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"storage.query_all_queries",
-			"query all queries",
-		)
-	}
-	defer sqlpkg.CloseRows(rows)
-
-	queries, scanErr := s.scanQueries(rows)
-	if scanErr != nil {
-		cqrsotel.RecordError(span, scanErr)
-	}
-	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
-
-	return queries, scanErr
+	return s.queryJournalReader().ReadAll(ctx)
 }
 
 // ReadQueriesFrom returns queries after the given RequestID, ordered by received_at.
@@ -98,86 +95,10 @@ func (s *SQLQueryStore) ReadQueriesFrom(
 	afterRequestID id.RequestID,
 	limit int,
 ) ([]*query.PersistedQuery, error) {
-	if err := s.checkClosed(); err != nil {
-		return nil, errorfamily.Wrapf(err, errorfamily.Infrastructure, "storage.query_read_from",
-			"read from query store (limit=%d, after=%s)", limit, afterRequestID)
+	afterID := ""
+	if !afterRequestID.IsZero() {
+		afterID = afterRequestID.String()
 	}
 
-	ctx, span := cqrsotel.StartSpan(
-		ctx,
-		sqlpkg.Tracer(),
-		"query.store.read_from",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrInt("cqrs.journal.limit", limit)),
-	)
-	defer span.End()
-
-	if afterRequestID.IsZero() {
-		queries, err := s.loadQueriesFromStart(ctx, limit)
-		if err != nil {
-			cqrsotel.RecordError(span, err)
-			return queries, errorfamily.WrapInfrastructure(err, "storage.read_queries_from_start",
-				fmt.Sprintf("read queries from start (limit=%d)", limit))
-		}
-		span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
-		return queries, nil
-	}
-
-	p1 := s.Dialect.Placeholder(1)
-	p2 := s.Dialect.Placeholder(2)
-	p3 := s.Dialect.Placeholder(3)
-	sqlText := fmt.Sprintf(
-		`SELECT e.id, e.query_type, e.payload, e.metadata, e.received_at
-		FROM `+sqlpkg.TableQueries+` e
-		JOIN `+sqlpkg.TableQueries+` c ON c.id = %s
-		WHERE (e.received_at > c.received_at) OR (e.received_at = c.received_at AND e.id > %s)
-		ORDER BY e.received_at ASC, e.id ASC`,
-		p1, p2,
-	)
-	rows, err := sqlpkg.QueryFromPosition(
-		ctx,
-		s.DB,
-		span,
-		sqlText,
-		afterRequestID.String(),
-		limit,
-		p3,
-		"queries",
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer sqlpkg.CloseRows(rows)
-
-	queries, scanErr := s.scanQueries(rows)
-	if scanErr != nil {
-		cqrsotel.RecordError(span, scanErr)
-		return queries, errorfamily.WrapInfrastructure(scanErr, "storage.scan_from_position",
-			fmt.Sprintf("scan queries from position (limit=%d)", limit))
-	}
-	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
-
-	return queries, nil
-}
-
-func (s *SQLQueryStore) loadQueriesFromStart(
-	ctx context.Context,
-	limit int,
-) ([]*query.PersistedQuery, error) {
-	if limit <= 0 {
-		return s.ReadAllQueries(ctx)
-	}
-
-	p1 := s.Dialect.Placeholder(1)
-	sqlText := `SELECT ` + sqlpkg.QueryColumns + `
-		FROM ` + sqlpkg.TableQueries + ` ORDER BY received_at ASC LIMIT ` + p1
-
-	rows, err := s.DB.QueryContext(ctx, sqlText, limit)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "storage.query_from_start",
-			fmt.Sprintf("query queries from start (limit=%d)", limit))
-	}
-	defer sqlpkg.CloseRows(rows)
-
-	return s.scanQueries(rows)
+	return s.queryJournalReader().ReadFrom(ctx, afterID, limit)
 }

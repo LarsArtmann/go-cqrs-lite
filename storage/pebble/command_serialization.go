@@ -1,7 +1,6 @@
 package pebble
 
 import (
-	"encoding/json/v2"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -33,31 +32,15 @@ func (s *CommandStore) serializeCommand(cmd *command.PersistedCommand) ([]byte, 
 		Metadata:      cmd.Metadata(),
 	}
 
-	data, err := marshalCBOR(serialized)
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(err, "pebble.serialize_command", "marshal command")
-	}
-
-	return data, nil
+	return marshalCBOROrErr(serialized, "pebble.serialize_command", "marshal command")
 }
 
 func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedCommand, error) {
 	var serialized serializableCommand
 
-	var err error
-
-	if isCBOR(data) {
-		err = unmarshalCBOR(data, &serialized)
-	} else {
-		err = json.Unmarshal(
-			data,
-			&serialized,
-		) //nolint:nolintlint // legacy JSON fallback for backward compat
-	}
-
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(err, "pebble.unmarshal_command",
-			"failed to unmarshal command")
+	if err := unmarshalCBOROrJSON(data, &serialized, "pebble.unmarshal_command",
+		"failed to unmarshal command"); err != nil {
+		return nil, err
 	}
 
 	ref := command.NewAggregateRef(

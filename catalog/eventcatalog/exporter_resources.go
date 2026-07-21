@@ -42,13 +42,8 @@ func (e *Exporter) writeChannel(ch catalog.Channel) error {
 		Badges:            toBadges(ch.Badges),
 	}
 
-	content, err := renderMDX(fm, string(ch.Name), string(ch.Summary), true)
-	if err != nil {
-		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_resources.1b",
-			"render channel %s: %v", ch.ID, err)
-	}
-
-	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
+	return e.writeResourceMDX(fm, string(ch.Name), string(ch.Summary),
+		filepath.Join(dir, indexFile), "catalog.exporter_resources.1b", "channel", string(ch.ID), true)
 }
 
 func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
@@ -75,11 +70,6 @@ func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
 		Badges:         toBadges(ds.Badges),
 	}
 
-	content, err := renderMDX(fm, string(ds.Name), string(ds.Summary), true)
-	if err != nil {
-		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_resources.2b",
-			"render data store %s: %v", ds.ID, err)
-	}
-
-	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
+	return e.writeResourceMDX(fm, string(ds.Name), string(ds.Summary),
+		filepath.Join(dir, indexFile), "catalog.exporter_resources.2b", "data store", string(ds.ID), true)
 }

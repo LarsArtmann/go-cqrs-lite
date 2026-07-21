@@ -76,6 +76,16 @@ func writeLLMsTxtService(buf *strings.Builder, svc catalog.Service) {
 	buf.WriteString("\n")
 }
 
+// writeLLMsSectionHeader writes the "## <kind>: <name> (<id>)" header followed
+// by an optional summary line. Shared by every LLM-txt section writer so the
+// header shape stays consistent and adjustable in one place.
+func writeLLMsSectionHeader(buf *strings.Builder, kind, name, id, summary string) {
+	fmt.Fprintf(buf, "## %s: %s (%s)\n", kind, name, id)
+	if summary != "" {
+		fmt.Fprintf(buf, "%s\n", summary)
+	}
+}
+
 func writeLLMsTxtMessages(buf *strings.Builder, section string, msgs []catalog.Message) {
 	if len(msgs) == 0 {
 		return
@@ -117,11 +127,7 @@ func writeLLMsTxtEvents(buf *strings.Builder, events []catalog.Message) {
 }
 
 func writeLLMsTxtChannel(buf *strings.Builder, ch catalog.Channel) {
-	fmt.Fprintf(buf, "## Channel: %s (%s)\n", ch.Name, ch.ID)
-
-	if ch.Summary != "" {
-		fmt.Fprintf(buf, "%s\n", ch.Summary)
-	}
+	writeLLMsSectionHeader(buf, "Channel", string(ch.Name), string(ch.ID), string(ch.Summary))
 
 	if len(ch.Protocols) > 0 {
 		protocols := make([]string, len(ch.Protocols))
@@ -150,21 +156,13 @@ func writeLLMsTxtDataStore(buf *strings.Builder, ds catalog.DataStore) {
 }
 
 func writeLLMsTxtFlow(buf *strings.Builder, f catalog.Flow) {
-	fmt.Fprintf(buf, "## Flow: %s (%s)\n", f.Name, f.ID)
-
-	if f.Summary != "" {
-		fmt.Fprintf(buf, "%s\n", f.Summary)
-	}
+	writeLLMsSectionHeader(buf, "Flow", string(f.Name), string(f.ID), string(f.Summary))
 
 	fmt.Fprintf(buf, "Steps: %d\n\n", len(f.Steps))
 }
 
 func writeLLMsTxtTeam(buf *strings.Builder, team catalog.Team) {
-	fmt.Fprintf(buf, "## Team: %s (%s)\n", team.Name, team.ID)
-
-	if team.Summary != "" {
-		fmt.Fprintf(buf, "%s\n", team.Summary)
-	}
+	writeLLMsSectionHeader(buf, "Team", string(team.Name), string(team.ID), string(team.Summary))
 
 	if len(team.Members) > 0 {
 		fmt.Fprintf(buf, "Members: %s\n", strings.Join(team.Members, ", "))
@@ -184,11 +182,7 @@ func writeLLMsTxtUser(buf *strings.Builder, user catalog.User) {
 }
 
 func writeLLMsTxtDomain(buf *strings.Builder, domain catalog.Domain) {
-	fmt.Fprintf(buf, "## Domain: %s (%s)\n", domain.Name, domain.ID)
-
-	if domain.Summary != "" {
-		fmt.Fprintf(buf, "%s\n", domain.Summary)
-	}
+	writeLLMsSectionHeader(buf, "Domain", string(domain.Name), string(domain.ID), string(domain.Summary))
 
 	if len(domain.Services) > 0 {
 		ids := make([]string, len(domain.Services))
@@ -209,21 +203,13 @@ func writeLLMsTxtDomain(buf *strings.Builder, domain catalog.Domain) {
 }
 
 func writeLLMsTxtEntity(buf *strings.Builder, entity catalog.Entity) {
-	fmt.Fprintf(buf, "## Entity: %s (%s)\n", entity.Name, entity.ID)
-
-	if entity.Summary != "" {
-		fmt.Fprintf(buf, "%s\n", entity.Summary)
-	}
+	writeLLMsSectionHeader(buf, "Entity", string(entity.Name), string(entity.ID), string(entity.Summary))
 
 	buf.WriteString("\n")
 }
 
 func writeLLMsTxtDataProduct(buf *strings.Builder, dp catalog.DataProduct) {
-	fmt.Fprintf(buf, "## Data Product: %s (%s)\n", dp.Name, dp.ID)
-
-	if dp.Summary != "" {
-		fmt.Fprintf(buf, "%s\n", dp.Summary)
-	}
+	writeLLMsSectionHeader(buf, "Data Product", string(dp.Name), string(dp.ID), string(dp.Summary))
 
 	buf.WriteString("\n")
 }
