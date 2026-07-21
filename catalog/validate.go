@@ -164,7 +164,8 @@ func validateOperation(seenOpPaths map[string]string, path string, msg Message) 
 	if msg.Operation != nil {
 		violations = append(
 			violations,
-			validateOperationDetails(seenOpPaths, path, msg.Operation)...)
+			validateOperationDetails(seenOpPaths, path, msg.Operation)...,
+		)
 	}
 
 	for _, resp := range msg.Responses {

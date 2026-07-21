@@ -95,8 +95,8 @@ func TestNewPersistedQuery_NilPayload(t *testing.T) {
 func TestNewPersistedQuery_MetadataIsolation(t *testing.T) {
 	t.Parallel()
 
-	meta := query.NewMetadata()
-	query.EnsureCustom(&meta)
+	meta := query.Metadata{}
+	meta.EnsureCustom()
 	meta.Custom["key1"] = "value1"
 
 	q, err := query.NewPersistedQuery(
@@ -119,8 +119,8 @@ func TestNewPersistedQuery_MetadataIsolation(t *testing.T) {
 func TestWithQueryMetadata_IntakeIsolation(t *testing.T) {
 	t.Parallel()
 
-	meta := query.NewMetadata()
-	query.EnsureCustom(&meta)
+	meta := query.Metadata{}
+	meta.EnsureCustom()
 	meta.Custom["key"] = "original"
 
 	q, err := query.NewPersistedQuery(

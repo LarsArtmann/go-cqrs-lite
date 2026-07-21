@@ -63,6 +63,15 @@ func WithForeignKeys() Option {
 // WithoutAutoMigrate skips schema creation. Use this when you manage schemas
 // yourself (e.g. via a migration tool). By default New creates all required
 // tables.
+//
+// The 4-option block (WithoutAutoMigrate, WithEventDB, WithQueryDB, WithViewDB)
+// is duplicated in stack/postgres/preset.go. This is forced by Go's typed
+// Option pattern: each preset has `type Option func(*config)` where config is
+// preset-specific (sqlite adds wal/optimize/foreignKeys; postgres adds
+// listener/busOpts). The bodies are 1-line delegates to the shared
+// sqlopt.DSNConfig methods, but the wrapper function shape must be per-preset
+// because Go function types are invariant (func(*sqlite.config) ≠
+// func(*postgres.config)).
 func WithoutAutoMigrate() Option {
 	return func(c *config) { c.WithoutAutoMigrate() }
 }

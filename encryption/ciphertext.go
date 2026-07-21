@@ -27,12 +27,5 @@ func (c Ciphertext) MarshalJSON() ([]byte, error) {
 }
 
 func (c *Ciphertext) UnmarshalJSON(data []byte) error {
-	decoded, err := codec.UnmarshalBase64JSON(data, "encryption", "ciphertext")
-	if err != nil {
-		return err
-	}
-
-	*c = decoded
-
-	return nil
+	return codec.AssignBase64JSON(data, "encryption", "ciphertext", (*[]byte)(c))
 }

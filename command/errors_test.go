@@ -45,7 +45,7 @@ func TestWithCommandMetadata(t *testing.T) {
 	aggID := id.NewAggregateID()
 	ref := command.NewAggregateRef("User", aggID)
 
-	md := command.NewMetadata()
+	md := command.Metadata{}
 	md.CorrelationID = id.NewCorrelationID()
 
 	cmd, err := command.NewPersistedCommand(

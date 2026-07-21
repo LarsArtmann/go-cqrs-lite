@@ -59,3 +59,18 @@ func UnmarshalBase64JSON(data []byte, module, noun string) ([]byte, error) {
 
 	return decoded, nil
 }
+
+// AssignBase64JSON unmarshals data and assigns the decoded bytes to *target.
+// Convenience for types whose underlying type is []byte (encryption.Ciphertext,
+// signing.Signature, etc.) — collapses the standard UnmarshalJSON body to one
+// call so each []byte wrapper type does not repeat the decode+assign boilerplate.
+func AssignBase64JSON(data []byte, module, noun string, target *[]byte) error {
+	decoded, err := UnmarshalBase64JSON(data, module, noun)
+	if err != nil {
+		return err
+	}
+
+	*target = decoded
+
+	return nil
+}

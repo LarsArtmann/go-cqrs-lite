@@ -26,13 +26,8 @@ func SignCOSE1(evt event.Event, signer COSESigner, opts ...COSESignOption) ([]by
 	}
 
 	cfg := coseSignConfig{} //nolint:exhaustruct // zero values are ready
-	for _, o := range opts {
-		o(&cfg)
-	}
 
-	alg := signer.COSEAlgorithm()
-
-	protected, err := codec.COSEAlgHeader(alg)
+	protected, err := codec.PrepareCOSESetup(&cfg, opts, signer.COSEAlgorithm())
 	if err != nil {
 		return nil, err
 	}

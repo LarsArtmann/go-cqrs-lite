@@ -10,14 +10,14 @@ import (
 func TestQuery_MetadataMerge(t *testing.T) {
 	t.Parallel()
 
-	base := query.NewMetadata()
+	base := query.Metadata{}
 	base.CorrelationID = id.NewCorrelationID()
-	query.EnsureCustom(&base)
+	base.EnsureCustom()
 	base.Custom["tenant"] = "acme"
 
-	overlay := query.NewMetadata()
+	overlay := query.Metadata{}
 	overlay.UserID = id.NewUserID()
-	query.EnsureCustom(&overlay)
+	overlay.EnsureCustom()
 	overlay.Custom["region"] = "us-east-1"
 
 	merged := base.Merge(overlay)
@@ -47,8 +47,8 @@ func TestQuery_MetadataMerge(t *testing.T) {
 func TestQuery_MetadataKeyIsLocal(t *testing.T) {
 	t.Parallel()
 
-	md := query.NewMetadata()
-	query.EnsureCustom(&md)
+	md := query.Metadata{}
+	md.EnsureCustom()
 	md.Custom["source"] = "test"
 
 	if md.Custom["source"] != "test" {

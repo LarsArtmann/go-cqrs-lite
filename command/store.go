@@ -95,7 +95,7 @@ func NewPersistedCommand(
 		aggregateRef: ref,
 		receivedAt:   time.Now(),
 		payload:      slices.Clone(payload),
-		metadata:     NewMetadata(),
+		metadata:     Metadata{},
 	}
 
 	for _, opt := range opts {

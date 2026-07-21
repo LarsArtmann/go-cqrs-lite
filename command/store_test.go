@@ -107,8 +107,8 @@ func TestNewPersistedCommand_MetadataIsolation(t *testing.T) {
 	t.Parallel()
 
 	ref := validRef(t)
-	meta := command.NewMetadata()
-	command.EnsureCustom(&meta)
+	meta := command.Metadata{}
+	meta.EnsureCustom()
 	meta.Custom["key1"] = "value1"
 
 	cmd, err := command.NewPersistedCommand(
@@ -132,8 +132,8 @@ func TestWithCommandMetadata_IntakeIsolation(t *testing.T) {
 	t.Parallel()
 
 	ref := validRef(t)
-	meta := command.NewMetadata()
-	command.EnsureCustom(&meta)
+	meta := command.Metadata{}
+	meta.EnsureCustom()
 	meta.Custom["key"] = "original"
 
 	cmd, err := command.NewPersistedCommand(

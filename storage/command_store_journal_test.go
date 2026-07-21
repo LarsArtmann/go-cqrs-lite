@@ -195,10 +195,10 @@ func TestSQLCommandStore_MetadataRoundtrip(t *testing.T) {
 		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
-	meta := command.NewMetadata()
+	meta := command.Metadata{}
 	meta.CorrelationID = id.NewCorrelationID()
 	meta.UserID = id.NewUserID()
-	command.EnsureCustom(&meta)
+	meta.EnsureCustom()
 	meta.Custom["source"] = "test"
 
 	cmd, err := command.NewPersistedCommand(

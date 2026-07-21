@@ -36,42 +36,14 @@ type Query interface {
 type MetadataKey string
 
 // Metadata contains tracing and contextual information for queries.
-// It embeds metadata.CustomData for the cross-cutting tracing identifiers and
-// custom key-value metadata.
+// It is a type alias for metadata.CustomData[MetadataKey] so that Clone, Merge,
+// and EnsureCustom are inherited directly — no per-module wrapper methods are
+// needed. See ADR-0031.
 //
 // Unlike the old alias of event.Metadata, query.Metadata does NOT carry
 // event-only concerns (Tombstone, Causation). Each module owns its own
 // Metadata so a change to the event's shape cannot silently reshape queries.
-// See ADR-0031.
-type Metadata struct {
-	metadata.CustomData[MetadataKey]
-}
-
-// NewMetadata creates a Metadata with zero-value fields.
-// The Custom map is lazily initialized on first write via EnsureCustom.
-func NewMetadata() Metadata { return Metadata{} }
-
-// Clone returns a deep copy of the metadata.
-//
-// This wrapper exists because Go has no covariant return types: the embedded
-// CustomData.Clone returns CustomData[MetadataKey], not query.Metadata.
-// The same boilerplate appears in command/metadata.go — see ADR-0031.
-func (m Metadata) Clone() Metadata {
-	return Metadata{CustomData: m.CustomData.Clone()}
-}
-
-// Merge returns a new Metadata with non-zero tracing fields and all Custom
-// entries from other overlaid onto m. Useful for middleware that enriches
-// query metadata (e.g. correlation ID from context).
-func (m Metadata) Merge(other Metadata) Metadata {
-	return Metadata{CustomData: m.CustomData.Merge(other.CustomData)}
-}
-
-// EnsureCustom lazily initializes the Custom map if nil.
-// Call before writing to m.Custom.
-func EnsureCustom(m *Metadata) {
-	m.EnsureCustom()
-}
+type Metadata = metadata.CustomData[MetadataKey]
 
 // Option configures query creation.
 type Option func(*BasicQuery)
@@ -118,7 +90,7 @@ func New(queryType Type, opts ...Option) (*BasicQuery, error) {
 
 	q := &BasicQuery{
 		queryType: queryType,
-		metadata:  NewMetadata(),
+		metadata:  Metadata{},
 	}
 
 	for _, opt := range opts {

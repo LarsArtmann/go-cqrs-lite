@@ -132,6 +132,23 @@ func COSEAlgHeader(alg int64) ([]byte, error) {
 	return data, nil
 }
 
+// PrepareCOSESetup applies COSE options to cfg and returns the protected
+// header for the given algorithm. Shared by encryption.EncryptCOSE0 and
+// signing.SignCOSE1 to eliminate the duplicated apply-opts + alg-extraction +
+// header-build boilerplate that art-dupl flagged across those modules.
+//
+// The caller passes a pointer to its module-local config (e.g.
+// coseEncryptConfig or coseSignConfig); the options are applied in place.
+// The O type parameter has a ~func(*Cfg) constraint so module-local defined
+// option types (COSEEncryptOption, COSESignOption) satisfy it directly.
+func PrepareCOSESetup[Cfg any, O ~func(*Cfg)](cfg *Cfg, opts []O, alg int64) ([]byte, error) {
+	for _, o := range opts {
+		o(cfg)
+	}
+
+	return COSEAlgHeader(alg)
+}
+
 // UnmarshalCOSEProtectedHeader deserializes a COSE protected header map from its
 // CBOR-encoded form.
 func UnmarshalCOSEProtectedHeader(data []byte) (map[int64]any, error) {

@@ -11,46 +11,17 @@ import (
 type MetadataKey string
 
 // Metadata contains tracing and contextual information for commands.
-// It embeds metadata.Tracing for the cross-cutting tracing identifiers and adds
-// a Custom map for arbitrary key-value metadata.
+// It is a type alias for metadata.CustomData[MetadataKey] so that Clone, Merge,
+// and EnsureCustom are inherited directly — no per-module wrapper methods are
+// needed (the previous wrapper struct existed only to retype Clone/Merge
+// returns, which Go's lack of covariant return types forced; the alias removes
+// that constraint entirely). See ADR-0031.
 //
 // Unlike the old alias of event.Metadata, command.Metadata does NOT carry
 // event-only concerns (Tombstone, Causation): commands have no tombstones and
-// no event-causation link. Each module owns its own Metadata so a change to
-// the event's shape cannot silently reshape commands. See ADR-0031.
-type Metadata struct {
-	metadata.CustomData[MetadataKey]
-}
-
-// NewMetadata creates a Metadata with zero-value fields.
-// The Custom map is lazily initialized on first write via EnsureCustom.
-func NewMetadata() Metadata { return Metadata{} }
-
-// Clone returns a deep copy of the metadata.
-//
-// This wrapper exists because Go has no covariant return types: the embedded
-// CustomData.Clone returns CustomData[MetadataKey], not command.Metadata.
-// The same boilerplate appears in query/query.go — see ADR-0031. Extracting
-// to a generic helper would require more callback parameters than these
-// one-line wrappers save, so the duplication is intentional.
-func (m Metadata) Clone() Metadata {
-	return Metadata{CustomData: m.CustomData.Clone()}
-}
-
-// Merge returns a new Metadata with non-zero tracing fields and all Custom
-// entries from other overlaid onto m. Useful for middleware that enriches
-// command metadata (e.g. correlation ID from context).
-//
-// Same Go no-covariant-returns constraint as Clone — see comment above.
-func (m Metadata) Merge(other Metadata) Metadata {
-	return Metadata{CustomData: m.CustomData.Merge(other.CustomData)}
-}
-
-// EnsureCustom lazily initializes the Custom map if nil.
-// Call before writing to m.Custom.
-func EnsureCustom(m *Metadata) {
-	m.EnsureCustom()
-}
+// no event-causation link. Each module owns its own Metadata type so a change
+// to the event's shape cannot silently reshape commands.
+type Metadata = metadata.CustomData[MetadataKey]
 
 // Option configures command creation.
 type Option func(*BasicCommand)
@@ -86,7 +57,7 @@ func WithRequestID(v id.RequestID) Option {
 // metadata (e.g. gRPC payload, correlation context).
 func WithCustomMetadata(key, value string) Option {
 	return func(c *BasicCommand) {
-		EnsureCustom(&c.metadata)
+		c.metadata.EnsureCustom()
 		c.metadata.Custom[MetadataKey(key)] = value
 	}
 }

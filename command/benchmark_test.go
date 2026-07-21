@@ -89,10 +89,10 @@ func BenchmarkDispatcher_RegisterTyped(b *testing.B) {
 	}
 }
 
-func BenchmarkNewMetadata(b *testing.B) {
+func BenchmarkMetadataConstruction(b *testing.B) {
 	b.ReportAllocs()
 
 	for b.Loop() {
-		_ = command.NewMetadata()
+		_ = command.Metadata{}
 	}
 }

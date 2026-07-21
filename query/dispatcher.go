@@ -51,22 +51,10 @@ func (d *Dispatcher) Register(queryType Type, handler Handler) error {
 		return err
 	}
 
-	err = d.inner.Register(
-		string(queryType),
-		handler,
-		func(m Middleware, h Handler) Handler {
-			return m(h)
-		},
+	return dispatcher.RegisterWithWrapping(
+		d.inner, string(queryType), "query", handler,
+		dispatcher.ApplyMiddleware[Handler, Middleware],
 	)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err,
-			"query.register_handler_failed",
-			"registering handler for query type "+string(queryType),
-		)
-	}
-
-	return nil
 }
 
 // RegisterTyped binds a typed handler to a query type.

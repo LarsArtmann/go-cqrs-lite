@@ -160,6 +160,14 @@ func (b *PostgresBus) SubscribeAll(handler event.Handler) error {
 
 // appendMiddleware is the shared Use/UsePublish body: lock, append, rebuild.
 // Uses sync.Locker so it works with both sync.Mutex and sync.RWMutex.
+//
+// A near-identical helper exists in watermill/bus_helpers.go (with *sync.Mutex
+// instead of sync.Locker — functionally equivalent since *sync.Mutex satisfies
+// sync.Locker). The two remain independent because storage/ and watermill/ are
+// sibling transport adapters that don't share a dependency; extracting to a
+// shared module would require a new package for one 4-line lock+append+rebuild
+// idiom. Per the deduplication skill: "an abstraction would take more
+// parameters than the duplicated code has lines" — accept.
 func appendMiddleware[M any](mu sync.Locker, middleware *[]M, mw []M, rebuild func()) {
 	mu.Lock()
 	defer mu.Unlock()

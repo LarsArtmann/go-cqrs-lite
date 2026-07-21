@@ -138,7 +138,7 @@ func TestCommand_MetadataIsolation(t *testing.T) {
 	}
 
 	m1 := cmd.Metadata()
-	command.EnsureCustom(&m1)
+	m1.EnsureCustom()
 	m1.Custom["key"] = "value"
 
 	m2 := cmd.Metadata()
@@ -150,14 +150,14 @@ func TestCommand_MetadataIsolation(t *testing.T) {
 func TestCommand_MetadataMerge(t *testing.T) {
 	t.Parallel()
 
-	base := command.NewMetadata()
+	base := command.Metadata{}
 	base.CorrelationID = id.NewCorrelationID()
-	command.EnsureCustom(&base)
+	base.EnsureCustom()
 	base.Custom["tenant"] = "acme"
 
-	overlay := command.NewMetadata()
+	overlay := command.Metadata{}
 	overlay.UserID = id.NewUserID()
-	command.EnsureCustom(&overlay)
+	overlay.EnsureCustom()
 	overlay.Custom["region"] = "us-east-1"
 
 	merged := base.Merge(overlay)

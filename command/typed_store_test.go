@@ -65,8 +65,8 @@ func TestTypedCommandStore_PreservesMetadata(t *testing.T) {
 
 	ref := command.NewAggregateRef("Todo", id.NewAggregateID())
 
-	md := command.NewMetadata()
-	command.EnsureCustom(&md)
+	md := command.Metadata{}
+	md.EnsureCustom()
 	md.Custom["user_id"] = "user-123"
 
 	err := ts.Save(ctx, ref, command.TypedPersistedCommand[createTodoPayload]{
