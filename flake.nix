@@ -50,7 +50,6 @@
   outputs =
     inputs@{
       self,
-      nixpkgs,
       flake-parts,
       treefmt-nix,
       systems,
@@ -84,7 +83,7 @@
             path = ./cmd/cqrs-lint;
             name = "source";
             filter =
-              path: type:
+              path: _type:
               !(builtins.elem (baseNameOf path) [
                 "flake.lock"
                 ".envrc"
@@ -129,7 +128,6 @@
         {
           config,
           pkgs,
-          system,
           ...
         }:
         let
@@ -299,7 +297,7 @@
 
             src = mkCqrsLintSource pkgs;
 
-            vendorHash = "sha256-iYsgtIvIluo0ZSr5trFHWfG2RZ+DYdlxG/IFxHycw0Y=";
+            vendorHash = "sha256-MIFcY952gDRxsuJo9M0X7XUnULL8MOLAZBIqHRIzCkU=";
             proxyVendor = true;
 
             subPackages = [ "." ];
