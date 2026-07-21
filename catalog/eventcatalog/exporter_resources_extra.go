@@ -26,8 +26,19 @@ func (e *Exporter) writeFlow(f catalog.Flow) error {
 		Steps:   toFlowSteps(f.Steps),
 	}
 
-	return e.writeResourceMDX(fm, string(f.Name), string(f.Summary),
-		filepath.Join(dir, indexFile), "catalog.exporter_resources_extra.1b", "flow", string(f.ID), true)
+	return e.writeResourceMDX(
+		fm,
+		string(f.Name),
+		string(f.Summary),
+		filepath.Join(
+			dir,
+			indexFile,
+		),
+		"catalog.exporter_resources_extra.1b",
+		"flow",
+		string(f.ID),
+		true,
+	)
 }
 
 func (e *Exporter) writeTeam(team catalog.Team) error {
@@ -52,8 +63,19 @@ func (e *Exporter) writeTeam(team catalog.Team) error {
 		Source:                toSource(team.Source),
 	}
 
-	return e.writeResourceMDX(fm, string(team.Name), "",
-		filepath.Join(dir, string(team.ID)+".mdx"), "catalog.exporter_resources_extra.2b", "team", string(team.ID), false)
+	return e.writeResourceMDX(
+		fm,
+		string(team.Name),
+		"",
+		filepath.Join(
+			dir,
+			string(team.ID)+".mdx",
+		),
+		"catalog.exporter_resources_extra.2b",
+		"team",
+		string(team.ID),
+		false,
+	)
 }
 
 func (e *Exporter) writeUser(user catalog.User) error {
@@ -76,6 +98,17 @@ func (e *Exporter) writeUser(user catalog.User) error {
 		Source:                toSource(user.Source),
 	}
 
-	return e.writeResourceMDX(fm, string(user.Name), "",
-		filepath.Join(dir, string(user.ID)+".mdx"), "catalog.exporter_resources_extra.3b", "user", string(user.ID), false)
+	return e.writeResourceMDX(
+		fm,
+		string(user.Name),
+		"",
+		filepath.Join(
+			dir,
+			string(user.ID)+".mdx",
+		),
+		"catalog.exporter_resources_extra.3b",
+		"user",
+		string(user.ID),
+		false,
+	)
 }

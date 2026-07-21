@@ -44,7 +44,10 @@ func unmarshalCBOROrJSON(data []byte, target any, code, msg string) error {
 	if isCBOR(data) {
 		err = unmarshalCBOR(data, target)
 	} else {
-		err = json.Unmarshal(data, target) //nolint:nolintlint // legacy JSON fallback for backward compat
+		err = json.Unmarshal(
+			data,
+			target,
+		) //nolint:nolintlint // legacy JSON fallback for backward compat
 	}
 	if err != nil {
 		return errorfamily.WrapCorruption(err, code, msg)

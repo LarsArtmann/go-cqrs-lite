@@ -72,8 +72,19 @@ func (e *Exporter) writeDataProduct(dp catalog.DataProduct) error {
 		Badges:  toBadges(dp.Badges),
 	}
 
-	return e.writeResourceMDX(fm, string(dp.Name), string(dp.Summary),
-		filepath.Join(dir, indexFile), "catalog.exporter_new.4", "data product", string(dp.ID), true)
+	return e.writeResourceMDX(
+		fm,
+		string(dp.Name),
+		string(dp.Summary),
+		filepath.Join(
+			dir,
+			indexFile,
+		),
+		"catalog.exporter_new.4",
+		"data product",
+		string(dp.ID),
+		true,
+	)
 }
 
 func (e *Exporter) writeAgent(agent catalog.Agent) error {

@@ -182,7 +182,13 @@ func writeLLMsTxtUser(buf *strings.Builder, user catalog.User) {
 }
 
 func writeLLMsTxtDomain(buf *strings.Builder, domain catalog.Domain) {
-	writeLLMsSectionHeader(buf, "Domain", string(domain.Name), string(domain.ID), string(domain.Summary))
+	writeLLMsSectionHeader(
+		buf,
+		"Domain",
+		string(domain.Name),
+		string(domain.ID),
+		string(domain.Summary),
+	)
 
 	if len(domain.Services) > 0 {
 		ids := make([]string, len(domain.Services))
@@ -203,7 +209,13 @@ func writeLLMsTxtDomain(buf *strings.Builder, domain catalog.Domain) {
 }
 
 func writeLLMsTxtEntity(buf *strings.Builder, entity catalog.Entity) {
-	writeLLMsSectionHeader(buf, "Entity", string(entity.Name), string(entity.ID), string(entity.Summary))
+	writeLLMsSectionHeader(
+		buf,
+		"Entity",
+		string(entity.Name),
+		string(entity.ID),
+		string(entity.Summary),
+	)
 
 	buf.WriteString("\n")
 }

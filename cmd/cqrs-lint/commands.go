@@ -10,7 +10,12 @@ import (
 // registerCommand wraps the create-and-add pattern shared by every subcommand:
 // it surfaces NewCommand failures as "create <name> command" and AddCommand
 // failures as "add <name> command".
-func registerCommand[F any](cli *cmdguard.CLI[AppConfig], name string, cmd cmdguard.Command[AppConfig, F], err error) error {
+func registerCommand[F any](
+	cli *cmdguard.CLI[AppConfig],
+	name string,
+	cmd cmdguard.Command[AppConfig, F],
+	err error,
+) error {
 	if err != nil {
 		return fmt.Errorf("create %s command: %w", name, err)
 	}

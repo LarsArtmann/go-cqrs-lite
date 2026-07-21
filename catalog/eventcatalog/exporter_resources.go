@@ -42,8 +42,19 @@ func (e *Exporter) writeChannel(ch catalog.Channel) error {
 		Badges:            toBadges(ch.Badges),
 	}
 
-	return e.writeResourceMDX(fm, string(ch.Name), string(ch.Summary),
-		filepath.Join(dir, indexFile), "catalog.exporter_resources.1b", "channel", string(ch.ID), true)
+	return e.writeResourceMDX(
+		fm,
+		string(ch.Name),
+		string(ch.Summary),
+		filepath.Join(
+			dir,
+			indexFile,
+		),
+		"catalog.exporter_resources.1b",
+		"channel",
+		string(ch.ID),
+		true,
+	)
 }
 
 func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
@@ -70,6 +81,17 @@ func (e *Exporter) writeDataStore(ds catalog.DataStore) error {
 		Badges:         toBadges(ds.Badges),
 	}
 
-	return e.writeResourceMDX(fm, string(ds.Name), string(ds.Summary),
-		filepath.Join(dir, indexFile), "catalog.exporter_resources.2b", "data store", string(ds.ID), true)
+	return e.writeResourceMDX(
+		fm,
+		string(ds.Name),
+		string(ds.Summary),
+		filepath.Join(
+			dir,
+			indexFile,
+		),
+		"catalog.exporter_resources.2b",
+		"data store",
+		string(ds.ID),
+		true,
+	)
 }
