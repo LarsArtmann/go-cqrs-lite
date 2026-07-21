@@ -60,6 +60,7 @@
       gogenfilter,
       go-branded-id,
       samber-do-auditlog,
+      ...
     }:
     let
       # Prepared source for building cmd/cqrs-lint as a distributable binary.
