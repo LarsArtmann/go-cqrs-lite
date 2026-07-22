@@ -94,17 +94,18 @@ func TestEventStore_LoadToTimestamp(t *testing.T) {
 
 	store, ctx := setupEventStore(t)
 	aggID := id.NewAggregateID()
+	now := time.Now()
 
-	saveEvent(t, store, ctx, makeEvent(t, aggID, 1), 0)
+	evt1 := makeEventWithTime(t, aggID, 1, now.Add(-2*time.Hour))
+	evt2 := makeEventWithTime(t, aggID, 2, now.Add(-30*time.Minute))
+	evt3 := makeEventWithTime(t, aggID, 3, now)
 
-	time.Sleep(10 * time.Millisecond)
-	cutoff := time.Now()
-	time.Sleep(10 * time.Millisecond)
-
-	saveEvent(t, store, ctx, makeEvent(t, aggID, 2), 1)
+	saveEvent(t, store, ctx, evt1, 0)
+	saveEvent(t, store, ctx, evt2, 1)
+	saveEvent(t, store, ctx, evt3, 2)
 
 	ref := id.NewAggregateRef("TestAggregate", aggID)
-	events, err := store.LoadToTimestamp(ctx, ref, cutoff)
+	events, err := store.LoadToTimestamp(ctx, ref, now.Add(-1*time.Hour))
 	if err != nil {
 		t.Fatalf("LoadToTimestamp: %v", err)
 	}
