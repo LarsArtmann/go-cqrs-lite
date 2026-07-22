@@ -1,0 +1,4 @@
+github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0 h1:JVHXvuo3ANV6dfaL2WQ5J61OeyeARQ1hdmMbWUDN6MY=
+github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0/go.mod h1:TpJz2iBvEo1oRwCGalJ5Z947b1OrrOos4UYHi6sfGIU=
+pgregory.net/rapid v1.3.0 h1:vBvO0VSqti75J1jjYqpgPNBLKMd1+gxa9fYo7vk/Exc=
+pgregory.net/rapid v1.3.0/go.mod h1:dPlE4OBBxgXPqkP79flB6sJL1dx5azpI7HQ9MY9Z7uk=
