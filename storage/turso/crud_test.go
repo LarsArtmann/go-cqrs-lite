@@ -53,6 +53,24 @@ func makeEvent(t *testing.T, aggID id.AggregateID, version int) event.Event {
 	return evt
 }
 
+func makeEventWithTime(t *testing.T, aggID id.AggregateID, version int, at time.Time) event.Event {
+	t.Helper()
+
+	evt, err := event.NewEvent(
+		"test.created",
+		aggID,
+		"TestAggregate",
+		event.Version(version),
+		[]byte(`{"action":"test"}`),
+		event.WithOccurredAt(at),
+	)
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	return evt
+}
+
 func saveEvent(
 	t *testing.T,
 	store *storage.SQLEventStore,
