@@ -29,7 +29,7 @@
 | `memory`              | 99.6%         | ✅ In-memory Store/Bus/SnapshotStore                    |
 | `middleware`          | 100.0%        | ✅ Logging, retry, recovery, validation, metrics        |
 | `testhelpers`         | 91.3%         | ✅ Shared test utilities                                |
-| `projection`          | 94.4%         | ✅ Runner with replay, Builder with On[T]()             |
+| `projection`          | 94.4%         | ✅ Runner with replay, Builder with On[T](<>)           |
 
 ### Catalog System
 

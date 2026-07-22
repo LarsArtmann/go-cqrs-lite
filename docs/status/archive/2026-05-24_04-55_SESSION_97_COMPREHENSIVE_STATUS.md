@@ -304,7 +304,7 @@ The alternative is to fix `cqrs-htmx` and keep examples here, but that creates a
 | Session | Key Achievement                                                                                                                        |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | 89      | API surface reduction: ~60 exports removed, 89.3→92.1% coverage                                                                        |
-| 90      | Projection builder On[T](), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID                                                  |
+| 90      | Projection builder On[T](<>), IsReplay, event.New, ExecuteWithResult, DeriveAggregateID                                                |
 | 92      | Query typed bookend docs, example/todo typed handlers + Pagination                                                                     |
 | 93      | Zero lint across 10 modules, decider dual-wrap fix, registry deterministic Build                                                       |
 | 94      | gci v2 fix, orphaned go.mod replace, testhelpers 64.6→80.3%, caseutil 76.5→100%                                                        |

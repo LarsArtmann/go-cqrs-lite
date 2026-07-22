@@ -12,6 +12,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/contracttest"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 )
 
 // TestMultiDBContract verifies that the Postgres multi-DB split routes each
@@ -42,9 +43,11 @@ func TestMultiDBContract(t *testing.T) {
 	contracttest.RunMultiDBSuite(t, func(_ *testing.T) (*contracttest.MultiDBTest, error) {
 		b, err := postgres.New(
 			primaryDSN,
-			postgres.WithEventDB(eventDSN),
-			postgres.WithQueryDB(queryDSN),
-			postgres.WithViewDB(viewDSN),
+			postgres.WithDSN(
+				sqlopt.WithEventDB(eventDSN),
+				sqlopt.WithQueryDB(queryDSN),
+				sqlopt.WithViewDB(viewDSN),
+			),
 		)
 		if err != nil {
 			return nil, err

@@ -26,19 +26,21 @@
 //
 // Enable CQRS-optimized indexes and performance PRAGMAs:
 //
-//	b, err := turso.New("app.db", turso.WithOptimizations())
+//	b, err := turso.New("app.db", turso.WithPragmas(sqlopt.WithOptimizations()))
 //
 // Enable foreign-key enforcement for new databases:
 //
 //	b, err := turso.New("app.db",
-//	    turso.WithOptimizations(),
-//	    turso.WithForeignKeys(),
+//	    turso.WithPragmas(
+//	        sqlopt.WithOptimizations(),
+//	        sqlopt.WithForeignKeys(),
+//	    ),
 //	)
 //
 // WAL mode is enabled by default (with synchronous=NORMAL and busy_timeout).
 // Disable only if you have a specific reason:
 //
-//	b, err := turso.New("app.db", turso.WithoutWAL())
+//	b, err := turso.New("app.db", turso.WithPragmas(sqlopt.WithoutWAL()))
 //
 // # Multi-Database Topology
 //
@@ -46,10 +48,13 @@
 // requires all stores in one syncing database):
 //
 //	b, err := turso.New("app.db",
-//	    turso.WithEventDB("events.db"),   // events + snapshots + checkpoints
-//	    turso.WithQueryDB("queries.db"),  // command + query audit logs
-//	    turso.WithViewDB("views.db"),     // materialized views (KV)
+//	    turso.WithDSN(
+//	        sqlopt.WithEventDB("events.db"),   // events + snapshots + checkpoints
+//	        sqlopt.WithQueryDB("queries.db"),  // command + query audit logs
+//	        sqlopt.WithViewDB("views.db"),     // materialized views (KV)
+//	    ),
 //	)
 //
-// New runs schema migration by default. Disable with [WithoutAutoMigrate].
+// New runs schema migration by default. Disable with [WithDSN] (passing
+// [sqlopt.WithoutAutoMigrate]).
 package turso

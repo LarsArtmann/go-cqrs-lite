@@ -47,7 +47,7 @@ ok  catalog/v2/eventcatalog  ok  catalog/v2/schema  ok  catalog/v2/openapi
 | catalog    | ✅       | Registry, AsyncAPI/D2/EventCatalog/OpenAPI exporters, JSON Schema                            |
 | middleware | ✅       | 24 factories (8 concerns × 3 message types)                                                  |
 | signing    | ✅       | HMAC-SHA256, Ed25519, multisig, middleware                                                   |
-| projection | ✅       | Runner (replay+live), HandlerRegistry, Builder with On[T]()                                  |
+| projection | ✅       | Runner (replay+live), HandlerRegistry, Builder with On[T](<>)                                |
 | storage    | ✅       | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (PG/SQLite/Turso)                        |
 | pebble     | ✅       | Embedded KV event store, async writes, early termination                                     |
 | listing    | ✅       | InMemoryAggregateReader, ListBuilder, tombstone filter                                       |

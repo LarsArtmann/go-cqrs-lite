@@ -48,11 +48,11 @@ Session 8 delivered the last major architectural improvement: collapsing middlew
 | Module                  | Coverage | Status         | Notes                                                                        |
 | ----------------------- | -------- | -------------- | ---------------------------------------------------------------------------- |
 | `middleware/`           | 98.5%    | **PRODUCTION** | Logging, Retry, Recovery, Validation, Metrics, OTel, Tracing, CircuitBreaker |
-| `projection/`           | 91.3%    | **PRODUCTION** | Runner (replay+live), HandlerRegistry, Builder with On[T]()                  |
+| `projection/`           | 91.3%    | **PRODUCTION** | Runner (replay+live), HandlerRegistry, Builder with On[T](<>)                |
 | `signing/`              | 93.9%    | **PRODUCTION** | HMAC-SHA256, Ed25519, multisig, middleware                                   |
 | `signing/multisig/`     | 94.1%    | **PRODUCTION** | Multi-signer verification                                                    |
 | `listing/`              | 93.8%    | **PRODUCTION** | Aggregate listing, tombstone detection, StatusMiddleware                     |
-| `catalog/`              | 95.9%    | **PRODUCTION** | Registry, SchemaFromType[T](), exporters                                     |
+| `catalog/`              | 95.9%    | **PRODUCTION** | Registry, SchemaFromType[T](<>), exporters                                   |
 | `catalog/asyncapi/`     | 93.7%    | **PRODUCTION** | AsyncAPI 2.x exporter                                                        |
 | `catalog/d2/`           | 95.0%    | **PRODUCTION** | D2 architecture diagram exporter                                             |
 | `catalog/docserver/`    | 90.1%    | **PRODUCTION** | Documentation HTTP server                                                    |

@@ -42,19 +42,21 @@ store := kv.NewTypedStore[TodoView, TodoID](b.ReadModels)
 ```go
 // SQLite with production optimizations (WAL + synchronous=NORMAL are default)
 b, _ := sqlite.New("app.db",
-    sqlite.WithOptimizations(),  // cache_size, temp_store, mmap_size PRAGMAs
-    sqlite.WithForeignKeys(),    // referential integrity (opt-in)
+    sqlite.WithPragmas(
+        sqlopt.WithOptimizations(),  // cache_size, temp_store, mmap_size PRAGMAs
+        sqlopt.WithForeignKeys(),    // referential integrity (opt-in)
+    ),
 )
 
 // Turso with remote sync + optimizations
 b, _ := turso.NewSync(ctx, "local.db", "libsql://my-db.turso.io", "token",
-    turso.WithOptimizations(),
+    turso.WithPragmas(sqlopt.WithOptimizations()),
     turso.WithSyncOptions(turso.WithClientName("edge-node-1")),
 )
 
 // Disable WAL if running on a network filesystem
-b, _ := sqlite.New("app.db", sqlite.WithoutWAL())
-b, _ := turso.New("app.db", turso.WithoutWAL())
+b, _ := sqlite.New("app.db", sqlite.WithPragmas(sqlopt.WithoutWAL()))
+b, _ := turso.New("app.db", turso.WithPragmas(sqlopt.WithoutWAL()))
 ```
 
 #### Postgres distributed bus (cross-process pub/sub)
@@ -80,9 +82,11 @@ read-model scans by routing each concern to a separate database:
 
 ```go
 b, _ := sqlite.New("primary.db",
-    sqlite.WithEventDB("events.db"),   // events + snapshots + checkpoints
-    sqlite.WithQueryDB("queries.db"),  // command + query audit
-    sqlite.WithViewDB("views.db"),     // read models (cqrs_kv)
+    sqlite.WithDSN(
+        sqlopt.WithEventDB("events.db"),   // events + snapshots + checkpoints
+        sqlopt.WithQueryDB("queries.db"),  // command + query audit
+        sqlopt.WithViewDB("views.db"),     // read models (cqrs_kv)
+    ),
 )
 ```
 

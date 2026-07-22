@@ -33,32 +33,17 @@ func defaultConfig() config {
 	}
 }
 
-// WithoutAutoMigrate skips schema creation. Use this when you manage schemas
-// yourself (e.g. via a migration tool). By default New creates all required
-// tables.
-func WithoutAutoMigrate() Option {
-	return func(c *config) { c.WithoutAutoMigrate() }
-}
-
-// WithEventDB sets a separate DSN for the event store. When set, events,
-// snapshots, and checkpoints are persisted to this database instead of the
-// primary DSN. The deployer chooses this when isolating write-heavy event
-// streams from query traffic.
-func WithEventDB(dsn string) Option {
-	return func(c *config) { c.SetEventDB(dsn) }
-}
-
-// WithQueryDB sets a separate DSN for the command and query audit stores.
-// When set, persisted commands and queries go to this database.
-func WithQueryDB(dsn string) Option {
-	return func(c *config) { c.SetQueryDB(dsn) }
-}
-
-// WithViewDB sets a separate DSN for the read-model KV store. When set,
-// materialized views are persisted to this database, isolating read-model
-// scans from the event store.
-func WithViewDB(dsn string) Option {
-	return func(c *config) { c.SetViewDB(dsn) }
+// WithDSN applies shared multi-database DSN options from sqlopt. Use this to
+// configure event, query, or view database separation, or to disable
+// auto-migration:
+//
+//	b, _ := postgres.New(dsn, postgres.WithDSN(
+//	    sqlopt.WithoutAutoMigrate(),
+//	    sqlopt.WithEventDB("postgres://host/events_db"),
+//	    sqlopt.WithViewDB("postgres://host/views_db"),
+//	))
+func WithDSN(opts ...sqlopt.DSNOption) Option {
+	return func(c *config) { sqlopt.ApplyTo(opts, &c.DSNConfig) }
 }
 
 // WithDistributedBus enables cross-process event propagation via Postgres

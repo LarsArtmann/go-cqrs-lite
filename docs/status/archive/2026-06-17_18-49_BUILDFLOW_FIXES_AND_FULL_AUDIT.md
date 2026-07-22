@@ -49,9 +49,9 @@
 - **Codec** ✅ — JSON, CBOR (deterministic), CBORCompactCodec (toarray), Raw passthrough, Diagnose()
 - **Signing** ✅ — HMAC-SHA256, Ed25519, multisig, middleware
 - **Encryption** ✅ — XChaCha20-Poly1305, AES-256-GCM, codec wrapper, HKDF key derivation, middleware
-- **Projections** ✅ — Runner (replay+live), HandlerRegistry, Builder with On[T]()
+- **Projections** ✅ — Runner (replay+live), HandlerRegistry, Builder with On[T](<>)
 - **Middleware** ✅ — Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics, SSE, HealthCheck, pprof endpoints
-- **Catalog** ✅ — Registry, SchemaFromType[T](), AsyncAPI/D2/EventCatalog/OpenAPI exporters, docserver
+- **Catalog** ✅ — Registry, SchemaFromType[T](<>), AsyncAPI/D2/EventCatalog/OpenAPI exporters, docserver
 - **Listing** ✅ — AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware
 - **Watermill Adapter** ✅ — Publisher/Subscriber protocol adapter
 - **OTel Helpers** ✅ — Tracer, Meter, Spans, Attributes, Int64Counter, ServiceResourceAttributes, CQRSHistogramBoundaries, AddSpanEvent

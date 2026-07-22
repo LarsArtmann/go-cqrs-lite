@@ -35,7 +35,7 @@
 - **Middleware**: 8 concerns × 3 message types = 24 middleware factories (logging, retry, recovery, validation, metrics, OTel tracing, OTel metrics, circuit breaker)
 - **Event Signing**: HMAC-SHA256, Ed25519, multisig, middleware
 - **Storage Backends**: SQL (PostgreSQL/SQLite/Turso), Pebble KV, In-Memory
-- **Projection**: Runner (replay+live), HandlerRegistry, Builder with On[T]()
+- **Projection**: Runner (replay+live), HandlerRegistry, Builder with On[T](<>)
 - **Listing**: Aggregate listing, tombstone detection, InMemoryAggregateReader
 - **Codec**: JSON + Raw passthrough, pluggable encoding
 - **Code Generation**: `cqrs-gen` typed handler registration from Go structs

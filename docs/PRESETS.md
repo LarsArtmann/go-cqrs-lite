@@ -64,9 +64,11 @@ contention in production:
 
 ```go
 b, _ := sqlite.New("primary.db",
-    sqlite.WithEventDB("events.db"),   // events + snapshots + checkpoints
-    sqlite.WithQueryDB("queries.db"),  // command + query audit logs
-    sqlite.WithViewDB("views.db"),     // materialized views (KV)
+    sqlite.WithDSN(
+        sqlopt.WithEventDB("events.db"),   // events + snapshots + checkpoints
+        sqlopt.WithQueryDB("queries.db"),  // command + query audit logs
+        sqlopt.WithViewDB("views.db"),     // materialized views (KV)
+    ),
 )
 defer b.Close()
 ```
@@ -103,15 +105,17 @@ b, _ := postgres.New("postgres://user:pass@localhost:5432/myapp?sslmode=disable"
 defer b.Close()
 ```
 
-Options: `WithoutAutoMigrate()`, `WithEventDB`, `WithQueryDB`, `WithViewDB`.
+Options: `WithDSN(sqlopt.WithoutAutoMigrate, sqlopt.WithEventDB, sqlopt.WithQueryDB, sqlopt.WithViewDB)`.
 
 Multi-DB split uses separate databases on the same Postgres server:
 
 ```go
 b, _ := postgres.New(primaryDSN,
-    postgres.WithEventDB("postgres://host/events_db"),
-    postgres.WithQueryDB("postgres://host/queries_db"),
-    postgres.WithViewDB("postgres://host/views_db"),
+    postgres.WithDSN(
+        sqlopt.WithEventDB("postgres://host/events_db"),
+        sqlopt.WithQueryDB("postgres://host/queries_db"),
+        sqlopt.WithViewDB("postgres://host/views_db"),
+    ),
 )
 ```
 

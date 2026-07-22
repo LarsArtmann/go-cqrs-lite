@@ -31,7 +31,7 @@
 | `middleware/`  | ✅ Production | Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics, SSE, HealthCheck                            |
 | `signing/`     | ✅ Production | HMAC-SHA256, Ed25519, multisig, middleware                                                                       |
 | `encryption/`  | ✅ Production | XChaCha20-Poly1305, AES-256-GCM, codec wrapper, Algorithm enum, KeyID phantom type                               |
-| `projection/`  | ✅ Production | Runner (replay+live), HandlerRegistry, Builder with On[T]()                                                      |
+| `projection/`  | ✅ Production | Runner (replay+live), HandlerRegistry, Builder with On[T](<>)                                                    |
 | `storage/`     | ✅ Production | SQLEventStore/SnapshotStore/CheckpointStore (PG/SQLite/Turso)                                                    |
 | `otel/`        | ✅ Production | Shared OTel helpers: Tracer, Meter, Spans, Attributes                                                            |
 | `listing/`     | ✅ Production | AggregateListing, StatusMiddleware, tombstone detection                                                          |

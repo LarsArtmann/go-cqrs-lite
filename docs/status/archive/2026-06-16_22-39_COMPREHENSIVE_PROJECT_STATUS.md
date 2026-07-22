@@ -51,7 +51,7 @@ go-cqrs-lite is a **mature, stable CQRS/Event Sourcing library SDK** at v2.3.0 w
 | `encryption/` | 86.9%    | ✅     | XChaCha20-Poly1305, AES-256-GCM, codec wrapper, encrypt/decrypt middleware                                                              |
 | `codec/`      | 88.9%    | ✅     | JSON, deterministic CBOR (RFC 7049), Raw passthrough                                                                                    |
 | `otel/`       | 97.3%    | ✅     | Shared OTel helpers: Tracer, Meter, Spans, Attributes — all modules import this instead of go.opentelemetry.io directly                 |
-| `projection/` | 90.4%    | ✅     | Runner (replay+live), HandlerRegistry, Builder with On[T](), event type caching                                                         |
+| `projection/` | 90.4%    | ✅     | Runner (replay+live), HandlerRegistry, Builder with On[T](<>), event type caching                                                       |
 | `listing/`    | 94.9%    | ✅     | AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware                                                                |
 | `watermill/`  | 94.3%    | ✅     | Watermill protocol adapter (publisher/subscriber)                                                                                       |
 

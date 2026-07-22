@@ -19,82 +19,38 @@ type Option func(*config)
 
 type config struct {
 	sqlopt.DSNConfig
-
-	wal         bool
-	optimize    bool
-	foreignKeys bool
+	sqlopt.PragmaConfig
 }
 
 func defaultConfig() config {
 	return config{
-		wal:         true,
-		optimize:    false,
-		foreignKeys: false,
-		DSNConfig: sqlopt.DSNConfig{
-			AutoMigrate: true,
-		},
+		PragmaConfig: sqlopt.PragmaConfig{WAL: true},
+		DSNConfig:    sqlopt.DSNConfig{AutoMigrate: true},
 	}
 }
 
-// WithoutWAL disables WAL mode. By default New enables WAL plus a busy
-// timeout of 5 seconds to eliminate "database is locked" errors under
-// concurrency.
-func WithoutWAL() Option {
-	return func(c *config) { c.wal = false }
-}
-
-// WithOptimizations applies performance PRAGMAs tuned for CQRS workloads:
-// cache_size (64 MB), temp_store=MEMORY, and mmap_size (256 MB). These
-// improve throughput without durability trade-offs. Recommended for
-// production. Has no effect if [WithoutAutoMigrate] is also set.
-func WithOptimizations() Option {
-	return func(c *config) { c.optimize = true }
-}
-
-// WithForeignKeys enables SQLite foreign-key enforcement on all databases
-// (primary and secondary when multi-DB is used). Off by default because
-// existing databases may contain orphaned references that would cause errors
-// once enforcement is active. Enable for new databases where referential
-// integrity is required.
-func WithForeignKeys() Option {
-	return func(c *config) { c.foreignKeys = true }
-}
-
-// WithoutAutoMigrate skips schema creation. Use this when you manage schemas
-// yourself (e.g. via a migration tool). By default New creates all required
-// tables.
+// WithPragmas applies shared SQLite PRAGMA options from sqlopt (WAL,
+// optimizations, foreign keys):
 //
-// The 4-option block (WithoutAutoMigrate, WithEventDB, WithQueryDB, WithViewDB)
-// is duplicated in stack/postgres/preset.go. This is forced by Go's typed
-// Option pattern: each preset has `type Option func(*config)` where config is
-// preset-specific (sqlite adds wal/optimize/foreignKeys; postgres adds
-// listener/busOpts). The bodies are 1-line delegates to the shared
-// sqlopt.DSNConfig methods, but the wrapper function shape must be per-preset
-// because Go function types are invariant (func(*sqlite.config) ≠
-// func(*postgres.config)).
-func WithoutAutoMigrate() Option {
-	return func(c *config) { c.WithoutAutoMigrate() }
+//	b, _ := sqlite.New(dsn, sqlite.WithPragmas(
+//	    sqlopt.WithoutWAL(),
+//	    sqlopt.WithForeignKeys(),
+//	))
+func WithPragmas(opts ...sqlopt.PragmaOption) Option {
+	return func(c *config) { sqlopt.ApplyTo(opts, &c.PragmaConfig) }
 }
 
-// WithEventDB sets a separate DSN for the event store. When set, events,
-// snapshots, and checkpoints are persisted to this database instead of the
-// primary DSN. The deployer chooses this when isolating write-heavy event
-// streams from query traffic.
-func WithEventDB(dsn string) Option {
-	return func(c *config) { c.SetEventDB(dsn) }
-}
-
-// WithQueryDB sets a separate DSN for the command and query audit stores.
-// When set, persisted commands and queries go to this database.
-func WithQueryDB(dsn string) Option {
-	return func(c *config) { c.SetQueryDB(dsn) }
-}
-
-// WithViewDB sets a separate DSN for the read-model KV store. When set,
-// materialized views are persisted to this database, isolating read-model
-// scans from the event store.
-func WithViewDB(dsn string) Option {
-	return func(c *config) { c.SetViewDB(dsn) }
+// WithDSN applies shared multi-database DSN options from sqlopt. Use this to
+// configure event, query, or view database separation, or to disable
+// auto-migration:
+//
+//	b, _ := sqlite.New(dsn, sqlite.WithDSN(
+//	    sqlopt.WithoutAutoMigrate(),
+//	    sqlopt.WithEventDB("events.db"),
+//	    sqlopt.WithViewDB("views.db"),
+//	))
+func WithDSN(opts ...sqlopt.DSNOption) Option {
+	return func(c *config) { sqlopt.ApplyTo(opts, &c.DSNConfig) }
 }
 
 // New opens a SQLite database at dsn, configures it, and returns a
@@ -152,7 +108,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 
 	ctx := context.Background()
 
-	if cfg.wal {
+	if cfg.WAL {
 		err = storage.SQLiteEnableWAL(ctx, sqlDB)
 		if err != nil {
 			_ = sqlDB.Close()
@@ -162,7 +118,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		}
 	}
 
-	if cfg.foreignKeys {
+	if cfg.ForeignKeys {
 		err = storage.SQLiteEnableForeignKeys(ctx, sqlDB)
 		if err != nil {
 			_ = sqlDB.Close()
@@ -185,7 +141,7 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		}
 	}
 
-	if cfg.optimize {
+	if cfg.Optimize {
 		err = storage.SQLiteApplyOptimizations(ctx, sqlDB)
 		if err != nil {
 			_ = sqlDB.Close()

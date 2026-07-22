@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 )
 
 func TestMultiDB_SeparateViewDB(t *testing.T) {
@@ -21,7 +22,7 @@ func TestMultiDB_SeparateViewDB(t *testing.T) {
 	// Open with a separate view DB.
 	bundle, err := sqlite.New(
 		":memory:",
-		sqlite.WithViewDB(":memory:"),
+		sqlite.WithDSN(sqlopt.WithViewDB(":memory:")),
 	)
 	if err != nil {
 		t.Fatalf("sqlite.New with ViewDB: %v", err)
@@ -72,9 +73,11 @@ func TestMultiDB_Routing(t *testing.T) {
 
 	bundle, err := sqlite.New(
 		primaryPath,
-		sqlite.WithEventDB(eventPath),
-		sqlite.WithQueryDB(queryPath),
-		sqlite.WithViewDB(viewPath),
+		sqlite.WithDSN(
+			sqlopt.WithEventDB(eventPath),
+			sqlopt.WithQueryDB(queryPath),
+			sqlopt.WithViewDB(viewPath),
+		),
 	)
 	if err != nil {
 		t.Fatalf("sqlite.New multi-db: %v", err)
@@ -179,8 +182,10 @@ func TestMultiDB_PersistenceAcrossReopen(t *testing.T) {
 	// Write phase: create bundle with split, write event + read model.
 	writer, err := sqlite.New(
 		primaryPath,
-		sqlite.WithEventDB(eventPath),
-		sqlite.WithViewDB(viewPath),
+		sqlite.WithDSN(
+			sqlopt.WithEventDB(eventPath),
+			sqlopt.WithViewDB(viewPath),
+		),
 	)
 	if err != nil {
 		t.Fatalf("New writer: %v", err)
@@ -222,8 +227,10 @@ func TestMultiDB_PersistenceAcrossReopen(t *testing.T) {
 	// Read phase: reopen with same paths, verify data survived.
 	reader, err := sqlite.New(
 		primaryPath,
-		sqlite.WithEventDB(eventPath),
-		sqlite.WithViewDB(viewPath),
+		sqlite.WithDSN(
+			sqlopt.WithEventDB(eventPath),
+			sqlopt.WithViewDB(viewPath),
+		),
 	)
 	if err != nil {
 		t.Fatalf("New reader: %v", err)
@@ -267,7 +274,7 @@ func TestNew_WithForeignKeys(t *testing.T) {
 
 	b, err := sqlite.New(
 		filepath.Join(dir, "fk.db"),
-		sqlite.WithForeignKeys(),
+		sqlite.WithPragmas(sqlopt.WithForeignKeys()),
 	)
 	if err != nil {
 		t.Fatalf("New with foreign keys: %v", err)

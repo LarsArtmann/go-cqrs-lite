@@ -84,7 +84,7 @@
 
 ### Auto-Documentation (FULLY_FUNCTIONAL)
 
-- **catalog** — Registry, SchemaFromType[T](), immutable Catalog, validation, rich resource model
+- **catalog** — Registry, SchemaFromType[T](<>), immutable Catalog, validation, rich resource model
 - **catalog/asyncapi** — AsyncAPI 3.0 YAML/JSON export
 - **catalog/d2** — D2 diagram generation with cross-service flows
 - **catalog/openapi** — OpenAPI 3.0.3 export
@@ -100,7 +100,7 @@
 
 ### Projection & Read Models (FULLY_FUNCTIONAL)
 
-- **projection** — Runner (replay → live), Builder + On[T](), HandlerRegistry, dead letter queue, retry with backoff, parallelism option
+- **projection** — Runner (replay → live), Builder + On[T](<>), HandlerRegistry, dead letter queue, retry with backoff, parallelism option
 - **listing** — Aggregate listing, tombstone detection, StatusMiddleware, InMemoryAggregateReader, SQL reader
 
 ### Infrastructure (FULLY_FUNCTIONAL)

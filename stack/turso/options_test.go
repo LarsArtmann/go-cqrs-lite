@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/turso/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 )
 
 func TestNew_BadPath_CleanError(t *testing.T) {
@@ -27,7 +28,7 @@ func TestNew_WithoutAutoMigrate_NoTables(t *testing.T) {
 
 	bundle, err := turso.New(
 		filepath.Join(dir, "nomigrate.db"),
-		turso.WithoutAutoMigrate(),
+		turso.WithDSN(sqlopt.WithoutAutoMigrate()),
 	)
 	if err != nil {
 		t.Fatalf("New with WithoutAutoMigrate: %v", err)
@@ -62,7 +63,7 @@ func TestNew_WithoutWAL(t *testing.T) {
 
 	bundle, err := turso.New(
 		filepath.Join(dir, "nowal.db"),
-		turso.WithoutWAL(),
+		turso.WithPragmas(sqlopt.WithoutWAL()),
 	)
 	if err != nil {
 		t.Fatalf("New with WithoutWAL: %v", err)

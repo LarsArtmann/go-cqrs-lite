@@ -16,75 +16,40 @@ type Option func(*config)
 
 type config struct {
 	sqlopt.DSNConfig
+	sqlopt.PragmaConfig
 
-	optimize    bool
-	foreignKeys bool
-	wal         bool
-	syncOpts    []cqrsturso.SyncOption
+	syncOpts []cqrsturso.SyncOption
 }
 
 func defaultConfig() config {
 	return config{
-		DSNConfig:   sqlopt.DSNConfig{AutoMigrate: true},
-		optimize:    false,
-		foreignKeys: false,
-		wal:         true,
+		DSNConfig:    sqlopt.DSNConfig{AutoMigrate: true},
+		PragmaConfig: sqlopt.PragmaConfig{WAL: true},
 	}
 }
 
-// WithoutWAL disables WAL mode. By default New enables WAL plus a busy
-// timeout of 5 seconds to eliminate "database is locked" errors under
-// concurrency. WAL is safe for single-writer workloads and improves read
-// concurrency significantly.
-func WithoutWAL() Option {
-	return func(c *config) { c.wal = false }
-}
-
-// WithoutAutoMigrate skips schema creation. Use this when you manage schemas
-// yourself (e.g. via a migration tool). By default New creates all required
-// tables.
-func WithoutAutoMigrate() Option {
-	return func(c *config) { c.WithoutAutoMigrate() }
-}
-
-// WithOptimizations applies CQRS-optimized indexes and performance PRAGMAs
-// after schema creation. This calls
-// [turso.InitSchemaWithIndexesAndOptimizations] instead of plain
-// [turso.InitSchema], adding recommended indexes on event/store tables and
-// setting PRAGMAs tuned for CQRS workloads. Recommended for production.
+// WithPragmas applies shared SQLite PRAGMA options from sqlopt (WAL,
+// optimizations, foreign keys):
 //
-// Has no effect if [WithoutAutoMigrate] is also set.
-func WithOptimizations() Option {
-	return func(c *config) { c.optimize = true }
+//	b, _ := turso.New(dsn, turso.WithPragmas(
+//	    sqlopt.WithoutWAL(),
+//	    sqlopt.WithForeignKeys(),
+//	))
+func WithPragmas(opts ...sqlopt.PragmaOption) Option {
+	return func(c *config) { sqlopt.ApplyTo(opts, &c.PragmaConfig) }
 }
 
-// WithForeignKeys enables foreign-key enforcement on all databases (primary
-// and secondary when multi-DB is used). Off by default because existing
-// databases may contain orphaned references. Enable for new databases where
-// referential integrity is required.
-func WithForeignKeys() Option {
-	return func(c *config) { c.foreignKeys = true }
-}
-
-// WithEventDB sets a separate database path for the event store. When set,
-// events, snapshots, and checkpoints are persisted to this database instead of
-// the primary path. The deployer chooses this when isolating write-heavy event
-// streams from query traffic.
-func WithEventDB(path string) Option {
-	return func(c *config) { c.SetEventDB(path) }
-}
-
-// WithQueryDB sets a separate database path for the command and query audit
-// stores. When set, persisted commands and queries go to this database.
-func WithQueryDB(path string) Option {
-	return func(c *config) { c.SetQueryDB(path) }
-}
-
-// WithViewDB sets a separate database path for the read-model KV store. When
-// set, materialized views are persisted to this database, isolating read-model
-// scans from the event store.
-func WithViewDB(path string) Option {
-	return func(c *config) { c.SetViewDB(path) }
+// WithDSN applies shared multi-database DSN options from sqlopt. Use this to
+// configure event, query, or view database path separation, or to disable
+// auto-migration:
+//
+//	b, _ := turso.New(dsn, turso.WithDSN(
+//	    sqlopt.WithoutAutoMigrate(),
+//	    sqlopt.WithEventDB("events.db"),
+//	    sqlopt.WithViewDB("views.db"),
+//	))
+func WithDSN(opts ...sqlopt.DSNOption) Option {
+	return func(c *config) { sqlopt.ApplyTo(opts, &c.DSNConfig) }
 }
 
 // WithSyncOptions passes advanced configuration to the underlying Turso sync

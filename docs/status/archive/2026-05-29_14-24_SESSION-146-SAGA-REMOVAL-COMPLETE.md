@@ -34,7 +34,7 @@ Saga module successfully removed. Storage module is now a clean leaf (core+otel 
 | **Event sourcing**          | Store (Sink/Source ISP split), Journal, SeekableJournal, BackwardsSource               |
 | **SQL storage**             | PostgreSQL + SQLite + Turso: EventStore, SnapshotStore, Outbox, CheckpointStore        |
 | **Embedded storage**        | Pebble key-value event store with async writes                                         |
-| **Projections**             | Replay+live runner, HandlerRegistry, Builder with On[T](), parallel processing         |
+| **Projections**             | Replay+live runner, HandlerRegistry, Builder with On[T](<>), parallel processing       |
 | **Event signing**           | HMAC-SHA256, Ed25519, multisig, verification middleware                                |
 | **24 middleware factories** | Logging, Retry, Recovery, Validation, Metrics, OTel, Circuit Breaker × 3 message types |
 | **Catalog**                 | Registry, AsyncAPI/D2/OpenAPI/EventCatalog exporters                                   |

@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 )
 
 type todoKey string
@@ -230,7 +231,7 @@ func TestNew_WithoutWAL(t *testing.T) {
 
 	dir := t.TempDir()
 
-	b, err := sqlite.New(filepath.Join(dir, "nowal.db"), sqlite.WithoutWAL())
+	b, err := sqlite.New(filepath.Join(dir, "nowal.db"), sqlite.WithPragmas(sqlopt.WithoutWAL()))
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}

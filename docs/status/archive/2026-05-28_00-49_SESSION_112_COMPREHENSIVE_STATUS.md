@@ -42,7 +42,7 @@ go-cqrs-lite is a **healthy, production-quality Go CQRS/event sourcing library**
 | `memory`      | 99.6%    | MemoryStore, MemoryBus, MemorySnapshotStore, concurrent-safe      |
 | `middleware`  | 98.0%    | Logging, Retry, Recovery, Validation, Metrics + WithLogger option |
 | `testhelpers` | 94.8%    | All fakes, handlers, metrics collector                            |
-| `projection`  | 95.3%    | Runner (replay+live), HandlerRegistry, Builder with On[T]()       |
+| `projection`  | 95.3%    | Runner (replay+live), HandlerRegistry, Builder with On[T](<>)     |
 | `saga`        | 93.4%    | Runner, compensation, retry, persistent state                     |
 | `watermill`   | 94.4%    | Protocol adapter, publisher/subscriber                            |
 

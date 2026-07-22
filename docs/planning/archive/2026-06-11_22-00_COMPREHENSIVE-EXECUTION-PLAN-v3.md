@@ -79,7 +79,7 @@ _Why: pkg.go.dev is the primary consumer touchpoint. Examples drive adoption._
 | --- | -------------------------------------------------------------- | ---------- | ------ | ------ |
 | D1  | Add `ExampleCBORCodec` — runnable example for pkg.go.dev       | codec      | MED    | 6min   |
 | D2  | Add godoc example: `decider` Execute + Load patterns           | decider    | HIGH   | 10min  |
-| D3  | Add godoc example: `projection` Runner + Builder + On[T]()     | projection | HIGH   | 10min  |
+| D3  | Add godoc example: `projection` Runner + Builder + On[T](<>)   | projection | HIGH   | 10min  |
 | D4  | Add godoc example: `signing` HMAC + Ed25519 + tamper detection | signing    | MED    | 8min   |
 | D5  | Add godoc example: `schema` Upcaster + VersionedStore          | schema     | MED    | 8min   |
 | D6  | Document CBOR usage patterns in `codec/README.md`              | codec      | LOW    | 8min   |

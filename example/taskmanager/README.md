@@ -132,7 +132,7 @@ Change ONE line in `setup.go`:
 
 ```go
 // SQLite (default)
-bundle, err := sqlite.New("tasks.db", sqlite.WithOptimizations())
+bundle, err := sqlite.New("tasks.db", sqlite.WithPragmas(sqlopt.WithOptimizations()))
 
 // Pebble (embedded KV)
 bundle, err := pebble.New("./data")

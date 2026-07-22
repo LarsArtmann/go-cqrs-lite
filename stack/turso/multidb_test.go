@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/turso/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 )
 
@@ -33,9 +34,11 @@ func TestMultiDB_Routing(t *testing.T) {
 
 	bundle, err := turso.New(
 		primaryPath,
-		turso.WithEventDB(eventPath),
-		turso.WithQueryDB(queryPath),
-		turso.WithViewDB(viewPath),
+		turso.WithDSN(
+			sqlopt.WithEventDB(eventPath),
+			sqlopt.WithQueryDB(queryPath),
+			sqlopt.WithViewDB(viewPath),
+		),
 	)
 	if err != nil {
 		t.Fatalf("turso.New multi-db: %v", err)
@@ -128,7 +131,7 @@ func TestMultiDB_SeparateViewDB(t *testing.T) {
 
 	bundle, err := turso.New(
 		filepath.Join(dir, "primary.db"),
-		turso.WithViewDB(filepath.Join(dir, "views.db")),
+		turso.WithDSN(sqlopt.WithViewDB(filepath.Join(dir, "views.db"))),
 	)
 	if err != nil {
 		t.Fatalf("turso.New with ViewDB: %v", err)
@@ -163,7 +166,7 @@ func TestNew_WithForeignKeys(t *testing.T) {
 
 	b, err := turso.New(
 		filepath.Join(dir, "fk.db"),
-		turso.WithForeignKeys(),
+		turso.WithPragmas(sqlopt.WithForeignKeys()),
 	)
 	if err != nil {
 		t.Fatalf("New with foreign keys: %v", err)
@@ -198,7 +201,7 @@ func TestNew_WithOptimizations(t *testing.T) {
 
 	b, err := turso.New(
 		filepath.Join(dir, "opt.db"),
-		turso.WithOptimizations(),
+		turso.WithPragmas(sqlopt.WithOptimizations()),
 	)
 	if err != nil {
 		t.Fatalf("New with optimizations: %v", err)
@@ -246,8 +249,10 @@ func TestMultiDB_PersistenceAcrossReopen(t *testing.T) {
 
 	writer, err := turso.New(
 		primaryPath,
-		turso.WithEventDB(eventPath),
-		turso.WithViewDB(viewPath),
+		turso.WithDSN(
+			sqlopt.WithEventDB(eventPath),
+			sqlopt.WithViewDB(viewPath),
+		),
 	)
 	if err != nil {
 		t.Fatalf("New writer: %v", err)
@@ -276,8 +281,10 @@ func TestMultiDB_PersistenceAcrossReopen(t *testing.T) {
 
 	reader, err := turso.New(
 		primaryPath,
-		turso.WithEventDB(eventPath),
-		turso.WithViewDB(viewPath),
+		turso.WithDSN(
+			sqlopt.WithEventDB(eventPath),
+			sqlopt.WithViewDB(viewPath),
+		),
 	)
 	if err != nil {
 		t.Fatalf("New reader: %v", err)
@@ -309,9 +316,9 @@ func TestNewSync_RejectsMultiDBOptions(t *testing.T) {
 		name string
 		opt  turso.Option
 	}{
-		{"WithEventDB", turso.WithEventDB(filepath.Join(dir, "events.db"))},
-		{"WithQueryDB", turso.WithQueryDB(filepath.Join(dir, "queries.db"))},
-		{"WithViewDB", turso.WithViewDB(filepath.Join(dir, "views.db"))},
+		{"WithEventDB", turso.WithDSN(sqlopt.WithEventDB(filepath.Join(dir, "events.db")))},
+		{"WithQueryDB", turso.WithDSN(sqlopt.WithQueryDB(filepath.Join(dir, "queries.db")))},
+		{"WithViewDB", turso.WithDSN(sqlopt.WithViewDB(filepath.Join(dir, "views.db")))},
 	}
 
 	for _, tt := range tests {

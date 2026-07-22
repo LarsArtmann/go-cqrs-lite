@@ -48,7 +48,7 @@ func openLocalBackend(
 func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
 	ctx := context.Background()
 
-	if cfg.wal {
+	if cfg.WAL {
 		err := storage.SQLiteEnableWAL(ctx, sqlDB)
 		if err != nil {
 			return errorfamily.WrapInfrastructure(err, "turso.enable_wal",
@@ -58,7 +58,7 @@ func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
 
 	if cfg.AutoMigrate {
 		var err error
-		if cfg.optimize {
+		if cfg.Optimize {
 			err = cqrsturso.InitSchemaWithIndexesAndOptimizations(ctx, sqlDB)
 		} else {
 			err = cqrsturso.InitSchema(ctx, sqlDB)
@@ -70,7 +70,7 @@ func applySchemaAndPragmas(sqlDB *sql.DB, cfg config) error {
 		}
 	}
 
-	if cfg.foreignKeys {
+	if cfg.ForeignKeys {
 		err := storage.SQLiteEnableForeignKeys(ctx, sqlDB)
 		if err != nil {
 			return errorfamily.WrapInfrastructure(err, "turso.enable_fk",

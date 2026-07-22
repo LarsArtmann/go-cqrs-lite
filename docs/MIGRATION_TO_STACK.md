@@ -148,9 +148,11 @@ Write-heavy event streams compete with read-model scans for I/O. Under load, eve
 
 ```go
 bundle, _ := sqlite.New("/data/primary.db",
-    sqlite.WithEventDB("/data/events.db"),    // events + snapshots + checkpoints
-    sqlite.WithQueryDB("/data/queries.db"),   // commands + queries (audit)
-    sqlite.WithViewDB("/data/views.db"),      // read models (cqrs_kv)
+    sqlite.WithDSN(
+        sqlopt.WithEventDB("/data/events.db"),    // events + snapshots + checkpoints
+        sqlopt.WithQueryDB("/data/queries.db"),   // commands + queries (audit)
+        sqlopt.WithViewDB("/data/views.db"),      // read models (cqrs_kv)
+    ),
 )
 ```
 
@@ -159,16 +161,20 @@ Same API for Turso and Postgres:
 ```go
 // Turso
 bundle, _ := turso.New("/data/app.libsql",
-    turso.WithEventDB("/data/events.libsql"),
-    turso.WithQueryDB("/data/queries.libsql"),
-    turso.WithViewDB("/data/views.libsql"),
+    turso.WithDSN(
+        sqlopt.WithEventDB("/data/events.libsql"),
+        sqlopt.WithQueryDB("/data/queries.libsql"),
+        sqlopt.WithViewDB("/data/views.libsql"),
+    ),
 )
 
 // Postgres
 bundle, _ := postgres.New(primaryDSN,
-    postgres.WithEventDB("postgres://host/events_db"),
-    postgres.WithQueryDB("postgres://host/queries_db"),
-    postgres.WithViewDB("postgres://host/views_db"),
+    postgres.WithDSN(
+        sqlopt.WithEventDB("postgres://host/events_db"),
+        sqlopt.WithQueryDB("postgres://host/queries_db"),
+        sqlopt.WithViewDB("postgres://host/views_db"),
+    ),
 )
 ```
 

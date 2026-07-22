@@ -284,7 +284,7 @@ go-cqrs-lite is a multi-module Go CQRS/ES library with 12 modules, 240 commits s
 | `ac45b47` | chore: format multi-line function calls, fix lint issues, and update golden files                                   |
 | `7350e02` | feat(docserver): update embedded static assets for Scalar + AsyncAPI React                                          |
 | `095fa4c` | feat(docserver): embed Scalar + AsyncAPI React UI libraries in binary                                               |
-| `d82ed39` | refactor(catalog): replace reflect.TypeOf((\*T)(nil)).Elem() with reflect.TypeFor[T]()                              |
+| `d82ed39` | refactor(catalog): replace reflect.TypeOf((\*T)(nil)).Elem() with reflect.TypeFor[T](<>)                            |
 | `23d8d3b` | docs(status): add Session 70 comprehensive full status report                                                       |
 | `2f008b5` | refactor(core): delete BaseDispatcher abstraction, inline into command/query dispatchers                            |
 | `4fe3607` | docs(status): add Session 70 status report                                                                          |

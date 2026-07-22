@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 )
 
 func TestNew_BadDSN_CleanError(t *testing.T) {
@@ -28,7 +29,7 @@ func TestNew_WithoutAutoMigrate_NoTables(t *testing.T) {
 
 	bundle, err := sqlite.New(
 		filepath.Join(dir, "nomigrate.db"),
-		sqlite.WithoutAutoMigrate(),
+		sqlite.WithDSN(sqlopt.WithoutAutoMigrate()),
 	)
 	if err != nil {
 		t.Fatalf("New with WithoutAutoMigrate: %v", err)
@@ -63,7 +64,7 @@ func TestNew_WithOptimizations(t *testing.T) {
 
 	bundle, err := sqlite.New(
 		filepath.Join(dir, "optimized.db"),
-		sqlite.WithOptimizations(),
+		sqlite.WithPragmas(sqlopt.WithOptimizations()),
 	)
 	if err != nil {
 		t.Fatalf("New with WithOptimizations: %v", err)

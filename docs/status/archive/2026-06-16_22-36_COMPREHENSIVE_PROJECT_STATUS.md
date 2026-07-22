@@ -29,7 +29,7 @@ go-cqrs-lite is a **production-ready** CQRS/Event Sourcing library for Go, struc
 | `snapshot/`   | 88.9%    | ✅     | Snapshot, SnapshotSink/Source/Store, SnapshotStrategy, EveryNEvents                                                                                 |
 | `memory/`     | 98.5%    | ✅     | MemoryStore, MemoryBus, MemorySnapshotStore, MemoryCheckpointStore, MemoryCommandStore, MemoryCommandBus, MemoryQueryStore                          |
 | `middleware/` | 93.5%    | ✅     | Logging, Retry, Recovery, Validation, Metrics, OTel Tracing+Metrics, SSE broker, HealthCheck, HTTP metrics                                          |
-| `projection/` | 90.4%    | ✅     | Runner (replay+live), HandlerRegistry, Builder with On[T](), retry policies                                                                         |
+| `projection/` | 90.4%    | ✅     | Runner (replay+live), HandlerRegistry, Builder with On[T](<>), retry policies                                                                       |
 | `signing/`    | 94.5%    | ✅     | HMAC-SHA256, Ed25519, multisig (2-of-3, 3-of-5), sign+verify middleware                                                                             |
 | `encryption/` | 86.9%    | ✅     | XChaCha20-Poly1305, AES-256-GCM, codec wrapper, encrypt+decrypt middleware, key rotation                                                            |
 | `storage/`    | 86.3%    | ✅     | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore, SQLCommandStore, SQLQueryStore (PG/SQLite/Turso), SQLBackend facade                            |

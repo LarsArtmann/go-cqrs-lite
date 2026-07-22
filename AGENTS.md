@@ -665,16 +665,20 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 // Multi-DB SQLite preset (deployer chooses database isolation)
 //   bundle, _ := sqlite.New(":memory:",
-//       sqlite.WithEventDB("events.db"),   // events+snapshots+checkpoints
-//       sqlite.WithQueryDB("queries.db"),  // command+query audit
-//       sqlite.WithViewDB("views.db"),     // read-model KV store
+//       sqlite.WithDSN(
+//           sqlopt.WithEventDB("events.db"),   // events+snapshots+checkpoints
+//           sqlopt.WithQueryDB("queries.db"),  // command+query audit
+//           sqlopt.WithViewDB("views.db"),     // read-model KV store
+//       ),
 //   )
 //
 // Multi-DB Postgres preset (same API, separate databases on same server)
 //   bundle, _ := postgres.New(primaryDSN,
-//       postgres.WithEventDB("postgres://host/events_db"),
-//       postgres.WithQueryDB("postgres://host/queries_db"),
-//       postgres.WithViewDB("postgres://host/views_db"))
+//       postgres.WithDSN(
+//           sqlopt.WithEventDB("postgres://host/events_db"),
+//           sqlopt.WithQueryDB("postgres://host/queries_db"),
+//           sqlopt.WithViewDB("postgres://host/views_db"),
+//       ))
 
 // Pure event-sourcing mode (no publisher needed)
 //   repo, _ := decider.NewRepository(store, nil, decider)

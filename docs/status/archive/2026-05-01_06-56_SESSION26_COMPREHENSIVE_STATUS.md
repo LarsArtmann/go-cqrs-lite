@@ -48,14 +48,14 @@ These are complete, tested, production-quality features with no known issues.
 
 ### Catalog Module (94.4%–96.8% coverage)
 
-| Feature                                                         | Status | Coverage |
-| --------------------------------------------------------------- | ------ | -------- |
-| Registry — thread-safe, Build() → immutable Catalog             | ✅     | 94.4%    |
-| Schema reflection — SchemaFromType[T]() with struct tag support | ✅     | 94.4%    |
-| AsyncAPI 3.0 exporter — YAML + JSON                             | ✅     | 96.8%    |
-| EventCatalog MDX exporter                                       | ✅     | 95.5%    |
-| Catalog adapters — CatalogBuilder, FromDispatcher               | ✅     | 95.5%    |
-| MessageID extraction — unified from catalog.MessageID()         | ✅     | 94.4%    |
+| Feature                                                           | Status | Coverage |
+| ----------------------------------------------------------------- | ------ | -------- |
+| Registry — thread-safe, Build() → immutable Catalog               | ✅     | 94.4%    |
+| Schema reflection — SchemaFromType[T](<>) with struct tag support | ✅     | 94.4%    |
+| AsyncAPI 3.0 exporter — YAML + JSON                               | ✅     | 96.8%    |
+| EventCatalog MDX exporter                                         | ✅     | 95.5%    |
+| Catalog adapters — CatalogBuilder, FromDispatcher                 | ✅     | 95.5%    |
+| MessageID extraction — unified from catalog.MessageID()           | ✅     | 94.4%    |
 
 ### Test Infrastructure
 

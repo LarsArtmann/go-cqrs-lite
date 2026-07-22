@@ -15,17 +15,17 @@
 // Enable foreign-key enforcement for new databases where referential integrity
 // is required:
 //
-//	b, err := sqlite.New("log.db", sqlite.WithForeignKeys())
+//	b, err := sqlite.New("log.db", sqlite.WithPragmas(sqlopt.WithForeignKeys()))
 //
 // WAL mode (with busy_timeout=5000) is enabled by default. Disable only if you
 // have a specific reason (e.g. a network filesystem that doesn't support WAL):
 //
-//	b, err := sqlite.New("log.db", sqlite.WithoutWAL())
+//	b, err := sqlite.New("log.db", sqlite.WithPragmas(sqlopt.WithoutWAL()))
 //
 // Apply CQRS-optimized PRAGMAs (cache_size, temp_store, mmap_size) for
 // production throughput:
 //
-//	b, err := sqlite.New("log.db", sqlite.WithOptimizations())
+//	b, err := sqlite.New("log.db", sqlite.WithPragmas(sqlopt.WithOptimizations()))
 //
 // # Filesystem Considerations
 //
@@ -54,9 +54,11 @@
 // contention in production:
 //
 //	b, err := sqlite.New("primary.db",
-//	    sqlite.WithEventDB("events.db"),   // events + snapshots + checkpoints
-//	    sqlite.WithQueryDB("queries.db"),  // command + query audit logs
-//	    sqlite.WithViewDB("views.db"),     // materialized views (KV)
+//	    sqlite.WithDSN(
+//	        sqlopt.WithEventDB("events.db"),   // events + snapshots + checkpoints
+//	        sqlopt.WithQueryDB("queries.db"),  // command + query audit logs
+//	        sqlopt.WithViewDB("views.db"),     // materialized views (KV)
+//	    ),
 //	)
 //
 // | Database    | Contains                       | Rationale                                          |
@@ -68,5 +70,5 @@
 // Default (single database) is fine for development and low-traffic apps.
 //
 // New enables WAL mode and runs schema migration by default. Disable either
-// with [WithoutWAL] or [WithoutAutoMigrate].
+// with [WithoutWAL] or [WithDSN] (passing [sqlopt.WithoutAutoMigrate]).
 package sqlite

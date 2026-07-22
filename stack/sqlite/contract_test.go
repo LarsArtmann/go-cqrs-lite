@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/contracttest"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 )
 
 func TestContract(t *testing.T) {
@@ -27,9 +28,11 @@ func TestMultiDBContract(t *testing.T) {
 
 		b, err := sqlite.New(
 			filepath.Join(dir, "primary.db"),
-			sqlite.WithEventDB(eventDSN),
-			sqlite.WithQueryDB(queryDSN),
-			sqlite.WithViewDB(viewDSN),
+			sqlite.WithDSN(
+				sqlopt.WithEventDB(eventDSN),
+				sqlopt.WithQueryDB(queryDSN),
+				sqlopt.WithViewDB(viewDSN),
+			),
 		)
 		if err != nil {
 			return nil, err

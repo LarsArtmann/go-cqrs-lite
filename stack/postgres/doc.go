@@ -21,9 +21,11 @@
 // Multi-DB split (separate databases for events, audit, and views):
 //
 //	b, err := postgres.New(primaryDSN,
-//	    postgres.WithEventDB("postgres://host/events_db"),
-//	    postgres.WithQueryDB("postgres://host/queries_db"),
-//	    postgres.WithViewDB("postgres://host/views_db"),
+//	    postgres.WithDSN(
+//	        sqlopt.WithEventDB("postgres://host/events_db"),
+//	        sqlopt.WithQueryDB("postgres://host/queries_db"),
+//	        sqlopt.WithViewDB("postgres://host/views_db"),
+//	    ),
 //	)
 //	defer b.Close()
 //	// Events+snapshots+checkpoints → events_db

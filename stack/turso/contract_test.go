@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/turso/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/contracttest"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 )
 
@@ -33,9 +34,11 @@ func TestMultiDBContract(t *testing.T) {
 
 		b, err := turso.New(
 			filepath.Join(dir, "primary.db"),
-			turso.WithEventDB(eventPath),
-			turso.WithQueryDB(queryPath),
-			turso.WithViewDB(viewPath),
+			turso.WithDSN(
+				sqlopt.WithEventDB(eventPath),
+				sqlopt.WithQueryDB(queryPath),
+				sqlopt.WithViewDB(viewPath),
+			),
 		)
 		if err != nil {
 			return nil, err

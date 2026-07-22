@@ -32,9 +32,11 @@ Isolate concerns across separate database files:
 
 ```go
 bundle, err := sqlite.New("primary.db",
-    sqlite.WithEventDB("events.db"),   // events + snapshots + checkpoints
-    sqlite.WithQueryDB("queries.db"),  // command + query audit logs
-    sqlite.WithViewDB("views.db"),     // materialized views (cqrs_kv)
+    sqlite.WithDSN(
+        sqlopt.WithEventDB("events.db"),   // events + snapshots + checkpoints
+        sqlopt.WithQueryDB("queries.db"),  // command + query audit logs
+        sqlopt.WithViewDB("views.db"),     // materialized views (cqrs_kv)
+    ),
 )
 ```
 

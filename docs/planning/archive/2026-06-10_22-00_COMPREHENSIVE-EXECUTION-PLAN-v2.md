@@ -107,7 +107,7 @@ _Why: pkg.go.dev is the primary consumer touchpoint. Examples drive adoption._
 | #   | Task                                                                            | Module     | Impact | Effort | Customer Value                                             |
 | --- | ------------------------------------------------------------------------------- | ---------- | ------ | ------ | ---------------------------------------------------------- |
 | E1  | Add godoc examples: `decider` — Execute, Load, Repository patterns              | decider    | MED    | 10min  | Most complex module, no runnable examples on pkg.go.dev    |
-| E2  | Add godoc examples: `projection` — Runner, Builder, On[T]()                     | projection | MED    | 10min  | Complex replay+live API, hardest to learn without examples |
+| E2  | Add godoc examples: `projection` — Runner, Builder, On[T](<>)                   | projection | MED    | 10min  | Complex replay+live API, hardest to learn without examples |
 | E3  | Add godoc examples: `signing` — HMAC + Ed25519 setup, middleware                | signing    | MED    | 8min   | Security-critical, easy to misconfigure without examples   |
 | E4  | Add godoc examples: `schema` — Upcaster, VersionedStore usage                   | schema     | MED    | 8min   | Schema evolution is a hard topic, examples reduce friction |
 | E5  | Add godoc examples: `listing` — List, StatusMiddleware, InMemoryAggregateReader | listing    | LOW    | 8min   | Newest module, no usage examples yet                       |

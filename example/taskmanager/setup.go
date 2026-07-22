@@ -24,6 +24,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
 )
 
@@ -65,7 +66,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 
 	bundle, err := sqlite.New(
 		cfg.DatabasePath,
-		sqlite.WithOptimizations(),
+		sqlite.WithPragmas(sqlopt.WithOptimizations()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("setup: sqlite bundle: %w", err)

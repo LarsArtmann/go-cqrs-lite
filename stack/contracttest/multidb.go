@@ -58,9 +58,11 @@ type MultiDBTest struct {
 //	        queryDSN := filepath.Join(dir, "queries.db")
 //	        viewDSN := filepath.Join(dir, "views.db")
 //	        b, err := sqlite.New(filepath.Join(dir, "primary.db"),
-//	            sqlite.WithEventDB(eventDSN),
-//	            sqlite.WithQueryDB(queryDSN),
-//	            sqlite.WithViewDB(viewDSN),
+//	            sqlite.WithDSN(
+//	                sqlopt.WithEventDB(eventDSN),
+//	                sqlopt.WithQueryDB(queryDSN),
+//	                sqlopt.WithViewDB(viewDSN),
+//	            ),
 //	        )
 //	        if err != nil {
 //	            return nil, err

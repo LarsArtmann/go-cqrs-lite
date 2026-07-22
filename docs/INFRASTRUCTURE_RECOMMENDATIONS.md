@@ -103,9 +103,11 @@ the library's recommendation encoded as deployer options:
 
 ```go
 bundle, err := sqlite.New("primary.db",
-    sqlite.WithEventDB("events.db"),   // events + snapshots + checkpoints
-    sqlite.WithQueryDB("queries.db"),  // command + query audit logs
-    sqlite.WithViewDB("views.db"),     // materialized views (KV)
+    sqlite.WithDSN(
+        sqlopt.WithEventDB("events.db"),   // events + snapshots + checkpoints
+        sqlopt.WithQueryDB("queries.db"),  // command + query audit logs
+        sqlopt.WithViewDB("views.db"),     // materialized views (KV)
+    ),
 )
 ```
 

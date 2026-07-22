@@ -27,7 +27,7 @@ Complete rewrite of FEATURES.md from 497 lines to 580 lines, verified against so
 || 2 | Corrected event option count | Was "12 functional options" → now **15** (WithSchemaVersion, WithClock, WithClientID, WithClientOccurredAt) |
 || 3 | Removed stale claims | Builder (unexported), NewTypedProjection (deleted), Catalogable/CatalogCore (deleted), HandleParallel (unexported) |
 || 4 | Added missing signing module | Full single-sig + multi-sig: 6 middleware variants, VerifierMap, Ed25519, HMAC-SHA256, canonical format |
-|| 5 | Added missing projection module | Runner, Builder, On[T](), HandlerRegistry, DLQ, retry, replay→live, Reset, wildcard OnAll |
+|| 5 | Added missing projection module | Runner, Builder, On[T](<>), HandlerRegistry, DLQ, retry, replay→live, Reset, wildcard OnAll |
 || 6 | Added missing storage features | SQLBackend facade, SQLSagaStore, TursoSyncDB (Push/Pull/Checkpoint/Stats), PebbleConfig, all Turso convenience constructors |
 || 7 | Added missing core features | BackwardsLoader, StreamLoader, Bus.UsePublish, auto-marshal New(), clock injection, context replay marker |
 || 8 | Updated module matrix | 24 modules listed with correct coverage and maturity |
