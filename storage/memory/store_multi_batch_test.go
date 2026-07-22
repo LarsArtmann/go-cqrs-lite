@@ -69,10 +69,7 @@ func TestMemoryStore_SaveMultiBatch(t *testing.T) {
 
 	eventtest.AssertLen(t, "events C", eventsC, 1)
 
-	journal, ok := store.(event.Journal)
-	if !ok {
-		t.Fatal("MemoryStore should implement Journal")
-	}
+	journal := store // MemoryStore implements event.Journal
 
 	all, err := journal.ReadAll(ctx)
 	if err != nil {
