@@ -6,6 +6,63 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.0.3] - 2026-07-22
+
+### Batch release — 47 modules tagged
+
+**Fixed:**
+
+- **Turso `LoadToTimestamp` test was flaky** — used `time.Sleep(10ms)` + `time.Now()`
+  (racy wall-clock with nanosecond precision). Rewritten to use explicit
+  `event.WithOccurredAt` timestamps with large intervals, matching the pattern
+  used by every other `LoadToTimestamp` test in the codebase.
+
+**Changed:**
+
+- **SQL dialect abstraction** (`storage/sql`) — refactored to support
+  multi-database compatibility. All SQL stores now flow through a typed
+  `Dialect` interface with SQLite and Postgres implementations.
+- **Stack preset centralization** (`stack/`) — options consolidated into
+  `sqlopt` package, eliminating three harmful clones across stack presets.
+- **Harmful duplication eliminated** — shared helpers extracted across 10+
+  modules (codec, dispatcher, signing, encryption, command, query, catalog,
+  storage, watermill, scenario, retry, event).
+- **JSON v2 migration** — codec, event, and middleware migrated to
+  `encoding/json/v2` via `goexperiment.jsonv2` build tag.
+- **Dependency alignment** — all 52 modules aligned with workspace revisions.
+
+**Added:**
+
+- **View store: transactional support** — `InTx` and `Executor` interface for
+  atomic view operations (`storage/view`).
+- **View store: keyset pagination** — multi-column `ORDER BY`, partial indexes,
+  `IS NULL` operators, `RawWhere` escape hatch, `ViewUpdater`, BLOB support.
+- **Catalog: REST helper shortcuts** — composite `WithOperation`, duplicate
+  detection, golden tests with CI freshness check.
+- **cqrs-lint v0.3.0** — scanner accuracy overhaul (handler→struct link
+  recovery across 5 patterns, reducing consumer false positives 44→8),
+  output rendering with source snippets, monorepo support, `--strict-load`
+  flag, loader error surfacing. See `cmd/cqrs-lint/v0.3.0` tag.
+- **C014 lint rule** — detects `time.Local` usage in event payload structs.
+
+**Tags:**
+
+| Module | Version |
+|--------|---------|
+| `catalog/v4.0.3` | `cmd/api-stability/v4.0.1` | `cmd/cqrs-gen/v4.0.1` | `cmd/cqrs-lint/v0.3.0` |
+| `codec/v4.0.3` | `command/v4.0.1` | `decider/v4.0.2` | `deriver/v4.0.1` |
+| `dispatcher/v4.0.1` | `encryption/v4.0.2` | `event/v4.0.3` | `event/v4/eventtest/v0.2.0` |
+| `example/getting-started/v4.0.1` | `example/taskmanager/v4.0.1` | `graph/v4.0.2` | `id/v4.0.2` |
+| `idempotency/v4.0.1` | `idempotency/kvstore/v4.0.1` | `integration/v4.0.1` | `kv/v4.0.2` |
+| `listing/v4.0.2` | `metadata/v4.0.1` | `middleware/v4.0.2` | `otel/v4.0.2` |
+| `projection/v4.0.1` | `projectionhost/v4.0.2` | `prometheus/v4.0.1` | `query/v4.0.1` |
+| `retry/v4.0.1` | `scenario/v4.0.2` | `scheduling/v4.0.2` | `schema/v4.0.2` |
+| `signing/v4.0.2` | `snapshot/v4.0.2` | `stack/v4.0.1` | `stack/bench/v4.0.1` |
+| `stack/memory/v4.0.1` | `stack/pebble/v4.0.1` | `stack/postgres/v4.0.1` | `stack/sqlite/v4.0.1` |
+| `stack/turso/v4.0.1` | `storage/v4.0.2` | `storage/memory/v4.0.1` | `storage/pebble/v4.0.2` |
+| `storage/turso/v4.0.1` | `testutil/v4.0.1` | `transport/grpc/v4.0.1` | `transport/http/v4.0.2` |
+| `watermill/v4.0.3` | | | |
+
 ## [v4.0.2] - 2026-07-18
 
 ### CBOR time encoding fix + timezone-safe types
