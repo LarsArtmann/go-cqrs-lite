@@ -163,6 +163,72 @@ func (s *SQLEventStore) AppendBatch(
 	return err
 }
 
+// SaveMultiBatch persists events for multiple aggregates in a single database
+// transaction. All entries are committed atomically — either all succeed or
+// none. No optimistic concurrency checks are performed (same semantics as
+// AppendBatch). The caller must ensure events carry correct version numbers.
+func (s *SQLEventStore) SaveMultiBatch(
+	ctx context.Context,
+	entries []event.MultiBatchEntry,
+) error {
+	if err := s.checkClosed(); err != nil {
+		return err
+	}
+
+	totalEvents := 0
+	for _, e := range entries {
+		totalEvents += len(e.Events)
+	}
+
+	if totalEvents == 0 {
+		return nil
+	}
+
+	ctx, span := cqrsotel.StartSpan(
+		ctx, sqlpkg.Tracer(), "event.store.save_multi_batch",
+		cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(
+			cqrsotel.AttrInt(cqrsotel.AttrAggregateCount, len(entries)),
+			cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalEvents),
+		),
+	)
+	defer span.End()
+
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return errorfamily.WrapInfrastructure(err, "storage.begin_tx",
+			"begin transaction for multi-batch save")
+	}
+
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	for _, entry := range entries {
+		if len(entry.Events) == 0 {
+			continue
+		}
+
+		err = s.insertEvents(ctx, tx, entry.Ref, entry.Events)
+		if err != nil {
+			cqrsotel.RecordError(span, err)
+
+			return errorfamily.WrapInfrastructure(err, "storage.insert_events",
+				fmt.Sprintf("insert %d events for %s in multi-batch",
+					len(entry.Events), entry.Ref))
+		}
+	}
+
+	err = sqlpkg.CommitTx(tx)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return err
+}
+
 func (s *SQLEventStore) wrapInsertEventsErr(
 	span cqrsotel.Span,
 	err error,
@@ -193,4 +259,5 @@ var (
 	_ event.Journal         = (*SQLEventStore)(nil)
 	_ event.SeekableJournal = (*SQLEventStore)(nil)
 	_ event.BackwardsSource = (*SQLEventStore)(nil)
+	_ event.MultiSink       = (*SQLEventStore)(nil)
 )

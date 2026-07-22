@@ -28,6 +28,7 @@ func TestGolden_AttributeConstants(t *testing.T) {
 		"AttrAggregateID":      otel.AttrAggregateID,
 		"AttrAggregateVersion": otel.AttrAggregateVersion,
 		"AttrEventCount":       otel.AttrEventCount,
+		"AttrAggregateCount":   otel.AttrAggregateCount,
 		"AttrProjectionName":   otel.AttrProjectionName,
 		"AttrStatus":           otel.AttrStatus,
 		"StatusSuccess":        otel.StatusSuccess,
