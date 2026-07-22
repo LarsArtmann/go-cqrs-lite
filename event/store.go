@@ -35,6 +35,26 @@ type EventSink interface {
 	) error
 }
 
+// MultiBatchEntry pairs an aggregate reference with the events to persist for it.
+// Used by MultiSink.SaveMultiBatch to write events for multiple aggregates
+// in a single atomic operation.
+type MultiBatchEntry struct {
+	Ref    id.AggregateRef
+	Events []Event
+}
+
+// MultiSink persists events for multiple aggregates in a single atomic operation.
+// This is an optional capability: stores that implement it enable bulk-write
+// paths (e.g., multi-aggregate ingest) to avoid N separate transactions.
+//
+// Implementations guarantee atomicity: either all entries are persisted or
+// none are (single lock scope for in-memory, single database transaction for SQL).
+// Events must carry correct version numbers; the store does NOT perform
+// optimistic concurrency checks (same semantics as AppendBatch).
+type MultiSink interface {
+	SaveMultiBatch(ctx context.Context, entries []MultiBatchEntry) error
+}
+
 // EventSource is the read side of event persistence.
 // Loads events, never writes.
 type EventSource interface {
