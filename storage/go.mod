@@ -58,24 +58,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v4 => ../codec
-	github.com/larsartmann/go-cqrs-lite/command/v4 => ../command
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 => ../dispatcher
-	github.com/larsartmann/go-cqrs-lite/event/v4 => ../event
-	github.com/larsartmann/go-cqrs-lite/id/v4 => ../id
-	github.com/larsartmann/go-cqrs-lite/kv/v4 => ../kv
-	github.com/larsartmann/go-cqrs-lite/listing/v4 => ../listing
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../metadata
-	github.com/larsartmann/go-cqrs-lite/otel/v4 => ../otel
-	github.com/larsartmann/go-cqrs-lite/projection/v4 => ../projection
-	github.com/larsartmann/go-cqrs-lite/query/v4 => ../query
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 => ../scheduling
-	github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../snapshot
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 => ../storage/memory
-	github.com/larsartmann/go-cqrs-lite/testutil/v4 => ../testutil
-)
-
-replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => ../event/v4/eventtest
