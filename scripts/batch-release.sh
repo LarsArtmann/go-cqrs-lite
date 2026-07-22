@@ -71,7 +71,15 @@ fi
 echo "Stripping replace directives from all go.mod files..."
 
 backup_dir="$(mktemp -d)"
-trap 'rm -rf "$backup_dir"' EXIT
+cleanup_on_exit() {
+  rm -rf "$backup_dir"
+  # Restore go.mod files if the strip phase modified them
+  if ! git diff-index --quiet HEAD --; then
+    find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -exec git restore {} + 2>/dev/null || true
+    find . -name go.sum -not -path './vendor/*' -not -path './.git/*' -exec git restore {} + 2>/dev/null || true
+  fi
+}
+trap cleanup_on_exit EXIT
 
 find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= read -r gomod; do
   dir="$(dirname "$gomod")"
