@@ -147,8 +147,14 @@ type SQLiteDialect struct{}
 
 func (SQLiteDialect) Placeholder(_ int) string { return "?" }
 
+// sqliteTimeFormat is a fixed-width RFC3339 variant that always emits 9
+// fractional digits. This guarantees correct lexicographic ordering on TEXT
+// columns — time.RFC3339Nano trims trailing zeros, which breaks string
+// comparison when one timestamp's fractional digits are a prefix of another's.
+const sqliteTimeFormat = "2006-01-02T15:04:05.000000000Z07:00"
+
 func (SQLiteDialect) FormatTime(t time.Time) any {
-	return t.Format(time.RFC3339Nano)
+	return t.Format(sqliteTimeFormat)
 }
 
 func (SQLiteDialect) ScanTimeDest() any {
