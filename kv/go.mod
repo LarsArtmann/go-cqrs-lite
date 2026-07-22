@@ -17,3 +17,5 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+replace github.com/larsartmann/go-cqrs-lite/codec/v4 => ../codec
+

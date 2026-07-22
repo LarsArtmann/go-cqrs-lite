@@ -51,3 +51,12 @@ require (
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0
 	github.com/larsartmann/go-error-family v0.7.0
 )
+replace (
+	github.com/larsartmann/go-cqrs-lite/codec/v4 => ../codec
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 => ../dedup
+	github.com/larsartmann/go-cqrs-lite/event/v4 => ../event
+	github.com/larsartmann/go-cqrs-lite/id/v4 => ../id
+	github.com/larsartmann/go-cqrs-lite/projection/v4 => ../projection
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 => ../storage/memory
+)
+
