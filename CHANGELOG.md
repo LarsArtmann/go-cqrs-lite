@@ -53,7 +53,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 | Module | Version |
 |--------|---------|
-| `catalog/v4.0.3` | `cmd/api-stability/v4.0.1` | `cmd/cqrs-gen/v4.0.1` | `cmd/cqrs-lint/v0.3.0` |
+| `catalog/v4.0.3` | `cmd/api-stability/v4.0.1` | `cmd/cqrs-gen/v4.0.1` |
 | `codec/v4.0.3` | `command/v4.0.1` | `decider/v4.0.2` | `deriver/v4.0.1` |
 | `dispatcher/v4.0.1` | `encryption/v4.0.2` | `event/v4.0.3` | `event/v4/eventtest/v0.2.0` |
 | `example/getting-started/v4.0.1` | `example/taskmanager/v4.0.1` | `graph/v4.0.2` | `id/v4.0.2` |
