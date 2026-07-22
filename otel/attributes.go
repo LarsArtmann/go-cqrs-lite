@@ -33,6 +33,9 @@ const (
 	// AttrEventCount is the number of events in a batch.
 	AttrEventCount = "cqrs.event.count"
 
+	// AttrAggregateCount is the number of aggregates in a multi-aggregate batch.
+	AttrAggregateCount = "cqrs.aggregate.count"
+
 	// AttrProjectionName is the name of a projection.
 	AttrProjectionName = "cqrs.projection.name"
 

@@ -28,6 +28,7 @@ var (
 	_ event.Journal         = (*MemoryStore)(nil)
 	_ event.SeekableJournal = (*MemoryStore)(nil)
 	_ event.BackwardsSource = (*MemoryStore)(nil)
+	_ event.MultiSink       = (*MemoryStore)(nil)
 	_ io.Closer             = (*MemoryStore)(nil)
 )
 
@@ -90,6 +91,31 @@ func (s *MemoryStore) AppendBatch(
 
 	key := ref.StreamKey()
 	s.appendToGlobalLog(key, events)
+
+	return nil
+}
+
+
+// SaveMultiBatch appends events for multiple aggregates under a single lock.
+// All entries are persisted atomically: either all succeed or none.
+func (s *MemoryStore) SaveMultiBatch(
+	_ context.Context,
+	entries []event.MultiBatchEntry,
+) error {
+	if err := wrapClosed(
+		s.CheckClosed(event.ErrStoreClosed),
+		"memory.save_multi_batch_failed",
+		"memory store save multi batch",
+	); err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, entry := range entries {
+		s.appendToGlobalLog(entry.Ref.StreamKey(), entry.Events)
+	}
 
 	return nil
 }
