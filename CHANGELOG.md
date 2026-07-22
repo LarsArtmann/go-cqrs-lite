@@ -8,7 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [v4.0.3] - 2026-07-22
 
-### Batch release — 47 modules tagged
+### Batch release — 48 modules tagged
+
+> **Note:** `cmd/cqrs-lint` was NOT tagged in this release — its `go-finding`
+> dependency is still local-only (unpublished). It will be tagged separately
+> once `go-finding` is published to the Go module proxy.
 
 **Fixed:**
 
@@ -39,10 +43,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `IS NULL` operators, `RawWhere` escape hatch, `ViewUpdater`, BLOB support.
 - **Catalog: REST helper shortcuts** — composite `WithOperation`, duplicate
   detection, golden tests with CI freshness check.
-- **cqrs-lint v0.3.0** — scanner accuracy overhaul (handler→struct link
-  recovery across 5 patterns, reducing consumer false positives 44→8),
-  output rendering with source snippets, monorepo support, `--strict-load`
-  flag, loader error surfacing. See `cmd/cqrs-lint/v0.3.0` tag.
+- **cqrs-lint improvements** (not tagged — pending `go-finding` publication) —
+  scanner accuracy overhaul (handler→struct link recovery across 5 patterns,
+  reducing consumer false positives 44→8), output rendering with source
+  snippets, monorepo support, `--strict-load` flag, loader error surfacing.
 - **C014 lint rule** — detects `time.Local` usage in event payload structs.
 
 **Tags:**
