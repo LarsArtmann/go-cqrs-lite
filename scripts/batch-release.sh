@@ -101,12 +101,18 @@ find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= r
   (cd "$dir" && GOWORK=off go mod tidy -e 2>/dev/null || true)
 done
 
-# Verify: no pseudo-versions remain
-echo "Verifying no pseudo-versions remain..."
-pseudo_count=$(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -exec grep -l "00010101000000" {} + 2>/dev/null | wc -l)
+# Verify: no pseudo-versions remain in modules being tagged
+echo "Verifying no pseudo-versions remain in tagged modules..."
+pseudo_files=""
+for mod in "${modules[@]}"; do
+  if grep -q "00010101000000" "${mod}/go.mod" 2>/dev/null; then
+    pseudo_files="${pseudo_files} ${mod}/go.mod"
+  fi
+done
+pseudo_count=$(echo "$pseudo_files" | wc -w)
 if [ "$pseudo_count" -gt 0 ]; then
-  echo "WARNING: $pseudo_count go.mod file(s) still contain pseudo-version requires."
-  find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -exec grep -l "00010101000000" {} + 2>/dev/null
+  echo "WARNING: $pseudo_count tagged module(s) still contain pseudo-version requires."
+  echo "$pseudo_files"
   echo ""
   echo "Aborting release."
   exit 1
