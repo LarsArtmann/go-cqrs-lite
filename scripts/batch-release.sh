@@ -79,7 +79,7 @@ find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= r
   cp "$gomod" "$backup_dir/$gomod"
 
   while IFS= read -r replace_line; do
-    replace_path=$(echo "$replace_line" | grep -oP 'github\.com/larsartmann/go-cqrs-lite/\S+' | head -1)
+    replace_path=$(echo "$replace_line" | grep -oP 'github\.com/larsartmann/go-cqrs-lite/\S+' | head -1 || true)
     if [ -n "$replace_path" ]; then
       (cd "$dir" && go mod edit "-dropreplace=${replace_path}")
     fi
