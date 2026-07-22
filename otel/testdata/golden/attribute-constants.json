@@ -1,4 +1,5 @@
 {
+  "AttrAggregateCount": "cqrs.aggregate.count",
   "AttrAggregateID": "cqrs.aggregate.id",
   "AttrAggregateType": "cqrs.aggregate.type",
   "AttrAggregateVersion": "cqrs.aggregate.version",
