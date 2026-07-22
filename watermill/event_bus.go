@@ -130,14 +130,22 @@ func (b *EventBus) SubscribeAll(handler event.Handler) error {
 
 // Use adds middleware that wraps all event handlers.
 func (b *EventBus) Use(mw ...event.Middleware) error {
-	withLockedModify(&b.mu, func() { b.middleware = append(b.middleware, mw...) }, b.rebuildHandlerChain)
+	withLockedModify(
+		&b.mu,
+		func() { b.middleware = append(b.middleware, mw...) },
+		b.rebuildHandlerChain,
+	)
 
 	return nil
 }
 
 // UsePublish adds middleware that wraps the Publish path.
 func (b *EventBus) UsePublish(mw ...event.PublishMiddleware) error {
-	withLockedModify(&b.mu, func() { b.publishMiddleware = append(b.publishMiddleware, mw...) }, b.rebuildPublisherChain)
+	withLockedModify(
+		&b.mu,
+		func() { b.publishMiddleware = append(b.publishMiddleware, mw...) },
+		b.rebuildPublisherChain,
+	)
 
 	return nil
 }

@@ -122,7 +122,11 @@ func (b *CommandBus) SubscribeAll(handler command.Handler) error {
 
 // Use adds middleware that wraps all command handlers.
 func (b *CommandBus) Use(mw ...command.Middleware) error {
-	withLockedModify(&b.mu, func() { b.middleware = append(b.middleware, mw...) }, b.rebuildHandlerChain)
+	withLockedModify(
+		&b.mu,
+		func() { b.middleware = append(b.middleware, mw...) },
+		b.rebuildHandlerChain,
+	)
 
 	return nil
 }

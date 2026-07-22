@@ -6,3 +6,5 @@ reports/** linguist-generated
 # Exclude from language statistics
 *.pb.go linguist-generated
 *_mock.go linguist-generated
+# Enforce consistent line endings across all platforms
+* text=auto eol=lf

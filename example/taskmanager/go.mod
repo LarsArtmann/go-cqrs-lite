@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0-00010101000000-000000000000
@@ -35,7 +35,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect

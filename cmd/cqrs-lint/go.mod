@@ -19,9 +19,9 @@ require (
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260713092251-4bee1914c0cf // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260720091822-7cc6674724ac // indirect
 	github.com/charmbracelet/x/ansi v0.11.7 // indirect
-	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260719004043-bb9a97036f23 // indirect
+	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260720091843-3eef36eaaa28 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -42,7 +42,7 @@ require (
 	github.com/larsartmann/go-output/plantuml v0.31.0 // indirect
 	github.com/larsartmann/go-output/serialization v0.31.0 // indirect
 	github.com/larsartmann/go-output/tree v0.31.0 // indirect
-	github.com/larsartmann/samber-do-auditlog v0.5.0 // indirect
+	github.com/larsartmann/samber-do-auditlog v0.6.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect
 	github.com/mattn/go-runewidth v0.0.24 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
@@ -52,7 +52,7 @@ require (
 	github.com/muesli/roff v0.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/samber/do/v2 v2.0.0 // indirect
+	github.com/samber/do/v2 v2.1.0 // indirect
 	github.com/samber/go-type-to-string v1.8.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
