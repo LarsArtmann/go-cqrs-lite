@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -13,7 +14,7 @@ import (
 // because JSON v2 has no default representation for time.Duration.
 var durationMarshalers = json.MarshalFunc(
 	func(d time.Duration) ([]byte, error) {
-		return []byte(fmt.Sprintf("%d", d.Nanoseconds())), nil
+		return []byte(strconv.FormatInt(d.Nanoseconds(), 10)), nil
 	},
 )
 
@@ -28,6 +29,7 @@ var jsonOpts = json.JoinOptions(
 func PrintReport(w io.Writer, r *Result) {
 	if r.Error != "" {
 		fmt.Fprintf(w, "Benchmark FAILED: %s\n", r.Error)
+
 		return
 	}
 
@@ -81,9 +83,11 @@ func PrintReport(w io.Writer, r *Result) {
 func printLatencySection(w io.Writer, header string, stats LatencyStats, throughput float64) {
 	fmt.Fprintln(w, header)
 	printLatencyLine(w, "  Latency:", stats)
+
 	if throughput > 0 {
 		fmt.Fprintf(w, "  Throughput: %s events/sec\n", formatFloat(throughput))
 	}
+
 	fmt.Fprintln(w)
 }
 
@@ -128,6 +132,7 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 func printComparisonRow(w io.Writer, name string, r *Result) {
 	if r.Error != "" {
 		fmt.Fprintf(w, "%-10s %s\n", name, "skipped: "+truncate(r.Error, 40))
+
 		return
 	}
 
@@ -170,6 +175,7 @@ func PrintMarkdown(w io.Writer, results map[string]*Result) {
 		r := results[name]
 		if r.Error != "" {
 			fmt.Fprintf(w, "| %s | skipped | | | | | | |", name)
+
 			continue
 		}
 
@@ -204,10 +210,10 @@ func roundDuration(d time.Duration) time.Duration {
 
 func formatInt(n int) string {
 	if n < 1000 {
-		return fmt.Sprintf("%d", n)
+		return strconv.Itoa(n)
 	}
 
-	return insertCommas(fmt.Sprintf("%d", n))
+	return insertCommas(strconv.Itoa(n))
 }
 
 func formatFloat(f float64) string {
@@ -274,9 +280,11 @@ func insertCommas(s string) string {
 	}
 
 	var b strings.Builder
+
 	pre := n % 3
 	if pre > 0 {
 		b.WriteString(s[:pre])
+
 		if n > pre {
 			b.WriteByte(',')
 		}
@@ -284,6 +292,7 @@ func insertCommas(s string) string {
 
 	for i := pre; i < n; i += 3 {
 		b.WriteString(s[i : i+3])
+
 		if i+3 < n {
 			b.WriteByte(',')
 		}
