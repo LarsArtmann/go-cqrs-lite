@@ -137,3 +137,5 @@ yarn-error.log*
 # <<< buildflow-managed (.gitignore) <<<
 example/taskmanager/taskmanager
 example/getting-started/getting-started
+example/readme-quickstart/readme-quickstart
+cmd/cqrs-bench/cqrs-bench
