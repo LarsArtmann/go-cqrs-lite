@@ -54,7 +54,7 @@ repo  := bundle.Repository(decider)
 - CI pipelines (no external dependencies)
 - Learning the library
 
-Switch to [stack/sqlite](../sqlite/README.md), [stack/pebble](../storage/pebble/README.md), or [stack/postgres](../postgres/README.md) for production by changing one line.
+Switch to [stack/sqlite](../sqlite/README.md), [stack/pebble](../pebble/README.md), or [stack/postgres](../postgres/README.md) for production by changing one line.
 
 ## Related Modules
 

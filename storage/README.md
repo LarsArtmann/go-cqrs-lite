@@ -189,7 +189,7 @@ store, _ := turso.NewEventStore(db)
 - [**snapshot**](../snapshot/README.md) — Snapshot store interfaces implemented here
 - [**decider**](../decider/README.md) — Wires SQL stores into the aggregate repository
 - [**pebble**](../storage/pebble/README.md) — Embedded alternative backend (PebbleDB, CBOR)
-- [**turso**](../turso/README.md) — Turso connector that delegates to this module
+- [**turso**](./turso/README.md) — Turso connector that delegates to this module
 - [**memory**](../storage/memory/README.md) — In-memory implementations for tests
 - [**otel**](../otel/README.md) — Span recording via `otel/` re-exports
 - [**listing**](../listing/README.md) — SQL-backed aggregate reader

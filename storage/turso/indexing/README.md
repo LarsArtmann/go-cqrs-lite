@@ -158,5 +158,5 @@ Same as the parent project.
 ## Related Modules
 
 - [**turso**](../README.md) — Parent module; Turso connector
-- [**otel**](../../otel/README.md) — Index analysis and auto-indexer emit OTel spans/metrics
-- [**storage**](../../storage/README.md) — SQL store implementations that indexing optimizes
+- [**otel**](../../../otel/README.md) — Index analysis and auto-indexer emit OTel spans/metrics
+- [**storage**](../../README.md) — SQL store implementations that indexing optimizes

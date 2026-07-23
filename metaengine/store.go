@@ -365,6 +365,24 @@ type filterPredicate struct {
 	test     func(item any) bool
 }
 
+func (s *Store) sortKeyFn(inputType string) func(any) any {
+	queryName, ok := s.byInputType[inputType]
+	if !ok {
+		return nil
+	}
+
+	q := s.queries[queryName]
+	if q.config.sortAccessor.closure == nil {
+		return nil
+	}
+
+	rv := reflect.ValueOf(q.config.sortAccessor.closure)
+
+	return func(item any) any {
+		return rv.Call([]reflect.Value{reflect.ValueOf(item)})[0].Interface()
+	}
+}
+
 // ExecuteTyped is the type-safe wrapper. It dispatches the query and type-asserts
 // the result.
 //
@@ -390,8 +408,9 @@ func ExecuteTyped[Q any, R any](
 
 	if isCollectionResult[R]() {
 		limit := extractLimitFromInput(input)
+		sortFn := store.sortKeyFn(qualifiedTypeName(input))
 
-		return reconstructCollection[R](raw, limit), nil
+		return reconstructCollection[R](raw, limit, sortFn), nil
 	}
 
 	result, ok := raw.(R)

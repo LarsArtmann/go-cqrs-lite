@@ -286,7 +286,7 @@ func isCollectionResult[R any]() bool {
 
 // reconstructCollection builds a typed collection result from []any returned
 // by the engine. It fills in the slice field and optionally the cursor field.
-func reconstructCollection[R any](raw any, limit int) R {
+func reconstructCollection[R any](raw any, limit int, sortKeyFn func(any) any) R {
 	var zero R
 
 	t := reflect.TypeOf(zero)
@@ -326,7 +326,12 @@ func reconstructCollection[R any](raw any, limit int) R {
 	result.Field(info.itemsFieldIdx).Set(slice)
 
 	if hasMore && info.cursorFieldIdx >= 0 && lastItem != nil {
-		cursor := &Cursor{Value: lastItem}
+		cursorVal := lastItem
+		if sortKeyFn != nil {
+			cursorVal = sortKeyFn(lastItem)
+		}
+
+		cursor := &Cursor{Value: cursorVal}
 		result.Field(info.cursorFieldIdx).Set(reflect.ValueOf(cursor))
 	}
 
