@@ -31,6 +31,7 @@ The Decider pattern uses pure functions for load → fold → decide → save �
 ```go
 import (
     "context"
+    "fmt"
     "log"
 
     "github.com/larsartmann/go-cqrs-lite/decider/v4"
@@ -93,7 +94,11 @@ orderID := id.New[OrderID]()
 ### 4. Commands with Typed Handlers
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/command/v4"
+import (
+    "context"
+
+    "github.com/larsartmann/go-cqrs-lite/command/v4"
+)
 
 type CreateUser struct {
     *command.BasicCommand

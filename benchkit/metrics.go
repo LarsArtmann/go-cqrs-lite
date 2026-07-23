@@ -68,32 +68,28 @@ func (lc *LatencyCollector) Record(d time.Duration) {
 // Returns a zero-valued [LatencyStats] if no samples were recorded.
 func (lc *LatencyCollector) Stats() LatencyStats {
 	lc.mu.Lock()
-	defer lc.mu.Unlock()
+	count := lc.count
+	sumNs := lc.sumNs
+	samples := make([]time.Duration, len(lc.samples))
+	copy(samples, lc.samples)
+	lc.mu.Unlock()
 
-	if lc.count == 0 {
+	if count == 0 {
 		return LatencyStats{}
 	}
 
-	sorted := make([]time.Duration, len(lc.samples))
-	copy(sorted, lc.samples)
-	lc.mu.Unlock()
+	slices.Sort(samples)
 
-	slices.Sort(sorted)
-
-	stats := LatencyStats{
-		Count: lc.count,
-		P50:   percentile(sorted, 50),
-		P75:   percentile(sorted, 75),
-		P90:   percentile(sorted, 90),
-		P95:   percentile(sorted, 95),
-		P99:   percentile(sorted, 99),
-		P100:  sorted[len(sorted)-1],
-		Mean:  time.Duration(lc.sumNs / lc.count),
+	return LatencyStats{
+		Count: count,
+		P50:   percentile(samples, 50),
+		P75:   percentile(samples, 75),
+		P90:   percentile(samples, 90),
+		P95:   percentile(samples, 95),
+		P99:   percentile(samples, 99),
+		P100:  samples[len(samples)-1],
+		Mean:  time.Duration(sumNs / count),
 	}
-
-	lc.mu.Lock() // re-lock for the deferred unlock
-
-	return stats
 }
 
 // percentile returns the p-th percentile from a sorted slice.
@@ -184,16 +180,9 @@ func (rs *resourceSampler) stopAndSnapshot() (peak uint64, baseline memSnapshot)
 }
 
 // cpuTime returns the process CPU time (user + sys) in nanoseconds.
+// Returns 0 on non-Linux platforms (the portable fallback).
 func cpuTime() uint64 {
-	if p := cpuTimeProc(); p > 0 {
-		return p
-	}
-
-	// Portable fallback: use runtime total CPU time
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
-
-	return m.TotalAlloc // not CPU, but a nonzero proxy
+	return cpuTimeProc()
 }
 
 // cpuTimeProc reads /proc/self/stat on Linux for user+sys CPU time.
@@ -250,14 +239,4 @@ func parseUint(s string) uint64 {
 	}
 
 	return n
-}
-
-// min returns the smaller of a or b. (Go 1.21+ has built-in min, but
-// we avoid shadowing issues by using our own for time.Duration values.)
-func minInt(a, b int) int {
-	if a < b {
-		return a
-	}
-
-	return b
 }
