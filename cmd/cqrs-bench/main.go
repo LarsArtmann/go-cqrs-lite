@@ -187,8 +187,10 @@ func compareCmd(args []string) {
 // ── factory ──
 
 func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
-	var diskPath string
-	var cleanup func()
+	var (
+		diskPath string
+		cleanup  func()
+	)
 
 	switch backend {
 	case "memory", "mem":
@@ -230,6 +232,7 @@ func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
 
 	default:
 		fatalf("unknown backend: %s (use memory, sqlite, or pebble)", backend)
+
 		return nil, "", nil // unreachable
 	}
 }
@@ -251,6 +254,7 @@ func parseCodec(name string) codec.Codec {
 		return codec.CBORCodec{}
 	default:
 		fatalf("unknown codec: %s (use json or cbor)", name)
+
 		return nil
 	}
 }

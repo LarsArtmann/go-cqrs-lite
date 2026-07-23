@@ -28,11 +28,11 @@ Traditional DDD Aggregate = Identity + State + Behavior
 
 This library decomposed that god concept into three clean pieces, each living in a different module:
 
-| Concern | Traditional DDD | This Library | Type / Location |
-|---|---|---|---|
-| **Identity** | Aggregate Root holds its own ID | `AggregateRef{Type, ID}` | `id/aggregate_type.go` |
-| **Behavior** | Aggregate methods (ApplyEvent, LoadEvents, Changes...) | Pure `Decider[State]` with `Apply` function | `decider/decider.go` |
-| **State** | Mutable fields on the aggregate object | Folded from events on demand, never persisted | App-defined `State` type parameter |
+| Concern      | Traditional DDD                                        | This Library                                  | Type / Location                    |
+| ------------ | ------------------------------------------------------ | --------------------------------------------- | ---------------------------------- |
+| **Identity** | Aggregate Root holds its own ID                        | `AggregateRef{Type, ID}`                      | `id/aggregate_type.go`             |
+| **Behavior** | Aggregate methods (ApplyEvent, LoadEvents, Changes...) | Pure `Decider[State]` with `Apply` function   | `decider/decider.go`               |
+| **State**    | Mutable fields on the aggregate object                 | Folded from events on demand, never persisted | App-defined `State` type parameter |
 
 ADR-0001 (`docs/adr/0001-decider-over-aggregate.md`) documents this decision. The original `core/aggregate/` package had a 9-method OO interface (`Root` with `ApplyEvent`, `LoadEvents`, `Changes`, etc.) that coupled domain logic to infrastructure. It was replaced by:
 
@@ -55,20 +55,20 @@ The old `aggregate/` package was flagged for deprecation — its 70% structural 
 
 If you store state, you lose:
 
-| Lost | Consequence |
-|---|---|
-| **How you got here** | No audit trail — you see *what is* but never *why* |
-| **When things changed** | No temporal queries — can't reconstruct state at time T |
-| **The ability to evolve** | Can't re-derive state with new business rules — the old logic is baked in |
-| **Debuggability** | Can't replay to find exactly which event caused a bad state |
-| **Concurrency simplicity** | Read-modify-write races; optimistic concurrency becomes hard |
+| Lost                       | Consequence                                                               |
+| -------------------------- | ------------------------------------------------------------------------- |
+| **How you got here**       | No audit trail — you see _what is_ but never _why_                        |
+| **When things changed**    | No temporal queries — can't reconstruct state at time T                   |
+| **The ability to evolve**  | Can't re-derive state with new business rules — the old logic is baked in |
+| **Debuggability**          | Can't replay to find exactly which event caused a bad state               |
+| **Concurrency simplicity** | Read-modify-write races; optimistic concurrency becomes hard              |
 
 An event is a **fact** — it happened, it's immutable, it's undeniable. State is an **interpretation** of facts. Persisting interpretation over facts is storing the derivative and throwing away the integral. You can always re-derive, but you can never recover discarded history.
 
 `DOMAIN_LANGUAGE.md:331` encodes this as an anti-pattern:
 
-| Instead of | We say | Why |
-|---|---|---|
+| Instead of        | We say         | Why                                                                           |
+| ----------------- | -------------- | ----------------------------------------------------------------------------- |
 | "State" (mutable) | "Folded state" | State is always reconstructed from events via `Apply`, never directly mutated |
 
 ### The Snapshot Exception
@@ -114,12 +114,14 @@ d := decider.Decider[UserState]{
 ```
 
 The library's entire relationship with `State`:
+
 - Hold the `Initial` value
 - Feed events through `Apply` one at a time
 - Pass the resulting state to the consumer's decide function
 - Discard state after the command completes
 
 This gives you:
+
 - **Testability** — pass in events, check the resulting state. No database, no mocks.
 - **Determinism** — same events, same state, every time.
 - **Evolution** — change `Apply`, re-fold all events, get a new state shape from old data.
@@ -159,32 +161,32 @@ Each stage is decoupled and knows nothing about the next.
 
 There are **two folds of the same events**, for two different purposes:
 
-| | Write-side fold | Read-side fold |
-|---|---|---|
-| **Who** | `Decider.Apply` | `Projection.Handle` |
-| **Purpose** | Make decisions (validate invariants) | Answer queries (O(1) reads) |
-| **Shape** | Normalized domain state | Denormalized, query-optimized |
-| **When** | Synchronous, on every command | Async, eventually consistent |
-| **Persisted?** | **NO** — computed and discarded | **YES** — materialized in KV/SQL/graph |
+|                | Write-side fold                      | Read-side fold                         |
+| -------------- | ------------------------------------ | -------------------------------------- |
+| **Who**        | `Decider.Apply`                      | `Projection.Handle`                    |
+| **Purpose**    | Make decisions (validate invariants) | Answer queries (O(1) reads)            |
+| **Shape**      | Normalized domain state              | Denormalized, query-optimized          |
+| **When**       | Synchronous, on every command        | Async, eventually consistent           |
+| **Persisted?** | **NO** — computed and discarded      | **YES** — materialized in KV/SQL/graph |
 
 Materialized views ARE the read-side fold. The library provides three tiers of materialized view builders, chosen by query shape:
 
-| Tier | Builder | Store shape | Best for |
-|---|---|---|---|
-| **Document/KV** | `stack.Materialize[V,K]` | One record per key | Single-entity views (user profile, todo item) |
-| **Relational** | `storage.RelationalProjection` | Multiple related SQL tables | Multi-table atomic writes (messages + attachments + junction tables) |
-| **Graph** | `graph.GraphProjection` | Nodes + edges | Variable-depth traversal, adjacency, path-finding |
+| Tier            | Builder                        | Store shape                 | Best for                                                             |
+| --------------- | ------------------------------ | --------------------------- | -------------------------------------------------------------------- |
+| **Document/KV** | `stack.Materialize[V,K]`       | One record per key          | Single-entity views (user profile, todo item)                        |
+| **Relational**  | `storage.RelationalProjection` | Multiple related SQL tables | Multi-table atomic writes (messages + attachments + junction tables) |
+| **Graph**       | `graph.GraphProjection`        | Nodes + edges               | Variable-depth traversal, adjacency, path-finding                    |
 
 Each projection is a **different denormalization** of the same event stream, optimized for a different query pattern.
 
 ### What Connects Them (and What Doesn't)
 
-| Relationship | Exists? | Mechanism |
-|---|---|---|
+| Relationship           | Exists?      | Mechanism                                                                                    |
+| ---------------------- | ------------ | -------------------------------------------------------------------------------------------- |
 | Aggregate → Projection | **Indirect** | Aggregate produces events to Journal. Projection consumes from Journal. No direct reference. |
-| Aggregate → Query | **None** | Completely decoupled. A query never touches an aggregate's event stream directly. |
-| Projection → Query | **Implicit** | Projection writes a read model; a query handler reads it. Consumer wires them together. |
-| Query → Aggregate | **None** | Queries never mutate. If a query result demands a change, a consumer dispatches a *Command*. |
+| Aggregate → Query      | **None**     | Completely decoupled. A query never touches an aggregate's event stream directly.            |
+| Projection → Query     | **Implicit** | Projection writes a read model; a query handler reads it. Consumer wires them together.      |
+| Query → Aggregate      | **None**     | Queries never mutate. If a query result demands a change, a consumer dispatches a _Command_. |
 
 ### The Projection Interface
 
@@ -208,7 +210,7 @@ Projections read from the **cross-aggregate Journal** (`SeekableJournal.ReadFrom
 
 ### The AggregateListing Bridge
 
-`listing.AggregateListing` is a specialized projection that lists *aggregates themselves* with their tombstone status — bridging aggregate identity back to the read side. Implementations: `listing.InMemoryAggregateReader` (from Journal), `storage.SQLAggregateReader`.
+`listing.AggregateListing` is a specialized projection that lists _aggregates themselves_ with their tombstone status — bridging aggregate identity back to the read side. Implementations: `listing.InMemoryAggregateReader` (from Journal), `storage.SQLAggregateReader`.
 
 ### Six Rules for Getting Materialized Views Right
 
@@ -239,11 +241,11 @@ func (r AggregateRef) StreamKey() string {
 
 `AggregateRef` plays exactly three mechanical roles:
 
-| Role | What it does |
-|---|---|
+| Role                     | What it does                                                                        |
+| ------------------------ | ----------------------------------------------------------------------------------- |
 | **Stream partition key** | Groups events: `Load(ctx, ref)` returns all events for that key, ordered by version |
-| **Concurrency boundary** | `expectedVersion` is checked per-key — one writer at a time per partition |
-| **Snapshot key prefix** | `cqrs_snapshot:{Type}:{ID}` — snapshot stored per partition |
+| **Concurrency boundary** | `expectedVersion` is checked per-key — one writer at a time per partition           |
+| **Snapshot key prefix**  | `cqrs_snapshot:{Type}:{ID}` — snapshot stored per partition                         |
 
 That is what a partition key IS. The word "Aggregate" adds zero semantic information beyond "the key that partitions events into ordered, independently-versioned streams."
 
@@ -251,11 +253,11 @@ That is what a partition key IS. The word "Aggregate" adds zero semantic informa
 
 The library ships three identity types orbiting a concept that has no behavioral representation in code:
 
-| Type | Definition | Purpose |
-|---|---|---|
-| `AggregateID` | `cbid.ID[AggregateMarker, string]` | Identifier for a specific stream instance. The only non-ULID-backed ID — string-backed so it accepts `DeriveAggregateID` (SHA-256) and legacy values. |
-| `AggregateType` | `type AggregateType string` | Category label (`"User"`, `"Order"`) — namespacing streams. |
-| `AggregateRef` | `struct{Type AggregateType; ID AggregateID}` | Composite key passed to all Store methods. |
+| Type            | Definition                                   | Purpose                                                                                                                                               |
+| --------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AggregateID`   | `cbid.ID[AggregateMarker, string]`           | Identifier for a specific stream instance. The only non-ULID-backed ID — string-backed so it accepts `DeriveAggregateID` (SHA-256) and legacy values. |
+| `AggregateType` | `type AggregateType string`                  | Category label (`"User"`, `"Order"`) — namespacing streams.                                                                                           |
+| `AggregateRef`  | `struct{Type AggregateType; ID AggregateID}` | Composite key passed to all Store methods.                                                                                                            |
 
 You never hold an "aggregate" in your hand. You hold its identity, its type, or its ref.
 
@@ -267,23 +269,23 @@ You never hold an "aggregate" in your hand. You hold its identity, its type, or 
 
 1. **The English word "aggregate" means "a collection" or "to gather into a mass."** That tells you nothing about "the unit of write consistency."
 
-2. **The library already killed the thing the name referred to.** The OO Aggregate Root is gone, replaced by the Decider. Keeping the name "Aggregate" for the *leftover identity key* creates a split brain — two concepts (`Decider` = behavior, `Aggregate` = identity) where there used to be one.
+2. **The library already killed the thing the name referred to.** The OO Aggregate Root is gone, replaced by the Decider. Keeping the name "Aggregate" for the _leftover identity key_ creates a split brain — two concepts (`Decider` = behavior, `Aggregate` = identity) where there used to be one.
 
 3. **There is no `Aggregate` type.** Only `AggregateID`, `AggregateType`, `AggregateRef` — three identity types orbiting a concept that has no representation in code.
 
-4. **The word carries baggage.** People coming from DDD expect a stateful root object with encapsulated rules. Here it's just a stream partition key. The `DOMAIN_LANGUAGE.md:330` anti-pattern table has to actively *un-teach* this expectation.
+4. **The word carries baggage.** People coming from DDD expect a stateful root object with encapsulated rules. Here it's just a stream partition key. The `DOMAIN_LANGUAGE.md:330` anti-pattern table has to actively _un-teach_ this expectation.
 
 ### The StreamRef / StreamKey Alternative
 
 The rename proposal would be:
 
-| Current | Proposed | Reasoning |
-|---|---|---|
-| `AggregateID` | `StreamID` | The identifier of a specific event stream |
-| `AggregateType` | `StreamCategory` or `StreamType` | The category label (`"User"`, `"Order"`) |
-| `AggregateRef` | `StreamRef` | `{Category, ID}` — the composite key passed to Store methods |
-| `NewAggregateID()` | `NewStreamID()` | Generate a new stream identity |
-| `NewAggregateRef()` | `NewStreamRef()` | Construct the composite ref |
+| Current             | Proposed                         | Reasoning                                                    |
+| ------------------- | -------------------------------- | ------------------------------------------------------------ |
+| `AggregateID`       | `StreamID`                       | The identifier of a specific event stream                    |
+| `AggregateType`     | `StreamCategory` or `StreamType` | The category label (`"User"`, `"Order"`)                     |
+| `AggregateRef`      | `StreamRef`                      | `{Category, ID}` — the composite key passed to Store methods |
+| `NewAggregateID()`  | `NewStreamID()`                  | Generate a new stream identity                               |
+| `NewAggregateRef()` | `NewStreamRef()`                 | Construct the composite ref                                  |
 
 The argument: EventStoreDB and Marten literally use the term "stream" for this exact concept. `AggregateRef.StreamKey()` already exists in the codebase, so the code itself acknowledges the stream framing.
 
@@ -299,14 +301,14 @@ Three reasons the name was kept despite the critique:
 
 ### Alternative Names Considered and Rejected
 
-| Candidate | Problem |
-|---|---|
-| **TraceKey** | Collides with tracing vocabulary (`CorrelationID`, `CausationID`, OTel spans). Suggests observability, not consistency. |
-| **IdentityKey** | Same vagueness as "Entity." Every ID in the system is an "identity." Conveys zero domain meaning. |
-| **OriginKey** | Implies provenance. Overlaps with `CausationID`. The aggregate key isn't about origin — it's about grouping and consistency. |
-| **StreamRef** | Best candidate. Accurately describes the function. But still a breaking rename for industry-conventional naming. |
+| Candidate       | Problem                                                                                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **TraceKey**    | Collides with tracing vocabulary (`CorrelationID`, `CausationID`, OTel spans). Suggests observability, not consistency.      |
+| **IdentityKey** | Same vagueness as "Entity." Every ID in the system is an "identity." Conveys zero domain meaning.                            |
+| **OriginKey**   | Implies provenance. Overlaps with `CausationID`. The aggregate key isn't about origin — it's about grouping and consistency. |
+| **StreamRef**   | Best candidate. Accurately describes the function. But still a breaking rename for industry-conventional naming.             |
 
-All alternatives share one flaw: **they name the mechanism (it's a key), not the role (it's a consistency boundary).** Per the project's own naming principles: *"Name for the role, not the mechanism."*
+All alternatives share one flaw: **they name the mechanism (it's a key), not the role (it's a consistency boundary).** Per the project's own naming principles: _"Name for the role, not the mechanism."_
 
 ---
 
@@ -316,32 +318,32 @@ A survey of 14 active consumer projects (across `/home/lars/projects/`) reveals 
 
 ### The DDD Engagement Spectrum
 
-| Project | DDD Engagement | Nature |
-|---|---|---|
-| **cqrs-htmx** | **Deep** | Explicit aggregate boundaries (User vs Membership), snapshot strategy, `aggregateRepositories` struct |
-| **Standup-Killer** | **Deep** | Named aggregates (Team/Member/Checkin), state-as-aggregate docs, ID bridging layer |
-| **bank-sync** | **Moderate** | "one aggregate per (balanceID, provider)", aggregate mapping projection |
-| **StopTube** | **Moderate** | `BlockingSession` explicitly documented as "an aggregate" |
-| **crush-daily** | **Moderate** | `DailyReportState` documented as "aggregate state" |
-| **timesheets** | **Mechanical** | `aggID` is always opaque stream key; no conceptual engagement |
-| **DiscordSync** | **Mechanical** | 23 `Aggregate*` constants used only as `Emit()` partition keys; no state/invariants |
-| **invoices** | **Mechanical** | SQLC boilerplate; `aggregate_id` as DB column |
-| **Code-Quality-Agent** | **Mechanical** | SQLC boilerplate; `aggregate_id` as DB column |
+| Project                | DDD Engagement | Nature                                                                                                |
+| ---------------------- | -------------- | ----------------------------------------------------------------------------------------------------- |
+| **cqrs-htmx**          | **Deep**       | Explicit aggregate boundaries (User vs Membership), snapshot strategy, `aggregateRepositories` struct |
+| **Standup-Killer**     | **Deep**       | Named aggregates (Team/Member/Checkin), state-as-aggregate docs, ID bridging layer                    |
+| **bank-sync**          | **Moderate**   | "one aggregate per (balanceID, provider)", aggregate mapping projection                               |
+| **StopTube**           | **Moderate**   | `BlockingSession` explicitly documented as "an aggregate"                                             |
+| **crush-daily**        | **Moderate**   | `DailyReportState` documented as "aggregate state"                                                    |
+| **timesheets**         | **Mechanical** | `aggID` is always opaque stream key; no conceptual engagement                                         |
+| **DiscordSync**        | **Mechanical** | 23 `Aggregate*` constants used only as `Emit()` partition keys; no state/invariants                   |
+| **invoices**           | **Mechanical** | SQLC boilerplate; `aggregate_id` as DB column                                                         |
+| **Code-Quality-Agent** | **Mechanical** | SQLC boilerplate; `aggregate_id` as DB column                                                         |
 
 ### Usage Pattern Summary
 
-| Pattern | Prevalence |
-|---|---|
-| `AggregateType` as `event.AggregateType` constant | ALL 14 projects |
-| `NewAggregateID` for fresh ULIDs | ALL 14 projects |
-| `c.AggregateID()` on commands | Most projects (some embed `BasicCommand`, some manual) |
-| `evt.AggregateID()` on events in projections | Most projects |
-| `ParseAggregateID` from branded/domain IDs | 9 of 14 projects |
-| `DeriveAggregateID` for deterministic IDs | 6 of 14 projects |
-| `NewAggregateRef` to construct refs for store methods | 8 of 14 projects |
-| `event.AggregateRef` struct literals `{ID, Type}` | 3 of 14 projects |
-| `AggregateMarker` for custom branded types | 1 of 14 (browser-history) |
-| `AggregateTimestamp` | 0 of 14 projects |
+| Pattern                                               | Prevalence                                             |
+| ----------------------------------------------------- | ------------------------------------------------------ |
+| `AggregateType` as `event.AggregateType` constant     | ALL 14 projects                                        |
+| `NewAggregateID` for fresh ULIDs                      | ALL 14 projects                                        |
+| `c.AggregateID()` on commands                         | Most projects (some embed `BasicCommand`, some manual) |
+| `evt.AggregateID()` on events in projections          | Most projects                                          |
+| `ParseAggregateID` from branded/domain IDs            | 9 of 14 projects                                       |
+| `DeriveAggregateID` for deterministic IDs             | 6 of 14 projects                                       |
+| `NewAggregateRef` to construct refs for store methods | 8 of 14 projects                                       |
+| `event.AggregateRef` struct literals `{ID, Type}`     | 3 of 14 projects                                       |
+| `AggregateMarker` for custom branded types            | 1 of 14 (browser-history)                              |
+| `AggregateTimestamp`                                  | 0 of 14 projects                                       |
 
 ### The Key Finding
 
@@ -355,16 +357,18 @@ This confirms the conceptual critique: the word "Aggregate" is used as a vocabul
 
 ### What Aggregateless Event Sourcing Is
 
-Coined by **Rico Fritzsche** (2025), building on **Sara Pellegrini's** *"Killing the Aggregate"* (2023) and **Ralf Westphal's** *Command Context Consistency*. The core idea:
+Coined by **Rico Fritzsche** (2025), building on **Sara Pellegrini's** _"Killing the Aggregate"_ (2023) and **Ralf Westphal's** _Command Context Consistency_. The core idea:
 
-> **Eliminate aggregates entirely.** Events are standalone facts in one flat table. No streams, no `aggregate_id`, no `aggregate_type`. Each *command* dynamically declares its own consistency boundary by querying the exact events it needs — and the append atomically re-checks that same query.
+> **Eliminate aggregates entirely.** Events are standalone facts in one flat table. No streams, no `aggregate_id`, no `aggregate_type`. Each _command_ dynamically declares its own consistency boundary by querying the exact events it needs — and the append atomically re-checks that same query.
 
 Instead of:
+
 ```sql
 SELECT * FROM events WHERE aggregate_id = 'order-42'   -- traditional
 ```
 
 You do:
+
 ```sql
 SELECT * FROM events
   WHERE event_type IN ('DeviceRegistered', 'AssetCreated')
@@ -390,17 +394,17 @@ WHERE COALESCE(max_seq, 0) = <expected_max_seq>;
 
 ### The Criticism
 
-Gokce Yalcin: *"A stream with an expected-revision check is still an aggregate, just not entity-centric. I'd call it dynamic aggregates rather than aggregate-less."*
+Gokce Yalcin: _"A stream with an expected-revision check is still an aggregate, just not entity-centric. I'd call it dynamic aggregates rather than aggregate-less."_
 
 ### What the Repo Researched
 
 Three documents in `docs/research/archive/`:
 
-| Document | Status | Verdict |
-|---|---|---|
-| `2026-05-01_AGGREGATELESS_EVENT_SOURCING_DEEP_DIVE.md` | **RESOLVED** | *"Aggregate identity retained; fold/decider ideas absorbed into ADR-0001"* |
-| `2026-05-01_HYBRID_ARCHITECTURE_BEST_OF_BOTH_WORLDS.md` | **SUPERSEDED** | Proposed additive context queries; never shipped |
-| `2026-05-01_CQRS_EVENT_SOURCING_INNOVATIONS.md` | Reference | Called it "the most radical architectural innovation" but rated it for future consideration |
+| Document                                                | Status         | Verdict                                                                                     |
+| ------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
+| `2026-05-01_AGGREGATELESS_EVENT_SOURCING_DEEP_DIVE.md`  | **RESOLVED**   | _"Aggregate identity retained; fold/decider ideas absorbed into ADR-0001"_                  |
+| `2026-05-01_HYBRID_ARCHITECTURE_BEST_OF_BOTH_WORLDS.md` | **SUPERSEDED** | Proposed additive context queries; never shipped                                            |
+| `2026-05-01_CQRS_EVENT_SOURCING_INNOVATIONS.md`         | Reference      | Called it "the most radical architectural innovation" but rated it for future consideration |
 
 ### What Was Absorbed
 
@@ -412,24 +416,24 @@ Two ideas from aggregateless ES made it into the library:
 
 ### What Was Rejected
 
-| Aggregateless Idea | Why Rejected |
-|---|---|
-| Single flat events table (no streams) | Lose aggregate identity, versioning, snapshots |
-| No `aggregate_type` / `aggregate_id` columns | Lose stream-based load (`Load(ctx, ref)`) |
-| Raw JSONB without typed events | Lose compile-time safety (Go's typed payloads) |
-| No snapshotting | *"Has no concept of snapshots because it has no concept of aggregates"* |
-| No push-based subscriptions | Library already has `event.Bus` + projections |
-| No schema enforcement | Library has `Codec` + Go types + `schema.Upcaster` |
+| Aggregateless Idea                           | Why Rejected                                                            |
+| -------------------------------------------- | ----------------------------------------------------------------------- |
+| Single flat events table (no streams)        | Lose aggregate identity, versioning, snapshots                          |
+| No `aggregate_type` / `aggregate_id` columns | Lose stream-based load (`Load(ctx, ref)`)                               |
+| Raw JSONB without typed events               | Lose compile-time safety (Go's typed payloads)                          |
+| No snapshotting                              | _"Has no concept of snapshots because it has no concept of aggregates"_ |
+| No push-based subscriptions                  | Library already has `event.Bus` + projections                           |
+| No schema enforcement                        | Library has `Codec` + Go types + `schema.Upcaster`                      |
 
 ### The Deep Dive's Bottom Line
 
-> *"Aggregateless ES is a thought-provoking critique of aggregate-based design. Its core insight — that consistency boundaries can be defined by queries rather than aggregate identity — is valuable even if you keep aggregates."*
+> _"Aggregateless ES is a thought-provoking critique of aggregate-based design. Its core insight — that consistency boundaries can be defined by queries rather than aggregate identity — is valuable even if you keep aggregates."_
 >
 > — `docs/research/archive/2026-05-01_AGGREGATELESS_EVENT_SOURCING_DEEP_DIVE.md:1129`
 
 And from the innovations survey:
 
-> *"The aggregate is no longer sacred."*
+> _"The aggregate is no longer sacred."_
 >
 > — `docs/research/archive/2026-05-01_CQRS_EVENT_SOURCING_INNOVATIONS.md:501`
 
@@ -457,7 +461,7 @@ This library:        AggregateRef = Identity only (stream partition key)
                      Event Stream = State (folded on demand)
 ```
 
-The aggregateless folks would say: *"You're 80% of the way here. The only thing left is the stream partition key, and you're keeping that for operational reasons."*
+The aggregateless folks would say: _"You're 80% of the way here. The only thing left is the stream partition key, and you're keeping that for operational reasons."_
 
 They're right. The resolution was pragmatic: keep the name for industry familiarity, adopt the pure-function ideas, document the compromise.
 

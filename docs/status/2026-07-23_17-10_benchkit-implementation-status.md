@@ -8,26 +8,26 @@
 
 ## a) FULLY DONE
 
-| Item | Details |
-|------|---------|
-| `benchkit/` module created | go.mod, go.sum, wired into go.work |
-| Core types | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory` in benchkit.go |
-| LatencyCollector | Sorted-slice + reservoir sampling (10K cap), thread-safe, tested |
-| Resource sampling | Peak heap via 100ms polling goroutine, baseline/after deltas |
-| CPU measurement | `/proc/self/stat` user+sys time (Linux only) |
-| Synthetic generator | Seeded PCG, deterministic, configurable payload size |
-| 7 named profiles | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy |
-| 8-phase runner | setup → warmup → write → read → readmodel → projection → durability → teardown |
-| Concurrent worker pool | Channel-based, cancel-on-error, proper WaitGroup |
-| `Run()` API | Single-backend benchmark, returns `*Result` |
-| `Compare()` API | Multi-backend, handles factory failures gracefully |
-| Text report | Human-readable with latency percentiles, throughput, memory, disk |
-| JSON report | JSON v2 with custom `time.Duration` marshaler, indented |
-| Markdown report | Comparison table format |
-| 22 tests passing | Unit tests (collector, generator, profiles) + integration (memory, sqlite, compare, reports) |
-| `cmd/cqrs-bench` CLI | `run` + `compare` subcommands, memory/sqlite/pebble backends |
-| README.md | benchkit/README.md with quick start, profiles table, metrics list |
-| AGENTS.md updated | Module list, directory structure, test command |
+| Item                       | Details                                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------------------- |
+| `benchkit/` module created | go.mod, go.sum, wired into go.work                                                           |
+| Core types                 | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory` in benchkit.go   |
+| LatencyCollector           | Sorted-slice + reservoir sampling (10K cap), thread-safe, tested                             |
+| Resource sampling          | Peak heap via 100ms polling goroutine, baseline/after deltas                                 |
+| CPU measurement            | `/proc/self/stat` user+sys time (Linux only)                                                 |
+| Synthetic generator        | Seeded PCG, deterministic, configurable payload size                                         |
+| 7 named profiles           | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                                     |
+| 8-phase runner             | setup → warmup → write → read → readmodel → projection → durability → teardown               |
+| Concurrent worker pool     | Channel-based, cancel-on-error, proper WaitGroup                                             |
+| `Run()` API                | Single-backend benchmark, returns `*Result`                                                  |
+| `Compare()` API            | Multi-backend, handles factory failures gracefully                                           |
+| Text report                | Human-readable with latency percentiles, throughput, memory, disk                            |
+| JSON report                | JSON v2 with custom `time.Duration` marshaler, indented                                      |
+| Markdown report            | Comparison table format                                                                      |
+| 22 tests passing           | Unit tests (collector, generator, profiles) + integration (memory, sqlite, compare, reports) |
+| `cmd/cqrs-bench` CLI       | `run` + `compare` subcommands, memory/sqlite/pebble backends                                 |
+| README.md                  | benchkit/README.md with quick start, profiles table, metrics list                            |
+| AGENTS.md updated          | Module list, directory structure, test command                                               |
 
 **Evidence:** `go test ./benchkit/... -tags "goexperiment.jsonv2" -count=1` → 22 PASS, 0 FAIL
 
@@ -35,38 +35,38 @@
 
 ## b) PARTIALLY DONE
 
-| Item | What exists | What's missing |
-|------|-------------|----------------|
-| `Config.Codec` field | Field defined, stored in runner as `r.codec`, `codecName()` computes label | **NEVER passed to `event.New()`** — events always use `event.DefaultCodec`. The field is dead code. |
-| `Profile.ReadRatio` | Defined on all 7 profiles with sensible values (0.1–0.8) | **Never read by the runner.** Write and read phases are sequential, not interleaved by ratio. |
-| `Profile.BatchSize` | Defined, used in write phase (`min(profile.BatchSize, remaining)`) | Read phase doesn't vary based on it (acceptable, but undocumented). |
-| CLI in workspace | `cmd/cqrs-bench` builds with `GOWORK=off` + replace directives | **Not in `go.work`** — workspace resolution fails for unpublished modules. `nix run .#build` won't build it. |
-| Pebble backend support | Factory works in CLI (`pebble.New()` → `.Bundle`) | No pebble tests. No `Metrics()` integration (LSM-tree health). No `Flush()` durability measurement. |
-| Disk measurement | `DiskPath` config + `filepath.Walk` size summing | Manual path, not auto-detected via `interface{ DiskSize() int64 }` as designed. |
-| Projection benchmark | `projectionhost.Host` with counting projection, lag/events collected | Creates a throwaway projection per run; consumer can't register custom projections. |
+| Item                   | What exists                                                                | What's missing                                                                                               |
+| ---------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `Config.Codec` field   | Field defined, stored in runner as `r.codec`, `codecName()` computes label | **NEVER passed to `event.New()`** — events always use `event.DefaultCodec`. The field is dead code.          |
+| `Profile.ReadRatio`    | Defined on all 7 profiles with sensible values (0.1–0.8)                   | **Never read by the runner.** Write and read phases are sequential, not interleaved by ratio.                |
+| `Profile.BatchSize`    | Defined, used in write phase (`min(profile.BatchSize, remaining)`)         | Read phase doesn't vary based on it (acceptable, but undocumented).                                          |
+| CLI in workspace       | `cmd/cqrs-bench` builds with `GOWORK=off` + replace directives             | **Not in `go.work`** — workspace resolution fails for unpublished modules. `nix run .#build` won't build it. |
+| Pebble backend support | Factory works in CLI (`pebble.New()` → `.Bundle`)                          | No pebble tests. No `Metrics()` integration (LSM-tree health). No `Flush()` durability measurement.          |
+| Disk measurement       | `DiskPath` config + `filepath.Walk` size summing                           | Manual path, not auto-detected via `interface{ DiskSize() int64 }` as designed.                              |
+| Projection benchmark   | `projectionhost.Host` with counting projection, lag/events collected       | Creates a throwaway projection per run; consumer can't register custom projections.                          |
 
 ---
 
 ## c) NOT STARTED
 
-| Phase (from design report) | Description | Status |
-|----------------------------|-------------|--------|
-| Phase 2: Durability | `synchronous=FULL` vs `OFF` comparison, `Flush()` timing | Not started |
-| Phase 6: Production replay | JSON Lines export/import, `ReplaySource` | Not started |
-| Phase 7: benchtest suite | `benchtest.RunSuite(b, factory)` mirroring contracttest | Not started |
-| Multi-DB split benchmarking | Measure contention reduction from EventDB/QueryDB/ViewDB split | Not started |
-| Pebble `Metrics()` integration | LSM-tree health (block cache hit rate, compaction count) | Not started |
-| SQLite PRAGMA metrics | `page_count`, `page_size`, WAL file size | Not started |
-| Postgres/Turso backends | `pg_database_size()`, connection pool stats | Not started |
-| CI workflow | Regression detection with baseline comparison | Not started |
-| Nix flake integration | `nix run .#bench`, `nix run .#bench-compare` | Not started |
-| ADR | Architecture decision record for benchkit | Not started |
-| Crush skill update | `.agents/skills/go-cqrs-lite/SKILL.md` doesn't mention benchkit | Not started |
-| CLI `report` subcommand | Generate reports from saved JSON files | Not started |
-| CLI `replay` subcommand | Replay production data dump | Not started |
-| CLI `--version` flag | Standard version output | Not started |
-| `cmd/cqrs-bench` tests | No tests for the CLI itself | Not started |
-| Connection to `stack/bench` | benchkit doesn't reference or complement existing micro-benchmarks | Not started |
+| Phase (from design report)     | Description                                                        | Status      |
+| ------------------------------ | ------------------------------------------------------------------ | ----------- |
+| Phase 2: Durability            | `synchronous=FULL` vs `OFF` comparison, `Flush()` timing           | Not started |
+| Phase 6: Production replay     | JSON Lines export/import, `ReplaySource`                           | Not started |
+| Phase 7: benchtest suite       | `benchtest.RunSuite(b, factory)` mirroring contracttest            | Not started |
+| Multi-DB split benchmarking    | Measure contention reduction from EventDB/QueryDB/ViewDB split     | Not started |
+| Pebble `Metrics()` integration | LSM-tree health (block cache hit rate, compaction count)           | Not started |
+| SQLite PRAGMA metrics          | `page_count`, `page_size`, WAL file size                           | Not started |
+| Postgres/Turso backends        | `pg_database_size()`, connection pool stats                        | Not started |
+| CI workflow                    | Regression detection with baseline comparison                      | Not started |
+| Nix flake integration          | `nix run .#bench`, `nix run .#bench-compare`                       | Not started |
+| ADR                            | Architecture decision record for benchkit                          | Not started |
+| Crush skill update             | `.agents/skills/go-cqrs-lite/SKILL.md` doesn't mention benchkit    | Not started |
+| CLI `report` subcommand        | Generate reports from saved JSON files                             | Not started |
+| CLI `replay` subcommand        | Replay production data dump                                        | Not started |
+| CLI `--version` flag           | Standard version output                                            | Not started |
+| `cmd/cqrs-bench` tests         | No tests for the CLI itself                                        | Not started |
+| Connection to `stack/bench`    | benchkit doesn't reference or complement existing micro-benchmarks | Not started |
 
 ---
 
@@ -97,6 +97,7 @@ The warmup phase (`runner.go:258`) writes events to a throwaway aggregate in the
 ### 6. `cmd/cqrs-bench` cannot be in go.work
 
 The CLI module uses replace directives + `GOWORK=off` because benchkit isn't published. This means:
+
 - `go work sync` doesn't know about it
 - `nix run .#build` won't compile it
 - The replace directive list is 25 entries — fragile and high-maintenance
@@ -225,6 +226,7 @@ benchkit imports `encoding/json/v2` and `encoding/json/jsontext` directly. Build
 ### 1. Should `cmd/cqrs-bench` be in `go.work` or stay separate?
 
 The workspace fails to resolve `benchkit/v4` when cmd/cqrs-bench is in go.work because it tries to fetch the module from the remote (which doesn't have it). Options:
+
 - **A:** Keep `GOWORK=off` + replace directives (current approach, 25 replace entries)
 - **B:** Add cmd/cqrs-bench to go.work and let the workspace's `./benchkit` entry resolve it (requires understanding why this fails — it works for stack/bench which has the same pattern)
 - **C:** Merge benchkit into the `stack` module as a sub-package (eliminates the cross-module dependency issue entirely)
@@ -234,12 +236,14 @@ I could not figure out why option B fails when stack/bench (which depends on sta
 ### 2. Should benchkit use the project's `errorfamily` error classification?
 
 The project convention is to use `errorfamily.NewRejection(...)`, `errorfamily.WrapInfrastructure(...)` etc. benchkit currently uses plain `fmt.Errorf`. Should I:
+
 - Add `errorfamily` as a dependency and classify benchmark errors (Rejection for bad config, Infrastructure for factory failures)?
 - Or keep plain errors since benchkit is a tool, not a library consumers build on?
 
 ### 3. Should the dead `Config.Codec` / `Profile.ReadRatio` / `Config.Duration` fields be fixed or removed?
 
 These three fields exist in the public API but do nothing. Options:
+
 - **A:** Implement them properly (wire codec to events, implement mixed read/write phase, enforce duration timeout)
 - **B:** Remove them from the public API for now and add them back when implemented
 - **C:** Leave them as-is with `// TODO` comments (current state, but misleading to consumers)
