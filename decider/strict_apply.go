@@ -1,8 +1,9 @@
 package decider
 
 import (
-	"errors"
 	"fmt"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -29,7 +30,10 @@ import (
 
 // ErrStrictApplyUnknownType is returned by StrictApply when an event type is
 // not in the knownTypes list.
-var ErrStrictApplyUnknownType = errors.New("strict-apply: unknown event type")
+var ErrStrictApplyUnknownType = errorfamily.NewCorruption(
+	"decider.strict_apply_unknown_type",
+	"strict-apply: unknown event type",
+)
 
 func StrictApply[State any](
 	apply func(state State, evt event.Event) (State, error),

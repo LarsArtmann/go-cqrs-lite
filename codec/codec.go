@@ -2,8 +2,9 @@ package codec
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Encoding identifies the serialization format used for a payload.
@@ -17,7 +18,10 @@ const (
 
 // ErrUnknownEncoding is returned by [ForEncoding] when no built-in codec
 // matches the requested encoding.
-var ErrUnknownEncoding = errors.New("codec: unknown encoding (no built-in codec)")
+var ErrUnknownEncoding = errorfamily.NewRejection(
+	"codec.unknown_encoding",
+	"codec: unknown encoding (no built-in codec)",
+)
 
 // ForEncoding returns the built-in [Codec] for the given [Encoding].
 // It resolves [EncodingJSON] → [JSONCodec] and [EncodingCBOR] → [CBORCodec].

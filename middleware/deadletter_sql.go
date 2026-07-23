@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -13,7 +12,10 @@ const (
 	dialectPostgres = "postgres"
 )
 
-var errUnexpectedTimeTypeDL = errors.New("unexpected time type")
+var ErrUnexpectedTimeType = errorfamily.NewCorruption(
+	"middleware.deadletter.unexpected_time_type",
+	"unexpected time type",
+)
 
 // SQLDeadLetterStore is a persistent dead-letter handler backed by a SQL
 // database. It stores [DeadLetterEntry] values in a `dead_letters` table,

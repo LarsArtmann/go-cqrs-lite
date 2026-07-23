@@ -16,14 +16,18 @@
 package simple
 
 import (
-	"errors"
 	"fmt"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/caseutil"
 )
 
-var errCatalogValidation = errors.New("simple: catalog validation failed")
+var ErrCatalogValidation = errorfamily.NewRejection(
+	"catalog.simple.validation_failed",
+	"simple: catalog validation failed",
+)
 
 // Builder accumulates messages and produces an immutable catalog.Catalog.
 // It wraps catalog.Builder with a streamlined single-service API.
@@ -174,7 +178,7 @@ func (b *Builder) BuildE() (*catalog.Catalog, error) {
 	cat := b.inner.Build()
 
 	if violations := cat.Validate(); len(violations) > 0 {
-		return cat, fmt.Errorf("%w: %v", errCatalogValidation, violations)
+		return cat, fmt.Errorf("%w: %v", ErrCatalogValidation, violations)
 	}
 
 	return cat, nil

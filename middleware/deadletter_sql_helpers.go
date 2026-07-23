@@ -96,14 +96,14 @@ func (s *SQLDeadLetterStore) parseTime(src any) (time.Time, error) {
 			return t, nil
 		}
 
-		return time.Time{}, errorfamily.WrapCorruption(errUnexpectedTimeTypeDL,
+		return time.Time{}, errorfamily.WrapCorruption(ErrUnexpectedTimeType,
 			"middleware.deadletter_sql.unexpected_time_type",
 			fmt.Sprintf("expected time.Time, got %T", src))
 	}
 
 	str, ok := src.(string)
 	if !ok {
-		return time.Time{}, errorfamily.WrapCorruption(errUnexpectedTimeTypeDL,
+		return time.Time{}, errorfamily.WrapCorruption(ErrUnexpectedTimeType,
 			"middleware.deadletter_sql.unexpected_string_type",
 			fmt.Sprintf("expected string, got %T", src))
 	}

@@ -2,7 +2,7 @@ package schema
 
 import (
 	"encoding/json/v2"
-	"errors"
+
 	"fmt"
 	"reflect"
 	"sync"
@@ -129,16 +129,22 @@ func RegisterTypeWithValidator[T any](
 	v.validators[eventType] = func(val any) error {
 		typed, ok := val.(T)
 		if !ok {
-			return errTypeAssertion
+			return ErrTypeAssertion
 		}
 
 		return validate(typed)
 	}
 }
 
-var errTypeAssertion = errors.New("type assertion failed during validation")
+var ErrTypeAssertion = errorfamily.NewCorruption(
+	"schema.type_assertion_failed",
+	"type assertion failed during validation",
+)
 
-var errUnregisteredType = errors.New("no schema registered for event type")
+var ErrUnregisteredType = errorfamily.NewRejection(
+	"schema.unregistered_type",
+	"no schema registered for event type",
+)
 
 // RegisterType registers a reflect.Type for an event type.
 func (v *Validator) RegisterType(eventType event.Type, t reflect.Type) {
@@ -160,7 +166,7 @@ func (v *Validator) Validate(evt event.Event) error {
 	if !ok {
 		if v.strict {
 			return errorfamily.WrapRejection(
-				errUnregisteredType,
+				ErrUnregisteredType,
 				"schema.unregistered_type",
 				"strict mode: unregistered event type",
 			)
