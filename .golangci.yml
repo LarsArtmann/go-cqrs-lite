@@ -532,6 +532,33 @@ linters:
       - path: encryption/
         linters:
           - ireturn
+      - path: snapshot/
+        linters:
+          - ireturn
+      - path: codec/
+        linters:
+          - ireturn
+      - path: graph/
+        linters:
+          - ireturn
+      - path: projection/
+        linters:
+          - ireturn
+      - path: projectionhost/
+        linters:
+          - ireturn
+      - path: catalog/
+        linters:
+          - ireturn
+      - path: middleware/
+        linters:
+          - ireturn
+      - path: transport/
+        linters:
+          - ireturn
+      - path: signing/
+        linters:
+          - ireturn
       - path: sync/
         linters:
           - modernize

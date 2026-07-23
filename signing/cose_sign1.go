@@ -29,7 +29,7 @@ func SignCOSE1(evt event.Event, signer COSESigner, opts ...COSESignOption) ([]by
 
 	protected, err := codec.PrepareCOSESetup(&cfg, opts, signer.COSEAlgorithm())
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.WrapInfrastructure(err, "signing.cose_setup", "prepare COSE setup")
 	}
 
 	payload := canonicalPayload(evt)

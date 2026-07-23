@@ -63,7 +63,7 @@ func ExtractSignature(evt event.Event) (Signature, error) {
 	decoded, found, err := event.ExtractCustomBytesChecked(evt, MetadataKey,
 		ErrNilEvent, "signing.extract", "extract signature from event")
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.WrapInfrastructure(err, "signing.extract_signature", "extract signature from event")
 	}
 
 	if !found {
