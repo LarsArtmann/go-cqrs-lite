@@ -469,15 +469,18 @@ reg := catalog.NewRegistry("My API", "1.0.0")
 
 ### "Local `go mod tidy` fails with eventtest pseudo-version errors"
 
-**Cause:** `event/v4/eventtest` is a standalone Go module at `event/v4/eventtest/go.mod` with no published tag. It resolves via `replace` directives in `go.work`, but `go mod tidy` in a **consumer** workspace can't inherit those replaces.
+**Cause:** `event/v4/eventtest` is a standalone Go module at `event/v4/eventtest/go.mod`. If
+`go mod tidy` in a **consumer** workspace can't resolve it, you are likely missing the
+published version or have a stale `replace` directive.
 
-**Fix (consumer side):** Add a `replace` directive in your `go.work`:
+**Fix:** Fetch the published module directly:
 
-```go
-replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => ../go-cqrs-lite/event/v4/eventtest
+```bash
+go get github.com/larsartmann/go-cqrs-lite/event/v4/eventtest@v0.1.0
 ```
 
-Inside the go-cqrs-lite repo, run `go mod tidy -e` (the warnings are cosmetic — the build works via `go.work`).
+Inside the go-cqrs-lite repo, run `go mod tidy -e` (the warnings are cosmetic — the build
+works via `go.work`).
 
 ### "event.New() rejects nil payload but event.NewEvent() accepts []byte{}"
 
