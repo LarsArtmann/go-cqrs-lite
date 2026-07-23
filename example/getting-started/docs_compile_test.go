@@ -26,6 +26,7 @@ type (
 
 type docCreateUser struct {
 	*command.BasicCommand
+
 	Name string
 }
 

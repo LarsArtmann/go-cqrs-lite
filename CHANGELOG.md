@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **README rewrite** — restructured as 3-step Quick Start (define domain, event-source
+  with decider, go to production). Added Install section, trimmed module catalog to 12
+  key modules (links to AGENTS.md for full 52). Moved "Why" section before catalog.
+- **Docs compile-verification** — `docs_compile_test.go` in `example/getting-started/`
+  tests every API pattern from `docs/getting-started.md` to catch drift in CI.
+
+### Removed (Breaking — targets v4.1)
+
+- `middleware.NewMetrics`, `CommandMetrics`, `EventMetrics`, `QueryMetrics` — entire
+  `metrics.go` deleted. Use `NewTypedMetrics`, `CommandTypedMetrics`, `EventTypedMetrics`,
+  `QueryTypedMetrics` instead.
+- `middleware.MetricsRecorder` interface and `OTelMetricsRecorder.Observe` — use
+  `TypedMetricsRecorder` and `ObserveTyped` instead.
+- `catalog.ErrorExporter` — use `Exporter[error]` instead.
+- `storage/sql.NewOwnedDBHandle` and `SetOwnership` — use `NewBorrowedDBHandle` or
+  `NewOwningDBHandle` instead.
+- `eventtest.FakeMetrics` and `eventtest.AssertMetricRecord` — removed with the
+  deprecated `MetricsRecorder` interface they implemented.
+
 ## [v4.0.4] - 2026-07-23
 
 ### Batch release — 49 modules tagged

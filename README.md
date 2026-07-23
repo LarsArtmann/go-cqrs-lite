@@ -129,7 +129,7 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 
 Every module is independently importable and has its own `go.mod`. Here are the most important ones — see [AGENTS.md](AGENTS.md) for the full 52-module catalog.
 
-| Module             | Purpose                                                                |
+| Module             | Purpose                                                               |
 | ------------------ | --------------------------------------------------------------------- |
 | **event**          | Immutable events, store/bus interfaces, event sourcing                |
 | **command**        | Typed command dispatch, middleware, audit journal, pub/sub bus        |

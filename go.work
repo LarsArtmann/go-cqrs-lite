@@ -5,6 +5,7 @@ use (
 	./benchkit
 	./catalog
 	./cmd/api-stability
+	./cmd/cqrs-bench
 	./cmd/cqrs-gen
 	./cmd/cqrs-lint
 	./cmd/doc-check

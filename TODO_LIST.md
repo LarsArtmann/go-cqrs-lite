@@ -54,9 +54,9 @@ These items deliver the majority of perceived consumer value.
       (define domain, event-source with decider, go to production). Added Install section,
       trimmed module catalog to 12 key modules (links to AGENTS.md for full 52).
 - [x] **Deprecated API removal batch 2** — ✅ Removed: `middleware.{NewMetrics,
-      CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}` (entire
+    CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}` (entire
       `metrics.go` deleted), `catalog.ErrorExporter`, `storage/sql.{NewOwnedDBHandle,
-      SetOwnership}`. Tests migrated to typed metrics API. Breaking → v4.1 cut.
+    SetOwnership}`. Tests migrated to typed metrics API. Breaking → v4.1 cut.
 - [x] **Postgres CI coverage matrix** — ✅ Already implemented at `ci.yml:380-418`.
       Postgres 16 service container, `POSTGRES_TEST_DSN` env var, `-tags=integration` tests.
 - [x] **Add `docs/*/archive/README.md` files** — ✅ All 8 archive directories already

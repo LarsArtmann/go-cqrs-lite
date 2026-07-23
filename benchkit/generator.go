@@ -1,7 +1,7 @@
 package benchkit
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"math/rand/v2"
 )

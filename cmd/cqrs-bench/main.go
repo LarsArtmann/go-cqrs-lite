@@ -219,7 +219,14 @@ func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
 
 		diskPath = pebDir
 
-		return func() (*stack.Bundle, error) { return pebble.New(pebDir) }, diskPath, cleanup
+		return func() (*stack.Bundle, error) {
+			b, err := pebble.New(pebDir)
+			if err != nil {
+				return nil, err
+			}
+
+			return b.Bundle, nil
+		}, diskPath, cleanup
 
 	default:
 		fatalf("unknown backend: %s (use memory, sqlite, or pebble)", backend)

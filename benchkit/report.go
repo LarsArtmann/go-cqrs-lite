@@ -1,7 +1,8 @@
 package benchkit
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"strings"
@@ -129,18 +130,18 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 
 // WriteJSON serializes a result as indented JSON.
 func WriteJSON(w io.Writer, r *Result) error {
-	enc := json.NewEncoder(w)
+	enc := jsontext.NewEncoder(w)
 	enc.SetIndent("", "  ")
 
-	return enc.Encode(r)
+	return json.MarshalEncode(enc, r)
 }
 
 // WriteComparisonJSON serializes all results as a JSON object.
 func WriteComparisonJSON(w io.Writer, results map[string]*Result) error {
-	enc := json.NewEncoder(w)
+	enc := jsontext.NewEncoder(w)
 	enc.SetIndent("", "  ")
 
-	return enc.Encode(results)
+	return json.MarshalEncode(enc, results)
 }
 
 // PrintMarkdown writes a markdown comparison table.
