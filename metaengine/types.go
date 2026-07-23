@@ -106,5 +106,6 @@ func applyExecOpts(opts []ExecOption) execConfig {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+
 	return cfg
 }

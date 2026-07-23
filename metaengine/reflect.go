@@ -18,24 +18,30 @@ func reflectFields(v any) []reflectField {
 	if t == nil {
 		return nil
 	}
-	if t.Kind() == reflect.Ptr {
+
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
+
 	if t.Kind() != reflect.Struct {
 		return nil
 	}
+
 	var fields []reflectField
-	for i := 0; i < t.NumField(); i++ {
-		f := t.Field(i)
+
+	for f := range t.Fields() {
+		f := f
 		if !f.IsExported() {
 			continue
 		}
+
 		fields = append(fields, reflectField{
 			Name:       f.Name,
 			TypeString: f.Type.String(),
 			Tag:        f.Tag,
 		})
 	}
+
 	return fields
 }
 
@@ -52,11 +58,14 @@ func domainFields(v any) []reflectField {
 func matchFilterFields(queryInput any, resultElementType any) []FieldPath {
 	qFields := domainFields(queryInput)
 	rFields := reflectFields(resultElementType)
+
 	rByName := make(map[string]reflectField, len(rFields))
 	for _, f := range rFields {
 		rByName[f.Name] = f
 	}
+
 	var matched []FieldPath
+
 	structName := reflect.TypeOf(resultElementType).Name()
 	for _, qf := range qFields {
 		if rf, ok := rByName[qf.Name]; ok && rf.TypeString == qf.TypeString {
@@ -67,6 +76,7 @@ func matchFilterFields(queryInput any, resultElementType any) []FieldPath {
 			})
 		}
 	}
+
 	return matched
 }
 
@@ -84,11 +94,13 @@ func detectSortField(elementType any) string {
 			return f.Name
 		}
 	}
+
 	for _, f := range fields {
 		if isTimestampType(f.TypeString) {
 			return f.Name
 		}
 	}
+
 	return ""
 }
 
@@ -99,9 +111,11 @@ func unwrapPageType(resultType reflect.Type) (reflect.Type, bool) {
 	if resultType == nil || resultType.Kind() != reflect.Struct {
 		return nil, false
 	}
+
 	if resultType.NumField() < 1 {
 		return nil, false
 	}
+
 	itemsField := resultType.Field(0)
 	if itemsField.Name != "Items" || itemsField.Type.Kind() != reflect.Slice {
 		return nil, false
@@ -110,25 +124,30 @@ func unwrapPageType(resultType reflect.Type) (reflect.Type, bool) {
 	if resultType.NumField() < 3 {
 		return nil, false
 	}
+
 	if resultType.Field(1).Name != "Next" || resultType.Field(2).Name != "HasMore" {
 		return nil, false
 	}
+
 	return itemsField.Type.Elem(), true
 }
 
 // getFieldValue extracts a field value from a struct by name using reflection.
 func getFieldValue(v any, fieldName string) any {
 	rv := reflect.ValueOf(v)
-	if rv.Kind() == reflect.Ptr {
+	if rv.Kind() == reflect.Pointer {
 		rv = rv.Elem()
 	}
+
 	if rv.Kind() != reflect.Struct {
 		return nil
 	}
+
 	f := rv.FieldByName(fieldName)
 	if !f.IsValid() {
 		return nil
 	}
+
 	return f.Interface()
 }
 
@@ -137,8 +156,10 @@ func describeType(t reflect.Type) string {
 	if t == nil {
 		return "<nil>"
 	}
+
 	if t.Name() != "" && t.Name() != t.Kind().String() {
 		return fmt.Sprintf("%s (%s)", t.Name(), t.Kind())
 	}
+
 	return t.String()
 }

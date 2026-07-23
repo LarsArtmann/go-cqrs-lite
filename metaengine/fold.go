@@ -1,7 +1,7 @@
 package metaengine
 
 import (
-	"fmt"
+	"errors"
 	"reflect"
 )
 
@@ -34,9 +34,10 @@ type Fold struct {
 
 func EventTypeName(sample any) string {
 	t := reflect.TypeOf(sample)
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
+
 	return t.Name()
 }
 
@@ -116,17 +117,20 @@ func OnSkip[E any](sample E) Fold {
 func (f *Fold) callInsert(event any) (any, any) {
 	fn := reflect.ValueOf(f.insertHandler)
 	results := fn.Call([]reflect.Value{reflect.ValueOf(event)})
+
 	return results[0].Interface(), results[1].Interface()
 }
 
 func (f *Fold) callUpdate(event any, prev any) any {
 	fn := reflect.ValueOf(f.updateHandler)
+
 	args := []reflect.Value{reflect.ValueOf(event)}
 	if prev != nil {
 		args = append(args, reflect.ValueOf(prev))
 	} else {
 		args = append(args, reflect.Zero(fn.Type().In(1)))
 	}
+
 	return fn.Call(args)[0].Interface()
 }
 
@@ -134,27 +138,33 @@ func (f *Fold) callKey(event any) any {
 	if f.keyExtractor == nil {
 		return nil
 	}
+
 	fn := reflect.ValueOf(f.keyExtractor)
+
 	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface()
 }
 
 func (f *Fold) callCount(event any) Delta {
 	fn := reflect.ValueOf(f.countHandler)
+
 	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(Delta)
 }
 
 func (f *Fold) callEdge(event any) Edge {
 	fn := reflect.ValueOf(f.edgeHandler)
+
 	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(Edge)
 }
 
 func (f *Fold) callSet(event any) any {
 	fn := reflect.ValueOf(f.setHandler)
+
 	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface()
 }
 
 func classifyADT(folds []Fold) (ADT, error) {
 	hasInsert, hasSet, hasCount, hasEdge := false, false, false, false
+
 	for _, f := range folds {
 		switch f.Kind {
 		case FoldInsert, FoldUpdate, FoldRemove:
@@ -167,6 +177,7 @@ func classifyADT(folds []Fold) (ADT, error) {
 			hasEdge = true
 		}
 	}
+
 	switch {
 	case hasEdge:
 		return ADTGraph, nil
@@ -177,6 +188,6 @@ func classifyADT(folds []Fold) (ADT, error) {
 	case hasInsert:
 		return ADTMap, nil
 	default:
-		return "", fmt.Errorf("cannot infer ADT: no active folds (only skips)")
+		return "", errors.New("cannot infer ADT: no active folds (only skips)")
 	}
 }

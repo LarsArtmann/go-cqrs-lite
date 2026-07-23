@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"fmt"
+	"maps"
 	"sort"
 	"strings"
 )
@@ -14,6 +15,7 @@ type EngineProfile struct {
 
 func (p EngineProfile) SupportsADT(adt ADT) (Complexity, bool) {
 	c, ok := p.Supports[adt]
+
 	return c, ok
 }
 
@@ -22,7 +24,9 @@ func (p EngineProfile) String() string {
 	for adt, c := range p.Supports {
 		parts = append(parts, fmt.Sprintf("%s@%s", adt, c))
 	}
+
 	sort.Strings(parts)
+
 	return fmt.Sprintf("%s: %s", p.Name, strings.Join(parts, " "))
 }
 
@@ -118,21 +122,25 @@ func (m *MemoryEngine) getMap(col string) map[any]any {
 	if m.data.maps[col] == nil {
 		m.data.maps[col] = make(map[any]any)
 	}
+
 	return m.data.maps[col]
 }
 
 func (m *MemoryEngine) MapSet(col string, key any, value any) error {
 	m.getMap(col)[key] = value
+
 	return nil
 }
 
 func (m *MemoryEngine) MapGet(col string, key any) (any, bool, error) {
 	v, ok := m.getMap(col)[key]
+
 	return v, ok, nil
 }
 
 func (m *MemoryEngine) MapDelete(col string, key any) error {
 	delete(m.getMap(col), key)
+
 	return nil
 }
 
@@ -144,21 +152,27 @@ func (m *MemoryEngine) MapScan(
 	limit int,
 ) ([]any, error) {
 	store := m.getMap(col)
+
 	var results []any
+
 	for _, v := range store {
 		if !matchesFilters(v, filters, filterValues) {
 			continue
 		}
+
 		results = append(results, v)
 	}
+
 	if sortField != "" {
 		sort.Slice(results, func(i, j int) bool {
 			return compareByField(results[i], results[j], sortField)
 		})
 	}
+
 	if limit > 0 && len(results) > limit {
 		return results[:limit], nil
 	}
+
 	return results, nil
 }
 
@@ -166,12 +180,15 @@ func (m *MemoryEngine) SetAdd(col string, key any) error {
 	if m.data.sets[col] == nil {
 		m.data.sets[col] = make(map[any]struct{})
 	}
+
 	m.data.sets[col][key] = struct{}{}
+
 	return nil
 }
 
 func (m *MemoryEngine) SetContains(col string, key any) (bool, error) {
 	_, ok := m.data.sets[col][key]
+
 	return ok, nil
 }
 
@@ -179,17 +196,18 @@ func (m *MemoryEngine) CounterIncrement(col string, deltas Delta) error {
 	if m.data.counters[col] == nil {
 		m.data.counters[col] = make(map[string]int64)
 	}
+
 	for k, d := range deltas {
 		m.data.counters[col][k] += d
 	}
+
 	return nil
 }
 
 func (m *MemoryEngine) CounterGet(col string) (map[string]int64, error) {
 	result := make(map[string]int64, len(m.data.counters[col]))
-	for k, v := range m.data.counters[col] {
-		result[k] = v
-	}
+	maps.Copy(result, m.data.counters[col])
+
 	return result, nil
 }
 
@@ -197,6 +215,7 @@ func (m *MemoryEngine) getGraph(col string) *memGraph {
 	if m.data.graphs[col] == nil {
 		m.data.graphs[col] = &memGraph{adjacency: make(map[any][]any)}
 	}
+
 	return m.data.graphs[col]
 }
 
@@ -204,6 +223,7 @@ func (m *MemoryEngine) GraphAddEdge(col string, edge Edge) error {
 	g := m.getGraph(col)
 	g.adjacency[edge.From] = append(g.adjacency[edge.From], edge.To)
 	g.adjacency[edge.To] = append(g.adjacency[edge.To], edge.From)
+
 	return nil
 }
 
@@ -212,8 +232,10 @@ func (m *MemoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, e
 	visited := map[any]bool{node: true}
 	frontier := []any{node}
 	result := []any{}
+
 	for d := 0; d < depth && len(frontier) > 0; d++ {
 		var next []any
+
 		for _, n := range frontier {
 			for _, neighbor := range g.adjacency[n] {
 				if !visited[neighbor] {
@@ -223,8 +245,10 @@ func (m *MemoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, e
 				}
 			}
 		}
+
 		frontier = next
 	}
+
 	return result, nil
 }
 
@@ -251,21 +275,25 @@ func matchesFilters(value any, filters []FieldPath, filterValues map[string]any)
 	if len(filters) == 0 {
 		return true
 	}
+
 	for _, filter := range filters {
 		expected, ok := filterValues[filter.Field]
 		if !ok {
 			continue
 		}
+
 		actual := getFieldValue(value, filter.Field)
 		if fmt.Sprintf("%v", actual) != fmt.Sprintf("%v", expected) {
 			return false
 		}
 	}
+
 	return true
 }
 
 func compareByField(a, b any, field string) bool {
 	av := getFieldValue(a, field)
 	bv := getFieldValue(b, field)
+
 	return fmt.Sprintf("%v", av) < fmt.Sprintf("%v", bv)
 }

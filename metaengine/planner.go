@@ -1,6 +1,7 @@
 package metaengine
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -24,6 +25,7 @@ func (d Diagnostics) HasWarnings() bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -48,14 +50,18 @@ func (a QueryAssignment) String() string {
 		for i, f := range a.Filters {
 			names[i] = f.Field
 		}
+
 		parts = append(parts, "filter=["+strings.Join(names, ",")+"]")
 	}
+
 	if a.SortField != "" {
 		parts = append(parts, "sort="+a.SortField)
 	}
+
 	if a.IsPaginated {
 		parts = append(parts, "[paginated]")
 	}
+
 	return strings.Join(parts, " ")
 }
 
@@ -67,18 +73,23 @@ type PlanResult struct {
 func (p PlanResult) Report() string {
 	var b strings.Builder
 	b.WriteString("=== Meta-Engine Plan ===\n\n")
+
 	for _, a := range p.Assignments {
 		fmt.Fprintf(&b, "  %s\n", a)
+
 		for _, d := range a.Diagnostics {
 			fmt.Fprintf(&b, "    %s\n", d)
 		}
 	}
+
 	if len(p.Diagnostics) > 0 {
 		b.WriteString("\n--- Global Diagnostics ---\n")
+
 		for _, d := range p.Diagnostics {
 			fmt.Fprintf(&b, "  %s\n", d)
 		}
 	}
+
 	return b.String()
 }
 
@@ -90,10 +101,11 @@ type rankedEngine struct {
 // Plan creates a storage plan from available engines and declared queries.
 func Plan(engines []Engine, queries ...any) (*Store, error) {
 	if len(engines) == 0 {
-		return nil, fmt.Errorf("metaengine.Plan: at least one engine required")
+		return nil, errors.New("metaengine.Plan: at least one engine required")
 	}
+
 	if len(queries) == 0 {
-		return nil, fmt.Errorf("metaengine.Plan: at least one query required")
+		return nil, errors.New("metaengine.Plan: at least one query required")
 	}
 
 	plan := &PlanResult{}
@@ -108,13 +120,16 @@ func Plan(engines []Engine, queries ...any) (*Store, error) {
 		if err != nil {
 			return nil, fmt.Errorf("metaengine.Plan: %w", err)
 		}
+
 		store.queries[runtime.name] = runtime
 		store.byInputType[runtime.inputTypeName] = runtime.name
+
 		plan.Assignments = append(plan.Assignments, assignment)
 	}
 
 	plan.Diagnostics = checkWriteAmplification(plan.Assignments)
 	store.plan = plan
+
 	return store, nil
 }
 
@@ -127,6 +142,7 @@ func planQuery(q any, engines []Engine) (queryRuntime, QueryAssignment, error) {
 	}
 
 	folds := meta.QueryFolds()
+
 	foldByEvent := make(map[string]int, len(folds))
 	for i, f := range folds {
 		if f.Kind != FoldSkip {
@@ -147,6 +163,7 @@ func planQuery(q any, engines []Engine) (queryRuntime, QueryAssignment, error) {
 	}
 
 	var ranked []rankedEngine
+
 	for _, eng := range engines {
 		if c, ok := eng.Profile().SupportsADT(runtime.adt); ok {
 			ranked = append(ranked, rankedEngine{engine: eng, complexity: c})
@@ -185,6 +202,7 @@ func planQuery(q any, engines []Engine) (queryRuntime, QueryAssignment, error) {
 			Message: "graph traversal via SQL/in-memory scan (O(N)). Add a graph engine for O(degree^depth).",
 		})
 	}
+
 	if runtime.adt == ADTSortedMap && best.complexity == ComplexityON {
 		assignment.Diagnostics = append(assignment.Diagnostics, Diagnostic{
 			Level:   "DEGRADED",
@@ -225,5 +243,6 @@ func checkWriteAmplification(assignments []QueryAssignment) Diagnostics {
 			),
 		})
 	}
+
 	return diags
 }

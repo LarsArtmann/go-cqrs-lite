@@ -36,7 +36,7 @@ type Friendship struct {
 
 // ════════════ QUERY INPUT + RESULT TYPES ════════════
 
-// FindUser: point lookup by ID → Map ADT
+// FindUser: point lookup by ID → Map ADT.
 type FindUser struct {
 	ID UserID
 }
@@ -50,7 +50,7 @@ type FindUserResult struct {
 	JoinedAt time.Time `metaengine:"sort"`
 }
 
-// CheckEmail: membership test → Set ADT
+// CheckEmail: membership test → Set ADT.
 type CheckEmail struct {
 	Email string
 }
@@ -59,12 +59,12 @@ type CheckEmailResult struct {
 	Taken bool
 }
 
-// ListByStatus: filtered scan → SortedMap ADT with Page[T] result
+// ListByStatus: filtered scan → SortedMap ADT with Page[T] result.
 type ListByStatus struct {
 	Status string // domain filter — every field in the input IS a filter
 }
 
-// CountByStatus: aggregate read → Counter ADT
+// CountByStatus: aggregate read → Counter ADT.
 type CountByStatus struct{}
 
 type CountByStatusResult struct {
@@ -73,7 +73,7 @@ type CountByStatusResult struct {
 	Deleted   int64
 }
 
-// FriendsOf: graph traversal → Graph ADT
+// FriendsOf: graph traversal → Graph ADT.
 type FriendsOf struct {
 	ID    UserID
 	Depth int
@@ -253,6 +253,7 @@ func buildAllQueries() []any {
 		OnUpdate(UserSuspended{}, func(e UserSuspended) UserID { return e.ID },
 			func(e UserSuspended, prev FindUserResult) FindUserResult {
 				prev.Status = "suspended"
+
 				return prev
 			}),
 		OnRemove[UserDeleted, UserID, FindUserResult](UserDeleted{}, func(e UserDeleted) UserID {
@@ -276,6 +277,7 @@ func buildAllQueries() []any {
 		OnUpdate(UserSuspended{}, func(e UserSuspended) UserID { return e.ID },
 			func(e UserSuspended, prev FindUserResult) FindUserResult {
 				prev.Status = "suspended"
+
 				return prev
 			}),
 		OnRemove[UserDeleted, UserID, FindUserResult](UserDeleted{}, func(e UserDeleted) UserID {

@@ -3,6 +3,7 @@ package metaengine
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // QueryOption tunes a query declaration.
@@ -53,6 +54,7 @@ func Query[Q any, R any](name string, folds []Fold, opts ...QueryOption) QueryDe
 	}
 	q.InputTypeName = reflect.TypeOf(q.querySample).Name()
 	q.infer()
+
 	return q
 }
 
@@ -61,6 +63,7 @@ func (q *QueryDecl[Q, R]) infer() {
 	if err != nil {
 		panic(fmt.Sprintf("metaengine.Query[%s]: %s", q.Name, err))
 	}
+
 	q.ADT = adt
 
 	resultType := reflect.TypeOf(q.resultSample)
@@ -74,6 +77,7 @@ func (q *QueryDecl[Q, R]) infer() {
 	case isPage:
 		q.ReadPattern = ReadFilteredScan
 		q.ADT = ADTSortedMap
+
 		if elemType != nil {
 			elemSample := reflect.Zero(elemType).Interface()
 			q.Filters = matchFilterFields(q.querySample, elemSample)
@@ -118,18 +122,23 @@ func (q QueryDecl[Q, R]) String() string {
 	if q.IsPaginated {
 		pagination = " [paginated]"
 	}
+
 	filters := ""
+
 	if len(q.Filters) > 0 {
 		names := make([]string, len(q.Filters))
 		for i, f := range q.Filters {
 			names[i] = f.Field
 		}
+
 		filters = fmt.Sprintf(" filter=[%s]", joinStrings(names, ","))
 	}
+
 	sortStr := ""
 	if q.SortField != "" {
-		sortStr = fmt.Sprintf(" sort=%s", q.SortField)
+		sortStr = " sort=" + q.SortField
 	}
+
 	return fmt.Sprintf("%s: %s/%s%s%s%s",
 		q.Name, q.ADT, q.ReadPattern, filters, sortStr, pagination)
 }
@@ -138,9 +147,13 @@ func joinStrings(parts []string, sep string) string {
 	if len(parts) == 0 {
 		return ""
 	}
+
 	out := parts[0]
+	var outSb142 strings.Builder
 	for _, p := range parts[1:] {
-		out += sep + p
+		outSb142.WriteString(sep + p)
 	}
+	out += outSb142.String()
+
 	return out
 }

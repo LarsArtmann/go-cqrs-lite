@@ -733,21 +733,21 @@ Planner plan for all 5 queries:
 
 ### The Developer NEVER Writes:
 
-| Never                                                          | Why                                                    |
-| -------------------------------------------------------------- | ------------------------------------------------------ |
-| `database/sql` imports                                         | Engines are operator-provided                          |
-| `storage/` imports                                             | No storage packages in consumer code                   |
-| `*sql.DB` handling                                             | Connection management is in engine plugins             |
-| SQL DDL (CREATE TABLE, CREATE INDEX)                           | Planner auto-generates from fold result type           |
-| ViewMapper with column types                                   | No column type declarations at all                     |
-| IndexSpec declarations                                         | Planner auto-creates from read patterns                |
-| kv.ViewStore implementations                                   | Engine plugins implement these                         |
-| Projection tier selection (Materialize vs Relational vs Graph) | Planner selects                                        |
-| Engine selection per query                                     | Planner selects based on cost                          |
-| "Entity" types                                                 | No entities — events + queries only                    |
-| "Store" interfaces                                             | No stores — each query is independent                  |
-| Stringly-typed column names in declarations                    | All typed Go                                           |
-| Auth enforcement                                                     | Auth is upstream's concern — the meta-engine just stores data |
+| Never                                                          | Why                                                           |
+| -------------------------------------------------------------- | ------------------------------------------------------------- |
+| `database/sql` imports                                         | Engines are operator-provided                                 |
+| `storage/` imports                                             | No storage packages in consumer code                          |
+| `*sql.DB` handling                                             | Connection management is in engine plugins                    |
+| SQL DDL (CREATE TABLE, CREATE INDEX)                           | Planner auto-generates from fold result type                  |
+| ViewMapper with column types                                   | No column type declarations at all                            |
+| IndexSpec declarations                                         | Planner auto-creates from read patterns                       |
+| kv.ViewStore implementations                                   | Engine plugins implement these                                |
+| Projection tier selection (Materialize vs Relational vs Graph) | Planner selects                                               |
+| Engine selection per query                                     | Planner selects based on cost                                 |
+| "Entity" types                                                 | No entities — events + queries only                           |
+| "Store" interfaces                                             | No stores — each query is independent                         |
+| Stringly-typed column names in declarations                    | All typed Go                                                  |
+| Auth enforcement                                               | Auth is upstream's concern — the meta-engine just stores data |
 
 ---
 
