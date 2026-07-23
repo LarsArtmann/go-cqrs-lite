@@ -6,6 +6,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.0.4] - 2026-07-23
+
+### Batch release — 49 modules tagged
+
+> **Note:** `cmd/cqrs-lint` was NOT tagged in this release — its `go-finding`
+> dependency is still local-only (unpublished). It will be tagged separately
+> once `go-finding` is published to the Go module proxy.
+
+**Added:**
+
+- **COSE Sign1 signing** (`signing`) — RFC 9052 COSE Sign1 implementation for
+  event signature verification, replacing the previous ad-hoc signature format.
+- **COSE encryption support** (`encryption`) — COSE-compatible ciphertext
+  handling for at-rest event encryption with improved key management.
+- **Event encryption/signing integration** (`event`) — `MultiBatchEntry` and
+  `MultiSink` interface for multi-aggregate atomic writes with encryption
+  and signing support.
+- **OTel instrumentation** (`storage`) — OpenTelemetry spans for event store
+  operations (append, load, query) with attribute enrichment.
+- **Multi-batch event store** (`storage`) — `SaveMultiBatch` for writing
+  events across multiple aggregates in a single atomic operation.
+- **Nix flake support** — development environment reproducibility via
+  `flake.nix` with pre-commit hooks and Go workspace integration.
+- **Getting started guide** (`docs/getting-started.md`) — step-by-step
+  onboarding for new users with quickstart example.
+- **Architecture documentation** (`docs/architecture-understanding/`) —
+  book insights vs codebase comparison and four-tier model diagrams.
+
+**Changed:**
+
+- **gRPC transport refactored** (`transport/grpc`) — improved developer
+  experience with cleaner event handler registration and error propagation.
+- **Storage journal reader** (`storage`) — improved performance and error
+  handling in journal read paths with better memory allocation patterns.
+- **Command bus enhancements** (`watermill`) — improved message routing and
+  delivery guarantees for command dispatch.
+- **Stack presets** (`stack/*`) — multi-database support improvements with
+  unified configuration across SQLite, Postgres, Pebble, and Turso backends.
+- **Dependency alignment** — all 52 modules aligned with workspace revisions;
+  internal pseudo-version requires resolved to published tags.
+
+**Tags:**
+
+| Module | Version | Module | Version |
+| --- | --- | --- | --- |
+| `catalog/v4.0.4` | `cmd/api-stability/v4.0.2` | `cmd/cqrs-gen/v4.0.2` | `cmd/doc-check/v4.0.1` |
+| `codec/v4.0.4` | `command/v4.0.2` | `decider/v4.0.3` | `dedup/v4.0.1` |
+| `deriver/v4.0.2` | `dispatcher/v4.0.2` | `encryption/v4.0.3` | `event/v4.0.4` |
+| `event/v4/eventtest/v0.2.1` | `example/getting-started/v4.0.2` | `example/taskmanager/v4.0.2` | `graph/v4.0.3` |
+| `id/v4.0.3` | `idempotency/v4.0.2` | `idempotency/kvstore/v4.0.2` | `integration/v4.0.2` |
+| `kv/v4.0.3` | `listing/v4.0.3` | `metadata/v4.0.2` | `middleware/v4.0.3` |
+| `otel/v4.0.3` | `projection/v4.0.2` | `projectionhost/v4.0.3` | `prometheus/v4.0.2` |
+| `query/v4.0.2` | `retry/v4.0.2` | `scenario/v4.0.3` | `scheduling/v4.0.3` |
+| `schema/v4.0.3` | `signing/v4.0.3` | `snapshot/v4.0.3` | `stack/v4.0.2` |
+| `stack/bench/v4.0.2` | `stack/memory/v4.0.2` | `stack/pebble/v4.0.2` | `stack/postgres/v4.0.2` |
+| `stack/sqlite/v4.0.2` | `stack/turso/v4.0.2` | `storage/v4.0.3` | `storage/memory/v4.0.2` |
+| `storage/pebble/v4.0.3` | `storage/turso/v4.0.2` | `testutil/v4.0.2` | `transport/grpc/v4.0.2` |
+| `transport/http/v4.0.3` | `watermill/v4.0.4` | | |
+
 ## [v4.0.3] - 2026-07-22
 
 ### Batch release — 48 modules tagged
