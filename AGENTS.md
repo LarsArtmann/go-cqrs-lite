@@ -101,9 +101,8 @@ go-cqrs-lite/
 
 The repo ships a [Crush](https://github.com/crush) skill at `.agents/skills/go-cqrs-lite/` — the **single source of truth for AI consumers** of this library. It replaces the need to read 28 module READMEs.
 
-- **`SKILL.md`** (root, a symlink to `.agents/skills/go-cqrs-lite/SKILL.md`) — keeps all existing doc links working.
-- **Core skill** (`<400 lines`): mental model, module decision matrix, conventions, anti-patterns, cheat sheet, FAQ. Loaded on every trigger.
-- **`references/`** — loaded on demand: `recipes.md` (composition), `readmodels.md` (projections/SQL views), `advanced.md` (14 advanced patterns), `modules.md` (per-module table).
+- **`SKILL.md`** (root, a symlink to `.agents/skills/go-cqrs-lite/SKILL.md`) — a ~1000-char index: one-line mental model + a routing table to the reference guides. Loaded on every trigger.
+- **`references/`** — loaded on demand: `core.md` (mental model, quickstart, decision matrix, conventions, anti-patterns, cheat sheet), `recipes.md` (copy-paste composition), `readmodels.md` (projections/SQL views/tier selection), `modules.md` (per-module table for all 28 modules), `advanced.md` (14 advanced patterns), `faq.md` (common pitfalls).
 
 **Global availability:** the skill is symlinked into `~/.config/crush/skills/go-cqrs-lite` (reproducibly, via the `flake.nix` devShell `shellHook`) so it triggers from any consumer project, not just inside this repo.
 
