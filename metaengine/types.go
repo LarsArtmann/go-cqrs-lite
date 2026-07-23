@@ -40,6 +40,8 @@ type Edge struct {
 type Skip struct{}
 
 // Cursor marks a position in a paginated stream for continuation.
+// In a query input struct, a field of type *Cursor named "After" signals
+// keyset pagination continuation.
 type Cursor struct {
 	Value any
 }
@@ -61,30 +63,3 @@ const (
 	ComplexityONLogN  Complexity = "O(NlogN)"
 	ComplexityODegree Complexity = "O(degree^depth)"
 )
-
-// ExecOption tunes a single Execute call (pagination, consistency, etc.).
-type ExecOption func(*execConfig)
-
-type execConfig struct {
-	limit  int
-	cursor *Cursor
-}
-
-// WithLimit sets the maximum number of items to return in a paginated result.
-func WithLimit(n int) ExecOption {
-	return func(c *execConfig) { c.limit = n }
-}
-
-// After sets the cursor to continue from in a paginated query.
-func After(cursor *Cursor) ExecOption {
-	return func(c *execConfig) { c.cursor = cursor }
-}
-
-func applyExecOpts(opts []ExecOption) execConfig {
-	cfg := execConfig{limit: 100}
-	for _, opt := range opts {
-		opt(&cfg)
-	}
-
-	return cfg
-}
