@@ -20,6 +20,7 @@ type (
 // CreateUser implements command.Command via embedded *BasicCommand.
 type CreateUser struct {
 	*command.BasicCommand
+
 	Name string
 }
 
