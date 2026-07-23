@@ -51,21 +51,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 **Tags:**
 
-| Module | Version |
-|--------|---------|
-| `catalog/v4.0.3` | `cmd/api-stability/v4.0.1` | `cmd/cqrs-gen/v4.0.1` |
-| `codec/v4.0.3` | `command/v4.0.1` | `decider/v4.0.2` | `deriver/v4.0.1` |
-| `dispatcher/v4.0.1` | `encryption/v4.0.2` | `event/v4.0.3` | `event/v4/eventtest/v0.2.0` |
-| `example/getting-started/v4.0.1` | `example/taskmanager/v4.0.1` | `graph/v4.0.2` | `id/v4.0.2` |
-| `idempotency/v4.0.1` | `idempotency/kvstore/v4.0.1` | `integration/v4.0.1` | `kv/v4.0.2` |
-| `listing/v4.0.2` | `metadata/v4.0.1` | `middleware/v4.0.2` | `otel/v4.0.2` |
-| `projection/v4.0.1` | `projectionhost/v4.0.2` | `prometheus/v4.0.1` | `query/v4.0.1` |
-| `retry/v4.0.1` | `scenario/v4.0.2` | `scheduling/v4.0.2` | `schema/v4.0.2` |
-| `signing/v4.0.2` | `snapshot/v4.0.2` | `stack/v4.0.1` | `stack/bench/v4.0.1` |
-| `stack/memory/v4.0.1` | `stack/pebble/v4.0.1` | `stack/postgres/v4.0.1` | `stack/sqlite/v4.0.1` |
-| `stack/turso/v4.0.1` | `storage/v4.0.2` | `storage/memory/v4.0.1` | `storage/pebble/v4.0.2` |
-| `storage/turso/v4.0.1` | `testutil/v4.0.1` | `transport/grpc/v4.0.1` | `transport/http/v4.0.2` |
-| `watermill/v4.0.3` | | | |
+| Module                           | Version                      |
+| -------------------------------- | ---------------------------- |
+| `catalog/v4.0.3`                 | `cmd/api-stability/v4.0.1`   | `cmd/cqrs-gen/v4.0.1`   |
+| `codec/v4.0.3`                   | `command/v4.0.1`             | `decider/v4.0.2`        | `deriver/v4.0.1`            |
+| `dispatcher/v4.0.1`              | `encryption/v4.0.2`          | `event/v4.0.3`          | `event/v4/eventtest/v0.2.0` |
+| `example/getting-started/v4.0.1` | `example/taskmanager/v4.0.1` | `graph/v4.0.2`          | `id/v4.0.2`                 |
+| `idempotency/v4.0.1`             | `idempotency/kvstore/v4.0.1` | `integration/v4.0.1`    | `kv/v4.0.2`                 |
+| `listing/v4.0.2`                 | `metadata/v4.0.1`            | `middleware/v4.0.2`     | `otel/v4.0.2`               |
+| `projection/v4.0.1`              | `projectionhost/v4.0.2`      | `prometheus/v4.0.1`     | `query/v4.0.1`              |
+| `retry/v4.0.1`                   | `scenario/v4.0.2`            | `scheduling/v4.0.2`     | `schema/v4.0.2`             |
+| `signing/v4.0.2`                 | `snapshot/v4.0.2`            | `stack/v4.0.1`          | `stack/bench/v4.0.1`        |
+| `stack/memory/v4.0.1`            | `stack/pebble/v4.0.1`        | `stack/postgres/v4.0.1` | `stack/sqlite/v4.0.1`       |
+| `stack/turso/v4.0.1`             | `storage/v4.0.2`             | `storage/memory/v4.0.1` | `storage/pebble/v4.0.2`     |
+| `storage/turso/v4.0.1`           | `testutil/v4.0.1`            | `transport/grpc/v4.0.1` | `transport/http/v4.0.2`     |
+| `watermill/v4.0.3`               |                              |                         |                             |
 
 ## [v4.0.2] - 2026-07-18
 

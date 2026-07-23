@@ -96,7 +96,13 @@ func TestMemoryStore_SaveMultiBatch_Empty(t *testing.T) {
 	}
 
 	entries := []event.MultiBatchEntry{
-		{Ref: id.NewAggregateRef("User", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")), Events: nil},
+		{
+			Ref: id.NewAggregateRef(
+				"User",
+				idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+			),
+			Events: nil,
+		},
 	}
 
 	err = store.SaveMultiBatch(ctx, entries)
