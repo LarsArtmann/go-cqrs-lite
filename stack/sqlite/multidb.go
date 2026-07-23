@@ -73,8 +73,14 @@ func openSecondaryBackend(
 	dsn string,
 	cfg config,
 ) (*storage.SQLBackend, io.Closer, error) {
-	return sqlopt.NewSecondaryBackend(dsn,
+	backend, closer, err := sqlopt.NewSecondaryBackend(dsn,
 		func() (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
 		storage.NewSQLiteBackend,
 		"sqlite.create_backend")
+	if err != nil {
+		return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite.create_secondary_backend",
+			"create secondary SQLite backend")
+	}
+
+	return backend, closer, nil
 }

@@ -26,9 +26,12 @@ type config struct {
 }
 
 func defaultConfig() config {
-	return config{ //nolint:exhaustruct // options fill fields
+	return config{
 		DSNConfig: sqlopt.DSNConfig{
 			AutoMigrate: true,
+			EventDSN:    "",
+			QueryDSN:    "",
+			ViewDSN:     "",
 		},
 	}
 }

@@ -24,8 +24,17 @@ type config struct {
 
 func defaultConfig() config {
 	return config{
-		PragmaConfig: sqlopt.PragmaConfig{WAL: true},
-		DSNConfig:    sqlopt.DSNConfig{AutoMigrate: true},
+		PragmaConfig: sqlopt.PragmaConfig{
+			WAL:         true,
+			Optimize:    false,
+			ForeignKeys: false,
+		},
+		DSNConfig: sqlopt.DSNConfig{
+			AutoMigrate: true,
+			EventDSN:    "",
+			QueryDSN:    "",
+			ViewDSN:     "",
+		},
 	}
 }
 
@@ -86,15 +95,22 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		func(d string) (*storage.SQLBackend, io.Closer, error) { return openSecondaryBackend(d, cfg) },
 	)
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.init_stack",
+			"initialize SQLite stack")
 	}
 
 	// Bus is in-process GoChannel (SQLite has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 
-	return sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "sqlite", cfg.ViewDSN,
+	bundle, err := sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "sqlite", cfg.ViewDSN,
 		func(dsn string) (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
 		storage.NewSQLiteBackend)
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.finalize_bundle",
+			"finalize SQLite bundle")
+	}
+
+	return bundle, nil
 }
 
 // openBackend opens the database, applies pragmas and schema, and returns
