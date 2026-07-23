@@ -32,7 +32,7 @@ var errFindingsWithErrors = errors.New("findings with error severity")
 
 // AppConfig holds all CLI configuration via cmdguard struct tags.
 //
-//nolint:tagalign,golines // tagalign and golines conflict on struct tag alignment
+//nolint:golines // golines handles struct tag alignment
 type AppConfig struct {
 	cmdguard.Config
 
@@ -55,15 +55,15 @@ type AppConfig struct {
 
 	// Features declares which go-cqrs-lite modules the consumer uses.
 	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.
-	Features analyzer.ConfigFeatures `json:"features,omitempty"`
+	Features analyzer.ConfigFeatures `json:"features,omitempty"` //nolint:modernize // config compatibility
 	// Preset is a named set of feature-flag defaults (sugar over Features).
 	// Explicit Features flags always override preset values.
 	Preset analyzer.ConfigPreset `default:"" json:"preset,omitempty"`
 	// Rules carries rule-specific overrides (e.g. external-API struct prefixes
 	// for D002). See analyzer.RulesConfig docs for each field.
-	Rules analyzer.RulesConfig `json:"rules,omitempty"`
+	Rules analyzer.RulesConfig `json:"rules,omitempty"` //nolint:modernize // config compatibility
 	// Health carries health-score tuning (e.g. the Info-deduction cap).
-	Health HealthConfig `json:"health,omitempty"`
+	Health HealthConfig `json:"health,omitempty"` //nolint:modernize // config compatibility
 }
 
 // HealthConfig tunes the health-score computation. All fields default to zero,
@@ -74,7 +74,7 @@ type AppConfig struct {
 // InfoCap caps the total penalty from Info-severity findings. 0 means use the
 // built-in default (20). A negative value is treated as 0 (no cap).
 type HealthConfig struct {
-	InfoCap int `json:"info-cap,omitempty"`
+	InfoCap int `json:"info-cap,omitempty"` //nolint:tagliatelle // CLI config key
 }
 
 func main() {
@@ -375,12 +375,12 @@ func shouldExitWithError(cfg *AppConfig, activeFindings []finding.Finding) error
 func printLoadErrors(w io.Writer, errors []analyzer.PackageLoadError) {
 	for _, le := range errors {
 		if le.PkgPath != "" {
-			fmt.Fprintf(w, "  %s (%s):\n", le.Module, le.PkgPath)
+			_, _ = fmt.Fprintf(w, "  %s (%s):\n", le.Module, le.PkgPath)
 		} else {
-			fmt.Fprintf(w, "  %s:\n", le.Module)
+			_, _ = fmt.Fprintf(w, "  %s:\n", le.Module)
 		}
 		for _, msg := range le.Errors {
-			fmt.Fprintf(w, "    %s\n", msg)
+			_, _ = fmt.Fprintf(w, "    %s\n", msg)
 		}
 	}
 }

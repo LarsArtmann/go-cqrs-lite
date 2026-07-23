@@ -29,11 +29,12 @@ type RulesConfig struct {
 	//
 	// on the struct's doc comment; it suppresses the same rule without needing
 	// config. Both mechanisms stack: a struct is excluded if either matches.
-	ExternalAPIStructPrefixes []string `json:"external-api-struct-prefixes,omitempty"`
+	ExternalAPIStructPrefixes []string `json:"external-api-struct-prefixes,omitempty"` //nolint:tagliatelle // CLI config key
 }
 
 // knownRulesConfigKeys is the set of valid keys under "rules" in
 // .cqrs-lint.json. Any other key is a likely typo and is reported by Validate.
+//nolint:gochecknoglobals // read-only lookup table
 var knownRulesConfigKeys = map[string]bool{
 	"external-api-struct-prefixes": true,
 }
@@ -77,7 +78,7 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 		if err := json.Unmarshal(rawRulesJSON, &raw); err == nil {
 			for key := range raw {
 				if !knownRulesConfigKeys[key] {
-					fmt.Fprintf(
+					_, _ = fmt.Fprintf(
 						w,
 						"warning: unknown rules config key %q (known: external-api-struct-prefixes)\n",
 						key,

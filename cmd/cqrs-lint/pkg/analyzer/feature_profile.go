@@ -74,12 +74,12 @@ const (
 // and --verbose output.
 func (fp FeatureProfile) String() string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "store:         %s\n", fp.Store)
-	fmt.Fprintf(&b, "command-flow:  %s\n", fp.CommandFlow)
-	fmt.Fprintf(&b, "server:        %t\n", fp.HasServer)
-	fmt.Fprintf(&b, "soft-delete:   %t\n", fp.HasSoftDelete)
-	fmt.Fprintf(&b, "tracing:       %s\n", fp.Tracing)
-	fmt.Fprintf(&b, "snapshot:      %s\n", fp.Snapshot)
+	_, _ = fmt.Fprintf(&b, "store:         %s\n", fp.Store)
+	_, _ = fmt.Fprintf(&b, "command-flow:  %s\n", fp.CommandFlow)
+	_, _ = fmt.Fprintf(&b, "server:        %t\n", fp.HasServer)
+	_, _ = fmt.Fprintf(&b, "soft-delete:   %t\n", fp.HasSoftDelete)
+	_, _ = fmt.Fprintf(&b, "tracing:       %s\n", fp.Tracing)
+	_, _ = fmt.Fprintf(&b, "snapshot:      %s\n", fp.Snapshot)
 	return b.String()
 }
 
@@ -88,9 +88,9 @@ func (fp FeatureProfile) String() string {
 // value". Each non-nil field overrides the auto-detected value.
 type ConfigFeatures struct {
 	Store       *StoreKind       `json:"store,omitempty"`
-	CommandFlow *CommandFlowKind `json:"command-flow,omitempty"`
+	CommandFlow *CommandFlowKind `json:"command-flow,omitempty"` //nolint:tagliatelle // CLI config key
 	Server      *bool            `json:"server,omitempty"`
-	SoftDelete  *bool            `json:"soft-delete,omitempty"`
+	SoftDelete  *bool            `json:"soft-delete,omitempty"` //nolint:tagliatelle // CLI config key
 	Tracing     *TracingKind     `json:"tracing,omitempty"`
 	Snapshot    *SnapshotKind    `json:"snapshot,omitempty"`
 }
@@ -127,6 +127,7 @@ const (
 // Presets maps preset names to their feature-flag defaults. A nil pointer
 // means "leave as auto-detected" — the preset only pins the flags that matter
 // for its intent.
+//nolint:gochecknoglobals // read-only lookup table
 var Presets = map[ConfigPreset]ConfigFeatures{
 	PresetLocalCLI: {
 		Server:  new(false),
