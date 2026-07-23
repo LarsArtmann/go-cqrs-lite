@@ -182,7 +182,7 @@ nix run .#check-layers
 ```
 
 This validates that modules only depend on their allowed tier. The dependency model
-is the **Four-Tier Model** ([ADR-0046](docs/adr/0046-four-tier-model.md),
+is the **Seven-Tier Model** ([ADR-0046](docs/adr/0046-seven-tier-model.md),
 [full reference](docs/architecture-understanding/FOUR-TIER-MODEL.md)):
 
 ```

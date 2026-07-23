@@ -31,22 +31,33 @@ It also conflates two concerns: "what this type does" (store events, dispatch co
 
 ## Decision
 
-For v3, remove `io.Closer` from all interfaces. Introduce a standalone `Lifecycle` interface:
+For v3, remove `io.Closer` from all core interfaces. Implementations that
+need cleanup retain `Close()` as a concrete method. Consumers check with a
+type assertion to `io.Closer` (stdlib) — no new library `Lifecycle` type is
+needed:
 
 ```go
-// Lifecycle manages resource lifetime. Optional — not required by any core interface.
-type Lifecycle interface {
-    Close() error
+if closer, ok := store.(io.Closer); ok {
+    closer.Close()
 }
 ```
 
-Implementations that need cleanup (SQL stores, bus subscriptions) will implement `Lifecycle` separately. Consumers check with a type assertion:
+This avoids per-module duplication of a lifecycle interface and uses the
+ubiquitous stdlib type that every Go developer already knows.
 
-```go
-if lc, ok := store.(Lifecycle); ok {
-    lc.Close()
-}
-```
+### Original proposal (superseded)
+
+> The original draft proposed a standalone `Lifecycle` interface:
+>
+> ```go
+> type Lifecycle interface {
+>     Close() error
+> }
+> ```
+>
+> This was rejected during implementation — `io.Closer` already fills this
+> role and introducing a parallel type adds confusion without value. The
+> proposal is preserved here for historical context.
 
 ## Consequences
 

@@ -56,7 +56,7 @@ Each family has `Is*()` predicates and `Wrap*()` wrapping functions. Middleware 
 
 - **+** Middleware can make informed retry/recovery decisions
 - **+** Error classification is explicit, not heuristic-based
-- **+** 38 sentinel errors classified across all modules
+- **+** Hundreds of sentinel errors classified across all modules (count has grown significantly since this ADR's writing)
 - **-** Requires `init()` registration for cross-package sentinels (TODO: explicit setup)
 
 ---

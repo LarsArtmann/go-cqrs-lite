@@ -1,4 +1,8 @@
-# Four-Tier Model — go-cqrs-lite
+# Seven-Tier Model — go-cqrs-lite
+
+> Originally titled "Four-Tier Model." The name was a misnomer — the model
+> describes seven numbered tiers (0–6). Renamed for accuracy. The filename
+> is retained to avoid breaking existing links.
 
 > Replaces the fake "7-layer" system that claimed clean stratification but had
 > cross-layer dependencies leaking through go.mod files and test-only deps

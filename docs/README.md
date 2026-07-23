@@ -77,7 +77,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0033](adr/0033-multi-db-split.md)                    | Multi-Database Split for Concern Isolation        | Accepted                 |
 | [0034](adr/0034-session-store-boundary.md)            | Session Store Boundary                            | Accepted                 |
 | [0035](adr/0035-branded-dsn-types.md)                 | Branded DSN Types (Considered and Rejected)       | Rejected                 |
-| [0046](adr/0046-four-tier-model.md)                   | Four-Tier Dependency Model                        | Accepted                 |
+| [0046](adr/0046-seven-tier-model.md)                   | Seven-Tier Dependency Model                       | Accepted                 |
 
 ## API Reference
 

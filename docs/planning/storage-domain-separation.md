@@ -8,7 +8,7 @@
 **Related:** [FOUR-TIER-MODEL.md](architecture-understanding/FOUR-TIER-MODEL.md),
 [STORAGE_GUIDE.md](STORAGE_GUIDE.md), [INFRASTRUCTURE_RECOMMENDATIONS.md](INFRASTRUCTURE_RECOMMENDATIONS.md),
 [projection-tiers.md](projection-tiers.md), [ADR-0033](adr/0033-multi-db-split.md),
-[ADR-0046](adr/0046-four-tier-model.md)
+[ADR-0046](adr/0046-seven-tier-model.md)
 
 ---
 

@@ -115,6 +115,49 @@ these different storage and replay needs, not carelessness.
 The name "dead letter" is accurate for both — it's the postal term for
 undeliverable mail. The implementations diverge because the problems diverge.
 
+## Consumer Burden — The Real Cost of Two Types
+
+Consumers who use **both** retry middleware (dispatch-side DLQ) AND
+projectionhost (projection-side DLQ) must learn two parallel APIs with
+divergent field shapes:
+
+```go
+// Dispatch-side dead letter (middleware)
+entry := middleware.DeadLetterEntry{
+    Kind:        "command",           // string enum
+    AggregateID: someID,              // id.AggregateID (typed)
+    Error:       someErr,             // error (typed)
+    // no Event field — handler already has the message
+}
+
+// Projection-side dead letter (projectionhost)
+entry := projectionhost.DeadLetterEntry{
+    EventID:     "01J...",            // string
+    EventType:   "user.created",      // string
+    Error:       someErr.Error(),     // string (serialized)
+    Event:       evt,                 // event.Event (carries payload for replay)
+    // no Kind field — always events
+}
+```
+
+The concrete pain points:
+
+1. **Error handling differs** — dispatch DLQ gives you `error` (inspect
+   immediately); projection DLQ gives you `string` (must parse or re-derive).
+2. **Aggregate ID typing differs** — `id.AggregateID` vs `string` (no
+   compile-time safety on the projection side).
+3. **No shared tooling** — a dead-letter dashboard must handle both shapes
+   separately. A shared store, alerting hook, or audit log adapter cannot
+   treat them uniformly.
+4. **Two mental models** — "retry exhausted" (dispatch) vs "handler
+   poisoned" (projection). Conceptually adjacent, structurally disjoint.
+
+**This is the cost of Option C.** It was accepted because the alternative
+(unification) would force middleware to carry `event.Event` even for
+command/query dead-letters, and would couple the dispatch pipeline to
+projection replay semantics. See [ADR-0059](0059-dlq-unification-proposal.md)
+for a Proposed path toward reducing this burden in a future major version.
+
 ## Part B: Consumer Operational Guide
 
 The decision above is the _why_. This section is the _what to do about it_ when
