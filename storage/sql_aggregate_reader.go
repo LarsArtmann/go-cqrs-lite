@@ -185,6 +185,10 @@ func paginateStatuses(
 type SQLAggregateReader = SQLStreamReader
 
 // Deprecated: use NewSQLStreamReader.
-func NewSQLAggregateReader(db *sql.DB, tablePrefix string, dialect sqlpkg.Dialect) (*SQLStreamReader, error) {
+func NewSQLAggregateReader(
+	db *sql.DB,
+	tablePrefix string,
+	dialect sqlpkg.Dialect,
+) (*SQLStreamReader, error) {
 	return NewSQLStreamReader(db, tablePrefix, dialect)
 }

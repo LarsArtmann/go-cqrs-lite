@@ -7,7 +7,7 @@
       "id": 1,
       "name": "event-sourcing-setup",
       "prompt": "I'm building an inventory service in Go where I need to track stock levels for SKUs across warehouses. Each stock change (received, shipped, adjusted, transferred) must be an immutable audit record so finance can replay history. I want to use event sourcing. My aggregate is a StockItem identified by SKU+warehouse. How do I wire up the decider, command dispatch, and event store? Show me the imports and the minimal wiring so I can persist events and rebuild state.",
-      "expected_output": "Points to the decider pattern: event-sourced aggregate using event/command/decider/id modules. Shows the fold function reconstructing state from events, the decide function returning events from commands, and a Repository (decider.Repository) wrapping an event store + bus. References recipes.md §2.1 (Minimal Event Sourcing) or §2.0 (Bundle Presets). Imports use github.com/larsartmann/go-cqrs-lite/{event,command,decider,id}/v3.",
+      "expected_output": "Points to the decider pattern: event-sourced aggregate using event/command/decider/id modules. Shows the fold function reconstructing state from events, the decide function returning events from commands, and a Repository (decider.Repository) wrapping an event store + bus. References recipes.md §2.1 (Minimal Event Sourcing) or §2.0 (Bundle Presets). Imports use github.com/larsartmann/go-cqrs-lite/{event,command,decider,id}/v4.",
       "files": []
     },
     {

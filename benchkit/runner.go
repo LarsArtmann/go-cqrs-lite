@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	benchAggregateType id.StreamType = "Bench"
-	benchEventType     event.Type    = "bench.event"
+	benchStreamType id.StreamType = "Bench"
+	benchEventType  event.Type    = "bench.event"
 )
 
 // runner executes a benchmark in phases against a single backend.
@@ -129,13 +129,13 @@ func (r *runner) setup(ctx context.Context) error {
 	r.bundle = bundle
 
 	profile := r.config.Profile
-	r.aggIDs = make([]id.StreamID, profile.Aggregates)
-	r.refs = make([]id.StreamRef, profile.Aggregates)
+	r.aggIDs = make([]id.StreamID, profile.Streams)
+	r.refs = make([]id.StreamRef, profile.Streams)
 
-	for i := range profile.Aggregates {
+	for i := range profile.Streams {
 		aggID := id.NewStreamID()
 		r.aggIDs[i] = aggID
-		r.refs[i] = id.NewStreamRef(benchAggregateType, aggID)
+		r.refs[i] = id.NewStreamRef(benchStreamType, aggID)
 	}
 
 	if r.concurrency <= 0 {
@@ -149,8 +149,8 @@ func (r *runner) setup(ctx context.Context) error {
 	r.result.Backend = r.config.Backend
 	r.result.Profile = profile.Name
 	r.result.Timestamp = time.Now()
-	r.result.Aggregates = profile.Aggregates
-	r.result.EventsPerAgg = profile.EventsPerAgg
+	r.result.Streams = profile.Streams
+	r.result.EventsPerStream = profile.EventsPerStream
 	r.result.PayloadBytes = r.config.PayloadSize
 	r.result.Codec = r.codecName
 
@@ -258,7 +258,7 @@ func runConcurrent(
 // caches, JIT compilation, and connection pools.
 func (r *runner) warmup(ctx context.Context) error {
 	aggID := id.NewStreamID()
-	ref := id.NewStreamRef(benchAggregateType, aggID)
+	ref := id.NewStreamRef(benchStreamType, aggID)
 
 	var version event.Version
 
@@ -266,7 +266,7 @@ func (r *runner) warmup(ctx context.Context) error {
 		payload := r.gen.Payload()
 
 		evt, err := event.New(
-			benchEventType, aggID, benchAggregateType,
+			benchEventType, aggID, benchStreamType,
 			version.Add(uint(i+1)), payload,
 		)
 		if err != nil {

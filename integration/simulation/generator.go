@@ -54,18 +54,18 @@ func (g *EventGenerator) Generate(count int) ([]event.Event, error) {
 	return events, nil
 }
 
-// GenerateMulti creates events across multiple aggregates.
-func (g *EventGenerator) GenerateMulti(aggregates, eventsPerAggregate int) ([]event.Event, error) {
+// GenerateMulti creates events across multiple streams.
+func (g *EventGenerator) GenerateMulti(streams, eventsPerStream int) ([]event.Event, error) {
 	var allEvents []event.Event
 
-	for aggIdx := range aggregates {
+	for aggIdx := range streams {
 		aggID := id.NewStreamID()
-		types := make([]event.Type, eventsPerAggregate)
-		payloads := make([]any, eventsPerAggregate)
+		types := make([]event.Type, eventsPerStream)
+		payloads := make([]any, eventsPerStream)
 
-		for i := range eventsPerAggregate {
+		for i := range eventsPerStream {
 			types[i] = g.eventType
-			payloads[i] = g.payloadGen(aggIdx*eventsPerAggregate + i)
+			payloads[i] = g.payloadGen(aggIdx*eventsPerStream + i)
 		}
 
 		events, err := event.NewEvents(aggID, g.streamType, 1, types, payloads)
@@ -74,10 +74,10 @@ func (g *EventGenerator) GenerateMulti(aggregates, eventsPerAggregate int) ([]ev
 				err,
 				errorfamily.Infrastructure,
 				"simulation.generate_multi",
-				"generate aggregate %d/%d (eventsPerAggregate=%d)",
+				"generate stream %d/%d (eventsPerStream=%d)",
 				aggIdx+1,
-				aggregates,
-				eventsPerAggregate,
+				streams,
+				eventsPerStream,
 			)
 		}
 

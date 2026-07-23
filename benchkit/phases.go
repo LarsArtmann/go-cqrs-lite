@@ -24,7 +24,7 @@ func (r *runner) writePhase(ctx context.Context) error {
 	start := time.Now()
 
 	err := runConcurrent(
-		ctx, profile.Aggregates, r.concurrency,
+		ctx, profile.Streams, r.concurrency,
 		func(ctx context.Context, aggIdx int) error {
 			return r.writeOneAggregate(ctx, aggIdx, coll, &totalEvents)
 		},
@@ -55,8 +55,8 @@ func (r *runner) writeOneAggregate(
 
 	written := 0
 
-	for written < profile.EventsPerAgg {
-		batchSize := min(profile.BatchSize, profile.EventsPerAgg-written)
+	for written < profile.EventsPerStream {
+		batchSize := min(profile.BatchSize, profile.EventsPerStream-written)
 
 		events, err := r.createBatch(aggID, version, batchSize)
 		if err != nil {
@@ -88,7 +88,7 @@ func (r *runner) createBatch(
 
 	for j := range batchSize {
 		evt, err := event.New(
-			benchEventType, aggID, benchAggregateType,
+			benchEventType, aggID, benchStreamType,
 			version.Add(uint(j+1)), r.gen.Payload(),
 		)
 		if err != nil {
@@ -107,7 +107,7 @@ func (r *runner) readPhase(ctx context.Context) error {
 	profile := r.config.Profile
 
 	err := runConcurrent(
-		ctx, profile.Aggregates, r.concurrency,
+		ctx, profile.Streams, r.concurrency,
 		func(ctx context.Context, aggIdx int) error {
 			ref := r.refs[aggIdx]
 			start := time.Now()
@@ -160,14 +160,14 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 	store := r.bundle.ReadModels
 	setColl := NewLatencyCollector(0)
 	payload := r.gen.Payload()
-	keys := make([][]byte, profile.Aggregates)
+	keys := make([][]byte, profile.Streams)
 
-	for i := range profile.Aggregates {
+	for i := range profile.Streams {
 		keys[i] = []byte(r.aggIDs[i].String())
 	}
 
 	err := runConcurrent(
-		ctx, profile.Aggregates, r.concurrency,
+		ctx, profile.Streams, r.concurrency,
 		func(ctx context.Context, idx int) error {
 			start := time.Now()
 
@@ -189,7 +189,7 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 
 	getColl := NewLatencyCollector(0)
 	err = runConcurrent(
-		ctx, profile.Aggregates, r.concurrency,
+		ctx, profile.Streams, r.concurrency,
 		func(ctx context.Context, idx int) error {
 			start := time.Now()
 

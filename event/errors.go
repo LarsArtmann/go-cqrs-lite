@@ -53,8 +53,8 @@ var (
 		"event.mismatched_event_count",
 		"event types and payloads count must match",
 	)
-	ErrVersionConflict   = errorfamily.NewConflict("event.version_conflict", "version conflict")
-	ErrStreamNotFound = errorfamily.NewRejection(
+	ErrVersionConflict = errorfamily.NewConflict("event.version_conflict", "version conflict")
+	ErrStreamNotFound  = errorfamily.NewRejection(
 		"event.aggregate_not_found",
 		"stream not found",
 	)
@@ -65,8 +65,8 @@ var (
 	ErrEmptyAggregateType = ErrEmptyStreamType
 	// Deprecated: use ErrStreamNotFound.
 	ErrAggregateNotFound = ErrStreamNotFound
-	ErrEventNotFound  = errorfamily.NewRejection("event.event_not_found", "event not found")
-	ErrBinaryNotFound = errorfamily.NewRejection(
+	ErrEventNotFound     = errorfamily.NewRejection("event.event_not_found", "event not found")
+	ErrBinaryNotFound    = errorfamily.NewRejection(
 		"event.binary_not_found",
 		"binary data not found in event metadata",
 	)

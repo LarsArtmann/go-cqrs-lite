@@ -37,7 +37,7 @@ func PrintReport(w io.Writer, r *Result) {
 		r.Backend, r.Profile, r.Codec)
 	fmt.Fprintln(w, strings.Repeat("=", 60))
 	fmt.Fprintf(w, "Workload: %s aggregates x %d events = %s events\n",
-		formatInt(r.Aggregates), r.EventsPerAgg, formatInt(r.TotalEvents))
+		formatInt(r.Streams), r.EventsPerStream, formatInt(r.TotalEvents))
 	fmt.Fprintf(w, "Payload:  %d bytes/event\n", r.PayloadBytes)
 	fmt.Fprintf(w, "Duration: %s\n\n", roundDuration(r.Duration))
 

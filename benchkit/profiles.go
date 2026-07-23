@@ -6,10 +6,10 @@ type Profile struct {
 	Name string
 
 	// Aggregates is the number of distinct aggregate IDs to write.
-	Aggregates int
+	Streams int
 
-	// EventsPerAgg is the number of events written per aggregate.
-	EventsPerAgg int
+	// EventsPerStream is the number of events written per aggregate.
+	EventsPerStream int
 
 	// Concurrency is the number of parallel goroutines for write/read.
 	Concurrency int
@@ -23,8 +23,8 @@ type Profile struct {
 	BatchSize int
 }
 
-// TotalEvents returns Aggregates * EventsPerAgg.
-func (p Profile) TotalEvents() int { return p.Aggregates * p.EventsPerAgg }
+// TotalEvents returns Streams * EventsPerStream.
+func (p Profile) TotalEvents() int { return p.Streams * p.EventsPerStream }
 
 // Named workload profiles representing realistic deployment sizes.
 // Results from the same profile are comparable across backends and runs.
@@ -32,14 +32,14 @@ var (
 	// ProfileDev is a quick smoke test (~500 events). Runs in under a second
 	// on any backend. Use for CI regression checks.
 	ProfileDev = Profile{
-		Name: "dev", Aggregates: 100, EventsPerAgg: 5,
+		Name: "dev", Streams: 100, EventsPerStream: 5,
 		Concurrency: 1, ReadRatio: 0.2, BatchSize: 1,
 	}
 
 	// ProfileSmall represents a small deployment (~10K events). Use for
 	// development and testing with realistic but fast workloads.
 	ProfileSmall = Profile{
-		Name: "small", Aggregates: 1000, EventsPerAgg: 10,
+		Name: "small", Streams: 1000, EventsPerStream: 10,
 		Concurrency: 4, ReadRatio: 0.3, BatchSize: 1,
 	}
 
@@ -47,7 +47,7 @@ var (
 	// The default for backend comparison — large enough to surface latency
 	// tails, small enough to finish in seconds.
 	ProfileMedium = Profile{
-		Name: "medium", Aggregates: 10_000, EventsPerAgg: 50,
+		Name: "medium", Streams: 10_000, EventsPerStream: 50,
 		Concurrency: 16, ReadRatio: 0.4, BatchSize: 5,
 	}
 
@@ -55,26 +55,26 @@ var (
 	// Requires significant disk space and time. Use for pre-production
 	// capacity planning.
 	ProfileLarge = Profile{
-		Name: "large", Aggregates: 100_000, EventsPerAgg: 100,
+		Name: "large", Streams: 100_000, EventsPerStream: 100,
 		Concurrency: 32, ReadRatio: 0.5, BatchSize: 10,
 	}
 
 	// ProfileStress tests write-heavy throughput under high concurrency
 	// (~5M events, 64 goroutines). Use to find the write ceiling.
 	ProfileStress = Profile{
-		Name: "stress", Aggregates: 10_000, EventsPerAgg: 500,
+		Name: "stress", Streams: 10_000, EventsPerStream: 500,
 		Concurrency: 64, ReadRatio: 0.2, BatchSize: 1,
 	}
 
 	// ProfileWriteHeavy isolates write performance (~1M events, 90% writes).
 	ProfileWriteHeavy = Profile{
-		Name: "write-heavy", Aggregates: 10_000, EventsPerAgg: 100,
+		Name: "write-heavy", Streams: 10_000, EventsPerStream: 100,
 		Concurrency: 32, ReadRatio: 0.1, BatchSize: 1,
 	}
 
 	// ProfileReadHeavy isolates read performance (~1M events, 80% reads).
 	ProfileReadHeavy = Profile{
-		Name: "read-heavy", Aggregates: 10_000, EventsPerAgg: 100,
+		Name: "read-heavy", Streams: 10_000, EventsPerStream: 100,
 		Concurrency: 32, ReadRatio: 0.8, BatchSize: 1,
 	}
 )

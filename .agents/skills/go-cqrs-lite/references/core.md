@@ -402,3 +402,18 @@ defer metricsProvider.Shutdown(ctx)
 // Uses broker's journal + payload transform — same config as SSE.
 mux.Handle("/events/backfill", http.BackfillHandler(broker))
 ```
+
+---
+
+## About This Skill
+
+All Go import paths and qualified symbols in these docs are verified by
+`cmd/doc-check` — run it after editing any reference file:
+
+```bash
+cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../AGENTS.md ../../references/*.md
+```
+
+This skill uses progressive disclosure: `SKILL.md` is a thin index (≤1000 chars),
+`core.md` holds the decision material loaded on every trigger, and the other
+reference files are loaded on demand.

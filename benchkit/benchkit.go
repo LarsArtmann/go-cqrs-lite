@@ -91,10 +91,10 @@ type Result struct {
 	Duration  time.Duration `json:"duration"`
 
 	// Workload
-	Aggregates   int `json:"aggregates"`
-	EventsPerAgg int `json:"eventsPerAggregate"`
-	TotalEvents  int `json:"totalEvents"`
-	PayloadBytes int `json:"payloadBytesPerEvent"`
+	Streams         int `json:"aggregates"`
+	EventsPerStream int `json:"eventsPerAggregate"`
+	TotalEvents     int `json:"totalEvents"`
+	PayloadBytes    int `json:"payloadBytesPerEvent"`
 
 	// Write metrics
 	WriteLatency    LatencyStats `json:"writeLatency"`

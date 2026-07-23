@@ -6,19 +6,16 @@ metadata:
   tags: cqrs, event-sourcing, go, decider, projection, read-model, event-store, domain-driven-design
 ---
 
-# go-cqrs-lite — AI Consumer Guide
+# go-cqrs-lite
 
-A **library, not a framework**: import only the modules you need; compose them. Core loop: Command→Dispatcher→Handler→Decider(load→fold→decide→save→publish)→EventStore+Bus→Projection→ReadModel→Query.
+A **library, not a framework**: import only the modules you need; compose them.
 
-## Read the matching guide
+Core loop: Command→Dispatcher→Handler→Decider(load→fold→decide→save→publish)→EventStore+Bus→Projection→ReadModel→Query.
 
-| Need                                                                              | Guide                                       |
-| --------------------------------------------------------------------------------- | ------------------------------------------- |
-| Mental model, quickstart, decision matrix, conventions, cheat sheet               | [`core.md`](references/core.md)             |
-| Recipes (event sourcing, persistence, snapshots, signing, encryption, OTel, docs) | [`recipes.md`](references/recipes.md)       |
-| Read models (projections, SQL views, tier selection)                              | [`readmodels.md`](references/readmodels.md) |
-| All 28 modules: imports + one-liners                                              | [`modules.md`](references/modules.md)       |
-| Advanced (tombstone, watermill, gRPC, projectionhost, scheduling, graph, SSE)     | [`advanced.md`](references/advanced.md)     |
-| Pitfalls & FAQ                                                                    | [`faq.md`](references/faq.md)               |
+**Read [`core.md`](references/core.md) first** — decision matrix, conventions, cheat sheet, anti-patterns.
 
-Read [`core.md`](references/core.md) first — it has the decision matrix.
+- [`recipes.md`](references/recipes.md) — event sourcing, persistence, snapshots, signing, encryption, OTel
+- [`readmodels.md`](references/readmodels.md) — projections, SQL views, tier selection
+- [`modules.md`](references/modules.md) — all modules: imports + one-liners
+- [`advanced.md`](references/advanced.md) — tombstone, watermill, gRPC, projectionhost, scheduling, graph, SSE
+- [`faq.md`](references/faq.md) — pitfalls & common mistakes

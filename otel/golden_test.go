@@ -20,22 +20,22 @@ var update = flag.Bool("update", false, "update golden files")
 
 func TestGolden_AttributeConstants(t *testing.T) {
 	constants := map[string]string{
-		"AttrMessageKind":      otel.AttrMessageKind,
-		"AttrCommandType":      otel.AttrCommandType,
-		"AttrEventType":        otel.AttrEventType,
-		"AttrQueryType":        otel.AttrQueryType,
-		"AttrStreamType":    otel.AttrStreamType,
-		"AttrStreamID":      otel.AttrStreamID,
-		"AttrStreamVersion": otel.AttrStreamVersion,
-		"AttrEventCount":       otel.AttrEventCount,
-		"AttrStreamCount":   otel.AttrStreamCount,
-		"AttrProjectionName":   otel.AttrProjectionName,
-		"AttrStatus":           otel.AttrStatus,
-		"StatusSuccess":        otel.StatusSuccess,
-		"StatusError":          otel.StatusError,
-		"KindCommand":          otel.KindCommand,
-		"KindEvent":            otel.KindEvent,
-		"KindQuery":            otel.KindQuery,
+		"AttrMessageKind":    otel.AttrMessageKind,
+		"AttrCommandType":    otel.AttrCommandType,
+		"AttrEventType":      otel.AttrEventType,
+		"AttrQueryType":      otel.AttrQueryType,
+		"AttrStreamType":     otel.AttrStreamType,
+		"AttrStreamID":       otel.AttrStreamID,
+		"AttrStreamVersion":  otel.AttrStreamVersion,
+		"AttrEventCount":     otel.AttrEventCount,
+		"AttrStreamCount":    otel.AttrStreamCount,
+		"AttrProjectionName": otel.AttrProjectionName,
+		"AttrStatus":         otel.AttrStatus,
+		"StatusSuccess":      otel.StatusSuccess,
+		"StatusError":        otel.StatusError,
+		"KindCommand":        otel.KindCommand,
+		"KindEvent":          otel.KindEvent,
+		"KindQuery":          otel.KindQuery,
 	}
 
 	got := marshalSortedMap(constants)
