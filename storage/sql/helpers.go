@@ -264,3 +264,16 @@ func SharedCheckpointSave(
 
 	return nil
 }
+
+// Deprecated: use DeleteByStream.
+func DeleteByAggregate(
+	db *sql.DB,
+	ctx context.Context,
+	ref id.StreamRef,
+	table string,
+	placeholder1 string,
+	placeholder2 string,
+	what string,
+) error {
+	return DeleteByStream(db, ctx, ref, table, placeholder1, placeholder2, what)
+}
