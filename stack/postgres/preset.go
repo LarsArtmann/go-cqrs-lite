@@ -33,6 +33,8 @@ func defaultConfig() config {
 			QueryDSN:    "",
 			ViewDSN:     "",
 		},
+		listener: nil,
+		busOpts:  nil,
 	}
 }
 

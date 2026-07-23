@@ -109,17 +109,17 @@ func TestEventStore_ReadAll_MultipleAggregates(t *testing.T) {
 // saveThreeTimestampedEvents creates 3 events on a fresh "Issue" aggregate with
 // nanosecond-spaced timestamps and saves them to a new Pebble store. Returns
 // the store and the three events. Extracted to deduplicate the ReadFrom tests.
-func saveThreeTimestampedEvents(t *testing.T) (store *EventStore, evt1, evt2, evt3 event.Event) {
+func saveThreeTimestampedEvents(t *testing.T) (*EventStore, event.Event, event.Event, event.Event) {
 	t.Helper()
-	store = newPebbleTestStore(t)
+	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
 	aggID := id.NewAggregateID()
 	ref := id.NewAggregateRef("Issue", aggID)
 
 	now := time.Now()
-	evt1 = cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
-	evt2 = cfg.NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
-	evt3 = cfg.NewTestEvent(t, aggID, 3, event.WithOccurredAt(now.Add(2*time.Nanosecond)))
+	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
+	evt2 := cfg.NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
+	evt3 := cfg.NewTestEvent(t, aggID, 3, event.WithOccurredAt(now.Add(2*time.Nanosecond)))
 
 	if err := store.Save(
 		context.Background(),

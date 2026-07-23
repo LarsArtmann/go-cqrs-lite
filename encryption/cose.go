@@ -161,7 +161,11 @@ func EncryptCOSE0(plaintext []byte, enc COSEEncrypter, opts ...COSEEncryptOption
 
 	protected, err := codec.PrepareCOSESetup(&cfg, opts, enc.COSEAlgorithm())
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "encryption.cose_setup", "prepare COSE setup")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"encryption.cose_setup",
+			"prepare COSE setup",
+		)
 	}
 
 	externalAAD := cfg.externalAAD

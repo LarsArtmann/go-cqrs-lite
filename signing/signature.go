@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Signature is an opaque, serializable event signature.
@@ -50,7 +51,11 @@ func (s Signature) String() string {
 func (s Signature) MarshalJSON() ([]byte, error) {
 	b, err := codec.MarshalBase64JSON(s)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "signing.marshal_signature", "marshal signature")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"signing.marshal_signature",
+			"marshal signature",
+		)
 	}
 
 	return b, nil
@@ -60,7 +65,11 @@ func (s Signature) MarshalJSON() ([]byte, error) {
 // Falls back to standard base64 for backward compatibility.
 func (s *Signature) UnmarshalJSON(data []byte) error {
 	if err := codec.AssignBase64JSON(data, "signing", "signature", (*[]byte)(s)); err != nil {
-		return errorfamily.WrapInfrastructure(err, "signing.unmarshal_signature", "unmarshal signature")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"signing.unmarshal_signature",
+			"unmarshal signature",
+		)
 	}
 
 	return nil

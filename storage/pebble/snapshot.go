@@ -141,7 +141,7 @@ func (s *SnapshotStore) startSnapshotSpan(
 	return span, s.snapshotKey(ref.Type, ref.ID)
 }
 
-// Returns snapshot.ErrSnapshotNotFound when no snapshot exists.
+// Load returns snapshot.ErrSnapshotNotFound when no snapshot exists.
 func (s *SnapshotStore) Load(
 	ctx context.Context,
 	ref id.AggregateRef,

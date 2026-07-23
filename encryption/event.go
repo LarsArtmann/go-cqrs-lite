@@ -77,7 +77,11 @@ func ExtractCiphertext(evt event.Event) (Ciphertext, error) {
 	decoded, found, err := event.ExtractCustomBytesChecked(evt, MetadataKey,
 		ErrNilEvent, "encryption.extract", "extract ciphertext from event")
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "encryption.extract_ciphertext", "extract ciphertext from event")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"encryption.extract_ciphertext",
+			"extract ciphertext from event",
+		)
 	}
 
 	if !found {

@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"slices"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 type Ciphertext []byte //nolint:recvcheck // value receiver for immutable type
@@ -26,7 +26,11 @@ func (c Ciphertext) String() string {
 func (c Ciphertext) MarshalJSON() ([]byte, error) {
 	b, err := codec.MarshalBase64JSON(c)
 	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "encryption.marshal_ciphertext", "marshal ciphertext")
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"encryption.marshal_ciphertext",
+			"marshal ciphertext",
+		)
 	}
 
 	return b, nil
@@ -34,7 +38,11 @@ func (c Ciphertext) MarshalJSON() ([]byte, error) {
 
 func (c *Ciphertext) UnmarshalJSON(data []byte) error {
 	if err := codec.AssignBase64JSON(data, "encryption", "ciphertext", (*[]byte)(c)); err != nil {
-		return errorfamily.WrapInfrastructure(err, "encryption.unmarshal_ciphertext", "unmarshal ciphertext")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"encryption.unmarshal_ciphertext",
+			"unmarshal ciphertext",
+		)
 	}
 
 	return nil
