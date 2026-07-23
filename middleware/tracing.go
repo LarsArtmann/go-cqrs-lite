@@ -74,7 +74,7 @@ func EventTracing(tracer cqrsotel.Tracer) event.Middleware {
 				return append(
 					attrs,
 					cqrsotel.AttrInt64(
-						cqrsotel.AttrAggregateVersion,
+						cqrsotel.AttrStreamVersion,
 						int64(evt.Version()), //nolint:gosec // G115: version bounded by event count
 					),
 				)

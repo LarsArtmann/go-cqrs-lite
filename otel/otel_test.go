@@ -171,14 +171,14 @@ func TestEndWithError_NonNilError_RecordsAndEnds(t *testing.T) {
 	g.Expect(spans[0].Status().Code).To(Equal(codes.Error))
 }
 
-func TestAggregateAttrs_ReturnsCorrectAttributes(t *testing.T) {
+func TestStreamAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
-	attrs := AggregateAttrs(testStringer("Order"), testStringer("order-123"))
+	attrs := StreamAttrs(testStringer("Order"), testStringer("order-123"))
 	g.Expect(attrs).To(Equal([]attribute.KeyValue{
-		attribute.String(AttrAggregateType, "Order"),
-		attribute.String(AttrAggregateID, "order-123"),
+		attribute.String(AttrStreamType, "Order"),
+		attribute.String(AttrStreamID, "order-123"),
 	}))
 }
 
@@ -190,7 +190,7 @@ func TestCommandAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	g.Expect(attrs).To(Equal([]attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindCommand),
 		attribute.String(AttrCommandType, "CreateOrder"),
-		attribute.String(AttrAggregateID, "order-123"),
+		attribute.String(AttrStreamID, "order-123"),
 	}))
 }
 
@@ -202,8 +202,8 @@ func TestEventAttrs_ReturnsCorrectAttributes(t *testing.T) {
 	g.Expect(attrs).To(Equal([]attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindEvent),
 		attribute.String(AttrEventType, "OrderCreated"),
-		attribute.String(AttrAggregateID, "order-123"),
-		attribute.String(AttrAggregateType, "Order"),
+		attribute.String(AttrStreamID, "order-123"),
+		attribute.String(AttrStreamType, "Order"),
 	}))
 }
 

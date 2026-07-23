@@ -117,9 +117,9 @@ func (r *Repository[State]) LoadAtVersion(
 		ctx, tracer(), "decider.load_at_version",
 		cqrsotel.SpanKindInternal,
 		cqrsotel.WithAttributes(
-			cqrsotel.AttrString(cqrsotel.AttrAggregateType, string(streamType)),
-			cqrsotel.AttrString(cqrsotel.AttrAggregateID, streamID.String()),
-			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, maxVersion.Int()),
+			cqrsotel.AttrString(cqrsotel.AttrStreamType, string(streamType)),
+			cqrsotel.AttrString(cqrsotel.AttrStreamID, streamID.String()),
+			cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, maxVersion.Int()),
 		),
 	)
 	defer span.End()
@@ -151,8 +151,8 @@ func (r *Repository[State]) LoadAtTime(
 		ctx, tracer(), "decider.load_at_time",
 		cqrsotel.SpanKindInternal,
 		cqrsotel.WithAttributes(
-			cqrsotel.AttrString(cqrsotel.AttrAggregateType, string(streamType)),
-			cqrsotel.AttrString(cqrsotel.AttrAggregateID, streamID.String()),
+			cqrsotel.AttrString(cqrsotel.AttrStreamType, string(streamType)),
+			cqrsotel.AttrString(cqrsotel.AttrStreamID, streamID.String()),
 		),
 	)
 	defer span.End()

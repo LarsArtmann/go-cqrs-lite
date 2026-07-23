@@ -28,7 +28,7 @@ func (s *SQLCommandStore) Save(
 		sqlpkg.Tracer(),
 		"command.store.save",
 		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AggregateAttrs(ref.Type, ref.ID)...),
+		cqrsotel.WithAttributes(cqrsotel.StreamAttrs(ref.Type, ref.ID)...),
 	)
 	defer span.End()
 
@@ -66,7 +66,7 @@ func (s *SQLCommandStore) AppendBatch(
 		"command.store.append_batch",
 		cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(append(
-			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+			cqrsotel.StreamAttrs(ref.Type, ref.ID),
 			cqrsotel.AttrInt("command.count", len(cmds)),
 		)...),
 	)

@@ -49,7 +49,7 @@ func (s *commandServer) Dispatch(
 		cqrsotel.SpanKindServer,
 		cqrsotel.WithAttributes(
 			cqrsotel.AttrString(cqrsotel.AttrCommandType, envelope.GetType()),
-			cqrsotel.AttrString(cqrsotel.AttrAggregateID, envelope.GetAggregateId()),
+			cqrsotel.AttrString(cqrsotel.AttrStreamID, envelope.GetAggregateId()),
 		),
 	)
 	defer span.End()

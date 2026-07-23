@@ -21,20 +21,20 @@ const (
 	// AttrQueryType is the query type identifier.
 	AttrQueryType = "cqrs.query.type"
 
-	// AttrAggregateType is the aggregate root type.
-	AttrAggregateType = "cqrs.aggregate.type"
+	// AttrStreamType is the stream type.
+	AttrStreamType = "cqrs.aggregate.type"
 
-	// AttrAggregateID is the aggregate instance identifier.
-	AttrAggregateID = "cqrs.aggregate.id"
+	// AttrStreamID is the stream instance identifier.
+	AttrStreamID = "cqrs.aggregate.id"
 
-	// AttrAggregateVersion is the aggregate stream version.
-	AttrAggregateVersion = "cqrs.aggregate.version"
+	// AttrStreamVersion is the stream version.
+	AttrStreamVersion = "cqrs.aggregate.version"
 
 	// AttrEventCount is the number of events in a batch.
 	AttrEventCount = "cqrs.event.count"
 
-	// AttrAggregateCount is the number of aggregates in a multi-aggregate batch.
-	AttrAggregateCount = "cqrs.aggregate.count"
+	// AttrStreamCount is the number of streams in a multi-stream batch.
+	AttrStreamCount = "cqrs.aggregate.count"
 
 	// AttrProjectionName is the name of a projection.
 	AttrProjectionName = "cqrs.projection.name"
@@ -56,12 +56,29 @@ const (
 	KindQuery   = "query"
 )
 
-// AggregateAttrs returns the aggregate type and ID attributes for a span.
-func AggregateAttrs(streamType, streamID fmt.Stringer) []attribute.KeyValue {
+// StreamAttrs returns the stream type and ID attributes for a span.
+func StreamAttrs(streamType, streamID fmt.Stringer) []attribute.KeyValue {
 	return []attribute.KeyValue{
-		attribute.String(AttrAggregateType, streamType.String()),
-		attribute.String(AttrAggregateID, streamID.String()),
+		attribute.String(AttrStreamType, streamType.String()),
+		attribute.String(AttrStreamID, streamID.String()),
 	}
+}
+
+// Deprecated: use AttrStreamType.
+const AttrAggregateType = AttrStreamType
+
+// Deprecated: use AttrStreamID.
+const AttrAggregateID = AttrStreamID
+
+// Deprecated: use AttrStreamVersion.
+const AttrAggregateVersion = AttrStreamVersion
+
+// Deprecated: use AttrStreamCount.
+const AttrAggregateCount = AttrStreamCount
+
+// Deprecated: use StreamAttrs.
+func AggregateAttrs(streamType, streamID fmt.Stringer) []attribute.KeyValue {
+	return StreamAttrs(streamType, streamID)
 }
 
 // CommandAttrs returns the standard set of command attributes for a span.
@@ -69,7 +86,7 @@ func CommandAttrs(commandType string, streamID fmt.Stringer) []attribute.KeyValu
 	return []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindCommand),
 		attribute.String(AttrCommandType, commandType),
-		attribute.String(AttrAggregateID, streamID.String()),
+		attribute.String(AttrStreamID, streamID.String()),
 	}
 }
 
@@ -82,8 +99,8 @@ func EventAttrs(
 	return []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindEvent),
 		attribute.String(AttrEventType, eventType),
-		attribute.String(AttrAggregateID, streamID.String()),
-		attribute.String(AttrAggregateType, streamType),
+		attribute.String(AttrStreamID, streamID.String()),
+		attribute.String(AttrStreamType, streamType),
 	}
 }
 

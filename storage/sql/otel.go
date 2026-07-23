@@ -28,7 +28,7 @@ func StartAggregateSpan(
 		spanName,
 		cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(
-			append(cqrsotel.AggregateAttrs(ref.Type, ref.ID), extraAttrs...)...,
+			append(cqrsotel.StreamAttrs(ref.Type, ref.ID), extraAttrs...)...,
 		),
 	)
 }
@@ -45,8 +45,8 @@ func StartSaveSpan(
 		ctx, Tracer(), spanName,
 		cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(append(
-			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, expectedVersion.Int()),
+			cqrsotel.StreamAttrs(ref.Type, ref.ID),
+			cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, expectedVersion.Int()),
 			cqrsotel.AttrInt(cqrsotel.AttrEventCount, eventCount),
 		)...),
 	)

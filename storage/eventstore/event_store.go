@@ -132,7 +132,7 @@ func (s *SQLEventStore) AppendBatch(
 		ctx, sqlpkg.Tracer(), "event.store.append_batch",
 		cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(append(
-			cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+			cqrsotel.StreamAttrs(ref.Type, ref.ID),
 			cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)),
 		)...),
 	)
@@ -188,7 +188,7 @@ func (s *SQLEventStore) SaveMultiBatch(
 		ctx, sqlpkg.Tracer(), "event.store.save_multi_batch",
 		cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(
-			cqrsotel.AttrInt(cqrsotel.AttrAggregateCount, len(entries)),
+			cqrsotel.AttrInt(cqrsotel.AttrStreamCount, len(entries)),
 			cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalEvents),
 		),
 	)

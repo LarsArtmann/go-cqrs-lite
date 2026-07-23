@@ -34,7 +34,7 @@ func (s *SQLCommandStore) Load(
 	ref command.StreamRef,
 ) ([]*command.PersistedCommand, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
-		SpanName: "command.store.load", Attrs: cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+		SpanName: "command.store.load", Attrs: cqrsotel.StreamAttrs(ref.Type, ref.ID),
 		Where: "ORDER BY received_at ASC", RequireHit: true, ErrMsg: "query commands",
 		CountAttr: commandCountAttr,
 	})
@@ -48,7 +48,7 @@ func (s *SQLCommandStore) LoadFromTimestamp(
 ) ([]*command.PersistedCommand, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
 		SpanName: "command.store.load_from_timestamp",
-		Attrs:    cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+		Attrs:    cqrsotel.StreamAttrs(ref.Type, ref.ID),
 		Where: fmt.Sprintf(
 			"AND received_at > %s ORDER BY received_at ASC",
 			s.Dialect.Placeholder(3),
@@ -66,7 +66,7 @@ func (s *SQLCommandStore) LoadToTimestamp(
 ) ([]*command.PersistedCommand, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
 		SpanName: "command.store.load_to_timestamp",
-		Attrs:    cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+		Attrs:    cqrsotel.StreamAttrs(ref.Type, ref.ID),
 		Where: fmt.Sprintf(
 			"AND received_at <= %s ORDER BY received_at ASC",
 			s.Dialect.Placeholder(3),

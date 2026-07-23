@@ -10,8 +10,8 @@ type stringer string
 
 func (s stringer) String() string { return string(s) }
 
-func ExampleAggregateAttrs() {
-	attrs := otel.AggregateAttrs(stringer("User"), stringer("01HXYZ"))
+func ExampleStreamAttrs() {
+	attrs := otel.StreamAttrs(stringer("User"), stringer("01HXYZ"))
 
 	fmt.Println(len(attrs) > 0)
 

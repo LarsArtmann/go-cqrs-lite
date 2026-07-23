@@ -44,7 +44,7 @@ func (s *SQLEventStore) loadSimple(
 	spanName, order, errMsg string,
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
-		SpanName: spanName, Attrs: cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+		SpanName: spanName, Attrs: cqrsotel.StreamAttrs(ref.Type, ref.ID),
 		Where: order, RequireHit: true, ErrMsg: errMsg,
 		CountAttr: cqrsotel.AttrEventCount,
 	})
@@ -61,8 +61,8 @@ func (s *SQLEventStore) LoadFromVersion(
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
 		SpanName: "event.store.load_from_version",
-		Attrs: append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int())),
+		Attrs: append(cqrsotel.StreamAttrs(ref.Type, ref.ID),
+			cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int())),
 		Where:     fmt.Sprintf("AND version > %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
 		ExtraArgs: []any{version.Int()}, RequireHit: false, ErrMsg: "query events from version",
 		CountAttr: cqrsotel.AttrEventCount,
@@ -76,8 +76,8 @@ func (s *SQLEventStore) LoadToVersion(
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
 		SpanName: "event.store.load_to_version",
-		Attrs: append(cqrsotel.AggregateAttrs(ref.Type, ref.ID),
-			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, maxVersion.Int())),
+		Attrs: append(cqrsotel.StreamAttrs(ref.Type, ref.ID),
+			cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, maxVersion.Int())),
 		Where:     fmt.Sprintf("AND version <= %s ORDER BY version ASC", s.Dialect.Placeholder(3)),
 		ExtraArgs: []any{maxVersion.Int()}, RequireHit: true, ErrMsg: "query events to version",
 		CountAttr: cqrsotel.AttrEventCount,
@@ -91,7 +91,7 @@ func (s *SQLEventStore) LoadToTimestamp(
 ) ([]event.Event, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
 		SpanName: "event.store.load_to_timestamp",
-		Attrs:    cqrsotel.AggregateAttrs(ref.Type, ref.ID),
+		Attrs:    cqrsotel.StreamAttrs(ref.Type, ref.ID),
 		Where: fmt.Sprintf(
 			"AND occurred_at <= %s ORDER BY version ASC",
 			s.Dialect.Placeholder(3),

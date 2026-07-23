@@ -118,7 +118,7 @@ func (a *EventStore) LoadToVersion(
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	_, span := startAggregateSpan(ctx, "pebble.event.load_to_version", ref,
-		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, maxVersion.Int()))
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, maxVersion.Int()))
 	defer span.End()
 
 	upperBound := a.eventKey(ref, maxVersion+1)

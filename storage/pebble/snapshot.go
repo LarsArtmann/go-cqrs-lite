@@ -82,7 +82,7 @@ func (s *SnapshotStore) Save(
 ) error {
 	_, span := startAggregateSpan(ctx, "pebble.snapshot.save",
 		id.NewAggregateRef(snap.StreamType, snap.StreamID),
-		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, snap.Version.Int()))
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, snap.Version.Int()))
 	defer span.End()
 
 	key := s.snapshotKey(snap.StreamType, snap.StreamID)
@@ -160,7 +160,7 @@ func (s *SnapshotStore) Load(
 		return nil, snapshot.ErrSnapshotNotFound
 	}
 
-	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, raw.Version))
+	span.SetAttributes(cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, raw.Version))
 
 	return raw.toSnapshot(ref), nil
 }
@@ -174,7 +174,7 @@ func (s *SnapshotStore) LoadAtVersion(
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
 	_, span := startAggregateSpan(ctx, "pebble.snapshot.load_at_version", ref,
-		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int()))
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()))
 	defer span.End()
 
 	key := s.snapshotKey(ref.Type, ref.ID)

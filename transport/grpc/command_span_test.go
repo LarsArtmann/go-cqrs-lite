@@ -94,11 +94,11 @@ func TestCommandDispatch_ServerSpanCarriesAttrs(t *testing.T) {
 		t.Errorf("expected command type attr = test.cmd, got %v", attrs[cqrsotel.AttrCommandType])
 	}
 
-	if attrs[cqrsotel.AttrAggregateID] != aggID.String() {
+	if attrs[cqrsotel.AttrStreamID] != aggID.String() {
 		t.Errorf(
 			"expected aggregate ID attr = %s, got %v",
 			aggID.String(),
-			attrs[cqrsotel.AttrAggregateID],
+			attrs[cqrsotel.AttrStreamID],
 		)
 	}
 }

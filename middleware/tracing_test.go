@@ -53,7 +53,7 @@ func TestCommandTracing_Success(t *testing.T) {
 		t.Errorf("expected command.type 'test.cmd', got %v", attrs[cqrsotel.AttrCommandType])
 	}
 
-	if _, ok := attrs[cqrsotel.AttrAggregateID]; !ok {
+	if _, ok := attrs[cqrsotel.AttrStreamID]; !ok {
 		t.Error("expected aggregate.id attribute to be set")
 	}
 
@@ -115,15 +115,15 @@ func TestEventTracing_Success(t *testing.T) {
 		t.Errorf("expected event.type 'test.evt', got %v", attrs[cqrsotel.AttrEventType])
 	}
 
-	if _, ok := attrs[cqrsotel.AttrAggregateID]; !ok {
+	if _, ok := attrs[cqrsotel.AttrStreamID]; !ok {
 		t.Error("expected aggregate.id attribute to be set")
 	}
 
-	if _, ok := attrs[cqrsotel.AttrAggregateType]; !ok {
+	if _, ok := attrs[cqrsotel.AttrStreamType]; !ok {
 		t.Error("expected aggregate.type attribute to be set")
 	}
 
-	if _, ok := attrs[cqrsotel.AttrAggregateVersion]; !ok {
+	if _, ok := attrs[cqrsotel.AttrStreamVersion]; !ok {
 		t.Error("expected aggregate.version attribute to be set")
 	}
 }

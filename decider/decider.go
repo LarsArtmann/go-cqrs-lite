@@ -115,7 +115,7 @@ func (r *Repository[State]) Execute(
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.execute",
 		cqrsotel.SpanKindInternal,
-		cqrsotel.WithAttributes(cqrsotel.AggregateAttrs(streamType, streamID)...),
+		cqrsotel.WithAttributes(cqrsotel.StreamAttrs(streamType, streamID)...),
 	)
 	defer span.End()
 
@@ -266,7 +266,7 @@ func (r *Repository[State]) Load(
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load",
 		cqrsotel.SpanKindInternal,
-		cqrsotel.WithAttributes(cqrsotel.AggregateAttrs(streamType, streamID)...),
+		cqrsotel.WithAttributes(cqrsotel.StreamAttrs(streamType, streamID)...),
 	)
 	defer span.End()
 

@@ -111,7 +111,7 @@ func (a *EventStore) startLoadFromVersionSpan(
 	version event.Version,
 ) (cqrsotel.Span, []byte, []byte) {
 	_, span := startAggregateSpan(ctx, spanName, ref,
-		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, version.Int()))
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()))
 	return span, a.eventKey(ref, version+1), a.aggregateUpperBound(ref)
 }
 
@@ -134,7 +134,7 @@ func (a *EventStore) Save(
 
 	_, span := startAggregateSpan(ctx, "pebble.event.save", ref,
 		cqrsotel.AttrInt("event.count", len(events)),
-		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, expectedVersion.Int()))
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, expectedVersion.Int()))
 	defer span.End()
 
 	a.lockAggregate(ref)
