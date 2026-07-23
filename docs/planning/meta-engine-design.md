@@ -47,11 +47,13 @@ A KV store can do:
 **The question is never "can we?" It's "at what cost, given:**
 
 ```
-Network    — cross-engine hops are expensive (don't join across engines)
 RAM        — can't load 1TB into 50GB server (stream/buffer/paginate)
 Disk       — sequential scan vs index lookup (orders of magnitude difference)
 Time       — every query has a latency budget (1ms? 100ms? 10s?)
 CPU        — in-memory filtering vs index-assisted (100x difference)
+Network    — ONLY relevant for remote engines (ClickHouse cluster, Neo4j server).
+             Local engines (SQLite file, Pebble dir) = zero network cost.
+             Cross-engine reads between local engines = just different syscalls.
 ```
 
 ### What the Meta-Engine Is
@@ -125,7 +127,7 @@ DDIA's core lessons that apply:
    optimized for specific read patterns.
 
 3. **"Denormalization is often necessary."** Normalized data requires joins. In a multi-engine
-   world, joins across engines are prohibitively expensive. So we denormalize: project the
+   world, joins across REMOTE engines incur network cost. So we denormalize: project the
    same data into multiple shapes, each optimized for a query pattern.
 
 4. **"Indexes are a form of materialized view."** A B-tree index is a sorted copy of data
@@ -250,7 +252,7 @@ Subject to:
   - Every declared query pattern MUST be servable
   - Total projection storage ≤ disk budget
   - Hot projections must fit in RAM (for memory engines)
-  - No cross-engine queries at read time (denormalize instead)
+  - No cross-REMOTE-engine queries at read time (denormalize only when it avoids a network hop)
 ```
 
 In practice, we don't need precise frequency estimates. We use declared query patterns as
@@ -271,7 +273,7 @@ INPUT:
 OUTPUT:
   - Projection assignments: which engine serves which query pattern
   - Auto-generated projection handlers: events → engine-specific writes
-  - Denormalization plan: which data is projected where, to avoid cross-engine reads
+  - Denormalization plan: which data is projected where (only when remote engines involved)
   - Startup warnings: where degradation occurs
 
 ALGORITHM:
@@ -283,7 +285,7 @@ ALGORITHM:
   2. For cross-pattern dependencies:
      a. If query pattern A needs data that lives in engine X (for pattern B),
         auto-denormalize: project the needed data into engine X too
-     b. This increases write amplification but eliminates cross-engine reads
+     b. This increases write amplification but eliminates remote-engine reads
 
   3. Generate projection handlers:
      a. For Map ADT → generate Set/Get/Delete handler
@@ -293,7 +295,8 @@ ALGORITHM:
 
   4. Validate:
      a. Every query pattern has an assigned engine
-     b. No query requires cross-engine read (denormalized away in step 2)
+     b. No query requires cross-REMOTE-engine read (denormalized away in step 2, or served
+        via cheap local cross-engine fan-out)
      c. Hardware constraints respected (memory engines don't hold > declared max)
 
   5. Emit warnings for:
@@ -340,14 +343,18 @@ Query needed by the app:
   "Active users with >5 friends"
   → needs: users.status (from SQLite) + friend count (from Graph engine)
 
-Optimizer detects cross-engine dependency:
-  → Auto-denormalize: project friend_count onto the users table in SQLite
+Optimizer detects cross-REMOTE-engine dependency (if both engines are local, this is
+  optional — the cross-engine read is just two syscalls):
+  → If both LOCAL (SQLite + Pebble): no denormalization needed. Fan-out read is cheap.
+  → If either is REMOTE (SQLite + Neo4j server): auto-denormalize friend_count onto SQLite
   → Generated projection handler for friendships:
      1. MergeEdge into Graph engine (for traversal queries)
      2. Increment friend_count on the user's row in SQLite (for the combined query)
   → Now "active users with >5 friends" is a single SQLite query:
      WHERE status='active' AND friend_count > 5
-  → No cross-engine read at query time. Write amplification: +1 update per friendship event.
+  → Now "active users with >5 friends" is a single SQLite query:
+     WHERE status='active' AND friend_count > 5
+  → No cross-REMOTE-engine read at query time. Write amplification: +1 update per friendship event.
 ```
 
 ---
@@ -830,7 +837,7 @@ No existing system does this in an embedded Go library:
 1. Takes **event-sourced data** + **declared query patterns** as input
 2. Takes **whatever engines the operator provides** as available hardware
 3. **Automatically distributes projections** across engines based on cost
-4. **Auto-denormalizes** to eliminate cross-engine reads
+4. **Auto-denormalizes** to eliminate cross-REMOTE-engine reads (when engines are local, cross-engine reads are cheap syscalls)
 5. **Generates typed read APIs** wired to the optimal engine per query
 6. **Degrades gracefully** when optimal engines aren't available (warns, never fails silently)
 7. **Respects hardware constraints** (RAM, disk, network, CPU, time)
