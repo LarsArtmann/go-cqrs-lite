@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-23 (zero-lint achieved, all 4% features verified as already implemented)
+**Updated:** 2026-07-23 (docs compile tests, README rewrite, deprecated API removal batch 2)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
 Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 
@@ -42,24 +42,25 @@ These items deliver the majority of perceived consumer value.
 - [x] **`listing.SQLAggregateReader`** — ✅ Already implemented at `storage/sql_aggregate_reader.go`.
 - [x] **`projectionhost.Host.LagDuration()`** — ✅ Already implemented at `projectionhost/host.go:263`
       with `LagPerProjection()` at line 286. Tests at `host_test.go`.
-- [ ] **Compile-verify `docs/getting-started.md` examples** — Ensure every snippet
-      builds; add a CI step or test file to catch drift. ~30min.
+- [x] **Compile-verify `docs/getting-started.md` examples** — ✅ `docs_compile_test.go`
+      in `example/getting-started/` tests every API pattern from the docs. Fixed
+      missing `fmt` and `context` imports in the docs.
 
 ---
 
 ## 20% Tier — Important, Can Queue
 
-- [ ] **README full "sales page" rewrite** — Per docs-health model, README should be
-      the end-user entry point: what this does, why it exists, how to get started in 3 steps.
-      ~90min.
-- [ ] **Deprecated API removal batch 2** — Remove 9 deprecated items: `middleware.{NewMetrics,
-CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}`,
-      `catalog.Exporter` (non-generic), `storage/sql.{NewDBHandle, NewDBHandleFromDB}`.
-      Breaking → v4.1 cut. ~60min.
-- [ ] **Postgres CI coverage matrix** — Add CI Postgres service or label `stack/postgres`
-      experimental. ~60min.
-- [ ] **Add `docs/*/archive/README.md` files** — Explain what archived historical
-      artifacts are. Currently empty directories without guidance. ~20min.
+- [x] **README full "sales page" rewrite** — ✅ Restructured as 3-step Quick Start
+      (define domain, event-source with decider, go to production). Added Install section,
+      trimmed module catalog to 12 key modules (links to AGENTS.md for full 52).
+- [x] **Deprecated API removal batch 2** — ✅ Removed: `middleware.{NewMetrics,
+      CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}` (entire
+      `metrics.go` deleted), `catalog.ErrorExporter`, `storage/sql.{NewOwnedDBHandle,
+      SetOwnership}`. Tests migrated to typed metrics API. Breaking → v4.1 cut.
+- [x] **Postgres CI coverage matrix** — ✅ Already implemented at `ci.yml:380-418`.
+      Postgres 16 service container, `POSTGRES_TEST_DSN` env var, `-tags=integration` tests.
+- [x] **Add `docs/*/archive/README.md` files** — ✅ All 8 archive directories already
+      have README.md files explaining what the archived artifacts are.
 
 ---
 
