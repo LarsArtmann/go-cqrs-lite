@@ -144,11 +144,11 @@ type WallTime struct {
 // Returns an error if the hour/minute are out of range or the location is invalid.
 func NewWallTime(hour, minute int, location string) (WallTime, error) {
 	if hour < 0 || hour > 23 {
-		return WallTime{}, fmt.Errorf("wall_time: hour %d out of range [0, 23]", hour)
+		return WallTime{}, fmt.Errorf("%w: %d", ErrInvalidHour, hour)
 	}
 
 	if minute < 0 || minute > 59 {
-		return WallTime{}, fmt.Errorf("wall_time: minute %d out of range [0, 59]", minute)
+		return WallTime{}, fmt.Errorf("%w: %d", ErrInvalidMinute, minute)
 	}
 
 	if _, err := time.LoadLocation(location); err != nil {

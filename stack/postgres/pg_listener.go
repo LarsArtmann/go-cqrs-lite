@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -64,17 +63,27 @@ type PgxListener struct {
 var _ storage.NotificationListener = (*PgxListener)(nil)
 
 // ErrListenerAlreadyListening is returned when Listen is called more than once.
-var ErrListenerAlreadyListening = errors.New("pgx_listener: already listening")
+var ErrListenerAlreadyListening = errorfamily.NewConflict(
+	"postgres.listener.already_listening",
+	"pgx_listener: already listening",
+)
 
 // ErrListenerClosed is returned when Listen is called after Close.
-var ErrListenerClosed = errors.New("pgx_listener: closed")
+var ErrListenerClosed = errorfamily.NewInfrastructure(
+	"postgres.listener.closed",
+	"pgx_listener: closed",
+)
 
-// errEmptyChannelName is the sentinel for empty channel-name input.
-var errEmptyChannelName = errors.New("pgx_listener: empty channel name")
+// ErrEmptyChannelName is the sentinel for empty channel-name input.
+var ErrEmptyChannelName = errorfamily.NewRejection(
+	"postgres.listener.empty_channel",
+	"pgx_listener: empty channel name",
+)
 
-// errInvalidChannelName is the base error for invalid channel-name input.
+// ErrInvalidChannelName is the base error for invalid channel-name input.
 // The invalid value is included via fmt.Errorf wrapping.
-var errInvalidChannelName = errors.New(
+var ErrInvalidChannelName = errorfamily.NewRejection(
+	"postgres.listener.invalid_channel",
 	"pgx_listener: invalid channel name (must be [A-Za-z_][A-Za-z0-9_]*)",
 )
 
@@ -248,14 +257,14 @@ func (l *PgxListener) Close() error {
 // so allow-listing is the SQL-injection defence.
 func validateChannelName(channel string) error {
 	if channel == "" {
-		return errEmptyChannelName
+		return ErrEmptyChannelName
 	}
 
 	for i, r := range channel {
 		ok := r == '_' || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
 			(i > 0 && r >= '0' && r <= '9')
 		if !ok {
-			return errorfamily.WrapRejection(errInvalidChannelName, "postgres.invalid_channel",
+			return errorfamily.WrapRejection(ErrInvalidChannelName, "postgres.invalid_channel",
 				fmt.Sprintf("invalid channel name %q", channel))
 		}
 	}

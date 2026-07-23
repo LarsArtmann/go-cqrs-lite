@@ -31,7 +31,7 @@ func NewDate(year int, month time.Month, day int) (Date, error) {
 	// Validate by constructing a time.Time and checking round-trip.
 	t := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 	if t.Year() != year || t.Month() != month || t.Day() != day {
-		return Date{}, fmt.Errorf("date: invalid date %04d-%02d-%02d", year, int(month), day)
+		return Date{}, fmt.Errorf("%w: %04d-%02d-%02d", ErrInvalidDate, year, int(month), day)
 	}
 	return Date{Year: year, Month: month, Day: day}, nil
 }
