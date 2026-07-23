@@ -91,11 +91,27 @@ func (r *JournalReader[T]) ReadAll(ctx context.Context) ([]T, error) {
 	items, scanErr := r.Scan(rows)
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
+
+		return nil, errorfamily.WrapInfrastructure(
+			scanErr,
+			r.ErrCodeScan,
+			"scan all "+r.EntityNounPlural,
+		)
+	}
+
+	if err := rows.Err(); err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			r.ErrCodeScan,
+			"iterate all "+r.EntityNounPlural,
+		)
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt(r.CountAttr, len(items)))
 
-	return items, scanErr
+	return items, nil
 }
 
 // ReadFrom returns rows after the given cursor ID, ordered by timestamp then ID.
@@ -167,11 +183,20 @@ func (r *JournalReader[T]) ReadFrom(ctx context.Context, afterID string, limit i
 	if scanErr != nil {
 		cqrsotel.RecordError(span, scanErr)
 
-		return items, errorfamily.WrapInfrastructure(scanErr, r.ErrCodeScan,
+		return nil, errorfamily.WrapInfrastructure(scanErr, r.ErrCodeScan,
 			fmt.Sprintf("scan %s from position (limit=%d)", r.EntityNounPlural, limit))
 	}
 
+	if err := rows.Err(); err != nil {
+		cqrsotel.RecordError(span, err)
+
+		return nil, errorfamily.WrapInfrastructure(err, r.ErrCodeScan,
+			fmt.Sprintf("iterate %s from position (limit=%d)", r.EntityNounPlural, limit))
+	}
+
 	span.SetAttributes(cqrsotel.AttrInt(r.CountAttr, len(items)))
+
+	return items, nil
 
 	return items, nil
 }
@@ -195,5 +220,16 @@ func (r *JournalReader[T]) LoadFromStart(ctx context.Context, limit int) ([]T, e
 	}
 	defer CloseRows(rows)
 
-	return r.Scan(rows)
+	items, scanErr := r.Scan(rows)
+	if scanErr != nil {
+		return nil, errorfamily.WrapInfrastructure(scanErr, r.ErrCodeScan,
+			fmt.Sprintf("scan %s from start (limit=%d)", r.EntityNounPlural, limit))
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errorfamily.WrapInfrastructure(err, r.ErrCodeScan,
+			fmt.Sprintf("iterate %s from start (limit=%d)", r.EntityNounPlural, limit))
+	}
+
+	return items, nil
 }
