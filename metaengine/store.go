@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sync"
 )
 
 type queryRuntime struct {
@@ -20,10 +21,11 @@ type queryRuntime struct {
 }
 
 type Store struct {
-	engines     []Engine
-	queries     map[string]queryRuntime
+	mu      sync.RWMutex
+	engines []Engine
+	queries map[string]queryRuntime
 	byInputType map[string]string // Go input type name → query name
-	plan        *PlanResult
+	plan    *PlanResult
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -41,6 +43,9 @@ func (s *Store) Close() error {
 
 // Apply processes an event through ALL projections that listen to it.
 func (s *Store) Apply(eventType string, payload any) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	for _, q := range s.queries {
 		foldIdx, ok := q.foldByEvent[eventType]
 		if !ok {
@@ -134,6 +139,9 @@ func (s *Store) Execute(input any, opts ...ExecOption) (any, error) {
 }
 
 func (s *Store) ExecuteCtx(_ context.Context, input any, opts ...ExecOption) (any, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	inputType := reflect.TypeOf(input).Name()
 
 	queryName, ok := s.byInputType[inputType]
