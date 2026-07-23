@@ -79,7 +79,11 @@ type ProjectionSink interface {
 	// contain counterCol. Generated SQL (portable across SQLite and PostgreSQL):
 	//
 	//	INSERT INTO <table> (<keycols>, <counterCol>) VALUES (?, ?, ?)
-	//	ON CONFLICT(<pk>) DO UPDATE SET <counterCol> = <counterCol> + excluded.<counterCol>
+	//	ON CONFLICT(<pk>) DO UPDATE SET <counterCol> = COALESCE(<counterCol>, 0) + excluded.<counterCol>
+	//
+	// COALESCE handles multi-counter tables where other counter columns are NULL
+	// when the row is first created by a different Increment call: without it,
+	// NULL + N would yield NULL in SQL.
 	//
 	// Use this for incremental rollup tables — pre-computed counters and sums
 	// maintained as events flow, so dashboard reads are O(1) instead of
@@ -287,7 +291,7 @@ func (s *sqlSink) Increment(
 	pholders := placeholders(s.dialect, len(allCols))
 
 	query := fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(%s) DO UPDATE SET %s = %s + excluded.%s",
+		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(%s) DO UPDATE SET %s = COALESCE(%s, 0) + excluded.%s",
 		table,
 		strings.Join(allCols, ", "),
 		pholders,

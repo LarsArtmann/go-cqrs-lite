@@ -30,9 +30,9 @@ func rollupSchema() RelationalSchema {
 			Columns: []RelationalColumn{
 				{Name: "guild_id", Type: "TEXT"},
 				{Name: "day", Type: "TEXT"},
-				{Name: "total", Type: "INTEGER"},
-				{Name: "downloaded", Type: "INTEGER"},
-				{Name: "failed", Type: "INTEGER"},
+				{Name: "total", Type: "INTEGER", Nullable: true},
+				{Name: "downloaded", Type: "INTEGER", Nullable: true},
+				{Name: "failed", Type: "INTEGER", Nullable: true},
 			},
 		},
 	}}
