@@ -6,8 +6,8 @@ require (
 	github.com/larsartmann/cmdguard/v3 v3.0.0
 	github.com/larsartmann/go-finding v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-output v0.31.0
-	github.com/larsartmann/go-output/table v0.31.0
+	github.com/larsartmann/go-output v0.31.1
+	github.com/larsartmann/go-output/table v0.31.1
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.48.0
 )
@@ -33,16 +33,16 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
-	github.com/larsartmann/go-output/d2 v0.31.0 // indirect
-	github.com/larsartmann/go-output/daghtml v0.31.0 // indirect
-	github.com/larsartmann/go-output/delimited v0.31.0 // indirect
-	github.com/larsartmann/go-output/escape v0.31.0 // indirect
-	github.com/larsartmann/go-output/graph v0.31.0 // indirect
-	github.com/larsartmann/go-output/markdown v0.31.0 // indirect
-	github.com/larsartmann/go-output/markup v0.31.0 // indirect
-	github.com/larsartmann/go-output/plantuml v0.31.0 // indirect
-	github.com/larsartmann/go-output/serialization v0.31.0 // indirect
-	github.com/larsartmann/go-output/tree v0.31.0 // indirect
+	github.com/larsartmann/go-output/d2 v0.31.1 // indirect
+	github.com/larsartmann/go-output/daghtml v0.31.1 // indirect
+	github.com/larsartmann/go-output/delimited v0.31.1 // indirect
+	github.com/larsartmann/go-output/escape v0.31.1 // indirect
+	github.com/larsartmann/go-output/graph v0.31.1 // indirect
+	github.com/larsartmann/go-output/markdown v0.31.1 // indirect
+	github.com/larsartmann/go-output/markup v0.31.1 // indirect
+	github.com/larsartmann/go-output/plantuml v0.31.1 // indirect
+	github.com/larsartmann/go-output/serialization v0.31.1 // indirect
+	github.com/larsartmann/go-output/tree v0.31.1 // indirect
 	github.com/larsartmann/samber-do-auditlog v0.6.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect
 	github.com/mattn/go-runewidth v0.0.24 // indirect

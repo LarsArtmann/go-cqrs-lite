@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	github.com/fxamacker/cbor/v2 v2.9.2
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.0-00010101000000-000000000000

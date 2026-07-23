@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.0-00010101000000-000000000000
@@ -54,7 +54,7 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.74.1 // indirect
+	modernc.org/libc v1.74.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )

@@ -45,8 +45,8 @@ github.com/larsartmann/go-branded-id v0.3.2 h1:Vbe5/LRuR2ycDFpDKuuuG8brBRYvSYcOU
 github.com/larsartmann/go-branded-id v0.3.2/go.mod h1:xoQYcGTGrMqRYB8cMKHe2efq8S6stQGg3nW4DzXVWpA=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0 h1:qnHYTUCKiIEkPMPmjT3OmKdXneyrKWetAJyPit78ySQ=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0/go.mod h1:NM/NacdpWxfy7swhdOL4qdWjra/lOZ9zXvr6qgixbjg=
-github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.1.0 h1:YJCC+60bfEBPppV52IeQ6jHWF44aNN8HdPwk/YWMvnc=
-github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.1.0/go.mod h1:7cZygydjxdWRpUP/HYYPy+rmxycYmfjiyZsdUG/wZZQ=
+github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.2.0 h1:uFIgOhvAPa31eg0ZnJBlpudyzJuFb/Whn6uslXaj+Ik=
+github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.2.0/go.mod h1:WaY1JN+iZuvNTiM+TL88Nz7jsfPrbWtJXLMjIAUeQzA=
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.2 h1:GA6T6qqyAntNMS/nQSbAisROD9pKWUArsyWdUwLu5P0=
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.2/go.mod h1:jd8OCVEFzRJIgSPnbkQriJo1O3szOlroZ8AQglDn/7Q=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.1 h1:fOqr565QDzVUf+F4OyE0PI/nlDdMAoEdThktry7ABe4=
@@ -136,8 +136,8 @@ gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EV
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-modernc.org/libc v1.74.1 h1:bdR4VTKFMC4966QSNZ05XLGI/VwzVa2kTUX51Dm0riQ=
-modernc.org/libc v1.74.1/go.mod h1:uH4t5bOx3G3g9Xcmj10YKlTcVISlRDwv8VoQJG9n8Os=
+modernc.org/libc v1.74.3 h1:a4J+Z8aVaxPyjyxRAdJzw246PqpcFGvVPnfT/AuM5Ws=
+modernc.org/libc v1.74.3/go.mod h1:4H7h/MJ8wnjL8RAbp9v3OXgnk22X7MouHIhDbvP3gj4=
 modernc.org/mathutil v1.7.1 h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=
 modernc.org/mathutil v1.7.1/go.mod h1:4p5IwJITfppl0G4sUEDtCr4DthTaT47/N3aT6MhfgJg=
 modernc.org/memory v1.11.0 h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=
