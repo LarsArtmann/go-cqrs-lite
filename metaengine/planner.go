@@ -36,15 +36,12 @@ func (d Diagnostics) HasWarnings() bool {
 	return false
 }
 
-// QueryAssignment shows the full plan for one query: engine, ADT, read pattern.
 type QueryAssignment struct {
 	QueryName   string
 	ADT         ADT
 	EngineName  string
 	Complexity  Complexity
 	ReadPattern ReadPattern
-	Filters     []FieldPath
-	SortField   string
 	IsPaginated bool
 	Diagnostics []Diagnostic
 }
@@ -53,19 +50,6 @@ func (a QueryAssignment) String() string {
 	parts := []string{
 		fmt.Sprintf("%s: %s/%s via %s (%s)",
 			a.QueryName, a.ADT, a.ReadPattern, a.EngineName, a.Complexity),
-	}
-
-	if len(a.Filters) > 0 {
-		names := make([]string, len(a.Filters))
-		for i, f := range a.Filters {
-			names[i] = f.Field
-		}
-
-		parts = append(parts, "filter=["+strings.Join(names, ",")+"]")
-	}
-
-	if a.SortField != "" {
-		parts = append(parts, "sort="+a.SortField)
 	}
 
 	if a.IsPaginated {
@@ -182,8 +166,6 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 		QueryName:   meta.QueryName(),
 		ADT:         adt,
 		ReadPattern: meta.QueryReadPattern(),
-		Filters:     meta.QueryFilters(),
-		SortField:   meta.QuerySortField(),
 		IsPaginated: meta.QueryIsPaginated(),
 	}
 

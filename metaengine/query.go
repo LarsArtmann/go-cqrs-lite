@@ -3,7 +3,6 @@ package metaengine
 import (
 	"fmt"
 	"reflect"
-	"strings"
 )
 
 // QueryOption tunes a query declaration.
@@ -80,8 +79,6 @@ type QueryDecl[Q any, R any] struct {
 	Folds         []Fold
 	ADT           ADT
 	ReadPattern   ReadPattern
-	Filters       []FieldPath
-	SortField     string
 	IsPaginated   bool
 	Config        QueryConfig
 	InputTypeName string
@@ -177,8 +174,6 @@ type queryMeta interface {
 	QueryADT() ADT
 	QueryFolds() []Fold
 	QueryReadPattern() ReadPattern
-	QueryFilters() []FieldPath
-	QuerySortField() string
 	QueryIsPaginated() bool
 	QueryInputTypeName() string
 	QueryConfig() QueryConfig
@@ -189,8 +184,6 @@ func (q QueryDecl[Q, R]) QueryName() string             { return q.Name }
 func (q QueryDecl[Q, R]) QueryADT() ADT                 { return q.ADT }
 func (q QueryDecl[Q, R]) QueryFolds() []Fold            { return q.Folds }
 func (q QueryDecl[Q, R]) QueryReadPattern() ReadPattern { return q.ReadPattern }
-func (q QueryDecl[Q, R]) QueryFilters() []FieldPath     { return q.Filters }
-func (q QueryDecl[Q, R]) QuerySortField() string        { return q.SortField }
 func (q QueryDecl[Q, R]) QueryIsPaginated() bool        { return q.IsPaginated }
 func (q QueryDecl[Q, R]) QueryInputTypeName() string    { return q.InputTypeName }
 func (q QueryDecl[Q, R]) QueryConfig() QueryConfig      { return q.Config }
@@ -212,20 +205,16 @@ func (q QueryDecl[Q, R]) String() string {
 		pagination = " [paginated]"
 	}
 
+	filterCount := len(q.Config.filterAccessors)
 	filters := ""
-
-	if len(q.Filters) > 0 {
-		names := make([]string, len(q.Filters))
-		for i, f := range q.Filters {
-			names[i] = f.Field
-		}
-
-		filters = fmt.Sprintf(" filter=[%s]", strings.Join(names, ","))
+	if filterCount > 0 {
+		filters = fmt.Sprintf(" filter=[%d]", filterCount)
 	}
 
+	hasSort := q.Config.sortAccessor.closure != nil
 	sortStr := ""
-	if q.SortField != "" {
-		sortStr = " sort=" + q.SortField
+	if hasSort {
+		sortStr = " [sorted]"
 	}
 
 	return fmt.Sprintf("%s: %s/%s%s%s%s",

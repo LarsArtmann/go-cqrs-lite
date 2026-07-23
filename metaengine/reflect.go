@@ -132,23 +132,11 @@ func extractDepthFromInput(input any) int {
 // Limit int and/or After *Cursor. The engine detects these by type, not by name
 // convention — these are the standard pagination types defined in this package.
 func detectPagination(input any) bool {
-	fields := reflectFields(input)
-
-	limitType := reflect.TypeFor[int]() // untyped int literal matched by int field
-	cursorPtrType := reflect.TypeFor[*Cursor]()
-
-	for _, f := range fields {
-		if f.Type == limitType && f.Name == "Limit" {
-			return true
-		}
-
-		if f.Type == cursorPtrType && f.Name == "After" {
-			return true
-		}
+	t := reflect.TypeOf(input)
+	if t == nil {
+		return false
 	}
 
-	// Also check via reflect directly for robustness.
-	t := reflect.TypeOf(input)
 	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
@@ -156,6 +144,8 @@ func detectPagination(input any) bool {
 	if t.Kind() != reflect.Struct {
 		return false
 	}
+
+	cursorPtrType := reflect.TypeFor[*Cursor]()
 
 	for field := range t.Fields() {
 		switch field.Name {
@@ -169,8 +159,6 @@ func detectPagination(input any) bool {
 			}
 		}
 	}
-
-	_ = limitType
 
 	return false
 }
@@ -242,24 +230,6 @@ func nonMetaFields(input any) []reflectField {
 	}
 
 	return result
-}
-
-// isTimestampType returns true if the type name represents time.Time.
-func isTimestampType(typeName string) bool {
-	return typeName == "time.Time" || typeName == "Time"
-}
-
-// detectSortField finds the sort key for a result element type by detecting
-// the first time.Time field.
-func detectSortField(elementType any) string {
-	fields := reflectFields(elementType)
-	for _, f := range fields {
-		if isTimestampType(f.TypeString) {
-			return f.Name
-		}
-	}
-
-	return ""
 }
 
 // colResultInfo describes a collection result type.
@@ -384,21 +354,3 @@ func extractFirstDomainField(input any) any {
 	return v.FieldByName(fields[0].Name).Interface()
 }
 
-// getFieldValue extracts a field value from a struct by name using reflection.
-func getFieldValue(v any, fieldName string) any {
-	rv := reflect.ValueOf(v)
-	if rv.Kind() == reflect.Pointer {
-		rv = rv.Elem()
-	}
-
-	if rv.Kind() != reflect.Struct {
-		return nil
-	}
-
-	f := rv.FieldByName(fieldName)
-	if !f.IsValid() {
-		return nil
-	}
-
-	return f.Interface()
-}

@@ -46,13 +46,6 @@ type Cursor struct {
 	Value any
 }
 
-// FieldPath describes a typed field on a struct, used for filter/sort inference.
-type FieldPath struct {
-	Struct string
-	Field  string
-	GoType string
-}
-
 // Complexity is a Big-O class for cost estimation.
 type Complexity string
 

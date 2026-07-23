@@ -90,8 +90,8 @@ type Engine interface {
 	Closer
 }
 
-// MemoryEngine implements all ADT backends for testing and development.
-type MemoryEngine struct {
+// memoryEngine implements all ADT backends for testing and development.
+type memoryEngine struct {
 	mu   sync.RWMutex
 	data *memData
 }
@@ -107,8 +107,8 @@ type memGraph struct {
 	adjacency map[any][]any
 }
 
-func NewMemoryEngine() *MemoryEngine {
-	return &MemoryEngine{
+func NewMemoryEngine() Engine {
+	return &memoryEngine{
 		data: &memData{
 			maps:     make(map[string]map[any]any),
 			sets:     make(map[string]map[any]struct{}),
@@ -118,7 +118,7 @@ func NewMemoryEngine() *MemoryEngine {
 	}
 }
 
-func (m *MemoryEngine) Profile() EngineProfile {
+func (m *memoryEngine) Profile() EngineProfile {
 	return EngineProfile{
 		Name: "memory",
 		Supports: map[ADT]Complexity{
@@ -133,7 +133,7 @@ func (m *MemoryEngine) Profile() EngineProfile {
 }
 
 // getMapLocked returns or creates a map collection. Caller MUST hold m.mu.Lock().
-func (m *MemoryEngine) getMapLocked(col string) map[any]any {
+func (m *memoryEngine) getMapLocked(col string) map[any]any {
 	if m.data.maps[col] == nil {
 		m.data.maps[col] = make(map[any]any)
 	}
@@ -142,7 +142,7 @@ func (m *MemoryEngine) getMapLocked(col string) map[any]any {
 }
 
 // getGraphLocked returns or creates a graph collection. Caller MUST hold m.mu.Lock().
-func (m *MemoryEngine) getGraphLocked(col string) *memGraph {
+func (m *memoryEngine) getGraphLocked(col string) *memGraph {
 	if m.data.graphs[col] == nil {
 		m.data.graphs[col] = &memGraph{adjacency: make(map[any][]any)}
 	}
@@ -150,7 +150,7 @@ func (m *MemoryEngine) getGraphLocked(col string) *memGraph {
 	return m.data.graphs[col]
 }
 
-func (m *MemoryEngine) MapSet(col string, key any, value any) error {
+func (m *memoryEngine) MapSet(col string, key any, value any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -159,7 +159,7 @@ func (m *MemoryEngine) MapSet(col string, key any, value any) error {
 	return nil
 }
 
-func (m *MemoryEngine) MapGet(col string, key any) (any, bool, error) {
+func (m *memoryEngine) MapGet(col string, key any) (any, bool, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -173,7 +173,7 @@ func (m *MemoryEngine) MapGet(col string, key any) (any, bool, error) {
 	return v, ok, nil
 }
 
-func (m *MemoryEngine) MapDelete(col string, key any) error {
+func (m *memoryEngine) MapDelete(col string, key any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -185,7 +185,7 @@ func (m *MemoryEngine) MapDelete(col string, key any) error {
 // MapUpdate performs an atomic read-modify-write on a map entry.
 // The update function receives the previous value (nil if absent) and returns
 // the new value. The entire operation is serialized under the engine's write lock.
-func (m *MemoryEngine) MapUpdate(col string, key any, update func(prev any) any) error {
+func (m *memoryEngine) MapUpdate(col string, key any, update func(prev any) any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -197,7 +197,7 @@ func (m *MemoryEngine) MapUpdate(col string, key any, update func(prev any) any)
 	return nil
 }
 
-func (m *MemoryEngine) MapScan(
+func (m *memoryEngine) MapScan(
 	col string,
 	filters []filterPredicate,
 	sortFunc func(a, b any) int,
@@ -276,7 +276,7 @@ func (m *MemoryEngine) MapScan(
 	return results, nil
 }
 
-func (m *MemoryEngine) SetAdd(col string, key any) error {
+func (m *memoryEngine) SetAdd(col string, key any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -289,7 +289,7 @@ func (m *MemoryEngine) SetAdd(col string, key any) error {
 	return nil
 }
 
-func (m *MemoryEngine) SetContains(col string, key any) (bool, error) {
+func (m *memoryEngine) SetContains(col string, key any) (bool, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -298,7 +298,7 @@ func (m *MemoryEngine) SetContains(col string, key any) (bool, error) {
 	return ok, nil
 }
 
-func (m *MemoryEngine) CounterIncrement(col string, deltas Delta) error {
+func (m *memoryEngine) CounterIncrement(col string, deltas Delta) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -313,7 +313,7 @@ func (m *MemoryEngine) CounterIncrement(col string, deltas Delta) error {
 	return nil
 }
 
-func (m *MemoryEngine) CounterGet(col string) (map[string]int64, error) {
+func (m *memoryEngine) CounterGet(col string) (map[string]int64, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -323,7 +323,7 @@ func (m *MemoryEngine) CounterGet(col string) (map[string]int64, error) {
 	return result, nil
 }
 
-func (m *MemoryEngine) GraphAddEdge(col string, edge Edge) error {
+func (m *memoryEngine) GraphAddEdge(col string, edge Edge) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -334,7 +334,7 @@ func (m *MemoryEngine) GraphAddEdge(col string, edge Edge) error {
 	return nil
 }
 
-func (m *MemoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, error) {
+func (m *memoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -366,7 +366,7 @@ func (m *MemoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, e
 	return result, nil
 }
 
-func (m *MemoryEngine) Close() error { return nil }
+func (m *memoryEngine) Close() error { return nil }
 
 // SQLiteEngineProfile returns the cost profile for a SQLite engine.
 // Used for multi-engine planning without a real SQLite implementation.
