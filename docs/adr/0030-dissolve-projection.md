@@ -6,6 +6,13 @@
 | Status  | Implemented  |
 | Decider | Lars Artmann |
 
+> **Cross-reference:** This ADR dissolved the old `projection/` module
+> (which was a bus masquerading as a projection runner). The `projection/`
+> name was subsequently **reused** by [ADR-0037](0037-projection-module-extraction.md),
+> which extracted the `Projection` *interface* into a new minimal `projection/`
+> module (Layer 2, interface-only). The two `projection/` packages are
+> different things: the old one was removed; the new one is a 1-file interface.
+
 ## Context
 
 The `projection/` module is **named a lie**. Its central type,

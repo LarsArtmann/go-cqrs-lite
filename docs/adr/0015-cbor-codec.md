@@ -1,6 +1,13 @@
 # ADR-0015: CBOR Codec for Binary Payload Encoding
 
-**Status:** Accepted
+> **SUPERSEDED (2026-07-11):** This ADR introduced the CBOR codec but kept
+> JSON as the default. That default was subsequently flipped to CBOR by
+> [ADR-0051](0051-cbor-as-default-codec.md) (event.New default) and
+> [ADR-0053](0053-unified-codec-default-flip.md) (all blind store defaults).
+> The codec design and rationale below remain accurate; only the "JSON
+> remains the default" conclusion is outdated.
+
+**Status:** Superseded by [0051](0051-cbor-as-default-codec.md)/[0053](0053-unified-codec-default-flip.md)
 **Date:** 2026-06-11
 
 ## Context

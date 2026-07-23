@@ -1,6 +1,14 @@
 # ADR-0009: Pebble Module Scope — Event Store Only
 
-**Status:** Accepted
+> **SUPERSEDED (2026-06-16):** This ADR declared that Pebble would "never
+> implement `event.Journal` or `event.SeekableJournal`." That decision was
+> reversed by [ADR-0019](0019-cbor-envelope-format.md), which introduced a
+> `cqrs_journal:` secondary index for global event ordering. Pebble now
+> implements both `ReadAll` (Journal) and `ReadFrom` (SeekableJournal) at
+> `storage/pebble/journal.go`. The rationale below is preserved as
+> historical context.
+
+**Status:** Superseded by [0019](0019-cbor-envelope-format.md)
 **Date:** 2026-05-29
 
 ## Context

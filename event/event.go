@@ -50,7 +50,7 @@ func NewTypeSet(types []Type) map[Type]struct{} {
 //   - Payload() returns a clone of the internal byte slice.
 //   - Metadata() returns a deep copy of the internal map.
 //
-// Value-type accessors (ID, Type, AggregateID, etc.) are inherently safe.
+// Value-type accessors (ID, Type, StreamID, etc.) are inherently safe.
 // A nil Event is a nil *ImmutableEvent; compare with == nil as usual.
 type Event = *ImmutableEvent
 
@@ -59,8 +59,8 @@ type Event = *ImmutableEvent
 type ImmutableEvent struct {
 	id            id.EventID
 	eventType     Type
-	aggregateID   id.AggregateID
-	aggregateType id.AggregateType
+	streamID     id.StreamID
+	streamType   id.StreamType
 	version       Version
 	schemaVersion SchemaVersion
 	encoding      codec.Encoding
@@ -82,11 +82,17 @@ func (e *ImmutableEvent) ID() id.EventID { return e.id }
 // Type returns the event type.
 func (e *ImmutableEvent) Type() Type { return e.eventType }
 
-// AggregateID returns the aggregate ID.
-func (e *ImmutableEvent) AggregateID() id.AggregateID { return e.aggregateID }
+// StreamID returns the stream identifier.
+func (e *ImmutableEvent) StreamID() id.StreamID { return e.streamID }
 
-// AggregateType returns the aggregate type.
-func (e *ImmutableEvent) AggregateType() id.AggregateType { return e.aggregateType }
+// StreamType returns the stream type.
+func (e *ImmutableEvent) StreamType() id.StreamType { return e.streamType }
+
+// Deprecated: use StreamID.
+func (e *ImmutableEvent) AggregateID() id.StreamID { return e.streamID }
+
+// Deprecated: use StreamType.
+func (e *ImmutableEvent) AggregateType() id.StreamType { return e.streamType }
 
 // Version returns the stream position of this event within the aggregate.
 func (e *ImmutableEvent) Version() Version { return e.version }
@@ -134,5 +140,5 @@ func (e *ImmutableEvent) Deadline() (time.Time, bool) {
 // String returns a human-readable representation of the event for logging and debugging.
 func (e *ImmutableEvent) String() string {
 	return fmt.Sprintf("%s(%s) v%d %s@%s",
-		e.eventType, e.id, e.version, e.aggregateType, e.aggregateID)
+		e.eventType, e.id, e.version, e.streamType, e.streamID)
 }

@@ -6,6 +6,15 @@
 | Status  | Implemented (v3) |
 | Decider | Lars Artmann     |
 
+> **Status note (2026-07-23):** The alias deletion described in Decision 3
+> has **not been fully executed**. `command.Metadata` and `query.Metadata`
+> are still type aliases — but they were repointed from `event.Metadata` to
+> `metadata.CustomData[MetadataKey]` (their own parameterized type). They
+> are no longer aliases of `event.Metadata`, but they are still aliases,
+> not standalone structs as this ADR proposes. The `Tracing` extraction and
+> typed `TombstoneMark`/`Causation` fields were implemented. The final
+> alias-to-struct conversion is deferred to a future major version.
+
 ## Context
 
 `event.Metadata` is a `map[string]string` with ~12 domain concepts stuffed into

@@ -2,9 +2,9 @@
 
 ## ADR-0001: Decider Pattern over Aggregate Root
 
-**Date:** 2026-04-29
+**Date:** 2026-05-03
 **Status:** Accepted
-**Supersedes:** Traditional DDD Aggregate Root pattern
+**Supersedes:** Traditional DDD Aggregate Root pattern (see also [ADR-0058](0058-rename-aggregate-to-stream.md) for the identity-type rename)
 
 ### Context
 
@@ -72,7 +72,7 @@ A single `go.mod` creates tight coupling between all packages. Changes to the ca
 
 ### Decision
 
-Split into **16 workspace modules** with independent `go.mod` files, tied together by `go.work`:
+Split into independent workspace modules with `go.mod` files tied together by `go.work`. (Originally 9 modules at this ADR's writing; now 55. This ADR is historical — see AGENTS.md for the current module list.)
 
 ```
 core/          — Zero external deps (ulid, branded-id, error-family)
@@ -82,9 +82,11 @@ middleware/    — Cross-cutting CQRS middleware
 testhelpers/   — Shared test utilities
 projection/    — Projection runner with replay
 storage/       — SQL + Pebble backends
-saga/          — Long-running process orchestration
+saga/          — Long-running process orchestration (later removed — ADR-0004)
 watermill/     — Watermill protocol adapter
 ```
+
+> **Historical:** This was the original 9-module layout. The project has since grown to 55 modules. See `AGENTS.md` for the current structure.
 
 ### Consequences
 
@@ -92,7 +94,7 @@ watermill/     — Watermill protocol adapter
 - **+** External consumers import only what they need
 - **+** CI can test modules in parallel and in isolation (`GOWORK=off`)
 - **-** `replace` directives required until v1.0.0 tags are pushed to remote
-- **-** Version management across 16 modules requires discipline
+- **-** Version management across 55 modules requires discipline
 - **-** `golangci-lint` doesn't work well with `go.work` (pre-existing tooling issue)
 
 ---

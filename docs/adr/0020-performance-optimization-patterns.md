@@ -114,6 +114,14 @@ func (cb *CircuitBreaker) allow() bool {
 - The `Projection` interface still requires `EventTypes()` to clone — a future v3 could add `SubscribesTo(Type) bool` to eliminate this entirely
 - Lesson learned: type assertions for fast paths are **dead code** if users create types via different constructors. Always cache at the integration boundary.
 
+> **Cross-reference:** This ADR documents Pattern 2 (pre-compute middleware
+> chains, rebuild only on `Use()`) as applied to `event.MemoryBus`.
+> [ADR-0049](0049-dispatch-time-middleware.md) documents the **opposite**
+> pattern (rebuild on every `Dispatch()` call) for `dispatcher.Dispatcher`.
+> The difference: `MemoryBus.Publish()` is a hot path called per-event,
+> while `dispatcher.Dispatch()` rebuild cost is negligible versus handler
+> execution. Both patterns are correct for their respective call sites.
+
 ## Benchmark Impact
 
 | Optimization                   | Pattern   | Allocs Eliminated          |

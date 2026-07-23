@@ -1,8 +1,14 @@
 # ADR-0014: Test-Only Dependencies in go.mod
 
+> **SUPERSEDED (2026-07-05):** This ADR deferred extracting `eventtest` as
+> a separate module. That extraction was subsequently done by
+> [ADR-0045](0045-eventtest-module-path-fix.md), which moved the directory
+> to match the module path and tagged it as v0.1.0. The analysis below is
+> preserved as historical context.
+
 ## Status
 
-Accepted
+Superseded by [0045](0045-eventtest-module-path-fix.md)
 
 ## Context
 
@@ -14,7 +20,7 @@ This creates the illusion of circular dependencies in the module graph. Static a
 
 We acknowledge that:
 
-1. **Production code is a clean DAG.** The actual import graph (excluding `_test.go` and test helper packages) has no cycles. `event` production code imports exactly: `id`, `codec`, `samber/ro`, `go-branded-id`, `go-error-family`, and `oklog/ulid`.
+1. **Production code is a clean DAG.** The actual import graph (excluding `_test.go` and test helper packages) has no cycles. `event` production code imports exactly: `id`, `codec`, `go-branded-id`, `go-error-family`, and `oklog/ulid`.
 
 2. **Test-only deps are not cycles.** The apparent bidirectional edges exist only because Go bundles test deps into `go.mod`. They do not affect compilation order, runtime behavior, or consumer builds.
 

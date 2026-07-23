@@ -17,10 +17,17 @@ func parse[T any](tb testing.TB, s string, fn func(string) (T, error)) T {
 	return v
 }
 
-func ParseAggregateID(tb testing.TB, s string) id.AggregateID {
+func ParseStreamID(tb testing.TB, s string) id.StreamID {
 	tb.Helper()
 
-	return parse(tb, s, id.ParseAggregateID)
+	return parse(tb, s, id.ParseStreamID)
+}
+
+// Deprecated: use ParseStreamID.
+func ParseAggregateID(tb testing.TB, s string) id.StreamID {
+	tb.Helper()
+
+	return ParseStreamID(tb, s)
 }
 
 func ParseEventID(tb testing.TB, s string) id.EventID {

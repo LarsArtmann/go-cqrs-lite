@@ -5,7 +5,7 @@ import (
 )
 
 // hashNamespacedKeys returns the SHA-256 digest of namespace followed by each
-// key separated by a NUL byte. Shared by DeriveAggregateID, DeriveCommandID,
+// key separated by a NUL byte. Shared by DeriveStreamID, DeriveCommandID,
 // and any future deterministic-ID derivation.
 //
 // The NUL separator prevents ambiguity when a key can itself contain the

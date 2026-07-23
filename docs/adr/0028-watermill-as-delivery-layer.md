@@ -6,6 +6,14 @@
 | Status  | Accepted     |
 | Decider | Lars Artmann |
 
+> **Status note (2026-07-23):** The v3 boundary removal of ghost bus code
+> (`event.Bus`, `event.Subscriber`, `event.Middleware`, `memory/bus.go`,
+> `memory/command_bus.go`, `storage/pg_bus.go`) referenced in Consequences
+> has **not yet been executed**. All five bus implementations still exist in
+> the codebase as of this writing. Watermill is adopted for new code, but
+> the old buses remain for backward compatibility. This ADR documents the
+> design decision; the cleanup is deferred to a future major version.
+
 ## Context
 
 The repository currently ships **five parallel bus implementations** for the same

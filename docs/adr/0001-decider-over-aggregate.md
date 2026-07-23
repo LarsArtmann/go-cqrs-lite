@@ -24,7 +24,7 @@ Introduce `core/decider/` as the recommended pattern for new consumers:
 - Zero infrastructure knowledge in domain logic
 - Full testability without mocking — pass initial state, fold, decide as functions
 
-The OO `aggregate` package stays for existing consumers who prefer that style.
+The OO `aggregate` package was removed in Session 99 (2026-05-03). Only the Decider pattern remains. See [ADR-0058](0058-rename-aggregate-to-stream.md) for the subsequent identity-type rename (`Aggregate*` → `Stream*`).
 
 ## Consequences
 
@@ -37,10 +37,10 @@ The OO `aggregate` package stays for existing consumers who prefer that style.
 
 **Negative:**
 
-- Two aggregate patterns exist (`aggregate` + `decider`) — documentation must guide consumers clearly
-- `SnapshotStrategy` is duplicated (separate types in each package) because decider uses generics
+- ~~Two aggregate patterns exist (`aggregate` + `decider`)~~ — `aggregate/` was removed in Session 99
+- ~~`SnapshotStrategy` is duplicated~~ — resolved when `aggregate/` was removed
 - Consumers familiar with OO aggregates may need to learn the functional approach
 
 **Neutral:**
 
-- Both patterns share the same `event.Store` and `event.Bus` infrastructure
+- Both patterns shared the same `event.Store` and `event.Bus` infrastructure (historical)

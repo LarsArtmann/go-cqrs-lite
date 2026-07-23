@@ -51,3 +51,11 @@ For each dispatch:
   This is negligible compared to the handler execution cost.
 - Middleware ordering is now predictable and documented.
 - The `dispatcher/doc.go` correctly documents dispatch-time application.
+
+> **Cross-reference:** [ADR-0020](0020-performance-optimization-patterns.md)
+> Pattern 2 documents the opposite approach (pre-compute chains, rebuild
+> only on `Use()`) for `event.MemoryBus`. The tradeoff is documented in
+> both ADRs: `MemoryBus` pre-computes because `Publish()` is a per-event
+> hot path; `dispatcher.Dispatcher` rebuilds per-dispatch because the cost
+> is negligible versus handler execution and it allows free middleware
+> ordering.

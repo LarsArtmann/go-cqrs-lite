@@ -7,11 +7,14 @@
 
 CBOR encoding of `time.Time` fields in event payloads causes silent timezone corruption:
 
-1. `CanonicalEncOptions()` defaults `Time` to `TimeUnix` — epoch seconds with no timezone info
-2. On decode, the resulting `time.Time` uses the local timezone, which may differ from the encoding server's timezone
-3. This shifts timestamps by hours when events cross timezone boundaries (e.g., a server in UTC writes, a server in PST reads)
+1. The `CBORCodec` uses `cbor.TimeUnixDynamic` (verified at `codec/cbor.go:29`), which encodes as epoch float64 with sub-second fractions. On decode, the resulting `time.Time` uses the local timezone, which may differ from the encoding server's timezone.
+2. This shifts timestamps by hours when events cross timezone boundaries (e.g., a server in UTC writes, a server in PST reads).
 
-The same issue affects nanosecond precision: `TimeUnix` truncates to seconds.
+> **Correction:** An earlier version of this ADR claimed the codec used
+> `TimeUnix` (truncating to seconds). That was incorrect — the codec uses
+> `TimeUnixDynamic` which preserves sub-second precision. The timezone
+> corruption risk remains real: `TimeUnixDynamic` decodes into `time.Time`
+> using the local timezone, not UTC.
 
 ## Decision
 

@@ -1,5 +1,10 @@
 package id
 
+import (
+	"fmt"
+	"time"
+)
+
 // Deprecated: use StreamMarker. AggregateMarker is retained as a type alias
 // for backward compatibility with consumer code that embeds it for branding.
 type AggregateMarker = StreamMarker
@@ -20,11 +25,7 @@ func ParseAggregateIDStrict(s string) (StreamID, error) { return ParseStreamIDSt
 func IsAggregateIDULID(id StreamID) bool { return IsStreamIDULID(id) }
 
 // Deprecated: use StreamTimestamp.
-func AggregateTimestamp(id StreamID) (timestamp interface{ Time() uint64 }, err error) {
-	t, err := StreamTimestamp(id)
-	return nil, err
-	_ = t
-}
+func AggregateTimestamp(id StreamID) (time.Time, error) { return StreamTimestamp(id) }
 
 // Deprecated: use DeriveStreamID.
 func DeriveAggregateID(namespace string, keys ...string) StreamID {

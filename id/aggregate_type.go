@@ -1,76 +1,18 @@
 package id
 
-import (
-	"fmt"
+// Deprecated: use StreamType. AggregateType is retained as a type alias.
+type AggregateType = StreamType
 
-	errorfamily "github.com/larsartmann/go-error-family"
-)
+// Deprecated: use ErrEmptyStreamType.
+var ErrEmptyAggregateType = ErrEmptyStreamType
 
-// AggregateType is a type identifier for aggregate roots.
-type AggregateType string
+// Deprecated: use ParseStreamType.
+func ParseAggregateType(s string) (StreamType, error) { return ParseStreamType(s) }
 
-// String returns the aggregate type as a string.
-func (a AggregateType) String() string { return string(a) }
+// Deprecated: use StreamRef. AggregateRef is retained as a type alias.
+type AggregateRef = StreamRef
 
-// IsZero reports whether the aggregate type is empty.
-func (a AggregateType) IsZero() bool { return a == "" }
-
-// ErrEmptyAggregateType is returned when an aggregate type is required but empty.
-var ErrEmptyAggregateType = errorfamily.NewRejection(
-	"id.empty_aggregate_type",
-	"aggregate type is required",
-)
-
-// ParseAggregateType validates and returns an AggregateType.
-// Returns an error if empty.
-func ParseAggregateType(s string) (AggregateType, error) {
-	if s == "" {
-		return "", ErrEmptyAggregateType
-	}
-
-	return AggregateType(s), nil
+// Deprecated: use NewStreamRef.
+func NewAggregateRef(streamType StreamType, streamID StreamID) StreamRef {
+	return NewStreamRef(streamType, streamID)
 }
-
-// AggregateRef uniquely identifies an aggregate instance by its type and ID.
-// Use this to pass aggregate identity as a single value instead of separate params.
-type AggregateRef struct {
-	Type AggregateType
-	ID   AggregateID
-}
-
-func (r AggregateRef) String() string {
-	return r.Type.String() + ":" + r.ID.String()
-}
-
-// StreamKey returns the canonical key for an event stream.
-func (r AggregateRef) StreamKey() string {
-	return r.String()
-}
-
-// NewAggregateRef creates an AggregateRef from a type and ID.
-func NewAggregateRef(aggregateType AggregateType, aggregateID AggregateID) AggregateRef {
-	return AggregateRef{Type: aggregateType, ID: aggregateID}
-}
-
-// IsZero returns true if both Type and ID are their zero values.
-func (r AggregateRef) IsZero() bool {
-	return r.Type == "" && r.ID.IsZero()
-}
-
-// Validate returns an error if Type is empty or ID is zero.
-func (r AggregateRef) Validate() error {
-	if r.Type == "" {
-		return ErrEmptyAggregateType
-	}
-
-	if r.ID.IsZero() {
-		return errorfamily.NewRejection("id.nil_aggregate_id", "aggregate ID is required")
-	}
-
-	return nil
-}
-
-// Verify AggregateRef satisfies fmt.Stringer at compile time.
-//
-//nolint:exhaustruct // zero-value proves interface is satisfied at compile time
-var _ fmt.Stringer = AggregateRef{}
