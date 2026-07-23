@@ -19,13 +19,13 @@ The codebase **compiles, tests pass (79 packages, 0 failures), lint is clean (0 
 
 ### Build / Test / Lint
 
-| Gate | Status | Evidence |
-|------|--------|----------|
-| Build (`go build ./...`) | PASS | Zero compilation errors across all 52+ modules |
-| Tests (`nix run .#test`) | PASS | 79 packages ok, 0 failures |
-| Lint (`nix run .#lint`) | PASS | 0 issues across all modules |
-| Doc-check (`cmd/doc-check`) | PASS | 897 references valid across 34 packages |
-| Format (`nix fmt`) | PASS | 47 files formatted |
+| Gate                        | Status | Evidence                                       |
+| --------------------------- | ------ | ---------------------------------------------- |
+| Build (`go build ./...`)    | PASS   | Zero compilation errors across all 52+ modules |
+| Tests (`nix run .#test`)    | PASS   | 79 packages ok, 0 failures                     |
+| Lint (`nix run .#lint`)     | PASS   | 0 issues across all modules                    |
+| Doc-check (`cmd/doc-check`) | PASS   | 897 references valid across 34 packages        |
+| Format (`nix fmt`)          | PASS   | 47 files formatted                             |
 
 ### Phase 1: id/ Module (100% Complete)
 
@@ -100,6 +100,7 @@ The codebase **compiles, tests pass (79 packages, 0 failures), lint is clean (0 
 ### Comments in Production Go Files (~70 files with "aggregate" in comments)
 
 **~99 .go files still contain the word "aggregate"** — but the vast majority are:
+
 - Deprecated alias definitions (correct — they SHOULD say "aggregate")
 - Wire-format strings (correct — they SHOULD say "aggregate")
 - Comments/doc strings that still use "aggregate" conceptually
@@ -107,6 +108,7 @@ The codebase **compiles, tests pass (79 packages, 0 failures), lint is clean (0 
 **~70 production files have comments saying "aggregate" when they should say "stream":**
 
 Key offenders (high-value files):
+
 - `decider/doc.go` — 8 references ("pure-function aggregate pattern", "mutable aggregate root", etc.)
 - `decider/decider.go` — 6 references in comments
 - `decider/cache.go` — 5 references ("folded aggregate state", etc.)
@@ -132,6 +134,7 @@ Key offenders (high-value files):
 ### AGENTS.md (Partially Updated)
 
 16 "aggregate" mentions remain:
+
 - Line 52: Module tree description still says `AggregateID`
 - Line 77: `AggregateListing, AggregateStatus, InMemoryAggregateReader`
 - Line 135: Design principle mentions "aggregate"
@@ -144,11 +147,13 @@ Key offenders (high-value files):
 ### SKILL.md (Not Updated)
 
 1 mention in the description line:
+
 - "event-sourced aggregates" and "snapshot an aggregate" and "soft-delete aggregate"
 
 ### Skill References (Not Updated)
 
 6 reference files with 32 total aggregate mentions:
+
 - `references/core.md` — 10 mentions
 - `references/advanced.md` — 11 mentions
 - `references/recipes.md` — 3 mentions
@@ -165,10 +170,12 @@ Key offenders (high-value files):
 Two error variable pairs were NOT renamed and have NO deprecated aliases:
 
 **`storage/sql/errors.go`:**
+
 - `ErrAggregateTypeMismatch` — should be `ErrStreamTypeMismatch` (code string `"storage.aggregate_type_mismatch"` stays)
 - `ErrAggregateIDMismatch` — should be `ErrStreamIDMismatch` (code string `"storage.aggregate_id_mismatch"` stays)
 
 **`storage/pebble/errors.go`:**
+
 - `ErrAggregateTypeMismatch` — should be `ErrStreamTypeMismatch`
 - `ErrAggregateIDMismatch` — should be `ErrStreamIDMismatch`
 
@@ -177,6 +184,7 @@ These are exported Conflict errors with consumers. They need: rename primary + a
 ### cqrs-lint Rule Descriptions
 
 The linter has rules that describe OO aggregate detection:
+
 - `cmd/cqrs-lint/pkg/rules/api/a007.go` — "Dual model (OO aggregate + functional decider)" — these are DDD concept references and may be intentionally kept as "aggregate"
 - `cmd/cqrs-lint/pkg/analyzer/types.go:61` — `IsOO bool // object-oriented aggregate (has uncommittedEvents)` — again, this refers to the DDD pattern being detected, not the library's types
 - `cmd/cqrs-lint/pkg/rules/catalog.go` — Rule descriptions mention "aggregates"
@@ -326,13 +334,13 @@ The linter detects consumers who use OO-style aggregates (classes with `uncommit
 
 ## Verification Summary
 
-| Check | Result |
-|-------|--------|
-| `go build -tags "goexperiment.jsonv2" ./...` | PASS |
-| `nix run .#test` (79 packages) | PASS (0 failures) |
-| `nix run .#lint` (all modules) | PASS (0 issues) |
-| `cmd/doc-check` (897 references) | PASS |
-| `nix fmt` | PASS (47 files formatted) |
-| Deprecated aliases compile | PASS |
-| Wire formats preserved | PASS (JSON, SQL, proto, OTel, error codes) |
-| SA1019 deprecation warnings | 0 (all internal code uses Stream*) |
+| Check                                        | Result                                     |
+| -------------------------------------------- | ------------------------------------------ |
+| `go build -tags "goexperiment.jsonv2" ./...` | PASS                                       |
+| `nix run .#test` (79 packages)               | PASS (0 failures)                          |
+| `nix run .#lint` (all modules)               | PASS (0 issues)                            |
+| `cmd/doc-check` (897 references)             | PASS                                       |
+| `nix fmt`                                    | PASS (47 files formatted)                  |
+| Deprecated aliases compile                   | PASS                                       |
+| Wire formats preserved                       | PASS (JSON, SQL, proto, OTel, error codes) |
+| SA1019 deprecation warnings                  | 0 (all internal code uses Stream*)         |
