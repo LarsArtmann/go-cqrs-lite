@@ -36,6 +36,7 @@
 **Every query pattern CAN be served by every storage engine.**
 
 A KV store can do:
+
 - **Point lookup** — O(1) hash lookup. Native.
 - **Filtered scan** — O(n) scan all values, decode each, filter in memory. Slow but correct.
 - **Sorted range** — O(n log n) scan + sort in memory. Works.
@@ -102,15 +103,15 @@ Meta-engine:
 
 The seven ADTs relevant to persistent storage:
 
-| ADT | Operations | Ordered? | Uniqueness? |
-|---|---|---|---|
-| **Map** | Get/Set/Delete by key | no | keys only |
-| **Sorted Map** | Map ops + Range/Filter/OrderBy | **yes** | keys only |
-| **Multimap** | Add(key,val)/GetAll(key) | no | no |
-| **Counter** | Increment/Get | no | n/a |
-| **Set** | Add/Contains/Members | no | **yes** |
-| **Log** | Append/ReadFrom | **yes** | no |
-| **Graph** | AddEdge/Neighbors/Traverse | no | edges unique |
+| ADT            | Operations                     | Ordered? | Uniqueness?  |
+| -------------- | ------------------------------ | -------- | ------------ |
+| **Map**        | Get/Set/Delete by key          | no       | keys only    |
+| **Sorted Map** | Map ops + Range/Filter/OrderBy | **yes**  | keys only    |
+| **Multimap**   | Add(key,val)/GetAll(key)       | no       | no           |
+| **Counter**    | Increment/Get                  | no       | n/a          |
+| **Set**        | Add/Contains/Members           | no       | **yes**      |
+| **Log**        | Append/ReadFrom                | **yes**  | no           |
+| **Graph**      | AddEdge/Neighbors/Traverse     | no       | edges unique |
 
 ### From Designing Data-Intensive Applications
 
@@ -139,13 +140,13 @@ DDIA's core lessons that apply:
 
 The optimizer respects these physical limits:
 
-| Constraint | Implication for the optimizer |
-|---|---|
-| **Network** | Avoid cross-engine queries. If pattern needs data from 2 engines, denormalize so it's in 1. |
-| **RAM** | Large datasets can't fit in memory. The optimizer must prefer streaming/paginated access paths for large projections. |
-| **Disk I/O** | Sequential scan (O(n) disk) vs index seek (O(log n) disk) is 100x+ difference at scale. Prefer indexed paths. |
-| **CPU** | In-memory decode + filter is CPU-bound. Columnar engines (ClickHouse) avoid this by only reading relevant columns. |
-| **Time** | Every query has an implicit latency budget. The optimizer picks the path most likely to meet it. |
+| Constraint   | Implication for the optimizer                                                                                         |
+| ------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **Network**  | Avoid cross-engine queries. If pattern needs data from 2 engines, denormalize so it's in 1.                           |
+| **RAM**      | Large datasets can't fit in memory. The optimizer must prefer streaming/paginated access paths for large projections. |
+| **Disk I/O** | Sequential scan (O(n) disk) vs index seek (O(log n) disk) is 100x+ difference at scale. Prefer indexed paths.         |
+| **CPU**      | In-memory decode + filter is CPU-bound. Columnar engines (ClickHouse) avoid this by only reading relevant columns.    |
+| **Time**     | Every query has an implicit latency budget. The optimizer picks the path most likely to meet it.                      |
 
 ---
 
@@ -504,14 +505,14 @@ engines:
 
 ### What the Operator Controls
 
-| Decision | Who | How |
-|---|---|---|
-| Which engines to provide | Operator | `deploy.yaml` |
-| Connection strings | Operator | `deploy.yaml` DSN per engine |
-| Connection tuning | Operator | `deploy.yaml` options per engine |
-| Which patterns to optimize | Developer | `projection.Filter()`, `.Sort()`, etc. |
-| Which engine serves which pattern | **Optimizer** | Cost-based assignment at startup |
-| Physical layout (tables, indexes, CFs) | **Optimizer** | Auto-generated from declarations |
+| Decision                               | Who           | How                                    |
+| -------------------------------------- | ------------- | -------------------------------------- |
+| Which engines to provide               | Operator      | `deploy.yaml`                          |
+| Connection strings                     | Operator      | `deploy.yaml` DSN per engine           |
+| Connection tuning                      | Operator      | `deploy.yaml` options per engine       |
+| Which patterns to optimize             | Developer     | `projection.Filter()`, `.Sort()`, etc. |
+| Which engine serves which pattern      | **Optimizer** | Cost-based assignment at startup       |
+| Physical layout (tables, indexes, CFs) | **Optimizer** | Auto-generated from declarations       |
 
 The operator provides engines. The developer declares query patterns. The optimizer matches
 them. Neither talks to the other directly.
@@ -727,6 +728,7 @@ users := projection.Declare[UserView, UserID]("users",
 ### Problem 2: Schema Migration (Medium)
 
 When the UserView type gains a field, projections need updating:
+
 - SQLite: `ALTER TABLE users ADD COLUMN new_field TEXT`
 - Pebble: schemaless (just start writing the new field)
 - Neo4j: schemaless
@@ -789,6 +791,7 @@ The user correctly pointed out: "if you want to query a full 1TB DB but the serv
 50GB RAM, we need to stream/buffer/paginate."
 
 **Solution:** The optimizer respects `MaxDataSize` in engine profiles:
+
 - Memory engine declares `MaxDataSize: 1GB` (operator-configurable)
 - If a projection would exceed this, the optimizer refuses to assign it to memory
 - All read methods support `Limit(offset, count)` for pagination
@@ -810,15 +813,15 @@ err := store.Users.Stream(ctx, func(u *UserView) error {
 
 No existing system does this in an embedded Go library:
 
-| System | What it does | What the meta-engine does differently |
-|---|---|---|
-| **ORMs (GORM, ent)** | Map objects → SQL tables, single engine | Projects events → N engines, multi-shape |
-| **CQRS frameworks (Axon)** | Separate read/write, manual projection | Auto-generated projections, cost-optimized |
-| **Apache Calcite** | Federated query planning (at query time) | Physical layout optimization (at deploy time) |
-| **Materialize (streaming DB)** | Real-time views from streams, single engine | Multi-engine, embedded, event-sourced |
-| **dbt** | Batch transforms in warehouses | Real-time, multi-engine, typed, library |
-| **Kafka Connect** | Move data between systems | Typed read API, cost-based optimization |
-| **DuckDB (embedded OLAP)** | Single embedded analytics engine | Multi-engine coordinator |
+| System                         | What it does                                | What the meta-engine does differently         |
+| ------------------------------ | ------------------------------------------- | --------------------------------------------- |
+| **ORMs (GORM, ent)**           | Map objects → SQL tables, single engine     | Projects events → N engines, multi-shape      |
+| **CQRS frameworks (Axon)**     | Separate read/write, manual projection      | Auto-generated projections, cost-optimized    |
+| **Apache Calcite**             | Federated query planning (at query time)    | Physical layout optimization (at deploy time) |
+| **Materialize (streaming DB)** | Real-time views from streams, single engine | Multi-engine, embedded, event-sourced         |
+| **dbt**                        | Batch transforms in warehouses              | Real-time, multi-engine, typed, library       |
+| **Kafka Connect**              | Move data between systems                   | Typed read API, cost-based optimization       |
+| **DuckDB (embedded OLAP)**     | Single embedded analytics engine            | Multi-engine coordinator                      |
 
 ### The Novel Contribution
 
