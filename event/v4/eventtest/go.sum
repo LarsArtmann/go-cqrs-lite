@@ -16,14 +16,12 @@ github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.3 h1:sc+OK/RAQ2PyJhmpzjNigFTGy
 github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.3/go.mod h1:xkjAUorag4fM6IcZzhjK36Qztm8Gdy7rxsSBv0T1GEU=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.1 h1:MMmMiQDOSsDGPNSg9hQBi+hJCN1Q4dkxh9d4yUVH/yA=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.1/go.mod h1:8FA8G3EmkC+WG9lKCqxAa+e0Sg8mJITQdPausWY0fFc=
-github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.1 h1:UOP8M/cFzNfMkhw0JUM0ERipaptkvxrwNAa1aGIHCA4=
-github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.1/go.mod h1:R0ovpgR0KXd4gYeqJm4E5MlZcO0EAXlYbdioyWC5Vy8=
+github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0 h1:/CKTWit+2tsrk1iu3BV2RRj9j9e7Yc3SBpPCauRWXIM=
+github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.0/go.mod h1:R0ovpgR0KXd4gYeqJm4E5MlZcO0EAXlYbdioyWC5Vy8=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.1 h1:fOqr565QDzVUf+F4OyE0PI/nlDdMAoEdThktry7ABe4=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.1/go.mod h1:yM/AWoMMPTQJL3bkpSBq8TL60UPLpe2K76I70CLD1sU=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.1 h1:LDRvKVMeQeb4EISxTCx4Lrb8X1VjZMvemC8nUZb3POI=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.1/go.mod h1:ApKfabZl05Ro5+r2E0zzWb189NPuhqGPWAEOHNhvqzU=
-github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.1 h1:8vGDioj+vvYwTaaAxOtk+b/CT2bspQu/rO7josFMq1I=
-github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.1/go.mod h1:oN+Bm+U9JLP4emP79bUjcIH8TjM2NFcZETOAWevjcvI=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0 h1:cu5iabpSMctNoKe0/lB+uhr2q3tcRQqYn/ffbhDMGW8=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0/go.mod h1:YRsX8oQV7t3GAe2o/1tBrViBODT6iNlFAnKS0T0n0Qc=
 github.com/larsartmann/go-error-family v0.7.0 h1:D3fMZbx0gjVjtWOyIfevlUKWMWE65NnHFwtpBP3l9bw=

@@ -18,10 +18,6 @@ github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.1 h1:fOqr565QDzVUf+F4OyE0PI
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.1/go.mod h1:yM/AWoMMPTQJL3bkpSBq8TL60UPLpe2K76I70CLD1sU=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.1 h1:LDRvKVMeQeb4EISxTCx4Lrb8X1VjZMvemC8nUZb3POI=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.1/go.mod h1:ApKfabZl05Ro5+r2E0zzWb189NPuhqGPWAEOHNhvqzU=
-github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.1 h1:8vGDioj+vvYwTaaAxOtk+b/CT2bspQu/rO7josFMq1I=
-github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.1/go.mod h1:oN+Bm+U9JLP4emP79bUjcIH8TjM2NFcZETOAWevjcvI=
-github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.2 h1:22UdaeqWPpn7KBHGq1LSrDLYKdx6fBbGVm53+Pwr0UU=
-github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.2/go.mod h1:CUoN7+/nUU31P0fbfUi3dn2fTa6/ZWkabx/2YMHQPCI=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0 h1:cu5iabpSMctNoKe0/lB+uhr2q3tcRQqYn/ffbhDMGW8=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0/go.mod h1:YRsX8oQV7t3GAe2o/1tBrViBODT6iNlFAnKS0T0n0Qc=
 github.com/larsartmann/go-error-family v0.7.0 h1:D3fMZbx0gjVjtWOyIfevlUKWMWE65NnHFwtpBP3l9bw=

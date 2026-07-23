@@ -32,21 +32,21 @@ require (
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.44.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	modernc.org/libc v1.74.1 // indirect
+	modernc.org/libc v1.74.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	pgregory.net/rapid v1.3.0 // indirect
 )
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0
 	github.com/larsartmann/go-error-family v0.7.0

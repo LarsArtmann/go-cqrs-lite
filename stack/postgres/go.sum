@@ -55,8 +55,6 @@ github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.1 h1:EOXOg6Ab/pl/d06pqf4E
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.1/go.mod h1:gpS/kRu+3Z70aJffbYNLBGCnce7BjxbFS0MFvJAvmK0=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.2 h1:gIErl9JsJlSFmuCRbZnngF04aGFSKQTN8xwiFTmTVa0=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.2/go.mod h1:Xzmlyh7M2ydEiHZHMbmgqj0u0q5GbDxvCptvLYLF154=
-github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.1 h1:8vGDioj+vvYwTaaAxOtk+b/CT2bspQu/rO7josFMq1I=
-github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.1/go.mod h1:oN+Bm+U9JLP4emP79bUjcIH8TjM2NFcZETOAWevjcvI=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0 h1:JVHXvuo3ANV6dfaL2WQ5J61OeyeARQ1hdmMbWUDN6MY=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0/go.mod h1:TpJz2iBvEo1oRwCGalJ5Z947b1OrrOos4UYHi6sfGIU=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.3 h1:GUc5580DOcrzdSLZG7v5OflhDCU1hNbsbZnE1xOLUzA=
