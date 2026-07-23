@@ -57,7 +57,7 @@ func Query[Q any, R any](name string, model ReadModel, opts ...QueryOption) Quer
 		querySample:  *new(Q),
 		resultSample: *new(R),
 	}
-	q.InputTypeName = reflect.TypeOf(q.querySample).Name()
+	q.InputTypeName = qualifiedTypeName(q.querySample)
 	q.infer()
 
 	return q

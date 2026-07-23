@@ -4,6 +4,25 @@ import (
 	"reflect"
 )
 
+// qualifiedTypeName returns a package-qualified type name to prevent collisions
+// between types with the same name from different packages.
+func qualifiedTypeName(v any) string {
+	t := reflect.TypeOf(v)
+	if t == nil {
+		return ""
+	}
+
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	if pkg := t.PkgPath(); pkg != "" {
+		return pkg + "." + t.Name()
+	}
+
+	return t.Name()
+}
+
 // reflectField is a simplified view of a struct field for type inference.
 type reflectField struct {
 	Name       string
