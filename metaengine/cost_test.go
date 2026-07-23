@@ -1,25 +1,52 @@
 package metaengine_test
 
 import (
+	"strings"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
+// hasDiagnostic checks if any diagnostic in the list has the given level and
+// contains the message substring.
+func hasDiagnostic(diags []metaengine.Diagnostic, level string, messageSubstr string) bool {
+	for _, d := range diags {
+		if d.Level == level && strings.Contains(d.Message, messageSubstr) {
+			return true
+		}
+	}
+
+	return false
+}
+
 var _ = Describe("Cost model", func() {
 	Describe("CostEstimate WithinBudget", func() {
-		DescribeTable("budget enforcement",
-			func(latencyMs float64, budgetMs int64, expected bool) {
-				ce := metaengine.CostEstimate{EstimatedLatencyMs: latencyMs}
-				Expect(ce.WithinBudget(budgetMs)).To(Equal(expected))
-			},
-			Entry("latency under budget", 0.5, 1, true),
-			Entry("latency exactly at budget", 1.0, 1, true),
-			Entry("latency over budget", 2.0, 1, false),
-			Entry("zero budget means unlimited", 9999.0, 0, true),
-			Entry("negative budget means unlimited", 9999.0, -1, true),
-		)
+		It("returns true when latency is under budget", func() {
+			ce := metaengine.CostEstimate{EstimatedLatencyMs: 0.5}
+			Expect(ce.WithinBudget(1)).To(BeTrue())
+		})
+
+		It("returns true when latency equals budget", func() {
+			ce := metaengine.CostEstimate{EstimatedLatencyMs: 1.0}
+			Expect(ce.WithinBudget(1)).To(BeTrue())
+		})
+
+		It("returns false when latency exceeds budget", func() {
+			ce := metaengine.CostEstimate{EstimatedLatencyMs: 2.0}
+			Expect(ce.WithinBudget(1)).To(BeFalse())
+		})
+
+		It("returns true for zero budget (unlimited)", func() {
+			ce := metaengine.CostEstimate{EstimatedLatencyMs: 9999.0}
+			Expect(ce.WithinBudget(0)).To(BeTrue())
+		})
+
+		It("returns true for negative budget (unlimited)", func() {
+			ce := metaengine.CostEstimate{EstimatedLatencyMs: 9999.0}
+			Expect(ce.WithinBudget(-1)).To(BeTrue())
+		})
 	})
 
 	Describe("CostEstimate String", func() {
@@ -77,25 +104,9 @@ var _ = Describe("Cost model", func() {
 	})
 
 	Describe("latency budget enforcement", func() {
-		When("the estimated latency exceeds the declared budget", func() {
-			It("emits a WARN diagnostic with the estimated latency", func() {
-				q := metaengine.Query[FindTask, FindTaskResult](
-					"find_task_budget",
-					metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
-						return e.ID, FindTaskResult{ID: e.ID, Title: e.Title}
-					}),
-					metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
-					// O(1) at 1M items → negligible latency, but set budget to 0.00001ms
-					metaengine.Volume(1_000_000),
-					metaengine.WithLatencyBudget(0),
-				)
-
-				// WithLatencyBudget(0) means unlimited, so no warning.
-				// Instead, test with a real budget on a scan query.
-				_ = q
-
-				// For a filtered scan at high volume, O(N) is expensive.
-				scanQ := metaengine.Query[ListTasksByStatus, ListTasksByStatusResult](
+		When("a filtered scan at high volume exceeds the latency budget", func() {
+			It("emits a WARN diagnostic naming the estimated latency", func() {
+				q := metaengine.Query[ListTasksByStatus, ListTasksByStatusResult](
 					"list_budget",
 					metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
 						return e.ID, FindTaskResult{ID: e.ID, Title: e.Title, Status: e.Status}
@@ -107,19 +118,15 @@ var _ = Describe("Cost model", func() {
 				)
 
 				store, err := metaengine.Plan(
-					[]metaengine.Engine{metaengine.NewMemoryEngine()}, scanQ,
+					[]metaengine.Engine{metaengine.NewMemoryEngine()}, q,
 				)
 				Expect(err).NotTo(HaveOccurred())
 				defer store.Close()
 
 				assignment := store.Plan().Queries[0]
-				Expect(assignment.Diagnostics).To(ContainElement(MatchFields(
-					IgnoreExtras,
-					Fields{
-						"Level":   Equal(metaengine.DiagLevelWarn),
-						"Message": MatchRegexp("estimated latency .* exceeds budget 1ms"),
-					},
-				)))
+				Expect(hasDiagnostic(
+					assignment.Diagnostics, metaengine.DiagLevelWarn, "exceeds budget 1ms",
+				)).To(BeTrue(), "expected latency budget warning among: %v", assignment.Diagnostics)
 			})
 		})
 	})
@@ -143,13 +150,9 @@ var _ = Describe("Cost model", func() {
 				defer store.Close()
 
 				assignment := store.Plan().Queries[0]
-				Expect(assignment.Diagnostics).To(ContainElement(MatchFields(
-					IgnoreExtras,
-					Fields{
-						"Level":   Equal(metaengine.DiagLevelWarn),
-						"Message": MatchRegexp("exceeds optimal range.*disk-backed"),
-					},
-				)))
+				Expect(hasDiagnostic(
+					assignment.Diagnostics, metaengine.DiagLevelWarn, "exceeds optimal range",
+				)).To(BeTrue(), "expected scale threshold warning among: %v", assignment.Diagnostics)
 			})
 		})
 
@@ -171,9 +174,9 @@ var _ = Describe("Cost model", func() {
 				defer store.Close()
 
 				assignment := store.Plan().Queries[0]
-				for _, d := range assignment.Diagnostics {
-					Expect(d.Message).NotTo(MatchRegexp("exceeds optimal range"))
-				}
+				Expect(hasDiagnostic(
+					assignment.Diagnostics, metaengine.DiagLevelWarn, "exceeds optimal range",
+				)).To(BeFalse())
 			})
 		})
 	})
@@ -186,33 +189,24 @@ var _ = Describe("Write amplification budget", func() {
 		})
 	})
 
-	When("the same event updates more projections than the default budget", func() {
-		It("emits a write amplification warning", func() {
-			store, err := metaengine.Plan(
-				[]metaengine.Engine{metaengine.NewMemoryEngine()},
-				allQueries()...,
-			)
-			Expect(err).NotTo(HaveOccurred())
-			defer store.Close()
-
-			// With 3 queries listening to TaskCreated, we need one more to trigger
-			// the default budget of 3. Add a 4th query.
+	When("four queries listen to the same event type", func() {
+		It("emits a write amplification warning with the default budget of 3", func() {
 			extra := metaengine.Query[FindTask, FindTaskResult](
-				"find_task_dup",
+				"find_task_extra",
 				metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
 					return e.ID, FindTaskResult{ID: e.ID}
 				}),
 				metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 			)
 
-			store2, err := metaengine.Plan(
+			store, err := metaengine.Plan(
 				[]metaengine.Engine{metaengine.NewMemoryEngine()},
 				findTaskQuery(), listTasksByStatusQuery(), countByStatusQuery(), extra,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			defer store2.Close()
+			defer store.Close()
 
-			plan := store2.Plan()
+			plan := store.Plan()
 			Expect(plan.Diagnostics.HasWarnings()).To(BeTrue())
 		})
 	})

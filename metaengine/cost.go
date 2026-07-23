@@ -36,10 +36,12 @@ func (ce CostEstimate) WithinBudget(budgetMs int64) bool {
 // The volume represents the expected number of items in the projection.
 // If volume is zero or negative, a default of 1000 is assumed.
 func estimateCost(complexity Complexity, volume int64) CostEstimate {
-	n := float64(volume)
-	if n <= 0 {
-		n = 1000
+	effectiveVolume := volume
+	if effectiveVolume <= 0 {
+		effectiveVolume = 1000
 	}
+
+	n := float64(effectiveVolume)
 
 	var ops float64
 
@@ -65,7 +67,7 @@ func estimateCost(complexity Complexity, volume int64) CostEstimate {
 
 	return CostEstimate{
 		Complexity:         complexity,
-		Volume:             volume,
+		Volume:             effectiveVolume,
 		EstimatedOps:       ops,
 		EstimatedLatencyMs: latencyMs,
 	}
