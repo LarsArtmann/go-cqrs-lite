@@ -90,15 +90,17 @@ func OnCount[E any](sample E, fn func(e E) Delta) Fold {
 // The typed delta is converted to the generic Delta at registration time.
 func OnCountTyped[E any, K ~string](sample E, fn func(e E) TypedDelta[K]) Fold {
 	return Fold{
-		EventType: EventTypeName(sample),
+		EventType:   EventTypeName(sample),
 		EventSample: sample,
-		Kind:       FoldCount,
+		Kind:        FoldCount,
 		countHandler: func(e E) Delta {
 			typed := fn(e)
+
 			d := make(Delta, len(typed))
 			for k, v := range typed {
 				d[string(k)] = v
 			}
+
 			return d
 		},
 	}

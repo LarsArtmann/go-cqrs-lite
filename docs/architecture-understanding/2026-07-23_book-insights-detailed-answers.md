@@ -37,12 +37,12 @@ But the **README** — the first thing consumers read — says "52 independent m
 
 ### The distinction that needs to be explicit
 
-| Deployment shape | Supported | How |
-|---|---|---|
-| **Single-process embedded** | Yes | `stack/sqlite`, `stack/pebble`, `stack/turso` — one process, one file |
-| **Single-process + broker** | Yes | Any preset + `watermill.WithBackend(kafkaPub, kafkaSub)` |
-| **Multi-process shared DB** | Yes | `stack/postgres` + `WithDistributedBus(listener)` — `LISTEN/NOTIFY` for cross-process pub/sub |
-| **Multi-server distributed** | No | No replication, consensus, or leader election. Use external coordination (etcd, Kubernetes) at the deployment layer |
+| Deployment shape             | Supported | How                                                                                                                 |
+| ---------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Single-process embedded**  | Yes       | `stack/sqlite`, `stack/pebble`, `stack/turso` — one process, one file                                               |
+| **Single-process + broker**  | Yes       | Any preset + `watermill.WithBackend(kafkaPub, kafkaSub)`                                                            |
+| **Multi-process shared DB**  | Yes       | `stack/postgres` + `WithDistributedBus(listener)` — `LISTEN/NOTIFY` for cross-process pub/sub                       |
+| **Multi-server distributed** | No        | No replication, consensus, or leader election. Use external coordination (etcd, Kubernetes) at the deployment layer |
 
 ### Improvement applied
 
@@ -56,15 +56,15 @@ Added a **Deployment Scope** section to `docs/DOMAIN_LANGUAGE.md` with the above
 
 Research confirms the two systems are completely independent:
 
-| | Snapshots | Materialized Views |
-|---|---|---|
-| **What they store** | Aggregate `State` (decider fold result) | Read-model `V` (projection handler output) |
-| **Purpose** | Speeds up `Repository.Load` (command side) | Serves queries (read side) |
-| **Store** | `snapshot.SnapshotStore` | `kv.ViewStore[V,K]` |
-| **Writer** | `decider.Repository` after `Execute` | `stack.Materialize` event handler |
-| **Reader** | `decider.Repository` during `Load` | Query side via `Materialize.View` / `.List` |
-| **Keyed by** | `id.StreamRef` (aggregate identity) | `K` (read-model key from event) |
-| **Package imports** | `decider` → `snapshot` | `stack` → `kv` (no `snapshot` import) |
+|                     | Snapshots                                  | Materialized Views                          |
+| ------------------- | ------------------------------------------ | ------------------------------------------- |
+| **What they store** | Aggregate `State` (decider fold result)    | Read-model `V` (projection handler output)  |
+| **Purpose**         | Speeds up `Repository.Load` (command side) | Serves queries (read side)                  |
+| **Store**           | `snapshot.SnapshotStore`                   | `kv.ViewStore[V,K]`                         |
+| **Writer**          | `decider.Repository` after `Execute`       | `stack.Materialize` event handler           |
+| **Reader**          | `decider.Repository` during `Load`         | Query side via `Materialize.View` / `.List` |
+| **Keyed by**        | `id.StreamRef` (aggregate identity)        | `K` (read-model key from event)             |
+| **Package imports** | `decider` → `snapshot`                     | `stack` → `kv` (no `snapshot` import)       |
 
 Zero imports, zero shared interfaces, zero data flow between them.
 
@@ -91,6 +91,7 @@ In DDIA Ch. 5 (Replication) and Ch. 11 (Stream Processing), the high-water mark 
 `event.CheckpointStore` — a per-projection saved position. The `projectionhost` worker saves its checkpoint after processing each event (or batch). On restart, it resumes from the last checkpoint.
 
 Code references:
+
 - `event.CheckpointStore` interface (CheckpointSink + CheckpointSource)
 - `projectionhost/worker.go` saves checkpoint after processing
 - `watermill/catchup_subscriber.go` saves checkpoint after each forwarded event
@@ -103,7 +104,7 @@ A high-water mark is a **global** property of the log (what's safe to read). A c
 
 No new code needed. The term "checkpoint" is more precise than "high-water mark" for this library's single-process model. A high-water mark implies replication (what's safe to read across nodes), which this library doesn't do. The checkpoint is the right abstraction.
 
-Added a `High-Water Mark` entry to `DOMAIN_LANGUAGE.md` that explicitly bridges the vocabulary: *"DDIA term for the maximum safely-processed position in a stream; this library calls it 'Checkpoint'."*
+Added a `High-Water Mark` entry to `DOMAIN_LANGUAGE.md` that explicitly bridges the vocabulary: _"DDIA term for the maximum safely-processed position in a stream; this library calls it 'Checkpoint'."_
 
 ---
 
@@ -171,6 +172,7 @@ Both `MemoryStore` and `kvstore.Store` (Pebble) are **process-local**. Two insta
 The Pebble adapter's `SetIfAbsent` uses a `sync.Mutex` — atomic only within one process.
 
 No SQL-backed `idempotency.Store` exists despite:
+
 - The interface doc mentioning `INSERT ON CONFLICT DO NOTHING` as the future SQL strategy
 - `storage/sql/duplicate.go` having `IsDuplicateKeyError` for PG/SQLite unique violations
 - The `idempotency.Store` interface supporting it
@@ -195,17 +197,17 @@ The library doesn't own HTTP handlers.
 
 ### What exists (verified against source)
 
-| Component | File | Status |
-|---|---|---|
-| `Store` interface | `idempotency/store.go` | 3 methods: `Seen`, `Record`, `CheckAndRecord` (atomic) |
-| `MemoryStore` | `idempotency/store.go:56-156` | TTL-based, lazy deletion + optional background sweep |
-| `kvstore.Store` | `idempotency/kvstore/store.go` | Adapts any `KVBackend` via `SetIfAbsent` |
-| `CommandIdempotency` | `middleware/idempotency.go` | Default key: `cmd.ID().String()` |
-| `EventIdempotency` | `middleware/idempotency.go` | Default key: `evt.ID().String()` |
-| `QueryIdempotency` | `middleware/idempotency.go` | Panics if `keyExtractor` is nil (documented) |
-| `dedup.Ring` | `dedup/ring.go` | O(1) fixed-capacity, `DefaultCapacity = 1024` |
-| CatchUpSubscriber dedup | `watermill/catchup_subscriber.go:247` | `catchUpDedupRingCapacity = 1024` |
-| projectionhost dedup | `projectionhost/host.go:111` | `dedup.NewRing(dedup.DefaultCapacity)` |
+| Component               | File                                  | Status                                                 |
+| ----------------------- | ------------------------------------- | ------------------------------------------------------ |
+| `Store` interface       | `idempotency/store.go`                | 3 methods: `Seen`, `Record`, `CheckAndRecord` (atomic) |
+| `MemoryStore`           | `idempotency/store.go:56-156`         | TTL-based, lazy deletion + optional background sweep   |
+| `kvstore.Store`         | `idempotency/kvstore/store.go`        | Adapts any `KVBackend` via `SetIfAbsent`               |
+| `CommandIdempotency`    | `middleware/idempotency.go`           | Default key: `cmd.ID().String()`                       |
+| `EventIdempotency`      | `middleware/idempotency.go`           | Default key: `evt.ID().String()`                       |
+| `QueryIdempotency`      | `middleware/idempotency.go`           | Panics if `keyExtractor` is nil (documented)           |
+| `dedup.Ring`            | `dedup/ring.go`                       | O(1) fixed-capacity, `DefaultCapacity = 1024`          |
+| CatchUpSubscriber dedup | `watermill/catchup_subscriber.go:247` | `catchUpDedupRingCapacity = 1024`                      |
+| projectionhost dedup    | `projectionhost/host.go:111`          | `dedup.NewRing(dedup.DefaultCapacity)`                 |
 
 ### One actionable improvement
 
@@ -218,6 +220,7 @@ Add a SQL-backed `idempotency.Store` (`idempotency/sqlstore/` or in `storage/`).
 ### Why "Good" not "Excellent"
 
 The internal codec system is excellent:
+
 - 4 codecs (`JSONCodec`, `CBORCodec`, `CBORCompactCodec`, `RawCodec`)
 - Self-describing events (each carries `Encoding()` stamp)
 - Mixed-stream decoding (`DecodePayloadAuto[T]` dispatches per-event)
@@ -261,18 +264,18 @@ I updated `docs/DOMAIN_LANGUAGE.md` with the following additions, each verified 
 
 ### New Cross-Cutting terms (verified against source)
 
-| Term | Source verification |
-|---|---|
-| `Idempotent Receiver` (renamed from `Idempotency`) | `idempotency/store.go`, `dedup/ring.go:25` (`Ring`), `dedup/ring.go:21` (`DefaultCapacity = 1024`) |
-| `Circuit Breaker` | `middleware/circuit_breaker.go:199` (`NewCircuitBreaker[M]`), `middleware.CommandCircuitBreaker` |
-| `Retry` | `retry/retry.go:43` (`Do`), `retry/config.go:19` (`Config`), `retry/retry.go:104` (`Backoff`) |
-| `Dedup Ring` | `dedup/ring.go:25` (`Ring`), `dedup/ring.go:21` (`DefaultCapacity = 1024`) |
-| `Projection Lag` | `projectionhost/host.go:263` (`LagDuration`), `host.go:286` (`LagPerProjection`) |
-| `Heartbeat` | `transport/http/sse.go:192` (`DefaultSSEHeartbeat`), `transport/http/sse_event.go:137` (`WriteSSEHeartbeat`) |
-| `Backfill` | `transport/http/sse_backfill.go:75` (`BackfillHandler`) |
-| `BufferEncoder` | `codec/codec.go:55` (`BufferEncoder` interface), implemented by `JSONCodec`, `CBORCodec`, `CBORCompactCodec` |
-| `Materialized View` | `stack/materialize.go:28` ("materialized view"), ADR-0030, ADR-0040 |
-| `High-Water Mark` | Documented as DDIA term for what the library calls `Checkpoint` |
+| Term                                               | Source verification                                                                                          |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `Idempotent Receiver` (renamed from `Idempotency`) | `idempotency/store.go`, `dedup/ring.go:25` (`Ring`), `dedup/ring.go:21` (`DefaultCapacity = 1024`)           |
+| `Circuit Breaker`                                  | `middleware/circuit_breaker.go:199` (`NewCircuitBreaker[M]`), `middleware.CommandCircuitBreaker`             |
+| `Retry`                                            | `retry/retry.go:43` (`Do`), `retry/config.go:19` (`Config`), `retry/retry.go:104` (`Backoff`)                |
+| `Dedup Ring`                                       | `dedup/ring.go:25` (`Ring`), `dedup/ring.go:21` (`DefaultCapacity = 1024`)                                   |
+| `Projection Lag`                                   | `projectionhost/host.go:263` (`LagDuration`), `host.go:286` (`LagPerProjection`)                             |
+| `Heartbeat`                                        | `transport/http/sse.go:192` (`DefaultSSEHeartbeat`), `transport/http/sse_event.go:137` (`WriteSSEHeartbeat`) |
+| `Backfill`                                         | `transport/http/sse_backfill.go:75` (`BackfillHandler`)                                                      |
+| `BufferEncoder`                                    | `codec/codec.go:55` (`BufferEncoder` interface), implemented by `JSONCodec`, `CBORCodec`, `CBORCompactCodec` |
+| `Materialized View`                                | `stack/materialize.go:28` ("materialized view"), ADR-0030, ADR-0040                                          |
+| `High-Water Mark`                                  | Documented as DDIA term for what the library calls `Checkpoint`                                              |
 
 ### Schema Evolution entry expanded
 
@@ -286,6 +289,7 @@ Added `VersionedSeekableJournal` (verified: `schema/versioned_journal.go:22`)
 ### Verification block updated
 
 Added imports for `dedup/v4`, `retry/v4`, and symbols:
+
 - `middleware.CommandCircuitBreaker`
 - `retry.Do`, `retry.DefaultConfig`
 - `dedup.NewRing`, `dedup.DefaultCapacity`
@@ -322,7 +326,7 @@ The `watermill/go.mod` depends on `github.com/ThreeDotsLabs/watermill v1.5.2` bu
 
 ### Verdict
 
-The `DOMAIN_LANGUAGE.md` "Patterns NOT in the Library" table already correctly says: *"Injected via Watermill adapter (`watermill.NewEventBus` with Kafka/NATS/Redis)."* The original report should have rated this higher — the library provides real broker integration, not just transport-agnosticism.
+The `DOMAIN_LANGUAGE.md` "Patterns NOT in the Library" table already correctly says: _"Injected via Watermill adapter (`watermill.NewEventBus` with Kafka/NATS/Redis)."_ The original report should have rated this higher — the library provides real broker integration, not just transport-agnosticism.
 
 ---
 
@@ -332,40 +336,40 @@ I expanded the `DOMAIN_LANGUAGE.md` anti-patterns table from 5 to 16 entries and
 
 ### Anti-Patterns Table (expanded from 5 → 16)
 
-| New Entry | Book | Why Avoided |
-|---|---|---|
-| **Aggregate Root (OO)** | Implementing DDD | ADR-0001: 9-method OO interface couples domain to infrastructure. Pure `Decider[State]` + `Apply` separates them. |
-| **Update / Patch** | CQRS/ES | No mutation of past events. New events supersede old state via fold. The event log is append-only. |
-| **Log Compaction** | DDIA Ch. 11 | Compaction destroys the audit trail. Snapshots avoid replay cost without losing data. `docs/research/time-travel-options.md:265` explicitly warns compaction is incompatible with ES. |
-| **2PC / Two-Phase Commit** | DDIA Ch. 9 | Blocking and fragile. Projections derive independently from the log. ADR-0016 declined for the same reason. |
-| **Outbox** | DDIA Ch. 11, CQRS/ES | ADR-0016: the event journal IS the outbox. `CatchUpSubscriber` replays and publishes. No separate outbox table needed. |
-| **Replication** | DDIA Ch. 5 | Library doesn't replicate. Postgres/Pebble replication handles this at the storage layer. Adding it would make the library opinionated about deployment topology. |
-| **Leader Election** | Patterns of Distributed Systems | No Raft/Paxos. Optimistic concurrency per aggregate is the application-level fencing. Node coordination is deployment infra (K8s, etcd). `ROADMAP.md:98` lists it as a future idea, not current scope. |
-| **Fencing Token** | Patterns of Distributed Systems | Application-level fencing via `expectedVersion`. A stale instance's write fails the version check. Deployment-level fencing is outside scope. |
-| **God Aggregate** | CQRS/ES | Large aggregates violate SRP. Split into small deciders + derivers for event→command derivation. |
-| **Enforced Transport** | Service Design Patterns | Library provides SSE, gRPC, REST helpers but doesn't force a protocol. Consumers choose. |
-| **Data Lakehouse** | Deciphering Data Architectures | Application-level CQRS library, not analytics platform. Projections are operational read models, not analytical datasets. |
+| New Entry                  | Book                            | Why Avoided                                                                                                                                                                                            |
+| -------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Aggregate Root (OO)**    | Implementing DDD                | ADR-0001: 9-method OO interface couples domain to infrastructure. Pure `Decider[State]` + `Apply` separates them.                                                                                      |
+| **Update / Patch**         | CQRS/ES                         | No mutation of past events. New events supersede old state via fold. The event log is append-only.                                                                                                     |
+| **Log Compaction**         | DDIA Ch. 11                     | Compaction destroys the audit trail. Snapshots avoid replay cost without losing data. `docs/research/time-travel-options.md:265` explicitly warns compaction is incompatible with ES.                  |
+| **2PC / Two-Phase Commit** | DDIA Ch. 9                      | Blocking and fragile. Projections derive independently from the log. ADR-0016 declined for the same reason.                                                                                            |
+| **Outbox**                 | DDIA Ch. 11, CQRS/ES            | ADR-0016: the event journal IS the outbox. `CatchUpSubscriber` replays and publishes. No separate outbox table needed.                                                                                 |
+| **Replication**            | DDIA Ch. 5                      | Library doesn't replicate. Postgres/Pebble replication handles this at the storage layer. Adding it would make the library opinionated about deployment topology.                                      |
+| **Leader Election**        | Patterns of Distributed Systems | No Raft/Paxos. Optimistic concurrency per aggregate is the application-level fencing. Node coordination is deployment infra (K8s, etcd). `ROADMAP.md:98` lists it as a future idea, not current scope. |
+| **Fencing Token**          | Patterns of Distributed Systems | Application-level fencing via `expectedVersion`. A stale instance's write fails the version check. Deployment-level fencing is outside scope.                                                          |
+| **God Aggregate**          | CQRS/ES                         | Large aggregates violate SRP. Split into small deciders + derivers for event→command derivation.                                                                                                       |
+| **Enforced Transport**     | Service Design Patterns         | Library provides SSE, gRPC, REST helpers but doesn't force a protocol. Consumers choose.                                                                                                               |
+| **Data Lakehouse**         | Deciphering Data Architectures  | Application-level CQRS library, not analytics platform. Projections are operational read models, not analytical datasets.                                                                              |
 
 ### Patterns NOT in the Library (expanded from 3 → 9)
 
-| New Entry | How It Emerges | Why No Module |
-|---|---|---|
-| **Outbox** | Event journal + `CatchUpSubscriber` + `EventPublisher` | ADR-0016: journal IS the outbox. A projection reads the journal and publishes events, making the pattern composable without a dedicated table. |
-| **Distributed Consensus** | Optimistic concurrency per aggregate (`expectedVersion`) | No Raft/Paxos: the library provides single-writer-per-aggregate semantics. Multi-node coordination (leader election, quorum) is a deployment concern. |
-| **Log Compaction** | `snapshot.SnapshotStore` with strategies | Compaction destroys events — incompatible with event sourcing. Snapshots avoid replay cost without data loss. See `docs/research/time-travel-options.md`. |
+| New Entry                    | How It Emerges                                                | Why No Module                                                                                                                                                     |
+| ---------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Outbox**                   | Event journal + `CatchUpSubscriber` + `EventPublisher`        | ADR-0016: journal IS the outbox. A projection reads the journal and publishes events, making the pattern composable without a dedicated table.                    |
+| **Distributed Consensus**    | Optimistic concurrency per aggregate (`expectedVersion`)      | No Raft/Paxos: the library provides single-writer-per-aggregate semantics. Multi-node coordination (leader election, quorum) is a deployment concern.             |
+| **Log Compaction**           | `snapshot.SnapshotStore` with strategies                      | Compaction destroys events — incompatible with event sourcing. Snapshots avoid replay cost without data loss. See `docs/research/time-travel-options.md`.         |
 | **Stream Processing Engine** | `projectionhost.Host` (simple, correct) + `CatchUpSubscriber` | Windowing, watermarking, stream joins are over-engineering for application-level CQRS. Consumers needing Kafka-scale streaming use Kafka + the Watermill adapter. |
-| **Fencing Tokens** | `expectedVersion` (optimistic concurrency) | Deployment-level fencing (K8s leases, etcd locks) is outside scope. Application-level fencing via version check is sufficient for single-writer-per-aggregate. |
-| **Data Lakehouse / Fabric** | N/A — projections are operational read models | This is an application-level CQRS library, not an analytics platform. Warehouse/lakehouse/fabric solve a different problem (analytics at organizational scale). |
+| **Fencing Tokens**           | `expectedVersion` (optimistic concurrency)                    | Deployment-level fencing (K8s leases, etcd locks) is outside scope. Application-level fencing via version check is sufficient for single-writer-per-aggregate.    |
+| **Data Lakehouse / Fabric**  | N/A — projections are operational read models                 | This is an application-level CQRS library, not an analytics platform. Warehouse/lakehouse/fabric solve a different problem (analytics at organizational scale).   |
 
 ### Original 5 anti-patterns (kept unchanged)
 
-| Term | Why |
-|---|---|
-| "Database" → "Store" or "Event Store" | CQRS separates write/read; "database" implies a single thing |
-| "Entity" → "Aggregate" | DDD aggregate is the consistency boundary; entity is too vague |
-| "CRUD" → "Command + Event + Projection" | No updates or deletes — only append |
-| "Delete" → "Tombstone" | Event streams are append-only; soft-delete via metadata, never removal |
-| "State" (mutable) → "Folded state" | State is always reconstructed from events via `Apply`, never directly mutated |
+| Term                                    | Why                                                                           |
+| --------------------------------------- | ----------------------------------------------------------------------------- |
+| "Database" → "Store" or "Event Store"   | CQRS separates write/read; "database" implies a single thing                  |
+| "Entity" → "Aggregate"                  | DDD aggregate is the consistency boundary; entity is too vague                |
+| "CRUD" → "Command + Event + Projection" | No updates or deletes — only append                                           |
+| "Delete" → "Tombstone"                  | Event streams are append-only; soft-delete via metadata, never removal        |
+| "State" (mutable) → "Folded state"      | State is always reconstructed from events via `Apply`, never directly mutated |
 
 ---
 

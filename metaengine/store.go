@@ -222,7 +222,14 @@ func (s *Store) executeQuery(
 		}
 
 		if sb, ok := m.engine.(ScanBackend); ok {
-			results, err := sb.MapScan(m.name, q.filters, filterValues, q.sortField, cursorVal, cfg.limit)
+			results, err := sb.MapScan(
+				m.name,
+				q.filters,
+				filterValues,
+				q.sortField,
+				cursorVal,
+				cfg.limit,
+			)
 			if err != nil {
 				return nil, err
 			}
