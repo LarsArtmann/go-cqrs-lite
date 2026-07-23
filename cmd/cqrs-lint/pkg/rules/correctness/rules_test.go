@@ -189,7 +189,7 @@ func withTx(ctx context.Context, db *sql.DB, body func(*sql.Tx) error) error {
 
 // C001 must flag a function that uses the tx (tx.Exec) and never commits,
 // even when there is no bare `return nil` success path. tx usage is a stronger
-// bug signal than the return shape: the Exec ran, the tx is abandoned, the work
+// defect signal than the return shape: the Exec ran, the tx is abandoned, the work
 // is silently rolled back. Covers item f-7 in the DiscordSync feedback triage.
 func TestC001_DetectsTxUsedWithoutBareReturnNil(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
