@@ -242,12 +242,14 @@ func TestDiscordSyncFixture_FixedRulesBehaveCorrectly(t *testing.T) {
 	findings := runAllDetectors(t, ctx)
 
 	t.Run("D002_fires_on_struct_with_internal_mix", func(t *testing.T) {
+		t.Parallel()
 		if got := countByRule(findings, "D002"); got == 0 {
 			t.Errorf("D002 should fire on DiscordWebhook (struct mixes casing), got 0 findings")
 		}
 	})
 
 	t.Run("C001_fires_once_on_genuine_bug", func(t *testing.T) {
+		t.Parallel()
 		if got := countByRule(findings, "C001"); got != 1 {
 			t.Errorf("C001: got %d findings, want 1 (the genuine missing-commit; "+
 				"the closure helper must be suppressed)", got)
@@ -255,6 +257,7 @@ func TestDiscordSyncFixture_FixedRulesBehaveCorrectly(t *testing.T) {
 	})
 
 	t.Run("C008_downgraded_to_info", func(t *testing.T) {
+		t.Parallel()
 		sev, ok := severityForRule(findings, "C008")
 		if !ok {
 			t.Skip("C008 did not fire on this fixture")
@@ -265,6 +268,7 @@ func TestDiscordSyncFixture_FixedRulesBehaveCorrectly(t *testing.T) {
 	})
 
 	t.Run("A005_suppressed_for_broadcast_fan_out", func(t *testing.T) {
+		t.Parallel()
 		if got := countByRule(findings, "A005"); got != 0 {
 			t.Errorf("A005: got %d findings, want 0 (broadcast callbacks are not projections)", got)
 		}

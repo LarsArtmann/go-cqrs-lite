@@ -98,7 +98,7 @@ func checkStructFields(
 // reportTimeField creates a finding for a time.Time field with a specific suggestion.
 func reportTimeField(
 	ctx *analyzer.AnalysisContext,
-	gf *analyzer.GoFile,
+	_ *analyzer.GoFile,
 	structName string,
 	field *ast.Field,
 	findings *[]finding.Finding,

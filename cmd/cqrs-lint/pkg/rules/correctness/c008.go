@@ -21,15 +21,18 @@ import (
 // struct/package name. See feedback: docs/feedback/2026-07-16_DiscordSync.
 
 // strongMoneyFields are unambiguous enough to flag on field name alone.
+//nolint:gochecknoglobals // read-only keyword list
 var strongMoneyFields = []string{"amount", "price", "cost", "balance", "fee"}
 
 // weakMoneyFields are generic (value, total) — only flag when the enclosing
 // struct/package name also looks monetary.
+//nolint:gochecknoglobals // read-only keyword list
 var weakMoneyFields = []string{"value", "total", "charge", "payment", "salary"}
 
 // moneyKeywords is the unified set of monetary terms used for struct-name,
 // package-path, and embedded-type corroboration. Previously duplicated across
 // moneyKeywords (local var) and packageLooksMonetary (hardcoded list).
+//nolint:gochecknoglobals // read-only keyword list
 var moneyKeywords = []string{
 	"order", "invoice", "payment", "price", "cost", "balance",
 	"account", "billing", "transaction", "money", "cart",

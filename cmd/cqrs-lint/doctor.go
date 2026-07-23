@@ -17,7 +17,7 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 	cmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
 		"doctor",
 		cmdguard.NoFlags{},
-		func(ctx context.Context, cfg *AppConfig, _ cmdguard.NoFlags) error {
+		func(_ context.Context, cfg *AppConfig, _ cmdguard.NoFlags) error {
 			actx, err := analyzer.BuildContext(cfg.Path)
 			if err != nil {
 				return fmt.Errorf("load packages: %w", err)

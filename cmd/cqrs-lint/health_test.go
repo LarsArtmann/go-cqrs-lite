@@ -323,7 +323,7 @@ func TestComputeHealthScore_InfoCapAppliedReflectsCustomCap(t *testing.T) {
 func TestComputeHealthScore_ProducesDifferentResultOnFilteredSet(t *testing.T) {
 	t.Parallel()
 
-	var findings []finding.Finding
+	findings := make([]finding.Finding, 0, 3)
 
 	critical, _ := finding.NewBuilder(
 		"C001", "test", "real bug",
