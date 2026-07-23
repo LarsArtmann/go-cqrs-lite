@@ -3,8 +3,10 @@ package metaengine
 import (
 	"fmt"
 	"maps"
+	"reflect"
 	"sort"
 	"strings"
+	"time"
 )
 
 // EngineProfile describes what an engine can do and at what cost.
@@ -283,7 +285,7 @@ func matchesFilters(value any, filters []FieldPath, filterValues map[string]any)
 		}
 
 		actual := getFieldValue(value, filter.Field)
-		if fmt.Sprintf("%v", actual) != fmt.Sprintf("%v", expected) {
+		if !reflect.DeepEqual(actual, expected) {
 			return false
 		}
 	}
@@ -295,5 +297,42 @@ func compareByField(a, b any, field string) bool {
 	av := getFieldValue(a, field)
 	bv := getFieldValue(b, field)
 
-	return fmt.Sprintf("%v", av) < fmt.Sprintf("%v", bv)
+	return compareLess(av, bv)
+}
+
+// compareLess performs a type-aware less-than comparison for sort fields.
+// Falls back to string comparison for unsupported types.
+func compareLess(a, b any) bool {
+	switch va := a.(type) {
+	case int:
+		return va < b.(int)
+	case int8:
+		return va < b.(int8)
+	case int16:
+		return va < b.(int16)
+	case int32:
+		return va < b.(int32)
+	case int64:
+		return va < b.(int64)
+	case uint:
+		return va < b.(uint)
+	case uint8:
+		return va < b.(uint8)
+	case uint16:
+		return va < b.(uint16)
+	case uint32:
+		return va < b.(uint32)
+	case uint64:
+		return va < b.(uint64)
+	case float32:
+		return va < b.(float32)
+	case float64:
+		return va < b.(float64)
+	case string:
+		return va < b.(string)
+	case time.Time:
+		return va.Before(b.(time.Time))
+	default:
+		return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+	}
 }
