@@ -1,17 +1,15 @@
 package metaengine
 
-import "time"
-
 // ADT is the Abstract Data Type the planner infers from fold return types.
 type ADT string
 
 const (
-	ADTMap       ADT = "map"        // key to value lookup
-	ADTSet       ADT = "set"        // membership test
-	ADTCounter   ADT = "counter"    // increment/get
-	ADTGraph     ADT = "graph"      // adjacency traversal
-	ADTLog       ADT = "log"        // append-only ordered scan
-	ADTSortedMap ADT = "sorted_map" // filtered/ordered scan with indexes
+	ADTMap       ADT = "map"
+	ADTSet       ADT = "set"
+	ADTCounter   ADT = "counter"
+	ADTGraph     ADT = "graph"
+	ADTLog       ADT = "log"
+	ADTSortedMap ADT = "sorted_map"
 )
 
 // ReadPattern describes how a query reads its projection.
@@ -29,6 +27,9 @@ const (
 // Delta is a counter update: key to delta.
 // For typed keys, use Delta[K ~string] — typo'd keys become compile errors.
 type Delta map[string]int64
+
+// TypedDelta is a type-safe counter delta where keys are a named string type.
+type TypedDelta[K ~string] map[K]int64
 
 // Edge is a graph edge returned by OnEdge folds.
 type Edge struct {
@@ -86,9 +87,8 @@ type Page[T any] struct {
 type ExecOption func(*execConfig)
 
 type execConfig struct {
-	limit   int
-	cursor  *Cursor
-	reverse bool
+	limit  int
+	cursor *Cursor
 }
 
 // WithLimit sets the maximum number of items to return in a Page.
@@ -101,11 +101,6 @@ func After(cursor *Cursor) ExecOption {
 	return func(c *execConfig) { c.cursor = cursor }
 }
 
-// Reverse reverses the sort order for this query execution.
-func Reverse() ExecOption {
-	return func(c *execConfig) { c.reverse = true }
-}
-
 func applyExecOpts(opts []ExecOption) execConfig {
 	cfg := execConfig{limit: 100}
 	for _, opt := range opts {
@@ -113,10 +108,3 @@ func applyExecOpts(opts []ExecOption) execConfig {
 	}
 	return cfg
 }
-
-// isTimestampType returns true if the type name represents time.Time.
-func isTimestampType(typeName string) bool {
-	return typeName == "time.Time" || typeName == "Time"
-}
-
-var _ = time.Time{}

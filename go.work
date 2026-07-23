@@ -29,6 +29,7 @@ use (
 	./kv
 	./listing
 	./metadata
+	./metaengine
 	./middleware
 	./otel
 	./projection
