@@ -275,6 +275,7 @@ linters:
         - tx
         - mw
         - ts
+        - mu
   exclusions:
     generated: lax
     rules:

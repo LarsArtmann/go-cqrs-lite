@@ -31,13 +31,13 @@ func SQLViewModel[V any, K fmt.Stringer](
 	mapper storage.ViewMapper[V],
 	preset string,
 ) (*storage.SQLViewStore[V, K], error) {
-	db, ok := b.Database().(*sql.DB)
-	if !ok || db == nil {
+	databaseHandle, ok := b.Database().(*sql.DB)
+	if !ok || databaseHandle == nil {
 		return nil, errorfamily.NewRejection(preset+".no_database",
 			preset+": bundle has no SQL database handle")
 	}
 
-	store, err := storage.NewViewStoreWithDialect[V, K](db, dialect, mapper)
+	store, err := storage.NewViewStoreWithDialect[V, K](databaseHandle, dialect, mapper)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, preset+".create_view_model",
 			"create view model")

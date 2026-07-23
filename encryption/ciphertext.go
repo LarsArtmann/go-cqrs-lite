@@ -23,9 +23,18 @@ func (c Ciphertext) String() string {
 }
 
 func (c Ciphertext) MarshalJSON() ([]byte, error) {
-	return codec.MarshalBase64JSON(c)
+	b, err := codec.MarshalBase64JSON(c)
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err, "encryption.marshal_ciphertext", "marshal ciphertext")
+	}
+
+	return b, nil
 }
 
 func (c *Ciphertext) UnmarshalJSON(data []byte) error {
-	return codec.AssignBase64JSON(data, "encryption", "ciphertext", (*[]byte)(c))
+	if err := codec.AssignBase64JSON(data, "encryption", "ciphertext", (*[]byte)(c)); err != nil {
+		return errorfamily.WrapInfrastructure(err, "encryption.unmarshal_ciphertext", "unmarshal ciphertext")
+	}
+
+	return nil
 }

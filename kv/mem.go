@@ -137,7 +137,7 @@ func (s *MemStore) SetIfAbsent(_ context.Context, key, value []byte) (bool, erro
 func (s *MemStore) Batch(_ context.Context) (Batch, error) {
 	var batch *memBatch
 
-	err := s.withRLock(func() { batch = &memBatch{store: s} })
+	err := s.withRLock(func() { batch = &memBatch{store: s} }) //nolint:exhaustruct // zero-value ops/closed are intentional
 	if err != nil {
 		return nil, err
 	}
