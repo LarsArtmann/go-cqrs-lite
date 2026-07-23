@@ -382,7 +382,7 @@ lag := projHost.LagDuration()                       // projection lag gauge (tim
 // Query middleware (symmetric with command middleware)
 qDisp.Use(middleware.QueryRecovery())
 qDisp.Use(middleware.QueryLogging(logger))
-qDisp.Use(middleware.QueryMetrics(recorder))
+qDisp.Use(middleware.QueryTypedMetrics(recorder))
 
 // Scenario testing — GivenState (no unused Cmd type param)
 scenario.GivenState[CounterState](t, fold, initial, events...).

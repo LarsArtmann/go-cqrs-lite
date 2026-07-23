@@ -337,7 +337,7 @@ bus.UsePublish(middleware.EventPublishTracing(tracer))
 
 meter := otel.GetMeterProvider().Meter("my-app")
 recorder, _ := middleware.NewOTelMetricsRecorder(meter)
-cmdDispatcher.Use(middleware.CommandMetrics(recorder))
+cmdDispatcher.Use(middleware.CommandTypedMetrics(recorder))
 
 // Other middleware: Logging, Retry, Recovery, Validation, CircuitBreaker
 cmdDispatcher.Use(middleware.CommandRecovery())
@@ -419,7 +419,7 @@ qDisp.Use(middleware.QueryRetry(3, time.Second))   // retry transient failures
 // OTel metrics for queries
 meter := otel.GetMeterProvider().Meter("my-app")
 recorder, _ := middleware.NewOTelMetricsRecorder(meter)
-qDisp.Use(middleware.QueryMetrics(recorder))
+qDisp.Use(middleware.QueryTypedMetrics(recorder))
 
 // OTel tracing for queries
 tracer := otel.GetTracerProvider().Tracer("my-app")

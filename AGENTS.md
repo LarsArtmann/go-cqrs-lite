@@ -282,10 +282,10 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   bus.UsePublish(middleware.EventPublishTracing(tracer))
 //   cmdDispatcher.Use(middleware.CommandTracing(tracer))
 
-// OpenTelemetry metrics (opt-in, replace custom MetricsRecorder)
+// OpenTelemetry metrics (opt-in, typed metrics via TypedMetricsRecorder)
 //   meter := otel.GetMeterProvider().Meter("my-app")
 //   recorder, _ := middleware.NewOTelMetricsRecorder(meter)
-//   cmdDispatcher.Use(middleware.CommandMetrics(recorder))
+//   cmdDispatcher.Use(middleware.CommandTypedMetrics(recorder))
 //
 //   // Rate metrics (Int64Counter + Float64Histogram)
 //   counter, _ := meter.Int64Counter("cqrs.operation.count")
