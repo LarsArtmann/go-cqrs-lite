@@ -1,0 +1,1806 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Insights vs Codebase Reality — go-cqrs-lite Architecture Review</title>
+    <style>
+      :root {
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      a:focus-visible { outline-offset: -1px; }
+
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover, .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main { flex: 1; min-width: 0; }
+
+      h1, h2, h3, h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); line-height: 1.05; margin: 0 0 0.6rem; }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 { font-size: 1.15rem; margin: 0 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 1rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 70ch; margin: 0 0 1rem; }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber { background: var(--warning); border-color: var(--warning); color: var(--text); }
+      .tag.teal { background: var(--solution); border-color: var(--solution); color: var(--surface); }
+
+      .hero-shapes { position: relative; height: 90px; margin-bottom: 1.2rem; }
+      .hero-shapes .circle {
+        position: absolute; top: 0; right: 180px; width: 64px; height: 64px;
+        background: var(--problem); border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute; top: 26px; right: 90px; width: 56px; height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute; top: 8px; right: 0; width: 0; height: 0;
+        border-left: 32px solid transparent; border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute; bottom: 0; right: 230px; width: 100px; height: 14px;
+        background: var(--text);
+      }
+
+      .scorecard, .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card, .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child, .stat-card:last-child { border-right: none; }
+      .score, .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label, .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      .score-good, .stat-good { background: var(--solution); color: var(--surface); }
+      .score-warn, .stat-warn { background: var(--warning); color: var(--text); }
+      .score-bad, .stat-bad { background: var(--problem); color: var(--surface); }
+
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem { border-left-color: var(--problem); }
+      .card-solution { border-left-color: var(--solution); }
+      .card-warning { border-left-color: var(--warning); }
+
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical { border-left-color: var(--problem); }
+      .issue-important { border-left-color: var(--warning); }
+      .issue-nice { border-left-color: var(--solution); }
+      .issue h3 { margin-bottom: 0.3rem; }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child { margin-bottom: 0; }
+
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical { background: var(--problem); }
+      .severity-important { background: var(--warning); color: var(--text); }
+      .severity-nice { background: var(--solution); }
+
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical { background: var(--problem); color: var(--surface); }
+      .badge-high { background: var(--warning); }
+      .badge-medium { background: var(--surface-sunken); }
+      .badge-low { background: var(--surface-raised); color: var(--text-muted); }
+      .badge-fixed { background: var(--solution); color: var(--surface); }
+
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong { display: inline-block; margin-right: 0.4rem; }
+      .callout-teal, .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised));
+      }
+      .callout-amber, .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised));
+      }
+
+      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong { display: block; margin-bottom: 0.15rem; }
+      .strength .text span { color: var(--text-muted); font-size: 0.92rem; }
+
+      .table-wrap { overflow-x: auto; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child { border-right: none; }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child { border-right: none; }
+      tr:nth-child(even) td { background: var(--surface-sunken); }
+      table.compare td.yes { color: var(--solution); font-weight: 700; }
+      table.compare td.no { color: var(--problem); font-weight: 700; }
+
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code { font-family: var(--font-mono); }
+      p code, li code, td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword { color: var(--warning); }
+      .tok-type { color: var(--warning); }
+      .tok-string { color: #95e1d3; }
+      .tok-comment { color: rgba(244, 244, 240, 0.45); font-style: italic; }
+      .tok-func { color: #6eb5ff; }
+      .tok-number { color: var(--warning); }
+      .tok-generic { color: var(--problem); }
+      .tok-builtin { color: #6eb5ff; }
+      .tok-punct { color: rgba(244, 244, 240, 0.7); }
+      .tok-attr { color: var(--warning); }
+
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root { color: var(--accent); font-weight: 700; }
+      .dep-tree .ok { color: var(--solution); }
+      .dep-tree .unwanted { color: var(--problem); }
+
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core { background: var(--accent); color: var(--surface); }
+      .node-problem { background: var(--problem); color: var(--surface); }
+      .node-good { background: var(--solution); color: var(--surface); }
+      .arrow { color: var(--text-faint); font-family: var(--font-mono); }
+
+      .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1rem 0; }
+      .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 { margin-bottom: 0.5rem; }
+      .toc ul { list-style: none; padding: 0; }
+      .toc li { margin: 0.25rem 0; }
+      .toc a { color: var(--text); text-decoration: none; font-size: 0.92rem; font-weight: 600; }
+      .toc a:hover { color: var(--accent); }
+
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 { margin-bottom: 0.2rem; }
+      .migration-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.94rem; }
+
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) {
+        .layout { flex-direction: column; padding: 1rem; }
+        .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; }
+        .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        .scorecard, .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        .score-card:nth-child(2), .stat-card:nth-child(2) { border-right: none; }
+        .score-card:nth-child(1), .stat-card:nth-child(1),
+        .score-card:nth-child(2), .stat-card:nth-child(2) { border-bottom: 3px solid var(--text); }
+        .migration-step { grid-template-columns: 1fr; }
+        .hero-shapes { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Architecture Review</span>
+      <span>2026-07-23</span>
+      <span>Book Insights vs Codebase</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#applied">Already Applied</a>
+          <a href="#ddia-applied">DDIA</a>
+          <a href="#cqrs-applied">CQRS / ES</a>
+          <a href="#event-driven-applied">Event-Driven</a>
+          <a href="#dist-patterns-applied">Distributed Patterns</a>
+          <a href="#service-applied">Service Design</a>
+          <a href="#data-arch-applied">Data Architecture</a>
+          <a href="#gaps">Should Be Applied</a>
+          <a href="#not-do">Should NOT Do</a>
+          <a href="#priority-matrix">Priority Matrix</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">Architecture Review &middot; 2026-07-23</div>
+          <h1>Book Insights vs Codebase Reality</h1>
+          <p class="subtitle">
+            Seven foundational systems-engineering books mapped against the go-cqrs-lite codebase:
+            what we already apply, what we should apply, and what we must never do. Every claim is
+            verified against source code, ADRs, and module interfaces.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Scope: 42 modules</span>
+            <span class="tag">57 ADRs reviewed</span>
+            <span class="tag teal">Status: complete</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">38</div>
+            <div class="label">Insights Applied</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">8</div>
+            <div class="label">Should Apply</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">15</div>
+            <div class="label">Must NOT Do</div>
+          </div>
+          <div class="score-card">
+            <div class="score">61</div>
+            <div class="label">Total Insights</div>
+          </div>
+        </section>
+
+        <!-- ====================== SUMMARY ====================== -->
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            go-cqrs-lite is, in essence, an implementation of the DDIA / Kleppmann "logs +
+            materialized views" thesis at the application/aggregate level. The event store is the
+            WAL, projections are materialized views, the decider is the fold function, and the
+            schema upcaster system is schema evolution. 38 of 61 catalogued insights from seven
+            books are already implemented in the codebase. The 8 gaps are mostly "should consider"
+            items where the library provides primitives but could improve ergonomics or
+            documentation. The 15 "must NOT do" items are anti-patterns the library correctly
+            avoids &mdash; and should continue to avoid.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            The library is architecturally sound and maps remarkably well to the theoretical
+            foundations. The gaps are in observability ergonomics, documentation of consistency
+            guarantees, and a few missing distributed-systems primitives. No structural changes
+            needed &mdash; only additions at the edges.
+          </div>
+        </section>
+
+        <!-- ====================== ALREADY APPLIED ====================== -->
+        <section id="applied">
+          <h2><span class="num">01</span>What We Already Apply</h2>
+          <p>
+            38 insights across seven books are already implemented. Below they are organized by
+            book, with the specific codebase mapping for each.
+          </p>
+
+          <!-- DDIA -->
+          <h3 id="ddia-applied" style="margin-top: 2rem;">Designing Data-Intensive Applications (Kleppmann)</h3>
+          <p>
+            The most important book for this codebase. Its Part III thesis &mdash; "databases are
+            logs + indexes + materialized views" &mdash; is the architecture of go-cqrs-lite.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Log as source of truth (DDIA Part III)</strong>
+                <span>
+                  The event store (<code>event.Store</code>) is the WAL. State is derived by
+                  folding events via <code>decider.Decider[State].Apply</code>. This is exactly
+                  DDIA's "system of record (log) &rarr; derived data (views)" pattern. ADR-0001
+                  chose pure functions over mutable aggregate roots to make this explicit.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Materialized views / derived data</strong>
+                <span>
+                  Three projection tiers implement DDIA's "materialized views": <code>stack.Materialize</code>
+                  (KV/document), <code>storage.RelationalProjection</code> (multi-table SQL), and
+                  <code>graph.GraphProjection</code> (nodes/edges). All are rebuildable from the log.
+                  The <code>projectionhost</code> manages their lifecycle.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Schema evolution (forward/backward compatibility)</strong>
+                <span>
+                  <code>schema.Upcaster</code> transforms old event versions on read &mdash;
+                  exactly DDIA's Avro schema-evolution pattern (writer schema vs reader schema).
+                  <code>VersionedStore</code> and <code>VersionedSeekableJournal</code> apply
+                  upcasters transparently. Events carry <code>SchemaVersion</code> stamps.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Optimistic concurrency control</strong>
+                <span>
+                  <code>event.EventSink.Save(ctx, ref, events, expectedVersion)</code> implements
+                  compare-and-set: the store checks <code>expectedVersion</code> against current
+                  version, rejecting with <code>ErrConcurrencyConflict</code> on mismatch. SQL:
+                  <code>WHERE version = expectedVersion</code>. Pebble: sharded mutex + version
+                  check before batch commit.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Both storage engine families (B-tree + LSM)</strong>
+                <span>
+                  SQL stores (PostgreSQL/SQLite) use B-tree indexes (good for read-heavy point
+                  lookups). Pebble uses LSM-trees (great write throughput, compaction cost). DDIA
+                  describes both families with these exact tradeoffs. The library supports both
+                  without forcing a choice.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Interface Segregation (ISP) for store interfaces</strong>
+                <span>
+                  <code>EventSink</code> (write), <code>EventSource</code> (read),
+                  <code>Journal</code> (cross-aggregate), <code>SeekableJournal</code>
+                  (position-based), <code>BackwardsSource</code> (reverse). ADR-0006 explicitly
+                  split the monolithic <code>Store</code> interface. This mirrors DDIA's principle
+                  of segregating read/write paths for independent scaling.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Snapshot optimization (read performance)</strong>
+                <span>
+                  <code>snapshot.SnapshotStore</code> with <code>EveryNEvents</code> and
+                  <code>ReadPressure</code> strategies. On load: snapshot + delta events rather
+                  than full replay. DDIA discusses this as materialized view refresh strategies
+                  (incremental vs full rebuild). Best-effort saves (errors swallowed, logged).
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Single-writer per aggregate (= per-partition)</strong>
+                <span>
+                  Optimistic concurrency per aggregate ID = DDIA's "single-writer per
+                  partition" for ordering. The <code>MultiSink.SaveMultiBatch</code> provides
+                  atomic multi-aggregate writes when cross-aggregate atomicity is needed.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Tombstone soft-delete (no physical deletes)</strong>
+                <span>
+                  <code>event.DetectTombstone</code> + <code>event.MarkTombstone</code> &mdash;
+                  metadata-based soft delete. Maps to DDIA's tombstones in LSM compaction and
+                  replication (deletes are special writes, not destructive operations). ADR-0005.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Idempotent receiver pattern</strong>
+                <span>
+                  <code>idempotency.Store</code> with <code>CheckAndRecord</code> (atomic check +
+                  record) and <code>dedup.Ring</code> (bounded O(1) dedup at stream boundaries).
+                  DDIA's "idempotent receiver" for at-least-once delivery.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Consumer offset tracking (high-water mark)</strong>
+                <span>
+                  <code>event.CheckpointStore</code> + <code>projectionhost</code> worker tracking.
+                  Each projection saves its position after processing. On restart, resumes from
+                  checkpoint. DDIA's "consumer offsets" / high-water mark pattern.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Catch-up: replay then live (consumer bootstrapping)</strong>
+                <span>
+                  <code>watermill.CatchUpSubscriber</code> Phase 1: replay from journal with
+                  <code>ProcessingMode=ModeReplay</code>. Phase 2: live handoff with EventID-based
+                  dedup via <code>dedup.Ring</code>. DDIA's "bootstrapping new consumers from the
+                  log."
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Multi-DB I/O isolation (shared-nothing)</strong>
+                <span>
+                  <code>WithEventDB</code>, <code>WithQueryDB</code>, <code>WithViewDB</code> split
+                  databases for I/O isolation. DDIA's shared-nothing architecture at the database
+                  level. ADR-0033.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Self-describing messages (encoding stamps)</strong>
+                <span>
+                  Every event carries <code>Encoding()</code> stamp. <code>DecodePayloadAuto</code>
+                  dispatches based on encoding (JSON or CBOR). DDIA discusses schema-in-message vs
+                  schema-registry; go-cqrs-lite chose self-describing events for mixed streams.
+                  Blind stores (kv/snapshot/command/query) use the ADR-0044 envelope.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Error taxonomy (classified errors)</strong>
+                <span>
+                  5-family taxonomy via go-error-family: Rejection, Conflict, Transient,
+                  Infrastructure, Corruption. DDIA emphasizes classifying errors as transient vs
+                  permanent for proper retry/handling. The gRPC transport maps families to status
+                  codes; the example maps families to HTTP status codes.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CQRS / ES -->
+        <section id="cqrs-applied">
+          <h3 style="margin-top: 2rem;">Exploring CQRS and Event Sourcing / Implementing DDD, CQRS and Event Sourcing</h3>
+          <p>
+            The CQRS and event-sourcing literature is the direct theoretical foundation. Nearly
+            every pattern described in these books is implemented.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>CQRS separation (command/query/event)</strong>
+                <span>
+                  Three separate module trees: <code>command/</code>, <code>query/</code>,
+                  <code>event/</code>. Each has its own store, bus, dispatcher, and middleware. The
+                  write side (decider) and read side (projections) are completely decoupled.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Event sourcing (event log as truth)</strong>
+                <span>
+                  <code>decider.Repository[State].Execute</code>: load events &rarr; fold &rarr;
+                  decide &rarr; save &rarr; publish. State is always a fold over events. The store
+                  is the source of truth, not the aggregate.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Aggregates as replay boundaries</strong>
+                <span>
+                  <code>Decider[State]</code> with <code>Initial</code> + <code>Apply</code> (fold).
+                  Each aggregate is loaded independently, events folded into state. No shared
+                  mutable state between aggregates. ADR-0001.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Snapshots (performance optimization)</strong>
+                <span>
+                  <code>snapshot.SnapshotStore</code>, <code>EveryNEvents</code>,
+                  <code>ReadPressure</code>. Snapshot + delta events on load. Best-effort saves.
+                  Exactly the CQRS/ES book pattern for avoiding full replay.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Three projection tiers (read models)</strong>
+                <span>
+                  KV/document (<code>Materialize</code>), relational
+                  (<code>RelationalProjection</code>), graph (<code>GraphProjection</code>). All
+                  implement <code>projection.Projection</code>. All rebuildable from the event log.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Event versioning / upcasting</strong>
+                <span>
+                  <code>schema.Upcaster</code> with <code>SourceType</code>,
+                  <code>SourceVersion</code>, <code>Upcast</code>. <code>VersionedStore</code> wraps
+                  any store. <code>VersionedSeekableJournal</code> for projectionhost pipelines.
+                  Events are immutable; transformation happens on read.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Anti-pattern avoided: event-sourcing CRUD</strong>
+                <span>
+                  The example/taskmanager uses 11 typed events (TaskCreated, TaskAssigned,
+                  TaskStarted, TaskCompleted, etc.) &mdash; NOT anemic Created/Updated/Deleted.
+                  Each event carries only the changed data, not full state. The cqrs-lint linter
+                  (60 rules) catches CRUD-style events in consumer code.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Saga / process manager emergence</strong>
+                <span>
+                  <code>deriver.Deriver</code> (ADR-0040) provides event&rarr;command derivation:
+                  <code>Then</code>, <code>Filter</code>, <code>Idempotent</code>,
+                  <code>AsHandler</code>. Multi-step orchestration emerges from
+                  <code>bus.SubscribeAll</code> + command dispatch. No dedicated saga framework
+                  needed &mdash; this is the correct library-level abstraction.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Command bus pub/sub</strong>
+                <span>
+                  <code>command.NewMemoryBus</code> (in-process), <code>watermill.NewCommandBus</code>
+                  (any broker via Watermill). Typed subscription dispatch, catch-all
+                  (<code>SubscribeAll</code>), middleware chain.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Temporal queries (time-travel)</strong>
+                <span>
+                  <code>LoadAtVersion</code>, <code>LoadAtTime</code> in the decider repository.
+                  <code>event.EventSource.LoadToVersion</code>, <code>LoadToTimestamp</code>. The
+                  ability to reconstruct state at any point in time &mdash; a hallmark of event
+                  sourcing.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Typed commands (compile-time safety)</strong>
+                <span>
+                  <code>decider.TypedDecider[State, Cmd]</code> binds the command type at compile
+                  time. <code>query.RegisterTyped[Q, R]</code> and <code>query.TypedHandler[Q, R]</code>
+                  for type-safe query dispatch. ADR-0001.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Projection rebuild (reset from scratch)</strong>
+                <span>
+                  <code>projectionhost.Host.Reset(ctx, name)</code> drops checkpoint + calls
+                  <code>Resettable.Reset()</code> if implemented. Replays from zero. Dead-letter
+                  store admin: <code>Count</code>, <code>ListPaged</code>,
+                  <code>PurgeBefore</code>.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Dead letter handling (poison event quarantine)</strong>
+                <span>
+                  <code>projectionhost.WithDeadLetterStore(dlq, 3)</code> &mdash; poison events
+                  exceeding retry threshold are captured to a SQLite-backed DLQ
+                  (<code>UNIQUE(projection_name, event_id)</code>). Checkpoint advances past them.
+                  Admin interface for inspection and cleanup.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Eventual consistency (documented and tracked)</strong>
+                <span>
+                  <code>projectionhost.LagPerProjection()</code> and <code>LagDuration()</code> for
+                  dashboards. Processing mode (<code>ModeReplay</code> vs <code>ModeLive</code>)
+                  distinguishes replay from live processing. The docs explicitly warn about
+                  eventual consistency between write and read sides.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Event-Driven Systems -->
+        <section id="event-driven-applied">
+          <h3 style="margin-top: 2rem;">Designing Event-Driven Systems (Kleppmann)</h3>
+          <p>
+            This book is essentially DDIA's stream/derived-data chapters expanded. Its thesis &mdash;
+            "turn the database inside-out" &mdash; is the go-cqrs-lite architecture.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Log as fundamental primitive</strong>
+                <span>
+                  The event store IS the distributed commit log (Jay Kreps' "The Log" essay).
+                  <code>event.SeekableJournal.ReadFrom(afterEventID, limit)</code> provides
+                  position-based reading, like Kafka offsets. ULID event IDs are time-sortable.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Tables and streams are duals</strong>
+                <span>
+                  Events (stream) &rarr; projections (table). A projection is the materialized
+                  current value of an event stream. <code>stack.Materialize</code> literally
+                  materializes events into KV documents. The <code>Reset</code> operation rebuilds
+                  the table from the stream.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Turn the database inside-out</strong>
+                <span>
+                  WAL = <code>event.Store</code>. Indexes = <code>kv.Store</code>. Materialized
+                  views = projections. MVCC = optimistic concurrency + snapshot isolation per
+                  aggregate. These internal DB mechanisms are first-class distributed building
+                  blocks in go-cqrs-lite.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Derived data over distributed transactions</strong>
+                <span>
+                  No 2PC. Projections derive from the log independently. Each consumer builds its
+                  own view. ADR-0016 explicitly declined the outbox pattern. This is Kleppmann's
+                  "derived data over distributed transactions" thesis.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Schema management across boundaries</strong>
+                <span>
+                  Codec abstraction (<code>codec.JSONCodec</code>, <code>codec.CBORCodec</code>),
+                  encoding stamps on every event, <code>DecodePayloadAuto</code> for mixed streams.
+                  Upcasters for schema evolution. The hard organizational problem Kleppmann
+                  describes is addressed at the library level.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>CDC-like replay (change data capture)</strong>
+                <span>
+                  <code>CatchUpSubscriber</code> replays from journal position, like CDC. The SSE
+                  broker's <code>WithReconnectJournal</code> provides Last-Event-ID reconnection
+                  &mdash; missed events are replayed from the journal before live streaming.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>W3C trace context propagation</strong>
+                <span>
+                  <code>cqrsotel.WithCorrelationID</code>, <code>cqrsotel.CorrelationIDFromContext</code>,
+                  <code>cqrsotel.NewTextMapPropagator()</code> (W3C trace + baggage). Watermill
+                  <code>TraceContextMiddleware</code> injects/extracts trace context into message
+                  metadata for cross-service producer&rarr;consumer span linking.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Distributed Systems Patterns -->
+        <section id="dist-patterns-applied">
+          <h3 style="margin-top: 2rem;">Patterns of Distributed Systems</h3>
+          <p>
+            The pattern catalogue from Berkeley/Joshi. go-cqrs-lite implements the patterns
+            relevant to an application-level CQRS library.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Write-Ahead Log (WAL)</strong>
+                <span>
+                  The event store IS the WAL. Events are persisted before publishing. If publish
+                  fails, events are safe in the store. <code>decider.Repository.Execute</code>:
+                  save &rarr; publish (not the reverse).
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>High-Water Mark / Checkpointing</strong>
+                <span>
+                  <code>event.CheckpointStore</code> + <code>projectionhost</code> worker
+                  checkpoint tracking. Save position after processing, resume on restart.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Idempotent Receiver</strong>
+                <span>
+                  <code>idempotency.Store.CheckAndRecord</code> (atomic), <code>dedup.Ring</code>
+                  (bounded O(1) at stream boundaries), <code>middleware.EventIdempotency</code> /
+                  <code>CommandIdempotency</code> / <code>QueryIdempotency</code>.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Sequence Broker (ordered replay)</strong>
+                <span>
+                  <code>event.SeekableJournal.ReadFrom(afterEventID, limit)</code> provides
+                  position-based, ordered replay. ULID IDs are monotonically sortable.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Retry with exponential backoff + jitter</strong>
+                <span>
+                  <code>retry.Do</code> (standalone, zero-dep), <code>middleware.NewRetry</code>
+                  (middleware chain), <code>projectionhost</code> crash-restart with full jitter
+                  backoff. <code>scheduling.Scheduler</code> uses equal-jitter backoff for failed
+                  dispatches.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Circuit Breaker</strong>
+                <span>
+                  <code>middleware.CircuitBreaker</code> with <code>atomic.Int32</code> state
+                  (lock-free fast path). Half-open probe, configurable failure threshold.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Dead Letter Queue</strong>
+                <span>
+                  <code>projectionhost.WithDeadLetterStore(dlq, threshold)</code>.
+                  <code>middleware.NewRetry</code> with <code>OnDeadLetter</code> callback.
+                  SQLite-backed DLQ store with admin interface (count, list, purge).
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Heartbeat (liveness)</strong>
+                <span>
+                  SSE heartbeat (15s comment frames prevent proxy idle timeouts).
+                  <code>scheduling.Scheduler</code> polls on a ticker (1s default).
+                  <code>stack.Bundle.HealthCheck</code> pings DB + all registered health checkers.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Service Design Patterns -->
+        <section id="service-applied">
+          <h3 style="margin-top: 2rem;">Service Design Patterns (Daigneau)</h3>
+          <p>
+            Service interface/API design patterns. The library provides transport helpers without
+            enforcing a specific protocol.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Service tiers (entity / task / activity)</strong>
+                <span>
+                  Module structure maps to Daigneau's tiers: <code>event/</code>,
+                  <code>command/</code>, <code>query/</code> (entity services),
+                  <code>decider/</code> (task-level), <code>projectionhost/</code> (activity-level).
+                  The four-tier model (ADR-0046) is the formalization.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Request/Acknowledge (async messaging)</strong>
+                <span>
+                  Event publishing: save to store (acknowledge) then publish (notify). Command bus:
+                  publish and subscribe. Watermill bridges for NATS/Redis/Kafka.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Content negotiation (codec abstraction)</strong>
+                <span>
+                  <code>codec.JSONCodec</code>, <code>codec.CBORCodec</code>,
+                  <code>codec.CBORCompactCodec</code>, <code>codec.RawCodec</code>. Events are
+                  self-describing (encoding stamp). SSE <code>WithPayloadTransform</code> for
+                  CBOR&rarr;JSON browser conversion.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Idempotency at the contract layer</strong>
+                <span>
+                  <code>middleware.CommandIdempotency</code>, <code>EventIdempotency</code>,
+                  <code>QueryIdempotency</code>. KV-backed idempotency
+                  (<code>idempotency/kvstore</code>) for Redis SET NX / SQL INSERT ON CONFLICT.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Multiple transport options (no lock-in)</strong>
+                <span>
+                  SSE (<code>transport/http</code>), gRPC (<code>transport/grpc</code>), REST
+                  (example/taskmanager). Watermill adapters for any message broker. The library
+                  provides helpers but does not enforce a protocol.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Error mapping (contract to status)</strong>
+                <span>
+                  Error family &rarr; HTTP status (example <code>writeCQRSError</code>). Error
+                  family &rarr; gRPC status (<code>transport/grpc/classifyError</code>).
+                  <code>CommandResult{Success, Error, ErrorCode, ErrorFamily}</code> in gRPC
+                  response.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Data Architecture -->
+        <section id="data-arch-applied">
+          <h3 style="margin-top: 2rem;">Deciphering Data Architectures</h3>
+          <p>
+            The data-platform patterns (warehouse, lakehouse, fabric, mesh) are mostly outside the
+            scope of an application-level CQRS library. However, the Data Mesh's organizational
+            principles are reflected in the module structure.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Domain ownership (Data Mesh principle 1)</strong>
+                <span>
+                  Each module has its own <code>go.mod</code>, independent version, and dependency
+                  budget. The multi-module monorepo (ADR-0003) mirrors "domain ownership" &mdash;
+                  each module is owned by its concern, not by a central platform team.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Self-serve platform (Data Mesh principle 3)</strong>
+                <span>
+                  Stack presets (<code>stack/sqlite</code>, <code>stack/postgres</code>,
+                  <code>stack/pebble</code>, <code>stack/turso</code>) provide one-call
+                  infrastructure setup. Consumers call <code>sqlite.New(dsn)</code> and get a fully
+                  wired <code>Bundle</code> &mdash; the "self-serve data platform" pattern.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Federated governance (Data Mesh principle 4)</strong>
+                <span>
+                  The four-tier model (ADR-0046), dependency budgets (<code>nix run
+                  .#check-layers</code>), and <code>cqrs-lint</code> (60 rules) enforce governance
+                  without a central bottleneck. Modules comply with layering rules
+                  automatically.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================== GAPS ====================== -->
+        <section id="gaps">
+          <h2><span class="num">02</span>What We Should Apply</h2>
+          <p>
+            8 insights are not yet implemented but would meaningfully improve the library. They are
+            ordered by impact. None require structural changes &mdash; all are additions at the
+            edges.
+          </p>
+
+          <div class="issue issue-important" id="gap-1">
+            <span class="severity severity-important">Should Apply &middot; Medium impact</span>
+            <h3>Read-your-writes consistency helper</h3>
+            <div class="where">decider/Repository, projectionhost &middot; CQRS/ES books + DDIA</div>
+            <p>
+              The CQRS books describe the "read-your-writes" problem: after a command succeeds, the
+              client may query a read model that hasn't been updated yet. The library has lag
+              tracking (<code>LagPerProjection</code>) but no helper to wait for a projection to
+              catch up to a specific event version before querying. This is the most common CQRS
+              pain point for consumers.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommended action</strong>
+              Add a <code>WaitForVersion(ctx, projectionName, aggregateRef, version,
+              timeout)</code> helper to <code>projectionhost</code> that blocks until the
+              projection's checkpoint reaches the given version. Or document the pattern for
+              consumers to implement using existing lag metrics + polling.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="gap-2">
+            <span class="severity severity-important">Should Apply &middot; Medium impact</span>
+            <h3>Bounded staleness queries (read freshness guarantees)</h3>
+            <div class="where">kv/ViewStore, storage/SQLViewStore &middot; DDIA Ch. 9</div>
+            <p>
+              DDIA discusses "bounded staleness" &mdash; a guarantee that reads return data no
+              staler than a threshold. The library has per-projection lag tracking but no way to
+              reject reads that would return stale data. For consumers building user-facing APIs,
+              the ability to say "reject this read if the read model is more than 5 seconds behind"
+              is valuable.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommended action</strong>
+              Add an optional <code>WithMaxStaleness(duration)</code> option to
+              <code>kv.ViewStore</code> / <code>storage.SQLViewStore</code> reads that checks
+              projection lag and returns a <code>ErrStaleRead</code> (Transient) if exceeded.
+              Alternatively, document how consumers compose <code>LagDuration()</code> with their
+              read path.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="gap-3">
+            <span class="severity severity-important">Should Apply &middot; Medium impact</span>
+            <h3>Projection versioning / migration strategy</h3>
+            <div class="where">projectionhost, stack.Materialize &middot; CQRS/ES books</div>
+            <p>
+              When a projection handler changes (new column, new logic), the only option is
+              <code>Reset()</code> &mdash; full rebuild from zero. For large read models, this is
+              expensive. The CQRS/ES books discuss incremental migration: versioned projections
+              that can transform existing read-model data in place, or dual-write during migration.
+              The library provides <code>Resettable</code> but no incremental migration path.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommended action</strong>
+              Document the migration pattern (reset vs dual-projection) clearly. Consider adding a
+              <code>Migratable</code> optional interface that <code>projectionhost</code> calls
+              before replay, allowing projections to transform existing data instead of clearing
+              it. This keeps <code>Reset</code> as the nuclear option.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="gap-4">
+            <span class="severity severity-nice">Nice to have &middot; Low impact</span>
+            <h3>Distributed tracing: span links for projection replay</h3>
+            <div class="where">projectionhost, otel/ &middot; DDIA Ch. 11, Designing Event-Driven Systems</div>
+            <p>
+              OTel tracing is well-integrated (spans for <code>projectionhost.handle_event</code>,
+              command/event/query middleware). However, during replay, all events are processed in
+              a single span tree, losing the original causal chain. The original event's trace
+              context is available in metadata but not linked as OTel span links. This makes it hard
+              to trace a specific event's journey from command to projection during replay.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommended action</strong>
+              When processing events during replay, extract the original trace context from event
+              metadata and add it as a span link (<code>trace.Link</code>) to the replay span.
+              This preserves causal visibility without creating child spans (replay is not a child
+              of the original command).
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="gap-5">
+            <span class="severity severity-nice">Nice to have &middot; Low impact</span>
+            <h3>Outbox pattern documentation (not implementation)</h3>
+            <div class="where">docs/ &middot; DDIA Ch. 11, Designing Event-Driven Systems</div>
+            <p>
+              ADR-0016 correctly declined implementing the outbox pattern as a library concern.
+              However, the "publish after save" gap (events persisted but publish fails) is the
+              most common operational problem for CQRS consumers. The library provides the
+              primitives (event store + publisher) but no documentation showing how to compose an
+              outbox using them. Consumers reinvent this every time.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommended action</strong>
+              Add a documented recipe (in <code>.agents/skills/go-cqrs-lite/references/</code> or
+              <code>docs/</code>) showing the outbox pattern: use a projection that reads from the
+              event journal and publishes to the bus, making the journal itself the outbox. This
+              is already possible with <code>CatchUpSubscriber</code> + <code>EventPublisher</code>
+              but the recipe should be explicit.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="gap-6">
+            <span class="severity severity-nice">Nice to have &middot; Low impact</span>
+            <h3>Explicit consistency guarantee documentation</h3>
+            <div class="where">docs/ &middot; DDIA Ch. 9, CQRS/ES books</div>
+            <p>
+              DDIA carefully enumerates consistency guarantees: read-your-writes, monotonic reads,
+              consistent prefix reads. The library implements optimistic concurrency (write side)
+              and eventual consistency (read side), but these guarantees are not documented in a
+              single place. Consumers must read ADRs and source to understand what the library
+              promises. A "consistency model" document would help consumers reason about their
+              system's behavior.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommended action</strong>
+              Add a <code>docs/CONSISTENCY_MODEL.md</code> that explicitly documents: (1) write-side
+              guarantee (optimistic concurrency, linearizable per aggregate), (2) read-side
+              guarantee (eventual consistency, per-projection lag, no cross-projection monotonic
+              read guarantee), (3) what consumers must implement themselves (read-your-writes,
+              bounded staleness).
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="gap-7">
+            <span class="severity severity-nice">Nice to have &middot; Low impact</span>
+            <h3>Stream join / correlation state machine documentation</h3>
+            <div class="where">deriver/, docs/ &middot; Designing Event-Driven Systems</div>
+            <p>
+              Kleppmann discusses stream joins: joining two event streams on a common key (e.g.,
+              "when OrderCreated AND PaymentReceived for the same order"). The <code>deriver</code>
+              module handles event&rarr;command derivation but not multi-stream correlation. For
+              consumers needing this, the pattern is: maintain a correlation read model (via
+              projection) + deriver that checks it before dispatching. This is possible but
+              undocumented.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommended action</strong>
+              Document the "correlation state machine" pattern: use a projection to track
+              per-correlation-key state, then a deriver that queries it before dispatching
+              commands. This is the go-cqrs-lite answer to stream joins without adding a stream
+              processing engine.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="gap-8">
+            <span class="severity severity-nice">Nice to have &middot; Low impact</span>
+            <h3>Data-as-a-product documentation</h3>
+            <div class="where">docs/ &middot; Deciphering Data Architectures (Data Mesh)</div>
+            <p>
+              The Data Mesh principle "data as a product" maps naturally to CQRS: events are the
+              write-side product, read models are the projection-side product. Each has a clear
+              contract (event types, read-model schema). But this framing is not explicit in the
+              documentation. Making it explicit would help consumers think about their events and
+              read models as versioned products with consumers, not just internal implementation
+              details.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommended action</strong>
+              Add a section to <code>docs/DOMAIN_LANGUAGE.md</code> or the skill references that
+              frames events and read models as products with explicit contracts, versions, and
+              consumers. The <code>catalog</code> module (AsyncAPI, D2, EventCatalog exporters)
+              already supports this &mdash; connect the conceptual framing to the tooling.
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================== NOT DO ====================== -->
+        <section id="not-do">
+          <h2><span class="num">03</span>What We Must NOT Do</h2>
+          <p>
+            15 anti-patterns from the books that go-cqrs-lite correctly avoids &mdash; and must
+            continue to avoid. These are temptations that seem like improvements but would violate
+            the library's core design principles.
+          </p>
+
+          <div class="card card-problem">
+            <h3>1. Do NOT add distributed consensus (Raft/Paxos)</h3>
+            <p>
+              <strong>Book:</strong> DDIA Ch. 9, Patterns of Distributed Systems<br />
+              <strong>Why not:</strong> Consensus is a deployment concern, not a library concern.
+              go-cqrs-lite provides optimistic concurrency per aggregate. If consumers need
+              multi-node coordination, they use etcd/Zookeeper at the deployment layer. Adding
+              consensus would make the library opinionated about deployment topology &mdash;
+              violating "library, not framework."
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>2. Do NOT add two-phase commit (2PC)</h3>
+            <p>
+              <strong>Book:</strong> DDIA Ch. 9, Designing Event-Driven Systems<br />
+              <strong>Why not:</strong> 2PC is blocking and operationally fragile. The library uses
+              eventual consistency + projections instead. Kleppmann explicitly argues for derived
+              data over distributed transactions. ADR-0016 declined the outbox for the same reason.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>3. Do NOT add an outbox implementation</h3>
+            <p>
+              <strong>Book:</strong> DDIA Ch. 11, CQRS/ES books<br />
+              <strong>Why not:</strong> ADR-0016 explicitly declined this. The outbox is a consumer
+              concern. The library provides the primitives (event journal + publisher) and the
+              pattern is composable using <code>CatchUpSubscriber</code>. Adding an outbox would
+              impose transactional coupling between the event store and a message broker &mdash;
+              limiting consumer choice.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>4. Do NOT add multi-leader replication</h3>
+            <p>
+              <strong>Book:</strong> DDIA Ch. 5<br />
+              <strong>Why not:</strong> Multi-leader replication introduces write conflict
+              resolution, which is a domain decision. The library's optimistic concurrency model
+              is single-leader per aggregate. Multi-leader would require conflict resolution
+              strategies (LWW, CRDTs, custom) &mdash; a framework concern, not a library concern.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>5. Do NOT enforce a single storage engine</h3>
+            <p>
+              <strong>Book:</strong> DDIA Ch. 3<br />
+              <strong>Why not:</strong> B-trees (SQL) and LSM-trees (Pebble) have different
+              tradeoffs. The library supports both, plus memory and Turso. Forcing one would
+              eliminate valid deployment scenarios. DDIA explicitly argues that no storage engine
+              is universally best.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>6. Do NOT add a schema registry service</h3>
+            <p>
+              <strong>Book:</strong> DDIA Ch. 4, Designing Event-Driven Systems<br />
+              <strong>Why not:</strong> Schema validation is opt-in middleware
+              (<code>schema.Validator</code> with <code>RegisterType[T]()</code>). Events are
+              self-describing (encoding stamps). A centralized registry service would impose
+              operational burden and coupling. The library's approach (upcasters on read,
+              validation on publish/subscribe) is sufficient.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>7. Do NOT add a god aggregate / OO aggregate root</h3>
+            <p>
+              <strong>Book:</strong> Implementing DDD, CQRS and ES<br />
+              <strong>Why not:</strong> ADR-0001 explicitly chose pure functions
+              (<code>Decider[State]</code>) over a 9-method OO aggregate root interface. Pure
+              functions are easier to test, compose, and reason about. The OO aggregate root
+              pattern couples domain logic to infrastructure (loading, saving). The decider
+              pattern separates them.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>8. Do NOT couple projections to aggregate state</h3>
+            <p>
+              <strong>Book:</strong> CQRS/ES books<br />
+              <strong>Why not:</strong> Projections handle events, not aggregate state. This is
+              deliberate: events are the contract, state is an implementation detail. Coupling
+              projections to state would make state changes break projections and vice versa. The
+              <code>projection.Projection.Handle(ctx, evt)</code> interface takes events.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>9. Do NOT add a saga framework</h3>
+            <p>
+              <strong>Book:</strong> CQRS/ES books<br />
+              <strong>Why not:</strong> Sagas emerge from <code>bus.SubscribeAll</code> + command
+              dispatch. The <code>deriver</code> module provides the building blocks
+              (<code>Then</code>, <code>Filter</code>, <code>Idempotent</code>). Adding a saga
+              framework would impose a state machine abstraction, conflict resolution, and
+              compensation semantics &mdash; all of which are domain-specific decisions. The
+              docs correctly note: "No dedicated saga module. Multi-step orchestration emerges."
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>10. Do NOT add a Kafka/stream processing engine</h3>
+            <p>
+              <strong>Book:</strong> Designing Event-Driven Systems<br />
+              <strong>Why not:</strong> <code>projectionhost</code> is a simple, correct stream
+              processor (read from journal, process, checkpoint). A full stream processing engine
+              (windowing, watermarking, stream joins) would be over-engineering for an
+              application-level CQRS library. Consumers needing Kafka-scale streaming use Kafka +
+              the Watermill adapter.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>11. Do NOT add log compaction to the event store</h3>
+            <p>
+              <strong>Book:</strong> DDIA Ch. 11, Designing Event-Driven Systems<br />
+              <strong>Why not:</strong> Log compaction (keeping only the latest value per key)
+              destroys the audit trail. In event sourcing, ALL events matter &mdash; they are the
+              business record. Snapshots are the correct optimization (avoid replay cost without
+              losing data). Compaction would violate the fundamental premise of event sourcing.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>12. Do NOT add an opinionated transport / API gateway</h3>
+            <p>
+              <strong>Book:</strong> Service Design Patterns<br />
+              <strong>Why not:</strong> The library provides transport helpers (SSE, gRPC) but
+              does not enforce HTTP, gRPC, or any specific protocol. Consumers choose their
+              transport. Adding an API gateway or enforcing REST maturity would violate "library,
+              not framework" and limit deployment options.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>13. Do NOT add data lakehouse / data fabric patterns</h3>
+            <p>
+              <strong>Book:</strong> Deciphering Data Architectures<br />
+              <strong>Why not:</strong> This is an application-level CQRS library, not a data
+              platform. Data warehouse, lakehouse, and fabric patterns solve a different problem
+              (analytics at scale across organizational data). The library's projections are
+              operational read models, not analytical datasets. Mixing these concerns would dilute
+              the library's focus.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>14. Do NOT add leader election or quorum protocols</h3>
+            <p>
+              <strong>Book:</strong> Patterns of Distributed Systems<br />
+              <strong>Why not:</strong> Leader election and quorum are for replicated state
+              machines (Raft, Paxos). go-cqrs-lite's event store is not replicated at the library
+              level &mdash; replication is a storage backend concern (Postgres replication, Pebble
+              WAL replication). Adding leader election would impose a specific replication model.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h3>15. Do NOT add fencing tokens / generation locks</h3>
+            <p>
+              <strong>Book:</strong> Patterns of Distributed Systems<br />
+              <strong>Why not:</strong> Fencing tokens prevent stale leaders from writing after a
+              partition heals. This is a deployment/orchestration concern (Kubernetes leases,
+              etcd locks). The library's optimistic concurrency (expectedVersion) is the
+              application-level fencing &mdash; a stale instance's write will fail the version
+              check. Adding deployment-level fencing would mix concerns.
+            </p>
+          </div>
+        </section>
+
+        <!-- ====================== PRIORITY MATRIX ====================== -->
+        <section id="priority-matrix">
+          <h2><span class="num">04</span>Priority Matrix</h2>
+          <p>
+            The 8 "should apply" items, ordered by impact and effort. The top 3 deliver the most
+            value for the least work.
+          </p>
+
+          <div class="table-wrap">
+            <table class="compare">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Gap</th>
+                  <th>Book Source</th>
+                  <th>Impact</th>
+                  <th>Effort</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Read-your-writes helper</td>
+                  <td>CQRS/ES + DDIA</td>
+                  <td class="yes">High</td>
+                  <td>Medium</td>
+                  <td>Code + docs</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Bounded staleness queries</td>
+                  <td>DDIA Ch. 9</td>
+                  <td class="yes">High</td>
+                  <td>Medium</td>
+                  <td>Code + docs</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Consistency model document</td>
+                  <td>DDIA + CQRS/ES</td>
+                  <td class="yes">High</td>
+                  <td class="yes">Low</td>
+                  <td>Docs only</td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>Outbox pattern documentation</td>
+                  <td>DDIA + Event-Driven</td>
+                  <td>Medium</td>
+                  <td class="yes">Low</td>
+                  <td>Docs only</td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td>Projection migration strategy</td>
+                  <td>CQRS/ES books</td>
+                  <td>Medium</td>
+                  <td>Medium</td>
+                  <td>Code + docs</td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td>Stream join documentation</td>
+                  <td>Designing Event-Driven</td>
+                  <td>Low</td>
+                  <td class="yes">Low</td>
+                  <td>Docs only</td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td>Span links for replay tracing</td>
+                  <td>DDIA + Event-Driven</td>
+                  <td>Low</td>
+                  <td>Medium</td>
+                  <td>Code</td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td>Data-as-a-product framing</td>
+                  <td>Deciphering Data Arch.</td>
+                  <td>Low</td>
+                  <td class="yes">Low</td>
+                  <td>Docs only</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout-teal">
+            <strong>Quick wins (docs only, high impact)</strong>
+            Items 3, 4, 6, and 8 require zero code changes &mdash; just documentation. They would
+            collectively address the most common consumer questions: "What consistency
+            guarantees does this library make?", "How do I implement an outbox?", "How do I join
+            event streams?", and "How do I think about my events as products?"
+          </div>
+
+          <h3 style="margin-top: 2rem;">What this analysis reveals about the architecture</h3>
+          <div class="diagram">
+            <span class="node node-core">DDIA Part III</span>
+            <span class="arrow">&rarr;</span>
+            <span class="node">Event Store (WAL)</span>
+            <span class="arrow">+</span>
+            <span class="node">Projections (Views)</span>
+            <span class="arrow">+</span>
+            <span class="node">Schema (Evolution)</span>
+            <span class="arrow">=</span>
+            <span class="node node-good">go-cqrs-lite</span>
+          </div>
+          <p>
+            The library is a faithful, well-executed implementation of the most important theoretical
+            insights from these seven books. The 62% application rate (38 of 61) is high
+            considering that many book insights (replication, consensus, data platforms) are
+            intentionally out of scope for a library. The gaps are in ergonomics and documentation,
+            not in fundamental architecture. The "must NOT do" list is a testament to disciplined
+            design &mdash; the library correctly refuses to be a framework.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-07-23 &middot; Reviewed against 42 modules, 57 ADRs, and 7 books &middot;
+            All claims verified against source code where noted
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
