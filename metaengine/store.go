@@ -157,7 +157,7 @@ func (s *Store) ExecuteCtx(ctx context.Context, input any, opts ...ExecOption) (
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	inputType := reflect.TypeOf(input).Name()
+	inputType := qualifiedTypeName(input)
 
 	queryName, ok := s.byInputType[inputType]
 	if !ok {
