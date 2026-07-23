@@ -1,9 +1,9 @@
 # The Event-Query Model: The Core Abstraction
 
 > **Two primitives drive everything.** Events (the source of truth across time) and Queries
-> (the read intent). Commands propose events. Metadata travels with all three. Auth is
-> structural. Everything else — data structures, engines, indexes, projections, cost models —
-> is derivation from the relationship between events and queries.
+> (the read intent). Commands propose events. Metadata travels with all three. Sessions are
+> event streams too. Everything else — data structures, engines, indexes, projections, cost
+> models — is derivation from the relationship between events and queries.
 
 **Status:** Foundational Design (2026-07-23)
 **Supersedes:** All prior meta-engine design docs for the API model. This is THE model.
@@ -20,7 +20,7 @@
 6. [The Query Input Type IS the Read Pattern](#6-the-query-input-type-is-the-read-pattern)
 7. [Each Query Has Its Own Independent Projection](#7-each-query-has-its-own-independent-projection)
 8. [Metadata Is First-Class](#8-metadata-is-first-class)
-9. [Auth Is Structural, Not Behavioral](#9-auth-is-structural-not-behavioral)
+9. [Auth Is Upstream's Concern](#9-auth-is-upstreams-concern)
 10. [Commands and Queries As Event Streams](#10-commands-and-queries-as-event-streams)
 11. [What the Planner Derives Automatically](#11-what-the-planner-derives-automatically)
 12. [Concrete Examples](#12-concrete-examples)
@@ -747,7 +747,7 @@ Planner plan for all 5 queries:
 | "Entity" types                                                 | No entities — events + queries only                    |
 | "Store" interfaces                                             | No stores — each query is independent                  |
 | Stringly-typed column names in declarations                    | All typed Go                                           |
-| Auth boilerplate in handlers                                   | Required query input fields enforce scope structurally |
+| Auth enforcement                                                     | Auth is upstream's concern — the meta-engine just stores data |
 
 ---
 
