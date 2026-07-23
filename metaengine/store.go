@@ -84,6 +84,15 @@ func (s *Store) applyFold(m modelRuntime, fold Fold, payload any) error {
 
 	case FoldUpdate:
 		key := fold.callKey(payload)
+
+		// Fast path: engine supports atomic read-modify-write.
+		if mu, ok := m.engine.(MapUpdater); ok {
+			return mu.MapUpdate(col, key, func(prev any) any {
+				return fold.callUpdate(payload, prev)
+			})
+		}
+
+		// Fallback: non-atomic read-modify-write (may lose updates under concurrency).
 		if mb, ok := m.engine.(MapBackend); ok {
 			prev, exists, err := mb.MapGet(col, key)
 			if err != nil {
@@ -206,8 +215,14 @@ func (s *Store) executeQuery(
 
 	case ReadFilteredScan:
 		filterValues := extractFilterValues(input, q.filters)
+
+		var cursorVal any
+		if cfg.cursor != nil {
+			cursorVal = cfg.cursor.Value
+		}
+
 		if sb, ok := m.engine.(ScanBackend); ok {
-			results, err := sb.MapScan(m.name, q.filters, filterValues, q.sortField, cfg.limit)
+			results, err := sb.MapScan(m.name, q.filters, filterValues, q.sortField, cursorVal, cfg.limit)
 			if err != nil {
 				return nil, err
 			}

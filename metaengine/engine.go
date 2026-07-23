@@ -1,6 +1,7 @@
 package metaengine
 
 import (
+	"cmp"
 	"fmt"
 	"maps"
 	"reflect"
@@ -42,12 +43,20 @@ type MapBackend interface {
 	MapDelete(collection string, key any) error
 }
 
+// MapUpdater is an optional capability for atomic read-modify-write on map entries.
+// Engines that implement this interface handle FoldUpdate without race conditions.
+// Mirrors the kv.ViewUpdater pattern from the existing codebase.
+type MapUpdater interface {
+	MapUpdate(collection string, key any, update func(prev any) any) error
+}
+
 type ScanBackend interface {
 	MapScan(
 		collection string,
 		filters []FieldPath,
 		filterValues map[string]any,
 		sortField string,
+		cursor any,
 		limit int,
 	) ([]any, error)
 }
@@ -122,12 +131,22 @@ func (m *MemoryEngine) Profile() EngineProfile {
 	}
 }
 
+// getMapLocked returns or creates a map collection. Caller MUST hold m.mu.Lock().
 func (m *MemoryEngine) getMapLocked(col string) map[any]any {
 	if m.data.maps[col] == nil {
 		m.data.maps[col] = make(map[any]any)
 	}
 
 	return m.data.maps[col]
+}
+
+// getGraphLocked returns or creates a graph collection. Caller MUST hold m.mu.Lock().
+func (m *MemoryEngine) getGraphLocked(col string) *memGraph {
+	if m.data.graphs[col] == nil {
+		m.data.graphs[col] = &memGraph{adjacency: make(map[any][]any)}
+	}
+
+	return m.data.graphs[col]
 }
 
 func (m *MemoryEngine) MapSet(col string, key any, value any) error {
@@ -143,7 +162,12 @@ func (m *MemoryEngine) MapGet(col string, key any) (any, bool, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	v, ok := m.getMapLocked(col)[key]
+	store := m.data.maps[col]
+	if store == nil {
+		return nil, false, nil
+	}
+
+	v, ok := store[key]
 
 	return v, ok, nil
 }
@@ -157,40 +181,95 @@ func (m *MemoryEngine) MapDelete(col string, key any) error {
 	return nil
 }
 
+// MapUpdate performs an atomic read-modify-write on a map entry.
+// The update function receives the previous value (nil if absent) and returns
+// the new value. The entire operation is serialized under the engine's write lock.
+func (m *MemoryEngine) MapUpdate(col string, key any, update func(prev any) any) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	store := m.getMapLocked(col)
+	prev := store[key]
+
+	store[key] = update(prev)
+
+	return nil
+}
+
 func (m *MemoryEngine) MapScan(
 	col string,
 	filters []FieldPath,
 	filterValues map[string]any,
 	sortField string,
+	cursor any,
 	limit int,
 ) ([]any, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	store := m.getMapLocked(col)
-
-	fetchLimit := limit
-	if limit > 0 {
-		fetchLimit = limit + 1
+	store := m.data.maps[col]
+	if store == nil {
+		return nil, nil
 	}
 
-	var results []any
+	// Collect ALL matching (key, value) pairs before sorting.
+	// Early-break before sorting produces wrong results for paginated queries
+	// because the items with the lowest sort keys may be in the unscanned portion.
+	type kv struct {
+		key   any
+		value any
+	}
 
-	for _, v := range store {
+	var pairs []kv
+
+	for k, v := range store {
 		if !matchesFilters(v, filters, filterValues) {
 			continue
 		}
 
-		results = append(results, v)
-		if fetchLimit > 0 && len(results) >= fetchLimit {
-			break
-		}
+		pairs = append(pairs, kv{key: k, value: v})
 	}
 
-	if sortField != "" {
-		sort.Slice(results, func(i, j int) bool {
-			return compareByField(results[i], results[j], sortField)
-		})
+	// Sort with a deterministic tiebreaker: primary = sort field value,
+	// secondary = map key (as string). This ensures reproducible output
+	// even though Go randomizes map iteration order.
+	sort.Slice(pairs, func(i, j int) bool {
+		return compareItems(
+			pairs[i].value, pairs[j].value,
+			pairs[i].key, pairs[j].key,
+			sortField,
+		) < 0
+	})
+
+	// Keyset pagination: skip items at or before the cursor position.
+	if cursor != nil && sortField != "" {
+		cursorKey := extractKeyValue(cursor)
+
+		filtered := pairs[:0]
+		for _, p := range pairs {
+			if compareItems(p.value, cursor, p.key, cursorKey, sortField) <= 0 {
+				continue
+			}
+
+			filtered = append(filtered, p)
+		}
+
+		pairs = filtered
+	}
+
+	// Truncate to limit+1 — the extra item signals HasMore to reconstructPage.
+	truncLimit := 0
+	if limit > 0 {
+		truncLimit = limit + 1
+	}
+
+	if truncLimit > 0 && len(pairs) > truncLimit {
+		pairs = pairs[:truncLimit]
+	}
+
+	results := make([]any, len(pairs))
+	for i, p := range pairs {
+		results[i] = p.value
 	}
 
 	return results, nil
@@ -243,14 +322,6 @@ func (m *MemoryEngine) CounterGet(col string) (map[string]int64, error) {
 	return result, nil
 }
 
-func (m *MemoryEngine) getGraphLocked(col string) *memGraph {
-	if m.data.graphs[col] == nil {
-		m.data.graphs[col] = &memGraph{adjacency: make(map[any][]any)}
-	}
-
-	return m.data.graphs[col]
-}
-
 func (m *MemoryEngine) GraphAddEdge(col string, edge Edge) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -266,7 +337,11 @@ func (m *MemoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, e
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	g := m.getGraphLocked(col)
+	g := m.data.graphs[col]
+	if g == nil {
+		return nil, nil
+	}
+
 	visited := map[any]bool{node: true}
 	frontier := []any{node}
 	result := []any{}
@@ -329,46 +404,103 @@ func matchesFilters(value any, filters []FieldPath, filterValues map[string]any)
 	return true
 }
 
-func compareByField(a, b any, field string) bool {
-	av := getFieldValue(a, field)
-	bv := getFieldValue(b, field)
+// compareValue performs a type-aware tri-state comparison: -1 (a < b), 0 (equal), +1 (a > b).
+// Falls back to string comparison for unsupported or mismatched types.
+func compareValue(a, b any) int {
+	if a == nil || b == nil {
+		if a == b {
+			return 0
+		}
 
-	return compareLess(av, bv)
-}
+		if a == nil {
+			return -1
+		}
 
-// compareLess performs a type-aware less-than comparison for sort fields.
-// Falls back to string comparison for unsupported types.
-func compareLess(a, b any) bool {
+		return 1
+	}
+
 	switch va := a.(type) {
 	case int:
-		return va < b.(int)
+		if vb, ok := b.(int); ok {
+			return cmp.Compare(va, vb)
+		}
 	case int8:
-		return va < b.(int8)
+		if vb, ok := b.(int8); ok {
+			return cmp.Compare(va, vb)
+		}
 	case int16:
-		return va < b.(int16)
+		if vb, ok := b.(int16); ok {
+			return cmp.Compare(va, vb)
+		}
 	case int32:
-		return va < b.(int32)
+		if vb, ok := b.(int32); ok {
+			return cmp.Compare(va, vb)
+		}
 	case int64:
-		return va < b.(int64)
+		if vb, ok := b.(int64); ok {
+			return cmp.Compare(va, vb)
+		}
 	case uint:
-		return va < b.(uint)
+		if vb, ok := b.(uint); ok {
+			return cmp.Compare(va, vb)
+		}
 	case uint8:
-		return va < b.(uint8)
+		if vb, ok := b.(uint8); ok {
+			return cmp.Compare(va, vb)
+		}
 	case uint16:
-		return va < b.(uint16)
+		if vb, ok := b.(uint16); ok {
+			return cmp.Compare(va, vb)
+		}
 	case uint32:
-		return va < b.(uint32)
+		if vb, ok := b.(uint32); ok {
+			return cmp.Compare(va, vb)
+		}
 	case uint64:
-		return va < b.(uint64)
+		if vb, ok := b.(uint64); ok {
+			return cmp.Compare(va, vb)
+		}
 	case float32:
-		return va < b.(float32)
+		if vb, ok := b.(float32); ok {
+			return cmp.Compare(va, vb)
+		}
 	case float64:
-		return va < b.(float64)
+		if vb, ok := b.(float64); ok {
+			return cmp.Compare(va, vb)
+		}
 	case string:
-		return va < b.(string)
+		if vb, ok := b.(string); ok {
+			return cmp.Compare(va, vb)
+		}
 	case time.Time:
-		return va.Before(b.(time.Time))
-	default:
-		return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+		if vb, ok := b.(time.Time); ok {
+			switch {
+			case va.Before(vb):
+				return -1
+			case va.After(vb):
+				return 1
+			default:
+				return 0
+			}
+		}
 	}
+
+	return strings.Compare(fmt.Sprintf("%v", a), fmt.Sprintf("%v", b))
+}
+
+// compareItems compares two projection records by sort field (primary) and map
+// key (secondary tiebreaker). The tiebreaker ensures deterministic ordering
+// even when sort field values are equal and Go's map iteration is randomized.
+// Returns -1 if a sorts before b, 0 if equal, +1 if a sorts after b.
+func compareItems(a, b any, keyA, keyB any, sortField string) int {
+	if sortField != "" {
+		aVal := getFieldValue(a, sortField)
+		bVal := getFieldValue(b, sortField)
+
+		if c := compareValue(aVal, bVal); c != 0 {
+			return c
+		}
+	}
+
+	return strings.Compare(fmt.Sprintf("%v", keyA), fmt.Sprintf("%v", keyB))
 }

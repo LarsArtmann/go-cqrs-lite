@@ -66,7 +66,7 @@ func OnUpdate[E any, K any, V any](sample E, keyFn func(e E) K, fn func(e E, pre
 
 // OnRemove registers a fold that deletes a key from the projection.
 // keyFn extracts the key from the event so the engine knows which record to delete.
-func OnRemove[E any, K any, V any](sample E, keyFn func(e E) K) Fold {
+func OnRemove[E any, K any](sample E, keyFn func(e E) K) Fold {
 	return Fold{
 		EventType:    EventTypeName(sample),
 		EventSample:  sample,
@@ -82,6 +82,25 @@ func OnCount[E any](sample E, fn func(e E) Delta) Fold {
 		EventSample:  sample,
 		Kind:         FoldCount,
 		countHandler: fn,
+	}
+}
+
+// OnCountTyped registers a fold that adjusts typed counters with branded keys.
+// TypedDelta[K] uses a named string type for counter keys, making typos compile errors.
+// The typed delta is converted to the generic Delta at registration time.
+func OnCountTyped[E any, K ~string](sample E, fn func(e E) TypedDelta[K]) Fold {
+	return Fold{
+		EventType: EventTypeName(sample),
+		EventSample: sample,
+		Kind:       FoldCount,
+		countHandler: func(e E) Delta {
+			typed := fn(e)
+			d := make(Delta, len(typed))
+			for k, v := range typed {
+				d[string(k)] = v
+			}
+			return d
+		},
 	}
 }
 

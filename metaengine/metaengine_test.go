@@ -85,7 +85,7 @@ func usersModel() ReadModel {
 
 				return prev
 			}),
-		OnRemove[UserDeleted, UserID, FindUserResult](UserDeleted{}, func(e UserDeleted) UserID {
+		OnRemove(UserDeleted{}, func(e UserDeleted) UserID {
 			return e.ID
 		}),
 	}...)

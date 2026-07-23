@@ -36,7 +36,7 @@ users := metaengine.MustModel("users",
     metaengine.OnInsert(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
         return e.ID, FindUserResult{ID: e.ID, Name: e.Name, JoinedAt: e.At}
     }),
-    metaengine.OnRemove[UserDeleted, UserID, FindUserResult](UserDeleted{},
+    metaengine.OnRemove(UserDeleted{},
         func(e UserDeleted) UserID { return e.ID }),
 )
 
