@@ -2,7 +2,6 @@ package schema
 
 import (
 	"encoding/json/v2"
-
 	"fmt"
 	"reflect"
 	"sync"

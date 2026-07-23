@@ -124,7 +124,7 @@ func Setup(opts ...Option) (*Provider, error) {
 
 	gatherer, ok := cfg.registry.(prometheus.Gatherer)
 	if !ok {
-		return nil, errNotGatherer
+		return nil, ErrNotGatherer
 	}
 
 	handler := promhttp.HandlerFor(
@@ -138,4 +138,6 @@ func Setup(opts ...Option) (*Provider, error) {
 	}, nil
 }
 
-var errNotGatherer = errors.New("registry does not implement prometheus.Gatherer")
+// ErrNotGatherer is returned by [NewExporter] when the configured registry
+// does not implement prometheus.Gatherer.
+var ErrNotGatherer = errors.New("registry does not implement prometheus.Gatherer")

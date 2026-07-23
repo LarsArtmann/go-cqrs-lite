@@ -68,7 +68,13 @@ var (
 	ErrNilBus      = errorfamily.NewInfrastructure("event.nil_bus", "nil bus")
 
 	// Time and date validation errors — returned by NewDate and NewWallTime.
-	ErrInvalidDate   = errorfamily.NewRejection("event.invalid_date", "invalid calendar date")
-	ErrInvalidHour   = errorfamily.NewRejection("event.invalid_hour", "wall_time hour out of range [0, 23]")
-	ErrInvalidMinute = errorfamily.NewRejection("event.invalid_minute", "wall_time minute out of range [0, 59]")
+	ErrInvalidDate = errorfamily.NewRejection("event.invalid_date", "invalid calendar date")
+	ErrInvalidHour = errorfamily.NewRejection(
+		"event.invalid_hour",
+		"wall_time hour out of range [0, 23]",
+	)
+	ErrInvalidMinute = errorfamily.NewRejection(
+		"event.invalid_minute",
+		"wall_time minute out of range [0, 59]",
+	)
 )
