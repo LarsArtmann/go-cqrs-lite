@@ -210,7 +210,8 @@ func (s *Store) executeQuery(q queryRuntime, input any, opts ...ExecOption) (any
 	}
 }
 
-// extractKeyValue gets the first field value from a query input struct.
+// extractKeyValue gets the key value from a query input struct.
+// Priority: field tagged metaengine:"key" > first exported field.
 func extractKeyValue(input any) any {
 	v := reflect.ValueOf(input)
 	if v.Kind() == reflect.Pointer {
@@ -219,6 +220,13 @@ func extractKeyValue(input any) any {
 
 	if v.Kind() != reflect.Struct || v.NumField() == 0 {
 		return nil
+	}
+
+	t := v.Type()
+	for i := range t.NumField() {
+		if t.Field(i).Tag.Get("metaengine") == "key" {
+			return v.Field(i).Interface()
+		}
 	}
 
 	return v.Field(0).Interface()
@@ -261,7 +269,9 @@ func isPageType[R any]() bool {
 }
 
 // reconstructPage builds a typed Page[T] from a []any returned by the engine.
-func reconstructPage[R any](raw any) R {
+// If the engine returned more items than the limit, HasMore is set to true
+// and Next is populated with a cursor pointing past the current page.
+func reconstructPage[R any](raw any, limit int) R {
 	var zero R
 
 	t := reflect.TypeOf(zero)
@@ -276,7 +286,14 @@ func reconstructPage[R any](raw any) R {
 		return zero
 	}
 
+	hasMore := limit > 0 && len(items) > limit
+	if hasMore {
+		items = items[:limit]
+	}
+
 	slice := reflect.MakeSlice(reflect.SliceOf(elemType), 0, len(items))
+	var lastItem any
+
 	for _, item := range items {
 		if item == nil {
 			continue
@@ -285,11 +302,25 @@ func reconstructPage[R any](raw any) R {
 		val := reflect.ValueOf(item)
 		if val.Type().ConvertibleTo(elemType) {
 			slice = reflect.Append(slice, val.Convert(elemType))
+			lastItem = item
 		}
 	}
 
 	result := reflect.New(t).Elem()
 	result.FieldByName("Items").Set(slice)
+
+	if hasMore {
+		result.FieldByName("HasMore").SetBool(true)
+
+		if lastItem != nil {
+			cursor := &Cursor{Value: lastItem}
+			// Cursor is *Cursor → set as pointer value.
+			cursorField := result.FieldByName("Next")
+			if cursorField.IsValid() && cursorField.Kind() == reflect.Pointer {
+				cursorField.Set(reflect.ValueOf(cursor))
+			}
+		}
+	}
 
 	return result.Interface().(R)
 }
@@ -318,7 +349,8 @@ func ExecuteTyped[Q any, R any](
 	}
 	// If R is Page[T], raw is []any — reconstruct typed page.
 	if isPageType[R]() {
-		return reconstructPage[R](raw), nil
+		cfg := applyExecOpts(opts)
+		return reconstructPage[R](raw, cfg.limit), nil
 	}
 
 	result, ok := raw.(R)
