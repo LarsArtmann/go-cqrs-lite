@@ -35,7 +35,9 @@
 
 4. **Removed useless error wrapping** — `stack/health.go` had `fmt.Errorf("%w", errs[0])` which wraps with zero context. Replaced with direct `errs[0]` since `errorfamily.WrapInfrastructure` already adds context.
 
-5. **Full verification passed:**
+5. **External sentinel registration audit** — Audited all 4 external error sentinels (`pebble.ErrNotFound`, `sql.ErrNoRows`, `context.Canceled`, `context.DeadlineExceeded`) for `errorfamily.RegisterClassification` coverage. Found that 3 of 4 were already registered via `RegisterStdlibDefaults` in `storage/sql/classify_init.go` (since a prior session). Added registration for the remaining gap — `pebble.ErrNotFound` → Rejection — in a new `storage/pebble/classify_init.go` with an `init()` function mirroring the SQL pattern. Added a test (`classify_init_test.go`) verifying both direct and wrapped classification. Defense-in-depth: all 6 call sites in the pebble package already catch `ErrNotFound` locally, but a leaked raw error would have defaulted to `Transient` (wrong for not-found). Commit `4bb767b7`.
+
+6. **Full verification passed:**
    - `go build -tags "goexperiment.jsonv2" ./...` — clean
    - `go test -tags "goexperiment.jsonv2" ./... -count=1 -race` — ALL 52 MODULES PASS
    - `nix fmt` — applied
@@ -77,7 +79,12 @@
 
 #### High Impact
 
-1. **Add `errorfamily.RegisterClassification` for external sentinels** — Pebble's `ErrNotFound`, `sql.ErrNoRows`, `context.Canceled`, and `http.ErrServerClosed` are checked via `errors.Is` but have no taxonomy classification. Register them so `errorfamily.Classify(err)` returns the right family (Rejection for NotFound, Transient for Canceled).
+1. **~~Add `errorfamily.RegisterClassification` for external sentinels~~** — **DONE** (2026-07-23). Audited all 4 external sentinels:
+   - `sql.ErrNoRows` → Rejection — **already registered** via `RegisterStdlibDefaults` in `storage/sql/classify_init.go`
+   - `context.Canceled` → Rejection — **already registered** (same)
+   - `context.DeadlineExceeded` → Transient — **already registered** (same)
+   - `pebble.ErrNotFound` → Rejection — **newly registered** in `storage/pebble/classify_init.go` (commit `4bb767b7`)
+   - `http.ErrServerClosed` — not registered; intentionally excluded (server shutdown is not an error condition, always handled explicitly at call sites)
 
 2. **Standardize error code naming convention** — Current codes use dot-notation (`codec.unknown_encoding`, `event.invalid_date`, `postgres.listener.already_listening`) but there's no enforced pattern. Some use module prefix, some use sub-system prefix. Create a convention doc and add a cqrs-lint rule.
 
@@ -119,7 +126,7 @@
 4. Add `errors.Is` tests for `ErrEmptyChannelName`, `ErrInvalidChannelName` in stack/postgres package
 5. Add `errors.Is` tests for `ErrUnexpectedTimeType` in middleware package
 6. Add `errors.Is` tests for `ErrNotGatherer` in prometheus package
-7. Register external sentinels with `errorfamily.RegisterClassification` (pebble.ErrNotFound, sql.ErrNoRows, context.Canceled)
+7. ~~Register external sentinels with `errorfamily.RegisterClassification` (pebble.ErrNotFound, sql.ErrNoRows, context.Canceled)~~ — **DONE** — see section A.5 above. All 4 external sentinels are now classified (3 were already done via `RegisterStdlibDefaults`, pebble added in `4bb767b7`).
 8. Document the translation-at-boundary pattern in `command/dispatcher.go` and `query/dispatcher.go`
 9. Document the `otel` isolation decision in AGENTS.md error handling section
 10. Update AGENTS.md with new exported sentinels list

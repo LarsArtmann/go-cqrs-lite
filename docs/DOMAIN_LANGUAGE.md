@@ -199,15 +199,53 @@ The library provides three projection tiers, chosen by read-pattern shape:
 
 | Term                 | Definition                                                                                                   | Context                                                                                                                                                                                 |
 | -------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Idempotency**      | Deduplication for at-least-once delivery (commands, events, queries)                                         | `idempotency.Store` — `CheckAndRecord` is atomic; `idempotency.ErrDuplicate`; middleware: `middleware.CommandIdempotency`, `middleware.EventIdempotency`, `middleware.QueryIdempotency` |
+| **Idempotent Receiver** | Deduplication for safe retries under at-least-once delivery (DDIA pattern)                                | `idempotency.Store` — `CheckAndRecord` is atomic; `idempotency.ErrDuplicate`; `dedup.Ring` — bounded O(1) dedup at stream boundaries; middleware: `middleware.CommandIdempotency`, `middleware.EventIdempotency`, `middleware.QueryIdempotency` |
 | **Timer**            | Durable deadline: "cancel order after 30 min unpaid"                                                         | `scheduling.TimerStore[P]` — `Schedule` (idempotent), `Due`, `MarkFired`, `Cancel`                                                                                                      |
 | **Scheduler**        | Polls a TimerStore and dispatches due timers with retry                                                      | `scheduling.New(store, dispatchFunc)` — exponential backoff, max retries                                                                                                                |
 | **Catalog**          | Auto-generates AsyncAPI, OpenAPI, D2, and EventCatalog docs                                                  | `catalog.Registry` + `catalog.SchemaFromType[T]()` + per-format exporters                                                                                                               |
 | **Middleware**       | Cross-cutting concerns: Logging, Retry, Recovery, Validation, Metrics, Tracing, Circuit Breaker, Idempotency | `middleware/` — 3 variants each (Command*/Event*/Query\*)                                                                                                                               |
 | **OTel**             | OpenTelemetry tracing + metrics re-exports                                                                   | `otel.Setup()` — one-call provider; `otel.NewTracer()`, `otel.NewMeter()`                                                                                                               |
 | **Prometheus**       | OTel→Prometheus metrics bridge with `/metrics` HTTP handler                                                  | `prometheus.Setup()`                                                                                                                                                                    |
-| **Schema Evolution** | Upcasting: transform old event versions on load                                                              | `schema.Upcaster`, `schema.VersionedStore` — migrate payloads at read time                                                                                                              |
+| **Schema Evolution** | Forward/backward-compatible event evolution via upcasting on read (DDIA Ch. 4)                                | `schema.Upcaster`, `schema.VersionedStore`, `schema.VersionedSeekableJournal` — events are immutable; old versions transformed at load time                                              |
 | **Validator**        | Runtime type registration for event payload validation                                                       | `schema.Validator` — `RegisterType[T]()`                                                                                                                                                |
+| **Circuit Breaker**  | Stops cascading failures by opening after N consecutive errors; half-open probe recovery                        | `middleware.NewCircuitBreaker[M]()`, `middleware.CircuitBreakerConfig`, `middleware.ErrCircuitBreakerOpen`; variants: `CommandCircuitBreaker`, `EventCircuitBreaker`, `QueryCircuitBreaker` |
+| **Retry**            | Zero-dep retry with exponential backoff + jitter (up to 50%) for transient failures                            | `retry.Do(ctx, config, fn)`, `retry.Config`, `retry.Backoff`, `retry.ErrExhausted`, `retry.ErrCanceled`; middleware: `middleware.NewRetry[M]()`                                           |
+| **Dedup Ring**       | Fixed-capacity O(1) ring buffer for deduplicating event IDs at replay→live boundaries                           | `dedup.Ring`, `dedup.NewRing(capacity)`, `dedup.DefaultCapacity` (1024) — used by `projectionhost` and `watermill.CatchUpSubscriber`                                                    |
+| **Projection Lag**   | Time duration between newest event in journal and last-processed event per projection                          | `projectionhost.LagDuration()` (max across workers), `projectionhost.LagPerProjection()` (per-worker map) — for dashboards and health checks                                            |
+| **Heartbeat**        | Keep-alive comment frames on SSE connections to prevent proxy idle timeouts                                    | `transport/http.DefaultSSEHeartbeat` (15s), `transport/http.WriteSSEHeartbeat(w)` — SSE spec comment frames                                                                               |
+| **Backfill**         | REST endpoint for fetching missed events by position (complement to SSE reconnection)                           | `transport/http.BackfillHandler(broker)` — `GET /events/backfill?after=<id>&limit=500` — applies broker's `WithPayloadTransform`                                                        |
+| **BufferEncoder**    | Optional codec interface for zero-allocation encoding into a caller-provided buffer                            | `codec.BufferEncoder` — `EncodeToBuffer(payload, buf)` — implemented by `JSONCodec`, `CBORCodec`, `CBORCompactCodec`                                                                    |
+| **Materialized View**| Read model derived from the event log; rebuildable from events (DDIA "derived data")                            | `stack.Materialize[V,K]` (KV/document), `storage.RelationalProjection` (SQL), `graph.GraphProjection` (graph) — all implement `projection.Projection`                                     |
+| **High-Water Mark**  | DDIA term for the maximum safely-processed position in a stream; this library calls it "Checkpoint"               | `event.CheckpointStore` — the library's checkpoint IS a high-water mark; per-projection, resumable after restart                                                                          |
+
+---
+
+## Deployment Scope
+
+This library is designed for **single-process applications** (embedded SQLite, Pebble) and **multi-process deployments** (Postgres with `LISTEN/NOTIFY`, Watermill with Kafka/NATS/Redis). It is **not** a distributed event-sourcing system: no multi-server replication, no leader election, no consensus protocols, no 2PC. Multi-process means multiple processes share a database; multi-server means a geographically distributed cluster with replication and failover. The library handles the former; the deployment infrastructure handles the latter.
+
+| Deployment shape | Supported | How |
+| --- | --- | --- |
+| **Single-process embedded** | Yes | `stack/sqlite`, `stack/pebble`, `stack/turso` — one process, one file |
+| **Single-process + broker** | Yes | Any preset + `watermill.WithBackend(kafkaPub, kafkaSub)` |
+| **Multi-process shared DB** | Yes | `stack/postgres` + `WithDistributedBus(listener)` — `LISTEN/NOTIFY` for cross-process pub/sub |
+| **Multi-server distributed** | No | No replication, consensus, or leader election. Use external coordination (etcd, Kubernetes) at the deployment layer |
+
+---
+
+## Consistency Guarantees
+
+The library provides explicit guarantees on the write side and eventual consistency on the read side. Consumers must implement read-your-writes and bounded staleness themselves using the provided primitives.
+
+| Guarantee | Provided? | Mechanism |
+| --- | --- | --- |
+| **Optimistic concurrency** (write side) | Yes — per aggregate | `event.EventSink.Save(ctx, ref, events, expectedVersion)` — rejects with `ErrConcurrencyConflict` on version mismatch |
+| **Linearizable writes** (per aggregate) | Yes | Single-writer per aggregate via expectedVersion; atomic save in SQL transaction or Pebble batch |
+| **Eventual consistency** (read side) | Yes — per projection | Projections lag behind the event log; `projectionhost.LagDuration()` and `LagPerProjection()` track lag |
+| **Read-your-writes** | No — consumer must implement | After a command succeeds, the read model may not yet reflect it. Consumer can poll `LagDuration()` or use the command's returned events for optimistic UI updates |
+| **Bounded staleness** | No — consumer must implement | No built-in rejection of stale reads. Consumer can check `LagDuration()` before querying and reject if lag exceeds a threshold |
+| **Monotonic reads** | No — not guaranteed | If two projections run at different speeds, reads from different projections may see inconsistent snapshots |
+| **Consistent prefix reads** | Yes — per aggregate | Events within a single aggregate stream are ordered by version; cross-aggregate order is eventual |
 
 ---
 
@@ -289,6 +327,17 @@ kv.ViewStore[V,K]
 | "CRUD"            | "Command + Event + Projection" | No updates or deletes — only append                                           |
 | "Delete"          | "Tombstone"                    | Event streams are append-only; soft-delete via metadata, never removal        |
 | "State" (mutable) | "Folded state"                 | State is always reconstructed from events via `Apply`, never directly mutated |
+| "Aggregate Root" (OO) | "Decider" (pure functions)   | ADR-0001: 9-method OO interface couples domain to infrastructure; pure `Decider[State]` + `Apply` separates them |
+| "Update" / "Patch" | "Event" (append-only)         | No mutation of past events; new events supersede old state via fold            |
+| "Log Compaction"   | "Snapshot"                  | Compaction destroys the audit trail; snapshots avoid replay cost without losing data (DDIA) |
+| "2PC" / "Two-Phase Commit" | "Derived data" (projections) | 2PC is blocking and fragile; projections derive independently from the log (DDIA, ADR-0016) |
+| "Outbox"            | "Journal as outbox"          | ADR-0016: the event journal IS the outbox; `CatchUpSubscriber` replays and publishes. No separate outbox table needed |
+| "Replication"       | "Storage backend concern"    | The library does not replicate; Postgres/Pebble replication handles this at the storage layer |
+| "Leader Election"   | "Deployment concern"         | No Raft/Paxos; optimistic concurrency per aggregate is the application-level fencing; deployment infra (K8s, etcd) handles node coordination |
+| "Fencing Token"     | "ExpectedVersion"            | Application-level fencing via optimistic concurrency; a stale instance's write fails the version check |
+| "God Aggregate"     | "Small Decider + Deriver"    | Large aggregates violate SRP; split into small deciders + derivers for event→command derivation |
+| "Enforced Transport"| "Transport helpers"          | The library provides SSE, gRPC, REST helpers but does not force a protocol; consumers choose (Service Design Patterns) |
+| "Data Lakehouse"    | "Read models"                | This is an application-level CQRS library, not an analytics platform; projections are operational read models, not analytical datasets |
 
 ---
 
@@ -301,6 +350,12 @@ These concepts are intentionally absent as dedicated modules. They emerge from c
 | **Saga / Process Manager** | `bus.SubscribeAll` + `command.Dispatcher` + `deriver.Deriver`                  | Multi-step orchestration is domain-specific; a generic saga module imposes the wrong abstraction. See `example/taskmanager/` for a real implementation. |
 | **Domain Entity**          | App-defined inside the consumer's decider `Apply` function                     | The library models aggregate identity (`AggregateRef`), not aggregate state — state shape is the consumer's domain decision.                            |
 | **Message Broker**         | Injected via Watermill adapter (`watermill.NewEventBus` with Kafka/NATS/Redis) | The library is transport-agnostic. The GoChannel default is for single-process; brokers are consumer choices.                                           |
+| **Outbox**                 | Event journal + `CatchUpSubscriber` + `EventPublisher`                         | ADR-0016 declined: the journal IS the outbox. A projection reads the journal and publishes events, making the pattern composable without a dedicated table. |
+| **Distributed Consensus**  | Optimistic concurrency per aggregate (`expectedVersion`)                      | No Raft/Paxos: the library provides single-writer-per-aggregate semantics. Multi-node coordination (leader election, quorum) is a deployment concern.   |
+| **Log Compaction**         | `snapshot.SnapshotStore` with strategies                                      | Compaction destroys events — incompatible with event sourcing. Snapshots avoid replay cost without data loss. See `docs/research/time-travel-options.md`. |
+| **Stream Processing Engine** | `projectionhost.Host` (simple, correct) + `CatchUpSubscriber`               | Windowing, watermarking, stream joins are over-engineering for application-level CQRS. Consumers needing Kafka-scale streaming use Kafka + the Watermill adapter. |
+| **Fencing Tokens**         | `expectedVersion` (optimistic concurrency)                                     | Deployment-level fencing (K8s leases, etcd locks) is outside scope. Application-level fencing via version check is sufficient for single-writer-per-aggregate. |
+| **Data Lakehouse / Fabric** | N/A — projections are operational read models                                  | This is an application-level CQRS library, not an analytics platform. Warehouse/lakehouse/fabric solve a different problem (analytics at organizational scale). |
 
 ---
 
@@ -352,10 +407,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
 
 	// Cross-Cutting
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	"github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/prometheus/v4"
+	"github.com/larsartmann/go-cqrs-lite/retry/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	"github.com/larsartmann/go-cqrs-lite/schema/v4"
 	"github.com/larsartmann/go-cqrs-lite/scenario/v4"
@@ -477,15 +534,26 @@ var _ = []any{
 	middleware.CommandIdempotency,
 	middleware.EventIdempotency,
 	middleware.QueryIdempotency,
+	middleware.CommandCircuitBreaker,
+	retry.Do,
+	retry.DefaultConfig,
+	dedup.NewRing,
+	dedup.DefaultCapacity,
 	scheduling.NewMemoryTimerStore,
 	scheduling.New,
 	schema.NewVersionedStore,
+	schema.NewVersionedSeekableJournal,
 	schema.NewValidator,
 	scenario.Given,
 	otel.Setup,
 	otel.NewTracer,
 	otel.NewMeter,
 	prometheus.Setup,
+
+	// Transport (Backfill, Heartbeat)
+	http.BackfillHandler,
+	http.WriteSSEHeartbeat,
+	http.DefaultSSEHeartbeat,
 
 	// Catalog + Tooling
 	catalog.NewRegistry,
