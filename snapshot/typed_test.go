@@ -26,8 +26,8 @@ func TestTypedStore_SaveLoad_Roundtrip(t *testing.T) {
 	input := snapshot.TypedSnapshot[counterState]{
 		StreamID:   aggID,
 		StreamType: "Counter",
-		Version:       3,
-		State:         counterState{Count: 42, Label: "answer"},
+		Version:    3,
+		State:      counterState{Count: 42, Label: "answer"},
 	}
 
 	ctx := context.Background()
@@ -76,8 +76,8 @@ func TestTypedStore_LoadAtVersion(t *testing.T) {
 	if err := store.Save(ctx, snapshot.TypedSnapshot[counterState]{
 		StreamID:   aggID,
 		StreamType: "Counter",
-		Version:       5,
-		State:         counterState{Count: 7},
+		Version:    5,
+		State:      counterState{Count: 7},
 	}); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -105,8 +105,8 @@ func TestTypedStore_Delete(t *testing.T) {
 	if err := store.Save(ctx, snapshot.TypedSnapshot[counterState]{
 		StreamID:   aggID,
 		StreamType: "Counter",
-		Version:       1,
-		State:         counterState{Count: 1},
+		Version:    1,
+		State:      counterState{Count: 1},
 	}); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -133,8 +133,8 @@ func TestTypedStore_NilCodecDefaultsToJSON(t *testing.T) {
 	if err := store.Save(ctx, snapshot.TypedSnapshot[counterState]{
 		StreamID:   aggID,
 		StreamType: "Counter",
-		Version:       1,
-		State:         counterState{Count: 99},
+		Version:    1,
+		State:      counterState{Count: 99},
 	}); err != nil {
 		t.Fatalf("Save with default JSON codec: %v", err)
 	}

@@ -18,15 +18,15 @@ import (
 )
 
 type chaosCmd struct {
-	commandID   id.CommandID
-	streamID id.StreamID
-	fail        bool
-	panicMsg    string
+	commandID id.CommandID
+	streamID  id.StreamID
+	fail      bool
+	panicMsg  string
 }
 
-func (c *chaosCmd) Type() command.Type          { return "chaos.command" }
+func (c *chaosCmd) Type() command.Type    { return "chaos.command" }
 func (c *chaosCmd) StreamID() id.StreamID { return c.streamID }
-func (c *chaosCmd) ID() id.CommandID            { return c.commandID }
+func (c *chaosCmd) ID() id.CommandID      { return c.commandID }
 
 func TestChaos_CommandHandler_Error(t *testing.T) {
 	t.Parallel()

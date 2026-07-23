@@ -147,8 +147,8 @@ func TestConcurrent_SnapshotSaveLoad(t *testing.T) {
 			snap := snapshot.Snapshot{
 				StreamID:   aggID,
 				StreamType: aggType,
-				Version:       event.Version(version + 1),
-				State:         []byte(`{"v":0}`),
+				Version:    event.Version(version + 1),
+				State:      []byte(`{"v":0}`),
 			}
 
 			_ = store.Save(context.Background(), snap)

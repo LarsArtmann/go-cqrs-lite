@@ -28,7 +28,7 @@ type CommandEnvelope struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Type          string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`                                                                                   // command type (e.g. "user.create")
 	AggregateId   string                 `protobuf:"bytes,2,opt,name=aggregate_id,json=aggregateId,proto3" json:"aggregate_id,omitempty"`                                                  // aggregate ID (ULID)
-	StreamType string                 `protobuf:"bytes,3,opt,name=aggregate_type,json=streamType,proto3" json:"aggregate_type,omitempty"`                                            // aggregate type (e.g. "User")
+	StreamType    string                 `protobuf:"bytes,3,opt,name=aggregate_type,json=aggregateType,proto3" json:"aggregate_type,omitempty"`                                            // aggregate type (e.g. "User")
 	Payload       []byte                 `protobuf:"bytes,4,opt,name=payload,proto3" json:"payload,omitempty"`                                                                             // JSON-encoded command payload
 	Metadata      map[string]string      `protobuf:"bytes,5,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // command metadata
 	unknownFields protoimpl.UnknownFields
@@ -305,7 +305,7 @@ type EventEnvelope struct {
 	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                                                                                       // event ID (ULID)
 	Type               string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`                                                                                   // event type (e.g. "user.created")
 	AggregateId        string                 `protobuf:"bytes,3,opt,name=aggregate_id,json=aggregateId,proto3" json:"aggregate_id,omitempty"`                                                  // aggregate ID (ULID)
-	StreamType      string                 `protobuf:"bytes,4,opt,name=aggregate_type,json=streamType,proto3" json:"aggregate_type,omitempty"`                                            // aggregate type (e.g. "User")
+	StreamType         string                 `protobuf:"bytes,4,opt,name=aggregate_type,json=aggregateType,proto3" json:"aggregate_type,omitempty"`                                            // aggregate type (e.g. "User")
 	Version            int64                  `protobuf:"varint,5,opt,name=version,proto3" json:"version,omitempty"`                                                                            // aggregate version after this event
 	Payload            []byte                 `protobuf:"bytes,6,opt,name=payload,proto3" json:"payload,omitempty"`                                                                             // raw event payload bytes
 	OccurredAtUnixNano int64                  `protobuf:"varint,7,opt,name=occurred_at_unix_nano,json=occurredAtUnixNano,proto3" json:"occurred_at_unix_nano,omitempty"`                        // event timestamp (Unix nanoseconds)

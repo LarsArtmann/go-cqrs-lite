@@ -18,13 +18,13 @@ import (
 )
 
 type traceCmd struct {
-	commandID   id.CommandID
-	streamID id.StreamID
+	commandID id.CommandID
+	streamID  id.StreamID
 }
 
-func (c *traceCmd) Type() command.Type          { return "test.command" }
+func (c *traceCmd) Type() command.Type    { return "test.command" }
 func (c *traceCmd) StreamID() id.StreamID { return c.streamID }
-func (c *traceCmd) ID() id.CommandID            { return c.commandID }
+func (c *traceCmd) ID() id.CommandID      { return c.commandID }
 
 func newTraceLogger() (*slog.Logger, *bytes.Buffer) {
 	var buf bytes.Buffer

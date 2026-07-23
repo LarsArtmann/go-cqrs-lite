@@ -44,9 +44,9 @@ func testSnapshot(
 	return snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Order",
-		Version:       event.Version(version),
-		State:         []byte(state),
-		CreatedAt:     time.Date(2025, 6, 15, 12, 0, 0, 0, time.UTC),
+		Version:    event.Version(version),
+		State:      []byte(state),
+		CreatedAt:  time.Date(2025, 6, 15, 12, 0, 0, 0, time.UTC),
 	}
 }
 
@@ -331,9 +331,9 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Issue",
-		Version:       event.Version(1),
-		State:         []byte(`{"title":"v1"}`),
-		CreatedAt:     time.Now(),
+		Version:    event.Version(1),
+		State:      []byte(`{"title":"v1"}`),
+		CreatedAt:  time.Now(),
 	}
 
 	if err := snapStore.Save(ctx, snap); err != nil {

@@ -75,8 +75,8 @@ func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 	s := serializableEvent{
 		ID:            evt.ID(),
 		Type:          string(evt.Type()),
-		StreamID:   evt.StreamID(),
-		StreamType: string(evt.StreamType()),
+		StreamID:      evt.StreamID(),
+		StreamType:    string(evt.StreamType()),
 		Version:       evt.Version().Int(),
 		SchemaVersion: evt.SchemaVersion().Int(),
 		Payload:       event.PayloadReadOnly(evt),
@@ -126,8 +126,8 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 type serializableEvent struct {
 	ID            id.EventID     `json:"id"`
 	Type          string         `json:"type"`
-	StreamID   id.StreamID `json:"aggregate_id"`
-	StreamType string         `json:"aggregate_type"`
+	StreamID      id.StreamID    `json:"aggregate_id"`
+	StreamType    string         `json:"aggregate_type"`
 	Version       int            `json:"version"`
 	SchemaVersion int            `json:"schema_version,omitempty"`
 	Payload       []byte         `json:"payload"`

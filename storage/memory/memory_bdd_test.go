@@ -288,8 +288,8 @@ var _ = Describe("MemorySnapshotStore", func() {
 				snap := snapshot.Snapshot{
 					StreamID:   aggID,
 					StreamType: aggType,
-					Version:       event.Version(5),
-					State:         []byte(`{"status":"active","items":3}`),
+					Version:    event.Version(5),
+					State:      []byte(`{"status":"active","items":3}`),
 				}
 				Expect(snapStore.Save(ctx, snap)).To(Succeed())
 

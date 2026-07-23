@@ -426,9 +426,9 @@ func verifySnapshotStoreRoundtrip(
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Issue",
-		Version:       3,
-		State:         state,
-		CreatedAt:     time.Now().Truncate(time.Microsecond),
+		Version:    3,
+		State:      state,
+		CreatedAt:  time.Now().Truncate(time.Microsecond),
 	}
 
 	if err := snapStore.Save(ctx, snap); err != nil {

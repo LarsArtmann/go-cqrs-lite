@@ -14,9 +14,9 @@ import (
 type StreamListing struct {
 	ID          id.StreamID   `json:"id"`
 	Type        id.StreamType `json:"type"`
-	Version     event.Version    `json:"version"`
-	EventCount  uint             `json:"event_count"`   //nolint:tagliatelle // on-disk/external format uses snake_case
-	LastEventAt time.Time        `json:"last_event_at"` //nolint:tagliatelle // on-disk/external format uses snake_case
+	Version     event.Version `json:"version"`
+	EventCount  uint          `json:"event_count"`   //nolint:tagliatelle // on-disk/external format uses snake_case
+	LastEventAt time.Time     `json:"last_event_at"` //nolint:tagliatelle // on-disk/external format uses snake_case
 }
 
 // StreamStatus pairs an aggregate with its computed tombstone state.
@@ -64,7 +64,7 @@ func (s StreamStatus) MarshalJSON() ([]byte, error) {
 		Status string `json:"status"`
 	}{
 		StreamListing: s.Ref,
-		Status:           s.Status.String(),
+		Status:        s.Status.String(),
 	})
 }
 

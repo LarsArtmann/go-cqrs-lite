@@ -256,19 +256,19 @@ func (s *SnapshotStore) loadRaw(key []byte) (*serializableSnapshot, bool, error)
 // Timestamps use UnixNano for deterministic, locale-independent ordering.
 type serializableSnapshot struct {
 	StreamID   id.StreamID `json:"aggregate_id"`
-	StreamType string         `json:"aggregate_type"`
-	Version       int            `json:"version"`
-	State         []byte         `json:"state"`
-	CreatedAt     int64          `json:"created_at"`
+	StreamType string      `json:"aggregate_type"`
+	Version    int         `json:"version"`
+	State      []byte      `json:"state"`
+	CreatedAt  int64       `json:"created_at"`
 }
 
 func (s *serializableSnapshot) toSnapshot(ref id.StreamRef) *snapshot.Snapshot {
 	return &snapshot.Snapshot{
 		StreamID:   ref.ID,
 		StreamType: ref.Type,
-		Version:       event.Version(s.Version),
-		State:         s.State,
-		CreatedAt:     time.Unix(0, s.CreatedAt).UTC(),
+		Version:    event.Version(s.Version),
+		State:      s.State,
+		CreatedAt:  time.Unix(0, s.CreatedAt).UTC(),
 	}
 }
 
@@ -276,9 +276,9 @@ func serializeSnapshot(snap snapshot.Snapshot) ([]byte, error) {
 	s := serializableSnapshot{
 		StreamID:   snap.StreamID,
 		StreamType: string(snap.StreamType),
-		Version:       snap.Version.Int(),
-		State:         snap.State,
-		CreatedAt:     snap.CreatedAt.UnixNano(),
+		Version:    snap.Version.Int(),
+		State:      snap.State,
+		CreatedAt:  snap.CreatedAt.UnixNano(),
 	}
 
 	return marshalCBOR(s)

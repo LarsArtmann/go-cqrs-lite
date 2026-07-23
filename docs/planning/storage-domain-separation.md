@@ -47,14 +47,14 @@ library must also be able to run fully with just SQLite + Memory, or multiple SQ
 
 ### Design Constraints
 
-| Constraint | Implication |
-|---|---|
-| Consumer code is 100% engine-agnostic | No `database/sql`, no `*sql.DB`, no SQL DDL in consumer code |
-| Deployer controls infrastructure | Connection tuning, engine choice, multi-DB topology all in deployer land |
-| Graceful degradation | SQL query hint + only KV available → correct (slower) result, not an error |
-| Fail fast on impossible matches | Graph traversal hint + no graph driver → error at bind time |
-| No leaky abstractions | No SQL concepts (WHERE, ORDER BY) leaking into KV-only interfaces |
-| No anemic abstractions | Don't collapse SQL/graph power into lowest-common-denominator `Get/Set` |
+| Constraint                            | Implication                                                                |
+| ------------------------------------- | -------------------------------------------------------------------------- |
+| Consumer code is 100% engine-agnostic | No `database/sql`, no `*sql.DB`, no SQL DDL in consumer code               |
+| Deployer controls infrastructure      | Connection tuning, engine choice, multi-DB topology all in deployer land   |
+| Graceful degradation                  | SQL query hint + only KV available → correct (slower) result, not an error |
+| Fail fast on impossible matches       | Graph traversal hint + no graph driver → error at bind time                |
+| No leaky abstractions                 | No SQL concepts (WHERE, ORDER BY) leaking into KV-only interfaces          |
+| No anemic abstractions                | Don't collapse SQL/graph power into lowest-common-denominator `Get/Set`    |
 
 ---
 
@@ -80,11 +80,11 @@ module boundaries.
 
 **Dependency direction (write side):**
 
-| Layer | Depends on | Role |
-|-------|-----------|------|
-| `stack.Bundle` | event, kv, command, query, snapshot, codec | Top: assembly point, wires deployer-provided implementations |
-| `decider.Repository` | event, snapshot, codec, id, otel | Mid: domain logic — load, apply, decide, save, publish |
-| `event.*` interfaces | id only | Bottom: port definitions (EventSink, EventSource, Store, Journal) |
+| Layer                | Depends on                                 | Role                                                              |
+| -------------------- | ------------------------------------------ | ----------------------------------------------------------------- |
+| `stack.Bundle`       | event, kv, command, query, snapshot, codec | Top: assembly point, wires deployer-provided implementations      |
+| `decider.Repository` | event, snapshot, codec, id, otel           | Mid: domain logic — load, apply, decide, save, publish            |
+| `event.*` interfaces | id only                                    | Bottom: port definitions (EventSink, EventSource, Store, Journal) |
 
 Concrete storage adapters (SQL, memory, pebble) implement these interfaces and are injected at
 the deployer level via `stack.Bundle`. Classic dependency inversion / ports-and-adapters.
@@ -101,10 +101,10 @@ exist (`kv.ViewStore`, `projection.Projection`), but the wiring leaks.
 
 The root cause of every leak: **the consumer conflates two independent decisions.**
 
-| Decision | Who decides | What it means |
-|---|---|---|
-| **Shape** (domain concern) | Consumer (developer) | "I have one view per task, and I want to filter by status" |
-| **Mechanism** (infrastructure concern) | Deployer (operator) | "Use SQLite columns for the view store" |
+| Decision                               | Who decides          | What it means                                              |
+| -------------------------------------- | -------------------- | ---------------------------------------------------------- |
+| **Shape** (domain concern)             | Consumer (developer) | "I have one view per task, and I want to filter by status" |
+| **Mechanism** (infrastructure concern) | Deployer (operator)  | "Use SQLite columns for the view store"                    |
 
 Currently, calling `sqlite.SQLViewModel[TaskView, TaskID](bundle, mapper)` makes **both**
 decisions in consumer code. The consumer picks the shape (document, one row per task, queryable
@@ -204,12 +204,12 @@ return a clear error.
 
 ### Leak Summary Table
 
-| # | Leak | Severity | Consumer must... | Proposed fix |
-|---|------|----------|-----------------|--------------|
-| 1 | `bundle.Database()` returns `any` | Medium | Import `database/sql`, assert `*sql.DB` | Move tuning to preset options |
-| 2 | `ViewMapper.Type` uses SQL strings | High | Write SQL DDL (column types) | Neutral `ColumnType` enum |
-| 3 | `SQLViewModel` returns concrete type | High | Hold `*storage.SQLViewStore` | Return `kv.ViewStore[V,K]` interface |
-| 4 | `RelationalProjection` takes `*sql.DB` | High | Pass `*sql.DB` + `Dialect` | Bundle method provides DB internally |
+| #   | Leak                                   | Severity | Consumer must...                        | Proposed fix                         |
+| --- | -------------------------------------- | -------- | --------------------------------------- | ------------------------------------ |
+| 1   | `bundle.Database()` returns `any`      | Medium   | Import `database/sql`, assert `*sql.DB` | Move tuning to preset options        |
+| 2   | `ViewMapper.Type` uses SQL strings     | High     | Write SQL DDL (column types)            | Neutral `ColumnType` enum            |
+| 3   | `SQLViewModel` returns concrete type   | High     | Hold `*storage.SQLViewStore`            | Return `kv.ViewStore[V,K]` interface |
+| 4   | `RelationalProjection` takes `*sql.DB` | High     | Pass `*sql.DB` + `Dialect`              | Bundle method provides DB internally |
 
 ### What Does NOT Leak (the clean paths)
 
@@ -233,11 +233,11 @@ Append-only event log → one port (event.Store) → all backends implement it
 The read side has **three fundamentally different shapes**, each optimal for different query
 patterns:
 
-| Shape | Query Pattern | Sink API | Backends | Current projection type |
-|-------|--------------|----------|----------|------------------------|
-| **Document** (1 entity = 1 blob) | Point lookup, scan all, prefix | `Get/Set/Delete` | KV, SQL blob, Memory | `stack.Materialize[V,K]` |
-| **Relational** (1 entity = N joined rows) | Filtered lists, counts, pagination, junction tables | `Upsert/Update/Increment/Query` | SQL only | `storage.RelationalProjection` |
-| **Graph** (nodes + edges) | Variable-depth traversal, path-finding, adjacency | `MergeNode/MergeEdge/Traverse` | Graph DB only | `graph.GraphProjection` |
+| Shape                                     | Query Pattern                                       | Sink API                        | Backends             | Current projection type        |
+| ----------------------------------------- | --------------------------------------------------- | ------------------------------- | -------------------- | ------------------------------ |
+| **Document** (1 entity = 1 blob)          | Point lookup, scan all, prefix                      | `Get/Set/Delete`                | KV, SQL blob, Memory | `stack.Materialize[V,K]`       |
+| **Relational** (1 entity = N joined rows) | Filtered lists, counts, pagination, junction tables | `Upsert/Update/Increment/Query` | SQL only             | `storage.RelationalProjection` |
+| **Graph** (nodes + edges)                 | Variable-depth traversal, path-finding, adjacency   | `MergeNode/MergeEdge/Traverse`  | Graph DB only        | `graph.GraphProjection`        |
 
 **Why these cannot collapse into one universal interface:**
 
@@ -377,15 +377,15 @@ host.Register(mat)
 This is the core mechanism. `stack.Bind` inspects what the Bundle provides and matches it
 against what the `ReadModelSpec` requests.
 
-| Declaration says | Bundle has | Result | Why |
-|---|---|---|---|
-| `FilterBy("status")` | SQL columns available | `SQLViewStore` + index on `status` | Native WHERE, O(log n) |
-| `FilterBy("status")` | Memory/KV only | `kv.TypedStore` + in-memory scan | Correct, O(n), logs warning |
-| `SortBy("created_at")` | SQL columns available | `SQLViewStore` + index on `created_at` | Native ORDER BY |
-| `SortBy("created_at")` | Memory/KV only | `kv.TypedStore` + in-memory sort | Correct, slower |
-| No query hints | Anything | `kv.TypedStore` (blob) | Simplest, point-lookup optimal |
-| Graph traversal hints | `GraphDriver` in Bundle | `GraphProjection` | Native traversal |
-| Graph traversal hints | No `GraphDriver` | **Error at Bind time** | Fail fast, don't silently degrade |
+| Declaration says       | Bundle has              | Result                                 | Why                               |
+| ---------------------- | ----------------------- | -------------------------------------- | --------------------------------- |
+| `FilterBy("status")`   | SQL columns available   | `SQLViewStore` + index on `status`     | Native WHERE, O(log n)            |
+| `FilterBy("status")`   | Memory/KV only          | `kv.TypedStore` + in-memory scan       | Correct, O(n), logs warning       |
+| `SortBy("created_at")` | SQL columns available   | `SQLViewStore` + index on `created_at` | Native ORDER BY                   |
+| `SortBy("created_at")` | Memory/KV only          | `kv.TypedStore` + in-memory sort       | Correct, slower                   |
+| No query hints         | Anything                | `kv.TypedStore` (blob)                 | Simplest, point-lookup optimal    |
+| Graph traversal hints  | `GraphDriver` in Bundle | `GraphProjection`                      | Native traversal                  |
+| Graph traversal hints  | No `GraphDriver`        | **Error at Bind time**                 | Fail fast, don't silently degrade |
 
 ### How It Reuses Existing Machinery
 
@@ -395,15 +395,15 @@ candidate store and wires accordingly. The capability detection is lifted from t
 (where it is now — consumers must type-assert) to the declaration level (where the consumer
 lives — `FilterBy`/`SortBy` hints).
 
-| Existing component | Role in Declare+Bind |
-|---|---|
-| `kv.ViewStore[V,K]` | Interface that `Bind` returns as the projection's store |
-| `kv.ViewQuerier[V]` | Runtime check: does this store support filtering? |
-| `kv.ViewCounter[V]` | Runtime check: does this store support counting? |
-| `storage.SQLViewStore` | One implementation of all capability interfaces (SQL columns) |
-| `kv.TypedStore` | Basic implementation (blob store, no capabilities) |
-| `stack.Materialize` | The projection wrapper that `Bind` produces internally |
-| `projection.Projection` | The common interface all three tiers implement |
+| Existing component      | Role in Declare+Bind                                          |
+| ----------------------- | ------------------------------------------------------------- |
+| `kv.ViewStore[V,K]`     | Interface that `Bind` returns as the projection's store       |
+| `kv.ViewQuerier[V]`     | Runtime check: does this store support filtering?             |
+| `kv.ViewCounter[V]`     | Runtime check: does this store support counting?              |
+| `storage.SQLViewStore`  | One implementation of all capability interfaces (SQL columns) |
+| `kv.TypedStore`         | Basic implementation (blob store, no capabilities)            |
+| `stack.Materialize`     | The projection wrapper that `Bind` produces internally        |
+| `projection.Projection` | The common interface all three tiers implement                |
 
 ### Pros
 
@@ -433,12 +433,12 @@ Incremental, no breaking changes to existing APIs.
 
 **Goal:** Eliminate all four leak points from consumer-facing code.
 
-| Task | Files affected | Description |
-|---|---|---|
-| Remove `bundle.Database()` escape hatch | `stack/bundle.go`, presets | Add `WithMaxOpenConns`, `WithConnMaxLifetime` etc. to `sqlite`/`postgres` presets. Keep `Database()` as deprecated/escape hatch. |
-| Neutralize `ViewMapper.Type` | `storage/view/store.go`, `stack/` | Replace `string` SQL types with `stack.ColumnType` enum (`String`, `Int`, `Bool`, `Real`, `Bytes`, `Timestamp`). SQL adapter translates to DDL strings. |
-| Return interfaces from constructors | `stack/sqlite/view_models.go`, `stack/postgres/` | `SQLViewModel` returns `kv.ViewStore[V,K]`, not `*storage.SQLViewStore`. Capability interfaces available via assertion. |
-| Bundle method for relational projections | `stack/bundle.go` or `stack/sqlite/` | `bundle.RelationalProjection(name, schema, handler, types)` provides `*sql.DB` internally. Error if no SQL backend. |
+| Task                                     | Files affected                                   | Description                                                                                                                                             |
+| ---------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Remove `bundle.Database()` escape hatch  | `stack/bundle.go`, presets                       | Add `WithMaxOpenConns`, `WithConnMaxLifetime` etc. to `sqlite`/`postgres` presets. Keep `Database()` as deprecated/escape hatch.                        |
+| Neutralize `ViewMapper.Type`             | `storage/view/store.go`, `stack/`                | Replace `string` SQL types with `stack.ColumnType` enum (`String`, `Int`, `Bool`, `Real`, `Bytes`, `Timestamp`). SQL adapter translates to DDL strings. |
+| Return interfaces from constructors      | `stack/sqlite/view_models.go`, `stack/postgres/` | `SQLViewModel` returns `kv.ViewStore[V,K]`, not `*storage.SQLViewStore`. Capability interfaces available via assertion.                                 |
+| Bundle method for relational projections | `stack/bundle.go` or `stack/sqlite/`             | `bundle.RelationalProjection(name, schema, handler, types)` provides `*sql.DB` internally. Error if no SQL backend.                                     |
 
 **Effort:** ~1 day
 **Risk:** Low — additive changes and type widening (concrete → interface)
@@ -447,13 +447,13 @@ Incremental, no breaking changes to existing APIs.
 
 **Goal:** The consumer-facing Declare+Bind API.
 
-| Task | Description |
-|---|---|
-| `ReadModelSpec[V,K]` type | Struct with handler funcs + `QueryHints` (Filter []string, Sort []string, Index []string) + graph hints (Traversal bool) |
+| Task                                      | Description                                                                                                                       |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `ReadModelSpec[V,K]` type                 | Struct with handler funcs + `QueryHints` (Filter []string, Sort []string, Index []string) + graph hints (Traversal bool)          |
 | `stack.Declare[V,K](name)` fluent builder | Produces `ReadModelSpec[V,K]` via `.Key()`, `.OnCreate()`, `.OnUpdate()`, `.OnTombstone()`, `.FilterBy()`, `.SortBy()`, `.Done()` |
-| `stack.Bind(bundle, spec)` function | Inspects Bundle capabilities, selects best store implementation, returns `projection.Projection` |
-| Capability detection logic | Check Bundle for: SQL columns (`*sql.DB` available), KV store, graph driver. Match against `QueryHints`. |
-| Index auto-creation | When SQL columns selected, auto-create indexes for `FilterBy`/`SortBy` columns |
+| `stack.Bind(bundle, spec)` function       | Inspects Bundle capabilities, selects best store implementation, returns `projection.Projection`                                  |
+| Capability detection logic                | Check Bundle for: SQL columns (`*sql.DB` available), KV store, graph driver. Match against `QueryHints`.                          |
+| Index auto-creation                       | When SQL columns selected, auto-create indexes for `FilterBy`/`SortBy` columns                                                    |
 
 Under the hood, `Bind` does exactly what the consumer does by hand today: picks `TypedStore` or
 `SQLViewStore` or `GraphProjection` based on what is available.
@@ -465,12 +465,12 @@ Under the hood, `Bind` does exactly what the consumer does by hand today: picks 
 
 **Goal:** Make degradation visible and impossible-matches fail fast.
 
-| Task | Description |
-|---|---|
-| `BindWarning` type | Returned alongside projection when degradation occurs: `"filter hint for 'status' but only KV blob store available — using in-memory scan"` |
-| Clear logging | `slog.Warn` on degradation with column name and fallback strategy |
-| Typed errors for impossible matches | `ErrCapabilityUnavailable`: `"graph traversal requested but no GraphDriver in Bundle — add a graph backend or remove Traversal hint"` |
-| `BindResult` struct | `{ Projection projection.Projection; Warnings []BindWarning }` so consumers can surface diagnostics |
+| Task                                | Description                                                                                                                                 |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BindWarning` type                  | Returned alongside projection when degradation occurs: `"filter hint for 'status' but only KV blob store available — using in-memory scan"` |
+| Clear logging                       | `slog.Warn` on degradation with column name and fallback strategy                                                                           |
+| Typed errors for impossible matches | `ErrCapabilityUnavailable`: `"graph traversal requested but no GraphDriver in Bundle — add a graph backend or remove Traversal hint"`       |
+| `BindResult` struct                 | `{ Projection projection.Projection; Warnings []BindWarning }` so consumers can surface diagnostics                                         |
 
 **Effort:** ~1 day
 **Risk:** Low — diagnostics layer only

@@ -229,9 +229,9 @@ func TestSnapshotStore_Overwrite(t *testing.T) {
 	snap1 := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "TestAggregate",
-		Version:       3,
-		State:         []byte(`{"v":1}`),
-		CreatedAt:     time.Now(),
+		Version:    3,
+		State:      []byte(`{"v":1}`),
+		CreatedAt:  time.Now(),
 	}
 
 	if err := store.Save(ctx, snap1); err != nil {
@@ -241,9 +241,9 @@ func TestSnapshotStore_Overwrite(t *testing.T) {
 	snap2 := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "TestAggregate",
-		Version:       5,
-		State:         []byte(`{"v":2}`),
-		CreatedAt:     time.Now(),
+		Version:    5,
+		State:      []byte(`{"v":2}`),
+		CreatedAt:  time.Now(),
 	}
 
 	if err := store.Save(ctx, snap2); err != nil {

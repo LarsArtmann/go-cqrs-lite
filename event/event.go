@@ -59,8 +59,8 @@ type Event = *ImmutableEvent
 type ImmutableEvent struct {
 	id            id.EventID
 	eventType     Type
-	streamID     id.StreamID
-	streamType   id.StreamType
+	streamID      id.StreamID
+	streamType    id.StreamType
 	version       Version
 	schemaVersion SchemaVersion
 	encoding      codec.Encoding

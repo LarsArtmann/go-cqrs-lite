@@ -46,23 +46,23 @@ func TestGolden_SnapshotStructure(t *testing.T) {
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "User",
-		Version:       event.Version(5),
-		State:         state,
-		CreatedAt:     time.Date(2026, 6, 1, 12, 0, 0, 0, time.UTC),
+		Version:    event.Version(5),
+		State:      state,
+		CreatedAt:  time.Date(2026, 6, 1, 12, 0, 0, 0, time.UTC),
 	}
 
 	got, err := json.Marshal(struct {
 		StreamID   string `json:"aggregateId"`
-		StreamType string `json:"streamType"`
-		Version       int    `json:"version"`
-		State         string `json:"state"`
-		CreatedAt     string `json:"createdAt"`
+		StreamType string `json:"aggregateType"`
+		Version    int    `json:"version"`
+		State      string `json:"state"`
+		CreatedAt  string `json:"createdAt"`
 	}{
 		StreamID:   snap.StreamID.String(),
 		StreamType: string(snap.StreamType),
-		Version:       snap.Version.Int(),
-		State:         string(snap.State),
-		CreatedAt:     snap.CreatedAt.Format(time.RFC3339Nano),
+		Version:    snap.Version.Int(),
+		State:      string(snap.State),
+		CreatedAt:  snap.CreatedAt.Format(time.RFC3339Nano),
 	}, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)

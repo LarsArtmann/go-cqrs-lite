@@ -16,13 +16,13 @@ import (
 )
 
 type testCommand struct {
-	commandID   id.CommandID
-	streamID id.StreamID
+	commandID id.CommandID
+	streamID  id.StreamID
 }
 
-func (c *testCommand) Type() command.Type          { return "test.cmd" }
+func (c *testCommand) Type() command.Type    { return "test.cmd" }
 func (c *testCommand) StreamID() id.StreamID { return c.streamID }
-func (c *testCommand) ID() id.CommandID            { return c.commandID }
+func (c *testCommand) ID() id.CommandID      { return c.commandID }
 
 type testQuery struct{}
 

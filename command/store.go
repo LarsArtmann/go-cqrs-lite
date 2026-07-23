@@ -12,12 +12,12 @@ import (
 )
 
 type PersistedCommand struct {
-	id           id.CommandID
-	cmdType      Type
-	streamRef StreamRef
-	receivedAt   time.Time
-	payload      []byte
-	metadata     Metadata
+	id         id.CommandID
+	cmdType    Type
+	streamRef  StreamRef
+	receivedAt time.Time
+	payload    []byte
+	metadata   Metadata
 }
 
 var (
@@ -25,12 +25,12 @@ var (
 	_ Command      = (*PersistedCommand)(nil)
 )
 
-func (c *PersistedCommand) ID() id.CommandID             { return c.id }
-func (c *PersistedCommand) Type() Type                   { return c.cmdType }
+func (c *PersistedCommand) ID() id.CommandID       { return c.id }
+func (c *PersistedCommand) Type() Type             { return c.cmdType }
 func (c *PersistedCommand) StreamID() id.StreamID  { return c.streamRef.ID }
 func (c *PersistedCommand) StreamType() StreamType { return c.streamRef.Type }
 func (c *PersistedCommand) StreamRef() StreamRef   { return c.streamRef }
-func (c *PersistedCommand) ReceivedAt() time.Time        { return c.receivedAt }
+func (c *PersistedCommand) ReceivedAt() time.Time  { return c.receivedAt }
 func (c *PersistedCommand) Payload() []byte {
 	if c.payload == nil {
 		return nil
@@ -90,12 +90,12 @@ func NewPersistedCommand(
 	}
 
 	cmd := &PersistedCommand{
-		id:           id.NewCommandID(),
-		cmdType:      cmdType,
-		streamRef: ref,
-		receivedAt:   time.Now(),
-		payload:      slices.Clone(payload),
-		metadata:     Metadata{}, //nolint:exhaustruct // zero-value metadata is the correct initial state
+		id:         id.NewCommandID(),
+		cmdType:    cmdType,
+		streamRef:  ref,
+		receivedAt: time.Now(),
+		payload:    slices.Clone(payload),
+		metadata:   Metadata{}, //nolint:exhaustruct // zero-value metadata is the correct initial state
 	}
 
 	for _, opt := range opts {

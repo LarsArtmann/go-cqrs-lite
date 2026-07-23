@@ -185,9 +185,9 @@ func makeSnapshot(
 	return snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Counter",
-		Version:       version,
-		State:         snapState,
-		CreatedAt:     time.Now(),
+		Version:    version,
+		State:      snapState,
+		CreatedAt:  time.Now(),
 	}
 }
 

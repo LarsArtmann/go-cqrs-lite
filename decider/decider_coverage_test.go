@@ -164,8 +164,8 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Counter",
-		Version:       event.Version(1),
-		State:         state,
+		Version:    event.Version(1),
+		State:      state,
 	}
 
 	snapErr = snapshotStore.Save(context.Background(), snap)

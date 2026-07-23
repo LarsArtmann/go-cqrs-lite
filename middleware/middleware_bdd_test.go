@@ -19,13 +19,13 @@ import (
 )
 
 type bddCommand struct {
-	commandID   id.CommandID
-	streamID id.StreamID
+	commandID id.CommandID
+	streamID  id.StreamID
 }
 
-func (c *bddCommand) Type() command.Type          { return "bdd.cmd" }
+func (c *bddCommand) Type() command.Type    { return "bdd.cmd" }
 func (c *bddCommand) StreamID() id.StreamID { return c.streamID }
-func (c *bddCommand) ID() id.CommandID            { return c.commandID }
+func (c *bddCommand) ID() id.CommandID      { return c.commandID }
 
 var _ = Describe("Recovery Middleware", func() {
 	var ctx context.Context
@@ -251,8 +251,8 @@ var _ = Describe("Command Idempotency Middleware", func() {
 				})
 
 				cmd := &bddCommand{
-					commandID:   id.NewCommandID(),
-					streamID: id.NewAggregateID(),
+					commandID: id.NewCommandID(),
+					streamID:  id.NewAggregateID(),
 				}
 
 				Expect(handler(ctx, cmd)).To(Succeed())

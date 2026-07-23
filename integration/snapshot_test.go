@@ -135,17 +135,17 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 	}
 
 	type eventSnapshot struct {
-		Type          string `json:"type"`
+		Type       string `json:"type"`
 		StreamType string `json:"streamType"`
-		Version       int    `json:"version"`
+		Version    int    `json:"version"`
 	}
 
 	serialized := make([]eventSnapshot, 0, len(events))
 	for _, evt := range events {
 		serialized = append(serialized, eventSnapshot{
-			Type:          string(evt.Type()),
+			Type:       string(evt.Type()),
 			StreamType: string(evt.StreamType()),
-			Version:       int(evt.Version()),
+			Version:    int(evt.Version()),
 		})
 	}
 

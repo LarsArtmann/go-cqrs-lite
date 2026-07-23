@@ -23,9 +23,9 @@ func newTestSnapshot(
 	return snapshot.Snapshot{
 		StreamID:   streamID,
 		StreamType: "Order",
-		Version:       event.Version(version),
-		State:         []byte(`{"status":"` + status + `"}`),
-		CreatedAt:     time.Now(),
+		Version:    event.Version(version),
+		State:      []byte(`{"status":"` + status + `"}`),
+		CreatedAt:  time.Now(),
 	}
 }
 
@@ -311,9 +311,9 @@ func TestMemorySnapshotStore_Load_DeepCopy(t *testing.T) {
 	snapshot := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Order",
-		Version:       1,
-		State:         originalState,
-		CreatedAt:     time.Now(),
+		Version:    1,
+		State:      originalState,
+		CreatedAt:  time.Now(),
 	}
 
 	err := store.Save(ctx, snapshot)
@@ -354,9 +354,9 @@ func TestMemorySnapshotStore_Load_NilState(t *testing.T) {
 	snapshot := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Order",
-		Version:       1,
-		State:         nil,
-		CreatedAt:     time.Now(),
+		Version:    1,
+		State:      nil,
+		CreatedAt:  time.Now(),
 	}
 
 	err := store.Save(ctx, snapshot)
@@ -385,9 +385,9 @@ func TestMemorySnapshotStore_LoadAtVersion_DeepCopy(t *testing.T) {
 	snapshot := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Order",
-		Version:       5,
-		State:         originalState,
-		CreatedAt:     time.Now(),
+		Version:    5,
+		State:      originalState,
+		CreatedAt:  time.Now(),
 	}
 
 	err := store.Save(ctx, snapshot)

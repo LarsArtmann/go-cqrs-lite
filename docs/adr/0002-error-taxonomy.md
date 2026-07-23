@@ -5,7 +5,7 @@
 
 ## Context
 
-Go's error handling is ad-hoc — any `error` value can be returned from any function. Without classification, consumers cannot make informed decisions about retries, user feedback, or alerting. The library had ~20 sentinel errors across packages but no systematic way to categorize them.
+Go's error handling is ad-hoc — any `error` value can be returned from any function. Without classification, consumers cannot make informed decisions about retries, user feedback, or alerting. The library now has hundreds of classified sentinel errors across packages (grown significantly since this ADR's original writing, which counted ~20).
 
 Retry middleware was using a blanket "always retry on error" approach, which is wrong for business rule violations (rejection) or data corruption (should alert, not retry).
 

@@ -58,9 +58,9 @@ func SaveSnapshot(
 	err := sink.Save(ctx, Snapshot{
 		StreamID:   aggID,
 		StreamType: aggType,
-		Version:       version,
-		State:         state,
-		CreatedAt:     time.Now().UTC(),
+		Version:    version,
+		State:      state,
+		CreatedAt:  time.Now().UTC(),
 	})
 	if err != nil {
 		return errorfamily.WrapInfrastructure(

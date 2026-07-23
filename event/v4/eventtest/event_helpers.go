@@ -207,8 +207,8 @@ func QuickSnapshot(
 	return snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: aggType,
-		Version:       version,
-		State:         state,
-		CreatedAt:     time.Now(),
+		Version:    version,
+		State:      state,
+		CreatedAt:  time.Now(),
 	}
 }

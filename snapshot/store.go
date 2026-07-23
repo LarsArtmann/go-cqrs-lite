@@ -10,10 +10,10 @@ import (
 
 type Snapshot struct {
 	StreamID   id.StreamID   `json:"aggregateId"`
-	StreamType id.StreamType `json:"streamType"`
-	Version       event.Version    `json:"version"`
-	State         []byte           `json:"state"`
-	CreatedAt     time.Time        `json:"createdAt"`
+	StreamType id.StreamType `json:"aggregateType"`
+	Version    event.Version `json:"version"`
+	State      []byte        `json:"state"`
+	CreatedAt  time.Time     `json:"createdAt"`
 }
 
 type SnapshotSink interface {

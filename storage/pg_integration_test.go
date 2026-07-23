@@ -162,9 +162,9 @@ func TestPostgresBackend_FullStack(t *testing.T) {
 	_ = snapStore.Save(ctx, snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Test",
-		Version:       event.Version(1),
-		State:         []byte(`{}`),
-		CreatedAt:     time.Now(),
+		Version:    event.Version(1),
+		State:      []byte(`{}`),
+		CreatedAt:  time.Now(),
 	})
 
 	// Checkpoint

@@ -69,9 +69,9 @@ func TestLoad_SnapshotDecodeError(t *testing.T) {
 	snapshotStore.SetSnapshot(&snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Counter",
-		Version:       event.Version(1),
-		State:         []byte("}}}not-json{{{"),
-		CreatedAt:     time.Now(),
+		Version:    event.Version(1),
+		State:      []byte("}}}not-json{{{"),
+		CreatedAt:  time.Now(),
 	})
 
 	repo := newCounterSnapshotRepo(t, store, bus, snapshotStore, codec)

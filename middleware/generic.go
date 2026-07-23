@@ -18,8 +18,8 @@ type Middleware[M any] func(Handler[M]) Handler[M]
 
 // MessageAdapter provides message-specific extraction for generic middleware.
 type MessageAdapter[M any] struct {
-	Kind        string                 // "command", "event", "query"
-	ExtractType func(M) string         // extracts the message type name
+	Kind        string              // "command", "event", "query"
+	ExtractType func(M) string      // extracts the message type name
 	ExtractID   func(M) id.StreamID // extracts the aggregate ID (may be nil for queries)
 }
 

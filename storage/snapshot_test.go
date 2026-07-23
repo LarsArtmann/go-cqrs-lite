@@ -51,9 +51,9 @@ func TestSQLSnapshotStore_Save(t *testing.T) {
 	snap := snapshot.Snapshot{
 		StreamID:   idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2"),
 		StreamType: "User",
-		Version:       event.Version(5),
-		State:         []byte(`{"name":"John"}`),
-		CreatedAt:     time.Now().UTC().Truncate(time.Millisecond),
+		Version:    event.Version(5),
+		State:      []byte(`{"name":"John"}`),
+		CreatedAt:  time.Now().UTC().Truncate(time.Millisecond),
 	}
 
 	mock.ExpectExec(`INSERT INTO snapshots`).
@@ -79,9 +79,9 @@ func TestSQLSnapshotStore_Save_Error(t *testing.T) {
 	snap := snapshot.Snapshot{
 		StreamID:   idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2"),
 		StreamType: "User",
-		Version:       event.Version(1),
-		State:         []byte(`{}`),
-		CreatedAt:     time.Now(),
+		Version:    event.Version(1),
+		State:      []byte(`{}`),
+		CreatedAt:  time.Now(),
 	}
 
 	mock.ExpectExec(`INSERT INTO snapshots`).

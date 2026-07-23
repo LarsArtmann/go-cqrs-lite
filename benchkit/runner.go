@@ -14,7 +14,7 @@ import (
 
 const (
 	benchAggregateType id.StreamType = "Bench"
-	benchEventType     event.Type       = "bench.event"
+	benchEventType     event.Type    = "bench.event"
 )
 
 // runner executes a benchmark in phases against a single backend.

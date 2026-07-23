@@ -100,12 +100,12 @@ func TestSQLDeadLetterStore_WithAggregateID(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	store.Handle(ctx, DeadLetterEntry{
-		Kind:        "command",
-		Type:        "user.create",
+		Kind:     "command",
+		Type:     "user.create",
 		StreamID: aggID,
-		Error:       errors.New("timeout"),
-		Attempts:    5,
-		FailedAt:    time.Now(),
+		Error:    errors.New("timeout"),
+		Attempts: 5,
+		FailedAt: time.Now(),
 	})
 
 	entries, err := store.Entries(ctx)

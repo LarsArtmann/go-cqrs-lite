@@ -119,9 +119,9 @@ func BenchmarkMemorySnapshotStore_Load(b *testing.B) {
 	_ = sink.Save(ctx, snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "User",
-		Version:       100,
-		State:         state,
-		CreatedAt:     time.Now(),
+		Version:    100,
+		State:      state,
+		CreatedAt:  time.Now(),
 	})
 
 	b.ResetTimer()

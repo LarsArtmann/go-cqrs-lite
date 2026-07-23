@@ -23,7 +23,7 @@ func NewA008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			duplicateTypes := map[string]bool{
-				"StreamID": true,
+				"StreamID":    true,
 				"CommandType": true,
 				"EventType":   true,
 				"Version":     true,

@@ -34,11 +34,11 @@ const defaultRefetchDelay = 50 * time.Millisecond
 // custom MarshalJSON for Version). This eliminates the string-roundtrip
 // (String() → parse) the previous version did on the receive side.
 type notifyPayload struct {
-	EventID       id.EventID       `json:"eid"`
-	EventType     event.Type       `json:"et"`
+	EventID    id.EventID    `json:"eid"`
+	EventType  event.Type    `json:"et"`
 	StreamType id.StreamType `json:"at"`
 	StreamID   id.StreamID   `json:"aid"`
-	Version       event.Version    `json:"v"`
+	Version    event.Version `json:"v"`
 }
 
 // NotificationListener abstracts the driver-specific LISTEN mechanism.

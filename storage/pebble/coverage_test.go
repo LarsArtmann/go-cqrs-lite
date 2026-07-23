@@ -106,9 +106,9 @@ func TestSnapshotStore_Options(t *testing.T) {
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: aggType,
-		Version:       event.Version(1),
-		State:         []byte(`{"state":"ok"}`),
-		CreatedAt:     time.Now(),
+		Version:    event.Version(1),
+		State:      []byte(`{"state":"ok"}`),
+		CreatedAt:  time.Now(),
 	}
 
 	err = snapStore.Save(ctx, snap)

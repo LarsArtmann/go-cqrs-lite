@@ -7,6 +7,11 @@
 
 The library has 9 modules (`core`, `memory`, `catalog`, `middleware`, `testhelpers`, `integration`, `storage`, `projection`, plus `example/user`). Each module has its own `go.mod` with independent dependency management.
 
+> **Historical note (2026-07-23):** This was the original module count. The
+> project has since grown to 55 modules. See `AGENTS.md` for the current
+> structure. This ADR documents the foundational decision; the module count
+> is historical.
+
 The alternative is a single module with all packages. This was considered and rejected.
 
 ## Decision
@@ -34,7 +39,7 @@ Use Go workspace (`go.work`) with independent `go.mod` per module.
 
 **Negative:**
 
-- More `go.mod` files to maintain (9 modules)
+- More `go.mod` files to maintain (55 modules as of 2026-07)
 - Dependency bumps must be applied per-module
 - CI must test each module independently AND via `go.work`
 - Replace directives in `go.mod` files for local development

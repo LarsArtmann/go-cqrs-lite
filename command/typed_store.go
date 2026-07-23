@@ -19,12 +19,12 @@ import (
 // type. TypedPersistedCommand makes that decode the adapter's responsibility:
 // a [TypedCommandStore] decodes once at the boundary.
 type TypedPersistedCommand[P any] struct {
-	ID           id.CommandID
-	Type         Type
-	StreamRef StreamRef
-	ReceivedAt   time.Time
-	Payload      P
-	Metadata     Metadata
+	ID         id.CommandID
+	Type       Type
+	StreamRef  StreamRef
+	ReceivedAt time.Time
+	Payload    P
+	Metadata   Metadata
 }
 
 // TypedCommandStore adapts an untyped [Store] plus a [codec.Codec] into a
@@ -167,12 +167,12 @@ func (t *TypedCommandStore[P]) Load(
 		}
 
 		result = append(result, TypedPersistedCommand[P]{
-			ID:           cmd.ID(),
-			Type:         cmd.Type(),
-			StreamRef: cmd.StreamRef(),
-			ReceivedAt:   cmd.ReceivedAt(),
-			Payload:      payload,
-			Metadata:     cmd.Metadata(),
+			ID:         cmd.ID(),
+			Type:       cmd.Type(),
+			StreamRef:  cmd.StreamRef(),
+			ReceivedAt: cmd.ReceivedAt(),
+			Payload:    payload,
+			Metadata:   cmd.Metadata(),
 		})
 	}
 

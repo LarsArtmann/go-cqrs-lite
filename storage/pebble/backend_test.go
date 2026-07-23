@@ -116,9 +116,9 @@ func TestBackend_FullStack(t *testing.T) {
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: aggType,
-		Version:       event.Version(1),
-		State:         []byte(`{"name":"alice"}`),
-		CreatedAt:     time.Now(),
+		Version:    event.Version(1),
+		State:      []byte(`{"name":"alice"}`),
+		CreatedAt:  time.Now(),
 	}
 
 	if err := snapStore.Save(ctx, snap); err != nil {

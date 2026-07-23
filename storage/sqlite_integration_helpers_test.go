@@ -63,9 +63,9 @@ func newTestSnapshot(
 	return snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: streamType,
-		Version:       version,
-		State:         state,
-		CreatedAt:     time.Now().Truncate(time.Microsecond),
+		Version:    version,
+		State:      state,
+		CreatedAt:  time.Now().Truncate(time.Microsecond),
 	}
 }
 

@@ -116,9 +116,9 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "User",
-		Version:       event.Version(10),
-		State:         state,
-		CreatedAt:     time.Date(2026, time.June, 1, 12, 0, 0, 0, time.UTC),
+		Version:    event.Version(10),
+		State:      state,
+		CreatedAt:  time.Date(2026, time.June, 1, 12, 0, 0, 0, time.UTC),
 	}
 
 	if err := store.Save(t.Context(), snap); err != nil {
@@ -133,15 +133,15 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	got, err := json.Marshal(struct {
 		StreamID   string `json:"aggregateId"`
 		StreamType string `json:"streamType"`
-		Version       int    `json:"version"`
-		State         string `json:"state"`
-		CreatedAt     string `json:"createdAt"`
+		Version    int    `json:"version"`
+		State      string `json:"state"`
+		CreatedAt  string `json:"createdAt"`
 	}{
 		StreamID:   loaded.StreamID.String(),
 		StreamType: string(loaded.StreamType),
-		Version:       loaded.Version.Int(),
-		State:         string(loaded.State),
-		CreatedAt:     loaded.CreatedAt.Format(time.RFC3339Nano),
+		Version:    loaded.Version.Int(),
+		State:      string(loaded.State),
+		CreatedAt:  loaded.CreatedAt.Format(time.RFC3339Nano),
 	}, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)

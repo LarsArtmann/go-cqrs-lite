@@ -26,9 +26,9 @@ import (
 type TypedSnapshot[State any] struct {
 	StreamID   id.StreamID
 	StreamType id.StreamType
-	Version       event.Version
-	State         State
-	CreatedAt     time.Time
+	Version    event.Version
+	State      State
+	CreatedAt  time.Time
 }
 
 // TypedSnapshotSink saves typed snapshots. The typed analogue of
@@ -89,9 +89,9 @@ func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[Sta
 	err = t.store.Save(ctx, Snapshot{
 		StreamID:   snapshot.StreamID,
 		StreamType: snapshot.StreamType,
-		Version:       snapshot.Version,
-		State:         encoded,
-		CreatedAt:     snapshot.CreatedAt,
+		Version:    snapshot.Version,
+		State:      encoded,
+		CreatedAt:  snapshot.CreatedAt,
 	})
 	if err != nil {
 		return errorfamily.Wrapf(err, errorfamily.Infrastructure, "snapshot.save",
@@ -159,8 +159,8 @@ func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error)
 	return &TypedSnapshot[State]{
 		StreamID:   raw.StreamID,
 		StreamType: raw.StreamType,
-		Version:       raw.Version,
-		State:         state,
-		CreatedAt:     raw.CreatedAt,
+		Version:    raw.Version,
+		State:      state,
+		CreatedAt:  raw.CreatedAt,
 	}, nil
 }

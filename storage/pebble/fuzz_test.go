@@ -42,9 +42,9 @@ func FuzzSnapshotStore_Roundtrip(f *testing.F) {
 		snap := snapshot.Snapshot{
 			StreamID:   aggID,
 			StreamType: aggType,
-			Version:       event.Version(1),
-			State:         state,
-			CreatedAt:     time.Now(),
+			Version:    event.Version(1),
+			State:      state,
+			CreatedAt:  time.Now(),
 		}
 
 		ctx := context.Background()

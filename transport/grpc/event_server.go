@@ -172,7 +172,7 @@ func eventToEnvelope(evt event.Event) *cqrsproto.EventEnvelope {
 		Id:                 evt.ID().String(),
 		Type:               string(evt.Type()),
 		AggregateId:        evt.StreamID().String(),
-		StreamType:      string(evt.StreamType()),
+		StreamType:         string(evt.StreamType()),
 		Version:            version,
 		Payload:            event.PayloadReadOnly(evt),
 		OccurredAtUnixNano: evt.OccurredAt().UnixNano(),

@@ -18,8 +18,8 @@ func (e *ImmutableEvent) Clone() *ImmutableEvent {
 	return &ImmutableEvent{
 		id:            e.id,
 		eventType:     e.eventType,
-		streamID:   e.streamID,
-		streamType: e.streamType,
+		streamID:      e.streamID,
+		streamType:    e.streamType,
 		version:       e.version,
 		schemaVersion: e.schemaVersion,
 		encoding:      e.encoding,
@@ -69,8 +69,8 @@ func buildEvent(
 	evt := &ImmutableEvent{
 		id:            id.NewEventID(),
 		eventType:     eventType,
-		streamID:   streamID,
-		streamType: streamType,
+		streamID:      streamID,
+		streamType:    streamType,
 		version:       version,
 		schemaVersion: schemaV,
 		payload:       payload,

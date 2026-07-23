@@ -41,7 +41,7 @@ type Command interface {
 type BasicCommand struct {
 	commandID   id.CommandID
 	commandType Type
-	streamID id.StreamID
+	streamID    id.StreamID
 	metadata    Metadata
 }
 
@@ -80,7 +80,7 @@ func New(commandType Type, streamID id.StreamID, opts ...Option) (*BasicCommand,
 	cmd := &BasicCommand{
 		commandID:   id.NewCommandID(),
 		commandType: commandType,
-		streamID: streamID,
+		streamID:    streamID,
 		metadata:    Metadata{}, //nolint:exhaustruct // zero-value metadata is the correct initial state
 	}
 

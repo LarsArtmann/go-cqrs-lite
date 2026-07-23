@@ -12,8 +12,8 @@ import (
 // EventGenerator produces deterministic event sequences for stress testing.
 type EventGenerator struct {
 	streamType id.StreamType
-	eventType     event.Type
-	payloadGen    func(int) any
+	eventType  event.Type
+	payloadGen func(int) any
 }
 
 // NewEventGenerator creates a generator for the given aggregate and event types.
@@ -24,8 +24,8 @@ func NewEventGenerator(
 ) *EventGenerator {
 	return &EventGenerator{
 		streamType: streamType,
-		eventType:     eventType,
-		payloadGen:    payloadGen,
+		eventType:  eventType,
+		payloadGen: payloadGen,
 	}
 }
 

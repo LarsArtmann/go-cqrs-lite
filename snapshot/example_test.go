@@ -34,9 +34,9 @@ func ExampleSnapshotStore() {
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "User",
-		Version:       event.Version(10),
-		State:         []byte(`{"name":"Alice"}`),
-		CreatedAt:     now,
+		Version:    event.Version(10),
+		State:      []byte(`{"name":"Alice"}`),
+		CreatedAt:  now,
 	}
 
 	err := store.Save(context.Background(), snap)

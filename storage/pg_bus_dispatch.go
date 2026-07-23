@@ -64,11 +64,11 @@ func (b *PostgresBus) publishOne(ctx context.Context, evt event.Event) error {
 	}
 
 	payload := notifyPayload{
-		EventID:       evt.ID(),
-		EventType:     evt.Type(),
+		EventID:    evt.ID(),
+		EventType:  evt.Type(),
 		StreamType: evt.StreamType(),
 		StreamID:   evt.StreamID(),
-		Version:       evt.Version(),
+		Version:    evt.Version(),
 	}
 
 	payloadJSON, err := json.Marshal(payload, json.Deterministic(true))

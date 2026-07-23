@@ -213,9 +213,9 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "TestAggregate",
-		Version:       5,
-		State:         []byte(`{"name":"test"}`),
-		CreatedAt:     time.Now(),
+		Version:    5,
+		State:      []byte(`{"name":"test"}`),
+		CreatedAt:  time.Now(),
 	}
 
 	if err := store.Save(ctx, snap); err != nil {

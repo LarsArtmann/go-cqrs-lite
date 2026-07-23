@@ -12,11 +12,11 @@
 > allow-listing, three CI integration tests) was effectively wasted — the
 > feature was built and immediately deprecated.
 
-| Field   | Value                                                                                                               |
-| ------- | ------------------------------------------------------------------------------------------------------------------- |
-| Date    | 2026-06-19                                                                                                          |
-| Status  | **Deprecated** — superseded by [0028](0028-watermill-as-delivery-layer.md) for new code                             |
-| Decider | Lars Artmann                                                                                                        |
+| Field   | Value                                                                                   |
+| ------- | --------------------------------------------------------------------------------------- |
+| Date    | 2026-06-19                                                                              |
+| Status  | **Deprecated** — superseded by [0028](0028-watermill-as-delivery-layer.md) for new code |
+| Decider | Lars Artmann                                                                            |
 
 ## Context
 

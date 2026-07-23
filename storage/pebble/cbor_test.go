@@ -49,8 +49,8 @@ func TestDeserializeEvent_JSONBackwardCompat(t *testing.T) {
 	legacy := serializableEvent{
 		ID:            eventID,
 		Type:          "UserCreated",
-		StreamID:   aggID,
-		StreamType: "User",
+		StreamID:      aggID,
+		StreamType:    "User",
 		Version:       1,
 		SchemaVersion: 0,
 		Payload:       []byte(`{"name":"Bob"}`),
@@ -408,14 +408,14 @@ func TestSerializeEvent_SmallerThanJSON(t *testing.T) {
 	}
 
 	s := serializableEvent{
-		ID:            evt.ID(),
-		Type:          string(evt.Type()),
+		ID:         evt.ID(),
+		Type:       string(evt.Type()),
 		StreamID:   evt.StreamID(),
 		StreamType: string(evt.StreamType()),
-		Version:       evt.Version().Int(),
-		Payload:       payload,
-		OccurredAt:    evt.OccurredAt().UnixNano(),
-		Encoding:      string(evt.Encoding()),
+		Version:    evt.Version().Int(),
+		Payload:    payload,
+		OccurredAt: evt.OccurredAt().UnixNano(),
+		Encoding:   string(evt.Encoding()),
 	}
 
 	cborData, err := store.serializeEvent(evt)

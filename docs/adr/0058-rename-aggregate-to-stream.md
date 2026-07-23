@@ -16,34 +16,35 @@ The word "Aggregate" is actively misleading because:
 2. **It has to be actively un-taught.** `DOMAIN_LANGUAGE.md:330` carries an anti-pattern table entry: "Aggregate Root (OO) → Decider (pure functions)." The name creates a cognitive burden the library must repeatedly counter.
 3. **Consumers don't engage with it.** A survey of 14 active consumer projects shows the majority use the types mechanically as opaque stream keys — only 2 of 14 (cqrs-htmx, Standup-Killer) demonstrate genuine DDD aggregate design thinking. 7 of 14 use them purely as partition keys (DiscordSync, timesheets, invoices, etc.).
 
-Meanwhile, the library already researched **Aggregateless Event Sourcing** (Rico Fritzsche, 2025) in three documents under `docs/research/archive/`. The conclusion was: *"The aggregate is no longer sacred."* The pure-function fold was absorbed into ADR-0001. Only the stream partition key was retained — for operational reasons (loading, versioning, snapshots).
+Meanwhile, the library already researched **Aggregateless Event Sourcing** (Rico Fritzsche, 2025) in three documents under `docs/research/archive/`. The conclusion was: _"The aggregate is no longer sacred."_ The pure-function fold was absorbed into ADR-0001. Only the stream partition key was retained — for operational reasons (loading, versioning, snapshots).
 
 ### What the Type Actually Does
 
 `AggregateRef` plays three mechanical roles, all of which describe a stream partition key:
 
-| Role | What it does |
-|---|---|
+| Role                 | What it does                                                                        |
+| -------------------- | ----------------------------------------------------------------------------------- |
 | Stream partition key | Groups events: `Load(ctx, ref)` returns all events for that key, ordered by version |
-| Concurrency boundary | `expectedVersion` is checked per-key — one writer at a time per partition |
-| Snapshot key prefix | `cqrs_snapshot:{Type}:{ID}` — snapshot stored per partition |
+| Concurrency boundary | `expectedVersion` is checked per-key — one writer at a time per partition           |
+| Snapshot key prefix  | `cqrs_snapshot:{Type}:{ID}` — snapshot stored per partition                         |
 
 ## Decision
 
 Rename the identity types from `Aggregate*` to `Stream*`:
 
-| Current | New | Role |
-|---|---|---|
+| Current           | New            | Role                                                              |
+| ----------------- | -------------- | ----------------------------------------------------------------- |
 | `AggregateMarker` | `StreamMarker` | Phantom type for compile-time branding (zero bytes, zero methods) |
-| `AggregateID` | `StreamID` | Identifier for a specific event stream instance |
-| `AggregateType` | `StreamType` | Category label (`"User"`, `"Order"`) — the stream namespace |
-| `AggregateRef` | `StreamRef` | `{Type, ID}` composite passed to all Store methods |
+| `AggregateID`     | `StreamID`     | Identifier for a specific event stream instance                   |
+| `AggregateType`   | `StreamType`   | Category label (`"User"`, `"Order"`) — the stream namespace       |
+| `AggregateRef`    | `StreamRef`    | `{Type, ID}` composite passed to all Store methods                |
 
 ### Why "Stream"
 
 **1. It's what the thing IS.** A stream of events. Ordered, append-only, versioned. That is the literal definition of the abstraction.
 
 **2. Industry consensus.** The three most influential event sourcing infrastructures use "stream":
+
 - **EventStoreDB** — streams are the primary abstraction (`User-123` is a stream)
 - **Marten** — `streamId` internally
 - **NEventStore** — `streamId`
@@ -99,34 +100,34 @@ StreamMarker = plumbing (zero-byte compile-time tag, invisible)
 
 ### Full Rename Map
 
-| Current | New |
-|---|---|
-| `AggregateMarker` | `StreamMarker` |
-| `AggregateID` | `StreamID` |
-| `AggregateType` | `StreamType` |
-| `AggregateRef` | `StreamRef` |
-| `NewAggregateID()` | `NewStreamID()` |
-| `NewAggregateRef()` | `NewStreamRef()` |
-| `ParseAggregateID()` | `ParseStreamID()` |
-| `ParseAggregateIDStrict()` | `ParseStreamIDStrict()` |
-| `DeriveAggregateID()` | `DeriveStreamID()` |
-| `AggregateIDFrom()` | `StreamIDFrom()` |
-| `AggregateTimestamp()` | `StreamTimestamp()` |
-| `IsAggregateIDULID()` | `IsStreamIDULID()` |
-| `ParseAggregateType()` | `ParseStreamType()` |
-| `ErrEmptyAggregateType` | `ErrEmptyStreamType` |
-| `event.NewAggregateRef()` | `event.NewStreamRef()` |
-| `evt.AggregateID()` | `evt.StreamID()` |
-| `evt.AggregateType()` | `evt.StreamType()` |
-| `c.AggregateID()` | `c.StreamID()` |
-| `listing.AggregateListing` | `listing.StreamListing` |
-| `listing.AggregateStatus` | `listing.StreamStatus` |
+| Current                           | New                            |
+| --------------------------------- | ------------------------------ |
+| `AggregateMarker`                 | `StreamMarker`                 |
+| `AggregateID`                     | `StreamID`                     |
+| `AggregateType`                   | `StreamType`                   |
+| `AggregateRef`                    | `StreamRef`                    |
+| `NewAggregateID()`                | `NewStreamID()`                |
+| `NewAggregateRef()`               | `NewStreamRef()`               |
+| `ParseAggregateID()`              | `ParseStreamID()`              |
+| `ParseAggregateIDStrict()`        | `ParseStreamIDStrict()`        |
+| `DeriveAggregateID()`             | `DeriveStreamID()`             |
+| `AggregateIDFrom()`               | `StreamIDFrom()`               |
+| `AggregateTimestamp()`            | `StreamTimestamp()`            |
+| `IsAggregateIDULID()`             | `IsStreamIDULID()`             |
+| `ParseAggregateType()`            | `ParseStreamType()`            |
+| `ErrEmptyAggregateType`           | `ErrEmptyStreamType`           |
+| `event.NewAggregateRef()`         | `event.NewStreamRef()`         |
+| `evt.AggregateID()`               | `evt.StreamID()`               |
+| `evt.AggregateType()`             | `evt.StreamType()`             |
+| `c.AggregateID()`                 | `c.StreamID()`                 |
+| `listing.AggregateListing`        | `listing.StreamListing`        |
+| `listing.AggregateStatus`         | `listing.StreamStatus`         |
 | `listing.InMemoryAggregateReader` | `listing.InMemoryStreamReader` |
-| `storage.SQLAggregateReader` | `storage.SQLStreamReader` |
-| `AggregateRef.StreamKey()` | stays (already correct) |
-| `Decider[State]` | stays (already correct) |
-| `Repository[State]` | stays (already correct) |
-| `expectedVersion` | stays (already correct) |
+| `storage.SQLAggregateReader`      | `storage.SQLStreamReader`      |
+| `AggregateRef.StreamKey()`        | stays (already correct)        |
+| `Decider[State]`                  | stays (already correct)        |
+| `Repository[State]`               | stays (already correct)        |
+| `expectedVersion`                 | stays (already correct)        |
 
 ## Alternatives Considered
 

@@ -174,8 +174,8 @@ func TestSnapshotStore_Delete(t *testing.T) {
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Test",
-		Version:       1,
-		State:         []byte(`{"name":"test"}`),
+		Version:    1,
+		State:      []byte(`{"name":"test"}`),
 	}
 
 	ctx := context.Background()

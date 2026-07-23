@@ -9,12 +9,12 @@ import (
 )
 
 type builder struct {
-	eventType     Type
+	eventType  Type
 	streamID   id.StreamID
 	streamType id.StreamType
-	version       Version
-	payload       []byte
-	opts          []Option
+	version    Version
+	payload    []byte
+	opts       []Option
 }
 
 func newBuilder(
@@ -24,12 +24,12 @@ func newBuilder(
 	version Version,
 ) *builder {
 	return &builder{
-		eventType:     eventType,
+		eventType:  eventType,
 		streamID:   streamID,
 		streamType: streamType,
-		version:       version,
-		payload:       nil,
-		opts:          nil,
+		version:    version,
+		payload:    nil,
+		opts:       nil,
 	}
 }
 
