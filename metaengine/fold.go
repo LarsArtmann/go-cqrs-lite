@@ -10,13 +10,15 @@ import (
 type FoldKind string
 
 const (
-	FoldInsert FoldKind = "insert"
-	FoldUpdate FoldKind = "update"
-	FoldRemove FoldKind = "remove"
-	FoldCount  FoldKind = "count"
-	FoldEdge   FoldKind = "edge"
-	FoldSet    FoldKind = "set"
-	FoldSkip   FoldKind = "skip"
+	FoldInsert      FoldKind = "insert"
+	FoldUpdate      FoldKind = "update"
+	FoldRemove      FoldKind = "remove"
+	FoldCount       FoldKind = "count"
+	FoldEdge        FoldKind = "edge"
+	FoldSet         FoldKind = "set"
+	FoldSkip        FoldKind = "skip"
+	FoldMultiInsert FoldKind = "multi_insert"
+	FoldAppend      FoldKind = "append"
 )
 
 // Fold is a single event-to-projection mapping.
@@ -40,6 +42,9 @@ type Fold struct {
 	countHandler  any // func(e E) Delta
 	edgeHandler   any // func(e E) Edge
 	setHandler    any // func(e E) K
+
+	multiInsertHandler any // func(e E) MultiEntry
+	appendHandler      any // func(e E) Append
 }
 
 func EventTypeName(sample any) string {
@@ -150,6 +155,8 @@ func classifySingleReturn[E any](
 	deltaType := reflect.TypeFor[Delta]()
 	edgeType := reflect.TypeFor[Edge]()
 	skipType := reflect.TypeFor[Skip]()
+	multiEntryType := reflect.TypeFor[MultiEntry]()
+	appendType := reflect.TypeFor[Append]()
 
 	switch outType {
 	case deltaType:
@@ -172,13 +179,27 @@ func classifySingleReturn[E any](
 			EventSample: sample,
 			Kind:        FoldSkip,
 		}
+	case multiEntryType:
+		return Fold{
+			EventType:          eventType,
+			EventSample:        sample,
+			Kind:               FoldMultiInsert,
+			multiInsertHandler: handler,
+		}
+	case appendType:
+		return Fold{
+			EventType:     eventType,
+			EventSample:   sample,
+			Kind:          FoldAppend,
+			appendHandler: handler,
+		}
 	default:
 		return Fold{
-			EventType:   eventType,
+			EventType:  eventType,
 			EventSample: sample,
-			Kind:        FoldSet,
-			keyType:     outType,
-			setHandler:  handler,
+			Kind:       FoldSet,
+			keyType:    outType,
+			setHandler: handler,
 		}
 	}
 }
@@ -256,10 +277,22 @@ func (f *Fold) callSet(event any) any {
 	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface()
 }
 
+func (f *Fold) callMultiInsert(event any) MultiEntry {
+	fn := reflect.ValueOf(f.multiInsertHandler)
+
+	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(MultiEntry)
+}
+
+func (f *Fold) callAppend(event any) Append {
+	fn := reflect.ValueOf(f.appendHandler)
+
+	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(Append)
+}
+
 // ── ADT classification ──
 
 func classifyADT(folds []Fold) (ADT, error) {
-	hasInsert, hasSet, hasCount, hasEdge := false, false, false, false
+	hasInsert, hasSet, hasCount, hasEdge, hasMulti, hasAppend := false, false, false, false, false, false
 
 	for _, f := range folds {
 		switch f.Kind {
@@ -271,6 +304,10 @@ func classifyADT(folds []Fold) (ADT, error) {
 			hasCount = true
 		case FoldEdge:
 			hasEdge = true
+		case FoldMultiInsert:
+			hasMulti = true
+		case FoldAppend:
+			hasAppend = true
 		}
 	}
 
@@ -279,6 +316,10 @@ func classifyADT(folds []Fold) (ADT, error) {
 		return ADTGraph, nil
 	case hasCount:
 		return ADTCounter, nil
+	case hasMulti:
+		return ADTMultimap, nil
+	case hasAppend:
+		return ADTLog, nil
 	case hasSet:
 		return ADTSet, nil
 	case hasInsert:

@@ -139,6 +139,22 @@ func (s *Store) applyFold(q queryRuntime, fold Fold, payload any) error {
 	case FoldSkip:
 		return nil
 
+	case FoldMultiInsert:
+		entry := fold.callMultiInsert(payload)
+		if mb, ok := q.engine.(MultimapBackend); ok {
+			return mb.MultiAdd(col, entry.Key, entry.Value)
+		}
+
+		return fmt.Errorf("engine %s does not support Multimap operations", q.engine.Profile().Name)
+
+	case FoldAppend:
+		app := fold.callAppend(payload)
+		if lb, ok := q.engine.(LogBackend); ok {
+			return lb.LogAppend(col, app.Value)
+		}
+
+		return fmt.Errorf("engine %s does not support Log operations", q.engine.Profile().Name)
+
 	default:
 		return fmt.Errorf("unknown fold kind: %s", fold.Kind)
 	}
@@ -224,6 +240,22 @@ func (s *Store) executeQuery(
 		}
 
 		return nil, fmt.Errorf("engine %s does not support Graph reads", q.engine.Profile().Name)
+
+	case ReadMultiLookup:
+		key := extractFirstDomainField(input)
+		if mb, ok := q.engine.(MultimapBackend); ok {
+			return mb.MultiGet(q.name, key)
+		}
+
+		return nil, fmt.Errorf("engine %s does not support Multimap reads", q.engine.Profile().Name)
+
+	case ReadLogTail:
+		limit := extractLimitFromInput(input)
+		if lb, ok := q.engine.(LogBackend); ok {
+			return lb.LogTail(q.name, limit)
+		}
+
+		return nil, fmt.Errorf("engine %s does not support Log reads", q.engine.Profile().Name)
 
 	default:
 		return nil, fmt.Errorf("unsupported read pattern: %s", q.readPattern)

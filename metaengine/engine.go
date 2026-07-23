@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"maps"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -77,6 +78,18 @@ type GraphBackend interface {
 	GraphNeighbors(collection string, node any, depth int) ([]any, error)
 }
 
+// MultimapBackend handles one-to-many key→values collections.
+type MultimapBackend interface {
+	MultiAdd(collection string, key any, value any) error
+	MultiGet(collection string, key any) ([]any, error)
+}
+
+// LogBackend handles append-only, ordered log collections.
+type LogBackend interface {
+	LogAppend(collection string, value any) error
+	LogTail(collection string, limit int) ([]any, error)
+}
+
 // Closer is the lifecycle interface.
 type Closer interface {
 	Close() error
@@ -97,10 +110,12 @@ type memoryEngine struct {
 }
 
 type memData struct {
-	maps     map[string]map[any]any
-	sets     map[string]map[any]struct{}
-	counters map[string]map[string]int64
-	graphs   map[string]*memGraph
+	maps       map[string]map[any]any
+	sets       map[string]map[any]struct{}
+	counters   map[string]map[string]int64
+	graphs     map[string]*memGraph
+	multimaps  map[string]map[any][]any
+	logs       map[string][]any
 }
 
 type memGraph struct {
@@ -110,10 +125,12 @@ type memGraph struct {
 func NewMemoryEngine() Engine {
 	return &memoryEngine{
 		data: &memData{
-			maps:     make(map[string]map[any]any),
-			sets:     make(map[string]map[any]struct{}),
-			counters: make(map[string]map[string]int64),
-			graphs:   make(map[string]*memGraph),
+			maps:      make(map[string]map[any]any),
+			sets:      make(map[string]map[any]struct{}),
+			counters:  make(map[string]map[string]int64),
+			graphs:    make(map[string]*memGraph),
+			multimaps: make(map[string]map[any][]any),
+			logs:      make(map[string][]any),
 		},
 	}
 }
@@ -128,6 +145,7 @@ func (m *memoryEngine) Profile() EngineProfile {
 			ADTGraph:     ComplexityODegree,
 			ADTSortedMap: ComplexityON,
 			ADTLog:       ComplexityON,
+			ADTMultimap:  ComplexityO1,
 		},
 	}
 }
@@ -367,6 +385,51 @@ func (m *memoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, e
 }
 
 func (m *memoryEngine) Close() error { return nil }
+
+func (m *memoryEngine) MultiAdd(col string, key any, value any) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.data.multimaps[col] == nil {
+		m.data.multimaps[col] = make(map[any][]any)
+	}
+
+	m.data.multimaps[col][key] = append(m.data.multimaps[col][key], value)
+
+	return nil
+}
+
+func (m *memoryEngine) MultiGet(col string, key any) ([]any, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	values := m.data.multimaps[col][key]
+
+	return slices.Clone(values), nil
+}
+
+func (m *memoryEngine) LogAppend(col string, value any) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.data.logs[col] = append(m.data.logs[col], value)
+
+	return nil
+}
+
+func (m *memoryEngine) LogTail(col string, limit int) ([]any, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	log := m.data.logs[col]
+	if limit <= 0 || limit > len(log) {
+		limit = len(log)
+	}
+
+	start := len(log) - limit
+
+	return slices.Clone(log[start:]), nil
+}
 
 // SQLiteEngineProfile returns the cost profile for a SQLite engine.
 // Used for multi-engine planning without a real SQLite implementation.

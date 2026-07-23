@@ -10,6 +10,7 @@ const (
 	ADTGraph     ADT = "graph"
 	ADTLog       ADT = "log"
 	ADTSortedMap ADT = "sorted_map"
+	ADTMultimap  ADT = "multimap"
 )
 
 // ReadPattern describes how a query reads its projection.
@@ -22,6 +23,8 @@ const (
 	ReadAggregate    ReadPattern = "aggregate"
 	ReadTraversal    ReadPattern = "traversal"
 	ReadScan         ReadPattern = "scan"
+	ReadMultiLookup  ReadPattern = "multi_lookup"
+	ReadLogTail      ReadPattern = "log_tail"
 )
 
 // Delta is a counter update: key to delta.
@@ -31,6 +34,27 @@ type Delta map[string]int64
 type Edge struct {
 	From any
 	To   any
+}
+
+// MultiEntry is a sentinel return type for multimap folds: one key maps to many values.
+// Return it from On to classify the fold as a multimap insert:
+//
+//	metaengine.On(TaskAssigned{}, func(e TaskAssigned) metaengine.MultiEntry {
+//	    return metaengine.MultiEntry{Key: e.Assignee, Value: e.TaskID}
+//	})
+type MultiEntry struct {
+	Key   any
+	Value any
+}
+
+// Append is a sentinel return type for log folds: append a value to an ordered log.
+// Return it from On to classify the fold as a log append:
+//
+//	metaengine.On(TaskCreated{}, func(e TaskCreated) metaengine.Append {
+//	    return metaengine.Append{Value: e}
+//	})
+type Append struct {
+	Value any
 }
 
 // Skip is a sentinel return type signaling that an event does not apply
