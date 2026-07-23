@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"fmt"
 	"maps"
-	"reflect"
 	"sort"
 	"strings"
 	"sync"
@@ -200,9 +199,8 @@ func (m *MemoryEngine) MapUpdate(col string, key any, update func(prev any) any)
 
 func (m *MemoryEngine) MapScan(
 	col string,
-	filters []FieldPath,
-	filterValues map[string]any,
-	sortField string,
+	filters []filterPredicate,
+	sortFunc func(a, b any) int,
 	cursor any,
 	limit int,
 ) ([]any, error) {
@@ -225,31 +223,32 @@ func (m *MemoryEngine) MapScan(
 	var pairs []kv
 
 	for k, v := range store {
-		if !matchesFilters(v, filters, filterValues) {
+		if !passesFilters(v, filters) {
 			continue
 		}
 
 		pairs = append(pairs, kv{key: k, value: v})
 	}
 
-	// Sort with a deterministic tiebreaker: primary = sort field value,
+	// Sort with a deterministic tiebreaker: primary = sort comparator,
 	// secondary = map key (as string). This ensures reproducible output
 	// even though Go randomizes map iteration order.
 	sort.Slice(pairs, func(i, j int) bool {
-		return compareItems(
-			pairs[i].value, pairs[j].value,
-			pairs[i].key, pairs[j].key,
-			sortField,
-		) < 0
+		if sortFunc != nil {
+			if c := sortFunc(pairs[i].value, pairs[j].value); c != 0 {
+				return c < 0
+			}
+		}
+
+		return strings.Compare(fmt.Sprintf("%v", pairs[i].key), fmt.Sprintf("%v", pairs[j].key)) < 0
 	})
 
 	// Keyset pagination: skip items at or before the cursor position.
-	if cursor != nil && sortField != "" {
-		cursorKey := extractKeyValue(cursor)
-
+	if cursor != nil && sortFunc != nil {
 		filtered := pairs[:0]
 		for _, p := range pairs {
-			if compareItems(p.value, cursor, p.key, cursorKey, sortField) <= 0 {
+			c := sortFunc(p.value, cursor)
+			if c <= 0 {
 				continue
 			}
 
@@ -259,7 +258,7 @@ func (m *MemoryEngine) MapScan(
 		pairs = filtered
 	}
 
-	// Truncate to limit+1 — the extra item signals HasMore to reconstructPage.
+	// Truncate to limit+1 — the extra item signals HasMore to reconstructCollection.
 	truncLimit := 0
 	if limit > 0 {
 		truncLimit = limit + 1
@@ -385,20 +384,15 @@ func SQLiteEngineProfile() EngineProfile {
 	}
 }
 
-// matchesFilters checks if a value matches all filter criteria by field name.
-func matchesFilters(value any, filters []FieldPath, filterValues map[string]any) bool {
+// passesFilters checks if a value passes all filter predicates.
+// Each predicate is a runtime closure from FilterOn — no field name strings.
+func passesFilters(value any, filters []filterPredicate) bool {
 	if len(filters) == 0 {
 		return true
 	}
 
-	for _, filter := range filters {
-		expected, ok := filterValues[filter.Field]
-		if !ok {
-			continue
-		}
-
-		actual := getFieldValue(value, filter.Field)
-		if !reflect.DeepEqual(actual, expected) {
+	for _, f := range filters {
+		if !f.test(value) {
 			return false
 		}
 	}
@@ -488,21 +482,4 @@ func compareValue(a, b any) int {
 	}
 
 	return strings.Compare(fmt.Sprintf("%v", a), fmt.Sprintf("%v", b))
-}
-
-// compareItems compares two projection records by sort field (primary) and map
-// key (secondary tiebreaker). The tiebreaker ensures deterministic ordering
-// even when sort field values are equal and Go's map iteration is randomized.
-// Returns -1 if a sorts before b, 0 if equal, +1 if a sorts after b.
-func compareItems(a, b any, keyA, keyB any, sortField string) int {
-	if sortField != "" {
-		aVal := getFieldValue(a, sortField)
-		bVal := getFieldValue(b, sortField)
-
-		if c := compareValue(aVal, bVal); c != 0 {
-			return c
-		}
-	}
-
-	return strings.Compare(fmt.Sprintf("%v", keyA), fmt.Sprintf("%v", keyB))
 }

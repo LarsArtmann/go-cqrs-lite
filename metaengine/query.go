@@ -31,7 +31,7 @@ func WithLatencyBudget(ms int64) QueryOption {
 // from a result item at runtime. The returnType is used to match against query
 // input fields by TYPE — the engine never knows field names.
 type filterAccessor struct {
-	closure    any    // func(r R) T — extracts field from result
+	closure    any // func(r R) T — extracts field from result
 	returnType reflect.Type
 }
 

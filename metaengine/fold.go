@@ -141,7 +141,12 @@ func On[E any](sample E, handler any) Fold {
 	}
 }
 
-func classifySingleReturn[E any](sample E, eventType string, outType reflect.Type, handler any) Fold {
+func classifySingleReturn[E any](
+	sample E,
+	eventType string,
+	outType reflect.Type,
+	handler any,
+) Fold {
 	deltaType := reflect.TypeOf((*Delta)(nil)).Elem()
 	edgeType := reflect.TypeOf(Edge{})
 	skipType := reflect.TypeOf(Skip{})
@@ -149,16 +154,16 @@ func classifySingleReturn[E any](sample E, eventType string, outType reflect.Typ
 	switch outType {
 	case deltaType:
 		return Fold{
-			EventType:   eventType,
-			EventSample: sample,
-			Kind:        FoldCount,
+			EventType:    eventType,
+			EventSample:  sample,
+			Kind:         FoldCount,
 			countHandler: handler,
 		}
 	case edgeType:
 		return Fold{
-			EventType:  eventType,
+			EventType:   eventType,
 			EventSample: sample,
-			Kind:       FoldEdge,
+			Kind:        FoldEdge,
 			edgeHandler: handler,
 		}
 	case skipType:
@@ -169,11 +174,11 @@ func classifySingleReturn[E any](sample E, eventType string, outType reflect.Typ
 		}
 	default:
 		return Fold{
-			EventType:  eventType,
+			EventType:   eventType,
 			EventSample: sample,
-			Kind:       FoldSet,
-			keyType:    outType,
-			setHandler: handler,
+			Kind:        FoldSet,
+			keyType:     outType,
+			setHandler:  handler,
 		}
 	}
 }
