@@ -5,8 +5,9 @@ import (
 	"encoding/base64"
 	"slices"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
 type Ciphertext []byte //nolint:recvcheck // value receiver for immutable type
