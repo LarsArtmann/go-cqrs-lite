@@ -140,8 +140,10 @@ SQL generated:
 
 ```sql
 INSERT INTO <table> (<keycols>, <counterCol>) VALUES (?, ?, ?)
-ON CONFLICT(<pk>) DO UPDATE SET <counterCol> = <counterCol> + excluded.<counterCol>
+ON CONFLICT(<pk>) DO UPDATE SET <counterCol> = COALESCE(<counterCol>, 0) + excluded.<counterCol>
 ```
+
+The `COALESCE` guard was discovered during implementation: multi-counter tables (e.g. `total`, `downloaded`, `failed` on one row) have NULL on untouched counters when the row is first created by a different Increment call. Without COALESCE, `NULL + N = NULL` in SQL, silently losing the increment.
 
 - No `IncrementWhere` (dropped — footgun)
 - No `MAX(0, ...)` guard (dropped — hides data loss)
