@@ -11,9 +11,8 @@ import (
 )
 
 // TypedMetricsRecorder records handler execution metrics using typed
-// OpenTelemetry attributes, replacing the error-prone alternating
-// key-value string pairs of MetricsRecorder. Prefer this interface for new
-// code: it makes malformed label pairs unrepresentable.
+// OpenTelemetry attributes. Prefer this interface over raw string-label
+// recording: it makes malformed label pairs unrepresentable.
 type TypedMetricsRecorder interface {
 	ObserveTyped(
 		ctx context.Context,

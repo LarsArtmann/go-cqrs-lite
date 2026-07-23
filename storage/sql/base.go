@@ -58,19 +58,6 @@ func newOwnedDBHandle(db *sql.DB, d Dialect, ownDB bool) (*OwnedDBHandle, error)
 	return &OwnedDBHandle{DBHandle: handle, ownDB: ownDB}, nil
 }
 
-// Deprecated: Use [NewBorrowedDBHandle] or [NewOwningDBHandle] instead.
-// The ownDB bool flag makes Close behavior ambiguous at the call site.
-func NewOwnedDBHandle(db *sql.DB, d Dialect, ownDB bool) (*OwnedDBHandle, error) {
-	return newOwnedDBHandle(db, d, ownDB)
-}
-
-// Deprecated: Use [NewOwningDBHandle] at construction time instead.
-// Mutating ownership after construction can cause double-close or connection
-// leaks if the lifecycle assumption changes mid-flight.
-func (b *OwnedDBHandle) SetOwnership(ownDB bool) {
-	b.ownDB = ownDB
-}
-
 // Close marks the store as closed. If ownDB is true, also closes the underlying *sql.DB.
 func (b *OwnedDBHandle) Close() error {
 	b.closed.Store(true)

@@ -22,7 +22,8 @@ func (r *runner) writePhase(ctx context.Context) error {
 	profile := r.config.Profile
 	start := time.Now()
 
-	err := runConcurrent(ctx, profile.Aggregates, r.concurrency,
+	err := runConcurrent(
+		ctx, profile.Aggregates, r.concurrency,
 		func(ctx context.Context, aggIdx int) error {
 			return r.writeOneAggregate(ctx, aggIdx, coll, &totalEvents)
 		},
@@ -100,7 +101,8 @@ func (r *runner) readPhase(ctx context.Context) error {
 	coll := NewLatencyCollector(0)
 	profile := r.config.Profile
 
-	err := runConcurrent(ctx, profile.Aggregates, r.concurrency,
+	err := runConcurrent(
+		ctx, profile.Aggregates, r.concurrency,
 		func(ctx context.Context, aggIdx int) error {
 			ref := r.refs[aggIdx]
 			start := time.Now()
@@ -158,7 +160,8 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 		keys[i] = []byte(r.aggIDs[i].String())
 	}
 
-	err := runConcurrent(ctx, profile.Aggregates, r.concurrency,
+	err := runConcurrent(
+		ctx, profile.Aggregates, r.concurrency,
 		func(ctx context.Context, idx int) error {
 			start := time.Now()
 			if err := store.Set(ctx, keys[idx], payload); err != nil {
@@ -178,7 +181,8 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 	}
 
 	getColl := NewLatencyCollector(0)
-	err = runConcurrent(ctx, profile.Aggregates, r.concurrency,
+	err = runConcurrent(
+		ctx, profile.Aggregates, r.concurrency,
 		func(ctx context.Context, idx int) error {
 			start := time.Now()
 			_, err := store.Get(ctx, keys[idx])

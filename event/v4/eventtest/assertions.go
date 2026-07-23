@@ -1,29 +1,12 @@
 package eventtest
 
 import (
-	"context"
 	"reflect"
 	"strings"
-	"sync"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
-
-type FakeMetrics struct {
-	mu        sync.Mutex
-	Records   []string
-	Durations []time.Duration
-}
-
-func (m *FakeMetrics) Observe(_ context.Context, name string, duration time.Duration, _ ...string) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	m.Records = append(m.Records, name)
-	m.Durations = append(m.Durations, duration)
-}
 
 func AssertCallOrder(t *testing.T, callOrder, expected []string) {
 	t.Helper()
@@ -34,18 +17,6 @@ func AssertCallOrder(t *testing.T, callOrder, expected []string) {
 
 			break
 		}
-	}
-}
-
-func AssertMetricRecord(t *testing.T, m *FakeMetrics, wantName string) {
-	t.Helper()
-
-	if len(m.Records) != 1 {
-		t.Fatalf("expected 1 metric record, got %d", len(m.Records))
-	}
-
-	if m.Records[0] != wantName {
-		t.Errorf("expected %s, got %s", wantName, m.Records[0])
 	}
 }
 

@@ -135,6 +135,7 @@ github.com/knadh/koanf/v2 v2.3.5/go.mod h1:gRb40VRAbd4iJMYYD5IxZ6hfuopFcXBpc9bbQ
 github.com/kr/pty v1.1.1 h1:VkoXIwSboBpnk99O/KFauAEILuNHv5DVFKZMBN/gUgw=
 github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.0.0/go.mod h1:jMpo3K/BD9y1VMmXewFC5vAB9hY4r4NbAsNUz9fFgJg=
 github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.0.0/go.mod h1:g5sIZq6B3z9TDUQ2VjuEhH529oHmB6wPBhi32C+n9ig=
+github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.0.0/go.mod h1:fIEwS1B6jcIL9bYwCBMf1WGYSyUuznu3qx0O+34YI34=
 github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.0.0/go.mod h1:6Oob5wXxKVRviioQlpwJy5ppMTItUMcGmQqmup/c5Ig=
 github.com/larsartmann/go-error-family/diagnose v0.1.0/go.mod h1:yjLhP+5go9A50hbzaidbviaTkejBNValDufSLekBAx4=
 github.com/mattn/go-colorable v0.1.15 h1:+u9SLTRGnXv73cEsnsmoZBom+dMU88B2M0aDcWy0/jY=

@@ -76,7 +76,8 @@ func printLatencyLine(w io.Writer, label string, stats LatencyStats) {
 		return
 	}
 
-	fmt.Fprintf(w, "%s P50=%s P95=%s P99=%s Max=%s\n",
+	fmt.Fprintf(
+		w, "%s P50=%s P95=%s P99=%s Max=%s\n",
 		label,
 		roundDuration(stats.P50),
 		roundDuration(stats.P95),
@@ -114,7 +115,8 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 		return
 	}
 
-	fmt.Fprintf(w, "%-10s %12s %12s %12s %12s %10s %10s\n",
+	fmt.Fprintf(
+		w, "%-10s %12s %12s %12s %12s %10s %10s\n",
 		name,
 		roundDuration(r.WriteLatency.P50),
 		roundDuration(r.WriteLatency.P99),
@@ -145,8 +147,14 @@ func WriteComparisonJSON(w io.Writer, results map[string]*Result) error {
 func PrintMarkdown(w io.Writer, results map[string]*Result) {
 	names := sortedKeys(results)
 
-	fmt.Fprintln(w, "| Backend | Write P50 | Write P99 | Load P50 | Load P99 | Throughput | Heap | Disk |")
-	fmt.Fprintln(w, "|---------|----------:|----------:|---------:|---------:|-----------:|-----:|-----:|")
+	fmt.Fprintln(
+		w,
+		"| Backend | Write P50 | Write P99 | Load P50 | Load P99 | Throughput | Heap | Disk |",
+	)
+	fmt.Fprintln(
+		w,
+		"|---------|----------:|----------:|---------:|---------:|-----------:|-----:|-----:|",
+	)
 
 	for _, name := range names {
 		r := results[name]
@@ -155,7 +163,8 @@ func PrintMarkdown(w io.Writer, results map[string]*Result) {
 			continue
 		}
 
-		fmt.Fprintf(w, "| %s | %s | %s | %s | %s | %s/s | %s | %s |\n",
+		fmt.Fprintf(
+			w, "| %s | %s | %s | %s | %s | %s/s | %s | %s |\n",
 			name,
 			roundDuration(r.WriteLatency.P50),
 			roundDuration(r.WriteLatency.P99),

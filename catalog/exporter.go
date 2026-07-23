@@ -9,9 +9,3 @@ type Option[T any] func(*T)
 type Exporter[T any] interface {
 	Export(cat *Catalog) T
 }
-
-// ErrorExporter is a variant of Exporter that can fail.
-// Use this for exporters that write to filesystem or external services.
-//
-// Deprecated: Use Exporter[error] instead.
-type ErrorExporter = Exporter[error]

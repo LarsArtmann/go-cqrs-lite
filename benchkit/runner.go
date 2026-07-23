@@ -12,8 +12,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
-const benchAggregateType id.AggregateType = "Bench"
-const benchEventType event.Type = "bench.event"
+const (
+	benchAggregateType id.AggregateType = "Bench"
+	benchEventType     event.Type       = "bench.event"
+)
 
 // runner executes a benchmark in phases against a single backend.
 type runner struct {
