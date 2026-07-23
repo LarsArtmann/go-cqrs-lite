@@ -55,6 +55,7 @@ func (lc *LatencyCollector) Record(d time.Duration) {
 
 	if len(lc.samples) < lc.maxLen {
 		lc.samples = append(lc.samples, d)
+
 		return
 	}
 
@@ -161,6 +162,7 @@ func (rs *resourceSampler) start() {
 				return
 			case <-ticker.C:
 				m := readMemStats()
+
 				rs.mu.Lock()
 				if m.heapAlloc > rs.peak {
 					rs.peak = m.heapAlloc
@@ -213,6 +215,7 @@ func cpuTimeProc() uint64 {
 
 func splitFields(data []byte) []string {
 	var fields []string
+
 	start := 0
 
 	for i, b := range data {
@@ -220,6 +223,7 @@ func splitFields(data []byte) []string {
 			if i > start {
 				fields = append(fields, string(data[start:i]))
 			}
+
 			start = i + 1
 		}
 	}
@@ -238,6 +242,7 @@ func parseUint(s string) uint64 {
 		if c < '0' || c > '9' {
 			break
 		}
+
 		n = n*10 + uint64(c-'0')
 	}
 

@@ -38,6 +38,7 @@ func TestGenerator_DifferentSeeds(t *testing.T) {
 	for i := range p1 {
 		if p1[i] != p2[i] {
 			same = false
+
 			break
 		}
 	}

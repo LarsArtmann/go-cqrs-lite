@@ -810,7 +810,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | FakeSnapshotStore | `SnapshotStore` implementation with `SetSnapshot`, `SetLoadError`, `SetSaveError`                                                                                   | 🧪     |
 | Event factories   | `NewTestEvent`, `NewEventOpts`, `QuickEvent`, `QuickEventOpts`, `MakeEvent`, `TamperEvent`                                                                          | 🧪     |
 | Timeline fixtures | `MakeTimelineEvents`, `MakeThreeTimelineEvents`, `MakeLoadToTimestampFixtures`                                                                                      | 🧪     |
-| Assertions        | `AssertGolden`, `AssertCallOrder`, `AssertEventType`, `AssertEventVersion`, and 10+ more                                                      | 🧪     |
+| Assertions        | `AssertGolden`, `AssertCallOrder`, `AssertEventType`, `AssertEventVersion`, and 10+ more                                                                            | 🧪     |
 | Store test suite  | `TestStoreSaveAndLoad`, `TestStoreConcurrencyConflict`, `TestStoreAppendBatch`, `TestStoreLoadFromVersion`, `TestStoreMetadataRoundtrip` — reusable suite functions | 🧪     |
 | Handler factories | `AppendEventsHandler`, `NoopEventHandler`, `FailingEventHandler`, `PanicEventHandler`, `CallbackEventHandler`                                                       | 🧪     |
 

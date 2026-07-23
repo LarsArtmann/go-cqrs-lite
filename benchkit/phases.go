@@ -17,6 +17,7 @@ import (
 // write latency percentiles plus overall throughput.
 func (r *runner) writePhase(ctx context.Context) error {
 	coll := NewLatencyCollector(0)
+
 	var totalEvents atomic.Int64
 
 	profile := r.config.Profile
@@ -49,7 +50,9 @@ func (r *runner) writeOneAggregate(
 	ref := r.refs[aggIdx]
 	aggID := r.aggIDs[aggIdx]
 	profile := r.config.Profile
+
 	var version event.Version
+
 	written := 0
 
 	for written < profile.EventsPerAgg {
@@ -61,11 +64,13 @@ func (r *runner) writeOneAggregate(
 		}
 
 		start := time.Now()
+
 		if err := r.bundle.EventSink.Save(ctx, ref, events, version); err != nil {
 			return err
 		}
 
 		coll.Record(time.Since(start))
+
 		version = version.Add(uint(batchSize))
 		written += batchSize
 		total.Add(int64(batchSize))
@@ -138,6 +143,7 @@ func (r *runner) runJournalScans(ctx context.Context) {
 
 	if r.bundle.SeekableJournal != nil {
 		var afterID id.EventID
+
 		start := time.Now()
 		_, _ = r.bundle.SeekableJournal.ReadFrom(ctx, afterID, 1000)
 		r.result.ReadFromTime = time.Since(start)
@@ -164,6 +170,7 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 		ctx, profile.Aggregates, r.concurrency,
 		func(ctx context.Context, idx int) error {
 			start := time.Now()
+
 			if err := store.Set(ctx, keys[idx], payload); err != nil {
 				return err
 			}
@@ -185,6 +192,7 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 		ctx, profile.Aggregates, r.concurrency,
 		func(ctx context.Context, idx int) error {
 			start := time.Now()
+
 			_, err := store.Get(ctx, keys[idx])
 			if err != nil {
 				return err

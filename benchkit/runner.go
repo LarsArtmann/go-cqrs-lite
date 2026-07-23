@@ -210,18 +210,17 @@ func runConcurrent(
 
 	work := make(chan int)
 	errCh := make(chan error, 1)
+
 	cancelCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	var wg sync.WaitGroup
-	var errOnce sync.Once
+	var (
+		wg      sync.WaitGroup
+		errOnce sync.Once
+	)
 
 	for range concurrency {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for idx := range work {
 				if err := op(cancelCtx, idx); err != nil {
 					errOnce.Do(func() { errCh <- err })
@@ -230,7 +229,7 @@ func runConcurrent(
 					return
 				}
 			}
-		}()
+		})
 	}
 
 	go func() {
@@ -260,6 +259,7 @@ func runConcurrent(
 func (r *runner) warmup(ctx context.Context) error {
 	aggID := id.NewAggregateID()
 	ref := id.NewAggregateRef(benchAggregateType, aggID)
+
 	var version event.Version
 
 	for i := range r.config.Warmup {
