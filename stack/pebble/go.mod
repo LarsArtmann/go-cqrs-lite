@@ -44,9 +44,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.3 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect

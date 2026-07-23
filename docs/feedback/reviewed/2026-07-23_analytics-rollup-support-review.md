@@ -42,6 +42,7 @@ func rollupActivity(ctx context.Context, evt event.Event, sink relational.Projec
 ```
 
 That is 7 lines. The RollupSpec equivalent (lines 103-138 of the proposal) is 35 lines of struct configuration that saves zero logic and adds a whole type hierarchy to learn, document, and maintain. It violates:
+
 - **Design Principle #1** (Library, not framework)
 - **Design Principle #4** (Composition over inheritance — the DSL is a declarative alternative to composition)
 - The library's anti-pattern: "Manager/Handler/Processor/Helper" names that say "I do stuff" without saying WHAT. `RollupSpec` is a config bag; `RollupProjection` is a generic executor that hides the actual logic.
@@ -71,7 +72,7 @@ The doc comment literally describes the exact counter use case. It is defined bu
 
 Projections replay events (crash recovery, projection reset). If `MessageCreated` is replayed, a naive counter increments twice. The proposal has zero mention of this.
 
-**Assessment:** `projectionhost` has a bounded dedup ring buffer (`dedup.Ring`), so recent events are deduplicated within the configured capacity. But a full replay (after `Host.Reset`) replays from zero — the rollup table is empty, so re-incrementing from zero is actually correct (you're rebuilding from scratch). The danger is a *partial* replay within the ring capacity window.
+**Assessment:** `projectionhost` has a bounded dedup ring buffer (`dedup.Ring`), so recent events are deduplicated within the configured capacity. But a full replay (after `Host.Reset`) replays from zero — the rollup table is empty, so re-incrementing from zero is actually correct (you're rebuilding from scratch). The danger is a _partial_ replay within the ring capacity window.
 
 **Recommendation:** Document that rollup projections are safe under `Host.Reset` (rebuild from zero = correct) and safe under bounded replay (dedup ring). No code change needed, but the proposal must state this explicitly.
 
@@ -102,6 +103,7 @@ But `RelationalProjection` doesn't implement `Resettable` at all. Calling `Host.
 ### Gap 2: No validation that counterCol exists in the schema
 
 The `Increment` method must validate that:
+
 1. The table exists in the schema
 2. The counter column exists in the table
 3. The key columns are a subset of the table's columns
@@ -135,6 +137,7 @@ Increment(ctx context.Context, table string, key Row, counterCol string, delta i
 ```
 
 SQL generated:
+
 ```sql
 INSERT INTO <table> (<keycols>, <counterCol>) VALUES (?, ?, ?)
 ON CONFLICT(<pk>) DO UPDATE SET <counterCol> = <counterCol> + excluded.<counterCol>
@@ -167,15 +170,15 @@ Does `DELETE FROM <table>` for each table in the schema. This closes the pre-exi
 
 ## Revised Priorities
 
-| Priority | Item | Status |
-|----------|------|--------|
-| P0 | `sink.Increment` (Option B, corrected) | **Implemented** |
-| P0 | `RelationalProjection.Reset` (Resettable) | **Implemented** |
-| P1 | Implement `kv.ViewUpdater` on `SQLViewStore` | Deferred — separate PR |
-| P2 | `TimeBucket` helper | Rejected — 3 lines of Go in the handler, not worth a type |
-| P3 | `RollupSpec` / `RollupProjection` (Option A) | **Rejected** — premature abstraction for a library |
-| P3 | `IncrementWhere` | **Rejected** — footgun |
-| P3 | `MAX(0, ...)` underflow guard | **Rejected** — hides data loss |
+| Priority | Item                                         | Status                                                    |
+| -------- | -------------------------------------------- | --------------------------------------------------------- |
+| P0       | `sink.Increment` (Option B, corrected)       | **Implemented**                                           |
+| P0       | `RelationalProjection.Reset` (Resettable)    | **Implemented**                                           |
+| P1       | Implement `kv.ViewUpdater` on `SQLViewStore` | Deferred — separate PR                                    |
+| P2       | `TimeBucket` helper                          | Rejected — 3 lines of Go in the handler, not worth a type |
+| P3       | `RollupSpec` / `RollupProjection` (Option A) | **Rejected** — premature abstraction for a library        |
+| P3       | `IncrementWhere`                             | **Rejected** — footgun                                    |
+| P3       | `MAX(0, ...)` underflow guard                | **Rejected** — hides data loss                            |
 
 ---
 

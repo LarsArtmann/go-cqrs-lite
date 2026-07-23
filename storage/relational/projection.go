@@ -144,6 +144,23 @@ func WithoutRelationalAutoMigrate() RelationalProjectionOption {
 	return func(p *RelationalProjection) { p.autoMigrate = false }
 }
 
+// Reset implements [projectionhost.Resettable]. It clears all rows from every
+// table in the projection's schema, so a subsequent replay rebuilds the read
+// model from zero. Called automatically by projectionhost.Host.Reset — after
+// Reset, the host drops the checkpoint and replays from the beginning.
+func (p *RelationalProjection) Reset(ctx context.Context) error {
+	for i := range p.schema.Tables {
+		t := p.schema.Tables[i]
+
+		if _, err := p.db.ExecContext(ctx, "DELETE FROM "+t.Name); err != nil {
+			return errorfamily.WrapTransient(err, "relational.projection_reset",
+				fmt.Sprintf("projection %q: delete from %s", p.name, t.Name))
+		}
+	}
+
+	return nil
+}
+
 var (
 	errRelationalNoName = errorfamily.NewRejection(
 		"relational.no_name",

@@ -60,4 +60,12 @@ var (
 		"relational.sink.no_rows",
 		"sink: QueryOne matched no rows",
 	)
+	errSinkCounterInKey = errorfamily.NewRejection(
+		"relational.sink.counter_in_key",
+		"sink: counter column must not appear in the key Row",
+	)
+	errSinkKeyMissingPK = errorfamily.NewRejection(
+		"relational.sink.key_missing_pk",
+		"sink: key Row must include all primary key columns",
+	)
 )

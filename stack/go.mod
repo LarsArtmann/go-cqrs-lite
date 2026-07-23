@@ -7,13 +7,13 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.4
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.0.3
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.2
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.4
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.2
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.4
@@ -35,6 +35,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.2 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

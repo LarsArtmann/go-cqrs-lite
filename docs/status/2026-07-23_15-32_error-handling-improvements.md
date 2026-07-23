@@ -11,19 +11,19 @@
 
 1. **Sentinel taxonomy migration** — Migrated 13 `errors.New` sentinels to `errorfamily.New*` constructors across 7 modules, giving each the correct 5-family classification (Rejection/Conflict/Transient/Corruption/Infrastructure):
 
-   | Module | Sentinel | Family | Breaking? |
-   |--------|----------|--------|-----------|
-   | `codec` | `ErrUnknownEncoding` | Rejection | No (same var name, now classified) |
-   | `decider` | `ErrStrictApplyUnknownType` | Corruption | No |
-   | `schema` | `ErrTypeAssertion` (was unexported) | Corruption | **Exported** (API addition) |
-   | `schema` | `ErrUnregisteredType` (was unexported) | Rejection | **Exported** (API addition) |
-   | `middleware` | `ErrUnexpectedTimeType` (was `errUnexpectedTimeTypeDL`) | Corruption | **Exported + renamed** |
-   | `catalog/simple` | `ErrCatalogValidation` (was unexported) | Rejection | **Exported** (API addition) |
-   | `prometheus` | `ErrNotGatherer` (was unexported) | — (kept `errors.New`) | **Exported** (API addition) |
-   | `stack/postgres` | `ErrListenerAlreadyListening` | Conflict | No |
-   | `stack/postgres` | `ErrListenerClosed` | Infrastructure | No |
-   | `stack/postgres` | `ErrEmptyChannelName` (was unexported) | Rejection | **Exported** (API addition) |
-   | `stack/postgres` | `ErrInvalidChannelName` (was unexported) | Rejection | **Exported** (API addition) |
+   | Module           | Sentinel                                                | Family                | Breaking?                          |
+   | ---------------- | ------------------------------------------------------- | --------------------- | ---------------------------------- |
+   | `codec`          | `ErrUnknownEncoding`                                    | Rejection             | No (same var name, now classified) |
+   | `decider`        | `ErrStrictApplyUnknownType`                             | Corruption            | No                                 |
+   | `schema`         | `ErrTypeAssertion` (was unexported)                     | Corruption            | **Exported** (API addition)        |
+   | `schema`         | `ErrUnregisteredType` (was unexported)                  | Rejection             | **Exported** (API addition)        |
+   | `middleware`     | `ErrUnexpectedTimeType` (was `errUnexpectedTimeTypeDL`) | Corruption            | **Exported + renamed**             |
+   | `catalog/simple` | `ErrCatalogValidation` (was unexported)                 | Rejection             | **Exported** (API addition)        |
+   | `prometheus`     | `ErrNotGatherer` (was unexported)                       | — (kept `errors.New`) | **Exported** (API addition)        |
+   | `stack/postgres` | `ErrListenerAlreadyListening`                           | Conflict              | No                                 |
+   | `stack/postgres` | `ErrListenerClosed`                                     | Infrastructure        | No                                 |
+   | `stack/postgres` | `ErrEmptyChannelName` (was unexported)                  | Rejection             | **Exported** (API addition)        |
+   | `stack/postgres` | `ErrInvalidChannelName` (was unexported)                | Rejection             | **Exported** (API addition)        |
 
 2. **Cause-chain preservation** — Added 3 new validation sentinels to `event/errors.go` (`ErrInvalidDate`, `ErrInvalidHour`, `ErrInvalidMinute`) and changed `fmt.Errorf` calls in `event/date.go` and `event/time_types.go` from bare string formatting to `%w` wrapping against these sentinels. Callers can now `errors.Is(err, event.ErrInvalidHour)`.
 
@@ -190,6 +190,7 @@
 ### 1. Should `otel/setup.go` get `errorfamily` as a dependency?
 
 The `otel` module is deliberately isolated — it has zero CQRS module dependencies. Adding `errorfamily` would:
+
 - **Pro:** Classify shutdown/build errors so callers can `errorfamily.Classify(err)` and get `Infrastructure` instead of the default `Transient` fail-open.
 - **Con:** Breaks the isolation principle. `otel` is the foundation that other modules build on; making it depend on `errorfamily` (even though `errorfamily` itself has zero deps) creates a coupling that doesn't currently exist.
 
@@ -198,6 +199,7 @@ I cannot determine whether this isolation is a hard architectural constraint or 
 ### 2. Should the orphaned commits be cleaned up?
 
 Commits `97394dd7`, `5b558eb1`, `580b3a80` are dangling — they contain the sentinel migration changes but are not in the branch history. The code changes ARE present in HEAD (confirmed via grep), but the history is messy. Should I:
+
 - Leave them (they'll be garbage collected eventually)
 - Cherry-pick/rebase them into the branch for clean history
 - Or is this expected behavior of the auto-commit hook?

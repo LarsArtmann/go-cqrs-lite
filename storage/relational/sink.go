@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -65,10 +66,27 @@ type ProjectionSink interface {
 	DeleteWhere(ctx context.Context, table string, match Row) error
 
 	// QueryOne reads a single column from the first row matching match. Returns
-	// [errSinkNoRows] (wrapping sql.ErrNoRows) when no row matches. Use it for
+	// [errSinkNoRows] (wrapping sql.ErrNoRow) when no row matches. Use it for
 	// read-then-write patterns inside a projection (e.g. read current content
 	// before recording an edit history row).
 	QueryOne(ctx context.Context, table, column string, match Row) (any, error)
+
+	// Increment atomically adds delta to counterCol on the row identified by
+	// key. If the row does not exist, it is inserted with delta as the initial
+	// counter value.
+	//
+	// The key Row must include the table's primary key columns and must not
+	// contain counterCol. Generated SQL (portable across SQLite and PostgreSQL):
+	//
+	//	INSERT INTO <table> (<keycols>, <counterCol>) VALUES (?, ?, ?)
+	//	ON CONFLICT(<pk>) DO UPDATE SET <counterCol> = <counterCol> + excluded.<counterCol>
+	//
+	// Use this for incremental rollup tables — pre-computed counters and sums
+	// maintained as events flow, so dashboard reads are O(1) instead of
+	// O(full table scan). The counter is NOT clamped to zero on negative delta:
+	// a counter going below zero signals inconsistent events (more deletes than
+	// creates), and silent clamping would hide that data-loss bug.
+	Increment(ctx context.Context, table string, key Row, counterCol string, delta int64) error
 }
 
 // sqlSink implements ProjectionSink over a *sql.Tx with a fixed dialect.
@@ -211,6 +229,78 @@ func (s *sqlSink) QueryOne(ctx context.Context, table, column string, match Row)
 	}
 
 	return result, nil
+}
+
+func (s *sqlSink) Increment(
+	ctx context.Context,
+	table string,
+	key Row,
+	counterCol string,
+	delta int64,
+) error {
+	keyCols, keyVals, err := s.rowColumns(table, key)
+	if err != nil {
+		return err
+	}
+
+	if slices.Contains(keyCols, counterCol) {
+		return errorfamily.WrapRejection(errSinkCounterInKey,
+			"relational.sink_counter_in_key",
+			fmt.Sprintf("table %q: counter column %q is also in key", table, counterCol))
+	}
+
+	t := s.schema.Table(table)
+
+	counterExists := false
+
+	for _, c := range t.Columns {
+		if c.Name == counterCol {
+			counterExists = true
+			break
+		}
+	}
+
+	if !counterExists {
+		return errorfamily.WrapRejection(errSinkUnknownColumn,
+			"relational.sink_unknown_column",
+			fmt.Sprintf("table %q: counter column %q", table, counterCol))
+	}
+
+	conflictCols := s.conflictTarget(table)
+
+	keyColSet := make(map[string]struct{}, len(keyCols))
+	for _, c := range keyCols {
+		keyColSet[c] = struct{}{}
+	}
+
+	for _, pk := range conflictCols {
+		if _, ok := keyColSet[pk]; !ok {
+			return errorfamily.WrapRejection(errSinkKeyMissingPK,
+				"relational.sink_key_missing_pk",
+				fmt.Sprintf("table %q: key missing primary key column %q", table, pk))
+		}
+	}
+
+	allCols := append(keyCols, counterCol)
+	allVals := append(keyVals, delta)
+
+	pholders := placeholders(s.dialect, len(allCols))
+
+	query := fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(%s) DO UPDATE SET %s = %s + excluded.%s",
+		table,
+		strings.Join(allCols, ", "),
+		pholders,
+		strings.Join(conflictCols, ", "),
+		counterCol, counterCol, counterCol,
+	)
+
+	if _, err := s.tx.ExecContext(ctx, query, allVals...); err != nil {
+		return errorfamily.WrapTransient(err, "relational.sink_increment",
+			fmt.Sprintf("increment %s.%s", table, counterCol))
+	}
+
+	return nil
 }
 
 // rowColumns turns a Row into sorted column names plus dialect-formatted
