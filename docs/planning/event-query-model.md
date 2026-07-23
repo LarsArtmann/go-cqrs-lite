@@ -549,8 +549,31 @@ The command/query logs are Logs first (the ADT). The debugging/auditing projecti
 derived from them, just like domain read models are derived from domain events.
 
 This means a FULL COMPREHENSIVE audit log — "who did what, when, and what did it cause" — is
-solved by default. The command log and query log ARE that comprehensive log, projected into
-queryable shapes automatically.
+solved by default. The command log, query log, and session log ARE that comprehensive log,
+projected into queryable shapes automatically.
+
+### Sessions as Event Streams
+
+Sessions are not special — they're another event stream. Event-streaming sessions enables
+analytics that ephemeral runtime sessions cannot provide:
+
+```go
+type SessionStarted struct { ActorID ActorID; Token string; Origin string; At time.Time }
+type SessionEnded   struct { ActorID ActorID; Token string; At time.Time; Reason string }
+type SessionRevoked struct { ActorID ActorID; Token string; At time.Time; By ActorID }
+```
+
+Benefits of event-streaming sessions:
+
+- **Analytics:** "How many concurrent sessions right now?" (Counter projection: +1 on start, -1 on end)
+- **Audit:** "Who was logged in when the data breach happened?" (Time-range query on session log)
+- **Security:** "Revoke all sessions for suspended user" (projection reads SessionRevoked events)
+- **Patterns:** "User logs in from 2 countries simultaneously" (Set/Graph projection on IPAddress)
+- **Compliance:** "Show me the complete access history for this user" (Scan on session log, filtered by ActorID)
+
+The identity-model project (`cqrs-htmx/identity-model`) treats sessions as ephemeral runtime
+objects. But event-streaming them is strictly more useful — the projection cost is near-zero
+(it's just another fold), and the analytics/audit/security benefits are significant.
 
 ---
 
