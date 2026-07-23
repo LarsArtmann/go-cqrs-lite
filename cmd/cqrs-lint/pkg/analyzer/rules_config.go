@@ -34,6 +34,7 @@ type RulesConfig struct {
 
 // knownRulesConfigKeys is the set of valid keys under "rules" in
 // .cqrs-lint.json. Any other key is a likely typo and is reported by Validate.
+//
 //nolint:gochecknoglobals // read-only lookup table
 var knownRulesConfigKeys = map[string]bool{
 	"external-api-struct-prefixes": true,

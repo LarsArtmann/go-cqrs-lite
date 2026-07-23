@@ -70,6 +70,7 @@ func (c *lineCache) getLines(path string) []string {
 // This is necessary because detectors do not populate the Snippet field.
 // If the file cannot be read (e.g., in unit tests), it falls back to
 // checking the Snippet field.
+//
 //nolint:ireturn // factory returns public interface
 func NewSuppressionFilter() pipeline.FindingTransformer {
 	cache := newLineCache()

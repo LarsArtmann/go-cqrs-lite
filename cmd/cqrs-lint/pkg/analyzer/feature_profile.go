@@ -127,6 +127,7 @@ const (
 // Presets maps preset names to their feature-flag defaults. A nil pointer
 // means "leave as auto-detected" — the preset only pins the flags that matter
 // for its intent.
+//
 //nolint:gochecknoglobals // read-only lookup table
 var Presets = map[ConfigPreset]ConfigFeatures{
 	PresetLocalCLI: {

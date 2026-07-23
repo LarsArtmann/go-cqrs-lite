@@ -31,8 +31,6 @@ const version = "0.2.2"
 var errFindingsWithErrors = errors.New("findings with error severity")
 
 // AppConfig holds all CLI configuration via cmdguard struct tags.
-//
-//nolint:golines // golines handles struct tag alignment
 type AppConfig struct {
 	cmdguard.Config
 
@@ -144,6 +142,7 @@ func main() {
 	cli.ExecuteAndExit(ctx)
 }
 
+//nolint:gocyclo // CLI coordinator with many conditional output modes; kept sequential for clarity
 func run(ctx context.Context, cfg *AppConfig) error {
 	start := time.Now()
 

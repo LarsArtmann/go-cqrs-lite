@@ -59,8 +59,11 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				suggestion = "Use stack/pebble.New(dir) for one-call setup with sane defaults"
 			case analyzer.StoreCustom:
 				suggestion = "Consider using a stack/ preset for boilerplate-free setup, or keep custom wiring if you need full control"
-			default:
-				// StoreUnknown, StoreMemory, StoreTurso, StoreNone: keep generic suggestion.
+			case analyzer.StoreUnknown,
+				analyzer.StoreMemory,
+				analyzer.StoreTurso,
+				analyzer.StoreNone:
+				// Keep generic suggestion for these cases.
 			}
 
 			f, err := finding.NewBuilder(
