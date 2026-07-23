@@ -48,15 +48,17 @@ result, _ := metaengine.ExecuteTyped[FindUser, FindUserResult](
 The developer never declares "I need a Map" or "I need a Counter."
 The fold function's return type IS the declaration:
 
-| Handler Signature   | Return Type    | ADT        | Example                |
-| ------------------- | -------------- | ---------- | ---------------------- |
-| `func(e) (K, V)`    | `(Key, Value)` | Map        | Point lookup by key    |
-| `func(e) K`         | `Key`          | Set        | Membership test        |
-| `func(e) Delta`     | `Delta`        | Counter    | Aggregate counts       |
-| `func(e) Edge`      | `Edge`         | Graph      | Traversal              |
-| `func(e, prev V) V` | `Value`        | Map update | Read-modify-write      |
-| `Remove[V]()`       | Sentinel       | Delete     | Remove from projection |
-| `func(e) Skip`      | `Skip`         | No-op      | Event doesn't apply    |
+| Handler Signature    | Return Type    | ADT        | Example                |
+| -------------------- | -------------- | ---------- | ---------------------- |
+| `func(e) (K, V)`     | `(Key, Value)` | Map        | Point lookup by key    |
+| `func(e) K`          | `Key`          | Set        | Membership test        |
+| `func(e) Delta`      | `Delta`        | Counter    | Aggregate counts       |
+| `func(e) Edge`       | `Edge`         | Graph      | Traversal              |
+| `func(e) MultiEntry` | `MultiEntry`   | Multimap   | One key, many values   |
+| `func(e) Append`     | `Append`       | Log        | Append-only timeline   |
+| `func(e, prev V) V`  | `Value`        | Map update | Read-modify-write      |
+| `Remove[V]()`        | Sentinel       | Delete     | Remove from projection |
+| `func(e) Skip`       | `Skip`         | No-op      | Event doesn't apply    |
 
 ## Typed Filter/Sort — No Strings
 
@@ -68,26 +70,71 @@ listByStatus := metaengine.Query[ListByStatus, ListByStatusResult]("list_by_stat
 )
 ```
 
-Pagination is detected from the domain input struct:
+## Pagination + Cursor Serialization
+
+Pagination is detected from the domain input struct. Cursors serialize to
+URL-safe base64 strings for HTTP transport:
 
 ```go
 type ListByStatus struct {
-    Status string             // domain filter — matched by type to FilterOn closure
-    Limit  int                // pagination — detected by field name + type
-    After  *metaengine.Cursor // pagination — detected by type
+    Status string
+    Limit  int
+    After  *metaengine.Cursor
 }
 
-type ListByStatusResult struct {
-    Users []FindUserResult    // collection — detected by []T field shape
-    Next  *metaengine.Cursor  // continuation cursor
-}
+// Page 1
+page1, _ := metaengine.ExecuteTyped[ListByStatus, ListByStatusResult](
+    ctx, store, ListByStatus{Status: "active", Limit: 10})
+
+// Serialize cursor for HTTP
+cursorStr := page1.Next.String()
+
+// Deserialize on next request
+cursor, _ := metaengine.ParseCursor(cursorStr)
+page2, _ := metaengine.ExecuteTyped[ListByStatus, ListByStatusResult](
+    ctx, store, ListByStatus{Status: "active", Limit: 10, After: cursor})
+```
+
+## Cost Model
+
+The planner estimates cost for each query using a formal cost function based on
+complexity x volume. Volume hints and latency budgets drive engine selection:
+
+```go
+store, _ := metaengine.Plan(engines,
+    metaengine.Query[FindUser, FindUserResult]("find_user",
+        folds...,
+        metaengine.Volume(1_000_000),       // expected items
+        metaengine.WithLatencyBudget(5),     // max 5ms
+    ),
+)
+
+plan := store.Plan()
+// plan.Queries[0].Cost.EstimatedLatencyMs -> estimated read latency
+// plan.Queries[0].Cost.WithinBudget(5)    -> true/false
+```
+
+### Scale Threshold Warnings
+
+When volume exceeds the optimal range for a data structure, the planner warns:
+
+```go
+// Volume 50M exceeds hash map optimal range (max 10M)
+// -> WARN: "volume 50000000 exceeds optimal range for hash map"
+```
+
+### Write Amplification Budget
+
+```go
+store, _ := metaengine.Plan(engines, q1, q2, q3, q4,
+    metaengine.WithWriteAmplificationBudget(5),  // default: 3
+)
 ```
 
 ## Per-Query Projections
 
 Each query has its own independent projection. The same event updates each
-matching query's projection separately. Write amplification is reported as
-a diagnostic warning — it is the operator's choice, not the engine's.
+matching query's projection separately.
 
 ```go
 store, _ := metaengine.Plan(engines,
@@ -96,8 +143,9 @@ store, _ := metaengine.Plan(engines,
     countByStatus, // Counter
     friendsOf,     // Graph
     listByStatus,  // SortedMap (filtered scan)
+    tasksForUser,  // Multimap<UserID, []TaskID>
+    recentTasks,   // Log<TaskCreated>
 )
-// UserCreated event updates all 5 projections independently.
 ```
 
 ## JSON Event Payloads
@@ -127,4 +175,5 @@ type Engine interface {
 }
 ```
 
-The memory engine (constructed via `NewMemoryEngine()`) implements all backends for testing/CI deployments.
+The memory engine (constructed via `NewMemoryEngine()`) implements all backends
+for testing and CI deployments.
