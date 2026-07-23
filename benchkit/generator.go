@@ -62,7 +62,7 @@ func (g *Generator) Payload() []byte {
 
 	// Fill remainder with deterministic padding
 	for i := len(data); i < g.size; i++ {
-		padded[i] = byte('a' + (g.rng.IntN(26)))
+		padded[i] = byte('a' + g.rng.IntN(26))
 	}
 
 	return padded

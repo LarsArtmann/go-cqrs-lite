@@ -48,7 +48,7 @@ func main() {
 				ctx,
 				cmd.AggregateID(),
 				"User",
-				func(s UserState, v event.Version) ([]event.Event, error) {
+				func(_ UserState, v event.Version) ([]event.Event, error) {
 					return event.NewEvents(cmd.AggregateID(), "User", v,
 						[]event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
 				},

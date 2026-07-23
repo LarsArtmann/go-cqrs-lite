@@ -75,6 +75,11 @@ type Config struct {
 	// Backend is a human-readable label for the result (e.g. "sqlite").
 	// When empty, Run sets it to "unknown".
 	Backend string
+
+	// DiskPath is the filesystem path to measure for disk footprint.
+	// If set, the runner walks this path after the workload to report
+	// on-disk database size. If empty, disk metrics are zero.
+	DiskPath string
 }
 
 // Result is the output of a single benchmark run against one backend.
@@ -96,7 +101,7 @@ type Result struct {
 	WriteThroughput float64      `json:"writeThroughput"`
 
 	// Read metrics
-	LoadLatency  LatencyStats `json:"loadLatency"`
+	LoadLatency  LatencyStats  `json:"loadLatency"`
 	ReadAllTime  time.Duration `json:"readAllTime"`
 	ReadFromTime time.Duration `json:"readFromTime"`
 

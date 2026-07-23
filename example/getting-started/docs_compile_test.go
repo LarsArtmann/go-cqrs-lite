@@ -17,8 +17,10 @@ import (
 
 // --- Types from docs/getting-started.md snippet 1: "Define Your Domain" ---
 
-type docUserCreated struct{ Name string }
-type docUserState struct{ Name string }
+type (
+	docUserCreated struct{ Name string }
+	docUserState   struct{ Name string }
+)
 
 // --- Types from docs/getting-started.md snippet 4: "Commands with Typed Handlers" ---
 
@@ -57,10 +59,15 @@ func TestDocsSnippet2_EventSourcingWithDecider(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	err = repo.Execute(ctx, aggID, "User", func(_ docUserState, v event.Version) ([]event.Event, error) {
-		return event.NewEvents(aggID, "User", v,
-			[]event.Type{"user.created"}, []any{docUserCreated{Name: "Alice"}})
-	})
+	err = repo.Execute(
+		ctx,
+		aggID,
+		"User",
+		func(_ docUserState, v event.Version) ([]event.Event, error) {
+			return event.NewEvents(aggID, "User", v,
+				[]event.Type{"user.created"}, []any{docUserCreated{Name: "Alice"}})
+		},
+	)
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -132,10 +139,15 @@ func TestDocsSnippet4_CommandsWithTypedHandlers(t *testing.T) {
 	cmds := command.NewDispatcher()
 	_ = command.RegisterTyped(cmds, "user.create",
 		func(ctx context.Context, cmd *docCreateUser) error {
-			return repo.Execute(ctx, cmd.AggregateID(), "User", func(_ docUserState, v event.Version) ([]event.Event, error) {
-				return event.NewEvents(cmd.AggregateID(), "User", v,
-					[]event.Type{"user.created"}, []any{docUserCreated{Name: cmd.Name}})
-			})
+			return repo.Execute(
+				ctx,
+				cmd.AggregateID(),
+				"User",
+				func(_ docUserState, v event.Version) ([]event.Event, error) {
+					return event.NewEvents(cmd.AggregateID(), "User", v,
+						[]event.Type{"user.created"}, []any{docUserCreated{Name: cmd.Name}})
+				},
+			)
 		})
 
 	basic, basicErr := command.New("user.create", aggID)
