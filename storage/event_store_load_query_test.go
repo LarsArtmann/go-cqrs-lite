@@ -79,11 +79,11 @@ func TestSQLEventStore_Load_NotFound(t *testing.T) {
 		id.NewAggregateRef(id.StreamType("User"), aggID),
 	)
 	if err == nil {
-		t.Fatal("expected ErrAggregateNotFound for empty result, got nil")
+		t.Fatal("expected ErrStreamNotFound for empty result, got nil")
 	}
 
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Errorf("expected ErrAggregateNotFound, got %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Errorf("expected ErrStreamNotFound, got %v", err)
 	}
 
 	if events != nil {

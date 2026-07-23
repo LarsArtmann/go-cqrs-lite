@@ -159,8 +159,8 @@ func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {
 		context.Background(),
 		id.NewAggregateRef(id.StreamType("User"), aggID),
 	)
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("expected ErrStreamNotFound, got %v", err)
 	}
 }
 
@@ -200,8 +200,8 @@ func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
 		context.Background(),
 		id.NewAggregateRef(maliciousAggType, maliciousAggID),
 	)
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("Load with malicious input: expected ErrAggregateNotFound, got %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("Load with malicious input: expected ErrStreamNotFound, got %v", err)
 	}
 
 	if events != nil {

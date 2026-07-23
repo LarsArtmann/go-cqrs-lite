@@ -177,8 +177,8 @@ func TestNewPersistedCommand_EmptyAggregateType(t *testing.T) {
 		t.Fatal("expected error for empty aggregate type")
 	}
 
-	if !errors.Is(err, command.ErrEmptyAggregateType) {
-		t.Errorf("errors.Is(err, ErrEmptyAggregateType) = false, got: %v", err)
+	if !errors.Is(err, command.ErrEmptyStreamType) {
+		t.Errorf("errors.Is(err, ErrEmptyStreamType) = false, got: %v", err)
 	}
 }
 
@@ -192,8 +192,8 @@ func TestNewPersistedCommand_ZeroAggregateID(t *testing.T) {
 		t.Fatal("expected error for zero aggregate ID")
 	}
 
-	if !errors.Is(err, command.ErrNilAggregateID) {
-		t.Errorf("errors.Is(err, ErrNilAggregateID) = false, got: %v", err)
+	if !errors.Is(err, command.ErrNilStreamID) {
+		t.Errorf("errors.Is(err, ErrNilStreamID) = false, got: %v", err)
 	}
 }
 

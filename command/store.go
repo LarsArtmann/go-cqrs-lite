@@ -75,7 +75,7 @@ func NewPersistedCommand(
 
 	if ref.Type.IsZero() {
 		return nil, errorfamily.WrapRejection(
-			ErrEmptyAggregateType,
+			ErrEmptyStreamType,
 			"command.empty_aggregate_type",
 			"aggregate type is required in ref",
 		)
@@ -83,7 +83,7 @@ func NewPersistedCommand(
 
 	if ref.ID.IsZero() {
 		return nil, errorfamily.WrapRejection(
-			ErrNilAggregateID,
+			ErrNilStreamID,
 			"command.nil_aggregate_id",
 			"aggregate ID is required in ref",
 		)

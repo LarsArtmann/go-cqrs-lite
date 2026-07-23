@@ -36,13 +36,13 @@ var (
 		"event.empty_event_type",
 		"event type is required",
 	)
-	ErrNilAggregateID = errorfamily.NewRejection(
+	ErrNilStreamID = errorfamily.NewRejection(
 		"event.nil_aggregate_id",
-		"aggregate ID is required",
+		"stream ID is required",
 	)
-	ErrEmptyAggregateType = errorfamily.NewRejection(
+	ErrEmptyStreamType = errorfamily.NewRejection(
 		"event.empty_aggregate_type",
-		"aggregate type is required",
+		"stream type is required",
 	)
 	ErrVersionNotPositive = errorfamily.NewRejection(
 		"event.version_not_positive",
@@ -54,10 +54,17 @@ var (
 		"event types and payloads count must match",
 	)
 	ErrVersionConflict   = errorfamily.NewConflict("event.version_conflict", "version conflict")
-	ErrAggregateNotFound = errorfamily.NewRejection(
+	ErrStreamNotFound = errorfamily.NewRejection(
 		"event.aggregate_not_found",
-		"aggregate not found",
+		"stream not found",
 	)
+
+	// Deprecated: use ErrNilStreamID.
+	ErrNilAggregateID = ErrNilStreamID
+	// Deprecated: use ErrEmptyStreamType.
+	ErrEmptyAggregateType = ErrEmptyStreamType
+	// Deprecated: use ErrStreamNotFound.
+	ErrAggregateNotFound = ErrStreamNotFound
 	ErrEventNotFound  = errorfamily.NewRejection("event.event_not_found", "event not found")
 	ErrBinaryNotFound = errorfamily.NewRejection(
 		"event.binary_not_found",

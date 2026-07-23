@@ -147,8 +147,8 @@ func TestMemoryStore_LoadToVersion_NotFound(t *testing.T) {
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	_, err := store.LoadToVersion(ctx, id.NewAggregateRef(id.StreamType("User"), aggID), 5)
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("expected ErrStreamNotFound, got: %v", err)
 	}
 }
 
@@ -188,8 +188,8 @@ func TestMemoryStore_LoadToTimestamp_NotFound(t *testing.T) {
 		id.NewAggregateRef("User", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")),
 		time.Now(),
 	)
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("expected ErrStreamNotFound, got: %v", err)
 	}
 }
 
@@ -276,7 +276,7 @@ func TestMemoryStore_LoadBackwards_NotFound(t *testing.T) {
 		ctx,
 		id.NewAggregateRef(id.StreamType("User"), aggID),
 	)
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("expected ErrStreamNotFound, got %v", err)
 	}
 }

@@ -13,7 +13,7 @@ import (
 )
 
 // Load returns all events for an aggregate.
-// Returns ErrAggregateNotFound if no events exist for the aggregate.
+// Returns ErrStreamNotFound if no events exist for the aggregate.
 func (s *MemoryStore) Load(
 	_ context.Context,
 	ref id.StreamRef,
@@ -47,7 +47,7 @@ func (s *MemoryStore) loadFiltered(
 }
 
 // LoadFromVersion returns events starting from the given version (exclusive). Returns a defensive copy.
-// Returns ErrAggregateNotFound if no events exist for the aggregate.
+// Returns ErrStreamNotFound if no events exist for the aggregate.
 func (s *MemoryStore) LoadFromVersion(
 	_ context.Context,
 	ref id.StreamRef,
@@ -63,7 +63,7 @@ func (s *MemoryStore) LoadFromVersion(
 }
 
 // LoadToVersion returns events up to and including maxVersion. Returns a defensive copy.
-// Returns ErrAggregateNotFound if no events exist for the aggregate.
+// Returns ErrStreamNotFound if no events exist for the aggregate.
 func (s *MemoryStore) LoadToVersion(
 	_ context.Context,
 	ref id.StreamRef,
@@ -79,7 +79,7 @@ func (s *MemoryStore) LoadToVersion(
 }
 
 // LoadToTimestamp returns events where OccurredAt <= maxTime. Returns a defensive copy.
-// Returns ErrAggregateNotFound if no events exist for the aggregate.
+// Returns ErrStreamNotFound if no events exist for the aggregate.
 func (s *MemoryStore) LoadToTimestamp(
 	_ context.Context,
 	ref id.StreamRef,
@@ -114,7 +114,7 @@ func (s *MemoryStore) getEvents(
 
 	indices, exists := s.streamIndex[key]
 	if !exists {
-		return nil, errorfamily.WrapRejection(event.ErrAggregateNotFound,
+		return nil, errorfamily.WrapRejection(event.ErrStreamNotFound,
 			"memory.aggregate_not_found",
 			fmt.Sprintf("memory %s aggregate %s not found", op, ref))
 	}
@@ -128,7 +128,7 @@ func (s *MemoryStore) getEvents(
 }
 
 // LoadBackwards returns events in reverse version order (newest first).
-// Returns ErrAggregateNotFound if no events exist for the aggregate.
+// Returns ErrStreamNotFound if no events exist for the aggregate.
 func (s *MemoryStore) LoadBackwards(
 	_ context.Context,
 	ref id.StreamRef,

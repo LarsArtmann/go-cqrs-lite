@@ -70,7 +70,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 			streamID:   id.StreamID{},
 			streamType: "User",
 			version:    1,
-			wantErr:    event.ErrNilAggregateID,
+			wantErr:    event.ErrNilStreamID,
 		},
 		{
 			name:       "missing aggregate type",
@@ -78,7 +78,7 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 			streamID:   idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 			streamType: "",
 			version:    1,
-			wantErr:    event.ErrEmptyAggregateType,
+			wantErr:    event.ErrEmptyStreamType,
 		},
 		{
 			name:       "zero version",

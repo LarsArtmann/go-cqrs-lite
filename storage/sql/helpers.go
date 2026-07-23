@@ -14,9 +14,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// DeleteByAggregate is the shared implementation for Delete methods across event
+// DeleteByStream is the shared implementation for Delete methods across event
 // and snapshot stores.
-func DeleteByAggregate(
+func DeleteByStream(
 	db *sql.DB,
 	ctx context.Context,
 	ref id.StreamRef,

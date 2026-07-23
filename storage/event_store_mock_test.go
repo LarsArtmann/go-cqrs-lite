@@ -70,8 +70,8 @@ func TestSQLEventStore_LoadToVersion_Mock_NotFound(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 
 	_, err := store.LoadToVersion(context.Background(), id.NewAggregateRef("User", aggID), 5)
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("expected ErrStreamNotFound, got: %v", err)
 	}
 }
 

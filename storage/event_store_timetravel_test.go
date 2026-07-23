@@ -80,8 +80,8 @@ func TestSQLiteEventStore_LoadToVersion_NotFound(t *testing.T) {
 		id.NewAggregateRef("Issue", id.NewAggregateID()),
 		5,
 	)
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("expected ErrStreamNotFound, got: %v", err)
 	}
 }
 
@@ -130,8 +130,8 @@ func TestSQLiteEventStore_LoadToTimestamp_NotFound(t *testing.T) {
 		context.Background(), id.NewAggregateRef("Issue", id.NewAggregateID()),
 		time.Now(),
 	)
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound, got: %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("expected ErrStreamNotFound, got: %v", err)
 	}
 }
 

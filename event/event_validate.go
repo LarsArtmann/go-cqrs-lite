@@ -27,7 +27,7 @@ func validateEventParams(
 
 	if streamID.IsZero() {
 		return errorfamily.WrapRejection(
-			ErrNilAggregateID,
+			ErrNilStreamID,
 			"event.nil_aggregate_id",
 			"aggregate ID is required: for event type "+string(
 				eventType,
@@ -39,7 +39,7 @@ func validateEventParams(
 
 	if streamType == "" {
 		return errorfamily.WrapRejection(
-			ErrEmptyAggregateType,
+			ErrEmptyStreamType,
 			"event.empty_aggregate_type",
 			"aggregate type is required: for aggregate "+streamID.String()+", event type "+string(
 				eventType,

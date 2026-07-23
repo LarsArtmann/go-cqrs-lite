@@ -23,7 +23,7 @@ var eventQueryConfig = sqlpkg.QueryConfig[event.Event]{ //nolint:gochecknoglobal
 	WrapEmpty: func(err error, code, msg string) error {
 		return errorfamily.WrapRejection(err, code, msg)
 	},
-	NotFound:   event.ErrAggregateNotFound,
+	NotFound:   event.ErrStreamNotFound,
 	DomainNoun: "events",
 }
 

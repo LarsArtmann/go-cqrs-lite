@@ -88,7 +88,7 @@ func TestMemoryStore_LoadStream_NotFound(t *testing.T) {
 		t.Fatal("expected error for non-existent aggregate")
 	}
 
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Errorf("expected ErrAggregateNotFound, got %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Errorf("expected ErrStreamNotFound, got %v", err)
 	}
 }

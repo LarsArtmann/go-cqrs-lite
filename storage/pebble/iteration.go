@@ -90,7 +90,7 @@ func (a *EventStore) LoadFromVersion(
 }
 
 // loadFiltered iterates events and returns them filtered by predicate.
-// Returns ErrAggregateNotFound if no events match the filter.
+// Returns ErrStreamNotFound if no events match the filter.
 func (a *EventStore) loadFiltered(
 	ref id.StreamRef,
 	upperBound []byte,
@@ -105,7 +105,7 @@ func (a *EventStore) loadFiltered(
 	}
 
 	if len(events) == 0 {
-		return nil, event.ErrAggregateNotFound
+		return nil, event.ErrStreamNotFound
 	}
 
 	return events, nil

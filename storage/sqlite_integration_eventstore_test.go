@@ -76,8 +76,8 @@ func TestSQLiteEventStore_Load_NotFound(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	_, err := store.Load(context.Background(), id.NewAggregateRef("Issue", aggID))
-	if !errors.Is(err, event.ErrAggregateNotFound) {
-		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
+	if !errors.Is(err, event.ErrStreamNotFound) {
+		t.Fatalf("expected ErrStreamNotFound, got %v", err)
 	}
 }
 

@@ -176,7 +176,7 @@ func (r *Repository[State]) loadByEvents(
 ) (State, event.Version, error) {
 	events, err := loadFn()
 	if err != nil {
-		if errors.Is(err, event.ErrAggregateNotFound) {
+		if errors.Is(err, event.ErrStreamNotFound) {
 			return r.decider.Initial, 0, nil
 		}
 

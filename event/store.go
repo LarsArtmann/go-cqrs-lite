@@ -72,7 +72,7 @@ type EventSource interface {
 	) ([]Event, error)
 
 	// LoadToVersion retrieves events up to and including maxVersion.
-	// Returns ErrAggregateNotFound if no events exist for the aggregate.
+	// Returns ErrStreamNotFound if no events exist for the aggregate.
 	LoadToVersion(
 		ctx context.Context,
 		ref id.StreamRef,
@@ -80,7 +80,7 @@ type EventSource interface {
 	) ([]Event, error)
 
 	// LoadToTimestamp retrieves events where OccurredAt <= maxTime.
-	// Returns ErrAggregateNotFound if no events exist for the aggregate.
+	// Returns ErrStreamNotFound if no events exist for the aggregate.
 	LoadToTimestamp(
 		ctx context.Context,
 		ref id.StreamRef,

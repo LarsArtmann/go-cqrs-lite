@@ -71,7 +71,7 @@ func New(commandType Type, streamID id.StreamID, opts ...Option) (*BasicCommand,
 
 	if streamID.IsZero() {
 		return nil, errorfamily.WrapRejection(
-			ErrNilAggregateID,
+			ErrNilStreamID,
 			"command.nil_aggregate_id",
 			"aggregate ID is required: got zero for command type "+string(commandType),
 		)

@@ -22,11 +22,14 @@ var ErrEmptyCommandType = errorfamily.NewRejection(
 	"command type is required",
 )
 
-// ErrNilAggregateID is returned by New when the aggregate ID is zero.
-var ErrNilAggregateID = errorfamily.NewRejection(
+// ErrNilStreamID is returned by New when the stream ID is zero.
+var ErrNilStreamID = errorfamily.NewRejection(
 	"command.nil_aggregate_id",
-	"aggregate ID is required",
+	"stream ID is required",
 )
+
+// Deprecated: use ErrNilStreamID.
+var ErrNilAggregateID = ErrNilStreamID
 
 // ErrTypeAssertion is returned when a command cannot be type-asserted to the expected type.
 var ErrTypeAssertion = errorfamily.NewRejection(
@@ -34,11 +37,14 @@ var ErrTypeAssertion = errorfamily.NewRejection(
 	"command type assertion failed",
 )
 
-// ErrEmptyAggregateType is returned when an aggregate type is empty.
-var ErrEmptyAggregateType = errorfamily.NewRejection(
+// ErrEmptyStreamType is returned when a stream type is empty.
+var ErrEmptyStreamType = errorfamily.NewRejection(
 	"command.empty_aggregate_type",
-	"aggregate type is required",
+	"stream type is required",
 )
+
+// Deprecated: use ErrEmptyStreamType.
+var ErrEmptyAggregateType = ErrEmptyStreamType
 
 // ErrDuplicateCommand is returned when a command with the same ID already exists.
 var ErrDuplicateCommand = errorfamily.NewConflict(

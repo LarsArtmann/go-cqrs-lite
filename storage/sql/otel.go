@@ -15,8 +15,8 @@ func Tracer() cqrsotel.Tracer {
 	return cqrsotel.NewTracer(storageComponent)
 }
 
-// StartAggregateSpan creates a span for an aggregate operation with aggregate attributes.
-func StartAggregateSpan(
+// StartStreamSpan creates a span for a stream operation with stream attributes.
+func StartStreamSpan(
 	ctx context.Context,
 	spanName string,
 	ref id.StreamRef,
@@ -33,7 +33,17 @@ func StartAggregateSpan(
 	)
 }
 
-// StartSaveSpan creates a span for a save operation with aggregate attributes.
+// Deprecated: use StartStreamSpan.
+func StartAggregateSpan(
+	ctx context.Context,
+	spanName string,
+	ref id.StreamRef,
+	extraAttrs ...cqrsotel.KeyValue,
+) (context.Context, cqrsotel.Span) {
+	return StartStreamSpan(ctx, spanName, ref, extraAttrs...)
+}
+
+// StartSaveSpan creates a span for a save operation with stream attributes.
 func StartSaveSpan(
 	ctx context.Context,
 	spanName string,
