@@ -258,7 +258,8 @@ Each medium task is broken into 12-minute or smaller focus blocks. Subtasks are 
 17.3. Wire scheduling into the command pipeline. *(12 min)*  
 17.4. Generate event catalog docs with `go-cqrs-lite/catalog/v4`. *(12 min)*  
 17.5. Add scenario tests with `go-cqrs-lite/scenario/v4`. *(12 min)*  
-17.6. Verify scheduling and scenario tests. *(15 min)*
+17.6. Verify scheduling works end-to-end. *(6 min)*  
+17.7. Verify scenario tests pass and cover key paths. *(6 min)*
 
 ### Task 18: Add OTel + event signing + at-rest encryption (90 min)
 
@@ -289,7 +290,8 @@ Each medium task is broken into 12-minute or smaller focus blocks. Subtasks are 
 20.3. Add `cqrs-htmx/usermgmt/webauthn/v4` where passkeys are needed. *(12 min)*  
 20.4. Add `cqrs-htmx/usermgmt/oauth2/v4` where OAuth2 is needed. *(12 min)*  
 20.5. Add configuration wiring for the chosen auth strategies. *(12 min)*  
-20.6. Verify integration. *(15 min)*
+20.6. Verify TOTP / WebAuthn / OAuth2 integration builds. *(6 min)*  
+20.7. Run integration tests for the chosen auth strategies. *(6 min)*
 
 ### Task 21: Decide `KeyHolderAI` / `overview` / `PapDashboard` HTTP strategy (60 min)
 
@@ -314,7 +316,8 @@ Each medium task is broken into 12-minute or smaller focus blocks. Subtasks are 
 23.3. Write a delta report (first half). *(12 min)*  
 23.4. Write a delta report (second half). *(12 min)*  
 23.5. Update old files with non-destructive annotations. *(12 min)*  
-23.6. Link new HTML reports to old files and verify. *(15 min)*
+23.6. Link new HTML reports to old files. *(6 min)*  
+23.7. Verify cross-references render correctly. *(6 min)*
 
 ### Task 24: Generate D2/SVG ecosystem dependency diagram (30 min)
 
