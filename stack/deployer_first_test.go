@@ -43,7 +43,7 @@ func TestDeployerFirstArchitecture(t *testing.T) {
 	mat, err := stack.NewMaterialize[deployerUserView, deployerUserID](
 		bundle, nil, // nil = JSON codec
 		func(evt event.Event) (deployerUserID, error) {
-			return deployerUserID(evt.AggregateID().String()), nil
+			return deployerUserID(evt.StreamID().String()), nil
 		},
 	)
 	if err != nil {

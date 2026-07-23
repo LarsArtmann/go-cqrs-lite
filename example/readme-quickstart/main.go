@@ -46,10 +46,10 @@ func main() {
 		func(ctx context.Context, cmd *CreateUser) error {
 			return repo.Execute(
 				ctx,
-				cmd.AggregateID(),
+				cmd.StreamID(),
 				"User",
 				func(_ UserState, v event.Version) ([]event.Event, error) {
-					return event.NewEvents(cmd.AggregateID(), "User", v,
+					return event.NewEvents(cmd.StreamID(), "User", v,
 						[]event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
 				},
 			)

@@ -70,8 +70,8 @@ func decryptEvent(evt event.Event, dec Decrypter) (event.Event, error) {
 
 	plainEvt, err := event.NewEvent(
 		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
+		evt.StreamID(),
+		evt.StreamType(),
 		evt.Version(),
 		plaintext,
 		event.WithEventID(evt.ID()),

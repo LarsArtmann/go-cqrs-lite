@@ -157,7 +157,7 @@ func handlerTypeFromClosure(fn *ast.FuncLit) string {
 
 // capturePayloadType records the struct type name used as the event payload.
 // In event.New/NewEvent, the payload is always the 5th argument (index 4):
-// event.New(type, aggregateID, aggregateType, version, payload, opts...).
+// event.New(type, streamID, streamType, version, payload, opts...).
 func capturePayloadType(ctx *AnalysisContext, call *ast.CallExpr) {
 	for i := 4; i < len(call.Args); i++ {
 		arg := call.Args[i]

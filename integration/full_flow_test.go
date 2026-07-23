@@ -59,11 +59,11 @@ func TestFullFlow(t *testing.T) {
 		}
 
 		return userRepo.Execute(
-			ctx, c.AggregateID(), "User",
+			ctx, c.StreamID(), "User",
 			func(_ UserState, currentVersion event.Version) ([]event.Event, error) {
 				evt, err := event.NewEvent(
 					"UserCreated",
-					c.AggregateID(),
+					c.StreamID(),
 					"User",
 					currentVersion.Add(1),
 					[]byte(c.Name),
@@ -87,7 +87,7 @@ func TestFullFlow(t *testing.T) {
 		func(_ context.Context, q *GetUser) (UserState, error) {
 			events, err := store.Load(
 				ctx,
-				id.NewAggregateRef(id.AggregateType("User"), q.AggregateID),
+				id.NewAggregateRef(id.StreamType("User"), q.StreamID),
 			)
 			if err != nil {
 				return UserState{}, err
@@ -138,7 +138,7 @@ func TestFullFlow(t *testing.T) {
 	}
 
 	// --- Verify events stored ---
-	events, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID))
+	events, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
 	if err != nil {
 		t.Fatalf("load events: %v", err)
 	}
@@ -166,7 +166,7 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("new query: %v", err)
 	}
 
-	getUserQuery := &GetUser{BasicQuery: qry, AggregateID: aggID}
+	getUserQuery := &GetUser{BasicQuery: qry, StreamID: aggID}
 
 	result, err := query.DispatchTyped[UserState](ctx, qryDispatcher, getUserQuery)
 	if err != nil {
@@ -178,7 +178,7 @@ func TestFullFlow(t *testing.T) {
 	}
 
 	// --- Verify stream loading works ---
-	stream, err := store.LoadStream(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID))
+	stream, err := store.LoadStream(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}
@@ -216,7 +216,7 @@ type CreateUser struct {
 type GetUser struct {
 	*query.BasicQuery
 
-	AggregateID id.AggregateID
+	StreamID id.StreamID
 }
 
 // --- Decider functions ---

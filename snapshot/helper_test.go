@@ -21,7 +21,7 @@ func (m *mockSink) Save(_ context.Context, snap snapshot.Snapshot) error {
 	return nil
 }
 
-func (m *mockSink) Delete(_ context.Context, _ id.AggregateRef) error { return nil }
+func (m *mockSink) Delete(_ context.Context, _ id.StreamRef) error { return nil }
 
 func (m *mockSink) Close() error { return nil }
 
@@ -102,7 +102,7 @@ func TestSaveSnapshot_Success(t *testing.T) {
 		t.Errorf("expected version 5, got %d", store.saved[0].Version)
 	}
 
-	if store.saved[0].AggregateType != "User" {
-		t.Errorf("expected aggregate type 'User', got %s", store.saved[0].AggregateType)
+	if store.saved[0].StreamType != "User" {
+		t.Errorf("expected aggregate type 'User', got %s", store.saved[0].StreamType)
 	}
 }

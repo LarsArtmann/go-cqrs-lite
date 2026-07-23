@@ -11,12 +11,12 @@ import (
 func newCmd(
 	tb testing.TB,
 	commandType command.Type,
-	aggregateID id.AggregateID,
+	streamID id.StreamID,
 	opts ...command.Option,
 ) *command.BasicCommand {
 	tb.Helper()
 
-	cmd, err := command.New(commandType, aggregateID, opts...)
+	cmd, err := command.New(commandType, streamID, opts...)
 	if err != nil {
 		tb.Fatalf("new command %q: %v", commandType, err)
 	}

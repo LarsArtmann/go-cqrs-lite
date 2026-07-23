@@ -61,7 +61,7 @@ func NewEncryptedStore(
 
 func (s *encryptedStore) Save(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -75,7 +75,7 @@ func (s *encryptedStore) Save(
 
 func (s *encryptedStore) AppendBatch(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 ) error {
 	encrypted, err := s.encryptEvents(events)
@@ -88,7 +88,7 @@ func (s *encryptedStore) AppendBatch(
 
 func (s *encryptedStore) Load(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) ([]event.Event, error) {
 	events, err := s.inner.Load(ctx, ref)
 	if err != nil {
@@ -100,7 +100,7 @@ func (s *encryptedStore) Load(
 
 func (s *encryptedStore) LoadFromVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	fromVersion event.Version,
 ) ([]event.Event, error) {
 	events, err := s.inner.LoadFromVersion(ctx, ref, fromVersion)
@@ -113,7 +113,7 @@ func (s *encryptedStore) LoadFromVersion(
 
 func (s *encryptedStore) LoadToVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	toVersion event.Version,
 ) ([]event.Event, error) {
 	events, err := s.inner.LoadToVersion(ctx, ref, toVersion)
@@ -126,7 +126,7 @@ func (s *encryptedStore) LoadToVersion(
 
 func (s *encryptedStore) LoadToTimestamp(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	timestamp time.Time,
 ) ([]event.Event, error) {
 	events, err := s.inner.LoadToTimestamp(ctx, ref, timestamp)
@@ -191,7 +191,7 @@ func (s *encryptedStore) ReadFrom(
 // if supported, then decrypts all events.
 func (s *encryptedStore) LoadBackwards(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) ([]event.Event, error) {
 	backwards, ok := s.inner.(event.BackwardsSource)
 	if !ok {

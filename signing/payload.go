@@ -20,8 +20,8 @@ func canonicalPayload(evt event.Event) []byte {
 
 	id := evt.ID().String()
 	typ := string(evt.Type())
-	aggID := evt.AggregateID().String()
-	aggType := string(evt.AggregateType())
+	aggID := evt.StreamID().String()
+	aggType := string(evt.StreamType())
 	version := strconv.Itoa(evt.Version().Int())
 	schemaVer := strconv.Itoa(evt.SchemaVersion().Int())
 	occurred := evt.OccurredAt().Format(time.RFC3339Nano)

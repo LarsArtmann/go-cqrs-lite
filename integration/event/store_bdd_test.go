@@ -15,15 +15,15 @@ var _ = Describe("Event Store", func() {
 	var (
 		ctx     context.Context
 		store   *memory.MemoryStore
-		aggID   id.AggregateID
-		aggType id.AggregateType
+		aggID   id.StreamID
+		aggType id.StreamType
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
 		store = memory.NewMemoryStore()
 		aggID = id.NewAggregateID()
-		aggType = id.AggregateType("TestAggregate")
+		aggType = id.StreamType("TestAggregate")
 	})
 
 	Describe("As a developer building an event-sourced system", func() {
@@ -45,7 +45,7 @@ var _ = Describe("Event Store", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(1))
 				Expect(loaded[0].Type()).To(Equal(event.Type("TestCreated")))
-				Expect(loaded[0].AggregateID()).To(Equal(aggID))
+				Expect(loaded[0].StreamID()).To(Equal(aggID))
 				Expect(loaded[0].Version()).To(Equal(event.Version(1)))
 			})
 		})

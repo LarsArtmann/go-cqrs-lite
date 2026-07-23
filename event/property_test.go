@@ -29,14 +29,14 @@ func TestEventImmutability(t *testing.T) {
 		if evt.Type() != clone.Type() {
 			t.Fatal("type mismatch after clone")
 		}
-		if evt.AggregateID() != clone.AggregateID() {
-			t.Fatal("aggregateID mismatch after clone")
+		if evt.StreamID() != clone.StreamID() {
+			t.Fatal("streamID mismatch after clone")
 		}
 		if evt.Version() != clone.Version() {
 			t.Fatal("version mismatch after clone")
 		}
-		if evt.AggregateType() != clone.AggregateType() {
-			t.Fatal("aggregateType mismatch after clone")
+		if evt.StreamType() != clone.StreamType() {
+			t.Fatal("streamType mismatch after clone")
 		}
 		if evt.OccurredAt() != clone.OccurredAt() {
 			t.Fatal("occurredAt mismatch after clone")
@@ -67,9 +67,9 @@ func TestEventIDempotency(t *testing.T) {
 		}
 
 		if evt1.Type() != evt2.Type() ||
-			evt1.AggregateID() != evt2.AggregateID() ||
+			evt1.StreamID() != evt2.StreamID() ||
 			evt1.Version() != evt2.Version() ||
-			evt1.AggregateType() != evt2.AggregateType() {
+			evt1.StreamType() != evt2.StreamType() {
 			t.Fatal("identical parameters produced different events")
 		}
 	})

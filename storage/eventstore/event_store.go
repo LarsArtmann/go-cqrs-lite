@@ -58,7 +58,7 @@ func (s *SQLEventStore) checkClosed() error {
 // Save persists events with optimistic concurrency check.
 func (s *SQLEventStore) Save(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -66,7 +66,7 @@ func (s *SQLEventStore) Save(
 		return err
 	}
 
-	aggregateType, aggregateID := ref.Type, ref.ID
+	streamType, streamID := ref.Type, ref.ID
 	if len(events) == 0 {
 		return nil
 	}
@@ -97,7 +97,7 @@ func (s *SQLEventStore) Save(
 		cqrsotel.RecordError(span, err)
 
 		return errorfamily.WrapInfrastructure(err, "storage.check_version",
-			fmt.Sprintf("check version for %s %s", aggregateType, aggregateID))
+			fmt.Sprintf("check version for %s %s", streamType, streamID))
 	}
 
 	err = s.insertEvents(ctx, tx, ref, events)
@@ -117,7 +117,7 @@ func (s *SQLEventStore) Save(
 // All events are inserted in a single transaction for atomicity.
 func (s *SQLEventStore) AppendBatch(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 ) error {
 	if err := s.checkClosed(); err != nil {
@@ -233,7 +233,7 @@ func (s *SQLEventStore) wrapInsertEventsErr(
 	span cqrsotel.Span,
 	err error,
 	events []event.Event,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) error {
 	cqrsotel.RecordError(span, err)
 
@@ -244,7 +244,7 @@ func (s *SQLEventStore) wrapInsertEventsErr(
 func (s *SQLEventStore) checkVersion(
 	ctx context.Context,
 	tx *sql.Tx,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	expectedVersion event.Version,
 ) error {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)

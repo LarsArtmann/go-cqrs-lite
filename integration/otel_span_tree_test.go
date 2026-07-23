@@ -85,10 +85,10 @@ func TestOTel_SpanTree_EndToEnd(t *testing.T) {
 		}
 
 		return userRepo.Execute(
-			ctx, c.AggregateID(), "User",
+			ctx, c.StreamID(), "User",
 			func(_ UserState, version event.Version) ([]event.Event, error) {
 				evt, evtErr := event.NewEvent(
-					"UserCreated", c.AggregateID(), "User", version.Add(1), []byte(c.Name),
+					"UserCreated", c.StreamID(), "User", version.Add(1), []byte(c.Name),
 				)
 				if evtErr != nil {
 					return nil, evtErr

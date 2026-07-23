@@ -45,7 +45,7 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Counter"), aggID),
+		id.NewAggregateRef(id.StreamType("Counter"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -54,7 +54,7 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 
 	events, err := store.LoadToVersion(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Counter"), aggID),
+		id.NewAggregateRef(id.StreamType("Counter"), aggID),
 		2,
 	)
 	if err != nil {
@@ -99,7 +99,7 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Counter"), aggID),
+		id.NewAggregateRef(id.StreamType("Counter"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -108,7 +108,7 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 
 	events, err := store.LoadToTimestamp(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Counter"), aggID),
+		id.NewAggregateRef(id.StreamType("Counter"), aggID),
 		now.Add(-15*time.Minute),
 	)
 	if err != nil {
@@ -138,7 +138,7 @@ func TestTimeTravel_SeekableJournal(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Issue"), aggID1),
+		id.NewAggregateRef(id.StreamType("Issue"), aggID1),
 		[]event.Event{evt1, evt3},
 	)
 	if err != nil {
@@ -147,7 +147,7 @@ func TestTimeTravel_SeekableJournal(t *testing.T) {
 
 	err = store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Issue"), aggID2),
+		id.NewAggregateRef(id.StreamType("Issue"), aggID2),
 		[]event.Event{evt2},
 	)
 	if err != nil {

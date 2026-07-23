@@ -53,21 +53,21 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 
 		err = store.Save(
 			ctx,
-			id.NewAggregateRef(id.AggregateType("User"), aggID),
+			id.NewAggregateRef(id.StreamType("User"), aggID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		loaded, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID))
+		loaded, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded).To(HaveLen(1))
 
 		got := loaded[0]
 		Expect(got.ID()).To(Equal(evt.ID()))
 		Expect(got.Type()).To(Equal(event.Type("user.created")))
-		Expect(got.AggregateID()).To(Equal(aggID))
-		Expect(got.AggregateType()).To(Equal(id.AggregateType("User")))
+		Expect(got.StreamID()).To(Equal(aggID))
+		Expect(got.StreamType()).To(Equal(id.StreamType("User")))
 		Expect(got.Version()).To(Equal(event.Version(1)))
 
 		meta := got.Metadata()
@@ -93,13 +93,13 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 
 		err = store.Save(
 			ctx,
-			id.NewAggregateRef(id.AggregateType("Test"), aggID),
+			id.NewAggregateRef(id.StreamType("Test"), aggID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		loaded, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("Test"), aggID))
+		loaded, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("Test"), aggID))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded[0].Payload()).To(Equal(payload))
 		Expect(loaded[0].OccurredAt()).To(BeTemporally("~", evt.OccurredAt(), 0))
@@ -108,7 +108,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 	It("preserves metadata through LoadFromVersion", func() {
 		aggID := id.NewAggregateID()
 		corrID := id.NewCorrelationID()
-		aggType := id.AggregateType("Test")
+		aggType := id.StreamType("Test")
 
 		var events []event.Event
 

@@ -18,17 +18,17 @@ import (
 var update = flag.Bool("update", false, "update golden files")
 
 func testListingStatus(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	aggType string,
 	v int,
 	evtCount int,
 	lastEventAt time.Time,
 	status event.TombstoneStatus,
-) listing.AggregateStatus {
-	return listing.AggregateStatus{
-		Ref: listing.AggregateListing{
+) listing.StreamStatus {
+	return listing.StreamStatus{
+		Ref: listing.StreamListing{
 			ID:          aggID,
-			Type:        id.AggregateType(aggType),
+			Type:        id.StreamType(aggType),
 			Version:     event.Version(v),
 			EventCount:  uint(evtCount),
 			LastEventAt: lastEventAt,
@@ -40,7 +40,7 @@ func testListingStatus(
 func TestGolden_AggregateStatusJSON(t *testing.T) {
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	statuses := []listing.AggregateStatus{
+	statuses := []listing.StreamStatus{
 		testListingStatus(
 			aggID,
 			"User",
@@ -58,7 +58,7 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 			event.TombstoneTombstoned,
 		),
 		{
-			Ref: listing.AggregateListing{
+			Ref: listing.StreamListing{
 				ID:          aggID,
 				Type:        "Cart",
 				Version:     event.Version(0),
@@ -85,8 +85,8 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 func TestGolden_PageJSON(t *testing.T) {
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	page := listing.Page[listing.AggregateStatus]{
-		Items: []listing.AggregateStatus{
+	page := listing.Page[listing.StreamStatus]{
+		Items: []listing.StreamStatus{
 			testListingStatus(
 				aggID,
 				"User",

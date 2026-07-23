@@ -13,20 +13,20 @@ import (
 // Example:
 //
 //	func decideCreate(s State, cmd CreateCmd) ([]event.Event, error) {
-//	    return event.Single("user.created", cmd.AggregateID(), "User", s.Version.Increment(), UserCreated{Name: cmd.Name})
+//	    return event.Single("user.created", cmd.StreamID(), "User", s.Version.Increment(), UserCreated{Name: cmd.Name})
 //	}
 //
 // This replaces the singleEvent/makeEvent/mustEvent helper functions
 // that every consumer project reimplements.
 func Single(
 	eventType Type,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	version Version,
 	payload any,
 	opts ...Option,
 ) ([]Event, error) {
-	evt, err := New(eventType, aggregateID, aggregateType, version, payload, opts...)
+	evt, err := New(eventType, streamID, streamType, version, payload, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("event.Single: %w", err)
 	}

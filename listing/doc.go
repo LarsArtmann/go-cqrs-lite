@@ -7,7 +7,7 @@
 //   - Bus middleware for automatic tombstone/rebirth marking
 //
 // The listing module is the read model. It never writes events.
-// It queries via Journal (cross-aggregate) or AggregateReader (aggregate listings).
+// It queries via Journal (cross-aggregate) or StreamReader (aggregate listings).
 //
 // Usage:
 //

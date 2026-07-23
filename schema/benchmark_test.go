@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
-func benchEvent(tb testing.TB, aggID id.AggregateID, v event.Version) event.Event {
+func benchEvent(tb testing.TB, aggID id.StreamID, v event.Version) event.Event {
 	tb.Helper()
 
 	evt, err := event.NewEvent("UserCreated", aggID, "User", v, []byte(`{"name":"Alice"}`))
@@ -23,7 +23,7 @@ func benchEvent(tb testing.TB, aggID id.AggregateID, v event.Version) event.Even
 
 func benchSchemaVersionUpgrade(evt event.Event) (event.Event, error) {
 	return event.NewEvent(
-		evt.Type(), evt.AggregateID(), evt.AggregateType(),
+		evt.Type(), evt.StreamID(), evt.StreamType(),
 		evt.Version(), evt.Payload(),
 		event.WithSchemaVersion(2),
 	)

@@ -62,12 +62,12 @@ func NewTypedRepository[State, Cmd any](
 // Decide function with the command, and persists any resulting events.
 func (r *TypedRepository[State, Cmd]) ExecuteCommand(
 	ctx context.Context,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	cmd Cmd,
 ) error {
 	return r.inner.Execute(
-		ctx, aggregateID, aggregateType,
+		ctx, streamID, streamType,
 		func(state State, _ event.Version) ([]event.Event, error) {
 			return r.decider.Decide(state, cmd)
 		},
@@ -77,8 +77,8 @@ func (r *TypedRepository[State, Cmd]) ExecuteCommand(
 // Load delegates to the underlying [Repository.Load].
 func (r *TypedRepository[State, Cmd]) Load(
 	ctx context.Context,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 ) (State, event.Version, error) {
-	return r.inner.Load(ctx, aggregateID, aggregateType)
+	return r.inner.Load(ctx, streamID, streamType)
 }

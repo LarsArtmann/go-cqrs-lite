@@ -13,7 +13,7 @@ func ExampleNewUpcaster() {
 		1,
 		func(evt event.Event) (event.Event, error) {
 			return event.NewEvent(
-				evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+				evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 				[]byte(`{"name":"unknown","email":"pending"}`),
 				event.WithSchemaVersion(2),
 			)

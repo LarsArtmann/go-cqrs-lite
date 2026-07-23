@@ -38,14 +38,14 @@ func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 	evt, _ := event.New("test.event", aggID, "Test", event.Version(1), "payload")
 	if err := store.Save(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Test"), aggID),
+		id.NewAggregateRef(id.StreamType("Test"), aggID),
 		[]event.Event{evt},
 		event.Version(0),
 	); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 
-	loaded, err := versioned.Load(ctx, id.NewAggregateRef(id.AggregateType("Test"), aggID))
+	loaded, err := versioned.Load(ctx, id.NewAggregateRef(id.StreamType("Test"), aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}
@@ -93,8 +93,8 @@ func (versionUpcaster) Upcast(evt event.Event) (event.Event, error) {
 
 	return event.NewEvent(
 		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
+		evt.StreamID(),
+		evt.StreamType(),
 		evt.Version(),
 		[]byte(payload),
 		event.WithEventID(evt.ID()),
@@ -121,7 +121,7 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	loaded, err := versioned.Load(ctx, id.NewAggregateRef(id.AggregateType("Test"), aggID))
+	loaded, err := versioned.Load(ctx, id.NewAggregateRef(id.StreamType("Test"), aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}
@@ -172,7 +172,7 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 	}
 	loaded, err := versioned.LoadFromVersion(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Test"), aggID),
+		id.NewAggregateRef(id.StreamType("Test"), aggID),
 		1,
 	)
 	if err != nil {
@@ -230,7 +230,7 @@ func TestVersionedStore_LoadToVersion_Upcast(t *testing.T) {
 
 	loaded, err := versioned.LoadToVersion(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Test"), aggID),
+		id.NewAggregateRef(id.StreamType("Test"), aggID),
 		2,
 	)
 	if err != nil {
@@ -288,7 +288,7 @@ func TestVersionedStore_LoadToTimestamp_Upcast(t *testing.T) {
 
 	loaded, err := versioned.LoadToTimestamp(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Test"), aggID),
+		id.NewAggregateRef(id.StreamType("Test"), aggID),
 		ts.Add(500*time.Millisecond),
 	)
 	if err != nil {
@@ -335,7 +335,7 @@ func TestVersionedStore_LoadToVersion_UpcastError(t *testing.T) {
 
 	_, err = versioned.LoadToVersion(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Test"), aggID),
+		id.NewAggregateRef(id.StreamType("Test"), aggID),
 		1,
 	)
 	if err == nil {
@@ -371,7 +371,7 @@ func TestVersionedStore_LoadToTimestamp_UpcastError(t *testing.T) {
 
 	_, err = versioned.LoadToTimestamp(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Test"), aggID),
+		id.NewAggregateRef(id.StreamType("Test"), aggID),
 		time.Now().Add(time.Hour),
 	)
 	if err == nil {
@@ -391,14 +391,14 @@ func saveTestEvents(
 	t *testing.T,
 	ctx context.Context,
 	store *memory.MemoryStore,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	events ...event.Event,
 ) {
 	t.Helper()
 
 	if err := store.Save(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Test"), aggID),
+		id.NewAggregateRef(id.StreamType("Test"), aggID),
 		events,
 		0,
 	); err != nil {

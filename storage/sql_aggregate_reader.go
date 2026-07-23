@@ -26,7 +26,7 @@ type SQLAggregateReader struct {
 	table   listingTable
 }
 
-var _ listing.AggregateReader = (*SQLAggregateReader)(nil)
+var _ listing.StreamReader = (*SQLAggregateReader)(nil)
 
 // NewSQLAggregateReader creates a reader that queries the aggregates projection table.
 func NewSQLAggregateReader(
@@ -50,14 +50,14 @@ func NewSQLAggregateReader(
 func (r *SQLAggregateReader) List(
 	ctx context.Context,
 	opts listing.ListOptions,
-) (*listing.Page[listing.AggregateListing], error) {
+) (*listing.Page[listing.StreamListing], error) {
 	return listing.ListRefsFromStatus(r, ctx, opts)
 }
 
 func (r *SQLAggregateReader) ListWithStatus(
 	ctx context.Context,
 	opts listing.ListOptions,
-) (*listing.Page[listing.AggregateStatus], error) {
+) (*listing.Page[listing.StreamStatus], error) {
 	if opts.Type == "" {
 		return nil, errorfamily.NewRejection(
 			"listing.type_required",
@@ -124,8 +124,8 @@ func (r *SQLAggregateReader) buildListQuery(opts listing.ListOptions) (string, [
 	return query, args, limit
 }
 
-func scanAggregateStatuses(rows *sql.Rows) ([]listing.AggregateStatus, error) {
-	var items []listing.AggregateStatus
+func scanAggregateStatuses(rows *sql.Rows) ([]listing.StreamStatus, error) {
+	var items []listing.StreamStatus
 
 	for rows.Next() {
 		var (
@@ -151,10 +151,10 @@ func scanAggregateStatuses(rows *sql.Rows) ([]listing.AggregateStatus, error) {
 			)
 		}
 
-		items = append(items, listing.AggregateStatus{
-			Ref: listing.AggregateListing{
+		items = append(items, listing.StreamStatus{
+			Ref: listing.StreamListing{
 				ID:         parsedID,
-				Type:       id.AggregateType(aggType),
+				Type:       id.StreamType(aggType),
 				Version:    event.Version(version),
 				EventCount: count,
 			},
@@ -170,13 +170,13 @@ func scanAggregateStatuses(rows *sql.Rows) ([]listing.AggregateStatus, error) {
 }
 
 func paginateStatuses(
-	items []listing.AggregateStatus,
+	items []listing.StreamStatus,
 	limit uint,
-) *listing.Page[listing.AggregateStatus] {
+) *listing.Page[listing.StreamStatus] {
 	hasMore := uint(len(items)) > limit
 	if hasMore {
 		items = items[:limit]
 	}
 
-	return &listing.Page[listing.AggregateStatus]{Items: items, HasMore: hasMore}
+	return &listing.Page[listing.StreamStatus]{Items: items, HasMore: hasMore}
 }

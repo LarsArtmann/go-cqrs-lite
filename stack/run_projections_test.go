@@ -60,7 +60,7 @@ func TestBundle_RunProjections_ReplayAndLive(t *testing.T) {
 	mat := stack.Materialize[runProjectionsUserView, runProjectionsKey]{
 		Store: typedStore,
 		KeyFromEvent: func(evt event.Event) (runProjectionsKey, error) {
-			return runProjectionsKey(evt.AggregateID().String()), nil
+			return runProjectionsKey(evt.StreamID().String()), nil
 		},
 		OnCreate: func(_ context.Context, evt event.Event) (*runProjectionsUserView, error) {
 			name := string(evt.Payload())

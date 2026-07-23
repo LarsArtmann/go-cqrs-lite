@@ -6,16 +6,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// AggregateType and AggregateRef are type aliases for the id package types.
+// StreamType and StreamRef are type aliases for the id package types.
 // These exist so command consumers can import everything from command/
 // without adding a direct event/ dependency for these core identifiers.
 // This is an intentional convenience re-export, not a layering violation:
 // commands operate on the same aggregate identity as events.
-type AggregateType = id.AggregateType
+type StreamType = id.StreamType
 
-type AggregateRef = id.AggregateRef
+type StreamRef = id.StreamRef
 
-func ParseAggregateType(s string) (AggregateType, error) {
+func ParseAggregateType(s string) (StreamType, error) {
 	t, err := id.ParseAggregateType(s)
 	if err != nil {
 		return "", errorfamily.WrapRejection(
@@ -28,6 +28,6 @@ func ParseAggregateType(s string) (AggregateType, error) {
 	return t, nil
 }
 
-func NewAggregateRef(aggregateType AggregateType, aggregateID id.AggregateID) AggregateRef {
-	return id.NewAggregateRef(aggregateType, aggregateID)
+func NewAggregateRef(streamType StreamType, streamID id.StreamID) StreamRef {
+	return id.NewAggregateRef(streamType, streamID)
 }

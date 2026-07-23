@@ -93,8 +93,8 @@ func (v1ToV2Upcaster) SourceVersion() event.SchemaVersion { return 1 }
 func (v1ToV2Upcaster) Upcast(evt event.Event) (event.Event, error) {
 	return event.NewEvent(
 		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
+		evt.StreamID(),
+		evt.StreamType(),
 		evt.Version(),
 		[]byte("v2"),
 		event.WithEventID(evt.ID()),

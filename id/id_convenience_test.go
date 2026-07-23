@@ -135,7 +135,7 @@ func TestClientID(t *testing.T) {
 func TestParse_InvalidULID(t *testing.T) {
 	t.Parallel()
 
-	_, err := Parse[AggregateID]("not-a-valid-ulid")
+	_, err := Parse[StreamID]("not-a-valid-ulid")
 	if err == nil {
 		t.Error("Parse() should error on invalid ULID string")
 	}
@@ -144,7 +144,7 @@ func TestParse_InvalidULID(t *testing.T) {
 func TestULID_Function(t *testing.T) {
 	t.Parallel()
 
-	id := New[AggregateID]()
+	id := New[StreamID]()
 
 	ts := ULID(id)
 
@@ -156,7 +156,7 @@ func TestULID_Function(t *testing.T) {
 func TestGet(t *testing.T) {
 	t.Parallel()
 
-	id := New[AggregateID]()
+	id := New[StreamID]()
 
 	ulidVal := id.Get()
 	if ulidVal.String() != id.String() {

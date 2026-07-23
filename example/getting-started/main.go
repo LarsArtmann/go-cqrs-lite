@@ -48,7 +48,7 @@ func applyCounter(s CounterState, evt event.Event) (CounterState, error) {
 
 // increment returns a DecideFunc that the Repository executes against
 // the current (replayed) state. Version enables optimistic concurrency.
-func increment(aggID id.AggregateID, amount int) decider.DecideFunc[CounterState] {
+func increment(aggID id.StreamID, amount int) decider.DecideFunc[CounterState] {
 	return func(_ CounterState, v event.Version) ([]event.Event, error) {
 		evt, err := event.New(evtIncremented, aggID, "Counter",
 			v.Increment(), IncrementedPayload{Amount: amount})
@@ -89,8 +89,8 @@ func main() {
 	}
 
 	// ── Consumer: materialized view (read model) ─────────────────────
-	mat, err := stack.NewMaterialize[CounterView, id.AggregateID](bundle, nil,
-		func(evt event.Event) (id.AggregateID, error) { return evt.AggregateID(), nil })
+	mat, err := stack.NewMaterialize[CounterView, id.StreamID](bundle, nil,
+		func(evt event.Event) (id.StreamID, error) { return evt.StreamID(), nil })
 	if err != nil {
 		log.Fatal(err)
 	}

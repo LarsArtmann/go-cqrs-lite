@@ -18,7 +18,7 @@ func saveCfgEvent(
 	t *testing.T,
 	store event.Store,
 	cfg storeTestConfig,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	evt event.Event,
 ) {
 	eventtest.SaveEvent(t, store, cfg, aggID, evt)

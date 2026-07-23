@@ -30,14 +30,14 @@ const defaultRefetchDelay = 50 * time.Millisecond
 // It carries only references — never the event payload itself — to stay
 // well under Postgres's 8KB NOTIFY payload limit. All fields are branded
 // domain types: JSON (de)serialization is handled by each type's
-// MarshalText/UnmarshalText (ULID for IDs, plain string for Type/AggregateType,
+// MarshalText/UnmarshalText (ULID for IDs, plain string for Type/StreamType,
 // custom MarshalJSON for Version). This eliminates the string-roundtrip
 // (String() → parse) the previous version did on the receive side.
 type notifyPayload struct {
 	EventID       id.EventID       `json:"eid"`
 	EventType     event.Type       `json:"et"`
-	AggregateType id.AggregateType `json:"at"`
-	AggregateID   id.AggregateID   `json:"aid"`
+	StreamType id.StreamType `json:"at"`
+	StreamID   id.StreamID   `json:"aid"`
 	Version       event.Version    `json:"v"`
 }
 

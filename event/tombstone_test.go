@@ -234,12 +234,12 @@ func TestMarkTombstone_AllFieldsPreserved(t *testing.T) {
 		t.Error("Type not preserved")
 	}
 
-	if marked.AggregateID() != orig.AggregateID() {
-		t.Error("AggregateID not preserved")
+	if marked.StreamID() != orig.StreamID() {
+		t.Error("StreamID not preserved")
 	}
 
-	if marked.AggregateType() != orig.AggregateType() {
-		t.Error("id.AggregateType not preserved")
+	if marked.StreamType() != orig.StreamType() {
+		t.Error("id.StreamType not preserved")
 	}
 
 	if marked.Version() != orig.Version() {
@@ -316,8 +316,8 @@ func TestMarkRebirth_AllFieldsPreserved(t *testing.T) {
 		t.Error("Type not preserved")
 	}
 
-	if marked.AggregateID() != orig.AggregateID() {
-		t.Error("AggregateID not preserved")
+	if marked.StreamID() != orig.StreamID() {
+		t.Error("StreamID not preserved")
 	}
 
 	if marked.Version() != orig.Version() {

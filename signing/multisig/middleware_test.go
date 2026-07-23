@@ -316,7 +316,7 @@ func TestCorruptedMultiSigMiddleware(t *testing.T) {
 		t.Helper()
 		evt := testutil.MakeTestEvent(t)
 		corrupt, err := event.NewEvent(
-			evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+			evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 			evt.Payload(),
 			event.WithEventID(evt.ID()),
 			event.WithOccurredAt(evt.OccurredAt()),

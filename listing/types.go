@@ -9,19 +9,19 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// AggregateListing is a summary of an aggregate stream.
+// StreamListing is a summary of an aggregate stream.
 // No derived state. Status is computed separately by the reader.
-type AggregateListing struct {
-	ID          id.AggregateID   `json:"id"`
-	Type        id.AggregateType `json:"type"`
+type StreamListing struct {
+	ID          id.StreamID   `json:"id"`
+	Type        id.StreamType `json:"type"`
 	Version     event.Version    `json:"version"`
 	EventCount  uint             `json:"event_count"`   //nolint:tagliatelle // on-disk/external format uses snake_case
 	LastEventAt time.Time        `json:"last_event_at"` //nolint:tagliatelle // on-disk/external format uses snake_case
 }
 
-// AggregateStatus pairs an aggregate with its computed tombstone state.
-type AggregateStatus struct {
-	Ref    AggregateListing
+// StreamStatus pairs an aggregate with its computed tombstone state.
+type StreamStatus struct {
+	Ref    StreamListing
 	Status event.TombstoneStatus
 }
 
@@ -57,13 +57,13 @@ func (p TombstonePolicy) String() string {
 	}
 }
 
-func (s AggregateStatus) MarshalJSON() ([]byte, error) {
+func (s StreamStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct { //nolint:wrapcheck // JSON serialization
-		AggregateListing
+		StreamListing
 
 		Status string `json:"status"`
 	}{
-		AggregateListing: s.Ref,
+		StreamListing: s.Ref,
 		Status:           s.Status.String(),
 	})
 }
@@ -71,11 +71,11 @@ func (s AggregateStatus) MarshalJSON() ([]byte, error) {
 // ListOptions controls aggregate listing queries.
 type ListOptions struct {
 	// Type is the aggregate type to list. Required for cursor pagination.
-	Type id.AggregateType
+	Type id.StreamType
 
 	// After is the cursor for the next page.
-	// Pass the last AggregateListing.ID from the previous Page.
-	After id.AggregateID
+	// Pass the last StreamListing.ID from the previous Page.
+	After id.StreamID
 
 	// Limit is the maximum number of items per page.
 	// Zero defaults to the reader's default page size.

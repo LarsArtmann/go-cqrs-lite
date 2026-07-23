@@ -21,7 +21,7 @@ func newFakeStore() *fakeStore {
 	return &fakeStore{data: make(map[string]*snapshot.Snapshot)}
 }
 
-func (f *fakeStore) key(ref id.AggregateRef) string {
+func (f *fakeStore) key(ref id.StreamRef) string {
 	return fmt.Sprintf("%s:%s", ref.Type, ref.ID)
 }
 
@@ -29,13 +29,13 @@ func (f *fakeStore) Save(_ context.Context, snap snapshot.Snapshot) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	ref := id.NewAggregateRef(snap.AggregateType, snap.AggregateID)
+	ref := id.NewAggregateRef(snap.StreamType, snap.StreamID)
 	f.data[f.key(ref)] = &snap
 
 	return nil
 }
 
-func (f *fakeStore) Load(_ context.Context, ref id.AggregateRef) (*snapshot.Snapshot, error) {
+func (f *fakeStore) Load(_ context.Context, ref id.StreamRef) (*snapshot.Snapshot, error) {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 
@@ -47,7 +47,7 @@ func (f *fakeStore) Load(_ context.Context, ref id.AggregateRef) (*snapshot.Snap
 	return s, nil
 }
 
-func (f *fakeStore) Delete(_ context.Context, ref id.AggregateRef) error {
+func (f *fakeStore) Delete(_ context.Context, ref id.StreamRef) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -58,7 +58,7 @@ func (f *fakeStore) Delete(_ context.Context, ref id.AggregateRef) error {
 
 func (f *fakeStore) LoadAtVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
 	s, err := f.Load(ctx, ref)

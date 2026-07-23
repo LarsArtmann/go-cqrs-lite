@@ -168,7 +168,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	if err = store.Save(
-		ctx, id.NewAggregateRef(id.AggregateType("User"), activeID),
+		ctx, id.NewAggregateRef(id.StreamType("User"), activeID),
 		[]event.Event{activeEvt},
 		event.Version(0),
 	); err != nil {
@@ -187,7 +187,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	if err = store.Save(
-		ctx, id.NewAggregateRef(id.AggregateType("User"), deletedID),
+		ctx, id.NewAggregateRef(id.StreamType("User"), deletedID),
 		[]event.Event{deletedEvt},
 		event.Version(0),
 	); err != nil {
@@ -205,7 +205,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	if err = store.Save(
-		ctx, id.NewAggregateRef(id.AggregateType("Order"), orderID),
+		ctx, id.NewAggregateRef(id.StreamType("Order"), orderID),
 		[]event.Event{orderEvt},
 		event.Version(0),
 	); err != nil {

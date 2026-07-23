@@ -130,8 +130,8 @@ func TestClone_DeepCopy(t *testing.T) {
 		t.Error("cloned Type should match original")
 	}
 
-	if cloned.AggregateID() != evt.AggregateID() {
-		t.Error("cloned AggregateID should match original")
+	if cloned.StreamID() != evt.StreamID() {
+		t.Error("cloned StreamID should match original")
 	}
 
 	if cloned.Version() != evt.Version() {

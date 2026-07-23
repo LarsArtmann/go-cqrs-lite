@@ -32,13 +32,13 @@ func seedBenchAggregates(
 		evt, _ := event.NewEvent(
 			event.Type(evtType),
 			aggID,
-			id.AggregateType(aggType),
+			id.StreamType(aggType),
 			1,
 			payload,
 		)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewAggregateRef(id.AggregateType(aggType), aggID),
+			id.NewAggregateRef(id.StreamType(aggType), aggID),
 			[]event.Event{evt},
 		)
 	}
@@ -50,7 +50,7 @@ func BenchmarkInMemoryList(b *testing.B) {
 	b.ReportAllocs()
 	tests := []struct {
 		name     string
-		aggType  id.AggregateType
+		aggType  id.StreamType
 		evtType  event.Type
 		key      string
 		val      string
@@ -102,7 +102,7 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewAggregateRef(id.AggregateType("Doc"), aggID),
+			id.NewAggregateRef(id.StreamType("Doc"), aggID),
 			[]event.Event{evt},
 		)
 	}
@@ -115,13 +115,13 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewAggregateRef(id.AggregateType("Doc"), aggID),
+			id.NewAggregateRef(id.StreamType("Doc"), aggID),
 			[]event.Event{evt},
 		)
 		marked, _ := event.MarkTombstone(evt)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewAggregateRef(id.AggregateType("Doc"), aggID),
+			id.NewAggregateRef(id.StreamType("Doc"), aggID),
 			[]event.Event{marked},
 		)
 	}

@@ -30,7 +30,7 @@ func fuzzEvent(
 	evt, err := event.NewEvent(
 		event.Type(eventType),
 		id.NewAggregateID(),
-		id.AggregateType(aggType),
+		id.StreamType(aggType),
 		event.Version(version),
 		payload,
 		event.WithSchemaVersion(event.SchemaVersion(schemaVersion)),
@@ -190,7 +190,7 @@ func FuzzExtractAlgorithm(f *testing.F) {
 		algKey := encryption.AlgorithmKey
 
 		clone, err := event.NewEvent(
-			evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+			evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 			nil,
 			event.WithEventID(evt.ID()),
 			event.WithOccurredAt(evt.OccurredAt()),
@@ -226,7 +226,7 @@ func FuzzExtractKeyID(f *testing.F) {
 		keyIDKey := encryption.KeyIDKey
 
 		clone, err := event.NewEvent(
-			evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+			evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 			nil,
 			event.WithEventID(evt.ID()),
 			event.WithOccurredAt(evt.OccurredAt()),
@@ -335,7 +335,7 @@ func FuzzExtractCiphertext_OverCorruptBase64(f *testing.F) {
 		}
 
 		clone, err := event.NewEvent(
-			evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+			evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 			nil,
 			event.WithEventID(evt.ID()),
 			event.WithOccurredAt(evt.OccurredAt()),

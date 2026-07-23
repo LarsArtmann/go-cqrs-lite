@@ -8,7 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func mustEvent(t *testing.T, eventType string, aggID id.AggregateID) event.Event {
+func mustEvent(t *testing.T, eventType string, aggID id.StreamID) event.Event {
 	t.Helper()
 	evt, err := event.New(event.Type(eventType), aggID, "Test", 1, struct{}{})
 	if err != nil {

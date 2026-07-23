@@ -15,7 +15,7 @@ import (
 // type-assert to event.StreamingSource uniformly across store implementations.
 func (s *MemoryStore) LoadStream(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (event.EventIterator, error) {
 	events, err := s.Load(ctx, ref)
 	if err != nil {
@@ -29,7 +29,7 @@ func (s *MemoryStore) LoadStream(
 // LoadStreamFromVersion is the streaming equivalent of LoadFromVersion.
 func (s *MemoryStore) LoadStreamFromVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) (event.EventIterator, error) {
 	events, err := s.LoadFromVersion(ctx, ref, version)

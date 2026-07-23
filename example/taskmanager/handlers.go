@@ -74,7 +74,7 @@ type SetDueDateCmd struct {
 type AddBlockerCmd struct {
 	*command.BasicCommand
 
-	DependencyID id.AggregateID
+	DependencyID id.StreamID
 }
 
 // Query types.
@@ -114,70 +114,70 @@ func registerHandlers(s *Server) {
 
 	must(command.RegisterTyped(s.CmdDisp, cmdCreateTask,
 		func(ctx context.Context, cmd CreateTaskCmd) error {
-			return s.Repo.Execute(ctx, cmd.AggregateID(), aggregateType,
+			return s.Repo.Execute(ctx, cmd.StreamID(), streamType,
 				Create(CreateTask{
-					ID: cmd.AggregateID(), Title: cmd.Title,
+					ID: cmd.StreamID(), Title: cmd.Title,
 					Description: cmd.Description, Priority: cmd.Priority,
 				}))
 		}))
 
 	must(command.RegisterTyped(s.CmdDisp, cmdAssignTask,
 		func(ctx context.Context, cmd AssignTaskCmd) error {
-			return s.Repo.Execute(ctx, cmd.AggregateID(), aggregateType,
-				Assign(AssignTask{ID: cmd.AggregateID(), AssigneeID: cmd.AssigneeID}))
+			return s.Repo.Execute(ctx, cmd.StreamID(), streamType,
+				Assign(AssignTask{ID: cmd.StreamID(), AssigneeID: cmd.AssigneeID}))
 		}))
 
 	must(command.RegisterTyped(s.CmdDisp, cmdStartTask,
 		func(ctx context.Context, cmd StartTaskCmd) error {
-			return s.Repo.Execute(ctx, cmd.AggregateID(), aggregateType,
-				Start(StartTask{ID: cmd.AggregateID()}))
+			return s.Repo.Execute(ctx, cmd.StreamID(), streamType,
+				Start(StartTask{ID: cmd.StreamID()}))
 		}))
 
 	must(command.RegisterTyped(s.CmdDisp, cmdCompleteTask,
 		func(ctx context.Context, cmd CompleteTaskCmd) error {
-			return s.Repo.Execute(ctx, cmd.AggregateID(), aggregateType,
-				Complete(CompleteTask{ID: cmd.AggregateID()}))
+			return s.Repo.Execute(ctx, cmd.StreamID(), streamType,
+				Complete(CompleteTask{ID: cmd.StreamID()}))
 		}))
 
 	must(command.RegisterTyped(s.CmdDisp, cmdArchiveTask,
 		func(ctx context.Context, cmd ArchiveTaskCmd) error {
-			return s.Repo.Execute(ctx, cmd.AggregateID(), aggregateType,
-				Archive(ArchiveTask{ID: cmd.AggregateID()}))
+			return s.Repo.Execute(ctx, cmd.StreamID(), streamType,
+				Archive(ArchiveTask{ID: cmd.StreamID()}))
 		}))
 
 	must(command.RegisterTyped(s.CmdDisp, cmdDeleteTask,
 		func(ctx context.Context, cmd DeleteTaskCmd) error {
-			return s.Repo.Execute(ctx, cmd.AggregateID(), aggregateType,
-				Delete(DeleteTask{ID: cmd.AggregateID()}))
+			return s.Repo.Execute(ctx, cmd.StreamID(), streamType,
+				Delete(DeleteTask{ID: cmd.StreamID()}))
 		}))
 
 	must(command.RegisterTyped(s.CmdDisp, cmdUpdateTitle,
 		func(ctx context.Context, cmd UpdateTitleCmd) error {
-			return s.Repo.Execute(ctx, cmd.AggregateID(), aggregateType,
-				UpdateTaskTitle(UpdateTitle{ID: cmd.AggregateID(), Title: cmd.Title}))
+			return s.Repo.Execute(ctx, cmd.StreamID(), streamType,
+				UpdateTaskTitle(UpdateTitle{ID: cmd.StreamID(), Title: cmd.Title}))
 		}))
 
 	must(command.RegisterTyped(s.CmdDisp, cmdChangePrio,
 		func(ctx context.Context, cmd ChangePriorityCmd) error {
-			return s.Repo.Execute(ctx, cmd.AggregateID(), aggregateType,
-				ChangeTaskPriority(ChangePriority{ID: cmd.AggregateID(), Priority: cmd.Priority}))
+			return s.Repo.Execute(ctx, cmd.StreamID(), streamType,
+				ChangeTaskPriority(ChangePriority{ID: cmd.StreamID(), Priority: cmd.Priority}))
 		}))
 
 	must(command.RegisterTyped(s.CmdDisp, cmdSetDueDate,
 		func(ctx context.Context, cmd SetDueDateCmd) error {
-			return s.Repo.Execute(ctx, cmd.AggregateID(), aggregateType,
-				SetTaskDueDate(SetDueDate{ID: cmd.AggregateID(), DueDate: cmd.DueDate}))
+			return s.Repo.Execute(ctx, cmd.StreamID(), streamType,
+				SetTaskDueDate(SetDueDate{ID: cmd.StreamID(), DueDate: cmd.DueDate}))
 		}))
 
 	must(command.RegisterTyped(s.CmdDisp, cmdAddBlocker,
 		func(ctx context.Context, cmd AddBlockerCmd) error {
-			return s.Repo.Execute(ctx, cmd.AggregateID(), aggregateType,
-				AddBlocker(BlockBy{ID: cmd.AggregateID(), DependencyID: cmd.DependencyID}))
+			return s.Repo.Execute(ctx, cmd.StreamID(), streamType,
+				AddBlocker(BlockBy{ID: cmd.StreamID(), DependencyID: cmd.DependencyID}))
 		}))
 }
 
 // mustCmd creates a BasicCommand, panicking on error (programming bug).
-func mustCmd(cmdType command.Type, aggID id.AggregateID) *command.BasicCommand {
+func mustCmd(cmdType command.Type, aggID id.StreamID) *command.BasicCommand {
 	cmd, err := command.New(cmdType, aggID)
 	if err != nil {
 		panic(err)

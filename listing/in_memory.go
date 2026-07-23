@@ -12,17 +12,17 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// InMemoryAggregateReader implements AggregateReader using a Journal.
+// InMemoryAggregateReader implements StreamReader using a Journal.
 // Caches the aggregate index and only rebuilds when the event count changes.
 // Suitable for testing, development, and single-process deployments.
 type InMemoryAggregateReader struct {
 	journal event.Journal
 
 	mu     sync.RWMutex
-	cached []AggregateStatus
+	cached []StreamStatus
 }
 
-var _ AggregateReader = (*InMemoryAggregateReader)(nil)
+var _ StreamReader = (*InMemoryAggregateReader)(nil)
 
 // NewInMemoryAggregateReader creates a reader that enumerates via Journal.ReadAll.
 func NewInMemoryAggregateReader(journal event.Journal) *InMemoryAggregateReader {
@@ -34,14 +34,14 @@ func NewInMemoryAggregateReader(journal event.Journal) *InMemoryAggregateReader 
 func (r *InMemoryAggregateReader) List(
 	ctx context.Context,
 	opts ListOptions,
-) (*Page[AggregateListing], error) {
+) (*Page[StreamListing], error) {
 	return ListRefsFromStatus(r, ctx, opts)
 }
 
 func (r *InMemoryAggregateReader) ListWithStatus(
 	ctx context.Context,
 	opts ListOptions,
-) (*Page[AggregateStatus], error) {
+) (*Page[StreamStatus], error) {
 	refs := r.getRefsUnsorted()
 	if refs == nil {
 		var err error
@@ -63,7 +63,7 @@ func (r *InMemoryAggregateReader) ListWithStatus(
 	return paginateStatus(refs, opts.Limit), nil
 }
 
-func (r *InMemoryAggregateReader) getRefsUnsorted() []AggregateStatus {
+func (r *InMemoryAggregateReader) getRefsUnsorted() []StreamStatus {
 	r.mu.RLock()
 	cached := r.cached
 	r.mu.RUnlock()
@@ -71,7 +71,7 @@ func (r *InMemoryAggregateReader) getRefsUnsorted() []AggregateStatus {
 	return slices.Clone(cached)
 }
 
-func (r *InMemoryAggregateReader) rebuildCache(ctx context.Context) ([]AggregateStatus, error) {
+func (r *InMemoryAggregateReader) rebuildCache(ctx context.Context) ([]StreamStatus, error) {
 	all, err := r.journal.ReadAll(ctx)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(
@@ -83,7 +83,7 @@ func (r *InMemoryAggregateReader) rebuildCache(ctx context.Context) ([]Aggregate
 
 	refs := buildRefs(all)
 
-	slices.SortFunc(refs, func(a, b AggregateStatus) int {
+	slices.SortFunc(refs, func(a, b StreamStatus) int {
 		if a.Ref.Type != b.Ref.Type {
 			return strings.Compare(string(a.Ref.Type), string(b.Ref.Type))
 		}
@@ -106,28 +106,28 @@ func (r *InMemoryAggregateReader) InvalidateCache() {
 	r.mu.Unlock()
 }
 
-func buildRefs(events []event.Event) []AggregateStatus {
+func buildRefs(events []event.Event) []StreamStatus {
 	type streamKey struct {
-		aggType id.AggregateType
-		aggID   id.AggregateID
+		aggType id.StreamType
+		aggID   id.StreamID
 	}
 
 	type streamBuilder struct {
-		ref       AggregateListing
+		ref       StreamListing
 		lastEvent event.Event
 	}
 
 	builders := make(map[streamKey]*streamBuilder)
 
 	for _, evt := range events {
-		key := streamKey{aggType: evt.AggregateType(), aggID: evt.AggregateID()}
+		key := streamKey{aggType: evt.StreamType(), aggID: evt.StreamID()}
 
 		b, ok := builders[key]
 		if !ok {
 			b = &streamBuilder{ //nolint:exhaustruct // fields populated incrementally below
-				ref: AggregateListing{ //nolint:exhaustruct // ID+Type set; Version/EventCount/LastEventAt added in loop
-					ID:   evt.AggregateID(),
-					Type: evt.AggregateType(),
+				ref: StreamListing{ //nolint:exhaustruct // ID+Type set; Version/EventCount/LastEventAt added in loop
+					ID:   evt.StreamID(),
+					Type: evt.StreamType(),
 				},
 			}
 			builders[key] = b
@@ -139,10 +139,10 @@ func buildRefs(events []event.Event) []AggregateStatus {
 		b.lastEvent = evt
 	}
 
-	result := make([]AggregateStatus, 0, len(builders))
+	result := make([]StreamStatus, 0, len(builders))
 
 	for _, b := range builders {
-		result = append(result, AggregateStatus{
+		result = append(result, StreamStatus{
 			Ref:    b.ref,
 			Status: event.DetectTombstone([]event.Event{b.lastEvent}),
 		})
@@ -151,11 +151,11 @@ func buildRefs(events []event.Event) []AggregateStatus {
 	return result
 }
 
-func filterByType(refs []AggregateStatus, aggregateType id.AggregateType) []AggregateStatus {
-	filtered := make([]AggregateStatus, 0, len(refs))
+func filterByType(refs []StreamStatus, streamType id.StreamType) []StreamStatus {
+	filtered := make([]StreamStatus, 0, len(refs))
 
 	for _, r := range refs {
-		if r.Ref.Type == aggregateType {
+		if r.Ref.Type == streamType {
 			filtered = append(filtered, r)
 		}
 	}
@@ -163,12 +163,12 @@ func filterByType(refs []AggregateStatus, aggregateType id.AggregateType) []Aggr
 	return filtered
 }
 
-func applyTombstonePolicy(refs []AggregateStatus, policy TombstonePolicy) []AggregateStatus {
+func applyTombstonePolicy(refs []StreamStatus, policy TombstonePolicy) []StreamStatus {
 	if policy == TombstoneInclude {
 		return refs
 	}
 
-	filtered := make([]AggregateStatus, 0, len(refs))
+	filtered := make([]StreamStatus, 0, len(refs))
 
 	for _, r := range refs {
 		if policy == TombstoneExclude && !r.Status.IsTombstoned() {
@@ -181,7 +181,7 @@ func applyTombstonePolicy(refs []AggregateStatus, policy TombstonePolicy) []Aggr
 	return filtered
 }
 
-func applyCursor(refs []AggregateStatus, after id.AggregateID) []AggregateStatus {
+func applyCursor(refs []StreamStatus, after id.StreamID) []StreamStatus {
 	if after.IsZero() {
 		return refs
 	}
@@ -199,14 +199,14 @@ func applyCursor(refs []AggregateStatus, after id.AggregateID) []AggregateStatus
 	return refs
 }
 
-func paginateStatus(refs []AggregateStatus, limit uint) *Page[AggregateStatus] {
+func paginateStatus(refs []StreamStatus, limit uint) *Page[StreamStatus] {
 	if limit == 0 {
 		limit = defaultPageSize
 	}
 
 	if uint(len(refs)) <= limit {
-		return &Page[AggregateStatus]{Items: refs, HasMore: false}
+		return &Page[StreamStatus]{Items: refs, HasMore: false}
 	}
 
-	return &Page[AggregateStatus]{Items: refs[:limit], HasMore: true}
+	return &Page[StreamStatus]{Items: refs[:limit], HasMore: true}
 }

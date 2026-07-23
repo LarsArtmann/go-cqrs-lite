@@ -124,7 +124,7 @@ func TestDeadLetter_CapturesAggregateID(t *testing.T) {
 
 	mw := CommandRetry(config)
 
-	cmd := &testCommand{aggregateID: aggID}
+	cmd := &testCommand{streamID: aggID}
 	handler := mw(func(_ context.Context, _ command.Command) error {
 		return errors.New("fail")
 	})
@@ -136,8 +136,8 @@ func TestDeadLetter_CapturesAggregateID(t *testing.T) {
 		t.Fatalf("expected 1 entry, got %d", len(entries))
 	}
 
-	if entries[0].AggregateID != aggID {
-		t.Errorf("expected AggregateID %v, got %v", aggID, entries[0].AggregateID)
+	if entries[0].StreamID != aggID {
+		t.Errorf("expected StreamID %v, got %v", aggID, entries[0].StreamID)
 	}
 
 	if entries[0].Kind != "command" {

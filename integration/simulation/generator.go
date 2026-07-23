@@ -11,19 +11,19 @@ import (
 
 // EventGenerator produces deterministic event sequences for stress testing.
 type EventGenerator struct {
-	aggregateType id.AggregateType
+	streamType id.StreamType
 	eventType     event.Type
 	payloadGen    func(int) any
 }
 
 // NewEventGenerator creates a generator for the given aggregate and event types.
 func NewEventGenerator(
-	aggregateType id.AggregateType,
+	streamType id.StreamType,
 	eventType event.Type,
 	payloadGen func(int) any,
 ) *EventGenerator {
 	return &EventGenerator{
-		aggregateType: aggregateType,
+		streamType: streamType,
 		eventType:     eventType,
 		payloadGen:    payloadGen,
 	}
@@ -40,7 +40,7 @@ func (g *EventGenerator) Generate(count int) ([]event.Event, error) {
 		payloads[i] = g.payloadGen(i)
 	}
 
-	events, err := event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
+	events, err := event.NewEvents(aggID, g.streamType, 1, types, payloads)
 	if err != nil {
 		return nil, errorfamily.Wrapf(
 			err,
@@ -68,7 +68,7 @@ func (g *EventGenerator) GenerateMulti(aggregates, eventsPerAggregate int) ([]ev
 			payloads[i] = g.payloadGen(aggIdx*eventsPerAggregate + i)
 		}
 
-		events, err := event.NewEvents(aggID, g.aggregateType, 1, types, payloads)
+		events, err := event.NewEvents(aggID, g.streamType, 1, types, payloads)
 		if err != nil {
 			return nil, errorfamily.Wrapf(
 				err,

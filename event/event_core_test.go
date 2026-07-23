@@ -32,12 +32,12 @@ func TestNewEvent_Valid(t *testing.T) {
 		t.Errorf("expected type UserCreated, got %s", evt.Type())
 	}
 
-	if evt.AggregateID() != idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95") {
-		t.Errorf("expected aggregate ID user-123, got %s", evt.AggregateID())
+	if evt.StreamID() != idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95") {
+		t.Errorf("expected aggregate ID user-123, got %s", evt.StreamID())
 	}
 
-	if evt.AggregateType() != "User" {
-		t.Errorf("expected aggregate type User, got %s", evt.AggregateType())
+	if evt.StreamType() != "User" {
+		t.Errorf("expected aggregate type User, got %s", evt.StreamType())
 	}
 
 	if evt.Version() != 1 {
@@ -51,40 +51,40 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 	tests := []struct {
 		name          string
 		eventType     event.Type
-		aggregateID   id.AggregateID
-		aggregateType id.AggregateType
+		streamID   id.StreamID
+		streamType id.StreamType
 		version       event.Version
 		wantErr       error
 	}{
 		{
 			name:          "empty event type",
 			eventType:     "",
-			aggregateID:   idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
-			aggregateType: "User",
+			streamID:   idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+			streamType: "User",
 			version:       1,
 			wantErr:       event.ErrEmptyEventType,
 		},
 		{
 			name:          "missing aggregate ID",
 			eventType:     "UserCreated",
-			aggregateID:   id.AggregateID{},
-			aggregateType: "User",
+			streamID:   id.StreamID{},
+			streamType: "User",
 			version:       1,
 			wantErr:       event.ErrNilAggregateID,
 		},
 		{
 			name:          "missing aggregate type",
 			eventType:     "UserCreated",
-			aggregateID:   idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
-			aggregateType: "",
+			streamID:   idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+			streamType: "",
 			version:       1,
 			wantErr:       event.ErrEmptyAggregateType,
 		},
 		{
 			name:          "zero version",
 			eventType:     "UserCreated",
-			aggregateID:   idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
-			aggregateType: "User",
+			streamID:   idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+			streamType: "User",
 			version:       0,
 		},
 	}
@@ -95,8 +95,8 @@ func TestNewEvent_InvalidInputErrors(t *testing.T) {
 
 			_, err := event.NewEvent(
 				tt.eventType,
-				tt.aggregateID,
-				tt.aggregateType,
+				tt.streamID,
+				tt.streamType,
 				tt.version,
 				nil,
 			)
@@ -117,24 +117,24 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 	tests := []struct {
 		name          string
 		eventType     event.Type
-		aggregateID   id.AggregateID
-		aggregateType id.AggregateType
+		streamID   id.StreamID
+		streamType id.StreamType
 		version       event.Version
 		wantContains  []string
 	}{
 		{
 			name:          "missing aggregate ID includes event type",
 			eventType:     "TestEvent",
-			aggregateID:   id.AggregateID{},
-			aggregateType: "User",
+			streamID:   id.StreamID{},
+			streamType: "User",
 			version:       1,
 			wantContains:  []string{"aggregate ID is required", "TestEvent"},
 		},
 		{
 			name:          "missing aggregate type includes aggregate ID and event type",
 			eventType:     "OrderCreated",
-			aggregateID:   idtest.ParseAggregateID(t, "01HK154BMRQFY6Q98RCCEJDZ74"),
-			aggregateType: "",
+			streamID:   idtest.ParseAggregateID(t, "01HK154BMRQFY6Q98RCCEJDZ74"),
+			streamType: "",
 			version:       1,
 			wantContains: []string{
 				"aggregate type is required",
@@ -145,8 +145,8 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		{
 			name:          "zero version includes aggregate ID and event type",
 			eventType:     "PaymentProcessed",
-			aggregateID:   idtest.ParseAggregateID(t, "01HK154CM00YYJAJGC0GE589E2"),
-			aggregateType: "Payment",
+			streamID:   idtest.ParseAggregateID(t, "01HK154CM00YYJAJGC0GE589E2"),
+			streamType: "Payment",
 			version:       0,
 			wantContains: []string{
 				"version must be positive",
@@ -162,8 +162,8 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 
 			_, err := event.NewEvent(
 				tt.eventType,
-				tt.aggregateID,
-				tt.aggregateType,
+				tt.streamID,
+				tt.streamType,
 				tt.version,
 				nil,
 			)

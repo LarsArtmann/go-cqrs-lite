@@ -153,7 +153,7 @@ func apiRules() []RuleInfo {
 			Category:    "api",
 			Severity:    "error",
 			Confidence:  "high",
-			Description: "Manual Type()/ID()/AggregateID() instead of BasicCommand embedding",
+			Description: "Manual Type()/ID()/StreamID() instead of BasicCommand embedding",
 			AutoFix:     false,
 		},
 		{
@@ -216,7 +216,7 @@ func apiRules() []RuleInfo {
 			Category:    "api",
 			Severity:    "error",
 			Confidence:  "high",
-			Description: "Custom AggregateID/Version types duplicating go-cqrs-lite",
+			Description: "Custom StreamID/Version types duplicating go-cqrs-lite",
 			AutoFix:     false,
 		},
 		{

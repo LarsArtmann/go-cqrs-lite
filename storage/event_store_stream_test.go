@@ -36,7 +36,7 @@ func newSQLiteStreamStore(t *testing.T) *storage.SQLEventStore {
 	return store
 }
 
-func mustStreamEvent(t *testing.T, typ string, aggID id.AggregateID, ver int) event.Event {
+func mustStreamEvent(t *testing.T, typ string, aggID id.StreamID, ver int) event.Event {
 	t.Helper()
 
 	evt, err := event.NewEvent(
@@ -57,7 +57,7 @@ func seedStreamEvents(
 	t *testing.T,
 	store *storage.SQLEventStore,
 	count int,
-) (id.AggregateRef, []event.Event) {
+) (id.StreamRef, []event.Event) {
 	t.Helper()
 
 	ctx := context.Background()

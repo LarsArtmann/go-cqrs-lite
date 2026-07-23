@@ -85,7 +85,7 @@ func setupCommandNonRetryableTest(
 	t.Helper()
 
 	handler := commandMW(newCommandNonRetryableHandler(callCount, errMsg))
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	return handler, cmd
 }

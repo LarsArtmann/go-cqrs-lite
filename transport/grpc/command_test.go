@@ -35,12 +35,12 @@ func TestCommandDispatch_RoundTrip(t *testing.T) {
 	srv := grpc.NewServer()
 
 	var receivedCmdType command.Type
-	var receivedAggID id.AggregateID
+	var receivedAggID id.StreamID
 
 	cmdDispatcher := command.NewDispatcher()
 	_ = cmdDispatcher.Register("test.cmd", func(_ context.Context, cmd command.Command) error {
 		receivedCmdType = cmd.Type()
-		receivedAggID = cmd.AggregateID()
+		receivedAggID = cmd.StreamID()
 
 		return nil
 	})

@@ -240,7 +240,7 @@ func (s *Server) SeedDemo(ctx context.Context) {
 	taskID := id.NewAggregateID()
 
 	if err := s.Repo.Execute(
-		ctx, taskID, aggregateType,
+		ctx, taskID, streamType,
 		Create(CreateTask{ID: taskID, Title: "Try the API!", Priority: PriorityHigh}),
 	); err != nil {
 		s.Logger.Warn("seed: create demo task", "error", err)

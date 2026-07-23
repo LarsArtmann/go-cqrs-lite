@@ -133,9 +133,9 @@ func TestEventStore_Save_Mismatches(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		saveAggType  id.AggregateType
-		saveAggID    id.AggregateID
-		eventAggID   id.AggregateID
+		saveAggType  id.StreamType
+		saveAggID    id.StreamID
+		eventAggID   id.StreamID
 		eventVersion event.Version
 	}{
 		{

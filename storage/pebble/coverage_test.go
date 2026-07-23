@@ -102,10 +102,10 @@ func TestSnapshotStore_Options(t *testing.T) {
 	ctx := context.Background()
 
 	aggID := id.NewAggregateID()
-	aggType := id.AggregateType("TestOpts")
+	aggType := id.StreamType("TestOpts")
 	snap := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: aggType,
+		StreamID:   aggID,
+		StreamType: aggType,
 		Version:       event.Version(1),
 		State:         []byte(`{"state":"ok"}`),
 		CreatedAt:     time.Now(),

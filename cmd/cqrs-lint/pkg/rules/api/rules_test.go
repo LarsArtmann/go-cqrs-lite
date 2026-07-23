@@ -76,7 +76,7 @@ func TestA008_DetectsDuplicateType(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"types.go": `package types
 
-type AggregateID string
+type StreamID string
 type Version uint64
 `,
 	})
@@ -88,7 +88,7 @@ func TestA008_NoFindingInEventPackage(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"event/types.go": `package event
 
-type AggregateID string
+type StreamID string
 `,
 	})
 	findings := runDetector(t, api.NewA008Detector(ctx))

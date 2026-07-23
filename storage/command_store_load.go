@@ -31,7 +31,7 @@ var commandQueryConfig = sqlpkg.QueryConfig[*command.PersistedCommand]{ //nolint
 // Load retrieves all commands for an aggregate, ordered by received_at.
 func (s *SQLCommandStore) Load(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 ) ([]*command.PersistedCommand, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
 		SpanName: "command.store.load", Attrs: cqrsotel.AggregateAttrs(ref.Type, ref.ID),
@@ -43,7 +43,7 @@ func (s *SQLCommandStore) Load(
 // LoadFromTimestamp retrieves commands where ReceivedAt > after, ordered by received_at.
 func (s *SQLCommandStore) LoadFromTimestamp(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	after time.Time,
 ) ([]*command.PersistedCommand, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
@@ -61,7 +61,7 @@ func (s *SQLCommandStore) LoadFromTimestamp(
 // LoadToTimestamp retrieves commands where ReceivedAt <= maxTime, ordered by received_at.
 func (s *SQLCommandStore) LoadToTimestamp(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	maxTime time.Time,
 ) ([]*command.PersistedCommand, error) {
 	return s.loadWithSpan(ctx, ref, sqlpkg.LoadParams{
@@ -78,7 +78,7 @@ func (s *SQLCommandStore) LoadToTimestamp(
 
 func (s *SQLCommandStore) loadWithSpan(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	p sqlpkg.LoadParams,
 ) ([]*command.PersistedCommand, error) {
 	cfg := commandQueryConfig

@@ -44,22 +44,22 @@ func TestGolden_SnapshotStructure(t *testing.T) {
 	}
 
 	snap := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "User",
+		StreamID:   aggID,
+		StreamType: "User",
 		Version:       event.Version(5),
 		State:         state,
 		CreatedAt:     time.Date(2026, 6, 1, 12, 0, 0, 0, time.UTC),
 	}
 
 	got, err := json.Marshal(struct {
-		AggregateID   string `json:"aggregateId"`
-		AggregateType string `json:"aggregateType"`
+		StreamID   string `json:"aggregateId"`
+		StreamType string `json:"streamType"`
 		Version       int    `json:"version"`
 		State         string `json:"state"`
 		CreatedAt     string `json:"createdAt"`
 	}{
-		AggregateID:   snap.AggregateID.String(),
-		AggregateType: string(snap.AggregateType),
+		StreamID:   snap.StreamID.String(),
+		StreamType: string(snap.StreamType),
 		Version:       snap.Version.Int(),
 		State:         string(snap.State),
 		CreatedAt:     snap.CreatedAt.Format(time.RFC3339Nano),

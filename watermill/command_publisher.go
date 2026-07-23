@@ -44,7 +44,7 @@ func (p *CommandPublisher) Publish(ctx context.Context, cmds ...command.Command)
 	defer span.End()
 
 	if len(cmds) > 0 {
-		attrs := cqrsotel.CommandAttrs(string(cmds[0].Type()), cmds[0].AggregateID())
+		attrs := cqrsotel.CommandAttrs(string(cmds[0].Type()), cmds[0].StreamID())
 		span.SetAttributes(attrs...)
 	}
 

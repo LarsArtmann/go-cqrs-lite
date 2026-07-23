@@ -12,7 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
-func benchEvent(tb testing.TB, aggID id.AggregateID, v event.Version) event.Event {
+func benchEvent(tb testing.TB, aggID id.StreamID, v event.Version) event.Event {
 	tb.Helper()
 
 	evt, err := event.NewEvent("BenchEvent", aggID, "Bench", v, nil)
@@ -111,8 +111,8 @@ func BenchmarkMemoryStore_ConcurrentWriters(b *testing.B) {
 		b.Run(fmt.Sprintf("writers=%d", concurrency), func(b *testing.B) {
 			b.ReportAllocs()
 
-			aggIDs := make([]id.AggregateID, concurrency)
-			refs := make([]id.AggregateRef, concurrency)
+			aggIDs := make([]id.StreamID, concurrency)
+			refs := make([]id.StreamRef, concurrency)
 
 			for i := range concurrency {
 				aggIDs[i] = id.NewAggregateID()

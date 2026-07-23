@@ -95,8 +95,8 @@ func (b *SSEBroker) handleEvent(ctx context.Context, evt event.Event) error {
 		cqrsotel.WithAttributes(
 			cqrsotel.EventAttrs(
 				string(evt.Type()),
-				evt.AggregateID(),
-				string(evt.AggregateType()),
+				evt.StreamID(),
+				string(evt.StreamType()),
 			)...,
 		),
 	)

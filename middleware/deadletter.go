@@ -24,8 +24,8 @@ type DeadLetterEntry struct {
 	// Type is the message type name (e.g., "user.created", "todo.create").
 	Type string
 
-	// AggregateID is the aggregate the message targets. Zero for queries.
-	AggregateID id.AggregateID
+	// StreamID is the aggregate the message targets. Zero for queries.
+	StreamID id.StreamID
 
 	// Error is the last error that caused retry exhaustion.
 	Error error

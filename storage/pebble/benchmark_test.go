@@ -13,7 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func makeBenchEvents(b *testing.B, n int, ref id.AggregateRef) []event.Event {
+func makeBenchEvents(b *testing.B, n int, ref id.StreamRef) []event.Event {
 	events := make([]event.Event, n)
 
 	for i := range n {

@@ -12,7 +12,7 @@ import (
 )
 
 func (a *EventStore) checkVersion(
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	expectedVersion event.Version,
 ) error {
 	count, err := a.countEvents(ref)
@@ -30,7 +30,7 @@ func (a *EventStore) checkVersion(
 	return nil
 }
 
-func (a *EventStore) countEvents(ref id.AggregateRef) (int, error) {
+func (a *EventStore) countEvents(ref id.StreamRef) (int, error) {
 	prefix := a.aggregatePrefix(ref)
 	upperBound := a.aggregateUpperBound(ref)
 
@@ -89,7 +89,7 @@ func parseVersionFromKey(key []byte) (int, error) {
 
 func (a *EventStore) writeEventsToBatch(
 	batch *pebble.Batch,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -120,16 +120,16 @@ func (a *EventStore) writeEventsToBatch(
 
 func validateEventOwnership(
 	evt event.Event,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) error {
-	if evt.AggregateType() != ref.Type {
+	if evt.StreamType() != ref.Type {
 		return errorfamily.WrapConflict(ErrAggregateTypeMismatch, "pebble.aggregate_type_mismatch",
-			fmt.Sprintf("expected %s, got %s", ref.Type, evt.AggregateType()))
+			fmt.Sprintf("expected %s, got %s", ref.Type, evt.StreamType()))
 	}
 
-	if evt.AggregateID() != ref.ID {
+	if evt.StreamID() != ref.ID {
 		return errorfamily.WrapConflict(ErrAggregateIDMismatch, "pebble.aggregate_id_mismatch",
-			fmt.Sprintf("expected %s, got %s", ref.ID, evt.AggregateID()))
+			fmt.Sprintf("expected %s, got %s", ref.ID, evt.StreamID()))
 	}
 
 	return nil

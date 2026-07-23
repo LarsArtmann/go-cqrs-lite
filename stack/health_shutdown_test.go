@@ -248,13 +248,13 @@ type nilEventSink struct{}
 
 func (nilEventSink) Save(
 	_ context.Context,
-	_ id.AggregateRef,
+	_ id.StreamRef,
 	_ []event.Event,
 	_ event.Version,
 ) error {
 	return nil
 }
 
-func (nilEventSink) AppendBatch(_ context.Context, _ id.AggregateRef, _ []event.Event) error {
+func (nilEventSink) AppendBatch(_ context.Context, _ id.StreamRef, _ []event.Event) error {
 	return nil
 }

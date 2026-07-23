@@ -23,7 +23,7 @@ func tracer() cqrsotel.Tracer {
 func startAggregateSpan(
 	ctx context.Context,
 	spanName string,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	extraAttrs ...cqrsotel.KeyValue,
 ) (context.Context, cqrsotel.Span) {
 	return cqrsotel.StartSpan(

@@ -54,7 +54,7 @@ type DeadLetterEntry struct {
 	ProjectionName string
 	EventID        string
 	EventType      string
-	AggregateID    string
+	StreamID    string
 	Event          event.Event // original poison event; needed for Replay
 	Error          string
 	ErrorCode      string // machine-readable code (e.g. "graph.sink.unknown_node_label"); empty if unclassified

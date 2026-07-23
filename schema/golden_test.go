@@ -35,8 +35,8 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 
 			return event.NewEvent(
 				evt.Type(),
-				evt.AggregateID(),
-				evt.AggregateType(),
+				evt.StreamID(),
+				evt.StreamType(),
 				evt.Version(),
 				newPayload,
 				event.WithEventID(evt.ID()),
@@ -83,8 +83,8 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 
 	type snapshotEvent struct {
 		Type          string `json:"type"`
-		AggregateID   string `json:"aggregateId"`
-		AggregateType string `json:"aggregateType"`
+		StreamID   string `json:"aggregateId"`
+		StreamType string `json:"streamType"`
 		Version       int    `json:"version"`
 		SchemaVersion int    `json:"schemaVersion"`
 		Payload       string `json:"payload"`
@@ -94,8 +94,8 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 	for i, e := range upcasted {
 		snapshots[i] = snapshotEvent{
 			Type:          string(e.Type()),
-			AggregateID:   e.AggregateID().String(),
-			AggregateType: string(e.AggregateType()),
+			StreamID:   e.StreamID().String(),
+			StreamType: string(e.StreamType()),
 			Version:       e.Version().Int(),
 			SchemaVersion: e.SchemaVersion().Int(),
 			Payload:       string(e.Payload()),

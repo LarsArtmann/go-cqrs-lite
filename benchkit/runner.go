@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	benchAggregateType id.AggregateType = "Bench"
+	benchAggregateType id.StreamType = "Bench"
 	benchEventType     event.Type       = "bench.event"
 )
 
@@ -25,8 +25,8 @@ type runner struct {
 	codec       codec.Codec
 	codecName   string
 	bundle      *stack.Bundle
-	aggIDs      []id.AggregateID
-	refs        []id.AggregateRef
+	aggIDs      []id.StreamID
+	refs        []id.StreamRef
 	concurrency int
 	result      Result
 	sampler     *resourceSampler
@@ -129,8 +129,8 @@ func (r *runner) setup(ctx context.Context) error {
 	r.bundle = bundle
 
 	profile := r.config.Profile
-	r.aggIDs = make([]id.AggregateID, profile.Aggregates)
-	r.refs = make([]id.AggregateRef, profile.Aggregates)
+	r.aggIDs = make([]id.StreamID, profile.Aggregates)
+	r.refs = make([]id.StreamRef, profile.Aggregates)
 
 	for i := range profile.Aggregates {
 		aggID := id.NewAggregateID()

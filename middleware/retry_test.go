@@ -40,7 +40,7 @@ func TestCommandRetry_Success(t *testing.T) {
 		return nil
 	})
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := handler(context.Background(), cmd)
 	if err != nil {
@@ -61,7 +61,7 @@ func TestCommandRetry_AllAttemptsFail(t *testing.T) {
 
 	handler := cmdMw(failingCommandHandler("always fail"))
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := handler(context.Background(), cmd)
 	if err == nil {
@@ -145,7 +145,7 @@ func TestRetryExhausted_SentinelError(t *testing.T) {
 	mw := CommandRetry(config)
 	handler := mw(failingCommandHandler("always fail"))
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := handler(context.Background(), cmd)
 	if err == nil {
@@ -168,7 +168,7 @@ func TestRetryCanceled_SentinelError(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := handler(ctx, cmd)
 	if err == nil {
@@ -232,7 +232,7 @@ func TestCommandRetry_InvalidConfig(t *testing.T) {
 	mw := CommandRetry(RetryConfig{})
 	handler := mw(NoopCommandHandler())
 
-	err := handler(context.Background(), &testCommand{aggregateID: id.NewAggregateID()})
+	err := handler(context.Background(), &testCommand{streamID: id.NewAggregateID()})
 	if err == nil {
 		t.Fatal("expected error for invalid config")
 	}

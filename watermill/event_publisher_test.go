@@ -58,9 +58,9 @@ func TestEventPublisher_RoundTrip(t *testing.T) {
 			t.Fatalf("type mismatch: %s vs %s", decoded.Type(), originalEvt.Type())
 		}
 
-		if decoded.AggregateID().String() != originalEvt.AggregateID().String() {
+		if decoded.StreamID().String() != originalEvt.StreamID().String() {
 			t.Fatalf("aggregate ID mismatch: %s vs %s",
-				decoded.AggregateID().String(), originalEvt.AggregateID().String())
+				decoded.StreamID().String(), originalEvt.StreamID().String())
 		}
 
 		msg.Ack()

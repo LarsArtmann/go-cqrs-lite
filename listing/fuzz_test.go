@@ -14,7 +14,7 @@ import (
 )
 
 // FuzzAggregateListing_JSON_Roundtrip drives the JSON encoding of an
-// AggregateListing with arbitrary id, type, version, and counts.
+// StreamListing with arbitrary id, type, version, and counts.
 func FuzzAggregateListing_JSON_Roundtrip(f *testing.F) {
 	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W", "User", int64(0), uint(0))
 	f.Add("plain-id", "Order", int64(9999), uint(1000000))
@@ -35,9 +35,9 @@ func FuzzAggregateListing_JSON_Roundtrip(f *testing.F) {
 			return
 		}
 
-		original := listing.AggregateListing{
+		original := listing.StreamListing{
 			ID:          idVal,
-			Type:        id.AggregateType(aggType),
+			Type:        id.StreamType(aggType),
 			Version:     event.Version(version),
 			EventCount:  eventCount,
 			LastEventAt: time.Unix(0, 0).UTC(),
@@ -48,7 +48,7 @@ func FuzzAggregateListing_JSON_Roundtrip(f *testing.F) {
 			t.Fatalf("Marshal: %v", err)
 		}
 
-		var decoded listing.AggregateListing
+		var decoded listing.StreamListing
 		if err := json.Unmarshal(data, &decoded); err != nil {
 			t.Fatalf("Unmarshal: %v", err)
 		}
@@ -98,7 +98,7 @@ func FuzzTombstonePolicy_String(f *testing.F) {
 }
 
 // FuzzAggregateStatus_MarshalOnly verifies the MarshalJSON path of
-// AggregateStatus without asserting full roundtrip — there is currently no
+// StreamStatus without asserting full roundtrip — there is currently no
 // custom UnmarshalJSON (it inherits the default, which expects an int for
 // TombstoneStatus, but Marshal emits a string). We just verify marshaling
 // never panics on any status value.
@@ -122,10 +122,10 @@ func FuzzAggregateStatus_MarshalOnly(f *testing.F) {
 
 			status := event.TombstoneStatus(statusInt)
 
-			original := listing.AggregateStatus{
-				Ref: listing.AggregateListing{
+			original := listing.StreamStatus{
+				Ref: listing.StreamListing{
 					ID:          idVal,
-					Type:        id.AggregateType(aggType),
+					Type:        id.StreamType(aggType),
 					Version:     event.Version(version),
 					EventCount:  eventCount,
 					LastEventAt: time.Unix(0, 0).UTC(),

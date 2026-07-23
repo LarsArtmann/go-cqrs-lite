@@ -12,7 +12,7 @@ func FuzzParse(f *testing.F) {
 	f.Add("01Hk1549P84T9xf8R94e960633")
 
 	f.Fuzz(func(t *testing.T, input string) {
-		parsed, err := Parse[AggregateID](input)
+		parsed, err := Parse[StreamID](input)
 
 		if input == "" {
 			if err == nil {
@@ -36,7 +36,7 @@ func FuzzParse(f *testing.F) {
 			}
 		}
 
-		roundtrip, err := Parse[AggregateID](parsed.String())
+		roundtrip, err := Parse[StreamID](parsed.String())
 		if err != nil {
 			t.Fatalf("failed to parse canonical output %q: %v", parsed.String(), err)
 		}

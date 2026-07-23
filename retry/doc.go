@@ -4,6 +4,6 @@
 // can import it without pulling in CQRS message types or OpenTelemetry SDK.
 //
 // For the CQRS-wrapped version (MessageAdapter, OTel spans, dead-letter
-// entries with AggregateID), use
+// entries with StreamID), use
 // [github.com/larsartmann/go-cqrs-lite/middleware/v4].
 package retry

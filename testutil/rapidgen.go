@@ -12,8 +12,8 @@ func EventType() *rapid.Generator[string] {
 	return rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]{2,63}$`)
 }
 
-// AggregateType generates random aggregate type strings matching the same convention.
-func AggregateType() *rapid.Generator[string] {
+// StreamType generates random aggregate type strings matching the same convention.
+func StreamType() *rapid.Generator[string] {
 	return rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]{2,63}$`)
 }
 

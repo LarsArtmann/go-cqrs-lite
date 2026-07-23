@@ -50,7 +50,7 @@ func bddCounterDecider() decider.Decider[bddCounter] {
 
 func makeCounterEvent(
 	eventType event.Type,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	version event.Version,
 ) event.Event {
 	evt, err := event.NewEvent(eventType, aggID, "Counter", version, []byte(`{}`))
@@ -62,7 +62,7 @@ func makeCounterEvent(
 func executeCounterNTimes(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	n int,
 ) {
 	for range n {
@@ -97,7 +97,7 @@ func newSnapshotRepo(
 func executeCounterCommand(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	eventName string,
 ) {
 	err := repo.Execute(
@@ -112,7 +112,7 @@ func executeCounterCommand(
 func createCounter(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) {
 	executeCounterCommand(ctx, repo, aggID, "CounterCreated")
 }
@@ -120,7 +120,7 @@ func createCounter(
 func incrementCounter(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) {
 	executeCounterCommand(ctx, repo, aggID, "CounterIncremented")
 }
@@ -128,7 +128,7 @@ func incrementCounter(
 func executeAndAssertNoStateChange(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	decideErr error,
 ) {
 	err := repo.Execute(
@@ -155,7 +155,7 @@ var _ = Describe("Decider Repository", func() {
 		store *memory.MemoryStore
 		bus   *eventtest.FakeBus
 		repo  *decider.Repository[bddCounter]
-		aggID id.AggregateID
+		aggID id.StreamID
 	)
 
 	BeforeEach(func() {

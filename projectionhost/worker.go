@@ -252,7 +252,7 @@ func (w *worker) sendToDLQ(ctx context.Context, evt event.Event, handlerErr erro
 		ProjectionName: w.name,
 		EventID:        evt.ID().String(),
 		EventType:      string(evt.Type()),
-		AggregateID:    evt.AggregateID().String(),
+		StreamID:    evt.StreamID().String(),
 		Event:          evt,
 		Error:          handlerErr.Error(),
 		ErrorCode:      code,

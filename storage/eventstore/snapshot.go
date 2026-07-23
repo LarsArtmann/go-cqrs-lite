@@ -56,7 +56,7 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 		"snapshot.save",
 		cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(
-			append(cqrsotel.AggregateAttrs(snap.AggregateType, snap.AggregateID),
+			append(cqrsotel.AggregateAttrs(snap.StreamType, snap.StreamID),
 				cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, snap.Version.Int()))...,
 		),
 	)
@@ -74,19 +74,19 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 		p4,
 		p5,
 	)
-	_, err := s.DB.ExecContext(ctx, query, string(snap.AggregateType), snap.AggregateID,
+	_, err := s.DB.ExecContext(ctx, query, string(snap.StreamType), snap.StreamID,
 		snap.Version.Int(), snap.State, s.Dialect.FormatTime(snap.CreatedAt))
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 		return errorfamily.WrapInfrastructure(err, "storage.save_snapshot",
-			fmt.Sprintf("save snapshot for %s %s", snap.AggregateType, snap.AggregateID))
+			fmt.Sprintf("save snapshot for %s %s", snap.StreamType, snap.StreamID))
 	}
 	return nil
 }
 
 func (s *SQLSnapshotStore) Load(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (*snapshot.Snapshot, error) {
 	ctx, span := sqlpkg.StartAggregateSpan(ctx, "snapshot.load", ref)
 	defer span.End()
@@ -101,7 +101,7 @@ func (s *SQLSnapshotStore) Load(
 
 func (s *SQLSnapshotStore) LoadAtVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
 	ctx, span := cqrsotel.StartSpan(
@@ -124,7 +124,7 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 
 func (s *SQLSnapshotStore) querySnapshotAtVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	maxVersion event.Version,
 ) (*snapshot.Snapshot, error) {
 	p1, p2, p3 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2), s.Dialect.Placeholder(3)
@@ -139,7 +139,7 @@ func (s *SQLSnapshotStore) querySnapshotAtVersion(
 
 func (s *SQLSnapshotStore) querySnapshot(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (*snapshot.Snapshot, error) {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+sqlpkg.TableSnapshots+`
@@ -149,7 +149,7 @@ func (s *SQLSnapshotStore) querySnapshot(
 
 func (s *SQLSnapshotStore) scanSnapshot(
 	row *sql.Row,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (*snapshot.Snapshot, error) {
 	var version int
 	var stateBytes []byte
@@ -175,12 +175,12 @@ func (s *SQLSnapshotStore) scanSnapshot(
 		)
 	}
 	return &snapshot.Snapshot{
-		AggregateID: ref.ID, AggregateType: ref.Type,
+		StreamID: ref.ID, StreamType: ref.Type,
 		Version: event.Version(version), State: stateBytes, CreatedAt: createdAt,
 	}, nil
 }
 
-func (s *SQLSnapshotStore) Delete(ctx context.Context, ref id.AggregateRef) error {
+func (s *SQLSnapshotStore) Delete(ctx context.Context, ref id.StreamRef) error {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 	return sqlpkg.DeleteByAggregate(s.DB, ctx, ref, sqlpkg.TableSnapshots, p1, p2, "snapshot")
 }

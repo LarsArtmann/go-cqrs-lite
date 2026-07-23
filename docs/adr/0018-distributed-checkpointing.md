@@ -64,7 +64,7 @@ store := sql.NewSQLCheckpointStore(db)
 - `event.SeekableJournal` — position-based reads (essential for distributed
   checkpointing)
 - `snapshot.SnapshotStore` — projection state snapshots for fast failover
-- `projection.Runner` — the core runner, agnostic to single vs multi-instance
+- `projectionhost.Host` — the managed projection runner, agnostic to single vs multi-instance
 
 ## Consequences
 
@@ -83,5 +83,5 @@ store := sql.NewSQLCheckpointStore(db)
 ## References
 
 - [Kubernetes Leader Election](https://kubernetes.io/docs/concepts/architecture/leases/)
-- `projection/runner.go` — current Runner implementation
+- `projectionhost/host.go` — current Host implementation
 - `event/seekable_journal.go` — position-based reads

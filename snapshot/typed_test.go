@@ -24,8 +24,8 @@ func TestTypedStore_SaveLoad_Roundtrip(t *testing.T) {
 	ref := id.NewAggregateRef("Counter", aggID)
 
 	input := snapshot.TypedSnapshot[counterState]{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
+		StreamID:   aggID,
+		StreamType: "Counter",
 		Version:       3,
 		State:         counterState{Count: 42, Label: "answer"},
 	}
@@ -74,8 +74,8 @@ func TestTypedStore_LoadAtVersion(t *testing.T) {
 	ctx := context.Background()
 
 	if err := store.Save(ctx, snapshot.TypedSnapshot[counterState]{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
+		StreamID:   aggID,
+		StreamType: "Counter",
 		Version:       5,
 		State:         counterState{Count: 7},
 	}); err != nil {
@@ -103,8 +103,8 @@ func TestTypedStore_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	if err := store.Save(ctx, snapshot.TypedSnapshot[counterState]{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
+		StreamID:   aggID,
+		StreamType: "Counter",
 		Version:       1,
 		State:         counterState{Count: 1},
 	}); err != nil {
@@ -131,8 +131,8 @@ func TestTypedStore_NilCodecDefaultsToJSON(t *testing.T) {
 	ctx := context.Background()
 
 	if err := store.Save(ctx, snapshot.TypedSnapshot[counterState]{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
+		StreamID:   aggID,
+		StreamType: "Counter",
 		Version:       1,
 		State:         counterState{Count: 99},
 	}); err != nil {

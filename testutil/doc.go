@@ -12,11 +12,11 @@
 //	func TestEventProperty(t *testing.T) {
 //	    rapid.Check(t, func(rt *rapid.T) {
 //	        eventType := testutil.EventType().Draw(rt, "eventType")
-//	        aggType := testutil.AggregateType().Draw(rt, "aggType")
+//	        aggType := testutil.StreamType().Draw(rt, "aggType")
 //	        version := testutil.Version().Draw(rt, "version")
 //
 //	        evt, err := event.NewEvent(event.Type(eventType), id.NewAggregateID(),
-//	            id.AggregateType(aggType), event.Version(version), nil)
+//	            id.StreamType(aggType), event.Version(version), nil)
 //	        if err != nil {
 //	            return // skip invalid combinations
 //	        }
@@ -39,7 +39,7 @@
 // # Available Generators
 //
 //   - EventType(): CQRS event type strings
-//   - AggregateType(): CQRS aggregate type strings
+//   - StreamType(): CQRS aggregate type strings
 //   - Version(): positive version numbers [1, 10000]
 //   - NonEmptyString(): non-empty strings up to 200 chars
 //   - MetadataMap(): random string→string maps for metadata testing

@@ -57,7 +57,7 @@ func (a *EventStore) iterateEvents(
 // Load implements event.Store.Load.
 func (a *EventStore) Load(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) ([]event.Event, error) {
 	span, prefix, upperBound := a.startLoadSpan(ctx, "pebble.event.load", ref)
 	defer span.End()
@@ -72,7 +72,7 @@ func (a *EventStore) Load(
 // Returns events with version strictly greater than the given version.
 func (a *EventStore) LoadFromVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) ([]event.Event, error) {
 	span, lowerBound, upperBound := a.startLoadFromVersionSpan(
@@ -92,7 +92,7 @@ func (a *EventStore) LoadFromVersion(
 // loadFiltered iterates events and returns them filtered by predicate.
 // Returns ErrAggregateNotFound if no events match the filter.
 func (a *EventStore) loadFiltered(
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	upperBound []byte,
 	predicate eventPredicate,
 ) ([]event.Event, error) {
@@ -114,7 +114,7 @@ func (a *EventStore) loadFiltered(
 // LoadToVersion retrieves events up to and including maxVersion.
 func (a *EventStore) LoadToVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	_, span := startAggregateSpan(ctx, "pebble.event.load_to_version", ref,
@@ -135,7 +135,7 @@ func (a *EventStore) LoadToVersion(
 // encounters an event past maxTime — avoiding a full aggregate scan.
 func (a *EventStore) LoadToTimestamp(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	_, span := startAggregateSpan(ctx, "pebble.event.load_to_timestamp", ref)

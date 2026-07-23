@@ -45,7 +45,7 @@ func CommandToMessage(cmd command.Command) *message.Message {
 	md := msg.Metadata
 	md.Set(metaCommandID, cmdID.String())
 	md.Set(metaCommandType, string(cmd.Type()))
-	md.Set(metaAggregateID, cmd.AggregateID().String())
+	md.Set(metaAggregateID, cmd.StreamID().String())
 
 	if mp, ok := cmd.(metadataProvider); ok {
 		m := mp.Metadata()
@@ -75,7 +75,7 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 		)
 	}
 
-	aggregateID, err := id.ParseAggregateID(md.Get(metaAggregateID))
+	streamID, err := id.ParseAggregateID(md.Get(metaAggregateID))
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err,
 			"watermill.parse_aggregate_id_failed", "parse aggregate_id")
@@ -83,7 +83,7 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 
 	opts := parseCommandOptions(md)
 
-	cmd, err := command.New(cmdType, aggregateID, opts...)
+	cmd, err := command.New(cmdType, streamID, opts...)
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(
 			err,

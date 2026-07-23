@@ -32,8 +32,8 @@ func ExampleSnapshotStore() {
 	now := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	snap := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "User",
+		StreamID:   aggID,
+		StreamType: "User",
 		Version:       event.Version(10),
 		State:         []byte(`{"name":"Alice"}`),
 		CreatedAt:     now,
@@ -53,7 +53,7 @@ func ExampleSnapshotStore() {
 		return
 	}
 
-	fmt.Println(loaded.AggregateType, loaded.Version.Int())
+	fmt.Println(loaded.StreamType, loaded.Version.Int())
 
 	// Output:
 	// User 10

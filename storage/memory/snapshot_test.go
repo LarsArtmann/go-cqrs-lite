@@ -14,15 +14,15 @@ import (
 
 func newTestSnapshot(
 	tb testing.TB,
-	aggregateID id.AggregateID,
+	streamID id.StreamID,
 	version int,
 	status string,
 ) snapshot.Snapshot {
 	tb.Helper()
 
 	return snapshot.Snapshot{
-		AggregateID:   aggregateID,
-		AggregateType: "Order",
+		StreamID:   streamID,
+		StreamType: "Order",
 		Version:       event.Version(version),
 		State:         []byte(`{"status":"` + status + `"}`),
 		CreatedAt:     time.Now(),
@@ -55,13 +55,13 @@ func TestMemorySnapshotStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID))
+	loaded, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if loaded.AggregateID != snapshot.AggregateID {
-		t.Errorf("expected aggregate ID %s, got %s", snapshot.AggregateID, loaded.AggregateID)
+	if loaded.StreamID != snapshot.StreamID {
+		t.Errorf("expected aggregate ID %s, got %s", snapshot.StreamID, loaded.StreamID)
 	}
 
 	assertVersion(t, loaded.Version, 5)
@@ -80,7 +80,7 @@ func TestMemorySnapshotStore_Load_NotFound(t *testing.T) {
 
 	_, err := store.Load(
 		context.Background(),
-		id.NewAggregateRef(id.AggregateType("Order"), aggID),
+		id.NewAggregateRef(id.StreamType("Order"), aggID),
 	)
 	if err == nil {
 		t.Error("expected snapshot not found error")
@@ -108,7 +108,7 @@ func TestMemorySnapshotStore_Save_IgnoresOlderVersion(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID))
+	loaded, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -137,7 +137,7 @@ func TestMemorySnapshotStore_Save_UpdatesNewerVersion(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID))
+	loaded, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -187,7 +187,7 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 
 				loaded, err := store.LoadAtVersion(
 					ctx,
-					id.NewAggregateRef(id.AggregateType("Order"), orderID),
+					id.NewAggregateRef(id.StreamType("Order"), orderID),
 					tt.loadVersion,
 				)
 				if err != nil {
@@ -206,7 +206,7 @@ func TestMemorySnapshotStore_LoadAtVersion(t *testing.T) {
 
 		_, err := store.LoadAtVersion(
 			ctx,
-			id.NewAggregateRef(id.AggregateType("Order"), aggID),
+			id.NewAggregateRef(id.StreamType("Order"), aggID),
 			event.Version(3),
 		)
 		if err == nil {
@@ -237,7 +237,7 @@ func TestMemorySnapshotStore_Load_Closed(t *testing.T) {
 
 	_, err := store.Load(
 		context.Background(),
-		id.NewAggregateRef(id.AggregateType("Order"), id.NewAggregateID()),
+		id.NewAggregateRef(id.StreamType("Order"), id.NewAggregateID()),
 	)
 	if err == nil {
 		t.Error("expected error when loading from closed store")
@@ -252,7 +252,7 @@ func TestMemorySnapshotStore_LoadAtVersion_Closed(t *testing.T) {
 
 	_, err := store.LoadAtVersion(
 		context.Background(),
-		id.NewAggregateRef(id.AggregateType("Order"), id.NewAggregateID()),
+		id.NewAggregateRef(id.StreamType("Order"), id.NewAggregateID()),
 		1,
 	)
 	if err == nil {
@@ -268,7 +268,7 @@ func TestMemorySnapshotStore_Delete_Closed(t *testing.T) {
 
 	err := store.Delete(
 		context.Background(),
-		id.NewAggregateRef(id.AggregateType("Order"), id.NewAggregateID()),
+		id.NewAggregateRef(id.StreamType("Order"), id.NewAggregateID()),
 	)
 	if err == nil {
 		t.Error("expected error when deleting from closed store")
@@ -289,12 +289,12 @@ func TestMemorySnapshotStore_Delete(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	err = store.Delete(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID))
+	err = store.Delete(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	_, err = store.Load(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID))
+	_, err = store.Load(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID))
 	if err == nil {
 		t.Error("expected snapshot not found after delete")
 	}
@@ -309,8 +309,8 @@ func TestMemorySnapshotStore_Load_DeepCopy(t *testing.T) {
 	aggID := id.NewAggregateID()
 	originalState := []byte(`{"status":"placed"}`)
 	snapshot := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Order",
+		StreamID:   aggID,
+		StreamType: "Order",
 		Version:       1,
 		State:         originalState,
 		CreatedAt:     time.Now(),
@@ -321,7 +321,7 @@ func TestMemorySnapshotStore_Load_DeepCopy(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID))
+	loaded, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -330,7 +330,7 @@ func TestMemorySnapshotStore_Load_DeepCopy(t *testing.T) {
 	loaded.State[10] = 'x'
 
 	// Reload and verify original is unchanged
-	reloaded, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID))
+	reloaded, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -352,8 +352,8 @@ func TestMemorySnapshotStore_Load_NilState(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	snapshot := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Order",
+		StreamID:   aggID,
+		StreamType: "Order",
 		Version:       1,
 		State:         nil,
 		CreatedAt:     time.Now(),
@@ -364,7 +364,7 @@ func TestMemorySnapshotStore_Load_NilState(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	loaded, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID))
+	loaded, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -383,8 +383,8 @@ func TestMemorySnapshotStore_LoadAtVersion_DeepCopy(t *testing.T) {
 	aggID := id.NewAggregateID()
 	originalState := []byte(`{"status":"shipped"}`)
 	snapshot := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Order",
+		StreamID:   aggID,
+		StreamType: "Order",
 		Version:       5,
 		State:         originalState,
 		CreatedAt:     time.Now(),
@@ -397,7 +397,7 @@ func TestMemorySnapshotStore_LoadAtVersion_DeepCopy(t *testing.T) {
 
 	loaded, err := store.LoadAtVersion(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Order"), aggID),
+		id.NewAggregateRef(id.StreamType("Order"), aggID),
 		5,
 	)
 	if err != nil {
@@ -410,7 +410,7 @@ func TestMemorySnapshotStore_LoadAtVersion_DeepCopy(t *testing.T) {
 	// Reload and verify original is unchanged
 	reloaded, err := store.LoadAtVersion(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Order"), aggID),
+		id.NewAggregateRef(id.StreamType("Order"), aggID),
 		5,
 	)
 	if err != nil {

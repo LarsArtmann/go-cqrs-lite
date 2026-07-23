@@ -9,7 +9,7 @@ import (
 
 func newTestUpcaster(typ event.Type, version event.SchemaVersion, payload string) Upcaster {
 	return NewUpcaster(typ, version, func(evt event.Event) (event.Event, error) {
-		return event.NewEvent(typ, evt.AggregateID(), "User", evt.Version(), []byte(payload))
+		return event.NewEvent(typ, evt.StreamID(), "User", evt.Version(), []byte(payload))
 	})
 }
 
@@ -117,7 +117,7 @@ func registerUserCreatedUpcasterV1(registry *upcasterRegistry) {
 		func(evt event.Event) (event.Event, error) {
 			return event.NewEvent(
 				"UserCreated",
-				evt.AggregateID(),
+				evt.StreamID(),
 				"User",
 				evt.Version(),
 				nil,
@@ -158,7 +158,7 @@ func registerTrackingUpcaster(
 
 			return event.NewEvent(
 				"UserCreated",
-				evt.AggregateID(),
+				evt.StreamID(),
 				"User",
 				evt.Version(),
 				nil,

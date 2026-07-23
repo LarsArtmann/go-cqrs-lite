@@ -29,7 +29,7 @@ func TestCommandTracing_Success(t *testing.T) {
 	mw := CommandTracing(tracer)
 	handler := mw(NoopCommandHandler())
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := handler(context.Background(), cmd)
 	if err != nil {
@@ -67,7 +67,7 @@ func TestCommandTracing_Error(t *testing.T) {
 	mw := CommandTracing(tracer)
 	handler := mw(failingCommandHandler("boom"))
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := handler(context.Background(), cmd)
 	if err == nil {

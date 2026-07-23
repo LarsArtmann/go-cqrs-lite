@@ -67,7 +67,7 @@ func NewStore(database *pebble.DB, logger *slog.Logger, opts ...StoreOption) (*E
 // eventKey generates a storage key for an event.
 // Pattern: cqrs_event:{ref.Type}:{ref.ID}:{version}.
 func (a *EventStore) eventKey(
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:%010d", a.prefix, ref.Type, ref.ID, version.Int())
@@ -75,7 +75,7 @@ func (a *EventStore) eventKey(
 
 // aggregatePrefix returns the prefix for all events of an aggregate.
 func (a *EventStore) aggregatePrefix(
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:", a.prefix, ref.Type, ref.ID)
 }
@@ -85,7 +85,7 @@ func (a *EventStore) aggregatePrefix(
 // iter := db.NewIter(&pebble.IterOptions{LowerBound: prefix, UpperBound: upperBound}).
 // The trailing 0xff byte sorts after any event version (eventKey uses %010d, max 10 digits).
 func (a *EventStore) aggregateUpperBound(
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
 }
@@ -95,7 +95,7 @@ func (a *EventStore) aggregateUpperBound(
 func (a *EventStore) startLoadSpan(
 	ctx context.Context,
 	spanName string,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (cqrsotel.Span, []byte, []byte) {
 	_, span := startAggregateSpan(ctx, spanName, ref)
 	return span, a.aggregatePrefix(ref), a.aggregateUpperBound(ref)
@@ -107,7 +107,7 @@ func (a *EventStore) startLoadSpan(
 func (a *EventStore) startLoadFromVersionSpan(
 	ctx context.Context,
 	spanName string,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) (cqrsotel.Span, []byte, []byte) {
 	_, span := startAggregateSpan(ctx, spanName, ref,
@@ -124,7 +124,7 @@ func (a *EventStore) journalBounds() ([]byte, []byte) {
 // Save implements event.Store.Save with per-aggregate locking for concurrency safety.
 func (a *EventStore) Save(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -180,7 +180,7 @@ func (a *EventStore) Save(
 	return nil
 }
 
-func (a *EventStore) lockShard(ref id.AggregateRef) *sync.Mutex {
+func (a *EventStore) lockShard(ref id.StreamRef) *sync.Mutex {
 	h := fnv.New32a()
 	_, _ = h.Write([]byte(ref.Type))
 	_, _ = h.Write([]byte(ref.ID.String()))
@@ -188,6 +188,6 @@ func (a *EventStore) lockShard(ref id.AggregateRef) *sync.Mutex {
 	return &a.lockShards[h.Sum32()%lockShardCount]
 }
 
-func (a *EventStore) lockAggregate(ref id.AggregateRef) { a.lockShard(ref).Lock() }
+func (a *EventStore) lockAggregate(ref id.StreamRef) { a.lockShard(ref).Lock() }
 
-func (a *EventStore) unlockAggregate(ref id.AggregateRef) { a.lockShard(ref).Unlock() }
+func (a *EventStore) unlockAggregate(ref id.StreamRef) { a.lockShard(ref).Unlock() }

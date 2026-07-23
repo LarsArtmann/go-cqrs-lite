@@ -1,9 +1,21 @@
 # ADR-0027: Postgres LISTEN/NOTIFY Event Bus
 
+> ⚠️ **DEPRECATED — DO NOT USE FOR NEW CODE.**
+>
+> This ADR was implemented and then superseded **one day later** by
+> [ADR-0028](0028-watermill-as-delivery-layer.md), which adopts Watermill as
+> the single delivery layer. The `storage.PostgresBus` and `PgxListener`
+> code still exists for backward compatibility, but new consumers should
+> use Watermill's SQL subscriber or broker plugins instead.
+>
+> The implementation effort (re-fetch logic, lifecycle management, channel
+> allow-listing, three CI integration tests) was effectively wasted — the
+> feature was built and immediately deprecated.
+
 | Field   | Value                                                                                                               |
 | ------- | ------------------------------------------------------------------------------------------------------------------- |
 | Date    | 2026-06-19                                                                                                          |
-| Status  | Implemented — PostgresBus wired into stack/postgres, pgx-based PgxListener shipped, real-PG integration tests in CI |
+| Status  | **Deprecated** — superseded by [0028](0028-watermill-as-delivery-layer.md) for new code                             |
 | Decider | Lars Artmann                                                                                                        |
 
 ## Context

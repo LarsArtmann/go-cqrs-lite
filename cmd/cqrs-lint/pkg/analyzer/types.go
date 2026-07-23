@@ -26,7 +26,7 @@ type CommandInfo struct {
 	Pos           token.Position
 	HasBasicCmd   bool     // embeds *command.BasicCommand
 	ManualID      bool     // has manual ID() method
-	ManualType    bool     // has manual Type() or AggregateID() method
+	ManualType    bool     // has manual Type() or StreamID() method
 	IDReturnsZero bool     // ID() returns zero-value composite literal
 	Fields        []string // field names
 }

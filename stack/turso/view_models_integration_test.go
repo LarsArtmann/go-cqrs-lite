@@ -31,8 +31,8 @@ func buildVMMessage(evt event.Event, eventType string) *message.Message {
 	msg := message.NewMessage(evt.ID().String(), evt.Payload())
 	msg.Metadata.Set("event_type", eventType)
 	msg.Metadata.Set("event_id", evt.ID().String())
-	msg.Metadata.Set("aggregate_id", evt.AggregateID().String())
-	msg.Metadata.Set("aggregate_type", string(evt.AggregateType()))
+	msg.Metadata.Set("aggregate_id", evt.StreamID().String())
+	msg.Metadata.Set("aggregate_type", string(evt.StreamType()))
 	msg.Metadata.Set("version", "1")
 	msg.Metadata.Set("schema_version", "1")
 
@@ -64,7 +64,7 @@ func TestIntegration_TursoSQLViewStoreWithMaterialize(t *testing.T) {
 	mat := stack.Materialize[tursoVMView, tursoVMKey]{
 		Store: store,
 		KeyFromEvent: func(evt event.Event) (tursoVMKey, error) {
-			return tursoVMKey(evt.AggregateID().String()), nil
+			return tursoVMKey(evt.StreamID().String()), nil
 		},
 		OnCreate: func(_ context.Context, _ event.Event) (*tursoVMView, error) {
 			return &tursoVMView{Name: "Alice", Email: "alice@example.com"}, nil

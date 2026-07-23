@@ -8,7 +8,7 @@
 
 The `saga/` module was removed in session 146 (2026-05-29). Saga-style orchestration is better expressed as an emergent pattern using existing library primitives — projection + command dispatch — rather than a dedicated abstraction. This avoids the framework-like coupling and state management complexity of a standalone saga module.
 
-See `example/todo/` for projection-based architecture. Saga-style orchestration emerges from projection + command dispatch — no dedicated module needed.
+See `example/taskmanager/` for projection-based architecture. Saga-style orchestration emerges from projection + command dispatch — no dedicated module needed. (Originally referenced `example/todo/`, which was renamed to `example/taskmanager/`.)
 
 ## Context
 

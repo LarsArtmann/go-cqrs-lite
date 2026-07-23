@@ -24,8 +24,8 @@ import (
 // generic. Convert between them with [TypedStore.TypedToBytes] and
 // [TypedStore.BytesToTyped] (or just let the adapter handle it).
 type TypedSnapshot[State any] struct {
-	AggregateID   id.AggregateID
-	AggregateType id.AggregateType
+	StreamID   id.StreamID
+	StreamType id.StreamType
 	Version       event.Version
 	State         State
 	CreatedAt     time.Time
@@ -36,16 +36,16 @@ type TypedSnapshot[State any] struct {
 // store is the adapter's job).
 type TypedSnapshotSink[State any] interface {
 	Save(ctx context.Context, snapshot TypedSnapshot[State]) error
-	Delete(ctx context.Context, ref id.AggregateRef) error
+	Delete(ctx context.Context, ref id.StreamRef) error
 }
 
 // TypedSnapshotSource loads typed snapshots. The typed analogue of
 // [SnapshotSource].
 type TypedSnapshotSource[State any] interface {
-	Load(ctx context.Context, ref id.AggregateRef) (*TypedSnapshot[State], error)
+	Load(ctx context.Context, ref id.StreamRef) (*TypedSnapshot[State], error)
 	LoadAtVersion(
 		ctx context.Context,
-		ref id.AggregateRef,
+		ref id.StreamRef,
 		version event.Version,
 	) (*TypedSnapshot[State], error)
 }
@@ -83,26 +83,26 @@ func (t *TypedStore[State]) Save(ctx context.Context, snapshot TypedSnapshot[Sta
 	encoded, err := codec.WrapEncode(snapshot.State, t.codec)
 	if err != nil {
 		return errorfamily.Wrapf(err, errorfamily.Corruption, "snapshot.encode_state",
-			"encode state for %s v%d", snapshot.AggregateID, snapshot.Version)
+			"encode state for %s v%d", snapshot.StreamID, snapshot.Version)
 	}
 
 	err = t.store.Save(ctx, Snapshot{
-		AggregateID:   snapshot.AggregateID,
-		AggregateType: snapshot.AggregateType,
+		StreamID:   snapshot.StreamID,
+		StreamType: snapshot.StreamType,
 		Version:       snapshot.Version,
 		State:         encoded,
 		CreatedAt:     snapshot.CreatedAt,
 	})
 	if err != nil {
 		return errorfamily.Wrapf(err, errorfamily.Infrastructure, "snapshot.save",
-			"save %s v%d", snapshot.AggregateID, snapshot.Version)
+			"save %s v%d", snapshot.StreamID, snapshot.Version)
 	}
 
 	return nil
 }
 
 // Delete removes the snapshot for ref from the underlying store.
-func (t *TypedStore[State]) Delete(ctx context.Context, ref id.AggregateRef) error {
+func (t *TypedStore[State]) Delete(ctx context.Context, ref id.StreamRef) error {
 	err := t.store.Delete(ctx, ref)
 	if err != nil {
 		return errorfamily.Wrapf(err, errorfamily.Infrastructure, "snapshot.delete",
@@ -115,7 +115,7 @@ func (t *TypedStore[State]) Delete(ctx context.Context, ref id.AggregateRef) err
 // Load retrieves the snapshot for ref and decodes its State.
 func (t *TypedStore[State]) Load(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (*TypedSnapshot[State], error) {
 	raw, err := t.store.Load(ctx, ref)
 	if err != nil {
@@ -130,7 +130,7 @@ func (t *TypedStore[State]) Load(
 // decodes its State.
 func (t *TypedStore[State]) LoadAtVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) (*TypedSnapshot[State], error) {
 	raw, err := t.store.LoadAtVersion(ctx, ref, version)
@@ -153,12 +153,12 @@ func (t *TypedStore[State]) decode(raw *Snapshot) (*TypedSnapshot[State], error)
 	err := c.Decode(inner, &state)
 	if err != nil {
 		return nil, errorfamily.Wrapf(err, errorfamily.Corruption, "snapshot.decode_state",
-			"decode state for %s v%d", raw.AggregateID, raw.Version)
+			"decode state for %s v%d", raw.StreamID, raw.Version)
 	}
 
 	return &TypedSnapshot[State]{
-		AggregateID:   raw.AggregateID,
-		AggregateType: raw.AggregateType,
+		StreamID:   raw.StreamID,
+		StreamType: raw.StreamType,
 		Version:       raw.Version,
 		State:         state,
 		CreatedAt:     raw.CreatedAt,

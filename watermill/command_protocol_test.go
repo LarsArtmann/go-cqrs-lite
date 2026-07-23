@@ -68,7 +68,7 @@ func TestCommandRoundTrip(t *testing.T) {
 	if reconstructed.Type() != original.Type() {
 		t.Fatalf("type: got %q, want %q", reconstructed.Type(), original.Type())
 	}
-	if reconstructed.AggregateID() != original.AggregateID() {
+	if reconstructed.StreamID() != original.StreamID() {
 		t.Fatalf("aggregate_id mismatch after round-trip")
 	}
 
@@ -219,7 +219,7 @@ func TestCommandRoundTrip_MinimalCommand(t *testing.T) {
 	if reconstructed.Type() != "noop" {
 		t.Fatalf("type mismatch")
 	}
-	if reconstructed.AggregateID() != aggID {
+	if reconstructed.StreamID() != aggID {
 		t.Fatalf("aggregate_id mismatch")
 	}
 }

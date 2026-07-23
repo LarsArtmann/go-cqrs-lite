@@ -21,12 +21,12 @@ func TestBuilder_Build(t *testing.T) {
 		t.Errorf("expected type TestEvent, got %s", evt.Type())
 	}
 
-	if evt.AggregateID() != aggID {
-		t.Errorf("expected aggregate ID %s, got %s", aggID, evt.AggregateID())
+	if evt.StreamID() != aggID {
+		t.Errorf("expected aggregate ID %s, got %s", aggID, evt.StreamID())
 	}
 
-	if evt.AggregateType() != "TestAggregate" {
-		t.Errorf("expected aggregate type TestAggregate, got %s", evt.AggregateType())
+	if evt.StreamType() != "TestAggregate" {
+		t.Errorf("expected aggregate type TestAggregate, got %s", evt.StreamType())
 	}
 
 	if evt.Version() != 1 {

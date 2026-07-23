@@ -27,8 +27,8 @@ func (c *chainUpcaster) SourceVersion() event.SchemaVersion { return event.Schem
 func (c *chainUpcaster) Upcast(evt event.Event) (event.Event, error) {
 	return event.NewEvent(
 		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
+		evt.StreamID(),
+		evt.StreamType(),
 		evt.Version(),
 		evt.Payload(),
 		event.WithEventID(evt.ID()),
@@ -361,7 +361,7 @@ func benchmarkReadAll(b *testing.B, chainDepth int) {
 
 	if err := store.Save(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Test"), aggID),
+		id.NewAggregateRef(id.StreamType("Test"), aggID),
 		events,
 		0,
 	); err != nil {
@@ -418,7 +418,7 @@ func BenchmarkVersionedSeekableJournal_ReadFrom_WithUpcasters(b *testing.B) {
 
 	if err := store.Save(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Test"), aggID),
+		id.NewAggregateRef(id.StreamType("Test"), aggID),
 		events,
 		0,
 	); err != nil {

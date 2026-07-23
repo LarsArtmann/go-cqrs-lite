@@ -364,8 +364,8 @@ func verifyEventStoreRoundtrip(
 	t *testing.T,
 	ctx context.Context,
 	backend *storage.SQLBackend,
-	aggID id.AggregateID,
-	ref id.AggregateRef,
+	aggID id.StreamID,
+	ref id.StreamRef,
 ) {
 	t.Helper()
 
@@ -412,8 +412,8 @@ func verifySnapshotStoreRoundtrip(
 	t *testing.T,
 	ctx context.Context,
 	backend *storage.SQLBackend,
-	aggID id.AggregateID,
-	ref id.AggregateRef,
+	aggID id.StreamID,
+	ref id.StreamRef,
 ) {
 	t.Helper()
 
@@ -424,8 +424,8 @@ func verifySnapshotStoreRoundtrip(
 
 	state := []byte(`{"title":"snapshot-issue","status":"open"}`)
 	snap := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Issue",
+		StreamID:   aggID,
+		StreamType: "Issue",
 		Version:       3,
 		State:         state,
 		CreatedAt:     time.Now().Truncate(time.Microsecond),
@@ -533,7 +533,7 @@ func verifyCommandStoreRoundtrip(
 	t *testing.T,
 	ctx context.Context,
 	backend *storage.SQLBackend,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) {
 	t.Helper()
 

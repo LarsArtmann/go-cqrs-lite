@@ -23,8 +23,8 @@ func TestNewCommand(t *testing.T) {
 		t.Errorf("expected type CreateUser, got %s", cmd.Type())
 	}
 
-	if cmd.AggregateID() != idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95") {
-		t.Errorf("expected aggregate ID user-123, got %s", cmd.AggregateID())
+	if cmd.StreamID() != idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95") {
+		t.Errorf("expected aggregate ID user-123, got %s", cmd.StreamID())
 	}
 }
 

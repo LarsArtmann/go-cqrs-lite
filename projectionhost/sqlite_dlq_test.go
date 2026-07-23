@@ -53,7 +53,7 @@ func makeDLQEntry(t *testing.T, projName string) projectionhost.DeadLetterEntry 
 		ProjectionName: projName,
 		EventID:        evt.ID().String(),
 		EventType:      string(evt.Type()),
-		AggregateID:    aggID.String(),
+		StreamID:    aggID.String(),
 		Event:          evt,
 		Error:          "handler panicked: nil pointer",
 		ErrorCode:      "test.panic",
@@ -288,7 +288,7 @@ func TestSQLiteDeadLetterStore_PreservesEventFields(t *testing.T) {
 		ProjectionName: "orders",
 		EventID:        evt.ID().String(),
 		EventType:      "order.created",
-		AggregateID:    aggID.String(),
+		StreamID:    aggID.String(),
 		Event:          evt,
 		Error:          "handler timeout",
 		ErrorCode:      "test.timeout",
@@ -323,8 +323,8 @@ func TestSQLiteDeadLetterStore_PreservesEventFields(t *testing.T) {
 		t.Errorf("SchemaVersion = %d, want 3", got.Event.SchemaVersion().Int())
 	}
 
-	if got.Event.AggregateType() != "Order" {
-		t.Errorf("AggregateType = %q", got.Event.AggregateType())
+	if got.Event.StreamType() != "Order" {
+		t.Errorf("StreamType = %q", got.Event.StreamType())
 	}
 }
 

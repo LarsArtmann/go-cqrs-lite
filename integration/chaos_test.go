@@ -19,13 +19,13 @@ import (
 
 type chaosCmd struct {
 	commandID   id.CommandID
-	aggregateID id.AggregateID
+	streamID id.StreamID
 	fail        bool
 	panicMsg    string
 }
 
 func (c *chaosCmd) Type() command.Type          { return "chaos.command" }
-func (c *chaosCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *chaosCmd) StreamID() id.StreamID { return c.streamID }
 func (c *chaosCmd) ID() id.CommandID            { return c.commandID }
 
 func TestChaos_CommandHandler_Error(t *testing.T) {
@@ -40,7 +40,7 @@ func TestChaos_CommandHandler_Error(t *testing.T) {
 		return handlerErr
 	})
 
-	err := disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
+	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewAggregateID()})
 	g.Expect(err).To(MatchError(handlerErr))
 }
 
@@ -55,7 +55,7 @@ func TestChaos_CommandHandler_Panic_Recovered(t *testing.T) {
 		panic("chaos: unexpected panic")
 	})
 
-	err := disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
+	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewAggregateID()})
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(err.Error()).To(ContainSubstring("panic recovered"))
 }
@@ -77,7 +77,7 @@ func TestChaos_CommandHandler_Panic_NoRecovery(t *testing.T) {
 		panic("chaos: propagated")
 	})
 
-	_ = disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
+	_ = disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewAggregateID()})
 }
 
 func newRetryDispatcher(
@@ -118,7 +118,7 @@ func TestChaos_CommandRetry_SucceedsAfterFailures(t *testing.T) {
 	var attempts int
 	disp := newRetryDispatcher(5, &attempts, 3, false)
 
-	err := disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
+	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewAggregateID()})
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(attempts).To(Equal(3))
 }
@@ -163,7 +163,7 @@ func TestChaos_Context_Cancellation(t *testing.T) {
 		return ctx.Err()
 	})
 
-	err := disp.Dispatch(ctx, &chaosCmd{aggregateID: id.NewAggregateID()})
+	err := disp.Dispatch(ctx, &chaosCmd{streamID: id.NewAggregateID()})
 	g.Expect(err).To(MatchError(context.Canceled))
 }
 
@@ -174,7 +174,7 @@ func TestChaos_CommandRetry_ExhaustsAllAttempts(t *testing.T) {
 	var attempts int
 	disp := newRetryDispatcher(3, &attempts, 0, true)
 
-	err := disp.Dispatch(context.Background(), &chaosCmd{aggregateID: id.NewAggregateID()})
+	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewAggregateID()})
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(attempts).To(Equal(3))
 }

@@ -73,14 +73,14 @@ func TestIsAggregateIDULID(t *testing.T) {
 
 	tests := []struct {
 		name string
-		id   id.AggregateID
+		id   id.StreamID
 		want bool
 	}{
 		{"NewAggregateID", id.NewAggregateID(), true},
 		{"parsed ULID", mustParseAgg(t, id.NewAggregateID().String()), true},
 		{"derived SHA-256", id.DeriveAggregateID("ns", "key"), false},
 		{"domain string", mustParseAgg(t, "lock_user1"), false},
-		{"empty", id.AggregateID{}, false},
+		{"empty", id.StreamID{}, false},
 	}
 
 	for _, tt := range tests {
@@ -102,7 +102,7 @@ func TestAggregateTimestamp_ValidULID(t *testing.T) {
 	aggID := id.NewAggregateID()
 	after := time.Now()
 
-	ts, err := id.AggregateTimestamp(aggID)
+	ts, err := id.StreamTimestamp(aggID)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -116,22 +116,22 @@ func TestAggregateTimestamp_NotULID(t *testing.T) {
 	t.Parallel()
 
 	derived := id.DeriveAggregateID("lock", "user1")
-	_, err := id.AggregateTimestamp(derived)
+	_, err := id.StreamTimestamp(derived)
 	if err == nil {
-		t.Fatal("expected error for non-ULID AggregateID")
+		t.Fatal("expected error for non-ULID StreamID")
 	}
 }
 
 func TestAggregateTimestamp_Empty(t *testing.T) {
 	t.Parallel()
 
-	_, err := id.AggregateTimestamp(id.AggregateID{})
+	_, err := id.StreamTimestamp(id.StreamID{})
 	if err == nil {
-		t.Fatal("expected error for empty AggregateID")
+		t.Fatal("expected error for empty StreamID")
 	}
 }
 
-func mustParseAgg(t *testing.T, s string) id.AggregateID {
+func mustParseAgg(t *testing.T, s string) id.StreamID {
 	t.Helper()
 
 	id, err := id.ParseAggregateID(s)

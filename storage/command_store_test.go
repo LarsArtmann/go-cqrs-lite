@@ -36,13 +36,13 @@ func newTestCommandStore(t *testing.T) *storage.SQLCommandStore {
 func testCommand(
 	t *testing.T,
 	typ command.Type,
-	aggregateRef command.AggregateRef,
+	streamRef command.StreamRef,
 ) *command.PersistedCommand {
 	t.Helper()
 
 	persisted, createErr := command.NewPersistedCommand(
 		typ,
-		aggregateRef,
+		streamRef,
 		[]byte(`{"name":"Alice"}`),
 	)
 	if createErr != nil {

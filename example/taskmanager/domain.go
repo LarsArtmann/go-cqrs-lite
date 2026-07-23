@@ -18,12 +18,12 @@ import (
 // beyond event/ (for error taxonomy) and id/ (for branded IDs).
 // ──────────────────────────────────────────────────────────────────────────
 
-const aggregateType = id.AggregateType("Task")
+const streamType = id.StreamType("Task")
 
-// TaskID is the identifier for a Task aggregate. It uses id.AggregateID
+// TaskID is the identifier for a Task aggregate. It uses id.StreamID
 // because the event system keys on that type. For compile-time branded
 // IDs with custom markers (id.Of[TaskMarker]), see the id/ package docs.
-type TaskID = id.AggregateID
+type TaskID = id.StreamID
 
 // Priority ranks task urgency.
 type Priority string
@@ -69,7 +69,7 @@ type TaskState struct {
 	AssigneeID  string
 	Status      Status
 	DueDate     *time.Time
-	BlockedBy   []id.AggregateID
+	BlockedBy   []id.StreamID
 	Tombstoned  bool
 }
 
@@ -100,7 +100,7 @@ func (s TaskState) CanTransitionTo(target Status) bool {
 }
 
 // HasDependency reports whether the task is blocked by depID.
-func (s TaskState) HasDependency(depID id.AggregateID) bool {
+func (s TaskState) HasDependency(depID id.StreamID) bool {
 	return slices.Contains(s.BlockedBy, depID)
 }
 

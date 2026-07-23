@@ -27,7 +27,7 @@ var _ = Describe("Event Creation", func() {
 				evt, err := event.NewEvent(
 					event.Type("UserRegistered"),
 					aggID,
-					id.AggregateType("User"),
+					id.StreamType("User"),
 					1,
 					[]byte(`{"email":"alice@example.com"}`),
 					event.WithCorrelationID(corrID),
@@ -39,8 +39,8 @@ var _ = Describe("Event Creation", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(evt.Type()).To(Equal(event.Type("UserRegistered")))
-				Expect(evt.AggregateID()).To(Equal(aggID))
-				Expect(evt.AggregateType()).To(Equal(id.AggregateType("User")))
+				Expect(evt.StreamID()).To(Equal(aggID))
+				Expect(evt.StreamType()).To(Equal(id.StreamType("User")))
 				Expect(evt.Version()).To(Equal(event.Version(1)))
 				Expect(evt.Payload()).To(ContainSubstring("alice@example.com"))
 				Expect(evt.Metadata().CorrelationID).To(Equal(corrID))
@@ -55,12 +55,12 @@ var _ = Describe("Event Creation", func() {
 
 		Context("when I create an event with an empty aggregate ID", func() {
 			It("should reject it with a descriptive error", func() {
-				var emptyID id.AggregateID
+				var emptyID id.StreamID
 
 				_, err := event.NewEvent(
 					event.Type("BadEvent"),
 					emptyID,
-					id.AggregateType("User"),
+					id.StreamType("User"),
 					1,
 					nil,
 				)
@@ -71,20 +71,20 @@ var _ = Describe("Event Creation", func() {
 
 		DescribeTable(
 			"when I create an event with invalid parameters",
-			func(aggID id.AggregateID, aggType id.AggregateType, version event.Version, expectedMsg string) {
+			func(aggID id.StreamID, aggType id.StreamType, version event.Version, expectedMsg string) {
 				expectNewEventValidationFails(aggID, aggType, version, expectedMsg)
 			},
 			Entry(
 				"empty aggregate type",
 				id.NewAggregateID(),
-				id.AggregateType(""),
+				id.StreamType(""),
 				event.Version(1),
 				"aggregate type is required",
 			),
 			Entry(
 				"zero version",
 				id.NewAggregateID(),
-				id.AggregateType("User"),
+				id.StreamType("User"),
 				event.Version(0),
 				"version",
 			),
@@ -96,7 +96,7 @@ var _ = Describe("Event Creation", func() {
 				evt, err := event.NewEvent(
 					event.Type("TestEvent"),
 					aggID,
-					id.AggregateType("Test"),
+					id.StreamType("Test"),
 					1,
 					nil,
 					event.WithCustom(event.MetadataKey("tenant"), "acme-corp"),

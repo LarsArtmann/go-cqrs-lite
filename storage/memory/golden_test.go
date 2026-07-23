@@ -114,8 +114,8 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	}
 
 	snap := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "User",
+		StreamID:   aggID,
+		StreamType: "User",
 		Version:       event.Version(10),
 		State:         state,
 		CreatedAt:     time.Date(2026, time.June, 1, 12, 0, 0, 0, time.UTC),
@@ -131,14 +131,14 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	}
 
 	got, err := json.Marshal(struct {
-		AggregateID   string `json:"aggregateId"`
-		AggregateType string `json:"aggregateType"`
+		StreamID   string `json:"aggregateId"`
+		StreamType string `json:"streamType"`
 		Version       int    `json:"version"`
 		State         string `json:"state"`
 		CreatedAt     string `json:"createdAt"`
 	}{
-		AggregateID:   loaded.AggregateID.String(),
-		AggregateType: string(loaded.AggregateType),
+		StreamID:   loaded.StreamID.String(),
+		StreamType: string(loaded.StreamType),
 		Version:       loaded.Version.Int(),
 		State:         string(loaded.State),
 		CreatedAt:     loaded.CreatedAt.Format(time.RFC3339Nano),

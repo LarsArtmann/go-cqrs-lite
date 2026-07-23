@@ -39,7 +39,7 @@ func BenchmarkScale_EventSave_10KAggregates_100EventsEach(b *testing.B) {
 	aggCount := 10_000
 	eventsPerAgg := 100
 
-	aggIDs := make([]id.AggregateID, aggCount)
+	aggIDs := make([]id.StreamID, aggCount)
 	for i := range aggIDs {
 		aggIDs[i] = id.NewAggregateID()
 	}

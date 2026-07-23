@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func newTestEvent(t *testing.T, aggID id.AggregateID, v event.Version) event.Event {
+func newTestEvent(t *testing.T, aggID id.StreamID, v event.Version) event.Event {
 	t.Helper()
 	evt, err := event.NewEvent("TestEvent", aggID, "Test", v, nil)
 	if err != nil {
@@ -24,7 +24,7 @@ func appendTestEvents(
 	t *testing.T,
 	store *FakeStore,
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	n int,
 ) {
 	t.Helper()
@@ -57,7 +57,7 @@ func TestFakeStore_Save_Default(t *testing.T) {
 func TestFakeStore_Save_Override(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
-	store.saveFn = func(context.Context, id.AggregateRef, []event.Event, event.Version) error {
+	store.saveFn = func(context.Context, id.StreamRef, []event.Event, event.Version) error {
 		return errors.New("save override")
 	}
 
@@ -119,7 +119,7 @@ func TestFakeStore_Load_DefensiveCopy(t *testing.T) {
 func TestFakeStore_Load_Override(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
-	store.loadFn = func(id.AggregateRef) ([]event.Event, error) {
+	store.loadFn = func(id.StreamRef) ([]event.Event, error) {
 		return nil, errors.New("load override")
 	}
 
@@ -153,7 +153,7 @@ func TestFakeStore_LoadFromVersion_Default(t *testing.T) {
 func TestFakeStore_LoadFromVersion_Override(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
-	store.loadFromVersionFn = func(id.AggregateRef, event.Version) ([]event.Event, error) {
+	store.loadFromVersionFn = func(id.StreamRef, event.Version) ([]event.Event, error) {
 		return nil, errors.New("override")
 	}
 

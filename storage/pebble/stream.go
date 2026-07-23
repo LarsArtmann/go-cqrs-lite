@@ -122,7 +122,7 @@ func (a *EventStore) newPebbleIterator(
 // LoadStream is the streaming equivalent of Load.
 func (a *EventStore) LoadStream(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (event.EventIterator, error) {
 	span, lower, upper := a.startLoadSpan(ctx, "pebble.event.load_stream", ref)
 	defer span.End()
@@ -133,7 +133,7 @@ func (a *EventStore) LoadStream(
 // LoadStreamFromVersion is the streaming equivalent of LoadFromVersion.
 func (a *EventStore) LoadStreamFromVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) (event.EventIterator, error) {
 	span, lower, upper := a.startLoadFromVersionSpan(

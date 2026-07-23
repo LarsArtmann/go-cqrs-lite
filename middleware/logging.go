@@ -16,17 +16,17 @@ import (
 func logWithContext(
 	logger *slog.Logger,
 	prefix, msgType string,
-	aggregateID id.AggregateID,
+	streamID id.StreamID,
 	fn func() error,
 ) error {
 	start := time.Now()
 
-	aggregateIDStr := aggregateID.String()
+	aggregateIDStr := streamID.String()
 
 	logger.Info(
 		prefix+" dispatching",
 		"type", msgType,
-		"aggregateID", aggregateIDStr,
+		"streamID", aggregateIDStr,
 	)
 
 	err := fn()
@@ -36,7 +36,7 @@ func logWithContext(
 		logger.Error(
 			prefix+" failed",
 			"type", msgType,
-			"aggregateID", aggregateIDStr,
+			"streamID", aggregateIDStr,
 			"duration", duration,
 			"error", err,
 		)
@@ -54,7 +54,7 @@ func logWithContext(
 	logger.Info(
 		prefix+" succeeded",
 		"type", msgType,
-		"aggregateID", aggregateIDStr,
+		"streamID", aggregateIDStr,
 		"duration", duration,
 	)
 
@@ -65,7 +65,7 @@ func logWithContext(
 func NewLogging[M any](adapter MessageAdapter[M], logger *slog.Logger) Middleware[M] {
 	return func(next Handler[M]) Handler[M] {
 		return func(ctx context.Context, msg M) error {
-			var aggID id.AggregateID
+			var aggID id.StreamID
 
 			if adapter.ExtractID != nil {
 				aggID = adapter.ExtractID(msg)

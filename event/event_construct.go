@@ -18,8 +18,8 @@ func (e *ImmutableEvent) Clone() *ImmutableEvent {
 	return &ImmutableEvent{
 		id:            e.id,
 		eventType:     e.eventType,
-		aggregateID:   e.aggregateID,
-		aggregateType: e.aggregateType,
+		streamID:   e.streamID,
+		streamType: e.streamType,
 		version:       e.version,
 		schemaVersion: e.schemaVersion,
 		encoding:      e.encoding,
@@ -33,16 +33,16 @@ func (e *ImmutableEvent) Clone() *ImmutableEvent {
 // NewEvent creates a new event with validation.
 func NewEvent(
 	eventType Type,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	version Version,
 	payload []byte,
 	opts ...Option,
 ) (*ImmutableEvent, error) {
 	err := validateEventParams(
 		eventType,
-		aggregateID,
-		aggregateType,
+		streamID,
+		streamType,
 		version,
 		payload,
 	)
@@ -52,14 +52,14 @@ func NewEvent(
 
 	safePayload := slices.Clone(payload)
 
-	return buildEvent(eventType, aggregateID, aggregateType, version, safePayload, opts), nil
+	return buildEvent(eventType, streamID, streamType, version, safePayload, opts), nil
 }
 
 // buildEvent constructs an ImmutableEvent from already-validated, already-copied fields.
 func buildEvent(
 	eventType Type,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	version Version,
 	payload []byte,
 	opts []Option,
@@ -69,8 +69,8 @@ func buildEvent(
 	evt := &ImmutableEvent{
 		id:            id.NewEventID(),
 		eventType:     eventType,
-		aggregateID:   aggregateID,
-		aggregateType: aggregateType,
+		streamID:   streamID,
+		streamType: streamType,
 		version:       version,
 		schemaVersion: schemaV,
 		payload:       payload,

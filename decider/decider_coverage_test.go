@@ -16,7 +16,7 @@ import (
 func executeCreateEvent(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) error {
 	t.Helper()
 
@@ -162,8 +162,8 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 	}
 
 	snap := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
+		StreamID:   aggID,
+		StreamType: "Counter",
 		Version:       event.Version(1),
 		State:         state,
 	}

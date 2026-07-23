@@ -12,7 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func mockEventRows(aggID id.AggregateID, now time.Time, payload, metaJSON []byte) *sqlmock.Rows {
+func mockEventRows(aggID id.StreamID, now time.Time, payload, metaJSON []byte) *sqlmock.Rows {
 	return sqlmock.NewRows(eventColumns()).
 		AddRow(
 			id.NewEventID().String(), "user.created", "User",
@@ -52,7 +52,7 @@ func BenchmarkSQLEventStore_Load(b *testing.B) {
 
 		_, _ = store.Load(
 			context.Background(),
-			id.NewAggregateRef(id.AggregateType("User"), aggID),
+			id.NewAggregateRef(id.StreamType("User"), aggID),
 		)
 
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -78,7 +78,7 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 
 	for b.Loop() {
 		evt, _ := event.NewEvent(
-			event.Type("user.created"), aggID, id.AggregateType("User"),
+			event.Type("user.created"), aggID, id.StreamType("User"),
 			event.Version(1), payload,
 		)
 
@@ -95,7 +95,7 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 		mock.ExpectCommit()
 
 		_ = store.Save(
-			context.Background(), id.NewAggregateRef(id.AggregateType("User"), aggID),
+			context.Background(), id.NewAggregateRef(id.StreamType("User"), aggID),
 			[]event.Event{evt}, event.Version(0),
 		)
 
@@ -136,7 +136,7 @@ func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
 
 		_, _ = store.LoadToVersion(
 			context.Background(),
-			id.NewAggregateRef(id.AggregateType("User"), aggID),
+			id.NewAggregateRef(id.StreamType("User"), aggID),
 			2,
 		)
 

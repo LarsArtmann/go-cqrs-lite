@@ -26,7 +26,7 @@ func FuzzNewUpcaster_SourceType(f *testing.F) {
 			event.SchemaVersion(sourceVersion),
 			func(evt event.Event) (event.Event, error) {
 				return event.NewEvent(
-					evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+					evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 					evt.Payload(),
 				)
 			},
@@ -81,7 +81,7 @@ func FuzzNewVersionedStore_NilStore(f *testing.F) {
 			event.SchemaVersion(sourceVersion),
 			func(evt event.Event) (event.Event, error) {
 				return event.NewEvent(
-					evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+					evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 					evt.Payload(),
 				)
 			},
@@ -112,7 +112,7 @@ func FuzzVersionedStore_UpcastAll(f *testing.F) {
 				event.SchemaVersion(1),
 				func(evt event.Event) (event.Event, error) {
 					return event.NewEvent(
-						evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+						evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 						[]byte(upgradedPayload),
 						event.WithSchemaVersion(2),
 					)
@@ -164,7 +164,7 @@ func FuzzVersionedStore_LoadFromArbitraryStream(f *testing.F) {
 				event.SchemaVersion(1),
 				func(evt event.Event) (event.Event, error) {
 					return event.NewEvent(
-						evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+						evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 						[]byte(upgradedPayload),
 						event.WithSchemaVersion(2),
 					)
@@ -195,9 +195,9 @@ func FuzzVersionedStore_LoadFromArbitraryStream(f *testing.F) {
 				t.Errorf("SchemaVersion: got %d, want 2", out.SchemaVersion())
 			}
 
-			// AggregateID preserved
-			if out.AggregateID() != aggID {
-				t.Error("AggregateID not preserved through upcast")
+			// StreamID preserved
+			if out.StreamID() != aggID {
+				t.Error("StreamID not preserved through upcast")
 			}
 		},
 	)

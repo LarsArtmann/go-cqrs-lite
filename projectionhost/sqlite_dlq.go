@@ -109,7 +109,7 @@ func (s *SQLiteDeadLetterStore) Store(ctx context.Context, entry DeadLetterEntry
 		}
 
 		payload = event.PayloadReadOnly(evt)
-		aggType = string(evt.AggregateType())
+		aggType = string(evt.StreamType())
 	}
 
 	version, schemaVersion := 0, 1
@@ -132,7 +132,7 @@ func (s *SQLiteDeadLetterStore) Store(ctx context.Context, entry DeadLetterEntry
 		entry.EventID,
 		entry.EventType,
 		aggType,
-		entry.AggregateID,
+		entry.StreamID,
 		version,
 		schemaVersion,
 		payload,
@@ -269,7 +269,7 @@ func scanDLQRow(rows *sql.Rows) (DeadLetterEntry, error) {
 		&entry.EventID,
 		&entry.EventType,
 		&aggType,
-		&entry.AggregateID,
+		&entry.StreamID,
 		&version,
 		&schemaVersion,
 		&payload,
@@ -303,12 +303,12 @@ func scanDLQRow(rows *sql.Rows) (DeadLetterEntry, error) {
 			eventID = id.NewEventID()
 		}
 
-		aggID, _ := id.ParseAggregateID(entry.AggregateID)
+		aggID, _ := id.ParseAggregateID(entry.StreamID)
 
 		evt, reconstructErr := event.ReconstructEventFromFields(
 			eventID,
 			event.Type(entry.EventType),
-			id.AggregateType(aggType),
+			id.StreamType(aggType),
 			aggID,
 			version,
 			schemaVersion,

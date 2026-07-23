@@ -146,7 +146,7 @@ watermill/     — Watermill protocol adapter
 | [0043](0043-dlq-unification-options.md)             | Dead-Letter Store Unification Options                  | 2026-06-29 | Accepted — see also [0059](0059-dlq-unification-proposal.md) (Proposed) |
 | [0044](0044-blind-store-encoding-stamps.md)         | Blind Store Encoding Stamps                            | 2026-07-01 | Accepted                                |
 | [0045](0045-eventtest-module-path-fix.md)           | eventtest Module Path / Directory Alignment            | 2026-07-05 | Accepted                                |
-| [0046](0046-four-tier-model.md)                     | Seven-Tier Dependency Model                            | 2026-07-09 | Accepted                                |
+| [0046](0046-seven-tier-model.md)                     | Seven-Tier Dependency Model                            | 2026-07-09 | Accepted                                |
 | [0047](0047-cose-support.md)                        | COSE Support for Signing, Encryption, and Codec        | 2026-07-10 | Accepted                                |
 | [0048](0048-deterministic-json-encoding.md)         | Deterministic JSON Encoding in Security-Critical Paths | 2026-07-10 | Accepted                                |
 | [0049](0049-dispatch-time-middleware.md)            | Dispatch-Time Middleware Application                   | 2026-07-10 | Accepted                                |

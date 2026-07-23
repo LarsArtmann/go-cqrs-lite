@@ -84,7 +84,7 @@ func fold(s State, evt event.Event) (State, error) {
 	return s, nil
 }
 
-func saveEvents(store event.Store, ref event.AggregateRef, events []event.Event) error {
+func saveEvents(store event.Store, ref event.StreamRef, events []event.Event) error {
 	return store.Save(nil, ref, events)
 }
 `,
@@ -139,7 +139,7 @@ func fold(s State, evt event.Event) (State, error) {
 	return s, nil
 }
 
-func saveEvents(store event.Store, ref event.AggregateRef, events []event.Event) error {
+func saveEvents(store event.Store, ref event.StreamRef, events []event.Event) error {
 	return store.Save(nil, ref, events)
 }
 `,

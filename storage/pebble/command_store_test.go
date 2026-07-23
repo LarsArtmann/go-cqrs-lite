@@ -37,7 +37,7 @@ func newCommandStore(t *testing.T) *cqrspebble.CommandStore {
 func mustCreateCommand(
 	t *testing.T,
 	cmdType string,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 ) *command.PersistedCommand {
 	t.Helper()
 

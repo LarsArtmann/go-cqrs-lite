@@ -1,4 +1,9 @@
-# ADR-0046: Four-Tier Dependency Model
+# ADR-0046: Seven-Tier Dependency Model
+
+> Originally titled "Four-Tier Dependency Model." Renamed because the model
+> actually describes seven tiers (0–6), not four. The "four" referred only to
+> the conceptual grouping (primitives → core → infrastructure → composition),
+> but the numbered tier table has always listed seven.
 
 **Status:** Accepted  
 **Date:** 2026-07-09
@@ -11,6 +16,7 @@ analysis revealed this system was fake:
 1. `kv/` claims Layer 0 but depends on `codec/` — not a true leaf
 2. `event/` claims Layer 1 but depends on Tier 2-4 modules via test deps that leak into go.mod
 3. 38 of 48 modules depend on `codec/` — the true hub was invisible in the old system
+   (note: the project now has 55 modules; the proportion is similar)
 4. `command/` has a hard compile dependency on `event/` — violates CQRS separation
 
 The 7-layer system provided false confidence that dependencies were well-stratified when

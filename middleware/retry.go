@@ -33,7 +33,7 @@ func NewRetry[M any](adapter MessageAdapter[M], config RetryConfig, opts ...Opti
 			}
 
 			if adapter.ExtractID != nil {
-				entry.AggregateID = adapter.ExtractID(msg)
+				entry.StreamID = adapter.ExtractID(msg)
 			}
 
 			return retry(ctx, config, cfg.logger, entry, func(attemptCtx context.Context) error {

@@ -21,8 +21,8 @@ type counterState struct {
 func mustAppendBatch(
 	t *testing.T,
 	store event.Store,
-	aggType id.AggregateType,
-	aggID id.AggregateID,
+	aggType id.StreamType,
+	aggID id.StreamID,
 	events []event.Event,
 ) {
 	t.Helper()
@@ -118,7 +118,7 @@ func newSnapshotSetup(
 func requireLoadState(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	expectValue int,
 	expectVersion event.Version,
 ) {
@@ -174,7 +174,7 @@ func newFailingRepo(
 func makeSnapshot(
 	t *testing.T,
 	c codec.Codec,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	value int,
 	version event.Version,
 ) snapshot.Snapshot {
@@ -183,8 +183,8 @@ func makeSnapshot(
 	snapState, _ := c.Encode(counterState{Value: value})
 
 	return snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
+		StreamID:   aggID,
+		StreamType: "Counter",
 		Version:       version,
 		State:         snapState,
 		CreatedAt:     time.Now(),
@@ -195,7 +195,7 @@ func saveSnapshot(
 	t *testing.T,
 	snapshotStore *eventtest.FakeSnapshotStore,
 	c codec.Codec,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	value int,
 	version event.Version,
 ) {
@@ -209,13 +209,13 @@ func applySnapshot(
 	tb *testing.T,
 	snapStore *eventtest.FakeSnapshotStore,
 	cdc codec.Codec,
-	aggregateID id.AggregateID,
+	streamID id.StreamID,
 	val int,
 	ver event.Version,
 ) {
 	tb.Helper()
 
-	stored := makeSnapshot(tb, cdc, aggregateID, val, ver)
+	stored := makeSnapshot(tb, cdc, streamID, val, ver)
 	snapStore.SetSnapshot(&stored)
 }
 
@@ -244,7 +244,7 @@ func newEnricherRepo(
 func executeWithAggID(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	fn func(counterState, event.Version) ([]event.Event, error),
 ) error {
 	t.Helper()
@@ -254,7 +254,7 @@ func executeWithAggID(
 
 func counterCreatedEventFn(
 	t *testing.T,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) func(counterState, event.Version) ([]event.Event, error) {
 	t.Helper()
 
@@ -266,7 +266,7 @@ func counterCreatedEventFn(
 func makeEvent(
 	t *testing.T,
 	eventType string,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	version event.Version,
 ) event.Event {
 	t.Helper()
@@ -282,7 +282,7 @@ func makeEvent(
 func executeCounter(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	expectedValue int,
 	expectedVersion event.Version,
 	eventType string,
@@ -312,7 +312,7 @@ func executeCounter(
 func executeAndIncrement(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	eventType string,
 ) error {
 	t.Helper()
@@ -328,7 +328,7 @@ func executeAndIncrement(
 func executeCreate(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) error {
 	t.Helper()
 
@@ -349,7 +349,7 @@ type errStore struct {
 
 func (e *errStore) LoadToVersion(
 	_ context.Context,
-	_ id.AggregateRef,
+	_ id.StreamRef,
 	_ event.Version,
 ) ([]event.Event, error) {
 	return nil, e.loadToVersionErr
@@ -357,7 +357,7 @@ func (e *errStore) LoadToVersion(
 
 func (e *errStore) LoadToTimestamp(
 	_ context.Context,
-	_ id.AggregateRef,
+	_ id.StreamRef,
 	_ time.Time,
 ) ([]event.Event, error) {
 	return nil, e.loadToTimestampErr
@@ -375,7 +375,7 @@ func (c *ctxCheckStore) checkCtx(ctx context.Context) error {
 
 func (c *ctxCheckStore) Save(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
@@ -388,7 +388,7 @@ func (c *ctxCheckStore) Save(
 
 func (c *ctxCheckStore) Load(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) ([]event.Event, error) {
 	if err := c.checkCtx(ctx); err != nil {
 		return nil, err

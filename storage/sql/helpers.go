@@ -19,7 +19,7 @@ import (
 func DeleteByAggregate(
 	db *sql.DB,
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	table string,
 	placeholder1 string,
 	placeholder2 string,
@@ -52,7 +52,7 @@ func DeleteByAggregate(
 func SharedInsertEvents(
 	ctx context.Context,
 	tx *sql.Tx,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 	sqlQuery string,
 	formatTime func(time.Time) any,
@@ -97,7 +97,7 @@ const maxSQLiteParameters = 999
 func SharedBatchInsertEvents(
 	ctx context.Context,
 	tx *sql.Tx,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 	dialect Dialect,
 	formatTime func(time.Time) any,
@@ -124,7 +124,7 @@ func SharedBatchInsertEvents(
 func insertMultiValues(
 	ctx context.Context,
 	tx *sql.Tx,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	events []event.Event,
 	dialect Dialect,
 	formatTime func(time.Time) any,
@@ -180,7 +180,7 @@ const CheckVersionQuery = `SELECT COALESCE(MAX(version), 0) FROM ` + TableEvents
 func SharedCheckVersion(
 	ctx context.Context,
 	tx *sql.Tx,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	expectedVersion event.Version,
 	query string,
 ) error {

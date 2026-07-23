@@ -68,8 +68,8 @@ func ScanSlice[T any](rows *sql.Rows, fn func(*sql.Rows) (T, error)) ([]T, error
 func ReconstructEvent(
 	eventID id.EventID,
 	eventType event.Type,
-	aggType id.AggregateType,
-	aggID id.AggregateID,
+	aggType id.StreamType,
+	aggID id.StreamID,
 	version, schemaVersion int,
 	payload, metadataJSON []byte,
 	occurredAt time.Time,

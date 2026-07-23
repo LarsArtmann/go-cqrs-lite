@@ -53,7 +53,7 @@ func (b *PostgresBus) handleNotification(ctx context.Context, payload string) {
 		cqrsotel.WithAttributes(
 			cqrsotel.AttrString("cqrs.event.type", string(np.EventType)),
 			cqrsotel.AttrString("cqrs.event.id", np.EventID.String()),
-			cqrsotel.AttrString("cqrs.aggregate.type", string(np.AggregateType)),
+			cqrsotel.AttrString("cqrs.aggregate.type", string(np.StreamType)),
 		),
 	)
 	defer span.End()
@@ -127,7 +127,7 @@ func (b *PostgresBus) refetchByID(
 }
 
 func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (event.Event, error) {
-	ref := id.NewAggregateRef(np.AggregateType, np.AggregateID)
+	ref := id.NewAggregateRef(np.StreamType, np.StreamID)
 
 	var lastErr error
 

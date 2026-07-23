@@ -21,8 +21,8 @@ func CloneEvent(
 	//nolint:wrapcheck // callers wrap with context
 	return event.NewEvent(
 		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
+		evt.StreamID(),
+		evt.StreamType(),
 		evt.Version(),
 		event.PayloadReadOnly(evt),
 		event.WithEventID(evt.ID()),

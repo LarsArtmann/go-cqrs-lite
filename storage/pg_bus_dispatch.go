@@ -66,8 +66,8 @@ func (b *PostgresBus) publishOne(ctx context.Context, evt event.Event) error {
 	payload := notifyPayload{
 		EventID:       evt.ID(),
 		EventType:     evt.Type(),
-		AggregateType: evt.AggregateType(),
-		AggregateID:   evt.AggregateID(),
+		StreamType: evt.StreamType(),
+		StreamID:   evt.StreamID(),
 		Version:       evt.Version(),
 	}
 

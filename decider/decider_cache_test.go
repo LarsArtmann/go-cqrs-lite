@@ -224,7 +224,7 @@ func TestRepository_StateCache_LoadFromVersionError(t *testing.T) {
 	cache.Put(ref, counterState{Value: 99}, event.Version(5))
 
 	// Make LoadFromVersion error
-	store.LoadFromVersionFn(func(_ id.AggregateRef, _ event.Version) ([]event.Event, error) {
+	store.LoadFromVersionFn(func(_ id.StreamRef, _ event.Version) ([]event.Event, error) {
 		return nil, errors.New("store unavailable")
 	})
 

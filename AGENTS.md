@@ -870,7 +870,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 **Coverage**: core modules 84–98% (event 91.3%, decider 98.3%, id 97.6%, dispatcher 98.0%, schema 93.5%, storage/memory 94.1%, command 89.4%); mid-tier 81–84% (snapshot 81.1%, query 83.9%); newer modules 70–76% (kv 70.2%, codec 76.0%). Workspace total: 78.7%. Bundle layer (stack presets, cache) 0–87% — presets emphasise the shared contract suite + happy paths, so constructor error branches are lighter (stack/postgres shows 0% locally because its tests skip without `POSTGRES_TEST_DSN`). See `docs/status/` for latest.
 
-**Module Graph** (four-tier model, see [ADR-0046](docs/adr/0046-four-tier-model.md) and [FOUR-TIER-MODEL.md](docs/architecture-understanding/FOUR-TIER-MODEL.md)):
+**Module Graph** (seven-tier model, see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [FOUR-TIER-MODEL.md](docs/architecture-understanding/FOUR-TIER-MODEL.md)):
 
 ```
 Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/

@@ -47,7 +47,7 @@ func CommandTracing(tracer cqrsotel.Tracer) command.Middleware {
 			"command.handle",
 			cqrsotel.SpanKindServer,
 			func(cmd command.Command) []cqrsotel.KeyValue {
-				return cqrsotel.CommandAttrs(string(cmd.Type()), cmd.AggregateID())
+				return cqrsotel.CommandAttrs(string(cmd.Type()), cmd.StreamID())
 			},
 		),
 	)
@@ -67,8 +67,8 @@ func EventTracing(tracer cqrsotel.Tracer) event.Middleware {
 			func(evt event.Event) []cqrsotel.KeyValue {
 				attrs := cqrsotel.EventAttrs(
 					string(evt.Type()),
-					evt.AggregateID(),
-					string(evt.AggregateType()),
+					evt.StreamID(),
+					string(evt.StreamType()),
 				)
 
 				return append(
@@ -117,8 +117,8 @@ func EventPublishTracing(tracer cqrsotel.Tracer) event.PublishMiddleware {
 			if len(events) > 0 {
 				attrs = append(attrs, cqrsotel.EventAttrs(
 					string(events[0].Type()),
-					events[0].AggregateID(),
-					string(events[0].AggregateType()),
+					events[0].StreamID(),
+					string(events[0].StreamType()),
 				)...)
 			}
 

@@ -86,7 +86,7 @@ func TestStateCache_LRUEviction(t *testing.T) {
 
 	cache := decider.NewStateCache[counterState](3)
 
-	refs := make([]id.AggregateRef, 4)
+	refs := make([]id.StreamRef, 4)
 	for i := range refs {
 		refs[i] = id.NewAggregateRef("Counter", id.NewAggregateID())
 		cache.Put(refs[i], counterState{Value: i}, event.Version(i))
@@ -110,7 +110,7 @@ func TestStateCache_LRU_OrderAfterGet(t *testing.T) {
 
 	cache := decider.NewStateCache[counterState](3)
 
-	refs := make([]id.AggregateRef, 3)
+	refs := make([]id.StreamRef, 3)
 	for i := range refs {
 		refs[i] = id.NewAggregateRef("Counter", id.NewAggregateID())
 		cache.Put(refs[i], counterState{Value: i}, event.Version(i))

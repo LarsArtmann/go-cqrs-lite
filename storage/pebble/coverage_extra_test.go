@@ -172,8 +172,8 @@ func TestSnapshotStore_Delete(t *testing.T) {
 
 	// Save a snapshot
 	snap := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Test",
+		StreamID:   aggID,
+		StreamType: "Test",
 		Version:       1,
 		State:         []byte(`{"name":"test"}`),
 	}

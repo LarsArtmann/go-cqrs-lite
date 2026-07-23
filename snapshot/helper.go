@@ -15,7 +15,7 @@ func ShouldSnapshot(
 	strategy SnapshotStrategy,
 	sink SnapshotSink,
 	c codec.Codec,
-	aggType id.AggregateType,
+	aggType id.StreamType,
 	version event.Version,
 ) bool {
 	return strategy != nil &&
@@ -33,7 +33,7 @@ func ShouldSnapshotFor(
 	strategy SnapshotStrategy,
 	sink SnapshotSink,
 	c codec.Codec,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) bool {
 	if strategy == nil || sink == nil || c == nil {
@@ -50,14 +50,14 @@ func ShouldSnapshotFor(
 func SaveSnapshot(
 	ctx context.Context,
 	sink SnapshotSink,
-	aggType id.AggregateType,
-	aggID id.AggregateID,
+	aggType id.StreamType,
+	aggID id.StreamID,
 	version event.Version,
 	state []byte,
 ) error {
 	err := sink.Save(ctx, Snapshot{
-		AggregateID:   aggID,
-		AggregateType: aggType,
+		StreamID:   aggID,
+		StreamType: aggType,
 		Version:       version,
 		State:         state,
 		CreatedAt:     time.Now().UTC(),

@@ -10,8 +10,8 @@ import (
 type encTestEnv struct {
 	store *encryptedStore
 	inner *eventtest.FakeStore
-	aggID id.AggregateID
-	ref   id.AggregateRef
+	aggID id.StreamID
+	ref   id.StreamRef
 }
 
 func newEncTestEnv(t *testing.T, opts ...MiddlewareOption) encTestEnv {

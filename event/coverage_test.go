@@ -13,16 +13,16 @@ import (
 func TestAggregateRef_IsZero(t *testing.T) {
 	t.Parallel()
 
-	var ref id.AggregateRef
+	var ref id.StreamRef
 
 	if !ref.IsZero() {
-		t.Error("expected zero id.AggregateRef to be zero")
+		t.Error("expected zero id.StreamRef to be zero")
 	}
 
 	ref = id.NewAggregateRef("User", id.NewAggregateID())
 
 	if ref.IsZero() {
-		t.Error("expected non-zero id.AggregateRef to not be zero")
+		t.Error("expected non-zero id.StreamRef to not be zero")
 	}
 }
 
@@ -54,7 +54,7 @@ func TestAggregateRef_Validate(t *testing.T) {
 	t.Run("empty ID", func(t *testing.T) {
 		t.Parallel()
 
-		ref := id.NewAggregateRef("User", id.AggregateID{})
+		ref := id.NewAggregateRef("User", id.StreamID{})
 
 		err := ref.Validate()
 		if err == nil {
@@ -136,7 +136,7 @@ func TestImmutableEvent_String(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		event.Type("user.created"), id.NewAggregateID(),
-		id.AggregateType("User"), event.Version(1),
+		id.StreamType("User"), event.Version(1),
 		[]byte(`{"name":"test"}`),
 	)
 	if err != nil {

@@ -150,8 +150,8 @@ func copyWithTombstoneMark(
 	return &ImmutableEvent{
 		id:            evt.ID(),
 		eventType:     evt.Type(),
-		aggregateID:   evt.AggregateID(),
-		aggregateType: evt.AggregateType(),
+		streamID:   evt.StreamID(),
+		streamType: evt.StreamType(),
 		version:       evt.Version(),
 		schemaVersion: evt.SchemaVersion(),
 		encoding:      encodingForCopy(evt),

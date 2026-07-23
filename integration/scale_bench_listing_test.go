@@ -23,7 +23,7 @@ func BenchmarkScale_Listing_10KAggregates(b *testing.B) {
 	ctx := context.Background()
 	aggCount := 10_000
 
-	aggIDs := make([]id.AggregateID, aggCount)
+	aggIDs := make([]id.StreamID, aggCount)
 	for i := range aggCount {
 		aggIDs[i] = id.NewAggregateID()
 		payload, err := json.Marshal(map[string]string{"name": fmt.Sprintf("item-%d", i)})
@@ -89,7 +89,7 @@ func BenchmarkScale_Listing_PaginateThrough10K(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		var after id.AggregateID
+		var after id.StreamID
 
 		for {
 			page, err := listing.NewListBuilder(reader).

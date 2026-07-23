@@ -9,8 +9,8 @@ import (
 )
 
 type Snapshot struct {
-	AggregateID   id.AggregateID   `json:"aggregateId"`
-	AggregateType id.AggregateType `json:"aggregateType"`
+	StreamID   id.StreamID   `json:"aggregateId"`
+	StreamType id.StreamType `json:"streamType"`
 	Version       event.Version    `json:"version"`
 	State         []byte           `json:"state"`
 	CreatedAt     time.Time        `json:"createdAt"`
@@ -19,18 +19,18 @@ type Snapshot struct {
 type SnapshotSink interface {
 	Save(ctx context.Context, snapshot Snapshot) error
 
-	Delete(ctx context.Context, ref id.AggregateRef) error
+	Delete(ctx context.Context, ref id.StreamRef) error
 }
 
 type SnapshotSource interface {
 	Load(
 		ctx context.Context,
-		ref id.AggregateRef,
+		ref id.StreamRef,
 	) (*Snapshot, error)
 
 	LoadAtVersion(
 		ctx context.Context,
-		ref id.AggregateRef,
+		ref id.StreamRef,
 		version event.Version,
 	) (*Snapshot, error)
 }

@@ -11,8 +11,8 @@
 //	ts := snapshot.NewTypedStore[UserState](store, codec.JSONCodec{})
 //
 //	_ = ts.Save(ctx, snapshot.TypedSnapshot[UserState]{
-//	    AggregateID:   aggID,
-//	    AggregateType: "User",
+//	    StreamID:   aggID,
+//	    StreamType: "User",
 //	    Version:       10,
 //	    State:         UserState{Name: "Alice"},
 //	    CreatedAt:     time.Now(),
@@ -27,8 +27,8 @@
 // (custom codecs, migration tooling, test infrastructure).
 //
 //	snap := snapshot.Snapshot{
-//	    AggregateID:   aggID,
-//	    AggregateType: "User",
+//	    StreamID:   aggID,
+//	    StreamType: "User",
 //	    Version:       10,
 //	    State:         []byte(`{"name":"Alice"}`),
 //	    CreatedAt:     time.Now(),

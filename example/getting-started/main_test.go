@@ -35,8 +35,8 @@ func TestGettingStarted_CounterValue(t *testing.T) {
 		t.Fatalf("repo: %v", err)
 	}
 
-	mat, err := stack.NewMaterialize[CounterView, id.AggregateID](bundle, nil,
-		func(evt event.Event) (id.AggregateID, error) { return evt.AggregateID(), nil })
+	mat, err := stack.NewMaterialize[CounterView, id.StreamID](bundle, nil,
+		func(evt event.Event) (id.StreamID, error) { return evt.StreamID(), nil })
 	if err != nil {
 		t.Fatalf("materialize: %v", err)
 	}

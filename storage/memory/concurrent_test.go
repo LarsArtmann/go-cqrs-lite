@@ -16,7 +16,7 @@ func newTestEvent(version int, payload []byte) (event.Event, error) {
 	return event.NewEvent(
 		event.Type("test.event"),
 		id.NewAggregateID(),
-		id.AggregateType("Test"),
+		id.StreamType("Test"),
 		event.Version(version),
 		payload,
 	)
@@ -67,7 +67,7 @@ func TestConcurrent_StoreSaveLoad(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	aggType := id.AggregateType("Test")
+	aggType := id.StreamType("Test")
 
 	var wg sync.WaitGroup
 
@@ -134,7 +134,7 @@ func TestConcurrent_SnapshotSaveLoad(t *testing.T) {
 
 	store := memory.NewMemorySnapshotStore()
 	aggID := id.NewAggregateID()
-	aggType := id.AggregateType("Test")
+	aggType := id.StreamType("Test")
 
 	var wg sync.WaitGroup
 
@@ -145,8 +145,8 @@ func TestConcurrent_SnapshotSaveLoad(t *testing.T) {
 			defer wg.Done()
 
 			snap := snapshot.Snapshot{
-				AggregateID:   aggID,
-				AggregateType: aggType,
+				StreamID:   aggID,
+				StreamType: aggType,
 				Version:       event.Version(version + 1),
 				State:         []byte(`{"v":0}`),
 			}

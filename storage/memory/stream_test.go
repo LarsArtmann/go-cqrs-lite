@@ -33,14 +33,14 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Order"), aggID),
+		id.NewAggregateRef(id.StreamType("Order"), aggID),
 		wantEvents,
 	)
 	if err != nil {
 		t.Fatalf("append batch: %v", err)
 	}
 
-	stream, err := store.LoadStream(ctx, id.NewAggregateRef(id.AggregateType("Order"), aggID))
+	stream, err := store.LoadStream(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}

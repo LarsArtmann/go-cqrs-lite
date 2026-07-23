@@ -38,7 +38,7 @@ func TestListBuilder_DefaultOptions(t *testing.T) {
 
 	called := false
 	reader := &stubReader{
-		listFn: func(_ context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateListing], error) {
+		listFn: func(_ context.Context, opts listing.ListOptions) (*listing.Page[listing.StreamListing], error) {
 			called = true
 
 			if opts.Limit != 20 {
@@ -49,7 +49,7 @@ func TestListBuilder_DefaultOptions(t *testing.T) {
 				t.Errorf("default tombstone = %v, want TombstoneExclude", opts.Tombstone)
 			}
 
-			return &listing.Page[listing.AggregateListing]{}, nil
+			return &listing.Page[listing.StreamListing]{}, nil
 		},
 	}
 
@@ -64,30 +64,30 @@ func TestListBuilder_DefaultOptions(t *testing.T) {
 }
 
 type stubReader struct {
-	listFn           func(ctx context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateListing], error)
-	listWithStatusFn func(ctx context.Context, opts listing.ListOptions) (*listing.Page[listing.AggregateStatus], error)
+	listFn           func(ctx context.Context, opts listing.ListOptions) (*listing.Page[listing.StreamListing], error)
+	listWithStatusFn func(ctx context.Context, opts listing.ListOptions) (*listing.Page[listing.StreamStatus], error)
 }
 
 func (s *stubReader) List(
 	ctx context.Context,
 	opts listing.ListOptions,
-) (*listing.Page[listing.AggregateListing], error) {
+) (*listing.Page[listing.StreamListing], error) {
 	if s.listFn != nil {
 		return s.listFn(ctx, opts)
 	}
 
-	return &listing.Page[listing.AggregateListing]{}, nil
+	return &listing.Page[listing.StreamListing]{}, nil
 }
 
 func (s *stubReader) ListWithStatus(
 	ctx context.Context,
 	opts listing.ListOptions,
-) (*listing.Page[listing.AggregateStatus], error) {
+) (*listing.Page[listing.StreamStatus], error) {
 	if s.listWithStatusFn != nil {
 		return s.listWithStatusFn(ctx, opts)
 	}
 
-	return &listing.Page[listing.AggregateStatus]{}, nil
+	return &listing.Page[listing.StreamStatus]{}, nil
 }
 
 func TestTombstonePolicy_String(t *testing.T) {
@@ -117,10 +117,10 @@ func TestAggregateStatus_MarshalJSON(t *testing.T) {
 	ts := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
 	aggID := id.NewAggregateID()
 
-	status := listing.AggregateStatus{
-		Ref: listing.AggregateListing{
+	status := listing.StreamStatus{
+		Ref: listing.StreamListing{
 			ID:          aggID,
-			Type:        id.AggregateType("User"),
+			Type:        id.StreamType("User"),
 			Version:     event.Version(3),
 			EventCount:  3,
 			LastEventAt: ts,

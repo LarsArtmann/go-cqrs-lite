@@ -160,7 +160,7 @@ func TestMaterialize_SQLViewStoreCompatibleWithHandler(t *testing.T) {
 
 	mat := stack.Materialize[userView, stringKey]{
 		Store:        store,
-		KeyFromEvent: func(evt event.Event) (stringKey, error) { return stringKey(evt.AggregateID().String()), nil },
+		KeyFromEvent: func(evt event.Event) (stringKey, error) { return stringKey(evt.StreamID().String()), nil },
 		OnCreate: func(_ context.Context, _ event.Event) (*userView, error) {
 			return &userView{Name: "from-event", Email: "test@example.com"}, nil
 		},

@@ -14,8 +14,8 @@ import (
 type serializableCommand struct {
 	ID            id.CommandID     `json:"id"`
 	Type          string           `json:"type"`
-	AggregateID   id.AggregateID   `json:"aggregate_id"`
-	AggregateType string           `json:"aggregate_type"`
+	StreamID   id.StreamID   `json:"aggregate_id"`
+	StreamType string           `json:"aggregate_type"`
 	ReceivedAt    int64            `json:"received_at"`
 	Payload       []byte           `json:"payload"`
 	Metadata      command.Metadata `json:"metadata"`
@@ -25,8 +25,8 @@ func (s *CommandStore) serializeCommand(cmd *command.PersistedCommand) ([]byte, 
 	serialized := serializableCommand{
 		ID:            cmd.ID(),
 		Type:          string(cmd.Type()),
-		AggregateID:   cmd.AggregateID(),
-		AggregateType: string(cmd.AggregateType()),
+		StreamID:   cmd.StreamID(),
+		StreamType: string(cmd.StreamType()),
 		ReceivedAt:    cmd.ReceivedAt().UnixNano(),
 		Payload:       cmd.Payload(),
 		Metadata:      cmd.Metadata(),
@@ -44,8 +44,8 @@ func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedComman
 	}
 
 	ref := command.NewAggregateRef(
-		command.AggregateType(serialized.AggregateType),
-		serialized.AggregateID,
+		command.StreamType(serialized.StreamType),
+		serialized.StreamID,
 	)
 
 	cmd, err := command.NewPersistedCommand(

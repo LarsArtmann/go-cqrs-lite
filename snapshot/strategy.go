@@ -6,7 +6,7 @@ import (
 )
 
 type SnapshotStrategy interface {
-	ShouldSnapshot(aggregateType id.AggregateType, version event.Version) bool
+	ShouldSnapshot(streamType id.StreamType, version event.Version) bool
 }
 
 // AggregateAwareStrategy is an optional capability that strategies may implement
@@ -17,7 +17,7 @@ type SnapshotStrategy interface {
 // This enables strategies that track per-aggregate state, such as
 // ReadPressure.
 type AggregateAwareStrategy interface {
-	ShouldSnapshotFor(ref id.AggregateRef, version event.Version) bool
+	ShouldSnapshotFor(ref id.StreamRef, version event.Version) bool
 }
 
 // ReadTracker is an optional capability that strategies may implement to
@@ -28,7 +28,7 @@ type AggregateAwareStrategy interface {
 // strategies like ReadPressure to count reads and trigger snapshots when
 // hot-read aggregates accumulate replay cost.
 type ReadTracker interface {
-	RecordRead(ref id.AggregateRef, version event.Version)
+	RecordRead(ref id.StreamRef, version event.Version)
 }
 
 func EveryNEvents(n int) (SnapshotStrategy, error) {
@@ -43,6 +43,6 @@ type everyN struct{ interval int }
 
 var _ SnapshotStrategy = (*everyN)(nil)
 
-func (s *everyN) ShouldSnapshot(_ id.AggregateType, version event.Version) bool {
+func (s *everyN) ShouldSnapshot(_ id.StreamType, version event.Version) bool {
 	return version.IsPositive() && version.Mod(s.interval) == 0
 }

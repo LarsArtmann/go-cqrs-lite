@@ -52,8 +52,8 @@ func (p *EventPublisher) Publish(ctx context.Context, events ...event.Event) err
 	if len(events) > 0 {
 		attrs := cqrsotel.EventAttrs(
 			string(events[0].Type()),
-			events[0].AggregateID(),
-			string(events[0].AggregateType()),
+			events[0].StreamID(),
+			string(events[0].StreamType()),
 		)
 		span.SetAttributes(attrs...)
 	}

@@ -19,9 +19,9 @@ import (
 func initMemoryStoreTest(
 	ctx *context.Context,
 	store **memory.MemoryStore,
-	aggID *id.AggregateID,
-	aggType *id.AggregateType,
-	typ id.AggregateType,
+	aggID *id.StreamID,
+	aggType *id.StreamType,
+	typ id.StreamType,
 ) {
 	*ctx = context.Background()
 	*store = memory.NewMemoryStore()
@@ -52,8 +52,8 @@ var _ = Describe("Event Creation", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(evt.Type()).To(Equal(event.Type("UserRegistered")))
-				Expect(evt.AggregateID()).To(Equal(aggID))
-				Expect(evt.AggregateType()).To(Equal(id.AggregateType("User")))
+				Expect(evt.StreamID()).To(Equal(aggID))
+				Expect(evt.StreamType()).To(Equal(id.StreamType("User")))
 				Expect(evt.Version()).To(Equal(event.Version(1)))
 				Expect(evt.Payload()).To(Equal([]byte(`{"email":"alice@example.com"}`)))
 				Expect(evt.ID().IsZero()).To(BeFalse())
@@ -72,11 +72,11 @@ var _ = Describe("Event Creation", func() {
 
 		DescribeTable(
 			"validation rejects invalid inputs",
-			func(typ string, aggID id.AggregateID, aggType string, version event.Version, wantErr string) {
+			func(typ string, aggID id.StreamID, aggType string, version event.Version, wantErr string) {
 				_, err := event.NewEvent(
 					event.Type(typ),
 					aggID,
-					id.AggregateType(aggType),
+					id.StreamType(aggType),
 					version,
 					nil,
 				)
@@ -94,7 +94,7 @@ var _ = Describe("Event Creation", func() {
 			Entry(
 				"zero aggregate ID",
 				"UserCreated",
-				id.AggregateID{},
+				id.StreamID{},
 				"User",
 				event.Version(1),
 				"aggregate ID is required",
@@ -132,7 +132,7 @@ var _ = Describe("Event Creation", func() {
 
 					Expect(clone.ID()).To(Equal(evt.ID()))
 					Expect(clone.Type()).To(Equal(evt.Type()))
-					Expect(clone.AggregateID()).To(Equal(evt.AggregateID()))
+					Expect(clone.StreamID()).To(Equal(evt.StreamID()))
 					Expect(clone.Version()).To(Equal(evt.Version()))
 					Expect(clone.Payload()).To(Equal(evt.Payload()))
 
@@ -148,12 +148,12 @@ var _ = Describe("Event Store via MemoryStore", func() {
 	var (
 		ctx     context.Context
 		store   *memory.MemoryStore
-		aggID   id.AggregateID
-		aggType id.AggregateType
+		aggID   id.StreamID
+		aggType id.StreamType
 	)
 
 	BeforeEach(func() {
-		initMemoryStoreTest(&ctx, &store, &aggID, &aggType, id.AggregateType("Order"))
+		initMemoryStoreTest(&ctx, &store, &aggID, &aggType, id.StreamType("Order"))
 	})
 
 	savePlaced := func(expectedVersion event.Version) {
@@ -237,12 +237,12 @@ var _ = Describe("Schema Evolution", func() {
 	var (
 		ctx     context.Context
 		store   *memory.MemoryStore
-		aggID   id.AggregateID
-		aggType id.AggregateType
+		aggID   id.StreamID
+		aggType id.StreamType
 	)
 
 	BeforeEach(func() {
-		initMemoryStoreTest(&ctx, &store, &aggID, &aggType, id.AggregateType("User"))
+		initMemoryStoreTest(&ctx, &store, &aggID, &aggType, id.StreamType("User"))
 	})
 
 	Describe("As a developer deploying schema v2", func() {
@@ -421,8 +421,8 @@ var _ = Describe("Error Classification", func() {
 
 func mustNewEvent(
 	eventType event.Type,
-	aggID id.AggregateID,
-	aggType id.AggregateType,
+	aggID id.StreamID,
+	aggType id.StreamType,
 	version event.Version,
 ) event.Event {
 	evt, err := event.NewEvent(eventType, aggID, aggType, version, []byte(`{}`))
@@ -441,7 +441,7 @@ func makeUpcaster(
 		fromVersion,
 		func(evt event.Event) (*event.ImmutableEvent, error) {
 			return event.NewEvent(
-				evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+				evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 				newPayload,
 				event.WithSchemaVersion(fromVersion+1),
 			)

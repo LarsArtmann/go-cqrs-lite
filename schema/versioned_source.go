@@ -38,7 +38,7 @@ func NewVersionedStore(store event.Store, upcasters ...Upcaster) (*VersionedStor
 
 func (s *VersionedStore) Load(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) ([]event.Event, error) {
 	return s.loadAndUpcast(func() ([]event.Event, error) {
 		return s.inner.Load(ctx, ref)
@@ -47,7 +47,7 @@ func (s *VersionedStore) Load(
 
 func (s *VersionedStore) LoadFromVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) ([]event.Event, error) {
 	return s.loadAndUpcast(func() ([]event.Event, error) {
@@ -58,7 +58,7 @@ func (s *VersionedStore) LoadFromVersion(
 
 func (s *VersionedStore) LoadToVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
 	return s.loadAndUpcast(func() ([]event.Event, error) {
@@ -69,7 +69,7 @@ func (s *VersionedStore) LoadToVersion(
 
 func (s *VersionedStore) LoadToTimestamp(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
 	return s.loadAndUpcast(func() ([]event.Event, error) {

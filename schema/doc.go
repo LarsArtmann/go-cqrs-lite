@@ -6,7 +6,7 @@
 // # Quick Start
 //
 //	upcaster, _ := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (event.Event, error) {
-//	    return event.NewEvent(evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+//	    return event.NewEvent(evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 //	        UpdatedPayload{NewField: "default"},
 //	        event.WithSchemaVersion(2),
 //	    )

@@ -89,7 +89,7 @@ func TestAllocs_FilterByTimestamp(t *testing.T) {
 
 func TestAllocs_NewAggregateRef(t *testing.T) {
 	aggID := id.NewAggregateID()
-	aggType := id.AggregateType("Test")
+	aggType := id.StreamType("Test")
 
 	allocs := testing.AllocsPerRun(100, func() {
 		_ = id.NewAggregateRef(aggType, aggID)

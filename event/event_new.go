@@ -20,8 +20,8 @@ import (
 // Returns an error if payload is nil.
 func New(
 	eventType Type,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	version Version,
 	payload any,
 	opts ...Option,
@@ -51,8 +51,8 @@ func New(
 
 	if err := validateEventParams(
 		eventType,
-		aggregateID,
-		aggregateType,
+		streamID,
+		streamType,
 		version,
 		data,
 	); err != nil {
@@ -60,7 +60,7 @@ func New(
 	}
 
 	enc := c.Encoding()
-	evt := buildEvent(eventType, aggregateID, aggregateType, version, data, opts)
+	evt := buildEvent(eventType, streamID, streamType, version, data, opts)
 	evt.encoding = enc
 
 	return evt, nil

@@ -47,7 +47,7 @@ func makeTestEvent(t *testing.T, version int) event.Event {
 	evt, err := event.NewEvent(
 		event.Type("user.created"),
 		id.NewAggregateID(),
-		id.AggregateType("User"),
+		id.StreamType("User"),
 		event.Version(version),
 		[]byte(`{"name":"Alice"}`),
 	)
@@ -341,7 +341,7 @@ func TestDeleteByAggregate_OtherAggregateUntouched(t *testing.T) {
 	ref1 := id.NewAggregateRef("User", id.NewAggregateID())
 	ref2 := id.NewAggregateRef("User", id.NewAggregateID())
 
-	for _, ref := range []id.AggregateRef{ref1, ref2} {
+	for _, ref := range []id.StreamRef{ref1, ref2} {
 		tx := beginTx(t, db)
 		_ = sqlpkg.SharedInsertEvents(
 			ctx, tx, ref, []event.Event{makeTestEvent(t, 1)},

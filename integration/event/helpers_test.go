@@ -10,7 +10,7 @@ import (
 
 func createTestEvent(
 	eventType event.Type,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	version event.Version,
 	payload []byte,
 ) event.Event {
@@ -25,8 +25,8 @@ func createTestEvent(
 }
 
 func expectNewEventValidationFails(
-	aggID id.AggregateID,
-	aggType id.AggregateType,
+	aggID id.StreamID,
+	aggType id.StreamType,
 	version event.Version,
 	expectedMsg string,
 ) {

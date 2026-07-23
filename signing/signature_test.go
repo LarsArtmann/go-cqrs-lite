@@ -87,11 +87,11 @@ func TestAttachAndExtractSignature(t *testing.T) {
 		if clone.Type() != evt.Type() {
 			t.Error("Type mismatch")
 		}
-		if clone.AggregateID() != evt.AggregateID() {
-			t.Error("AggregateID mismatch")
+		if clone.StreamID() != evt.StreamID() {
+			t.Error("StreamID mismatch")
 		}
-		if clone.AggregateType() != evt.AggregateType() {
-			t.Error("AggregateType mismatch")
+		if clone.StreamType() != evt.StreamType() {
+			t.Error("StreamType mismatch")
 		}
 		if clone.Version() != evt.Version() {
 			t.Error("Version mismatch")

@@ -10,8 +10,8 @@ import (
 
 func validateEventParams(
 	eventType Type,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	version Version,
 	payload []byte,
 ) error {
@@ -19,29 +19,29 @@ func validateEventParams(
 		return errorfamily.WrapRejection(
 			ErrEmptyEventType,
 			"event.empty_event_type",
-			"event type is required: got empty for aggregate "+aggregateID.String()+" of type "+string(
-				aggregateType,
+			"event type is required: got empty for aggregate "+streamID.String()+" of type "+string(
+				streamType,
 			),
 		)
 	}
 
-	if aggregateID.IsZero() {
+	if streamID.IsZero() {
 		return errorfamily.WrapRejection(
 			ErrNilAggregateID,
 			"event.nil_aggregate_id",
 			"aggregate ID is required: for event type "+string(
 				eventType,
 			)+", aggregate type "+string(
-				aggregateType,
+				streamType,
 			)+", version "+version.String(),
 		)
 	}
 
-	if aggregateType == "" {
+	if streamType == "" {
 		return errorfamily.WrapRejection(
 			ErrEmptyAggregateType,
 			"event.empty_aggregate_type",
-			"aggregate type is required: for aggregate "+aggregateID.String()+", event type "+string(
+			"aggregate type is required: for aggregate "+streamID.String()+", event type "+string(
 				eventType,
 			)+", version "+version.String(),
 		)
@@ -51,8 +51,8 @@ func validateEventParams(
 		return errorfamily.WrapRejection(
 			ErrVersionNotPositive,
 			"event.version_not_positive",
-			"version must be positive: for aggregate "+aggregateID.String()+" of type "+string(
-				aggregateType,
+			"version must be positive: for aggregate "+streamID.String()+" of type "+string(
+				streamType,
 			)+" (event type "+string(
 				eventType,
 			)+", payload size "+strconv.Itoa(

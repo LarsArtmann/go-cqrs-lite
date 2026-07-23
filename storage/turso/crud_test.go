@@ -36,7 +36,7 @@ func setupEventStore(t *testing.T) (*storage.SQLEventStore, context.Context) {
 	return store, context.Background()
 }
 
-func makeEvent(t *testing.T, aggID id.AggregateID, version int) event.Event {
+func makeEvent(t *testing.T, aggID id.StreamID, version int) event.Event {
 	t.Helper()
 
 	evt, err := event.NewEvent(
@@ -53,7 +53,7 @@ func makeEvent(t *testing.T, aggID id.AggregateID, version int) event.Event {
 	return evt
 }
 
-func makeEventWithTime(t *testing.T, aggID id.AggregateID, version int, at time.Time) event.Event {
+func makeEventWithTime(t *testing.T, aggID id.StreamID, version int, at time.Time) event.Event {
 	t.Helper()
 
 	evt, err := event.NewEvent(
@@ -80,7 +80,7 @@ func saveEvent(
 ) {
 	t.Helper()
 
-	ref := id.NewAggregateRef(evt.AggregateType(), evt.AggregateID())
+	ref := id.NewAggregateRef(evt.StreamType(), evt.StreamID())
 	if err := store.Save(ctx, ref, []event.Event{evt}, expectedVersion); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -211,8 +211,8 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	snap := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "TestAggregate",
+		StreamID:   aggID,
+		StreamType: "TestAggregate",
 		Version:       5,
 		State:         []byte(`{"name":"test"}`),
 		CreatedAt:     time.Now(),
@@ -228,8 +228,8 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("LoadAtVersion: %v", err)
 	}
 
-	if loaded.AggregateID.String() != aggID.String() {
-		t.Errorf("AggregateID = %q, want %q", loaded.AggregateID, aggID)
+	if loaded.StreamID.String() != aggID.String() {
+		t.Errorf("StreamID = %q, want %q", loaded.StreamID, aggID)
 	}
 }
 

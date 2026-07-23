@@ -22,7 +22,7 @@ import (
 // One snapshot per aggregate is retained: saving a newer version overwrites the
 // prior snapshot, while saving an older version is silently ignored (matching
 // the memory implementation). Snapshots are stored as CBOR-encoded envelopes
-// under the key pattern cqrs_snapshot:{aggregateType}:{aggregateID}.
+// under the key pattern cqrs_snapshot:{streamType}:{streamID}.
 //
 // The store shares the Pebble DB with other stores (event, checkpoint) via
 // disjoint key prefixes, so a single *pebble.DB can back the full CQRS stack.
@@ -81,11 +81,11 @@ func (s *SnapshotStore) Save(
 	snap snapshot.Snapshot,
 ) error {
 	_, span := startAggregateSpan(ctx, "pebble.snapshot.save",
-		id.NewAggregateRef(snap.AggregateType, snap.AggregateID),
+		id.NewAggregateRef(snap.StreamType, snap.StreamID),
 		cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, snap.Version.Int()))
 	defer span.End()
 
-	key := s.snapshotKey(snap.AggregateType, snap.AggregateID)
+	key := s.snapshotKey(snap.StreamType, snap.StreamID)
 
 	existing, found, err := s.loadRaw(key)
 	if err != nil {
@@ -98,8 +98,8 @@ func (s *SnapshotStore) Save(
 		if s.logger != nil {
 			s.logger.Debug(
 				"ignoring older snapshot",
-				slog.String("aggregate_type", string(snap.AggregateType)),
-				slog.String("aggregate_id", snap.AggregateID.String()),
+				slog.String("aggregate_type", string(snap.StreamType)),
+				slog.String("aggregate_id", snap.StreamID.String()),
 				slog.Int("existing_version", existing.Version),
 				slog.Int("rejected_version", snap.Version.Int()),
 			)
@@ -113,7 +113,7 @@ func (s *SnapshotStore) Save(
 		cqrsotel.RecordError(span, err)
 
 		return errorfamily.WrapCorruption(err, "pebble.serialize_snapshot",
-			fmt.Sprintf("serialize snapshot for %s %s", snap.AggregateType, snap.AggregateID))
+			fmt.Sprintf("serialize snapshot for %s %s", snap.StreamType, snap.StreamID))
 	}
 
 	err = s.db.Set(key, data, s.writeOptions())
@@ -121,7 +121,7 @@ func (s *SnapshotStore) Save(
 		cqrsotel.RecordError(span, err)
 
 		return errorfamily.WrapInfrastructure(err, "pebble.write_snapshot",
-			fmt.Sprintf("write snapshot for %s %s", snap.AggregateType, snap.AggregateID))
+			fmt.Sprintf("write snapshot for %s %s", snap.StreamType, snap.StreamID))
 	}
 
 	return nil
@@ -134,7 +134,7 @@ func (s *SnapshotStore) Save(
 func (s *SnapshotStore) startSnapshotSpan(
 	ctx context.Context,
 	spanName string,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (cqrsotel.Span, []byte) {
 	_, span := startAggregateSpan(ctx, spanName, ref)
 
@@ -144,7 +144,7 @@ func (s *SnapshotStore) startSnapshotSpan(
 // Load returns snapshot.ErrSnapshotNotFound when no snapshot exists.
 func (s *SnapshotStore) Load(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (*snapshot.Snapshot, error) {
 	span, key := s.startSnapshotSpan(ctx, "pebble.snapshot.load", ref)
 	defer span.End()
@@ -170,7 +170,7 @@ func (s *SnapshotStore) Load(
 // when no such snapshot exists.
 func (s *SnapshotStore) LoadAtVersion(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
 	_, span := startAggregateSpan(ctx, "pebble.snapshot.load_at_version", ref,
@@ -197,7 +197,7 @@ func (s *SnapshotStore) LoadAtVersion(
 // exists.
 func (s *SnapshotStore) Delete(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) error {
 	span, key := s.startSnapshotSpan(ctx, "pebble.snapshot.delete", ref)
 	defer span.End()
@@ -218,8 +218,8 @@ func (s *SnapshotStore) Delete(
 func (s *SnapshotStore) Close() error { return nil }
 
 func (s *SnapshotStore) snapshotKey(
-	aggType id.AggregateType,
-	aggID id.AggregateID,
+	aggType id.StreamType,
+	aggID id.StreamID,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s", s.prefix, aggType, aggID)
 }
@@ -255,17 +255,17 @@ func (s *SnapshotStore) loadRaw(key []byte) (*serializableSnapshot, bool, error)
 // serializableSnapshot is the CBOR envelope for stored snapshots.
 // Timestamps use UnixNano for deterministic, locale-independent ordering.
 type serializableSnapshot struct {
-	AggregateID   id.AggregateID `json:"aggregate_id"`
-	AggregateType string         `json:"aggregate_type"`
+	StreamID   id.StreamID `json:"aggregate_id"`
+	StreamType string         `json:"aggregate_type"`
 	Version       int            `json:"version"`
 	State         []byte         `json:"state"`
 	CreatedAt     int64          `json:"created_at"`
 }
 
-func (s *serializableSnapshot) toSnapshot(ref id.AggregateRef) *snapshot.Snapshot {
+func (s *serializableSnapshot) toSnapshot(ref id.StreamRef) *snapshot.Snapshot {
 	return &snapshot.Snapshot{
-		AggregateID:   ref.ID,
-		AggregateType: ref.Type,
+		StreamID:   ref.ID,
+		StreamType: ref.Type,
 		Version:       event.Version(s.Version),
 		State:         s.State,
 		CreatedAt:     time.Unix(0, s.CreatedAt).UTC(),
@@ -274,8 +274,8 @@ func (s *serializableSnapshot) toSnapshot(ref id.AggregateRef) *snapshot.Snapsho
 
 func serializeSnapshot(snap snapshot.Snapshot) ([]byte, error) {
 	s := serializableSnapshot{
-		AggregateID:   snap.AggregateID,
-		AggregateType: string(snap.AggregateType),
+		StreamID:   snap.StreamID,
+		StreamType: string(snap.StreamType),
 		Version:       snap.Version.Int(),
 		State:         snap.State,
 		CreatedAt:     snap.CreatedAt.UnixNano(),

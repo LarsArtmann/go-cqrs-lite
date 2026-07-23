@@ -12,7 +12,7 @@ import (
 
 // StoreTestConfig configures a store test suite with event type/payload details.
 type StoreTestConfig struct {
-	AggType id.AggregateType
+	AggType id.StreamType
 	EvtType event.Type
 	Payload func(version event.Version) []byte
 }
@@ -20,7 +20,7 @@ type StoreTestConfig struct {
 // NewTestEvent creates a test event using the config's type and payload.
 func (c StoreTestConfig) NewTestEvent(
 	t *testing.T,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	version event.Version,
 	extraOpts ...event.Option,
 ) *event.ImmutableEvent {
@@ -43,7 +43,7 @@ func (c StoreTestConfig) NewTestEvent(
 
 // NewStoreTestConfig creates a StoreTestConfig with a JSON payload template.
 func NewStoreTestConfig(
-	aggType id.AggregateType,
+	aggType id.StreamType,
 	evtType event.Type,
 	jsonField, valuePrefix string,
 ) StoreTestConfig {
@@ -71,7 +71,7 @@ func SaveEvent(
 	t *testing.T,
 	store event.Store,
 	cfg StoreTestConfig,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	evt *event.ImmutableEvent,
 ) {
 	t.Helper()
@@ -211,7 +211,7 @@ func newTestEvents(
 	t *testing.T,
 	cfg StoreTestConfig,
 	versions ...int,
-) (id.AggregateID, []event.Event) {
+) (id.StreamID, []event.Event) {
 	t.Helper()
 
 	aggID := id.NewAggregateID()

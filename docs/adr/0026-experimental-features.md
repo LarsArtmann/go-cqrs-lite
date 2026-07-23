@@ -8,12 +8,14 @@
 
 ## Context
 
-Several experimental features are being explored:
+Several experimental features have been explored:
 
 - **jsonv2 codec** — Go's upcoming JSON v2 (encoding/json/v2)
-- **Arena allocation** — Go experiment for bulk memory allocation
 - **SIMD operations** — Vectorized crypto/encoding
 - **WASM target** — Browser/edge compilation
+
+> **Arena allocation** was listed here originally but has been removed —
+> the 36-line stub had zero consumers and provided no real GC benefit.
 
 These depend on unstable Go features or draft APIs that change frequently.
 
@@ -48,7 +50,7 @@ The following modules compile to WASM (`GOOS=js GOARCH=wasm`):
 - `command/` — command types
 - `query/` — query types
 
-**WASM compatibility**: All 7 core modules compile to WASM. `decider/` was previously blocked by OTel SDK's `os/user` import, but this was resolved by moving `NewCQRSViews()` behind `//go:build !js` in `otel/views.go`.
+**WASM compatibility**: 6 core modules compile to WASM (`id/`, `codec/`, `dispatcher/`, `event/`, `command/`, `query/`). The storage and middleware tiers (Pebble, SQL, OTel SDK) do **not** compile to WASM due to platform-specific dependencies. WASM is a best-effort target for the core domain types only, not for the full stack. `decider/` was previously blocked by OTel SDK's `os/user` import, but this was resolved by moving `NewCQRSViews()` behind `//go:build !js` in `otel/views.go`.
 
 ## Consequences
 
@@ -61,5 +63,5 @@ The following modules compile to WASM (`GOOS=js GOARCH=wasm`):
 ## References
 
 - `docs/EXPERIMENTAL_BUILD_TAGS.md` — build tag documentation
-- CI `wasm-compile` job verifies all 7 core modules (see `.github/workflows/ci.yml`)
+- CI `wasm-compile` job verifies core modules (see `.github/workflows/ci.yml`)
 - [Go experiments](https://tip.golang.org/doc/go1.26#experiments)

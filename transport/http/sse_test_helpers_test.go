@@ -18,7 +18,7 @@ import (
 func newFakeStoreWithEvents(
 	t *testing.T,
 	eventType event.Type,
-	aggType id.AggregateType,
+	aggType id.StreamType,
 	payloads ...[]byte,
 ) (
 	*eventtest.FakeStore, []event.Event,

@@ -12,7 +12,7 @@ func TestJSON(t *testing.T) {
 	t.Run("marshal", func(t *testing.T) {
 		t.Parallel()
 
-		id := parseID[AggregateID](t, testULID)
+		id := parseID[StreamID](t, testULID)
 
 		data, err := json.Marshal(id)
 		if err != nil {
@@ -27,7 +27,7 @@ func TestJSON(t *testing.T) {
 	t.Run("unmarshal", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
+		var id StreamID
 
 		err := json.Unmarshal([]byte(`"`+testULID+`"`), &id)
 		if err != nil {
@@ -42,7 +42,7 @@ func TestJSON(t *testing.T) {
 	t.Run("marshal null", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
+		var id StreamID
 
 		data, err := json.Marshal(id)
 		if err != nil {
@@ -57,7 +57,7 @@ func TestJSON(t *testing.T) {
 	t.Run("unmarshal null", func(t *testing.T) {
 		t.Parallel()
 
-		id := parseID[AggregateID](t, testULID)
+		id := parseID[StreamID](t, testULID)
 
 		err := json.Unmarshal([]byte("null"), &id)
 		if err != nil {
@@ -72,14 +72,14 @@ func TestJSON(t *testing.T) {
 	t.Run("roundtrip", func(t *testing.T) {
 		t.Parallel()
 
-		original := New[AggregateID]()
+		original := New[StreamID]()
 
 		data, err := json.Marshal(original)
 		if err != nil {
 			t.Fatalf("Marshal() error = %v", err)
 		}
 
-		var restored AggregateID
+		var restored StreamID
 
 		err = json.Unmarshal(data, &restored)
 		if err != nil {
@@ -177,7 +177,7 @@ func TestEncoding(t *testing.T) {
 	t.Run("binary interface compliance", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
+		var id StreamID
 
 		var (
 			_ encoding.BinaryMarshaler   = id
@@ -188,7 +188,7 @@ func TestEncoding(t *testing.T) {
 	t.Run("text interface compliance", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
+		var id StreamID
 
 		var (
 			_ encoding.TextMarshaler   = id
@@ -203,7 +203,7 @@ func TestSQLValue(t *testing.T) {
 	t.Run("value", func(t *testing.T) {
 		t.Parallel()
 
-		id := parseID[AggregateID](t, testULID)
+		id := parseID[StreamID](t, testULID)
 
 		val, err := id.Value()
 		if err != nil {
@@ -218,7 +218,7 @@ func TestSQLValue(t *testing.T) {
 	t.Run("value zero", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
+		var id StreamID
 
 		val, err := id.Value()
 		if err != nil {
@@ -237,7 +237,7 @@ func TestSQLScan(t *testing.T) {
 	t.Run("scan string", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
+		var id StreamID
 
 		err := id.Scan(testULID)
 		if err != nil {
@@ -252,7 +252,7 @@ func TestSQLScan(t *testing.T) {
 	t.Run("scan bytes", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
+		var id StreamID
 
 		err := id.Scan([]byte("01HK154ANGZHV2ZW0X3SKSNEN2"))
 		if err != nil {
@@ -267,7 +267,7 @@ func TestSQLScan(t *testing.T) {
 	t.Run("scan unsupported type", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
+		var id StreamID
 
 		err := id.Scan(123)
 		if err == nil {
@@ -279,7 +279,7 @@ func TestSQLScan(t *testing.T) {
 func TestUnmarshalJSON_InvalidData(t *testing.T) {
 	t.Parallel()
 
-	var id AggregateID
+	var id StreamID
 
 	err := json.Unmarshal([]byte("12345"), &id)
 	if err == nil {
@@ -301,7 +301,7 @@ func TestUnmarshalJSON_InvalidULID(t *testing.T) {
 func TestScan_Nil(t *testing.T) {
 	t.Parallel()
 
-	id := parseID[AggregateID](t, testULID)
+	id := parseID[StreamID](t, testULID)
 
 	err := id.Scan(nil)
 	if err != nil {
@@ -327,7 +327,7 @@ func TestScan_InvalidString(t *testing.T) {
 func TestMarshalBinary_Zero(t *testing.T) {
 	t.Parallel()
 
-	var id AggregateID
+	var id StreamID
 
 	data, err := id.MarshalBinary()
 	if err != nil {
@@ -342,7 +342,7 @@ func TestMarshalBinary_Zero(t *testing.T) {
 func TestUnmarshalBinary_EmptyData(t *testing.T) {
 	t.Parallel()
 
-	id := parseID[AggregateID](t, testULID)
+	id := parseID[StreamID](t, testULID)
 
 	err := id.UnmarshalBinary([]byte{})
 	if err != nil {
@@ -368,7 +368,7 @@ func TestUnmarshalBinary_InvalidSize(t *testing.T) {
 func TestMarshalText_Zero(t *testing.T) {
 	t.Parallel()
 
-	var id AggregateID
+	var id StreamID
 
 	data, err := id.MarshalText()
 	if err != nil {
@@ -394,7 +394,7 @@ func TestUnmarshalText_InvalidData(t *testing.T) {
 func TestUnmarshalText_EmptyData(t *testing.T) {
 	t.Parallel()
 
-	id := parseID[AggregateID](t, testULID)
+	id := parseID[StreamID](t, testULID)
 
 	err := id.UnmarshalText([]byte{})
 	if err != nil {

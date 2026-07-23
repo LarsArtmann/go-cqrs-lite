@@ -38,10 +38,10 @@ func FuzzSnapshotStore_Roundtrip(f *testing.F) {
 		}
 
 		aggID := id.NewAggregateID()
-		aggType := id.AggregateType("FuzzSnap")
+		aggType := id.StreamType("FuzzSnap")
 		snap := snapshot.Snapshot{
-			AggregateID:   aggID,
-			AggregateType: aggType,
+			StreamID:   aggID,
+			StreamType: aggType,
 			Version:       event.Version(1),
 			State:         state,
 			CreatedAt:     time.Now(),

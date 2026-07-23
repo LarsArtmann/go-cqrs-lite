@@ -29,7 +29,7 @@ func newDeriverProjection(disp *command.Dispatcher, logger *slog.Logger) project
 	return projection.NewProjection(
 		"auto-assign",
 		func(ctx context.Context, evt event.Event) error {
-			bc, err := command.New(cmdAssignTask, evt.AggregateID())
+			bc, err := command.New(cmdAssignTask, evt.StreamID())
 			if err != nil {
 				return err
 			}
@@ -44,7 +44,7 @@ func newDeriverProjection(disp *command.Dispatcher, logger *slog.Logger) project
 			go func() {
 				if dErr := disp.Dispatch(ctx, cmd); dErr != nil {
 					logger.Error("deriver: auto-assign failed",
-						"taskID", evt.AggregateID(), "error", dErr)
+						"taskID", evt.StreamID(), "error", dErr)
 				}
 			}()
 

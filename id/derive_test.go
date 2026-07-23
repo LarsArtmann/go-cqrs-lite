@@ -12,7 +12,7 @@ func TestDeriveAggregateID(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		a, b   id.AggregateID
+		a, b   id.StreamID
 		wantEq bool
 	}{
 		{
@@ -71,7 +71,7 @@ func TestAggregateIDFrom(t *testing.T) {
 	t.Parallel()
 
 	s := mockStringer{s: "custom-domain-id-123"}
-	got := id.AggregateIDFrom(s)
+	got := id.StreamIDFrom(s)
 
 	if got.String() != "custom-domain-id-123" {
 		t.Errorf("got %q, want custom-domain-id-123", got.String())

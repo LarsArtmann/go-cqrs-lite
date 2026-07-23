@@ -18,7 +18,7 @@ func TestExportedMarkers_DownstreamUsable(t *testing.T) {
 		name string
 		id   string
 	}{
-		{"AggregateMarker", id.New[id.AggregateMarker]().String()},
+		{"StreamMarker", id.New[id.StreamMarker]().String()},
 		{"UserMarker", id.New[id.UserMarker]().String()},
 		{"CorrelationMarker", id.New[id.CorrelationMarker]().String()},
 		{"RequestMarker", id.New[id.RequestMarker]().String()},

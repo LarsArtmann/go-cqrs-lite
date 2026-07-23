@@ -136,7 +136,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 
 	type eventSnapshot struct {
 		Type          string `json:"type"`
-		AggregateType string `json:"aggregateType"`
+		StreamType string `json:"streamType"`
 		Version       int    `json:"version"`
 	}
 
@@ -144,7 +144,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 	for _, evt := range events {
 		serialized = append(serialized, eventSnapshot{
 			Type:          string(evt.Type()),
-			AggregateType: string(evt.AggregateType()),
+			StreamType: string(evt.StreamType()),
 			Version:       int(evt.Version()),
 		})
 	}

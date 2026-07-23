@@ -64,14 +64,14 @@ func (s *FakeSnapshotStore) Save(_ context.Context, snap snapshot.Snapshot) erro
 
 func (s *FakeSnapshotStore) Load(
 	_ context.Context,
-	_ id.AggregateRef,
+	_ id.StreamRef,
 ) (*snapshot.Snapshot, error) {
 	return s.loadSnapshot()
 }
 
 func (s *FakeSnapshotStore) LoadAtVersion(
 	_ context.Context,
-	_ id.AggregateRef,
+	_ id.StreamRef,
 	_ event.Version,
 ) (*snapshot.Snapshot, error) {
 	return s.loadSnapshot()
@@ -86,7 +86,7 @@ func (s *FakeSnapshotStore) loadSnapshot() (*snapshot.Snapshot, error) {
 
 func (s *FakeSnapshotStore) Delete(
 	_ context.Context,
-	_ id.AggregateRef,
+	_ id.StreamRef,
 ) error {
 	return nil
 }

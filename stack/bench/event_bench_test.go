@@ -74,13 +74,13 @@ func BenchmarkDirect_EventSave(b *testing.B) {
 func mustReversion(
 	b *testing.B,
 	evt event.Event,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	version event.Version,
 ) event.Event {
 	evt2, err := event.NewEvent(
 		evt.Type(),
 		aggID,
-		evt.AggregateType(),
+		evt.StreamType(),
 		version,
 		event.PayloadReadOnly(evt),
 	)

@@ -106,20 +106,20 @@ type DecideFunc[State any] func(state State, currentVersion event.Version) ([]ev
 // published — the caller can retry publishing via the bus directly.
 func (r *Repository[State]) Execute(
 	ctx context.Context,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	decide DecideFunc[State],
 ) error {
-	ref := id.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(streamType, streamID)
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.execute",
 		cqrsotel.SpanKindInternal,
-		cqrsotel.WithAttributes(cqrsotel.AggregateAttrs(aggregateType, aggregateID)...),
+		cqrsotel.WithAttributes(cqrsotel.AggregateAttrs(streamType, streamID)...),
 	)
 	defer span.End()
 
-	state, currentVersion, err := r.Load(ctx, aggregateID, aggregateType)
+	state, currentVersion, err := r.Load(ctx, streamID, streamType)
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
@@ -175,7 +175,7 @@ func (r *Repository[State]) Execute(
 // swallowed — snapshots are best-effort and must not block the write path.
 func (r *Repository[State]) saveSnapshotAfterEvents(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	newVersion event.Version,
 	state State,
 	newEvents []event.Event,
@@ -237,7 +237,7 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 // and stores the result in the hot-state cache. On fold error the cache
 // entry is invalidated to force a full reload on next access.
 func (r *Repository[State]) updateCacheAfterExecute(
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	state State,
 	newVersion event.Version,
 	newEvents []event.Event,
@@ -260,13 +260,13 @@ func (r *Repository[State]) updateCacheAfterExecute(
 // side effects. Useful for read-only state access or debugging.
 func (r *Repository[State]) Load(
 	ctx context.Context,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 ) (State, event.Version, error) {
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load",
 		cqrsotel.SpanKindInternal,
-		cqrsotel.WithAttributes(cqrsotel.AggregateAttrs(aggregateType, aggregateID)...),
+		cqrsotel.WithAttributes(cqrsotel.AggregateAttrs(streamType, streamID)...),
 	)
 	defer span.End()
 
@@ -277,18 +277,18 @@ func (r *Repository[State]) Load(
 	)
 
 	if r.stateCache != nil {
-		state, ver, ok := r.loadFromCache(ctx, aggregateID, aggregateType)
+		state, ver, ok := r.loadFromCache(ctx, streamID, streamType)
 		if ok {
-			r.recordRead(id.NewAggregateRef(aggregateType, aggregateID), ver)
+			r.recordRead(id.NewAggregateRef(streamType, streamID), ver)
 
 			return state, ver, nil
 		}
 	}
 
 	if r.snapshotStore != nil && r.codec != nil {
-		state, ver, err = r.loadFromSnapshot(ctx, aggregateID, aggregateType)
+		state, ver, err = r.loadFromSnapshot(ctx, streamID, streamType)
 	} else {
-		state, ver, err = r.loadFromStore(ctx, aggregateID, aggregateType)
+		state, ver, err = r.loadFromStore(ctx, streamID, streamType)
 	}
 
 	if err != nil {
@@ -297,7 +297,7 @@ func (r *Repository[State]) Load(
 		return state, ver, err
 	}
 
-	ref := id.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(streamType, streamID)
 	r.recordRead(ref, ver)
 
 	if r.stateCache != nil {

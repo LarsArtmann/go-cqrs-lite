@@ -14,7 +14,7 @@ import (
 type PersistedCommand struct {
 	id           id.CommandID
 	cmdType      Type
-	aggregateRef AggregateRef
+	streamRef StreamRef
 	receivedAt   time.Time
 	payload      []byte
 	metadata     Metadata
@@ -27,9 +27,9 @@ var (
 
 func (c *PersistedCommand) ID() id.CommandID             { return c.id }
 func (c *PersistedCommand) Type() Type                   { return c.cmdType }
-func (c *PersistedCommand) AggregateID() id.AggregateID  { return c.aggregateRef.ID }
-func (c *PersistedCommand) AggregateType() AggregateType { return c.aggregateRef.Type }
-func (c *PersistedCommand) AggregateRef() AggregateRef   { return c.aggregateRef }
+func (c *PersistedCommand) StreamID() id.StreamID  { return c.streamRef.ID }
+func (c *PersistedCommand) StreamType() StreamType { return c.streamRef.Type }
+func (c *PersistedCommand) StreamRef() StreamRef   { return c.streamRef }
 func (c *PersistedCommand) ReceivedAt() time.Time        { return c.receivedAt }
 func (c *PersistedCommand) Payload() []byte {
 	if c.payload == nil {
@@ -42,7 +42,7 @@ func (c *PersistedCommand) Metadata() Metadata { return c.metadata.Clone() }
 
 func (c *PersistedCommand) String() string {
 	return fmt.Sprintf("%s(%s) %s@%s",
-		c.cmdType, c.id, c.aggregateRef.Type, c.aggregateRef.ID)
+		c.cmdType, c.id, c.streamRef.Type, c.streamRef.ID)
 }
 
 type PersistOption func(*PersistedCommand)
@@ -61,7 +61,7 @@ func WithCommandMetadata(m Metadata) PersistOption {
 
 func NewPersistedCommand(
 	cmdType Type,
-	ref AggregateRef,
+	ref StreamRef,
 	payload []byte,
 	opts ...PersistOption,
 ) (*PersistedCommand, error) {
@@ -92,7 +92,7 @@ func NewPersistedCommand(
 	cmd := &PersistedCommand{
 		id:           id.NewCommandID(),
 		cmdType:      cmdType,
-		aggregateRef: ref,
+		streamRef: ref,
 		receivedAt:   time.Now(),
 		payload:      slices.Clone(payload),
 		metadata:     Metadata{}, //nolint:exhaustruct // zero-value metadata is the correct initial state
@@ -106,23 +106,23 @@ func NewPersistedCommand(
 }
 
 type CommandSink interface {
-	Save(ctx context.Context, ref AggregateRef, cmd *PersistedCommand) error
+	Save(ctx context.Context, ref StreamRef, cmd *PersistedCommand) error
 
-	AppendBatch(ctx context.Context, ref AggregateRef, cmds []*PersistedCommand) error
+	AppendBatch(ctx context.Context, ref StreamRef, cmds []*PersistedCommand) error
 }
 
 type CommandSource interface {
-	Load(ctx context.Context, ref AggregateRef) ([]*PersistedCommand, error)
+	Load(ctx context.Context, ref StreamRef) ([]*PersistedCommand, error)
 
 	LoadFromTimestamp(
 		ctx context.Context,
-		ref AggregateRef,
+		ref StreamRef,
 		after time.Time,
 	) ([]*PersistedCommand, error)
 
 	LoadToTimestamp(
 		ctx context.Context,
-		ref AggregateRef,
+		ref StreamRef,
 		maxTime time.Time,
 	) ([]*PersistedCommand, error)
 }

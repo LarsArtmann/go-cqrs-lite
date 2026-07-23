@@ -137,8 +137,8 @@ func TestVerifyMiddleware(t *testing.T) {
 		evt := testutil.MakeTestEvent(t)
 		corrupt, _ := event.NewEvent(
 			evt.Type(),
-			evt.AggregateID(),
-			evt.AggregateType(),
+			evt.StreamID(),
+			evt.StreamType(),
 			evt.Version(),
 			evt.Payload(),
 			event.WithEventID(evt.ID()),

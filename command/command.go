@@ -33,7 +33,7 @@ func ParseType(s string) (Type, error) {
 // with a deterministic key.
 type Command interface {
 	Type() Type
-	AggregateID() id.AggregateID
+	StreamID() id.StreamID
 	ID() id.CommandID
 }
 
@@ -41,7 +41,7 @@ type Command interface {
 type BasicCommand struct {
 	commandID   id.CommandID
 	commandType Type
-	aggregateID id.AggregateID
+	streamID id.StreamID
 	metadata    Metadata
 }
 
@@ -50,8 +50,8 @@ var _ Command = (*BasicCommand)(nil)
 // Type returns the command type.
 func (c *BasicCommand) Type() Type { return c.commandType }
 
-// AggregateID returns the aggregate ID.
-func (c *BasicCommand) AggregateID() id.AggregateID { return c.aggregateID }
+// StreamID returns the aggregate ID.
+func (c *BasicCommand) StreamID() id.StreamID { return c.streamID }
 
 // ID returns the command ID, minted at construction time.
 func (c *BasicCommand) ID() id.CommandID { return c.commandID }
@@ -60,16 +60,16 @@ func (c *BasicCommand) ID() id.CommandID { return c.commandID }
 func (c *BasicCommand) Metadata() Metadata { return c.metadata.Clone() }
 
 // New creates a new command with validation.
-func New(commandType Type, aggregateID id.AggregateID, opts ...Option) (*BasicCommand, error) {
+func New(commandType Type, streamID id.StreamID, opts ...Option) (*BasicCommand, error) {
 	if commandType == "" {
 		return nil, errorfamily.WrapRejection(
 			ErrEmptyCommandType,
 			"command.empty_command_type",
-			"command type is required: got empty for aggregate "+aggregateID.String(),
+			"command type is required: got empty for aggregate "+streamID.String(),
 		)
 	}
 
-	if aggregateID.IsZero() {
+	if streamID.IsZero() {
 		return nil, errorfamily.WrapRejection(
 			ErrNilAggregateID,
 			"command.nil_aggregate_id",
@@ -80,7 +80,7 @@ func New(commandType Type, aggregateID id.AggregateID, opts ...Option) (*BasicCo
 	cmd := &BasicCommand{
 		commandID:   id.NewCommandID(),
 		commandType: commandType,
-		aggregateID: aggregateID,
+		streamID: streamID,
 		metadata:    Metadata{}, //nolint:exhaustruct // zero-value metadata is the correct initial state
 	}
 

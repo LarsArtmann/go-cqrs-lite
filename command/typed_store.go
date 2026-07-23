@@ -21,7 +21,7 @@ import (
 type TypedPersistedCommand[P any] struct {
 	ID           id.CommandID
 	Type         Type
-	AggregateRef AggregateRef
+	StreamRef StreamRef
 	ReceivedAt   time.Time
 	Payload      P
 	Metadata     Metadata
@@ -53,7 +53,7 @@ func NewTypedCommandStore[P any](store Store, c codec.Codec) *TypedCommandStore[
 // Save encodes cmd.Payload and delegates to the underlying [Store].
 func (t *TypedCommandStore[P]) Save(
 	ctx context.Context,
-	ref AggregateRef,
+	ref StreamRef,
 	cmd TypedPersistedCommand[P],
 ) error {
 	data, err := codec.WrapEncode(cmd.Payload, t.codec)
@@ -93,7 +93,7 @@ func (t *TypedCommandStore[P]) Save(
 // payload is encoded via the codec before delegating to the underlying [Store].
 func (t *TypedCommandStore[P]) AppendBatch(
 	ctx context.Context,
-	ref AggregateRef,
+	ref StreamRef,
 	cmds []TypedPersistedCommand[P],
 ) error {
 	persisted := make([]*PersistedCommand, 0, len(cmds))
@@ -142,7 +142,7 @@ func (t *TypedCommandStore[P]) AppendBatch(
 // Load retrieves all commands for ref, decoding each payload into P.
 func (t *TypedCommandStore[P]) Load(
 	ctx context.Context,
-	ref AggregateRef,
+	ref StreamRef,
 ) ([]TypedPersistedCommand[P], error) {
 	cmds, err := t.store.Load(ctx, ref)
 	if err != nil {
@@ -169,7 +169,7 @@ func (t *TypedCommandStore[P]) Load(
 		result = append(result, TypedPersistedCommand[P]{
 			ID:           cmd.ID(),
 			Type:         cmd.Type(),
-			AggregateRef: cmd.AggregateRef(),
+			StreamRef: cmd.StreamRef(),
 			ReceivedAt:   cmd.ReceivedAt(),
 			Payload:      payload,
 			Metadata:     cmd.Metadata(),

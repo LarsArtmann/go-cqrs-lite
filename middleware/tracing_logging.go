@@ -59,7 +59,7 @@ func CommandTraceLogging(logger *slog.Logger) command.Middleware {
 			Failed:      "command failed",
 			Succeeded:   "command succeeded",
 		}, func(cmd command.Command) string { return string(cmd.Type()) },
-		func(cmd command.Command) string { return cmd.AggregateID().String() },
+		func(cmd command.Command) string { return cmd.StreamID().String() },
 	))
 }
 
@@ -72,7 +72,7 @@ func EventTraceLogging(logger *slog.Logger) event.Middleware {
 			Failed:      "event handler failed",
 			Succeeded:   "event handled",
 		}, func(evt event.Event) string { return string(evt.Type()) },
-		func(evt event.Event) string { return evt.AggregateID().String() },
+		func(evt event.Event) string { return evt.StreamID().String() },
 	))
 }
 

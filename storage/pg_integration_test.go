@@ -160,8 +160,8 @@ func TestPostgresBackend_FullStack(t *testing.T) {
 
 	// Snapshot
 	_ = snapStore.Save(ctx, snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Test",
+		StreamID:   aggID,
+		StreamType: "Test",
 		Version:       event.Version(1),
 		State:         []byte(`{}`),
 		CreatedAt:     time.Now(),

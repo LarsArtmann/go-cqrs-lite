@@ -26,9 +26,9 @@ func TestAggregateType_GeneratesValidStrings(t *testing.T) {
 	t.Parallel()
 
 	rapid.Check(t, func(t *rapid.T) {
-		val := testutil.AggregateType().Draw(t, "aggregateType")
+		val := testutil.StreamType().Draw(t, "streamType")
 		if !eventPattern.MatchString(val) {
-			t.Errorf("AggregateType() = %q does not match pattern", val)
+			t.Errorf("StreamType() = %q does not match pattern", val)
 		}
 	})
 }

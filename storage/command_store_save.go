@@ -16,7 +16,7 @@ import (
 // Returns ErrDuplicateCommand if the command ID already exists (PRIMARY KEY violation).
 func (s *SQLCommandStore) Save(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
 	if err := s.checkClosed(); err != nil {
@@ -49,7 +49,7 @@ func (s *SQLCommandStore) Save(
 // If any command ID already exists, the entire batch fails.
 func (s *SQLCommandStore) AppendBatch(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
 	if err := s.checkClosed(); err != nil {
@@ -90,7 +90,7 @@ func (s *SQLCommandStore) AppendBatch(
 func (s *SQLCommandStore) insertCommand(
 	ctx context.Context,
 	tx *sql.Tx,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
 	ph := make([]string, 7)

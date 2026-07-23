@@ -94,7 +94,7 @@ func FuzzSerializeDeserializeRoundtrip(f *testing.F) {
 			t.Errorf("version mismatch: want %d, got %d", evt.Version(), got.Version())
 		}
 
-		if got.AggregateID() != evt.AggregateID() {
+		if got.StreamID() != evt.StreamID() {
 			t.Error("aggregate ID mismatch")
 		}
 

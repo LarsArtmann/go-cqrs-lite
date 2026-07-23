@@ -13,7 +13,7 @@ import (
 func setupTwoTestEvents(
 	t *testing.T,
 	store *SQLEventStore,
-) (event.Event, event.Event, id.AggregateID, id.AggregateID) {
+) (event.Event, event.Event, id.StreamID, id.StreamID) {
 	t.Helper()
 	aggID1 := id.NewAggregateID()
 	aggID2 := id.NewAggregateID()

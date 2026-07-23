@@ -96,7 +96,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	})
 
 	// Verify the event store persisted correct tombstone metadata.
-	ref := id.NewAggregateRef(aggregateType, taskID)
+	ref := id.NewAggregateRef(streamType, taskID)
 	allEvents, err := srv.Bundle.EventSource.Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("load events: %v", err)
@@ -229,7 +229,7 @@ func newTestServer(t *testing.T) *Server {
 	return srv
 }
 
-func waitForView(t *testing.T, srv *Server, taskID id.AggregateID, matches func(*TaskView) bool) {
+func waitForView(t *testing.T, srv *Server, taskID id.StreamID, matches func(*TaskView) bool) {
 	t.Helper()
 
 	deadline := time.Now().Add(5 * time.Second)

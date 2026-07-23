@@ -15,7 +15,7 @@ import (
 // Load retrieves all commands for an aggregate, ordered by ReceivedAt.
 func (s *CommandStore) Load(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 ) ([]*command.PersistedCommand, error) {
 	_, span := startAggregateSpan(ctx, "pebble.command.load", ref)
 	defer span.End()
@@ -33,7 +33,7 @@ func (s *CommandStore) Load(
 // LoadFromTimestamp retrieves commands where ReceivedAt > after.
 func (s *CommandStore) LoadFromTimestamp(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	after time.Time,
 ) ([]*command.PersistedCommand, error) {
 	_, span := startAggregateSpan(
@@ -60,7 +60,7 @@ func (s *CommandStore) LoadFromTimestamp(
 // LoadToTimestamp retrieves commands where ReceivedAt <= maxTime.
 func (s *CommandStore) LoadToTimestamp(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	maxTime time.Time,
 ) ([]*command.PersistedCommand, error) {
 	_, span := startAggregateSpan(ctx, "pebble.command.load_to_timestamp", ref)

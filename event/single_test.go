@@ -8,7 +8,7 @@ import (
 
 func TestSingle(t *testing.T) {
 	aggID := id.NewAggregateID()
-	aggType := id.AggregateType("User")
+	aggType := id.StreamType("User")
 
 	events, err := Single(
 		"user.created",
@@ -29,8 +29,8 @@ func TestSingle(t *testing.T) {
 	if evt.Type() != "user.created" {
 		t.Errorf("Type() = %q, want %q", evt.Type(), "user.created")
 	}
-	if evt.AggregateType() != aggType {
-		t.Errorf("AggregateType() = %q, want %q", evt.AggregateType(), aggType)
+	if evt.StreamType() != aggType {
+		t.Errorf("StreamType() = %q, want %q", evt.StreamType(), aggType)
 	}
 	if evt.Version() != Version(1) {
 		t.Errorf("Version() = %d, want 1", evt.Version())

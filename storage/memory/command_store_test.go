@@ -12,7 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
-func validCommandRef(tb testing.TB) command.AggregateRef {
+func validCommandRef(tb testing.TB) command.StreamRef {
 	tb.Helper()
 
 	return command.NewAggregateRef(
@@ -24,7 +24,7 @@ func validCommandRef(tb testing.TB) command.AggregateRef {
 func testPersistedCommand(
 	t *testing.T,
 	cmdType command.Type,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 ) *command.PersistedCommand {
 	t.Helper()
 
@@ -161,7 +161,7 @@ func TestMemoryCommandStore_Load_NotFound(t *testing.T) {
 
 func setupTimestampCommands(
 	t *testing.T,
-) (*command.PersistedCommand, *command.PersistedCommand, *command.PersistedCommand, command.AggregateRef) {
+) (*command.PersistedCommand, *command.PersistedCommand, *command.PersistedCommand, command.StreamRef) {
 	t.Helper()
 	ref := validCommandRef(t)
 

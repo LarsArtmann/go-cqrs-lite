@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func appendFiveEvents(t *testing.T, store *SQLEventStore, aggID id.AggregateID) {
+func appendFiveEvents(t *testing.T, store *SQLEventStore, aggID id.StreamID) {
 	t.Helper()
 	ctx := context.Background()
 
@@ -18,7 +18,7 @@ func appendFiveEvents(t *testing.T, store *SQLEventStore, aggID id.AggregateID) 
 		evt := issueStoreConfig().NewTestEvent(t, aggID, event.Version(i+1))
 		if err := store.AppendBatch(
 			ctx,
-			id.NewAggregateRef(id.AggregateType("Issue"), aggID),
+			id.NewAggregateRef(id.StreamType("Issue"), aggID),
 			[]event.Event{evt},
 		); err != nil {
 			t.Fatalf("AppendBatch: %v", err)
@@ -49,7 +49,7 @@ func TestSQLiteEventStore_LoadToVersion(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.StreamType("Issue"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -58,7 +58,7 @@ func TestSQLiteEventStore_LoadToVersion(t *testing.T) {
 
 	events, err := store.LoadToVersion(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.StreamType("Issue"), aggID),
 		2,
 	)
 	if err != nil {
@@ -100,7 +100,7 @@ func TestSQLiteEventStore_LoadToTimestamp(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.StreamType("Issue"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -109,7 +109,7 @@ func TestSQLiteEventStore_LoadToTimestamp(t *testing.T) {
 
 	events, err := store.LoadToTimestamp(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.StreamType("Issue"), aggID),
 		now.Add(-30*time.Minute),
 	)
 	if err != nil {
@@ -153,7 +153,7 @@ func TestSQLiteEventStore_ReadFrom(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.StreamType("Issue"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -188,7 +188,7 @@ func TestSQLiteEventStore_ReadFrom_ZeroID(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Issue"), aggID),
+		id.NewAggregateRef(id.StreamType("Issue"), aggID),
 		[]event.Event{evt},
 	)
 	if err != nil {

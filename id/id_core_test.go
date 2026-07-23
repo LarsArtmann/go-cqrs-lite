@@ -20,7 +20,7 @@ func parseID[T any](tb testing.TB, s string) Of[T] {
 	return v
 }
 
-func parseAggID(tb testing.TB, s string) AggregateID {
+func parseAggID(tb testing.TB, s string) StreamID {
 	tb.Helper()
 
 	v, err := ParseAggregateID(s)
@@ -34,7 +34,7 @@ func parseAggID(tb testing.TB, s string) AggregateID {
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	id := New[AggregateID]()
+	id := New[StreamID]()
 
 	if id.IsZero() {
 		t.Error("New() should not return zero ID")
@@ -64,7 +64,7 @@ func TestParse(t *testing.T) {
 	t.Run("valid string", func(t *testing.T) {
 		t.Parallel()
 
-		id, err := Parse[AggregateID](testULID)
+		id, err := Parse[StreamID](testULID)
 		if err != nil {
 			t.Fatalf("Parse() error = %v", err)
 		}
@@ -77,7 +77,7 @@ func TestParse(t *testing.T) {
 	t.Run("empty string", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := Parse[AggregateID]("")
+		_, err := Parse[StreamID]("")
 		if err == nil {
 			t.Error("Parse() should error on empty string")
 		}
@@ -86,7 +86,7 @@ func TestParse(t *testing.T) {
 	t.Run("lowercase input normalizes to uppercase", func(t *testing.T) {
 		t.Parallel()
 
-		id, err := Parse[AggregateID](lower(testULID))
+		id, err := Parse[StreamID](lower(testULID))
 		if err != nil {
 			t.Fatalf("Parse(lowercase) error = %v", err)
 		}
@@ -111,7 +111,7 @@ func TestMustParse(t *testing.T) {
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 
-			id := parseID[AggregateID](t, tc.input)
+			id := parseID[StreamID](t, tc.input)
 			if id.String() != tc.expected {
 				t.Errorf("MustParse() = %q, want %q", id.String(), tc.expected)
 			}
@@ -121,7 +121,7 @@ func TestMustParse(t *testing.T) {
 	t.Run("empty string returns error", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := Parse[AggregateID]("")
+		_, err := Parse[StreamID]("")
 		if err == nil {
 			t.Error("Parse() should return error on empty string")
 		}
@@ -134,7 +134,7 @@ func TestIsZero(t *testing.T) {
 	t.Run("zero ID", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
+		var id StreamID
 		if !id.IsZero() {
 			t.Error("zero value ID should be zero")
 		}
@@ -143,7 +143,7 @@ func TestIsZero(t *testing.T) {
 	t.Run("non-zero ID", func(t *testing.T) {
 		t.Parallel()
 
-		id := parseID[AggregateID](t, testULID)
+		id := parseID[StreamID](t, testULID)
 		if id.IsZero() {
 			t.Error("parsed ID should not be zero")
 		}
@@ -156,9 +156,9 @@ func TestEqual(t *testing.T) {
 	t.Run("equal IDs", func(t *testing.T) {
 		t.Parallel()
 
-		a := parseID[AggregateID](t, testULID)
+		a := parseID[StreamID](t, testULID)
 
-		b := parseID[AggregateID](t, testULID)
+		b := parseID[StreamID](t, testULID)
 		if !a.Equal(b) {
 			t.Error("equal IDs should be equal")
 		}
@@ -167,9 +167,9 @@ func TestEqual(t *testing.T) {
 	t.Run("different IDs", func(t *testing.T) {
 		t.Parallel()
 
-		a := parseID[AggregateID](t, "01HK153X00WRE0FHNC52TH9Y1A")
+		a := parseID[StreamID](t, "01HK153X00WRE0FHNC52TH9Y1A")
 
-		b := parseID[AggregateID](t, "01HK153YYGPZ1D26JE8FR0H6AS")
+		b := parseID[StreamID](t, "01HK153YYGPZ1D26JE8FR0H6AS")
 		if a.Equal(b) {
 			t.Error("different IDs should not be equal")
 		}
@@ -178,7 +178,7 @@ func TestEqual(t *testing.T) {
 	t.Run("zero IDs", func(t *testing.T) {
 		t.Parallel()
 
-		var a, b AggregateID
+		var a, b StreamID
 		if !a.Equal(b) {
 			t.Error("zero IDs should be equal")
 		}
@@ -221,8 +221,8 @@ func TestCompare(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			a := parseID[AggregateID](t, tc.aStr)
-			b := parseID[AggregateID](t, tc.bStr)
+			a := parseID[StreamID](t, tc.aStr)
+			b := parseID[StreamID](t, tc.bStr)
 
 			got := CompareIDs(a, b)
 
@@ -250,7 +250,7 @@ func TestOr(t *testing.T) {
 	t.Run("zero returns fallback", func(t *testing.T) {
 		t.Parallel()
 
-		var id AggregateID
+		var id StreamID
 
 		fallback := parseAggID(t, "01HK1542VGZX7VW38CS2WSRXBX")
 		if result := id.Or(fallback); !result.Equal(fallback) {
@@ -262,7 +262,7 @@ func TestOr(t *testing.T) {
 func TestReset(t *testing.T) {
 	t.Parallel()
 
-	id := parseID[AggregateID](t, testULID)
+	id := parseID[StreamID](t, testULID)
 	if id.IsZero() {
 		t.Error("ID should not be zero before reset")
 	}
@@ -277,7 +277,7 @@ func TestReset(t *testing.T) {
 func TestGoString(t *testing.T) {
 	t.Parallel()
 
-	id := parseID[AggregateID](t, testULID)
+	id := parseID[StreamID](t, testULID)
 
 	gs := id.GoString()
 	if gs == "" {
@@ -288,7 +288,7 @@ func TestGoString(t *testing.T) {
 func TestFormat(t *testing.T) {
 	t.Parallel()
 
-	id := parseID[AggregateID](t, testULID)
+	id := parseID[StreamID](t, testULID)
 
 	tests := []struct {
 		format string

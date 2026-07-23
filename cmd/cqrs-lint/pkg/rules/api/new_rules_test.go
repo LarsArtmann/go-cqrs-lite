@@ -282,7 +282,7 @@ type CreateUser struct {
 
 func (c *CreateUser) ID() string { return "" }
 func (c *CreateUser) Type() string { return "createUser" }
-func (c *CreateUser) AggregateID() string { return "" }
+func (c *CreateUser) StreamID() string { return "" }
 `,
 	})
 	findings := runDetector(t, api.NewA001Detector(ctx))

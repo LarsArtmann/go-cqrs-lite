@@ -250,7 +250,7 @@ func TestPostgresBus_NotificationRefetch(t *testing.T) {
 		"eid": evt.ID().String(),
 		"et":  "test.updated",
 		"at":  "Test",
-		"aid": evt.AggregateID().String(),
+		"aid": evt.StreamID().String(),
 		"v":   1,
 	})
 	if marshalErr != nil {
@@ -456,25 +456,25 @@ type versionOnlySource struct {
 
 func (v *versionOnlySource) Load(
 	ctx context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) ([]event.Event, error) {
 	return v.inner.Load(ctx, ref)
 }
 
 func (v *versionOnlySource) LoadFromVersion(
-	ctx context.Context, ref id.AggregateRef, ver event.Version,
+	ctx context.Context, ref id.StreamRef, ver event.Version,
 ) ([]event.Event, error) {
 	return v.inner.LoadFromVersion(ctx, ref, ver)
 }
 
 func (v *versionOnlySource) LoadToVersion(
-	ctx context.Context, ref id.AggregateRef, maxVer event.Version,
+	ctx context.Context, ref id.StreamRef, maxVer event.Version,
 ) ([]event.Event, error) {
 	return v.inner.LoadToVersion(ctx, ref, maxVer)
 }
 
 func (v *versionOnlySource) LoadToTimestamp(
-	ctx context.Context, ref id.AggregateRef, maxTime time.Time,
+	ctx context.Context, ref id.StreamRef, maxTime time.Time,
 ) ([]event.Event, error) {
 	return v.inner.LoadToTimestamp(ctx, ref, maxTime)
 }

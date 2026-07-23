@@ -144,7 +144,7 @@ func Create(cmd CreateTask) decider.DecideFunc[TaskState] {
 			return nil, err
 		}
 
-		evt, err := event.New(evtTaskCreated, cmd.ID, aggregateType, v.Increment(),
+		evt, err := event.New(evtTaskCreated, cmd.ID, streamType, v.Increment(),
 			TaskCreatedPayload{Title: title, Description: cmd.Description, Priority: cmd.Priority})
 		if err != nil {
 			return nil, errorfamily.Newf(
@@ -181,7 +181,7 @@ func Assign(cmd AssignTask) decider.DecideFunc[TaskState] {
 			)
 		}
 
-		evt, err := event.New(evtTaskAssigned, cmd.ID, aggregateType, v.Increment(),
+		evt, err := event.New(evtTaskAssigned, cmd.ID, streamType, v.Increment(),
 			TaskAssignedPayload{AssigneeID: cmd.AssigneeID})
 		if err != nil {
 			return nil, errorfamily.Newf(
@@ -218,7 +218,7 @@ func Start(cmd StartTask) decider.DecideFunc[TaskState] {
 		evt, err := event.New(
 			evtTaskStarted,
 			cmd.ID,
-			aggregateType,
+			streamType,
 			v.Increment(),
 			TaskStartedPayload{},
 		)
@@ -257,7 +257,7 @@ func Complete(cmd CompleteTask) decider.DecideFunc[TaskState] {
 		evt, err := event.New(
 			evtTaskCompleted,
 			cmd.ID,
-			aggregateType,
+			streamType,
 			v.Increment(),
 			TaskCompletedPayload{},
 		)
@@ -296,7 +296,7 @@ func Archive(cmd ArchiveTask) decider.DecideFunc[TaskState] {
 		evt, err := event.New(
 			evtTaskArchived,
 			cmd.ID,
-			aggregateType,
+			streamType,
 			v.Increment(),
 			TaskArchivedPayload{},
 		)
@@ -337,7 +337,7 @@ func UpdateTaskTitle(cmd UpdateTitle) decider.DecideFunc[TaskState] {
 			return nil, errorfamily.NewConflict("task.title.unchanged", "title is the same")
 		}
 
-		evt, err := event.New(evtTaskTitleUpdated, cmd.ID, aggregateType, v.Increment(),
+		evt, err := event.New(evtTaskTitleUpdated, cmd.ID, streamType, v.Increment(),
 			TaskTitleUpdatedPayload{Title: title})
 		if err != nil {
 			return nil, errorfamily.Newf(
@@ -376,7 +376,7 @@ func ChangeTaskPriority(cmd ChangePriority) decider.DecideFunc[TaskState] {
 			return nil, errorfamily.NewConflict("task.priority.unchanged", "priority is the same")
 		}
 
-		evt, err := event.New(evtTaskPriorityChanged, cmd.ID, aggregateType, v.Increment(),
+		evt, err := event.New(evtTaskPriorityChanged, cmd.ID, streamType, v.Increment(),
 			TaskPriorityChangedPayload{Priority: cmd.Priority})
 		if err != nil {
 			return nil, errorfamily.Newf(
@@ -406,7 +406,7 @@ func SetTaskDueDate(cmd SetDueDate) decider.DecideFunc[TaskState] {
 			)
 		}
 
-		evt, err := event.New(evtTaskDueDateSet, cmd.ID, aggregateType, v.Increment(),
+		evt, err := event.New(evtTaskDueDateSet, cmd.ID, streamType, v.Increment(),
 			TaskDueDateSetPayload{DueDate: cmd.DueDate})
 		if err != nil {
 			return nil, errorfamily.Newf(
@@ -444,7 +444,7 @@ func AddBlocker(cmd BlockBy) decider.DecideFunc[TaskState] {
 			return nil, errorfamily.NewRejection("task.block.self", "a task cannot block itself")
 		}
 
-		evt, err := event.New(evtTaskBlockedBy, cmd.ID, aggregateType, v.Increment(),
+		evt, err := event.New(evtTaskBlockedBy, cmd.ID, streamType, v.Increment(),
 			TaskBlockedByPayload{DependencyID: cmd.DependencyID.String()})
 		if err != nil {
 			return nil, errorfamily.Newf(
@@ -478,7 +478,7 @@ func RemoveBlocker(cmd UnblockBy) decider.DecideFunc[TaskState] {
 			return nil, errorfamily.NewConflict("task.unblock.missing", "dependency does not exist")
 		}
 
-		evt, err := event.New(evtTaskUnblocked, cmd.ID, aggregateType, v.Increment(),
+		evt, err := event.New(evtTaskUnblocked, cmd.ID, streamType, v.Increment(),
 			TaskUnblockedPayload{DependencyID: cmd.DependencyID.String()})
 		if err != nil {
 			return nil, errorfamily.Newf(
@@ -511,7 +511,7 @@ func Delete(cmd DeleteTask) decider.DecideFunc[TaskState] {
 		evt, err := event.New(
 			evtTaskDeleted,
 			cmd.ID,
-			aggregateType,
+			streamType,
 			v.Increment(),
 			TaskDeletedPayload{},
 		)
@@ -542,7 +542,7 @@ func Delete(cmd DeleteTask) decider.DecideFunc[TaskState] {
 // Helpers
 // ──────────────────────────────────────────────────────────────────────────
 
-func removeTaskID(ids []id.AggregateID, target id.AggregateID) []id.AggregateID {
+func removeTaskID(ids []id.StreamID, target id.StreamID) []id.StreamID {
 	result := make([]TaskID, 0, len(ids))
 
 	for _, id := range ids {

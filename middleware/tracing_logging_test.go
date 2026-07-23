@@ -19,11 +19,11 @@ import (
 
 type traceCmd struct {
 	commandID   id.CommandID
-	aggregateID id.AggregateID
+	streamID id.StreamID
 }
 
 func (c *traceCmd) Type() command.Type          { return "test.command" }
-func (c *traceCmd) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *traceCmd) StreamID() id.StreamID { return c.streamID }
 func (c *traceCmd) ID() id.CommandID            { return c.commandID }
 
 func newTraceLogger() (*slog.Logger, *bytes.Buffer) {
@@ -56,7 +56,7 @@ func TestCommandTraceLogging_WithSpan(t *testing.T) {
 	ctx, span := tracerProvider.Tracer("test").Start(context.Background(), "test")
 	defer span.End()
 
-	err := handler(ctx, &traceCmd{aggregateID: id.NewAggregateID()})
+	err := handler(ctx, &traceCmd{streamID: id.NewAggregateID()})
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(called).To(BeTrue())
 
@@ -75,7 +75,7 @@ func TestCommandTraceLogging_NoSpan(t *testing.T) {
 
 	handler := mw(middleware.NoopCommandHandler())
 
-	err := handler(context.Background(), &traceCmd{aggregateID: id.NewAggregateID()})
+	err := handler(context.Background(), &traceCmd{streamID: id.NewAggregateID()})
 	g.Expect(err).ToNot(HaveOccurred())
 
 	output := buf.String()
@@ -128,7 +128,7 @@ func TestCommandTraceLogging_Error(t *testing.T) {
 		return testErr
 	})
 
-	err := handler(context.Background(), &traceCmd{aggregateID: id.NewAggregateID()})
+	err := handler(context.Background(), &traceCmd{streamID: id.NewAggregateID()})
 	g.Expect(err).To(MatchError(testErr))
 
 	output := buf.String()

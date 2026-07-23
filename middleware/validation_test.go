@@ -21,7 +21,7 @@ func TestCommandValidation_Pass(t *testing.T) {
 	called := false
 	handler := mw(callbackCommandHandler(&called))
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := handler(context.Background(), cmd)
 	if err != nil {
@@ -43,7 +43,7 @@ func TestCommandValidation_Fail(t *testing.T) {
 
 	handler := mw(failingCommandHandler("should not be called"))
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := handler(context.Background(), cmd)
 	if err == nil {
@@ -140,7 +140,7 @@ func TestCommandValidation_SentinelError(t *testing.T) {
 	})
 	handler := mw(NoopCommandHandler())
 
-	err := handler(context.Background(), &testCommand{aggregateID: id.NewAggregateID()})
+	err := handler(context.Background(), &testCommand{streamID: id.NewAggregateID()})
 	if !errors.Is(err, validatorErr) {
 		t.Errorf("expected errors.Is(err, validatorErr), got %v", err)
 	}

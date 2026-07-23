@@ -142,10 +142,10 @@ func TestDocsSnippet4_CommandsWithTypedHandlers(t *testing.T) {
 		func(ctx context.Context, cmd *docCreateUser) error {
 			return repo.Execute(
 				ctx,
-				cmd.AggregateID(),
+				cmd.StreamID(),
 				"User",
 				func(_ docUserState, v event.Version) ([]event.Event, error) {
-					return event.NewEvents(cmd.AggregateID(), "User", v,
+					return event.NewEvents(cmd.StreamID(), "User", v,
 						[]event.Type{"user.created"}, []any{docUserCreated{Name: cmd.Name}})
 				},
 			)

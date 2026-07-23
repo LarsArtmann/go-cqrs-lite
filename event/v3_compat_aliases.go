@@ -9,11 +9,11 @@ import (
 // where these types lived in the event package. They were moved to id/metadata
 // but downstream modules (e.g., cqrs-htmx/usermgmt) still reference them here.
 
-type AggregateType = id.AggregateType
+type StreamType = id.StreamType
 
 var ParseAggregateType = id.ParseAggregateType
 
-type AggregateRef = id.AggregateRef
+type StreamRef = id.StreamRef
 
 var NewAggregateRef = id.NewAggregateRef
 

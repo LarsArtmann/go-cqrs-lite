@@ -30,7 +30,7 @@ func BenchmarkRealistic_SnapshotVsReplay(b *testing.B) {
 
 	ctx := context.Background()
 
-	aggIDs := make([]id.AggregateID, aggCount)
+	aggIDs := make([]id.StreamID, aggCount)
 	for i := range aggCount {
 		aggIDs[i] = id.NewAggregateID()
 

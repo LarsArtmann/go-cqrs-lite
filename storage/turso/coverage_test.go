@@ -172,7 +172,7 @@ func TestEventStore_ConcurrentSave(t *testing.T) {
 	store, ctx := setupEventStore(t)
 
 	const count = 10
-	aggIDs := make([]id.AggregateID, count)
+	aggIDs := make([]id.StreamID, count)
 	for i := range aggIDs {
 		aggIDs[i] = id.NewAggregateID()
 		saveEvent(t, store, ctx, makeEvent(t, aggIDs[i], 1), 0)
@@ -227,8 +227,8 @@ func TestSnapshotStore_Overwrite(t *testing.T) {
 	aggID := id.NewAggregateID()
 
 	snap1 := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "TestAggregate",
+		StreamID:   aggID,
+		StreamType: "TestAggregate",
 		Version:       3,
 		State:         []byte(`{"v":1}`),
 		CreatedAt:     time.Now(),
@@ -239,8 +239,8 @@ func TestSnapshotStore_Overwrite(t *testing.T) {
 	}
 
 	snap2 := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "TestAggregate",
+		StreamID:   aggID,
+		StreamType: "TestAggregate",
 		Version:       5,
 		State:         []byte(`{"v":2}`),
 		CreatedAt:     time.Now(),

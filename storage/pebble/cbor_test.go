@@ -49,8 +49,8 @@ func TestDeserializeEvent_JSONBackwardCompat(t *testing.T) {
 	legacy := serializableEvent{
 		ID:            eventID,
 		Type:          "UserCreated",
-		AggregateID:   aggID,
-		AggregateType: "User",
+		StreamID:   aggID,
+		StreamType: "User",
 		Version:       1,
 		SchemaVersion: 0,
 		Payload:       []byte(`{"name":"Bob"}`),
@@ -80,7 +80,7 @@ func TestDeserializeEvent_JSONBackwardCompat(t *testing.T) {
 		t.Errorf("expected version 1, got %d", evt.Version().Int())
 	}
 
-	if evt.AggregateID() != aggID {
+	if evt.StreamID() != aggID {
 		t.Error("aggregate ID mismatch")
 	}
 }
@@ -119,7 +119,7 @@ func TestDeserializeEvent_CBORRoundTrip(t *testing.T) {
 		t.Errorf("version: want %d, got %d", evt.Version(), got.Version())
 	}
 
-	if got.AggregateID() != evt.AggregateID() {
+	if got.StreamID() != evt.StreamID() {
 		t.Error("aggregate ID mismatch")
 	}
 
@@ -410,8 +410,8 @@ func TestSerializeEvent_SmallerThanJSON(t *testing.T) {
 	s := serializableEvent{
 		ID:            evt.ID(),
 		Type:          string(evt.Type()),
-		AggregateID:   evt.AggregateID(),
-		AggregateType: string(evt.AggregateType()),
+		StreamID:   evt.StreamID(),
+		StreamType: string(evt.StreamType()),
 		Version:       evt.Version().Int(),
 		Payload:       payload,
 		OccurredAt:    evt.OccurredAt().UnixNano(),

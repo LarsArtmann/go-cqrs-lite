@@ -20,8 +20,8 @@ type TimelineEvent struct {
 
 func MakeTimelineEvents(
 	tb testing.TB,
-	aggType id.AggregateType,
-	aggID id.AggregateID,
+	aggType id.StreamType,
+	aggID id.StreamID,
 	events []TimelineEvent,
 ) []event.Event {
 	tb.Helper()
@@ -55,8 +55,8 @@ func NewTestEvent() (event.Event, error) {
 func NewEventOpts(
 	tb testing.TB,
 	typ event.Type,
-	aggID id.AggregateID,
-	aggType id.AggregateType,
+	aggID id.StreamID,
+	aggType id.StreamType,
 	version event.Version,
 	payload []byte,
 	opts ...event.Option,
@@ -74,8 +74,8 @@ func NewEventOpts(
 func NewEvent(
 	t *testing.T,
 	eventType event.Type,
-	aggID id.AggregateID,
-	aggType id.AggregateType,
+	aggID id.StreamID,
+	aggType id.StreamType,
 	version event.Version,
 	payload []byte,
 ) event.Event {
@@ -91,8 +91,8 @@ func NewEvent(
 
 func MakeEvent(
 	eventType event.Type,
-	aggID id.AggregateID,
-	aggType id.AggregateType,
+	aggID id.StreamID,
+	aggType id.StreamType,
 	version event.Version,
 	payload []byte,
 ) (event.Event, error) {
@@ -103,8 +103,8 @@ func MakeEvent(
 
 func QuickEvent(
 	eventType event.Type,
-	aggID id.AggregateID,
-	aggType id.AggregateType,
+	aggID id.StreamID,
+	aggType id.StreamType,
 	version event.Version,
 	payload []byte,
 ) event.Event {
@@ -115,8 +115,8 @@ func QuickEvent(
 
 func QuickEventOpts(
 	eventType event.Type,
-	aggID id.AggregateID,
-	aggType id.AggregateType,
+	aggID id.StreamID,
+	aggType id.StreamType,
 	version event.Version,
 	payload []byte,
 	opts ...event.Option,
@@ -129,8 +129,8 @@ func QuickEventOpts(
 func TamperEvent(original event.Event, newPayload []byte) event.Event {
 	tampered, _ := event.NewEvent(
 		original.Type(),
-		original.AggregateID(),
-		original.AggregateType(),
+		original.StreamID(),
+		original.StreamType(),
 		original.Version(),
 		newPayload,
 		event.WithEventID(original.ID()),
@@ -145,7 +145,7 @@ func TamperEvent(original event.Event, newPayload []byte) event.Event {
 type AppendBatcher interface {
 	AppendBatch(
 		ctx context.Context,
-		ref id.AggregateRef,
+		ref id.StreamRef,
 		events []event.Event,
 	) error
 }
@@ -154,10 +154,10 @@ func MakeLoadToTimestampFixtures(
 	tb testing.TB,
 	store AppendBatcher,
 	ctx context.Context,
-	aggType id.AggregateType,
-	aggID id.AggregateID,
+	aggType id.StreamType,
+	aggID id.StreamID,
 	versions [3]event.Version,
-) (time.Time, id.AggregateID) {
+) (time.Time, id.StreamID) {
 	tb.Helper()
 
 	now := time.Now()
@@ -178,10 +178,10 @@ func MakeLoadToTimestampFixtures(
 
 func MakeThreeTimelineEvents(
 	tb testing.TB,
-	aggType1 id.AggregateType,
-	aggID1 id.AggregateID,
-	aggType2 id.AggregateType,
-	aggID2 id.AggregateID,
+	aggType1 id.StreamType,
+	aggID1 id.StreamID,
+	aggType2 id.StreamType,
+	aggID2 id.StreamID,
 ) ([]event.Event, []event.Event, []event.Event) {
 	tb.Helper()
 
@@ -199,14 +199,14 @@ func MakeThreeTimelineEvents(
 }
 
 func QuickSnapshot(
-	aggID id.AggregateID,
-	aggType id.AggregateType,
+	aggID id.StreamID,
+	aggType id.StreamType,
 	version event.Version,
 	state []byte,
 ) snapshot.Snapshot {
 	return snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: aggType,
+		StreamID:   aggID,
+		StreamType: aggType,
 		Version:       version,
 		State:         state,
 		CreatedAt:     time.Now(),

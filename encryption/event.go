@@ -56,8 +56,8 @@ func AttachEncryption(
 
 	clone, err := event.NewEvent(
 		evt.Type(),
-		evt.AggregateID(),
-		evt.AggregateType(),
+		evt.StreamID(),
+		evt.StreamType(),
 		evt.Version(),
 		[]byte(ciphertext),
 		eventOpts...,

@@ -80,7 +80,7 @@ func (r *runner) writeOneAggregate(
 }
 
 func (r *runner) createBatch(
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	version event.Version,
 	batchSize int,
 ) ([]event.Event, error) {

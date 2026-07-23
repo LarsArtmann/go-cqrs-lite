@@ -42,7 +42,7 @@ func NewCommandClient(conn *grpc.ClientConn) *CommandClient {
 func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error {
 	envelope := &cqrsproto.CommandEnvelope{ //nolint:exhaustruct // proto
 		Type:        string(cmd.Type()),
-		AggregateId: cmd.AggregateID().String(),
+		AggregateId: cmd.StreamID().String(),
 	}
 
 	if cmd.ID().IsZero() {

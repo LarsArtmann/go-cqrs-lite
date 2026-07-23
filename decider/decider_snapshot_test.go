@@ -67,8 +67,8 @@ func TestLoad_SnapshotDecodeError(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 	snapshotStore.SetSnapshot(&snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Counter",
+		StreamID:   aggID,
+		StreamType: "Counter",
 		Version:       event.Version(1),
 		State:         []byte("}}}not-json{{{"),
 		CreatedAt:     time.Now(),
@@ -252,7 +252,7 @@ func TestLoad_SnapshotStoreLoadFromVersionError(t *testing.T) {
 	}
 
 	store2 := store.LoadFromVersionFn(
-		func(_ id.AggregateRef, _ event.Version) ([]event.Event, error) {
+		func(_ id.StreamRef, _ event.Version) ([]event.Event, error) {
 			return nil, errors.New("db unavailable")
 		},
 	)

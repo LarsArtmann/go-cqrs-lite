@@ -21,8 +21,8 @@ import (
 // Is method matches by code+family. So we construct errors with matching codes.
 // ──────────────────────────────────────────────────────────────────────────
 
-func mustEvt(typ event.Type, aggID id.AggregateID, payload any) event.Event {
-	evt, err := event.New(typ, aggID, aggregateType, event.Version(1), payload)
+func mustEvt(typ event.Type, aggID id.StreamID, payload any) event.Event {
+	evt, err := event.New(typ, aggID, streamType, event.Version(1), payload)
 	if err != nil {
 		panic(err)
 	}

@@ -9,11 +9,11 @@ import (
 )
 
 // NewEvents creates multiple events in batch with typed payloads.
-// The version increments for each event. All events share the same aggregateID,
-// aggregateType, and options but have different eventTypes and payloads.
+// The version increments for each event. All events share the same streamID,
+// streamType, and options but have different eventTypes and payloads.
 func NewEvents(
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	version Version,
 	eventTypes []Type,
 	payloads []any,
@@ -41,8 +41,8 @@ func NewEvents(
 
 		evt, err := New(
 			eventTypes[i],
-			aggregateID,
-			aggregateType,
+			streamID,
+			streamType,
 			evtVersion,
 			payloads[i],
 			opts...,

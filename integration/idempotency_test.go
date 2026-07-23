@@ -61,11 +61,11 @@ func TestIdempotencyIntegration(t *testing.T) {
 			}
 
 			return userRepo.Execute(
-				ctx, c.AggregateID(), "User",
+				ctx, c.StreamID(), "User",
 				func(_ UserState, currentVersion event.Version) ([]event.Event, error) {
 					evt, err := event.NewEvent(
 						"UserCreated",
-						c.AggregateID(),
+						c.StreamID(),
 						"User",
 						currentVersion.Add(1),
 						[]byte(c.Name),
@@ -102,7 +102,7 @@ func TestIdempotencyIntegration(t *testing.T) {
 		t.Fatalf("handler call count: want 1, got %d", handlerCallCount)
 	}
 
-	events, err := store.Load(ctx, id.NewAggregateRef(id.AggregateType("User"), aggID))
+	events, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
 	if err != nil {
 		t.Fatalf("load events: %v", err)
 	}

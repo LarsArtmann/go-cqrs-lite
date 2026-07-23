@@ -53,7 +53,7 @@ var _ = Describe("Signing", func() {
 
 				tampered, err := event.NewEvent(
 					"user.created",
-					evt.AggregateID(),
+					evt.StreamID(),
 					"User",
 					1,
 					[]byte(`{"name":"Eve"}`),
@@ -199,7 +199,7 @@ var _ = Describe("Signing", func() {
 
 				tampered, err := event.NewEvent(
 					"user.created",
-					evt.AggregateID(),
+					evt.StreamID(),
 					"User",
 					1,
 					[]byte(`{"name":"Eve"}`),

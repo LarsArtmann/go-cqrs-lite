@@ -27,7 +27,7 @@ func TestCommandOTelMetrics(t *testing.T) {
 	mw := CommandOTelMetrics(h)
 	handler := mw(NoopCommandHandler())
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err = handler(context.Background(), cmd)
 	if err != nil {
@@ -94,7 +94,7 @@ func TestCommandOTelMetrics_RecordsError(t *testing.T) {
 	mw := CommandOTelMetrics(h)
 	handler := mw(failingCommandHandler("boom"))
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err = handler(context.Background(), cmd)
 	if err == nil {
@@ -117,7 +117,7 @@ func TestCommandOTelMetrics_CollectsData(t *testing.T) {
 	mw := CommandOTelMetrics(h)
 	handler := mw(NoopCommandHandler())
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err = handler(context.Background(), cmd)
 	if err != nil {

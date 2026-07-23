@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func setupBenchStore(b *testing.B) (id.AggregateID, *eventtest.FakeStore) {
+func setupBenchStore(b *testing.B) (id.StreamID, *eventtest.FakeStore) {
 	b.Helper()
 
 	store := eventtest.NewFakeStore()

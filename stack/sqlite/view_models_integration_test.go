@@ -32,8 +32,8 @@ func buildViewMessage(evt event.Event, eventType string) *message.Message {
 	msg := message.NewMessage(evt.ID().String(), evt.Payload())
 	msg.Metadata.Set("event_type", eventType)
 	msg.Metadata.Set("event_id", evt.ID().String())
-	msg.Metadata.Set("aggregate_id", evt.AggregateID().String())
-	msg.Metadata.Set("aggregate_type", string(evt.AggregateType()))
+	msg.Metadata.Set("aggregate_id", evt.StreamID().String())
+	msg.Metadata.Set("aggregate_type", string(evt.StreamType()))
 	msg.Metadata.Set("version", "1")
 	msg.Metadata.Set("schema_version", "1")
 
@@ -72,7 +72,7 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 	mat := stack.Materialize[sqlUserView, sqlUserKey]{
 		Store: store,
 		KeyFromEvent: func(evt event.Event) (sqlUserKey, error) {
-			return sqlUserKey(evt.AggregateID().String()), nil
+			return sqlUserKey(evt.StreamID().String()), nil
 		},
 		OnCreate: func(_ context.Context, _ event.Event) (*sqlUserView, error) {
 			return &sqlUserView{Name: "Alice", Email: "alice@example.com"}, nil

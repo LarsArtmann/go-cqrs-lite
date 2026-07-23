@@ -12,7 +12,7 @@ import (
 func benchEvent(
 	tb testing.TB,
 	eventType string,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	version event.Version,
 ) event.Event {
 	tb.Helper()
@@ -28,7 +28,7 @@ func benchEvent(
 func seedCounterBench(
 	b *testing.B,
 	repo *decider.Repository[counterState],
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	n int,
 ) {
 	b.Helper()
@@ -44,7 +44,7 @@ func benchExecute(
 	b *testing.B,
 	repo *decider.Repository[counterState],
 	ctx context.Context,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	eventType string,
 ) {
 	b.Helper()

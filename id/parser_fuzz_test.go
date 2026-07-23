@@ -11,7 +11,7 @@ import (
 )
 
 // FuzzParseAggregateID is a broader variant of FuzzParse: it accepts ANY
-// non-empty string (not just ULID), per the AggregateID contract.
+// non-empty string (not just ULID), per the StreamID contract.
 func FuzzParseAggregateID(f *testing.F) {
 	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W")
 	f.Add("")
@@ -99,7 +99,7 @@ func FuzzDeriveAggregateID_DifferentInputs(f *testing.F) {
 	})
 }
 
-// FuzzAggregateID_JSON_Roundtrip drives the JSON encoding of AggregateID
+// FuzzAggregateID_JSON_Roundtrip drives the JSON encoding of StreamID
 // for arbitrary non-empty strings. JSON marshaling of invalid UTF-8
 // produces lossy replacement, so we restrict to valid UTF-8 inputs.
 func FuzzAggregateID_JSON_Roundtrip(f *testing.F) {
@@ -125,7 +125,7 @@ func FuzzAggregateID_JSON_Roundtrip(f *testing.F) {
 			t.Fatalf("Marshal: %v", err)
 		}
 
-		var decoded id.AggregateID
+		var decoded id.StreamID
 		if err := json.Unmarshal(data, &decoded); err != nil {
 			t.Fatalf("Unmarshal: %v", err)
 		}
@@ -136,7 +136,7 @@ func FuzzAggregateID_JSON_Roundtrip(f *testing.F) {
 	})
 }
 
-// FuzzAggregateIDFrom drives AggregateIDFrom (a fmt.Stringer → AggregateID).
+// FuzzAggregateIDFrom drives StreamIDFrom (a fmt.Stringer → StreamID).
 // Must not panic on any Stringer.
 func FuzzAggregateIDFrom(f *testing.F) {
 	f.Add("stringer-value")
@@ -145,10 +145,10 @@ func FuzzAggregateIDFrom(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		s := stringerFunc(func() string { return input })
-		got := id.AggregateIDFrom(s)
+		got := id.StreamIDFrom(s)
 
 		if got.String() != input {
-			t.Errorf("AggregateIDFrom: got %q, want %q", got.String(), input)
+			t.Errorf("StreamIDFrom: got %q, want %q", got.String(), input)
 		}
 	})
 }
@@ -167,7 +167,7 @@ func FuzzNewULID_Unique(f *testing.F) {
 
 		seen := make(map[string]struct{}, n)
 		for i := 0; i < n; i++ {
-			newID := id.New[id.AggregateID]()
+			newID := id.New[id.StreamID]()
 			s := newID.String()
 			if _, dup := seen[s]; dup {
 				t.Errorf("duplicate ULID at iteration %d: %s", i, s)
@@ -183,7 +183,7 @@ func FuzzULID_TimestampConsistency(f *testing.F) {
 	f.Add(int64(0))
 
 	f.Fuzz(func(t *testing.T, _ int64) {
-		newID := id.New[id.AggregateID]()
+		newID := id.New[id.StreamID]()
 		ts := id.ULID(newID)
 
 		now := time.Now()
@@ -208,8 +208,8 @@ func FuzzCompareIDs(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, _, _ int) {
 		// Two different IDs
-		idA := id.New[id.AggregateID]()
-		idB := id.New[id.AggregateID]()
+		idA := id.New[id.StreamID]()
+		idB := id.New[id.StreamID]()
 
 		cmpAB := id.CompareIDs(idA, idB)
 		cmpBA := id.CompareIDs(idB, idA)
@@ -241,9 +241,9 @@ func FuzzParse_TypeSafety(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, input string) {
-		// Parse for both AggregateID (strict ULID) and AggregateID (string)
+		// Parse for both StreamID (strict ULID) and StreamID (string)
 		_, aggErr := id.ParseAggregateID(input)
-		_, ulidErr := id.Parse[id.AggregateID](input)
+		_, ulidErr := id.Parse[id.StreamID](input)
 
 		// ParseAggregateID only rejects empty
 		if input == "" {
@@ -256,7 +256,7 @@ func FuzzParse_TypeSafety(f *testing.F) {
 			}
 		}
 
-		// Parse[id.AggregateID] (the strict ULID path) — depends on whether
+		// Parse[id.StreamID] (the strict ULID path) — depends on whether
 		// input is a valid ULID. We just verify it doesn't panic.
 		_ = ulidErr
 	})

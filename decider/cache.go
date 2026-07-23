@@ -27,13 +27,13 @@ const DefaultStateCacheCapacity = 128
 type StateCache[State any] interface {
 	// Get retrieves the cached state and version for the given aggregate.
 	// Returns ok=false if the aggregate is not in the cache.
-	Get(ref id.AggregateRef) (state State, version event.Version, ok bool)
+	Get(ref id.StreamRef) (state State, version event.Version, ok bool)
 
 	// Put stores the state and version for the given aggregate.
-	Put(ref id.AggregateRef, state State, version event.Version)
+	Put(ref id.StreamRef, state State, version event.Version)
 
 	// Invalidate removes the aggregate from the cache.
-	Invalidate(ref id.AggregateRef)
+	Invalidate(ref id.StreamRef)
 }
 
 // NewStateCache creates an LRU-bounded StateCache with the given capacity.
@@ -53,7 +53,7 @@ func NewStateCache[State any](capacity int) StateCache[State] {
 }
 
 type cacheEntry[State any] struct {
-	ref     id.AggregateRef
+	ref     id.StreamRef
 	state   State
 	version event.Version
 }
@@ -65,7 +65,7 @@ type lruCache[State any] struct {
 	order *list.List
 }
 
-func (c *lruCache[State]) Get(ref id.AggregateRef) (State, event.Version, bool) {
+func (c *lruCache[State]) Get(ref id.StreamRef) (State, event.Version, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -84,7 +84,7 @@ func (c *lruCache[State]) Get(ref id.AggregateRef) (State, event.Version, bool) 
 	return entry.state, entry.version, true
 }
 
-func (c *lruCache[State]) Put(ref id.AggregateRef, state State, version event.Version) {
+func (c *lruCache[State]) Put(ref id.StreamRef, state State, version event.Version) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -113,7 +113,7 @@ func (c *lruCache[State]) Put(ref id.AggregateRef, state State, version event.Ve
 	}
 }
 
-func (c *lruCache[State]) Invalidate(ref id.AggregateRef) {
+func (c *lruCache[State]) Invalidate(ref id.StreamRef) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

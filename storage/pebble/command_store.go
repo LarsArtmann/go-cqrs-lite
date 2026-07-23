@@ -89,7 +89,7 @@ func (s *CommandStore) Close() error { return nil }
 // Returns command.ErrDuplicateCommand if the command ID already exists.
 func (s *CommandStore) Save(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
 	_, span := startAggregateSpan(ctx, "pebble.command.save", ref,
@@ -137,7 +137,7 @@ func (s *CommandStore) Save(
 // batch fails — no partial writes.
 func (s *CommandStore) AppendBatch(
 	ctx context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
 	if len(cmds) == 0 {
@@ -207,7 +207,7 @@ func (s *CommandStore) commandExists(journalKey []byte) bool {
 
 func (s *CommandStore) writeCommandToBatch(
 	batch *pebble.Batch,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	cmdID id.CommandID,
 	journalKey, data []byte,
 ) error {
@@ -230,15 +230,15 @@ func (s *CommandStore) writeCommandToBatch(
 
 // ── Key generation ──────────────────────────────────────────────────────────
 
-func (s *CommandStore) commandKey(ref command.AggregateRef, cmdID id.CommandID) []byte {
+func (s *CommandStore) commandKey(ref command.StreamRef, cmdID id.CommandID) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:%s", s.prefix, ref.Type, ref.ID, cmdID)
 }
 
-func (s *CommandStore) commandAggregatePrefix(ref command.AggregateRef) []byte {
+func (s *CommandStore) commandAggregatePrefix(ref command.StreamRef) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:", s.prefix, ref.Type, ref.ID)
 }
 
-func (s *CommandStore) commandAggregateUpperBound(ref command.AggregateRef) []byte {
+func (s *CommandStore) commandAggregateUpperBound(ref command.StreamRef) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:\xff", s.prefix, ref.Type, ref.ID)
 }
 

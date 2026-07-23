@@ -20,7 +20,7 @@ type Middleware[M any] func(Handler[M]) Handler[M]
 type MessageAdapter[M any] struct {
 	Kind        string                 // "command", "event", "query"
 	ExtractType func(M) string         // extracts the message type name
-	ExtractID   func(M) id.AggregateID // extracts the aggregate ID (may be nil for queries)
+	ExtractID   func(M) id.StreamID // extracts the aggregate ID (may be nil for queries)
 }
 
 const (
@@ -35,18 +35,18 @@ var (
 	CommandAdapter = MessageAdapter[command.Command]{
 		Kind:        kindCommand,
 		ExtractType: func(cmd command.Command) string { return string(cmd.Type()) },
-		ExtractID:   func(cmd command.Command) id.AggregateID { return cmd.AggregateID() },
+		ExtractID:   func(cmd command.Command) id.StreamID { return cmd.StreamID() },
 	}
 
 	//nolint:gochecknoglobals // immutable adapter, used throughout package
 	EventAdapter = MessageAdapter[event.Event]{
 		Kind:        kindEvent,
 		ExtractType: func(evt event.Event) string { return string(evt.Type()) },
-		ExtractID:   func(evt event.Event) id.AggregateID { return evt.AggregateID() },
+		ExtractID:   func(evt event.Event) id.StreamID { return evt.StreamID() },
 	}
 
 	//nolint:gochecknoglobals // immutable adapter, used throughout package
-	QueryAdapter = MessageAdapter[query.Query]{ //nolint:exhaustruct // queries have no aggregateID
+	QueryAdapter = MessageAdapter[query.Query]{ //nolint:exhaustruct // queries have no streamID
 		Kind:        kindQuery,
 		ExtractType: func(q query.Query) string { return string(q.Type()) },
 	}

@@ -130,7 +130,7 @@ func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
 	backwardsLoader := event.BackwardsSource(store)
 	events, err := backwardsLoader.LoadBackwards(
 		context.Background(),
-		id.NewAggregateRef(id.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.StreamType("User"), aggID),
 	)
 	if err != nil {
 		t.Fatalf("LoadBackwards: %v", err)
@@ -157,7 +157,7 @@ func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {
 	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(
 		context.Background(),
-		id.NewAggregateRef(id.AggregateType("User"), aggID),
+		id.NewAggregateRef(id.StreamType("User"), aggID),
 	)
 	if !errors.Is(err, event.ErrAggregateNotFound) {
 		t.Fatalf("expected ErrAggregateNotFound, got %v", err)
@@ -189,7 +189,7 @@ func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
 
 	store, mock := newTestStore(t)
 
-	maliciousAggType := id.AggregateType("User'; DROP TABLE events; --")
+	maliciousAggType := id.StreamType("User'; DROP TABLE events; --")
 	maliciousAggID := id.NewAggregateID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).

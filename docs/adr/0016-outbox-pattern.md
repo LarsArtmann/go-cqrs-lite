@@ -59,8 +59,8 @@ for entry := range outboxRepo.Pending(ctx) {
   gain.
 - **Consumers already have DB access** — they can add an outbox table with ~20
   lines of code using their existing database driver.
-- **`example/todo/` demonstrates the pattern** — a working reference implementation
-  exists for consumers to copy.
+- **`example/taskmanager/` demonstrates the pattern** — a working reference implementation
+  exists for consumers to copy (note: `example/todo/` was renamed to `example/taskmanager/`).
 
 ## Consequences
 
@@ -74,4 +74,4 @@ for entry := range outboxRepo.Pending(ctx) {
 
 - [Microservices Pattern: Transactional Outbox](https://microservices.io/patterns/data/transactional-outbox.html)
 - [Eventuate Tram](https://eventuate.io/tractram.html) — reference implementation
-- `example/todo/` in this repo — working outbox demonstration
+- `example/taskmanager/` in this repo — working outbox demonstration

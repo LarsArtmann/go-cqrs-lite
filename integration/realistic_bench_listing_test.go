@@ -31,7 +31,7 @@ func BenchmarkRealistic_Listing(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		var after id.AggregateID
+		var after id.StreamID
 		items := 0
 
 		for {

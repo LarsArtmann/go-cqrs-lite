@@ -24,8 +24,8 @@ func TestCommandCreation_ValidType(t *testing.T) {
 		if cmd.Type() != typ {
 			t.Fatalf("type mismatch: got %q, want %q", cmd.Type(), typ)
 		}
-		if cmd.AggregateID() != aggID {
-			t.Fatalf("aggregateID mismatch")
+		if cmd.StreamID() != aggID {
+			t.Fatalf("streamID mismatch")
 		}
 	})
 }

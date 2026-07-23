@@ -13,7 +13,7 @@ import (
 )
 
 // A008: Parallel type system.
-// Detects custom AggregateID/Version/CommandType types duplicating go-cqrs-lite.
+// Detects custom StreamID/Version/CommandType types duplicating go-cqrs-lite.
 //
 //nolint:ireturn // factory returns public interface
 func NewA008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -23,7 +23,7 @@ func NewA008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			duplicateTypes := map[string]bool{
-				"AggregateID": true,
+				"StreamID": true,
 				"CommandType": true,
 				"EventType":   true,
 				"Version":     true,

@@ -79,11 +79,11 @@ func NewReadPressure(threshold int, opts ...ReadPressureOption) (*ReadPressure, 
 // The Repository calls ShouldSnapshotFor when the strategy implements
 // AggregateAwareStrategy.
 func (rp *ReadPressure) ShouldSnapshot(
-	aggregateType id.AggregateType,
+	streamType id.StreamType,
 	version event.Version,
 ) bool {
 	if rp.inner != nil {
-		return rp.inner.ShouldSnapshot(aggregateType, version)
+		return rp.inner.ShouldSnapshot(streamType, version)
 	}
 
 	return false
@@ -98,7 +98,7 @@ func (rp *ReadPressure) ShouldSnapshot(
 // On a positive decision the read counter for this aggregate is reset so
 // the next snapshot cycle starts fresh.
 func (rp *ReadPressure) ShouldSnapshotFor(
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) bool {
 	if rp.inner != nil && rp.inner.ShouldSnapshot(ref.Type, version) {
@@ -124,7 +124,7 @@ func (rp *ReadPressure) ShouldSnapshotFor(
 //
 // Called by the Repository on every successful Load. Increments the read
 // counter for the given aggregate.
-func (rp *ReadPressure) RecordRead(ref id.AggregateRef, _ event.Version) {
+func (rp *ReadPressure) RecordRead(ref id.StreamRef, _ event.Version) {
 	key := ref.String()
 
 	rp.mu.Lock()
@@ -134,14 +134,14 @@ func (rp *ReadPressure) RecordRead(ref id.AggregateRef, _ event.Version) {
 
 // ReadCount returns the number of reads since the last snapshot for the
 // given aggregate. Primarily for testing and observability.
-func (rp *ReadPressure) ReadCount(ref id.AggregateRef) int {
+func (rp *ReadPressure) ReadCount(ref id.StreamRef) int {
 	rp.mu.Lock()
 	defer rp.mu.Unlock()
 
 	return rp.reads[ref.String()]
 }
 
-func (rp *ReadPressure) reset(ref id.AggregateRef) {
+func (rp *ReadPressure) reset(ref id.StreamRef) {
 	rp.mu.Lock()
 	delete(rp.reads, ref.String())
 	rp.mu.Unlock()

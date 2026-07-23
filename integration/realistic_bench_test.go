@@ -132,7 +132,7 @@ func applyOrder(_ OrderState, evt event.Event) (OrderState, error) {
 func newRealisticEvent(
 	tb testing.TB,
 	eventType string,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	v event.Version,
 	payload any,
 ) event.Event {
@@ -155,11 +155,11 @@ func seedOrders(
 	b *testing.B,
 	store *memory.MemoryStore,
 	aggCount, eventsPerAgg int,
-) []id.AggregateID {
+) []id.StreamID {
 	b.Helper()
 
 	ctx := context.Background()
-	aggIDs := make([]id.AggregateID, aggCount)
+	aggIDs := make([]id.StreamID, aggCount)
 
 	for i := range aggCount {
 		aggIDs[i] = id.NewAggregateID()

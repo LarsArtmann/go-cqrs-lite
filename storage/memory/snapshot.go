@@ -43,7 +43,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) err
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := id.NewAggregateRef(snap.AggregateType, snap.AggregateID).StreamKey()
+	key := id.NewAggregateRef(snap.StreamType, snap.StreamID).StreamKey()
 
 	existing, exists := s.snapshots[key]
 	if exists && existing.Version.Int() > snap.Version.Int() {
@@ -57,7 +57,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) err
 
 func (s *MemorySnapshotStore) Load(
 	_ context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (*snappkg.Snapshot, error) {
 	if err := wrapClosed(
 		s.CheckClosed(snappkg.ErrSnapshotStoreClosed),
@@ -84,7 +84,7 @@ func (s *MemorySnapshotStore) Load(
 
 func (s *MemorySnapshotStore) LoadAtVersion(
 	_ context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) (*snappkg.Snapshot, error) {
 	if err := wrapClosed(
@@ -127,7 +127,7 @@ func copySnapshot(snap *snappkg.Snapshot) *snappkg.Snapshot {
 
 func (s *MemorySnapshotStore) Delete(
 	_ context.Context,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) error {
 	if err := wrapClosed(
 		s.CheckClosed(snappkg.ErrSnapshotStoreClosed),

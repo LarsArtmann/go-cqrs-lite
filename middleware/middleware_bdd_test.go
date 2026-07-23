@@ -20,11 +20,11 @@ import (
 
 type bddCommand struct {
 	commandID   id.CommandID
-	aggregateID id.AggregateID
+	streamID id.StreamID
 }
 
 func (c *bddCommand) Type() command.Type          { return "bdd.cmd" }
-func (c *bddCommand) AggregateID() id.AggregateID { return c.aggregateID }
+func (c *bddCommand) StreamID() id.StreamID { return c.streamID }
 func (c *bddCommand) ID() id.CommandID            { return c.commandID }
 
 var _ = Describe("Recovery Middleware", func() {
@@ -42,7 +42,7 @@ var _ = Describe("Recovery Middleware", func() {
 					panic("something went terribly wrong")
 				})
 
-				err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
+				err := handler(ctx, &bddCommand{streamID: id.NewAggregateID()})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("panic recovered"))
 			})
@@ -53,7 +53,7 @@ var _ = Describe("Recovery Middleware", func() {
 				mw := middleware.CommandRecovery()
 				handler := mw(middleware.NoopCommandHandler())
 
-				err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
+				err := handler(ctx, &bddCommand{streamID: id.NewAggregateID()})
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -66,7 +66,7 @@ var _ = Describe("Recovery Middleware", func() {
 					return expectedErr
 				})
 
-				err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
+				err := handler(ctx, &bddCommand{streamID: id.NewAggregateID()})
 				Expect(err).To(MatchError(expectedErr))
 			})
 		})
@@ -92,7 +92,7 @@ var _ = Describe("Retry Middleware", func() {
 					return nil
 				})
 
-				err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
+				err := handler(ctx, &bddCommand{streamID: id.NewAggregateID()})
 				Expect(err).ToNot(HaveOccurred())
 				Expect(attempts.Load()).To(Equal(int32(1)))
 			})
@@ -109,7 +109,7 @@ var _ = Describe("Retry Middleware", func() {
 					return errorfamily.NewRejection("test.reject", "not retryable")
 				})
 
-				err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
+				err := handler(ctx, &bddCommand{streamID: id.NewAggregateID()})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("not retryable"))
 				Expect(attempts.Load()).To(Equal(int32(1)))
@@ -130,7 +130,7 @@ var _ = Describe("Retry Middleware", func() {
 					return errors.New("transient failure")
 				})
 
-				err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
+				err := handler(ctx, &bddCommand{streamID: id.NewAggregateID()})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("all 2 attempts failed"))
 			})
@@ -153,7 +153,7 @@ var _ = Describe("Circuit Breaker Middleware", func() {
 				handler := mw(middleware.NoopCommandHandler())
 
 				for range 10 {
-					err := handler(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
+					err := handler(ctx, &bddCommand{streamID: id.NewAggregateID()})
 					Expect(err).ToNot(HaveOccurred())
 				}
 			})
@@ -173,10 +173,10 @@ var _ = Describe("Circuit Breaker Middleware", func() {
 				mw := middleware.CommandCircuitBreaker(config)
 				wrapped := mw(failHandler)
 
-				_ = wrapped(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
-				_ = wrapped(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
+				_ = wrapped(ctx, &bddCommand{streamID: id.NewAggregateID()})
+				_ = wrapped(ctx, &bddCommand{streamID: id.NewAggregateID()})
 
-				err := wrapped(ctx, &bddCommand{aggregateID: id.NewAggregateID()})
+				err := wrapped(ctx, &bddCommand{streamID: id.NewAggregateID()})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("circuit breaker open"))
 			})
@@ -252,7 +252,7 @@ var _ = Describe("Command Idempotency Middleware", func() {
 
 				cmd := &bddCommand{
 					commandID:   id.NewCommandID(),
-					aggregateID: id.NewAggregateID(),
+					streamID: id.NewAggregateID(),
 				}
 
 				Expect(handler(ctx, cmd)).To(Succeed())
@@ -278,13 +278,13 @@ var _ = Describe("Command Idempotency Middleware", func() {
 				Expect(
 					handler(
 						ctx,
-						&bddCommand{aggregateID: id.NewAggregateID(), commandID: id.NewCommandID()},
+						&bddCommand{streamID: id.NewAggregateID(), commandID: id.NewCommandID()},
 					),
 				).To(Succeed())
 				Expect(
 					handler(
 						ctx,
-						&bddCommand{aggregateID: id.NewAggregateID(), commandID: id.NewCommandID()},
+						&bddCommand{streamID: id.NewAggregateID(), commandID: id.NewCommandID()},
 					),
 				).To(Succeed())
 				Expect(callCount).To(Equal(int32(2)))
@@ -311,13 +311,13 @@ var _ = Describe("Command Idempotency Middleware", func() {
 				Expect(
 					handler(
 						ctx,
-						&bddCommand{aggregateID: id.NewAggregateID(), commandID: id.NewCommandID()},
+						&bddCommand{streamID: id.NewAggregateID(), commandID: id.NewCommandID()},
 					),
 				).To(Succeed())
 				Expect(
 					handler(
 						ctx,
-						&bddCommand{aggregateID: id.NewAggregateID(), commandID: id.NewCommandID()},
+						&bddCommand{streamID: id.NewAggregateID(), commandID: id.NewCommandID()},
 					),
 				).To(Succeed())
 				Expect(callCount).To(Equal(int32(2)))

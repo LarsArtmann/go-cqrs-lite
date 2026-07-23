@@ -13,12 +13,12 @@ const (
 
 // ListBuilder provides a fluent API for aggregate listings.
 type ListBuilder struct {
-	reader AggregateReader
+	reader StreamReader
 	opts   ListOptions
 }
 
 // NewListBuilder creates a builder for aggregate listings.
-func NewListBuilder(reader AggregateReader) *ListBuilder {
+func NewListBuilder(reader StreamReader) *ListBuilder {
 	return &ListBuilder{
 		reader: reader,
 		opts: ListOptions{ //nolint:exhaustruct // builder pattern: Type and After set via methods
@@ -29,15 +29,15 @@ func NewListBuilder(reader AggregateReader) *ListBuilder {
 }
 
 // OfType filters to a specific aggregate type.
-func (b *ListBuilder) OfType(t id.AggregateType) *ListBuilder {
+func (b *ListBuilder) OfType(t id.StreamType) *ListBuilder {
 	b.opts.Type = t
 
 	return b
 }
 
 // After sets the cursor for the next page.
-// Pass the last AggregateListing.ID from the previous Page.
-func (b *ListBuilder) After(id id.AggregateID) *ListBuilder {
+// Pass the last StreamListing.ID from the previous Page.
+func (b *ListBuilder) After(id id.StreamID) *ListBuilder {
 	b.opts.After = id
 
 	return b
@@ -72,11 +72,11 @@ func (b *ListBuilder) OnlyDeleted() *ListBuilder {
 }
 
 // List executes the query and returns a page of aggregate references.
-func (b *ListBuilder) List(ctx context.Context) (*Page[AggregateListing], error) {
+func (b *ListBuilder) List(ctx context.Context) (*Page[StreamListing], error) {
 	return b.reader.List(ctx, b.opts) //nolint:wrapcheck // transparent proxy to reader
 }
 
 // ListWithStatus executes the query and returns aggregates with tombstone status.
-func (b *ListBuilder) ListWithStatus(ctx context.Context) (*Page[AggregateStatus], error) {
+func (b *ListBuilder) ListWithStatus(ctx context.Context) (*Page[StreamStatus], error) {
 	return b.reader.ListWithStatus(ctx, b.opts) //nolint:wrapcheck // transparent proxy to reader
 }

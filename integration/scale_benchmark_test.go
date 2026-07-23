@@ -54,7 +54,7 @@ func newBenchDeciderRepo(b *testing.B) (*decider.Repository[benchState], context
 func newBenchEvent(
 	b *testing.B,
 	eventType string,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	v event.Version,
 ) event.Event {
 	b.Helper()
@@ -83,7 +83,7 @@ func benchCreateItem(
 	b *testing.B,
 	repo *decider.Repository[benchState],
 	ctx context.Context,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 ) {
 	b.Helper()
 
@@ -104,7 +104,7 @@ func benchCreateItemConcurrent(
 	b *testing.B,
 	repo *decider.Repository[benchState],
 	ctx context.Context,
-) id.AggregateID {
+) id.StreamID {
 	b.Helper()
 
 	aggID := id.NewAggregateID()

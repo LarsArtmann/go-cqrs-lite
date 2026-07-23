@@ -52,7 +52,7 @@ func TestIdempotencyDemo(t *testing.T) {
 
 	events, err := srv.Bundle.EventSource.Load(
 		ctx,
-		id.NewAggregateRef(id.AggregateType("Task"), taskID),
+		id.NewAggregateRef(id.StreamType("Task"), taskID),
 	)
 	if err != nil {
 		t.Fatalf("load events: %v", err)

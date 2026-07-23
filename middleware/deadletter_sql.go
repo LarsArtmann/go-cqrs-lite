@@ -72,8 +72,8 @@ func (s *SQLDeadLetterStore) migrate() error {
 func (s *SQLDeadLetterStore) Handle(ctx context.Context, entry DeadLetterEntry) {
 	aggID := ""
 
-	if !entry.AggregateID.IsZero() {
-		aggID = entry.AggregateID.String()
+	if !entry.StreamID.IsZero() {
+		aggID = entry.StreamID.String()
 	}
 
 	errText := ""
@@ -151,14 +151,14 @@ func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, er
 				"scan dead-letter row")
 		}
 
-		entry := DeadLetterEntry{ //nolint:exhaustruct // AggregateID/Error/FailedAt set below
+		entry := DeadLetterEntry{ //nolint:exhaustruct // StreamID/Error/FailedAt set below
 			Kind:     kind,
 			Type:     typ,
 			Attempts: attempts,
 		}
 
 		if aggID.Valid && aggID.String != "" {
-			entry.AggregateID = idParseSafe(aggID.String)
+			entry.StreamID = idParseSafe(aggID.String)
 		}
 
 		if errText.Valid && errText.String != "" {

@@ -60,7 +60,7 @@ func TestIDStringLength(t *testing.T) {
 }
 
 // TestParseInvalidString checks that parsing invalid strings fails.
-// AggregateID accepts any non-empty string, so empty string is the only
+// StreamID accepts any non-empty string, so empty string is the only
 // universally invalid input.
 func TestParseInvalidString(t *testing.T) {
 	t.Parallel()

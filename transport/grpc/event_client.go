@@ -87,7 +87,7 @@ func envelopeToEvent(envelope *cqrsproto.EventEnvelope) (event.Event, error) {
 	evt, err := event.NewEvent(
 		event.Type(envelope.GetType()),
 		aggID,
-		id.AggregateType(envelope.GetAggregateType()),
+		id.StreamType(envelope.GetAggregateType()),
 		safeVersionFromInt64(envelope.GetVersion()),
 		envelope.GetPayload(),
 		opts...,

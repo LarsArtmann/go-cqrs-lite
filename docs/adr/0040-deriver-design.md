@@ -59,12 +59,11 @@ func (d Deriver) Filter(types ...event.Type) Deriver
 - **Recursion termination guarantees** — TypeDB's engine guarantees termination. We rely on developer discipline + documentation. A recursive Deriver that doesn't terminate is a bug, not a framework concern.
 - **Rule-as-schema** — TypeDB rules are part of the schema. Our Derivers are application code, not schema declarations.
 
-## Implementation plan (deferred)
+## Implementation
 
-1. Define `Deriver` type + `Then`/`Filter` combinators (~100 LOC)
-2. Wire into event bus: `bus.SubscribeAll(deriver.AsHandler(dispatcher))` (~50 LOC)
-3. Add idempotency check: derived commands carry causation metadata from the source event
-4. Example: `example/deriver-demo/` showing event→command derivation
+Implemented in the `deriver/` module: `Deriver` type, `Then`/`Filter`/`Idempotent`
+combinators, and `AsHandler` for wiring into the event bus via `bus.SubscribeAll`.
+Derived commands carry causation metadata from the source event for idempotency.
 
 ## Consequences
 

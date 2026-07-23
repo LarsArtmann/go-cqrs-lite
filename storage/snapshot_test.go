@@ -49,15 +49,15 @@ func TestSQLSnapshotStore_Save(t *testing.T) {
 	s, mock := newTestSnapshotStore(t)
 
 	snap := snapshot.Snapshot{
-		AggregateID:   idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2"),
-		AggregateType: "User",
+		StreamID:   idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2"),
+		StreamType: "User",
 		Version:       event.Version(5),
 		State:         []byte(`{"name":"John"}`),
 		CreatedAt:     time.Now().UTC().Truncate(time.Millisecond),
 	}
 
 	mock.ExpectExec(`INSERT INTO snapshots`).
-		WithArgs("User", snap.AggregateID, 5, snap.State, snap.CreatedAt).
+		WithArgs("User", snap.StreamID, 5, snap.State, snap.CreatedAt).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := s.Save(context.Background(), snap)
@@ -77,8 +77,8 @@ func TestSQLSnapshotStore_Save_Error(t *testing.T) {
 	s, mock := newTestSnapshotStore(t)
 
 	snap := snapshot.Snapshot{
-		AggregateID:   idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2"),
-		AggregateType: "User",
+		StreamID:   idtest.ParseAggregateID(t, "01HGW5FPJPYK5RE8ACZDesWMY2"),
+		StreamType: "User",
 		Version:       event.Version(1),
 		State:         []byte(`{}`),
 		CreatedAt:     time.Now(),
@@ -95,7 +95,7 @@ func TestSQLSnapshotStore_Save_Error(t *testing.T) {
 
 func expectSnapshotLoadRows(
 	mock sqlmock.Sqlmock,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	name string,
 	createdAt time.Time,
 ) {
@@ -123,11 +123,11 @@ func TestSQLSnapshotStore_Load(t *testing.T) {
 		t.Fatalf("version = %d, want 3", snap.Version)
 	}
 
-	if snap.AggregateType != "User" {
-		t.Fatalf("type = %q, want %q", snap.AggregateType, "User")
+	if snap.StreamType != "User" {
+		t.Fatalf("type = %q, want %q", snap.StreamType, "User")
 	}
 
-	if snap.AggregateID != aggID {
+	if snap.StreamID != aggID {
 		t.Fatalf("ID mismatch")
 	}
 }
@@ -194,7 +194,7 @@ func TestSQLSnapshotStore_LoadAtVersion(t *testing.T) {
 func expectSnapshotLoadAtVersion(
 	t *testing.T,
 	mock sqlmock.Sqlmock,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	maxVersion int,
 	name string,
 	createdAt time.Time,

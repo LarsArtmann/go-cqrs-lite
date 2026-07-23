@@ -82,7 +82,7 @@ func TestSignAndEncryptFullFlow(t *testing.T) {
 		t.Fatalf("type mismatch: got %q", got.Type())
 	}
 
-	if got.AggregateID() != aggID {
+	if got.StreamID() != aggID {
 		t.Fatalf("aggregate ID mismatch")
 	}
 

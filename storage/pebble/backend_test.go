@@ -90,7 +90,7 @@ func TestBackend_FullStack(t *testing.T) {
 
 	// Save an event
 	aggID := id.NewAggregateID()
-	aggType := id.AggregateType("User")
+	aggType := id.StreamType("User")
 	ref := id.NewAggregateRef(aggType, aggID)
 	evt, err := event.NewEvent("user.created", aggID, aggType, event.Version(1),
 		[]byte(`{"name":"alice"}`))
@@ -114,8 +114,8 @@ func TestBackend_FullStack(t *testing.T) {
 
 	// Save a snapshot
 	snap := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: aggType,
+		StreamID:   aggID,
+		StreamType: aggType,
 		Version:       event.Version(1),
 		State:         []byte(`{"name":"alice"}`),
 		CreatedAt:     time.Now(),
@@ -200,7 +200,7 @@ func TestBackend_ReadFrom(t *testing.T) {
 
 	eventStore := backend.EventStore()
 	aggID := id.NewAggregateID()
-	aggType := id.AggregateType("Issue")
+	aggType := id.StreamType("Issue")
 	ref := id.NewAggregateRef(aggType, aggID)
 	baseTime := time.Now()
 

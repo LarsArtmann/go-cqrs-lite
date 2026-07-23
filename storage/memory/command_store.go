@@ -44,7 +44,7 @@ func NewMemoryCommandStore() *MemoryCommandStore {
 // Save persists a single command. Returns ErrDuplicateCommand if the command ID already exists.
 func (s *MemoryCommandStore) Save(
 	_ context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
 	if err := wrapClosed(
@@ -72,7 +72,7 @@ func (s *MemoryCommandStore) Save(
 // If any command ID already exists, the entire batch fails.
 func (s *MemoryCommandStore) AppendBatch(
 	_ context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
 	if err := wrapClosed(
@@ -115,7 +115,7 @@ func (s *MemoryCommandStore) AppendBatch(
 // Load retrieves all commands for an aggregate.
 func (s *MemoryCommandStore) Load(
 	_ context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 ) ([]*command.PersistedCommand, error) {
 	return s.loadFiltered(ref, "load", nil)
 }
@@ -123,7 +123,7 @@ func (s *MemoryCommandStore) Load(
 // LoadFromTimestamp retrieves commands where ReceivedAt > after.
 func (s *MemoryCommandStore) LoadFromTimestamp(
 	_ context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	after time.Time,
 ) ([]*command.PersistedCommand, error) {
 	return s.loadFiltered(
@@ -138,7 +138,7 @@ func (s *MemoryCommandStore) LoadFromTimestamp(
 // LoadToTimestamp retrieves commands where ReceivedAt <= maxTime.
 func (s *MemoryCommandStore) LoadToTimestamp(
 	_ context.Context,
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	maxTime time.Time,
 ) ([]*command.PersistedCommand, error) {
 	return s.loadFiltered(
@@ -231,7 +231,7 @@ func (s *MemoryCommandStore) appendCommand(streamKey string, cmd *command.Persis
 }
 
 func (s *MemoryCommandStore) loadFiltered(
-	ref command.AggregateRef,
+	ref command.StreamRef,
 	op string,
 	filter func([]*command.PersistedCommand) []*command.PersistedCommand,
 ) ([]*command.PersistedCommand, error) {

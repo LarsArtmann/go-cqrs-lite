@@ -17,8 +17,8 @@ func buildTestMessage(evt event.Event, eventType string) *message.Message {
 	msg := message.NewMessage(evt.ID().String(), evt.Payload())
 	msg.Metadata.Set("event_type", eventType)
 	msg.Metadata.Set("event_id", evt.ID().String())
-	msg.Metadata.Set("aggregate_id", evt.AggregateID().String())
-	msg.Metadata.Set("aggregate_type", string(evt.AggregateType()))
+	msg.Metadata.Set("aggregate_id", evt.StreamID().String())
+	msg.Metadata.Set("aggregate_type", string(evt.StreamType()))
 	msg.Metadata.Set("version", "1")
 	msg.Metadata.Set("schema_version", "1")
 
@@ -47,7 +47,7 @@ func TestMaterialize_OnCreate(t *testing.T) {
 
 	mat := stack.Materialize[userView, stringKey]{
 		Store:        ts,
-		KeyFromEvent: func(evt event.Event) (stringKey, error) { return stringKey(evt.AggregateID().String()), nil },
+		KeyFromEvent: func(evt event.Event) (stringKey, error) { return stringKey(evt.StreamID().String()), nil },
 		OnCreate: func(_ context.Context, evt event.Event) (*userView, error) {
 			return &userView{Name: "from-event", Email: "test@example.com"}, nil
 		},
@@ -133,7 +133,7 @@ func TestMaterialize_StoreGetErrorPropagates(t *testing.T) {
 
 	mat := stack.Materialize[userView, stringKey]{
 		Store:        ts,
-		KeyFromEvent: func(evt event.Event) (stringKey, error) { return stringKey(evt.AggregateID().String()), nil },
+		KeyFromEvent: func(evt event.Event) (stringKey, error) { return stringKey(evt.StreamID().String()), nil },
 		OnCreate: func(_ context.Context, _ event.Event) (*userView, error) {
 			t.Fatal("OnCreate should NOT be called when store returns a real error")
 

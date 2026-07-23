@@ -11,7 +11,7 @@ const validULID = "01HK1540X0841Y0A6BSX1VKR95"
 func TestParse_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	t.Run("AggregateID", func(t *testing.T) {
+	t.Run("StreamID", func(t *testing.T) {
 		t.Parallel()
 
 		got := idtest.ParseAggregateID(t, validULID)
@@ -66,7 +66,7 @@ func TestParse_HappyPath(t *testing.T) {
 	})
 }
 
-// AggregateID is string-backed: any non-empty string is valid.
+// StreamID is string-backed: any non-empty string is valid.
 func TestParseAggregateID_AcceptsNonULIDString(t *testing.T) {
 	t.Parallel()
 

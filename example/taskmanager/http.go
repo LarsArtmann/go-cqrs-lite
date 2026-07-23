@@ -194,7 +194,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) handleGetTask(w http.ResponseWriter, r *http.Request, taskID id.AggregateID) {
+func (s *Server) handleGetTask(w http.ResponseWriter, r *http.Request, taskID id.StreamID) {
 	view, err := s.Mat.View(r.Context(), taskID)
 	if err != nil || view == nil {
 		writeError(w, http.StatusNotFound, "task not found")
@@ -205,7 +205,7 @@ func (s *Server) handleGetTask(w http.ResponseWriter, r *http.Request, taskID id
 	writeJSON(w, http.StatusOK, view)
 }
 
-func (s *Server) handlePatchTask(w http.ResponseWriter, r *http.Request, taskID id.AggregateID) {
+func (s *Server) handlePatchTask(w http.ResponseWriter, r *http.Request, taskID id.StreamID) {
 	var body struct {
 		Title    string   `json:"title"`
 		Priority Priority `json:"priority"`
@@ -261,7 +261,7 @@ func (s *Server) handlePatchTask(w http.ResponseWriter, r *http.Request, taskID 
 func (s *Server) dispatchSimple(
 	w http.ResponseWriter,
 	r *http.Request,
-	_ id.AggregateID,
+	_ id.StreamID,
 	cmd command.Command,
 ) {
 	if err := s.CmdDisp.Dispatch(r.Context(), cmd); err != nil {

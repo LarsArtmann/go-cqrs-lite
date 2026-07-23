@@ -21,7 +21,7 @@ func parseCommandID(tb testing.TB, s string) id.CommandID {
 	return v
 }
 
-func validRef(tb testing.TB) command.AggregateRef {
+func validRef(tb testing.TB) command.StreamRef {
 	tb.Helper()
 
 	return command.NewAggregateRef(
@@ -45,16 +45,16 @@ func TestNewPersistedCommand_Success(t *testing.T) {
 		t.Errorf("Type() = %q, want %q", cmd.Type(), "CreateUser")
 	}
 
-	if cmd.AggregateRef() != ref {
-		t.Errorf("AggregateRef() = %v, want %v", cmd.AggregateRef(), ref)
+	if cmd.StreamRef() != ref {
+		t.Errorf("StreamRef() = %v, want %v", cmd.StreamRef(), ref)
 	}
 
-	if cmd.AggregateID() != ref.ID {
-		t.Errorf("AggregateID() = %v, want %v", cmd.AggregateID(), ref.ID)
+	if cmd.StreamID() != ref.ID {
+		t.Errorf("StreamID() = %v, want %v", cmd.StreamID(), ref.ID)
 	}
 
-	if cmd.AggregateType() != ref.Type {
-		t.Errorf("AggregateType() = %v, want %v", cmd.AggregateType(), ref.Type)
+	if cmd.StreamType() != ref.Type {
+		t.Errorf("StreamType() = %v, want %v", cmd.StreamType(), ref.Type)
 	}
 
 	if cmd.ID().IsZero() {
@@ -185,7 +185,7 @@ func TestNewPersistedCommand_EmptyAggregateType(t *testing.T) {
 func TestNewPersistedCommand_ZeroAggregateID(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewAggregateRef("User", id.AggregateID{})
+	ref := command.NewAggregateRef("User", id.StreamID{})
 
 	_, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err == nil {
@@ -328,12 +328,12 @@ func TestAggregateType_Parse(t *testing.T) {
 func TestAggregateType_IsZero(t *testing.T) {
 	t.Parallel()
 
-	if command.AggregateType("").IsZero() != true {
-		t.Error("empty AggregateType should be zero")
+	if command.StreamType("").IsZero() != true {
+		t.Error("empty StreamType should be zero")
 	}
 
-	if command.AggregateType("User").IsZero() != false {
-		t.Error("non-empty AggregateType should not be zero")
+	if command.StreamType("User").IsZero() != false {
+		t.Error("non-empty StreamType should not be zero")
 	}
 }
 

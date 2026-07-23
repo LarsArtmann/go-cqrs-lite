@@ -12,10 +12,10 @@ import (
 
 func BenchmarkNewEvent(b *testing.B) {
 	b.ReportAllocs()
-	aggregateID := id.NewAggregateID()
+	streamID := id.NewAggregateID()
 
 	for b.Loop() {
-		_, _ = event.NewEvent("BenchEvent", aggregateID, "Bench", 1, nil)
+		_, _ = event.NewEvent("BenchEvent", streamID, "Bench", 1, nil)
 	}
 }
 
@@ -28,9 +28,9 @@ func BenchmarkMemoryBus_Publish(b *testing.B) {
 		b.Fatalf("subscribe: %v", err)
 	}
 
-	aggregateID := id.NewAggregateID()
+	streamID := id.NewAggregateID()
 
-	evt, err := event.NewEvent("BenchEvent", aggregateID, "Bench", 1, nil)
+	evt, err := event.NewEvent("BenchEvent", streamID, "Bench", 1, nil)
 	if err != nil {
 		b.Fatalf("new event: %v", err)
 	}
@@ -48,14 +48,14 @@ func BenchmarkMemoryBus_Publish(b *testing.B) {
 func BenchmarkMemoryStore_Save(b *testing.B) {
 	b.ReportAllocs()
 	store := memory.NewMemoryStore()
-	aggregateID := id.NewAggregateID()
+	streamID := id.NewAggregateID()
 	ctx := context.Background()
 
 	for b.Loop() {
-		evt, _ := event.NewEvent("BenchEvent", aggregateID, "Bench", 1, nil)
+		evt, _ := event.NewEvent("BenchEvent", streamID, "Bench", 1, nil)
 		_ = store.Save(
 			ctx,
-			id.NewAggregateRef(id.AggregateType("Bench"), aggregateID),
+			id.NewAggregateRef(id.StreamType("Bench"), streamID),
 			[]event.Event{evt},
 			1,
 		)
@@ -65,20 +65,20 @@ func BenchmarkMemoryStore_Save(b *testing.B) {
 func BenchmarkMemoryStore_Load(b *testing.B) {
 	b.ReportAllocs()
 	store := memory.NewMemoryStore()
-	aggregateID := id.NewAggregateID()
+	streamID := id.NewAggregateID()
 	ctx := context.Background()
 
 	for i := range 10 {
-		evt, _ := event.NewEvent("BenchEvent", aggregateID, "Bench", 1, nil)
+		evt, _ := event.NewEvent("BenchEvent", streamID, "Bench", 1, nil)
 		_ = store.Save(
 			ctx,
-			id.NewAggregateRef(id.AggregateType("Bench"), aggregateID),
+			id.NewAggregateRef(id.StreamType("Bench"), streamID),
 			[]event.Event{evt},
 			event.Version(i+1),
 		)
 	}
 
 	for b.Loop() {
-		_, _ = store.Load(ctx, id.NewAggregateRef(id.AggregateType("Bench"), aggregateID))
+		_, _ = store.Load(ctx, id.NewAggregateRef(id.StreamType("Bench"), streamID))
 	}
 }

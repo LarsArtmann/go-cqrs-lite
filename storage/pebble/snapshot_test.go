@@ -35,15 +35,15 @@ func newSnapshotStore(t *testing.T) *SnapshotStore {
 
 func testSnapshot(
 	t *testing.T,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	version int,
 	state string,
 ) snapshot.Snapshot {
 	t.Helper()
 
 	return snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Order",
+		StreamID:   aggID,
+		StreamType: "Order",
 		Version:       event.Version(version),
 		State:         []byte(state),
 		CreatedAt:     time.Date(2025, 6, 15, 12, 0, 0, 0, time.UTC),
@@ -68,8 +68,8 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if loaded.AggregateID != aggID {
-		t.Errorf("AggregateID = %s, want %s", loaded.AggregateID, aggID)
+	if loaded.StreamID != aggID {
+		t.Errorf("StreamID = %s, want %s", loaded.StreamID, aggID)
 	}
 
 	if loaded.Version.Int() != 5 {
@@ -329,8 +329,8 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 	// Same aggregate type + ID but snapshot prefix is disjoint from event prefix.
 	snapRef := id.NewAggregateRef("Issue", aggID)
 	snap := snapshot.Snapshot{
-		AggregateID:   aggID,
-		AggregateType: "Issue",
+		StreamID:   aggID,
+		StreamType: "Issue",
 		Version:       event.Version(1),
 		State:         []byte(`{"title":"v1"}`),
 		CreatedAt:     time.Now(),

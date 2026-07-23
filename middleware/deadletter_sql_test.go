@@ -102,7 +102,7 @@ func TestSQLDeadLetterStore_WithAggregateID(t *testing.T) {
 	store.Handle(ctx, DeadLetterEntry{
 		Kind:        "command",
 		Type:        "user.create",
-		AggregateID: aggID,
+		StreamID: aggID,
 		Error:       errors.New("timeout"),
 		Attempts:    5,
 		FailedAt:    time.Now(),
@@ -117,8 +117,8 @@ func TestSQLDeadLetterStore_WithAggregateID(t *testing.T) {
 		t.Fatalf("expected 1 entry, got %d", len(entries))
 	}
 
-	if entries[0].AggregateID != aggID {
-		t.Errorf("AggregateID = %v, want %v", entries[0].AggregateID, aggID)
+	if entries[0].StreamID != aggID {
+		t.Errorf("StreamID = %v, want %v", entries[0].StreamID, aggID)
 	}
 
 	if entries[0].Kind != "command" {

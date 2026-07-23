@@ -107,5 +107,5 @@ Evaluation:
 ## Related
 
 - [ADR-0051](0051-cbor-as-default-codec.md) — CBOR as default codec
-- [ADR-0044](0044-self-describing-blind-stores.md) — Self-describing blind stores
+- [ADR-0044](0044-blind-store-encoding-stamps.md) — Blind store encoding stamps
 - [ADR-0015](0015-cbor-codec.md) — Original CBOR codec addition

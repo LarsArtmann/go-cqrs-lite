@@ -92,7 +92,7 @@ func FuzzMultiSig_TamperRejected(f *testing.F) {
 		flipped[0] ^= 0xff
 
 		tampered, err := event.NewEvent(
-			evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+			evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 			flipped,
 			event.WithEventID(evt.ID()),
 			event.WithOccurredAt(evt.OccurredAt()),

@@ -14,7 +14,7 @@ func scanFuncDecl(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl) {
 		switch {
 		case fn.Name != nil && fn.Name.Name == "ID":
 			scanIDMethod(ctx, gf, fn, pos)
-		case fn.Name != nil && (fn.Name.Name == "Type" || fn.Name.Name == "AggregateID"):
+		case fn.Name != nil && (fn.Name.Name == "Type" || fn.Name.Name == "StreamID"):
 			scanTypedMethod(ctx, gf, fn, pos)
 		}
 	}
@@ -59,7 +59,7 @@ func scanIDMethod(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl, pos token.
 	})
 }
 
-// scanTypedMethod marks existing commands that have a Type() or AggregateID()
+// scanTypedMethod marks existing commands that have a Type() or StreamID()
 // method. A Type() method ALONE is NOT sufficient to identify a CQRS command
 // — many non-CQRS types have Type() methods (pflag.Value, fmt.Stringer, etc.).
 // Only types already registered as commands (via BasicCommand embed or ID()

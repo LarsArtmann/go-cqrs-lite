@@ -56,8 +56,8 @@ func eventToMessage(evt event.Event) *message.Message {
 
 	md.Set(metaEventID, evt.ID().String())
 	md.Set(metaEventType, string(evt.Type()))
-	md.Set(metaAggregateID, evt.AggregateID().String())
-	md.Set(metaAggregateType, string(evt.AggregateType()))
+	md.Set(metaAggregateID, evt.StreamID().String())
+	md.Set(metaAggregateType, string(evt.StreamType()))
 	md.Set(metaVersion, strconv.Itoa(evt.Version().Int()))
 	md.Set(metaSchemaVersion, strconv.Itoa(evt.SchemaVersion().Int()))
 	md.Set(metaOccurredAt, evt.OccurredAt().Format(time.RFC3339Nano))
@@ -104,14 +104,14 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 		eventType = event.Type(v)
 	}
 
-	aggregateID, err := id.ParseAggregateID(md.Get(metaAggregateID))
+	streamID, err := id.ParseAggregateID(md.Get(metaAggregateID))
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err,
 			"watermill.parse_aggregate_id_failed", "parse aggregate_id")
 	}
 
-	aggregateType := id.AggregateType(md.Get(metaAggregateType))
-	if aggregateType == "" {
+	streamType := id.StreamType(md.Get(metaAggregateType))
+	if streamType == "" {
 		return nil, errorfamily.NewRejection("watermill.missing_metadata",
 			"missing "+metaAggregateType+" metadata")
 	}
@@ -153,8 +153,8 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 
 	evt, err := event.NewEvent(
 		eventType,
-		aggregateID,
-		aggregateType,
+		streamID,
+		streamType,
 		event.Version(version), //nolint:gosec // G115: version bounded by event count
 		msg.Payload,
 		opts...,

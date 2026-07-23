@@ -37,7 +37,7 @@ func seedPebbleStreamEvents(
 	t *testing.T,
 	store *cqrspebble.EventStore,
 	count int,
-) (id.AggregateRef, []event.Event) {
+) (id.StreamRef, []event.Event) {
 	t.Helper()
 
 	ctx := context.Background()

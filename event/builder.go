@@ -10,8 +10,8 @@ import (
 
 type builder struct {
 	eventType     Type
-	aggregateID   id.AggregateID
-	aggregateType id.AggregateType
+	streamID   id.StreamID
+	streamType id.StreamType
 	version       Version
 	payload       []byte
 	opts          []Option
@@ -19,14 +19,14 @@ type builder struct {
 
 func newBuilder(
 	eventType Type,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	version Version,
 ) *builder {
 	return &builder{
 		eventType:     eventType,
-		aggregateID:   aggregateID,
-		aggregateType: aggregateType,
+		streamID:   streamID,
+		streamType: streamType,
 		version:       version,
 		payload:       nil,
 		opts:          nil,
@@ -66,8 +66,8 @@ func (b *builder) WithUserID(userID id.UserID) *builder {
 func (b *builder) Build() (*ImmutableEvent, error) {
 	err := validateEventParams(
 		b.eventType,
-		b.aggregateID,
-		b.aggregateType,
+		b.streamID,
+		b.streamType,
 		b.version,
 		b.payload,
 	)
@@ -81,8 +81,8 @@ func (b *builder) Build() (*ImmutableEvent, error) {
 
 	return buildEvent(
 		b.eventType,
-		b.aggregateID,
-		b.aggregateType,
+		b.streamID,
+		b.streamType,
 		b.version,
 		b.payload,
 		b.opts,

@@ -57,33 +57,33 @@ const (
 )
 
 // AggregateAttrs returns the aggregate type and ID attributes for a span.
-func AggregateAttrs(aggregateType, aggregateID fmt.Stringer) []attribute.KeyValue {
+func AggregateAttrs(streamType, streamID fmt.Stringer) []attribute.KeyValue {
 	return []attribute.KeyValue{
-		attribute.String(AttrAggregateType, aggregateType.String()),
-		attribute.String(AttrAggregateID, aggregateID.String()),
+		attribute.String(AttrAggregateType, streamType.String()),
+		attribute.String(AttrAggregateID, streamID.String()),
 	}
 }
 
 // CommandAttrs returns the standard set of command attributes for a span.
-func CommandAttrs(commandType string, aggregateID fmt.Stringer) []attribute.KeyValue {
+func CommandAttrs(commandType string, streamID fmt.Stringer) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindCommand),
 		attribute.String(AttrCommandType, commandType),
-		attribute.String(AttrAggregateID, aggregateID.String()),
+		attribute.String(AttrAggregateID, streamID.String()),
 	}
 }
 
 // EventAttrs returns the standard set of event attributes for a span.
 func EventAttrs(
 	eventType string,
-	aggregateID fmt.Stringer,
-	aggregateType string,
+	streamID fmt.Stringer,
+	streamType string,
 ) []attribute.KeyValue {
 	return []attribute.KeyValue{
 		attribute.String(AttrMessageKind, KindEvent),
 		attribute.String(AttrEventType, eventType),
-		attribute.String(AttrAggregateID, aggregateID.String()),
-		attribute.String(AttrAggregateType, aggregateType),
+		attribute.String(AttrAggregateID, streamID.String()),
+		attribute.String(AttrAggregateType, streamType),
 	}
 }
 

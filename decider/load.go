@@ -16,10 +16,10 @@ import (
 
 func (r *Repository[State]) loadFromStore(
 	ctx context.Context,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 ) (State, event.Version, error) {
-	ref := id.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(streamType, streamID)
 
 	return r.loadByEvents(
 		func() ([]event.Event, error) {
@@ -47,7 +47,7 @@ func (r *Repository[State]) loadFromStore(
 func (r *Repository[State]) foldEvents(
 	state State,
 	events []event.Event,
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (State, error) {
 	var err error
 
@@ -70,7 +70,7 @@ func (r *Repository[State]) foldEvents(
 }
 
 func opError(
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	msg string,
 	args ...any,
 ) error {
@@ -107,18 +107,18 @@ func opError(
 // Useful for time-travel queries: "what was the state at version N?".
 func (r *Repository[State]) LoadAtVersion(
 	ctx context.Context,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	maxVersion event.Version,
 ) (State, event.Version, error) {
-	ref := id.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(streamType, streamID)
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_version",
 		cqrsotel.SpanKindInternal,
 		cqrsotel.WithAttributes(
-			cqrsotel.AttrString(cqrsotel.AttrAggregateType, string(aggregateType)),
-			cqrsotel.AttrString(cqrsotel.AttrAggregateID, aggregateID.String()),
+			cqrsotel.AttrString(cqrsotel.AttrAggregateType, string(streamType)),
+			cqrsotel.AttrString(cqrsotel.AttrAggregateID, streamID.String()),
 			cqrsotel.AttrInt(cqrsotel.AttrAggregateVersion, maxVersion.Int()),
 		),
 	)
@@ -141,18 +141,18 @@ func (r *Repository[State]) LoadAtVersion(
 // Useful for temporal queries: "what was the state at this point in time?".
 func (r *Repository[State]) LoadAtTime(
 	ctx context.Context,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	maxTime time.Time,
 ) (State, event.Version, error) {
-	ref := id.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(streamType, streamID)
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_time",
 		cqrsotel.SpanKindInternal,
 		cqrsotel.WithAttributes(
-			cqrsotel.AttrString(cqrsotel.AttrAggregateType, string(aggregateType)),
-			cqrsotel.AttrString(cqrsotel.AttrAggregateID, aggregateID.String()),
+			cqrsotel.AttrString(cqrsotel.AttrAggregateType, string(streamType)),
+			cqrsotel.AttrString(cqrsotel.AttrAggregateID, streamID.String()),
 		),
 	)
 	defer span.End()
@@ -172,7 +172,7 @@ func (r *Repository[State]) LoadAtTime(
 
 func (r *Repository[State]) loadByEvents(
 	loadFn func() ([]event.Event, error),
-	ref id.AggregateRef,
+	ref id.StreamRef,
 ) (State, event.Version, error) {
 	events, err := loadFn()
 	if err != nil {
@@ -196,7 +196,7 @@ func (r *Repository[State]) loadByEvents(
 }
 
 func (r *Repository[State]) shouldSnapshot(
-	ref id.AggregateRef,
+	ref id.StreamRef,
 	version event.Version,
 ) bool {
 	return snapshot.ShouldSnapshotFor(
@@ -210,10 +210,10 @@ func (r *Repository[State]) shouldSnapshot(
 
 func (r *Repository[State]) loadFromSnapshot(
 	ctx context.Context,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 ) (State, event.Version, error) {
-	ref := id.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(streamType, streamID)
 
 	snap, err := r.snapshotStore.Load(ctx, ref)
 	if err != nil {
@@ -223,11 +223,11 @@ func (r *Repository[State]) loadFromSnapshot(
 			return zero, 0, opError(ref, "load snapshot: %w", err)
 		}
 
-		return r.loadFromStore(ctx, aggregateID, aggregateType)
+		return r.loadFromStore(ctx, streamID, streamType)
 	}
 
 	if snap == nil {
-		return r.loadFromStore(ctx, aggregateID, aggregateType)
+		return r.loadFromStore(ctx, streamID, streamType)
 	}
 
 	var state State
@@ -262,10 +262,10 @@ func (r *Repository[State]) loadFromSnapshot(
 // (the caller falls back to the full load path).
 func (r *Repository[State]) loadFromCache(
 	ctx context.Context,
-	aggregateID id.AggregateID,
-	aggregateType id.AggregateType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 ) (State, event.Version, bool) {
-	ref := id.NewAggregateRef(aggregateType, aggregateID)
+	ref := id.NewAggregateRef(streamType, streamID)
 
 	cachedState, cachedVersion, ok := r.stateCache.Get(ref)
 	if !ok {
@@ -304,7 +304,7 @@ func (r *Repository[State]) loadFromCache(
 
 // recordRead notifies the snapshot strategy of a read, enabling read-pressure
 // strategies like ReadPressure to track load frequency.
-func (r *Repository[State]) recordRead(ref id.AggregateRef, version event.Version) {
+func (r *Repository[State]) recordRead(ref id.StreamRef, version event.Version) {
 	if r.snapshotStrategy == nil {
 		return
 	}

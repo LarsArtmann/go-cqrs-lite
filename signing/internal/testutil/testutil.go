@@ -45,7 +45,7 @@ func TamperEvent(tb testing.TB, evt event.Event) event.Event {
 	tb.Helper()
 
 	tampered, err := event.NewEvent(
-		evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+		evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 		[]byte(`{"tampered":true}`),
 		event.WithEventID(evt.ID()),
 		event.WithOccurredAt(evt.OccurredAt()),

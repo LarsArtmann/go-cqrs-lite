@@ -25,7 +25,7 @@ var _ = Describe("Command Dispatcher", func() {
 	var (
 		ctx        context.Context
 		dispatcher *command.Dispatcher
-		aggID      id.AggregateID
+		aggID      id.StreamID
 	)
 
 	BeforeEach(func() {
@@ -55,7 +55,7 @@ var _ = Describe("Command Dispatcher", func() {
 				Expect(dispatcher.Dispatch(ctx, cmd)).To(Succeed())
 				Expect(received).ToNot(BeNil())
 				Expect(received.Type()).To(Equal(command.Type("CreateUser")))
-				Expect(received.AggregateID()).To(Equal(aggID))
+				Expect(received.StreamID()).To(Equal(aggID))
 			})
 		})
 
@@ -235,7 +235,7 @@ var _ = Describe("Command Dispatcher", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(cmd.Type()).To(Equal(command.Type("CreateOrder")))
-				Expect(cmd.AggregateID()).To(Equal(aggID))
+				Expect(cmd.StreamID()).To(Equal(aggID))
 				Expect(cmd.Metadata().CorrelationID).To(Equal(corrID))
 				Expect(cmd.Metadata().CausationID).To(Equal(causeID))
 				Expect(cmd.Metadata().UserID).To(Equal(userID))
@@ -253,7 +253,7 @@ var _ = Describe("Command Dispatcher", func() {
 
 		Context("when I create a command with a zero aggregate ID", func() {
 			It("should reject my input and explain that the aggregate ID is required", func() {
-				_, err := command.New("CreateUser", id.AggregateID{})
+				_, err := command.New("CreateUser", id.StreamID{})
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("aggregate ID is required"))
 			})

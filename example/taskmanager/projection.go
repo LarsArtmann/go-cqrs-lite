@@ -34,13 +34,13 @@ type TaskView struct {
 func (v *TaskView) IsTombstoned() bool { return v.Tombstoned }
 
 // taskViewKey extracts the read-model key from an event.
-func taskViewKey(evt event.Event) (id.AggregateID, error) {
-	return evt.AggregateID(), nil
+func taskViewKey(evt event.Event) (id.StreamID, error) {
+	return evt.StreamID(), nil
 }
 
 // configureProjection wires the consumer's event-handling callbacks into
 // the Materialize projection. Each event type updates the view incrementally.
-func configureProjection(mat *stack.Materialize[TaskView, id.AggregateID]) {
+func configureProjection(mat *stack.Materialize[TaskView, id.StreamID]) {
 	mat.OnCreate = func(_ context.Context, evt event.Event) (*TaskView, error) {
 		p, err := event.DecodePayloadAuto[TaskCreatedPayload](evt)
 		if err != nil {
@@ -48,7 +48,7 @@ func configureProjection(mat *stack.Materialize[TaskView, id.AggregateID]) {
 		}
 
 		return &TaskView{
-			ID:          evt.AggregateID().String(),
+			ID:          evt.StreamID().String(),
 			Title:       p.Title,
 			Description: p.Description,
 			Priority:    p.Priority,

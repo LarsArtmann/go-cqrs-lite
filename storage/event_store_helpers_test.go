@@ -56,19 +56,19 @@ const loadBackwardsQuery = `SELECT id, event_type, aggregate_type, aggregate_id,
 		WHERE aggregate_type = $1 AND aggregate_id = $2
 		ORDER BY version DESC`
 
-func expectLoadRows(mock sqlmock.Sqlmock, aggID id.AggregateID, rows ...driver.Value) {
+func expectLoadRows(mock sqlmock.Sqlmock, aggID id.StreamID, rows ...driver.Value) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(rows...))
 }
 
-func expectLoadEmpty(mock sqlmock.Sqlmock, aggID id.AggregateID) {
+func expectLoadEmpty(mock sqlmock.Sqlmock, aggID id.StreamID) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 }
 
-func expectVersionCheck(mock sqlmock.Sqlmock, aggID id.AggregateID, version int) {
+func expectVersionCheck(mock sqlmock.Sqlmock, aggID id.StreamID, version int) {
 	mock.ExpectQuery(regexp.QuoteMeta(versionQuery)).
 		WithArgs("User", aggID).
 		WillReturnRows(sqlmock.NewRows([]string{"max"}).AddRow(version))
@@ -76,7 +76,7 @@ func expectVersionCheck(mock sqlmock.Sqlmock, aggID id.AggregateID, version int)
 
 func expectSaveSuccess(mock sqlmock.Sqlmock, evt event.Event) {
 	mock.ExpectBegin()
-	expectVersionCheck(mock, evt.AggregateID(), 0)
+	expectVersionCheck(mock, evt.StreamID(), 0)
 	expectInsertSuccess(mock, evt)
 	mock.ExpectCommit()
 }
@@ -84,7 +84,7 @@ func expectSaveSuccess(mock sqlmock.Sqlmock, evt event.Event) {
 func expectInsertExec(mock sqlmock.Sqlmock, evt event.Event) *sqlmock.ExpectedExec {
 	return mock.ExpectExec("INSERT INTO events.*VALUES.*").WithArgs(
 		evt.ID(),
-		"UserCreated", "User", evt.AggregateID(), 1, evt.SchemaVersion().Int(), evt.Payload(), string(evt.Encoding()), sqlmock.AnyArg(), evt.OccurredAt(),
+		"UserCreated", "User", evt.StreamID(), 1, evt.SchemaVersion().Int(), evt.Payload(), string(evt.Encoding()), sqlmock.AnyArg(), evt.OccurredAt(),
 	)
 }
 
@@ -96,7 +96,7 @@ func saveEvt(t *testing.T, store *SQLEventStore, evt event.Event) error {
 	t.Helper()
 
 	return store.Save(
-		context.Background(), id.NewAggregateRef(evt.AggregateType(), evt.AggregateID()),
+		context.Background(), id.NewAggregateRef(evt.StreamType(), evt.StreamID()),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -107,7 +107,7 @@ func appendBatchEvt(t *testing.T, store *SQLEventStore, evt event.Event) error {
 
 	return store.AppendBatch(
 		context.Background(),
-		id.NewAggregateRef(evt.AggregateType(), evt.AggregateID()),
+		id.NewAggregateRef(evt.StreamType(), evt.StreamID()),
 		[]event.Event{evt},
 	)
 }
@@ -121,7 +121,7 @@ func testEvent(t *testing.T) event.Event {
 func testEventWithAggID(
 	t *testing.T,
 	eventType event.Type,
-	aggID id.AggregateID,
+	aggID id.StreamID,
 	version event.Version,
 	opts ...event.Option,
 ) event.Event {

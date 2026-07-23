@@ -38,7 +38,7 @@ func TestSQLEventStore_Save_ConcurrencyConflict(t *testing.T) {
 	evt := testEvent(t)
 
 	mock.ExpectBegin()
-	expectVersionCheck(mock, evt.AggregateID(), 5)
+	expectVersionCheck(mock, evt.StreamID(), 5)
 	mock.ExpectRollback()
 
 	err := saveEvt(t, store, evt)
@@ -102,7 +102,7 @@ func TestSQLEventStore_Save_VersionQueryError(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(versionQuery)).
-		WithArgs("User", evt.AggregateID()).
+		WithArgs("User", evt.StreamID()).
 		WillReturnError(errors.New("query failed"))
 	mock.ExpectRollback()
 
@@ -119,7 +119,7 @@ func TestSQLEventStore_Save_InsertError(t *testing.T) {
 	evt := testEvent(t)
 
 	mock.ExpectBegin()
-	expectVersionCheck(mock, evt.AggregateID(), 0)
+	expectVersionCheck(mock, evt.StreamID(), 0)
 	expectInsertExec(mock, evt).WillReturnError(errors.New("insert failed"))
 	mock.ExpectRollback()
 	err := saveEvt(t, store, evt)
@@ -135,7 +135,7 @@ func TestSQLEventStore_Save_CommitError(t *testing.T) {
 	evt := testEvent(t)
 
 	mock.ExpectBegin()
-	expectVersionCheck(mock, evt.AggregateID(), 0)
+	expectVersionCheck(mock, evt.StreamID(), 0)
 	expectInsertSuccess(mock, evt)
 	mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
 	err := saveEvt(t, store, evt)
@@ -155,16 +155,16 @@ func TestSQLEventStore_AppendBatch_Success(t *testing.T) {
 	mock.ExpectBegin()
 	mock.ExpectExec("INSERT INTO events.*VALUES.*").WithArgs(
 		evt1.ID(),
-		"UserCreated", "User", evt1.AggregateID(), 1, evt1.SchemaVersion().Int(), evt1.Payload(), sqlmock.AnyArg(), sqlmock.AnyArg(), evt1.OccurredAt(),
+		"UserCreated", "User", evt1.StreamID(), 1, evt1.SchemaVersion().Int(), evt1.Payload(), sqlmock.AnyArg(), sqlmock.AnyArg(), evt1.OccurredAt(),
 		evt2.ID(),
-		"UserCreated", "User", evt2.AggregateID(), 2, evt2.SchemaVersion().Int(), evt2.Payload(), sqlmock.AnyArg(), sqlmock.AnyArg(), evt2.OccurredAt(),
+		"UserCreated", "User", evt2.StreamID(), 2, evt2.SchemaVersion().Int(), evt2.Payload(), sqlmock.AnyArg(), sqlmock.AnyArg(), evt2.OccurredAt(),
 	).
 		WillReturnResult(sqlmock.NewResult(2, 2))
 	mock.ExpectCommit()
 
 	err := store.AppendBatch(
 		context.Background(),
-		id.NewAggregateRef("User", evt1.AggregateID()),
+		id.NewAggregateRef("User", evt1.StreamID()),
 		[]event.Event{evt1, evt2},
 	)
 	if err != nil {

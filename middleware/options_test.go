@@ -43,7 +43,7 @@ func TestWithLogger_RetryLogsAttempts(t *testing.T) {
 		return nil
 	})
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := cmdHandler(context.Background(), cmd)
 	if err != nil {
@@ -70,7 +70,7 @@ func TestWithLogger_RecoveryLogsPanic(t *testing.T) {
 		panic("test panic")
 	})
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := cmdHandler(context.Background(), cmd)
 	if err == nil {
@@ -97,7 +97,7 @@ func TestWithLogger_ValidationLogsFailure(t *testing.T) {
 		return nil
 	})
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := cmdHandler(context.Background(), cmd)
 	if err == nil {
@@ -122,7 +122,7 @@ func TestWithLogger_NoLogger_NoPanic(t *testing.T) {
 		return errorfamily.NewTransient("test.transient", "always fail")
 	})
 
-	cmd := &testCommand{aggregateID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewAggregateID()}
 
 	err := cmdHandler(context.Background(), cmd)
 	if err == nil {
