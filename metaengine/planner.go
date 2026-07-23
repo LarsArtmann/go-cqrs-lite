@@ -96,14 +96,17 @@ func (p PlanResult) Report() string {
 	b.WriteString("=== Meta-Engine Plan ===\n\n")
 
 	b.WriteString("--- Models ---\n")
+
 	for _, a := range p.Models {
 		fmt.Fprintf(&b, "  %s\n", a)
 	}
 
 	if len(p.Queries) > 0 {
 		b.WriteString("\n--- Queries ---\n")
+
 		for _, a := range p.Queries {
 			fmt.Fprintf(&b, "  %s\n", a)
+
 			for _, d := range a.Diagnostics {
 				fmt.Fprintf(&b, "    %s\n", d)
 			}
@@ -112,6 +115,7 @@ func (p PlanResult) Report() string {
 
 	if len(p.Diagnostics) > 0 {
 		b.WriteString("\n--- Global Diagnostics ---\n")
+
 		for _, d := range p.Diagnostics {
 			fmt.Fprintf(&b, "  %s\n", d)
 		}
@@ -169,6 +173,7 @@ func Plan(engines []Engine, queries ...any) (*Store, error) {
 		}
 
 		store.models[rm.Name] = mr
+
 		plan.Models = append(plan.Models, assignment)
 	}
 
@@ -241,6 +246,7 @@ func planModel(rm ReadModel, engines []Engine) (modelRuntime, ModelAssignment, e
 	}
 
 	var ranked []rankedEngine
+
 	for _, eng := range engines {
 		if c, ok := eng.Profile().SupportsADT(rm.ADT); ok {
 			ranked = append(ranked, rankedEngine{engine: eng, complexity: c})
@@ -300,9 +306,12 @@ func checkWriteAmplification(models []ModelAssignment) Diagnostics {
 	var diags Diagnostics
 	if len(models) > 5 {
 		diags = append(diags, Diagnostic{
-			Level:   DiagLevelWarn,
-			Query:   "*",
-			Message: fmt.Sprintf("%d models — high write amplification. Consider sharing read models.", len(models)),
+			Level: DiagLevelWarn,
+			Query: "*",
+			Message: fmt.Sprintf(
+				"%d models — high write amplification. Consider sharing read models.",
+				len(models),
+			),
 		})
 	}
 

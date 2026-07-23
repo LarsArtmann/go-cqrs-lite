@@ -169,7 +169,12 @@ func (s *Store) ExecuteCtx(ctx context.Context, input any, opts ...ExecOption) (
 	return s.executeQuery(ctx, q, input, opts...)
 }
 
-func (s *Store) executeQuery(_ context.Context, q queryRuntime, input any, opts ...ExecOption) (any, error) {
+func (s *Store) executeQuery(
+	_ context.Context,
+	q queryRuntime,
+	input any,
+	opts ...ExecOption,
+) (any, error) {
 	cfg := applyExecOpts(opts)
 	m := s.models[q.modelName]
 
@@ -221,6 +226,7 @@ func (s *Store) executeQuery(_ context.Context, q queryRuntime, input any, opts 
 
 	case ReadTraversal:
 		node := extractKeyValue(input)
+
 		depth := extractDepthFromInput(input)
 		if gb, ok := m.engine.(GraphBackend); ok {
 			return gb.GraphNeighbors(m.name, node, depth)
@@ -285,7 +291,9 @@ func extractDepthFromInput(input any) int {
 // isPageType checks via reflection if R is a Page[T] by field shape.
 func isPageType[R any]() bool {
 	var zero R
+
 	_, ok := unwrapPageType(reflect.TypeOf(zero))
+
 	return ok
 }
 
@@ -294,6 +302,7 @@ func isPageType[R any]() bool {
 // and Next is populated with a cursor pointing past the current page.
 func reconstructPage[R any](raw any, limit int) R {
 	var zero R
+
 	t := reflect.TypeOf(zero)
 
 	elemType, ok := unwrapPageType(t)
@@ -312,6 +321,7 @@ func reconstructPage[R any](raw any, limit int) R {
 	}
 
 	slice := reflect.MakeSlice(reflect.SliceOf(elemType), 0, len(items))
+
 	var lastItem any
 
 	for _, item := range items {
@@ -331,8 +341,10 @@ func reconstructPage[R any](raw any, limit int) R {
 
 	if hasMore {
 		result.FieldByName("HasMore").SetBool(true)
+
 		if lastItem != nil {
 			cursor := &Cursor{Value: lastItem}
+
 			cursorField := result.FieldByName("Next")
 			if cursorField.IsValid() && cursorField.Kind() == reflect.Pointer {
 				cursorField.Set(reflect.ValueOf(cursor))
@@ -368,6 +380,7 @@ func ExecuteTyped[Q any, R any](
 
 	if isPageType[R]() {
 		cfg := applyExecOpts(opts)
+
 		return reconstructPage[R](raw, cfg.limit), nil
 	}
 

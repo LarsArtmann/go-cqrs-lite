@@ -133,6 +133,7 @@ func (m *MemoryEngine) getMapLocked(col string) map[any]any {
 func (m *MemoryEngine) MapSet(col string, key any, value any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	m.getMapLocked(col)[key] = value
 
 	return nil
@@ -141,6 +142,7 @@ func (m *MemoryEngine) MapSet(col string, key any, value any) error {
 func (m *MemoryEngine) MapGet(col string, key any) (any, bool, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
 	v, ok := m.getMapLocked(col)[key]
 
 	return v, ok, nil
@@ -149,6 +151,7 @@ func (m *MemoryEngine) MapGet(col string, key any) (any, bool, error) {
 func (m *MemoryEngine) MapDelete(col string, key any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	delete(m.getMapLocked(col), key)
 
 	return nil
@@ -163,6 +166,7 @@ func (m *MemoryEngine) MapScan(
 ) ([]any, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
 	store := m.getMapLocked(col)
 
 	fetchLimit := limit
@@ -195,6 +199,7 @@ func (m *MemoryEngine) MapScan(
 func (m *MemoryEngine) SetAdd(col string, key any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	if m.data.sets[col] == nil {
 		m.data.sets[col] = make(map[any]struct{})
 	}
@@ -207,6 +212,7 @@ func (m *MemoryEngine) SetAdd(col string, key any) error {
 func (m *MemoryEngine) SetContains(col string, key any) (bool, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
 	_, ok := m.data.sets[col][key]
 
 	return ok, nil
@@ -215,6 +221,7 @@ func (m *MemoryEngine) SetContains(col string, key any) (bool, error) {
 func (m *MemoryEngine) CounterIncrement(col string, deltas Delta) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	if m.data.counters[col] == nil {
 		m.data.counters[col] = make(map[string]int64)
 	}
@@ -229,6 +236,7 @@ func (m *MemoryEngine) CounterIncrement(col string, deltas Delta) error {
 func (m *MemoryEngine) CounterGet(col string) (map[string]int64, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
 	result := make(map[string]int64, len(m.data.counters[col]))
 	maps.Copy(result, m.data.counters[col])
 
@@ -246,6 +254,7 @@ func (m *MemoryEngine) getGraphLocked(col string) *memGraph {
 func (m *MemoryEngine) GraphAddEdge(col string, edge Edge) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	g := m.getGraphLocked(col)
 	g.adjacency[edge.From] = append(g.adjacency[edge.From], edge.To)
 	g.adjacency[edge.To] = append(g.adjacency[edge.To], edge.From)
@@ -256,6 +265,7 @@ func (m *MemoryEngine) GraphAddEdge(col string, edge Edge) error {
 func (m *MemoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
 	g := m.getGraphLocked(col)
 	visited := map[any]bool{node: true}
 	frontier := []any{node}

@@ -1,7 +1,7 @@
 package metaengine
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"reflect"
 	"sort"
@@ -69,6 +69,7 @@ func (s *Store) EventTypeNames() []string {
 	defer s.mu.RUnlock()
 
 	seen := make(map[string]bool)
+
 	for _, m := range s.models {
 		for _, f := range m.folds {
 			if f.Kind != FoldSkip {

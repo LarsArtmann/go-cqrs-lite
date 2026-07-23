@@ -82,6 +82,7 @@ func usersModel() ReadModel {
 		OnUpdate(UserSuspended{}, func(e UserSuspended) UserID { return e.ID },
 			func(e UserSuspended, prev FindUserResult) FindUserResult {
 				prev.Status = "suspended"
+
 				return prev
 			}),
 		OnRemove[UserDeleted, UserID, FindUserResult](UserDeleted{}, func(e UserDeleted) UserID {
@@ -97,7 +98,8 @@ func emailsModel() ReadModel {
 }
 
 func countsModel() ReadModel {
-	return MustModel("counts",
+	return MustModel(
+		"counts",
 		OnCount(UserCreated{}, func(e UserCreated) Delta {
 			return Delta{"active": +1}
 		}),
@@ -182,12 +184,26 @@ func TestApplyAndExecute_AllFiveQueries(t *testing.T) {
 		{"UserCreated", UserCreated{
 			ID: "u1", Email: "alice@example.com", Name: "Alice", Country: "SE", At: now,
 		}},
-		{"UserCreated", UserCreated{
-			ID: "u2", Email: "bob@example.com", Name: "Bob", Country: "US", At: now.Add(1 * time.Hour),
-		}},
-		{"UserCreated", UserCreated{
-			ID: "u3", Email: "carol@example.com", Name: "Carol", Country: "SE", At: now.Add(2 * time.Hour),
-		}},
+		{
+			"UserCreated",
+			UserCreated{
+				ID:      "u2",
+				Email:   "bob@example.com",
+				Name:    "Bob",
+				Country: "US",
+				At:      now.Add(1 * time.Hour),
+			},
+		},
+		{
+			"UserCreated",
+			UserCreated{
+				ID:      "u3",
+				Email:   "carol@example.com",
+				Name:    "Carol",
+				Country: "SE",
+				At:      now.Add(2 * time.Hour),
+			},
+		},
 		{"UserSuspended", UserSuspended{ID: "u2", At: now.Add(3 * time.Hour)}},
 		{"Friendship", Friendship{From: "u1", To: "u2", At: now}},
 		{"Friendship", Friendship{From: "u2", To: "u3", At: now}},

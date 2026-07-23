@@ -34,94 +34,94 @@
 
 ## a) FULLY DONE
 
-| # | Deliverable | File(s) |
-|---|-------------|---------|
-| 1 | **Review of updated event-query-model.md** with 10 hard problems identified | (inline analysis) |
-| 2 | **Filter/sort design deep-dive**: DSL vs Codegen vs Reflection comparison | (inline analysis) |
-| 3 | **`Page[T]` pagination design** — pagination encoded in result type, not query input | `metaengine/types.go` |
-| 4 | **TypeSpec extension future doc** with trigger criteria | `docs/planning/future-typespec-extension.md` |
-| 5 | **Core types**: ADT enum, Delta, TypedDelta[K], Edge, Cursor, Skip, Page[T], ExecOption | `metaengine/types.go` |
-| 6 | **Fold registration**: OnInsert, OnUpdate (with typed key extractor), OnRemove, OnCount, OnEdge, OnSet, OnSkip | `metaengine/fold.go` |
-| 7 | **Query builder with pure type inference** — infers ADT, read pattern, filters, sort, pagination from Go types | `metaengine/query.go`, `metaengine/reflect.go` |
-| 8 | **ISP-split backends**: MapBackend, SetBackend, CounterBackend, GraphBackend, ScanBackend (not one fat interface) | `metaengine/engine.go` |
-| 9 | **MemoryEngine** — full implementation of all 5 ADT backends | `metaengine/engine.go` |
-| 10 | **SQLiteEngineProfile** — cost profile for multi-engine planning (no implementation, just profile) | `metaengine/engine.go` |
-| 11 | **Planner** — cost-based optimizer that ranks engines by complexity, assigns queries, emits diagnostics | `metaengine/planner.go` |
-| 12 | **Store** — Apply(events) + Execute/ExecuteTyped(queries) with Page[T] reconstruction | `metaengine/store.go` |
-| 13 | **Full test suite** — all 5 ADTs (FindUser, CheckEmail, ListByStatus, CountByStatus, FriendsOf) with Apply + Execute | `metaengine/metaengine_test.go` |
-| 14 | **go.work integration** — metaengine/ wired into workspace | `go.work` |
-| 15 | **README** — module overview with quick example | `metaengine/README.md` |
-| 16 | **nix fmt** — all files formatted | (applied) |
-| 17 | **Git commit** — `69f6e709` | committed |
+| #   | Deliverable                                                                                                          | File(s)                                        |
+| --- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 1   | **Review of updated event-query-model.md** with 10 hard problems identified                                          | (inline analysis)                              |
+| 2   | **Filter/sort design deep-dive**: DSL vs Codegen vs Reflection comparison                                            | (inline analysis)                              |
+| 3   | **`Page[T]` pagination design** — pagination encoded in result type, not query input                                 | `metaengine/types.go`                          |
+| 4   | **TypeSpec extension future doc** with trigger criteria                                                              | `docs/planning/future-typespec-extension.md`   |
+| 5   | **Core types**: ADT enum, Delta, TypedDelta[K], Edge, Cursor, Skip, Page[T], ExecOption                              | `metaengine/types.go`                          |
+| 6   | **Fold registration**: OnInsert, OnUpdate (with typed key extractor), OnRemove, OnCount, OnEdge, OnSet, OnSkip       | `metaengine/fold.go`                           |
+| 7   | **Query builder with pure type inference** — infers ADT, read pattern, filters, sort, pagination from Go types       | `metaengine/query.go`, `metaengine/reflect.go` |
+| 8   | **ISP-split backends**: MapBackend, SetBackend, CounterBackend, GraphBackend, ScanBackend (not one fat interface)    | `metaengine/engine.go`                         |
+| 9   | **MemoryEngine** — full implementation of all 5 ADT backends                                                         | `metaengine/engine.go`                         |
+| 10  | **SQLiteEngineProfile** — cost profile for multi-engine planning (no implementation, just profile)                   | `metaengine/engine.go`                         |
+| 11  | **Planner** — cost-based optimizer that ranks engines by complexity, assigns queries, emits diagnostics              | `metaengine/planner.go`                        |
+| 12  | **Store** — Apply(events) + Execute/ExecuteTyped(queries) with Page[T] reconstruction                                | `metaengine/store.go`                          |
+| 13  | **Full test suite** — all 5 ADTs (FindUser, CheckEmail, ListByStatus, CountByStatus, FriendsOf) with Apply + Execute | `metaengine/metaengine_test.go`                |
+| 14  | **go.work integration** — metaengine/ wired into workspace                                                           | `go.work`                                      |
+| 15  | **README** — module overview with quick example                                                                      | `metaengine/README.md`                         |
+| 16  | **nix fmt** — all files formatted                                                                                    | (applied)                                      |
+| 17  | **Git commit** — `69f6e709`                                                                                          | committed                                      |
 
 ## b) PARTIALLY DONE
 
-| # | What | What's missing |
-|---|------|----------------|
-| 1 | **`OnUpdate` read-modify-write** | Works but has no concurrency safety (no per-key locking). In production, concurrent events for the same key could race. Needs a serialization strategy. |
-| 2 | **Plan diagnostics** | Degradation warnings work (graph on SQL = O(N), scan on memory = O(N)). Missing: write amplification per-event-type (currently just counts total projections), memory budget checks, latency budget enforcement. |
-| 3 | **Multi-engine planning** | `SQLiteEngineProfile()` exists but no real SQLite engine implementation. Can plan but can't execute on SQLite. Memory engine only. |
-| 4 | **Type inference for computed filters** | Name-matching + struct tags work for direct field filters. No mechanism for computed filters ("lowercase(status)", "age from birthdate"). Would need explicit declaration — but user rejected that. Unresolved. |
-| 5 | **`TypedDelta[K ~string]`** | Type defined but `OnCount` still returns untyped `Delta` (map[string]int64). The typed variant exists but isn't wired into the fold API. |
-| 6 | **Cursor pagination** | `Cursor` type exists, `After()` option exists, but the cursor value is just a placeholder int. No real keyset pagination implementation. |
+| #   | What                                    | What's missing                                                                                                                                                                                                   |
+| --- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **`OnUpdate` read-modify-write**        | Works but has no concurrency safety (no per-key locking). In production, concurrent events for the same key could race. Needs a serialization strategy.                                                          |
+| 2   | **Plan diagnostics**                    | Degradation warnings work (graph on SQL = O(N), scan on memory = O(N)). Missing: write amplification per-event-type (currently just counts total projections), memory budget checks, latency budget enforcement. |
+| 3   | **Multi-engine planning**               | `SQLiteEngineProfile()` exists but no real SQLite engine implementation. Can plan but can't execute on SQLite. Memory engine only.                                                                               |
+| 4   | **Type inference for computed filters** | Name-matching + struct tags work for direct field filters. No mechanism for computed filters ("lowercase(status)", "age from birthdate"). Would need explicit declaration — but user rejected that. Unresolved.  |
+| 5   | **`TypedDelta[K ~string]`**             | Type defined but `OnCount` still returns untyped `Delta` (map[string]int64). The typed variant exists but isn't wired into the fold API.                                                                         |
+| 6   | **Cursor pagination**                   | `Cursor` type exists, `After()` option exists, but the cursor value is just a placeholder int. No real keyset pagination implementation.                                                                         |
 
 ## c) NOT STARTED
 
-| # | What |
-|---|------|
-| 1 | Real SQLite engine implementation (the second backend) |
-| 2 | Real Pebble engine implementation |
-| 3 | Integration with existing `event.Event`, `projection.Projection`, `kv.ViewStore[V,K]` |
-| 4 | Integration with `projectionhost.Host` for managed lifecycle |
-| 5 | Integration with `stack.Bundle` for deployer-provided engines |
-| 6 | Schema migration (what happens when a new fold is added to an existing projection?) |
-| 7 | Hot-reload (add/remove engines at runtime, background replay, cutover) |
-| 8 | Streaming support (`iter.Seq2[T, error]` for unbounded results) |
-| 9 | D2/Mermaid plan visualizer |
-| 10 | `metaengine-check` codegen validator (CI tool for field consistency) |
-| 11 | Property-based testing with `rapid` |
-| 12 | Benchmark suite (planned vs hand-tuned layouts) |
-| 13 | Scale threshold validation (Bloom at N>100K, etc.) |
-| 14 | Formal model / cost model calibration |
-| 15 | Cross-projection queries (Decision 3 from design doc) |
-| 16 | Commands/Queries as event streams (Section 10 of design doc) |
-| 17 | Sessions as event streams |
-| 18 | Metadata as first-class query fields (Section 8 of design doc) |
-| 19 | Auth boundary documentation (Section 9 of design doc) |
-| 20 | The "name" for the meta-engine project |
+| #   | What                                                                                  |
+| --- | ------------------------------------------------------------------------------------- |
+| 1   | Real SQLite engine implementation (the second backend)                                |
+| 2   | Real Pebble engine implementation                                                     |
+| 3   | Integration with existing `event.Event`, `projection.Projection`, `kv.ViewStore[V,K]` |
+| 4   | Integration with `projectionhost.Host` for managed lifecycle                          |
+| 5   | Integration with `stack.Bundle` for deployer-provided engines                         |
+| 6   | Schema migration (what happens when a new fold is added to an existing projection?)   |
+| 7   | Hot-reload (add/remove engines at runtime, background replay, cutover)                |
+| 8   | Streaming support (`iter.Seq2[T, error]` for unbounded results)                       |
+| 9   | D2/Mermaid plan visualizer                                                            |
+| 10  | `metaengine-check` codegen validator (CI tool for field consistency)                  |
+| 11  | Property-based testing with `rapid`                                                   |
+| 12  | Benchmark suite (planned vs hand-tuned layouts)                                       |
+| 13  | Scale threshold validation (Bloom at N>100K, etc.)                                    |
+| 14  | Formal model / cost model calibration                                                 |
+| 15  | Cross-projection queries (Decision 3 from design doc)                                 |
+| 16  | Commands/Queries as event streams (Section 10 of design doc)                          |
+| 17  | Sessions as event streams                                                             |
+| 18  | Metadata as first-class query fields (Section 8 of design doc)                        |
+| 19  | Auth boundary documentation (Section 9 of design doc)                                 |
+| 20  | The "name" for the meta-engine project                                                |
 
 ## d) TOTALLY FUCKED UP
 
-| # | What | Why it's fucked | Fixed? |
-|---|------|----------------|--------|
-| 1 | **`metaengine.IndexOn` leak** | I proposed `IndexOn("status_lower", func(r) ...)` which is exactly the kind of storage decision the meta-engine should eliminate. User caught it immediately: "the GOAL is for the developer to NOT make low level aka storage decisions!!!!!". | Yes — killed the idea, replaced with pure type inference |
-| 2 | **Skipped user's explicit questions** | User asked about code generation AND DSL. I went straight to building without addressing them. User: "You total forgot about my code gen and or DSL questions!!!" | Yes — wrote comprehensive 3-approach comparison |
-| 3 | **Framed DSL as YAML** | I listed "External DSL (YAML/custom syntax)" as if YAML was the DSL option. User: "DSL is 100 FUCKING % not YAML but it's own language if we build it!!!!" | Yes — reframed as a real programming language, then redirected to TypeSpec |
-| 4 | **`Page[T]` reflect detection by Name()** | Go reflect returns `"Page[github.com/.../FindUserResult]"` as the Name for generic instantiations, not `"Page"`. My initial `unwrapPageType` checked `Name() != "Page"` which always failed. | Yes — fixed by detecting field shape (Items/Next/HasMore) |
-| 5 | **Same bug in `reconstructPage` and `isPageType`** | All three Page-detection paths had the same Name()-based bug. Had to fix in 3 places. | Yes — all use `unwrapPageType` now |
-| 6 | **`Plan` name collision** | Both the struct type and the entry-point function were named `Plan`. Go doesn't allow this. | Yes — renamed struct to `PlanResult` |
-| 7 | **Fat `Backend` interface** | Initial design had Map + Set + Counter + Graph in one interface, violating ISP. An engine that only supports Maps would still need to implement Set/Counter/Graph methods. | Yes — split into per-ADT interfaces |
-| 8 | **`OnUpdate`/`OnRemove` used first-field convention** | No typed key extractor — just `reflect.Value.Field(0)`. Fragile: if the event's first field isn't the key, it breaks silently. | Yes — added explicit `keyFn` parameter |
-| 9 | **`inputTypeMatches` was `return true`** | Placeholder that matched EVERY query to EVERY input. Execute couldn't find the right query. | Yes — replaced with real type registry (`byInputType` map) |
-| 10 | **Wrote 8 files without compiling once** | The status report from the prior session said "Without code, this is architecture astronautics." I proceeded to write 8 files of code without running `go build` a single time until forced to reflect. | Yes — compiled and fixed all errors |
-| 11 | **Pre-existing go.sum checksum mismatches** | BuildFlow pre-commit hook fails on checksum mismatches in `deriver/go.sum`, `projection/go.sum`, `example/taskmanager/go.sum`. These are pre-existing — not caused by this session. | No — pre-existing, needs `go mod tidy` across workspace |
+| #   | What                                                  | Why it's fucked                                                                                                                                                                                                                                 | Fixed?                                                                     |
+| --- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 1   | **`metaengine.IndexOn` leak**                         | I proposed `IndexOn("status_lower", func(r) ...)` which is exactly the kind of storage decision the meta-engine should eliminate. User caught it immediately: "the GOAL is for the developer to NOT make low level aka storage decisions!!!!!". | Yes — killed the idea, replaced with pure type inference                   |
+| 2   | **Skipped user's explicit questions**                 | User asked about code generation AND DSL. I went straight to building without addressing them. User: "You total forgot about my code gen and or DSL questions!!!"                                                                               | Yes — wrote comprehensive 3-approach comparison                            |
+| 3   | **Framed DSL as YAML**                                | I listed "External DSL (YAML/custom syntax)" as if YAML was the DSL option. User: "DSL is 100 FUCKING % not YAML but it's own language if we build it!!!!"                                                                                      | Yes — reframed as a real programming language, then redirected to TypeSpec |
+| 4   | **`Page[T]` reflect detection by Name()**             | Go reflect returns `"Page[github.com/.../FindUserResult]"` as the Name for generic instantiations, not `"Page"`. My initial `unwrapPageType` checked `Name() != "Page"` which always failed.                                                    | Yes — fixed by detecting field shape (Items/Next/HasMore)                  |
+| 5   | **Same bug in `reconstructPage` and `isPageType`**    | All three Page-detection paths had the same Name()-based bug. Had to fix in 3 places.                                                                                                                                                           | Yes — all use `unwrapPageType` now                                         |
+| 6   | **`Plan` name collision**                             | Both the struct type and the entry-point function were named `Plan`. Go doesn't allow this.                                                                                                                                                     | Yes — renamed struct to `PlanResult`                                       |
+| 7   | **Fat `Backend` interface**                           | Initial design had Map + Set + Counter + Graph in one interface, violating ISP. An engine that only supports Maps would still need to implement Set/Counter/Graph methods.                                                                      | Yes — split into per-ADT interfaces                                        |
+| 8   | **`OnUpdate`/`OnRemove` used first-field convention** | No typed key extractor — just `reflect.Value.Field(0)`. Fragile: if the event's first field isn't the key, it breaks silently.                                                                                                                  | Yes — added explicit `keyFn` parameter                                     |
+| 9   | **`inputTypeMatches` was `return true`**              | Placeholder that matched EVERY query to EVERY input. Execute couldn't find the right query.                                                                                                                                                     | Yes — replaced with real type registry (`byInputType` map)                 |
+| 10  | **Wrote 8 files without compiling once**              | The status report from the prior session said "Without code, this is architecture astronautics." I proceeded to write 8 files of code without running `go build` a single time until forced to reflect.                                         | Yes — compiled and fixed all errors                                        |
+| 11  | **Pre-existing go.sum checksum mismatches**           | BuildFlow pre-commit hook fails on checksum mismatches in `deriver/go.sum`, `projection/go.sum`, `example/taskmanager/go.sum`. These are pre-existing — not caused by this session.                                                             | No — pre-existing, needs `go mod tidy` across workspace                    |
 
 ## e) WHAT WE SHOULD IMPROVE
 
-| # | Issue | Fix |
-|---|-------|-----|
-| 1 | **The prototype uses raw `any` everywhere** | Should integrate with `event.Event` from the event module. `Apply(eventType string, payload any)` should be `Apply(evt event.Event)` with payload decoding. |
-| 2 | **No integration with existing projection infrastructure** | The prototype builds a parallel world. It should produce `projection.Projection` implementations that register with `projectionhost.Host`. The planner's output should be a set of `projection.Projection` + `kv.ViewStore[V,K]` instances. |
-| 3 | **`extractKeyValue` uses first-field convention** | The query input's key is extracted via `reflect.Value.Field(0)`. This is the same fragile pattern I fixed in `OnUpdate`/`OnRemove`. Query inputs need a typed key function or a struct tag convention. |
-| 4 | **No concurrency model** | `Apply` processes events sequentially. No per-key locking for read-modify-write folds. No batch processing. The existing `projectionhost` handles batching, checkpoints, and restarts — the meta-engine should build on top of it, not replace it. |
-| 5 | **`matchesFilters` uses `fmt.Sprintf("%v", x)` for comparison** | String comparison of arbitrary values. Works for strings and ints but will fail for time.Time, structs, or custom types. Need proper `reflect.DeepEqual` or typed comparators. |
-| 6 | **No streaming support** | `Page[T]` forces materializing all items. Large scans need `iter.Seq2[T, error]`. The design doc mentions this (Decision 2) but it's not implemented. |
-| 7 | **Planner is greedy, not optimal** | Picks the cheapest engine per query independently. Doesn't consider: shared projections (two queries with the same fold shape could share one physical projection), write amplification across queries, or memory budget constraints across the whole plan. |
-| 8 | **No schema evolution** | What happens when a new `On` fold is added to an existing query? The projection needs rebuilding. No mechanism for detecting this or triggering a replay. |
-| 9 | **`Delta` is still `map[string]int64`** | `TypedDelta[K ~string]` exists but `OnCount` accepts only untyped `Delta`. The typed variant needs to be wired into the fold API. |
-| 10 | **No D2 visualizer** | The design doc mentions plan visualization. A D2 output showing projections → engines → costs would be a huge DX win. |
-| 11 | **README example doesn't show the full power** | Missing examples for Counter, Graph, and filtered scan with Page[T]. The test file has them but the README doesn't. |
-| 12 | **No property-based testing** | The repo has `pgregory.net/rapid`. The planner should be property-tested: "given any combination of ADTs and engines, every query gets assigned." |
+| #   | Issue                                                           | Fix                                                                                                                                                                                                                                                         |
+| --- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **The prototype uses raw `any` everywhere**                     | Should integrate with `event.Event` from the event module. `Apply(eventType string, payload any)` should be `Apply(evt event.Event)` with payload decoding.                                                                                                 |
+| 2   | **No integration with existing projection infrastructure**      | The prototype builds a parallel world. It should produce `projection.Projection` implementations that register with `projectionhost.Host`. The planner's output should be a set of `projection.Projection` + `kv.ViewStore[V,K]` instances.                 |
+| 3   | **`extractKeyValue` uses first-field convention**               | The query input's key is extracted via `reflect.Value.Field(0)`. This is the same fragile pattern I fixed in `OnUpdate`/`OnRemove`. Query inputs need a typed key function or a struct tag convention.                                                      |
+| 4   | **No concurrency model**                                        | `Apply` processes events sequentially. No per-key locking for read-modify-write folds. No batch processing. The existing `projectionhost` handles batching, checkpoints, and restarts — the meta-engine should build on top of it, not replace it.          |
+| 5   | **`matchesFilters` uses `fmt.Sprintf("%v", x)` for comparison** | String comparison of arbitrary values. Works for strings and ints but will fail for time.Time, structs, or custom types. Need proper `reflect.DeepEqual` or typed comparators.                                                                              |
+| 6   | **No streaming support**                                        | `Page[T]` forces materializing all items. Large scans need `iter.Seq2[T, error]`. The design doc mentions this (Decision 2) but it's not implemented.                                                                                                       |
+| 7   | **Planner is greedy, not optimal**                              | Picks the cheapest engine per query independently. Doesn't consider: shared projections (two queries with the same fold shape could share one physical projection), write amplification across queries, or memory budget constraints across the whole plan. |
+| 8   | **No schema evolution**                                         | What happens when a new `On` fold is added to an existing query? The projection needs rebuilding. No mechanism for detecting this or triggering a replay.                                                                                                   |
+| 9   | **`Delta` is still `map[string]int64`**                         | `TypedDelta[K ~string]` exists but `OnCount` accepts only untyped `Delta`. The typed variant needs to be wired into the fold API.                                                                                                                           |
+| 10  | **No D2 visualizer**                                            | The design doc mentions plan visualization. A D2 output showing projections → engines → costs would be a huge DX win.                                                                                                                                       |
+| 11  | **README example doesn't show the full power**                  | Missing examples for Counter, Graph, and filtered scan with Page[T]. The test file has them but the README doesn't.                                                                                                                                         |
+| 12  | **No property-based testing**                                   | The repo has `pgregory.net/rapid`. The planner should be property-tested: "given any combination of ADTs and engines, every query gets assigned."                                                                                                           |
 
 ---
 
@@ -210,6 +210,7 @@
 **Q1: Should the meta-engine be a module inside go-cqrs-lite or a separate repo?**
 
 The prior session's status report recommended separate repo ("it's research-grade, different audience, the 'lite' in go-cqrs-lite"). But I built it as a module inside the monorepo because:
+
 - It depends on `event.Event`, `projection.Projection`, `kv.ViewStore` — all in this repo
 - The go.work workspace makes cross-module development easy
 - The CI/tooling (nix, BuildFlow, cqrs-lint) is already set up
@@ -219,11 +220,13 @@ The prior session's status report recommended separate repo ("it's research-grad
 **Q2: How should computed/derived filters work without storage declarations?**
 
 Pure type inference handles direct field matching (`ListByStatus.Status` matches `FindUserResult.Status`). But what about:
+
 - "Filter by lowercase email" (`strings.ToLower(r.Email)`)
 - "Filter by age from birthdate" (computed field)
 - "Filter where created_at > X AND status = active" (multi-field compound)
 
 These can't be derived from type shapes. Options:
+
 - (a) Don't support them — force developers to pre-compute and store derived fields in the fold
 - (b) Add a minimal typed declaration that's NOT a storage directive (e.g., a `metaengine:"filter"` struct tag on a computed field in the result type)
 - (c) Accept that these queries need a custom handler outside the meta-engine

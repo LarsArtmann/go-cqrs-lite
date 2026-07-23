@@ -48,7 +48,6 @@ func reflectFields(v any) []reflectField {
 	var fields []reflectField
 
 	for f := range t.Fields() {
-		f := f
 		if !f.IsExported() {
 			continue
 		}
@@ -168,4 +167,3 @@ func getFieldValue(v any, fieldName string) any {
 
 	return f.Interface()
 }
-

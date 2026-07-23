@@ -122,9 +122,12 @@ type FilterInput struct {
 }
 
 func TestFilterTypeCorrectness(t *testing.T) {
-	model := MustModel("filteritems", OnInsert(FilterItem{}, func(e FilterItem) (string, FilterItem) {
-		return e.ID, e
-	}))
+	model := MustModel(
+		"filteritems",
+		OnInsert(FilterItem{}, func(e FilterItem) (string, FilterItem) {
+			return e.ID, e
+		}),
+	)
 
 	query := Query[FilterInput, Page[FilterItem]]("filter_query", model)
 

@@ -84,10 +84,10 @@ listActive := metaengine.Query[ListActive, metaengine.Page[FindUserResult]]("lis
 
 ## Struct Tags
 
-| Tag                    | Purpose                                    |
-| ---------------------- | ------------------------------------------ |
-| `metaengine:"key"`     | Marks the key field in a query input       |
-| `metaengine:"sort"`    | Marks the sort field in a result element   |
+| Tag                 | Purpose                                  |
+| ------------------- | ---------------------------------------- |
+| `metaengine:"key"`  | Marks the key field in a query input     |
+| `metaengine:"sort"` | Marks the sort field in a result element |
 
 ## Event Integration
 
