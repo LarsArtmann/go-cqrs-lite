@@ -1,20 +1,16 @@
 # metaengine
 
-> Cost-based storage optimizer for event-sourced data.
+> Cost-based storage planner for event-sourced data.
 > Derives projections, indexes, and engine assignments from two primitives:
 > **Events** (mutations) and **Queries** (read intent).
 
-## What This Does
+## Three Roles
 
-The developer writes **only** ReadModels (event-to-projection folds) and Queries
-(input/result types). The planner automatically:
-
-- Infers the ADT (Map, Set, Counter, Graph, SortedMap) from fold return types
-- Infers filter/sort criteria from query input fields matched to result type fields
-- Detects pagination from `Page[T]` result types
-- Assigns each ReadModel to the cheapest engine that supports its ADT
-- Deduplicates models shared across queries (no write amplification)
-- Emits degradation warnings (e.g. "O(N) scan — add SQLite for O(logN)")
+| Role            | Provides                                                            | Receives                         |
+| --------------- | ------------------------------------------------------------------- | -------------------------------- |
+| **Developer**   | Event types, Query types, Fold functions                            | `Store` to Apply/Execute against |
+| **Operator**    | Engines (Memory, SQL, Pebble) with cost profiles                    | `PlanResult` showing assignments |
+| **Meta-Engine** | Derives everything from the relationship between events and queries | The bridge                       |
 
 ## Quick Example
 
@@ -23,32 +19,23 @@ The developer writes **only** ReadModels (event-to-projection folds) and Queries
 type UserCreated struct { ID UserID; Name string; At time.Time }
 type UserDeleted struct { ID UserID }
 
-// 2. Query types (input + result — zero storage knowledge)
-type FindUser struct { ID UserID `metaengine:"key"` }
-type FindUserResult struct {
-    ID   UserID
-    Name string
-    JoinedAt time.Time `metaengine:"sort"`
-}
+// 2. Query types (input + result)
+type FindUser struct { ID UserID }
+type FindUserResult struct { ID UserID; Name string; JoinedAt time.Time }
 
-// 3. ReadModel (write side: how events update the projection)
-users := metaengine.MustModel("users",
-    metaengine.OnInsert(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
+// 3. Query declaration — folds define how events update this query's projection
+findUser := metaengine.Query[FindUser, FindUserResult]("find_user",
+    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
         return e.ID, FindUserResult{ID: e.ID, Name: e.Name, JoinedAt: e.At}
     }),
-    metaengine.OnRemove(UserDeleted{},
-        func(e UserDeleted) UserID { return e.ID }),
+    metaengine.On(UserDeleted{}, metaengine.Remove[FindUserResult]()),
 )
 
-// 4. Queries (read side: how to read from the model)
-findUser := metaengine.Query[FindUser, FindUserResult]("find_user", users)
-listUsers := metaengine.Query[ListUsers, metaengine.Page[FindUserResult]]("list_users", users)
-
-// 5. Plan — the optimizer assigns engines to models
-store, _ := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, findUser, listUsers)
+// 4. Plan — the optimizer assigns engines to queries
+store, _ := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, findUser)
 defer store.Close()
 
-// 6. Apply events + execute queries
+// 5. Apply events + execute queries
 store.Apply("UserCreated", UserCreated{ID: "u1", Name: "Alice", At: time.Now()})
 
 result, _ := metaengine.ExecuteTyped[FindUser, FindUserResult](
@@ -56,85 +43,88 @@ result, _ := metaengine.ExecuteTyped[FindUser, FindUserResult](
 // → FindUserResult{ID: "u1", Name: "Alice", ...}
 ```
 
-## ReadModel + Query Separation
+## The Fold Return Type IS the ADT
 
-The core architectural insight: **the write side (how events update a projection)
-is separate from the read side (how queries read it).**
+The developer never declares "I need a Map" or "I need a Counter."
+The fold function's return type IS the declaration:
 
-- **ReadModel** owns the folds and ADT. Multiple queries can read from the same model.
-- **Query** declares input/result types and references a ReadModel.
-- One event updates each model exactly once, regardless of how many queries read it.
+| Handler Signature   | Return Type    | ADT        | Example                |
+| ------------------- | -------------- | ---------- | ---------------------- |
+| `func(e) (K, V)`    | `(Key, Value)` | Map        | Point lookup by key    |
+| `func(e) K`         | `Key`          | Set        | Membership test        |
+| `func(e) Delta`     | `Delta`        | Counter    | Aggregate counts       |
+| `func(e) Edge`      | `Edge`         | Graph      | Traversal              |
+| `func(e, prev V) V` | `Value`        | Map update | Read-modify-write      |
+| `Remove[V]()`       | Sentinel       | Delete     | Remove from projection |
+| `func(e) Skip`      | `Skip`         | No-op      | Event doesn't apply    |
+
+## Typed Filter/Sort — No Strings
 
 ```go
-// One model, two queries — no fold duplication, no write amplification.
-users := metaengine.MustModel("users", folds...)
-findUser   := metaengine.Query[FindUser, FindUserResult]("find_user", users)
-listActive := metaengine.Query[ListActive, metaengine.Page[FindUserResult]]("list_active", users)
+listByStatus := metaengine.Query[ListByStatus, ListByStatusResult]("list_by_status",
+    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) { ... }),
+    metaengine.FilterOn(func(r FindUserResult) string { return r.Status }),
+    metaengine.SortOn(func(r FindUserResult) time.Time { return r.JoinedAt }),
+)
 ```
 
-## The 5 ADTs
-
-| Fold Function                 | Return Type | ADT       | Example Query                 |
-| ----------------------------- | ----------- | --------- | ----------------------------- |
-| `OnInsert`                    | `(K, V)`    | Map       | Point lookup by key           |
-| `OnSet`                       | `K`         | Set       | Membership test               |
-| `OnCount`                     | `Delta`     | Counter   | Aggregate counts              |
-| `OnEdge`                      | `Edge`      | Graph     | Traversal                     |
-| `OnInsert` + `Page[T]` result | `(K, V)`    | SortedMap | Filtered scan with pagination |
-
-## Struct Tags
-
-| Tag                 | Purpose                                  |
-| ------------------- | ---------------------------------------- |
-| `metaengine:"key"`  | Marks the key field in a query input     |
-| `metaengine:"sort"` | Marks the sort field in a result element |
-
-## Event Integration
-
-For JSON-encoded events (including `event.Event` payloads):
+Pagination is detected from the domain input struct:
 
 ```go
-// Decode JSON payload into the fold's expected type automatically.
+type ListByStatus struct {
+    Status string             // domain filter — matched by type to FilterOn closure
+    Limit  int                // pagination — detected by field name + type
+    After  *metaengine.Cursor // pagination — detected by type
+}
+
+type ListByStatusResult struct {
+    Users []FindUserResult    // collection — detected by []T field shape
+    Next  *metaengine.Cursor  // continuation cursor
+}
+```
+
+## Per-Query Projections
+
+Each query has its own independent projection. The same event updates each
+matching query's projection separately. Write amplification is reported as
+a diagnostic warning — it is the operator's choice, not the engine's.
+
+```go
+store, _ := metaengine.Plan(engines,
+    findUser,      // Map<UserID, FindUserResult>
+    checkEmail,    // Set<Email>
+    countByStatus, // Counter
+    friendsOf,     // Graph
+    listByStatus,  // SortedMap (filtered scan)
+)
+// UserCreated event updates all 5 projections independently.
+```
+
+## JSON Event Payloads
+
+```go
 store.ApplyEncoded(string(evt.Type()), evt.Payload())
 ```
 
-For non-JSON encodings (CBOR, raw), decode manually and use `store.Apply`.
-
-### projection.Projection Adapter
-
-Create a thin adapter to integrate with `projectionhost.Host`:
+## Projection Adapter
 
 ```go
 type projectionAdapter struct{ store *metaengine.Store }
 
-func (p *projectionAdapter) Name() string { return "metaengine" }
 func (p *projectionAdapter) Handle(_ context.Context, evt event.Event) error {
     return p.store.ApplyEncoded(string(evt.Type()), evt.Payload())
 }
-func (p *projectionAdapter) EventTypes() []event.Type {
-    names := p.store.EventTypeNames()
-    types := make([]event.Type, len(names))
-    for i, n := range names { types[i] = event.Type(n) }
-    return types
-}
-
-// Register with projectionhost:
-host.Register(&projectionAdapter{store: store})
 ```
 
-## Key Design Decisions
+## Engine Interface
 
-1. **Pure type inference** — no codegen, no DSL, no FilterOn/SortOn declarations.
-   The planner reflects on Go types at startup.
-2. **ReadModel/Query separation** — write side (folds) is decoupled from read side
-   (queries). Eliminates fold duplication and write amplification.
-3. **`Page[T]` result** — pagination is a mechanical concern, not domain intent.
-   Query inputs carry only domain fields.
-4. **ISP-split backends** — `MapBackend`, `SetBackend`, `CounterBackend`,
-   `GraphBackend`, `ScanBackend`. Engines implement only what they support.
-5. **Typed key extractors** — `OnUpdate` and `OnRemove` take explicit key functions,
-   not first-field convention. Query inputs can use `metaengine:"key"` struct tag.
-6. **Type-aware comparisons** — filters use `reflect.DeepEqual`, sorting uses
-   type-specific numeric/string/time comparison (not string formatting).
-7. **Zero dependencies** — the module uses only the Go standard library.
-8. **Concurrency-safe** — `MemoryEngine` and `Store` use `sync.RWMutex`.
+Engines implement whichever ADT backends they support:
+
+```go
+type Engine interface {
+    Profile() EngineProfile  // declares supported ADTs + complexity
+    Close() error
+}
+```
+
+`MemoryEngine` implements all backends for testing/CI deployments.

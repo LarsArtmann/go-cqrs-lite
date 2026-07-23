@@ -195,7 +195,8 @@ func (q QueryDecl[Q, R]) QueryConfig() QueryConfig      { return q.Config }
 
 func (q QueryDecl[Q, R]) QueryKeyType() reflect.Type {
 	for _, f := range q.Folds {
-		if f.Kind == FoldInsert {
+		switch f.Kind {
+		case FoldInsert, FoldSet:
 			return f.keyType
 		}
 	}

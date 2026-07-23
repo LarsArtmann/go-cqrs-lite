@@ -36,9 +36,8 @@ type Friendship struct {
 
 // ════════════ QUERY INPUT + RESULT TYPES ════════════
 
-// FindUser: point lookup by ID → reads from users model (Map ADT).
 type FindUser struct {
-	ID UserID `metaengine:"key"`
+	ID UserID
 }
 
 type FindUserResult struct {
@@ -47,120 +46,130 @@ type FindUserResult struct {
 	Email    string
 	Status   string
 	Country  string
-	JoinedAt time.Time `metaengine:"sort"`
+	JoinedAt time.Time
 }
 
-// CheckEmail: membership test → reads from emails model (Set ADT).
 type CheckEmail struct {
-	Email string `metaengine:"key"`
+	Email string
 }
 
-// ListByStatus: filtered scan → reads from users model (Map ADT, paginated).
 type ListByStatus struct {
-	Status string // domain filter — matches FindUserResult.Status
+	Status string
+	Limit  int
+	After  *Cursor
 }
 
-// CountByStatus: aggregate read → reads from counts model (Counter ADT).
+type ListByStatusResult struct {
+	Users []FindUserResult
+	Next  *Cursor
+}
+
 type CountByStatus struct{}
 
-// FriendsOf: graph traversal → reads from friendships model (Graph ADT).
 type FriendsOf struct {
-	ID    UserID `metaengine:"key"`
+	ID    UserID
 	Depth int
 }
 
-// ════════════ READ MODEL DEFINITIONS ════════════
+type FriendsOfResult struct {
+	IDs []UserID
+}
 
-func usersModel() ReadModel {
-	return MustModel("users", []Fold{
-		OnInsert(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
+// ════════════ QUERY DECLARATIONS (matching design doc) ════════════
+
+func findUserQuery() QueryDecl[FindUser, FindUserResult] {
+	return Query[FindUser, FindUserResult](
+		"find_user",
+		On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
 			return e.ID, FindUserResult{
 				ID: e.ID, Name: e.Name, Email: e.Email,
 				Status: "active", Country: e.Country, JoinedAt: e.At,
 			}
 		}),
-		OnUpdate(UserSuspended{}, func(e UserSuspended) UserID { return e.ID },
-			func(e UserSuspended, prev FindUserResult) FindUserResult {
-				prev.Status = "suspended"
-
-				return prev
-			}),
-		OnRemove(UserDeleted{}, func(e UserDeleted) UserID {
-			return e.ID
+		On(UserSuspended{}, func(e UserSuspended, prev FindUserResult) FindUserResult {
+			prev.Status = "suspended"
+			return prev
 		}),
-	}...)
+		On(UserDeleted{}, Remove[FindUserResult]()),
+	)
 }
 
-func emailsModel() ReadModel {
-	return MustModel("emails", OnSet(UserCreated{}, func(e UserCreated) string {
-		return e.Email
-	}))
+func checkEmailQuery() QueryDecl[CheckEmail, bool] {
+	return Query[CheckEmail, bool](
+		"check_email",
+		On(UserCreated{}, func(e UserCreated) string {
+			return e.Email
+		}),
+		On(UserDeleted{}, Remove[string]()),
+	)
 }
 
-func countsModel() ReadModel {
-	return MustModel(
-		"counts",
-		OnCount(UserCreated{}, func(e UserCreated) Delta {
+func listByStatusQuery() QueryDecl[ListByStatus, ListByStatusResult] {
+	return Query[ListByStatus, ListByStatusResult](
+		"list_by_status",
+		On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
+			return e.ID, FindUserResult{
+				ID: e.ID, Name: e.Name, Email: e.Email,
+				Status: "active", Country: e.Country, JoinedAt: e.At,
+			}
+		}),
+		On(UserSuspended{}, func(e UserSuspended, prev FindUserResult) FindUserResult {
+			prev.Status = "suspended"
+			return prev
+		}),
+		On(UserDeleted{}, Remove[FindUserResult]()),
+		FilterOn(func(r FindUserResult) string { return r.Status }),
+		SortOn(func(r FindUserResult) time.Time { return r.JoinedAt }),
+	)
+}
+
+func countByStatusQuery() QueryDecl[CountByStatus, map[string]int64] {
+	return Query[CountByStatus, map[string]int64](
+		"count_by_status",
+		On(UserCreated{}, func(e UserCreated) Delta {
 			return Delta{"active": +1}
 		}),
-		OnCount(UserSuspended{}, func(e UserSuspended) Delta {
+		On(UserSuspended{}, func(e UserSuspended) Delta {
 			return Delta{"active": -1, "suspended": +1}
 		}),
-		OnCount(UserDeleted{}, func(e UserDeleted) Delta {
+		On(UserDeleted{}, func(e UserDeleted) Delta {
 			return Delta{"suspended": -1, "deleted": +1}
 		}),
 	)
 }
 
-func friendshipsModel() ReadModel {
-	return MustModel("friendships", OnEdge(Friendship{}, func(e Friendship) Edge {
-		return Edge{From: e.From, To: e.To}
-	}))
+func friendsOfQuery() QueryDecl[FriendsOf, FriendsOfResult] {
+	return Query[FriendsOf, FriendsOfResult](
+		"friends_of",
+		On(Friendship{}, func(e Friendship) Edge {
+			return Edge{From: e.From, To: e.To}
+		}),
+	)
 }
 
-// ════════════ TEST: PLAN + ALL 5 QUERY TYPES ════════════
-
-func buildAllQueries() []any {
-	users := usersModel()
-	emails := emailsModel()
-	counts := countsModel()
-	friendships := friendshipsModel()
-
-	findUser := Query[FindUser, FindUserResult]("find_user", users, Volume(1_000_000))
-	checkEmail := Query[CheckEmail, bool]("check_email", emails)
-	listByStatus := Query[ListByStatus, Page[FindUserResult]]("list_by_status", users)
-	countByStatus := Query[CountByStatus, map[string]int64]("count_by_status", counts)
-	friendsOf := Query[FriendsOf, []any]("friends_of", friendships)
-
-	return []any{findUser, checkEmail, listByStatus, countByStatus, friendsOf}
+func allQueries() []any {
+	return []any{
+		findUserQuery(),
+		checkEmailQuery(),
+		listByStatusQuery(),
+		countByStatusQuery(),
+		friendsOfQuery(),
+	}
 }
+
+// ════════════ TESTS ════════════
 
 func TestPlan_AllFiveQueries(t *testing.T) {
 	engines := []Engine{NewMemoryEngine()}
-	store, err := Plan(engines, buildAllQueries()...)
+	store, err := Plan(engines, allQueries()...)
 	if err != nil {
 		t.Fatalf("Plan failed: %v", err)
 	}
 	defer store.Close()
 
 	plan := store.Plan()
-	if len(plan.Models) != 4 {
-		t.Fatalf("expected 4 models (users, emails, counts, friendships), got %d", len(plan.Models))
-	}
-
 	if len(plan.Queries) != 5 {
 		t.Fatalf("expected 5 queries, got %d", len(plan.Queries))
-	}
-
-	// Verify model deduplication: find_user and list_by_status both read "users".
-	usersCount := 0
-	for _, q := range plan.Queries {
-		if q.ModelName == "users" {
-			usersCount++
-		}
-	}
-	if usersCount != 2 {
-		t.Errorf("expected 2 queries reading from users model, got %d", usersCount)
 	}
 
 	t.Log(plan.Report())
@@ -168,7 +177,7 @@ func TestPlan_AllFiveQueries(t *testing.T) {
 
 func TestApplyAndExecute_AllFiveQueries(t *testing.T) {
 	engines := []Engine{NewMemoryEngine()}
-	store, err := Plan(engines, buildAllQueries()...)
+	store, err := Plan(engines, allQueries()...)
 	if err != nil {
 		t.Fatalf("Plan failed: %v", err)
 	}
@@ -215,7 +224,7 @@ func TestApplyAndExecute_AllFiveQueries(t *testing.T) {
 		}
 	}
 
-	// ══ Test FindUser (point lookup on users model) ══
+	// Map: FindUser — point lookup
 	t.Run("FindUser", func(t *testing.T) {
 		result, err := ExecuteTyped[FindUser, FindUserResult](ctx, store, FindUser{ID: "u1"})
 		if err != nil {
@@ -229,10 +238,12 @@ func TestApplyAndExecute_AllFiveQueries(t *testing.T) {
 		}
 	})
 
-	// ══ Test CheckEmail (membership on emails model) ══
+	// Set: CheckEmail — membership test
 	t.Run("CheckEmail", func(t *testing.T) {
 		taken, err := ExecuteTyped[CheckEmail, bool](
-			ctx, store, CheckEmail{Email: "alice@example.com"},
+			ctx,
+			store,
+			CheckEmail{Email: "alice@example.com"},
 		)
 		if err != nil {
 			t.Fatalf("Execute CheckEmail: %v", err)
@@ -240,30 +251,34 @@ func TestApplyAndExecute_AllFiveQueries(t *testing.T) {
 		if !taken {
 			t.Error("expected alice@example.com to be taken")
 		}
+
 		taken2, _ := ExecuteTyped[CheckEmail, bool](
-			ctx, store, CheckEmail{Email: "nobody@example.com"},
+			ctx,
+			store,
+			CheckEmail{Email: "nobody@example.com"},
 		)
 		if taken2 {
 			t.Error("expected nobody@example.com to NOT be taken")
 		}
 	})
 
-	// ══ Test ListByStatus (filtered scan on users model, paginated) ══
+	// SortedMap: ListByStatus — filtered scan with pagination
 	t.Run("ListByStatus", func(t *testing.T) {
-		page, err := ExecuteTyped[ListByStatus, Page[FindUserResult]](ctx, store,
-			ListByStatus{Status: "active"}, WithLimit(10))
+		page, err := ExecuteTyped[ListByStatus, ListByStatusResult](ctx, store,
+			ListByStatus{Status: "active", Limit: 10})
 		if err != nil {
 			t.Fatalf("Execute ListByStatus: %v", err)
 		}
-		if len(page.Items) != 2 {
-			t.Fatalf("expected 2 active users, got %d", len(page.Items))
+		if len(page.Users) != 2 {
+			t.Fatalf("expected 2 active users, got %d", len(page.Users))
 		}
-		if page.Items[0].ID != "u1" {
-			t.Errorf("expected first active user u1, got %s", page.Items[0].ID)
+		// u1 (Alice) joined before u3 (Carol), so u1 should be first
+		if page.Users[0].ID != "u1" {
+			t.Errorf("expected first active user u1, got %s", page.Users[0].ID)
 		}
 	})
 
-	// ══ Test CountByStatus (counter on counts model) ══
+	// Counter: CountByStatus — aggregate read
 	t.Run("CountByStatus", func(t *testing.T) {
 		counts, err := ExecuteTyped[CountByStatus, map[string]int64](ctx, store, CountByStatus{})
 		if err != nil {
@@ -277,83 +292,64 @@ func TestApplyAndExecute_AllFiveQueries(t *testing.T) {
 		}
 	})
 
-	// ══ Test FriendsOf (graph traversal on friendships model) ══
+	// Graph: FriendsOf — traversal
 	t.Run("FriendsOf", func(t *testing.T) {
-		friends, err := ExecuteTyped[FriendsOf, []any](ctx, store, FriendsOf{ID: "u1", Depth: 2})
+		friends, err := ExecuteTyped[FriendsOf, FriendsOfResult](
+			ctx,
+			store,
+			FriendsOf{ID: "u1", Depth: 2},
+		)
 		if err != nil {
 			t.Fatalf("Execute FriendsOf: %v", err)
 		}
-		if len(friends) != 2 {
-			t.Fatalf("expected u1 to have 2 friends at depth 2 (u2, u3), got %d", len(friends))
+		if len(friends.IDs) != 2 {
+			t.Fatalf("expected u1 to have 2 friends at depth 2 (u2, u3), got %d", len(friends.IDs))
 		}
 	})
-
-	t.Log(store.Plan().Report())
 }
 
-// ════════════ TEST: Write amplification — shared model ════════════
-
-func TestSharedModel_WriteAmplification(t *testing.T) {
-	// Both find_user and list_by_status read from the "users" model.
-	// A UserCreated event should update "users" exactly once, not twice.
-	users := usersModel()
-
-	findUser := Query[FindUser, FindUserResult]("find_user", users)
-	listByStatus := Query[ListByStatus, Page[FindUserResult]]("list_by_status", users)
-
+func TestMap_UpdateAndRemove(t *testing.T) {
 	engines := []Engine{NewMemoryEngine()}
-	store, err := Plan(engines, findUser, listByStatus)
+	store, err := Plan(engines, findUserQuery())
 	if err != nil {
 		t.Fatalf("Plan failed: %v", err)
 	}
 	defer store.Close()
 
-	// Only 1 model despite 2 queries.
-	plan := store.Plan()
-	if len(plan.Models) != 1 {
-		t.Fatalf("expected 1 model (dedup), got %d", len(plan.Models))
-	}
-	if len(plan.Queries) != 2 {
-		t.Fatalf("expected 2 queries, got %d", len(plan.Queries))
-	}
-
-	// Apply once.
-	err = store.Apply("UserCreated", UserCreated{
-		ID: "u1", Email: "a@b.com", Name: "A", Country: "SE", At: time.Now(),
-	})
-	if err != nil {
-		t.Fatalf("Apply: %v", err)
-	}
-
-	// Both queries should see the data.
 	ctx := context.Background()
-	r1, err := ExecuteTyped[FindUser, FindUserResult](ctx, store, FindUser{ID: "u1"})
-	if err != nil {
-		t.Fatalf("FindUser: %v", err)
-	}
-	if r1.Name != "A" {
-		t.Errorf("expected Name=A, got %q", r1.Name)
+	now := time.Now()
+
+	// Create user
+	store.Apply("UserCreated", UserCreated{
+		ID: "u1", Email: "alice@example.com", Name: "Alice", Country: "SE", At: now,
+	})
+
+	// Verify initial state
+	r1, _ := ExecuteTyped[FindUser, FindUserResult](ctx, store, FindUser{ID: "u1"})
+	if r1.Status != "active" {
+		t.Fatalf("expected active, got %s", r1.Status)
 	}
 
-	page, err := ExecuteTyped[ListByStatus, Page[FindUserResult]](ctx, store,
-		ListByStatus{Status: "active"}, WithLimit(10))
-	if err != nil {
-		t.Fatalf("ListByStatus: %v", err)
+	// Suspend user (FoldUpdate via On)
+	store.Apply("UserSuspended", UserSuspended{ID: "u1", At: now})
+
+	r2, _ := ExecuteTyped[FindUser, FindUserResult](ctx, store, FindUser{ID: "u1"})
+	if r2.Status != "suspended" {
+		t.Errorf("expected suspended after update, got %s", r2.Status)
 	}
-	if len(page.Items) != 1 {
-		t.Errorf("expected 1 item, got %d", len(page.Items))
+
+	// Delete user (Remove sentinel)
+	store.Apply("UserDeleted", UserDeleted{ID: "u1", At: now})
+
+	r3, _ := ExecuteTyped[FindUser, FindUserResult](ctx, store, FindUser{ID: "u1"})
+	if r3.Name != "" {
+		t.Errorf("expected empty result after delete, got Name=%q", r3.Name)
 	}
 }
 
-// ════════════ TEST: Pagination — HasMore and Next cursor ════════════
-
 func TestPagination_HasMore(t *testing.T) {
-	users := usersModel()
-
-	listByStatus := Query[ListByStatus, Page[FindUserResult]]("list_by_status", users)
-
 	engines := []Engine{NewMemoryEngine()}
-	store, err := Plan(engines, listByStatus)
+	store, err := Plan(engines, listByStatusQuery())
 	if err != nil {
 		t.Fatalf("Plan failed: %v", err)
 	}
@@ -371,21 +367,36 @@ func TestPagination_HasMore(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	page, err := ExecuteTyped[ListByStatus, Page[FindUserResult]](ctx, store,
-		ListByStatus{Status: "active"}, WithLimit(2))
+	page, err := ExecuteTyped[ListByStatus, ListByStatusResult](ctx, store,
+		ListByStatus{Status: "active", Limit: 2})
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 
-	if len(page.Items) != 2 {
-		t.Fatalf("expected 2 items on page 1, got %d", len(page.Items))
-	}
-
-	if !page.HasMore {
-		t.Error("expected HasMore=true when there are more items")
+	if len(page.Users) != 2 {
+		t.Fatalf("expected 2 users on page 1, got %d", len(page.Users))
 	}
 
 	if page.Next == nil {
 		t.Error("expected Next cursor to be set when HasMore")
+	}
+}
+
+func TestEventTypeNames(t *testing.T) {
+	store, err := Plan([]Engine{NewMemoryEngine()}, findUserQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+	defer store.Close()
+
+	names := store.EventTypeNames()
+	expected := []string{"UserCreated", "UserDeleted", "UserSuspended"}
+	if len(names) != len(expected) {
+		t.Fatalf("expected %d event types, got %d: %v", len(expected), len(names), names)
+	}
+	for i, want := range expected {
+		if names[i] != want {
+			t.Errorf("event type[%d]: expected %q, got %q", i, want, names[i])
+		}
 	}
 }

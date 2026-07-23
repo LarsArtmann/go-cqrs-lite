@@ -214,6 +214,10 @@ func (s *Store) executeQuery(
 
 	case ReadTraversal:
 		node := extractKeyValueByType(input, q.keyType)
+		if node == nil {
+			node = extractFirstDomainField(input)
+		}
+
 		depth := extractDepthFromInput(input)
 		if gb, ok := q.engine.(GraphBackend); ok {
 			return gb.GraphNeighbors(q.name, node, depth)

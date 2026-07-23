@@ -363,6 +363,27 @@ func reconstructCollection[R any](raw any, limit int) R {
 	return result.Interface().(R)
 }
 
+// extractFirstDomainField returns the value of the first exported non-meta field.
+// Used as a fallback for Graph traversal when the engine can't determine the
+// node type from fold return types (Edge stores From/To as any).
+func extractFirstDomainField(input any) any {
+	fields := nonMetaFields(input)
+	if len(fields) == 0 {
+		return nil
+	}
+
+	v := reflect.ValueOf(input)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return nil
+	}
+
+	return v.FieldByName(fields[0].Name).Interface()
+}
+
 // getFieldValue extracts a field value from a struct by name using reflection.
 func getFieldValue(v any, fieldName string) any {
 	rv := reflect.ValueOf(v)

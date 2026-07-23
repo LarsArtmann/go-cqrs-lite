@@ -11,10 +11,10 @@
 
 ## The Three Roles
 
-| Role | Provides | Receives |
-|------|----------|----------|
-| **Developer** | Event types, Query types (input+result), Fold functions via `On` | `Store` to `Apply`/`Execute` against |
-| **Operator** | Engines (Memory, SQL, Pebble) with cost profiles | A `PlanResult` showing assignments + diagnostics |
+| Role            | Provides                                                             | Receives                                                        |
+| --------------- | -------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **Developer**   | Event types, Query types (input+result), Fold functions via `On`     | `Store` to `Apply`/`Execute` against                            |
+| **Operator**    | Engines (Memory, SQL, Pebble) with cost profiles                     | A `PlanResult` showing assignments + diagnostics                |
 | **Meta-Engine** | Derives ADTs, read patterns, engine assignments, projection handlers | The bridge between developer intent and operator infrastructure |
 
 ## The Core Relationships
@@ -75,31 +75,31 @@ for the 3 critical bug fixes + ApplyEncoded + plan diagnostics + README.**
 
 ### What's Already Done (Salvageable)
 
-| Component | Status | Lines |
-|-----------|--------|-------|
-| `On[E](sample, handler)` constructor | DONE — classifies all 7 patterns via reflection | fold.go:382 |
-| `Remove[V]()` sentinel | DONE — type-safe deletion signal | fold.go |
-| `Skip` sentinel type | DONE — no-op signal | types.go, fold.go |
-| Auto key derivation | DONE — type-matches key K from insert fold onto update/remove events | fold.go |
-| `Query[Q,R](name, ...args)` | DONE — accepts mix of Fold + QueryOption | query.go:229 |
-| `FilterOn(func(r R) T)` / `SortOn(func(r R) T)` | DONE — typed closures, no strings | query.go |
-| Per-query projections | DONE structurally — each query owns its folds/ADT/collection | planner.go, store.go |
-| `MemoryEngine` | DONE — implements all backends, bug fixes preserved | engine.go:485 |
-| `MapUpdater` atomic RMW | DONE — concurrency-safe FoldUpdate | engine.go |
-| Full-scan-sort-truncate | DONE — MapScan collects all, sorts, then truncates | engine.go |
-| Deterministic tiebreaker | DONE — secondary sort by map key as string | engine.go |
-| Pagination from input struct | DONE — detects `Limit int` + `After *Cursor` | reflect.go |
-| Collection result reconstruction | DONE — detects `[]T` + `*Cursor` fields by shape | reflect.go |
-| `ApplyEncoded` for JSON | PARTIALLY DONE — broken (references removed `s.models`) | encoded.go:89 |
+| Component                                       | Status                                                               | Lines                |
+| ----------------------------------------------- | -------------------------------------------------------------------- | -------------------- |
+| `On[E](sample, handler)` constructor            | DONE — classifies all 7 patterns via reflection                      | fold.go:382          |
+| `Remove[V]()` sentinel                          | DONE — type-safe deletion signal                                     | fold.go              |
+| `Skip` sentinel type                            | DONE — no-op signal                                                  | types.go, fold.go    |
+| Auto key derivation                             | DONE — type-matches key K from insert fold onto update/remove events | fold.go              |
+| `Query[Q,R](name, ...args)`                     | DONE — accepts mix of Fold + QueryOption                             | query.go:229         |
+| `FilterOn(func(r R) T)` / `SortOn(func(r R) T)` | DONE — typed closures, no strings                                    | query.go             |
+| Per-query projections                           | DONE structurally — each query owns its folds/ADT/collection         | planner.go, store.go |
+| `MemoryEngine`                                  | DONE — implements all backends, bug fixes preserved                  | engine.go:485        |
+| `MapUpdater` atomic RMW                         | DONE — concurrency-safe FoldUpdate                                   | engine.go            |
+| Full-scan-sort-truncate                         | DONE — MapScan collects all, sorts, then truncates                   | engine.go            |
+| Deterministic tiebreaker                        | DONE — secondary sort by map key as string                           | engine.go            |
+| Pagination from input struct                    | DONE — detects `Limit int` + `After *Cursor`                         | reflect.go           |
+| Collection result reconstruction                | DONE — detects `[]T` + `*Cursor` fields by shape                     | reflect.go           |
+| `ApplyEncoded` for JSON                         | PARTIALLY DONE — broken (references removed `s.models`)              | encoded.go:89        |
 
 ### What's Broken
 
-| Issue | Fix |
-|-------|-----|
-| `encoded.go:30,73` — `s.models` undefined | Replace with `s.queries` iteration |
-| `planner.go:229-231` — unknown fields on `queryRuntime` | Remove `filters`, `sortField`, `isPaginated` from struct literal |
-| `readmodel.go` — 67 lines of dead `ReadModel` code | Delete file |
-| Tests — all use old API (`OnInsert`, `MustModel`, `Page[T]`) | Full rewrite |
+| Issue                                                        | Fix                                                              |
+| ------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `encoded.go:30,73` — `s.models` undefined                    | Replace with `s.queries` iteration                               |
+| `planner.go:229-231` — unknown fields on `queryRuntime`      | Remove `filters`, `sortField`, `isPaginated` from struct literal |
+| `readmodel.go` — 67 lines of dead `ReadModel` code           | Delete file                                                      |
+| Tests — all use old API (`OnInsert`, `MustModel`, `Page[T]`) | Full rewrite                                                     |
 
 ---
 
@@ -107,33 +107,33 @@ for the 3 critical bug fixes + ApplyEncoded + plan diagnostics + README.**
 
 ### Phase 1: Fix Build & Clean Slate (1% → 51%) — 45min
 
-| Task | Description | Impact | Effort | Deps |
-|------|-------------|--------|--------|------|
-| P1 | Fix 4 compilation errors + delete dead code | CRITICAL | 30min | None |
-| P2 | Verify clean build + go vet | CRITICAL | 15min | P1 |
+| Task | Description                                 | Impact   | Effort | Deps |
+| ---- | ------------------------------------------- | -------- | ------ | ---- |
+| P1   | Fix 4 compilation errors + delete dead code | CRITICAL | 30min  | None |
+| P2   | Verify clean build + go vet                 | CRITICAL | 15min  | P1   |
 
 ### Phase 2: Test All 5 ADT Types (4% → 64%) — 100min
 
-| Task | Description | Impact | Effort | Deps |
-|------|-------------|--------|--------|------|
-| P3 | Write test domain types + helpers matching design doc examples | HIGH | 30min | P2 |
-| P4 | Write tests: Map (FindUser), Set (CheckEmail), Counter (CountByStatus), Graph (FriendsOf) | CRITICAL | 40min | P3 |
-| P5 | Write test: SortedMap (ListByStatus with FilterOn/SortOn + pagination) | HIGH | 30min | P3 |
+| Task | Description                                                                               | Impact   | Effort | Deps |
+| ---- | ----------------------------------------------------------------------------------------- | -------- | ------ | ---- |
+| P3   | Write test domain types + helpers matching design doc examples                            | HIGH     | 30min  | P2   |
+| P4   | Write tests: Map (FindUser), Set (CheckEmail), Counter (CountByStatus), Graph (FriendsOf) | CRITICAL | 40min  | P3   |
+| P5   | Write test: SortedMap (ListByStatus with FilterOn/SortOn + pagination)                    | HIGH     | 30min  | P3   |
 
 ### Phase 3: Regression & Polish (20% → 80%) — 60min
 
-| Task | Description | Impact | Effort | Deps |
-|------|-------------|--------|--------|------|
-| P6 | Write regression tests: sorted pagination, concurrent update, stable order | HIGH | 30min | P4 |
-| P7 | Write ApplyEncoded test + plan diagnostics test | MEDIUM | 15min | P4 |
-| P8 | Clean up code quality (detectPagination, unused imports, queryMeta interface) | MEDIUM | 15min | P2 |
+| Task | Description                                                                   | Impact | Effort | Deps |
+| ---- | ----------------------------------------------------------------------------- | ------ | ------ | ---- |
+| P6   | Write regression tests: sorted pagination, concurrent update, stable order    | HIGH   | 30min  | P4   |
+| P7   | Write ApplyEncoded test + plan diagnostics test                               | MEDIUM | 15min  | P4   |
+| P8   | Clean up code quality (detectPagination, unused imports, queryMeta interface) | MEDIUM | 15min  | P2   |
 
 ### Phase 4: Documentation & Ship — 45min
 
-| Task | Description | Impact | Effort | Deps |
-|------|-------------|--------|--------|------|
-| P9 | Update README for On API | HIGH | 30min | P4-P5 |
-| P10 | nix fmt + full test suite + commit + push | CRITICAL | 15min | P6-P9 |
+| Task | Description                               | Impact   | Effort | Deps  |
+| ---- | ----------------------------------------- | -------- | ------ | ----- |
+| P9   | Update README for On API                  | HIGH     | 30min  | P4-P5 |
+| P10  | nix fmt + full test suite + commit + push | CRITICAL | 15min  | P6-P9 |
 
 **Total: ~250min**
 
@@ -143,56 +143,56 @@ for the 3 critical bug fixes + ApplyEncoded + plan diagnostics + README.**
 
 ### Phase 1: Fix Build (P1 + P2)
 
-| ID | Description | Time |
-|----|-------------|------|
-| 1.1 | Delete `readmodel.go` entirely | 2min |
-| 1.2 | Fix `encoded.go`: iterate `s.queries` instead of `s.models` | 10min |
+| ID  | Description                                                                                | Time  |
+| --- | ------------------------------------------------------------------------------------------ | ----- |
+| 1.1 | Delete `readmodel.go` entirely                                                             | 2min  |
+| 1.2 | Fix `encoded.go`: iterate `s.queries` instead of `s.models`                                | 10min |
 | 1.3 | Fix `planner.go`: remove `filters`, `sortField`, `isPaginated` from `queryRuntime` literal | 10min |
-| 1.4 | Remove any unused imports across all files | 5min |
-| 1.5 | Run `go build ./...` — verify clean | 3min |
-| 1.6 | Run `go vet ./...` — verify clean | 3min |
+| 1.4 | Remove any unused imports across all files                                                 | 5min  |
+| 1.5 | Run `go build ./...` — verify clean                                                        | 3min  |
+| 1.6 | Run `go vet ./...` — verify clean                                                          | 3min  |
 
 ### Phase 2: Test All 5 ADT Types (P3 + P4 + P5)
 
-| ID | Description | Time |
-|----|-------------|------|
-| 2.1 | Write domain event types: `UserCreated`, `UserSuspended`, `UserDeleted`, `Friendship` | 10min |
-| 2.2 | Write query types: `FindUser/Result`, `CheckEmail/Result`, `ListByStatus/Result`, `CountByStatus/Result`, `FriendsOf/Result` | 12min |
-| 2.3 | Write `TestPlan_AllFiveQueries` — Plan with all 5, verify assignments | 10min |
-| 2.4 | Write `TestMap_FindUser` — Apply UserCreated + Execute FindUser | 10min |
-| 2.5 | Extend Map test: Apply UserSuspended (FoldUpdate via On) + verify status change | 10min |
-| 2.6 | Extend Map test: Apply UserDeleted (Remove sentinel) + verify deletion | 8min |
-| 2.7 | Write `TestSet_CheckEmail` — Apply UserCreated, membership test | 10min |
-| 2.8 | Write `TestCounter_CountByStatus` — Apply events, verify counts | 10min |
-| 2.9 | Write `TestGraph_FriendsOf` — Apply Friendship, verify traversal | 10min |
-| 2.10 | Write `TestFilteredScan_ListByStatus` — FilterOn + SortOn + pagination | 12min |
-| 2.11 | Write `TestOnClassification` — verify each handler shape → correct FoldKind | 12min |
+| ID   | Description                                                                                                                  | Time  |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------- | ----- |
+| 2.1  | Write domain event types: `UserCreated`, `UserSuspended`, `UserDeleted`, `Friendship`                                        | 10min |
+| 2.2  | Write query types: `FindUser/Result`, `CheckEmail/Result`, `ListByStatus/Result`, `CountByStatus/Result`, `FriendsOf/Result` | 12min |
+| 2.3  | Write `TestPlan_AllFiveQueries` — Plan with all 5, verify assignments                                                        | 10min |
+| 2.4  | Write `TestMap_FindUser` — Apply UserCreated + Execute FindUser                                                              | 10min |
+| 2.5  | Extend Map test: Apply UserSuspended (FoldUpdate via On) + verify status change                                              | 10min |
+| 2.6  | Extend Map test: Apply UserDeleted (Remove sentinel) + verify deletion                                                       | 8min  |
+| 2.7  | Write `TestSet_CheckEmail` — Apply UserCreated, membership test                                                              | 10min |
+| 2.8  | Write `TestCounter_CountByStatus` — Apply events, verify counts                                                              | 10min |
+| 2.9  | Write `TestGraph_FriendsOf` — Apply Friendship, verify traversal                                                             | 10min |
+| 2.10 | Write `TestFilteredScan_ListByStatus` — FilterOn + SortOn + pagination                                                       | 12min |
+| 2.11 | Write `TestOnClassification` — verify each handler shape → correct FoldKind                                                  | 12min |
 
 ### Phase 3: Regression & Polish (P6 + P7 + P8)
 
-| ID | Description | Time |
-|----|-------------|------|
-| 3.1 | Write regression: paginated sorted scan returns correct items past limit boundary | 12min |
-| 3.2 | Write regression: concurrent FoldUpdate doesn't lose updates (MapUpdater) | 12min |
+| ID  | Description                                                                        | Time  |
+| --- | ---------------------------------------------------------------------------------- | ----- |
+| 3.1 | Write regression: paginated sorted scan returns correct items past limit boundary  | 12min |
+| 3.2 | Write regression: concurrent FoldUpdate doesn't lose updates (MapUpdater)          | 12min |
 | 3.3 | Write regression: repeated scan returns identical order (deterministic tiebreaker) | 10min |
-| 3.4 | Write `TestApplyEncoded` — JSON payload decode + Apply + Execute | 10min |
-| 3.5 | Write `TestPlanDiagnostics` — degradation warnings for graph on scan engine | 10min |
-| 3.6 | Clean up `detectPagination` — remove duplicate logic, dead `_ = limitType` | 8min |
-| 3.7 | Clean up `queryMeta` interface — remove fields not needed with typed closures | 10min |
-| 3.8 | Remove `reflect` import from `engine.go` if unused after `matchesFilters` deletion | 5min |
+| 3.4 | Write `TestApplyEncoded` — JSON payload decode + Apply + Execute                   | 10min |
+| 3.5 | Write `TestPlanDiagnostics` — degradation warnings for graph on scan engine        | 10min |
+| 3.6 | Clean up `detectPagination` — remove duplicate logic, dead `_ = limitType`         | 8min  |
+| 3.7 | Clean up `queryMeta` interface — remove fields not needed with typed closures      | 10min |
+| 3.8 | Remove `reflect` import from `engine.go` if unused after `matchesFilters` deletion | 5min  |
 
 ### Phase 4: Documentation & Ship (P9 + P10)
 
-| ID | Description | Time |
-|----|-------------|------|
-| 4.1 | Rewrite README: three-role model, On API, all 5 examples from design doc | 12min |
-| 4.2 | Add FilterOn/SortOn section to README | 10min |
-| 4.3 | Add ApplyEncoded + projection adapter section to README | 8min |
-| 4.4 | Run `nix fmt` on all metaengine files | 5min |
-| 4.5 | Run full test suite: `GOWORK=off GOEXPERIMENT=jsonv2 go test -race -count=1 -v ./...` | 5min |
-| 4.6 | Fix any test failures | 12min |
-| 4.7 | Git commit with detailed message | 5min |
-| 4.8 | Git push | 3min |
+| ID  | Description                                                                           | Time  |
+| --- | ------------------------------------------------------------------------------------- | ----- |
+| 4.1 | Rewrite README: three-role model, On API, all 5 examples from design doc              | 12min |
+| 4.2 | Add FilterOn/SortOn section to README                                                 | 10min |
+| 4.3 | Add ApplyEncoded + projection adapter section to README                               | 8min  |
+| 4.4 | Run `nix fmt` on all metaengine files                                                 | 5min  |
+| 4.5 | Run full test suite: `GOWORK=off GOEXPERIMENT=jsonv2 go test -race -count=1 -v ./...` | 5min  |
+| 4.6 | Fix any test failures                                                                 | 12min |
+| 4.7 | Git commit with detailed message                                                      | 5min  |
+| 4.8 | Git push                                                                              | 3min  |
 
 ---
 
