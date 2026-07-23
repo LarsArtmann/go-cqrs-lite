@@ -59,7 +59,7 @@ func (b *Bundle) HealthCheck(ctx context.Context) error {
 
 	if len(errs) > 0 {
 		return errorfamily.WrapInfrastructure(
-			fmt.Errorf("%w", errs[0]),
+			errs[0],
 			"stack.bundle.health_check",
 			fmt.Sprintf("%d resource(s) unhealthy", len(errs)),
 		)

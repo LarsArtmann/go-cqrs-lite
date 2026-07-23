@@ -164,7 +164,7 @@ func (b *Builder) Build() *catalog.Catalog {
 	cat := b.inner.Build()
 
 	if violations := cat.Validate(); len(violations) > 0 {
-		panic(fmt.Sprintf("simple: catalog validation failed: %v", violations))
+		panic(fmt.Errorf("%w: %v", ErrCatalogValidation, violations))
 	}
 
 	return cat

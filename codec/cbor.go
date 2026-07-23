@@ -30,7 +30,7 @@ var canonicalEncMode = sync.OnceValue(func() cbor.EncMode {
 
 	mode, err := opts.EncMode()
 	if err != nil {
-		panic(fmt.Sprintf("codec: canonical CBOR EncMode creation failed: %v", err))
+		panic(fmt.Errorf("codec: canonical CBOR EncMode creation failed: %w", err))
 	}
 
 	return mode
@@ -44,7 +44,7 @@ var canonicalDecMode = sync.OnceValue(func() cbor.DecMode {
 
 	mode, err := opts.DecMode()
 	if err != nil {
-		panic(fmt.Sprintf("codec: canonical CBOR DecMode creation failed: %v", err))
+		panic(fmt.Errorf("codec: canonical CBOR DecMode creation failed: %w", err))
 	}
 
 	return mode

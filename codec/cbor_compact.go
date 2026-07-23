@@ -41,7 +41,7 @@ var compactEncMode = sync.OnceValue(func() cbor.EncMode {
 
 	mode, err := opts.EncMode()
 	if err != nil {
-		panic(fmt.Sprintf("codec: compact CBOR EncMode creation failed: %v", err))
+		panic(fmt.Errorf("codec: compact CBOR EncMode creation failed: %w", err))
 	}
 
 	return mode
@@ -55,7 +55,7 @@ var compactDecMode = sync.OnceValue(func() cbor.DecMode {
 
 	mode, err := opts.DecMode()
 	if err != nil {
-		panic(fmt.Sprintf("codec: compact CBOR DecMode creation failed: %v", err))
+		panic(fmt.Errorf("codec: compact CBOR DecMode creation failed: %w", err))
 	}
 
 	return mode

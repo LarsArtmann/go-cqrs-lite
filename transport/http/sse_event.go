@@ -54,7 +54,7 @@ func ParseSSEEventID(s string) (SSEEventID, error) {
 func MustParseSSEEventID(s string) SSEEventID {
 	id, err := ParseSSEEventID(s)
 	if err != nil {
-		panic(fmt.Sprintf("MustParseSSEEventID: %v", err))
+		panic(fmt.Errorf("MustParseSSEEventID: %w", err))
 	}
 
 	return id
