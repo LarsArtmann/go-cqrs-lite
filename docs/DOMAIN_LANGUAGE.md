@@ -21,31 +21,31 @@ If a word means something different to a consumer than to an implementer, it is 
 
 ### Event Sourcing
 
-| Term                 | Definition                                                                   | Context                                                                                                      |
-| -------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Event**            | Immutable record of something that happened in the domain                    | `event.Event = *ImmutableEvent` — the single concrete implementation (not an interface)                      |
-| **ImmutableEvent**   | The concrete event struct: ID, type, stream, version, payload, metadata     | `event.New()` (typed payload) or `event.NewEvent()` (raw bytes)                                              |
-| **StreamRef**        | `{Type, ID}` — canonical identity of a stream instance                       | `id.NewStreamRef(type, id)` — passed to all Store methods. (`AggregateRef` is a deprecated alias)             |
-| **StreamType**       | String category for a stream (e.g. `"User"`, `"Order"`)                     | `type StreamType string`. (`AggregateType` is a deprecated alias)                                             |
-| **Stream**           | Ordered, append-only sequence of events for a single entity, ordered by Version | A stream is the fundamental unit of identity in event sourcing — what was previously called an "aggregate" |
-| **Version**          | Monotonically increasing position of an event within its stream (1-indexed)  | `type Version uint64` — used for optimistic concurrency                                                      |
-| **Event Store**      | Append-only persistence layer for event streams                              | `event.Store` (composite of `EventSink` + `EventSource`)                                                     |
-| **Journal**          | Global append-only log of all events across all streams                     | `event.Journal.ReadAll()` — cross-stream reads                                                               |
-| **SeekableJournal**  | Journal with position-based reading (by EventID)                             | `event.SeekableJournal.ReadFrom(afterEventID, limit)` — efficient projection catch-up                        |
-| **BackwardsSource**  | Read-side that loads events in reverse (newest-first)                        | `event.BackwardsSource.LoadBackwards(ref)`                                                                   |
-| **Snapshot**         | Point-in-time capture of stream state at a specific version                  | Avoids replaying the entire stream on every load                                                             |
-| **Snapshot Store**   | Persistence layer for stream snapshots                                       | `snapshot.SnapshotStore` (composite of `SnapshotSink` + `SnapshotSource`)                                    |
-| **Projection**       | Consumer-side contract for building a read model from events                 | `projection.Projection` — `Name()`, `Handle()`, `EventTypes()`                                               |
-| **Checkpoint**       | Last-processed event position for a specific projection                      | `event.CheckpointStore` — enables resume after restart                                                       |
-| **Tombstone**        | Soft-delete marker on event metadata (3 statuses)                            | `Active`, `Tombstoned`, `Undetermined` — detected via `event.DetectTombstone()`                              |
-| **Rebirth**          | Undo of a tombstone — marks a stream as live again                           | `event.MarkRebirth(evt)` — sets rebirth metadata                                                             |
-| **ProcessingMode**   | Context-scoped flag: `ModeLive` vs `ModeReplay`                              | `event.WithProcessingMode(ctx, ModeReplay)` — lets handlers skip side-effects during catch-up                |
-| **Metadata**         | Typed envelope on every event: tracing, causation, tombstone, custom fields  | `event.Metadata` struct — `Tracing`, `Causation`, `Tombstone`, `Custom map[MetadataKey]string`               |
-| **Tracing**          | Embedded metadata fields: CorrelationID, CausationID, UserID, RequestID      | `event.Tracing` struct — promoted into `Metadata`, JSON-serializable                                         |
-| **Causation**        | Links an event to the command that caused it (type + ID)                     | `event.Causation{CommandType, CommandID}` — set via `event.WithCommandCausality(ctx, type, id)`              |
-| **ContextEnricher**  | Function that extracts metadata from context and stamps it onto new events   | `event.ContextEnricher` — `decider.Repository` applies it automatically on Save                              |
-| **SnapshotStrategy** | Policy deciding when to persist a snapshot                                   | `snapshot.SnapshotStrategy` — `ShouldSnapshot(type, version) bool`; impl: `snapshot.EveryNEvents(n)`         |
-| **Load Coalescing**  | Concurrent `Load` calls for the same stream coalesce into one store query   | `decider.Repository` uses `singleflight.Group` — transparent, disable via `WithLoadCoalescing[State](false)` |
+| Term                 | Definition                                                                      | Context                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Event**            | Immutable record of something that happened in the domain                       | `event.Event = *ImmutableEvent` — the single concrete implementation (not an interface)                      |
+| **ImmutableEvent**   | The concrete event struct: ID, type, stream, version, payload, metadata         | `event.New()` (typed payload) or `event.NewEvent()` (raw bytes)                                              |
+| **StreamRef**        | `{Type, ID}` — canonical identity of a stream instance                          | `id.NewStreamRef(type, id)` — passed to all Store methods. (`AggregateRef` is a deprecated alias)            |
+| **StreamType**       | String category for a stream (e.g. `"User"`, `"Order"`)                         | `type StreamType string`. (`AggregateType` is a deprecated alias)                                            |
+| **Stream**           | Ordered, append-only sequence of events for a single entity, ordered by Version | A stream is the fundamental unit of identity in event sourcing — what was previously called an "aggregate"   |
+| **Version**          | Monotonically increasing position of an event within its stream (1-indexed)     | `type Version uint64` — used for optimistic concurrency                                                      |
+| **Event Store**      | Append-only persistence layer for event streams                                 | `event.Store` (composite of `EventSink` + `EventSource`)                                                     |
+| **Journal**          | Global append-only log of all events across all streams                         | `event.Journal.ReadAll()` — cross-stream reads                                                               |
+| **SeekableJournal**  | Journal with position-based reading (by EventID)                                | `event.SeekableJournal.ReadFrom(afterEventID, limit)` — efficient projection catch-up                        |
+| **BackwardsSource**  | Read-side that loads events in reverse (newest-first)                           | `event.BackwardsSource.LoadBackwards(ref)`                                                                   |
+| **Snapshot**         | Point-in-time capture of stream state at a specific version                     | Avoids replaying the entire stream on every load                                                             |
+| **Snapshot Store**   | Persistence layer for stream snapshots                                          | `snapshot.SnapshotStore` (composite of `SnapshotSink` + `SnapshotSource`)                                    |
+| **Projection**       | Consumer-side contract for building a read model from events                    | `projection.Projection` — `Name()`, `Handle()`, `EventTypes()`                                               |
+| **Checkpoint**       | Last-processed event position for a specific projection                         | `event.CheckpointStore` — enables resume after restart                                                       |
+| **Tombstone**        | Soft-delete marker on event metadata (3 statuses)                               | `Active`, `Tombstoned`, `Undetermined` — detected via `event.DetectTombstone()`                              |
+| **Rebirth**          | Undo of a tombstone — marks a stream as live again                              | `event.MarkRebirth(evt)` — sets rebirth metadata                                                             |
+| **ProcessingMode**   | Context-scoped flag: `ModeLive` vs `ModeReplay`                                 | `event.WithProcessingMode(ctx, ModeReplay)` — lets handlers skip side-effects during catch-up                |
+| **Metadata**         | Typed envelope on every event: tracing, causation, tombstone, custom fields     | `event.Metadata` struct — `Tracing`, `Causation`, `Tombstone`, `Custom map[MetadataKey]string`               |
+| **Tracing**          | Embedded metadata fields: CorrelationID, CausationID, UserID, RequestID         | `event.Tracing` struct — promoted into `Metadata`, JSON-serializable                                         |
+| **Causation**        | Links an event to the command that caused it (type + ID)                        | `event.Causation{CommandType, CommandID}` — set via `event.WithCommandCausality(ctx, type, id)`              |
+| **ContextEnricher**  | Function that extracts metadata from context and stamps it onto new events      | `event.ContextEnricher` — `decider.Repository` applies it automatically on Save                              |
+| **SnapshotStrategy** | Policy deciding when to persist a snapshot                                      | `snapshot.SnapshotStrategy` — `ShouldSnapshot(type, version) bool`; impl: `snapshot.EveryNEvents(n)`         |
+| **Load Coalescing**  | Concurrent `Load` calls for the same stream coalesce into one store query       | `decider.Repository` uses `singleflight.Group` — transparent, disable via `WithLoadCoalescing[State](false)` |
 
 ### CQRS
 
@@ -62,7 +62,7 @@ If a word means something different to a consumer than to an implementer, it is 
 | **DispatchTyped**    | Dispatches a query and asserts the result to type `T`               | `query.DispatchTyped[T](ctx, dispatcher, query)`                                         |
 | **Decider**          | Pure-function stream: fold state from events                        | `decider.Decider[State]` — `Initial` + `Apply(state, evt) (State, error)`                |
 | **TypedDecider**     | Decider with command type bound at compile time                     | `decider.TypedDecider[State, Cmd]` — carries `Decide` as a struct field                  |
-| **Repository**       | Loads stream state, executes decider, saves and publishes events   | `decider.Repository[State]` — composes Store + Bus + optional Snapshot                   |
+| **Repository**       | Loads stream state, executes decider, saves and publishes events    | `decider.Repository[State]` — composes Store + Bus + optional Snapshot                   |
 | **Bus** (event)      | Message bus for publishing/subscribing to events                    | `event.Bus` (Publisher + Subscriber + `Use`/`UsePublish` middleware)                     |
 | **Bus** (command)    | Message bus for command pub/sub (queue-style dispatch)              | `command.Bus` (Publisher + Subscriber + `Use` middleware)                                |
 | **MemoryBus**        | In-memory, synchronous command bus implementation                   | `command.NewMemoryBus()` — `Subscribe`, `SubscribeAll`, `Publish`, `Use`                 |
@@ -71,16 +71,16 @@ If a word means something different to a consumer than to an implementer, it is 
 
 ### Identity
 
-| Term                  | Definition                                                              | Context                                                                            |
-| --------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **Branded ID**        | ULID-backed, phantom-typed identifier — compile-time type safety        | `id.Of[T] = cbid.ID[T, ulid.ULID]` — prevents mixing IDs of different types        |
-| **StreamID**         | Branded **string-backed** ID for streams (the only non-ULID ID)         | `id.StreamID = cbid.ID[StreamMarker, string]` — accepts any non-empty string. (`AggregateID` is a deprecated alias) |
-| **EventID**           | ULID-branded ID for events (time-sortable)                              | `id.EventID = id.Of[EventMarker]` — `id.NewEventID()`                              |
-| **CorrelationID**     | ULID-branded ID linking related operations across a command→event chain | `id.CorrelationID = id.Of[CorrelationMarker]`                                      |
-| **CausationID**       | ULID-branded ID tracking which event/command caused this one            | `id.CausationID = id.Of[CausationMarker]`                                          |
-| **CommandID**         | ULID-branded ID for commands                                            | `id.CommandID = id.Of[CommandMarker]` — can be deterministically derived           |
-| **Marker**            | Phantom struct type used as a type parameter for branding               | `StreamMarker`, `EventMarker`, `CorrelationMarker`, `CommandMarker`, etc.            |
-| **DeriveStreamID** | Deterministic SHA-256-derived stream ID for idempotent workflows      | `id.DeriveStreamID(namespace, keys...)`                                              |
+| Term               | Definition                                                              | Context                                                                                                             |
+| ------------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Branded ID**     | ULID-backed, phantom-typed identifier — compile-time type safety        | `id.Of[T] = cbid.ID[T, ulid.ULID]` — prevents mixing IDs of different types                                         |
+| **StreamID**       | Branded **string-backed** ID for streams (the only non-ULID ID)         | `id.StreamID = cbid.ID[StreamMarker, string]` — accepts any non-empty string. (`AggregateID` is a deprecated alias) |
+| **EventID**        | ULID-branded ID for events (time-sortable)                              | `id.EventID = id.Of[EventMarker]` — `id.NewEventID()`                                                               |
+| **CorrelationID**  | ULID-branded ID linking related operations across a command→event chain | `id.CorrelationID = id.Of[CorrelationMarker]`                                                                       |
+| **CausationID**    | ULID-branded ID tracking which event/command caused this one            | `id.CausationID = id.Of[CausationMarker]`                                                                           |
+| **CommandID**      | ULID-branded ID for commands                                            | `id.CommandID = id.Of[CommandMarker]` — can be deterministically derived                                            |
+| **Marker**         | Phantom struct type used as a type parameter for branding               | `StreamMarker`, `EventMarker`, `CorrelationMarker`, `CommandMarker`, etc.                                           |
+| **DeriveStreamID** | Deterministic SHA-256-derived stream ID for idempotent workflows        | `id.DeriveStreamID(namespace, keys...)`                                                                             |
 
 ### Error Taxonomy
 
@@ -158,12 +158,12 @@ The library provides three projection tiers, chosen by read-pattern shape:
 
 ### Projection Lifecycle
 
-| Term                  | Definition                                                                  | Context                                                                          |
-| --------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| **ProjectionHost**    | Managed host: one goroutine per projection, crash-restart with backoff      | `projectionhost.New(journal, checkpointStore)` — `Register`, `Start`, `Stop`     |
-| **DeadLetterStore**   | Captures poison messages that exhaust retries for later replay              | `projectionhost.DeadLetterStore` — `Store`, `List`, `Delete`, `Purge`            |
-| **CatchUpSubscriber** | Replay+live handoff: historical events then seamless live transition        | `watermill.NewCatchUpSubscriber(journal, liveSub, cpStore, logger)`              |
-| **StreamListing**   | Read model for listing streams with cursor pagination + tombstone status | `listing.InMemoryStreamReader` (from Journal) or `storage.SQLStreamReader` |
+| Term                  | Definition                                                               | Context                                                                      |
+| --------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| **ProjectionHost**    | Managed host: one goroutine per projection, crash-restart with backoff   | `projectionhost.New(journal, checkpointStore)` — `Register`, `Start`, `Stop` |
+| **DeadLetterStore**   | Captures poison messages that exhaust retries for later replay           | `projectionhost.DeadLetterStore` — `Store`, `List`, `Delete`, `Purge`        |
+| **CatchUpSubscriber** | Replay+live handoff: historical events then seamless live transition     | `watermill.NewCatchUpSubscriber(journal, liveSub, cpStore, logger)`          |
+| **StreamListing**     | Read model for listing streams with cursor pagination + tombstone status | `listing.InMemoryStreamReader` (from Journal) or `storage.SQLStreamReader`   |
 
 ---
 
@@ -238,13 +238,13 @@ The library provides explicit guarantees on the write side and eventual consiste
 
 | Guarantee                               | Provided?                    | Mechanism                                                                                                                                                         |
 | --------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Optimistic concurrency** (write side) | Yes — per stream          | `event.EventSink.Save(ctx, ref, events, expectedVersion)` — rejects with `ErrConcurrencyConflict` on version mismatch                                             |
-| **Linearizable writes** (per stream) | Yes                          | Single-writer per stream via expectedVersion; atomic save in SQL transaction or Pebble batch                                                                   |
+| **Optimistic concurrency** (write side) | Yes — per stream             | `event.EventSink.Save(ctx, ref, events, expectedVersion)` — rejects with `ErrConcurrencyConflict` on version mismatch                                             |
+| **Linearizable writes** (per stream)    | Yes                          | Single-writer per stream via expectedVersion; atomic save in SQL transaction or Pebble batch                                                                      |
 | **Eventual consistency** (read side)    | Yes — per projection         | Projections lag behind the event log; `projectionhost.LagDuration()` and `LagPerProjection()` track lag                                                           |
 | **Read-your-writes**                    | No — consumer must implement | After a command succeeds, the read model may not yet reflect it. Consumer can poll `LagDuration()` or use the command's returned events for optimistic UI updates |
 | **Bounded staleness**                   | No — consumer must implement | No built-in rejection of stale reads. Consumer can check `LagDuration()` before querying and reject if lag exceeds a threshold                                    |
 | **Monotonic reads**                     | No — not guaranteed          | If two projections run at different speeds, reads from different projections may see inconsistent snapshots                                                       |
-| **Consistent prefix reads**             | Yes — per stream          | Events within a single stream are ordered by version; cross-stream order is eventual                                                                 |
+| **Consistent prefix reads**             | Yes — per stream             | Events within a single stream are ordered by version; cross-stream order is eventual                                                                              |
 
 ---
 
@@ -319,24 +319,24 @@ kv.ViewStore[V,K]
 
 ## Anti-Patterns (Terms We Avoid)
 
-| Instead of                 | We say                         | Why                                                                                                                                          |
-| -------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| "Database"                 | "Store" or "Event Store"       | CQRS separates write/read; "database" implies a single thing                                                                                 |
-| "Entity"                   | "Aggregate"                    | DDD aggregate is the consistency boundary; entity is too vague                                                                               |
-| "CRUD"                     | "Command + Event + Projection" | No updates or deletes — only append                                                                                                          |
-| "Delete"                   | "Tombstone"                    | Event streams are append-only; soft-delete via metadata, never removal                                                                       |
-| "State" (mutable)          | "Folded state"                 | State is always reconstructed from events via `Apply`, never directly mutated                                                                |
-| "Aggregate Root" (OO)      | "Decider" (pure functions)     | ADR-0001: 9-method OO interface couples domain to infrastructure; pure `Decider[State]` + `Apply` separates them                             |
-| "Update" / "Patch"         | "Event" (append-only)          | No mutation of past events; new events supersede old state via fold                                                                          |
-| "Log Compaction"           | "Snapshot"                     | Compaction destroys the audit trail; snapshots avoid replay cost without losing data (DDIA)                                                  |
-| "2PC" / "Two-Phase Commit" | "Derived data" (projections)   | 2PC is blocking and fragile; projections derive independently from the log (DDIA, ADR-0016)                                                  |
-| "Outbox"                   | "Journal as outbox"            | ADR-0016: the event journal IS the outbox; `CatchUpSubscriber` replays and publishes. No separate outbox table needed                        |
-| "Replication"              | "Storage backend concern"      | The library does not replicate; Postgres/Pebble replication handles this at the storage layer                                                |
+| Instead of                 | We say                         | Why                                                                                                                                       |
+| -------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| "Database"                 | "Store" or "Event Store"       | CQRS separates write/read; "database" implies a single thing                                                                              |
+| "Entity"                   | "Aggregate"                    | DDD aggregate is the consistency boundary; entity is too vague                                                                            |
+| "CRUD"                     | "Command + Event + Projection" | No updates or deletes — only append                                                                                                       |
+| "Delete"                   | "Tombstone"                    | Event streams are append-only; soft-delete via metadata, never removal                                                                    |
+| "State" (mutable)          | "Folded state"                 | State is always reconstructed from events via `Apply`, never directly mutated                                                             |
+| "Aggregate Root" (OO)      | "Decider" (pure functions)     | ADR-0001: 9-method OO interface couples domain to infrastructure; pure `Decider[State]` + `Apply` separates them                          |
+| "Update" / "Patch"         | "Event" (append-only)          | No mutation of past events; new events supersede old state via fold                                                                       |
+| "Log Compaction"           | "Snapshot"                     | Compaction destroys the audit trail; snapshots avoid replay cost without losing data (DDIA)                                               |
+| "2PC" / "Two-Phase Commit" | "Derived data" (projections)   | 2PC is blocking and fragile; projections derive independently from the log (DDIA, ADR-0016)                                               |
+| "Outbox"                   | "Journal as outbox"            | ADR-0016: the event journal IS the outbox; `CatchUpSubscriber` replays and publishes. No separate outbox table needed                     |
+| "Replication"              | "Storage backend concern"      | The library does not replicate; Postgres/Pebble replication handles this at the storage layer                                             |
 | "Leader Election"          | "Deployment concern"           | No Raft/Paxos; optimistic concurrency per stream is the application-level fencing; deployment infra (K8s, etcd) handles node coordination |
-| "Fencing Token"            | "ExpectedVersion"              | Application-level fencing via optimistic concurrency; a stale instance's write fails the version check                                       |
-| "God Aggregate"            | "Small Decider + Deriver"      | Large aggregates violate SRP; split into small deciders + derivers for event→command derivation                                              |
-| "Enforced Transport"       | "Transport helpers"            | The library provides SSE, gRPC, REST helpers but does not force a protocol; consumers choose (Service Design Patterns)                       |
-| "Data Lakehouse"           | "Read models"                  | This is an application-level CQRS library, not an analytics platform; projections are operational read models, not analytical datasets       |
+| "Fencing Token"            | "ExpectedVersion"              | Application-level fencing via optimistic concurrency; a stale instance's write fails the version check                                    |
+| "God Aggregate"            | "Small Decider + Deriver"      | Large aggregates violate SRP; split into small deciders + derivers for event→command derivation                                           |
+| "Enforced Transport"       | "Transport helpers"            | The library provides SSE, gRPC, REST helpers but does not force a protocol; consumers choose (Service Design Patterns)                    |
+| "Data Lakehouse"           | "Read models"                  | This is an application-level CQRS library, not an analytics platform; projections are operational read models, not analytical datasets    |
 
 ---
 
@@ -350,10 +350,10 @@ These concepts are intentionally absent as dedicated modules. They emerge from c
 | **Domain Entity**            | App-defined inside the consumer's decider `Apply` function                     | The library models aggregate identity (`AggregateRef`), not aggregate state — state shape is the consumer's domain decision.                                      |
 | **Message Broker**           | Injected via Watermill adapter (`watermill.NewEventBus` with Kafka/NATS/Redis) | The library is transport-agnostic. The GoChannel default is for single-process; brokers are consumer choices.                                                     |
 | **Outbox**                   | Event journal + `CatchUpSubscriber` + `EventPublisher`                         | ADR-0016 declined: the journal IS the outbox. A projection reads the journal and publishes events, making the pattern composable without a dedicated table.       |
-| **Distributed Consensus**    | Optimistic concurrency per stream (`expectedVersion`)                       | No Raft/Paxos: the library provides single-writer-per-stream semantics. Multi-node coordination (leader election, quorum) is a deployment concern.             |
+| **Distributed Consensus**    | Optimistic concurrency per stream (`expectedVersion`)                          | No Raft/Paxos: the library provides single-writer-per-stream semantics. Multi-node coordination (leader election, quorum) is a deployment concern.                |
 | **Log Compaction**           | `snapshot.SnapshotStore` with strategies                                       | Compaction destroys events — incompatible with event sourcing. Snapshots avoid replay cost without data loss. See `docs/research/time-travel-options.md`.         |
 | **Stream Processing Engine** | `projectionhost.Host` (simple, correct) + `CatchUpSubscriber`                  | Windowing, watermarking, stream joins are over-engineering for application-level CQRS. Consumers needing Kafka-scale streaming use Kafka + the Watermill adapter. |
-| **Fencing Tokens**           | `expectedVersion` (optimistic concurrency)                                     | Deployment-level fencing (K8s leases, etcd locks) is outside scope. Application-level fencing via version check is sufficient for single-writer-per-stream.    |
+| **Fencing Tokens**           | `expectedVersion` (optimistic concurrency)                                     | Deployment-level fencing (K8s leases, etcd locks) is outside scope. Application-level fencing via version check is sufficient for single-writer-per-stream.       |
 | **Data Lakehouse / Fabric**  | N/A — projections are operational read models                                  | This is an application-level CQRS library, not an analytics platform. Warehouse/lakehouse/fabric solve a different problem (analytics at organizational scale).   |
 
 ---

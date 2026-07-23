@@ -8,11 +8,13 @@
 ## a) FULLY DONE
 
 ### Review phase
+
 - ✅ Read all 58 ADR `.md` files (0001–0057 + README + 0058 that appeared mid-session)
 - ✅ Verified key claims against actual Go code (pebble Journal impl, event production imports, metadata aliases, event.Bus existence, bus implementations, module count, codec time encoding)
 - ✅ Wrote comprehensive findings to `docs/reviews/2026-07-23_adr-review.md`
 
 ### Cleanup phase — Section A (README index)
+
 - ✅ Fixed 8 status mismatches (0004 Superseded, 0011 Proposed, 0012 Proposed, 0017 Accepted, 0018 Accepted, 0031 Implemented, 0027 Deprecated, 0028 status note)
 - ✅ Added ADRs 0055, 0056, 0057, 0058, 0059 to the index (were missing entirely)
 - ✅ Filled in dates for 20+ ADRs that showed "—"
@@ -20,6 +22,7 @@
 - ✅ Marked ADR-0003 module count as historical (9 → 55)
 
 ### Cleanup phase — Section B (Contradictions)
+
 - ✅ **B1:** Fixed ADR-0001 false claim that `aggregate/` package still exists (it was removed in Session 99); added cross-ref to ADR-0058
 - ✅ **B2:** Added supersede banner to ADR-0009 (pebble "never" Journal — overturned by ADR-0019)
 - ✅ **B3+B4:** Added supersede banner to ADR-0014 (eventtest extraction deferred → done by ADR-0045); removed stale `samber/ro` from dep list
@@ -32,6 +35,7 @@
 - ✅ **B11:** Fixed ADR-0056 `TimeUnix` misstatement → corrected to `TimeUnixDynamic`
 
 ### Cleanup phase — Section C (Stale references)
+
 - ✅ Fixed all `example/todo/` → `example/taskmanager/` references (ADRs 0004, 0009, 0016)
 - ✅ Fixed ADR-0018 `projection.Runner` → `projectionhost.Host`
 - ✅ Removed arena allocation from ADR-0026 (confirmed removed in AGENTS.md)
@@ -39,9 +43,11 @@
 - ✅ Updated ADR-0040 "Implementation plan (deferred)" → "Implementation" (module is built)
 
 ### Cleanup phase — Section D (Broken links)
+
 - ✅ Fixed ADR-0052 broken link: `0044-self-describing-blind-stores.md` → `0044-blind-store-encoding-stamps.md`
 
 ### Cleanup phase — Section E (Questionable decisions)
+
 - ✅ **E1:** Added loud deprecation banner to ADR-0027 (PG LISTEN/NOTIFY bus)
 - ✅ **E2:** Renamed ADR-0046 "Four-Tier" → "Seven-Tier" (file rename via `git mv`, title update, all reference updates across AGENTS.md, CONTRIBUTING.md, docs/README.md, docs/planning/, docs/architecture-understanding/)
 - ✅ **E4:** Rewrote ADR-0010 Decision section to match reality (io.Closer retained, no Lifecycle type), preserved original proposal in "Original proposal (superseded)" subsection
@@ -50,11 +56,13 @@
 - ✅ **E7:** Added "Consumer Burden" section to ADR-0043 documenting the two-DLQ-API pain; drafted ADR-0059 (Proposed) with a narrow unification path (Option D bridge)
 
 ### Cleanup phase — Section F (Cosmetic)
+
 - ✅ Fixed ADR-0002 sentinel error count ("~20" → "hundreds")
 - ✅ Fixed ADR-0003 module count (9 → 55)
 - ✅ Fixed ADR-0046 codec dependency count ("38 of 48" annotated with current count note)
 
 ### Meta
+
 - ✅ Updated `docs/reviews/2026-07-23_adr-review.md` priorities table — all 11 items marked Done
 
 ---
@@ -62,7 +70,9 @@
 ## b) PARTIALLY DONE
 
 ### ADR-0046 reference sweep — incomplete
+
 The filename rename (`0046-four-tier-model.md` → `0046-seven-tier-model.md`) was propagated to: AGENTS.md, CONTRIBUTING.md, docs/README.md, docs/planning/storage-domain-separation.md. However, several historical/status files still reference the old name:
+
 - `CHANGELOG.md` (2 references to "Four-Tier Model")
 - `docs/status/2026-07-12_16-25_post-v4-comprehensive-cleanup.md`
 - `docs/feedback/2026-07-10_swettyswipper_deep-adoption-review.md` (2 references)
@@ -72,6 +82,7 @@ The filename rename (`0046-four-tier-model.md` → `0046-seven-tier-model.md`) w
 These are **historical point-in-time documents** that accurately described the ADR as "Four-Tier" at the time of writing. Rewriting them would falsify history. A judgment call is needed (see Section g).
 
 ### `FOUR-TIER-MODEL.md` filename not renamed
+
 The H1 title was updated to "Seven-Tier Model" but the file remains at `docs/architecture-understanding/FOUR-TIER-MODEL.md` (not renamed to `SEVEN-TIER-MODEL.md`). This was a deliberate tradeoff to avoid breaking existing links, but it's a name mismatch.
 
 ---
@@ -96,12 +107,14 @@ Nothing. All edits verified present in the working tree. No data loss, no broken
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Process improvements
+
 1. **ADR lifecycle discipline:** The root cause of most inconsistencies is that ADRs are written once and never updated when superseded. A CI check (like `doc-check`) that verifies supersession chains would prevent this.
 2. **README index automation:** The index table is manually maintained and drifted significantly. It should be auto-generated from the individual ADR files' Status/Date headers.
 3. **"Never" claims in ADRs:** ADR-0009's "will never implement Journal" was overturned in 3 weeks. ADR style guide should require hedged language ("deferred unless consumer need emerges").
 4. **ADR review cadence:** This review found 11+ stale ADRs accumulated over ~3 months. Quarterly ADR freshness reviews should be a documented practice.
 
 ### Content improvements
+
 5. **ADR-0028 ghost code:** The v3 bus removal is documented as done but never happened. This is the largest gap between docs and reality. Either execute the removal or update the ADR to reflect the deferral decision.
 6. **ADR-0031 metadata aliases:** The alias-to-struct migration was declared done but only half-done (repointed, not converted). This needs either completion or honest documentation of the deferral.
 7. **DLQ split (ADR-0043/0059):** ADR-0059 is a Proposed path forward. It needs a decision — adopt, reject, or defer.
@@ -112,6 +125,7 @@ Nothing. All edits verified present in the working tree. No data loss, no broken
 ## f) Up to 50 Things to Get Done Next
 
 ### ADR cleanup (follow-up from this session)
+
 1. **Decide on historical file references to "Four-Tier Model"** — annotate vs leave as historical
 2. **Rename `FOUR-TIER-MODEL.md` filename to match new title** (or accept the mismatch)
 3. **Resolve ADR-0011 (ErrDispatcherClosed)** — accept, decline, or withdraw
@@ -123,6 +137,7 @@ Nothing. All edits verified present in the working tree. No data loss, no broken
 9. **Fix ADR-0045 module count** ("53" → "55")
 
 ### ADR-0028 ghost code (major)
+
 10. **Execute v3 bus removal** OR formally document why it's deferred
 11. **Remove `event.Bus`, `event.Subscriber`, `event.Middleware`** if Watermill is the canonical path
 12. **Remove `storage/pg_bus.go`** (deprecated by ADR-0027/0028)
@@ -130,18 +145,21 @@ Nothing. All edits verified present in the working tree. No data loss, no broken
 14. **Audit all consumers for bus usage** before removal
 
 ### ADR-0031 metadata aliases (moderate)
+
 15. **Convert `command.Metadata` from alias to standalone struct** (finish the migration)
 16. **Convert `query.Metadata` from alias to standalone struct**
 17. **Update AGENTS.md metadata section** to match the actual shape
 18. **Add deprecation notice** on `event.Metadata` usage in command/query contexts
 
 ### DLQ improvements (if ADR-0059 accepted)
+
 19. **Add `Event event.Event` to `middleware.DeadLetterEntry`** (optional field)
 20. **Add `Replay(handler)` to `middleware.MemoryDeadLetterStore`**
 21. **Create `dlq.Summary` adapter type** for unified dashboarding
 22. **Write integration test** proving both DLQ types work together
 
 ### Documentation health
+
 23. **Sweep AGENTS.md** for any remaining stale references (module counts, API examples)
 24. **Update `docs/DOMAIN_LANGUAGE.md`** if ADR-0058 is accepted (Aggregate→Stream vocabulary)
 25. **Audit all `docs/status/` files** for references to ADR decisions that have since changed
@@ -149,6 +167,7 @@ Nothing. All edits verified present in the working tree. No data loss, no broken
 27. **Update CHANGELOG.md** with ADR-0046 rename note
 
 ### ADR quality (ongoing)
+
 28. **Add "Last reviewed" date field** to ADR template
 29. **Create ADR template** with required sections (Status, Date, Superseded-by, Context, Decision, Consequences)
 30. **Audit ADR-0006's inline tombstone section** — it duplicates ADR-0005 content
@@ -157,6 +176,7 @@ Nothing. All edits verified present in the working tree. No data loss, no broken
 33. **Verify ADR-0044 envelope format** matches actual `WrapEncode`/`UnwrapDecode` implementation
 
 ### Broader codebase (noticed during ADR review)
+
 34. **`samber/ro` dependency** — ADR-0014 listed it as an event production dep but it's gone. Verify it wasn't supposed to be there (or was removed intentionally).
 35. **Pebble `cqrs_journal:` index** — ADR-0009 said it would never exist, ADR-0019 added it. Verify the performance tradeoff (double writes) was actually measured.
 36. **Module count tracking** — 55 modules and growing. Consider a `MODULES.md` auto-generated from `go.mod` files.
@@ -169,6 +189,7 @@ Nothing. All edits verified present in the working tree. No data loss, no broken
 ### 1. Historical documents referencing "Four-Tier Model" — annotate or leave?
 
 Several point-in-time status reports, feedback reviews, and planning docs still say "Four-Tier Model." These were accurate at time of writing. Per the `update-old-docs` skill philosophy, should I:
+
 - (a) Leave them untouched (they're historical snapshots, accuracy is temporal)
 - (b) Add a brief inline annotation like `*(renamed to Seven-Tier Model in ADR-0046, 2026-07-23)*`
 - (c) Do nothing — the ADR itself documents the rename
@@ -176,6 +197,7 @@ Several point-in-time status reports, feedback reviews, and planning docs still 
 ### 2. Should ADR-0011 and ADR-0012 be resolved?
 
 Both have been "Proposed" for 6+ weeks:
+
 - **ADR-0011** (Unify `ErrDispatcherClosed`) — proposes re-exporting a single sentinel from `dispatcher/` to `command/` and `query/`
 - **ADR-0012** (Split catalog into sub-modules) — proposes breaking the 9K-line catalog module into 5 modules
 

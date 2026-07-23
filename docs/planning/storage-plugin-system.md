@@ -25,11 +25,11 @@
 
 Go has three mechanisms for "plugins." Two are traps.
 
-| Mechanism | How it works | Verdict |
-|---|---|---|
-| **`plugin` package (.so files)** | `plugin.Open("foo.so")` loads compiled shared libs at runtime | **Trap.** Linux/macOS only. Requires EXACT same Go toolchain + dependency versions. Fragile. Go team doesn't recommend it. |
-| **`hashicorp/go-plugin` (out-of-process)** | Separate plugin binaries communicate via gRPC | **Wrong level.** Adds gRPC serialization to every storage operation. For application frameworks (Terraform, Vault), not libraries. |
-| **Registration pattern (blank import)** | `import _ "driver/postgres"` -> `init()` registers -> `sql.Open("postgres", dsn)` activates by name | **THE Go way.** This is how `database/sql` works. It IS Go's plugin system. |
+| Mechanism                                  | How it works                                                                                        | Verdict                                                                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **`plugin` package (.so files)**           | `plugin.Open("foo.so")` loads compiled shared libs at runtime                                       | **Trap.** Linux/macOS only. Requires EXACT same Go toolchain + dependency versions. Fragile. Go team doesn't recommend it.         |
+| **`hashicorp/go-plugin` (out-of-process)** | Separate plugin binaries communicate via gRPC                                                       | **Wrong level.** Adds gRPC serialization to every storage operation. For application frameworks (Terraform, Vault), not libraries. |
+| **Registration pattern (blank import)**    | `import _ "driver/postgres"` -> `init()` registers -> `sql.Open("postgres", dsn)` activates by name | **THE Go way.** This is how `database/sql` works. It IS Go's plugin system.                                                        |
 
 The `database/sql` package is Go's most successful plugin architecture. Every SQL driver
 (pq, sqlite3, mysql) is a "plugin" loaded via blank import and activated by name string.
@@ -600,14 +600,14 @@ Switching from in-process to distributed messaging = changing one YAML line. Zer
 **true** out-of-process plugins in Go. A separate binary is installed at deploy time, the
 main app discovers and launches it, and they communicate via gRPC.
 
-| Aspect | go-plugin | Registration pattern |
-|---|---|---|
-| True runtime loading | Yes (separate binaries) | No (compiled in, config-selected) |
-| Performance | gRPC serialization on every call | Direct function calls |
-| Complexity | High (plugin lifecycle, gRPC, handshake) | Low (map lookup + interface call) |
-| Windows support | Yes | Yes |
-| Language-agnostic plugins | Yes (any language with gRPC) | No (Go only) |
-| Appropriate for a library | **No** | **Yes** |
+| Aspect                    | go-plugin                                | Registration pattern              |
+| ------------------------- | ---------------------------------------- | --------------------------------- |
+| True runtime loading      | Yes (separate binaries)                  | No (compiled in, config-selected) |
+| Performance               | gRPC serialization on every call         | Direct function calls             |
+| Complexity                | High (plugin lifecycle, gRPC, handshake) | Low (map lookup + interface call) |
+| Windows support           | Yes                                      | Yes                               |
+| Language-agnostic plugins | Yes (any language with gRPC)             | No (Go only)                      |
+| Appropriate for a library | **No**                                   | **Yes**                           |
 
 **The deciding factor:** go-plugin adds gRPC serialization to EVERY storage operation.
 Every `store.Save()`, every `store.Load()`, every `kv.Set()` becomes a gRPC round-trip with
@@ -643,16 +643,16 @@ bundle, _ := stack.Deploy(cfg)
 
 ### Implementation Steps
 
-| Step | Effort | Description |
-|---|---|---|
-| 1. Add `Plugin` interface + registry | ~2h | `stack/plugin.go` with `Plugin`, `CapabilitySet`, `Partial`, `Register()`, `Available()` |
-| 2. Add `Deploy()` + `Open()` | ~2h | `stack/deploy.go` with config parsing + multi-plugin assembly |
-| 3. Add `Bundle.ToPartial()` + `mergePartial()` | ~1h | Extract Bundle fields into Partial; merge Partials into Bundle |
-| 4. Register sqlite preset | ~1h | `stack/sqlite/plugin.go` with `init()` registration |
-| 5. Register memory preset | ~30m | `stack/memory/plugin.go` |
-| 6. Register pebble preset | ~1h | `stack/pebble/plugin.go` |
-| 7. Add bus plugins | ~1h | `bus/memory/plugin.go`, optionally `bus/nats/plugin.go` |
-| 8. Config loading helper | ~30m | `stack.LoadConfig(path)` YAML decoder for `DeploymentConfig` |
+| Step                                           | Effort | Description                                                                              |
+| ---------------------------------------------- | ------ | ---------------------------------------------------------------------------------------- |
+| 1. Add `Plugin` interface + registry           | ~2h    | `stack/plugin.go` with `Plugin`, `CapabilitySet`, `Partial`, `Register()`, `Available()` |
+| 2. Add `Deploy()` + `Open()`                   | ~2h    | `stack/deploy.go` with config parsing + multi-plugin assembly                            |
+| 3. Add `Bundle.ToPartial()` + `mergePartial()` | ~1h    | Extract Bundle fields into Partial; merge Partials into Bundle                           |
+| 4. Register sqlite preset                      | ~1h    | `stack/sqlite/plugin.go` with `init()` registration                                      |
+| 5. Register memory preset                      | ~30m   | `stack/memory/plugin.go`                                                                 |
+| 6. Register pebble preset                      | ~1h    | `stack/pebble/plugin.go`                                                                 |
+| 7. Add bus plugins                             | ~1h    | `bus/memory/plugin.go`, optionally `bus/nats/plugin.go`                                  |
+| 8. Config loading helper                       | ~30m   | `stack.LoadConfig(path)` YAML decoder for `DeploymentConfig`                             |
 
 **Total: ~1 day**
 

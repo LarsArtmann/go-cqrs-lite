@@ -79,12 +79,12 @@ If the app code never imports a storage package, then:
 
 ### Dependency Direction Summary
 
-| Layer | Depends on | Role |
-|-------|-----------|------|
-| `stack.Bundle` | event, kv, command, query, snapshot, codec | Top: assembly point, wires deployer-provided implementations |
-| `decider.Repository` | event, snapshot, codec, id, otel | Mid: domain logic — load, apply, decide, save, publish |
-| `event.*` interfaces | id only | Bottom: port definitions (EventSink, EventSource, Store, Journal) |
-| `kv.Store` / `kv.TypedStore` | codec only | Bottom: port definitions for read models |
+| Layer                        | Depends on                                 | Role                                                              |
+| ---------------------------- | ------------------------------------------ | ----------------------------------------------------------------- |
+| `stack.Bundle`               | event, kv, command, query, snapshot, codec | Top: assembly point, wires deployer-provided implementations      |
+| `decider.Repository`         | event, snapshot, codec, id, otel           | Mid: domain logic — load, apply, decide, save, publish            |
+| `event.*` interfaces         | id only                                    | Bottom: port definitions (EventSink, EventSource, Store, Journal) |
+| `kv.Store` / `kv.TypedStore` | codec only                                 | Bottom: port definitions for read models                          |
 
 Concrete storage adapters (SQL, memory, pebble) implement these interfaces and are injected at
 the deployer level via `stack.Bundle`. Classic dependency inversion / ports-and-adapters.
@@ -190,12 +190,12 @@ The consumer passes `*sql.DB` and a `Dialect` directly into a projection constru
 
 ### Leak Summary Table
 
-| # | Leak | Severity | Consumer must... | Fix |
-|---|------|----------|-----------------|-----|
-| 1 | `bundle.Database()` returns `any` | Medium | Import `database/sql`, assert `*sql.DB` | Move tuning to preset options |
-| 2 | `ViewMapper.Type` uses SQL strings | High | Write SQL DDL (column types) | Neutral `ColumnType` enum |
-| 3 | `SQLViewModel` returns concrete type | High | Hold `*storage.SQLViewStore` | Return `kv.ViewStore[V,K]` interface |
-| 4 | `RelationalProjection` takes `*sql.DB` | High | Pass `*sql.DB` + `Dialect` | Bundle method provides DB internally |
+| #   | Leak                                   | Severity | Consumer must...                        | Fix                                  |
+| --- | -------------------------------------- | -------- | --------------------------------------- | ------------------------------------ |
+| 1   | `bundle.Database()` returns `any`      | Medium   | Import `database/sql`, assert `*sql.DB` | Move tuning to preset options        |
+| 2   | `ViewMapper.Type` uses SQL strings     | High     | Write SQL DDL (column types)            | Neutral `ColumnType` enum            |
+| 3   | `SQLViewModel` returns concrete type   | High     | Hold `*storage.SQLViewStore`            | Return `kv.ViewStore[V,K]` interface |
+| 4   | `RelationalProjection` takes `*sql.DB` | High     | Pass `*sql.DB` + `Dialect`              | Bundle method provides DB internally |
 
 ---
 
@@ -402,13 +402,13 @@ go-cqrs-lite) already hit this exact wall and reveals both what to copy and what
 
 ### What go-plugin-mvp Does Right
 
-| Pattern | Where | Lesson |
-|---|---|---|
-| Interface-driven stores with concrete ReadModels | `marketplace/store.go:68-74` | Reader interfaces as compile-time conformance checks, not runtime indirection |
-| Three-tier override pattern | `container/container.go:208-242` | Explicit override -> backend enum -> default memory. Pragmatic. |
-| Lazy DI construction via samber/do | `container/container.go` | Services build on first use, not at startup |
-| Lifecycle wrappers | `aclLifecycle` | DI container manages cleanup without store knowing about lifecycle |
-| Shared `*sql.DB` handle | `sqlite.Store.DB()` | EventStore and AuditStore share one connection pool |
+| Pattern                                          | Where                            | Lesson                                                                        |
+| ------------------------------------------------ | -------------------------------- | ----------------------------------------------------------------------------- |
+| Interface-driven stores with concrete ReadModels | `marketplace/store.go:68-74`     | Reader interfaces as compile-time conformance checks, not runtime indirection |
+| Three-tier override pattern                      | `container/container.go:208-242` | Explicit override -> backend enum -> default memory. Pragmatic.               |
+| Lazy DI construction via samber/do               | `container/container.go`         | Services build on first use, not at startup                                   |
+| Lifecycle wrappers                               | `aclLifecycle`                   | DI container manages cleanup without store knowing about lifecycle            |
+| Shared `*sql.DB` handle                          | `sqlite.Store.DB()`              | EventStore and AuditStore share one connection pool                           |
 
 ### What go-plugin-mvp Does Wrong (The Anti-Pattern)
 
@@ -460,16 +460,17 @@ Storage adapters are the opposite of all of these. See section 8.
 Go's compilation model is closed at build time. "Actual plugins loaded at deployment time"
 for **storage** means one of these, and none are viable:
 
-| Approach | True runtime loading? | Performance | Viability for storage |
-|---|---|---|---|
-| **Registration (database/sql)** | No — compiled in, config-selected | Direct calls (zero overhead) | **The only correct answer** |
-| **Go `plugin` package (.so)** | Yes | Direct calls | **Trap** — exact toolchain+dep version coupling, Linux/macOS only, Go team doesn't recommend |
-| **hashicorp/go-plugin** | Yes — separate binaries | gRPC serialization on EVERY call | Application-level, not library-level |
-| **WASM (Extism/wazero)** | Yes — .wasm files | Serialization + sandbox boundary on every call | **Absurd for storage** — you sandbox the adapter then punch holes for every I/O operation |
+| Approach                        | True runtime loading?             | Performance                                    | Viability for storage                                                                        |
+| ------------------------------- | --------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **Registration (database/sql)** | No — compiled in, config-selected | Direct calls (zero overhead)                   | **The only correct answer**                                                                  |
+| **Go `plugin` package (.so)**   | Yes                               | Direct calls                                   | **Trap** — exact toolchain+dep version coupling, Linux/macOS only, Go team doesn't recommend |
+| **hashicorp/go-plugin**         | Yes — separate binaries           | gRPC serialization on EVERY call               | Application-level, not library-level                                                         |
+| **WASM (Extism/wazero)**        | Yes — .wasm files                 | Serialization + sandbox boundary on every call | **Absurd for storage** — you sandbox the adapter then punch holes for every I/O operation    |
 
 ### Why WASM Is Absurd For Storage
 
 Storage adapters are:
+
 - **Fine-grained** — called on every event append, every projection update
 - **Stateful** — connection pools, transactions, buffers
 - **Latency-critical** — microseconds matter on the write path
@@ -506,13 +507,14 @@ backends implement it.
 The read side has three fundamentally different shapes, each optimal for different query
 patterns:
 
-| Shape | Query Pattern | Sink API | Backends | Current projection type |
-|-------|--------------|----------|----------|------------------------|
-| **Document** (1 entity = 1 blob) | Point lookup, scan all, prefix | `Get/Set/Delete` | KV, SQL blob, Memory | `stack.Materialize[V,K]` |
-| **Relational** (1 entity = N joined rows) | Filtered lists, counts, pagination, junction tables | `Upsert/Update/Increment/Query` | SQL only | `storage.RelationalProjection` |
-| **Graph** (nodes + edges) | Variable-depth traversal, path-finding, adjacency | `MergeNode/MergeEdge/Traverse` | Graph DB only | `graph.GraphProjection` |
+| Shape                                     | Query Pattern                                       | Sink API                        | Backends             | Current projection type        |
+| ----------------------------------------- | --------------------------------------------------- | ------------------------------- | -------------------- | ------------------------------ |
+| **Document** (1 entity = 1 blob)          | Point lookup, scan all, prefix                      | `Get/Set/Delete`                | KV, SQL blob, Memory | `stack.Materialize[V,K]`       |
+| **Relational** (1 entity = N joined rows) | Filtered lists, counts, pagination, junction tables | `Upsert/Update/Increment/Query` | SQL only             | `storage.RelationalProjection` |
+| **Graph** (nodes + edges)                 | Variable-depth traversal, path-finding, adjacency   | `MergeNode/MergeEdge/Traverse`  | Graph DB only        | `graph.GraphProjection`        |
 
 These cannot collapse into one universal interface:
+
 - **Leaky collapse:** A "universal" interface that exposes SQL concepts (WHERE, ORDER BY) to KV
   backends
 - **Anemic collapse:** A lowest-common-denominator interface (just `Get/Set`) that throws away
@@ -531,6 +533,7 @@ store, _ := sqlite.SQLViewModel[TaskView, TaskID](bundle, mapper)
 ```
 
 ...they make two decisions at once:
+
 1. **Shape** (domain concern): "I have one view per task, and I want to filter/sort"
 2. **Mechanism** (infrastructure concern): "Use SQLite columns"
 
@@ -565,11 +568,11 @@ This is **Path C** from the full design analysis. It is valuable but secondary t
 
 The event bus has the same leak pattern as the read-side storage:
 
-| Leak | Location | Problem |
-|---|---|---|
-| Signing middleware requires `*watermill.EventBus` | `example/taskmanager/features.go:75` | Consumer imports the concrete Watermill type |
-| `bundle.CatchUpSubscriber()` hard-asserts `*watermill.EventBus` | `stack/bundle.go:182` | Watermill is mandatory for catch-up projections |
-| `EventBus.MessageSubscriber()` returns raw `message.Subscriber` | `watermill/event_bus.go:52` | Watermill types escape the abstraction |
+| Leak                                                            | Location                             | Problem                                         |
+| --------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------- |
+| Signing middleware requires `*watermill.EventBus`               | `example/taskmanager/features.go:75` | Consumer imports the concrete Watermill type    |
+| `bundle.CatchUpSubscriber()` hard-asserts `*watermill.EventBus` | `stack/bundle.go:182`                | Watermill is mandatory for catch-up projections |
+| `EventBus.MessageSubscriber()` returns raw `message.Subscriber` | `watermill/event_bus.go:52`          | Watermill types escape the abstraction          |
 
 The `event.Publisher`/`event.Subscriber` interfaces are clean. But the moment a consumer wants
 **middleware** (signing, tracing, encryption) or **catch-up replay**, they must downcast to the
@@ -588,55 +591,55 @@ fifth leak to close alongside the four storage leaks.
 **Goal:** App code imports zero storage packages. This is the fix for "going down on the DB
 layer."
 
-| Task | Files affected | Description | Effort |
-|---|---|---|---|
-| Move connection tuning to presets | `stack/sqlite/`, `stack/pebble/`, `stack/postgres/` | Add `WithMaxOpenConns`, `WithConnMaxLifetime`, etc. Remove/deprecate `bundle.Database()` | 2h |
-| Neutralize ViewMapper types | `storage/view/`, `stack/` | Replace `string` SQL types with `stack.ColumnType` enum. SQL adapter translates | 3h |
-| Return interfaces from constructors | `stack/sqlite/view_models.go`, `stack/postgres/` | `SQLViewModel` returns `kv.ViewStore[V,K]`, not `*storage.SQLViewStore` | 2h |
-| Bundle method for relational projections | `stack/bundle.go` or `stack/sqlite/` | `bundle.RelationalProjection(name, schema, handler, types)` provides `*sql.DB` internally | 2h |
+| Task                                     | Files affected                                      | Description                                                                               | Effort |
+| ---------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------ |
+| Move connection tuning to presets        | `stack/sqlite/`, `stack/pebble/`, `stack/postgres/` | Add `WithMaxOpenConns`, `WithConnMaxLifetime`, etc. Remove/deprecate `bundle.Database()`  | 2h     |
+| Neutralize ViewMapper types              | `storage/view/`, `stack/`                           | Replace `string` SQL types with `stack.ColumnType` enum. SQL adapter translates           | 3h     |
+| Return interfaces from constructors      | `stack/sqlite/view_models.go`, `stack/postgres/`    | `SQLViewModel` returns `kv.ViewStore[V,K]`, not `*storage.SQLViewStore`                   | 2h     |
+| Bundle method for relational projections | `stack/bundle.go` or `stack/sqlite/`                | `bundle.RelationalProjection(name, schema, handler, types)` provides `*sql.DB` internally | 2h     |
 
 **Total: ~1 day. Risk: Low (additive changes and type widening).**
 
 ### Phase 2: Close The Bus Leak (5th leak)
 
-| Task | Files affected | Description | Effort |
-|---|---|---|---|
-| `bundle.Use(middleware)` without downcast | `stack/bundle.go`, `watermill/` | Bundle exposes middleware installation on the interface | 3h |
-| `bundle.CatchUpSubscriber()` without concrete type | `stack/bundle.go` | Return interface, not `*watermill.CatchUpSubscriber` | 2h |
+| Task                                               | Files affected                  | Description                                             | Effort |
+| -------------------------------------------------- | ------------------------------- | ------------------------------------------------------- | ------ |
+| `bundle.Use(middleware)` without downcast          | `stack/bundle.go`, `watermill/` | Bundle exposes middleware installation on the interface | 3h     |
+| `bundle.CatchUpSubscriber()` without concrete type | `stack/bundle.go`               | Return interface, not `*watermill.CatchUpSubscriber`    | 2h     |
 
 **Total: ~5h.**
 
 ### Phase 3: Plugin System (optional convenience layer)
 
-| Task | Description | Effort |
-|---|---|---|
-| `Plugin` interface + registry | `stack/plugin.go` with `Plugin`, `CapabilitySet`, `Partial`, `Register()`, `Available()` | 2h |
-| `Deploy()` + `Open()` | `stack/deploy.go` with config parsing + multi-plugin assembly | 2h |
-| `Bundle.ToPartial()` + `mergePartial()` | Extract Bundle fields into Partial; merge Partials into Bundle | 1h |
-| Register each preset | `stack/sqlite/plugin.go`, `stack/pebble/plugin.go`, `stack/memory/plugin.go` | 2h |
-| Config loading helper | `stack.LoadConfig(path)` YAML decoder | 30m |
+| Task                                    | Description                                                                              | Effort |
+| --------------------------------------- | ---------------------------------------------------------------------------------------- | ------ |
+| `Plugin` interface + registry           | `stack/plugin.go` with `Plugin`, `CapabilitySet`, `Partial`, `Register()`, `Available()` | 2h     |
+| `Deploy()` + `Open()`                   | `stack/deploy.go` with config parsing + multi-plugin assembly                            | 2h     |
+| `Bundle.ToPartial()` + `mergePartial()` | Extract Bundle fields into Partial; merge Partials into Bundle                           | 1h     |
+| Register each preset                    | `stack/sqlite/plugin.go`, `stack/pebble/plugin.go`, `stack/memory/plugin.go`             | 2h     |
+| Config loading helper                   | `stack.LoadConfig(path)` YAML decoder                                                    | 30m    |
 
 **Total: ~1 day. Only after Phase 1 is complete.**
 
 ### Phase 4: Declare + Bind (optional read-side refinement)
 
-| Task | Description | Effort |
-|---|---|---|
-| `ReadModelSpec[V,K]` type | Struct with handler funcs + QueryHints | 2h |
-| `stack.Declare[V,K]` fluent builder | Produces ReadModelSpec via `.Key()`, `.OnCreate()`, `.FilterBy()`, `.SortBy()` | 3h |
-| `stack.Bind(bundle, spec)` | Inspects Bundle capabilities, selects best store, returns projection.Projection | 4h |
-| Capability mismatch diagnostics | BindWarning on degradation, typed errors on impossible matches | 2h |
+| Task                                | Description                                                                     | Effort |
+| ----------------------------------- | ------------------------------------------------------------------------------- | ------ |
+| `ReadModelSpec[V,K]` type           | Struct with handler funcs + QueryHints                                          | 2h     |
+| `stack.Declare[V,K]` fluent builder | Produces ReadModelSpec via `.Key()`, `.OnCreate()`, `.FilterBy()`, `.SortBy()`  | 3h     |
+| `stack.Bind(bundle, spec)`          | Inspects Bundle capabilities, selects best store, returns projection.Projection | 4h     |
+| Capability mismatch diagnostics     | BindWarning on degradation, typed errors on impossible matches                  | 2h     |
 
 **Total: ~2 days. Only if Phase 1-3 prove insufficient.**
 
 ### Total Effort
 
-| Phase | Effort | Priority |
-|---|---|---|
-| Phase 1: Close 4 leaks | ~1 day | **Critical — do first** |
-| Phase 2: Close bus leak | ~5h | High |
-| Phase 3: Plugin system | ~1 day | Medium (convenience) |
-| Phase 4: Declare + Bind | ~2 days | Low (refinement) |
+| Phase                   | Effort  | Priority                |
+| ----------------------- | ------- | ----------------------- |
+| Phase 1: Close 4 leaks  | ~1 day  | **Critical — do first** |
+| Phase 2: Close bus leak | ~5h     | High                    |
+| Phase 3: Plugin system  | ~1 day  | Medium (convenience)    |
+| Phase 4: Declare + Bind | ~2 days | Low (refinement)        |
 
 ### Verification
 
