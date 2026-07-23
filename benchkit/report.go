@@ -130,18 +130,12 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 
 // WriteJSON serializes a result as indented JSON.
 func WriteJSON(w io.Writer, r *Result) error {
-	enc := jsontext.NewEncoder(w)
-	enc.SetIndent("", "  ")
-
-	return json.MarshalEncode(enc, r)
+	return json.MarshalWrite(w, r, jsontext.WithIndent("  "))
 }
 
 // WriteComparisonJSON serializes all results as a JSON object.
 func WriteComparisonJSON(w io.Writer, results map[string]*Result) error {
-	enc := jsontext.NewEncoder(w)
-	enc.SetIndent("", "  ")
-
-	return json.MarshalEncode(enc, results)
+	return json.MarshalWrite(w, results, jsontext.WithIndent("  "))
 }
 
 // PrintMarkdown writes a markdown comparison table.
