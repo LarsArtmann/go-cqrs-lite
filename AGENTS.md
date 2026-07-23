@@ -67,7 +67,7 @@ go-cqrs-lite/
 │   ├── eventstore/      # SQLEventStore, SQLSnapshotStore, SQLCheckpointStore (+ migrations)
 │   ├── readmodel/       # SQLKVStore (kv.Store backed by SQL)
 │   ├── sql/             # Dialect, DBHandle, OwnedDBHandle, QueryEngine, RunInTx, IsDuplicateKeyError (typed codes + string fallback), ScanSlice, CommitTx, MarshalMetadata
-│   ├── relational/      # RelationalSchema, RelationalProjection, RelationalStore, ProjectionSink (multi-table SQL projections, ADR-0033)
+│   ├── relational/      # RelationalSchema, RelationalProjection, RelationalStore, ProjectionSink (multi-table SQL projections, rollup counters via Increment, Resettable, ADR-0033)
 │   ├── view/            # SQLViewStore[V,K] (column-mapped views), ViewMapper, ViewColumn, IndexSpec, AutoMapper
 │   ├── migrations/      # Embedded .sql DDL files (postgres.sql, sqlite.sql) via //go:embed
 │   ├── pebble/          # Embedded KV store (PebbleDB): EventStore, SnapshotStore, CheckpointStore, KVAdapter (kv.Store). CBOR envelope, shared DB
@@ -537,6 +537,32 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //                                   {Column: "created_at", Op: kv.OpLt, Value: cursor}},
 //       OrderBy: "created_at", Desc: true, Limit: 50,
 //   }, func(scan func(...any) error) error { var r Row; return scan(&r.ID, &r.Content) })
+
+// Incremental rollup counters — pre-materialized O(1) aggregations (storage.ProjectionSink.Increment)
+//   // The relational tier's counter primitive. Where Upsert replaces column
+//   // values, Increment atomically adds a delta to a numeric column via
+//   // INSERT ... ON CONFLICT DO UPDATE SET col = COALESCE(col, 0) + excluded.col.
+//   // Used for pre-computed rollup tables (messages per channel per day, total
+//   // attachment counts, etc.) so dashboard reads are O(1) instead of O(scan).
+//   //
+//   // The key Row must include the table's primary key columns and must not
+//   // contain the counter column. Multi-counter tables should declare counter
+//   // columns as Nullable — COALESCE handles the NULL + N = NULL case when
+//   // a different counter creates the row first.
+//   sink.Increment(ctx, "channel_activity_by_day", storage.Row{
+//       "guild_id": p.GuildID, "channel_id": p.ChannelID,
+//       "day": p.CreatedAt.Format("2006-01-02"),
+//   }, "message_count", +1) // +1 on create, -1 on delete
+//   // Multiple counters on the same row in one handler:
+//   sink.Increment(ctx, "attachment_stats", key, "total", 1)
+//   sink.Increment(ctx, "attachment_stats", key, "downloaded", 1)
+
+// Relational projection reset — wipe tables for replay from zero
+//   // RelationalProjection implements projectionhost.Resettable.
+//   // Host.Reset(ctx, "my-projection") calls Reset, which does
+//   // DELETE FROM <table> for each table in the schema, then drops
+//   // the checkpoint and replays from the beginning.
+//   host.Reset(ctx, "discord-messages")
 
 // Graph projections — nodes + edges for traversal-heavy read models (graph.GraphProjection)
 //   // The third projection tier. Where Materialize writes ONE document per key
