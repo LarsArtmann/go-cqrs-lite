@@ -21,10 +21,10 @@ import (
 // Ack/Nack lifecycle, and buffer management. For multi-process deployments,
 // inject a Kafka/NATS publisher+subscriber via WithBackend.
 type EventBus struct {
+	subscriptionState
+
 	closed bool
 	mu     sync.Mutex
-
-	subscriptionState
 
 	logger *slog.Logger
 	topic  string

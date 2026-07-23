@@ -197,8 +197,6 @@ func (r *JournalReader[T]) ReadFrom(ctx context.Context, afterID string, limit i
 	span.SetAttributes(cqrsotel.AttrInt(r.CountAttr, len(items)))
 
 	return items, nil
-
-	return items, nil
 }
 
 // LoadFromStart returns the first N rows ordered by timestamp. If limit <= 0,

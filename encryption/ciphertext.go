@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 

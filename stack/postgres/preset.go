@@ -105,7 +105,8 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		func(d string) (*storage.SQLBackend, io.Closer, error) { return openSecondaryBackend(d, cfg) },
 	)
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.init_stack",
+			"initialize Postgres stack")
 	}
 
 	bus, busCleanup, err := buildBus(sqlDB, backend.EventStore(), cfg)
@@ -122,9 +123,17 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		stackOpts = append(stackOpts, stack.WithCloser(busCleanup))
 	}
 
-	return sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "postgres", cfg.ViewDSN,
+	bundle, err := sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "postgres", cfg.ViewDSN,
 		func(dsn string) (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
 		storage.NewSQLBackend)
+	if err != nil {
+		closePrimary()
+
+		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.finalize_bundle",
+			"finalize Postgres bundle")
+	}
+
+	return bundle, nil
 }
 
 // openBackend opens the database, applies schema, and returns both the *sql.DB

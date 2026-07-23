@@ -20,10 +20,10 @@ import (
 // multi-process deployments, inject a Kafka/NATS publisher+subscriber via
 // WithCommandBackend.
 type CommandBus struct {
+	subscriptionState
+
 	closed bool
 	mu     sync.Mutex
-
-	subscriptionState
 
 	logger *slog.Logger
 	topic  string

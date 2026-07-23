@@ -19,10 +19,16 @@ func openSecondaryBackend(
 	dbPath string,
 	cfg config,
 ) (*storage.SQLBackend, io.Closer, error) {
-	return sqlopt.NewSecondaryBackend(dbPath,
+	backend, closer, err := sqlopt.NewSecondaryBackend(dbPath,
 		func() (*sql.DB, error) { return openSecondaryDB(dbPath, cfg) },
 		cqrsturso.NewBackend,
 		"turso.create_secondary_backend")
+	if err != nil {
+		return nil, nil, errorfamily.WrapInfrastructure(err, "turso.create_secondary_backend",
+			"create secondary Turso backend")
+	}
+
+	return backend, closer, nil
 }
 
 // openSecondaryDB opens and configures a secondary Turso database.
