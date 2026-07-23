@@ -7,6 +7,13 @@ import (
 	"strings"
 )
 
+// Diagnostic levels for plan output.
+const (
+	DiagLevelWarn     = "WARN"
+	DiagLevelDegraded = "DEGRADED"
+	DiagLevelInfo     = "INFO"
+)
+
 type Diagnostic struct {
 	Level   string
 	Query   string
@@ -21,7 +28,7 @@ type Diagnostics []Diagnostic
 
 func (d Diagnostics) HasWarnings() bool {
 	for _, diag := range d {
-		if diag.Level == "WARN" || diag.Level == "DEGRADED" {
+		if diag.Level == DiagLevelWarn || diag.Level == DiagLevelDegraded {
 			return true
 		}
 	}
@@ -29,11 +36,23 @@ func (d Diagnostics) HasWarnings() bool {
 	return false
 }
 
+// ModelAssignment shows which engine was assigned to a ReadModel.
+type ModelAssignment struct {
+	ModelName  string
+	ADT        ADT
+	EngineName string
+	Complexity Complexity
+}
+
+func (a ModelAssignment) String() string {
+	return fmt.Sprintf("%s: %s via %s (%s)", a.ModelName, a.ADT, a.EngineName, a.Complexity)
+}
+
+// QueryAssignment shows the read pattern for a specific query.
 type QueryAssignment struct {
 	QueryName   string
-	ADT         ADT
+	ModelName   string
 	ReadPattern ReadPattern
-	EngineName  string
 	Complexity  Complexity
 	Filters     []FieldPath
 	SortField   string
@@ -43,8 +62,9 @@ type QueryAssignment struct {
 
 func (a QueryAssignment) String() string {
 	parts := []string{
-		fmt.Sprintf("%s: %s via %s (%s)", a.QueryName, a.ADT, a.EngineName, a.Complexity),
+		fmt.Sprintf("%s → %s: %s (%s)", a.QueryName, a.ModelName, a.ReadPattern, a.Complexity),
 	}
+
 	if len(a.Filters) > 0 {
 		names := make([]string, len(a.Filters))
 		for i, f := range a.Filters {
@@ -66,7 +86,8 @@ func (a QueryAssignment) String() string {
 }
 
 type PlanResult struct {
-	Assignments []QueryAssignment
+	Models      []ModelAssignment
+	Queries     []QueryAssignment
 	Diagnostics Diagnostics
 }
 
@@ -74,17 +95,23 @@ func (p PlanResult) Report() string {
 	var b strings.Builder
 	b.WriteString("=== Meta-Engine Plan ===\n\n")
 
-	for _, a := range p.Assignments {
+	b.WriteString("--- Models ---\n")
+	for _, a := range p.Models {
 		fmt.Fprintf(&b, "  %s\n", a)
+	}
 
-		for _, d := range a.Diagnostics {
-			fmt.Fprintf(&b, "    %s\n", d)
+	if len(p.Queries) > 0 {
+		b.WriteString("\n--- Queries ---\n")
+		for _, a := range p.Queries {
+			fmt.Fprintf(&b, "  %s\n", a)
+			for _, d := range a.Diagnostics {
+				fmt.Fprintf(&b, "    %s\n", d)
+			}
 		}
 	}
 
 	if len(p.Diagnostics) > 0 {
 		b.WriteString("\n--- Global Diagnostics ---\n")
-
 		for _, d := range p.Diagnostics {
 			fmt.Fprintf(&b, "  %s\n", d)
 		}
@@ -99,6 +126,8 @@ type rankedEngine struct {
 }
 
 // Plan creates a storage plan from available engines and declared queries.
+// ReadModels referenced by multiple queries are deduplicated — one engine
+// assignment per model, eliminating write amplification.
 func Plan(engines []Engine, queries ...any) (*Store, error) {
 	if len(engines) == 0 {
 		return nil, errors.New("metaengine.Plan: at least one engine required")
@@ -111,37 +140,98 @@ func Plan(engines []Engine, queries ...any) (*Store, error) {
 	plan := &PlanResult{}
 	store := &Store{
 		engines:     engines,
+		models:      make(map[string]modelRuntime),
 		queries:     make(map[string]queryRuntime),
 		byInputType: make(map[string]string),
 	}
 
+	// Phase 1: Assign engines to unique models.
+	modelSeen := make(map[string]bool)
+
 	for _, q := range queries {
-		runtime, assignment, err := planQuery(q, engines)
+		meta, ok := q.(queryMeta)
+		if !ok {
+			return nil, fmt.Errorf(
+				"query %T does not implement queryMeta — pass a metaengine.Query[Q,R]", q,
+			)
+		}
+
+		rm := meta.QueryModel()
+		if modelSeen[rm.Name] {
+			continue
+		}
+
+		modelSeen[rm.Name] = true
+
+		mr, assignment, err := planModel(rm, engines)
 		if err != nil {
 			return nil, fmt.Errorf("metaengine.Plan: %w", err)
 		}
 
-		store.queries[runtime.name] = runtime
-		store.byInputType[runtime.inputTypeName] = runtime.name
-
-		plan.Assignments = append(plan.Assignments, assignment)
+		store.models[rm.Name] = mr
+		plan.Models = append(plan.Models, assignment)
 	}
 
-	plan.Diagnostics = checkWriteAmplification(plan.Assignments)
+	// Phase 2: Register queries against their models.
+	for _, q := range queries {
+		meta := q.(queryMeta)
+		rm := meta.QueryModel()
+
+		modelRT, ok := store.models[rm.Name]
+		if !ok {
+			return nil, fmt.Errorf("metaengine.Plan: model %q not found (internal error)", rm.Name)
+		}
+
+		qr := queryRuntime{
+			name:          meta.QueryName(),
+			modelName:     rm.Name,
+			readPattern:   meta.QueryReadPattern(),
+			filters:       meta.QueryFilters(),
+			sortField:     meta.QuerySortField(),
+			isPaginated:   meta.QueryIsPaginated(),
+			inputTypeName: meta.QueryInputTypeName(),
+		}
+
+		store.queries[qr.name] = qr
+		store.byInputType[qr.inputTypeName] = qr.name
+
+		assignment := QueryAssignment{
+			QueryName:   qr.name,
+			ModelName:   rm.Name,
+			ReadPattern: qr.readPattern,
+			Complexity:  modelRT.complexity,
+			Filters:     qr.filters,
+			SortField:   qr.sortField,
+			IsPaginated: qr.isPaginated,
+		}
+
+		if rm.ADT == ADTGraph && modelRT.complexity == ComplexityON {
+			assignment.Diagnostics = append(assignment.Diagnostics, Diagnostic{
+				Level:   DiagLevelDegraded,
+				Query:   qr.name,
+				Message: "graph traversal via scan (O(N)). Add a graph engine for O(degree^depth).",
+			})
+		}
+
+		if qr.isPaginated && modelRT.complexity == ComplexityON {
+			assignment.Diagnostics = append(assignment.Diagnostics, Diagnostic{
+				Level:   DiagLevelDegraded,
+				Query:   qr.name,
+				Message: "filtered scan via in-memory O(N). Add SQLite for O(logN) indexed scanning.",
+			})
+		}
+
+		plan.Queries = append(plan.Queries, assignment)
+	}
+
+	plan.Diagnostics = checkWriteAmplification(plan.Models)
 	store.plan = plan
 
 	return store, nil
 }
 
-func planQuery(q any, engines []Engine) (queryRuntime, QueryAssignment, error) {
-	meta, ok := q.(queryMeta)
-	if !ok {
-		return queryRuntime{}, QueryAssignment{}, fmt.Errorf(
-			"query %T does not implement queryMeta — pass a metaengine.Query[Q,R]", q,
-		)
-	}
-
-	folds := meta.QueryFolds()
+func planModel(rm ReadModel, engines []Engine) (modelRuntime, ModelAssignment, error) {
+	folds := rm.Folds
 
 	foldByEvent := make(map[string]int, len(folds))
 	for i, f := range folds {
@@ -150,39 +240,22 @@ func planQuery(q any, engines []Engine) (queryRuntime, QueryAssignment, error) {
 		}
 	}
 
-	runtime := queryRuntime{
-		name:          meta.QueryName(),
-		adt:           meta.QueryADT(),
-		readPattern:   meta.QueryReadPattern(),
-		filters:       meta.QueryFilters(),
-		sortField:     meta.QuerySortField(),
-		isPaginated:   meta.QueryIsPaginated(),
-		folds:         folds,
-		foldByEvent:   foldByEvent,
-		inputTypeName: meta.QueryInputTypeName(),
-	}
-
 	var ranked []rankedEngine
-
 	for _, eng := range engines {
-		if c, ok := eng.Profile().SupportsADT(runtime.adt); ok {
+		if c, ok := eng.Profile().SupportsADT(rm.ADT); ok {
 			ranked = append(ranked, rankedEngine{engine: eng, complexity: c})
 		}
 	}
 
-	assignment := QueryAssignment{
-		QueryName:   runtime.name,
-		ADT:         runtime.adt,
-		ReadPattern: runtime.readPattern,
-		Filters:     runtime.filters,
-		SortField:   runtime.sortField,
-		IsPaginated: runtime.isPaginated,
+	assignment := ModelAssignment{
+		ModelName: rm.Name,
+		ADT:       rm.ADT,
 	}
 
 	if len(ranked) == 0 {
-		return queryRuntime{}, assignment, fmt.Errorf(
-			"query %q requires ADT %s but no engine supports it",
-			runtime.name, runtime.adt,
+		return modelRuntime{}, assignment, fmt.Errorf(
+			"model %q requires ADT %s but no engine supports it",
+			rm.Name, rm.ADT,
 		)
 	}
 
@@ -193,25 +266,17 @@ func planQuery(q any, engines []Engine) (queryRuntime, QueryAssignment, error) {
 	best := ranked[0]
 	assignment.EngineName = best.engine.Profile().Name
 	assignment.Complexity = best.complexity
-	runtime.engine = best.engine
 
-	if runtime.adt == ADTGraph && best.complexity == ComplexityON {
-		assignment.Diagnostics = append(assignment.Diagnostics, Diagnostic{
-			Level:   "DEGRADED",
-			Query:   runtime.name,
-			Message: "graph traversal via SQL/in-memory scan (O(N)). Add a graph engine for O(degree^depth).",
-		})
+	mr := modelRuntime{
+		name:        rm.Name,
+		adt:         rm.ADT,
+		engine:      best.engine,
+		folds:       folds,
+		foldByEvent: foldByEvent,
+		complexity:  best.complexity,
 	}
 
-	if runtime.adt == ADTSortedMap && best.complexity == ComplexityON {
-		assignment.Diagnostics = append(assignment.Diagnostics, Diagnostic{
-			Level:   "DEGRADED",
-			Query:   runtime.name,
-			Message: "filtered scan via in-memory O(N) filter. Add SQLite for O(logN) indexed scanning.",
-		})
-	}
-
-	return runtime, assignment, nil
+	return mr, assignment, nil
 }
 
 func complexityRank(c Complexity) int {
@@ -231,16 +296,13 @@ func complexityRank(c Complexity) int {
 	}
 }
 
-func checkWriteAmplification(assignments []QueryAssignment) Diagnostics {
+func checkWriteAmplification(models []ModelAssignment) Diagnostics {
 	var diags Diagnostics
-	if len(assignments) > 5 {
+	if len(models) > 5 {
 		diags = append(diags, Diagnostic{
-			Level: "WARN",
-			Query: "*",
-			Message: fmt.Sprintf(
-				"%d projections — high write amplification. Consider sharing projections.",
-				len(assignments),
-			),
+			Level:   DiagLevelWarn,
+			Query:   "*",
+			Message: fmt.Sprintf("%d models — high write amplification. Consider sharing read models.", len(models)),
 		})
 	}
 

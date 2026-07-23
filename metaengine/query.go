@@ -14,19 +14,22 @@ type QueryConfig struct {
 	LatencyBudgetMs int64
 }
 
+// Volume sets the expected query volume (events/sec) for cost estimation.
 func Volume(n int64) QueryOption {
 	return func(c *QueryConfig) { c.Volume = n }
 }
 
+// WithLatencyBudget sets the target latency budget for engine selection.
 func WithLatencyBudget(ms int64) QueryOption {
 	return func(c *QueryConfig) { c.LatencyBudgetMs = ms }
 }
 
 // QueryDecl is a fully analyzed query declaration.
+// A query references a ReadModel (which owns the folds/ADT) and declares
+// how it reads from it (read pattern, filters, sort, pagination).
 type QueryDecl[Q any, R any] struct {
 	Name          string
-	Folds         []Fold
-	ADT           ADT
+	Model         ReadModel
 	ReadPattern   ReadPattern
 	Filters       []FieldPath
 	SortField     string
@@ -38,8 +41,10 @@ type QueryDecl[Q any, R any] struct {
 	resultSample R
 }
 
-// Query declares a query with type inference.
-func Query[Q any, R any](name string, folds []Fold, opts ...QueryOption) QueryDecl[Q, R] {
+// Query declares a query that reads from a ReadModel.
+// The read pattern, filters, and sort field are inferred from the query's
+// input type (Q) and result type (R) combined with the model's ADT.
+func Query[Q any, R any](name string, model ReadModel, opts ...QueryOption) QueryDecl[Q, R] {
 	cfg := QueryConfig{}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -47,7 +52,7 @@ func Query[Q any, R any](name string, folds []Fold, opts ...QueryOption) QueryDe
 
 	q := QueryDecl[Q, R]{
 		Name:         name,
-		Folds:        folds,
+		Model:        model,
 		Config:       cfg,
 		querySample:  *new(Q),
 		resultSample: *new(R),
@@ -59,13 +64,6 @@ func Query[Q any, R any](name string, folds []Fold, opts ...QueryOption) QueryDe
 }
 
 func (q *QueryDecl[Q, R]) infer() {
-	adt, err := classifyADT(q.Folds)
-	if err != nil {
-		panic(fmt.Sprintf("metaengine.Query[%s]: %s", q.Name, err))
-	}
-
-	q.ADT = adt
-
 	resultType := reflect.TypeOf(q.resultSample)
 	elemType, isPage := unwrapPageType(resultType)
 	q.IsPaginated = isPage
@@ -76,20 +74,20 @@ func (q *QueryDecl[Q, R]) infer() {
 	switch {
 	case isPage:
 		q.ReadPattern = ReadFilteredScan
-		q.ADT = ADTSortedMap
 
 		if elemType != nil {
 			elemSample := reflect.Zero(elemType).Interface()
 			q.Filters = matchFilterFields(q.querySample, elemSample)
 			q.SortField = detectSortField(elemSample)
 		}
-	case hasInputFields && adt == ADTSet:
+
+	case hasInputFields && q.Model.ADT == ADTSet:
 		q.ReadPattern = ReadMembership
-	case hasInputFields && adt == ADTMap:
+	case hasInputFields && q.Model.ADT == ADTMap:
 		q.ReadPattern = ReadPointLookup
-	case adt == ADTCounter:
+	case q.Model.ADT == ADTCounter:
 		q.ReadPattern = ReadAggregate
-	case adt == ADTGraph:
+	case q.Model.ADT == ADTGraph:
 		q.ReadPattern = ReadTraversal
 	default:
 		q.ReadPattern = ReadScan
@@ -99,22 +97,20 @@ func (q *QueryDecl[Q, R]) infer() {
 // queryMeta is the planner-facing interface.
 type queryMeta interface {
 	QueryName() string
-	QueryADT() ADT
+	QueryModel() ReadModel
 	QueryReadPattern() ReadPattern
 	QueryFilters() []FieldPath
 	QuerySortField() string
 	QueryIsPaginated() bool
-	QueryFolds() []Fold
 	QueryInputTypeName() string
 }
 
 func (q QueryDecl[Q, R]) QueryName() string             { return q.Name }
-func (q QueryDecl[Q, R]) QueryADT() ADT                 { return q.ADT }
+func (q QueryDecl[Q, R]) QueryModel() ReadModel         { return q.Model }
 func (q QueryDecl[Q, R]) QueryReadPattern() ReadPattern { return q.ReadPattern }
 func (q QueryDecl[Q, R]) QueryFilters() []FieldPath     { return q.Filters }
 func (q QueryDecl[Q, R]) QuerySortField() string        { return q.SortField }
 func (q QueryDecl[Q, R]) QueryIsPaginated() bool        { return q.IsPaginated }
-func (q QueryDecl[Q, R]) QueryFolds() []Fold            { return q.Folds }
 func (q QueryDecl[Q, R]) QueryInputTypeName() string    { return q.InputTypeName }
 
 func (q QueryDecl[Q, R]) String() string {
@@ -139,6 +135,6 @@ func (q QueryDecl[Q, R]) String() string {
 		sortStr = " sort=" + q.SortField
 	}
 
-	return fmt.Sprintf("%s: %s/%s%s%s%s",
-		q.Name, q.ADT, q.ReadPattern, filters, sortStr, pagination)
+	return fmt.Sprintf("%s → %s: %s/%s%s%s%s",
+		q.Name, q.Model.Name, q.Model.ADT, q.ReadPattern, filters, sortStr, pagination)
 }

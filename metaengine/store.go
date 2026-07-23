@@ -7,25 +7,32 @@ import (
 	"sync"
 )
 
+type modelRuntime struct {
+	name        string
+	adt         ADT
+	engine      Engine
+	complexity  Complexity
+	folds       []Fold
+	foldByEvent map[string]int
+}
+
 type queryRuntime struct {
 	name          string
-	adt           ADT
+	modelName     string
 	readPattern   ReadPattern
 	filters       []FieldPath
 	sortField     string
 	isPaginated   bool
-	engine        Engine
-	folds         []Fold
-	foldByEvent   map[string]int
 	inputTypeName string
 }
 
 type Store struct {
-	mu      sync.RWMutex
-	engines []Engine
-	queries map[string]queryRuntime
-	byInputType map[string]string // Go input type name → query name
-	plan    *PlanResult
+	mu          sync.RWMutex
+	engines     []Engine
+	models      map[string]modelRuntime
+	queries     map[string]queryRuntime
+	byInputType map[string]string
+	plan        *PlanResult
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -41,41 +48,43 @@ func (s *Store) Close() error {
 	return firstErr
 }
 
-// Apply processes an event through ALL projections that listen to it.
+// Apply processes an event through ALL models that listen to it.
+// One event updates each matching model exactly once, regardless of how many
+// queries read from that model.
 func (s *Store) Apply(eventType string, payload any) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for _, q := range s.queries {
-		foldIdx, ok := q.foldByEvent[eventType]
+	for _, m := range s.models {
+		foldIdx, ok := m.foldByEvent[eventType]
 		if !ok {
 			continue
 		}
 
-		fold := q.folds[foldIdx]
-		if err := s.applyFold(q, fold, payload); err != nil {
-			return fmt.Errorf("query %q fold for %s: %w", q.name, eventType, err)
+		fold := m.folds[foldIdx]
+		if err := s.applyFold(m, fold, payload); err != nil {
+			return fmt.Errorf("model %q fold for %s: %w", m.name, eventType, err)
 		}
 	}
 
 	return nil
 }
 
-func (s *Store) applyFold(q queryRuntime, fold Fold, payload any) error {
-	col := q.name
+func (s *Store) applyFold(m modelRuntime, fold Fold, payload any) error {
+	col := m.name
 
 	switch fold.Kind {
 	case FoldInsert:
 		key, value := fold.callInsert(payload)
-		if mb, ok := q.engine.(MapBackend); ok {
+		if mb, ok := m.engine.(MapBackend); ok {
 			return mb.MapSet(col, key, value)
 		}
 
-		return fmt.Errorf("engine %s does not support Map operations", q.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Map operations", m.engine.Profile().Name)
 
 	case FoldUpdate:
 		key := fold.callKey(payload)
-		if mb, ok := q.engine.(MapBackend); ok {
+		if mb, ok := m.engine.(MapBackend); ok {
 			prev, exists, err := mb.MapGet(col, key)
 			if err != nil {
 				return err
@@ -91,39 +100,39 @@ func (s *Store) applyFold(q queryRuntime, fold Fold, payload any) error {
 			return mb.MapSet(col, key, updated)
 		}
 
-		return fmt.Errorf("engine %s does not support Map operations", q.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Map operations", m.engine.Profile().Name)
 
 	case FoldRemove:
 		key := fold.callKey(payload)
-		if mb, ok := q.engine.(MapBackend); ok {
+		if mb, ok := m.engine.(MapBackend); ok {
 			return mb.MapDelete(col, key)
 		}
 
-		return fmt.Errorf("engine %s does not support Map operations", q.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Map operations", m.engine.Profile().Name)
 
 	case FoldCount:
 		delta := fold.callCount(payload)
-		if cb, ok := q.engine.(CounterBackend); ok {
+		if cb, ok := m.engine.(CounterBackend); ok {
 			return cb.CounterIncrement(col, delta)
 		}
 
-		return fmt.Errorf("engine %s does not support Counter operations", q.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Counter operations", m.engine.Profile().Name)
 
 	case FoldEdge:
 		edge := fold.callEdge(payload)
-		if gb, ok := q.engine.(GraphBackend); ok {
+		if gb, ok := m.engine.(GraphBackend); ok {
 			return gb.GraphAddEdge(col, edge)
 		}
 
-		return fmt.Errorf("engine %s does not support Graph operations", q.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Graph operations", m.engine.Profile().Name)
 
 	case FoldSet:
 		key := fold.callSet(payload)
-		if sb, ok := q.engine.(SetBackend); ok {
+		if sb, ok := m.engine.(SetBackend); ok {
 			return sb.SetAdd(col, key)
 		}
 
-		return fmt.Errorf("engine %s does not support Set operations", q.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Set operations", m.engine.Profile().Name)
 
 	case FoldSkip:
 		return nil
@@ -133,7 +142,7 @@ func (s *Store) applyFold(q queryRuntime, fold Fold, payload any) error {
 	}
 }
 
-// Execute dispatches a query input to its assigned engine and returns the result.
+// Execute dispatches a query input to its model's engine and returns the result.
 func (s *Store) Execute(input any, opts ...ExecOption) (any, error) {
 	return s.ExecuteCtx(context.Background(), input, opts...)
 }
@@ -156,12 +165,13 @@ func (s *Store) ExecuteCtx(_ context.Context, input any, opts ...ExecOption) (an
 
 func (s *Store) executeQuery(q queryRuntime, input any, opts ...ExecOption) (any, error) {
 	cfg := applyExecOpts(opts)
+	m := s.models[q.modelName]
 
 	switch q.readPattern {
 	case ReadPointLookup:
 		key := extractKeyValue(input)
-		if mb, ok := q.engine.(MapBackend); ok {
-			val, ok, err := mb.MapGet(q.name, key)
+		if mb, ok := m.engine.(MapBackend); ok {
+			val, ok, err := mb.MapGet(m.name, key)
 			if err != nil {
 				return nil, err
 			}
@@ -173,45 +183,44 @@ func (s *Store) executeQuery(q queryRuntime, input any, opts ...ExecOption) (any
 			return val, nil
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Map reads", q.engine.Profile().Name)
+		return nil, fmt.Errorf("engine %s does not support Map reads", m.engine.Profile().Name)
 
 	case ReadMembership:
 		key := extractKeyValue(input)
-		if sb, ok := q.engine.(SetBackend); ok {
-			return sb.SetContains(q.name, key)
+		if sb, ok := m.engine.(SetBackend); ok {
+			return sb.SetContains(m.name, key)
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Set reads", q.engine.Profile().Name)
+		return nil, fmt.Errorf("engine %s does not support Set reads", m.engine.Profile().Name)
 
 	case ReadFilteredScan:
 		filterValues := extractFilterValues(input, q.filters)
-		if sb, ok := q.engine.(ScanBackend); ok {
-			results, err := sb.MapScan(q.name, q.filters, filterValues, q.sortField, cfg.limit)
+		if sb, ok := m.engine.(ScanBackend); ok {
+			results, err := sb.MapScan(m.name, q.filters, filterValues, q.sortField, cfg.limit)
 			if err != nil {
 				return nil, err
 			}
 
-			return results, nil // []any — caller wraps via ExecuteTyped
+			return results, nil
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Scan reads", q.engine.Profile().Name)
+		return nil, fmt.Errorf("engine %s does not support Scan reads", m.engine.Profile().Name)
 
 	case ReadAggregate:
-		if cb, ok := q.engine.(CounterBackend); ok {
-			return cb.CounterGet(q.name)
+		if cb, ok := m.engine.(CounterBackend); ok {
+			return cb.CounterGet(m.name)
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Counter reads", q.engine.Profile().Name)
+		return nil, fmt.Errorf("engine %s does not support Counter reads", m.engine.Profile().Name)
 
 	case ReadTraversal:
 		node := extractKeyValue(input)
-
 		depth := extractDepthFromInput(input)
-		if gb, ok := q.engine.(GraphBackend); ok {
-			return gb.GraphNeighbors(q.name, node, depth)
+		if gb, ok := m.engine.(GraphBackend); ok {
+			return gb.GraphNeighbors(m.name, node, depth)
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Graph reads", q.engine.Profile().Name)
+		return nil, fmt.Errorf("engine %s does not support Graph reads", m.engine.Profile().Name)
 
 	default:
 		return nil, fmt.Errorf("unsupported read pattern: %s", q.readPattern)
@@ -270,9 +279,7 @@ func extractDepthFromInput(input any) int {
 // isPageType checks via reflection if R is a Page[T] by field shape.
 func isPageType[R any]() bool {
 	var zero R
-
 	_, ok := unwrapPageType(reflect.TypeOf(zero))
-
 	return ok
 }
 
@@ -281,7 +288,6 @@ func isPageType[R any]() bool {
 // and Next is populated with a cursor pointing past the current page.
 func reconstructPage[R any](raw any, limit int) R {
 	var zero R
-
 	t := reflect.TypeOf(zero)
 
 	elemType, ok := unwrapPageType(t)
@@ -319,10 +325,8 @@ func reconstructPage[R any](raw any, limit int) R {
 
 	if hasMore {
 		result.FieldByName("HasMore").SetBool(true)
-
 		if lastItem != nil {
 			cursor := &Cursor{Value: lastItem}
-			// Cursor is *Cursor → set as pointer value.
 			cursorField := result.FieldByName("Next")
 			if cursorField.IsValid() && cursorField.Kind() == reflect.Pointer {
 				cursorField.Set(reflect.ValueOf(cursor))
@@ -355,7 +359,7 @@ func ExecuteTyped[Q any, R any](
 	if raw == nil {
 		return zero, nil
 	}
-	// If R is Page[T], raw is []any — reconstruct typed page.
+
 	if isPageType[R]() {
 		cfg := applyExecOpts(opts)
 		return reconstructPage[R](raw, cfg.limit), nil
