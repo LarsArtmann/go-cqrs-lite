@@ -64,14 +64,15 @@ These items deliver the majority of perceived consumer value.
 
 ---
 
-## Priority — Public Release Readiness (NEEDS USER APPROVAL)
+## Priority — Public Release Readiness
 
 > **These are irreversible. Do NOT execute without explicit user approval.**
 
-- [ ] [BLOCKED] **License swap (PROPRIETARY → Apache-2.0)** — Hard blocker for public adoption.
-      **Needs user approval (irreversible).**
-- [ ] [BLOCKED] **Git history scrub for internal docs** — AGENTS.md, docs/planning/\* contain
-      internal strategy. **Needs user approval (irreversible).**
+- [x] [DECLINED] **License swap (PROPRIETARY to Apache-2.0)** — User declined (2026-07-23).
+      Keeping PROPRIETARY for now.
+- [x] [DECLINED] **Git history scrub for internal docs** — User declined (2026-07-23).
+      History stays as-is.
+- [x] **Delete wrong remote tag `event/v4/eventtest/v4.0.0`** — Deleted from remote (2026-07-23).
 
 ---
 
