@@ -7,29 +7,22 @@ import (
 	"sync"
 )
 
-type modelRuntime struct {
-	name        string
-	adt         ADT
-	engine      Engine
-	complexity  Complexity
-	folds       []Fold
-	foldByEvent map[string]int
-}
-
 type queryRuntime struct {
 	name          string
-	modelName     string
+	adt           ADT
+	engine        Engine
+	complexity    Complexity
+	folds         []Fold
+	foldByEvent   map[string]int
 	readPattern   ReadPattern
-	filters       []FieldPath
-	sortField     string
-	isPaginated   bool
+	config        QueryConfig
+	keyType       reflect.Type
 	inputTypeName string
 }
 
 type Store struct {
 	mu          sync.RWMutex
 	engines     []Engine
-	models      map[string]modelRuntime
 	queries     map[string]queryRuntime
 	byInputType map[string]string
 	plan        *PlanResult
@@ -48,52 +41,52 @@ func (s *Store) Close() error {
 	return firstErr
 }
 
-// Apply processes an event through ALL models that listen to it.
-// One event updates each matching model exactly once, regardless of how many
-// queries read from that model.
+// Apply processes an event through ALL queries that listen to it.
+// Each query has its own independent projection — the same event updates
+// each matching query's collection separately.
 func (s *Store) Apply(eventType string, payload any) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for _, m := range s.models {
-		foldIdx, ok := m.foldByEvent[eventType]
+	for _, q := range s.queries {
+		foldIdx, ok := q.foldByEvent[eventType]
 		if !ok {
 			continue
 		}
 
-		fold := m.folds[foldIdx]
-		if err := s.applyFold(m, fold, payload); err != nil {
-			return fmt.Errorf("model %q fold for %s: %w", m.name, eventType, err)
+		fold := q.folds[foldIdx]
+		if err := s.applyFold(q, fold, payload); err != nil {
+			return fmt.Errorf("query %q fold for %s: %w", q.name, eventType, err)
 		}
 	}
 
 	return nil
 }
 
-func (s *Store) applyFold(m modelRuntime, fold Fold, payload any) error {
-	col := m.name
+func (s *Store) applyFold(q queryRuntime, fold Fold, payload any) error {
+	col := q.name // each query's collection is named after the query
 
 	switch fold.Kind {
 	case FoldInsert:
 		key, value := fold.callInsert(payload)
-		if mb, ok := m.engine.(MapBackend); ok {
+		if mb, ok := q.engine.(MapBackend); ok {
 			return mb.MapSet(col, key, value)
 		}
 
-		return fmt.Errorf("engine %s does not support Map operations", m.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Map operations", q.engine.Profile().Name)
 
 	case FoldUpdate:
 		key := fold.callKey(payload)
 
 		// Fast path: engine supports atomic read-modify-write.
-		if mu, ok := m.engine.(MapUpdater); ok {
+		if mu, ok := q.engine.(MapUpdater); ok {
 			return mu.MapUpdate(col, key, func(prev any) any {
 				return fold.callUpdate(payload, prev)
 			})
 		}
 
 		// Fallback: non-atomic read-modify-write (may lose updates under concurrency).
-		if mb, ok := m.engine.(MapBackend); ok {
+		if mb, ok := q.engine.(MapBackend); ok {
 			prev, exists, err := mb.MapGet(col, key)
 			if err != nil {
 				return err
@@ -109,39 +102,39 @@ func (s *Store) applyFold(m modelRuntime, fold Fold, payload any) error {
 			return mb.MapSet(col, key, updated)
 		}
 
-		return fmt.Errorf("engine %s does not support Map operations", m.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Map operations", q.engine.Profile().Name)
 
 	case FoldRemove:
 		key := fold.callKey(payload)
-		if mb, ok := m.engine.(MapBackend); ok {
+		if mb, ok := q.engine.(MapBackend); ok {
 			return mb.MapDelete(col, key)
 		}
 
-		return fmt.Errorf("engine %s does not support Map operations", m.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Map operations", q.engine.Profile().Name)
 
 	case FoldCount:
 		delta := fold.callCount(payload)
-		if cb, ok := m.engine.(CounterBackend); ok {
+		if cb, ok := q.engine.(CounterBackend); ok {
 			return cb.CounterIncrement(col, delta)
 		}
 
-		return fmt.Errorf("engine %s does not support Counter operations", m.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Counter operations", q.engine.Profile().Name)
 
 	case FoldEdge:
 		edge := fold.callEdge(payload)
-		if gb, ok := m.engine.(GraphBackend); ok {
+		if gb, ok := q.engine.(GraphBackend); ok {
 			return gb.GraphAddEdge(col, edge)
 		}
 
-		return fmt.Errorf("engine %s does not support Graph operations", m.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Graph operations", q.engine.Profile().Name)
 
 	case FoldSet:
 		key := fold.callSet(payload)
-		if sb, ok := m.engine.(SetBackend); ok {
+		if sb, ok := q.engine.(SetBackend); ok {
 			return sb.SetAdd(col, key)
 		}
 
-		return fmt.Errorf("engine %s does not support Set operations", m.engine.Profile().Name)
+		return fmt.Errorf("engine %s does not support Set operations", q.engine.Profile().Name)
 
 	case FoldSkip:
 		return nil
@@ -151,12 +144,12 @@ func (s *Store) applyFold(m modelRuntime, fold Fold, payload any) error {
 	}
 }
 
-// Execute dispatches a query input to its model's engine and returns the result.
-func (s *Store) Execute(input any, opts ...ExecOption) (any, error) {
-	return s.ExecuteCtx(context.Background(), input, opts...)
+// Execute dispatches a query input to its query's engine and returns the result.
+func (s *Store) Execute(input any) (any, error) {
+	return s.ExecuteCtx(context.Background(), input)
 }
 
-func (s *Store) ExecuteCtx(ctx context.Context, input any, opts ...ExecOption) (any, error) {
+func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
@@ -175,23 +168,19 @@ func (s *Store) ExecuteCtx(ctx context.Context, input any, opts ...ExecOption) (
 
 	q := s.queries[queryName]
 
-	return s.executeQuery(ctx, q, input, opts...)
+	return s.executeQuery(ctx, q, input)
 }
 
 func (s *Store) executeQuery(
 	_ context.Context,
 	q queryRuntime,
 	input any,
-	opts ...ExecOption,
 ) (any, error) {
-	cfg := applyExecOpts(opts)
-	m := s.models[q.modelName]
-
 	switch q.readPattern {
 	case ReadPointLookup:
-		key := extractKeyValue(input)
-		if mb, ok := m.engine.(MapBackend); ok {
-			val, ok, err := mb.MapGet(m.name, key)
+		key := extractKeyValueByType(input, q.keyType)
+		if mb, ok := q.engine.(MapBackend); ok {
+			val, ok, err := mb.MapGet(q.name, key)
 			if err != nil {
 				return nil, err
 			}
@@ -203,195 +192,182 @@ func (s *Store) executeQuery(
 			return val, nil
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Map reads", m.engine.Profile().Name)
+		return nil, fmt.Errorf("engine %s does not support Map reads", q.engine.Profile().Name)
 
 	case ReadMembership:
-		key := extractKeyValue(input)
-		if sb, ok := m.engine.(SetBackend); ok {
-			return sb.SetContains(m.name, key)
+		key := extractKeyValueByType(input, q.keyType)
+		if sb, ok := q.engine.(SetBackend); ok {
+			return sb.SetContains(q.name, key)
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Set reads", m.engine.Profile().Name)
+		return nil, fmt.Errorf("engine %s does not support Set reads", q.engine.Profile().Name)
 
 	case ReadFilteredScan:
-		filterValues := extractFilterValues(input, q.filters)
-
-		var cursorVal any
-		if cfg.cursor != nil {
-			cursorVal = cfg.cursor.Value
-		}
-
-		if sb, ok := m.engine.(ScanBackend); ok {
-			results, err := sb.MapScan(
-				m.name,
-				q.filters,
-				filterValues,
-				q.sortField,
-				cursorVal,
-				cfg.limit,
-			)
-			if err != nil {
-				return nil, err
-			}
-
-			return results, nil
-		}
-
-		return nil, fmt.Errorf("engine %s does not support Scan reads", m.engine.Profile().Name)
+		return s.executeFilteredScan(q, input)
 
 	case ReadAggregate:
-		if cb, ok := m.engine.(CounterBackend); ok {
-			return cb.CounterGet(m.name)
+		if cb, ok := q.engine.(CounterBackend); ok {
+			return cb.CounterGet(q.name)
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Counter reads", m.engine.Profile().Name)
+		return nil, fmt.Errorf("engine %s does not support Counter reads", q.engine.Profile().Name)
 
 	case ReadTraversal:
-		node := extractKeyValue(input)
-
+		node := extractKeyValueByType(input, q.keyType)
 		depth := extractDepthFromInput(input)
-		if gb, ok := m.engine.(GraphBackend); ok {
-			return gb.GraphNeighbors(m.name, node, depth)
+		if gb, ok := q.engine.(GraphBackend); ok {
+			return gb.GraphNeighbors(q.name, node, depth)
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Graph reads", m.engine.Profile().Name)
+		return nil, fmt.Errorf("engine %s does not support Graph reads", q.engine.Profile().Name)
 
 	default:
 		return nil, fmt.Errorf("unsupported read pattern: %s", q.readPattern)
 	}
 }
 
-// extractKeyValue gets the key value from a query input struct.
-// Priority: field tagged metaengine:"key" > first exported field.
-func extractKeyValue(input any) any {
-	v := reflect.ValueOf(input)
-	if v.Kind() == reflect.Pointer {
-		v = v.Elem()
+func (s *Store) executeFilteredScan(q queryRuntime, input any) (any, error) {
+	limit := extractLimitFromInput(input)
+	if limit == 0 {
+		limit = 100
 	}
 
-	if v.Kind() != reflect.Struct || v.NumField() == 0 {
-		return nil
+	cursor := extractCursorFromInput(input)
+
+	var cursorVal any
+	if cursor != nil {
+		cursorVal = cursor.Value
 	}
 
-	t := v.Type()
-	for i := range t.NumField() {
-		if t.Field(i).Tag.Get("metaengine") == "key" {
-			return v.Field(i).Interface()
+	// Build filter predicates from typed closures.
+	filterPredicates, err := buildFilterPredicates(q, input)
+	if err != nil {
+		return nil, err
+	}
+
+	// Determine sort accessor.
+	var sortFunc func(a, b any) int
+	if q.config.sortAccessor.closure != nil {
+		sortFunc = buildSortFunc(q.config.sortAccessor.closure)
+	} else {
+		// No explicit SortOn — try default: sort by first time.Time field.
+		sortFunc = nil // engine decides internally
+	}
+
+	if sb, ok := q.engine.(ScanBackend); ok {
+		return sb.MapScan(q.name, filterPredicates, sortFunc, cursorVal, limit)
+	}
+
+	return nil, fmt.Errorf("engine %s does not support Scan reads", q.engine.Profile().Name)
+}
+
+// buildFilterPredicates creates runtime filter predicates from typed closures
+// declared via FilterOn. Each closure extracts a comparable value from a result
+// item. The matching filter value is extracted from the query input by type.
+func buildFilterPredicates(q queryRuntime, input any) ([]filterPredicate, error) {
+	if len(q.config.filterAccessors) == 0 {
+		return nil, nil
+	}
+
+	var predicates []filterPredicate
+
+	for _, acc := range q.config.filterAccessors {
+		// Extract the expected filter value from the input by type matching.
+		expected := extractValueByType(input, acc.returnType)
+		if expected == nil {
+			// No matching field in input — skip this filter (no constraint).
+			continue
 		}
+
+		closure := acc.closure
+
+		predicates = append(predicates, filterPredicate{
+			expected: expected,
+			test: func(item any) bool {
+				rv := reflect.ValueOf(closure)
+				result := rv.Call([]reflect.Value{reflect.ValueOf(item)})
+
+				return reflect.DeepEqual(result[0].Interface(), expected)
+			},
+		})
 	}
 
-	return v.Field(0).Interface()
+	return predicates, nil
 }
 
-func extractFilterValues(input any, filters []FieldPath) map[string]any {
-	values := make(map[string]any, len(filters))
-	for _, f := range filters {
-		values[f.Field] = getFieldValue(input, f.Field)
-	}
-
-	return values
-}
-
-func extractDepthFromInput(input any) int {
+// extractValueByType finds a field in the input struct whose type matches
+// the given type, and returns its value. Returns nil if not found or ambiguous.
+func extractValueByType(input any, targetType reflect.Type) any {
 	v := reflect.ValueOf(input)
 	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 
 	if v.Kind() != reflect.Struct {
-		return 1
+		return nil
 	}
 
-	f := v.FieldByName("Depth")
-	if !f.IsValid() || f.Kind() != reflect.Int {
-		return 1
-	}
+	t := v.Type()
 
-	return int(f.Int())
-}
+	metaNames := map[string]bool{"Limit": true, "After": true, "Depth": true}
 
-// isPageType checks via reflection if R is a Page[T] by field shape.
-func isPageType[R any]() bool {
-	var zero R
+	var foundIdx int = -1
 
-	_, ok := unwrapPageType(reflect.TypeOf(zero))
-
-	return ok
-}
-
-// reconstructPage builds a typed Page[T] from a []any returned by the engine.
-// If the engine returned more items than the limit, HasMore is set to true
-// and Next is populated with a cursor pointing past the current page.
-func reconstructPage[R any](raw any, limit int) R {
-	var zero R
-
-	t := reflect.TypeOf(zero)
-
-	elemType, ok := unwrapPageType(t)
-	if !ok {
-		return zero
-	}
-
-	items, ok := raw.([]any)
-	if !ok {
-		return zero
-	}
-
-	hasMore := limit > 0 && len(items) > limit
-	if hasMore {
-		items = items[:limit]
-	}
-
-	slice := reflect.MakeSlice(reflect.SliceOf(elemType), 0, len(items))
-
-	var lastItem any
-
-	for _, item := range items {
-		if item == nil {
+	for i := range t.NumField() {
+		if !t.Field(i).IsExported() || metaNames[t.Field(i).Name] {
 			continue
 		}
 
-		val := reflect.ValueOf(item)
-		if val.Type().ConvertibleTo(elemType) {
-			slice = reflect.Append(slice, val.Convert(elemType))
-			lastItem = item
-		}
-	}
-
-	result := reflect.New(t).Elem()
-	result.FieldByName("Items").Set(slice)
-
-	if hasMore {
-		result.FieldByName("HasMore").SetBool(true)
-
-		if lastItem != nil {
-			cursor := &Cursor{Value: lastItem}
-
-			cursorField := result.FieldByName("Next")
-			if cursorField.IsValid() && cursorField.Kind() == reflect.Pointer {
-				cursorField.Set(reflect.ValueOf(cursor))
+		if t.Field(i).Type == targetType {
+			if foundIdx >= 0 {
+				return nil // ambiguous
 			}
+
+			foundIdx = i
 		}
 	}
 
-	return result.Interface().(R)
+	if foundIdx < 0 {
+		return nil
+	}
+
+	return v.Field(foundIdx).Interface()
 }
 
-// ExecuteTyped is the type-safe wrapper. It dispatches the query and type-asserts the result.
+// buildSortFunc creates a comparator from a SortOn closure.
+// The closure extracts a sort key from each result item.
+func buildSortFunc(closure any) func(a, b any) int {
+	rv := reflect.ValueOf(closure)
+
+	return func(a, b any) int {
+		aVal := rv.Call([]reflect.Value{reflect.ValueOf(a)})[0].Interface()
+		bVal := rv.Call([]reflect.Value{reflect.ValueOf(b)})[0].Interface()
+
+		return compareValue(aVal, bVal)
+	}
+}
+
+// filterPredicate is a runtime filter test against a result item.
+type filterPredicate struct {
+	expected any
+	test     func(item any) bool
+}
+
+// ExecuteTyped is the type-safe wrapper. It dispatches the query and type-asserts
+// the result.
 //
-// For paginated queries (result type is Page[T]), it reconstructs the typed slice
-// from the []any returned by the engine.
+// For collection results (structs with a []T field), it reconstructs the typed
+// slice from the []any returned by the engine.
 //
 // Usage: result, err := metaengine.ExecuteTyped[FindUser, FindUserResult](ctx, store, FindUser{ID: uid}).
 func ExecuteTyped[Q any, R any](
 	_ context.Context,
 	store *Store,
 	input Q,
-	opts ...ExecOption,
 ) (R, error) {
 	var zero R
 
-	raw, err := store.Execute(input, opts...)
+	raw, err := store.Execute(input)
 	if err != nil {
 		return zero, err
 	}
@@ -400,10 +376,10 @@ func ExecuteTyped[Q any, R any](
 		return zero, nil
 	}
 
-	if isPageType[R]() {
-		cfg := applyExecOpts(opts)
+	if isCollectionResult[R]() {
+		limit := extractLimitFromInput(input)
 
-		return reconstructPage[R](raw, cfg.limit), nil
+		return reconstructCollection[R](raw, limit), nil
 	}
 
 	result, ok := raw.(R)

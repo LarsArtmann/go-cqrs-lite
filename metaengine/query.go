@@ -13,8 +13,8 @@ type QueryOption func(*QueryConfig)
 type QueryConfig struct {
 	Volume          int64
 	LatencyBudgetMs int64
-	Filters         []string
-	SortField       string
+	filterAccessors []filterAccessor
+	sortAccessor    sortAccessor
 }
 
 // Volume sets the expected query volume (events/sec) for cost estimation.
@@ -27,16 +27,47 @@ func WithLatencyBudget(ms int64) QueryOption {
 	return func(c *QueryConfig) { c.LatencyBudgetMs = ms }
 }
 
-// FilterOn declares a filter field on the result type for filtered scans.
-// Overrides auto-detected filters from query input/result field matching.
-func FilterOn(field string) QueryOption {
-	return func(c *QueryConfig) { c.Filters = append(c.Filters, field) }
+// filterAccessor stores a typed closure that extracts a filterable field value
+// from a result item at runtime. The returnType is used to match against query
+// input fields by TYPE — the engine never knows field names.
+type filterAccessor struct {
+	closure    any    // func(r R) T — extracts field from result
+	returnType reflect.Type
 }
 
-// SortOn declares the sort field for a filtered scan.
-// Overrides auto-detected sort field from result type inspection.
-func SortOn(field string) QueryOption {
-	return func(c *QueryConfig) { c.SortField = field }
+// sortAccessor stores a typed closure that extracts the sort key from a result item.
+type sortAccessor struct {
+	closure any // func(r R) time.T / comparable — extracts sort key from result
+}
+
+// FilterOn declares a filter on the result type using a typed closure accessor.
+// The closure extracts the comparable value from a result item. At runtime,
+// the engine calls the closure on each result and compares against the matching
+// field in the query input (matched by TYPE, never by name):
+//
+//	metaengine.FilterOn(func(r FindUserResult) string { return r.Status })
+//
+// The query input must have a field of the same type (string) to carry the
+// filter value. Multiple FilterOn closures are AND-combined.
+func FilterOn[R any, T any](accessor func(r R) T) QueryOption {
+	return func(c *QueryConfig) {
+		var zero T
+		c.filterAccessors = append(c.filterAccessors, filterAccessor{
+			closure:    accessor,
+			returnType: reflect.TypeOf(zero),
+		})
+	}
+}
+
+// SortOn declares the sort field using a typed closure accessor.
+// The closure extracts the sort key from a result item. At runtime,
+// the engine calls the closure to compare items:
+//
+//	metaengine.SortOn(func(r FindUserResult) time.Time { return r.JoinedAt })
+func SortOn[R any, T any](accessor func(r R) T) QueryOption {
+	return func(c *QueryConfig) {
+		c.sortAccessor = sortAccessor{closure: accessor}
+	}
 }
 
 // QueryDecl is a fully analyzed query declaration.
@@ -116,45 +147,14 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 }
 
 func (q *QueryDecl[Q, R]) infer() {
-	resultType := reflect.TypeOf(q.resultSample)
-	info, isCollection := collectionResultInfo(resultType)
-	q.IsPaginated = isCollection
+	// Detect pagination: input struct has Limit int and/or After *Cursor.
+	q.IsPaginated = detectPagination(q.querySample)
 
-	queryInputFields := reflectFields(q.querySample)
-	hasInputFields := len(queryInputFields) > 0
-
-	// Apply explicit FilterOn/SortOn overrides.
-	if len(q.Config.Filters) > 0 {
-		resultName := ""
-		if resultType != nil {
-			resultName = resultType.Name()
-		}
-
-		for _, f := range q.Config.Filters {
-			q.Filters = append(q.Filters, FieldPath{
-				Struct: resultName,
-				Field:  f,
-			})
-		}
-	}
-
-	if q.Config.SortField != "" {
-		q.SortField = q.Config.SortField
-	}
+	hasInputFields := len(nonMetaFields(q.querySample)) > 0
 
 	switch {
-	case isCollection:
+	case q.IsPaginated || len(q.Config.filterAccessors) > 0:
 		q.ReadPattern = ReadFilteredScan
-
-		if len(q.Filters) == 0 && info != nil && info.itemsElemType != nil {
-			elemSample := reflect.Zero(info.itemsElemType).Interface()
-			q.Filters = matchFilterFields(q.querySample, elemSample)
-		}
-
-		if q.SortField == "" && info != nil && info.itemsElemType != nil {
-			elemSample := reflect.Zero(info.itemsElemType).Interface()
-			q.SortField = detectSortField(elemSample)
-		}
 
 	case hasInputFields && q.ADT == ADTSet:
 		q.ReadPattern = ReadMembership
@@ -179,6 +179,8 @@ type queryMeta interface {
 	QuerySortField() string
 	QueryIsPaginated() bool
 	QueryInputTypeName() string
+	QueryConfig() QueryConfig
+	QueryKeyType() reflect.Type
 }
 
 func (q QueryDecl[Q, R]) QueryName() string             { return q.Name }
@@ -189,6 +191,17 @@ func (q QueryDecl[Q, R]) QueryFilters() []FieldPath     { return q.Filters }
 func (q QueryDecl[Q, R]) QuerySortField() string        { return q.SortField }
 func (q QueryDecl[Q, R]) QueryIsPaginated() bool        { return q.IsPaginated }
 func (q QueryDecl[Q, R]) QueryInputTypeName() string    { return q.InputTypeName }
+func (q QueryDecl[Q, R]) QueryConfig() QueryConfig      { return q.Config }
+
+func (q QueryDecl[Q, R]) QueryKeyType() reflect.Type {
+	for _, f := range q.Folds {
+		if f.Kind == FoldInsert {
+			return f.keyType
+		}
+	}
+
+	return nil
+}
 
 func (q QueryDecl[Q, R]) String() string {
 	pagination := ""

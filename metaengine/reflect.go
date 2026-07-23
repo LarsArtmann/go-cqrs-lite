@@ -26,6 +26,7 @@ func qualifiedTypeName(v any) string {
 // reflectField is a simplified view of a struct field for type inference.
 type reflectField struct {
 	Name       string
+	Type       reflect.Type
 	TypeString string
 	Tag        reflect.StructTag
 }
@@ -54,6 +55,7 @@ func reflectFields(v any) []reflectField {
 
 		fields = append(fields, reflectField{
 			Name:       f.Name,
+			Type:       f.Type,
 			TypeString: f.Type.String(),
 			Tag:        f.Tag,
 		})
@@ -62,31 +64,185 @@ func reflectFields(v any) []reflectField {
 	return fields
 }
 
-// matchFilterFields finds fields shared by name + type between query input
-// and result element type. Each matched field is a filter criterion.
-func matchFilterFields(queryInput any, resultElementType any) []FieldPath {
-	qFields := reflectFields(queryInput)
-	rFields := reflectFields(resultElementType)
-
-	rByName := make(map[string]reflectField, len(rFields))
-	for _, f := range rFields {
-		rByName[f.Name] = f
+// extractKeyValueByType finds a field in the input struct whose type matches
+// the projection's key type. The engine never assumes field names — it matches
+// purely by Go type. Returns the field value and true if found.
+// Panics if multiple fields match (ambiguous).
+func extractKeyValueByType(input any, keyType reflect.Type) any {
+	if keyType == nil {
+		return nil
 	}
 
-	var matched []FieldPath
+	v := reflect.ValueOf(input)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
 
-	structName := reflect.TypeOf(resultElementType).Name()
-	for _, qf := range qFields {
-		if rf, ok := rByName[qf.Name]; ok && rf.TypeString == qf.TypeString {
-			matched = append(matched, FieldPath{
-				Struct: structName,
-				Field:  qf.Name,
-				GoType: qf.TypeString,
-			})
+	if v.Kind() != reflect.Struct {
+		return nil
+	}
+
+	t := v.Type()
+
+	var foundIdx int = -1
+
+	for i := range t.NumField() {
+		if !t.Field(i).IsExported() {
+			continue
+		}
+
+		if t.Field(i).Type == keyType {
+			if foundIdx >= 0 {
+				// Ambiguous — multiple fields of the same key type.
+				return nil
+			}
+
+			foundIdx = i
 		}
 	}
 
-	return matched
+	if foundIdx < 0 {
+		return nil
+	}
+
+	return v.Field(foundIdx).Interface()
+}
+
+// extractDepthFromInput finds a field named "Depth" of type int in the input struct.
+// Graph traversal queries use this convention.
+func extractDepthFromInput(input any) int {
+	v := reflect.ValueOf(input)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return 1
+	}
+
+	f := v.FieldByName("Depth")
+	if !f.IsValid() || f.Kind() != reflect.Int {
+		return 1
+	}
+
+	return int(f.Int())
+}
+
+// detectPagination checks if the input struct has pagination fields:
+// Limit int and/or After *Cursor. The engine detects these by type, not by name
+// convention — these are the standard pagination types defined in this package.
+func detectPagination(input any) bool {
+	fields := reflectFields(input)
+
+	limitType := reflect.TypeOf(int(0)) // untyped int literal matched by int field
+	cursorPtrType := reflect.TypeOf((*Cursor)(nil))
+
+	for _, f := range fields {
+		if f.Type == limitType && f.Name == "Limit" {
+			return true
+		}
+
+		if f.Type == cursorPtrType && f.Name == "After" {
+			return true
+		}
+	}
+
+	// Also check via reflect directly for robustness.
+	t := reflect.TypeOf(input)
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	if t.Kind() != reflect.Struct {
+		return false
+	}
+
+	for i := range t.NumField() {
+		field := t.Field(i)
+		switch field.Name {
+		case "Limit":
+			if field.Type.Kind() == reflect.Int {
+				return true
+			}
+		case "After":
+			if field.Type == cursorPtrType {
+				return true
+			}
+		}
+	}
+
+	_ = limitType
+
+	return false
+}
+
+// extractLimitFromInput extracts the Limit field value from the input struct.
+// Returns 0 if not present (no limit).
+func extractLimitFromInput(input any) int {
+	v := reflect.ValueOf(input)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return 0
+	}
+
+	f := v.FieldByName("Limit")
+	if !f.IsValid() || f.Kind() != reflect.Int {
+		return 0
+	}
+
+	return int(f.Int())
+}
+
+// extractCursorFromInput extracts the After *Cursor field from the input struct.
+// Returns nil if not present.
+func extractCursorFromInput(input any) *Cursor {
+	v := reflect.ValueOf(input)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return nil
+	}
+
+	f := v.FieldByName("After")
+	if !f.IsValid() || f.Kind() != reflect.Pointer {
+		return nil
+	}
+
+	if f.IsNil() {
+		return nil
+	}
+
+	cursor, ok := f.Interface().(*Cursor)
+	if !ok {
+		return nil
+	}
+
+	return cursor
+}
+
+// nonMetaFields returns input fields that are NOT pagination metadata
+// (Limit, After *Cursor, Depth). These are the actual domain filter fields.
+func nonMetaFields(input any) []reflectField {
+	metaNames := map[string]bool{
+		"Limit": true,
+		"After": true,
+		"Depth": true,
+	}
+
+	var result []reflectField
+
+	for _, f := range reflectFields(input) {
+		if !metaNames[f.Name] {
+			result = append(result, f)
+		}
+	}
+
+	return result
 }
 
 // isTimestampType returns true if the type name represents time.Time.
@@ -94,8 +250,8 @@ func isTimestampType(typeName string) bool {
 	return typeName == "time.Time" || typeName == "Time"
 }
 
-// detectSortField finds the sort key for a result element type.
-// Uses the first time.Time field as the default sort key.
+// detectSortField finds the sort key for a result element type by detecting
+// the first time.Time field.
 func detectSortField(elementType any) string {
 	fields := reflectFields(elementType)
 	for _, f := range fields {
@@ -109,9 +265,9 @@ func detectSortField(elementType any) string {
 
 // colResultInfo describes a collection result type.
 type colResultInfo struct {
-	itemsFieldIdx  int           // index of the []T field
-	itemsElemType  reflect.Type  // element type T
-	cursorFieldIdx int           // index of the *Cursor field, or -1 if none
+	itemsFieldIdx  int          // index of the []T field
+	itemsElemType  reflect.Type // element type T
+	cursorFieldIdx int          // index of the *Cursor field, or -1 if none
 }
 
 // collectionResultInfo inspects a result type R for collection characteristics.

@@ -50,12 +50,14 @@ type MapUpdater interface {
 	MapUpdate(collection string, key any, update func(prev any) any) error
 }
 
+// ScanBackend handles filtered+sorted scans for collection queries.
+// Filters are runtime predicates (typed closures from FilterOn), not field
+// name strings. Sort is a runtime comparator (from SortOn), or nil for default.
 type ScanBackend interface {
 	MapScan(
 		collection string,
-		filters []FieldPath,
-		filterValues map[string]any,
-		sortField string,
+		filters []filterPredicate,
+		sortFunc func(a, b any) int,
 		cursor any,
 		limit int,
 	) ([]any, error)
