@@ -158,7 +158,6 @@ func detectPagination(input any) bool {
 	}
 
 	for field := range t.Fields() {
-		field := field
 		switch field.Name {
 		case "Limit":
 			if field.Type.Kind() == reflect.Int {
