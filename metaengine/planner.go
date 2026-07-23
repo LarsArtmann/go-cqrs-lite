@@ -226,9 +226,8 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 		folds:         folds,
 		foldByEvent:   foldByEvent,
 		readPattern:   meta.QueryReadPattern(),
-		filters:       meta.QueryFilters(),
-		sortField:     meta.QuerySortField(),
-		isPaginated:   meta.QueryIsPaginated(),
+		config:        meta.QueryConfig(),
+		keyType:       meta.QueryKeyType(),
 		inputTypeName: meta.QueryInputTypeName(),
 	}
 

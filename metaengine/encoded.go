@@ -7,7 +7,7 @@ import (
 	"sort"
 )
 
-// ApplyEncoded processes a JSON-encoded event payload through all models.
+// ApplyEncoded processes a JSON-encoded event payload through all queries.
 // The eventType identifies which fold to invoke, and payload is JSON bytes
 // that will be decoded into the fold's expected event type via reflection.
 //
@@ -27,21 +27,21 @@ func (s *Store) ApplyEncoded(eventType string, payload []byte) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for _, m := range s.models {
-		foldIdx, ok := m.foldByEvent[eventType]
+	for _, q := range s.queries {
+		foldIdx, ok := q.foldByEvent[eventType]
 		if !ok {
 			continue
 		}
 
-		fold := m.folds[foldIdx]
+		fold := q.folds[foldIdx]
 
 		decoded, err := decodeFromSample(fold.EventSample, payload)
 		if err != nil {
-			return fmt.Errorf("model %q decode %s: %w", m.name, eventType, err)
+			return fmt.Errorf("query %q decode %s: %w", q.name, eventType, err)
 		}
 
-		if err := s.applyFold(m, fold, decoded); err != nil {
-			return fmt.Errorf("model %q fold for %s: %w", m.name, eventType, err)
+		if err := s.applyFold(q, fold, decoded); err != nil {
+			return fmt.Errorf("query %q fold for %s: %w", q.name, eventType, err)
 		}
 	}
 
@@ -62,7 +62,7 @@ func decodeFromSample(sample any, payload []byte) (any, error) {
 	return v.Elem().Interface(), nil
 }
 
-// EventTypeNames returns all event type names the store's models react to.
+// EventTypeNames returns all event type names the store's queries react to.
 // Useful for building projection.Projection adapters.
 func (s *Store) EventTypeNames() []string {
 	s.mu.RLock()
@@ -70,8 +70,8 @@ func (s *Store) EventTypeNames() []string {
 
 	seen := make(map[string]bool)
 
-	for _, m := range s.models {
-		for _, f := range m.folds {
+	for _, q := range s.queries {
+		for _, f := range q.folds {
 			if f.Kind != FoldSkip {
 				seen[f.EventType] = true
 			}
