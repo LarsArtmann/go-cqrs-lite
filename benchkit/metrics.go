@@ -40,7 +40,7 @@ func NewLatencyCollector(maxLen int) *LatencyCollector {
 	return &LatencyCollector{
 		samples: make([]time.Duration, 0, min(maxLen, 1024)),
 		maxLen:  maxLen,
-		rng:     rand.New(rand.NewSource(time.Now().UnixNano())),
+		rng:     rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), 0)),
 	}
 }
 

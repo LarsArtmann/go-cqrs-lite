@@ -21,7 +21,7 @@ func NewGenerator(seed int64, size int) *Generator {
 	}
 
 	return &Generator{
-		rng:  rand.New(rand.NewSource(seed)),
+		rng:  rand.New(rand.NewPCG(uint64(seed), 0)),
 		size: size,
 	}
 }
