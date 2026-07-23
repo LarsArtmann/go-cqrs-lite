@@ -12,8 +12,10 @@ import (
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
-type UserState struct{ Name string }
-type UserCreated struct{ Name string }
+type (
+	UserState   struct{ Name string }
+	UserCreated struct{ Name string }
+)
 
 // CreateUser implements command.Command via embedded *BasicCommand.
 type CreateUser struct {
@@ -41,10 +43,15 @@ func main() {
 	aggID := id.NewAggregateID()
 	_ = command.RegisterTyped(cmds, "user.create",
 		func(ctx context.Context, cmd *CreateUser) error {
-			return repo.Execute(ctx, cmd.AggregateID(), "User", func(s UserState, v event.Version) ([]event.Event, error) {
-				return event.NewEvents(cmd.AggregateID(), "User", v,
-					[]event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
-			})
+			return repo.Execute(
+				ctx,
+				cmd.AggregateID(),
+				"User",
+				func(s UserState, v event.Version) ([]event.Event, error) {
+					return event.NewEvents(cmd.AggregateID(), "User", v,
+						[]event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
+				},
+			)
 		})
 
 	basic, _ := command.New("user.create", aggID)

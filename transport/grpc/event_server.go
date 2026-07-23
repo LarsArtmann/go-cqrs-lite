@@ -133,7 +133,11 @@ func (s *EventServer) unregisterClient(ch chan *cqrsproto.EventEnvelope) {
 	}
 }
 
-const estimatedMetadataEntries = 4
+const (
+	metaPayloadEncoding = "payload_encoding"
+)
+
+const estimatedMetadataEntries = 5
 
 func eventToEnvelope(evt event.Event) *cqrsproto.EventEnvelope {
 	md := evt.Metadata()
@@ -157,6 +161,10 @@ func eventToEnvelope(evt event.Event) *cqrsproto.EventEnvelope {
 	for k, v := range md.Custom {
 		meta[string(k)] = v
 	}
+
+	// Preserve the payload encoding so the receiver can use DecodePayloadAuto.
+	// Set after custom metadata so the reserved key cannot be overridden.
+	meta[metaPayloadEncoding] = string(evt.Encoding())
 
 	version := safeInt64FromVersion(evt.Version())
 

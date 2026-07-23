@@ -6,6 +6,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 	"google.golang.org/grpc"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4/proto"
@@ -69,13 +70,18 @@ func envelopeToEvent(envelope *cqrsproto.EventEnvelope) (event.Event, error) {
 
 	var opts []event.Option
 
-	corrID := envelope.GetMetadata()["correlation_id"]
+	metadata := envelope.GetMetadata()
 
+	corrID := metadata["correlation_id"]
 	if corrID != "" {
 		parsed, parseErr := id.ParseCorrelationID(corrID)
 		if parseErr == nil {
 			opts = append(opts, event.WithCorrelationID(parsed))
 		}
+	}
+
+	if enc := metadata[metaPayloadEncoding]; enc != "" {
+		opts = append(opts, event.WithEncoding(codec.Encoding(enc)))
 	}
 
 	evt, err := event.NewEvent(
