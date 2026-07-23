@@ -68,4 +68,4 @@ Pebble is for embedded/single-process use cases. Consumers who need global Journ
 - `pebble/` will never implement `event.Journal` or `event.SeekableJournal`
 - `pebble/` may still add `CheckpointStore` and `SnapshotStore` (per-key operations, no global ordering needed)
 - Consumers needing full projection replay should use `storage/` with PostgreSQL/SQLite
-- The Pebble example (`example/todo`) uses `memory.MemoryBus` for live projections instead of Journal replay
+- The flagship example (`example/taskmanager/`) demonstrates full CQRS with projections
