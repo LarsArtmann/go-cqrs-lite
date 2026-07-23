@@ -340,14 +340,22 @@ func extractValueByType(input any, targetType reflect.Type) any {
 
 // buildSortFunc creates a comparator from a SortOn closure.
 // The closure extracts a sort key from each result item.
+// When comparing against a cursor value (which is already a raw sort key,
+// not a result item), the closure is skipped and the value is used directly.
 func buildSortFunc(closure any) func(a, b any) int {
 	rv := reflect.ValueOf(closure)
+	paramType := rv.Type().In(0)
+
+	extractKey := func(item any) any {
+		if reflect.TypeOf(item) == paramType {
+			return rv.Call([]reflect.Value{reflect.ValueOf(item)})[0].Interface()
+		}
+
+		return item
+	}
 
 	return func(a, b any) int {
-		aVal := rv.Call([]reflect.Value{reflect.ValueOf(a)})[0].Interface()
-		bVal := rv.Call([]reflect.Value{reflect.ValueOf(b)})[0].Interface()
-
-		return compareValue(aVal, bVal)
+		return compareValue(extractKey(a), extractKey(b))
 	}
 }
 

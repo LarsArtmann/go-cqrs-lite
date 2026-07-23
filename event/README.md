@@ -136,14 +136,14 @@ type CheckinSubmitted struct {
 
 ## Related Modules
 
-- [**command/v2**](../command/README.md) — Command dispatch, typed handlers, middleware
-- [**query/v2**](../query/README.md) — Query dispatch, typed results, pagination
-- [**decider/v2**](../decider/README.md) — Pure-function aggregate pattern (recommended)
-- [**id/v2**](../id/README.md) — Branded IDs: `id.Of[T]` backed by ULID
-- [**codec/v2**](../codec/README.md) — Payload encoding (JSON, CBOR, Raw) for `DecodePayload`
-- [**schema/v2**](../schema/README.md) — Upcasting and schema evolution
-- [**snapshot/v2**](../snapshot/README.md) — Snapshot persistence
-- [**signing/v2**](../signing/README.md) — Event signing (HMAC, Ed25519)
-- [**encryption/v2**](../encryption/README.md) — Payload encryption (XChaCha20, AES-GCM)
-- [**middleware/v2**](../middleware/README.md) — Logging, retry, tracing, metrics
-- [**projection/v2**](../projection/README.md) — Read-model projections from event streams
+- [**command**](../command/README.md) — Command dispatch, typed handlers, middleware
+- [**query**](../query/README.md) — Query dispatch, typed results, pagination
+- [**decider**](../decider/README.md) — Pure-function aggregate pattern (recommended)
+- [**id**](../id/README.md) — Branded IDs: `id.Of[T]` backed by ULID
+- [**codec**](../codec/README.md) — Payload encoding (JSON, CBOR, Raw) for `DecodePayload`
+- [**schema**](../schema/README.md) — Upcasting and schema evolution
+- [**snapshot**](../snapshot/README.md) — Snapshot persistence
+- [**signing**](../signing/README.md) — Event signing (HMAC, Ed25519)
+- [**encryption**](../encryption/README.md) — Payload encryption (XChaCha20, AES-GCM)
+- [**middleware**](../middleware/README.md) — Logging, retry, tracing, metrics
+- [**projection**](../projection/README.md) — Read-model projections from event streams

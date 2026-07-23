@@ -186,9 +186,9 @@ Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
 
 | Dependency                       | Purpose                          |
 | -------------------------------- | -------------------------------- |
-| [event/v2](../event/README.md)   | Event types, tombstone detection |
-| [id/v2](../id/README.md)         | AggregateID                      |
-| [memory/v2](../memory/README.md) | In-memory reader for testing     |
+| [event](../event/README.md)   | Event types, tombstone detection |
+| [id](../id/README.md)         | AggregateID                      |
+| [memory](../storage/memory/README.md) | In-memory reader for testing     |
 
 ## Test Coverage
 
@@ -203,8 +203,8 @@ Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
 
 ## Related Modules
 
-- [**projection/v2**](../projection/README.md) — Register `AggregateProjection` with the runner to populate the reader
-- [**storage/v2**](../storage/README.md) — SQL-backed `AggregateReader` for PostgreSQL/SQLite
-- [**event/v2**](../event/README.md) — Tombstone detection and event types
-- [**id/v2**](../id/README.md) — `AggregateID` type
-- [**memory/v2**](../memory/README.md) — `InMemoryAggregateReader` for tests
+- [**projection**](../projection/README.md) — Register `AggregateProjection` with the runner to populate the reader
+- [**storage**](../storage/README.md) — SQL-backed `AggregateReader` for PostgreSQL/SQLite
+- [**event**](../event/README.md) — Tombstone detection and event types
+- [**id**](../id/README.md) — `AggregateID` type
+- [**memory**](../storage/memory/README.md) — `InMemoryAggregateReader` for tests

@@ -74,10 +74,10 @@ cmds.Use(middleware.CommandRetry(3, 100*time.Millisecond))
 
 ## Related Modules
 
-- [**command/v2**](../command/README.md) — `command.Dispatcher.Use()` applies command middleware
-- [**event/v2**](../event/README.md) — `event.Bus.Use()` / `UsePublish()` applies event middleware
-- [**query/v2**](../query/README.md) — `query.Dispatcher.Use()` applies query middleware
-- [**idempotency/v4**](../idempotency/README.md) — `Store`, `MemoryStore`, `KVStore`, `ErrDuplicate` (used by idempotency middleware)
-- [**signing/v2**](../signing/README.md) — `EventSignMiddleware` / `EventVerifyMiddleware` live here
-- [**encryption/v2**](../encryption/README.md) — `EncryptMiddleware` / `DecryptMiddleware` live here
-- [**otel/v2**](../otel/README.md) — Tracing middleware uses OTel tracers from this module
+- [**command**](../command/README.md) — `command.Dispatcher.Use()` applies command middleware
+- [**event**](../event/README.md) — `event.Bus.Use()` / `UsePublish()` applies event middleware
+- [**query**](../query/README.md) — `query.Dispatcher.Use()` applies query middleware
+- [**idempotency**](../idempotency/README.md) — `Store`, `MemoryStore`, `KVStore`, `ErrDuplicate` (used by idempotency middleware)
+- [**signing**](../signing/README.md) — `EventSignMiddleware` / `EventVerifyMiddleware` live here
+- [**encryption**](../encryption/README.md) — `EncryptMiddleware` / `DecryptMiddleware` live here
+- [**otel**](../otel/README.md) — Tracing middleware uses OTel tracers from this module

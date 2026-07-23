@@ -152,7 +152,7 @@ bring their backend; the library provides the portable sink abstraction.
 
 ## Related Modules
 
-- [**event/v4**](../event/README.md) — `event.Projection` interface this tier implements
-- [**storage/v4**](../storage/README.md) — `RelationalProjection` (the relational peer tier)
-- [**stack/v4**](../stack/README.md) — `Materialize` (the document/KV peer tier)
-- [**kv/v4**](../kv/README.md) — `ViewStore[V,K]` (the document interface)
+- [**event**](../event/README.md) — `event.Projection` interface this tier implements
+- [**storage**](../storage/README.md) — `RelationalProjection` (the relational peer tier)
+- [**stack**](../stack/README.md) — `Materialize` (the document/KV peer tier)
+- [**kv**](../kv/README.md) — `ViewStore[V,K]` (the document interface)

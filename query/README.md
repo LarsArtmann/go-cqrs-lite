@@ -59,9 +59,9 @@ batch, _ := store.ReadQueriesFrom(ctx, lastRequestID, 100)
 
 ## Related Modules
 
-- [event/v2](../event/README.md) — Event store/bus with Journal/SeekableJournal pattern
-- [command/v2](../command/README.md) — Command dispatch with parallel PersistedCommand/CommandStore
-- [decider/v2](../decider/README.md) — Aggregate pattern producing the events queries read
-- [memory/v2](../memory/README.md) — `MemoryQueryStore` in-memory implementation
-- [middleware/v2](../middleware/README.md) — Logging, retry, tracing for queries
-- [id/v2](../id/README.md) — Branded `RequestID`
+- [event](../event/README.md) — Event store/bus with Journal/SeekableJournal pattern
+- [command](../command/README.md) — Command dispatch with parallel PersistedCommand/CommandStore
+- [decider](../decider/README.md) — Aggregate pattern producing the events queries read
+- [memory](../storage/memory/README.md) — `MemoryQueryStore` in-memory implementation
+- [middleware](../middleware/README.md) — Logging, retry, tracing for queries
+- [id](../id/README.md) — Branded `RequestID`

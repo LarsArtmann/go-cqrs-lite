@@ -118,9 +118,9 @@ ctx = cqrsotel.WithCorrelationID(ctx, traceID.String())
 
 ## Related Modules
 
-- [**middleware/v4**](../middleware/README.md) — `OTelBundle` and tracing/metrics middleware
-- [**storage/v2**](../storage/README.md) — SQL stores record spans via `otel/` re-exports
-- [**prometheus/v4**](../prometheus/README.md) — OTel→Prometheus metrics bridge
+- [**middleware**](../middleware/README.md) — `OTelBundle` and tracing/metrics middleware
+- [**storage**](../storage/README.md) — SQL stores record spans via `otel/` re-exports
+- [**prometheus**](../prometheus/README.md) — OTel→Prometheus metrics bridge
 - [**transport/http**](../transport/http/) — SSE event delivery with consumer spans
 - [**transport/grpc**](../transport/grpc/) — Remote command/query dispatch with server spans
 - [**watermill**](../watermill/) — Broker bridges with producer spans

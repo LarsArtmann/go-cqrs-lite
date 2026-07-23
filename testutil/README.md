@@ -37,10 +37,10 @@ dispatcher.Register("ping", testutil.NoopCommandHandler())
 
 | Dependency                         | Purpose                          |
 | ---------------------------------- | -------------------------------- |
-| [command/v4](../command/README.md) | Command types and `BasicCommand` |
-| [id/v4](../id/README.md)           | `AggregateID` type               |
+| [command](../command/README.md) | Command types and `BasicCommand` |
+| [id](../id/README.md)           | `AggregateID` type               |
 
 ## Related Modules
 
-- [command/v4](../command/README.md) — Command dispatch and typed handlers
-- [id/v4](../id/README.md) — Branded IDs
+- [command](../command/README.md) — Command dispatch and typed handlers
+- [id](../id/README.md) — Branded IDs

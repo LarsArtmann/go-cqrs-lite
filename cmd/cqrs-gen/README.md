@@ -110,7 +110,7 @@ Zero external dependencies — uses only the Go standard library
 
 ## Related Modules
 
-- [command/v4](../../command/README.md) — Command dispatch and typed handlers
-- [query/v4](../../query/README.md) — Query dispatch and typed results
-- [event/v4](../../event/README.md) — Event bus, `DecodePayload`, `Subscriber`
-- [codec/v4](../../codec/README.md) — Payload codecs used by event handlers
+- [command](../../command/README.md) — Command dispatch and typed handlers
+- [query](../../query/README.md) — Query dispatch and typed results
+- [event](../../event/README.md) — Event bus, `DecodePayload`, `Subscriber`
+- [codec](../../codec/README.md) — Payload codecs used by event handlers

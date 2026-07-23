@@ -58,7 +58,7 @@ concurrent callers with the same key produce exactly one winner.
 
 ## Dispatch Middleware
 
-The [middleware/v4](../middleware) package provides generic idempotency
+The [middleware](../middleware) package provides generic idempotency
 middleware for all three CQRS message types:
 
 ```go
@@ -85,11 +85,11 @@ distributed backends:
 
 ## Related Modules
 
-- [command/v4](../command) — `Command.ID()` / `WithCommandID` provide the stable
+- [command](../command) — `Command.ID()` / `WithCommandID` provide the stable
   command identity that feeds this store.
-- [middleware/v4](../middleware) — `CommandIdempotency`, `EventIdempotency`,
+- [middleware](../middleware) — `CommandIdempotency`, `EventIdempotency`,
   `QueryIdempotency` wire the store into dispatch pipelines.
-- [kv/v4](../kv) — `KVStore` adapts any `kv.Store` + `kv.ConditionalWriter` into
+- [kv](../kv) — `KVStore` adapts any `kv.Store` + `kv.ConditionalWriter` into
   an idempotency `Store`.
 - [go-error-family](https://github.com/larsartmann/go-error-family) — `ErrDuplicate`
   is classified as a `Conflict`.
