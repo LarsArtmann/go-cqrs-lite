@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>go-cqrs-lite &amp; cqrs-htmx Ecosystem Deep-Dive</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         ========================================================================= */
+      :root {
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      a:focus-visible { outline-offset: -1px; }
+
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
+      .sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover, .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main { flex: 1; min-width: 0; }
+
+      h1, h2, h3, h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); line-height: 1.05; margin: 0 0 0.6rem; }
+      h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 3px solid var(--text); display: flex; align-items: baseline; gap: 0.7rem; }
+      h2 .num { font-family: var(--font-mono); font-size: 0.82rem; color: var(--accent); font-weight: 700; letter-spacing: 0.04em; }
+      h3 { font-size: 1.15rem; margin: 0 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 1rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+
+      .hero { padding: 1.5rem 0 2rem; margin-bottom: 1.5rem; border-bottom: 3px solid var(--text); }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 70ch; margin: 0 0 1rem; }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber { background: var(--warning); border-color: var(--warning); color: var(--text); }
+      .tag.teal { background: var(--solution); border-color: var(--solution); color: var(--surface); }
+
+      .hero-shapes { position: relative; height: 90px; margin-bottom: 1.2rem; }
+      .hero-shapes .circle { position: absolute; top: 0; right: 180px; width: 64px; height: 64px; background: var(--problem); border-radius: 50%; }
+      .hero-shapes .square { position: absolute; top: 26px; right: 90px; width: 56px; height: 56px; background: var(--solution); }
+      .hero-shapes .tri { position: absolute; top: 8px; right: 0; width: 0; height: 0; border-left: 32px solid transparent; border-right: 32px solid transparent; border-bottom: 56px solid var(--warning); }
+      .hero-shapes .bar { position: absolute; bottom: 0; right: 230px; width: 100px; height: 14px; background: var(--text); }
+
+      .scorecard, .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; margin: 1.5rem 0 2rem; border: 3px solid var(--text); }
+      .score-card, .stat-card { padding: 1.3rem 1rem; text-align: center; border-right: 3px solid var(--text); background: var(--surface-raised); }
+      .score-card:last-child, .stat-card:last-child { border-right: none; }
+      .score, .stat-value { font-family: var(--font-heading); font-size: 2.6rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
+      .score-card .label, .stat-label { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.5rem; }
+      .score-good, .stat-good { background: var(--solution); color: var(--surface); }
+      .score-warn, .stat-warn { background: var(--warning); color: var(--text); }
+      .score-bad, .stat-bad { background: var(--problem); color: var(--surface); }
+
+      .card { background: var(--surface-raised); border: 2px solid var(--text); padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 8px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); }
+      .card-solution { border-left-color: var(--solution); }
+      .card-warning { border-left-color: var(--warning); }
+
+      .issue { background: var(--surface-raised); border: 2px solid var(--text); padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 8px solid var(--border-strong); }
+      .issue-critical { border-left-color: var(--problem); }
+      .issue-important { border-left-color: var(--warning); }
+      .issue-nice { border-left-color: var(--solution); }
+      .issue h3 { margin-bottom: 0.3rem; }
+      .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
+      .issue p:last-child { margin-bottom: 0; }
+
+      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.22rem 0.6rem; margin-bottom: 0.6rem; color: var(--surface); }
+      .severity-critical { background: var(--problem); }
+      .severity-important { background: var(--warning); color: var(--text); }
+      .severity-nice { background: var(--solution); }
+
+      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.2rem 0.55rem; border: 1px solid var(--text); color: var(--text); }
+      .badge-critical { background: var(--problem); color: var(--surface); }
+      .badge-high { background: var(--warning); }
+      .badge-medium { background: var(--surface-sunken); }
+      .badge-low { background: var(--surface-raised); color: var(--text-muted); }
+      .badge-fixed { background: var(--solution); color: var(--surface); }
+
+      .callout { margin: 0.8rem 0 0; padding: 0.8rem 1rem; border: 1px solid var(--border-strong); border-left: 4px solid var(--border-strong); background: var(--surface-sunken); font-size: 0.92rem; }
+      .callout strong { display: inline-block; margin-right: 0.4rem; }
+      .callout-teal, .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised)); }
+      .callout-amber, .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised)); }
+
+      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.9rem; padding: 0.75rem 0; border-bottom: 2px solid var(--border); }
+      .strength .check { font-family: var(--font-mono); font-weight: 900; color: var(--solution); font-size: 1.3rem; line-height: 1.3; }
+      .strength .text strong { display: block; margin-bottom: 0.15rem; }
+      .strength .text span { color: var(--text-muted); font-size: 0.92rem; }
+
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.92rem; border: 2px solid var(--text); }
+      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--text); color: var(--surface); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-right: 1px solid var(--border-strong); }
+      th:last-child { border-right: none; }
+      td { padding: 0.6rem 0.9rem; border-top: 1px solid var(--border); border-right: 1px solid var(--border); }
+      td:last-child { border-right: none; }
+      tr:nth-child(even) td { background: var(--surface-sunken); }
+      table.compare td.yes { color: var(--solution); font-weight: 700; }
+      table.compare td.no { color: var(--problem); font-weight: 700; }
+      table.compare td.partial { color: var(--warning); font-weight: 700; }
+      table.compare td.neutral { color: var(--text-muted); font-weight: 700; }
+
+      pre { background: var(--text); color: var(--surface); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; border: 2px solid var(--text); }
+      code { font-family: var(--font-mono); }
+      p code, li code, td code { font-size: 0.88em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
+      .tok-keyword { color: var(--warning); }
+      .tok-type { color: var(--warning); }
+      .tok-string { color: #95e1d3; }
+      .tok-comment { color: rgba(244, 244, 240, 0.45); font-style: italic; }
+      .tok-func { color: #6eb5ff; }
+      .tok-number { color: var(--warning); }
+      .tok-generic { color: var(--problem); }
+      .tok-builtin { color: #6eb5ff; }
+      .tok-punct { color: rgba(244, 244, 240, 0.7); }
+      .tok-attr { color: var(--warning); }
+
+      .toc { background: var(--surface-raised); border: 2px solid var(--text); border-left: 6px solid var(--accent); padding: 1rem 1.3rem; margin: 1rem 0 1.5rem; }
+      .toc h3 { margin-bottom: 0.5rem; }
+      .toc ul { list-style: none; padding: 0; }
+      .toc li { margin: 0.25rem 0; }
+      .toc a { color: var(--text); text-decoration: none; font-size: 0.92rem; font-weight: 600; }
+      .toc a:hover { color: var(--accent); }
+
+      .migration-step { display: grid; grid-template-columns: 56px 1fr; gap: 1rem; margin: 1rem 0; padding: 1.1rem; background: var(--surface-raised); border: 2px solid var(--text); border-left: 6px solid var(--accent); }
+      .migration-num { font-family: var(--font-mono); font-weight: 900; font-size: 1.8rem; color: var(--accent); line-height: 1; }
+      .migration-content h4 { margin-bottom: 0.2rem; }
+      .migration-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.94rem; }
+
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 3px solid var(--text); font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono); }
+
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) {
+        .layout { flex-direction: column; padding: 1rem; }
+        .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; }
+        .scorecard, .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        .score-card:nth-child(2), .stat-card:nth-child(2) { border-right: none; }
+        .score-card:nth-child(1), .stat-card:nth-child(1), .score-card:nth-child(2), .stat-card:nth-child(2) { border-bottom: 3px solid var(--text); }
+        .migration-step { grid-template-columns: 1fr; }
+        .hero-shapes { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Library Ecosystem Deep-Dive</span>
+      <span>2026-07-23</span>
+      <span>go-cqrs-lite / cqrs-htmx</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#ecosystem">Ecosystem Map</a>
+          <a href="#capabilities">Capability Gaps</a>
+          <a href="#version-drift">Version Drift</a>
+          <a href="#opportunities">Top Opportunities</a>
+          <a href="#projects">Per-Project Notes</a>
+          <a href="#conclusion">Conclusion</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">Library Deep-Dive &middot; 2026-07-23</div>
+          <h1>go-cqrs-lite &amp; cqrs-htmx Ecosystem Audit</h1>
+          <p class="subtitle">
+            A cross-project analysis of how 22+ consumer applications use the
+            go-cqrs-lite CQRS/Event-Sourcing library and the cqrs-htmx HTTP binding.
+            We identify what is used well, what is underused, what is misused, and
+            what should be avoided.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Scope: 22+ consumer projects</span>
+            <span class="tag">go-cqrs-lite v4.0.x</span>
+            <span class="tag">cqrs-htmx v4.3.0</span>
+            <span class="tag teal">Ecosystem Adoption Score: 58/100</span>
+          </div>
+        </header>
+
+        <section id="summary">
+          <h2><span class="num">01</span>Summary</h2>
+          <div class="callout callout-amber">
+            <strong>The bottom line.</strong>
+            The ecosystem has <em>strong</em> adoption of the core go-cqrs-lite
+            event-sourcing/decider loop, but <em>weak</em> adoption of the higher-level
+            cqrs-htmx HTTP binding. Most web projects import cqrs-htmx only for its
+            middleware chain (security headers, recovery, HTMX detection) and leave
+            the declarative <code>app.Command</code> / <code>app.Query</code> routing,
+            CSRF, rate limiting, typed decoders, and SSE/WebSocket bridges on the
+            table. Version drift is also a real problem: the dependency graph shows
+            76 version conflicts and 532 outdated consumers, with several projects
+            mixing go-cqrs-lite v3 and v4 submodules or pinning local replace-only
+            pseudo-versions.
+          </div>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">✓</div>
+              <div class="text">
+                <strong>Core CQRS/ES is well understood</strong>
+                <span>bank-sync, Standup-Killer, Zlota44, github-local-sync, browser-history, and go-localsync all use deciders, event stores, and projections correctly.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">✓</div>
+              <div class="text">
+                <strong>Advanced production features are exercised</strong>
+                <span>bank-sync uses encryption, snapshots, and upcasting; Standup-Killer uses SSE and idempotency; browser-history uses WebAuthn/usermgmt.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">✓</div>
+              <div class="text">
+                <strong>Middleware awareness is growing</strong>
+                <span>Recovery, security headers, and HTMX detection are being adopted through cqrs-htmx.Chain in Standup-Killer, github-local-sync, PapDashboard, and crush-daily.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="scorecard">
+          <h2><span class="num">02</span>Scorecard</h2>
+          <div class="scorecard">
+            <div class="score-card score-warn">
+              <div class="score">58</div>
+              <div class="label">Ecosystem Adoption Score</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">12/28</div>
+              <div class="label">Capabilities Used Well</div>
+            </div>
+            <div class="score-card score-bad">
+              <div class="score">9</div>
+              <div class="label">Missed / Underused Features</div>
+            </div>
+            <div class="score-card score-bad">
+              <div class="score">4</div>
+              <div class="label">Anti-Patterns / Risks</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">76</div>
+              <div class="label">Version Conflicts</div>
+            </div>
+          </div>
+
+          <p>
+            The score is intentionally conservative. It rewards the strong
+            event-sourcing core but penalizes the ecosystem for (1) treating
+            cqrs-htmx as a middleware-only library, (2) leaving high-value features
+            (idempotency, signing, scheduling, catalog, OTel) on the shelf, and
+            (3) letting version drift accumulate across submodules.
+          </p>
+        </section>
+
+        <section id="ecosystem">
+          <h2><span class="num">03</span>Ecosystem Map</h2>
+
+          <p>
+            Direct consumers of <code>go-cqrs-lite</code> include DiscordSync,
+            KeyCountdown, bank-sync, crush-daily, github-local-sync, go-localsync,
+            Kernovia, PapDashboard, SEC, standard-bug-tracking-schema, StopTube,
+            Zlota44, CV, Cyberdom, InboxClean, KeyHolderAI, Standup-Killer,
+            accountability-system, overview, storbi, timesheets, and browser-history.
+            Direct consumers of <code>cqrs-htmx</code> include CV, DiscordSync,
+            KeyCountdown, KeyHolderAI, Standup-Killer, accountability-system,
+            bank-sync, crush-daily, github-local-sync, overview, PapDashboard,
+            SEC, timesheets, and Zlota44.
+          </p>
+
+          <div class="table-wrap">
+            <table class="compare">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>CQRS Depth</th>
+                  <th>cqrs-htmx Usage</th>
+                  <th>Verdict</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>bank-sync</strong></td>
+                  <td>Deep — decider, ES, projections, snapshots, encryption, upcasting</td>
+                  <td>App.Query for fragments, middleware, SSE</td>
+                  <td class="yes">Good</td>
+                </tr>
+                <tr>
+                  <td><strong>Standup-Killer</strong></td>
+                  <td>Deep — 3 deciders, in-memory/SQLite, idempotency, projections</td>
+                  <td>Chain + Broadcaster only; no app.Command/app.Query</td>
+                  <td class="partial">Partial</td>
+                </tr>
+                <tr>
+                  <td><strong>Zlota44</strong></td>
+                  <td>Deep — typed deciders, idempotency, retry, custom read model</td>
+                  <td>Imported but custom HTTP handlers</td>
+                  <td class="partial">Partial</td>
+                </tr>
+                <tr>
+                  <td><strong>github-local-sync</strong></td>
+                  <td>Medium — stack/sqlite, typed commands, scenario tests</td>
+                  <td>App.Query for 4 read routes, middleware, SSE</td>
+                  <td class="yes">Good</td>
+                </tr>
+                <tr>
+                  <td><strong>crush-daily</strong></td>
+                  <td>Medium — decider, read model, Prometheus/OTel</td>
+                  <td>app.Command only for <code>/api/collect</code>; rest manual</td>
+                  <td class="partial">Partial</td>
+                </tr>
+                <tr>
+                  <td><strong>DiscordSync</strong></td>
+                  <td>Deep — projection host, Turso, catalog, OTel</td>
+                  <td>Custom handlers + SSE; no declarative routes</td>
+                  <td class="partial">Partial</td>
+                </tr>
+                <tr>
+                  <td><strong>SEC</strong></td>
+                  <td>Medium — stack preset, memory-only, idempotency</td>
+                  <td>v4.0.0 pseudo-version; local replaces only</td>
+                  <td class="no">Problematic</td>
+                </tr>
+                <tr>
+                  <td><strong>browser-history</strong></td>
+                  <td>Deep — multi-module, decider, WebAuthn, idempotency</td>
+                  <td>usermgmt + WebAuthn</td>
+                  <td class="no">Problematic (v3/v4 mix)</td>
+                </tr>
+                <tr>
+                  <td><strong>accountability-system</strong></td>
+                  <td>Medium — decider, snapshots, storage</td>
+                  <td>Imported but custom handlers</td>
+                  <td class="partial">Partial</td>
+                </tr>
+                <tr>
+                  <td><strong>KeyCountdown</strong></td>
+                  <td>Medium — decider, tests, transport/http</td>
+                  <td>Imported but custom handlers</td>
+                  <td class="partial">Partial</td>
+                </tr>
+                <tr>
+                  <td><strong>KeyHolderAI</strong></td>
+                  <td>Shallow — command/query imported</td>
+                  <td>Gin routes; cqrs-htmx likely dead import</td>
+                  <td class="no">Problematic</td>
+                </tr>
+                <tr>
+                  <td><strong>overview</strong></td>
+                  <td>None — go-cqrs-lite is indirect only</td>
+                  <td>Middleware/SSE helpers only</td>
+                  <td class="partial">Partial (for CQRS)</td>
+                </tr>
+                <tr>
+                  <td><strong>CV, storbi, InboxClean, Cyberdom, go-localsync, Kernovia, timesheets, PapDashboard, standard-bug-tracking-schema, StopTube</strong></td>
+                  <td>Shallow to medium</td>
+                  <td>None or minimal</td>
+                  <td class="partial">Partial</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="capabilities">
+          <h2><span class="num">04</span>Capability Gaps</h2>
+
+          <p>
+            The go-cqrs-lite suite exposes roughly 28 independent modules (event,
+            command, query, decider, id, storage, projections, snapshots, schema,
+            signing, encryption, middleware, otel, catalog, watermill, transport/http,
+            scheduling, deriver, graph, kv, listing, idempotency, projectionhost,
+            etc.). cqrs-htmx adds declarative HTTP handlers, middleware, auth/usermgmt,
+            SSE/WebSocket bridges, typed decoders, and more. The sections below grade
+            real-world adoption of the most important capabilities.
+          </p>
+
+          <div class="issue issue-nice" id="cap-decider">
+            <span class="severity severity-nice">Fully Leveraged</span>
+            <h3>Decider / event-sourcing core</h3>
+            <div class="where">bank-sync, Standup-Killer, Zlota44, github-local-sync, browser-history, standard-bug-tracking-schema, accountability-system, go-localsync</div>
+            <p>
+              The decider pattern is the most-adopted capability. Multiple projects
+              use <code>decider.NewRepository</code>, typed command handlers, and
+              event buses correctly. This is the primary strength of the ecosystem.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="cap-htmx">
+            <span class="severity severity-important">Partially Used</span>
+            <h3>cqrs-htmx declarative HTTP routing</h3>
+            <div class="where">crush-daily/internal/server/server.go:196, github-local-sync/internal/server/server.go:78-96</div>
+            <p>
+              Only <strong>crush-daily</strong> (one <code>app.Command</code>) and
+              <strong>github-local-sync</strong> (four <code>app.Query</code> routes)
+              actually use cqrs-htmx for routing. Standup-Killer, Zlota44,
+              accountability-system, KeyCountdown, KeyHolderAI, PapDashboard,
+              timesheets, and overview import the library but wire their endpoints
+              manually. They still pay the dependency cost without gaining the
+              decoding, validation, auth, and error-mapping benefits.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation.</strong>
+              For any state-changing POST/PUT route, prefer
+              <code>app.Command</code> with <code>DecodeJSON</code> or
+              <code>DecodeForm</code> plus <code>Authorize</code> and
+              <code>NotifySuccess</code>. For read routes, use
+              <code>app.Query</code> with <code>RenderJSON</code> or
+              <code>RenderTemplResult</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="cap-security">
+            <span class="severity severity-critical">Missed Opportunity</span>
+            <h3>CSRF, rate limiting, and security headers</h3>
+            <div class="where">Standup-Killer, Zlota44, bank-sync, accountability-system, KeyCountdown, KeyHolderAI, PapDashboard</div>
+            <p>
+              cqrs-htmx ships <code>CSRFMiddleware</code>,
+              <code>RateLimiterMiddleware</code>, and
+              <code>SecurityHeadersMiddleware</code> with sensible defaults. Most web
+              projects use only <code>SecurityHeadersMiddleware</code> (and sometimes
+              only with empty fields). CSRF and rate limiting are rarely applied,
+              even on state-changing endpoints.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation.</strong>
+              Wrap the production mux with:
+              <pre><code>return cqrshtmx.Chain(
+    cqrshtmx.RecoveryMiddleware,
+    cqrshtmx.SecurityHeadersMiddleware,
+    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+    cqrshtmx.RateLimiterMiddleware(cqrshtmx.DefaultRateLimiterConfig()),
+    cqrshtmx.HTMXMiddleware,
+    app.Middleware(),
+)(mux)</code></pre>
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="cap-idempotency">
+            <span class="severity severity-important">Partially Used</span>
+            <h3>Idempotency</h3>
+            <div class="where">Standup-Killer/domain/cqrs/handlers.go, Zlota44</div>
+            <p>
+              Standup-Killer and Zlota44 wire idempotency stores, but most other
+              state-changing projects — including <strong>bank-sync</strong> — do not.
+              For financial/banking commands this is a high-value gap: duplicate imports
+              could create duplicate transactions.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation.</strong>
+              Add <code>go-cqrs-lite/idempotency</code> and
+              <code>middleware.CommandIdempotency</code> to the command dispatcher
+              in projects with non-idempotent state changes.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="cap-version">
+            <span class="severity severity-critical">Misused / Risk</span>
+            <h3>Version drift and replace-only pseudo-versions</h3>
+            <div class="where">SEC/go.mod:10-29, browser-history/cmd/server/go.mod:11-32</div>
+            <p>
+              <strong>SEC</strong> pins every go-cqrs-lite and cqrs-htmx submodule to
+              <code>v4.0.0-00010101000000-000000000000</code> and replaces them all
+              with local paths. This only builds inside the monorepo; a fresh
+              checkout or CI outside the workspace will fail because the
+              pseudo-versions are not fetchable.
+            </p>
+            <p>
+              <strong>browser-history</strong> has both v3 and v4 submodules in the
+              same <code>go.mod</code> (e.g. <code>command/v3</code> alongside
+              <code>metadata/v4</code>). This is a latent compilation and type
+              mismatch risk.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation.</strong>
+              Publish stable go-cqrs-lite/cqrs-htmx tags and switch SEC to published
+              versions. For browser-history, run <code>go get</code> on every
+              go-cqrs-lite submodule to v4 and delete v3 replaces.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="cap-projections">
+            <span class="severity severity-important">Partially Used</span>
+            <h3>Projections and read-model tiers</h3>
+            <div class="where">bank-sync, Standup-Killer, DiscordSync, browser-history, InboxClean, go-localsync</div>
+            <p>
+              Projections are used well in some projects, but many apps still build
+              read models by hand-rolling SQL over the event store or by loading full
+              aggregate histories. The library offers three projection tiers
+              (KV/Document, Relational, Graph) and <code>projectionhost</code> for
+              crash-restart + checkpoint + DLQ, but most projects stop at the simplest
+              in-memory projection.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation.</strong>
+              For cross-aggregate lists with status, use <code>listing</code>. For
+              complex relational read models, use
+              <code>storage.RelationalProjection</code>. For long-lived projections,
+              wire a <code>projectionhost.Host</code> with a checkpoint store.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="cap-observability">
+            <span class="severity severity-important">Missed Opportunity</span>
+            <h3>OpenTelemetry and Prometheus</h3>
+            <div class="where">bank-sync, crush-daily, DiscordSync, Kernovia, KeyHolderAI</div>
+            <p>
+              Only a handful of projects import <code>go-cqrs-lite/otel</code> or
+              <code>prometheus</code>. Most projects have no distributed tracing or
+              CQRS-specific metrics around command/query dispatch latency, event
+              throughput, or projection lag. Given the library's built-in OTel
+              middleware, this is low-hanging fruit.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="cap-advanced">
+            <span class="severity severity-important">Missed Opportunity</span>
+            <h3>Signing, encryption, scheduling, deriver, graph, catalog</h3>
+            <div class="where">Ecosystem-wide</div>
+            <p>
+              High-value features are almost entirely unused:
+              <code>signing</code> (only Kernovia imports it), <code>encryption</code>
+              (only bank-sync), <code>scheduling</code> (only Standup-Killer indirectly),
+              <code>deriver</code> (event-to-command pipelines), <code>graph</code>
+              (graph read models), and <code>catalog</code> (AsyncAPI/OpenAPI/EventCatalog
+              generation). These are not needed everywhere, but several projects would
+              benefit from them.
+            </p>
+          </div>
+
+          <div class="issue issue-critical" id="cap-dead">
+            <span class="severity severity-critical">Misused / Risk</span>
+            <h3>Dead imports and framework mismatch</h3>
+            <div class="where">KeyHolderAI/go.mod:65, KeyHolderAI routing uses Gin</div>
+            <p>
+              <strong>KeyHolderAI</strong> imports <code>cqrs-htmx/v4</code> but uses
+              Gin for HTTP routing. No <code>app.Command</code> / <code>app.Query</code>
+              usage is visible. This is a wasted dependency that also complicates
+              the module graph. Either migrate to cqrs-htmx (net/http or Chi) or drop
+              the import.
+            </p>
+          </div>
+        </section>
+
+        <section id="version-drift">
+          <h2><span class="num">05</span>Version Drift</h2>
+
+          <p>
+            The dependency graph reports a health score of 98/100, but 76 version
+            conflicts and 532 outdated consumers across the workspace. The table below
+            focuses on the go-cqrs-lite / cqrs-htmx submodules that need alignment.
+          </p>
+
+          <div class="table-wrap">
+            <table class="compare">
+              <thead>
+                <tr>
+                  <th>Submodule</th>
+                  <th>Latest</th>
+                  <th>Projects behind</th>
+                  <th>Risk</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>go-cqrs-lite/event/v4</code></td>
+                  <td>v4.0.3</td>
+                  <td>crush-daily, Kernovia, bank-sync, accountability-system, KeyCountdown, StopTube @ v4.0.2</td>
+                  <td class="partial">Low — patch drift</td>
+                </tr>
+                <tr>
+                  <td><code>go-cqrs-lite/command/v4</code></td>
+                  <td>v4.0.1</td>
+                  <td>crush-daily, bank-sync, accountability-system, KeyCountdown, KeyHolderAI @ v4.0.0</td>
+                  <td class="partial">Low — patch drift</td>
+                </tr>
+                <tr>
+                  <td><code>go-cqrs-lite/storage/memory/v4</code></td>
+                  <td>v4.0.1</td>
+                  <td>crush-daily, Zlota44, KeyCountdown, Kernovia @ v4.0.0</td>
+                  <td class="partial">Low — patch drift</td>
+                </tr>
+                <tr>
+                  <td><code>cqrs-htmx/v4</code></td>
+                  <td>v4.3.0</td>
+                  <td>SEC @ v4.0.0-00010101000000-000000000000</td>
+                  <td class="no">High — replace-only</td>
+                </tr>
+                <tr>
+                  <td><code>go-cqrs-lite/.../v3</code></td>
+                  <td>Deprecated</td>
+                  <td>browser-history/cmd/server mixes v3 and v4</td>
+                  <td class="no">High — major mix</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>Publish or perish.</strong>
+            SEC cannot be built outside the local workspace. The fix is either to
+            publish all required go-cqrs-lite/cqrs-htmx tags and remove the replace
+            directives, or to document clearly that SEC is a monorepo-only module.
+          </div>
+        </section>
+
+        <section id="opportunities">
+          <h2><span class="num">06</span>Top Opportunities</h2>
+
+          <p>
+            Ranked by <em>impact × ease</em>. Impact is the value to the ecosystem;
+            ease is the estimated engineering effort.
+          </p>
+
+          <div class="table-wrap">
+            <table class="compare">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Opportunity</th>
+                  <th>Impact</th>
+                  <th>Ease</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Stabilize SEC and browser-history dependency wiring</td>
+                  <td class="yes">5</td>
+                  <td class="yes">4</td>
+                  <td><span class="badge badge-critical">20</span></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Adopt <code>app.Command</code> / <code>app.Query</code> in Standup-Killer, Zlota44, crush-daily</td>
+                  <td class="yes">5</td>
+                  <td class="yes">3</td>
+                  <td><span class="badge badge-critical">15</span></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Add CSRF + rate limiting to every cqrs-htmx web project</td>
+                  <td class="yes">5</td>
+                  <td class="yes">4</td>
+                  <td><span class="badge badge-critical">20</span></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>Add idempotency to financial/state-changing command paths (e.g. bank-sync)</td>
+                  <td class="yes">5</td>
+                  <td class="yes">3</td>
+                  <td><span class="badge badge-critical">15</span></td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td>Verify and fix crush-daily snapshot wiring</td>
+                  <td class="yes">4</td>
+                  <td class="yes">4</td>
+                  <td><span class="badge badge-high">16</span></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td>Drop or use cqrs-htmx in KeyHolderAI</td>
+                  <td class="yes">4</td>
+                  <td class="yes">5</td>
+                  <td><span class="badge badge-high">20</span></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td>Align all go-cqrs-lite submodules to latest patch versions</td>
+                  <td class="yes">4</td>
+                  <td class="yes">5</td>
+                  <td><span class="badge badge-high">20</span></td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td>Roll out OTel middleware to more projects</td>
+                  <td class="yes">4</td>
+                  <td class="yes">3</td>
+                  <td><span class="badge badge-high">12</span></td>
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td>Replace hand-rolled read models with <code>listing</code> / relational projections</td>
+                  <td class="yes">4</td>
+                  <td class="partial">2</td>
+                  <td><span class="badge badge-medium">8</span></td>
+                </tr>
+                <tr>
+                  <td>10</td>
+                  <td>Document which projects should use <code>usermgmt</code> vs custom auth</td>
+                  <td class="yes">3</td>
+                  <td class="yes">5</td>
+                  <td><span class="badge badge-medium">15</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="projects">
+          <h2><span class="num">07</span>Per-Project Notes</h2>
+
+          <p>
+            Condensed findings for the most important consumers. The full import
+            matrix is available from the dependency graph tool.
+          </p>
+
+          <h3>Good examples</h3>
+
+          <div class="card card-solution">
+            <h4>bank-sync</h4>
+            <p>
+              The most complete adoption: decider, SQLite event store, projections,
+              snapshots every 50 events, AES-256-GCM encryption at rest, schema
+              upcasting, and middleware. Uses cqrs-htmx for query fragments and
+              middleware. A natural next step is adding idempotency to the sync/import
+              command path.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>github-local-sync</h4>
+            <p>
+              Clean cqrs-htmx usage: <code>app.Query</code> for stats, branches,
+              flows, and health; middleware chain; SSE progress stream. Also uses
+              the <code>stack/sqlite</code> preset and scenario tests. The sync
+              trigger is intentionally a plain handler because it is a long-running
+              process, not a domain command.
+            </p>
+          </div>
+
+          <h3>Partial / underusing</h3>
+
+          <div class="card card-warning">
+            <h4>Standup-Killer</h4>
+            <p>
+              Excellent CQRS core (3 deciders, idempotency, projections) but
+              cqrs-htmx is only used for the middleware chain and SSE broadcaster.
+              All HTTP routes are custom handlers. Migrating the POST/GET routes to
+              <code>app.Command</code> / <code>app.Query</code> would remove a lot
+              of boilerplate and add CSRF/rate-limiting for free.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>Zlota44</h4>
+            <p>
+              Strong decider and typed command/query setup with idempotency and
+              retry middleware. No visible projection/read-model layer; dashboard
+              queries appear to load aggregate histories. cqrs-htmx is imported but
+              routes are custom.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>crush-daily</h4>
+            <p>
+              Builds a full cqrs-htmx <code>App</code> with Prometheus/OTel
+              integration, but only <code>POST /api/collect</code> uses
+              <code>app.Command</code>. All other routes are hand-rolled. Snapshots
+              are wired through the SQLite-backed snapshot store.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>PapDashboard</h4>
+            <p>
+              Uses cqrs-htmx.Chain for middleware and Huma for API routing. Does
+              not use <code>app.Command</code> / <code>app.Query</code>. Decider
+              usage is mostly in tests; runtime adoption is unclear.
+            </p>
+          </div>
+
+          <h3>Problematic</h3>
+
+          <div class="card card-problem">
+            <h4>SEC</h4>
+            <p>
+              All go-cqrs-lite and cqrs-htmx dependencies are pinned to
+              non-fetchable pseudo-versions and replaced with local paths. This is a
+              build-time landmine outside the monorepo. It also uses only in-memory
+              storage, losing persistence benefits.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h4>browser-history</h4>
+            <p>
+              Multi-module architecture is sound, but <code>cmd/server/go.mod</code>
+              mixes <code>go-cqrs-lite/.../v3</code> and
+              <code>go-cqrs-lite/.../v4</code> submodules. Must be migrated fully to
+              v4 to avoid type collisions and compilation surprises.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h4>KeyHolderAI</h4>
+            <p>
+              Uses Gin for routing and cqrs-htmx only for helper utilities (HTMX
+              response builders, context enrichment, HTMX detection, error mapping) and
+              middleware. It creates a cqrs-htmx <code>App</code> via DI but does not
+              use <code>app.Command</code> / <code>app.Query</code> for routing.
+              Decision needed: either migrate routes to cqrs-htmx or drop the
+              dependency and use smaller helper imports.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <h4>overview</h4>
+            <p>
+              Imports cqrs-htmx only for middleware/SSE helpers.
+              <code>go-cqrs-lite</code> is an indirect dependency. If the project is
+              purely a dashboard, it should either start using CQRS or depend on a
+              smaller middleware-only surface to reduce coupling.
+            </p>
+          </div>
+        </section>
+
+        <section id="conclusion">
+          <h2><span class="num">08</span>Conclusion</h2>
+
+          <p>
+            The go-cqrs-lite / cqrs-htmx ecosystem is healthy at the core but
+            underutilized at the HTTP layer. The projects that "go deep" on
+            event sourcing (bank-sync, Standup-Killer, Zlota44, github-local-sync)
+            demonstrate the library's power. The missed opportunity is that most web
+            projects still hand-roll HTTP handlers despite importing cqrs-htmx,
+            leaving security, decoding, validation, and error-mapping benefits on the
+            table.
+          </p>
+
+          <p>
+            The two highest-impact fixes are: (1) stabilize dependency wiring in SEC
+            and browser-history, and (2) migrate web routes to
+            <code>app.Command</code> / <code>app.Query</code> in the major web
+            projects. After that, rolling out CSRF, rate limiting, and idempotency
+            across the web surface will raise the ecosystem's production maturity
+            significantly.
+          </p>
+
+          <div class="callout callout-teal">
+            <strong>Next step.</strong>
+            Run the dependency-graph update plan for go-cqrs-lite and cqrs-htmx to
+            align patch versions, then pick one representative project (e.g.
+            Standup-Killer) to migrate its routes to cqrs-htmx declarative handlers.
+            Use that migration as a template for the others.
+          </div>
+        </section>
+
+        <div class="footer">
+          Generated 2026-07-23 &middot; Ecosystem audit of go-cqrs-lite and cqrs-htmx consumer projects.
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

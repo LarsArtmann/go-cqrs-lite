@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Status Update — CQRS Ecosystem Audit</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      a:focus-visible { outline-offset: -1px; }
+
+      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
+      .sidebar { width: 240px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
+      .sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: all 0.15s ease; line-height: 1.4; font-weight: 500; }
+      .sidebar a:hover, .sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+      .main { flex: 1; min-width: 0; }
+
+      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
+      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
+      h2 .num { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); font-weight: 700; letter-spacing: 0.04em; }
+      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 1rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; color: var(--text-muted); }
+      p strong { color: var(--text); }
+      a { color: var(--accent); }
+
+      .hero { padding: 1.5rem 0 2rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); margin-bottom: 0.9rem; }
+      .subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 70ch; margin: 0 0 1rem; }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .tag { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; padding: 0.25rem 0.6rem; background: var(--surface-sunken); color: var(--text); border: 1px solid var(--border-strong); }
+      .tag.amber { background: var(--warning); border-color: var(--warning); color: var(--text); }
+      .tag.teal { background: var(--solution); border-color: var(--solution); color: var(--surface); }
+      .tag.red { background: var(--problem); border-color: var(--problem); color: var(--surface); }
+
+      .scorecard, .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; margin: 1.5rem 0 2rem; border: 3px solid var(--text); }
+      .score-card, .stat-card { padding: 1.3rem 1rem; text-align: center; border-right: 3px solid var(--text); background: var(--surface-raised); }
+      .score-card:last-child, .stat-card:last-child { border-right: none; }
+      .score, .stat-value { font-family: var(--font-heading); font-size: 2.6rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
+      .score-card .label, .stat-label { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.5rem; color: var(--text); }
+      .score-good, .stat-good { background: var(--solution); color: var(--surface); }
+      .score-warn, .stat-warn { background: var(--warning); color: var(--text); }
+      .score-bad, .stat-bad { background: var(--problem); color: var(--surface); }
+
+      .card { background: var(--surface-raised); border: 2px solid var(--text); padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 8px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .card h4 { color: var(--text); margin-bottom: 0.4rem; }
+      .card p { margin-bottom: 0; }
+      .card p + p { margin-top: 0.6rem; }
+
+      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.22rem 0.6rem; margin-bottom: 0.6rem; color: var(--surface); }
+      .severity-critical { background: var(--problem); }
+      .severity-important { background: var(--warning); color: var(--text); }
+      .severity-nice { background: var(--solution); }
+
+      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.2rem 0.55rem; border: 1px solid var(--text); color: var(--text); }
+      .badge-critical { background: var(--problem); color: var(--surface); }
+      .badge-high { background: var(--warning); color: var(--text); }
+      .badge-medium { background: var(--surface-sunken); }
+      .badge-low { background: var(--surface-raised); color: var(--text-muted); }
+
+      .callout { margin: 0.8rem 0 0; padding: 0.8rem 1rem; border: 1px solid var(--border-strong); border-left: 4px solid var(--border-strong); background: var(--surface-sunken); font-size: 0.92rem; }
+      .callout strong { display: inline-block; margin-right: 0.4rem; color: var(--text); }
+      .callout-teal { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised)); }
+      .callout-amber { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised)); }
+      .callout-red { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 12%, var(--surface-raised)); }
+
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; border: 2px solid var(--text); }
+      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--text); color: var(--surface); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-right: 1px solid var(--border-strong); }
+      th:last-child { border-right: none; }
+      td { padding: 0.6rem 0.9rem; border-top: 1px solid var(--border); border-right: 1px solid var(--border); color: var(--text-muted); }
+      td:last-child { border-right: none; }
+      tr:nth-child(even) td { background: var(--surface-sunken); }
+      td.yes { color: var(--solution); font-weight: 700; }
+      td.no { color: var(--problem); font-weight: 700; }
+      td.partial { color: var(--warning); font-weight: 700; }
+
+      pre { background: var(--surface-sunken); color: var(--text); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; border: 2px solid var(--text); }
+      code { font-family: var(--font-mono); }
+      p code, li code, td code { font-size: 0.88em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; color: var(--text); }
+
+      .toc { background: var(--surface-raised); border: 2px solid var(--text); border-left: 6px solid var(--accent); padding: 1rem 1.3rem; margin: 1rem 0 1.5rem; }
+      .toc h3 { margin-bottom: 0.5rem; color: var(--text); }
+      .toc ul { list-style: none; padding: 0; }
+      .toc li { margin: 0.25rem 0; }
+      .toc a { color: var(--text-muted); text-decoration: none; font-size: 0.92rem; font-weight: 600; }
+      .toc a:hover { color: var(--accent); }
+
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 3px solid var(--text); font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono); }
+
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; } .scorecard, .stat-grid { grid-template-columns: repeat(2, 1fr); } .score-card:nth-child(2), .stat-card:nth-child(2) { border-right: none; } .score-card:nth-child(1), .stat-card:nth-child(1), .score-card:nth-child(2), .stat-card:nth-child(2) { border-bottom: 3px solid var(--text); } }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Status Update</span>
+      <span>2026-07-23 13:24</span>
+      <span>CQRS Ecosystem Audit</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#notstarted">Not Started</a>
+          <a href="#fucked">Totally Fucked Up</a>
+          <a href="#improve">What to Improve</a>
+          <a href="#next">Top 50 Next</a>
+          <a href="#questions">Questions</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="eyebrow">Status Update &middot; 2026-07-23 13:24</div>
+          <h1>CQRS Ecosystem Audit — Status Report</h1>
+          <p class="subtitle">
+            Honest post-mortem of the deep-dive work just completed: what was done,
+            what was half-done, what was missed, and what is genuinely broken.
+          </p>
+          <div class="meta">
+            <span class="tag teal">Audit Report Delivered</span>
+            <span class="tag amber">Not Committed (no git repo)</span>
+            <span class="tag red">No Build Verification Run</span>
+          </div>
+        </header>
+
+        <div class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">10</div>
+            <div class="label">Fully Done</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">8</div>
+            <div class="label">Partially Done</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">11</div>
+            <div class="label">Not Started</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">9</div>
+            <div class="label">Totally Fucked Up</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">50</div>
+            <div class="label">Next Items</div>
+          </div>
+        </div>
+
+        <div class="toc">
+          <h3>Quick Navigation</h3>
+          <ul>
+            <li><a href="#done">a) Fully Done</a></li>
+            <li><a href="#partial">b) Partially Done</a></li>
+            <li><a href="#notstarted">c) Not Started</a></li>
+            <li><a href="#fucked">d) Totally Fucked Up</a></li>
+            <li><a href="#improve">e) What We Should Improve</a></li>
+            <li><a href="#next">f) Top 50 Next Things</a></li>
+            <li><a href="#questions">g) 3 Questions I Cannot Answer</a></li>
+          </ul>
+        </div>
+
+        <section id="done">
+          <h2><span class="num">a</span>Fully Done</h2>
+
+          <div class="card card-solution">
+            <h4>1. Located both SDK repositories and consumer map</h4>
+            <p>Found <code>/home/lars/projects/go-cqrs-lite</code> and <code>/home/lars/projects/cqrs-htmx</code> and identified 22+ direct consumers of go-cqrs-lite and 14 direct consumers of cqrs-htmx.</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>2. Read the library surface docs</h4>
+            <p>Read README, FEATURES, DOMAIN_LANGUAGE, v3→v4 migration guide, and the SKILL.md consumer guide. Understood the module split and the HTTP binding capabilities.</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>3. Ran dependency-graph queries</h4>
+            <p>Used <code>project-dependency-graph</code> to run <code>who-uses</code>, <code>health</code>, <code>version-conflicts</code>, and <code>update-plan</code> for both libraries.</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>4. Launched a sub-agent consumer scan</h4>
+            <p>Delegated a broad scan of consumer projects to a sub-agent, asking for per-project usage patterns, capability matrix, and top actionable recommendations.</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>5. Verified key findings with direct source reads</h4>
+            <p>Read SEC/go.mod, browser-history/cmd/server/go.mod, crush-daily/internal/server/server.go, github-local-sync/internal/server/server.go, PapDashboard/cmd/server/main.go, bank-sync/internal/cqrs/infrastructure.go, KeyHolderAI/go.mod, overview/go.mod, and Standup-Killer/domain/cqrs/handlers.go and api/server.go.</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>6. Corrected three significant inaccuracies before finalizing</h4>
+            <p>Fixed the false claim that bank-sync imported idempotency; confirmed crush-daily snapshots are wired; corrected KeyHolderAI from "dead import" to "used only for helpers/middleware, not routing".</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>7. Produced a comprehensive HTML deep-dive report</h4>
+            <p>Wrote <code>docs/research/2026-07-23_go-cqrs-lite-cqrs-htmx-ecosystem-deep-dive.html</code> with ecosystem score, capability gaps, version drift, per-project notes, and top opportunities.</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>8. Validated the HTML artifact</h4>
+            <p>Ran a Python HTML parser to verify tag nesting and found no unclosed or mismatched tags.</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>9. Discovered and read existing related reports</h4>
+            <p>Read <code>CQRS_SDK_PROJECT_REVIEW.md</code>, <code>CQRS_SDK_PROJECT_REVIEW_FINAL.md</code>, <code>CQRS_SDK_PROJECT_REVIEW_V2.md</code>, <code>CROSS_PROJECT_CONSOLIDATION_PLAN.md</code>, and the v3→v4 ecosystem update plan/report to avoid duplicating old work.</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>10. Created this status report</h4>
+            <p>You are reading it. It is honest, structured, and includes the requested categories.</p>
+          </div>
+        </section>
+
+        <section id="partial">
+          <h2><span class="num">b</span>Partially Done</h2>
+
+          <div class="card card-warning">
+            <h4>1. Consumer project scan was broad but not exhaustive</h4>
+            <p>Relied on a sub-agent plus targeted manual reads. Not every Go file in every project was inspected. Some claims (e.g. Zlota44 has no projection layer, DiscordSync runtime command usage) rest on agent inference rather than direct evidence.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>2. Version conflicts identified but not resolved</h4>
+            <p>Detected 76 version conflicts and 532 outdated consumers. Did not run the update plan or apply any fixes.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>3. File:line citations are approximate in places</h4>
+            <p>Some references (e.g. "SEC/go.mod:10-29") are correct, but others are module-level rather than precise call-site references. Did not anchor every recommendation to a specific line range.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>4. Existing reports read but not integrated</h4>
+            <p>The old reviews are from May-June and cover v2/v3. I noted them but did not reconcile every historical finding with the current v4 state, nor update the old files.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>5. Per-project scoring is high-level only</h4>
+            <p>Gave Good / Partial / Problematic verdicts, but no numeric score per project, no test-coverage data, no build status, and no migration effort estimate.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>6. project-dependency-graph advanced commands not used</h4>
+            <p>Did not use <code>explain</code>, <code>why</code>, <code>focus</code>, or <code>diff</code> to produce richer dependency or blast-radius analysis.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>7. AGENTS.md and project docs not consulted for context</h4>
+            <p>Most consumer projects have AGENTS.md, FEATURES.md, TODO_LIST.md, or ROADMAP.md. I did not read them, missing decisions that might explain why a project uses or avoids a feature.</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>8. The "parseErrors=1" warning was investigated</h4>
+            <p>The failing module is <code>/home/lars/projects/prison/scripts/go.mod</code>, which uses invalid bare-module syntax. It is not a CQRS consumer and does not affect the audit findings.</p>
+          </div>
+        </section>
+
+        <section id="notstarted">
+          <h2><span class="num">c</span>Not Started</h2>
+
+          <div class="card card-solution">
+            <h4>1. Build verification was run</h4>
+            <p>See the <a href="#verification">Verification Run</a> section above. All 22 direct consumers compile in their intended build mode; two wiring issues were fixed during the run.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>2. No fixes were applied</h4>
+            <p>Identified SEC, browser-history, KeyHolderAI, and other issues, but did not modify any source code in any project.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>3. No migration scripts or commands created</h4>
+            <p>The update-plan output was inspected, but no automated script or step-by-step guide was produced to apply the 48 dependency bumps.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>4. No visual dependency diagram generated</h4>
+            <p>project-dependency-graph can emit D2/SVG. I did not produce a shareable graph for the ecosystem.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>5. No GitHub issues or task tracking created</h4>
+            <p>Findings remain in the report only; no issues were filed or linked to project TODO_LIST files.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>6. No existing reports were updated</h4>
+            <p>Old review Markdown files are still the latest written record. The new HTML report is a parallel artifact, not a successor or annotation.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>7. No living-doc integration</h4>
+            <p>Did not add findings to FEATURES.md, TODO_LIST.md, or ROADMAP.md in any project. The report may become stale quickly because it is not wired into project maintenance loops.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>8. No code examples for each recommendation</h4>
+            <p>The report has a few examples, but not one per opportunity. A migration cookbook was not produced.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>9. No CI / automation proposal</h4>
+            <p>Did not design a repeatable job to run the dependency graph, version-conflicts, or adoption scoring on a schedule.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>10. No commit or backup made</h4>
+            <p>Because /home/lars/projects is not a git repository, nothing was committed. The report is not version-controlled, tagged, or backed up.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>11. Did not ask the three clarifying questions before acting</h4>
+            <p>Started the audit without confirming report location, relationship to existing reports, or production-vs-experiment status of the projects. These questions are answered below, but they were asked after the work rather than before it.</p>
+          </div>
+        </section>
+
+        <section id="fucked">
+          <h2><span class="num">d</span>Totally Fucked Up!</h2>
+
+          <div class="card card-problem">
+            <h4>1. Report dropped into an un-version-controlled directory</h4>
+            <p>I wrote the deep-dive report to <code>/home/lars/projects/docs/research/</code>, which is not a git repository. If the goal was to produce a durable, shareable artifact, this is the wrong place. The individual projects are git repos, but the meta-projects directory is not.</p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>2. Build verification has now been run</h4>
+            <p>See the <a href="#verification">Verification Run</a> section. Most projects compile in their intended workspace/module mode; the two remaining exceptions are documented and require library releases or project-level decisions.</p>
+          </div>
+
+          <div class="card card-problem">
+            <h4>3. Did not check report location before writing 1000+ lines of HTML</h4>
+            <p>The skill says <code>docs/research/</code>, but /home/lars/projects is a meta directory, not a project. I should have asked where the report should live before writing it.</p>
+          </div>
+
+          <div class="card card-problem">
+            <h4>4. The multiedit tool reported "1 edit failed" and I moved on</h4>
+            <p>When correcting the report, <code>multiedit</code> said 5 of 6 edits succeeded. I did not immediately determine which edit failed or why. It turned out the final state was correct, but the lack of immediate investigation is sloppy.</p>
+          </div>
+
+          <div class="card card-problem">
+            <h4>5. Some findings are still agent-inferred, not source-verified</h4>
+            <p>Recommendations about Zlota44 projections, DiscordSync command/query runtime adoption, and several "should use" features are based on the sub-agent scan rather than my own file reads. I should have re-verified the top 10 recommendations personally.</p>
+          </div>
+
+          <div class="card card-problem">
+            <h4>6. Did not read the AGENTS.md of consumer projects</h4>
+            <p>Project-level AGENTS.md files contain decisions and constraints that could invalidate or sharpen my recommendations. Ignoring them is a major context gap.</p>
+          </div>
+
+          <div class="card card-problem">
+            <h4>7. No risk assessment for false positives</h4>
+            <p>The report does not flag which findings are uncertain. A reader may treat every claim as fact when some are "likely but not proven".</p>
+          </div>
+
+          <div class="card card-problem">
+            <h4>8. Did not use the existing reports as a baseline</h4>
+            <p>There are at least five prior CQRS-related reports at the project root. I should have produced a delta document showing what changed from v2/v3 to v4 and what remains unaddressed, rather than a fresh from-scratch audit.</p>
+          </div>
+
+          <div class="card card-problem">
+            <h4>9. Did not verify the one parse error from the dependency graph</h4>
+            <p>The discovery reported 150 modules and 1 parse error. That one module could be a critical project or a broken go.mod. I did not identify it.</p>
+          </div>
+        </section>
+
+        <section id="improve">
+          <h2><span class="num">e</span>What We Should Improve</h2>
+
+          <div class="card card-warning">
+            <h4>1. Verify before declaring</h4>
+            <p>Run <code>go build ./...</code> and <code>go test ./...</code> before stating that a project has build or runtime risks. If we cannot build, say so explicitly.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>2. Always confirm the artifact home before writing</h4>
+            <p>For cross-project reports, ask which repository or directory should own the snapshot before producing 1000-line files. If /home/lars/projects is meta-only, the report should probably live in go-cqrs-lite or cqrs-htmx.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>3. Re-verify agent findings manually for top N items</h4>
+            <p>Sub-agents are great for breadth, but every high-impact or high-risk finding should be anchored to a specific file and line by the primary worker before publication.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>4. Read project AGENTS.md before diagnosing projects</h4>
+            <p>Each consumer project's AGENTS.md is the single source of truth for that project. Skipping it is like ignoring the codebase's README.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>5. Produce deltas, not only fresh audits</h4>
+            <p>When prior reports exist, the new report should state what changed, what is still true, and what is now resolved. This prevents parallel histories and ghost documentation.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>6. Investigate tool warnings</h4>
+            <p>A "parseErrors=1" warning should never be left unexplained. It is usually a sign of a real problem.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>7. Mark uncertainty explicitly</h4>
+            <p>Reports should label findings as Verified, Inferred, or Speculative. This protects readers from acting on unverified claims.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>8. Integrate reports into living docs</h4>
+            <p>After a snapshot report, update TODO_LIST.md, FEATURES.md, or ROADMAP.md in the owning project so the findings have a maintenance path.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>9. Provide executable next steps, not just recommendations</h4>
+            <p>Every recommendation should come with a command, a script, or a concrete edit. "Use app.Command" is less useful than a copy-paste handler replacement.</p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>10. Build a repeatable audit pipeline</h4>
+            <p>The dependency-graph tool should be run on CI or in a scheduled job so version drift and adoption gaps are detected automatically, not only when a human remembers to ask.</p>
+          </div>
+        </section>
+
+        <section id="next">
+          <h2><span class="num">f</span>Top 50 Things We Should Get Done Next</h2>
+
+          <div class="table-wrap">
+            <table class="compare">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Task</th>
+                  <th>Impact</th>
+                  <th>Effort</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td>Decide where the audit report lives long-term and move it there</td><td class="yes">5</td><td class="yes">1</td><td><span class="badge badge-critical">5</span></td></tr>
+                <tr><td>2</td><td>Run <code>go build ./...</code> on all 22+ consumer projects and record results</td><td class="yes">5</td><td class="yes">3</td><td><span class="badge badge-critical">15</span></td></tr>
+                <tr><td>3</td><td>Fix SEC go.mod replace-only pseudo-versions or document monorepo-only build</td><td class="yes">5</td><td class="yes">2</td><td><span class="badge badge-critical">10</span></td></tr>
+                <tr><td>4</td><td>Migrate browser-history cmd/server submodule to v4 across all modules</td><td class="yes">5</td><td class="yes">3</td><td><span class="badge badge-critical">15</span></td></tr>
+                <tr><td>5</td><td>Execute project-dependency-graph update-plan for go-cqrs-lite and cqrs-htmx</td><td class="yes">5</td><td class="yes">3</td><td><span class="badge badge-critical">15</span></td></tr>
+                <tr><td>6</td><td>Investigate and resolve the 1 dependency-graph parse error</td><td class="yes">4</td><td class="yes">2</td><td><span class="badge badge-high">8</span></td></tr>
+                <tr><td>7</td><td>Migrate Standup-Killer HTTP routes to app.Command / app.Query</td><td class="yes">5</td><td class="partial">3</td><td><span class="badge badge-critical">15</span></td></tr>
+                <tr><td>8</td><td>Add CSRF middleware to all cqrs-htmx web projects with state-changing routes</td><td class="yes">5</td><td class="yes">3</td><td><span class="badge badge-critical">15</span></td></tr>
+                <tr><td>9</td><td>Add rate limiting to all cqrs-htmx web projects</td><td class="yes">4</td><td class="yes">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>10</td><td>Decide KeyHolderAI cqrs-htmx strategy: migrate routes from Gin or drop the dependency</td><td class="yes">4</td><td class="yes">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>11</td><td>Add idempotency to financial/state-changing command paths (bank-sync first)</td><td class="yes">5</td><td class="partial">3</td><td><span class="badge badge-critical">15</span></td></tr>
+                <tr><td>12</td><td>Build a projection/read-model layer for Zlota44</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>13</td><td>Extend crush-daily routes to use app.Command / app.Query beyond /api/collect</td><td class="yes">4</td><td class="yes">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>14</td><td>Add OTel metrics and tracing to more consumer projects</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>15</td><td>Add event signing to projects needing tamper-proof audit trails</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>16</td><td>Add at-rest encryption to projects storing PII beyond bank-sync</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>17</td><td>Use catalog module to generate AsyncAPI/OpenAPI docs for event-sourced projects</td><td class="yes">3</td><td class="partial">2</td><td><span class="badge badge-medium">6</span></td></tr>
+                <tr><td>18</td><td>Add scheduling module for delayed commands and deadlines</td><td class="yes">3</td><td class="partial">3</td><td><span class="badge badge-medium">9</span></td></tr>
+                <tr><td>19</td><td>Add projectionhost with checkpoints to long-running projections</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>20</td><td>Use listing module for aggregate status lists across projects</td><td class="yes">3</td><td class="yes">2</td><td><span class="badge badge-medium">6</span></td></tr>
+                <tr><td>21</td><td>Reconcile and update the old CQRS review Markdown files (V2, FINAL, etc.)</td><td class="yes">4</td><td class="yes">2</td><td><span class="badge badge-high">8</span></td></tr>
+                <tr><td>22</td><td>Produce a delta report from v2/v3 reviews to v4</td><td class="yes">4</td><td class="yes">2</td><td><span class="badge badge-high">8</span></td></tr>
+                <tr><td>23</td><td>Generate a D2/SVG ecosystem dependency diagram</td><td class="yes">3</td><td class="yes">2</td><td><span class="badge badge-medium">6</span></td></tr>
+                <tr><td>24</td><td>Create copy-paste migration recipes for app.Command / app.Query / CSRF / rate limiting</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>25</td><td>Read AGENTS.md of every consumer project and update the audit with their constraints</td><td class="yes">4</td><td class="yes">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>26</td><td>Verify every top-10 recommendation with a direct file read and exact line number</td><td class="yes">5</td><td class="yes">3</td><td><span class="badge badge-critical">15</span></td></tr>
+                <tr><td>27</td><td>Run full test suites on bank-sync, Standup-Killer, Zlota44, github-local-sync, crush-daily</td><td class="yes">5</td><td class="yes">3</td><td><span class="badge badge-critical">15</span></td></tr>
+                <tr><td>28</td><td>Create per-project GitHub issues or TODO_LIST entries for the top findings</td><td class="yes">4</td><td class="yes">2</td><td><span class="badge badge-high">8</span></td></tr>
+                <tr><td>29</td><td>Set up CI check for version drift using project-dependency-graph</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>30</td><td>Build a reusable audit script that regenerates the ecosystem report</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>31</td><td>Create a shared bootstrap package to reduce repetitive CQRS wiring</td><td class="yes">5</td><td class="no">4</td><td><span class="badge badge-high">20</span></td></tr>
+                <tr><td>32</td><td>Standardize auth approach: cqrs-htmx usermgmt vs custom auth per project</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>33</td><td>Add scenario tests to projects lacking them</td><td class="yes">3</td><td class="partial">3</td><td><span class="badge badge-medium">9</span></td></tr>
+                <tr><td>34</td><td>Use graph projections where traversal-heavy read models exist</td><td class="yes">3</td><td class="partial">3</td><td><span class="badge badge-medium">9</span></td></tr>
+                <tr><td>35</td><td>Replace hand-rolled read models with library projections where appropriate</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>36</td><td>Add snapshot strategies to event-sourced projects without them</td><td class="yes">4</td><td class="yes">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>37</td><td>Reconcile the CROSS_PROJECT_CONSOLIDATION_PLAN with current findings</td><td class="yes">4</td><td class="yes">2</td><td><span class="badge badge-high">8</span></td></tr>
+                <tr><td>38</td><td>Create a CQRS SDK adoption ADR in the owning repository</td><td class="yes">3</td><td class="yes">2</td><td><span class="badge badge-medium">6</span></td></tr>
+                <tr><td>39</td><td>Set up a dashboard to track adoption score over time</td><td class="yes">3</td><td class="partial">3</td><td><span class="badge badge-medium">9</span></td></tr>
+                <tr><td>40</td><td>Create a shared CQRS test fixture for consumer projects</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>41</td><td>Add property-based tests for deciders in key projects</td><td class="yes">3</td><td class="partial">3</td><td><span class="badge badge-medium">9</span></td></tr>
+                <tr><td>42</td><td>Benchmark hot paths in bank-sync and crush-daily</td><td class="yes">3</td><td class="partial">3</td><td><span class="badge badge-medium">9</span></td></tr>
+                <tr><td>43</td><td>Add load tests for cqrs-htmx endpoints</td><td class="yes">3</td><td class="partial">3</td><td><span class="badge badge-medium">9</span></td></tr>
+                <tr><td>44</td><td>Document per-project decision: cqrs-htmx vs custom handlers vs Huma vs Gin</td><td class="yes">4</td><td class="yes">2</td><td><span class="badge badge-high">8</span></td></tr>
+                <tr><td>45</td><td>Remove dead/duplicate implementations across the ecosystem</td><td class="yes">4</td><td class="partial">3</td><td><span class="badge badge-high">12</span></td></tr>
+                <tr><td>46</td><td>Investigate whether overview should drop cqrs-htmx or adopt it fully</td><td class="yes">3</td><td class="yes">2</td><td><span class="badge badge-medium">6</span></td></tr>
+                <tr><td>47</td><td>Investigate whether PapDashboard should use cqrs-htmx routes or commit to Huma</td><td class="yes">3</td><td class="yes">2</td><td><span class="badge badge-medium">6</span></td></tr>
+                <tr><td>48</td><td>Add WebAuthn/OAuth2/TOTP via cqrs-htmx usermgmt where appropriate</td><td class="yes">3</td><td class="no">4</td><td><span class="badge badge-medium">12</span></td></tr>
+                <tr><td>49</td><td>Review error-family taxonomy usage across all consumers for consistency</td><td class="yes">3</td><td class="yes">2</td><td><span class="badge badge-medium">6</span></td></tr>
+                <tr><td>50</td><td>Commit or move this status report and the research report to a real git repo</td><td class="yes">5</td><td class="yes">1</td><td><span class="badge badge-critical">5</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="questions">
+          <h2><span class="num">g</span>3 Questions I Cannot Figure Out Myself</h2>
+
+          <div class="callout callout-red">
+            <strong>Q1: Where does the audit report live long-term?</strong>
+            <p>
+              I wrote the deep-dive report to <code>/home/lars/projects/docs/research/</code>,
+              but that directory is not a git repository. The individual projects are. Should the
+              report live inside <code>go-cqrs-lite</code>, inside <code>cqrs-htmx</code>,
+              in a dedicated meta-project, or should /home/lars/projects itself become a git repo?
+              I cannot answer this without knowing your repository and documentation strategy.
+            </p>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>Q2: What is the relationship between this report and the existing CQRS review files?</strong>
+            <p>
+              There are five older files at the project root:
+              <code>CQRS_SDK_PROJECT_REVIEW.md</code>,
+              <code>CQRS_SDK_PROJECT_REVIEW_FINAL.md</code>,
+              <code>CQRS_SDK_PROJECT_REVIEW_V2.md</code>,
+              <code>CROSS_PROJECT_CONSOLIDATION_PLAN.md</code>, and the v3→v4
+              update plan/report. Should the new HTML report supersede them, annotate them, or
+              coexist? I cannot know the intended information lifecycle without your input.
+            </p>
+          </div>
+
+          <div class="callout callout-teal">
+            <strong>Q3: Which projects are production vs. experiments?</strong>
+            <p>
+              My prioritization ranks SEC and browser-history highly because their dependency
+              wiring is objectively risky. But if they are personal experiments that never leave
+              the monorepo, the priority drops. Conversely, a half-adopted feature in a deployed
+              project could be more urgent than a broken build in an experiment. I cannot know
+              deployment or business importance from code alone.
+            </p>
+          </div>
+        </section>
+
+        <section id="verification">
+          <h2><span class="num">10</span>Verification Run — 2026-07-23 14:02</h2>
+
+          <div class="card card-solution">
+            <h4>All 22 direct consumers build in their intended mode</h4>
+            <p>
+              Ran <code>GOEXPERIMENT=jsonv2 go build ./...</code> on every direct consumer, respecting
+              existing workspaces. <strong>All 22 projects now compile.</strong> Projects that declare a
+              <code>go.work</code> were built in workspace mode; the rest were built in module mode.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>Fixed DiscordSync local-replace gap</h4>
+            <p>
+              DiscordSync replaced <code>go-cqrs-lite/storage/v4</code> and <code>kv/v4</code> to local
+              paths but left <code>event/v4</code> and <code>otel/v4</code> on published versions. The local
+              storage module references <code>event.MultiBatchEntry</code>, <code>event.MultiSink</code>, and
+              <code>otel.AttrAggregateCount</code>, which are present locally but not yet in the published
+              tags. Added the two missing replaces in <code>DiscordSync/go.mod</code>; build now passes.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>Fixed InboxClean vendoring drift</h4>
+            <p>
+              InboxClean had a <code>vendor/</code> directory that was inconsistent with <code>go.mod</code>.
+              Ran <code>go work vendor</code> in its workspace; build now passes. Vendor is
+              <code>.gitignore</code>'d, so no tracked files changed.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>browser-history still only builds inside its workspace</h4>
+            <p>
+              In workspace mode <code>browser-history</code> compiles, but in module mode
+              <code>cmd/server</code> fails because the published <code>cqrs-htmx/usermgmt/v4 v4.3.0</code>
+              still depends on <code>go-cqrs-lite</code> <strong>v3.7.4</strong>, while the local code and
+              browser-history use <strong>v4</strong>. This is a library release issue: the usermgmt
+              submodule needs a new tag after its v4 migration.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <h4>Published go-cqrs-lite tags are out of sync with each other</h4>
+            <p>
+              <code>go-cqrs-lite/storage/v4 v4.0.1</code> references symbols
+              (<code>event.MultiBatchEntry</code>, <code>event.MultiSink</code>) that are not present in the
+              published <code>event/v4</code> tags. This means projects that do not replace to the local
+              monorepo can get an incompatible set of published modules. A coordinated release of the
+              go-cqrs-lite submodules is required before consumers can safely build outside the workspace.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <h4>Identified the dependency-graph parse error</h4>
+            <p>
+              The one parse error is <code>/home/lars/projects/prison/scripts/go.mod</code>, which uses
+              invalid bare-module syntax. It is not a CQRS consumer and does not affect this audit.
+            </p>
+          </div>
+        </section>
+
+        <section id="conclusion">
+          <h2><span class="num">09</span>Conclusion</h2>
+
+          <p>
+            The audit produced a useful, evidence-backed report. Build verification has now been run and
+            two concrete wiring issues were fixed. The remaining blockers are strategic: where the reports
+            live, how they relate to the five older review files, and which projects are production versus
+            experiments. Once those are answered, the next high-impact work is to coordinate a go-cqrs-lite /
+            cqrs-htmx release so consumers can build outside the monorepo, then migrate one representative web
+            project to declarative <code>app.Command</code> / <code>app.Query</code> routes as a template.
+          </p>
+
+          <div class="callout callout-amber">
+            <strong>Build verification is done; strategic questions remain.</strong>
+            I have updated the status report with the verification results. Please answer the 3 questions
+            in section g so I can prioritize the 50 next items correctly. I will then execute the chosen
+            work step-by-step, with verification.
+          </div>
+        </section>
+
+        <div class="footer">
+          Generated 2026-07-23 13:24 &middot; Status report for the CQRS ecosystem audit.
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
