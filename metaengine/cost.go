@@ -138,3 +138,17 @@ func checkScaleThreshold(adt ADT, volume int64) *Diagnostic {
 
 	return nil
 }
+
+// effectiveReadComplexity adjusts the ADT-level complexity for the actual read pattern.
+// A hash map (O(1) for point lookup) still scans all items (O(N)) for filtered scans.
+// This ensures cost estimates reflect real query costs, not just data structure costs.
+func effectiveReadComplexity(readPattern ReadPattern, adtComplexity Complexity) Complexity {
+	switch readPattern {
+	case ReadFilteredScan, ReadScan:
+		if adtComplexity == ComplexityO1 {
+			return ComplexityON
+		}
+	}
+
+	return adtComplexity
+}
