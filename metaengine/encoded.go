@@ -54,13 +54,12 @@ func decodeFromSample(sample any, payload []byte) (any, error) {
 		t = t.Elem()
 	}
 
-	v := reflect.New(t).Interface()
-
-	if err := json.Unmarshal(payload, v); err != nil {
+	v := reflect.New(t)
+	if err := json.Unmarshal(payload, v.Interface()); err != nil {
 		return nil, fmt.Errorf("json decode into %s: %w", t.Name(), err)
 	}
 
-	return v, nil
+	return v.Elem().Interface(), nil
 }
 
 // EventTypeNames returns all event type names the store's models react to.
