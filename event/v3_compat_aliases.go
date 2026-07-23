@@ -11,6 +11,15 @@ import (
 
 type StreamType = id.StreamType
 
+// Deprecated: use id.StreamType. Retained for v3 consumers that reference event.AggregateType.
+type AggregateType = id.StreamType
+
+// Deprecated: use id.StreamID. Retained for v3 consumers that reference event.AggregateID.
+type AggregateID = id.StreamID
+
+// Deprecated: use id.StreamRef. Retained for v3 consumers that reference event.AggregateRef.
+type AggregateRef = id.StreamRef
+
 var ParseAggregateType = id.ParseAggregateType
 
 type StreamRef = id.StreamRef
