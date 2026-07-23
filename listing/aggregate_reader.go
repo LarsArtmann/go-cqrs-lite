@@ -6,22 +6,24 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// StreamReader queries aggregate streams.
+// StreamReader queries event streams.
 // Implementations may query projected tables, the events table,
 // or enumerate via Journal.
 type StreamReader interface {
-	// List returns a page of aggregate references.
-	// Tombstoned aggregates are excluded by default (TombstoneExclude).
+	// List returns a page of stream listings.
+	// Tombstoned streams are excluded by default (TombstoneExclude).
 	List(ctx context.Context, opts ListOptions) (*Page[StreamListing], error)
 
-	// ListWithStatus returns aggregates with their computed tombstone status.
-	// Use this when you need to know which aggregates are tombstoned.
+	// ListWithStatus returns streams with their computed tombstone status.
+	// Use this when you need to know which streams are tombstoned.
 	ListWithStatus(ctx context.Context, opts ListOptions) (*Page[StreamStatus], error)
 }
 
+// Deprecated: use StreamReader.
+type AggregateReader = StreamReader
+
 // ListRefsFromStatus delegates to ListWithStatus and strips the status,
-// returning only the StreamListing page. Both InMemoryAggregateReader
-// and SQLAggregateReader use this for their List implementation.
+// returning only the StreamListing page.
 func ListRefsFromStatus(
 	r StreamReader,
 	ctx context.Context,

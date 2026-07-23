@@ -19,11 +19,11 @@
 //
 //	// List active users (in-memory, for testing)
 //	page, err := listing.NewListBuilder(
-//	    listing.NewInMemoryAggregateReader(journal),
+//	    listing.NewInMemoryStreamReader(journal),
 //	).OfType("User").PageSize(20).List(ctx)
 //
 //	// List with status (includes tombstone state)
 //	statusPage, err := listing.NewListBuilder(
-//	    listing.NewInMemoryAggregateReader(journal),
+//	    listing.NewInMemoryStreamReader(journal),
 //	).OfType("User").IncludeDeleted().ListWithStatus(ctx)
 package listing

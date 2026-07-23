@@ -19,42 +19,42 @@ const (
 	maxListingPageSize     = 100
 )
 
-// SQLAggregateReader queries a projection table maintained by AggregateProjection.
-type SQLAggregateReader struct {
+// SQLStreamReader queries a projection table maintained by StreamProjection.
+type SQLStreamReader struct {
 	db      *sql.DB
 	dialect sqlpkg.Dialect
 	table   listingTable
 }
 
-var _ listing.StreamReader = (*SQLAggregateReader)(nil)
+var _ listing.StreamReader = (*SQLStreamReader)(nil)
 
-// NewSQLAggregateReader creates a reader that queries the aggregates projection table.
-func NewSQLAggregateReader(
+// NewSQLStreamReader creates a reader that queries the streams projection table.
+func NewSQLStreamReader(
 	db *sql.DB,
 	tablePrefix string,
 	dialect sqlpkg.Dialect,
-) (*SQLAggregateReader, error) {
+) (*SQLStreamReader, error) {
 	tbl, err := newListingTable(tablePrefix)
 	if err != nil {
 		return nil, errorfamily.NewRejection("listing.invalid_prefix",
 			"invalid table prefix")
 	}
 
-	return &SQLAggregateReader{
+	return &SQLStreamReader{
 		db:      db,
 		dialect: dialect,
 		table:   tbl,
 	}, nil
 }
 
-func (r *SQLAggregateReader) List(
+func (r *SQLStreamReader) List(
 	ctx context.Context,
 	opts listing.ListOptions,
 ) (*listing.Page[listing.StreamListing], error) {
 	return listing.ListRefsFromStatus(r, ctx, opts)
 }
 
-func (r *SQLAggregateReader) ListWithStatus(
+func (r *SQLStreamReader) ListWithStatus(
 	ctx context.Context,
 	opts listing.ListOptions,
 ) (*listing.Page[listing.StreamStatus], error) {
@@ -73,7 +73,7 @@ func (r *SQLAggregateReader) ListWithStatus(
 	}
 	defer sqlpkg.CloseRows(rows)
 
-	items, err := scanAggregateStatuses(rows)
+	items, err := scanStreamStatuses(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (r *SQLAggregateReader) ListWithStatus(
 	return paginateStatuses(items, limit), nil
 }
 
-func (r *SQLAggregateReader) buildListQuery(opts listing.ListOptions) (string, []any, uint) {
+func (r *SQLStreamReader) buildListQuery(opts listing.ListOptions) (string, []any, uint) {
 	var (
 		conditions []string
 		args       []any
@@ -124,25 +124,25 @@ func (r *SQLAggregateReader) buildListQuery(opts listing.ListOptions) (string, [
 	return query, args, limit
 }
 
-func scanAggregateStatuses(rows *sql.Rows) ([]listing.StreamStatus, error) {
+func scanStreamStatuses(rows *sql.Rows) ([]listing.StreamStatus, error) {
 	var items []listing.StreamStatus
 
 	for rows.Next() {
 		var (
-			aggType   string
-			aggID     string
-			version   int
-			count     uint
-			lastAt    string
-			statusInt int
+			streamType string
+			streamID   string
+			version    int
+			count      uint
+			lastAt     string
+			statusInt  int
 		)
 
-		err := rows.Scan(&aggType, &aggID, &version, &count, &lastAt, &statusInt)
+		err := rows.Scan(&streamType, &streamID, &version, &count, &lastAt, &statusInt)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err, "listing.sql_scan", "listing sql scan")
 		}
 
-		parsedID, err := id.ParseAggregateID(aggID)
+		parsedID, err := id.ParseStreamID(streamID)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
 				err,
@@ -154,7 +154,7 @@ func scanAggregateStatuses(rows *sql.Rows) ([]listing.StreamStatus, error) {
 		items = append(items, listing.StreamStatus{
 			Ref: listing.StreamListing{
 				ID:         parsedID,
-				Type:       id.StreamType(aggType),
+				Type:       id.StreamType(streamType),
 				Version:    event.Version(version),
 				EventCount: count,
 			},
@@ -179,4 +179,12 @@ func paginateStatuses(
 	}
 
 	return &listing.Page[listing.StreamStatus]{Items: items, HasMore: hasMore}
+}
+
+// Deprecated: use SQLStreamReader.
+type SQLAggregateReader = SQLStreamReader
+
+// Deprecated: use NewSQLStreamReader.
+func NewSQLAggregateReader(db *sql.DB, tablePrefix string, dialect sqlpkg.Dialect) (*SQLStreamReader, error) {
+	return NewSQLStreamReader(db, tablePrefix, dialect)
 }

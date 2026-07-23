@@ -11,7 +11,7 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
-func openSQLiteListingDB(t *testing.T) (*sql.DB, *AggregateProjection) {
+func openSQLiteListingDB(t *testing.T) (*sql.DB, *StreamProjection) {
 	t.Helper()
 
 	db, err := OpenSQLiteInMemory()
@@ -19,9 +19,9 @@ func openSQLiteListingDB(t *testing.T) (*sql.DB, *AggregateProjection) {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
 
-	proj, err := NewAggregateProjection(context.Background(), db, "test_", sqlpkg.SQLiteDialect{})
+	proj, err := NewStreamProjection(context.Background(), db, "test_", sqlpkg.SQLiteDialect{})
 	if err != nil {
-		t.Fatalf("NewAggregateProjection: %v", err)
+		t.Fatalf("NewStreamProjection: %v", err)
 	}
 
 	return db, proj
@@ -29,7 +29,7 @@ func openSQLiteListingDB(t *testing.T) (*sql.DB, *AggregateProjection) {
 
 func seedListingAggregates(
 	t *testing.T,
-	proj *AggregateProjection,
+	proj *StreamProjection,
 	aggType id.StreamType,
 	count int,
 ) []id.StreamID {
@@ -58,25 +58,25 @@ func seedListingAggregates(
 	return ids
 }
 
-func TestNewSQLAggregateReader_InvalidPrefix(t *testing.T) {
+func TestNewSQLStreamReader_InvalidPrefix(t *testing.T) {
 	t.Parallel()
 	db, _ := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
 
-	_, err := NewSQLAggregateReader(db, "INVALID", sqlpkg.SQLiteDialect{})
+	_, err := NewSQLStreamReader(db, "INVALID", sqlpkg.SQLiteDialect{})
 	if err == nil {
 		t.Fatal("expected error for invalid prefix")
 	}
 }
 
-func TestSQLAggregateReader_List_Empty(t *testing.T) {
+func TestSQLStreamReader_List_Empty(t *testing.T) {
 	t.Parallel()
 	db, _ := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
 
-	reader, err := NewSQLAggregateReader(db, "test_", sqlpkg.SQLiteDialect{})
+	reader, err := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 	if err != nil {
-		t.Fatalf("NewSQLAggregateReader: %v", err)
+		t.Fatalf("NewSQLStreamReader: %v", err)
 	}
 
 	page, err := reader.List(context.Background(), listing.ListOptions{
@@ -95,16 +95,16 @@ func TestSQLAggregateReader_List_Empty(t *testing.T) {
 	}
 }
 
-func TestSQLAggregateReader_List_WithAggregates(t *testing.T) {
+func TestSQLStreamReader_List_WithAggregates(t *testing.T) {
 	t.Parallel()
 	db, proj := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
 
 	seedListingAggregates(t, proj, "User", 3)
 
-	reader, err := NewSQLAggregateReader(db, "test_", sqlpkg.SQLiteDialect{})
+	reader, err := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 	if err != nil {
-		t.Fatalf("NewSQLAggregateReader: %v", err)
+		t.Fatalf("NewSQLStreamReader: %v", err)
 	}
 
 	page, err := reader.List(context.Background(), listing.ListOptions{
@@ -125,7 +125,7 @@ func TestSQLAggregateReader_List_WithAggregates(t *testing.T) {
 	}
 }
 
-func TestSQLAggregateReader_List_FilterByType(t *testing.T) {
+func TestSQLStreamReader_List_FilterByType(t *testing.T) {
 	t.Parallel()
 	db, proj := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
@@ -133,9 +133,9 @@ func TestSQLAggregateReader_List_FilterByType(t *testing.T) {
 	seedListingAggregates(t, proj, "User", 2)
 	seedListingAggregates(t, proj, "Order", 3)
 
-	reader, err := NewSQLAggregateReader(db, "test_", sqlpkg.SQLiteDialect{})
+	reader, err := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 	if err != nil {
-		t.Fatalf("NewSQLAggregateReader: %v", err)
+		t.Fatalf("NewSQLStreamReader: %v", err)
 	}
 
 	userPage, err := reader.List(context.Background(), listing.ListOptions{Type: "User"})
@@ -157,16 +157,16 @@ func TestSQLAggregateReader_List_FilterByType(t *testing.T) {
 	}
 }
 
-func TestSQLAggregateReader_List_Pagination(t *testing.T) {
+func TestSQLStreamReader_List_Pagination(t *testing.T) {
 	t.Parallel()
 	db, proj := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
 
 	seedListingAggregates(t, proj, "User", 5)
 
-	reader, err := NewSQLAggregateReader(db, "test_", sqlpkg.SQLiteDialect{})
+	reader, err := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 	if err != nil {
-		t.Fatalf("NewSQLAggregateReader: %v", err)
+		t.Fatalf("NewSQLStreamReader: %v", err)
 	}
 
 	page1, err := reader.List(context.Background(), listing.ListOptions{
@@ -220,7 +220,7 @@ func TestSQLAggregateReader_List_Pagination(t *testing.T) {
 	}
 }
 
-func TestSQLAggregateReader_List_TombstoneFilter(t *testing.T) {
+func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	t.Parallel()
 	db, proj := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
@@ -249,7 +249,7 @@ func TestSQLAggregateReader_List_TombstoneFilter(t *testing.T) {
 
 	_ = proj.Handle(ctx, marked)
 
-	reader, _ := NewSQLAggregateReader(db, "test_", sqlpkg.SQLiteDialect{})
+	reader, _ := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 
 	activePage, err := reader.ListWithStatus(ctx, listing.ListOptions{
 		Type:      "User",
@@ -292,12 +292,12 @@ func TestSQLAggregateReader_List_TombstoneFilter(t *testing.T) {
 	}
 }
 
-func TestSQLAggregateReader_List_TypeRequired(t *testing.T) {
+func TestSQLStreamReader_List_TypeRequired(t *testing.T) {
 	t.Parallel()
 	db, _ := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
 
-	reader, _ := NewSQLAggregateReader(db, "test_", sqlpkg.SQLiteDialect{})
+	reader, _ := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 
 	_, err := reader.ListWithStatus(context.Background(), listing.ListOptions{
 		Type: "",

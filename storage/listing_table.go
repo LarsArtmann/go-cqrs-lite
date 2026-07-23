@@ -19,9 +19,9 @@ func validateListingTablePrefix(prefix string) error {
 	return nil
 }
 
-// listingTable centralizes the listing aggregates table name derivation and
-// prefix validation shared by AggregateProjection (write side) and
-// SQLAggregateReader (read side). Keeping both in one constructor prevents the
+// listingTable centralizes the listing streams table name derivation and
+// prefix validation shared by StreamProjection (write side) and
+// SQLStreamReader (read side). Keeping both in one constructor prevents the
 // two stores from drifting on the table name or the prefix rule.
 type listingTable struct {
 	name string

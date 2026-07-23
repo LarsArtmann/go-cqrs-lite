@@ -18,7 +18,7 @@ func seedBenchAggregates(
 	payloadKey string,
 	payloadVal string,
 	n int,
-) *listing.InMemoryAggregateReader {
+) *listing.InMemoryStreamReader {
 	b.Helper()
 
 	store := memory.NewMemoryStore()
@@ -43,7 +43,7 @@ func seedBenchAggregates(
 		)
 	}
 
-	return listing.NewInMemoryAggregateReader(store)
+	return listing.NewInMemoryStreamReader(store)
 }
 
 func BenchmarkInMemoryList(b *testing.B) {
@@ -126,7 +126,7 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 		)
 	}
 
-	reader := listing.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryStreamReader(store)
 
 	b.ResetTimer()
 

@@ -25,7 +25,7 @@ func BenchmarkRealistic_Listing(b *testing.B) {
 
 	_ = seedOrders(b, store, aggCount, 3)
 
-	reader := listing.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryStreamReader(store)
 	ctx := context.Background()
 
 	b.ResetTimer()

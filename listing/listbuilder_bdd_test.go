@@ -17,13 +17,13 @@ var _ = Describe("ListBuilder", func() {
 		ctx    context.Context
 		cancel context.CancelFunc
 		store  *memory.MemoryStore
-		reader *listing.InMemoryAggregateReader
+		reader *listing.InMemoryStreamReader
 	)
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		store = memory.NewMemoryStore()
-		reader = listing.NewInMemoryAggregateReader(store)
+		reader = listing.NewInMemoryStreamReader(store)
 	})
 
 	AfterEach(func() {

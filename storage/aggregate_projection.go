@@ -11,25 +11,25 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
-type AggregateProjection struct {
+type StreamProjection struct {
 	db      *sql.DB
 	dialect sqlpkg.Dialect
 	table   listingTable
 }
 
-func NewAggregateProjection(
+func NewStreamProjection(
 	ctx context.Context,
 	db *sql.DB,
 	tablePrefix string,
 	dialect sqlpkg.Dialect,
-) (*AggregateProjection, error) {
+) (*StreamProjection, error) {
 	tbl, err := newListingTable(tablePrefix)
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err, "listing.invalid_table_prefix",
 			fmt.Sprintf("invalid table prefix %q", tablePrefix))
 	}
 
-	p := &AggregateProjection{
+	p := &StreamProjection{
 		db:      db,
 		dialect: dialect,
 		table:   tbl,
@@ -40,18 +40,18 @@ func NewAggregateProjection(
 		return nil, errorfamily.WrapInfrastructure(
 			err,
 			"listing.create_table",
-			"create aggregates table",
+			"create streams table",
 		)
 	}
 
 	return p, nil
 }
 
-func (p *AggregateProjection) Name() string { return "listing.aggregate_projection" }
+func (p *StreamProjection) Name() string { return "listing.aggregate_projection" }
 
-func (p *AggregateProjection) EventTypes() []event.Type { return nil }
+func (p *StreamProjection) EventTypes() []event.Type { return nil }
 
-func (p *AggregateProjection) Handle(ctx context.Context, evt event.Event) error {
+func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
 	status := detectStatusFromMetadata(evt)
 
 	if status == event.TombstoneUndetermined {
@@ -104,7 +104,7 @@ func (p *AggregateProjection) Handle(ctx context.Context, evt event.Event) error
 	return err
 }
 
-func (p *AggregateProjection) createTable(ctx context.Context) error {
+func (p *StreamProjection) createTable(ctx context.Context) error {
 	_, err := p.db.ExecContext(ctx, fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
 		aggregate_type  TEXT NOT NULL,
 		aggregate_id    TEXT NOT NULL,
@@ -133,4 +133,17 @@ func detectStatusFromMetadata(evt event.Event) event.TombstoneStatus {
 	}
 
 	return event.TombstoneUndetermined
+}
+
+// Deprecated: use StreamProjection.
+type AggregateProjection = StreamProjection
+
+// Deprecated: use NewStreamProjection.
+func NewAggregateProjection(
+	ctx context.Context,
+	db *sql.DB,
+	tablePrefix string,
+	dialect sqlpkg.Dialect,
+) (*StreamProjection, error) {
+	return NewStreamProjection(ctx, db, tablePrefix, dialect)
 }

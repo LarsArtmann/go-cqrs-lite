@@ -46,7 +46,7 @@ func BenchmarkScale_Listing_10KAggregates(b *testing.B) {
 		}
 	}
 
-	reader := listing.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryStreamReader(store)
 
 	b.ResetTimer()
 
@@ -84,7 +84,7 @@ func BenchmarkScale_Listing_PaginateThrough10K(b *testing.B) {
 		_ = store.AppendBatch(ctx, id.NewAggregateRef("Item", aggID), []event.Event{evt})
 	}
 
-	reader := listing.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryStreamReader(store)
 
 	b.ResetTimer()
 

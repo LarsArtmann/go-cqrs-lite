@@ -11,9 +11,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
-func ExampleNewInMemoryAggregateReader() {
+func ExampleNewInMemoryStreamReader() {
 	store := memory.NewMemoryStore()
-	reader := listing.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryStreamReader(store)
 
 	aggID := id.NewAggregateID()
 	ref := id.NewAggregateRef("User", aggID)
@@ -38,7 +38,7 @@ func ExampleNewInMemoryAggregateReader() {
 
 func ExampleNewListBuilder() {
 	store := memory.NewMemoryStore()
-	reader := listing.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryStreamReader(store)
 
 	aggID := id.NewAggregateID()
 	ref := id.NewAggregateRef("Order", aggID)
@@ -78,7 +78,7 @@ func ExampleStatusMiddleware() {
 
 func ExampleCacheInvalidationMiddleware() {
 	store := memory.NewMemoryStore()
-	reader := listing.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryStreamReader(store)
 	bus := eventtest.NewFakeBus()
 
 	// Invalidate reader cache whenever events are published

@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
-func TestInMemoryAggregateReader_List( //nolint:gocognit // table-driven test with 4 sub-cases
+func TestInMemoryStreamReader_List( //nolint:gocognit // table-driven test with 4 sub-cases
 	t *testing.T,
 ) {
 	t.Parallel()
@@ -18,7 +18,7 @@ func TestInMemoryAggregateReader_List( //nolint:gocognit // table-driven test wi
 	store := memory.NewMemoryStore()
 	seedEvents(t, store)
 
-	reader := listing.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryStreamReader(store)
 
 	t.Run("lists all active users", func(t *testing.T) {
 		t.Parallel()
@@ -134,11 +134,11 @@ func TestInMemoryAggregateReader_List( //nolint:gocognit // table-driven test wi
 	})
 }
 
-func TestInMemoryAggregateReader_EmptyJournal(t *testing.T) {
+func TestInMemoryStreamReader_EmptyJournal(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	reader := listing.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryStreamReader(store)
 
 	page, err := listing.NewListBuilder(reader).
 		OfType("User").

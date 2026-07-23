@@ -136,7 +136,7 @@ func TestCacheInvalidationMiddleware_InvalidatesAfterPublish(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	reader := listing.NewInMemoryAggregateReader(store)
+	reader := listing.NewInMemoryStreamReader(store)
 	bus := eventtest.NewFakeBus()
 	_ = bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
 

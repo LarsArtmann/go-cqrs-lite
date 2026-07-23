@@ -12,33 +12,41 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// InMemoryAggregateReader implements StreamReader using a Journal.
-// Caches the aggregate index and only rebuilds when the event count changes.
+// InMemoryStreamReader implements StreamReader using a Journal.
+// Caches the stream index and only rebuilds when the event count changes.
 // Suitable for testing, development, and single-process deployments.
-type InMemoryAggregateReader struct {
+type InMemoryStreamReader struct {
 	journal event.Journal
 
 	mu     sync.RWMutex
 	cached []StreamStatus
 }
 
-var _ StreamReader = (*InMemoryAggregateReader)(nil)
+var _ StreamReader = (*InMemoryStreamReader)(nil)
 
-// NewInMemoryAggregateReader creates a reader that enumerates via Journal.ReadAll.
-func NewInMemoryAggregateReader(journal event.Journal) *InMemoryAggregateReader {
-	return &InMemoryAggregateReader{ //nolint:exhaustruct // mu and cached zero-initialized
+// NewInMemoryStreamReader creates a reader that enumerates via Journal.ReadAll.
+func NewInMemoryStreamReader(journal event.Journal) *InMemoryStreamReader {
+	return &InMemoryStreamReader{ //nolint:exhaustruct // mu and cached zero-initialized
 		journal: journal,
 	}
 }
 
-func (r *InMemoryAggregateReader) List(
+// Deprecated: use InMemoryStreamReader.
+type InMemoryAggregateReader = InMemoryStreamReader
+
+// Deprecated: use NewInMemoryStreamReader.
+func NewInMemoryAggregateReader(journal event.Journal) *InMemoryStreamReader {
+	return NewInMemoryStreamReader(journal)
+}
+
+func (r *InMemoryStreamReader) List(
 	ctx context.Context,
 	opts ListOptions,
 ) (*Page[StreamListing], error) {
 	return ListRefsFromStatus(r, ctx, opts)
 }
 
-func (r *InMemoryAggregateReader) ListWithStatus(
+func (r *InMemoryStreamReader) ListWithStatus(
 	ctx context.Context,
 	opts ListOptions,
 ) (*Page[StreamStatus], error) {
@@ -63,7 +71,7 @@ func (r *InMemoryAggregateReader) ListWithStatus(
 	return paginateStatus(refs, opts.Limit), nil
 }
 
-func (r *InMemoryAggregateReader) getRefsUnsorted() []StreamStatus {
+func (r *InMemoryStreamReader) getRefsUnsorted() []StreamStatus {
 	r.mu.RLock()
 	cached := r.cached
 	r.mu.RUnlock()
@@ -71,7 +79,7 @@ func (r *InMemoryAggregateReader) getRefsUnsorted() []StreamStatus {
 	return slices.Clone(cached)
 }
 
-func (r *InMemoryAggregateReader) rebuildCache(ctx context.Context) ([]StreamStatus, error) {
+func (r *InMemoryStreamReader) rebuildCache(ctx context.Context) ([]StreamStatus, error) {
 	all, err := r.journal.ReadAll(ctx)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(
@@ -98,9 +106,9 @@ func (r *InMemoryAggregateReader) rebuildCache(ctx context.Context) ([]StreamSta
 	return refs, nil
 }
 
-// InvalidateCache clears the cached aggregate index.
+// InvalidateCache clears the cached stream index.
 // Call this after new events are saved to the store.
-func (r *InMemoryAggregateReader) InvalidateCache() {
+func (r *InMemoryStreamReader) InvalidateCache() {
 	r.mu.Lock()
 	r.cached = nil
 	r.mu.Unlock()
@@ -108,8 +116,8 @@ func (r *InMemoryAggregateReader) InvalidateCache() {
 
 func buildRefs(events []event.Event) []StreamStatus {
 	type streamKey struct {
-		aggType id.StreamType
-		aggID   id.StreamID
+		streamType id.StreamType
+		streamID   id.StreamID
 	}
 
 	type streamBuilder struct {
@@ -120,7 +128,7 @@ func buildRefs(events []event.Event) []StreamStatus {
 	builders := make(map[streamKey]*streamBuilder)
 
 	for _, evt := range events {
-		key := streamKey{aggType: evt.StreamType(), aggID: evt.StreamID()}
+		key := streamKey{streamType: evt.StreamType(), streamID: evt.StreamID()}
 
 		b, ok := builders[key]
 		if !ok {
