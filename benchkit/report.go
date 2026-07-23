@@ -9,6 +9,21 @@ import (
 	"time"
 )
 
+// durationMarshalers serializes time.Duration as nanoseconds (int64)
+// because JSON v2 has no default representation for time.Duration.
+var durationMarshalers = json.MarshalFunc(
+	func(d time.Duration) ([]byte, error) {
+		return []byte(fmt.Sprintf("%d", d.Nanoseconds())), nil
+	},
+)
+
+// jsonOpts are the default JSON encoding options: indented output
+// with time.Duration serialized as nanoseconds.
+var jsonOpts = json.JoinOptions(
+	jsontext.WithIndent("  "),
+	json.WithMarshalers(durationMarshalers),
+)
+
 // PrintReport writes a human-readable text report for a single result.
 func PrintReport(w io.Writer, r *Result) {
 	if r.Error != "" {
@@ -130,12 +145,12 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 
 // WriteJSON serializes a result as indented JSON.
 func WriteJSON(w io.Writer, r *Result) error {
-	return json.MarshalWrite(w, r, jsontext.WithIndent("  "))
+	return json.MarshalWrite(w, r, jsonOpts)
 }
 
 // WriteComparisonJSON serializes all results as a JSON object.
 func WriteComparisonJSON(w io.Writer, results map[string]*Result) error {
-	return json.MarshalWrite(w, results, jsontext.WithIndent("  "))
+	return json.MarshalWrite(w, results, jsonOpts)
 }
 
 // PrintMarkdown writes a markdown comparison table.
