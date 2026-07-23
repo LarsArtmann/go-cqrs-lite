@@ -358,4 +358,3 @@ func extractFirstDomainField(input any) any {
 
 	return v.FieldByName(fields[0].Name).Interface()
 }
-

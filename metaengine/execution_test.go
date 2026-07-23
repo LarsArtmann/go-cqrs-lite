@@ -16,7 +16,9 @@ var _ = Describe("Apply and Execute", func() {
 
 	BeforeEach(func() {
 		var err error
-		store, err = metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, allQueries()...)
+		store, err = metaengine.Plan(
+			[]metaengine.Engine{metaengine.NewMemoryEngine()},
+			allQueries()...)
 		Expect(err).NotTo(HaveOccurred())
 		ctx = context.Background()
 	})
@@ -34,7 +36,11 @@ var _ = Describe("Apply and Execute", func() {
 		})
 
 		It("returns the stored task by ID", func() {
-			result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](ctx, store, FindTask{ID: "t1"})
+			result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
+				ctx,
+				store,
+				FindTask{ID: "t1"},
+			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Title).To(Equal("Write tests"))
 			Expect(result.Status).To(Equal("open"))
@@ -42,11 +48,17 @@ var _ = Describe("Apply and Execute", func() {
 
 		When("the task is completed via FoldUpdate", func() {
 			BeforeEach(func() {
-				Expect(store.Apply("TaskCompleted", TaskCompleted{ID: "t1", At: time.Now()})).To(Succeed())
+				Expect(
+					store.Apply("TaskCompleted", TaskCompleted{ID: "t1", At: time.Now()}),
+				).To(Succeed())
 			})
 
 			It("updates the status to completed", func() {
-				result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](ctx, store, FindTask{ID: "t1"})
+				result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
+					ctx,
+					store,
+					FindTask{ID: "t1"},
+				)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result.Status).To(Equal("completed"))
 			})
@@ -54,18 +66,28 @@ var _ = Describe("Apply and Execute", func() {
 
 		When("the task is deleted via Remove sentinel", func() {
 			BeforeEach(func() {
-				Expect(store.Apply("TaskDeleted", TaskDeleted{ID: "t1", At: time.Now()})).To(Succeed())
+				Expect(
+					store.Apply("TaskDeleted", TaskDeleted{ID: "t1", At: time.Now()}),
+				).To(Succeed())
 			})
 
 			It("returns a zero-value result", func() {
-				result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](ctx, store, FindTask{ID: "t1"})
+				result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
+					ctx,
+					store,
+					FindTask{ID: "t1"},
+				)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result.Title).To(BeEmpty())
 			})
 		})
 
 		It("returns a zero-value result for an unknown ID", func() {
-			result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](ctx, store, FindTask{ID: "nonexistent"})
+			result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
+				ctx,
+				store,
+				FindTask{ID: "nonexistent"},
+			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Title).To(BeEmpty())
 		})
@@ -79,13 +101,21 @@ var _ = Describe("Apply and Execute", func() {
 		})
 
 		It("reports true for a known assignee", func() {
-			taken, err := metaengine.ExecuteTyped[CheckAssignee, bool](ctx, store, CheckAssignee{User: "alice"})
+			taken, err := metaengine.ExecuteTyped[CheckAssignee, bool](
+				ctx,
+				store,
+				CheckAssignee{User: "alice"},
+			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(taken).To(BeTrue())
 		})
 
 		It("reports false for an unknown assignee", func() {
-			taken, err := metaengine.ExecuteTyped[CheckAssignee, bool](ctx, store, CheckAssignee{User: "nobody"})
+			taken, err := metaengine.ExecuteTyped[CheckAssignee, bool](
+				ctx,
+				store,
+				CheckAssignee{User: "nobody"},
+			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(taken).To(BeFalse())
 		})
@@ -102,11 +132,17 @@ var _ = Describe("Apply and Execute", func() {
 			Expect(store.Apply("TaskCreated", TaskCreated{
 				ID: "t3", Title: "C", Status: "open", At: time.Now(),
 			})).To(Succeed())
-			Expect(store.Apply("TaskCompleted", TaskCompleted{ID: "t1", At: time.Now()})).To(Succeed())
+			Expect(
+				store.Apply("TaskCompleted", TaskCompleted{ID: "t1", At: time.Now()}),
+			).To(Succeed())
 		})
 
 		It("counts open and completed tasks correctly", func() {
-			counts, err := metaengine.ExecuteTyped[CountByStatus, map[string]int64](ctx, store, CountByStatus{})
+			counts, err := metaengine.ExecuteTyped[CountByStatus, map[string]int64](
+				ctx,
+				store,
+				CountByStatus{},
+			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(counts["open"]).To(Equal(int64(2)))
 			Expect(counts["completed"]).To(Equal(int64(1)))
@@ -153,8 +189,12 @@ var _ = Describe("Apply and Execute", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Tasks).To(HaveLen(2))
-			Expect(result.Tasks[0].ID).To(Equal(TaskID("t2")), "highest priority (1) should come first")
-			Expect(result.Tasks[1].ID).To(Equal(TaskID("t1")), "lower priority (5) should come second")
+			Expect(
+				result.Tasks[0].ID,
+			).To(Equal(TaskID("t2")), "highest priority (1) should come first")
+			Expect(
+				result.Tasks[1].ID,
+			).To(Equal(TaskID("t1")), "lower priority (5) should come second")
 		})
 
 		It("excludes tasks not matching the filter", func() {
@@ -205,7 +245,11 @@ var _ = Describe("Concurrent FoldUpdate atomicity", func() {
 			<-done
 		}
 
-		result, err := metaengine.ExecuteTyped[input, val](context.Background(), store, input{ID: "c1"})
+		result, err := metaengine.ExecuteTyped[input, val](
+			context.Background(),
+			store,
+			input{ID: "c1"},
+		)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result.Total).To(Equal(100))
 	})
@@ -216,7 +260,10 @@ var _ = Describe("ApplyEncoded", func() {
 
 	BeforeEach(func() {
 		var err error
-		store, err = metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, findTaskQuery())
+		store, err = metaengine.Plan(
+			[]metaengine.Engine{metaengine.NewMemoryEngine()},
+			findTaskQuery(),
+		)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -238,7 +285,10 @@ var _ = Describe("ApplyEncoded", func() {
 
 var _ = Describe("EventTypeNames", func() {
 	It("returns all event type names the store reacts to, sorted", func() {
-		store, err := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, findTaskQuery())
+		store, err := metaengine.Plan(
+			[]metaengine.Engine{metaengine.NewMemoryEngine()},
+			findTaskQuery(),
+		)
 		Expect(err).NotTo(HaveOccurred())
 		defer store.Close()
 
@@ -252,7 +302,10 @@ var _ = Describe("Execute error handling", func() {
 
 	BeforeEach(func() {
 		var err error
-		store, err = metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, findTaskQuery())
+		store, err = metaengine.Plan(
+			[]metaengine.Engine{metaengine.NewMemoryEngine()},
+			findTaskQuery(),
+		)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

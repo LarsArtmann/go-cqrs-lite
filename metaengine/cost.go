@@ -114,6 +114,11 @@ var scaleThresholds = map[ADT]ScaleThreshold{
 		MinItems:  1,
 		MaxItems:  math.MaxInt64, // logs are unbounded by design
 	},
+	ADTMultimap: {
+		Structure: "multimap (map of slices)",
+		MinItems:  1,
+		MaxItems:  5_000_000,
+	},
 }
 
 // checkScaleThreshold returns a diagnostic if the volume falls outside

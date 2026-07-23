@@ -195,11 +195,11 @@ func classifySingleReturn[E any](
 		}
 	default:
 		return Fold{
-			EventType:  eventType,
+			EventType:   eventType,
 			EventSample: sample,
-			Kind:       FoldSet,
-			keyType:    outType,
-			setHandler: handler,
+			Kind:        FoldSet,
+			keyType:     outType,
+			setHandler:  handler,
 		}
 	}
 }

@@ -9,8 +9,10 @@ import (
 // ─── DOMAIN TYPES (shared across BDD specs) ───
 // A task management domain exercising all 5 ADTs.
 
-type TaskID string
-type UserID string
+type (
+	TaskID string
+	UserID string
+)
 
 // Event types.
 type TaskCreated struct {
@@ -33,10 +35,10 @@ type TaskDeleted struct {
 }
 
 type TaskAssigned struct {
-	TaskID    TaskID
-	Assignee  UserID
-	Previous  UserID
-	At        time.Time
+	TaskID   TaskID
+	Assignee UserID
+	Previous UserID
+	At       time.Time
 }
 
 // ─── Query 1: FindTask (Map ADT — point lookup) ───

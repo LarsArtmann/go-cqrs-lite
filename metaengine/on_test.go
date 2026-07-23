@@ -22,7 +22,8 @@ var _ = Describe("On constructor", func() {
 		sample = event{ID: "e1", Name: "hello"}
 	})
 
-	DescribeTable("classifying handler signatures into fold kinds",
+	DescribeTable(
+		"classifying handler signatures into fold kinds",
 		func(handler any, expectedKind metaengine.FoldKind) {
 			fold := metaengine.On(sample, handler)
 			Expect(fold.Kind).To(Equal(expectedKind))

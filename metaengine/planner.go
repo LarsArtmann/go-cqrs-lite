@@ -258,8 +258,8 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 
 	if cfg.LatencyBudgetMs > 0 && !best.cost.WithinBudget(cfg.LatencyBudgetMs) {
 		assignment.Diagnostics = append(assignment.Diagnostics, Diagnostic{
-			Level:   DiagLevelWarn,
-			Query:   meta.QueryName(),
+			Level: DiagLevelWarn,
+			Query: meta.QueryName(),
 			Message: fmt.Sprintf(
 				"estimated latency %.3fms exceeds budget %dms",
 				best.cost.EstimatedLatencyMs, cfg.LatencyBudgetMs,

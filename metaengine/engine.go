@@ -110,12 +110,12 @@ type memoryEngine struct {
 }
 
 type memData struct {
-	maps       map[string]map[any]any
-	sets       map[string]map[any]struct{}
-	counters   map[string]map[string]int64
-	graphs     map[string]*memGraph
-	multimaps  map[string]map[any][]any
-	logs       map[string][]any
+	maps      map[string]map[any]any
+	sets      map[string]map[any]struct{}
+	counters  map[string]map[string]int64
+	graphs    map[string]*memGraph
+	multimaps map[string]map[any][]any
+	logs      map[string][]any
 }
 
 type memGraph struct {
@@ -443,6 +443,7 @@ func SQLiteEngineProfile() EngineProfile {
 			ADTGraph:     ComplexityON,
 			ADTSortedMap: ComplexityOLogN,
 			ADTLog:       ComplexityOLogN,
+			ADTMultimap:  ComplexityOLogN,
 		},
 	}
 }

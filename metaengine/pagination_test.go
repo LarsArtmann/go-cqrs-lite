@@ -17,7 +17,10 @@ var _ = Describe("Pagination", func() {
 
 	BeforeEach(func() {
 		var err error
-		store, err = metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, listTasksByStatusQuery())
+		store, err = metaengine.Plan(
+			[]metaengine.Engine{metaengine.NewMemoryEngine()},
+			listTasksByStatusQuery(),
+		)
 		Expect(err).NotTo(HaveOccurred())
 		ctx = context.Background()
 
@@ -70,7 +73,11 @@ var _ = Describe("Pagination", func() {
 			input := ListTasksByStatus{Status: "open", Limit: 4}
 
 			for {
-				result, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](ctx, store, input)
+				result, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
+					ctx,
+					store,
+					input,
+				)
 				Expect(err).NotTo(HaveOccurred())
 				for _, t := range result.Tasks {
 					seen = append(seen, t.ID)
