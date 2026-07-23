@@ -46,7 +46,7 @@ func (g *Generator) Payload() []byte {
 		"metadata": meta,
 	}
 
-	data, err := json.Marshal(payload)
+	data, err := json.Marshal(payload, json.Deterministic(true))
 	if err != nil {
 		// json.Marshal on a map[string]any with basic types never fails
 		return []byte(`{}`)
