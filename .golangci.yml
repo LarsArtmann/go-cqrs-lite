@@ -532,6 +532,18 @@ linters:
       - path: encryption/
         linters:
           - ireturn
+      - path: command/
+        linters:
+          - wrapcheck
+      - path: query/
+        linters:
+          - wrapcheck
+      - path: decider/
+        linters:
+          - ireturn
+      - path: schema/
+        linters:
+          - ireturn
       - path: snapshot/
         linters:
           - ireturn

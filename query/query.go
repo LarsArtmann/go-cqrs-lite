@@ -90,7 +90,7 @@ func New(queryType Type, opts ...Option) (*BasicQuery, error) {
 
 	q := &BasicQuery{
 		queryType: queryType,
-		metadata:  metadata.New(),
+		metadata:  Metadata{}, //nolint:exhaustruct // zero-value metadata is the correct initial state
 	}
 
 	for _, opt := range opts {

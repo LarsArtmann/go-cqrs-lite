@@ -301,7 +301,9 @@ func (s *sqlSink) Increment(
 		strings.Join(allCols, ", "),
 		pholders,
 		strings.Join(conflictCols, ", "),
-		counterCol, counterCol, counterCol,
+		counterCol,
+		counterCol,
+		counterCol,
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, allVals...); err != nil {

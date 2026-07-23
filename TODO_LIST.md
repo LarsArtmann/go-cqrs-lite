@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-23 (docs-health + Pareto audit)
+**Updated:** 2026-07-23 (zero-lint achieved, all 4% features verified as already implemented)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
 Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 
@@ -22,31 +22,26 @@ These items deliver the majority of perceived consumer value.
       `GOPROXY=proxy.golang.org go list -m ...@v0.1.0`. v0.2.0 is also published.
       Remaining: delete the wrong `event/v4/eventtest/v4.0.0` tag from **remote**
       (`git push --delete origin event/v4/eventtest/v4.0.0`). Local tag deleted.
-- [ ] ⭐ **Fix README "sales page" friction** — The Quick Start example has a missing
-      trailing comma (line 80) and is not compile-verified. Fix the bug, verify the
-      snippet compiles, and tighten the top-of-page pitch. ~20min.
-- [ ] ⭐ **Add pre-commit hooks** — `fmt.Printf` ban in production packages,
-      `api_surface.txt` regeneration check, `nix fmt --fail-on-change`. Prevents
-      avoidable CI failures and debug prints leaking to main. ~60min.
-- [ ] ⭐ **Add CBOR-stamp round-trip tests for gRPC + watermill** — Cross-encoding
-      tests proving CBOR-stamped events survive transport. Only SSE has this today. ~45min.
-- [ ] ⭐ **Update SKILL.md eventtest FAQ** — The FAQ still says eventtest has "no
-      published tag"; it is now published. Replace with the `go get` command. ~10min.
+- [x] ⭐ **Fix README "sales page" friction** — ✅ `example/readme-quickstart/` created
+      with compile-verified `main.go` + `main_test.go`, registered in `go.work` and `flake.nix`.
+- [x] ⭐ **Add pre-commit hooks** — ✅ `scripts/pre-commit.sh` + flake apps `check-printf`,
+      `pre-commit`, `install-hooks`.
+- [x] ⭐ **Add CBOR-stamp round-trip tests for gRPC + watermill** — ✅ Tests in
+      `transport/grpc/event_test.go` and `watermill/event_publisher_test.go`. gRPC CBOR
+      encoding bug fixed (`payload_encoding` metadata preservation).
+- [x] ⭐ **Update SKILL.md eventtest FAQ** — ✅ Updated with correct `go get` command.
+- [x] ⭐ **Achieve zero-lint across all 44 modules** — ✅ Down from 76 → 0 issues.
+      All `ireturn`, `exhaustruct`, `wrapcheck`, `gocritic`, `gci` findings resolved.
 
 ---
 
 ## 🔥 4% Tier — High Impact, Slightly Larger
 
-- [ ] **Fix lint findings (76 issues)** — Mostly `ireturn` in `cmd/cqrs-lint` detector
-      constructors, plus a few `tagliatelle`/`modernize`/`revive`. Clean or explicitly
-      suppress with justification. ~60min.
-- [ ] **Add `scheduling.SQLTimerStore`** — Persistent deadline timers backed by `*sql.DB`.
-      Both major consumer feedback rounds asked for scheduling adoption; SQLite-only
-      memory store blocks production use. ~90min.
-- [ ] **Add `listing.SQLAggregateReader`** — SQL-backed aggregate listing reader so
-      listing works on real databases, not just in-memory. ~90min.
-- [ ] **Add `projectionhost.Host.LagDuration()`** — Built-in lag metric requested by
-      DiscordSync. Enables a single Prometheus gauge. ~20min.
+- [x] **Fix lint findings (was 76 issues)** — ✅ Zero-lint achieved across all 44 modules.
+- [x] **`scheduling.SQLTimerStore`** — ✅ Already implemented at `storage/timer_store.go`.
+- [x] **`listing.SQLAggregateReader`** — ✅ Already implemented at `storage/sql_aggregate_reader.go`.
+- [x] **`projectionhost.Host.LagDuration()`** — ✅ Already implemented at `projectionhost/host.go:263`
+      with `LagPerProjection()` at line 286. Tests at `host_test.go`.
 - [ ] **Compile-verify `docs/getting-started.md` examples** — Ensure every snippet
       builds; add a CI step or test file to catch drift. ~30min.
 

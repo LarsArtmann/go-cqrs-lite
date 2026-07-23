@@ -81,7 +81,7 @@ func New(commandType Type, aggregateID id.AggregateID, opts ...Option) (*BasicCo
 		commandID:   id.NewCommandID(),
 		commandType: commandType,
 		aggregateID: aggregateID,
-		metadata:    metadata.New(),
+		metadata:    Metadata{}, //nolint:exhaustruct // zero-value metadata is the correct initial state
 	}
 
 	for _, opt := range opts {

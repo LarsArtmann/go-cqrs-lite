@@ -45,9 +45,9 @@ func TestSinkIncrement_NewRow(t *testing.T) {
 
 	handler := func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
 		return sink.Increment(ctx, "channel_activity_by_day", Row{
-			"guild_id":    "g1",
-			"channel_id":  "c1",
-			"day":         "2026-07-23",
+			"guild_id":   "g1",
+			"channel_id": "c1",
+			"day":        "2026-07-23",
 		}, "message_count", 1)
 	}
 
@@ -122,8 +122,14 @@ func TestSinkIncrement_NegativeDelta(t *testing.T) {
 		}, "message_count", -2)
 	}
 
-	projDec, err := NewRelationalProjection("rollup-dec", rollupSchema(), db, sqlpkg.SQLiteDialect{},
-		handlerDec, nil)
+	projDec, err := NewRelationalProjection(
+		"rollup-dec",
+		rollupSchema(),
+		db,
+		sqlpkg.SQLiteDialect{},
+		handlerDec,
+		nil,
+	)
 	if err != nil {
 		t.Fatalf("new dec projection: %v", err)
 	}
@@ -168,7 +174,8 @@ func TestSinkIncrement_MultiCounterSameTable(t *testing.T) {
 
 	var total, downloaded, failed int64
 
-	err = db.QueryRowContext(ctx,
+	err = db.QueryRowContext(
+		ctx,
 		`SELECT total, downloaded, failed FROM attachment_stats WHERE guild_id = ? AND day = ?`,
 		"g1", "2026-07-23",
 	).Scan(&total, &downloaded, &failed)
@@ -399,7 +406,8 @@ func assertCounter(
 
 	var got int64
 
-	err := db.QueryRowContext(context.Background(),
+	err := db.QueryRowContext(
+		context.Background(),
 		`SELECT message_count FROM `+table+
 			` WHERE guild_id = ? AND channel_id = ? AND day = ?`,
 		guildID, channelID, day,
