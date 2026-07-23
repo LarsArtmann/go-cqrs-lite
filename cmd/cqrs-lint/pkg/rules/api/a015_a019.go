@@ -17,6 +17,7 @@ import (
 // (not read-only lookup tables initialized at package load).
 // Suppressed for local-only systems (no server) — race conditions require
 // concurrent access, which only happens in server deployments.
+//
 //nolint:ireturn // factory returns public interface
 func NewA015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -168,6 +169,7 @@ func isGlobalWrittenAfterInit(ctx *analyzer.AnalysisContext, varName string) boo
 // Only flags when the consumer actually dispatches commands (CommandFlowCommands).
 // Read-only systems (no dispatcher) and sync/batch systems are not at risk.
 // Detection of command-flow now lives in ctx.FeatureProfile (centralized).
+//
 //nolint:ireturn // factory returns public interface
 func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -243,6 +245,7 @@ func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // A018: No actual event sourcing.
 // Detects projects that import event/ but never call store.Save or bus.Publish.
+//
 //nolint:ireturn // factory returns public interface
 func NewA018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -305,6 +308,7 @@ func NewA018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // A019: Vendored cqrs.
 // Detects vendored copies of go-cqrs-lite instead of proper module imports.
+//
 //nolint:ireturn // factory returns public interface
 func NewA019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

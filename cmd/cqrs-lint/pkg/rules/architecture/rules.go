@@ -14,6 +14,7 @@ const toolName finding.ToolName = "cqrs-lint"
 
 // E004: Event not in catalog.
 // Detects event types emitted via event.New/NewEvent that are not registered in the catalog.
+//
 //nolint:ireturn // factory returns public interface
 func NewE004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -54,6 +55,7 @@ func NewE004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // E005: Command without handler.
 // Detects command types that are defined but never registered with a handler.
+//
 //nolint:ireturn // factory returns public interface
 func NewE005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

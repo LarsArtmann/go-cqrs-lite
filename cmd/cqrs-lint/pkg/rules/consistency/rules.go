@@ -17,6 +17,7 @@ const toolName finding.ToolName = "cqrs-lint"
 
 // D001: Inconsistent event naming.
 // Detects events with inconsistent naming conventions (mix of PascalCase, snake_case, camelCase).
+//
 //nolint:ireturn // factory returns public interface
 func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -88,6 +89,7 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // their snake_case JSON tags are dictated by the upstream API and are not a
 // style choice the consumer can change. See collectExternalAPIStructs for the
 // two opt-out mechanisms (config prefix list + //cqrs-lint:external-api marker).
+//
 //nolint:ireturn // factory returns public interface
 func NewD002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

@@ -14,6 +14,7 @@ import (
 // Skips panics inside functions prefixed with "must" (e.g., mustCommand,
 // mustCompile) — this is an established Go convention for functions that
 // panic on programming errors, like regexp.MustCompile or template.Must.
+//
 //nolint:ireturn // factory returns public interface
 func NewC009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

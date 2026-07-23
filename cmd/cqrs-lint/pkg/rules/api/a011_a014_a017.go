@@ -113,6 +113,7 @@ func countJSONKeyCasings(st *ast.StructType) (int, int) {
 // A014: Deprecated API usage.
 // Detects calls to deprecated APIs: event.NewEvent (use event.New),
 // dispatcher.Register (use RegisterTyped).
+//
 //nolint:ireturn // factory returns public interface
 func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	deprecatedAPIs := map[string]string{
@@ -198,6 +199,7 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // A017: Missing snapshot strategy.
 // Detects repositories created without a snapshot store option.
+//
 //nolint:ireturn // factory returns public interface
 func NewA017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

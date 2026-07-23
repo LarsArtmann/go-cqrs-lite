@@ -11,6 +11,7 @@ import (
 
 // A003: Explicit codec in decode.
 // Detects event.DecodePayload[T](evt, codec.JSONCodec{}) — should use DecodePayloadAuto.
+//
 //nolint:ireturn // factory returns public interface
 func NewA003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

@@ -10,6 +10,7 @@ import (
 )
 
 // Detects time.Now() calls inside decider decide functions.
+//
 //nolint:ireturn // factory returns public interface
 func NewC007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

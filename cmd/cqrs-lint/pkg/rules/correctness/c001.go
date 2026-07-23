@@ -17,6 +17,7 @@ import (
 // be statically verified in this function body — the callback contractually
 // owns it. Flagging would suggest a "fix" (return tx.Commit()) that
 // double-commits. Such cases are skipped via txVarEscapesToArg.
+//
 //nolint:ireturn // factory returns public interface
 //nolint:ireturn // factory returns public interface
 func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {

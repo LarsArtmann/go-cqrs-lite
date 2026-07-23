@@ -12,6 +12,7 @@ import (
 
 // A007: Dual model (OO aggregate + functional decider).
 // Detects projects that use both OO-style aggregates and functional deciders.
+//
 //nolint:ireturn // factory returns public interface
 func NewA007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

@@ -14,6 +14,7 @@ import (
 
 // A008: Parallel type system.
 // Detects custom AggregateID/Version/CommandType types duplicating go-cqrs-lite.
+//
 //nolint:ireturn // factory returns public interface
 func NewA008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

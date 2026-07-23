@@ -12,6 +12,7 @@ import (
 // C004: Checkpoint before async complete.
 // Detects goroutine launches inside projection Handle methods — the checkpoint
 // may be saved before the async work finishes, causing data loss on crash.
+//
 //nolint:ireturn // factory returns public interface
 func NewC004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -50,6 +51,7 @@ func NewC004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // C011: Nondeterministic decider.
 // Detects rand.* calls and global variable access inside decider decide functions.
+//
 //nolint:ireturn // factory returns public interface
 func NewC011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

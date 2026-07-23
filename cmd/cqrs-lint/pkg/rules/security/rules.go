@@ -17,6 +17,7 @@ const toolName finding.ToolName = "cqrs-lint"
 
 // S001: Hardcoded secrets.
 // Detects fields with secret-like names assigned string literals.
+//
 //nolint:ireturn // factory returns public interface
 func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

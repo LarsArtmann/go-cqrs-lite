@@ -11,6 +11,7 @@ import (
 
 // B015: Missing test utilities.
 // Detects projects with test files but no testutil/eventtest imports.
+//
 //nolint:ireturn // factory returns public interface
 func NewB015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

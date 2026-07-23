@@ -11,6 +11,7 @@ import (
 
 // A004: Untyped dispatch register.
 // Detects dispatcher.Register with type assertion inside the handler.
+//
 //nolint:ireturn // factory returns public interface
 func NewA004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

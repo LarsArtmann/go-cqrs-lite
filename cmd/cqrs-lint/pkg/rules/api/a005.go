@@ -21,6 +21,7 @@ import (
 // Broadcast, Send) and NO persistence signals (Save, Set, Upsert, ...).
 // Persistence writes are the defining trait of a real projection; pure
 // broadcasts never persist. See feedback: docs/feedback/2026-07-16_DiscordSync.
+//
 //nolint:ireturn // factory returns public interface
 func NewA005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

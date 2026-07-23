@@ -11,6 +11,7 @@ import (
 )
 
 // Detects withTx-like functions that don't return the body's error.
+//
 //nolint:ireturn // factory returns public interface
 func NewC012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

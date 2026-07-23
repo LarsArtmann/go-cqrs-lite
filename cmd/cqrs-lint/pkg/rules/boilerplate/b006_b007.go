@@ -15,6 +15,7 @@ import (
 // B006: Duplicate foreign-key stub SQL.
 // Detects repeated string literals containing SQL REFERENCES clauses
 // that are copy-pasted instead of centralized.
+//
 //nolint:ireturn // factory returns public interface
 func NewB006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

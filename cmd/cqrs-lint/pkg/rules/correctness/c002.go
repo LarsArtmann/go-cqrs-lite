@@ -10,6 +10,7 @@ import (
 )
 
 // Detects command ID() methods that return a zero-value composite literal.
+//
 //nolint:ireturn // factory returns public interface
 func NewC002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

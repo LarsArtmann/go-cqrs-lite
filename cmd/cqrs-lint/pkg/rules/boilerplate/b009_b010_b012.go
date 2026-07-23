@@ -14,6 +14,7 @@ import (
 
 // B009: Emit function boilerplate.
 // Detects hand-written emit/publish helper functions that wrap event.New + bus.Publish.
+//
 //nolint:ireturn // factory returns public interface
 func NewB009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -102,6 +103,7 @@ func NewB009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // B010: Catalog event list boilerplate.
 // Detects 3+ catalog.Event() calls in the same function — could be generated.
+//
 //nolint:ireturn // factory returns public interface
 func NewB010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -185,6 +187,7 @@ func NewB010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // B012: Make-event helper.
 // Detects hand-written makeEvent/newEvent helper functions that should use event.New.
+//
 //nolint:ireturn // factory returns public interface
 func NewB012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

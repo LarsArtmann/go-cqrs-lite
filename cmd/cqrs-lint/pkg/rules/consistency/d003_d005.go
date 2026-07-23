@@ -15,6 +15,7 @@ import (
 
 // D003: Inconsistent logging library.
 // Detects projects mixing log/slog, log, zap, zerolog, etc.
+//
 //nolint:ireturn // factory returns public interface
 func NewD003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -96,6 +97,7 @@ func NewD003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // D005: Stale documentation version.
 // Detects README or docs referencing a different go-cqrs-lite version than go.mod.
+//
 //nolint:ireturn // factory returns public interface
 func NewD005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

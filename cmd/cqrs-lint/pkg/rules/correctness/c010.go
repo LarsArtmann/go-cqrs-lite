@@ -11,6 +11,7 @@ import (
 )
 
 // Detects `_, _ = decode(evt)` or `_, := decode(evt); _ = err` in fold functions.
+//
 //nolint:ireturn // factory returns public interface
 func NewC010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
