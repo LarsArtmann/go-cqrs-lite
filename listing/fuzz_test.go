@@ -30,7 +30,7 @@ func FuzzAggregateListing_JSON_Roundtrip(f *testing.F) {
 			return
 		}
 
-		idVal, err := id.ParseAggregateID(aggID)
+		idVal, err := id.ParseStreamID(aggID)
 		if err != nil {
 			return
 		}
@@ -115,7 +115,7 @@ func FuzzAggregateStatus_MarshalOnly(f *testing.F) {
 				version = 0
 			}
 
-			idVal, err := id.ParseAggregateID(aggID)
+			idVal, err := id.ParseStreamID(aggID)
 			if err != nil {
 				return
 			}

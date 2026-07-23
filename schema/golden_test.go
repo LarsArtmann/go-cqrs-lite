@@ -54,7 +54,7 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR96")
-	ref := id.NewAggregateRef("User", aggID)
+	ref := id.NewStreamRef("User", aggID)
 
 	evt, err := event.NewEvent(
 		"UserCreated", aggID, "User", 1,

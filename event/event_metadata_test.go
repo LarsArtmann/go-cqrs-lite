@@ -286,7 +286,7 @@ func TestWithClientID(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"TestEvent",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"Test",
 		1,
 		nil,
@@ -309,7 +309,7 @@ func TestWithClientOccurredAt(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"TestEvent",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"Test",
 		1,
 		nil,

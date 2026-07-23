@@ -293,7 +293,7 @@ func mustEvent(t *testing.T, eventType string, payload []byte) event.Event {
 
 	evt, err := event.NewEvent(
 		event.Type(eventType),
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"Test",
 		1,
 		payload,

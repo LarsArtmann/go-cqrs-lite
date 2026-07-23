@@ -45,7 +45,7 @@ func TestRepository_StateCache_LoadAfterExecute(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, _, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	executeCreate(t, repo, aggID)
 
@@ -62,7 +62,7 @@ func TestRepository_StateCache_LoadAfterExecute(t *testing.T) {
 		t.Errorf("version = %d, want 1", version)
 	}
 
-	ref := id.NewAggregateRef("Counter", aggID)
+	ref := id.NewStreamRef("Counter", aggID)
 	cachedState, cachedVersion, ok := cache.Get(ref)
 	if !ok {
 		t.Fatal("expected cache hit after Execute + Load")
@@ -92,7 +92,7 @@ func TestRepository_StateCache_LoadSkipsFullLoadOnHit(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	// Create + seed some events
 	executeCreate(t, repo, aggID)
@@ -136,12 +136,12 @@ func TestRepository_StateCache_ExecuteUpdatesCache(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, _, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	// Execute creates → cache should have state at version 1
 	executeCreate(t, repo, aggID)
 
-	ref := id.NewAggregateRef("Counter", aggID)
+	ref := id.NewStreamRef("Counter", aggID)
 	state, version, ok := cache.Get(ref)
 	if !ok {
 		t.Fatal("expected cache populated after Execute")
@@ -178,7 +178,7 @@ func TestRepository_StateCache_ColdMissPopulates(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, store, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	// Seed events directly via store (bypassing repo/cache)
 	evt1 := makeEvent(t, "CounterCreated", aggID, 1)
@@ -200,7 +200,7 @@ func TestRepository_StateCache_ColdMissPopulates(t *testing.T) {
 	}
 
 	// Verify cache was populated
-	ref := id.NewAggregateRef("Counter", aggID)
+	ref := id.NewStreamRef("Counter", aggID)
 	cachedState, cachedVersion, ok := cache.Get(ref)
 	if !ok {
 		t.Fatal("expected cache populated after cold Load")
@@ -217,8 +217,8 @@ func TestRepository_StateCache_LoadFromVersionError(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, store, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Counter", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", aggID)
 
 	// Pre-populate cache with stale state
 	cache.Put(ref, counterState{Value: 99}, event.Version(5))
@@ -269,8 +269,8 @@ func TestRepository_StateCache_FoldErrorInvalidates(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Counter", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", aggID)
 
 	// Seed the store with two events (index-based: v1 at idx 0, v2 at idx 1)
 	evt1 := makeEvent(t, "CounterCreated", aggID, 1)
@@ -298,7 +298,7 @@ func TestRepository_StateCache_NoEventsReturnsCached(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, _, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	// Create the aggregate
 	executeCreate(t, repo, aggID)
@@ -326,7 +326,7 @@ func TestRepository_StateCache_ConcurrentLoadExecute(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, _, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	executeCreate(t, repo, aggID)
 
 	var wg sync.WaitGroup
@@ -406,7 +406,7 @@ func TestRepository_ReadPressure_TriggersSnapshot(t *testing.T) {
 	t.Parallel()
 
 	repo, _, snapStore := newReadPressureRepo(t, 3)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	// Create the aggregate
 	executeCreate(t, repo, aggID)
@@ -440,7 +440,7 @@ func TestRepository_ReadPressure_NoTriggerBelowThreshold(t *testing.T) {
 	t.Parallel()
 
 	repo, _, snapStore := newReadPressureRepo(t, 10)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	// Create the aggregate
 	executeCreate(t, repo, aggID)
@@ -468,7 +468,7 @@ func TestRepository_ReadPressure_ResetAfterSnapshot(t *testing.T) {
 	t.Parallel()
 
 	repo, _, snapStore := newReadPressureRepo(t, 2)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	// Create + build up reads + trigger snapshot
 	executeCreate(t, repo, aggID)

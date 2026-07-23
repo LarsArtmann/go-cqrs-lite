@@ -67,11 +67,11 @@ func TestSQLEventStore_Save_EmptyEvents(t *testing.T) {
 	t.Parallel()
 
 	store, _ := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err := store.Save(
 		context.Background(),
-		id.NewAggregateRef("User", aggID),
+		id.NewStreamRef("User", aggID),
 		nil,
 		event.Version(0),
 	)
@@ -148,7 +148,7 @@ func TestSQLEventStore_AppendBatch_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt1 := testEventWithAggID(t, "UserCreated", aggID, 1)
 	evt2 := testEventWithAggID(t, "UserCreated", aggID, 2)
 
@@ -164,7 +164,7 @@ func TestSQLEventStore_AppendBatch_Success(t *testing.T) {
 
 	err := store.AppendBatch(
 		context.Background(),
-		id.NewAggregateRef("User", evt1.StreamID()),
+		id.NewStreamRef("User", evt1.StreamID()),
 		[]event.Event{evt1, evt2},
 	)
 	if err != nil {
@@ -181,9 +181,9 @@ func TestSQLEventStore_AppendBatch_EmptyEvents(t *testing.T) {
 	t.Parallel()
 
 	store, _ := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
-	err := store.AppendBatch(context.Background(), id.NewAggregateRef("User", aggID), nil)
+	err := store.AppendBatch(context.Background(), id.NewStreamRef("User", aggID), nil)
 	if err != nil {
 		t.Fatalf("AppendBatch with empty events: %v", err)
 	}

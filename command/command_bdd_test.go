@@ -31,7 +31,7 @@ var _ = Describe("Command Dispatcher", func() {
 	BeforeEach(func() {
 		ctx = context.Background()
 		dispatcher = command.NewDispatcher()
-		aggID = id.NewAggregateID()
+		aggID = id.NewStreamID()
 	})
 
 	Describe("As a developer dispatching commands", func() {

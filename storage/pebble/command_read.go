@@ -17,7 +17,7 @@ func (s *CommandStore) Load(
 	ctx context.Context,
 	ref command.StreamRef,
 ) ([]*command.PersistedCommand, error) {
-	_, span := startAggregateSpan(ctx, "pebble.command.load", ref)
+	_, span := startStreamSpan(ctx, "pebble.command.load", ref)
 	defer span.End()
 
 	cmds, err := s.scanCommands(
@@ -36,7 +36,7 @@ func (s *CommandStore) LoadFromTimestamp(
 	ref command.StreamRef,
 	after time.Time,
 ) ([]*command.PersistedCommand, error) {
-	_, span := startAggregateSpan(
+	_, span := startStreamSpan(
 		ctx,
 		"pebble.command.load_from_timestamp",
 		ref,
@@ -63,7 +63,7 @@ func (s *CommandStore) LoadToTimestamp(
 	ref command.StreamRef,
 	maxTime time.Time,
 ) ([]*command.PersistedCommand, error) {
-	_, span := startAggregateSpan(ctx, "pebble.command.load_to_timestamp", ref)
+	_, span := startStreamSpan(ctx, "pebble.command.load_to_timestamp", ref)
 	defer span.End()
 
 	cmds, err := s.scanCommands(

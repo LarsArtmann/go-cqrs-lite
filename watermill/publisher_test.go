@@ -19,7 +19,7 @@ func TestPublisherAdapter_Publish(t *testing.T) {
 	adapter := wm.NewPublisherAdapter(bus)
 
 	msg := message.NewMessage("test-id", []byte(`{"type":"user.created"}`))
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
+	msg.Metadata.Set("aggregate_id", id.NewStreamID().String())
 	msg.Metadata.Set("aggregate_type", "User")
 	msg.Metadata.Set("version", "1")
 

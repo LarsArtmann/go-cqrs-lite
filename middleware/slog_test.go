@@ -28,7 +28,7 @@ func TestSlogAdapter_CommandLogging(t *testing.T) {
 	mw := middleware.CommandLogging(logger)
 	handler := mw(noopCommandHandler())
 
-	core, err := command.New("test.cmd", id.NewAggregateID())
+	core, err := command.New("test.cmd", id.NewStreamID())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -69,7 +69,7 @@ func TestSlogAdapter_CommandLogging_Error(t *testing.T) {
 		return context.Canceled
 	})
 
-	core, err := command.New("test.cmd", id.NewAggregateID())
+	core, err := command.New("test.cmd", id.NewStreamID())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

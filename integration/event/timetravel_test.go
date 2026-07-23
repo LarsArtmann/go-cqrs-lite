@@ -23,7 +23,7 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 	t.Cleanup(func() { _ = bus.Close() })
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	now := time.Now()
 
@@ -45,7 +45,7 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("Counter"), aggID),
+		id.NewStreamRef(id.StreamType("Counter"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -54,7 +54,7 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 
 	events, err := store.LoadToVersion(
 		ctx,
-		id.NewAggregateRef(id.StreamType("Counter"), aggID),
+		id.NewStreamRef(id.StreamType("Counter"), aggID),
 		2,
 	)
 	if err != nil {
@@ -77,7 +77,7 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 	t.Cleanup(func() { _ = store.Close() })
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	now := time.Now()
 
@@ -99,7 +99,7 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("Counter"), aggID),
+		id.NewStreamRef(id.StreamType("Counter"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -108,7 +108,7 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 
 	events, err := store.LoadToTimestamp(
 		ctx,
-		id.NewAggregateRef(id.StreamType("Counter"), aggID),
+		id.NewStreamRef(id.StreamType("Counter"), aggID),
 		now.Add(-15*time.Minute),
 	)
 	if err != nil {
@@ -129,8 +129,8 @@ func TestTimeTravel_SeekableJournal(t *testing.T) {
 
 	ctx := context.Background()
 
-	aggID1 := id.NewAggregateID()
-	aggID2 := id.NewAggregateID()
+	aggID1 := id.NewStreamID()
+	aggID2 := id.NewStreamID()
 
 	evt1, _ := event.NewEvent("Created", aggID1, "Issue", 1, nil)
 	evt2, _ := event.NewEvent("Created", aggID2, "Issue", 1, nil)
@@ -138,7 +138,7 @@ func TestTimeTravel_SeekableJournal(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("Issue"), aggID1),
+		id.NewStreamRef(id.StreamType("Issue"), aggID1),
 		[]event.Event{evt1, evt3},
 	)
 	if err != nil {
@@ -147,7 +147,7 @@ func TestTimeTravel_SeekableJournal(t *testing.T) {
 
 	err = store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("Issue"), aggID2),
+		id.NewStreamRef(id.StreamType("Issue"), aggID2),
 		[]event.Event{evt2},
 	)
 	if err != nil {

@@ -25,8 +25,8 @@ func newFakeStoreWithEvents(
 ) {
 	t.Helper()
 	store := eventtest.NewFakeStore()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef(aggType, aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef(aggType, aggID)
 	events := make([]event.Event, len(payloads))
 	for i, p := range payloads {
 		evt, err := event.NewEvent(eventType, aggID, aggType, event.Version(i+1), p)

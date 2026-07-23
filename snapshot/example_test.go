@@ -27,8 +27,8 @@ func ExampleEveryNEvents() {
 func ExampleSnapshotStore() {
 	store := newFakeStore()
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("User", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("User", aggID)
 	now := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	snap := snapshot.Snapshot{

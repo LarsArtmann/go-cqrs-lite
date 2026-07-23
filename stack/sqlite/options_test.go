@@ -39,8 +39,8 @@ func TestNew_WithoutAutoMigrate_NoTables(t *testing.T) {
 
 	// Saving an event should fail because the events table was never created.
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", aggID)
 
 	evts, evErr := event.NewEvents(
 		aggID, "Test", 0,
@@ -74,8 +74,8 @@ func TestNew_WithOptimizations(t *testing.T) {
 
 	// Verify the database accepts writes (optimizations didn't break schema).
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Opt", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Opt", aggID)
 
 	evts, evErr := event.NewEvents(
 		aggID, "Opt", 0,

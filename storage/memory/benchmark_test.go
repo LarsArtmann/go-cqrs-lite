@@ -29,9 +29,9 @@ func BenchmarkMemoryStore_Save(b *testing.B) {
 	store := memory.NewMemoryStore()
 	b.Cleanup(func() { _ = store.Close() })
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ctx := context.Background()
-	ref := id.NewAggregateRef("Bench", aggID)
+	ref := id.NewStreamRef("Bench", aggID)
 
 	b.ResetTimer()
 
@@ -47,9 +47,9 @@ func BenchmarkMemoryStore_Load(b *testing.B) {
 	store := memory.NewMemoryStore()
 	b.Cleanup(func() { _ = store.Close() })
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ctx := context.Background()
-	ref := id.NewAggregateRef("Bench", aggID)
+	ref := id.NewStreamRef("Bench", aggID)
 
 	for i := range 100 {
 		evt := benchEvent(b, aggID, event.Version(i+1))
@@ -88,7 +88,7 @@ func BenchmarkMemoryBus_Publish(b *testing.B) {
 
 	_ = bus.SubscribeAll(func(_ context.Context, _ event.Event) error { return nil })
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt := benchEvent(b, aggID, 1)
 	ctx := context.Background()
 
@@ -115,8 +115,8 @@ func BenchmarkMemoryStore_ConcurrentWriters(b *testing.B) {
 			refs := make([]id.StreamRef, concurrency)
 
 			for i := range concurrency {
-				aggIDs[i] = id.NewAggregateID()
-				refs[i] = id.NewAggregateRef("Bench", aggIDs[i])
+				aggIDs[i] = id.NewStreamID()
+				refs[i] = id.NewStreamRef("Bench", aggIDs[i])
 			}
 
 			b.ResetTimer()
@@ -157,7 +157,7 @@ func BenchmarkMemoryBus_Publish_10Subscribers(b *testing.B) {
 		_ = bus.SubscribeAll(func(_ context.Context, _ event.Event) error { return nil })
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt := benchEvent(b, aggID, 1)
 	ctx := context.Background()
 

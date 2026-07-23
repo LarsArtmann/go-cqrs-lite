@@ -78,8 +78,8 @@ func TestBackfillHandler_ReturnsEvents(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", aggID)
 
 	evt0, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{"n":0}`))
 	evt1, _ := event.NewEvent("test.event", aggID, "Test", 2, []byte(`{"n":1}`))
@@ -144,8 +144,8 @@ func TestBackfillHandler_LimitsTo1000(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", aggID)
 	evt0, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt0}, 0)
 
@@ -171,8 +171,8 @@ func TestBackfillHandler_PayloadTransformFromBroker(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", aggID)
 
 	evt0, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{"raw":true}`))
 	evt1, _ := event.NewEvent("test.event", aggID, "Test", 2, []byte(`{"seq":1}`))

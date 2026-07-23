@@ -14,7 +14,7 @@ import (
 func TestSliceIterator_YieldsAllEvents(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evts := []event.Event{
 		eventtest.NewEvent(t, "test.created", aggID, "Test", 1, nil),
 		eventtest.NewEvent(t, "test.updated", aggID, "Test", 2, nil),
@@ -60,7 +60,7 @@ func TestSliceIterator_CloseStopsIteration(t *testing.T) {
 	t.Parallel()
 
 	evts := []event.Event{
-		eventtest.NewEvent(t, "test.created", id.NewAggregateID(), "Test", 1, nil),
+		eventtest.NewEvent(t, "test.created", id.NewStreamID(), "Test", 1, nil),
 	}
 
 	iter := event.NewSliceIterator(evts)
@@ -92,8 +92,8 @@ func TestSliceIterator_AdaptsMemoryStore(t *testing.T) {
 
 	store := eventtest.NewFakeStore()
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("User", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("User", aggID)
 
 	evts := []event.Event{
 		eventtest.NewEvent(t, "user.created", aggID, "User", 1, []byte(`{}`)),

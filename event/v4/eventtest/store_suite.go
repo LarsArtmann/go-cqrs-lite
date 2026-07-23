@@ -78,7 +78,7 @@ func SaveEvent(
 
 	err := store.Save(
 		context.Background(),
-		id.NewAggregateRef(cfg.AggType, aggID),
+		id.NewStreamRef(cfg.AggType, aggID),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -91,12 +91,12 @@ func SaveEvent(
 func TestStoreSaveAndLoad(t *testing.T, store event.Store, cfg StoreTestConfig) {
 	t.Helper()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt := cfg.NewTestEvent(t, aggID, 1)
 
 	err := store.Save(
 		context.Background(),
-		id.NewAggregateRef(cfg.AggType, aggID),
+		id.NewStreamRef(cfg.AggType, aggID),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -104,7 +104,7 @@ func TestStoreSaveAndLoad(t *testing.T, store event.Store, cfg StoreTestConfig) 
 		t.Fatalf("Save: %v", err)
 	}
 
-	loaded, err := store.Load(context.Background(), id.NewAggregateRef(cfg.AggType, aggID))
+	loaded, err := store.Load(context.Background(), id.NewStreamRef(cfg.AggType, aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -126,7 +126,7 @@ func TestStoreSaveAndLoad(t *testing.T, store event.Store, cfg StoreTestConfig) 
 func TestStoreConcurrencyConflict(t *testing.T, store event.Store, cfg StoreTestConfig) {
 	t.Helper()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt := cfg.NewTestEvent(t, aggID, 1)
 
 	SaveEvent(t, store, cfg, aggID, evt)
@@ -135,7 +135,7 @@ func TestStoreConcurrencyConflict(t *testing.T, store event.Store, cfg StoreTest
 
 	err := store.Save(
 		context.Background(),
-		id.NewAggregateRef(cfg.AggType, aggID),
+		id.NewStreamRef(cfg.AggType, aggID),
 		[]event.Event{evt2},
 		event.Version(0),
 	)
@@ -153,14 +153,14 @@ func TestStoreAppendBatch(t *testing.T, store event.Store, cfg StoreTestConfig) 
 
 	err := store.AppendBatch(
 		context.Background(),
-		id.NewAggregateRef(cfg.AggType, aggID),
+		id.NewStreamRef(cfg.AggType, aggID),
 		[]event.Event{evt1, evt2},
 	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	loaded, err := store.Load(context.Background(), id.NewAggregateRef(cfg.AggType, aggID))
+	loaded, err := store.Load(context.Background(), id.NewStreamRef(cfg.AggType, aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -181,7 +181,7 @@ func TestStoreLoadFromVersion(t *testing.T, store event.Store, cfg StoreTestConf
 
 	err := store.AppendBatch(
 		context.Background(),
-		id.NewAggregateRef(cfg.AggType, aggID),
+		id.NewStreamRef(cfg.AggType, aggID),
 		evts,
 	)
 	if err != nil {
@@ -190,7 +190,7 @@ func TestStoreLoadFromVersion(t *testing.T, store event.Store, cfg StoreTestConf
 
 	loaded, err := store.LoadFromVersion(
 		context.Background(),
-		id.NewAggregateRef(cfg.AggType, aggID),
+		id.NewStreamRef(cfg.AggType, aggID),
 		event.Version(1),
 	)
 	if err != nil {
@@ -214,7 +214,7 @@ func newTestEvents(
 ) (id.StreamID, []event.Event) {
 	t.Helper()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evts := make([]event.Event, len(versions))
 	for i, v := range versions {
 		evts[i] = cfg.NewTestEvent(t, aggID, event.Version(v))
@@ -232,7 +232,7 @@ func TestStoreMetadataRoundtrip(
 ) {
 	t.Helper()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cid := id.NewCorrelationID()
 	uid := id.NewUserID()
 
@@ -245,7 +245,7 @@ func TestStoreMetadataRoundtrip(
 
 	SaveEvent(t, store, cfg, aggID, evt)
 
-	loaded, err := store.Load(context.Background(), id.NewAggregateRef(cfg.AggType, aggID))
+	loaded, err := store.Load(context.Background(), id.NewStreamRef(cfg.AggType, aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}

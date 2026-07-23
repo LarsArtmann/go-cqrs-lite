@@ -12,8 +12,8 @@ import (
 func ExampleNewMemoryStore() {
 	store := memory.NewMemoryStore()
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("User", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("User", aggID)
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 

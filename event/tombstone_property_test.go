@@ -12,7 +12,7 @@ import (
 func makeTombstoneEvent(t *rapid.T) event.Event {
 	t.Helper()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent("test.event", aggID, "Test", event.Version(1), nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)

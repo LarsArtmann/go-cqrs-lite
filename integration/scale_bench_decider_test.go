@@ -18,7 +18,7 @@ func BenchmarkScale_DeciderExecute_ManyAggregates(b *testing.B) {
 
 	aggIDs := make([]id.StreamID, b.N)
 	for i := range aggIDs {
-		aggIDs[i] = id.NewAggregateID()
+		aggIDs[i] = id.NewStreamID()
 	}
 
 	b.ResetTimer()
@@ -37,7 +37,7 @@ func BenchmarkScale_DeciderExecute_1000Aggregates_100UpdatesEach(b *testing.B) {
 	aggIDs := make([]id.StreamID, aggCount)
 
 	for i := range aggIDs {
-		aggIDs[i] = id.NewAggregateID()
+		aggIDs[i] = id.NewStreamID()
 
 		benchCreateItem(b, repo, ctx, aggIDs[i])
 	}
@@ -63,7 +63,7 @@ func BenchmarkScale_DeciderLoad_10KAggregates(b *testing.B) {
 	aggIDs := make([]id.StreamID, aggCount)
 
 	for i := range aggIDs {
-		aggIDs[i] = id.NewAggregateID()
+		aggIDs[i] = id.NewStreamID()
 
 		for range eventsPerAgg {
 			err := repo.Execute(

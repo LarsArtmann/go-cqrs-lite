@@ -23,7 +23,7 @@ func TestTypedCommandStore_SaveAndLoad(t *testing.T) {
 
 	ts := command.NewTypedCommandStore[createTodoPayload](store, codec.JSONCodec{})
 
-	ref := command.NewAggregateRef("Todo", id.NewAggregateID())
+	ref := command.NewAggregateRef("Todo", id.NewStreamID())
 
 	err := ts.Save(ctx, ref, command.TypedPersistedCommand[createTodoPayload]{
 		Type:    "todo.create",
@@ -63,7 +63,7 @@ func TestTypedCommandStore_PreservesMetadata(t *testing.T) {
 
 	ts := command.NewTypedCommandStore[createTodoPayload](store, codec.JSONCodec{})
 
-	ref := command.NewAggregateRef("Todo", id.NewAggregateID())
+	ref := command.NewAggregateRef("Todo", id.NewStreamID())
 
 	md := command.Metadata{}
 	md.EnsureCustom()
@@ -101,7 +101,7 @@ func TestTypedCommandStore_NilCodecDefaultsToJSON(t *testing.T) {
 	ts := command.NewTypedCommandStore[createTodoPayload](store, nil)
 
 	ctx := context.Background()
-	ref := command.NewAggregateRef("Todo", id.NewAggregateID())
+	ref := command.NewAggregateRef("Todo", id.NewStreamID())
 
 	err := ts.Save(ctx, ref, command.TypedPersistedCommand[createTodoPayload]{
 		Type:    "todo.create",
@@ -129,7 +129,7 @@ func TestTypedCommandStore_AppendBatch(t *testing.T) {
 
 	ts := command.NewTypedCommandStore[createTodoPayload](store, codec.JSONCodec{})
 
-	ref := command.NewAggregateRef("Order", id.NewAggregateID())
+	ref := command.NewAggregateRef("Order", id.NewStreamID())
 
 	cmds := []command.TypedPersistedCommand[createTodoPayload]{
 		{Type: "order.create", Payload: createTodoPayload{Title: "first"}},

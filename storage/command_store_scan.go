@@ -62,7 +62,7 @@ func (s *SQLCommandStore) scanCommand(rows *sql.Rows) (*command.PersistedCommand
 		)
 	}
 
-	parsedAggID, err := id.ParseAggregateID(aggIDStr)
+	parsedAggID, err := id.ParseStreamID(aggIDStr)
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "storage.parse_aggregate_id",
 			fmt.Sprintf("parse aggregate ID %q for %s command %s", aggIDStr, aggType, commandType))

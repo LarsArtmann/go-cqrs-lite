@@ -32,8 +32,8 @@ func TestEventStore_CorruptEventTriggersCorruptionError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", aggID)
 
 	// Write a valid event first
 	evt, err := event.NewEvent("test.event", aggID, "Test", event.Version(1), []byte(`{}`))
@@ -129,7 +129,7 @@ func TestSnapshotStore_CorruptData(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	// Write corrupt snapshot data
 	corruptKey := []byte("cqrs_snapshot:Test:" + aggID.String() + ":0000000005")
@@ -138,7 +138,7 @@ func TestSnapshotStore_CorruptData(t *testing.T) {
 	}
 
 	_, err = snapStore.LoadAtVersion(context.Background(),
-		id.NewAggregateRef("Test", aggID), 5)
+		id.NewStreamRef("Test", aggID), 5)
 	_ = err
 
 	// Write corrupt JSON snapshot
@@ -147,7 +147,7 @@ func TestSnapshotStore_CorruptData(t *testing.T) {
 	}
 
 	_, _ = snapStore.LoadAtVersion(context.Background(),
-		id.NewAggregateRef("Test", aggID), 5)
+		id.NewStreamRef("Test", aggID), 5)
 }
 
 // TestSnapshotStore_Delete verifies snapshot deletion.
@@ -167,8 +167,8 @@ func TestSnapshotStore_Delete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", aggID)
 
 	// Save a snapshot
 	snap := snapshot.Snapshot{

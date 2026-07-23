@@ -105,7 +105,7 @@ func TestOTel_SpanTree_EndToEnd(t *testing.T) {
 
 	_ = bus.SubscribeAll(func(_ context.Context, _ event.Event) error { return nil })
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	createCmd, _ := command.New("CreateUser", aggID)
 	cmd := &CreateUser{BasicCommand: createCmd, Name: "Bob"}
 

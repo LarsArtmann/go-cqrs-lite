@@ -92,7 +92,7 @@ func (s *CommandStore) Save(
 	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
-	_, span := startAggregateSpan(ctx, "pebble.command.save", ref,
+	_, span := startStreamSpan(ctx, "pebble.command.save", ref,
 		cqrsotel.AttrString("command.type", string(cmd.Type())))
 	defer span.End()
 
@@ -144,7 +144,7 @@ func (s *CommandStore) AppendBatch(
 		return nil
 	}
 
-	_, span := startAggregateSpan(ctx, "pebble.command.append_batch", ref,
+	_, span := startStreamSpan(ctx, "pebble.command.append_batch", ref,
 		cqrsotel.AttrInt("command.count", len(cmds)))
 	defer span.End()
 

@@ -162,8 +162,8 @@ func seedOrders(
 	aggIDs := make([]id.StreamID, aggCount)
 
 	for i := range aggCount {
-		aggIDs[i] = id.NewAggregateID()
-		ref := id.NewAggregateRef("Order", aggIDs[i])
+		aggIDs[i] = id.NewStreamID()
+		ref := id.NewStreamRef("Order", aggIDs[i])
 		events := make([]event.Event, eventsPerAgg)
 
 		for v := range eventsPerAgg {

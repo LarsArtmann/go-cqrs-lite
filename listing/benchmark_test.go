@@ -25,7 +25,7 @@ func seedBenchAggregates(
 	ctx := context.Background()
 
 	for range n {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		payload, _ := json.Marshal(
 			map[string]string{payloadKey: payloadVal},
 		)
@@ -38,7 +38,7 @@ func seedBenchAggregates(
 		)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewAggregateRef(id.StreamType(aggType), aggID),
+			id.NewStreamRef(id.StreamType(aggType), aggID),
 			[]event.Event{evt},
 		)
 	}
@@ -95,33 +95,33 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 	ctx := context.Background()
 
 	for range 500 {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		payload, _ := json.Marshal(
 			map[string]string{"name": "doc"},
 		)
 		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewAggregateRef(id.StreamType("Doc"), aggID),
+			id.NewStreamRef(id.StreamType("Doc"), aggID),
 			[]event.Event{evt},
 		)
 	}
 
 	for range 200 {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		payload, _ := json.Marshal(
 			map[string]string{"name": "deleted"},
 		)
 		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewAggregateRef(id.StreamType("Doc"), aggID),
+			id.NewStreamRef(id.StreamType("Doc"), aggID),
 			[]event.Event{evt},
 		)
 		marked, _ := event.MarkTombstone(evt)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewAggregateRef(id.StreamType("Doc"), aggID),
+			id.NewStreamRef(id.StreamType("Doc"), aggID),
 			[]event.Event{marked},
 		)
 	}

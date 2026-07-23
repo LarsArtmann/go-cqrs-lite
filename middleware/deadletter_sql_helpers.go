@@ -157,7 +157,7 @@ func familyToWire(f errorfamily.Family) string {
 }
 
 func idParseSafe(s string) id.StreamID {
-	aid, err := id.ParseAggregateID(s)
+	aid, err := id.ParseStreamID(s)
 	if err != nil {
 		return id.StreamID{}
 	}

@@ -80,7 +80,7 @@ func saveEvent(
 ) {
 	t.Helper()
 
-	ref := id.NewAggregateRef(evt.StreamType(), evt.StreamID())
+	ref := id.NewStreamRef(evt.StreamType(), evt.StreamID())
 	if err := store.Save(ctx, ref, []event.Event{evt}, expectedVersion); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
@@ -90,11 +90,11 @@ func TestEventStore_SaveAndLoad(t *testing.T) {
 	t.Parallel()
 
 	store, ctx := setupEventStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt := makeEvent(t, aggID, 1)
 	saveEvent(t, store, ctx, evt, 0)
 
-	ref := id.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewStreamRef("TestAggregate", aggID)
 	events, err := store.Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
@@ -113,12 +113,12 @@ func TestEventStore_AppendBatch(t *testing.T) {
 	t.Parallel()
 
 	store, ctx := setupEventStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	saveEvent(t, store, ctx, makeEvent(t, aggID, 1), 0)
 
 	evt2 := makeEvent(t, aggID, 2)
 	evt3 := makeEvent(t, aggID, 3)
-	ref := id.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewStreamRef("TestAggregate", aggID)
 	if err := store.AppendBatch(ctx, ref, []event.Event{evt2, evt3}); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
@@ -137,13 +137,13 @@ func TestEventStore_LoadFromVersion(t *testing.T) {
 	t.Parallel()
 
 	store, ctx := setupEventStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	for i := 1; i <= 3; i++ {
 		saveEvent(t, store, ctx, makeEvent(t, aggID, i), event.Version(i-1))
 	}
 
-	ref := id.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewStreamRef("TestAggregate", aggID)
 	events, err := store.LoadFromVersion(ctx, ref, 1)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
@@ -158,9 +158,9 @@ func TestEventStore_LoadNonExistent(t *testing.T) {
 	t.Parallel()
 
 	store, ctx := setupEventStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
-	ref := id.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewStreamRef("TestAggregate", aggID)
 	_, err := store.Load(ctx, ref)
 	if err == nil {
 		t.Fatal("expected error for non-existent aggregate")
@@ -175,7 +175,7 @@ func TestEventStore_ReadAll(t *testing.T) {
 	t.Parallel()
 
 	store, ctx := setupEventStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	saveEvent(t, store, ctx, makeEvent(t, aggID, 1), 0)
 
 	all, err := store.ReadAll(ctx)
@@ -208,7 +208,7 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
@@ -222,7 +222,7 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("Save snapshot: %v", err)
 	}
 
-	ref := id.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewStreamRef("TestAggregate", aggID)
 	loaded, err := store.LoadAtVersion(ctx, ref, 5)
 	if err != nil {
 		t.Fatalf("LoadAtVersion: %v", err)

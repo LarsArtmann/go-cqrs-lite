@@ -32,7 +32,7 @@ func TestRoundTrip(t *testing.T) {
 	}
 
 	// Build a fully populated event
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	correlationID := id.NewCorrelationID()
 	causationID := id.NewCausationID()
 	userID := id.NewUserID()
@@ -124,7 +124,7 @@ func TestPublisherAdapter_InvalidVersion(t *testing.T) {
 	publisher := wm.NewPublisherAdapter(bus)
 
 	msg := message.NewMessage("test-id", []byte(`{}`))
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
+	msg.Metadata.Set("aggregate_id", id.NewStreamID().String())
 	msg.Metadata.Set("aggregate_type", "User")
 	msg.Metadata.Set("version", "not-a-number")
 
@@ -165,7 +165,7 @@ func assertMetadata(t *testing.T, md message.Metadata, key, want string) {
 func TestEventToMessage_PreservesEncoding(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	tests := []struct {
 		name     string
@@ -202,7 +202,7 @@ func TestEventToMessage_PreservesEncoding(t *testing.T) {
 func TestMessageToEvent_DefaultsJSONWhenNoEncoding(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	original, err := event.NewEvent("test.event", aggID, "Test", 1,
 		[]byte(`{"v":1}`))

@@ -16,7 +16,7 @@ func TestLoad_NoEvents(t *testing.T) {
 	t.Parallel()
 
 	repo, _, _ := newTestRepo(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	requireLoadState(t, repo, aggID, 0, 0)
 }
@@ -25,7 +25,7 @@ func TestLoad_WithEvents(t *testing.T) {
 	t.Parallel()
 
 	repo, store, _ := newTestRepo(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
@@ -39,7 +39,7 @@ func TestLoad_FoldError(t *testing.T) {
 	t.Parallel()
 
 	repo, store := newFailingRepo(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
@@ -75,7 +75,7 @@ func TestLoad_StoreLoadError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	_, _, err = repo.Load(t.Context(), aggID, "Counter")
 	if err == nil {
 		t.Fatal("expected error from store load failure")
@@ -88,7 +88,7 @@ func TestRepository_LoadAtVersion(t *testing.T) {
 	repo, store, _ := newTestRepo(t)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt1 := makeEvent(t, "CounterCreated", aggID, 1)
 	evt2 := makeEvent(t, "CounterIncremented", aggID, 2)
 	evt3 := makeEvent(t, "CounterIncremented", aggID, 3)
@@ -115,7 +115,7 @@ func TestRepository_LoadAtVersion_NotFound(t *testing.T) {
 	repo, _, _ := newTestRepo(t)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	state, version, err := repo.LoadAtVersion(ctx, aggID, "Counter", 5)
 	if err != nil {
@@ -137,7 +137,7 @@ func TestRepository_LoadAtTime(t *testing.T) {
 	repo, store, _ := newTestRepo(t)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	now := time.Now()
 
 	evt1 := eventtest.QuickEventOpts("CounterCreated", aggID, "Counter", 1, []byte("{}"),
@@ -169,7 +169,7 @@ func TestRepository_LoadAtTime_NotFound(t *testing.T) {
 	repo, _, _ := newTestRepo(t)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	state, version, err := repo.LoadAtTime(ctx, aggID, "Counter", time.Now())
 	if err != nil {
@@ -202,7 +202,7 @@ func TestRepository_LoadAtVersion_StoreError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	_, _, err = repo.LoadAtVersion(context.Background(), id.NewAggregateID(), "Counter", 5)
+	_, _, err = repo.LoadAtVersion(context.Background(), id.NewStreamID(), "Counter", 5)
 	if err == nil {
 		t.Fatal("expected error from LoadAtVersion")
 	}
@@ -225,7 +225,7 @@ func TestRepository_LoadAtTime_StoreError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	_, _, err = repo.LoadAtTime(context.Background(), id.NewAggregateID(), "Counter", time.Now())
+	_, _, err = repo.LoadAtTime(context.Background(), id.NewStreamID(), "Counter", time.Now())
 	if err == nil {
 		t.Fatal("expected error from LoadAtTime")
 	}
@@ -236,7 +236,7 @@ func TestRepository_LoadAtVersion_FoldError(t *testing.T) {
 
 	repo, store := newFailingRepo(t)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt := makeEvent(t, "CounterCreated", aggID, 1)
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{evt})

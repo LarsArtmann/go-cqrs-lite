@@ -19,7 +19,7 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	eventID := id.NewEventID()
 	ts := time.Now().Truncate(time.Microsecond)
 
@@ -40,7 +40,7 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 
 	events, err := store.Load(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
@@ -70,13 +70,13 @@ func TestSQLEventStore_Load_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	expectLoadEmpty(mock, aggID)
 
 	events, err := store.Load(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if err == nil {
 		t.Fatal("expected ErrStreamNotFound for empty result, got nil")
@@ -95,7 +95,7 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	eventID := id.NewEventID()
 	ts := time.Now().Truncate(time.Microsecond)
 
@@ -108,7 +108,7 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 
 	events, err := store.LoadFromVersion(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		event.Version(2),
 	)
 	if err != nil {
@@ -126,7 +126,7 @@ func TestSQLEventStore_Load_QueryError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
@@ -134,7 +134,7 @@ func TestSQLEventStore_Load_QueryError(t *testing.T) {
 
 	_, err := store.Load(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if err == nil {
 		t.Fatal("expected error for query failure")
@@ -145,7 +145,7 @@ func TestSQLEventStore_LoadFromVersion_QueryError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadFromVersionQuery)).
 		WithArgs("User", aggID, 2).
@@ -153,7 +153,7 @@ func TestSQLEventStore_LoadFromVersion_QueryError(t *testing.T) {
 
 	_, err := store.LoadFromVersion(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		event.Version(2),
 	)
 	if err == nil {
@@ -210,7 +210,7 @@ func TestScanEvents_InvalidAggregateID(t *testing.T) {
 			"valid-id", "UserCreated", "User", "not-a-valid-ulid", 1, 1, nil, "", nil, time.Now(),
 		))
 
-	_, err := store.Load(context.Background(), id.NewAggregateRef("User", id.NewAggregateID()))
+	_, err := store.Load(context.Background(), id.NewStreamRef("User", id.NewStreamID()))
 	if err == nil {
 		t.Fatal("expected error for invalid aggregate ID")
 	}
@@ -220,7 +220,7 @@ func TestScanEvents_InvalidEventID(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
@@ -232,7 +232,7 @@ func TestScanEvents_InvalidEventID(t *testing.T) {
 
 	_, err := store.Load(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if err == nil {
 		t.Fatal("expected error for invalid event ID")
@@ -250,7 +250,7 @@ func TestScanEvents_RowScanError(t *testing.T) {
 			[]string{"id", "event_type"},
 		).AddRow("only-two-columns", "UserCreated"))
 
-	_, err := store.Load(context.Background(), id.NewAggregateRef("User", id.NewAggregateID()))
+	_, err := store.Load(context.Background(), id.NewStreamRef("User", id.NewStreamID()))
 	if err == nil {
 		t.Fatal("expected error for row scan failure")
 	}
@@ -260,7 +260,7 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	eventID := id.NewEventID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
@@ -275,7 +275,7 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 
 	_, err := store.Load(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if err == nil {
 		t.Fatal("expected error for invalid metadata JSON")
@@ -286,7 +286,7 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	eventID := id.NewEventID()
 	ts := time.Now().Truncate(time.Microsecond)
 	cid := id.NewCorrelationID()
@@ -325,7 +325,7 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 
 	loaded, err := store.Load(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if err != nil {
 		t.Fatalf("Load: %v", err)

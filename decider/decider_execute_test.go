@@ -61,7 +61,7 @@ func TestExecute_Create(t *testing.T) {
 	t.Parallel()
 
 	repo, _, bus := newTestRepo(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	executeCounter(t, repo, aggID, 0, 0, "CounterCreated", 1)
 
@@ -74,7 +74,7 @@ func TestExecute_Update(t *testing.T) {
 	t.Parallel()
 
 	repo, _, _ := newTestRepo(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	executeCounter(t, repo, aggID, 0, 0, "CounterCreated", 1)
 	executeCounter(t, repo, aggID, 1, 1, "CounterIncremented", 2)
@@ -84,7 +84,7 @@ func TestExecute_DecideError(t *testing.T) {
 	t.Parallel()
 
 	repo, _, _ := newTestRepo(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	decideErr := errors.New("rejection: email required")
 
@@ -103,7 +103,7 @@ func TestExecute_FoldError(t *testing.T) {
 	t.Parallel()
 
 	repo, store := newFailingRepo(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	existing := makeEvent(t, "CounterCreated", aggID, 1)
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{existing})
@@ -141,7 +141,7 @@ func TestExecute_SaveError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err = executeCreate(t, repo, aggID)
 	if err == nil {
@@ -166,7 +166,7 @@ func TestExecute_PublishError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err = executeCreate(t, repo, aggID)
 	if err == nil {
@@ -182,7 +182,7 @@ func TestExecute_NoEvents(t *testing.T) {
 	t.Parallel()
 
 	repo, _, bus := newTestRepo(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err := repo.Execute(
 		t.Context(), aggID, "Counter",
@@ -211,7 +211,7 @@ func TestExecute_Concurrent(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	var wg sync.WaitGroup
 
@@ -239,7 +239,7 @@ func TestExecute_ContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err = repo.Execute(
 		ctx, aggID, "Counter",

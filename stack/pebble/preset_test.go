@@ -72,8 +72,8 @@ func TestNew_E2E_EventSaveLoadRoundtrip(t *testing.T) {
 	defer func() { _ = b.Close() }()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Todo", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Todo", aggID)
 
 	types := []event.Type{"todo.created", "todo.renamed", "todo.completed"}
 	payloads := []any{
@@ -156,8 +156,8 @@ func TestNew_E2E_PersistenceAcrossBundles(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Todo", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Todo", aggID)
 
 	events, err := event.NewEvents(
 		aggID, "Todo", 0,

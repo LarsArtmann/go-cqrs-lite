@@ -10,7 +10,7 @@ import (
 func TestEncodingForCopy_ImmutableEvent(t *testing.T) {
 	t.Parallel()
 
-	evt, err := NewEvent("TestEvent", id.NewAggregateID(), "Test", 1, []byte(`{}`))
+	evt, err := NewEvent("TestEvent", id.NewStreamID(), "Test", 1, []byte(`{}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestEncodingForCopy_WithExplicitEncoding(t *testing.T) {
 	t.Parallel()
 
 	evt, err := NewEvent(
-		"TestEvent", id.NewAggregateID(), "Test", 1, []byte(`{}`),
+		"TestEvent", id.NewStreamID(), "Test", 1, []byte(`{}`),
 		WithEncoding(codec.Encoding("protobuf")),
 	)
 	if err != nil {

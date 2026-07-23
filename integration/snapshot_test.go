@@ -97,7 +97,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 		t.Fatalf("create repo: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err = repo.Execute(
 		ctx,
@@ -129,7 +129,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 		t.Fatalf("execute: %v", err)
 	}
 
-	events, err := store.Load(ctx, id.NewAggregateRef("User", aggID))
+	events, err := store.Load(ctx, id.NewStreamRef("User", aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}

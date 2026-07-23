@@ -13,7 +13,7 @@ import (
 func TestNewEvents(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	version := event.Version(0)
 
 	events, err := event.NewEvents(
@@ -40,7 +40,7 @@ func TestNewEvents(t *testing.T) {
 func TestNewEvents_MismatchedCount(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	_, err := event.NewEvents(
 		aggID, "User", 0,
@@ -55,7 +55,7 @@ func TestNewEvents_MismatchedCount(t *testing.T) {
 func TestNewEvents_Empty(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	events, err := event.NewEvents(aggID, "User", 0, nil, nil)
 	if err != nil {
@@ -70,7 +70,7 @@ func TestNewEvents_Empty(t *testing.T) {
 func TestNewEvents_Batch(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	events, err := event.NewEvents(
 		aggID, "User", 0,

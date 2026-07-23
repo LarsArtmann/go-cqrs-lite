@@ -46,7 +46,7 @@ func BenchmarkSQLiteEventStore_Load(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	payload := []byte(`{"name":"bench-user"}`)
 
 	seedSQLiteEvents(b, store, "User", aggID, "user.updated", payload, 10)
@@ -65,7 +65,7 @@ func benchLoadAggregate(
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := store.Load(ctx, id.NewAggregateRef(aggType, aggID))
+		_, err := store.Load(ctx, id.NewStreamRef(aggType, aggID))
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -79,7 +79,7 @@ func seedSQLiteBenchEvents(b *testing.B, store *SQLEventStore, n int) {
 	payload := []byte(`{}`)
 
 	for i := range n {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		evt, _ := event.NewEvent(
 			event.Type(fmt.Sprintf("event.%d", i)), aggID, "Bench",
@@ -88,7 +88,7 @@ func seedSQLiteBenchEvents(b *testing.B, store *SQLEventStore, n int) {
 
 		err := store.AppendBatch(
 			ctx,
-			id.NewAggregateRef(id.StreamType("Bench"), aggID),
+			id.NewStreamRef(id.StreamType("Bench"), aggID),
 			[]event.Event{evt},
 		)
 		if err != nil {
@@ -140,7 +140,7 @@ func BenchmarkSQLiteEventStore_LoadToVersion(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	payload := []byte(`{}`)
 
 	seedSQLiteEvents(b, store, "User", aggID, "user.updated", payload, 50)
@@ -150,7 +150,7 @@ func BenchmarkSQLiteEventStore_LoadToVersion(b *testing.B) {
 	for b.Loop() {
 		_, err := store.LoadToVersion(
 			ctx,
-			id.NewAggregateRef(id.StreamType("User"), aggID),
+			id.NewStreamRef(id.StreamType("User"), aggID),
 			event.Version(25),
 		)
 		if err != nil {
@@ -171,7 +171,7 @@ func benchSaveNewAggregate(
 	b.ResetTimer()
 
 	for b.Loop() {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		evt, _ := event.NewEvent(
 			eventType, aggID, aggType,
@@ -180,7 +180,7 @@ func benchSaveNewAggregate(
 
 		err := store.Save(
 			ctx,
-			id.NewAggregateRef(aggType, aggID),
+			id.NewStreamRef(aggType, aggID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
@@ -211,7 +211,7 @@ func seedSQLiteEvents(
 
 		err := store.Save(
 			ctx,
-			id.NewAggregateRef(aggType, aggID),
+			id.NewStreamRef(aggType, aggID),
 			[]event.Event{evt},
 			event.Version(i),
 		)

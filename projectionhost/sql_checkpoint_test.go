@@ -59,8 +59,8 @@ func TestIntegration_ProjectionHost_SQLiteCheckpoint(t *testing.T) {
 		t.Fatalf("Register: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Item", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Item", aggID)
 	for range 3 {
 		evt, _ := event.New("item.added", aggID, "Item", 1, []byte("payload"))
 		_ = store.AppendBatch(context.Background(), ref, []event.Event{evt})

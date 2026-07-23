@@ -21,7 +21,7 @@ func TestExecute_WithSnapshot(t *testing.T) {
 		decider.WithSnapshotStrategy[counterState](everyN(2)),
 	)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err := executeAndIncrement(t, repo, aggID, "CounterCreated")
 	if err != nil {
@@ -48,7 +48,7 @@ func TestLoad_WithSnapshot(t *testing.T) {
 
 	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
 	})
@@ -65,7 +65,7 @@ func TestLoad_SnapshotDecodeError(t *testing.T) {
 
 	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	snapshotStore.SetSnapshot(&snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Counter",
@@ -90,7 +90,7 @@ func TestLoad_SnapshotStoreLoadError(t *testing.T) {
 
 	repo := newCounterSnapshotRepo(t, store, bus, snapshotStore, codec)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	_, _, err := repo.Load(t.Context(), aggID, "Counter")
 	if err == nil {
 		t.Fatal("expected error from snapshot store load failure")
@@ -102,7 +102,7 @@ func TestLoad_SnapshotFoldError(t *testing.T) {
 
 	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	saveSnapshot(t, snapshotStore, codec, aggID, 1, event.Version(1))
 
@@ -151,7 +151,7 @@ func TestExecute_SaveSnapshotError(t *testing.T) {
 		decider.WithSnapshotStrategy[counterState](everyN(1)),
 	)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err := executeAndIncrement(t, repo, aggID, "CounterCreated")
 	if err != nil {
@@ -183,7 +183,7 @@ func TestExecute_SaveSnapshotFoldError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err = executeAndIncrement(t, repo, aggID, "CounterCreated")
 	if err != nil {
@@ -213,7 +213,7 @@ func TestLoad_SnapshotWithEventsAfter(t *testing.T) {
 
 	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	events := make([]event.Event, 5)
 	for i := range events {
@@ -238,7 +238,7 @@ func TestLoad_SnapshotStoreLoadFromVersionError(t *testing.T) {
 
 	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	applySnapshot(t, snapshotStore, codec, aggID, 1, event.Version(1))
 
@@ -278,7 +278,7 @@ func TestLoad_SnapshotNil(t *testing.T) {
 
 	store, bus, snapshotStore, codec := newSnapshotSetup(t)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
 	})

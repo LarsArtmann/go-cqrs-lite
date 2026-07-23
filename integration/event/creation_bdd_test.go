@@ -14,7 +14,7 @@ var _ = Describe("Event Creation", func() {
 	Describe("As a developer creating domain events", func() {
 		Context("when I create an event with all metadata", func() {
 			It("should preserve every field including tracing IDs", func() {
-				aggID := id.NewAggregateID()
+				aggID := id.NewStreamID()
 				corrID, err := id.ParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")
 				Expect(err).ToNot(HaveOccurred())
 				causeID, err := id.ParseCausationID("01HK154FHRS5276AC3V7GRNTYM")
@@ -76,14 +76,14 @@ var _ = Describe("Event Creation", func() {
 			},
 			Entry(
 				"empty aggregate type",
-				id.NewAggregateID(),
+				id.NewStreamID(),
 				id.StreamType(""),
 				event.Version(1),
 				"aggregate type is required",
 			),
 			Entry(
 				"zero version",
-				id.NewAggregateID(),
+				id.NewStreamID(),
 				id.StreamType("User"),
 				event.Version(0),
 				"version",
@@ -92,7 +92,7 @@ var _ = Describe("Event Creation", func() {
 
 		Context("when I add custom metadata to an event", func() {
 			It("should preserve it through the metadata map", func() {
-				aggID := id.NewAggregateID()
+				aggID := id.NewStreamID()
 				evt, err := event.NewEvent(
 					event.Type("TestEvent"),
 					aggID,

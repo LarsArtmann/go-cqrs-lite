@@ -15,6 +15,6 @@ var ParseAggregateType = id.ParseAggregateType
 
 type StreamRef = id.StreamRef
 
-var NewAggregateRef = id.NewAggregateRef
+var NewAggregateRef = id.NewStreamRef
 
 type CustomData[K ~string] = metadata.CustomData[K]

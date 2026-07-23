@@ -87,7 +87,7 @@ var _ = Describe("ListBuilder", func() {
 })
 
 func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
-	activeID := id.NewAggregateID()
+	activeID := id.NewStreamID()
 	activeEvt, err := event.NewEvent(
 		"user.created", activeID, "User",
 		event.Version(1), []byte(`{"name":"Alice"}`),
@@ -96,13 +96,13 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 	Expect(
 		store.Save(
 			ctx,
-			id.NewAggregateRef(id.StreamType("User"), activeID),
+			id.NewStreamRef(id.StreamType("User"), activeID),
 			[]event.Event{activeEvt},
 			event.Version(0),
 		),
 	).To(Succeed())
 
-	deletedID := id.NewAggregateID()
+	deletedID := id.NewStreamID()
 	deletedEvt, err := event.NewEvent(
 		"user.deleted", deletedID, "User",
 		event.Version(1), []byte(`{"reason":"gdpr"}`),
@@ -112,13 +112,13 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 	Expect(
 		store.Save(
 			ctx,
-			id.NewAggregateRef(id.StreamType("User"), deletedID),
+			id.NewStreamRef(id.StreamType("User"), deletedID),
 			[]event.Event{deletedEvt},
 			event.Version(0),
 		),
 	).To(Succeed())
 
-	orderID := id.NewAggregateID()
+	orderID := id.NewStreamID()
 	orderEvt, err := event.NewEvent(
 		"order.created", orderID, "Order",
 		event.Version(1), []byte(`{"total":99}`),
@@ -127,7 +127,7 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 	Expect(
 		store.Save(
 			ctx,
-			id.NewAggregateRef(id.StreamType("Order"), orderID),
+			id.NewStreamRef(id.StreamType("Order"), orderID),
 			[]event.Event{orderEvt},
 			event.Version(0),
 		),

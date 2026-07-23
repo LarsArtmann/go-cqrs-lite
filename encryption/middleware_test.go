@@ -25,7 +25,7 @@ func generateTestKey(t *testing.T) []byte {
 func makeTestEvent(t *testing.T, payload string) event.Event {
 	t.Helper()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent("user.created", aggID, "User", 1, []byte(payload))
 	if err != nil {
 		t.Fatal(err)
@@ -237,7 +237,7 @@ func TestMiddleware_PreservesEncoding(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			aggID := id.NewAggregateID()
+			aggID := id.NewStreamID()
 			evt, err := event.New(
 				"user.created", aggID, "User", 1, tc.payload,
 				event.WithCodec(tc.codec),

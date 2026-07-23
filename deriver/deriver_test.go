@@ -13,7 +13,7 @@ import (
 func testEvent(t *testing.T, eventType string) cqrsevent.Event {
 	t.Helper()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := cqrsevent.NewEvent(
 		cqrsevent.Type(eventType),
 		aggID,
@@ -32,13 +32,13 @@ func TestDeriver_Then(t *testing.T) {
 	t.Parallel()
 
 	d1 := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
-		cmd, _ := cqrscommand.New("cmd.a", id.NewAggregateID())
+		cmd, _ := cqrscommand.New("cmd.a", id.NewStreamID())
 
 		return []cqrscommand.Command{cmd}, nil
 	})
 
 	d2 := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
-		cmd, _ := cqrscommand.New("cmd.b", id.NewAggregateID())
+		cmd, _ := cqrscommand.New("cmd.b", id.NewStreamID())
 
 		return []cqrscommand.Command{cmd}, nil
 	})
@@ -100,7 +100,7 @@ func TestDeriver_Filter(t *testing.T) {
 
 	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
 		called = true
-		cmd, _ := cqrscommand.New("cmd.x", id.NewAggregateID())
+		cmd, _ := cqrscommand.New("cmd.x", id.NewStreamID())
 
 		return []cqrscommand.Command{cmd}, nil
 	}).Filter("user.created", "user.updated")
@@ -153,7 +153,7 @@ func TestDeriver_AsHandler(t *testing.T) {
 	)
 
 	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
-		cmd, _ := cqrscommand.New("cmd.derived", id.NewAggregateID())
+		cmd, _ := cqrscommand.New("cmd.derived", id.NewStreamID())
 
 		return []cqrscommand.Command{cmd}, nil
 	})
@@ -217,7 +217,7 @@ func TestDeriver_AsHandlerErrorPropagation(t *testing.T) {
 func TestDeriver_Idempotent_DeterministicIDs(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
 		cmd1, _ := cqrscommand.New("cmd.first", aggID)
@@ -254,7 +254,7 @@ func TestDeriver_Idempotent_DeterministicIDs(t *testing.T) {
 func TestDeriver_Idempotent_DifferentEvents(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
 		cmd, _ := cqrscommand.New("cmd.derived", aggID)
@@ -273,7 +273,7 @@ func TestDeriver_Idempotent_DifferentEvents(t *testing.T) {
 func TestDeriver_Idempotent_SourceEventMetadata(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
 		cmd, _ := cqrscommand.New("cmd.derived", aggID)
@@ -354,7 +354,7 @@ func TestDeriver_ChainedComposition(t *testing.T) {
 
 	mkDeriver := func(cmdType string) Deriver {
 		return Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
-			cmd, _ := cqrscommand.New(cqrscommand.Type(cmdType), id.NewAggregateID())
+			cmd, _ := cqrscommand.New(cqrscommand.Type(cmdType), id.NewStreamID())
 
 			return []cqrscommand.Command{cmd}, nil
 		})

@@ -23,8 +23,8 @@ func BenchmarkBundle_EventSave(b *testing.B) {
 	defer func() { _ = bundle.Close() }()
 
 	ctx := event.WithProcessingMode(b.Context(), event.ModeReplay)
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Bench", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Bench", aggID)
 
 	events, _ := event.NewEvents(
 		aggID, "Bench", 0,
@@ -50,8 +50,8 @@ func BenchmarkDirect_EventSave(b *testing.B) {
 	defer func() { _ = store.Close() }()
 
 	ctx := event.WithProcessingMode(b.Context(), event.ModeReplay)
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Bench", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Bench", aggID)
 
 	events, _ := event.NewEvents(
 		aggID, "Bench", 0,

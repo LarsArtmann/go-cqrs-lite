@@ -123,7 +123,7 @@ func (p *countingProjection) Handle(_ context.Context, evt event.Event) error {
 }
 
 func makeEvent(eventType string) event.Event {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.New(
 		event.Type(eventType),
 		aggID,
@@ -1422,7 +1422,7 @@ func TestHost_StaggerShutdownNoLeak(t *testing.T) {
 // Ensure unused imports are referenced.
 var (
 	_ = fmt.Sprintf
-	_ = id.NewAggregateID
+	_ = id.NewStreamID
 )
 
 func TestHost_Status_ReturnsSortedByName(t *testing.T) {

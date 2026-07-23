@@ -66,7 +66,7 @@ func TestVersionedSeekableJournal_Property_upcasterChain(t *testing.T) {
 		defer store.Close()
 
 		ctx := context.Background()
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		upcasters := make([]schema.Upcaster, chainDepth)
 		for i := range upcasters {
@@ -139,7 +139,7 @@ func TestVersionedSeekableJournal_Property_passthrough(t *testing.T) {
 		defer store.Close()
 
 		ctx := context.Background()
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		var events []event.Event
 		for i := 0; i < numEvents; i++ {
@@ -205,7 +205,7 @@ func TestVersionedSeekableJournal_Property_ReadFrom(t *testing.T) {
 		defer store.Close()
 
 		ctx := context.Background()
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		upcasters := make([]schema.Upcaster, chainDepth)
 		for i := range upcasters {
@@ -275,7 +275,7 @@ func TestVersionedSeekableJournal_MidStreamUpcastError(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	const total = 10
 
@@ -340,7 +340,7 @@ func benchmarkReadAll(b *testing.B, chainDepth int) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	const total = 10_000
 
@@ -361,7 +361,7 @@ func benchmarkReadAll(b *testing.B, chainDepth int) {
 
 	if err := store.Save(
 		ctx,
-		id.NewAggregateRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), aggID),
 		events,
 		0,
 	); err != nil {
@@ -397,7 +397,7 @@ func BenchmarkVersionedSeekableJournal_ReadFrom_WithUpcasters(b *testing.B) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	const total = 10_000
 
@@ -418,7 +418,7 @@ func BenchmarkVersionedSeekableJournal_ReadFrom_WithUpcasters(b *testing.B) {
 
 	if err := store.Save(
 		ctx,
-		id.NewAggregateRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), aggID),
 		events,
 		0,
 	); err != nil {

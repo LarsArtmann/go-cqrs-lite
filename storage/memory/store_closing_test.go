@@ -25,7 +25,7 @@ func TestMemoryStore_Closed(t *testing.T) {
 
 	err := store.Save(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{evt},
 		0,
 	)
@@ -43,7 +43,7 @@ func TestMemoryStore_ClosedLoad(t *testing.T) {
 
 	_, err := store.Load(
 		ctx,
-		id.NewAggregateRef(
+		id.NewStreamRef(
 			id.StreamType("User"),
 			idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		),
@@ -64,7 +64,7 @@ func TestMemoryStore_ClosedLoadFromVersion(t *testing.T) {
 
 	_, err := store.LoadFromVersion(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		0,
 	)
 	if err == nil {
@@ -80,7 +80,7 @@ func TestMemoryStore_LoadToVersion_Closed(t *testing.T) {
 
 	_, err := store.LoadToVersion(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), id.NewAggregateID()),
+		id.NewStreamRef(id.StreamType("User"), id.NewStreamID()),
 		1,
 	)
 	if err == nil {
@@ -96,7 +96,7 @@ func TestMemoryStore_LoadToTimestamp_Closed(t *testing.T) {
 
 	_, err := store.LoadToTimestamp(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), id.NewAggregateID()),
+		id.NewStreamRef(id.StreamType("User"), id.NewStreamID()),
 		time.Now(),
 	)
 	if err == nil {

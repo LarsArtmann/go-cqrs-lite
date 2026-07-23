@@ -35,7 +35,7 @@ func TestMemoryBus_PublishSubscribe(t *testing.T) {
 		t.Fatalf("SubscribeAll: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, err := command.New("user.create", aggID)
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -74,7 +74,7 @@ func TestMemoryBus_HandlerError(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, _ := command.New("test.cmd", aggID)
 
 	err := bus.Publish(ctx, cmd)
@@ -111,7 +111,7 @@ func TestMemoryBus_Middleware(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, _ := command.New("test.cmd", aggID)
 	_ = bus.Publish(ctx, cmd)
 

@@ -55,7 +55,7 @@ func TestSpanTree_RetryAttemptsAreChildren(t *testing.T) {
 	}
 
 	handler := cmdMws[0](cmdMws[1](retryMw(handlerFunc)))
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 	_ = handler(context.Background(), cmd)
 
 	tp.ForceFlush(context.Background())
@@ -109,7 +109,7 @@ func TestSpanTree_BundleProducesAllSpanKinds(t *testing.T) {
 
 	cmdMws := bundle.Command()
 	cmdHandler := cmdMws[0](cmdMws[1](NoopCommandHandler()))
-	_ = cmdHandler(context.Background(), &testCommand{streamID: id.NewAggregateID()})
+	_ = cmdHandler(context.Background(), &testCommand{streamID: id.NewStreamID()})
 
 	qryMws := bundle.Query()
 	qryHandler := qryMws[0](qryMws[1](noopQueryHandler()))

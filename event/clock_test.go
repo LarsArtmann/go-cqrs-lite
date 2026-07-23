@@ -16,7 +16,7 @@ func TestWithClock_DeterministicTime(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		nil,
@@ -38,7 +38,7 @@ func TestWithClock_DefaultUsesTimeNow(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		nil,
@@ -63,7 +63,7 @@ func TestWithClock_WithOccurredAtTakesPrecedence(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		nil,
@@ -88,7 +88,7 @@ func TestWithClock_BatchNewEvents(t *testing.T) {
 
 	fixedTime := time.Date(2026, 3, 20, 14, 0, 0, 0, time.UTC)
 	clock := func() time.Time { return fixedTime }
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt1, err := event.NewEvent("order.created", aggID, "Order", 1,
 		[]byte(`{"item":"widget"}`), event.WithClock(clock))
@@ -113,7 +113,7 @@ func TestDefaultClock_IsTimeNow(t *testing.T) {
 	t.Parallel()
 
 	before := time.Now().UTC()
-	evt, err := event.NewEvent("TestEvent", id.NewAggregateID(), "Test", 1, nil)
+	evt, err := event.NewEvent("TestEvent", id.NewStreamID(), "Test", 1, nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}

@@ -11,7 +11,7 @@ import (
 func BenchmarkNew(b *testing.B) {
 	b.ReportAllocs()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	b.ResetTimer()
 
@@ -26,7 +26,7 @@ func BenchmarkNew(b *testing.B) {
 func BenchmarkMustNew(b *testing.B) {
 	b.ReportAllocs()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	b.ResetTimer()
 
@@ -38,7 +38,7 @@ func BenchmarkMustNew(b *testing.B) {
 func BenchmarkNew_WithMetadata(b *testing.B) {
 	b.ReportAllocs()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	corrID := id.NewCorrelationID()
 
 	b.ResetTimer()

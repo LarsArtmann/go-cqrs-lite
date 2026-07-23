@@ -88,7 +88,7 @@ func (s *SQLSnapshotStore) Load(
 	ctx context.Context,
 	ref id.StreamRef,
 ) (*snapshot.Snapshot, error) {
-	ctx, span := sqlpkg.StartAggregateSpan(ctx, "snapshot.load", ref)
+	ctx, span := sqlpkg.StartStreamSpan(ctx, "snapshot.load", ref)
 	defer span.End()
 	snap, err := s.querySnapshot(ctx, ref)
 	if err != nil {
@@ -182,7 +182,7 @@ func (s *SQLSnapshotStore) scanSnapshot(
 
 func (s *SQLSnapshotStore) Delete(ctx context.Context, ref id.StreamRef) error {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
-	return sqlpkg.DeleteByAggregate(s.DB, ctx, ref, sqlpkg.TableSnapshots, p1, p2, "snapshot")
+	return sqlpkg.DeleteByStream(s.DB, ctx, ref, sqlpkg.TableSnapshots, p1, p2, "snapshot")
 }
 
 var (

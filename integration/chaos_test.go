@@ -40,7 +40,7 @@ func TestChaos_CommandHandler_Error(t *testing.T) {
 		return handlerErr
 	})
 
-	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewAggregateID()})
+	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewStreamID()})
 	g.Expect(err).To(MatchError(handlerErr))
 }
 
@@ -55,7 +55,7 @@ func TestChaos_CommandHandler_Panic_Recovered(t *testing.T) {
 		panic("chaos: unexpected panic")
 	})
 
-	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewAggregateID()})
+	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewStreamID()})
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(err.Error()).To(ContainSubstring("panic recovered"))
 }
@@ -77,7 +77,7 @@ func TestChaos_CommandHandler_Panic_NoRecovery(t *testing.T) {
 		panic("chaos: propagated")
 	})
 
-	_ = disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewAggregateID()})
+	_ = disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewStreamID()})
 }
 
 func newRetryDispatcher(
@@ -118,7 +118,7 @@ func TestChaos_CommandRetry_SucceedsAfterFailures(t *testing.T) {
 	var attempts int
 	disp := newRetryDispatcher(5, &attempts, 3, false)
 
-	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewAggregateID()})
+	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewStreamID()})
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(attempts).To(Equal(3))
 }
@@ -144,7 +144,7 @@ func TestChaos_EventHandler_Panic_RecoveryMiddleware(t *testing.T) {
 	})
 	g.Expect(err).ToNot(HaveOccurred())
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt1, err := event.NewEvent("chaos.event", aggID, "Chaos", event.Version(1), nil)
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -163,7 +163,7 @@ func TestChaos_Context_Cancellation(t *testing.T) {
 		return ctx.Err()
 	})
 
-	err := disp.Dispatch(ctx, &chaosCmd{streamID: id.NewAggregateID()})
+	err := disp.Dispatch(ctx, &chaosCmd{streamID: id.NewStreamID()})
 	g.Expect(err).To(MatchError(context.Canceled))
 }
 
@@ -174,7 +174,7 @@ func TestChaos_CommandRetry_ExhaustsAllAttempts(t *testing.T) {
 	var attempts int
 	disp := newRetryDispatcher(3, &attempts, 0, true)
 
-	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewAggregateID()})
+	err := disp.Dispatch(context.Background(), &chaosCmd{streamID: id.NewStreamID()})
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(attempts).To(Equal(3))
 }
@@ -186,7 +186,7 @@ func TestChaos_EventPublish_Fails(t *testing.T) {
 	bus := eventtest.NewFakeBus()
 	t.Cleanup(func() { _ = bus.Close() })
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent("chaos.publish", aggID, "Chaos", event.Version(1), nil)
 	g.Expect(err).ToNot(HaveOccurred())
 

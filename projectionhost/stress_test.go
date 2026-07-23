@@ -40,8 +40,8 @@ func TestIntegration_ProjectionHost_10KEvents(t *testing.T) {
 	}
 
 	// Seed 10K events into the real store.
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Item", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Item", aggID)
 	for i := range eventCount {
 		typ := event.Type(fmt.Sprintf("item.tick.%d", i%10))
 		evt, _ := event.New(typ, aggID, "Item", 1, []byte("payload"))

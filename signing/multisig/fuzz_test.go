@@ -209,7 +209,7 @@ func FuzzMultiSig_ExtractFromCorruptJSON(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, jsonValue string) {
 		evt, err := event.NewEvent(
-			"test.fuzz", id.NewAggregateID(), "Test", 1, nil,
+			"test.fuzz", id.NewStreamID(), "Test", 1, nil,
 			event.WithMetadata(event.Metadata{
 				Custom: map[event.MetadataKey]string{
 					multisig.MultiSigMetadataKey: jsonValue,

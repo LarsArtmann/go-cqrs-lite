@@ -166,7 +166,7 @@ func TestMaterialize_SQLViewStoreCompatibleWithHandler(t *testing.T) {
 		},
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.NewEvent(event.Type("user.created"), aggID, "User", event.Version(1), nil)
 
 	msg := buildTestMessage(evt, "user.created")

@@ -15,7 +15,7 @@ import (
 func benchEvent(tb testing.TB) event.Event {
 	tb.Helper()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent(
 		"BenchEvent", aggID, "Bench", 1,
 		[]byte(`{"name":"test"}`),
@@ -82,7 +82,7 @@ func BenchmarkBuildMetadata(b *testing.B) {
 	md := message.Metadata{
 		"event_id":       id.NewEventID().String(),
 		"event_type":     "BenchEvent",
-		"aggregate_id":   id.NewAggregateID().String(),
+		"aggregate_id":   id.NewStreamID().String(),
 		"aggregate_type": "Bench",
 		"version":        "1",
 		"schema_version": "1",
@@ -105,7 +105,7 @@ func benchCommand(tb testing.TB) *command.BasicCommand {
 	tb.Helper()
 
 	cmd, err := command.New(
-		"BenchCommand", id.NewAggregateID(),
+		"BenchCommand", id.NewStreamID(),
 		command.WithCorrelationID(id.NewCorrelationID()),
 		command.WithUserID(id.NewUserID()),
 		command.WithCustomMetadata("tenant", "acme"),

@@ -138,7 +138,7 @@ func TestEventPubSub_RoundTrip(t *testing.T) {
 	// Wait for subscription to register, then publish.
 	time.Sleep(settleDelay)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt1, _ := event.NewEvent(
 		"user.created",
@@ -183,7 +183,7 @@ func TestEventPubSub_FilterByType(t *testing.T) {
 	// Wait for subscription to register, then publish.
 	time.Sleep(settleDelay)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt1, _ := event.NewEvent("user.created", aggID, "User", event.Version(1), nil)
 	evt2, _ := event.NewEvent("user.deleted", aggID, "User", event.Version(2), nil)
@@ -227,7 +227,7 @@ func TestEventPubSub_PreservesCBOREncoding(t *testing.T) {
 
 	time.Sleep(settleDelay)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.New(
 		"user.created", aggID, "User", event.Version(1),

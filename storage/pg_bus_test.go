@@ -104,14 +104,14 @@ func newBusWithSavedEvent(t *testing.T, eventType event.Type) (
 
 	t.Cleanup(func() { _ = bus.Close() })
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent(eventType, aggID, "Test", event.Version(1), []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
 	if err := store.AppendBatch(context.Background(),
-		id.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
+		id.NewStreamRef("Test", aggID), []event.Event{evt}); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
@@ -293,11 +293,11 @@ func TestPostgresBus_SubscribeAll(t *testing.T) {
 
 	t.Cleanup(func() { _ = bus.Close() })
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.NewEvent("any.event", aggID, "Test", event.Version(1), []byte(`{}`))
 
 	if err := store.AppendBatch(context.Background(),
-		id.NewAggregateRef("Test", aggID), []event.Event{evt}); err != nil {
+		id.NewStreamRef("Test", aggID), []event.Event{evt}); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
@@ -373,11 +373,11 @@ func TestPostgresBus_Middleware(t *testing.T) {
 
 	_ = bus.Use(mw)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.NewEvent("test.mw", aggID, "Test", event.Version(1), []byte(`{}`))
 
 	_ = store.AppendBatch(context.Background(),
-		id.NewAggregateRef("Test", aggID), []event.Event{evt})
+		id.NewStreamRef("Test", aggID), []event.Event{evt})
 
 	_ = bus.Subscribe("test.mw", func(_ context.Context, _ event.Event) error { return nil })
 	_ = bus.Publish(context.Background(), evt)
@@ -407,7 +407,7 @@ func TestPostgresBus_PublishClosedBus(t *testing.T) {
 
 	evt, _ := event.NewEvent(
 		"test.closed",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"Test",
 		event.Version(1),
 		[]byte(`{}`),
@@ -517,8 +517,8 @@ func TestPostgresBus_RefetchVersionFallback(t *testing.T) {
 	t.Cleanup(func() { _ = bus.Close() })
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Test", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", aggID)
 
 	evt, err := event.NewEvent("test.versioned", aggID, "Test", event.Version(1),
 		[]byte(`{"n":1}`))

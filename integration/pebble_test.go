@@ -48,8 +48,8 @@ func TestPebbleEventStoreWithProjectionRunner(t *testing.T) {
 	defer bus.Close()
 
 	// Seed two events before the runner starts so replay is exercised.
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef(id.StreamType("Counter"), aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef(id.StreamType("Counter"), aggID)
 
 	for i := range 2 {
 		version := event.Version(i + 1)
@@ -140,8 +140,8 @@ func TestPebbleSnapshotStoreWithDeciderRepository(t *testing.T) {
 		t.Fatalf("new repository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef(id.StreamType("Counter"), aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef(id.StreamType("Counter"), aggID)
 
 	// Execute three increments; snapshot should be saved at version 2.
 	for range 3 {

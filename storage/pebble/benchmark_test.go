@@ -63,7 +63,7 @@ func BenchmarkPebbleStore_Save100(b *testing.B) {
 	b.ResetTimer()
 
 	for i := range b.N {
-		ref := id.NewAggregateRef("Bench", id.NewAggregateID())
+		ref := id.NewStreamRef("Bench", id.NewStreamID())
 		events := makeBenchEvents(b, 100, ref)
 
 		err := store.Save(ctx, ref, events, event.Version(i*100))
@@ -78,7 +78,7 @@ func BenchmarkPebbleStore_SaveLoad100(b *testing.B) {
 	defer cleanup()
 
 	ctx := context.Background()
-	ref := id.NewAggregateRef("BenchLoad", id.NewAggregateID())
+	ref := id.NewStreamRef("BenchLoad", id.NewStreamID())
 
 	events := makeBenchEvents(b, 100, ref)
 
@@ -106,7 +106,7 @@ func BenchmarkPebbleStore_Save1(b *testing.B) {
 	b.ResetTimer()
 
 	for range b.N {
-		ref := id.NewAggregateRef("Bench1", id.NewAggregateID())
+		ref := id.NewStreamRef("Bench1", id.NewStreamID())
 
 		evt, err := event.NewEvent("test.event", ref.ID, ref.Type, event.Version(1), nil)
 		if err != nil {
@@ -125,7 +125,7 @@ func BenchmarkPebbleStore_LoadEmpty(b *testing.B) {
 	defer cleanup()
 
 	ctx := context.Background()
-	ref := id.NewAggregateRef("BenchEmpty", id.NewAggregateID())
+	ref := id.NewStreamRef("BenchEmpty", id.NewStreamID())
 
 	b.ResetTimer()
 

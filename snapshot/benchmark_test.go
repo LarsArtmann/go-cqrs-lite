@@ -53,7 +53,7 @@ func BenchmarkReadPressure_ShouldSnapshotFor(b *testing.B) {
 		b.Fatalf("NewReadPressure: %v", err)
 	}
 
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 	for range 5 {
 		rp.RecordRead(ref, event.Version(1))
 	}
@@ -73,7 +73,7 @@ func BenchmarkReadPressure_RecordRead(b *testing.B) {
 		b.Fatalf("NewReadPressure: %v", err)
 	}
 
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	b.ResetTimer()
 
@@ -88,7 +88,7 @@ func BenchmarkSaveSnapshot(b *testing.B) {
 	sink := newFakeStore()
 	b.Cleanup(func() { _ = sink.Close() })
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ctx := context.Background()
 	state := []byte(`{"value":42}`)
 
@@ -112,7 +112,7 @@ func BenchmarkMemorySnapshotStore_Load(b *testing.B) {
 	sink := newFakeStore()
 	b.Cleanup(func() { _ = sink.Close() })
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ctx := context.Background()
 
 	state, _ := codec.JSONCodec{}.Encode(map[string]int{"value": 42})
@@ -127,7 +127,7 @@ func BenchmarkMemorySnapshotStore_Load(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := sink.Load(ctx, id.NewAggregateRef("User", aggID))
+		_, err := sink.Load(ctx, id.NewStreamRef("User", aggID))
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}

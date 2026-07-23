@@ -41,7 +41,7 @@ func ExampleRepository_Execute() {
 		return
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err = repo.Execute(
 		context.Background(),

@@ -13,8 +13,8 @@ func TestParseRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	rapid.Check(t, func(t *rapid.T) {
-		original := id.NewAggregateID()
-		parsed, err := id.ParseAggregateID(original.String())
+		original := id.NewStreamID()
+		parsed, err := id.ParseStreamID(original.String())
 		if err != nil {
 			t.Fatalf("parse failed: %v", err)
 		}
@@ -29,8 +29,8 @@ func TestNewIDUniqueness(t *testing.T) {
 	t.Parallel()
 
 	rapid.Check(t, func(t *rapid.T) {
-		id1 := id.NewAggregateID()
-		id2 := id.NewAggregateID()
+		id1 := id.NewStreamID()
+		id2 := id.NewStreamID()
 		if id1 == id2 {
 			t.Fatal("two new IDs are equal (should be unique)")
 		}
@@ -42,7 +42,7 @@ func TestIDStringLength(t *testing.T) {
 	t.Parallel()
 
 	rapid.Check(t, func(t *rapid.T) {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		evtID := id.NewEventID()
 		cmdID := id.NewCommandID()
 
@@ -65,7 +65,7 @@ func TestIDStringLength(t *testing.T) {
 func TestParseInvalidString(t *testing.T) {
 	t.Parallel()
 
-	_, err := id.ParseAggregateID("")
+	_, err := id.ParseStreamID("")
 	if err == nil {
 		t.Fatal("expected parse to fail for empty string")
 	}

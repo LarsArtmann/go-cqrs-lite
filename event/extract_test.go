@@ -10,7 +10,7 @@ import (
 func TestExtractCustomBytes(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	key := event.MetadataKey("test.key")
 
 	t.Run("valid_base64_value", func(t *testing.T) {

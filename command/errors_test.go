@@ -42,7 +42,7 @@ func TestCommandErrors_Classification(t *testing.T) {
 func TestWithCommandMetadata(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ref := command.NewAggregateRef("User", aggID)
 
 	md := command.Metadata{}
@@ -68,7 +68,7 @@ func TestDispatchOnClosed(t *testing.T) {
 		t.Fatalf("close: %v", err)
 	}
 
-	cmd, _ := command.New("CreateUser", id.NewAggregateID())
+	cmd, _ := command.New("CreateUser", id.NewStreamID())
 	err := d.Dispatch(t.Context(), cmd)
 	if err == nil {
 		t.Fatal("expected error dispatching on closed dispatcher")

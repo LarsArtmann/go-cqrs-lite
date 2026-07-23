@@ -26,14 +26,14 @@ func TestMemoryStore_ReadFrom(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID1 := id.NewAggregateID()
-	aggID2 := id.NewAggregateID()
+	aggID1 := id.NewStreamID()
+	aggID2 := id.NewStreamID()
 
 	evt1, evt2, evt3 := eventtest.MakeThreeTimelineEvents(t, "User", aggID1, "Order", aggID2)
 
-	_ = store.AppendBatch(ctx, id.NewAggregateRef(id.StreamType("User"), aggID1), evt1)
-	_ = store.AppendBatch(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID2), evt2)
-	_ = store.AppendBatch(ctx, id.NewAggregateRef(id.StreamType("User"), aggID1), evt3)
+	_ = store.AppendBatch(ctx, id.NewStreamRef(id.StreamType("User"), aggID1), evt1)
+	_ = store.AppendBatch(ctx, id.NewStreamRef(id.StreamType("Order"), aggID2), evt2)
+	_ = store.AppendBatch(ctx, id.NewStreamRef(id.StreamType("User"), aggID1), evt3)
 
 	all, err := store.ReadAll(ctx)
 	eventtest.AssertNoError(t, err, "ReadAll")

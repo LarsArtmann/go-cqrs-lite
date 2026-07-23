@@ -17,14 +17,14 @@ func TestDeriveAggregateID(t *testing.T) {
 	}{
 		{
 			"deterministic",
-			id.DeriveAggregateID("lock", "user1", "resource1"),
-			id.DeriveAggregateID("lock", "user1", "resource1"),
+			id.DeriveStreamID("lock", "user1", "resource1"),
+			id.DeriveStreamID("lock", "user1", "resource1"),
 			true,
 		},
 		{
 			"different inputs",
-			id.DeriveAggregateID("lock", "user1", "resource1"),
-			id.DeriveAggregateID("lock", "user2", "resource1"),
+			id.DeriveStreamID("lock", "user1", "resource1"),
+			id.DeriveStreamID("lock", "user2", "resource1"),
 			false,
 		},
 	}
@@ -41,8 +41,8 @@ func TestDeriveAggregateID(t *testing.T) {
 func TestDeriveAggregateID_DifferentNamespace(t *testing.T) {
 	t.Parallel()
 
-	a := id.DeriveAggregateID("lock", "user1")
-	b := id.DeriveAggregateID("unlock", "user1")
+	a := id.DeriveStreamID("lock", "user1")
+	b := id.DeriveStreamID("unlock", "user1")
 
 	if a == b {
 		t.Error("different namespaces should produce different IDs")
@@ -52,7 +52,7 @@ func TestDeriveAggregateID_DifferentNamespace(t *testing.T) {
 func TestDeriveAggregateID_NotZero(t *testing.T) {
 	t.Parallel()
 
-	got := id.DeriveAggregateID("test")
+	got := id.DeriveStreamID("test")
 
 	if got.IsZero() {
 		t.Error("derived ID should not be zero")

@@ -10,7 +10,7 @@ import (
 )
 
 func benchmarkDispatch(b *testing.B, dispatcher *command.Dispatcher) {
-	cmd := testutil.NewCmd(b, "bench.cmd", id.NewAggregateID())
+	cmd := testutil.NewCmd(b, "bench.cmd", id.NewStreamID())
 	ctx := context.Background()
 
 	for b.Loop() {

@@ -51,7 +51,7 @@ func TestCommandDispatch_ServerSpanCarriesAttrs(t *testing.T) {
 
 	client := cqrsgrpc.NewCommandClient(conn)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, err := command.New("test.cmd", aggID)
 	if err != nil {
 		t.Fatalf("New command: %v", err)

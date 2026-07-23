@@ -11,7 +11,7 @@ import (
 )
 
 func ExampleNewEvent() {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent(
 		"UserCreated",
@@ -36,7 +36,7 @@ func ExampleNewEvent() {
 }
 
 func ExampleNewVersionedStore() {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	v1Event, _ := event.NewEvent(
 		"UserCreated",
@@ -50,7 +50,7 @@ func ExampleNewVersionedStore() {
 	store := memory.NewMemoryStore()
 	_ = store.Save(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{v1Event},
 		0,
 	)
@@ -70,7 +70,7 @@ func ExampleNewVersionedStore() {
 
 	events, err := versioned.Load(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if err != nil {
 		fmt.Println("error:", err)

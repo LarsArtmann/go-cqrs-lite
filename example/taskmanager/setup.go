@@ -237,7 +237,7 @@ func (s *Server) Stop() error {
 
 // SeedDemo creates a sample task so the API has data on first run.
 func (s *Server) SeedDemo(ctx context.Context) {
-	taskID := id.NewAggregateID()
+	taskID := id.NewStreamID()
 
 	if err := s.Repo.Execute(
 		ctx, taskID, streamType,

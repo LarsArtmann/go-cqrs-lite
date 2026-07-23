@@ -46,7 +46,7 @@ func errMatch(family errorfamily.Family, code string) error {
 func TestDecider_CreateTask(t *testing.T) {
 	t.Parallel()
 
-	taskID := id.NewAggregateID()
+	taskID := id.NewStreamID()
 
 	t.Run("succeeds for new aggregate", func(t *testing.T) {
 		t.Parallel()
@@ -88,7 +88,7 @@ func TestDecider_CreateTask(t *testing.T) {
 func TestDecider_Lifecycle(t *testing.T) {
 	t.Parallel()
 
-	taskID := id.NewAggregateID()
+	taskID := id.NewStreamID()
 	created := mustEvt(
 		evtTaskCreated,
 		taskID,
@@ -126,7 +126,7 @@ func TestDecider_Lifecycle(t *testing.T) {
 func TestDecider_AssignTask(t *testing.T) {
 	t.Parallel()
 
-	taskID := id.NewAggregateID()
+	taskID := id.NewStreamID()
 	created := mustEvt(
 		evtTaskCreated,
 		taskID,
@@ -157,7 +157,7 @@ func TestDecider_AssignTask(t *testing.T) {
 func TestDecider_DeleteTask(t *testing.T) {
 	t.Parallel()
 
-	taskID := id.NewAggregateID()
+	taskID := id.NewStreamID()
 	created := mustEvt(
 		evtTaskCreated,
 		taskID,
@@ -189,8 +189,8 @@ func TestDecider_DeleteTask(t *testing.T) {
 func TestDecider_BlockBy(t *testing.T) {
 	t.Parallel()
 
-	taskID := id.NewAggregateID()
-	depID := id.NewAggregateID()
+	taskID := id.NewStreamID()
+	depID := id.NewStreamID()
 	created := mustEvt(
 		evtTaskCreated,
 		taskID,
@@ -219,7 +219,7 @@ func TestDecider_BlockBy(t *testing.T) {
 func TestDecider_FoldState(t *testing.T) {
 	t.Parallel()
 
-	taskID := id.NewAggregateID()
+	taskID := id.NewStreamID()
 
 	t.Run("fold produces correct state after full lifecycle", func(t *testing.T) {
 		t.Parallel()

@@ -52,8 +52,8 @@ func setupLoadAllSuccess(
 ) (id.EventID, id.EventID) {
 	t.Helper()
 
-	aggID1 := id.NewAggregateID()
-	aggID2 := id.NewAggregateID()
+	aggID1 := id.NewStreamID()
+	aggID2 := id.NewStreamID()
 	eventID1 := id.NewEventID()
 	eventID2 := id.NewEventID()
 	ts1 := time.Now().Truncate(time.Microsecond)
@@ -116,7 +116,7 @@ func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evtID1 := id.NewEventID()
 	evtID2 := id.NewEventID()
 	ts := time.Now().Truncate(time.Microsecond)
@@ -130,7 +130,7 @@ func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
 	backwardsLoader := event.BackwardsSource(store)
 	events, err := backwardsLoader.LoadBackwards(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if err != nil {
 		t.Fatalf("LoadBackwards: %v", err)
@@ -148,7 +148,7 @@ func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadBackwardsQuery)).
 		WithArgs("User", aggID).
@@ -157,7 +157,7 @@ func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {
 	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(
 		context.Background(),
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("expected ErrStreamNotFound, got %v", err)
@@ -190,7 +190,7 @@ func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
 	store, mock := newTestStore(t)
 
 	maliciousAggType := id.StreamType("User'; DROP TABLE events; --")
-	maliciousAggID := id.NewAggregateID()
+	maliciousAggID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs(string(maliciousAggType), maliciousAggID).
@@ -198,7 +198,7 @@ func TestSQLEventStore_SQLInjectionSafety(t *testing.T) {
 
 	events, err := store.Load(
 		context.Background(),
-		id.NewAggregateRef(maliciousAggType, maliciousAggID),
+		id.NewStreamRef(maliciousAggType, maliciousAggID),
 	)
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("Load with malicious input: expected ErrStreamNotFound, got %v", err)

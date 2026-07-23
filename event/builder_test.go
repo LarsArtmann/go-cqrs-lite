@@ -9,7 +9,7 @@ import (
 func TestBuilder_Build(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1))
 
 	evt, err := b.Build()
@@ -37,7 +37,7 @@ func TestBuilder_Build(t *testing.T) {
 func TestBuilder_Build_WithPayload(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	payload := []byte(`{"key":"value"}`)
 
 	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1)).
@@ -56,7 +56,7 @@ func TestBuilder_Build_WithPayload(t *testing.T) {
 func TestBuilder_Build_WithMetadata(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	correlationID := id.NewCorrelationID()
 	causationID := id.NewCausationID()
 	userID := id.NewUserID()
@@ -88,7 +88,7 @@ func TestBuilder_Build_WithMetadata(t *testing.T) {
 func TestBuilder_Build_InvalidEventType(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	b := newBuilder("", aggID, "TestAggregate", Version(1))
 
 	_, err := b.Build()
@@ -100,7 +100,7 @@ func TestBuilder_Build_InvalidEventType(t *testing.T) {
 func TestBuilder_Build_ReturnsEvent(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1))
 
 	evt, err := b.Build()
@@ -116,7 +116,7 @@ func TestBuilder_Build_ReturnsEvent(t *testing.T) {
 func TestBuilder_Build_WithOptions(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	correlationID := id.NewCorrelationID()
 
 	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1)).

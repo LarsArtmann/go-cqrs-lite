@@ -30,7 +30,7 @@ func TestVersionedSeekableJournal_NoUpcasters(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, _ := event.NewEvent("test.event", aggID, "Test", event.Version(1), []byte("payload"))
 	saveTestEvents(t, ctx, store, aggID, evt)
@@ -57,7 +57,7 @@ func TestVersionedSeekableJournal_ReadAll_Upcast(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, _ := event.NewEvent(
 		"test.upcast", aggID, "Test", event.Version(1), []byte("v1"),
@@ -95,7 +95,7 @@ func TestVersionedSeekableJournal_ReadFrom_upcast(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt1, _ := event.NewEvent(
 		"test.upcast", aggID, "Test", event.Version(1), []byte("v1"),
@@ -133,7 +133,7 @@ func TestVersionedSeekableJournal_ReadAll_upcastError(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, _ := event.NewEvent(
 		"test.upcast", aggID, "Test", event.Version(1), []byte("v1"),
@@ -159,7 +159,7 @@ func TestVersionedSeekableJournal_ReadFrom_upcastError(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt1, _ := event.NewEvent(
 		"test.upcast", aggID, "Test", event.Version(1), []byte("v1"),

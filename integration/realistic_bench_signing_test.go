@@ -28,7 +28,7 @@ func BenchmarkRealistic_Signing(b *testing.B) {
 	eventCount := 10_000
 	events := make([]event.Event, eventCount)
 	for i := range events {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		events[i] = newRealisticEvent(
 			b,
 			"OrderCreated",

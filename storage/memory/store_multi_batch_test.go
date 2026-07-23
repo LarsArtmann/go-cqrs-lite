@@ -23,20 +23,20 @@ func TestMemoryStore_SaveMultiBatch(t *testing.T) {
 
 	entries := []event.MultiBatchEntry{
 		{
-			Ref: id.NewAggregateRef("User", aggA),
+			Ref: id.NewStreamRef("User", aggA),
 			Events: []event.Event{
 				eventtest.QuickEvent("UserCreated", aggA, "User", 1, nil),
 			},
 		},
 		{
-			Ref: id.NewAggregateRef("User", aggB),
+			Ref: id.NewStreamRef("User", aggB),
 			Events: []event.Event{
 				eventtest.QuickEvent("UserCreated", aggB, "User", 1, nil),
 				eventtest.QuickEvent("UserUpdated", aggB, "User", 2, nil),
 			},
 		},
 		{
-			Ref: id.NewAggregateRef("Order", aggC),
+			Ref: id.NewStreamRef("Order", aggC),
 			Events: []event.Event{
 				eventtest.QuickEvent("OrderPlaced", aggC, "Order", 1, nil),
 			},
@@ -48,21 +48,21 @@ func TestMemoryStore_SaveMultiBatch(t *testing.T) {
 		t.Fatalf("SaveMultiBatch failed: %v", err)
 	}
 
-	eventsA, err := store.Load(ctx, id.NewAggregateRef("User", aggA))
+	eventsA, err := store.Load(ctx, id.NewStreamRef("User", aggA))
 	if err != nil {
 		t.Fatalf("Load A failed: %v", err)
 	}
 
 	eventtest.AssertLen(t, "events A", eventsA, 1)
 
-	eventsB, err := store.Load(ctx, id.NewAggregateRef("User", aggB))
+	eventsB, err := store.Load(ctx, id.NewStreamRef("User", aggB))
 	if err != nil {
 		t.Fatalf("Load B failed: %v", err)
 	}
 
 	eventtest.AssertLen(t, "events B", eventsB, 2)
 
-	eventsC, err := store.Load(ctx, id.NewAggregateRef("Order", aggC))
+	eventsC, err := store.Load(ctx, id.NewStreamRef("Order", aggC))
 	if err != nil {
 		t.Fatalf("Load C failed: %v", err)
 	}
@@ -97,7 +97,7 @@ func TestMemoryStore_SaveMultiBatch_Empty(t *testing.T) {
 
 	entries := []event.MultiBatchEntry{
 		{
-			Ref: id.NewAggregateRef(
+			Ref: id.NewStreamRef(
 				"User",
 				idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 			),
@@ -121,7 +121,7 @@ func TestMemoryStore_SaveMultiBatch_Closed(t *testing.T) {
 
 	err := store.SaveMultiBatch(context.Background(), []event.MultiBatchEntry{
 		{
-			Ref:    id.NewAggregateRef("User", aggA),
+			Ref:    id.NewStreamRef("User", aggA),
 			Events: []event.Event{eventtest.QuickEvent("UserCreated", aggA, "User", 1, nil)},
 		},
 	})

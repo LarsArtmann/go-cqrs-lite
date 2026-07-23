@@ -31,7 +31,7 @@ func NewEventGenerator(
 
 // Generate creates a sequence of events for a single aggregate.
 func (g *EventGenerator) Generate(count int) ([]event.Event, error) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	types := make([]event.Type, count)
 	payloads := make([]any, count)
 
@@ -59,7 +59,7 @@ func (g *EventGenerator) GenerateMulti(aggregates, eventsPerAggregate int) ([]ev
 	var allEvents []event.Event
 
 	for aggIdx := range aggregates {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		types := make([]event.Type, eventsPerAggregate)
 		payloads := make([]any, eventsPerAggregate)
 

@@ -65,7 +65,7 @@ func BenchmarkDecider_Execute(b *testing.B) {
 	repo, ctx := newBenchRepo(b)
 
 	for b.Loop() {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		benchExecute(b, repo, ctx, aggID, "CounterCreated")
 	}
 }
@@ -73,7 +73,7 @@ func BenchmarkDecider_Execute(b *testing.B) {
 func BenchmarkDecider_Execute_Update(b *testing.B) {
 	b.ReportAllocs()
 	repo, ctx := newBenchRepo(b)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	seedCounterBench(b, repo, aggID, 100)
 
@@ -87,7 +87,7 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 func BenchmarkDecider_Load(b *testing.B) {
 	b.ReportAllocs()
 	repo, ctx := newBenchRepo(b)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	seedCounterBench(b, repo, aggID, 100)
 
@@ -104,7 +104,7 @@ func BenchmarkDecider_Load(b *testing.B) {
 func BenchmarkDecider_Apply(b *testing.B) {
 	b.ReportAllocs()
 	events := make([]event.Event, 100)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	for i := range 100 {
 		events[i] = benchEvent(b, "CounterIncremented", aggID, event.Version(i+1))

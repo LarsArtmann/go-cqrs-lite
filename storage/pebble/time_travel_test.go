@@ -16,7 +16,7 @@ func TestEventStore_LoadFromVersion(t *testing.T) {
 	store := newPebbleTestStore(t)
 	ctx := context.Background()
 	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt1 := cfg.NewTestEvent(t, aggID, 1)
 	evt2 := cfg.NewTestEvent(t, aggID, 2)
@@ -24,14 +24,14 @@ func TestEventStore_LoadFromVersion(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(cfg.AggType, aggID),
+		id.NewStreamRef(cfg.AggType, aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadFromVersion(ctx, id.NewAggregateRef(cfg.AggType, aggID), 1)
+	events, err := store.LoadFromVersion(ctx, id.NewStreamRef(cfg.AggType, aggID), 1)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
 	}
@@ -51,15 +51,15 @@ func TestEventStore_LoadFromVersion_Empty(t *testing.T) {
 	store := newPebbleTestStore(t)
 	ctx := context.Background()
 	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt1 := cfg.NewTestEvent(t, aggID, 1)
-	err := store.AppendBatch(ctx, id.NewAggregateRef(cfg.AggType, aggID), []event.Event{evt1})
+	err := store.AppendBatch(ctx, id.NewStreamRef(cfg.AggType, aggID), []event.Event{evt1})
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadFromVersion(ctx, id.NewAggregateRef(cfg.AggType, aggID), 5)
+	events, err := store.LoadFromVersion(ctx, id.NewStreamRef(cfg.AggType, aggID), 5)
 	if err != nil {
 		t.Fatalf("LoadFromVersion: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestEventStore_LoadToVersion(t *testing.T) {
 	store := newPebbleTestStore(t)
 	ctx := context.Background()
 	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt1 := cfg.NewTestEvent(t, aggID, 1)
 	evt2 := cfg.NewTestEvent(t, aggID, 2)
@@ -83,14 +83,14 @@ func TestEventStore_LoadToVersion(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(cfg.AggType, aggID),
+		id.NewStreamRef(cfg.AggType, aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	events, err := store.LoadToVersion(ctx, id.NewAggregateRef(cfg.AggType, aggID), 2)
+	events, err := store.LoadToVersion(ctx, id.NewStreamRef(cfg.AggType, aggID), 2)
 	if err != nil {
 		t.Fatalf("LoadToVersion: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestEventStore_LoadToVersion_NotFound(t *testing.T) {
 
 	_, err := store.LoadToVersion(
 		context.Background(),
-		id.NewAggregateRef("Issue", id.NewAggregateID()),
+		id.NewStreamRef("Issue", id.NewStreamID()),
 		5,
 	)
 	if !errors.Is(err, event.ErrStreamNotFound) {
@@ -121,7 +121,7 @@ func TestEventStore_LoadToTimestamp(t *testing.T) {
 	store := newPebbleTestStore(t)
 	ctx := context.Background()
 	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	now := time.Now()
 
 	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now.Add(-2*time.Hour)))
@@ -130,7 +130,7 @@ func TestEventStore_LoadToTimestamp(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(cfg.AggType, aggID),
+		id.NewStreamRef(cfg.AggType, aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -139,7 +139,7 @@ func TestEventStore_LoadToTimestamp(t *testing.T) {
 
 	events, err := store.LoadToTimestamp(
 		ctx,
-		id.NewAggregateRef(cfg.AggType, aggID),
+		id.NewStreamRef(cfg.AggType, aggID),
 		now.Add(-30*time.Minute),
 	)
 	if err != nil {
@@ -158,7 +158,7 @@ func TestEventStore_LoadToTimestamp_NotFound(t *testing.T) {
 
 	_, err := store.LoadToTimestamp(
 		context.Background(),
-		id.NewAggregateRef("Issue", id.NewAggregateID()),
+		id.NewStreamRef("Issue", id.NewStreamID()),
 		time.Now(),
 	)
 	if !errors.Is(err, event.ErrStreamNotFound) {
@@ -171,7 +171,7 @@ func TestEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt1 := cfg.NewTestEvent(t, aggID, 1)
 	saveCfgEvent(t, store, cfg, aggID, evt1)
@@ -184,7 +184,7 @@ func TestEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 			evt := cfg.NewTestEvent(t, aggID, 2)
 			errCh <- store.Save(
 				context.Background(),
-				id.NewAggregateRef(cfg.AggType, aggID),
+				id.NewStreamRef(cfg.AggType, aggID),
 				[]event.Event{evt},
 				event.Version(1),
 			)
@@ -212,7 +212,7 @@ func TestEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 		t.Fatalf("expected %d conflicts, got %d", goroutines-1, conflicts)
 	}
 
-	loaded, err := store.Load(context.Background(), id.NewAggregateRef(cfg.AggType, aggID))
+	loaded, err := store.Load(context.Background(), id.NewStreamRef(cfg.AggType, aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}

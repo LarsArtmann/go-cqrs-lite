@@ -15,7 +15,7 @@ import (
 func newTestEvent(version int, payload []byte) (event.Event, error) {
 	return event.NewEvent(
 		event.Type("test.event"),
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		id.StreamType("Test"),
 		event.Version(version),
 		payload,
@@ -73,7 +73,7 @@ func TestConcurrent_StoreSaveLoad(t *testing.T) {
 
 	for range 50 {
 		wg.Go(func() {
-			aggID := id.NewAggregateID()
+			aggID := id.NewStreamID()
 			evt, _ := event.NewEvent(
 				event.Type("test.event"),
 				aggID,
@@ -84,7 +84,7 @@ func TestConcurrent_StoreSaveLoad(t *testing.T) {
 
 			_ = store.Save(
 				context.Background(),
-				id.NewAggregateRef(aggType, aggID),
+				id.NewStreamRef(aggType, aggID),
 				[]event.Event{evt},
 				event.Version(0),
 			)
@@ -133,7 +133,7 @@ func TestConcurrent_SnapshotSaveLoad(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemorySnapshotStore()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	aggType := id.StreamType("Test")
 
 	var wg sync.WaitGroup
@@ -157,7 +157,7 @@ func TestConcurrent_SnapshotSaveLoad(t *testing.T) {
 
 	wg.Wait()
 
-	snap, err := store.Load(context.Background(), id.NewAggregateRef(aggType, aggID))
+	snap, err := store.Load(context.Background(), id.NewStreamRef(aggType, aggID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}

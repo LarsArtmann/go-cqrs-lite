@@ -47,7 +47,7 @@ func TestCommandTypedMetrics(t *testing.T) {
 	mw := CommandTypedMetrics(recorder)
 	handler := mw(NoopCommandHandler())
 
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 
 	if err := handler(context.Background(), cmd); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -68,7 +68,7 @@ func TestCommandTypedMetrics_RecordsError(t *testing.T) {
 	mw := CommandTypedMetrics(recorder)
 	handler := mw(failingCommandHandler("boom"))
 
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 
 	if err := handler(context.Background(), cmd); err == nil {
 		t.Fatal("expected error")
@@ -141,7 +141,7 @@ func TestCommandTypedMetrics_CapturesAttrs(t *testing.T) {
 	mw := CommandTypedMetrics(rec)
 	handler := mw(NoopCommandHandler())
 
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 
 	if err := handler(context.Background(), cmd); err != nil {
 		t.Fatalf("unexpected error: %v", err)

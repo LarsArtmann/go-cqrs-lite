@@ -37,7 +37,7 @@ func newSQLiteDLQ(t *testing.T) *projectionhost.SQLiteDeadLetterStore {
 func makeDLQEntry(t *testing.T, projName string) projectionhost.DeadLetterEntry {
 	t.Helper()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent(
 		"test.poison",
 		aggID,
@@ -277,7 +277,7 @@ func TestSQLiteDeadLetterStore_PreservesEventFields(t *testing.T) {
 	store := newSQLiteDLQ(t)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.NewEvent(
 		"order.created", aggID, "Order", event.Version(5),
 		[]byte(`{"amount":42}`),

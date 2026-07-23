@@ -38,7 +38,7 @@ func seedListingAggregates(
 	ids := make([]id.StreamID, count)
 
 	for i := range count {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		ids[i] = aggID
 
 		evt, err := event.NewEvent(
@@ -226,7 +226,7 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	defer func() { _ = db.Close() }()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, _ := event.NewEvent(
 		event.Type("user.created"), aggID, id.StreamType("User"),

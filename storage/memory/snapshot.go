@@ -43,7 +43,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) err
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := id.NewAggregateRef(snap.StreamType, snap.StreamID).StreamKey()
+	key := id.NewStreamRef(snap.StreamType, snap.StreamID).StreamKey()
 
 	existing, exists := s.snapshots[key]
 	if exists && existing.Version.Int() > snap.Version.Int() {

@@ -29,12 +29,12 @@ func newEncTestEnv(t *testing.T, opts ...MiddlewareOption) encTestEnv {
 		t.Fatalf("NewEncryptedStore: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	return encTestEnv{
 		store: store,
 		inner: inner,
 		aggID: aggID,
-		ref:   id.NewAggregateRef("User", aggID),
+		ref:   id.NewStreamRef("User", aggID),
 	}
 }

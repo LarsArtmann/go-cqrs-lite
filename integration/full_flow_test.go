@@ -87,7 +87,7 @@ func TestFullFlow(t *testing.T) {
 		func(_ context.Context, q *GetUser) (UserState, error) {
 			events, err := store.Load(
 				ctx,
-				id.NewAggregateRef(id.StreamType("User"), q.StreamID),
+				id.NewStreamRef(id.StreamType("User"), q.StreamID),
 			)
 			if err != nil {
 				return UserState{}, err
@@ -120,7 +120,7 @@ func TestFullFlow(t *testing.T) {
 	})
 
 	// --- Execute command ---
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	createCmd, err := command.New("CreateUser", aggID)
 	if err != nil {
@@ -138,7 +138,7 @@ func TestFullFlow(t *testing.T) {
 	}
 
 	// --- Verify events stored ---
-	events, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
+	events, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
 	if err != nil {
 		t.Fatalf("load events: %v", err)
 	}
@@ -178,7 +178,7 @@ func TestFullFlow(t *testing.T) {
 	}
 
 	// --- Verify stream loading works ---
-	stream, err := store.LoadStream(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
+	stream, err := store.LoadStream(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}

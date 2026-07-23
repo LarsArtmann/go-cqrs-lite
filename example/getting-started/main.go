@@ -113,7 +113,7 @@ func main() {
 	// enters live mode are not lost — they're in the journal.
 
 	// ── Execute commands (events sourced to journal) ─────────────────
-	counterID := id.NewAggregateID()
+	counterID := id.NewStreamID()
 
 	for _, amt := range []int{5, 3, 2} {
 		if err := repo.Execute(ctx, counterID, "Counter", increment(counterID, amt)); err != nil {

@@ -40,7 +40,7 @@ func TestStrictApply_KnownEvent(t *testing.T) {
 		"counter.decremented",
 	})
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	state, err := apply(counterState{Count: 0}, mustEvent(t, "counter.incremented", aggID))
 	if err != nil {
 		t.Fatalf("StrictApply() error: %v", err)
@@ -56,7 +56,7 @@ func TestStrictApply_UnknownEvent(t *testing.T) {
 		"counter.decremented",
 	})
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	_, err := apply(counterState{Count: 5}, mustEvent(t, "counter.reset", aggID))
 	if err == nil {
 		t.Fatal("StrictApply() should return error for unknown event type")
@@ -73,7 +73,7 @@ func TestStrictApply_PassesThroughErrors(t *testing.T) {
 
 	apply := StrictApply(errorApply, []event.Type{"test.event"})
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	_, err := apply(counterState{}, mustEvent(t, "test.event", aggID))
 	if err == nil {
 		t.Fatal("StrictApply() should pass through errors from inner apply")

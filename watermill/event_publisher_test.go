@@ -30,7 +30,7 @@ func TestEventPublisher_RoundTrip(t *testing.T) {
 	// Publish a cqrs event through the EventPublisher.
 	eventPub := NewEventPublisher(pubSub, "test.roundtrip")
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	originalEvt, _ := event.NewEvent(
 		event.Type("test.roundtrip.event"),
 		aggID, "TestAggregate", event.Version(1),
@@ -89,7 +89,7 @@ func TestEventPublisher_RoundTripCBOR(t *testing.T) {
 
 	eventPub := NewEventPublisher(pubSub, "test.roundtrip.cbor")
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	originalEvt, err := event.New(
 		event.Type("test.roundtrip.cbor.event"),
 		aggID,

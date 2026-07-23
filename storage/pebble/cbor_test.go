@@ -17,7 +17,7 @@ func TestSerializeEvent_CBORFormat(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent("UserCreated", aggID, "User", event.Version(1),
 		[]byte(`{"name":"Alice"}`))
@@ -43,7 +43,7 @@ func TestDeserializeEvent_JSONBackwardCompat(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	eventID := id.NewEventID()
 
 	legacy := serializableEvent{
@@ -89,7 +89,7 @@ func TestDeserializeEvent_CBORRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent("OrderPlaced", aggID, "Order", event.Version(3),
 		[]byte(`{"item":"widget","qty":5}`), event.WithSchemaVersion(2))
@@ -132,7 +132,7 @@ func TestDeserializeEvent_OccurredAtIsUTC(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	// Use a time with sub-second precision to verify it survives the int64 UnixNano path.
 	original := time.Date(2026, 7, 17, 14, 30, 45, 123456789, time.UTC)
@@ -175,7 +175,7 @@ func TestSerializeEvent_NoBase64(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	payload := make([]byte, 256)
 	for i := range payload {
@@ -240,7 +240,7 @@ func TestSerializeEvent_Deterministic(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent("TestEvent", aggID, "Test", event.Version(1),
 		[]byte(`{"z":1,"a":2,"m":3}`))
@@ -277,7 +277,7 @@ func TestEventStore_Persistence_CBOR(t *testing.T) {
 		t.Fatalf("open pebble: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ctx := context.Background()
 
 	store, err := NewStore(db, nil)
@@ -291,7 +291,7 @@ func TestEventStore_Persistence_CBOR(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	ref := id.NewAggregateRef("Item", aggID)
+	ref := id.NewStreamRef("Item", aggID)
 
 	err = store.Save(ctx, ref, []event.Event{evt}, event.Version(0))
 	if err != nil {
@@ -341,7 +341,7 @@ func TestEventStore_BinaryPayload(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ctx := context.Background()
 
 	payload := make([]byte, 512)
@@ -354,7 +354,7 @@ func TestEventStore_BinaryPayload(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	ref := id.NewAggregateRef("Bin", aggID)
+	ref := id.NewStreamRef("Bin", aggID)
 
 	err = store.Save(ctx, ref, []event.Event{evt}, event.Version(0))
 	if err != nil {
@@ -395,7 +395,7 @@ func TestSerializeEvent_SmallerThanJSON(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	payload := make([]byte, 100)
 	for i := range payload {
@@ -438,7 +438,7 @@ func TestDeserializeEvent_CBORWithMetadata(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	corrID := id.NewCorrelationID()
 	causeID := id.NewCausationID()
 

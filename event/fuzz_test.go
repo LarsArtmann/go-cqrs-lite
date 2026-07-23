@@ -87,7 +87,7 @@ func FuzzNewEvent(f *testing.F) {
 
 	f.Fuzz(
 		func(t *testing.T, eventType, aggType string, version, schemaVersion int64, payload string) {
-			aggID := id.NewAggregateID()
+			aggID := id.NewStreamID()
 			evt, err := event.NewEvent(
 				event.Type(eventType), aggID, id.StreamType(aggType),
 				event.Version(int(version)), []byte(payload),
@@ -118,7 +118,7 @@ func FuzzDecodePayload(f *testing.F) {
 	f.Add(`{"name":null}`)
 
 	f.Fuzz(func(t *testing.T, payloadJSON string) {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		evt, err := event.NewEvent(
 			event.Type("test"), aggID, id.StreamType("Test"),

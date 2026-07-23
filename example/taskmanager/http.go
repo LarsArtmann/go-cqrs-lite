@@ -55,7 +55,7 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 		body.Priority = PriorityMedium
 	}
 
-	taskID := id.NewAggregateID()
+	taskID := id.NewStreamID()
 
 	if err := s.CmdDisp.Dispatch(r.Context(), CreateTaskCmd{
 		BasicCommand: mustCmd(cmdCreateTask, taskID),
@@ -99,7 +99,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 	parts := strings.SplitN(path, "/", 2)
 	taskIDStr := parts[0]
 
-	taskID, err := id.ParseAggregateID(taskIDStr)
+	taskID, err := id.ParseStreamID(taskIDStr)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid task ID")
 
@@ -177,7 +177,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			depID, dErr := id.ParseAggregateID(body.DependencyID)
+			depID, dErr := id.ParseStreamID(body.DependencyID)
 			if dErr != nil {
 				writeError(w, http.StatusBadRequest, "invalid dependency ID")
 

@@ -14,7 +14,7 @@ import (
 func BenchmarkScale_EventCreation_WithPayload(b *testing.B) {
 	b.ReportAllocs()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	payload, err := json.Marshal(map[string]string{"name": "test-item", "sku": "ABC-123"})
 	if err != nil {
 		b.Fatalf("json.Marshal: %v", err)
@@ -41,7 +41,7 @@ func BenchmarkScale_EventSave_10KAggregates_100EventsEach(b *testing.B) {
 
 	aggIDs := make([]id.StreamID, aggCount)
 	for i := range aggIDs {
-		aggIDs[i] = id.NewAggregateID()
+		aggIDs[i] = id.NewStreamID()
 	}
 
 	b.ResetTimer()
@@ -56,7 +56,7 @@ func BenchmarkScale_EventSave_10KAggregates_100EventsEach(b *testing.B) {
 
 			err := store.AppendBatch(
 				ctx,
-				id.NewAggregateRef("Item", aggID),
+				id.NewStreamRef("Item", aggID),
 				events,
 			)
 			if err != nil {
@@ -80,7 +80,7 @@ func BenchmarkScale_EventPublish_MemoryBus_100KEvents(b *testing.B) {
 		b.Fatalf("SubscribeAll: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	events := make([]event.Event, 100)
 	for i := range events {
 		events[i] = newBenchEvent(b, "ItemUpdated", aggID, event.Version(i+1))

@@ -16,7 +16,7 @@ func TestCommandLogging_Success(t *testing.T) {
 
 	handler := mw(NoopCommandHandler())
 
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 
 	err := handler(context.Background(), cmd)
 	if err != nil {
@@ -36,7 +36,7 @@ func TestCommandLogging_Error(t *testing.T) {
 
 	handler := cmdMw(failingCommandHandler("boom"))
 
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 
 	err := handler(context.Background(), cmd)
 	if err == nil {

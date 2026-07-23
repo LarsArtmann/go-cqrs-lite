@@ -21,7 +21,7 @@ func BenchmarkDecider_Load_NoCache(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	seedCounterBench(b, repo, aggID, 500)
 
 	b.ResetTimer()
@@ -48,7 +48,7 @@ func BenchmarkDecider_Load_WithCache(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	seedCounterBench(b, repo, aggID, 500)
 
 	// Warm the cache with one Load
@@ -81,7 +81,7 @@ func BenchmarkDecider_Load_WithCache_HeavyHistory(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	// Seed 5000 events — heavy history where cache benefit is maximal
 	for i := 0; i < 5000; i++ {
@@ -108,7 +108,7 @@ func BenchmarkStateCache_Get(b *testing.B) {
 	b.ReportAllocs()
 
 	cache := decider.NewStateCache[counterState](128)
-	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
 	cache.Put(ref, counterState{Value: 42}, event.Version(10))
 
 	b.ResetTimer()
@@ -122,7 +122,7 @@ func BenchmarkStateCache_Put(b *testing.B) {
 	b.ReportAllocs()
 
 	cache := decider.NewStateCache[counterState](128)
-	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
 
 	b.ResetTimer()
 

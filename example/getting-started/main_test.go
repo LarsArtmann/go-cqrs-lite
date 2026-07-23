@@ -53,7 +53,7 @@ func TestGettingStarted_CounterValue(t *testing.T) {
 		return &CounterView{Value: ex.Value + p.Amount}, nil
 	}
 
-	counterID := id.NewAggregateID()
+	counterID := id.NewStreamID()
 
 	for _, amt := range []int{5, 3, 2} {
 		if err := repo.Execute(ctx, counterID, "Counter", increment(counterID, amt)); err != nil {

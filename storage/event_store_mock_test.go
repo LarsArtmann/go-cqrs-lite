@@ -37,7 +37,7 @@ func TestSQLEventStore_LoadToVersion_Mock_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
 
@@ -47,7 +47,7 @@ func TestSQLEventStore_LoadToVersion_Mock_Success(t *testing.T) {
 
 	events, err := store.LoadToVersion(
 		context.Background(),
-		id.NewAggregateRef("User", aggID),
+		id.NewStreamRef("User", aggID),
 		1,
 	)
 	if err != nil {
@@ -63,13 +63,13 @@ func TestSQLEventStore_LoadToVersion_Mock_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToVersionQuery)).
 		WithArgs("User", aggID, 5).
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 
-	_, err := store.LoadToVersion(context.Background(), id.NewAggregateRef("User", aggID), 5)
+	_, err := store.LoadToVersion(context.Background(), id.NewStreamRef("User", aggID), 5)
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("expected ErrStreamNotFound, got: %v", err)
 	}
@@ -79,13 +79,13 @@ func TestSQLEventStore_LoadToVersion_Mock_QueryError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToVersionQuery)).
 		WithArgs("User", aggID, 5).
 		WillReturnError(errors.New("connection lost"))
 
-	_, err := store.LoadToVersion(context.Background(), id.NewAggregateRef("User", aggID), 5)
+	_, err := store.LoadToVersion(context.Background(), id.NewStreamRef("User", aggID), 5)
 	if err == nil {
 		t.Fatal("expected error from query failure")
 	}
@@ -95,7 +95,7 @@ func TestSQLEventStore_LoadToTimestamp_Mock_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
 
@@ -105,7 +105,7 @@ func TestSQLEventStore_LoadToTimestamp_Mock_Success(t *testing.T) {
 
 	events, err := store.LoadToTimestamp(
 		context.Background(),
-		id.NewAggregateRef("User", aggID),
+		id.NewStreamRef("User", aggID),
 		evt.OccurredAt(),
 	)
 	if err != nil {
@@ -121,7 +121,7 @@ func TestSQLEventStore_LoadToTimestamp_Mock_QueryError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToTimestampQuery)).
 		WithArgs("User", aggID, sqlmock.AnyArg()).
@@ -129,7 +129,7 @@ func TestSQLEventStore_LoadToTimestamp_Mock_QueryError(t *testing.T) {
 
 	_, err := store.LoadToTimestamp(
 		context.Background(),
-		id.NewAggregateRef("User", aggID),
+		id.NewStreamRef("User", aggID),
 		testEvent(t).OccurredAt(),
 	)
 	if err == nil {
@@ -150,7 +150,7 @@ func TestSQLEventStore_Load_Mock_ScanError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
 		WithArgs("User", aggID).
@@ -158,7 +158,7 @@ func TestSQLEventStore_Load_Mock_ScanError(t *testing.T) {
 			"invalid-id", "", "User", aggID, 1, 1, nil, "", nil, testEvent(t).OccurredAt(),
 		))
 
-	_, err := store.Load(context.Background(), id.NewAggregateRef("User", aggID))
+	_, err := store.Load(context.Background(), id.NewStreamRef("User", aggID))
 	if err == nil {
 		t.Fatal("expected error from scan with invalid event ID")
 	}
@@ -168,7 +168,7 @@ func TestSQLEventStore_ReadFrom_Mock_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
 
 	mockLoadAllFromPosition(mock, evt)
@@ -210,7 +210,7 @@ func TestSQLEventStore_ReadAll_Mock_ScanError(t *testing.T) {
 }
 
 func mockLoadAllScanError(mock sqlmock.Sqlmock, t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			"invalid-id", "", "User", aggID, 1, 1, nil, "", nil, testEvent(t).OccurredAt(),

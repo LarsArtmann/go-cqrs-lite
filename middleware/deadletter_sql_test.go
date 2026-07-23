@@ -97,7 +97,7 @@ func TestSQLDeadLetterStore_WithAggregateID(t *testing.T) {
 	store := newSQLDeadLetterStore(t)
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	store.Handle(ctx, DeadLetterEntry{
 		Kind:     "command",

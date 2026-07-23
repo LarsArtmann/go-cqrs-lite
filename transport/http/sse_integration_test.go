@@ -27,8 +27,8 @@ func TestSSEHandler_ReplayWithRealMemoryStore(t *testing.T) {
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Account", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Account", aggID)
 
 	// Seed three events across two Save calls (version 1, then 2..3).
 	evt1, err := event.NewEvent("AccountOpened", aggID, "Account", 1, []byte(`{"seq":1}`))
@@ -91,8 +91,8 @@ func TestSSEHandler_UnlimitedReplayWithRealMemoryStore(t *testing.T) {
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Bulk", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Bulk", aggID)
 
 	// Seed more events than sseReplayBatchSize to force multiple batch reads.
 	const total = sseReplayBatchSize + 100

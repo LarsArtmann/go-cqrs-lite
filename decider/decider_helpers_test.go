@@ -27,7 +27,7 @@ func mustAppendBatch(
 ) {
 	t.Helper()
 
-	err := store.AppendBatch(t.Context(), id.NewAggregateRef(aggType, aggID), events)
+	err := store.AppendBatch(t.Context(), id.NewStreamRef(aggType, aggID), events)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}

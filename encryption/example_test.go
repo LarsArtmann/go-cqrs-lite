@@ -55,7 +55,7 @@ func ExampleEncryptMiddleware() {
 
 	mw := encryption.EncryptMiddleware(enc)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.NewEvent(
 		"user.created",
 		aggID,

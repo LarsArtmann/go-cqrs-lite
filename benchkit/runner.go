@@ -133,9 +133,9 @@ func (r *runner) setup(ctx context.Context) error {
 	r.refs = make([]id.StreamRef, profile.Aggregates)
 
 	for i := range profile.Aggregates {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		r.aggIDs[i] = aggID
-		r.refs[i] = id.NewAggregateRef(benchAggregateType, aggID)
+		r.refs[i] = id.NewStreamRef(benchAggregateType, aggID)
 	}
 
 	if r.concurrency <= 0 {
@@ -257,8 +257,8 @@ func runConcurrent(
 // warmup runs a few write+load cycles on a throwaway aggregate to warm
 // caches, JIT compilation, and connection pools.
 func (r *runner) warmup(ctx context.Context) error {
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef(benchAggregateType, aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef(benchAggregateType, aggID)
 
 	var version event.Version
 

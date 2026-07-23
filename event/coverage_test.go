@@ -19,7 +19,7 @@ func TestAggregateRef_IsZero(t *testing.T) {
 		t.Error("expected zero id.StreamRef to be zero")
 	}
 
-	ref = id.NewAggregateRef("User", id.NewAggregateID())
+	ref = id.NewStreamRef("User", id.NewStreamID())
 
 	if ref.IsZero() {
 		t.Error("expected non-zero id.StreamRef to not be zero")
@@ -32,7 +32,7 @@ func TestAggregateRef_Validate(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		t.Parallel()
 
-		ref := id.NewAggregateRef("User", id.NewAggregateID())
+		ref := id.NewStreamRef("User", id.NewStreamID())
 
 		err := ref.Validate()
 		if err != nil {
@@ -43,7 +43,7 @@ func TestAggregateRef_Validate(t *testing.T) {
 	t.Run("empty type", func(t *testing.T) {
 		t.Parallel()
 
-		ref := id.NewAggregateRef("", id.NewAggregateID())
+		ref := id.NewStreamRef("", id.NewStreamID())
 
 		err := ref.Validate()
 		if err == nil {
@@ -54,7 +54,7 @@ func TestAggregateRef_Validate(t *testing.T) {
 	t.Run("empty ID", func(t *testing.T) {
 		t.Parallel()
 
-		ref := id.NewAggregateRef("User", id.StreamID{})
+		ref := id.NewStreamRef("User", id.StreamID{})
 
 		err := ref.Validate()
 		if err == nil {
@@ -135,7 +135,7 @@ func TestImmutableEvent_String(t *testing.T) {
 	t.Parallel()
 
 	evt, err := event.NewEvent(
-		event.Type("user.created"), id.NewAggregateID(),
+		event.Type("user.created"), id.NewStreamID(),
 		id.StreamType("User"), event.Version(1),
 		[]byte(`{"name":"test"}`),
 	)
@@ -171,7 +171,7 @@ func TestWithCodec(t *testing.T) {
 	c := codecpkg.JSONCodec{}
 
 	evt, err := event.New(
-		"test", id.NewAggregateID(), "Test", 1,
+		"test", id.NewStreamID(), "Test", 1,
 		map[string]string{"key": "val"},
 		event.WithCodec(c),
 	)

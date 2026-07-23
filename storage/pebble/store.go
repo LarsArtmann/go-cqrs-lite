@@ -73,18 +73,18 @@ func (a *EventStore) eventKey(
 	return fmt.Appendf(nil, "%s%s:%s:%010d", a.prefix, ref.Type, ref.ID, version.Int())
 }
 
-// aggregatePrefix returns the prefix for all events of an aggregate.
-func (a *EventStore) aggregatePrefix(
+// streamPrefix returns the prefix for all events of an aggregate.
+func (a *EventStore) streamPrefix(
 	ref id.StreamRef,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:", a.prefix, ref.Type, ref.ID)
 }
 
-// aggregateUpperBound returns the exclusive upper bound for all events of an aggregate.
-// Pairs with aggregatePrefix to form a complete key range for NewIter:
+// streamUpperBound returns the exclusive upper bound for all events of an aggregate.
+// Pairs with streamPrefix to form a complete key range for NewIter:
 // iter := db.NewIter(&pebble.IterOptions{LowerBound: prefix, UpperBound: upperBound}).
 // The trailing 0xff byte sorts after any event version (eventKey uses %010d, max 10 digits).
-func (a *EventStore) aggregateUpperBound(
+func (a *EventStore) streamUpperBound(
 	ref id.StreamRef,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
@@ -97,8 +97,8 @@ func (a *EventStore) startLoadSpan(
 	spanName string,
 	ref id.StreamRef,
 ) (cqrsotel.Span, []byte, []byte) {
-	_, span := startAggregateSpan(ctx, spanName, ref)
-	return span, a.aggregatePrefix(ref), a.aggregateUpperBound(ref)
+	_, span := startStreamSpan(ctx, spanName, ref)
+	return span, a.streamPrefix(ref), a.streamUpperBound(ref)
 }
 
 // startLoadFromVersionSpan creates an aggregate span with a version attribute
@@ -110,9 +110,9 @@ func (a *EventStore) startLoadFromVersionSpan(
 	ref id.StreamRef,
 	version event.Version,
 ) (cqrsotel.Span, []byte, []byte) {
-	_, span := startAggregateSpan(ctx, spanName, ref,
+	_, span := startStreamSpan(ctx, spanName, ref,
 		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()))
-	return span, a.eventKey(ref, version+1), a.aggregateUpperBound(ref)
+	return span, a.eventKey(ref, version+1), a.streamUpperBound(ref)
 }
 
 // journalBounds returns the lower/upper key range for scanning the entire
@@ -132,13 +132,13 @@ func (a *EventStore) Save(
 		return nil
 	}
 
-	_, span := startAggregateSpan(ctx, "pebble.event.save", ref,
+	_, span := startStreamSpan(ctx, "pebble.event.save", ref,
 		cqrsotel.AttrInt("event.count", len(events)),
 		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, expectedVersion.Int()))
 	defer span.End()
 
-	a.lockAggregate(ref)
-	defer a.unlockAggregate(ref)
+	a.lockStream(ref)
+	defer a.unlockStream(ref)
 
 	err := a.checkVersion(ref, expectedVersion)
 	if err != nil {
@@ -188,6 +188,6 @@ func (a *EventStore) lockShard(ref id.StreamRef) *sync.Mutex {
 	return &a.lockShards[h.Sum32()%lockShardCount]
 }
 
-func (a *EventStore) lockAggregate(ref id.StreamRef) { a.lockShard(ref).Lock() }
+func (a *EventStore) lockStream(ref id.StreamRef) { a.lockShard(ref).Lock() }
 
-func (a *EventStore) unlockAggregate(ref id.StreamRef) { a.lockShard(ref).Unlock() }
+func (a *EventStore) unlockStream(ref id.StreamRef) { a.lockShard(ref).Unlock() }

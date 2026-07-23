@@ -47,7 +47,7 @@ func ExampleNewCommandBus() {
 		return nil
 	})
 
-	cmd, _ := command.New("user.create", id.NewAggregateID())
+	cmd, _ := command.New("user.create", id.NewStreamID())
 	_ = bus.Publish(context.Background(), cmd)
 
 	time.Sleep(50 * time.Millisecond)
@@ -73,7 +73,7 @@ func ExampleNewCommandPublisher() {
 }
 
 func ExampleCommandToMessage() {
-	cmd, _ := command.New("user.create", id.NewAggregateID())
+	cmd, _ := command.New("user.create", id.NewStreamID())
 	msg := watermill.CommandToMessage(cmd)
 
 	fmt.Println(msg.Metadata.Get("command_type"))

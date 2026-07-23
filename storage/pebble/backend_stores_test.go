@@ -63,7 +63,7 @@ func TestBackend_CommandStoreE2E(t *testing.T) {
 
 	cmdStore := backend.CommandStore()
 
-	ref := command.NewAggregateRef("User", id.NewAggregateID())
+	ref := command.NewAggregateRef("User", id.NewStreamID())
 	cmd, err := command.NewPersistedCommand("user.create", ref, []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewPersistedCommand: %v", err)

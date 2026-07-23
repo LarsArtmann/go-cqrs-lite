@@ -7,7 +7,7 @@ import (
 )
 
 func TestSingle(t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	aggType := id.StreamType("User")
 
 	events, err := Single(
@@ -38,7 +38,7 @@ func TestSingle(t *testing.T) {
 }
 
 func TestSingle_WithNilPayload(t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	_, err := Single(
 		"user.created",
@@ -53,7 +53,7 @@ func TestSingle_WithNilPayload(t *testing.T) {
 }
 
 func TestSingle_WithCorrelationID(t *testing.T) {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	corrID := id.NewCorrelationID()
 
 	events, err := Single(

@@ -10,7 +10,7 @@ import (
 func TestCommand_Metadata_Defaults(t *testing.T) {
 	t.Parallel()
 
-	cmd, err := command.New("CreateUser", id.NewAggregateID())
+	cmd, err := command.New("CreateUser", id.NewStreamID())
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -37,7 +37,7 @@ func TestCommand_WithCorrelationID(t *testing.T) {
 	t.Parallel()
 
 	cid := id.NewCorrelationID()
-	cmd, err := command.New("CreateUser", id.NewAggregateID(), command.WithCorrelationID(cid))
+	cmd, err := command.New("CreateUser", id.NewStreamID(), command.WithCorrelationID(cid))
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -51,7 +51,7 @@ func TestCommand_WithCausationID(t *testing.T) {
 	t.Parallel()
 
 	caid := id.NewCausationID()
-	cmd, err := command.New("CreateUser", id.NewAggregateID(), command.WithCausationID(caid))
+	cmd, err := command.New("CreateUser", id.NewStreamID(), command.WithCausationID(caid))
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -65,7 +65,7 @@ func TestCommand_WithUserID(t *testing.T) {
 	t.Parallel()
 
 	uid := id.NewUserID()
-	cmd, err := command.New("CreateUser", id.NewAggregateID(), command.WithUserID(uid))
+	cmd, err := command.New("CreateUser", id.NewStreamID(), command.WithUserID(uid))
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -79,7 +79,7 @@ func TestCommand_WithRequestID(t *testing.T) {
 	t.Parallel()
 
 	rid := id.NewRequestID()
-	cmd, err := command.New("CreateUser", id.NewAggregateID(), command.WithRequestID(rid))
+	cmd, err := command.New("CreateUser", id.NewStreamID(), command.WithRequestID(rid))
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -98,7 +98,7 @@ func TestCommand_AllMetadata(t *testing.T) {
 	rid := id.NewRequestID()
 
 	cmd, err := command.New(
-		"CreateUser", id.NewAggregateID(),
+		"CreateUser", id.NewStreamID(),
 		command.WithCorrelationID(cid),
 		command.WithCausationID(caid),
 		command.WithUserID(uid),
@@ -130,7 +130,7 @@ func TestCommand_MetadataIsolation(t *testing.T) {
 	t.Parallel()
 
 	cmd, err := command.New(
-		"CreateUser", id.NewAggregateID(),
+		"CreateUser", id.NewStreamID(),
 		command.WithCorrelationID(id.NewCorrelationID()),
 	)
 	if err != nil {
@@ -187,7 +187,7 @@ func TestCommand_MetadataMerge(t *testing.T) {
 func TestCommand_AutoMintsID(t *testing.T) {
 	t.Parallel()
 
-	cmd, err := command.New("CreateUser", id.NewAggregateID())
+	cmd, err := command.New("CreateUser", id.NewStreamID())
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -201,7 +201,7 @@ func TestCommand_WithCommandID(t *testing.T) {
 	t.Parallel()
 
 	customID := id.NewCommandID()
-	cmd, err := command.New("CreateUser", id.NewAggregateID(), command.WithCommandID(customID))
+	cmd, err := command.New("CreateUser", id.NewStreamID(), command.WithCommandID(customID))
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -214,7 +214,7 @@ func TestCommand_WithCommandID(t *testing.T) {
 func TestCommand_TwoInstancesHaveDifferentIDs(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	cmd1, _ := command.New("CreateUser", aggID)
 	cmd2, _ := command.New("CreateUser", aggID)

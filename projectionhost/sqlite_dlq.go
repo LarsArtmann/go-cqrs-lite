@@ -303,7 +303,7 @@ func scanDLQRow(rows *sql.Rows) (DeadLetterEntry, error) {
 			eventID = id.NewEventID()
 		}
 
-		aggID, _ := id.ParseAggregateID(entry.StreamID)
+		aggID, _ := id.ParseStreamID(entry.StreamID)
 
 		evt, reconstructErr := event.ReconstructEventFromFields(
 			eventID,

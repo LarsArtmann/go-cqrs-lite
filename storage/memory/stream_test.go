@@ -19,7 +19,7 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 	store := memory.NewMemoryStore()
 	defer store.Close()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	clock := func() time.Time { return time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC) }
 
 	ctx := context.Background()
@@ -33,14 +33,14 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("Order"), aggID),
+		id.NewStreamRef(id.StreamType("Order"), aggID),
 		wantEvents,
 	)
 	if err != nil {
 		t.Fatalf("append batch: %v", err)
 	}
 
-	stream, err := store.LoadStream(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID))
+	stream, err := store.LoadStream(ctx, id.NewStreamRef(id.StreamType("Order"), aggID))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestMemoryStore_LoadStream_NotFound(t *testing.T) {
 
 	_, err := store.LoadStream(
 		context.Background(),
-		id.NewAggregateRef("Order", id.NewAggregateID()),
+		id.NewStreamRef("Order", id.NewStreamID()),
 	)
 	if err == nil {
 		t.Fatal("expected error for non-existent aggregate")

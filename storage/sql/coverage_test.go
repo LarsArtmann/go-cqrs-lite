@@ -54,7 +54,7 @@ func TestReconstructEvent(t *testing.T) {
 	t.Parallel()
 
 	eventID := id.NewEventID()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
 	evt, err := sqlpkg.ReconstructEvent(
@@ -157,15 +157,15 @@ func TestTracer(t *testing.T) {
 	}
 }
 
-func TestStartAggregateSpan(t *testing.T) {
+func TestStartStreamSpan(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
-	_, span := sqlpkg.StartAggregateSpan(ctx, "test.span", ref)
+	_, span := sqlpkg.StartStreamSpan(ctx, "test.span", ref)
 	if span == nil {
-		t.Error("StartAggregateSpan returned nil span")
+		t.Error("StartStreamSpan returned nil span")
 	}
 
 	span.End()
@@ -175,7 +175,7 @@ func TestStartSaveSpan(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	_, span := sqlpkg.StartSaveSpan(ctx, "test.save", ref, event.Version(0), 3)
 	if span == nil {

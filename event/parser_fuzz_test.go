@@ -239,7 +239,7 @@ func FuzzDetectTombstone(f *testing.F) {
 		events := make([]event.Event, 3)
 		for i, v := range []string{t1Val, t2Val, t3Val} {
 			e, err := event.NewEvent(
-				"evt", id.NewAggregateID(), "Test", event.Version(i+1), nil,
+				"evt", id.NewStreamID(), "Test", event.Version(i+1), nil,
 				event.WithMetadata(event.Metadata{
 					Custom: map[event.MetadataKey]string{
 						event.MetadataKeyTombstone: t1Val,

@@ -22,7 +22,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	ctx := context.Background()
 
 	// ── Create a task via command dispatcher ──────────────────────────
-	taskID := id.NewAggregateID()
+	taskID := id.NewStreamID()
 
 	if err := srv.CmdDisp.Dispatch(ctx, CreateTaskCmd{
 		BasicCommand: mustCmd(cmdCreateTask, taskID),
@@ -96,7 +96,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	})
 
 	// Verify the event store persisted correct tombstone metadata.
-	ref := id.NewAggregateRef(streamType, taskID)
+	ref := id.NewStreamRef(streamType, taskID)
 	allEvents, err := srv.Bundle.EventSource.Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("load events: %v", err)
@@ -142,7 +142,7 @@ func TestIntegration_HTTPAPI(t *testing.T) {
 		t.Fatal("create: empty task ID")
 	}
 
-	taskID, _ := id.ParseAggregateID(createResp.ID)
+	taskID, _ := id.ParseStreamID(createResp.ID)
 
 	// ── Wait for projection ───────────────────────────────────────────
 	waitForView(t, srv, taskID, func(v *TaskView) bool {

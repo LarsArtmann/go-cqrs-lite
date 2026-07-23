@@ -15,7 +15,7 @@ func TestCommandRecovery_NoPanic(t *testing.T) {
 	mw := CommandRecovery()
 	handler := mw(NoopCommandHandler())
 
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 
 	err := handler(context.Background(), cmd)
 	if err != nil {
@@ -29,7 +29,7 @@ func TestCommandRecovery_Panic(t *testing.T) {
 	mw := CommandRecovery()
 	handler := mw(panicCommandHandler("boom"))
 
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 
 	err := handler(context.Background(), cmd)
 	if err == nil {
@@ -111,7 +111,7 @@ func TestCommandRecovery_SentinelError(t *testing.T) {
 	mw := CommandRecovery()
 	handler := mw(panicCommandHandler("boom"))
 
-	err := handler(context.Background(), &testCommand{streamID: id.NewAggregateID()})
+	err := handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
 	if !errors.Is(err, ErrPanicRecovered) {
 		t.Errorf("expected errors.Is(err, ErrPanicRecovered), got %v", err)
 	}

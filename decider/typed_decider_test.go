@@ -21,7 +21,7 @@ func decideIncrement(state counterState, cmd incrementCmd) ([]event.Event, error
 		eventType = "CounterCreated"
 	}
 
-	evt, err := event.NewEvent(eventType, id.NewAggregateID(), "Counter", 1, nil)
+	evt, err := event.NewEvent(eventType, id.NewStreamID(), "Counter", 1, nil)
 	if err != nil {
 		return nil, fmt.Errorf("decideIncrement: %w", err)
 	}
@@ -46,7 +46,7 @@ func TestTypedDecider_ExecuteCommand(t *testing.T) {
 		t.Fatalf("NewTypedRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ctx := context.Background()
 
 	err = repo.ExecuteCommand(ctx, aggID, "Counter", incrementCmd{Amount: 1})
@@ -54,7 +54,7 @@ func TestTypedDecider_ExecuteCommand(t *testing.T) {
 		t.Fatalf("ExecuteCommand: %v", err)
 	}
 
-	events, err := store.Load(ctx, id.NewAggregateRef("Counter", aggID))
+	events, err := store.Load(ctx, id.NewStreamRef("Counter", aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -84,7 +84,7 @@ func TestTypedDecider_NilPublisher(t *testing.T) {
 		t.Fatalf("NewTypedRepository with nil publisher should succeed: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ctx := context.Background()
 
 	err = repo.ExecuteCommand(ctx, aggID, "Counter", incrementCmd{Amount: 1})
@@ -92,7 +92,7 @@ func TestTypedDecider_NilPublisher(t *testing.T) {
 		t.Fatalf("ExecuteCommand with nil publisher: %v", err)
 	}
 
-	events, err := store.Load(ctx, id.NewAggregateRef("Counter", aggID))
+	events, err := store.Load(ctx, id.NewStreamRef("Counter", aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}

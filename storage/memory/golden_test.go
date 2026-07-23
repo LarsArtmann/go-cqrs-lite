@@ -23,7 +23,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	t.Cleanup(func() { _ = store.Close() })
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	ref := id.NewAggregateRef("Order", aggID)
+	ref := id.NewStreamRef("Order", aggID)
 
 	types := []struct {
 		typ     string
@@ -103,7 +103,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	t.Cleanup(func() { _ = store.Close() })
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	ref := id.NewAggregateRef("User", aggID)
+	ref := id.NewStreamRef("User", aggID)
 
 	state, err := json.Marshal(struct {
 		Name string `json:"name"`

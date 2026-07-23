@@ -29,7 +29,7 @@ func TestCommandBusPublishSubscribe(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, err := command.New("user.create", aggID)
 	if err != nil {
 		t.Fatalf("create command: %v", err)
@@ -63,7 +63,7 @@ func TestCommandBusSubscribeAll(t *testing.T) {
 		t.Fatalf("subscribeAll: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	for _, ct := range []command.Type{"a.b", "c.d"} {
 		cmd, _ := command.New(ct, aggID)
 		_ = bus.Publish(context.Background(), cmd)
@@ -106,7 +106,7 @@ func TestCommandBusPublishAfterClose(t *testing.T) {
 	bus := cqrswatermill.NewCommandBus()
 	_ = bus.Close()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, _ := command.New("user.create", aggID)
 	err := bus.Publish(context.Background(), cmd)
 	if err == nil {
@@ -158,7 +158,7 @@ func TestCommandBusMiddleware(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, _ := command.New("test.cmd", aggID)
 	_ = bus.Publish(context.Background(), cmd)
 
@@ -196,7 +196,7 @@ func TestCommandBusMetadataRoundTrip(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	original, _ := command.New(
 		"user.create", aggID,
 		command.WithCorrelationID(correlationID),
@@ -239,7 +239,7 @@ func TestCommandBusCustomTopic(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, _ := command.New("test.cmd", aggID)
 	_ = bus.Publish(context.Background(), cmd)
 

@@ -89,7 +89,7 @@ func TestBundle_RunProjections_ReplayAndLive(t *testing.T) {
 	}
 
 	// --- Phase 1: historical event, created before RunProjections starts ---
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	if err := repo.Execute(
 		ctx,

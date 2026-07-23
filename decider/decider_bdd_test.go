@@ -162,7 +162,7 @@ var _ = Describe("Decider Repository", func() {
 		ctx = context.Background()
 		store = memory.NewMemoryStore()
 		bus = eventtest.NewFakeBus()
-		aggID = id.NewAggregateID()
+		aggID = id.NewStreamID()
 
 		var err error
 		repo, err = decider.NewRepository(store, bus, bddCounterDecider())

@@ -32,7 +32,7 @@ func BenchmarkSQLEventStore_Load(b *testing.B) {
 		b.Fatalf("NewSQLEventStore: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	now := time.Now()
 	payload, err := json.Marshal(map[string]string{"name": "test"})
 	if err != nil {
@@ -52,7 +52,7 @@ func BenchmarkSQLEventStore_Load(b *testing.B) {
 
 		_, _ = store.Load(
 			context.Background(),
-			id.NewAggregateRef(id.StreamType("User"), aggID),
+			id.NewStreamRef(id.StreamType("User"), aggID),
 		)
 
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -73,7 +73,7 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 		b.Fatalf("NewSQLEventStore: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	payload := []byte(`{"name":"test"}`)
 
 	for b.Loop() {
@@ -95,7 +95,7 @@ func BenchmarkSQLEventStore_Save(b *testing.B) {
 		mock.ExpectCommit()
 
 		_ = store.Save(
-			context.Background(), id.NewAggregateRef(id.StreamType("User"), aggID),
+			context.Background(), id.NewStreamRef(id.StreamType("User"), aggID),
 			[]event.Event{evt}, event.Version(0),
 		)
 
@@ -117,7 +117,7 @@ func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
 		b.Fatalf("NewSQLEventStore: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	now := time.Now()
 	payload, err := json.Marshal(map[string]string{"name": "test"})
 	if err != nil {
@@ -136,7 +136,7 @@ func BenchmarkSQLEventStore_LoadToVersion(b *testing.B) {
 
 		_, _ = store.LoadToVersion(
 			context.Background(),
-			id.NewAggregateRef(id.StreamType("User"), aggID),
+			id.NewStreamRef(id.StreamType("User"), aggID),
 			2,
 		)
 

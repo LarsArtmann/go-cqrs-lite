@@ -31,8 +31,8 @@ func (a *EventStore) checkVersion(
 }
 
 func (a *EventStore) countEvents(ref id.StreamRef) (int, error) {
-	prefix := a.aggregatePrefix(ref)
-	upperBound := a.aggregateUpperBound(ref)
+	prefix := a.streamPrefix(ref)
+	upperBound := a.streamUpperBound(ref)
 
 	iter, err := a.db.NewIter(
 		&pebble.IterOptions{

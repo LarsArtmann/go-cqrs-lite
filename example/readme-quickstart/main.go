@@ -41,7 +41,7 @@ func main() {
 	repo, _ := decider.NewRepository(store, bus, d)
 
 	cmds := command.NewDispatcher()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	_ = command.RegisterTyped(cmds, "user.create",
 		func(ctx context.Context, cmd *CreateUser) error {
 			return repo.Execute(

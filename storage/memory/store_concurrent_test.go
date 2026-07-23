@@ -24,7 +24,7 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 	wg.Add(goroutines * 2)
 
 	for i := range goroutines {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		go func() {
 			defer wg.Done()
@@ -39,7 +39,7 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 				)
 				_ = store.Save(
 					ctx,
-					id.NewAggregateRef(id.StreamType("User"), aggID),
+					id.NewStreamRef(id.StreamType("User"), aggID),
 					[]event.Event{evt},
 					event.Version(idx),
 				)
@@ -50,7 +50,7 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 			defer wg.Done()
 
 			for range eventsPerGoroutine {
-				_, _ = store.Load(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
+				_, _ = store.Load(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
 			}
 		}()
 
@@ -66,12 +66,12 @@ func TestMemoryStore_ReadFrom_ZeroID(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
 
 	_ = store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{evt},
 	)
 
@@ -86,7 +86,7 @@ func TestMemoryStore_ReadFrom_WithLimit(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	seedTestEvents(t, store, ctx, aggID, 5)
 
 	events, err := store.ReadFrom(ctx, id.EventID{}, 3)

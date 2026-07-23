@@ -106,8 +106,8 @@ func testEventRoundtrip(t *testing.T, factory Factory) {
 	b := newBundle(t, factory)
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Contract", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Contract", aggID)
 
 	events, err := event.NewEvents(
 		aggID, "Contract", 0,
@@ -155,7 +155,7 @@ func testCommandRoundtrip(t *testing.T, factory Factory) {
 	}
 
 	ctx := context.Background()
-	ref := command.NewAggregateRef("Contract", id.NewAggregateID())
+	ref := command.NewAggregateRef("Contract", id.NewStreamID())
 
 	cmd, err := command.NewPersistedCommand(
 		"contract.create", ref, []byte(`{"action":"test"}`),

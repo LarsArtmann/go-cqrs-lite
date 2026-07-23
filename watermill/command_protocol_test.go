@@ -13,7 +13,7 @@ import (
 func TestCommandRoundTrip(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	correlationID := id.NewCorrelationID()
 	causationID := id.NewCausationID()
 	userID := id.NewUserID()
@@ -109,7 +109,7 @@ func TestMessageToCommand_EmptyType(t *testing.T) {
 	t.Parallel()
 
 	msg := message.NewMessage("test-2", nil)
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
+	msg.Metadata.Set("aggregate_id", id.NewStreamID().String())
 
 	_, err := wm.MessageToCommand("", msg)
 	if err == nil {
@@ -120,7 +120,7 @@ func TestMessageToCommand_EmptyType(t *testing.T) {
 func TestMessageToCommand_TopicFallback(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	msg := message.NewMessage("test-3", nil)
 	msg.Metadata.Set("aggregate_id", aggID.String())
 
@@ -137,7 +137,7 @@ func TestMessageToCommand_TopicFallback(t *testing.T) {
 func TestCommandToMessage_NoMetadata(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, err := command.New("user.create", aggID)
 	if err != nil {
 		t.Fatalf("create command: %v", err)
@@ -162,7 +162,7 @@ func TestCommandToMessage_NoMetadata(t *testing.T) {
 func TestCommandToMessage_GeneratesCommandID(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, _ := command.New("user.create", aggID)
 
 	msg := wm.CommandToMessage(cmd)
@@ -182,7 +182,7 @@ func TestCommandToMessage_GeneratesCommandID(t *testing.T) {
 func TestCommandToMessage_StableID(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, _ := command.New("user.create", aggID)
 
 	msg1 := wm.CommandToMessage(cmd)
@@ -204,7 +204,7 @@ func TestCommandToMessage_StableID(t *testing.T) {
 func TestCommandRoundTrip_MinimalCommand(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	original, err := command.New("noop", aggID)
 	if err != nil {
 		t.Fatalf("create command: %v", err)
@@ -227,7 +227,7 @@ func TestCommandRoundTrip_MinimalCommand(t *testing.T) {
 func TestCommandRoundTrip_MultipleCustomMetadata(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	original, err := command.New(
 		"bulk.op", aggID,
 		command.WithCustomMetadata("k1", "v1"),
@@ -257,7 +257,7 @@ func TestCommandToMessage_InvalidCorrelationIDIgnored(t *testing.T) {
 
 	msg := message.NewMessage("test-4", nil)
 	msg.Metadata.Set("command_type", "user.create")
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
+	msg.Metadata.Set("aggregate_id", id.NewStreamID().String())
 	msg.Metadata.Set("correlation_id", "not-a-valid-ulid")
 
 	cmd, err := wm.MessageToCommand("user.create", msg)

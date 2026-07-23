@@ -187,7 +187,7 @@ func newEvent(t *testing.T, eventType string, payload any) cqrsevent.Event {
 		t.Fatalf("marshal payload: %v", err)
 	}
 
-	aggID, err := id.ParseAggregateID("msg-1")
+	aggID, err := id.ParseStreamID("msg-1")
 	if err != nil {
 		t.Fatalf("parse agg id: %v", err)
 	}

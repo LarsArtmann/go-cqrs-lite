@@ -117,7 +117,7 @@ func TestDeadLetter_CapturesAggregateID(t *testing.T) {
 	t.Parallel()
 
 	store := NewMemoryDeadLetterStore()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	config := retryConfigFast()
 	config.OnDeadLetter = store.Handle

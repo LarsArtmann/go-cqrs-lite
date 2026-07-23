@@ -64,7 +64,7 @@ func TestSigningFullFlow(t *testing.T) {
 
 	subscribeTo(t, bus, "user.created", &received)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent(
 		"user.created",
 		aggID,
@@ -150,7 +150,7 @@ func TestSigningTamperDetection(t *testing.T) {
 
 	subscribeTo(t, bus, "user.created", &received)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.NewEvent(
 		"user.created", aggID, "User", 1,
 		[]byte(`{"name":"Alice"}`),

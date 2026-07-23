@@ -158,7 +158,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	ctx := context.Background()
 
 	// Active user
-	activeID := id.NewAggregateID()
+	activeID := id.NewStreamID()
 	activeEvt, err := event.NewEvent(
 		"user.created", activeID, "User",
 		event.Version(1), []byte(`{"name":"Alice"}`),
@@ -168,7 +168,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	if err = store.Save(
-		ctx, id.NewAggregateRef(id.StreamType("User"), activeID),
+		ctx, id.NewStreamRef(id.StreamType("User"), activeID),
 		[]event.Event{activeEvt},
 		event.Version(0),
 	); err != nil {
@@ -176,7 +176,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	// Tombstoned user
-	deletedID := id.NewAggregateID()
+	deletedID := id.NewStreamID()
 	deletedEvt, err := event.NewEvent(
 		"user.deleted", deletedID, "User",
 		event.Version(1), []byte(`{"reason":"gdpr"}`),
@@ -187,7 +187,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	if err = store.Save(
-		ctx, id.NewAggregateRef(id.StreamType("User"), deletedID),
+		ctx, id.NewStreamRef(id.StreamType("User"), deletedID),
 		[]event.Event{deletedEvt},
 		event.Version(0),
 	); err != nil {
@@ -195,7 +195,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	// Order (different type)
-	orderID := id.NewAggregateID()
+	orderID := id.NewStreamID()
 	orderEvt, err := event.NewEvent(
 		"order.created", orderID, "Order",
 		event.Version(1), []byte(`{"total":99}`),
@@ -205,7 +205,7 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 	}
 
 	if err = store.Save(
-		ctx, id.NewAggregateRef(id.StreamType("Order"), orderID),
+		ctx, id.NewStreamRef(id.StreamType("Order"), orderID),
 		[]event.Event{orderEvt},
 		event.Version(0),
 	); err != nil {

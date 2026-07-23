@@ -20,7 +20,7 @@ func FuzzParseAggregateID(f *testing.F) {
 	f.Add(strings.Repeat("x", 1024))
 
 	f.Fuzz(func(t *testing.T, input string) {
-		parsed, err := id.ParseAggregateID(input)
+		parsed, err := id.ParseStreamID(input)
 		if input == "" {
 			if err == nil {
 				t.Error("expected error for empty input")
@@ -54,8 +54,8 @@ func FuzzDeriveAggregateID_Deterministic(f *testing.F) {
 	f.Add(strings.Repeat("a", 100), "b", strings.Repeat("c", 100))
 
 	f.Fuzz(func(t *testing.T, namespace, key1, key2 string) {
-		derived := id.DeriveAggregateID(namespace, key1, key2)
-		derived2 := id.DeriveAggregateID(namespace, key1, key2)
+		derived := id.DeriveStreamID(namespace, key1, key2)
+		derived2 := id.DeriveStreamID(namespace, key1, key2)
 
 		if !derived.Equal(derived2) {
 			t.Error("DeriveAggregateID is not deterministic")
@@ -79,8 +79,8 @@ func FuzzDeriveAggregateID_DifferentInputs(f *testing.F) {
 	f.Add("a", "x", "a", "y")
 
 	f.Fuzz(func(t *testing.T, ns1, k1, ns2, k2 string) {
-		derived := id.DeriveAggregateID(ns1, k1)
-		derived2 := id.DeriveAggregateID(ns2, k2)
+		derived := id.DeriveStreamID(ns1, k1)
+		derived2 := id.DeriveStreamID(ns2, k2)
 
 		// If both inputs are exactly equal, IDs must be equal.
 		if ns1 == ns2 && k1 == k2 {
@@ -110,7 +110,7 @@ func FuzzAggregateID_JSON_Roundtrip(f *testing.F) {
 	f.Add(strings.Repeat("x", 512))
 
 	f.Fuzz(func(t *testing.T, input string) {
-		original, err := id.ParseAggregateID(input)
+		original, err := id.ParseStreamID(input)
 		if err != nil {
 			return
 		}
@@ -242,7 +242,7 @@ func FuzzParse_TypeSafety(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		// Parse for both StreamID (strict ULID) and StreamID (string)
-		_, aggErr := id.ParseAggregateID(input)
+		_, aggErr := id.ParseStreamID(input)
 		_, ulidErr := id.Parse[id.StreamID](input)
 
 		// ParseAggregateID only rejects empty

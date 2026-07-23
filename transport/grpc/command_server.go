@@ -54,7 +54,7 @@ func (s *commandServer) Dispatch(
 	)
 	defer span.End()
 
-	aggID, err := id.ParseAggregateID(envelope.GetAggregateId())
+	aggID, err := id.ParseStreamID(envelope.GetAggregateId())
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 

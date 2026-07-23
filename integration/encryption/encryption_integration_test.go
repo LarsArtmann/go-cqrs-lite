@@ -51,7 +51,7 @@ func TestSignAndEncryptFullFlow(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent(
 		"user.created",
 		aggID,
@@ -174,7 +174,7 @@ func TestEncryptMiddleware_DetectsAlgorithm_Integration(t *testing.T) {
 
 	evt, _ := event.NewEvent(
 		"test.event",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"Test",
 		1,
 		[]byte(`{"data":"test"}`),
@@ -233,7 +233,7 @@ func TestEncryptDecrypt_CBOREventPreservesEncoding(t *testing.T) {
 	})
 
 	// Create a CBOR-encoded event.
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.New(
 		"user.created", aggID, "User", 1,

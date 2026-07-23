@@ -49,7 +49,7 @@ func MakeTimelineEvents(
 }
 
 func NewTestEvent() (event.Event, error) {
-	return MakeEvent("test.evt", id.NewAggregateID(), "Test", 1, nil)
+	return MakeEvent("test.evt", id.NewStreamID(), "Test", 1, nil)
 }
 
 func NewEventOpts(
@@ -168,7 +168,7 @@ func MakeLoadToTimestampFixtures(
 		{Type: "Deleted", Version: versions[2], Offset: 0},
 	})
 
-	err := store.AppendBatch(ctx, id.NewAggregateRef(aggType, aggID), events)
+	err := store.AppendBatch(ctx, id.NewStreamRef(aggType, aggID), events)
 	if err != nil {
 		tb.Fatalf("AppendBatch: %v", err)
 	}

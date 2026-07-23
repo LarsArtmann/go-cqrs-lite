@@ -41,8 +41,8 @@ func seedPebbleStreamEvents(
 	t.Helper()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Order", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", aggID)
 	events := make([]event.Event, count)
 	for i := range count {
 		evt, err := event.NewEvent(

@@ -25,7 +25,7 @@ func BenchmarkScale_Listing_10KAggregates(b *testing.B) {
 
 	aggIDs := make([]id.StreamID, aggCount)
 	for i := range aggCount {
-		aggIDs[i] = id.NewAggregateID()
+		aggIDs[i] = id.NewStreamID()
 		payload, err := json.Marshal(map[string]string{"name": fmt.Sprintf("item-%d", i)})
 		if err != nil {
 			b.Fatalf("json.Marshal: %v", err)
@@ -38,7 +38,7 @@ func BenchmarkScale_Listing_10KAggregates(b *testing.B) {
 
 		err = store.AppendBatch(
 			ctx,
-			id.NewAggregateRef("Item", aggIDs[i]),
+			id.NewStreamRef("Item", aggIDs[i]),
 			[]event.Event{evt},
 		)
 		if err != nil {
@@ -71,7 +71,7 @@ func BenchmarkScale_Listing_PaginateThrough10K(b *testing.B) {
 	aggCount := 10_000
 
 	for i := range aggCount {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		payload, err := json.Marshal(map[string]string{"name": fmt.Sprintf("item-%d", i)})
 		if err != nil {
 			b.Fatalf("json.Marshal: %v", err)
@@ -81,7 +81,7 @@ func BenchmarkScale_Listing_PaginateThrough10K(b *testing.B) {
 		if err != nil {
 			b.Fatalf("NewEvent: %v", err)
 		}
-		_ = store.AppendBatch(ctx, id.NewAggregateRef("Item", aggID), []event.Event{evt})
+		_ = store.AppendBatch(ctx, id.NewStreamRef("Item", aggID), []event.Event{evt})
 	}
 
 	reader := listing.NewInMemoryStreamReader(store)

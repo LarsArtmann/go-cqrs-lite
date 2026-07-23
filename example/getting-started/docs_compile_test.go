@@ -58,7 +58,7 @@ func TestDocsSnippet2_EventSourcingWithDecider(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err = repo.Execute(
 		ctx,
@@ -88,7 +88,7 @@ func TestDocsSnippet2_EventSourcingWithDecider(t *testing.T) {
 func TestDocsSnippet3_BrandedIDs(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	eventID := id.NewEventID()
 
 	if aggID.String() == "" {
@@ -135,7 +135,7 @@ func TestDocsSnippet4_CommandsWithTypedHandlers(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	cmds := command.NewDispatcher()
 	_ = command.RegisterTyped(cmds, "user.create",

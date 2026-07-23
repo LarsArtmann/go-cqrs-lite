@@ -405,7 +405,7 @@ func TestPayloadReadOnly_ReturnsInternalReference(t *testing.T) {
 	t.Parallel()
 
 	payload := []byte(`{"name":"Alice"}`)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, payload)
 	if err != nil {

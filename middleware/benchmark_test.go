@@ -12,7 +12,7 @@ import (
 func benchCommandMiddleware(b *testing.B, mw command.Middleware) {
 	handler := mw(NoopCommandHandler())
 
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 	ctx := context.Background()
 
 	for b.Loop() {
@@ -46,7 +46,7 @@ func BenchmarkCircuitBreaker_HappyPath(b *testing.B) {
 	mw := CommandCircuitBreaker(DefaultCircuitBreakerConfig())
 	handler := mw(NoopCommandHandler())
 
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 	ctx := context.Background()
 
 	b.ResetTimer()
@@ -66,7 +66,7 @@ func BenchmarkCircuitBreaker_Concurrent(b *testing.B) {
 	b.ResetTimer()
 
 	b.RunParallel(func(pb *testing.PB) {
-		cmd := &testCommand{streamID: id.NewAggregateID()}
+		cmd := &testCommand{streamID: id.NewStreamID()}
 
 		for pb.Next() {
 			_ = handler(ctx, cmd)

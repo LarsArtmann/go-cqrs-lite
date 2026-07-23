@@ -15,8 +15,8 @@ func ExampleNewInMemoryStreamReader() {
 	store := memory.NewMemoryStore()
 	reader := listing.NewInMemoryStreamReader(store)
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("User", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("User", aggID)
 
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt}, 0)
@@ -40,8 +40,8 @@ func ExampleNewListBuilder() {
 	store := memory.NewMemoryStore()
 	reader := listing.NewInMemoryStreamReader(store)
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Order", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", aggID)
 
 	evt, _ := event.NewEvent("OrderPlaced", aggID, "Order", 1, []byte(`{"total":42}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt}, 0)
@@ -85,8 +85,8 @@ func ExampleCacheInvalidationMiddleware() {
 	_ = bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
 
 	// Seed an aggregate
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("User", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("User", aggID)
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt}, 0)
 

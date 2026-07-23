@@ -127,7 +127,7 @@ func (b *PostgresBus) refetchByID(
 }
 
 func (b *PostgresBus) refetchByVersion(ctx context.Context, np notifyPayload) (event.Event, error) {
-	ref := id.NewAggregateRef(np.StreamType, np.StreamID)
+	ref := id.NewStreamRef(np.StreamType, np.StreamID)
 
 	var lastErr error
 

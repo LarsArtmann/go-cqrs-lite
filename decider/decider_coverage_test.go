@@ -45,7 +45,7 @@ func TestExecute_EnricherAppliesOptions(t *testing.T) {
 	}
 
 	_, repo := newEnricherRepo(t, enricher)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	if err := executeWithAggID(t, repo, aggID, counterCreatedEventFn(t, aggID)); err != nil {
 		t.Fatalf("Execute: %v", err)
@@ -62,7 +62,7 @@ func TestExecute_EnricherReturnsEmptyOpts(t *testing.T) {
 	enricher := func(_ context.Context) []event.Option { return nil }
 
 	_, repo := newEnricherRepo(t, enricher)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	if err := executeWithAggID(t, repo, aggID, counterCreatedEventFn(t, aggID)); err != nil {
 		t.Fatalf("Execute: %v", err)
@@ -80,7 +80,7 @@ func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 	}
 
 	bus, repo := newEnricherRepo(t, enricher)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	if err := executeWithAggID(
 		t,
@@ -120,7 +120,7 @@ func TestExecute_SnapshotCodecEncodeError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err = executeCreateEvent(t, repo, aggID)
 	if err != nil {
@@ -150,7 +150,7 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),

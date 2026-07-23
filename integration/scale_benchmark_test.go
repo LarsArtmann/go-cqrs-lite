@@ -107,7 +107,7 @@ func benchCreateItemConcurrent(
 ) id.StreamID {
 	b.Helper()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	decideFn := func(_ benchState, v event.Version) ([]event.Event, error) {
 		return []event.Event{newBenchEvent(b, "ItemCreated", aggID, v.Increment())}, nil
 	}
@@ -139,7 +139,7 @@ func BenchmarkScale_CommandDispatch(b *testing.B) {
 		}
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ctx := context.Background()
 
 	b.ResetTimer()
@@ -164,7 +164,7 @@ func BenchmarkScale_CommandDispatch(b *testing.B) {
 func BenchmarkScale_EventCreation(b *testing.B) {
 	b.ReportAllocs()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	b.ResetTimer()
 

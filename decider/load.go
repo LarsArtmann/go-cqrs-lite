@@ -19,7 +19,7 @@ func (r *Repository[State]) loadFromStore(
 	streamID id.StreamID,
 	streamType id.StreamType,
 ) (State, event.Version, error) {
-	ref := id.NewAggregateRef(streamType, streamID)
+	ref := id.NewStreamRef(streamType, streamID)
 
 	return r.loadByEvents(
 		func() ([]event.Event, error) {
@@ -111,7 +111,7 @@ func (r *Repository[State]) LoadAtVersion(
 	streamType id.StreamType,
 	maxVersion event.Version,
 ) (State, event.Version, error) {
-	ref := id.NewAggregateRef(streamType, streamID)
+	ref := id.NewStreamRef(streamType, streamID)
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_version",
@@ -145,7 +145,7 @@ func (r *Repository[State]) LoadAtTime(
 	streamType id.StreamType,
 	maxTime time.Time,
 ) (State, event.Version, error) {
-	ref := id.NewAggregateRef(streamType, streamID)
+	ref := id.NewStreamRef(streamType, streamID)
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.load_at_time",
@@ -213,7 +213,7 @@ func (r *Repository[State]) loadFromSnapshot(
 	streamID id.StreamID,
 	streamType id.StreamType,
 ) (State, event.Version, error) {
-	ref := id.NewAggregateRef(streamType, streamID)
+	ref := id.NewStreamRef(streamType, streamID)
 
 	snap, err := r.snapshotStore.Load(ctx, ref)
 	if err != nil {
@@ -265,7 +265,7 @@ func (r *Repository[State]) loadFromCache(
 	streamID id.StreamID,
 	streamType id.StreamType,
 ) (State, event.Version, bool) {
-	ref := id.NewAggregateRef(streamType, streamID)
+	ref := id.NewStreamRef(streamType, streamID)
 
 	cachedState, cachedVersion, ok := r.stateCache.Get(ref)
 	if !ok {

@@ -110,7 +110,7 @@ func (r *Repository[State]) Execute(
 	streamType id.StreamType,
 	decide DecideFunc[State],
 ) error {
-	ref := id.NewAggregateRef(streamType, streamID)
+	ref := id.NewStreamRef(streamType, streamID)
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.execute",
@@ -279,7 +279,7 @@ func (r *Repository[State]) Load(
 	if r.stateCache != nil {
 		state, ver, ok := r.loadFromCache(ctx, streamID, streamType)
 		if ok {
-			r.recordRead(id.NewAggregateRef(streamType, streamID), ver)
+			r.recordRead(id.NewStreamRef(streamType, streamID), ver)
 
 			return state, ver, nil
 		}
@@ -297,7 +297,7 @@ func (r *Repository[State]) Load(
 		return state, ver, err
 	}
 
-	ref := id.NewAggregateRef(streamType, streamID)
+	ref := id.NewStreamRef(streamType, streamID)
 	r.recordRead(ref, ver)
 
 	if r.stateCache != nil {

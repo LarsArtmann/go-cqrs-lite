@@ -45,7 +45,7 @@ func TestReadPressure_ShouldSnapshot_NoReads(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 5)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	got := rp.ShouldSnapshotFor(ref, event.Version(1))
 	if got {
@@ -57,7 +57,7 @@ func TestReadPressure_ShouldSnapshot_BelowThreshold(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 5)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	for range 4 {
 		rp.RecordRead(ref, event.Version(1))
@@ -73,7 +73,7 @@ func TestReadPressure_ShouldSnapshot_AtThreshold(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 5)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	for range 5 {
 		rp.RecordRead(ref, event.Version(1))
@@ -89,7 +89,7 @@ func TestReadPressure_ShouldSnapshot_AboveThreshold(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 3)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	for range 10 {
 		rp.RecordRead(ref, event.Version(1))
@@ -105,7 +105,7 @@ func TestReadPressure_ResetsAfterSnapshot(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 3)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	for range 3 {
 		rp.RecordRead(ref, event.Version(1))
@@ -130,8 +130,8 @@ func TestReadPressure_PerAggregateIsolation(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 3)
-	ref1 := id.NewAggregateRef("User", id.NewAggregateID())
-	ref2 := id.NewAggregateRef("User", id.NewAggregateID())
+	ref1 := id.NewStreamRef("User", id.NewStreamID())
+	ref2 := id.NewStreamRef("User", id.NewStreamID())
 
 	for range 3 {
 		rp.RecordRead(ref1, event.Version(1))
@@ -152,7 +152,7 @@ func TestReadPressure_ShouldSnapshot_DelegatesToInner(t *testing.T) {
 	inner := everyN(t, 10)
 	rp := mustReadPressureWithInner(t, 100, inner)
 
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	// No reads recorded, but inner strategy fires at version 10
 	got := rp.ShouldSnapshotFor(ref, event.Version(10))
@@ -194,7 +194,7 @@ func TestReadPressure_ReadCount(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 10)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	if rp.ReadCount(ref) != 0 {
 		t.Fatalf("initial read count = %d, want 0", rp.ReadCount(ref))
@@ -212,7 +212,7 @@ func TestReadPressure_ConcurrentReads(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 1000)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	var wg sync.WaitGroup
 
@@ -239,7 +239,7 @@ func TestReadPressure_ConcurrentReadAndSnapshot(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 10)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	var wg sync.WaitGroup
 
@@ -275,7 +275,7 @@ func TestShouldSnapshotFor_ReadPressure(t *testing.T) {
 	sink := newFakeStore()
 	t.Cleanup(func() { _ = sink.Close() })
 
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	// No reads → false
 	if snapshot.ShouldSnapshotFor(rp, sink, codec.JSONCodec{}, ref, event.Version(1)) {
@@ -299,7 +299,7 @@ func TestShouldSnapshotFor_FallsBackToShouldSnapshot(t *testing.T) {
 	sink := newFakeStore()
 	t.Cleanup(func() { _ = sink.Close() })
 
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	// EveryNEvents does not implement AggregateAwareStrategy,
 	// so ShouldSnapshotFor falls back to ShouldSnapshot.
@@ -313,7 +313,7 @@ func TestShouldSnapshotFor_NilGuards(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 1)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 	rp.RecordRead(ref, event.Version(1))
 	cdc := codec.JSONCodec{}
 

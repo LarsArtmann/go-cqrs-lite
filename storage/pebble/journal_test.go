@@ -29,8 +29,8 @@ func TestEventStore_ReadAll_SingleAggregate(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Issue", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", aggID)
 
 	now := time.Now()
 	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
@@ -65,15 +65,15 @@ func TestEventStore_ReadAll_MultipleAggregates(t *testing.T) {
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
 
-	aggID1 := id.NewAggregateID()
-	aggID2 := id.NewAggregateID()
+	aggID1 := id.NewStreamID()
+	aggID2 := id.NewStreamID()
 
 	evt1 := cfg.NewTestEvent(t, aggID1, 1)
 	evt2 := cfg.NewTestEvent(t, aggID2, 1)
 
 	err := store.Save(
 		context.Background(),
-		id.NewAggregateRef("Issue", aggID1),
+		id.NewStreamRef("Issue", aggID1),
 		[]event.Event{evt1},
 		event.Version(0),
 	)
@@ -83,7 +83,7 @@ func TestEventStore_ReadAll_MultipleAggregates(t *testing.T) {
 
 	err = store.Save(
 		context.Background(),
-		id.NewAggregateRef("Issue", aggID2),
+		id.NewStreamRef("Issue", aggID2),
 		[]event.Event{evt2},
 		event.Version(0),
 	)
@@ -113,8 +113,8 @@ func saveThreeTimestampedEvents(t *testing.T) (*EventStore, event.Event, event.E
 	t.Helper()
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Issue", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", aggID)
 
 	now := time.Now()
 	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
@@ -180,8 +180,8 @@ func TestEventStore_ReadFrom_ZeroEventID(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Issue", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", aggID)
 
 	evt := cfg.NewTestEvent(t, aggID, 1)
 
@@ -205,8 +205,8 @@ func TestEventStore_ReadFrom_UnknownEventID(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Issue", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", aggID)
 
 	evt := cfg.NewTestEvent(t, aggID, 1)
 
@@ -231,8 +231,8 @@ func TestEventStore_Journal_AppendBatch(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Issue", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", aggID)
 
 	evt := cfg.NewTestEvent(t, aggID, 1)
 

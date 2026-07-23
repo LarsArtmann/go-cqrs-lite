@@ -56,7 +56,7 @@ func TestCommandTraceLogging_WithSpan(t *testing.T) {
 	ctx, span := tracerProvider.Tracer("test").Start(context.Background(), "test")
 	defer span.End()
 
-	err := handler(ctx, &traceCmd{streamID: id.NewAggregateID()})
+	err := handler(ctx, &traceCmd{streamID: id.NewStreamID()})
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(called).To(BeTrue())
 
@@ -75,7 +75,7 @@ func TestCommandTraceLogging_NoSpan(t *testing.T) {
 
 	handler := mw(middleware.NoopCommandHandler())
 
-	err := handler(context.Background(), &traceCmd{streamID: id.NewAggregateID()})
+	err := handler(context.Background(), &traceCmd{streamID: id.NewStreamID()})
 	g.Expect(err).ToNot(HaveOccurred())
 
 	output := buf.String()
@@ -102,7 +102,7 @@ func TestEventTraceLogging_WithSpan(t *testing.T) {
 	ctx, span := tracerProvider.Tracer("test").Start(context.Background(), "test")
 	defer span.End()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent("test.event", aggID, "Test", event.Version(1), nil)
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -128,7 +128,7 @@ func TestCommandTraceLogging_Error(t *testing.T) {
 		return testErr
 	})
 
-	err := handler(context.Background(), &traceCmd{streamID: id.NewAggregateID()})
+	err := handler(context.Background(), &traceCmd{streamID: id.NewStreamID()})
 	g.Expect(err).To(MatchError(testErr))
 
 	output := buf.String()

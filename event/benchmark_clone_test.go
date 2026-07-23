@@ -72,7 +72,7 @@ func BenchmarkPayload_access(b *testing.B) {
 
 		evt, err := NewEvent(
 			Type("UserCreated"),
-			id.NewAggregateID(),
+			id.NewStreamID(),
 			"User",
 			1,
 			payload,
@@ -102,7 +102,7 @@ func BenchmarkDecodePayload_clone_vs_direct(b *testing.B) {
 
 	evt, err := NewEvent(
 		Type("UserCreated"),
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		payload,
@@ -185,7 +185,7 @@ func BenchmarkPayloadReadOnly(b *testing.B) {
 
 	evt, err := NewEvent(
 		Type("UserCreated"),
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		payload,

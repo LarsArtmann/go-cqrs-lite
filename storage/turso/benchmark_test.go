@@ -41,8 +41,8 @@ func BenchmarkTursoEventStore_Save(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		aggID := id.NewAggregateID()
-		ref := id.NewAggregateRef("Bench", aggID)
+		aggID := id.NewStreamID()
+		ref := id.NewStreamRef("Bench", aggID)
 		evt, err := event.NewEvent("BenchCreated", aggID, "Bench", 1, []byte(`{"key":"value"}`))
 		if err != nil {
 			b.Fatal(err)
@@ -62,8 +62,8 @@ func BenchmarkTursoEventStore_Load(b *testing.B) {
 	defer cleanup()
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Bench", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Bench", aggID)
 
 	for i := range 100 {
 		evt, _ := event.NewEvent(

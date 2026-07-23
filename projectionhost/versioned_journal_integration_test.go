@@ -24,7 +24,7 @@ func TestVersionedSeekableJournal_WithProjectionHost(t *testing.T) {
 	cpStore := newMemoryCheckpointStore()
 
 	// Store events at schema version 1 with payload "v1".
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	for range 3 {
 		evt, _ := event.NewEvent(

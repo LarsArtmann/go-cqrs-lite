@@ -29,7 +29,7 @@ func TestEventBusPublishSubscribe(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent("user.created", aggID, "User", event.Version(1),
 		[]byte(`{"name":"alice"}`))
 	if err != nil {
@@ -64,7 +64,7 @@ func TestEventBusSubscribeAll(t *testing.T) {
 		t.Fatalf("subscribeAll: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	for _, et := range []event.Type{"a.b", "c.d"} {
 		evt, _ := event.NewEvent(et, aggID, "T", event.Version(1), nil)
 		_ = bus.Publish(context.Background(), evt)
@@ -108,7 +108,7 @@ func TestEventBusPublishAfterClose(t *testing.T) {
 	bus := cqrswatermill.NewEventBus()
 	_ = bus.Close()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.NewEvent("x.y", aggID, "T", event.Version(1), nil)
 	err := bus.Publish(context.Background(), evt)
 	if err == nil {
@@ -146,7 +146,7 @@ func TestEventBusMiddleware(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.NewEvent("test.event", aggID, "T", event.Version(1), nil)
 	_ = bus.Publish(context.Background(), evt)
 

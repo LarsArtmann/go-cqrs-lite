@@ -32,7 +32,7 @@ func BenchmarkRealistic_SnapshotVsReplay(b *testing.B) {
 
 	aggIDs := make([]id.StreamID, aggCount)
 	for i := range aggCount {
-		aggIDs[i] = id.NewAggregateID()
+		aggIDs[i] = id.NewStreamID()
 
 		for range eventsPerAgg {
 			if err := snapRepo.Execute(ctx, aggIDs[i], "Order",

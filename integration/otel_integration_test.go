@@ -28,7 +28,7 @@ func TestOTel_CommandDispatch_EmitsSpans(t *testing.T) {
 	cmdDispatcher.Use(middleware.CommandTracing(tracer))
 
 	cmdType := command.Type("CreateOrder")
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err := cmdDispatcher.Register(cmdType, func(_ context.Context, _ command.Command) error {
 		return nil
@@ -92,7 +92,7 @@ func TestOTel_EventBus_EmitsSpans(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent("OrderCreated", aggID, "Order", 1, []byte("{}"))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)

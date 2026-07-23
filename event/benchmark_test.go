@@ -14,7 +14,7 @@ import (
 
 func BenchmarkNewEvent(b *testing.B) {
 	b.ReportAllocs()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	for b.Loop() {
 		_, err := event.NewEvent(
@@ -32,7 +32,7 @@ func BenchmarkNewEvent(b *testing.B) {
 
 func BenchmarkNewEvent_WithOptions(b *testing.B) {
 	b.ReportAllocs()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	corrID := id.NewCorrelationID()
 
 	for b.Loop() {
@@ -52,7 +52,7 @@ func BenchmarkNewEvent_WithOptions(b *testing.B) {
 
 func BenchmarkNew_TypedPayload(b *testing.B) {
 	b.ReportAllocs()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	for b.Loop() {
 		_, err := event.New(
@@ -90,7 +90,7 @@ func BenchmarkBusPublish(b *testing.B) {
 	b.ReportAllocs()
 	bus := eventtest.NewFakeBus()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	events := make([]event.Event, 10)
 
 	for i := range 10 {
@@ -120,7 +120,7 @@ func BenchmarkBusPublish(b *testing.B) {
 
 func BenchmarkDecodePayload(b *testing.B) {
 	b.ReportAllocs()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent(
 		event.Type("UserCreated"),

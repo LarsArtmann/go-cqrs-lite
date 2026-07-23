@@ -16,7 +16,7 @@ func ExampleNewHMAC() {
 		return
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
 		[]byte(`{"name":"Alice"}`))
 
@@ -42,7 +42,7 @@ func ExampleNewHMAC_tamperDetection() {
 		return
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
 		[]byte(`{"name":"Alice"}`))
 

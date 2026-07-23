@@ -115,7 +115,7 @@ func TestAggregateStatus_MarshalJSON(t *testing.T) {
 	t.Parallel()
 
 	ts := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	status := listing.StreamStatus{
 		Ref: listing.StreamListing{

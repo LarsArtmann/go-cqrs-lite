@@ -56,7 +56,7 @@ func TestDeployerFirstArchitecture(t *testing.T) {
 	}
 
 	// Simulate an event being published
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent(
 		event.Type("user.created"),
 		aggID,

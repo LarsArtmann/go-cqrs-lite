@@ -62,7 +62,7 @@ func TestCommandDispatch_RoundTrip(t *testing.T) {
 
 	client := cqrsgrpc.NewCommandClient(conn)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, err := command.New("test.cmd", aggID)
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -112,7 +112,7 @@ func TestCommandDispatch_HandlerError(t *testing.T) {
 
 	client := cqrsgrpc.NewCommandClient(conn)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, _ := command.New("fail.cmd", aggID)
 
 	err = client.Dispatch(context.Background(), cmd)
@@ -157,7 +157,7 @@ func TestCommandDispatch_PayloadInMetadata(t *testing.T) {
 
 	client := cqrsgrpc.NewCommandClient(conn)
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmd, _ := command.New(
 		"data.cmd", aggID,
 		command.WithCustomMetadata("payload", `{"name":"Alice"}`),

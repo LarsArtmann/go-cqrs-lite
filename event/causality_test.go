@@ -117,7 +117,7 @@ func TestCommandCausalityEnricher_WithCausality(t *testing.T) {
 	}
 
 	// Apply options to a real event and inspect the resulting metadata.
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := NewEvent("user.created", aggID, "User", Version(1), nil, opts...)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
@@ -154,7 +154,7 @@ func TestCommandCausalityEnricher_EndToEnd(t *testing.T) {
 	ctx := WithCommandCausality(context.Background(), "create_user", cmdID)
 
 	// Decider would call the enricher and append its options to NewEvent.
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := NewEvent(
 		"user.created", aggID, "User", Version(1),
 		[]byte(`{"name":"Alice"}`),

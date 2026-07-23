@@ -15,7 +15,7 @@
 //	        aggType := testutil.StreamType().Draw(rt, "aggType")
 //	        version := testutil.Version().Draw(rt, "version")
 //
-//	        evt, err := event.NewEvent(event.Type(eventType), id.NewAggregateID(),
+//	        evt, err := event.NewEvent(event.Type(eventType), id.NewStreamID(),
 //	            id.StreamType(aggType), event.Version(version), nil)
 //	        if err != nil {
 //	            return // skip invalid combinations

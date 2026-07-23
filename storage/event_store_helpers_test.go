@@ -96,7 +96,7 @@ func saveEvt(t *testing.T, store *SQLEventStore, evt event.Event) error {
 	t.Helper()
 
 	return store.Save(
-		context.Background(), id.NewAggregateRef(evt.StreamType(), evt.StreamID()),
+		context.Background(), id.NewStreamRef(evt.StreamType(), evt.StreamID()),
 		[]event.Event{evt},
 		event.Version(0),
 	)
@@ -107,7 +107,7 @@ func appendBatchEvt(t *testing.T, store *SQLEventStore, evt event.Event) error {
 
 	return store.AppendBatch(
 		context.Background(),
-		id.NewAggregateRef(evt.StreamType(), evt.StreamID()),
+		id.NewStreamRef(evt.StreamType(), evt.StreamID()),
 		[]event.Event{evt},
 	)
 }
@@ -115,7 +115,7 @@ func appendBatchEvt(t *testing.T, store *SQLEventStore, evt event.Event) error {
 func testEvent(t *testing.T) event.Event {
 	t.Helper()
 
-	return testEventWithAggID(t, "UserCreated", id.NewAggregateID(), 1)
+	return testEventWithAggID(t, "UserCreated", id.NewStreamID(), 1)
 }
 
 func testEventWithAggID(

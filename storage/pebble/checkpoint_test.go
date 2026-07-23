@@ -216,8 +216,8 @@ func TestCheckpointStore_SharedDB_WithEventStore(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Issue", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", aggID)
 	cfg := issueStoreConfig()
 
 	evt := cfg.NewTestEvent(t, aggID, 1)

@@ -64,13 +64,13 @@ func TestBackend_EventStore(t *testing.T) {
 	}
 
 	// Verify it actually works.
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent("test.created", aggID, "TestAggregate", 1, []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	ref := id.NewAggregateRef("TestAggregate", aggID)
+	ref := id.NewStreamRef("TestAggregate", aggID)
 	ctx := context.Background()
 	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -102,7 +102,7 @@ func TestBackend_CommandStore(t *testing.T) {
 		t.Fatal("expected non-nil command store")
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	cmdRef := command.NewAggregateRef("User", aggID)
 	cmd, err := command.NewPersistedCommand("CreateUser", cmdRef, []byte(`{"name":"Alice"}`))
 	if err != nil {
@@ -266,8 +266,8 @@ func TestBackend_Close(t *testing.T) {
 
 	// After Close, the event store should report closed (Infrastructure family).
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	_, err := backend.EventStore().Load(ctx, id.NewAggregateRef("X", aggID))
+	aggID := id.NewStreamID()
+	_, err := backend.EventStore().Load(ctx, id.NewStreamRef("X", aggID))
 	if err == nil {
 		t.Fatal("expected error loading from closed store")
 	}
@@ -340,8 +340,8 @@ func TestBackend_FullLifecycle(t *testing.T) {
 	t.Cleanup(cleanup)
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Issue", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", aggID)
 
 	t.Run("EventStore_SaveLoadMultiVersion", func(t *testing.T) {
 		verifyEventStoreRoundtrip(t, ctx, backend, aggID, ref)

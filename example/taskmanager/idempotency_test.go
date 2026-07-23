@@ -28,7 +28,7 @@ func TestIdempotencyDemo(t *testing.T) {
 	defer func() { _ = srv.Stop() }()
 
 	ctx := context.Background()
-	taskID := id.NewAggregateID()
+	taskID := id.NewStreamID()
 
 	createCmd, err := command.New(cmdCreateTask, taskID)
 	if err != nil {
@@ -52,7 +52,7 @@ func TestIdempotencyDemo(t *testing.T) {
 
 	events, err := srv.Bundle.EventSource.Load(
 		ctx,
-		id.NewAggregateRef(id.StreamType("Task"), taskID),
+		id.NewStreamRef(id.StreamType("Task"), taskID),
 	)
 	if err != nil {
 		t.Fatalf("load events: %v", err)

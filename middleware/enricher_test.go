@@ -21,7 +21,7 @@ func TestOTelCorrelationEnricher_WithBaggage(t *testing.T) {
 		t.Fatalf("expected 1 option, got %d", len(opts))
 	}
 
-	evt := eventtest.NewEvent(t, "test.event", id.NewAggregateID(), "Test", 1, nil)
+	evt := eventtest.NewEvent(t, "test.event", id.NewStreamID(), "Test", 1, nil)
 	opts[0](evt)
 
 	got := OTelCorrelationIDFromEvent(evt)
@@ -46,7 +46,7 @@ func TestOTelCorrelationEnricher_AcceptsArbitraryStrings(t *testing.T) {
 	traceID := "4bf92f3577b34da6a3ce929d0e0e4736"
 	ctx := cqrsotel.WithCorrelationID(context.Background(), traceID)
 
-	evt := eventtest.NewEvent(t, "test.event", id.NewAggregateID(), "Test", 1, nil)
+	evt := eventtest.NewEvent(t, "test.event", id.NewStreamID(), "Test", 1, nil)
 
 	for _, opt := range OTelCorrelationEnricher(ctx) {
 		opt(evt)
@@ -79,7 +79,7 @@ func TestOTelCorrelationEnricher_ComposesWithCommandCausality(t *testing.T) {
 		)
 	}
 
-	evt := eventtest.NewEvent(t, "user.created", id.NewAggregateID(), "User", 1, nil)
+	evt := eventtest.NewEvent(t, "user.created", id.NewStreamID(), "User", 1, nil)
 
 	for _, opt := range opts {
 		opt(evt)
@@ -99,7 +99,7 @@ func TestOTelCorrelationEnricher_ComposesWithCommandCausality(t *testing.T) {
 func TestOTelCorrelationIDFromEvent_NotSet(t *testing.T) {
 	t.Parallel()
 
-	evt := eventtest.NewEvent(t, "test.event", id.NewAggregateID(), "Test", 1, nil)
+	evt := eventtest.NewEvent(t, "test.event", id.NewStreamID(), "Test", 1, nil)
 
 	got := OTelCorrelationIDFromEvent(evt)
 	if got != "" {

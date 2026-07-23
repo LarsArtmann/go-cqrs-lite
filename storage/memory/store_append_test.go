@@ -24,14 +24,14 @@ func TestMemoryStore_AppendBatch(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	events, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
+	events, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -49,7 +49,7 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{evt1},
 		0,
 	)
@@ -59,14 +59,14 @@ func TestMemoryStore_AppendBatch_AppendsToExisting(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{evt2, evt3},
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	events, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
+	events, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestMemoryStore_AppendBatch_Closed(t *testing.T) {
 
 	err := store.AppendBatch(
 		context.Background(),
-		id.NewAggregateRef("User", aggID),
+		id.NewStreamRef("User", aggID),
 		[]event.Event{evt},
 	)
 	if err == nil {

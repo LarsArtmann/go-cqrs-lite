@@ -64,7 +64,7 @@ func TestDetectTombstone(t *testing.T) {
 
 		e, err := event.NewEvent(
 			"test.event",
-			id.NewAggregateID(),
+			id.NewStreamID(),
 			"Test",
 			event.Version(1),
 			[]byte(`{}`),
@@ -128,7 +128,7 @@ func TestMarkTombstone(t *testing.T) {
 		t.Parallel()
 
 		orig, err := event.NewEvent(
-			"user.deleted", id.NewAggregateID(), "User",
+			"user.deleted", id.NewStreamID(), "User",
 			event.Version(3), []byte(`{"reason":"gdpr"}`),
 		)
 		if err != nil {
@@ -178,7 +178,7 @@ func TestMarkRebirth(t *testing.T) {
 		t.Parallel()
 
 		orig, err := event.NewEvent(
-			"user.reactivated", id.NewAggregateID(), "User",
+			"user.reactivated", id.NewStreamID(), "User",
 			event.Version(4), []byte(`{}`),
 		)
 		if err != nil {
@@ -207,7 +207,7 @@ func TestMarkTombstone_AllFieldsPreserved(t *testing.T) {
 	}
 
 	orig, err := event.NewEvent(
-		"user.deleted", id.NewAggregateID(), "User",
+		"user.deleted", id.NewStreamID(), "User",
 		event.Version(5), []byte(`{"reason":"gdpr"}`),
 		event.WithEncoding(codec.Encoding("custom")),
 		event.WithSchemaVersion(schemaV),
@@ -294,7 +294,7 @@ func TestMarkRebirth_AllFieldsPreserved(t *testing.T) {
 	t.Parallel()
 
 	orig, err := event.NewEvent(
-		"user.reactivated", id.NewAggregateID(), "User",
+		"user.reactivated", id.NewStreamID(), "User",
 		event.Version(6), []byte(`{"source":"admin"}`),
 		event.WithCorrelationID(id.NewCorrelationID()),
 		event.WithUserID(id.NewUserID()),

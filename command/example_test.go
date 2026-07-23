@@ -17,7 +17,7 @@ func ExampleDispatcher() {
 		return nil
 	})
 
-	cmd, _ := command.New("CreateUser", id.NewAggregateID())
+	cmd, _ := command.New("CreateUser", id.NewStreamID())
 	_ = d.Dispatch(context.Background(), cmd)
 
 	// Output:

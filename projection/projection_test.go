@@ -102,7 +102,7 @@ func TestNewProjection_EmptyEventTypes(t *testing.T) {
 func testEvent(t *testing.T, eventType string) cqrsevent.Event {
 	t.Helper()
 
-	aggID, err := id.ParseAggregateID("test-agg")
+	aggID, err := id.ParseStreamID("test-agg")
 	if err != nil {
 		t.Fatalf("parse agg id: %v", err)
 	}

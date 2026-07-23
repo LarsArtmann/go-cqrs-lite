@@ -79,7 +79,7 @@ func TestStatusMiddleware_Tombstone(t *testing.T) {
 	)
 
 	deletedEvt, err := event.NewEvent(
-		"user.deleted", id.NewAggregateID(), "User",
+		"user.deleted", id.NewStreamID(), "User",
 		event.Version(1), []byte(`{}`),
 	)
 	if err != nil {
@@ -100,7 +100,7 @@ func TestStatusMiddleware_Rebirth(t *testing.T) {
 	)
 
 	reactivatedEvt, err := event.NewEvent(
-		"user.reactivated", id.NewAggregateID(), "User",
+		"user.reactivated", id.NewStreamID(), "User",
 		event.Version(2), []byte(`{}`),
 	)
 	if err != nil {
@@ -121,7 +121,7 @@ func TestStatusMiddleware_UnmatchedPassthrough(t *testing.T) {
 	)
 
 	createdEvt, err := event.NewEvent(
-		"user.created", id.NewAggregateID(), "User",
+		"user.created", id.NewStreamID(), "User",
 		event.Version(1), []byte(`{}`),
 	)
 	if err != nil {
@@ -141,8 +141,8 @@ func TestCacheInvalidationMiddleware_InvalidatesAfterPublish(t *testing.T) {
 	_ = bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("User", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("User", aggID)
 
 	evt, err := event.NewEvent("user.created", aggID, "User", event.Version(1), []byte(`{}`))
 	if err != nil {

@@ -19,7 +19,7 @@ func TestMessageToEvent_TombstoneRoundtrip(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"user.deleted",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		event.Version(1),
 		[]byte(`{}`),
@@ -59,7 +59,7 @@ func TestPublisherAdapter_PublishFails(t *testing.T) {
 	publisher := wm.NewPublisherAdapter(bus)
 
 	msg := message.NewMessage("test-id", []byte(`{}`))
-	msg.Metadata.Set("aggregate_id", id.NewAggregateID().String())
+	msg.Metadata.Set("aggregate_id", id.NewStreamID().String())
 	msg.Metadata.Set("aggregate_type", "User")
 	msg.Metadata.Set("version", "1")
 
@@ -70,14 +70,14 @@ func TestPublisherAdapter_PublishFails(t *testing.T) {
 
 func missingAggregateTypeMetadata() map[string]string {
 	return map[string]string{
-		"aggregate_id": id.NewAggregateID().String(),
+		"aggregate_id": id.NewStreamID().String(),
 		"version":      "1",
 	}
 }
 
 func missingVersionMetadata() map[string]string {
 	return map[string]string{
-		"aggregate_id":   id.NewAggregateID().String(),
+		"aggregate_id":   id.NewStreamID().String(),
 		"aggregate_type": "User",
 	}
 }
@@ -87,7 +87,7 @@ func invalidMetadataTestCases() []struct {
 	metadata map[string]string
 } {
 	base := map[string]string{
-		"aggregate_id":   id.NewAggregateID().String(),
+		"aggregate_id":   id.NewStreamID().String(),
 		"aggregate_type": "User",
 		"version":        "1",
 	}
@@ -168,7 +168,7 @@ func TestMessageToEvent_NoCustomMetadata(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"user.created",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		[]byte(`{}`),

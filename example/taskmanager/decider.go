@@ -86,7 +86,7 @@ func applyTask(state TaskState, evt event.Event) (TaskState, error) {
 			return state, err
 		}
 
-		depID, dErr := id.ParseAggregateID(p.DependencyID)
+		depID, dErr := id.ParseStreamID(p.DependencyID)
 		if dErr != nil {
 			return state, dErr
 		}
@@ -99,7 +99,7 @@ func applyTask(state TaskState, evt event.Event) (TaskState, error) {
 			return state, err
 		}
 
-		depID, dErr := id.ParseAggregateID(p.DependencyID)
+		depID, dErr := id.ParseStreamID(p.DependencyID)
 		if dErr != nil {
 			return state, dErr
 		}

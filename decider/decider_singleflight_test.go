@@ -45,7 +45,7 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),
@@ -98,8 +98,8 @@ func TestLoad_DifferentAggregatesNotCoalesced(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	agg1 := id.NewAggregateID()
-	agg2 := id.NewAggregateID()
+	agg1 := id.NewStreamID()
+	agg2 := id.NewStreamID()
 
 	mustAppendBatch(t, store, "Counter", agg1, []event.Event{
 		makeEvent(t, "CounterCreated", agg1, 1),
@@ -148,7 +148,7 @@ func TestLoad_WithLoadCoalescingDisabled(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
 		makeEvent(t, "CounterCreated", aggID, 1),

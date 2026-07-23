@@ -114,7 +114,7 @@ func TestSQLSnapshotStore_Load(t *testing.T) {
 
 	expectSnapshotLoadRows(mock, aggID, "John", createdAt)
 
-	snap, err := s.Load(context.Background(), id.NewAggregateRef("User", aggID))
+	snap, err := s.Load(context.Background(), id.NewStreamRef("User", aggID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -142,7 +142,7 @@ func TestSQLSnapshotStore_Load_NotFound(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnError(sql.ErrNoRows)
 
-	_, err := s.Load(context.Background(), id.NewAggregateRef("User", aggID))
+	_, err := s.Load(context.Background(), id.NewStreamRef("User", aggID))
 	if err == nil {
 		t.Fatal("expected error for not found")
 	}
@@ -162,7 +162,7 @@ func TestSQLSnapshotStore_Load_QueryError(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnError(errors.New("connection lost"))
 
-	_, err := s.Load(context.Background(), id.NewAggregateRef("User", aggID))
+	_, err := s.Load(context.Background(), id.NewStreamRef("User", aggID))
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -179,7 +179,7 @@ func TestSQLSnapshotStore_LoadAtVersion(t *testing.T) {
 
 	snap, err := s.LoadAtVersion(
 		context.Background(),
-		id.NewAggregateRef("User", aggID),
+		id.NewStreamRef("User", aggID),
 		event.Version(5),
 	)
 	if err != nil {
@@ -231,7 +231,7 @@ func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 
 			_, err := s.LoadAtVersion(
 				context.Background(),
-				id.NewAggregateRef("User", aggID),
+				id.NewStreamRef("User", aggID),
 				tt.version,
 			)
 			if err == nil {
@@ -255,7 +255,7 @@ func TestSQLSnapshotStore_Delete(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err := s.Delete(context.Background(), id.NewAggregateRef("User", aggID))
+	err := s.Delete(context.Background(), id.NewStreamRef("User", aggID))
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
@@ -271,7 +271,7 @@ func TestSQLSnapshotStore_Delete_Error(t *testing.T) {
 		WithArgs("User", aggID).
 		WillReturnError(errors.New("db error"))
 
-	err := s.Delete(context.Background(), id.NewAggregateRef("User", aggID))
+	err := s.Delete(context.Background(), id.NewStreamRef("User", aggID))
 	if err == nil {
 		t.Fatal("expected error")
 	}

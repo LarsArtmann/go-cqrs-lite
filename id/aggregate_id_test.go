@@ -10,8 +10,8 @@ import (
 func TestParseAggregateIDStrict_ValidULID(t *testing.T) {
 	t.Parallel()
 
-	original := id.NewAggregateID()
-	parsed, err := id.ParseAggregateIDStrict(original.String())
+	original := id.NewStreamID()
+	parsed, err := id.ParseStreamIDStrict(original.String())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -38,7 +38,7 @@ func TestParseAggregateIDStrict_InvalidULID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := id.ParseAggregateIDStrict(tt.input)
+			_, err := id.ParseStreamIDStrict(tt.input)
 			if err == nil {
 				t.Fatalf("expected error for %q, got nil", tt.input)
 			}
@@ -49,7 +49,7 @@ func TestParseAggregateIDStrict_InvalidULID(t *testing.T) {
 func TestParseAggregateIDStrict_Empty(t *testing.T) {
 	t.Parallel()
 
-	_, err := id.ParseAggregateIDStrict("")
+	_, err := id.ParseStreamIDStrict("")
 	if err == nil {
 		t.Fatal("expected error for empty string")
 	}
@@ -58,7 +58,7 @@ func TestParseAggregateIDStrict_Empty(t *testing.T) {
 func TestParseAggregateID_LenientAcceptsNonULID(t *testing.T) {
 	t.Parallel()
 
-	got, err := id.ParseAggregateID("lock_user1_user2")
+	got, err := id.ParseStreamID("lock_user1_user2")
 	if err != nil {
 		t.Fatalf("lenient parse should accept non-ULID: %v", err)
 	}
@@ -76,9 +76,9 @@ func TestIsAggregateIDULID(t *testing.T) {
 		id   id.StreamID
 		want bool
 	}{
-		{"NewAggregateID", id.NewAggregateID(), true},
-		{"parsed ULID", mustParseAgg(t, id.NewAggregateID().String()), true},
-		{"derived SHA-256", id.DeriveAggregateID("ns", "key"), false},
+		{"NewAggregateID", id.NewStreamID(), true},
+		{"parsed ULID", mustParseAgg(t, id.NewStreamID().String()), true},
+		{"derived SHA-256", id.DeriveStreamID("ns", "key"), false},
 		{"domain string", mustParseAgg(t, "lock_user1"), false},
 		{"empty", id.StreamID{}, false},
 	}
@@ -87,7 +87,7 @@ func TestIsAggregateIDULID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := id.IsAggregateIDULID(tt.id)
+			got := id.IsStreamIDULID(tt.id)
 			if got != tt.want {
 				t.Errorf("IsAggregateIDULID(%q) = %v, want %v", tt.id, got, tt.want)
 			}
@@ -99,7 +99,7 @@ func TestAggregateTimestamp_ValidULID(t *testing.T) {
 	t.Parallel()
 
 	before := time.Now()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	after := time.Now()
 
 	ts, err := id.StreamTimestamp(aggID)
@@ -115,7 +115,7 @@ func TestAggregateTimestamp_ValidULID(t *testing.T) {
 func TestAggregateTimestamp_NotULID(t *testing.T) {
 	t.Parallel()
 
-	derived := id.DeriveAggregateID("lock", "user1")
+	derived := id.DeriveStreamID("lock", "user1")
 	_, err := id.StreamTimestamp(derived)
 	if err == nil {
 		t.Fatal("expected error for non-ULID StreamID")
@@ -134,7 +134,7 @@ func TestAggregateTimestamp_Empty(t *testing.T) {
 func mustParseAgg(t *testing.T, s string) id.StreamID {
 	t.Helper()
 
-	id, err := id.ParseAggregateID(s)
+	id, err := id.ParseStreamID(s)
 	if err != nil {
 		t.Fatalf("ParseAggregateID(%q): %v", s, err)
 	}

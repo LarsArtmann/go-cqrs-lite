@@ -82,7 +82,7 @@ func TestIdempotencyIntegration(t *testing.T) {
 		t.Fatalf("register command: %v", err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	createCmd, err := command.New("CreateUser", aggID)
 	if err != nil {
 		t.Fatalf("new command: %v", err)
@@ -102,7 +102,7 @@ func TestIdempotencyIntegration(t *testing.T) {
 		t.Fatalf("handler call count: want 1, got %d", handlerCallCount)
 	}
 
-	events, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
+	events, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
 	if err != nil {
 		t.Fatalf("load events: %v", err)
 	}
@@ -110,7 +110,7 @@ func TestIdempotencyIntegration(t *testing.T) {
 		t.Fatalf("expected 1 event stored, got %d", len(events))
 	}
 
-	secondCreateCmd, err := command.New("CreateUser", id.NewAggregateID())
+	secondCreateCmd, err := command.New("CreateUser", id.NewStreamID())
 	if err != nil {
 		t.Fatalf("new second command: %v", err)
 	}

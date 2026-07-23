@@ -27,7 +27,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 	})
 
 	It("preserves all metadata fields through MemoryStore Save+Load", func() {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		corrID := id.NewCorrelationID()
 		causID := id.NewCausationID()
 		userID := id.NewUserID()
@@ -53,13 +53,13 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 
 		err = store.Save(
 			ctx,
-			id.NewAggregateRef(id.StreamType("User"), aggID),
+			id.NewStreamRef(id.StreamType("User"), aggID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		loaded, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("User"), aggID))
+		loaded, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded).To(HaveLen(1))
 
@@ -85,7 +85,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 	})
 
 	It("preserves payload bytes through MemoryStore Save+Load", func() {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		payload := []byte(`{"complex":"data","nested":{"key":"value"}}`)
 
 		evt, err := event.NewEvent("test.event", aggID, "Test", 1, payload)
@@ -93,20 +93,20 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 
 		err = store.Save(
 			ctx,
-			id.NewAggregateRef(id.StreamType("Test"), aggID),
+			id.NewStreamRef(id.StreamType("Test"), aggID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		loaded, err := store.Load(ctx, id.NewAggregateRef(id.StreamType("Test"), aggID))
+		loaded, err := store.Load(ctx, id.NewStreamRef(id.StreamType("Test"), aggID))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded[0].Payload()).To(Equal(payload))
 		Expect(loaded[0].OccurredAt()).To(BeTemporally("~", evt.OccurredAt(), 0))
 	})
 
 	It("preserves metadata through LoadFromVersion", func() {
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		corrID := id.NewCorrelationID()
 		aggType := id.StreamType("Test")
 
@@ -127,12 +127,12 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 		}
 
 		Expect(
-			store.Save(ctx, id.NewAggregateRef(aggType, aggID), events, event.Version(0)),
+			store.Save(ctx, id.NewStreamRef(aggType, aggID), events, event.Version(0)),
 		).To(Succeed())
 
 		loaded, err := store.LoadFromVersion(
 			ctx,
-			id.NewAggregateRef(aggType, aggID),
+			id.NewStreamRef(aggType, aggID),
 			event.Version(1),
 		)
 		Expect(err).ToNot(HaveOccurred())

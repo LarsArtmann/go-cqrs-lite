@@ -85,7 +85,7 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 	ctx := context.Background()
 
 	// Create event → OnCreate → Set in SQL table.
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent(event.Type("user.created"), aggID, "User", event.Version(1), nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)

@@ -146,7 +146,7 @@ func makeSliceTestEvents(t *testing.T, n int) []Event {
 	events := make([]Event, n)
 	for i := range n {
 		var err error
-		events[i], err = NewEvent("test.evt", id.NewAggregateID(), "Test", Version(i+1), nil)
+		events[i], err = NewEvent("test.evt", id.NewStreamID(), "Test", Version(i+1), nil)
 		if err != nil {
 			t.Fatalf("create event %d: %v", i, err)
 		}
@@ -160,7 +160,7 @@ func mustNewTimestampedEvent(t *testing.T, ts time.Time) Event {
 
 	evt, err := NewEvent(
 		"test.evt",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"Test",
 		Version(1),
 		nil,

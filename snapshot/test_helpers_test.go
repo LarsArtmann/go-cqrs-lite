@@ -29,7 +29,7 @@ func (f *fakeStore) Save(_ context.Context, snap snapshot.Snapshot) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	ref := id.NewAggregateRef(snap.StreamType, snap.StreamID)
+	ref := id.NewStreamRef(snap.StreamType, snap.StreamID)
 	f.data[f.key(ref)] = &snap
 
 	return nil

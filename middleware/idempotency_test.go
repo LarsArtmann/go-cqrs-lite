@@ -19,7 +19,7 @@ import (
 func newIdempotencyTestCmd() *testCommand {
 	return &testCommand{
 		commandID: id.NewCommandID(),
-		streamID:  id.NewAggregateID(),
+		streamID:  id.NewStreamID(),
 	}
 }
 

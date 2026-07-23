@@ -41,7 +41,7 @@ func TestOTelBundle_CommandMiddleware(t *testing.T) {
 	}
 
 	handler := mws[0](mws[1](NoopCommandHandler()))
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 
 	err := handler(context.Background(), cmd)
 	if err != nil {
@@ -120,7 +120,7 @@ func TestOTelBundle_ProducesSpans(t *testing.T) {
 
 	mws := bundle.Command()
 	handler := mws[0](mws[1](NoopCommandHandler()))
-	cmd := &testCommand{streamID: id.NewAggregateID()}
+	cmd := &testCommand{streamID: id.NewStreamID()}
 
 	_ = handler(context.Background(), cmd)
 

@@ -15,7 +15,7 @@ func TestCommandCreation_ValidType(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		typ := command.Type(rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]+$`).Draw(t, "type"))
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		cmd, err := command.New(typ, aggID)
 		if err != nil {
@@ -33,7 +33,7 @@ func TestCommandCreation_ValidType(t *testing.T) {
 func TestCommandCreation_EmptyTypeRejected(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	_, err := command.New("", aggID)
 	if err == nil {
@@ -49,7 +49,7 @@ func TestCommandMetadata_Roundtrip(t *testing.T) {
 		causID := id.NewCausationID()
 
 		typ := command.Type("TestCommand")
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		cmd, err := command.New(
 			typ, aggID,
@@ -75,7 +75,7 @@ func TestCommandDispatch_UnknownTypeRejected(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		typ := command.Type(rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]+$`).Draw(t, "type"))
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		d := command.NewDispatcher()
 
@@ -96,7 +96,7 @@ func TestCommandDispatch_RegisterAndDispatch(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		typ := command.Type(rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]+$`).Draw(t, "type"))
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		d := command.NewDispatcher()
 

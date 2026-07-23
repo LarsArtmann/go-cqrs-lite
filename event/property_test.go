@@ -16,7 +16,7 @@ func TestEventImmutability(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		typ := event.Type(rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]+$`).Draw(t, "type"))
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		version := event.Version(rapid.IntRange(1, 1000).Draw(t, "version"))
 
 		evt, err := event.NewEvent(typ, aggID, "Test", version, nil)
@@ -56,7 +56,7 @@ func TestEventIDempotency(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		typ := event.Type(rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]+$`).Draw(t, "type"))
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 		version := event.Version(rapid.IntRange(1, 1000).Draw(t, "version"))
 
 		evt1, err1 := event.NewEvent(typ, aggID, "Test", version, nil)
@@ -83,7 +83,7 @@ func TestBatchVersionMonotonicity(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		count := rapid.IntRange(2, 50).Draw(t, "count")
 		startVersion := event.Version(rapid.IntRange(1, 100).Draw(t, "startVersion"))
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		types := make([]event.Type, count)
 		payloads := make([]any, count)
@@ -122,7 +122,7 @@ func TestPayloadIsolation_Property(t *testing.T) {
 		size := rapid.IntRange(0, 4096).Draw(t, "size")
 		payload := rapid.SliceOfN(rapid.Byte(), size, size).Draw(t, "payload")
 
-		evt, err := event.NewEvent("Test", id.NewAggregateID(), "Test", 1, payload)
+		evt, err := event.NewEvent("Test", id.NewStreamID(), "Test", 1, payload)
 		if err != nil {
 			t.Fatalf("create: %v", err)
 		}
@@ -160,7 +160,7 @@ func TestMetadataIsolation_Property(t *testing.T) {
 			opts = append(opts, event.WithCustom(k, v))
 		}
 
-		evt, err := event.NewEvent("Test", id.NewAggregateID(), "Test", 1, []byte(`{}`), opts...)
+		evt, err := event.NewEvent("Test", id.NewStreamID(), "Test", 1, []byte(`{}`), opts...)
 		if err != nil {
 			t.Fatal(err)
 		}

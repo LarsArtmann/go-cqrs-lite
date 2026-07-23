@@ -25,7 +25,7 @@ func FuzzDeserializeEvent(f *testing.F) {
 		f.Fatal(err)
 	}
 
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.NewEvent("FuzzEvent", aggID, "Fuzz", event.Version(1),
 		[]byte(`{"key":"value"}`))
 	if err != nil {
@@ -69,7 +69,7 @@ func FuzzSerializeDeserializeRoundtrip(f *testing.F) {
 		t.Parallel()
 
 		store := newPebbleTestStore(t)
-		aggID := id.NewAggregateID()
+		aggID := id.NewStreamID()
 
 		evt, err := event.NewEvent("FuzzEvent", aggID, "Fuzz", event.Version(1), payload)
 		if err != nil {

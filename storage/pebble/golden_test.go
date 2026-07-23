@@ -35,7 +35,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	t.Cleanup(func() { _ = db.Close() })
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	ref := id.NewAggregateRef("Order", aggID)
+	ref := id.NewStreamRef("Order", aggID)
 
 	types := []struct {
 		typ     event.Type

@@ -20,8 +20,8 @@ func TestTypedStore_SaveLoad_Roundtrip(t *testing.T) {
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Counter", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", aggID)
 
 	input := snapshot.TypedSnapshot[counterState]{
 		StreamID:   aggID,
@@ -55,7 +55,7 @@ func TestTypedStore_Load_NotFound(t *testing.T) {
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
-	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
 
 	_, err := store.Load(context.Background(), ref)
 	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
@@ -68,8 +68,8 @@ func TestTypedStore_LoadAtVersion(t *testing.T) {
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Counter", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", aggID)
 
 	ctx := context.Background()
 
@@ -97,8 +97,8 @@ func TestTypedStore_Delete(t *testing.T) {
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Counter", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", aggID)
 
 	ctx := context.Background()
 
@@ -125,8 +125,8 @@ func TestTypedStore_NilCodecDefaultsToJSON(t *testing.T) {
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), nil)
 
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Counter", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", aggID)
 
 	ctx := context.Background()
 

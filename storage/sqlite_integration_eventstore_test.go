@@ -15,8 +15,8 @@ func setupTwoTestEvents(
 	store *SQLEventStore,
 ) (event.Event, event.Event, id.StreamID, id.StreamID) {
 	t.Helper()
-	aggID1 := id.NewAggregateID()
-	aggID2 := id.NewAggregateID()
+	aggID1 := id.NewStreamID()
+	aggID2 := id.NewStreamID()
 
 	evt1 := issueStoreConfig().NewTestEvent(
 		t,
@@ -33,14 +33,14 @@ func setupTwoTestEvents(
 
 	if err := store.AppendBatch(
 		context.Background(),
-		id.NewAggregateRef("Issue", aggID1),
+		id.NewStreamRef("Issue", aggID1),
 		[]event.Event{evt1},
 	); err != nil {
 		t.Fatalf("AppendBatch 1: %v", err)
 	}
 	if err := store.AppendBatch(
 		context.Background(),
-		id.NewAggregateRef("Issue", aggID2),
+		id.NewStreamRef("Issue", aggID2),
 		[]event.Event{evt2},
 	); err != nil {
 		t.Fatalf("AppendBatch 2: %v", err)
@@ -73,9 +73,9 @@ func TestSQLiteEventStore_Load_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
-	_, err := store.Load(context.Background(), id.NewAggregateRef("Issue", aggID))
+	_, err := store.Load(context.Background(), id.NewStreamRef("Issue", aggID))
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("expected ErrStreamNotFound, got %v", err)
 	}

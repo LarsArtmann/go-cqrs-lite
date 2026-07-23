@@ -13,15 +13,15 @@ func TestSQLEventStore_SaveMultiBatch_Success(t *testing.T) {
 	store, mock := newTestStore(t)
 	ctx := context.Background()
 
-	aggA := id.NewAggregateID()
-	aggB := id.NewAggregateID()
+	aggA := id.NewStreamID()
+	aggB := id.NewStreamID()
 
 	evtA := testEventWithAggID(t, "UserCreated", aggA, 1)
 	evtB := testEventWithAggID(t, "UserCreated", aggB, 1)
 
 	entries := []event.MultiBatchEntry{
-		{Ref: id.NewAggregateRef("User", aggA), Events: []event.Event{evtA}},
-		{Ref: id.NewAggregateRef("User", aggB), Events: []event.Event{evtB}},
+		{Ref: id.NewStreamRef("User", aggA), Events: []event.Event{evtA}},
+		{Ref: id.NewStreamRef("User", aggB), Events: []event.Event{evtB}},
 	}
 
 	mock.ExpectBegin()
@@ -58,13 +58,13 @@ func TestSQLEventStore_SaveMultiBatch_BeginTxFailure(t *testing.T) {
 	store, mock := newTestStore(t)
 	ctx := context.Background()
 
-	aggA := id.NewAggregateID()
+	aggA := id.NewStreamID()
 	evtA := testEventWithAggID(t, "UserCreated", aggA, 1)
 
 	mock.ExpectBegin().WillReturnError(errors.New("connection refused"))
 
 	err := store.SaveMultiBatch(ctx, []event.MultiBatchEntry{
-		{Ref: id.NewAggregateRef("User", aggA), Events: []event.Event{evtA}},
+		{Ref: id.NewStreamRef("User", aggA), Events: []event.Event{evtA}},
 	})
 	if err == nil {
 		t.Fatal("expected error from BeginTx failure")
@@ -75,15 +75,15 @@ func TestSQLEventStore_SaveMultiBatch_InsertError_RollsBack(t *testing.T) {
 	store, mock := newTestStore(t)
 	ctx := context.Background()
 
-	aggA := id.NewAggregateID()
-	aggB := id.NewAggregateID()
+	aggA := id.NewStreamID()
+	aggB := id.NewStreamID()
 
 	evtA := testEventWithAggID(t, "UserCreated", aggA, 1)
 	evtB := testEventWithAggID(t, "UserCreated", aggB, 1)
 
 	entries := []event.MultiBatchEntry{
-		{Ref: id.NewAggregateRef("User", aggA), Events: []event.Event{evtA}},
-		{Ref: id.NewAggregateRef("User", aggB), Events: []event.Event{evtB}},
+		{Ref: id.NewStreamRef("User", aggA), Events: []event.Event{evtA}},
+		{Ref: id.NewStreamRef("User", aggB), Events: []event.Event{evtB}},
 	}
 
 	mock.ExpectBegin()
@@ -105,7 +105,7 @@ func TestSQLEventStore_SaveMultiBatch_CommitError(t *testing.T) {
 	store, mock := newTestStore(t)
 	ctx := context.Background()
 
-	aggA := id.NewAggregateID()
+	aggA := id.NewStreamID()
 	evtA := testEventWithAggID(t, "UserCreated", aggA, 1)
 
 	mock.ExpectBegin()
@@ -113,7 +113,7 @@ func TestSQLEventStore_SaveMultiBatch_CommitError(t *testing.T) {
 	mock.ExpectCommit().WillReturnError(errors.New("commit failed"))
 
 	err := store.SaveMultiBatch(ctx, []event.MultiBatchEntry{
-		{Ref: id.NewAggregateRef("User", aggA), Events: []event.Event{evtA}},
+		{Ref: id.NewStreamRef("User", aggA), Events: []event.Event{evtA}},
 	})
 	if err == nil {
 		t.Fatal("expected error from commit failure")
@@ -124,12 +124,12 @@ func TestSQLEventStore_SaveMultiBatch_SkipsEmptyEntries(t *testing.T) {
 	store, mock := newTestStore(t)
 	ctx := context.Background()
 
-	aggA := id.NewAggregateID()
+	aggA := id.NewStreamID()
 	evtA := testEventWithAggID(t, "UserCreated", aggA, 1)
 
 	entries := []event.MultiBatchEntry{
-		{Ref: id.NewAggregateRef("User", aggA), Events: []event.Event{evtA}},
-		{Ref: id.NewAggregateRef("User", id.NewAggregateID()), Events: nil},
+		{Ref: id.NewStreamRef("User", aggA), Events: []event.Event{evtA}},
+		{Ref: id.NewStreamRef("User", id.NewStreamID()), Events: nil},
 	}
 
 	mock.ExpectBegin()

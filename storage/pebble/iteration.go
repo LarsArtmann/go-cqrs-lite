@@ -96,7 +96,7 @@ func (a *EventStore) loadFiltered(
 	upperBound []byte,
 	predicate eventPredicate,
 ) ([]event.Event, error) {
-	prefix := a.aggregatePrefix(ref)
+	prefix := a.streamPrefix(ref)
 
 	events, err := a.iterateEvents(prefix, upperBound, predicate)
 	if err != nil {
@@ -117,7 +117,7 @@ func (a *EventStore) LoadToVersion(
 	ref id.StreamRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
-	_, span := startAggregateSpan(ctx, "pebble.event.load_to_version", ref,
+	_, span := startStreamSpan(ctx, "pebble.event.load_to_version", ref,
 		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, maxVersion.Int()))
 	defer span.End()
 
@@ -138,10 +138,10 @@ func (a *EventStore) LoadToTimestamp(
 	ref id.StreamRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
-	_, span := startAggregateSpan(ctx, "pebble.event.load_to_timestamp", ref)
+	_, span := startStreamSpan(ctx, "pebble.event.load_to_timestamp", ref)
 	defer span.End()
 
-	upperBound := a.aggregateUpperBound(ref)
+	upperBound := a.streamUpperBound(ref)
 	predicate := func(evt event.Event) bool {
 		return evt.OccurredAt().After(maxTime)
 	}

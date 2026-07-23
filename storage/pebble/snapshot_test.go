@@ -55,8 +55,8 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 
 	store := newSnapshotStore(t)
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Order", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", aggID)
 	snap := testSnapshot(t, aggID, 5, `{"status":"shipped"}`)
 
 	if err := store.Save(ctx, snap); err != nil {
@@ -89,7 +89,7 @@ func TestSnapshotStore_Load_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store := newSnapshotStore(t)
-	ref := id.NewAggregateRef("Order", id.NewAggregateID())
+	ref := id.NewStreamRef("Order", id.NewStreamID())
 
 	_, err := store.Load(context.Background(), ref)
 	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
@@ -104,7 +104,7 @@ func TestSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 		t.Parallel()
 
 		store := newSnapshotStore(t)
-		ref := id.NewAggregateRef("Order", id.NewAggregateID())
+		ref := id.NewStreamRef("Order", id.NewStreamID())
 
 		_, err := store.LoadAtVersion(context.Background(), ref, event.Version(10))
 		if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
@@ -117,8 +117,8 @@ func TestSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 
 		store := newSnapshotStore(t)
 		ctx := context.Background()
-		aggID := id.NewAggregateID()
-		ref := id.NewAggregateRef("Order", aggID)
+		aggID := id.NewStreamID()
+		ref := id.NewStreamRef("Order", aggID)
 
 		snap := testSnapshot(t, aggID, 5, `{"status":"shipped"}`)
 		if err := store.Save(ctx, snap); err != nil {
@@ -137,8 +137,8 @@ func TestSnapshotStore_LoadAtVersion_AtOrAfter(t *testing.T) {
 
 	store := newSnapshotStore(t)
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Order", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", aggID)
 
 	if err := store.Save(ctx, testSnapshot(t, aggID, 5, `{"status":"shipped"}`)); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -201,8 +201,8 @@ func TestSnapshotStore_Save_VersionPrecedence(t *testing.T) {
 
 			store := newSnapshotStore(t)
 			ctx := context.Background()
-			aggID := id.NewAggregateID()
-			ref := id.NewAggregateRef("Order", aggID)
+			aggID := id.NewStreamID()
+			ref := id.NewStreamRef("Order", aggID)
 
 			if err := store.Save(ctx, testSnapshot(t, aggID, tt.first, tt.firstState)); err != nil {
 				t.Fatalf("Save first: %v", err)
@@ -236,8 +236,8 @@ func TestSnapshotStore_Delete(t *testing.T) {
 
 	store := newSnapshotStore(t)
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Order", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", aggID)
 
 	if err := store.Save(ctx, testSnapshot(t, aggID, 5, `{"status":"shipped"}`)); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -257,7 +257,7 @@ func TestSnapshotStore_Delete_Idempotent(t *testing.T) {
 	t.Parallel()
 
 	store := newSnapshotStore(t)
-	ref := id.NewAggregateRef("Order", id.NewAggregateID())
+	ref := id.NewStreamRef("Order", id.NewStreamID())
 
 	err := store.Delete(context.Background(), ref)
 	if err != nil {
@@ -270,8 +270,8 @@ func TestSnapshotStore_DistinctAggregates(t *testing.T) {
 
 	store := newSnapshotStore(t)
 	ctx := context.Background()
-	agg1 := id.NewAggregateID()
-	agg2 := id.NewAggregateID()
+	agg1 := id.NewStreamID()
+	agg2 := id.NewStreamID()
 
 	if err := store.Save(ctx, testSnapshot(t, agg1, 3, `{"a":1}`)); err != nil {
 		t.Fatalf("Save agg1: %v", err)
@@ -281,12 +281,12 @@ func TestSnapshotStore_DistinctAggregates(t *testing.T) {
 		t.Fatalf("Save agg2: %v", err)
 	}
 
-	loaded1, err := store.Load(ctx, id.NewAggregateRef("Order", agg1))
+	loaded1, err := store.Load(ctx, id.NewStreamRef("Order", agg1))
 	if err != nil {
 		t.Fatalf("Load agg1: %v", err)
 	}
 
-	loaded2, err := store.Load(ctx, id.NewAggregateRef("Order", agg2))
+	loaded2, err := store.Load(ctx, id.NewStreamRef("Order", agg2))
 	if err != nil {
 		t.Fatalf("Load agg2: %v", err)
 	}
@@ -317,8 +317,8 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
-	ref := id.NewAggregateRef("Issue", aggID)
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", aggID)
 	cfg := issueStoreConfig()
 
 	evt := cfg.NewTestEvent(t, aggID, 1)
@@ -327,7 +327,7 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 	}
 
 	// Same aggregate type + ID but snapshot prefix is disjoint from event prefix.
-	snapRef := id.NewAggregateRef("Issue", aggID)
+	snapRef := id.NewStreamRef("Issue", aggID)
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,
 		StreamType: "Issue",
@@ -379,7 +379,7 @@ func TestSnapshotStore_Close_NoOp(t *testing.T) {
 
 	// Verify still usable after Close (DB lifetime is caller-owned).
 	ctx := context.Background()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	err := store.Save(ctx, testSnapshot(t, aggID, 1, "{}"))
 	if err != nil {

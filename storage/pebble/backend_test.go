@@ -89,9 +89,9 @@ func TestBackend_FullStack(t *testing.T) {
 	}
 
 	// Save an event
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	aggType := id.StreamType("User")
-	ref := id.NewAggregateRef(aggType, aggID)
+	ref := id.NewStreamRef(aggType, aggID)
 	evt, err := event.NewEvent("user.created", aggID, aggType, event.Version(1),
 		[]byte(`{"name":"alice"}`))
 	if err != nil {
@@ -199,9 +199,9 @@ func TestBackend_ReadFrom(t *testing.T) {
 	t.Cleanup(func() { _ = backend.Close() })
 
 	eventStore := backend.EventStore()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	aggType := id.StreamType("Issue")
-	ref := id.NewAggregateRef(aggType, aggID)
+	ref := id.NewStreamRef(aggType, aggID)
 	baseTime := time.Now()
 
 	// Save 5 events

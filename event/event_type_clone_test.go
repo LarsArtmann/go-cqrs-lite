@@ -16,7 +16,7 @@ func TestWithEventID(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"TestEvent",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"TestAgg",
 		1,
 		nil,
@@ -38,7 +38,7 @@ func TestWithOccurredAt(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"TestEvent",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"TestAgg",
 		1,
 		nil,
@@ -152,7 +152,7 @@ func TestClone_IndependentPayload(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		[]byte("original"),
@@ -176,7 +176,7 @@ func TestClone_IndependentMetadata(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		[]byte("{}"),
@@ -206,7 +206,7 @@ func TestClone_NilPayload(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		nil,
@@ -234,7 +234,7 @@ func TestClone_IndependentOpts(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		[]byte("payload"),

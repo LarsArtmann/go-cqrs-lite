@@ -46,7 +46,7 @@ func makeTestEvent(t *testing.T, version int) event.Event {
 
 	evt, err := event.NewEvent(
 		event.Type("user.created"),
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		id.StreamType("User"),
 		event.Version(version),
 		[]byte(`{"name":"Alice"}`),
@@ -86,7 +86,7 @@ func TestSharedInsertEvents_Success(t *testing.T) {
 	t.Parallel()
 
 	db := setupEventsTable(t)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 	ctx := context.Background()
 
 	tx := beginTx(t, db)
@@ -120,7 +120,7 @@ func TestSharedInsertEvents_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	db := setupEventsTable(t)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	tx := beginTx(t, db)
 
@@ -142,7 +142,7 @@ func TestSharedCheckVersion_Match(t *testing.T) {
 	t.Parallel()
 
 	db := setupEventsTable(t)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 	ctx := context.Background()
 
 	evt := makeTestEvent(t, 1)
@@ -174,7 +174,7 @@ func TestSharedCheckVersion_DBError(t *testing.T) {
 	t.Parallel()
 
 	db := setupEventsTable(t)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	tx := beginTx(t, db)
 	if err := tx.Rollback(); err != nil {
@@ -196,7 +196,7 @@ func TestSharedCheckVersion_Mismatch(t *testing.T) {
 	t.Parallel()
 
 	db := setupEventsTable(t)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 
 	tx := beginTx(t, db)
 	defer rollbackOnFail(t, tx)
@@ -246,16 +246,16 @@ func TestSharedCheckpointSave_DBError(t *testing.T) {
 	}
 }
 
-func TestDeleteByAggregate_ErrorPath(t *testing.T) {
+func TestDeleteByStream_ErrorPath(t *testing.T) {
 	t.Parallel()
 
 	db := setupEventsTable(t)
 	_ = db.Close()
 
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 	ctx := context.Background()
 
-	err := sqlpkg.DeleteByAggregate(db, ctx, ref, sqlpkg.TableEvents, "?", "?", "events")
+	err := sqlpkg.DeleteByStream(db, ctx, ref, sqlpkg.TableEvents, "?", "?", "events")
 	if err == nil {
 		t.Fatal("expected error for closed database")
 	}
@@ -303,11 +303,11 @@ func TestSharedCheckpointSaveAndLoad(t *testing.T) {
 	}
 }
 
-func TestDeleteByAggregate(t *testing.T) {
+func TestDeleteByStream(t *testing.T) {
 	t.Parallel()
 
 	db := setupEventsTable(t)
-	ref := id.NewAggregateRef("User", id.NewAggregateID())
+	ref := id.NewStreamRef("User", id.NewStreamID())
 	ctx := context.Background()
 
 	tx := beginTx(t, db)
@@ -319,9 +319,9 @@ func TestDeleteByAggregate(t *testing.T) {
 	)
 	_ = tx.Commit()
 
-	err := sqlpkg.DeleteByAggregate(db, ctx, ref, sqlpkg.TableEvents, "?", "?", "events")
+	err := sqlpkg.DeleteByStream(db, ctx, ref, sqlpkg.TableEvents, "?", "?", "events")
 	if err != nil {
-		t.Fatalf("DeleteByAggregate: %v", err)
+		t.Fatalf("DeleteByStream: %v", err)
 	}
 
 	var count int
@@ -333,13 +333,13 @@ func TestDeleteByAggregate(t *testing.T) {
 	}
 }
 
-func TestDeleteByAggregate_OtherAggregateUntouched(t *testing.T) {
+func TestDeleteByStream_OtherAggregateUntouched(t *testing.T) {
 	t.Parallel()
 
 	db := setupEventsTable(t)
 	ctx := context.Background()
-	ref1 := id.NewAggregateRef("User", id.NewAggregateID())
-	ref2 := id.NewAggregateRef("User", id.NewAggregateID())
+	ref1 := id.NewStreamRef("User", id.NewStreamID())
+	ref2 := id.NewStreamRef("User", id.NewStreamID())
 
 	for _, ref := range []id.StreamRef{ref1, ref2} {
 		tx := beginTx(t, db)
@@ -351,9 +351,9 @@ func TestDeleteByAggregate_OtherAggregateUntouched(t *testing.T) {
 		_ = tx.Commit()
 	}
 
-	err := sqlpkg.DeleteByAggregate(db, ctx, ref1, sqlpkg.TableEvents, "?", "?", "events")
+	err := sqlpkg.DeleteByStream(db, ctx, ref1, sqlpkg.TableEvents, "?", "?", "events")
 	if err != nil {
-		t.Fatalf("DeleteByAggregate: %v", err)
+		t.Fatalf("DeleteByStream: %v", err)
 	}
 
 	var count int

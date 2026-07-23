@@ -32,7 +32,7 @@ func seedPebbleBenchEvents(
 	if err != nil {
 		b.Fatal(err)
 	}
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	ctx := context.Background()
 	baseTime := time.Now()
 
@@ -50,7 +50,7 @@ func seedPebbleBenchEvents(
 		events[i] = evt
 	}
 
-	err = store.AppendBatch(ctx, id.NewAggregateRef(id.StreamType("Issue"), aggID), events)
+	err = store.AppendBatch(ctx, id.NewStreamRef(id.StreamType("Issue"), aggID), events)
 	if err != nil {
 		b.Fatalf("AppendBatch: %v", err)
 	}
@@ -79,7 +79,7 @@ func BenchmarkEventStore_LoadToTimestamp(b *testing.B) {
 			for b.Loop() {
 				result, err := store.LoadToTimestamp(
 					ctx,
-					id.NewAggregateRef(id.StreamType("Issue"), aggID),
+					id.NewStreamRef(id.StreamType("Issue"), aggID),
 					baseTime.Add(tc.offset),
 				)
 				if err != nil {
@@ -98,7 +98,7 @@ func BenchmarkSerializeEnvelope(b *testing.B) {
 	b.ReportAllocs()
 
 	store := newPebbleBenchStore(b)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent("BenchEvent", aggID, "Bench", event.Version(1),
 		[]byte(`{"name":"benchmark","value":42}`))
@@ -120,7 +120,7 @@ func BenchmarkDeserializeEnvelope(b *testing.B) {
 	b.ReportAllocs()
 
 	store := newPebbleBenchStore(b)
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent("BenchEvent", aggID, "Bench", event.Version(1),
 		[]byte(`{"name":"benchmark","value":42}`))
@@ -171,8 +171,8 @@ func BenchmarkEventStore_Save_SingleEvent(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		aggID := id.NewAggregateID()
-		ref := id.NewAggregateRef("Bench", aggID)
+		aggID := id.NewStreamID()
+		ref := id.NewStreamRef("Bench", aggID)
 
 		evt, err := event.NewEvent("BenchSaved", aggID, "Bench", event.Version(1),
 			[]byte(`{"name":"save-bench","value":42}`))
@@ -196,8 +196,8 @@ func BenchmarkEventStore_AppendBatch_10Events(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		aggID := id.NewAggregateID()
-		ref := id.NewAggregateRef("Bench", aggID)
+		aggID := id.NewStreamID()
+		ref := id.NewStreamRef("Bench", aggID)
 
 		events := make([]event.Event, 10)
 		for idx := range 10 {

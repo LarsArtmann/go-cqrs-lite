@@ -26,14 +26,14 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 
 	_ = store.Save(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 		0,
 	)
 
 	events, err := store.LoadFromVersion(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		1,
 	)
 	if err != nil {
@@ -53,7 +53,7 @@ func TestMemoryStore_LoadFromVersion_NotFound(t *testing.T) {
 
 	_, err := store.LoadFromVersion(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		0,
 	)
 	if err == nil {
@@ -71,14 +71,14 @@ func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
 	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	_ = store.Save(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{evt},
 		0,
 	)
 
 	events, err := store.LoadFromVersion(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		1,
 	)
 	if err != nil {
@@ -101,13 +101,13 @@ func TestMemoryStore_LoadToVersion(t *testing.T) {
 
 	_ = store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 
 	events, err := store.LoadToVersion(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		2,
 	)
 	eventtest.AssertNoError(t, err, "LoadToVersion")
@@ -125,13 +125,13 @@ func TestMemoryStore_LoadToVersion_ExceedsStreamLength(t *testing.T) {
 
 	_ = store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{evt},
 	)
 
 	events, err := store.LoadToVersion(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		100,
 	)
 	eventtest.AssertNoError(t, err, "LoadToVersion")
@@ -146,7 +146,7 @@ func TestMemoryStore_LoadToVersion_NotFound(t *testing.T) {
 
 	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	_, err := store.LoadToVersion(ctx, id.NewAggregateRef(id.StreamType("User"), aggID), 5)
+	_, err := store.LoadToVersion(ctx, id.NewStreamRef(id.StreamType("User"), aggID), 5)
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("expected ErrStreamNotFound, got: %v", err)
 	}
@@ -171,7 +171,7 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 
 	loaded, err := store.LoadToTimestamp(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		now.Add(-30*time.Minute),
 	)
 	eventtest.AssertNoError(t, err, "LoadToTimestamp")
@@ -185,7 +185,7 @@ func TestMemoryStore_LoadToTimestamp_NotFound(t *testing.T) {
 
 	_, err := store.LoadToTimestamp(
 		context.Background(),
-		id.NewAggregateRef("User", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")),
+		id.NewStreamRef("User", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")),
 		time.Now(),
 	)
 	if !errors.Is(err, event.ErrStreamNotFound) {
@@ -199,8 +199,8 @@ func TestMemoryStore_LoadAllFromPosition(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID1 := id.NewAggregateID()
-	aggID2 := id.NewAggregateID()
+	aggID1 := id.NewStreamID()
+	aggID2 := id.NewStreamID()
 
 	evt1 := eventtest.MakeTimelineEvents(t, "User", aggID1, []eventtest.TimelineEvent{
 		{Type: "Created", Version: 1, Offset: -2 * time.Hour},
@@ -212,9 +212,9 @@ func TestMemoryStore_LoadAllFromPosition(t *testing.T) {
 		{Type: "Updated", Version: 1, Offset: 0},
 	})
 
-	_ = store.AppendBatch(ctx, id.NewAggregateRef(id.StreamType("User"), aggID1), evt1)
-	_ = store.AppendBatch(ctx, id.NewAggregateRef(id.StreamType("Order"), aggID2), evt2)
-	_ = store.AppendBatch(ctx, id.NewAggregateRef(id.StreamType("User"), aggID1), evt3)
+	_ = store.AppendBatch(ctx, id.NewStreamRef(id.StreamType("User"), aggID1), evt1)
+	_ = store.AppendBatch(ctx, id.NewStreamRef(id.StreamType("Order"), aggID2), evt2)
+	_ = store.AppendBatch(ctx, id.NewStreamRef(id.StreamType("User"), aggID1), evt3)
 
 	all, err := store.ReadAll(ctx)
 	eventtest.AssertNoError(t, err, "ReadAll")
@@ -238,7 +238,7 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -248,7 +248,7 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 	backwardsLoader := event.BackwardsSource(store)
 	events, err := backwardsLoader.LoadBackwards(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -274,7 +274,7 @@ func TestMemoryStore_LoadBackwards_NotFound(t *testing.T) {
 	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(
 		ctx,
-		id.NewAggregateRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), aggID),
 	)
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("expected ErrStreamNotFound, got %v", err)

@@ -13,7 +13,7 @@ func TestStateCache_GetMiss(t *testing.T) {
 	t.Parallel()
 
 	cache := decider.NewStateCache[counterState](10)
-	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
 
 	_, _, ok := cache.Get(ref)
 	if ok {
@@ -25,7 +25,7 @@ func TestStateCache_PutGet(t *testing.T) {
 	t.Parallel()
 
 	cache := decider.NewStateCache[counterState](10)
-	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
 
 	cache.Put(ref, counterState{Value: 42}, event.Version(5))
 
@@ -47,7 +47,7 @@ func TestStateCache_Invalidate(t *testing.T) {
 	t.Parallel()
 
 	cache := decider.NewStateCache[counterState](10)
-	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
 
 	cache.Put(ref, counterState{Value: 1}, event.Version(1))
 	cache.Invalidate(ref)
@@ -62,7 +62,7 @@ func TestStateCache_UpdateExisting(t *testing.T) {
 	t.Parallel()
 
 	cache := decider.NewStateCache[counterState](10)
-	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
 
 	cache.Put(ref, counterState{Value: 1}, event.Version(1))
 	cache.Put(ref, counterState{Value: 2}, event.Version(2))
@@ -88,7 +88,7 @@ func TestStateCache_LRUEviction(t *testing.T) {
 
 	refs := make([]id.StreamRef, 4)
 	for i := range refs {
-		refs[i] = id.NewAggregateRef("Counter", id.NewAggregateID())
+		refs[i] = id.NewStreamRef("Counter", id.NewStreamID())
 		cache.Put(refs[i], counterState{Value: i}, event.Version(i))
 	}
 
@@ -112,7 +112,7 @@ func TestStateCache_LRU_OrderAfterGet(t *testing.T) {
 
 	refs := make([]id.StreamRef, 3)
 	for i := range refs {
-		refs[i] = id.NewAggregateRef("Counter", id.NewAggregateID())
+		refs[i] = id.NewStreamRef("Counter", id.NewStreamID())
 		cache.Put(refs[i], counterState{Value: i}, event.Version(i))
 	}
 
@@ -120,7 +120,7 @@ func TestStateCache_LRU_OrderAfterGet(t *testing.T) {
 	_, _, _ = cache.Get(refs[0]) //nolint:dogsled // testing 3-return API
 
 	// Insert a new entry — should evict refs[1] (now the least recently used)
-	newRef := id.NewAggregateRef("Counter", id.NewAggregateID())
+	newRef := id.NewStreamRef("Counter", id.NewStreamID())
 	cache.Put(newRef, counterState{Value: 99}, event.Version(99))
 
 	if _, _, ok := cache.Get(refs[1]); ok {
@@ -141,7 +141,7 @@ func TestStateCache_DefaultCapacity(t *testing.T) {
 	}
 
 	// Should work with default capacity without panicking
-	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
 	cache.Put(ref, counterState{Value: 1}, event.Version(1))
 
 	state, _, ok := cache.Get(ref)
@@ -154,7 +154,7 @@ func TestStateCache_Concurrent(t *testing.T) {
 	t.Parallel()
 
 	cache := decider.NewStateCache[counterState](100)
-	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
 
 	var wg sync.WaitGroup
 
@@ -178,8 +178,8 @@ func TestStateCache_PerAggregateIsolation(t *testing.T) {
 	t.Parallel()
 
 	cache := decider.NewStateCache[counterState](10)
-	ref1 := id.NewAggregateRef("Counter", id.NewAggregateID())
-	ref2 := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref1 := id.NewStreamRef("Counter", id.NewStreamID())
+	ref2 := id.NewStreamRef("Counter", id.NewStreamID())
 
 	cache.Put(ref1, counterState{Value: 10}, event.Version(10))
 	cache.Put(ref2, counterState{Value: 20}, event.Version(20))
@@ -200,7 +200,7 @@ func TestStateCache_InvalidateMissing(t *testing.T) {
 	t.Parallel()
 
 	cache := decider.NewStateCache[counterState](10)
-	ref := id.NewAggregateRef("Counter", id.NewAggregateID())
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
 
 	// Should not panic
 	cache.Invalidate(ref)

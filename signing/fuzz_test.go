@@ -29,7 +29,7 @@ func fuzzEvent(
 
 	evt, err := event.NewEvent(
 		event.Type(eventType),
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		id.StreamType(aggType),
 		event.Version(version),
 		payload,

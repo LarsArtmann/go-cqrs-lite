@@ -14,7 +14,7 @@ func setupBenchStore(b *testing.B) (id.StreamID, *eventtest.FakeStore) {
 	b.Helper()
 
 	store := eventtest.NewFakeStore()
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 
 	evt, err := event.NewEvent(event.Type("CounterCreated"), aggID, "Counter", 1, []byte("{}"))
 	if err != nil {
@@ -23,7 +23,7 @@ func setupBenchStore(b *testing.B) (id.StreamID, *eventtest.FakeStore) {
 
 	err = store.AppendBatch(
 		context.Background(),
-		id.NewAggregateRef("Counter", aggID),
+		id.NewStreamRef("Counter", aggID),
 		[]event.Event{evt},
 	)
 	if err != nil {

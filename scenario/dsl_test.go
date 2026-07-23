@@ -48,7 +48,7 @@ func decideDecrement(s counterState, _ decrementCmd) ([]event.Event, error) {
 }
 
 func mustEvent(t event.Type) event.Event {
-	aggID := id.NewAggregateID()
+	aggID := id.NewStreamID()
 	evt, err := event.New(t, aggID, "Counter", 1, map[string]any{"v": 1})
 	if err != nil {
 		panic(err)

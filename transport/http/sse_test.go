@@ -161,7 +161,7 @@ func TestSSEBroker_MultiClient(t *testing.T) {
 		t.Fatalf("expected 2 clients, got %d", broker.ClientCount())
 	}
 
-	evt, err := event.NewEvent("TestEvent", id.NewAggregateID(), "Test", 1, []byte("payload"))
+	evt, err := event.NewEvent("TestEvent", id.NewStreamID(), "Test", 1, []byte("payload"))
 	if err != nil {
 		t.Fatalf("create event: %v", err)
 	}
@@ -246,7 +246,7 @@ func TestSSEHandler_WireFormat(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		id.NewAggregateID(),
+		id.NewStreamID(),
 		"User",
 		1,
 		[]byte(`{"name":"Alice"}`),
