@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
@@ -201,5 +202,66 @@ func TestEventPubSub_FilterByType(t *testing.T) {
 
 	if env.received[0] != "user.created" {
 		t.Fatalf("event type: got %s, want user.created", env.received[0])
+	}
+}
+
+func TestEventPubSub_PreservesCBOREncoding(t *testing.T) {
+	env := newEventTestEnv(t)
+
+	type userCreated struct {
+		Name string `json:"name"`
+	}
+
+	var (
+		gotEvt  event.Event
+		gotOnce sync.Once
+	)
+
+	env.wg.Go(func() {
+		_ = env.client.Subscribe(env.ctx, func(_ context.Context, evt event.Event) error {
+			gotOnce.Do(func() { gotEvt = evt })
+
+			return nil
+		})
+	})
+
+	time.Sleep(settleDelay)
+
+	aggID := id.NewAggregateID()
+
+	evt, err := event.New("user.created", aggID, "User", event.Version(1),
+		userCreated{Name: "Alice"},
+		event.WithCodec(codec.CBORCodec{}),
+	)
+	if err != nil {
+		t.Fatalf("create CBOR event: %v", err)
+	}
+
+	if evt.Encoding() != codec.EncodingCBOR {
+		t.Fatalf("source encoding = %q, want cbor", evt.Encoding())
+	}
+
+	if err := env.bus.Publish(env.ctx, evt); err != nil {
+		t.Fatalf("Publish: %v", err)
+	}
+
+	time.Sleep(settleDelay)
+	env.stop()
+
+	if gotEvt == nil {
+		t.Fatalf("no event received")
+	}
+
+	if gotEvt.Encoding() != codec.EncodingCBOR {
+		t.Fatalf("received encoding = %q, want cbor", gotEvt.Encoding())
+	}
+
+	decoded, err := event.DecodePayloadAuto[userCreated](gotEvt)
+	if err != nil {
+		t.Fatalf("DecodePayloadAuto: %v", err)
+	}
+
+	if decoded.Name != "Alice" {
+		t.Fatalf("decoded name = %q, want Alice", decoded.Name)
 	}
 }
