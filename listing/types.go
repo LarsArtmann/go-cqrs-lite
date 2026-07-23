@@ -9,7 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// StreamListing is a summary of an aggregate stream.
+// StreamListing is a summary of an event stream.
 // No derived state. Status is computed separately by the reader.
 type StreamListing struct {
 	ID          id.StreamID   `json:"id"`
@@ -19,11 +19,17 @@ type StreamListing struct {
 	LastEventAt time.Time     `json:"last_event_at"` //nolint:tagliatelle // on-disk/external format uses snake_case
 }
 
-// StreamStatus pairs an aggregate with its computed tombstone state.
+// Deprecated: use StreamListing.
+type AggregateListing = StreamListing
+
+// StreamStatus pairs a stream listing with its computed tombstone state.
 type StreamStatus struct {
 	Ref    StreamListing
 	Status event.TombstoneStatus
 }
+
+// Deprecated: use StreamStatus.
+type AggregateStatus = StreamStatus
 
 // Page is a cursor-based page of results.
 // No TotalCount — append-only logs make counts stale and expensive.
@@ -32,15 +38,15 @@ type Page[T any] struct {
 	HasMore bool `json:"hasMore"`
 }
 
-// TombstonePolicy controls visibility of soft-deleted aggregates.
+// TombstonePolicy controls visibility of soft-deleted streams.
 type TombstonePolicy int
 
 const (
-	// TombstoneExclude hides tombstoned aggregates (default).
+	// TombstoneExclude hides tombstoned streams (default).
 	TombstoneExclude TombstonePolicy = iota
-	// TombstoneInclude shows all aggregates, with Status.
+	// TombstoneInclude shows all streams, with Status.
 	TombstoneInclude
-	// TombstoneOnly shows only tombstoned aggregates.
+	// TombstoneOnly shows only tombstoned streams.
 	TombstoneOnly
 )
 
@@ -68,9 +74,9 @@ func (s StreamStatus) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// ListOptions controls aggregate listing queries.
+// ListOptions controls stream listing queries.
 type ListOptions struct {
-	// Type is the aggregate type to list. Required for cursor pagination.
+	// Type is the stream type to list. Required for cursor pagination.
 	Type id.StreamType
 
 	// After is the cursor for the next page.
@@ -81,7 +87,7 @@ type ListOptions struct {
 	// Zero defaults to the reader's default page size.
 	Limit uint
 
-	// Tombstone controls visibility of soft-deleted aggregates.
+	// Tombstone controls visibility of soft-deleted streams.
 	// Default is TombstoneExclude.
 	Tombstone TombstonePolicy
 }

@@ -10,24 +10,38 @@ import (
 // These exist so command consumers can import everything from command/
 // without adding a direct event/ dependency for these core identifiers.
 // This is an intentional convenience re-export, not a layering violation:
-// commands operate on the same aggregate identity as events.
+// commands operate on the same stream identity as events.
 type StreamType = id.StreamType
 
 type StreamRef = id.StreamRef
 
-func ParseAggregateType(s string) (StreamType, error) {
-	t, err := id.ParseAggregateType(s)
+// Deprecated: use StreamType.
+type AggregateType = StreamType
+
+// Deprecated: use StreamRef.
+type AggregateRef = StreamRef
+
+func ParseStreamType(s string) (StreamType, error) {
+	t, err := id.ParseStreamType(s)
 	if err != nil {
 		return "", errorfamily.WrapRejection(
 			err,
-			"command.parse_aggregate_type",
-			"parse aggregate type",
+			"command.parse_stream_type",
+			"parse stream type",
 		)
 	}
 
 	return t, nil
 }
 
+func NewStreamRef(streamType StreamType, streamID id.StreamID) StreamRef {
+	return id.NewStreamRef(streamType, streamID)
+}
+
+// Deprecated: use ParseStreamType.
+func ParseAggregateType(s string) (StreamType, error) { return ParseStreamType(s) }
+
+// Deprecated: use NewStreamRef.
 func NewAggregateRef(streamType StreamType, streamID id.StreamID) StreamRef {
-	return id.NewAggregateRef(streamType, streamID)
+	return NewStreamRef(streamType, streamID)
 }
