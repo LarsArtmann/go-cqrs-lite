@@ -17,6 +17,7 @@ use (
 	./event
 	./event/v4/eventtest
 	./example/getting-started
+	./example/readme-quickstart
 	./example/taskmanager
 	./graph
 	./id
