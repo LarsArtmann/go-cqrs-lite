@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
-// OTelMetricsRecorder implements MetricsRecorder using OpenTelemetry histograms.
+// OTelMetricsRecorder implements TypedMetricsRecorder using OpenTelemetry histograms.
 type OTelMetricsRecorder struct {
 	histogram cqrsotel.Float64Histogram
 	counter   cqrsotel.Int64Counter
@@ -49,37 +49,6 @@ func NewOTelMetricsRecorder(meter cqrsotel.Meter) (*OTelMetricsRecorder, error) 
 	}
 
 	return &OTelMetricsRecorder{histogram: h, counter: c}, nil
-}
-
-// Observe records a metric observation with the given name, duration, and labels.
-// Labels are passed as alternating key-value string pairs.
-//
-// Deprecated: Use ObserveTyped with attribute.KeyValue pairs instead. The
-// string-label form silently drops malformed (odd-length) label pairs and
-// offers no compile-time type safety.
-func (r *OTelMetricsRecorder) Observe(
-	ctx context.Context,
-	name string,
-	duration time.Duration,
-	labels ...string,
-) {
-	const keyValuePairs = 2 // labels come in alternating key-value pairs
-
-	opts := make([]cqrsotel.RecordOption, 0, 1)
-	attrs := make(
-		[]cqrsotel.KeyValue,
-		0,
-		(len(labels)/keyValuePairs)+1,
-	)
-	attrs = append(attrs, cqrsotel.AttrString("operation", name))
-
-	for i := 0; i+1 < len(labels); i += 2 {
-		attrs = append(attrs, cqrsotel.AttrString(labels[i], labels[i+1]))
-	}
-
-	opts = append(opts, cqrsotel.MetricWithAttributes(attrs...))
-	r.histogram.Record(ctx, float64(duration.Milliseconds()), opts...)
-	r.counter.Add(ctx, 1, cqrsotel.CounterAddWithAttributes(attrs...))
 }
 
 // ObserveTyped records a metric observation with typed attributes, satisfying

@@ -165,7 +165,10 @@ func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
 	r.result.Memory = ResourceStats{
 		Before: baseline.heapAlloc,
 		After:  peakMem,
-		Delta:  peakMem - baseline.heapAlloc,
+	}
+
+	if peakMem > baseline.heapAlloc {
+		r.result.Memory.Delta = peakMem - baseline.heapAlloc
 	}
 
 	endCPU := cpuTime()
@@ -173,7 +176,10 @@ func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
 	r.result.CPU = ResourceStats{
 		Before: r.startCPU,
 		After:  endCPU,
-		Delta:  endCPU - r.startCPU,
+	}
+
+	if endCPU > r.startCPU {
+		r.result.CPU.Delta = endCPU - r.startCPU
 	}
 
 	r.result.Disk.EventBytes = int64(r.result.TotalEvents) * int64(r.config.PayloadSize)

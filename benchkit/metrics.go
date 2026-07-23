@@ -141,10 +141,13 @@ type resourceSampler struct {
 }
 
 func newResourceSampler() *resourceSampler {
-	return &resourceSampler{
+	rs := &resourceSampler{
 		baseline: readMemStats(),
 		stop:     make(chan struct{}),
 	}
+	rs.peak = rs.baseline.heapAlloc
+
+	return rs
 }
 
 func (rs *resourceSampler) start() {

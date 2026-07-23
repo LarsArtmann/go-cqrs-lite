@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
@@ -48,8 +47,8 @@ func TestQueryResultPropagation_Logging(t *testing.T) {
 func TestQueryResultPropagation_Metrics(t *testing.T) {
 	t.Parallel()
 
-	metrics := &eventtest.FakeMetrics{}
-	mw := QueryMetrics(metrics)
+	rec := &fakeTypedRecorder{}
+	mw := QueryTypedMetrics(rec)
 	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
 		return struct{ Name string }{"test"}, nil
 	})

@@ -13,20 +13,6 @@ import (
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
-func TestOTelMetricsRecorder(t *testing.T) {
-	t.Parallel()
-
-	provider := metric.NewMeterProvider()
-	meter := provider.Meter("test")
-
-	recorder, err := NewOTelMetricsRecorder(meter)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	recorder.Observe(context.Background(), "test_op", 100, "type", "test", "status", "success")
-}
-
 func TestCommandOTelMetrics(t *testing.T) {
 	t.Parallel()
 
@@ -114,24 +100,6 @@ func TestCommandOTelMetrics_RecordsError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-}
-
-func TestOTelMetricsRecorder_ImplementsInterface(t *testing.T) {
-	t.Parallel()
-
-	var _ MetricsRecorder = (*OTelMetricsRecorder)(nil)
-
-	provider := metric.NewMeterProvider()
-	meter := provider.Meter("test")
-
-	recorder, err := NewOTelMetricsRecorder(meter)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	var iface MetricsRecorder = recorder
-
-	iface.Observe(context.Background(), "test", 100, "key", "value")
 }
 
 func TestCommandOTelMetrics_CollectsData(t *testing.T) {
