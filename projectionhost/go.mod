@@ -39,9 +39,9 @@ require (
 )
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.2
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.4
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.3
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.1

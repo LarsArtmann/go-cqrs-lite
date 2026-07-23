@@ -4,6 +4,7 @@
 **Branch:** master  
 **Working tree:** 2 files modified (`encryption/ciphertext.go`, `signing/signature.go` — import-order fixes only)  
 **Recent commits (this session):**
+
 - `93a9331f` feat(core): implement comprehensive event encryption, signing, and storage improvements
 - `17b924ec` feat(signing): add COSE Sign1 implementation for event signature verification
 - `0f7703ed` refactor(infrastructure): unify storage, messaging, and encryption configurations across database stacks

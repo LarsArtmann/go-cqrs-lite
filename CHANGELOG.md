@@ -49,21 +49,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 **Tags:**
 
-| Module | Version | Module | Version |
-| --- | --- | --- | --- |
-| `catalog/v4.0.4` | `cmd/api-stability/v4.0.2` | `cmd/cqrs-gen/v4.0.2` | `cmd/doc-check/v4.0.1` |
-| `codec/v4.0.4` | `command/v4.0.2` | `decider/v4.0.3` | `dedup/v4.0.1` |
-| `deriver/v4.0.2` | `dispatcher/v4.0.2` | `encryption/v4.0.3` | `event/v4.0.4` |
-| `event/v4/eventtest/v0.2.1` | `example/getting-started/v4.0.2` | `example/taskmanager/v4.0.2` | `graph/v4.0.3` |
-| `id/v4.0.3` | `idempotency/v4.0.2` | `idempotency/kvstore/v4.0.2` | `integration/v4.0.2` |
-| `kv/v4.0.3` | `listing/v4.0.3` | `metadata/v4.0.2` | `middleware/v4.0.3` |
-| `otel/v4.0.3` | `projection/v4.0.2` | `projectionhost/v4.0.3` | `prometheus/v4.0.2` |
-| `query/v4.0.2` | `retry/v4.0.2` | `scenario/v4.0.3` | `scheduling/v4.0.3` |
-| `schema/v4.0.3` | `signing/v4.0.3` | `snapshot/v4.0.3` | `stack/v4.0.2` |
-| `stack/bench/v4.0.2` | `stack/memory/v4.0.2` | `stack/pebble/v4.0.2` | `stack/postgres/v4.0.2` |
-| `stack/sqlite/v4.0.2` | `stack/turso/v4.0.2` | `storage/v4.0.3` | `storage/memory/v4.0.2` |
-| `storage/pebble/v4.0.3` | `storage/turso/v4.0.2` | `testutil/v4.0.2` | `transport/grpc/v4.0.2` |
-| `transport/http/v4.0.3` | `watermill/v4.0.4` | | |
+| Module                      | Version                          | Module                       | Version                 |
+| --------------------------- | -------------------------------- | ---------------------------- | ----------------------- |
+| `catalog/v4.0.4`            | `cmd/api-stability/v4.0.2`       | `cmd/cqrs-gen/v4.0.2`        | `cmd/doc-check/v4.0.1`  |
+| `codec/v4.0.4`              | `command/v4.0.2`                 | `decider/v4.0.3`             | `dedup/v4.0.1`          |
+| `deriver/v4.0.2`            | `dispatcher/v4.0.2`              | `encryption/v4.0.3`          | `event/v4.0.4`          |
+| `event/v4/eventtest/v0.2.1` | `example/getting-started/v4.0.2` | `example/taskmanager/v4.0.2` | `graph/v4.0.3`          |
+| `id/v4.0.3`                 | `idempotency/v4.0.2`             | `idempotency/kvstore/v4.0.2` | `integration/v4.0.2`    |
+| `kv/v4.0.3`                 | `listing/v4.0.3`                 | `metadata/v4.0.2`            | `middleware/v4.0.3`     |
+| `otel/v4.0.3`               | `projection/v4.0.2`              | `projectionhost/v4.0.3`      | `prometheus/v4.0.2`     |
+| `query/v4.0.2`              | `retry/v4.0.2`                   | `scenario/v4.0.3`            | `scheduling/v4.0.3`     |
+| `schema/v4.0.3`             | `signing/v4.0.3`                 | `snapshot/v4.0.3`            | `stack/v4.0.2`          |
+| `stack/bench/v4.0.2`        | `stack/memory/v4.0.2`            | `stack/pebble/v4.0.2`        | `stack/postgres/v4.0.2` |
+| `stack/sqlite/v4.0.2`       | `stack/turso/v4.0.2`             | `storage/v4.0.3`             | `storage/memory/v4.0.2` |
+| `storage/pebble/v4.0.3`     | `storage/turso/v4.0.2`           | `testutil/v4.0.2`            | `transport/grpc/v4.0.2` |
+| `transport/http/v4.0.3`     | `watermill/v4.0.4`               |                              |                         |
 
 ## [v4.0.3] - 2026-07-22
 

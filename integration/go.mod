@@ -4,12 +4,12 @@ go 1.26.4
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.3
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.4
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.2
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.4
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.2.0
 	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.0.1
@@ -55,7 +55,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.0.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.0.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
