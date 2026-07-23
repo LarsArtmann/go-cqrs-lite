@@ -142,13 +142,13 @@ DDIA's core lessons that apply:
 
 The optimizer respects these physical limits:
 
-| Constraint   | Implication for the optimizer                                                                                         |
-| ------------ | --------------------------------------------------------------------------------------------------------------------- |
-| **Network**  | Avoid cross-engine queries. If pattern needs data from 2 engines, denormalize so it's in 1.                           |
-| **RAM**      | Large datasets can't fit in memory. The optimizer must prefer streaming/paginated access paths for large projections. |
-| **Disk I/O** | Sequential scan (O(n) disk) vs index seek (O(log n) disk) is 100x+ difference at scale. Prefer indexed paths.         |
-| **CPU**      | In-memory decode + filter is CPU-bound. Columnar engines (ClickHouse) avoid this by only reading relevant columns.    |
-| **Time**     | Every query has an implicit latency budget. The optimizer picks the path most likely to meet it.                      |
+| Constraint   | Implication for the optimizer                                                                                                                                                                                                                   |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **RAM**      | Large datasets can't fit in memory. The optimizer must prefer streaming/paginated access paths for large projections.                                                                                                                           |
+| **Disk I/O** | Sequential scan (O(n) disk) vs index seek (O(log n) disk) is 100x+ difference at scale. Prefer indexed paths.                                                                                                                                   |
+| **CPU**      | In-memory decode + filter is CPU-bound. Columnar engines (ClickHouse) avoid this by only reading relevant columns.                                                                                                                              |
+| **Time**     | Every query has an implicit latency budget. The optimizer picks the path most likely to meet it.                                                                                                                                                |
+| **Network**  | Only relevant when an engine is REMOTE (ClickHouse cluster, Neo4j server, ScyllaDB). Local engines (SQLite file, Pebble dir) have zero network cost — cross-engine reads between local engines are just different syscalls on the same machine. |
 
 ---
 

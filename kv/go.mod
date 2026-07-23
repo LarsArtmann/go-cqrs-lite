@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.4
-	github.com/larsartmann/go-error-family v0.7.0
+	github.com/larsartmann/go-error-family v0.8.0
 	github.com/maypok86/otter/v2 v2.3.0
 )
 

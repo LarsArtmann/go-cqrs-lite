@@ -46,5 +46,5 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0
-	github.com/larsartmann/go-error-family v0.7.0
+	github.com/larsartmann/go-error-family v0.8.0
 )

@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.4
-	github.com/larsartmann/go-error-family v0.7.0
+	github.com/larsartmann/go-error-family v0.8.0
 	pgregory.net/rapid v1.3.0
 )
 

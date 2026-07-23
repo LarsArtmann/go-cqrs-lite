@@ -48,15 +48,15 @@ meta-engine (NEW PROJECT — the intelligence)
 
 ### Why Not a Module in go-cqrs-lite?
 
-| Factor | As a go-cqrs-lite module | As a separate project |
-|---|---|---|
-| **Complexity** | Adds massive scope to a "lightweight" library. Contradicts the brand. | Isolated complexity. go-cqrs-lite stays lean. |
-| **Dependencies** | Would pull optimization/planning deps into the monorepo. | Owns its own dependency tree. |
-| **Audience** | go-cqrs-lite is for consumers building apps. | The meta-engine is for operators optimizing deployments. Different audience, different release cadence. |
-| **Research nature** | A library ships features. | The meta-engine is a research contribution. It needs academic-grade rigor. |
-| **Versioning** | Coupled to go-cqrs-lite release cycle. | Can iterate independently. Especially important while the cost model evolves. |
-| **Reusability** | Coupled to go-cqrs-lite's event model. | Could work with ANY event sourcing library that exposes a `SeekableJournal`. |
-| **The "lite" in go-cqrs-lite** | The meta-engine is the opposite of "lite." | Keeps the brand honest. |
+| Factor                         | As a go-cqrs-lite module                                              | As a separate project                                                                                   |
+| ------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Complexity**                 | Adds massive scope to a "lightweight" library. Contradicts the brand. | Isolated complexity. go-cqrs-lite stays lean.                                                           |
+| **Dependencies**               | Would pull optimization/planning deps into the monorepo.              | Owns its own dependency tree.                                                                           |
+| **Audience**                   | go-cqrs-lite is for consumers building apps.                          | The meta-engine is for operators optimizing deployments. Different audience, different release cadence. |
+| **Research nature**            | A library ships features.                                             | The meta-engine is a research contribution. It needs academic-grade rigor.                              |
+| **Versioning**                 | Coupled to go-cqrs-lite release cycle.                                | Can iterate independently. Especially important while the cost model evolves.                           |
+| **Reusability**                | Coupled to go-cqrs-lite's event model.                                | Could work with ANY event sourcing library that exposes a `SeekableJournal`.                            |
+| **The "lite" in go-cqrs-lite** | The meta-engine is the opposite of "lite."                            | Keeps the brand honest.                                                                                 |
 
 ---
 
@@ -65,7 +65,7 @@ meta-engine (NEW PROJECT — the intelligence)
 ### The View Selection Problem
 
 The **view selection problem** — choosing which materialized views (projections) to maintain
-— is a well-studied problem. Database systems solve it *within one engine*:
+— is a well-studied problem. Database systems solve it _within one engine_:
 
 - **Postgres** picks which indexes to create for a given workload
 - **SQL Server** picks which indexed views to maintain
@@ -75,14 +75,14 @@ The **view selection problem** — choosing which materialized views (projection
 **Nobody has solved it ACROSS engines, for event-sourced data, at deployment time.** Here is
 why that specific combination is new:
 
-| Dimension | Classic view selection | Meta-engine view selection |
-|---|---|---|
-| **Engines** | ONE engine (optimize within Postgres) | N heterogeneous engines (SQLite + Pebble + Neo4j + ClickHouse) |
-| **Optimization time** | Query time (runtime) | Deployment time (startup) |
-| **Data origin** | Data already has a shape (tables) | Data derives from event log (shapeless until projected) |
-| **Views** | Expensive to add (migration) | Disposable (replay from event log) |
-| **Cost model** | I/O within one DB | Single-machine resources (RAM, disk, CPU). Network only when an engine is remote |
-| **Consistency** | Single-engine transactions | Eventual consistency via independent projections (CQRS) |
+| Dimension             | Classic view selection                | Meta-engine view selection                                                       |
+| --------------------- | ------------------------------------- | -------------------------------------------------------------------------------- |
+| **Engines**           | ONE engine (optimize within Postgres) | N heterogeneous engines (SQLite + Pebble + Neo4j + ClickHouse)                   |
+| **Optimization time** | Query time (runtime)                  | Deployment time (startup)                                                        |
+| **Data origin**       | Data already has a shape (tables)     | Data derives from event log (shapeless until projected)                          |
+| **Views**             | Expensive to add (migration)          | Disposable (replay from event log)                                               |
+| **Cost model**        | I/O within one DB                     | Single-machine resources (RAM, disk, CPU). Network only when an engine is remote |
+| **Consistency**       | Single-engine transactions            | Eventual consistency via independent projections (CQRS)                          |
 
 ### The Specific Novel Contributions
 
@@ -173,6 +173,7 @@ $$
 
 This is a variant of the **(multi-dimensional) knapsack-cover problem** with assignment
 constraints. NP-hard in general, but tractable in practice because:
+
 - The number of views $|\mathcal{V}|$ is small (tens, not thousands — limited by declared query patterns)
 - The number of engines $|\mathcal{S}|$ is small (1-5)
 - The problem decomposes by ADT (within each ADT, the choice is independent)
@@ -215,12 +216,12 @@ transactions (2PC) or CDC pipelines (Kafka Connect). Both are slow, complex, and
 
 Event sourcing eliminates all four problems:
 
-| Problem | Without ES | With ES |
-|---|---|---
-| **What to materialize** | Guess from workload | Declared explicitly via `projection.Declare(...)` |
-| **Consistency** | Distributed transactions (2PC) | Independent projections consuming same event stream |
-| **Schema change** | Migrate all views simultaneously | Replay from event log — views are disposable |
-| **Failures** | View update fails → whole TX rolls back | View update fails → event requeued, projection lags (eventual consistency) |
+| Problem                 | Without ES                              | With ES                                                                    |
+| ----------------------- | --------------------------------------- | -------------------------------------------------------------------------- |
+| **What to materialize** | Guess from workload                     | Declared explicitly via `projection.Declare(...)`                          |
+| **Consistency**         | Distributed transactions (2PC)          | Independent projections consuming same event stream                        |
+| **Schema change**       | Migrate all views simultaneously        | Replay from event log — views are disposable                               |
+| **Failures**            | View update fails → whole TX rolls back | View update fails → event requeued, projection lags (eventual consistency) |
 
 The key insight: **the event log is the single source of truth. Views are disposable caches.**
 This eliminates the need for distributed transactions and makes cross-engine view selection
@@ -229,6 +230,7 @@ This eliminates the need for distributed transactions and makes cross-engine vie
 ---
 
 ## -definition
+
 ## 5. Project Boundary & Dependency Direction
 
 ### What the Meta-Engine Imports from go-cqrs-lite
@@ -251,6 +253,7 @@ Three modules. That's the entire dependency surface.
 - **`projectionhost.Host`** — the runtime that consumes events and drives projections
 
 The meta-engine does NOT import:
+
 - `storage/` (engine implementations are provided by the operator)
 - `kv/`, `command/`, `query/` (not needed for planning)
 - `decider/` (the write side is the developer's domain)
@@ -259,23 +262,24 @@ The meta-engine does NOT import:
 
 ### What go-cqrs-lite Provides vs. What the Meta-Engine Provides
 
-| Concern | go-cqrs-lite | Meta-engine |
-|---|---|---
-| Event type, event store interface | Provides | Consumes |
-| Projection interface, host | Provides | Consumes |
-| Decider, repository | Provides | Not used |
-| Storage adapter implementations | Provides (SQLite, Pebble, Memory) | Consumes via plugin registry |
-| Query pattern declaration API | Not provided | **Provides** |
-| Cost-based optimizer / planner | Not provided | **Provides** |
-| Scale-dependent structure selection | Not go-cqrs-lite's job | **Provides** |
-| Auto-generated projection handlers | Not provided | **-** **Provides** |
-| Auto-generated typed read API | Not provided | **Provides** |
-| Multi-engine coordination | Not provided | **Provides** |
-| Auto-denormalization | Not provided | **Provides** |
-| Event store (the write side) | Provides | Not used |
-| Command/query dispatch | Provides | Not depends on |
-| Middleware, signing, encryption | Provides | Not used |
-| Catalog, schema evolution | Provides | Not used |
+| Concern                             | go-cqrs-lite                      | Meta-engine                  |
+| ----------------------------------- | --------------------------------- | ---------------------------- |
+| Event type, event store interface   | Provides                          | Consumes                     |
+| Projection interface, host          | Provides                          | Consumes                     |
+| Decider, repository                 | Provides                          | Not used                     |
+| Storage adapter implementations     | Provides (SQLite, Pebble, Memory) | Consumes via plugin registry |
+| Query pattern declaration API       | Not provided                      | **Provides**                 |
+| Cost-based optimizer / planner      | Not provided                      | **Provides**                 |
+| Scale-dependent structure selection | Not go-cqrs-lite's job            | **Provides**                 |
+| Auto-generated projection handlers  | Not provided                      | **-** **Provides**           |
+| Auto-generated typed read API       | Not provided                      | **Provides**                 |
+| Multi-engine coordination           | Not provided                      | **Provides**                 |
+| Auto-denormalization                | Not provided                      | **Provides**                 |
+| Event store (the write side)        | Provides                          | Not used                     |
+| Command/query dispatch              | Provides                          | Not depends on               |
+| Middleware, signing, encryption     | Provides                          | Not used                     |
+| Catalog, schema evolution           | Provides                          | Not used                     |
+
 - "** Depends on" — only via injected interfaces, not import | | |
 
 ### Architecture
@@ -385,9 +389,9 @@ queries that the planner has verified can be served. No runtime type assertions.
 store.Users.ByStatus(ctx, "active")  // ← only exists if planner verified it
 ```
 
- Type assertions happen inside the engine plugins, not in consumer code.
+Type assertions happen inside the engine plugins, not in consumer code.
 
-### Problem  minimal 3: ViewMapper With SQL Types
+### Problem minimal 3: ViewMapper With SQL Types
 
 ```go
 // Current: developer writes raw SQL DDL
@@ -407,7 +411,7 @@ by the developer.
 
 ### Problem 4: Manual IndexSpec Declaration
 
-```go
+````go
 // Current: developer manually declares indexes
 mapper.Indexes = []storage.IndexSpec{
     {Name: "idx_status", Columns: []string{"status"}},
@@ -431,14 +435,14 @@ hope it works in another.
 mat := stack.Materialize[V,K]{...}           // KV/document tier
 rel := storage.NewRelationalProjection(...)  // SQL/relational tier
 graph := graph.NewGraphProjection(...)       // graph tier
-```
+````
 
 **Why it's bad:** The developer is doing the planner's job manually. They're choosing the
 storage mechanism when they should be declaring the query intent.
 
 **What the meta-engine does:** One declaration API. The planner picks the tier.
 
-### Problem  tiers That the Developer Must Choose Between
+### Problem tiers That the Developer Must Choose Between
 
 ```go
 // Current: developer picks the tier
@@ -470,7 +474,7 @@ most dangerous leak: raw SQL injection risk, engine-coupled, and untype-safe.
 
 **What the meta-engine must do:** A structured query expression tree:
 
-```go
+````go
 // Meta-engine: composable, type-safe query expressions
 q := query.Or(
     query.Eq("status", "active"),
@@ -491,7 +495,7 @@ q := query.Or(
     query.Eq("status", "pending"),
 )
 store.Users.Where(ctx, q)
-```
+````
 
 The query expression tree is engine-agnostic. The engine plugin translates it to SQL WHERE
 clauses, Pebble range scans, or in-memory filter functions.
@@ -504,55 +508,55 @@ clauses, Pebble range scans, or in-memory filter functions.
 
 The foundational types that everything else builds on.
 
-| Component | Description | Effort |
-|---|---|---|
-| **ADT catalog** | Formal definitions of the 7 ADTs (Map, SortedMap, Counter, Set, Multimap, Graph, Log) with their algebraic operations | 2 days |
-| **Query pattern declarations** | `projection.PointLookup()`, `.Filter("col")`, `.Sort("col")`, `.Count("col")`, `.Traverse(depth)`, `.Search("col")` | 3 days |
-| **Query expression tree** | `query.Eq`, `query.And`, `query.Or`, `query.Gt`, `query.Range`, `query.In`, composable and type-safe | 3 days |
-| **Engine profile types** | `EngineProfile`, `ADTOps`, `Complexity`, `Performance`, `IndexType` | 1 day |
-| **Projection spec** | `ReadModelSpec[V,K]` produced by `projection.Declare(...).Done()` | 1 day |
-| **Scale thresholds** | The cardinality threshold tables from the assumptions doc, as Go data | 2 days |
-| **Cardinality hint** | `projection.Volume(N)` and `projection.ExpectGrowth(rate)` | 0.5 days |
-| **Latency budget** | `projection.WithLatencyBudget(d)` | 0.5 days |
+| Component                      | Description                                                                                                           | Effort   |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- | -------- |
+| **ADT catalog**                | Formal definitions of the 7 ADTs (Map, SortedMap, Counter, Set, Multimap, Graph, Log) with their algebraic operations | 2 days   |
+| **Query pattern declarations** | `projection.PointLookup()`, `.Filter("col")`, `.Sort("col")`, `.Count("col")`, `.Traverse(depth)`, `.Search("col")`   | 3 days   |
+| **Query expression tree**      | `query.Eq`, `query.And`, `query.Or`, `query.Gt`, `query.Range`, `query.In`, composable and type-safe                  | 3 days   |
+| **Engine profile types**       | `EngineProfile`, `ADTOps`, `Complexity`, `Performance`, `IndexType`                                                   | 1 day    |
+| **Projection spec**            | `ReadModelSpec[V,K]` produced by `projection.Declare(...).Done()`                                                     | 1 day    |
+| **Scale thresholds**           | The cardinality threshold tables from the assumptions doc, as Go data                                                 | 2 days   |
+| **Cardinality hint**           | `projection.Volume(N)` and `projection.ExpectGrowth(rate)`                                                            | 0.5 days |
+| **Latency budget**             | `projection.WithLatencyBudget(d)`                                                                                     | 0.5 days |
 
 ### Phase 2: The Planner (Weeks)
 
 The cost-based optimizer. This is the core research contribution.
 
-| Component | Description | Effort |
-|---|---|---|
-| **Cost model** | `Cost(query, view, engine, volume)` — the cost function that drives optimization | 3 days |
-| **Engine assignment** | Greedy assignment of ADTs to engines (pick cheapest serving engine) | 2 days |
-| **Index planning + dedup** | Auto-create indexes from declared patterns, deduplicate, detect composites | 2 days |
-| **Scale-dependent selection** | Apply scale thresholds (Bloom vs hash set, B-tree vs sorted slice) | 2 days |
-| **Auto-denormalization** | Detect cross-engine query needs, add denormalization projections | 3 days |
-| **Degradation detection** | Suboptimal assignments → warnings. Impossible assignments → errors. | 1 day |
-| **Planning output** | `Plan` struct with projection assignments, index DDL, denormalization map, warnings | 2 days |
-| **Planner tests** | Unit tests: given engines + patterns, verify assignment. Degradation tests. | 3 days |
+| Component                     | Description                                                                         | Effort |
+| ----------------------------- | ----------------------------------------------------------------------------------- | ------ |
+| **Cost model**                | `Cost(query, view, engine, volume)` — the cost function that drives optimization    | 3 days |
+| **Engine assignment**         | Greedy assignment of ADTs to engines (pick cheapest serving engine)                 | 2 days |
+| **Index planning + dedup**    | Auto-create indexes from declared patterns, deduplicate, detect composites          | 2 days |
+| **Scale-dependent selection** | Apply scale thresholds (Bloom vs hash set, B-tree vs sorted slice)                  | 2 days |
+| **Auto-denormalization**      | Detect cross-engine query needs, add denormalization projections                    | 3 days |
+| **Degradation detection**     | Suboptimal assignments → warnings. Impossible assignments → errors.                 | 1 day  |
+| **Planning output**           | `Plan` struct with projection assignments, index DDL, denormalization map, warnings | 2 days |
+| **Planner tests**             | Unit tests: given engines + patterns, verify assignment. Degradation tests.         | 3 days |
 
 ### Phase-Engine Reads (Weeks)
 
 The generated read API.
 
-| Component | Description |  Effort |
-|---|---|---|
-| **Typed read API assembly** | `store.Users.Get(id)`, `.ByStatus(status)`, `.Recent(10)`, `.CountByStatus()`, etc. — wired at startup to optimal engines | 3 days |
-| **Streaming reads** | `store.Users.Stream(ctx, fn)` and `store.Users.Iter(ctx) → iter.Seq2[*V, error]` | 1 day |
-| **Pagination** | Keyset cursor pagination built-in, no OFFSET | 1 day |
-| **Query expression dispatch** | `store.Users.Where(ctx, queryExpr)` → engine-specific translation | 2 days |
-| **Escape hatch** | `store.Users.Raw(sqlOrCypher)` for power users, clearly marked as engine-specific | 0.5 days |
+| Component                     | Description                                                                                                               | Effort   |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- |
+| **Typed read API assembly**   | `store.Users.Get(id)`, `.ByStatus(status)`, `.Recent(10)`, `.CountByStatus()`, etc. — wired at startup to optimal engines | 3 days   |
+| **Streaming reads**           | `store.Users.Stream(ctx, fn)` and `store.Users.Iter(ctx) → iter.Seq2[*V, error]`                                          | 1 day    |
+| **Pagination**                | Keyset cursor pagination built-in, no OFFSET                                                                              | 1 day    |
+| **Query expression dispatch** | `store.Users.Where(ctx, queryExpr)` → engine-specific translation                                                         | 2 days   |
+| **Escape hatch**              | `store.Users.Raw(sqlOrCypher)` for power users, clearly marked as engine-specific                                         | 0.5 days |
 
 ### Phase 4: Engine Plugins & Handlers (Weeks)
 
-| Component | Description | Reffort |
-|---|---|---|
-| **Engine plugin interface** | `Plugin`, `Register()`, `Open(cfg)`, `Profile()` — the registration pattern | 1 day |
-| **SQLite plugin** | Registers with profile, implements Map/SortedMap/Counter/Log ADTs | 2 days |
-| **Pebble plugin** | Registers with profile, implements Map/Log ADTs (SortedMap degraded) | 1 day |
-| **Memory plugin** | Registers with profile, implements all ADTs (volatile, RAM-bounded) | 1 day |
-| **Auto-generated projection handlers (single-doc)** | Event → Set/Upsert/Delete on assigned engine. For simple projections. | 3 days |
-| **Custom handler escape hatch** | `projection.Custom(sink, handler)` for multi-table/complex projections | 1 day |
-| **Plugin tests** | Test each plugin against the planner output | 2 days |
+| Component                                           | Description                                                                 | Reffort |
+| --------------------------------------------------- | --------------------------------------------------------------------------- | ------- |
+| **Engine plugin interface**                         | `Plugin`, `Register()`, `Open(cfg)`, `Profile()` — the registration pattern | 1 day   |
+| **SQLite plugin**                                   | Registers with profile, implements Map/SortedMap/Counter/Log ADTs           | 2 days  |
+| **Pebble plugin**                                   | Registers with profile, implements Map/Log ADTs (SortedMap degraded)        | 1 day   |
+| **Memory plugin**                                   | Registers with profile, implements all ADTs (volatile, RAM-bounded)         | 1 day   |
+| **Auto-generated projection handlers (single-doc)** | Event → Set/Upsert/Delete on assigned engine. For simple projections.       | 3 days  |
+| **Custom handler escape hatch**                     | `projection.Custom(sink, handler)` for multi-table/complex projections      | 1 day   |
+| **Plugin tests**                                    | Test each plugin against the planner output                                 | 2 days  |
 
 ### Phase 5: Research & Validation (Weeks)
 
@@ -566,12 +570,15 @@ The generated read API.
 
 ### Total Effort
 
-| Phase | Duration |
-|---|---|
-| Phase 1: Core Type System | ~2 weeks |
-| Phase 2: The Planner | ~3 weeks |
-| Phase 3: Generated Reads | ~1.5 weeks |
-| Phase Phue 4: Engine Plugins & Handlers | ~2 weeks |
-| Phase 5: Research & Validation | ~3 weeks |
-| **Total** | **~11 weeks (3 months)** |
+| Phase                                   | Duration                 |
+| --------------------------------------- | ------------------------ |
+| Phase 1: Core Type System               | ~2 weeks                 |
+| Phase 2: The Planner                    | ~3 weeks                 |
+| Phase 3: Generated Reads                | ~1.5 weeks               |
+| Phase Phue 4: Engine Plugins & Handlers | ~2 weeks                 |
+| Phase 5: Research & Validation          | ~3 weeks                 |
+| **Total**                               | **~11 weeks (3 months)** |
+
+```
+
 ```

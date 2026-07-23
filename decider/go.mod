@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.4
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
-	github.com/larsartmann/go-error-family v0.7.0
+	github.com/larsartmann/go-error-family v0.8.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 	golang.org/x/sync v0.22.0

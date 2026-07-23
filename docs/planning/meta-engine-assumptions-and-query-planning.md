@@ -34,6 +34,7 @@ by the architecture or declared by the developer/operator.
 **Status: Already guaranteed by event sourcing.**
 
 Events are append-only, numbered by version, never mutated. This means:
+
 - Projections can be rebuilt from scratch by replaying events
 - Multiple projections can read the same event stream independently
 - No distributed transactions needed across engines (each projection is independent)
@@ -95,6 +96,7 @@ projection.EqualityFilter("status", projection.WithLatencyBudget(50 * time.Milli
 ```
 
 When declared, the planner can reject plans that can't meet the budget:
+
 - "Filter on 'status' with 1ms budget requires a B-tree index. Only KV (memory) available.
   O(N) scan exceeds budget. Add SQLite or reduce budget."
 
@@ -152,6 +154,7 @@ projections for different query patterns within this ADT. One table + N indexes 
 For each declared projection, the planner assigns each ADT to at most ONE engine. If the
 projection needs both Map (point lookup) and SortedMap (filter), and the deployer provides
 both SQLite and Pebble:
+
 - The planner picks the best engine for EACH ADT independently
 - It does NOT replicate the same ADT across multiple engines (that's write amplification
   for no read benefit)
@@ -188,6 +191,7 @@ happens.**
 **Question:** Within the assigned engine, what physical structures serve the query patterns?
 
 For SQLite (NativeIndex = true):
+
 ```
 One table: users (id, email, status, country, joined_at, ...)
 Indexes:  idx_status (status), idx_country (country), idx_joined (joined_at)
@@ -199,6 +203,7 @@ filter column. It does NOT create separate projections for each sort order. **SQ
 the optimization.**
 
 For Pebble (NativeIndex = false for SortedMap):
+
 ```
 Keyspace 1: users_by_id (key=UserID → value=UserView JSON)     [Map ADT]
 Keyspace 2: users_by_email (key=email → value=UserID)           [Map ADT, secondary]
@@ -206,6 +211,7 @@ Keyspace 2: users_by_email (key=email → value=UserID)           [Map ADT, seco
 
 Pebble has no secondary indexes within a keyspace. So if Pebble is assigned SortedMap, the
 optimizer must either:
+
 - Create a separate keyspace per filter column (write amplification)
 - OR recognize that Pebble's LSM IS sorted and can do range scans on the primary key
 - OR recommend SQLite for the SortedMap ADT instead
@@ -296,11 +302,13 @@ users := projection.Declare[UserView, UserID]("users",
 ### Why Separation Matters
 
 If query patterns were embedded in struct tags (like `filter:"status"`), then:
+
 - The view type would change every time a query pattern is added/removed
 - Different consumers of the same view type might need different query patterns
 - The type would carry storage concerns (violating domain purity)
 
 By separating declaration from data:
+
 - The view type is stable, pure data
 - Query patterns are composable and independent
 - The optimizer sees ALL patterns at once and can plan holistically (e.g., "status and country
@@ -399,15 +407,15 @@ Planner evaluates:
 When `Volume()` is not declared, the planner assumes unbounded growth and picks the
 structure that scales indefinitely:
 
-| Pattern | Conservative default (no volume hint) |
-|---|---|
-| PointLookup | B-tree or hash index (persistent) |
-| EqualityFilter | B-tree index |
-| RangeFilter | B-tree index |
-| OrderBy | B-tree index |
-| Count | Pre-materialized counter |
-| Membership | Bloom filter |
-| Traverse | Graph engine (or error if unavailable) |
+| Pattern        | Conservative default (no volume hint)  |
+| -------------- | -------------------------------------- |
+| PointLookup    | B-tree or hash index (persistent)      |
+| EqualityFilter | B-tree index                           |
+| RangeFilter    | B-tree index                           |
+| OrderBy        | B-tree index                           |
+| Count          | Pre-materialized counter               |
+| Membership     | Bloom filter                           |
+| Traverse       | Graph engine (or error if unavailable) |
 
 This means small datasets may be over-engineered. The warning:
 
@@ -429,13 +437,14 @@ specific scales. This is the planner's lookup table.
 projection.Exists("email")  // Does a user with this email exist?
 ```
 
-| Scale | Optimal structure | Engine | Complexity |
-|---|---|---|---|
-| N < 100K | Hash set | Memory, Pebble, Redis | O(1) exact |
-| N < 10M | Bloom filter | Memory, Pebble | O(k) probabilistic |
-| N > 10M | Partitioned Bloom filter | Scylla, custom | O(k) probabilistic |
+| Scale    | Optimal structure        | Engine                | Complexity         |
+| -------- | ------------------------ | --------------------- | ------------------ |
+| N < 100K | Hash set                 | Memory, Pebble, Redis | O(1) exact         |
+| N < 10M  | Bloom filter             | Memory, Pebble        | O(k) probabilistic |
+| N > 10M  | Partitioned Bloom filter | Scylla, custom        | O(k) probabilistic |
 
 **Bloom filter tradeoffs:**
+
 - 10x less memory than a hash set for the same data
 - False positives (typically 1%): "might exist" vs "definitely not"
 - No false negatives: if it says "no," it's definitely no
@@ -452,13 +461,13 @@ no-false-negative property is valuable) AND approximate is acceptable.
 projection.PointLookup()  // Get(userID) → *UserView
 ```
 
-| Scale | Optimal structure | Engine | Complexity |
-|---|---|---|---|
-| N < 100 | Sorted slice | Memory | O(log N) cache-optimal |
-| N < 10K | Hash map | Memory | O(1) |
-| N < 100M | B-tree PK index | SQLite, Postgres | O(log N) persistent |
-| N < 1B | Hash index | Pebble, Redis | O(1) persistent |
-| N > 1B | Distributed hash | Scylla, DynamoDB | O(1) network |
+| Scale    | Optimal structure | Engine           | Complexity             |
+| -------- | ----------------- | ---------------- | ---------------------- |
+| N < 100  | Sorted slice      | Memory           | O(log N) cache-optimal |
+| N < 10K  | Hash map          | Memory           | O(1)                   |
+| N < 100M | B-tree PK index   | SQLite, Postgres | O(log N) persistent    |
+| N < 1B   | Hash index        | Pebble, Redis    | O(1) persistent        |
+| N > 1B   | Distributed hash  | Scylla, DynamoDB | O(1) network           |
 
 ### Unique Secondary Lookup ("Get by email")
 
@@ -468,11 +477,11 @@ projection.UniqueLookup("email")  // GetByEmail("a@b.com") → *UserView
 
 This requires a separate index mapping email → UserID, then a point lookup on UserID.
 
-| Scale | Optimal structure | Notes |
-|---|---|---|
-| N < 10K | Inverted hash map (email → UserID) | Memory, 2 lookups: email→ID→User |
-| N < 100M | B-tree unique index | SQLite: `CREATE UNIQUE INDEX` |
-| N > 100M | Hash index (separate keyspace) | Pebble: key=email, value=UserID |
+| Scale    | Optimal structure                  | Notes                            |
+| -------- | ---------------------------------- | -------------------------------- |
+| N < 10K  | Inverted hash map (email → UserID) | Memory, 2 lookups: email→ID→User |
+| N < 100M | B-tree unique index                | SQLite: `CREATE UNIQUE INDEX`    |
+| N > 100M | Hash index (separate keyspace)     | Pebble: key=email, value=UserID  |
 
 ### Equality Filter ("WHERE status = 'active'")
 
@@ -480,16 +489,17 @@ This requires a separate index mapping email → UserID, then a point lookup on 
 projection.EqualityFilter("status")  // Where(status="active") → []*UserView
 ```
 
-| Scale | Cardinality of column | Optimal structure | Complexity |
-|---|---|---|---|
-| N < 1K | any | Full scan | O(N) — faster than index for tiny N |
-| N < 1M | low (< 20 distinct values) | Bitmap index | O(1) per value, popcount |
-| N < 1M | high | B-tree index | O(log N + results) |
-| N < 100M | low | Bitmap index | O(1) per value |
-| N < 100M | high | B-tree index | O(log N + results) |
-| N > 100M | any | Columnar scan | O(N/k), k = columns |
+| Scale    | Cardinality of column      | Optimal structure | Complexity                          |
+| -------- | -------------------------- | ----------------- | ----------------------------------- |
+| N < 1K   | any                        | Full scan         | O(N) — faster than index for tiny N |
+| N < 1M   | low (< 20 distinct values) | Bitmap index      | O(1) per value, popcount            |
+| N < 1M   | high                       | B-tree index      | O(log N + results)                  |
+| N < 100M | low                        | Bitmap index      | O(1) per value                      |
+| N < 100M | high                       | B-tree index      | O(log N + results)                  |
+| N > 100M | any                        | Columnar scan     | O(N/k), k = columns                 |
 
 **Bitmap vs B-tree for low-cardinality columns:**
+
 - Status has ~5 values (active, suspended, deleted, pending, banned)
 - A bitmap index stores 1 bit per record per value: 5 bitmaps of N bits each
 - Query "status=active" → popcount the active bitmap → O(N/64) CPU (SIMD)
@@ -503,10 +513,10 @@ projection.EqualityFilter("status")  // Where(status="active") → []*UserView
 projection.RangeFilter("joined_at")  // Where(joinedAt > X) → []*UserView
 ```
 
-| Scale | Optimal structure | Complexity |
-|---|---|---|
-| N < 1K | Full scan | O(N) |
-| N < 100M | B-tree range scan | O(log N + results) |
+| Scale    | Optimal structure       | Complexity         |
+| -------- | ----------------------- | ------------------ |
+| N < 1K   | Full scan               | O(N)               |
+| N < 100M | B-tree range scan       | O(log N + results) |
 | N > 100M | LSM range scan (Pebble) | O(log N + results) |
 
 ### Sort ("ORDER BY joined_at DESC")
@@ -515,11 +525,11 @@ projection.RangeFilter("joined_at")  // Where(joinedAt > X) → []*UserView
 projection.OrderBy("joined_at")  // Recent(10) → []*UserView ordered by joined_at DESC
 ```
 
-| Scale | Optimal structure | Complexity |
-|---|---|---|
-| N < 10K | In-memory sort on demand | O(N log N) per query |
-| N < 100M | B-tree ordered scan | O(log N + results), index already sorted |
-| N > 100M | LSM ordered scan or columnar | O(log N + results) |
+| Scale    | Optimal structure            | Complexity                               |
+| -------- | ---------------------------- | ---------------------------------------- |
+| N < 10K  | In-memory sort on demand     | O(N log N) per query                     |
+| N < 100M | B-tree ordered scan          | O(log N + results), index already sorted |
+| N > 100M | LSM ordered scan or columnar | O(log N + results)                       |
 
 **Key insight:** If OrderBy and RangeFilter use the same column, they share the same index.
 The planner should detect this and avoid creating redundant indexes.
@@ -530,12 +540,12 @@ The planner should detect this and avoid creating redundant indexes.
 projection.Count("status")  // CountByStatus() → map[string]int64
 ```
 
-| Scale | Optimal structure | Complexity | Tradeoff |
-|---|---|---|---|
-| N < 100K | Scan + count | O(N) | No extra storage, accurate |
-| N < 10M | Index scan + count | O(results) | Uses existing index |
-| N < 100M | Pre-materialized counter | O(1) | Extra write per event (+1 Increment) |
-| N > 100M | HyperLogLog (approximate) | O(1), ~2% error | Tiny memory, approximate |
+| Scale    | Optimal structure         | Complexity      | Tradeoff                             |
+| -------- | ------------------------- | --------------- | ------------------------------------ |
+| N < 100K | Scan + count              | O(N)            | No extra storage, accurate           |
+| N < 10M  | Index scan + count        | O(results)      | Uses existing index                  |
+| N < 100M | Pre-materialized counter  | O(1)            | Extra write per event (+1 Increment) |
+| N > 100M | HyperLogLog (approximate) | O(1), ~2% error | Tiny memory, approximate             |
 
 **When the planner picks pre-materialized counter:** N > 100K AND Count is declared as a
 query pattern (not just a one-off). The counter is maintained via `sink.Increment()` on each
@@ -550,11 +560,11 @@ an index is fast enough. Don't pay write amplification for a rarely-used counter
 projection.Traverse(2)  // Network(userID, depth=2) → []*UserView
 ```
 
-| Scale | Optimal structure | Complexity |
-|---|---|---|
-| N < 10K | In-memory adjacency list | O(degree^depth) |
-| N < 1M | SQL recursive CTE | O(N) — works but slow for deep traversal |
-| N > 1M | Native graph DB (Neo4j) | O(degree^depth) — native |
+| Scale   | Optimal structure        | Complexity                               |
+| ------- | ------------------------ | ---------------------------------------- |
+| N < 10K | In-memory adjacency list | O(degree^depth)                          |
+| N < 1M  | SQL recursive CTE        | O(N) — works but slow for deep traversal |
+| N > 1M  | Native graph DB (Neo4j)  | O(degree^depth) — native                 |
 
 **No fallback for large scale:** If N > 1M and no graph engine is available, the planner
 errors: "Traversal requires a graph engine at this scale. SQL recursive CTE is O(N) which
@@ -566,11 +576,11 @@ exceeds latency budget. Add Neo4j or reduce Volume."
 projection.Search("bio")  // Search("golang enthusiast") → []*UserView
 ```
 
-| Scale | Optimal structure | Complexity |
-|---|---|---|
-| N < 1K | Substring scan | O(N × \|bio\|) |
-| N < 100K | Trigram index | O(\|trigrams\|) |
-| N > 100K | Inverted index | O(\|term_docs\|) |
+| Scale    | Optimal structure | Complexity       |
+| -------- | ----------------- | ---------------- |
+| N < 1K   | Substring scan    | O(N × \|bio\|)   |
+| N < 100K | Trigram index     | O(\|trigrams\|)  |
+| N > 100K | Inverted index    | O(\|term_docs\|) |
 
 ### Prefix Match
 
@@ -578,9 +588,9 @@ projection.Search("bio")  // Search("golang enthusiast") → []*UserView
 projection.Prefix("email")  // Prefix("alice") → all users with email starting with "alice"
 ```
 
-| Scale | Optimal structure | Complexity |
-|---|---|---|
-| N < 10K | Sorted scan | O(log N + results) |
+| Scale   | Optimal structure         | Complexity              |
+| ------- | ------------------------- | ----------------------- |
+| N < 10K | Sorted scan               | O(log N + results)      |
 | N > 10K | Trie or B-tree range scan | O(\|prefix\| + results) |
 
 ### Approximate Cardinality ("How many distinct countries?")
@@ -589,10 +599,10 @@ projection.Prefix("email")  // Prefix("alice") → all users with email starting
 projection.DistinctCount("country")  // ~How many distinct countries?
 ```
 
-| Scale | Optimal structure | Complexity | Accuracy |
-|---|---|---|---|
-| N < 100K | Full distinct scan | O(N) | Exact |
-| N > 100K | HyperLogLog | O(1) | ~2% error |
+| Scale    | Optimal structure  | Complexity | Accuracy  |
+| -------- | ------------------ | ---------- | --------- |
+| N < 100K | Full distinct scan | O(N)       | Exact     |
+| N > 100K | HyperLogLog        | O(1)       | ~2% error |
 
 ### Top-N Frequency ("Most common statuses")
 
@@ -600,10 +610,10 @@ projection.DistinctCount("country")  // ~How many distinct countries?
 projection.TopN("status", 5)  // Top 5 most common statuses
 ```
 
-| Scale | Optimal structure | Complexity |
-|---|---|---|
-| N < 100K | Full scan + sort | O(N log N) |
-| N > 100K | Count-min sketch | O(1) lookup, overestimate |
+| Scale    | Optimal structure | Complexity                |
+| -------- | ----------------- | ------------------------- |
+| N < 100K | Full scan + sort  | O(N log N)                |
+| N > 100K | Count-min sketch  | O(1) lookup, overestimate |
 
 ---
 
@@ -867,19 +877,19 @@ SQL engine's planner handles index intersection for AND queries.
 The codebase already has significant query infrastructure. The meta-engine must BUILD ON
 this, not replace it.
 
-| Capability | Status | Location | Meta-engine use |
-|---|---|---|---|
-| Structured query descriptor | **Built** | `kv.ViewQuery`, `kv.Condition`, `kv.Operator` | Use as-is for all queries |
-| WHERE clause builder | **Built** | `storage/sql/where.go` | Use as-is |
-| ORDER BY (single + multi-col) | **Built** | `storage/view/query.go` | Use as-is |
-| Keyset cursor pagination | **Built** | `storage/view/query.go` | Use as-is |
-| COUNT without row loading | **Built** | `storage/view/count.go` | Use as-is |
-| Struct-tag column inference | **Built** | `storage/view/auto.go` | Extend for index inference |
-| Manual index declaration | **Built** | `storage/view/store.go` `IndexSpec` | Replace with auto-planned indexes |
-| Transactional projection sink | **Built** | `storage/relational/sink.go` | Use as-is for generated handlers |
-| Atomic counter increment | **Built** | `storage/relational/sink.go` | Use for rollup counters |
-| Tombstone pushdown | **Built** | `storage/view/query.go` | Use as-is |
-| ViewStore + capability interfaces | **Built** | `kv/view_store.go` | Use as-is — engine impls satisfy these |
+| Capability                        | Status    | Location                                      | Meta-engine use                        |
+| --------------------------------- | --------- | --------------------------------------------- | -------------------------------------- |
+| Structured query descriptor       | **Built** | `kv.ViewQuery`, `kv.Condition`, `kv.Operator` | Use as-is for all queries              |
+| WHERE clause builder              | **Built** | `storage/sql/where.go`                        | Use as-is                              |
+| ORDER BY (single + multi-col)     | **Built** | `storage/view/query.go`                       | Use as-is                              |
+| Keyset cursor pagination          | **Built** | `storage/view/query.go`                       | Use as-is                              |
+| COUNT without row loading         | **Built** | `storage/view/count.go`                       | Use as-is                              |
+| Struct-tag column inference       | **Built** | `storage/view/auto.go`                        | Extend for index inference             |
+| Manual index declaration          | **Built** | `storage/view/store.go` `IndexSpec`           | Replace with auto-planned indexes      |
+| Transactional projection sink     | **Built** | `storage/relational/sink.go`                  | Use as-is for generated handlers       |
+| Atomic counter increment          | **Built** | `storage/relational/sink.go`                  | Use for rollup counters                |
+| Tombstone pushdown                | **Built** | `storage/view/query.go`                       | Use as-is                              |
+| ViewStore + capability interfaces | **Built** | `kv/view_store.go`                            | Use as-is — engine impls satisfy these |
 
 **What the meta-engine ADDS (does not replace):**
 
@@ -903,9 +913,9 @@ the app might query `WHERE status='active' AND country='DK'`.
 **Options:**
 A. Developer explicitly declares `CompositeFilter("status", "country")` — simple, explicit
 B. Planner infers from the existing `ViewQuery` struct (which supports multiple Conditions) —
-   but the planner runs at startup, before any queries execute
+but the planner runs at startup, before any queries execute
 C. Adaptive: planner starts with individual indexes, detects AND queries at runtime, adds
-   composite index on restart — complex, deferred optimization
+composite index on restart — complex, deferred optimization
 
 **Recommendation:** Option A. The developer knows their query patterns. If they need composite,
 they declare it. The planner doesn't guess.
@@ -913,12 +923,14 @@ they declare it. The planner doesn't guess.
 ### Problem 2: How Does Auto-Generated Handler Logic Work for Complex Projections?
 
 For a simple Map projection:
+
 ```
 UserCreated event → Set(userID, UserView{...})     ← trivial to auto-generate
 UserSuspended event → Update(userID, {status: "suspended"})  ← also trivial
 ```
 
 For a relational projection with 5 tables:
+
 ```
 MessageCreated event →
   Ensure(channels, {id, name})
@@ -931,6 +943,7 @@ MessageCreated event →
 This cannot be auto-generated from a simple type declaration. It requires custom handler logic.
 
 **Recommendation:** Two tiers:
+
 - **Tier 1 (auto-generated):** Single-document projections (one event → one record). The
   optimizer generates the handler from `OnCreate/OnUpdate/OnTombstone` declarations.
 - **Tier 2 (custom handler):** Multi-table/complex projections. The developer writes the
@@ -940,12 +953,14 @@ This cannot be auto-generated from a simple type declaration. It requires custom
 ### Problem 3: How Does the Planner Handle Schema Changes?
 
 When `UserView` gains a `PhoneNumber` field:
+
 - SQLite: `ALTER TABLE users ADD COLUMN phone TEXT`
 - Pebble: schemaless (just start writing the field in new events)
 - Neo4j: schemaless
 - ClickHouse: `ALTER TABLE` (can be slow on large tables)
 
 **Recommendation:** The planner tracks a schema version per projection per engine. On startup:
+
 1. Compare declared schema to stored schema
 2. Auto-migrate where safe (ADD COLUMN for SQL)
 3. Warn where manual migration needed (column type change, column removal)
@@ -954,6 +969,7 @@ When `UserView` gains a `PhoneNumber` field:
 
 If the developer doesn't declare `Volume(N)`, the planner is conservative. But it could also
 measure:
+
 - Count events processed for this projection on previous run
 - Read the event log size
 - Check existing projection row counts (if engine supports `Count`)
@@ -996,6 +1012,7 @@ metaengine.ADTSortedMap: {
 ```
 
 The planner then picks the best available index type for the column's cardinality:
+
 - Low cardinality + bitmap available → bitmap
 - Low cardinality + no bitmap → B-tree (still fine, just larger)
 - High cardinality → B-tree (bitmap would be sparse and wasteful)

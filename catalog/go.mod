@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/go-faster/yaml v0.4.6
-	github.com/larsartmann/go-error-family v0.7.0
+	github.com/larsartmann/go-error-family v0.8.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 )

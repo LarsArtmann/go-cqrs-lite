@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.0.3
-	github.com/larsartmann/go-error-family v0.7.0
+	github.com/larsartmann/go-error-family v0.8.0
 )
 
 require (

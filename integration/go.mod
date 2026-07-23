@@ -18,7 +18,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.2
-	github.com/larsartmann/go-error-family v0.7.0
+	github.com/larsartmann/go-error-family v0.8.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 	go.opentelemetry.io/otel v1.44.0

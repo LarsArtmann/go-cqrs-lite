@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.0.4
-	github.com/larsartmann/go-error-family v0.7.0
+	github.com/larsartmann/go-error-family v0.8.0
 )
 
 require (
