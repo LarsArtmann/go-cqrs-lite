@@ -26,10 +26,10 @@ memory, CPU, storage footprint, and projection lag.
 
 The tool serves two audiences:
 
-| Audience | Question answered |
-| -------- | ----------------- |
+| Audience     | Question answered                                         |
+| ------------ | --------------------------------------------------------- |
 | **Deployer** | "Which backend should I choose for my expected workload?" |
-| **Consumer** | "How does my decider/projection perform under load?" |
+| **Consumer** | "How does my decider/projection perform under load?"      |
 
 Both get the same metrics, the same report format, and the same one-line API.
 
@@ -39,14 +39,14 @@ Both get the same metrics, the same report format, and the same one-line API.
 
 ### What exists today
 
-| Component | Location | What it does |
-| --------- | -------- | ------------ |
-| Micro-benchmarks | `stack/bench/` | Proves zero-overhead for Bundle field access (ns/op + allocs/op) |
-| Scale benchmarks | `integration/realistic_bench*_test.go` | `//go:build scale` gated. E-commerce model, memory store only. Measures full pipeline throughput. |
-| Benchmark results | `docs/benchmarks/README.md` | Historical results for memory + SQLite (manual, not reproducible) |
-| Contract tests | `stack/contracttest/` | `RunSuite(t, factory)` — behavioral parity across backends |
-| Pebble metrics | `stack/pebble/Bundle.Metrics()` | LSM-tree health (block cache hit rate, etc.) |
-| Projection lag | `projectionhost.Host` | `LagDuration()`, `LagPerProjection()`, `Status()` |
+| Component         | Location                               | What it does                                                                                      |
+| ----------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Micro-benchmarks  | `stack/bench/`                         | Proves zero-overhead for Bundle field access (ns/op + allocs/op)                                  |
+| Scale benchmarks  | `integration/realistic_bench*_test.go` | `//go:build scale` gated. E-commerce model, memory store only. Measures full pipeline throughput. |
+| Benchmark results | `docs/benchmarks/README.md`            | Historical results for memory + SQLite (manual, not reproducible)                                 |
+| Contract tests    | `stack/contracttest/`                  | `RunSuite(t, factory)` — behavioral parity across backends                                        |
+| Pebble metrics    | `stack/pebble/Bundle.Metrics()`        | LSM-tree health (block cache hit rate, etc.)                                                      |
+| Projection lag    | `projectionhost.Host`                  | `LagDuration()`, `LagPerProjection()`, `Status()`                                                 |
 
 ### What's missing
 
@@ -262,32 +262,33 @@ Every metric the tool collects, what it measures, and how:
 
 ### Latency metrics
 
-| Metric | What | How measured | Percentiles |
-| ------ | ---- | ------------ | ----------- |
-| **Write latency** | `EventSink.Save()` call duration | `time.Since()` around Save, recorded per-call | P50/P75/P90/P95/P99/P100/Mean |
-| **Load latency** | `EventSource.Load()` call duration | `time.Since()` around Load, recorded per-call | P50/P75/P90/P95/P99/P100/Mean |
-| **ReadFrom latency** | `SeekableJournal.ReadFrom()` call duration | `time.Since()` around ReadFrom | P50/P75/P90/P95/P99/P100/Mean |
-| **Read model get** | `kv.TypedStore.Get()` call duration | `time.Since()` around Get | P50/P75/P90/P95/P99/P100/Mean |
-| **Read model set** | `kv.TypedStore.Set()` call duration | `time.Since()` around Set | P50/P75/P90/P95/P99/P100/Mean |
-| **Query dispatch** | `query.DispatchTyped()` call duration | `time.Since()` around dispatch | P50/P75/P90/P95/P99/P100/Mean |
+| Metric               | What                                       | How measured                                  | Percentiles                   |
+| -------------------- | ------------------------------------------ | --------------------------------------------- | ----------------------------- |
+| **Write latency**    | `EventSink.Save()` call duration           | `time.Since()` around Save, recorded per-call | P50/P75/P90/P95/P99/P100/Mean |
+| **Load latency**     | `EventSource.Load()` call duration         | `time.Since()` around Load, recorded per-call | P50/P75/P90/P95/P99/P100/Mean |
+| **ReadFrom latency** | `SeekableJournal.ReadFrom()` call duration | `time.Since()` around ReadFrom                | P50/P75/P90/P95/P99/P100/Mean |
+| **Read model get**   | `kv.TypedStore.Get()` call duration        | `time.Since()` around Get                     | P50/P75/P90/P95/P99/P100/Mean |
+| **Read model set**   | `kv.TypedStore.Set()` call duration        | `time.Since()` around Set                     | P50/P75/P90/P95/P99/P100/Mean |
+| **Query dispatch**   | `query.DispatchTyped()` call duration      | `time.Since()` around dispatch                | P50/P75/P90/P95/P99/P100/Mean |
 
 ### Throughput metrics
 
-| Metric | What | How measured |
-| ------ | ---- | ------------ |
-| **Write throughput** | Sustained events/sec | `totalEvents / wallTime` |
-| **Read throughput** | Sustained loads/sec | `totalLoads / wallTime` |
+| Metric                    | What                                | How measured                            |
+| ------------------------- | ----------------------------------- | --------------------------------------- |
+| **Write throughput**      | Sustained events/sec                | `totalEvents / wallTime`                |
+| **Read throughput**       | Sustained loads/sec                 | `totalLoads / wallTime`                 |
 | **Projection throughput** | Events processed/sec by projections | `projectionEvents / projectionWallTime` |
 
 ### Durability metrics
 
-| Metric | What | How measured |
-| ------ | ---- | ------------ |
-| **Time to DB** | Wall time for Save() to return (includes DB call but may not include fsync) | Direct: time.Save() |
-| **Time to disk** | Wall time for write to be durable on disk | Indirect: after Save(), immediately Load() from a fresh connection and measure total roundtrip. Compare with/without WAL to estimate fsync cost. |
-| **WAL checkpoint time** | SQLite WAL checkpoint duration | `PRAGMA wal_checkpoint(TRUNCATE)` timing |
+| Metric                  | What                                                                        | How measured                                                                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Time to DB**          | Wall time for Save() to return (includes DB call but may not include fsync) | Direct: time.Save()                                                                                                                              |
+| **Time to disk**        | Wall time for write to be durable on disk                                   | Indirect: after Save(), immediately Load() from a fresh connection and measure total roundtrip. Compare with/without WAL to estimate fsync cost. |
+| **WAL checkpoint time** | SQLite WAL checkpoint duration                                              | `PRAGMA wal_checkpoint(TRUNCATE)` timing                                                                                                         |
 
 The "time to disk" metric is nuanced. True fsync latency requires either:
+
 - OS-level tracing (strace/eBPF) — out of scope for a library tool
 - Backend-specific queries (SQLite `PRAGMA synchronous`, Pebble `Flush()`)
 - Comparison methodology: run the same workload with `synchronous=FULL` vs `synchronous=OFF` and measure the delta
@@ -296,44 +297,44 @@ The tool uses the **comparison methodology**: it reports Save() latency as "time
 
 ### Projection metrics
 
-| Metric | What | How measured |
-| ------ | ---- | ------------ |
-| **Projection lag** | Time between newest event and last processed event | `projectionhost.Host.LagDuration()` |
-| **Per-projection lag** | Lag for each registered projection | `projectionhost.Host.LagPerProjection()` |
-| **Projection throughput** | Events processed/sec | `WorkerState.Processed / wallTime` |
-| **Projection errors** | Total handler errors | `WorkerState.Errors` |
-| **Projection restarts** | Worker crash-restart count | `WorkerState.Restarts` |
+| Metric                    | What                                               | How measured                             |
+| ------------------------- | -------------------------------------------------- | ---------------------------------------- |
+| **Projection lag**        | Time between newest event and last processed event | `projectionhost.Host.LagDuration()`      |
+| **Per-projection lag**    | Lag for each registered projection                 | `projectionhost.Host.LagPerProjection()` |
+| **Projection throughput** | Events processed/sec                               | `WorkerState.Processed / wallTime`       |
+| **Projection errors**     | Total handler errors                               | `WorkerState.Errors`                     |
+| **Projection restarts**   | Worker crash-restart count                         | `WorkerState.Restarts`                   |
 
 ### Resource metrics
 
-| Metric | What | How measured |
-| ------ | ---- | ------------ |
-| **Heap allocation** | Go heap bytes in use | `runtime.MemStats.HeapAlloc` (before + after) |
-| **Total allocation** | Cumulative bytes allocated | `runtime.MemStats.TotalAlloc` (delta) |
-| **GC pauses** | Total GC pause time | `runtime.MemStats.PauseTotalNs` (delta) |
-| **GC count** | Number of GC cycles | `runtime.MemStats.NumGC` (delta) |
-| **RSS (process memory)** | Resident set size | `/proc/self/status` VmRSS (Linux), `os.Process` (portable fallback) |
-| **CPU user time** | User-mode CPU time consumed | `os.Process` times via `process.RuntimeProfile` or `/proc/self/stat` |
-| **CPU sys time** | Kernel-mode CPU time consumed | Same source as user time |
+| Metric                   | What                          | How measured                                                         |
+| ------------------------ | ----------------------------- | -------------------------------------------------------------------- |
+| **Heap allocation**      | Go heap bytes in use          | `runtime.MemStats.HeapAlloc` (before + after)                        |
+| **Total allocation**     | Cumulative bytes allocated    | `runtime.MemStats.TotalAlloc` (delta)                                |
+| **GC pauses**            | Total GC pause time           | `runtime.MemStats.PauseTotalNs` (delta)                              |
+| **GC count**             | Number of GC cycles           | `runtime.MemStats.NumGC` (delta)                                     |
+| **RSS (process memory)** | Resident set size             | `/proc/self/status` VmRSS (Linux), `os.Process` (portable fallback)  |
+| **CPU user time**        | User-mode CPU time consumed   | `os.Process` times via `process.RuntimeProfile` or `/proc/self/stat` |
+| **CPU sys time**         | Kernel-mode CPU time consumed | Same source as user time                                             |
 
 ### Storage metrics
 
-| Metric | What | How measured |
-| ------ | ---- | ------------ |
-| **Database size** | On-disk DB footprint | `filepath.Walk` summing file sizes (SQLite, Pebble). In-memory backends report 0. |
-| **Raw event bytes** | Sum of all event payload bytes | `sum(len(evt.Payload()))` across all events |
-| **Storage overhead** | DB size minus raw payload bytes | `DatabaseBytes - EventBytes` |
-| **Overhead ratio** | Overhead as % of DB size | `OverheadBytes / DatabaseBytes * 100` |
-| **Events per MB** | Storage efficiency | `TotalEvents / (DatabaseBytes / 1MB)` |
+| Metric               | What                            | How measured                                                                      |
+| -------------------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| **Database size**    | On-disk DB footprint            | `filepath.Walk` summing file sizes (SQLite, Pebble). In-memory backends report 0. |
+| **Raw event bytes**  | Sum of all event payload bytes  | `sum(len(evt.Payload()))` across all events                                       |
+| **Storage overhead** | DB size minus raw payload bytes | `DatabaseBytes - EventBytes`                                                      |
+| **Overhead ratio**   | Overhead as % of DB size        | `OverheadBytes / DatabaseBytes * 100`                                             |
+| **Events per MB**    | Storage efficiency              | `TotalEvents / (DatabaseBytes / 1MB)`                                             |
 
 ### Backend-specific metrics
 
-| Backend | Extra metrics available |
-| ------- | ---------------------- |
-| **Pebble** | `Bundle.Metrics()` — block cache hit rate, LSM-tree levels, compaction count, write amplification |
-| **SQLite** | `PRAGMA page_count`, `PRAGMA page_size`, WAL file size, `PRAGMA journal_mode` |
-| **Postgres** | Connection pool stats, `pg_database_size()`, `pg_stat_user_tables` |
-| **Memory** | In-memory event count, map size estimation |
+| Backend      | Extra metrics available                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------- |
+| **Pebble**   | `Bundle.Metrics()` — block cache hit rate, LSM-tree levels, compaction count, write amplification |
+| **SQLite**   | `PRAGMA page_count`, `PRAGMA page_size`, WAL file size, `PRAGMA journal_mode`                     |
+| **Postgres** | Connection pool stats, `pg_database_size()`, `pg_stat_user_tables`                                |
+| **Memory**   | In-memory event count, map size estimation                                                        |
 
 ---
 
@@ -354,15 +355,15 @@ type Profile struct {
 }
 ```
 
-| Profile | Aggregates | Events/Agg | Total Events | Concurrent | Read/Write | Batch |
-| ------- | ---------: | ---------: | -----------: | ---------: | ---------: | ----: |
-| `Dev` | 100 | 5 | 500 | 1 | 0.2 | 1 |
-| `Small` | 1,000 | 10 | 10K | 4 | 0.3 | 1 |
-| `Medium` | 10,000 | 50 | 500K | 16 | 0.4 | 5 |
-| `Large` | 100,000 | 100 | 10M | 32 | 0.5 | 10 |
-| `Stress` | 10,000 | 500 | 5M | 64 | 0.2 | 1 |
-| `WriteHeavy` | 10,000 | 100 | 1M | 32 | 0.1 | 1 |
-| `ReadHeavy` | 10,000 | 100 | 1M | 32 | 0.8 | 1 |
+| Profile      | Aggregates | Events/Agg | Total Events | Concurrent | Read/Write | Batch |
+| ------------ | ---------: | ---------: | -----------: | ---------: | ---------: | ----: |
+| `Dev`        |        100 |          5 |          500 |          1 |        0.2 |     1 |
+| `Small`      |      1,000 |         10 |          10K |          4 |        0.3 |     1 |
+| `Medium`     |     10,000 |         50 |         500K |         16 |        0.4 |     5 |
+| `Large`      |    100,000 |        100 |          10M |         32 |        0.5 |    10 |
+| `Stress`     |     10,000 |        500 |           5M |         64 |        0.2 |     1 |
+| `WriteHeavy` |     10,000 |        100 |           1M |         32 |        0.1 |     1 |
+| `ReadHeavy`  |     10,000 |        100 |           1M |         32 |        0.8 |     1 |
 
 Profiles are **named** so results are comparable across runs and backends. A
 consumer runs `benchkit.ProfileMedium` against SQLite and Pebble and gets an
@@ -397,7 +398,7 @@ The default generator produces payloads like:
   "value": 129.99,
   "items": 3,
   "tags": ["priority", "express"],
-  "metadata": {"source": "web", "session": "abc123"}
+  "metadata": { "source": "web", "session": "abc123" }
 }
 ```
 
@@ -570,6 +571,7 @@ a feature that's only needed for >1M samples. The reservoir approach covers
 ### Memory sampling
 
 Memory is sampled at three points:
+
 1. **Before** the workload (after Bundle setup)
 2. **Peak** during the workload (sampled every 100ms via goroutine)
 3. **After** the workload (after GC)
@@ -599,6 +601,7 @@ func measureDisk(bundle *stack.Bundle) int64 {
 ```
 
 Each preset Bundle can optionally implement `DiskSize() int64`:
+
 - SQLite: `PRAGMA page_count * page_size` + WAL file size
 - Pebble: `filepath.Walk` on the data directory
 - Memory: 0 (or estimated in-memory size)
@@ -754,11 +757,11 @@ Storage:
   "profile": "medium",
   "timestamp": "2026-07-23T14:30:00Z",
   "duration": "12.4s",
-  "writeLatency": {"p50": "38µs", "p95": "82µs", "p99": "145µs"},
+  "writeLatency": { "p50": "38µs", "p95": "82µs", "p99": "145µs" },
   "writeThroughput": 42318.5,
-  "loadLatency": {"p50": "41µs", "p95": "89µs", "p99": "160µs"},
-  "memory": {"heapDelta": 142000000},
-  "disk": {"databaseBytes": 18400000}
+  "loadLatency": { "p50": "41µs", "p95": "89µs", "p99": "160µs" },
+  "memory": { "heapDelta": 142000000 },
+  "disk": { "databaseBytes": 18400000 }
 }
 ```
 
@@ -767,10 +770,10 @@ Storage:
 ```markdown
 | Backend  | Write P50 | Write P99 | Load P50 | Load P99 | Throughput | Heap MB | Disk MB |
 | -------- | --------: | --------: | -------: | -------: | ---------: | ------: | ------: |
-| memory   |     1.2μs |     4.8μs |   480ns  |   2.1μs  |  450K/s    |     142  |       0 |
-| sqlite   |      38μs |    145μs  |    41μs  |   160μs  |   42K/s    |     142  |      18 |
-| pebble   |      18μs |     72μs  |    12μs  |    55μs  |  120K/s    |      89  |       8 |
-| postgres |      52μs |    210μs  |    48μs  |   195μs  |   35K/s    |     156  |     N/A |
+| memory   |     1.2μs |     4.8μs |    480ns |    2.1μs |     450K/s |     142 |       0 |
+| sqlite   |      38μs |     145μs |     41μs |    160μs |      42K/s |     142 |      18 |
+| pebble   |      18μs |      72μs |     12μs |     55μs |     120K/s |      89 |       8 |
+| postgres |      52μs |     210μs |     48μs |    195μs |      35K/s |     156 |     N/A |
 ```
 
 ---
@@ -843,87 +846,87 @@ docs/benchmarks/
 **Goal:** Run a synthetic write+read workload against any Bundle, collect
 latency percentiles, output text report.
 
-| Step | What | Files |
-| ---- | ---- | ----- |
-| 1.1 | Create `benchkit/` module with `go.mod` | `benchkit/go.mod` |
-| 1.2 | Core types: `Config`, `Result`, `LatencyStats` | `benchkit/benchkit.go` |
-| 1.3 | Latency collector (sorted-slice percentile) | `benchkit/metrics.go` |
-| 1.4 | Memory + CPU sampling | `benchkit/metrics.go` |
-| 1.5 | Synthetic payload generator | `benchkit/generator.go` |
-| 1.6 | Named profiles | `benchkit/profiles.go` |
-| 1.7 | Runner: write + read phases | `benchkit/runner.go` |
-| 1.8 | Text report generator | `benchkit/report.go` |
-| 1.9 | Factory type + Run function | `benchkit/benchkit.go` |
-| 1.10 | Tests against memory + sqlite | `benchkit/*_test.go` |
+| Step | What                                           | Files                   |
+| ---- | ---------------------------------------------- | ----------------------- |
+| 1.1  | Create `benchkit/` module with `go.mod`        | `benchkit/go.mod`       |
+| 1.2  | Core types: `Config`, `Result`, `LatencyStats` | `benchkit/benchkit.go`  |
+| 1.3  | Latency collector (sorted-slice percentile)    | `benchkit/metrics.go`   |
+| 1.4  | Memory + CPU sampling                          | `benchkit/metrics.go`   |
+| 1.5  | Synthetic payload generator                    | `benchkit/generator.go` |
+| 1.6  | Named profiles                                 | `benchkit/profiles.go`  |
+| 1.7  | Runner: write + read phases                    | `benchkit/runner.go`    |
+| 1.8  | Text report generator                          | `benchkit/report.go`    |
+| 1.9  | Factory type + Run function                    | `benchkit/benchkit.go`  |
+| 1.10 | Tests against memory + sqlite                  | `benchkit/*_test.go`    |
 
 **Deliverable:** `benchkit.Run(ctx, config, factory)` produces a Result with
 write/read latency percentiles, throughput, and memory deltas.
 
 ### Phase 2: Storage + durability metrics
 
-| Step | What |
-| ---- | ---- |
-| 2.1 | Disk size measurement (filepath.Walk) |
-| 2.2 | SQLite-specific metrics (PRAGMA page_count, WAL size) |
-| 2.3 | Pebble-specific metrics (Bundle.Metrics integration) |
-| 2.4 | Durability comparison methodology (Save vs Save+Flush) |
-| 2.5 | Storage overhead calculation |
+| Step | What                                                   |
+| ---- | ------------------------------------------------------ |
+| 2.1  | Disk size measurement (filepath.Walk)                  |
+| 2.2  | SQLite-specific metrics (PRAGMA page_count, WAL size)  |
+| 2.3  | Pebble-specific metrics (Bundle.Metrics integration)   |
+| 2.4  | Durability comparison methodology (Save vs Save+Flush) |
+| 2.5  | Storage overhead calculation                           |
 
 **Deliverable:** Disk metrics in Result. Storage efficiency reporting.
 
 ### Phase 3: Projection benchmarks
 
-| Step | What |
-| ---- | ---- |
-| 3.1 | Projection phase in runner |
-| 3.2 | projectionhost.Host integration (lag, throughput, errors) |
-| 3.3 | Read model benchmark phase (kv.TypedStore Get/Set) |
-| 3.4 | Journal scan benchmark (ReadAll, ReadFrom) |
+| Step | What                                                      |
+| ---- | --------------------------------------------------------- |
+| 3.1  | Projection phase in runner                                |
+| 3.2  | projectionhost.Host integration (lag, throughput, errors) |
+| 3.3  | Read model benchmark phase (kv.TypedStore Get/Set)        |
+| 3.4  | Journal scan benchmark (ReadAll, ReadFrom)                |
 
 **Deliverable:** Projection lag, read model latency, journal scan time in Result.
 
 ### Phase 4: Cross-backend comparison + report
 
-| Step | What |
-| ---- | ---- |
-| 4.1 | `Compare(ctx, config, factories)` function |
-| 4.2 | Comparison table report generator |
-| 4.3 | JSON output format |
-| 4.4 | Markdown table output format |
+| Step | What                                       |
+| ---- | ------------------------------------------ |
+| 4.1  | `Compare(ctx, config, factories)` function |
+| 4.2  | Comparison table report generator          |
+| 4.3  | JSON output format                         |
+| 4.4  | Markdown table output format               |
 
 **Deliverable:** One-call backend comparison with side-by-side metrics.
 
 ### Phase 5: CLI tool
 
-| Step | What |
-| ---- | ---- |
-| 5.1 | `cmd/cqrs-bench/` module with cmdguard config |
-| 5.2 | `run` subcommand (single backend) |
-| 5.3 | `compare` subcommand (all local backends) |
-| 5.4 | `report` subcommand (generate reports from JSON) |
-| 5.5 | `replay` subcommand (production data replay) |
-| 5.6 | Nix flake integration |
+| Step | What                                             |
+| ---- | ------------------------------------------------ |
+| 5.1  | `cmd/cqrs-bench/` module with cmdguard config    |
+| 5.2  | `run` subcommand (single backend)                |
+| 5.3  | `compare` subcommand (all local backends)        |
+| 5.4  | `report` subcommand (generate reports from JSON) |
+| 5.5  | `replay` subcommand (production data replay)     |
+| 5.6  | Nix flake integration                            |
 
 **Deliverable:** `cqrs-bench run --backend sqlite --profile medium` CLI.
 
 ### Phase 6: Production data replay
 
-| Step | What |
-| ---- | ---- |
-| 6.1 | JSON Lines export format |
-| 6.2 | ReplaySource (reads dump, generates events) |
-| 6.3 | Export subcommand in CLI |
-| 6.4 | Replay benchmark mode |
+| Step | What                                        |
+| ---- | ------------------------------------------- |
+| 6.1  | JSON Lines export format                    |
+| 6.2  | ReplaySource (reads dump, generates events) |
+| 6.3  | Export subcommand in CLI                    |
+| 6.4  | Replay benchmark mode                       |
 
 **Deliverable:** Benchmark against real production event streams.
 
 ### Phase 7: benchtest suite + preset integration
 
-| Step | What |
-| ---- | ---- |
-| 7.1 | `benchtest.RunSuite(b, factory)` |
-| 7.2 | Register benchtest in each preset (memory, sqlite, pebble, postgres, turso) |
-| 7.3 | CI workflow for benchmark regression detection |
+| Step | What                                                                        |
+| ---- | --------------------------------------------------------------------------- |
+| 7.1  | `benchtest.RunSuite(b, factory)`                                            |
+| 7.2  | Register benchtest in each preset (memory, sqlite, pebble, postgres, turso) |
+| 7.3  | CI workflow for benchmark regression detection                              |
 
 **Deliverable:** Every preset ships with benchmark results out of the box.
 
@@ -975,15 +978,15 @@ cqrs-bench compare \
 
 ## 16. Open Questions
 
-| # | Question | Recommendation |
-|---|----------|----------------|
-| 1 | Should `benchkit` depend on `decider/` for decider benchmarks, or stay at the store level only? | Stay at store level for v1. Decider benchmarks are domain-specific and already handled by `integration/realistic_bench_test.go`. Add a `DeciderBenchmark[State]` generic type in v2 if needed. |
-| 2 | HDR histogram vs sorted-slice for percentiles? | Sorted-slice with reservoir sampling for v1 (zero deps). Add optional HDR integration in v2 for >1M sample precision. |
-| 3 | Should benchmarks write to real disk or tmpfs? | Real disk by default (realistic). Add `--tmpfs` flag for CI environments that mount tmpfs. Document the difference. |
-| 4 | How to handle Postgres/Turso in `compare` (they need external servers)? | Skip backends whose connection fails. Print "skipped (unreachable)" in the comparison table. Document `POSTGRES_TEST_DSN` / `TURSO_TEST_DSN` env vars. |
-| 5 | Should the tool support distributed benchmarks (multiple processes)? | No — v1 is single-process. Distributed benchmarking is a deployment concern, not a library concern. The JSON output format supports aggregating results from multiple runs. |
-| 6 | Should benchmarks run in CI or be manual? | Manual by default (gated by build tag or CLI invocation). Add an optional CI workflow that runs `Dev` profile on every PR for regression detection. |
-| 7 | Where to store baseline results for regression detection? | Commit `docs/benchmarks/baseline.json` to the repo. Update via `cqrs-bench compare --update-baseline`. CI compares against this. |
+| #   | Question                                                                                        | Recommendation                                                                                                                                                                                 |
+| --- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Should `benchkit` depend on `decider/` for decider benchmarks, or stay at the store level only? | Stay at store level for v1. Decider benchmarks are domain-specific and already handled by `integration/realistic_bench_test.go`. Add a `DeciderBenchmark[State]` generic type in v2 if needed. |
+| 2   | HDR histogram vs sorted-slice for percentiles?                                                  | Sorted-slice with reservoir sampling for v1 (zero deps). Add optional HDR integration in v2 for >1M sample precision.                                                                          |
+| 3   | Should benchmarks write to real disk or tmpfs?                                                  | Real disk by default (realistic). Add `--tmpfs` flag for CI environments that mount tmpfs. Document the difference.                                                                            |
+| 4   | How to handle Postgres/Turso in `compare` (they need external servers)?                         | Skip backends whose connection fails. Print "skipped (unreachable)" in the comparison table. Document `POSTGRES_TEST_DSN` / `TURSO_TEST_DSN` env vars.                                         |
+| 5   | Should the tool support distributed benchmarks (multiple processes)?                            | No — v1 is single-process. Distributed benchmarking is a deployment concern, not a library concern. The JSON output format supports aggregating results from multiple runs.                    |
+| 6   | Should benchmarks run in CI or be manual?                                                       | Manual by default (gated by build tag or CLI invocation). Add an optional CI workflow that runs `Dev` profile on every PR for regression detection.                                            |
+| 7   | Where to store baseline results for regression detection?                                       | Commit `docs/benchmarks/baseline.json` to the repo. Update via `cqrs-bench compare --update-baseline`. CI compares against this.                                                               |
 
 ---
 

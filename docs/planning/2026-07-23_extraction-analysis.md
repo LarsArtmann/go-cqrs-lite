@@ -15,13 +15,13 @@ A module is a good extraction candidate when it is:
 
 ## Dependency Landscape (by coupling depth)
 
-| Module      | Local Deps | Production Importers | Coupling     | Domain-Specific?                                |
-| ----------- | ---------- | -------------------- | ------------ | ----------------------------------------------- |
-| **retry/**  | 0          | 1 (middleware)       | **Shallow**  | No — pure utility                               |
-| **idempotency/** | 0     | 2 (middleware, kvstore) | **Shallow** | No — pure utility                              |
-| dispatcher/ | 0          | 3 (command, query, storage) | **Deep** | Mild (generic types)                            |
-| kv/ (core)  | 1 (codec)  | ~15                  | **Very deep**| Core is clean; view layer is CQRS               |
-| codec/      | 0          | ~25                  | **Deepest**  | Serialization foundation                        |
+| Module           | Local Deps | Production Importers        | Coupling      | Domain-Specific?                  |
+| ---------------- | ---------- | --------------------------- | ------------- | --------------------------------- |
+| **retry/**       | 0          | 1 (middleware)              | **Shallow**   | No — pure utility                 |
+| **idempotency/** | 0          | 2 (middleware, kvstore)     | **Shallow**   | No — pure utility                 |
+| dispatcher/      | 0          | 3 (command, query, storage) | **Deep**      | Mild (generic types)              |
+| kv/ (core)       | 1 (codec)  | ~15                         | **Very deep** | Core is clean; view layer is CQRS |
+| codec/           | 0          | ~25                         | **Deepest**   | Serialization foundation          |
 
 ## Module Size Reference
 
@@ -56,14 +56,14 @@ A module is a good extraction candidate when it is:
 
 ### #1: Extract `retry/` → `go-retry` — Best Candidate
 
-| Attribute           | Assessment                                                                                          |
-| ------------------- | --------------------------------------------------------------------------------------------------- |
-| **LOC**             | 217 source + tests                                                                                  |
-| **Dependencies**    | `go-error-family` only (1 dep)                                                                      |
-| **CQRS coupling**   | **Zero** — comments mention CQRS only as "what it doesn't receive"                                  |
-| **Importers**       | 1 (middleware wraps it as a convenience)                                                            |
-| **API**             | `Do()`, `Config`, `Backoff()`, `DefaultConfig()` — textbook Go API                                  |
-| **Standalone value**| Every Go service needs exponential backoff + jitter                                                |
+| Attribute            | Assessment                                                         |
+| -------------------- | ------------------------------------------------------------------ |
+| **LOC**              | 217 source + tests                                                 |
+| **Dependencies**     | `go-error-family` only (1 dep)                                     |
+| **CQRS coupling**    | **Zero** — comments mention CQRS only as "what it doesn't receive" |
+| **Importers**        | 1 (middleware wraps it as a convenience)                           |
+| **API**              | `Do()`, `Config`, `Backoff()`, `DefaultConfig()` — textbook Go API |
+| **Standalone value** | Every Go service needs exponential backoff + jitter                |
 
 **Why it wins:** Universal need, zero domain leakage, cleanest API, trivially extractable. The `go-error-family` dependency is the only coupling point, and it's used purely for error classification (`IsRetryable` default + sentinel errors). Either keep it as a dep or swap to `errors.New`.
 
@@ -99,14 +99,14 @@ func ComputeDelay(initial, max time.Duration, multiplier float64, attempt int) t
 
 ### #2: Extract `idempotency/` → `go-idempotency` — Strong Candidate
 
-| Attribute           | Assessment                                                                                          |
-| ------------------- | --------------------------------------------------------------------------------------------------- |
-| **LOC**             | 355 source + tests                                                                                  |
-| **Dependencies**    | `go-error-family` only (1 dep)                                                                      |
-| **CQRS coupling**   | **Zero** — keys are opaque `string`, TTL is `time.Duration`                                         |
-| **Importers**       | 2 (middleware adapter, kvstore subpackage)                                                          |
-| **API**             | 3-method `Store` interface: `Seen`, `Record`, `CheckAndRecord` + `MemoryStore`                      |
-| **Standalone value**| Any at-least-once delivery system needs dedup                                                       |
+| Attribute            | Assessment                                                                     |
+| -------------------- | ------------------------------------------------------------------------------ |
+| **LOC**              | 355 source + tests                                                             |
+| **Dependencies**     | `go-error-family` only (1 dep)                                                 |
+| **CQRS coupling**    | **Zero** — keys are opaque `string`, TTL is `time.Duration`                    |
+| **Importers**        | 2 (middleware adapter, kvstore subpackage)                                     |
+| **API**              | 3-method `Store` interface: `Seen`, `Record`, `CheckAndRecord` + `MemoryStore` |
+| **Standalone value** | Any at-least-once delivery system needs dedup                                  |
 
 **Why it wins:** The cleanest interface in the repo (3 methods), functional in-memory implementation out of the box, zero domain types. The `kvstore` subpackage would stay in go-cqrs-lite as an adapter.
 
@@ -180,16 +180,16 @@ type ViewResetter[V any] interface { DeleteAll(ctx) error }
 
 ## What NOT to Extract
 
-| Module            | Why it stays                                                                                       |
-| ----------------- | -------------------------------------------------------------------------------------------------- |
-| `codec/`          | Fundamental serialization layer, 25+ importers, self-describing envelope is CQRS-specific           |
-| `dispatcher/`     | Architectural foundation — command/query dispatch are built directly on it                         |
-| `kv/` (full)      | View-model layer is deeply CQRS-coupled, 15 importers                                              |
-| `signing/`        | Tightly integrated with event types and codec                                                      |
-| `encryption/`     | Tightly integrated with event types and codec                                                      |
-| `otel/`           | CQRS-opinionated histogram views baked into setup                                                  |
-| `dedup/`          | Too small for a standalone repo (94 LOC)                                                           |
-| `id/`             | CQRS marker types (AggregateID, EventID, CommandID) are the entire value                           |
+| Module        | Why it stays                                                                              |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| `codec/`      | Fundamental serialization layer, 25+ importers, self-describing envelope is CQRS-specific |
+| `dispatcher/` | Architectural foundation — command/query dispatch are built directly on it                |
+| `kv/` (full)  | View-model layer is deeply CQRS-coupled, 15 importers                                     |
+| `signing/`    | Tightly integrated with event types and codec                                             |
+| `encryption/` | Tightly integrated with event types and codec                                             |
+| `otel/`       | CQRS-opinionated histogram views baked into setup                                         |
+| `dedup/`      | Too small for a standalone repo (94 LOC)                                                  |
+| `id/`         | CQRS marker types (AggregateID, EventID, CommandID) are the entire value                  |
 
 ## Dependency Layer Map
 

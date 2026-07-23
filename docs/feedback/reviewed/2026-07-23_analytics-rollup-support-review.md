@@ -11,11 +11,11 @@
 
 The codebase has three projection tiers, each with its own sink interface for a fundamentally different data model:
 
-| Tier | Module | Sink Interface | Data Model | Counter Mechanism |
-|------|--------|---------------|------------|-------------------|
+| Tier                | Module                                    | Sink Interface                            | Data Model           | Counter Mechanism                                     |
+| ------------------- | ----------------------------------------- | ----------------------------------------- | -------------------- | ----------------------------------------------------- |
 | KV/Document (T0→T5) | `kv.ViewStore[V,K]` + `stack.Materialize` | `ViewStore` + optional capabilities (ISP) | One document per key | `kv.ViewUpdater[V,K]` — **defined but unimplemented** |
-| Relational (T4) | `storage/relational/` | `ProjectionSink` (monolithic) | Multi-table SQL rows | `sink.Increment` — **implemented in this review** |
-| Graph (T3) | `graph/` | `GraphSink` (monolithic) | Nodes + edges | Not applicable — counters are node properties |
+| Relational (T4)     | `storage/relational/`                     | `ProjectionSink` (monolithic)             | Multi-table SQL rows | `sink.Increment` — **implemented in this review**     |
+| Graph (T3)          | `graph/`                                  | `GraphSink` (monolithic)                  | Nodes + edges        | Not applicable — counters are node properties         |
 
 ### Why `Increment` belongs on `ProjectionSink` (not a separate interface)
 
@@ -123,12 +123,12 @@ Does `DELETE FROM <table>` for each table in the schema. Implements `projectionh
 
 ## Revised Priorities
 
-| Priority | Item | Status |
-|----------|------|--------|
-| P0 | `sink.Increment` on `ProjectionSink` | **Implemented** |
-| P0 | `RelationalProjection.Reset` (Resettable) | **Implemented** |
-| P1 | Implement `kv.ViewUpdater` on `SQLViewStore` | Deferred — separate work, different tier |
-| P2 | `TimeBucket` helper | Rejected — 3 lines of Go in the handler |
-| P3 | `RollupSpec` / `RollupProjection` (Option A) | **Rejected** — premature abstraction |
-| P3 | `IncrementWhere` | **Rejected** — footgun |
-| P3 | `MAX(0, ...)` underflow guard | **Rejected** — hides data loss |
+| Priority | Item                                         | Status                                   |
+| -------- | -------------------------------------------- | ---------------------------------------- |
+| P0       | `sink.Increment` on `ProjectionSink`         | **Implemented**                          |
+| P0       | `RelationalProjection.Reset` (Resettable)    | **Implemented**                          |
+| P1       | Implement `kv.ViewUpdater` on `SQLViewStore` | Deferred — separate work, different tier |
+| P2       | `TimeBucket` helper                          | Rejected — 3 lines of Go in the handler  |
+| P3       | `RollupSpec` / `RollupProjection` (Option A) | **Rejected** — premature abstraction     |
+| P3       | `IncrementWhere`                             | **Rejected** — footgun                   |
+| P3       | `MAX(0, ...)` underflow guard                | **Rejected** — hides data loss           |
