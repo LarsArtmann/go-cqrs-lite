@@ -77,9 +77,9 @@ func TestSQLCommandStore_SaveAndLoad(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	cmd1 := testCommand(t, "CreateUser", ref)
@@ -118,9 +118,9 @@ func TestSQLCommandStore_DuplicateCommand(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	cmd := testCommand(t, "CreateUser", ref)
@@ -145,9 +145,9 @@ func TestSQLCommandStore_AppendBatch(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	cmd1 := testCommand(t, "CreateUser", ref)
@@ -173,9 +173,9 @@ func TestSQLCommandStore_Load_NotFound(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	_, err := store.Load(ctx, ref)
@@ -193,9 +193,9 @@ func TestSQLCommandStore_LoadFromTimestamp(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	cmd2, err := command.NewPersistedCommand("UpdateUser", ref, nil, command.WithReceivedAt(
@@ -231,9 +231,9 @@ func TestSQLCommandStore_LoadToTimestamp(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	cmd1, err := command.NewPersistedCommand("CreateUser", ref, nil, command.WithReceivedAt(
@@ -269,9 +269,9 @@ func TestSQLCommandStore_Close(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	err := store.Close()

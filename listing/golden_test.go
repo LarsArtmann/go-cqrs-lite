@@ -38,7 +38,7 @@ func testListingStatus(
 }
 
 func TestGolden_AggregateStatusJSON(t *testing.T) {
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	statuses := []listing.StreamStatus{
 		testListingStatus(
@@ -83,7 +83,7 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 }
 
 func TestGolden_PageJSON(t *testing.T) {
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	page := listing.Page[listing.StreamStatus]{
 		Items: []listing.StreamStatus{

@@ -103,7 +103,7 @@ func TestBackend_CommandStore(t *testing.T) {
 	}
 
 	aggID := id.NewStreamID()
-	cmdRef := command.NewAggregateRef("User", aggID)
+	cmdRef := command.NewStreamRef("User", aggID)
 	cmd, err := command.NewPersistedCommand("CreateUser", cmdRef, []byte(`{"name":"Alice"}`))
 	if err != nil {
 		t.Fatalf("NewPersistedCommand: %v", err)
@@ -542,7 +542,7 @@ func verifyCommandStoreRoundtrip(
 		t.Fatalf("CommandStore: %v", err)
 	}
 
-	cmdRef := command.NewAggregateRef("Issue", aggID)
+	cmdRef := command.NewStreamRef("Issue", aggID)
 	cmd, err := command.NewPersistedCommand("issue.update", cmdRef, []byte(`{"status":"open"}`))
 	if err != nil {
 		t.Fatalf("NewPersistedCommand: %v", err)

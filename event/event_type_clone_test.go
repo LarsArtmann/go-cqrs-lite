@@ -110,7 +110,7 @@ func TestClone_DeepCopy(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		[]byte("original"),

@@ -114,7 +114,7 @@ func testFullRouting(t *testing.T, factory MultiDBFactory) {
 	}
 
 	// Command → must land in the query DB.
-	cmdRef := command.NewAggregateRef("Routing", aggID)
+	cmdRef := command.NewStreamRef("Routing", aggID)
 
 	cmd, err := command.NewPersistedCommand("routing.create", cmdRef, []byte(`{}`))
 	if err != nil {

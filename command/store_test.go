@@ -24,9 +24,9 @@ func parseCommandID(tb testing.TB, s string) id.CommandID {
 func validRef(tb testing.TB) command.StreamRef {
 	tb.Helper()
 
-	return command.NewAggregateRef(
+	return command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(tb, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(tb, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 }
 
@@ -170,7 +170,7 @@ func TestNewPersistedCommand_EmptyType(t *testing.T) {
 func TestNewPersistedCommand_EmptyAggregateType(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewAggregateRef("", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.NewStreamRef("", idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"))
 
 	_, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err == nil {
@@ -185,7 +185,7 @@ func TestNewPersistedCommand_EmptyAggregateType(t *testing.T) {
 func TestNewPersistedCommand_ZeroAggregateID(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewAggregateRef("User", id.StreamID{})
+	ref := command.NewStreamRef("User", id.StreamID{})
 
 	_, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err == nil {
@@ -278,9 +278,9 @@ func TestPersistedCommand_String(t *testing.T) {
 func TestAggregateRef_String(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 	s := ref.String()
 
@@ -305,7 +305,7 @@ func TestAggregateType_Parse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := command.ParseAggregateType(tt.input)
+			got, err := command.ParseStreamType(tt.input)
 			if tt.wantErr {
 				if err == nil {
 					t.Error("expected error")

@@ -16,9 +16,9 @@ func TestSQLCommandStore_ReadAll(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	cmd1 := testCommand(t, "CreateUser", ref)
@@ -61,9 +61,9 @@ func TestSQLCommandStore_ReadFrom_ZeroID(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	cmds := make([]*command.PersistedCommand, 3)
@@ -90,9 +90,9 @@ func TestSQLCommandStore_ReadFrom_AfterID(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	t1 := time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC)
@@ -164,9 +164,9 @@ func TestSQLCommandStore_ReadFrom_NonExistentID(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	cmd := testCommand(t, "CreateUser", ref)
@@ -190,9 +190,9 @@ func TestSQLCommandStore_MetadataRoundtrip(t *testing.T) {
 
 	store := newTestCommandStore(t)
 	ctx := context.Background()
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	meta := command.Metadata{}

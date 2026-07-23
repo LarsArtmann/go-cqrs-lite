@@ -22,7 +22,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	store := memory.NewMemoryStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	ref := id.NewStreamRef("Order", aggID)
 
 	types := []struct {
@@ -102,7 +102,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	ref := id.NewStreamRef("User", aggID)
 
 	state, err := json.Marshal(struct {

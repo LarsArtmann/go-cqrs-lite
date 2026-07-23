@@ -70,7 +70,7 @@ func TestGolden_SignatureJSONEncoding(t *testing.T) {
 func fixedSignEvent(t *testing.T) event.Event {
 	t.Helper()
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR96")
 
 	evt, err := event.NewEvent(

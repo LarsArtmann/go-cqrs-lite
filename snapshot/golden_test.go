@@ -28,7 +28,7 @@ func everyN(tb testing.TB, n int) snapshot.SnapshotStrategy {
 var update = flag.Bool("update", false, "update golden files")
 
 func TestGolden_SnapshotStructure(t *testing.T) {
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	state, err := json.Marshal(struct {
 		Name  string `json:"name"`

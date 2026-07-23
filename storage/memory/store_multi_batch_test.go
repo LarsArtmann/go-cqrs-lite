@@ -17,9 +17,9 @@ func TestMemoryStore_SaveMultiBatch(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggA := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	aggB := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX2VLR96")
-	aggC := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX3VLR97")
+	aggA := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggB := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX2VLR96")
+	aggC := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX3VLR97")
 
 	entries := []event.MultiBatchEntry{
 		{
@@ -99,7 +99,7 @@ func TestMemoryStore_SaveMultiBatch_Empty(t *testing.T) {
 		{
 			Ref: id.NewStreamRef(
 				"User",
-				idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+				idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 			),
 			Events: nil,
 		},
@@ -117,7 +117,7 @@ func TestMemoryStore_SaveMultiBatch_Closed(t *testing.T) {
 	store := memory.NewMemoryStore()
 	_ = store.Close()
 
-	aggA := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggA := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	err := store.SaveMultiBatch(context.Background(), []event.MultiBatchEntry{
 		{

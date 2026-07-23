@@ -43,7 +43,7 @@ func TestWithCommandMetadata(t *testing.T) {
 	t.Parallel()
 
 	aggID := id.NewStreamID()
-	ref := command.NewAggregateRef("User", aggID)
+	ref := command.NewStreamRef("User", aggID)
 
 	md := command.Metadata{}
 	md.CorrelationID = id.NewCorrelationID()

@@ -82,7 +82,7 @@ func TestVerifyAll_FailingVerifier(t *testing.T) {
 func TestExtractMultiSignature_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	evt, err := event.NewEvent(
 		"test.invalid", aggID, "Test", 1, []byte(`{}`),
 		event.WithMetadata(event.Metadata{
@@ -153,7 +153,7 @@ func TestMultiSignerEndToEnd(t *testing.T) {
 		t.Fatalf("create server multi-signer: %v", err)
 	}
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	deviceEvent, evtErr := event.NewEvent(
 		"user.created",
 		aggID,

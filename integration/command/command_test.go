@@ -16,14 +16,14 @@ func TestNewCommand(t *testing.T) {
 	cmd := testutil.NewCmd(
 		t,
 		"CreateUser",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	if cmd.Type() != "CreateUser" {
 		t.Errorf("expected type CreateUser, got %s", cmd.Type())
 	}
 
-	if cmd.StreamID() != idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95") {
+	if cmd.StreamID() != idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95") {
 		t.Errorf("expected aggregate ID user-123, got %s", cmd.StreamID())
 	}
 }
@@ -31,7 +31,7 @@ func TestNewCommand(t *testing.T) {
 func TestBaseCommand_ImplementsInterface(t *testing.T) {
 	t.Parallel()
 
-	var _ command.Command = testutil.NewCmd(t, "TestCommand", idtest.ParseAggregateID(t, "01HK1549P84T9XF8R94E960633"))
+	var _ command.Command = testutil.NewCmd(t, "TestCommand", idtest.ParseStreamID(t, "01HK1549P84T9XF8R94E960633"))
 }
 
 func TestDispatcher_Register(t *testing.T) {
@@ -59,7 +59,7 @@ func TestDispatcher_Dispatch(t *testing.T) {
 	cmd := testutil.NewCmd(
 		t,
 		"CreateUser",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	err := dispatcher.Dispatch(ctx, cmd)
@@ -81,7 +81,7 @@ func TestDispatcher_Dispatch_HandlerNotFound(t *testing.T) {
 	cmd := testutil.NewCmd(
 		t,
 		"UnknownCommand",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
 	err := dispatcher.Dispatch(ctx, cmd)
@@ -108,7 +108,7 @@ func TestDispatcher_Middleware(t *testing.T) {
 	cmd := testutil.NewCmd(
 		t,
 		"TestCommand",
-		idtest.ParseAggregateID(t, "01HK154ANGZHV2ZW0X3SKSNEN2"),
+		idtest.ParseStreamID(t, "01HK154ANGZHV2ZW0X3SKSNEN2"),
 	)
 	_ = dispatcher.Dispatch(ctx, cmd)
 
@@ -129,7 +129,7 @@ func TestDispatcher_Closed(t *testing.T) {
 	cmd := testutil.NewCmd(
 		t,
 		"TestCommand",
-		idtest.ParseAggregateID(t, "01HK154ANGZHV2ZW0X3SKSNEN2"),
+		idtest.ParseStreamID(t, "01HK154ANGZHV2ZW0X3SKSNEN2"),
 	)
 
 	err = dispatcher.Dispatch(context.Background(), cmd)

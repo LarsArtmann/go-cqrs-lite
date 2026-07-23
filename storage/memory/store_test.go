@@ -17,7 +17,7 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
 
@@ -55,7 +55,7 @@ func TestMemoryStore_VersionConflict(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
 
 	err := store.Save(
@@ -79,7 +79,7 @@ func TestMemoryStore_AggregateNotFound(t *testing.T) {
 		ctx,
 		id.NewStreamRef(
 			id.StreamType("User"),
-			idtest.ParseAggregateID(t, "01HK154KER4E8AJ20Q4JD5TJ1E"),
+			idtest.ParseStreamID(t, "01HK154KER4E8AJ20Q4JD5TJ1E"),
 		),
 	)
 	if err == nil {

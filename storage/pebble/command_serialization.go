@@ -43,7 +43,7 @@ func (s *CommandStore) deserializeCommand(data []byte) (*command.PersistedComman
 		return nil, err
 	}
 
-	ref := command.NewAggregateRef(
+	ref := command.NewStreamRef(
 		command.StreamType(serialized.StreamType),
 		serialized.StreamID,
 	)

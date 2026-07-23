@@ -68,13 +68,13 @@ func (s *SQLCommandStore) scanCommand(rows *sql.Rows) (*command.PersistedCommand
 			fmt.Sprintf("parse aggregate ID %q for %s command %s", aggIDStr, aggType, commandType))
 	}
 
-	parsedAggType, err := command.ParseAggregateType(aggType)
+	parsedAggType, err := command.ParseStreamType(aggType)
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "storage.parse_aggregate_type",
 			fmt.Sprintf("parse aggregate type %q for command %s", aggType, commandType))
 	}
 
-	ref := command.NewAggregateRef(parsedAggType, parsedAggID)
+	ref := command.NewStreamRef(parsedAggType, parsedAggID)
 
 	opts := []command.PersistOption{
 		command.WithPersistedCommandID(parsedCommandID),

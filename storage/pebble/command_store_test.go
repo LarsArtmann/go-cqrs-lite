@@ -60,7 +60,7 @@ func TestCommandStore_SaveAndLoad(t *testing.T) {
 	store := newCommandStore(t)
 
 	aggID := id.NewStreamID()
-	ref := command.NewAggregateRef("User", aggID)
+	ref := command.NewStreamRef("User", aggID)
 
 	cmd := mustCreateCommand(t, "user.create", ref)
 
@@ -93,7 +93,7 @@ func TestCommandStore_DuplicateDetection(t *testing.T) {
 	store := newCommandStore(t)
 
 	aggID := id.NewStreamID()
-	ref := command.NewAggregateRef("User", aggID)
+	ref := command.NewStreamRef("User", aggID)
 
 	cmd := mustCreateCommand(t, "user.create", ref)
 
@@ -114,7 +114,7 @@ func TestCommandStore_AppendBatch(t *testing.T) {
 	store := newCommandStore(t)
 
 	aggID := id.NewStreamID()
-	ref := command.NewAggregateRef("Order", aggID)
+	ref := command.NewStreamRef("Order", aggID)
 
 	cmds := []*command.PersistedCommand{
 		mustCreateCommand(t, "order.create", ref),
@@ -142,8 +142,8 @@ func TestCommandStore_ReadAll(t *testing.T) {
 	ctx := context.Background()
 	store := newCommandStore(t)
 
-	ref1 := command.NewAggregateRef("User", id.NewStreamID())
-	ref2 := command.NewAggregateRef("Order", id.NewStreamID())
+	ref1 := command.NewStreamRef("User", id.NewStreamID())
+	ref2 := command.NewStreamRef("Order", id.NewStreamID())
 
 	cmd1 := mustCreateCommand(t, "user.create", ref1)
 	if err := store.Save(ctx, ref1, cmd1); err != nil {
@@ -173,7 +173,7 @@ func TestCommandStore_ReadFrom(t *testing.T) {
 	ctx := context.Background()
 	store := newCommandStore(t)
 
-	ref := command.NewAggregateRef("User", id.NewStreamID())
+	ref := command.NewStreamRef("User", id.NewStreamID())
 
 	cmdIDs := make([]id.CommandID, 0, 5)
 
@@ -219,7 +219,7 @@ func TestCommandStore_LoadFromTimestamp(t *testing.T) {
 	ctx := context.Background()
 	store := newCommandStore(t)
 
-	ref := command.NewAggregateRef("User", id.NewStreamID())
+	ref := command.NewStreamRef("User", id.NewStreamID())
 
 	before := time.Now()
 

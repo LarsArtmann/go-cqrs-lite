@@ -15,7 +15,7 @@ func TestEventOptions(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"TestEvent",
-		idtest.ParseAggregateID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
+		idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
 		"TestAggregate",
 		1,
 		nil,
@@ -94,7 +94,7 @@ func TestEvent_MetadataDefensiveCopy(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -121,7 +121,7 @@ func TestWithMetadata(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -147,7 +147,7 @@ func TestWithMetadata_MergesInsteadOfReplace(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -177,7 +177,7 @@ func TestWithMetadata_NilExisting(t *testing.T) {
 	meta := event.Metadata{Source: "test"}
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -245,7 +245,7 @@ func TestWithCustom_NilCustomMap(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,
@@ -264,7 +264,7 @@ func TestWithCustom_ExistingCustomMap(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 		"User",
 		1,
 		nil,

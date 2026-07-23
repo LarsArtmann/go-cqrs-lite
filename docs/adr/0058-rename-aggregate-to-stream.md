@@ -1,6 +1,6 @@
 # ADR-0058: Rename Aggregate* to Stream*
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-07-23
 **Supersedes:** The identity-type naming from ADR-0001 (behavioral decision still stands)
 

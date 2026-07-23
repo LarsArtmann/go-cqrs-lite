@@ -17,7 +17,7 @@ func TestEventContext_DeadlineMethod(t *testing.T) {
 
 		evt, err := event.NewEvent(
 			"TestEvent",
-			idtest.ParseAggregateID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
+			idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -41,7 +41,7 @@ func TestEventContext_DeadlineMethod(t *testing.T) {
 		deadline := time.Now().Add(1 * time.Hour)
 		evt, err := event.NewEvent(
 			"TestEvent",
-			idtest.ParseAggregateID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
+			idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -73,7 +73,7 @@ func TestEventContext_FromContext(t *testing.T) {
 
 		evt, err := event.NewEvent(
 			"TestEvent",
-			idtest.ParseAggregateID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
+			idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -102,7 +102,7 @@ func TestEventContext_FromContext(t *testing.T) {
 
 		evt, err := event.NewEvent(
 			"TestEvent",
-			idtest.ParseAggregateID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
+			idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,
@@ -128,7 +128,7 @@ func TestEventContext_Clone(t *testing.T) {
 		deadline := time.Now().Add(1 * time.Hour)
 		evt, err := event.NewEvent(
 			"TestEvent",
-			idtest.ParseAggregateID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
+			idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
 			"TestAggregate",
 			1,
 			nil,

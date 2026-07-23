@@ -14,7 +14,7 @@ func TestParse_HappyPath(t *testing.T) {
 	t.Run("StreamID", func(t *testing.T) {
 		t.Parallel()
 
-		got := idtest.ParseAggregateID(t, validULID)
+		got := idtest.ParseStreamID(t, validULID)
 		if got.String() != validULID {
 			t.Fatalf("got %q, want %q", got, validULID)
 		}
@@ -70,7 +70,7 @@ func TestParse_HappyPath(t *testing.T) {
 func TestParseAggregateID_AcceptsNonULIDString(t *testing.T) {
 	t.Parallel()
 
-	got := idtest.ParseAggregateID(t, "lock_user1_user2")
+	got := idtest.ParseStreamID(t, "lock_user1_user2")
 	if got.String() != "lock_user1_user2" {
 		t.Fatalf("got %q, want %q", got, "lock_user1_user2")
 	}

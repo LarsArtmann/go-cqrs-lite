@@ -186,7 +186,7 @@ func TestEmptyPayloadEvent(t *testing.T) {
 	key := []byte("my-secret-key-thirty-two-bytes!!")
 	signer, _ := signing.NewHMAC(key)
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	evt, err := event.NewEvent("test.empty", aggID, "Test", 1, nil)
 	if err != nil {
 		t.Fatalf("create event: %v", err)

@@ -36,7 +36,7 @@ func NoopHandler(_ context.Context, _ event.Event) error { return nil }
 func MakeTestEvent(t *testing.T) event.Event {
 	t.Helper()
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	return eventtest.NewEvent(t, "test.created", aggID, "Test", 1, []byte(`{"key":"value"}`))
 }

@@ -37,7 +37,7 @@ func TestGolden_MessageMetadata(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR96")
 	corrID := idtest.ParseCorrelationID(t, "01HK1540X0841Y0A6BSX1VKR97")
 	causID := idtest.ParseCausationID(t, "01HK1540X0841Y0A6BSX1VKR98")

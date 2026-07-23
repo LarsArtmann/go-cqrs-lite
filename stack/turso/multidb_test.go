@@ -63,7 +63,7 @@ func TestMultiDB_Routing(t *testing.T) {
 	}
 
 	// Command → must land in the query DB.
-	cmdRef := command.NewAggregateRef("Test", aggID)
+	cmdRef := command.NewStreamRef("Test", aggID)
 	cmd, err := command.NewPersistedCommand("test.create", cmdRef, []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewPersistedCommand: %v", err)

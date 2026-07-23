@@ -19,7 +19,7 @@ func TestMemoryCommandStore_Journal(t *testing.T) {
 	defer func() { _ = store.Close() }()
 
 	aggID := id.NewStreamID()
-	ref := command.NewAggregateRef("User", aggID)
+	ref := command.NewStreamRef("User", aggID)
 
 	cmds := make([]*command.PersistedCommand, 3)
 	for i := range cmds {
@@ -73,7 +73,7 @@ func TestMemoryCommandStore_Journal_ReadFromZeroID(t *testing.T) {
 	defer func() { _ = store.Close() }()
 
 	aggID := id.NewStreamID()
-	ref := command.NewAggregateRef("User", aggID)
+	ref := command.NewStreamRef("User", aggID)
 
 	cmds := make([]*command.PersistedCommand, 3)
 	for i := range cmds {
@@ -134,7 +134,7 @@ func TestMemoryCommandStore_Journal_ReadFromNonExistentID(t *testing.T) {
 	defer func() { _ = store.Close() }()
 
 	aggID := id.NewStreamID()
-	ref := command.NewAggregateRef("User", aggID)
+	ref := command.NewStreamRef("User", aggID)
 
 	cmd, err := command.NewPersistedCommand("user.create", ref, []byte(`{}`))
 	if err != nil {
@@ -194,7 +194,7 @@ func TestMemoryCommandStore_Journal_OrderingByReceivedAt(t *testing.T) {
 	defer func() { _ = store.Close() }()
 
 	aggID := id.NewStreamID()
-	ref := command.NewAggregateRef("User", aggID)
+	ref := command.NewStreamRef("User", aggID)
 
 	t1 := time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC)
 	t2 := time.Date(2025, 2, 1, 10, 0, 0, 0, time.UTC)

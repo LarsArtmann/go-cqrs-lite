@@ -10,7 +10,7 @@ import (
 func TestEnrichEvent(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	enricher := ContextEnricher(func(_ context.Context) []Option {
 		return []Option{
@@ -39,7 +39,7 @@ func TestEnrichEvent(t *testing.T) {
 func TestCompositeEnricher(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	first := ContextEnricher(func(_ context.Context) []Option {
 		return []Option{
@@ -77,7 +77,7 @@ func TestCompositeEnricher_Empty(t *testing.T) {
 
 	composite := CompositeEnricher()
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := NewEvent("UserCreated", aggID, "User", 1, nil)
 	if err != nil {

@@ -155,7 +155,7 @@ func testCommandRoundtrip(t *testing.T, factory Factory) {
 	}
 
 	ctx := context.Background()
-	ref := command.NewAggregateRef("Contract", id.NewStreamID())
+	ref := command.NewStreamRef("Contract", id.NewStreamID())
 
 	cmd, err := command.NewPersistedCommand(
 		"contract.create", ref, []byte(`{"action":"test"}`),

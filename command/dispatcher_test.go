@@ -13,7 +13,7 @@ import (
 func TestNew_EmptyType(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	_, err := command.New("", aggID)
 	if err == nil {
@@ -41,7 +41,7 @@ func TestNew_ZeroAggregateID(t *testing.T) {
 func TestNew_EmptyType_Rejected(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	_, err := command.New("", aggID)
 	if err == nil {
 		t.Fatal("expected error for empty command type")
@@ -68,7 +68,7 @@ func TestDispatcher_Dispatch_HandlerError(t *testing.T) {
 		return handlerErr
 	})
 
-	cmd := newCmd(t, "FailCommand", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := newCmd(t, "FailCommand", idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(ctx, cmd)
 	if err == nil {
@@ -86,7 +86,7 @@ func TestDispatcher_Dispatch_HandlerNotFound_ErrorChain(t *testing.T) {
 	d := command.NewDispatcher()
 	ctx := context.Background()
 
-	cmd := newCmd(t, "UnknownCmd", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := newCmd(t, "UnknownCmd", idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(ctx, cmd)
 	if err == nil {
@@ -120,7 +120,7 @@ func TestDispatcher_Closed_DispatchErrorChain(t *testing.T) {
 	d := command.NewDispatcher()
 	_ = d.Close()
 
-	cmd := newCmd(t, "TestCmd", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := newCmd(t, "TestCmd", idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(context.Background(), cmd)
 	if err == nil {
@@ -164,7 +164,7 @@ func TestDispatcher_Use(t *testing.T) {
 
 	_ = d.Register("TestCmd", noopCommandHandler())
 
-	cmd := newCmd(t, "TestCmd", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := newCmd(t, "TestCmd", idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(context.Background(), cmd)
 	if err != nil {
@@ -196,7 +196,7 @@ func TestDispatcher_Dispatch_Success(t *testing.T) {
 
 	_ = d.Register("TestCmd", callbackCommandHandler(&called))
 
-	cmd := newCmd(t, "TestCmd", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := newCmd(t, "TestCmd", idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(context.Background(), cmd)
 	if err != nil {
@@ -215,7 +215,7 @@ func TestDispatcher_Dispatch_WrappedClosedError(t *testing.T) {
 	_ = d.Register("TestCmd", noopCommandHandler())
 	_ = d.Close()
 
-	cmd := newCmd(t, "TestCmd", idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	cmd := newCmd(t, "TestCmd", idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"))
 
 	err := d.Dispatch(context.Background(), cmd)
 	if err == nil {

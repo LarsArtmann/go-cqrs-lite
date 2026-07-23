@@ -158,7 +158,7 @@ watermill/     — Watermill protocol adapter
 | [0055](0055-cqrs-lint-loader-error-surfacing.md)       | cqrs-lint Loader Error Surfacing                       | 2026-07-17 | Accepted                                                                                                                      |
 | [0056](0056-timezone-safe-time-types.md)               | Timezone-Safe Time Types for Event Payloads            | 2026-07-18 | Accepted                                                                                                                      |
 | [0057](0057-catalog-rest-openapi-operation-support.md) | Catalog REST/OpenAPI Operation Support                 | 2026-07-18 | Accepted                                                                                                                      |
-| [0058](0058-rename-aggregate-to-stream.md)             | Rename Aggregate* to Stream*                           | 2026-07-23 | Proposed                                                                                                                      |
+| [0058](0058-rename-aggregate-to-stream.md)             | Rename Aggregate* to Stream*                           | 2026-07-23 | Accepted                                                                                                                      |
 | [0059](0059-dlq-unification-proposal.md)               | DLQ Unification Proposal                               | 2026-07-23 | Proposed                                                                                                                      |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).

@@ -15,9 +15,9 @@ import (
 func validCommandRef(tb testing.TB) command.StreamRef {
 	tb.Helper()
 
-	return command.NewAggregateRef(
+	return command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(tb, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(tb, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 }
 
@@ -274,13 +274,13 @@ func TestMemoryCommandStore_MultipleAggregates(t *testing.T) {
 	store := memory.NewMemoryCommandStore()
 	ctx := context.Background()
 
-	ref1 := command.NewAggregateRef(
+	ref1 := command.NewStreamRef(
 		"User",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
-	ref2 := command.NewAggregateRef(
+	ref2 := command.NewStreamRef(
 		"Order",
-		idtest.ParseAggregateID(t, "01HK1540X0841Y0A6BSX1VKR96"),
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR96"),
 	)
 
 	cmd1 := testPersistedCommand(t, "CreateUser", ref1)
