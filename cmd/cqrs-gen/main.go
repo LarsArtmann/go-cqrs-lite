@@ -183,7 +183,7 @@ func dedupEntries(w io.Writer, entries []Entry) []Entry {
 
 	for _, e := range entries {
 		if _, ok := seen[e.StructName]; ok {
-			fmt.Fprintf(
+			_, _ = fmt.Fprintf(
 				w,
 				"warning: duplicate struct %q skipped (already registered)\n",
 				e.StructName,

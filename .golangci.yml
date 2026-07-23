@@ -157,6 +157,7 @@ linters:
             - github.com/fxamacker/cbor
             - pgregory.net/rapid
             - go/ast
+            - go/format
             - go/parser
             - go/token
             - go/types
