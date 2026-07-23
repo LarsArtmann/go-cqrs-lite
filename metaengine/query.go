@@ -9,9 +9,12 @@ import (
 // QueryOption tunes a query declaration.
 type QueryOption func(*QueryConfig)
 
+// QueryConfig holds declarative options for a query.
 type QueryConfig struct {
 	Volume          int64
 	LatencyBudgetMs int64
+	Filters         []string
+	SortField       string
 }
 
 // Volume sets the expected query volume (events/sec) for cost estimation.
@@ -24,12 +27,26 @@ func WithLatencyBudget(ms int64) QueryOption {
 	return func(c *QueryConfig) { c.LatencyBudgetMs = ms }
 }
 
+// FilterOn declares a filter field on the result type for filtered scans.
+// Overrides auto-detected filters from query input/result field matching.
+func FilterOn(field string) QueryOption {
+	return func(c *QueryConfig) { c.Filters = append(c.Filters, field) }
+}
+
+// SortOn declares the sort field for a filtered scan.
+// Overrides auto-detected sort field from result type inspection.
+func SortOn(field string) QueryOption {
+	return func(c *QueryConfig) { c.SortField = field }
+}
+
 // QueryDecl is a fully analyzed query declaration.
-// A query references a ReadModel (which owns the folds/ADT) and declares
-// how it reads from it (read pattern, filters, sort, pagination).
+// Each query owns its own folds, ADT, and projection — there is no shared
+// ReadModel. This follows the design doc principle: "each query has its own
+// independent projection."
 type QueryDecl[Q any, R any] struct {
 	Name          string
-	Model         ReadModel
+	Folds         []Fold
+	ADT           ADT
 	ReadPattern   ReadPattern
 	Filters       []FieldPath
 	SortField     string
@@ -41,18 +58,53 @@ type QueryDecl[Q any, R any] struct {
 	resultSample R
 }
 
-// Query declares a query that reads from a ReadModel.
-// The read pattern, filters, and sort field are inferred from the query's
-// input type (Q) and result type (R) combined with the model's ADT.
-func Query[Q any, R any](name string, model ReadModel, opts ...QueryOption) QueryDecl[Q, R] {
+// Query declares a query with its folds and options as variadic arguments.
+// Folds and QueryOptions are separated by type at construction time:
+//
+//	findUser := metaengine.Query[FindUser, FindUserResult]("find_user",
+//	    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) { ... }),
+//	    metaengine.On(UserSuspended{}, func(e UserSuspended, prev FindUserResult) FindUserResult { ... }),
+//	    metaengine.On(UserDeleted{}, metaengine.Remove[FindUserResult]()),
+//	    metaengine.Volume(1_000_000),
+//	)
+//
+// Query panics on construction errors (bad folds, ambiguous keys), following
+// the MustCompile convention for package-level declarations.
+func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 	cfg := QueryConfig{}
-	for _, opt := range opts {
-		opt(&cfg)
+	var folds []Fold
+
+	for _, arg := range args {
+		switch a := arg.(type) {
+		case Fold:
+			folds = append(folds, a)
+		case QueryOption:
+			a(&cfg)
+		default:
+			panic(fmt.Sprintf(
+				"metaengine.Query(%q): unexpected argument type %T (expected Fold or QueryOption)",
+				name, arg,
+			))
+		}
+	}
+
+	if len(folds) == 0 {
+		panic(fmt.Sprintf("metaengine.Query(%q): at least one fold required", name))
+	}
+
+	adt, err := classifyADT(folds)
+	if err != nil {
+		panic(fmt.Sprintf("metaengine.Query(%q): %v", name, err))
+	}
+
+	if err := deriveKeys(folds); err != nil {
+		panic(fmt.Sprintf("metaengine.Query(%q): %v", name, err))
 	}
 
 	q := QueryDecl[Q, R]{
 		Name:         name,
-		Model:        model,
+		Folds:        folds,
+		ADT:          adt,
 		Config:       cfg,
 		querySample:  *new(Q),
 		resultSample: *new(R),
@@ -65,29 +117,52 @@ func Query[Q any, R any](name string, model ReadModel, opts ...QueryOption) Quer
 
 func (q *QueryDecl[Q, R]) infer() {
 	resultType := reflect.TypeOf(q.resultSample)
-	elemType, isPage := unwrapPageType(resultType)
-	q.IsPaginated = isPage
+	info, isCollection := collectionResultInfo(resultType)
+	q.IsPaginated = isCollection
 
 	queryInputFields := reflectFields(q.querySample)
 	hasInputFields := len(queryInputFields) > 0
 
+	// Apply explicit FilterOn/SortOn overrides.
+	if len(q.Config.Filters) > 0 {
+		resultName := ""
+		if resultType != nil {
+			resultName = resultType.Name()
+		}
+
+		for _, f := range q.Config.Filters {
+			q.Filters = append(q.Filters, FieldPath{
+				Struct: resultName,
+				Field:  f,
+			})
+		}
+	}
+
+	if q.Config.SortField != "" {
+		q.SortField = q.Config.SortField
+	}
+
 	switch {
-	case isPage:
+	case isCollection:
 		q.ReadPattern = ReadFilteredScan
 
-		if elemType != nil {
-			elemSample := reflect.Zero(elemType).Interface()
+		if len(q.Filters) == 0 && info != nil && info.itemsElemType != nil {
+			elemSample := reflect.Zero(info.itemsElemType).Interface()
 			q.Filters = matchFilterFields(q.querySample, elemSample)
+		}
+
+		if q.SortField == "" && info != nil && info.itemsElemType != nil {
+			elemSample := reflect.Zero(info.itemsElemType).Interface()
 			q.SortField = detectSortField(elemSample)
 		}
 
-	case hasInputFields && q.Model.ADT == ADTSet:
+	case hasInputFields && q.ADT == ADTSet:
 		q.ReadPattern = ReadMembership
-	case hasInputFields && q.Model.ADT == ADTMap:
+	case hasInputFields && q.ADT == ADTMap:
 		q.ReadPattern = ReadPointLookup
-	case q.Model.ADT == ADTCounter:
+	case q.ADT == ADTCounter:
 		q.ReadPattern = ReadAggregate
-	case q.Model.ADT == ADTGraph:
+	case q.ADT == ADTGraph:
 		q.ReadPattern = ReadTraversal
 	default:
 		q.ReadPattern = ReadScan
@@ -97,7 +172,8 @@ func (q *QueryDecl[Q, R]) infer() {
 // queryMeta is the planner-facing interface.
 type queryMeta interface {
 	QueryName() string
-	QueryModel() ReadModel
+	QueryADT() ADT
+	QueryFolds() []Fold
 	QueryReadPattern() ReadPattern
 	QueryFilters() []FieldPath
 	QuerySortField() string
@@ -106,7 +182,8 @@ type queryMeta interface {
 }
 
 func (q QueryDecl[Q, R]) QueryName() string             { return q.Name }
-func (q QueryDecl[Q, R]) QueryModel() ReadModel         { return q.Model }
+func (q QueryDecl[Q, R]) QueryADT() ADT                 { return q.ADT }
+func (q QueryDecl[Q, R]) QueryFolds() []Fold            { return q.Folds }
 func (q QueryDecl[Q, R]) QueryReadPattern() ReadPattern { return q.ReadPattern }
 func (q QueryDecl[Q, R]) QueryFilters() []FieldPath     { return q.Filters }
 func (q QueryDecl[Q, R]) QuerySortField() string        { return q.SortField }
@@ -120,7 +197,6 @@ func (q QueryDecl[Q, R]) String() string {
 	}
 
 	filters := ""
-
 	if len(q.Filters) > 0 {
 		names := make([]string, len(q.Filters))
 		for i, f := range q.Filters {
@@ -135,6 +211,6 @@ func (q QueryDecl[Q, R]) String() string {
 		sortStr = " sort=" + q.SortField
 	}
 
-	return fmt.Sprintf("%s → %s: %s/%s%s%s%s",
-		q.Name, q.Model.Name, q.Model.ADT, q.ReadPattern, filters, sortStr, pagination)
+	return fmt.Sprintf("%s: %s/%s%s%s%s",
+		q.Name, q.ADT, q.ReadPattern, filters, sortStr, pagination)
 }

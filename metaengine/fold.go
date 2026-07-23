@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -19,17 +20,26 @@ const (
 )
 
 // Fold is a single event-to-projection mapping.
+// The Kind field tells the planner which ADT operation this fold performs.
+// Fold structs are created by the On constructor and should not be built by hand.
 type Fold struct {
 	EventType   string
 	EventSample any
 	Kind        FoldKind
 
-	insertHandler any
-	updateHandler any
-	keyExtractor  any
-	countHandler  any
-	edgeHandler   any
-	setHandler    any
+	// keyType holds the key type K for FoldInsert/FoldSet,
+	// or the value type V for FoldRemove/FoldUpdate (matched during derivation).
+	keyType reflect.Type
+
+	// valueType is the value type V for FoldInsert/FoldUpdate/FoldRemove.
+	valueType reflect.Type
+
+	insertHandler any // func(e E) (K, V)
+	updateHandler any // func(e E, prev V) V
+	keyExtractor  any // func(event any) any — auto-derived or set during Query construction
+	countHandler  any // func(e E) Delta
+	edgeHandler   any // func(e E) Edge
+	setHandler    any // func(e E) K
 }
 
 func EventTypeName(sample any) string {
@@ -41,99 +51,156 @@ func EventTypeName(sample any) string {
 	return t.Name()
 }
 
-// OnInsert registers a fold that creates a new (key, value) pair in a Map.
-// The return type (K, V) tells the planner: ADT = Map<K, V>.
-func OnInsert[E any, K any, V any](sample E, fn func(e E) (K, V)) Fold {
-	return Fold{
-		EventType:     EventTypeName(sample),
-		EventSample:   sample,
-		Kind:          FoldInsert,
-		insertHandler: fn,
+// removeSignal is the sentinel returned by Remove[V]().
+// On classifies it as FoldRemove and uses valueType for projection matching.
+type removeSignal struct {
+	valueType reflect.Type
+}
+
+// Remove returns a sentinel that tells On to classify this fold as a deletion.
+// The type parameter V must match the value type of the insert fold so the
+// planner knows which projection to delete from:
+//
+//	metaengine.On(UserDeleted{}, metaengine.Remove[FindUserResult]())
+//
+// The key is auto-derived by scanning the event struct for fields matching
+// the insert fold's key type.
+func Remove[V any]() removeSignal {
+	return removeSignal{valueType: reflect.TypeOf((*V)(nil)).Elem()}
+}
+
+// On declares a fold: how an event of type E updates the query's projection.
+// The handler's Go signature determines the ADT operation:
+//
+//	metaengine.On(Event{}, func(e Event) (Key, Value) { ... })   // Map insert
+//	metaengine.On(Event{}, func(e Event, prev Value) Value { ... }) // Map update
+//	metaengine.On(Event{}, func(e Event) Key { ... })            // Set add
+//	metaengine.On(Event{}, func(e Event) metaengine.Delta { ... }) // Counter
+//	metaengine.On(Event{}, func(e Event) metaengine.Edge { ... })  // Graph edge
+//	metaengine.On(Event{}, metaengine.Remove[Value]())             // Delete
+//	metaengine.On(Event{}, func(e Event) metaengine.Skip { ... })  // No-op
+//
+// On panics at init time if the handler signature is unclassifiable,
+// following the MustCompile convention.
+func On[E any](sample E, handler any) Fold {
+	eventType := EventTypeName(sample)
+
+	// Check sentinel types first.
+	if rs, ok := handler.(removeSignal); ok {
+		return Fold{
+			EventType:   eventType,
+			EventSample: sample,
+			Kind:        FoldRemove,
+			valueType:   rs.valueType,
+		}
+	}
+
+	ht := reflect.TypeOf(handler)
+	if ht == nil || ht.Kind() != reflect.Func {
+		panic(fmt.Sprintf(
+			"metaengine.On(%s): handler must be a function or Remove[V](), got %T",
+			eventType, handler,
+		))
+	}
+
+	if err := verifyEventParam[E](ht, eventType); err != nil {
+		panic(err.Error())
+	}
+
+	numIn := ht.NumIn()
+	numOut := ht.NumOut()
+
+	switch {
+	case numIn == 1 && numOut == 2:
+		return Fold{
+			EventType:     eventType,
+			EventSample:   sample,
+			Kind:          FoldInsert,
+			keyType:       ht.Out(0),
+			valueType:     ht.Out(1),
+			insertHandler: handler,
+		}
+
+	case numIn == 2 && numOut == 1:
+		return Fold{
+			EventType:     eventType,
+			EventSample:   sample,
+			Kind:          FoldUpdate,
+			valueType:     ht.Out(0),
+			updateHandler: handler,
+		}
+
+	case numIn == 1 && numOut == 1:
+		return classifySingleReturn(sample, eventType, ht.Out(0), handler)
+
+	default:
+		panic(fmt.Sprintf(
+			"metaengine.On(%s): handler must have 1-2 params and 1-2 returns, got %d in / %d out",
+			eventType, numIn, numOut,
+		))
 	}
 }
 
-// OnUpdate registers a fold that modifies an existing value (read-modify-write).
-// keyFn extracts the key from the event so the engine knows which record to update.
-func OnUpdate[E any, K any, V any](sample E, keyFn func(e E) K, fn func(e E, prev V) V) Fold {
-	return Fold{
-		EventType:     EventTypeName(sample),
-		EventSample:   sample,
-		Kind:          FoldUpdate,
-		updateHandler: fn,
-		keyExtractor:  keyFn,
+func classifySingleReturn[E any](sample E, eventType string, outType reflect.Type, handler any) Fold {
+	deltaType := reflect.TypeOf((*Delta)(nil)).Elem()
+	edgeType := reflect.TypeOf(Edge{})
+	skipType := reflect.TypeOf(Skip{})
+
+	switch outType {
+	case deltaType:
+		return Fold{
+			EventType:   eventType,
+			EventSample: sample,
+			Kind:        FoldCount,
+			countHandler: handler,
+		}
+	case edgeType:
+		return Fold{
+			EventType:  eventType,
+			EventSample: sample,
+			Kind:       FoldEdge,
+			edgeHandler: handler,
+		}
+	case skipType:
+		return Fold{
+			EventType:   eventType,
+			EventSample: sample,
+			Kind:        FoldSkip,
+		}
+	default:
+		return Fold{
+			EventType:  eventType,
+			EventSample: sample,
+			Kind:       FoldSet,
+			keyType:    outType,
+			setHandler: handler,
+		}
 	}
 }
 
-// OnRemove registers a fold that deletes a key from the projection.
-// keyFn extracts the key from the event so the engine knows which record to delete.
-func OnRemove[E any, K any](sample E, keyFn func(e E) K) Fold {
-	return Fold{
-		EventType:    EventTypeName(sample),
-		EventSample:  sample,
-		Kind:         FoldRemove,
-		keyExtractor: keyFn,
+func verifyEventParam[E any](ht reflect.Type, eventType string) error {
+	var sample E
+	expectedType := reflect.TypeOf(sample)
+	if expectedType.Kind() == reflect.Pointer {
+		expectedType = expectedType.Elem()
 	}
+
+	paramType := ht.In(0)
+	if paramType.Kind() == reflect.Pointer {
+		paramType = paramType.Elem()
+	}
+
+	if paramType != expectedType {
+		return fmt.Errorf(
+			"metaengine.On(%s): handler first param must be %s, got %s",
+			eventType, expectedType, ht.In(0),
+		)
+	}
+
+	return nil
 }
 
-// OnCount registers a fold that adjusts a counter.
-func OnCount[E any](sample E, fn func(e E) Delta) Fold {
-	return Fold{
-		EventType:    EventTypeName(sample),
-		EventSample:  sample,
-		Kind:         FoldCount,
-		countHandler: fn,
-	}
-}
-
-// OnCountTyped registers a fold that adjusts typed counters with branded keys.
-// TypedDelta[K] uses a named string type for counter keys, making typos compile errors.
-// The typed delta is converted to the generic Delta at registration time.
-func OnCountTyped[E any, K ~string](sample E, fn func(e E) TypedDelta[K]) Fold {
-	return Fold{
-		EventType:   EventTypeName(sample),
-		EventSample: sample,
-		Kind:        FoldCount,
-		countHandler: func(e E) Delta {
-			typed := fn(e)
-
-			d := make(Delta, len(typed))
-			for k, v := range typed {
-				d[string(k)] = v
-			}
-
-			return d
-		},
-	}
-}
-
-// OnEdge registers a fold that adds a graph edge.
-func OnEdge[E any](sample E, fn func(e E) Edge) Fold {
-	return Fold{
-		EventType:   EventTypeName(sample),
-		EventSample: sample,
-		Kind:        FoldEdge,
-		edgeHandler: fn,
-	}
-}
-
-// OnSet registers a fold that adds a key to a Set projection.
-func OnSet[E any, K any](sample E, fn func(e E) K) Fold {
-	return Fold{
-		EventType:   EventTypeName(sample),
-		EventSample: sample,
-		Kind:        FoldSet,
-		setHandler:  fn,
-	}
-}
-
-// OnSkip registers a fold that explicitly ignores an event type.
-func OnSkip[E any](sample E) Fold {
-	return Fold{
-		EventType:   EventTypeName(sample),
-		EventSample: sample,
-		Kind:        FoldSkip,
-	}
-}
+// ── call helpers (used by Store.applyFold) ──
 
 func (f *Fold) callInsert(event any) (any, any) {
 	fn := reflect.ValueOf(f.insertHandler)
@@ -183,6 +250,8 @@ func (f *Fold) callSet(event any) any {
 	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface()
 }
 
+// ── ADT classification ──
+
 func classifyADT(folds []Fold) (ADT, error) {
 	hasInsert, hasSet, hasCount, hasEdge := false, false, false, false
 
@@ -211,4 +280,98 @@ func classifyADT(folds []Fold) (ADT, error) {
 	default:
 		return "", errors.New("cannot infer ADT: no active folds (only skips)")
 	}
+}
+
+// eventTypesForFolds returns the set of event types the given folds react to.
+func eventTypesForFolds(folds []Fold) []string {
+	seen := make(map[string]struct{}, len(folds))
+
+	for _, f := range folds {
+		if f.Kind != FoldSkip {
+			seen[f.EventType] = struct{}{}
+		}
+	}
+
+	result := make([]string, 0, len(seen))
+	for t := range seen {
+		result = append(result, t)
+	}
+
+	return result
+}
+
+// deriveKeys auto-generates keyExtractor closures for update and remove folds
+// by matching the insert fold's key type against fields in the event struct.
+func deriveKeys(folds []Fold) error {
+	var keyType reflect.Type
+
+	for _, f := range folds {
+		if f.Kind == FoldInsert {
+			keyType = f.keyType
+			break
+		}
+	}
+
+	if keyType == nil {
+		return nil
+	}
+
+	for i := range folds {
+		switch folds[i].Kind {
+		case FoldUpdate, FoldRemove:
+			if folds[i].keyExtractor != nil {
+				continue
+			}
+
+			extractor, err := buildKeyExtractor(folds[i].EventSample, keyType)
+			if err != nil {
+				return fmt.Errorf("fold for %s: %w", folds[i].EventType, err)
+			}
+
+			folds[i].keyExtractor = extractor
+		}
+	}
+
+	return nil
+}
+
+func buildKeyExtractor(eventSample any, keyType reflect.Type) (any, error) {
+	t := reflect.TypeOf(eventSample)
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	foundIdx := -1
+
+	for i := range t.NumField() {
+		if !t.Field(i).IsExported() {
+			continue
+		}
+
+		if t.Field(i).Type == keyType {
+			if foundIdx >= 0 {
+				return nil, fmt.Errorf(
+					"ambiguous key: multiple fields of type %s in %s (%s, %s)",
+					keyType, t.Name(), t.Field(foundIdx).Name, t.Field(i).Name,
+				)
+			}
+
+			foundIdx = i
+		}
+	}
+
+	if foundIdx < 0 {
+		return nil, fmt.Errorf("no field of type %s in %s", keyType, t.Name())
+	}
+
+	idx := foundIdx
+
+	return func(event any) any {
+		v := reflect.ValueOf(event)
+		if v.Kind() == reflect.Pointer {
+			v = v.Elem()
+		}
+
+		return v.Field(idx).Interface()
+	}, nil
 }

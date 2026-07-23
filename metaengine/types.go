@@ -25,17 +25,19 @@ const (
 )
 
 // Delta is a counter update: key to delta.
-// For typed keys, use Delta[K ~string] — typo'd keys become compile errors.
 type Delta map[string]int64
 
-// TypedDelta is a type-safe counter delta where keys are a named string type.
-type TypedDelta[K ~string] map[K]int64
-
-// Edge is a graph edge returned by OnEdge folds.
+// Edge is a graph edge returned by On folds with Edge return type.
 type Edge struct {
 	From any
 	To   any
 }
+
+// Skip is a sentinel return type signaling that an event does not apply
+// to this projection (no-op). Return it from an On fold handler:
+//
+//	metaengine.On(SomeEvent{}, func(e SomeEvent) metaengine.Skip { return metaengine.Skip{} })
+type Skip struct{}
 
 // Cursor marks a position in a paginated stream for continuation.
 type Cursor struct {
@@ -60,20 +62,6 @@ const (
 	ComplexityODegree Complexity = "O(degree^depth)"
 )
 
-// Page is the standard paginated result wrapper for collection queries.
-// When a query's result type is Page[T], the planner knows:
-//   - The query returns a collection (not a single record)
-//   - Pagination mechanics (limit, cursor) are handled automatically
-//   - The projection needs to support filtered/ordered scanning
-//
-// The developer writes ONLY domain fields in the query input.
-// Limit and cursor are passed as Execute options, not as domain fields.
-type Page[T any] struct {
-	Items   []T
-	Next    *Cursor
-	HasMore bool
-}
-
 // ExecOption tunes a single Execute call (pagination, consistency, etc.).
 type ExecOption func(*execConfig)
 
@@ -82,7 +70,7 @@ type execConfig struct {
 	cursor *Cursor
 }
 
-// WithLimit sets the maximum number of items to return in a Page.
+// WithLimit sets the maximum number of items to return in a paginated result.
 func WithLimit(n int) ExecOption {
 	return func(c *execConfig) { c.limit = n }
 }
