@@ -147,7 +147,13 @@ func (s *Store) Execute(input any, opts ...ExecOption) (any, error) {
 	return s.ExecuteCtx(context.Background(), input, opts...)
 }
 
-func (s *Store) ExecuteCtx(_ context.Context, input any, opts ...ExecOption) (any, error) {
+func (s *Store) ExecuteCtx(ctx context.Context, input any, opts ...ExecOption) (any, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -160,10 +166,10 @@ func (s *Store) ExecuteCtx(_ context.Context, input any, opts ...ExecOption) (an
 
 	q := s.queries[queryName]
 
-	return s.executeQuery(q, input, opts...)
+	return s.executeQuery(ctx, q, input, opts...)
 }
 
-func (s *Store) executeQuery(q queryRuntime, input any, opts ...ExecOption) (any, error) {
+func (s *Store) executeQuery(_ context.Context, q queryRuntime, input any, opts ...ExecOption) (any, error) {
 	cfg := applyExecOpts(opts)
 	m := s.models[q.modelName]
 
