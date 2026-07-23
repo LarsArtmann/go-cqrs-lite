@@ -132,7 +132,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 
 	got, err := json.Marshal(struct {
 		StreamID   string `json:"aggregateId"`
-		StreamType string `json:"streamType"`
+		StreamType string `json:"aggregateType"`
 		Version    int    `json:"version"`
 		State      string `json:"state"`
 		CreatedAt  string `json:"createdAt"`

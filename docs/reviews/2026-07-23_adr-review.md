@@ -155,12 +155,18 @@ Keeping `middleware.DeadLetterEntry` and `projectionhost.DeadLetterEntry` separa
 
 ## Recommended cleanup priorities
 
-| Priority | Action                                                                                                                                                                                              | Effort |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1        | **Fix the README index** — add 0055–0057, fix the 8 status mismatches, fill in dates                                                                                                                | 10 min |
-| 2        | **Mark violated/superseded ADRs**: 0009 (superseded by 0019+impl), 0014 (superseded by 0045), 0015 (superseded by 0051/0053), 0027 (superseded by 0028), 0028 (note that v3 removal never executed) | 20 min |
-| 3        | **Rewrite ADR-0010's Decision** to match what was actually implemented                                                                                                                              | 10 min |
-| 4        | **Reconcile ADR-0031** with the actual alias-based metadata shape (or finish the migration)                                                                                                         | 30 min |
-| 5        | **Fix the ADR-0056 `TimeUnix` misstatement** — the Context misrepresents what the codec does                                                                                                        | 5 min  |
-| 6        | **Sweep dead `example/todo/` references** from ADRs 0004, 0009, 0016, 0028                                                                                                                          | 10 min |
-| 7        | **Rename ADR-0046** or compress its tiers so the title matches the content                                                                                                                          | 5 min  |
+All items resolved on 2026-07-23. Details below.
+
+| Priority | Action | Effort | Status |
+| -------- | ------ | ------ | ------ |
+| 1 | **Fix the README index** — add 0055–0059, fix the 8 status mismatches, fill in dates | 10 min | **Done** |
+| 2 | **Mark violated/superseded ADRs**: 0009, 0014, 0015 (top notes + status), 0027 (loud deprecation), 0028 (note v3 not executed) | 20 min | **Done** |
+| 3 | **Rewrite ADR-0010's Decision** to match what was actually implemented (io.Closer, not Lifecycle) | 10 min | **Done** |
+| 4 | **Reconcile ADR-0031** with the actual alias-based metadata shape | 30 min | **Done** (status note added) |
+| 5 | **Fix the ADR-0056 `TimeUnix` misstatement** | 5 min | **Done** |
+| 6 | **Sweep dead `example/todo/` references** from ADRs 0004, 0009, 0016 | 10 min | **Done** |
+| 7 | **Rename ADR-0046** to "Seven-Tier Dependency Model" | 5 min | **Done** |
+| 8 | **Trim TypeDB framing** from ADR-0040 | 10 min | **Done** |
+| 9 | **Cross-reference ADR-0020 ↔ ADR-0049** middleware pattern contradiction | 5 min | **Done** |
+| 10 | **Add consumer burden section to ADR-0043** + draft ADR-0059 | 20 min | **Done** |
+| 11 | **ADR-0058** added to README index | 2 min | **Done** |

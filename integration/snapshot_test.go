@@ -136,7 +136,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 
 	type eventSnapshot struct {
 		Type       string `json:"type"`
-		StreamType string `json:"streamType"`
+		StreamType string `json:"aggregateType"`
 		Version    int    `json:"version"`
 	}
 
