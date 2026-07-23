@@ -231,8 +231,8 @@
 
 ## g) Questions I CANNOT Answer Myself
 
-**Q1: Should the meta-engine stay as a monorepo module or become a separate project?**
-`meta-engine-project-definition.md` says "It is not a module within go-cqrs-lite. It is a standalone research-grade system." But `event-query-model.md` (which supersedes prior docs for the API model) was written assuming monorepo, and all code is in `metaengine/` within the monorepo. The user chose monorepo for the prototype. Should this stay permanent, or is the separate-project plan still the goal?
+**Q1: ~~Should the meta-engine stay as a monorepo module or become a separate project?~~**
+**ANSWERED:** Monorepo submodule for now. Will extract to a separate project when we reach a first stable version. The `meta-engine-project-definition.md` separate-project plan remains the long-term goal but is deferred until stability.
 
 **Q2: How should FilterOn typed closures translate to SQL pushdown?**
 `FilterOn(func(r FindUserResult) string { return r.Status })` works at runtime for in-memory engines (call closure on each item). But for SQL: we need `WHERE status = ?`. Go reflection cannot extract "Status" from a closure body. Options: (a) accept memory uses closures, SQL uses a different declaration mechanism, (b) code generation to extract field paths at build time, (c) the `Field()` named-descriptor approach from the design doc's Decision 1, (d) something else. This blocks building a real SQL engine.
