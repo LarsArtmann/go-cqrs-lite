@@ -42,8 +42,9 @@ migration steps.
 
 Making it trivially easy for new consumers to adopt the library.
 
-- **Publish `eventtest` to the Go proxy** — the #1 consumer pain point across
-  all feedback rounds. Tag exists locally (`v0.1.0`) but is not pushed.
+- **Publish `eventtest` to the Go proxy** — ✅ Done. `v0.1.0` and `v0.2.0` are
+  available on the Go proxy (`go get github.com/larsartmann/go-cqrs-lite/event/v4/eventtest@v0.1.0`).
+  Remaining cleanup: delete the incorrect `event/v4/eventtest/v4.0.0` tag from remote.
 - **README "sales page" rewrite** — the README has grown into internal
   documentation. Per the docs-health model, it should be the end-user entry
   point: what this does, why it exists, how to get started in 3 steps.

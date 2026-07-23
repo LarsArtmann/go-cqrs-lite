@@ -1,58 +1,74 @@
 # TODO List
 
-**Updated:** 2026-07-16 (docs-health audit)
+**Updated:** 2026-07-23 (docs-health + Pareto audit)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
+Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 
 ## Legend
 
 - `[ ]` = Open
 - `[x]` = Done (moved to [CHANGELOG.md](CHANGELOG.md))
 - `[BLOCKED]` = Blocked on upstream dependency or user approval
-- `🔥` = High impact (top 20% that delivers 80% of value)
-
-## Recently Completed
-
-> **50+ items resolved during July 2026 sessions.** Full list in
-> [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` → "Resolved During July 2026 Sessions".
-> Key highlights: v4.0.0 shipped, cqrs-lint built (60 rules), all DiscordSync
-> feedback gaps closed, ROADMAP/TODO/FEATURES docs audited and fixed.
+- `🔥` = Pareto high impact (top 20% that delivers 80% of value)
+- `⭐` = Top 1% impact (do first)
 
 ---
 
-## v4.0.0 — SHIPPED
+## ⭐ 1% Tier — Do First (Highest Impact)
 
-> v4.0.0 tagged and pushed. All per-module tags exist. See [CHANGELOG.md](CHANGELOG.md) `[4.0.0]` for details.
+These items deliver the majority of perceived consumer value.
+
+- [x] **Publish `eventtest` to Go proxy as `v0.1.0`** — ✅ Verified available via
+      `GOPROXY=proxy.golang.org go list -m ...@v0.1.0`. v0.2.0 is also published.
+      Remaining: delete the wrong `event/v4/eventtest/v4.0.0` tag from **remote**
+      (`git push --delete origin event/v4/eventtest/v4.0.0`). Local tag deleted.
+- [ ] ⭐ **Fix README "sales page" friction** — The Quick Start example has a missing
+      trailing comma (line 80) and is not compile-verified. Fix the bug, verify the
+      snippet compiles, and tighten the top-of-page pitch. ~20min.
+- [ ] ⭐ **Add pre-commit hooks** — `fmt.Printf` ban in production packages,
+      `api_surface.txt` regeneration check, `nix fmt --fail-on-change`. Prevents
+      avoidable CI failures and debug prints leaking to main. ~60min.
+- [ ] ⭐ **Add CBOR-stamp round-trip tests for gRPC + watermill** — Cross-encoding
+      tests proving CBOR-stamped events survive transport. Only SSE has this today. ~45min.
+- [ ] ⭐ **Update SKILL.md eventtest FAQ** — The FAQ still says eventtest has "no
+      published tag"; it is now published. Replace with the `go get` command. ~10min.
 
 ---
 
-## Priority 1 — Consumer Experience
+## 🔥 4% Tier — High Impact, Slightly Larger
 
-- [ ] 🔥 **Publish `eventtest` to Go proxy as `v0.1.0`** — The #1 consumer pain point across
-      ALL feedback rounds (DiscordSync ×3, SwettySwipper ×2). Tag exists locally but is
-      not pushed. Run `git push origin event/v4/eventtest/v0.1.0`, then verify proxy fetch.
-      Also delete the wrong `event/v4/eventtest/v4.0.0` tag (violates Go versioning rules).
-- [ ] 🔥 **README "sales page" rewrite** — Per docs-health model, README should be the
-      end-user entry point: what this does, why it exists, how to get started in 3 steps.
-      Currently mixes internal docs with user-facing content. ~90min.
-- [ ] **CBOR-stamp tests for gRPC + watermill** — Cross-encoding round-trip tests proving
-      CBOR-stamped events survive transport. Only SSE has this coverage today. ~45min.
-- [ ] **Pre-commit hooks** — `fmt.Printf` ban in prod packages, api_surface.txt regen check,
-      `nix fmt --fail-on-change`. Via flake.nix. ~60min.
+- [ ] **Fix lint findings (76 issues)** — Mostly `ireturn` in `cmd/cqrs-lint` detector
+      constructors, plus a few `tagliatelle`/`modernize`/`revive`. Clean or explicitly
+      suppress with justification. ~60min.
+- [ ] **Add `scheduling.SQLTimerStore`** — Persistent deadline timers backed by `*sql.DB`.
+      Both major consumer feedback rounds asked for scheduling adoption; SQLite-only
+      memory store blocks production use. ~90min.
+- [ ] **Add `listing.SQLAggregateReader`** — SQL-backed aggregate listing reader so
+      listing works on real databases, not just in-memory. ~90min.
+- [ ] **Add `projectionhost.Host.LagDuration()`** — Built-in lag metric requested by
+      DiscordSync. Enables a single Prometheus gauge. ~20min.
+- [ ] **Compile-verify `docs/getting-started.md` examples** — Ensure every snippet
+      builds; add a CI step or test file to catch drift. ~30min.
 
 ---
 
-## Priority 2 — Post-v4.1 (breaking changes, new major version)
+## 20% Tier — Important, Can Queue
 
+- [ ] **README full "sales page" rewrite** — Per docs-health model, README should be
+      the end-user entry point: what this does, why it exists, how to get started in 3 steps.
+      ~90min.
 - [ ] **Deprecated API removal batch 2** — Remove 9 deprecated items: `middleware.{NewMetrics,
 CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}`,
       `catalog.Exporter` (non-generic), `storage/sql.{NewDBHandle, NewDBHandleFromDB}`.
       Breaking → v4.1 cut. ~60min.
 - [ ] **Postgres CI coverage matrix** — Add CI Postgres service or label `stack/postgres`
       experimental. ~60min.
+- [ ] **Add `docs/*/archive/README.md` files** — Explain what archived historical
+      artifacts are. Currently empty directories without guidance. ~20min.
 
 ---
 
-## Priority 3 — Public Release Readiness (NEEDS USER APPROVAL)
+## Priority — Public Release Readiness (NEEDS USER APPROVAL)
 
 > **These are irreversible. Do NOT execute without explicit user approval.**
 
@@ -96,7 +112,7 @@ CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}`,
 
 ## Rejected (with reasons)
 
-- **Strengthen envelope magic string (`"cqrs"` → `"cqrs-envelope-v1"`)** — The `"$"` JSON key
+- **Strengthen envelope magic string (`"cqrs" → "cqrs-envelope-v1"`)** — The `"$"` JSON key
   provides 99% of collision avoidance. Extra bytes per record for near-zero benefit.
 - **Composite keys in `SQLViewStore`** — Breaks `K fmt.Stringer` type parameter. Composite keys
   are relational territory — use `RelationalProjection` (supports junction tables, multi-table
@@ -117,7 +133,7 @@ CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}`,
 - **Integration test in `integration/` module** — Redundant with
   `projectionhost/versioned_journal_integration_test.go`.
 - **`storage/auditstore/` package** — Lying name. Renamed to "dispatch log" and kept in `storage/`.
-- **Split event/ module** — 27 importers, real cohesion. Explicitly decided in v4.
+- **Split `event/` module** — 27 importers, real cohesion. Explicitly decided in v4.
 
 ---
 
