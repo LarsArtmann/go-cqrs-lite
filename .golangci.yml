@@ -389,6 +389,8 @@ linters:
           - wsl_v5
           - contextcheck
           - ireturn
+          # sqlpkg.CloseRows is the project-wide rows.Close helper; sqlclosecheck cannot see through it.
+          - sqlclosecheck
       - path: encryption/(aesgcm|xchacha20|envelope)\.go$
         linters:
           - nlreturn

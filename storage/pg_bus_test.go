@@ -84,17 +84,16 @@ func newBusTestStore(t *testing.T) *storage.SQLEventStore {
 }
 
 func newBusWithSavedEvent(t *testing.T, eventType event.Type) (
-	bus *storage.PostgresBus, evt event.Event, listener *mockListener,
+	*storage.PostgresBus, event.Event, *mockListener,
 ) {
 	t.Helper()
 	store := newBusTestStore(t)
 	db, _ := storage.OpenSQLiteInMemory()
 	t.Cleanup(func() { _ = db.Close() })
 
-	listener = newMockListener()
+	listener := newMockListener()
 
-	var err error
-	bus, err = storage.NewPostgresBus(
+	bus, err := storage.NewPostgresBus(
 		db, store, listener,
 		storage.WithRefetchDelay(time.Millisecond),
 		storage.WithNotifyFunc(noopNotify),
@@ -106,7 +105,7 @@ func newBusWithSavedEvent(t *testing.T, eventType event.Type) (
 	t.Cleanup(func() { _ = bus.Close() })
 
 	aggID := id.NewAggregateID()
-	evt, err = event.NewEvent(eventType, aggID, "Test", event.Version(1), []byte(`{}`))
+	evt, err := event.NewEvent(eventType, aggID, "Test", event.Version(1), []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}

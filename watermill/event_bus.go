@@ -23,12 +23,15 @@ import (
 type EventBus struct {
 	closed bool
 	mu     sync.Mutex
+
+	subscriptionState
+
 	logger *slog.Logger
 	topic  string
 
+	backend    io.Closer
 	publisher  message.Publisher
 	subscriber message.Subscriber
-	backend    io.Closer
 
 	publishMiddleware []event.PublishMiddleware
 	middleware        []event.Middleware
@@ -36,8 +39,6 @@ type EventBus struct {
 	cachedHandler     event.Handler
 	allHandlers       []event.Handler
 	typeHandlers      map[event.Type][]event.Handler
-
-	subscriptionState
 }
 
 var (

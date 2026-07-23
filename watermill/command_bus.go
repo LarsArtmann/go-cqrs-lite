@@ -22,6 +22,9 @@ import (
 type CommandBus struct {
 	closed bool
 	mu     sync.Mutex
+
+	subscriptionState
+
 	logger *slog.Logger
 	topic  string
 
@@ -33,8 +36,6 @@ type CommandBus struct {
 	cachedHandler command.Handler
 	allHandlers   []command.Handler
 	typeHandlers  map[command.Type][]command.Handler
-
-	subscriptionState
 }
 
 var (
