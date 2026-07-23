@@ -41,18 +41,3 @@ require (
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 )
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v4 => ../../codec
-	github.com/larsartmann/go-cqrs-lite/command/v4 => ../../command
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 => ../../dedup
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 => ../../dispatcher
-	github.com/larsartmann/go-cqrs-lite/event/v4 => ../../event
-	github.com/larsartmann/go-cqrs-lite/id/v4 => ../../id
-	github.com/larsartmann/go-cqrs-lite/otel/v4 => ../../otel
-	github.com/larsartmann/go-cqrs-lite/query/v4 => ../../query
-	github.com/larsartmann/go-cqrs-lite/schema/v4 => ../../schema
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../../snapshot
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 => ../../storage/memory
-	github.com/larsartmann/go-cqrs-lite/testutil/v4 => ../../testutil
-)

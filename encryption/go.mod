@@ -28,7 +28,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.0.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
@@ -40,17 +39,4 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/tools v0.48.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-)
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/codec/v4 => ../codec
-	github.com/larsartmann/go-cqrs-lite/command/v4 => ../command
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 => ../dispatcher
-	github.com/larsartmann/go-cqrs-lite/event/v4 => ../event
-	github.com/larsartmann/go-cqrs-lite/id/v4 => ../id
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../metadata
-	github.com/larsartmann/go-cqrs-lite/query/v4 => ../query
-	github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../snapshot
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 => ../storage/memory
 )

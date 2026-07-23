@@ -2,8 +2,6 @@ module github.com/larsartmann/go-cqrs-lite/metadata/v4
 
 go 1.26.4
 
-replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../id
-
 require github.com/larsartmann/go-cqrs-lite/id/v4 v4.0.0-00010101000000-000000000000
 
 require (
