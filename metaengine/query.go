@@ -131,7 +131,7 @@ func (q QueryDecl[Q, R]) String() string {
 			names[i] = f.Field
 		}
 
-		filters = fmt.Sprintf(" filter=[%s]", joinStrings(names, ","))
+		filters = fmt.Sprintf(" filter=[%s]", strings.Join(names, ","))
 	}
 
 	sortStr := ""
@@ -141,19 +141,4 @@ func (q QueryDecl[Q, R]) String() string {
 
 	return fmt.Sprintf("%s: %s/%s%s%s%s",
 		q.Name, q.ADT, q.ReadPattern, filters, sortStr, pagination)
-}
-
-func joinStrings(parts []string, sep string) string {
-	if len(parts) == 0 {
-		return ""
-	}
-
-	out := parts[0]
-	var outSb142 strings.Builder
-	for _, p := range parts[1:] {
-		outSb142.WriteString(sep + p)
-	}
-	out += outSb142.String()
-
-	return out
 }

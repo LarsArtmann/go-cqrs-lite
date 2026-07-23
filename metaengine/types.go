@@ -42,15 +42,6 @@ type Cursor struct {
 	Value any
 }
 
-// Skip signals that an event does not apply to this projection.
-type Skip struct{}
-
-// remove is an internal sentinel for OnRemove folds.
-type remove struct{}
-
-// Remove marks a fold as a deletion. Use OnRemove[E](event) to register.
-func Remove[V any]() any { return remove{} }
-
 // FieldPath describes a typed field on a struct, used for filter/sort inference.
 type FieldPath struct {
 	Struct string

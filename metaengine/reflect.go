@@ -1,7 +1,6 @@
 package metaengine
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -151,15 +150,3 @@ func getFieldValue(v any, fieldName string) any {
 	return f.Interface()
 }
 
-// describeType returns a human-readable description of a type for diagnostics.
-func describeType(t reflect.Type) string {
-	if t == nil {
-		return "<nil>"
-	}
-
-	if t.Name() != "" && t.Name() != t.Kind().String() {
-		return fmt.Sprintf("%s (%s)", t.Name(), t.Kind())
-	}
-
-	return t.String()
-}
