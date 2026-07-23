@@ -388,6 +388,7 @@ linters:
           - nlreturn
           - wsl_v5
           - contextcheck
+          - ireturn
       - path: encryption/(aesgcm|xchacha20|envelope)\.go$
         linters:
           - nlreturn
@@ -513,6 +514,21 @@ linters:
       - path: testhelpers/
         linters:
           - nlreturn
+      - path: kv/
+        linters:
+          - ireturn
+      - path: otel/
+        linters:
+          - ireturn
+      - path: stack/
+        linters:
+          - ireturn
+      - path: watermill/
+        linters:
+          - ireturn
+      - path: encryption/
+        linters:
+          - ireturn
       - path: sync/
         linters:
           - modernize
