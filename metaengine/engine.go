@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -81,6 +82,7 @@ type Engine interface {
 
 // MemoryEngine implements all ADT backends for testing and development.
 type MemoryEngine struct {
+	mu   sync.RWMutex
 	data *memData
 }
 
@@ -120,7 +122,7 @@ func (m *MemoryEngine) Profile() EngineProfile {
 	}
 }
 
-func (m *MemoryEngine) getMap(col string) map[any]any {
+func (m *MemoryEngine) getMapLocked(col string) map[any]any {
 	if m.data.maps[col] == nil {
 		m.data.maps[col] = make(map[any]any)
 	}
@@ -129,19 +131,25 @@ func (m *MemoryEngine) getMap(col string) map[any]any {
 }
 
 func (m *MemoryEngine) MapSet(col string, key any, value any) error {
-	m.getMap(col)[key] = value
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.getMapLocked(col)[key] = value
 
 	return nil
 }
 
 func (m *MemoryEngine) MapGet(col string, key any) (any, bool, error) {
-	v, ok := m.getMap(col)[key]
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	v, ok := m.getMapLocked(col)[key]
 
 	return v, ok, nil
 }
 
 func (m *MemoryEngine) MapDelete(col string, key any) error {
-	delete(m.getMap(col), key)
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.getMapLocked(col), key)
 
 	return nil
 }
@@ -153,7 +161,14 @@ func (m *MemoryEngine) MapScan(
 	sortField string,
 	limit int,
 ) ([]any, error) {
-	store := m.getMap(col)
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	store := m.getMapLocked(col)
+
+	fetchLimit := limit
+	if limit > 0 {
+		fetchLimit = limit + 1
+	}
 
 	var results []any
 
@@ -163,6 +178,9 @@ func (m *MemoryEngine) MapScan(
 		}
 
 		results = append(results, v)
+		if fetchLimit > 0 && len(results) >= fetchLimit {
+			break
+		}
 	}
 
 	if sortField != "" {
@@ -171,14 +189,12 @@ func (m *MemoryEngine) MapScan(
 		})
 	}
 
-	if limit > 0 && len(results) > limit {
-		return results[:limit], nil
-	}
-
 	return results, nil
 }
 
 func (m *MemoryEngine) SetAdd(col string, key any) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if m.data.sets[col] == nil {
 		m.data.sets[col] = make(map[any]struct{})
 	}
@@ -189,12 +205,16 @@ func (m *MemoryEngine) SetAdd(col string, key any) error {
 }
 
 func (m *MemoryEngine) SetContains(col string, key any) (bool, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	_, ok := m.data.sets[col][key]
 
 	return ok, nil
 }
 
 func (m *MemoryEngine) CounterIncrement(col string, deltas Delta) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if m.data.counters[col] == nil {
 		m.data.counters[col] = make(map[string]int64)
 	}
@@ -207,13 +227,15 @@ func (m *MemoryEngine) CounterIncrement(col string, deltas Delta) error {
 }
 
 func (m *MemoryEngine) CounterGet(col string) (map[string]int64, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	result := make(map[string]int64, len(m.data.counters[col]))
 	maps.Copy(result, m.data.counters[col])
 
 	return result, nil
 }
 
-func (m *MemoryEngine) getGraph(col string) *memGraph {
+func (m *MemoryEngine) getGraphLocked(col string) *memGraph {
 	if m.data.graphs[col] == nil {
 		m.data.graphs[col] = &memGraph{adjacency: make(map[any][]any)}
 	}
@@ -222,7 +244,9 @@ func (m *MemoryEngine) getGraph(col string) *memGraph {
 }
 
 func (m *MemoryEngine) GraphAddEdge(col string, edge Edge) error {
-	g := m.getGraph(col)
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	g := m.getGraphLocked(col)
 	g.adjacency[edge.From] = append(g.adjacency[edge.From], edge.To)
 	g.adjacency[edge.To] = append(g.adjacency[edge.To], edge.From)
 
@@ -230,7 +254,9 @@ func (m *MemoryEngine) GraphAddEdge(col string, edge Edge) error {
 }
 
 func (m *MemoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, error) {
-	g := m.getGraph(col)
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	g := m.getGraphLocked(col)
 	visited := map[any]bool{node: true}
 	frontier := []any{node}
 	result := []any{}
