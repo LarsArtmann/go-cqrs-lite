@@ -431,6 +431,31 @@
               (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run main.go)
             '';
 
+            check-printf = mkApp "check-printf" [ pkgs.gnugrep pkgs.findutils ] ''
+              echo "==> Checking for fmt.Printf in production code"
+              if ${pkgs.gnugrep}/bin/grep -R 'fmt\.Printf' --include='*.go' . \
+                  | ${pkgs.gnugrep}/bin/grep -v '_test.go' \
+                  | ${pkgs.gnugrep}/bin/grep -v '/example/' \
+                  | ${pkgs.gnugrep}/bin/grep -v '/testdata/' \
+                  | ${pkgs.gnugrep}/bin/grep -v '/cmd/' \
+                  | ${pkgs.gnugrep}/bin/grep -v 'doc.go'; then
+                echo "ERROR: fmt.Printf found in production code (allowed in tests/examples/cmd/doc comments)"
+                exit 1
+              fi
+              echo "✅ No fmt.Printf in production code"
+            '';
+
+            pre-commit = mkApp "pre-commit" [ pkgs.bash pkgs.gnugrep pkgs.findutils ] ''
+              ${pkgs.bash}/bin/bash scripts/pre-commit.sh
+            '';
+
+            install-hooks = mkApp "install-hooks" [ pkgs.bash ] ''
+              mkdir -p .git/hooks
+              cp scripts/pre-commit.sh .git/hooks/pre-commit
+              chmod +x .git/hooks/pre-commit
+              echo "Installed .git/hooks/pre-commit"
+            '';
+
             ci = mkApp "ci" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils ] ''
               ${pkgs.bash}/bin/bash -c '
                 set -e
