@@ -460,91 +460,13 @@ with filter/access patterns on metadata fields.** No special machinery.
 
 ---
 
-## 9. Auth Is Structural, Not Behavioral
+## 9. Auth Is Upstream's Concern
 
-Auth is orthogonal to the meta-engine. It lives at the boundaries. But the Event-Query model
-makes it cleaner.
-
-### The Three Layers of Auth
-
-```
-┌──────────────────────────────────────────────────────────┐
-│ 1. AUTHENTICATION (who are you?)                          │
-│    Transport layer: HTTP middleware, gRPC interceptors    │
-│    Extracts: Principal{ID, Roles, TenantID, Claims}       │
-│    The meta-engine NEVER sees this. Pure infrastructure.  │
-├──────────────────────────────────────────────────────────┤
-│ 2. COMMAND AUTHORIZATION (can you DO this?)               │
-│    Before the decider. Pure policy function.              │
-│    (Principal, Command) → allowed / denied                │
-│    The decider never sees unauthorized commands.          │
-├──────────────────────────────────────────────────────────┤
-│ 3. QUERY AUTHORIZATION (can you SEE this?)                │
-│    The Principal flows into the query input as scope.     │
-│    "Show me users in MY tenant" = tenant_id is a field.   │
-│    The planner optimizes it like any other field.         │
-└──────────────────────────────────────────────────────────┘
-```
-
-### Why Auth Doesn't Need Anything New
-
-The meta-engine optimizes storage based on declared access patterns. Auth just produces more
-access patterns — they look identical to the planner:
-
-```go
-// Without auth:
-type ListUsers struct { Limit int }
-
-// With auth (tenant-scoped):
-type ListUsers struct {
-    TenantID TenantID  // ← REQUIRED field. Injected by transport layer from Principal.
-    Limit    int
-}
-```
-
-The planner sees `TenantID` in the query input and treats it like any filter field: creates a
-composite index, partitions the projection, optimizes the access path. **It doesn't know it's
-auth. It's just a field.**
-
-### The Security Guarantee
-
-The Event-Query model makes auth **structurally enforced, not conventionally:**
-
-```go
-// The query input type FORCES scope. There's no "ListAllUsers" without a tenant.
-type ListUsers struct {
-    TenantID TenantID  // ← REQUIRED field. No way to query without it.
-    Limit    int
-}
-```
-
-This is **make-impossible-states-unrepresentable** applied to security. A query that lacks
-tenant scope doesn't compile — `TenantID` is a required field. The developer can't
-accidentally forget auth scoping the way they can with `if currentUser.Role != "admin"`
-sprinkled in handlers.
-
-### Multi-Tenant at the Storage Level
-
-The planner treats mandatory scope fields (like `TenantID`) as prefix keys:
-
-```
-Projection: users
-  Query input: {TenantID: "acme", ...}
-  Planner sees: TenantID is in EVERY query for this projection
-  → Composite index with TenantID as prefix: idx_tenant_status (tenant_id, status)
-  → Or partition key in Pebble: key = "tenant:acme:user:123"
-  → Or row-level partitioning in Postgres: PARTITION BY tenant_id
-```
-
-### Summary
-
-| Auth concern                   | Where it lives                           | Meta-engine involvement                            |
-| ------------------------------ | ---------------------------------------- | -------------------------------------------------- |
-| Authentication (who)           | Transport middleware                     | None                                               |
-| Command authorization (can do) | Command handler policy                   | None                                               |
-| Query scope (can see)          | Query input types (required fields)      | Optimizes the field like any other index candidate |
-| Tenant isolation               | Mandatory prefix key in every projection | Indexes/partitions on it automatically             |
-| RBAC/ABAC                      | Policy functions before decider          | None                                               |
+Auth is not the meta-engine's problem. The meta-engine stores identity projections like any
+other data — it doesn't know or care that a field is an auth scope. Authentication (who are
+you?), command authorization (can you do this?), and enforcement (RBAC/ABAC) all live upstream
+in the transport layer and command handler middleware. The meta-engine just stores and queries
+data.
 
 ---
 
@@ -554,7 +476,7 @@ Commands and Queries are messages with a type, payload, metadata, and timestamp.
 append-only logs.** The meta-engine already knows how to optimize append-only logs.
 
 ```
-THREE LOGS flow through the system:
+FOUR LOGS flow through the system:
 
 1. Command log:    CommandSucceeded{Type, Payload, Metadata, Timestamp}
                    CommandRejected{Type, Payload, Reason, Metadata, Timestamp}
@@ -562,6 +484,10 @@ THREE LOGS flow through the system:
 2. Query log:      QueryExecuted{Type, Payload, Duration, ResultHash, Metadata}
 
 3. Domain event log: UserCreated{...}, UserSuspended{...}, Friendship{...}
+
+4. Session log:    SessionStarted{ActorID, Token, Origin, IPAddress, At}
+                   SessionEnded{ActorID, Token, At, Reason}
+                   SessionRevoked{ActorID, Token, At, By}
 ```
 
 All three are the same shape (Log ADT). All three get the same treatment — they can be
