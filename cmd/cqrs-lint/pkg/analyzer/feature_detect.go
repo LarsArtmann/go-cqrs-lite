@@ -9,7 +9,6 @@ import (
 // describing which go-cqrs-lite features the consumer uses. This replaces the
 // per-detector heuristics (isLocalOnlyProject, hasTombstoneLikeEvents,
 // hasDispatch) with one centralized declaration that all detectors consult.
-//nolint:gocyclo // feature detection combines import + AST heuristics
 func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 	fp := FeatureProfile{
 		Store:       StoreUnknown,

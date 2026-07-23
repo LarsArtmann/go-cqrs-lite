@@ -142,7 +142,6 @@ func main() {
 	cli.ExecuteAndExit(ctx)
 }
 
-//nolint:gocyclo // CLI coordinator with many conditional output modes; kept sequential for clarity
 func run(ctx context.Context, cfg *AppConfig) error {
 	start := time.Now()
 
