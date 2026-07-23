@@ -127,4 +127,4 @@ type Engine interface {
 }
 ```
 
-`MemoryEngine` implements all backends for testing/CI deployments.
+The memory engine (constructed via `NewMemoryEngine()`) implements all backends for testing/CI deployments.
