@@ -14,6 +14,7 @@ import (
 // S002: Missing encryption for sensitive payloads.
 // Detects event payload structs with PII fields (email, SSN, phone) without encryption middleware.
 // Downgrades to INFO when the project appears to be local-only (SQLite, no HTTP server).
+//nolint:ireturn // factory returns public interface
 func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"S002-missing-encryption-for-sensitive-payloads",
@@ -159,6 +160,7 @@ func findPIIInPayloadStructs(
 // Detects event stores in production without signing middleware (tamper detection).
 // Suppressed for local-only systems (no server) — tamper detection matters for
 // shared or multi-user stores where events cross trust boundaries.
+//nolint:ireturn // factory returns public interface
 func NewS003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"S003-missing-event-signing",

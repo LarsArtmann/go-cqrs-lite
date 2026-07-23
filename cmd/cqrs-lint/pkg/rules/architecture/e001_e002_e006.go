@@ -13,6 +13,7 @@ import (
 
 // E001: Layer violation.
 // Detects Tier 0 modules (id, codec, kv) importing Tier 3+ modules (decider, middleware).
+//nolint:ireturn // factory returns public interface
 func NewE001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"E001-layer-violation",
@@ -84,6 +85,7 @@ func NewE001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // E002: Circular dependency.
 // Detects packages in the analyzed project that import each other.
+//nolint:ireturn // factory returns public interface
 func NewE002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"E002-circular-dependency",
@@ -142,6 +144,7 @@ func NewE002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // E006: Event without projection.
 // Detects event types emitted by deciders but not handled by any projection.
+//nolint:ireturn // factory returns public interface
 func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"E006-event-without-projection",

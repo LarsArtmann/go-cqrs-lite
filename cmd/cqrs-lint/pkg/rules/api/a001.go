@@ -11,6 +11,7 @@ import (
 
 // A001: Manual command interface.
 // Detects command structs with manual Type()/AggregateID()/ID() methods instead of embedding *command.BasicCommand.
+//nolint:ireturn // factory returns public interface
 func NewA001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A001-manual-command-interface",

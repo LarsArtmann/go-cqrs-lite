@@ -10,6 +10,7 @@ import (
 )
 
 // Detects json.Unmarshal(evt.Payload(), ...) instead of event.DecodePayloadAuto[T](evt).
+//nolint:ireturn // factory returns public interface
 func NewC005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C005-raw-json-unmarshal-payload",

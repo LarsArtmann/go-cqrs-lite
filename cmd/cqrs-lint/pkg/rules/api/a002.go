@@ -11,6 +11,7 @@ import (
 
 // A002: event.NewEvent with json.Marshal argument.
 // Detects event.NewEvent(type, id, aggType, ver, json.Marshal(payload)) instead of event.New.
+//nolint:ireturn // factory returns public interface
 func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A002-newevent-manual-marshal",

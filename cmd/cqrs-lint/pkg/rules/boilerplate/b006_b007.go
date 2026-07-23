@@ -15,6 +15,7 @@ import (
 // B006: Duplicate foreign-key stub SQL.
 // Detects repeated string literals containing SQL REFERENCES clauses
 // that are copy-pasted instead of centralized.
+//nolint:ireturn // factory returns public interface
 func NewB006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B006-duplicate-fk-stub-sql",
@@ -114,6 +115,7 @@ var nonCQRSRegisterPackages = map[string]bool{
 	"grpc":  true, // grpc-go Server.Register (proto service registration)
 }
 
+//nolint:ireturn // factory returns public interface
 func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B007-repeated-handler-registration",

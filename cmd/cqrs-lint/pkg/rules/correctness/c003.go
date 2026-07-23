@@ -10,6 +10,7 @@ import (
 )
 
 // Detects fold functions whose switch default case returns nil error.
+//nolint:ireturn // factory returns public interface
 func NewC003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C003-silent-unknown-event-fold",

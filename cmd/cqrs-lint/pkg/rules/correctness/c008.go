@@ -37,6 +37,7 @@ var moneyKeywords = []string{
 	"charge", "fee", "salary", "payroll", "fund", "deposit",
 }
 
+//nolint:ireturn // factory returns public interface
 func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C008-float64-for-money",

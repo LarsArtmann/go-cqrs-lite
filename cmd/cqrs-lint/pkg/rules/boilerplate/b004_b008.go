@@ -13,6 +13,7 @@ import (
 
 // B004: Command constructor boilerplate.
 // Detects manual command construction with repetitive field assignment.
+//nolint:ireturn // factory returns public interface
 func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B004-command-constructor-boilerplate",
@@ -61,6 +62,7 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // is matched by the last identifier segment of its FuncName, so a method
 // receiver or package qualifier does not prevent suppression. See
 // browser-history feedback (B005 latent gap).
+//nolint:ireturn // factory returns public interface
 func NewB005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B005-fold-switch-boilerplate",
@@ -102,6 +104,7 @@ func NewB005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // B008: Manual retry implementation.
 // Detects hand-written retry loops instead of using retry.Do.
+//nolint:ireturn // factory returns public interface
 func NewB008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B008-manual-retry-implementation",

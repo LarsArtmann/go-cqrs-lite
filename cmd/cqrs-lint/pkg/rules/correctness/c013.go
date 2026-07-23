@@ -20,6 +20,7 @@ import (
 // or in structs defined in files named events.go/payloads.go.
 //
 // Also detects time.Time fields in anonymous nested structs within event payloads.
+//nolint:ireturn // factory returns public interface
 func NewC013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C013-time-time-in-event-payload",

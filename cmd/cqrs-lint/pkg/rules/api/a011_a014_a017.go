@@ -16,6 +16,7 @@ import (
 // Detects event payload structs (named *Created, *Updated, *Deleted, *Event)
 // with mixed camelCase and snake_case JSON tags.
 
+//nolint:ireturn // factory returns public interface
 func NewA011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	suffixes := []string{"Created", "Updated", "Deleted", "Removed", "Added", "Changed", "Event"}
 
@@ -112,6 +113,7 @@ func countJSONKeyCasings(st *ast.StructType) (int, int) {
 // A014: Deprecated API usage.
 // Detects calls to deprecated APIs: event.NewEvent (use event.New),
 // dispatcher.Register (use RegisterTyped).
+//nolint:ireturn // factory returns public interface
 func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	deprecatedAPIs := map[string]string{
 		"NewEvent": "event.New (auto-marshaling, simpler API)",
@@ -196,6 +198,7 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // A017: Missing snapshot strategy.
 // Detects repositories created without a snapshot store option.
+//nolint:ireturn // factory returns public interface
 func NewA017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A017-missing-snapshot-strategy",

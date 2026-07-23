@@ -13,6 +13,7 @@ import (
 
 // A009: Missing stack preset.
 // Detects projects that don't use any stack/ preset (stack/sqlite, stack/pebble, etc.).
+//nolint:ireturn // factory returns public interface
 func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A009-missing-stack-preset",
@@ -80,6 +81,7 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // A010: Custom error types duplicating go-error-family.
+//nolint:ireturn // factory returns public interface
 func NewA010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A010-custom-error-types",
@@ -158,6 +160,7 @@ func NewA010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // Only flags when the project's event types include tombstone-like names
 // (Deleted, Removed, Archived) — domains without soft-delete don't need it.
 // Detection now consults ctx.FeatureProfile.HasSoftDelete (centralized).
+//nolint:ireturn // factory returns public interface
 func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A012-missing-tombstone-handling",
@@ -201,6 +204,7 @@ func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // A013: Pointer vs value BasicCommand embedding.
+//nolint:ireturn // factory returns public interface
 func NewA013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A013-pointer-vs-value-basic-command",

@@ -12,6 +12,7 @@ import (
 )
 
 // Detects event.Version(x.Int()+1) instead of x.Increment().
+//nolint:ireturn // factory returns public interface
 func NewC006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C006-manual-version-arithmetic",

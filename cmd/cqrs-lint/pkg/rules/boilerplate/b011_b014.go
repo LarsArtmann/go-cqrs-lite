@@ -13,6 +13,7 @@ import (
 
 // B011: must-marshal helper.
 // Detects helper functions that panic on marshal errors.
+//nolint:ireturn // factory returns public interface
 func NewB011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B011-must-marshal-helper",
@@ -91,6 +92,7 @@ func NewB011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // B013: Missing correlation enricher.
 // Detects bus/repository setups without WithCommandCausality.
+//nolint:ireturn // factory returns public interface
 func NewB013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B013-missing-correlation-enricher",
@@ -162,6 +164,7 @@ func NewB013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // Detects bus/dispatcher setups without tracing middleware.
 // Suppressed for local-only systems (no server) — distributed tracing adds
 // overhead without value for single-user CLI tools.
+//nolint:ireturn // factory returns public interface
 func NewB014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B014-missing-otel-middleware",

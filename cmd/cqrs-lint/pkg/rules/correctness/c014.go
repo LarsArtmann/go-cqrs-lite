@@ -15,6 +15,7 @@ import (
 // time.Local introduces server-local timezone dependencies that cause
 // silent data corruption when events cross timezone boundaries.
 // Use time.UTC (or event.Instant) instead.
+//nolint:ireturn // factory returns public interface
 func NewC014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C014-time-local-usage",

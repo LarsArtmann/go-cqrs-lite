@@ -16,6 +16,7 @@ const toolName finding.ToolName = "cqrs-lint"
 
 // B001: Single-event helper pattern.
 // Detects helper functions that wrap event.New/NewEvent to create a single event slice.
+//nolint:ireturn // factory returns public interface
 func NewB001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B001-single-event-helper",
@@ -102,6 +103,7 @@ func NewB001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // B002: Manual repository wiring.
 // Detects manual sequence of NewEventStore + NewEventBus + NewRepository calls.
+//nolint:ireturn // factory returns public interface
 func NewB002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B002-manual-repository-wiring",
@@ -170,6 +172,7 @@ func NewB002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // B003: SubscribeAll with large switch.
 // Detects bus.SubscribeAll with >5 switch cases (should be separate projections).
+//nolint:ireturn // factory returns public interface
 func NewB003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B003-subscribeall-large-switch",

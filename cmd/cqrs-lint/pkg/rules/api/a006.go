@@ -12,6 +12,7 @@ import (
 
 // A006: Adapter layer wrapping.
 // Detects WrapEvent/UnwrapEvent/ToEvent adapter methods that add unnecessary indirection.
+//nolint:ireturn // factory returns public interface
 func NewA006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A006-adapter-layer-wrapping",

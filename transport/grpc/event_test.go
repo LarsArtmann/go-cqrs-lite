@@ -229,7 +229,8 @@ func TestEventPubSub_PreservesCBOREncoding(t *testing.T) {
 
 	aggID := id.NewAggregateID()
 
-	evt, err := event.New("user.created", aggID, "User", event.Version(1),
+	evt, err := event.New(
+		"user.created", aggID, "User", event.Version(1),
 		userCreated{Name: "Alice"},
 		event.WithCodec(codec.CBORCodec{}),
 	)

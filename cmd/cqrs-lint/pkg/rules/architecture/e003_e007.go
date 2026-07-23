@@ -14,6 +14,7 @@ import (
 // E003: Missing module boundary.
 // Detects packages that mix commands, events, folds, and projections —
 // suggesting a missing module boundary.
+//nolint:ireturn // factory returns public interface
 func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"E003-missing-module-boundary",
@@ -97,6 +98,7 @@ func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // request DTOs (LoginRequest, RegisterRequest) that are not CQRS queries.
 // Confidence is Low because query registration can happen via patterns the
 // analyzer doesn't track (e.g., direct dispatcher.Register with a string type).
+//nolint:ireturn // factory returns public interface
 func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"E007-query-without-handler",
