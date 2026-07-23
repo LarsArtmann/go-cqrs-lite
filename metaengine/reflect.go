@@ -84,7 +84,7 @@ func extractKeyValueByType(input any, keyType reflect.Type) any {
 
 	t := v.Type()
 
-	var foundIdx int = -1
+	foundIdx := -1
 
 	for i := range t.NumField() {
 		if !t.Field(i).IsExported() {
@@ -134,8 +134,8 @@ func extractDepthFromInput(input any) int {
 func detectPagination(input any) bool {
 	fields := reflectFields(input)
 
-	limitType := reflect.TypeOf(int(0)) // untyped int literal matched by int field
-	cursorPtrType := reflect.TypeOf((*Cursor)(nil))
+	limitType := reflect.TypeFor[int]() // untyped int literal matched by int field
+	cursorPtrType := reflect.TypeFor[*Cursor]()
 
 	for _, f := range fields {
 		if f.Type == limitType && f.Name == "Limit" {
@@ -157,8 +157,8 @@ func detectPagination(input any) bool {
 		return false
 	}
 
-	for i := range t.NumField() {
-		field := t.Field(i)
+	for field := range t.Fields() {
+		field := field
 		switch field.Name {
 		case "Limit":
 			if field.Type.Kind() == reflect.Int {
@@ -281,7 +281,7 @@ func collectionResultInfo(t reflect.Type) (*colResultInfo, bool) {
 	info := &colResultInfo{cursorFieldIdx: -1}
 	foundSlice := false
 
-	cursorType := reflect.TypeOf((*Cursor)(nil))
+	cursorType := reflect.TypeFor[*Cursor]()
 
 	for i := range t.NumField() {
 		f := t.Field(i)
@@ -309,6 +309,7 @@ func collectionResultInfo(t reflect.Type) (*colResultInfo, bool) {
 
 func isCollectionResult[R any]() bool {
 	var zero R
+
 	_, ok := collectionResultInfo(reflect.TypeOf(zero))
 
 	return ok

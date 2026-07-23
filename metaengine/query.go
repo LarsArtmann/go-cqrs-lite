@@ -52,6 +52,7 @@ type sortAccessor struct {
 func FilterOn[R any, T any](accessor func(r R) T) QueryOption {
 	return func(c *QueryConfig) {
 		var zero T
+
 		c.filterAccessors = append(c.filterAccessors, filterAccessor{
 			closure:    accessor,
 			returnType: reflect.TypeOf(zero),
@@ -73,7 +74,7 @@ func SortOn[R any, T any](accessor func(r R) T) QueryOption {
 // QueryDecl is a fully analyzed query declaration.
 // Each query owns its own folds, ADT, and projection — there is no shared
 // ReadModel. This follows the design doc principle: "each query has its own
-// independent projection."
+// independent projection.".
 type QueryDecl[Q any, R any] struct {
 	Name          string
 	Folds         []Fold
@@ -103,6 +104,7 @@ type QueryDecl[Q any, R any] struct {
 // the MustCompile convention for package-level declarations.
 func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 	cfg := QueryConfig{}
+
 	var folds []Fold
 
 	for _, arg := range args {
@@ -211,6 +213,7 @@ func (q QueryDecl[Q, R]) String() string {
 	}
 
 	filters := ""
+
 	if len(q.Filters) > 0 {
 		names := make([]string, len(q.Filters))
 		for i, f := range q.Filters {

@@ -88,6 +88,7 @@ func findUserQuery() QueryDecl[FindUser, FindUserResult] {
 		}),
 		On(UserSuspended{}, func(e UserSuspended, prev FindUserResult) FindUserResult {
 			prev.Status = "suspended"
+
 			return prev
 		}),
 		On(UserDeleted{}, Remove[FindUserResult]()),
@@ -115,6 +116,7 @@ func listByStatusQuery() QueryDecl[ListByStatus, ListByStatusResult] {
 		}),
 		On(UserSuspended{}, func(e UserSuspended, prev FindUserResult) FindUserResult {
 			prev.Status = "suspended"
+
 			return prev
 		}),
 		On(UserDeleted{}, Remove[FindUserResult]()),

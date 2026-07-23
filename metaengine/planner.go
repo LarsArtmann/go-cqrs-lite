@@ -272,8 +272,10 @@ func checkWriteAmplification(queries map[string]queryRuntime) Diagnostics {
 	}
 
 	var diags Diagnostics
+
 	if maxAmp > 3 {
 		var heavy []string
+
 		for evt, count := range eventCount {
 			if count == maxAmp {
 				heavy = append(heavy, evt)

@@ -66,7 +66,7 @@ type removeSignal struct {
 // The key is auto-derived by scanning the event struct for fields matching
 // the insert fold's key type.
 func Remove[V any]() removeSignal {
-	return removeSignal{valueType: reflect.TypeOf((*V)(nil)).Elem()}
+	return removeSignal{valueType: reflect.TypeFor[V]()}
 }
 
 // On declares a fold: how an event of type E updates the query's projection.
@@ -147,9 +147,9 @@ func classifySingleReturn[E any](
 	outType reflect.Type,
 	handler any,
 ) Fold {
-	deltaType := reflect.TypeOf((*Delta)(nil)).Elem()
-	edgeType := reflect.TypeOf(Edge{})
-	skipType := reflect.TypeOf(Skip{})
+	deltaType := reflect.TypeFor[Delta]()
+	edgeType := reflect.TypeFor[Edge]()
+	skipType := reflect.TypeFor[Skip]()
 
 	switch outType {
 	case deltaType:
@@ -185,6 +185,7 @@ func classifySingleReturn[E any](
 
 func verifyEventParam[E any](ht reflect.Type, eventType string) error {
 	var sample E
+
 	expectedType := reflect.TypeOf(sample)
 	if expectedType.Kind() == reflect.Pointer {
 		expectedType = expectedType.Elem()
@@ -313,6 +314,7 @@ func deriveKeys(folds []Fold) error {
 	for _, f := range folds {
 		if f.Kind == FoldInsert {
 			keyType = f.keyType
+
 			break
 		}
 	}

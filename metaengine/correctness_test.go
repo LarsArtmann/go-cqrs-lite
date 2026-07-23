@@ -110,6 +110,7 @@ func TestRegression_ConcurrentFoldUpdate(t *testing.T) {
 		}),
 		On(CounterEvent{}, func(e CounterEvent, prev CounterValue) CounterValue {
 			prev.Total += e.Amount
+
 			return prev
 		}),
 	)
@@ -300,6 +301,7 @@ func TestOnClassification(t *testing.T) {
 		}), FoldInsert},
 		{"update (e,prev)→V", On(sample, func(e Event, prev Result) Result {
 			prev.Name = e.Name
+
 			return prev
 		}), FoldUpdate},
 		{"set K", On(sample, func(e Event) string { return e.ID }), FoldSet},

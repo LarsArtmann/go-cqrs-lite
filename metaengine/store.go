@@ -315,7 +315,7 @@ func extractValueByType(input any, targetType reflect.Type) any {
 
 	metaNames := map[string]bool{"Limit": true, "After": true, "Depth": true}
 
-	var foundIdx int = -1
+	foundIdx := -1
 
 	for i := range t.NumField() {
 		if !t.Field(i).IsExported() || metaNames[t.Field(i).Name] {
