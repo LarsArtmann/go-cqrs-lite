@@ -90,7 +90,7 @@ func New(queryType Type, opts ...Option) (*BasicQuery, error) {
 
 	q := &BasicQuery{
 		queryType: queryType,
-		metadata:  Metadata{},
+		metadata:  metadata.New(),
 	}
 
 	for _, opt := range opts {

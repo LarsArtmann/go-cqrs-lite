@@ -285,8 +285,13 @@ func (s *sqlSink) Increment(
 		}
 	}
 
-	allCols := append(keyCols, counterCol)
-	allVals := append(keyVals, delta)
+	allCols := make([]string, 0, len(keyCols)+1)
+	allCols = append(allCols, keyCols...)
+	allCols = append(allCols, counterCol)
+
+	allVals := make([]any, 0, len(keyVals)+1)
+	allVals = append(allVals, keyVals...)
+	allVals = append(allVals, delta)
 
 	pholders := placeholders(s.dialect, len(allCols))
 

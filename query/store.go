@@ -79,7 +79,7 @@ func NewPersistedQuery(
 		queryType:  queryType,
 		receivedAt: time.Now(),
 		payload:    slices.Clone(payload),
-		metadata:   Metadata{},
+		metadata:   metadata.New(),
 	}
 
 	for _, opt := range opts {
