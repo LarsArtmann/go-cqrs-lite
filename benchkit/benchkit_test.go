@@ -1063,3 +1063,84 @@ var errTestFactory = errTest("factory failed")
 type errTest string
 
 func (e errTest) Error() string { return string(e) }
+
+// ── Concurrency override test ──
+
+func TestConfig_ConcurrencyOverride(t *testing.T) {
+	t.Parallel()
+
+	// Profile says 1 goroutine, Config overrides to 8.
+	profile := Profile{
+		Name: "test-override", Streams: 100, EventsPerStream: 5,
+		Concurrency: 1, ReadRatio: 0.2, BatchSize: 1,
+	}
+
+	result := mustRun(t, Config{
+		Profile:     profile,
+		PayloadSize: 64,
+		Concurrency: 8, // override profile's 1
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.TotalEvents != profile.TotalEvents() {
+		t.Errorf("TotalEvents = %d, want %d", result.TotalEvents, profile.TotalEvents())
+	}
+
+	if result.WriteLatency.Count == 0 {
+		t.Error("WriteLatency.Count is 0")
+	}
+}
+
+// ── SQLite ReadFromTime test ──
+
+func TestRun_SQLite_ReadFromTime(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Backend:     "sqlite",
+		DiskPath:    dir,
+	}, func() (*stack.Bundle, error) {
+		return sqlite.New(filepath.Join(dir, "bench.db"))
+	})
+
+	if result.ReadAllTime <= 0 {
+		t.Error("ReadAllTime should be positive for SQLite (Journal supported)")
+	}
+
+	if result.ReadFromTime <= 0 {
+		t.Error("ReadFromTime should be positive for SQLite (SeekableJournal supported)")
+	}
+}
+
+// ── Pebble DiskSizer interface test ──
+
+func TestRun_Pebble_DiskSizerInterface(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	// When Pebble registers WithDiskSize, DiskSize() returns the precise
+	// on-disk size from Pebble's internal metrics. Since we don't set
+	// DiskPath, the only way to get non-zero disk bytes is via DiskSizer.
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 128,
+		Backend:     "pebble",
+		// Deliberately NOT setting DiskPath — DiskSizer must provide the value.
+	}, func() (*stack.Bundle, error) {
+		b, err := pebble.New(dir)
+		if err != nil {
+			return nil, err
+		}
+
+		return b.Bundle, nil
+	})
+
+	if result.Disk.DatabaseBytes <= 0 {
+		t.Errorf("Disk.DatabaseBytes = %d, expected > 0 via DiskSizer (no DiskPath set)",
+			result.Disk.DatabaseBytes)
+	}
+}

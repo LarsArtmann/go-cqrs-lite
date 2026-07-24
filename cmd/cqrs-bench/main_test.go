@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -140,5 +141,149 @@ func TestCLI_Compare(t *testing.T) {
 
 	if !strings.Contains(output, "| memory |") {
 		t.Error("compare markdown output missing memory row")
+	}
+}
+
+func TestCLI_UnknownProfile(t *testing.T) {
+	t.Parallel()
+
+	bin := buildBinary(t)
+
+	out, err := exec.Command(
+		bin, "run", "--backend", "memory", "--profile", "bogus",
+	).CombinedOutput()
+
+	if err == nil {
+		t.Fatal("expected non-zero exit for unknown profile")
+	}
+
+	if !strings.Contains(string(out), "unknown profile") {
+		t.Errorf("output should mention 'unknown profile': %s", out)
+	}
+}
+
+func TestCLI_UnknownBackend(t *testing.T) {
+	t.Parallel()
+
+	bin := buildBinary(t)
+
+	out, err := exec.Command(
+		bin, "run", "--backend", "bogus", "--profile", "dev",
+	).CombinedOutput()
+
+	if err == nil {
+		t.Fatal("expected non-zero exit for unknown backend")
+	}
+
+	if !strings.Contains(string(out), "unknown backend") {
+		t.Errorf("output should mention 'unknown backend': %s", out)
+	}
+}
+
+func TestCLI_CodecCBOR(t *testing.T) {
+	t.Parallel()
+
+	bin := buildBinary(t)
+
+	out, err := exec.Command(
+		bin, "run",
+		"--backend", "memory",
+		"--profile", "dev",
+		"--codec", "cbor",
+		"--format", "json",
+		"--payload-size", "64",
+	).CombinedOutput()
+	if err != nil {
+		t.Fatalf("run --codec cbor failed: %v\n%s", err, out)
+	}
+
+	if !strings.Contains(string(out), `"codec": "cbor"`) {
+		t.Errorf("JSON output should show cbor codec: %s", out)
+	}
+}
+
+func TestCLI_WarmupFlag(t *testing.T) {
+	t.Parallel()
+
+	bin := buildBinary(t)
+
+	out, err := exec.Command(
+		bin, "run",
+		"--backend", "memory",
+		"--profile", "dev",
+		"--warmup", "50",
+		"--format", "json",
+		"--payload-size", "64",
+	).CombinedOutput()
+	if err != nil {
+		t.Fatalf("run --warmup 50 failed: %v\n%s", err, out)
+	}
+
+	if !strings.Contains(string(out), `"warmupEvents": 50`) {
+		t.Errorf("JSON output should show warmupEvents=50: %s", out)
+	}
+}
+
+func TestCLI_OutputFile(t *testing.T) {
+	t.Parallel()
+
+	bin := buildBinary(t)
+
+	tmpFile := t.TempDir() + "/result.json"
+
+	out, err := exec.Command(
+		bin, "run",
+		"--backend", "memory",
+		"--profile", "dev",
+		"--format", "json",
+		"--output", tmpFile,
+		"--payload-size", "64",
+	).CombinedOutput()
+	if err != nil {
+		t.Fatalf("run --output failed: %v\n%s", err, out)
+	}
+
+	data, err := os.ReadFile(tmpFile)
+	if err != nil {
+		t.Fatalf("output file not readable: %v", err)
+	}
+
+	if !strings.Contains(string(data), `"backend"`) {
+		t.Error("output file missing 'backend' field")
+	}
+}
+
+func TestCLI_Compare_DiskNonZero(t *testing.T) {
+	t.Parallel()
+
+	bin := buildBinary(t)
+
+	// compare should set DiskPath per-backend so sqlite shows non-zero disk.
+	out, err := exec.Command(
+		bin, "compare",
+		"--profile", "dev",
+		"--backends", "memory,sqlite",
+		"--format", "markdown",
+		"--payload-size", "64",
+	).CombinedOutput()
+	if err != nil {
+		t.Fatalf("compare failed: %v\n%s", err, out)
+	}
+
+	output := string(out)
+
+	if !strings.Contains(output, "| sqlite |") {
+		t.Fatalf("compare output missing sqlite row:\n%s", output)
+	}
+
+	// sqlite row should show a non-zero disk value (M, KB, B — not "0 B").
+	for _, line := range strings.Split(output, "\n") {
+		if strings.Contains(line, "| sqlite |") {
+			if strings.Contains(line, "| 0 B |") {
+				t.Errorf("sqlite disk should be non-zero in compare:\n%s", line)
+			}
+
+			return
+		}
 	}
 }
