@@ -14,8 +14,8 @@ github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.1.0 h1:QdwnOigjCcyhZvR8Szj
 github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.1.0/go.mod h1:sKXFtsLVzM7Aqwg2gJmDWw8BFYf+T0XJseqCZxfsJ10=
 github.com/larsartmann/go-cqrs-lite/kv/v4 v4.1.0 h1:/BCyknlKgls1D/+Sm8ROTUnBZjRaUVWenzrQLH9JRAk=
 github.com/larsartmann/go-cqrs-lite/kv/v4 v4.1.0/go.mod h1:Egsxf6eiUzXLx2kWzZAm6q6Ik8VK7INW5gjjBqCw+1E=
-github.com/larsartmann/go-error-family v0.8.0 h1:dBdOJ4VKINK/90JJqSJb5LwEW5fnU9wzU23rLp2FGp4=
-github.com/larsartmann/go-error-family v0.8.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
+github.com/larsartmann/go-error-family v0.9.0 h1:DpIAvgi5q6+HrGbMNc979yO/0rq/uFaQLvqt33GiEaE=
+github.com/larsartmann/go-error-family v0.9.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
 github.com/maypok86/otter/v2 v2.3.0 h1:8H8AVVFUSzJwIegKwv1uF5aGitTY+AIrtktg7OcLs8w=
 github.com/maypok86/otter/v2 v2.3.0/go.mod h1:XgIdlpmL6jYz882/CAx1E4C1ukfgDKSaw4mWq59+7l8=
 github.com/onsi/gomega v1.42.1 h1:iN1rCUX+44NZ1Dc97MPoeFYbFR0vh8zxoxMFwKdyZ6I=

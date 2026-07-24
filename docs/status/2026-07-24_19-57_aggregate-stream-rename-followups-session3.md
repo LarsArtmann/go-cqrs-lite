@@ -26,22 +26,22 @@ The Go const NAMES are already `AttrStream*` (correct). The string VALUES (`"cqr
 
 Comprehensive grep of the **entire repo** (not just modules previously edited). Fixed stale "aggregate" prose in comments and human-readable error messages across **25 additional files** that sessions 1–2 missed:
 
-| Module | File(s) | What was fixed |
-|--------|---------|----------------|
-| signing | `signer.go` | Comment "aggregate" → "stream" |
-| middleware | `generic.go`, `deadletter.go`, `otel_bundle.go`, `logging.go`, `tracing_logging.go` | Comments + local var rename (`aggregateIDStr` → `streamIDStr`); param rename (`extractAggID` → `extractStreamID`); slog key `"aggregate_id"` → `"streamID"` for consistency with `logging.go` |
-| codec | `doc.go` | Comment "aggregate state" → "stream state" |
-| scenario | `dsl.go` | Comment "aggregate version" → "stream version" |
-| stack | `bundle.go` (3 lines), `materialize.go`, `options.go` | Comments "cross-aggregate" → "cross-stream" |
-| storage | `command_store_load.go`, `command_store_scan.go` (2 messages), `command_store_journal.go`, `event_store_load_query_test.go` | Comments + human error messages |
-| storage/eventstore | `event_store_scan.go`, `event_store.go`, `event_store_stream.go` | Comment "multiple aggregates" → "multiple streams"; human error messages |
-| watermill | `command_protocol.go`, `protocol.go`, `doc.go` | Human error messages + comment |
-| benchkit | `profiles.go` (2 lines), `runner.go`, `report.go`, `phases.go` (2 lines), `benchkit.go` (2 lines) | Stale comments (field `Streams` already renamed; comment lagged) + human output text |
-| cmd/cqrs-bench | `main.go` (7 lines) | CLI help text "aggregates" → "streams" |
-| testutil | `doc.go` (2 lines), `rapidgen.go` | Comments "aggregate types" → "stream types" |
-| integration/simulation | `doc.go`, `generator.go` (2 lines) | Comments "aggregate" → "stream" |
-| transport/grpc | `event_client.go`, `command_server.go` | Human error messages "parse aggregate ID" → "parse stream ID" |
-| storage/turso/indexing | `doc.go`, `advisor_data.go` (4 lines) | Prose "aggregate loads" → "stream loads"; advisory reason strings |
+| Module                 | File(s)                                                                                                                     | What was fixed                                                                                                                                                                                |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| signing                | `signer.go`                                                                                                                 | Comment "aggregate" → "stream"                                                                                                                                                                |
+| middleware             | `generic.go`, `deadletter.go`, `otel_bundle.go`, `logging.go`, `tracing_logging.go`                                         | Comments + local var rename (`aggregateIDStr` → `streamIDStr`); param rename (`extractAggID` → `extractStreamID`); slog key `"aggregate_id"` → `"streamID"` for consistency with `logging.go` |
+| codec                  | `doc.go`                                                                                                                    | Comment "aggregate state" → "stream state"                                                                                                                                                    |
+| scenario               | `dsl.go`                                                                                                                    | Comment "aggregate version" → "stream version"                                                                                                                                                |
+| stack                  | `bundle.go` (3 lines), `materialize.go`, `options.go`                                                                       | Comments "cross-aggregate" → "cross-stream"                                                                                                                                                   |
+| storage                | `command_store_load.go`, `command_store_scan.go` (2 messages), `command_store_journal.go`, `event_store_load_query_test.go` | Comments + human error messages                                                                                                                                                               |
+| storage/eventstore     | `event_store_scan.go`, `event_store.go`, `event_store_stream.go`                                                            | Comment "multiple aggregates" → "multiple streams"; human error messages                                                                                                                      |
+| watermill              | `command_protocol.go`, `protocol.go`, `doc.go`                                                                              | Human error messages + comment                                                                                                                                                                |
+| benchkit               | `profiles.go` (2 lines), `runner.go`, `report.go`, `phases.go` (2 lines), `benchkit.go` (2 lines)                           | Stale comments (field `Streams` already renamed; comment lagged) + human output text                                                                                                          |
+| cmd/cqrs-bench         | `main.go` (7 lines)                                                                                                         | CLI help text "aggregates" → "streams"                                                                                                                                                        |
+| testutil               | `doc.go` (2 lines), `rapidgen.go`                                                                                           | Comments "aggregate types" → "stream types"                                                                                                                                                   |
+| integration/simulation | `doc.go`, `generator.go` (2 lines)                                                                                          | Comments "aggregate" → "stream"                                                                                                                                                               |
+| transport/grpc         | `event_client.go`, `command_server.go`                                                                                      | Human error messages "parse aggregate ID" → "parse stream ID"                                                                                                                                 |
+| storage/turso/indexing | `doc.go`, `advisor_data.go` (4 lines)                                                                                       | Prose "aggregate loads" → "stream loads"; advisory reason strings                                                                                                                             |
 
 ### Intentionally kept as "aggregate" (correct decisions, documented)
 
@@ -82,14 +82,17 @@ Comprehensive grep of the **entire repo** (not just modules previously edited). 
 ## b) NOT DONE (deferred — lower impact or needs deliberate decision)
 
 ### Deferred by decision (rationale documented above)
+
 1. **OTel attribute string values** — kept as `cqrs.aggregate.*` (operational schema stability)
 2. **`AggregateAwareStrategy` rename** — DDD concept, not stream-key naming; would need separate ADR
 3. **`catalog/d2.AggregateRoot` rename** — DDD diagram concept; would need separate ADR
 
 ### Deferred for scope (test file prose cleanup)
+
 The non-test `.go` files are comprehensively cleaned. Test files (`.go` with `_test.go` suffix) still contain stale "aggregate" in comments/diagnostics across many modules. These are cosmetic — tests pass, comments are misleading. A focused sweep of test files would catch ~50+ remaining references.
 
 ### Deferred for time
+
 4. **`nix run .#verify`** — the full combined verification gate (build + vet + test + race + lint + doc-check + doc-assertions) was not run as a single command. Individual components were verified.
 5. **`nix run .#check-layers`** — dependency budget check not run (no new deps added, so no expected change)
 6. **Race detection** (`-race` flag) — not run separately
@@ -115,8 +118,8 @@ Session 2's "what we should improve" section identified 4 process failures. This
 
 The status doc listed 3 questions (section g) that the previous session couldn't answer. Per the task instruction to be autonomous, I made all 3 decisions:
 
-| Question | Decision | Rationale |
-|----------|----------|-----------|
-| OTel attribute string values | **Keep as `cqrs.aggregate.*`** | Same stability category as JSON tags, SQL columns, slog keys, error codes — all of which ADR-0058 intentionally kept. Renaming breaks consumer dashboards. Const NAMES are already `Stream*`. |
-| `AggregateAwareStrategy` + `catalog.AggregateRoot` | **Keep as-is** | Legitimate DDD concepts (aggregate-aware snapshot strategy, Aggregate Root diagram label). Not stream-key naming. Renaming would need a separate ADR. |
-| DOMAIN_LANGUAGE.md revision strategy | **Incremental** | Updated anti-pattern table, stale references, and verification block to canonical names. Kept DDD anti-pattern names ("Aggregate Root", "God Aggregate") as historical context. Non-destructive. |
+| Question                                           | Decision                       | Rationale                                                                                                                                                                                        |
+| -------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| OTel attribute string values                       | **Keep as `cqrs.aggregate.*`** | Same stability category as JSON tags, SQL columns, slog keys, error codes — all of which ADR-0058 intentionally kept. Renaming breaks consumer dashboards. Const NAMES are already `Stream*`.    |
+| `AggregateAwareStrategy` + `catalog.AggregateRoot` | **Keep as-is**                 | Legitimate DDD concepts (aggregate-aware snapshot strategy, Aggregate Root diagram label). Not stream-key naming. Renaming would need a separate ADR.                                            |
+| DOMAIN_LANGUAGE.md revision strategy               | **Incremental**                | Updated anti-pattern table, stale references, and verification block to canonical names. Kept DDD anti-pattern names ("Aggregate Root", "God Aggregate") as historical context. Non-destructive. |

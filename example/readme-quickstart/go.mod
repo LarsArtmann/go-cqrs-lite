@@ -28,7 +28,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-error-family v0.8.0 // indirect
+	github.com/larsartmann/go-error-family v0.9.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

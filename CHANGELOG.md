@@ -20,9 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   ReadHeavy), 8-phase runner, concurrent workers, latency percentiles, resource
   sampling, text/JSON/Markdown reports. Codec-aware payload sizing, errorfamily
   error classification, SkipPhases, Config validation. 93 tests (81 benchkit
-  + 12 CLI). Includes DiskSizer interface (Pebble), getrusage-based CPU
-  measurement, projection benchmark phase, mixed payload-size distributions,
-  and `--repeat N` multi-sample averaging.
+  - 12 CLI). Includes DiskSizer interface (Pebble), getrusage-based CPU
+    measurement, projection benchmark phase, mixed payload-size distributions,
+    and `--repeat N` multi-sample averaging.
 - **cqrs-bench CLI** (`cmd/cqrs-bench`) — benchmark any backend with named
   workload profiles. `run`, `compare`, and `--repeat N` subcommands. Uses
   `runtime/debug.ReadBuildInfo()` for version (was hardcoded `v4.1.0`).
@@ -74,7 +74,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   when not registered; runner falls back to filesystem walk.
 - **Mixed payload-size distributions** — `NewMixedGenerator(seed, sizes, codec)`
   picks a size uniformly at random per event. CLI flag `--payload-sizes
-  64,256,4096`. Result reports mean + full distribution. See
+64,256,4096`. Result reports mean + full distribution. See
   [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
 - **Projection benchmark phase** — Projection catch-up throughput now measured
   in default profiles (was always 0). Polls until all events processed before
@@ -127,18 +127,18 @@ Identity types renamed across `id/`, `event/`, `command/`, `listing/`,
 
 **Rename map** (old → new):
 
-| Old | New |
-| --- | --- |
-| `AggregateID` | `StreamID` |
-| `AggregateType` | `StreamType` |
-| `AggregateRef` | `StreamRef` |
-| `AggregateMarker` | `StreamMarker` |
-| `NewAggregateID` | `NewStreamID` |
-| `DeriveAggregateID` | `DeriveStreamID` |
-| `NewAggregateRef` | `NewStreamRef` |
-| `ParseAggregateType` | `ParseStreamType` |
+| Old                        | New                     |
+| -------------------------- | ----------------------- |
+| `AggregateID`              | `StreamID`              |
+| `AggregateType`            | `StreamType`            |
+| `AggregateRef`             | `StreamRef`             |
+| `AggregateMarker`          | `StreamMarker`          |
+| `NewAggregateID`           | `NewStreamID`           |
+| `DeriveAggregateID`        | `DeriveStreamID`        |
+| `NewAggregateRef`          | `NewStreamRef`          |
+| `ParseAggregateType`       | `ParseStreamType`       |
 | `ErrAggregateTypeMismatch` | `ErrStreamTypeMismatch` |
-| `ErrAggregateIDMismatch` | `ErrStreamIDMismatch` |
+| `ErrAggregateIDMismatch`   | `ErrStreamIDMismatch`   |
 
 **Intentionally kept as "aggregate" (wire-format stability):**
 

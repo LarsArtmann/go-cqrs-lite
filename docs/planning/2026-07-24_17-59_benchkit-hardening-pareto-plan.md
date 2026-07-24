@@ -9,22 +9,22 @@
 
 ## Completion Status
 
-| ID    | Task                                       | Status | Notes                                                              |
-| ----- | ------------------------------------------ | ------ | ------------------------------------------------------------------ |
-| P1-01 | SQLite pool config fix                     | ✅ DONE | `storage.ConfigureSQLitePool(sqlDB)` added to `stack/sqlite/preset.go` |
-| P1-02 | Compare-mode disk = 0B fix                 | ✅ DONE | `compareWithDiskPaths()` injects per-backend DiskPath             |
-| P1-03 | `--version` fix                            | ✅ DONE | `runtime/debug.ReadBuildInfo()` + VCS revision fallback           |
-| P1-04 | TODO_LIST update                           | ✅ DONE | 22 findings tracked, 4 stale items closed                          |
-| P1-05 | SKILL.md benchkit entry                    | ✅ DONE | Decision matrix + usage recipe in SKILL.md + modules.md           |
-| P1-06 | Lint verification                          | ✅ DONE | 0 issues across all modules                                        |
-| P1-07 | DiskSizer on Pebble                        | ✅ DONE | 3-layer: pebble.DiskUsage → WithDiskSize → Bundle.DiskSize (caveat: Pebble v1.1.5 lacks DB.DiskUsage, computed from Metrics) |
-| P1-08 | Missing tests                              | ✅ DONE | 10 tests added (total: 88)                                         |
-| P1-09 | ADR-0060                                   | ✅ DONE | 5 design decisions documented                                      |
-| P1-10 | CPU measurement fix                        | ✅ DONE | getrusage (Unix) replaces /proc/self/stat                         |
-| P1-11 | Projection benchmark fix                   | ✅ DONE | Polling loop (10ms ticker, 30s deadline) added                    |
-| P1-12 | Phase 2: durability benchmark              | ⏳ DEFERRED | Future session (~100 min)                                     |
-| P1-13 | Phase 6: production replay                 | ⏳ DEFERRED | Future session (~100 min)                                     |
-| P1-14 | Phase 7: `benchtest.RunSuite`              | ⏳ DEFERRED | Future session (~100 min)                                     |
+| ID    | Task                          | Status      | Notes                                                                                                                        |
+| ----- | ----------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| P1-01 | SQLite pool config fix        | ✅ DONE     | `storage.ConfigureSQLitePool(sqlDB)` added to `stack/sqlite/preset.go`                                                       |
+| P1-02 | Compare-mode disk = 0B fix    | ✅ DONE     | `compareWithDiskPaths()` injects per-backend DiskPath                                                                        |
+| P1-03 | `--version` fix               | ✅ DONE     | `runtime/debug.ReadBuildInfo()` + VCS revision fallback                                                                      |
+| P1-04 | TODO_LIST update              | ✅ DONE     | 22 findings tracked, 4 stale items closed                                                                                    |
+| P1-05 | SKILL.md benchkit entry       | ✅ DONE     | Decision matrix + usage recipe in SKILL.md + modules.md                                                                      |
+| P1-06 | Lint verification             | ✅ DONE     | 0 issues across all modules                                                                                                  |
+| P1-07 | DiskSizer on Pebble           | ✅ DONE     | 3-layer: pebble.DiskUsage → WithDiskSize → Bundle.DiskSize (caveat: Pebble v1.1.5 lacks DB.DiskUsage, computed from Metrics) |
+| P1-08 | Missing tests                 | ✅ DONE     | 10 tests added (total: 88)                                                                                                   |
+| P1-09 | ADR-0060                      | ✅ DONE     | 5 design decisions documented                                                                                                |
+| P1-10 | CPU measurement fix           | ✅ DONE     | getrusage (Unix) replaces /proc/self/stat                                                                                    |
+| P1-11 | Projection benchmark fix      | ✅ DONE     | Polling loop (10ms ticker, 30s deadline) added                                                                               |
+| P1-12 | Phase 2: durability benchmark | ⏳ DEFERRED | Future session (~100 min)                                                                                                    |
+| P1-13 | Phase 6: production replay    | ⏳ DEFERRED | Future session (~100 min)                                                                                                    |
+| P1-14 | Phase 7: `benchtest.RunSuite` | ⏳ DEFERRED | Future session (~100 min)                                                                                                    |
 
 ---
 

@@ -43,14 +43,14 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
       `integration/pebble/pebble_test.go` (4 lines),
       `transport/grpc/command_span_test.go:99`.
 - [BLOCKED] **OTel attribute string values** — `otel/attributes.go` keeps
-      `cqrs.aggregate.*` string values for dashboard compatibility while the Go
-      constants are renamed (`AttrStreamType`, etc.). Renaming the strings is a
-      **breaking change for consumer dashboards/queries** — needs explicit
-      decision. Also blocks `middleware/tracing_test.go` (4 attribute-name
-      assertions on lines 57, 119, 123, 127).
+  `cqrs.aggregate.*` string values for dashboard compatibility while the Go
+  constants are renamed (`AttrStreamType`, etc.). Renaming the strings is a
+  **breaking change for consumer dashboards/queries** — needs explicit
+  decision. Also blocks `middleware/tracing_test.go` (4 attribute-name
+  assertions on lines 57, 119, 123, 127).
 - [BLOCKED] **`catalog/d2.AggregateRoot`** — Exported field + "Aggregate Root"
-      diagram label not in the ADR-0058 rename map. It is a DDD diagram concept;
-      needs decision on whether to rename.
+  diagram label not in the ADR-0058 rename map. It is a DDD diagram concept;
+  needs decision on whether to rename.
 - [ ] **Run full quality gates** — `nix run .#lint` and full test suite not yet
       run after the comment/prose changes (text-only, but gate should pass).
 

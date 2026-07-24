@@ -19,24 +19,24 @@ convention:
 
 ### Examples
 
-| Span                            | Component   | Action   | Meaning                                       |
-| ------------------------------- | ----------- | -------- | --------------------------------------------- |
-| `command.handle`                | command     | handle   | Processing a command through middleware       |
-| `event.handle`                  | event       | handle   | Processing an event through middleware        |
-| `event.publish`                 | event       | publish  | Publishing events to the bus                  |
-| `query.handle`                  | query       | handle   | Processing a query through middleware         |
-| `decider.execute`               | decider     | execute  | Full stream execute (load → decide → save)   |
-| `decider.load`                  | decider     | load     | Loading stream state from events             |
-| `event.store.load`              | event.store | load     | SQL store load                                |
-| `event.store.save`              | event.store | save     | SQL store save                                |
-| `grpc.command.dispatch`         | grpc        | dispatch | gRPC server handling a command                |
-| `grpc.query.ask`                | grpc        | ask      | gRPC server handling a query                  |
-| `watermill.event.publish`       | watermill   | publish  | Publishing events to a Watermill topic        |
-| `watermill.command.publish`     | watermill   | publish  | Publishing commands to a Watermill topic      |
-| `watermill.replay.from_journal` | watermill   | replay   | CatchUpSubscriber replaying events            |
-| `sse.fanout`                    | sse         | fanout   | Broadcasting an event to SSE clients          |
-| `sse.replay`                    | sse         | replay   | Last-Event-ID reconnection replay             |
-| `retry.attempt.N`               | retry       | attempt  | Nth retry attempt (child span)                |
+| Span                            | Component   | Action   | Meaning                                    |
+| ------------------------------- | ----------- | -------- | ------------------------------------------ |
+| `command.handle`                | command     | handle   | Processing a command through middleware    |
+| `event.handle`                  | event       | handle   | Processing an event through middleware     |
+| `event.publish`                 | event       | publish  | Publishing events to the bus               |
+| `query.handle`                  | query       | handle   | Processing a query through middleware      |
+| `decider.execute`               | decider     | execute  | Full stream execute (load → decide → save) |
+| `decider.load`                  | decider     | load     | Loading stream state from events           |
+| `event.store.load`              | event.store | load     | SQL store load                             |
+| `event.store.save`              | event.store | save     | SQL store save                             |
+| `grpc.command.dispatch`         | grpc        | dispatch | gRPC server handling a command             |
+| `grpc.query.ask`                | grpc        | ask      | gRPC server handling a query               |
+| `watermill.event.publish`       | watermill   | publish  | Publishing events to a Watermill topic     |
+| `watermill.command.publish`     | watermill   | publish  | Publishing commands to a Watermill topic   |
+| `watermill.replay.from_journal` | watermill   | replay   | CatchUpSubscriber replaying events         |
+| `sse.fanout`                    | sse         | fanout   | Broadcasting an event to SSE clients       |
+| `sse.replay`                    | sse         | replay   | Last-Event-ID reconnection replay          |
+| `retry.attempt.N`               | retry       | attempt  | Nth retry attempt (child span)             |
 
 ## Span Kinds
 

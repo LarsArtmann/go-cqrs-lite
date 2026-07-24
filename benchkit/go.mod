@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.1.0
-	github.com/larsartmann/go-error-family v0.8.0
+	github.com/larsartmann/go-error-family v0.9.0
 )
 
 require (

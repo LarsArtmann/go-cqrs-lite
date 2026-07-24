@@ -31,11 +31,11 @@
 | Handler registration     | `Dispatcher.Register(cmdType, handler)` with duplicate guard                                                                                       | ✅     |
 | Middleware chain         | `Dispatcher.Use(middleware...)` — applied at **dispatch time** (can be added before or after Register)                                             | ✅     |
 | Lifecycle                | `Dispatcher.Close()` — rejects all ops after close                                                                                                 | ✅     |
-| Validation               | `New()` rejects empty type and zero streamID                                                                                                    | ✅     |
+| Validation               | `New()` rejects empty type and zero streamID                                                                                                       | ✅     |
 | TypedHandler[T]          | `RegisterTyped[T](d, type, handler)` — type-safe handler receiving `T` not `Command`                                                               | ✅     |
 | Command metadata         | Own `Metadata` struct (embeds `Tracing`, no longer aliases `event.Metadata` — ADR-0031) with CorrelationID, CausationID, UserID, RequestID, Custom | ✅     |
 | Metadata options         | `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`                                                                              | ✅     |
-| Persisted command        | `PersistedCommand` struct with ID, Type, StreamRef, ReceivedAt, Payload, Metadata                                                               | ✅     |
+| Persisted command        | `PersistedCommand` struct with ID, Type, StreamRef, ReceivedAt, Payload, Metadata                                                                  | ✅     |
 | Command store interfaces | `CommandSink`, `CommandSource`, `Store` (Sink+Source) — persisted command log                                                                      | ✅     |
 | CommandJournal           | `ReadAll(ctx)` — global command log ordered by ReceivedAt; audit trail of every command                                                            | ✅     |
 | SeekableCommandJournal   | `ReadFrom(ctx, afterCommandID, limit)` — position-based command replay with ULID checkpoints                                                       | ✅     |
@@ -92,9 +92,9 @@
 | ISP split             | `EventSink` (write) + `EventSource` (read) — fine-grained dependency injection                                                                                                                                                                                                                                                              | ✅     |
 | Journal               | `ReadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                                                                                                                                                                         | ✅     |
 | SeekableJournal       | `ReadFrom(ctx, afterEventID, limit)` — efficient projection catch-up                                                                                                                                                                                                                                                                        | ✅     |
-| BackwardsSource       | `LoadBackwards(ctx, streamRef)` — loads events in reverse version order                                                                                                                                                                                                                                                                        | ✅     |
+| BackwardsSource       | `LoadBackwards(ctx, streamRef)` — loads events in reverse version order                                                                                                                                                                                                                                                                     | ✅     |
 | TombstoneStatus       | `Active`, `Tombstoned`, `Undetermined` — tri-state enum for soft-delete; `DetectTombstone`, `MarkTombstone`, `MarkRebirth`                                                                                                                                                                                                                  | ✅     |
-| Time-travel queries   | `LoadToVersion` and `LoadToTimestamp` — read stream state at a point in time                                                                                                                                                                                                                                                             | ✅     |
+| Time-travel queries   | `LoadToVersion` and `LoadToTimestamp` — read stream state at a point in time                                                                                                                                                                                                                                                                | ✅     |
 | Projection interface  | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all)                                                                                                                                                                                                                                                                      | ✅     |
 | Context replay marker | `WithProcessingMode(ctx, ModeReplay)` — marks context as replay; handlers can distinguish                                                                                                                                                                                                                                                   | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                                                                                                                                                                          | ✅     |
@@ -133,17 +133,17 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/id/v4"`
 
-| Feature                | Detail                                                                                                                                                        | Status |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Generic branded type   | `id.Of[T]` — phantom type parameter for compile-time safety                                                                                                   | ✅     |
-| ULID-backed            | Binary-sortable, time-ordered, 16-byte binary form                                                                                                            | ✅     |
-| 8 built-in types       | `StreamID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID`, `CommandID`                                                        | ✅     |
-| Custom branded types   | `type OrderID = id.Of[OrderMarker]` — users can create their own                                                                                              | ✅     |
-| Exported markers       | All 8 phantom markers exported (`Stream`, `User`, `Correlation`, `Request`, `Causation`, `Client`, `Command`, `Event`) for downstream `BrandNamer` tooling  | ✅     |
-| All serialization      | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                                                                                         | ✅     |
-| Convenience funcs      | `New[T]()`, `Parse[T]()`, `ULID[T]()`, `FromPtr[T]()`, `CompareIDs[T]()`                                                                                      | ✅     |
-| StreamID derivation  | `DeriveStreamID()` — deterministic ID from namespace + key                                                                                                    | ✅     |
-| Timestamp extraction   | `ULID(id)` extracts embedded timestamp                                                                                                                        | ✅     |
+| Feature              | Detail                                                                                                                                                     | Status |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Generic branded type | `id.Of[T]` — phantom type parameter for compile-time safety                                                                                                | ✅     |
+| ULID-backed          | Binary-sortable, time-ordered, 16-byte binary form                                                                                                         | ✅     |
+| 8 built-in types     | `StreamID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID`, `CommandID`                                                      | ✅     |
+| Custom branded types | `type OrderID = id.Of[OrderMarker]` — users can create their own                                                                                           | ✅     |
+| Exported markers     | All 8 phantom markers exported (`Stream`, `User`, `Correlation`, `Request`, `Causation`, `Client`, `Command`, `Event`) for downstream `BrandNamer` tooling | ✅     |
+| All serialization    | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                                                                                      | ✅     |
+| Convenience funcs    | `New[T]()`, `Parse[T]()`, `ULID[T]()`, `FromPtr[T]()`, `CompareIDs[T]()`                                                                                   | ✅     |
+| StreamID derivation  | `DeriveStreamID()` — deterministic ID from namespace + key                                                                                                 | ✅     |
+| Timestamp extraction | `ULID(id)` extracts embedded timestamp                                                                                                                     | ✅     |
 
 ### Generic Dispatcher ✅ FULLY_FUNCTIONAL
 
@@ -190,7 +190,7 @@ projection-side captures events that poisoned a projection handler.
 | DeadLetterHandler                    | `DeadLetterHandler` func type — wired via `RetryConfig.OnDeadLetter`                                               | ✅     |
 | MemoryDeadLetterStore                | In-memory store: `Handle`, `Entries`, `Count`, `Clear`                                                             | ✅     |
 | SQLDeadLetterStore                   | SQL-backed (Postgres + SQLite): `Handle`, `Entries`, `Count`, `Clear` with auto-migrating schema                   | ✅     |
-| DeadLetterEntry                      | Captures Kind, Type, StreamID, Error, ErrorCode, ErrorFamily, Attempts, FailedAt                                    | ✅     |
+| DeadLetterEntry                      | Captures Kind, Type, StreamID, Error, ErrorCode, ErrorFamily, Attempts, FailedAt                                   | ✅     |
 | **Projection-side (projectionhost)** |                                                                                                                    |
 | DeadLetterStore                      | `DeadLetterStore` interface — `Store`, `List`, `Delete`, `Purge`                                                   | ✅     |
 | DeadLetterStoreAdmin                 | Optional interface: `Count`, `ListPaged`, `PurgeBefore` — production management (pagination, time-bounded cleanup) | ✅     |
@@ -246,14 +246,14 @@ pattern: same workload, any backend, structured metrics report.
 | LatencyCollector    | Sorted-slice + reservoir sampling (10K cap), thread-safe                       | 🧪     |
 | Resource sampling   | Peak heap via 100ms polling goroutine, baseline/after deltas                   | 🧪     |
 | Synthetic generator | Seeded PCG, deterministic, configurable payload size, codec-aware padding      | 🧪     |
-| Mixed payload sizes | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing       | 🧪     |
+| Mixed payload sizes | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing      | 🧪     |
 | 7 named profiles    | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                       | 🧪     |
 | 8-phase runner      | setup → warmup → write → read → readmodel → projection → durability → teardown | 🧪     |
 | Concurrent workers  | Channel-based, cancel-on-error, WaitGroup                                      | 🧪     |
 | `Run()` API         | Single-backend benchmark, returns `*Result`                                    | 🧪     |
 | `Compare()` API     | Multi-backend comparison, handles factory failures gracefully                  | 🧪     |
 | DiskSizer           | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset   | 🧪     |
-| CPU measurement     | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution           | 🧪     |
+| CPU measurement     | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution          | 🧪     |
 | Projection phase    | Polls until all events processed, reports lag + events                         | 🧪     |
 | Reports             | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk      | 🧪     |
 | ReadRatio           | Configurable read/write mix for WriteHeavy and ReadHeavy profiles              | 🧪     |
@@ -268,17 +268,17 @@ Run-to-run variance is ~20-25% on the memory backend (see
 
 > `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench`
 
-| Feature    | Detail                                                                 | Status |
-| ---------- | ---------------------------------------------------------------------- | ------ |
-| `run`      | Benchmark a single backend with a named workload profile               | 🔧     |
-| `compare`  | Compare multiple backends side-by-side                                 | 🔧     |
-| Profiles   | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}` | 🔧     |
-| Output     | `--format {text\|json\|markdown}`                                      | 🔧     |
-| Codec      | `--codec {json\|cbor}`                                                 | 🔧     |
-| Payload    | `--payload-size N` or `--payload-sizes 64,256,4096` (mixed)            | 🔧     |
-| Warmup     | `--warmup N`                                                           | 🔧     |
-| Repeat     | `--repeat N` — median of N runs with min/max spread                    | 🔧     |
-| Version    | `--version` via `runtime/debug.ReadBuildInfo()`                        | 🔧     |
+| Feature   | Detail                                                                 | Status |
+| --------- | ---------------------------------------------------------------------- | ------ |
+| `run`     | Benchmark a single backend with a named workload profile               | 🔧     |
+| `compare` | Compare multiple backends side-by-side                                 | 🔧     |
+| Profiles  | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}` | 🔧     |
+| Output    | `--format {text\|json\|markdown}`                                      | 🔧     |
+| Codec     | `--codec {json\|cbor}`                                                 | 🔧     |
+| Payload   | `--payload-size N` or `--payload-sizes 64,256,4096` (mixed)            | 🔧     |
+| Warmup    | `--warmup N`                                                           | 🔧     |
+| Repeat    | `--repeat N` — median of N runs with min/max spread                    | 🔧     |
+| Version   | `--version` via `runtime/debug.ReadBuildInfo()`                        | 🔧     |
 
 ---
 
@@ -418,11 +418,11 @@ All **9 concerns** are provided for all 3 message types (command, event, query) 
 
 ### Logging ✅
 
-| Factory                  | Logs                                                                                  |
-| ------------------------ | ------------------------------------------------------------------------------------- |
-| `CommandLogging(logger)` | `"command dispatching"` / `"succeeded"` / `"failed"` with type, streamID, duration    |
-| `EventLogging(logger)`   | Same pattern for events                                                               |
-| `QueryLogging(logger)`   | Same pattern for queries                                                              |
+| Factory                  | Logs                                                                               |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| `CommandLogging(logger)` | `"command dispatching"` / `"succeeded"` / `"failed"` with type, streamID, duration |
+| `EventLogging(logger)`   | Same pattern for events                                                            |
+| `QueryLogging(logger)`   | Same pattern for queries                                                           |
 
 Accepts `*slog.Logger`.
 
@@ -756,7 +756,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | ---------------------- | -------------------------------------------------------------------------------------- | ------ |
 | EventStore             | `NewStore(db, logger)` implements `event.Store` + `Journal` + `SeekableJournal`        | ✅     |
 | CBOR envelope          | Events serialized as CBOR with JSON backward compatibility layer                       | ✅     |
-| Per-stream locking    | Sharded mutex pool (FNV-1a hash, 256 shards) — optimistic concurrency without sync.Map | ✅     |
+| Per-stream locking     | Sharded mutex pool (FNV-1a hash, 256 shards) — optimistic concurrency without sync.Map | ✅     |
 | Optimistic concurrency | `Save` checks version before commit                                                    | ✅     |
 | AppendBatch            | Appends without concurrency check                                                      | ✅     |
 | Full load API          | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`                          | ✅     |
@@ -832,20 +832,20 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/otel/v4"`
 
-| Feature            | Detail                                                                                                                                                                                       | Status |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Type aliases       | `Tracer`, `Span`, `SpanKind`, `KeyValue`, `Meter`, `Float64Histogram`, `Int64Counter` — re-exported from OTel                                                                                | ✅     |
-| Tracer factory     | `NewTracer(component)` — creates OTel Tracer with standard instrumentation name                                                                                                              | ✅     |
-| Meter factory      | `NewMeter(component)` — creates OTel Meter                                                                                                                                                   | ✅     |
-| Span helpers       | `StartSpan`, `RecordError`, `EndWithError`, `AddSpanEvent`, `StreamAttrs`, `CommandAttrs`, `EventAttrs`, `QueryAttrs`                                          | ✅     |
-| Context helpers    | `SpanFromContext`, `TraceIDFromContext`, `SpanIDFromContext`                                                                                                                                 | ✅     |
-| Attribute helpers  | `AttrString`, `AttrInt`, `AttrInt64`, `WithAttributes`, `WithSpanKind`, `ServiceResourceAttributes`                                                                                          | ✅     |
-| Metric helpers     | `MetricWithAttributes`, `MetricWithDescription`, `MetricWithUnit`, `CounterAddWithAttributes`, `AddOption`                                                                                   | ✅     |
-| Metric views       | `NewCQRSViews()`, `CQRSHistogramBoundaries` — OTel SDK views with optimized CQRS latency buckets for all `cqrs.*` instruments                                                                | ✅     |
-| Correlation        | `WithCorrelationID`, `CorrelationIDFromContext` — baggage-based correlation propagation                                                                                                      | ✅     |
-| W3C propagation    | `NewTextMapPropagator()` — W3C trace context + baggage propagator                                                                                                                            | ✅     |
-| Logging helpers    | `ComponentLogger`, `ContextLogger` — structured logging with trace correlation                                                                                                               | ✅     |
-| Standard constants | `AttrMessageKind`, `AttrCommandType`, `AttrEventType`, `AttrQueryType`, `AttrStreamType`, `AttrStreamID`, `AttrStreamVersion`, `AttrEventCount`, `AttrProjectionName`, `AttrStatus`         | ✅     |
+| Feature            | Detail                                                                                                                                                                              | Status |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Type aliases       | `Tracer`, `Span`, `SpanKind`, `KeyValue`, `Meter`, `Float64Histogram`, `Int64Counter` — re-exported from OTel                                                                       | ✅     |
+| Tracer factory     | `NewTracer(component)` — creates OTel Tracer with standard instrumentation name                                                                                                     | ✅     |
+| Meter factory      | `NewMeter(component)` — creates OTel Meter                                                                                                                                          | ✅     |
+| Span helpers       | `StartSpan`, `RecordError`, `EndWithError`, `AddSpanEvent`, `StreamAttrs`, `CommandAttrs`, `EventAttrs`, `QueryAttrs`                                                               | ✅     |
+| Context helpers    | `SpanFromContext`, `TraceIDFromContext`, `SpanIDFromContext`                                                                                                                        | ✅     |
+| Attribute helpers  | `AttrString`, `AttrInt`, `AttrInt64`, `WithAttributes`, `WithSpanKind`, `ServiceResourceAttributes`                                                                                 | ✅     |
+| Metric helpers     | `MetricWithAttributes`, `MetricWithDescription`, `MetricWithUnit`, `CounterAddWithAttributes`, `AddOption`                                                                          | ✅     |
+| Metric views       | `NewCQRSViews()`, `CQRSHistogramBoundaries` — OTel SDK views with optimized CQRS latency buckets for all `cqrs.*` instruments                                                       | ✅     |
+| Correlation        | `WithCorrelationID`, `CorrelationIDFromContext` — baggage-based correlation propagation                                                                                             | ✅     |
+| W3C propagation    | `NewTextMapPropagator()` — W3C trace context + baggage propagator                                                                                                                   | ✅     |
+| Logging helpers    | `ComponentLogger`, `ContextLogger` — structured logging with trace correlation                                                                                                      | ✅     |
+| Standard constants | `AttrMessageKind`, `AttrCommandType`, `AttrEventType`, `AttrQueryType`, `AttrStreamType`, `AttrStreamID`, `AttrStreamVersion`, `AttrEventCount`, `AttrProjectionName`, `AttrStatus` | ✅     |
 
 ---
 
@@ -853,18 +853,18 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/watermill/v4"`
 
-| Feature              | Detail                                                                                                    | Status |
-| -------------------- | --------------------------------------------------------------------------------------------------------- | ------ |
-| Event protocol       | Bidirectional `event.Event` ↔ Watermill `message.Message` via 15+ metadata keys                           | ✅     |
-| PublisherAdapter     | `NewPublisherAdapter(publisher)` — wraps `event.Publisher` as `message.Publisher`                         | ✅     |
-| SubscriberAdapter    | `NewSubscriberAdapter(bus)` — wraps `event.Bus` as `message.Subscriber`, feeds `<-chan *message.Message`  | ✅     |
-| Full event fidelity  | 15 metadata keys preserve ID, type, stream, version, schema version, all metadata fields                | ✅     |
+| Feature              | Detail                                                                                                   | Status |
+| -------------------- | -------------------------------------------------------------------------------------------------------- | ------ |
+| Event protocol       | Bidirectional `event.Event` ↔ Watermill `message.Message` via 15+ metadata keys                          | ✅     |
+| PublisherAdapter     | `NewPublisherAdapter(publisher)` — wraps `event.Publisher` as `message.Publisher`                        | ✅     |
+| SubscriberAdapter    | `NewSubscriberAdapter(bus)` — wraps `event.Bus` as `message.Subscriber`, feeds `<-chan *message.Message` | ✅     |
+| Full event fidelity  | 15 metadata keys preserve ID, type, stream, version, schema version, all metadata fields                 | ✅     |
 | **Command protocol** | Bidirectional `command.Command` ↔ Watermill `message.Message` (type, stream, tracing, custom metadata)   | ✅     |
-| **CommandBus**       | `NewCommandBus()` — full `command.Bus` backed by Watermill GoChannel + `WithCommandBackend` for brokers   | ✅     |
-| **CommandPublisher** | `NewCommandPublisher(pub, topic)` — wraps `message.Publisher` as `command.Publisher`                      | ✅     |
-| Custom metadata      | `custom.*` prefix preserves all custom metadata entries                                                   | ✅     |
-| Correlation ID MW    | `CorrelationIDMiddleware()` — injects correlation ID into message metadata                                | ✅     |
-| Retry middleware     | `NewRetryMiddleware(config)` + `DefaultRetryConfig()` — retry with backoff for handler errors             | ✅     |
+| **CommandBus**       | `NewCommandBus()` — full `command.Bus` backed by Watermill GoChannel + `WithCommandBackend` for brokers  | ✅     |
+| **CommandPublisher** | `NewCommandPublisher(pub, topic)` — wraps `message.Publisher` as `command.Publisher`                     | ✅     |
+| Custom metadata      | `custom.*` prefix preserves all custom metadata entries                                                  | ✅     |
+| Correlation ID MW    | `CorrelationIDMiddleware()` — injects correlation ID into message metadata                               | ✅     |
+| Retry middleware     | `NewRetryMiddleware(config)` + `DefaultRetryConfig()` — retry with backoff for handler errors            | ✅     |
 
 ---
 
@@ -1063,7 +1063,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `example/getting-started`   | `…/example/getting-started`   | 💡 Demo                                                                   |
 | `example/readme-quickstart` | `…/example/readme-quickstart` | 💡 Demo                                                                   |
 | `metaengine`                | `…/metaengine/v4`             | 🧪 Experimental (MemoryEngine only, zero deps)                            |
-| `benchkit`                  | `…/benchkit/v4`               | 🧪 Experimental (functional, 88 tests, `--repeat N` available)           |
+| `benchkit`                  | `…/benchkit/v4`               | 🧪 Experimental (functional, 88 tests, `--repeat N` available)            |
 | `cmd/cqrs-bench`            | `…/cmd/cqrs-bench`            | 🔧 Tool                                                                   |
 
 ---

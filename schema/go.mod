@@ -2,7 +2,7 @@ module github.com/larsartmann/go-cqrs-lite/schema/v4
 
 go 1.26.4
 
-require github.com/larsartmann/go-error-family v0.8.0
+require github.com/larsartmann/go-error-family v0.9.0
 
 require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.0

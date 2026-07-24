@@ -50,8 +50,8 @@ github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 h1:VMv/Uo/Epu9QjtiEG1rGmp
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0/go.mod h1:JJlTptflj6Qy5hCfLHSeGJXs+v32+YfCwxvVZXkdJMs=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0 h1:cu5iabpSMctNoKe0/lB+uhr2q3tcRQqYn/ffbhDMGW8=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.0.0/go.mod h1:YRsX8oQV7t3GAe2o/1tBrViBODT6iNlFAnKS0T0n0Qc=
-github.com/larsartmann/go-error-family v0.8.0 h1:dBdOJ4VKINK/90JJqSJb5LwEW5fnU9wzU23rLp2FGp4=
-github.com/larsartmann/go-error-family v0.8.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
+github.com/larsartmann/go-error-family v0.9.0 h1:DpIAvgi5q6+HrGbMNc979yO/0rq/uFaQLvqt33GiEaE=
+github.com/larsartmann/go-error-family v0.9.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
 github.com/maruel/natural v1.1.1 h1:Hja7XhhmvEFhcByqDoHz9QZbkWey+COd9xWfCfn1ioo=
 github.com/maruel/natural v1.1.1/go.mod h1:v+Rfd79xlw1AgVBjbO0BEQmptqb5HvL/k9GRHB7ZKEg=
 github.com/mfridman/tparse v0.18.0 h1:wh6dzOKaIwkUGyKgOntDW4liXSo37qg5AXbIhkMV3vE=

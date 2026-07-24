@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.1.0
-	github.com/larsartmann/go-error-family v0.8.0
+	github.com/larsartmann/go-error-family v0.9.0
 	turso.tech/database/tursogo v0.7.1
 )
 
