@@ -15,23 +15,44 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 
 ## 20% Tier — Important, Can Queue
 
-### Aggregate→Stream Rename Follow-ups
+### Aggregate→Stream Rename Follow-ups (ADR-0058)
 
-- [x] **Comment cleanup** — 41 files cleaned across decider/, listing/,
-      storage/pebble/, storage/memory/, event/, snapshot/, command/.
-      Remaining: `storage/` root (3 lines), `storage/turso/` (3 lines).
+**Done:**
+
+- [x] **Comment + prose cleanup** — ~70 files across event/, command/, decider/,
+      listing/, snapshot/, storage/memory/, storage/pebble/, id/ (error message
+      prose, BDD narratives, function names, internal helper renames).
 - [x] **SKILL.md references** — All 35 mentions cleared across 7 files
       (core.md, advanced.md, recipes.md, modules.md, readmodels.md, faq.md,
       root SKILL.md). doc-check validates 897 references.
-- [ ] **AGENTS.md cleanup** — 16 stale "aggregate" references in code
-      examples, module tree comments, and prose (lines 52, 78, 138, 156-170,
-      231, 241, 401-422, 473-474, 789).
-- [ ] **Storage root + turso comments** — 6 stale comment lines in
-      `storage/command_store_journal.go`, `storage/command_store_load.go`,
-      `storage/pg_bus_test.go`, `storage/turso/indexing/advisor_test.go`,
-      `storage/turso/indexing/doc.go`.
-- [ ] **Run full quality gates** — `nix run .#lint` and full test suite
-      not yet run after comment changes (comment-only, but gate should pass).
+- [x] **AGENTS.md cleanup** — All stale references updated (module tree, code
+      examples, design principles). Only 1 mention remains (an exported API name).
+- [x] **Deprecated-alias compat tests** — `id/compat_aliases_test.go` and
+      `event/compat_aliases_test.go` verify all `Aggregate*` aliases still work.
+- [x] **Storage root + turso comments** — stale comment lines cleaned in
+      `storage/command_store_*.go`, `storage/pg_bus_test.go`,
+      `storage/turso/indexing/`.
+
+**Open:**
+
+- [ ] **`storage/sql/errors.go` message prose** — Error codes correctly kept as
+      stable match keys (`storage.aggregate_type_mismatch`), but the
+      human-readable messages still say "aggregate" (lines 24, 35). Same fix
+      pattern as the pebble fix.
+- [ ] **Stale test diagnostics** — `integration/command/command_test.go:27`,
+      `integration/pebble/pebble_test.go` (4 lines),
+      `transport/grpc/command_span_test.go:99`.
+- [BLOCKED] **OTel attribute string values** — `otel/attributes.go` keeps
+      `cqrs.aggregate.*` string values for dashboard compatibility while the Go
+      constants are renamed (`AttrStreamType`, etc.). Renaming the strings is a
+      **breaking change for consumer dashboards/queries** — needs explicit
+      decision. Also blocks `middleware/tracing_test.go` (4 attribute-name
+      assertions on lines 57, 119, 123, 127).
+- [BLOCKED] **`catalog/d2.AggregateRoot`** — Exported field + "Aggregate Root"
+      diagram label not in the ADR-0058 rename map. It is a DDD diagram concept;
+      needs decision on whether to rename.
+- [ ] **Run full quality gates** — `nix run .#lint` and full test suite not yet
+      run after the comment/prose changes (text-only, but gate should pass).
 
 ### Metaengine Integration
 

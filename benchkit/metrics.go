@@ -1,13 +1,9 @@
 package benchkit
 
 import (
-	"bytes"
 	"math/rand/v2"
-	"os"
 	"runtime"
 	"slices"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -188,46 +184,7 @@ func (rs *resourceSampler) stopAndSnapshot() (peak uint64, baseline memSnapshot)
 }
 
 // cpuTime returns the process CPU time (user + sys) in nanoseconds.
-// Returns 0 on non-Linux platforms (the portable fallback).
+// The platform-specific implementation lives in cpu_unix.go / cpu_other.go.
 func cpuTime() uint64 {
 	return cpuTimeProc()
-}
-
-// cpuTimeProc reads /proc/self/stat on Linux for user+sys CPU time.
-// Returns 0 on non-Linux or on error.
-func cpuTimeProc() uint64 {
-	data, err := os.ReadFile("/proc/self/stat")
-	if err != nil {
-		return 0
-	}
-
-	// /proc/self/stat field 2 is (comm) which can contain spaces.
-	// Everything after the last ')' is space-delimited and safe to split.
-	lastParen := bytes.LastIndexByte(data, ')')
-	if lastParen < 0 || lastParen+1 >= len(data) {
-		return 0
-	}
-
-	fields := strings.Fields(string(data[lastParen+1:]))
-	// After the comm field, utime is field 14 and stime is field 15
-	// (1-indexed from the original stat). Since we stripped fields 1-2
-	// (pid and comm), utime is at index 11 and stime at index 12.
-	if len(fields) < 13 {
-		return 0
-	}
-
-	utime, err := strconv.ParseUint(fields[11], 10, 64)
-	if err != nil {
-		return 0
-	}
-
-	stime, err := strconv.ParseUint(fields[12], 10, 64)
-	if err != nil {
-		return 0
-	}
-
-	// Convert clock ticks to nanoseconds (assuming 100 Hz)
-	const hz = 100
-
-	return (utime + stime) * 1e9 / hz
 }

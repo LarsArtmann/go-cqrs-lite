@@ -4,6 +4,8 @@
 
 Benchmark any go-cqrs-lite backend with named workload profiles. Thin CLI front-end over the [benchkit](../../benchkit/README.md) library.
 
+> **Design decisions:** See [ADR-0060](../../docs/adr/0060-benchkit-design-decisions.md) for rationale on codec-aware padding, warmup isolation, ReadRatio-as-passes, SkipPhases, and the DiskSizer interface.
+
 ## Install
 
 ```bash
