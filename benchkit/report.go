@@ -225,6 +225,11 @@ func WriteJSON(w io.Writer, r *Result) error {
 	return json.MarshalWrite(w, r, jsonOpts)
 }
 
+// writeJSONAny serializes any value as indented JSON using the standard options.
+func writeJSONAny(w io.Writer, v any) error {
+	return json.MarshalWrite(w, v, jsonOpts)
+}
+
 // WriteComparisonJSON serializes all results as a JSON object.
 func WriteComparisonJSON(w io.Writer, results map[string]*Result) error {
 	return json.MarshalWrite(w, results, jsonOpts)

@@ -272,8 +272,13 @@ type DiskStats struct {
 // is closed automatically after the run. When Warmup > 0, the factory is called
 // a second time for a throwaway warmup Bundle that never pollutes measurement.
 //
-// When Config.Repeat > 1, the benchmark runs N times (each with a fresh factory
-// call). The returned Result holds the median run's full metrics, annotated
+// When Config.Repeat > 1, the benchmark runs N times. Each repeat calls
+// factory() fresh, so for in-memory backends each run is fully isolated.
+// For persistent backends (SQLite file, Pebble directory), the factory opens
+// the same path — meaning later repeats inherit earlier runs' data. To ensure
+// isolation with persistent backends, provide a factory that creates a unique
+// path per call (e.g., using a temp dir with a unique suffix).
+// The returned Result holds the median run's full metrics, annotated
 // with min/max throughput across all N runs.
 func Run(ctx context.Context, config Config, factory Factory) (*Result, error) {
 	if err := config.validate(); err != nil {

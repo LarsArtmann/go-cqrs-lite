@@ -1786,3 +1786,154 @@ func TestPrintComparison_RawSinkColumns(t *testing.T) {
 		t.Error("PrintComparison output missing 'Raw P99' column header")
 	}
 }
+
+func TestWorkerSweep(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	results := WorkerSweep(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() }, []int{1, 2, 4})
+
+	if len(results) != 3 {
+		t.Fatalf("expected 3 results, got %d", len(results))
+	}
+
+	for i, sr := range results {
+		if sr.Parameter != "workers" {
+			t.Errorf("result[%d].Parameter = %q, want %q", i, sr.Parameter, "workers")
+		}
+
+		if sr.Result.Error != "" {
+			t.Errorf("result[%d].Result.Error = %q", i, sr.Result.Error)
+		}
+
+		if sr.Result.Workers != sr.Value {
+			t.Errorf("result[%d].Workers = %d, want %d", i, sr.Result.Workers, sr.Value)
+		}
+	}
+}
+
+func TestBatchSizeSweep(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	results := BatchSizeSweep(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() }, []int{1, 5, 10})
+
+	if len(results) != 3 {
+		t.Fatalf("expected 3 results, got %d", len(results))
+	}
+
+	for i, sr := range results {
+		if sr.Parameter != "batchSize" {
+			t.Errorf("result[%d].Parameter = %q, want %q", i, sr.Parameter, "batchSize")
+		}
+
+		if sr.Result.Error != "" {
+			t.Errorf("result[%d].Result.Error = %q", i, sr.Result.Error)
+		}
+	}
+}
+
+func TestStreamLengthSweep(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	results := StreamLengthSweep(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() }, []int{5, 10, 20})
+
+	if len(results) != 3 {
+		t.Fatalf("expected 3 results, got %d", len(results))
+	}
+
+	for i, sr := range results {
+		if sr.Parameter != "streamLength" {
+			t.Errorf("result[%d].Parameter = %q, want %q", i, sr.Parameter, "streamLength")
+		}
+
+		expected := sr.Value * ProfileDev.Streams
+		if sr.Result.TotalEvents != expected {
+			t.Errorf("result[%d].TotalEvents = %d, want %d (streams=%d * events=%d)",
+				i, sr.Result.TotalEvents, expected, ProfileDev.Streams, sr.Value)
+		}
+	}
+}
+
+func TestPrintSweep(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	results := WorkerSweep(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() }, []int{1, 2})
+
+	var buf bytes.Buffer
+	PrintSweep(&buf, results)
+
+	output := buf.String()
+	if !strings.Contains(output, "Workers Sweep") {
+		t.Error("PrintSweep output missing 'Workers Sweep' header")
+	}
+
+	if !strings.Contains(output, "Write ops/s") {
+		t.Error("PrintSweep output missing 'Write ops/s' column")
+	}
+}
+
+func TestWriteSweepJSON(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	results := WorkerSweep(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() }, []int{1})
+
+	var buf bytes.Buffer
+	if err := WriteSweepJSON(&buf, results); err != nil {
+		t.Fatalf("WriteSweepJSON: %v", err)
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, `"parameter": "workers"`) {
+		t.Error("WriteSweepJSON output missing parameter field")
+	}
+}
+
+func TestSortedSweepResults(t *testing.T) {
+	t.Parallel()
+
+	input := []SweepResult{
+		{Parameter: "workers", Value: 4, Result: &Result{}},
+		{Parameter: "workers", Value: 1, Result: &Result{}},
+		{Parameter: "workers", Value: 2, Result: &Result{}},
+	}
+
+	sorted := SortedSweepResults(input)
+
+	if sorted[0].Value != 1 || sorted[1].Value != 2 || sorted[2].Value != 4 {
+		t.Errorf("not sorted ascending: %d, %d, %d",
+			sorted[0].Value, sorted[1].Value, sorted[2].Value)
+	}
+
+	if input[0].Value != 4 {
+		t.Error("SortedSweepResults mutated the input slice")
+	}
+}

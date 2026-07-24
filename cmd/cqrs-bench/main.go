@@ -42,6 +42,8 @@ func main() {
 		runCmd(os.Args[2:])
 	case "compare":
 		compareCmd(os.Args[2:])
+	case "sweep":
+		sweepCmd(os.Args[2:])
 	case "version", "--version", "-v":
 		fmt.Println("cqrs-bench version " + version())
 	case "help", "-h", "--help":
@@ -59,6 +61,7 @@ func printUsage() {
 Usage:
   cqrs-bench run      --backend <name> [--dsn <dsn>] --profile <name> [flags]
   cqrs-bench compare  --profile <name> [--backends mem,sq,peb] [flags]
+  cqrs-bench sweep    --param <name> --values 1,2,4 --backend <name> [flags]
 
 Backends:
   memory    In-memory store (no persistence)
@@ -89,7 +92,9 @@ Examples:
   cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev
   cqrs-bench compare --profile small --format markdown
   cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor
-  cqrs-bench run --backend memory --profile small --repeat 5`)
+  cqrs-bench run --backend memory --profile small --repeat 5
+  cqrs-bench sweep --param workers --values 1,2,4,8 --backend memory --profile dev
+  cqrs-bench sweep --param batchSize --values 1,5,10 --backend sqlite --profile small`)
 }
 
 // ── run subcommand ──
@@ -225,6 +230,79 @@ func compareCmd(args []string) {
 	results := compareWithDiskPaths(ctx, config, factories, diskPaths)
 
 	writeComparison(*format, *output, results)
+}
+
+// ── sweep subcommand ──
+
+func sweepCmd(args []string) {
+	fs := flag.NewFlagSet("sweep", flag.ExitOnError)
+
+	param := fs.String(
+		"param",
+		"workers",
+		"Parameter to sweep: workers, batchSize, streamLength, gomaxprocs",
+	)
+	valuesStr := fs.String("values", "1,2,4", "Comma-separated sweep values (e.g. 1,2,4,8)")
+	backend := fs.String("backend", "memory", "Backend: memory, sqlite, pebble")
+	dsn := fs.String("dsn", "", "Database connection string (sqlite)")
+	dir := fs.String("dir", "", "Database directory (pebble)")
+	profileName := fs.String("profile", "dev", "Workload profile")
+	codecName := fs.String("codec", "json", "Payload codec: json, cbor")
+	format := fs.String("format", "text", "Output format: text, json")
+	output := fs.String("output", "", "Output file (default: stdout)")
+	payloadSize := fs.Int("payload-size", 256, "Payload size in bytes per event")
+	skipRawSink := fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase")
+	_ = fs.Parse(args)
+
+	profile, ok := benchkit.ProfileByName(*profileName)
+	if !ok {
+		fatalf("unknown profile: %s", *profileName)
+	}
+
+	codec := parseCodec(*codecName)
+
+	values, err := parsePayloadSizes(*valuesStr)
+	if err != nil {
+		fatalf("invalid --values: %v", err)
+	}
+
+	if len(values) < 2 {
+		fatalf("provide at least 2 values to sweep, got %d", len(values))
+	}
+
+	factory, diskPath, cleanup := makeFactory(*backend, *dsn, *dir)
+	if cleanup != nil {
+		defer cleanup()
+	}
+
+	config := benchkit.Config{
+		Profile:     profile,
+		PayloadSize: *payloadSize,
+		Codec:       codec,
+		SkipRawSink: *skipRawSink,
+		Backend:     *backend,
+		DiskPath:    diskPath,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	defer cancel()
+
+	var results []benchkit.SweepResult
+
+	switch *param {
+	case "workers":
+		results = benchkit.WorkerSweep(ctx, config, factory, values)
+	case "batchSize", "batch-size", "batch":
+		results = benchkit.BatchSizeSweep(ctx, config, factory, values)
+	case "streamLength", "stream-length", "stream":
+		results = benchkit.StreamLengthSweep(ctx, config, factory, values)
+	case "gomaxprocs", "gomax":
+		results = benchkit.GOMAXPROCSSweep(ctx, config, factory, values)
+	default:
+		fatalf("unknown parameter: %s (use workers, batchSize, streamLength, gomaxprocs)", *param)
+	}
+
+	writeSweep(*format, *output, results)
 }
 
 // ── factory ──
@@ -411,6 +489,20 @@ func writeComparison(
 		benchkit.PrintMarkdown(w, results)
 	default:
 		benchkit.PrintComparison(w, results)
+	}
+}
+
+func writeSweep(format, output string, results []benchkit.SweepResult) {
+	w := openOutput(output)
+	defer closeOutput(w)
+
+	switch format {
+	case "json":
+		if err := benchkit.WriteSweepJSON(w, results); err != nil {
+			fatalf("write JSON: %v", err)
+		}
+	default:
+		benchkit.PrintSweep(w, results)
 	}
 }
 
