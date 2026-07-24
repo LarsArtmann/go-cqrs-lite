@@ -303,15 +303,15 @@ c1ad8a50 2026-07-24 03:42  fix(benchkit): implement ReadRatio and Duration enfor
 
 All items in sections d) and e) were resolved in the [completeness session](2026-07-24_16-45_benchkit-completeness-session-status.md) (commit `8f68922b`):
 
-| Item | Claim in report | Resolution | Commit |
-| ---- | --------------- | ---------- | ------ |
-| d.1 | CBOR padding bug — "most serious issue" | FIXED: `NewGenerator` now takes a codec param; `computePadding` uses probe-encode with the configured codec | `8f68922b` |
-| d.2 | Stale doc comments on `BenchPayload`/`Payload()` | FIXED: updated to "within a few bytes" | `8f68922b` |
-| e.1 | CBOR-aware padding needed | DONE: probe-encode approach | `8f68922b` |
-| e.3 | `TestRun_CancelledContext` tautological | FIXED: now asserts `TotalEvents < ProfileDev.TotalEvents()` | `8f68922b` |
-| e.4 | Warmup error path untested | DONE: `TestRun_WarmupFactoryError` added | `8f68922b` |
-| e.5 | No `nix fmt` run | DONE: `nix fmt` applied | `8f68922b` |
-| e.6 | Errors use `fmt.Errorf` not `errorfamily` | DONE: 5 sentinels in `errors.go`, wrapping at call sites | `8f68922b` |
+| Item | Claim in report                                  | Resolution                                                                                                  | Commit     |
+| ---- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------- |
+| d.1  | CBOR padding bug — "most serious issue"          | FIXED: `NewGenerator` now takes a codec param; `computePadding` uses probe-encode with the configured codec | `8f68922b` |
+| d.2  | Stale doc comments on `BenchPayload`/`Payload()` | FIXED: updated to "within a few bytes"                                                                      | `8f68922b` |
+| e.1  | CBOR-aware padding needed                        | DONE: probe-encode approach                                                                                 | `8f68922b` |
+| e.3  | `TestRun_CancelledContext` tautological          | FIXED: now asserts `TotalEvents < ProfileDev.TotalEvents()`                                                 | `8f68922b` |
+| e.4  | Warmup error path untested                       | DONE: `TestRun_WarmupFactoryError` added                                                                    | `8f68922b` |
+| e.5  | No `nix fmt` run                                 | DONE: `nix fmt` applied                                                                                     | `8f68922b` |
+| e.6  | Errors use `fmt.Errorf` not `errorfamily`        | DONE: 5 sentinels in `errors.go`, wrapping at call sites                                                    | `8f68922b` |
 
 **Test count:** 33 (this session) → 55 (50 benchkit + 5 CLI) after completeness session.
 

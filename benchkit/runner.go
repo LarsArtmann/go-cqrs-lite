@@ -144,7 +144,7 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 	return &r.result, nil
 }
 
-func (r *runner) setup(ctx context.Context) error {
+func (r *runner) setup(_ context.Context) error {
 	bundle, err := r.factory()
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "benchkit.factory",

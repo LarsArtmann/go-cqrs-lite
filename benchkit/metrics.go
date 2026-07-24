@@ -1,6 +1,7 @@
 package benchkit
 
 import (
+	"bytes"
 	"math/rand/v2"
 	"os"
 	"runtime"
@@ -202,7 +203,7 @@ func cpuTimeProc() uint64 {
 
 	// /proc/self/stat field 2 is (comm) which can contain spaces.
 	// Everything after the last ')' is space-delimited and safe to split.
-	lastParen := strings.LastIndexByte(string(data), ')')
+	lastParen := bytes.LastIndexByte(data, ')')
 	if lastParen < 0 || lastParen+1 >= len(data) {
 		return 0
 	}

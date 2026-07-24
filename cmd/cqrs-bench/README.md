@@ -28,17 +28,17 @@ cqrs-bench compare --profile medium --backends mem,sq,peb --format markdown
 
 ### Flags
 
-| Flag             | Values                                                                   | Default  | Description                                        |
-| ---------------- | ------------------------------------------------------------------------ | -------- | -------------------------------------------------- |
-| `--backend`      | `memory`, `sqlite`, `pebble` (aliases: `mem`, `sq`, `peb`)               | `memory` | Backend to benchmark                               |
-| `--dsn`          | string                                                                   | temp     | Database DSN (sqlite); ignored for memory/pebble   |
-| `--dir`          | path                                                                     | temp     | Data directory (pebble)                            |
-| `--profile`      | `dev`, `small`, `medium`, `large`, `stress`, `write-heavy`, `read-heavy` | `dev`    | Workload profile                                   |
-| `--codec`        | `json`, `cbor`                                                           | `json`   | Payload codec                                      |
-| `--format`       | `text`, `json` (`markdown` in compare only)                              | `text`   | Output format                                      |
-| `--output`       | path                                                                     | stdout   | Output file                                        |
-| `--payload-size` | int                                                                      | `256`    | Payload size in bytes                              |
-| `--warmup`       | int                                                                      | `0`      | Warmup iterations before timing                    |
+| Flag             | Values                                                                   | Default  | Description                                      |
+| ---------------- | ------------------------------------------------------------------------ | -------- | ------------------------------------------------ |
+| `--backend`      | `memory`, `sqlite`, `pebble` (aliases: `mem`, `sq`, `peb`)               | `memory` | Backend to benchmark                             |
+| `--dsn`          | string                                                                   | temp     | Database DSN (sqlite); ignored for memory/pebble |
+| `--dir`          | path                                                                     | temp     | Data directory (pebble)                          |
+| `--profile`      | `dev`, `small`, `medium`, `large`, `stress`, `write-heavy`, `read-heavy` | `dev`    | Workload profile                                 |
+| `--codec`        | `json`, `cbor`                                                           | `json`   | Payload codec                                    |
+| `--format`       | `text`, `json` (`markdown` in compare only)                              | `text`   | Output format                                    |
+| `--output`       | path                                                                     | stdout   | Output file                                      |
+| `--payload-size` | int                                                                      | `256`    | Payload size in bytes                            |
+| `--warmup`       | int                                                                      | `0`      | Warmup iterations before timing                  |
 
 ## Workload Profiles
 

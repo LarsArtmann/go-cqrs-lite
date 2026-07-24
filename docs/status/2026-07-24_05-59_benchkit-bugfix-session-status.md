@@ -233,14 +233,14 @@ The current implementation uses a hardcoded template string to estimate payload 
 
 All items in section d) and questions Q1/Q3 were resolved across the [critical-fixes](2026-07-24_15-13_benchkit-critical-fixes-status.md) and [completeness](2026-07-24_16-45_benchkit-completeness-session-status.md) sessions:
 
-| Item | Claim in report | Resolution | Session |
-| ---- | --------------- | ---------- | ------- |
-| d.1 | Warmup pollutes the event store | FIXED: factory called twice, separate throwaway Bundle | critical-fixes |
-| d.2 | `estimateJSONSize` is a guess | FIXED: replaced with `json.Marshal` marshal-and-measure | critical-fixes |
-| d.3 | No negative/failure-path tests (23 happy-path only) | FIXED: 5 negative tests added (33→55 total) | critical-fixes + completeness |
-| d.4 | `insertCommas` hand-rolled | FIXED: replaced with `humanize.Comma` | todo-list-execution session |
-| d.5 | No `nix fmt` run | DONE: `nix fmt` applied | completeness |
-| Q1 | Should errors use `errorfamily`? | YES: 5 sentinels in `errors.go` | completeness |
-| Q3 | Should `estimateJSONSize` → marshal-and-measure? | YES: done, then further evolved to codec-aware probe-encode | critical-fixes + completeness |
+| Item | Claim in report                                     | Resolution                                                  | Session                       |
+| ---- | --------------------------------------------------- | ----------------------------------------------------------- | ----------------------------- |
+| d.1  | Warmup pollutes the event store                     | FIXED: factory called twice, separate throwaway Bundle      | critical-fixes                |
+| d.2  | `estimateJSONSize` is a guess                       | FIXED: replaced with `json.Marshal` marshal-and-measure     | critical-fixes                |
+| d.3  | No negative/failure-path tests (23 happy-path only) | FIXED: 5 negative tests added (33→55 total)                 | critical-fixes + completeness |
+| d.4  | `insertCommas` hand-rolled                          | FIXED: replaced with `humanize.Comma`                       | todo-list-execution session   |
+| d.5  | No `nix fmt` run                                    | DONE: `nix fmt` applied                                     | completeness                  |
+| Q1   | Should errors use `errorfamily`?                    | YES: 5 sentinels in `errors.go`                             | completeness                  |
+| Q3   | Should `estimateJSONSize` → marshal-and-measure?    | YES: done, then further evolved to codec-aware probe-encode | critical-fixes + completeness |
 
 **Test count:** 23 (this session) → 55 (50 benchkit + 5 CLI) after completeness session.
