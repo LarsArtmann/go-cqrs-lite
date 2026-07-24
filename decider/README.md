@@ -36,29 +36,29 @@ state, ver, _ := repo.LoadAtVersion(ctx, aggID, "Counter", 3)
 
 ### Decider[State]
 
-| Field     | Type                          | Description                                   |
-| --------- | ----------------------------- | --------------------------------------------- |
-| `Initial` | `State`                       | The starting state before any events.         |
+| Field     | Type                                      | Description                               |
+| --------- | ----------------------------------------- | ----------------------------------------- |
+| `Initial` | `State`                                   | The starting state before any events.     |
 | `Apply`   | `func(State, event.Event) (State, error)` | Fold function: applies an event to state. |
 
 ### Repository[State]
 
-| Method                              | Description                                                    |
-| ----------------------------------- | -------------------------------------------------------------- |
-| `NewRepository(store, bus, d, opts...)` | Creates a repository.                                      |
-| `Execute(ctx, aggID, aggType, decide)` | Load → fold → decide → save → publish.                    |
-| `Load(ctx, aggID, aggType)`         | Returns `(state, version, error)` from replaying events.      |
-| `LoadAtVersion(ctx, aggID, aggType, v)` | Time travel: state at a specific version.                  |
+| Method                                  | Description                                              |
+| --------------------------------------- | -------------------------------------------------------- |
+| `NewRepository(store, bus, d, opts...)` | Creates a repository.                                    |
+| `Execute(ctx, aggID, aggType, decide)`  | Load → fold → decide → save → publish.                   |
+| `Load(ctx, aggID, aggType)`             | Returns `(state, version, error)` from replaying events. |
+| `LoadAtVersion(ctx, aggID, aggType, v)` | Time travel: state at a specific version.                |
 
 ### Options
 
-| Option                          | Description                                                      |
-| ------------------------------- | ---------------------------------------------------------------- |
-| `WithSnapshotStore(s)`          | Enables snapshot-based loading (skip full replay).               |
-| `WithSnapshotStrategy(s)`       | When to create snapshots: `EveryNEvents(n)`, `NewReadPressure(n)`. |
-| `WithCodec(c)`                  | Codec for snapshot serialization (default: CBOR).                |
-| `WithStateCache(c)`             | LRU-bounded cache for incremental loads (7.4x faster for hot aggregates). |
-| `WithLoadCoalescing[State](false)` | Disable singleflight load coalescing.                        |
+| Option                             | Description                                                               |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| `WithSnapshotStore(s)`             | Enables snapshot-based loading (skip full replay).                        |
+| `WithSnapshotStrategy(s)`          | When to create snapshots: `EveryNEvents(n)`, `NewReadPressure(n)`.        |
+| `WithCodec(c)`                     | Codec for snapshot serialization (default: CBOR).                         |
+| `WithStateCache(c)`                | LRU-bounded cache for incremental loads (7.4x faster for hot aggregates). |
+| `WithLoadCoalescing[State](false)` | Disable singleflight load coalescing.                                     |
 
 ### TypedDecider[State, Cmd]
 

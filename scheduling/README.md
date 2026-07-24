@@ -51,36 +51,36 @@ func main() {
 
 ### Core Types
 
-| Symbol                    | Kind      | Description                                                         |
-| ------------------------- | --------- | ------------------------------------------------------------------- |
-| `Timer[P]`                | Struct    | A scheduled timer: `ID`, `FireAt`, `Payload P`. Generic payload.    |
-| `TimerID`                 | Type      | `= string`                                                          |
-| `TimerStore[P]`           | Interface | `Schedule`, `Due`, `MarkFired`, `Cancel`. Persistence boundary.    |
-| `DispatchFunc[P]`         | Type      | `func(ctx, Timer[P]) error`. Called when a timer fires.             |
+| Symbol            | Kind      | Description                                                      |
+| ----------------- | --------- | ---------------------------------------------------------------- |
+| `Timer[P]`        | Struct    | A scheduled timer: `ID`, `FireAt`, `Payload P`. Generic payload. |
+| `TimerID`         | Type      | `= string`                                                       |
+| `TimerStore[P]`   | Interface | `Schedule`, `Due`, `MarkFired`, `Cancel`. Persistence boundary.  |
+| `DispatchFunc[P]` | Type      | `func(ctx, Timer[P]) error`. Called when a timer fires.          |
 
 ### Scheduler
 
-| Symbol              | Kind   | Description                                                         |
-| ------------------- | ------ | ------------------------------------------------------------------- |
-| `Scheduler[P]`      | Struct | The poller. Polls the store for due timers and dispatches them.     |
-| `New[P](store, fn)` | Func   | Creates a Scheduler with functional options.                        |
-| `Start(ctx)`        | Method | Blocks until context is canceled. Polls, dispatches, retries.       |
+| Symbol              | Kind   | Description                                                     |
+| ------------------- | ------ | --------------------------------------------------------------- |
+| `Scheduler[P]`      | Struct | The poller. Polls the store for due timers and dispatches them. |
+| `New[P](store, fn)` | Func   | Creates a Scheduler with functional options.                    |
+| `Start(ctx)`        | Method | Blocks until context is canceled. Polls, dispatches, retries.   |
 
 ### Options
 
-| Option                  | Default | Description                                                       |
-| ----------------------- | ------- | ----------------------------------------------------------------- |
-| `WithPollInterval(d)`   | 1s      | How often to poll for due timers.                                 |
-| `WithMaxRetries(n)`     | 3       | Max dispatch retries before leaving the timer due for next poll.  |
-| `WithRetryDelay(d)`     | 100ms   | Base for exponential backoff between retries.                     |
-| `WithLogger(l)`         | `slog.Default()` | Structured logger.                                      |
+| Option                | Default          | Description                                                      |
+| --------------------- | ---------------- | ---------------------------------------------------------------- |
+| `WithPollInterval(d)` | 1s               | How often to poll for due timers.                                |
+| `WithMaxRetries(n)`   | 3                | Max dispatch retries before leaving the timer due for next poll. |
+| `WithRetryDelay(d)`   | 100ms            | Base for exponential backoff between retries.                    |
+| `WithLogger(l)`       | `slog.Default()` | Structured logger.                                               |
 
 ### MemoryTimerStore
 
-| Symbol                    | Kind   | Description                                              |
-| ------------------------- | ------ | -------------------------------------------------------- |
-| `MemoryTimerStore[P]`     | Struct | In-memory `TimerStore` for development and testing.      |
-| `NewMemoryTimerStore[P]()`| Func   | Constructor.                                             |
+| Symbol                     | Kind   | Description                                         |
+| -------------------------- | ------ | --------------------------------------------------- |
+| `MemoryTimerStore[P]`      | Struct | In-memory `TimerStore` for development and testing. |
+| `NewMemoryTimerStore[P]()` | Func   | Constructor.                                        |
 
 ## Design
 

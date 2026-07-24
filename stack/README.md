@@ -48,39 +48,39 @@ host.Register(mat.AsProjection())
 
 ### Bundle
 
-| Symbol                  | Kind   | Description                                                        |
-| ----------------------- | ------ | ------------------------------------------------------------------ |
-| `Bundle`                | Struct | Peer capability fields: events, commands, queries, snapshots, etc. |
-| `Bundle.EventStore()`   | Method | Returns `event.Store` (or error if not configured).                |
-| `Bundle.EventBus()`     | Method | Returns `event.Bus` (or error if not configured).                  |
-| `Bundle.Repository(d)`  | Method | Returns `decider.Repository[State]` wired to store + bus.          |
-| `Bundle.ReadModel(...)` | Method | Returns a `kv.ViewStore[V,K]` for read models.                     |
-| `Bundle.HealthCheck(ctx)` | Method | Pings the DB + calls HealthCheck on registered resources.       |
-| `Bundle.Close()`        | Method | Closes all registered closers (deduplicated by pointer).           |
+| Symbol                    | Kind   | Description                                                        |
+| ------------------------- | ------ | ------------------------------------------------------------------ |
+| `Bundle`                  | Struct | Peer capability fields: events, commands, queries, snapshots, etc. |
+| `Bundle.EventStore()`     | Method | Returns `event.Store` (or error if not configured).                |
+| `Bundle.EventBus()`       | Method | Returns `event.Bus` (or error if not configured).                  |
+| `Bundle.Repository(d)`    | Method | Returns `decider.Repository[State]` wired to store + bus.          |
+| `Bundle.ReadModel(...)`   | Method | Returns a `kv.ViewStore[V,K]` for read models.                     |
+| `Bundle.HealthCheck(ctx)` | Method | Pings the DB + calls HealthCheck on registered resources.          |
+| `Bundle.Close()`          | Method | Closes all registered closers (deduplicated by pointer).           |
 
 ### Materialize[V, K]
 
-| Symbol                  | Kind   | Description                                                        |
-| ----------------------- | ------ | ------------------------------------------------------------------ |
-| `Materialize[V, K]`     | Struct | Tombstone-aware projection builder. Implements `projection.Projection`. |
-| `TombstonePolicy`       | Type   | `IncludeTombstoned`, `ExcludeTombstoned` (default), `OnlyTombstoned`. |
-| `Store`                 | Field  | Any `kv.ViewStore[V, K]` implementation.                           |
-| `KeyFromEvent`          | Field  | Extracts the view key from an event.                               |
-| `OnCreate`              | Field  | Callback for new view creation.                                    |
-| `OnUpdate`              | Field  | Callback for view updates.                                         |
-| `OnTombstone`           | Field  | Callback for tombstone events.                                     |
-| `OnRebirth`             | Field  | Callback when a tombstoned view is re-created.                     |
+| Symbol              | Kind   | Description                                                             |
+| ------------------- | ------ | ----------------------------------------------------------------------- |
+| `Materialize[V, K]` | Struct | Tombstone-aware projection builder. Implements `projection.Projection`. |
+| `TombstonePolicy`   | Type   | `IncludeTombstoned`, `ExcludeTombstoned` (default), `OnlyTombstoned`.   |
+| `Store`             | Field  | Any `kv.ViewStore[V, K]` implementation.                                |
+| `KeyFromEvent`      | Field  | Extracts the view key from an event.                                    |
+| `OnCreate`          | Field  | Callback for new view creation.                                         |
+| `OnUpdate`          | Field  | Callback for view updates.                                              |
+| `OnTombstone`       | Field  | Callback for tombstone events.                                          |
+| `OnRebirth`         | Field  | Callback when a tombstoned view is re-created.                          |
 
 ### Options
 
-| Option                  | Description                                              |
-| ----------------------- | -------------------------------------------------------- |
-| `WithEventSink(s)`      | Sets the write-side event store.                         |
-| `WithEventSource(s)`    | Sets the read-side event store.                          |
-| `WithSeekableJournal(j)`| Sets the position-based journal for projection hosts.    |
-| `WithPublisher(p)`      | Sets the event publisher.                                |
-| `WithSnapshotStore(s)`  | Sets the snapshot store.                                 |
-| `WithCheckpointStore(c)`| Sets the checkpoint store.                               |
+| Option                         | Description                                            |
+| ------------------------------ | ------------------------------------------------------ |
+| `WithEventSink(s)`             | Sets the write-side event store.                       |
+| `WithEventSource(s)`           | Sets the read-side event store.                        |
+| `WithSeekableJournal(j)`       | Sets the position-based journal for projection hosts.  |
+| `WithPublisher(p)`             | Sets the event publisher.                              |
+| `WithSnapshotStore(s)`         | Sets the snapshot store.                               |
+| `WithCheckpointStore(c)`       | Sets the checkpoint store.                             |
 | `WithShutdownDependency(a, b)` | Declares that `a` closes AFTER `b` (topological sort). |
 
 ## Design

@@ -42,26 +42,26 @@ _ = sync.Pull(ctx)
 
 ### Constructors
 
-| Symbol                          | Description                                           |
-| ------------------------------- | ----------------------------------------------------- |
-| `New(dbPath, opts...)`          | Local embedded mode. No remote sync.                  |
-| `NewSync(ctx, dbPath, url, token, opts...)` | Local + remote sync mode.                |
+| Symbol                                      | Description                          |
+| ------------------------------------------- | ------------------------------------ |
+| `New(dbPath, opts...)`                      | Local embedded mode. No remote sync. |
+| `NewSync(ctx, dbPath, url, token, opts...)` | Local + remote sync mode.            |
 
 ### Options
 
-| Option                   | Description                                           |
-| ------------------------ | ----------------------------------------------------- |
-| `WithPragmas(opts...)`   | Sets SQLite PRAGMA values.                            |
-| `WithDSN(opts...)`       | Configures multi-database topology (local only).      |
-| `WithSyncOptions(opts...)` | Configures sync behavior (interval, retry, etc.).   |
+| Option                     | Description                                       |
+| -------------------------- | ------------------------------------------------- |
+| `WithPragmas(opts...)`     | Sets SQLite PRAGMA values.                        |
+| `WithDSN(opts...)`         | Configures multi-database topology (local only).  |
+| `WithSyncOptions(opts...)` | Configures sync behavior (interval, retry, etc.). |
 
 ### Bundle Extensions
 
 The Turso `Bundle` embeds `*stack.Bundle` and adds:
 
-| Method             | Description                                                     |
-| ------------------ | --------------------------------------------------------------- |
-| `Sync()`           | Returns `*cqrsturso.SyncDB` for `Push`/`Pull`/`Checkpoint`/`Stats`/`HealthCheck`. |
+| Method   | Description                                                                       |
+| -------- | --------------------------------------------------------------------------------- |
+| `Sync()` | Returns `*cqrsturso.SyncDB` for `Push`/`Pull`/`Checkpoint`/`Stats`/`HealthCheck`. |
 
 ## Design
 

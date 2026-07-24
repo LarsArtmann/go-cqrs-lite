@@ -28,21 +28,21 @@ query.RegisterTyped(q, "user.get", typedHandler)
 
 ## API
 
-| Type                        | Description                                                          |
-| --------------------------- | -------------------------------------------------------------------- |
+| Type                        | Description                                                                      |
+| --------------------------- | -------------------------------------------------------------------------------- |
 | `Dispatcher[H, M]`          | Generic handler + middleware dispatcher. `H` = handler type, `M` = message type. |
-| `LifecycleMixin`            | Embedded `Close()` support. Rejects operations after close with an error. |
-| `CatalogDispatcher[KT, VT]` | Embeddable catalog introspection for documentation generation.       |
+| `LifecycleMixin`            | Embedded `Close()` support. Rejects operations after close with an error.        |
+| `CatalogDispatcher[KT, VT]` | Embeddable catalog introspection for documentation generation.                   |
 
 ### Methods (via embedding)
 
-| Method                  | Description                                              |
-| ----------------------- | -------------------------------------------------------- |
-| `Register(type, handler)` | Register a handler for a message type.                 |
-| `Use(middleware...)`    | Append middleware to the chain.                          |
-| `Dispatch(ctx, msg)`    | Dispatch a message through the middleware chain.         |
-| `Close()`               | Close the dispatcher. Subsequent ops return an error.    |
-| `Handlers()`            | Returns registered handler types (for catalog/docs).     |
+| Method                    | Description                                           |
+| ------------------------- | ----------------------------------------------------- |
+| `Register(type, handler)` | Register a handler for a message type.                |
+| `Use(middleware...)`      | Append middleware to the chain.                       |
+| `Dispatch(ctx, msg)`      | Dispatch a message through the middleware chain.      |
+| `Close()`                 | Close the dispatcher. Subsequent ops return an error. |
+| `Handlers()`              | Returns registered handler types (for catalog/docs).  |
 
 ## Design
 

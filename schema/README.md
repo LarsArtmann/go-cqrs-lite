@@ -37,13 +37,13 @@ always sees the latest schema version, regardless of what version was stored.
 
 ## API
 
-| Symbol                                  | Description                                                         |
-| --------------------------------------- | ------------------------------------------------------------------- |
-| `NewUpcaster(eventType, fromVer, fn)`   | Creates an upcaster for a specific event type and source version.   |
-| `NewVersionedStore(store, upcasters...)`| Wraps an `event.Store`. Upcasts on every `Load`.                    |
-| `NewVersionedSeekableJournal(j, upcasters...)` | Wraps a `SeekableJournal`. Upcasts on every `ReadFrom`.      |
-| `Validator`                             | Validates event payloads against registered types.                  |
-| `RegisterType[T]()`                     | Register a Go type for schema validation (ADR-0017).                |
+| Symbol                                         | Description                                                       |
+| ---------------------------------------------- | ----------------------------------------------------------------- |
+| `NewUpcaster(eventType, fromVer, fn)`          | Creates an upcaster for a specific event type and source version. |
+| `NewVersionedStore(store, upcasters...)`       | Wraps an `event.Store`. Upcasts on every `Load`.                  |
+| `NewVersionedSeekableJournal(j, upcasters...)` | Wraps a `SeekableJournal`. Upcasts on every `ReadFrom`.           |
+| `Validator`                                    | Validates event payloads against registered types.                |
+| `RegisterType[T]()`                            | Register a Go type for schema validation (ADR-0017).              |
 
 ## Design
 

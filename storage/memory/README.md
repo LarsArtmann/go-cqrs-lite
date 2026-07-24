@@ -35,13 +35,13 @@ qStore := memory.NewMemoryQueryStore()
 
 ## API
 
-| Type                          | Implements                                            | Constructor                  |
-| ----------------------------- | ----------------------------------------------------- | ---------------------------- |
-| `MemoryStore`                 | `event.Store`, `event.Journal`, `event.SeekableJournal` | `NewMemoryStore()`         |
-| `MemorySnapshotStore`         | `snapshot.SnapshotSink`, `SnapshotSource`, `SnapshotStore` | `NewMemorySnapshotStore()` |
-| `MemoryCheckpointStore`       | `checkpoint.Store`                                    | `NewMemoryCheckpointStore()` |
-| `MemoryCommandStore`          | `command.CommandSink`, `CommandSource`, `CommandJournal`, `SeekableCommandJournal` | `NewMemoryCommandStore()` |
-| `MemoryQueryStore`            | `query.QuerySink`, `QuerySource`, `QueryJournal`, `SeekableQueryJournal` | `NewMemoryQueryStore()` |
+| Type                    | Implements                                                                         | Constructor                  |
+| ----------------------- | ---------------------------------------------------------------------------------- | ---------------------------- |
+| `MemoryStore`           | `event.Store`, `event.Journal`, `event.SeekableJournal`                            | `NewMemoryStore()`           |
+| `MemorySnapshotStore`   | `snapshot.SnapshotSink`, `SnapshotSource`, `SnapshotStore`                         | `NewMemorySnapshotStore()`   |
+| `MemoryCheckpointStore` | `checkpoint.Store`                                                                 | `NewMemoryCheckpointStore()` |
+| `MemoryCommandStore`    | `command.CommandSink`, `CommandSource`, `CommandJournal`, `SeekableCommandJournal` | `NewMemoryCommandStore()`    |
+| `MemoryQueryStore`      | `query.QuerySink`, `QuerySource`, `QueryJournal`, `SeekableQueryJournal`           | `NewMemoryQueryStore()`      |
 
 ## Design
 

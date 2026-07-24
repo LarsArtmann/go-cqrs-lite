@@ -31,28 +31,28 @@ bundle, err := pebble.New("data/myapp",
 
 ### Constructor
 
-| Symbol          | Description                                          |
-| --------------- | ---------------------------------------------------- |
-| `New(dir, opts...)` | Creates a Pebble-backed `*Bundle`.               |
+| Symbol              | Description                        |
+| ------------------- | ---------------------------------- |
+| `New(dir, opts...)` | Creates a Pebble-backed `*Bundle`. |
 
 ### Options
 
-| Option                  | Description                                    |
-| ----------------------- | ---------------------------------------------- |
-| `WithPebbleOptions(o)`  | Sets Pebble DB options (bloom filter, etc.).   |
-| `WithLogger(l)`         | Sets the structured logger.                    |
+| Option                 | Description                                  |
+| ---------------------- | -------------------------------------------- |
+| `WithPebbleOptions(o)` | Sets Pebble DB options (bloom filter, etc.). |
+| `WithLogger(l)`        | Sets the structured logger.                  |
 
 ### Bundle Extensions
 
 The Pebble `Bundle` embeds `*stack.Bundle` and adds Pebble-specific methods:
 
-| Method                       | Description                                             |
-| ---------------------------- | ------------------------------------------------------- |
-| `Checkpoint(dir)`            | Point-in-time physical backup snapshot.                 |
-| `NewSnapshot()`              | Consistent read view (close when done).                 |
-| `Flush()`                    | Flushes buffered writes to disk.                        |
-| `Metrics()`                  | LSM health metrics (block cache hit rate, compactions). |
-| `GracefulClose(ctx)`         | Context-bounded close (prevents hang on slow flush).    |
+| Method               | Description                                             |
+| -------------------- | ------------------------------------------------------- |
+| `Checkpoint(dir)`    | Point-in-time physical backup snapshot.                 |
+| `NewSnapshot()`      | Consistent read view (close when done).                 |
+| `Flush()`            | Flushes buffered writes to disk.                        |
+| `Metrics()`          | LSM health metrics (block cache hit rate, compactions). |
+| `GracefulClose(ctx)` | Context-bounded close (prevents hang on slow flush).    |
 
 ## Operations
 

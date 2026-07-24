@@ -184,10 +184,10 @@ Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
 
 ## Dependencies
 
-| Dependency                       | Purpose                          |
-| -------------------------------- | -------------------------------- |
-| [event](../event/README.md)   | Event types, tombstone detection |
-| [id](../id/README.md)         | AggregateID                      |
+| Dependency                            | Purpose                          |
+| ------------------------------------- | -------------------------------- |
+| [event](../event/README.md)           | Event types, tombstone detection |
+| [id](../id/README.md)                 | AggregateID                      |
 | [memory](../storage/memory/README.md) | In-memory reader for testing     |
 
 ## Test Coverage

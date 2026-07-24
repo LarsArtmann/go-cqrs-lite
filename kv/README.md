@@ -14,14 +14,14 @@ No existing Go KV meta-API (gokv, valkeyrie) provides all three operations an ev
 
 ## Layer-0 Interfaces
 
-| Interface             | Methods                                  | Purpose                                |
-| --------------------- | ---------------------------------------- | -------------------------------------- |
-| `Store`               | `Reader` + `Writer` + `Closer`           | Full read-write access                 |
-| `Reader`              | `Get`, `Has`, `NewIterator`              | Read-only access                       |
-| `Writer`              | `Set`, `Delete`, `Batch`                 | Write access                           |
-| `ConditionalWriter`   | `SetIfAbsent`                            | Atomic conditional write (idempotency) |
-| `Iterator`            | `Next`, `Key`, `Value`, `Error`, `Close` | Ordered key-value iteration (snapshot) |
-| `Batch`               | `Set`, `Delete`, `Commit`, `Close`       | Atomic multi-key writes                |
+| Interface           | Methods                                  | Purpose                                |
+| ------------------- | ---------------------------------------- | -------------------------------------- |
+| `Store`             | `Reader` + `Writer` + `Closer`           | Full read-write access                 |
+| `Reader`            | `Get`, `Has`, `NewIterator`              | Read-only access                       |
+| `Writer`            | `Set`, `Delete`, `Batch`                 | Write access                           |
+| `ConditionalWriter` | `SetIfAbsent`                            | Atomic conditional write (idempotency) |
+| `Iterator`          | `Next`, `Key`, `Value`, `Error`, `Close` | Ordered key-value iteration (snapshot) |
+| `Batch`             | `Set`, `Delete`, `Commit`, `Close`       | Atomic multi-key writes                |
 
 ## Quick Start
 
@@ -89,12 +89,12 @@ type ViewStore[V any, K fmt.Stringer] interface {
 
 ## Implementations
 
-| Implementation         | Module                                          |
-| ---------------------- | ----------------------------------------------- |
-| `MemStore`             | This package (reference in-memory implementation)|
-| Pebble KV adapter      | [storage/pebble](../storage/pebble/README.md)   |
-| `SQLKVStore`           | [storage](../storage/README.md)                 |
-| `SQLViewStore[V,K]`   | [storage](../storage/README.md)                 |
+| Implementation      | Module                                            |
+| ------------------- | ------------------------------------------------- |
+| `MemStore`          | This package (reference in-memory implementation) |
+| Pebble KV adapter   | [storage/pebble](../storage/pebble/README.md)     |
+| `SQLKVStore`        | [storage](../storage/README.md)                   |
+| `SQLViewStore[V,K]` | [storage](../storage/README.md)                   |
 
 ## Related Modules
 

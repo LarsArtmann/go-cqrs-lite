@@ -38,15 +38,15 @@ func main() {
 
 ## API
 
-| Symbol              | Kind     | Description                                                        |
-| ------------------- | -------- | ------------------------------------------------------------------ |
-| `Ring`              | Struct   | Fixed-capacity set of string IDs. Add/Has are O(1).                |
-| `NewRing(capacity)` | Func     | Creates a Ring. Falls back to `DefaultCapacity` if `capacity <= 0`.|
-| `Ring.Add(id)`      | Method   | Inserts an ID. No-op if already present. Evicts oldest when full.  |
-| `Ring.Has(id)`      | Method   | Reports whether the ID is in the ring. Nil-safe (returns false).   |
-| `Ring.Len()`        | Method   | Number of IDs currently held. Nil-safe (returns 0).               |
-| `Ring.Capacity()`   | Method   | Maximum number of IDs the ring can hold. Nil-safe (returns 0).    |
-| `DefaultCapacity`   | Const    | 1024 — a sensible ring size for replay-to-live dedup (~90 KB).     |
+| Symbol              | Kind   | Description                                                         |
+| ------------------- | ------ | ------------------------------------------------------------------- |
+| `Ring`              | Struct | Fixed-capacity set of string IDs. Add/Has are O(1).                 |
+| `NewRing(capacity)` | Func   | Creates a Ring. Falls back to `DefaultCapacity` if `capacity <= 0`. |
+| `Ring.Add(id)`      | Method | Inserts an ID. No-op if already present. Evicts oldest when full.   |
+| `Ring.Has(id)`      | Method | Reports whether the ID is in the ring. Nil-safe (returns false).    |
+| `Ring.Len()`        | Method | Number of IDs currently held. Nil-safe (returns 0).                 |
+| `Ring.Capacity()`   | Method | Maximum number of IDs the ring can hold. Nil-safe (returns 0).      |
+| `DefaultCapacity`   | Const  | 1024 — a sensible ring size for replay-to-live dedup (~90 KB).      |
 
 ## Design
 

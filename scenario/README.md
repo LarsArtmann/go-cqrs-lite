@@ -53,22 +53,22 @@ func TestUserProjection(t *testing.T) {
 
 ### Decider Scenario
 
-| Symbol                     | Kind   | Description                                                         |
-| -------------------------- | ------ | ------------------------------------------------------------------- |
-| `Given[Cmd, State](...)`   | Func   | Pre-existing events folded into initial state. Returns scenario.    |
-| `GivenState[State](...)`   | Func   | Convenience: pins `Cmd` to `any` for state-only tests.              |
-| `.When(cmd, decide)`       | Method | Runs the decide function against the folded state.                  |
-| `.Then(types...)`          | Method | Asserts the emitted event types match (order-sensitive).            |
-| `.ThenError(target)`       | Method | Asserts the decide function returned an error matching `target`.    |
-| `.ThenState(apply, init, expected)` | Method | Folds produced events, asserts final state via `DeepEqual`. |
+| Symbol                              | Kind   | Description                                                      |
+| ----------------------------------- | ------ | ---------------------------------------------------------------- |
+| `Given[Cmd, State](...)`            | Func   | Pre-existing events folded into initial state. Returns scenario. |
+| `GivenState[State](...)`            | Func   | Convenience: pins `Cmd` to `any` for state-only tests.           |
+| `.When(cmd, decide)`                | Method | Runs the decide function against the folded state.               |
+| `.Then(types...)`                   | Method | Asserts the emitted event types match (order-sensitive).         |
+| `.ThenError(target)`                | Method | Asserts the decide function returned an error matching `target`. |
+| `.ThenState(apply, init, expected)` | Method | Folds produced events, asserts final state via `DeepEqual`.      |
 
 ### Projection Scenario
 
-| Symbol                        | Kind   | Description                                              |
-| ----------------------------- | ------ | -------------------------------------------------------- |
-| `GivenProjection(t, proj, events...)` | Func   | Feeds events to `proj.Handle` immediately.       |
-| `.ThenNoError()`              | Method | Asserts zero handler errors.                            |
-| `.ThenError()`                | Method | Asserts at least one handler error occurred.            |
+| Symbol                                | Kind   | Description                                  |
+| ------------------------------------- | ------ | -------------------------------------------- |
+| `GivenProjection(t, proj, events...)` | Func   | Feeds events to `proj.Handle` immediately.   |
+| `.ThenNoError()`                      | Method | Asserts zero handler errors.                 |
+| `.ThenError()`                        | Method | Asserts at least one handler error occurred. |
 
 ## Design
 

@@ -2,7 +2,7 @@ package metaengine
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 )
 

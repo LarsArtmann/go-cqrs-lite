@@ -25,16 +25,16 @@ store.SaveFn(func(ctx context.Context, ref id.StreamRef, events ...event.Event) 
 })
 ```
 
-| Method            | Description                                              |
-| ----------------- | -------------------------------------------------------- |
-| `NewFakeStore()`  | Constructor.                                             |
-| `SaveFn(fn)`      | Override Save. Returns `*FakeStore` for chaining.        |
-| `LoadFn(fn)`      | Override Load.                                           |
-| `LoadFromVersionFn(fn)` | Override LoadFromVersion.                          |
-| `LoadToVersionFn(fn)`   | Override LoadToVersion.                            |
-| `LoadToTimestampFn(fn)` | Override LoadToTimestamp.                          |
-| `CloseFn(fn)`     | Override Close.                                          |
-| `AppendBatchFn(fn)` | Override AppendBatch.                                  |
+| Method                  | Description                                       |
+| ----------------------- | ------------------------------------------------- |
+| `NewFakeStore()`        | Constructor.                                      |
+| `SaveFn(fn)`            | Override Save. Returns `*FakeStore` for chaining. |
+| `LoadFn(fn)`            | Override Load.                                    |
+| `LoadFromVersionFn(fn)` | Override LoadFromVersion.                         |
+| `LoadToVersionFn(fn)`   | Override LoadToVersion.                           |
+| `LoadToTimestampFn(fn)` | Override LoadToTimestamp.                         |
+| `CloseFn(fn)`           | Override Close.                                   |
+| `AppendBatchFn(fn)`     | Override AppendBatch.                             |
 
 ### FakeBus
 
@@ -52,35 +52,35 @@ Implements `snapshot.SnapshotSink` + `SnapshotSource` + `SnapshotStore`. Support
 
 ## Event Factories
 
-| Function                              | Description                                          |
-| ------------------------------------- | ---------------------------------------------------- |
-| `NewEvent(t, typ, aggID, aggType, ver, payload)` | Creates an event, fatals on error.         |
-| `MakeEvent(...)`                      | Same as `NewEvent` but returns `(event, error)`.     |
-| `QuickEvent(...)`                     | Ignores error (panic-free fast path).                |
-| `MakeTimelineEvents(tb, aggType, aggID, events)` | Creates events at relative time offsets.   |
-| `TamperEvent(original, newPayload)`   | Recreates with same metadata but different payload.  |
-| `QuickSnapshot(aggID, aggType, ver, state)` | Creates a snapshot for testing.                |
+| Function                                         | Description                                         |
+| ------------------------------------------------ | --------------------------------------------------- |
+| `NewEvent(t, typ, aggID, aggType, ver, payload)` | Creates an event, fatals on error.                  |
+| `MakeEvent(...)`                                 | Same as `NewEvent` but returns `(event, error)`.    |
+| `QuickEvent(...)`                                | Ignores error (panic-free fast path).               |
+| `MakeTimelineEvents(tb, aggType, aggID, events)` | Creates events at relative time offsets.            |
+| `TamperEvent(original, newPayload)`              | Recreates with same metadata but different payload. |
+| `QuickSnapshot(aggID, aggType, ver, state)`      | Creates a snapshot for testing.                     |
 
 ## Assertions
 
-| Function                           | Description                                    |
-| ---------------------------------- | ---------------------------------------------- |
-| `AssertEventType(t, events, i, want)` | Assert event type at index.                 |
-| `AssertEventVersion(t, events, i, want)` | Assert event version at index.           |
-| `AssertCallOrder(t, callOrder, expected)` | Assert middleware call order.             |
-| `AssertGolden(t, path, got, update)`   | Golden-file comparison with update mode.    |
-| `AssertContains` / `AssertNotContains` | String membership checks.                   |
-| `AssertErrorContains(t, err, substr)`  | Error message substring check.             |
+| Function                                  | Description                              |
+| ----------------------------------------- | ---------------------------------------- |
+| `AssertEventType(t, events, i, want)`     | Assert event type at index.              |
+| `AssertEventVersion(t, events, i, want)`  | Assert event version at index.           |
+| `AssertCallOrder(t, callOrder, expected)` | Assert middleware call order.            |
+| `AssertGolden(t, path, got, update)`      | Golden-file comparison with update mode. |
+| `AssertContains` / `AssertNotContains`    | String membership checks.                |
+| `AssertErrorContains(t, err, substr)`     | Error message substring check.           |
 
 ## Handler Helpers
 
-| Function                    | Description                                             |
-| --------------------------- | ------------------------------------------------------- |
-| `AppendEventsHandler(&evts)`| Returns a handler that appends events to a slice.       |
-| `NoopEventHandler()`        | No-op handler.                                          |
-| `FailingEventHandler(msg)`  | Returns a handler that always errors.                   |
-| `PanicEventHandler(msg)`    | Returns a handler that panics (for recovery testing).   |
-| `EventMiddleware(&order, name)` | Middleware factory that records call order.         |
+| Function                        | Description                                           |
+| ------------------------------- | ----------------------------------------------------- |
+| `AppendEventsHandler(&evts)`    | Returns a handler that appends events to a slice.     |
+| `NoopEventHandler()`            | No-op handler.                                        |
+| `FailingEventHandler(msg)`      | Returns a handler that always errors.                 |
+| `PanicEventHandler(msg)`        | Returns a handler that panics (for recovery testing). |
+| `EventMiddleware(&order, name)` | Middleware factory that records call order.           |
 
 ## Store Conformance Suite
 
@@ -96,16 +96,16 @@ func TestMyStore(t *testing.T) {
 }
 ```
 
-| Function                          | Description                                            |
-| --------------------------------- | ------------------------------------------------------ |
-| `StoreTestConfig`                 | Configurable test event factory (type, payload, etc.). |
-| `NewStoreTestConfig(...)`         | Factory with JSON payload template.                     |
-| `IssueStoreConfig()` / `OrderStoreConfig()` | Prebuilt configs.                             |
-| `TestStoreSaveAndLoad(...)`       | Round-trip save and load.                              |
-| `TestStoreConcurrencyConflict(...)` | Optimistic concurrency version conflict.             |
-| `TestStoreAppendBatch(...)`       | Batch append semantics.                                |
-| `TestStoreLoadFromVersion(...)`   | Partial load from version.                             |
-| `TestStoreMetadataRoundtrip(...)` | Metadata preservation across save/load.               |
+| Function                                    | Description                                            |
+| ------------------------------------------- | ------------------------------------------------------ |
+| `StoreTestConfig`                           | Configurable test event factory (type, payload, etc.). |
+| `NewStoreTestConfig(...)`                   | Factory with JSON payload template.                    |
+| `IssueStoreConfig()` / `OrderStoreConfig()` | Prebuilt configs.                                      |
+| `TestStoreSaveAndLoad(...)`                 | Round-trip save and load.                              |
+| `TestStoreConcurrencyConflict(...)`         | Optimistic concurrency version conflict.               |
+| `TestStoreAppendBatch(...)`                 | Batch append semantics.                                |
+| `TestStoreLoadFromVersion(...)`             | Partial load from version.                             |
+| `TestStoreMetadataRoundtrip(...)`           | Metadata preservation across save/load.                |
 
 ## Design
 

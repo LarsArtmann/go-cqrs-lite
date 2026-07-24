@@ -34,20 +34,20 @@ repo, _ := decider.NewRepository(store, bus, d,
 
 ### Core Types
 
-| Type           | Description                                             |
-| -------------- | ------------------------------------------------------- |
-| `Snapshot`     | Captured state: `AggregateID`, `AggregateType`, `Version`, `State`, `CreatedAt`. |
-| `SnapshotSink` | Write side: `Save(ctx, Snapshot)`.                      |
-| `SnapshotSource` | Read side: `Load(ctx, ref)`, `LoadAtVersion(ctx, ref, v)`. |
-| `SnapshotStore` | `SnapshotSink` + `SnapshotSource` + `Delete` + `Close`. |
+| Type             | Description                                                                      |
+| ---------------- | -------------------------------------------------------------------------------- |
+| `Snapshot`       | Captured state: `AggregateID`, `AggregateType`, `Version`, `State`, `CreatedAt`. |
+| `SnapshotSink`   | Write side: `Save(ctx, Snapshot)`.                                               |
+| `SnapshotSource` | Read side: `Load(ctx, ref)`, `LoadAtVersion(ctx, ref, v)`.                       |
+| `SnapshotStore`  | `SnapshotSink` + `SnapshotSource` + `Delete` + `Close`.                          |
 
 ### Strategies
 
-| Strategy                 | Description                                                          |
-| ------------------------ | -------------------------------------------------------------------- |
-| `EveryNEvents(n)`        | Snapshot after every N events appended. Simple, predictable.          |
+| Strategy                 | Description                                                               |
+| ------------------------ | ------------------------------------------------------------------------- |
+| `EveryNEvents(n)`        | Snapshot after every N events appended. Simple, predictable.              |
 | `NewReadPressure(loads)` | Snapshot after N loads + next write. Optimizes for read-heavy aggregates. |
-| `WithInnerStrategy(s)`   | Combines with `NewReadPressure` — either strategy triggers.          |
+| `WithInnerStrategy(s)`   | Combines with `NewReadPressure` — either strategy triggers.               |
 
 ### Typed Snapshot Store
 
@@ -66,12 +66,12 @@ state, version, _ := typedStore.LoadTyped(ctx, ref)
 
 ## Implementations
 
-| Implementation                    | Module                                    |
-| --------------------------------- | ----------------------------------------- |
-| `MemorySnapshotStore`             | [storage/memory](../storage/memory/README.md) |
-| `SQLSnapshotStore`                | [storage](../storage/README.md)           |
-| PebbleDB `SnapshotStore`          | [storage/pebble](../storage/pebble/README.md) |
-| `FakeSnapshotStore`               | [eventtest](../event/v4/eventtest/README.md) |
+| Implementation           | Module                                        |
+| ------------------------ | --------------------------------------------- |
+| `MemorySnapshotStore`    | [storage/memory](../storage/memory/README.md) |
+| `SQLSnapshotStore`       | [storage](../storage/README.md)               |
+| PebbleDB `SnapshotStore` | [storage/pebble](../storage/pebble/README.md) |
+| `FakeSnapshotStore`      | [eventtest](../event/v4/eventtest/README.md)  |
 
 ## Related Modules
 

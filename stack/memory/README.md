@@ -25,21 +25,21 @@ repo  := bundle.Repository(decider)
 
 ## API
 
-| Symbol      | Description                                              |
-| ----------- | -------------------------------------------------------- |
-| `New()`     | Returns `(*stack.Bundle, error)` with all capabilities. |
+| Symbol  | Description                                             |
+| ------- | ------------------------------------------------------- |
+| `New()` | Returns `(*stack.Bundle, error)` with all capabilities. |
 
 ## What's Wired
 
-| Capability        | Implementation                          |
-| ----------------- | --------------------------------------- |
-| Event Store       | `storage/memory.MemoryStore`            |
-| Event Bus         | `watermill.EventBus` (GoChannel)        |
-| Snapshot Store    | `storage/memory.MemorySnapshotStore`    |
-| Checkpoint Store  | `storage/memory.MemoryCheckpointStore`  |
-| Command Store     | `storage/memory.MemoryCommandStore`     |
-| Query Store       | `storage/memory.MemoryQueryStore`       |
-| Read Models       | `kv.MemStore`                           |
+| Capability       | Implementation                         |
+| ---------------- | -------------------------------------- |
+| Event Store      | `storage/memory.MemoryStore`           |
+| Event Bus        | `watermill.EventBus` (GoChannel)       |
+| Snapshot Store   | `storage/memory.MemorySnapshotStore`   |
+| Checkpoint Store | `storage/memory.MemoryCheckpointStore` |
+| Command Store    | `storage/memory.MemoryCommandStore`    |
+| Query Store      | `storage/memory.MemoryQueryStore`      |
+| Read Models      | `kv.MemStore`                          |
 
 ## Design
 

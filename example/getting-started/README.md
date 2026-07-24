@@ -24,6 +24,7 @@ GOWORK=off go run main.go
 ```
 
 Output:
+
 ```
 Counter <ulid>: value=10 (expected 10)
 ```

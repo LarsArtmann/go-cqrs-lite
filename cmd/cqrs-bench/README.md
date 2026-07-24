@@ -28,29 +28,29 @@ cqrs-bench compare --profile medium --backends mem,sq,peb --format markdown
 
 ### Flags
 
-| Flag             | Values                              | Default | Description                          |
-| ---------------- | ----------------------------------- | ------- | ------------------------------------ |
-| `--backend`      | `memory`, `sqlite`, `pebble`        | —       | Backend to benchmark (aliases: `mem`, `sq`, `peb`) |
-| `--dsn`          | string                              | —       | Database DSN (sqlite/postgres)       |
-| `--dir`          | path                                | temp    | Data directory (pebble)              |
-| `--profile`      | `dev`, `small`, `medium`, `large`, `stress`, `write-heavy`, `read-heavy` | — | Workload profile |
-| `--codec`        | `json`, `cbor`                      | `json`  | Payload codec                        |
-| `--format`       | `text`, `json`, `markdown`          | `text`  | Output format (compare only: `markdown`) |
-| `--output`       | path                                | stdout  | Output file                          |
-| `--payload-size` | int                                 | profile | Override payload size in bytes       |
-| `--warmup`       | int                                 | profile | Warmup iterations before timing      |
+| Flag             | Values                                                                   | Default | Description                                        |
+| ---------------- | ------------------------------------------------------------------------ | ------- | -------------------------------------------------- |
+| `--backend`      | `memory`, `sqlite`, `pebble`                                             | —       | Backend to benchmark (aliases: `mem`, `sq`, `peb`) |
+| `--dsn`          | string                                                                   | —       | Database DSN (sqlite/postgres)                     |
+| `--dir`          | path                                                                     | temp    | Data directory (pebble)                            |
+| `--profile`      | `dev`, `small`, `medium`, `large`, `stress`, `write-heavy`, `read-heavy` | —       | Workload profile                                   |
+| `--codec`        | `json`, `cbor`                                                           | `json`  | Payload codec                                      |
+| `--format`       | `text`, `json`, `markdown`                                               | `text`  | Output format (compare only: `markdown`)           |
+| `--output`       | path                                                                     | stdout  | Output file                                        |
+| `--payload-size` | int                                                                      | profile | Override payload size in bytes                     |
+| `--warmup`       | int                                                                      | profile | Warmup iterations before timing                    |
 
 ## Workload Profiles
 
-| Profile       | Events | Reads | Payload | Description                        |
-| ------------- | ------ | ----- | ------- | ---------------------------------- |
-| `dev`         | 100    | 100   | 256 B   | Quick smoke test                   |
-| `small`       | 1K     | 1K    | 512 B   | Small dataset                      |
-| `medium`      | 10K    | 10K   | 1 KB    | Typical production load            |
-| `large`       | 100K   | 50K   | 2 KB    | Large dataset                      |
-| `stress`      | 1M     | 100K  | 4 KB    | Stress test                        |
-| `write-heavy` | 100K   | 1K    | 1 KB    | Write-dominated                    |
-| `read-heavy`  | 10K    | 1M    | 1 KB    | Read-dominated                     |
+| Profile       | Events | Reads | Payload | Description             |
+| ------------- | ------ | ----- | ------- | ----------------------- |
+| `dev`         | 100    | 100   | 256 B   | Quick smoke test        |
+| `small`       | 1K     | 1K    | 512 B   | Small dataset           |
+| `medium`      | 10K    | 10K   | 1 KB    | Typical production load |
+| `large`       | 100K   | 50K   | 2 KB    | Large dataset           |
+| `stress`      | 1M     | 100K  | 4 KB    | Stress test             |
+| `write-heavy` | 100K   | 1K    | 1 KB    | Write-dominated         |
+| `read-heavy`  | 10K    | 1M    | 1 KB    | Read-dominated          |
 
 ## Output
 

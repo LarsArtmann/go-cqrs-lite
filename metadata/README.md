@@ -29,10 +29,10 @@ type Tracing struct {
 
 When embedded anonymously in a struct, `encoding/json` promotes these fields to the parent level, preserving the existing JSON shape: `{"correlationId": "...", ...}`.
 
-| Method             | Description                                             |
-| ------------------ | ------------------------------------------------------- |
-| `Tracing.IsZero()` | True when no tracing field has been set.                |
-| `Tracing.Merge(o)` | Overlays non-zero fields from `other` onto `t`.         |
+| Method             | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| `Tracing.IsZero()` | True when no tracing field has been set.        |
+| `Tracing.Merge(o)` | Overlays non-zero fields from `other` onto `t`. |
 
 ### CustomData[K]
 
@@ -47,11 +47,11 @@ type CustomData[K ~string] struct {
 
 The type parameter `K` is a named string type (the module's own `MetadataKey`), so each module's custom keys are type-safe and cannot be accidentally mixed.
 
-| Method                       | Description                                              |
-| ---------------------------- | -------------------------------------------------------- |
-| `CustomData[K].Clone()`      | Returns a copy with a cloned Custom map.                 |
-| `CustomData[K].Merge(o)`     | Overlays tracing and custom entries from `other`.        |
-| `CustomData[K].EnsureCustom()`| Lazily initializes the Custom map if nil.               |
+| Method                         | Description                                       |
+| ------------------------------ | ------------------------------------------------- |
+| `CustomData[K].Clone()`        | Returns a copy with a cloned Custom map.          |
+| `CustomData[K].Merge(o)`       | Overlays tracing and custom entries from `other`. |
+| `CustomData[K].EnsureCustom()` | Lazily initializes the Custom map if nil.         |
 
 ### MergeCustomMaps[K]
 

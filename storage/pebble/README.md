@@ -51,32 +51,32 @@ val, _ := kvStore.Get([]byte("key"))
 
 ### Backend Facade
 
-| Symbol                              | Description                                          |
-| ----------------------------------- | ---------------------------------------------------- |
-| `Open(dir, opts, logger)`           | Creates and owns the DB. Recommended entry point.    |
-| `NewBackend(db, logger)`            | Wraps an external DB (caller owns lifecycle).        |
-| `Backend.EventStore()`              | Event store (implements `event.Store`, `Journal`).   |
-| `Backend.SnapshotStore()`           | Snapshot store.                                      |
-| `Backend.CheckpointStore()`         | Checkpoint store.                                    |
-| `Backend.Close()`                   | Closes DB AND all stores.                            |
-| `Backend.Metrics()`                 | LSM health metrics (block cache, compactions).       |
-| `Backend.Checkpoint(dir)`           | Point-in-time physical backup snapshot.              |
-| `Backend.NewSnapshot()`             | Consistent read view (close when done).              |
+| Symbol                      | Description                                        |
+| --------------------------- | -------------------------------------------------- |
+| `Open(dir, opts, logger)`   | Creates and owns the DB. Recommended entry point.  |
+| `NewBackend(db, logger)`    | Wraps an external DB (caller owns lifecycle).      |
+| `Backend.EventStore()`      | Event store (implements `event.Store`, `Journal`). |
+| `Backend.SnapshotStore()`   | Snapshot store.                                    |
+| `Backend.CheckpointStore()` | Checkpoint store.                                  |
+| `Backend.Close()`           | Closes DB AND all stores.                          |
+| `Backend.Metrics()`         | LSM health metrics (block cache, compactions).     |
+| `Backend.Checkpoint(dir)`   | Point-in-time physical backup snapshot.            |
+| `Backend.NewSnapshot()`     | Consistent read view (close when done).            |
 
 ### Options
 
-| Symbol                          | Description                                          |
-| ------------------------------- | ---------------------------------------------------- |
-| `DefaultOptions()`              | Production-grade: bloom filter, concurrent compactions. |
-| `DefaultOptionsWithLogging(l)`  | Same as default + operational logging.               |
+| Symbol                         | Description                                             |
+| ------------------------------ | ------------------------------------------------------- |
+| `DefaultOptions()`             | Production-grade: bloom filter, concurrent compactions. |
+| `DefaultOptionsWithLogging(l)` | Same as default + operational logging.                  |
 
 ### KV Adapter
 
-| Symbol                  | Description                                          |
-| ----------------------- | ---------------------------------------------------- |
-| `NewKVStore(db, opts)`  | Adapts Pebble as a `kv.Store`.                        |
-| `WithSyncWrites()`      | Force synchronous writes.                            |
-| `WithBorrowedDB()`      | Adapter does not close the DB (shared via Backend).  |
+| Symbol                 | Description                                         |
+| ---------------------- | --------------------------------------------------- |
+| `NewKVStore(db, opts)` | Adapts Pebble as a `kv.Store`.                      |
+| `WithSyncWrites()`     | Force synchronous writes.                           |
+| `WithBorrowedDB()`     | Adapter does not close the DB (shared via Backend). |
 
 ## Design
 

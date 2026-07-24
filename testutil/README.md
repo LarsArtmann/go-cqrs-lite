@@ -35,8 +35,8 @@ dispatcher.Register("ping", testutil.NoopCommandHandler())
 
 ## Dependencies
 
-| Dependency                         | Purpose                          |
-| ---------------------------------- | -------------------------------- |
+| Dependency                      | Purpose                          |
+| ------------------------------- | -------------------------------- |
 | [command](../command/README.md) | Command types and `BasicCommand` |
 | [id](../id/README.md)           | `AggregateID` type               |
 

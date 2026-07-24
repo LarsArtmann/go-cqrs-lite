@@ -67,17 +67,17 @@ for attempt := 1; attempt <= 5; attempt++ {
 
 ## API
 
-| Symbol                    | Kind     | Description                                                          |
-| ------------------------- | -------- | -------------------------------------------------------------------- |
-| `Config`                  | Struct   | Retry configuration: attempts, delays, multiplier, callbacks.        |
-| `DefaultConfig()`         | Func     | Sensible defaults: 3 attempts, 100ms, 5s max, 2x.                    |
-| `Config.Validate()`       | Method   | Checks configuration validity. Returns error on invalid values.      |
-| `Do(ctx, config, fn)`     | Func     | Executes `fn` with retry logic. Stops on success or non-retryable.   |
-| `Backoff(config, attempt)`| Func     | Calculates the delay before attempt N (exported for preview/logging).|
-| `ComputeDelay(...)`       | Func     | Raw delay calculation without a Config struct.                        |
-| `AttemptFunc`             | Type     | `func(ctx context.Context, attempt int) error`                        |
-| `ErrExhausted`            | Var      | Returned when all attempts fail (classified as Infrastructure).       |
-| `ErrCanceled`             | Var      | Returned when context is canceled during backoff.                     |
+| Symbol                     | Kind   | Description                                                           |
+| -------------------------- | ------ | --------------------------------------------------------------------- |
+| `Config`                   | Struct | Retry configuration: attempts, delays, multiplier, callbacks.         |
+| `DefaultConfig()`          | Func   | Sensible defaults: 3 attempts, 100ms, 5s max, 2x.                     |
+| `Config.Validate()`        | Method | Checks configuration validity. Returns error on invalid values.       |
+| `Do(ctx, config, fn)`      | Func   | Executes `fn` with retry logic. Stops on success or non-retryable.    |
+| `Backoff(config, attempt)` | Func   | Calculates the delay before attempt N (exported for preview/logging). |
+| `ComputeDelay(...)`        | Func   | Raw delay calculation without a Config struct.                        |
+| `AttemptFunc`              | Type   | `func(ctx context.Context, attempt int) error`                        |
+| `ErrExhausted`             | Var    | Returned when all attempts fail (classified as Infrastructure).       |
+| `ErrCanceled`              | Var    | Returned when context is canceled during backoff.                     |
 
 ## Backoff Formula
 

@@ -6,13 +6,13 @@ End-to-end tests that verify multiple go-cqrs-lite modules work together correct
 
 ## What's Tested
 
-| Package                  | Modules Covered              | What It Tests                                          |
-| ------------------------ | ---------------------------- | ------------------------------------------------------ |
-| `integration/command/`   | command, event, memory       | Command dispatch, event store roundtrip, bus publish   |
-| `integration/event/`     | event, memory                | Event creation, store, load, bus publish/subscribe     |
-| `integration/query/`     | query, event, memory         | Query dispatch, typed result extraction                |
-| `integration/signing/`   | signing, event, memory       | HMAC/Ed25519 sign then verify, middleware chain order  |
-| `integration/encryption/`| encryption, event, memory    | Encrypt then decrypt, mixed encrypted/unencrypted streams |
+| Package                   | Modules Covered           | What It Tests                                             |
+| ------------------------- | ------------------------- | --------------------------------------------------------- |
+| `integration/command/`    | command, event, memory    | Command dispatch, event store roundtrip, bus publish      |
+| `integration/event/`      | event, memory             | Event creation, store, load, bus publish/subscribe        |
+| `integration/query/`      | query, event, memory      | Query dispatch, typed result extraction                   |
+| `integration/signing/`    | signing, event, memory    | HMAC/Ed25519 sign then verify, middleware chain order     |
+| `integration/encryption/` | encryption, event, memory | Encrypt then decrypt, mixed encrypted/unencrypted streams |
 
 ## Running
 

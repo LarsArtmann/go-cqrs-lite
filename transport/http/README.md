@@ -66,34 +66,34 @@ mux.Handle("/events/backfill", cqrshttp.BackfillHandler(broker))
 
 ### SSEBroker
 
-| Symbol                    | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `NewSSEBroker(bus, opts...)` | Creates a broker subscribed to `bus.SubscribeAll`.  |
-| `SSEHandler(broker)`      | HTTP handler for SSE streaming.                        |
-| `BackfillHandler(broker)` | HTTP handler for REST-based event backfill.            |
-| `SSEClientID`             | Per-client identifier.                                 |
+| Symbol                       | Description                                        |
+| ---------------------------- | -------------------------------------------------- |
+| `NewSSEBroker(bus, opts...)` | Creates a broker subscribed to `bus.SubscribeAll`. |
+| `SSEHandler(broker)`         | HTTP handler for SSE streaming.                    |
+| `BackfillHandler(broker)`    | HTTP handler for REST-based event backfill.        |
+| `SSEClientID`                | Per-client identifier.                             |
 
 ### Options
 
-| Option                        | Default | Description                                             |
-| ----------------------------- | ------- | ------------------------------------------------------- |
+| Option                        | Default | Description                                                   |
+| ----------------------------- | ------- | ------------------------------------------------------------- |
 | `WithReconnectJournal(j, n)`  | —       | Enables Last-Event-ID replay. `n>0` bounded; `<=0` unlimited. |
-| `WithReplayByteBudget(bytes)` | 8 MB    | Caps unlimited replay by total payload bytes. `-1` disables. |
-| `WithReplayTimeout(d)`        | 0 (off) | Max replay duration before switching to live.           |
-| `WithDedupRingCapacity(n)`    | 1024    | Replay-to-live dedup ring size (~90 KB).                |
-| `WithRetryInterval(d)`        | 5s      | SSE `retry:` field sent to browsers.                    |
-| `WithEventFilter(fn)`         | —       | Broker-level event-type predicate; `false` = dropped.  |
-| `WithPayloadTransform(fn)`    | —       | Transform payload bytes before wire write (CBOR-to-JSON). |
-| `WithReplayMetrics(m)`        | —       | OTel instruments for replay duration/count/incomplete.  |
+| `WithReplayByteBudget(bytes)` | 8 MB    | Caps unlimited replay by total payload bytes. `-1` disables.  |
+| `WithReplayTimeout(d)`        | 0 (off) | Max replay duration before switching to live.                 |
+| `WithDedupRingCapacity(n)`    | 1024    | Replay-to-live dedup ring size (~90 KB).                      |
+| `WithRetryInterval(d)`        | 5s      | SSE `retry:` field sent to browsers.                          |
+| `WithEventFilter(fn)`         | —       | Broker-level event-type predicate; `false` = dropped.         |
+| `WithPayloadTransform(fn)`    | —       | Transform payload bytes before wire write (CBOR-to-JSON).     |
+| `WithReplayMetrics(m)`        | —       | OTel instruments for replay duration/count/incomplete.        |
 
 ### Constants
 
-| Constant                    | Value  | Description                              |
-| --------------------------- | ------ | ---------------------------------------- |
-| `DefaultSSEReplayLimit`     | 1000   | Suggested bounded replay cap.            |
-| `DefaultSSERetryInterval`   | 5s     | Default SSE retry hint.                  |
-| `SSEReplayBudgetDisabled`   | -1     | Disable byte budgeting entirely.         |
-| `SSEReplayIncompleteEvent`  | `"cqrs.replay.incomplete"` | Advisory event sent on replay timeout. |
+| Constant                   | Value                      | Description                            |
+| -------------------------- | -------------------------- | -------------------------------------- |
+| `DefaultSSEReplayLimit`    | 1000                       | Suggested bounded replay cap.          |
+| `DefaultSSERetryInterval`  | 5s                         | Default SSE retry hint.                |
+| `SSEReplayBudgetDisabled`  | -1                         | Disable byte budgeting entirely.       |
+| `SSEReplayIncompleteEvent` | `"cqrs.replay.incomplete"` | Advisory event sent on replay timeout. |
 
 ## Design
 

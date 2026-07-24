@@ -48,15 +48,15 @@ func main() {
 
 ## API
 
-| Symbol                         | Kind      | Description                                                              |
-| ------------------------------ | --------- | ------------------------------------------------------------------------ |
-| `KVBackend`                    | Interface | `kv.Reader` + `kv.Writer` + `kv.ConditionalWriter` + `io.Closer`.        |
-| `Store`                        | Struct    | Wraps a `KVBackend` as an `idempotency.Store`.                           |
-| `New(backend)`                 | Func      | Constructor.                                                             |
-| `Seen(ctx, key)`               | Method    | `(bool, error)` — lazy-deletes expired entries.                          |
-| `Record(ctx, key, ttl)`        | Method    | Stores an expiry timestamp unconditionally.                               |
-| `CheckAndRecord(ctx, key, ttl)`| Method    | Atomic check-then-set. Returns `idempotency.ErrDuplicate` if seen.       |
-| `Close()`                      | Method    | Passes through to the backend.                                           |
+| Symbol                          | Kind      | Description                                                        |
+| ------------------------------- | --------- | ------------------------------------------------------------------ |
+| `KVBackend`                     | Interface | `kv.Reader` + `kv.Writer` + `kv.ConditionalWriter` + `io.Closer`.  |
+| `Store`                         | Struct    | Wraps a `KVBackend` as an `idempotency.Store`.                     |
+| `New(backend)`                  | Func      | Constructor.                                                       |
+| `Seen(ctx, key)`                | Method    | `(bool, error)` — lazy-deletes expired entries.                    |
+| `Record(ctx, key, ttl)`         | Method    | Stores an expiry timestamp unconditionally.                        |
+| `CheckAndRecord(ctx, key, ttl)` | Method    | Atomic check-then-set. Returns `idempotency.ErrDuplicate` if seen. |
+| `Close()`                       | Method    | Passes through to the backend.                                     |
 
 ## Design
 

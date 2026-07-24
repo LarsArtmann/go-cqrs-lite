@@ -53,24 +53,24 @@ cmdClient := cqrsgrpc.NewCommandClient(conn,
 
 ### Server Registration
 
-| Symbol                              | Description                                          |
-| ----------------------------------- | ---------------------------------------------------- |
-| `RegisterCommandService(srv, disp)` | Registers a gRPC command service on the server.      |
-| `RegisterQueryService(srv, disp)`   | Registers a gRPC query service on the server.        |
+| Symbol                              | Description                                     |
+| ----------------------------------- | ----------------------------------------------- |
+| `RegisterCommandService(srv, disp)` | Registers a gRPC command service on the server. |
+| `RegisterQueryService(srv, disp)`   | Registers a gRPC query service on the server.   |
 
 ### Client Construction
 
-| Symbol                   | Description                                          |
-| ------------------------ | ---------------------------------------------------- |
-| `NewCommandClient(conn)` | Returns a client that dispatches commands remotely.  |
-| `NewQueryClient(conn)`   | Returns a client that dispatches queries remotely.   |
+| Symbol                   | Description                                         |
+| ------------------------ | --------------------------------------------------- |
+| `NewCommandClient(conn)` | Returns a client that dispatches commands remotely. |
+| `NewQueryClient(conn)`   | Returns a client that dispatches queries remotely.  |
 
 ### Options
 
-| Symbol             | Description                                                          |
-| ------------------ | -------------------------------------------------------------------- |
-| `Option`           | `func(*config)` — shared by all four entry points.                   |
-| `WithCodec(c)`     | Sets the wire codec (default: `codec.JSONCodec{}`). Both sides must match. |
+| Symbol         | Description                                                                |
+| -------------- | -------------------------------------------------------------------------- |
+| `Option`       | `func(*config)` — shared by all four entry points.                         |
+| `WithCodec(c)` | Sets the wire codec (default: `codec.JSONCodec{}`). Both sides must match. |
 
 ## Design
 

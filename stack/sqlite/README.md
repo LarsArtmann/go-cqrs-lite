@@ -45,11 +45,11 @@ bundle, err := sqlite.New("app.db",
 
 ## API
 
-| Symbol                  | Description                                              |
-| ----------------------- | -------------------------------------------------------- |
-| `New(dsn, opts...)`     | Creates a `*stack.Bundle` from a SQLite DSN.             |
-| `WithDSN(opts...)`      | Configures multi-database topology.                      |
-| `WithPragmas(opts...)`  | Sets SQLite PRAGMA values.                               |
+| Symbol                 | Description                                  |
+| ---------------------- | -------------------------------------------- |
+| `New(dsn, opts...)`    | Creates a `*stack.Bundle` from a SQLite DSN. |
+| `WithDSN(opts...)`     | Configures multi-database topology.          |
+| `WithPragmas(opts...)` | Sets SQLite PRAGMA values.                   |
 
 ## Design
 

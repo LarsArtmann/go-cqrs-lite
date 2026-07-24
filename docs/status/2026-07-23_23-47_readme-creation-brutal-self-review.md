@@ -12,46 +12,46 @@
 
 Every previously-missing module now has a README:
 
-| Module | Lines | Quality |
-|--------|-------|---------|
-| `dedup` | 61 | Good — small module, comprehensive |
-| `deriver` | 85 | Has code example bugs (see below) |
-| `metadata` | 82 | Good — type docs, usage, ADR refs |
-| `projection` | 69 | Good — interface, design, impls |
-| `retry` | 101 | Good — full API, formula, error taxonomy |
-| `scenario` | 84 | Has code example bugs (see below) |
-| `scheduling` | 96 | Good — full API, options, design |
-| `event/v4/eventtest` | 120 | Good — fakes, factories, suite |
-| `idempotency/kvstore` | 73 | Good — API, design, error classification |
-| `cmd/cqrs-bench` | 77 | Good — flags, profiles, design |
-| `cmd/doc-check` | 72 | Good — how it works, CI integration |
-| `storage/memory` | 59 | Good — impl table, design |
-| `storage/pebble` | 110 | Good — facade, ops, design |
-| `stack` | 113 | Good — Bundle, Materialize, codec defaults |
-| `stack/memory` | 63 | Good — wiring table, when to use |
-| `stack/sqlite` | 78 | Good — multi-DB, pragmas, view models |
-| `stack/pebble` | 90 | Good — extensions, ops, design |
-| `stack/postgres` | 87 | Good — distributed bus, multi-DB |
-| `stack/turso` | 102 | Good — sync mode, offline-first |
-| `stack/bench` | 36 | Thin but appropriate (benchmark module) |
-| `transport/http` | 111 | Good — SSE, options, design decisions |
-| `transport/grpc` | 87 | Good — server/client, codec, error mapping |
-| `example/getting-started` | 57 | Good — pipeline, swap instructions |
-| `example/readme-quickstart` | 57 | Good — minimal, how it works |
+| Module                      | Lines | Quality                                    |
+| --------------------------- | ----- | ------------------------------------------ |
+| `dedup`                     | 61    | Good — small module, comprehensive         |
+| `deriver`                   | 85    | Has code example bugs (see below)          |
+| `metadata`                  | 82    | Good — type docs, usage, ADR refs          |
+| `projection`                | 69    | Good — interface, design, impls            |
+| `retry`                     | 101   | Good — full API, formula, error taxonomy   |
+| `scenario`                  | 84    | Has code example bugs (see below)          |
+| `scheduling`                | 96    | Good — full API, options, design           |
+| `event/v4/eventtest`        | 120   | Good — fakes, factories, suite             |
+| `idempotency/kvstore`       | 73    | Good — API, design, error classification   |
+| `cmd/cqrs-bench`            | 77    | Good — flags, profiles, design             |
+| `cmd/doc-check`             | 72    | Good — how it works, CI integration        |
+| `storage/memory`            | 59    | Good — impl table, design                  |
+| `storage/pebble`            | 110   | Good — facade, ops, design                 |
+| `stack`                     | 113   | Good — Bundle, Materialize, codec defaults |
+| `stack/memory`              | 63    | Good — wiring table, when to use           |
+| `stack/sqlite`              | 78    | Good — multi-DB, pragmas, view models      |
+| `stack/pebble`              | 90    | Good — extensions, ops, design             |
+| `stack/postgres`            | 87    | Good — distributed bus, multi-DB           |
+| `stack/turso`               | 102   | Good — sync mode, offline-first            |
+| `stack/bench`               | 36    | Thin but appropriate (benchmark module)    |
+| `transport/http`            | 111   | Good — SSE, options, design decisions      |
+| `transport/grpc`            | 87    | Good — server/client, codec, error mapping |
+| `example/getting-started`   | 57    | Good — pipeline, swap instructions         |
+| `example/readme-quickstart` | 57    | Good — minimal, how it works               |
 
 ### 9 Existing READMEs Rewritten (were <50 lines)
 
-| Module | Before | After | Notes |
-|--------|--------|-------|-------|
-| `decider` | 40 | 92 | Added API tables, TypedDecider, design |
-| `dispatcher` | 23 | 57 | Added usage, methods, design |
-| `id` | 37 | 74 | Added marker table, serialization, design |
-| `snapshot` | 28 | 80 | Added strategies, typed store, impls |
-| `kv` | 52 | 104 | Added TypedStore, Cache, ViewStore |
-| `watermill` | 45 | 89 | Added CatchUpSubscriber, ordering, CommandBus |
-| `integration` | 32 | 43 | Fixed links, added encryption package |
-| `schema` | 42 | 59 | Added API table, Validator, design |
-| `testutil` | 46 | 46 | Already adequate, links fixed |
+| Module        | Before | After | Notes                                         |
+| ------------- | ------ | ----- | --------------------------------------------- |
+| `decider`     | 40     | 92    | Added API tables, TypedDecider, design        |
+| `dispatcher`  | 23     | 57    | Added usage, methods, design                  |
+| `id`          | 37     | 74    | Added marker table, serialization, design     |
+| `snapshot`    | 28     | 80    | Added strategies, typed store, impls          |
+| `kv`          | 52     | 104   | Added TypedStore, Cache, ViewStore            |
+| `watermill`   | 45     | 89    | Added CatchUpSubscriber, ordering, CommandBus |
+| `integration` | 32     | 43    | Fixed links, added encryption package         |
+| `schema`      | 42     | 59    | Added API table, Validator, design            |
+| `testutil`    | 46     | 46    | Already adequate, links fixed                 |
 
 ### Systematic Cross-File Fixes
 
@@ -65,11 +65,13 @@ Every previously-missing module now has a README:
 ## b) PARTIALLY DONE
 
 ### Link Integrity
+
 - **Module READMEs**: All internal links verified valid (0 broken) ✓
 - **`docs/` directory**: 3 broken links to non-existent examples (`example/encryption/`, `example/todo/`, `example/user/`) — NOT fixed (pre-existing, not my scope, but I noticed them)
 - **`docs/README.md`**: Not checked for v2/v4 staleness
 
 ### Code Example Accuracy
+
 - **54 Go code blocks** across new READMEs — **ZERO verified to compile**
 - Known bugs found during self-review (see section d)
 
@@ -93,12 +95,14 @@ Every previously-missing module now has a README:
 ### BUG 1: `deriver/README.md` — Wrong `command.New` Usage (CRITICAL)
 
 **The code example is WRONG:**
+
 ```go
 // My README says:
 command.New("send-welcome-email", evt.AggregateID(), SendWelcomeEmail{UserID: evt.AggregateID()})
 ```
 
 **The actual API is:**
+
 ```go
 func New(commandType Type, streamID id.StreamID, opts ...Option) (*BasicCommand, error)
 ```
@@ -110,6 +114,7 @@ func New(commandType Type, streamID id.StreamID, opts ...Option) (*BasicCommand,
 ### BUG 2: `scenario/README.md` — Invalid Type Parameter (CRITICAL)
 
 **The code example uses a lowercase type parameter:**
+
 ```go
 scenario.Given[t, CounterState](t, foldCounter, CounterState{}, ...)
 ```
@@ -117,6 +122,7 @@ scenario.Given[t, CounterState](t, foldCounter, CounterState{}, ...)
 `t` is a `*testing.T` variable, not a type. Type parameters must be uppercase types. This will not compile.
 
 **The correct form should be:**
+
 ```go
 scenario.Given[IncrementCmd, CounterState](t, foldCounter, CounterState{}, ...)
 ```
@@ -217,7 +223,7 @@ I created 54 Go code blocks and verified exactly zero of them. I didn't run `doc
 31. Standardize all READMEs to the same section structure: Title, Badge, Description, Install, Quick Start, API, Design, Related Modules
 32. Add "When to Use" section to all modules that have alternatives (e.g., storage backends)
 33. Add error handling examples to modules with error paths
-44. Add migration/upgrade notes where relevant (v2 to v4 paths)
+34. Add migration/upgrade notes where relevant (v2 to v4 paths)
 35. Add cross-module architecture diagram links (D2 or mermaid)
 36. Verify all "Related Modules" sections are bidirectional (if A links to B, B links to A)
 37. Add "Anti-Patterns" section to modules with common misuse (event, decider, kv)

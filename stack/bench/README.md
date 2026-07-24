@@ -16,11 +16,11 @@ go test -bench=. -benchmem ./...
 
 ## What's Measured
 
-| Benchmark                              | What it proves                                  |
-| -------------------------------------- | ----------------------------------------------- |
-| `BenchmarkBundleEventStoreAccess`      | `bundle.EventStore()` == direct `store` access  |
-| `BenchmarkBundleRepositoryAccess`      | `bundle.Repository(d)` == direct `repo` access  |
-| `BenchmarkBundleEventBusAccess`        | `bundle.EventBus()` == direct `bus` access      |
+| Benchmark                         | What it proves                                 |
+| --------------------------------- | ---------------------------------------------- |
+| `BenchmarkBundleEventStoreAccess` | `bundle.EventStore()` == direct `store` access |
+| `BenchmarkBundleRepositoryAccess` | `bundle.Repository(d)` == direct `repo` access |
+| `BenchmarkBundleEventBusAccess`   | `bundle.EventBus()` == direct `bus` access     |
 
 Each benchmark runs both paths (through Bundle vs direct) and compares the results. If the Bundle adds overhead, the numbers diverge.
 

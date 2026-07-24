@@ -19,6 +19,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../AGENTS.md
 ```
 
 When no arguments are given, doc-check auto-discovers:
+
 - `SKILL.md`
 - `AGENTS.md`
 - `docs/DOMAIN_LANGUAGE.md`
@@ -43,12 +44,12 @@ Exit code is non-zero if any broken references are found.
 
 ## What It Checks
 
-| Reference Type      | Example                              | Verified? |
-| ------------------- | ------------------------------------ | --------- |
-| Import path         | `github.com/larsartmann/go-cqrs-lite/event/v4` | Yes — directory exists |
-| Qualified symbol    | `event.NewEvent`                     | Yes — exported symbol exists |
-| Stdlib symbol       | `fmt.Println`                        | No — skipped |
-| External symbol     | `otel.Tracer`                        | No — skipped |
+| Reference Type   | Example                                        | Verified?                    |
+| ---------------- | ---------------------------------------------- | ---------------------------- |
+| Import path      | `github.com/larsartmann/go-cqrs-lite/event/v4` | Yes — directory exists       |
+| Qualified symbol | `event.NewEvent`                               | Yes — exported symbol exists |
+| Stdlib symbol    | `fmt.Println`                                  | No — skipped                 |
+| External symbol  | `otel.Tracer`                                  | No — skipped                 |
 
 - Strips `/v4` suffix from import paths to resolve directory locations.
 - Walks up to `.git` to find the repo root (handles worktrees).

@@ -10,7 +10,7 @@ go get github.com/larsartmann/go-cqrs-lite/projection/v4
 
 ## Why?
 
-Projections are **consumers** of events, not producers. The `event` package defines what events *are* (`Event`, `Store`, `Bus`); the `projection` package defines how events are *consumed* into read models. Keeping them separate follows the dependency-direction principle: `projection` depends on `event`, never the reverse.
+Projections are **consumers** of events, not producers. The `event` package defines what events _are_ (`Event`, `Store`, `Bus`); the `projection` package defines how events are _consumed_ into read models. Keeping them separate follows the dependency-direction principle: `projection` depends on `event`, never the reverse.
 
 ## Quick Start
 
@@ -38,10 +38,10 @@ proj := projection.NewProjection("user-count", func(ctx context.Context, evt cqr
 
 ## API
 
-| Symbol                          | Kind      | Description                                                       |
-| ------------------------------- | --------- | ----------------------------------------------------------------- |
-| `Projection`                    | Interface | `Name() string`, `Handle(ctx, evt) error`, `EventTypes() []Type` |
-| `NewProjection(name, fn, types)`| Func      | Creates a Projection from a handler function and type filter.     |
+| Symbol                           | Kind      | Description                                                      |
+| -------------------------------- | --------- | ---------------------------------------------------------------- |
+| `Projection`                     | Interface | `Name() string`, `Handle(ctx, evt) error`, `EventTypes() []Type` |
+| `NewProjection(name, fn, types)` | Func      | Creates a Projection from a handler function and type filter.    |
 
 The `Projection` interface:
 

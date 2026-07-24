@@ -45,15 +45,15 @@ bundle, err := postgres.New(primaryDSN,
 
 ### Constructor
 
-| Symbol         | Description                                            |
-| -------------- | ------------------------------------------------------ |
-| `New(dsn, opts...)` | Creates a Postgres-backed `*stack.Bundle`.        |
+| Symbol              | Description                                |
+| ------------------- | ------------------------------------------ |
+| `New(dsn, opts...)` | Creates a Postgres-backed `*stack.Bundle`. |
 
 ### Options
 
-| Option                              | Description                                              |
-| ----------------------------------- | -------------------------------------------------------- |
-| `WithDSN(opts...)`                  | Configures multi-database topology.                      |
+| Option                                     | Description                                        |
+| ------------------------------------------ | -------------------------------------------------- |
+| `WithDSN(opts...)`                         | Configures multi-database topology.                |
 | `WithDistributedBus(listener, busOpts...)` | Enables `LISTEN/NOTIFY` for cross-process pub/sub. |
 
 ## Design
