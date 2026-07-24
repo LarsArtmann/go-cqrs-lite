@@ -90,12 +90,14 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 - [x] **SQLite concurrent-write fix** — Added `storage.ConfigureSQLitePool(sqlDB)` to `stack/sqlite/preset.go` (was missing, caused SQLITE_BUSY at 4+ goroutines).
 - [x] **Compare-mode disk = 0B** — `compareCmd` now collects per-backend diskPaths instead of discarding them.
 - [x] **Fix `--version` drift** — Now uses `runtime/debug.ReadBuildInfo()` instead of hardcoded string.
+- [x] **Mixed payload-size support** — `Generator` now holds a size distribution; `NewMixedGenerator(seed, sizes, codec)` picks a size uniformly at random per event. CLI flag `--payload-sizes 64,256,4096` overrides `--payload-size`. Result reports the distribution mean + full distribution. See [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
 
 **Open:**
 
+- [ ] 🔥 **Run-to-run variance is ~20-25% (memory backend)** — Single-run throughput numbers are unreliable; uniform-1024 measured 92K-190K/s across runs. Cold first-runs can be 2x outliers. Pebble is far more stable (mixed workload ±2%). **Need a `--repeat N` flag** that runs N iterations and reports median + min/max spread. This is the highest-impact benchkit gap — without it, all absolute numbers are suspect. See [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
 - [ ] **Implement `DiskSize()` on `pebble.Bundle`** — `DiskSizer` interface exists but zero backends implement it. Pebble backend has `Metrics().DiskUsage()` available.
 - [ ] **CPU measurement returns n/a** — Fast benchmarks (memory backend, <3ms) complete between polling intervals. Need CPU start+end measurement, not just polling.
-- [ ] **Projection benchmark** — `projectionEvents: 0` in all runs; no projection registered in benchmark profiles.
+- [ ] **Projection benchmark** — Projection phase now runs (10K events on small profile) but only intermittently appears in output (timing race: memory projection catches up within the 10ms poll window sometimes). Stabilize the projection phase reporting.
 - [ ] **Phase 2: durability benchmark** — Crash recovery, replay-after-restart.
 - [ ] **Phase 6: production replay** — Replay real event streams for benchmarking.
 - [ ] **Phase 7: `benchtest.RunSuite`** — Preset integration for `stack/bench`.

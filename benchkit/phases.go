@@ -270,6 +270,7 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 	// This gives the worker time to actually process events instead of being
 	// immediately cancelled.
 	target := int64(r.result.TotalEvents)
+
 	deadline := time.NewTimer(30 * time.Second)
 	defer deadline.Stop()
 
