@@ -35,24 +35,20 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 
 **Open:**
 
-- [ ] **`storage/sql/errors.go` message prose** — Error codes correctly kept as
-      stable match keys (`storage.aggregate_type_mismatch`), but the
-      human-readable messages still say "aggregate" (lines 24, 35). Same fix
-      pattern as the pebble fix.
-- [ ] **Stale test diagnostics** — `integration/command/command_test.go:27`,
-      `integration/pebble/pebble_test.go` (4 lines),
-      `transport/grpc/command_span_test.go:99`.
-- [BLOCKED] **OTel attribute string values** — `otel/attributes.go` keeps
-  `cqrs.aggregate.*` string values for dashboard compatibility while the Go
-  constants are renamed (`AttrStreamType`, etc.). Renaming the strings is a
-  **breaking change for consumer dashboards/queries** — needs explicit
-  decision. Also blocks `middleware/tracing_test.go` (4 attribute-name
-  assertions on lines 57, 119, 123, 127).
-- [BLOCKED] **`catalog/d2.AggregateRoot`** — Exported field + "Aggregate Root"
-  diagram label not in the ADR-0058 rename map. It is a DDD diagram concept;
-  needs decision on whether to rename.
-- [ ] **Run full quality gates** — `nix run .#lint` and full test suite not yet
-      run after the comment/prose changes (text-only, but gate should pass).
+- [x] **`storage/sql/errors.go` message prose** — Done (Session 3). Error codes kept
+      as stable match keys; human-readable messages updated.
+- [x] **Stale test diagnostics** — Done (Session 3 + Session 4). All test files
+      cleaned (224 files: variable names, comments, assertion messages,
+      function names, stream type labels).
+- [RESOLVED] **OTel attribute string values** — Decision (Session 3): KEEP
+  `cqrs.aggregate.*` string values for dashboard compatibility. The Go
+  constants are renamed (`AttrStreamType`, etc.). Documented in source.
+- [RESOLVED] **`catalog/d2.AggregateRoot`** — Decision (Session 3): KEEP as-is.
+  It is a DDD diagram concept (Aggregate Root label in D2 diagrams), not a
+  stream-key naming issue. Would need separate ADR.
+- [x] **Run full quality gates** — Done (Session 4). `nix run .#verify`,
+      `nix run .#lint`, `nix run .#check-layers` all pass. Race tests pass
+      individually (4 flaky under concurrent pressure — pre-existing).
 
 ### Metaengine Integration
 
@@ -169,7 +165,7 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 - **OR conditions / query builder in ViewStore** — `RawWhere` escape hatch covers the 5% case.
   Building `OrClause`/`NotClause`/nested groups is ORM creep. Principle #1: "Library, not framework."
 - **Unify VersionedStore + VersionedSeekableJournal** — Different interfaces (Store: Load/Save per
-  aggregate, SeekableJournal: ReadFrom position-based). YAGNI.
+  stream, SeekableJournal: ReadFrom position-based). YAGNI.
 - **VersionedJournal (ReadAll only)** — No consumer needs `ReadAll` with upcasters. YAGNI.
 - **Expose `SSEBroker.PayloadTransform()` accessor** — Implemented for BackfillHandler (necessary),
   but no standalone demand from consumers.
@@ -178,7 +174,7 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 - **Auto-apply CQRS views by default** — Violates "library, not framework." Consumers choose
   their histogram boundaries.
 - **VersionedSeekableJournal implementing event.Store** — Different scope (position-based vs
-  aggregate-based reads). YAGNI.
+  stream-based reads). YAGNI.
 - **Integration test in `integration/` module** — Redundant with
   `projectionhost/versioned_journal_integration_test.go`.
 - **`storage/auditstore/` package** — Lying name. Renamed to "dispatch log" and kept in `storage/`.

@@ -31,7 +31,7 @@ OTel tracing/metrics, auto-documentation generation, and a domain-aware linter
 - **Incremental rollups** — `ProjectionSink.Increment` + `RelationalProjection.Reset`
   for atomic counter maintenance in relational projections.
 - **Aggregate→Stream rename** (ADR-0058) — type aliases + deprecated wrappers.
-  Structurally complete; comment cleanup and 2 error var pairs remaining.
+  Complete: all code, tests, and docs migrated to canonical `Stream*` names.
 - **Comprehensive README coverage** — all 56 modules with READMEs, 248 Go symbol
   references verified by `doc-check`.
 - **Error taxonomy migration** — 13 sentinels migrated to `errorfamily` constructors.
@@ -91,14 +91,16 @@ The benchmarking toolkit is functional with 55 tests but has known gaps:
 
 - **Stale API golden file** — `docs/api_surface.txt` still contains 9 removed
   APIs. CI `api-stability` job will fail until regenerated.
-- **Aggregate→Stream completion** — 2 exported error var pairs missed, ~70 files
-  with stale comments, AGENTS.md/SKILL.md references.
+- **Aggregate→Stream completion** — ✅ Done (Sessions 1–4). All Go code, test
+  files (224 files), and consumer-facing docs migrated to canonical `Stream*`
+  names. Deprecated aliases, SQL columns, OTel values, and error codes
+  intentionally kept per ADR-0058.
 - **Module extraction** — `retry/` and `idempotency/` are zero-CQRS-coupling
   candidates for standalone repos (see [extraction analysis](docs/planning/2026-07-23_extraction-analysis.md)).
 
 ### 4. Consumer Experience
 
-- **Read-your-writes helper** — `WaitForVersion(ctx, aggID, version)` for
+- **Read-your-writes helper** — `WaitForVersion(ctx, streamID, version)` for
   consumers who need immediate consistency after a write (book insights gap).
 - **Bounded staleness** — `WithMaxStaleness(duration)` for projections that
   can tolerate lag (book insights gap).
@@ -115,7 +117,7 @@ The benchmarking toolkit is functional with 55 tests but has known gaps:
 - Multi-tenant event store (schema-per-tenant)
 - Distributed projection runner (leader election, multi-node coordination)
 - Event archival to S3 / GCS / Azure Blob
-- CQRS-lite dashboard (web UI for inspecting aggregates, events, projections)
+- CQRS-lite dashboard (web UI for inspecting streams, events, projections)
 - Automatic migration generator for schema evolution
 - Property-based integration testing with state machine verification
 - Performance regression dashboard (historical benchmark tracking)

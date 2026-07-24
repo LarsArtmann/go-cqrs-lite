@@ -87,7 +87,7 @@ See [ADR-0060](../docs/adr/0060-benchkit-design-decisions.md) for design rationa
 
 ## Named profiles
 
-| Profile      | Aggregates | Events/Agg | Total | Concurrent |
+| Profile      |   Streams | Events/Stream | Total | Concurrent |
 | ------------ | ---------: | ---------: | ----: | ---------: |
 | `Dev`        |        100 |          5 |   500 |          1 |
 | `Small`      |      1,000 |         10 |   10K |          4 |
@@ -163,7 +163,7 @@ CBOR, within 5 bytes (due to string-header boundary crossings).
 ```go
 config := benchkit.Config{
     Profile:          benchkit.ProfileDev,
-    SkipReads:        true,   // skip aggregate loads + journal scans
+    SkipReads:        true,   // skip stream loads + journal scans
     SkipReadModels:   true,   // skip kv.Store Set/Get benchmark
     SkipProjections:  true,   // skip projection phase
 }

@@ -3,7 +3,7 @@
 > **ADR-0058 execution plan** — renaming the identity types from `Aggregate*` to `Stream*` across the entire library, using type aliases for zero-breakage backward compatibility.
 
 **Date:** 2026-07-23
-**Status:** In Progress
+**Status:** ✅ Complete (Sessions 1–3, ADR-0058)
 **ADR:** [ADR-0058](../adr/0058-rename-aggregate-to-stream.md)
 **Analysis:** [AGGREGATE-CONCEPT-ANALYSIS](../architecture-understanding/AGGREGATE-CONCEPT-ANALYSIS.md)
 
