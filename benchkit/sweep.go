@@ -130,6 +130,7 @@ func PrintSweep(w io.Writer, results []SweepResult) {
 		r := sr.Result
 		if r.Error != "" {
 			fmt.Fprintf(w, "%-12d %s\n", sr.Value, "FAILED: "+truncate(r.Error, 50))
+
 			continue
 		}
 
@@ -157,11 +158,7 @@ func WriteSweepJSON(w io.Writer, results []SweepResult) error {
 
 	items := make([]export, len(results))
 	for i, sr := range results {
-		items[i] = export{
-			Parameter: sr.Parameter,
-			Value:     sr.Value,
-			Result:    sr.Result,
-		}
+		items[i] = export(sr)
 	}
 
 	return writeJSONAny(w, items)
