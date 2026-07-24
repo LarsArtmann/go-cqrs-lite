@@ -50,6 +50,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   tests every API pattern from `docs/getting-started.md` to catch drift in CI.
 - **Module count** — 52 → 56 `go.mod` files (metaengine, benchkit, cmd/cqrs-bench,
   example/readme-quickstart).
+- **Storage error var rename** — `ErrAggregateTypeMismatch` → `ErrStreamTypeMismatch`
+  and `ErrAggregateIDMismatch` → `ErrStreamIDMismatch` in `storage/sql` and
+  `storage/pebble`. Deprecated aliases preserve backward compatibility. Error code
+  strings (wire format) unchanged.
+- **Benchkit number formatting** — replaced 25-line hand-rolled `insertCommas()` with
+  `humanize.Comma()` from `go-humanize`.
+- **api-stability module list** — fixed 3 dead entries (`memory`/`pebble`/`turso`),
+  corrected `event/eventtest` → `event/v4/eventtest`, added `metaengine`, `benchkit`,
+  `stack/bench`, `cmd/cqrs-bench`. Golden file regenerated: 2582 exports (was 2340).
+- **Doc accuracy fixes** — `error-taxonomy.md` and `DOMAIN_LANGUAGE.md` updated to use
+  `errorfamily.*` constructors instead of removed `event.*` error functions.
+  `CHANGELOG.md` migration code block switched to `diff` fence to avoid false
+  doc-check warnings.
+- **FEATURES.md cleanup** — removed dead "Known Code Quality Issues" section
+  (6 resolved items).
 
 ### Removed (Breaking — targets v4.1)
 

@@ -4,6 +4,11 @@
 **Session goal:** Fix 5 critical correctness items in benchkit
 **Outcome:** All 5 items implemented and committed, 33 tests pass with `-race`, but several issues remain
 
+> **Update 2026-07-24 (commit `8f68922b`):** the CBOR padding bug (section d), stale doc comments,
+> tautological test, warmup error path, nix fmt, and errorfamily integration (all items in section e)
+> were resolved in the [completeness session](2026-07-24_16-45_benchkit-completeness-session-status.md).
+> Test count is now 55 (50 benchkit + 5 CLI). Full item-by-item status in [Resolution](#resolution-2026-07-24) below.
+
 ---
 
 ## a) FULLY DONE (committed, tested, verified)

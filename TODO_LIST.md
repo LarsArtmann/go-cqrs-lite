@@ -13,35 +13,6 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
-## ⭐ 1% Tier — Do First (Highest Impact)
-
-- [ ] ⭐ **Regenerate `docs/api_surface.txt`** — Golden file still contains 9 removed
-      APIs (`NewMetrics`, `MetricsRecorder`, `ErrorExporter`, `NewOwnedDBHandle`,
-      `SetOwnership`, `FakeMetrics`, etc.). CI `api-stability` job will fail. Fix:
-      `cd cmd/api-stability && GOWORK=off go run main.go`.
-- [ ] ⭐ **Finish Aggregate→Stream rename: exported error variables** —
-      `ErrAggregateTypeMismatch` / `ErrAggregateIDMismatch` in `storage/sql/errors.go`
-      and `storage/pebble/errors.go` were missed. Need Stream* names + deprecated
-      aliases. See ADR-0058 and [rename status](docs/status/2026-07-23_20-11_AGGREGATE-TO-STREAM-RENAME-STATUS.md).
-
----
-
-## 🔥 High Impact — Correctness and Integration
-
-- [ ] **Fix benchkit warmup store pollution** — `runner.warmup()` writes events to
-      `r.bundle.EventSink` (the main store), inflating journal metrics for subsequent
-      phases. Should use a throwaway store or document the inflation. See
-      [benchkit bugfix session](docs/status/2026-07-24_05-59_benchkit-bugfix-session-status.md).
-- [ ] **Replace benchkit `estimateJSONSize` with marshal-and-measure** — Current
-      function is a rough guess (`benchkit/generator.go:80`). Marshaling a sample
-      and measuring `len()` is exact.
-- [ ] **Replace benchkit `insertCommas` with stdlib** — Hand-rolled at
-      `benchkit/report.go:277`. `golang.org/x/text/message` or similar is correct.
-- [ ] **Fix pre-existing doc-check failures** — 5 references to removed error
-      functions (`event.NewRejection` etc.) in docs that now live in `go-error-family`.
-
----
-
 ## 20% Tier — Important, Can Queue
 
 ### Aggregate→Stream Rename Follow-ups
@@ -49,8 +20,6 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 - [ ] **Comment cleanup** — ~70 production files still use "aggregate" in comments
       and doc strings (decider/, listing/, storage/pebble/, storage/memory/, event/,
       snapshot/, command/). Code works; comments are stale.
-- [ ] **AGENTS.md update** — 16 "aggregate" mentions remaining in module tree,
-      listing description, design principles, and code examples.
 - [ ] **SKILL.md references** — 32 "aggregate" mentions across 6 skill reference
       files (core.md 10, advanced.md 11, recipes.md 3, modules.md 3, readmodels.md 2,
       faq.md 3).
