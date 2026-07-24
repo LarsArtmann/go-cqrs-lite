@@ -203,7 +203,7 @@ func main() {
     repo, _ := decider.NewRepository[UserState](store, bus, d)
 
     cmds := command.NewDispatcher()
-    aggID := id.NewAggregateID()
+    aggID := id.NewStreamID()
     command.RegisterTyped(cmds, "user.create",
         func(ctx context.Context, cmd *CreateUser) error {
             return repo.Execute(ctx, aggID, "User", func(s UserState, v event.Version) ([]event.Event, error) {
@@ -256,7 +256,7 @@ cpStore     := backend.CheckpointStore()
 
 ### 2.4 Snapshots for Performance (snapshot)
 
-Avoid replaying long event streams. Snapshots cache aggregate state at a version.
+Avoid replaying long event streams. Snapshots cache stream state at a version.
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/snapshot/v4"
@@ -280,7 +280,7 @@ import "github.com/larsartmann/go-cqrs-lite/schema/v4"
 upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
     old, _ := event.DecodePayload[UserCreatedV1](evt, codec.JSONCodec{})
     newPayload, _ := codec.JSONCodec{}.Encode(UserCreatedV2{Name: old.Name, Email: ""})
-    return event.NewEvent(evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+    return event.NewEvent(evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
         newPayload, event.WithSchemaVersion(2))
 })
 

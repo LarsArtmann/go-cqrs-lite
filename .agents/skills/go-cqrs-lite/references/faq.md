@@ -152,10 +152,10 @@ Do NOT use `stack/sqlite.New()` for this case — it creates separate connection
 
 ### "When should I use snapshots?"
 
-**Rule of thumb:** use snapshots when your largest aggregate exceeds **~100 events**. Below that, full replay is faster than snapshot load + remaining replay.
+**Rule of thumb:** use snapshots when your largest stream exceeds **~100 events**. Below that, full replay is faster than snapshot load + remaining replay.
 
 ```go
-// Snapshot every 50 events — good for aggregates that grow large
+// Snapshot every 50 events — good for streams that grow large
 strategy, _ := snapshot.EveryNEvents(50)
 repo, _ := decider.NewRepository(store, bus, d,
     decider.WithSnapshotStore(snapStore),
@@ -164,7 +164,7 @@ repo, _ := decider.NewRepository(store, bus, d,
 // Load() transparently uses snapshots when available.
 ```
 
-For small aggregates (5-20 events), skip snapshots — the overhead exceeds the savings.
+For small streams (5-20 events), skip snapshots — the overhead exceeds the savings.
 
 ### "Storage package restructure — where did types move?"
 

@@ -215,8 +215,8 @@ func (s *CommandStore) writeCommandToBatch(
 
 	err := batch.Set(aKey, data, nil)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "pebble.command_aggregate_key",
-			"add command to aggregate index")
+		return errorfamily.WrapInfrastructure(err, "pebble.command_stream_key",
+			"add command to stream index")
 	}
 
 	err = batch.Set(journalKey, data, nil)
@@ -234,11 +234,11 @@ func (s *CommandStore) commandKey(ref command.StreamRef, cmdID id.CommandID) []b
 	return fmt.Appendf(nil, "%s%s:%s:%s", s.prefix, ref.Type, ref.ID, cmdID)
 }
 
-func (s *CommandStore) commandAggregatePrefix(ref command.StreamRef) []byte {
+func (s *CommandStore) commandStreamPrefix(ref command.StreamRef) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:", s.prefix, ref.Type, ref.ID)
 }
 
-func (s *CommandStore) commandAggregateUpperBound(ref command.StreamRef) []byte {
+func (s *CommandStore) commandStreamUpperBound(ref command.StreamRef) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:\xff", s.prefix, ref.Type, ref.ID)
 }
 

@@ -4,7 +4,7 @@
 
 | Module       | Import          | One-liner                                                                                                                                                                                                                                                                |
 | ------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`         | `id/v4`         | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`. All 8 markers exported (`AggregateMarker`, `EventMarker`, `CommandMarker`, …) for `BrandNamer` integration. Custom via `id.Of[struct{}]`.                                                                             |
+| `id`         | `id/v4`         | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`. All 8 markers exported (`StreamMarker`, `EventMarker`, `CommandMarker`, …) for `BrandNamer` integration. Custom via `id.Of[struct{}]`.                                                                             |
 | `dispatcher` | `dispatcher/v4` | Generic `Dispatcher[H, M]` with `LifecycleMixin`. Base for command/query dispatchers.                                                                                                                                                                                    |
 | `codec`      | `codec/v4`      | Payload encoding: `JSONCodec{}`, `CBORCodec{}` (deterministic), `RawCodec{}`, `ForEncoding(enc)`, `AutoDetect(data)`, `Size(v)`.                                                                                                                                         |
 | `event`      | `event/v4`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, `DecodePayloadAuto[T]`, `DefaultCodec`, 5-family errors, tombstone (`TombstoneMark`), causality (`Causation`), `Tracing`, `Checkpoint`. |
@@ -18,7 +18,7 @@
 | --------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | `kv`      | `kv/v4`      | `ViewStore[V,K]` interface, `TypedStore[V,K]`, `Cache[V,K]`, `MemStore`. Foundation for all read models.               |
 | `stack`   | `stack/v4`   | `Materialize[V,K]` (deployer-first projection builder), `Bundle`, presets. Accepts any `kv.ViewStore`.                 |
-| `listing` | `listing/v4` | `AggregateListing`, `AggregateStatus` (Active/Tombstoned/Undetermined), `StatusMiddleware`, `InMemoryAggregateReader`. |
+| `listing` | `listing/v4` | `StreamListing`, `StreamStatus` (Active/Tombstoned/Undetermined), `StatusMiddleware`, `InMemoryStreamReader`. |
 | `query`   | `query/v4`   | (see Core) — query the read model.                                                                                     |
 
 ### Storage (Layer 5)
@@ -60,7 +60,7 @@
 | Module              | Import               | One-liner                                                                                                    |
 | ------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `testutil`          | `testutil/v4`        | `MustNewCmd(tb, ...)`, `NoopCommandHandler`. Shared test helpers (zero panics).                              |
-| `id/idtest`         | `id/v4/idtest`       | `ParseAggregateID(tb, s)`, `ParseEventID(tb, s)`. Branded-ID test helpers — `tb.Fatalf` on error, no panics. |
+| `id/idtest`         | `id/v4/idtest`       | `ParseStreamID(tb, s)`, `ParseEventID(tb, s)`. Branded-ID test helpers — `tb.Fatalf` on error, no panics. |
 | `query/querytest`   | `query/v4/querytest` | `New(tb, queryType)`. Construct valid test queries — `tb.Fatalf` on error.                                   |
 | `event/eventtest`   | `event/v4/eventtest` | `FakeStore`, `FakeBus`, `AssertGolden`. Event test doubles and golden test helpers.                          |
 | `cmd/cqrs-gen`      | (go install)         | Code generator: typed handler registration from `//cqrs:command` / `//cqrs:query` markers.                   |

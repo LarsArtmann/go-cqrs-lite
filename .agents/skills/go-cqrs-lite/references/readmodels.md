@@ -92,10 +92,10 @@ mapper := storage.ViewMapper[TodoView]{
 }
 
 // 2. Create the SQL-backed view store (auto-creates the table).
-store, _ := storage.NewSQLiteViewStore[TodoView, id.AggregateID](db, mapper)
+store, _ := storage.NewSQLiteViewStore[TodoView, id.StreamID](db, mapper)
 
 // 3. Use it with Materialize — same API as KV-backed.
-mat := stack.Materialize[TodoView, id.AggregateID]{
+mat := stack.Materialize[TodoView, id.StreamID]{
     Store:        store,               // ← kv.ViewStore interface, SQL-backed
     KeyFromEvent: todoKey,
 }

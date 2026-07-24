@@ -21,13 +21,13 @@ func (s *CommandStore) Load(
 	defer span.End()
 
 	cmds, err := s.scanCommands(
-		s.commandAggregatePrefix(ref),
-		s.commandAggregateUpperBound(ref),
+		s.commandStreamPrefix(ref),
+		s.commandStreamUpperBound(ref),
 		0, "", nil,
 	)
 
 	return finalizeScan(span, cmds, err, "pebble.command_load",
-		"load commands for aggregate", "command.count")
+		"load commands for stream", "command.count")
 }
 
 // LoadFromTimestamp retrieves commands where ReceivedAt > after.
@@ -44,8 +44,8 @@ func (s *CommandStore) LoadFromTimestamp(
 	defer span.End()
 
 	cmds, err := s.scanCommands(
-		s.commandAggregatePrefix(ref),
-		s.commandAggregateUpperBound(ref),
+		s.commandStreamPrefix(ref),
+		s.commandStreamUpperBound(ref),
 		0, "",
 		func(cmd *command.PersistedCommand) bool { return cmd.ReceivedAt().After(after) },
 	)
@@ -67,8 +67,8 @@ func (s *CommandStore) LoadToTimestamp(
 	defer span.End()
 
 	cmds, err := s.scanCommands(
-		s.commandAggregatePrefix(ref),
-		s.commandAggregateUpperBound(ref),
+		s.commandStreamPrefix(ref),
+		s.commandStreamUpperBound(ref),
 		0, "",
 		func(cmd *command.PersistedCommand) bool {
 			return !cmd.ReceivedAt().After(maxTime)

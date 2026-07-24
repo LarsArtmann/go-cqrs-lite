@@ -4,7 +4,7 @@
 >
 > - [§6.1 Tombstone Soft-Delete & Rebirth](#61-tombstone-soft-delete--rebirth)
 > - [§6.2 Command & Query Persistence (audit trail)](#62-command--query-persistence-audit-trail)
-> - [§6.3 Aggregate Listing](#63-aggregate-listing-read-model-for-all-aggregates)
+> - [§6.3 Stream Listing](#63-stream-listing-read-model-for-all-streams)
 > - [§6.4 Watermill Integration](#64-watermill-integration)
 > - [§6.5 Turso Offline-First](#65-turso-offline-first)
 > - [§6.6 Pebble as KV Store](#66-pebble-as-kv-store)
@@ -24,7 +24,7 @@
 marked, _ := event.MarkTombstone(evt)
 store.Save(ctx, ref, []event.Event{marked}, expectedVersion)
 
-// Detect: check aggregate status
+// Detect: check stream status
 status := event.DetectTombstone(events) // Active | Tombstoned | Undetermined
 
 // Rebirth: emit a new event after tombstone (tombstone is just metadata)
@@ -47,7 +47,7 @@ qStore.SaveQuery(ctx, pq)                 // QuerySink
 queries, _ := qStore.LoadQueries(ctx, after) // QuerySource
 ```
 
-### 6.3 Aggregate Listing (read model for all aggregates)
+### 6.3 Stream Listing (read model for all streams)
 
 ```go
 import (
@@ -55,15 +55,15 @@ import (
     "github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
 
-// In-memory reader (consumes a Journal to track aggregate statuses)
-reader := listing.NewInMemoryAggregateReader(journal)
+// In-memory reader (consumes a Journal to track stream statuses)
+reader := listing.NewInMemoryStreamReader(journal)
 builder := listing.NewListBuilder(reader)
 
 // For SQL-backed listing, register the projection with the runner:
-// proj, _ := storage.NewAggregateProjection(ctx, db, "aggregate_listing", dialect)
+// proj, _ := storage.NewStreamProjection(ctx, db, "stream_listing", dialect)
 // runner.Register(proj)
 
-// reader.List() → []AggregateListing with Status: Active | Tombstoned
+// reader.List() → []StreamListing with Status: Active | Tombstoned
 ```
 
 ### 6.4 Watermill Integration
@@ -371,7 +371,7 @@ import "github.com/larsartmann/go-cqrs-lite/deriver/v4"
 // A deriver: user.created → send welcome email + sync to CRM
 sendWelcomeEmail := deriver.Deriver(
     func(_ context.Context, evt event.Event) ([]command.Command, error) {
-        cmd, err := command.New("email.send_welcome", evt.AggregateID())
+        cmd, err := command.New("email.send_welcome", evt.StreamID())
         if err != nil {
             return nil, err
         }
@@ -380,7 +380,7 @@ sendWelcomeEmail := deriver.Deriver(
 )
 syncToCrm := deriver.Deriver(
     func(_ context.Context, evt event.Event) ([]command.Command, error) {
-        cmd, err := command.New("crm.upsert_user", evt.AggregateID())
+        cmd, err := command.New("crm.upsert_user", evt.StreamID())
         if err != nil {
             return nil, err
         }
@@ -516,6 +516,6 @@ These are the failure modes we see most often. Read them before reaching for an 
 - **Replaying the full journal on every restart.** If you use `bus.SubscribeAll` without a `CheckpointStore`, projections re-process the entire event history each boot. Pair it with a `SeekableJournal` + checkpoint so you resume from where you left off (see §6.9 Managed Projection Host).
 - **Snapshot without schema evolution.** A snapshot serializes state at a point in time. If your event payload shape changes, loading an old snapshot + replaying post-snapshot events can double-apply a transform or miss fields. Always run `schema.VersionedStore` **and** snapshot together — the upcaster runs on read, before the snapshot is applied.
 - **Signing after encryption.** If you sign the ciphertext, you can only detect tampering of the encrypted blob, not the original event. The correct order: sign the **plaintext** event, then encrypt. On read: decrypt first, then verify the signature. (recipes §2.6 + §2.7 document this ordering.)
-- **Using `deriver` for orchestration that needs compensation.** Derivers are deterministic event→command functions — great for fan-out (welcome email + CRM sync from `user.created`). They are NOT a replacement for a saga that must compensate on failure. If you need rollback semantics, model it as its own event-sourced aggregate.
-- **Forgetting that `graph` projections don't tombstone-mark.** The `listing/` tombstone-aware status model (advanced §6.3) works on the relational/KV tier. Graph projections need their own deletion handling in the projection handler — a soft-deleted aggregate won't auto-prune its edges.
+- **Using `deriver` for orchestration that needs compensation.** Derivers are deterministic event→command functions — great for fan-out (welcome email + CRM sync from `user.created`). They are NOT a replacement for a saga that must compensate on failure. If you need rollback semantics, model it as its own event-sourced stream.
+- **Forgetting that `graph` projections don't tombstone-mark.** The `listing/` tombstone-aware status model (advanced §6.3) works on the relational/KV tier. Graph projections need their own deletion handling in the projection handler — a soft-deleted stream won't auto-prune its edges.
 - **Treating `projectionhost` DeadLetterStore as permanent storage.** The in-memory DLQ is for crash-restart durability within a process. For multi-instance durability, back it with a SQL dead-letter store. Poison messages replay automatically on host restart unless explicitly acked.

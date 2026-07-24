@@ -65,7 +65,7 @@ func (a *EventStore) Load(
 	events, err := a.iterateEvents(prefix, upperBound, nil)
 
 	return finalizeScan(span, events, err, "pebble.event_load",
-		"load events for aggregate", "event.count")
+		"load events for stream", "event.count")
 }
 
 // LoadFromVersion implements event.Store.LoadFromVersion.

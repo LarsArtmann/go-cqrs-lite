@@ -63,7 +63,7 @@ repo, _ := stack.Repository(bundle, decider.Decider[CounterState]{
 
 // 4. Execute commands — events are sourced and published
 ctx := context.Background()
-aggID := id.NewAggregateID()
+aggID := id.NewStreamID()
 _ = repo.Execute(ctx, aggID, "Counter", func(_ CounterState, v event.Version) ([]event.Event, error) {
     evt, _ := event.New("counter.incremented", aggID, "Counter", v.Increment(), Incremented{Amount: 5})
     return []event.Event{evt}, nil
@@ -86,19 +86,19 @@ with projection + read model.
 | ----------------------------------------------------- | ------------------------------------------------------------------------------- | --------------- |
 | Create/store/load events                              | `event`                                                                         | recipes §2.1    |
 | Dispatch type-safe commands                           | `command`                                                                       | recipes §2.1    |
-| Run an event-sourced aggregate                        | `decider`                                                                       | recipes §2.1    |
+| Run an event-sourced stream                        | `decider`                                                                       | recipes §2.1    |
 | Generate unique, type-safe IDs                        | `id`                                                                            | recipes §2.1    |
 | Typed event metadata (tracing, custom data)           | `metadata`                                                                      | —               |
 | Encode payloads as JSON/CBOR                          | `codec`                                                                         | recipes §2.1    |
 | Build a read model from events                        | `stack.Materialize` + `kv.ViewStore` (see tier table below)                     | readmodels §2.3 |
 | Multi-table projection (composite keys, junctions)    | `storage.RelationalProjection`                                                  | readmodels §2.3 |
 | Dispatch type-safe queries                            | `query`                                                                         | readmodels §2.3 |
-| List all aggregates + their status                    | `listing`                                                                       | advanced §6.3   |
+| List all streams + their status                    | `listing`                                                                       | advanced §6.3   |
 | Persist to PostgreSQL / SQLite                         | `storage`                                                                       | recipes §2.2    |
 | Persist to embedded PebbleDB                          | `storage/pebble`                                                                | recipes §2.2    |
 | Offline-first sync via Turso Database                 | `storage/turso`                                                                 | advanced §6.5   |
 | Generic key-value abstraction                         | `kv`                                                                            | advanced §6.6   |
-| Snapshot aggregates for speed                         | `snapshot`                                                                      | recipes §2.4    |
+| Snapshot streams for speed                         | `snapshot`                                                                      | recipes §2.4    |
 | Evolve event schemas over time                        | `schema`                                                                        | recipes §2.5    |
 | Upcast events during projection replay                | `schema` (`VersionedSeekableJournal`)                                           | advanced §6.9   |
 | Make event streams tamper-proof                       | `signing`                                                                       | recipes §2.6    |
@@ -107,7 +107,7 @@ with projection + read model.
 | Deduplicate commands on retry (idempotency)           | `idempotency` + `middleware`                                                    | recipes §2.8    |
 | Add OpenTelemetry tracing/metrics                     | `otel` + `middleware`                                                           | recipes §2.8    |
 | Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs   | `catalog`                                                                       | recipes §2.9    |
-| Soft-delete aggregates without data loss              | `event` (tombstone metadata)                                                    | advanced §6.1   |
+| Soft-delete streams without data loss              | `event` (tombstone metadata)                                                    | advanced §6.1   |
 | Generate typed handler boilerplate                    | `cmd/cqrs-gen`                                                                  | advanced §6.7   |
 | Publish events to Watermill router                    | `watermill`                                                                     | advanced §6.4   |
 | Dispatch commands/queries over gRPC                   | `transport/grpc`                                                                | advanced §6.8   |
@@ -158,7 +158,7 @@ marked, _ := event.MarkTombstone(evt)
 status := event.DetectTombstone(events) // Active | Tombstoned | Undetermined
 ```
 
-Use `listing/` for tombstone-aware aggregate status read models.
+Use `listing/` for tombstone-aware stream status read models.
 
 ### 3.2 Sink/Source split — use the right interface
 
@@ -167,7 +167,7 @@ Use `listing/` for tombstone-aware aggregate status read models.
 ```go
 var sink event.EventSink = store        // write: Save, AppendBatch
 var source event.EventSource = store    // read: Load, LoadFromVersion, LoadToVersion, LoadToTimestamp
-var journal event.Journal = store       // cross-aggregate: ReadAll
+var journal event.Journal = store       // cross-stream: ReadAll
 var seekable event.SeekableJournal = store // position-based: ReadFrom(afterID, limit)
 ```
 
@@ -331,13 +331,13 @@ evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1), payloa
 events, _ := event.NewEvents(aggID, "User", baseVersion, []event.Type{...}, []any{...})
 p, _ := event.DecodePayloadAuto[T](evt)                 // mixed streams (recommended)
 p, _ := event.DecodePayload[T](evt, codec.CBORCodec{})  // explicit codec
-ref := id.NewAggregateRef("User", aggID)
+ref := id.NewStreamRef("User", aggID)
 
 // Store (Sink/Source split)
 store.Save(ctx, ref, events, expectedVersion)    // optimistic concurrency
 events, _ := store.Load(ctx, ref)
 events, _ := store.LoadFromVersion(ctx, ref, v)
-allEvents, _ := journal.ReadAll(ctx)              // cross-aggregate
+allEvents, _ := journal.ReadAll(ctx)              // cross-stream
 
 // Bus
 bus.Publish(ctx, evt1, evt2)
@@ -363,7 +363,7 @@ query.RegisterTyped(qDisp, "user.get", handlerFunc)
 result, _ := query.DispatchTyped[*Result](ctx, qDisp, q)
 
 // IDs
-aggID := id.NewAggregateID()
+aggID := id.NewStreamID()
 eventID := id.NewEventID()
 type OrderID = id.Of[struct{}]
 orderID := id.New[OrderID]()
