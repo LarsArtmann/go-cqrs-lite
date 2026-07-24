@@ -84,9 +84,9 @@ func TestIntegration_TursoSQLViewStoreWithMaterialize(t *testing.T) {
 	ctx := context.Background()
 
 	// Create event → OnCreate → Set in SQL table.
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt, err := event.NewEvent(event.Type("user.created"), aggID, "User", event.Version(1), nil)
+	evt, err := event.NewEvent(event.Type("user.created"), streamID, "User", event.Version(1), nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -97,7 +97,7 @@ func TestIntegration_TursoSQLViewStoreWithMaterialize(t *testing.T) {
 	}
 
 	// Verify via View (SQL Get).
-	got, err := mat.View(ctx, tursoVMKey(aggID.String()))
+	got, err := mat.View(ctx, tursoVMKey(streamID.String()))
 	if err != nil {
 		t.Fatalf("View after create: %v", err)
 	}
@@ -107,12 +107,12 @@ func TestIntegration_TursoSQLViewStoreWithMaterialize(t *testing.T) {
 	}
 
 	// Update event → OnUpdate → upsert in SQL table.
-	evt2, _ := event.NewEvent(event.Type("user.updated"), aggID, "User", event.Version(2), nil)
+	evt2, _ := event.NewEvent(event.Type("user.updated"), streamID, "User", event.Version(2), nil)
 	if err := handler(buildVMMessage(evt2, "user.updated")); err != nil {
 		t.Fatalf("Handler update: %v", err)
 	}
 
-	got, err = mat.View(ctx, tursoVMKey(aggID.String()))
+	got, err = mat.View(ctx, tursoVMKey(streamID.String()))
 	if err != nil {
 		t.Fatalf("View after update: %v", err)
 	}

@@ -19,7 +19,7 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 	store := memory.NewMemoryStore()
 	defer store.Close()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	clock := func() time.Time { return time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC) }
 
 	ctx := context.Background()
@@ -27,20 +27,20 @@ func TestMemoryStore_LoadStream(t *testing.T) {
 	wantEvents := make([]event.Event, 0, 3)
 	for i, typ := range []string{"order.placed", "order.paid", "order.shipped"} {
 		wantEvents = append(wantEvents,
-			eventtest.NewEventOpts(t, event.Type(typ), aggID, "Test",
+			eventtest.NewEventOpts(t, event.Type(typ), streamID, "Test",
 				event.Version(i+1), nil, event.WithClock(clock)))
 	}
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("Order"), aggID),
+		id.NewStreamRef(id.StreamType("Order"), streamID),
 		wantEvents,
 	)
 	if err != nil {
 		t.Fatalf("append batch: %v", err)
 	}
 
-	stream, err := store.LoadStream(ctx, id.NewStreamRef(id.StreamType("Order"), aggID))
+	stream, err := store.LoadStream(ctx, id.NewStreamRef(id.StreamType("Order"), streamID))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}

@@ -45,10 +45,10 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
-		makeEvent(t, "CounterCreated", aggID, 1),
+	mustAppendBatch(t, store, "Counter", streamID, []event.Event{
+		makeEvent(t, "CounterCreated", streamID, 1),
 	})
 
 	const numGoroutines = 5
@@ -60,7 +60,7 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			state, version, loadErr := repo.Load(context.Background(), aggID, "Counter")
+			state, version, loadErr := repo.Load(context.Background(), streamID, "Counter")
 			if loadErr != nil {
 				t.Errorf("Load error: %v", loadErr)
 
@@ -98,14 +98,14 @@ func TestLoad_DifferentStreamsNotCoalesced(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	agg1 := id.NewStreamID()
-	agg2 := id.NewStreamID()
+	stream1 := id.NewStreamID()
+	stream2 := id.NewStreamID()
 
-	mustAppendBatch(t, store, "Counter", agg1, []event.Event{
-		makeEvent(t, "CounterCreated", agg1, 1),
+	mustAppendBatch(t, store, "Counter", stream1, []event.Event{
+		makeEvent(t, "CounterCreated", stream1, 1),
 	})
-	mustAppendBatch(t, store, "Counter", agg2, []event.Event{
-		makeEvent(t, "CounterCreated", agg2, 1),
+	mustAppendBatch(t, store, "Counter", stream2, []event.Event{
+		makeEvent(t, "CounterCreated", stream2, 1),
 	})
 
 	var wg sync.WaitGroup
@@ -113,11 +113,11 @@ func TestLoad_DifferentStreamsNotCoalesced(t *testing.T) {
 
 	go func() {
 		defer wg.Done()
-		_, _, _ = repo.Load(context.Background(), agg1, "Counter")
+		_, _, _ = repo.Load(context.Background(), stream1, "Counter")
 	}()
 	go func() {
 		defer wg.Done()
-		_, _, _ = repo.Load(context.Background(), agg2, "Counter")
+		_, _, _ = repo.Load(context.Background(), stream2, "Counter")
 	}()
 	wg.Wait()
 
@@ -148,10 +148,10 @@ func TestLoad_WithLoadCoalescingDisabled(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
-		makeEvent(t, "CounterCreated", aggID, 1),
+	mustAppendBatch(t, store, "Counter", streamID, []event.Event{
+		makeEvent(t, "CounterCreated", streamID, 1),
 	})
 
 	const numGoroutines = 5
@@ -163,7 +163,7 @@ func TestLoad_WithLoadCoalescingDisabled(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			_, _, loadErr := repo.Load(context.Background(), aggID, "Counter")
+			_, _, loadErr := repo.Load(context.Background(), streamID, "Counter")
 			if loadErr != nil {
 				t.Errorf("Load error: %v", loadErr)
 

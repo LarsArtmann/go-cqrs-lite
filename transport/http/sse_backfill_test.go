@@ -78,12 +78,12 @@ func TestBackfillHandler_ReturnsEvents(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
-	evt0, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{"n":0}`))
-	evt1, _ := event.NewEvent("test.event", aggID, "Test", 2, []byte(`{"n":1}`))
-	evt2, _ := event.NewEvent("test.event", aggID, "Test", 3, []byte(`{"n":2}`))
+	evt0, _ := event.NewEvent("test.event", streamID, "Test", 1, []byte(`{"n":0}`))
+	evt1, _ := event.NewEvent("test.event", streamID, "Test", 2, []byte(`{"n":1}`))
+	evt2, _ := event.NewEvent("test.event", streamID, "Test", 3, []byte(`{"n":2}`))
 
 	_ = store.Save(context.Background(), ref, []event.Event{evt0, evt1, evt2}, 0)
 
@@ -144,9 +144,9 @@ func TestBackfillHandler_LimitsTo1000(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
-	evt0, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
+	evt0, _ := event.NewEvent("test.event", streamID, "Test", 1, []byte(`{}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt0}, 0)
 
 	broker := newTestBrokerWithJournal(t, store)
@@ -171,11 +171,11 @@ func TestBackfillHandler_PayloadTransformFromBroker(t *testing.T) {
 	t.Parallel()
 
 	store := eventtest.NewFakeStore()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
-	evt0, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{"raw":true}`))
-	evt1, _ := event.NewEvent("test.event", aggID, "Test", 2, []byte(`{"seq":1}`))
+	evt0, _ := event.NewEvent("test.event", streamID, "Test", 1, []byte(`{"raw":true}`))
+	evt1, _ := event.NewEvent("test.event", streamID, "Test", 2, []byte(`{"seq":1}`))
 
 	_ = store.Save(context.Background(), ref, []event.Event{evt0, evt1}, 0)
 

@@ -29,8 +29,8 @@ func TestCommandBusPublishSubscribe(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	aggID := id.NewStreamID()
-	cmd, err := command.New("user.create", aggID)
+	streamID := id.NewStreamID()
+	cmd, err := command.New("user.create", streamID)
 	if err != nil {
 		t.Fatalf("create command: %v", err)
 	}
@@ -63,9 +63,9 @@ func TestCommandBusSubscribeAll(t *testing.T) {
 		t.Fatalf("subscribeAll: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	for _, ct := range []command.Type{"a.b", "c.d"} {
-		cmd, _ := command.New(ct, aggID)
+		cmd, _ := command.New(ct, streamID)
 		_ = bus.Publish(context.Background(), cmd)
 	}
 
@@ -106,8 +106,8 @@ func TestCommandBusPublishAfterClose(t *testing.T) {
 	bus := cqrswatermill.NewCommandBus()
 	_ = bus.Close()
 
-	aggID := id.NewStreamID()
-	cmd, _ := command.New("user.create", aggID)
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("user.create", streamID)
 	err := bus.Publish(context.Background(), cmd)
 	if err == nil {
 		t.Fatal("expected error publishing after close")
@@ -158,8 +158,8 @@ func TestCommandBusMiddleware(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewStreamID()
-	cmd, _ := command.New("test.cmd", aggID)
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("test.cmd", streamID)
 	_ = bus.Publish(context.Background(), cmd)
 
 	waitFor(t, func() bool { return received.Load() > 0 }, 2*time.Second)
@@ -196,9 +196,9 @@ func TestCommandBusMetadataRoundTrip(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	original, _ := command.New(
-		"user.create", aggID,
+		"user.create", streamID,
 		command.WithCorrelationID(correlationID),
 		command.WithUserID(userID),
 		command.WithCustomMetadata("tenant", "acme"),
@@ -239,8 +239,8 @@ func TestCommandBusCustomTopic(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewStreamID()
-	cmd, _ := command.New("test.cmd", aggID)
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("test.cmd", streamID)
 	_ = bus.Publish(context.Background(), cmd)
 
 	waitFor(t, func() bool { return received.Load() > 0 }, 2*time.Second)

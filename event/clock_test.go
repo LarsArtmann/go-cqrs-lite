@@ -88,15 +88,15 @@ func TestWithClock_BatchNewEvents(t *testing.T) {
 
 	fixedTime := time.Date(2026, 3, 20, 14, 0, 0, 0, time.UTC)
 	clock := func() time.Time { return fixedTime }
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt1, err := event.NewEvent("order.created", aggID, "Order", 1,
+	evt1, err := event.NewEvent("order.created", streamID, "Order", 1,
 		[]byte(`{"item":"widget"}`), event.WithClock(clock))
 	if err != nil {
 		t.Fatalf("NewEvent 1: %v", err)
 	}
 
-	evt2, err := event.NewEvent("order.confirmed", aggID, "Order", 2,
+	evt2, err := event.NewEvent("order.confirmed", streamID, "Order", 2,
 		[]byte(`{"confirmed":true}`), event.WithClock(clock))
 	if err != nil {
 		t.Fatalf("NewEvent 2: %v", err)

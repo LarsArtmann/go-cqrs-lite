@@ -59,8 +59,8 @@ func TestCommandStore_SaveAndLoad(t *testing.T) {
 	ctx := context.Background()
 	store := newCommandStore(t)
 
-	aggID := id.NewStreamID()
-	ref := command.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := command.NewStreamRef("User", streamID)
 
 	cmd := mustCreateCommand(t, "user.create", ref)
 
@@ -92,8 +92,8 @@ func TestCommandStore_DuplicateDetection(t *testing.T) {
 	ctx := context.Background()
 	store := newCommandStore(t)
 
-	aggID := id.NewStreamID()
-	ref := command.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := command.NewStreamRef("User", streamID)
 
 	cmd := mustCreateCommand(t, "user.create", ref)
 
@@ -113,8 +113,8 @@ func TestCommandStore_AppendBatch(t *testing.T) {
 	ctx := context.Background()
 	store := newCommandStore(t)
 
-	aggID := id.NewStreamID()
-	ref := command.NewStreamRef("Order", aggID)
+	streamID := id.NewStreamID()
+	ref := command.NewStreamRef("Order", streamID)
 
 	cmds := []*command.PersistedCommand{
 		mustCreateCommand(t, "order.create", ref),

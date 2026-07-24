@@ -52,12 +52,12 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 	store := memory.NewMemoryStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR96")
-	ref := id.NewStreamRef("User", aggID)
+	ref := id.NewStreamRef("User", streamID)
 
 	evt, err := event.NewEvent(
-		"UserCreated", aggID, "User", 1,
+		"UserCreated", streamID, "User", 1,
 		[]byte(`"alice@example.com"`),
 		event.WithEventID(evtID),
 		event.WithOccurredAt(time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)),

@@ -141,10 +141,10 @@ func TestCacheInvalidationMiddleware_InvalidatesAfterPublish(t *testing.T) {
 	_ = bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
 
-	evt, err := event.NewEvent("user.created", aggID, "User", event.Version(1), []byte(`{}`))
+	evt, err := event.NewEvent("user.created", streamID, "User", event.Version(1), []byte(`{}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +162,7 @@ func TestCacheInvalidationMiddleware_InvalidatesAfterPublish(t *testing.T) {
 		t.Fatalf("before publish: got %d items, want 1", len(page.Items))
 	}
 
-	evt2, err := event.NewEvent("user.updated", aggID, "User", event.Version(2), []byte(`{}`))
+	evt2, err := event.NewEvent("user.updated", streamID, "User", event.Version(2), []byte(`{}`))
 	if err != nil {
 		t.Fatal(err)
 	}

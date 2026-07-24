@@ -2,6 +2,8 @@
 
 > A deep analysis of what "Aggregate" means in this library, why the name persists despite the OO concept being dismantled, and how it relates to Events, State, Projections, Queries, and the broader aggregateless event sourcing movement.
 
+> **Resolution (ADR-0058, 2026-07-23):** The rename proposed in Section 6 was **accepted and implemented**. All identity types are now `StreamID`, `StreamType`, `StreamRef` (see `id/stream_id.go`, `id/stream_type.go`, `id/stream_ref.go`). The "Why It Was Rejected" arguments in Section 6 were overcome by the breaking-change cost being deemed acceptable for naming honesty. Deprecated type aliases (`AggregateID`, `AggregateRef`, etc.) remain for backward compatibility. The "Open Question" in Section 9 is now closed. This document is preserved as the conceptual analysis that motivated ADR-0058.
+
 ---
 
 ## Table of Contents
@@ -481,8 +483,9 @@ Whether that's the right long-term call is a legitimate open question — one th
 - [Hybrid Architecture Proposal](../research/archive/2026-05-01_HYBRID_ARCHITECTURE_BEST_OF_BOTH_WORLDS.md)
 - [CQRS Event Sourcing Innovations](../research/archive/2026-05-01_CQRS_EVENT_SOURCING_INNOVATIONS.md)
 - [Aggregate ID Design Review](../planning/archive/2026-05-25_AGGREGATE_ID_DESIGN_REVIEW.md)
-- `id/aggregate_type.go` — `AggregateRef`, `AggregateType`, `StreamKey()`
-- `id/aggregate_id.go` — `AggregateID`, `AggregateMarker`, constructors
+- [ADR-0058: Rename Aggregate* to Stream*](../adr/0058-rename-aggregate-to-stream.md)
+- `id/stream_type.go` — `StreamType`, `StreamRef`, `StreamKey()` (formerly `AggregateRef`)
+- `id/stream_id.go` — `StreamID`, `StreamMarker`, constructors (formerly `AggregateID`)
 - `decider/decider.go` — `Decider[State]`, `Repository[State]`
 - `decider/example_test.go` — Working example of `Decider[UserState]`
 - `projection/projection.go` — `Projection` interface

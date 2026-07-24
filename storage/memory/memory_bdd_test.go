@@ -14,8 +14,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
-func makeMemEvent(eventType event.Type, aggID id.StreamID, version event.Version) event.Event {
-	evt, err := event.NewEvent(eventType, aggID, "TestAggregate", version, []byte(`{}`))
+func makeMemEvent(eventType event.Type, streamID id.StreamID, version event.Version) event.Event {
+	evt, err := event.NewEvent(eventType, streamID, "TestStream", version, []byte(`{}`))
 	Expect(err).ToNot(HaveOccurred())
 
 	return evt
@@ -23,15 +23,15 @@ func makeMemEvent(eventType event.Type, aggID id.StreamID, version event.Version
 
 var _ = Describe("MemoryStore", func() {
 	var (
-		ctx   context.Context
-		store *memory.MemoryStore
-		aggID id.StreamID
+		ctx      context.Context
+		store    *memory.MemoryStore
+		streamID id.StreamID
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
 		store = memory.NewMemoryStore()
-		aggID = id.NewStreamID()
+		streamID = id.NewStreamID()
 	})
 
 	Describe("As a developer using the in-memory event store", func() {
@@ -39,10 +39,10 @@ var _ = Describe("MemoryStore", func() {
 			It(
 				"should persist them and let me load them back for my stream reconstruction",
 				func() {
-					events := []event.Event{makeMemEvent("Created", aggID, 1)}
+					events := []event.Event{makeMemEvent("Created", streamID, 1)}
 					err := store.Save(
 						ctx,
-						id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+						id.NewStreamRef(id.StreamType("TestStream"), streamID),
 						events,
 						0,
 					)
@@ -50,7 +50,7 @@ var _ = Describe("MemoryStore", func() {
 
 					loaded, err := store.Load(
 						ctx,
-						id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+						id.NewStreamRef(id.StreamType("TestStream"), streamID),
 					)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded).To(HaveLen(1))
@@ -63,19 +63,19 @@ var _ = Describe("MemoryStore", func() {
 			It(
 				"should detect the version mismatch so concurrent writers don't silently overwrite each other",
 				func() {
-					events := []event.Event{makeMemEvent("Created", aggID, 1)}
+					events := []event.Event{makeMemEvent("Created", streamID, 1)}
 					err := store.Save(
 						ctx,
-						id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+						id.NewStreamRef(id.StreamType("TestStream"), streamID),
 						events,
 						0,
 					)
 					Expect(err).ToNot(HaveOccurred())
 
-					more := []event.Event{makeMemEvent("Updated", aggID, 2)}
+					more := []event.Event{makeMemEvent("Updated", streamID, 2)}
 					err = store.Save(
 						ctx,
-						id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+						id.NewStreamRef(id.StreamType("TestStream"), streamID),
 						more,
 						0,
 					) // wrong expected version
@@ -88,7 +88,7 @@ var _ = Describe("MemoryStore", func() {
 			It("should explain that the stream was not found", func() {
 				_, err := store.Load(
 					ctx,
-					id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+					id.NewStreamRef(id.StreamType("TestStream"), streamID),
 				)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("not found"))
@@ -99,31 +99,31 @@ var _ = Describe("MemoryStore", func() {
 			It(
 				"should append them after existing events for bulk imports without re-specifying the version",
 				func() {
-					initial := []event.Event{makeMemEvent("Created", aggID, 1)}
+					initial := []event.Event{makeMemEvent("Created", streamID, 1)}
 					Expect(
 						store.Save(
 							ctx,
-							id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+							id.NewStreamRef(id.StreamType("TestStream"), streamID),
 							initial,
 							0,
 						),
 					).To(Succeed())
 
 					batch := []event.Event{
-						makeMemEvent("Updated", aggID, 2),
-						makeMemEvent("Updated", aggID, 3),
+						makeMemEvent("Updated", streamID, 2),
+						makeMemEvent("Updated", streamID, 3),
 					}
 					Expect(
 						store.AppendBatch(
 							ctx,
-							id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+							id.NewStreamRef(id.StreamType("TestStream"), streamID),
 							batch,
 						),
 					).To(Succeed())
 
 					loaded, err := store.Load(
 						ctx,
-						id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+						id.NewStreamRef(id.StreamType("TestStream"), streamID),
 					)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded).To(HaveLen(3))
@@ -136,14 +136,14 @@ var _ = Describe("MemoryStore", func() {
 				"should return only events from that version onward so I can replay just what I missed",
 				func() {
 					events := []event.Event{
-						makeMemEvent("Created", aggID, 1),
-						makeMemEvent("Updated", aggID, 2),
-						makeMemEvent("Updated", aggID, 3),
+						makeMemEvent("Created", streamID, 1),
+						makeMemEvent("Updated", streamID, 2),
+						makeMemEvent("Updated", streamID, 3),
 					}
 					Expect(
 						store.Save(
 							ctx,
-							id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+							id.NewStreamRef(id.StreamType("TestStream"), streamID),
 							events,
 							0,
 						),
@@ -153,7 +153,7 @@ var _ = Describe("MemoryStore", func() {
 					// Version(2) → index 2 → only version 3 event
 					fromV2, err := store.LoadFromVersion(
 						ctx,
-						id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+						id.NewStreamRef(id.StreamType("TestStream"), streamID),
 						2,
 					)
 					Expect(err).ToNot(HaveOccurred())
@@ -163,7 +163,7 @@ var _ = Describe("MemoryStore", func() {
 					// Version(1) → index 1 → versions 2 and 3
 					fromV1, err := store.LoadFromVersion(
 						ctx,
-						id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
+						id.NewStreamRef(id.StreamType("TestStream"), streamID),
 						1,
 					)
 					Expect(err).ToNot(HaveOccurred())
@@ -180,8 +180,8 @@ var _ = Describe("MemoryStore", func() {
 
 					err := store.Save(
 						ctx,
-						id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
-						[]event.Event{makeMemEvent("Created", aggID, 1)},
+						id.NewStreamRef(id.StreamType("TestStream"), streamID),
+						[]event.Event{makeMemEvent("Created", streamID, 1)},
 						0,
 					)
 					Expect(err).To(HaveOccurred())
@@ -269,31 +269,31 @@ var _ = Describe("MemoryBus", func() {
 
 var _ = Describe("MemorySnapshotStore", func() {
 	var (
-		ctx       context.Context
-		snapStore *memory.MemorySnapshotStore
-		aggID     id.StreamID
-		aggType   id.StreamType
+		ctx        context.Context
+		snapStore  *memory.MemorySnapshotStore
+		streamID   id.StreamID
+		streamType id.StreamType
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
 		snapStore = memory.NewMemorySnapshotStore()
-		aggID = id.NewStreamID()
-		aggType = id.StreamType("Order")
+		streamID = id.NewStreamID()
+		streamType = id.StreamType("Order")
 	})
 
 	Describe("As a developer speeding up stream loading with snapshots", func() {
 		Context("when I save a snapshot and load it back", func() {
 			It("should roundtrip my stream state so I can skip replaying all events", func() {
 				snap := snapshot.Snapshot{
-					StreamID:   aggID,
-					StreamType: aggType,
+					StreamID:   streamID,
+					StreamType: streamType,
 					Version:    event.Version(5),
 					State:      []byte(`{"status":"active","items":3}`),
 				}
 				Expect(snapStore.Save(ctx, snap)).To(Succeed())
 
-				loaded, err := snapStore.Load(ctx, id.NewStreamRef(aggType, aggID))
+				loaded, err := snapStore.Load(ctx, id.NewStreamRef(streamType, streamID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded.Version).To(Equal(event.Version(5)))
 				Expect(loaded.State).To(Equal([]byte(`{"status":"active","items":3}`)))
@@ -303,14 +303,14 @@ var _ = Describe("MemorySnapshotStore", func() {
 		Context("when I save a newer snapshot for the same stream", func() {
 			It("should replace the old one so I always get the latest state", func() {
 				Expect(snapStore.Save(ctx, eventtest.QuickSnapshot(
-					aggID, aggType, event.Version(3), []byte(`{"status":"old"}`),
+					streamID, streamType, event.Version(3), []byte(`{"status":"old"}`),
 				))).To(Succeed())
 
 				Expect(snapStore.Save(ctx, eventtest.QuickSnapshot(
-					aggID, aggType, event.Version(7), []byte(`{"status":"new"}`),
+					streamID, streamType, event.Version(7), []byte(`{"status":"new"}`),
 				))).To(Succeed())
 
-				loaded, err := snapStore.Load(ctx, id.NewStreamRef(aggType, aggID))
+				loaded, err := snapStore.Load(ctx, id.NewStreamRef(streamType, streamID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded.Version).To(Equal(event.Version(7)))
 			})
@@ -318,7 +318,7 @@ var _ = Describe("MemorySnapshotStore", func() {
 
 		Context("when I load a snapshot for a non-existent stream", func() {
 			It("should explain that no snapshot was found so I fall back to full replay", func() {
-				_, err := snapStore.Load(ctx, id.NewStreamRef(aggType, aggID))
+				_, err := snapStore.Load(ctx, id.NewStreamRef(streamType, streamID))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("snapshot not found"))
 			})

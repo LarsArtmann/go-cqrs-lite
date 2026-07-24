@@ -37,11 +37,11 @@ func FuzzSnapshotStore_Roundtrip(f *testing.F) {
 			t.Fatal(err)
 		}
 
-		aggID := id.NewStreamID()
-		aggType := id.StreamType("FuzzSnap")
+		streamID := id.NewStreamID()
+		streamType := id.StreamType("FuzzSnap")
 		snap := snapshot.Snapshot{
-			StreamID:   aggID,
-			StreamType: aggType,
+			StreamID:   streamID,
+			StreamType: streamType,
 			Version:    event.Version(1),
 			State:      state,
 			CreatedAt:  time.Now(),
@@ -52,7 +52,7 @@ func FuzzSnapshotStore_Roundtrip(f *testing.F) {
 			t.Fatalf("Save: %v", err)
 		}
 
-		ref := id.NewStreamRef(aggType, aggID)
+		ref := id.NewStreamRef(streamType, streamID)
 		loaded, err := snapStore.Load(ctx, ref)
 		if err != nil {
 			t.Fatalf("Load: %v", err)

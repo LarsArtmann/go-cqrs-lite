@@ -13,7 +13,7 @@ import (
 
 func seedBenchStreams(
 	b *testing.B,
-	aggType string,
+	streamType string,
 	evtType string,
 	payloadKey string,
 	payloadVal string,
@@ -25,20 +25,20 @@ func seedBenchStreams(
 	ctx := context.Background()
 
 	for range n {
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 		payload, _ := json.Marshal(
 			map[string]string{payloadKey: payloadVal},
 		)
 		evt, _ := event.NewEvent(
 			event.Type(evtType),
-			aggID,
-			id.StreamType(aggType),
+			streamID,
+			id.StreamType(streamType),
 			1,
 			payload,
 		)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewStreamRef(id.StreamType(aggType), aggID),
+			id.NewStreamRef(id.StreamType(streamType), streamID),
 			[]event.Event{evt},
 		)
 	}
@@ -49,13 +49,13 @@ func seedBenchStreams(
 func BenchmarkInMemoryList(b *testing.B) {
 	b.ReportAllocs()
 	tests := []struct {
-		name     string
-		aggType  id.StreamType
-		evtType  event.Type
-		key      string
-		val      string
-		count    int
-		pageSize uint
+		name       string
+		streamType id.StreamType
+		evtType    event.Type
+		key        string
+		val        string
+		count      int
+		pageSize   uint
 	}{
 		{"1000Streams", "User", "UserCreated", "name", "user", 1000, 50},
 		{"100Streams", "Order", "OrderCreated", "item", "widget", 100, 10},
@@ -66,7 +66,7 @@ func BenchmarkInMemoryList(b *testing.B) {
 		b.Run(tc.name, func(b *testing.B) {
 			reader := seedBenchStreams(
 				b,
-				string(tc.aggType),
+				string(tc.streamType),
 				string(tc.evtType),
 				tc.key,
 				tc.val,
@@ -78,7 +78,7 @@ func BenchmarkInMemoryList(b *testing.B) {
 
 			for b.Loop() {
 				_, err := listing.NewListBuilder(reader).
-					OfType(tc.aggType).
+					OfType(tc.streamType).
 					PageSize(tc.pageSize).
 					List(ctx)
 				if err != nil {
@@ -95,33 +95,33 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 	ctx := context.Background()
 
 	for range 500 {
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 		payload, _ := json.Marshal(
 			map[string]string{"name": "doc"},
 		)
-		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
+		evt, _ := event.NewEvent("DocCreated", streamID, "Doc", 1, payload)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewStreamRef(id.StreamType("Doc"), aggID),
+			id.NewStreamRef(id.StreamType("Doc"), streamID),
 			[]event.Event{evt},
 		)
 	}
 
 	for range 200 {
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 		payload, _ := json.Marshal(
 			map[string]string{"name": "deleted"},
 		)
-		evt, _ := event.NewEvent("DocCreated", aggID, "Doc", 1, payload)
+		evt, _ := event.NewEvent("DocCreated", streamID, "Doc", 1, payload)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewStreamRef(id.StreamType("Doc"), aggID),
+			id.NewStreamRef(id.StreamType("Doc"), streamID),
 			[]event.Event{evt},
 		)
 		marked, _ := event.MarkTombstone(evt)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewStreamRef(id.StreamType("Doc"), aggID),
+			id.NewStreamRef(id.StreamType("Doc"), streamID),
 			[]event.Event{marked},
 		)
 	}

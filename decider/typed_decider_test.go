@@ -46,15 +46,15 @@ func TestTypedDecider_ExecuteCommand(t *testing.T) {
 		t.Fatalf("NewTypedRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	ctx := context.Background()
 
-	err = repo.ExecuteCommand(ctx, aggID, "Counter", incrementCmd{Amount: 1})
+	err = repo.ExecuteCommand(ctx, streamID, "Counter", incrementCmd{Amount: 1})
 	if err != nil {
 		t.Fatalf("ExecuteCommand: %v", err)
 	}
 
-	events, err := store.Load(ctx, id.NewStreamRef("Counter", aggID))
+	events, err := store.Load(ctx, id.NewStreamRef("Counter", streamID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -84,15 +84,15 @@ func TestTypedDecider_NilPublisher(t *testing.T) {
 		t.Fatalf("NewTypedRepository with nil publisher should succeed: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	ctx := context.Background()
 
-	err = repo.ExecuteCommand(ctx, aggID, "Counter", incrementCmd{Amount: 1})
+	err = repo.ExecuteCommand(ctx, streamID, "Counter", incrementCmd{Amount: 1})
 	if err != nil {
 		t.Fatalf("ExecuteCommand with nil publisher: %v", err)
 	}
 
-	events, err := store.Load(ctx, id.NewStreamRef("Counter", aggID))
+	events, err := store.Load(ctx, id.NewStreamRef("Counter", streamID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}

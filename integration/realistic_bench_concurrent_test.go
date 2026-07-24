@@ -46,17 +46,17 @@ func BenchmarkRealistic_ConcurrentDecider(b *testing.B) {
 				defer wg.Done()
 
 				for j := range opsPerWorker {
-					aggID := id.NewStreamID()
-					err := repo.Execute(ctx, aggID, "Order",
+					streamID := id.NewStreamID()
+					err := repo.Execute(ctx, streamID, "Order",
 						func(_ OrderState, ver event.Version) ([]event.Event, error) {
 							return []event.Event{
 								newRealisticEvent(
 									b,
 									"OrderCreated",
-									aggID,
+									streamID,
 									ver.Increment(),
 									OrderCreated{
-										OrderID:   aggID.String(),
+										OrderID:   streamID.String(),
 										Customer:  fmt.Sprintf("w%d-op%d", workerID, j),
 										Total:     99.99,
 										Items:     1,

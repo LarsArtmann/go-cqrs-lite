@@ -36,12 +36,12 @@ func newSQLiteStreamStore(t *testing.T) *storage.SQLEventStore {
 	return store
 }
 
-func mustStreamEvent(t *testing.T, typ string, aggID id.StreamID, ver int) event.Event {
+func mustStreamEvent(t *testing.T, typ string, streamID id.StreamID, ver int) event.Event {
 	t.Helper()
 
 	evt, err := event.NewEvent(
 		event.Type(typ),
-		aggID,
+		streamID,
 		"Order",
 		event.Version(ver),
 		[]byte(`{}`),
@@ -61,11 +61,11 @@ func seedStreamEvents(
 	t.Helper()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Order", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", streamID)
 	events := make([]event.Event, count)
 	for i := range count {
-		events[i] = mustStreamEvent(t, "order.updated", aggID, i+1)
+		events[i] = mustStreamEvent(t, "order.updated", streamID, i+1)
 	}
 
 	if err := store.Save(ctx, ref, events, 0); err != nil {

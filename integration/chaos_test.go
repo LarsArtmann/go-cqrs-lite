@@ -144,8 +144,8 @@ func TestChaos_EventHandler_Panic_RecoveryMiddleware(t *testing.T) {
 	})
 	g.Expect(err).ToNot(HaveOccurred())
 
-	aggID := id.NewStreamID()
-	evt1, err := event.NewEvent("chaos.event", aggID, "Chaos", event.Version(1), nil)
+	streamID := id.NewStreamID()
+	evt1, err := event.NewEvent("chaos.event", streamID, "Chaos", event.Version(1), nil)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	_ = bus.Publish(context.Background(), evt1)
@@ -186,8 +186,8 @@ func TestChaos_EventPublish_Fails(t *testing.T) {
 	bus := eventtest.NewFakeBus()
 	t.Cleanup(func() { _ = bus.Close() })
 
-	aggID := id.NewStreamID()
-	evt, err := event.NewEvent("chaos.publish", aggID, "Chaos", event.Version(1), nil)
+	streamID := id.NewStreamID()
+	evt, err := event.NewEvent("chaos.publish", streamID, "Chaos", event.Version(1), nil)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	_ = bus.Publish(context.Background(), evt)

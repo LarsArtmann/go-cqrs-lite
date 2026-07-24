@@ -180,7 +180,7 @@ func TestSQLCommandStore_Load_NotFound(t *testing.T) {
 
 	_, err := store.Load(ctx, ref)
 	if err == nil {
-		t.Fatal("expected error for non-existent aggregate")
+		t.Fatal("expected error for non-existent stream")
 	}
 
 	if !errors.Is(err, command.ErrCommandNotFound) {

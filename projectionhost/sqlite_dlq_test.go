@@ -37,10 +37,10 @@ func newSQLiteDLQ(t *testing.T) *projectionhost.SQLiteDeadLetterStore {
 func makeDLQEntry(t *testing.T, projName string) projectionhost.DeadLetterEntry {
 	t.Helper()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.NewEvent(
 		"test.poison",
-		aggID,
+		streamID,
 		"Test",
 		event.Version(1),
 		[]byte(`{"bad":true}`),
@@ -53,7 +53,7 @@ func makeDLQEntry(t *testing.T, projName string) projectionhost.DeadLetterEntry 
 		ProjectionName: projName,
 		EventID:        evt.ID().String(),
 		EventType:      string(evt.Type()),
-		StreamID:       aggID.String(),
+		StreamID:       streamID.String(),
 		Event:          evt,
 		Error:          "handler panicked: nil pointer",
 		ErrorCode:      "test.panic",
@@ -277,9 +277,9 @@ func TestSQLiteDeadLetterStore_PreservesEventFields(t *testing.T) {
 	store := newSQLiteDLQ(t)
 	ctx := context.Background()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, _ := event.NewEvent(
-		"order.created", aggID, "Order", event.Version(5),
+		"order.created", streamID, "Order", event.Version(5),
 		[]byte(`{"amount":42}`),
 		event.WithSchemaVersion(3),
 	)
@@ -288,7 +288,7 @@ func TestSQLiteDeadLetterStore_PreservesEventFields(t *testing.T) {
 		ProjectionName: "orders",
 		EventID:        evt.ID().String(),
 		EventType:      "order.created",
-		StreamID:       aggID.String(),
+		StreamID:       streamID.String(),
 		Event:          evt,
 		Error:          "handler timeout",
 		ErrorCode:      "test.timeout",

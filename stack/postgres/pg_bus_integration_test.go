@@ -127,9 +127,9 @@ func TestPostgresBus_E2E_RefetchAndDeliver(t *testing.T) {
 
 	// Save the event to the store BEFORE publishing, so the listener's
 	// refetch (LoadByEventID) can find it once NOTIFY arrives.
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
-	evt, err := event.NewEvent("user.created", aggID, "User", event.Version(1),
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
+	evt, err := event.NewEvent("user.created", streamID, "User", event.Version(1),
 		[]byte(`{"name":"alice"}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
@@ -230,9 +230,9 @@ func TestPostgresBus_PresetWiring(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Demo", aggID)
-	evt, err := event.NewEvent("demo.happened", aggID, "Demo", event.Version(1),
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Demo", streamID)
+	evt, err := event.NewEvent("demo.happened", streamID, "Demo", event.Version(1),
 		[]byte(`{"ok":true}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)

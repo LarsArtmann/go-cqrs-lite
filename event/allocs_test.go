@@ -13,11 +13,11 @@ import (
 // Update the expected values ONLY when intentionally changing the allocation behavior.
 
 func TestAllocs_NewEvent_NoOptions(t *testing.T) {
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	payload := []byte(`{"name":"test","value":42}`)
 
 	allocs := testing.AllocsPerRun(100, func() {
-		_, _ = NewEvent("test.created", aggID, "Test", Version(1), payload)
+		_, _ = NewEvent("test.created", streamID, "Test", Version(1), payload)
 	})
 
 	if allocs != 3 {
@@ -29,13 +29,13 @@ func TestAllocs_NewEvent_NoOptions(t *testing.T) {
 }
 
 func TestAllocs_NewEvent_WithCorrelationID(t *testing.T) {
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	payload := []byte(`{"name":"test","value":42}`)
 	corrID := id.NewCorrelationID()
 
 	allocs := testing.AllocsPerRun(100, func() {
 		_, _ = NewEvent(
-			"test.created", aggID, "Test", Version(1), payload,
+			"test.created", streamID, "Test", Version(1), payload,
 			WithCorrelationID(corrID),
 		)
 	})
@@ -68,10 +68,10 @@ func TestAllocs_Classify(t *testing.T) {
 }
 
 func TestAllocs_FilterByTimestamp(t *testing.T) {
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	events := make([]Event, 100)
 	for i := range events {
-		evt, _ := NewEvent("test.updated", aggID, "Test", Version(i+1),
+		evt, _ := NewEvent("test.updated", streamID, "Test", Version(i+1),
 			[]byte(`{"name":"test","value":0}`))
 		events[i] = evt
 	}
@@ -88,11 +88,11 @@ func TestAllocs_FilterByTimestamp(t *testing.T) {
 }
 
 func TestAllocs_NewStreamRef(t *testing.T) {
-	aggID := id.NewStreamID()
-	aggType := id.StreamType("Test")
+	streamID := id.NewStreamID()
+	streamType := id.StreamType("Test")
 
 	allocs := testing.AllocsPerRun(100, func() {
-		_ = id.NewStreamRef(aggType, aggID)
+		_ = id.NewStreamRef(streamType, streamID)
 	})
 
 	if allocs != 0 {

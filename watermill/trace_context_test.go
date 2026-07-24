@@ -52,8 +52,8 @@ func TestTraceContext_PropagationLinksSpans(t *testing.T) {
 	// Create a parent span, then publish under it.
 	ctx, parentSpan := tp.Tracer("test").Start(context.Background(), "parent.operation")
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("trace.test.event", aggID, "Test", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("trace.test.event", streamID, "Test", 1, []byte(`{}`))
 
 	if err := eventPub.Publish(ctx, evt); err != nil {
 		t.Fatalf("Publish: %v", err)
@@ -134,8 +134,8 @@ func TestTraceContext_MessageCarriesTraceparent(t *testing.T) {
 
 	ctx, span := tp.Tracer("test").Start(context.Background(), "publish.parent")
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("tp.test", aggID, "Test", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("tp.test", streamID, "Test", 1, []byte(`{}`))
 
 	if err := eventPub.Publish(ctx, evt); err != nil {
 		t.Fatalf("Publish: %v", err)

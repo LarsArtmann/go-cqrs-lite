@@ -88,7 +88,7 @@ func BenchmarkSaveSnapshot(b *testing.B) {
 	sink := newFakeStore()
 	b.Cleanup(func() { _ = sink.Close() })
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	ctx := context.Background()
 	state := []byte(`{"value":42}`)
 
@@ -97,7 +97,7 @@ func BenchmarkSaveSnapshot(b *testing.B) {
 	for b.Loop() {
 		err := snapshot.SaveSnapshot(
 			ctx, sink,
-			id.StreamType("User"), aggID,
+			id.StreamType("User"), streamID,
 			event.Version(100), state,
 		)
 		if err != nil {
@@ -112,12 +112,12 @@ func BenchmarkMemorySnapshotStore_Load(b *testing.B) {
 	sink := newFakeStore()
 	b.Cleanup(func() { _ = sink.Close() })
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	ctx := context.Background()
 
 	state, _ := codec.JSONCodec{}.Encode(map[string]int{"value": 42})
 	_ = sink.Save(ctx, snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "User",
 		Version:    100,
 		State:      state,
@@ -127,7 +127,7 @@ func BenchmarkMemorySnapshotStore_Load(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := sink.Load(ctx, id.NewStreamRef("User", aggID))
+		_, err := sink.Load(ctx, id.NewStreamRef("User", streamID))
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}

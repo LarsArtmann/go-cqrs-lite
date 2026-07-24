@@ -8,10 +8,10 @@ import (
 )
 
 // ---------------------------------------------------------------------------
-// 3. Million Aggregates — decider Execute + Load at scale
+// 3. Million Streams — decider Execute + Load at scale
 // ---------------------------------------------------------------------------
 
-func BenchmarkScale_DeciderExecute_ManyAggregates(b *testing.B) {
+func BenchmarkScale_DeciderExecute_ManyStreams(b *testing.B) {
 	b.ReportAllocs()
 
 	repo, ctx := newBenchDeciderRepo(b)
@@ -28,7 +28,7 @@ func BenchmarkScale_DeciderExecute_ManyAggregates(b *testing.B) {
 	}
 }
 
-func BenchmarkScale_DeciderExecute_1000Aggregates_100UpdatesEach(b *testing.B) {
+func BenchmarkScale_DeciderExecute_1000Streams_100UpdatesEach(b *testing.B) {
 	b.ReportAllocs()
 
 	repo, ctx := newBenchDeciderRepo(b)
@@ -53,7 +53,7 @@ func BenchmarkScale_DeciderExecute_1000Aggregates_100UpdatesEach(b *testing.B) {
 	b.ReportMetric(float64(b.N*aggCount)/b.Elapsed().Seconds(), "executes/sec")
 }
 
-func BenchmarkScale_DeciderLoad_10KAggregates(b *testing.B) {
+func BenchmarkScale_DeciderLoad_10KStreams(b *testing.B) {
 	b.ReportAllocs()
 
 	repo, ctx := newBenchDeciderRepo(b)
@@ -83,8 +83,8 @@ func BenchmarkScale_DeciderLoad_10KAggregates(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		for _, aggID := range aggIDs {
-			_, _, err := repo.Load(ctx, aggID, "Item")
+		for _, streamID := range aggIDs {
+			_, _, err := repo.Load(ctx, streamID, "Item")
 			if err != nil {
 				b.Fatalf("Load: %v", err)
 			}

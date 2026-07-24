@@ -14,11 +14,11 @@ import (
 func TestSliceIterator_YieldsAllEvents(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evts := []event.Event{
-		eventtest.NewEvent(t, "test.created", aggID, "Test", 1, nil),
-		eventtest.NewEvent(t, "test.updated", aggID, "Test", 2, nil),
-		eventtest.NewEvent(t, "test.deleted", aggID, "Test", 3, nil),
+		eventtest.NewEvent(t, "test.created", streamID, "Test", 1, nil),
+		eventtest.NewEvent(t, "test.updated", streamID, "Test", 2, nil),
+		eventtest.NewEvent(t, "test.deleted", streamID, "Test", 3, nil),
 	}
 
 	iter := event.NewSliceIterator(evts)
@@ -92,12 +92,12 @@ func TestSliceIterator_AdaptsMemoryStore(t *testing.T) {
 
 	store := eventtest.NewFakeStore()
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
 
 	evts := []event.Event{
-		eventtest.NewEvent(t, "user.created", aggID, "User", 1, []byte(`{}`)),
-		eventtest.NewEvent(t, "user.updated", aggID, "User", 2, []byte(`{}`)),
+		eventtest.NewEvent(t, "user.created", streamID, "User", 1, []byte(`{}`)),
+		eventtest.NewEvent(t, "user.updated", streamID, "User", 2, []byte(`{}`)),
 	}
 
 	if err := store.Save(ctx, ref, evts, 0); err != nil {

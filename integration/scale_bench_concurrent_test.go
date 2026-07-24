@@ -39,10 +39,10 @@ func BenchmarkScale_Concurrent_10KCommands_8Goroutines(b *testing.B) {
 		for range workers {
 			go func() {
 				defer wg.Done()
-				aggID := id.NewStreamID()
+				streamID := id.NewStreamID()
 
 				for range opsPerWorker {
-					cmd := testutil.NewCmd(b, "bench.cmd", aggID)
+					cmd := testutil.NewCmd(b, "bench.cmd", streamID)
 					_ = dispatcher.Dispatch(ctx, cmd)
 				}
 			}()

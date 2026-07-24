@@ -32,11 +32,11 @@ func TestEventStore_CorruptEventTriggersCorruptionError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	// Write a valid event first
-	evt, err := event.NewEvent("test.event", aggID, "Test", event.Version(1), []byte(`{}`))
+	evt, err := event.NewEvent("test.event", streamID, "Test", event.Version(1), []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -47,9 +47,9 @@ func TestEventStore_CorruptEventTriggersCorruptionError(t *testing.T) {
 	}
 
 	// Now overwrite the event with corrupt data
-	// The key format is cqrs_event:<aggType>:<aggID>:<version>
+	// The key format is cqrs_event:<streamType>:<streamID>:<version>
 	// We write garbage to a version-2 key that doesn't exist yet
-	corruptKey := []byte("cqrs_event:Test:" + aggID.String() + ":0000000002")
+	corruptKey := []byte("cqrs_event:Test:" + streamID.String() + ":0000000002")
 	if err := database.Set(
 		corruptKey,
 		[]byte("garbage-data-not-cbor-or-json"),
@@ -66,7 +66,7 @@ func TestEventStore_CorruptEventTriggersCorruptionError(t *testing.T) {
 	}
 
 	// Try Load with corrupt JSON data
-	jsonCorruptKey := []byte("cqrs_event:Test:" + aggID.String() + ":0000000003")
+	jsonCorruptKey := []byte("cqrs_event:Test:" + streamID.String() + ":0000000003")
 	if err := database.Set(jsonCorruptKey, []byte(`{"id":`), pebble.Sync); err != nil {
 		t.Fatalf("Set json corrupt: %v", err)
 	}
@@ -129,16 +129,16 @@ func TestSnapshotStore_CorruptData(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	// Write corrupt snapshot data
-	corruptKey := []byte("cqrs_snapshot:Test:" + aggID.String() + ":0000000005")
+	corruptKey := []byte("cqrs_snapshot:Test:" + streamID.String() + ":0000000005")
 	if err := database.Set(corruptKey, []byte("garbage-snapshot"), pebble.Sync); err != nil {
 		t.Fatalf("Set corrupt: %v", err)
 	}
 
 	_, err = snapStore.LoadAtVersion(context.Background(),
-		id.NewStreamRef("Test", aggID), 5)
+		id.NewStreamRef("Test", streamID), 5)
 	_ = err
 
 	// Write corrupt JSON snapshot
@@ -147,7 +147,7 @@ func TestSnapshotStore_CorruptData(t *testing.T) {
 	}
 
 	_, _ = snapStore.LoadAtVersion(context.Background(),
-		id.NewStreamRef("Test", aggID), 5)
+		id.NewStreamRef("Test", streamID), 5)
 }
 
 // TestSnapshotStore_Delete verifies snapshot deletion.
@@ -167,12 +167,12 @@ func TestSnapshotStore_Delete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	// Save a snapshot
 	snap := snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Test",
 		Version:    1,
 		State:      []byte(`{"name":"test"}`),

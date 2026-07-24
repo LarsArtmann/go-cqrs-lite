@@ -41,16 +41,16 @@ func ExampleRepository_Execute() {
 		return
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	err = repo.Execute(
 		context.Background(),
-		aggID,
+		streamID,
 		"User",
 		func(state UserState, version event.Version) ([]event.Event, error) {
 			evt, evtErr := event.NewEvent(
 				"UserCreated",
-				aggID,
+				streamID,
 				"User",
 				version+1,
 				[]byte("alice@example.com"),

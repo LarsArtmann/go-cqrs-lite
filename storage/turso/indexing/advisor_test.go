@@ -351,7 +351,7 @@ func benchAdvisor(b *testing.B, withIndexes bool) *sql.DB {
 		_ = turso.ApplyCQRSIndexes(context.Background(), db)
 	}
 
-	// Seed events for the same aggregate to make the queries realistic.
+	// Seed events for the same stream to make the queries realistic.
 	for i := 0; i < 1000; i++ {
 		_, err := db.ExecContext(
 			context.Background(),
@@ -372,7 +372,7 @@ func benchAdvisor(b *testing.B, withIndexes bool) *sql.DB {
 func BenchmarkReadFrom_WithIndexes(b *testing.B) {
 	db := benchAdvisor(b, true)
 	ctx := context.Background()
-	aggID := "agg-5"
+	streamID := "agg-5"
 
 	b.ResetTimer()
 
@@ -381,7 +381,7 @@ func BenchmarkReadFrom_WithIndexes(b *testing.B) {
 			`SELECT * FROM events
 			 WHERE aggregate_type = ? AND aggregate_id = ? AND occurred_at > '2020-01-01' AND id > 'evt-0-0'
 			 ORDER BY occurred_at ASC, id ASC LIMIT 100`,
-			"Test", aggID)
+			"Test", streamID)
 		if err == nil {
 			_ = rows.Close()
 		}
@@ -391,7 +391,7 @@ func BenchmarkReadFrom_WithIndexes(b *testing.B) {
 func BenchmarkReadFrom_WithoutIndexes(b *testing.B) {
 	db := benchAdvisor(b, false)
 	ctx := context.Background()
-	aggID := "agg-5"
+	streamID := "agg-5"
 
 	b.ResetTimer()
 
@@ -400,7 +400,7 @@ func BenchmarkReadFrom_WithoutIndexes(b *testing.B) {
 			`SELECT * FROM events
 			 WHERE aggregate_type = ? AND aggregate_id = ? AND occurred_at > '2020-01-01' AND id > 'evt-0-0'
 			 ORDER BY occurred_at ASC, id ASC LIMIT 100`,
-			"Test", aggID)
+			"Test", streamID)
 		if err == nil {
 			_ = rows.Close()
 		}

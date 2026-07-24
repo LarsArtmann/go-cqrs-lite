@@ -36,10 +36,10 @@ func TestSQLEventStore_SaveLoadRoundtrip(t *testing.T) {
 		t.Fatalf("NewSQLiteEventStore: %v", err)
 	}
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
 
-	evt, err := event.NewEvent("user.created", aggID, "User", event.Version(1),
+	evt, err := event.NewEvent("user.created", streamID, "User", event.Version(1),
 		[]byte(`{"name":"Alice"}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)

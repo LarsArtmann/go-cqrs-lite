@@ -51,8 +51,8 @@ func TestCommandDispatch_ServerSpanCarriesAttrs(t *testing.T) {
 
 	client := cqrsgrpc.NewCommandClient(conn)
 
-	aggID := id.NewStreamID()
-	cmd, err := command.New("test.cmd", aggID)
+	streamID := id.NewStreamID()
+	cmd, err := command.New("test.cmd", streamID)
 	if err != nil {
 		t.Fatalf("New command: %v", err)
 	}
@@ -94,10 +94,10 @@ func TestCommandDispatch_ServerSpanCarriesAttrs(t *testing.T) {
 		t.Errorf("expected command type attr = test.cmd, got %v", attrs[cqrsotel.AttrCommandType])
 	}
 
-	if attrs[cqrsotel.AttrStreamID] != aggID.String() {
+	if attrs[cqrsotel.AttrStreamID] != streamID.String() {
 		t.Errorf(
 			"expected stream ID attr = %s, got %v",
-			aggID.String(),
+			streamID.String(),
 			attrs[cqrsotel.AttrStreamID],
 		)
 	}

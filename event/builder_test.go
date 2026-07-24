@@ -9,8 +9,8 @@ import (
 func TestBuilder_Build(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
-	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1))
+	streamID := id.NewStreamID()
+	b := newBuilder("TestEvent", streamID, "TestStream", Version(1))
 
 	evt, err := b.Build()
 	if err != nil {
@@ -21,12 +21,12 @@ func TestBuilder_Build(t *testing.T) {
 		t.Errorf("expected type TestEvent, got %s", evt.Type())
 	}
 
-	if evt.StreamID() != aggID {
-		t.Errorf("expected stream ID %s, got %s", aggID, evt.StreamID())
+	if evt.StreamID() != streamID {
+		t.Errorf("expected stream ID %s, got %s", streamID, evt.StreamID())
 	}
 
-	if evt.StreamType() != "TestAggregate" {
-		t.Errorf("expected aggregate type TestAggregate, got %s", evt.StreamType())
+	if evt.StreamType() != "TestStream" {
+		t.Errorf("expected stream type TestAggregate, got %s", evt.StreamType())
 	}
 
 	if evt.Version() != 1 {
@@ -37,10 +37,10 @@ func TestBuilder_Build(t *testing.T) {
 func TestBuilder_Build_WithPayload(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	payload := []byte(`{"key":"value"}`)
 
-	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1)).
+	b := newBuilder("TestEvent", streamID, "TestStream", Version(1)).
 		WithPayload(payload)
 
 	evt, err := b.Build()
@@ -56,12 +56,12 @@ func TestBuilder_Build_WithPayload(t *testing.T) {
 func TestBuilder_Build_WithMetadata(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	correlationID := id.NewCorrelationID()
 	causationID := id.NewCausationID()
 	userID := id.NewUserID()
 
-	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1)).
+	b := newBuilder("TestEvent", streamID, "TestStream", Version(1)).
 		WithCorrelationID(correlationID).
 		WithCausationID(causationID).
 		WithUserID(userID)
@@ -88,8 +88,8 @@ func TestBuilder_Build_WithMetadata(t *testing.T) {
 func TestBuilder_Build_InvalidEventType(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
-	b := newBuilder("", aggID, "TestAggregate", Version(1))
+	streamID := id.NewStreamID()
+	b := newBuilder("", streamID, "TestStream", Version(1))
 
 	_, err := b.Build()
 	if err == nil {
@@ -100,8 +100,8 @@ func TestBuilder_Build_InvalidEventType(t *testing.T) {
 func TestBuilder_Build_ReturnsEvent(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
-	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1))
+	streamID := id.NewStreamID()
+	b := newBuilder("TestEvent", streamID, "TestStream", Version(1))
 
 	evt, err := b.Build()
 	if err != nil {
@@ -116,10 +116,10 @@ func TestBuilder_Build_ReturnsEvent(t *testing.T) {
 func TestBuilder_Build_WithOptions(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	correlationID := id.NewCorrelationID()
 
-	b := newBuilder("TestEvent", aggID, "TestAggregate", Version(1)).
+	b := newBuilder("TestEvent", streamID, "TestStream", Version(1)).
 		WithOptions(WithCorrelationID(correlationID))
 
 	evt, err := b.Build()

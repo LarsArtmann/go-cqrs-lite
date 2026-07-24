@@ -32,10 +32,10 @@ func foldRapidCounter(state rapidCounterState, evt event.Event) (rapidCounterSta
 var generateEvent = rapid.Custom(func(t *rapid.T) event.Event {
 	types := []event.Type{"CounterCreated", "CounterIncremented", "CounterDecremented"}
 	typ := rapid.SampledFrom(types).Draw(t, "type")
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	version := event.Version(rapid.IntRange(1, 100).Draw(t, "version"))
 
-	evt, err := event.NewEvent(typ, aggID, "Counter", version, nil)
+	evt, err := event.NewEvent(typ, streamID, "Counter", version, nil)
 	if err != nil {
 		t.Fatalf("create event: %v", err)
 	}
@@ -76,7 +76,7 @@ func TestVersionMonotonicity(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		count := rapid.IntRange(2, 20).Draw(t, "count")
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 		startVersion := event.Version(rapid.IntRange(1, 100).Draw(t, "startVersion"))
 
 		types := make([]event.Type, count)
@@ -86,7 +86,7 @@ func TestVersionMonotonicity(t *testing.T) {
 			payloads[i] = struct{ Delta int }{Delta: 1}
 		}
 
-		events, err := event.NewEvents(aggID, "Counter", startVersion, types, payloads)
+		events, err := event.NewEvents(streamID, "Counter", startVersion, types, payloads)
 		if err != nil {
 			t.Fatalf("create events: %v", err)
 		}

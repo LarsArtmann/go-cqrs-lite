@@ -39,8 +39,8 @@ func TestB001_DetectsSingleEventHelper(t *testing.T) {
 
 import "github.com/larsartmann/go-cqrs-lite/event/v4"
 
-func singleEvent(type_ string, id string, aggType string, ver event.Version, payload any) []event.Event {
-	evt, _ := event.New(type_, id, aggType, ver, payload)
+func singleEvent(type_ string, id string, streamType string, ver event.Version, payload any) []event.Event {
+	evt, _ := event.New(type_, id, streamType, ver, payload)
 	return []event.Event{evt}
 }
 `,

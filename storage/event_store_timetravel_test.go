@@ -10,15 +10,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func appendFiveEvents(t *testing.T, store *SQLEventStore, aggID id.StreamID) {
+func appendFiveEvents(t *testing.T, store *SQLEventStore, streamID id.StreamID) {
 	t.Helper()
 	ctx := context.Background()
 
 	for i := range 5 {
-		evt := issueStoreConfig().NewTestEvent(t, aggID, event.Version(i+1))
+		evt := issueStoreConfig().NewTestEvent(t, streamID, event.Version(i+1))
 		if err := store.AppendBatch(
 			ctx,
-			id.NewStreamRef(id.StreamType("Issue"), aggID),
+			id.NewStreamRef(id.StreamType("Issue"), streamID),
 			[]event.Event{evt},
 		); err != nil {
 			t.Fatalf("AppendBatch: %v", err)
@@ -42,14 +42,14 @@ func TestSQLiteEventStore_LoadToVersion(t *testing.T) {
 	store := newSQLiteTestStore(t)
 	ctx := context.Background()
 
-	aggID := id.NewStreamID()
-	evt1 := issueStoreConfig().NewTestEvent(t, aggID, 1)
-	evt2 := issueStoreConfig().NewTestEvent(t, aggID, 2)
-	evt3 := issueStoreConfig().NewTestEvent(t, aggID, 3)
+	streamID := id.NewStreamID()
+	evt1 := issueStoreConfig().NewTestEvent(t, streamID, 1)
+	evt2 := issueStoreConfig().NewTestEvent(t, streamID, 2)
+	evt3 := issueStoreConfig().NewTestEvent(t, streamID, 3)
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("Issue"), aggID),
+		id.NewStreamRef(id.StreamType("Issue"), streamID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -58,7 +58,7 @@ func TestSQLiteEventStore_LoadToVersion(t *testing.T) {
 
 	events, err := store.LoadToVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("Issue"), aggID),
+		id.NewStreamRef(id.StreamType("Issue"), streamID),
 		2,
 	)
 	if err != nil {
@@ -91,16 +91,16 @@ func TestSQLiteEventStore_LoadToTimestamp(t *testing.T) {
 	store := newSQLiteTestStore(t)
 	ctx := context.Background()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	now := time.Now()
 
-	evt1 := issueStoreConfig().NewTestEvent(t, aggID, 1, event.WithOccurredAt(now.Add(-2*time.Hour)))
-	evt2 := issueStoreConfig().NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(-1*time.Hour)))
-	evt3 := issueStoreConfig().NewTestEvent(t, aggID, 3, event.WithOccurredAt(now))
+	evt1 := issueStoreConfig().NewTestEvent(t, streamID, 1, event.WithOccurredAt(now.Add(-2*time.Hour)))
+	evt2 := issueStoreConfig().NewTestEvent(t, streamID, 2, event.WithOccurredAt(now.Add(-1*time.Hour)))
+	evt3 := issueStoreConfig().NewTestEvent(t, streamID, 3, event.WithOccurredAt(now))
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("Issue"), aggID),
+		id.NewStreamRef(id.StreamType("Issue"), streamID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -109,7 +109,7 @@ func TestSQLiteEventStore_LoadToTimestamp(t *testing.T) {
 
 	events, err := store.LoadToTimestamp(
 		ctx,
-		id.NewStreamRef(id.StreamType("Issue"), aggID),
+		id.NewStreamRef(id.StreamType("Issue"), streamID),
 		now.Add(-30*time.Minute),
 	)
 	if err != nil {
@@ -141,19 +141,19 @@ func TestSQLiteEventStore_ReadFrom(t *testing.T) {
 	store := newSQLiteTestStore(t)
 	ctx := context.Background()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt1 := issueStoreConfig().NewTestEvent(t, aggID, 1)
-
-	time.Sleep(2 * time.Millisecond)
-	evt2 := issueStoreConfig().NewTestEvent(t, aggID, 2)
+	evt1 := issueStoreConfig().NewTestEvent(t, streamID, 1)
 
 	time.Sleep(2 * time.Millisecond)
-	evt3 := issueStoreConfig().NewTestEvent(t, aggID, 3)
+	evt2 := issueStoreConfig().NewTestEvent(t, streamID, 2)
+
+	time.Sleep(2 * time.Millisecond)
+	evt3 := issueStoreConfig().NewTestEvent(t, streamID, 3)
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("Issue"), aggID),
+		id.NewStreamRef(id.StreamType("Issue"), streamID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -183,12 +183,12 @@ func TestSQLiteEventStore_ReadFrom_ZeroID(t *testing.T) {
 	store := newSQLiteTestStore(t)
 	ctx := context.Background()
 
-	aggID := id.NewStreamID()
-	evt := issueStoreConfig().NewTestEvent(t, aggID, 1)
+	streamID := id.NewStreamID()
+	evt := issueStoreConfig().NewTestEvent(t, streamID, 1)
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("Issue"), aggID),
+		id.NewStreamRef(id.StreamType("Issue"), streamID),
 		[]event.Event{evt},
 	)
 	if err != nil {
@@ -209,8 +209,8 @@ func TestSQLiteEventStore_ReadFrom_NoLimit(t *testing.T) {
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
-	aggID := id.NewStreamID()
-	appendFiveEvents(t, store, aggID)
+	streamID := id.NewStreamID()
+	appendFiveEvents(t, store, streamID)
 
 	events, err := store.ReadFrom(context.Background(), id.EventID{}, 0)
 	if err != nil {

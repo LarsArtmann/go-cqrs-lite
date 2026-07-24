@@ -47,8 +47,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
-func createEvent(type_ string, id string, aggType string, ver event.Version, payload any) {
-	_ = event.NewEvent(type_, id, aggType, ver, json.Marshal(payload))
+func createEvent(type_ string, id string, streamType string, ver event.Version, payload any) {
+	_ = event.NewEvent(type_, id, streamType, ver, json.Marshal(payload))
 }
 `,
 	})

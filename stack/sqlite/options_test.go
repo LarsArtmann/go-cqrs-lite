@@ -39,11 +39,11 @@ func TestNew_WithoutAutoMigrate_NoTables(t *testing.T) {
 
 	// Saving an event should fail because the events table was never created.
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	evts, evErr := event.NewEvents(
-		aggID, "Test", 0,
+		streamID, "Test", 0,
 		[]event.Type{"test.created"},
 		[]any{map[string]any{"ok": true}},
 	)
@@ -74,11 +74,11 @@ func TestNew_WithOptimizations(t *testing.T) {
 
 	// Verify the database accepts writes (optimizations didn't break schema).
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Opt", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Opt", streamID)
 
 	evts, evErr := event.NewEvents(
-		aggID, "Opt", 0,
+		streamID, "Opt", 0,
 		[]event.Type{"opt.created"},
 		[]any{map[string]any{"ok": true}},
 	)

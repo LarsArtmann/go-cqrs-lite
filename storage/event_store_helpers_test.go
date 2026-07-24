@@ -56,21 +56,21 @@ const loadBackwardsQuery = `SELECT id, event_type, aggregate_type, aggregate_id,
 		WHERE aggregate_type = $1 AND aggregate_id = $2
 		ORDER BY version DESC`
 
-func expectLoadRows(mock sqlmock.Sqlmock, aggID id.StreamID, rows ...driver.Value) {
+func expectLoadRows(mock sqlmock.Sqlmock, streamID id.StreamID, rows ...driver.Value) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(rows...))
 }
 
-func expectLoadEmpty(mock sqlmock.Sqlmock, aggID id.StreamID) {
+func expectLoadEmpty(mock sqlmock.Sqlmock, streamID id.StreamID) {
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 }
 
-func expectVersionCheck(mock sqlmock.Sqlmock, aggID id.StreamID, version int) {
+func expectVersionCheck(mock sqlmock.Sqlmock, streamID id.StreamID, version int) {
 	mock.ExpectQuery(regexp.QuoteMeta(versionQuery)).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnRows(sqlmock.NewRows([]string{"max"}).AddRow(version))
 }
 
@@ -121,7 +121,7 @@ func testEvent(t *testing.T) event.Event {
 func testEventWithAggID(
 	t *testing.T,
 	eventType event.Type,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	version event.Version,
 	opts ...event.Option,
 ) event.Event {
@@ -129,7 +129,7 @@ func testEventWithAggID(
 
 	evt, err := event.NewEvent(
 		eventType,
-		aggID,
+		streamID,
 		"User",
 		version,
 		[]byte(`{"name":"test"}`),

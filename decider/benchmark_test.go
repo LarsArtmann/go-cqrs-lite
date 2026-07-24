@@ -12,12 +12,12 @@ import (
 func benchEvent(
 	tb testing.TB,
 	eventType string,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	version event.Version,
 ) event.Event {
 	tb.Helper()
 
-	evt, err := event.NewEvent(event.Type(eventType), aggID, "Counter", version, []byte("{}"))
+	evt, err := event.NewEvent(event.Type(eventType), streamID, "Counter", version, []byte("{}"))
 	if err != nil {
 		tb.Fatalf("NewEvent: %v", err)
 	}
@@ -28,7 +28,7 @@ func benchEvent(
 func seedCounterBench(
 	b *testing.B,
 	repo *decider.Repository[counterState],
-	aggID id.StreamID,
+	streamID id.StreamID,
 	n int,
 ) {
 	b.Helper()
@@ -36,7 +36,7 @@ func seedCounterBench(
 	ctx := context.Background()
 
 	for range n {
-		benchExecute(b, repo, ctx, aggID, "CounterIncremented")
+		benchExecute(b, repo, ctx, streamID, "CounterIncremented")
 	}
 }
 
@@ -44,15 +44,15 @@ func benchExecute(
 	b *testing.B,
 	repo *decider.Repository[counterState],
 	ctx context.Context,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	eventType string,
 ) {
 	b.Helper()
 
 	err := repo.Execute(
-		ctx, aggID, "Counter",
+		ctx, streamID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{benchEvent(b, eventType, aggID, v.Increment())}, nil
+			return []event.Event{benchEvent(b, eventType, streamID, v.Increment())}, nil
 		},
 	)
 	if err != nil {
@@ -65,36 +65,36 @@ func BenchmarkDecider_Execute(b *testing.B) {
 	repo, ctx := newBenchRepo(b)
 
 	for b.Loop() {
-		aggID := id.NewStreamID()
-		benchExecute(b, repo, ctx, aggID, "CounterCreated")
+		streamID := id.NewStreamID()
+		benchExecute(b, repo, ctx, streamID, "CounterCreated")
 	}
 }
 
 func BenchmarkDecider_Execute_Update(b *testing.B) {
 	b.ReportAllocs()
 	repo, ctx := newBenchRepo(b)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	seedCounterBench(b, repo, aggID, 100)
+	seedCounterBench(b, repo, streamID, 100)
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		benchExecute(b, repo, ctx, aggID, "CounterIncremented")
+		benchExecute(b, repo, ctx, streamID, "CounterIncremented")
 	}
 }
 
 func BenchmarkDecider_Load(b *testing.B) {
 	b.ReportAllocs()
 	repo, ctx := newBenchRepo(b)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	seedCounterBench(b, repo, aggID, 100)
+	seedCounterBench(b, repo, streamID, 100)
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _, err := repo.Load(ctx, aggID, "Counter")
+		_, _, err := repo.Load(ctx, streamID, "Counter")
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}
@@ -104,10 +104,10 @@ func BenchmarkDecider_Load(b *testing.B) {
 func BenchmarkDecider_Apply(b *testing.B) {
 	b.ReportAllocs()
 	events := make([]event.Event, 100)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	for i := range 100 {
-		events[i] = benchEvent(b, "CounterIncremented", aggID, event.Version(i+1))
+		events[i] = benchEvent(b, "CounterIncremented", streamID, event.Version(i+1))
 	}
 
 	state := counterState{Value: 0}

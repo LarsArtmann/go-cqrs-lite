@@ -16,10 +16,10 @@ func TestEventImmutability(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		typ := event.Type(rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]+$`).Draw(t, "type"))
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 		version := event.Version(rapid.IntRange(1, 1000).Draw(t, "version"))
 
-		evt, err := event.NewEvent(typ, aggID, "Test", version, nil)
+		evt, err := event.NewEvent(typ, streamID, "Test", version, nil)
 		if err != nil {
 			t.Fatalf("create event: %v", err)
 		}
@@ -56,11 +56,11 @@ func TestEventIDempotency(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		typ := event.Type(rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]+$`).Draw(t, "type"))
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 		version := event.Version(rapid.IntRange(1, 1000).Draw(t, "version"))
 
-		evt1, err1 := event.NewEvent(typ, aggID, "Test", version, nil)
-		evt2, err2 := event.NewEvent(typ, aggID, "Test", version, nil)
+		evt1, err1 := event.NewEvent(typ, streamID, "Test", version, nil)
+		evt2, err2 := event.NewEvent(typ, streamID, "Test", version, nil)
 
 		if err1 != nil || err2 != nil {
 			t.Skip("creation error")
@@ -83,7 +83,7 @@ func TestBatchVersionMonotonicity(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		count := rapid.IntRange(2, 50).Draw(t, "count")
 		startVersion := event.Version(rapid.IntRange(1, 100).Draw(t, "startVersion"))
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 
 		types := make([]event.Type, count)
 		payloads := make([]any, count)
@@ -92,7 +92,7 @@ func TestBatchVersionMonotonicity(t *testing.T) {
 			payloads[i] = struct{ N int }{N: i}
 		}
 
-		events, err := event.NewEvents(aggID, "Test", startVersion, types, payloads)
+		events, err := event.NewEvents(streamID, "Test", startVersion, types, payloads)
 		if err != nil {
 			t.Fatalf("create events: %v", err)
 		}

@@ -16,21 +16,21 @@ import (
 // (e.g., empty event type). Callers must skip the iteration in the false case.
 func fuzzEvent(
 	t *testing.T,
-	eventType, aggType string,
+	eventType, streamType string,
 	version int,
 	schemaVersion int,
 	payload []byte,
 ) (event.Event, bool) {
 	t.Helper()
 
-	if eventType == "" || aggType == "" {
+	if eventType == "" || streamType == "" {
 		return nil, false
 	}
 
 	evt, err := event.NewEvent(
 		event.Type(eventType),
 		id.NewStreamID(),
-		id.StreamType(aggType),
+		id.StreamType(streamType),
 		event.Version(version),
 		payload,
 		event.WithSchemaVersion(event.SchemaVersion(schemaVersion)),

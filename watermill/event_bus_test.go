@@ -29,8 +29,8 @@ func TestEventBusPublishSubscribe(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	aggID := id.NewStreamID()
-	evt, err := event.NewEvent("user.created", aggID, "User", event.Version(1),
+	streamID := id.NewStreamID()
+	evt, err := event.NewEvent("user.created", streamID, "User", event.Version(1),
 		[]byte(`{"name":"alice"}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
@@ -64,9 +64,9 @@ func TestEventBusSubscribeAll(t *testing.T) {
 		t.Fatalf("subscribeAll: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	for _, et := range []event.Type{"a.b", "c.d"} {
-		evt, _ := event.NewEvent(et, aggID, "T", event.Version(1), nil)
+		evt, _ := event.NewEvent(et, streamID, "T", event.Version(1), nil)
 		_ = bus.Publish(context.Background(), evt)
 	}
 
@@ -108,8 +108,8 @@ func TestEventBusPublishAfterClose(t *testing.T) {
 	bus := cqrswatermill.NewEventBus()
 	_ = bus.Close()
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("x.y", aggID, "T", event.Version(1), nil)
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("x.y", streamID, "T", event.Version(1), nil)
 	err := bus.Publish(context.Background(), evt)
 	if err == nil {
 		t.Fatal("expected error publishing after close")
@@ -146,8 +146,8 @@ func TestEventBusMiddleware(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("test.event", aggID, "T", event.Version(1), nil)
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("test.event", streamID, "T", event.Version(1), nil)
 	_ = bus.Publish(context.Background(), evt)
 
 	waitFor(t, func() bool { return received.Load() > 0 }, 2*time.Second)

@@ -16,8 +16,8 @@ import (
 
 var _ = Describe("Encryption", func() {
 	makeEvent := func(payload string) event.Event {
-		aggID := id.NewStreamID()
-		evt, err := event.NewEvent("user.created", aggID, "User", 1, []byte(payload))
+		streamID := id.NewStreamID()
+		evt, err := event.NewEvent("user.created", streamID, "User", 1, []byte(payload))
 		Expect(err).NotTo(HaveOccurred())
 
 		return evt
@@ -219,8 +219,8 @@ var _ = Describe("Encryption", func() {
 
 				encryptMW := EncryptMiddleware(enc)
 
-				aggID := id.NewStreamID()
-				emptyEvt, err := event.NewEvent("snapshot.taken", aggID, "User", 1, []byte{})
+				streamID := id.NewStreamID()
+				emptyEvt, err := event.NewEvent("snapshot.taken", streamID, "User", 1, []byte{})
 				Expect(err).NotTo(HaveOccurred())
 
 				var captured event.Event

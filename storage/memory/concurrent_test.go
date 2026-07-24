@@ -67,24 +67,24 @@ func TestConcurrent_StoreSaveLoad(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	aggType := id.StreamType("Test")
+	streamType := id.StreamType("Test")
 
 	var wg sync.WaitGroup
 
 	for range 50 {
 		wg.Go(func() {
-			aggID := id.NewStreamID()
+			streamID := id.NewStreamID()
 			evt, _ := event.NewEvent(
 				event.Type("test.event"),
-				aggID,
-				aggType,
+				streamID,
+				streamType,
 				event.Version(1),
 				[]byte(`{}`),
 			)
 
 			_ = store.Save(
 				context.Background(),
-				id.NewStreamRef(aggType, aggID),
+				id.NewStreamRef(streamType, streamID),
 				[]event.Event{evt},
 				event.Version(0),
 			)
@@ -133,8 +133,8 @@ func TestConcurrent_SnapshotSaveLoad(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemorySnapshotStore()
-	aggID := id.NewStreamID()
-	aggType := id.StreamType("Test")
+	streamID := id.NewStreamID()
+	streamType := id.StreamType("Test")
 
 	var wg sync.WaitGroup
 
@@ -145,8 +145,8 @@ func TestConcurrent_SnapshotSaveLoad(t *testing.T) {
 			defer wg.Done()
 
 			snap := snapshot.Snapshot{
-				StreamID:   aggID,
-				StreamType: aggType,
+				StreamID:   streamID,
+				StreamType: streamType,
 				Version:    event.Version(version + 1),
 				State:      []byte(`{"v":0}`),
 			}
@@ -157,7 +157,7 @@ func TestConcurrent_SnapshotSaveLoad(t *testing.T) {
 
 	wg.Wait()
 
-	snap, err := store.Load(context.Background(), id.NewStreamRef(aggType, aggID))
+	snap, err := store.Load(context.Background(), id.NewStreamRef(streamType, streamID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}

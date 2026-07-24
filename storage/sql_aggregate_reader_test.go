@@ -27,10 +27,10 @@ func openSQLiteListingDB(t *testing.T) (*sql.DB, *StreamProjection) {
 	return db, proj
 }
 
-func seedListingAggregates(
+func seedListingStreams(
 	t *testing.T,
 	proj *StreamProjection,
-	aggType id.StreamType,
+	streamType id.StreamType,
 	count int,
 ) []id.StreamID {
 	t.Helper()
@@ -38,11 +38,11 @@ func seedListingAggregates(
 	ids := make([]id.StreamID, count)
 
 	for i := range count {
-		aggID := id.NewStreamID()
-		ids[i] = aggID
+		streamID := id.NewStreamID()
+		ids[i] = streamID
 
 		evt, err := event.NewEvent(
-			event.Type("test.created"), aggID, aggType,
+			event.Type("test.created"), streamID, streamType,
 			event.Version(1), []byte(`{}`),
 		)
 		if err != nil {
@@ -95,12 +95,12 @@ func TestSQLStreamReader_List_Empty(t *testing.T) {
 	}
 }
 
-func TestSQLStreamReader_List_WithAggregates(t *testing.T) {
+func TestSQLStreamReader_List_WithStreams(t *testing.T) {
 	t.Parallel()
 	db, proj := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
 
-	seedListingAggregates(t, proj, "User", 3)
+	seedListingStreams(t, proj, "User", 3)
 
 	reader, err := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 	if err != nil {
@@ -130,8 +130,8 @@ func TestSQLStreamReader_List_FilterByType(t *testing.T) {
 	db, proj := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
 
-	seedListingAggregates(t, proj, "User", 2)
-	seedListingAggregates(t, proj, "Order", 3)
+	seedListingStreams(t, proj, "User", 2)
+	seedListingStreams(t, proj, "Order", 3)
 
 	reader, err := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 	if err != nil {
@@ -162,7 +162,7 @@ func TestSQLStreamReader_List_Pagination(t *testing.T) {
 	db, proj := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
 
-	seedListingAggregates(t, proj, "User", 5)
+	seedListingStreams(t, proj, "User", 5)
 
 	reader, err := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 	if err != nil {
@@ -226,16 +226,16 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	defer func() { _ = db.Close() }()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt, _ := event.NewEvent(
-		event.Type("user.created"), aggID, id.StreamType("User"),
+		event.Type("user.created"), streamID, id.StreamType("User"),
 		event.Version(1), []byte(`{}`),
 	)
 	_ = proj.Handle(ctx, evt)
 
 	tombstoneEvt, err := event.NewEvent(
-		event.Type("user.deleted"), aggID, id.StreamType("User"),
+		event.Type("user.deleted"), streamID, id.StreamType("User"),
 		event.Version(2), []byte(`{}`),
 	)
 	if err != nil {

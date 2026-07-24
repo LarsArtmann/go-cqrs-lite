@@ -19,21 +19,21 @@ func TestMemoryStore_LoadFromVersion(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK154ME034FVHK95R554AKSE")
-	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
-	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
-	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 2, nil)
+	streamID := idtest.ParseStreamID(t, "01HK154ME034FVHK95R554AKSE")
+	evt1 := eventtest.QuickEvent("UserCreated", streamID, "User", 1, nil)
+	evt2 := eventtest.QuickEvent("UserUpdated", streamID, "User", 1, nil)
+	evt3 := eventtest.QuickEvent("UserDeleted", streamID, "User", 2, nil)
 
 	_ = store.Save(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		[]event.Event{evt1, evt2, evt3},
 		0,
 	)
 
 	events, err := store.LoadFromVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		1,
 	)
 	if err != nil {
@@ -49,11 +49,11 @@ func TestMemoryStore_LoadFromVersion_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK154KER4E8AJ20Q4JD5TJ1E")
+	streamID := idtest.ParseStreamID(t, "01HK154KER4E8AJ20Q4JD5TJ1E")
 
 	_, err := store.LoadFromVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		0,
 	)
 	if err == nil {
@@ -67,18 +67,18 @@ func TestMemoryStore_LoadFromVersion_AtEnd(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK154PCGXJ80RFXRASTMSSK0")
-	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	streamID := idtest.ParseStreamID(t, "01HK154PCGXJ80RFXRASTMSSK0")
+	evt := eventtest.QuickEvent("UserCreated", streamID, "User", 1, nil)
 	_ = store.Save(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		[]event.Event{evt},
 		0,
 	)
 
 	events, err := store.LoadFromVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		1,
 	)
 	if err != nil {
@@ -94,20 +94,20 @@ func TestMemoryStore_LoadToVersion(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	evt1 := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
-	evt2 := eventtest.QuickEvent("Updated", aggID, "User", 1, nil)
-	evt3 := eventtest.QuickEvent("Deleted", aggID, "User", 2, nil)
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	evt1 := eventtest.QuickEvent("Created", streamID, "User", 1, nil)
+	evt2 := eventtest.QuickEvent("Updated", streamID, "User", 1, nil)
+	evt3 := eventtest.QuickEvent("Deleted", streamID, "User", 2, nil)
 
 	_ = store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 
 	events, err := store.LoadToVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		2,
 	)
 	eventtest.AssertNoError(t, err, "LoadToVersion")
@@ -120,18 +120,18 @@ func TestMemoryStore_LoadToVersion_ExceedsStreamLength(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	evt := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	evt := eventtest.QuickEvent("Created", streamID, "User", 1, nil)
 
 	_ = store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		[]event.Event{evt},
 	)
 
 	events, err := store.LoadToVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		100,
 	)
 	eventtest.AssertNoError(t, err, "LoadToVersion")
@@ -144,9 +144,9 @@ func TestMemoryStore_LoadToVersion_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	_, err := store.LoadToVersion(ctx, id.NewStreamRef(id.StreamType("User"), aggID), 5)
+	_, err := store.LoadToVersion(ctx, id.NewStreamRef(id.StreamType("User"), streamID), 5)
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("expected ErrStreamNotFound, got: %v", err)
 	}
@@ -158,20 +158,20 @@ func TestMemoryStore_LoadToTimestamp(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	now, aggID := eventtest.MakeLoadToTimestampFixtures(
+	now, streamID := eventtest.MakeLoadToTimestampFixtures(
 		t,
 		store,
 		ctx,
 		"User",
-		aggID,
+		streamID,
 		[3]event.Version{1, 1, 2},
 	)
 
 	loaded, err := store.LoadToTimestamp(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		now.Add(-30*time.Minute),
 	)
 	eventtest.AssertNoError(t, err, "LoadToTimestamp")
@@ -231,14 +231,14 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
-	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 2, nil)
-	evt3 := eventtest.QuickEvent("UserDeleted", aggID, "User", 3, nil)
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	evt1 := eventtest.QuickEvent("UserCreated", streamID, "User", 1, nil)
+	evt2 := eventtest.QuickEvent("UserUpdated", streamID, "User", 2, nil)
+	evt3 := eventtest.QuickEvent("UserDeleted", streamID, "User", 3, nil)
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -248,7 +248,7 @@ func TestMemoryStore_LoadBackwards(t *testing.T) {
 	backwardsLoader := event.BackwardsSource(store)
 	events, err := backwardsLoader.LoadBackwards(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -269,12 +269,12 @@ func TestMemoryStore_LoadBackwards_NotFound(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 	)
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("expected ErrStreamNotFound, got %v", err)

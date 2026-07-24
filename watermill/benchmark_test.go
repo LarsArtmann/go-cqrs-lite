@@ -15,9 +15,9 @@ import (
 func benchEvent(tb testing.TB) event.Event {
 	tb.Helper()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.NewEvent(
-		"BenchEvent", aggID, "Bench", 1,
+		"BenchEvent", streamID, "Bench", 1,
 		[]byte(`{"name":"test"}`),
 		event.WithCorrelationID(id.NewCorrelationID()),
 		event.WithOccurredAt(time.Now()),

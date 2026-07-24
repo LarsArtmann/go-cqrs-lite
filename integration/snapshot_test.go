@@ -97,11 +97,11 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 		t.Fatalf("create repo: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	err = repo.Execute(
 		ctx,
-		aggID,
+		streamID,
 		"User",
 		func(_ snapUserState, currentVersion event.Version) ([]event.Event, error) {
 			payload, _ := json.Marshal(struct {
@@ -113,7 +113,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 			})
 			evt, err := event.NewEvent(
 				"UserCreated",
-				aggID,
+				streamID,
 				"User",
 				currentVersion.Add(1),
 				payload,
@@ -129,7 +129,7 @@ func TestSnapshot_EventSerialization(t *testing.T) {
 		t.Fatalf("execute: %v", err)
 	}
 
-	events, err := store.Load(ctx, id.NewStreamRef("User", aggID))
+	events, err := store.Load(ctx, id.NewStreamRef("User", streamID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}

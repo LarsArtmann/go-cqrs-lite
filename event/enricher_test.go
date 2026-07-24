@@ -10,7 +10,7 @@ import (
 func TestEnrichEvent(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	enricher := ContextEnricher(func(_ context.Context) []Option {
 		return []Option{
@@ -19,7 +19,7 @@ func TestEnrichEvent(t *testing.T) {
 		}
 	})
 
-	evt, err := NewEvent("UserCreated", aggID, "User", 1, nil)
+	evt, err := NewEvent("UserCreated", streamID, "User", 1, nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -39,7 +39,7 @@ func TestEnrichEvent(t *testing.T) {
 func TestCompositeEnricher(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	first := ContextEnricher(func(_ context.Context) []Option {
 		return []Option{
@@ -55,7 +55,7 @@ func TestCompositeEnricher(t *testing.T) {
 
 	composite := CompositeEnricher(first, second)
 
-	evt, err := NewEvent("UserCreated", aggID, "User", 1, nil)
+	evt, err := NewEvent("UserCreated", streamID, "User", 1, nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -77,9 +77,9 @@ func TestCompositeEnricher_Empty(t *testing.T) {
 
 	composite := CompositeEnricher()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := NewEvent("UserCreated", aggID, "User", 1, nil)
+	evt, err := NewEvent("UserCreated", streamID, "User", 1, nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}

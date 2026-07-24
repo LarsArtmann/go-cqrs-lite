@@ -16,12 +16,12 @@ import (
 func TestSliceIterator_Next(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	clock := func() time.Time { return time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC) }
 
 	events := make([]event.Event, 3)
 	for i, typ := range []string{"user.created", "user.updated", "user.deleted"} {
-		events[i] = eventtest.NewEventOpts(t, event.Type(typ), aggID, "Test",
+		events[i] = eventtest.NewEventOpts(t, event.Type(typ), streamID, "Test",
 			event.Version(i+1), nil, event.WithClock(clock))
 	}
 
@@ -73,7 +73,7 @@ func TestStreamingSource_MemoryStore_LoadStream(t *testing.T) {
 	store := memory.NewMemoryStore()
 	defer store.Close() //nolint:errcheck // test helper
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	clock := func() time.Time { return time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC) }
 
 	ctx := context.Background()
@@ -82,7 +82,7 @@ func TestStreamingSource_MemoryStore_LoadStream(t *testing.T) {
 		eventtest.NewEventOpts(
 			t,
 			"order.placed",
-			aggID,
+			streamID,
 			"Test",
 			1,
 			[]byte(`{}`),
@@ -91,7 +91,7 @@ func TestStreamingSource_MemoryStore_LoadStream(t *testing.T) {
 		eventtest.NewEventOpts(
 			t,
 			"order.paid",
-			aggID,
+			streamID,
 			"Test",
 			2,
 			[]byte(`{}`),
@@ -101,7 +101,7 @@ func TestStreamingSource_MemoryStore_LoadStream(t *testing.T) {
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("Order"), aggID),
+		id.NewStreamRef(id.StreamType("Order"), streamID),
 		wantEvents,
 	)
 	if err != nil {
@@ -110,7 +110,7 @@ func TestStreamingSource_MemoryStore_LoadStream(t *testing.T) {
 
 	var ss event.StreamingSource = store
 
-	iter, err := ss.LoadStream(ctx, id.NewStreamRef(id.StreamType("Order"), aggID))
+	iter, err := ss.LoadStream(ctx, id.NewStreamRef(id.StreamType("Order"), streamID))
 	if err != nil {
 		t.Fatalf("LoadStream: %v", err)
 	}

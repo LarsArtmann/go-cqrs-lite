@@ -104,14 +104,14 @@ func newBusWithSavedEvent(t *testing.T, eventType event.Type) (
 
 	t.Cleanup(func() { _ = bus.Close() })
 
-	aggID := id.NewStreamID()
-	evt, err := event.NewEvent(eventType, aggID, "Test", event.Version(1), []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, err := event.NewEvent(eventType, streamID, "Test", event.Version(1), []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
 	if err := store.AppendBatch(context.Background(),
-		id.NewStreamRef("Test", aggID), []event.Event{evt}); err != nil {
+		id.NewStreamRef("Test", streamID), []event.Event{evt}); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
@@ -293,11 +293,11 @@ func TestPostgresBus_SubscribeAll(t *testing.T) {
 
 	t.Cleanup(func() { _ = bus.Close() })
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("any.event", aggID, "Test", event.Version(1), []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("any.event", streamID, "Test", event.Version(1), []byte(`{}`))
 
 	if err := store.AppendBatch(context.Background(),
-		id.NewStreamRef("Test", aggID), []event.Event{evt}); err != nil {
+		id.NewStreamRef("Test", streamID), []event.Event{evt}); err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
@@ -373,11 +373,11 @@ func TestPostgresBus_Middleware(t *testing.T) {
 
 	_ = bus.Use(mw)
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("test.mw", aggID, "Test", event.Version(1), []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("test.mw", streamID, "Test", event.Version(1), []byte(`{}`))
 
 	_ = store.AppendBatch(context.Background(),
-		id.NewStreamRef("Test", aggID), []event.Event{evt})
+		id.NewStreamRef("Test", streamID), []event.Event{evt})
 
 	_ = bus.Subscribe("test.mw", func(_ context.Context, _ event.Event) error { return nil })
 	_ = bus.Publish(context.Background(), evt)
@@ -493,7 +493,7 @@ var _ event.EventSource = (*versionOnlySource)(nil)
 // TestPostgresBus_RefetchVersionFallback verifies the refetchByVersion path
 // is used when the store does NOT implement EventByIDLoader. This is the
 // fallback for stores like MemoryStore and Pebble (until they gain
-// LoadByEventID). It sends a NOTIFY with an aggregate reference, and asserts
+// LoadByEventID). It sends a NOTIFY with an stream reference, and asserts
 // the listener re-fetches and dispatches the event via LoadFromVersion.
 func TestPostgresBus_RefetchVersionFallback(t *testing.T) {
 	t.Parallel()
@@ -517,10 +517,10 @@ func TestPostgresBus_RefetchVersionFallback(t *testing.T) {
 	t.Cleanup(func() { _ = bus.Close() })
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
-	evt, err := event.NewEvent("test.versioned", aggID, "Test", event.Version(1),
+	evt, err := event.NewEvent("test.versioned", streamID, "Test", event.Version(1),
 		[]byte(`{"n":1}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
@@ -548,7 +548,7 @@ func TestPostgresBus_RefetchVersionFallback(t *testing.T) {
 		"eid": evt.ID().String(),
 		"et":  "test.versioned",
 		"at":  "Test",
-		"aid": aggID.String(),
+		"aid": streamID.String(),
 		"v":   1,
 	})
 	if marshalErr != nil {

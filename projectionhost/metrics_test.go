@@ -55,9 +55,9 @@ func TestHost_Metrics_RecordsProcessedEvents(t *testing.T) {
 	journal := &memoryJournal{}
 	cpStore := newMemoryCheckpointStore()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	for range 3 {
-		evt, _ := event.New("item.added", aggID, "Item", event.Version(1), []byte("p"))
+		evt, _ := event.New("item.added", streamID, "Item", event.Version(1), []byte("p"))
 		journal.append(evt)
 	}
 

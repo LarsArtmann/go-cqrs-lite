@@ -65,11 +65,11 @@ func TestPostgresEventStore_CRUD(t *testing.T) {
 	}
 
 	store := backend.EventStore()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
 
 	// Save
-	evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
+	evt, _ := event.NewEvent("user.created", streamID, "User", event.Version(1),
 		[]byte(`{"name":"alice"}`))
 	if err := store.Save(ctx, ref, []event.Event{evt}, event.Version(0)); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -90,7 +90,7 @@ func TestPostgresEventStore_CRUD(t *testing.T) {
 	}
 
 	// LoadFromVersion
-	evt2, _ := event.NewEvent("user.updated", aggID, "User", event.Version(2),
+	evt2, _ := event.NewEvent("user.updated", streamID, "User", event.Version(2),
 		[]byte(`{"name":"bob"}`))
 	_ = store.AppendBatch(ctx, ref, []event.Event{evt2})
 
@@ -151,16 +151,16 @@ func TestPostgresBackend_FullStack(t *testing.T) {
 	}
 
 	// Verify all work together
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	// Event
-	evt, _ := event.NewEvent("test.event", aggID, "Test", event.Version(1), []byte(`{}`))
+	evt, _ := event.NewEvent("test.event", streamID, "Test", event.Version(1), []byte(`{}`))
 	_ = eventStore.Save(ctx, ref, []event.Event{evt}, event.Version(0))
 
 	// Snapshot
 	_ = snapStore.Save(ctx, snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Test",
 		Version:    event.Version(1),
 		State:      []byte(`{}`),

@@ -50,10 +50,10 @@ func bddCounterDecider() decider.Decider[bddCounter] {
 
 func makeCounterEvent(
 	eventType event.Type,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	version event.Version,
 ) event.Event {
-	evt, err := event.NewEvent(eventType, aggID, "Counter", version, []byte(`{}`))
+	evt, err := event.NewEvent(eventType, streamID, "Counter", version, []byte(`{}`))
 	Expect(err).ToNot(HaveOccurred())
 
 	return evt
@@ -62,18 +62,18 @@ func makeCounterEvent(
 func executeCounterNTimes(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
-	aggID id.StreamID,
+	streamID id.StreamID,
 	n int,
 ) {
 	for range n {
 		err := repo.Execute(
-			ctx, aggID, "Counter",
+			ctx, streamID, "Counter",
 			func(_ bddCounter, v event.Version) ([]event.Event, error) {
 				if v == 0 {
-					return []event.Event{makeCounterEvent("CounterCreated", aggID, v+1)}, nil
+					return []event.Event{makeCounterEvent("CounterCreated", streamID, v+1)}, nil
 				}
 
-				return []event.Event{makeCounterEvent("CounterIncremented", aggID, v+1)}, nil
+				return []event.Event{makeCounterEvent("CounterIncremented", streamID, v+1)}, nil
 			},
 		)
 		Expect(err).ToNot(HaveOccurred())
@@ -97,13 +97,13 @@ func newSnapshotRepo(
 func executeCounterCommand(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
-	aggID id.StreamID,
+	streamID id.StreamID,
 	eventName string,
 ) {
 	err := repo.Execute(
-		ctx, aggID, "Counter",
+		ctx, streamID, "Counter",
 		func(_ bddCounter, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeCounterEvent(event.Type(eventName), aggID, v+1)}, nil
+			return []event.Event{makeCounterEvent(event.Type(eventName), streamID, v+1)}, nil
 		},
 	)
 	Expect(err).ToNot(HaveOccurred())
@@ -112,27 +112,27 @@ func executeCounterCommand(
 func createCounter(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
-	aggID id.StreamID,
+	streamID id.StreamID,
 ) {
-	executeCounterCommand(ctx, repo, aggID, "CounterCreated")
+	executeCounterCommand(ctx, repo, streamID, "CounterCreated")
 }
 
 func incrementCounter(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
-	aggID id.StreamID,
+	streamID id.StreamID,
 ) {
-	executeCounterCommand(ctx, repo, aggID, "CounterIncremented")
+	executeCounterCommand(ctx, repo, streamID, "CounterIncremented")
 }
 
 func executeAndAssertNoStateChange(
 	ctx context.Context,
 	repo *decider.Repository[bddCounter],
-	aggID id.StreamID,
+	streamID id.StreamID,
 	decideErr error,
 ) {
 	err := repo.Execute(
-		ctx, aggID, "Counter",
+		ctx, streamID, "Counter",
 		func(_ bddCounter, _ event.Version) ([]event.Event, error) {
 			return nil, decideErr
 		},
@@ -143,7 +143,7 @@ func executeAndAssertNoStateChange(
 		Expect(err).ToNot(HaveOccurred())
 	}
 
-	state, version, err := repo.Load(ctx, aggID, "Counter")
+	state, version, err := repo.Load(ctx, streamID, "Counter")
 	Expect(err).ToNot(HaveOccurred())
 	Expect(state.Value).To(Equal(0))
 	Expect(version).To(Equal(event.Version(0)))
@@ -151,18 +151,18 @@ func executeAndAssertNoStateChange(
 
 var _ = Describe("Decider Repository", func() {
 	var (
-		ctx   context.Context
-		store *memory.MemoryStore
-		bus   *eventtest.FakeBus
-		repo  *decider.Repository[bddCounter]
-		aggID id.StreamID
+		ctx      context.Context
+		store    *memory.MemoryStore
+		bus      *eventtest.FakeBus
+		repo     *decider.Repository[bddCounter]
+		streamID id.StreamID
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
 		store = memory.NewMemoryStore()
 		bus = eventtest.NewFakeBus()
-		aggID = id.NewStreamID()
+		streamID = id.NewStreamID()
 
 		var err error
 		repo, err = decider.NewRepository(store, bus, bddCounterDecider())
@@ -173,14 +173,14 @@ var _ = Describe("Decider Repository", func() {
 		Context("when I create a new stream", func() {
 			It("should save and publish the decision events", func() {
 				err := repo.Execute(
-					ctx, aggID, "Counter",
+					ctx, streamID, "Counter",
 					func(_ bddCounter, v event.Version) ([]event.Event, error) {
-						return []event.Event{makeCounterEvent("CounterCreated", aggID, v+1)}, nil
+						return []event.Event{makeCounterEvent("CounterCreated", streamID, v+1)}, nil
 					},
 				)
 				Expect(err).ToNot(HaveOccurred())
 
-				state, version, err := repo.Load(ctx, aggID, "Counter")
+				state, version, err := repo.Load(ctx, streamID, "Counter")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(state.Value).To(Equal(1))
 				Expect(version).To(Equal(event.Version(1)))
@@ -189,11 +189,11 @@ var _ = Describe("Decider Repository", func() {
 
 		Context("when I apply multiple decisions to the same stream", func() {
 			It("should apply all events into the correct state", func() {
-				createCounter(ctx, repo, aggID)
-				incrementCounter(ctx, repo, aggID)
-				incrementCounter(ctx, repo, aggID)
+				createCounter(ctx, repo, streamID)
+				incrementCounter(ctx, repo, streamID)
+				incrementCounter(ctx, repo, streamID)
 
-				state, version, err := repo.Load(ctx, aggID, "Counter")
+				state, version, err := repo.Load(ctx, streamID, "Counter")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(state.Value).To(Equal(3))
 				Expect(version).To(Equal(event.Version(3)))
@@ -202,13 +202,13 @@ var _ = Describe("Decider Repository", func() {
 
 		Context("when my decide function returns no events", func() {
 			It("should not save or publish anything", func() {
-				executeAndAssertNoStateChange(ctx, repo, aggID, nil)
+				executeAndAssertNoStateChange(ctx, repo, streamID, nil)
 			})
 		})
 
 		Context("when my decide function returns an error", func() {
 			It("should not save any events", func() {
-				executeAndAssertNoStateChange(ctx, repo, aggID, errBDDRejected)
+				executeAndAssertNoStateChange(ctx, repo, streamID, errBDDRejected)
 			})
 		})
 
@@ -216,7 +216,7 @@ var _ = Describe("Decider Repository", func() {
 			It(
 				"should give me the initial state and version 0, so I know this stream has no history",
 				func() {
-					state, version, err := repo.Load(ctx, aggID, "Counter")
+					state, version, err := repo.Load(ctx, streamID, "Counter")
 					Expect(err).ToNot(HaveOccurred())
 					Expect(state.Value).To(Equal(0))
 					Expect(version).To(Equal(event.Version(0)))
@@ -228,18 +228,18 @@ var _ = Describe("Decider Repository", func() {
 			It(
 				"should pass the folded state from previous events so my decide function sees the full picture",
 				func() {
-					createCounter(ctx, repo, aggID)
+					createCounter(ctx, repo, streamID)
 
 					var receivedState bddCounter
 					var receivedVersion event.Version
 					err := repo.Execute(
-						ctx, aggID, "Counter",
+						ctx, streamID, "Counter",
 						func(state bddCounter, v event.Version) ([]event.Event, error) {
 							receivedState = state
 							receivedVersion = v
 
 							return []event.Event{
-								makeCounterEvent("CounterIncremented", aggID, v+1),
+								makeCounterEvent("CounterIncremented", streamID, v+1),
 							}, nil
 						},
 					)
@@ -253,18 +253,18 @@ var _ = Describe("Decider Repository", func() {
 		Context("when I emit multiple events in a single decision", func() {
 			It("should save and publish all of them atomically", func() {
 				err := repo.Execute(
-					ctx, aggID, "Counter",
+					ctx, streamID, "Counter",
 					func(_ bddCounter, v event.Version) ([]event.Event, error) {
 						return []event.Event{
-							makeCounterEvent("CounterCreated", aggID, v+1),
-							makeCounterEvent("CounterIncremented", aggID, v+2),
-							makeCounterEvent("CounterIncremented", aggID, v+3),
+							makeCounterEvent("CounterCreated", streamID, v+1),
+							makeCounterEvent("CounterIncremented", streamID, v+2),
+							makeCounterEvent("CounterIncremented", streamID, v+3),
 						}, nil
 					},
 				)
 				Expect(err).ToNot(HaveOccurred())
 
-				state, version, err := repo.Load(ctx, aggID, "Counter")
+				state, version, err := repo.Load(ctx, streamID, "Counter")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(state.Value).To(Equal(3))
 				Expect(version).To(Equal(event.Version(3)))
@@ -314,9 +314,9 @@ var _ = Describe("Decider Repository", func() {
 				repo, err := newSnapshotRepo(store, bus, snapStore, 2)
 				Expect(err).ToNot(HaveOccurred())
 
-				executeCounterNTimes(ctx, repo, aggID, 4)
+				executeCounterNTimes(ctx, repo, streamID, 4)
 
-				state, _, err := repo.Load(ctx, aggID, "Counter")
+				state, _, err := repo.Load(ctx, streamID, "Counter")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(state.Value).To(Equal(4))
 			})
@@ -327,9 +327,9 @@ var _ = Describe("Decider Repository", func() {
 				repo, err := newSnapshotRepo(store, bus, snapStore, 2)
 				Expect(err).ToNot(HaveOccurred())
 
-				executeCounterNTimes(ctx, repo, aggID, 3)
+				executeCounterNTimes(ctx, repo, streamID, 3)
 
-				state, version, err := repo.Load(ctx, aggID, "Counter")
+				state, version, err := repo.Load(ctx, streamID, "Counter")
 				Expect(err).ToNot(HaveOccurred())
 				Expect(state.Value).To(Equal(3))
 				Expect(version).To(Equal(event.Version(3)))

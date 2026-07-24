@@ -25,13 +25,13 @@ var _ = Describe("Command Dispatcher", func() {
 	var (
 		ctx        context.Context
 		dispatcher *command.Dispatcher
-		aggID      id.StreamID
+		streamID   id.StreamID
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
 		dispatcher = command.NewDispatcher()
-		aggID = id.NewStreamID()
+		streamID = id.NewStreamID()
 	})
 
 	Describe("As a developer dispatching commands", func() {
@@ -49,13 +49,13 @@ var _ = Describe("Command Dispatcher", func() {
 					),
 				).To(Succeed())
 
-				cmd, err := command.New("CreateUser", aggID)
+				cmd, err := command.New("CreateUser", streamID)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(dispatcher.Dispatch(ctx, cmd)).To(Succeed())
 				Expect(received).ToNot(BeNil())
 				Expect(received.Type()).To(Equal(command.Type("CreateUser")))
-				Expect(received.StreamID()).To(Equal(aggID))
+				Expect(received.StreamID()).To(Equal(streamID))
 			})
 		})
 
@@ -63,7 +63,7 @@ var _ = Describe("Command Dispatcher", func() {
 			It(
 				"should reject my command and explain that no handler was registered for this type",
 				func() {
-					cmd, err := command.New("UnknownCommand", aggID)
+					cmd, err := command.New("UnknownCommand", streamID)
 					Expect(err).ToNot(HaveOccurred())
 
 					err = dispatcher.Dispatch(ctx, cmd)
@@ -99,11 +99,11 @@ var _ = Describe("Command Dispatcher", func() {
 					),
 				).To(Succeed())
 
-				createCmd, err := command.New("CreateUser", aggID)
+				createCmd, err := command.New("CreateUser", streamID)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(dispatcher.Dispatch(ctx, createCmd)).To(Succeed())
 
-				deleteCmd, err := command.New("DeleteUser", aggID)
+				deleteCmd, err := command.New("DeleteUser", streamID)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(dispatcher.Dispatch(ctx, deleteCmd)).To(Succeed())
 
@@ -124,7 +124,7 @@ var _ = Describe("Command Dispatcher", func() {
 					),
 				).To(Succeed())
 
-				cmd, err := command.New("FailCommand", aggID)
+				cmd, err := command.New("FailCommand", streamID)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = dispatcher.Dispatch(ctx, cmd)
@@ -150,7 +150,7 @@ var _ = Describe("Command Dispatcher", func() {
 						),
 					).To(Succeed())
 
-					cmd, err := command.New("TestCommand", aggID)
+					cmd, err := command.New("TestCommand", streamID)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(dispatcher.Dispatch(ctx, cmd)).To(Succeed())
@@ -180,7 +180,7 @@ var _ = Describe("Command Dispatcher", func() {
 					),
 				).To(Succeed())
 
-				cmd, err := command.New("BlockedCommand", aggID)
+				cmd, err := command.New("BlockedCommand", streamID)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = dispatcher.Dispatch(ctx, cmd)
@@ -197,7 +197,7 @@ var _ = Describe("Command Dispatcher", func() {
 				func() {
 					Expect(dispatcher.Close()).To(Succeed())
 
-					cmd, err := command.New("AnyCommand", aggID)
+					cmd, err := command.New("AnyCommand", streamID)
 					Expect(err).ToNot(HaveOccurred())
 
 					err = dispatcher.Dispatch(ctx, cmd)
@@ -226,7 +226,7 @@ var _ = Describe("Command Dispatcher", func() {
 				reqID := id.NewRequestID()
 
 				cmd, err := command.New(
-					"CreateOrder", aggID,
+					"CreateOrder", streamID,
 					command.WithCorrelationID(corrID),
 					command.WithCausationID(causeID),
 					command.WithUserID(userID),
@@ -235,7 +235,7 @@ var _ = Describe("Command Dispatcher", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(cmd.Type()).To(Equal(command.Type("CreateOrder")))
-				Expect(cmd.StreamID()).To(Equal(aggID))
+				Expect(cmd.StreamID()).To(Equal(streamID))
 				Expect(cmd.Metadata().CorrelationID).To(Equal(corrID))
 				Expect(cmd.Metadata().CausationID).To(Equal(causeID))
 				Expect(cmd.Metadata().UserID).To(Equal(userID))
@@ -245,7 +245,7 @@ var _ = Describe("Command Dispatcher", func() {
 
 		Context("when I create a command with an empty type", func() {
 			It("should reject my input and explain that the command type is required", func() {
-				_, err := command.New("", aggID)
+				_, err := command.New("", streamID)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("command type is required"))
 			})
@@ -261,7 +261,7 @@ var _ = Describe("Command Dispatcher", func() {
 
 		Context("when I create a command with invalid inputs", func() {
 			It("should reject with a descriptive error", func() {
-				_, err := command.New("", aggID)
+				_, err := command.New("", streamID)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -288,7 +288,7 @@ var _ = Describe("Command Dispatcher", func() {
 				)
 				Expect(err).ToNot(HaveOccurred())
 
-				basicCmd, err := command.New("CreateUser", aggID)
+				basicCmd, err := command.New("CreateUser", streamID)
 				Expect(err).ToNot(HaveOccurred())
 				cmd := &createUserCmd{
 					BasicCommand: *basicCmd,

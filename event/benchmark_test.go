@@ -14,12 +14,12 @@ import (
 
 func BenchmarkNewEvent(b *testing.B) {
 	b.ReportAllocs()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	for b.Loop() {
 		_, err := event.NewEvent(
 			event.Type("UserCreated"),
-			aggID,
+			streamID,
 			"User",
 			1,
 			nil,
@@ -32,13 +32,13 @@ func BenchmarkNewEvent(b *testing.B) {
 
 func BenchmarkNewEvent_WithOptions(b *testing.B) {
 	b.ReportAllocs()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	corrID := id.NewCorrelationID()
 
 	for b.Loop() {
 		_, err := event.NewEvent(
 			event.Type("UserCreated"),
-			aggID,
+			streamID,
 			"User",
 			1,
 			nil,
@@ -52,12 +52,12 @@ func BenchmarkNewEvent_WithOptions(b *testing.B) {
 
 func BenchmarkNew_TypedPayload(b *testing.B) {
 	b.ReportAllocs()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	for b.Loop() {
 		_, err := event.New(
 			event.Type("UserCreated"),
-			aggID,
+			streamID,
 			"User",
 			1,
 			map[string]string{"name": "Alice"},
@@ -90,13 +90,13 @@ func BenchmarkBusPublish(b *testing.B) {
 	b.ReportAllocs()
 	bus := eventtest.NewFakeBus()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	events := make([]event.Event, 10)
 
 	for i := range 10 {
 		evt, err := event.NewEvent(
 			event.Type("UserCreated"),
-			aggID,
+			streamID,
 			"User",
 			event.Version(i+1),
 			nil,
@@ -120,11 +120,11 @@ func BenchmarkBusPublish(b *testing.B) {
 
 func BenchmarkDecodePayload(b *testing.B) {
 	b.ReportAllocs()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt, err := event.NewEvent(
 		event.Type("UserCreated"),
-		aggID,
+		streamID,
 		"User",
 		1,
 		[]byte(`{"name":"Alice"}`),

@@ -21,14 +21,14 @@ func TestCatchUpSubscriber_Replay(t *testing.T) {
 	cpStore := memory.NewMemoryCheckpointStore()
 
 	// Seed the store with a historical event.
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	historicalEvt, _ := event.NewEvent(
 		event.Type("test.event"),
-		aggID, "TestAggregate", event.Version(1),
+		streamID, "TestStream", event.Version(1),
 		[]byte(`{"msg":"hello"}`),
 	)
 	_ = store.AppendBatch(context.Background(),
-		id.NewStreamRef("TestAggregate", aggID),
+		id.NewStreamRef("TestStream", streamID),
 		[]event.Event{historicalEvt})
 
 	liveSub := NewSubscriberAdapter(bus)
@@ -81,22 +81,22 @@ func TestCatchUpSubscriber_BatchedReplay(t *testing.T) {
 	cpStore := memory.NewMemoryCheckpointStore()
 
 	// Seed the store with 3× the batch size of historical events across
-	// multiple aggregates so ReadFrom returns them in stable order.
+	// multiple streams so ReadFrom returns them in stable order.
 	const total = 1500
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	events := make([]event.Event, 0, total)
 	for range total {
 		evt, _ := event.NewEvent(
 			event.Type("bulk.event"),
-			aggID, "BulkAggregate", event.Version(1),
+			streamID, "BulkAggregate", event.Version(1),
 			[]byte(`{}`),
 		)
 		events = append(events, evt)
 	}
 
 	_ = store.AppendBatch(context.Background(),
-		id.NewStreamRef("BulkAggregate", aggID), events)
+		id.NewStreamRef("BulkAggregate", streamID), events)
 
 	liveSub := NewSubscriberAdapter(bus)
 

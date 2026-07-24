@@ -25,8 +25,8 @@ type runProjectionsKey string
 
 func (k runProjectionsKey) String() string { return string(k) }
 
-// runProjectionsAggregate is a tiny aggregate used to generate events.
-type runProjectionsAggregate struct{}
+// runProjectionsStream is a tiny stream used to generate events.
+type runProjectionsStream struct{}
 
 func TestBundle_RunProjections_ReplayAndLive(t *testing.T) {
 	t.Parallel()
@@ -74,13 +74,13 @@ func TestBundle_RunProjections_ReplayAndLive(t *testing.T) {
 		},
 	}
 
-	repo, err := decider.NewRepository[runProjectionsAggregate](
+	repo, err := decider.NewRepository[runProjectionsStream](
 		store,
 		bus,
-		decider.Decider[runProjectionsAggregate]{
-			Initial: runProjectionsAggregate{},
-			Apply: func(_ runProjectionsAggregate, _ event.Event) (runProjectionsAggregate, error) {
-				return runProjectionsAggregate{}, nil
+		decider.Decider[runProjectionsStream]{
+			Initial: runProjectionsStream{},
+			Apply: func(_ runProjectionsStream, _ event.Event) (runProjectionsStream, error) {
+				return runProjectionsStream{}, nil
 			},
 		},
 	)
@@ -89,16 +89,16 @@ func TestBundle_RunProjections_ReplayAndLive(t *testing.T) {
 	}
 
 	// --- Phase 1: historical event, created before RunProjections starts ---
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	if err := repo.Execute(
 		ctx,
-		aggID,
+		streamID,
 		"User",
-		func(_ runProjectionsAggregate, currentVersion event.Version) ([]event.Event, error) {
+		func(_ runProjectionsStream, currentVersion event.Version) ([]event.Event, error) {
 			evt, err := event.NewEvent(
 				event.Type("user.created"),
-				aggID,
+				streamID,
 				"User",
 				currentVersion.Add(1),
 				[]byte("Alice"),
@@ -123,17 +123,17 @@ func TestBundle_RunProjections_ReplayAndLive(t *testing.T) {
 		runErr <- bundle.RunProjections(runCtx, &mat)
 	}()
 
-	waitForView(t, typedStore, runProjectionsKey(aggID.String()), "Alice")
+	waitForView(t, typedStore, runProjectionsKey(streamID.String()), "Alice")
 
 	// --- Phase 3: live event, published while RunProjections is running ---
 	if err := repo.Execute(
 		ctx,
-		aggID,
+		streamID,
 		"User",
-		func(_ runProjectionsAggregate, currentVersion event.Version) ([]event.Event, error) {
+		func(_ runProjectionsStream, currentVersion event.Version) ([]event.Event, error) {
 			evt, err := event.NewEvent(
 				event.Type("user.renamed"),
-				aggID,
+				streamID,
 				"User",
 				currentVersion.Add(1),
 				[]byte("Bob"),
@@ -148,7 +148,7 @@ func TestBundle_RunProjections_ReplayAndLive(t *testing.T) {
 		t.Fatalf("rename user: %v", err)
 	}
 
-	waitForView(t, typedStore, runProjectionsKey(aggID.String()), "Bob")
+	waitForView(t, typedStore, runProjectionsKey(streamID.String()), "Bob")
 
 	// --- Phase 4: shutdown cleanly ---
 	cancel()

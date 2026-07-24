@@ -216,11 +216,11 @@ func TestCheckpointStore_SharedDB_WithEventStore(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Issue", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", streamID)
 	cfg := issueStoreConfig()
 
-	evt := cfg.NewTestEvent(t, aggID, 1)
+	evt := cfg.NewTestEvent(t, streamID, 1)
 	if err := eventStore.Save(ctx, ref, []event.Event{evt}, event.Version(0)); err != nil {
 		t.Fatalf("event Save: %v", err)
 	}

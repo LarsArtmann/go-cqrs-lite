@@ -214,10 +214,10 @@ func TestCommand_WithCommandID(t *testing.T) {
 func TestCommand_TwoInstancesHaveDifferentIDs(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	cmd1, _ := command.New("CreateUser", aggID)
-	cmd2, _ := command.New("CreateUser", aggID)
+	cmd1, _ := command.New("CreateUser", streamID)
+	cmd2, _ := command.New("CreateUser", streamID)
 
 	if cmd1.ID() == cmd2.ID() {
 		t.Fatal("two command instances should have different auto-minted IDs")

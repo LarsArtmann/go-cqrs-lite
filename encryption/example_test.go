@@ -55,10 +55,10 @@ func ExampleEncryptMiddleware() {
 
 	mw := encryption.EncryptMiddleware(enc)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, _ := event.NewEvent(
 		"user.created",
-		aggID,
+		streamID,
 		"User",
 		1,
 		[]byte(`{"email":"alice@example.com"}`),

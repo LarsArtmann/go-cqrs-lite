@@ -38,11 +38,11 @@ func TestNew_WithoutAutoMigrate_NoTables(t *testing.T) {
 
 	// Saving an event should fail because the events table was never created.
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	evts, evErr := event.NewEvents(
-		aggID, "Test", 0,
+		streamID, "Test", 0,
 		[]event.Type{"test.created"},
 		[]any{map[string]any{"ok": true}},
 	)
@@ -73,11 +73,11 @@ func TestNew_WithoutWAL(t *testing.T) {
 
 	// Verify the database accepts writes (WAL disabled didn't break anything).
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("NoWal", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("NoWal", streamID)
 
 	evts, evErr := event.NewEvents(
-		aggID, "NoWal", 0,
+		streamID, "NoWal", 0,
 		[]event.Type{"nowal.created"},
 		[]any{map[string]any{"ok": true}},
 	)

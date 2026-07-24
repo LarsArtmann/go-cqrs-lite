@@ -26,12 +26,12 @@ func writeJournalEvents(
 	events := make([]event.Event, n)
 
 	for i := range n {
-		aggID := id.NewStreamID()
-		evt := cfg.NewTestEvent(t, aggID, 1,
+		streamID := id.NewStreamID()
+		evt := cfg.NewTestEvent(t, streamID, 1,
 			event.WithOccurredAt(base.Add(time.Duration(i)*time.Millisecond)))
 		events[i] = evt
 
-		err := store.Save(ctx, id.NewStreamRef("Issue", aggID),
+		err := store.Save(ctx, id.NewStreamRef("Issue", streamID),
 			[]event.Event{evt}, event.Version(0))
 		if err != nil {
 			t.Fatalf("Save event %d: %v", i, err)

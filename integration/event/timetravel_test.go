@@ -23,29 +23,29 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 	t.Cleanup(func() { _ = bus.Close() })
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	now := time.Now()
 
 	evt1 := eventtest.QuickEventOpts(
-		"CounterCreated", aggID, "Counter",
+		"CounterCreated", streamID, "Counter",
 		1, []byte(`{"v":1}`),
 		event.WithOccurredAt(now.Add(-2*time.Hour)),
 	)
 	evt2 := eventtest.QuickEventOpts(
-		"CounterIncremented", aggID, "Counter",
+		"CounterIncremented", streamID, "Counter",
 		2, []byte(`{"v":2}`),
 		event.WithOccurredAt(now.Add(-1*time.Hour)),
 	)
 	evt3 := eventtest.QuickEventOpts(
-		"CounterIncremented", aggID, "Counter",
+		"CounterIncremented", streamID, "Counter",
 		3, []byte(`{"v":3}`),
 		event.WithOccurredAt(now),
 	)
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("Counter"), aggID),
+		id.NewStreamRef(id.StreamType("Counter"), streamID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -54,7 +54,7 @@ func TestTimeTravel_DeciderLoadAtVersion(t *testing.T) {
 
 	events, err := store.LoadToVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("Counter"), aggID),
+		id.NewStreamRef(id.StreamType("Counter"), streamID),
 		2,
 	)
 	if err != nil {
@@ -77,29 +77,29 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 	t.Cleanup(func() { _ = store.Close() })
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	now := time.Now()
 
 	evt1 := eventtest.QuickEventOpts(
-		"CounterCreated", aggID, "Counter",
+		"CounterCreated", streamID, "Counter",
 		1, []byte(`{"v":1}`),
 		event.WithOccurredAt(now.Add(-2*time.Hour)),
 	)
 	evt2 := eventtest.QuickEventOpts(
-		"CounterIncremented", aggID, "Counter",
+		"CounterIncremented", streamID, "Counter",
 		2, []byte(`{"v":2}`),
 		event.WithOccurredAt(now.Add(-30*time.Minute)),
 	)
 	evt3 := eventtest.QuickEventOpts(
-		"CounterIncremented", aggID, "Counter",
+		"CounterIncremented", streamID, "Counter",
 		3, []byte(`{"v":3}`),
 		event.WithOccurredAt(now),
 	)
 
 	err := store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("Counter"), aggID),
+		id.NewStreamRef(id.StreamType("Counter"), streamID),
 		[]event.Event{evt1, evt2, evt3},
 	)
 	if err != nil {
@@ -108,7 +108,7 @@ func TestTimeTravel_DeciderLoadAtTime(t *testing.T) {
 
 	events, err := store.LoadToTimestamp(
 		ctx,
-		id.NewStreamRef(id.StreamType("Counter"), aggID),
+		id.NewStreamRef(id.StreamType("Counter"), streamID),
 		now.Add(-15*time.Minute),
 	)
 	if err != nil {
@@ -142,7 +142,7 @@ func TestTimeTravel_SeekableJournal(t *testing.T) {
 		[]event.Event{evt1, evt3},
 	)
 	if err != nil {
-		t.Fatalf("AppendBatch agg1: %v", err)
+		t.Fatalf("AppendBatch stream1: %v", err)
 	}
 
 	err = store.AppendBatch(
@@ -151,7 +151,7 @@ func TestTimeTravel_SeekableJournal(t *testing.T) {
 		[]event.Event{evt2},
 	)
 	if err != nil {
-		t.Fatalf("AppendBatch agg2: %v", err)
+		t.Fatalf("AppendBatch stream2: %v", err)
 	}
 
 	all, err := store.ReadAll(ctx)

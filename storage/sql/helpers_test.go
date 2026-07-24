@@ -333,7 +333,7 @@ func TestDeleteByStream(t *testing.T) {
 	}
 }
 
-func TestDeleteByStream_OtherAggregateUntouched(t *testing.T) {
+func TestDeleteByStream_OtherStreamUntouched(t *testing.T) {
 	t.Parallel()
 
 	db := setupEventsTable(t)
@@ -361,6 +361,6 @@ func TestDeleteByStream_OtherAggregateUntouched(t *testing.T) {
 		t.Fatalf("count: %v", err)
 	}
 	if count != 1 {
-		t.Errorf("count = %d, want 1 (other aggregate untouched)", count)
+		t.Errorf("count = %d, want 1 (other stream untouched)", count)
 	}
 }

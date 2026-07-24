@@ -26,12 +26,12 @@ func TestMixedCodecStream(t *testing.T) {
 
 	store := memory.NewMemoryStore()
 	ctx := t.Context()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
 
 	// Event 1: JSON-encoded (explicit — DefaultCodec is CBOR now)
 	evt1, err := event.New(
-		"user.created", aggID, "User", 1,
+		"user.created", streamID, "User", 1,
 		UserCreated{Name: "Alice"},
 		event.WithCodec(codec.JSONCodec{}),
 	)
@@ -45,7 +45,7 @@ func TestMixedCodecStream(t *testing.T) {
 
 	// Event 2: CBOR-encoded
 	evt2, err := event.New(
-		"user.updated", aggID, "User", 2,
+		"user.updated", streamID, "User", 2,
 		UserUpdated{Name: "Bob"},
 		event.WithCodec(codec.CBORCodec{}),
 	)

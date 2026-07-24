@@ -13,10 +13,10 @@ import (
 )
 
 // ---------------------------------------------------------------------------
-// 6. Thousand Materialized Views — listing aggregates at scale
+// 6. Thousand Materialized Views — listing streams at scale
 // ---------------------------------------------------------------------------
 
-func BenchmarkScale_Listing_10KAggregates(b *testing.B) {
+func BenchmarkScale_Listing_10KStreams(b *testing.B) {
 	b.ReportAllocs()
 
 	store := memory.NewMemoryStore()
@@ -71,17 +71,17 @@ func BenchmarkScale_Listing_PaginateThrough10K(b *testing.B) {
 	aggCount := 10_000
 
 	for i := range aggCount {
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 		payload, err := json.Marshal(map[string]string{"name": fmt.Sprintf("item-%d", i)})
 		if err != nil {
 			b.Fatalf("json.Marshal: %v", err)
 		}
 
-		evt, err := event.NewEvent("ItemCreated", aggID, "Item", 1, payload)
+		evt, err := event.NewEvent("ItemCreated", streamID, "Item", 1, payload)
 		if err != nil {
 			b.Fatalf("NewEvent: %v", err)
 		}
-		_ = store.AppendBatch(ctx, id.NewStreamRef("Item", aggID), []event.Event{evt})
+		_ = store.AppendBatch(ctx, id.NewStreamRef("Item", streamID), []event.Event{evt})
 	}
 
 	reader := listing.NewInMemoryStreamReader(store)

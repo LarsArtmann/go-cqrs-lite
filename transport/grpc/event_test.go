@@ -138,18 +138,18 @@ func TestEventPubSub_RoundTrip(t *testing.T) {
 	// Wait for subscription to register, then publish.
 	time.Sleep(settleDelay)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt1, _ := event.NewEvent(
 		"user.created",
-		aggID,
+		streamID,
 		"User",
 		event.Version(1),
 		[]byte(`{"name":"Alice"}`),
 	)
 	evt2, _ := event.NewEvent(
 		"user.updated",
-		aggID,
+		streamID,
 		"User",
 		event.Version(2),
 		[]byte(`{"name":"Bob"}`),
@@ -183,10 +183,10 @@ func TestEventPubSub_FilterByType(t *testing.T) {
 	// Wait for subscription to register, then publish.
 	time.Sleep(settleDelay)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt1, _ := event.NewEvent("user.created", aggID, "User", event.Version(1), nil)
-	evt2, _ := event.NewEvent("user.deleted", aggID, "User", event.Version(2), nil)
+	evt1, _ := event.NewEvent("user.created", streamID, "User", event.Version(1), nil)
+	evt2, _ := event.NewEvent("user.deleted", streamID, "User", event.Version(2), nil)
 
 	_ = env.bus.Publish(env.ctx, evt1, evt2)
 
@@ -227,10 +227,10 @@ func TestEventPubSub_PreservesCBOREncoding(t *testing.T) {
 
 	time.Sleep(settleDelay)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt, err := event.New(
-		"user.created", aggID, "User", event.Version(1),
+		"user.created", streamID, "User", event.Version(1),
 		userCreated{Name: "Alice"},
 		event.WithCodec(codec.CBORCodec{}),
 	)

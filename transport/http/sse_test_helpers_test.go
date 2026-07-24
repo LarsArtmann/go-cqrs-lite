@@ -12,24 +12,24 @@ import (
 )
 
 // newFakeStoreWithEvents creates a FakeStore, saves events built from payloads
-// under a fresh aggregate, and returns the store and events. Events use
+// under a fresh stream, and returns the store and events. Events use
 // sequential versions starting at 1. Extracted to deduplicate the event-setup
 // boilerplate shared across SSE handler tests.
 func newFakeStoreWithEvents(
 	t *testing.T,
 	eventType event.Type,
-	aggType id.StreamType,
+	streamType id.StreamType,
 	payloads ...[]byte,
 ) (
 	*eventtest.FakeStore, []event.Event,
 ) {
 	t.Helper()
 	store := eventtest.NewFakeStore()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef(aggType, aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef(streamType, streamID)
 	events := make([]event.Event, len(payloads))
 	for i, p := range payloads {
-		evt, err := event.NewEvent(eventType, aggID, aggType, event.Version(i+1), p)
+		evt, err := event.NewEvent(eventType, streamID, streamType, event.Version(i+1), p)
 		if err != nil {
 			t.Fatalf("create event %d: %v", i, err)
 		}

@@ -42,8 +42,8 @@ func TestCommandErrors_Classification(t *testing.T) {
 func TestWithCommandMetadata(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
-	ref := command.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := command.NewStreamRef("User", streamID)
 
 	md := command.Metadata{}
 	md.CorrelationID = id.NewCorrelationID()

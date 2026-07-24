@@ -17,7 +17,7 @@ func TestWithEventID(t *testing.T) {
 	evt, err := event.NewEvent(
 		"TestEvent",
 		id.NewStreamID(),
-		"TestAgg",
+		"TestStream",
 		1,
 		nil,
 		event.WithEventID(overrideID),
@@ -39,7 +39,7 @@ func TestWithOccurredAt(t *testing.T) {
 	evt, err := event.NewEvent(
 		"TestEvent",
 		id.NewStreamID(),
-		"TestAgg",
+		"TestStream",
 		1,
 		nil,
 		event.WithOccurredAt(ts),

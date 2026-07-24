@@ -21,13 +21,13 @@ func BenchmarkDecider_Load_NoCache(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	seedCounterBench(b, repo, aggID, 500)
+	streamID := id.NewStreamID()
+	seedCounterBench(b, repo, streamID, 500)
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _, err := repo.Load(ctx, aggID, "Counter")
+		_, _, err := repo.Load(ctx, streamID, "Counter")
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}
@@ -48,11 +48,11 @@ func BenchmarkDecider_Load_WithCache(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	seedCounterBench(b, repo, aggID, 500)
+	streamID := id.NewStreamID()
+	seedCounterBench(b, repo, streamID, 500)
 
 	// Warm the cache with one Load
-	_, _, err = repo.Load(ctx, aggID, "Counter")
+	_, _, err = repo.Load(ctx, streamID, "Counter")
 	if err != nil {
 		b.Fatalf("Load (warm): %v", err)
 	}
@@ -60,7 +60,7 @@ func BenchmarkDecider_Load_WithCache(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _, err := repo.Load(ctx, aggID, "Counter")
+		_, _, err := repo.Load(ctx, streamID, "Counter")
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}
@@ -81,15 +81,15 @@ func BenchmarkDecider_Load_WithCache_HeavyHistory(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	// Seed 5000 events — heavy history where cache benefit is maximal
 	for i := 0; i < 5000; i++ {
-		benchExecute(b, repo, ctx, aggID, "CounterIncremented")
+		benchExecute(b, repo, ctx, streamID, "CounterIncremented")
 	}
 
 	// Warm the cache
-	_, _, err = repo.Load(ctx, aggID, "Counter")
+	_, _, err = repo.Load(ctx, streamID, "Counter")
 	if err != nil {
 		b.Fatalf("Load (warm): %v", err)
 	}
@@ -97,7 +97,7 @@ func BenchmarkDecider_Load_WithCache_HeavyHistory(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _, err := repo.Load(ctx, aggID, "Counter")
+		_, _, err := repo.Load(ctx, streamID, "Counter")
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}

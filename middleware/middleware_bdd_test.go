@@ -199,8 +199,8 @@ var _ = Describe("Event and Query Middleware Variants", func() {
 					panic("event handler panic")
 				})
 
-				aggID := id.NewStreamID()
-				evt, err := event.NewEvent("TestEvent", aggID, "Test", 1, nil)
+				streamID := id.NewStreamID()
+				evt, err := event.NewEvent("TestEvent", streamID, "Test", 1, nil)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = handler(ctx, evt)
@@ -399,8 +399,8 @@ var _ = Describe("Event Idempotency Middleware", func() {
 					return nil
 				})
 
-				aggID := id.NewStreamID()
-				evt, err := event.NewEvent("test.event", aggID, "Test", 1, nil)
+				streamID := id.NewStreamID()
+				evt, err := event.NewEvent("test.event", streamID, "Test", 1, nil)
 				Expect(err).To(Succeed())
 
 				Expect(handler(ctx, evt)).To(Succeed())
@@ -423,10 +423,10 @@ var _ = Describe("Event Idempotency Middleware", func() {
 					return nil
 				})
 
-				aggID := id.NewStreamID()
-				evt1, err := event.NewEvent("test.event", aggID, "Test", 1, nil)
+				streamID := id.NewStreamID()
+				evt1, err := event.NewEvent("test.event", streamID, "Test", 1, nil)
 				Expect(err).To(Succeed())
-				evt2, err := event.NewEvent("test.event2", aggID, "Test", 1, nil)
+				evt2, err := event.NewEvent("test.event2", streamID, "Test", 1, nil)
 				Expect(err).To(Succeed())
 
 				Expect(handler(ctx, evt1)).To(Succeed())
@@ -450,8 +450,8 @@ var _ = Describe("Event Idempotency Middleware", func() {
 					return nil
 				})
 
-				aggID := id.NewStreamID()
-				evt, err := event.NewEvent("test.event", aggID, "Test", 1, nil)
+				streamID := id.NewStreamID()
+				evt, err := event.NewEvent("test.event", streamID, "Test", 1, nil)
 				Expect(err).To(Succeed())
 
 				Expect(handler(ctx, evt)).To(Succeed())

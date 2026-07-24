@@ -24,8 +24,8 @@ func ExampleNewMultiSigner() {
 		panic(err)
 	}
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("order.placed", aggID, "Order", 1, []byte(`{"total":99}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("order.placed", streamID, "Order", 1, []byte(`{"total":99}`))
 
 	signed, err := deviceMulti.Sign(evt)
 	if err != nil {
@@ -66,8 +66,8 @@ func ExampleVerifyAll() {
 		multisig.WithVerifier(serverVerifier),
 	)
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("order.shipped", aggID, "Order", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("order.shipped", streamID, "Order", 1, []byte(`{}`))
 
 	step1, _ := deviceMulti.Sign(evt)
 	step2, _ := serverMulti.Sign(step1)
@@ -136,8 +136,8 @@ func ExampleMultiVerifyMiddlewareFor() {
 
 	wrapped := verifyMiddleware(handler)
 
-	aggID := id.NewStreamID()
-	unsignedEvt, _ := event.NewEvent("test.event", aggID, "Test", 1, nil)
+	streamID := id.NewStreamID()
+	unsignedEvt, _ := event.NewEvent("test.event", streamID, "Test", 1, nil)
 
 	_ = wrapped(context.Background(), unsignedEvt)
 

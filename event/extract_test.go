@@ -10,12 +10,12 @@ import (
 func TestExtractCustomBytes(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	key := event.MetadataKey("test.key")
 
 	t.Run("valid_base64_value", func(t *testing.T) {
 		t.Parallel()
-		evt, err := event.NewEvent("test.created", aggID, "Test", 1, []byte(`{}`),
+		evt, err := event.NewEvent("test.created", streamID, "Test", 1, []byte(`{}`),
 			event.WithCustom(key, "aGVsbG8=")) // "hello" in base64
 		if err != nil {
 			t.Fatal(err)
@@ -35,7 +35,7 @@ func TestExtractCustomBytes(t *testing.T) {
 
 	t.Run("missing_key", func(t *testing.T) {
 		t.Parallel()
-		evt, err := event.NewEvent("test.created", aggID, "Test", 1, []byte(`{}`))
+		evt, err := event.NewEvent("test.created", streamID, "Test", 1, []byte(`{}`))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -51,7 +51,7 @@ func TestExtractCustomBytes(t *testing.T) {
 
 	t.Run("empty_value", func(t *testing.T) {
 		t.Parallel()
-		evt, err := event.NewEvent("test.created", aggID, "Test", 1, []byte(`{}`),
+		evt, err := event.NewEvent("test.created", streamID, "Test", 1, []byte(`{}`),
 			event.WithCustom(key, ""))
 		if err != nil {
 			t.Fatal(err)
@@ -68,7 +68,7 @@ func TestExtractCustomBytes(t *testing.T) {
 
 	t.Run("corrupt_base64", func(t *testing.T) {
 		t.Parallel()
-		evt, err := event.NewEvent("test.created", aggID, "Test", 1, []byte(`{}`),
+		evt, err := event.NewEvent("test.created", streamID, "Test", 1, []byte(`{}`),
 			event.WithCustom(key, "!!!not-base64!!!"))
 		if err != nil {
 			t.Fatal(err)

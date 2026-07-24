@@ -40,11 +40,11 @@ func TestIntegration_ProjectionHost_10KEvents(t *testing.T) {
 	}
 
 	// Seed 10K events into the real store.
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Item", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Item", streamID)
 	for i := range eventCount {
 		typ := event.Type(fmt.Sprintf("item.tick.%d", i%10))
-		evt, _ := event.New(typ, aggID, "Item", 1, []byte("payload"))
+		evt, _ := event.New(typ, streamID, "Item", 1, []byte("payload"))
 		if err := store.AppendBatch(context.Background(), ref, []event.Event{evt}); err != nil {
 			t.Fatalf("AppendBatch %d: %v", i, err)
 		}

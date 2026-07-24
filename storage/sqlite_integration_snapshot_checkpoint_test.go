@@ -21,15 +21,15 @@ func TestSQLiteSnapshotStore_Roundtrip(t *testing.T) {
 		t.Fatalf("NewSQLiteSnapshotStore: %v", err)
 	}
 
-	aggID := id.NewStreamID()
-	snap := newTestSnapshot(aggID, "Issue", 5, []byte(`{"title":"snapshot-issue"}`))
+	streamID := id.NewStreamID()
+	snap := newTestSnapshot(streamID, "Issue", 5, []byte(`{"title":"snapshot-issue"}`))
 
 	err = store.Save(context.Background(), snap)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
-	loaded, err := store.Load(context.Background(), id.NewStreamRef("Issue", aggID))
+	loaded, err := store.Load(context.Background(), id.NewStreamRef("Issue", streamID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -52,8 +52,8 @@ func TestSQLiteSnapshotStore_LoadAtVersion(t *testing.T) {
 		t.Fatalf("NewSQLiteSnapshotStore: %v", err)
 	}
 
-	aggID := id.NewStreamID()
-	snap := newTestSnapshot(aggID, "Issue", 10, []byte(`{"title":"v10"}`))
+	streamID := id.NewStreamID()
+	snap := newTestSnapshot(streamID, "Issue", 10, []byte(`{"title":"v10"}`))
 
 	err = store.Save(context.Background(), snap)
 	if err != nil {
@@ -62,7 +62,7 @@ func TestSQLiteSnapshotStore_LoadAtVersion(t *testing.T) {
 
 	_, err = store.LoadAtVersion(
 		context.Background(),
-		id.NewStreamRef("Issue", aggID),
+		id.NewStreamRef("Issue", streamID),
 		event.Version(5),
 	)
 	if !errors.Is(err, snapshot.ErrSnapshotNotFound) {
@@ -71,7 +71,7 @@ func TestSQLiteSnapshotStore_LoadAtVersion(t *testing.T) {
 
 	loaded, err := store.LoadAtVersion(
 		context.Background(),
-		id.NewStreamRef("Issue", aggID),
+		id.NewStreamRef("Issue", streamID),
 		event.Version(15),
 	)
 	if err != nil {

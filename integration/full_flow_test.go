@@ -40,7 +40,7 @@ func TestFullFlow(t *testing.T) {
 	// --- Build query dispatcher ---
 	qryDispatcher := query.NewDispatcher()
 
-	// --- Set up decider for User aggregate ---
+	// --- Set up decider for User stream ---
 	userDecider := decider.Decider[UserState]{
 		Initial: UserState{},
 		Apply:   applyUserEvents,
@@ -120,9 +120,9 @@ func TestFullFlow(t *testing.T) {
 	})
 
 	// --- Execute command ---
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	createCmd, err := command.New("CreateUser", aggID)
+	createCmd, err := command.New("CreateUser", streamID)
 	if err != nil {
 		t.Fatalf("new command: %v", err)
 	}
@@ -138,7 +138,7 @@ func TestFullFlow(t *testing.T) {
 	}
 
 	// --- Verify events stored ---
-	events, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
+	events, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), streamID))
 	if err != nil {
 		t.Fatalf("load events: %v", err)
 	}
@@ -166,7 +166,7 @@ func TestFullFlow(t *testing.T) {
 		t.Fatalf("new query: %v", err)
 	}
 
-	getUserQuery := &GetUser{BasicQuery: qry, StreamID: aggID}
+	getUserQuery := &GetUser{BasicQuery: qry, StreamID: streamID}
 
 	result, err := query.DispatchTyped[UserState](ctx, qryDispatcher, getUserQuery)
 	if err != nil {
@@ -178,7 +178,7 @@ func TestFullFlow(t *testing.T) {
 	}
 
 	// --- Verify stream loading works ---
-	stream, err := store.LoadStream(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
+	stream, err := store.LoadStream(ctx, id.NewStreamRef(id.StreamType("User"), streamID))
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}

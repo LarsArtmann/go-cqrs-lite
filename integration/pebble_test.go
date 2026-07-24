@@ -48,14 +48,14 @@ func TestPebbleEventStoreWithProjectionRunner(t *testing.T) {
 	defer bus.Close()
 
 	// Seed two events before the runner starts so replay is exercised.
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef(id.StreamType("Counter"), aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef(id.StreamType("Counter"), streamID)
 
 	for i := range 2 {
 		version := event.Version(i + 1)
 		evt, err := event.NewEvent(
 			"CounterIncremented",
-			aggID,
+			streamID,
 			id.StreamType("Counter"),
 			version,
 			nil,
@@ -82,7 +82,7 @@ func TestPebbleEventStoreWithProjectionRunner(t *testing.T) {
 	// Emit a live event through the bus (not the store) to test live subscription.
 	liveEvt, err := event.NewEvent(
 		"CounterIncremented",
-		aggID,
+		streamID,
 		id.StreamType("Counter"),
 		event.Version(3),
 		nil,
@@ -140,19 +140,19 @@ func TestPebbleSnapshotStoreWithDeciderRepository(t *testing.T) {
 		t.Fatalf("new repository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef(id.StreamType("Counter"), aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef(id.StreamType("Counter"), streamID)
 
 	// Execute three increments; snapshot should be saved at version 2.
 	for range 3 {
 		if err := repo.Execute(
 			ctx,
-			aggID,
+			streamID,
 			"Counter",
 			func(s counterState, v event.Version) ([]event.Event, error) {
 				evt, err := event.NewEvent(
 					"CounterIncremented",
-					aggID,
+					streamID,
 					id.StreamType("Counter"),
 					v.Add(1),
 					nil,
@@ -180,7 +180,7 @@ func TestPebbleSnapshotStoreWithDeciderRepository(t *testing.T) {
 
 	// Load stream through repository: it should use the snapshot and only load
 	// events after the snapshot version.
-	state, _, err := repo.Load(ctx, aggID, "Counter")
+	state, _, err := repo.Load(ctx, streamID, "Counter")
 	if err != nil {
 		t.Fatalf("load stream: %v", err)
 	}

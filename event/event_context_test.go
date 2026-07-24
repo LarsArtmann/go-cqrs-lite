@@ -18,7 +18,7 @@ func TestEventContext_DeadlineMethod(t *testing.T) {
 		evt, err := event.NewEvent(
 			"TestEvent",
 			idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
-			"TestAggregate",
+			"TestStream",
 			1,
 			nil,
 		)
@@ -42,7 +42,7 @@ func TestEventContext_DeadlineMethod(t *testing.T) {
 		evt, err := event.NewEvent(
 			"TestEvent",
 			idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
-			"TestAggregate",
+			"TestStream",
 			1,
 			nil,
 			event.WithDeadline(deadline),
@@ -74,7 +74,7 @@ func TestEventContext_FromContext(t *testing.T) {
 		evt, err := event.NewEvent(
 			"TestEvent",
 			idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
-			"TestAggregate",
+			"TestStream",
 			1,
 			nil,
 			event.FromContext(ctx),
@@ -103,7 +103,7 @@ func TestEventContext_FromContext(t *testing.T) {
 		evt, err := event.NewEvent(
 			"TestEvent",
 			idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
-			"TestAggregate",
+			"TestStream",
 			1,
 			nil,
 			event.FromContext(context.Background()),
@@ -129,7 +129,7 @@ func TestEventContext_Clone(t *testing.T) {
 		evt, err := event.NewEvent(
 			"TestEvent",
 			idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
-			"TestAggregate",
+			"TestStream",
 			1,
 			nil,
 			event.WithDeadline(deadline),

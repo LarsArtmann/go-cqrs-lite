@@ -315,8 +315,8 @@ func TestC009_NoFindingInMustFunc(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"commands.go": `package main
 
-func mustCommand(cmdType string, aggID string) *Command {
-	cmd, err := newCommand(cmdType, aggID)
+func mustCommand(cmdType string, streamID string) *Command {
+	cmd, err := newCommand(cmdType, streamID)
 	if err != nil {
 		panic(err)
 	}

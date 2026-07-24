@@ -86,10 +86,10 @@ func TestDefaultOptions_OpensRealDBAndWorks(t *testing.T) {
 
 	store := backend.EventStore()
 	cfg := issueStoreConfig()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Issue", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", streamID)
 
-	evt := cfg.NewTestEvent(t, aggID, 1)
+	evt := cfg.NewTestEvent(t, streamID, 1)
 
 	err = store.Save(context.Background(), ref, []event.Event{evt}, event.Version(0))
 	if err != nil {

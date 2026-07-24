@@ -32,14 +32,14 @@ func seedPebbleBenchEvents(
 	if err != nil {
 		b.Fatal(err)
 	}
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	ctx := context.Background()
 	baseTime := time.Now()
 
 	events := make([]event.Event, totalEvents)
 	for i := range totalEvents {
 		evt, err := event.NewEvent(
-			"IssueCreated", aggID, "Issue", event.Version(i+1),
+			"IssueCreated", streamID, "Issue", event.Version(i+1),
 			[]byte(fmt.Sprintf(`{"title":"test-%d"}`, i+1)),
 			event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Second)),
 		)
@@ -50,12 +50,12 @@ func seedPebbleBenchEvents(
 		events[i] = evt
 	}
 
-	err = store.AppendBatch(ctx, id.NewStreamRef(id.StreamType("Issue"), aggID), events)
+	err = store.AppendBatch(ctx, id.NewStreamRef(id.StreamType("Issue"), streamID), events)
 	if err != nil {
 		b.Fatalf("AppendBatch: %v", err)
 	}
 
-	return store, aggID, baseTime
+	return store, streamID, baseTime
 }
 
 func BenchmarkEventStore_LoadToTimestamp(b *testing.B) {
@@ -71,7 +71,7 @@ func BenchmarkEventStore_LoadToTimestamp(b *testing.B) {
 
 	for _, tc := range tests {
 		b.Run(tc.name, func(b *testing.B) {
-			store, aggID, baseTime := seedPebbleBenchEvents(b, 1000)
+			store, streamID, baseTime := seedPebbleBenchEvents(b, 1000)
 			ctx := context.Background()
 
 			b.ResetTimer()
@@ -79,7 +79,7 @@ func BenchmarkEventStore_LoadToTimestamp(b *testing.B) {
 			for b.Loop() {
 				result, err := store.LoadToTimestamp(
 					ctx,
-					id.NewStreamRef(id.StreamType("Issue"), aggID),
+					id.NewStreamRef(id.StreamType("Issue"), streamID),
 					baseTime.Add(tc.offset),
 				)
 				if err != nil {
@@ -98,9 +98,9 @@ func BenchmarkSerializeEnvelope(b *testing.B) {
 	b.ReportAllocs()
 
 	store := newPebbleBenchStore(b)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt, err := event.NewEvent("BenchEvent", aggID, "Bench", event.Version(1),
+	evt, err := event.NewEvent("BenchEvent", streamID, "Bench", event.Version(1),
 		[]byte(`{"name":"benchmark","value":42}`))
 	if err != nil {
 		b.Fatalf("create event: %v", err)
@@ -120,9 +120,9 @@ func BenchmarkDeserializeEnvelope(b *testing.B) {
 	b.ReportAllocs()
 
 	store := newPebbleBenchStore(b)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt, err := event.NewEvent("BenchEvent", aggID, "Bench", event.Version(1),
+	evt, err := event.NewEvent("BenchEvent", streamID, "Bench", event.Version(1),
 		[]byte(`{"name":"benchmark","value":42}`))
 	if err != nil {
 		b.Fatalf("create event: %v", err)
@@ -171,10 +171,10 @@ func BenchmarkEventStore_Save_SingleEvent(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		aggID := id.NewStreamID()
-		ref := id.NewStreamRef("Bench", aggID)
+		streamID := id.NewStreamID()
+		ref := id.NewStreamRef("Bench", streamID)
 
-		evt, err := event.NewEvent("BenchSaved", aggID, "Bench", event.Version(1),
+		evt, err := event.NewEvent("BenchSaved", streamID, "Bench", event.Version(1),
 			[]byte(`{"name":"save-bench","value":42}`))
 		if err != nil {
 			b.Fatalf("create event: %v", err)
@@ -196,12 +196,12 @@ func BenchmarkEventStore_AppendBatch_10Events(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		aggID := id.NewStreamID()
-		ref := id.NewStreamRef("Bench", aggID)
+		streamID := id.NewStreamID()
+		ref := id.NewStreamRef("Bench", streamID)
 
 		events := make([]event.Event, 10)
 		for idx := range 10 {
-			evt, err := event.NewEvent("BenchBatch", aggID, "Bench", event.Version(idx+1),
+			evt, err := event.NewEvent("BenchBatch", streamID, "Bench", event.Version(idx+1),
 				[]byte(`{"name":"batch","idx":`+strconv.Itoa(idx)+`}`))
 			if err != nil {
 				b.Fatalf("create event %d: %v", idx, err)

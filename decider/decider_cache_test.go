@@ -45,11 +45,11 @@ func TestRepository_StateCache_LoadAfterExecute(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, _, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	executeCreate(t, repo, aggID)
+	executeCreate(t, repo, streamID)
 
-	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	state, version, err := repo.Load(t.Context(), streamID, "Counter")
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestRepository_StateCache_LoadAfterExecute(t *testing.T) {
 		t.Errorf("version = %d, want 1", version)
 	}
 
-	ref := id.NewStreamRef("Counter", aggID)
+	ref := id.NewStreamRef("Counter", streamID)
 	cachedState, cachedVersion, ok := cache.Get(ref)
 	if !ok {
 		t.Fatal("expected cache hit after Execute + Load")
@@ -92,16 +92,16 @@ func TestRepository_StateCache_LoadSkipsFullLoadOnHit(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	// Create + seed some events
-	executeCreate(t, repo, aggID)
+	executeCreate(t, repo, streamID)
 	for i := 0; i < 4; i++ {
-		_ = executeAndIncrement(t, repo, aggID, "CounterIncremented")
+		_ = executeAndIncrement(t, repo, streamID, "CounterIncremented")
 	}
 
 	// Load to populate cache
-	_, _, err = repo.Load(t.Context(), aggID, "Counter")
+	_, _, err = repo.Load(t.Context(), streamID, "Counter")
 	if err != nil {
 		t.Fatalf("Load (warm): %v", err)
 	}
@@ -120,7 +120,7 @@ func TestRepository_StateCache_LoadSkipsFullLoadOnHit(t *testing.T) {
 	before := counting.count.Load()
 
 	// Load again — should hit cache and NOT call store.Load
-	_, _, err = repo2.Load(t.Context(), aggID, "Counter")
+	_, _, err = repo2.Load(t.Context(), streamID, "Counter")
 	if err != nil {
 		t.Fatalf("Load (cached): %v", err)
 	}
@@ -136,12 +136,12 @@ func TestRepository_StateCache_ExecuteUpdatesCache(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, _, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	// Execute creates → cache should have state at version 1
-	executeCreate(t, repo, aggID)
+	executeCreate(t, repo, streamID)
 
-	ref := id.NewStreamRef("Counter", aggID)
+	ref := id.NewStreamRef("Counter", streamID)
 	state, version, ok := cache.Get(ref)
 	if !ok {
 		t.Fatal("expected cache populated after Execute")
@@ -156,7 +156,7 @@ func TestRepository_StateCache_ExecuteUpdatesCache(t *testing.T) {
 	}
 
 	// Execute increment → cache should be updated to version 2
-	_ = executeAndIncrement(t, repo, aggID, "CounterIncremented")
+	_ = executeAndIncrement(t, repo, streamID, "CounterIncremented")
 
 	state, version, ok = cache.Get(ref)
 	if !ok {
@@ -178,15 +178,15 @@ func TestRepository_StateCache_ColdMissPopulates(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, store, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	// Seed events directly via store (bypassing repo/cache)
-	evt1 := makeEvent(t, "CounterCreated", aggID, 1)
-	evt2 := makeEvent(t, "CounterIncremented", aggID, 2)
-	mustAppendBatch(t, store, "Counter", aggID, []event.Event{evt1, evt2})
+	evt1 := makeEvent(t, "CounterCreated", streamID, 1)
+	evt2 := makeEvent(t, "CounterIncremented", streamID, 2)
+	mustAppendBatch(t, store, "Counter", streamID, []event.Event{evt1, evt2})
 
 	// Load — cache is cold, should populate from store
-	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	state, version, err := repo.Load(t.Context(), streamID, "Counter")
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -200,7 +200,7 @@ func TestRepository_StateCache_ColdMissPopulates(t *testing.T) {
 	}
 
 	// Verify cache was populated
-	ref := id.NewStreamRef("Counter", aggID)
+	ref := id.NewStreamRef("Counter", streamID)
 	cachedState, cachedVersion, ok := cache.Get(ref)
 	if !ok {
 		t.Fatal("expected cache populated after cold Load")
@@ -217,8 +217,8 @@ func TestRepository_StateCache_LoadFromVersionError(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, store, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Counter", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", streamID)
 
 	// Pre-populate cache with stale state
 	cache.Put(ref, counterState{Value: 99}, event.Version(5))
@@ -229,7 +229,7 @@ func TestRepository_StateCache_LoadFromVersionError(t *testing.T) {
 	})
 
 	// Should fall back to full Load and invalidate cache
-	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	state, version, err := repo.Load(t.Context(), streamID, "Counter")
 	if err != nil {
 		t.Fatalf("expected fallback Load to succeed, got: %v", err)
 	}
@@ -269,20 +269,20 @@ func TestRepository_StateCache_FoldErrorInvalidates(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Counter", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", streamID)
 
 	// Seed the store with two events (index-based: v1 at idx 0, v2 at idx 1)
-	evt1 := makeEvent(t, "CounterCreated", aggID, 1)
-	evt2 := makeEvent(t, "CounterIncremented", aggID, 2)
-	mustAppendBatch(t, store, "Counter", aggID, []event.Event{evt1, evt2})
+	evt1 := makeEvent(t, "CounterCreated", streamID, 1)
+	evt2 := makeEvent(t, "CounterIncremented", streamID, 2)
+	mustAppendBatch(t, store, "Counter", streamID, []event.Event{evt1, evt2})
 
 	// Pre-populate cache with state at version 1 (bypasses the fold)
 	cache.Put(ref, counterState{Value: 1}, event.Version(1))
 
 	// Load should hit cache at v1, LoadFromVersion(v1) returns [evt2],
 	// fold fails because failingDecider.Apply always errors
-	_, _, err = repo.Load(context.Background(), aggID, "Counter")
+	_, _, err = repo.Load(context.Background(), streamID, "Counter")
 	if err == nil {
 		t.Fatal("expected fold error")
 	}
@@ -298,19 +298,19 @@ func TestRepository_StateCache_NoEventsReturnsCached(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, _, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	// Create the stream
-	executeCreate(t, repo, aggID)
+	executeCreate(t, repo, streamID)
 
 	// Load to populate cache
-	state1, _, err := repo.Load(t.Context(), aggID, "Counter")
+	state1, _, err := repo.Load(t.Context(), streamID, "Counter")
 	if err != nil {
 		t.Fatalf("Load 1: %v", err)
 	}
 
 	// Load again — no new events, should return cached state directly
-	state2, _, err := repo.Load(t.Context(), aggID, "Counter")
+	state2, _, err := repo.Load(t.Context(), streamID, "Counter")
 	if err != nil {
 		t.Fatalf("Load 2: %v", err)
 	}
@@ -326,8 +326,8 @@ func TestRepository_StateCache_ConcurrentLoadExecute(t *testing.T) {
 	cache := decider.NewStateCache[counterState](10)
 	repo, _, _ := newCacheRepo(t, cache)
 
-	aggID := id.NewStreamID()
-	executeCreate(t, repo, aggID)
+	streamID := id.NewStreamID()
+	executeCreate(t, repo, streamID)
 
 	var wg sync.WaitGroup
 
@@ -338,7 +338,7 @@ func TestRepository_StateCache_ConcurrentLoadExecute(t *testing.T) {
 			defer wg.Done()
 
 			for range 10 {
-				_, _, _ = repo.Load(context.Background(), aggID, "Counter")
+				_, _, _ = repo.Load(context.Background(), streamID, "Counter")
 			}
 		}()
 	}
@@ -350,7 +350,7 @@ func TestRepository_StateCache_ConcurrentLoadExecute(t *testing.T) {
 			defer wg.Done()
 
 			for range 5 {
-				_ = executeAndIncrement(t, repo, aggID, "CounterIncremented")
+				_ = executeAndIncrement(t, repo, streamID, "CounterIncremented")
 			}
 		}()
 	}
@@ -358,7 +358,7 @@ func TestRepository_StateCache_ConcurrentLoadExecute(t *testing.T) {
 	wg.Wait()
 
 	// Final load should return a consistent state
-	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	state, version, err := repo.Load(t.Context(), streamID, "Counter")
 	if err != nil {
 		t.Fatalf("final Load: %v", err)
 	}
@@ -406,21 +406,21 @@ func TestRepository_ReadPressure_TriggersSnapshot(t *testing.T) {
 	t.Parallel()
 
 	repo, _, snapStore := newReadPressureRepo(t, 3)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	// Create the stream
-	executeCreate(t, repo, aggID)
+	executeCreate(t, repo, streamID)
 
 	// Load 3 times to build up read pressure
 	for range 3 {
-		_, _, err := repo.Load(t.Context(), aggID, "Counter")
+		_, _, err := repo.Load(t.Context(), streamID, "Counter")
 		if err != nil {
 			t.Fatalf("Load: %v", err)
 		}
 	}
 
 	// Next write should trigger a snapshot
-	err := executeAndIncrement(t, repo, aggID, "CounterIncremented")
+	err := executeAndIncrement(t, repo, streamID, "CounterIncremented")
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -440,21 +440,21 @@ func TestRepository_ReadPressure_NoTriggerBelowThreshold(t *testing.T) {
 	t.Parallel()
 
 	repo, _, snapStore := newReadPressureRepo(t, 10)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	// Create the stream
-	executeCreate(t, repo, aggID)
+	executeCreate(t, repo, streamID)
 
 	// Load only 2 times (below threshold of 10)
 	for range 2 {
-		_, _, err := repo.Load(t.Context(), aggID, "Counter")
+		_, _, err := repo.Load(t.Context(), streamID, "Counter")
 		if err != nil {
 			t.Fatalf("Load: %v", err)
 		}
 	}
 
 	// Write should NOT trigger a snapshot
-	err := executeAndIncrement(t, repo, aggID, "CounterIncremented")
+	err := executeAndIncrement(t, repo, streamID, "CounterIncremented")
 	if err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -468,23 +468,23 @@ func TestRepository_ReadPressure_ResetAfterSnapshot(t *testing.T) {
 	t.Parallel()
 
 	repo, _, snapStore := newReadPressureRepo(t, 2)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	// Create + build up reads + trigger snapshot
-	executeCreate(t, repo, aggID)
+	executeCreate(t, repo, streamID)
 
 	for range 2 {
-		_, _, _ = repo.Load(t.Context(), aggID, "Counter")
+		_, _, _ = repo.Load(t.Context(), streamID, "Counter")
 	}
 
-	_ = executeAndIncrement(t, repo, aggID, "CounterIncremented")
+	_ = executeAndIncrement(t, repo, streamID, "CounterIncremented")
 
 	if len(snapStore.Saved()) != 1 {
 		t.Fatalf("expected 1 snapshot, got %d", len(snapStore.Saved()))
 	}
 
 	// Another write — should NOT trigger (reads were reset)
-	_ = executeAndIncrement(t, repo, aggID, "CounterIncremented")
+	_ = executeAndIncrement(t, repo, streamID, "CounterIncremented")
 
 	if len(snapStore.Saved()) != 1 {
 		t.Errorf("expected still 1 snapshot after reset, got %d", len(snapStore.Saved()))

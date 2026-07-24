@@ -35,8 +35,8 @@ func TestSSEBroker_Stats(t *testing.T) {
 	}
 
 	// Publish an event — it should buffer in both channels.
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("test.event", streamID, "Test", 1, []byte(`{}`))
 	_ = bus.Publish(context.Background(), evt)
 
 	time.Sleep(50 * time.Millisecond)
@@ -73,8 +73,8 @@ func TestSSEBroker_CloseWithGrace(t *testing.T) {
 	ch := broker.AddClient("grace-test")
 
 	// Buffer an event.
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("test.event", aggID, "Test", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("test.event", streamID, "Test", 1, []byte(`{}`))
 	_ = bus.Publish(context.Background(), evt)
 
 	time.Sleep(50 * time.Millisecond)

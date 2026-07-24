@@ -102,8 +102,8 @@ func TestEventTraceLogging_WithSpan(t *testing.T) {
 	ctx, span := tracerProvider.Tracer("test").Start(context.Background(), "test")
 	defer span.End()
 
-	aggID := id.NewStreamID()
-	evt, err := event.NewEvent("test.event", aggID, "Test", event.Version(1), nil)
+	streamID := id.NewStreamID()
+	evt, err := event.NewEvent("test.event", streamID, "Test", event.Version(1), nil)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	err = handler(ctx, evt)

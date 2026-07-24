@@ -14,29 +14,29 @@ func setupBenchStore(b *testing.B) (id.StreamID, *eventtest.FakeStore) {
 	b.Helper()
 
 	store := eventtest.NewFakeStore()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt, err := event.NewEvent(event.Type("CounterCreated"), aggID, "Counter", 1, []byte("{}"))
+	evt, err := event.NewEvent(event.Type("CounterCreated"), streamID, "Counter", 1, []byte("{}"))
 	if err != nil {
 		b.Fatalf("NewEvent: %v", err)
 	}
 
 	err = store.AppendBatch(
 		context.Background(),
-		id.NewStreamRef("Counter", aggID),
+		id.NewStreamRef("Counter", streamID),
 		[]event.Event{evt},
 	)
 	if err != nil {
 		b.Fatalf("AppendBatch: %v", err)
 	}
 
-	return aggID, store
+	return streamID, store
 }
 
 // BenchmarkLoad_Coalesced measures Load throughput with singleflight enabled
 // (default). Concurrent loads of the same stream share one store.Load call.
 func BenchmarkLoad_Coalesced(b *testing.B) {
-	aggID, store := setupBenchStore(b)
+	streamID, store := setupBenchStore(b)
 	bus := eventtest.NewFakeBus()
 
 	d := decider.Decider[counterState]{
@@ -53,7 +53,7 @@ func BenchmarkLoad_Coalesced(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_, _, _ = repo.Load(ctx, aggID, "Counter")
+			_, _, _ = repo.Load(ctx, streamID, "Counter")
 		}
 	})
 }
@@ -61,7 +61,7 @@ func BenchmarkLoad_Coalesced(b *testing.B) {
 // BenchmarkLoad_NoCoalescing measures Load throughput with singleflight
 // disabled. Each goroutine calls store.Load independently.
 func BenchmarkLoad_NoCoalescing(b *testing.B) {
-	aggID, store := setupBenchStore(b)
+	streamID, store := setupBenchStore(b)
 	bus := eventtest.NewFakeBus()
 
 	d := decider.Decider[counterState]{
@@ -83,7 +83,7 @@ func BenchmarkLoad_NoCoalescing(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_, _, _ = repo.Load(ctx, aggID, "Counter")
+			_, _, _ = repo.Load(ctx, streamID, "Counter")
 		}
 	})
 }

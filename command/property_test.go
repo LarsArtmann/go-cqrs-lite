@@ -15,16 +15,16 @@ func TestCommandCreation_ValidType(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		typ := command.Type(rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]+$`).Draw(t, "type"))
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 
-		cmd, err := command.New(typ, aggID)
+		cmd, err := command.New(typ, streamID)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 		if cmd.Type() != typ {
 			t.Fatalf("type mismatch: got %q, want %q", cmd.Type(), typ)
 		}
-		if cmd.StreamID() != aggID {
+		if cmd.StreamID() != streamID {
 			t.Fatalf("streamID mismatch")
 		}
 	})
@@ -33,9 +33,9 @@ func TestCommandCreation_ValidType(t *testing.T) {
 func TestCommandCreation_EmptyTypeRejected(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	_, err := command.New("", aggID)
+	_, err := command.New("", streamID)
 	if err == nil {
 		t.Fatal("expected error for empty type")
 	}
@@ -49,10 +49,10 @@ func TestCommandMetadata_Roundtrip(t *testing.T) {
 		causID := id.NewCausationID()
 
 		typ := command.Type("TestCommand")
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 
 		cmd, err := command.New(
-			typ, aggID,
+			typ, streamID,
 			command.WithCorrelationID(corrID),
 			command.WithCausationID(causID),
 		)
@@ -75,11 +75,11 @@ func TestCommandDispatch_UnknownTypeRejected(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		typ := command.Type(rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]+$`).Draw(t, "type"))
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 
 		d := command.NewDispatcher()
 
-		cmd, err := command.New(typ, aggID)
+		cmd, err := command.New(typ, streamID)
 		if err != nil {
 			t.Fatalf("create: %v", err)
 		}
@@ -96,7 +96,7 @@ func TestCommandDispatch_RegisterAndDispatch(t *testing.T) {
 
 	rapid.Check(t, func(t *rapid.T) {
 		typ := command.Type(rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]+$`).Draw(t, "type"))
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 
 		d := command.NewDispatcher()
 
@@ -113,7 +113,7 @@ func TestCommandDispatch_RegisterAndDispatch(t *testing.T) {
 			t.Fatalf("register: %v", err)
 		}
 
-		cmd, err := command.New(typ, aggID)
+		cmd, err := command.New(typ, streamID)
 		if err != nil {
 			t.Fatalf("create: %v", err)
 		}

@@ -34,8 +34,8 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	ref := id.NewStreamRef("Order", aggID)
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	ref := id.NewStreamRef("Order", streamID)
 
 	types := []struct {
 		typ     event.Type
@@ -54,7 +54,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 		evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR9"+string(rune('A'+i)))
 
 		evt, err := event.NewEvent(
-			tc.typ, aggID, "Order", event.Version(tc.version),
+			tc.typ, streamID, "Order", event.Version(tc.version),
 			[]byte(tc.payload),
 			event.WithEventID(evtID),
 			event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Hour)),

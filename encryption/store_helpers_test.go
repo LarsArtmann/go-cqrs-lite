@@ -8,10 +8,10 @@ import (
 )
 
 type encTestEnv struct {
-	store *encryptedStore
-	inner *eventtest.FakeStore
-	aggID id.StreamID
-	ref   id.StreamRef
+	store    *encryptedStore
+	inner    *eventtest.FakeStore
+	streamID id.StreamID
+	ref      id.StreamRef
 }
 
 func newEncTestEnv(t *testing.T, opts ...MiddlewareOption) encTestEnv {
@@ -29,12 +29,12 @@ func newEncTestEnv(t *testing.T, opts ...MiddlewareOption) encTestEnv {
 		t.Fatalf("NewEncryptedStore: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	return encTestEnv{
-		store: store,
-		inner: inner,
-		aggID: aggID,
-		ref:   id.NewStreamRef("User", aggID),
+		store:    store,
+		inner:    inner,
+		streamID: streamID,
+		ref:      id.NewStreamRef("User", streamID),
 	}
 }

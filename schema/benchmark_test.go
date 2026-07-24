@@ -10,10 +10,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
-func benchEvent(tb testing.TB, aggID id.StreamID, v event.Version) event.Event {
+func benchEvent(tb testing.TB, streamID id.StreamID, v event.Version) event.Event {
 	tb.Helper()
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", v, []byte(`{"name":"Alice"}`))
+	evt, err := event.NewEvent("UserCreated", streamID, "User", v, []byte(`{"name":"Alice"}`))
 	if err != nil {
 		tb.Fatalf("NewEvent: %v", err)
 	}
@@ -53,17 +53,17 @@ func BenchmarkVersionedStore_Load(b *testing.B) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	for i := range 100 {
-		evt := benchEvent(b, aggID, event.Version(i+1))
-		_ = store.AppendBatch(ctx, id.NewStreamRef("User", aggID), []event.Event{evt})
+		evt := benchEvent(b, streamID, event.Version(i+1))
+		_ = store.AppendBatch(ctx, id.NewStreamRef("User", streamID), []event.Event{evt})
 	}
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := versionedStore.Load(ctx, id.NewStreamRef("User", aggID))
+		_, err := versionedStore.Load(ctx, id.NewStreamRef("User", streamID))
 		if err != nil {
 			b.Fatalf("Load: %v", err)
 		}

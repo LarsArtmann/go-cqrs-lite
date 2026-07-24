@@ -20,24 +20,24 @@ func FuzzStreamListing_JSON_Roundtrip(f *testing.F) {
 	f.Add("plain-id", "Order", int64(9999), uint(1000000))
 	f.Add(strings.Repeat("x", 200), strings.Repeat("Z", 50), int64(42), uint(7))
 
-	f.Fuzz(func(t *testing.T, aggID, aggType string, version int64, eventCount uint) {
+	f.Fuzz(func(t *testing.T, streamID, streamType string, version int64, eventCount uint) {
 		if version < 0 {
 			version = 0
 		}
 
 		// JSON encoding is lossy for invalid UTF-8; skip such inputs.
-		if !utf8.ValidString(aggID) || !utf8.ValidString(aggType) {
+		if !utf8.ValidString(streamID) || !utf8.ValidString(streamType) {
 			return
 		}
 
-		idVal, err := id.ParseStreamID(aggID)
+		idVal, err := id.ParseStreamID(streamID)
 		if err != nil {
 			return
 		}
 
 		original := listing.StreamListing{
 			ID:          idVal,
-			Type:        id.StreamType(aggType),
+			Type:        id.StreamType(streamType),
 			Version:     event.Version(version),
 			EventCount:  eventCount,
 			LastEventAt: time.Unix(0, 0).UTC(),
@@ -110,12 +110,12 @@ func FuzzStreamStatus_MarshalOnly(f *testing.F) {
 	f.Add("id-4", "Z", int64(0), uint(0), int(99))
 
 	f.Fuzz(
-		func(t *testing.T, aggID, aggType string, version int64, eventCount uint, statusInt int) {
+		func(t *testing.T, streamID, streamType string, version int64, eventCount uint, statusInt int) {
 			if version < 0 {
 				version = 0
 			}
 
-			idVal, err := id.ParseStreamID(aggID)
+			idVal, err := id.ParseStreamID(streamID)
 			if err != nil {
 				return
 			}
@@ -125,7 +125,7 @@ func FuzzStreamStatus_MarshalOnly(f *testing.F) {
 			original := listing.StreamStatus{
 				Ref: listing.StreamListing{
 					ID:          idVal,
-					Type:        id.StreamType(aggType),
+					Type:        id.StreamType(streamType),
 					Version:     event.Version(version),
 					EventCount:  eventCount,
 					LastEventAt: time.Unix(0, 0).UTC(),

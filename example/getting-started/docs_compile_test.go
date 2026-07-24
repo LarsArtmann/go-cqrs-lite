@@ -58,14 +58,14 @@ func TestDocsSnippet2_EventSourcingWithDecider(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	err = repo.Execute(
 		ctx,
-		aggID,
+		streamID,
 		"User",
 		func(_ docUserState, v event.Version) ([]event.Event, error) {
-			return event.NewEvents(aggID, "User", v,
+			return event.NewEvents(streamID, "User", v,
 				[]event.Type{"user.created"}, []any{docUserCreated{Name: "Alice"}})
 		},
 	)
@@ -73,7 +73,7 @@ func TestDocsSnippet2_EventSourcingWithDecider(t *testing.T) {
 		t.Fatalf("Execute: %v", err)
 	}
 
-	state, _, loadErr := repo.Load(ctx, aggID, "User")
+	state, _, loadErr := repo.Load(ctx, streamID, "User")
 	if loadErr != nil {
 		t.Fatalf("Load: %v", loadErr)
 	}
@@ -88,11 +88,11 @@ func TestDocsSnippet2_EventSourcingWithDecider(t *testing.T) {
 func TestDocsSnippet3_BrandedIDs(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	eventID := id.NewEventID()
 
-	if aggID.String() == "" {
-		t.Error("aggID should not be empty")
+	if streamID.String() == "" {
+		t.Error("streamID should not be empty")
 	}
 
 	if eventID.String() == "" {
@@ -135,7 +135,7 @@ func TestDocsSnippet4_CommandsWithTypedHandlers(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	cmds := command.NewDispatcher()
 	_ = command.RegisterTyped(cmds, "user.create",
@@ -151,7 +151,7 @@ func TestDocsSnippet4_CommandsWithTypedHandlers(t *testing.T) {
 			)
 		})
 
-	basic, basicErr := command.New("user.create", aggID)
+	basic, basicErr := command.New("user.create", streamID)
 	if basicErr != nil {
 		t.Fatalf("command.New: %v", basicErr)
 	}
@@ -160,7 +160,7 @@ func TestDocsSnippet4_CommandsWithTypedHandlers(t *testing.T) {
 		t.Fatalf("Dispatch: %v", err)
 	}
 
-	state, _, loadErr := repo.Load(ctx, aggID, "User")
+	state, _, loadErr := repo.Load(ctx, streamID, "User")
 	if loadErr != nil {
 		t.Fatalf("Load: %v", loadErr)
 	}

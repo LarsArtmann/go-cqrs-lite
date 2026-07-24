@@ -64,16 +64,16 @@ func TestIntegration_ProjectionHost_WithMemoryStore(t *testing.T) {
 	}
 
 	// Seed the real store with 3 good events + 1 poison event.
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Item", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Item", streamID)
 	goodEvents := []event.Type{"item.added", "item.added", "item.added"}
 	for _, typ := range goodEvents {
-		evt, _ := event.New(typ, aggID, "Item", 1, []byte("payload"))
+		evt, _ := event.New(typ, streamID, "Item", 1, []byte("payload"))
 		if err := store.AppendBatch(context.Background(), ref, []event.Event{evt}); err != nil {
 			t.Fatalf("Save %s: %v", typ, err)
 		}
 	}
-	poisonEvt, _ := event.New("item.removed", aggID, "Item", 1, []byte("payload"))
+	poisonEvt, _ := event.New("item.removed", streamID, "Item", 1, []byte("payload"))
 	if err := store.AppendBatch(context.Background(), ref, []event.Event{poisonEvt}); err != nil {
 		t.Fatalf("Save poison: %v", err)
 	}

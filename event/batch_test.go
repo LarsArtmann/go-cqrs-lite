@@ -13,11 +13,11 @@ import (
 func TestNewEvents(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	version := event.Version(0)
 
 	events, err := event.NewEvents(
-		aggID, "User", version,
+		streamID, "User", version,
 		[]event.Type{"user.created", "user.verified"},
 		[]any{
 			map[string]string{"name": "Alice"},
@@ -40,10 +40,10 @@ func TestNewEvents(t *testing.T) {
 func TestNewEvents_MismatchedCount(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	_, err := event.NewEvents(
-		aggID, "User", 0,
+		streamID, "User", 0,
 		[]event.Type{"user.created"},
 		[]any{"a", "b"},
 	)
@@ -55,9 +55,9 @@ func TestNewEvents_MismatchedCount(t *testing.T) {
 func TestNewEvents_Empty(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	events, err := event.NewEvents(aggID, "User", 0, nil, nil)
+	events, err := event.NewEvents(streamID, "User", 0, nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -70,10 +70,10 @@ func TestNewEvents_Empty(t *testing.T) {
 func TestNewEvents_Batch(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	events, err := event.NewEvents(
-		aggID, "User", 0,
+		streamID, "User", 0,
 		[]event.Type{"user.created"},
 		[]any{map[string]string{"name": "Bob"}},
 	)

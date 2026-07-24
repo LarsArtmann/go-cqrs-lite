@@ -89,10 +89,10 @@ func TestBackend_FullStack(t *testing.T) {
 	}
 
 	// Save an event
-	aggID := id.NewStreamID()
-	aggType := id.StreamType("User")
-	ref := id.NewStreamRef(aggType, aggID)
-	evt, err := event.NewEvent("user.created", aggID, aggType, event.Version(1),
+	streamID := id.NewStreamID()
+	streamType := id.StreamType("User")
+	ref := id.NewStreamRef(streamType, streamID)
+	evt, err := event.NewEvent("user.created", streamID, streamType, event.Version(1),
 		[]byte(`{"name":"alice"}`))
 	if err != nil {
 		t.Fatalf("NewEvent failed: %v", err)
@@ -114,8 +114,8 @@ func TestBackend_FullStack(t *testing.T) {
 
 	// Save a snapshot
 	snap := snapshot.Snapshot{
-		StreamID:   aggID,
-		StreamType: aggType,
+		StreamID:   streamID,
+		StreamType: streamType,
 		Version:    event.Version(1),
 		State:      []byte(`{"name":"alice"}`),
 		CreatedAt:  time.Now(),
@@ -199,9 +199,9 @@ func TestBackend_ReadFrom(t *testing.T) {
 	t.Cleanup(func() { _ = backend.Close() })
 
 	eventStore := backend.EventStore()
-	aggID := id.NewStreamID()
-	aggType := id.StreamType("Issue")
-	ref := id.NewStreamRef(aggType, aggID)
+	streamID := id.NewStreamID()
+	streamType := id.StreamType("Issue")
+	ref := id.NewStreamRef(streamType, streamID)
 	baseTime := time.Now()
 
 	// Save 5 events
@@ -209,7 +209,7 @@ func TestBackend_ReadFrom(t *testing.T) {
 
 	for i := range 5 {
 		evt, err := event.NewEvent(
-			"IssueCreated", aggID, aggType, event.Version(i+1),
+			"IssueCreated", streamID, streamType, event.Version(i+1),
 			[]byte(fmt.Sprintf(`{"title":"test-%d"}`, i+1)),
 			event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Second)),
 		)

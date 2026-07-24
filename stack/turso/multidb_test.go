@@ -45,12 +45,12 @@ func TestMultiDB_Routing(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	// Event → must land in the event DB.
-	ref := id.NewStreamRef("Test", aggID)
+	ref := id.NewStreamRef("Test", streamID)
 	evts, err := event.NewEvents(
-		aggID, "Test", 0,
+		streamID, "Test", 0,
 		[]event.Type{"test.created"},
 		[]any{map[string]any{"name": "alpha"}},
 	)
@@ -63,7 +63,7 @@ func TestMultiDB_Routing(t *testing.T) {
 	}
 
 	// Command → must land in the query DB.
-	cmdRef := command.NewStreamRef("Test", aggID)
+	cmdRef := command.NewStreamRef("Test", streamID)
 	cmd, err := command.NewPersistedCommand("test.create", cmdRef, []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewPersistedCommand: %v", err)
@@ -175,11 +175,11 @@ func TestNew_WithForeignKeys(t *testing.T) {
 	defer func() { _ = b.Close() }()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("FK", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("FK", streamID)
 
 	evts, err := event.NewEvents(
-		aggID, "FK", 0,
+		streamID, "FK", 0,
 		[]event.Type{"fk.created"},
 		[]any{map[string]any{"ok": true}},
 	)
@@ -211,11 +211,11 @@ func TestNew_WithOptimizations(t *testing.T) {
 
 	// Verify the database is fully functional with optimizations applied.
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Opt", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Opt", streamID)
 
 	evts, err := event.NewEvents(
-		aggID, "Opt", 0,
+		streamID, "Opt", 0,
 		[]event.Type{"opt.created"},
 		[]any{map[string]any{"optimized": true}},
 	)
@@ -259,11 +259,11 @@ func TestMultiDB_PersistenceAcrossReopen(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Todo", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Todo", streamID)
 
 	evts, err := event.NewEvents(
-		aggID, "Todo", 0,
+		streamID, "Todo", 0,
 		[]event.Type{"todo.created"},
 		[]any{map[string]any{"title": "multi-db persistence"}},
 	)

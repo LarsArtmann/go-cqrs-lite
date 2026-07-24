@@ -54,11 +54,11 @@ func TestReconstructEvent(t *testing.T) {
 	t.Parallel()
 
 	eventID := id.NewEventID()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
 	evt, err := sqlpkg.ReconstructEvent(
-		eventID, event.Type("user.created"), id.StreamType("User"), aggID,
+		eventID, event.Type("user.created"), id.StreamType("User"), streamID,
 		1, 1,
 		[]byte(`{"name":"Alice"}`),
 		[]byte(`{}`),
@@ -73,8 +73,8 @@ func TestReconstructEvent(t *testing.T) {
 		t.Errorf("Type = %q, want %q", evt.Type(), "user.created")
 	}
 
-	if evt.StreamID() != aggID {
-		t.Errorf("StreamID = %v, want %v", evt.StreamID(), aggID)
+	if evt.StreamID() != streamID {
+		t.Errorf("StreamID = %v, want %v", evt.StreamID(), streamID)
 	}
 
 	if evt.Version() != 1 {

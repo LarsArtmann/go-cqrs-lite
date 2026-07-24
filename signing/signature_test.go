@@ -146,17 +146,17 @@ func TestCanonicalPayload_Deterministic(t *testing.T) {
 	t.Parallel()
 
 	// Create two identical events
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	opts := []event.Option{
 		event.WithSchemaVersion(2),
 	}
 
-	evt1, err := event.NewEvent("test.evt", aggID, "Test", 1, []byte(`{"key":"value"}`), opts...)
+	evt1, err := event.NewEvent("test.evt", streamID, "Test", 1, []byte(`{"key":"value"}`), opts...)
 	if err != nil {
 		t.Fatalf("create event 1: %v", err)
 	}
 
-	evt2, err := event.NewEvent("test.evt", aggID, "Test", 1, []byte(`{"key":"value"}`), opts...)
+	evt2, err := event.NewEvent("test.evt", streamID, "Test", 1, []byte(`{"key":"value"}`), opts...)
 	if err != nil {
 		t.Fatalf("create event 2: %v", err)
 	}
@@ -306,11 +306,11 @@ func TestSignature_UnmarshalJSON_BadBase64(t *testing.T) {
 func TestCanonicalPayload_EdgeCases(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	t.Run("nil payload", func(t *testing.T) {
 		t.Parallel()
-		evt, _ := event.NewEvent("test.nil", aggID, "Test", 1, nil)
+		evt, _ := event.NewEvent("test.nil", streamID, "Test", 1, nil)
 		key := []byte("secret-key-thirty-two-bytes!!!!!")
 		signer, _ := signing.NewHMAC(key)
 		_, err := signer.Sign(evt)
@@ -321,7 +321,7 @@ func TestCanonicalPayload_EdgeCases(t *testing.T) {
 
 	t.Run("empty payload", func(t *testing.T) {
 		t.Parallel()
-		evt, _ := event.NewEvent("test.empty", aggID, "Test", 1, []byte{})
+		evt, _ := event.NewEvent("test.empty", streamID, "Test", 1, []byte{})
 		key := []byte("secret-key-thirty-two-bytes!!!!!")
 		signer, _ := signing.NewHMAC(key)
 		_, err := signer.Sign(evt)
@@ -336,7 +336,7 @@ func TestCanonicalPayload_EdgeCases(t *testing.T) {
 		for i := range large {
 			large[i] = byte(i % 256)
 		}
-		evt, _ := event.NewEvent("test.large", aggID, "Test", 1, large)
+		evt, _ := event.NewEvent("test.large", streamID, "Test", 1, large)
 		key := []byte("secret-key-thirty-two-bytes!!!!!")
 		signer, _ := signing.NewHMAC(key)
 		_, err := signer.Sign(evt)

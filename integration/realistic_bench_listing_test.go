@@ -12,7 +12,7 @@ import (
 )
 
 // ---------------------------------------------------------------------------
-// 5. Aggregate Listing — 10K aggregates, cursor-paginated
+// 5. Stream Listing — 10K aggregates, cursor-paginated
 // ---------------------------------------------------------------------------
 
 func BenchmarkRealistic_Listing(b *testing.B) {

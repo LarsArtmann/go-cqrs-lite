@@ -166,8 +166,8 @@ func TestMaterialize_SQLViewStoreCompatibleWithHandler(t *testing.T) {
 		},
 	}
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent(event.Type("user.created"), aggID, "User", event.Version(1), nil)
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent(event.Type("user.created"), streamID, "User", event.Version(1), nil)
 
 	msg := buildTestMessage(evt, "user.created")
 	handler := mat.HandlerFunc()
@@ -177,7 +177,7 @@ func TestMaterialize_SQLViewStoreCompatibleWithHandler(t *testing.T) {
 	}
 
 	// View should return ErrNotFound (mock store Get always returns not found).
-	_, err := mat.View(context.Background(), stringKey(aggID.String()))
+	_, err := mat.View(context.Background(), stringKey(streamID.String()))
 	if err == nil || !errors.Is(err, kv.ErrNotFound) {
 		t.Fatalf("View: err = %v, want ErrNotFound (mock)", err)
 	}

@@ -17,8 +17,14 @@ func newTestEvent(tb testing.TB, version int, payload string) (*upcasterRegistry
 	tb.Helper()
 
 	registry := newUpcasterRegistry()
-	aggID := idtest.ParseStreamID(tb, "01HK1540X0841Y0A6BSX1VKR95")
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", event.Version(version), []byte(payload))
+	streamID := idtest.ParseStreamID(tb, "01HK1540X0841Y0A6BSX1VKR95")
+	evt, _ := event.NewEvent(
+		"UserCreated",
+		streamID,
+		"User",
+		event.Version(version),
+		[]byte(payload),
+	)
 
 	return registry, evt
 }
@@ -30,9 +36,9 @@ func TestUpcasterFunc(t *testing.T) {
 		"UserCreated",
 		1,
 		func(_ event.Event) (event.Event, error) {
-			aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+			streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-			return event.NewEvent("UserCreated", aggID, "User", 2, nil)
+			return event.NewEvent("UserCreated", streamID, "User", 2, nil)
 		},
 	)
 
@@ -50,9 +56,9 @@ func TestUpcasterRegistry_NoUpcasters(t *testing.T) {
 
 	registry := newUpcasterRegistry()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+	evt, err := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{"name":"Alice"}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -132,9 +138,9 @@ func TestUpcasterRegistry_DifferentEventTypes(t *testing.T) {
 	registry := newUpcasterRegistry()
 	registerUserCreatedUpcasterV1(registry)
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("OrderPlaced", aggID, "Order", 5, []byte(`{}`))
+	evt, _ := event.NewEvent("OrderPlaced", streamID, "Order", 5, []byte(`{}`))
 
 	result, err := registry.upcast(evt)
 	if err != nil {
@@ -177,9 +183,9 @@ func TestUpcasterRegistry_VersionSorting(t *testing.T) {
 	registerTrackingUpcaster(registry, 2, &applied)
 	registerTrackingUpcaster(registry, 1, &applied)
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 3, nil)
+	evt, _ := event.NewEvent("UserCreated", streamID, "User", 3, nil)
 
 	_, err := registry.upcast(evt)
 	if err != nil {
@@ -201,9 +207,9 @@ func TestUpcasterRegistry_AlreadyCurrentVersion(t *testing.T) {
 	registerTrackingUpcaster(registry, 1, &applied)
 	registerTrackingUpcaster(registry, 2, &applied)
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 10, nil, event.WithSchemaVersion(3))
+	evt, _ := event.NewEvent("UserCreated", streamID, "User", 10, nil, event.WithSchemaVersion(3))
 
 	result, err := registry.upcast(evt)
 	if err != nil {
@@ -229,9 +235,9 @@ func TestUpcasterRegistry_PartialChain(t *testing.T) {
 	registerTrackingUpcaster(registry, 1, &applied)
 	registerTrackingUpcaster(registry, 2, &applied)
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 8, nil, event.WithSchemaVersion(2))
+	evt, _ := event.NewEvent("UserCreated", streamID, "User", 8, nil, event.WithSchemaVersion(2))
 
 	result, err := registry.upcast(evt)
 	if err != nil {
@@ -257,9 +263,9 @@ func TestUpcasterRegistry_AutoIncrementsSchemaVersion(t *testing.T) {
 	registry := newUpcasterRegistry()
 	registerUserCreatedUpcasterV1(registry)
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 5, nil)
+	evt, _ := event.NewEvent("UserCreated", streamID, "User", 5, nil)
 
 	result, err := registry.upcast(evt)
 	if err != nil {

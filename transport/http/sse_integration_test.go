@@ -27,11 +27,11 @@ func TestSSEHandler_ReplayWithRealMemoryStore(t *testing.T) {
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Account", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Account", streamID)
 
 	// Seed three events across two Save calls (version 1, then 2..3).
-	evt1, err := event.NewEvent("AccountOpened", aggID, "Account", 1, []byte(`{"seq":1}`))
+	evt1, err := event.NewEvent("AccountOpened", streamID, "Account", 1, []byte(`{"seq":1}`))
 	if err != nil {
 		t.Fatalf("create evt1: %v", err)
 	}
@@ -40,12 +40,12 @@ func TestSSEHandler_ReplayWithRealMemoryStore(t *testing.T) {
 		t.Fatalf("save evt1: %v", err)
 	}
 
-	evt2, err := event.NewEvent("AccountCredited", aggID, "Account", 2, []byte(`{"seq":2}`))
+	evt2, err := event.NewEvent("AccountCredited", streamID, "Account", 2, []byte(`{"seq":2}`))
 	if err != nil {
 		t.Fatalf("create evt2: %v", err)
 	}
 
-	evt3, err := event.NewEvent("AccountDebited", aggID, "Account", 3, []byte(`{"seq":3}`))
+	evt3, err := event.NewEvent("AccountDebited", streamID, "Account", 3, []byte(`{"seq":3}`))
 	if err != nil {
 		t.Fatalf("create evt3: %v", err)
 	}
@@ -91,15 +91,15 @@ func TestSSEHandler_UnlimitedReplayWithRealMemoryStore(t *testing.T) {
 	bus := eventtest.NewFakeBus()
 	defer bus.Close()
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Bulk", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Bulk", streamID)
 
 	// Seed more events than sseReplayBatchSize to force multiple batch reads.
 	const total = sseReplayBatchSize + 100
 	events := make([]event.Event, 0, total)
 
 	for range total {
-		evt, err := event.NewEvent("BulkEvent", aggID, "Bulk", 1, []byte(`{}`))
+		evt, err := event.NewEvent("BulkEvent", streamID, "Bulk", 1, []byte(`{}`))
 		if err != nil {
 			t.Fatalf("create event: %v", err)
 		}

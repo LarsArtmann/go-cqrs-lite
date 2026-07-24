@@ -30,9 +30,9 @@ func TestEventStore_OptionAsyncWrites(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("TestOpts", aggID)
-	evt, err := event.NewEvent("test.event", aggID, "TestOpts", event.Version(1), []byte(`{}`))
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("TestOpts", streamID)
+	evt, err := event.NewEvent("test.event", streamID, "TestOpts", event.Version(1), []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -101,11 +101,11 @@ func TestSnapshotStore_Options(t *testing.T) {
 
 	ctx := context.Background()
 
-	aggID := id.NewStreamID()
-	aggType := id.StreamType("TestOpts")
+	streamID := id.NewStreamID()
+	streamType := id.StreamType("TestOpts")
 	snap := snapshot.Snapshot{
-		StreamID:   aggID,
-		StreamType: aggType,
+		StreamID:   streamID,
+		StreamType: streamType,
 		Version:    event.Version(1),
 		State:      []byte(`{"state":"ok"}`),
 		CreatedAt:  time.Now(),
@@ -116,7 +116,7 @@ func TestSnapshotStore_Options(t *testing.T) {
 		t.Fatalf("Save: %v", err)
 	}
 
-	ref := id.NewStreamRef(aggType, aggID)
+	ref := id.NewStreamRef(streamType, streamID)
 	loaded, err := snapStore.Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
@@ -200,13 +200,25 @@ func TestEventStore_AppendBatchMultiple(t *testing.T) {
 	}
 	ctx := context.Background()
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("TestAppend", aggID)
-	evt, _ := event.NewEvent("test.created", aggID, "TestAppend", event.Version(1), []byte(`{}`))
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("TestAppend", streamID)
+	evt, _ := event.NewEvent("test.created", streamID, "TestAppend", event.Version(1), []byte(`{}`))
 	_ = store.Save(ctx, ref, []event.Event{evt}, event.Version(0))
 
-	evt2, _ := event.NewEvent("test.updated", aggID, "TestAppend", event.Version(2), []byte(`{}`))
-	evt3, _ := event.NewEvent("test.deleted", aggID, "TestAppend", event.Version(3), []byte(`{}`))
+	evt2, _ := event.NewEvent(
+		"test.updated",
+		streamID,
+		"TestAppend",
+		event.Version(2),
+		[]byte(`{}`),
+	)
+	evt3, _ := event.NewEvent(
+		"test.deleted",
+		streamID,
+		"TestAppend",
+		event.Version(3),
+		[]byte(`{}`),
+	)
 	err = store.AppendBatch(ctx, ref, []event.Event{evt2, evt3})
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
@@ -262,11 +274,11 @@ func TestEventStore_LoadFromVersion(t *testing.T) {
 	ctx := context.Background()
 	baseTime := time.Now()
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("TestLFV", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("TestLFV", streamID)
 
 	for i := range 3 {
-		evt, _ := event.NewEvent("test.event", aggID, "TestLFV", event.Version(i+1),
+		evt, _ := event.NewEvent("test.event", streamID, "TestLFV", event.Version(i+1),
 			[]byte(`{}`), event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Second)))
 		_ = store.AppendBatch(ctx, ref, []event.Event{evt})
 	}
@@ -300,11 +312,11 @@ func TestEventStore_LoadToTimestamp(t *testing.T) {
 	ctx := context.Background()
 	baseTime := time.Now()
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("TestLTT", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("TestLTT", streamID)
 
 	for i := range 3 {
-		evt, _ := event.NewEvent("test.event", aggID, "TestLTT", event.Version(i+1),
+		evt, _ := event.NewEvent("test.event", streamID, "TestLTT", event.Version(i+1),
 			[]byte(`{}`), event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Second)))
 		_ = store.AppendBatch(ctx, ref, []event.Event{evt})
 	}

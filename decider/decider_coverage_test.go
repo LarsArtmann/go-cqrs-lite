@@ -16,13 +16,13 @@ import (
 func executeCreateEvent(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.StreamID,
+	streamID id.StreamID,
 ) error {
 	t.Helper()
 
 	return repo.Execute(
-		context.Background(), aggID, "Counter",
-		counterCreatedEventFn(t, aggID),
+		context.Background(), streamID, "Counter",
+		counterCreatedEventFn(t, streamID),
 	)
 }
 
@@ -45,9 +45,9 @@ func TestExecute_EnricherAppliesOptions(t *testing.T) {
 	}
 
 	_, repo := newEnricherRepo(t, enricher)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	if err := executeWithAggID(t, repo, aggID, counterCreatedEventFn(t, aggID)); err != nil {
+	if err := executeWithAggID(t, repo, streamID, counterCreatedEventFn(t, streamID)); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 
@@ -62,9 +62,9 @@ func TestExecute_EnricherReturnsEmptyOpts(t *testing.T) {
 	enricher := func(_ context.Context) []event.Option { return nil }
 
 	_, repo := newEnricherRepo(t, enricher)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	if err := executeWithAggID(t, repo, aggID, counterCreatedEventFn(t, aggID)); err != nil {
+	if err := executeWithAggID(t, repo, streamID, counterCreatedEventFn(t, streamID)); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
 }
@@ -80,13 +80,13 @@ func TestExecute_EnricherSetsCorrelationID(t *testing.T) {
 	}
 
 	bus, repo := newEnricherRepo(t, enricher)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	if err := executeWithAggID(
 		t,
 		repo,
-		aggID,
-		counterCreatedEventFn(t, aggID),
+		streamID,
+		counterCreatedEventFn(t, streamID),
 	); err != nil {
 		t.Fatalf("Execute: %v", err)
 	}
@@ -120,9 +120,9 @@ func TestExecute_SnapshotCodecEncodeError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	err = executeCreateEvent(t, repo, aggID)
+	err = executeCreateEvent(t, repo, streamID)
 	if err != nil {
 		t.Fatalf("Execute should succeed even if snapshot encode fails: %v", err)
 	}
@@ -150,10 +150,10 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	mustAppendBatch(t, store, "Counter", aggID, []event.Event{
-		makeEvent(t, "CounterCreated", aggID, 1),
+	mustAppendBatch(t, store, "Counter", streamID, []event.Event{
+		makeEvent(t, "CounterCreated", streamID, 1),
 	})
 
 	state, snapErr := codec.Encode(counterState{Value: 42})
@@ -162,7 +162,7 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 	}
 
 	snap := snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Counter",
 		Version:    event.Version(1),
 		State:      state,
@@ -175,10 +175,10 @@ func TestLoadFromSnapshot_FoldError(t *testing.T) {
 
 	snapshotStore.SetSnapshot(&snap)
 
-	evt := makeEvent(t, "CounterIncremented", aggID, 2)
-	mustAppendBatch(t, store, "Counter", aggID, []event.Event{evt})
+	evt := makeEvent(t, "CounterIncremented", streamID, 2)
+	mustAppendBatch(t, store, "Counter", streamID, []event.Event{evt})
 
-	_, _, loadErr := repo.Load(context.Background(), aggID, "Counter")
+	_, _, loadErr := repo.Load(context.Background(), streamID, "Counter")
 	if loadErr == nil {
 		t.Fatal("expected apply error from Load after snapshot")
 	}

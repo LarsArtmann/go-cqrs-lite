@@ -11,12 +11,12 @@ import (
 func BenchmarkNew(b *testing.B) {
 	b.ReportAllocs()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, err := command.New("bench.cmd", aggID)
+		_, err := command.New("bench.cmd", streamID)
 		if err != nil {
 			b.Fatalf("New: %v", err)
 		}
@@ -26,26 +26,26 @@ func BenchmarkNew(b *testing.B) {
 func BenchmarkMustNew(b *testing.B) {
 	b.ReportAllocs()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		_ = newCmd(b, "bench.cmd", aggID)
+		_ = newCmd(b, "bench.cmd", streamID)
 	}
 }
 
 func BenchmarkNew_WithMetadata(b *testing.B) {
 	b.ReportAllocs()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	corrID := id.NewCorrelationID()
 
 	b.ResetTimer()
 
 	for b.Loop() {
 		_, err := command.New(
-			"bench.cmd", aggID,
+			"bench.cmd", streamID,
 			command.WithCorrelationID(corrID),
 		)
 		if err != nil {

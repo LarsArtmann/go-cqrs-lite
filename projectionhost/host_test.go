@@ -123,11 +123,11 @@ func (p *countingProjection) Handle(_ context.Context, evt event.Event) error {
 }
 
 func makeEvent(eventType string) event.Event {
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, _ := event.New(
 		event.Type(eventType),
-		aggID,
-		"TestAggregate",
+		streamID,
+		"TestStream",
 		1,
 		map[string]any{"ok": true},
 	)

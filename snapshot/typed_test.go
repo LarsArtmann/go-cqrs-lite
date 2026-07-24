@@ -20,11 +20,11 @@ func TestTypedStore_SaveLoad_Roundtrip(t *testing.T) {
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Counter", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", streamID)
 
 	input := snapshot.TypedSnapshot[counterState]{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Counter",
 		Version:    3,
 		State:      counterState{Count: 42, Label: "answer"},
@@ -68,13 +68,13 @@ func TestTypedStore_LoadAtVersion(t *testing.T) {
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Counter", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", streamID)
 
 	ctx := context.Background()
 
 	if err := store.Save(ctx, snapshot.TypedSnapshot[counterState]{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Counter",
 		Version:    5,
 		State:      counterState{Count: 7},
@@ -97,13 +97,13 @@ func TestTypedStore_Delete(t *testing.T) {
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), codec.JSONCodec{})
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Counter", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", streamID)
 
 	ctx := context.Background()
 
 	if err := store.Save(ctx, snapshot.TypedSnapshot[counterState]{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Counter",
 		Version:    1,
 		State:      counterState{Count: 1},
@@ -125,13 +125,13 @@ func TestTypedStore_NilCodecDefaultsToJSON(t *testing.T) {
 
 	store := snapshot.NewTypedStore[counterState](newFakeStore(), nil)
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Counter", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Counter", streamID)
 
 	ctx := context.Background()
 
 	if err := store.Save(ctx, snapshot.TypedSnapshot[counterState]{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Counter",
 		Version:    1,
 		State:      counterState{Count: 99},

@@ -13,61 +13,61 @@ import (
 
 var _ = Describe("Event Store", func() {
 	var (
-		ctx     context.Context
-		store   *memory.MemoryStore
-		aggID   id.StreamID
-		aggType id.StreamType
+		ctx        context.Context
+		store      *memory.MemoryStore
+		streamID   id.StreamID
+		streamType id.StreamType
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
 		store = memory.NewMemoryStore()
-		aggID = id.NewStreamID()
-		aggType = id.StreamType("TestAggregate")
+		streamID = id.NewStreamID()
+		streamType = id.StreamType("TestStream")
 	})
 
 	Describe("As a developer building an event-sourced system", func() {
 		Context("when I save events for a new aggregate", func() {
 			It("should persist them with correct version tracking", func() {
 				events := []event.Event{
-					createTestEvent("TestCreated", aggID, 1, []byte(`{"name":"first"}`)),
+					createTestEvent("TestCreated", streamID, 1, []byte(`{"name":"first"}`)),
 				}
 
 				err := store.Save(
 					ctx,
-					id.NewStreamRef(aggType, aggID),
+					id.NewStreamRef(streamType, streamID),
 					events,
 					event.Version(0),
 				)
 				Expect(err).ToNot(HaveOccurred())
 
-				loaded, err := store.Load(ctx, id.NewStreamRef(aggType, aggID))
+				loaded, err := store.Load(ctx, id.NewStreamRef(streamType, streamID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(1))
 				Expect(loaded[0].Type()).To(Equal(event.Type("TestCreated")))
-				Expect(loaded[0].StreamID()).To(Equal(aggID))
+				Expect(loaded[0].StreamID()).To(Equal(streamID))
 				Expect(loaded[0].Version()).To(Equal(event.Version(1)))
 			})
 		})
 
 		Context("when I append more events to an existing aggregate", func() {
 			It("should maintain event order and increment versions", func() {
-				first := []event.Event{createTestEvent("TestCreated", aggID, 1, nil)}
+				first := []event.Event{createTestEvent("TestCreated", streamID, 1, nil)}
 				Expect(
-					store.Save(ctx, id.NewStreamRef(aggType, aggID), first, event.Version(0)),
+					store.Save(ctx, id.NewStreamRef(streamType, streamID), first, event.Version(0)),
 				).To(Succeed())
 
-				second := []event.Event{createTestEvent("TestUpdated", aggID, 2, nil)}
+				second := []event.Event{createTestEvent("TestUpdated", streamID, 2, nil)}
 				Expect(
 					store.Save(
 						ctx,
-						id.NewStreamRef(aggType, aggID),
+						id.NewStreamRef(streamType, streamID),
 						second,
 						event.Version(1),
 					),
 				).To(Succeed())
 
-				loaded, err := store.Load(ctx, id.NewStreamRef(aggType, aggID))
+				loaded, err := store.Load(ctx, id.NewStreamRef(streamType, streamID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(2))
 				Expect(loaded[0].Type()).To(Equal(event.Type("TestCreated")))
@@ -78,15 +78,15 @@ var _ = Describe("Event Store", func() {
 
 		Context("when I save events with the wrong expected version", func() {
 			It("should detect the version conflict and reject the save", func() {
-				first := []event.Event{createTestEvent("TestCreated", aggID, 1, nil)}
+				first := []event.Event{createTestEvent("TestCreated", streamID, 1, nil)}
 				Expect(
-					store.Save(ctx, id.NewStreamRef(aggType, aggID), first, event.Version(0)),
+					store.Save(ctx, id.NewStreamRef(streamType, streamID), first, event.Version(0)),
 				).To(Succeed())
 
-				conflicting := []event.Event{createTestEvent("TestConflict", aggID, 2, nil)}
+				conflicting := []event.Event{createTestEvent("TestConflict", streamID, 2, nil)}
 				err := store.Save(
 					ctx,
-					id.NewStreamRef(aggType, aggID),
+					id.NewStreamRef(streamType, streamID),
 					conflicting,
 					event.Version(0),
 				)
@@ -97,7 +97,7 @@ var _ = Describe("Event Store", func() {
 
 		Context("when I load events for a non-existent stream", func() {
 			It("should explain that the stream was not found", func() {
-				_, err := store.Load(ctx, id.NewStreamRef(aggType, id.NewStreamID()))
+				_, err := store.Load(ctx, id.NewStreamRef(streamType, id.NewStreamID()))
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("stream not found"))
 			})
@@ -106,14 +106,14 @@ var _ = Describe("Event Store", func() {
 		Context("when I load events starting from a specific version", func() {
 			It("should return only events from that version onward", func() {
 				events := []event.Event{
-					createTestEvent("E1", aggID, 1, nil),
-					createTestEvent("E2", aggID, 2, nil),
-					createTestEvent("E3", aggID, 3, nil),
+					createTestEvent("E1", streamID, 1, nil),
+					createTestEvent("E2", streamID, 2, nil),
+					createTestEvent("E3", streamID, 3, nil),
 				}
 				Expect(
 					store.Save(
 						ctx,
-						id.NewStreamRef(aggType, aggID),
+						id.NewStreamRef(streamType, streamID),
 						events,
 						event.Version(0),
 					),
@@ -121,7 +121,7 @@ var _ = Describe("Event Store", func() {
 
 				loaded, err := store.LoadFromVersion(
 					ctx,
-					id.NewStreamRef(aggType, aggID),
+					id.NewStreamRef(streamType, streamID),
 					event.Version(2),
 				)
 				Expect(err).ToNot(HaveOccurred())
@@ -132,11 +132,11 @@ var _ = Describe("Event Store", func() {
 
 		Context("when I load events from a version beyond the current state", func() {
 			It("should return an empty slice without error", func() {
-				events := []event.Event{createTestEvent("E1", aggID, 1, nil)}
+				events := []event.Event{createTestEvent("E1", streamID, 1, nil)}
 				Expect(
 					store.Save(
 						ctx,
-						id.NewStreamRef(aggType, aggID),
+						id.NewStreamRef(streamType, streamID),
 						events,
 						event.Version(0),
 					),
@@ -144,7 +144,7 @@ var _ = Describe("Event Store", func() {
 
 				loaded, err := store.LoadFromVersion(
 					ctx,
-					id.NewStreamRef(aggType, aggID),
+					id.NewStreamRef(streamType, streamID),
 					event.Version(99),
 				)
 				Expect(err).ToNot(HaveOccurred())
@@ -157,16 +157,16 @@ var _ = Describe("Event Store", func() {
 				"should append all events without version checks and preserve versions on load",
 				func() {
 					events := []event.Event{
-						createTestEvent("BatchEvent1", aggID, 1, nil),
-						createTestEvent("BatchEvent2", aggID, 2, nil),
-						createTestEvent("BatchEvent3", aggID, 3, nil),
+						createTestEvent("BatchEvent1", streamID, 1, nil),
+						createTestEvent("BatchEvent2", streamID, 2, nil),
+						createTestEvent("BatchEvent3", streamID, 3, nil),
 					}
 
 					Expect(
-						store.AppendBatch(ctx, id.NewStreamRef(aggType, aggID), events),
+						store.AppendBatch(ctx, id.NewStreamRef(streamType, streamID), events),
 					).To(Succeed())
 
-					loaded, err := store.Load(ctx, id.NewStreamRef(aggType, aggID))
+					loaded, err := store.Load(ctx, id.NewStreamRef(streamType, streamID))
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded).To(HaveLen(3))
 					Expect(loaded[0].Version()).To(Equal(event.Version(1)))
@@ -184,7 +184,7 @@ var _ = Describe("Event Store", func() {
 
 				err := store.Save(
 					ctx,
-					id.NewStreamRef(aggType, id.NewStreamID()),
+					id.NewStreamRef(streamType, id.NewStreamID()),
 					nil,
 					event.Version(0),
 				)

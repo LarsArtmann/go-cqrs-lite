@@ -62,8 +62,8 @@ func TestCommandDispatch_RoundTrip(t *testing.T) {
 
 	client := cqrsgrpc.NewCommandClient(conn)
 
-	aggID := id.NewStreamID()
-	cmd, err := command.New("test.cmd", aggID)
+	streamID := id.NewStreamID()
+	cmd, err := command.New("test.cmd", streamID)
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -77,8 +77,8 @@ func TestCommandDispatch_RoundTrip(t *testing.T) {
 		t.Fatalf("received type: got %s, want test.cmd", receivedCmdType)
 	}
 
-	if receivedAggID != aggID {
-		t.Fatalf("received aggID: got %s, want %s", receivedAggID, aggID)
+	if receivedAggID != streamID {
+		t.Fatalf("received streamID: got %s, want %s", receivedAggID, streamID)
 	}
 }
 
@@ -112,8 +112,8 @@ func TestCommandDispatch_HandlerError(t *testing.T) {
 
 	client := cqrsgrpc.NewCommandClient(conn)
 
-	aggID := id.NewStreamID()
-	cmd, _ := command.New("fail.cmd", aggID)
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("fail.cmd", streamID)
 
 	err = client.Dispatch(context.Background(), cmd)
 	if err == nil {
@@ -157,9 +157,9 @@ func TestCommandDispatch_PayloadInMetadata(t *testing.T) {
 
 	client := cqrsgrpc.NewCommandClient(conn)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	cmd, _ := command.New(
-		"data.cmd", aggID,
+		"data.cmd", streamID,
 		command.WithCustomMetadata("payload", `{"name":"Alice"}`),
 	)
 

@@ -10,7 +10,7 @@ package integration_test
 //
 // Each benchmark runs exactly once (benchtime=1x). They exercise the full
 // CQRS pipeline with realistic JSON payloads, projection replay, signing,
-// snapshots, concurrent writes, and aggregate listing.
+// snapshots, concurrent writes, and stream listing.
 //
 // Gated by the "scale" build tag — excluded from normal builds and CI.
 
@@ -132,7 +132,7 @@ func applyOrder(_ OrderState, evt event.Event) (OrderState, error) {
 func newRealisticEvent(
 	tb testing.TB,
 	eventType string,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	v event.Version,
 	payload any,
 ) event.Event {
@@ -143,7 +143,7 @@ func newRealisticEvent(
 		tb.Fatalf("marshal payload: %v", err)
 	}
 
-	evt, err := event.New(event.Type(eventType), aggID, "Order", event.Version(v), data)
+	evt, err := event.New(event.Type(eventType), streamID, "Order", event.Version(v), data)
 	if err != nil {
 		tb.Fatalf("New: %v", err)
 	}

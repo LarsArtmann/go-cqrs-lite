@@ -20,9 +20,9 @@ type userCreatedPayload struct {
 func testEvent(t *testing.T, eventType string, payload []byte) event.Event {
 	t.Helper()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.NewEvent(
-		event.Type(eventType), aggID, "User", 1, payload,
+		event.Type(eventType), streamID, "User", 1, payload,
 	)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
@@ -201,9 +201,9 @@ func TestValidator_WithCodec_CBOR(t *testing.T) {
 	v := NewValidator(WithCodec(codec.CBORCodec{}))
 	RegisterType[userCreatedPayload](v, "user.created")
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.New(
-		event.Type("user.created"), aggID, "User", 1,
+		event.Type("user.created"), streamID, "User", 1,
 		userCreatedPayload{Name: "Alice", Email: "alice@test.com"},
 		event.WithCodec(codec.CBORCodec{}),
 	)
@@ -224,9 +224,9 @@ func TestValidator_CBOREncoding_AutoDetected(t *testing.T) {
 
 	cborCodec := codec.CBORCodec{}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.New(
-		event.Type("user.created"), aggID, "User", 1,
+		event.Type("user.created"), streamID, "User", 1,
 		userCreatedPayload{Name: "Alice", Email: "alice@test.com"},
 		event.WithCodec(cborCodec),
 	)
@@ -249,9 +249,9 @@ func TestValidator_CBOREncoding_Invalid_Rejected(t *testing.T) {
 	v := NewValidator()
 	RegisterType[userCreatedPayload](v, "user.created")
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.NewEvent(
-		event.Type("user.created"), aggID, "User", 1, []byte{0xa0},
+		event.Type("user.created"), streamID, "User", 1, []byte{0xa0},
 		event.WithCodec(codec.CBORCodec{}),
 	)
 	if err != nil {
@@ -278,9 +278,9 @@ func TestValidator_EncryptedEncoding_RejectedGracefully(t *testing.T) {
 	// The validator has no decoder for "encrypted" — it should fall back to the
 	// default JSON decoder, which will reject the ciphertext as malformed JSON,
 	// producing a clean Rejection error (not a panic).
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.NewEvent(
-		event.Type("user.created"), aggID, "User", 1,
+		event.Type("user.created"), streamID, "User", 1,
 		[]byte{0x72, 0x4a, 0x8f, 0x3b, 0xc1, 0xe9, 0xd0, 0x5a},
 		event.WithEncoding(codec.Encoding("encrypted")),
 	)
@@ -306,9 +306,9 @@ func TestValidator_UnknownEncoding_FallsBackToJSON(t *testing.T) {
 
 	// An unknown encoding falls back to the default JSON decoder.
 	// A valid JSON payload should pass.
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.NewEvent(
-		event.Type("user.created"), aggID, "User", 1,
+		event.Type("user.created"), streamID, "User", 1,
 		[]byte(`{"name":"Alice","email":"alice@test.com"}`),
 		event.WithEncoding(codec.Encoding("msgpack")),
 	)
@@ -332,9 +332,9 @@ func TestValidator_EncryptedEncoding_WithCustomDecoder(t *testing.T) {
 	}))
 	RegisterType[userCreatedPayload](v, "user.created")
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.NewEvent(
-		event.Type("user.created"), aggID, "User", 1,
+		event.Type("user.created"), streamID, "User", 1,
 		[]byte{0xde, 0xad, 0xbe, 0xef},
 		event.WithEncoding(codec.Encoding("encrypted")),
 	)

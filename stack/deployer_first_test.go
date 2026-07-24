@@ -56,10 +56,10 @@ func TestDeployerFirstArchitecture(t *testing.T) {
 	}
 
 	// Simulate an event being published
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.NewEvent(
 		event.Type("user.created"),
-		aggID,
+		streamID,
 		"User",
 		event.Version(1),
 		[]byte(`{}`),
@@ -81,7 +81,7 @@ func TestDeployerFirstArchitecture(t *testing.T) {
 	}
 
 	// Verify the view was materialized
-	view, err := mat.View(ctx, deployerUserID(aggID.String()))
+	view, err := mat.View(ctx, deployerUserID(streamID.String()))
 	if err != nil {
 		t.Fatalf("View: %v", err)
 	}

@@ -40,8 +40,8 @@ func BenchmarkOTelBundle_CommandOverhead(b *testing.B) {
 		b.Fatal("unexpected error registering handler")
 	}
 
-	aggID := id.NewStreamID()
-	cmd, _ := command.New("bench.cmd", aggID)
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("bench.cmd", streamID)
 
 	ctx := context.Background()
 
@@ -77,8 +77,8 @@ func BenchmarkOTelBundle_TracingOnly(b *testing.B) {
 		return nil
 	})
 
-	aggID := id.NewStreamID()
-	cmd, _ := command.New("bench.cmd", aggID)
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("bench.cmd", streamID)
 
 	ctx := context.Background()
 

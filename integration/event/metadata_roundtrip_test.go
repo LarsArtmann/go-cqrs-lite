@@ -27,7 +27,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 	})
 
 	It("preserves all metadata fields through MemoryStore Save+Load", func() {
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 		corrID := id.NewCorrelationID()
 		causID := id.NewCausationID()
 		userID := id.NewUserID()
@@ -35,7 +35,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 
 		evt, err := event.NewEvent(
 			"user.created",
-			aggID,
+			streamID,
 			"User",
 			1,
 			[]byte(`{"name":"Alice"}`),
@@ -53,20 +53,20 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 
 		err = store.Save(
 			ctx,
-			id.NewStreamRef(id.StreamType("User"), aggID),
+			id.NewStreamRef(id.StreamType("User"), streamID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		loaded, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
+		loaded, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), streamID))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded).To(HaveLen(1))
 
 		got := loaded[0]
 		Expect(got.ID()).To(Equal(evt.ID()))
 		Expect(got.Type()).To(Equal(event.Type("user.created")))
-		Expect(got.StreamID()).To(Equal(aggID))
+		Expect(got.StreamID()).To(Equal(streamID))
 		Expect(got.StreamType()).To(Equal(id.StreamType("User")))
 		Expect(got.Version()).To(Equal(event.Version(1)))
 
@@ -85,37 +85,37 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 	})
 
 	It("preserves payload bytes through MemoryStore Save+Load", func() {
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 		payload := []byte(`{"complex":"data","nested":{"key":"value"}}`)
 
-		evt, err := event.NewEvent("test.event", aggID, "Test", 1, payload)
+		evt, err := event.NewEvent("test.event", streamID, "Test", 1, payload)
 		Expect(err).ToNot(HaveOccurred())
 
 		err = store.Save(
 			ctx,
-			id.NewStreamRef(id.StreamType("Test"), aggID),
+			id.NewStreamRef(id.StreamType("Test"), streamID),
 			[]event.Event{evt},
 			event.Version(0),
 		)
 		Expect(err).ToNot(HaveOccurred())
 
-		loaded, err := store.Load(ctx, id.NewStreamRef(id.StreamType("Test"), aggID))
+		loaded, err := store.Load(ctx, id.NewStreamRef(id.StreamType("Test"), streamID))
 		Expect(err).ToNot(HaveOccurred())
 		Expect(loaded[0].Payload()).To(Equal(payload))
 		Expect(loaded[0].OccurredAt()).To(BeTemporally("~", evt.OccurredAt(), 0))
 	})
 
 	It("preserves metadata through LoadFromVersion", func() {
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 		corrID := id.NewCorrelationID()
-		aggType := id.StreamType("Test")
+		streamType := id.StreamType("Test")
 
 		var events []event.Event
 
 		for i := 1; i <= 3; i++ {
 			evt, err := event.NewEvent(
 				"test.event",
-				aggID,
+				streamID,
 				"Test",
 				event.Version(i),
 				[]byte(`{}`),
@@ -127,12 +127,12 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 		}
 
 		Expect(
-			store.Save(ctx, id.NewStreamRef(aggType, aggID), events, event.Version(0)),
+			store.Save(ctx, id.NewStreamRef(streamType, streamID), events, event.Version(0)),
 		).To(Succeed())
 
 		loaded, err := store.LoadFromVersion(
 			ctx,
-			id.NewStreamRef(aggType, aggID),
+			id.NewStreamRef(streamType, streamID),
 			event.Version(1),
 		)
 		Expect(err).ToNot(HaveOccurred())

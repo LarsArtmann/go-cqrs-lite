@@ -41,13 +41,13 @@ func seedPebbleStreamEvents(
 	t.Helper()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Order", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", streamID)
 	events := make([]event.Event, count)
 	for i := range count {
 		evt, err := event.NewEvent(
 			event.Type("order.updated"),
-			aggID,
+			streamID,
 			"Order",
 			event.Version(i+1),
 			[]byte(`{}`),

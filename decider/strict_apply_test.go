@@ -8,9 +8,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func mustEvent(t *testing.T, eventType string, aggID id.StreamID) event.Event {
+func mustEvent(t *testing.T, eventType string, streamID id.StreamID) event.Event {
 	t.Helper()
-	evt, err := event.New(event.Type(eventType), aggID, "Test", 1, struct{}{})
+	evt, err := event.New(event.Type(eventType), streamID, "Test", 1, struct{}{})
 	if err != nil {
 		t.Fatalf("event.New() error: %v", err)
 	}
@@ -40,8 +40,8 @@ func TestStrictApply_KnownEvent(t *testing.T) {
 		"counter.decremented",
 	})
 
-	aggID := id.NewStreamID()
-	state, err := apply(counterState{Count: 0}, mustEvent(t, "counter.incremented", aggID))
+	streamID := id.NewStreamID()
+	state, err := apply(counterState{Count: 0}, mustEvent(t, "counter.incremented", streamID))
 	if err != nil {
 		t.Fatalf("StrictApply() error: %v", err)
 	}
@@ -56,8 +56,8 @@ func TestStrictApply_UnknownEvent(t *testing.T) {
 		"counter.decremented",
 	})
 
-	aggID := id.NewStreamID()
-	_, err := apply(counterState{Count: 5}, mustEvent(t, "counter.reset", aggID))
+	streamID := id.NewStreamID()
+	_, err := apply(counterState{Count: 5}, mustEvent(t, "counter.reset", streamID))
 	if err == nil {
 		t.Fatal("StrictApply() should return error for unknown event type")
 	}
@@ -73,8 +73,8 @@ func TestStrictApply_PassesThroughErrors(t *testing.T) {
 
 	apply := StrictApply(errorApply, []event.Type{"test.event"})
 
-	aggID := id.NewStreamID()
-	_, err := apply(counterState{}, mustEvent(t, "test.event", aggID))
+	streamID := id.NewStreamID()
+	_, err := apply(counterState{}, mustEvent(t, "test.event", streamID))
 	if err == nil {
 		t.Fatal("StrictApply() should pass through errors from inner apply")
 	}

@@ -23,11 +23,11 @@ func BenchmarkBundle_EventSave(b *testing.B) {
 	defer func() { _ = bundle.Close() }()
 
 	ctx := event.WithProcessingMode(b.Context(), event.ModeReplay)
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Bench", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Bench", streamID)
 
 	events, _ := event.NewEvents(
-		aggID, "Bench", 0,
+		streamID, "Bench", 0,
 		[]event.Type{"bench.created"},
 		[]any{map[string]any{"n": 1}},
 	)
@@ -36,7 +36,7 @@ func BenchmarkBundle_EventSave(b *testing.B) {
 
 	for i := range b.N {
 		version := event.Version(i)
-		events[0] = mustReversion(b, events[0], aggID, version+1)
+		events[0] = mustReversion(b, events[0], streamID, version+1)
 
 		if err := bundle.EventSink.Save(ctx, ref, events, version); err != nil {
 			b.Fatalf("Save: %v", err)
@@ -50,11 +50,11 @@ func BenchmarkDirect_EventSave(b *testing.B) {
 	defer func() { _ = store.Close() }()
 
 	ctx := event.WithProcessingMode(b.Context(), event.ModeReplay)
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Bench", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Bench", streamID)
 
 	events, _ := event.NewEvents(
-		aggID, "Bench", 0,
+		streamID, "Bench", 0,
 		[]event.Type{"bench.created"},
 		[]any{map[string]any{"n": 1}},
 	)
@@ -63,7 +63,7 @@ func BenchmarkDirect_EventSave(b *testing.B) {
 
 	for i := range b.N {
 		version := event.Version(i)
-		events[0] = mustReversion(b, events[0], aggID, version+1)
+		events[0] = mustReversion(b, events[0], streamID, version+1)
 
 		if err := store.Save(ctx, ref, events, version); err != nil {
 			b.Fatalf("Save: %v", err)
@@ -74,12 +74,12 @@ func BenchmarkDirect_EventSave(b *testing.B) {
 func mustReversion(
 	b *testing.B,
 	evt event.Event,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	version event.Version,
 ) event.Event {
 	evt2, err := event.NewEvent(
 		evt.Type(),
-		aggID,
+		streamID,
 		evt.StreamType(),
 		version,
 		event.PayloadReadOnly(evt),

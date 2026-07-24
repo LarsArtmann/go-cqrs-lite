@@ -27,12 +27,12 @@ func ExampleEveryNEvents() {
 func ExampleSnapshotStore() {
 	store := newFakeStore()
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
 	now := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	snap := snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "User",
 		Version:    event.Version(10),
 		State:      []byte(`{"name":"Alice"}`),

@@ -15,9 +15,9 @@ func benchPopulateStore(b *testing.B, store *memory.MemoryStore, ctx context.Con
 	b.Helper()
 
 	for range n {
-		aggID := id.NewStreamID()
-		evt := benchEvent(b, aggID, 1)
-		_ = store.AppendBatch(ctx, id.NewStreamRef("Bench", aggID), []event.Event{evt})
+		streamID := id.NewStreamID()
+		evt := benchEvent(b, streamID, 1)
+		_ = store.AppendBatch(ctx, id.NewStreamRef("Bench", streamID), []event.Event{evt})
 	}
 }
 
@@ -63,12 +63,12 @@ func BenchmarkMemoryStore_ReadFrom_Scale(b *testing.B) {
 			var lastID id.EventID
 
 			for range n {
-				aggID := id.NewStreamID()
-				evt := benchEvent(b, aggID, 1)
+				streamID := id.NewStreamID()
+				evt := benchEvent(b, streamID, 1)
 				lastID = evt.ID()
 				_ = store.AppendBatch(
 					ctx,
-					id.NewStreamRef("Bench", aggID),
+					id.NewStreamRef("Bench", streamID),
 					[]event.Event{evt},
 				)
 			}
@@ -130,9 +130,9 @@ func BenchmarkMemoryStore_ReadWrite_Concurrent(b *testing.B) {
 
 		go func() {
 			defer wg.Done()
-			aggID := id.NewStreamID()
-			evt := benchEvent(b, aggID, 1)
-			_ = store.Save(ctx, id.NewStreamRef("Bench", aggID), []event.Event{evt}, 0)
+			streamID := id.NewStreamID()
+			evt := benchEvent(b, streamID, 1)
+			_ = store.Save(ctx, id.NewStreamRef("Bench", streamID), []event.Event{evt}, 0)
 		}()
 	}
 

@@ -113,18 +113,18 @@ func TestDeadLetter_NotCalledOnNonRetryable(t *testing.T) {
 	}
 }
 
-func TestDeadLetter_CapturesAggregateID(t *testing.T) {
+func TestDeadLetter_CapturesStreamID(t *testing.T) {
 	t.Parallel()
 
 	store := NewMemoryDeadLetterStore()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	config := retryConfigFast()
 	config.OnDeadLetter = store.Handle
 
 	mw := CommandRetry(config)
 
-	cmd := &testCommand{streamID: aggID}
+	cmd := &testCommand{streamID: streamID}
 	handler := mw(func(_ context.Context, _ command.Command) error {
 		return errors.New("fail")
 	})
@@ -136,8 +136,8 @@ func TestDeadLetter_CapturesAggregateID(t *testing.T) {
 		t.Fatalf("expected 1 entry, got %d", len(entries))
 	}
 
-	if entries[0].StreamID != aggID {
-		t.Errorf("expected StreamID %v, got %v", aggID, entries[0].StreamID)
+	if entries[0].StreamID != streamID {
+		t.Errorf("expected StreamID %v, got %v", streamID, entries[0].StreamID)
 	}
 
 	if entries[0].Kind != "command" {

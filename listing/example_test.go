@@ -15,10 +15,10 @@ func ExampleNewInMemoryStreamReader() {
 	store := memory.NewMemoryStore()
 	reader := listing.NewInMemoryStreamReader(store)
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+	evt, _ := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{"name":"Alice"}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt}, 0)
 
 	page, err := reader.ListWithStatus(context.Background(), listing.ListOptions{
@@ -40,10 +40,10 @@ func ExampleNewListBuilder() {
 	store := memory.NewMemoryStore()
 	reader := listing.NewInMemoryStreamReader(store)
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Order", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", streamID)
 
-	evt, _ := event.NewEvent("OrderPlaced", aggID, "Order", 1, []byte(`{"total":42}`))
+	evt, _ := event.NewEvent("OrderPlaced", streamID, "Order", 1, []byte(`{"total":42}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt}, 0)
 
 	page, err := listing.NewListBuilder(reader).
@@ -85,9 +85,9 @@ func ExampleCacheInvalidationMiddleware() {
 	_ = bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
 
 	// Seed a stream
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
+	evt, _ := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{}`))
 	_ = store.Save(context.Background(), ref, []event.Event{evt}, 0)
 
 	// First read populates the cache

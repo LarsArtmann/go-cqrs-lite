@@ -32,7 +32,7 @@ func TestRoundTrip(t *testing.T) {
 	}
 
 	// Build a fully populated event
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	correlationID := id.NewCorrelationID()
 	causationID := id.NewCausationID()
 	userID := id.NewUserID()
@@ -41,7 +41,7 @@ func TestRoundTrip(t *testing.T) {
 
 	original, err := event.NewEvent(
 		"user.created",
-		aggID,
+		streamID,
 		"User",
 		1,
 		[]byte(`{"name":"Alice"}`),
@@ -87,7 +87,7 @@ func TestRoundTrip(t *testing.T) {
 		if string(received.Payload) != `{"name":"Alice"}` {
 			t.Errorf("payload = %q, want %q", received.Payload, `{"name":"Alice"}`)
 		}
-		if received.Metadata.Get("aggregate_id") != aggID.String() {
+		if received.Metadata.Get("aggregate_id") != streamID.String() {
 			t.Errorf("aggregate_id mismatch")
 		}
 		assertMetadata(t, received.Metadata, "version", "1")
@@ -165,7 +165,7 @@ func assertMetadata(t *testing.T, md message.Metadata, key, want string) {
 func TestEventToMessage_PreservesEncoding(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	tests := []struct {
 		name     string
@@ -179,7 +179,7 @@ func TestEventToMessage_PreservesEncoding(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			original, err := event.NewEvent("test.event", aggID, "Test", 1,
+			original, err := event.NewEvent("test.event", streamID, "Test", 1,
 				[]byte(`{"v":1}`), event.WithEncoding(tt.encoding))
 			if err != nil {
 				t.Fatalf("create event: %v", err)
@@ -202,9 +202,9 @@ func TestEventToMessage_PreservesEncoding(t *testing.T) {
 func TestMessageToEvent_DefaultsJSONWhenNoEncoding(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	original, err := event.NewEvent("test.event", aggID, "Test", 1,
+	original, err := event.NewEvent("test.event", streamID, "Test", 1,
 		[]byte(`{"v":1}`))
 	if err != nil {
 		t.Fatalf("create event: %v", err)

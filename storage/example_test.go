@@ -22,10 +22,10 @@ func ExampleNewSQLiteEventStore() {
 
 	store, _ := storage.NewSQLiteEventStore(db)
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
 
-	evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
+	evt, _ := event.NewEvent("user.created", streamID, "User", event.Version(1),
 		[]byte(`{"name":"Alice"}`))
 
 	_ = store.Save(ctx, ref, []event.Event{evt}, 0)

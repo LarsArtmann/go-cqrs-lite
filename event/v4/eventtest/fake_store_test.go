@@ -10,9 +10,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func newTestEvent(t *testing.T, aggID id.StreamID, v event.Version) event.Event {
+func newTestEvent(t *testing.T, streamID id.StreamID, v event.Version) event.Event {
 	t.Helper()
-	evt, err := event.NewEvent("TestEvent", aggID, "Test", v, nil)
+	evt, err := event.NewEvent("TestEvent", streamID, "Test", v, nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -37,9 +37,9 @@ func TestFakeStore_Save_Default(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
-	evt := newTestEvent(t, aggID, 1)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
+	evt := newTestEvent(t, streamID, 1)
 
 	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -62,9 +62,9 @@ func TestFakeStore_Save_Override(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
-	evt := newTestEvent(t, aggID, 1)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
+	evt := newTestEvent(t, streamID, 1)
 
 	if err := store.Save(
 		ctx,
@@ -81,11 +81,11 @@ func TestFakeStore_Load_Default(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
-	evt1 := newTestEvent(t, aggID, 1)
-	evt2 := newTestEvent(t, aggID, 2)
+	evt1 := newTestEvent(t, streamID, 1)
+	evt2 := newTestEvent(t, streamID, 2)
 	_ = store.AppendBatch(ctx, ref, []event.Event{evt1, evt2})
 
 	loaded, err := store.Load(ctx, ref)
@@ -101,10 +101,10 @@ func TestFakeStore_Load_DefensiveCopy(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
-	evt := newTestEvent(t, aggID, 1)
+	evt := newTestEvent(t, streamID, 1)
 	_ = store.AppendBatch(ctx, ref, []event.Event{evt})
 
 	loaded1, _ := store.Load(ctx, ref)
@@ -124,8 +124,8 @@ func TestFakeStore_Load_Override(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	if _, err := store.Load(ctx, ref); err == nil || err.Error() != "load override" {
 		t.Fatalf("expected load override error, got: %v", err)
@@ -136,8 +136,8 @@ func TestFakeStore_LoadFromVersion_Default(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	appendTestEvents(t, store, ctx, ref, 5)
 
@@ -158,8 +158,8 @@ func TestFakeStore_LoadFromVersion_Override(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	if _, err := store.LoadFromVersion(ctx, ref, 0); err == nil || err.Error() != "override" {
 		t.Fatalf("expected override error, got: %v", err)
@@ -170,8 +170,8 @@ func TestFakeStore_LoadToVersion_Default(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	appendTestEvents(t, store, ctx, ref, 5)
 
@@ -188,12 +188,12 @@ func TestFakeStore_LoadToTimestamp_Default(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	now := time.Now()
 	for i := range 3 {
-		evt, _ := event.NewEvent("TestEvent", aggID, "Test", event.Version(i+1), nil,
+		evt, _ := event.NewEvent("TestEvent", streamID, "Test", event.Version(i+1), nil,
 			event.WithOccurredAt(now.Add(time.Duration(i)*time.Hour)))
 		_ = store.AppendBatch(ctx, ref, []event.Event{evt})
 	}
@@ -211,11 +211,11 @@ func TestFakeStore_AppendBatch_Default(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
-	evt1 := newTestEvent(t, aggID, 1)
-	evt2 := newTestEvent(t, aggID, 2)
+	evt1 := newTestEvent(t, streamID, 1)
+	evt2 := newTestEvent(t, streamID, 2)
 	_ = store.AppendBatch(ctx, ref, []event.Event{evt1, evt2})
 
 	loaded, _ := store.Load(ctx, ref)
@@ -230,9 +230,9 @@ func TestFakeStore_ReadAll_Default(t *testing.T) {
 	ctx := context.Background()
 
 	for range 3 {
-		aggID := id.NewStreamID()
-		evt := newTestEvent(t, aggID, 1)
-		_ = store.AppendBatch(ctx, id.NewStreamRef("Test", aggID), []event.Event{evt})
+		streamID := id.NewStreamID()
+		evt := newTestEvent(t, streamID, 1)
+		_ = store.AppendBatch(ctx, id.NewStreamRef("Test", streamID), []event.Event{evt})
 	}
 
 	all, err := store.ReadAll(ctx)
@@ -264,9 +264,9 @@ func TestFakeStore_ReadFrom_Default(t *testing.T) {
 	store := NewFakeStore()
 	ctx := context.Background()
 
-	aggID := id.NewStreamID()
-	evt := newTestEvent(t, aggID, 1)
-	_ = store.AppendBatch(ctx, id.NewStreamRef("Test", aggID), []event.Event{evt})
+	streamID := id.NewStreamID()
+	evt := newTestEvent(t, streamID, 1)
+	_ = store.AppendBatch(ctx, id.NewStreamRef("Test", streamID), []event.Event{evt})
 
 	// ReadFrom after the only event should return 0
 	from, err := store.ReadFrom(ctx, evt.ID(), 0)
@@ -319,12 +319,12 @@ func TestFakeStore_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Test", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
 
 	for i := range 100 {
 		go func(v int) {
-			evt := newTestEvent(t, aggID, event.Version(v))
+			evt := newTestEvent(t, streamID, event.Version(v))
 			_ = store.Save(ctx, ref, []event.Event{evt}, event.Version(v-1))
 		}(i + 1)
 	}

@@ -73,9 +73,9 @@ func TestSQLiteEventStore_Load_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	_, err := store.Load(context.Background(), id.NewStreamRef("Issue", aggID))
+	_, err := store.Load(context.Background(), id.NewStreamRef("Issue", streamID))
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("expected ErrStreamNotFound, got %v", err)
 	}

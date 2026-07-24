@@ -13,9 +13,9 @@ import (
 func TestNew_EmptyType(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	_, err := command.New("", aggID)
+	_, err := command.New("", streamID)
 	if err == nil {
 		t.Error("expected error for empty command type")
 	}
@@ -41,8 +41,8 @@ func TestNew_ZeroStreamID(t *testing.T) {
 func TestNew_EmptyType_Rejected(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	_, err := command.New("", aggID)
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	_, err := command.New("", streamID)
 	if err == nil {
 		t.Fatal("expected error for empty command type")
 	}

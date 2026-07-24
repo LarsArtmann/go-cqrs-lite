@@ -35,14 +35,14 @@ func newSnapshotStore(t *testing.T) *SnapshotStore {
 
 func testSnapshot(
 	t *testing.T,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	version int,
 	state string,
 ) snapshot.Snapshot {
 	t.Helper()
 
 	return snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Order",
 		Version:    event.Version(version),
 		State:      []byte(state),
@@ -55,9 +55,9 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 
 	store := newSnapshotStore(t)
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Order", aggID)
-	snap := testSnapshot(t, aggID, 5, `{"status":"shipped"}`)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", streamID)
+	snap := testSnapshot(t, streamID, 5, `{"status":"shipped"}`)
 
 	if err := store.Save(ctx, snap); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -68,8 +68,8 @@ func TestSnapshotStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if loaded.StreamID != aggID {
-		t.Errorf("StreamID = %s, want %s", loaded.StreamID, aggID)
+	if loaded.StreamID != streamID {
+		t.Errorf("StreamID = %s, want %s", loaded.StreamID, streamID)
 	}
 
 	if loaded.Version.Int() != 5 {
@@ -117,10 +117,10 @@ func TestSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 
 		store := newSnapshotStore(t)
 		ctx := context.Background()
-		aggID := id.NewStreamID()
-		ref := id.NewStreamRef("Order", aggID)
+		streamID := id.NewStreamID()
+		ref := id.NewStreamRef("Order", streamID)
 
-		snap := testSnapshot(t, aggID, 5, `{"status":"shipped"}`)
+		snap := testSnapshot(t, streamID, 5, `{"status":"shipped"}`)
 		if err := store.Save(ctx, snap); err != nil {
 			t.Fatalf("Save: %v", err)
 		}
@@ -137,10 +137,10 @@ func TestSnapshotStore_LoadAtVersion_AtOrAfter(t *testing.T) {
 
 	store := newSnapshotStore(t)
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Order", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", streamID)
 
-	if err := store.Save(ctx, testSnapshot(t, aggID, 5, `{"status":"shipped"}`)); err != nil {
+	if err := store.Save(ctx, testSnapshot(t, streamID, 5, `{"status":"shipped"}`)); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
@@ -201,16 +201,19 @@ func TestSnapshotStore_Save_VersionPrecedence(t *testing.T) {
 
 			store := newSnapshotStore(t)
 			ctx := context.Background()
-			aggID := id.NewStreamID()
-			ref := id.NewStreamRef("Order", aggID)
+			streamID := id.NewStreamID()
+			ref := id.NewStreamRef("Order", streamID)
 
-			if err := store.Save(ctx, testSnapshot(t, aggID, tt.first, tt.firstState)); err != nil {
+			if err := store.Save(
+				ctx,
+				testSnapshot(t, streamID, tt.first, tt.firstState),
+			); err != nil {
 				t.Fatalf("Save first: %v", err)
 			}
 
 			if err := store.Save(
 				ctx,
-				testSnapshot(t, aggID, tt.second, tt.secondState),
+				testSnapshot(t, streamID, tt.second, tt.secondState),
 			); err != nil {
 				t.Fatalf("Save second: %v", err)
 			}
@@ -236,10 +239,10 @@ func TestSnapshotStore_Delete(t *testing.T) {
 
 	store := newSnapshotStore(t)
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Order", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", streamID)
 
-	if err := store.Save(ctx, testSnapshot(t, aggID, 5, `{"status":"shipped"}`)); err != nil {
+	if err := store.Save(ctx, testSnapshot(t, streamID, 5, `{"status":"shipped"}`)); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
@@ -270,25 +273,25 @@ func TestSnapshotStore_DistinctStreams(t *testing.T) {
 
 	store := newSnapshotStore(t)
 	ctx := context.Background()
-	agg1 := id.NewStreamID()
-	agg2 := id.NewStreamID()
+	stream1 := id.NewStreamID()
+	stream2 := id.NewStreamID()
 
-	if err := store.Save(ctx, testSnapshot(t, agg1, 3, `{"a":1}`)); err != nil {
-		t.Fatalf("Save agg1: %v", err)
+	if err := store.Save(ctx, testSnapshot(t, stream1, 3, `{"a":1}`)); err != nil {
+		t.Fatalf("Save stream1: %v", err)
 	}
 
-	if err := store.Save(ctx, testSnapshot(t, agg2, 5, `{"b":2}`)); err != nil {
-		t.Fatalf("Save agg2: %v", err)
+	if err := store.Save(ctx, testSnapshot(t, stream2, 5, `{"b":2}`)); err != nil {
+		t.Fatalf("Save stream2: %v", err)
 	}
 
-	loaded1, err := store.Load(ctx, id.NewStreamRef("Order", agg1))
+	loaded1, err := store.Load(ctx, id.NewStreamRef("Order", stream1))
 	if err != nil {
-		t.Fatalf("Load agg1: %v", err)
+		t.Fatalf("Load stream1: %v", err)
 	}
 
-	loaded2, err := store.Load(ctx, id.NewStreamRef("Order", agg2))
+	loaded2, err := store.Load(ctx, id.NewStreamRef("Order", stream2))
 	if err != nil {
-		t.Fatalf("Load agg2: %v", err)
+		t.Fatalf("Load stream2: %v", err)
 	}
 
 	if loaded1.Version.Int() != 3 || loaded2.Version.Int() != 5 {
@@ -317,19 +320,19 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Issue", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", streamID)
 	cfg := issueStoreConfig()
 
-	evt := cfg.NewTestEvent(t, aggID, 1)
+	evt := cfg.NewTestEvent(t, streamID, 1)
 	if err := eventStore.Save(ctx, ref, []event.Event{evt}, event.Version(0)); err != nil {
 		t.Fatalf("event Save: %v", err)
 	}
 
 	// Same stream type + ID but snapshot prefix is disjoint from event prefix.
-	snapRef := id.NewStreamRef("Issue", aggID)
+	snapRef := id.NewStreamRef("Issue", streamID)
 	snap := snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Issue",
 		Version:    event.Version(1),
 		State:      []byte(`{"title":"v1"}`),
@@ -379,9 +382,9 @@ func TestSnapshotStore_Close_NoOp(t *testing.T) {
 
 	// Verify still usable after Close (DB lifetime is caller-owned).
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	err := store.Save(ctx, testSnapshot(t, aggID, 1, "{}"))
+	err := store.Save(ctx, testSnapshot(t, streamID, 1, "{}"))
 	if err != nil {
 		t.Fatalf("Save after Close: %v", err)
 	}

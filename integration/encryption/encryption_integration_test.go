@@ -51,10 +51,10 @@ func TestSignAndEncryptFullFlow(t *testing.T) {
 		t.Fatalf("subscribe: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, err := event.NewEvent(
 		"user.created",
-		aggID,
+		streamID,
 		"User",
 		1,
 		[]byte(`{"name":"Alice"}`),
@@ -82,7 +82,7 @@ func TestSignAndEncryptFullFlow(t *testing.T) {
 		t.Fatalf("type mismatch: got %q", got.Type())
 	}
 
-	if got.StreamID() != aggID {
+	if got.StreamID() != streamID {
 		t.Fatalf("stream ID mismatch")
 	}
 
@@ -233,10 +233,10 @@ func TestEncryptDecrypt_CBOREventPreservesEncoding(t *testing.T) {
 	})
 
 	// Create a CBOR-encoded event.
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt, err := event.New(
-		"user.created", aggID, "User", 1,
+		"user.created", streamID, "User", 1,
 		userData{Name: "Alice", Email: "alice@test.com"},
 		event.WithCodec(codec.CBORCodec{}),
 	)

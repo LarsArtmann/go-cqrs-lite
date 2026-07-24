@@ -64,13 +64,13 @@ func TestBackend_EventStore(t *testing.T) {
 	}
 
 	// Verify it actually works.
-	aggID := id.NewStreamID()
-	evt, err := event.NewEvent("test.created", aggID, "TestAggregate", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, err := event.NewEvent("test.created", streamID, "TestStream", 1, []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	ref := id.NewStreamRef("TestAggregate", aggID)
+	ref := id.NewStreamRef("TestStream", streamID)
 	ctx := context.Background()
 	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -102,8 +102,8 @@ func TestBackend_CommandStore(t *testing.T) {
 		t.Fatal("expected non-nil command store")
 	}
 
-	aggID := id.NewStreamID()
-	cmdRef := command.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	cmdRef := command.NewStreamRef("User", streamID)
 	cmd, err := command.NewPersistedCommand("CreateUser", cmdRef, []byte(`{"name":"Alice"}`))
 	if err != nil {
 		t.Fatalf("NewPersistedCommand: %v", err)
@@ -266,8 +266,8 @@ func TestBackend_Close(t *testing.T) {
 
 	// After Close, the event store should report closed (Infrastructure family).
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	_, err := backend.EventStore().Load(ctx, id.NewStreamRef("X", aggID))
+	streamID := id.NewStreamID()
+	_, err := backend.EventStore().Load(ctx, id.NewStreamRef("X", streamID))
 	if err == nil {
 		t.Fatal("expected error loading from closed store")
 	}
@@ -340,15 +340,15 @@ func TestBackend_FullLifecycle(t *testing.T) {
 	t.Cleanup(cleanup)
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Issue", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", streamID)
 
 	t.Run("EventStore_SaveLoadMultiVersion", func(t *testing.T) {
-		verifyEventStoreRoundtrip(t, ctx, backend, aggID, ref)
+		verifyEventStoreRoundtrip(t, ctx, backend, streamID, ref)
 	})
 
 	t.Run("SnapshotStore_SaveLoadDelete", func(t *testing.T) {
-		verifySnapshotStoreRoundtrip(t, ctx, backend, aggID, ref)
+		verifySnapshotStoreRoundtrip(t, ctx, backend, streamID, ref)
 	})
 
 	t.Run("CheckpointStore_SaveLoadUpdate", func(t *testing.T) {
@@ -356,7 +356,7 @@ func TestBackend_FullLifecycle(t *testing.T) {
 	})
 
 	t.Run("CommandStore_PersistsAlongsideEvents", func(t *testing.T) {
-		verifyCommandStoreRoundtrip(t, ctx, backend, aggID)
+		verifyCommandStoreRoundtrip(t, ctx, backend, streamID)
 	})
 }
 
@@ -364,7 +364,7 @@ func verifyEventStoreRoundtrip(
 	t *testing.T,
 	ctx context.Context,
 	backend *storage.SQLBackend,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	ref id.StreamRef,
 ) {
 	t.Helper()
@@ -378,7 +378,7 @@ func verifyEventStoreRoundtrip(
 
 	for i := 1; i <= 3; i++ {
 		evt, err := event.NewEvent(
-			"issue.updated", aggID, "Issue", event.Version(i),
+			"issue.updated", streamID, "Issue", event.Version(i),
 			[]byte(`{"n":`+strconv.Itoa(i)+`}`),
 		)
 		if err != nil {
@@ -412,7 +412,7 @@ func verifySnapshotStoreRoundtrip(
 	t *testing.T,
 	ctx context.Context,
 	backend *storage.SQLBackend,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	ref id.StreamRef,
 ) {
 	t.Helper()
@@ -424,7 +424,7 @@ func verifySnapshotStoreRoundtrip(
 
 	state := []byte(`{"title":"snapshot-issue","status":"open"}`)
 	snap := snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Issue",
 		Version:    3,
 		State:      state,
@@ -533,7 +533,7 @@ func verifyCommandStoreRoundtrip(
 	t *testing.T,
 	ctx context.Context,
 	backend *storage.SQLBackend,
-	aggID id.StreamID,
+	streamID id.StreamID,
 ) {
 	t.Helper()
 
@@ -542,7 +542,7 @@ func verifyCommandStoreRoundtrip(
 		t.Fatalf("CommandStore: %v", err)
 	}
 
-	cmdRef := command.NewStreamRef("Issue", aggID)
+	cmdRef := command.NewStreamRef("Issue", streamID)
 	cmd, err := command.NewPersistedCommand("issue.update", cmdRef, []byte(`{"status":"open"}`))
 	if err != nil {
 		t.Fatalf("NewPersistedCommand: %v", err)

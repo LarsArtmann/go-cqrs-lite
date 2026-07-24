@@ -66,7 +66,7 @@ func TestVersionedSeekableJournal_Property_upcasterChain(t *testing.T) {
 		defer store.Close()
 
 		ctx := context.Background()
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 
 		upcasters := make([]schema.Upcaster, chainDepth)
 		for i := range upcasters {
@@ -81,7 +81,7 @@ func TestVersionedSeekableJournal_Property_upcasterChain(t *testing.T) {
 			payload := fmt.Sprintf("evt-%d", i)
 
 			evt, err := event.NewEvent(
-				"test.event", aggID, "Test",
+				"test.event", streamID, "Test",
 				event.Version(i+1),
 				[]byte(payload),
 				event.WithSchemaVersion(event.SchemaVersion(startVersion)),
@@ -100,7 +100,7 @@ func TestVersionedSeekableJournal_Property_upcasterChain(t *testing.T) {
 			expectedVersions = append(expectedVersions, finalVersion)
 		}
 
-		saveTestEvents(t, ctx, store, aggID, events...)
+		saveTestEvents(t, ctx, store, streamID, events...)
 
 		journal, err := schema.NewVersionedSeekableJournal(store, upcasters...)
 		if err != nil {
@@ -139,7 +139,7 @@ func TestVersionedSeekableJournal_Property_passthrough(t *testing.T) {
 		defer store.Close()
 
 		ctx := context.Background()
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 
 		var events []event.Event
 		for i := 0; i < numEvents; i++ {
@@ -147,7 +147,7 @@ func TestVersionedSeekableJournal_Property_passthrough(t *testing.T) {
 			payload := fmt.Sprintf("passthrough-%d", i)
 
 			evt, err := event.NewEvent(
-				"unregistered.type", aggID, "Test",
+				"unregistered.type", streamID, "Test",
 				event.Version(i+1),
 				[]byte(payload),
 				event.WithSchemaVersion(event.SchemaVersion(ver)),
@@ -162,7 +162,7 @@ func TestVersionedSeekableJournal_Property_passthrough(t *testing.T) {
 		// Register an upcaster for a DIFFERENT event type
 		unused := &chainUpcaster{sourceVer: 1}
 
-		saveTestEvents(t, ctx, store, aggID, events...)
+		saveTestEvents(t, ctx, store, streamID, events...)
 
 		journal, err := schema.NewVersionedSeekableJournal(store, unused)
 		if err != nil {
@@ -205,7 +205,7 @@ func TestVersionedSeekableJournal_Property_ReadFrom(t *testing.T) {
 		defer store.Close()
 
 		ctx := context.Background()
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 
 		upcasters := make([]schema.Upcaster, chainDepth)
 		for i := range upcasters {
@@ -215,7 +215,7 @@ func TestVersionedSeekableJournal_Property_ReadFrom(t *testing.T) {
 		var events []event.Event
 		for i := 0; i < numEvents; i++ {
 			evt, err := event.NewEvent(
-				"test.event", aggID, "Test",
+				"test.event", streamID, "Test",
 				event.Version(i+1),
 				[]byte(fmt.Sprintf("data-%d", i)),
 				event.WithSchemaVersion(1),
@@ -227,7 +227,7 @@ func TestVersionedSeekableJournal_Property_ReadFrom(t *testing.T) {
 			events = append(events, evt)
 		}
 
-		saveTestEvents(t, ctx, store, aggID, events...)
+		saveTestEvents(t, ctx, store, streamID, events...)
 
 		journal, err := schema.NewVersionedSeekableJournal(store, upcasters...)
 		if err != nil {
@@ -275,7 +275,7 @@ func TestVersionedSeekableJournal_MidStreamUpcastError(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	const total = 10
 
@@ -289,7 +289,7 @@ func TestVersionedSeekableJournal_MidStreamUpcastError(t *testing.T) {
 		}
 
 		evt, err := event.NewEvent(
-			"test.event", aggID, "Test",
+			"test.event", streamID, "Test",
 			event.Version(i+1),
 			[]byte(payload),
 			event.WithSchemaVersion(1),
@@ -301,7 +301,7 @@ func TestVersionedSeekableJournal_MidStreamUpcastError(t *testing.T) {
 		events = append(events, evt)
 	}
 
-	saveTestEvents(t, ctx, store, aggID, events...)
+	saveTestEvents(t, ctx, store, streamID, events...)
 
 	journal, err := schema.NewVersionedSeekableJournal(
 		store,
@@ -340,14 +340,14 @@ func benchmarkReadAll(b *testing.B, chainDepth int) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	const total = 10_000
 
 	var events []event.Event
 	for i := 0; i < total; i++ {
 		evt, err := event.NewEvent(
-			"test.event", aggID, "Test",
+			"test.event", streamID, "Test",
 			event.Version(i+1),
 			[]byte(fmt.Sprintf("payload-%d", i)),
 			event.WithSchemaVersion(1),
@@ -361,7 +361,7 @@ func benchmarkReadAll(b *testing.B, chainDepth int) {
 
 	if err := store.Save(
 		ctx,
-		id.NewStreamRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), streamID),
 		events,
 		0,
 	); err != nil {
@@ -397,14 +397,14 @@ func BenchmarkVersionedSeekableJournal_ReadFrom_WithUpcasters(b *testing.B) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	const total = 10_000
 
 	var events []event.Event
 	for i := 0; i < total; i++ {
 		evt, err := event.NewEvent(
-			"test.event", aggID, "Test",
+			"test.event", streamID, "Test",
 			event.Version(i+1),
 			[]byte(fmt.Sprintf("payload-%d", i)),
 			event.WithSchemaVersion(1),
@@ -418,7 +418,7 @@ func BenchmarkVersionedSeekableJournal_ReadFrom_WithUpcasters(b *testing.B) {
 
 	if err := store.Save(
 		ctx,
-		id.NewStreamRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), streamID),
 		events,
 		0,
 	); err != nil {

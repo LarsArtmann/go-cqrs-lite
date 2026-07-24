@@ -30,10 +30,10 @@ func TestEventPublisher_RoundTrip(t *testing.T) {
 	// Publish a cqrs event through the EventPublisher.
 	eventPub := NewEventPublisher(pubSub, "test.roundtrip")
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	originalEvt, _ := event.NewEvent(
 		event.Type("test.roundtrip.event"),
-		aggID, "TestAggregate", event.Version(1),
+		streamID, "TestStream", event.Version(1),
 		[]byte(`{"key":"value"}`),
 	)
 
@@ -89,11 +89,11 @@ func TestEventPublisher_RoundTripCBOR(t *testing.T) {
 
 	eventPub := NewEventPublisher(pubSub, "test.roundtrip.cbor")
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	originalEvt, err := event.New(
 		event.Type("test.roundtrip.cbor.event"),
-		aggID,
-		"TestAggregate",
+		streamID,
+		"TestStream",
 		event.Version(1),
 		roundtripPayload{Key: "value"},
 		event.WithCodec(codec.CBORCodec{}),

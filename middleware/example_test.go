@@ -26,8 +26,8 @@ func ExampleNewRecovery() {
 
 	wrapped := recoveryMW(handler)
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{}`))
 
 	err := wrapped(context.Background(), evt)
 	fmt.Println(called, err != nil)
@@ -52,8 +52,8 @@ func ExampleOTelCorrelationEnricher() {
 
 	opts := middleware.OTelCorrelationEnricher(ctx)
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{}`))
 
 	for _, opt := range opts {
 		opt(evt)

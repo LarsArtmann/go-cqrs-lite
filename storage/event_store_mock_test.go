@@ -26,9 +26,9 @@ const loadAllFromPositionQuery = `SELECT e.id, e.event_type, e.aggregate_type, e
 		WHERE (e.occurred_at > c.occurred_at) OR (e.occurred_at = c.occurred_at AND e.id > $2)
 		ORDER BY e.occurred_at ASC, e.id ASC LIMIT $3`
 
-func mockEventRowsForTest(evt event.Event, aggID id.StreamID) *sqlmock.Rows {
+func mockEventRowsForTest(evt event.Event, streamID id.StreamID) *sqlmock.Rows {
 	return sqlmock.NewRows(eventColumns()).AddRow(
-		evt.ID(), "UserCreated", "User", aggID,
+		evt.ID(), "UserCreated", "User", streamID,
 		1, 1, evt.Payload(), "json", nil, evt.OccurredAt(),
 	)
 }
@@ -37,17 +37,17 @@ func TestSQLEventStore_LoadToVersion_Mock_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
+	evt := testEventWithAggID(t, "UserCreated", streamID, 1)
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToVersionQuery)).
-		WithArgs("User", aggID, 1).
-		WillReturnRows(mockEventRowsForTest(evt, aggID))
+		WithArgs("User", streamID, 1).
+		WillReturnRows(mockEventRowsForTest(evt, streamID))
 
 	events, err := store.LoadToVersion(
 		context.Background(),
-		id.NewStreamRef("User", aggID),
+		id.NewStreamRef("User", streamID),
 		1,
 	)
 	if err != nil {
@@ -63,13 +63,13 @@ func TestSQLEventStore_LoadToVersion_Mock_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToVersionQuery)).
-		WithArgs("User", aggID, 5).
+		WithArgs("User", streamID, 5).
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 
-	_, err := store.LoadToVersion(context.Background(), id.NewStreamRef("User", aggID), 5)
+	_, err := store.LoadToVersion(context.Background(), id.NewStreamRef("User", streamID), 5)
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("expected ErrStreamNotFound, got: %v", err)
 	}
@@ -79,13 +79,13 @@ func TestSQLEventStore_LoadToVersion_Mock_QueryError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToVersionQuery)).
-		WithArgs("User", aggID, 5).
+		WithArgs("User", streamID, 5).
 		WillReturnError(errors.New("connection lost"))
 
-	_, err := store.LoadToVersion(context.Background(), id.NewStreamRef("User", aggID), 5)
+	_, err := store.LoadToVersion(context.Background(), id.NewStreamRef("User", streamID), 5)
 	if err == nil {
 		t.Fatal("expected error from query failure")
 	}
@@ -95,17 +95,17 @@ func TestSQLEventStore_LoadToTimestamp_Mock_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
+	evt := testEventWithAggID(t, "UserCreated", streamID, 1)
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToTimestampQuery)).
-		WithArgs("User", aggID, evt.OccurredAt()).
-		WillReturnRows(mockEventRowsForTest(evt, aggID))
+		WithArgs("User", streamID, evt.OccurredAt()).
+		WillReturnRows(mockEventRowsForTest(evt, streamID))
 
 	events, err := store.LoadToTimestamp(
 		context.Background(),
-		id.NewStreamRef("User", aggID),
+		id.NewStreamRef("User", streamID),
 		evt.OccurredAt(),
 	)
 	if err != nil {
@@ -121,15 +121,15 @@ func TestSQLEventStore_LoadToTimestamp_Mock_QueryError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadToTimestampQuery)).
-		WithArgs("User", aggID, sqlmock.AnyArg()).
+		WithArgs("User", streamID, sqlmock.AnyArg()).
 		WillReturnError(errors.New("connection lost"))
 
 	_, err := store.LoadToTimestamp(
 		context.Background(),
-		id.NewStreamRef("User", aggID),
+		id.NewStreamRef("User", streamID),
 		testEvent(t).OccurredAt(),
 	)
 	if err == nil {
@@ -150,15 +150,15 @@ func TestSQLEventStore_Load_Mock_ScanError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			"invalid-id", "", "User", aggID, 1, 1, nil, "", nil, testEvent(t).OccurredAt(),
+			"invalid-id", "", "User", streamID, 1, 1, nil, "", nil, testEvent(t).OccurredAt(),
 		))
 
-	_, err := store.Load(context.Background(), id.NewStreamRef("User", aggID))
+	_, err := store.Load(context.Background(), id.NewStreamRef("User", streamID))
 	if err == nil {
 		t.Fatal("expected error from scan with invalid event ID")
 	}
@@ -168,8 +168,8 @@ func TestSQLEventStore_ReadFrom_Mock_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
-	evt := testEventWithAggID(t, "UserCreated", aggID, 1)
+	streamID := id.NewStreamID()
+	evt := testEventWithAggID(t, "UserCreated", streamID, 1)
 
 	mockLoadAllFromPosition(mock, evt)
 
@@ -210,10 +210,10 @@ func TestSQLEventStore_ReadAll_Mock_ScanError(t *testing.T) {
 }
 
 func mockLoadAllScanError(mock sqlmock.Sqlmock, t *testing.T) {
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	mock.ExpectQuery(regexp.QuoteMeta(loadAllQuery)).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			"invalid-id", "", "User", aggID, 1, 1, nil, "", nil, testEvent(t).OccurredAt(),
+			"invalid-id", "", "User", streamID, 1, 1, nil, "", nil, testEvent(t).OccurredAt(),
 		))
 }
 

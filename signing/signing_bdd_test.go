@@ -14,8 +14,8 @@ import (
 
 var _ = Describe("Signing", func() {
 	makeEvent := func() event.Event {
-		aggID := id.NewStreamID()
-		evt, err := event.NewEvent("user.created", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+		streamID := id.NewStreamID()
+		evt, err := event.NewEvent("user.created", streamID, "User", 1, []byte(`{"name":"Alice"}`))
 		Expect(err).NotTo(HaveOccurred())
 
 		return evt

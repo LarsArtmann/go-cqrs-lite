@@ -14,7 +14,7 @@ var _ = Describe("Event Creation", func() {
 	Describe("As a developer creating domain events", func() {
 		Context("when I create an event with all metadata", func() {
 			It("should preserve every field including tracing IDs", func() {
-				aggID := id.NewStreamID()
+				streamID := id.NewStreamID()
 				corrID, err := id.ParseCorrelationID("01HK154EJG2GP2SR75DK1Q1TBH")
 				Expect(err).ToNot(HaveOccurred())
 				causeID, err := id.ParseCausationID("01HK154FHRS5276AC3V7GRNTYM")
@@ -26,7 +26,7 @@ var _ = Describe("Event Creation", func() {
 
 				evt, err := event.NewEvent(
 					event.Type("UserRegistered"),
-					aggID,
+					streamID,
 					id.StreamType("User"),
 					1,
 					[]byte(`{"email":"alice@example.com"}`),
@@ -39,7 +39,7 @@ var _ = Describe("Event Creation", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(evt.Type()).To(Equal(event.Type("UserRegistered")))
-				Expect(evt.StreamID()).To(Equal(aggID))
+				Expect(evt.StreamID()).To(Equal(streamID))
 				Expect(evt.StreamType()).To(Equal(id.StreamType("User")))
 				Expect(evt.Version()).To(Equal(event.Version(1)))
 				Expect(evt.Payload()).To(ContainSubstring("alice@example.com"))
@@ -71,8 +71,8 @@ var _ = Describe("Event Creation", func() {
 
 		DescribeTable(
 			"when I create an event with invalid parameters",
-			func(aggID id.StreamID, aggType id.StreamType, version event.Version, expectedMsg string) {
-				expectNewEventValidationFails(aggID, aggType, version, expectedMsg)
+			func(streamID id.StreamID, streamType id.StreamType, version event.Version, expectedMsg string) {
+				expectNewEventValidationFails(streamID, streamType, version, expectedMsg)
 			},
 			Entry(
 				"empty stream type",
@@ -92,10 +92,10 @@ var _ = Describe("Event Creation", func() {
 
 		Context("when I add custom metadata to an event", func() {
 			It("should preserve it through the metadata map", func() {
-				aggID := id.NewStreamID()
+				streamID := id.NewStreamID()
 				evt, err := event.NewEvent(
 					event.Type("TestEvent"),
-					aggID,
+					streamID,
 					id.StreamType("Test"),
 					1,
 					nil,

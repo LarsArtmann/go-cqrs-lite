@@ -19,17 +19,17 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	eventID := id.NewEventID()
 	ts := time.Now().Truncate(time.Microsecond)
 
 	expectLoadRows(
 		mock,
-		aggID,
+		streamID,
 		eventID.String(),
 		"UserCreated",
 		"User",
-		aggID.String(),
+		streamID.String(),
 		1,
 		1,
 		[]byte(`{"name":"test"}`),
@@ -40,7 +40,7 @@ func TestSQLEventStore_Load_Success(t *testing.T) {
 
 	events, err := store.Load(
 		context.Background(),
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 	)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
@@ -70,13 +70,13 @@ func TestSQLEventStore_Load_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	expectLoadEmpty(mock, aggID)
+	expectLoadEmpty(mock, streamID)
 
 	events, err := store.Load(
 		context.Background(),
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 	)
 	if err == nil {
 		t.Fatal("expected ErrStreamNotFound for empty result, got nil")
@@ -95,20 +95,21 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	eventID := id.NewEventID()
 	ts := time.Now().Truncate(time.Microsecond)
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadFromVersionQuery)).
-		WithArgs("User", aggID, 2).
+		WithArgs("User", streamID, 2).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
 			eventID.String(),
-			"UserUpdated", "User", aggID.String(), 3, 1, []byte(`{"name":"updated"}`), "", nil, ts,
-		))
+			"UserUpdated", "User", streamID.String(), 3, 1, []byte(`{"name":"updated"}`), "", nil, ts,
+		),
+		)
 
 	events, err := store.LoadFromVersion(
 		context.Background(),
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		event.Version(2),
 	)
 	if err != nil {
@@ -126,15 +127,15 @@ func TestSQLEventStore_Load_QueryError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnError(errors.New("query failed"))
 
 	_, err := store.Load(
 		context.Background(),
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 	)
 	if err == nil {
 		t.Fatal("expected error for query failure")
@@ -145,15 +146,15 @@ func TestSQLEventStore_LoadFromVersion_QueryError(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadFromVersionQuery)).
-		WithArgs("User", aggID, 2).
+		WithArgs("User", streamID, 2).
 		WillReturnError(errors.New("query failed"))
 
 	_, err := store.LoadFromVersion(
 		context.Background(),
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		event.Version(2),
 	)
 	if err == nil {
@@ -199,7 +200,7 @@ func TestMarshalMetadata_Full(t *testing.T) {
 	}
 }
 
-func TestScanEvents_InvalidAggregateID(t *testing.T) {
+func TestScanEvents_InvalidStreamID(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
@@ -220,19 +221,19 @@ func TestScanEvents_InvalidEventID(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnRows(
 			sqlmock.NewRows(eventColumns()).AddRow(
-				"not-a-valid-ulid", "UserCreated", "User", aggID.String(), 1, 1, nil, "", nil, time.Now(),
+				"not-a-valid-ulid", "UserCreated", "User", streamID.String(), 1, 1, nil, "", nil, time.Now(),
 			),
 		)
 
 	_, err := store.Load(
 		context.Background(),
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 	)
 	if err == nil {
 		t.Fatal("expected error for invalid event ID")
@@ -260,22 +261,22 @@ func TestScanEvents_InvalidMetadata(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	eventID := id.NewEventID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnRows(
 			sqlmock.NewRows(eventColumns()).
 				AddRow(
 					eventID.String(),
-					"UserCreated", "User", aggID.String(), 1, 1, nil, "", []byte(`{invalid`), time.Now(),
+					"UserCreated", "User", streamID.String(), 1, 1, nil, "", []byte(`{invalid`), time.Now(),
 				),
 		)
 
 	_, err := store.Load(
 		context.Background(),
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 	)
 	if err == nil {
 		t.Fatal("expected error for invalid metadata JSON")
@@ -286,7 +287,7 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	eventID := id.NewEventID()
 	ts := time.Now().Truncate(time.Microsecond)
 	cid := id.NewCorrelationID()
@@ -294,7 +295,7 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		aggID,
+		streamID,
 		"User",
 		1,
 		[]byte(`{"name":"test"}`),
@@ -314,18 +315,18 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadQuery)).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnRows(
 			sqlmock.NewRows(eventColumns()).
 				AddRow(
 					eventID.String(),
-					"UserCreated", "User", aggID.String(), 1, 1, []byte(`{"name":"test"}`), "", metaJSON, ts,
+					"UserCreated", "User", streamID.String(), 1, 1, []byte(`{"name":"test"}`), "", metaJSON, ts,
 				),
 		)
 
 	loaded, err := store.Load(
 		context.Background(),
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 	)
 	if err != nil {
 		t.Fatalf("Load: %v", err)

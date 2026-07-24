@@ -80,13 +80,13 @@ func TestSaveSnapshot_Success(t *testing.T) {
 	t.Parallel()
 
 	store := &mockSink{}
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	err := snapshot.SaveSnapshot(
 		context.Background(),
 		store,
 		"User",
-		aggID,
+		streamID,
 		event.Version(5),
 		[]byte(`{"name":"John"}`),
 	)

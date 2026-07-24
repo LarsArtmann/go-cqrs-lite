@@ -7,13 +7,13 @@ import (
 )
 
 func TestSingle(t *testing.T) {
-	aggID := id.NewStreamID()
-	aggType := id.StreamType("User")
+	streamID := id.NewStreamID()
+	streamType := id.StreamType("User")
 
 	events, err := Single(
 		"user.created",
-		aggID,
-		aggType,
+		streamID,
+		streamType,
 		Version(1),
 		struct{ Name string }{Name: "Alice"},
 	)
@@ -29,8 +29,8 @@ func TestSingle(t *testing.T) {
 	if evt.Type() != "user.created" {
 		t.Errorf("Type() = %q, want %q", evt.Type(), "user.created")
 	}
-	if evt.StreamType() != aggType {
-		t.Errorf("StreamType() = %q, want %q", evt.StreamType(), aggType)
+	if evt.StreamType() != streamType {
+		t.Errorf("StreamType() = %q, want %q", evt.StreamType(), streamType)
 	}
 	if evt.Version() != Version(1) {
 		t.Errorf("Version() = %d, want 1", evt.Version())
@@ -38,11 +38,11 @@ func TestSingle(t *testing.T) {
 }
 
 func TestSingle_WithNilPayload(t *testing.T) {
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	_, err := Single(
 		"user.created",
-		aggID,
+		streamID,
 		"User",
 		Version(1),
 		nil,
@@ -53,12 +53,12 @@ func TestSingle_WithNilPayload(t *testing.T) {
 }
 
 func TestSingle_WithCorrelationID(t *testing.T) {
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	corrID := id.NewCorrelationID()
 
 	events, err := Single(
 		"user.created",
-		aggID,
+		streamID,
 		"User",
 		Version(1),
 		struct{ Name string }{Name: "Bob"},

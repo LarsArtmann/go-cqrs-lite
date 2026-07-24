@@ -116,21 +116,22 @@ func TestSQLEventStore_LoadBackwards_Success(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evtID1 := id.NewEventID()
 	evtID2 := id.NewEventID()
 	ts := time.Now().Truncate(time.Microsecond)
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadBackwardsQuery)).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()).
-			AddRow(evtID2.String(), "UserUpdated", "User", aggID.String(), 2, 1, nil, "", nil, ts).
-			AddRow(evtID1.String(), "UserCreated", "User", aggID.String(), 1, 1, nil, "", nil, ts))
+			AddRow(evtID2.String(), "UserUpdated", "User", streamID.String(), 2, 1, nil, "", nil, ts).
+			AddRow(evtID1.String(), "UserCreated", "User", streamID.String(), 1, 1, nil, "", nil, ts),
+		)
 
 	backwardsLoader := event.BackwardsSource(store)
 	events, err := backwardsLoader.LoadBackwards(
 		context.Background(),
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 	)
 	if err != nil {
 		t.Fatalf("LoadBackwards: %v", err)
@@ -148,16 +149,16 @@ func TestSQLEventStore_LoadBackwards_NotFound(t *testing.T) {
 	t.Parallel()
 
 	store, mock := newTestStore(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadBackwardsQuery)).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnRows(sqlmock.NewRows(eventColumns()))
 
 	backwardsLoader := event.BackwardsSource(store)
 	_, err := backwardsLoader.LoadBackwards(
 		context.Background(),
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 	)
 	if !errors.Is(err, event.ErrStreamNotFound) {
 		t.Fatalf("expected ErrStreamNotFound, got %v", err)

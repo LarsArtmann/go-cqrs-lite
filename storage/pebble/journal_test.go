@@ -29,12 +29,12 @@ func TestEventStore_ReadAll_SingleStream(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Issue", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", streamID)
 
 	now := time.Now()
-	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
-	evt2 := cfg.NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
+	evt1 := cfg.NewTestEvent(t, streamID, 1, event.WithOccurredAt(now))
+	evt2 := cfg.NewTestEvent(t, streamID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
 
 	err := store.Save(context.Background(), ref, []event.Event{evt1, evt2}, event.Version(0))
 	if err != nil {
@@ -78,7 +78,7 @@ func TestEventStore_ReadAll_MultipleStreams(t *testing.T) {
 		event.Version(0),
 	)
 	if err != nil {
-		t.Fatalf("Save agg1: %v", err)
+		t.Fatalf("Save stream1: %v", err)
 	}
 
 	err = store.Save(
@@ -88,7 +88,7 @@ func TestEventStore_ReadAll_MultipleStreams(t *testing.T) {
 		event.Version(0),
 	)
 	if err != nil {
-		t.Fatalf("Save agg2: %v", err)
+		t.Fatalf("Save stream2: %v", err)
 	}
 
 	events, err := store.ReadAll(context.Background())
@@ -113,13 +113,13 @@ func saveThreeTimestampedEvents(t *testing.T) (*EventStore, event.Event, event.E
 	t.Helper()
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Issue", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", streamID)
 
 	now := time.Now()
-	evt1 := cfg.NewTestEvent(t, aggID, 1, event.WithOccurredAt(now))
-	evt2 := cfg.NewTestEvent(t, aggID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
-	evt3 := cfg.NewTestEvent(t, aggID, 3, event.WithOccurredAt(now.Add(2*time.Nanosecond)))
+	evt1 := cfg.NewTestEvent(t, streamID, 1, event.WithOccurredAt(now))
+	evt2 := cfg.NewTestEvent(t, streamID, 2, event.WithOccurredAt(now.Add(time.Nanosecond)))
+	evt3 := cfg.NewTestEvent(t, streamID, 3, event.WithOccurredAt(now.Add(2*time.Nanosecond)))
 
 	if err := store.Save(
 		context.Background(),
@@ -180,10 +180,10 @@ func TestEventStore_ReadFrom_ZeroEventID(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Issue", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", streamID)
 
-	evt := cfg.NewTestEvent(t, aggID, 1)
+	evt := cfg.NewTestEvent(t, streamID, 1)
 
 	err := store.Save(context.Background(), ref, []event.Event{evt}, event.Version(0))
 	if err != nil {
@@ -205,10 +205,10 @@ func TestEventStore_ReadFrom_UnknownEventID(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Issue", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", streamID)
 
-	evt := cfg.NewTestEvent(t, aggID, 1)
+	evt := cfg.NewTestEvent(t, streamID, 1)
 
 	err := store.Save(context.Background(), ref, []event.Event{evt}, event.Version(0))
 	if err != nil {
@@ -231,10 +231,10 @@ func TestEventStore_Journal_AppendBatch(t *testing.T) {
 
 	store := newPebbleTestStore(t)
 	cfg := issueStoreConfig()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Issue", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Issue", streamID)
 
-	evt := cfg.NewTestEvent(t, aggID, 1)
+	evt := cfg.NewTestEvent(t, streamID, 1)
 
 	err := store.AppendBatch(context.Background(), ref, []event.Event{evt})
 	if err != nil {

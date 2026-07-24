@@ -13,14 +13,14 @@ import (
 func TestCommandRoundTrip(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	correlationID := id.NewCorrelationID()
 	causationID := id.NewCausationID()
 	userID := id.NewUserID()
 	requestID := id.NewRequestID()
 
 	original, err := command.New(
-		"user.create", aggID,
+		"user.create", streamID,
 		command.WithCorrelationID(correlationID),
 		command.WithCausationID(causationID),
 		command.WithUserID(userID),
@@ -38,7 +38,7 @@ func TestCommandRoundTrip(t *testing.T) {
 		t.Fatalf("command_type: got %q, want %q",
 			msg.Metadata.Get("command_type"), "user.create")
 	}
-	if msg.Metadata.Get("aggregate_id") != aggID.String() {
+	if msg.Metadata.Get("aggregate_id") != streamID.String() {
 		t.Fatalf("aggregate_id mismatch")
 	}
 	if msg.Metadata.Get("correlation_id") != correlationID.String() {
@@ -120,9 +120,9 @@ func TestMessageToCommand_EmptyType(t *testing.T) {
 func TestMessageToCommand_TopicFallback(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	msg := message.NewMessage("test-3", nil)
-	msg.Metadata.Set("aggregate_id", aggID.String())
+	msg.Metadata.Set("aggregate_id", streamID.String())
 
 	cmd, err := wm.MessageToCommand("user.delete", msg)
 	if err != nil {
@@ -137,8 +137,8 @@ func TestMessageToCommand_TopicFallback(t *testing.T) {
 func TestCommandToMessage_NoMetadata(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
-	cmd, err := command.New("user.create", aggID)
+	streamID := id.NewStreamID()
+	cmd, err := command.New("user.create", streamID)
 	if err != nil {
 		t.Fatalf("create command: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestCommandToMessage_NoMetadata(t *testing.T) {
 	if msg.Metadata.Get("command_type") != "user.create" {
 		t.Fatalf("command_type mismatch")
 	}
-	if msg.Metadata.Get("aggregate_id") != aggID.String() {
+	if msg.Metadata.Get("aggregate_id") != streamID.String() {
 		t.Fatalf("aggregate_id mismatch")
 	}
 	if msg.Metadata.Get("correlation_id") != "" {
@@ -162,8 +162,8 @@ func TestCommandToMessage_NoMetadata(t *testing.T) {
 func TestCommandToMessage_GeneratesCommandID(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
-	cmd, _ := command.New("user.create", aggID)
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("user.create", streamID)
 
 	msg := wm.CommandToMessage(cmd)
 
@@ -182,8 +182,8 @@ func TestCommandToMessage_GeneratesCommandID(t *testing.T) {
 func TestCommandToMessage_StableID(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
-	cmd, _ := command.New("user.create", aggID)
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("user.create", streamID)
 
 	msg1 := wm.CommandToMessage(cmd)
 	msg2 := wm.CommandToMessage(cmd)
@@ -194,7 +194,7 @@ func TestCommandToMessage_StableID(t *testing.T) {
 	}
 
 	// Different command instances → different UUIDs (auto-minted in New).
-	cmd2, _ := command.New("user.create", aggID)
+	cmd2, _ := command.New("user.create", streamID)
 	msg3 := wm.CommandToMessage(cmd2)
 	if msg1.UUID == msg3.UUID {
 		t.Fatal("different command instances should have different command IDs")
@@ -204,8 +204,8 @@ func TestCommandToMessage_StableID(t *testing.T) {
 func TestCommandRoundTrip_MinimalCommand(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
-	original, err := command.New("noop", aggID)
+	streamID := id.NewStreamID()
+	original, err := command.New("noop", streamID)
 	if err != nil {
 		t.Fatalf("create command: %v", err)
 	}
@@ -219,7 +219,7 @@ func TestCommandRoundTrip_MinimalCommand(t *testing.T) {
 	if reconstructed.Type() != "noop" {
 		t.Fatalf("type mismatch")
 	}
-	if reconstructed.StreamID() != aggID {
+	if reconstructed.StreamID() != streamID {
 		t.Fatalf("aggregate_id mismatch")
 	}
 }
@@ -227,9 +227,9 @@ func TestCommandRoundTrip_MinimalCommand(t *testing.T) {
 func TestCommandRoundTrip_MultipleCustomMetadata(t *testing.T) {
 	t.Parallel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	original, err := command.New(
-		"bulk.op", aggID,
+		"bulk.op", streamID,
 		command.WithCustomMetadata("k1", "v1"),
 		command.WithCustomMetadata("k2", "v2"),
 		command.WithCustomMetadata("k3", "v3"),

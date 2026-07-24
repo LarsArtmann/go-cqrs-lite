@@ -187,10 +187,10 @@ func TestSSEHandler_EventFilter(t *testing.T) {
 	rec, stop := startSSE(broker, "filter", "")
 	time.Sleep(50 * time.Millisecond)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	accepted, _ := event.NewEvent("user.created", aggID, "User", 1, []byte(`{"n":"alice"}`))
-	rejected, _ := event.NewEvent("order.placed", aggID, "Order", 1, []byte(`{"item":"book"}`))
+	accepted, _ := event.NewEvent("user.created", streamID, "User", 1, []byte(`{"n":"alice"}`))
+	rejected, _ := event.NewEvent("order.placed", streamID, "Order", 1, []byte(`{"item":"book"}`))
 
 	_ = bus.Publish(context.Background(), accepted)
 	_ = bus.Publish(context.Background(), rejected)
@@ -337,8 +337,8 @@ func TestSSEHandler_PayloadTransform_Live(t *testing.T) {
 	rec, stop := startSSE(broker, "xform-live", "")
 	time.Sleep(50 * time.Millisecond)
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("user.created", aggID, "User", 1, []byte(`{"raw":"cbor-bytes"}`))
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("user.created", streamID, "User", 1, []byte(`{"raw":"cbor-bytes"}`))
 	_ = bus.Publish(context.Background(), evt)
 
 	time.Sleep(100 * time.Millisecond)
@@ -395,12 +395,12 @@ func TestSSEHandler_PayloadTransform_CBOR_ToJSON_BrowserFlow(t *testing.T) {
 	rec, stop := startSSE(broker, "cbor-json", "")
 	time.Sleep(50 * time.Millisecond)
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	typed := struct {
 		Name string `cbor:"name"`
 	}{Name: "alice-cbor"}
 
-	evt, err := event.New("user.created", aggID, "User", 1, typed)
+	evt, err := event.New("user.created", streamID, "User", 1, typed)
 	if err != nil {
 		t.Fatalf("event.New: %v", err)
 	}

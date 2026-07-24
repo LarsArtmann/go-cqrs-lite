@@ -30,10 +30,10 @@ func TestVersionedSeekableJournal_NoUpcasters(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt, _ := event.NewEvent("test.event", aggID, "Test", event.Version(1), []byte("payload"))
-	saveTestEvents(t, ctx, store, aggID, evt)
+	evt, _ := event.NewEvent("test.event", streamID, "Test", event.Version(1), []byte("payload"))
+	saveTestEvents(t, ctx, store, streamID, evt)
 
 	journal, err := schema.NewVersionedSeekableJournal(store)
 	if err != nil {
@@ -57,13 +57,13 @@ func TestVersionedSeekableJournal_ReadAll_Upcast(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt, _ := event.NewEvent(
-		"test.upcast", aggID, "Test", event.Version(1), []byte("v1"),
+		"test.upcast", streamID, "Test", event.Version(1), []byte("v1"),
 		event.WithSchemaVersion(1),
 	)
-	saveTestEvents(t, ctx, store, aggID, evt)
+	saveTestEvents(t, ctx, store, streamID, evt)
 
 	journal, err := schema.NewVersionedSeekableJournal(store, versionUpcaster{})
 	if err != nil {
@@ -95,17 +95,17 @@ func TestVersionedSeekableJournal_ReadFrom_upcast(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt1, _ := event.NewEvent(
-		"test.upcast", aggID, "Test", event.Version(1), []byte("v1"),
+		"test.upcast", streamID, "Test", event.Version(1), []byte("v1"),
 		event.WithSchemaVersion(1),
 	)
 	evt2, _ := event.NewEvent(
-		"test.upcast", aggID, "Test", event.Version(2), []byte("v1"),
+		"test.upcast", streamID, "Test", event.Version(2), []byte("v1"),
 		event.WithSchemaVersion(1),
 	)
-	saveTestEvents(t, ctx, store, aggID, evt1, evt2)
+	saveTestEvents(t, ctx, store, streamID, evt1, evt2)
 
 	journal, err := schema.NewVersionedSeekableJournal(store, versionUpcaster{})
 	if err != nil {
@@ -133,13 +133,13 @@ func TestVersionedSeekableJournal_ReadAll_upcastError(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt, _ := event.NewEvent(
-		"test.upcast", aggID, "Test", event.Version(1), []byte("v1"),
+		"test.upcast", streamID, "Test", event.Version(1), []byte("v1"),
 		event.WithSchemaVersion(1),
 	)
-	saveTestEvents(t, ctx, store, aggID, evt)
+	saveTestEvents(t, ctx, store, streamID, evt)
 
 	journal, err := schema.NewVersionedSeekableJournal(store, &failingUpcaster{})
 	if err != nil {
@@ -159,17 +159,17 @@ func TestVersionedSeekableJournal_ReadFrom_upcastError(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt1, _ := event.NewEvent(
-		"test.upcast", aggID, "Test", event.Version(1), []byte("v1"),
+		"test.upcast", streamID, "Test", event.Version(1), []byte("v1"),
 		event.WithSchemaVersion(1),
 	)
 	evt2, _ := event.NewEvent(
-		"test.upcast", aggID, "Test", event.Version(2), []byte("v1"),
+		"test.upcast", streamID, "Test", event.Version(2), []byte("v1"),
 		event.WithSchemaVersion(1),
 	)
-	saveTestEvents(t, ctx, store, aggID, evt1, evt2)
+	saveTestEvents(t, ctx, store, streamID, evt1, evt2)
 
 	journal, err := schema.NewVersionedSeekableJournal(store, &failingUpcaster{})
 	if err != nil {

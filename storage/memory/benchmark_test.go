@@ -12,10 +12,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
-func benchEvent(tb testing.TB, aggID id.StreamID, v event.Version) event.Event {
+func benchEvent(tb testing.TB, streamID id.StreamID, v event.Version) event.Event {
 	tb.Helper()
 
-	evt, err := event.NewEvent("BenchEvent", aggID, "Bench", v, nil)
+	evt, err := event.NewEvent("BenchEvent", streamID, "Bench", v, nil)
 	if err != nil {
 		tb.Fatalf("NewEvent: %v", err)
 	}
@@ -29,14 +29,14 @@ func BenchmarkMemoryStore_Save(b *testing.B) {
 	store := memory.NewMemoryStore()
 	b.Cleanup(func() { _ = store.Close() })
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	ctx := context.Background()
-	ref := id.NewStreamRef("Bench", aggID)
+	ref := id.NewStreamRef("Bench", streamID)
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		evt := benchEvent(b, aggID, 1)
+		evt := benchEvent(b, streamID, 1)
 		_ = store.Save(ctx, ref, []event.Event{evt}, 1)
 	}
 }
@@ -47,12 +47,12 @@ func BenchmarkMemoryStore_Load(b *testing.B) {
 	store := memory.NewMemoryStore()
 	b.Cleanup(func() { _ = store.Close() })
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	ctx := context.Background()
-	ref := id.NewStreamRef("Bench", aggID)
+	ref := id.NewStreamRef("Bench", streamID)
 
 	for i := range 100 {
-		evt := benchEvent(b, aggID, event.Version(i+1))
+		evt := benchEvent(b, streamID, event.Version(i+1))
 		_ = store.AppendBatch(ctx, ref, []event.Event{evt})
 	}
 
@@ -88,8 +88,8 @@ func BenchmarkMemoryBus_Publish(b *testing.B) {
 
 	_ = bus.SubscribeAll(func(_ context.Context, _ event.Event) error { return nil })
 
-	aggID := id.NewStreamID()
-	evt := benchEvent(b, aggID, 1)
+	streamID := id.NewStreamID()
+	evt := benchEvent(b, streamID, 1)
 	ctx := context.Background()
 
 	b.ResetTimer()
@@ -157,8 +157,8 @@ func BenchmarkMemoryBus_Publish_10Subscribers(b *testing.B) {
 		_ = bus.SubscribeAll(func(_ context.Context, _ event.Event) error { return nil })
 	}
 
-	aggID := id.NewStreamID()
-	evt := benchEvent(b, aggID, 1)
+	streamID := id.NewStreamID()
+	evt := benchEvent(b, streamID, 1)
 	ctx := context.Background()
 
 	b.ResetTimer()

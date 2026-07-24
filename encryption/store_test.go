@@ -14,7 +14,7 @@ func TestEncryptedStore_SaveAndLoad(t *testing.T) {
 
 	env := newEncTestEnv(t)
 
-	evt, err := event.NewEvent("UserCreated", env.aggID, "User", 1,
+	evt, err := event.NewEvent("UserCreated", env.streamID, "User", 1,
 		[]byte(`{"name":"Alice","email":"alice@example.com"}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
@@ -44,7 +44,7 @@ func TestEncryptedStore_WithKeyID(t *testing.T) {
 
 	env := newEncTestEnv(t, WithMiddlewareKeyID("key-v1"))
 
-	evt, _ := event.NewEvent("UserCreated", env.aggID, "User", 1, []byte(`{"secret":true}`))
+	evt, _ := event.NewEvent("UserCreated", env.streamID, "User", 1, []byte(`{"secret":true}`))
 
 	ctx := context.Background()
 	_ = env.store.Save(ctx, env.ref, []event.Event{evt}, 0)
@@ -69,8 +69,8 @@ func TestEncryptedStore_LoadFromVersion(t *testing.T) {
 
 	env := newEncTestEnv(t)
 
-	evt1, _ := event.NewEvent("Created", env.aggID, "User", 1, []byte(`{"a":1}`))
-	evt2, _ := event.NewEvent("Updated", env.aggID, "User", 2, []byte(`{"a":2}`))
+	evt1, _ := event.NewEvent("Created", env.streamID, "User", 1, []byte(`{"a":1}`))
+	evt2, _ := event.NewEvent("Updated", env.streamID, "User", 2, []byte(`{"a":2}`))
 
 	ctx := context.Background()
 	_ = env.store.Save(ctx, env.ref, []event.Event{evt1, evt2}, 0)
@@ -94,8 +94,8 @@ func TestEncryptedStore_LoadToVersion(t *testing.T) {
 
 	env := newEncTestEnv(t)
 
-	evt1, _ := event.NewEvent("Created", env.aggID, "User", 1, []byte(`{"x":1}`))
-	evt2, _ := event.NewEvent("Updated", env.aggID, "User", 2, []byte(`{"x":2}`))
+	evt1, _ := event.NewEvent("Created", env.streamID, "User", 1, []byte(`{"x":1}`))
+	evt2, _ := event.NewEvent("Updated", env.streamID, "User", 2, []byte(`{"x":2}`))
 
 	ctx := context.Background()
 	_ = env.store.Save(ctx, env.ref, []event.Event{evt1, evt2}, 0)
@@ -115,7 +115,7 @@ func TestEncryptedStore_LoadToTimestamp(t *testing.T) {
 
 	env := newEncTestEnv(t)
 
-	evt, _ := event.NewEvent("Created", env.aggID, "User", 1, []byte(`{}`))
+	evt, _ := event.NewEvent("Created", env.streamID, "User", 1, []byte(`{}`))
 
 	ctx := context.Background()
 	_ = env.store.Save(ctx, env.ref, []event.Event{evt}, 0)
@@ -135,7 +135,7 @@ func TestEncryptedStore_AppendBatch(t *testing.T) {
 
 	env := newEncTestEnv(t)
 
-	evt, _ := event.NewEvent("Created", env.aggID, "User", 1, []byte(`{"batch":true}`))
+	evt, _ := event.NewEvent("Created", env.streamID, "User", 1, []byte(`{"batch":true}`))
 
 	ctx := context.Background()
 	if err := env.store.AppendBatch(ctx, env.ref, []event.Event{evt}); err != nil {
@@ -161,7 +161,7 @@ func TestEncryptedStore_EmptyPayload(t *testing.T) {
 
 	env := newEncTestEnv(t)
 
-	evt, _ := event.NewEvent("Tombstoned", env.aggID, "User", 1, []byte{})
+	evt, _ := event.NewEvent("Tombstoned", env.streamID, "User", 1, []byte{})
 
 	ctx := context.Background()
 	_ = env.store.Save(ctx, env.ref, []event.Event{evt}, 0)
@@ -181,7 +181,7 @@ func TestEncryptedStore_ReadAll(t *testing.T) {
 
 	env := newEncTestEnv(t)
 
-	evt, _ := event.NewEvent("UserCreated", env.aggID, "User", 1,
+	evt, _ := event.NewEvent("UserCreated", env.streamID, "User", 1,
 		[]byte(`{"name":"Alice"}`))
 
 	ctx := context.Background()
@@ -206,7 +206,7 @@ func TestEncryptedStore_ReadFrom(t *testing.T) {
 
 	env := newEncTestEnv(t)
 
-	evt, _ := event.NewEvent("UserCreated", env.aggID, "User", 1,
+	evt, _ := event.NewEvent("UserCreated", env.streamID, "User", 1,
 		[]byte(`{"name":"Bob"}`))
 
 	ctx := context.Background()

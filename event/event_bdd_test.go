@@ -19,28 +19,28 @@ import (
 func initMemoryStoreTest(
 	ctx *context.Context,
 	store **memory.MemoryStore,
-	aggID *id.StreamID,
-	aggType *id.StreamType,
+	streamID *id.StreamID,
+	streamType *id.StreamType,
 	typ id.StreamType,
 ) {
 	*ctx = context.Background()
 	*store = memory.NewMemoryStore()
-	*aggID = id.NewStreamID()
-	*aggType = typ
+	*streamID = id.NewStreamID()
+	*streamType = typ
 }
 
 var _ = Describe("Event Creation", func() {
 	Describe("As a developer building domain events", func() {
 		Context("when I create a fully populated event", func() {
 			It("should preserve every field and auto-generate ID and timestamp", func() {
-				aggID := id.NewStreamID()
+				streamID := id.NewStreamID()
 				corrID := id.NewCorrelationID()
 				causeID := id.NewCausationID()
 				userID := id.NewUserID()
 				reqID := id.NewRequestID()
 
 				evt, err := event.NewEvent(
-					"UserRegistered", aggID, "User", 1,
+					"UserRegistered", streamID, "User", 1,
 					[]byte(`{"email":"alice@example.com"}`),
 					event.WithCorrelationID(corrID),
 					event.WithCausationID(causeID),
@@ -52,7 +52,7 @@ var _ = Describe("Event Creation", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(evt.Type()).To(Equal(event.Type("UserRegistered")))
-				Expect(evt.StreamID()).To(Equal(aggID))
+				Expect(evt.StreamID()).To(Equal(streamID))
 				Expect(evt.StreamType()).To(Equal(id.StreamType("User")))
 				Expect(evt.Version()).To(Equal(event.Version(1)))
 				Expect(evt.Payload()).To(Equal([]byte(`{"email":"alice@example.com"}`)))
@@ -72,11 +72,11 @@ var _ = Describe("Event Creation", func() {
 
 		DescribeTable(
 			"validation rejects invalid inputs",
-			func(typ string, aggID id.StreamID, aggType string, version event.Version, wantErr string) {
+			func(typ string, streamID id.StreamID, streamType string, version event.Version, wantErr string) {
 				_, err := event.NewEvent(
 					event.Type(typ),
-					aggID,
-					id.StreamType(aggType),
+					streamID,
+					id.StreamType(streamType),
 					version,
 					nil,
 				)
@@ -146,19 +146,19 @@ var _ = Describe("Event Creation", func() {
 
 var _ = Describe("Event Store via MemoryStore", func() {
 	var (
-		ctx     context.Context
-		store   *memory.MemoryStore
-		aggID   id.StreamID
-		aggType id.StreamType
+		ctx        context.Context
+		store      *memory.MemoryStore
+		streamID   id.StreamID
+		streamType id.StreamType
 	)
 
 	BeforeEach(func() {
-		initMemoryStoreTest(&ctx, &store, &aggID, &aggType, id.StreamType("Order"))
+		initMemoryStoreTest(&ctx, &store, &streamID, &streamType, id.StreamType("Order"))
 	})
 
 	savePlaced := func(expectedVersion event.Version) {
-		Expect(store.Save(ctx, id.NewStreamRef(aggType, aggID), []event.Event{
-			mustNewEvent("OrderPlaced", aggID, aggType, 1),
+		Expect(store.Save(ctx, id.NewStreamRef(streamType, streamID), []event.Event{
+			mustNewEvent("OrderPlaced", streamID, streamType, 1),
 		}, expectedVersion)).To(Succeed())
 	}
 
@@ -166,13 +166,13 @@ var _ = Describe("Event Store via MemoryStore", func() {
 		Context("when I save events for a new stream", func() {
 			It("should persist them with correct versioning", func() {
 				events := []event.Event{
-					mustNewEvent("OrderPlaced", aggID, aggType, 1),
+					mustNewEvent("OrderPlaced", streamID, streamType, 1),
 				}
 				Expect(
-					store.Save(ctx, id.NewStreamRef(aggType, aggID), events, 0),
+					store.Save(ctx, id.NewStreamRef(streamType, streamID), events, 0),
 				).To(Succeed())
 
-				loaded, err := store.Load(ctx, id.NewStreamRef(aggType, aggID))
+				loaded, err := store.Load(ctx, id.NewStreamRef(streamType, streamID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(1))
 				Expect(loaded[0].Version()).To(Equal(event.Version(1)))
@@ -183,8 +183,8 @@ var _ = Describe("Event Store via MemoryStore", func() {
 			It("should detect the version conflict", func() {
 				savePlaced(0)
 
-				err := store.Save(ctx, id.NewStreamRef(aggType, aggID), []event.Event{
-					mustNewEvent("OrderConfirmed", aggID, aggType, 2),
+				err := store.Save(ctx, id.NewStreamRef(streamType, streamID), []event.Event{
+					mustNewEvent("OrderConfirmed", streamID, streamType, 2),
 				}, 0)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("version conflict"))
@@ -197,17 +197,17 @@ var _ = Describe("Event Store via MemoryStore", func() {
 				func() {
 					savePlaced(0)
 
-					err := store.Save(ctx, id.NewStreamRef(aggType, aggID), []event.Event{
-						mustNewEvent("OrderConfirmed", aggID, aggType, 2),
+					err := store.Save(ctx, id.NewStreamRef(streamType, streamID), []event.Event{
+						mustNewEvent("OrderConfirmed", streamID, streamType, 2),
 					}, 0)
 					Expect(err).To(HaveOccurred())
 
-					loaded, loadErr := store.Load(ctx, id.NewStreamRef(aggType, aggID))
+					loaded, loadErr := store.Load(ctx, id.NewStreamRef(streamType, streamID))
 					Expect(loadErr).ToNot(HaveOccurred())
 					currentVersion := len(loaded)
 
-					Expect(store.Save(ctx, id.NewStreamRef(aggType, aggID), []event.Event{
-						mustNewEvent("OrderConfirmed", aggID, aggType, 2),
+					Expect(store.Save(ctx, id.NewStreamRef(streamType, streamID), []event.Event{
+						mustNewEvent("OrderConfirmed", streamID, streamType, 2),
 					}, event.Version(currentVersion))).To(Succeed())
 				},
 			)
@@ -223,8 +223,8 @@ var _ = Describe("Event Store via MemoryStore", func() {
 				func() {
 					Expect(store.Close()).To(Succeed())
 
-					err := store.Save(ctx, id.NewStreamRef(aggType, aggID), []event.Event{
-						mustNewEvent("OrderConfirmed", aggID, aggType, 2),
+					err := store.Save(ctx, id.NewStreamRef(streamType, streamID), []event.Event{
+						mustNewEvent("OrderConfirmed", streamID, streamType, 2),
 					}, 1)
 					Expect(err).To(HaveOccurred())
 				},
@@ -235,21 +235,21 @@ var _ = Describe("Event Store via MemoryStore", func() {
 
 var _ = Describe("Schema Evolution", func() {
 	var (
-		ctx     context.Context
-		store   *memory.MemoryStore
-		aggID   id.StreamID
-		aggType id.StreamType
+		ctx        context.Context
+		store      *memory.MemoryStore
+		streamID   id.StreamID
+		streamType id.StreamType
 	)
 
 	BeforeEach(func() {
-		initMemoryStoreTest(&ctx, &store, &aggID, &aggType, id.StreamType("User"))
+		initMemoryStoreTest(&ctx, &store, &streamID, &streamType, id.StreamType("User"))
 	})
 
 	Describe("As a developer deploying schema v2", func() {
 		Context("when old v1 events are loaded", func() {
 			It("should automatically upcast them to v2", func() {
 				v1Event, err := event.NewEvent(
-					"UserCreated", aggID, "User", 1,
+					"UserCreated", streamID, "User", 1,
 					[]byte(`{"name":"Alice"}`),
 					event.WithSchemaVersion(1),
 				)
@@ -257,7 +257,7 @@ var _ = Describe("Schema Evolution", func() {
 				Expect(
 					store.Save(
 						ctx,
-						id.NewStreamRef(aggType, aggID),
+						id.NewStreamRef(streamType, streamID),
 						[]event.Event{v1Event},
 						0,
 					),
@@ -267,7 +267,7 @@ var _ = Describe("Schema Evolution", func() {
 				versioned, err := schema.NewVersionedStore(store, upcaster)
 				Expect(err).ToNot(HaveOccurred())
 
-				loaded, err := versioned.Load(ctx, id.NewStreamRef(aggType, aggID))
+				loaded, err := versioned.Load(ctx, id.NewStreamRef(streamType, streamID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded).To(HaveLen(1))
 				Expect(loaded[0].SchemaVersion()).To(Equal(event.SchemaVersion(2)))
@@ -280,7 +280,7 @@ var _ = Describe("Schema Evolution", func() {
 				"should skip upcasting and keep my data intact, avoiding unnecessary transformations",
 				func() {
 					v2Event, err := event.NewEvent(
-						"UserCreated", aggID, "User", 1,
+						"UserCreated", streamID, "User", 1,
 						[]byte(`{"name":"Alice","email":"a@b.com"}`),
 						event.WithSchemaVersion(2),
 					)
@@ -288,7 +288,7 @@ var _ = Describe("Schema Evolution", func() {
 					Expect(
 						store.Save(
 							ctx,
-							id.NewStreamRef(aggType, aggID),
+							id.NewStreamRef(streamType, streamID),
 							[]event.Event{v2Event},
 							0,
 						),
@@ -298,7 +298,7 @@ var _ = Describe("Schema Evolution", func() {
 					versioned, err := schema.NewVersionedStore(store, upcaster)
 					Expect(err).ToNot(HaveOccurred())
 
-					loaded, err := versioned.Load(ctx, id.NewStreamRef(aggType, aggID))
+					loaded, err := versioned.Load(ctx, id.NewStreamRef(streamType, streamID))
 					Expect(err).ToNot(HaveOccurred())
 					Expect(loaded[0].SchemaVersion()).To(Equal(event.SchemaVersion(2)))
 					Expect(loaded[0].Payload()).To(ContainSubstring("a@b.com"))
@@ -309,7 +309,7 @@ var _ = Describe("Schema Evolution", func() {
 		Context("when chained upcasters v1→v2→v3 are registered", func() {
 			It("should apply them in version order", func() {
 				v1Event, err := event.NewEvent(
-					"UserCreated", aggID, "User", 1,
+					"UserCreated", streamID, "User", 1,
 					[]byte(`{"name":"Alice"}`),
 					event.WithSchemaVersion(1),
 				)
@@ -317,7 +317,7 @@ var _ = Describe("Schema Evolution", func() {
 				Expect(
 					store.Save(
 						ctx,
-						id.NewStreamRef(aggType, aggID),
+						id.NewStreamRef(streamType, streamID),
 						[]event.Event{v1Event},
 						0,
 					),
@@ -336,7 +336,7 @@ var _ = Describe("Schema Evolution", func() {
 				versioned, err := schema.NewVersionedStore(store, upcasterV1toV2, upcasterV2toV3)
 				Expect(err).ToNot(HaveOccurred())
 
-				loaded, err := versioned.Load(ctx, id.NewStreamRef(aggType, aggID))
+				loaded, err := versioned.Load(ctx, id.NewStreamRef(streamType, streamID))
 				Expect(err).ToNot(HaveOccurred())
 				Expect(loaded[0].SchemaVersion()).To(Equal(event.SchemaVersion(3)))
 				Expect(loaded[0].Payload()).To(ContainSubstring("fullName"))
@@ -349,12 +349,12 @@ var _ = Describe("Gomega Matcher Adoption", func() {
 	Describe("As a developer comparing event payloads", func() {
 		Context("when JSON payloads have different key ordering", func() {
 			It("should match semantically using MatchJSON regardless of field order", func() {
-				aggID := id.NewStreamID()
-				evt1, err := event.NewEvent("UserCreated", aggID, "User", 1,
+				streamID := id.NewStreamID()
+				evt1, err := event.NewEvent("UserCreated", streamID, "User", 1,
 					[]byte(`{"name":"Alice","email":"a@b.com"}`))
 				Expect(err).ToNot(HaveOccurred())
 
-				evt2, err := event.NewEvent("UserCreated", aggID, "User", 1,
+				evt2, err := event.NewEvent("UserCreated", streamID, "User", 1,
 					[]byte(`{"email":"a@b.com","name":"Alice"}`))
 				Expect(err).ToNot(HaveOccurred())
 
@@ -366,11 +366,11 @@ var _ = Describe("Gomega Matcher Adoption", func() {
 	Describe("As a developer checking event types unordered", func() {
 		Context("when events arrive in any order", func() {
 			It("should verify types with ConsistOf regardless of ordering", func() {
-				aggID := id.NewStreamID()
+				streamID := id.NewStreamID()
 				events := []event.Event{
-					mustNewEvent("UserCreated", aggID, "User", 1),
-					mustNewEvent("UserUpdated", aggID, "User", 2),
-					mustNewEvent("UserDeleted", aggID, "User", 3),
+					mustNewEvent("UserCreated", streamID, "User", 1),
+					mustNewEvent("UserUpdated", streamID, "User", 2),
+					mustNewEvent("UserDeleted", streamID, "User", 3),
 				}
 
 				types := make([]event.Type, len(events))
@@ -421,11 +421,11 @@ var _ = Describe("Error Classification", func() {
 
 func mustNewEvent(
 	eventType event.Type,
-	aggID id.StreamID,
-	aggType id.StreamType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	version event.Version,
 ) event.Event {
-	evt, err := event.NewEvent(eventType, aggID, aggType, version, []byte(`{}`))
+	evt, err := event.NewEvent(eventType, streamID, streamType, version, []byte(`{}`))
 	Expect(err).ToNot(HaveOccurred())
 
 	return evt

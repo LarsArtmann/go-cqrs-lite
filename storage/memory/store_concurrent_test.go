@@ -24,7 +24,7 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 	wg.Add(goroutines * 2)
 
 	for i := range goroutines {
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 
 		go func() {
 			defer wg.Done()
@@ -32,14 +32,14 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 			for idx := range eventsPerGoroutine {
 				evt := eventtest.QuickEvent(
 					"UserCreated",
-					aggID,
+					streamID,
 					"User",
 					event.Version(idx+1),
 					nil,
 				)
 				_ = store.Save(
 					ctx,
-					id.NewStreamRef(id.StreamType("User"), aggID),
+					id.NewStreamRef(id.StreamType("User"), streamID),
 					[]event.Event{evt},
 					event.Version(idx),
 				)
@@ -50,7 +50,7 @@ func TestMemoryStore_ConcurrentSaveAndLoad(t *testing.T) {
 			defer wg.Done()
 
 			for range eventsPerGoroutine {
-				_, _ = store.Load(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
+				_, _ = store.Load(ctx, id.NewStreamRef(id.StreamType("User"), streamID))
 			}
 		}()
 
@@ -66,12 +66,12 @@ func TestMemoryStore_ReadFrom_ZeroID(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.NewStreamID()
-	evt := eventtest.QuickEvent("Created", aggID, "User", 1, nil)
+	streamID := id.NewStreamID()
+	evt := eventtest.QuickEvent("Created", streamID, "User", 1, nil)
 
 	_ = store.AppendBatch(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		[]event.Event{evt},
 	)
 
@@ -86,8 +86,8 @@ func TestMemoryStore_ReadFrom_WithLimit(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := id.NewStreamID()
-	seedTestEvents(t, store, ctx, aggID, 5)
+	streamID := id.NewStreamID()
+	seedTestEvents(t, store, ctx, streamID, 5)
 
 	events, err := store.ReadFrom(ctx, id.EventID{}, 3)
 	eventtest.AssertNoError(t, err, "ReadFrom with limit")

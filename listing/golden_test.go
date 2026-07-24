@@ -18,8 +18,8 @@ import (
 var update = flag.Bool("update", false, "update golden files")
 
 func testListingStatus(
-	aggID id.StreamID,
-	aggType string,
+	streamID id.StreamID,
+	streamType string,
 	v int,
 	evtCount int,
 	lastEventAt time.Time,
@@ -27,8 +27,8 @@ func testListingStatus(
 ) listing.StreamStatus {
 	return listing.StreamStatus{
 		Ref: listing.StreamListing{
-			ID:          aggID,
-			Type:        id.StreamType(aggType),
+			ID:          streamID,
+			Type:        id.StreamType(streamType),
 			Version:     event.Version(v),
 			EventCount:  uint(evtCount),
 			LastEventAt: lastEventAt,
@@ -38,11 +38,11 @@ func testListingStatus(
 }
 
 func TestGolden_StreamStatusJSON(t *testing.T) {
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	statuses := []listing.StreamStatus{
 		testListingStatus(
-			aggID,
+			streamID,
 			"User",
 			10,
 			10,
@@ -50,7 +50,7 @@ func TestGolden_StreamStatusJSON(t *testing.T) {
 			event.TombstoneActive,
 		),
 		testListingStatus(
-			aggID,
+			streamID,
 			"Order",
 			5,
 			5,
@@ -59,7 +59,7 @@ func TestGolden_StreamStatusJSON(t *testing.T) {
 		),
 		{
 			Ref: listing.StreamListing{
-				ID:          aggID,
+				ID:          streamID,
 				Type:        "Cart",
 				Version:     event.Version(0),
 				EventCount:  0,
@@ -83,12 +83,12 @@ func TestGolden_StreamStatusJSON(t *testing.T) {
 }
 
 func TestGolden_PageJSON(t *testing.T) {
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	page := listing.Page[listing.StreamStatus]{
 		Items: []listing.StreamStatus{
 			testListingStatus(
-				aggID,
+				streamID,
 				"User",
 				3,
 				3,

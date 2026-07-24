@@ -125,7 +125,7 @@ func TestDecodePayload(t *testing.T) {
 	t.Parallel()
 
 	codec := codecpkg.JSONCodec{}
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	type userPayload struct {
 		Name  string `json:"name"`
@@ -134,7 +134,7 @@ func TestDecodePayload(t *testing.T) {
 
 	evt, err := event.NewEvent(
 		"UserCreated",
-		aggID,
+		streamID,
 		"User",
 		1,
 		[]byte(`{"name":"Alice","email":"alice@example.com"}`),
@@ -161,9 +161,9 @@ func TestDecodePayload_EmptyPayload(t *testing.T) {
 	t.Parallel()
 
 	codec := codecpkg.JSONCodec{}
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := event.NewEvent("UserDeleted", aggID, "User", 1, nil)
+	evt, err := event.NewEvent("UserDeleted", streamID, "User", 1, nil)
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -180,9 +180,9 @@ func TestDecodePayload_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
 	codec := codecpkg.JSONCodec{}
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{broken`))
+	evt, err := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{broken`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -202,9 +202,9 @@ func (failingCodec) Decode(_ []byte, _ any) error { return errors.New("decode fa
 func TestDecodePayload_CodecError(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
+	evt, err := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -219,7 +219,7 @@ func TestDecodePayloads(t *testing.T) {
 	t.Parallel()
 
 	codec := codecpkg.JSONCodec{}
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	type userPayload struct {
 		Name string `json:"name"`
@@ -228,7 +228,7 @@ func TestDecodePayloads(t *testing.T) {
 	events := make([]event.Event, 3)
 	for i := range 3 {
 		evt, err := event.NewEvent(
-			"UserCreated", aggID, "User", event.Version(i+1),
+			"UserCreated", streamID, "User", event.Version(i+1),
 			fmt.Appendf(nil, `{"name":"User%d"}`, i),
 		)
 		if err != nil {
@@ -258,10 +258,10 @@ func TestDecodePayloads(t *testing.T) {
 func TestDecodePayloads_ErrorStopsAtFirst(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	goodEvt, _ := event.NewEvent("Good", aggID, "User", 1, []byte(`{}`))
-	badEvt, _ := event.NewEvent("Bad", aggID, "User", 2, []byte(`{broken`))
+	goodEvt, _ := event.NewEvent("Good", streamID, "User", 1, []byte(`{}`))
+	badEvt, _ := event.NewEvent("Bad", streamID, "User", 2, []byte(`{broken`))
 
 	_, err := event.DecodePayloads[struct{ Name string }](
 		[]event.Event{goodEvt, badEvt},
@@ -275,10 +275,10 @@ func TestDecodePayloads_ErrorStopsAtFirst(t *testing.T) {
 func TestDecodePayload_EncodingMismatch(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent(
-		"UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`),
+		"UserCreated", streamID, "User", 1, []byte(`{"name":"Alice"}`),
 		event.WithEncoding(codecpkg.Encoding("protobuf")),
 	)
 	if err != nil {
@@ -294,12 +294,12 @@ func TestDecodePayload_EncodingMismatch(t *testing.T) {
 func TestDecodePayload_CBORCodec(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	payload := struct{ Name string }{Name: "Alice"}
 
 	evt, err := event.New(
-		"UserCreated", aggID, "User", 1, payload,
+		"UserCreated", streamID, "User", 1, payload,
 		event.WithCodec(codecpkg.CBORCodec{}),
 	)
 	if err != nil {
@@ -323,10 +323,10 @@ func TestDecodePayload_CBORCodec(t *testing.T) {
 func TestDecodePayload_EncodingMatch(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent(
-		"UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`),
+		"UserCreated", streamID, "User", 1, []byte(`{"name":"Alice"}`),
 		event.WithEncoding(codecpkg.EncodingJSON),
 	)
 	if err != nil {
@@ -346,9 +346,9 @@ func TestDecodePayload_EncodingMatch(t *testing.T) {
 func TestEvent_Encoding_DefaultIsJSON(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
+	evt, err := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -361,9 +361,9 @@ func TestEvent_Encoding_DefaultIsJSON(t *testing.T) {
 func TestDecodePayload_JSONEventWithCBORCodec_Rejected(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+	evt, err := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{"name":"Alice"}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -381,10 +381,10 @@ func TestDecodePayload_JSONEventWithCBORCodec_Rejected(t *testing.T) {
 func TestDecodePayload_CBOREventWithJSONCodec_Rejected(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.New(
-		"UserCreated", aggID, "User", 1, struct{ Name string }{Name: "Alice"},
+		"UserCreated", streamID, "User", 1, struct{ Name string }{Name: "Alice"},
 		event.WithCodec(codecpkg.CBORCodec{}),
 	)
 	if err != nil {
@@ -405,9 +405,9 @@ func TestPayloadReadOnly_ReturnsInternalReference(t *testing.T) {
 	t.Parallel()
 
 	payload := []byte(`{"name":"Alice"}`)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, payload)
+	evt, err := event.NewEvent("UserCreated", streamID, "User", 1, payload)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -435,10 +435,10 @@ func TestDefaultCodec_CBORDefaultProducesCBOREvents(t *testing.T) {
 
 	event.DefaultCodec = codecpkg.CBORCodec{}
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.New(
-		"UserCreated", aggID, "User", 1, struct{ Name string }{Name: "Alice"},
+		"UserCreated", streamID, "User", 1, struct{ Name string }{Name: "Alice"},
 	)
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -465,10 +465,10 @@ func TestDefaultCodec_ExplicitWithCodecOverrides(t *testing.T) {
 
 	event.DefaultCodec = codecpkg.CBORCodec{}
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.New(
-		"UserCreated", aggID, "User", 1, struct{ Name string }{Name: "Alice"},
+		"UserCreated", streamID, "User", 1, struct{ Name string }{Name: "Alice"},
 		event.WithCodec(codecpkg.JSONCodec{}),
 	)
 	if err != nil {
@@ -484,10 +484,10 @@ func TestDefaultCodec_ExplicitWithCodecOverrides(t *testing.T) {
 func TestDecodePayloadAuto_JSONEvent(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.New(
-		"UserCreated", aggID, "User", 1,
+		"UserCreated", streamID, "User", 1,
 		struct{ Name string }{Name: "Alice"},
 		event.WithCodec(codecpkg.JSONCodec{}),
 	)
@@ -508,10 +508,10 @@ func TestDecodePayloadAuto_JSONEvent(t *testing.T) {
 func TestDecodePayloadAuto_CBOREvent(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.New(
-		"UserCreated", aggID, "User", 1,
+		"UserCreated", streamID, "User", 1,
 		struct{ Name string }{Name: "Bob"},
 		event.WithCodec(codecpkg.CBORCodec{}),
 	)
@@ -532,11 +532,11 @@ func TestDecodePayloadAuto_CBOREvent(t *testing.T) {
 func TestDecodePayloadAuto_MixedStream(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 	type user struct{ Name string }
 
 	jsonEvt, err := event.New(
-		"UserCreated", aggID, "User", 1, user{Name: "JSON"},
+		"UserCreated", streamID, "User", 1, user{Name: "JSON"},
 		event.WithCodec(codecpkg.JSONCodec{}),
 	)
 	if err != nil {
@@ -544,7 +544,7 @@ func TestDecodePayloadAuto_MixedStream(t *testing.T) {
 	}
 
 	cborEvt, err := event.New(
-		"UserUpdated", aggID, "User", 2, user{Name: "CBOR"},
+		"UserUpdated", streamID, "User", 2, user{Name: "CBOR"},
 		event.WithCodec(codecpkg.CBORCodec{}),
 	)
 	if err != nil {
@@ -577,10 +577,10 @@ func TestDecodePayloadAuto_MixedStream(t *testing.T) {
 func TestDecodePayloadAuto_UnknownEncodingErrors(t *testing.T) {
 	t.Parallel()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	evt, err := event.NewEvent(
-		"UserCreated", aggID, "User", 1, []byte(`{"name":"test"}`),
+		"UserCreated", streamID, "User", 1, []byte(`{"name":"test"}`),
 		event.WithEncoding(codecpkg.Encoding("encrypted")),
 	)
 	if err != nil {

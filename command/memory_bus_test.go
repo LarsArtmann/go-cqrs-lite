@@ -35,8 +35,8 @@ func TestMemoryBus_PublishSubscribe(t *testing.T) {
 		t.Fatalf("SubscribeAll: %v", err)
 	}
 
-	aggID := id.NewStreamID()
-	cmd, err := command.New("user.create", aggID)
+	streamID := id.NewStreamID()
+	cmd, err := command.New("user.create", streamID)
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -74,8 +74,8 @@ func TestMemoryBus_HandlerError(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewStreamID()
-	cmd, _ := command.New("test.cmd", aggID)
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("test.cmd", streamID)
 
 	err := bus.Publish(ctx, cmd)
 	if !errors.Is(err, busError) {
@@ -111,8 +111,8 @@ func TestMemoryBus_Middleware(t *testing.T) {
 		return nil
 	})
 
-	aggID := id.NewStreamID()
-	cmd, _ := command.New("test.cmd", aggID)
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("test.cmd", streamID)
 	_ = bus.Publish(ctx, cmd)
 
 	want := []string{"mw-before", "handler", "mw-after"}

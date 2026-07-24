@@ -61,9 +61,9 @@ func TestExecute_Create(t *testing.T) {
 	t.Parallel()
 
 	repo, _, bus := newTestRepo(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	executeCounter(t, repo, aggID, 0, 0, "CounterCreated", 1)
+	executeCounter(t, repo, streamID, 0, 0, "CounterCreated", 1)
 
 	if len(bus.Published) != 1 {
 		t.Fatalf("expected 1 published event, got %d", len(bus.Published))
@@ -74,22 +74,22 @@ func TestExecute_Update(t *testing.T) {
 	t.Parallel()
 
 	repo, _, _ := newTestRepo(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	executeCounter(t, repo, aggID, 0, 0, "CounterCreated", 1)
-	executeCounter(t, repo, aggID, 1, 1, "CounterIncremented", 2)
+	executeCounter(t, repo, streamID, 0, 0, "CounterCreated", 1)
+	executeCounter(t, repo, streamID, 1, 1, "CounterIncremented", 2)
 }
 
 func TestExecute_DecideError(t *testing.T) {
 	t.Parallel()
 
 	repo, _, _ := newTestRepo(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	decideErr := errors.New("rejection: email required")
 
 	err := repo.Execute(
-		t.Context(), aggID, "Counter",
+		t.Context(), streamID, "Counter",
 		func(_ counterState, version event.Version) ([]event.Event, error) {
 			return nil, decideErr
 		},
@@ -103,15 +103,15 @@ func TestExecute_FoldError(t *testing.T) {
 	t.Parallel()
 
 	repo, store := newFailingRepo(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	existing := makeEvent(t, "CounterCreated", aggID, 1)
-	mustAppendBatch(t, store, "Counter", aggID, []event.Event{existing})
+	existing := makeEvent(t, "CounterCreated", streamID, 1)
+	mustAppendBatch(t, store, "Counter", streamID, []event.Event{existing})
 
 	err := repo.Execute(
-		t.Context(), aggID, "Counter",
+		t.Context(), streamID, "Counter",
 		func(_ counterState, version event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterIncremented", aggID, 2)}, nil
+			return []event.Event{makeEvent(t, "CounterIncremented", streamID, 2)}, nil
 		},
 	)
 	if err == nil {
@@ -141,9 +141,9 @@ func TestExecute_SaveError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	err = executeCreate(t, repo, aggID)
+	err = executeCreate(t, repo, streamID)
 	if err == nil {
 		t.Fatal("expected save error")
 	}
@@ -166,9 +166,9 @@ func TestExecute_PublishError(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	err = executeCreate(t, repo, aggID)
+	err = executeCreate(t, repo, streamID)
 	if err == nil {
 		t.Fatal("expected publish error")
 	}
@@ -182,10 +182,10 @@ func TestExecute_NoEvents(t *testing.T) {
 	t.Parallel()
 
 	repo, _, bus := newTestRepo(t)
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	err := repo.Execute(
-		t.Context(), aggID, "Counter",
+		t.Context(), streamID, "Counter",
 		func(_ counterState, _ event.Version) ([]event.Event, error) {
 			return nil, nil
 		},
@@ -211,13 +211,13 @@ func TestExecute_Concurrent(t *testing.T) {
 		t.Fatalf("NewRepository: %v", err)
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	var wg sync.WaitGroup
 
 	for range 5 {
 		wg.Go(func() {
-			_ = executeAndIncrement(t, repo, aggID, "CounterIncremented")
+			_ = executeAndIncrement(t, repo, streamID, "CounterIncremented")
 		})
 	}
 
@@ -239,12 +239,12 @@ func TestExecute_ContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	err = repo.Execute(
-		ctx, aggID, "Counter",
+		ctx, streamID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, v.Increment())}, nil
+			return []event.Event{makeEvent(t, "CounterCreated", streamID, v.Increment())}, nil
 		},
 	)
 	if err == nil {

@@ -62,8 +62,8 @@ func FuzzDecodePayload_Roundtrip(f *testing.F) {
 			t.Skip()
 		}
 
-		aggID := id.NewStreamID()
-		evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(input))
+		streamID := id.NewStreamID()
+		evt, err := event.NewEvent("UserCreated", streamID, "User", 1, []byte(input))
 		if err != nil {
 			t.Skip()
 		}
@@ -87,8 +87,8 @@ func FuzzEvent_PayloadIsolation(f *testing.F) {
 	f.Add([]byte{0x00, 0xff, 0xfe, 0x01})
 
 	f.Fuzz(func(t *testing.T, payload []byte) {
-		aggID := id.NewStreamID()
-		evt, err := event.NewEvent("TestEvent", aggID, "Test", 1, payload)
+		streamID := id.NewStreamID()
+		evt, err := event.NewEvent("TestEvent", streamID, "Test", 1, payload)
 		if err != nil {
 			t.Skip()
 		}

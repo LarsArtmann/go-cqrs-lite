@@ -22,8 +22,8 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 	store := memory.NewMemoryStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	ref := id.NewStreamRef("Order", aggID)
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	ref := id.NewStreamRef("Order", streamID)
 
 	types := []struct {
 		typ     string
@@ -44,7 +44,7 @@ func TestGolden_EventStoreRoundTrip(t *testing.T) {
 		evtID := idtest.ParseEventID(t, "01HK1540X0841Y0A6BSX1VKR9"+string(rune('A'+i)))
 
 		evt, err := event.NewEvent(
-			event.Type(tc.typ), aggID, "Order", event.Version(tc.version),
+			event.Type(tc.typ), streamID, "Order", event.Version(tc.version),
 			[]byte(tc.payload),
 			event.WithEventID(evtID),
 			event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Minute)),
@@ -102,8 +102,8 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	store := memory.NewMemorySnapshotStore()
 	t.Cleanup(func() { _ = store.Close() })
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	ref := id.NewStreamRef("User", aggID)
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	ref := id.NewStreamRef("User", streamID)
 
 	state, err := json.Marshal(struct {
 		Name string `json:"name"`
@@ -114,7 +114,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 	}
 
 	snap := snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "User",
 		Version:    event.Version(10),
 		State:      state,

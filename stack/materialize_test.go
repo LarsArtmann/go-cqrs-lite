@@ -53,8 +53,8 @@ func TestMaterialize_OnCreate(t *testing.T) {
 		},
 	}
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent(event.Type("user.created"), aggID, "User", event.Version(1), nil)
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent(event.Type("user.created"), streamID, "User", event.Version(1), nil)
 
 	// Simulate the handler processing an event.
 	msg := buildTestMessage(evt, "user.created")
@@ -63,7 +63,7 @@ func TestMaterialize_OnCreate(t *testing.T) {
 		t.Fatalf("HandlerFunc: %v", err)
 	}
 
-	view, err := mat.View(context.Background(), stringKey(aggID.String()))
+	view, err := mat.View(context.Background(), stringKey(streamID.String()))
 	if err != nil {
 		t.Fatalf("View: %v", err)
 	}
@@ -141,8 +141,8 @@ func TestMaterialize_StoreGetErrorPropagates(t *testing.T) {
 		},
 	}
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent(event.Type("user.created"), aggID, "User", event.Version(1), nil)
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent(event.Type("user.created"), streamID, "User", event.Version(1), nil)
 
 	msg := buildTestMessage(evt, "user.created")
 	handler := mat.HandlerFunc()

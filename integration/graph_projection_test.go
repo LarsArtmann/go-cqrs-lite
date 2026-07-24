@@ -87,8 +87,8 @@ func TestBundle_RunProjections_GraphProjection(t *testing.T) {
 	}
 
 	// Phase 1: save historical events before RunProjections starts.
-	aggID, _ := id.ParseStreamID("social")
-	ref := id.NewStreamRef("Social", aggID)
+	streamID, _ := id.ParseStreamID("social")
+	ref := id.NewStreamRef("Social", streamID)
 
 	createEvents := make([]cqrsevent.Event, 0, 3)
 
@@ -101,7 +101,13 @@ func TestBundle_RunProjections_GraphProjection(t *testing.T) {
 			t.Fatalf("marshal user: %v", err)
 		}
 
-		evt, _ := cqrsevent.NewEvent("user.created", aggID, "Social", cqrsevent.Version(1), payload)
+		evt, _ := cqrsevent.NewEvent(
+			"user.created",
+			streamID,
+			"Social",
+			cqrsevent.Version(1),
+			payload,
+		)
 		createEvents = append(createEvents, evt)
 	}
 
@@ -111,7 +117,7 @@ func TestBundle_RunProjections_GraphProjection(t *testing.T) {
 	}
 	followEvt, _ := cqrsevent.NewEvent(
 		"user.followed",
-		aggID,
+		streamID,
 		"Social",
 		cqrsevent.Version(1),
 		followPayload,

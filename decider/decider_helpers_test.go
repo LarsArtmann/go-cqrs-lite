@@ -21,13 +21,13 @@ type counterState struct {
 func mustAppendBatch(
 	t *testing.T,
 	store event.Store,
-	aggType id.StreamType,
-	aggID id.StreamID,
+	streamType id.StreamType,
+	streamID id.StreamID,
 	events []event.Event,
 ) {
 	t.Helper()
 
-	err := store.AppendBatch(t.Context(), id.NewStreamRef(aggType, aggID), events)
+	err := store.AppendBatch(t.Context(), id.NewStreamRef(streamType, streamID), events)
 	if err != nil {
 		t.Fatalf("AppendBatch: %v", err)
 	}
@@ -118,13 +118,13 @@ func newSnapshotSetup(
 func requireLoadState(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.StreamID,
+	streamID id.StreamID,
 	expectValue int,
 	expectVersion event.Version,
 ) {
 	t.Helper()
 
-	state, version, err := repo.Load(t.Context(), aggID, "Counter")
+	state, version, err := repo.Load(t.Context(), streamID, "Counter")
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -174,7 +174,7 @@ func newFailingRepo(
 func makeSnapshot(
 	t *testing.T,
 	c codec.Codec,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	value int,
 	version event.Version,
 ) snapshot.Snapshot {
@@ -183,7 +183,7 @@ func makeSnapshot(
 	snapState, _ := c.Encode(counterState{Value: value})
 
 	return snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: "Counter",
 		Version:    version,
 		State:      snapState,
@@ -195,13 +195,13 @@ func saveSnapshot(
 	t *testing.T,
 	snapshotStore *eventtest.FakeSnapshotStore,
 	c codec.Codec,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	value int,
 	version event.Version,
 ) {
 	t.Helper()
 
-	snap := makeSnapshot(t, c, aggID, value, version)
+	snap := makeSnapshot(t, c, streamID, value, version)
 	_ = snapshotStore.Save(t.Context(), snap)
 }
 
@@ -244,34 +244,34 @@ func newEnricherRepo(
 func executeWithAggID(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.StreamID,
+	streamID id.StreamID,
 	fn func(counterState, event.Version) ([]event.Event, error),
 ) error {
 	t.Helper()
 
-	return repo.Execute(context.Background(), aggID, "Counter", fn)
+	return repo.Execute(context.Background(), streamID, "Counter", fn)
 }
 
 func counterCreatedEventFn(
 	t *testing.T,
-	aggID id.StreamID,
+	streamID id.StreamID,
 ) func(counterState, event.Version) ([]event.Event, error) {
 	t.Helper()
 
 	return func(_ counterState, ver event.Version) ([]event.Event, error) {
-		return []event.Event{makeEvent(t, "CounterCreated", aggID, ver+1)}, nil
+		return []event.Event{makeEvent(t, "CounterCreated", streamID, ver+1)}, nil
 	}
 }
 
 func makeEvent(
 	t *testing.T,
 	eventType string,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	version event.Version,
 ) event.Event {
 	t.Helper()
 
-	evt, err := event.NewEvent(event.Type(eventType), aggID, "Counter", version, []byte("{}"))
+	evt, err := event.NewEvent(event.Type(eventType), streamID, "Counter", version, []byte("{}"))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
@@ -282,7 +282,7 @@ func makeEvent(
 func executeCounter(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.StreamID,
+	streamID id.StreamID,
 	expectedValue int,
 	expectedVersion event.Version,
 	eventType string,
@@ -291,7 +291,7 @@ func executeCounter(
 	t.Helper()
 
 	err := repo.Execute(
-		t.Context(), aggID, "Counter",
+		t.Context(), streamID, "Counter",
 		func(state counterState, version event.Version) ([]event.Event, error) {
 			if state.Value != expectedValue {
 				t.Fatalf("expected Value=%d, got %d", expectedValue, state.Value)
@@ -301,7 +301,7 @@ func executeCounter(
 				t.Fatalf("expected version %d, got %d", expectedVersion, version)
 			}
 
-			return []event.Event{makeEvent(t, eventType, aggID, eventVersion)}, nil
+			return []event.Event{makeEvent(t, eventType, streamID, eventVersion)}, nil
 		},
 	)
 	if err != nil {
@@ -312,15 +312,15 @@ func executeCounter(
 func executeAndIncrement(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.StreamID,
+	streamID id.StreamID,
 	eventType string,
 ) error {
 	t.Helper()
 
 	return repo.Execute(
-		t.Context(), aggID, "Counter",
+		t.Context(), streamID, "Counter",
 		func(_ counterState, v event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, eventType, aggID, v.Increment())}, nil
+			return []event.Event{makeEvent(t, eventType, streamID, v.Increment())}, nil
 		},
 	)
 }
@@ -328,14 +328,14 @@ func executeAndIncrement(
 func executeCreate(
 	t *testing.T,
 	repo *decider.Repository[counterState],
-	aggID id.StreamID,
+	streamID id.StreamID,
 ) error {
 	t.Helper()
 
 	return repo.Execute(
-		t.Context(), aggID, "Counter",
+		t.Context(), streamID, "Counter",
 		func(_ counterState, _ event.Version) ([]event.Event, error) {
-			return []event.Event{makeEvent(t, "CounterCreated", aggID, 1)}, nil
+			return []event.Event{makeEvent(t, "CounterCreated", streamID, 1)}, nil
 		},
 	)
 }

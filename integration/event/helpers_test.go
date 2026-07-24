@@ -10,7 +10,7 @@ import (
 
 func createTestEvent(
 	eventType event.Type,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	version event.Version,
 	payload []byte,
 ) event.Event {
@@ -18,19 +18,19 @@ func createTestEvent(
 		payload = []byte(`{"test":true}`)
 	}
 
-	evt, err := event.NewEvent(eventType, aggID, "TestAggregate", version, payload)
+	evt, err := event.NewEvent(eventType, streamID, "TestStream", version, payload)
 	Expect(err).ToNot(HaveOccurred())
 
 	return evt
 }
 
 func expectNewEventValidationFails(
-	aggID id.StreamID,
-	aggType id.StreamType,
+	streamID id.StreamID,
+	streamType id.StreamType,
 	version event.Version,
 	expectedMsg string,
 ) {
-	_, err := event.NewEvent(event.Type("BadEvent"), aggID, aggType, version, nil)
+	_, err := event.NewEvent(event.Type("BadEvent"), streamID, streamType, version, nil)
 	Expect(err).To(HaveOccurred())
 	Expect(err.Error()).To(ContainSubstring(expectedMsg))
 }

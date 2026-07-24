@@ -54,8 +54,8 @@ func FuzzNewUpcaster_NilFunc(f *testing.F) {
 
 		uc := schema.NewUpcaster(event.Type(sourceType), event.SchemaVersion(sourceVersion), nil)
 
-		aggID := id.NewStreamID()
-		evt, err := event.NewEvent(event.Type(sourceType), aggID, "Test", 1, nil)
+		streamID := id.NewStreamID()
+		evt, err := event.NewEvent(event.Type(sourceType), streamID, "Test", 1, nil)
 		if err != nil {
 			t.Fatalf("create event: %v", err)
 		}
@@ -119,9 +119,9 @@ func FuzzVersionedStore_UpcastAll(f *testing.F) {
 				},
 			)
 
-			aggID := id.NewStreamID()
+			streamID := id.NewStreamID()
 			evt, err := event.NewEvent(
-				event.Type(sourceType), aggID, "Test", 1, []byte(originalPayload),
+				event.Type(sourceType), streamID, "Test", 1, []byte(originalPayload),
 				event.WithSchemaVersion(1),
 			)
 			if err != nil {
@@ -176,9 +176,9 @@ func FuzzVersionedStore_LoadFromArbitraryStream(f *testing.F) {
 			// provide a minimal fake. Actually, the memory store is in
 			// a different module; instead we test the upcaster
 			// in isolation by building an event and checking upcast.
-			aggID := id.NewStreamID()
+			streamID := id.NewStreamID()
 			evt, err := event.NewEvent(
-				event.Type(sourceType), aggID, "Test", 1, []byte(originalPayload),
+				event.Type(sourceType), streamID, "Test", 1, []byte(originalPayload),
 				event.WithSchemaVersion(1),
 			)
 			if err != nil {
@@ -196,7 +196,7 @@ func FuzzVersionedStore_LoadFromArbitraryStream(f *testing.F) {
 			}
 
 			// StreamID preserved
-			if out.StreamID() != aggID {
+			if out.StreamID() != streamID {
 				t.Error("StreamID not preserved through upcast")
 			}
 		},

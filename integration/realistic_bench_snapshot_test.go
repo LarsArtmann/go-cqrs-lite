@@ -15,7 +15,7 @@ import (
 )
 
 // ---------------------------------------------------------------------------
-// 6. Snapshot vs Replay — load 100 aggregates × 500 events each
+// 6. Snapshot vs Replay — load 100 streams × 500 events each
 // ---------------------------------------------------------------------------
 
 func BenchmarkRealistic_SnapshotVsReplay(b *testing.B) {
@@ -67,8 +67,8 @@ func BenchmarkRealistic_SnapshotVsReplay(b *testing.B) {
 		b.ResetTimer()
 
 		for b.Loop() {
-			for _, aggID := range aggIDs {
-				if _, _, err := replayRepo.Load(ctx, aggID, "Order"); err != nil {
+			for _, streamID := range aggIDs {
+				if _, _, err := replayRepo.Load(ctx, streamID, "Order"); err != nil {
 					b.Fatalf("Load: %v", err)
 				}
 			}
@@ -84,8 +84,8 @@ func BenchmarkRealistic_SnapshotVsReplay(b *testing.B) {
 		b.ResetTimer()
 
 		for b.Loop() {
-			for _, aggID := range aggIDs {
-				if _, _, err := snapRepo.Load(ctx, aggID, "Order"); err != nil {
+			for _, streamID := range aggIDs {
+				if _, _, err := snapRepo.Load(ctx, streamID, "Order"); err != nil {
 					b.Fatalf("Load: %v", err)
 				}
 			}

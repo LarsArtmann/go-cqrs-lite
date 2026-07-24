@@ -95,12 +95,12 @@ func TestSQLSnapshotStore_Save_Error(t *testing.T) {
 
 func expectSnapshotLoadRows(
 	mock sqlmock.Sqlmock,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	name string,
 	createdAt time.Time,
 ) {
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
 			AddRow(3, []byte(`{"name":"`+name+`"}`), createdAt))
 }
@@ -109,12 +109,12 @@ func TestSQLSnapshotStore_Load(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
+	streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 	createdAt := time.Now().UTC().Truncate(time.Millisecond)
 
-	expectSnapshotLoadRows(mock, aggID, "John", createdAt)
+	expectSnapshotLoadRows(mock, streamID, "John", createdAt)
 
-	snap, err := s.Load(context.Background(), id.NewStreamRef("User", aggID))
+	snap, err := s.Load(context.Background(), id.NewStreamRef("User", streamID))
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
@@ -127,7 +127,7 @@ func TestSQLSnapshotStore_Load(t *testing.T) {
 		t.Fatalf("type = %q, want %q", snap.StreamType, "User")
 	}
 
-	if snap.StreamID != aggID {
+	if snap.StreamID != streamID {
 		t.Fatalf("ID mismatch")
 	}
 }
@@ -136,13 +136,13 @@ func TestSQLSnapshotStore_Load_NotFound(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
+	streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnError(sql.ErrNoRows)
 
-	_, err := s.Load(context.Background(), id.NewStreamRef("User", aggID))
+	_, err := s.Load(context.Background(), id.NewStreamRef("User", streamID))
 	if err == nil {
 		t.Fatal("expected error for not found")
 	}
@@ -156,13 +156,13 @@ func TestSQLSnapshotStore_Load_QueryError(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
+	streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnError(errors.New("connection lost"))
 
-	_, err := s.Load(context.Background(), id.NewStreamRef("User", aggID))
+	_, err := s.Load(context.Background(), id.NewStreamRef("User", streamID))
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -172,14 +172,14 @@ func TestSQLSnapshotStore_LoadAtVersion(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
+	streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 	createdAt := time.Now().UTC().Truncate(time.Millisecond)
 
-	expectSnapshotLoadAtVersion(t, mock, aggID, 5, "Jane", createdAt)
+	expectSnapshotLoadAtVersion(t, mock, streamID, 5, "Jane", createdAt)
 
 	snap, err := s.LoadAtVersion(
 		context.Background(),
-		id.NewStreamRef("User", aggID),
+		id.NewStreamRef("User", streamID),
 		event.Version(5),
 	)
 	if err != nil {
@@ -194,7 +194,7 @@ func TestSQLSnapshotStore_LoadAtVersion(t *testing.T) {
 func expectSnapshotLoadAtVersion(
 	t *testing.T,
 	mock sqlmock.Sqlmock,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	maxVersion int,
 	name string,
 	createdAt time.Time,
@@ -202,7 +202,7 @@ func expectSnapshotLoadAtVersion(
 	t.Helper()
 
 	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-		WithArgs("User", aggID, maxVersion).
+		WithArgs("User", streamID, maxVersion).
 		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
 			AddRow(3, []byte(`{"name":"`+name+`"}`), createdAt))
 }
@@ -223,15 +223,15 @@ func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 			t.Parallel()
 
 			s, mock := newTestSnapshotStore(t)
-			aggID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
+			streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
 			mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
-				WithArgs("User", aggID, tt.version.Int()).
+				WithArgs("User", streamID, tt.version.Int()).
 				WillReturnError(sql.ErrNoRows)
 
 			_, err := s.LoadAtVersion(
 				context.Background(),
-				id.NewStreamRef("User", aggID),
+				id.NewStreamRef("User", streamID),
 				tt.version,
 			)
 			if err == nil {
@@ -249,13 +249,13 @@ func TestSQLSnapshotStore_Delete(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
+	streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectExec(`DELETE FROM snapshots`).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err := s.Delete(context.Background(), id.NewStreamRef("User", aggID))
+	err := s.Delete(context.Background(), id.NewStreamRef("User", streamID))
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
@@ -265,13 +265,13 @@ func TestSQLSnapshotStore_Delete_Error(t *testing.T) {
 	t.Parallel()
 
 	s, mock := newTestSnapshotStore(t)
-	aggID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
+	streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
 	mock.ExpectExec(`DELETE FROM snapshots`).
-		WithArgs("User", aggID).
+		WithArgs("User", streamID).
 		WillReturnError(errors.New("db error"))
 
-	err := s.Delete(context.Background(), id.NewStreamRef("User", aggID))
+	err := s.Delete(context.Background(), id.NewStreamRef("User", streamID))
 	if err == nil {
 		t.Fatal("expected error")
 	}

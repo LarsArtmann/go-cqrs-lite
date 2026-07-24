@@ -64,8 +64,8 @@ func TestNew_E2E_EventSaveLoadRoundtrip(t *testing.T) {
 	defer func() { _ = b.Close() }()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Todo", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Todo", streamID)
 
 	types := []event.Type{"todo.created", "todo.completed"}
 	payloads := []any{
@@ -73,7 +73,7 @@ func TestNew_E2E_EventSaveLoadRoundtrip(t *testing.T) {
 		map[string]any{"at": "now"},
 	}
 
-	events, err := event.NewEvents(aggID, "Todo", 0, types, payloads)
+	events, err := event.NewEvents(streamID, "Todo", 0, types, payloads)
 	if err != nil {
 		t.Fatalf("NewEvents: %v", err)
 	}

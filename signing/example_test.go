@@ -16,8 +16,8 @@ func ExampleNewHMAC() {
 		return
 	}
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("user.created", streamID, "User", event.Version(1),
 		[]byte(`{"name":"Alice"}`))
 
 	sig, err := signer.Sign(evt)
@@ -42,8 +42,8 @@ func ExampleNewHMAC_tamperDetection() {
 		return
 	}
 
-	aggID := id.NewStreamID()
-	evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
+	streamID := id.NewStreamID()
+	evt, _ := event.NewEvent("user.created", streamID, "User", event.Version(1),
 		[]byte(`{"name":"Alice"}`))
 
 	sig, err := signer.Sign(evt)
@@ -53,7 +53,7 @@ func ExampleNewHMAC_tamperDetection() {
 		return
 	}
 
-	tampered, _ := event.NewEvent("user.created", aggID, "User", event.Version(1),
+	tampered, _ := event.NewEvent("user.created", streamID, "User", event.Version(1),
 		[]byte(`{"name":"Bob"}`))
 
 	err = signer.Verify(tampered, sig)

@@ -16,7 +16,7 @@ func TestEventOptions(t *testing.T) {
 	evt, err := event.NewEvent(
 		"TestEvent",
 		idtest.ParseStreamID(t, "01HK154DK8FZYV2ANMQ6B0N1JY"),
-		"TestAggregate",
+		"TestStream",
 		1,
 		nil,
 		event.WithCorrelationID(idtest.ParseCorrelationID(t, "01HK154EJG2GP2SR75DK1Q1TBH")),

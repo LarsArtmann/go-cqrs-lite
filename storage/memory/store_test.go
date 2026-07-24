@@ -17,13 +17,13 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	evt1 := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
-	evt2 := eventtest.QuickEvent("UserUpdated", aggID, "User", 1, nil)
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	evt1 := eventtest.QuickEvent("UserCreated", streamID, "User", 1, nil)
+	evt2 := eventtest.QuickEvent("UserUpdated", streamID, "User", 1, nil)
 
 	err := store.Save(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		[]event.Event{evt1},
 		0,
 	)
@@ -33,7 +33,7 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 
 	err = store.Save(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		[]event.Event{evt2},
 		1,
 	)
@@ -41,7 +41,7 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	events, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), aggID))
+	events, err := store.Load(ctx, id.NewStreamRef(id.StreamType("User"), streamID))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -55,12 +55,12 @@ func TestMemoryStore_VersionConflict(t *testing.T) {
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	evt := eventtest.QuickEvent("UserCreated", streamID, "User", 1, nil)
 
 	err := store.Save(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		[]event.Event{evt},
 		5,
 	)
@@ -91,16 +91,16 @@ func seedTestEvents(
 	t *testing.T,
 	store *memory.MemoryStore,
 	ctx context.Context,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	n int,
 ) {
 	t.Helper()
 
 	for i := range n {
-		evt := eventtest.QuickEvent("Created", aggID, "User", event.Version(i+1), nil)
+		evt := eventtest.QuickEvent("Created", streamID, "User", event.Version(i+1), nil)
 		_ = store.AppendBatch(
 			ctx,
-			id.NewStreamRef(id.StreamType("User"), aggID),
+			id.NewStreamRef(id.StreamType("User"), streamID),
 			[]event.Event{evt},
 		)
 	}

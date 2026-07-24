@@ -33,19 +33,19 @@ func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt, _ := event.New("test.event", aggID, "Test", event.Version(1), "payload")
+	evt, _ := event.New("test.event", streamID, "Test", event.Version(1), "payload")
 	if err := store.Save(
 		ctx,
-		id.NewStreamRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), streamID),
 		[]event.Event{evt},
 		event.Version(0),
 	); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 
-	loaded, err := versioned.Load(ctx, id.NewStreamRef(id.StreamType("Test"), aggID))
+	loaded, err := versioned.Load(ctx, id.NewStreamRef(id.StreamType("Test"), streamID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}
@@ -110,18 +110,18 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	evt, _ := event.NewEvent(
-		"test.upcast", aggID, "Test", 1, []byte("v1"),
+		"test.upcast", streamID, "Test", 1, []byte("v1"),
 		event.WithSchemaVersion(1),
 	)
-	saveTestEvents(t, ctx, store, aggID, evt)
+	saveTestEvents(t, ctx, store, streamID, evt)
 
 	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	loaded, err := versioned.Load(ctx, id.NewStreamRef(id.StreamType("Test"), aggID))
+	loaded, err := versioned.Load(ctx, id.NewStreamRef(id.StreamType("Test"), streamID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
 	}
@@ -146,11 +146,11 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt1, _ := event.NewEvent(
 		"test.upcast",
-		aggID,
+		streamID,
 		"Test",
 		1,
 		[]byte("v1"),
@@ -158,13 +158,13 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 	)
 	evt2, _ := event.NewEvent(
 		"test.upcast",
-		aggID,
+		streamID,
 		"Test",
 		2,
 		[]byte("skip"),
 		event.WithSchemaVersion(2),
 	)
-	saveTestEvents(t, ctx, store, aggID, evt1, evt2)
+	saveTestEvents(t, ctx, store, streamID, evt1, evt2)
 
 	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
 	if err != nil {
@@ -172,7 +172,7 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 	}
 	loaded, err := versioned.LoadFromVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), streamID),
 		1,
 	)
 	if err != nil {
@@ -195,11 +195,11 @@ func TestVersionedStore_LoadToVersion_Upcast(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt1, _ := event.NewEvent(
 		"test.upcast",
-		aggID,
+		streamID,
 		"Test",
 		1,
 		[]byte("v1"),
@@ -207,7 +207,7 @@ func TestVersionedStore_LoadToVersion_Upcast(t *testing.T) {
 	)
 	evt2, _ := event.NewEvent(
 		"test.upcast",
-		aggID,
+		streamID,
 		"Test",
 		2,
 		[]byte("v1"),
@@ -215,13 +215,13 @@ func TestVersionedStore_LoadToVersion_Upcast(t *testing.T) {
 	)
 	evt3, _ := event.NewEvent(
 		"test.upcast",
-		aggID,
+		streamID,
 		"Test",
 		3,
 		[]byte("skip"),
 		event.WithSchemaVersion(2),
 	)
-	saveTestEvents(t, ctx, store, aggID, evt1, evt2, evt3)
+	saveTestEvents(t, ctx, store, streamID, evt1, evt2, evt3)
 
 	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
 	if err != nil {
@@ -230,7 +230,7 @@ func TestVersionedStore_LoadToVersion_Upcast(t *testing.T) {
 
 	loaded, err := versioned.LoadToVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), streamID),
 		2,
 	)
 	if err != nil {
@@ -257,13 +257,13 @@ func TestVersionedStore_LoadToTimestamp_Upcast(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	ts := time.Now()
 
 	evt1, _ := event.NewEvent(
 		"test.upcast",
-		aggID,
+		streamID,
 		"Test",
 		1,
 		[]byte("v1"),
@@ -272,14 +272,14 @@ func TestVersionedStore_LoadToTimestamp_Upcast(t *testing.T) {
 	)
 	evt2, _ := event.NewEvent(
 		"test.upcast",
-		aggID,
+		streamID,
 		"Test",
 		2,
 		[]byte("skip"),
 		event.WithSchemaVersion(2),
 		event.WithOccurredAt(ts.Add(time.Second)),
 	)
-	saveTestEvents(t, ctx, store, aggID, evt1, evt2)
+	saveTestEvents(t, ctx, store, streamID, evt1, evt2)
 
 	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
 	if err != nil {
@@ -288,7 +288,7 @@ func TestVersionedStore_LoadToTimestamp_Upcast(t *testing.T) {
 
 	loaded, err := versioned.LoadToTimestamp(
 		ctx,
-		id.NewStreamRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), streamID),
 		ts.Add(500*time.Millisecond),
 	)
 	if err != nil {
@@ -315,17 +315,17 @@ func TestVersionedStore_LoadToVersion_UpcastError(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt, _ := event.NewEvent(
 		"test.upcast",
-		aggID,
+		streamID,
 		"Test",
 		1,
 		[]byte("v1"),
 		event.WithSchemaVersion(1),
 	)
-	saveTestEvents(t, ctx, store, aggID, evt)
+	saveTestEvents(t, ctx, store, streamID, evt)
 
 	failingUpcaster := &failingUpcaster{}
 	versioned, err := schema.NewVersionedStore(store, failingUpcaster)
@@ -335,7 +335,7 @@ func TestVersionedStore_LoadToVersion_UpcastError(t *testing.T) {
 
 	_, err = versioned.LoadToVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), streamID),
 		1,
 	)
 	if err == nil {
@@ -350,18 +350,18 @@ func TestVersionedStore_LoadToTimestamp_UpcastError(t *testing.T) {
 	defer store.Close()
 
 	ctx := context.Background()
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	evt, _ := event.NewEvent(
 		"test.upcast",
-		aggID,
+		streamID,
 		"Test",
 		1,
 		[]byte("v1"),
 		event.WithSchemaVersion(1),
 		event.WithOccurredAt(time.Now()),
 	)
-	saveTestEvents(t, ctx, store, aggID, evt)
+	saveTestEvents(t, ctx, store, streamID, evt)
 
 	failingUpcaster := &failingUpcaster{}
 	versioned, err := schema.NewVersionedStore(store, failingUpcaster)
@@ -371,7 +371,7 @@ func TestVersionedStore_LoadToTimestamp_UpcastError(t *testing.T) {
 
 	_, err = versioned.LoadToTimestamp(
 		ctx,
-		id.NewStreamRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), streamID),
 		time.Now().Add(time.Hour),
 	)
 	if err == nil {
@@ -391,14 +391,14 @@ func saveTestEvents(
 	t *testing.T,
 	ctx context.Context,
 	store *memory.MemoryStore,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	events ...event.Event,
 ) {
 	t.Helper()
 
 	if err := store.Save(
 		ctx,
-		id.NewStreamRef(id.StreamType("Test"), aggID),
+		id.NewStreamRef(id.StreamType("Test"), streamID),
 		events,
 		0,
 	); err != nil {

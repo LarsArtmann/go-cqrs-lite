@@ -86,10 +86,10 @@ func FuzzNewEvent(f *testing.F) {
 	)
 
 	f.Fuzz(
-		func(t *testing.T, eventType, aggType string, version, schemaVersion int64, payload string) {
-			aggID := id.NewStreamID()
+		func(t *testing.T, eventType, streamType string, version, schemaVersion int64, payload string) {
+			streamID := id.NewStreamID()
 			evt, err := event.NewEvent(
-				event.Type(eventType), aggID, id.StreamType(aggType),
+				event.Type(eventType), streamID, id.StreamType(streamType),
 				event.Version(int(version)), []byte(payload),
 				event.WithSchemaVersion(event.SchemaVersion(int(schemaVersion))),
 			)
@@ -97,7 +97,7 @@ func FuzzNewEvent(f *testing.F) {
 				return
 			}
 
-			if evt.StreamID() != aggID {
+			if evt.StreamID() != streamID {
 				t.Error("stream ID mismatch")
 			}
 		},
@@ -118,10 +118,10 @@ func FuzzDecodePayload(f *testing.F) {
 	f.Add(`{"name":null}`)
 
 	f.Fuzz(func(t *testing.T, payloadJSON string) {
-		aggID := id.NewStreamID()
+		streamID := id.NewStreamID()
 
 		evt, err := event.NewEvent(
-			event.Type("test"), aggID, id.StreamType("Test"),
+			event.Type("test"), streamID, id.StreamType("Test"),
 			event.Version(1), jsontext.Value(payloadJSON),
 		)
 		if err != nil {

@@ -54,12 +54,12 @@ func newBenchDeciderRepo(b *testing.B) (*decider.Repository[benchState], context
 func newBenchEvent(
 	b *testing.B,
 	eventType string,
-	aggID id.StreamID,
+	streamID id.StreamID,
 	v event.Version,
 ) event.Event {
 	b.Helper()
 
-	evt, err := event.NewEvent(event.Type(eventType), aggID, "Item", v, nil)
+	evt, err := event.NewEvent(event.Type(eventType), streamID, "Item", v, nil)
 	if err != nil {
 		b.Fatalf("NewEvent: %v", err)
 	}
@@ -83,14 +83,14 @@ func benchCreateItem(
 	b *testing.B,
 	repo *decider.Repository[benchState],
 	ctx context.Context,
-	aggID id.StreamID,
+	streamID id.StreamID,
 ) {
 	b.Helper()
 
 	err := repo.Execute(
-		ctx, aggID, "Item",
+		ctx, streamID, "Item",
 		func(_ benchState, v event.Version) ([]event.Event, error) {
-			evt := newBenchEvent(b, "ItemCreated", aggID, v.Increment())
+			evt := newBenchEvent(b, "ItemCreated", streamID, v.Increment())
 
 			return []event.Event{evt}, nil
 		},
@@ -107,16 +107,16 @@ func benchCreateItemConcurrent(
 ) id.StreamID {
 	b.Helper()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	decideFn := func(_ benchState, v event.Version) ([]event.Event, error) {
-		return []event.Event{newBenchEvent(b, "ItemCreated", aggID, v.Increment())}, nil
+		return []event.Event{newBenchEvent(b, "ItemCreated", streamID, v.Increment())}, nil
 	}
 
-	if err := repo.Execute(ctx, aggID, "Item", decideFn); err != nil {
+	if err := repo.Execute(ctx, streamID, "Item", decideFn); err != nil {
 		b.Errorf("concurrent Execute: %v", err)
 	}
 
-	return aggID
+	return streamID
 }
 
 // ---------------------------------------------------------------------------
@@ -139,14 +139,14 @@ func BenchmarkScale_CommandDispatch(b *testing.B) {
 		}
 	}
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 	ctx := context.Background()
 
 	b.ResetTimer()
 
 	for b.Loop() {
 		for i := range 100 {
-			cmd := testutil.NewCmd(b, command.Type(fmt.Sprintf("cmd.%d", i)), aggID)
+			cmd := testutil.NewCmd(b, command.Type(fmt.Sprintf("cmd.%d", i)), streamID)
 			err := dispatcher.Dispatch(ctx, cmd)
 			if err != nil {
 				b.Fatalf("dispatch: %v", err)
@@ -164,12 +164,12 @@ func BenchmarkScale_CommandDispatch(b *testing.B) {
 func BenchmarkScale_EventCreation(b *testing.B) {
 	b.ReportAllocs()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _ = event.NewEvent("ItemCreated", aggID, "Item", 1, nil)
+		_, _ = event.NewEvent("ItemCreated", streamID, "Item", 1, nil)
 	}
 
 	b.ReportMetric(float64(b.N)/b.Elapsed().Seconds(), "events/sec")

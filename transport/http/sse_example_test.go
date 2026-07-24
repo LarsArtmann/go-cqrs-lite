@@ -35,14 +35,14 @@ func TestSSEExample_OfflineReconnection(t *testing.T) {
 	}
 	defer broker.Close()
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("Doc", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Doc", streamID)
 
 	// Phase 1: events arrive while the client is OFFLINE.
-	docCreated, _ := event.NewEvent("doc.created", aggID, "Doc", 1, []byte(`{"title":"Hello"}`))
+	docCreated, _ := event.NewEvent("doc.created", streamID, "Doc", 1, []byte(`{"title":"Hello"}`))
 	docUpdated, _ := event.NewEvent(
 		"doc.updated",
-		aggID,
+		streamID,
 		"Doc",
 		2,
 		[]byte(`{"title":"Hello World"}`),
@@ -65,7 +65,7 @@ func TestSSEExample_OfflineReconnection(t *testing.T) {
 
 	// Phase 3: publish a live event — dedup should suppress docUpdated
 	// (already replayed) but deliver this new one.
-	docDeleted, _ := event.NewEvent("doc.deleted", aggID, "Doc", 3, []byte(`{}`))
+	docDeleted, _ := event.NewEvent("doc.deleted", streamID, "Doc", 3, []byte(`{}`))
 
 	if err := bus.Publish(context.Background(), docDeleted); err != nil {
 		t.Fatal(err)

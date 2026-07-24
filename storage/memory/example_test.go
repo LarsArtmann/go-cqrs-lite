@@ -12,10 +12,10 @@ import (
 func ExampleNewMemoryStore() {
 	store := memory.NewMemoryStore()
 
-	aggID := id.NewStreamID()
-	ref := id.NewStreamRef("User", aggID)
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("User", streamID)
 
-	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{"name":"Alice"}`))
+	evt, _ := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{"name":"Alice"}`))
 
 	err := store.Save(context.Background(), ref, []event.Event{evt}, 0)
 	if err != nil {

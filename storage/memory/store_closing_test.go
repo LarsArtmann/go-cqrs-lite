@@ -20,12 +20,12 @@ func TestMemoryStore_Closed(t *testing.T) {
 
 	_ = store.Close()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	evt := eventtest.QuickEvent("UserCreated", aggID, "User", 1, nil)
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	evt := eventtest.QuickEvent("UserCreated", streamID, "User", 1, nil)
 
 	err := store.Save(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		[]event.Event{evt},
 		0,
 	)
@@ -60,11 +60,11 @@ func TestMemoryStore_ClosedLoadFromVersion(t *testing.T) {
 	ctx := context.Background()
 	_ = store.Close()
 
-	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	_, err := store.LoadFromVersion(
 		ctx,
-		id.NewStreamRef(id.StreamType("User"), aggID),
+		id.NewStreamRef(id.StreamType("User"), streamID),
 		0,
 	)
 	if err == nil {

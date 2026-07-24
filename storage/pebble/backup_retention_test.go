@@ -25,14 +25,14 @@ func TestBackend_Checkpoint(t *testing.T) {
 
 	store := backend.EventStore()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
+	evt, err := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	err = store.Save(context.Background(), id.NewStreamRef("User", aggID),
+	err = store.Save(context.Background(), id.NewStreamRef("User", streamID),
 		[]event.Event{evt}, 0)
 	if err != nil {
 		t.Fatalf("Save: %v", err)
@@ -60,7 +60,7 @@ func TestBackend_Checkpoint(t *testing.T) {
 	defer func() { _ = restored.Close() }()
 
 	loaded, err := restored.EventStore().Load(context.Background(),
-		id.NewStreamRef("User", aggID))
+		id.NewStreamRef("User", streamID))
 	if err != nil {
 		t.Fatalf("Load from checkpoint: %v", err)
 	}
@@ -84,10 +84,10 @@ func TestBackend_NewSnapshot_ConsistentReads(t *testing.T) {
 
 	store := backend.EventStore()
 
-	aggID := id.NewStreamID()
+	streamID := id.NewStreamID()
 
-	evt1, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
-	if err := store.Save(context.Background(), id.NewStreamRef("User", aggID),
+	evt1, _ := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{}`))
+	if err := store.Save(context.Background(), id.NewStreamRef("User", streamID),
 		[]event.Event{evt1}, 0); err != nil {
 		t.Fatalf("Save evt1: %v", err)
 	}
@@ -100,14 +100,14 @@ func TestBackend_NewSnapshot_ConsistentReads(t *testing.T) {
 
 	defer func() { _ = snap.Close() }()
 
-	evt2, _ := event.NewEvent("UserUpdated", aggID, "User", 2, []byte(`{}`))
-	if err := store.Save(context.Background(), id.NewStreamRef("User", aggID),
+	evt2, _ := event.NewEvent("UserUpdated", streamID, "User", 2, []byte(`{}`))
+	if err := store.Save(context.Background(), id.NewStreamRef("User", streamID),
 		[]event.Event{evt2}, 1); err != nil {
 		t.Fatalf("Save evt2: %v", err)
 	}
 
 	liveEvents, err := store.Load(context.Background(),
-		id.NewStreamRef("User", aggID))
+		id.NewStreamRef("User", streamID))
 	if err != nil {
 		t.Fatalf("Live Load: %v", err)
 	}

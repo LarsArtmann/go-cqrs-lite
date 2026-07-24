@@ -55,13 +55,13 @@ func newSQLiteTestStore(t *testing.T) *SQLEventStore {
 }
 
 func newTestSnapshot(
-	aggID id.StreamID,
+	streamID id.StreamID,
 	streamType id.StreamType,
 	version event.Version,
 	state []byte,
 ) snapshot.Snapshot {
 	return snapshot.Snapshot{
-		StreamID:   aggID,
+		StreamID:   streamID,
 		StreamType: streamType,
 		Version:    version,
 		State:      state,

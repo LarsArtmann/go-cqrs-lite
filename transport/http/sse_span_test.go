@@ -36,8 +36,8 @@ func TestSSE_FanoutSpanCarriesEventAttrs(t *testing.T) {
 
 	broker.AddClient("client-1")
 
-	aggID := id.NewStreamID()
-	evt, err := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))
+	streamID := id.NewStreamID()
+	evt, err := event.NewEvent("UserCreated", streamID, "User", 1, []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
