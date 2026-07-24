@@ -262,7 +262,7 @@ pattern: same workload, any backend, structured metrics report.
 | Reports              | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk, env metadata     | 🧪     |
 | ReadRatio            | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                           | 🧪     |
 
-**Coverage:** 107 tests (95 benchkit + 12 CLI) with `-race`. Includes raw sink phase,
+**Coverage:** 110 tests (98 benchkit + 12 CLI) with `-race`. Includes raw sink phase,
 environment metadata, schema versioning, and median selection tests. Run-to-run
 variance is ~20-25% on the memory backend (use `--repeat N` for median reporting).
 

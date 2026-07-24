@@ -3,6 +3,7 @@ package benchkit
 import (
 	"bytes"
 	"context"
+	"encoding/json/v2"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1676,5 +1677,112 @@ func TestRun_RepeatedMedianSelection(t *testing.T) {
 
 	if result.WriteThroughput != expectedMedian {
 		t.Errorf("WriteThroughput = %v, want median %v", result.WriteThroughput, expectedMedian)
+	}
+}
+
+func TestRun_RawSinkIsolation(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	expected := result.Streams * result.EventsPerStream
+	if result.TotalEvents != expected {
+		t.Errorf("TotalEvents = %d, want %d (Streams * EventsPerStream)",
+			result.TotalEvents, expected)
+	}
+
+	if int(result.WriteLatency.Count) != result.TotalEvents {
+		t.Errorf("WriteLatency.Count = %d, want %d (should match write-phase events only)",
+			result.WriteLatency.Count, result.TotalEvents)
+	}
+
+	if result.RawSinkLatency.Count == 0 {
+		t.Error("RawSinkLatency.Count should be nonzero — raw sink phase ran")
+	}
+}
+
+func TestWriteJSON_EnvironmentRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	original := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	var buf bytes.Buffer
+	if err := WriteJSON(&buf, original); err != nil {
+		t.Fatalf("WriteJSON: %v", err)
+	}
+
+	var decoded Result
+	if err := json.Unmarshal(buf.Bytes(), &decoded, jsonOpts); err != nil {
+		t.Fatalf("json.Unmarshal: %v", err)
+	}
+
+	if decoded.SchemaVersion != original.SchemaVersion {
+		t.Errorf("SchemaVersion: got %q, want %q", decoded.SchemaVersion, original.SchemaVersion)
+	}
+
+	if decoded.Environment.GoVersion != original.Environment.GoVersion {
+		t.Errorf("Environment.GoVersion: got %q, want %q",
+			decoded.Environment.GoVersion, original.Environment.GoVersion)
+	}
+
+	if decoded.Environment.NumCPU != original.Environment.NumCPU {
+		t.Errorf("Environment.NumCPU: got %d, want %d",
+			decoded.Environment.NumCPU, original.Environment.NumCPU)
+	}
+
+	if decoded.Environment.GOMAXPROCS != original.Environment.GOMAXPROCS {
+		t.Errorf("Environment.GOMAXPROCS: got %d, want %d",
+			decoded.Environment.GOMAXPROCS, original.Environment.GOMAXPROCS)
+	}
+
+	if decoded.Environment.GOOS != original.Environment.GOOS {
+		t.Errorf("Environment.GOOS: got %q, want %q",
+			decoded.Environment.GOOS, original.Environment.GOOS)
+	}
+
+	if decoded.Environment.GOARCH != original.Environment.GOARCH {
+		t.Errorf("Environment.GOARCH: got %q, want %q",
+			decoded.Environment.GOARCH, original.Environment.GOARCH)
+	}
+
+	if decoded.Workers != original.Workers {
+		t.Errorf("Workers: got %d, want %d", decoded.Workers, original.Workers)
+	}
+
+	if decoded.RawSinkLatency.Count != original.RawSinkLatency.Count {
+		t.Errorf("RawSinkLatency.Count: got %d, want %d",
+			decoded.RawSinkLatency.Count, original.RawSinkLatency.Count)
+	}
+}
+
+func TestPrintComparison_RawSinkColumns(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	results, _ := Compare(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, map[string]Factory{
+		"memory": func() (*stack.Bundle, error) { return memory.New() },
+	})
+
+	var buf bytes.Buffer
+	PrintComparison(&buf, results)
+
+	output := buf.String()
+	if !strings.Contains(output, "Raw P50") {
+		t.Error("PrintComparison output missing 'Raw P50' column header")
+	}
+
+	if !strings.Contains(output, "Raw P99") {
+		t.Error("PrintComparison output missing 'Raw P99' column header")
 	}
 }

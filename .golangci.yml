@@ -427,6 +427,7 @@ linters:
           - gochecknoglobals
           - goconst
           - gosec
+          - ireturn
           - mnd
           - nonamedreturns
           - tagliatelle

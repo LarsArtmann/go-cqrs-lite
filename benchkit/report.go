@@ -21,11 +21,27 @@ var durationMarshalers = json.MarshalFunc(
 	},
 )
 
+// durationUnmarshalers deserializes time.Duration from nanoseconds (int64),
+// enabling JSON round-trip (WriteJSON → json.Unmarshal with jsonOpts).
+var durationUnmarshalers = json.UnmarshalFunc(
+	func(b []byte, t *time.Duration) error {
+		n, err := strconv.ParseInt(string(b), 10, 64)
+		if err != nil {
+			return fmt.Errorf("parse duration nanoseconds: %w", err)
+		}
+
+		*t = time.Duration(n)
+
+		return nil
+	},
+)
+
 // jsonOpts are the default JSON encoding options: indented output
-// with time.Duration serialized as nanoseconds.
+// with time.Duration serialized/deserialized as nanoseconds.
 var jsonOpts = json.JoinOptions(
 	jsontext.WithIndent("  "),
 	json.WithMarshalers(durationMarshalers),
+	json.WithUnmarshalers(durationUnmarshalers),
 )
 
 // PrintReport writes a human-readable text report for a single result.
@@ -161,8 +177,16 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 	fmt.Fprintln(w, strings.Repeat("=", 80))
 
 	header := fmt.Sprintf(
-		"%-10s %12s %12s %12s %12s %10s %10s",
-		"Backend", "Write P50", "Write P99", "Load P50", "Load P99", "Heap MB", "Disk MB",
+		"%-10s %10s %10s %10s %10s %10s %10s %10s %10s",
+		"Backend",
+		"Raw P50",
+		"Raw P99",
+		"Write P50",
+		"Write P99",
+		"Load P50",
+		"Load P99",
+		"Heap MB",
+		"Disk MB",
 	)
 	fmt.Fprintln(w, header)
 	fmt.Fprintln(w, strings.Repeat("-", len(header)))
@@ -183,8 +207,10 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 	}
 
 	fmt.Fprintf(
-		w, "%-10s %12s %12s %12s %12s %10s %10s\n",
+		w, "%-10s %10s %10s %10s %10s %10s %10s %10s %10s\n",
 		name,
+		roundDuration(r.RawSinkLatency.P50),
+		roundDuration(r.RawSinkLatency.P99),
 		roundDuration(r.WriteLatency.P50),
 		roundDuration(r.WriteLatency.P99),
 		roundDuration(r.LoadLatency.P50),
