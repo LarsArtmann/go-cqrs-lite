@@ -225,6 +225,12 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 		return err
 	}
 
+	// If the context was cancelled (e.g. Duration timeout), some keys may
+	// not have been Set. Skip the Get phase to avoid spurious kv.ErrNotFound.
+	if ctx.Err() != nil {
+		return nil
+	}
+
 	getColl := NewLatencyCollector(0)
 	err = runConcurrent(
 		ctx, profile.Streams, r.concurrency,
