@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -18,10 +19,17 @@ import (
 func newSQLiteStore(t *testing.T) *sqlstore.Store {
 	t.Helper()
 
-	db, err := sql.Open("sqlite", ":memory:")
+	// file::memory:?cache=shared ensures all connections share the same
+	// in-memory database (default ":memory:" is per-connection).
+	// busy_timeout=5000 prevents "database is locked" under concurrent writes.
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared&_pragma=busy_timeout(5000)")
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
+
+	// SQLite serializes writes; cap the pool so concurrent goroutines
+	// queue instead of erroring.
+	db.SetMaxOpenConns(1)
 
 	t.Cleanup(func() { _ = db.Close() })
 
@@ -130,9 +138,11 @@ func TestStore_CheckAndRecord_AtomicUnderConcurrency(t *testing.T) {
 	const goroutines = 50
 
 	var (
-		wg       sync.WaitGroup
-		winners  atomic.Int64
-		dupCount atomic.Int64
+		wg        sync.WaitGroup
+		winners   atomic.Int64
+		dupCount  atomic.Int64
+		errCount  atomic.Int64
+		firstErr  atomic.Value
 	)
 
 	wg.Add(goroutines)
@@ -150,12 +160,22 @@ func TestStore_CheckAndRecord_AtomicUnderConcurrency(t *testing.T) {
 				winners.Add(1)
 			} else if errors.Is(err, idempotency.ErrDuplicate) {
 				dupCount.Add(1)
+			} else {
+				errCount.Add(1)
+				firstErr.CompareAndSwap(nil, err.Error())
 			}
 		}()
 	}
 
 	close(start)
 	wg.Wait()
+
+	if errCount.Load() > 0 {
+		t.Fatalf(
+			"unexpected errors: %d (first: %s)",
+			errCount.Load(), firstErr.Load(),
+		)
+	}
 
 	if winners.Load() != 1 {
 		t.Fatalf("winners: got %d, want exactly 1", winners.Load())
@@ -201,25 +221,72 @@ func TestStore_Close_IsNoOp(t *testing.T) {
 	}
 }
 
+func TestStore_SatisfiesIdempotencyStoreInterface(t *testing.T) {
+	// Compile-time verification that *sqlstore.Store implements idempotency.Store.
+	var _ idempotency.Store = (*sqlstore.Store)(nil)
+}
+
 func TestStore_DialectPostgres_DDLCompiles(t *testing.T) {
-	// This test verifies the Postgres DDL string is syntactically valid by
-	// creating it in a SQLite database (the DDL is simple enough to work on
-	// both — BIGINT exists in SQLite too). This is a smoke test that the
-	// Postgres code path doesn't have obvious SQL errors.
-	db, err := sql.Open("sqlite", ":memory:")
+	// Smoke test: the Postgres DDL string executes on SQLite (BIGINT works
+	// in both engines). This catches obvious SQL syntax errors without
+	// requiring a running PostgreSQL instance.
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	// We can't use NewPostgresStore with a SQLite driver, but we can verify
-	// the DDL string is non-empty and executable.
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS idempotency_keys (
 		key        TEXT PRIMARY KEY,
 		expires_at BIGINT NOT NULL
 	);`)
 	if err != nil {
 		t.Fatalf("postgres-style DDL on sqlite: %v", err)
+	}
+}
+
+func TestStore_Record_DoesNotExtendExpiredEntry(t *testing.T) {
+	// Record is a no-op on existing keys (matches MemoryStore semantics).
+	// Expired entries are cleaned up lazily by Seen/CheckAndRecord.
+	s := newSQLiteStore(t)
+
+	_ = s.Record(context.Background(), "key-1", 30*time.Millisecond)
+
+	time.Sleep(60 * time.Millisecond)
+
+	// Record sees the key exists (even though expired) → no-op.
+	_ = s.Record(context.Background(), "key-1", 10*time.Minute)
+
+	// Seen triggers lazy deletion of the expired entry → returns false.
+	seen, _ := s.Seen(context.Background(), "key-1")
+	if seen {
+		t.Fatal("key should be expired and lazily deleted by Seen")
+	}
+
+	// Now Record can insert fresh (key was deleted by Seen).
+	_ = s.Record(context.Background(), "key-1", 10*time.Minute)
+
+	seen, _ = s.Seen(context.Background(), "key-1")
+	if !seen {
+		t.Fatal("key should be seen after fresh Record post-cleanup")
+	}
+}
+
+func TestStore_MultipleKeysIndependent(t *testing.T) {
+	s := newSQLiteStore(t)
+
+	ctx := context.Background()
+
+	for i := range 10 {
+		key := fmt.Sprintf("key-%d", i)
+		if err := s.CheckAndRecord(ctx, key, 10*time.Minute); err != nil {
+			t.Fatalf("CheckAndRecord %s: %v", key, err)
+		}
+
+		// Second call to the same key should fail.
+		if err := s.CheckAndRecord(ctx, key, 10*time.Minute); !errors.Is(err, idempotency.ErrDuplicate) {
+			t.Fatalf("second CheckAndRecord %s: got %v, want ErrDuplicate", key, err)
+		}
 	}
 }

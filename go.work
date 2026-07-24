@@ -25,6 +25,7 @@ use (
 	./id
 	./idempotency
 	./idempotency/kvstore
+	./idempotency/sqlstore
 	./integration
 	./kv
 	./listing
