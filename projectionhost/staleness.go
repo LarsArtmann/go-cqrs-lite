@@ -39,7 +39,11 @@ func (h *Host) CheckStaleness(maxStaleness time.Duration) error {
 	}
 
 	if lag > maxStaleness {
-		return fmt.Errorf("%w: lag %s exceeds %s", ErrProjectionStale, lag, maxStaleness)
+		return errorfamily.Wrapf(
+			ErrProjectionStale, errorfamily.Transient,
+			"projectionhost.check_staleness",
+			"lag %s exceeds %s", lag, maxStaleness,
+		)
 	}
 
 	return nil
@@ -62,9 +66,9 @@ func (h *Host) CheckProjectionStaleness(name string, maxStaleness time.Duration)
 
 	lag, ok := lags[name]
 	if !ok {
-		return fmt.Errorf(
-			"%w: unknown projection %q",
-			ErrProjectionNotRegistered, name,
+		return errorfamily.NewRejection(
+			"projectionhost.unknown_projection",
+			fmt.Sprintf("projection %q is not registered", name),
 		)
 	}
 
@@ -73,9 +77,10 @@ func (h *Host) CheckProjectionStaleness(name string, maxStaleness time.Duration)
 	}
 
 	if lag > maxStaleness {
-		return fmt.Errorf(
-			"%w: projection %q lag %s exceeds %s",
-			ErrProjectionStale, name, lag, maxStaleness,
+		return errorfamily.Wrapf(
+			ErrProjectionStale, errorfamily.Transient,
+			"projectionhost.check_projection_staleness",
+			"projection %q lag %s exceeds %s", name, lag, maxStaleness,
 		)
 	}
 
