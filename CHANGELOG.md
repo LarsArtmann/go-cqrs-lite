@@ -19,9 +19,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   7 named workload profiles (Dev, Small, Medium, Large, Stress, WriteHeavy,
   ReadHeavy), 8-phase runner, concurrent workers, latency percentiles, resource
   sampling, text/JSON/Markdown reports. Codec-aware payload sizing, errorfamily
-  error classification, SkipPhases, Config validation. 55 tests (50 benchkit + 5 CLI).
+  error classification, SkipPhases, Config validation. 88 tests (77 benchkit
+  + 11 CLI). Includes DiskSizer interface (Pebble), getrusage-based CPU
+  measurement, projection benchmark phase, mixed payload-size distributions,
+  and `--repeat N` multi-sample averaging.
 - **cqrs-bench CLI** (`cmd/cqrs-bench`) — benchmark any backend with named
-  workload profiles. `run` and `compare` subcommands.
+  workload profiles. `run`, `compare`, and `--repeat N` subcommands. Uses
+  `runtime/debug.ReadBuildInfo()` for version (was hardcoded `v4.1.0`).
 - **Incremental rollups** (`storage/relational`) — `ProjectionSink.Increment`
   for atomic counter maintenance via `INSERT ... ON CONFLICT DO UPDATE`.
   `RelationalProjection.Reset` implements `projectionhost.Resettable` for
@@ -41,6 +45,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Comprehensive README coverage** — 24 new module READMEs created, 9 existing
   rewritten, 19 code example bugs fixed. All 56 modules with go.mod have READMEs.
   248 Go symbol references verified by `doc-check`.
+
+### Fixed (benchkit hardening session)
+
+- **SQLite concurrent-write failure (SQLITE_BUSY)** — `stack/sqlite/preset.go`
+  was missing `storage.ConfigureSQLitePool(sqlDB)` after WAL enable. SQLite now
+  handles 4+ goroutines correctly (was limited to Concurrency=1).
+- **Compare-mode disk always 0B** — `compareCmd` discarded per-backend disk
+  paths. New `compareWithDiskPaths()` injects `DiskPath` so disk columns
+  populate in comparison tables.
+- **`--version` hardcoded** — Replaced hardcoded `v4.1.0` with
+  `runtime/debug.ReadBuildInfo()` + VCS revision fallback.
+- **DiskSizer interface was dead code** — Implemented 3-layer DiskSizer:
+  `storage/pebble.Backend.DiskUsage()` (computed from Metrics level sizes + WAL),
+  `stack.WithDiskSize()` option + `Bundle.DiskSize()`, wired in `stack/pebble`
+  preset. `durabilityPhase` checks `>= 0` before using, falls back to filesystem.
+- **CPU measurement returned n/a for fast benchmarks** — Replaced
+  `/proc/self/stat` parsing (10ms tick resolution) with `syscall.Getrusage`
+  (microsecond resolution). Split into `cpu_unix.go` (`//go:build unix`) and
+  `cpu_other.go` (`//go:build !unix`).
+- **Projection benchmark showed 0 events** — Added polling loop (10ms ticker,
+  30s deadline) in `projectionPhase` so workers process events before `Stop()`.
+
+### Added (benchkit hardening session)
+
+- **DiskSizer interface** — `stack.WithDiskSize(fn)` option + `Bundle.DiskSize()`
+  method. Pebble preset wires `backend.DiskUsage()` automatically. Returns -1
+  when not registered; runner falls back to filesystem walk.
+- **Mixed payload-size distributions** — `NewMixedGenerator(seed, sizes, codec)`
+  picks a size uniformly at random per event. CLI flag `--payload-sizes
+  64,256,4096`. Result reports mean + full distribution. See
+  [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
+- **Projection benchmark phase** — Projection catch-up throughput now measured
+  in default profiles (was always 0). Polls until all events processed before
+  reporting.
+- **ADR-0060** — Documents 5 benchkit design decisions: codec-aware padding,
+  warmup isolation, ReadRatio-as-passes, SkipPhases, DiskSizer -1 sentinel.
 
 ### Changed
 

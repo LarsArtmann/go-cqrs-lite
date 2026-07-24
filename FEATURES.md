@@ -246,29 +246,39 @@ pattern: same workload, any backend, structured metrics report.
 | LatencyCollector    | Sorted-slice + reservoir sampling (10K cap), thread-safe                       | 🧪     |
 | Resource sampling   | Peak heap via 100ms polling goroutine, baseline/after deltas                   | 🧪     |
 | Synthetic generator | Seeded PCG, deterministic, configurable payload size, codec-aware padding      | 🧪     |
+| Mixed payload sizes | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing       | 🧪     |
 | 7 named profiles    | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                       | 🧪     |
 | 8-phase runner      | setup → warmup → write → read → readmodel → projection → durability → teardown | 🧪     |
 | Concurrent workers  | Channel-based, cancel-on-error, WaitGroup                                      | 🧪     |
 | `Run()` API         | Single-backend benchmark, returns `*Result`                                    | 🧪     |
 | `Compare()` API     | Multi-backend comparison, handles factory failures gracefully                  | 🧪     |
+| DiskSizer           | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset   | 🧪     |
+| CPU measurement     | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution           | 🧪     |
+| Projection phase    | Polls until all events processed, reports lag + events                         | 🧪     |
 | Reports             | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk      | 🧪     |
 | ReadRatio           | Configurable read/write mix for WriteHeavy and ReadHeavy profiles              | 🧪     |
 
-**Coverage:** 55 tests (50 benchkit + 5 CLI) with `-race`. Known gaps: `DiskSizer` interface
-unimplemented (no backend implements `DiskSize()`), `--version` hardcoded, Phase 2 (durability),
-Phase 6 (production replay), and Phase 7 (benchtest suite) not started, benchmark never actually
-run as a benchmark (tests verify plumbing, not output plausibility).
+**Coverage:** 88 tests (77 benchkit + 11 CLI) with `-race`. Remaining gaps: Phase 2
+(durability/crash-recovery), Phase 6 (production replay), Phase 7 (`benchtest.RunSuite`).
+Run-to-run variance is ~20-25% on the memory backend (see
+[scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md)).
+`--repeat N` flag available for multi-sample median reporting.
 
 ### cqrs-bench CLI 🔧
 
 > `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench`
 
-| Feature   | Detail                                                                 | Status |
-| --------- | ---------------------------------------------------------------------- | ------ |
-| `run`     | Benchmark a single backend with a named workload profile               | 🔧     |
-| `compare` | Compare multiple backends side-by-side                                 | 🔧     |
-| Profiles  | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}` | 🔧     |
-| Output    | `--format {text\|json\|markdown}`                                      | 🔧     |
+| Feature    | Detail                                                                 | Status |
+| ---------- | ---------------------------------------------------------------------- | ------ |
+| `run`      | Benchmark a single backend with a named workload profile               | 🔧     |
+| `compare`  | Compare multiple backends side-by-side                                 | 🔧     |
+| Profiles   | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}` | 🔧     |
+| Output     | `--format {text\|json\|markdown}`                                      | 🔧     |
+| Codec      | `--codec {json\|cbor}`                                                 | 🔧     |
+| Payload    | `--payload-size N` or `--payload-sizes 64,256,4096` (mixed)            | 🔧     |
+| Warmup     | `--warmup N`                                                           | 🔧     |
+| Repeat     | `--repeat N` — median of N runs with min/max spread                    | 🔧     |
+| Version    | `--version` via `runtime/debug.ReadBuildInfo()`                        | 🔧     |
 
 ---
 
@@ -1053,7 +1063,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `example/getting-started`   | `…/example/getting-started`   | 💡 Demo                                                                   |
 | `example/readme-quickstart` | `…/example/readme-quickstart` | 💡 Demo                                                                   |
 | `metaengine`                | `…/metaengine/v4`             | 🧪 Experimental (MemoryEngine only, zero deps)                            |
-| `benchkit`                  | `…/benchkit/v4`               | 🧪 Experimental (MVP, known gaps)                                         |
+| `benchkit`                  | `…/benchkit/v4`               | 🧪 Experimental (functional, 88 tests, `--repeat N` available)           |
 | `cmd/cqrs-bench`            | `…/cmd/cqrs-bench`            | 🔧 Tool                                                                   |
 
 ---
