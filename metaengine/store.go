@@ -42,6 +42,7 @@ func (s *Store) EventTypes() []string {
 	defer s.mu.RUnlock()
 
 	seen := make(map[string]struct{})
+
 	for _, q := range s.queries {
 		for et := range q.foldByEvent {
 			seen[et] = struct{}{}
@@ -54,6 +55,7 @@ func (s *Store) EventTypes() []string {
 	}
 
 	slices.Sort(result)
+
 	return result
 }
 

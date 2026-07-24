@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"slices"
 	"sort"
@@ -151,7 +152,7 @@ func (e *sqliteEngine) MapGet(_ context.Context, col string, key any) (any, bool
 
 	err := e.db.QueryRow(e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil
 		}
 
@@ -297,7 +298,7 @@ func (e *sqliteEngine) SetContains(_ context.Context, col string, key any) (bool
 
 	err := e.db.QueryRow(e.queries.setContains, col, encodeKey(key)).Scan(&one)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
 

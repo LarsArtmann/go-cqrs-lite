@@ -6,10 +6,9 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-
-	_ "modernc.org/sqlite"
 )
 
 func newSQLiteEngine() (metaengine.Engine, *sql.DB) {
@@ -105,6 +104,7 @@ var _ = Describe("SQLiteEngine", func() {
 				if v, ok := prev.(float64); ok {
 					return v + 10
 				}
+
 				return 10
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -244,6 +244,7 @@ var _ = Describe("SQLiteEngine", func() {
 				if an > bn {
 					return 1
 				}
+
 				return 0
 			}
 

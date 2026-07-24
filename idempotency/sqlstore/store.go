@@ -13,6 +13,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -104,7 +105,7 @@ func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 
 	err := s.db.QueryRowContext(ctx, s.q.seen, key).Scan(&expiresAt)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
 
