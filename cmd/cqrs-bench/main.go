@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -40,7 +41,7 @@ func main() {
 	case "compare":
 		compareCmd(os.Args[2:])
 	case "version", "--version", "-v":
-		fmt.Println("cqrs-bench version v4.1.0")
+		fmt.Println("cqrs-bench version " + version())
 	case "help", "-h", "--help":
 		printUsage()
 	default:
@@ -157,12 +158,14 @@ func compareCmd(args []string) {
 
 	names := strings.Split(*backendList, ",")
 	factories := make(map[string]benchkit.Factory, len(names))
+	diskPaths := make(map[string]string, len(names))
 
 	for _, name := range names {
 		name = strings.TrimSpace(name)
 
-		factory, _, cleanup := makeFactory(name, "", "")
+		factory, diskPath, cleanup := makeFactory(name, "", "")
 		factories[name] = factory
+		diskPaths[name] = diskPath
 
 		if cleanup != nil {
 			defer cleanup()
@@ -178,7 +181,7 @@ func compareCmd(args []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
-	results, err := benchkit.Compare(ctx, config, factories)
+	results, err := compareWithDiskPaths(ctx, config, factories, diskPaths)
 	if err != nil {
 		fatalf("compare failed: %v", err)
 	}
@@ -187,6 +190,40 @@ func compareCmd(args []string) {
 }
 
 // ── factory ──
+
+// compareWithDiskPaths runs the benchmark against each backend, setting
+// per-backend DiskPath so disk metrics are populated in comparison tables.
+// This mirrors benchkit.Compare but injects the correct DiskPath per backend.
+func compareWithDiskPaths(
+	ctx context.Context,
+	config benchkit.Config,
+	factories map[string]benchkit.Factory,
+	diskPaths map[string]string,
+) (map[string]*benchkit.Result, error) {
+	results := make(map[string]*benchkit.Result, len(factories))
+
+	for name, factory := range factories {
+		cfg := config
+		cfg.Backend = name
+		cfg.DiskPath = diskPaths[name]
+
+		result, err := benchkit.Run(ctx, cfg, factory)
+		if err != nil {
+			results[name] = &benchkit.Result{
+				Backend:   name,
+				Profile:   cfg.Profile.Name,
+				Timestamp: time.Now(),
+				Error:     err.Error(),
+			}
+
+			continue
+		}
+
+		results[name] = result
+	}
+
+	return results, nil
+}
 
 func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
 	var (
@@ -318,4 +355,24 @@ func closeOutput(f *os.File) {
 func fatalf(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, "cqrs-bench: "+format+"\n", args...)
 	os.Exit(1)
+}
+
+func version() string {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "(unknown)"
+	}
+
+	v := info.Main.Version
+	if v != "" && v != "(devel)" {
+		return v
+	}
+
+	for _, setting := range info.Settings {
+		if setting.Key == "vcs.revision" && len(setting.Value) >= 7 {
+			return "(devel, " + setting.Value[:7] + ")"
+		}
+	}
+
+	return "(devel)"
 }

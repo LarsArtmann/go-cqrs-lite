@@ -59,16 +59,26 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 
 ### Benchkit Reliability
 
-- [ ] **Run the benchmark and inspect output** — 55 tests verify plumbing (event
-      counts, sample counts, error classification) but no test validates that
-      throughput/latency numbers are physically plausible. The benchmark has never
-      been actually executed and inspected.
-- [ ] **Fix `--version` drift** — Hardcoded `v4.1.0` in `cmd/cqrs-bench/main.go`;
-      should use `runtime/debug.ReadBuildInfo()` for automatic versioning.
-- [ ] **Implement `DiskSize()` on `pebble.Bundle`** — `DiskSizer` interface exists
-      but zero backends implement it. All disk measurement falls back to filesystem walk.
-- [ ] **Phase 6: Production replay** — Replay real event streams for benchmarking.
-- [ ] **Phase 7: benchtest.RunSuite** — Preset integration for `stack/bench`.
+> First real benchmark run completed 2026-07-24 — see
+> [benchmark results](docs/status/2026-07-24_17-54_benchmark-first-real-run.md)
+> and [Pareto plan](docs/planning/2026-07-24_17-59_benchkit-hardening-pareto-plan.md).
+
+**Done this session:**
+- [x] **Run the benchmark and inspect output** — Executed across 3 backends, 7 profiles, CBOR vs JSON. 6 findings documented.
+- [x] **SQLite concurrent-write fix** — Added `storage.ConfigureSQLitePool(sqlDB)` to `stack/sqlite/preset.go` (was missing, caused SQLITE_BUSY at 4+ goroutines).
+- [x] **Compare-mode disk = 0B** — `compareCmd` now collects per-backend diskPaths instead of discarding them.
+- [x] **Fix `--version` drift** — Now uses `runtime/debug.ReadBuildInfo()` instead of hardcoded string.
+
+**Open:**
+- [ ] **Implement `DiskSize()` on `pebble.Bundle`** — `DiskSizer` interface exists but zero backends implement it. Pebble backend has `Metrics().DiskUsage()` available.
+- [ ] **CPU measurement returns n/a** — Fast benchmarks (memory backend, <3ms) complete between polling intervals. Need CPU start+end measurement, not just polling.
+- [ ] **Projection benchmark** — `projectionEvents: 0` in all runs; no projection registered in benchmark profiles.
+- [ ] **Phase 2: durability benchmark** — Crash recovery, replay-after-restart.
+- [ ] **Phase 6: production replay** — Replay real event streams for benchmarking.
+- [ ] **Phase 7: `benchtest.RunSuite`** — Preset integration for `stack/bench`.
+- [ ] **Analytical benchmark profiles** — Profiles for read-heavy analytical workloads (OLAP-style queries).
+- [ ] **Postgres benchmark tests** — `stack/postgres` tests skip without `POSTGRES_TEST_DSN`.
+- [ ] **Missing edge-case tests** — Compare failure isolation, Concurrency override, journal scan metrics, CLI codec/warmup/output flags, unknown profile/backend error paths.
 - [ ] **Tag `benchkit/v0.1.0`** when API stabilizes.
 
 ---
