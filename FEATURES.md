@@ -259,11 +259,16 @@ pattern: same workload, any backend, structured metrics report.
 | DiskSizer            | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset                | 🧪     |
 | CPU measurement      | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution                       | 🧪     |
 | Projection phase     | Polls until all events processed, reports lag + events                                      | 🧪     |
-| Reports              | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk, env metadata     | 🧪     |
+| Reports              | Text, JSON (v2), Markdown, benchstat, manifest — latency percentiles, throughput, memory, disk, env | 🧪     |
+| Scaling sweeps       | `WorkerSweep`, `BatchSizeSweep`, `StreamLengthSweep`, `GOMAXPROCSSweep` — systematic parameter exploration | 🧪     |
+| benchstat output     | `WriteBenchstat` — benchstat-compatible lines for statistical comparison                     | 🧪     |
+| Suite manifest       | `WriteManifest` — config + environment + result as JSON for reproducibility                  | 🧪     |
+| JSON schema check    | `ExpectedJSONFields` + `VerifyJSONFields` — guards against silent schema changes              | 🧪     |
 | ReadRatio            | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                           | 🧪     |
 
-**Coverage:** 110 tests (98 benchkit + 12 CLI) with `-race`. Includes raw sink phase,
-environment metadata, schema versioning, and median selection tests. Run-to-run
+**Coverage:** 119 tests (107 benchkit + 12 CLI) with `-race`. Includes raw sink phase,
+scaling sweeps, benchstat output, suite manifest, schema verification, environment
+metadata, schema versioning, and median selection tests. Run-to-run
 variance is ~20-25% on the memory backend (use `--repeat N` for median reporting).
 
 ### cqrs-bench CLI 🔧
@@ -274,13 +279,15 @@ variance is ~20-25% on the memory backend (use `--repeat N` for median reporting
 | --------- | -------------------------------------------------------------------------- | ------ |
 | `run`     | Benchmark a single backend with a named workload profile                   | 🔧     |
 | `compare` | Compare multiple backends side-by-side                                     | 🔧     |
+| `sweep`   | Scaling sweep: vary workers, batch size, stream length, or GOMAXPROCS     | 🔧     |
 | Profiles  | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}`     | 🔧     |
-| Output    | `--format {text\|json\|markdown}`                                          | 🔧     |
+| Output    | `--format {text\|json\|markdown\|benchstat\|manifest}`                    | 🔧     |
 | Codec     | `--codec {json\|cbor}`                                                     | 🔧     |
 | Payload   | `--payload-size N` or `--payload-sizes 64,256,4096` (mixed)                | 🔧     |
 | Warmup    | `--warmup N`                                                               | 🔧     |
 | Repeat    | `--repeat N` — median of N runs with min/max spread (sorted by throughput) | 🔧     |
 | Raw sink  | `--skip-raw-sink` — skip prebuilt-event Save-only phase                    | 🔧     |
+| Profiling | `--cpuprofile file` and `--memprofile file` — pprof output                 | 🔧     |
 | Version   | `--version` via `runtime/debug.ReadBuildInfo()`                            | 🔧     |
 
 ---
