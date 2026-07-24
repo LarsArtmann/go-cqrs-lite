@@ -54,7 +54,7 @@ func newRunner(config Config, factory Factory) *runner {
 	return &runner{
 		config:      config,
 		factory:     factory,
-		gen:         NewGenerator(config.Seed, config.PayloadSize),
+		gen:         NewGenerator(config.Seed, config.PayloadSize, c),
 		codec:       c,
 		codecName:   codecName(c),
 		concurrency: config.Concurrency,

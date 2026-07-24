@@ -982,21 +982,6 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 ---
 
-## Known Code Quality Issues
-
-Found during code reviews. See `docs/planning/` for details.
-
-| Issue                                                                                                                                                                                                                                                                       | Severity   | Module              |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------------- |
-| ~~CommandJournal/SeekableCommandJournal in MemoryCommandStore untested~~ — **RESOLVED** (`0c0cd5b3`)                                                                                                                                                                        | ~~MEDIUM~~ | memory              |
-| ~~Query store interfaces (PersistedQuery, QueryStore, QueryJournal) untested~~ — **RESOLVED** (`0c0cd5b3`)                                                                                                                                                                  | ~~MEDIUM~~ | query, memory       |
-| ~~Query module lacks store-specific sentinel errors~~ — **RESOLVED** (`query/errors.go`)                                                                                                                                                                                    | ~~LOW~~    | query               |
-| ~~command re-exports event types (module boundary violation)~~ — **DOCUMENTED AS INTENTIONAL** (`command/aggregate_ref.go:8-10`). Commands share the same aggregate identity as events; re-exporting `AggregateType`/`AggregateRef` is convenience, not layering violation. | ~~HIGH~~   | command             |
-| ~~Reactive extensions not wired into dispatchers~~ — **DELETED** with `projection/` module (ADR-0030)                                                                                                                                                                       | ~~LOW~~    | event/command/query |
-| ~~Pre-existing golden test drift (codec, middleware)~~ — **RESOLVED** (`8f2d2090`). Golden tests pass; the "drift" was caused by an invalid eventtest version in stack/go.mod blocking test execution, not actual content drift.                                            | ~~LOW~~    | codec, middleware   |
-
----
-
 ## Not Yet Implemented 📐 PLANNED
 
 Features mentioned in project docs/planning but with **no production code yet**:
@@ -1012,7 +997,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 52 independently importable modules in `go.work` (56 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 56 independently importable modules in `go.work` (56 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                    | Import Path                 | Maturity                                                                  |
 | ------------------------- | --------------------------- | ------------------------------------------------------------------------- |

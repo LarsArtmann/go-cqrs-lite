@@ -1,16 +1,17 @@
 package benchkit
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
 func TestGenerator_Deterministic(t *testing.T) {
 	t.Parallel()
 
-	g1 := NewGenerator(42, 256)
-	g2 := NewGenerator(42, 256)
+	g1 := NewGenerator(42, 256, nil)
+	g2 := NewGenerator(42, 256, nil)
 
 	p1 := g1.Payload()
 	p2 := g2.Payload()
@@ -23,8 +24,8 @@ func TestGenerator_Deterministic(t *testing.T) {
 func TestGenerator_DifferentSeeds(t *testing.T) {
 	t.Parallel()
 
-	g1 := NewGenerator(1, 256)
-	g2 := NewGenerator(2, 256)
+	g1 := NewGenerator(1, 256, nil)
+	g2 := NewGenerator(2, 256, nil)
 
 	p1 := g1.Payload()
 	p2 := g2.Payload()
@@ -37,7 +38,7 @@ func TestGenerator_DifferentSeeds(t *testing.T) {
 func TestGenerator_PayloadFields(t *testing.T) {
 	t.Parallel()
 
-	g := NewGenerator(1, 256)
+	g := NewGenerator(1, 256, nil)
 	p := g.Payload()
 
 	if p.ID == "" {
@@ -72,7 +73,7 @@ func TestGenerator_PayloadFields(t *testing.T) {
 func TestGenerator_DefaultSize(t *testing.T) {
 	t.Parallel()
 
-	g := NewGenerator(1, 0) // 0 should default to 256
+	g := NewGenerator(1, 0, nil) // 0 should default to 256
 	p := g.Payload()
 
 	if p.Padding == "" {
@@ -83,7 +84,7 @@ func TestGenerator_DefaultSize(t *testing.T) {
 func TestGenerator_SmallSizeNoCorruption(t *testing.T) {
 	t.Parallel()
 
-	g := NewGenerator(1, 32)
+	g := NewGenerator(1, 32, nil)
 	p := g.Payload()
 
 	// At small sizes, padding should be empty but the payload should still
@@ -100,33 +101,44 @@ func TestGenerator_SmallSizeNoCorruption(t *testing.T) {
 func TestGenerator_PayloadSizeAccuracy(t *testing.T) {
 	t.Parallel()
 
+	codecs := []struct {
+		name   string
+		codec  codec.Codec
+		tolerance int
+	}{
+		{"json", codec.JSONCodec{}, 2},
+		{"cbor", codec.CBORCodec{}, 5},
+	}
+
 	sizes := []int{256, 512, 1024, 4096}
 
-	for _, target := range sizes {
-		t.Run(fmt.Sprintf("size=%d", target), func(t *testing.T) {
-			t.Parallel()
+	for _, tc := range codecs {
+		for _, target := range sizes {
+			t.Run(fmt.Sprintf("%s/size=%d", tc.name, target), func(t *testing.T) {
+				t.Parallel()
 
-			g := NewGenerator(1, target)
-			p := g.Payload()
+				g := NewGenerator(1, target, tc.codec)
+				p := g.Payload()
 
-			data, err := json.Marshal(p)
-			if err != nil {
-				t.Fatalf("json.Marshal failed: %v", err)
-			}
+				data, err := tc.codec.Encode(p)
+				if err != nil {
+					t.Fatalf("codec.Encode failed: %v", err)
+				}
 
-			actual := len(data)
-			diff := actual - target
-			if diff < 0 {
-				diff = -diff
-			}
+				actual := len(data)
+				diff := actual - target
+				if diff < 0 {
+					diff = -diff
+				}
 
-			// With marshal-and-measure, the payload should be within 2 bytes
-			// of the target (the padding key overhead estimate is exact).
-			if diff > 2 {
-				t.Errorf("size=%d: actual JSON size %d differs from target by %d bytes (max 2)",
-					target, actual, diff)
-			}
-		})
+				// JSON is exact (linear overhead). CBOR can be off by a few bytes
+				// due to string-header boundary crossings (23/255/65535).
+				if diff > tc.tolerance {
+					t.Errorf("%s size=%d: actual encoded size %d differs from target by %d bytes (max %d)",
+						tc.name, target, actual, diff, tc.tolerance)
+				}
+			})
+		}
 	}
 }
 

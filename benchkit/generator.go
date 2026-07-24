@@ -1,16 +1,17 @@
 package benchkit
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/rand/v2"
 	"strings"
+
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
 // BenchPayload is the synthetic event payload used by the benchmark generator.
 // It mimics a realistic e-commerce order event with typed fields.
-// The Padding field ensures payloads reach approximately the target byte size
-// while remaining valid JSON/CBOR at any size.
+// The Padding field ensures the encoded payload matches the target byte size
+// as closely as possible (within a few bytes for any codec).
 type BenchPayload struct {
 	ID       string            `cbor:"1,keyasint"           json:"id"`
 	Name     string            `cbor:"2,keyasint"           json:"name"`
@@ -23,27 +24,36 @@ type BenchPayload struct {
 
 // Generator produces deterministic synthetic payloads for benchmarking.
 // Same seed always produces the same data, enabling reproducible runs.
+// The codec determines how payload sizing is calculated — use the same
+// codec that the benchmark will encode events with.
 type Generator struct {
-	rng  *rand.Rand
-	size int
+	rng   *rand.Rand
+	size  int
+	codec codec.Codec
 }
 
-// NewGenerator creates a Generator with the given seed and target payload size.
-// If size <= 0, defaults to 256 bytes.
-func NewGenerator(seed int64, size int) *Generator {
+// NewGenerator creates a Generator with the given seed, target payload size,
+// and codec for size measurement. If size <= 0, defaults to 256 bytes.
+// If codec is nil, defaults to JSONCodec.
+func NewGenerator(seed int64, size int, c codec.Codec) *Generator {
 	if size <= 0 {
 		size = 256
 	}
 
+	if c == nil {
+		c = codec.JSONCodec{}
+	}
+
 	return &Generator{
-		rng:  rand.New(rand.NewPCG(uint64(seed), 0)),
-		size: size,
+		rng:   rand.New(rand.NewPCG(uint64(seed), 0)),
+		size:  size,
+		codec: c,
 	}
 }
 
 // Payload returns a BenchPayload populated with deterministic random data.
-// The Padding field is sized so the JSON encoding is approximately the
-// configured target size. The payload is always valid JSON at any size.
+// The Padding field is sized so the codec-encoded payload matches the target
+// byte size as closely as possible (within a few bytes).
 func (g *Generator) Payload() BenchPayload {
 	p := BenchPayload{
 		ID:       fmt.Sprintf("01HX%012d", g.rng.IntN(1000000000000)),
@@ -60,23 +70,33 @@ func (g *Generator) Payload() BenchPayload {
 }
 
 // computePadding calculates how many padding characters are needed so the
-// JSON encoding of the payload matches the target size as closely as possible.
-// It marshals the payload (without padding) to get the exact base size, then
-// subtracts the overhead of the padding key itself.
+// codec-encoded payload matches the target size. It uses the configured codec
+// (not hardcoded JSON) so CBOR payloads are sized correctly.
+//
+// The algorithm: encode without padding to get the base size, then encode with
+// a 1-char padding to measure the per-field overhead (key + type header).
+// Each additional padding char adds exactly 1 byte.
 func (g *Generator) computePadding(p BenchPayload) string {
-	const paddingKeyOverhead = len(`,"_padding":""`)
+	base, err := g.codec.Encode(p)
+	if err != nil || g.size <= len(base) {
+		return ""
+	}
 
-	base, err := json.Marshal(p)
+	// Probe with 1-char padding to measure field key + type header overhead.
+	probe := p
+	probe.Padding = "x"
+
+	withOne, err := g.codec.Encode(probe)
 	if err != nil {
 		return ""
 	}
 
-	baseSize := len(base)
-	if g.size <= baseSize+paddingKeyOverhead {
+	// withOne = base + overhead + 1 char. Each extra char = +1 byte.
+	// Solve: target = withOne + (N - 1), so N = target - withOne + 1.
+	needed := g.size - len(withOne) + 1
+	if needed <= 0 {
 		return ""
 	}
-
-	needed := g.size - baseSize - paddingKeyOverhead
 
 	return strings.Repeat("x", needed)
 }
