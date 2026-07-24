@@ -287,3 +287,26 @@ func TestCLI_Compare_DiskNonZero(t *testing.T) {
 		}
 	}
 }
+
+func TestCLI_Repeat(t *testing.T) {
+	t.Parallel()
+
+	bin := buildBinary(t)
+
+	out, err := exec.Command(
+		bin, "run",
+		"--backend", "memory",
+		"--profile", "dev",
+		"--repeat", "3",
+		"--payload-size", "64",
+	).CombinedOutput()
+	if err != nil {
+		t.Fatalf("run --repeat failed: %v\n%s", err, out)
+	}
+
+	output := string(out)
+
+	if !strings.Contains(output, "median of 3 runs") {
+		t.Errorf("expected 'median of 3 runs' in output:\n%s", output)
+	}
+}

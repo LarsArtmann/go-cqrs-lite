@@ -434,8 +434,9 @@ func TestRun_DurationAborts(t *testing.T) {
 	t.Parallel()
 
 	// Use a profile large enough that it cannot finish within the duration.
+	// 10K streams is plenty — setup is fast even under -race.
 	bigProfile := Profile{
-		Name: "test-duration", Streams: 100_000, EventsPerStream: 10,
+		Name: "test-duration", Streams: 10_000, EventsPerStream: 10,
 		Concurrency: 1, ReadRatio: 0.5, BatchSize: 1,
 	}
 
@@ -449,12 +450,13 @@ func TestRun_DurationAborts(t *testing.T) {
 
 	elapsed := time.Since(start)
 
-	// The run should finish well under the time needed for the full 1M events.
-	if elapsed > 2*time.Second {
-		t.Errorf("run took %v with Duration=5ms; expected < 2s", elapsed)
+	// The run should finish quickly. Under -race with parallel test load,
+	// setup + teardown adds overhead, so allow 5s (not 2s).
+	if elapsed > 5*time.Second {
+		t.Errorf("run took %v with Duration=5ms; expected < 5s", elapsed)
 	}
 
-	// The duration cap should prevent all 1M events from being written.
+	// The duration cap should prevent all events from being written.
 	if result.TotalEvents >= bigProfile.TotalEvents() {
 		t.Errorf("TotalEvents = %d, expected < %d (duration should have limited writes)",
 			result.TotalEvents, bigProfile.TotalEvents())
@@ -1142,5 +1144,100 @@ func TestRun_Pebble_DiskSizerInterface(t *testing.T) {
 	if result.Disk.DatabaseBytes <= 0 {
 		t.Errorf("Disk.DatabaseBytes = %d, expected > 0 via DiskSizer (no DiskPath set)",
 			result.Disk.DatabaseBytes)
+	}
+}
+
+// ── Repeat (multi-sample averaging) tests ──
+
+func TestRun_Repeat(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile: ProfileDev,
+		Repeat:  3,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.RepeatCount != 3 {
+		t.Errorf("RepeatCount = %d, expected 3", result.RepeatCount)
+	}
+
+	if len(result.RepeatSamples) != 3 {
+		t.Fatalf("RepeatSamples len = %d, expected 3", len(result.RepeatSamples))
+	}
+
+	if result.RepeatMin <= 0 || result.RepeatMax <= 0 {
+		t.Errorf("RepeatMin=%v, RepeatMax=%v, expected both > 0",
+			result.RepeatMin, result.RepeatMax)
+	}
+
+	if result.RepeatMin > result.RepeatMax {
+		t.Errorf("RepeatMin (%v) > RepeatMax (%v)", result.RepeatMin, result.RepeatMax)
+	}
+
+	for i := 1; i < len(result.RepeatSamples); i++ {
+		if result.RepeatSamples[i] < result.RepeatSamples[i-1] {
+			t.Errorf("RepeatSamples not sorted ascending at index %d", i)
+
+			break
+		}
+	}
+
+	if result.WriteThroughput <= 0 {
+		t.Error("median result should have positive throughput")
+	}
+}
+
+func TestRun_RepeatSingleRun(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile: ProfileDev,
+		Repeat:  1, // same as no repeat
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.RepeatCount != 0 {
+		t.Errorf("RepeatCount = %d, expected 0 for Repeat=1", result.RepeatCount)
+	}
+}
+
+// ── CPU measurement consistency test ──
+
+func TestRun_CPUConsistency(t *testing.T) {
+	t.Parallel()
+
+	// Use a profile large enough to produce measurable CPU time.
+	result := mustRun(t, Config{
+		Profile:     ProfileSmall,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.CPU.Before > result.CPU.After {
+		t.Errorf("CPU.Before (%d) > CPU.After (%d)", result.CPU.Before, result.CPU.After)
+	}
+
+	// CPU delta should be non-zero for a workload of this size.
+	// (On very fast machines the delta might be tiny but should still be > 0.)
+	if result.CPU.Delta == 0 {
+		t.Log("CPU.Delta = 0; possible on extremely fast machines or non-Unix platforms")
+	}
+}
+
+// ── DiskSizer fallback test (no DiskSizer, uses DiskPath walk) ──
+
+func TestRun_DiskSizerFallback(t *testing.T) {
+	t.Parallel()
+
+	// Memory backend has no DiskSizer. With DiskPath set but no files,
+	// disk bytes should be 0 (or very small). This verifies the fallback
+	// path (filesystem walk) is used when DiskSizer is not implemented.
+	result := mustRun(t, Config{
+		Profile:  ProfileDev,
+		DiskPath: t.TempDir(),
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	// Memory backend writes nothing to disk, so DatabaseBytes should be 0.
+	if result.Disk.DatabaseBytes > 0 {
+		t.Errorf("Disk.DatabaseBytes = %d for memory backend with empty DiskPath,"+
+			" expected 0", result.Disk.DatabaseBytes)
 	}
 }

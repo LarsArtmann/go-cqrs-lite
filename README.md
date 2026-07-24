@@ -69,19 +69,19 @@ func main() {
     repo, _ := decider.NewRepository(store, bus, d)
 
     cmds := command.NewDispatcher()
-    aggID := id.NewAggregateID()
+    streamID := id.NewStreamID()
     _ = command.RegisterTyped(cmds, "user.create",
         func(ctx context.Context, cmd *CreateUser) error {
-            return repo.Execute(ctx, cmd.AggregateID(), "User", func(s UserState, v event.Version) ([]event.Event, error) {
-                return event.NewEvents(cmd.AggregateID(), "User", v,
+            return repo.Execute(ctx, cmd.StreamID(), "User", func(s UserState, v event.Version) ([]event.Event, error) {
+                return event.NewEvents(cmd.StreamID(), "User", v,
                     []event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
             })
         })
 
-    basic, _ := command.New("user.create", aggID)
+    basic, _ := command.New("user.create", streamID)
     _ = cmds.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Alice"})
 
-    state, _, _ := repo.Load(ctx, aggID, "User")
+    state, _, _ := repo.Load(ctx, streamID, "User")
     fmt.Printf("User: %s\n", state.Name) // User: Alice
 }
 ```
@@ -134,7 +134,7 @@ Every module is independently importable and has its own `go.mod`. Here are the 
 | **event**          | Immutable events, store/bus interfaces, event sourcing                |
 | **command**        | Typed command dispatch, middleware, audit journal, pub/sub bus        |
 | **query**          | Typed query dispatch, pagination, audit journal                       |
-| **decider**        | Pure-function aggregate pattern: load, apply, decide, save            |
+| **decider**        | Pure-function event-sourcing pattern: load, apply, decide, save       |
 | **id**             | Branded IDs backed by ULID                                            |
 | **storage**        | SQL event/snapshot/checkpoint stores (PostgreSQL, SQLite)             |
 | **storage/pebble** | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)       |
