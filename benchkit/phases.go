@@ -287,6 +287,7 @@ func (r *runner) collectProjectionStats(host *projectionhost.Host) {
 func (r *runner) durabilityPhase() {
 	if sizer, ok := any(r.bundle).(DiskSizer); ok {
 		r.result.Disk.DatabaseBytes = sizer.DiskSize()
+
 		return
 	}
 

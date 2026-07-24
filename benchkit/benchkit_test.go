@@ -9,12 +9,13 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func mustRun(t *testing.T, config Config, factory Factory) *Result {
@@ -42,6 +43,7 @@ func TestRun_Memory(t *testing.T) {
 		Warmup:      2,
 	}, func() (*stack.Bundle, error) {
 		factoryCalls.Add(1)
+
 		return memory.New()
 	})
 
@@ -630,6 +632,7 @@ func TestRun_WarmupFactoryError(t *testing.T) {
 		if n == 1 {
 			return memory.New() // measurement bundle OK
 		}
+
 		return nil, errTest("warmup factory boom")
 	})
 
@@ -667,6 +670,7 @@ func TestRun_NoWarmupFactoryOnce(t *testing.T) {
 		Warmup:      0,
 	}, func() (*stack.Bundle, error) {
 		callCount.Add(1)
+
 		return memory.New()
 	})
 
@@ -731,6 +735,7 @@ func TestRun_Pebble(t *testing.T) {
 		if err != nil {
 			return nil, err
 		}
+
 		return b.Bundle, nil
 	})
 
@@ -762,6 +767,7 @@ func TestRun_Pebble_DiskMeasurement(t *testing.T) {
 		if err != nil {
 			return nil, err
 		}
+
 		return b.Bundle, nil
 	})
 
@@ -840,6 +846,7 @@ func TestRun_ClosedStore_ErrorMessage(t *testing.T) {
 			return nil, bErr
 		}
 		_ = b.Close()
+
 		return b, nil
 	})
 
@@ -881,6 +888,7 @@ func TestCompare_ThreeBackends(t *testing.T) {
 			if pErr != nil {
 				return nil, pErr
 			}
+
 			return b.Bundle, nil
 		},
 	})
@@ -895,6 +903,7 @@ func TestCompare_ThreeBackends(t *testing.T) {
 	for _, name := range []string{"memory", "sqlite", "pebble"} {
 		if results[name] == nil {
 			t.Errorf("results[%q] is nil", name)
+
 			continue
 		}
 		if results[name].Error != "" {
