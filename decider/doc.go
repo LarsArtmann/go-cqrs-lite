@@ -1,6 +1,6 @@
 // Package decider implements the pure-function stream pattern for event sourcing.
 //
-// A Decider[State] replaces a mutable stream with a pure fold: the
+// A Decider[State] replaces a mutable entity with a pure fold: the
 // Apply function takes the current state and an event, returning the new state.
 // The decision logic (command → events) is supplied separately as a
 // [DecideFunc] to Repository.Execute — it is NOT a field on Decider[State].
