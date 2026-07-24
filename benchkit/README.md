@@ -68,6 +68,15 @@ cqrs-bench run --backend pebble --profile small --payload-sizes 64,256,1024,4096
 # Multi-sample averaging (median of N runs, reduces 20% variance)
 cqrs-bench run --backend memory --profile small --repeat 5
 
+# Crash-recovery benchmark (close, reopen, reload all streams)
+cqrs-bench run --backend sqlite --dsn /tmp/bench.db --profile small --recovery
+
+# Production replay (benchmark reads + projections on existing data)
+cqrs-bench run --backend sqlite --dsn /tmp/existing.db --profile dev --replay
+
+# Postgres backend (requires --dsn)
+cqrs-bench run --backend postgres --dsn "postgres://user:pass@localhost:5432/bench?sslmode=disable" --profile dev
+
 # Version
 cqrs-bench --version
 ```
@@ -87,18 +96,42 @@ See [ADR-0060](../docs/adr/0060-benchkit-design-decisions.md) for design rationa
 | `Stress`     |     10,000 |        500 |    5M |         64 |
 | `WriteHeavy` |     10,000 |        100 |    1M |         32 |
 | `ReadHeavy`  |     10,000 |        100 |    1M |         32 |
+| `Analytical` |     10,000 |         10 |  100K |         16 |
+
+`Analytical` uses `ReadRatio=0.9` (9 read passes) and `JournalScans=5`
+(repeated full-journal scans) to model OLAP-style dashboard/aggregation workloads.
 
 ## Metrics collected
 
 - **Write latency**: P50/P75/P90/P95/P99/P100/Mean around `EventSink.Save()`
 - **Read latency**: P50-P100 around `EventSource.Load()`
-- **Journal scans**: `ReadAll()` and `ReadFrom()` wall time
+- **Journal scans**: `ReadAll()` and `ReadFrom()` wall time (multi-pass when `Profile.JournalScans > 1`)
 - **Read model**: kv.Store `Set()` and `Get()` latency percentiles
-- **Projection**: lag, events processed (when SeekableJournal available)
+- **Projection**: lag, events processed — uses a real kv.Store-backed counting projection (Get+Set per event)
+- **Recovery**: close+reopen+reload time and recovered events (when `Config.Recovery` is set)
 - **Throughput**: events/sec sustained during write phase
 - **Memory**: peak heap allocation via runtime.MemStats
 - **Storage**: on-disk database size (when DiskPath configured)
 - **CPU**: process user+sys time via `syscall.Getrusage` (Unix), stub on non-Unix
+
+## Testing.B integration
+
+Use `benchkit.RunSuite` to run benchmarks via Go's standard `testing.B`:
+
+```go
+func BenchmarkBenchkitSuite_Memory(b *testing.B) {
+    benchkit.RunSuite(b, benchkit.Config{
+        Profile: benchkit.ProfileDev,
+    }, func() (*stack.Bundle, error) {
+        return memory.New()
+    })
+}
+```
+
+Run with: `go test -bench=BenchkitSuite -benchtime=1x ./stack/bench/...`
+
+Custom metrics are reported via `b.ReportMetric`: throughput, write/load
+latency percentiles, journal scan time, projection events, recovery time.
 
 ## Design
 

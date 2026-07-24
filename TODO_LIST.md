@@ -92,7 +92,7 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 - [x] **Fix `--version` drift** — Now uses `runtime/debug.ReadBuildInfo()` instead of hardcoded string.
 - [x] **Mixed payload-size support** — `Generator` now holds a size distribution; `NewMixedGenerator(seed, sizes, codec)` picks a size uniformly at random per event. CLI flag `--payload-sizes 64,256,4096` overrides `--payload-size`. Result reports the distribution mean + full distribution. See [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
 
-**Done this session:**
+**Done:**
 
 - [x] 🔥 **`--repeat N` flag** — Added `Config.Repeat` + `runRepeated()` logic: runs N iterations, reports median result with min/max throughput spread. CLI `--repeat N` available on `run` and `compare`.
 - [x] **Implement `DiskSize()` on `pebble.Bundle`** — 3-layer DiskSizer: `storage/pebble.Backend.DiskUsage()` (computed from Metrics), `stack.WithDiskSize()` option, wired in `stack/pebble` preset.
@@ -104,15 +104,15 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 - [x] **Compare-mode disk = 0B** — `compareCmd` now collects per-backend diskPaths instead of discarding them.
 - [x] **Fix `--version` drift** — Now uses `runtime/debug.ReadBuildInfo()` instead of hardcoded string.
 - [x] **Mixed payload-size support** — `NewMixedGenerator(seed, sizes, codec)`. CLI `--payload-sizes 64,256,4096`.
+- [x] **Phase 2: durability benchmark** — `Config.Recovery` + `recoveryPhase`: close bundle, reopen via factory, reload all streams. `Result.RecoveryTime` + `RecoveredEvents`. CLI `--recovery`.
+- [x] **Phase 6: production replay** — `Config.ReplayOnly`: skip writes, discover streams from Journal/SeekableJournal, benchmark reads + projections on existing data. CLI `--replay`.
+- [x] **Phase 7: `benchtest.RunSuite`** — `benchkit.RunSuite(b, config, factory)` wraps benchkit into Go `testing.B` with `b.ReportMetric`. Wired into `stack/bench` with 3 backend suites.
+- [x] **Analytical benchmark profiles** — `ProfileAnalytical` (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans` field for multi-pass journal scanning.
+- [x] **Postgres benchmark tests** — `postgres` backend added to `cqrs-bench` CLI. Benchkit tests skip without `POSTGRES_TEST_DSN`.
+- [x] **Projection benchmark with real kv.Store handler** — Replaced no-op handler with `newKVCountingProjection`: Get+Set per event on `bundle.ReadModels` (kv.Store). Falls back to atomic counter when no kv.Store.
 
 **Open:**
 
-- [ ] **Phase 2: durability benchmark** — Crash recovery, replay-after-restart.
-- [ ] **Phase 6: production replay** — Replay real event streams for benchmarking.
-- [ ] **Phase 7: `benchtest.RunSuite`** — Preset integration for `stack/bench`.
-- [ ] **Analytical benchmark profiles** — Profiles for read-heavy analytical workloads (OLAP-style queries).
-- [ ] **Postgres benchmark tests** — `stack/postgres` tests skip without `POSTGRES_TEST_DSN`.
-- [ ] **Projection benchmark with real kv.Store handler** — Current handler is a no-op. A kv.Store-backed counting projection would measure real projection cost.
 - [ ] **Tag `benchkit/v0.1.0`** when API stabilizes.
 
 ---
