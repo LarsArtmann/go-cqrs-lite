@@ -110,7 +110,12 @@ func (m *memoryEngine) MapDelete(ctx context.Context, col string, key any) error
 // MapUpdate performs an atomic read-modify-write on a map entry.
 // The update function receives the previous value (nil if absent) and returns
 // the new value. The entire operation is serialized under the engine's write lock.
-func (m *memoryEngine) MapUpdate(ctx context.Context, col string, key any, update func(prev any) any) error {
+func (m *memoryEngine) MapUpdate(
+	ctx context.Context,
+	col string,
+	key any,
+	update func(prev any) any,
+) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -260,7 +265,12 @@ func (m *memoryEngine) GraphAddEdge(ctx context.Context, col string, edge Edge) 
 	return nil
 }
 
-func (m *memoryEngine) GraphNeighbors(ctx context.Context, col string, node any, depth int) ([]any, error) {
+func (m *memoryEngine) GraphNeighbors(
+	ctx context.Context,
+	col string,
+	node any,
+	depth int,
+) ([]any, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

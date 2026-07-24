@@ -104,36 +104,57 @@ func (r *runner) createBatch(
 }
 
 // readPhase loads all aggregates concurrently, then runs journal scans.
+// The number of read passes scales with Profile.ReadRatio so that read-heavy
+// profiles perform more reads than write-heavy ones.
 func (r *runner) readPhase(ctx context.Context) error {
 	coll := NewLatencyCollector(0)
 	profile := r.config.Profile
 
-	err := runConcurrent(
-		ctx, profile.Streams, r.concurrency,
-		func(ctx context.Context, aggIdx int) error {
-			ref := r.refs[aggIdx]
-			start := time.Now()
+	readPasses := readPassesFor(profile.ReadRatio)
 
-			_, err := r.bundle.EventSource.Load(ctx, ref)
-			if err != nil {
-				return err
-			}
+	for range readPasses {
+		err := runConcurrent(
+			ctx, profile.Streams, r.concurrency,
+			func(ctx context.Context, aggIdx int) error {
+				ref := r.refs[aggIdx]
+				start := time.Now()
 
-			coll.Record(time.Since(start))
+				_, err := r.bundle.EventSource.Load(ctx, ref)
+				if err != nil {
+					return err
+				}
 
-			return nil
-		},
-	)
+				coll.Record(time.Since(start))
+
+				return nil
+			},
+		)
+		if err != nil {
+			r.result.LoadLatency = coll.Stats()
+			return err
+		}
+	}
 
 	r.result.LoadLatency = coll.Stats()
-
-	if err != nil {
-		return err
-	}
 
 	r.runJournalScans(ctx)
 
 	return nil
+}
+
+// readPassesFor converts a ReadRatio (0.0–1.0) into the number of read passes.
+// 0.0–0.1 = 1 pass, 0.5 = 5 passes, 0.8 = 8 passes, 1.0 = 10 passes.
+func readPassesFor(ratio float64) int {
+	if ratio <= 0 {
+		return 1
+	}
+
+	passes := int(ratio*10 + 0.5)
+	if passes < 1 {
+		passes = 1
+	}
+
+	return passes
 }
 
 func (r *runner) runJournalScans(ctx context.Context) {

@@ -18,7 +18,8 @@ var _ = Describe("Apply and Execute", func() {
 		var err error
 		store, err = metaengine.Plan(
 			[]metaengine.Engine{metaengine.NewMemoryEngine()},
-			allQueries()...)
+			allQueries()...,
+		)
 		Expect(err).NotTo(HaveOccurred())
 		ctx = context.Background()
 	})
@@ -49,7 +50,11 @@ var _ = Describe("Apply and Execute", func() {
 		When("the task is completed via FoldUpdate", func() {
 			BeforeEach(func() {
 				Expect(
-					store.Apply(context.Background(), "TaskCompleted", TaskCompleted{ID: "t1", At: time.Now()}),
+					store.Apply(
+						context.Background(),
+						"TaskCompleted",
+						TaskCompleted{ID: "t1", At: time.Now()},
+					),
 				).To(Succeed())
 			})
 
@@ -67,7 +72,11 @@ var _ = Describe("Apply and Execute", func() {
 		When("the task is deleted via Remove sentinel", func() {
 			BeforeEach(func() {
 				Expect(
-					store.Apply(context.Background(), "TaskDeleted", TaskDeleted{ID: "t1", At: time.Now()}),
+					store.Apply(
+						context.Background(),
+						"TaskDeleted",
+						TaskDeleted{ID: "t1", At: time.Now()},
+					),
 				).To(Succeed())
 			})
 
@@ -133,7 +142,11 @@ var _ = Describe("Apply and Execute", func() {
 				ID: "t3", Title: "C", Status: "open", At: time.Now(),
 			})).To(Succeed())
 			Expect(
-				store.Apply(context.Background(), "TaskCompleted", TaskCompleted{ID: "t1", At: time.Now()}),
+				store.Apply(
+					context.Background(),
+					"TaskCompleted",
+					TaskCompleted{ID: "t1", At: time.Now()},
+				),
 			).To(Succeed())
 		})
 
@@ -273,7 +286,9 @@ var _ = Describe("ApplyEncoded", func() {
 
 	It("decodes JSON payloads and applies them", func() {
 		payload := `{"ID":"t9","Title":"From JSON","Assignee":"bob","Status":"open","Priority":2,"At":"2026-01-01T00:00:00Z"}`
-		Expect(store.ApplyEncoded(context.Background(), "TaskCreated", []byte(payload))).To(Succeed())
+		Expect(
+			store.ApplyEncoded(context.Background(), "TaskCreated", []byte(payload)),
+		).To(Succeed())
 
 		result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
 			context.Background(), store, FindTask{ID: "t9"},
