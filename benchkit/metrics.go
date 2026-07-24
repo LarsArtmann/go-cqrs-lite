@@ -5,6 +5,8 @@ import (
 	"os"
 	"runtime"
 	"slices"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -198,53 +200,33 @@ func cpuTimeProc() uint64 {
 		return 0
 	}
 
-	// Parse fields 14 (utime) and 15 (stime) in clock ticks
-	fields := splitFields(data)
-	if len(fields) < 16 {
+	// /proc/self/stat field 2 is (comm) which can contain spaces.
+	// Everything after the last ')' is space-delimited and safe to split.
+	lastParen := strings.LastIndexByte(string(data), ')')
+	if lastParen < 0 || lastParen+1 >= len(data) {
 		return 0
 	}
 
-	utime := parseUint(fields[13])
-	stime := parseUint(fields[14])
+	fields := strings.Fields(string(data[lastParen+1:]))
+	// After the comm field, utime is field 14 and stime is field 15
+	// (1-indexed from the original stat). Since we stripped fields 1-2
+	// (pid and comm), utime is at index 11 and stime at index 12.
+	if len(fields) < 13 {
+		return 0
+	}
+
+	utime, err := strconv.ParseUint(fields[11], 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	stime, err := strconv.ParseUint(fields[12], 10, 64)
+	if err != nil {
+		return 0
+	}
 
 	// Convert clock ticks to nanoseconds (assuming 100 Hz)
 	const hz = 100
 
 	return (utime + stime) * 1e9 / hz
-}
-
-func splitFields(data []byte) []string {
-	var fields []string
-
-	start := 0
-
-	for i, b := range data {
-		if b == ' ' {
-			if i > start {
-				fields = append(fields, string(data[start:i]))
-			}
-
-			start = i + 1
-		}
-	}
-
-	if start < len(data) {
-		fields = append(fields, string(data[start:]))
-	}
-
-	return fields
-}
-
-func parseUint(s string) uint64 {
-	var n uint64
-
-	for _, c := range s {
-		if c < '0' || c > '9' {
-			break
-		}
-
-		n = n*10 + uint64(c-'0')
-	}
-
-	return n
 }

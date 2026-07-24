@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -260,17 +261,17 @@ func sortedKeys(m map[string]*Result) []string {
 		keys = append(keys, k)
 	}
 
-	sortStrings(keys)
+	sort.Strings(keys)
 
 	return keys
 }
 
-func sortStrings(s []string) {
-	for i := 1; i < len(s); i++ {
-		for j := i; j > 0 && s[j-1] > s[j]; j-- {
-			s[j-1], s[j] = s[j], s[j-1]
-		}
+func truncate(s string, max int) string {
+	if len(s) <= max {
+		return s
 	}
+
+	return s[:max-3] + "..."
 }
 
 func insertCommas(s string) string {
@@ -299,12 +300,4 @@ func insertCommas(s string) string {
 	}
 
 	return b.String()
-}
-
-func truncate(s string, max int) string {
-	if len(s) <= max {
-		return s
-	}
-
-	return s[:max-3] + "..."
 }
