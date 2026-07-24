@@ -136,3 +136,30 @@ var _ = Describe("EventTypeName", func() {
 		Expect(metaengine.EventTypeName(&MyEvent{})).To(Equal("MyEvent"))
 	})
 })
+
+var _ = Describe("Query constructor panics", func() {
+	type qInput struct{ ID string }
+	type qResult struct{ Name string }
+
+	When("an argument is neither a Fold nor a QueryOption", func() {
+		It("panics naming the bad argument type", func() {
+			Expect(func() {
+				_ = metaengine.Query[qInput, qResult](
+					"bad_args",
+					metaengine.On(struct{ ID string }{}, func(e struct{ ID string }) (string, qResult) {
+						return e.ID, qResult{}
+					}),
+					"not a fold or option",
+				)
+			}).To(PanicWith(MatchRegexp("unexpected argument type")))
+		})
+	})
+
+	When("no folds are provided", func() {
+		It("panics explaining at least one fold is required", func() {
+			Expect(func() {
+				_ = metaengine.Query[qInput, qResult]("no_folds", metaengine.Volume(100))
+			}).To(PanicWith(MatchRegexp("at least one fold required")))
+		})
+	})
+})
