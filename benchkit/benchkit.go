@@ -34,6 +34,14 @@ type Config struct {
 	// Default: 256 bytes.
 	PayloadSize int
 
+	// PayloadSizes, when non-empty, overrides PayloadSize and produces a MIXED
+	// distribution: each event payload is sized by a uniform random pick from
+	// this slice. Models real workloads where events vary from small status
+	// updates to large events with embedded collections. Default (nil) uses
+	// PayloadSize for every event. The distribution mean is reported in
+	// Result.PayloadBytes and the full distribution in Result.PayloadSizes.
+	PayloadSizes []int
+
 	// Codec controls payload encoding for event creation.
 	// nil defaults to [codec.JSONCodec].
 	Codec codec.Codec
@@ -114,6 +122,11 @@ type Result struct {
 	EventsPerStream int `json:"eventsPerAggregate"`
 	TotalEvents     int `json:"totalEvents"`
 	PayloadBytes    int `json:"payloadBytesPerEvent"`
+
+	// PayloadSizes is the per-event payload-size distribution. Empty for a
+	// uniform-size run; populated when Config.PayloadSizes is used (mixed
+	// workloads). PayloadBytes holds the mean of this distribution.
+	PayloadSizes []int `json:"payloadSizes,omitempty"`
 
 	// WarmupEvents is the number of events written during the warmup phase
 	// (on a separate Bundle). Zero when Warmup is disabled.

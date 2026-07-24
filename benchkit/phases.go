@@ -266,6 +266,43 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 		return err
 	}
 
+	// Poll until the projection catches up to all written events, then stop.
+	// This gives the worker time to actually process events instead of being
+	// immediately cancelled.
+	target := int64(r.result.TotalEvents)
+	deadline := time.NewTimer(30 * time.Second)
+	defer deadline.Stop()
+
+	ticker := time.NewTicker(10 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		var processed int64
+		for _, ws := range host.Status() {
+			processed += ws.Processed
+		}
+
+		if processed >= target {
+			break
+		}
+
+		select {
+		case <-deadline.C:
+			_ = host.Stop()
+
+			r.collectProjectionStats(host)
+
+			return nil // timeout — report what we got
+		case <-ticker.C:
+		case <-ctx.Done():
+			_ = host.Stop()
+
+			r.collectProjectionStats(host)
+
+			return nil
+		}
+	}
+
 	_ = host.Stop()
 
 	r.collectProjectionStats(host)

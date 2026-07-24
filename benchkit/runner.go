@@ -35,7 +35,7 @@ type runner struct {
 }
 
 func newRunner(config Config, factory Factory) *runner {
-	if config.PayloadSize <= 0 {
+	if config.PayloadSize <= 0 && len(config.PayloadSizes) == 0 {
 		config.PayloadSize = 256
 	}
 
@@ -52,10 +52,17 @@ func newRunner(config Config, factory Factory) *runner {
 		c = codec.JSONCodec{}
 	}
 
+	var gen *Generator
+	if len(config.PayloadSizes) > 0 {
+		gen = NewMixedGenerator(config.Seed, config.PayloadSizes, c)
+	} else {
+		gen = NewGenerator(config.Seed, config.PayloadSize, c)
+	}
+
 	return &runner{
 		config:      config,
 		factory:     factory,
-		gen:         NewGenerator(config.Seed, config.PayloadSize, c),
+		gen:         gen,
 		codec:       c,
 		codecName:   codecName(c),
 		concurrency: config.Concurrency,
@@ -184,7 +191,12 @@ func (r *runner) setup(_ context.Context) error {
 	r.result.Timestamp = time.Now()
 	r.result.Streams = profile.Streams
 	r.result.EventsPerStream = profile.EventsPerStream
-	r.result.PayloadBytes = r.config.PayloadSize
+	r.result.PayloadBytes = r.gen.MeanSize()
+
+	if dist := r.gen.SizeDistribution(); len(dist) > 1 {
+		r.result.PayloadSizes = dist
+	}
+
 	r.result.Codec = r.codecName
 
 	return nil
@@ -217,7 +229,7 @@ func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
 		r.result.CPU.Delta = endCPU - r.startCPU
 	}
 
-	r.result.Disk.EventBytes = int64(r.result.TotalEvents) * int64(r.config.PayloadSize)
+	r.result.Disk.EventBytes = int64(r.result.TotalEvents) * int64(r.gen.MeanSize())
 
 	if r.result.Disk.DatabaseBytes > 0 {
 		r.result.Disk.OverheadBytes = r.result.Disk.DatabaseBytes - r.result.Disk.EventBytes

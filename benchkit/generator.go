@@ -3,6 +3,7 @@ package benchkit
 import (
 	"fmt"
 	"math/rand/v2"
+	"slices"
 	"strings"
 	"sync"
 
@@ -27,9 +28,15 @@ type BenchPayload struct {
 // Same seed always produces the same data, enabling reproducible runs.
 // The codec determines how payload sizing is calculated — use the same
 // codec that the benchmark will encode events with.
+//
+// A Generator may hold a single target size (uniform payloads) or a
+// distribution of sizes (mixed payloads). When mixed, each Payload() call
+// picks a size uniformly at random from the distribution, modelling real
+// workloads where event sizes vary from tiny status changes to large events
+// carrying embedded collections.
 type Generator struct {
 	rng   *rand.Rand
-	size  int
+	sizes []int
 	codec codec.Codec
 	mu    sync.Mutex
 }
@@ -38,8 +45,29 @@ type Generator struct {
 // and codec for size measurement. If size <= 0, defaults to 256 bytes.
 // If codec is nil, defaults to JSONCodec.
 func NewGenerator(seed int64, size int, c codec.Codec) *Generator {
-	if size <= 0 {
-		size = 256
+	return newGenerator(seed, []int{size}, c)
+}
+
+// NewMixedGenerator creates a Generator that produces payloads of varying
+// sizes, picking uniformly at random from sizes on each Payload() call. This
+// models real workloads where event payloads vary widely (small status
+// changes, medium domain events, large events with embedded collections). At
+// least one size must be provided; sizes <= 0 default to 256. A
+// single-element slice behaves identically to NewGenerator.
+func NewMixedGenerator(seed int64, sizes []int, c codec.Codec) *Generator {
+	return newGenerator(seed, sizes, c)
+}
+
+func newGenerator(seed int64, sizes []int, c codec.Codec) *Generator {
+	cleaned := slices.Clone(sizes)
+	if len(cleaned) == 0 {
+		cleaned = []int{256}
+	}
+
+	for i, s := range cleaned {
+		if s <= 0 {
+			cleaned[i] = 256
+		}
 	}
 
 	if c == nil {
@@ -48,17 +76,49 @@ func NewGenerator(seed int64, size int, c codec.Codec) *Generator {
 
 	return &Generator{
 		rng:   rand.New(rand.NewPCG(uint64(seed), 0)),
-		size:  size,
+		sizes: cleaned,
 		codec: c,
 	}
 }
 
+// MeanSize returns the arithmetic mean of the payload-size distribution. For
+// a single-size Generator this equals that size; for a mixed Generator it is
+// the expected per-event byte count reported in Result.PayloadBytes.
+func (g *Generator) MeanSize() int {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	sum := 0
+
+	for _, s := range g.sizes {
+		sum += s
+	}
+
+	return sum / len(g.sizes)
+}
+
+// SizeDistribution returns a copy of the configured size distribution.
+// A single-element slice means uniform payloads.
+func (g *Generator) SizeDistribution() []int {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	return slices.Clone(g.sizes)
+}
+
 // Payload returns a BenchPayload populated with deterministic random data.
 // The Padding field is sized so the codec-encoded payload matches the target
-// byte size as closely as possible (within a few bytes).
+// byte size as closely as possible (within a few bytes). When the Generator
+// holds a size distribution, the target is picked uniformly at random each
+// call.
 func (g *Generator) Payload() BenchPayload {
 	g.mu.Lock()
 	defer g.mu.Unlock()
+
+	target := g.sizes[0]
+	if len(g.sizes) > 1 {
+		target = g.sizes[g.rng.IntN(len(g.sizes))]
+	}
 
 	p := BenchPayload{
 		ID:       fmt.Sprintf("01HX%012d", g.rng.IntN(1000000000000)),
@@ -69,7 +129,7 @@ func (g *Generator) Payload() BenchPayload {
 		Metadata: generateMeta(g.rng),
 	}
 
-	p.Padding = g.computePadding(p)
+	p.Padding = g.computePadding(p, target)
 
 	return p
 }
@@ -81,9 +141,9 @@ func (g *Generator) Payload() BenchPayload {
 // The algorithm: encode without padding to get the base size, then encode with
 // a 1-char padding to measure the per-field overhead (key + type header).
 // Each additional padding char adds exactly 1 byte.
-func (g *Generator) computePadding(p BenchPayload) string {
+func (g *Generator) computePadding(p BenchPayload, target int) string {
 	base, err := g.codec.Encode(p)
-	if err != nil || g.size <= len(base) {
+	if err != nil || target <= len(base) {
 		return ""
 	}
 
@@ -98,7 +158,7 @@ func (g *Generator) computePadding(p BenchPayload) string {
 
 	// withOne = base + overhead + 1 char. Each extra char = +1 byte.
 	// Solve: target = withOne + (N - 1), so N = target - withOne + 1.
-	needed := g.size - len(withOne) + 1
+	needed := target - len(withOne) + 1
 	if needed <= 0 {
 		return ""
 	}

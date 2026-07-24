@@ -41,7 +41,11 @@ func PrintReport(w io.Writer, r *Result) {
 	fmt.Fprintln(w, strings.Repeat("=", 60))
 	fmt.Fprintf(w, "Workload: %s aggregates x %d events = %s events\n",
 		formatInt(r.Streams), r.EventsPerStream, formatInt(r.TotalEvents))
-	fmt.Fprintf(w, "Payload:  %d bytes/event\n", r.PayloadBytes)
+	if len(r.PayloadSizes) > 1 {
+		fmt.Fprintf(w, "Payload:  %d bytes/event (mean; mixed %v)\n", r.PayloadBytes, r.PayloadSizes)
+	} else {
+		fmt.Fprintf(w, "Payload:  %d bytes/event\n", r.PayloadBytes)
+	}
 	fmt.Fprintf(w, "Duration: %s\n\n", roundDuration(r.Duration))
 
 	printLatencySection(w, "Write Performance:", r.WriteLatency, r.WriteThroughput)
