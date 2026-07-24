@@ -104,11 +104,13 @@ func BenchmarkContention_SameStream_Concurrent(b *testing.B) {
 						)
 						if err != nil {
 							b.Error(err)
+
 							return
 						}
 
 						if err := store.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
 							b.Error(err)
+
 							return
 						}
 					}

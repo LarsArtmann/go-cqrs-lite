@@ -154,6 +154,7 @@ func runCmd(args []string) {
 			}
 
 			defer f.Close()
+
 			_ = pprof.WriteHeapProfile(f)
 		}()
 	}
