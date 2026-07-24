@@ -263,11 +263,10 @@ func (r *runner) warmup(ctx context.Context) error {
 	var version event.Version
 
 	for i := range r.config.Warmup {
-		payload := r.gen.Payload()
-
 		evt, err := event.New(
 			benchEventType, aggID, benchStreamType,
-			version.Add(uint(i+1)), payload,
+			version.Add(uint(i+1)), r.gen.Payload(),
+			event.WithCodec(r.codec),
 		)
 		if err != nil {
 			return err

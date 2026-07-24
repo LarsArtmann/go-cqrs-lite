@@ -1,10 +1,24 @@
 package benchkit
 
 import (
-	"encoding/json/v2"
 	"fmt"
 	"math/rand/v2"
+	"strings"
 )
+
+// BenchPayload is the synthetic event payload used by the benchmark generator.
+// It mimics a realistic e-commerce order event with typed fields.
+// The Padding field ensures payloads reach approximately the target byte size
+// while remaining valid JSON/CBOR at any size.
+type BenchPayload struct {
+	ID       string            `json:"id" cbor:"1,keyasint"`
+	Name     string            `json:"name" cbor:"2,keyasint"`
+	Value    float64           `json:"value" cbor:"3,keyasint"`
+	Items    int               `json:"items" cbor:"4,keyasint"`
+	Tags     []string          `json:"tags" cbor:"5,keyasint"`
+	Metadata map[string]string `json:"metadata" cbor:"6,keyasint"`
+	Padding  string            `json:"_padding,omitempty" cbor:"7,keyasint,omitempty"`
+}
 
 // Generator produces deterministic synthetic payloads for benchmarking.
 // Same seed always produces the same data, enabling reproducible runs.
@@ -26,46 +40,56 @@ func NewGenerator(seed int64, size int) *Generator {
 	}
 }
 
-// Payload returns a JSON-encoded byte slice of approximately the configured
-// size. The payload is a realistic domain event with typed fields.
-func (g *Generator) Payload() []byte {
-	// Generate a base payload with realistic fields
-	name := fmt.Sprintf("Order-%d", g.rng.IntN(100000))
-	value := g.rng.Float64()*990 + 10 // 10.00 - 1000.00
-	items := g.rng.IntN(20) + 1
-
-	tags := generateTags(g.rng)
-	meta := generateMeta(g.rng)
-
-	payload := map[string]any{
-		"id":       fmt.Sprintf("01HX%012d", g.rng.IntN(1000000000000)),
-		"name":     name,
-		"value":    value,
-		"items":    items,
-		"tags":     tags,
-		"metadata": meta,
+// Payload returns a BenchPayload populated with deterministic random data.
+// The Padding field is sized so the JSON encoding is approximately the
+// configured target size. The payload is always valid JSON at any size.
+func (g *Generator) Payload() BenchPayload {
+	p := BenchPayload{
+		ID:       fmt.Sprintf("01HX%012d", g.rng.IntN(1000000000000)),
+		Name:     fmt.Sprintf("Order-%d", g.rng.IntN(100000)),
+		Value:    g.rng.Float64()*990 + 10,
+		Items:    g.rng.IntN(20) + 1,
+		Tags:     generateTags(g.rng),
+		Metadata: generateMeta(g.rng),
 	}
 
-	data, err := json.Marshal(payload, json.Deterministic(true))
-	if err != nil {
-		// json.Marshal on a map[string]any with basic types never fails
-		return []byte(`{}`)
+	p.Padding = g.computePadding(p)
+
+	return p
+}
+
+// computePadding estimates how many padding characters are needed so the
+// JSON encoding of the payload is approximately the target size.
+func (g *Generator) computePadding(p BenchPayload) string {
+	const paddingKeyOverhead = len(`,"_padding":""`)
+
+	base := estimateJSONSize(p)
+	if g.size <= base+paddingKeyOverhead {
+		return ""
 	}
 
-	// Pad or trim to target size
-	if len(data) >= g.size {
-		return data[:g.size]
+	needed := g.size - base - paddingKeyOverhead
+	if needed <= 0 {
+		return ""
 	}
 
-	padded := make([]byte, g.size)
-	copy(padded, data)
+	return strings.Repeat("x", needed)
+}
 
-	// Fill remainder with deterministic padding
-	for i := len(data); i < g.size; i++ {
-		padded[i] = byte('a' + g.rng.IntN(26))
+// estimateJSONSize returns a rough byte count of the payload without Padding.
+func estimateJSONSize(p BenchPayload) int {
+	const baseTemplate = `{"id":"01HX000000000000","name":"Order-00000","value":000.00,"items":0,"tags":["a"],"metadata":{"source":"web","session":"sess-000000"}}`
+	size := len(baseTemplate)
+
+	for _, tag := range p.Tags {
+		size += len(tag) - 1
 	}
 
-	return padded
+	for k, v := range p.Metadata {
+		size += len(k) + len(v)
+	}
+
+	return size
 }
 
 func generateTags(rng *rand.Rand) []string {

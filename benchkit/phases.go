@@ -90,6 +90,7 @@ func (r *runner) createBatch(
 		evt, err := event.New(
 			benchEventType, aggID, benchStreamType,
 			version.Add(uint(j+1)), r.gen.Payload(),
+			event.WithCodec(r.codec),
 		)
 		if err != nil {
 			return nil, err
@@ -159,7 +160,12 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 	profile := r.config.Profile
 	store := r.bundle.ReadModels
 	setColl := NewLatencyCollector(0)
-	payload := r.gen.Payload()
+
+	payload, err := r.codec.Encode(r.gen.Payload())
+	if err != nil {
+		return fmt.Errorf("encode benchmark payload: %w", err)
+	}
+
 	keys := make([][]byte, profile.Streams)
 
 	for i := range profile.Streams {

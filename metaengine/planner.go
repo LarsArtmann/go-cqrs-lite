@@ -4,96 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 )
-
-// Diagnostic levels for plan output.
-const (
-	DiagLevelWarn     = "WARN"
-	DiagLevelDegraded = "DEGRADED"
-	DiagLevelInfo     = "INFO"
-)
-
-type Diagnostic struct {
-	Level   string
-	Query   string
-	Message string
-}
-
-func (d Diagnostic) String() string {
-	return fmt.Sprintf("[%s] %s: %s", d.Level, d.Query, d.Message)
-}
-
-type Diagnostics []Diagnostic
-
-func (d Diagnostics) HasWarnings() bool {
-	for _, diag := range d {
-		if diag.Level == DiagLevelWarn || diag.Level == DiagLevelDegraded {
-			return true
-		}
-	}
-
-	return false
-}
-
-// QueryAssignment shows the full plan for one query: engine, ADT, read pattern, cost.
-type QueryAssignment struct {
-	QueryName   string
-	ADT         ADT
-	EngineName  string
-	Complexity  Complexity
-	ReadPattern ReadPattern
-	IsPaginated bool
-	Cost        CostEstimate
-	Diagnostics []Diagnostic
-}
-
-func (a QueryAssignment) String() string {
-	parts := []string{
-		fmt.Sprintf("%s: %s/%s via %s (%s)",
-			a.QueryName, a.ADT, a.ReadPattern, a.EngineName, a.Complexity),
-	}
-
-	if a.Cost.Volume > 0 {
-		parts = append(parts, fmt.Sprintf("latency<%.3fms", a.Cost.EstimatedLatencyMs))
-	}
-
-	if a.IsPaginated {
-		parts = append(parts, "[paginated]")
-	}
-
-	return strings.Join(parts, " ")
-}
-
-type PlanResult struct {
-	Queries     []QueryAssignment
-	Diagnostics Diagnostics
-}
-
-func (p PlanResult) Report() string {
-	var b strings.Builder
-	b.WriteString("=== Meta-Engine Plan ===\n\n")
-
-	b.WriteString("--- Queries ---\n")
-
-	for _, a := range p.Queries {
-		fmt.Fprintf(&b, "  %s\n", a)
-
-		for _, d := range a.Diagnostics {
-			fmt.Fprintf(&b, "    %s\n", d)
-		}
-	}
-
-	if len(p.Diagnostics) > 0 {
-		b.WriteString("\n--- Global Diagnostics ---\n")
-
-		for _, d := range p.Diagnostics {
-			fmt.Fprintf(&b, "  %s\n", d)
-		}
-	}
-
-	return b.String()
-}
 
 type rankedEngine struct {
 	engine     Engine
@@ -112,23 +23,14 @@ type planConfig struct {
 type planOption func(*planConfig)
 
 // WithWriteAmplificationBudget sets the maximum number of projections an event
-// may update without triggering a write amplification warning. Pass this as a
-// variadic argument to Plan:
-//
-//	store, _ := metaengine.Plan(engines, q1, q2,
-//	    metaengine.WithWriteAmplificationBudget(5))
+// may update without triggering a write amplification warning.
 func WithWriteAmplificationBudget(n int) planOption {
 	return func(c *planConfig) { c.writeAmplificationBudget = n }
 }
 
 // Plan creates a storage plan from available engines and declared queries.
 // Each query gets its own independent projection — the same event updates
-// each matching query's projection separately. Write amplification across
-// many queries is reported as a diagnostic warning, not prevented by dedup.
-//
-// Plan accepts queries and plan options as variadic arguments, separated by type:
-//
-//	store, _ := metaengine.Plan(engines, q1, q2, metaengine.WithWriteAmplificationBudget(5))
+// each matching query's projection separately.
 func Plan(engines []Engine, args ...any) (*Store, error) {
 	if len(engines) == 0 {
 		return nil, errors.New("metaengine.Plan: at least one engine required")
@@ -226,7 +128,6 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 		)
 	}
 
-	// Rank by cost (estimated latency). Ties break on complexity rank for determinism.
 	sort.SliceStable(ranked, func(i, j int) bool {
 		if ranked[i].cost.EstimatedLatencyMs != ranked[j].cost.EstimatedLatencyMs {
 			return ranked[i].cost.EstimatedLatencyMs < ranked[j].cost.EstimatedLatencyMs
@@ -240,37 +141,7 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 	assignment.Complexity = best.complexity
 	assignment.Cost = best.cost
 
-	if adt == ADTGraph && best.complexity == ComplexityON {
-		assignment.Diagnostics = append(assignment.Diagnostics, Diagnostic{
-			Level:   DiagLevelDegraded,
-			Query:   meta.QueryName(),
-			Message: "graph traversal via scan (O(N)). Add a graph engine for O(degree^depth).",
-		})
-	}
-
-	if meta.QueryIsPaginated() && best.complexity == ComplexityON {
-		assignment.Diagnostics = append(assignment.Diagnostics, Diagnostic{
-			Level:   DiagLevelDegraded,
-			Query:   meta.QueryName(),
-			Message: "filtered scan via in-memory O(N). Add SQLite for O(logN) indexed scanning.",
-		})
-	}
-
-	if cfg.LatencyBudgetMs > 0 && !best.cost.WithinBudget(cfg.LatencyBudgetMs) {
-		assignment.Diagnostics = append(assignment.Diagnostics, Diagnostic{
-			Level: DiagLevelWarn,
-			Query: meta.QueryName(),
-			Message: fmt.Sprintf(
-				"estimated latency %.3fms exceeds budget %dms",
-				best.cost.EstimatedLatencyMs, cfg.LatencyBudgetMs,
-			),
-		})
-	}
-
-	if diag := checkScaleThreshold(adt, cfg.Volume); diag != nil {
-		diag.Query = meta.QueryName()
-		assignment.Diagnostics = append(assignment.Diagnostics, *diag)
-	}
+	assignment.Diagnostics = planDiagnostics(meta, best, cfg)
 
 	qr := queryRuntime{
 		name:          meta.QueryName(),
@@ -288,6 +159,44 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 	return qr, assignment, nil
 }
 
+func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagnostic {
+	var diags []Diagnostic
+
+	if meta.QueryADT() == ADTGraph && best.complexity == ComplexityON {
+		diags = append(diags, Diagnostic{
+			Level:   DiagLevelDegraded,
+			Query:   meta.QueryName(),
+			Message: "graph traversal via scan (O(N)). Add a graph engine for O(degree^depth).",
+		})
+	}
+
+	if meta.QueryIsPaginated() && best.complexity == ComplexityON {
+		diags = append(diags, Diagnostic{
+			Level:   DiagLevelDegraded,
+			Query:   meta.QueryName(),
+			Message: "filtered scan via in-memory O(N). Add SQLite for O(logN) indexed scanning.",
+		})
+	}
+
+	if cfg.LatencyBudgetMs > 0 && !best.cost.WithinBudget(cfg.LatencyBudgetMs) {
+		diags = append(diags, Diagnostic{
+			Level: DiagLevelWarn,
+			Query: meta.QueryName(),
+			Message: fmt.Sprintf(
+				"estimated latency %.3fms exceeds budget %dms",
+				best.cost.EstimatedLatencyMs, cfg.LatencyBudgetMs,
+			),
+		})
+	}
+
+	if diag := checkScaleThreshold(meta.QueryADT(), cfg.Volume); diag != nil {
+		diag.Query = meta.QueryName()
+		diags = append(diags, *diag)
+	}
+
+	return diags
+}
+
 func complexityRank(c Complexity) int {
 	switch c {
 	case ComplexityO1:
@@ -303,39 +212,4 @@ func complexityRank(c Complexity) int {
 	default:
 		return 99
 	}
-}
-
-func checkWriteAmplification(queries map[string]queryRuntime, budget int) Diagnostics {
-	eventCount := make(map[string]int)
-
-	for _, q := range queries {
-		seen := make(map[string]bool)
-		for eventType := range q.foldByEvent {
-			if !seen[eventType] {
-				seen[eventType] = true
-				eventCount[eventType]++
-			}
-		}
-	}
-
-	var diags Diagnostics
-
-	for evt, count := range eventCount {
-		if count > budget {
-			diags = append(diags, Diagnostic{
-				Level: DiagLevelWarn,
-				Query: "*",
-				Message: fmt.Sprintf(
-					"event %s updates %d projections — exceeds write amplification budget %d",
-					evt, count, budget,
-				),
-			})
-		}
-	}
-
-	sort.Slice(diags, func(i, j int) bool {
-		return diags[i].Message < diags[j].Message
-	})
-
-	return diags
 }
