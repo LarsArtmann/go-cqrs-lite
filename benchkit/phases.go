@@ -282,13 +282,17 @@ func (r *runner) collectProjectionStats(host *projectionhost.Host) {
 }
 
 // durabilityPhase measures on-disk storage footprint.
-// Tries the DiskSizer interface first (precise per-backend sizing),
-// falls back to filesystem walk of Config.DiskPath.
+// Tries the DiskSizer interface first (precise per-backend sizing via
+// stack.Bundle.DiskSize); falls back to filesystem walk of Config.DiskPath.
+// DiskSize() returns -1 when no disk-size reporter is registered (memory,
+// SQLite without WithDiskSize), signaling the fallback path.
 func (r *runner) durabilityPhase() {
 	if sizer, ok := any(r.bundle).(DiskSizer); ok {
-		r.result.Disk.DatabaseBytes = sizer.DiskSize()
+		if size := sizer.DiskSize(); size >= 0 {
+			r.result.Disk.DatabaseBytes = size
 
-		return
+			return
+		}
 	}
 
 	if r.config.DiskPath != "" {

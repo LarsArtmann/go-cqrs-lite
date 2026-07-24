@@ -14,9 +14,9 @@ func TestBackwardCompatAliases(t *testing.T) {
 	t.Parallel()
 
 	// Type aliases are identical by construction — assigning across them compiles.
-	var _ id.StreamID = id.AggregateID(id.NewStreamID())
-	var _ id.StreamType = id.AggregateType("User")
-	var _ id.StreamMarker = id.AggregateMarker{}
+	_ = id.AggregateID(id.NewStreamID())
+	_ = id.AggregateType("User")
+	_ = id.AggregateMarker{}
 
 	// Constructors produce identical results.
 	got := id.NewAggregateID()
@@ -37,7 +37,9 @@ func TestBackwardCompatAliases(t *testing.T) {
 		t.Error("ParseAggregateID does not match ParseStreamID")
 	}
 
-	strict, err := id.ParseAggregateIDStrict(mustParseStream(t, "01HK1540X0841Y0A6BSX1VKR95").String())
+	strict, err := id.ParseAggregateIDStrict(
+		mustParseStream(t, "01HK1540X0841Y0A6BSX1VKR95").String(),
+	)
 	if err != nil {
 		t.Fatalf("ParseAggregateIDStrict: %v", err)
 	}
