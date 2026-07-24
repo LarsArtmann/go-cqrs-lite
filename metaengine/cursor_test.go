@@ -89,7 +89,7 @@ var _ = Describe("Cursor-based pagination across HTTP boundary", func() {
 
 		base := time.Now()
 		for i := range 10 {
-			Expect(store.Apply("TaskCreated", TaskCreated{
+			Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 				ID:       TaskID(string(rune('a' + i))),
 				Title:    string(rune('A' + i)),
 				Status:   "open",

@@ -1,6 +1,7 @@
 package metaengine
 
 import (
+	"context"
 	"fmt"
 	"maps"
 	"slices"
@@ -74,7 +75,7 @@ func (m *memoryEngine) getGraphLocked(col string) *memGraph {
 	return m.data.graphs[col]
 }
 
-func (m *memoryEngine) MapSet(col string, key any, value any) error {
+func (m *memoryEngine) MapSet(ctx context.Context, col string, key any, value any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -83,7 +84,7 @@ func (m *memoryEngine) MapSet(col string, key any, value any) error {
 	return nil
 }
 
-func (m *memoryEngine) MapGet(col string, key any) (any, bool, error) {
+func (m *memoryEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -97,7 +98,7 @@ func (m *memoryEngine) MapGet(col string, key any) (any, bool, error) {
 	return v, ok, nil
 }
 
-func (m *memoryEngine) MapDelete(col string, key any) error {
+func (m *memoryEngine) MapDelete(ctx context.Context, col string, key any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -109,7 +110,7 @@ func (m *memoryEngine) MapDelete(col string, key any) error {
 // MapUpdate performs an atomic read-modify-write on a map entry.
 // The update function receives the previous value (nil if absent) and returns
 // the new value. The entire operation is serialized under the engine's write lock.
-func (m *memoryEngine) MapUpdate(col string, key any, update func(prev any) any) error {
+func (m *memoryEngine) MapUpdate(ctx context.Context, col string, key any, update func(prev any) any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -122,6 +123,7 @@ func (m *memoryEngine) MapUpdate(col string, key any, update func(prev any) any)
 }
 
 func (m *memoryEngine) MapScan(
+	ctx context.Context,
 	col string,
 	filters []filterPredicate,
 	sortFunc func(a, b any) int,
@@ -200,7 +202,7 @@ func (m *memoryEngine) MapScan(
 	return results, nil
 }
 
-func (m *memoryEngine) SetAdd(col string, key any) error {
+func (m *memoryEngine) SetAdd(ctx context.Context, col string, key any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -213,7 +215,7 @@ func (m *memoryEngine) SetAdd(col string, key any) error {
 	return nil
 }
 
-func (m *memoryEngine) SetContains(col string, key any) (bool, error) {
+func (m *memoryEngine) SetContains(ctx context.Context, col string, key any) (bool, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -222,7 +224,7 @@ func (m *memoryEngine) SetContains(col string, key any) (bool, error) {
 	return ok, nil
 }
 
-func (m *memoryEngine) CounterIncrement(col string, deltas Delta) error {
+func (m *memoryEngine) CounterIncrement(ctx context.Context, col string, deltas Delta) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -237,7 +239,7 @@ func (m *memoryEngine) CounterIncrement(col string, deltas Delta) error {
 	return nil
 }
 
-func (m *memoryEngine) CounterGet(col string) (map[string]int64, error) {
+func (m *memoryEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -247,7 +249,7 @@ func (m *memoryEngine) CounterGet(col string) (map[string]int64, error) {
 	return result, nil
 }
 
-func (m *memoryEngine) GraphAddEdge(col string, edge Edge) error {
+func (m *memoryEngine) GraphAddEdge(ctx context.Context, col string, edge Edge) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -258,7 +260,7 @@ func (m *memoryEngine) GraphAddEdge(col string, edge Edge) error {
 	return nil
 }
 
-func (m *memoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, error) {
+func (m *memoryEngine) GraphNeighbors(ctx context.Context, col string, node any, depth int) ([]any, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -292,7 +294,7 @@ func (m *memoryEngine) GraphNeighbors(col string, node any, depth int) ([]any, e
 
 func (m *memoryEngine) Close() error { return nil }
 
-func (m *memoryEngine) MultiAdd(col string, key any, value any) error {
+func (m *memoryEngine) MultiAdd(ctx context.Context, col string, key any, value any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -305,7 +307,7 @@ func (m *memoryEngine) MultiAdd(col string, key any, value any) error {
 	return nil
 }
 
-func (m *memoryEngine) MultiGet(col string, key any) ([]any, error) {
+func (m *memoryEngine) MultiGet(ctx context.Context, col string, key any) ([]any, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -314,7 +316,7 @@ func (m *memoryEngine) MultiGet(col string, key any) ([]any, error) {
 	return slices.Clone(values), nil
 }
 
-func (m *memoryEngine) LogAppend(col string, value any) error {
+func (m *memoryEngine) LogAppend(ctx context.Context, col string, value any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -323,7 +325,7 @@ func (m *memoryEngine) LogAppend(col string, value any) error {
 	return nil
 }
 
-func (m *memoryEngine) LogTail(col string, limit int) ([]any, error) {
+func (m *memoryEngine) LogTail(ctx context.Context, col string, limit int) ([]any, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

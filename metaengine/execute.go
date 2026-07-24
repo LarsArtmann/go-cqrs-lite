@@ -34,7 +34,7 @@ func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
 }
 
 func (s *Store) executeQuery(
-	_ context.Context,
+	ctx context.Context,
 	q queryRuntime,
 	input any,
 ) (any, error) {
@@ -42,7 +42,7 @@ func (s *Store) executeQuery(
 	case ReadPointLookup:
 		key := extractKeyValueByType(input, q.keyType)
 		if mb, ok := q.engine.(MapBackend); ok {
-			val, ok, err := mb.MapGet(q.name, key)
+			val, ok, err := mb.MapGet(ctx, q.name, key)
 			if err != nil {
 				return nil, err
 			}
@@ -59,17 +59,17 @@ func (s *Store) executeQuery(
 	case ReadMembership:
 		key := extractKeyValueByType(input, q.keyType)
 		if sb, ok := q.engine.(SetBackend); ok {
-			return sb.SetContains(q.name, key)
+			return sb.SetContains(ctx, q.name, key)
 		}
 
 		return nil, fmt.Errorf("engine %s does not support Set reads", q.engine.Profile().Name)
 
 	case ReadFilteredScan:
-		return s.executeFilteredScan(q, input)
+		return s.executeFilteredScan(ctx, q, input)
 
 	case ReadAggregate:
 		if cb, ok := q.engine.(CounterBackend); ok {
-			return cb.CounterGet(q.name)
+			return cb.CounterGet(ctx, q.name)
 		}
 
 		return nil, fmt.Errorf("engine %s does not support Counter reads", q.engine.Profile().Name)
@@ -82,7 +82,7 @@ func (s *Store) executeQuery(
 
 		depth := extractDepthFromInput(input)
 		if gb, ok := q.engine.(GraphBackend); ok {
-			return gb.GraphNeighbors(q.name, node, depth)
+			return gb.GraphNeighbors(ctx, q.name, node, depth)
 		}
 
 		return nil, fmt.Errorf("engine %s does not support Graph reads", q.engine.Profile().Name)
@@ -90,7 +90,7 @@ func (s *Store) executeQuery(
 	case ReadMultiLookup:
 		key := extractFirstDomainField(input)
 		if mb, ok := q.engine.(MultimapBackend); ok {
-			return mb.MultiGet(q.name, key)
+			return mb.MultiGet(ctx, q.name, key)
 		}
 
 		return nil, fmt.Errorf("engine %s does not support Multimap reads", q.engine.Profile().Name)
@@ -98,7 +98,7 @@ func (s *Store) executeQuery(
 	case ReadLogTail:
 		limit := extractLimitFromInput(input)
 		if lb, ok := q.engine.(LogBackend); ok {
-			return lb.LogTail(q.name, limit)
+			return lb.LogTail(ctx, q.name, limit)
 		}
 
 		return nil, fmt.Errorf("engine %s does not support Log reads", q.engine.Profile().Name)
@@ -108,7 +108,7 @@ func (s *Store) executeQuery(
 	}
 }
 
-func (s *Store) executeFilteredScan(q queryRuntime, input any) (any, error) {
+func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input any) (any, error) {
 	limit := extractLimitFromInput(input)
 	if limit == 0 {
 		limit = 100
@@ -137,7 +137,7 @@ func (s *Store) executeFilteredScan(q queryRuntime, input any) (any, error) {
 	}
 
 	if sb, ok := q.engine.(ScanBackend); ok {
-		return sb.MapScan(q.name, filterPredicates, sortFunc, cursorVal, limit)
+		return sb.MapScan(ctx, q.name, filterPredicates, sortFunc, cursorVal, limit)
 	}
 
 	return nil, fmt.Errorf("engine %s does not support Scan reads", q.engine.Profile().Name)

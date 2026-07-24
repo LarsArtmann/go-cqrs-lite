@@ -29,7 +29,7 @@ var _ = Describe("Apply and Execute", func() {
 
 	Describe("Map ADT: FindTask", func() {
 		BeforeEach(func() {
-			Expect(store.Apply("TaskCreated", TaskCreated{
+			Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 				ID: "t1", Title: "Write tests", Assignee: "alice",
 				Status: "open", Priority: 3, At: time.Now(),
 			})).To(Succeed())
@@ -49,7 +49,7 @@ var _ = Describe("Apply and Execute", func() {
 		When("the task is completed via FoldUpdate", func() {
 			BeforeEach(func() {
 				Expect(
-					store.Apply("TaskCompleted", TaskCompleted{ID: "t1", At: time.Now()}),
+					store.Apply(context.Background(), "TaskCompleted", TaskCompleted{ID: "t1", At: time.Now()}),
 				).To(Succeed())
 			})
 
@@ -67,7 +67,7 @@ var _ = Describe("Apply and Execute", func() {
 		When("the task is deleted via Remove sentinel", func() {
 			BeforeEach(func() {
 				Expect(
-					store.Apply("TaskDeleted", TaskDeleted{ID: "t1", At: time.Now()}),
+					store.Apply(context.Background(), "TaskDeleted", TaskDeleted{ID: "t1", At: time.Now()}),
 				).To(Succeed())
 			})
 
@@ -95,7 +95,7 @@ var _ = Describe("Apply and Execute", func() {
 
 	Describe("Set ADT: CheckAssignee", func() {
 		BeforeEach(func() {
-			Expect(store.Apply("TaskAssigned", TaskAssigned{
+			Expect(store.Apply(context.Background(), "TaskAssigned", TaskAssigned{
 				TaskID: "t1", Assignee: "alice", At: time.Now(),
 			})).To(Succeed())
 		})
@@ -123,17 +123,17 @@ var _ = Describe("Apply and Execute", func() {
 
 	Describe("Counter ADT: CountByStatus", func() {
 		BeforeEach(func() {
-			Expect(store.Apply("TaskCreated", TaskCreated{
+			Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 				ID: "t1", Title: "A", Status: "open", At: time.Now(),
 			})).To(Succeed())
-			Expect(store.Apply("TaskCreated", TaskCreated{
+			Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 				ID: "t2", Title: "B", Status: "open", At: time.Now(),
 			})).To(Succeed())
-			Expect(store.Apply("TaskCreated", TaskCreated{
+			Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 				ID: "t3", Title: "C", Status: "open", At: time.Now(),
 			})).To(Succeed())
 			Expect(
-				store.Apply("TaskCompleted", TaskCompleted{ID: "t1", At: time.Now()}),
+				store.Apply(context.Background(), "TaskCompleted", TaskCompleted{ID: "t1", At: time.Now()}),
 			).To(Succeed())
 		})
 
@@ -151,10 +151,10 @@ var _ = Describe("Apply and Execute", func() {
 
 	Describe("Graph ADT: TasksByAssignee", func() {
 		BeforeEach(func() {
-			Expect(store.Apply("TaskAssigned", TaskAssigned{
+			Expect(store.Apply(context.Background(), "TaskAssigned", TaskAssigned{
 				TaskID: "t1", Assignee: "alice", At: time.Now(),
 			})).To(Succeed())
-			Expect(store.Apply("TaskAssigned", TaskAssigned{
+			Expect(store.Apply(context.Background(), "TaskAssigned", TaskAssigned{
 				TaskID: "t2", Assignee: "alice", At: time.Now(),
 			})).To(Succeed())
 		})
@@ -172,13 +172,13 @@ var _ = Describe("Apply and Execute", func() {
 
 	Describe("SortedMap ADT: ListTasksByStatus", func() {
 		BeforeEach(func() {
-			Expect(store.Apply("TaskCreated", TaskCreated{
+			Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 				ID: "t1", Title: "Low", Status: "open", Priority: 5, At: time.Now(),
 			})).To(Succeed())
-			Expect(store.Apply("TaskCreated", TaskCreated{
+			Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 				ID: "t2", Title: "High", Status: "open", Priority: 1, At: time.Now(),
 			})).To(Succeed())
-			Expect(store.Apply("TaskCreated", TaskCreated{
+			Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 				ID: "t3", Title: "Done", Status: "completed", Priority: 3, At: time.Now(),
 			})).To(Succeed())
 		})
@@ -238,7 +238,7 @@ var _ = Describe("Concurrent FoldUpdate atomicity", func() {
 		for range 100 {
 			go func() {
 				defer func() { done <- struct{}{} }()
-				_ = store.Apply("evt", evt{ID: "c1", Amount: 1})
+				_ = store.Apply(context.Background(), "evt", evt{ID: "c1", Amount: 1})
 			}()
 		}
 		for range 100 {
@@ -273,7 +273,7 @@ var _ = Describe("ApplyEncoded", func() {
 
 	It("decodes JSON payloads and applies them", func() {
 		payload := `{"ID":"t9","Title":"From JSON","Assignee":"bob","Status":"open","Priority":2,"At":"2026-01-01T00:00:00Z"}`
-		Expect(store.ApplyEncoded("TaskCreated", []byte(payload))).To(Succeed())
+		Expect(store.ApplyEncoded(context.Background(), "TaskCreated", []byte(payload))).To(Succeed())
 
 		result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
 			context.Background(), store, FindTask{ID: "t9"},

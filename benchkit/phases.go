@@ -173,7 +173,7 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 		keys[i] = []byte(r.aggIDs[i].String())
 	}
 
-	err := runConcurrent(
+	err = runConcurrent(
 		ctx, profile.Streams, r.concurrency,
 		func(ctx context.Context, idx int) error {
 			start := time.Now()

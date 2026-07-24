@@ -47,13 +47,13 @@ var _ = Describe("Multimap ADT", func() {
 
 	When("multiple tasks are assigned to the same user", func() {
 		BeforeEach(func() {
-			Expect(store.Apply("TaskAssigned", TaskAssigned{
+			Expect(store.Apply(context.Background(), "TaskAssigned", TaskAssigned{
 				TaskID: "t1", Assignee: "alice", At: time.Now(),
 			})).To(Succeed())
-			Expect(store.Apply("TaskAssigned", TaskAssigned{
+			Expect(store.Apply(context.Background(), "TaskAssigned", TaskAssigned{
 				TaskID: "t2", Assignee: "alice", At: time.Now(),
 			})).To(Succeed())
-			Expect(store.Apply("TaskAssigned", TaskAssigned{
+			Expect(store.Apply(context.Background(), "TaskAssigned", TaskAssigned{
 				TaskID: "t3", Assignee: "bob", At: time.Now(),
 			})).To(Succeed())
 		})
@@ -123,7 +123,7 @@ var _ = Describe("Log ADT", func() {
 		BeforeEach(func() {
 			base := time.Now()
 			for i := range 5 {
-				Expect(store.Apply("TaskCreated", TaskCreated{
+				Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 					ID:     TaskID(rune('a' + i)),
 					Title:  string(rune('A' + i)),
 					Status: "open",

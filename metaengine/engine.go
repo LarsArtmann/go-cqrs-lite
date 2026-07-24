@@ -1,6 +1,7 @@
 package metaengine
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -30,26 +31,22 @@ func (p EngineProfile) String() string {
 }
 
 // Per-ADT backend interfaces (ISP — engines implement only what they support).
-// This mirrors the existing kv.ViewStore + ViewQuerier + ViewCounter pattern.
 
 type MapBackend interface {
-	MapSet(collection string, key any, value any) error
-	MapGet(collection string, key any) (any, bool, error)
-	MapDelete(collection string, key any) error
+	MapSet(ctx context.Context, collection string, key any, value any) error
+	MapGet(ctx context.Context, collection string, key any) (any, bool, error)
+	MapDelete(ctx context.Context, collection string, key any) error
 }
 
 // MapUpdater is an optional capability for atomic read-modify-write on map entries.
-// Engines that implement this interface handle FoldUpdate without race conditions.
-// Mirrors the kv.ViewUpdater pattern from the existing codebase.
 type MapUpdater interface {
-	MapUpdate(collection string, key any, update func(prev any) any) error
+	MapUpdate(ctx context.Context, collection string, key any, update func(prev any) any) error
 }
 
 // ScanBackend handles filtered+sorted scans for collection queries.
-// Filters are runtime predicates (typed closures from FilterOn), not field
-// name strings. Sort is a runtime comparator (from SortOn), or nil for default.
 type ScanBackend interface {
 	MapScan(
+		ctx context.Context,
 		collection string,
 		filters []filterPredicate,
 		sortFunc func(a, b any) int,
@@ -59,30 +56,30 @@ type ScanBackend interface {
 }
 
 type SetBackend interface {
-	SetAdd(collection string, key any) error
-	SetContains(collection string, key any) (bool, error)
+	SetAdd(ctx context.Context, collection string, key any) error
+	SetContains(ctx context.Context, collection string, key any) (bool, error)
 }
 
 type CounterBackend interface {
-	CounterIncrement(collection string, deltas Delta) error
-	CounterGet(collection string) (map[string]int64, error)
+	CounterIncrement(ctx context.Context, collection string, deltas Delta) error
+	CounterGet(ctx context.Context, collection string) (map[string]int64, error)
 }
 
 type GraphBackend interface {
-	GraphAddEdge(collection string, edge Edge) error
-	GraphNeighbors(collection string, node any, depth int) ([]any, error)
+	GraphAddEdge(ctx context.Context, collection string, edge Edge) error
+	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
 }
 
 // MultimapBackend handles one-to-many key-to-values collections.
 type MultimapBackend interface {
-	MultiAdd(collection string, key any, value any) error
-	MultiGet(collection string, key any) ([]any, error)
+	MultiAdd(ctx context.Context, collection string, key any, value any) error
+	MultiGet(ctx context.Context, collection string, key any) ([]any, error)
 }
 
 // LogBackend handles append-only, ordered log collections.
 type LogBackend interface {
-	LogAppend(collection string, value any) error
-	LogTail(collection string, limit int) ([]any, error)
+	LogAppend(ctx context.Context, collection string, value any) error
+	LogTail(ctx context.Context, collection string, limit int) ([]any, error)
 }
 
 // Closer is the lifecycle interface.
@@ -91,8 +88,6 @@ type Closer interface {
 }
 
 // Engine is a storage backend with a cost profile.
-// An engine implements whichever ADT backends it supports.
-// The planner checks capabilities at runtime via type assertion.
 type Engine interface {
 	Profile() EngineProfile
 	Closer
@@ -112,7 +107,6 @@ var (
 )
 
 // SQLiteEngineProfile returns the cost profile for a SQLite engine.
-// Used for multi-engine planning without a real SQLite implementation.
 func SQLiteEngineProfile() EngineProfile {
 	return EngineProfile{
 		Name: "sqlite",

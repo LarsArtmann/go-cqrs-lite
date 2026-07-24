@@ -1,6 +1,7 @@
 package metaengine
 
 import (
+	"context"
 	"encoding/json/v2"
 	"fmt"
 	"maps"
@@ -24,7 +25,7 @@ import (
 //	func (p *projectionAdapter) Handle(_ context.Context, evt event.Event) error {
 //	    return p.store.ApplyEncoded(string(evt.Type()), evt.Payload())
 //	}
-func (s *Store) ApplyEncoded(eventType string, payload []byte) error {
+func (s *Store) ApplyEncoded(ctx context.Context, eventType string, payload []byte) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -42,7 +43,7 @@ func (s *Store) ApplyEncoded(eventType string, payload []byte) error {
 			return fmt.Errorf("query %q decode %s: %w", q.name, eventType, err)
 		}
 
-		if err := s.applyFold(q, fold, decoded); err != nil {
+		if err := s.applyFold(ctx, q, fold, decoded); err != nil {
 			return fmt.Errorf("query %q fold for %s: %w", q.name, eventType, err)
 		}
 	}

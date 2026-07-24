@@ -13,14 +13,8 @@ func TestGenerator_Deterministic(t *testing.T) {
 	p1 := g1.Payload()
 	p2 := g2.Payload()
 
-	if len(p1) != len(p2) {
-		t.Fatalf("len mismatch: %d vs %d", len(p1), len(p2))
-	}
-
-	for i := range p1 {
-		if p1[i] != p2[i] {
-			t.Fatalf("byte mismatch at %d: %v vs %v", i, p1[i], p2[i])
-		}
+	if p1.ID != p2.ID || p1.Name != p2.Name || p1.Value != p2.Value {
+		t.Fatalf("payloads differ: %+v vs %+v", p1, p2)
 	}
 }
 
@@ -33,33 +27,43 @@ func TestGenerator_DifferentSeeds(t *testing.T) {
 	p1 := g1.Payload()
 	p2 := g2.Payload()
 
-	same := true
-
-	for i := range p1 {
-		if p1[i] != p2[i] {
-			same = false
-
-			break
-		}
-	}
-
-	if same {
-		t.Error("different seeds produced identical payloads")
+	if p1.ID == p2.ID {
+		t.Error("different seeds produced identical payload IDs")
 	}
 }
 
-func TestGenerator_PayloadSize(t *testing.T) {
+func TestGenerator_PayloadFields(t *testing.T) {
 	t.Parallel()
 
-	sizes := []int{64, 128, 256, 512, 1024, 4096}
+	g := NewGenerator(1, 256)
+	p := g.Payload()
 
-	for _, size := range sizes {
-		g := NewGenerator(1, size)
-		p := g.Payload()
+	if p.ID == "" {
+		t.Error("ID is empty")
+	}
 
-		if len(p) != size {
-			t.Errorf("size=%d: got len=%d, want %d", size, len(p), size)
-		}
+	if p.Name == "" {
+		t.Error("Name is empty")
+	}
+
+	if p.Value < 10 || p.Value > 1000 {
+		t.Errorf("Value = %f, want 10-1000", p.Value)
+	}
+
+	if p.Items < 1 || p.Items > 20 {
+		t.Errorf("Items = %d, want 1-20", p.Items)
+	}
+
+	if len(p.Tags) == 0 {
+		t.Error("Tags is empty")
+	}
+
+	if p.Metadata["source"] == "" {
+		t.Error("Metadata.source is empty")
+	}
+
+	if p.Padding == "" {
+		t.Error("Padding is empty for size=256 (should have padding)")
 	}
 }
 
@@ -69,8 +73,25 @@ func TestGenerator_DefaultSize(t *testing.T) {
 	g := NewGenerator(1, 0) // 0 should default to 256
 	p := g.Payload()
 
-	if len(p) != 256 {
-		t.Errorf("default size: got len=%d, want 256", len(p))
+	if p.Padding == "" {
+		t.Error("Padding should be non-empty with default size 256")
+	}
+}
+
+func TestGenerator_SmallSizeNoCorruption(t *testing.T) {
+	t.Parallel()
+
+	g := NewGenerator(1, 32)
+	p := g.Payload()
+
+	// At small sizes, padding should be empty but the payload should still
+	// be a valid struct with all fields populated
+	if p.ID == "" || p.Name == "" {
+		t.Error("payload fields empty at small size")
+	}
+
+	if p.Padding != "" {
+		t.Error("Padding should be empty when target size < base payload size")
 	}
 }
 
