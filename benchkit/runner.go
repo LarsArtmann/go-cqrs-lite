@@ -238,8 +238,10 @@ func (r *runner) teardown() {
 // r.aggIDs and r.refs. It caps the number of discovered streams at maxStreams.
 // Sets r.result.TotalEvents to the total events found in the journal.
 func (r *runner) discoverStreams(ctx context.Context, maxStreams int) error {
-	var events []event.Event
-	var err error
+	var (
+		events []event.Event
+		err    error
+	)
 
 	if r.bundle.Journal != nil {
 		events, err = r.bundle.Journal.ReadAll(ctx)

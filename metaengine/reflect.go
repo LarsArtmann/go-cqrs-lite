@@ -14,6 +14,7 @@ func structValue(input any) (reflect.Value, bool) {
 		if v.IsNil() {
 			return reflect.Value{}, false
 		}
+
 		v = v.Elem()
 	}
 

@@ -159,16 +159,15 @@ func readPassesFor(ratio float64) int {
 }
 
 func (r *runner) runJournalScans(ctx context.Context) {
-	scans := r.config.Profile.JournalScans
-	if scans < 1 {
-		scans = 1
-	}
+	scans := max(r.config.Profile.JournalScans, 1)
 
 	if r.bundle.Journal != nil {
 		start := time.Now()
+
 		for range scans {
 			_, _ = r.bundle.Journal.ReadAll(ctx)
 		}
+
 		r.result.ReadAllTime = time.Since(start)
 	}
 
@@ -176,9 +175,11 @@ func (r *runner) runJournalScans(ctx context.Context) {
 		var afterID id.EventID
 
 		start := time.Now()
+
 		for range scans {
 			_, _ = r.bundle.SeekableJournal.ReadFrom(ctx, afterID, 1000)
 		}
+
 		r.result.ReadFromTime = time.Since(start)
 	}
 }

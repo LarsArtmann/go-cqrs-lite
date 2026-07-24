@@ -113,7 +113,11 @@ func runCmd(args []string) {
 	warmup := fs.Int("warmup", 0, "Number of warmup operations")
 	repeat := fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)")
 	recovery := fs.Bool("recovery", false, "Enable crash-recovery phase (close, reopen, reload)")
-	replay := fs.Bool("replay", false, "Replay existing store (skip writes, discover streams from journal)")
+	replay := fs.Bool(
+		"replay",
+		false,
+		"Replay existing store (skip writes, discover streams from journal)",
+	)
 	_ = fs.Parse(args)
 
 	profile, ok := benchkit.ProfileByName(*profileName)
@@ -303,7 +307,9 @@ func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
 
 	case "postgres", "pg":
 		if dsn == "" {
-			fatalf("postgres backend requires --dsn (e.g. postgres://user:pass@localhost:5432/bench?sslmode=disable)")
+			fatalf(
+				"postgres backend requires --dsn (e.g. postgres://user:pass@localhost:5432/bench?sslmode=disable)",
+			)
 		}
 
 		return func() (*stack.Bundle, error) { return postgres.New(dsn) }, "", nil

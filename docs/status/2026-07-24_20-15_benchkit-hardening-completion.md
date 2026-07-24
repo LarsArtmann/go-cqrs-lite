@@ -124,9 +124,9 @@ Repeat:  median of 3 runs (min: 33.1K/s, max: 177.5K/s)
 
 ## Open Items (Deferred — Future Sessions)
 
-| Item                                  | Effort  | Notes                                |
-| ------------------------------------- | ------- | ------------------------------------ |
-| Tag `benchkit/v0.1.0`                 | 5 min   | When API stabilizes                  |
+| Item                  | Effort | Notes               |
+| --------------------- | ------ | ------------------- |
+| Tag `benchkit/v0.1.0` | 5 min  | When API stabilizes |
 
 ---
 
@@ -134,15 +134,15 @@ Repeat:  median of 3 runs (min: 33.1K/s, max: 177.5K/s)
 
 All 7 previously-deferred open items are now **DONE** except the tag:
 
-| Item                                  | Status      | What was done                                                     |
-| ------------------------------------- | ----------- | ----------------------------------------------------------------- |
-| Phase 2: durability benchmark          | ✅ DONE     | `Config.Recovery` + `recoveryPhase`: close, reopen, reload all streams. CLI `--recovery`. |
-| Phase 6: production replay            | ✅ DONE     | `Config.ReplayOnly`: skip writes, discover streams from journal, benchmark reads. CLI `--replay`. |
-| Phase 7: `benchtest.RunSuite`         | ✅ DONE     | `benchkit.RunSuite(b, config, factory)` wraps benchkit into `testing.B` with `b.ReportMetric`. Wired into `stack/bench`. |
-| Analytical benchmark profiles         | ✅ DONE     | `ProfileAnalytical` (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans` field. |
-| Postgres benchmark tests              | ✅ DONE     | `postgres` backend added to CLI. Benchkit tests skip without `POSTGRES_TEST_DSN`. |
-| Projection with real kv.Store handler | ✅ DONE     | `newKVCountingProjection`: Get+Set per event on `bundle.ReadModels`. Falls back to atomic counter. |
-| Tag `benchkit/v0.1.0`                 | ⏳ PENDING  | When API stabilizes.                                              |
+| Item                                  | Status     | What was done                                                                                                            |
+| ------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Phase 2: durability benchmark         | ✅ DONE    | `Config.Recovery` + `recoveryPhase`: close, reopen, reload all streams. CLI `--recovery`.                                |
+| Phase 6: production replay            | ✅ DONE    | `Config.ReplayOnly`: skip writes, discover streams from journal, benchmark reads. CLI `--replay`.                        |
+| Phase 7: `benchtest.RunSuite`         | ✅ DONE    | `benchkit.RunSuite(b, config, factory)` wraps benchkit into `testing.B` with `b.ReportMetric`. Wired into `stack/bench`. |
+| Analytical benchmark profiles         | ✅ DONE    | `ProfileAnalytical` (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans` field.                           |
+| Postgres benchmark tests              | ✅ DONE    | `postgres` backend added to CLI. Benchkit tests skip without `POSTGRES_TEST_DSN`.                                        |
+| Projection with real kv.Store handler | ✅ DONE    | `newKVCountingProjection`: Get+Set per event on `bundle.ReadModels`. Falls back to atomic counter.                       |
+| Tag `benchkit/v0.1.0`                 | ⏳ PENDING | When API stabilizes.                                                                                                     |
 
 ---
 
