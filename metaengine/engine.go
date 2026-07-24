@@ -110,3 +110,20 @@ var (
 	_ MultimapBackend = (*memoryEngine)(nil)
 	_ LogBackend      = (*memoryEngine)(nil)
 )
+
+// SQLiteEngineProfile returns the cost profile for a SQLite engine.
+// Used for multi-engine planning without a real SQLite implementation.
+func SQLiteEngineProfile() EngineProfile {
+	return EngineProfile{
+		Name: "sqlite",
+		Supports: map[ADT]Complexity{
+			ADTMap:       ComplexityOLogN,
+			ADTSet:       ComplexityOLogN,
+			ADTCounter:   ComplexityO1,
+			ADTGraph:     ComplexityON,
+			ADTSortedMap: ComplexityOLogN,
+			ADTLog:       ComplexityOLogN,
+			ADTMultimap:  ComplexityOLogN,
+		},
+	}
+}
