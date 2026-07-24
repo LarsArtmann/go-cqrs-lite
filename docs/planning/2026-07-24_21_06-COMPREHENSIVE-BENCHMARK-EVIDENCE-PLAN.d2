@@ -1,0 +1,33 @@
+direction: right
+
+research: "Audit current benchmark semantics"
+contracts: "Define benchmark contracts and metric meanings"
+core: "Separate raw sink, creation, and full CQRS paths"
+scaling: "Add CPU, concurrency, batch, and stream-length matrices"
+statistics: "Add warmup, duration, repeats, confidence, and metadata"
+correctness: "Fix repeat isolation, error propagation, and stable schema"
+journeys: "Add command, projection, snapshot, cache, and failure journeys"
+backends: "Exercise memory, SQLite, Pebble, and optional Postgres"
+cli: "Expose reproducible suites and machine-readable artifacts"
+regression: "Add baselines and regression policy"
+profiles: "Capture CPU, heap, mutex, block, and execution traces"
+docs: "Document interpretation, limitations, and reproducibility"
+verify: "Run targeted, race, lint, build, and representative benchmarks"
+release: "Stabilize API and tag only after evidence"
+
+research -> contracts
+contracts -> core
+contracts -> statistics
+core -> scaling
+core -> journeys
+statistics -> correctness
+scaling -> backends
+journeys -> backends
+correctness -> cli
+backends -> cli
+cli -> regression
+cli -> profiles
+regression -> docs
+profiles -> docs
+docs -> verify
+verify -> release
