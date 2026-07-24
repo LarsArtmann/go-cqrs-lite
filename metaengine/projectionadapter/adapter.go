@@ -2,7 +2,7 @@ package projectionadapter
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -44,6 +44,7 @@ func New(
 	decoder PayloadDecoder,
 ) *Adapter {
 	rawTypes := store.EventTypes()
+
 	types := make([]event.Type, len(rawTypes))
 	for i, t := range rawTypes {
 		types[i] = event.Type(t)

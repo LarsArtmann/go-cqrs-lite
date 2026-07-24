@@ -2,7 +2,7 @@ package projectionadapter_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"sync"
 	"testing"
 	"time"
@@ -67,6 +67,7 @@ func (j *memoryJournal) ReadFrom(
 	for i, e := range j.events {
 		if e.ID() == after {
 			start = i + 1
+
 			break
 		}
 	}
@@ -153,6 +154,7 @@ func TestAdapter_ProjectionHostIntegration(t *testing.T) {
 			CounterIncremented{},
 			func(e CounterIncremented, prev CounterState) CounterState {
 				prev.Value += e.Amount
+
 				return prev
 			},
 		),
