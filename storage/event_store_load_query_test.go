@@ -212,7 +212,7 @@ func TestScanEvents_InvalidAggregateID(t *testing.T) {
 
 	_, err := store.Load(context.Background(), id.NewStreamRef("User", id.NewStreamID()))
 	if err == nil {
-		t.Fatal("expected error for invalid aggregate ID")
+		t.Fatal("expected error for invalid stream ID")
 	}
 }
 

@@ -17,7 +17,7 @@ import (
 	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 )
 
-// counterState is a tiny aggregate state for the pebble integration tests.
+// counterState is a tiny stream state for the pebble integration tests.
 type counterState struct {
 	Value int
 }
@@ -178,14 +178,14 @@ func TestPebbleSnapshotStoreWithDeciderRepository(t *testing.T) {
 		t.Fatalf("expected snapshot at version 2, got %d", snap.Version)
 	}
 
-	// Load aggregate through repository: it should use the snapshot and only load
+	// Load stream through repository: it should use the snapshot and only load
 	// events after the snapshot version.
 	state, _, err := repo.Load(ctx, aggID, "Counter")
 	if err != nil {
-		t.Fatalf("load aggregate: %v", err)
+		t.Fatalf("load stream: %v", err)
 	}
 
 	if state.Value != 3 {
-		t.Fatalf("expected aggregate value 3, got %d", state.Value)
+		t.Fatalf("expected stream value 3, got %d", state.Value)
 	}
 }

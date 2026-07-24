@@ -96,7 +96,7 @@ func TestCommandDispatch_ServerSpanCarriesAttrs(t *testing.T) {
 
 	if attrs[cqrsotel.AttrStreamID] != aggID.String() {
 		t.Errorf(
-			"expected aggregate ID attr = %s, got %v",
+			"expected stream ID attr = %s, got %v",
 			aggID.String(),
 			attrs[cqrsotel.AttrStreamID],
 		)

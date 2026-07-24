@@ -24,7 +24,7 @@ func TestNewCommand(t *testing.T) {
 	}
 
 	if cmd.StreamID() != idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95") {
-		t.Errorf("expected aggregate ID user-123, got %s", cmd.StreamID())
+		t.Errorf("expected stream ID, got %s", cmd.StreamID())
 	}
 }
 

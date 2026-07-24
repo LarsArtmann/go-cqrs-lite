@@ -54,7 +54,7 @@ func TestCommandTracing_Success(t *testing.T) {
 	}
 
 	if _, ok := attrs[cqrsotel.AttrStreamID]; !ok {
-		t.Error("expected aggregate.id attribute to be set")
+		t.Error("expected stream.id attribute to be set")
 	}
 
 	assertSpanStatusUnset(t, span)
@@ -116,15 +116,15 @@ func TestEventTracing_Success(t *testing.T) {
 	}
 
 	if _, ok := attrs[cqrsotel.AttrStreamID]; !ok {
-		t.Error("expected aggregate.id attribute to be set")
+		t.Error("expected stream.id attribute to be set")
 	}
 
 	if _, ok := attrs[cqrsotel.AttrStreamType]; !ok {
-		t.Error("expected aggregate.type attribute to be set")
+		t.Error("expected stream.type attribute to be set")
 	}
 
 	if _, ok := attrs[cqrsotel.AttrStreamVersion]; !ok {
-		t.Error("expected aggregate.version attribute to be set")
+		t.Error("expected stream.version attribute to be set")
 	}
 }
 
