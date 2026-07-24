@@ -123,27 +123,27 @@ func TestNewEvent_ErrorMessagesContainContext(t *testing.T) {
 		wantContains []string
 	}{
 		{
-			name:         "missing aggregate ID includes event type",
+			name:         "missing stream ID includes event type",
 			eventType:    "TestEvent",
 			streamID:     id.StreamID{},
 			streamType:   "User",
 			version:      1,
-			wantContains: []string{"aggregate ID is required", "TestEvent"},
+			wantContains: []string{"stream ID is required", "TestEvent"},
 		},
 		{
-			name:       "missing aggregate type includes aggregate ID and event type",
+			name:       "missing stream type includes stream ID and event type",
 			eventType:  "OrderCreated",
 			streamID:   idtest.ParseStreamID(t, "01HK154BMRQFY6Q98RCCEJDZ74"),
 			streamType: "",
 			version:    1,
 			wantContains: []string{
-				"aggregate type is required",
+				"stream type is required",
 				"01HK154BMRQFY6Q98RCCEJDZ74",
 				"OrderCreated",
 			},
 		},
 		{
-			name:       "zero version includes aggregate ID and event type",
+			name:       "zero version includes stream ID and event type",
 			eventType:  "PaymentProcessed",
 			streamID:   idtest.ParseStreamID(t, "01HK154CM00YYJAJGC0GE589E2"),
 			streamType: "Payment",

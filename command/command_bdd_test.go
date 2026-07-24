@@ -251,11 +251,11 @@ var _ = Describe("Command Dispatcher", func() {
 			})
 		})
 
-		Context("when I create a command with a zero aggregate ID", func() {
-			It("should reject my input and explain that the aggregate ID is required", func() {
+		Context("when I create a command with a zero stream ID", func() {
+			It("should reject my input and explain that the stream ID is required", func() {
 				_, err := command.New("CreateUser", id.StreamID{})
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("aggregate ID is required"))
+				Expect(err.Error()).To(ContainSubstring("stream ID is required"))
 			})
 		})
 
