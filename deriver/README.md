@@ -51,15 +51,15 @@ func main() {
 
 ## API
 
-| Symbol                    | Kind    | Description                                                              |
-| ------------------------- | ------- | ------------------------------------------------------------------------ |
-| `Deriver`                 | Type    | `func(ctx, event.Event) ([]command.Command, error)`                      |
-| `Deriver.Then(next)`      | Method  | Fan-out: runs both derivers on the same event, concatenates commands.     |
-| `Deriver.Filter(types...)`| Method  | Only processes events of the given types; others produce no commands.     |
-| `Deriver.Idempotent()`    | Method  | Re-stamps commands with deterministic IDs derived from the source event.  |
-| `Deriver.AsHandler(disp)` | Method  | Converts to an `event.Handler` that dispatches commands sequentially.     |
-| `Noop()`                  | Func    | Terminal Deriver that produces no commands. Placeholder/default.         |
-| `SourceEventIDKey`        | Const   | Custom metadata key stamped on derived commands for traceability.         |
+| Symbol                     | Kind   | Description                                                              |
+| -------------------------- | ------ | ------------------------------------------------------------------------ |
+| `Deriver`                  | Type   | `func(ctx, event.Event) ([]command.Command, error)`                      |
+| `Deriver.Then(next)`       | Method | Fan-out: runs both derivers on the same event, concatenates commands.    |
+| `Deriver.Filter(types...)` | Method | Only processes events of the given types; others produce no commands.    |
+| `Deriver.Idempotent()`     | Method | Re-stamps commands with deterministic IDs derived from the source event. |
+| `Deriver.AsHandler(disp)`  | Method | Converts to an `event.Handler` that dispatches commands sequentially.    |
+| `Noop()`                   | Func   | Terminal Deriver that produces no commands. Placeholder/default.         |
+| `SourceEventIDKey`         | Const  | Custom metadata key stamped on derived commands for traceability.        |
 
 ## Idempotent Delivery
 

@@ -27,16 +27,16 @@ parsed, err := id.Parse[OrderID](orderID.String())
 
 ## Built-in Types
 
-| Type             | Marker            | Purpose                          |
-| ---------------- | ----------------- | -------------------------------- |
-| `AggregateID`    | `AggregateMarker` | Identifies an aggregate stream   |
-| `EventID`        | `EventMarker`     | Uniquely identifies an event     |
-| `CorrelationID`  | `CorrelationMarker` | Links events across a request  |
-| `CausationID`    | `CausationMarker` | Links an event to its cause      |
-| `CommandID`      | `CommandMarker`   | Uniquely identifies a command    |
-| `RequestID`      | `RequestMarker`   | HTTP request correlation         |
-| `UserID`         | `UserMarker`      | Authenticated user               |
-| `ClientID`       | `ClientMarker`    | API client / consumer            |
+| Type            | Marker              | Purpose                        |
+| --------------- | ------------------- | ------------------------------ |
+| `AggregateID`   | `AggregateMarker`   | Identifies an aggregate stream |
+| `EventID`       | `EventMarker`       | Uniquely identifies an event   |
+| `CorrelationID` | `CorrelationMarker` | Links events across a request  |
+| `CausationID`   | `CausationMarker`   | Links an event to its cause    |
+| `CommandID`     | `CommandMarker`     | Uniquely identifies a command  |
+| `RequestID`     | `RequestMarker`     | HTTP request correlation       |
+| `UserID`        | `UserMarker`        | Authenticated user             |
+| `ClientID`      | `ClientMarker`      | API client / consumer          |
 
 All 8 markers are exported for `BrandNamer` integration. Custom types use `id.Of[struct{}]`.
 
@@ -53,6 +53,7 @@ All 8 markers are exported for `BrandNamer` integration. Custom types use `id.Of
 ## Serialization
 
 All branded IDs support:
+
 - **JSON** (including `null` marshaling)
 - **Binary** (`encoding.BinaryMarshaler`/`Unmarshaler`)
 - **Text** (`encoding.TextMarshaler`/`TextUnmarshaler`)
