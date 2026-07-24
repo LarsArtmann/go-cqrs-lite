@@ -1,0 +1,155 @@
+name: Benchmarks
+
+on:
+  # Run on pushes to master that touch benchkit or benchmark code
+  push:
+    branches: [master]
+    paths:
+      - "benchkit/**"
+      - "stack/bench/**"
+      - "cmd/cqrs-bench/**"
+      - ".github/workflows/benchmarks.yml"
+  # Nightly schedule for full benchmarks
+  schedule:
+    - cron: "0 3 * * *"  # 03:00 UTC daily
+  # Manual trigger
+  workflow_dispatch:
+
+jobs:
+  # Quick benchmark: memory backend, dev profile, 3 samples
+  # Runs on every push that touches benchmark code
+  quick:
+    name: Quick Benchmark (Memory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: larsartmann
+          skipPush: true
+
+      - name: Build benchkit
+        run: nix run .#build
+
+      - name: Run memory benchmark
+        run: |
+          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+            ./cmd/cqrs-bench run \
+            --backend memory \
+            --profile dev \
+            --repeat 3 \
+            --format benchstat
+
+      - name: Run raw sink comparison
+        run: |
+          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+            ./cmd/cqrs-bench run \
+            --backend memory \
+            --profile dev \
+            --repeat 3 \
+            --format text
+
+  # Go benchmarks: run standard testing.B benchmarks
+  go-bench:
+    name: Go Benchmarks (stack/bench)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Run Go benchmarks
+        run: |
+          cd stack/bench && \
+          GOEXPERIMENT=jsonv2 go test -tags "goexperiment.jsonv2" \
+            -bench=. -benchmem -benchtime=100x -count=1 \
+            -timeout 5m
+
+  # Nightly: full benchmark suite across all in-process backends
+  nightly:
+    name: Nightly Full Benchmark
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: larsartmann
+          skipPush: true
+
+      - name: Build
+        run: nix run .#build
+
+      - name: Memory benchmark (small profile, 5 repeats)
+        run: |
+          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+            ./cmd/cqrs-bench run \
+            --backend memory \
+            --profile small \
+            --repeat 5 \
+            --format json \
+            --output benchmarks/memory-small.json
+
+      - name: SQLite benchmark (small profile, 5 repeats)
+        run: |
+          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+            ./cmd/cqrs-bench run \
+            --backend sqlite \
+            --profile small \
+            --repeat 5 \
+            --format json \
+            --output benchmarks/sqlite-small.json
+
+      - name: Pebble benchmark (small profile, 5 repeats)
+        run: |
+          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+            ./cmd/cqrs-bench run \
+            --backend pebble \
+            --profile small \
+            --repeat 5 \
+            --format json \
+            --output benchmarks/pebble-small.json
+
+      - name: Multi-backend comparison
+        run: |
+          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+            ./cmd/cqrs-bench compare \
+            --profile small \
+            --format markdown \
+            --output benchmarks/comparison.md
+
+      - name: Scaling sweep (workers)
+        run: |
+          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+            ./cmd/cqrs-bench sweep \
+            --param workers \
+            --values 1,2,4,8,16 \
+            --backend memory \
+            --profile small \
+            --format json \
+            --output benchmarks/worker-sweep.json
+
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmarks/
+          retention-days: 90

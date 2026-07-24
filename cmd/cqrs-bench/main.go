@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/debug"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"time"
@@ -126,7 +127,36 @@ func runCmd(args []string) {
 		false,
 		"Replay existing store (skip writes, discover streams from journal)",
 	)
+	cpuprofile := fs.String("cpuprofile", "", "Write CPU profile to file")
+	memprofile := fs.String("memprofile", "", "Write heap profile to file")
 	_ = fs.Parse(args)
+
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			fatalf("create cpu profile: %v", err)
+		}
+
+		defer f.Close()
+
+		if err := pprof.StartCPUProfile(f); err != nil {
+			fatalf("start cpu profile: %v", err)
+		}
+
+		defer pprof.StopCPUProfile()
+	}
+
+	if *memprofile != "" {
+		defer func() {
+			f, err := os.Create(*memprofile)
+			if err != nil {
+				fatalf("create mem profile: %v", err)
+			}
+
+			defer f.Close()
+			_ = pprof.WriteHeapProfile(f)
+		}()
+	}
 
 	profile, ok := benchkit.ProfileByName(*profileName)
 	if !ok {
