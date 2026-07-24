@@ -101,8 +101,11 @@ func runCmd(args []string) {
 	format := fs.String("format", "text", "Output format: text, json")
 	output := fs.String("output", "", "Output file (default: stdout)")
 	payloadSize := fs.Int("payload-size", 256, "Payload size in bytes per event")
-	payloadSizes := fs.String("payload-sizes", "",
-		"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size")
+	payloadSizes := fs.String(
+		"payload-sizes",
+		"",
+		"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size",
+	)
 	warmup := fs.Int("warmup", 0, "Number of warmup operations")
 	_ = fs.Parse(args)
 
@@ -156,8 +159,11 @@ func compareCmd(args []string) {
 	backendList := fs.String("backends", "memory,sqlite,pebble",
 		"Comma-separated backend list (memory,sqlite,pebble)")
 	payloadSize := fs.Int("payload-size", 256, "Payload size in bytes per event")
-	payloadSizes := fs.String("payload-sizes", "",
-		"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size")
+	payloadSizes := fs.String(
+		"payload-sizes",
+		"",
+		"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size",
+	)
 	_ = fs.Parse(args)
 
 	profile, ok := benchkit.ProfileByName(*profileName)

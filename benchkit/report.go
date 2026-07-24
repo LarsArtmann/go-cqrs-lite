@@ -43,7 +43,12 @@ func PrintReport(w io.Writer, r *Result) {
 		formatInt(r.Streams), r.EventsPerStream, formatInt(r.TotalEvents))
 
 	if len(r.PayloadSizes) > 1 {
-		fmt.Fprintf(w, "Payload:  %d bytes/event (mean; mixed %v)\n", r.PayloadBytes, r.PayloadSizes)
+		fmt.Fprintf(
+			w,
+			"Payload:  %d bytes/event (mean; mixed %v)\n",
+			r.PayloadBytes,
+			r.PayloadSizes,
+		)
 	} else {
 		fmt.Fprintf(w, "Payload:  %d bytes/event\n", r.PayloadBytes)
 	}
