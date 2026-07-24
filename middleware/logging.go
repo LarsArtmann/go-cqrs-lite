@@ -21,12 +21,12 @@ func logWithContext(
 ) error {
 	start := time.Now()
 
-	aggregateIDStr := streamID.String()
+	streamIDStr := streamID.String()
 
 	logger.Info(
 		prefix+" dispatching",
 		"type", msgType,
-		"streamID", aggregateIDStr,
+		"streamID", streamIDStr,
 	)
 
 	err := fn()
