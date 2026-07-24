@@ -26,7 +26,7 @@ var _ = Describe("Pagination", func() {
 
 		base := time.Now()
 		for i := range 10 {
-			Expect(store.Apply("TaskCreated", TaskCreated{
+			Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 				ID:       TaskID(fmt.Sprintf("t%d", i)),
 				Title:    fmt.Sprintf("Task %d", i),
 				Status:   "open",
@@ -98,7 +98,7 @@ var _ = Describe("Pagination", func() {
 		BeforeEach(func() {
 			// Add items with the same priority to test tiebreaking.
 			for i := range 5 {
-				Expect(store.Apply("TaskCreated", TaskCreated{
+				Expect(store.Apply(context.Background(), "TaskCreated", TaskCreated{
 					ID:       TaskID(fmt.Sprintf("eq%d", i)),
 					Title:    fmt.Sprintf("Equal %d", i),
 					Status:   "open",
