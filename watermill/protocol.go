@@ -107,7 +107,7 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	streamID, err := id.ParseStreamID(md.Get(metaAggregateID))
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err,
-			"watermill.parse_aggregate_id_failed", "parse aggregate_id")
+			"watermill.parse_aggregate_id_failed", "parse stream_id")
 	}
 
 	streamType := id.StreamType(md.Get(metaAggregateType))

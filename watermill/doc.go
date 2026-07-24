@@ -79,7 +79,7 @@
 //	// Or wrap an existing message.Publisher as command.Publisher
 //	pub := watermill.NewCommandPublisher(wmPublisher, "commands")
 //
-// Commands carry identity (type, aggregate ID) and tracing metadata. Payload
+// Commands carry identity (type, stream ID) and tracing metadata. Payload
 // data is encoded via custom metadata (same pattern as transport/grpc). Use
 // [CommandToMessage] and [MessageToCommand] for the wire protocol.
 //

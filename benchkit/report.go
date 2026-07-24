@@ -39,7 +39,7 @@ func PrintReport(w io.Writer, r *Result) {
 	fmt.Fprintf(w, "Benchmark: %s | profile=%s | codec=%s\n",
 		r.Backend, r.Profile, r.Codec)
 	fmt.Fprintln(w, strings.Repeat("=", 60))
-	fmt.Fprintf(w, "Workload: %s aggregates x %d events = %s events\n",
+	fmt.Fprintf(w, "Workload: %s streams x %d events = %s events\n",
 		formatInt(r.Streams), r.EventsPerStream, formatInt(r.TotalEvents))
 
 	if len(r.PayloadSizes) > 1 {

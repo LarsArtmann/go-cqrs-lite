@@ -21,6 +21,14 @@ const (
 	// AttrQueryType is the query type identifier.
 	AttrQueryType = "cqrs.query.type"
 
+	// The following AttrStream* constants use cqrs.aggregate.* string values
+	// intentionally. Per ADR-0058, OTel attribute keys are operational schema
+	// for observability pipelines (Grafana, Datadog, Prometheus dashboards),
+	// the same stability category as JSON struct tags, slog field keys, and
+	// error classification codes. Renaming the wire values would break every
+	// consumer's dashboard/alert filters. The Go const NAMES are already
+	// Stream* (the code-facing API); only the emitted key strings are frozen.
+
 	// AttrStreamType is the stream type.
 	AttrStreamType = "cqrs.aggregate.type"
 

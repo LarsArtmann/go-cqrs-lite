@@ -39,7 +39,7 @@ func WithEventSource(s event.EventSource) Option {
 	}
 }
 
-// WithJournal sets the cross-aggregate event reader (projection replay).
+// WithJournal sets the cross-stream event reader (projection replay).
 func WithJournal(j event.Journal) Option {
 	return func(b *Bundle) {
 		b.Journal = j

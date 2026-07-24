@@ -25,7 +25,7 @@ type DiskSizer interface {
 
 // Config defines a benchmark run.
 type Config struct {
-	// Profile controls the scale: number of aggregates, events per aggregate,
+	// Profile controls the scale: number of streams, events per stream,
 	// concurrency level, read/write ratio, and batch size.
 	// Use a named [Profile] or customize the fields directly.
 	Profile Profile
@@ -72,7 +72,7 @@ type Config struct {
 	// on-disk database size. If empty, disk metrics are zero.
 	DiskPath string
 
-	// SkipReads skips the read phase (aggregate loads + journal scans).
+	// SkipReads skips the read phase (stream loads + journal scans).
 	SkipReads bool
 
 	// SkipReadModels skips the read-model Set/Get benchmark.

@@ -63,7 +63,7 @@ func (s *SQLEventStore) scanEvent(rows *sql.Rows) (event.Event, error) {
 	parsedAggID, err := id.ParseStreamID(aggIDStr)
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "storage.parse_aggregate_id",
-			fmt.Sprintf("parse aggregate ID %q for %s v%d", aggIDStr, aggType, version))
+			fmt.Sprintf("parse stream ID %q for %s v%d", aggIDStr, aggType, version))
 	}
 	return sqlpkg.ReconstructEvent(
 		parsedEventID,

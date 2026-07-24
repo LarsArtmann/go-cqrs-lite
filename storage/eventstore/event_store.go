@@ -163,7 +163,7 @@ func (s *SQLEventStore) AppendBatch(
 	return err
 }
 
-// SaveMultiBatch persists events for multiple aggregates in a single database
+// SaveMultiBatch persists events for multiple streams in a single database
 // transaction. All entries are committed atomically — either all succeed or
 // none. No optimistic concurrency checks are performed (same semantics as
 // AppendBatch). The caller must ensure events carry correct version numbers.

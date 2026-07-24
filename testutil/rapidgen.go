@@ -12,7 +12,7 @@ func EventType() *rapid.Generator[string] {
 	return rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]{2,63}$`)
 }
 
-// StreamType generates random aggregate type strings matching the same convention.
+// StreamType generates random stream type strings matching the same convention.
 func StreamType() *rapid.Generator[string] {
 	return rapid.StringMatching(`^[A-Za-z][A-Za-z0-9._-]{2,63}$`)
 }

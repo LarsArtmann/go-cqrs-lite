@@ -8,7 +8,7 @@ import (
 // Implementations are stateless and safe for concurrent use.
 type Signer interface {
 	// Sign computes a cryptographic signature for the given event.
-	// The signature covers event ID, type, aggregate, version, payload, and occurredAt.
+	// The signature covers event ID, type, stream, version, payload, and occurredAt.
 	Sign(event event.Event) (Signature, error)
 }
 

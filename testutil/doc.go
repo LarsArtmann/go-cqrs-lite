@@ -4,7 +4,7 @@
 //
 // The rapidgen.go file provides generators and helpers for property-based
 // testing with pgregory.net/rapid. These generators produce valid CQRS
-// domain values (event types, aggregate types, versions, metadata maps,
+// domain values (event types, stream types, versions, metadata maps,
 // timestamps) for use in property tests.
 //
 // # Usage
@@ -39,7 +39,7 @@
 // # Available Generators
 //
 //   - EventType(): CQRS event type strings
-//   - StreamType(): CQRS aggregate type strings
+//   - StreamType(): CQRS stream type strings
 //   - Version(): positive version numbers [1, 10000]
 //   - NonEmptyString(): non-empty strings up to 200 chars
 //   - MetadataMap(): random string→string maps for metadata testing

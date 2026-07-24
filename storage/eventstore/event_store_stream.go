@@ -95,7 +95,7 @@ func (s *SQLEventStore) streamByAggregate(
 ) (event.EventIterator, error) {
 	if err := s.checkClosed(); err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "storage.stream_by_aggregate",
-			"stream events for aggregate")
+			"read events for stream")
 	}
 
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)

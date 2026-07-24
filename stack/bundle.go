@@ -34,7 +34,7 @@ type Bundle struct {
 	EventSink   event.EventSink
 	EventSource event.EventSource
 
-	// ── Events: cross-aggregate reads (optional; not every store supports these) ──
+	// ── Events: cross-stream reads (optional; not every store supports these) ──
 	Journal         event.Journal
 	SeekableJournal event.SeekableJournal
 	BackwardsSource event.BackwardsSource
@@ -47,7 +47,7 @@ type Bundle struct {
 	CommandSink   command.CommandSink
 	CommandSource command.CommandSource
 
-	// ── Commands: cross-aggregate reads (optional) ──
+	// ── Commands: cross-stream reads (optional) ──
 	CommandJournal         command.CommandJournal
 	SeekableCommandJournal command.SeekableCommandJournal
 
@@ -55,7 +55,7 @@ type Bundle struct {
 	QuerySink   query.QuerySink
 	QuerySource query.QuerySource
 
-	// ── Queries: cross-aggregate reads (optional) ──
+	// ── Queries: cross-stream reads (optional) ──
 	QueryJournal         query.QueryJournal
 	SeekableQueryJournal query.SeekableQueryJournal
 

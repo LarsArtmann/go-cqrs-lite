@@ -5,10 +5,10 @@ type Profile struct {
 	// Name is the human-readable identifier (e.g. "dev", "medium").
 	Name string
 
-	// Aggregates is the number of distinct aggregate IDs to write.
+	// Streams is the number of distinct stream IDs to write.
 	Streams int
 
-	// EventsPerStream is the number of events written per aggregate.
+	// EventsPerStream is the number of events written per stream.
 	EventsPerStream int
 
 	// Concurrency is the number of parallel goroutines for write/read.

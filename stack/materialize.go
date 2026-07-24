@@ -175,7 +175,7 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 			}
 		case event.TombstoneUndetermined:
 			// Can't determine status — skip projection. A subsequent event
-			// with a definitive status will resolve the aggregate state.
+			// with a definitive status will resolve the stream state.
 		}
 
 		return nil

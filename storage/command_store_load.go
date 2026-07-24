@@ -28,7 +28,7 @@ var commandQueryConfig = sqlpkg.QueryConfig[*command.PersistedCommand]{ //nolint
 	DomainNoun: "commands",
 }
 
-// Load retrieves all commands for an aggregate, ordered by received_at.
+// Load retrieves all commands for a stream, ordered by received_at.
 func (s *SQLCommandStore) Load(
 	ctx context.Context,
 	ref command.StreamRef,

@@ -14,7 +14,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
-// writePhase writes events to all aggregates concurrently and collects
+// writePhase writes events to all streams concurrently and collects
 // write latency percentiles plus overall throughput.
 func (r *runner) writePhase(ctx context.Context) error {
 	coll := NewLatencyCollector(0)
@@ -103,7 +103,7 @@ func (r *runner) createBatch(
 	return events, nil
 }
 
-// readPhase loads all aggregates concurrently, then runs journal scans.
+// readPhase loads all streams concurrently, then runs journal scans.
 // The number of read passes scales with Profile.ReadRatio so that read-heavy
 // profiles perform more reads than write-heavy ones.
 func (r *runner) readPhase(ctx context.Context) error {

@@ -169,7 +169,7 @@ func (b *OTelBundle) Publish() []event.PublishMiddleware {
 // CorrelationEnricher returns a decider event enricher that bridges OTel
 // baggage correlation IDs into event metadata. Wire it via
 // decider.WithEnricher so correlation IDs flow automatically through every
-// event produced by the aggregate:
+// event produced by the stream:
 //
 //	repo, _ := decider.NewRepository(store, bus, decider.WithEnricher(
 //	    bundle.CorrelationEnricher()))

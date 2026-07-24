@@ -39,7 +39,7 @@ func (s *SQLCommandStore) commandJournalReader() *sqlpkg.JournalReader[*command.
 	}
 }
 
-// ReadAll returns all commands across all aggregates, ordered by received_at.
+// ReadAll returns all commands across all streams, ordered by received_at.
 // Implements command.CommandJournal.
 func (s *SQLCommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand, error) {
 	return s.commandJournalReader().ReadAll(ctx)

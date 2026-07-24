@@ -65,13 +65,13 @@ Backends:
   pebble    PebbleDB LSM-tree store
 
 Profiles:
-  dev         100 aggregates x 5 events     (500 events, 1 goroutine)
-  small       1K aggregates x 10 events     (10K events, 4 goroutines)
-  medium      10K aggregates x 50 events    (500K events, 16 goroutines)
-  large       100K aggregates x 100 events  (10M events, 32 goroutines)
-  stress      10K aggregates x 500 events   (5M events, 64 goroutines)
-  write-heavy 10K aggregates x 100 events   (1M events, 32 goroutines, 90% writes)
-  read-heavy  10K aggregates x 100 events   (1M events, 32 goroutines, 80% reads)
+  dev         100 streams x 5 events     (500 events, 1 goroutine)
+  small       1K streams x 10 events     (10K events, 4 goroutines)
+  medium      10K streams x 50 events    (500K events, 16 goroutines)
+  large       100K streams x 100 events  (10M events, 32 goroutines)
+  stress      10K streams x 500 events   (5M events, 64 goroutines)
+  write-heavy 10K streams x 100 events   (1M events, 32 goroutines, 90% writes)
+  read-heavy  10K streams x 100 events   (1M events, 32 goroutines, 80% reads)
 
 Codecs:
   json    JSON encoding (default)

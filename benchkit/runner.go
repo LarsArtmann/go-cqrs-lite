@@ -299,7 +299,7 @@ func runConcurrent(
 	}
 }
 
-// warmup runs a few write+load cycles on a throwaway aggregate to warm
+// warmup runs a few write+load cycles on a throwaway stream to warm
 // caches, JIT compilation, and connection pools. It uses a separate Bundle
 // so warmup events never pollute the measurement store's journal.
 // Returns the number of events written during warmup.
