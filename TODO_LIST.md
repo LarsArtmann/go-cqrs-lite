@@ -48,6 +48,20 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 - [ ] **SQL-backed `idempotency.Store`** — For multi-process Postgres deployments
       (~100 lines: `INSERT ON CONFLICT DO NOTHING`).
 
+### Benchkit Reliability
+
+- [ ] **Run the benchmark and inspect output** — 55 tests verify plumbing (event
+      counts, sample counts, error classification) but no test validates that
+      throughput/latency numbers are physically plausible. The benchmark has never
+      been actually executed and inspected.
+- [ ] **Fix `--version` drift** — Hardcoded `v4.1.0` in `cmd/cqrs-bench/main.go`;
+      should use `runtime/debug.ReadBuildInfo()` for automatic versioning.
+- [ ] **Implement `DiskSize()` on `pebble.Bundle`** — `DiskSizer` interface exists
+      but zero backends implement it. All disk measurement falls back to filesystem walk.
+- [ ] **Phase 6: Production replay** — Replay real event streams for benchmarking.
+- [ ] **Phase 7: benchtest.RunSuite** — Preset integration for `stack/bench`.
+- [ ] **Tag `benchkit/v0.1.0`** when API stabilizes.
+
 ---
 
 ## Future — v4.2+ Parquet Journal + DuckDB

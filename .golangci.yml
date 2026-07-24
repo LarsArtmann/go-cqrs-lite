@@ -277,6 +277,8 @@ linters:
         - mw
         - ts
         - mu
+        - rs
+        - j
   exclusions:
     generated: lax
     rules:
@@ -301,6 +303,9 @@ linters:
           - nilnil
           - varnamelen
           - ginkgolinter
+          - gocritic
+          - errname
+          - predeclared
       - path: internal/cattest/
         linters:
           - thelper
@@ -413,6 +418,28 @@ linters:
       - path: stack/contracttest/
         linters:
           - errcheck
+      - path: benchkit/
+        linters:
+          - errcheck
+          - exhaustruct
+          - gochecknoglobals
+          - goconst
+          - gosec
+          - mnd
+          - nonamedreturns
+          - tagliatelle
+          - wrapcheck
+      - path: cmd/cqrs-bench/
+        linters:
+          - errcheck
+          - exhaustruct
+          - forbidigo
+          - goconst
+          - gosec
+          - ireturn
+          - mnd
+          - noctx
+          - wrapcheck
           - goconst
           - varnamelen
           - err113
