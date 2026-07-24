@@ -26,6 +26,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
@@ -63,6 +64,7 @@ Backends:
   memory    In-memory store (no persistence)
   sqlite    SQLite database (pure-Go, no CGo)
   pebble    PebbleDB LSM-tree store
+  postgres  PostgreSQL database (requires --dsn)
 
 Profiles:
   dev         100 streams x 5 events     (500 events, 1 goroutine)
@@ -298,6 +300,13 @@ func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
 
 			return b.Bundle, nil
 		}, diskPath, cleanup
+
+	case "postgres", "pg":
+		if dsn == "" {
+			fatalf("postgres backend requires --dsn (e.g. postgres://user:pass@localhost:5432/bench?sslmode=disable)")
+		}
+
+		return func() (*stack.Bundle, error) { return postgres.New(dsn) }, "", nil
 
 	default:
 		fatalf("unknown backend: %s (use memory, sqlite, or pebble)", backend)

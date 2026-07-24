@@ -3,6 +3,7 @@ package benchkit
 import (
 	"bytes"
 	"context"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
@@ -14,6 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
@@ -1239,6 +1241,72 @@ func TestRun_DiskSizerFallback(t *testing.T) {
 	if result.Disk.DatabaseBytes > 0 {
 		t.Errorf("Disk.DatabaseBytes = %d for memory backend with empty DiskPath,"+
 			" expected 0", result.Disk.DatabaseBytes)
+	}
+}
+
+// ── Postgres backend test (skips without POSTGRES_TEST_DSN) ──
+
+func TestRun_Postgres(t *testing.T) {
+	t.Parallel()
+
+	dsn := os.Getenv("POSTGRES_TEST_DSN")
+	if dsn == "" {
+		t.Skip("POSTGRES_TEST_DSN not set; skipping Postgres benchmark test")
+	}
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 128,
+		Backend:     "postgres",
+	}, func() (*stack.Bundle, error) {
+		return postgres.New(dsn)
+	})
+
+	if result.Backend != "postgres" {
+		t.Errorf("Backend = %q, want 'postgres'", result.Backend)
+	}
+
+	if result.WriteLatency.Count == 0 {
+		t.Error("WriteLatency.Count is 0 for postgres")
+	}
+
+	if result.LoadLatency.Count == 0 {
+		t.Error("LoadLatency.Count is 0 for postgres")
+	}
+
+	if result.ReadAllTime <= 0 {
+		t.Error("ReadAllTime should be positive for postgres (Journal supported)")
+	}
+
+	if result.ReadFromTime <= 0 {
+		t.Error("ReadFromTime should be positive for postgres (SeekableJournal supported)")
+	}
+}
+
+func TestRun_Postgres_Recovery(t *testing.T) {
+	t.Parallel()
+
+	dsn := os.Getenv("POSTGRES_TEST_DSN")
+	if dsn == "" {
+		t.Skip("POSTGRES_TEST_DSN not set; skipping Postgres recovery test")
+	}
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Backend:     "postgres",
+		Recovery:    true,
+	}, func() (*stack.Bundle, error) {
+		return postgres.New(dsn)
+	})
+
+	if result.RecoveryTime <= 0 {
+		t.Error("RecoveryTime should be positive for postgres")
+	}
+
+	if result.RecoveredEvents != ProfileDev.TotalEvents() {
+		t.Errorf("RecoveredEvents = %d, want %d (postgres is persistent)",
+			result.RecoveredEvents, ProfileDev.TotalEvents())
 	}
 }
 
