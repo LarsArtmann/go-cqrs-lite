@@ -2,10 +2,11 @@
 
 > **Session:** 2026-07-24 17:59
 > **Task:** Complete the two follow-up items from the ADR-0058 aggregate→stream rename:
+>
 > 1. Comment cleanup in ~70 Go production files
 > 2. SKILL.md reference file updates (32 mentions across 6 files)
-> **ADR:** [ADR-0058](../adr/0058-rename-aggregate-to-stream.md)
-> **Plan:** [SUPERB-RENAME-AGGREGATE-TO-STREAM](../planning/2026-07-23_17-51_SUPERB-RENAME-AGGREGATE-TO-STREAM.md)
+>    **ADR:** [ADR-0058](../adr/0058-rename-aggregate-to-stream.md)
+>    **Plan:** [SUPERB-RENAME-AGGREGATE-TO-STREAM](../planning/2026-07-23_17-51_SUPERB-RENAME-AGGREGATE-TO-STREAM.md)
 
 ---
 
@@ -16,6 +17,7 @@
 **Approach:** Wrote a Python script that targets **comment text only** (after `//`), using `\b` word boundaries to avoid touching code symbols. Skipped `event/v3_compat_aliases.go` entirely (intentional backward-compat file).
 
 **Directories cleaned:**
+
 - `event/` — 7 files (doc.go, store.go, event.go, tombstone.go, types.go, streaming_source.go, v4/eventtest/store_suite.go)
 - `snapshot/` — 4 files (doc.go, strategy.go, helper.go, read_pressure.go)
 - `command/` — 3 files (doc.go, store.go, command.go)
@@ -25,11 +27,13 @@
 - `storage/pebble/` — 12 files (doc.go, store.go, snapshot.go, otel.go, helpers.go, journal.go, iteration.go, command_read.go, command_store.go, query_store.go, snapshot_test.go, journal_test.go, journal_scan_test.go)
 
 **Quality fixes applied manually:**
+
 - "aggregate root" → "entity" (not "stream root" — avoids awkwardness)
 - "mutable stream interface" → "mutable state management" (decider/decider.go:34)
 - "replaces a mutable stream with a pure fold" → "replaces a mutable entity with a pure fold" (decider/doc.go:3)
 
 **Verification:**
+
 - `go build -tags "goexperiment.jsonv2"` — OK
 - `go vet` — OK
 - `go test` on all 7 module groups — all pass
@@ -38,17 +42,19 @@
 ### 2. SKILL.md Reference Files — 7 files, 35 mentions cleared
 
 **Files updated:**
-| File | Changes |
-|------|---------|
-| `core.md` | 10 edits: prose (aggregate→stream) + API symbols (NewAggregateID→NewStreamID, NewAggregateRef→NewStreamRef) |
-| `advanced.md` | 10 edits: section heading, TOC link, code examples (NewInMemoryAggregateReader→NewInMemoryStreamReader, NewAggregateProjection→NewStreamProjection, evt.AggregateID()→evt.StreamID()) |
-| `recipes.md` | 3 edits: API symbols + prose |
-| `modules.md` | 3 edits: AggregateMarker→StreamMarker, listing type names, idtest function name |
-| `readmodels.md` | 2 edits: id.AggregateID→id.StreamID (type params) |
-| `faq.md` | 3 edits: prose (aggregate→stream) |
-| `SKILL.md` (root) | 3 edits: description frontmatter (event-sourced aggregates→streams, trigger phrases) |
+
+| File              | Changes                                                                                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core.md`         | 10 edits: prose (aggregate→stream) + API symbols (NewAggregateID→NewStreamID, NewAggregateRef→NewStreamRef)                                                                           |
+| `advanced.md`     | 10 edits: section heading, TOC link, code examples (NewInMemoryAggregateReader→NewInMemoryStreamReader, NewAggregateProjection→NewStreamProjection, evt.AggregateID()→evt.StreamID()) |
+| `recipes.md`      | 3 edits: API symbols + prose                                                                                                                                                          |
+| `modules.md`      | 3 edits: AggregateMarker→StreamMarker, listing type names, idtest function name                                                                                                       |
+| `readmodels.md`   | 2 edits: id.AggregateID→id.StreamID (type params)                                                                                                                                     |
+| `faq.md`          | 3 edits: prose (aggregate→stream)                                                                                                                                                     |
+| `SKILL.md` (root) | 3 edits: description frontmatter (event-sourced aggregates→streams, trigger phrases)                                                                                                  |
 
 **Verification:**
+
 - `cmd/doc-check` — **897 references valid across 34 packages** (all Go import paths + qualified symbols confirmed)
 - `grep -c "[Aa]ggregate"` — 0 in all 7 files
 
@@ -70,6 +76,7 @@
 ### 1. Storage Root Module (`storage/*.go`) — MISSED
 
 **6 comment lines with stale "aggregate" NOT cleaned:**
+
 - `storage/command_store_journal.go:42` — "all aggregates"
 - `storage/command_store_load.go:31` — "for an aggregate"
 - `storage/pg_bus_test.go:496` — "aggregate reference"
@@ -81,6 +88,7 @@
 ### 2. AGENTS.md — NOT TOUCHED (16 stale references)
 
 The project's own `AGENTS.md` has **16 lines** with "aggregate" references in code examples, tree comments, and prose. These are the most visible stale references for any AI session or contributor. Key offenders:
+
 - Line 52: Tree comment `AggregateID, EventID, etc.`
 - Line 78: `AggregateListing, AggregateStatus, ... InMemoryAggregateReader`
 - Line 138: Prose "for the same aggregate"
@@ -114,6 +122,7 @@ Only tested the 7 changed module groups, not the full workspace (`nix run .#test
 ## d) TOTALLY FUCKED UP
 
 **Nothing.** All changes are safe:
+
 - Comment-only changes in Go (zero behavioral impact)
 - Markdown doc updates verified by doc-check (897 refs valid)
 - All tests pass, build passes, vet passes

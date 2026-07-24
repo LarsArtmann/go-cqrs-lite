@@ -52,8 +52,22 @@ func (b *Backend) Metrics() PebbleMetrics {
 }
 
 // DiskUsage returns the total disk space used by the Pebble database in bytes,
-// including SST files and WAL. More precise than a filesystem walk because it
-// excludes unreferenced obsolete files.
+// including live SSTables, WAL files, and obsolete files not yet deleted.
+// This is more precise than a filesystem walk because it is computed from
+// Pebble's internal metrics rather than scanning the directory.
 func (b *Backend) DiskUsage() uint64 {
-	return b.database.DiskUsage()
+	m := b.database.Metrics()
+
+	var total uint64
+
+	for _, lvl := range m.Levels {
+		total += uint64(lvl.Size)
+	}
+
+	total += m.WAL.PhysicalSize
+	total += m.WAL.ObsoletePhysicalSize
+	total += m.Table.ObsoleteSize
+	total += m.Table.ZombieSize
+
+	return total
 }

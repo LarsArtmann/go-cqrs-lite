@@ -33,9 +33,9 @@ go build -o cqrs-bench ./cmd/cqrs-bench/
 ./cqrs-bench run --backend pebble --profile medium --codec cbor  # CBOR vs JSON
 ```
 
-| Use `cqrs-bench` when...                   | Use `go test -bench` (stack/bench) when... |
-| ------------------------------------------ | ------------------------------------------ |
-| Comparing backends (memory vs sqlite vs pebble) | Micro-benchmarks inside your own test suite  |
-| Measuring latency percentiles at scale     | Measuring a single operation's ns/op       |
-| Checking codec impact (JSON vs CBOR)       | Checking allocation counts                 |
-| CI performance regression gates            | Quick local iteration during development   |
+| Use `cqrs-bench` when...                        | Use `go test -bench` (stack/bench) when...  |
+| ----------------------------------------------- | ------------------------------------------- |
+| Comparing backends (memory vs sqlite vs pebble) | Micro-benchmarks inside your own test suite |
+| Measuring latency percentiles at scale          | Measuring a single operation's ns/op        |
+| Checking codec impact (JSON vs CBOR)            | Checking allocation counts                  |
+| CI performance regression gates                 | Quick local iteration during development    |

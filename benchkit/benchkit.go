@@ -14,15 +14,11 @@ import (
 // etc.). The caller is responsible for calling Bundle.Close after the run.
 type Factory func() (*stack.Bundle, error)
 
-// DiskSizer is optionally implemented by backends that can report their
-// on-disk size. If the *stack.Bundle returned by Factory wraps a type that
-// implements this interface, the runner uses DiskSize() instead of walking
-// Config.DiskPath.
-//
-// Note: since Factory returns *stack.Bundle (which does not implement DiskSizer),
-// this interface is forward-looking — it enables custom factory wrappers or
-// future stack.Bundle extensions to provide precise disk metrics without
-// filesystem walks.
+// DiskSizer is implemented by *stack.Bundle to report precise on-disk size.
+// The runner checks DiskSize() first; a return of -1 means "not available"
+// (e.g. memory backend, SQLite without WithDiskSize), and the runner falls
+// back to walking Config.DiskPath. Disk-backed presets (Pebble) register
+// a disk-size function via stack.WithDiskSize at construction time.
 type DiskSizer interface {
 	DiskSize() int64
 }

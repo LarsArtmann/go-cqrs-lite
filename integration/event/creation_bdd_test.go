@@ -53,7 +53,7 @@ var _ = Describe("Event Creation", func() {
 			})
 		})
 
-		Context("when I create an event with an empty aggregate ID", func() {
+		Context("when I create an event with an empty stream ID", func() {
 			It("should reject it with a descriptive error", func() {
 				var emptyID id.StreamID
 
@@ -65,7 +65,7 @@ var _ = Describe("Event Creation", func() {
 					nil,
 				)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("aggregate ID is required"))
+				Expect(err.Error()).To(ContainSubstring("stream ID is required"))
 			})
 		})
 
@@ -75,11 +75,11 @@ var _ = Describe("Event Creation", func() {
 				expectNewEventValidationFails(aggID, aggType, version, expectedMsg)
 			},
 			Entry(
-				"empty aggregate type",
+				"empty stream type",
 				id.NewStreamID(),
 				id.StreamType(""),
 				event.Version(1),
-				"aggregate type is required",
+				"stream type is required",
 			),
 			Entry(
 				"zero version",
