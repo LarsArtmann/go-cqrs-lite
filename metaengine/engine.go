@@ -11,6 +11,11 @@ import (
 type EngineProfile struct {
 	Name     string
 	Supports map[ADT]Complexity
+
+	// NsPerOp is the calibrated nanoseconds-per-operation cost for this
+	// engine. Used by the cost estimator to compute latency estimates.
+	// Zero means use the legacy default (100ns).
+	NsPerOp float64
 }
 
 func (p EngineProfile) SupportsADT(adt ADT) (Complexity, bool) {
@@ -109,7 +114,8 @@ var (
 // SQLiteEngineProfile returns the cost profile for a SQLite engine.
 func SQLiteEngineProfile() EngineProfile {
 	return EngineProfile{
-		Name: "sqlite",
+		Name:   "sqlite",
+		NsPerOp: SQLiteNsPerOp,
 		Supports: map[ADT]Complexity{
 			ADTMap:       ComplexityOLogN,
 			ADTSet:       ComplexityOLogN,
@@ -121,3 +127,13 @@ func SQLiteEngineProfile() EngineProfile {
 		},
 	}
 }
+
+// SQLiteNsPerOp is the calibrated per-operation cost for the SQLite engine.
+// Calibrated via BenchmarkCalibration_SQLiteSet/Get on 2026-07-25 using
+// in-memory modernc.org/sqlite (file::memory:):
+//   - MapSet (INSERT): ~8,000 ns/op
+//   - MapGet (SELECT): ~4,500 ns/op
+// The value 8,000 ns is conservative for planning — disk-backed SQLite
+// adds I/O latency (10-50µs per op), but the planner is designed to
+// prefer memory engines when they can serve the query.
+const SQLiteNsPerOp = 8000.0

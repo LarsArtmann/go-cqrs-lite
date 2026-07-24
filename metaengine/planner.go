@@ -106,10 +106,11 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 	for _, eng := range engines {
 		if c, ok := eng.Profile().SupportsADT(adt); ok {
 			readC := effectiveReadComplexity(meta.QueryReadPattern(), c)
+			profile := eng.Profile()
 			ranked = append(ranked, rankedEngine{
 				engine:     eng,
 				complexity: c,
-				cost:       estimateCost(readC, cfg.Volume),
+				cost:       estimateCost(readC, cfg.Volume, profile.NsPerOp),
 			})
 		}
 	}

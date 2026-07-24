@@ -44,7 +44,8 @@ func NewMemoryEngine() Engine {
 
 func (m *memoryEngine) Profile() EngineProfile {
 	return EngineProfile{
-		Name: "memory",
+		Name:   "memory",
+		NsPerOp: MemoryNsPerOp,
 		Supports: map[ADT]Complexity{
 			ADTMap:       ComplexityO1,
 			ADTSet:       ComplexityO1,
@@ -56,6 +57,13 @@ func (m *memoryEngine) Profile() EngineProfile {
 		},
 	}
 }
+
+// MemoryNsPerOp is the calibrated per-operation cost for the in-memory engine.
+// Calibrated via BenchmarkCalibration_MapSet/MapGet on 2026-07-25:
+//   - MapSet: ~45 ns/op
+//   - MapGet: ~28 ns/op
+// The value 50 ns is a conservative round-up for planning purposes.
+const MemoryNsPerOp = 50.0
 
 // getMapLocked returns or creates a map collection. Caller MUST hold m.mu.Lock().
 func (m *memoryEngine) getMapLocked(col string) map[any]any {

@@ -32,10 +32,16 @@ func (ce CostEstimate) WithinBudget(budgetMs int64) bool {
 	return ce.EstimatedLatencyMs <= float64(budgetMs)
 }
 
+// DefaultNsPerOp is the fallback nanoseconds-per-operation cost used when an
+// engine profile does not provide a calibrated value. This is the legacy
+// default from before calibration was added.
+const DefaultNsPerOp = 100.0
+
 // estimateCost computes a cost estimate for a query with given complexity and volume.
 // The volume represents the expected number of items in the projection.
 // If volume is zero or negative, a default of 1000 is assumed.
-func estimateCost(complexity Complexity, volume int64) CostEstimate {
+// nsPerOp is the calibrated per-operation cost for the engine being evaluated.
+func estimateCost(complexity Complexity, volume int64, nsPerOp float64) CostEstimate {
 	effectiveVolume := volume
 	if effectiveVolume <= 0 {
 		effectiveVolume = 1000
@@ -61,8 +67,9 @@ func estimateCost(complexity Complexity, volume int64) CostEstimate {
 		ops = n
 	}
 
-	// Rough baseline: 100 nanoseconds per in-memory operation.
-	const nsPerOp = 100.0
+	if nsPerOp <= 0 {
+		nsPerOp = DefaultNsPerOp
+	}
 
 	latencyMs := (ops * nsPerOp) / 1e6
 
