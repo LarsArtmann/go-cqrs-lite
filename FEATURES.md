@@ -1006,8 +1006,6 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | PostgreSQL testcontainers     | testcontainers-based real PG testing                           |
 | Documentation site            | Docusaurus/MkDocs/Hugo site                                    |
 | Transport adapters            | gRPC ✅, NATS/ValKey (ADR-0025 accepted, no code)              |
-| stack health checks           | `Bundle.HealthCheck(ctx)` — consumer request (HIGH)            |
-| Topological shutdown          | `WithDependency()` shutdown ordering — consumer request (HIGH) |
 | Distributed projection runner | Leader election, multi-node coordination — raw idea            |
 
 ---

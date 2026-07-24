@@ -116,10 +116,10 @@ The benchmarking toolkit is functional but has known gaps:
 - Property-based integration testing with state machine verification
 - Performance regression dashboard (historical benchmark tracking)
 - Neo4j/Memgraph graph driver (`graph/neo4j/`) — consumer-pulled sibling module
-- Parquet journal (`storage/parquet`) — columnar, compressed, cloud-native
-- DuckDB connector (`storage/duckdb`) — OLAP-grade analytical materializations
-- NATS/ValKey stream adapter — ADR-0025 accepted
-- Distributed event bus — multi-process backend for event distribution
+
+> Items with design docs graduate to [TODO_LIST.md](TODO_LIST.md) "Future" sections.
+> Current graduates: Parquet journal, DuckDB connector, NATS/ValKey adapter,
+> distributed event bus, module extraction (retry/, idempotency/).
 
 ---
 
