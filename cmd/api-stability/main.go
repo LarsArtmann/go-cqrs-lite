@@ -25,7 +25,7 @@ func main() {
 		"retry",
 		// Layer 1
 		"event",
-		"event/eventtest",
+		"event/v4/eventtest",
 		"command",
 		"query",
 		"query/querytest",
@@ -43,8 +43,9 @@ func main() {
 		"projectionhost",
 		"scheduling",
 		"metadata",
+		"metaengine",
 		// Layer 4
-		"memory",
+		"storage/memory",
 		"signing",
 		"encryption",
 		"otel",
@@ -52,13 +53,10 @@ func main() {
 		"middleware",
 		"storage",
 		"storage/sql",
-		"storage/memory",
 		"storage/pebble",
 		"storage/turso",
 		"listing",
 		"watermill",
-		"pebble",
-		"turso",
 		"prometheus",
 		"transport/http",
 		"transport/grpc",
@@ -69,10 +67,13 @@ func main() {
 		"stack/pebble",
 		"stack/postgres",
 		"stack/turso",
+		"stack/bench",
 		// Tooling + catalog
 		"testutil",
 		"catalog",
+		"benchkit",
 		"cmd/cqrs-lint",
+		"cmd/cqrs-bench",
 	}
 
 	projectRoot := filepath.Join(".", "..", "..")
