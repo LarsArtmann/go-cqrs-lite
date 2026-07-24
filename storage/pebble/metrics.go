@@ -50,3 +50,10 @@ func (b *Backend) Metrics() PebbleMetrics {
 		CompactionDurationNanos: int64(m.Compact.Duration),
 	}
 }
+
+// DiskUsage returns the total disk space used by the Pebble database in bytes,
+// including SST files and WAL. More precise than a filesystem walk because it
+// excludes unreferenced obsolete files.
+func (b *Backend) DiskUsage() uint64 {
+	return b.database.DiskUsage()
+}

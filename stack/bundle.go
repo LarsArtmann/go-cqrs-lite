@@ -86,6 +86,10 @@ type Bundle struct {
 	// EventCodec(). Set via WithEventCodec. nil means "use event.DefaultCodec".
 	eventCodec codec.Codec
 
+	// diskSizeFn reports on-disk database size when registered by disk-backed
+	// presets (Pebble). nil means "not available"; DiskSize() returns -1.
+	diskSizeFn func() int64
+
 	closers []io.Closer
 
 	// shutdownDeps declares ordering constraints for Close(). Each edge says
