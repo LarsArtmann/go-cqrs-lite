@@ -62,11 +62,19 @@ cqrs-bench run --backend pebble --dir /tmp/bench --profile small --format json
 # CBOR codec
 cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor
 
+# Mixed payload sizes (models real event-size distributions)
+cqrs-bench run --backend pebble --profile small --payload-sizes 64,256,1024,4096
+
+# Multi-sample averaging (median of N runs, reduces 20% variance)
+cqrs-bench run --backend memory --profile small --repeat 5
+
 # Version
 cqrs-bench --version
 ```
 
 Build: `GOEXPERIMENT=jsonv2 go build -tags "goexperiment.jsonv2" ./cmd/cqrs-bench/...`
+
+See [ADR-0060](../docs/adr/0060-benchkit-design-decisions.md) for design rationale.
 
 ## Named profiles
 
@@ -90,7 +98,7 @@ Build: `GOEXPERIMENT=jsonv2 go build -tags "goexperiment.jsonv2" ./cmd/cqrs-benc
 - **Throughput**: events/sec sustained during write phase
 - **Memory**: peak heap allocation via runtime.MemStats
 - **Storage**: on-disk database size (when DiskPath configured)
-- **CPU**: process user+sys time (Linux `/proc/self/stat`)
+- **CPU**: process user+sys time via `syscall.Getrusage` (Unix), stub on non-Unix
 
 ## Design
 
@@ -140,3 +148,42 @@ All benchkit errors use the [go-error-family](https://github.com/larsartmann/go-
 5-family taxonomy: `ErrInvalidConfig` (Rejection), `ErrFactoryFailed` /
 `ErrNilBundle` / `ErrIncompleteBundle` (Infrastructure), `ErrWarmupFailed`
 (Transient). Phase errors are wrapped with `errorfamily.WrapTransient`.
+
+### DiskSizer interface
+
+Backends that report their own disk size implement `DiskSizer`:
+
+```go
+type DiskSizer interface {
+    DiskSize() int64 // -1 = not available
+}
+```
+
+The `durabilityPhase` checks `DiskSize() >= 0` before using the value. When not
+available (-1), it falls back to walking `Config.DiskPath`. The Pebble preset
+wires `backend.DiskUsage()` (computed from Metrics level sizes + WAL) via
+`stack.WithDiskSize()` at construction time.
+
+### CPU measurement
+
+CPU time is measured via `syscall.Getrusage` (Unix) at benchmark start and end.
+This provides microsecond resolution, replacing the previous `/proc/self/stat`
+parsing which had 10ms tick resolution and returned `n/a` for fast benchmarks.
+On non-Unix platforms (Windows, wasm), a stub returns 0.
+
+### Multi-sample averaging (`--repeat N`)
+
+Single-run throughput has ~20-25% variance on the memory backend (GC and OS
+thread scheduling). Set `Config.Repeat > 1` to run N iterations and report the
+median result with min/max throughput spread. The median result carries full
+metrics; `Result.RepeatCount`, `Result.RepeatMin`, `Result.RepeatMax`, and
+`Result.RepeatSamples` provide the distribution.
+
+### Mixed payload sizes
+
+Models real workloads where events vary from small status updates to large
+events with embedded collections. `NewMixedGenerator(seed, sizes, codec)` picks
+a size uniformly at random per event. CLI: `--payload-sizes 64,256,1024,4096`.
+The result reports the distribution mean in `PayloadBytes` and the full
+distribution in `PayloadSizes`. See
+[scaling report](../docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).

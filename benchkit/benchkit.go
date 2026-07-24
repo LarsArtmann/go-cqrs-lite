@@ -3,6 +3,7 @@ package benchkit
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
@@ -80,6 +81,13 @@ type Config struct {
 
 	// SkipProjections skips the projection phase.
 	SkipProjections bool
+
+	// Repeat runs the benchmark N times and reports the median result with
+	// min/max throughput spread. Zero or 1 means single run (default).
+	// Useful because single-run throughput has ~20-25% variance on the
+	// memory backend. When Repeat > 1, Result.RepeatCount/Min/Max/Samples
+	// are populated on the median result.
+	Repeat int
 }
 
 // validate checks that the Config has required fields set.
@@ -157,6 +165,13 @@ type Result struct {
 	// Codec used for event payloads
 	Codec string `json:"codec"`
 
+	// Repeat info (populated only when Config.Repeat > 1).
+	// The Result itself holds the median run's full metrics.
+	RepeatCount   int       `json:"repeatCount,omitempty"`
+	RepeatMin     float64   `json:"repeatMin,omitempty"`
+	RepeatMax     float64   `json:"repeatMax,omitempty"`
+	RepeatSamples []float64 `json:"repeatSamples,omitempty"`
+
 	// Error captures a non-fatal error that prevented a phase from completing
 	// (e.g. backend doesn't support SeekableJournal). The run still succeeds;
 	// the affected metrics are zero-valued.
@@ -196,12 +211,55 @@ type DiskStats struct {
 // read-model, projection, durability) run against that same Bundle. The Bundle
 // is closed automatically after the run. When Warmup > 0, the factory is called
 // a second time for a throwaway warmup Bundle that never pollutes measurement.
+//
+// When Config.Repeat > 1, the benchmark runs N times (each with a fresh factory
+// call). The returned Result holds the median run's full metrics, annotated
+// with min/max throughput across all N runs.
 func Run(ctx context.Context, config Config, factory Factory) (*Result, error) {
 	if err := config.validate(); err != nil {
 		return nil, err
 	}
 
+	if config.Repeat > 1 {
+		return runRepeated(ctx, config, factory)
+	}
+
 	return newRunner(config, factory).run(ctx)
+}
+
+// runRepeated executes the benchmark N times, returning the median result
+// annotated with min/max throughput spread.
+func runRepeated(ctx context.Context, config Config, factory Factory) (*Result, error) {
+	single := config
+	single.Repeat = 0
+
+	results := make([]*Result, 0, config.Repeat)
+
+	for i := range config.Repeat {
+		r, err := newRunner(single, factory).run(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("repeat run %d/%d: %w", i+1, config.Repeat, err)
+		}
+
+		results = append(results, r)
+	}
+
+	samples := make([]float64, len(results))
+	for i, r := range results {
+		samples[i] = r.WriteThroughput
+	}
+
+	sort.Float64s(samples)
+
+	medianIdx := len(results) / 2
+	median := results[medianIdx]
+
+	median.RepeatCount = config.Repeat
+	median.RepeatMin = samples[0]
+	median.RepeatMax = samples[len(samples)-1]
+	median.RepeatSamples = samples
+
+	return median, nil
 }
 
 // Compare executes the same benchmark against multiple backends and returns

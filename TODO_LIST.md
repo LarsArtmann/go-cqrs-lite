@@ -92,18 +92,27 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 - [x] **Fix `--version` drift** — Now uses `runtime/debug.ReadBuildInfo()` instead of hardcoded string.
 - [x] **Mixed payload-size support** — `Generator` now holds a size distribution; `NewMixedGenerator(seed, sizes, codec)` picks a size uniformly at random per event. CLI flag `--payload-sizes 64,256,4096` overrides `--payload-size`. Result reports the distribution mean + full distribution. See [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
 
+**Done this session:**
+
+- [x] 🔥 **`--repeat N` flag** — Added `Config.Repeat` + `runRepeated()` logic: runs N iterations, reports median result with min/max throughput spread. CLI `--repeat N` available on `run` and `compare`.
+- [x] **Implement `DiskSize()` on `pebble.Bundle`** — 3-layer DiskSizer: `storage/pebble.Backend.DiskUsage()` (computed from Metrics), `stack.WithDiskSize()` option, wired in `stack/pebble` preset.
+- [x] **CPU measurement returns n/a** — Replaced `/proc/self/stat` (10ms resolution) with `syscall.Getrusage` (microsecond resolution). Split into `cpu_unix.go` / `cpu_other.go`.
+- [x] **Projection benchmark** — Added polling loop (10ms ticker, 30s deadline) in `projectionPhase`. Projection events now reliably > 0.
+- [x] **Missing edge-case tests** — 10 tests added: ConcurrencyOverride, SQLite ReadFromTime, Pebble DiskSizer, CLI unknown profile/backend, codec CBOR, warmup, output file, compare disk non-zero, version.
+- [x] **Run the benchmark and inspect output** — Executed across 3 backends, 7 profiles, CBOR vs JSON. 6 findings documented.
+- [x] **SQLite concurrent-write fix** — Added `storage.ConfigureSQLitePool(sqlDB)` to `stack/sqlite/preset.go` (was missing, caused SQLITE_BUSY at 4+ goroutines).
+- [x] **Compare-mode disk = 0B** — `compareCmd` now collects per-backend diskPaths instead of discarding them.
+- [x] **Fix `--version` drift** — Now uses `runtime/debug.ReadBuildInfo()` instead of hardcoded string.
+- [x] **Mixed payload-size support** — `NewMixedGenerator(seed, sizes, codec)`. CLI `--payload-sizes 64,256,4096`.
+
 **Open:**
 
-- [ ] 🔥 **Run-to-run variance is ~20-25% (memory backend)** — Single-run throughput numbers are unreliable; uniform-1024 measured 92K-190K/s across runs. Cold first-runs can be 2x outliers. Pebble is far more stable (mixed workload ±2%). **Need a `--repeat N` flag** that runs N iterations and reports median + min/max spread. This is the highest-impact benchkit gap — without it, all absolute numbers are suspect. See [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
-- [ ] **Implement `DiskSize()` on `pebble.Bundle`** — `DiskSizer` interface exists but zero backends implement it. Pebble backend has `Metrics().DiskUsage()` available.
-- [ ] **CPU measurement returns n/a** — Fast benchmarks (memory backend, <3ms) complete between polling intervals. Need CPU start+end measurement, not just polling.
-- [ ] **Projection benchmark** — Projection phase now runs (10K events on small profile) but only intermittently appears in output (timing race: memory projection catches up within the 10ms poll window sometimes). Stabilize the projection phase reporting.
 - [ ] **Phase 2: durability benchmark** — Crash recovery, replay-after-restart.
 - [ ] **Phase 6: production replay** — Replay real event streams for benchmarking.
 - [ ] **Phase 7: `benchtest.RunSuite`** — Preset integration for `stack/bench`.
 - [ ] **Analytical benchmark profiles** — Profiles for read-heavy analytical workloads (OLAP-style queries).
 - [ ] **Postgres benchmark tests** — `stack/postgres` tests skip without `POSTGRES_TEST_DSN`.
-- [ ] **Missing edge-case tests** — Compare failure isolation, Concurrency override, journal scan metrics, CLI codec/warmup/output flags, unknown profile/backend error paths.
+- [ ] **Projection benchmark with real kv.Store handler** — Current handler is a no-op. A kv.Store-backed counting projection would measure real projection cost.
 - [ ] **Tag `benchkit/v0.1.0`** when API stabilizes.
 
 ---

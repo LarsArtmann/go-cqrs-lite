@@ -85,7 +85,8 @@ Formats:
 Examples:
   cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev
   cqrs-bench compare --profile small --format markdown
-  cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor`)
+  cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor
+  cqrs-bench run --backend memory --profile small --repeat 5`)
 }
 
 // ── run subcommand ──
@@ -107,6 +108,7 @@ func runCmd(args []string) {
 		"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size",
 	)
 	warmup := fs.Int("warmup", 0, "Number of warmup operations")
+	repeat := fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)")
 	_ = fs.Parse(args)
 
 	profile, ok := benchkit.ProfileByName(*profileName)
@@ -126,6 +128,7 @@ func runCmd(args []string) {
 		PayloadSize: *payloadSize,
 		Codec:       codec,
 		Warmup:      *warmup,
+		Repeat:      *repeat,
 		Backend:     *backend,
 		DiskPath:    diskPath,
 	}
@@ -164,6 +167,7 @@ func compareCmd(args []string) {
 		"",
 		"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size",
 	)
+	repeat := fs.Int("repeat", 0, "Run N times per backend, report median (reduces ~20% variance)")
 	_ = fs.Parse(args)
 
 	profile, ok := benchkit.ProfileByName(*profileName)
@@ -193,6 +197,7 @@ func compareCmd(args []string) {
 		Profile:     profile,
 		PayloadSize: *payloadSize,
 		Codec:       codec,
+		Repeat:      *repeat,
 	}
 
 	if sizes, err := parsePayloadSizes(*payloadSizes); err != nil {

@@ -55,6 +55,16 @@ func PrintReport(w io.Writer, r *Result) {
 
 	fmt.Fprintf(w, "Duration: %s\n\n", roundDuration(r.Duration))
 
+	if r.RepeatCount > 1 {
+		fmt.Fprintf(
+			w,
+			"Repeat:  median of %d runs (min: %s/s, max: %s/s)\n\n",
+			r.RepeatCount,
+			formatFloat(r.RepeatMin),
+			formatFloat(r.RepeatMax),
+		)
+	}
+
 	printLatencySection(w, "Write Performance:", r.WriteLatency, r.WriteThroughput)
 	printLatencySection(w, "Read Performance:", r.LoadLatency, 0)
 
