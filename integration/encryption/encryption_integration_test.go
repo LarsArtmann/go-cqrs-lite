@@ -83,7 +83,7 @@ func TestSignAndEncryptFullFlow(t *testing.T) {
 	}
 
 	if got.StreamID() != aggID {
-		t.Fatalf("aggregate ID mismatch")
+		t.Fatalf("stream ID mismatch")
 	}
 
 	if encryption.HasEncryption(got) {

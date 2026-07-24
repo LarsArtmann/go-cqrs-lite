@@ -59,7 +59,7 @@ func TestEventPublisher_RoundTrip(t *testing.T) {
 		}
 
 		if decoded.StreamID().String() != originalEvt.StreamID().String() {
-			t.Fatalf("aggregate ID mismatch: %s vs %s",
+			t.Fatalf("stream ID mismatch: %s vs %s",
 				decoded.StreamID().String(), originalEvt.StreamID().String())
 		}
 

@@ -14,12 +14,12 @@ var (
 	// ErrStreamTypeMismatch is returned when an event's stream type doesn't match.
 	ErrStreamTypeMismatch = errorfamily.NewConflict(
 		"pebble.aggregate_type_mismatch",
-		"pebble: event aggregate type mismatch",
+		"pebble: event stream type mismatch",
 	)
 	// ErrStreamIDMismatch is returned when an event's stream ID doesn't match.
 	ErrStreamIDMismatch = errorfamily.NewConflict(
 		"pebble.aggregate_id_mismatch",
-		"pebble: event aggregate ID mismatch",
+		"pebble: event stream ID mismatch",
 	)
 	// ErrVersionMismatch is returned when an event's version doesn't match.
 	ErrVersionMismatch = errorfamily.NewConflict(

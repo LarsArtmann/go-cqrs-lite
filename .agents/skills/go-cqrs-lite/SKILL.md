@@ -19,3 +19,23 @@ Core loop: Command→Dispatcher→Handler→Decider(load→fold→decide→save�
 - [`modules.md`](references/modules.md) — all modules: imports + one-liners
 - [`advanced.md`](references/advanced.md) — tombstone, watermill, gRPC, projectionhost, scheduling, graph, SSE
 - [`faq.md`](references/faq.md) — pitfalls & common mistakes
+
+### Benchmarking
+
+`cqrs-bench` is the CLI front-end for the `benchkit` library. It runs synthetic event
+workloads (write, read, read-model, durability phases) against any stack preset and
+reports latency percentiles, throughput, heap, and disk metrics.
+
+```bash
+go build -o cqrs-bench ./cmd/cqrs-bench/
+./cqrs-bench run --backend sqlite --profile small           # single backend
+./cqrs-bench compare --profile small --format markdown      # all 3 backends side-by-side
+./cqrs-bench run --backend pebble --profile medium --codec cbor  # CBOR vs JSON
+```
+
+| Use `cqrs-bench` when...                   | Use `go test -bench` (stack/bench) when... |
+| ------------------------------------------ | ------------------------------------------ |
+| Comparing backends (memory vs sqlite vs pebble) | Micro-benchmarks inside your own test suite  |
+| Measuring latency percentiles at scale     | Measuring a single operation's ns/op       |
+| Checking codec impact (JSON vs CBOR)       | Checking allocation counts                 |
+| CI performance regression gates            | Quick local iteration during development   |

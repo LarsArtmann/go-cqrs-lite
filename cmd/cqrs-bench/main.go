@@ -181,10 +181,7 @@ func compareCmd(args []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
-	results, err := compareWithDiskPaths(ctx, config, factories, diskPaths)
-	if err != nil {
-		fatalf("compare failed: %v", err)
-	}
+	results := compareWithDiskPaths(ctx, config, factories, diskPaths)
 
 	writeComparison(*format, *output, results)
 }
@@ -199,7 +196,7 @@ func compareWithDiskPaths(
 	config benchkit.Config,
 	factories map[string]benchkit.Factory,
 	diskPaths map[string]string,
-) (map[string]*benchkit.Result, error) {
+) map[string]*benchkit.Result {
 	results := make(map[string]*benchkit.Result, len(factories))
 
 	for name, factory := range factories {
@@ -222,7 +219,7 @@ func compareWithDiskPaths(
 		results[name] = result
 	}
 
-	return results, nil
+	return results
 }
 
 func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {

@@ -66,6 +66,7 @@
 | `cmd/cqrs-gen`      | (go install)         | Code generator: typed handler registration from `//cqrs:command` / `//cqrs:query` markers.                   |
 | `cmd/doc-check`     | (go run)             | Doc verifier: scans Markdown for Go code references, checks symbols exist.                                   |
 | `cmd/api-stability` | (go install)         | API surface checker: compares exports against `docs/api_surface.txt` golden file.                            |
+| `cmd/cqrs-bench`    | (go build)           | Benchmarking CLI: synthetic event workloads against memory/sqlite/pebble. `cqrs-bench run --backend sqlite --profile small`. |
 | `transport/grpc`    | `transport/grpc/v4`  | `RegisterCommandService`, `RegisterQueryService`, `NewCommandClient`, `NewQueryClient`. gRPC transport.      |
 
 ### Reactive & Advanced Read Models (Layer 2–5)
