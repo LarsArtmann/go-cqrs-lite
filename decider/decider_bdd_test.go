@@ -170,7 +170,7 @@ var _ = Describe("Decider Repository", func() {
 	})
 
 	Describe("As a developer using the Decider pattern", func() {
-		Context("when I create a new aggregate", func() {
+		Context("when I create a new stream", func() {
 			It("should save and publish the decision events", func() {
 				err := repo.Execute(
 					ctx, aggID, "Counter",
@@ -187,7 +187,7 @@ var _ = Describe("Decider Repository", func() {
 			})
 		})
 
-		Context("when I apply multiple decisions to the same aggregate", func() {
+		Context("when I apply multiple decisions to the same stream", func() {
 			It("should apply all events into the correct state", func() {
 				createCounter(ctx, repo, aggID)
 				incrementCounter(ctx, repo, aggID)
@@ -212,9 +212,9 @@ var _ = Describe("Decider Repository", func() {
 			})
 		})
 
-		Context("when I load an aggregate that does not exist", func() {
+		Context("when I load a stream that does not exist", func() {
 			It(
-				"should give me the initial state and version 0, so I know this aggregate has no history",
+				"should give me the initial state and version 0, so I know this stream has no history",
 				func() {
 					state, version, err := repo.Load(ctx, aggID, "Counter")
 					Expect(err).ToNot(HaveOccurred())

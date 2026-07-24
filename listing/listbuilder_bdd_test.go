@@ -30,7 +30,7 @@ var _ = Describe("ListBuilder", func() {
 		cancel()
 	})
 
-	Describe("As a developer building aggregate listing queries", func() {
+	Describe("As a developer building stream listing queries", func() {
 		DescribeTable(
 			"PageSize is clamped to sensible bounds",
 			func(pageSize uint) {
@@ -48,7 +48,7 @@ var _ = Describe("ListBuilder", func() {
 		)
 
 		Context("when I list without filtering by type", func() {
-			It("should return aggregates across all types", func() {
+			It("should return streams across all types", func() {
 				seedStreamEvents(ctx, store)
 
 				page, err := listing.NewListBuilder(reader).

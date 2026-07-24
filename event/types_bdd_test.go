@@ -19,7 +19,7 @@ var _ = Describe("Version", func() {
 
 		Context("when I parse zero", func() {
 			It(
-				"should accept it as 'no events yet', letting me distinguish new aggregates",
+				"should accept it as 'no events yet', letting me distinguish new streams",
 				func() {
 					v, err := event.ParseVersion(0)
 					Expect(err).ToNot(HaveOccurred())
@@ -56,11 +56,11 @@ var _ = Describe("Version", func() {
 		})
 
 		Context("when I call IsPositive", func() {
-			It("should be true for positive versions, telling me the aggregate has events", func() {
+			It("should be true for positive versions, telling me the stream has events", func() {
 				Expect(event.Version(1).IsPositive()).To(BeTrue())
 			})
 
-			It("should be false for zero, telling me the aggregate is new", func() {
+			It("should be false for zero, telling me the stream is new", func() {
 				Expect(event.Version(0).IsPositive()).To(BeFalse())
 			})
 		})

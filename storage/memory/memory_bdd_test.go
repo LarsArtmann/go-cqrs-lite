@@ -35,9 +35,9 @@ var _ = Describe("MemoryStore", func() {
 	})
 
 	Describe("As a developer using the in-memory event store", func() {
-		Context("when I save events for a new aggregate", func() {
+		Context("when I save events for a new stream", func() {
 			It(
-				"should persist them and let me load them back for my aggregate reconstruction",
+				"should persist them and let me load them back for my stream reconstruction",
 				func() {
 					events := []event.Event{makeMemEvent("Created", aggID, 1)}
 					err := store.Save(
@@ -84,14 +84,14 @@ var _ = Describe("MemoryStore", func() {
 			)
 		})
 
-		Context("when I load a non-existent aggregate", func() {
-			It("should explain that the aggregate was not found", func() {
+		Context("when I load a non-existent stream", func() {
+			It("should explain that the stream was not found", func() {
 				_, err := store.Load(
 					ctx,
 					id.NewStreamRef(id.StreamType("TestAggregate"), aggID),
 				)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("aggregate not found"))
+				Expect(err.Error()).To(ContainSubstring("not found"))
 			})
 		})
 
@@ -282,9 +282,9 @@ var _ = Describe("MemorySnapshotStore", func() {
 		aggType = id.StreamType("Order")
 	})
 
-	Describe("As a developer speeding up aggregate loading with snapshots", func() {
+	Describe("As a developer speeding up stream loading with snapshots", func() {
 		Context("when I save a snapshot and load it back", func() {
-			It("should roundtrip my aggregate state so I can skip replaying all events", func() {
+			It("should roundtrip my stream state so I can skip replaying all events", func() {
 				snap := snapshot.Snapshot{
 					StreamID:   aggID,
 					StreamType: aggType,
@@ -300,7 +300,7 @@ var _ = Describe("MemorySnapshotStore", func() {
 			})
 		})
 
-		Context("when I save a newer snapshot for the same aggregate", func() {
+		Context("when I save a newer snapshot for the same stream", func() {
 			It("should replace the old one so I always get the latest state", func() {
 				Expect(snapStore.Save(ctx, eventtest.QuickSnapshot(
 					aggID, aggType, event.Version(3), []byte(`{"status":"old"}`),
@@ -316,7 +316,7 @@ var _ = Describe("MemorySnapshotStore", func() {
 			})
 		})
 
-		Context("when I load a snapshot for a non-existent aggregate", func() {
+		Context("when I load a snapshot for a non-existent stream", func() {
 			It("should explain that no snapshot was found so I fall back to full replay", func() {
 				_, err := snapStore.Load(ctx, id.NewStreamRef(aggType, aggID))
 				Expect(err).To(HaveOccurred())

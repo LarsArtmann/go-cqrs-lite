@@ -33,11 +33,11 @@ func TestNewEvent_Valid(t *testing.T) {
 	}
 
 	if evt.StreamID() != idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95") {
-		t.Errorf("expected aggregate ID user-123, got %s", evt.StreamID())
+		t.Errorf("expected stream ID user-123, got %s", evt.StreamID())
 	}
 
 	if evt.StreamType() != "User" {
-		t.Errorf("expected aggregate type User, got %s", evt.StreamType())
+		t.Errorf("expected stream type User, got %s", evt.StreamType())
 	}
 
 	if evt.Version() != 1 {

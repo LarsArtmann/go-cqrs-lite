@@ -162,8 +162,8 @@ var _ = Describe("Event Store via MemoryStore", func() {
 		}, expectedVersion)).To(Succeed())
 	}
 
-	Describe("As a developer persisting aggregate events", func() {
-		Context("when I save events for a new aggregate", func() {
+	Describe("As a developer persisting stream events", func() {
+		Context("when I save events for a new stream", func() {
 			It("should persist them with correct versioning", func() {
 				events := []event.Event{
 					mustNewEvent("OrderPlaced", aggID, aggType, 1),

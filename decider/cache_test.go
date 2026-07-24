@@ -174,7 +174,7 @@ func TestStateCache_Concurrent(t *testing.T) {
 	wg.Wait()
 }
 
-func TestStateCache_PerAggregateIsolation(t *testing.T) {
+func TestStateCache_PerStreamIsolation(t *testing.T) {
 	t.Parallel()
 
 	cache := decider.NewStateCache[counterState](10)

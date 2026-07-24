@@ -40,7 +40,7 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-// Save appends events to a stream stream with optimistic concurrency check.
+// Save appends events to a stream with optimistic concurrency check.
 // Returns ErrVersionConflict if the expected version does not match the current stream length.
 func (s *MemoryStore) Save(
 	_ context.Context,

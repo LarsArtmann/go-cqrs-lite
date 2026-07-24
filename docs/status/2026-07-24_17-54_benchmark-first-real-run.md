@@ -14,7 +14,7 @@
 The benchmark works. Numbers are physically plausible, scale correctly with profile size, and surface a real backend limitation (SQLite concurrent-write failure).
 
 | Backend | Dev (500 events) | Small (10K) | Medium (500K) | Stress (5M) | Large (10M) |
-|---------|------------------|-------------|---------------|-------------|-------------|
+| ------- | ---------------- | ----------- | ------------- | ----------- | ----------- |
 | memory  | 225K/s           | 197K/s      | 216K/s        | 170K/s      | (skipped)   |
 | pebble  | 64K/s            | 81K/s       | —             | —           | 90K/s       |
 | sqlite  | 16K/s            | **FAIL**    | **FAIL**      | —           | **FAIL**    |
@@ -103,14 +103,14 @@ Storage:
 
 ## 2. Scaling: Memory backend across profiles
 
-| Profile       | Events | Goroutines | Throughput   | Write P50 | Write P99 | Read P50 | Heap     |
-|---------------|--------|------------|--------------|-----------|-----------|----------|----------|
-| dev           | 500    | 1          | 225K/s       | 150ns     | 2.6µs     | 100ns    | 3.1MB    |
-| small         | 10K    | 4          | 197K/s       | 300ns     | 2.9µs     | 200ns    | 1.3MB (*)|
-| medium        | 500K   | 16         | 216K/s       | 1.6µs     | 23.1µs    | 600ns    | 441.9MB  |
-| write-heavy   | 1M     | 32         | 204K/s       | 600ns     | 4.9µs     | —        | 879.3MB  |
-| read-heavy    | 1M     | 32         | 189K/s       | 600ns     | —         | 900ns    | 951.1MB  |
-| stress        | 5M     | 64         | 170K/s       | 800ns     | 64.5µs    | —        | 4.85GB   |
+| Profile     | Events | Goroutines | Throughput | Write P50 | Write P99 | Read P50 | Heap      |
+| ----------- | ------ | ---------- | ---------- | --------- | --------- | -------- | --------- |
+| dev         | 500    | 1          | 225K/s     | 150ns     | 2.6µs     | 100ns    | 3.1MB     |
+| small       | 10K    | 4          | 197K/s     | 300ns     | 2.9µs     | 200ns    | 1.3MB (*) |
+| medium      | 500K   | 16         | 216K/s     | 1.6µs     | 23.1µs    | 600ns    | 441.9MB   |
+| write-heavy | 1M     | 32         | 204K/s     | 600ns     | 4.9µs     | —        | 879.3MB   |
+| read-heavy  | 1M     | 32         | 189K/s     | 600ns     | —         | 900ns    | 951.1MB   |
+| stress      | 5M     | 64         | 170K/s     | 800ns     | 64.5µs    | —        | 4.85GB    |
 
 (*) Small profile heap is lower than dev because GC ran between the two.
 
@@ -119,7 +119,7 @@ Storage:
 ### ReadRatio verification
 
 | Profile     | ReadRatio | Read passes | Expected reads | Actual reads |
-|-------------|-----------|-------------|----------------|--------------|
+| ----------- | --------- | ----------- | -------------- | ------------ |
 | dev         | 0.2       | 2           | 200            | 200          |
 | write-heavy | 0.1       | 1           | 10,000         | 10,000       |
 | read-heavy  | 0.8       | 8           | 80,000         | 80,000       |
@@ -154,19 +154,19 @@ Resources:
 
 ### Pebble, small (10K events)
 
-| Codec | Write P50 | Throughput | Disk      | EventBytes |
-|-------|-----------|------------|-----------|------------|
-| JSON  | 11.2µs    | 81.0K/s    | 11,376KB  | 2,500KB    |
-| CBOR  | 10.6µs    | 100.5K/s   | 11,117KB  | 2,500KB    |
+| Codec | Write P50 | Throughput | Disk     | EventBytes |
+| ----- | --------- | ---------- | -------- | ---------- |
+| JSON  | 11.2µs    | 81.0K/s    | 11,376KB | 2,500KB    |
+| CBOR  | 10.6µs    | 100.5K/s   | 11,117KB | 2,500KB    |
 
 **CBOR: 24% faster, 2.3% smaller on disk.**
 
 ### Memory, medium (500K events)
 
-| Codec | Write P50 | Write P99 | Throughput | Heap    |
-|-------|-----------|-----------|------------|---------|
-| JSON  | 1.5µs     | 25.3µs    | 221.0K/s   | 437MB   |
-| CBOR  | 1.6µs     | 28.8µs    | 296.3K/s   | 464MB   |
+| Codec | Write P50 | Write P99 | Throughput | Heap  |
+| ----- | --------- | --------- | ---------- | ----- |
+| JSON  | 1.5µs     | 25.3µs    | 221.0K/s   | 437MB |
+| CBOR  | 1.6µs     | 28.8µs    | 296.3K/s   | 464MB |
 
 **CBOR: 34% faster on memory backend.** This is surprisingly large — likely because CBOR encode/decode avoids string key parsing overhead.
 

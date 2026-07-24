@@ -22,7 +22,7 @@ func TestBuilder_Build(t *testing.T) {
 	}
 
 	if evt.StreamID() != aggID {
-		t.Errorf("expected aggregate ID %s, got %s", aggID, evt.StreamID())
+		t.Errorf("expected stream ID %s, got %s", aggID, evt.StreamID())
 	}
 
 	if evt.StreamType() != "TestAggregate" {

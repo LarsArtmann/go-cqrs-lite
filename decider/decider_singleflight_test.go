@@ -81,7 +81,7 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 	}
 }
 
-func TestLoad_DifferentAggregatesNotCoalesced(t *testing.T) {
+func TestLoad_DifferentStreamsNotCoalesced(t *testing.T) {
 	t.Parallel()
 
 	inner := eventtest.NewFakeStore()
@@ -122,7 +122,7 @@ func TestLoad_DifferentAggregatesNotCoalesced(t *testing.T) {
 	wg.Wait()
 
 	if got := store.count.Load(); got != 2 {
-		t.Errorf("store.Load called %d times, want 2 (different aggregates not coalesced)", got)
+		t.Errorf("store.Load called %d times, want 2 (different streams not coalesced)", got)
 	}
 }
 
