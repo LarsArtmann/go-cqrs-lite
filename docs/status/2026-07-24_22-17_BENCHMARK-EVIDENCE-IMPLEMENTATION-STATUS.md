@@ -105,12 +105,14 @@ The user said "GET SHIT DONE! THE WHOLE TODO LIST!" — demanding full execution
 ## f) Up to 50 Things to Get Done Next
 
 ### Immediate fixes (this session's mess)
+
 1. **Push the 9 commits to origin/master** — The user asked for this
 2. **Fix FEATURES.md test count: 97 → 95** — Verify with `go test -v | grep -c '=== RUN'`
 3. **Consider squashing the 9 commits into fewer logical commits** — 8 have Unknown Author and boilerplate messages
 4. **Update TODO_LIST.md** with benchmark implementation tasks
 
 ### Tier 2 — Trustworthy comparative evidence
+
 5. M05: Add GOMAXPROCS scaling matrix (1/2/4/8/16/32)
 6. M06: Add worker-count scaling matrix (1/2/4/8/16)
 7. M07: Add batch-size and stream-length matrices
@@ -120,6 +122,7 @@ The user said "GET SHIT DONE! THE WHOLE TODO LIST!" — demanding full execution
 11. M12: Emit benchstat-compatible artifacts
 
 ### Tier 3 — Representative product coverage
+
 12. M13: Add complete command write-path phase (dispatch→middleware→decider→save→publish)
 13. M14: Add live publish→projection→query end-to-end journey
 14. M15: Add query dispatch benchmark (typed query→typed result)
@@ -128,6 +131,7 @@ The user said "GET SHIT DONE! THE WHOLE TODO LIST!" — demanding full execution
 17. M18: Add recovery benchmark (close/reopen→streams available→projections caught up)
 
 ### Tier 4 — Operational completeness
+
 18. M19: Add soak test mode (≥15 min steady mixed load)
 19. M20: Add CPU/heap/mutex/block/trace profiling hooks
 20. M21: Add optional Postgres benchmark
@@ -136,6 +140,7 @@ The user said "GET SHIT DONE! THE WHOLE TODO LIST!" — demanding full execution
 23. M24: Define regression policy (baseline diff, thresholds)
 
 ### CI and operations
+
 24. Add quick-CI benchmark job (Memory + SQLite, creation + raw sink + command, 3 samples)
 25. Add nightly developer-evidence benchmark job
 26. Add release-evidence benchmark job (all backends + Postgres)
@@ -143,6 +148,7 @@ The user said "GET SHIT DONE! THE WHOLE TODO LIST!" — demanding full execution
 28. Investigate the dependabot high-severity alert (security/dependabot/10)
 
 ### Documentation
+
 29. Write benchmark interpretation guide (docs/benchmark-interpretation.md)
 30. Add benchmark index to docs/
 31. Update README with honest performance claims
@@ -150,6 +156,7 @@ The user said "GET SHIT DONE! THE WHOLE TODO LIST!" — demanding full execution
 33. Add benchmark methodology to CONTRIBUTING.md
 
 ### Code quality
+
 34. Fix the 2 pre-existing ireturn lint warnings in phases.go
 35. Add a contract test for rawSinkPhase isolation (verify TotalEvents unaffected)
 36. Add a test for rawSinkPhase context cancellation behavior
@@ -158,17 +165,20 @@ The user said "GET SHIT DONE! THE WHOLE TODO LIST!" — demanding full execution
 39. Add `Result.Environment` to JSON output verification
 
 ### Release process
+
 40. Add benchkit result schema to API stability checking
 41. Tag benchkit/v0.1.0 after M01–M18 + schema compat
 42. Add benchmark evidence to release checklist
 
 ### Plan follow-through
+
 43. Run the full benchmark matrix from the HTML plan and record results
 44. Compare raw sink vs generated throughput across all 3 backends
 45. Verify the median fix produces stable results across 10+ samples
 46. Profile the rawSinkPhase to ensure event pre-building doesn't dominate memory
 
 ### Cleanup
+
 47. Run `git gc` to clean up dangling commits
 48. Remove the `.d2`/`.svg` files if the inline SVG is canonical
 49. Add a pre-commit check for HTML report internal consistency

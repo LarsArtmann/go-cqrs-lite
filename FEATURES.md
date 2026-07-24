@@ -241,37 +241,37 @@ Factory-driven benchmarking suite for measuring CQRS performance across
 backends, deployment sizes, and workload profiles. Mirrors the contracttest
 pattern: same workload, any backend, structured metrics report.
 
-| Feature              | Detail                                                                                      | Status |
-| -------------------- | ------------------------------------------------------------------------------------------- | ------ |
-| Core types           | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`, `Environment`  | 🧪     |
-| LatencyCollector     | Sorted-slice + reservoir sampling (10K cap), thread-safe                                    | 🧪     |
-| Resource sampling    | Peak heap via 100ms polling goroutine, baseline/after deltas                                | 🧪     |
-| Synthetic generator  | Seeded PCG, deterministic, configurable payload size, codec-aware padding                   | 🧪     |
-| Mixed payload sizes  | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing                   | 🧪     |
-| 7 named profiles     | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                                    | 🧪     |
-| 9-phase runner       | setup → warmup → write → read → readmodel → projection → durability → rawsink → teardown    | 🧪     |
-| Raw sink phase       | Pre-built events timed against `EventSink.Save` only — isolates pure backend write capacity | 🧪     |
-| Environment metadata | `GoVersion`, `NumCPU`, `GOMAXPROCS`, `GOOS`, `GOARCH` recorded in every `Result`            | 🧪     |
-| Schema versioning    | `Result.SchemaVersion` for JSON schema stability tracking                                   | 🧪     |
-| Median fix           | `runRepeated` sorts results by throughput before picking median (was insertion-order bug)   | 🧪     |
-| Concurrent workers   | Channel-based, cancel-on-error, WaitGroup                                                   | 🧪     |
-| `Run()` API          | Single-backend benchmark, returns `*Result`                                                 | 🧪     |
-| `Compare()` API      | Multi-backend comparison, handles factory failures gracefully                               | 🧪     |
-| DiskSizer            | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset                | 🧪     |
-| CPU measurement      | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution                       | 🧪     |
-| Projection phase     | Polls until all events processed, reports lag + events                                      | 🧪     |
-| Reports              | Text, JSON (v2), Markdown, benchstat, manifest — latency percentiles, throughput, memory, disk, env | 🧪     |
-| Scaling sweeps       | `WorkerSweep`, `BatchSizeSweep`, `StreamLengthSweep`, `GOMAXPROCSSweep` — systematic parameter exploration | 🧪     |
-| benchstat output     | `WriteBenchstat` — benchstat-compatible lines for statistical comparison                     | 🧪     |
-| Suite manifest       | `WriteManifest` — config + environment + result as JSON for reproducibility                  | 🧪     |
-| JSON schema check    | `ExpectedJSONFields` + `VerifyJSONFields` — guards against silent schema changes              | 🧪     |
-| ReadRatio            | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                           | 🧪     |
-| Durability phase     | `Config.Recovery` — close bundle, reopen via factory, reload streams (`RecoveryTime`, `RecoveredEvents`) | 🧪     |
-| Replay phase         | `Config.ReplayOnly` — skip writes, discover streams from journal, benchmark reads + projections | 🧪     |
-| `benchtest.RunSuite` | `RunSuite(b, config, factory)` wraps benchkit into Go `testing.B` (`b.ReportMetric`); wired into `stack/bench` | 🧪     |
-| Analytical profile   | `ProfileAnalytical` (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans`    | 🧪     |
-| Postgres backend     | `postgres` backend in `cqrs-bench`; benchkit tests skip without `POSTGRES_TEST_DSN`        | 🧪     |
-| kv projection handler| Projection phase exercises a real `kv.Store` (Get+Set per event); atomic counter fallback | 🧪     |
+| Feature               | Detail                                                                                                         | Status |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- | ------ |
+| Core types            | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`, `Environment`                     | 🧪     |
+| LatencyCollector      | Sorted-slice + reservoir sampling (10K cap), thread-safe                                                       | 🧪     |
+| Resource sampling     | Peak heap via 100ms polling goroutine, baseline/after deltas                                                   | 🧪     |
+| Synthetic generator   | Seeded PCG, deterministic, configurable payload size, codec-aware padding                                      | 🧪     |
+| Mixed payload sizes   | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing                                      | 🧪     |
+| 7 named profiles      | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                                                       | 🧪     |
+| 9-phase runner        | setup → warmup → write → read → readmodel → projection → durability → rawsink → teardown                       | 🧪     |
+| Raw sink phase        | Pre-built events timed against `EventSink.Save` only — isolates pure backend write capacity                    | 🧪     |
+| Environment metadata  | `GoVersion`, `NumCPU`, `GOMAXPROCS`, `GOOS`, `GOARCH` recorded in every `Result`                               | 🧪     |
+| Schema versioning     | `Result.SchemaVersion` for JSON schema stability tracking                                                      | 🧪     |
+| Median fix            | `runRepeated` sorts results by throughput before picking median (was insertion-order bug)                      | 🧪     |
+| Concurrent workers    | Channel-based, cancel-on-error, WaitGroup                                                                      | 🧪     |
+| `Run()` API           | Single-backend benchmark, returns `*Result`                                                                    | 🧪     |
+| `Compare()` API       | Multi-backend comparison, handles factory failures gracefully                                                  | 🧪     |
+| DiskSizer             | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset                                   | 🧪     |
+| CPU measurement       | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution                                          | 🧪     |
+| Projection phase      | Polls until all events processed, reports lag + events                                                         | 🧪     |
+| Reports               | Text, JSON (v2), Markdown, benchstat, manifest — latency percentiles, throughput, memory, disk, env            | 🧪     |
+| Scaling sweeps        | `WorkerSweep`, `BatchSizeSweep`, `StreamLengthSweep`, `GOMAXPROCSSweep` — systematic parameter exploration     | 🧪     |
+| benchstat output      | `WriteBenchstat` — benchstat-compatible lines for statistical comparison                                       | 🧪     |
+| Suite manifest        | `WriteManifest` — config + environment + result as JSON for reproducibility                                    | 🧪     |
+| JSON schema check     | `ExpectedJSONFields` + `VerifyJSONFields` — guards against silent schema changes                               | 🧪     |
+| ReadRatio             | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                                              | 🧪     |
+| Durability phase      | `Config.Recovery` — close bundle, reopen via factory, reload streams (`RecoveryTime`, `RecoveredEvents`)       | 🧪     |
+| Replay phase          | `Config.ReplayOnly` — skip writes, discover streams from journal, benchmark reads + projections                | 🧪     |
+| `benchtest.RunSuite`  | `RunSuite(b, config, factory)` wraps benchkit into Go `testing.B` (`b.ReportMetric`); wired into `stack/bench` | 🧪     |
+| Analytical profile    | `ProfileAnalytical` (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans`                        | 🧪     |
+| Postgres backend      | `postgres` backend in `cqrs-bench`; benchkit tests skip without `POSTGRES_TEST_DSN`                            | 🧪     |
+| kv projection handler | Projection phase exercises a real `kv.Store` (Get+Set per event); atomic counter fallback                      | 🧪     |
 
 **Coverage:** 88 benchkit + 12 CLI test functions (`-race`). Includes raw sink phase,
 scaling sweeps, benchstat output, suite manifest, schema verification, environment
@@ -289,9 +289,9 @@ and [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.m
 | --------- | -------------------------------------------------------------------------- | ------ |
 | `run`     | Benchmark a single backend with a named workload profile                   | 🔧     |
 | `compare` | Compare multiple backends side-by-side                                     | 🔧     |
-| `sweep`   | Scaling sweep: vary workers, batch size, stream length, or GOMAXPROCS     | 🔧     |
+| `sweep`   | Scaling sweep: vary workers, batch size, stream length, or GOMAXPROCS      | 🔧     |
 | Profiles  | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}`     | 🔧     |
-| Output    | `--format {text\|json\|markdown\|benchstat\|manifest}`                    | 🔧     |
+| Output    | `--format {text\|json\|markdown\|benchstat\|manifest}`                     | 🔧     |
 | Codec     | `--codec {json\|cbor}`                                                     | 🔧     |
 | Payload   | `--payload-size N` or `--payload-sizes 64,256,4096` (mixed)                | 🔧     |
 | Warmup    | `--warmup N`                                                               | 🔧     |

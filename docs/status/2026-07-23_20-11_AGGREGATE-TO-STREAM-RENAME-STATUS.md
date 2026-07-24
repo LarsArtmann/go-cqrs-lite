@@ -24,7 +24,7 @@ The codebase **compiles, tests pass (79 packages, 0 failures), lint is clean (0 
 > error-variable renames are DONE. `ErrStreamTypeMismatch`/`ErrStreamIDMismatch`
 > exist in `storage/sql/errors.go` and `storage/pebble/errors.go` with deprecated
 > `ErrAggregate*` aliases preserved (`var ErrAggregateTypeMismatch =
-> ErrStreamTypeMismatch`). The comment cleanup (224 test files + ~70 production
+ErrStreamTypeMismatch`). The comment cleanup (224 test files + ~70 production
 > files) and AGENTS.md/SKILL.md migration also completed (Sessions 3–4). This
 > rename is fully resolved — see CHANGELOG.md `[Unreleased]`. The "Rename
 > Follow-ups" TODO section was removed (all items done).

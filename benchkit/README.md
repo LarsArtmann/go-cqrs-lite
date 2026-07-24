@@ -87,16 +87,16 @@ See [ADR-0060](../docs/adr/0060-benchkit-design-decisions.md) for design rationa
 
 ## Named profiles
 
-| Profile      |   Streams | Events/Stream | Total | Concurrent |
-| ------------ | ---------: | ---------: | ----: | ---------: |
-| `Dev`        |        100 |          5 |   500 |          1 |
-| `Small`      |      1,000 |         10 |   10K |          4 |
-| `Medium`     |     10,000 |         50 |  500K |         16 |
-| `Large`      |    100,000 |        100 |   10M |         32 |
-| `Stress`     |     10,000 |        500 |    5M |         64 |
-| `WriteHeavy` |     10,000 |        100 |    1M |         32 |
-| `ReadHeavy`  |     10,000 |        100 |    1M |         32 |
-| `Analytical` |     10,000 |         10 |  100K |         16 |
+| Profile      | Streams | Events/Stream | Total | Concurrent |
+| ------------ | ------: | ------------: | ----: | ---------: |
+| `Dev`        |     100 |             5 |   500 |          1 |
+| `Small`      |   1,000 |            10 |   10K |          4 |
+| `Medium`     |  10,000 |            50 |  500K |         16 |
+| `Large`      | 100,000 |           100 |   10M |         32 |
+| `Stress`     |  10,000 |           500 |    5M |         64 |
+| `WriteHeavy` |  10,000 |           100 |    1M |         32 |
+| `ReadHeavy`  |  10,000 |           100 |    1M |         32 |
+| `Analytical` |  10,000 |            10 |  100K |         16 |
 
 `Analytical` uses `ReadRatio=0.9` (9 read passes) and `JournalScans=5`
 (repeated full-journal scans) to model OLAP-style dashboard/aggregation workloads.

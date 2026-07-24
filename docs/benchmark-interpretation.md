@@ -133,16 +133,16 @@ cd stack/bench && go test -bench=BenchmarkCommandPath_Memory -benchmem
 cd stack/bench && go test -bench=BenchmarkContention -benchmem
 ```
 
-| Benchmark | What It Measures |
-|-----------|-----------------|
-| `BenchmarkBundle_EventSave` | Raw EventSink.Save (same as BenchmarkDirect) |
-| `BenchmarkBundle_EventLoad` | EventSource.Load per stream |
-| `BenchmarkBundle_ReadModelGet` | kv.Store.Get via Bundle.ReadModels |
-| `BenchmarkBundle_ReadModelSet` | kv.Store.Set via Bundle.ReadModels |
-| `BenchmarkCommandPath_Memory` | Full decider.Execute pipeline (decide → save → publish) |
-| `BenchmarkCommandPath_Concurrent` | 8-worker concurrent command throughput |
-| `BenchmarkContention_SameStream` | Same-stream sequential write throughput |
-| `BenchmarkContention_SameStream_Concurrent` | Same-stream write contention (1/2/4/8 workers) |
+| Benchmark                                   | What It Measures                                        |
+| ------------------------------------------- | ------------------------------------------------------- |
+| `BenchmarkBundle_EventSave`                 | Raw EventSink.Save (same as BenchmarkDirect)            |
+| `BenchmarkBundle_EventLoad`                 | EventSource.Load per stream                             |
+| `BenchmarkBundle_ReadModelGet`              | kv.Store.Get via Bundle.ReadModels                      |
+| `BenchmarkBundle_ReadModelSet`              | kv.Store.Set via Bundle.ReadModels                      |
+| `BenchmarkCommandPath_Memory`               | Full decider.Execute pipeline (decide → save → publish) |
+| `BenchmarkCommandPath_Concurrent`           | 8-worker concurrent command throughput                  |
+| `BenchmarkContention_SameStream`            | Same-stream sequential write throughput                 |
+| `BenchmarkContention_SameStream_Concurrent` | Same-stream write contention (1/2/4/8 workers)          |
 
 ## Interpretation Tips
 
@@ -160,16 +160,16 @@ Warmup uses a separate store, so measurement data is not polluted.
 
 ### Profile Selection
 
-| Profile | Events | Use Case |
-|---------|--------|----------|
-| dev | 500 | CI smoke test |
-| small | 10K | Development feedback loop |
-| medium | 500K | Backend comparison (default) |
-| large | 10M | Pre-production capacity planning |
-| stress | 5M | Write ceiling discovery |
-| write-heavy | 1M (90% writes) | Write-path optimization |
-| read-heavy | 1M (80% reads) | Read-path optimization |
-| analytical | 100K (5x scans) | Journal scan / OLAP workload |
+| Profile     | Events          | Use Case                         |
+| ----------- | --------------- | -------------------------------- |
+| dev         | 500             | CI smoke test                    |
+| small       | 10K             | Development feedback loop        |
+| medium      | 500K            | Backend comparison (default)     |
+| large       | 10M             | Pre-production capacity planning |
+| stress      | 5M              | Write ceiling discovery          |
+| write-heavy | 1M (90% writes) | Write-path optimization          |
+| read-heavy  | 1M (80% reads)  | Read-path optimization           |
+| analytical  | 100K (5x scans) | Journal scan / OLAP workload     |
 
 ## Regression Policy
 

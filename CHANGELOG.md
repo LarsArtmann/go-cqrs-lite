@@ -21,10 +21,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   → read → readmodel → projection → durability → rawsink → teardown), concurrent
   workers, latency percentiles, resource sampling, codec-aware payload sizing,
   errorfamily error classification, SkipPhases, Config validation. 88 benchkit
-  + 12 CLI test functions (`-race`). First real benchmark run executed across
-  memory/pebble/sqlite — see
-  [benchmark results](docs/status/2026-07-24_17-54_benchmark-first-real-run.md).
-  Full feature detail in [FEATURES.md](FEATURES.md#benchmarking-toolkit-).
+  - 12 CLI test functions (`-race`). First real benchmark run executed across
+    memory/pebble/sqlite — see
+    [benchmark results](docs/status/2026-07-24_17-54_benchmark-first-real-run.md).
+    Full feature detail in [FEATURES.md](FEATURES.md).
 - **cqrs-bench CLI** (`cmd/cqrs-bench`) — benchmark any backend with named
   workload profiles. `run`, `compare`, `sweep`, and `--repeat N` subcommands.
   Uses `runtime/debug.ReadBuildInfo()` for version (was hardcoded `v4.1.0`).

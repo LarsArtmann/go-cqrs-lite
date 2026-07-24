@@ -16,32 +16,33 @@
 
 ### Consumer-facing documentation (Session 3 deferred items 7–8)
 
-| File | Changes |
-|------|---------|
-| **README.md** | Example code: `id.NewAggregateID()`→`id.NewStreamID()`, `cmd.AggregateID()`→`cmd.StreamID()`, `aggID`→`streamID`. Module table: "Pure-function aggregate"→"Pure-function event sourcing". 0 aggregate refs remaining. |
-| **FEATURES.md** | 24 stale references fixed across decider, id, snapshot, listing, otel, watermill, storage, integration sections. `AggregateID`→`StreamID`, `DeriveAggregateID`→`DeriveStreamID`, `SQLAggregateReader`→`SQLStreamReader`, `AggregateProjection`→`StreamProjection`, `AggregateAttrs`→`StreamAttrs`, `AttrAggregate*`→`AttrStream*`, all `agg*` params→`stream*`. Only `AggregateAwareStrategy` remains (intentional DDD concept). |
-| **CONTRIBUTING.md** | Module tree: "Pure-function aggregate"→"Pure-function event sourcing", "Aggregate listing"→"Stream listing". |
-| **docs/error-taxonomy.md** | Error var names: `ErrNilAggregateID`→`ErrNilStreamID`, `ErrEmptyAggregateType`→`ErrEmptyStreamType`, `ErrAggregateNotFound`→`ErrStreamNotFound`. Classification codes intentionally kept (`event.nil_aggregate_id`, etc.). |
-| **ROADMAP.md** | Rename status updated to "Complete", known issues section updated to "✅ Done (Sessions 1–4)", `aggID`→`streamID` in examples. |
-| **TODO_LIST.md** | All 5 open rename items marked `[x]` or `[RESOLVED]` with session references. YAGNI section: "aggregate"→"stream". |
-| **benchkit/README.md** | Profile table: "Aggregates"/"Events/Agg"→"Streams"/"Events/Stream". Comment: "aggregate loads"→"stream loads". |
+| File                       | Changes                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **README.md**              | Example code: `id.NewAggregateID()`→`id.NewStreamID()`, `cmd.AggregateID()`→`cmd.StreamID()`, `aggID`→`streamID`. Module table: "Pure-function aggregate"→"Pure-function event sourcing". 0 aggregate refs remaining.                                                                                                                                                                                                            |
+| **FEATURES.md**            | 24 stale references fixed across decider, id, snapshot, listing, otel, watermill, storage, integration sections. `AggregateID`→`StreamID`, `DeriveAggregateID`→`DeriveStreamID`, `SQLAggregateReader`→`SQLStreamReader`, `AggregateProjection`→`StreamProjection`, `AggregateAttrs`→`StreamAttrs`, `AttrAggregate*`→`AttrStream*`, all `agg*` params→`stream*`. Only `AggregateAwareStrategy` remains (intentional DDD concept). |
+| **CONTRIBUTING.md**        | Module tree: "Pure-function aggregate"→"Pure-function event sourcing", "Aggregate listing"→"Stream listing".                                                                                                                                                                                                                                                                                                                     |
+| **docs/error-taxonomy.md** | Error var names: `ErrNilAggregateID`→`ErrNilStreamID`, `ErrEmptyAggregateType`→`ErrEmptyStreamType`, `ErrAggregateNotFound`→`ErrStreamNotFound`. Classification codes intentionally kept (`event.nil_aggregate_id`, etc.).                                                                                                                                                                                                       |
+| **ROADMAP.md**             | Rename status updated to "Complete", known issues section updated to "✅ Done (Sessions 1–4)", `aggID`→`streamID` in examples.                                                                                                                                                                                                                                                                                                   |
+| **TODO_LIST.md**           | All 5 open rename items marked `[x]` or `[RESOLVED]` with session references. YAGNI section: "aggregate"→"stream".                                                                                                                                                                                                                                                                                                               |
+| **benchkit/README.md**     | Profile table: "Aggregates"/"Events/Agg"→"Streams"/"Events/Stream". Comment: "aggregate loads"→"stream loads".                                                                                                                                                                                                                                                                                                                   |
 
 ### Test file cleanup (Session 3 deferred — "~50+ remaining references")
 
 **224 test files** cleaned via mechanical + targeted replacement:
 
-| Category | Pattern | Example |
-|----------|---------|---------|
-| Variable names | `aggID`→`streamID`, `aggType`→`streamType`, `agg1`→`stream1` | `storage/event_store_load_query_test.go` (30 vars) |
-| Stream type labels | `"TestAggregate"`→`"TestStream"`, `"TestAgg"`→`"TestStream"` | `storage/memory/memory_bdd_test.go` (13 labels) |
-| Comments | "non-existent aggregate"→"non-existent stream", "load 100 aggregates"→"load 100 streams", "User aggregate"→"User stream" | `integration/realistic_bench_*.go`, `transport/http/sse_test_helpers_test.go` |
-| Assertion messages | "expected aggregate type"→"expected stream type", "other aggregate untouched"→"other stream untouched" | `event/builder_test.go`, `storage/sql/helpers_test.go` |
-| Function names | `TestEventStore_MultipleAggregates`→`TestEventStore_MultipleStreams`, `BenchmarkScale_DeciderExecute_ManyAggregates`→`BenchmarkScale_DeciderExecute_ManyStreams` | `storage/turso/coverage_test.go`, `integration/scale_bench_*.go` |
-| Type names | `runProjectionsAggregate`→`runProjectionsStream` | `stack/run_projections_test.go` |
+| Category           | Pattern                                                                                                                                                          | Example                                                                       |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Variable names     | `aggID`→`streamID`, `aggType`→`streamType`, `agg1`→`stream1`                                                                                                     | `storage/event_store_load_query_test.go` (30 vars)                            |
+| Stream type labels | `"TestAggregate"`→`"TestStream"`, `"TestAgg"`→`"TestStream"`                                                                                                     | `storage/memory/memory_bdd_test.go` (13 labels)                               |
+| Comments           | "non-existent aggregate"→"non-existent stream", "load 100 aggregates"→"load 100 streams", "User aggregate"→"User stream"                                         | `integration/realistic_bench_*.go`, `transport/http/sse_test_helpers_test.go` |
+| Assertion messages | "expected aggregate type"→"expected stream type", "other aggregate untouched"→"other stream untouched"                                                           | `event/builder_test.go`, `storage/sql/helpers_test.go`                        |
+| Function names     | `TestEventStore_MultipleAggregates`→`TestEventStore_MultipleStreams`, `BenchmarkScale_DeciderExecute_ManyAggregates`→`BenchmarkScale_DeciderExecute_ManyStreams` | `storage/turso/coverage_test.go`, `integration/scale_bench_*.go`              |
+| Type names         | `runProjectionsAggregate`→`runProjectionsStream`                                                                                                                 | `stack/run_projections_test.go`                                               |
 
 **Excluded (intentionally):** `id/` deprecated-alias tests, compat test files, SQL column names in query strings, JSON struct tags, OTel `cqrs.aggregate.*` string values, Watermill metadata keys, error classification codes, `AggregateAwareStrategy`, `AggregateRoot` DDD concepts.
 
 **Post-cleanup verification:**
+
 - `go build` — clean ✅
 - `go vet` — clean ✅
 - `nix run .#test` — all 56 modules pass ✅
@@ -50,10 +51,10 @@
 
 ### Historical doc annotations
 
-| File | Annotation |
-|------|-----------|
+| File                              | Annotation                                                                                                                                                                                               |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **AGGREGATE-CONCEPT-ANALYSIS.md** | Added resolution blockquote: "ADR-0058 accepted and implemented." Updated References section to point to new file locations (`id/stream_id.go`, `id/stream_type.go`). Added ADR-0058 to references list. |
-| **Rename planning doc** | Status: "In Progress" → "✅ Complete (Sessions 1–3, ADR-0058)" |
+| **Rename planning doc**           | Status: "In Progress" → "✅ Complete (Sessions 1–3, ADR-0058)"                                                                                                                                           |
 
 ---
 
@@ -63,35 +64,35 @@
 
 ~19 module README.md files still contain stale "aggregate" references (totaling ~90 hits). The canonical API names in these files are wrong — consumers reading module docs see deprecated names:
 
-| Module README | Hits | Key stale references |
-|---------------|------|---------------------|
-| `listing/README.md` | 28 | `AggregateRef`, `AggregateStatus`, `AggregateReader`, `NewInMemoryAggregateReader`, `NewSQLAggregateReader`, `NewAggregateProjection` — ALL renamed |
-| `otel/README.md` | 9 | `cqrs.aggregate.*` string values (intentional) — but doc doesn't explain this |
-| `storage/README.md` | 7 | Mixed: SQL columns (kept) + stale API names |
-| `snapshot/README.md` | 6 | `AggregateRef` in struct examples |
-| `id/README.md` | 6 | `AggregateID`, `AggregateType`, `AggregateMarker` |
-| `event/README.md` | 5 | `AggregateRef`, `evt.AggregateID()` |
-| `decider/README.md` | 5 | "aggregate" in prose + `aggID` in examples |
-| `schema/README.md` | 4 | Upcaster examples |
-| `command/README.md` | 4 | `AggregateRef`, error codes (kept) |
-| Others (10 files) | 1–2 each | Mixed stale prose + intentional refs |
+| Module README        | Hits     | Key stale references                                                                                                                                |
+| -------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `listing/README.md`  | 28       | `AggregateRef`, `AggregateStatus`, `AggregateReader`, `NewInMemoryAggregateReader`, `NewSQLAggregateReader`, `NewAggregateProjection` — ALL renamed |
+| `otel/README.md`     | 9        | `cqrs.aggregate.*` string values (intentional) — but doc doesn't explain this                                                                       |
+| `storage/README.md`  | 7        | Mixed: SQL columns (kept) + stale API names                                                                                                         |
+| `snapshot/README.md` | 6        | `AggregateRef` in struct examples                                                                                                                   |
+| `id/README.md`       | 6        | `AggregateID`, `AggregateType`, `AggregateMarker`                                                                                                   |
+| `event/README.md`    | 5        | `AggregateRef`, `evt.AggregateID()`                                                                                                                 |
+| `decider/README.md`  | 5        | "aggregate" in prose + `aggID` in examples                                                                                                          |
+| `schema/README.md`   | 4        | Upcaster examples                                                                                                                                   |
+| `command/README.md`  | 4        | `AggregateRef`, error codes (kept)                                                                                                                  |
+| Others (10 files)    | 1–2 each | Mixed stale prose + intentional refs                                                                                                                |
 
 ### docs/ non-archive markdown — **NOT TOUCHED**
 
 ~18 docs/*.md files have stale references. Many are historical (ADRs, research) but some are living docs:
 
-| File | Hits | Nature |
-|------|------|--------|
-| `docs/DOMAIN_LANGUAGE.md` | 7 | Session 3 partially updated; may have remaining stale refs |
-| `docs/getting-started.md` | 6 | **Living doc** — stale API names in tutorial code |
-| `docs/ActaFlow-vs-go-cqrs-lite-COMPARISON-REPORT.md` | 14 | Comparison doc |
-| `docs/MIGRATION_v1.md` | 7 | Migration guide |
-| `docs/INFRASTRUCTURE_RECOMMENDATIONS.md` | 6 | Infrastructure guide |
-| `docs/art-dupl-improvement-report.md` | 6 | Duplication report |
-| `docs/turso-indexing-guidance.md` | 4 | Turso guide |
-| `docs/signing-architecture.md` | 4 | Signing docs |
-| `docs/SPAN_NAMING.md` | 3 | Session 3 updated; 3 remaining may be `cqrs.aggregate.*` (kept) |
-| Others (9 files) | 1–2 each | Mixed |
+| File                                                 | Hits     | Nature                                                          |
+| ---------------------------------------------------- | -------- | --------------------------------------------------------------- |
+| `docs/DOMAIN_LANGUAGE.md`                            | 7        | Session 3 partially updated; may have remaining stale refs      |
+| `docs/getting-started.md`                            | 6        | **Living doc** — stale API names in tutorial code               |
+| `docs/ActaFlow-vs-go-cqrs-lite-COMPARISON-REPORT.md` | 14       | Comparison doc                                                  |
+| `docs/MIGRATION_v1.md`                               | 7        | Migration guide                                                 |
+| `docs/INFRASTRUCTURE_RECOMMENDATIONS.md`             | 6        | Infrastructure guide                                            |
+| `docs/art-dupl-improvement-report.md`                | 6        | Duplication report                                              |
+| `docs/turso-indexing-guidance.md`                    | 4        | Turso guide                                                     |
+| `docs/signing-architecture.md`                       | 4        | Signing docs                                                    |
+| `docs/SPAN_NAMING.md`                                | 3        | Session 3 updated; 3 remaining may be `cqrs.aggregate.*` (kept) |
+| Others (9 files)                                     | 1–2 each | Mixed                                                           |
 
 ### CHANGELOG.md — **NOT UPDATED for Session 4**
 
@@ -106,24 +107,31 @@ Added a top-level resolution annotation, but Section 6 body still says "Why It W
 ## c) NOT STARTED
 
 ### Per-module README audit + fix
+
 19 module READMEs need the same treatment as the top-level docs. `listing/README.md` is the worst (28 hits, every API name is deprecated).
 
 ### docs/getting-started.md
+
 6 stale references in tutorial code — consumers following this guide see deprecated API names.
 
 ### docs/planning/ + docs/sessions/ historical docs
+
 ~90 files with aggregate references. Mostly frozen historical records, but `SESSION_MILESTONES.md` and `SESSION_HISTORY.md` have current status info with stale type names.
 
 ### docs/research/ + docs/feedback/ + docs/quality/
+
 ~40 files. These are point-in-time research/consumer-feedback documents. Most are historical. `update-old-docs` skill would be appropriate for batch annotation.
 
 ### docs/design/
+
 5 files (`hot-state-cache.md`, `read-pressure-snapshots.md`, etc.) reference "aggregate" in design discussions that are still living docs.
 
 ### docs/modularization/
+
 4 files (`PROPOSAL.md`, `RE-MODULARIZATION-ASSESSMENT.md`, etc.) reference aggregate in module descriptions.
 
 ### Example apps
+
 `example/taskmanager/` and `example/readme-quickstart/` READMEs have 1 aggregate reference each (DDD domain vocabulary — may be intentional).
 
 ---
@@ -245,6 +253,7 @@ Added a top-level resolution annotation, but Section 6 body still says "Why It W
 ### 1. Should module READMEs use deprecated names with a note, or only canonical names?
 
 The top-level README.md and FEATURES.md now use only canonical `Stream*` names. But module READMEs (especially `listing/README.md`, `id/README.md`) still show `AggregateReader`, `NewSQLAggregateReader`, etc. Should these:
+
 - **(A)** Show ONLY canonical names (cleanest for new consumers, but hides the deprecated aliases that still compile)?
 - **(B)** Show canonical names with a "Deprecated aliases: `AggregateReader` → `StreamReader`" note (helpful for migration)?
 - **(C)** Show deprecated names with "→ use `StreamReader`" deprecation notices (most backward-compatible)?
@@ -256,6 +265,7 @@ The working tree has uncommitted changes in `benchkit/benchkit.go`, `benchkit/sw
 ### 3. Should historical ADRs (0001, 0005, 0024, etc.) be annotated or left frozen?
 
 ADRs are immutable decision records. ADR-0001 references `AggregateRef` and `core/aggregate`. ADR-0005 references `aggregate_id` in tombstone metadata. These are historically accurate at their decision time. Should I:
+
 - **(A)** Add a "Note (ADR-0058): Type names referenced here have been renamed to `Stream*`" footer?
 - **(B)** Leave them frozen as historical artifacts (they're point-in-time records)?
 - **(C)** Update inline references to canonical names (rewrites history)?
@@ -264,16 +274,16 @@ ADRs are immutable decision records. ADR-0001 references `AggregateRef` and `cor
 
 ## Summary
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Verification gates | 3 | ✅ All pass |
-| Consumer-facing docs fixed | 7 files | ✅ Done |
-| Test files cleaned | 224 files | ✅ Done |
-| Historical docs annotated | 2 files | ✅ Done |
-| Module READMEs remaining | ~19 files | ❌ Not started (P0) |
-| Living docs remaining | ~18 files | ❌ Not started (P1) |
-| AGGREGATE-CONCEPT-ANALYSIS body | 1 file | ⚠️ Half-done (P2) |
-| Historical docs to annotate | ~60+ files | ❌ Not started (P3) |
-| Test files to verify | ~20 files | ❌ Not verified (P4) |
+| Category                        | Count      | Status               |
+| ------------------------------- | ---------- | -------------------- |
+| Verification gates              | 3          | ✅ All pass          |
+| Consumer-facing docs fixed      | 7 files    | ✅ Done              |
+| Test files cleaned              | 224 files  | ✅ Done              |
+| Historical docs annotated       | 2 files    | ✅ Done              |
+| Module READMEs remaining        | ~19 files  | ❌ Not started (P0)  |
+| Living docs remaining           | ~18 files  | ❌ Not started (P1)  |
+| AGGREGATE-CONCEPT-ANALYSIS body | 1 file     | ⚠️ Half-done (P2)    |
+| Historical docs to annotate     | ~60+ files | ❌ Not started (P3)  |
+| Test files to verify            | ~20 files  | ❌ Not verified (P4) |
 
 **The rename is structurally complete.** All Go code compiles with canonical names, all tests pass, deprecated aliases work. The remaining work is **documentation debt**: module READMEs and living docs still show deprecated names to consumers.

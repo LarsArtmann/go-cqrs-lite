@@ -24,7 +24,7 @@ this list and recorded in CHANGELOG.
 > The full benchmark suite shipped unreleased — durability/recovery, production
 > replay, `benchtest.RunSuite`, analytical profile, Postgres backend, scaling
 > sweeps, benchstat, manifest, and profiling. See [CHANGELOG.md](CHANGELOG.md)
-> `[Unreleased]` and [FEATURES.md](FEATURES.md#benchmarking-toolkit-) for what
+> `[Unreleased]` and [FEATURES.md](FEATURES.md) for what
 > exists. The first real benchmark run completed 2026-07-24 across
 > memory/pebble/sqlite — see
 > [benchmark results](docs/status/2026-07-24_17-54_benchmark-first-real-run.md).

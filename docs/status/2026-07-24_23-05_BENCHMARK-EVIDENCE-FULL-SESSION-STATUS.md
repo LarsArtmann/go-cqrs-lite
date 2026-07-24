@@ -153,6 +153,7 @@ The user said "NOW GET SHIT DONE! The WHOLE TODO LIST!" — demanding full execu
 ## f) Up to 50 Things to Get Done Next
 
 ### Remaining benchmark implementations
+
 1. M14: Implement live publish→projection→query end-to-end journey benchmark
 2. M15: Implement query dispatch benchmark (typed query→typed result)
 3. M16: Implement snapshot/cache hit-rate benchmark in stack/bench
@@ -163,6 +164,7 @@ The user said "NOW GET SHIT DONE! The WHOLE TODO LIST!" — demanding full execu
 8. M23: Add schema upcast benchmark (measure upcaster overhead on load)
 
 ### CI and regression
+
 9. Add regression threshold gates to CI (fail if throughput drops >15%)
 10. Store baseline benchstat artifacts in the repo under `benchmarks/baselines/`
 11. Add benchmark comparison PR check (post benchstat diff as PR comment)
@@ -172,6 +174,7 @@ The user said "NOW GET SHIT DONE! The WHOLE TODO LIST!" — demanding full execu
 15. Modernize `b.N` to `b.Loop()` in stack/bench/readmodel_bench_test.go (2 warnings)
 
 ### Documentation
+
 16. Update TODO_LIST.md with benchmark implementation status
 17. Create `docs/benchmark-index.md` listing all benchmarks and their locations
 18. Update the Crush skill (SKILL.md + references) with benchmark guidance
@@ -182,6 +185,7 @@ The user said "NOW GET SHIT DONE! The WHOLE TODO LIST!" — demanding full execu
 23. Add ADR for the benchstat artifact format choice
 
 ### Code quality
+
 24. Add `Result.Environment` to JSON output verification test (currently only checked via round-trip)
 25. Add a contract test that verifies repeat isolation for persistent backends
 26. Add a test for GOMAXPROCSSweep that verifies original GOMAXPROCS is restored
@@ -193,6 +197,7 @@ The user said "NOW GET SHIT DONE! The WHOLE TODO LIST!" — demanding full execu
 32. Verify `WriteSweepJSON` output round-trips (marshal → unmarshal test)
 
 ### Release process
+
 33. Add benchkit result schema to `cmd/api-stability` golden file checking
 34. Tag benchkit/v0.1.0 after M14-M18 are complete
 35. Add benchmark evidence to release checklist
@@ -202,6 +207,7 @@ The user said "NOW GET SHIT DONE! The WHOLE TODO LIST!" — demanding full execu
 39. Profile the rawSinkPhase to ensure event pre-building doesn't dominate memory
 
 ### Architecture
+
 40. Consider extracting sweep results into a dedicated type hierarchy (SweepResult → ScalingMatrix)
 41. Add dimensional analysis support (2D sweeps: workers × batch-size matrix)
 42. Consider adding statistical analysis helpers (mean, stddev, confidence intervals) to benchkit
@@ -209,6 +215,7 @@ The user said "NOW GET SHIT DONE! The WHOLE TODO LIST!" — demanding full execu
 44. Consider a benchmark result comparison API (compare two Results programmatically)
 
 ### Operations
+
 45. Investigate the dependabot high-severity alert (security/dependabot/10)
 46. Run `nix run .#verify` to confirm the full verification gate passes
 47. Run `nix run .#check-layers` to verify dependency budgets aren't exceeded
