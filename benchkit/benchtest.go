@@ -39,6 +39,13 @@ func RunSuite(b *testing.B, config Config, factory Factory) {
 	b.ReportMetric(result.WriteThroughput, "events/sec")
 	b.ReportMetric(float64(result.WriteLatency.P50.Nanoseconds()), "ns/write-p50")
 	b.ReportMetric(float64(result.WriteLatency.P99.Nanoseconds()), "ns/write-p99")
+
+	if result.RawSinkThroughput > 0 {
+		b.ReportMetric(result.RawSinkThroughput, "raw_sink_events/sec")
+		b.ReportMetric(float64(result.RawSinkLatency.P50.Nanoseconds()), "ns/raw-sink-p50")
+		b.ReportMetric(float64(result.RawSinkLatency.P99.Nanoseconds()), "ns/raw-sink-p99")
+	}
+
 	b.ReportMetric(float64(result.LoadLatency.P50.Nanoseconds()), "ns/load-p50")
 	b.ReportMetric(float64(result.LoadLatency.P99.Nanoseconds()), "ns/load-p99")
 

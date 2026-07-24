@@ -247,8 +247,8 @@ func TestPrintReport(t *testing.T) {
 		t.Error("PrintReport output missing 'Benchmark:' header")
 	}
 
-	if !strings.Contains(output, "Write Performance:") {
-		t.Error("PrintReport output missing 'Write Performance:' section")
+	if !strings.Contains(output, "Write Performance") {
+		t.Error("PrintReport output missing 'Write Performance' section")
 	}
 }
 
@@ -1490,11 +1490,15 @@ func TestRun_ReplayOnly_SQLite(t *testing.T) {
 	dbPath := filepath.Join(dir, "bench.db")
 
 	// Phase 1: write events to a SQLite store.
+	// SkipRawSink because the raw sink phase writes to the same database
+	// file via a separate bundle, which would inflate the journal event
+	// count discovered during replay.
 	writeResult := mustRun(t, Config{
 		Profile:     ProfileDev,
 		PayloadSize: 64,
 		Backend:     "sqlite",
 		DiskPath:    dir,
+		SkipRawSink: true,
 	}, func() (*stack.Bundle, error) {
 		return sqlite.New(dbPath)
 	})
@@ -1562,5 +1566,115 @@ func TestRun_ReplayOnly_NoJournal(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "incomplete_bundle") {
 		t.Errorf("error should mention incomplete_bundle, got: %v", err)
+	}
+}
+
+func TestRun_RawSinkPhase(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.RawSinkThroughput <= 0 {
+		t.Error("RawSinkThroughput should be positive")
+	}
+
+	if result.RawSinkLatency.Count == 0 {
+		t.Error("RawSinkLatency.Count should be nonzero")
+	}
+
+	if result.RawSinkLatency.P50 <= 0 {
+		t.Error("RawSinkLatency.P50 should be positive")
+	}
+}
+
+func TestRun_SkipRawSink(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		SkipRawSink: true,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.RawSinkThroughput != 0 {
+		t.Error("RawSinkThroughput should be zero when SkipRawSink is true")
+	}
+
+	if result.RawSinkLatency.Count != 0 {
+		t.Error("RawSinkLatency.Count should be zero when SkipRawSink is true")
+	}
+}
+
+func TestRun_EnvironmentMetadata(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.SchemaVersion != SchemaVersion {
+		t.Errorf("SchemaVersion = %q, want %q", result.SchemaVersion, SchemaVersion)
+	}
+
+	if result.Environment.GoVersion == "" {
+		t.Error("Environment.GoVersion should be populated")
+	}
+
+	if result.Environment.NumCPU <= 0 {
+		t.Error("Environment.NumCPU should be positive")
+	}
+
+	if result.Environment.GOMAXPROCS <= 0 {
+		t.Error("Environment.GOMAXPROCS should be positive")
+	}
+
+	if result.Environment.GOOS == "" {
+		t.Error("Environment.GOOS should be populated")
+	}
+
+	if result.Environment.GOARCH == "" {
+		t.Error("Environment.GOARCH should be populated")
+	}
+
+	if result.Workers <= 0 {
+		t.Error("Workers should be positive")
+	}
+}
+
+func TestRun_RepeatedMedianSelection(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Repeat:      5,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.RepeatCount != 5 {
+		t.Errorf("RepeatCount = %d, want 5", result.RepeatCount)
+	}
+
+	if len(result.RepeatSamples) != 5 {
+		t.Errorf("RepeatSamples length = %d, want 5", len(result.RepeatSamples))
+	}
+
+	// Samples should be sorted ascending (median selection fix).
+	for i := 1; i < len(result.RepeatSamples); i++ {
+		if result.RepeatSamples[i] < result.RepeatSamples[i-1] {
+			t.Errorf("RepeatSamples not sorted: [%d]=%v < [%d]=%v",
+				i, result.RepeatSamples[i], i-1, result.RepeatSamples[i-1])
+		}
+	}
+
+	// The median result's throughput should equal the median sample.
+	medianIdx := len(result.RepeatSamples) / 2
+	expectedMedian := result.RepeatSamples[medianIdx]
+
+	if result.WriteThroughput != expectedMedian {
+		t.Errorf("WriteThroughput = %v, want median %v", result.WriteThroughput, expectedMedian)
 	}
 }

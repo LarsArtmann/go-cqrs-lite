@@ -29,6 +29,33 @@
 // The tool never imports a backend driver. Switching backends is a one-line
 // factory change, mirroring the library's deployer-first philosophy.
 //
+// # Metric boundaries
+//
+// benchkit measures distinct performance boundaries. Each metric names exactly
+// what it times so results are never misinterpreted:
+//
+//   - RawSinkLatency / RawSinkThroughput — pre-built events timed against
+//     EventSink.Save only. Event generation, payload encoding, ID creation,
+//     and metadata construction happen BEFORE timing begins. This isolates
+//     pure backend write capacity.
+//
+//   - WriteLatency / WriteThroughput — generated events timed including
+//     generation + encoding + Save. This is the practical ingest cost.
+//
+//   - LoadLatency — stream load (EventSource.Load) latency percentiles.
+//
+//   - ReadAllTime / ReadFromTime — journal scan wall-clock time.
+//
+//   - ReadModelSet / ReadModelGet — raw kv.Store Set/Get latency.
+//
+//   - ProjectionLag / ProjectionEvents — projection host catch-up metrics.
+//
+//   - RecoveryTime / RecoveredEvents — crash-recovery replay time.
+//
+// Every Result includes Environment metadata (GoVersion, NumCPU, GOMAXPROCS,
+// GOOS, GOARCH) and the actual Workers count so comparisons across machines
+// and configurations are honest.
+//
 // # Build tag requirement
 //
 // This package imports encoding/json/v2 and requires the build tag

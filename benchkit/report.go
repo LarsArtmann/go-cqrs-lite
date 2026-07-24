@@ -55,6 +55,12 @@ func PrintReport(w io.Writer, r *Result) {
 
 	fmt.Fprintf(w, "Duration: %s\n\n", roundDuration(r.Duration))
 
+	if r.Environment.GoVersion != "" {
+		fmt.Fprintf(w, "Env: %s | %s/%s | CPU=%d GOMAXPROCS=%d workers=%d\n\n",
+			r.Environment.GoVersion, r.Environment.GOOS, r.Environment.GOARCH,
+			r.Environment.NumCPU, r.Environment.GOMAXPROCS, r.Workers)
+	}
+
 	if r.RepeatCount > 1 {
 		fmt.Fprintf(
 			w,
@@ -65,7 +71,18 @@ func PrintReport(w io.Writer, r *Result) {
 		)
 	}
 
-	printLatencySection(w, "Write Performance:", r.WriteLatency, r.WriteThroughput)
+	printLatencySection(
+		w,
+		"Raw Sink (prebuilt events, Save only):",
+		r.RawSinkLatency,
+		r.RawSinkThroughput,
+	)
+	printLatencySection(
+		w,
+		"Write Performance (generated + Save):",
+		r.WriteLatency,
+		r.WriteThroughput,
+	)
 	printLatencySection(w, "Read Performance:", r.LoadLatency, 0)
 
 	if r.ReadAllTime > 0 {

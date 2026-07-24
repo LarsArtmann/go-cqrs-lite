@@ -240,45 +240,48 @@ Factory-driven benchmarking suite for measuring CQRS performance across
 backends, deployment sizes, and workload profiles. Mirrors the contracttest
 pattern: same workload, any backend, structured metrics report.
 
-| Feature             | Detail                                                                         | Status |
-| ------------------- | ------------------------------------------------------------------------------ | ------ |
-| Core types          | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`    | 🧪     |
-| LatencyCollector    | Sorted-slice + reservoir sampling (10K cap), thread-safe                       | 🧪     |
-| Resource sampling   | Peak heap via 100ms polling goroutine, baseline/after deltas                   | 🧪     |
-| Synthetic generator | Seeded PCG, deterministic, configurable payload size, codec-aware padding      | 🧪     |
-| Mixed payload sizes | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing      | 🧪     |
-| 7 named profiles    | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                       | 🧪     |
-| 8-phase runner      | setup → warmup → write → read → readmodel → projection → durability → teardown | 🧪     |
-| Concurrent workers  | Channel-based, cancel-on-error, WaitGroup                                      | 🧪     |
-| `Run()` API         | Single-backend benchmark, returns `*Result`                                    | 🧪     |
-| `Compare()` API     | Multi-backend comparison, handles factory failures gracefully                  | 🧪     |
-| DiskSizer           | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset   | 🧪     |
-| CPU measurement     | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution          | 🧪     |
-| Projection phase    | Polls until all events processed, reports lag + events                         | 🧪     |
-| Reports             | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk      | 🧪     |
-| ReadRatio           | Configurable read/write mix for WriteHeavy and ReadHeavy profiles              | 🧪     |
+| Feature              | Detail                                                                                      | Status |
+| -------------------- | ------------------------------------------------------------------------------------------- | ------ |
+| Core types           | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`, `Environment`  | 🧪     |
+| LatencyCollector     | Sorted-slice + reservoir sampling (10K cap), thread-safe                                    | 🧪     |
+| Resource sampling    | Peak heap via 100ms polling goroutine, baseline/after deltas                                | 🧪     |
+| Synthetic generator  | Seeded PCG, deterministic, configurable payload size, codec-aware padding                   | 🧪     |
+| Mixed payload sizes  | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing                   | 🧪     |
+| 7 named profiles     | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                                    | 🧪     |
+| 9-phase runner       | setup → warmup → write → read → readmodel → projection → durability → rawsink → teardown    | 🧪     |
+| Raw sink phase       | Pre-built events timed against `EventSink.Save` only — isolates pure backend write capacity | 🧪     |
+| Environment metadata | `GoVersion`, `NumCPU`, `GOMAXPROCS`, `GOOS`, `GOARCH` recorded in every `Result`            | 🧪     |
+| Schema versioning    | `Result.SchemaVersion` for JSON schema stability tracking                                   | 🧪     |
+| Median fix           | `runRepeated` sorts results by throughput before picking median (was insertion-order bug)   | 🧪     |
+| Concurrent workers   | Channel-based, cancel-on-error, WaitGroup                                                   | 🧪     |
+| `Run()` API          | Single-backend benchmark, returns `*Result`                                                 | 🧪     |
+| `Compare()` API      | Multi-backend comparison, handles factory failures gracefully                               | 🧪     |
+| DiskSizer            | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset                | 🧪     |
+| CPU measurement      | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution                       | 🧪     |
+| Projection phase     | Polls until all events processed, reports lag + events                                      | 🧪     |
+| Reports              | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk, env metadata     | 🧪     |
+| ReadRatio            | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                           | 🧪     |
 
-**Coverage:** 93 tests (81 benchkit + 12 CLI) with `-race`. Remaining gaps: Phase 2
-(durability/crash-recovery), Phase 6 (production replay), Phase 7 (`benchtest.RunSuite`).
-Run-to-run variance is ~20-25% on the memory backend (see
-[scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md)).
-`--repeat N` flag available for multi-sample median reporting.
+**Coverage:** 107 tests (95 benchkit + 12 CLI) with `-race`. Includes raw sink phase,
+environment metadata, schema versioning, and median selection tests. Run-to-run
+variance is ~20-25% on the memory backend (use `--repeat N` for median reporting).
 
 ### cqrs-bench CLI 🔧
 
 > `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench`
 
-| Feature   | Detail                                                                 | Status |
-| --------- | ---------------------------------------------------------------------- | ------ |
-| `run`     | Benchmark a single backend with a named workload profile               | 🔧     |
-| `compare` | Compare multiple backends side-by-side                                 | 🔧     |
-| Profiles  | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}` | 🔧     |
-| Output    | `--format {text\|json\|markdown}`                                      | 🔧     |
-| Codec     | `--codec {json\|cbor}`                                                 | 🔧     |
-| Payload   | `--payload-size N` or `--payload-sizes 64,256,4096` (mixed)            | 🔧     |
-| Warmup    | `--warmup N`                                                           | 🔧     |
-| Repeat    | `--repeat N` — median of N runs with min/max spread                    | 🔧     |
-| Version   | `--version` via `runtime/debug.ReadBuildInfo()`                        | 🔧     |
+| Feature   | Detail                                                                     | Status |
+| --------- | -------------------------------------------------------------------------- | ------ |
+| `run`     | Benchmark a single backend with a named workload profile                   | 🔧     |
+| `compare` | Compare multiple backends side-by-side                                     | 🔧     |
+| Profiles  | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}`     | 🔧     |
+| Output    | `--format {text\|json\|markdown}`                                          | 🔧     |
+| Codec     | `--codec {json\|cbor}`                                                     | 🔧     |
+| Payload   | `--payload-size N` or `--payload-sizes 64,256,4096` (mixed)                | 🔧     |
+| Warmup    | `--warmup N`                                                               | 🔧     |
+| Repeat    | `--repeat N` — median of N runs with min/max spread (sorted by throughput) | 🔧     |
+| Raw sink  | `--skip-raw-sink` — skip prebuilt-event Save-only phase                    | 🔧     |
+| Version   | `--version` via `runtime/debug.ReadBuildInfo()`                            | 🔧     |
 
 ---
 

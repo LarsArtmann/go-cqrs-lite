@@ -24,6 +24,21 @@ type DiskSizer interface {
 	DiskSize() int64
 }
 
+// SchemaVersion is the version of the Result JSON schema. Increment when
+// the Result struct's JSON shape changes in a backward-incompatible way.
+const SchemaVersion = "1.0.0"
+
+// Environment captures machine and runtime metadata for reproducibility.
+// Every result records the exact context it was produced in so that
+// comparisons across machines, Go versions, or CPU limits are honest.
+type Environment struct {
+	GoVersion  string `json:"goVersion"`
+	NumCPU     int    `json:"numCPU"`
+	GOMAXPROCS int    `json:"gomaxprocs"`
+	GOOS       string `json:"goos"`
+	GOARCH     string `json:"goarch"`
+}
+
 // Config defines a benchmark run.
 type Config struct {
 	// Profile controls the scale: number of streams, events per stream,
@@ -82,6 +97,13 @@ type Config struct {
 	// SkipProjections skips the projection phase.
 	SkipProjections bool
 
+	// SkipRawSink skips the raw prebuilt-event sink phase that isolates
+	// EventSink.Save throughput from event generation/encoding overhead.
+	// When false (default), the runner pre-builds all events, then times
+	// only the Save calls — producing RawSinkLatency and RawSinkThroughput
+	// that are independent of generator and codec cost.
+	SkipRawSink bool
+
 	// Recovery enables the durability recovery phase: after all other
 	// phases complete, the runner closes the bundle, reopens it via the
 	// factory (reopening at the same path), and loads all streams to
@@ -138,10 +160,17 @@ func (c Config) validate() error {
 // Result is the output of a single benchmark run against one backend.
 type Result struct {
 	// Identification
-	Backend   string        `json:"backend"`
-	Profile   string        `json:"profile"`
-	Timestamp time.Time     `json:"timestamp"`
-	Duration  time.Duration `json:"duration"`
+	Backend       string        `json:"backend"`
+	Profile       string        `json:"profile"`
+	Timestamp     time.Time     `json:"timestamp"`
+	Duration      time.Duration `json:"duration"`
+	SchemaVersion string        `json:"schemaVersion"`
+	Environment   Environment   `json:"environment"`
+
+	// Workers is the actual concurrency used (Profile.Concurrency overridden
+	// by Config.Concurrency when non-zero). Reported separately from
+	// GOMAXPROCS so consumers can distinguish goroutine count from CPU limit.
+	Workers int `json:"workers"`
 
 	// Workload
 	Streams         int `json:"aggregates"`
@@ -158,7 +187,13 @@ type Result struct {
 	// (on a separate Bundle). Zero when Warmup is disabled.
 	WarmupEvents int `json:"warmupEvents,omitempty"`
 
-	// Write metrics
+	// Raw sink metrics — prebuilt events timed against EventSink.Save only.
+	// Isolates backend write capacity from event generation and encoding
+	// overhead. Zero-valued when Config.SkipRawSink is true.
+	RawSinkLatency    LatencyStats `json:"rawSinkLatency,omitempty"` //nolint:modernize // struct omitempty
+	RawSinkThroughput float64      `json:"rawSinkThroughput,omitempty"`
+
+	// Write metrics — generated events timed including generation + encoding + Save.
 	WriteLatency    LatencyStats `json:"writeLatency"`
 	WriteThroughput float64      `json:"writeThroughput"`
 
@@ -269,15 +304,20 @@ func runRepeated(ctx context.Context, config Config, factory Factory) (*Result, 
 		results = append(results, r)
 	}
 
+	// Sort results by throughput so the median index actually corresponds to
+	// the median throughput, not insertion order. The previous code sorted a
+	// separate samples slice but picked from the unsorted results array.
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].WriteThroughput < results[j].WriteThroughput
+	})
+
+	medianIdx := len(results) / 2
+	median := results[medianIdx]
+
 	samples := make([]float64, len(results))
 	for i, r := range results {
 		samples[i] = r.WriteThroughput
 	}
-
-	sort.Float64s(samples)
-
-	medianIdx := len(results) / 2
-	median := results[medianIdx]
 
 	median.RepeatCount = config.Repeat
 	median.RepeatMin = samples[0]

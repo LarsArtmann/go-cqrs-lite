@@ -3,6 +3,7 @@ package benchkit
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 
@@ -146,6 +147,13 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 
 	r.durabilityPhase()
 
+	if !r.config.ReplayOnly && !r.config.SkipRawSink {
+		if err := r.rawSinkPhase(runCtx); err != nil {
+			return nil, errorfamily.WrapTransient(err, "benchkit.raw_sink_phase",
+				"raw sink phase")
+		}
+	}
+
 	if r.config.Recovery {
 		if err := r.recoveryPhase(ctx); err != nil {
 			return nil, errorfamily.WrapTransient(err, "benchkit.recovery_phase",
@@ -215,6 +223,15 @@ func (r *runner) setup(ctx context.Context) error {
 	r.result.Backend = r.config.Backend
 	r.result.Profile = profile.Name
 	r.result.Timestamp = time.Now()
+	r.result.SchemaVersion = SchemaVersion
+	r.result.Environment = Environment{
+		GoVersion:  runtime.Version(),
+		NumCPU:     runtime.NumCPU(),
+		GOMAXPROCS: runtime.GOMAXPROCS(0),
+		GOOS:       runtime.GOOS,
+		GOARCH:     runtime.GOARCH,
+	}
+	r.result.Workers = r.concurrency
 	r.result.Streams = profile.Streams
 	r.result.EventsPerStream = profile.EventsPerStream
 	r.result.PayloadBytes = r.gen.MeanSize()

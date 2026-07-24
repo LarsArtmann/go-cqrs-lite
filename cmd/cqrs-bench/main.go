@@ -112,6 +112,7 @@ func runCmd(args []string) {
 	)
 	warmup := fs.Int("warmup", 0, "Number of warmup operations")
 	repeat := fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)")
+	skipRawSink := fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase")
 	recovery := fs.Bool("recovery", false, "Enable crash-recovery phase (close, reopen, reload)")
 	replay := fs.Bool(
 		"replay",
@@ -140,6 +141,7 @@ func runCmd(args []string) {
 		Repeat:      *repeat,
 		Recovery:    *recovery,
 		ReplayOnly:  *replay,
+		SkipRawSink: *skipRawSink,
 		Backend:     *backend,
 		DiskPath:    diskPath,
 	}
