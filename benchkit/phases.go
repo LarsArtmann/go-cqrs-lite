@@ -3,6 +3,7 @@ package benchkit
 import (
 	"context"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -158,9 +159,16 @@ func readPassesFor(ratio float64) int {
 }
 
 func (r *runner) runJournalScans(ctx context.Context) {
+	scans := r.config.Profile.JournalScans
+	if scans < 1 {
+		scans = 1
+	}
+
 	if r.bundle.Journal != nil {
 		start := time.Now()
-		_, _ = r.bundle.Journal.ReadAll(ctx)
+		for range scans {
+			_, _ = r.bundle.Journal.ReadAll(ctx)
+		}
 		r.result.ReadAllTime = time.Since(start)
 	}
 
@@ -168,7 +176,9 @@ func (r *runner) runJournalScans(ctx context.Context) {
 		var afterID id.EventID
 
 		start := time.Now()
-		_, _ = r.bundle.SeekableJournal.ReadFrom(ctx, afterID, 1000)
+		for range scans {
+			_, _ = r.bundle.SeekableJournal.ReadFrom(ctx, afterID, 1000)
+		}
 		r.result.ReadFromTime = time.Since(start)
 	}
 }
@@ -342,7 +352,7 @@ func newKVCountingProjection(store kv.Store, _ []id.StreamID) projection.Project
 			key := []byte("bench:count:" + evt.StreamID().String())
 
 			val, err := store.Get(ctx, key)
-			if err != nil {
+			if err != nil && !errors.Is(err, kv.ErrNotFound) {
 				return fmt.Errorf("projection Get: %w", err)
 			}
 

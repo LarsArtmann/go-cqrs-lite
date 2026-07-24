@@ -72,6 +72,7 @@ Profiles:
   stress      10K streams x 500 events   (5M events, 64 goroutines)
   write-heavy 10K streams x 100 events   (1M events, 32 goroutines, 90% writes)
   read-heavy  10K streams x 100 events   (1M events, 32 goroutines, 80% reads)
+  analytical  10K streams x 10 events    (100K events, 16 goroutines, 90% reads, 5x journal scans)
 
 Codecs:
   json    JSON encoding (default)

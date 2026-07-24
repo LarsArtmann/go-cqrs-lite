@@ -21,6 +21,13 @@ type Profile struct {
 	// BatchSize is the number of events per Save() call.
 	// 1 = single-event saves. Higher values test batch write performance.
 	BatchSize int
+
+	// JournalScans controls how many times the journal scan phase runs
+	// (ReadAll + ReadFrom). Zero or 1 = a single pass (default). Higher
+	// values model analytical workloads that repeatedly scan the full
+	// journal. Only applies when the backend supports Journal or
+	// SeekableJournal.
+	JournalScans int
 }
 
 // TotalEvents returns Streams * EventsPerStream.
@@ -77,6 +84,18 @@ var (
 		Name: "read-heavy", Streams: 10_000, EventsPerStream: 100,
 		Concurrency: 32, ReadRatio: 0.8, BatchSize: 1,
 	}
+
+	// ProfileAnalytical models an OLAP-style workload: wide (many streams),
+	// shallow (few events per stream), with heavy journal scanning. The
+	// high ReadRatio (0.9 → 9 read passes) and JournalScans=5 model
+	// repeated full-table scans typical of dashboard/aggregation queries.
+	// Use this profile to compare journal scan and cross-stream read
+	// performance across backends.
+	ProfileAnalytical = Profile{
+		Name: "analytical", Streams: 10_000, EventsPerStream: 10,
+		Concurrency: 16, ReadRatio: 0.9, BatchSize: 1,
+		JournalScans: 5,
+	}
 )
 
 // ProfileByName looks up a named profile. Returns the profile and true if
@@ -97,6 +116,8 @@ func ProfileByName(name string) (Profile, bool) {
 		return ProfileWriteHeavy, true
 	case "read-heavy":
 		return ProfileReadHeavy, true
+	case "analytical":
+		return ProfileAnalytical, true
 	default:
 		return ProfileDev, false
 	}

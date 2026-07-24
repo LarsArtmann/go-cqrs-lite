@@ -1241,3 +1241,100 @@ func TestRun_DiskSizerFallback(t *testing.T) {
 			" expected 0", result.Disk.DatabaseBytes)
 	}
 }
+
+// ── Analytical profile test ──
+
+func TestProfileAnalytical(t *testing.T) {
+	t.Parallel()
+
+	profile, ok := ProfileByName("analytical")
+	if !ok {
+		t.Fatal("ProfileByName(\"analytical\") not found")
+	}
+
+	if profile.JournalScans != 5 {
+		t.Errorf("JournalScans = %d, want 5", profile.JournalScans)
+	}
+
+	if profile.ReadRatio != 0.9 {
+		t.Errorf("ReadRatio = %.1f, want 0.9", profile.ReadRatio)
+	}
+
+	// readPassesFor(0.9) = 9 passes
+	if readPassesFor(profile.ReadRatio) != 9 {
+		t.Errorf("readPassesFor(%.1f) = %d, want 9",
+			profile.ReadRatio, readPassesFor(profile.ReadRatio))
+	}
+}
+
+func TestRun_AnalyticalJournalScans(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	// Use a small custom profile with JournalScans=5 to test the scan
+	// loop without the full analytical profile's 100K events.
+	analyticalSmall := Profile{
+		Name: "analytical-small", Streams: 100, EventsPerStream: 5,
+		Concurrency: 4, ReadRatio: 0.9, BatchSize: 1,
+		JournalScans: 5,
+	}
+
+	result := mustRun(t, Config{
+		Profile:     analyticalSmall,
+		PayloadSize: 64,
+		Backend:     "sqlite",
+		DiskPath:    dir,
+	}, func() (*stack.Bundle, error) {
+		return sqlite.New(filepath.Join(dir, "bench.db"))
+	})
+
+	// SQLite supports both Journal and SeekableJournal
+	if result.ReadAllTime <= 0 {
+		t.Error("ReadAllTime should be positive (5 journal scans)")
+	}
+
+	if result.ReadFromTime <= 0 {
+		t.Error("ReadFromTime should be positive (5 journal scans)")
+	}
+
+	// Compare against a single-scan run to verify JournalScans increases time.
+	singleScan := analyticalSmall
+	singleScan.JournalScans = 1
+
+	singleResult := mustRun(t, Config{
+		Profile:     singleScan,
+		PayloadSize: 64,
+		Backend:     "sqlite",
+		DiskPath:    dir,
+	}, func() (*stack.Bundle, error) {
+		return sqlite.New(filepath.Join(dir, "dev.db"))
+	})
+
+	// 5 scans should take longer than 1 scan on the same data.
+	if result.ReadAllTime <= singleResult.ReadAllTime {
+		t.Errorf("5-scan ReadAllTime (%v) should exceed 1-scan ReadAllTime (%v)",
+			result.ReadAllTime, singleResult.ReadAllTime)
+	}
+}
+
+// ── Real kv.Store projection handler test ──
+
+func TestRun_ProjectionWithKVStore(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Backend:     "sqlite",
+		DiskPath:    dir,
+	}, func() (*stack.Bundle, error) {
+		return sqlite.New(filepath.Join(dir, "bench.db"))
+	})
+
+	if result.ProjectionEvents == 0 {
+		t.Error("ProjectionEvents is 0, expected nonzero for kv.Store-backed projection")
+	}
+}
