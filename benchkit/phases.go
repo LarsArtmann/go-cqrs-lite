@@ -420,3 +420,50 @@ func measureDirSize(path string) int64 {
 
 	return total
 }
+
+// recoveryPhase simulates crash recovery: closes the current bundle
+// (flushing all writes to disk), reopens it via the factory (reopening at
+// the same path for persistent backends), and loads all streams to measure
+// replay time. For memory backends, the reopened store is empty, so
+// RecoveredEvents will be zero — this is expected and documents that
+// memory backends have no crash recovery.
+func (r *runner) recoveryPhase(ctx context.Context) error {
+	// Close the current bundle to flush all writes.
+	_ = r.bundle.Close()
+	r.bundle = nil // prevent double-close in teardown
+
+	// Reopen via factory — for persistent backends (SQLite, Pebble),
+	// the factory reopens at the same path and all events are recovered.
+	recovered, err := r.factory()
+	if err != nil {
+		return fmt.Errorf("recovery factory: %w", err)
+	}
+
+	if recovered == nil || recovered.EventSource == nil {
+		if recovered != nil {
+			_ = recovered.Close()
+		}
+
+		return nil
+	}
+
+	defer func() { _ = recovered.Close() }()
+
+	start := time.Now()
+	totalEvents := 0
+
+	for _, ref := range r.refs {
+		events, err := recovered.EventSource.Load(ctx, ref)
+		if err != nil {
+			// Memory backend: streams don't exist after reopen — skip.
+			continue
+		}
+
+		totalEvents += len(events)
+	}
+
+	r.result.RecoveryTime = time.Since(start)
+	r.result.RecoveredEvents = totalEvents
+
+	return nil
+}

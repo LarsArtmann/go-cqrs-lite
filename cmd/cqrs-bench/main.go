@@ -110,6 +110,7 @@ func runCmd(args []string) {
 	)
 	warmup := fs.Int("warmup", 0, "Number of warmup operations")
 	repeat := fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)")
+	recovery := fs.Bool("recovery", false, "Enable crash-recovery phase (close, reopen, reload)")
 	_ = fs.Parse(args)
 
 	profile, ok := benchkit.ProfileByName(*profileName)
@@ -130,6 +131,7 @@ func runCmd(args []string) {
 		Codec:       codec,
 		Warmup:      *warmup,
 		Repeat:      *repeat,
+		Recovery:    *recovery,
 		Backend:     *backend,
 		DiskPath:    diskPath,
 	}

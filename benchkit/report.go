@@ -90,6 +90,11 @@ func PrintReport(w io.Writer, r *Result) {
 			formatInt(int(r.ProjectionEvents)), roundDuration(r.ProjectionLag))
 	}
 
+	if r.RecoveryTime > 0 {
+		fmt.Fprintf(w, "Recovery: %s (%s events recovered)\n\n",
+			roundDuration(r.RecoveryTime), formatInt(r.RecoveredEvents))
+	}
+
 	fmt.Fprintln(w, "Resources:")
 	fmt.Fprintf(w, "  Heap:  %s peak\n", formatBytes(r.Memory.After))
 	fmt.Fprintf(w, "  Delta: %s\n", formatBytes(r.Memory.Delta))

@@ -82,6 +82,14 @@ type Config struct {
 	// SkipProjections skips the projection phase.
 	SkipProjections bool
 
+	// Recovery enables the durability recovery phase: after all other
+	// phases complete, the runner closes the bundle, reopens it via the
+	// factory (reopening at the same path), and loads all streams to
+	// measure crash-recovery replay time. Only meaningful for persistent
+	// backends (SQLite, Pebble); memory backends produce zero recovery
+	// events. Result.RecoveryTime and Result.RecoveredEvents are populated.
+	Recovery bool
+
 	// Repeat runs the benchmark N times and reports the median result with
 	// min/max throughput spread. Zero or 1 means single run (default).
 	// Useful because single-run throughput has ~20-25% variance on the
@@ -156,6 +164,13 @@ type Result struct {
 	// Projection metrics (zero-valued when no projections ran)
 	ProjectionLag    time.Duration `json:"projectionLag"`
 	ProjectionEvents int64         `json:"projectionEvents"`
+
+	// Recovery metrics (zero-valued when Config.Recovery is false).
+	// RecoveryTime measures the wall-clock time to close the store,
+	// reopen it via the factory, and load all streams — simulating
+	// crash-recovery replay. RecoveredEvents is the total events loaded.
+	RecoveryTime    time.Duration `json:"recoveryTime,omitempty"`
+	RecoveredEvents int           `json:"recoveredEvents,omitempty"`
 
 	// Resource metrics
 	Memory ResourceStats `json:"memory"`

@@ -143,6 +143,13 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 
 	r.durabilityPhase()
 
+	if r.config.Recovery {
+		if err := r.recoveryPhase(ctx); err != nil {
+			return nil, errorfamily.WrapTransient(err, "benchkit.recovery_phase",
+				"recovery phase")
+		}
+	}
+
 	peakMem, baselineMem := r.sampler.stopAndSnapshot()
 
 	r.result.Duration = time.Since(startTime)

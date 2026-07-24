@@ -1338,3 +1338,77 @@ func TestRun_ProjectionWithKVStore(t *testing.T) {
 		t.Error("ProjectionEvents is 0, expected nonzero for kv.Store-backed projection")
 	}
 }
+
+// ── Recovery (durability) tests ──
+
+func TestRun_Recovery_SQLite(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "bench.db")
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Backend:     "sqlite",
+		DiskPath:    dir,
+		Recovery:    true,
+	}, func() (*stack.Bundle, error) {
+		return sqlite.New(dbPath)
+	})
+
+	if result.RecoveryTime <= 0 {
+		t.Error("RecoveryTime should be positive for SQLite")
+	}
+
+	// SQLite is persistent — all written events should be recovered.
+	if result.RecoveredEvents != ProfileDev.TotalEvents() {
+		t.Errorf("RecoveredEvents = %d, want %d (all events should survive close+reopen)",
+			result.RecoveredEvents, ProfileDev.TotalEvents())
+	}
+}
+
+func TestRun_Recovery_Memory(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:  ProfileDev,
+		Recovery: true,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	// Memory backend: reopening creates an empty store, so no events recovered.
+	if result.RecoveredEvents != 0 {
+		t.Errorf("RecoveredEvents = %d, want 0 for memory backend (no persistence)",
+			result.RecoveredEvents)
+	}
+}
+
+func TestRun_Recovery_Pebble(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Backend:     "pebble",
+		DiskPath:    dir,
+		Recovery:    true,
+	}, func() (*stack.Bundle, error) {
+		b, err := pebble.New(dir)
+		if err != nil {
+			return nil, err
+		}
+
+		return b.Bundle, nil
+	})
+
+	if result.RecoveryTime <= 0 {
+		t.Error("RecoveryTime should be positive for Pebble")
+	}
+
+	if result.RecoveredEvents != ProfileDev.TotalEvents() {
+		t.Errorf("RecoveredEvents = %d, want %d (Pebble is persistent)",
+			result.RecoveredEvents, ProfileDev.TotalEvents())
+	}
+}
