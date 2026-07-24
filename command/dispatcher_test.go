@@ -25,12 +25,12 @@ func TestNew_EmptyType(t *testing.T) {
 	}
 }
 
-func TestNew_ZeroAggregateID(t *testing.T) {
+func TestNew_ZeroStreamID(t *testing.T) {
 	t.Parallel()
 
 	_, err := command.New("CreateUser", id.StreamID{})
 	if err == nil {
-		t.Error("expected error for zero aggregate ID")
+		t.Error("expected error for zero stream ID")
 	}
 
 	if !errors.Is(err, command.ErrNilStreamID) {
@@ -48,12 +48,12 @@ func TestNew_EmptyType_Rejected(t *testing.T) {
 	}
 }
 
-func TestNew_ZeroAggregateID_Rejected(t *testing.T) {
+func TestNew_ZeroStreamID_Rejected(t *testing.T) {
 	t.Parallel()
 
 	_, err := command.New("CreateUser", id.StreamID{})
 	if err == nil {
-		t.Fatal("expected error for zero aggregate ID")
+		t.Fatal("expected error for zero stream ID")
 	}
 }
 

@@ -87,7 +87,7 @@ func TestAllocs_FilterByTimestamp(t *testing.T) {
 	}
 }
 
-func TestAllocs_NewAggregateRef(t *testing.T) {
+func TestAllocs_NewStreamRef(t *testing.T) {
 	aggID := id.NewStreamID()
 	aggType := id.StreamType("Test")
 

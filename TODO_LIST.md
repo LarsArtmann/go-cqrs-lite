@@ -17,12 +17,21 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 
 ### Aggregate→Stream Rename Follow-ups
 
-- [ ] **Comment cleanup** — ~70 production files still use "aggregate" in comments
-      and doc strings (decider/, listing/, storage/pebble/, storage/memory/, event/,
-      snapshot/, command/). Code works; comments are stale.
-- [ ] **SKILL.md references** — 32 "aggregate" mentions across 6 skill reference
-      files (core.md 10, advanced.md 11, recipes.md 3, modules.md 3, readmodels.md 2,
-      faq.md 3).
+- [x] **Comment cleanup** — 41 files cleaned across decider/, listing/,
+      storage/pebble/, storage/memory/, event/, snapshot/, command/.
+      Remaining: `storage/` root (3 lines), `storage/turso/` (3 lines).
+- [x] **SKILL.md references** — All 35 mentions cleared across 7 files
+      (core.md, advanced.md, recipes.md, modules.md, readmodels.md, faq.md,
+      root SKILL.md). doc-check validates 897 references.
+- [ ] **AGENTS.md cleanup** — 16 stale "aggregate" references in code
+      examples, module tree comments, and prose (lines 52, 78, 138, 156-170,
+      231, 241, 401-422, 473-474, 789).
+- [ ] **Storage root + turso comments** — 6 stale comment lines in
+      `storage/command_store_journal.go`, `storage/command_store_load.go`,
+      `storage/pg_bus_test.go`, `storage/turso/indexing/advisor_test.go`,
+      `storage/turso/indexing/doc.go`.
+- [ ] **Run full quality gates** — `nix run .#lint` and full test suite
+      not yet run after comment changes (comment-only, but gate should pass).
 
 ### Metaengine Integration
 

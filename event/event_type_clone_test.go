@@ -79,16 +79,16 @@ func TestParseType_Empty(t *testing.T) {
 	}
 }
 
-func TestParseAggregateType(t *testing.T) {
+func TestParseStreamType(t *testing.T) {
 	t.Parallel()
 
-	got, err := id.ParseAggregateType("User")
+	got, err := id.ParseStreamType("User")
 	if err != nil {
-		t.Fatalf("id.ParseAggregateType: %v", err)
+		t.Fatalf("id.ParseStreamType: %v", err)
 	}
 
 	if got != "User" {
-		t.Errorf("id.ParseAggregateType = %q, want %q", got, "User")
+		t.Errorf("id.ParseStreamType = %q, want %q", got, "User")
 	}
 
 	if got.IsZero() {
@@ -96,12 +96,12 @@ func TestParseAggregateType(t *testing.T) {
 	}
 }
 
-func TestParseAggregateType_Empty(t *testing.T) {
+func TestParseStreamType_Empty(t *testing.T) {
 	t.Parallel()
 
-	_, err := id.ParseAggregateType("")
+	_, err := id.ParseStreamType("")
 	if err == nil {
-		t.Fatal("expected error for empty aggregate type")
+		t.Fatal("expected error for empty stream type")
 	}
 }
 

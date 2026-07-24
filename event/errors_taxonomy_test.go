@@ -133,7 +133,7 @@ func TestClassify_sentinelMapping(t *testing.T) {
 		want errorfamily.Family
 	}{
 		{"version conflict", event.ErrVersionConflict, errorfamily.Conflict},
-		{"aggregate not found", event.ErrStreamNotFound, errorfamily.Rejection},
+		{"stream not found", event.ErrStreamNotFound, errorfamily.Rejection},
 		{"snapshot not found", snapshot.ErrSnapshotNotFound, errorfamily.Rejection},
 		{"store closed", event.ErrStoreClosed, errorfamily.Infrastructure},
 		{"bus closed", event.ErrBusClosed, errorfamily.Infrastructure},

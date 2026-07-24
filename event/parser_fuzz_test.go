@@ -36,15 +36,15 @@ func FuzzParseType(f *testing.F) {
 	})
 }
 
-// FuzzParseAggregateType same shape as ParseType.
-func FuzzParseAggregateType(f *testing.F) {
+// FuzzParseStreamType same shape as ParseType.
+func FuzzParseStreamType(f *testing.F) {
 	f.Add("")
 	f.Add("User")
 	f.Add("A")
 	f.Add(strings.Repeat("Z", 1024))
 
 	f.Fuzz(func(t *testing.T, input string) {
-		typ, err := id.ParseAggregateType(input)
+		typ, err := id.ParseStreamType(input)
 		if input == "" {
 			if err == nil {
 				t.Error("expected error for empty input")
@@ -54,7 +54,7 @@ func FuzzParseAggregateType(f *testing.F) {
 				t.Errorf("unexpected error: %v", err)
 			}
 			if string(typ) != input {
-				t.Errorf("id.ParseAggregateType: got %q, want %q", typ, input)
+				t.Errorf("id.ParseStreamType: got %q, want %q", typ, input)
 			}
 		}
 	})

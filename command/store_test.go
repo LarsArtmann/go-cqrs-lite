@@ -167,14 +167,14 @@ func TestNewPersistedCommand_EmptyType(t *testing.T) {
 	}
 }
 
-func TestNewPersistedCommand_EmptyAggregateType(t *testing.T) {
+func TestNewPersistedCommand_EmptyStreamType(t *testing.T) {
 	t.Parallel()
 
 	ref := command.NewStreamRef("", idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"))
 
 	_, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err == nil {
-		t.Fatal("expected error for empty aggregate type")
+		t.Fatal("expected error for empty stream type")
 	}
 
 	if !errors.Is(err, command.ErrEmptyStreamType) {
@@ -182,14 +182,14 @@ func TestNewPersistedCommand_EmptyAggregateType(t *testing.T) {
 	}
 }
 
-func TestNewPersistedCommand_ZeroAggregateID(t *testing.T) {
+func TestNewPersistedCommand_ZeroStreamID(t *testing.T) {
 	t.Parallel()
 
 	ref := command.NewStreamRef("User", id.StreamID{})
 
 	_, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err == nil {
-		t.Fatal("expected error for zero aggregate ID")
+		t.Fatal("expected error for zero stream ID")
 	}
 
 	if !errors.Is(err, command.ErrNilStreamID) {
@@ -319,7 +319,7 @@ func TestAggregateType_Parse(t *testing.T) {
 			}
 
 			if string(got) != tt.input {
-				t.Errorf("ParseAggregateType(%q) = %q, want %q", tt.input, got, tt.input)
+				t.Errorf("ParseStreamType(%q) = %q, want %q", tt.input, got, tt.input)
 			}
 		})
 	}
