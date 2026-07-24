@@ -180,12 +180,8 @@ func buildFilterPredicates(q queryRuntime, input any) ([]filterPredicate, error)
 // extractValueByType finds a field in the input struct whose type matches
 // the given type, and returns its value. Returns nil if not found or ambiguous.
 func extractValueByType(input any, targetType reflect.Type) any {
-	v := reflect.ValueOf(input)
-	if v.Kind() == reflect.Pointer {
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
+	v, ok := structValue(input)
+	if !ok {
 		return nil
 	}
 

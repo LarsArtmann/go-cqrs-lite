@@ -4,6 +4,35 @@ import (
 	"reflect"
 )
 
+func structValue(input any) (reflect.Value, bool) {
+	v := reflect.ValueOf(input)
+	if !v.IsValid() {
+		return reflect.Value{}, false
+	}
+
+	if v.Kind() == reflect.Pointer {
+		if v.IsNil() {
+			return reflect.Value{}, false
+		}
+		v = v.Elem()
+	}
+
+	return v, v.Kind() == reflect.Struct
+}
+
+func structType(input any) (reflect.Type, bool) {
+	t := reflect.TypeOf(input)
+	if t == nil {
+		return nil, false
+	}
+
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	return t, t.Kind() == reflect.Struct
+}
+
 // qualifiedTypeName returns a package-qualified type name to prevent collisions
 // between types with the same name from different packages.
 func qualifiedTypeName(v any) string {
@@ -33,16 +62,8 @@ type reflectField struct {
 
 // reflectFields extracts the exported fields of a struct instance or pointer.
 func reflectFields(v any) []reflectField {
-	t := reflect.TypeOf(v)
-	if t == nil {
-		return nil
-	}
-
-	if t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
-
-	if t.Kind() != reflect.Struct {
+	t, ok := structType(v)
+	if !ok {
 		return nil
 	}
 
@@ -71,12 +92,8 @@ func extractKeyValueByType(input any, keyType reflect.Type) any {
 		return nil
 	}
 
-	v := reflect.ValueOf(input)
-	if v.Kind() == reflect.Pointer {
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
+	v, ok := structValue(input)
+	if !ok {
 		return nil
 	}
 
@@ -107,12 +124,8 @@ func extractKeyValueByType(input any, keyType reflect.Type) any {
 
 // extractDepthFromInput finds a field named "Depth" of type int in the input struct.
 func extractDepthFromInput(input any) int {
-	v := reflect.ValueOf(input)
-	if v.Kind() == reflect.Pointer {
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
+	v, ok := structValue(input)
+	if !ok {
 		return 1
 	}
 
@@ -159,12 +172,8 @@ func detectPagination(input any) bool {
 
 // extractLimitFromInput extracts the Limit field value from the input struct.
 func extractLimitFromInput(input any) int {
-	v := reflect.ValueOf(input)
-	if v.Kind() == reflect.Pointer {
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
+	v, ok := structValue(input)
+	if !ok {
 		return 0
 	}
 
@@ -178,12 +187,8 @@ func extractLimitFromInput(input any) int {
 
 // extractCursorFromInput extracts the After *Cursor field from the input struct.
 func extractCursorFromInput(input any) *Cursor {
-	v := reflect.ValueOf(input)
-	if v.Kind() == reflect.Pointer {
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
+	v, ok := structValue(input)
+	if !ok {
 		return nil
 	}
 
@@ -230,12 +235,8 @@ func extractFirstDomainField(input any) any {
 		return nil
 	}
 
-	v := reflect.ValueOf(input)
-	if v.Kind() == reflect.Pointer {
-		v = v.Elem()
-	}
-
-	if v.Kind() != reflect.Struct {
+	v, ok := structValue(input)
+	if !ok {
 		return nil
 	}
 
