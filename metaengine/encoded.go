@@ -3,8 +3,9 @@ package metaengine
 import (
 	"encoding/json/v2"
 	"fmt"
+	"maps"
 	"reflect"
-	"sort"
+	"slices"
 )
 
 // ApplyEncoded processes a JSON-encoded event payload through all queries.
@@ -27,7 +28,8 @@ func (s *Store) ApplyEncoded(eventType string, payload []byte) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for _, q := range s.queries {
+	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
+		q := s.queries[name]
 		foldIdx, ok := q.foldByEvent[eventType]
 		if !ok {
 			continue
@@ -78,12 +80,7 @@ func (s *Store) EventTypeNames() []string {
 		}
 	}
 
-	result := make([]string, 0, len(seen))
-	for t := range seen {
-		result = append(result, t)
-	}
-
-	sort.Strings(result)
+	result := slices.Sorted(maps.Keys(seen))
 
 	return result
 }
