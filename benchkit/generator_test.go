@@ -102,8 +102,8 @@ func TestGenerator_PayloadSizeAccuracy(t *testing.T) {
 	t.Parallel()
 
 	codecs := []struct {
-		name   string
-		codec  codec.Codec
+		name      string
+		codec     codec.Codec
 		tolerance int
 	}{
 		{"json", codec.JSONCodec{}, 2},
@@ -134,8 +134,14 @@ func TestGenerator_PayloadSizeAccuracy(t *testing.T) {
 				// JSON is exact (linear overhead). CBOR can be off by a few bytes
 				// due to string-header boundary crossings (23/255/65535).
 				if diff > tc.tolerance {
-					t.Errorf("%s size=%d: actual encoded size %d differs from target by %d bytes (max %d)",
-						tc.name, target, actual, diff, tc.tolerance)
+					t.Errorf(
+						"%s size=%d: actual encoded size %d differs from target by %d bytes (max %d)",
+						tc.name,
+						target,
+						actual,
+						diff,
+						tc.tolerance,
+					)
 				}
 			})
 		}

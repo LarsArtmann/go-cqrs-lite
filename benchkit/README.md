@@ -58,9 +58,15 @@ cqrs-bench compare --profile small --format markdown
 
 # JSON output for CI/trend tracking
 cqrs-bench run --backend pebble --dir /tmp/bench --profile small --format json
+
+# CBOR codec
+cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor
+
+# Version
+cqrs-bench --version
 ```
 
-Build: `cd cmd/cqrs-bench && GOWORK=off go build -tags "goexperiment.jsonv2" .`
+Build: `GOEXPERIMENT=jsonv2 go build -tags "goexperiment.jsonv2" ./cmd/cqrs-bench/...`
 
 ## Named profiles
 
@@ -95,3 +101,42 @@ one-line factory change.
 Latency percentiles use a sorted-slice collector with reservoir sampling
 (10K entries) for large workloads, keeping memory bounded at ~80KB per
 collector regardless of workload size.
+
+### Warmup isolation
+
+When `Config.Warmup > 0`, the factory is called a **second time** to create a
+throwaway Bundle for warmup writes. Warmup events never enter the measurement
+store, so journal scans, ReadAll counts, and projection metrics reflect only
+the measurement workload. The `Result.WarmupEvents` field reports how many
+events were written during warmup.
+
+### Codec-aware payload sizing
+
+The `Generator` uses the configured codec (JSON or CBOR) to measure payload
+size, not hardcoded JSON. This ensures payloads are the correct byte size
+regardless of encoding. For JSON, payloads are within 2 bytes of target; for
+CBOR, within 5 bytes (due to string-header boundary crossings).
+
+### Skipping phases
+
+```go
+config := benchkit.Config{
+    Profile:          benchkit.ProfileDev,
+    SkipReads:        true,   // skip aggregate loads + journal scans
+    SkipReadModels:   true,   // skip kv.Store Set/Get benchmark
+    SkipProjections:  true,   // skip projection phase
+}
+```
+
+### Config validation
+
+`Run()` validates the config before starting: `Profile.Streams`,
+`Profile.EventsPerStream`, and `Profile.BatchSize` must all be > 0.
+Invalid configs return `ErrInvalidConfig` (classified as Rejection).
+
+### Error classification
+
+All benchkit errors use the [go-error-family](https://github.com/larsartmann/go-error-family)
+5-family taxonomy: `ErrInvalidConfig` (Rejection), `ErrFactoryFailed` /
+`ErrNilBundle` / `ErrIncompleteBundle` (Infrastructure), `ErrWarmupFailed`
+(Transient). Phase errors are wrapped with `errorfamily.WrapTransient`.

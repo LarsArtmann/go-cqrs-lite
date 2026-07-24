@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func mustRun(t *testing.T, config Config, factory Factory) *Result {
@@ -483,8 +483,10 @@ func TestRun_CancelledContext(t *testing.T) {
 	// result is returned. Both are acceptable; a hang or full completion
 	// would indicate the context deadline is not respected.
 	if err == nil && result.TotalEvents >= ProfileDev.TotalEvents() {
-		t.Errorf("TotalEvents = %d (full completion) with pre-cancelled context; deadline not respected",
-			result.TotalEvents)
+		t.Errorf(
+			"TotalEvents = %d (full completion) with pre-cancelled context; deadline not respected",
+			result.TotalEvents,
+		)
 	}
 }
 
@@ -567,18 +569,24 @@ func TestConfig_Validation(t *testing.T) {
 		errMsg string
 	}{
 		{
-			name:   "zero streams",
-			config: Config{Profile: Profile{Name: "test", Streams: 0, EventsPerStream: 5, BatchSize: 1}},
+			name: "zero streams",
+			config: Config{
+				Profile: Profile{Name: "test", Streams: 0, EventsPerStream: 5, BatchSize: 1},
+			},
 			errMsg: "Streams",
 		},
 		{
-			name:   "zero events per stream",
-			config: Config{Profile: Profile{Name: "test", Streams: 10, EventsPerStream: 0, BatchSize: 1}},
+			name: "zero events per stream",
+			config: Config{
+				Profile: Profile{Name: "test", Streams: 10, EventsPerStream: 0, BatchSize: 1},
+			},
 			errMsg: "EventsPerStream",
 		},
 		{
-			name:   "zero batch size",
-			config: Config{Profile: Profile{Name: "test", Streams: 10, EventsPerStream: 5, BatchSize: 0}},
+			name: "zero batch size",
+			config: Config{
+				Profile: Profile{Name: "test", Streams: 10, EventsPerStream: 5, BatchSize: 0},
+			},
 			errMsg: "BatchSize",
 		},
 	}
@@ -918,7 +926,9 @@ func TestRun_BatchSize(t *testing.T) {
 
 	// With BatchSize=5 and 10 events/stream, there should be 2 Save calls per stream
 	// (100 streams × 2 calls = 200 latency samples)
-	expectedSamples := int64(batchProfile.Streams * (batchProfile.EventsPerStream / batchProfile.BatchSize))
+	expectedSamples := int64(
+		batchProfile.Streams * (batchProfile.EventsPerStream / batchProfile.BatchSize),
+	)
 	if result.WriteLatency.Count != expectedSamples {
 		t.Errorf("WriteLatency.Count = %d, want %d (streams × (events/batch))",
 			result.WriteLatency.Count, expectedSamples)
@@ -1000,8 +1010,8 @@ func TestRun_SkipProjections(t *testing.T) {
 	t.Parallel()
 
 	result := mustRun(t, Config{
-		Profile:          ProfileDev,
-		PayloadSize:      64,
+		Profile:         ProfileDev,
+		PayloadSize:     64,
 		SkipProjections: true,
 	}, func() (*stack.Bundle, error) { return memory.New() })
 

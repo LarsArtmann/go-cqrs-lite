@@ -81,7 +81,11 @@ type Config struct {
 // validate checks that the Config has required fields set.
 func (c Config) validate() error {
 	if c.Profile.Streams <= 0 {
-		return fmt.Errorf("%w: Profile.Streams must be > 0, got %d", ErrInvalidConfig, c.Profile.Streams)
+		return fmt.Errorf(
+			"%w: Profile.Streams must be > 0, got %d",
+			ErrInvalidConfig,
+			c.Profile.Streams,
+		)
 	}
 
 	if c.Profile.EventsPerStream <= 0 {

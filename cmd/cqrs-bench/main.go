@@ -39,6 +39,8 @@ func main() {
 		runCmd(os.Args[2:])
 	case "compare":
 		compareCmd(os.Args[2:])
+	case "version", "--version", "-v":
+		fmt.Println("cqrs-bench version v4.1.0")
 	case "help", "-h", "--help":
 		printUsage()
 	default:
