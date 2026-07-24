@@ -322,7 +322,7 @@ kv.ViewStore[V,K]
 | Instead of                 | We say                         | Why                                                                                                                                       |
 | -------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | "Database"                 | "Store" or "Event Store"       | CQRS separates write/read; "database" implies a single thing                                                                              |
-| "Entity"                   | "Aggregate"                    | DDD aggregate is the consistency boundary; entity is too vague                                                                            |
+| "Entity"                   | "Stream"                       | A stream is the consistency boundary (what DDD calls an aggregate); "entity" is too vague                                                        |
 | "CRUD"                     | "Command + Event + Projection" | No updates or deletes — only append                                                                                                       |
 | "Delete"                   | "Tombstone"                    | Event streams are append-only; soft-delete via metadata, never removal                                                                    |
 | "State" (mutable)          | "Folded state"                 | State is always reconstructed from events via `Apply`, never directly mutated                                                             |
@@ -347,7 +347,7 @@ These concepts are intentionally absent as dedicated modules. They emerge from c
 | Pattern                      | How it emerges                                                                 | Why no module                                                                                                                                                     |
 | ---------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Saga / Process Manager**   | `bus.SubscribeAll` + `command.Dispatcher` + `deriver.Deriver`                  | Multi-step orchestration is domain-specific; a generic saga module imposes the wrong abstraction. See `example/taskmanager/` for a real implementation.           |
-| **Domain Entity**            | App-defined inside the consumer's decider `Apply` function                     | The library models aggregate identity (`AggregateRef`), not aggregate state — state shape is the consumer's domain decision.                                      |
+| **Domain Entity**            | App-defined inside the consumer's decider `Apply` function                     | The library models stream identity (`StreamRef`), not stream state — state shape is the consumer's domain decision.                                      |
 | **Message Broker**           | Injected via Watermill adapter (`watermill.NewEventBus` with Kafka/NATS/Redis) | The library is transport-agnostic. The GoChannel default is for single-process; brokers are consumer choices.                                                     |
 | **Outbox**                   | Event journal + `CatchUpSubscriber` + `EventPublisher`                         | ADR-0016 declined: the journal IS the outbox. A projection reads the journal and publishes events, making the pattern composable without a dedicated table.       |
 | **Distributed Consensus**    | Optimistic concurrency per stream (`expectedVersion`)                          | No Raft/Paxos: the library provides single-writer-per-stream semantics. Multi-node coordination (leader election, quorum) is a deployment concern.                |
@@ -432,7 +432,7 @@ var _ = []any{
 	// Event Sourcing
 	event.New,
 	event.NewEvent,
-	event.NewAggregateRef,
+	id.NewStreamRef,
 	event.DetectTombstone,
 	event.MarkTombstone,
 	event.MarkRebirth,
@@ -467,12 +467,12 @@ var _ = []any{
 
 	// Identity
 	id.New,
-	id.NewAggregateID,
+	id.NewStreamID,
 	id.NewEventID,
 	id.NewCorrelationID,
 	id.NewCausationID,
 	id.NewCommandID,
-	id.DeriveAggregateID,
+	id.DeriveStreamID,
 	id.DeriveCommandID,
 
 	// Storage
@@ -496,10 +496,10 @@ var _ = []any{
 
 	// Read Models
 	kv.NewMemStore,
-	kv.NewTypedStore[any, id.AggregateID],
-	kv.NewCache[any, id.AggregateID],
-	stack.NewMaterialize[any, id.AggregateID],
-	stack.ReadModel[any, id.AggregateID],
+	kv.NewTypedStore[any, id.StreamID],
+	kv.NewCache[any, id.StreamID],
+	stack.NewMaterialize[any, id.StreamID],
+	stack.ReadModel[any, id.StreamID],
 	graph.NewGraphProjection,
 	graph.NewMemoryDriver,
 

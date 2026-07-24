@@ -80,6 +80,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `eventtest.FakeMetrics` and `eventtest.AssertMetricRecord` — removed with the
   deprecated `MetricsRecorder` interface they implemented.
 
+### Migration Guide: Aggregate→Stream Rename (ADR-0058)
+
+Identity types renamed across `id/`, `event/`, `command/`, `listing/`,
+`otel/`, `storage/`. All old names remain as deprecated aliases.
+
+**Rename map** (old → new):
+
+| Old | New |
+| --- | --- |
+| `AggregateID` | `StreamID` |
+| `AggregateType` | `StreamType` |
+| `AggregateRef` | `StreamRef` |
+| `AggregateMarker` | `StreamMarker` |
+| `NewAggregateID` | `NewStreamID` |
+| `DeriveAggregateID` | `DeriveStreamID` |
+| `NewAggregateRef` | `NewStreamRef` |
+| `ParseAggregateType` | `ParseStreamType` |
+| `ErrAggregateTypeMismatch` | `ErrStreamTypeMismatch` |
+| `ErrAggregateIDMismatch` | `ErrStreamIDMismatch` |
+
+**Intentionally kept as "aggregate" (wire-format stability):**
+
+- JSON struct tags (`aggregate_id`, `aggregate_type`) — on-disk serialization
+- SQL column names (`aggregate_type`, `aggregate_id`) — schema migrations
+- Error classification codes (`event.nil_aggregate_id`, `pebble.aggregate_type_mismatch`) — `errors.Is` match keys
+- OTel attribute string values (`cqrs.aggregate.*`) — dashboard/alert schema
+- `AggregateAwareStrategy` interface, `catalog.AggregateRoot` field — DDD concepts
+
 ## [v4.0.4] - 2026-07-23
 
 ### Batch release — 49 modules tagged

@@ -25,8 +25,8 @@ convention:
 | `event.handle`                  | event       | handle   | Processing an event through middleware        |
 | `event.publish`                 | event       | publish  | Publishing events to the bus                  |
 | `query.handle`                  | query       | handle   | Processing a query through middleware         |
-| `decider.execute`               | decider     | execute  | Full aggregate execute (load → decide → save) |
-| `decider.load`                  | decider     | load     | Loading aggregate state from events           |
+| `decider.execute`               | decider     | execute  | Full stream execute (load → decide → save)   |
+| `decider.load`                  | decider     | load     | Loading stream state from events             |
 | `event.store.load`              | event.store | load     | SQL store load                                |
 | `event.store.save`              | event.store | save     | SQL store save                                |
 | `grpc.command.dispatch`         | grpc        | dispatch | gRPC server handling a command                |
