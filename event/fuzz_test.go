@@ -98,7 +98,7 @@ func FuzzNewEvent(f *testing.F) {
 			}
 
 			if evt.StreamID() != aggID {
-				t.Error("aggregate ID mismatch")
+				t.Error("stream ID mismatch")
 			}
 		},
 	)
