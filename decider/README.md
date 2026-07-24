@@ -16,9 +16,11 @@ d := decider.Decider[CounterState]{
     Apply:   applyCounter, // fold: (state, event) -> state
 }
 
+strategy, _ := snapshot.EveryNEvents(100)
+
 repo, err := decider.NewRepository(store, bus, d,
     decider.WithSnapshotStore(snapStore),
-    decider.WithSnapshotStrategy(snapshot.EveryNEvents(100)),
+    decider.WithSnapshotStrategy(strategy),
 )
 if err != nil { log.Fatal(err) }
 

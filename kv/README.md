@@ -28,20 +28,21 @@ No existing Go KV meta-API (gokv, valkeyrie) provides all three operations an ev
 ### Raw KV
 
 ```go
+ctx := context.Background()
 s := kv.NewMemStore()
 defer s.Close()
 
-s.Set([]byte("user:1"), []byte("alice"))
-val, _ := s.Get([]byte("user:1"))
+_ = s.Set(ctx, []byte("user:1"), []byte("alice"))
+val, _ := s.Get(ctx, []byte("user:1"))
 
 // Atomic batch
-batch, _ := s.Batch()
-batch.Set([]byte("a"), []byte("1"))
-batch.Delete([]byte("old"))
-batch.Commit()
+batch, _ := s.Batch(ctx)
+_ = batch.Set(ctx, []byte("a"), []byte("1"))
+_ = batch.Delete(ctx, []byte("old"))
+_ = batch.Commit(ctx)
 
 // Prefix iteration (lexicographic order)
-iter, _ := s.NewIterator([]byte("user:"))
+iter, _ := s.NewIterator(ctx, []byte("user:"))
 defer iter.Close()
 for iter.Next() {
     fmt.Printf("%s = %s\n", iter.Key(), iter.Value())
@@ -54,8 +55,8 @@ Type-safe typed store with automatic codec serialization:
 
 ```go
 store := kv.NewTypedStore[UserView, UserID](kvBackend, kv.WithTypedCodec(codec.JSONCodec{}))
-store.SetTyped(ctx, userID, UserView{Name: "Alice"})
-user, _ := store.GetTyped(ctx, userID)
+_ = store.Set(ctx, userID, &UserView{Name: "Alice"})
+user, _ := store.Get(ctx, userID)
 ```
 
 ### Cache[V, K]

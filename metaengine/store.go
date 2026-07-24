@@ -3,7 +3,9 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"maps"
 	"reflect"
+	"slices"
 	"sync"
 )
 
@@ -48,7 +50,8 @@ func (s *Store) Apply(eventType string, payload any) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for _, q := range s.queries {
+	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
+		q := s.queries[name]
 		foldIdx, ok := q.foldByEvent[eventType]
 		if !ok {
 			continue

@@ -29,22 +29,28 @@ cpStore    := backend.CheckpointStore()
 ### Manual Wiring (advanced)
 
 ```go
+// Open creates and owns the DB. Use the cockroachdb/pebble package directly:
+import "github.com/cockroachdb/pebble"
+
 db, err := pebble.Open("data/myapp", &pebble.Options{})
 if err != nil { log.Fatal(err) }
 
-eventStore, _ := pebble.NewStore(db, logger)
-snapStore, _  := pebble.NewSnapshotStore(db, logger)
-cpStore, _    := pebble.NewCheckpointStore(db, logger)
+// Then pass the DB to individual store constructors:
+backend, _ := pebble.NewBackend(db, slog.Default())
+eventStore  := backend.EventStore()
+snapStore   := backend.SnapshotStore()
+cpStore     := backend.CheckpointStore()
 ```
 
 ### Pebble as kv.Store
 
 ```go
-kvStore, _ := pebble.NewKVStore(db, pebble.WithSyncWrites())
+kvStore, _ := pebble.NewKVStore(db, pebble.WithKVSyncWrites())
 defer kvStore.Close()
 
-kvStore.Set([]byte("key"), []byte("value"))
-val, _ := kvStore.Get([]byte("key"))
+ctx := context.Background()
+_ = kvStore.Set(ctx, []byte("key"), []byte("value"))
+val, _ := kvStore.Get(ctx, []byte("key"))
 ```
 
 ## API
@@ -75,7 +81,7 @@ val, _ := kvStore.Get([]byte("key"))
 | Symbol                 | Description                                         |
 | ---------------------- | --------------------------------------------------- |
 | `NewKVStore(db, opts)` | Adapts Pebble as a `kv.Store`.                      |
-| `WithSyncWrites()`     | Force synchronous writes.                           |
+| `WithKVSyncWrites()`    | Force synchronous writes.                           |
 | `WithBorrowedDB()`     | Adapter does not close the DB (shared via Backend). |
 
 ## Design
