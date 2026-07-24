@@ -318,35 +318,24 @@ func checkWriteAmplification(queries map[string]queryRuntime, budget int) Diagno
 		}
 	}
 
-	var maxAmp int
-	for _, count := range eventCount {
-		if count > maxAmp {
-			maxAmp = count
-		}
-	}
-
 	var diags Diagnostics
 
-	if maxAmp > budget {
-		var heavy []string
-
-		for evt, count := range eventCount {
-			if count == maxAmp {
-				heavy = append(heavy, evt)
-			}
+	for evt, count := range eventCount {
+		if count > budget {
+			diags = append(diags, Diagnostic{
+				Level: DiagLevelWarn,
+				Query: "*",
+				Message: fmt.Sprintf(
+					"event %s updates %d projections — exceeds write amplification budget %d",
+					evt, count, budget,
+				),
+			})
 		}
-
-		sort.Strings(heavy)
-
-		diags = append(diags, Diagnostic{
-			Level: DiagLevelWarn,
-			Query: "*",
-			Message: fmt.Sprintf(
-				"events %s update %d projections — high write amplification",
-				strings.Join(heavy, ", "), maxAmp,
-			),
-		})
 	}
+
+	sort.Slice(diags, func(i, j int) bool {
+		return diags[i].Message < diags[j].Message
+	})
 
 	return diags
 }
