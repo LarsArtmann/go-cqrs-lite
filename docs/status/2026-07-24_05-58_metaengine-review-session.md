@@ -22,24 +22,24 @@ and one persisted. The dead code I "removed" reappeared in a split file.
 
 ## a) FULLY DONE
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Read all 11 production `.go` files | Done | Comprehensive understanding of types, engine, store, planner, fold, query, cost, cursor, encoded, reflect |
-| Read all 9 test `.go` files | Done | BDD suite + internal tests + fixtures |
-| Loaded bdd-testing skill | Done | Read SKILL.md, ginkgo-syntax.md, spec-template.go |
-| Ran baseline tests | Done | 89 BDD specs + 9 internal tests, all passed, 81.8% coverage |
+| Item                                 | Status        | Notes                                                                                                                                              |
+| ------------------------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Read all 11 production `.go` files   | Done          | Comprehensive understanding of types, engine, store, planner, fold, query, cost, cursor, encoded, reflect                                          |
+| Read all 9 test `.go` files          | Done          | BDD suite + internal tests + fixtures                                                                                                              |
+| Loaded bdd-testing skill             | Done          | Read SKILL.md, ginkgo-syntax.md, spec-template.go                                                                                                  |
+| Ran baseline tests                   | Done          | 89 BDD specs + 9 internal tests, all passed, 81.8% coverage                                                                                        |
 | Added graph complexity BDD assertion | **Persisted** | `planner_test.go:59` — asserts O(degree^depth) for graph queries on memory engine. This is the only change that survived the parallel refactoring. |
-| Verified tests pass after changes | Done | 89 specs pass, race-clean |
+| Verified tests pass after changes    | Done          | 89 specs pass, race-clean                                                                                                                          |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Item | What happened | Current state |
-|------|---------------|---------------|
-| Remove dead code `eventTypesForFolds` | I removed it from `fold.go`. Parallel refactoring split `fold.go` into `fold.go` + `fold_classify.go`. The function was moved to `fold_classify.go:112` and my deletion didn't carry over. | **STILL DEAD CODE** — 0% coverage, unused, in `fold_classify.go:112` |
-| Fix write amplification reporting | I changed `heavy[0]` to `strings.Join(heavy, ", ")` in `planner.go`. Parallel refactoring moved `checkWriteAmplification` to `plan_types.go:97` and rewrote it with a better approach (per-event diagnostics, sorted). | **FIXED BY PARALLEL WORK** — current code in `plan_types.go:112-123` reports each event individually with count + budget. Better than my approach. |
-| Remove redundant internal test files | I `trash`-deleted `metaengine_test.go` and `correctness_test.go`. These were untracked local files. Parallel refactoring restructured all test files. | The BDD suite (89 specs) fully covers all behavior. No regression. |
+| Item                                  | What happened                                                                                                                                                                                                          | Current state                                                                                                                                      |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Remove dead code `eventTypesForFolds` | I removed it from `fold.go`. Parallel refactoring split `fold.go` into `fold.go` + `fold_classify.go`. The function was moved to `fold_classify.go:112` and my deletion didn't carry over.                             | **STILL DEAD CODE** — 0% coverage, unused, in `fold_classify.go:112`                                                                               |
+| Fix write amplification reporting     | I changed `heavy[0]` to `strings.Join(heavy, ", ")` in `planner.go`. Parallel refactoring moved `checkWriteAmplification` to `plan_types.go:97` and rewrote it with a better approach (per-event diagnostics, sorted). | **FIXED BY PARALLEL WORK** — current code in `plan_types.go:112-123` reports each event individually with count + budget. Better than my approach. |
+| Remove redundant internal test files  | I `trash`-deleted `metaengine_test.go` and `correctness_test.go`. These were untracked local files. Parallel refactoring restructured all test files.                                                                  | The BDD suite (89 specs) fully covers all behavior. No regression.                                                                                 |
 
 ---
 

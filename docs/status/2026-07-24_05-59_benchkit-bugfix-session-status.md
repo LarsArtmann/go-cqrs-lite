@@ -8,18 +8,18 @@
 
 ## a) FULLY DONE
 
-| Item | Details |
-|------|---------|
-| Config.Codec wired to event.New() | All event creation paths now pass `event.WithCodec(r.codec)` — was dead code, events always used DefaultCodec (CBOR) regardless of Config.Codec setting |
-| Config.Duration enforced | Creates `context.WithTimeout(ctx, r.config.Duration)` wrapping all measurement phases — was dead code, user timeout silently ignored |
-| Profile.ReadRatio implemented | Scales read passes: `readPassesFor(0.1)` = 1 pass, `readPassesFor(0.8)` = 8 passes — was dead code, WriteHeavy and ReadHeavy profiles were behaviorally identical |
-| Generator typed struct | `BenchPayload` struct replaces `map[string]any` + byte truncation. Padding field fills to target size. No more invalid JSON at small sizes |
-| Hand-rolled stdlib replaced | `sortStrings` → `sort.Strings`, `splitFields` → `strings.Fields`, `parseUint` → `strconv.ParseUint` |
-| /proc/self/stat comm bug fixed | CPU time parser now parses from last `)` delimiter, not field index — process names with spaces no longer corrupt all field indices |
-| doc.go with build tag docs | Documents the `goexperiment.jsonv2` requirement that causes cryptic "build constraints exclude all Go files" without it |
-| 23 tests passing | 10 integration + 7 generator/profile + 6 metrics/percentile tests |
-| Race detector clean | `go test -race` passes with 0 data races across all concurrent phases |
-| All changes pushed | 4 commits: `19f540ec`, `c1ad8a50`, `4b1a0c07`, `9ac2cc52` |
+| Item                              | Details                                                                                                                                                           |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Config.Codec wired to event.New() | All event creation paths now pass `event.WithCodec(r.codec)` — was dead code, events always used DefaultCodec (CBOR) regardless of Config.Codec setting           |
+| Config.Duration enforced          | Creates `context.WithTimeout(ctx, r.config.Duration)` wrapping all measurement phases — was dead code, user timeout silently ignored                              |
+| Profile.ReadRatio implemented     | Scales read passes: `readPassesFor(0.1)` = 1 pass, `readPassesFor(0.8)` = 8 passes — was dead code, WriteHeavy and ReadHeavy profiles were behaviorally identical |
+| Generator typed struct            | `BenchPayload` struct replaces `map[string]any` + byte truncation. Padding field fills to target size. No more invalid JSON at small sizes                        |
+| Hand-rolled stdlib replaced       | `sortStrings` → `sort.Strings`, `splitFields` → `strings.Fields`, `parseUint` → `strconv.ParseUint`                                                               |
+| /proc/self/stat comm bug fixed    | CPU time parser now parses from last `)` delimiter, not field index — process names with spaces no longer corrupt all field indices                               |
+| doc.go with build tag docs        | Documents the `goexperiment.jsonv2` requirement that causes cryptic "build constraints exclude all Go files" without it                                           |
+| 23 tests passing                  | 10 integration + 7 generator/profile + 6 metrics/percentile tests                                                                                                 |
+| Race detector clean               | `go test -race` passes with 0 data races across all concurrent phases                                                                                             |
+| All changes pushed                | 4 commits: `19f540ec`, `c1ad8a50`, `4b1a0c07`, `9ac2cc52`                                                                                                         |
 
 **Evidence:** `go test -tags "goexperiment.jsonv2" -race ./benchkit/... -count=1` → 23 PASS, 0 FAIL, 2.1s
 
@@ -27,33 +27,33 @@
 
 ## b) PARTIALLY DONE
 
-| Item | What exists | What's missing |
-|------|-------------|----------------|
+| Item                  | What exists                                                                                                                     | What's missing                                                                                                                                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Workspace integration | `cmd/cqrs-bench` builds from workspace root (`go build ./cmd/cqrs-bench/...` works, exit 0). `go.work` lists `./cmd/cqrs-bench` | No replace directives needed anymore (the stale go.work.sum was the root cause), BUT `GOWORK=off` builds fail because benchkit is unpublished. The workspace path works because go.work resolves local paths |
-| AGENTS.md | benchkit mentioned 4 times (module list, test command, directory structure) | Test command shows `./benchkit/...` but doesn't document the `-tags "goexperiment.jsonv2"` requirement inline |
-| CLI functionality | `run` and `compare` subcommands work for memory/sqlite/pebble | No `--version` flag, no `report` subcommand, no CLI tests |
-| Warmup | Warmup runs before measurement, writes to throwaway aggregate | Still pollutes the same store (adds N events to journal). This inflates ReadAll/ReadFrom scan times. Not fixed — see section d |
+| AGENTS.md             | benchkit mentioned 4 times (module list, test command, directory structure)                                                     | Test command shows `./benchkit/...` but doesn't document the `-tags "goexperiment.jsonv2"` requirement inline                                                                                                |
+| CLI functionality     | `run` and `compare` subcommands work for memory/sqlite/pebble                                                                   | No `--version` flag, no `report` subcommand, no CLI tests                                                                                                                                                    |
+| Warmup                | Warmup runs before measurement, writes to throwaway aggregate                                                                   | Still pollutes the same store (adds N events to journal). This inflates ReadAll/ReadFrom scan times. Not fixed — see section d                                                                               |
 
 ---
 
 ## c) NOT STARTED
 
-| Item | Description | Status |
-|------|-------------|--------|
-| errors.go with errorfamily | Project convention is `errorfamily.NewRejection(...)`, benchkit uses plain `fmt.Errorf` | Not started |
-| Pebble backend tests | Third local backend untested in benchkit | Not started |
-| CLI tests | `cmd/cqrs-bench` has zero tests | Not started |
-| flake.nix integration | benchkit not in `nix run .#build`, `nix run .#test`, `nix run .#lint` targets | Not started |
-| ADR for benchkit | No architecture decision record documenting factory pattern, 8-phase design, relationship to contracttest | Not started |
-| SKILL.md update | `.agents/skills/go-cqrs-lite/SKILL.md` doesn't mention benchkit (0 matches) | Not started |
-| Durability comparison (Phase 2) | `synchronous=FULL` vs `OFF`, `Flush()` timing | Not started |
-| Production replay (Phase 6) | JSON Lines export/import for replaying real production data | Not started |
-| benchtest.RunSuite (Phase 7) | `benchtest.RunSuite(b, factory)` mirroring contracttest for Go benchmark framework | Not started |
-| Pebble Metrics() integration | LSM-tree health (block cache hit rate, compaction count) | Not started |
-| SQLite PRAGMA metrics | `page_count`, `page_size`, WAL file size | Not started |
-| Custom workload support | `Workload` struct with `Setup`/`WriteOps`/`ReadOps`/`Teardown` callbacks | Not started |
-| Baseline comparison | `cqrs-bench compare --baseline baseline.json --threshold 20` for CI regression detection | Not started |
-| Analytical benchmarks | Projection catch-up speed, scan/aggregate latency, pre-aggregation overhead (from ANALYTICAL-VS-TRANSACTIONAL.md analysis) | Not started |
+| Item                            | Description                                                                                                                | Status      |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| errors.go with errorfamily      | Project convention is `errorfamily.NewRejection(...)`, benchkit uses plain `fmt.Errorf`                                    | Not started |
+| Pebble backend tests            | Third local backend untested in benchkit                                                                                   | Not started |
+| CLI tests                       | `cmd/cqrs-bench` has zero tests                                                                                            | Not started |
+| flake.nix integration           | benchkit not in `nix run .#build`, `nix run .#test`, `nix run .#lint` targets                                              | Not started |
+| ADR for benchkit                | No architecture decision record documenting factory pattern, 8-phase design, relationship to contracttest                  | Not started |
+| SKILL.md update                 | `.agents/skills/go-cqrs-lite/SKILL.md` doesn't mention benchkit (0 matches)                                                | Not started |
+| Durability comparison (Phase 2) | `synchronous=FULL` vs `OFF`, `Flush()` timing                                                                              | Not started |
+| Production replay (Phase 6)     | JSON Lines export/import for replaying real production data                                                                | Not started |
+| benchtest.RunSuite (Phase 7)    | `benchtest.RunSuite(b, factory)` mirroring contracttest for Go benchmark framework                                         | Not started |
+| Pebble Metrics() integration    | LSM-tree health (block cache hit rate, compaction count)                                                                   | Not started |
+| SQLite PRAGMA metrics           | `page_count`, `page_size`, WAL file size                                                                                   | Not started |
+| Custom workload support         | `Workload` struct with `Setup`/`WriteOps`/`ReadOps`/`Teardown` callbacks                                                   | Not started |
+| Baseline comparison             | `cqrs-bench compare --baseline baseline.json --threshold 20` for CI regression detection                                   | Not started |
+| Analytical benchmarks           | Projection catch-up speed, scan/aggregate latency, pre-aggregation overhead (from ANALYTICAL-VS-TRANSACTIONAL.md analysis) | Not started |
 
 ---
 
@@ -62,6 +62,7 @@
 ### 1. Warmup still pollutes the event store
 
 The warmup phase (`runner.go:268`) writes events to a throwaway aggregate in the **same store** that is then benchmarked. These extra events inflate:
+
 - Journal scan times (ReadAll/ReadFrom scan N extra events)
 - Aggregate count (1 extra aggregate in the journal)
 - Read model phase (if warmup events trigger projections)
@@ -71,6 +72,7 @@ The warmup phase (`runner.go:268`) writes events to a throwaway aggregate in the
 ### 2. `estimateJSONSize` in generator.go is a guess
 
 The `computePadding` method uses `estimateJSONSize` which is a hardcoded template string approximation, not an actual measurement. It doesn't account for:
+
 - Variable-length numeric formatting (float64 → JSON digits)
 - Map key ordering differences between runs
 - Tag/metadata content length variation
@@ -82,6 +84,7 @@ The result: payloads are approximately the target size, not exactly. For benchma
 ### 3. No negative/failure-path tests
 
 All 23 tests are happy-path. There are zero tests for:
+
 - Factory returning `nil` Bundle
 - Factory returning `nil` EventSink
 - Store returning errors during write/read
@@ -203,6 +206,7 @@ BuildFlow's auto-fix ran `nix-fmt` and `golangci-lint` repair on every commit, b
 ### 1. Should warmup use a separate Bundle (double factory call) or stay inline with documented inflation?
 
 The warmup phase writes events to the benchmarked store to warm caches and connection pools. This inflates journal metrics by N warmup events. Options:
+
 - **A:** Call the factory twice — once for warmup (discarded), once for measurement (clean store). Cost: factories that create temp dirs must handle double-call correctly.
 - **B:** Keep warmup inline but subtract warmup events from journal scan counts. Cost: fragile bookkeeping.
 - **C:** Keep as-is and document that warmup adds N events. Cost: journal scan times are slightly inflated.

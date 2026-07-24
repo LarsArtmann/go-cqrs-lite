@@ -86,8 +86,8 @@ If a word means something different to a consumer than to an implementer, it is 
 
 All errors are classified into a 5-family taxonomy:
 
-| Family             | Meaning                                                | Constructor                    |
-| ------------------ | ------------------------------------------------------ | ------------------------------ |
+| Family             | Meaning                                                | Constructor                          |
+| ------------------ | ------------------------------------------------------ | ------------------------------------ |
 | **Rejection**      | Business rule violation (4xx equivalent)               | `errorfamily.NewRejection(...)`      |
 | **Conflict**       | Optimistic concurrency or duplicate (409 equivalent)   | `errorfamily.NewConflict(...)`       |
 | **Transient**      | Retryable infrastructure failure (503 equivalent)      | `errorfamily.NewTransient(...)`      |

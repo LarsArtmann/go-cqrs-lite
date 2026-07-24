@@ -38,20 +38,20 @@ repo, _ := decider.NewRepository(store, bus, d,
 
 ### Core Types
 
-| Type             | Description                                             |
-| ---------------- | ------------------------------------------------------- |
+| Type             | Description                                                                       |
+| ---------------- | --------------------------------------------------------------------------------- |
 | `Snapshot`       | Captured state: `StreamID`, `StreamType`, `Version`, `State []byte`, `CreatedAt`. |
-| `SnapshotSink`   | Write side: `Save(ctx, Snapshot)`.                      |
-| `SnapshotSource` | Read side: `Load(ctx, ref)`, `LoadAtVersion(ctx, ref, v)`. |
-| `SnapshotStore`  | `SnapshotSink` + `SnapshotSource`.                      |
+| `SnapshotSink`   | Write side: `Save(ctx, Snapshot)`.                                                |
+| `SnapshotSource` | Read side: `Load(ctx, ref)`, `LoadAtVersion(ctx, ref, v)`.                        |
+| `SnapshotStore`  | `SnapshotSink` + `SnapshotSource`.                                                |
 
 ### Strategies
 
-| Strategy                 | Description                                                          |
-| ------------------------ | -------------------------------------------------------------------- |
-| `EveryNEvents(n)`        | Snapshot after every N events. Returns `(SnapshotStrategy, error)`.  |
+| Strategy                 | Description                                                               |
+| ------------------------ | ------------------------------------------------------------------------- |
+| `EveryNEvents(n)`        | Snapshot after every N events. Returns `(SnapshotStrategy, error)`.       |
 | `NewReadPressure(loads)` | Snapshot after N loads + next write. Optimizes for read-heavy aggregates. |
-| `WithInnerStrategy(s)`   | Combines with `NewReadPressure` — either strategy triggers.          |
+| `WithInnerStrategy(s)`   | Combines with `NewReadPressure` — either strategy triggers.               |
 
 ### TypedSnapshotStore
 
@@ -81,12 +81,12 @@ ts, _ := typedStore.Load(ctx, ref)
 
 ## Implementations
 
-| Implementation                    | Module                                            |
-| --------------------------------- | ------------------------------------------------- |
-| `MemorySnapshotStore`             | [storage/memory](../storage/memory/README.md)     |
-| `SQLSnapshotStore`                | [storage](../storage/README.md)                   |
-| PebbleDB `SnapshotStore`          | [storage/pebble](../storage/pebble/README.md)     |
-| `FakeSnapshotStore`               | [eventtest](../event/v4/eventtest/README.md)      |
+| Implementation           | Module                                        |
+| ------------------------ | --------------------------------------------- |
+| `MemorySnapshotStore`    | [storage/memory](../storage/memory/README.md) |
+| `SQLSnapshotStore`       | [storage](../storage/README.md)               |
+| PebbleDB `SnapshotStore` | [storage/pebble](../storage/pebble/README.md) |
+| `FakeSnapshotStore`      | [eventtest](../event/v4/eventtest/README.md)  |
 
 ## Related Modules
 

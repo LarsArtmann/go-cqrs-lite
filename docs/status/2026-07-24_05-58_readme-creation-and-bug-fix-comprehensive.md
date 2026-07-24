@@ -12,72 +12,72 @@
 
 All previously-missing modules now have comprehensive READMEs with correct code examples:
 
-| Module | Lines | Code Blocks | doc-check |
-|--------|-------|-------------|-----------|
-| `dedup` | 65 | 1 | Valid |
-| `deriver` | 92 | 2 | Valid |
-| `metadata` | 82 | 3 | Valid |
-| `projection` | 69 | 2 | Valid |
-| `retry` | 102 | 3 | Valid |
-| `scenario` | 84 | 3 | Valid |
-| `scheduling` | 96 | 1 | Valid |
-| `event/v4/eventtest` | 120 | 3 | Valid |
-| `idempotency/kvstore` | 73 | 1 | Valid |
-| `cmd/cqrs-bench` | 77 | 0 | Valid |
-| `cmd/doc-check` | 73 | 1 | Valid |
-| `storage/memory` | 59 | 1 | Valid |
-| `storage/pebble` | 116 | 5 | Valid |
-| `stack` | 111 | 2 | Valid |
-| `stack/memory` | 63 | 1 | Valid |
-| `stack/sqlite` | 78 | 4 | Valid |
-| `stack/pebble` | 93 | 4 | Valid |
-| `stack/postgres` | 87 | 4 | Valid |
-| `stack/turso` | 102 | 3 | Valid |
-| `stack/bench` | 36 | 0 | Valid |
-| `transport/http` | 111 | 5 | Valid |
-| `transport/grpc` | 87 | 3 | Valid |
-| `example/getting-started` | 58 | 1 | Valid |
-| `example/readme-quickstart` | 58 | 1 | Valid |
+| Module                      | Lines | Code Blocks | doc-check |
+| --------------------------- | ----- | ----------- | --------- |
+| `dedup`                     | 65    | 1           | Valid     |
+| `deriver`                   | 92    | 2           | Valid     |
+| `metadata`                  | 82    | 3           | Valid     |
+| `projection`                | 69    | 2           | Valid     |
+| `retry`                     | 102   | 3           | Valid     |
+| `scenario`                  | 84    | 3           | Valid     |
+| `scheduling`                | 96    | 1           | Valid     |
+| `event/v4/eventtest`        | 120   | 3           | Valid     |
+| `idempotency/kvstore`       | 73    | 1           | Valid     |
+| `cmd/cqrs-bench`            | 77    | 0           | Valid     |
+| `cmd/doc-check`             | 73    | 1           | Valid     |
+| `storage/memory`            | 59    | 1           | Valid     |
+| `storage/pebble`            | 116   | 5           | Valid     |
+| `stack`                     | 111   | 2           | Valid     |
+| `stack/memory`              | 63    | 1           | Valid     |
+| `stack/sqlite`              | 78    | 4           | Valid     |
+| `stack/pebble`              | 93    | 4           | Valid     |
+| `stack/postgres`            | 87    | 4           | Valid     |
+| `stack/turso`               | 102   | 3           | Valid     |
+| `stack/bench`               | 36    | 0           | Valid     |
+| `transport/http`            | 111   | 5           | Valid     |
+| `transport/grpc`            | 87    | 3           | Valid     |
+| `example/getting-started`   | 58    | 1           | Valid     |
+| `example/readme-quickstart` | 58    | 1           | Valid     |
 
 ### 9 Existing READMEs Rewritten
 
-| Module | Before | After | Key Improvements |
-|--------|--------|-------|------------------|
-| `decider` | 40 | 94 | API tables, TypedDecider, EveryNEvents fix |
-| `dispatcher` | 23 | 57 | Usage examples, methods table |
-| `id` | 37 | 75 | Marker table, serialization, fixed idtest link |
-| `snapshot` | 28 | 95 | Fixed field names (StreamID/StreamType), TypedSnapshot, fixed EveryNEvents |
-| `kv` | 52 | 105 | Fixed all ctx params, Set/Get (not SetTyped/GetTyped) |
-| `watermill` | 45 | 89 | CatchUpSubscriber, ordering warning, CommandBus |
-| `integration` | 32 | 43 | Fixed links, added encryption |
-| `schema` | 42 | 59 | API table, Validator, design |
-| `testutil` | 46 | 46 | Links fixed (adequate as-is) |
+| Module        | Before | After | Key Improvements                                                           |
+| ------------- | ------ | ----- | -------------------------------------------------------------------------- |
+| `decider`     | 40     | 94    | API tables, TypedDecider, EveryNEvents fix                                 |
+| `dispatcher`  | 23     | 57    | Usage examples, methods table                                              |
+| `id`          | 37     | 75    | Marker table, serialization, fixed idtest link                             |
+| `snapshot`    | 28     | 95    | Fixed field names (StreamID/StreamType), TypedSnapshot, fixed EveryNEvents |
+| `kv`          | 52     | 105   | Fixed all ctx params, Set/Get (not SetTyped/GetTyped)                      |
+| `watermill`   | 45     | 89    | CatchUpSubscriber, ordering warning, CommandBus                            |
+| `integration` | 32     | 43    | Fixed links, added encryption                                              |
+| `schema`      | 42     | 59    | API table, Validator, design                                               |
+| `testutil`    | 46     | 46    | Links fixed (adequate as-is)                                               |
 
 ### 19 Code Example Bugs Found and Fixed (Session 2)
 
 Every bug was caught by auditing code examples against actual source code, then verified with doc-check.
 
-| # | Module | Bug | Fix Applied |
-|---|--------|-----|-------------|
-| 1 | `deriver` | `command.New(type, id, payload)` wrong signature | `cqrscommand.New(type, streamID)` + error handling |
-| 2 | `scenario` | `Given[t, State]` lowercase type param | `Given[Cmd, State]` with real types |
-| 3 | `id` | Self-referencing idtest link | `idtest/doc.go` |
-| 4 | `snapshot` | `AggregateID`/`AggregateType` field names | `StreamID`/`StreamType` |
-| 5 | `snapshot` | `SaveTyped`/`LoadTyped` don't exist | `Save`/`Load` with `TypedSnapshot` |
-| 6 | `snapshot` | `EveryNEvents(100)` returns error tuple | `strategy, _ := EveryNEvents(100)` |
-| 7 | `decider` | Same EveryNEvents inline issue | Same fix |
-| 8 | `kv` | All raw KV calls missing `ctx` | Added `context.Background()` |
-| 9 | `kv` | `SetTyped`/`GetTyped` don't exist | `Set(ctx, id, &T{})`/`Get(ctx, id)` |
-| 10 | `storage/pebble` | `WithSyncWrites()` wrong name | `WithKVSyncWrites()` |
-| 11 | `storage/pebble` | KV calls missing ctx + manual wiring wrong | Fixed both |
-| 12 | `stack` | `EventBus()`, `Repository()`, `AsProjection()` don't exist | Fixed to actual API |
-| 13 | `stack/sqlite` | `WithJournalMode`/`WithBusyTimeout` don't exist | `WithOptimizations`/`WithForeignKeys` |
-| 14 | `stack/pebble` | `DefaultOptionsWithLogging` wrong package | Import from `storage/pebble` |
-| 15 | `stack/postgres` | `NewPgxListenerFromDSN` missing ctx | Added `ctx` parameter |
-| 16 | `transport/grpc` | Command service doesn't accept options | Query-only codec example |
-| 17 | `eventtest` | `SaveFn` signature wrong | Fixed to actual `event.SaveFunc` |
-| 18 | `retry` | Missing `"log"` import | Added |
-| 19 | `dedup` | Missing `"fmt"` import | Added |
+| #   | Module           | Bug                                                        | Fix Applied                                        |
+| --- | ---------------- | ---------------------------------------------------------- | -------------------------------------------------- |
+| 1   | `deriver`        | `command.New(type, id, payload)` wrong signature           | `cqrscommand.New(type, streamID)` + error handling |
+| 2   | `scenario`       | `Given[t, State]` lowercase type param                     | `Given[Cmd, State]` with real types                |
+| 3   | `id`             | Self-referencing idtest link                               | `idtest/doc.go`                                    |
+| 4   | `snapshot`       | `AggregateID`/`AggregateType` field names                  | `StreamID`/`StreamType`                            |
+| 5   | `snapshot`       | `SaveTyped`/`LoadTyped` don't exist                        | `Save`/`Load` with `TypedSnapshot`                 |
+| 6   | `snapshot`       | `EveryNEvents(100)` returns error tuple                    | `strategy, _ := EveryNEvents(100)`                 |
+| 7   | `decider`        | Same EveryNEvents inline issue                             | Same fix                                           |
+| 8   | `kv`             | All raw KV calls missing `ctx`                             | Added `context.Background()`                       |
+| 9   | `kv`             | `SetTyped`/`GetTyped` don't exist                          | `Set(ctx, id, &T{})`/`Get(ctx, id)`                |
+| 10  | `storage/pebble` | `WithSyncWrites()` wrong name                              | `WithKVSyncWrites()`                               |
+| 11  | `storage/pebble` | KV calls missing ctx + manual wiring wrong                 | Fixed both                                         |
+| 12  | `stack`          | `EventBus()`, `Repository()`, `AsProjection()` don't exist | Fixed to actual API                                |
+| 13  | `stack/sqlite`   | `WithJournalMode`/`WithBusyTimeout` don't exist            | `WithOptimizations`/`WithForeignKeys`              |
+| 14  | `stack/pebble`   | `DefaultOptionsWithLogging` wrong package                  | Import from `storage/pebble`                       |
+| 15  | `stack/postgres` | `NewPgxListenerFromDSN` missing ctx                        | Added `ctx` parameter                              |
+| 16  | `transport/grpc` | Command service doesn't accept options                     | Query-only codec example                           |
+| 17  | `eventtest`      | `SaveFn` signature wrong                                   | Fixed to actual `event.SaveFunc`                   |
+| 18  | `retry`          | Missing `"log"` import                                     | Added                                              |
+| 19  | `dedup`          | Missing `"fmt"` import                                     | Added                                              |
 
 ### Cross-File Cleanup
 
@@ -99,13 +99,16 @@ Every bug was caught by auditing code examples against actual source code, then 
 ## b) PARTIALLY DONE
 
 ### Code Example Verification
+
 - **248 symbol references** verified via `cmd/doc-check` -- these verify that imported packages and qualified symbols (e.g., `event.NewEvent`) exist
 - **However**: doc-check does NOT compile code blocks. It checks that referenced symbols exist, not that the calling syntax is correct
 - The session 2 audit caught 19 syntax/signature bugs that doc-check would NOT have caught
 - **Remaining risk**: Some code blocks may still have subtle issues that only compilation would reveal
 
 ### `docs/README.md` Broken Links
+
 Three links to non-existent example directories remain unfixed:
+
 - `example/encryption/` -- does not exist
 - `example/todo/` -- does not exist
 - `example/user/` -- does not exist
@@ -113,21 +116,24 @@ Three links to non-existent example directories remain unfixed:
 These are **pre-existing** and outside the module README scope.
 
 ### Thin READMEs (Still Under 50 Lines)
-| Module | Lines | Assessment |
-|--------|-------|------------|
-| `stack/bench` | 36 | Appropriate -- benchmark module, minimal API surface |
-| `cmd/api-stability` | 41 | Could be expanded but was pre-existing and adequate |
-| `integration` | 43 | Could be expanded with more test detail |
-| `testutil` | 46 | Adequate for the small API surface |
+
+| Module              | Lines | Assessment                                           |
+| ------------------- | ----- | ---------------------------------------------------- |
+| `stack/bench`       | 36    | Appropriate -- benchmark module, minimal API surface |
+| `cmd/api-stability` | 41    | Could be expanded but was pre-existing and adequate  |
+| `integration`       | 43    | Could be expanded with more test detail              |
+| `testutil`          | 46    | Adequate for the small API surface                   |
 
 ---
 
 ## c) NOT STARTED
 
 ### Sub-Package READMEs (15 missing)
+
 These are sub-packages within parent modules (no separate `go.mod`). They have significant APIs but no dedicated READMEs:
 
 **storage/ sub-packages (6):**
+
 1. `storage/eventstore/` -- SQL event store implementation
 2. `storage/readmodel/` -- SQL KV store for read models
 3. `storage/sql/` -- Transaction helpers, dialect, duplicate-key detection
@@ -135,23 +141,16 @@ These are sub-packages within parent modules (no separate `go.mod`). They have s
 5. `storage/view/` -- Column-mapped SQL views
 6. `storage/migrations/` -- Embedded SQL DDL
 
-**catalog/ sub-packages (7):**
-7. `catalog/schema/` -- JSON Schema types and reflection engine
-8. `catalog/asyncapi/` -- AsyncAPI 3.0 exporter
-9. `catalog/eventcatalog/` -- EventCatalog MDX generator
-10. `catalog/openapi/` -- OpenAPI 3.0 exporter
-11. `catalog/d2/` -- D2 diagram exporter
-12. `catalog/docserver/` -- HTTP handlers for serving docs
-13. `catalog/simple/` -- Single-service builder facade
+**catalog/ sub-packages (7):** 7. `catalog/schema/` -- JSON Schema types and reflection engine 8. `catalog/asyncapi/` -- AsyncAPI 3.0 exporter 9. `catalog/eventcatalog/` -- EventCatalog MDX generator 10. `catalog/openapi/` -- OpenAPI 3.0 exporter 11. `catalog/d2/` -- D2 diagram exporter 12. `catalog/docserver/` -- HTTP handlers for serving docs 13. `catalog/simple/` -- Single-service builder facade
 
-**Other sub-packages (2):**
-14. `id/idtest/` -- Test helpers for branded IDs
-15. `query/querytest/` -- Test helpers for queries
+**Other sub-packages (2):** 14. `id/idtest/` -- Test helpers for branded IDs 15. `query/querytest/` -- Test helpers for queries
 
 ### `stack/sqlopt/` Sub-Package
+
 Not checked in previous session. Has pragma/DSN configuration options used by stack presets.
 
 ### CI Integration
+
 - `cmd/doc-check` is NOT configured to run against module READMEs in CI
 - It currently checks `SKILL.md`, `AGENTS.md`, and `.agents/skills/` references only
 
@@ -168,6 +167,7 @@ Nothing is totally fucked up. All confirmed bugs from session 1 were fixed in se
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Process
+
 1. **Always read source before writing code examples** -- Never write a Go code example in a README without first reading the actual function signature from source. This is non-negotiable.
 2. **Run doc-check after every README change** -- Not just at the end. Run it after each batch.
 3. **Use `go doc` to verify exports** -- Cross-check every symbol in API tables against `go doc` output.
@@ -175,12 +175,14 @@ Nothing is totally fucked up. All confirmed bugs from session 1 were fixed in se
 5. **Consider a doc compilation test** -- Extract Go code blocks from READMEs and verify they parse (even if they don't compile due to missing imports).
 
 ### Architecture / Type Model
+
 6. **`snapshot.EveryNEvents` returns `(SnapshotStrategy, error)`** -- This two-return pattern is awkward for inline use in options. Consider a `MustEveryNEvents(n)` variant for test/example use, or change to return a single value with a `Validate()` method.
 7. **`kv.Store` interface takes `context.Context` on every method** -- This is correct but verbose for examples. Consider a `kv.SimpleStore` wrapper or document the `ctx` pattern more prominently.
 8. **`stack.Bundle` accessor asymmetry** -- `EventStore()` returns `(value, bool)` but `Repository` is a top-level function. This is inconsistent. Consider making `Repository` a method on `Bundle` (with generics) or making `EventStore` return an error.
 9. **`transport/grpc` option asymmetry** -- Only query entry points accept `Option`. Command entry points don't. This is confusing. Document it prominently (now done in README) or make the API symmetric.
 
 ### Documentation Strategy
+
 10. **Template** -- Create a README template in `CONTRIBUTING.md` so future modules follow the same structure.
 11. **Runnable examples** -- Consider extracting README code blocks into actual `_test.go` files that compile and run.
 12. **Cross-references** -- Ensure "Related Modules" sections are bidirectional (if A links to B, B should link to A).

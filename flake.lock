@@ -3,11 +3,11 @@
     "cmdguard": {
       "flake": false,
       "locked": {
-        "lastModified": 1784806293,
-        "narHash": "sha256-RFmaz0lawMy7CPG5tTbR5aTT9MM8gR6WoW5OKo3P6Ds=",
+        "lastModified": 1784856128,
+        "narHash": "sha256-vfIYwp2VEPlY4qyGP+XqJQBAoozuslQRCb9Ubz0yyLs=",
         "ref": "master",
-        "rev": "3f77e0a1c7c6049a8693474bfd18c10d515ab76d",
-        "revCount": 874,
+        "rev": "3a8b8478b096253a2338b7862db9b03d4d6315fa",
+        "revCount": 875,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/cmdguard"
       },
@@ -124,11 +124,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1784497964,
-        "narHash": "sha256-vlHUuqAcbcH2RKmHbPiuQzbv1pnzzavXnI62RD0bqCU=",
+        "lastModified": 1784796856,
+        "narHash": "sha256-wWFrV5/Qbm+lyt5x20E/bSbfJiGKMo4RCxZV8cl/WZI=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "241313f4e8e508cb9b13278c2b0fa25b9ca27163",
+        "rev": "e2587caef70cea85dd97d7daab492899902dbf5d",
         "type": "github"
       },
       "original": {
@@ -156,11 +156,11 @@
     "samber-do-auditlog": {
       "flake": false,
       "locked": {
-        "lastModified": 1784843626,
-        "narHash": "sha256-c9s8yy5hcjUVR8AaYxeCrm4tlN1uBUdrkSdmVw96MSo=",
+        "lastModified": 1784897618,
+        "narHash": "sha256-1IMJVjHyW4xicJX6EnW/jrTlhGnmhC1maeRFJEc/Ceo=",
         "ref": "master",
-        "rev": "f5b99ceb418b78859e980b7be48e5a1283afd90a",
-        "revCount": 431,
+        "rev": "6e3526c91b79be8dcce7fff8421654c5d0a82494",
+        "revCount": 435,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/samber-do-auditlog"
       },

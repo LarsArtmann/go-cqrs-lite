@@ -47,14 +47,14 @@ host.Register(&mat)
 
 ### Bundle
 
-| Symbol                    | Kind   | Description                                                        |
-| ------------------------- | ------ | ------------------------------------------------------------------ |
-| `Bundle`                  | Struct | Peer capability fields: events, commands, queries, snapshots, etc. |
+| Symbol                          | Kind     | Description                                                         |
+| ------------------------------- | -------- | ------------------------------------------------------------------- |
+| `Bundle`                        | Struct   | Peer capability fields: events, commands, queries, snapshots, etc.  |
 | `Bundle.EventStore()`           | Method   | Returns `(event.Store, bool)`.                                      |
 | `stack.Repository[State](b, d)` | Function | Returns `(*decider.Repository[State], error)` wired to store + bus. |
 | `stack.ReadModel[T, K](b, ...)` | Function | Returns `(*kv.TypedStore[T, K], error)` for read models.            |
-| `Bundle.HealthCheck(ctx)` | Method | Pings the DB + calls HealthCheck on registered resources.          |
-| `Bundle.Close()`          | Method | Closes all registered closers (deduplicated by pointer).           |
+| `Bundle.HealthCheck(ctx)`       | Method   | Pings the DB + calls HealthCheck on registered resources.           |
+| `Bundle.Close()`                | Method   | Closes all registered closers (deduplicated by pointer).            |
 
 ### Materialize[V, K]
 

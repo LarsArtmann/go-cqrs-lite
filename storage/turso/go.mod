@@ -36,7 +36,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
-	github.com/oklog/ulid/v2 v2.1.1 // indirect
+	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/tursodatabase/turso-go-platform-libs v0.7.1 // indirect

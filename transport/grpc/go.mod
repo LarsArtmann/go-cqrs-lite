@@ -27,7 +27,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
-	github.com/oklog/ulid/v2 v2.1.1 // indirect
+	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.44.0 // indirect
@@ -37,5 +37,5 @@ require (
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260723164925-7274b71286bd // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260723215102-3fe39f3c1018 // indirect
 )

@@ -31,7 +31,7 @@ require (
 	github.com/larsartmann/go-error-family v0.8.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
-	github.com/oklog/ulid/v2 v2.1.1 // indirect
+	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

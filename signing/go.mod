@@ -25,7 +25,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
-	github.com/oklog/ulid/v2 v2.1.1 // indirect
+	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect

@@ -11,7 +11,6 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect

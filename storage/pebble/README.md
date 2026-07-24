@@ -81,7 +81,7 @@ val, _ := kvStore.Get(ctx, []byte("key"))
 | Symbol                 | Description                                         |
 | ---------------------- | --------------------------------------------------- |
 | `NewKVStore(db, opts)` | Adapts Pebble as a `kv.Store`.                      |
-| `WithKVSyncWrites()`    | Force synchronous writes.                           |
+| `WithKVSyncWrites()`   | Force synchronous writes.                           |
 | `WithBorrowedDB()`     | Adapter does not close the DB (shared via Backend). |
 
 ## Design

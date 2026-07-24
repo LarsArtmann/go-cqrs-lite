@@ -137,98 +137,98 @@ All changes this session were surgical refactors with tests passing after each s
 
 ### P0 — Correctness & CI Safety
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Extract `GraphNeighbors` from `memory_engine.go` to get below 350 with margin | Prevents CI break | 5 min |
-| 2 | Fix `EngineProfile.String()` to use `slices.Sorted` instead of `sort.Strings` | Consistency | 2 min |
-| 3 | Add error sentinels (`ErrQueryNotFound`, `ErrUnsupportedADT`, `ErrAmbiguousKey`) | API quality | 30 min |
-| 4 | Write concurrent Apply + ExecuteTyped test (writer/reader race) | Correctness | 15 min |
-| 5 | Analyze coverage gaps and add tests for uncovered error branches | Coverage | 30 min |
+| #   | Task                                                                             | Impact            | Effort |
+| --- | -------------------------------------------------------------------------------- | ----------------- | ------ |
+| 1   | Extract `GraphNeighbors` from `memory_engine.go` to get below 350 with margin    | Prevents CI break | 5 min  |
+| 2   | Fix `EngineProfile.String()` to use `slices.Sorted` instead of `sort.Strings`    | Consistency       | 2 min  |
+| 3   | Add error sentinels (`ErrQueryNotFound`, `ErrUnsupportedADT`, `ErrAmbiguousKey`) | API quality       | 30 min |
+| 4   | Write concurrent Apply + ExecuteTyped test (writer/reader race)                  | Correctness       | 15 min |
+| 5   | Analyze coverage gaps and add tests for uncovered error branches                 | Coverage          | 30 min |
 
 ### P1 — Performance
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 6 | Cache `reflect.Value` of handlers in Fold struct at Plan() time | ~2x throughput | 1 hr |
-| 7 | Pre-compute filter predicate closures at Plan() time | Eliminates per-item reflect | 1 hr |
-| 8 | Add benchmark tests (`BenchmarkApply`, `BenchmarkExecute`) | Measurability | 30 min |
-| 9 | Add property-based tests for fold classification (rapid) | Correctness confidence | 1 hr |
+| #   | Task                                                            | Impact                      | Effort |
+| --- | --------------------------------------------------------------- | --------------------------- | ------ |
+| 6   | Cache `reflect.Value` of handlers in Fold struct at Plan() time | ~2x throughput              | 1 hr   |
+| 7   | Pre-compute filter predicate closures at Plan() time            | Eliminates per-item reflect | 1 hr   |
+| 8   | Add benchmark tests (`BenchmarkApply`, `BenchmarkExecute`)      | Measurability               | 30 min |
+| 9   | Add property-based tests for fold classification (rapid)        | Correctness confidence      | 1 hr   |
 
 ### P1 — Integration (Ghost System Fix)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 10 | Create `projectionAdapter` that wraps `Store` as `projection.Projection` | Enables projectionhost wiring | 1 hr |
-| 11 | Fix `go.sum` checksum to allow `event/` import | Unblocks native event integration | Unknown |
-| 12 | Add `Store` as a `projectionhost.Host` projection handler | Full integration | 2 hr |
-| 13 | Bridge `MapBackend` to `kv.TypedStore` (composition over reimplementation) | Eliminates duplicate code | 3 hr |
-| 14 | Bridge `GraphBackend` to `graph.GraphSink` | Eliminates duplicate code | 3 hr |
-| 15 | Add metaengine to `example/taskmanager` as a usage demo | Proves consumer value | 2 hr |
+| #   | Task                                                                       | Impact                            | Effort  |
+| --- | -------------------------------------------------------------------------- | --------------------------------- | ------- |
+| 10  | Create `projectionAdapter` that wraps `Store` as `projection.Projection`   | Enables projectionhost wiring     | 1 hr    |
+| 11  | Fix `go.sum` checksum to allow `event/` import                             | Unblocks native event integration | Unknown |
+| 12  | Add `Store` as a `projectionhost.Host` projection handler                  | Full integration                  | 2 hr    |
+| 13  | Bridge `MapBackend` to `kv.TypedStore` (composition over reimplementation) | Eliminates duplicate code         | 3 hr    |
+| 14  | Bridge `GraphBackend` to `graph.GraphSink`                                 | Eliminates duplicate code         | 3 hr    |
+| 15  | Add metaengine to `example/taskmanager` as a usage demo                    | Proves consumer value             | 2 hr    |
 
 ### P2 — Architecture Improvements
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 16 | Replace `any` in `Edge.From`/`Edge.To` with a typed constraint | Type safety | 1 hr |
-| 17 | Strong-type `MultiEntry.Key`/`MultiEntry.Value` via generics | Type safety | 2 hr |
-| 18 | Add `event.Event` native support (when go.sum fixed) | Eliminates ApplyEncoded workaround | 1 hr |
-| 19 | Add CBOR support to `ApplyEncoded` (currently JSON-only) | Codec flexibility | 30 min |
-| 20 | Consider `FilterOn` → SQL pushdown design (code gen vs named descriptors) | SQL engine readiness | Research |
-| 21 | Design planner output shape for projectionhost integration | Integration path | Research |
+| #   | Task                                                                      | Impact                             | Effort   |
+| --- | ------------------------------------------------------------------------- | ---------------------------------- | -------- |
+| 16  | Replace `any` in `Edge.From`/`Edge.To` with a typed constraint            | Type safety                        | 1 hr     |
+| 17  | Strong-type `MultiEntry.Key`/`MultiEntry.Value` via generics              | Type safety                        | 2 hr     |
+| 18  | Add `event.Event` native support (when go.sum fixed)                      | Eliminates ApplyEncoded workaround | 1 hr     |
+| 19  | Add CBOR support to `ApplyEncoded` (currently JSON-only)                  | Codec flexibility                  | 30 min   |
+| 20  | Consider `FilterOn` → SQL pushdown design (code gen vs named descriptors) | SQL engine readiness               | Research |
+| 21  | Design planner output shape for projectionhost integration                | Integration path                   | Research |
 
 ### P2 — Documentation
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 22 | Add metaengine to AGENTS.md Monorepo Structure tree | Docs accuracy | 5 min |
-| 23 | Write brutal self-review HTML report at `docs/reviews/` | Process compliance | 30 min |
-| 24 | Update `metaengine/README.md` with context.Context signatures | Docs accuracy | 15 min |
-| 25 | Add metaengine to the Crush skill (`SKILL.md` routing table) | AI consumer discoverability | 30 min |
-| 26 | Write ADR for metaengine architecture decisions | Knowledge capture | 1 hr |
+| #   | Task                                                          | Impact                      | Effort |
+| --- | ------------------------------------------------------------- | --------------------------- | ------ |
+| 22  | Add metaengine to AGENTS.md Monorepo Structure tree           | Docs accuracy               | 5 min  |
+| 23  | Write brutal self-review HTML report at `docs/reviews/`       | Process compliance          | 30 min |
+| 24  | Update `metaengine/README.md` with context.Context signatures | Docs accuracy               | 15 min |
+| 25  | Add metaengine to the Crush skill (`SKILL.md` routing table)  | AI consumer discoverability | 30 min |
+| 26  | Write ADR for metaengine architecture decisions               | Knowledge capture           | 1 hr   |
 
 ### P3 — Advanced Features
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 27 | Implement SQL-backed engine (SQLiteEngineProfile → real SQLite engine) | Production readiness | 1 week |
-| 28 | Add multi-engine routing (different queries → different engines) | Performance | 3 hr |
-| 29 | Add hot-swap (re-plan without restart) | Operations | 1 day |
-| 30 | Add OTel tracing spans to Apply/Execute | Observability | 1 hr |
-| 31 | Add metrics (event processing rate, query latency) | Observability | 1 hr |
-| 32 | Add health check interface (`HealthCheck(ctx) error`) | Operations | 30 min |
-| 33 | Add snapshot/restore for memory engine | Testing convenience | 2 hr |
+| #   | Task                                                                   | Impact               | Effort |
+| --- | ---------------------------------------------------------------------- | -------------------- | ------ |
+| 27  | Implement SQL-backed engine (SQLiteEngineProfile → real SQLite engine) | Production readiness | 1 week |
+| 28  | Add multi-engine routing (different queries → different engines)       | Performance          | 3 hr   |
+| 29  | Add hot-swap (re-plan without restart)                                 | Operations           | 1 day  |
+| 30  | Add OTel tracing spans to Apply/Execute                                | Observability        | 1 hr   |
+| 31  | Add metrics (event processing rate, query latency)                     | Observability        | 1 hr   |
+| 32  | Add health check interface (`HealthCheck(ctx) error`)                  | Operations           | 30 min |
+| 33  | Add snapshot/restore for memory engine                                 | Testing convenience  | 2 hr   |
 
 ### P3 — Cost Model Improvements
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 34 | Calibrate `nsPerOp = 100.0` constant with real benchmarks | Cost accuracy | 2 hr |
-| 35 | Add per-ADT cost coefficients (hash map != B-tree for cache misses) | Cost accuracy | 3 hr |
-| 36 | Add memory cost estimation (not just latency) | Cost completeness | 2 hr |
-| 37 | Add write amplification cost (events × projections × codec size) | Cost completeness | 2 hr |
-| 38 | Add scale threshold auto-detection from engine capacity | Smarter planning | 3 hr |
+| #   | Task                                                                | Impact            | Effort |
+| --- | ------------------------------------------------------------------- | ----------------- | ------ |
+| 34  | Calibrate `nsPerOp = 100.0` constant with real benchmarks           | Cost accuracy     | 2 hr   |
+| 35  | Add per-ADT cost coefficients (hash map != B-tree for cache misses) | Cost accuracy     | 3 hr   |
+| 36  | Add memory cost estimation (not just latency)                       | Cost completeness | 2 hr   |
+| 37  | Add write amplification cost (events × projections × codec size)    | Cost completeness | 2 hr   |
+| 38  | Add scale threshold auto-detection from engine capacity             | Smarter planning  | 3 hr   |
 
 ### P3 — Testing Infrastructure
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 39 | Add `contracttest` package for engine backends (like storage/contracttest) | Backend consistency | 1 day |
-| 40 | Add fuzzing for `ParseCursor` / `Cursor.String()` round-trip | Security | 30 min |
-| 41 | Add fuzzing for `On()` handler classification | Robustness | 1 hr |
-| 42 | Add snapshot tests for `PlanResult.Report()` output | Regression detection | 30 min |
-| 43 | Add table-driven test for all numeric type combinations in `compareValue` | Correctness | 30 min |
+| #   | Task                                                                       | Impact               | Effort |
+| --- | -------------------------------------------------------------------------- | -------------------- | ------ |
+| 39  | Add `contracttest` package for engine backends (like storage/contracttest) | Backend consistency  | 1 day  |
+| 40  | Add fuzzing for `ParseCursor` / `Cursor.String()` round-trip               | Security             | 30 min |
+| 41  | Add fuzzing for `On()` handler classification                              | Robustness           | 1 hr   |
+| 42  | Add snapshot tests for `PlanResult.Report()` output                        | Regression detection | 30 min |
+| 43  | Add table-driven test for all numeric type combinations in `compareValue`  | Correctness          | 30 min |
 
 ### P4 — Polish
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 44 | Add `fmt.Stringer` implementation for `Fold`, `FoldKind` | Debugging | 15 min |
-| 45 | Add `PlanResult.JSON()` for machine-readable plan output | Tooling | 30 min |
-| 46 | Add `Store.Stats()` returning processing counters | Observability | 1 hr |
-| 47 | Add `Store.Reset()` for projection replay | Operations | 30 min |
-| 48 | Add `context.Context` propagation through `ExecuteTyped` (currently ignores ctx) | Correctness | 15 min |
-| 49 | Consider adding `SortedMapBackend` interface for sorted-map specific operations | API completeness | Research |
-| 50 | Add CI job for metaengine in `.github/workflows/ci.yml` | CI coverage | 30 min |
+| #   | Task                                                                             | Impact           | Effort   |
+| --- | -------------------------------------------------------------------------------- | ---------------- | -------- |
+| 44  | Add `fmt.Stringer` implementation for `Fold`, `FoldKind`                         | Debugging        | 15 min   |
+| 45  | Add `PlanResult.JSON()` for machine-readable plan output                         | Tooling          | 30 min   |
+| 46  | Add `Store.Stats()` returning processing counters                                | Observability    | 1 hr     |
+| 47  | Add `Store.Reset()` for projection replay                                        | Operations       | 30 min   |
+| 48  | Add `context.Context` propagation through `ExecuteTyped` (currently ignores ctx) | Correctness      | 15 min   |
+| 49  | Consider adding `SortedMapBackend` interface for sorted-map specific operations  | API completeness | Research |
+| 50  | Add CI job for metaengine in `.github/workflows/ci.yml`                          | CI coverage      | 30 min   |
 
 ---
 
@@ -252,57 +252,57 @@ The `SQLiteEngineProfile()` exists as a stub but there's no real SQL engine impl
 
 ### Production Files (16 files, 4,313 lines)
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `memory_engine.go` | **350** ⚠️ | In-memory backend (ALL 7 ADTs) |
-| `execute.go` | 306 | Execute, executeQuery, filter/sort, ExecuteTyped |
-| `reflect.go` | 243 | Type reflection, field extraction, pagination detection |
-| `query.go` | 230 | QueryDecl, Query constructor, infer, FilterOn, SortOn |
-| `planner.go` | 215 | Plan, planQuery, planDiagnostics, complexityRank |
-| `fold.go` | 213 | FoldKind, Fold, On, classifySingleReturn |
-| `fold_classify.go` | 204 | Call helpers, classifyADT, deriveKeys, buildKeyExtractor |
-| `store.go` | 163 | queryRuntime, Store, Close, Apply, applyFold |
-| `cost.go` | 162 | CostEstimate, estimateCost, ScaleThreshold, effectiveReadComplexity |
-| `plan_types.go` | 130 | Diagnostic, QueryAssignment, PlanResult, Report |
-| `engine.go` | 123 | Interfaces, EngineProfile, compile-time assertions |
-| `collection.go` | 111 | Collection result inspection, reconstructCollection |
-| `compare.go` | 102 | compareValue, tryNumericCompare, toFloat64, passesFilters |
-| `encoded.go` | 88 | ApplyEncoded, EventTypeNames |
-| `types.go` | 82 | ADT, ReadPattern, Complexity, Delta, Edge, MultiEntry, Append, Skip, Cursor |
-| `cursor.go` | 45 | Cursor.String(), ParseCursor |
+| File               | Lines      | Purpose                                                                     |
+| ------------------ | ---------- | --------------------------------------------------------------------------- |
+| `memory_engine.go` | **350** ⚠️ | In-memory backend (ALL 7 ADTs)                                              |
+| `execute.go`       | 306        | Execute, executeQuery, filter/sort, ExecuteTyped                            |
+| `reflect.go`       | 243        | Type reflection, field extraction, pagination detection                     |
+| `query.go`         | 230        | QueryDecl, Query constructor, infer, FilterOn, SortOn                       |
+| `planner.go`       | 215        | Plan, planQuery, planDiagnostics, complexityRank                            |
+| `fold.go`          | 213        | FoldKind, Fold, On, classifySingleReturn                                    |
+| `fold_classify.go` | 204        | Call helpers, classifyADT, deriveKeys, buildKeyExtractor                    |
+| `store.go`         | 163        | queryRuntime, Store, Close, Apply, applyFold                                |
+| `cost.go`          | 162        | CostEstimate, estimateCost, ScaleThreshold, effectiveReadComplexity         |
+| `plan_types.go`    | 130        | Diagnostic, QueryAssignment, PlanResult, Report                             |
+| `engine.go`        | 123        | Interfaces, EngineProfile, compile-time assertions                          |
+| `collection.go`    | 111        | Collection result inspection, reconstructCollection                         |
+| `compare.go`       | 102        | compareValue, tryNumericCompare, toFloat64, passesFilters                   |
+| `encoded.go`       | 88         | ApplyEncoded, EventTypeNames                                                |
+| `types.go`         | 82         | ADT, ReadPattern, Complexity, Delta, Edge, MultiEntry, Append, Skip, Cursor |
+| `cursor.go`        | 45         | Cursor.String(), ParseCursor                                                |
 
 ### Test Files (9 files, 1,546 lines)
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `execution_test.go` | 349 | BDD specs for Apply+Execute (all 7 ADTs, concurrency, encoded) |
-| `cost_test.go` | 228 | BDD specs for cost model (WithinBudget, estimation, warnings) |
-| `planner_test.go` | 204 | BDD specs for Plan (5-query plan, errors, Report, diagnostics) |
-| `adt_test.go` | 177 | BDD specs for Multimap + Log ADTs |
-| `fixtures_test.go` | 169 | Shared task-management domain types and 7 query declarations |
-| `on_test.go` | 138 | BDD specs for On constructor (7 handler shapes, panics, Remove/Skip) |
-| `pagination_test.go` | 134 | BDD specs for pagination (first/last page, sort stability) |
-| `cursor_test.go` | 134 | BDD specs for cursor (String/ParseCursor, round-trip, HTTP boundary) |
-| `metaengine_suite_test.go` | 13 | Ginkgo bootstrap |
+| File                       | Lines | Purpose                                                              |
+| -------------------------- | ----- | -------------------------------------------------------------------- |
+| `execution_test.go`        | 349   | BDD specs for Apply+Execute (all 7 ADTs, concurrency, encoded)       |
+| `cost_test.go`             | 228   | BDD specs for cost model (WithinBudget, estimation, warnings)        |
+| `planner_test.go`          | 204   | BDD specs for Plan (5-query plan, errors, Report, diagnostics)       |
+| `adt_test.go`              | 177   | BDD specs for Multimap + Log ADTs                                    |
+| `fixtures_test.go`         | 169   | Shared task-management domain types and 7 query declarations         |
+| `on_test.go`               | 138   | BDD specs for On constructor (7 handler shapes, panics, Remove/Skip) |
+| `pagination_test.go`       | 134   | BDD specs for pagination (first/last page, sort stability)           |
+| `cursor_test.go`           | 134   | BDD specs for cursor (String/ParseCursor, round-trip, HTTP boundary) |
+| `metaengine_suite_test.go` | 13    | Ginkgo bootstrap                                                     |
 
 ### Dependencies
 
-| Category | Packages |
-|----------|----------|
+| Category   | Packages                                                                          |
+| ---------- | --------------------------------------------------------------------------------- |
 | Production | **Zero** (stdlib only, including `encoding/json/v2` behind `GOEXPERIMENT=jsonv2`) |
-| Test-only | `github.com/onsi/ginkgo/v2 v2.32.0`, `github.com/onsi/gomega v1.42.1` |
+| Test-only  | `github.com/onsi/ginkgo/v2 v2.32.0`, `github.com/onsi/gomega v1.42.1`             |
 
 ### Commits This Session (10 commits, all pushed)
 
-| Commit | Message |
-|--------|---------|
-| `7c2248ab` | fix(metaengine): make Apply/ApplyEncoded iteration order deterministic |
-| `8d4f7d1c` | fix(metaengine): report all events exceeding write amplification budget |
-| `142ed949` | refactor(metaengine): split engine.go into 3 focused files |
-| `b89767e6` | refactor(metaengine): split store.go into store.go + execute.go |
-| `96d43a1e` | refactor(metaengine): split fold.go into fold.go + fold_classify.go |
-| `c466e6b0` | refactor(metaengine): split planner.go and reflect.go below CI limit |
-| `f0bc03e0` | refactor(metaengine): add context.Context to all backend interfaces |
-| `dd2d40dd` | docs(metaengine): add metaengine to AGENTS.md module list and test command |
-| `0985095f` | feat(metaengine): add collection support (auto-commit, prior session) |
+| Commit     | Message                                                                              |
+| ---------- | ------------------------------------------------------------------------------------ |
+| `7c2248ab` | fix(metaengine): make Apply/ApplyEncoded iteration order deterministic               |
+| `8d4f7d1c` | fix(metaengine): report all events exceeding write amplification budget              |
+| `142ed949` | refactor(metaengine): split engine.go into 3 focused files                           |
+| `b89767e6` | refactor(metaengine): split store.go into store.go + execute.go                      |
+| `96d43a1e` | refactor(metaengine): split fold.go into fold.go + fold_classify.go                  |
+| `c466e6b0` | refactor(metaengine): split planner.go and reflect.go below CI limit                 |
+| `f0bc03e0` | refactor(metaengine): add context.Context to all backend interfaces                  |
+| `dd2d40dd` | docs(metaengine): add metaengine to AGENTS.md module list and test command           |
+| `0985095f` | feat(metaengine): add collection support (auto-commit, prior session)                |
 | `14654ad3` | refactor(metaengine, benchkit): improve metadata engine (auto-commit, prior session) |

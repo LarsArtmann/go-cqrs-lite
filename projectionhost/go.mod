@@ -24,7 +24,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
-	github.com/oklog/ulid/v2 v2.1.1 // indirect
+	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

@@ -209,22 +209,22 @@ and engine assignments from two primitives: **Events** (mutations) and
 **Queries** (read intent). The fold return type IS the ADT declaration — the
 developer never declares "I need a Map" or "I need a Counter."
 
-| Feature                    | Detail                                                                                                          | Status |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------- | ------ |
-| Unified `On[E]()` fold     | Reflection-based handler classification: 7 patterns (insert, update, set, count, edge, remove, skip)            | 🧪     |
-| ADT inference              | Map, Set, Counter, Graph, SortedMap, Multimap, Log — derived from fold return type                              | 🧪     |
-| Typed FilterOn / SortOn    | `FilterOn(func(r R) T { ... })` — typed closures, no field name strings                                         | 🧪     |
-| Pagination from input      | Detected from domain input struct fields (`Limit int`, `After *Cursor`)                                         | 🧪     |
-| Cursor serialization       | Base64-encoded URL-safe cursors for HTTP transport                                                              | 🧪     |
-| Cost model                 | `CostEstimate` with Volume-based estimation, `LatencyBudget` enforcement, scale threshold tables                | 🧪     |
-| Write amplification budget | Tracks events exceeding write amplification limit                                                               | 🧪     |
-| MemoryEngine               | In-memory backend implementing all 9 backend interfaces (Map, MapUpdater, Scan, Set, Counter, Graph, etc.)      | 🧪     |
-| Planner                    | Cost-based optimizer: assigns engines to queries, produces `PlanResult` with diagnostics                        | 🧪     |
-| Store                      | `Plan(engines, queries...)` returns `*Store` for Apply/Execute; `ApplyEncoded` for JSON payloads                | 🧪     |
-| Collection results         | Reconstructs typed result collections by field shape from scan output                                           | 🧪     |
-| Context.Context            | All backend interfaces accept `context.Context`                                                                 | 🧪     |
-| Compile-time assertions    | Interface conformance verified at compile time for all 9 backends                                               | 🧪     |
-| Zero dependencies          | Only `ginkgo`/`gomega` for testing; zero production deps                                                         | 🧪     |
+| Feature                    | Detail                                                                                                     | Status |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------- | ------ |
+| Unified `On[E]()` fold     | Reflection-based handler classification: 7 patterns (insert, update, set, count, edge, remove, skip)       | 🧪     |
+| ADT inference              | Map, Set, Counter, Graph, SortedMap, Multimap, Log — derived from fold return type                         | 🧪     |
+| Typed FilterOn / SortOn    | `FilterOn(func(r R) T { ... })` — typed closures, no field name strings                                    | 🧪     |
+| Pagination from input      | Detected from domain input struct fields (`Limit int`, `After *Cursor`)                                    | 🧪     |
+| Cursor serialization       | Base64-encoded URL-safe cursors for HTTP transport                                                         | 🧪     |
+| Cost model                 | `CostEstimate` with Volume-based estimation, `LatencyBudget` enforcement, scale threshold tables           | 🧪     |
+| Write amplification budget | Tracks events exceeding write amplification limit                                                          | 🧪     |
+| MemoryEngine               | In-memory backend implementing all 9 backend interfaces (Map, MapUpdater, Scan, Set, Counter, Graph, etc.) | 🧪     |
+| Planner                    | Cost-based optimizer: assigns engines to queries, produces `PlanResult` with diagnostics                   | 🧪     |
+| Store                      | `Plan(engines, queries...)` returns `*Store` for Apply/Execute; `ApplyEncoded` for JSON payloads           | 🧪     |
+| Collection results         | Reconstructs typed result collections by field shape from scan output                                      | 🧪     |
+| Context.Context            | All backend interfaces accept `context.Context`                                                            | 🧪     |
+| Compile-time assertions    | Interface conformance verified at compile time for all 9 backends                                          | 🧪     |
+| Zero dependencies          | Only `ginkgo`/`gomega` for testing; zero production deps                                                   | 🧪     |
 
 **Coverage:** 82.6% (89 BDD specs + 11 unit tests). 14 production files, all
 under 350-line CI limit. No real SQL/Pebble engine yet — only MemoryEngine.
@@ -240,19 +240,19 @@ Factory-driven benchmarking suite for measuring CQRS performance across
 backends, deployment sizes, and workload profiles. Mirrors the contracttest
 pattern: same workload, any backend, structured metrics report.
 
-| Feature               | Detail                                                                                     | Status |
-| --------------------- | ------------------------------------------------------------------------------------------ | ------ |
-| Core types            | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`                | 🧪     |
-| LatencyCollector      | Sorted-slice + reservoir sampling (10K cap), thread-safe                                   | 🧪     |
-| Resource sampling     | Peak heap via 100ms polling goroutine, baseline/after deltas                               | 🧪     |
-| Synthetic generator   | Seeded PCG, deterministic, configurable payload size                                       | 🧪     |
-| 7 named profiles      | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                                   | 🧪     |
-| 8-phase runner        | setup → warmup → write → read → readmodel → projection → durability → teardown            | 🧪     |
-| Concurrent workers    | Channel-based, cancel-on-error, WaitGroup                                                  | 🧪     |
-| `Run()` API           | Single-backend benchmark, returns `*Result`                                                | 🧪     |
-| `Compare()` API       | Multi-backend comparison, handles factory failures gracefully                              | 🧪     |
-| Reports               | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk                  | 🧪     |
-| ReadRatio             | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                           | 🧪     |
+| Feature             | Detail                                                                         | Status |
+| ------------------- | ------------------------------------------------------------------------------ | ------ |
+| Core types          | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`    | 🧪     |
+| LatencyCollector    | Sorted-slice + reservoir sampling (10K cap), thread-safe                       | 🧪     |
+| Resource sampling   | Peak heap via 100ms polling goroutine, baseline/after deltas                   | 🧪     |
+| Synthetic generator | Seeded PCG, deterministic, configurable payload size                           | 🧪     |
+| 7 named profiles    | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                       | 🧪     |
+| 8-phase runner      | setup → warmup → write → read → readmodel → projection → durability → teardown | 🧪     |
+| Concurrent workers  | Channel-based, cancel-on-error, WaitGroup                                      | 🧪     |
+| `Run()` API         | Single-backend benchmark, returns `*Result`                                    | 🧪     |
+| `Compare()` API     | Multi-backend comparison, handles factory failures gracefully                  | 🧪     |
+| Reports             | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk      | 🧪     |
+| ReadRatio           | Configurable read/write mix for WriteHeavy and ReadHeavy profiles              | 🧪     |
 
 **Coverage:** 23 tests with `-race`. Known gaps: warmup pollutes main store,
 `estimateJSONSize` is a rough guess, no Pebble backend tests, no Postgres/Turso
@@ -262,12 +262,12 @@ backends.
 
 > `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench`
 
-| Feature     | Detail                                                                      | Status |
-| ----------- | --------------------------------------------------------------------------- | ------ |
-| `run`       | Benchmark a single backend with a named workload profile                     | 🔧     |
-| `compare`   | Compare multiple backends side-by-side                                      | 🔧     |
-| Profiles    | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}`     | 🔧     |
-| Output      | `--format {text\|json\|markdown}`                                         | 🔧     |
+| Feature   | Detail                                                                 | Status |
+| --------- | ---------------------------------------------------------------------- | ------ |
+| `run`     | Benchmark a single backend with a named workload profile               | 🔧     |
+| `compare` | Compare multiple backends side-by-side                                 | 🔧     |
+| Profiles  | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}` | 🔧     |
+| Output    | `--format {text\|json\|markdown}`                                      | 🔧     |
 
 ---
 
@@ -706,36 +706,36 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/storage/v4"`
 
-| Feature                   | Detail                                                                                                                                       | Status |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| PostgreSQL event store    | `NewSQLEventStore(db)` implements `event.Store`                                                                                              | ✅     |
-| SQLite event store        | `NewSQLiteEventStore(db)` — `?` placeholders, `BLOB`/`TEXT` DDL                                                                              | ✅     |
-| Custom dialect            | `NewSQLEventStoreWithDialect(db, d)` — pluggable SQL backend                                                                                 | ✅     |
-| Schema DDL                | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso                                                                                     | ✅     |
-| Per-table DDL             | `SnapshotSchema`, `CheckpointSchema` + SQLite variants                                                                                       | ✅     |
-| Optimistic concurrency    | `Save` checks version in transaction                                                                                                         | ✅     |
-| AppendBatch               | Appends without concurrency check                                                                                                            | ✅     |
-| Full load API             | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`                                                                                | ✅     |
-| LoadBackwards             | Implements `event.BackwardsSource` — newest-first                                                                                            | ✅     |
-| Time-travel SQL queries   | `LoadToVersion`, `LoadToTimestamp` with composite timestamp index                                                                            | ✅     |
-| Journal / SeekableJournal | `ReadAll()`, `ReadFrom(afterEventID, limit)`                                                                                                 | ✅     |
-| Stream loading            | `LoadStream()` returns cursor-based `sqlEventStream` — memory-efficient iteration                                                            | ✅     |
-| Metadata persistence      | Full roundtrip: correlation IDs, user IDs, custom metadata                                                                                   | ✅     |
-| SQL SnapshotStore         | PostgreSQL + SQLite variants, upsert, version-aware load, delete                                                                             | ✅     |
-| SQL CheckpointStore       | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling                                                                               | ✅     |
-| SQL CommandStore          | `SQLCommandStore` implements `command.Store` — Save, AppendBatch, Load, LoadFromTimestamp, LoadToTimestamp                                   | ✅     |
-| SQL Backend               | `SQLBackend` facade returning `EventStore()`, `SnapshotStore()`, `CheckpointStore()`, `CommandStore()`                                       | ✅     |
-| AggregateProjection       | Maintains SQL read-model tables from event streams with tombstone detection                                                                  | ✅     |
-| Incremental rollups       | `ProjectionSink.Increment(ctx, table, key, counterCol, delta)` — atomic counter via `ON CONFLICT DO UPDATE` (ADR-0033)                        | ✅     |
-| RelationalProjection.Reset| `Reset(ctx)` implements `projectionhost.Resettable` — wipes all tables for zero-based replay                                                 | ✅     |
-| SQLAggregateReader        | `listing.AggregateReader` implementation reading from projection tables                                                                      | ✅     |
-| DB helpers                | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅     |
-| Dialect abstraction       | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods                                          | ✅     |
-| SQL sub-package           | `storage/sql` — `DBHandle`, `OwnedDBHandle`, generic `LoadWithSpan[T]`, `QueryRows[T]`, `ScanSlice[T]`, `ReconstructEvent`                   | ✅     |
-| Eventstore sub-package    | `storage/eventstore` — `SQLEventStore`, `SQLSnapshotStore`, `SQLCheckpointStore` (re-exported via aliases in `storage/`)                     | ✅     |
-| Readmodel sub-package     | `storage/readmodel` — `SQLKVStore` (re-exported via aliases in `storage/`)                                                                   | ✅     |
-| Close lifecycle           | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle                                                                         | ✅     |
-| HealthCheck (all stores)  | `OwnedDBHandle.HealthCheck(ctx)` — inherited by all SQL stores via embedding. Pings DB, checks closed state                                  | ✅     |
+| Feature                    | Detail                                                                                                                                       | Status |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| PostgreSQL event store     | `NewSQLEventStore(db)` implements `event.Store`                                                                                              | ✅     |
+| SQLite event store         | `NewSQLiteEventStore(db)` — `?` placeholders, `BLOB`/`TEXT` DDL                                                                              | ✅     |
+| Custom dialect             | `NewSQLEventStoreWithDialect(db, d)` — pluggable SQL backend                                                                                 | ✅     |
+| Schema DDL                 | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso                                                                                     | ✅     |
+| Per-table DDL              | `SnapshotSchema`, `CheckpointSchema` + SQLite variants                                                                                       | ✅     |
+| Optimistic concurrency     | `Save` checks version in transaction                                                                                                         | ✅     |
+| AppendBatch                | Appends without concurrency check                                                                                                            | ✅     |
+| Full load API              | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`                                                                                | ✅     |
+| LoadBackwards              | Implements `event.BackwardsSource` — newest-first                                                                                            | ✅     |
+| Time-travel SQL queries    | `LoadToVersion`, `LoadToTimestamp` with composite timestamp index                                                                            | ✅     |
+| Journal / SeekableJournal  | `ReadAll()`, `ReadFrom(afterEventID, limit)`                                                                                                 | ✅     |
+| Stream loading             | `LoadStream()` returns cursor-based `sqlEventStream` — memory-efficient iteration                                                            | ✅     |
+| Metadata persistence       | Full roundtrip: correlation IDs, user IDs, custom metadata                                                                                   | ✅     |
+| SQL SnapshotStore          | PostgreSQL + SQLite variants, upsert, version-aware load, delete                                                                             | ✅     |
+| SQL CheckpointStore        | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling                                                                               | ✅     |
+| SQL CommandStore           | `SQLCommandStore` implements `command.Store` — Save, AppendBatch, Load, LoadFromTimestamp, LoadToTimestamp                                   | ✅     |
+| SQL Backend                | `SQLBackend` facade returning `EventStore()`, `SnapshotStore()`, `CheckpointStore()`, `CommandStore()`                                       | ✅     |
+| AggregateProjection        | Maintains SQL read-model tables from event streams with tombstone detection                                                                  | ✅     |
+| Incremental rollups        | `ProjectionSink.Increment(ctx, table, key, counterCol, delta)` — atomic counter via `ON CONFLICT DO UPDATE` (ADR-0033)                       | ✅     |
+| RelationalProjection.Reset | `Reset(ctx)` implements `projectionhost.Resettable` — wipes all tables for zero-based replay                                                 | ✅     |
+| SQLAggregateReader         | `listing.AggregateReader` implementation reading from projection tables                                                                      | ✅     |
+| DB helpers                 | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅     |
+| Dialect abstraction        | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods                                          | ✅     |
+| SQL sub-package            | `storage/sql` — `DBHandle`, `OwnedDBHandle`, generic `LoadWithSpan[T]`, `QueryRows[T]`, `ScanSlice[T]`, `ReconstructEvent`                   | ✅     |
+| Eventstore sub-package     | `storage/eventstore` — `SQLEventStore`, `SQLSnapshotStore`, `SQLCheckpointStore` (re-exported via aliases in `storage/`)                     | ✅     |
+| Readmodel sub-package      | `storage/readmodel` — `SQLKVStore` (re-exported via aliases in `storage/`)                                                                   | ✅     |
+| Close lifecycle            | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle                                                                         | ✅     |
+| HealthCheck (all stores)   | `OwnedDBHandle.HealthCheck(ctx)` — inherited by all SQL stores via embedding. Pings DB, checks closed state                                  | ✅     |
 
 ### Pebble Key-Value Store
 
@@ -972,11 +972,11 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 ## Examples 💡 DEMO
 
-| Example                    | Detail                                                                                                                                                                                            |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `example/taskmanager/`     | Flagship full HTTP service: event sourcing, CQRS, KV + tombstone projections, SSE streaming, ProjectionHost with DLQ, signing, snapshot strategy, deriver (event→command), idempotency middleware |
-| `example/getting-started/` | Minimal 80-line example showing the core pipeline: counter aggregate, command dispatch, event store, bus, projection                                                                              |
-| `example/readme-quickstart/` | Compile-verified README Quick Start example — tests every API pattern from the main README                                                                                                       |
+| Example                      | Detail                                                                                                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `example/taskmanager/`       | Flagship full HTTP service: event sourcing, CQRS, KV + tombstone projections, SSE streaming, ProjectionHost with DLQ, signing, snapshot strategy, deriver (event→command), idempotency middleware |
+| `example/getting-started/`   | Minimal 80-line example showing the core pipeline: counter aggregate, command dispatch, event store, bus, projection                                                                              |
+| `example/readme-quickstart/` | Compile-verified README Quick Start example — tests every API pattern from the main README                                                                                                        |
 
 **Not reference applications.** These demonstrate library usage patterns.
 
@@ -986,12 +986,12 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 Features mentioned in project docs/planning but with **no production code yet**:
 
-| Feature                       | Description                                                    |
-| ----------------------------- | -------------------------------------------------------------- |
-| PostgreSQL testcontainers     | testcontainers-based real PG testing                           |
-| Documentation site            | Docusaurus/MkDocs/Hugo site                                    |
-| Transport adapters            | gRPC ✅, NATS/ValKey (ADR-0025 accepted, no code)              |
-| Distributed projection runner | Leader election, multi-node coordination — raw idea            |
+| Feature                       | Description                                         |
+| ----------------------------- | --------------------------------------------------- |
+| PostgreSQL testcontainers     | testcontainers-based real PG testing                |
+| Documentation site            | Docusaurus/MkDocs/Hugo site                         |
+| Transport adapters            | gRPC ✅, NATS/ValKey (ADR-0025 accepted, no code)   |
+| Distributed projection runner | Leader election, multi-node coordination — raw idea |
 
 ---
 
@@ -999,61 +999,61 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 > 56 independently importable modules in `go.work` (56 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
-| Module                    | Import Path                 | Maturity                                                                  |
-| ------------------------- | --------------------------- | ------------------------------------------------------------------------- |
-| `event`                   | `…/event/v4`                | ✅ Production                                                             |
-| `event/eventtest`         | `…/event/v4/eventtest`      | 🧪 Test helper                                                            |
-| `command`                 | `…/command/v4`              | ✅ Production                                                             |
-| `query`                   | `…/query/v4`                | ✅ Production                                                             |
-| `decider`                 | `…/decider/v4`              | ✅ Production                                                             |
-| `id`                      | `…/id/v4`                   | ✅ Production                                                             |
-| `dispatcher`              | `…/dispatcher/v4`           | ✅ Production                                                             |
-| `schema`                  | `…/schema/v4`               | ✅ Production                                                             |
-| `snapshot`                | `…/snapshot/v4`             | ✅ Production                                                             |
-| `codec`                   | `…/codec/v4`                | ✅ Production                                                             |
-| `kv`                      | `…/kv/v4`                   | ✅ Production                                                             |
-| `metadata`                | `…/metadata/v4`             | ✅ Production                                                             |
-| `dedup`                   | `…/dedup/v4`                | ✅ Production                                                             |
-| `storage/memory`          | `…/storage/memory/v4`       | 🧪 Test utility                                                           |
-| `catalog`                 | `…/catalog/v4`              | ✅ Production                                                             |
-| `middleware`              | `…/middleware/v4`           | ✅ Production                                                             |
-| `integration`             | `…/integration/v4`          | ✅ Test suite                                                             |
-| `signing`                 | `…/signing/v4`              | ✅ Production                                                             |
-| `encryption`              | `…/encryption/v4`           | ✅ Production                                                             |
-| `storage`                 | `…/storage/v4`              | ✅ Production                                                             |
-| `storage/sql`             | `…/storage/v4/sql`          | 🧪 Shared infra                                                           |
-| `watermill`               | `…/watermill/v4`            | ✅ Production                                                             |
-| `listing`                 | `…/listing/v4`              | ✅ Production                                                             |
-| `otel`                    | `…/otel/v4`                 | ✅ Production                                                             |
-| `storage/pebble`          | `…/storage/pebble/v4`       | ✅ Production                                                             |
-| `storage/turso`           | `…/storage/turso/v4`        | ✅ Production                                                             |
-| `transport/http`          | `…/transport/http/v4`       | ✅ Production                                                             |
-| `transport/grpc`          | `…/transport/grpc/v4`       | ✅ Production                                                             |
-| `prometheus`              | `…/prometheus/v4`           | ✅ Production                                                             |
-| `testutil`                | `…/testutil/v4`             | 🧪 Test utility                                                           |
-| `cmd/cqrs-gen`            | `…/cmd/cqrs-gen/v4`         | 🔧 Tool                                                                   |
-| `cmd/api-stability`       | `…/cmd/api-stability/v4`    | 🔧 Tool                                                                   |
-| `cmd/doc-check`           | `…/cmd/doc-check/v4`        | 🔧 Tool                                                                   |
-| `stack`                   | `…/stack/v4`                | ✅ Production                                                             |
-| `stack/memory`            | `…/stack/memory/v4`         | ✅ Production                                                             |
-| `stack/sqlite`            | `…/stack/sqlite/v4`         | ✅ Production                                                             |
-| `stack/pebble`            | `…/stack/pebble/v4`         | ✅ Production                                                             |
-| `stack/postgres`          | `…/stack/postgres/v4`       | ⚠️ Partial (0% test coverage locally — skips without `POSTGRES_TEST_DSN`) |
-| `stack/turso`             | `…/stack/turso/v4`          | ✅ Production                                                             |
-| `stack/bench`             | `…/stack/bench/v4`          | 🧪 Benchmarks                                                             |
-| `deriver`                 | `…/deriver/v4`              | ✅ Production                                                             |
-| `graph`                   | `…/graph/v4`                | ✅ Production                                                             |
-| `idempotency`             | `…/idempotency/v4`          | ✅ Production                                                             |
-| `projection`              | `…/projection/v4`           | ✅ Production                                                             |
-| `projectionhost`          | `…/projectionhost/v4`       | ✅ Production                                                             |
-| `scenario`                | `…/scenario/v4`             | ✅ Production                                                             |
-| `scheduling`              | `…/scheduling/v4`           | ✅ Production                                                             |
-| `example/taskmanager`     | `…/example/taskmanager`     | 💡 Demo                                                                   |
-| `example/getting-started` | `…/example/getting-started` | 💡 Demo                                                                   |
-| `example/readme-quickstart` | `…/example/readme-quickstart` | 💡 Demo                                                                |
-| `metaengine`              | `…/metaengine/v4`           | 🧪 Experimental (MemoryEngine only, zero deps)                           |
-| `benchkit`                | `…/benchkit/v4`             | 🧪 Experimental (MVP, known gaps)                                        |
-| `cmd/cqrs-bench`          | `…/cmd/cqrs-bench`          | 🔧 Tool                                                                   |
+| Module                      | Import Path                   | Maturity                                                                  |
+| --------------------------- | ----------------------------- | ------------------------------------------------------------------------- |
+| `event`                     | `…/event/v4`                  | ✅ Production                                                             |
+| `event/eventtest`           | `…/event/v4/eventtest`        | 🧪 Test helper                                                            |
+| `command`                   | `…/command/v4`                | ✅ Production                                                             |
+| `query`                     | `…/query/v4`                  | ✅ Production                                                             |
+| `decider`                   | `…/decider/v4`                | ✅ Production                                                             |
+| `id`                        | `…/id/v4`                     | ✅ Production                                                             |
+| `dispatcher`                | `…/dispatcher/v4`             | ✅ Production                                                             |
+| `schema`                    | `…/schema/v4`                 | ✅ Production                                                             |
+| `snapshot`                  | `…/snapshot/v4`               | ✅ Production                                                             |
+| `codec`                     | `…/codec/v4`                  | ✅ Production                                                             |
+| `kv`                        | `…/kv/v4`                     | ✅ Production                                                             |
+| `metadata`                  | `…/metadata/v4`               | ✅ Production                                                             |
+| `dedup`                     | `…/dedup/v4`                  | ✅ Production                                                             |
+| `storage/memory`            | `…/storage/memory/v4`         | 🧪 Test utility                                                           |
+| `catalog`                   | `…/catalog/v4`                | ✅ Production                                                             |
+| `middleware`                | `…/middleware/v4`             | ✅ Production                                                             |
+| `integration`               | `…/integration/v4`            | ✅ Test suite                                                             |
+| `signing`                   | `…/signing/v4`                | ✅ Production                                                             |
+| `encryption`                | `…/encryption/v4`             | ✅ Production                                                             |
+| `storage`                   | `…/storage/v4`                | ✅ Production                                                             |
+| `storage/sql`               | `…/storage/v4/sql`            | 🧪 Shared infra                                                           |
+| `watermill`                 | `…/watermill/v4`              | ✅ Production                                                             |
+| `listing`                   | `…/listing/v4`                | ✅ Production                                                             |
+| `otel`                      | `…/otel/v4`                   | ✅ Production                                                             |
+| `storage/pebble`            | `…/storage/pebble/v4`         | ✅ Production                                                             |
+| `storage/turso`             | `…/storage/turso/v4`          | ✅ Production                                                             |
+| `transport/http`            | `…/transport/http/v4`         | ✅ Production                                                             |
+| `transport/grpc`            | `…/transport/grpc/v4`         | ✅ Production                                                             |
+| `prometheus`                | `…/prometheus/v4`             | ✅ Production                                                             |
+| `testutil`                  | `…/testutil/v4`               | 🧪 Test utility                                                           |
+| `cmd/cqrs-gen`              | `…/cmd/cqrs-gen/v4`           | 🔧 Tool                                                                   |
+| `cmd/api-stability`         | `…/cmd/api-stability/v4`      | 🔧 Tool                                                                   |
+| `cmd/doc-check`             | `…/cmd/doc-check/v4`          | 🔧 Tool                                                                   |
+| `stack`                     | `…/stack/v4`                  | ✅ Production                                                             |
+| `stack/memory`              | `…/stack/memory/v4`           | ✅ Production                                                             |
+| `stack/sqlite`              | `…/stack/sqlite/v4`           | ✅ Production                                                             |
+| `stack/pebble`              | `…/stack/pebble/v4`           | ✅ Production                                                             |
+| `stack/postgres`            | `…/stack/postgres/v4`         | ⚠️ Partial (0% test coverage locally — skips without `POSTGRES_TEST_DSN`) |
+| `stack/turso`               | `…/stack/turso/v4`            | ✅ Production                                                             |
+| `stack/bench`               | `…/stack/bench/v4`            | 🧪 Benchmarks                                                             |
+| `deriver`                   | `…/deriver/v4`                | ✅ Production                                                             |
+| `graph`                     | `…/graph/v4`                  | ✅ Production                                                             |
+| `idempotency`               | `…/idempotency/v4`            | ✅ Production                                                             |
+| `projection`                | `…/projection/v4`             | ✅ Production                                                             |
+| `projectionhost`            | `…/projectionhost/v4`         | ✅ Production                                                             |
+| `scenario`                  | `…/scenario/v4`               | ✅ Production                                                             |
+| `scheduling`                | `…/scheduling/v4`             | ✅ Production                                                             |
+| `example/taskmanager`       | `…/example/taskmanager`       | 💡 Demo                                                                   |
+| `example/getting-started`   | `…/example/getting-started`   | 💡 Demo                                                                   |
+| `example/readme-quickstart` | `…/example/readme-quickstart` | 💡 Demo                                                                   |
+| `metaengine`                | `…/metaengine/v4`             | 🧪 Experimental (MemoryEngine only, zero deps)                            |
+| `benchkit`                  | `…/benchkit/v4`               | 🧪 Experimental (MVP, known gaps)                                         |
+| `cmd/cqrs-bench`            | `…/cmd/cqrs-bench`            | 🔧 Tool                                                                   |
 
 ---
 

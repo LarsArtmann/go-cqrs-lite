@@ -38,17 +38,19 @@ Changed `warmup()` to call `r.factory()` a second time, creating a completely in
 **Commit:** `f5752622`
 
 Added defensive checks:
+
 - `setup()`: rejects nil Bundle, nil EventSink, nil EventSource before any phase runs
 - `warmup()`: rejects nil/incomplete warmup Bundle independently
 
 **Tests added (5):**
-| Test | What it verifies |
-|------|-----------------|
-| `TestRun_FactoryError` | Factory returning error propagates correctly |
-| `TestRun_NilBundle` | Factory returning `(nil, nil)` is caught |
-| `TestRun_NilEventSink` | Bundle with nil EventSink is caught |
-| `TestRun_NilEventSource` | Bundle with nil EventSource is caught |
-| `TestRun_ClosedStore` | Pre-closed SQLite Bundle fails during write phase |
+
+| Test                     | What it verifies                                  |
+| ------------------------ | ------------------------------------------------- |
+| `TestRun_FactoryError`   | Factory returning error propagates correctly      |
+| `TestRun_NilBundle`      | Factory returning `(nil, nil)` is caught          |
+| `TestRun_NilEventSink`   | Bundle with nil EventSink is caught               |
+| `TestRun_NilEventSource` | Bundle with nil EventSource is caught             |
+| `TestRun_ClosedStore`    | Pre-closed SQLite Bundle fails during write phase |
 
 ### 4. Config.Duration abort test
 
@@ -56,10 +58,11 @@ Added defensive checks:
 **Commit:** `f5752622`
 
 **Tests added (2):**
-| Test | Approach |
-|------|----------|
-| `TestRun_DurationAborts` | 100K-stream profile with `Duration: 5ms` — verifies TotalEvents < 1M and elapsed < 2s. Stable across 5 consecutive runs. |
-| `TestRun_CancelledContext` | Pre-cancelled context — verifies no hang. |
+
+| Test                       | Approach                                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `TestRun_DurationAborts`   | 100K-stream profile with `Duration: 5ms` — verifies TotalEvents < 1M and elapsed < 2s. Stable across 5 consecutive runs. |
+| `TestRun_CancelledContext` | Pre-cancelled context — verifies no hang.                                                                                |
 
 ### 5. ReadRatio verification test
 
@@ -67,19 +70,20 @@ Added defensive checks:
 **Commit:** `f5752622`
 
 **Tests added (2):**
-| Test | What it verifies |
-|------|-----------------|
-| `TestReadRatio` | WriteHeavy (0.1 → 1 pass) produces 50 LoadLatency samples; ReadHeavy (0.8 → 8 passes) produces 400. Asserts read-heavy > write-heavy. |
-| `TestReadPassesFor` | Unit test for the `readPassesFor` function across 7 ratio values (0.0 through 1.0). |
+
+| Test                | What it verifies                                                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `TestReadRatio`     | WriteHeavy (0.1 → 1 pass) produces 50 LoadLatency samples; ReadHeavy (0.8 → 8 passes) produces 400. Asserts read-heavy > write-heavy. |
+| `TestReadPassesFor` | Unit test for the `readPassesFor` function across 7 ratio values (0.0 through 1.0).                                                   |
 
 ### Test count
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Total tests | 23 | 33 |
+| Metric             | Before          | After           |
+| ------------------ | --------------- | --------------- |
+| Total tests        | 23              | 33              |
 | Tests with `-race` | 23 pass, 0 fail | 33 pass, 0 fail |
-| Build | clean | clean |
-| `go vet` | clean | clean |
+| Build              | clean           | clean           |
+| `go vet`           | clean           | clean           |
 
 ---
 
@@ -266,17 +270,17 @@ Should these be classified as `errorfamily.NewInfrastructure(...)` / `errorfamil
 
 ## Session metrics
 
-| Metric | Value |
-|--------|-------|
-| Files modified | `generator.go`, `runner.go`, `benchkit_test.go`, `generator_test.go` |
-| Commits | Already committed in `41f85c09`, `f5752622` (by concurrent process or auto-commit) |
-| Tests before | 23 |
-| Tests after | 33 |
-| Race detector | Clean (3 consecutive `-race` runs) |
-| Build | Clean |
-| `go vet` | Clean |
-| Unpushed commits | 5 ahead of origin/master |
-| Unrelated unstaged changes | `docs/api_surface.txt`, `storage/README.md` (not mine) |
+| Metric                     | Value                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------------- |
+| Files modified             | `generator.go`, `runner.go`, `benchkit_test.go`, `generator_test.go`               |
+| Commits                    | Already committed in `41f85c09`, `f5752622` (by concurrent process or auto-commit) |
+| Tests before               | 23                                                                                 |
+| Tests after                | 33                                                                                 |
+| Race detector              | Clean (3 consecutive `-race` runs)                                                 |
+| Build                      | Clean                                                                              |
+| `go vet`                   | Clean                                                                              |
+| Unpushed commits           | 5 ahead of origin/master                                                           |
+| Unrelated unstaged changes | `docs/api_surface.txt`, `storage/README.md` (not mine)                             |
 
 ## Commit history (benchkit this session)
 

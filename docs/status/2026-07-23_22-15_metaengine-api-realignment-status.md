@@ -51,13 +51,13 @@
 
 ## b) PARTIALLY DONE
 
-| #   | What                          | Current State                                                                   | What's Missing                                                                                         |
-| --- | ----------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| 1   | **Build compiles**            | ~~4 errors remain~~ **Fixed** — next session resolved all compilation errors  | All errors resolved; build green as of commit `046d0a4d`                                                                              |
-| 2   | **`readmodel.go` cleanup**    | File still exists with 67 lines of old `ReadModel` code                         | Needs to be deleted or emptied entirely                                                                |
-| 3   | **Planner per-query rewrite** | `planQuery()` replaces `planModel()` but has field reference errors             | `queryRuntime` struct fields don't match what `planQuery` populates                                    |
-| 4   | **Store per-query rewrite**   | `Apply` iterates queries, `applyFold` uses query name as collection             | `executeFilteredScan` uses new typed closures but untested                                             |
-| 5   | **Engine interfaces**         | All 7 backends still exist (Map, MapUpdater, Scan, Set, Counter, Graph, Engine) | `MemoryEngine` is still public — should be unexported or in test file                                  |
+| #   | What                          | Current State                                                                   | What's Missing                                                        |
+| --- | ----------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 1   | **Build compiles**            | ~~4 errors remain~~ **Fixed** — next session resolved all compilation errors    | All errors resolved; build green as of commit `046d0a4d`              |
+| 2   | **`readmodel.go` cleanup**    | File still exists with 67 lines of old `ReadModel` code                         | Needs to be deleted or emptied entirely                               |
+| 3   | **Planner per-query rewrite** | `planQuery()` replaces `planModel()` but has field reference errors             | `queryRuntime` struct fields don't match what `planQuery` populates   |
+| 4   | **Store per-query rewrite**   | `Apply` iterates queries, `applyFold` uses query name as collection             | `executeFilteredScan` uses new typed closures but untested            |
+| 5   | **Engine interfaces**         | All 7 backends still exist (Map, MapUpdater, Scan, Set, Counter, Graph, Engine) | `MemoryEngine` is still public — should be unexported or in test file |
 
 ## c) NOT STARTED
 

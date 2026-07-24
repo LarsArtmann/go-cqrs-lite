@@ -24,7 +24,7 @@ require (
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0 // indirect
-	github.com/oklog/ulid/v2 v2.1.1 // indirect
+	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
