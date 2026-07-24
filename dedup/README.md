@@ -17,7 +17,11 @@ When a projection replays historical events from a journal and then switches to 
 ```go
 package main
 
-import "github.com/larsartmann/go-cqrs-lite/dedup/v4"
+import (
+    "fmt"
+
+    "github.com/larsartmann/go-cqrs-lite/dedup/v4"
+)
 
 func main() {
     ring := dedup.NewRing(dedup.DefaultCapacity)

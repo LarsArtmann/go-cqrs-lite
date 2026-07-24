@@ -39,13 +39,13 @@ result, err := qryClient.Query(ctx, query)
 ### Custom Codec (CBOR for smaller payloads)
 
 ```go
-// Both server AND client must use the same codec:
+// Only query entry points accept a codec option:
 srv := grpc.NewServer()
-cqrsgrpc.RegisterCommandService(srv, cmdDispatcher,
+cqrsgrpc.RegisterQueryService(srv, qDispatcher,
     cqrsgrpc.WithCodec(codec.CBORCodec{}))
 
 conn, _ := grpc.NewClient(addr, ...)
-cmdClient := cqrsgrpc.NewCommandClient(conn,
+qryClient := cqrsgrpc.NewQueryClient(conn,
     cqrsgrpc.WithCodec(codec.CBORCodec{}))
 ```
 
@@ -69,13 +69,13 @@ cmdClient := cqrsgrpc.NewCommandClient(conn,
 
 | Symbol         | Description                                                                |
 | -------------- | -------------------------------------------------------------------------- |
-| `Option`       | `func(*config)` — shared by all four entry points.                         |
+| `Option`       | `func(*config)` — query server/client only.                                |
 | `WithCodec(c)` | Sets the wire codec (default: `codec.JSONCodec{}`). Both sides must match. |
 
 ## Design
 
 - **Transparent remote dispatch**: The client implements the same `Dispatch` interface, so callers see no difference between local and remote dispatch.
-- **Single shared `Option` type**: All four entry points (command server/client, query server/client) use the same `Option` type for symmetric configuration.
+- **`Option` type**: Only the two query entry points (`RegisterQueryService`, `NewQueryClient`) accept an `Option` for codec configuration. Command entry points do not — command payloads travel as metadata strings.
 - **No format negotiation**: Server and client must use the same codec. Mismatch causes unmarshal failure. Default is JSON for backward compatibility.
 - **Error mapping**: CQRS error families (Rejection, Conflict, Transient, Infrastructure, Corruption) are mapped to appropriate gRPC status codes.
 

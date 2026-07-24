@@ -20,7 +20,7 @@ Implements `event.Store` + `event.Journal` + `event.SeekableJournal` fully in me
 
 ```go
 store := eventtest.NewFakeStore()
-store.SaveFn(func(ctx context.Context, ref id.StreamRef, events ...event.Event) error {
+store.SaveFn(func(ctx context.Context, ref id.StreamRef, events []event.Event, expectedVersion event.Version) error {
     return errors.New("simulated save failure")
 })
 ```

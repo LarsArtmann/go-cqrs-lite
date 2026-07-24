@@ -20,6 +20,7 @@ package main
 import (
     "context"
     "fmt"
+    "log"
 
     "github.com/larsartmann/go-cqrs-lite/retry/v4"
 )
