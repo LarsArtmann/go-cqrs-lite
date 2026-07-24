@@ -32,6 +32,31 @@ type Store struct {
 
 func (s *Store) Plan() *PlanResult { return s.plan }
 
+// EventTypes returns every event type that at least one registered query
+// listens to. The result is sorted for deterministic ordering.
+// Used by integration adapters (e.g. projectionadapter) that need to
+// declare their projection's event interests without depending on
+// event-sourcing packages directly.
+func (s *Store) EventTypes() []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	seen := make(map[string]struct{})
+	for _, q := range s.queries {
+		for et := range q.foldByEvent {
+			seen[et] = struct{}{}
+		}
+	}
+
+	result := make([]string, 0, len(seen))
+	for et := range seen {
+		result = append(result, et)
+	}
+
+	slices.Sort(result)
+	return result
+}
+
 func (s *Store) Close() error {
 	var firstErr error
 	for _, eng := range s.engines {
