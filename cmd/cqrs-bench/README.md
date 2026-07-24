@@ -28,41 +28,61 @@ cqrs-bench compare --profile medium --backends mem,sq,peb --format markdown
 
 ### Flags
 
-| Flag             | Values                                                                   | Default | Description                                        |
-| ---------------- | ------------------------------------------------------------------------ | ------- | -------------------------------------------------- |
-| `--backend`      | `memory`, `sqlite`, `pebble`                                             | —       | Backend to benchmark (aliases: `mem`, `sq`, `peb`) |
-| `--dsn`          | string                                                                   | —       | Database DSN (sqlite/postgres)                     |
-| `--dir`          | path                                                                     | temp    | Data directory (pebble)                            |
-| `--profile`      | `dev`, `small`, `medium`, `large`, `stress`, `write-heavy`, `read-heavy` | —       | Workload profile                                   |
-| `--codec`        | `json`, `cbor`                                                           | `json`  | Payload codec                                      |
-| `--format`       | `text`, `json`, `markdown`                                               | `text`  | Output format (compare only: `markdown`)           |
-| `--output`       | path                                                                     | stdout  | Output file                                        |
-| `--payload-size` | int                                                                      | profile | Override payload size in bytes                     |
-| `--warmup`       | int                                                                      | profile | Warmup iterations before timing                    |
+| Flag             | Values                                                                   | Default  | Description                                        |
+| ---------------- | ------------------------------------------------------------------------ | -------- | -------------------------------------------------- |
+| `--backend`      | `memory`, `sqlite`, `pebble` (aliases: `mem`, `sq`, `peb`)               | `memory` | Backend to benchmark                               |
+| `--dsn`          | string                                                                   | temp     | Database DSN (sqlite); ignored for memory/pebble   |
+| `--dir`          | path                                                                     | temp     | Data directory (pebble)                            |
+| `--profile`      | `dev`, `small`, `medium`, `large`, `stress`, `write-heavy`, `read-heavy` | `dev`    | Workload profile                                   |
+| `--codec`        | `json`, `cbor`                                                           | `json`   | Payload codec                                      |
+| `--format`       | `text`, `json` (`markdown` in compare only)                              | `text`   | Output format                                      |
+| `--output`       | path                                                                     | stdout   | Output file                                        |
+| `--payload-size` | int                                                                      | `256`    | Payload size in bytes                              |
+| `--warmup`       | int                                                                      | `0`      | Warmup iterations before timing                    |
 
 ## Workload Profiles
 
-| Profile       | Events | Reads | Payload | Description             |
-| ------------- | ------ | ----- | ------- | ----------------------- |
-| `dev`         | 100    | 100   | 256 B   | Quick smoke test        |
-| `small`       | 1K     | 1K    | 512 B   | Small dataset           |
-| `medium`      | 10K    | 10K   | 1 KB    | Typical production load |
-| `large`       | 100K   | 50K   | 2 KB    | Large dataset           |
-| `stress`      | 1M     | 100K  | 4 KB    | Stress test             |
-| `write-heavy` | 100K   | 1K    | 1 KB    | Write-dominated         |
-| `read-heavy`  | 10K    | 1M    | 1 KB    | Read-dominated          |
+| Profile       | Aggregates | Events/Agg | Total Events | Concurrency | ReadRatio | BatchSize | Description             |
+| ------------- | ---------- | ---------- | ------------ | ----------- | --------- | --------- | ----------------------- |
+| `dev`         | 100        | 5          | 500          | 1           | 0.2       | 1         | Quick smoke test        |
+| `small`       | 1,000      | 10         | 10K          | 4           | 0.3       | 1         | Small dataset           |
+| `medium`      | 10,000     | 50         | 500K         | 16          | 0.4       | 5         | Typical production load |
+| `large`       | 100,000    | 100        | 10M          | 32          | 0.5       | 10        | Large dataset           |
+| `stress`      | 10,000     | 500        | 5M           | 64          | 0.2       | 1         | Stress test             |
+| `write-heavy` | 10,000     | 100        | 1M           | 32          | 0.1       | 1         | Write-dominated         |
+| `read-heavy`  | 10,000     | 100        | 1M           | 32          | 0.8       | 1         | Read-dominated          |
 
 ## Output
 
 ```
-Backend:     sqlite
-Profile:     medium
-Codec:       json
+Benchmark: sqlite | profile=medium | codec=json
+============================================================
+Workload: 10,000 aggregates x 50 events = 500,000 events
+Payload:  256 bytes/event
+Duration: 4.2s
 
-Write Throughput:  45,231 ops/s  (avg latency: 22.1 µs)
-Read  Throughput:  89,102 ops/s  (avg latency: 11.2 µs)
+Write Performance:
+  Latency: P50=455µs P95=2.1ms P99=4.8ms Max=12ms
+  Throughput: 119,047 events/sec
 
-Memory: 14.2 MB
+Read Performance:
+  Latency: P50=125µs P95=891µs P99=1.8ms Max=5ms
+
+Read Model:
+  Set: P50=98µs P95=412µs P99=780µs Max=2ms
+  Get: P50=52µs P95=201µs P99=390µs Max=1ms
+
+Projection: 500,000 events, lag=2.1s
+
+Resources:
+  Heap:  42 MB peak
+  Delta: 18 MB
+  CPU:   3.2s
+
+Storage:
+  Database: 12 MB
+  Events:   8 MB
+  Overhead: 50.0%
 ```
 
 ## Design

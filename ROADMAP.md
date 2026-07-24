@@ -77,13 +77,15 @@ structs. The gap between prototype and production:
 
 ### 2. Benchkit → Reliable
 
-The benchmarking toolkit is functional but has known gaps:
+The benchmarking toolkit is functional with 55 tests but has known gaps:
 
-- **Warmup store pollution** — warmup writes to the main store, inflating
-  journal metrics for subsequent phases.
-- **Pebble backend tests** — Pebble works via CLI but has no test coverage.
+- ~~**Warmup store pollution**~~ FIXED — warmup uses a separate throwaway Bundle.
+- ~~**Pebble backend tests**~~ DONE — Pebble write/read + disk measurement tested.
+- **Durability benchmarking** (Phase 2) — disk measurement exists but `DiskSizer` interface has zero backend implementations.
 - **Production replay** (Phase 6) — replay real event streams for benchmarking.
 - **benchtest.RunSuite** (Phase 7) — preset integration for `stack/bench`.
+- **Benchmark validation** — benchmark has never been actually run and inspected for output plausibility; tests verify plumbing, not real-world numbers.
+- **`--version` hardcoded** — should use `runtime/debug.ReadBuildInfo()`.
 
 ### 3. Codebase Health
 

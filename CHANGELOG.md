@@ -18,7 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Benchkit module** (`benchkit/v4`) — factory-driven benchmarking suite with
   7 named workload profiles (Dev, Small, Medium, Large, Stress, WriteHeavy,
   ReadHeavy), 8-phase runner, concurrent workers, latency percentiles, resource
-  sampling, text/JSON/Markdown reports. 23 tests.
+  sampling, text/JSON/Markdown reports. Codec-aware payload sizing, errorfamily
+  error classification, SkipPhases, Config validation. 55 tests (50 benchkit + 5 CLI).
 - **cqrs-bench CLI** (`cmd/cqrs-bench`) — benchmark any backend with named
   workload profiles. `run` and `compare` subcommands.
 - **Incremental rollups** (`storage/relational`) — `ProjectionSink.Increment`

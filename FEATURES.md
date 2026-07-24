@@ -245,7 +245,7 @@ pattern: same workload, any backend, structured metrics report.
 | Core types          | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`    | 🧪     |
 | LatencyCollector    | Sorted-slice + reservoir sampling (10K cap), thread-safe                       | 🧪     |
 | Resource sampling   | Peak heap via 100ms polling goroutine, baseline/after deltas                   | 🧪     |
-| Synthetic generator | Seeded PCG, deterministic, configurable payload size                           | 🧪     |
+| Synthetic generator | Seeded PCG, deterministic, configurable payload size, codec-aware padding      | 🧪     |
 | 7 named profiles    | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                       | 🧪     |
 | 8-phase runner      | setup → warmup → write → read → readmodel → projection → durability → teardown | 🧪     |
 | Concurrent workers  | Channel-based, cancel-on-error, WaitGroup                                      | 🧪     |
@@ -254,9 +254,10 @@ pattern: same workload, any backend, structured metrics report.
 | Reports             | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk      | 🧪     |
 | ReadRatio           | Configurable read/write mix for WriteHeavy and ReadHeavy profiles              | 🧪     |
 
-**Coverage:** 23 tests with `-race`. Known gaps: warmup pollutes main store,
-`estimateJSONSize` is a rough guess, no Pebble backend tests, no Postgres/Turso
-backends.
+**Coverage:** 55 tests (50 benchkit + 5 CLI) with `-race`. Known gaps: `DiskSizer` interface
+unimplemented (no backend implements `DiskSize()`), `--version` hardcoded, Phase 2 (durability),
+Phase 6 (production replay), and Phase 7 (benchtest suite) not started, benchmark never actually
+run as a benchmark (tests verify plumbing, not output plausibility).
 
 ### cqrs-bench CLI 🔧
 
