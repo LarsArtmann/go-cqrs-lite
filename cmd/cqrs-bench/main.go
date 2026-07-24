@@ -189,6 +189,12 @@ func compareCmd(args []string) {
 		Codec:       codec,
 	}
 
+	if sizes, err := parsePayloadSizes(*payloadSizes); err != nil {
+		fatalf("invalid --payload-sizes: %v", err)
+	} else if len(sizes) > 0 {
+		config.PayloadSizes = sizes
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
@@ -304,6 +310,40 @@ func parseCodec(name string) codec.Codec {
 
 		return nil
 	}
+}
+
+// parsePayloadSizes parses a comma-separated list of payload sizes (e.g.
+// "64,256,4096") into an int slice. Returns nil for an empty string (meaning:
+// use the single --payload-size). Returns an error on malformed input.
+func parsePayloadSizes(s string) ([]int, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil, nil
+	}
+
+	parts := strings.Split(s, ",")
+	sizes := make([]int, 0, len(parts))
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+
+		n, err := strconv.Atoi(part)
+		if err != nil {
+			return nil, fmt.Errorf("invalid size %q: %w", part, err)
+		}
+
+		if n <= 0 {
+			return nil, fmt.Errorf("size must be > 0, got %d", n)
+		}
+
+		sizes = append(sizes, n)
+	}
+
+	if len(sizes) < 2 {
+		return nil, fmt.Errorf("provide at least 2 sizes for a mixed workload, got %d", len(sizes))
+	}
+
+	return sizes, nil
 }
 
 // ── output ──

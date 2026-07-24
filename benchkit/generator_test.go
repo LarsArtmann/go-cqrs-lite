@@ -193,3 +193,104 @@ func TestProfileByName(t *testing.T) {
 		t.Error("ProfileByName(nonexistent) should return ok=false")
 	}
 }
+
+func TestMixedGenerator_ProducesAllSizes(t *testing.T) {
+	t.Parallel()
+
+	targets := []int{64, 256, 1024}
+	g := NewMixedGenerator(7, targets, codec.JSONCodec{})
+
+	seen := make(map[int]bool)
+
+	// Draw enough samples that every size is very likely to appear.
+	for range 1000 {
+		p := g.Payload()
+		data, err := codec.JSONCodec{}.Encode(p)
+		if err != nil {
+			t.Fatalf("encode failed: %v", err)
+		}
+
+		// Round to the nearest configured target so small padding drift
+		// (a few bytes) doesn't fragment the bucket.
+		bucket := nearest(len(data), targets)
+		seen[bucket] = true
+	}
+
+	for _, want := range targets {
+		if !seen[want] {
+			t.Errorf("size %d never appeared in 1000 mixed draws", want)
+		}
+	}
+}
+
+func TestMixedGenerator_MeanSize(t *testing.T) {
+	t.Parallel()
+
+	g := NewMixedGenerator(1, []int{64, 256, 4096}, nil)
+	if got := g.MeanSize(); got != (64+256+4096)/3 {
+		t.Errorf("MeanSize() = %d, want %d", got, (64+256+4096)/3)
+	}
+}
+
+func TestMixedGenerator_Deterministic(t *testing.T) {
+	t.Parallel()
+
+	targets := []int{64, 256, 1024}
+	g1 := NewMixedGenerator(99, targets, nil)
+	g2 := NewMixedGenerator(99, targets, nil)
+
+	for range 50 {
+		a := g1.Payload()
+		b := g2.Payload()
+		if a.ID != b.ID || a.Padding != b.Padding {
+			t.Fatalf("mixed payloads differ at same seed: %+v vs %+v", a, b)
+		}
+	}
+}
+
+func TestMixedGenerator_SingleSizeMatchesNewGenerator(t *testing.T) {
+	t.Parallel()
+
+	uni := NewGenerator(5, 512, nil)
+	mixed := NewMixedGenerator(5, []int{512}, nil)
+
+	for range 20 {
+		a := uni.Payload()
+		b := mixed.Payload()
+		if a.ID != b.ID || a.Padding != b.Padding {
+			t.Fatalf("single-size mixed differs from uniform generator")
+		}
+	}
+}
+
+func TestMixedGenerator_DefaultsOnEmpty(t *testing.T) {
+	t.Parallel()
+
+	g := NewMixedGenerator(1, nil, nil)
+	if got := g.MeanSize(); got != 256 {
+		t.Errorf("empty sizes should default to 256, got %d", got)
+	}
+}
+
+func nearest(actual int, targets []int) int {
+	best := targets[0]
+	bestDist := abs(actual - best)
+
+	for _, t := range targets[1:] {
+		d := abs(actual - t)
+		if d < bestDist {
+			best = t
+			bestDist = d
+		}
+	}
+
+	return best
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+
+	return n
+}
