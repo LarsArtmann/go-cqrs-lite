@@ -57,7 +57,7 @@ func TestMemoryStore_LoadFromVersion_NotFound(t *testing.T) {
 		0,
 	)
 	if err == nil {
-		t.Error("expected aggregate not found error")
+		t.Error("expected stream not found error")
 	}
 }
 

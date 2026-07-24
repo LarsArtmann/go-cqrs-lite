@@ -139,14 +139,14 @@ func TestEventStore_Save_Mismatches(t *testing.T) {
 		eventVersion event.Version
 	}{
 		{
-			name:         "aggregate_type",
+			name:         "stream_type",
 			saveAggType:  "Project",
 			saveAggID:    id.NewStreamID(),
 			eventAggID:   id.NewStreamID(),
 			eventVersion: 1,
 		},
 		{
-			name:         "aggregate_id",
+			name:         "stream_id",
 			saveAggType:  "Issue",
 			saveAggID:    id.NewStreamID(),
 			eventAggID:   id.NewStreamID(),
@@ -231,7 +231,7 @@ func TestEventStore_Load_Empty(t *testing.T) {
 	}
 
 	if len(loaded) != 0 {
-		t.Fatalf("expected 0 events for empty aggregate, got %d", len(loaded))
+		t.Fatalf("expected 0 events for empty stream, got %d", len(loaded))
 	}
 }
 

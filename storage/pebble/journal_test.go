@@ -24,7 +24,7 @@ func TestEventStore_ReadAll_Empty(t *testing.T) {
 	}
 }
 
-func TestEventStore_ReadAll_SingleAggregate(t *testing.T) {
+func TestEventStore_ReadAll_SingleStream(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)
@@ -59,7 +59,7 @@ func TestEventStore_ReadAll_SingleAggregate(t *testing.T) {
 	}
 }
 
-func TestEventStore_ReadAll_MultipleAggregates(t *testing.T) {
+func TestEventStore_ReadAll_MultipleStreams(t *testing.T) {
 	t.Parallel()
 
 	store := newPebbleTestStore(t)

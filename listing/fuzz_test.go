@@ -13,9 +13,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 )
 
-// FuzzAggregateListing_JSON_Roundtrip drives the JSON encoding of an
+// FuzzStreamListing_JSON_Roundtrip drives the JSON encoding of an
 // StreamListing with arbitrary id, type, version, and counts.
-func FuzzAggregateListing_JSON_Roundtrip(f *testing.F) {
+func FuzzStreamListing_JSON_Roundtrip(f *testing.F) {
 	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W", "User", int64(0), uint(0))
 	f.Add("plain-id", "Order", int64(9999), uint(1000000))
 	f.Add(strings.Repeat("x", 200), strings.Repeat("Z", 50), int64(42), uint(7))
@@ -97,12 +97,12 @@ func FuzzTombstonePolicy_String(f *testing.F) {
 	})
 }
 
-// FuzzAggregateStatus_MarshalOnly verifies the MarshalJSON path of
+// FuzzStreamStatus_MarshalOnly verifies the MarshalJSON path of
 // StreamStatus without asserting full roundtrip — there is currently no
 // custom UnmarshalJSON (it inherits the default, which expects an int for
 // TombstoneStatus, but Marshal emits a string). We just verify marshaling
 // never panics on any status value.
-func FuzzAggregateStatus_MarshalOnly(f *testing.F) {
+func FuzzStreamStatus_MarshalOnly(f *testing.F) {
 	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W", "User", int64(1), uint(5), int(0))
 	f.Add("id-1", "Order", int64(99), uint(999), int(1))
 	f.Add("id-2", "X", int64(0), uint(0), int(2))

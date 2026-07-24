@@ -169,7 +169,7 @@ func TestEventStore_LoadNonExistent(t *testing.T) {
 
 	events, err := store.Load(context.Background(), ref)
 	if err == nil && len(events) > 0 {
-		t.Fatal("expected empty result or error for non-existent aggregate")
+		t.Fatal("expected empty result or error for non-existent stream")
 	}
 }
 

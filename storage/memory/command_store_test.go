@@ -151,7 +151,7 @@ func TestMemoryCommandStore_Load_NotFound(t *testing.T) {
 
 	_, err := store.Load(ctx, ref)
 	if err == nil {
-		t.Fatal("expected error for non-existent aggregate")
+		t.Fatal("expected error for non-existent stream")
 	}
 
 	if !errors.Is(err, command.ErrCommandNotFound) {
@@ -268,7 +268,7 @@ func TestMemoryCommandStore_Close(t *testing.T) {
 	}
 }
 
-func TestMemoryCommandStore_MultipleAggregates(t *testing.T) {
+func TestMemoryCommandStore_MultipleStreams(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryCommandStore()

@@ -126,7 +126,7 @@ func TestReadPressure_ResetsAfterSnapshot(t *testing.T) {
 	}
 }
 
-func TestReadPressure_PerAggregateIsolation(t *testing.T) {
+func TestReadPressure_PerStreamIsolation(t *testing.T) {
 	t.Parallel()
 
 	rp := mustReadPressure(t, 3)

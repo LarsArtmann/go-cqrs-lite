@@ -81,7 +81,7 @@ func TestDeserializeEvent_JSONBackwardCompat(t *testing.T) {
 	}
 
 	if evt.StreamID() != aggID {
-		t.Error("aggregate ID mismatch")
+		t.Error("stream ID mismatch")
 	}
 }
 
@@ -120,7 +120,7 @@ func TestDeserializeEvent_CBORRoundTrip(t *testing.T) {
 	}
 
 	if got.StreamID() != evt.StreamID() {
-		t.Error("aggregate ID mismatch")
+		t.Error("stream ID mismatch")
 	}
 
 	if got.SchemaVersion() != evt.SchemaVersion() {

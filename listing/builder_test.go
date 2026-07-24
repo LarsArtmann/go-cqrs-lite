@@ -111,7 +111,7 @@ func TestTombstonePolicy_String(t *testing.T) {
 	}
 }
 
-func TestAggregateStatus_MarshalJSON(t *testing.T) {
+func TestStreamStatus_MarshalJSON(t *testing.T) {
 	t.Parallel()
 
 	ts := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)

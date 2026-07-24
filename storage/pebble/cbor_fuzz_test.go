@@ -95,7 +95,7 @@ func FuzzSerializeDeserializeRoundtrip(f *testing.F) {
 		}
 
 		if got.StreamID() != evt.StreamID() {
-			t.Error("aggregate ID mismatch")
+			t.Error("stream ID mismatch")
 		}
 
 		if !bytes.Equal(event.PayloadReadOnly(got), payload) {

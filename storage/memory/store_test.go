@@ -69,7 +69,7 @@ func TestMemoryStore_VersionConflict(t *testing.T) {
 	}
 }
 
-func TestMemoryStore_AggregateNotFound(t *testing.T) {
+func TestMemoryStore_StreamNotFound(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
@@ -83,7 +83,7 @@ func TestMemoryStore_AggregateNotFound(t *testing.T) {
 		),
 	)
 	if err == nil {
-		t.Error("expected aggregate not found error")
+		t.Error("expected stream not found error")
 	}
 }
 

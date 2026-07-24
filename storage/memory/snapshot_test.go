@@ -61,7 +61,7 @@ func TestMemorySnapshotStore_SaveAndLoad(t *testing.T) {
 	}
 
 	if loaded.StreamID != snapshot.StreamID {
-		t.Errorf("expected aggregate ID %s, got %s", snapshot.StreamID, loaded.StreamID)
+		t.Errorf("expected stream ID %s, got %s", snapshot.StreamID, loaded.StreamID)
 	}
 
 	assertVersion(t, loaded.Version, 5)

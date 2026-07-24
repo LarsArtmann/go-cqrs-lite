@@ -85,7 +85,7 @@ func TestMemoryStore_LoadStream_NotFound(t *testing.T) {
 		id.NewStreamRef("Order", id.NewStreamID()),
 	)
 	if err == nil {
-		t.Fatal("expected error for non-existent aggregate")
+		t.Fatal("expected error for non-existent stream")
 	}
 
 	if !errors.Is(err, event.ErrStreamNotFound) {

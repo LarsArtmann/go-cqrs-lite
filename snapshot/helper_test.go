@@ -103,6 +103,6 @@ func TestSaveSnapshot_Success(t *testing.T) {
 	}
 
 	if store.saved[0].StreamType != "User" {
-		t.Errorf("expected aggregate type 'User', got %s", store.saved[0].StreamType)
+		t.Errorf("expected stream type 'User', got %s", store.saved[0].StreamType)
 	}
 }

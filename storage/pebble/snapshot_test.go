@@ -265,7 +265,7 @@ func TestSnapshotStore_Delete_Idempotent(t *testing.T) {
 	}
 }
 
-func TestSnapshotStore_DistinctAggregates(t *testing.T) {
+func TestSnapshotStore_DistinctStreams(t *testing.T) {
 	t.Parallel()
 
 	store := newSnapshotStore(t)
