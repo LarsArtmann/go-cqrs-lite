@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-24 (docs-health audit: metaengine + benchkit added, module count corrected, Increment/Reset documented) · **Module count:** 56 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+**Last audited:** 2026-07-24 (docs-health audit: metaengine coverage/specs verified against code — 87.7%/174 specs; benchkit post-hardening features added — durability, replay, RunSuite, analytical, Postgres, kv projection; test counts recomputed) · **Module count:** 56 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -226,9 +226,10 @@ developer never declares "I need a Map" or "I need a Counter."
 | Compile-time assertions    | Interface conformance verified at compile time for all 9 backends                                          | 🧪     |
 | Zero dependencies          | Only `ginkgo`/`gomega` for testing; zero production deps                                                   | 🧪     |
 
-**Coverage:** 82.6% (89 BDD specs + 11 unit tests). 14 production files, all
-under 350-line CI limit. No real SQL/Pebble engine yet — only MemoryEngine.
-Not integrated with `projection.Projection`, `kv.Store`, or `graph.GraphSink`.
+**Coverage:** 87.7% (174 BDD specs). 16 production files, all under the 350-line
+CI limit. MemoryEngine only — no real SQL/Pebble engine yet. Not integrated with
+`projection.Projection`, `kv.Store`, or `graph.GraphSink`. See
+[TODO_LIST.md](TODO_LIST.md) "Metaengine Integration" for the open production path.
 
 ---
 
@@ -265,11 +266,20 @@ pattern: same workload, any backend, structured metrics report.
 | Suite manifest       | `WriteManifest` — config + environment + result as JSON for reproducibility                  | 🧪     |
 | JSON schema check    | `ExpectedJSONFields` + `VerifyJSONFields` — guards against silent schema changes              | 🧪     |
 | ReadRatio            | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                           | 🧪     |
+| Durability phase     | `Config.Recovery` — close bundle, reopen via factory, reload streams (`RecoveryTime`, `RecoveredEvents`) | 🧪     |
+| Replay phase         | `Config.ReplayOnly` — skip writes, discover streams from journal, benchmark reads + projections | 🧪     |
+| `benchtest.RunSuite` | `RunSuite(b, config, factory)` wraps benchkit into Go `testing.B` (`b.ReportMetric`); wired into `stack/bench` | 🧪     |
+| Analytical profile   | `ProfileAnalytical` (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans`    | 🧪     |
+| Postgres backend     | `postgres` backend in `cqrs-bench`; benchkit tests skip without `POSTGRES_TEST_DSN`        | 🧪     |
+| kv projection handler| Projection phase exercises a real `kv.Store` (Get+Set per event); atomic counter fallback | 🧪     |
 
-**Coverage:** 119 tests (107 benchkit + 12 CLI) with `-race`. Includes raw sink phase,
+**Coverage:** 88 benchkit + 12 CLI test functions (`-race`). Includes raw sink phase,
 scaling sweeps, benchstat output, suite manifest, schema verification, environment
-metadata, schema versioning, and median selection tests. Run-to-run
+metadata, schema versioning, durability/recovery, replay, `benchtest.RunSuite`,
+analytical profile, Postgres backend, and median selection tests. Run-to-run
 variance is ~20-25% on the memory backend (use `--repeat N` for median reporting).
+See [benchmark results](docs/status/2026-07-24_17-54_benchmark-first-real-run.md)
+and [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
 
 ### cqrs-bench CLI 🔧
 

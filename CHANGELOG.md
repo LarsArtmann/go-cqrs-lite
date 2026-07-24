@@ -14,15 +14,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   from fold return types (Map, Set, Counter, Graph, SortedMap, Multimap, Log).
   Typed `FilterOn`/`SortOn` closures, cursor-based pagination, formal cost model,
   write amplification budget. MemoryEngine only; zero production dependencies.
-  89 BDD specs, 82.6% coverage.
+  174 BDD specs, 87.7% coverage.
 - **Benchkit module** (`benchkit/v4`) — factory-driven benchmarking suite with
   7 named workload profiles (Dev, Small, Medium, Large, Stress, WriteHeavy,
-  ReadHeavy), 8-phase runner, concurrent workers, latency percentiles, resource
-  sampling, text/JSON/Markdown reports. Codec-aware payload sizing, errorfamily
-  error classification, SkipPhases, Config validation. 93 tests (81 benchkit
-  - 12 CLI). Includes DiskSizer interface (Pebble), getrusage-based CPU
-    measurement, projection benchmark phase, mixed payload-size distributions,
-    and `--repeat N` multi-sample averaging.
+  ReadHeavy) plus an analytical profile, 9-phase runner (setup → warmup → write
+  → read → readmodel → projection → durability → rawsink → teardown), concurrent
+  workers, latency percentiles, resource sampling, codec-aware payload sizing,
+  errorfamily error classification, SkipPhases, Config validation. 88 benchkit
+  + 12 CLI test functions (`-race`). First real benchmark run executed across
+  memory/pebble/sqlite — see
+  [benchmark results](docs/status/2026-07-24_17-54_benchmark-first-real-run.md).
+  Full feature detail in [FEATURES.md](FEATURES.md#benchmarking-toolkit-).
 - **cqrs-bench CLI** (`cmd/cqrs-bench`) — benchmark any backend with named
   workload profiles. `run`, `compare`, and `--repeat N` subcommands. Uses
   `runtime/debug.ReadBuildInfo()` for version (was hardcoded `v4.1.0`).
@@ -81,6 +83,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   reporting.
 - **ADR-0060** — Documents 5 benchkit design decisions: codec-aware padding,
   warmup isolation, ReadRatio-as-passes, SkipPhases, DiskSizer -1 sentinel.
+
+### Added (benchkit — full benchmark suite)
+
+> Post-hardening sessions completed the full benchmark evidence plan. All items
+> below shipped unreleased; see [TODO_LIST.md](TODO_LIST.md) "Benchkit" for the
+> one remaining open item (`benchkit/v0.1.0` tag).
+
+- **Durability / recovery phase** (`Config.Recovery`) — closes the bundle, reopens
+  it via the factory, and reloads all streams. Reports `Result.RecoveryTime` and
+  `RecoveredEvents`. CLI: `--recovery`.
+- **Production replay phase** (`Config.ReplayOnly`) — skips writes, discovers
+  streams from `Journal`/`SeekableJournal`, and benchmarks reads + projections
+  on existing data. CLI: `--replay`.
+- **`benchtest.RunSuite`** — `RunSuite(b *testing.B, config, factory)` wraps the
+  benchkit pipeline into a Go `testing.B` with `b.ReportMetric`. Wired into
+  `stack/bench` with 3 backend suites.
+- **Analytical profile** — `ProfileAnalytical` (10K streams, 90% reads, 5x journal
+  scans) + `Profile.JournalScans` field for multi-pass journal scanning.
+- **Postgres backend** — `postgres` added to `cqrs-bench`; benchkit tests skip
+  without `POSTGRES_TEST_DSN`.
+- **kv.Store projection handler** — projection phase exercises a real `kv.Store`
+  (Get+Set per event on `bundle.ReadModels`); falls back to an atomic counter when
+  no kv.Store is available.
+- **Scaling sweeps** — `WorkerSweep`, `BatchSizeSweep`, `StreamLengthSweep`,
+  `GOMAXPROCSSweep` for systematic parameter exploration. CLI: `sweep` subcommand.
+- **benchstat output** — `WriteBenchstat` emits benchstat-compatible lines for
+  statistical comparison across runs/backends.
+- **Suite manifest** — `WriteManifest` serializes config + environment + result as
+  JSON for reproducibility.
+- **JSON schema stability** — `Result.SchemaVersion` + `ExpectedJSONFields` /
+  `VerifyJSONFields` guards against silent result-schema changes.
+- **CPU profiling** — `--cpuprofile file` and `--memprofile file` emit pprof output.
+- **CI workflow** — profiling hooks and a benchmark interpretation guide
+  (`docs/benchmarking/`).
 
 ### Changed
 
