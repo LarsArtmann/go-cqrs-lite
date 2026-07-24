@@ -651,14 +651,14 @@ for step-by-step upgrade instructions.
 
 ### Migration
 
-```go
+```diff
 // Before (v3):
-import "github.com/larsartmann/go-cqrs-lite/event/v3"
-handler := http.BackfillHandler(journal)
+- import "github.com/larsartmann/go-cqrs-lite/event/v3"
+- handler := http.BackfillHandler(journal)
 
 // After (v4):
-import "github.com/larsartmann/go-cqrs-lite/event/v4"
-handler := http.BackfillHandler(broker) // broker must have WithReconnectJournal
++ import "github.com/larsartmann/go-cqrs-lite/event/v4"
++ handler := http.BackfillHandler(broker) // broker must have WithReconnectJournal
 ```
 
 Codec defaults: no action needed. Old data reads correctly. New data is CBOR.
