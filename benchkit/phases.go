@@ -131,6 +131,7 @@ func (r *runner) readPhase(ctx context.Context) error {
 		)
 		if err != nil {
 			r.result.LoadLatency = coll.Stats()
+
 			return err
 		}
 	}
@@ -149,10 +150,7 @@ func readPassesFor(ratio float64) int {
 		return 1
 	}
 
-	passes := int(ratio*10 + 0.5)
-	if passes < 1 {
-		passes = 1
-	}
+	passes := max(int(ratio*10+0.5), 1)
 
 	return passes
 }

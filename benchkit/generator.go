@@ -11,13 +11,13 @@ import (
 // The Padding field ensures payloads reach approximately the target byte size
 // while remaining valid JSON/CBOR at any size.
 type BenchPayload struct {
-	ID       string            `json:"id" cbor:"1,keyasint"`
-	Name     string            `json:"name" cbor:"2,keyasint"`
-	Value    float64           `json:"value" cbor:"3,keyasint"`
-	Items    int               `json:"items" cbor:"4,keyasint"`
-	Tags     []string          `json:"tags" cbor:"5,keyasint"`
-	Metadata map[string]string `json:"metadata" cbor:"6,keyasint"`
-	Padding  string            `json:"_padding,omitempty" cbor:"7,keyasint,omitempty"`
+	ID       string            `cbor:"1,keyasint"           json:"id"`
+	Name     string            `cbor:"2,keyasint"           json:"name"`
+	Value    float64           `cbor:"3,keyasint"           json:"value"`
+	Items    int               `cbor:"4,keyasint"           json:"items"`
+	Tags     []string          `cbor:"5,keyasint"           json:"tags"`
+	Metadata map[string]string `cbor:"6,keyasint"           json:"metadata"`
+	Padding  string            `cbor:"7,keyasint,omitempty" json:"_padding,omitempty"`
 }
 
 // Generator produces deterministic synthetic payloads for benchmarking.
@@ -79,6 +79,7 @@ func (g *Generator) computePadding(p BenchPayload) string {
 // estimateJSONSize returns a rough byte count of the payload without Padding.
 func estimateJSONSize(p BenchPayload) int {
 	const baseTemplate = `{"id":"01HX000000000000","name":"Order-00000","value":000.00,"items":0,"tags":["a"],"metadata":{"source":"web","session":"sess-000000"}}`
+
 	size := len(baseTemplate)
 
 	for _, tag := range p.Tags {

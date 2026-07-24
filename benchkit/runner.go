@@ -95,8 +95,10 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 	startTime := time.Now()
 
 	runCtx := ctx
+
 	if r.config.Duration > 0 {
 		var cancel context.CancelFunc
+
 		runCtx, cancel = context.WithTimeout(ctx, r.config.Duration)
 		defer cancel()
 	}
