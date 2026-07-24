@@ -1,12 +1,12 @@
 # ADR-0062: Metaengine Dependency Boundary — Subpackage for event/projection Integration
 
-| Field        | Value                                                            |
-| ------------ | ---------------------------------------------------------------- |
-| Status       | Accepted                                                         |
-| Date         | 2026-07-25                                                       |
-| Deciders     | Lars Artmann                                                     |
-| Related      | ADR-0061 (SQLite engine), ADR-0046 (seven-tier model)            |
-| Supersedes   | —                                                                |
+| Field      | Value                                                 |
+| ---------- | ----------------------------------------------------- |
+| Status     | Accepted                                              |
+| Date       | 2026-07-25                                            |
+| Deciders   | Lars Artmann                                          |
+| Related    | ADR-0061 (SQLite engine), ADR-0046 (seven-tier model) |
+| Supersedes | —                                                     |
 
 ## Context
 
@@ -33,6 +33,7 @@ versions that were never tagged).
 `metaengine/projectionadapter/`.**
 
 This follows the same pattern as:
+
 - `idempotency/kvstore/` — KV-backed idempotency pulls `kv/v4`
 - `idempotency/sqlstore/` — SQL-backed idempotency pulls `modernc.org/sqlite`
 

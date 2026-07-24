@@ -44,7 +44,7 @@ func NewMemoryEngine() Engine {
 
 func (m *memoryEngine) Profile() EngineProfile {
 	return EngineProfile{
-		Name:   "memory",
+		Name:    "memory",
 		NsPerOp: MemoryNsPerOp,
 		Supports: map[ADT]Complexity{
 			ADTMap:       ComplexityO1,
@@ -63,6 +63,7 @@ func (m *memoryEngine) Profile() EngineProfile {
 // AI MAX+ 395):
 //   - MapSet: ~466 ns/op (mutex-protected map insert + JSON marshal)
 //   - MapGet: ~21 ns/op (mutex-protected map lookup)
+//
 // The value 500 ns is a conservative round-up: fold-heavy workloads (inserts)
 // dominate the cost, so we bias toward the write path.
 const MemoryNsPerOp = 500.0

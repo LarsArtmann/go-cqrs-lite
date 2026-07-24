@@ -9,8 +9,8 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
@@ -149,10 +149,13 @@ func TestAdapter_ProjectionHostIntegration(t *testing.T) {
 		metaengine.On(CounterIncremented{}, func(e CounterIncremented) (CounterID, CounterState) {
 			return e.ID, CounterState{Value: e.Amount}
 		}),
-		metaengine.On(CounterIncremented{}, func(e CounterIncremented, prev CounterState) CounterState {
-			prev.Value += e.Amount
-			return prev
-		}),
+		metaengine.On(
+			CounterIncremented{},
+			func(e CounterIncremented, prev CounterState) CounterState {
+				prev.Value += e.Amount
+				return prev
+			},
+		),
 	)
 
 	store, err := metaengine.Plan(
@@ -212,7 +215,8 @@ func TestAdapter_ProjectionHostIntegration(t *testing.T) {
 	cpStore := newMemoryCheckpointStore()
 
 	// Create and start the projection host.
-	host, err := projectionhost.New(journal, cpStore,
+	host, err := projectionhost.New(
+		journal, cpStore,
 		projectionhost.WithBatchSize(10),
 	)
 	if err != nil {

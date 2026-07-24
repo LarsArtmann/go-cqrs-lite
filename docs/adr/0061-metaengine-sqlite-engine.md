@@ -77,16 +77,16 @@ CREATE TABLE IF NOT EXISTS meta_graph_edges (
 
 ### Backend Coverage
 
-| Backend | Status | Notes |
-| ------- | ------ | ----- |
-| MapBackend | Full | INSERT OR REPLACE, SELECT, DELETE |
-| MapUpdater | Full | Transactional read-modify-write |
-| ScanBackend | Partial | Loads all rows, filters/sorts in Go |
-| SetBackend | Full | INSERT OR IGNORE, SELECT EXISTS |
-| CounterBackend | Full | INSERT ON CONFLICT DO UPDATE (atomic increment) |
-| GraphBackend | Basic | Adjacency list table, BFS in Go |
-| MultimapBackend | Full | seq column for ordered multi-values |
-| LogBackend | Full | AUTOINCREMENT seq for append order |
+| Backend         | Status  | Notes                                           |
+| --------------- | ------- | ----------------------------------------------- |
+| MapBackend      | Full    | INSERT OR REPLACE, SELECT, DELETE               |
+| MapUpdater      | Full    | Transactional read-modify-write                 |
+| ScanBackend     | Partial | Loads all rows, filters/sorts in Go             |
+| SetBackend      | Full    | INSERT OR IGNORE, SELECT EXISTS                 |
+| CounterBackend  | Full    | INSERT ON CONFLICT DO UPDATE (atomic increment) |
+| GraphBackend    | Basic   | Adjacency list table, BFS in Go                 |
+| MultimapBackend | Full    | seq column for ordered multi-values             |
+| LogBackend      | Full    | AUTOINCREMENT seq for append order              |
 
 ## Consequences
 

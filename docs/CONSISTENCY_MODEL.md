@@ -37,12 +37,14 @@ Client → Command Handler → decider.Repository.Execute()
 ```
 
 **Guarantees:**
+
 - After `Execute` returns successfully, events are **persisted** in the event store.
 - Version numbers are sequential and gap-free per stream.
 - Optimistic concurrency: `Execute` loads the current version, and the store
   rejects concurrent writes that conflict (AppendBatch with version check).
 
 **No guarantee:**
+
 - Events may not yet be **published** to subscribers when `Execute` returns
   (depends on the bus implementation — `MemoryBus` is synchronous; external
   buses like Watermill may be async).
@@ -100,6 +102,7 @@ events, _ := repo.WaitForVersion(ctx, streamID, "User", result.NewVersion,
 ```
 
 **How it works:**
+
 1. Polls `store.LoadFromVersion(ctx, ref, targetVersion-1)` every 10ms.
 2. Returns when events at or after the target version are visible.
 3. Times out after 2s (configurable via `WithWaitTimeout`).
@@ -111,11 +114,13 @@ lagging. For read-your-writes through a projection, combine with
 `CheckStaleness` (below) or poll the read model directly.
 
 **When to use it:**
+
 - Distributed setups where the event store has read replicas (the write
   goes to the primary, reads go to a replica with replication lag).
 - Cross-process scenarios where another process wrote the event.
 
 **When you DON'T need it:**
+
 - Single-process with MemoryStore, SQLite, or Pebble — the write is
   immediately visible after `Execute` returns.
 
@@ -146,6 +151,7 @@ if err := host.CheckProjectionStaleness("users", 5*time.Second); err != nil {
 ```
 
 **Semantics:**
+
 - `maxStaleness <= 0` disables the check (always returns nil).
 - Lag == 0 (no events processed yet) is treated as fresh — the projection
   hasn't had a chance to fall behind.
@@ -183,15 +189,15 @@ at the row level.
 
 ## Summary Table
 
-| Path | Consistency | Mechanism | Helper |
-| --- | --- | --- | --- |
-| Command → Event Store | Strong (sync) | `Repository.Execute` | — |
-| Event Store → Bus | Depends on bus | `MemoryBus` (sync) or Watermill (async) | — |
-| Event Store → Projection | Eventual | `projectionhost.Host` batch drain | `LagDuration()` |
-| Write → Read (same process) | Immediate | Store is synchronous | `WaitForVersion` |
-| Write → Read (distributed) | Eventual | Read replica replication lag | `WaitForVersion` |
-| Read model freshness | Bounded staleness | Projection lag check | `CheckStaleness` |
-| Command dedup | Exactly-once | Idempotency store atomic claim | `CheckAndRecord` |
+| Path                        | Consistency       | Mechanism                               | Helper           |
+| --------------------------- | ----------------- | --------------------------------------- | ---------------- |
+| Command → Event Store       | Strong (sync)     | `Repository.Execute`                    | —                |
+| Event Store → Bus           | Depends on bus    | `MemoryBus` (sync) or Watermill (async) | —                |
+| Event Store → Projection    | Eventual          | `projectionhost.Host` batch drain       | `LagDuration()`  |
+| Write → Read (same process) | Immediate         | Store is synchronous                    | `WaitForVersion` |
+| Write → Read (distributed)  | Eventual          | Read replica replication lag            | `WaitForVersion` |
+| Read model freshness        | Bounded staleness | Projection lag check                    | `CheckStaleness` |
+| Command dedup               | Exactly-once      | Idempotency store atomic claim          | `CheckAndRecord` |
 
 ---
 
@@ -202,6 +208,6 @@ at the row level.
   across streams, order is undefined).
 - **Linearizability** or sequential consistency across processes.
 - **Saga/orchestration** — multi-step workflows emerge from bus subscriptions
-  + command dispatch (see `example/taskmanager`).
+  - command dispatch (see `example/taskmanager`).
 - **Read replica management** — the library works with whatever database
   the consumer configures; replication lag is the database's responsibility.

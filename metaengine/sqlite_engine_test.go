@@ -216,9 +216,24 @@ var _ = Describe("SQLiteEngine", func() {
 			mb := eng.(metaengine.MapBackend)
 			ctx := context.Background()
 
-			_ = mb.MapSet(ctx, "products", "p1", map[string]any{"name": "Zebra", "price": float64(100)})
-			_ = mb.MapSet(ctx, "products", "p2", map[string]any{"name": "Apple", "price": float64(50)})
-			_ = mb.MapSet(ctx, "products", "p3", map[string]any{"name": "Mango", "price": float64(75)})
+			_ = mb.MapSet(
+				ctx,
+				"products",
+				"p1",
+				map[string]any{"name": "Zebra", "price": float64(100)},
+			)
+			_ = mb.MapSet(
+				ctx,
+				"products",
+				"p2",
+				map[string]any{"name": "Apple", "price": float64(50)},
+			)
+			_ = mb.MapSet(
+				ctx,
+				"products",
+				"p3",
+				map[string]any{"name": "Mango", "price": float64(75)},
+			)
 
 			sortFunc := func(a, b any) int {
 				an := a.(map[string]any)["name"].(string)

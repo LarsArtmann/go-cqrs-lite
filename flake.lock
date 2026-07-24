@@ -57,11 +57,11 @@
     "go-finding": {
       "flake": false,
       "locked": {
-        "lastModified": 1784927899,
-        "narHash": "sha256-3v8EP7BRpBURl/9xbm5KXbf59h21FmRtQqFUC3xYHJw=",
+        "lastModified": 1784929613,
+        "narHash": "sha256-k16tsXospfK0npFdlyN3MbIMQWEWJbCxfKPCVSzDZ2E=",
         "ref": "master",
-        "rev": "a5c959e69594a575129ed4c4ea7a3c4efeae7f16",
-        "revCount": 1009,
+        "rev": "ebe923c0a2eac70a8b94a3821470070a1fe0a8de",
+        "revCount": 1015,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/go-finding"
       },
@@ -91,11 +91,11 @@
     "go-output": {
       "flake": false,
       "locked": {
-        "lastModified": 1784914874,
-        "narHash": "sha256-h/TAMvhDRXXQYrcAyWECdTKyF2zMlgx+00BnPDyc6W8=",
+        "lastModified": 1784932744,
+        "narHash": "sha256-opME8KWHuFygbr3op+IebdLKTATo15o/Sg6SUPvD5B4=",
         "ref": "master",
-        "rev": "114af6aff5f51f99ce95eeb3803e4c938193bc72",
-        "revCount": 1050,
+        "rev": "ff4974a0275541874323a97243ed2f1c4935a982",
+        "revCount": 1051,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/go-output"
       },
@@ -108,11 +108,11 @@
     "gogenfilter": {
       "flake": false,
       "locked": {
-        "lastModified": 1784831608,
-        "narHash": "sha256-P0oPguJMUZVKX63e0fkwKAuIb4/YdEuekXGp3D+r5Qk=",
+        "lastModified": 1784933043,
+        "narHash": "sha256-W0G6Jn42rXpsdAMbdz8Ax8abAUUfg4RKQqzHNFOMiO8=",
         "ref": "master",
-        "rev": "d7cc0e720003930581b78aeef6e956a31b6900a0",
-        "revCount": 753,
+        "rev": "94d9816334948f0c0d36a5d68d028e523c0187aa",
+        "revCount": 767,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/gogenfilter"
       },
@@ -156,11 +156,11 @@
     "samber-do-auditlog": {
       "flake": false,
       "locked": {
-        "lastModified": 1784925918,
-        "narHash": "sha256-fQ2o+IJvrrKKmgF6dMIFMDNuOsojHpl/Wli/aWeYuyo=",
+        "lastModified": 1784934840,
+        "narHash": "sha256-rTrF4N9eQzMPcMLRS65VeDdWhexG86Blo3M1bqfwTMU=",
         "ref": "master",
-        "rev": "9d178568ff54b8bb8ef415cb4804c518b1233ad9",
-        "revCount": 488,
+        "rev": "c5c3dfd471da27394b7f6be60e0589f10a893f8e",
+        "revCount": 526,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/samber-do-auditlog"
       },

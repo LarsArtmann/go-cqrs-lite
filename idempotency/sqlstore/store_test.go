@@ -138,11 +138,11 @@ func TestStore_CheckAndRecord_AtomicUnderConcurrency(t *testing.T) {
 	const goroutines = 50
 
 	var (
-		wg        sync.WaitGroup
-		winners   atomic.Int64
-		dupCount  atomic.Int64
-		errCount  atomic.Int64
-		firstErr  atomic.Value
+		wg       sync.WaitGroup
+		winners  atomic.Int64
+		dupCount atomic.Int64
+		errCount atomic.Int64
+		firstErr atomic.Value
 	)
 
 	wg.Add(goroutines)
@@ -285,7 +285,14 @@ func TestStore_MultipleKeysIndependent(t *testing.T) {
 		}
 
 		// Second call to the same key should fail.
-		if err := s.CheckAndRecord(ctx, key, 10*time.Minute); !errors.Is(err, idempotency.ErrDuplicate) {
+		if err := s.CheckAndRecord(
+			ctx,
+			key,
+			10*time.Minute,
+		); !errors.Is(
+			err,
+			idempotency.ErrDuplicate,
+		) {
 			t.Fatalf("second CheckAndRecord %s: got %v, want ErrDuplicate", key, err)
 		}
 	}

@@ -1,12 +1,12 @@
 # ADR-0063: FilterOn/SortOn Pushdown Strategy
 
-| Field        | Value                                                |
-| ------------ | ---------------------------------------------------- |
-| Status       | Accepted                                             |
-| Date         | 2026-07-25                                           |
-| Deciders     | Lars Artmann                                         |
-| Related      | ADR-0061 (SQLite engine), ADR-0062 (dep boundary)    |
-| Supersedes   | —                                                    |
+| Field      | Value                                             |
+| ---------- | ------------------------------------------------- |
+| Status     | Accepted                                          |
+| Date       | 2026-07-25                                        |
+| Deciders   | Lars Artmann                                      |
+| Related    | ADR-0061 (SQLite engine), ADR-0062 (dep boundary) |
+| Supersedes | —                                                 |
 
 ## Context
 

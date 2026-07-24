@@ -114,7 +114,7 @@ var (
 // SQLiteEngineProfile returns the cost profile for a SQLite engine.
 func SQLiteEngineProfile() EngineProfile {
 	return EngineProfile{
-		Name:   "sqlite",
+		Name:    "sqlite",
 		NsPerOp: SQLiteNsPerOp,
 		Supports: map[ADT]Complexity{
 			ADTMap:       ComplexityOLogN,
@@ -133,6 +133,7 @@ func SQLiteEngineProfile() EngineProfile {
 // in-memory modernc.org/sqlite (file::memory:):
 //   - MapSet (INSERT): ~6,548 ns/op
 //   - MapGet (SELECT): ~4,960 ns/op
+//
 // The value 7,000 ns is conservative for in-memory planning. Disk-backed
 // SQLite adds I/O latency (10-50µs per op), but the planner is designed to
 // prefer memory engines when they can serve the query at lower cost.

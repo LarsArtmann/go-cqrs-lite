@@ -53,11 +53,11 @@ func main() {
 `CheckAndRecord` uses `INSERT ... ON CONFLICT DO UPDATE WHERE` — a single
 atomic statement that handles three cases:
 
-| Scenario                  | SQL outcome                  | Result          |
-| ------------------------- | ---------------------------- | --------------- |
-| Key does not exist        | INSERT succeeds              | nil (claimed)   |
-| Key exists but expired    | UPDATE overwrites expiry     | nil (claimed)   |
-| Key exists and not expired| No rows affected             | ErrDuplicate    |
+| Scenario                   | SQL outcome              | Result        |
+| -------------------------- | ------------------------ | ------------- |
+| Key does not exist         | INSERT succeeds          | nil (claimed) |
+| Key exists but expired     | UPDATE overwrites expiry | nil (claimed) |
+| Key exists and not expired | No rows affected         | ErrDuplicate  |
 
 Both SQLite and PostgreSQL evaluate the `WHERE` clause within the same
 statement, so concurrent callers are serialized at the row level by the
@@ -65,13 +65,13 @@ database engine. No application-level locking is needed.
 
 ## API
 
-| Method           | Description                                         |
-| ---------------- | --------------------------------------------------- |
-| `CheckAndRecord` | Atomic claim — returns nil or `ErrDuplicate`        |
-| `Seen`           | Check if key is recorded and not expired            |
-| `Record`         | Insert key with TTL (no-op if key already exists)   |
-| `Sweep`          | Delete all expired entries (call periodically)      |
-| `Close`          | No-op (caller owns the `*sql.DB`)                   |
+| Method           | Description                                       |
+| ---------------- | ------------------------------------------------- |
+| `CheckAndRecord` | Atomic claim — returns nil or `ErrDuplicate`      |
+| `Seen`           | Check if key is recorded and not expired          |
+| `Record`         | Insert key with TTL (no-op if key already exists) |
+| `Sweep`          | Delete all expired entries (call periodically)    |
+| `Close`          | No-op (caller owns the `*sql.DB`)                 |
 
 ## Constructors
 

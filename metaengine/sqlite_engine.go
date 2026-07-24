@@ -30,7 +30,7 @@ type sqliteQuerySet struct {
 	mapGet    string
 	mapDelete string
 	// Set
-	setAdd     string
+	setAdd      string
 	setContains string
 	// Counter
 	counterIncrement string
@@ -42,7 +42,7 @@ type sqliteQuerySet struct {
 	logAppend string
 	logTail   string
 	// Graph
-	graphAddEdge  string
+	graphAddEdge   string
 	graphNeighbors string
 	// DDL
 	ddl string
