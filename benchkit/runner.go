@@ -135,6 +135,18 @@ func (r *runner) setup(ctx context.Context) error {
 		return fmt.Errorf("factory: %w", err)
 	}
 
+	if bundle == nil {
+		return fmt.Errorf("factory returned nil bundle")
+	}
+
+	if bundle.EventSink == nil {
+		return fmt.Errorf("bundle has nil EventSink")
+	}
+
+	if bundle.EventSource == nil {
+		return fmt.Errorf("bundle has nil EventSource")
+	}
+
 	r.bundle = bundle
 
 	profile := r.config.Profile
@@ -264,8 +276,16 @@ func runConcurrent(
 }
 
 // warmup runs a few write+load cycles on a throwaway aggregate to warm
-// caches, JIT compilation, and connection pools.
+// caches, JIT compilation, and connection pools. It uses a separate Bundle
+// so warmup events never pollute the measurement store's journal.
 func (r *runner) warmup(ctx context.Context) error {
+	warmupBundle, err := r.factory()
+	if err != nil {
+		return fmt.Errorf("warmup factory: %w", err)
+	}
+
+	defer func() { _ = warmupBundle.Close() }()
+
 	aggID := id.NewStreamID()
 	ref := id.NewStreamRef(benchStreamType, aggID)
 
@@ -281,14 +301,14 @@ func (r *runner) warmup(ctx context.Context) error {
 			return err
 		}
 
-		if err := r.bundle.EventSink.Save(ctx, ref, []event.Event{evt}, version); err != nil {
+		if err := warmupBundle.EventSink.Save(ctx, ref, []event.Event{evt}, version); err != nil {
 			return err
 		}
 
 		version = version.Add(1)
 	}
 
-	_, err := r.bundle.EventSource.Load(ctx, ref)
+	_, err = warmupBundle.EventSource.Load(ctx, ref)
 
 	return err
 }

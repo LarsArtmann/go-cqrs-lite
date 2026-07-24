@@ -5,6 +5,7 @@ import (
 	"context"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -30,11 +31,14 @@ func mustRun(t *testing.T, config Config, factory Factory) *Result {
 func TestRun_Memory(t *testing.T) {
 	t.Parallel()
 
+	var factoryCalls atomic.Int32
+
 	result := mustRun(t, Config{
 		Profile:     ProfileDev,
 		PayloadSize: 128,
 		Warmup:      2,
 	}, func() (*stack.Bundle, error) {
+		factoryCalls.Add(1)
 		return memory.New()
 	})
 
@@ -65,6 +69,12 @@ func TestRun_Memory(t *testing.T) {
 
 	if result.Memory.Delta > 1<<30 { // > 1GB is suspicious for a dev profile
 		t.Errorf("Memory.Delta = %d, expected < 1GB", result.Memory.Delta)
+	}
+
+	// Warmup uses a separate Bundle, so factory is called twice:
+	// once for measurement, once for warmup.
+	if got := factoryCalls.Load(); got != 2 {
+		t.Errorf("factory called %d times, want 2 (measurement + separate warmup bundle)", got)
 	}
 }
 
