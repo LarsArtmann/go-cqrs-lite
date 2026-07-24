@@ -19,6 +19,7 @@ package main
 
 import (
     "context"
+    "log"
 
     "github.com/larsartmann/go-cqrs-lite/deriver/v4"
     cqrscommand "github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -27,25 +28,31 @@ import (
 
 func main() {
     // A Deriver is a pure function: event → commands
-    sendWelcomeEmail := func(ctx context.Context, evt cqrsevent.Event) ([]cqrscommand.Command, error) {
-        return []cqrscommand.Command{
-            command.New("send-welcome-email", evt.AggregateID(), SendWelcomeEmail{UserID: evt.AggregateID()}),
-        }, nil
-    }
+    sendWelcomeEmail := deriver.Deriver(func(_ context.Context, evt cqrsevent.Event) ([]cqrscommand.Command, error) {
+        cmd, err := cqrscommand.New("send-welcome-email", evt.AggregateID())
+        if err != nil {
+            return nil, err
+        }
 
-    syncToCrm := func(ctx context.Context, evt cqrsevent.Event) ([]cqrscommand.Command, error) {
-        return []cqrscommand.Command{
-            command.New("sync-to-crm", evt.AggregateID(), SyncToCrm{UserID: evt.AggregateID()}),
-        }, nil
-    }
+        return []cqrscommand.Command{cmd}, nil
+    })
+
+    syncToCrm := deriver.Deriver(func(_ context.Context, evt cqrsevent.Event) ([]cqrscommand.Command, error) {
+        cmd, err := cqrscommand.New("sync-to-crm", evt.AggregateID())
+        if err != nil {
+            return nil, err
+        }
+
+        return []cqrscommand.Command{cmd}, nil
+    })
 
     // Compose: fan-out (Then) + event-type filter (Filter) + idempotent IDs
     d := sendWelcomeEmail.Then(syncToCrm).
         Filter("user.created").
         Idempotent()
 
-    // Wire into the event bus
-    bus.SubscribeAll(d.AsHandler(cmdDispatcher))
+    // Wire into the event bus — AsHandler dispatches derived commands
+    _ = d // bus.SubscribeAll(d.AsHandler(cmdDispatcher))
 }
 ```
 

@@ -18,6 +18,7 @@ GOWORK=off go run main.go
 ```
 
 Output:
+
 ```
 User: Alice
 ```
