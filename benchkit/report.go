@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dustin/go-humanize"
 )
 
 // durationMarshalers serializes time.Duration as nanoseconds (int64)
@@ -210,11 +212,7 @@ func roundDuration(d time.Duration) time.Duration {
 }
 
 func formatInt(n int) string {
-	if n < 1000 {
-		return strconv.Itoa(n)
-	}
-
-	return insertCommas(strconv.Itoa(n))
+	return humanize.Comma(int64(n))
 }
 
 func formatFloat(f float64) string {
@@ -272,32 +270,4 @@ func truncate(s string, max int) string {
 	}
 
 	return s[:max-3] + "..."
-}
-
-func insertCommas(s string) string {
-	n := len(s)
-	if n <= 3 {
-		return s
-	}
-
-	var b strings.Builder
-
-	pre := n % 3
-	if pre > 0 {
-		b.WriteString(s[:pre])
-
-		if n > pre {
-			b.WriteByte(',')
-		}
-	}
-
-	for i := pre; i < n; i += 3 {
-		b.WriteString(s[i : i+3])
-
-		if i+3 < n {
-			b.WriteByte(',')
-		}
-	}
-
-	return b.String()
 }

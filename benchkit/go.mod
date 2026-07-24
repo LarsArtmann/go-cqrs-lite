@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/benchkit/v4
 go 1.26.4
 
 require (
+	github.com/dustin/go-humanize v1.0.1
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.1.0
@@ -17,7 +18,6 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

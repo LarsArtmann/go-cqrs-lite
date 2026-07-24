@@ -160,7 +160,7 @@ The `storage/sql` subpackage contains shared SQL infrastructure used by all SQL-
 | `SharedEventLoad`      | Shared event scanning logic                |
 | `DeleteByAggregate`    | Shared DELETE implementation               |
 
-The subpackage also defines all SQL-level sentinel errors: `ErrNilDB`, `ErrAggregateTypeMismatch`, `ErrAggregateIDMismatch`, `ErrVersionMismatch`, `ErrConcurrencyConflict`, `ErrUnsupportedTimestamp`, `ErrUnexpectedTimeType`.
+The subpackage also defines all SQL-level sentinel errors: `ErrNilDB`, `ErrStreamTypeMismatch`, `ErrStreamIDMismatch`, `ErrVersionMismatch`, `ErrConcurrencyConflict`, `ErrUnsupportedTimestamp`, `ErrUnexpectedTimeType`.
 
 ## Turso
 
