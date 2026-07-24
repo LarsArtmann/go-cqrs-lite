@@ -59,7 +59,7 @@ func (s *commandServer) Dispatch(
 		cqrsotel.RecordError(span, err)
 
 		return errorResult(errorfamily.WrapRejection(err, "grpc.command.parse_aggregate_id",
-			"parse aggregate ID")), nil
+			"parse stream ID")), nil
 	}
 
 	var opts []command.Option

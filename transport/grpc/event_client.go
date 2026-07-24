@@ -65,7 +65,7 @@ func envelopeToEvent(envelope *cqrsproto.EventEnvelope) (event.Event, error) {
 	aggID, err := id.ParseStreamID(envelope.GetAggregateId())
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err, "grpc.event_client.parse_aggregate_id",
-			"parse aggregate ID")
+			"parse stream ID")
 	}
 
 	var opts []event.Option

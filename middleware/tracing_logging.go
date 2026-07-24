@@ -23,15 +23,15 @@ func NewTraceLogging[M any](
 	logger *slog.Logger,
 	msgs TraceLogMessages,
 	extractType func(M) string,
-	extractAggID func(M) string,
+	extractStreamID func(M) string,
 ) Middleware[M] {
 	return func(next Handler[M]) Handler[M] {
 		return func(ctx context.Context, msg M) error {
 			tLogger := cqrsotel.ContextLogger(logger, ctx)
 
 			args := []any{"type", extractType(msg)}
-			if extractAggID != nil {
-				args = append(args, "aggregate_id", extractAggID(msg))
+			if extractStreamID != nil {
+				args = append(args, "streamID", extractStreamID(msg))
 			}
 
 			tLogger.Info(msgs.Dispatching, args...)

@@ -73,9 +73,9 @@ var indexInferenceRules = map[string][]indexRule{
 				Name:    "idx_events_agg_ver",
 				Table:   "events",
 				Columns: []string{"aggregate_type", "aggregate_id", "version"},
-				Reason:  "avoid full table scan on aggregate version queries",
+				Reason:  "avoid full table scan on stream version queries",
 			},
-			reason:   "aggregate load with version filter triggers SCAN TABLE",
+			reason:   "stream load with version filter triggers SCAN TABLE",
 			priority: PriorityCritical,
 		},
 		{
@@ -108,9 +108,9 @@ var indexInferenceRules = map[string][]indexRule{
 				Name:    "idx_commands_agg_time",
 				Table:   "commands",
 				Columns: []string{"aggregate_type", "aggregate_id", "received_at"},
-				Reason:  "avoid full table scan on command aggregate queries",
+				Reason:  "avoid full table scan on command stream queries",
 			},
-			reason:   "command audit by aggregate triggers SCAN TABLE",
+			reason:   "command audit by stream triggers SCAN TABLE",
 			priority: PriorityRecommended,
 		},
 		{

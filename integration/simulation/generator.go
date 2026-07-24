@@ -16,7 +16,7 @@ type EventGenerator struct {
 	payloadGen func(int) any
 }
 
-// NewEventGenerator creates a generator for the given aggregate and event types.
+// NewEventGenerator creates a generator for the given stream and event types.
 func NewEventGenerator(
 	streamType id.StreamType,
 	eventType event.Type,
@@ -29,7 +29,7 @@ func NewEventGenerator(
 	}
 }
 
-// Generate creates a sequence of events for a single aggregate.
+// Generate creates a sequence of events for a single stream.
 func (g *EventGenerator) Generate(count int) ([]event.Event, error) {
 	aggID := id.NewStreamID()
 	types := make([]event.Type, count)

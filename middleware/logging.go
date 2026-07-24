@@ -36,7 +36,7 @@ func logWithContext(
 		logger.Error(
 			prefix+" failed",
 			"type", msgType,
-			"streamID", aggregateIDStr,
+			"streamID", streamIDStr,
 			"duration", duration,
 			"error", err,
 		)
@@ -54,7 +54,7 @@ func logWithContext(
 	logger.Info(
 		prefix+" succeeded",
 		"type", msgType,
-		"streamID", aggregateIDStr,
+		"streamID", streamIDStr,
 		"duration", duration,
 	)
 

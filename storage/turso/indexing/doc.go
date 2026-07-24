@@ -3,7 +3,7 @@
 //
 // It analyzes EXPLAIN QUERY PLAN output to detect full-table scans, tracks
 // query patterns, and recommends or automatically creates indexes tailored
-// to common CQRS access patterns (aggregate loads, event journal reads,
+// to common CQRS access patterns (stream loads, event journal reads,
 // projection cursors, and command audits).
 //
 // Quick start — analyze a slow query:
