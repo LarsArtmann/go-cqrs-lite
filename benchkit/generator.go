@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"strings"
+	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
@@ -30,6 +31,7 @@ type Generator struct {
 	rng   *rand.Rand
 	size  int
 	codec codec.Codec
+	mu    sync.Mutex
 }
 
 // NewGenerator creates a Generator with the given seed, target payload size,
@@ -55,6 +57,9 @@ func NewGenerator(seed int64, size int, c codec.Codec) *Generator {
 // The Padding field is sized so the codec-encoded payload matches the target
 // byte size as closely as possible (within a few bytes).
 func (g *Generator) Payload() BenchPayload {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	p := BenchPayload{
 		ID:       fmt.Sprintf("01HX%012d", g.rng.IntN(1000000000000)),
 		Name:     fmt.Sprintf("Order-%d", g.rng.IntN(100000)),
