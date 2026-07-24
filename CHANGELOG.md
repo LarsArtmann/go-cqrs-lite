@@ -26,8 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   [benchmark results](docs/status/2026-07-24_17-54_benchmark-first-real-run.md).
   Full feature detail in [FEATURES.md](FEATURES.md#benchmarking-toolkit-).
 - **cqrs-bench CLI** (`cmd/cqrs-bench`) — benchmark any backend with named
-  workload profiles. `run`, `compare`, and `--repeat N` subcommands. Uses
-  `runtime/debug.ReadBuildInfo()` for version (was hardcoded `v4.1.0`).
+  workload profiles. `run`, `compare`, `sweep`, and `--repeat N` subcommands.
+  Uses `runtime/debug.ReadBuildInfo()` for version (was hardcoded `v4.1.0`).
 - **Incremental rollups** (`storage/relational`) — `ProjectionSink.Increment`
   for atomic counter maintenance via `INSERT ... ON CONFLICT DO UPDATE`.
   `RelationalProjection.Reset` implements `projectionhost.Resettable` for

@@ -8,30 +8,33 @@
 ## Current State (v4.1.0 shipped)
 
 **v4.1.0 tagged** (2026-07-23) — initial module batch tagged on `/v4` import paths
-(verify: `git tag --list '*/v4.1.0' | wc -l`). The workspace now has 56 `go.mod`
-files; post-tag additions (metaengine, benchkit, cmd/cqrs-bench, example/readme-quickstart)
-will be tagged when their APIs stabilize. The deprecated API removal batch shipped
-(`middleware.NewMetrics`, `catalog.ErrorExporter`, `storage/sql.NewOwnedDBHandle`,
-etc. — see [CHANGELOG.md](CHANGELOG.md) `[v4.1.0]` equivalent under `[Unreleased]`).
+(verify: `git tag --list '*/v4.1.0' | wc -l`). The workspace has 56 `go.mod`
+files; post-tag additions (metaengine, benchkit, cmd/cqrs-bench,
+example/readme-quickstart) are unreleased and will be tagged when their APIs
+stabilize. The deprecated-API removal batch shipped (see [CHANGELOG.md](CHANGELOG.md)
+`[Unreleased]` → Removed).
 
 The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs,
-command/query dispatch, pure-function deciders, three projection tiers (document/KV,
-relational/SQL, graph), durable deadline scheduling, event→command derivation,
-dead-letter quarantine, managed projection hosting, event signing/encryption,
-OTel tracing/metrics, auto-documentation generation, and a domain-aware linter
-(cqrs-lint, 60 rules).
+command/query dispatch, pure-function deciders, three projection tiers
+(document/KV, relational/SQL, graph), durable deadline scheduling,
+event→command derivation, dead-letter quarantine, managed projection hosting,
+event signing/encryption, OTel tracing/metrics, auto-documentation generation,
+and a domain-aware linter (cqrs-lint, 60 rules).
 
 **New since v4.0.0:**
 
-- **Metaengine** (`metaengine/v4`) — cost-based storage planner. Derives projections
-  and engine assignments from two primitives (Events + Queries). 7 ADTs inferred
-  from fold return types. MemoryEngine only; no real SQL/Pebble engine yet.
-- **Benchkit** (`benchkit/v4` + `cmd/cqrs-bench`) — benchmarking toolkit with
-  7 named workload profiles, 8-phase runner, structured reports.
+- **Metaengine** (`metaengine/v4`, 🧪 experimental) — cost-based storage planner.
+  Derives projections and engine assignments from two primitives (Events +
+  Queries). 7 ADTs inferred from fold return types. 174 BDD specs, 87.7%
+  coverage. MemoryEngine only; no real SQL/Pebble engine yet — see Theme 1.
+- **Benchkit** (`benchkit/v4` + `cmd/cqrs-bench`, 🧪 experimental) — benchmarking
+  toolkit with 7 named workload profiles + an analytical profile, 9-phase runner,
+  scaling sweeps, benchstat/manifest output, and a first real benchmark run
+  completed 2026-07-24. 88 benchkit + 12 CLI test functions. See Theme 2.
 - **Incremental rollups** — `ProjectionSink.Increment` + `RelationalProjection.Reset`
   for atomic counter maintenance in relational projections.
-- **Aggregate→Stream rename** (ADR-0058) — type aliases + deprecated wrappers.
-  Complete: all code, tests, and docs migrated to canonical `Stream*` names.
+- **Aggregate→Stream rename** (ADR-0058) — complete across code, tests, and docs.
+  Deprecated aliases + wire-format identifiers preserved for compatibility.
 - **Comprehensive README coverage** — all 56 modules with READMEs, 248 Go symbol
   references verified by `doc-check`.
 - **Error taxonomy migration** — 13 sentinels migrated to `errorfamily` constructors.
@@ -64,10 +67,11 @@ OTel tracing/metrics, auto-documentation generation, and a domain-aware linter
 
 The metaengine prototype proves the Event-Query Model works: fold return types
 infer ADTs, typed closures avoid strings, pagination is detected from input
-structs. The gap between prototype and production:
+structs. The concrete next tasks live in [TODO_LIST.md](TODO_LIST.md)
+"Metaengine → Production". The open design questions:
 
-- **Real SQLite engine** — wrap `SQLViewStore` as a metaengine backend.
-  The first production engine validates the interface design.
+- **Real SQLite engine** — wrap `SQLViewStore` as a metaengine backend. The first
+  production engine validates the interface design.
 - **Cost model calibration** — `nsPerOp=100` is arbitrary. Needs benchmark-driven
   calibration with real engine profiles.
 - **Integration** — `projection.Projection` adapter, `kv.Store` bridge,
@@ -75,39 +79,49 @@ structs. The gap between prototype and production:
 - **FilterOn/SortOn → SQL pushdown** — Go closures cannot be inspected. Design
   decision needed: DSL, codegen, or keep in-memory filtering.
 
-### 2. Benchkit → Reliable
+### 2. Benchkit → Released
 
-The benchmarking toolkit is functional with 55 tests but has known gaps:
+The benchmarking toolkit is functionally complete — the full evidence plan
+shipped: durability/recovery, production replay, `benchtest.RunSuite`,
+analytical profile, Postgres backend, scaling sweeps, benchstat/manifest output,
+profiling, and a first real run across memory/pebble/sqlite (2026-07-24). The
+remaining work is maturity, not features:
 
-- ~~**Warmup store pollution**~~ FIXED — warmup uses a separate throwaway Bundle.
-- ~~**Pebble backend tests**~~ DONE — Pebble write/read + disk measurement tested.
-- **Durability benchmarking** (Phase 2) — disk measurement exists but `DiskSizer` interface has zero backend implementations.
-- **Production replay** (Phase 6) — replay real event streams for benchmarking.
-- **benchtest.RunSuite** (Phase 7) — preset integration for `stack/bench`.
-- **Benchmark validation** — benchmark has never been actually run and inspected for output plausibility; tests verify plumbing, not real-world numbers.
-- **`--version` hardcoded** — should use `runtime/debug.ReadBuildInfo()`.
+- **Tag `benchkit/v0.1.0`** — API is stabilizing; tag when ready (also covers
+  `metaengine`, `cmd/cqrs-bench`, `example/readme-quickstart`).
+- **Run-to-run variance** — ~20-25% on the memory backend. `--repeat N`
+  (median-of-N) mitigates it; real-world regression tracking is the next step.
+- **Real-world validation** — the first run verified plumbing and plausibility;
+  a regression baseline + CI integration is the path to trustworthy numbers.
 
-### 3. Codebase Health
+### 3. Module Extraction
 
-- **Stale API golden file** — `docs/api_surface.txt` still contains 9 removed
-  APIs. CI `api-stability` job will fail until regenerated.
-- **Aggregate→Stream completion** — ✅ Done (Sessions 1–4). All Go code, test
-  files (224 files), and consumer-facing docs migrated to canonical `Stream*`
-  names. Deprecated aliases, SQL columns, OTel values, and error codes
-  intentionally kept per ADR-0058.
-- **Module extraction** — `retry/` and `idempotency/` are zero-CQRS-coupling
-  candidates for standalone repos (see [extraction analysis](docs/planning/2026-07-23_extraction-analysis.md)).
+Two modules are zero-CQRS-coupling candidates for standalone repos (see
+[extraction analysis](docs/planning/2026-07-23_extraction-analysis.md)):
 
-### 4. Consumer Experience
+- **Extract `retry/` → `go-retry`** — 217 LOC, zero CQRS coupling, 1 dependency.
+- **Extract `idempotency/` → `go-idempotency`** — 355 LOC, zero CQRS coupling,
+  3-method `Store` interface.
 
-- **Read-your-writes helper** — `WaitForVersion(ctx, streamID, version)` for
-  consumers who need immediate consistency after a write (book insights gap).
-- **Bounded staleness** — `WithMaxStaleness(duration)` for projections that
-  can tolerate lag (book insights gap).
-- **Consistency model document** — `docs/CONSISTENCY_MODEL.md` documenting
-  single-process scope and eventual consistency guarantees.
-- **SQL-backed `idempotency.Store`** — for multi-process Postgres deployments
-  (~100 lines: `INSERT ON CONFLICT DO NOTHING`).
+### 4. Storage & Transport Expansion (design-doc-backed)
+
+These have design docs and graduated from "Raw Ideas"; concrete phases will move
+to [TODO_LIST.md](TODO_LIST.md) when actively worked:
+
+- **Parquet journal + DuckDB** — three additive phases: `storage/parquet`
+  (segment journal, pure Go), `storage/duckdb` (OLAP materializations, CGO),
+  `stack/duckdb` (preset). Design at
+  `docs/research/archive/2026-07-11_PARQUET_JOURNAL_DUCKDB_MATERIALIZATIONS.md`.
+- **Transport expansion** — NATS/ValKey stream adapters (ADR-0025 accepted) as
+  `transport/nats/` and `transport/redis/` modules; a distributed event bus
+  backend for multi-process event distribution.
+
+### 5. Consumer Experience
+
+Gaps surfaced by the [book insights vs codebase review](docs/architecture-understanding/2026-07-23_book-insights-vs-codebase.html).
+The concrete tasks (read-your-writes helper, bounded staleness, consistency-model
+doc, SQL-backed idempotency) live in [TODO_LIST.md](TODO_LIST.md) "Consumer
+Experience".
 
 ---
 
@@ -123,9 +137,8 @@ The benchmarking toolkit is functional with 55 tests but has known gaps:
 - Performance regression dashboard (historical benchmark tracking)
 - Neo4j/Memgraph graph driver (`graph/neo4j/`) — consumer-pulled sibling module
 
-> Items with design docs graduate to [TODO_LIST.md](TODO_LIST.md) "Future" sections.
-> Current graduates: Parquet journal, DuckDB connector, NATS/ValKey adapter,
-> distributed event bus, module extraction (retry/, idempotency/).
+> Items with design docs graduate to a Theme above, then to [TODO_LIST.md](TODO_LIST.md)
+> when actively worked.
 
 ---
 
