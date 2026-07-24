@@ -297,6 +297,15 @@ var _ = Describe("ApplyEncoded", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result.Title).To(Equal("From JSON"))
 	})
+
+	When("the JSON payload is invalid", func() {
+		It("returns a decode error naming the event type", func() {
+			err := store.ApplyEncoded(
+				context.Background(), "TaskCreated", []byte("{not valid json"),
+			)
+			Expect(err).To(MatchError(MatchRegexp("decode TaskCreated")))
+		})
+	})
 })
 
 var _ = Describe("EventTypeNames", func() {
