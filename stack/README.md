@@ -24,9 +24,8 @@ if err != nil { log.Fatal(err) }
 defer bundle.Close()
 
 // Access capabilities:
-store := bundle.EventStore()       // event.Store
-bus   := bundle.EventBus()          // event.Bus
-repo  := bundle.Repository(decider) // decider.Repository[State]
+store, ok := bundle.EventStore()                      // (event.Store, bool)
+repo, err := stack.Repository[State](bundle, decider) // (*decider.Repository[State], error)
 ```
 
 ### Build a Read Model
@@ -40,8 +39,8 @@ mat := stack.Materialize[TodoView, TodoID]{
     OnTombstone:  func(ctx, evt, existing *TodoView) (*TodoView, error) { ... },
 }
 
-// Register as a projection:
-host.Register(mat.AsProjection())
+// Register as a projection (implements projection.Projection directly):
+host.Register(&mat)
 ```
 
 ## API
@@ -51,10 +50,9 @@ host.Register(mat.AsProjection())
 | Symbol                    | Kind   | Description                                                        |
 | ------------------------- | ------ | ------------------------------------------------------------------ |
 | `Bundle`                  | Struct | Peer capability fields: events, commands, queries, snapshots, etc. |
-| `Bundle.EventStore()`     | Method | Returns `event.Store` (or error if not configured).                |
-| `Bundle.EventBus()`       | Method | Returns `event.Bus` (or error if not configured).                  |
-| `Bundle.Repository(d)`    | Method | Returns `decider.Repository[State]` wired to store + bus.          |
-| `Bundle.ReadModel(...)`   | Method | Returns a `kv.ViewStore[V,K]` for read models.                     |
+| `Bundle.EventStore()`           | Method   | Returns `(event.Store, bool)`.                                      |
+| `stack.Repository[State](b, d)` | Function | Returns `(*decider.Repository[State], error)` wired to store + bus. |
+| `stack.ReadModel[T, K](b, ...)` | Function | Returns `(*kv.TypedStore[T, K], error)` for read models.            |
 | `Bundle.HealthCheck(ctx)` | Method | Pings the DB + calls HealthCheck on registered resources.          |
 | `Bundle.Close()`          | Method | Closes all registered closers (deduplicated by pointer).           |
 

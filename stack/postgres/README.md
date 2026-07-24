@@ -21,7 +21,7 @@ defer bundle.Close()
 ### Distributed Event Bus (cross-process pub/sub)
 
 ```go
-listener, _ := postgres.NewPgxListenerFromDSN(dsn)
+listener, _ := postgres.NewPgxListenerFromDSN(ctx, dsn)
 bundle, err := postgres.New(dsn,
     postgres.WithDistributedBus(listener),
 )

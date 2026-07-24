@@ -16,7 +16,8 @@ var _ = Describe("Plan", func() {
 			var err error
 			store, err = metaengine.Plan(
 				[]metaengine.Engine{metaengine.NewMemoryEngine()},
-				allQueries()...)
+				allQueries()...,
+			)
 			Expect(err).NotTo(HaveOccurred())
 			plan = store.Plan()
 		})

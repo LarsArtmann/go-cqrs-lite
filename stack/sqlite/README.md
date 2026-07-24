@@ -37,8 +37,8 @@ bundle, err := sqlite.New("",
 ```go
 bundle, err := sqlite.New("app.db",
     sqlite.WithPragmas(
-        sqlopt.WithJournalMode("WAL"),
-        sqlopt.WithBusyTimeout(10000),
+        sqlopt.WithOptimizations(),
+        sqlopt.WithForeignKeys(),
     ),
 )
 ```

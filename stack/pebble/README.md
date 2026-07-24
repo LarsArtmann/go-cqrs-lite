@@ -21,8 +21,11 @@ defer bundle.GracefulClose(ctx)
 ### With Custom Options
 
 ```go
+// DefaultOptionsWithLogging lives in storage/pebble, not stack/pebble:
+import cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
+
 bundle, err := pebble.New("data/myapp",
-    pebble.WithPebbleOptions(pebble.DefaultOptionsWithLogging(slog.Default())),
+    pebble.WithPebbleOptions(cqrspebble.DefaultOptionsWithLogging(slog.Default())),
     pebble.WithLogger(slog.Default()),
 )
 ```
