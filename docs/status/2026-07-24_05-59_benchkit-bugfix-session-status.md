@@ -4,6 +4,12 @@
 **Session:** Fixed critical dead-code bugs, replaced hand-rolled stdlib, added doc.go
 **Status:** All 5 critical bugs fixed, 23 tests passing with `-race`, pushed to remote
 
+> **Update 2026-07-24 (commit `8f68922b`):** all items in section d) (warmup pollution,
+> `estimateJSONSize` guess, no negative tests) and the questions in section Q (errorfamily,
+> marshal-and-measure) were resolved in later sessions. The warmup fix used approach (a) — factory
+> called twice for a separate Bundle. Test count is now 55 (50 benchkit + 5 CLI). Full item-by-item
+> status in [Resolution](#resolution-2026-07-24) below.
+
 ---
 
 ## a) FULLY DONE
@@ -220,3 +226,21 @@ The project convention (AGENTS.md) says all modules use `errorfamily.NewRejectio
 ### 3. Should the generator's `estimateJSONSize` be replaced with marshal-and-measure?
 
 The current implementation uses a hardcoded template string to estimate payload size before computing padding. This means payloads are approximately (not exactly) the target size. For codec comparison benchmarks (JSON vs CBOR), this imprecision undermines the storage efficiency metric. The fix is one extra `json.Marshal` per payload — negligible cost, but changes the generator's output characteristics (deterministic payloads would have slightly different byte counts). Should I prioritize this fix?
+
+---
+
+## Resolution (2026-07-24)
+
+All items in section d) and questions Q1/Q3 were resolved across the [critical-fixes](2026-07-24_15-13_benchkit-critical-fixes-status.md) and [completeness](2026-07-24_16-45_benchkit-completeness-session-status.md) sessions:
+
+| Item | Claim in report | Resolution | Session |
+| ---- | --------------- | ---------- | ------- |
+| d.1 | Warmup pollutes the event store | FIXED: factory called twice, separate throwaway Bundle | critical-fixes |
+| d.2 | `estimateJSONSize` is a guess | FIXED: replaced with `json.Marshal` marshal-and-measure | critical-fixes |
+| d.3 | No negative/failure-path tests (23 happy-path only) | FIXED: 5 negative tests added (33→55 total) | critical-fixes + completeness |
+| d.4 | `insertCommas` hand-rolled | FIXED: replaced with `humanize.Comma` | todo-list-execution session |
+| d.5 | No `nix fmt` run | DONE: `nix fmt` applied | completeness |
+| Q1 | Should errors use `errorfamily`? | YES: 5 sentinels in `errors.go` | completeness |
+| Q3 | Should `estimateJSONSize` → marshal-and-measure? | YES: done, then further evolved to codec-aware probe-encode | critical-fixes + completeness |
+
+**Test count:** 23 (this session) → 55 (50 benchkit + 5 CLI) after completeness session.

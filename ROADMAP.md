@@ -7,8 +7,10 @@
 
 ## Current State (v4.1.0 shipped)
 
-**v4.1.0 tagged** (2026-07-23) — 49 modules on `/v4` import paths (verify:
-`git tag --list '*/v4.1.0' | wc -l`). The deprecated API removal batch shipped
+**v4.1.0 tagged** (2026-07-23) — initial module batch tagged on `/v4` import paths
+(verify: `git tag --list '*/v4.1.0' | wc -l`). The workspace now has 56 `go.mod`
+files; post-tag additions (metaengine, benchkit, cmd/cqrs-bench, example/readme-quickstart)
+will be tagged when their APIs stabilize. The deprecated API removal batch shipped
 (`middleware.NewMetrics`, `catalog.ErrorExporter`, `storage/sql.NewOwnedDBHandle`,
 etc. — see [CHANGELOG.md](CHANGELOG.md) `[v4.1.0]` equivalent under `[Unreleased]`).
 

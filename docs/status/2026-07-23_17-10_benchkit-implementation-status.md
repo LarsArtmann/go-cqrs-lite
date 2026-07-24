@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-23 17:10
 **Session:** Initial benchkit implementation from design report
-**Status:** ~~MVP functional, several gaps and dead-code issues~~ Dead-code bugs fixed in [bugfix session](2026-07-24_05-59_benchkit-bugfix-session-status.md) (commits `19f540ec`–`9ac2cc52`): `Config.Codec` wired, `Config.Duration` enforced, `ReadRatio` implemented, `BenchPayload` typed. Warmup store pollution and `estimateJSONSize` accuracy remain open.
+**Status:** ~~MVP functional, several gaps and dead-code issues~~ Dead-code bugs fixed in [bugfix session](2026-07-24_05-59_benchkit-bugfix-session-status.md) (commits `19f540ec`–`9ac2cc52`): `Config.Codec` wired, `Config.Duration` enforced, `ReadRatio` implemented, `BenchPayload` typed. ~~Warmup store pollution and `estimateJSONSize` accuracy remain open.~~ Both resolved: warmup isolation in the [critical-fixes session](2026-07-24_15-13_benchkit-critical-fixes-status.md), CBOR-aware probe-encode padding in the [completeness session](2026-07-24_16-45_benchkit-completeness-session-status.md). Test count is now 55 (was 22 at time of writing).
 
 ---
 

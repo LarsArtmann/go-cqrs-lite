@@ -159,7 +159,7 @@ But the code uses `id.Of[struct{}]` which requires the import — this is fine. 
 8. **Reconcile README code with readme-quickstart/main.go** — make them byte-identical
 9. **Add a CI step to regenerate and diff `api_surface.txt`** — prevent future golden-file staleness
 10. **Update `.gitignore` with a proper Go binary exclusion pattern**
-11. **Review the benchkit module for production readiness** — it was added by the parallel session and has 0% test coverage
+11. **Review the benchkit module for production readiness** — it was added by the parallel session and has ~~0% test coverage~~ _(now 55 tests, see G2 update)_
 12. **Verify `cmd/cqrs-bench/go.mod` replace directives** — new module needs to be in sync with go.work
 13. **Check if the `docs/status/2026-07-23_17-07_SKILL-RESTRUCTURE-STATUS.md`** and `docs/status/2026-07-23_17-10_benchkit-implementation-status.md` files are accurate
 14. **Review the 31 files changed by the benchkit session** — ensure quality
@@ -232,6 +232,8 @@ The deprecated API removal is committed to `master` but there's no v4.1 tag or b
 ### G2. Should the benchkit module (from the parallel session) be kept or reverted?
 
 The parallel session committed 31 files including a 33MB compiled binary, a new `benchkit/` module with 0% coverage, and a `cmd/cqrs-bench` CLI. I didn't review this work. **Do you want me to review it, or was it intentional and should stay as-is?**
+
+> **Update 2026-07-24:** **Kept.** benchkit was retained and extensively developed across 4 subsequent sessions. It now has 55 tests (50 benchkit + 5 CLI), passing with `-race`. The 33MB binary is still tracked in git (open question G3 remains unresolved). See the [completeness session](2026-07-24_16-45_benchkit-completeness-session-status.md) for current state.
 
 ### G3. Is the compiled binary in git intentional?
 

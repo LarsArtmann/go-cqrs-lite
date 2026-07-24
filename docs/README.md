@@ -26,7 +26,7 @@
 
 ## Modules
 
-The authoritative module index with README links lives in the **[project README](../README.md)** (52 modules). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4).
+The authoritative module index with README links lives in the **[project README](../README.md)** (56 modules). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4).
 
 ## Examples
 
