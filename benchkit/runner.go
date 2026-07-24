@@ -2,6 +2,7 @@ package benchkit
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -115,9 +116,11 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 		defer cancel()
 	}
 
-	if err := r.writePhase(runCtx); err != nil {
-		return nil, errorfamily.WrapTransient(err, "benchkit.write_phase",
-			"write phase")
+	if !r.config.ReplayOnly {
+		if err := r.writePhase(runCtx); err != nil {
+			return nil, errorfamily.WrapTransient(err, "benchkit.write_phase",
+				"write phase")
+		}
 	}
 
 	if !r.config.SkipReads {
@@ -158,7 +161,7 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 	return &r.result, nil
 }
 
-func (r *runner) setup(_ context.Context) error {
+func (r *runner) setup(ctx context.Context) error {
 	bundle, err := r.factory()
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "benchkit.factory",
@@ -169,20 +172,36 @@ func (r *runner) setup(_ context.Context) error {
 		return ErrNilBundle
 	}
 
-	if bundle.EventSink == nil || bundle.EventSource == nil {
+	if r.config.ReplayOnly {
+		if bundle.EventSource == nil {
+			return ErrIncompleteBundle
+		}
+
+		if bundle.Journal == nil && bundle.SeekableJournal == nil {
+			return ErrIncompleteBundle
+		}
+	} else if bundle.EventSink == nil || bundle.EventSource == nil {
 		return ErrIncompleteBundle
 	}
 
 	r.bundle = bundle
 
 	profile := r.config.Profile
-	r.aggIDs = make([]id.StreamID, profile.Streams)
-	r.refs = make([]id.StreamRef, profile.Streams)
 
-	for i := range profile.Streams {
-		aggID := id.NewStreamID()
-		r.aggIDs[i] = aggID
-		r.refs[i] = id.NewStreamRef(benchStreamType, aggID)
+	if r.config.ReplayOnly {
+		if err := r.discoverStreams(ctx, profile.Streams); err != nil {
+			return errorfamily.WrapInfrastructure(err, "benchkit.replay_discovery",
+				"replay stream discovery")
+		}
+	} else {
+		r.aggIDs = make([]id.StreamID, profile.Streams)
+		r.refs = make([]id.StreamRef, profile.Streams)
+
+		for i := range profile.Streams {
+			aggID := id.NewStreamID()
+			r.aggIDs[i] = aggID
+			r.refs[i] = id.NewStreamRef(benchStreamType, aggID)
+		}
 	}
 
 	if r.concurrency <= 0 {
@@ -213,6 +232,52 @@ func (r *runner) teardown() {
 	if r.bundle != nil {
 		_ = r.bundle.Close()
 	}
+}
+
+// discoverStreams reads the journal to find existing streams and populates
+// r.aggIDs and r.refs. It caps the number of discovered streams at maxStreams.
+// Sets r.result.TotalEvents to the total events found in the journal.
+func (r *runner) discoverStreams(ctx context.Context, maxStreams int) error {
+	var events []event.Event
+	var err error
+
+	if r.bundle.Journal != nil {
+		events, err = r.bundle.Journal.ReadAll(ctx)
+	} else {
+		events, err = r.bundle.SeekableJournal.ReadFrom(ctx, id.EventID{}, 0)
+	}
+
+	if err != nil {
+		return fmt.Errorf("read journal for stream discovery: %w", err)
+	}
+
+	r.result.TotalEvents = len(events)
+
+	seen := make(map[string]bool)
+	r.aggIDs = make([]id.StreamID, 0, maxStreams)
+	r.refs = make([]id.StreamRef, 0, maxStreams)
+
+	for _, evt := range events {
+		streamID := evt.StreamID()
+		key := streamID.String()
+
+		if seen[key] {
+			continue
+		}
+
+		seen[key] = true
+
+		r.aggIDs = append(r.aggIDs, streamID)
+		r.refs = append(r.refs, id.NewStreamRef(evt.StreamType(), streamID))
+
+		if len(r.aggIDs) >= maxStreams {
+			break
+		}
+	}
+
+	r.result.Streams = len(r.aggIDs)
+
+	return nil
 }
 
 func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {

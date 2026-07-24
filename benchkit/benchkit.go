@@ -90,6 +90,16 @@ type Config struct {
 	// events. Result.RecoveryTime and Result.RecoveredEvents are populated.
 	Recovery bool
 
+	// ReplayOnly skips the write phase and benchmarks read/projection
+	// performance against an existing store with real data. The runner
+	// discovers streams from the Journal (ReadAll) or SeekableJournal
+	// (ReadFrom), then loads each stream and runs journal scans +
+	// projections. Profile.Streams caps the number of streams loaded.
+	// The factory must produce a Bundle that already contains data.
+	// Requires Journal or SeekableJournal — returns ErrIncompleteBundle
+	// if neither is available.
+	ReplayOnly bool
+
 	// Repeat runs the benchmark N times and reports the median result with
 	// min/max throughput spread. Zero or 1 means single run (default).
 	// Useful because single-run throughput has ~20-25% variance on the

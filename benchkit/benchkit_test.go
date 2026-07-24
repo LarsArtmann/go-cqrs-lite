@@ -1412,3 +1412,87 @@ func TestRun_Recovery_Pebble(t *testing.T) {
 			result.RecoveredEvents, ProfileDev.TotalEvents())
 	}
 }
+
+// ── Production replay (ReplayOnly) tests ──
+
+func TestRun_ReplayOnly_SQLite(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "bench.db")
+
+	// Phase 1: write events to a SQLite store.
+	writeResult := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Backend:     "sqlite",
+		DiskPath:    dir,
+	}, func() (*stack.Bundle, error) {
+		return sqlite.New(dbPath)
+	})
+
+	if writeResult.TotalEvents != ProfileDev.TotalEvents() {
+		t.Fatalf("write phase: TotalEvents = %d, want %d",
+			writeResult.TotalEvents, ProfileDev.TotalEvents())
+	}
+
+	// Phase 2: replay the same store without writing.
+	replayResult := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Backend:     "sqlite",
+		DiskPath:    dir,
+		ReplayOnly:  true,
+	}, func() (*stack.Bundle, error) {
+		return sqlite.New(dbPath)
+	})
+
+	// Replay should discover the same number of events from the journal.
+	if replayResult.TotalEvents != ProfileDev.TotalEvents() {
+		t.Errorf("replay TotalEvents = %d, want %d (should match written events)",
+			replayResult.TotalEvents, ProfileDev.TotalEvents())
+	}
+
+	// No write latency (write phase skipped).
+	if replayResult.WriteLatency.Count != 0 {
+		t.Errorf("replay WriteLatency.Count = %d, want 0 (write phase skipped)",
+			replayResult.WriteLatency.Count)
+	}
+
+	// Read latency should be populated (loading existing streams).
+	if replayResult.LoadLatency.Count == 0 {
+		t.Error("replay LoadLatency.Count is 0, expected nonzero (loading existing streams)")
+	}
+
+	// Journal scans should work.
+	if replayResult.ReadAllTime <= 0 {
+		t.Error("replay ReadAllTime should be positive")
+	}
+}
+
+func TestRun_ReplayOnly_NoJournal(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Memory backend has no Journal — should return ErrIncompleteBundle.
+	_, err := Run(ctx, Config{
+		Profile:    ProfileDev,
+		ReplayOnly: true,
+	}, func() (*stack.Bundle, error) {
+		b, _ := memory.New()
+		b.Journal = nil
+		b.SeekableJournal = nil
+
+		return b, nil
+	})
+
+	if err == nil {
+		t.Fatal("expected error for ReplayOnly without Journal/SeekableJournal")
+	}
+
+	if !strings.Contains(err.Error(), "incomplete_bundle") {
+		t.Errorf("error should mention incomplete_bundle, got: %v", err)
+	}
+}
