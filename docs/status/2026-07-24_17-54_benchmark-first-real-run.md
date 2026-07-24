@@ -21,6 +21,12 @@ The benchmark works. Numbers are physically plausible, scale correctly with prof
 
 ---
 
+> **Update 2026-07-24 (same-day hardening):** all 5 "What Needs Improvement"
+> items below are FIXED. SQLite now handles 4+ goroutines, compare-mode disk
+> populates, CPU reports on fast runs, projection events are non-zero, and
+> `--version` uses `runtime/debug.ReadBuildInfo`. Item-by-item status with
+> commit hashes in [What Needs Improvement](#what-needs-improvement).
+
 ## 1. Dev Profile (500 events, 1 goroutine)
 
 ### Comparison table
@@ -260,8 +266,8 @@ Compare mode does not set `DiskPath` on the Config, so all backends report `0B` 
 
 ## What Needs Improvement
 
-1. **SQLite concurrency** — the most critical issue. SQLite should either work at low concurrency (2-4 goroutines) or the benchmark should document this as a known SQLite limitation.
-2. **Disk in compare mode** — compare should pass `DiskPath` so disk columns are populated.
-3. **CPU measurement** — fast benchmarks (memory, <3ms) report `n/a` CPU. Consider finer-grained sampling.
-4. **No projection benchmark** — `projectionEvents: 0` in all runs. The dev profile doesn't exercise projection catch-up speed.
-5. **`--version` is hardcoded** — shows `v4.1.0` but should use `runtime/debug.ReadBuildInfo()`.
+1. ~~**SQLite concurrency** — the most critical issue. SQLite should either work at low concurrency (2-4 goroutines) or the benchmark should document this as a known SQLite limitation.~~ DONE: 9c738149;
+2. ~~**Disk in compare mode** — compare should pass `DiskPath` so disk columns are populated.~~ DONE: ba681b09;
+3. ~~**CPU measurement** — fast benchmarks (memory, <3ms) report `n/a` CPU. Consider finer-grained sampling.~~ DONE: 1b801d61;
+4. ~~**No projection benchmark** — `projectionEvents: 0` in all runs. The dev profile doesn't exercise projection catch-up speed.~~ DONE: d7c7a5bf;
+5. ~~**`--version` is hardcoded** — shows `v4.1.0` but should use `runtime/debug.ReadBuildInfo()`.~~ DONE: ba681b09;

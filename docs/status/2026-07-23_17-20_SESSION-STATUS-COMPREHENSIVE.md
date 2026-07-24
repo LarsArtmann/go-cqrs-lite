@@ -78,7 +78,16 @@ Nothing remaining from the actionable TODO list.
 > 2026-07-24: `docs/api_surface.txt` still contains 9 stale entries. D3
 > (getting-started snippet) — cosmetic, covered by `docs_compile_test.go`.
 
+> **Update 2026-07-24 (docs-health):** D1 is now RESOLVED — the claim above is
+> stale. `docs/api_surface.txt` was regenerated to 2582 exports and verified to
+> contain **none** of the removed APIs (`NewMetrics`, `MetricsRecorder`,
+> `ErrorExporter`, `NewOwnedDBHandle`, `SetOwnership`, `FakeMetrics` are all
+> gone; the remaining `*MetricsRecorder`/`OTelMetricsRecorder` entries are the
+> replacement `TypedMetricsRecorder` family). See CHANGELOG.md `[Unreleased]`.
+
 ### D1. API STABILITY GOLDEN FILE IS STALE (CRITICAL — CI WILL BREAK)
+
+> ~~RESOLVED~~ — this section's claim no longer holds; see the update above.
 
 **`docs/api_surface.txt` still contains all removed APIs:**
 
