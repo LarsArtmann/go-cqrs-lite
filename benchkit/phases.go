@@ -2,6 +2,7 @@ package benchkit
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
@@ -243,11 +245,7 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 		return nil
 	}
 
-	proj := projection.NewProjection(
-		"bench-counter",
-		func(_ context.Context, _ event.Event) error { return nil },
-		[]event.Type{benchEventType},
-	)
+	proj := newCountingProjection(r.bundle.ReadModels, r.aggIDs)
 
 	host, err := projectionhost.New(
 		r.bundle.SeekableJournal,
@@ -309,6 +307,63 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 	r.collectProjectionStats(host)
 
 	return nil
+}
+
+// newCountingProjection creates a projection that increments a per-stream
+// counter for each event. When a kv.Store is available (bundle.ReadModels),
+// the counter is persisted via Get+Set — measuring real projection I/O cost.
+// When no kv.Store is available, an in-memory atomic counter is used as a
+// fallback (still exercises the projection host machinery, but without I/O).
+func newCountingProjection(store kv.Store, aggIDs []id.StreamID) projection.Projection {
+	if store != nil {
+		return newKVCountingProjection(store, aggIDs)
+	}
+
+	var count atomic.Int64
+
+	return projection.NewProjection(
+		"bench-counter",
+		func(_ context.Context, _ event.Event) error {
+			count.Add(1)
+
+			return nil
+		},
+		[]event.Type{benchEventType},
+	)
+}
+
+// newKVCountingProjection creates a projection that persists a per-stream
+// event count to a kv.Store. Each event triggers a Get (current count) +
+// Set (incremented count), measuring real projection write amplification.
+func newKVCountingProjection(store kv.Store, _ []id.StreamID) projection.Projection {
+	return projection.NewProjection(
+		"bench-counter",
+		func(ctx context.Context, evt event.Event) error {
+			key := []byte("bench:count:" + evt.StreamID().String())
+
+			val, err := store.Get(ctx, key)
+			if err != nil {
+				return fmt.Errorf("projection Get: %w", err)
+			}
+
+			var n uint64
+			if len(val) > 0 {
+				n = binary.BigEndian.Uint64(val)
+			}
+
+			n++
+
+			var buf [8]byte
+			binary.BigEndian.PutUint64(buf[:], n)
+
+			if err := store.Set(ctx, key, buf[:]); err != nil {
+				return fmt.Errorf("projection Set: %w", err)
+			}
+
+			return nil
+		},
+		[]event.Type{benchEventType},
+	)
 }
 
 func (r *runner) collectProjectionStats(host *projectionhost.Host) {
