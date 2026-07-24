@@ -2,6 +2,7 @@ package benchkit
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync/atomic"
