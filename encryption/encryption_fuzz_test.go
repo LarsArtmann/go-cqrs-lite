@@ -289,7 +289,7 @@ func FuzzCiphertext_EqualConstantTime(f *testing.F) {
 		c2 := encryption.Ciphertext(b)
 
 		_ = c1.Equal(c2)
-		_ = c1.Equal(c1) //nolint:gocritic
+		_ = c1.Equal(c1)
 
 		_ = c1.String()
 		_ = c1.Bytes()

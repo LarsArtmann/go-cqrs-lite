@@ -418,6 +418,8 @@ linters:
       - path: stack/contracttest/
         linters:
           - errcheck
+          - goconst
+          - varnamelen
       - path: benchkit/
         linters:
           - errcheck
