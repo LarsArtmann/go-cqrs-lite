@@ -61,6 +61,24 @@ This avoids a nil-interface check (since `*stack.Bundle` always implements
 **Alternative rejected:** Separate `HasDiskSize()` method. More API surface
 for no benefit; the sentinel pattern is idiomatic Go (cf. `syscall`, `time`).
 
+## Stable API Surface (v0.1.0)
+
+The following exports constitute the stable public API as of the v0.1.0 tag.
+Breaking any of these requires a major version bump:
+
+- **Entry points**: `Run`, `Compare`, `RunSuite`
+- **Sweep helpers**: `BatchSizeSweep`, `GOMAXPROCSSweep`, `StreamLengthSweep`, `WorkerSweep`, `ScalingSweep`
+- **Config**: `Config`, `Factory`, `Profile`, `ProfileByName`
+- **Result types**: `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Environment`, `SweepResult`
+- **Output**: `PrintReport`, `PrintComparison`, `PrintMarkdown`, `PrintSweep`, `WriteJSON`, `WriteBenchstat`, `WriteManifest`, `WriteComparisonJSON`, `WriteSweepJSON`
+- **JSON schema**: `ExpectedJSONFields`, `VerifyJSONFields`
+- **Generators**: `Generator`, `NewGenerator`, `NewMixedGenerator`, `LatencyCollector`, `NewLatencyCollector`
+- **Manifest**: `SuiteManifest`, `NewManifest`
+- **Interfaces**: `DiskSizer`
+
+`stack/bench` re-exports `RunSuite` + `BenchmarkBenchkitSuite_*` as the
+`testing.B`-compatible integration point. These signatures are stable.
+
 ## Consequences
 
 - The benchmark accurately measures what it claims to measure (real encoded sizes, no warmup pollution).
