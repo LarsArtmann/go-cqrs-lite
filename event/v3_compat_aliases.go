@@ -20,10 +20,12 @@ type AggregateID = id.StreamID
 // Deprecated: use id.StreamRef. Retained for v3 consumers that reference event.AggregateRef.
 type AggregateRef = id.StreamRef
 
+// Deprecated: use id.ParseStreamType.
 var ParseAggregateType = id.ParseAggregateType
 
 type StreamRef = id.StreamRef
 
+// Deprecated: use id.NewStreamRef.
 var NewAggregateRef = id.NewStreamRef
 
 type CustomData[K ~string] = metadata.CustomData[K]

@@ -65,7 +65,7 @@ func New(commandType Type, streamID id.StreamID, opts ...Option) (*BasicCommand,
 		return nil, errorfamily.WrapRejection(
 			ErrEmptyCommandType,
 			"command.empty_command_type",
-			"command type is required: got empty for aggregate "+streamID.String(),
+			"command type is required: got empty for stream "+streamID.String(),
 		)
 	}
 
@@ -73,7 +73,7 @@ func New(commandType Type, streamID id.StreamID, opts ...Option) (*BasicCommand,
 		return nil, errorfamily.WrapRejection(
 			ErrNilStreamID,
 			"command.nil_aggregate_id",
-			"aggregate ID is required: got zero for command type "+string(commandType),
+			"stream ID is required: got zero for command type "+string(commandType),
 		)
 	}
 

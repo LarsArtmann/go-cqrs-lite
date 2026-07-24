@@ -19,7 +19,7 @@ func validateEventParams(
 		return errorfamily.WrapRejection(
 			ErrEmptyEventType,
 			"event.empty_event_type",
-			"event type is required: got empty for aggregate "+streamID.String()+" of type "+string(
+			"event type is required: got empty for stream "+streamID.String()+" of type "+string(
 				streamType,
 			),
 		)
@@ -29,9 +29,9 @@ func validateEventParams(
 		return errorfamily.WrapRejection(
 			ErrNilStreamID,
 			"event.nil_aggregate_id",
-			"aggregate ID is required: for event type "+string(
+			"stream ID is required: for event type "+string(
 				eventType,
-			)+", aggregate type "+string(
+			)+", stream type "+string(
 				streamType,
 			)+", version "+version.String(),
 		)
@@ -41,7 +41,7 @@ func validateEventParams(
 		return errorfamily.WrapRejection(
 			ErrEmptyStreamType,
 			"event.empty_aggregate_type",
-			"aggregate type is required: for aggregate "+streamID.String()+", event type "+string(
+			"stream type is required: for stream "+streamID.String()+", event type "+string(
 				eventType,
 			)+", version "+version.String(),
 		)
@@ -51,7 +51,7 @@ func validateEventParams(
 		return errorfamily.WrapRejection(
 			ErrVersionNotPositive,
 			"event.version_not_positive",
-			"version must be positive: for aggregate "+streamID.String()+" of type "+string(
+			"version must be positive: for stream "+streamID.String()+" of type "+string(
 				streamType,
 			)+" (event type "+string(
 				eventType,

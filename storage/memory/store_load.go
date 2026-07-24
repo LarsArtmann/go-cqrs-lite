@@ -116,7 +116,7 @@ func (s *MemoryStore) getEvents(
 	if !exists {
 		return nil, errorfamily.WrapRejection(event.ErrStreamNotFound,
 			"memory.aggregate_not_found",
-			fmt.Sprintf("memory %s aggregate %s not found", op, ref))
+			fmt.Sprintf("memory %s stream %s not found", op, ref))
 	}
 
 	events := make([]event.Event, len(indices))

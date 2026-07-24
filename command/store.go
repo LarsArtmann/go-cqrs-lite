@@ -77,7 +77,7 @@ func NewPersistedCommand(
 		return nil, errorfamily.WrapRejection(
 			ErrEmptyStreamType,
 			"command.empty_aggregate_type",
-			"aggregate type is required in ref",
+			"stream type is required in ref",
 		)
 	}
 
@@ -85,7 +85,7 @@ func NewPersistedCommand(
 		return nil, errorfamily.WrapRejection(
 			ErrNilStreamID,
 			"command.nil_aggregate_id",
-			"aggregate ID is required in ref",
+			"stream ID is required in ref",
 		)
 	}
 
