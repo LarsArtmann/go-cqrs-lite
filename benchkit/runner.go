@@ -2,10 +2,10 @@ package benchkit
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -84,9 +84,13 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 	r.startCPU = cpuTime()
 
 	if r.config.Warmup > 0 {
-		if err := r.warmup(ctx); err != nil {
-			return nil, fmt.Errorf("warmup: %w", err)
+		warmupEvents, err := r.warmup(ctx)
+		if err != nil {
+			return nil, errorfamily.WrapTransient(err, "benchkit.warmup",
+				ErrWarmupFailed.Error())
 		}
+
+		r.result.WarmupEvents = warmupEvents
 	}
 
 	r.sampler = newResourceSampler()
@@ -104,19 +108,29 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 	}
 
 	if err := r.writePhase(runCtx); err != nil {
-		return nil, fmt.Errorf("write phase: %w", err)
+		return nil, errorfamily.WrapTransient(err, "benchkit.write_phase",
+			"write phase")
 	}
 
-	if err := r.readPhase(runCtx); err != nil {
-		return nil, fmt.Errorf("read phase: %w", err)
+	if !r.config.SkipReads {
+		if err := r.readPhase(runCtx); err != nil {
+			return nil, errorfamily.WrapTransient(err, "benchkit.read_phase",
+				"read phase")
+		}
 	}
 
-	if err := r.readModelPhase(runCtx); err != nil {
-		return nil, fmt.Errorf("read model phase: %w", err)
+	if !r.config.SkipReadModels {
+		if err := r.readModelPhase(runCtx); err != nil {
+			return nil, errorfamily.WrapTransient(err, "benchkit.read_model_phase",
+				"read model phase")
+		}
 	}
 
-	if err := r.projectionPhase(runCtx); err != nil {
-		return nil, fmt.Errorf("projection phase: %w", err)
+	if !r.config.SkipProjections {
+		if err := r.projectionPhase(runCtx); err != nil {
+			return nil, errorfamily.WrapTransient(err, "benchkit.projection_phase",
+				"projection phase")
+		}
 	}
 
 	r.durabilityPhase()
@@ -132,19 +146,16 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 func (r *runner) setup(ctx context.Context) error {
 	bundle, err := r.factory()
 	if err != nil {
-		return fmt.Errorf("factory: %w", err)
+		return errorfamily.WrapInfrastructure(err, "benchkit.factory",
+			ErrFactoryFailed.Error())
 	}
 
 	if bundle == nil {
-		return fmt.Errorf("factory returned nil bundle")
+		return ErrNilBundle
 	}
 
-	if bundle.EventSink == nil {
-		return fmt.Errorf("bundle has nil EventSink")
-	}
-
-	if bundle.EventSource == nil {
-		return fmt.Errorf("bundle has nil EventSource")
+	if bundle.EventSink == nil || bundle.EventSource == nil {
+		return ErrIncompleteBundle
 	}
 
 	r.bundle = bundle
@@ -278,16 +289,18 @@ func runConcurrent(
 // warmup runs a few write+load cycles on a throwaway aggregate to warm
 // caches, JIT compilation, and connection pools. It uses a separate Bundle
 // so warmup events never pollute the measurement store's journal.
-func (r *runner) warmup(ctx context.Context) error {
+// Returns the number of events written during warmup.
+func (r *runner) warmup(ctx context.Context) (int, error) {
 	warmupBundle, err := r.factory()
 	if err != nil {
-		return fmt.Errorf("warmup factory: %w", err)
+		return 0, errorfamily.WrapInfrastructure(err, "benchkit.warmup_factory",
+			"warmup factory")
 	}
 
 	defer func() { _ = warmupBundle.Close() }()
 
 	if warmupBundle == nil || warmupBundle.EventSink == nil || warmupBundle.EventSource == nil {
-		return fmt.Errorf("warmup factory returned incomplete bundle")
+		return 0, ErrIncompleteBundle
 	}
 
 	aggID := id.NewStreamID()
@@ -302,11 +315,11 @@ func (r *runner) warmup(ctx context.Context) error {
 			event.WithCodec(r.codec),
 		)
 		if err != nil {
-			return err
+			return i, err
 		}
 
 		if err := warmupBundle.EventSink.Save(ctx, ref, []event.Event{evt}, version); err != nil {
-			return err
+			return i, err
 		}
 
 		version = version.Add(1)
@@ -314,5 +327,5 @@ func (r *runner) warmup(ctx context.Context) error {
 
 	_, err = warmupBundle.EventSource.Load(ctx, ref)
 
-	return err
+	return r.config.Warmup, err
 }

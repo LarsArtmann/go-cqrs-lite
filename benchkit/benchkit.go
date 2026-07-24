@@ -2,6 +2,7 @@ package benchkit
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
@@ -12,6 +13,19 @@ import (
 // produce an independent Bundle with its own backing resources (temp directory,
 // etc.). The caller is responsible for calling Bundle.Close after the run.
 type Factory func() (*stack.Bundle, error)
+
+// DiskSizer is optionally implemented by backends that can report their
+// on-disk size. If the *stack.Bundle returned by Factory wraps a type that
+// implements this interface, the runner uses DiskSize() instead of walking
+// Config.DiskPath.
+//
+// Note: since Factory returns *stack.Bundle (which does not implement DiskSizer),
+// this interface is forward-looking — it enables custom factory wrappers or
+// future stack.Bundle extensions to provide precise disk metrics without
+// filesystem walks.
+type DiskSizer interface {
+	DiskSize() int64
+}
 
 // Config defines a benchmark run.
 type Config struct {
@@ -33,6 +47,9 @@ type Config struct {
 
 	// Warmup runs this many write+load cycles before measurement begins
 	// to warm caches and JIT compilation. Zero disables warmup.
+	//
+	// Warmup uses a SEPARATE Bundle (the factory is called a second time) so
+	// warmup events never pollute the measurement store's journal or metrics.
 	Warmup int
 
 	// Concurrency overrides Profile.Concurrency. Zero means use the profile.
@@ -50,6 +67,38 @@ type Config struct {
 	// If set, the runner walks this path after the workload to report
 	// on-disk database size. If empty, disk metrics are zero.
 	DiskPath string
+
+	// SkipReads skips the read phase (aggregate loads + journal scans).
+	SkipReads bool
+
+	// SkipReadModels skips the read-model Set/Get benchmark.
+	SkipReadModels bool
+
+	// SkipProjections skips the projection phase.
+	SkipProjections bool
+}
+
+// validate checks that the Config has required fields set.
+func (c Config) validate() error {
+	if c.Profile.Streams <= 0 {
+		return fmt.Errorf("%w: Profile.Streams must be > 0, got %d", ErrInvalidConfig, c.Profile.Streams)
+	}
+
+	if c.Profile.EventsPerStream <= 0 {
+		return fmt.Errorf("%w: Profile.EventsPerStream must be > 0, got %d",
+			ErrInvalidConfig, c.Profile.EventsPerStream)
+	}
+
+	if c.Profile.BatchSize <= 0 {
+		return fmt.Errorf("%w: Profile.BatchSize must be > 0, got %d",
+			ErrInvalidConfig, c.Profile.BatchSize)
+	}
+
+	if c.Warmup < 0 {
+		return fmt.Errorf("%w: Warmup must be >= 0, got %d", ErrInvalidConfig, c.Warmup)
+	}
+
+	return nil
 }
 
 // Result is the output of a single benchmark run against one backend.
@@ -65,6 +114,10 @@ type Result struct {
 	EventsPerStream int `json:"eventsPerAggregate"`
 	TotalEvents     int `json:"totalEvents"`
 	PayloadBytes    int `json:"payloadBytesPerEvent"`
+
+	// WarmupEvents is the number of events written during the warmup phase
+	// (on a separate Bundle). Zero when Warmup is disabled.
+	WarmupEvents int `json:"warmupEvents,omitempty"`
 
 	// Write metrics
 	WriteLatency    LatencyStats `json:"writeLatency"`
@@ -128,8 +181,13 @@ type DiskStats struct {
 //
 // The factory is called once to create the Bundle. All phases (write, read,
 // read-model, projection, durability) run against that same Bundle. The Bundle
-// is closed automatically after the run.
+// is closed automatically after the run. When Warmup > 0, the factory is called
+// a second time for a throwaway warmup Bundle that never pollutes measurement.
 func Run(ctx context.Context, config Config, factory Factory) (*Result, error) {
+	if err := config.validate(); err != nil {
+		return nil, err
+	}
+
 	return newRunner(config, factory).run(ctx)
 }
 
