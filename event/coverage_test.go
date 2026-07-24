@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-func TestAggregateRef_IsZero(t *testing.T) {
+func TestStreamRef_IsZero(t *testing.T) {
 	t.Parallel()
 
 	var ref id.StreamRef
@@ -26,7 +26,7 @@ func TestAggregateRef_IsZero(t *testing.T) {
 	}
 }
 
-func TestAggregateRef_Validate(t *testing.T) {
+func TestStreamRef_Validate(t *testing.T) {
 	t.Parallel()
 
 	t.Run("valid", func(t *testing.T) {

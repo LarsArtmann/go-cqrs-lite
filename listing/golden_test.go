@@ -37,7 +37,7 @@ func testListingStatus(
 	}
 }
 
-func TestGolden_AggregateStatusJSON(t *testing.T) {
+func TestGolden_StreamStatusJSON(t *testing.T) {
 	aggID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
 
 	statuses := []listing.StreamStatus{
@@ -76,7 +76,7 @@ func TestGolden_AggregateStatusJSON(t *testing.T) {
 
 	eventtest.AssertGolden(
 		t,
-		filepath.Join("testdata", "golden", "aggregate-status.json"),
+		filepath.Join("testdata", "golden", "stream-status.json"),
 		got,
 		*update,
 	)

@@ -134,6 +134,10 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 		}
 	}
 
+	// SQLite WAL serializes writes; capping at 1 connection prevents
+	// SQLITE_BUSY errors under concurrent access (see storage.ConfigureSQLitePool).
+	storage.ConfigureSQLitePool(sqlDB)
+
 	if cfg.ForeignKeys {
 		err = storage.SQLiteEnableForeignKeys(ctx, sqlDB)
 		if err != nil {

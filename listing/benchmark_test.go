@@ -11,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
-func seedBenchAggregates(
+func seedBenchStreams(
 	b *testing.B,
 	aggType string,
 	evtType string,
@@ -57,14 +57,14 @@ func BenchmarkInMemoryList(b *testing.B) {
 		count    int
 		pageSize uint
 	}{
-		{"1000Aggregates", "User", "UserCreated", "name", "user", 1000, 50},
-		{"100Aggregates", "Order", "OrderCreated", "item", "widget", 100, 10},
+		{"1000Streams", "User", "UserCreated", "name", "user", 1000, 50},
+		{"100Streams", "Order", "OrderCreated", "item", "widget", 100, 10},
 		{"SmallPages", "Cart", "ItemAdded", "sku", "ABC", 500, 5},
 	}
 
 	for _, tc := range tests {
 		b.Run(tc.name, func(b *testing.B) {
-			reader := seedBenchAggregates(
+			reader := seedBenchStreams(
 				b,
 				string(tc.aggType),
 				string(tc.evtType),

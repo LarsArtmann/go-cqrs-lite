@@ -49,7 +49,7 @@ go-cqrs-lite/
 │   └── querytest/       # New(tb, queryType) test helper — tb.Fatalf on error, no panics
 ├── decider/             # Decider[State], Repository[State], Execute, Load (pure-function style)
 ├── deriver/             # Event→command derivation: Deriver, Then, Filter, Idempotent, AsHandler (ADR-0040)
-├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], AggregateID, EventID, etc.
+├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], StreamID, EventID, etc.
 │   └── idtest/          # Parse*(tb, s) test helpers — tb.Fatalf on error, no panics
 ├── metadata/            # Tracing, CustomData[K] (extracted from event/ — shared metadata types for command/query/event)
 ├── metaengine/          # Event sourcing metadata management: MetaEngine, Store, Fold mechanics, metadata lifecycle (ADR-0047)
@@ -75,7 +75,7 @@ go-cqrs-lite/
 │   └── turso/           # Turso database connector (embedded Turso Database sync), indexing advisor
 ├── otel/                # Shared OpenTelemetry helpers: Tracer, Meter, Spans, Attributes
 ├── prometheus/         # OTel→Prometheus metrics bridge: Setup() MeterProvider + /metrics HTTP handler, WithRegistry(), WithViews()
-├── listing/             # AggregateListing, AggregateStatus, tombstone detection, StatusMiddleware, InMemoryAggregateReader
+├── listing/             # StreamListing, StreamStatus, tombstone detection, StatusMiddleware, InMemoryStreamReader
 ├── watermill/           # Watermill adapter: event AND command bridges — EventBus, CommandBus, PublisherAdapter, SubscriberAdapter, EventPublisher, CommandPublisher, CatchUpSubscriber (replay+live+checkpoint), MessageToEvent/MessageToCommand
 ├── transport/http/       # SSE event delivery: SSEBroker, SSEHandler (bridges event.Bus to HTTP clients, ADR-0025)
 ├── transport/grpc/       # gRPC transport: RegisterCommandService, RegisterQueryService, CommandClient, QueryClient (ADR-0025)
@@ -135,7 +135,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 14. **Zero-copy internal reads** — `PayloadReadOnly(evt)` bypasses `Payload()` clone for read-only paths by accessing the `*ImmutableEvent` field directly (Event is now a concrete type alias, so no assertion is needed). Used by signing (SHA-256 hashing, CloneEvent), pebble (json.Marshal), storage/sql (ExecContext), transport/http/sse (string conversion). Internal-only `payloadForDecode()` and `encodingForCopy()` for same-package paths.
 15. **Defensive clone on all public accessors** — `Payload()` returns `slices.Clone`, `Metadata()` returns `.Clone()`, `EventTypes()` returns `slices.Clone`, `MultiSignature.Get()` returns a copy, `WithCommandMetadata` clones on intake. The `Event` interface documents this contract for third-party implementors.
 16. **Hot-path zero-allocation discipline** — Public API clones stay, but internal hot paths eliminate allocs via: lazy map init (`NewMetadata()` returns zero-value), pre-computed middleware chains (EventBus rebuilds on `Use()`/`UsePublish()` only), cached SQL templates (built once at construction), pre-sized result slices (`make([]T, 0, hint)`), lock-free fast paths (`CircuitBreaker` uses `atomic.Int32`), batch SQL inserts (multi-VALUES with SQLite 999-param chunking). **Lesson learned**: type assertions for fast paths are dead code if users create types via different constructors. Cache at the integration boundary instead.
-17. **Load coalescing via singleflight** — `decider.Repository[State]` uses `singleflight.Group` to coalesce concurrent `Load` calls for the same aggregate into one `store.Load` query. Events are immutable (`*ImmutableEvent`), so sharing the loaded slice across callers is safe. Only load is coalesced — Save/Publish still execute independently per caller. Disable via `WithLoadCoalescing[State](false)`.
+17. **Load coalescing via singleflight** — `decider.Repository[State]` uses `singleflight.Group` to coalesce concurrent `Load` calls for the same stream into one `store.Load` query. Events are immutable (`*ImmutableEvent`), so sharing the loaded slice across callers is safe. Only load is coalesced — Save/Publish still execute independently per caller. Disable via `WithLoadCoalescing[State](false)`.
 18. **Go experimental build tags** — Builds use `-tags "goexperiment.jsonv2"` enabling JSON v2 encoding (`encoding/json/v2`). This is a Go experiment flag, NOT a standard build tag — it requires `GOEXPERIMENT` support in the toolchain. CI and `nix run .#build` apply it automatically. JSON v2 is fully adopted (~25 production files); the tag remains only until Go graduates it from experimental (expected Go 1.27+). Arena allocation was removed — the 36-line stub had zero consumers and provided no real GC benefit.
 
 ## Error Handling
@@ -153,11 +153,11 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 evt, err := event.NewEvent("user.created", userID, "User", event.Version(1),
     UserCreated{Name: "Alice"}, event.WithCorrelationID(correlationID))
 
-// Decider (pure-function aggregate)
+// Decider (pure-function)
 decider := decider.Decider[State]{Initial: State{}, Fold: foldFunc}
-result, err := decider.Repository[State].Execute(ctx, repo, aggregateID, decider, command)
+result, err := decider.Repository[State].Execute(ctx, repo, streamID, decider, command)
 
-// Branded IDs (markers are exported: UserMarker, CorrelationMarker, RequestMarker, AggregateMarker)
+// Branded IDs (markers are exported: UserMarker, CorrelationMarker, RequestMarker, StreamMarker)
 type UserID = id.Of[id.UserMarker]
 uid := id.New[UserID]()
 
@@ -167,7 +167,7 @@ result, err := query.DispatchTyped[*GetUserResult](ctx, dispatcher, q)
 // Sink/Source split (ISP)
 var sink event.EventSink = store   // write side: Save, AppendBatch
 var source event.EventSource = store // read side: Load, LoadFromVersion, LoadToVersion, LoadToTimestamp
-var journal event.Journal = store   // ReadAll (cross-aggregate)
+var journal event.Journal = store   // ReadAll (cross-stream)
 var seekable event.SeekableJournal = store // ReadFrom (position-based)
 
 // Tombstone soft-delete (no Delete on Store)
@@ -228,7 +228,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 // Event upcasting (schema migration on load)
 //   upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.ImmutableEvent, error) {
-//       return event.NewEvent(evt.Type(), evt.AggregateID(), evt.AggregateType(), evt.Version(),
+//       return event.NewEvent(evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 //           newPayload, event.WithSchemaVersion(2))
 //   })
 //   versioned := schema.NewVersionedStore(store, upcaster)
@@ -238,7 +238,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // SeekableJournal. VersionedSeekableJournal bridges this gap.
 //   vjournal, _ := schema.NewVersionedSeekableJournal(store, upcaster)
 //   host, _ := projectionhost.New(vjournal, cpStore)
-//   events, _ := versioned.Load(ctx, id.NewAggregateRef("User", aggregateID))
+//   events, _ := versioned.Load(ctx, id.NewStreamRef("User", streamID))
 
 // Event signing (tamper-proof streams)
 //   signer, _ := signing.NewHMAC(secret)
@@ -398,10 +398,10 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 // Decider singleflight (concurrent load coalescing)
 //   // Repository[State] uses singleflight.Group internally — concurrent Load
-//   // calls for the same aggregate coalesce into one store.Load query.
+//   // calls for the same stream coalesce into one store.Load query.
 //   // No API change needed; it's transparent.
 
-// Decider hot-state cache (incremental loads — 7.4x faster for hot aggregates)
+// Decider hot-state cache (incremental loads — 7.4x faster for hot streams)
 //   cache := decider.NewStateCache[MyState](256) // LRU-bounded, process-local
 //   repo, _ := decider.NewRepository(store, bus, d,
 //       decider.WithStateCache[MyState](cache))
@@ -410,7 +410,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // Execute updates the cache after every successful write
 //   // Fold/store errors invalidate the entry (next Load repopulates from store)
 
-// Read-pressure snapshot strategy (snapshot hot-read, cold-write aggregates)
+// Read-pressure snapshot strategy (snapshot hot-read, cold-write streams)
 //   rp, _ := snapshot.NewReadPressure(50) // snapshot after 50 loads + next write
 //   repo, _ := decider.NewRepository(store, bus, d,
 //       decider.WithSnapshotStore[MyState](snapStore),
@@ -470,8 +470,8 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //       ScanRow: func(scan func(dest ...any) error) (*TodoView, error) { ... },
 //       TombstoneColumn: "tombstoned", // optional: server-side tombstone filtering
 //   }
-//   store, _ := storage.NewSQLiteViewStore[TodoView, id.AggregateID](db, mapper)
-//   mat := stack.Materialize[TodoView, id.AggregateID]{Store: store, ...}
+//   store, _ := storage.NewSQLiteViewStore[TodoView, id.StreamID](db, mapper)
+//   mat := stack.Materialize[TodoView, id.StreamID]{Store: store, ...}
 //   // Query with SQL power: WHERE, ORDER BY, LIMIT/OFFSET
 //   results, _ := store.Query(ctx, kv.ViewQuery{
 //       Conditions: []kv.Condition{{Column: "completed", Op: kv.OpEq, Value: false}},
@@ -786,7 +786,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   for name, lag := range host.LagPerProjection() {
 //       gauge.WithLabelValues(name).Set(float64(lag.Milliseconds()))
 //   }
-//   // Aggregate lag (max across all workers):
+//   // Total lag (max across all workers):
 //   gauge.Set(float64(host.LagDuration().Milliseconds()))
 //   // OTel tracing: automatic spans (projectionhost.handle_event) when provider configured
 //   // Reads directly from event.SeekableJournal — no Watermill dependency.
