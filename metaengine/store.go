@@ -52,6 +52,7 @@ func (s *Store) Apply(ctx context.Context, eventType string, payload any) error 
 
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
+
 		foldIdx, ok := q.foldByEvent[eventType]
 		if !ok {
 			continue

@@ -31,6 +31,7 @@ func (s *Store) ApplyEncoded(ctx context.Context, eventType string, payload []by
 
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
+
 		foldIdx, ok := q.foldByEvent[eventType]
 		if !ok {
 			continue

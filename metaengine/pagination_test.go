@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 var _ = Describe("Pagination", func() {

@@ -66,6 +66,7 @@ func findTaskQuery() metaengine.QueryDecl[FindTask, FindTaskResult] {
 		}),
 		metaengine.On(TaskCompleted{}, func(e TaskCompleted, prev FindTaskResult) FindTaskResult {
 			prev.Status = "completed"
+
 			return prev
 		}),
 		metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
@@ -111,6 +112,7 @@ func listTasksByStatusQuery() metaengine.QueryDecl[ListTasksByStatus, ListTasksB
 		}),
 		metaengine.On(TaskCompleted{}, func(e TaskCompleted, prev FindTaskResult) FindTaskResult {
 			prev.Status = "completed"
+
 			return prev
 		}),
 		metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),

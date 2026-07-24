@@ -212,12 +212,14 @@ func (q QueryDecl[Q, R]) String() string {
 	}
 
 	filterCount := len(q.Config.filterAccessors)
+
 	filters := ""
 	if filterCount > 0 {
 		filters = fmt.Sprintf(" filter=[%d]", filterCount)
 	}
 
 	hasSort := q.Config.sortAccessor.closure != nil
+
 	sortStr := ""
 	if hasSort {
 		sortStr = " [sorted]"

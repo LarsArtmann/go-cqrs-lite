@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 var _ = Describe("Apply and Execute", func() {
@@ -239,6 +239,7 @@ var _ = Describe("Concurrent FoldUpdate atomicity", func() {
 			}),
 			metaengine.On(evt{}, func(e evt, prev val) val {
 				prev.Total += e.Amount
+
 				return prev
 			}),
 		)

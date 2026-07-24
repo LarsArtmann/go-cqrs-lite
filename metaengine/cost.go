@@ -56,13 +56,14 @@ func estimateCost(complexity Complexity, volume int64) CostEstimate {
 		ops = n * math.Log2(n)
 	case ComplexityODegree:
 		// Graph traversal: assume average branching factor 10, depth 2.
-		ops = math.Pow(10, 2)
+		ops = float64(10 * 10)
 	default:
 		ops = n
 	}
 
 	// Rough baseline: 100 nanoseconds per in-memory operation.
 	const nsPerOp = 100.0
+
 	latencyMs := (ops * nsPerOp) / 1e6
 
 	return CostEstimate{

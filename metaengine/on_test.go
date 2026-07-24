@@ -1,10 +1,10 @@
 package metaengine_test
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 var _ = Describe("On constructor", func() {
@@ -34,6 +34,7 @@ var _ = Describe("On constructor", func() {
 		Entry("update: func(e, prev V) V",
 			func(e event, prev result) result {
 				prev.Name = e.Name
+
 				return prev
 			},
 			metaengine.FoldUpdate),

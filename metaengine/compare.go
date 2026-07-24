@@ -61,6 +61,7 @@ func compareValue(a, b any) int {
 // differ (e.g., int from an item vs float64 from a deserialized cursor).
 func tryNumericCompare(a, b any) (int, bool) {
 	fa, okA := toFloat64(a)
+
 	fb, okB := toFloat64(b)
 	if !okA || !okB {
 		return 0, false
