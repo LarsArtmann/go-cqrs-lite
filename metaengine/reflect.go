@@ -65,9 +65,7 @@ func reflectFields(v any) []reflectField {
 }
 
 // extractKeyValueByType finds a field in the input struct whose type matches
-// the projection's key type. The engine never assumes field names — it matches
-// purely by Go type. Returns the field value and true if found.
-// Panics if multiple fields match (ambiguous).
+// the projection's key type. The engine matches purely by Go type, not name.
 func extractKeyValueByType(input any, keyType reflect.Type) any {
 	if keyType == nil {
 		return nil
@@ -93,7 +91,6 @@ func extractKeyValueByType(input any, keyType reflect.Type) any {
 
 		if t.Field(i).Type == keyType {
 			if foundIdx >= 0 {
-				// Ambiguous — multiple fields of the same key type.
 				return nil
 			}
 
@@ -109,7 +106,6 @@ func extractKeyValueByType(input any, keyType reflect.Type) any {
 }
 
 // extractDepthFromInput finds a field named "Depth" of type int in the input struct.
-// Graph traversal queries use this convention.
 func extractDepthFromInput(input any) int {
 	v := reflect.ValueOf(input)
 	if v.Kind() == reflect.Pointer {
@@ -128,9 +124,7 @@ func extractDepthFromInput(input any) int {
 	return int(f.Int())
 }
 
-// detectPagination checks if the input struct has pagination fields:
-// Limit int and/or After *Cursor. The engine detects these by type, not by name
-// convention — these are the standard pagination types defined in this package.
+// detectPagination checks if the input struct has pagination fields.
 func detectPagination(input any) bool {
 	t := reflect.TypeOf(input)
 	if t == nil {
@@ -164,7 +158,6 @@ func detectPagination(input any) bool {
 }
 
 // extractLimitFromInput extracts the Limit field value from the input struct.
-// Returns 0 if not present (no limit).
 func extractLimitFromInput(input any) int {
 	v := reflect.ValueOf(input)
 	if v.Kind() == reflect.Pointer {
@@ -184,7 +177,6 @@ func extractLimitFromInput(input any) int {
 }
 
 // extractCursorFromInput extracts the After *Cursor field from the input struct.
-// Returns nil if not present.
 func extractCursorFromInput(input any) *Cursor {
 	v := reflect.ValueOf(input)
 	if v.Kind() == reflect.Pointer {
@@ -212,8 +204,7 @@ func extractCursorFromInput(input any) *Cursor {
 	return cursor
 }
 
-// nonMetaFields returns input fields that are NOT pagination metadata
-// (Limit, After *Cursor, Depth). These are the actual domain filter fields.
+// nonMetaFields returns input fields that are NOT pagination metadata.
 func nonMetaFields(input any) []reflectField {
 	metaNames := map[string]bool{
 		"Limit": true,
@@ -232,115 +223,7 @@ func nonMetaFields(input any) []reflectField {
 	return result
 }
 
-// colResultInfo describes a collection result type.
-type colResultInfo struct {
-	itemsFieldIdx  int          // index of the []T field
-	itemsElemType  reflect.Type // element type T
-	cursorFieldIdx int          // index of the *Cursor field, or -1 if none
-}
-
-// collectionResultInfo inspects a result type R for collection characteristics.
-// A collection result is a struct with at least one slice field ([]T).
-// If a *Cursor field exists, it is used for pagination continuation.
-func collectionResultInfo(t reflect.Type) (*colResultInfo, bool) {
-	if t == nil || t.Kind() != reflect.Struct {
-		return nil, false
-	}
-
-	info := &colResultInfo{cursorFieldIdx: -1}
-	foundSlice := false
-
-	cursorType := reflect.TypeFor[*Cursor]()
-
-	for i := range t.NumField() {
-		f := t.Field(i)
-		if !f.IsExported() {
-			continue
-		}
-
-		if !foundSlice && f.Type.Kind() == reflect.Slice {
-			info.itemsFieldIdx = i
-			info.itemsElemType = f.Type.Elem()
-			foundSlice = true
-		}
-
-		if info.cursorFieldIdx < 0 && f.Type == cursorType {
-			info.cursorFieldIdx = i
-		}
-	}
-
-	if !foundSlice {
-		return nil, false
-	}
-
-	return info, true
-}
-
-func isCollectionResult[R any]() bool {
-	var zero R
-
-	_, ok := collectionResultInfo(reflect.TypeOf(zero))
-
-	return ok
-}
-
-// reconstructCollection builds a typed collection result from []any returned
-// by the engine. It fills in the slice field and optionally the cursor field.
-func reconstructCollection[R any](raw any, limit int, sortKeyFn func(any) any) R {
-	var zero R
-
-	t := reflect.TypeOf(zero)
-
-	info, ok := collectionResultInfo(t)
-	if !ok {
-		return zero
-	}
-
-	items, ok := raw.([]any)
-	if !ok {
-		return zero
-	}
-
-	hasMore := limit > 0 && len(items) > limit
-	if hasMore {
-		items = items[:limit]
-	}
-
-	slice := reflect.MakeSlice(reflect.SliceOf(info.itemsElemType), 0, len(items))
-
-	var lastItem any
-
-	for _, item := range items {
-		if item == nil {
-			continue
-		}
-
-		val := reflect.ValueOf(item)
-		if val.Type().ConvertibleTo(info.itemsElemType) {
-			slice = reflect.Append(slice, val.Convert(info.itemsElemType))
-			lastItem = item
-		}
-	}
-
-	result := reflect.New(t).Elem()
-	result.Field(info.itemsFieldIdx).Set(slice)
-
-	if hasMore && info.cursorFieldIdx >= 0 && lastItem != nil {
-		cursorVal := lastItem
-		if sortKeyFn != nil {
-			cursorVal = sortKeyFn(lastItem)
-		}
-
-		cursor := &Cursor{Value: cursorVal}
-		result.Field(info.cursorFieldIdx).Set(reflect.ValueOf(cursor))
-	}
-
-	return result.Interface().(R)
-}
-
 // extractFirstDomainField returns the value of the first exported non-meta field.
-// Used as a fallback for Graph traversal when the engine can't determine the
-// node type from fold return types (Edge stores From/To as any).
 func extractFirstDomainField(input any) any {
 	fields := nonMetaFields(input)
 	if len(fields) == 0 {
