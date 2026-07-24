@@ -225,7 +225,8 @@ var _ = Describe("Backend capability errors", func() {
 		},
 	}}
 
-	DescribeTable("Apply returns a clear error when the engine lacks the write backend",
+	DescribeTable(
+		"Apply returns a clear error when the engine lacks the write backend",
 		func(query any, eventType string, payload any, expectedErr string) {
 			store, err := metaengine.Plan([]metaengine.Engine{allADT}, query)
 			Expect(err).NotTo(HaveOccurred())
@@ -260,7 +261,8 @@ var _ = Describe("Backend capability errors", func() {
 			"does not support Log operations"),
 	)
 
-	DescribeTable("Execute returns a clear error when the engine lacks the read backend",
+	DescribeTable(
+		"Execute returns a clear error when the engine lacks the read backend",
 		func(query any, input any, expectedErr string) {
 			store, err := metaengine.Plan([]metaengine.Engine{allADT}, query)
 			Expect(err).NotTo(HaveOccurred())

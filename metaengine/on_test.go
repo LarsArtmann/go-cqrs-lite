@@ -146,9 +146,12 @@ var _ = Describe("Query constructor panics", func() {
 			Expect(func() {
 				_ = metaengine.Query[qInput, qResult](
 					"bad_args",
-					metaengine.On(struct{ ID string }{}, func(e struct{ ID string }) (string, qResult) {
-						return e.ID, qResult{}
-					}),
+					metaengine.On(
+						struct{ ID string }{},
+						func(e struct{ ID string }) (string, qResult) {
+							return e.ID, qResult{}
+						},
+					),
 					"not a fold or option",
 				)
 			}).To(PanicWith(MatchRegexp("unexpected argument type")))
