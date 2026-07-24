@@ -18,17 +18,27 @@ var ErrClosed = errorfamily.NewInfrastructure(
 	"storage: store is closed",
 )
 
-// ErrAggregateTypeMismatch is returned when an event's aggregate type doesn't match the expected type.
-var ErrAggregateTypeMismatch = errorfamily.NewConflict(
+// ErrStreamTypeMismatch is returned when an event's stream type doesn't match the expected type.
+var ErrStreamTypeMismatch = errorfamily.NewConflict(
 	"storage.aggregate_type_mismatch",
 	"storage: event aggregate type mismatch",
 )
 
-// ErrAggregateIDMismatch is returned when an event's aggregate ID doesn't match the expected ID.
-var ErrAggregateIDMismatch = errorfamily.NewConflict(
+// ErrAggregateTypeMismatch is retained as a deprecated alias for ErrStreamTypeMismatch.
+//
+// Deprecated: use ErrStreamTypeMismatch.
+var ErrAggregateTypeMismatch = ErrStreamTypeMismatch
+
+// ErrStreamIDMismatch is returned when an event's stream ID doesn't match the expected ID.
+var ErrStreamIDMismatch = errorfamily.NewConflict(
 	"storage.aggregate_id_mismatch",
 	"storage: event aggregate ID mismatch",
 )
+
+// ErrAggregateIDMismatch is retained as a deprecated alias for ErrStreamIDMismatch.
+//
+// Deprecated: use ErrStreamIDMismatch.
+var ErrAggregateIDMismatch = ErrStreamIDMismatch
 
 // ErrVersionMismatch is returned when an event's version doesn't match the expected version.
 var ErrVersionMismatch = errorfamily.NewConflict(

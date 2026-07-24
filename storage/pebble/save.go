@@ -123,12 +123,12 @@ func validateEventOwnership(
 	ref id.StreamRef,
 ) error {
 	if evt.StreamType() != ref.Type {
-		return errorfamily.WrapConflict(ErrAggregateTypeMismatch, "pebble.aggregate_type_mismatch",
+		return errorfamily.WrapConflict(ErrStreamTypeMismatch, "pebble.aggregate_type_mismatch",
 			fmt.Sprintf("expected %s, got %s", ref.Type, evt.StreamType()))
 	}
 
 	if evt.StreamID() != ref.ID {
-		return errorfamily.WrapConflict(ErrAggregateIDMismatch, "pebble.aggregate_id_mismatch",
+		return errorfamily.WrapConflict(ErrStreamIDMismatch, "pebble.aggregate_id_mismatch",
 			fmt.Sprintf("expected %s, got %s", ref.ID, evt.StreamID()))
 	}
 
