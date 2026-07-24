@@ -316,6 +316,242 @@ func TestPrintMarkdown(t *testing.T) {
 	}
 }
 
+func TestRun_FactoryError(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := Run(ctx, Config{Profile: ProfileDev}, func() (*stack.Bundle, error) {
+		return nil, errTestFactory
+	})
+
+	if err == nil {
+		t.Fatal("expected error from factory failure, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "factory") {
+		t.Errorf("error should mention factory, got: %v", err)
+	}
+}
+
+func TestRun_NilBundle(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := Run(ctx, Config{Profile: ProfileDev}, func() (*stack.Bundle, error) {
+		return nil, nil
+	})
+
+	if err == nil {
+		t.Fatal("expected error for nil bundle, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "nil bundle") {
+		t.Errorf("error should mention nil bundle, got: %v", err)
+	}
+}
+
+func TestRun_NilEventSink(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := Run(ctx, Config{Profile: ProfileDev}, func() (*stack.Bundle, error) {
+		b, _ := memory.New()
+		b.EventSink = nil
+
+		return b, nil
+	})
+
+	if err == nil {
+		t.Fatal("expected error for nil EventSink, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "EventSink") {
+		t.Errorf("error should mention EventSink, got: %v", err)
+	}
+}
+
+func TestRun_NilEventSource(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := Run(ctx, Config{Profile: ProfileDev}, func() (*stack.Bundle, error) {
+		b, _ := memory.New()
+		b.EventSource = nil
+
+		return b, nil
+	})
+
+	if err == nil {
+		t.Fatal("expected error for nil EventSource, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "EventSource") {
+		t.Errorf("error should mention EventSource, got: %v", err)
+	}
+}
+
+func TestRun_ClosedStore(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := Run(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) {
+		b, bErr := sqlite.New(filepath.Join(dir, "closed.db"))
+		if bErr != nil {
+			return nil, bErr
+		}
+
+		_ = b.Close()
+
+		return b, nil
+	})
+
+	if err == nil {
+		t.Fatal("expected error from closed store, got nil")
+	}
+}
+
+func TestRun_DurationAborts(t *testing.T) {
+	t.Parallel()
+
+	// Use a profile large enough that it cannot finish within the duration.
+	bigProfile := Profile{
+		Name: "test-duration", Streams: 100_000, EventsPerStream: 10,
+		Concurrency: 1, ReadRatio: 0.5, BatchSize: 1,
+	}
+
+	start := time.Now()
+
+	result := mustRun(t, Config{
+		Profile:     bigProfile,
+		PayloadSize: 64,
+		Duration:    5 * time.Millisecond,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	elapsed := time.Since(start)
+
+	// The run should finish well under the time needed for the full 1M events.
+	if elapsed > 2*time.Second {
+		t.Errorf("run took %v with Duration=5ms; expected < 2s", elapsed)
+	}
+
+	// The duration cap should prevent all 1M events from being written.
+	if result.TotalEvents >= bigProfile.TotalEvents() {
+		t.Errorf("TotalEvents = %d, expected < %d (duration should have limited writes)",
+			result.TotalEvents, bigProfile.TotalEvents())
+	}
+}
+
+func TestRun_CancelledContext(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // already cancelled before the run starts
+
+	start := time.Now()
+
+	_, err := Run(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	elapsed := time.Since(start)
+
+	// The run must not hang — it should complete quickly regardless of
+	// whether individual phases see the cancellation.
+	if elapsed > 5*time.Second {
+		t.Errorf("run with cancelled context took %v, expected < 5s", elapsed)
+	}
+
+	// An error is expected: with a cancelled context, writes may not complete,
+	// causing the read phase to fail on missing aggregates.
+	if err == nil {
+		// Some writes may squeeze through before cancellation is noticed;
+		// that's fine. The important thing is no hang or panic.
+		return
+	}
+}
+
+func TestReadRatio(t *testing.T) {
+	t.Parallel()
+
+	// Use the same profile base but vary ReadRatio to verify the number of
+	// read passes changes the LoadLatency sample count.
+	base := Profile{
+		Name: "test-ratio", Streams: 50, EventsPerStream: 5,
+		Concurrency: 1, ReadRatio: 0.1, BatchSize: 1,
+	}
+
+	writeHeavy := base
+	writeHeavy.ReadRatio = 0.1 // readPassesFor → 1 pass
+
+	readHeavy := base
+	readHeavy.ReadRatio = 0.8 // readPassesFor → 8 passes
+
+	whResult := mustRun(t, Config{Profile: writeHeavy, PayloadSize: 64},
+		func() (*stack.Bundle, error) { return memory.New() })
+
+	rhResult := mustRun(t, Config{Profile: readHeavy, PayloadSize: 64},
+		func() (*stack.Bundle, error) { return memory.New() })
+
+	// WriteHeavy (1 pass) → 50 reads; ReadHeavy (8 passes) → 400 reads.
+	whExpected := int64(writeHeavy.Streams * 1)
+	rhExpected := int64(readHeavy.Streams * 8)
+
+	if whResult.LoadLatency.Count != whExpected {
+		t.Errorf("WriteHeavy LoadLatency.Count = %d, want %d (1 pass × %d streams)",
+			whResult.LoadLatency.Count, whExpected, writeHeavy.Streams)
+	}
+
+	if rhResult.LoadLatency.Count != rhExpected {
+		t.Errorf("ReadHeavy LoadLatency.Count = %d, want %d (8 passes × %d streams)",
+			rhResult.LoadLatency.Count, rhExpected, readHeavy.Streams)
+	}
+
+	if rhResult.LoadLatency.Count <= whResult.LoadLatency.Count {
+		t.Errorf("ReadHeavy reads (%d) should exceed WriteHeavy reads (%d)",
+			rhResult.LoadLatency.Count, whResult.LoadLatency.Count)
+	}
+}
+
+func TestReadPassesFor(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		ratio float64
+		want  int
+	}{
+		{0.0, 1},
+		{0.1, 1},
+		{0.2, 2},
+		{0.3, 3},
+		{0.5, 5},
+		{0.8, 8},
+		{1.0, 10},
+	}
+
+	for _, tt := range tests {
+		got := readPassesFor(tt.ratio)
+		if got != tt.want {
+			t.Errorf("readPassesFor(%.1f) = %d, want %d", tt.ratio, got, tt.want)
+		}
+	}
+}
+
 var errTestFactory = errTest("factory failed")
 
 type errTest string

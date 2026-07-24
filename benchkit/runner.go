@@ -286,6 +286,10 @@ func (r *runner) warmup(ctx context.Context) error {
 
 	defer func() { _ = warmupBundle.Close() }()
 
+	if warmupBundle == nil || warmupBundle.EventSink == nil || warmupBundle.EventSource == nil {
+		return fmt.Errorf("warmup factory returned incomplete bundle")
+	}
+
 	aggID := id.NewStreamID()
 	ref := id.NewStreamRef(benchStreamType, aggID)
 
