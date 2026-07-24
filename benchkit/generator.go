@@ -1,6 +1,7 @@
 package benchkit
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand/v2"
 	"strings"
@@ -58,39 +59,26 @@ func (g *Generator) Payload() BenchPayload {
 	return p
 }
 
-// computePadding estimates how many padding characters are needed so the
-// JSON encoding of the payload is approximately the target size.
+// computePadding calculates how many padding characters are needed so the
+// JSON encoding of the payload matches the target size as closely as possible.
+// It marshals the payload (without padding) to get the exact base size, then
+// subtracts the overhead of the padding key itself.
 func (g *Generator) computePadding(p BenchPayload) string {
 	const paddingKeyOverhead = len(`,"_padding":""`)
 
-	base := estimateJSONSize(p)
-	if g.size <= base+paddingKeyOverhead {
+	base, err := json.Marshal(p)
+	if err != nil {
 		return ""
 	}
 
-	needed := g.size - base - paddingKeyOverhead
-	if needed <= 0 {
+	baseSize := len(base)
+	if g.size <= baseSize+paddingKeyOverhead {
 		return ""
 	}
+
+	needed := g.size - baseSize - paddingKeyOverhead
 
 	return strings.Repeat("x", needed)
-}
-
-// estimateJSONSize returns a rough byte count of the payload without Padding.
-func estimateJSONSize(p BenchPayload) int {
-	const baseTemplate = `{"id":"01HX000000000000","name":"Order-00000","value":000.00,"items":0,"tags":["a"],"metadata":{"source":"web","session":"sess-000000"}}`
-
-	size := len(baseTemplate)
-
-	for _, tag := range p.Tags {
-		size += len(tag) - 1
-	}
-
-	for k, v := range p.Metadata {
-		size += len(k) + len(v)
-	}
-
-	return size
 }
 
 func generateTags(rng *rand.Rand) []string {

@@ -1,6 +1,8 @@
 package benchkit
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 )
 
@@ -92,6 +94,39 @@ func TestGenerator_SmallSizeNoCorruption(t *testing.T) {
 
 	if p.Padding != "" {
 		t.Error("Padding should be empty when target size < base payload size")
+	}
+}
+
+func TestGenerator_PayloadSizeAccuracy(t *testing.T) {
+	t.Parallel()
+
+	sizes := []int{256, 512, 1024, 4096}
+
+	for _, target := range sizes {
+		t.Run(fmt.Sprintf("size=%d", target), func(t *testing.T) {
+			t.Parallel()
+
+			g := NewGenerator(1, target)
+			p := g.Payload()
+
+			data, err := json.Marshal(p)
+			if err != nil {
+				t.Fatalf("json.Marshal failed: %v", err)
+			}
+
+			actual := len(data)
+			diff := actual - target
+			if diff < 0 {
+				diff = -diff
+			}
+
+			// With marshal-and-measure, the payload should be within 2 bytes
+			// of the target (the padding key overhead estimate is exact).
+			if diff > 2 {
+				t.Errorf("size=%d: actual JSON size %d differs from target by %d bytes (max 2)",
+					target, actual, diff)
+			}
+		})
 	}
 }
 
