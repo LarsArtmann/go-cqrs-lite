@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-16 (docs-health audit: ROADMAP rebuild, TODO cleanup, module count corrected) · **Module count:** 52 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+**Last audited:** 2026-07-24 (docs-health audit: metaengine + benchkit added, module count corrected, Increment/Reset documented) · **Module count:** 56 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -197,6 +197,77 @@ projection-side captures events that poisoned a projection handler.
 | MemoryDeadLetterStore                | In-memory `DeadLetterStore` + `DeadLetterStoreAdmin` for dev/test                                                  | ✅     |
 | SQLiteDeadLetterStore                | SQLite-backed `DeadLetterStore` + `DeadLetterStoreAdmin` — persists across restarts                                | ✅     |
 | Poison capture                       | Exceeded retry threshold → entry stored, checkpoint advances (no stream blockage)                                  | ✅     |
+
+---
+
+## Metaengine 🧪 EXPERIMENTAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/metaengine/v4"`
+
+Cost-based storage planner for event-sourced data. Derives projections, indexes,
+and engine assignments from two primitives: **Events** (mutations) and
+**Queries** (read intent). The fold return type IS the ADT declaration — the
+developer never declares "I need a Map" or "I need a Counter."
+
+| Feature                    | Detail                                                                                                          | Status |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------- | ------ |
+| Unified `On[E]()` fold     | Reflection-based handler classification: 7 patterns (insert, update, set, count, edge, remove, skip)            | 🧪     |
+| ADT inference              | Map, Set, Counter, Graph, SortedMap, Multimap, Log — derived from fold return type                              | 🧪     |
+| Typed FilterOn / SortOn    | `FilterOn(func(r R) T { ... })` — typed closures, no field name strings                                         | 🧪     |
+| Pagination from input      | Detected from domain input struct fields (`Limit int`, `After *Cursor`)                                         | 🧪     |
+| Cursor serialization       | Base64-encoded URL-safe cursors for HTTP transport                                                              | 🧪     |
+| Cost model                 | `CostEstimate` with Volume-based estimation, `LatencyBudget` enforcement, scale threshold tables                | 🧪     |
+| Write amplification budget | Tracks events exceeding write amplification limit                                                               | 🧪     |
+| MemoryEngine               | In-memory backend implementing all 9 backend interfaces (Map, MapUpdater, Scan, Set, Counter, Graph, etc.)      | 🧪     |
+| Planner                    | Cost-based optimizer: assigns engines to queries, produces `PlanResult` with diagnostics                        | 🧪     |
+| Store                      | `Plan(engines, queries...)` returns `*Store` for Apply/Execute; `ApplyEncoded` for JSON payloads                | 🧪     |
+| Collection results         | Reconstructs typed result collections by field shape from scan output                                           | 🧪     |
+| Context.Context            | All backend interfaces accept `context.Context`                                                                 | 🧪     |
+| Compile-time assertions    | Interface conformance verified at compile time for all 9 backends                                               | 🧪     |
+| Zero dependencies          | Only `ginkgo`/`gomega` for testing; zero production deps                                                         | 🧪     |
+
+**Coverage:** 82.6% (89 BDD specs + 11 unit tests). 14 production files, all
+under 350-line CI limit. No real SQL/Pebble engine yet — only MemoryEngine.
+Not integrated with `projection.Projection`, `kv.Store`, or `graph.GraphSink`.
+
+---
+
+## Benchmarking Toolkit 🧪 EXPERIMENTAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/benchkit/v4"`
+
+Factory-driven benchmarking suite for measuring CQRS performance across
+backends, deployment sizes, and workload profiles. Mirrors the contracttest
+pattern: same workload, any backend, structured metrics report.
+
+| Feature               | Detail                                                                                     | Status |
+| --------------------- | ------------------------------------------------------------------------------------------ | ------ |
+| Core types            | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`                | 🧪     |
+| LatencyCollector      | Sorted-slice + reservoir sampling (10K cap), thread-safe                                   | 🧪     |
+| Resource sampling     | Peak heap via 100ms polling goroutine, baseline/after deltas                               | 🧪     |
+| Synthetic generator   | Seeded PCG, deterministic, configurable payload size                                       | 🧪     |
+| 7 named profiles      | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                                   | 🧪     |
+| 8-phase runner        | setup → warmup → write → read → readmodel → projection → durability → teardown            | 🧪     |
+| Concurrent workers    | Channel-based, cancel-on-error, WaitGroup                                                  | 🧪     |
+| `Run()` API           | Single-backend benchmark, returns `*Result`                                                | 🧪     |
+| `Compare()` API       | Multi-backend comparison, handles factory failures gracefully                              | 🧪     |
+| Reports               | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk                  | 🧪     |
+| ReadRatio             | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                           | 🧪     |
+
+**Coverage:** 23 tests with `-race`. Known gaps: warmup pollutes main store,
+`estimateJSONSize` is a rough guess, no Pebble backend tests, no Postgres/Turso
+backends.
+
+### cqrs-bench CLI 🔧
+
+> `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench`
+
+| Feature     | Detail                                                                      | Status |
+| ----------- | --------------------------------------------------------------------------- | ------ |
+| `run`       | Benchmark a single backend with a named workload profile                     | 🔧     |
+| `compare`   | Compare multiple backends side-by-side                                      | 🔧     |
+| Profiles    | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}`     | 🔧     |
+| Output      | `--format {text\|json\|markdown}`                                         | 🔧     |
 
 ---
 
@@ -655,6 +726,8 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | SQL CommandStore          | `SQLCommandStore` implements `command.Store` — Save, AppendBatch, Load, LoadFromTimestamp, LoadToTimestamp                                   | ✅     |
 | SQL Backend               | `SQLBackend` facade returning `EventStore()`, `SnapshotStore()`, `CheckpointStore()`, `CommandStore()`                                       | ✅     |
 | AggregateProjection       | Maintains SQL read-model tables from event streams with tombstone detection                                                                  | ✅     |
+| Incremental rollups       | `ProjectionSink.Increment(ctx, table, key, counterCol, delta)` — atomic counter via `ON CONFLICT DO UPDATE` (ADR-0033)                        | ✅     |
+| RelationalProjection.Reset| `Reset(ctx)` implements `projectionhost.Resettable` — wipes all tables for zero-based replay                                                 | ✅     |
 | SQLAggregateReader        | `listing.AggregateReader` implementation reading from projection tables                                                                      | ✅     |
 | DB helpers                | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅     |
 | Dialect abstraction       | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods                                          | ✅     |
@@ -903,6 +976,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `example/taskmanager/`     | Flagship full HTTP service: event sourcing, CQRS, KV + tombstone projections, SSE streaming, ProjectionHost with DLQ, signing, snapshot strategy, deriver (event→command), idempotency middleware |
 | `example/getting-started/` | Minimal 80-line example showing the core pipeline: counter aggregate, command dispatch, event store, bus, projection                                                                              |
+| `example/readme-quickstart/` | Compile-verified README Quick Start example — tests every API pattern from the main README                                                                                                       |
 
 **Not reference applications.** These demonstrate library usage patterns.
 
@@ -940,7 +1014,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 48 independently importable modules in `go.work` (49 `go.mod` files incl. root workspace). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 52 independently importable modules in `go.work` (56 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                    | Import Path                 | Maturity                                                                  |
 | ------------------------- | --------------------------- | ------------------------------------------------------------------------- |
@@ -993,6 +1067,10 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `scheduling`              | `…/scheduling/v4`           | ✅ Production                                                             |
 | `example/taskmanager`     | `…/example/taskmanager`     | 💡 Demo                                                                   |
 | `example/getting-started` | `…/example/getting-started` | 💡 Demo                                                                   |
+| `example/readme-quickstart` | `…/example/readme-quickstart` | 💡 Demo                                                                |
+| `metaengine`              | `…/metaengine/v4`           | 🧪 Experimental (MemoryEngine only, zero deps)                           |
+| `benchkit`                | `…/benchkit/v4`             | 🧪 Experimental (MVP, known gaps)                                        |
+| `cmd/cqrs-bench`          | `…/cmd/cqrs-bench`          | 🔧 Tool                                                                   |
 
 ---
 
@@ -1000,7 +1078,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                 |
 | ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| Lint posture           | `nix run .#lint` passes with 0 issues across all 52 modules (as of v4.0.1)                             |
+| Lint posture           | `nix run .#lint` passes with 0 issues across all 56 modules (as of v4.1.0)                             |
 | Race-free              | `go test -race` passes across all modules                                                              |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                         |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI     |

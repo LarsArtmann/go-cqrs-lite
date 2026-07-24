@@ -1,24 +1,40 @@
 # Roadmap — go-cqrs-lite
 
 > Where we are, where we're going, and what's next.
-> **Last updated:** 2026-07-16
+> **Last updated:** 2026-07-24
 
 ---
 
-## Current State (v4.0.0 shipped)
+## Current State (v4.1.0 shipped)
 
-**v4.0.0 is tagged** (2026-07-11) — all 52 `go.mod` files on `/v4` import paths
-(verify: `find . -name go.mod -not -path './vendor/*' | wc -l`). The library
-covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query
-dispatch, pure-function deciders, three projection tiers (document/KV,
+**v4.1.0 tagged** (2026-07-23) — 49 modules on `/v4` import paths (verify:
+`git tag --list '*/v4.1.0' | wc -l`). The deprecated API removal batch shipped
+(`middleware.NewMetrics`, `catalog.ErrorExporter`, `storage/sql.NewOwnedDBHandle`,
+etc. — see [CHANGELOG.md](CHANGELOG.md) `[v4.1.0]` equivalent under `[Unreleased]`).
+
+The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs,
+command/query dispatch, pure-function deciders, three projection tiers (document/KV,
 relational/SQL, graph), durable deadline scheduling, event→command derivation,
 dead-letter quarantine, managed projection hosting, event signing/encryption,
 OTel tracing/metrics, auto-documentation generation, and a domain-aware linter
 (cqrs-lint, 60 rules).
 
-See [CHANGELOG.md](CHANGELOG.md) `[4.0.0]` for the full v4 release notes and
-[docs/migration/MIGRATION-GUIDE.md](docs/migration/MIGRATION-GUIDE.md) for
-migration steps.
+**New since v4.0.0:**
+
+- **Metaengine** (`metaengine/v4`) — cost-based storage planner. Derives projections
+  and engine assignments from two primitives (Events + Queries). 7 ADTs inferred
+  from fold return types. MemoryEngine only; no real SQL/Pebble engine yet.
+- **Benchkit** (`benchkit/v4` + `cmd/cqrs-bench`) — benchmarking toolkit with
+  7 named workload profiles, 8-phase runner, structured reports.
+- **Incremental rollups** — `ProjectionSink.Increment` + `RelationalProjection.Reset`
+  for atomic counter maintenance in relational projections.
+- **Aggregate→Stream rename** (ADR-0058) — type aliases + deprecated wrappers.
+  Structurally complete; comment cleanup and 2 error var pairs remaining.
+- **Comprehensive README coverage** — all 56 modules with READMEs, 248 Go symbol
+  references verified by `doc-check`.
+- **Error taxonomy migration** — 13 sentinels migrated to `errorfamily` constructors.
+
+56 `go.mod` files total (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`).
 
 ---
 
@@ -26,7 +42,11 @@ migration steps.
 
 | Version | Date       | Highlights                                                                                                                                          |
 | ------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| v4.0.1  | 2026-07-16 | Patch: projectionhost deadlock/leak/sort fix, watermill deadlock fix, storage/view IS NULL+RawWhere+ViewUpdater, cqrs-lint first release (60 rules) |
+| v4.1.0  | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058) |
+| v4.0.4  | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                            |
+| v4.0.3  | 2026-07-22 | SQL dialect abstraction, stack preset centralization, JSON v2 migration, harmful duplication elimination, cqrs-lint scanner overhaul                 |
+| v4.0.2  | 2026-07-18 | CBOR time encoding fix, timezone-safe types (Instant, WallTime, Date), cqrs-lint loader error surfacing                                              |
+| v4.0.1  | 2026-07-16 | projectionhost deadlock/leak/sort fix, watermill deadlock fix, storage/view IS NULL+RawWhere+ViewUpdater, cqrs-lint first release (60 rules)        |
 | v4.0.0  | 2026-07-11 | CBOR defaults, API cleanup, BackfillHandler consolidation, HealthCheck, storage split, `/v4` path migration                                         |
 | v3.6.0  | 2026-07-05 | Error taxonomy, deriver module, DOMAIN_LANGUAGE rebuild                                                                                             |
 | v3.5.0  | 2026-06-29 | Idempotency, dispatch middleware, scenario DSL, scheduling, projectionhost                                                                          |
@@ -38,56 +58,50 @@ migration steps.
 
 ## Themes
 
-### 1. Consumer Experience
+### 1. Metaengine → Production
 
-Making it trivially easy for new consumers to adopt the library.
+The metaengine prototype proves the Event-Query Model works: fold return types
+infer ADTs, typed closures avoid strings, pagination is detected from input
+structs. The gap between prototype and production:
 
-- **Publish `eventtest` to the Go proxy** — ✅ Done. `v0.1.0` and `v0.2.0` are
-  available on the Go proxy (`go get github.com/larsartmann/go-cqrs-lite/event/v4/eventtest@v0.1.0`).
-  Remaining cleanup: delete the incorrect `event/v4/eventtest/v4.0.0` tag from remote.
-- **README "sales page" rewrite** — the README has grown into internal
-  documentation. Per the docs-health model, it should be the end-user entry
-  point: what this does, why it exists, how to get started in 3 steps.
-- **Pre-commit hooks** — `fmt.Printf` ban in production packages,
-  `api_surface.txt` regeneration check, `nix fmt --fail-on-change`.
-- **CBOR-stamp cross-encoding tests** — gRPC and watermill transports lack
-  round-trip tests proving CBOR-stamped events survive transport.
+- **Real SQLite engine** — wrap `SQLViewStore` as a metaengine backend.
+  The first production engine validates the interface design.
+- **Cost model calibration** — `nsPerOp=100` is arbitrary. Needs benchmark-driven
+  calibration with real engine profiles.
+- **Integration** — `projection.Projection` adapter, `kv.Store` bridge,
+  `graph.GraphSink` bridge. The metaengine must connect to existing infrastructure.
+- **FilterOn/SortOn → SQL pushdown** — Go closures cannot be inspected. Design
+  decision needed: DSL, codegen, or keep in-memory filtering.
 
-### 2. Public Release Readiness
+### 2. Benchkit → Reliable
 
-Preparing the library for broader adoption.
+The benchmarking toolkit is functional but has known gaps:
 
-- **License swap** (PROPRIETARY → Apache-2.0) — hard blocker for public
-  adoption. Irreversible; needs explicit user approval.
-- **Git history scrub** — internal strategy docs in git history. Irreversible;
-  needs explicit user approval.
-- **Postgres CI coverage** — `stack/postgres` shows 0% coverage locally
-  (tests skip without `POSTGRES_TEST_DSN`). Either add a CI Postgres service
-  or label the module experimental.
+- **Warmup store pollution** — warmup writes to the main store, inflating
+  journal metrics for subsequent phases.
+- **Pebble backend tests** — Pebble works via CLI but has no test coverage.
+- **Production replay** (Phase 6) — replay real event streams for benchmarking.
+- **benchtest.RunSuite** (Phase 7) — preset integration for `stack/bench`.
 
-### 3. Ecosystem Expansion
+### 3. Codebase Health
 
-New modules and capabilities that extend the library's reach.
+- **Stale API golden file** — `docs/api_surface.txt` still contains 9 removed
+  APIs. CI `api-stability` job will fail until regenerated.
+- **Aggregate→Stream completion** — 2 exported error var pairs missed, ~70 files
+  with stale comments, AGENTS.md/SKILL.md references.
+- **Module extraction** — `retry/` and `idempotency/` are zero-CQRS-coupling
+  candidates for standalone repos (see [extraction analysis](docs/planning/2026-07-23_extraction-analysis.md)).
 
-- **Parquet journal** (`storage/parquet`) — columnar, compressed, cloud-native
-  event archival. Pure Go (no CGO). Design complete, three additive phases.
-- **DuckDB connector** (`storage/duckdb`) — OLAP-grade analytical materializations
-  over Parquet or relational data. Requires CGO. Unlocks `SQLViewStore` +
-  `RelationalProjection` for analytics.
-- **Lakehouse preset** (`stack/duckdb`) — DuckDB materializations + Parquet
-  journal. The "lakehouse for events" pattern.
-- **NATS/ValKey stream adapter** — ADR-0025 accepted. Broker plugins for
-  `watermill.NewCommandBus` via publisher/subscriber adapters.
-- **Distributed event bus** — multi-process backend for event distribution.
+### 4. Consumer Experience
 
-### 4. Codebase Health
-
-Keeping the library clean and trustworthy.
-
-- **Deprecated API removal batch 2** — 9 deprecated items in middleware,
-  catalog, and storage. Breaking change → v4.1 cut.
-- **cqrs-lint hardening** — extend source snippets to all detectors, add
-  property-based tests, improve scanner accuracy for edge cases.
+- **Read-your-writes helper** — `WaitForVersion(ctx, aggID, version)` for
+  consumers who need immediate consistency after a write (book insights gap).
+- **Bounded staleness** — `WithMaxStaleness(duration)` for projections that
+  can tolerate lag (book insights gap).
+- **Consistency model document** — `docs/CONSISTENCY_MODEL.md` documenting
+  single-process scope and eventual consistency guarantees.
+- **SQL-backed `idempotency.Store`** — for multi-process Postgres deployments
+  (~100 lines: `INSERT ON CONFLICT DO NOTHING`).
 
 ---
 
@@ -102,7 +116,10 @@ Keeping the library clean and trustworthy.
 - Property-based integration testing with state machine verification
 - Performance regression dashboard (historical benchmark tracking)
 - Neo4j/Memgraph graph driver (`graph/neo4j/`) — consumer-pulled sibling module
-- Hierarchical error taxonomy adoption (buildflow finding — needs evaluation)
+- Parquet journal (`storage/parquet`) — columnar, compressed, cloud-native
+- DuckDB connector (`storage/duckdb`) — OLAP-grade analytical materializations
+- NATS/ValKey stream adapter — ADR-0025 accepted
+- Distributed event bus — multi-process backend for event distribution
 
 ---
 
@@ -114,6 +131,8 @@ Keeping the library clean and trustworthy.
   decided in v4. Do not split.
 - **ORM features** — no query builder, no ORM-style relations, no lazy loading.
   `RawWhere` escape hatch covers the 5% case. Principle: "Library, not framework."
+- **RollupSpec / RollupProjection** — premature abstraction. `sink.Increment`
+  is the composable primitive; consumers compose it directly.
 - **Redis adapter** — the author is not a fan of Redis. ValKey (the LF-backed
   fork) is the recommended alternative. If starting fresh, pick ValKey, NATS,
   or Kafka instead.

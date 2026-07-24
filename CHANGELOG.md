@@ -6,13 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Metaengine module** (`metaengine/v4`) — cost-based storage planner for
+  event-sourced data. Derives projections and engine assignments from two
+  primitives: Events (mutations) and Queries (read intent). 7 ADTs inferred
+  from fold return types (Map, Set, Counter, Graph, SortedMap, Multimap, Log).
+  Typed `FilterOn`/`SortOn` closures, cursor-based pagination, formal cost model,
+  write amplification budget. MemoryEngine only; zero production dependencies.
+  89 BDD specs, 82.6% coverage.
+- **Benchkit module** (`benchkit/v4`) — factory-driven benchmarking suite with
+  7 named workload profiles (Dev, Small, Medium, Large, Stress, WriteHeavy,
+  ReadHeavy), 8-phase runner, concurrent workers, latency percentiles, resource
+  sampling, text/JSON/Markdown reports. 23 tests.
+- **cqrs-bench CLI** (`cmd/cqrs-bench`) — benchmark any backend with named
+  workload profiles. `run` and `compare` subcommands.
+- **Incremental rollups** (`storage/relational`) — `ProjectionSink.Increment`
+  for atomic counter maintenance via `INSERT ... ON CONFLICT DO UPDATE`.
+  `RelationalProjection.Reset` implements `projectionhost.Resettable` for
+  zero-based replay. 11 tests.
+- **example/readme-quickstart** — compile-verified Quick Start example testing
+  every API pattern from the main README.
+- **Error taxonomy migration** — 13 `errors.New` sentinels migrated to
+  `errorfamily.New*` constructors across 7 modules (codec, decider, schema,
+  middleware, catalog, prometheus, stack/postgres). 6 previously-unexported
+  sentinels now exported. All external sentinels classified (e.g.
+  `pebble.ErrNotFound` → Rejection).
+- **Aggregate→Stream rename** (ADR-0058) — identity types renamed from
+  `Aggregate*` to `Stream*` (`StreamID`, `StreamType`, `StreamRef`, `StreamMarker`)
+  across `id/`, `event/`, `command/`, `listing/`, `otel/`, `storage/`. Deprecated
+  type aliases preserve backward compatibility. Wire formats (JSON tags, SQL
+  columns, proto fields) preserved.
+- **Comprehensive README coverage** — 24 new module READMEs created, 9 existing
+  rewritten, 19 code example bugs fixed. All 56 modules with go.mod have READMEs.
+  248 Go symbol references verified by `doc-check`.
+
 ### Changed
 
 - **README rewrite** — restructured as 3-step Quick Start (define domain, event-source
   with decider, go to production). Added Install section, trimmed module catalog to 12
-  key modules (links to AGENTS.md for full 52). Moved "Why" section before catalog.
+  key modules (links to AGENTS.md for full 56). Moved "Why" section before catalog.
 - **Docs compile-verification** — `docs_compile_test.go` in `example/getting-started/`
   tests every API pattern from `docs/getting-started.md` to catch drift in CI.
+- **Module count** — 52 → 56 `go.mod` files (metaengine, benchkit, cmd/cqrs-bench,
+  example/readme-quickstart).
 
 ### Removed (Breaking — targets v4.1)
 

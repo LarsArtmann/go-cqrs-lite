@@ -1,13 +1,12 @@
 # TODO List
 
-**Updated:** 2026-07-23 (docs compile tests, README rewrite, deprecated API removal batch 2)
+**Updated:** 2026-07-24
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in [ROADMAP.md](ROADMAP.md).
 Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 
 ## Legend
 
 - `[ ]` = Open
-- `[x]` = Done (moved to [CHANGELOG.md](CHANGELOG.md))
 - `[BLOCKED]` = Blocked on upstream dependency or user approval
 - `🔥` = Pareto high impact (top 20% that delivers 80% of value)
 - `⭐` = Top 1% impact (do first)
@@ -16,67 +15,73 @@ Completed work lives in [CHANGELOG.md](CHANGELOG.md).
 
 ## ⭐ 1% Tier — Do First (Highest Impact)
 
-These items deliver the majority of perceived consumer value.
-
-- [x] **Publish `eventtest` to Go proxy as `v0.1.0`** — ✅ Verified available via
-      `GOPROXY=proxy.golang.org go list -m ...@v0.1.0`. v0.2.0 is also published.
-      Remaining: delete the wrong `event/v4/eventtest/v4.0.0` tag from **remote**
-      (`git push --delete origin event/v4/eventtest/v4.0.0`). Local tag deleted.
-- [x] ⭐ **Fix README "sales page" friction** — ✅ `example/readme-quickstart/` created
-      with compile-verified `main.go` + `main_test.go`, registered in `go.work` and `flake.nix`.
-- [x] ⭐ **Add pre-commit hooks** — ✅ `scripts/pre-commit.sh` + flake apps `check-printf`,
-      `pre-commit`, `install-hooks`.
-- [x] ⭐ **Add CBOR-stamp round-trip tests for gRPC + watermill** — ✅ Tests in
-      `transport/grpc/event_test.go` and `watermill/event_publisher_test.go`. gRPC CBOR
-      encoding bug fixed (`payload_encoding` metadata preservation).
-- [x] ⭐ **Update SKILL.md eventtest FAQ** — ✅ Updated with correct `go get` command.
-- [x] ⭐ **Achieve zero-lint across all 44 modules** — ✅ Down from 76 → 0 issues.
-      All `ireturn`, `exhaustruct`, `wrapcheck`, `gocritic`, `gci` findings resolved.
+- [ ] ⭐ **Regenerate `docs/api_surface.txt`** — Golden file still contains 9 removed
+      APIs (`NewMetrics`, `MetricsRecorder`, `ErrorExporter`, `NewOwnedDBHandle`,
+      `SetOwnership`, `FakeMetrics`, etc.). CI `api-stability` job will fail. Fix:
+      `cd cmd/api-stability && GOWORK=off go run main.go`.
+- [ ] ⭐ **Finish Aggregate→Stream rename: exported error variables** —
+      `ErrAggregateTypeMismatch` / `ErrAggregateIDMismatch` in `storage/sql/errors.go`
+      and `storage/pebble/errors.go` were missed. Need Stream* names + deprecated
+      aliases. See ADR-0058 and [rename status](docs/status/2026-07-23_20-11_AGGREGATE-TO-STREAM-RENAME-STATUS.md).
 
 ---
 
-## 🔥 4% Tier — High Impact, Slightly Larger
+## 🔥 High Impact — Correctness and Integration
 
-- [x] **Fix lint findings (was 76 issues)** — ✅ Zero-lint achieved across all 44 modules.
-- [x] **`scheduling.SQLTimerStore`** — ✅ Already implemented at `storage/timer_store.go`.
-- [x] **`listing.SQLAggregateReader`** — ✅ Already implemented at `storage/sql_aggregate_reader.go`.
-- [x] **`projectionhost.Host.LagDuration()`** — ✅ Already implemented at `projectionhost/host.go:263`
-      with `LagPerProjection()` at line 286. Tests at `host_test.go`.
-- [x] **Compile-verify `docs/getting-started.md` examples** — ✅ `docs_compile_test.go`
-      in `example/getting-started/` tests every API pattern from the docs. Fixed
-      missing `fmt` and `context` imports in the docs.
+- [ ] **Fix benchkit warmup store pollution** — `runner.warmup()` writes events to
+      `r.bundle.EventSink` (the main store), inflating journal metrics for subsequent
+      phases. Should use a throwaway store or document the inflation. See
+      [benchkit bugfix session](docs/status/2026-07-24_05-59_benchkit-bugfix-session-status.md).
+- [ ] **Replace benchkit `estimateJSONSize` with marshal-and-measure** — Current
+      function is a rough guess (`benchkit/generator.go:80`). Marshaling a sample
+      and measuring `len()` is exact.
+- [ ] **Replace benchkit `insertCommas` with stdlib** — Hand-rolled at
+      `benchkit/report.go:277`. `golang.org/x/text/message` or similar is correct.
+- [ ] **Fix pre-existing doc-check failures** — 5 references to removed error
+      functions (`event.NewRejection` etc.) in docs that now live in `go-error-family`.
 
 ---
 
 ## 20% Tier — Important, Can Queue
 
-- [x] **README full "sales page" rewrite** — ✅ Restructured as 3-step Quick Start
-      (define domain, event-source with decider, go to production). Added Install section,
-      trimmed module catalog to 12 key modules (links to AGENTS.md for full 52).
-- [x] **Deprecated API removal batch 2** — ✅ Removed: `middleware.{NewMetrics,
-CommandMetrics, EventMetrics, QueryMetrics, MetricsRecorder, Observe}` (entire
-      `metrics.go` deleted), `catalog.ErrorExporter`, `storage/sql.{NewOwnedDBHandle,
-SetOwnership}`. Tests migrated to typed metrics API. Breaking → v4.1 cut.
-- [x] **Postgres CI coverage matrix** — ✅ Already implemented at `ci.yml:380-418`.
-      Postgres 16 service container, `POSTGRES_TEST_DSN` env var, `-tags=integration` tests.
-- [x] **Add `docs/*/archive/README.md` files** — ✅ All 8 archive directories already
-      have README.md files explaining what the archived artifacts are.
+### Aggregate→Stream Rename Follow-ups
+
+- [ ] **Comment cleanup** — ~70 production files still use "aggregate" in comments
+      and doc strings (decider/, listing/, storage/pebble/, storage/memory/, event/,
+      snapshot/, command/). Code works; comments are stale.
+- [ ] **AGENTS.md update** — 16 "aggregate" mentions remaining in module tree,
+      listing description, design principles, and code examples.
+- [ ] **SKILL.md references** — 32 "aggregate" mentions across 6 skill reference
+      files (core.md 10, advanced.md 11, recipes.md 3, modules.md 3, readmodels.md 2,
+      faq.md 3).
+
+### Metaengine Integration
+
+- [ ] **Projection adapter** — `metaengine` has no `projection.Projection` adapter.
+      It is a ghost system with zero consumers inside the repo (expected for a library,
+      but integration tests would validate the design).
+- [ ] **Real SQLite engine** — Only `MemoryEngine` is implemented. SQLite engine
+      wrapping `SQLViewStore` is the first production backend.
+- [ ] **Cost model calibration** — `nsPerOp=100` is arbitrary; needs benchmark-driven
+      calibration. Scale thresholds warn but don't auto-switch structures.
+- [ ] **Resolve `event/` dependency** — `metaengine` is zero-dependency by design.
+      If `event.Event` integration is needed, resolve the go.sum checksum issue or
+      keep the boundary.
+
+### Book Insights Gaps (from [architecture review](docs/architecture-understanding/2026-07-23_book-insights-vs-codebase.html))
+
+- [ ] **Read-your-writes consistency helper** — `WaitForVersion(ctx, aggID, version)`
+      for consumers who need immediate consistency after a write.
+- [ ] **Bounded staleness option** — `WithMaxStaleness(duration)` for projections
+      that can tolerate lag.
+- [ ] **Consistency model document** — `docs/CONSISTENCY_MODEL.md` documenting
+      single-process scope, eventual consistency between write and read models.
+- [ ] **SQL-backed `idempotency.Store`** — For multi-process Postgres deployments
+      (~100 lines: `INSERT ON CONFLICT DO NOTHING`).
 
 ---
 
-## Priority — Public Release Readiness
-
-> **These are irreversible. Do NOT execute without explicit user approval.**
-
-- [x] [DECLINED] **License swap (PROPRIETARY to Apache-2.0)** — User declined (2026-07-23).
-      Keeping PROPRIETARY for now.
-- [x] [DECLINED] **Git history scrub for internal docs** — User declined (2026-07-23).
-      History stays as-is.
-- [x] **Delete wrong remote tag `event/v4/eventtest/v4.0.0`** — Deleted from remote (2026-07-23).
-
----
-
-## Future — v4.1+ Parquet Journal + DuckDB
+## Future — v4.2+ Parquet Journal + DuckDB
 
 > Design complete at `docs/research/archive/2026-07-11_PARQUET_JOURNAL_DUCKDB_MATERIALIZATIONS.md`.
 > Three independent phases, all additive (no breaking changes).
@@ -95,6 +100,17 @@ SetOwnership}`. Tests migrated to typed metrics API. Breaking → v4.1 cut.
 - [ ] **NATS/ValKey Stream adapter** — ADR-0025 accepted. Separate `transport/nats/` and
       `transport/redis/` modules.
 - [ ] **Distributed event bus** — No multi-process backend for event distribution.
+
+---
+
+## Future — Module Extraction
+
+> Analysis at `docs/planning/2026-07-23_extraction-analysis.md`.
+
+- [ ] **Extract `retry/` → `go-retry`** — Best candidate: 217 LOC, zero CQRS coupling,
+      1 dependency. Standalone repo.
+- [ ] **Extract `idempotency/` → `go-idempotency`** — Strong candidate: 355 LOC, zero CQRS
+      coupling, 3-method `Store` interface. Standalone repo.
 
 ---
 
@@ -131,7 +147,11 @@ SetOwnership}`. Tests migrated to typed metrics API. Breaking → v4.1 cut.
   `projectionhost/versioned_journal_integration_test.go`.
 - **`storage/auditstore/` package** — Lying name. Renamed to "dispatch log" and kept in `storage/`.
 - **Split `event/` module** — 27 importers, real cohesion. Explicitly decided in v4.
+- **RollupSpec / RollupProjection** — Premature abstraction. `sink.Increment` is the composable
+  primitive; consumers compose it directly. See [analytics rollup review](docs/feedback/reviewed/2026-07-23_analytics-rollup-support-review.md).
+- **IncrementWhere on ProjectionSink** — Footgun: can silently update multiple rows. Use `RelationalProjection`
+  handler with explicit `Upsert`.
 
 ---
 
-_All completed items have been moved to [CHANGELOG.md](CHANGELOG.md) under `[4.0.0]` or `[Unreleased]`._
+_All completed items are recorded in [CHANGELOG.md](CHANGELOG.md) under `[4.1.0]` or earlier versions._
