@@ -19,37 +19,37 @@ Every error produced by the library belongs to exactly one family. This enables 
 ### Creating Classified Errors
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/event/v4"
+import errorfamily "github.com/larsartmann/go-error-family"
 
 // Business rule violation — consumer's input is invalid
-err := event.NewRejection("order.create.negative_total", "total must be positive")
+err := errorfamily.NewRejection("order.create.negative_total", "total must be positive")
 
 // Optimistic concurrency — another write beat us
-err := event.NewConflict("order.version_conflict", "order was modified by another request")
+err := errorfamily.NewConflict("order.version_conflict", "order was modified by another request")
 
 // Transient — network blip, safe to retry
-err := event.NewTransient("order.publish.timeout", "failed to publish event within deadline")
+err := errorfamily.NewTransient("order.publish.timeout", "failed to publish event within deadline")
 ```
 
 ### Classifying Errors
 
 ```go
-family := event.Classify(err)
+family := errorfamily.Classify(err)
 switch family {
-case event.Rejection:
+case errorfamily.Rejection:
     // Return 400 to the client
-case event.Conflict:
+case errorfamily.Conflict:
     // Return 409, maybe ask user to refresh
-case event.Transient:
+case errorfamily.Transient:
     // Retry with backoff
-case event.Infrastructure:
+case errorfamily.Infrastructure:
     // Alert on-call, return 500
-case event.Corruption:
+case errorfamily.Corruption:
     // Page on-call, investigate data integrity
 }
 
 // Or use the boolean helper
-if event.IsRetryable(err) {
+if errorfamily.IsRetryable(err) {
     // Exponential backoff and retry
 }
 ```
@@ -58,10 +58,10 @@ if event.IsRetryable(err) {
 
 ```go
 // Preserve classification through fmt.Errorf wrapping
-err := fmt.Errorf("save order %s: %w", orderID, event.NewConflict("order.version_conflict", "version mismatch"))
+err := fmt.Errorf("save order %s: %w", orderID, errorfamily.NewConflict("order.version_conflict", "version mismatch"))
 
 // Classification still works
-event.Classify(err) // => Conflict
+errorfamily.Classify(err) // => Conflict
 ```
 
 ## Error Families by Module
@@ -173,7 +173,7 @@ Errors that are not constructed via the taxonomy constructors (plain `errors.New
 `fmt.Errorf` without `%w` into a family error) are classified as **Transient**
 by default. This is a fail-open design: unknown infrastructure errors get
 retried. However, it means **business-rule errors returned as plain errors will
-be retried** — always use `event.NewRejection` for non-retryable errors.
+be retried** — always use `errorfamily.NewRejection` for non-retryable errors.
 
 ## Design Principles
 

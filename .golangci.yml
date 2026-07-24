@@ -168,6 +168,7 @@ linters:
             - github.com/prometheus/client_model
             - github.com/maypok86/otter
             - github.com/jackc/pgx
+            - github.com/dustin/go-humanize
             - google.golang.org/grpc
             - google.golang.org/protobuf
             - github.com/larsartmann/go-finding

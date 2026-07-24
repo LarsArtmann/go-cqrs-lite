@@ -88,11 +88,11 @@ All errors are classified into a 5-family taxonomy:
 
 | Family             | Meaning                                                | Constructor                    |
 | ------------------ | ------------------------------------------------------ | ------------------------------ |
-| **Rejection**      | Business rule violation (4xx equivalent)               | `event.NewRejection(...)`      |
-| **Conflict**       | Optimistic concurrency or duplicate (409 equivalent)   | `event.NewConflict(...)`       |
-| **Transient**      | Retryable infrastructure failure (503 equivalent)      | `event.NewTransient(...)`      |
-| **Infrastructure** | Non-retryable infrastructure failure (500 equivalent)  | `event.NewInfrastructure(...)` |
-| **Corruption**     | Data integrity violation — human intervention required | `event.NewCorruption(...)`     |
+| **Rejection**      | Business rule violation (4xx equivalent)               | `errorfamily.NewRejection(...)`      |
+| **Conflict**       | Optimistic concurrency or duplicate (409 equivalent)   | `errorfamily.NewConflict(...)`       |
+| **Transient**      | Retryable infrastructure failure (503 equivalent)      | `errorfamily.NewTransient(...)`      |
+| **Infrastructure** | Non-retryable infrastructure failure (500 equivalent)  | `errorfamily.NewInfrastructure(...)` |
+| **Corruption**     | Data integrity violation — human intervention required | `errorfamily.NewCorruption(...)`     |
 
 ---
 
@@ -372,6 +372,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 
+	// Error taxonomy
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	// CQRS
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
@@ -437,11 +440,11 @@ var _ = []any{
 	event.ProcessingModeFrom,
 	event.DecodePayloadAuto,
 	event.NewMetadata,
-	event.NewRejection,
-	event.NewConflict,
-	event.NewTransient,
-	event.NewInfrastructure,
-	event.NewCorruption,
+	errorfamily.NewRejection,
+	errorfamily.NewConflict,
+	errorfamily.NewTransient,
+	errorfamily.NewInfrastructure,
+	errorfamily.NewCorruption,
 	projection.NewProjection,
 	snapshot.NewTypedStore,
 	snapshot.EveryNEvents,
