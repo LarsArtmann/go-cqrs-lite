@@ -87,6 +87,8 @@ Formats:
   text       Human-readable report (default)
   json       Machine-readable JSON
   markdown   Markdown comparison table
+  benchstat  benchstat-compatible lines (pipe to benchstat)
+  manifest   Config + environment + result as JSON
 
 Examples:
   cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev
@@ -107,7 +109,7 @@ func runCmd(args []string) {
 	dir := fs.String("dir", "", "Database directory (pebble)")
 	profileName := fs.String("profile", "dev", "Workload profile")
 	codecName := fs.String("codec", "json", "Payload codec: json, cbor")
-	format := fs.String("format", "text", "Output format: text, json")
+	format := fs.String("format", "text", "Output format: text, json, benchstat, manifest")
 	output := fs.String("output", "", "Output file (default: stdout)")
 	payloadSize := fs.Int("payload-size", 256, "Payload size in bytes per event")
 	payloadSizes := fs.String(
@@ -165,7 +167,7 @@ func runCmd(args []string) {
 		fatalf("benchmark failed: %v", err)
 	}
 
-	writeResult(*format, *output, result)
+	writeResult(*format, *output, config, result)
 }
 
 // ── compare subcommand ──
@@ -248,7 +250,7 @@ func sweepCmd(args []string) {
 	dir := fs.String("dir", "", "Database directory (pebble)")
 	profileName := fs.String("profile", "dev", "Workload profile")
 	codecName := fs.String("codec", "json", "Payload codec: json, cbor")
-	format := fs.String("format", "text", "Output format: text, json")
+	format := fs.String("format", "text", "Output format: text, json, benchstat, manifest")
 	output := fs.String("output", "", "Output file (default: stdout)")
 	payloadSize := fs.Int("payload-size", 256, "Payload size in bytes per event")
 	skipRawSink := fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase")
@@ -459,7 +461,7 @@ func parsePayloadSizes(s string) ([]int, error) {
 
 // ── output ──
 
-func writeResult(format, output string, result *benchkit.Result) {
+func writeResult(format, output string, config benchkit.Config, result *benchkit.Result) {
 	w := openOutput(output)
 	defer closeOutput(w)
 
@@ -467,6 +469,12 @@ func writeResult(format, output string, result *benchkit.Result) {
 	case "json":
 		if err := benchkit.WriteJSON(w, result); err != nil {
 			fatalf("write JSON: %v", err)
+		}
+	case "benchstat":
+		benchkit.WriteBenchstat(w, result)
+	case "manifest":
+		if err := benchkit.WriteManifest(w, config, result); err != nil {
+			fatalf("write manifest: %v", err)
 		}
 	default:
 		benchkit.PrintReport(w, result)

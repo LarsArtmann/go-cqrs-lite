@@ -1937,3 +1937,106 @@ func TestSortedSweepResults(t *testing.T) {
 		t.Error("SortedSweepResults mutated the input slice")
 	}
 }
+
+func TestWriteBenchstat(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Backend:     "test-bench",
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	var buf bytes.Buffer
+	WriteBenchstat(&buf, result)
+
+	output := buf.String()
+	if !strings.Contains(output, "Benchmark") {
+		t.Error("WriteBenchstat output missing 'Benchmark' prefix")
+	}
+
+	if !strings.Contains(output, "write_throughput") {
+		t.Error("WriteBenchstat output missing write_throughput metric")
+	}
+
+	if !strings.Contains(output, "ops/s") {
+		t.Error("WriteBenchstat output missing ops/s unit")
+	}
+
+	if !strings.Contains(output, "ns/op") {
+		t.Error("WriteBenchstat output missing ns/op unit")
+	}
+}
+
+func TestWriteManifest(t *testing.T) {
+	t.Parallel()
+
+	config := Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Backend:     "test-manifest",
+	}
+
+	result := mustRun(t, config, func() (*stack.Bundle, error) { return memory.New() })
+
+	var buf bytes.Buffer
+	if err := WriteManifest(&buf, config, result); err != nil {
+		t.Fatalf("WriteManifest: %v", err)
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, `"schemaVersion"`) {
+		t.Error("WriteManifest output missing schemaVersion")
+	}
+
+	if !strings.Contains(output, `"config"`) {
+		t.Error("WriteManifest output missing config section")
+	}
+
+	if !strings.Contains(output, `"environment"`) {
+		t.Error("WriteManifest output missing environment section")
+	}
+
+	if !strings.Contains(output, `"result"`) {
+		t.Error("WriteManifest output missing result section")
+	}
+}
+
+func TestVerifyJSONFields(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	var buf bytes.Buffer
+	if err := WriteJSON(&buf, result); err != nil {
+		t.Fatalf("WriteJSON: %v", err)
+	}
+
+	// Extract top-level JSON keys from the marshaled output
+	jsonStr := buf.String()
+	keys := extractTopLevelKeys(t, jsonStr)
+
+	missing := VerifyJSONFields(keys)
+	if len(missing) > 0 {
+		t.Errorf("VerifyJSONFields found missing fields: %v", missing)
+	}
+}
+
+func extractTopLevelKeys(t *testing.T, jsonStr string) []string {
+	t.Helper()
+
+	var raw map[string]any
+	if err := json.Unmarshal([]byte(jsonStr), &raw, jsonOpts); err != nil {
+		t.Fatalf("extractTopLevelKeys: %v", err)
+	}
+
+	keys := make([]string, 0, len(raw))
+	for k := range raw {
+		keys = append(keys, k)
+	}
+
+	return keys
+}
