@@ -131,9 +131,9 @@ func SQLiteEngineProfile() EngineProfile {
 // SQLiteNsPerOp is the calibrated per-operation cost for the SQLite engine.
 // Calibrated via BenchmarkCalibration_SQLiteSet/Get on 2026-07-25 using
 // in-memory modernc.org/sqlite (file::memory:):
-//   - MapSet (INSERT): ~8,000 ns/op
-//   - MapGet (SELECT): ~4,500 ns/op
-// The value 8,000 ns is conservative for planning — disk-backed SQLite
-// adds I/O latency (10-50µs per op), but the planner is designed to
-// prefer memory engines when they can serve the query.
-const SQLiteNsPerOp = 8000.0
+//   - MapSet (INSERT): ~6,548 ns/op
+//   - MapGet (SELECT): ~4,960 ns/op
+// The value 7,000 ns is conservative for in-memory planning. Disk-backed
+// SQLite adds I/O latency (10-50µs per op), but the planner is designed to
+// prefer memory engines when they can serve the query at lower cost.
+const SQLiteNsPerOp = 7000.0

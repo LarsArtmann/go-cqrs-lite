@@ -59,11 +59,13 @@ func (m *memoryEngine) Profile() EngineProfile {
 }
 
 // MemoryNsPerOp is the calibrated per-operation cost for the in-memory engine.
-// Calibrated via BenchmarkCalibration_MapSet/MapGet on 2026-07-25:
-//   - MapSet: ~45 ns/op
-//   - MapGet: ~28 ns/op
-// The value 50 ns is a conservative round-up for planning purposes.
-const MemoryNsPerOp = 50.0
+// Calibrated via BenchmarkCalibration_MapSet/MapGet on 2026-07-25 (AMD Ryzen
+// AI MAX+ 395):
+//   - MapSet: ~466 ns/op (mutex-protected map insert + JSON marshal)
+//   - MapGet: ~21 ns/op (mutex-protected map lookup)
+// The value 500 ns is a conservative round-up: fold-heavy workloads (inserts)
+// dominate the cost, so we bias toward the write path.
+const MemoryNsPerOp = 500.0
 
 // getMapLocked returns or creates a map collection. Caller MUST hold m.mu.Lock().
 func (m *memoryEngine) getMapLocked(col string) map[any]any {
