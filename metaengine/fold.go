@@ -329,24 +329,6 @@ func classifyADT(folds []Fold) (ADT, error) {
 	}
 }
 
-// eventTypesForFolds returns the set of event types the given folds react to.
-func eventTypesForFolds(folds []Fold) []string {
-	seen := make(map[string]struct{}, len(folds))
-
-	for _, f := range folds {
-		if f.Kind != FoldSkip {
-			seen[f.EventType] = struct{}{}
-		}
-	}
-
-	result := make([]string, 0, len(seen))
-	for t := range seen {
-		result = append(result, t)
-	}
-
-	return result
-}
-
 // deriveKeys auto-generates keyExtractor closures for update and remove folds
 // by matching the insert fold's key type against fields in the event struct.
 func deriveKeys(folds []Fold) error {

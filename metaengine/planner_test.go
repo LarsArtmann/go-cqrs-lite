@@ -43,10 +43,19 @@ var _ = Describe("Plan", func() {
 		})
 
 		It("assigns each query a complexity from the engine profile", func() {
+			byName := make(map[string]metaengine.QueryAssignment)
 			for _, q := range plan.Queries {
-				Expect(q.Complexity).NotTo(BeEmpty(),
-					"query %q should have a complexity", q.QueryName)
+				byName[q.QueryName] = q
 			}
+
+			Expect(byName["find_task"].Complexity).To(Equal(metaengine.ComplexityO1))
+			Expect(byName["check_assignee"].Complexity).To(Equal(metaengine.ComplexityO1))
+			Expect(
+				byName["count_by_status"].Complexity,
+			).To(Equal(metaengine.ComplexityO1))
+			Expect(
+				byName["tasks_by_assignee"].Complexity,
+			).To(Equal(metaengine.ComplexityODegree), "graph on memory is O(degree^depth), not degraded")
 		})
 
 		It("assigns the memory engine to every query", func() {

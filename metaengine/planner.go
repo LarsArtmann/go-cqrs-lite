@@ -342,8 +342,8 @@ func checkWriteAmplification(queries map[string]queryRuntime, budget int) Diagno
 			Level: DiagLevelWarn,
 			Query: "*",
 			Message: fmt.Sprintf(
-				"event %s updates %d projections — high write amplification",
-				heavy[0], maxAmp,
+				"events %s update %d projections — high write amplification",
+				strings.Join(heavy, ", "), maxAmp,
 			),
 		})
 	}
