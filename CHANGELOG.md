@@ -19,8 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   7 named workload profiles (Dev, Small, Medium, Large, Stress, WriteHeavy,
   ReadHeavy), 8-phase runner, concurrent workers, latency percentiles, resource
   sampling, text/JSON/Markdown reports. Codec-aware payload sizing, errorfamily
-  error classification, SkipPhases, Config validation. 88 tests (77 benchkit
-  + 11 CLI). Includes DiskSizer interface (Pebble), getrusage-based CPU
+  error classification, SkipPhases, Config validation. 93 tests (81 benchkit
+  + 12 CLI). Includes DiskSizer interface (Pebble), getrusage-based CPU
   measurement, projection benchmark phase, mixed payload-size distributions,
   and `--repeat N` multi-sample averaging.
 - **cqrs-bench CLI** (`cmd/cqrs-bench`) — benchmark any backend with named

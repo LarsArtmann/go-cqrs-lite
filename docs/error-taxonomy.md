@@ -71,8 +71,8 @@ errorfamily.Classify(err) // => Conflict
 | Error                     | Family    | Code                           |
 | ------------------------- | --------- | ------------------------------ |
 | `ErrEmptyEventType`       | Rejection | `event.empty_event_type`       |
-| `ErrNilAggregateID`       | Rejection | `event.nil_aggregate_id`       |
-| `ErrEmptyAggregateType`   | Rejection | `event.empty_aggregate_type`   |
+| `ErrNilStreamID`        | Rejection | `event.nil_aggregate_id`       |
+| `ErrEmptyStreamType`    | Rejection | `event.empty_aggregate_type`   |
 | `ErrVersionNotPositive`   | Rejection | `event.version_not_positive`   |
 | `ErrNilPayload`           | Rejection | `event.nil_payload`            |
 | `ErrMismatchedEventCount` | Rejection | `event.mismatched_event_count` |
@@ -86,7 +86,7 @@ errorfamily.Classify(err) // => Conflict
 | `ErrHandlerNotFound`  | Rejection      | `command.handler_not_found`  |
 | `ErrDispatcherClosed` | Infrastructure | `command.dispatcher_closed`  |
 | `ErrEmptyCommandType` | Rejection      | `command.empty_command_type` |
-| `ErrNilAggregateID`   | Rejection      | `command.nil_aggregate_id`   |
+| `ErrNilStreamID`    | Rejection      | `command.nil_aggregate_id`   |
 | `ErrTypeAssertion`    | Corruption     | `command.type_assertion`     |
 
 ### core/query

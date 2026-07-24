@@ -31,11 +31,11 @@
 | Handler registration     | `Dispatcher.Register(cmdType, handler)` with duplicate guard                                                                                       | ✅     |
 | Middleware chain         | `Dispatcher.Use(middleware...)` — applied at **dispatch time** (can be added before or after Register)                                             | ✅     |
 | Lifecycle                | `Dispatcher.Close()` — rejects all ops after close                                                                                                 | ✅     |
-| Validation               | `New()` rejects empty type and zero aggregateID                                                                                                    | ✅     |
+| Validation               | `New()` rejects empty type and zero streamID                                                                                                    | ✅     |
 | TypedHandler[T]          | `RegisterTyped[T](d, type, handler)` — type-safe handler receiving `T` not `Command`                                                               | ✅     |
 | Command metadata         | Own `Metadata` struct (embeds `Tracing`, no longer aliases `event.Metadata` — ADR-0031) with CorrelationID, CausationID, UserID, RequestID, Custom | ✅     |
 | Metadata options         | `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`                                                                              | ✅     |
-| Persisted command        | `PersistedCommand` struct with ID, Type, AggregateRef, ReceivedAt, Payload, Metadata                                                               | ✅     |
+| Persisted command        | `PersistedCommand` struct with ID, Type, StreamRef, ReceivedAt, Payload, Metadata                                                               | ✅     |
 | Command store interfaces | `CommandSink`, `CommandSource`, `Store` (Sink+Source) — persisted command log                                                                      | ✅     |
 | CommandJournal           | `ReadAll(ctx)` — global command log ordered by ReceivedAt; audit trail of every command                                                            | ✅     |
 | SeekableCommandJournal   | `ReadFrom(ctx, afterCommandID, limit)` — position-based command replay with ULID checkpoints                                                       | ✅     |
@@ -92,9 +92,9 @@
 | ISP split             | `EventSink` (write) + `EventSource` (read) — fine-grained dependency injection                                                                                                                                                                                                                                                              | ✅     |
 | Journal               | `ReadAll()` returns all events ordered by `occurred_at ASC` — for projection replay                                                                                                                                                                                                                                                         | ✅     |
 | SeekableJournal       | `ReadFrom(ctx, afterEventID, limit)` — efficient projection catch-up                                                                                                                                                                                                                                                                        | ✅     |
-| BackwardsSource       | `LoadBackwards(ctx, aggRef)` — loads events in reverse version order                                                                                                                                                                                                                                                                        | ✅     |
+| BackwardsSource       | `LoadBackwards(ctx, streamRef)` — loads events in reverse version order                                                                                                                                                                                                                                                                        | ✅     |
 | TombstoneStatus       | `Active`, `Tombstoned`, `Undetermined` — tri-state enum for soft-delete; `DetectTombstone`, `MarkTombstone`, `MarkRebirth`                                                                                                                                                                                                                  | ✅     |
-| Time-travel queries   | `LoadToVersion` and `LoadToTimestamp` — read aggregate state at a point in time                                                                                                                                                                                                                                                             | ✅     |
+| Time-travel queries   | `LoadToVersion` and `LoadToTimestamp` — read stream state at a point in time                                                                                                                                                                                                                                                             | ✅     |
 | Projection interface  | `Projection`: `Name`, `Handle(ctx, Event)`, `EventTypes()` (nil = all)                                                                                                                                                                                                                                                                      | ✅     |
 | Context replay marker | `WithProcessingMode(ctx, ModeReplay)` — marks context as replay; handlers can distinguish                                                                                                                                                                                                                                                   | ✅     |
 | DecodePayload[T]      | `DecodePayload[T](evt, codec)` — type-safe payload deserialization                                                                                                                                                                                                                                                                          | ✅     |
@@ -109,21 +109,21 @@
 | Event reconstruction  | `ReconstructEventFromFields` — shared deserialization for all store implementations                                                                                                                                                                                                                                                         | ✅     |
 | JSON metadata         | `MarshalMetadataJSON`, `UnmarshalMetadataJSON` — DB-safe metadata serialization                                                                                                                                                                                                                                                             | ✅     |
 
-### Decider (Pure-Function Aggregate) ✅ FULLY_FUNCTIONAL
+### Decider (Pure-Function Event Sourcing) ✅ FULLY_FUNCTIONAL
 
 > `import "github.com/larsartmann/go-cqrs-lite/decider/v4"`
 
 | Feature              | Detail                                                                                           | Status |
 | -------------------- | ------------------------------------------------------------------------------------------------ | ------ |
-| Decider[State]       | `{Initial State; Fold func(State, Event) (State, error)}` — pure-function aggregate pattern      | ✅     |
-| Repository[State]    | `NewRepository[State](store, publisher, decider, opts...)` — manages aggregate lifecycle         | ✅     |
-| Execute              | `Repository.Execute(ctx, aggID, aggType, decide)` — load → decide → save → publish               | ✅     |
-| Load                 | `Repository.Load(ctx, aggID, aggType)` — returns `(State, Version, error)`                       | ✅     |
-| LoadAtVersion        | `Repository.LoadAtVersion(ctx, aggID, aggType, maxVersion)` — time-travel to version             | ✅     |
-| LoadAtTime           | `Repository.LoadAtTime(ctx, aggID, aggType, maxTime)` — time-travel to timestamp                 | ✅     |
+| Decider[State]       | `{Initial State; Fold func(State, Event) (State, error)}` — pure-function event-sourcing pattern | ✅     |
+| Repository[State]    | `NewRepository[State](store, publisher, decider, opts...)` — manages stream lifecycle            | ✅     |
+| Execute              | `Repository.Execute(ctx, streamID, streamType, decide)` — load → decide → save → publish         | ✅     |
+| Load                 | `Repository.Load(ctx, streamID, streamType)` — returns `(State, Version, error)`                 | ✅     |
+| LoadAtVersion        | `Repository.LoadAtVersion(ctx, streamID, streamType, maxVersion)` — time-travel to version       | ✅     |
+| LoadAtTime           | `Repository.LoadAtTime(ctx, streamID, streamType, maxTime)` — time-travel to timestamp           | ✅     |
 | Snapshot integration | `WithSnapshotStore` + `WithSnapshotStrategy` + `WithCodec` — automatic snapshot optimization     | ✅     |
 | Hot-state cache      | `WithStateCache` + `NewStateCache[State](capacity)` — LRU cache, incremental loads (7.4x faster) | ✅     |
-| Load coalescing      | `WithLoadCoalescing` — singleflight dedup of concurrent Loads for same aggregate                 | ✅     |
+| Load coalescing      | `WithLoadCoalescing` — singleflight dedup of concurrent Loads for same stream                    | ✅     |
 | Context enrichment   | `WithEnricher` — injects metadata from context into events                                       | ✅     |
 | OTel tracing         | OpenTelemetry spans for load/save/execute operations (opt-in)                                    | ✅     |
 
@@ -137,12 +137,12 @@
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | Generic branded type   | `id.Of[T]` — phantom type parameter for compile-time safety                                                                                                   | ✅     |
 | ULID-backed            | Binary-sortable, time-ordered, 16-byte binary form                                                                                                            | ✅     |
-| 8 built-in types       | `AggregateID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID`, `CommandID`                                                      | ✅     |
+| 8 built-in types       | `StreamID`, `EventID`, `CorrelationID`, `CausationID`, `RequestID`, `UserID`, `ClientID`, `CommandID`                                                        | ✅     |
 | Custom branded types   | `type OrderID = id.Of[OrderMarker]` — users can create their own                                                                                              | ✅     |
-| Exported markers       | All 8 phantom markers exported (`Aggregate`, `User`, `Correlation`, `Request`, `Causation`, `Client`, `Command`, `Event`) for downstream `BrandNamer` tooling | ✅     |
+| Exported markers       | All 8 phantom markers exported (`Stream`, `User`, `Correlation`, `Request`, `Causation`, `Client`, `Command`, `Event`) for downstream `BrandNamer` tooling  | ✅     |
 | All serialization      | JSON (incl. `null`), binary, text, SQL `Scan`/`Value`                                                                                                         | ✅     |
 | Convenience funcs      | `New[T]()`, `Parse[T]()`, `ULID[T]()`, `FromPtr[T]()`, `CompareIDs[T]()`                                                                                      | ✅     |
-| AggregateID derivation | `DeriveAggregateID()` — deterministic ID from namespace + key                                                                                                 | ✅     |
+| StreamID derivation  | `DeriveStreamID()` — deterministic ID from namespace + key                                                                                                    | ✅     |
 | Timestamp extraction   | `ULID(id)` extracts embedded timestamp                                                                                                                        | ✅     |
 
 ### Generic Dispatcher ✅ FULLY_FUNCTIONAL
@@ -190,7 +190,7 @@ projection-side captures events that poisoned a projection handler.
 | DeadLetterHandler                    | `DeadLetterHandler` func type — wired via `RetryConfig.OnDeadLetter`                                               | ✅     |
 | MemoryDeadLetterStore                | In-memory store: `Handle`, `Entries`, `Count`, `Clear`                                                             | ✅     |
 | SQLDeadLetterStore                   | SQL-backed (Postgres + SQLite): `Handle`, `Entries`, `Count`, `Clear` with auto-migrating schema                   | ✅     |
-| DeadLetterEntry                      | Captures Kind, Type, AggregateID, Error, ErrorCode, ErrorFamily, Attempts, FailedAt                                | ✅     |
+| DeadLetterEntry                      | Captures Kind, Type, StreamID, Error, ErrorCode, ErrorFamily, Attempts, FailedAt                                    | ✅     |
 | **Projection-side (projectionhost)** |                                                                                                                    |
 | DeadLetterStore                      | `DeadLetterStore` interface — `Store`, `List`, `Delete`, `Purge`                                                   | ✅     |
 | DeadLetterStoreAdmin                 | Optional interface: `Count`, `ListPaged`, `PurgeBefore` — production management (pagination, time-bounded cleanup) | ✅     |
@@ -258,7 +258,7 @@ pattern: same workload, any backend, structured metrics report.
 | Reports             | Text, JSON (v2), Markdown — latency percentiles, throughput, memory, disk      | 🧪     |
 | ReadRatio           | Configurable read/write mix for WriteHeavy and ReadHeavy profiles              | 🧪     |
 
-**Coverage:** 88 tests (77 benchkit + 11 CLI) with `-race`. Remaining gaps: Phase 2
+**Coverage:** 93 tests (81 benchkit + 12 CLI) with `-race`. Remaining gaps: Phase 2
 (durability/crash-recovery), Phase 6 (production replay), Phase 7 (`benchtest.RunSuite`).
 Run-to-run variance is ~20-25% on the memory backend (see
 [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md)).
@@ -353,7 +353,7 @@ as a library primitive.
 
 | Feature          | Detail                                                                              | Status |
 | ---------------- | ----------------------------------------------------------------------------------- | ------ |
-| Snapshot type    | `Snapshot` struct with AggregateRef, Version, State, SavedAt                        | ✅     |
+| Snapshot type    | `Snapshot` struct with StreamID, StreamType, Version, State, CreatedAt              | ✅     |
 | Store interfaces | `SnapshotSink`, `SnapshotSource`, `SnapshotStore` (Sink+Source)                     | ✅     |
 | Strategy         | `SnapshotStrategy` interface + `EveryNEvents(n)` built-in                           | ✅     |
 | Read-pressure    | `ReadPressure` strategy — snapshots based on load frequency                         | ✅     |
@@ -420,7 +420,7 @@ All **9 concerns** are provided for all 3 message types (command, event, query) 
 
 | Factory                  | Logs                                                                                  |
 | ------------------------ | ------------------------------------------------------------------------------------- |
-| `CommandLogging(logger)` | `"command dispatching"` / `"succeeded"` / `"failed"` with type, aggregateID, duration |
+| `CommandLogging(logger)` | `"command dispatching"` / `"succeeded"` / `"failed"` with type, streamID, duration    |
 | `EventLogging(logger)`   | Same pattern for events                                                               |
 | `QueryLogging(logger)`   | Same pattern for queries                                                              |
 
@@ -736,10 +736,10 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | SQL CheckpointStore        | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling                                                                               | ✅     |
 | SQL CommandStore           | `SQLCommandStore` implements `command.Store` — Save, AppendBatch, Load, LoadFromTimestamp, LoadToTimestamp                                   | ✅     |
 | SQL Backend                | `SQLBackend` facade returning `EventStore()`, `SnapshotStore()`, `CheckpointStore()`, `CommandStore()`                                       | ✅     |
-| AggregateProjection        | Maintains SQL read-model tables from event streams with tombstone detection                                                                  | ✅     |
+| StreamProjection           | Maintains SQL read-model tables from event streams with tombstone detection                                                                  | ✅     |
 | Incremental rollups        | `ProjectionSink.Increment(ctx, table, key, counterCol, delta)` — atomic counter via `ON CONFLICT DO UPDATE` (ADR-0033)                       | ✅     |
 | RelationalProjection.Reset | `Reset(ctx)` implements `projectionhost.Resettable` — wipes all tables for zero-based replay                                                 | ✅     |
-| SQLAggregateReader         | `listing.AggregateReader` implementation reading from projection tables                                                                      | ✅     |
+| SQLStreamReader            | `listing.StreamReader` implementation reading from projection tables                                                                         | ✅     |
 | DB helpers                 | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅     |
 | Dialect abstraction        | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods                                          | ✅     |
 | SQL sub-package            | `storage/sql` — `DBHandle`, `OwnedDBHandle`, generic `LoadWithSpan[T]`, `QueryRows[T]`, `ScanSlice[T]`, `ReconstructEvent`                   | ✅     |
@@ -756,7 +756,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | ---------------------- | -------------------------------------------------------------------------------------- | ------ |
 | EventStore             | `NewStore(db, logger)` implements `event.Store` + `Journal` + `SeekableJournal`        | ✅     |
 | CBOR envelope          | Events serialized as CBOR with JSON backward compatibility layer                       | ✅     |
-| Per-aggregate locking  | Sharded mutex pool (FNV-1a hash, 256 shards) — optimistic concurrency without sync.Map | ✅     |
+| Per-stream locking    | Sharded mutex pool (FNV-1a hash, 256 shards) — optimistic concurrency without sync.Map | ✅     |
 | Optimistic concurrency | `Save` checks version before commit                                                    | ✅     |
 | AppendBatch            | Appends without concurrency check                                                      | ✅     |
 | Full load API          | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`                          | ✅     |
@@ -815,14 +815,14 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 | Feature                     | Detail                                                                                               | Status |
 | --------------------------- | ---------------------------------------------------------------------------------------------------- | ------ |
-| AggregateReader             | Interface: `List(ctx, ListOptions) → Page[AggregateStatus]` — cursor-based aggregate listing         | ✅     |
+| StreamReader                | Interface: `List(ctx, ListOptions) → Page[StreamStatus]` — cursor-based stream listing               | ✅     |
 | ListBuilder                 | Fluent API: `listing.NewListBuilder(reader).OfType("User").After(cursor).Limit(50).IncludeDeleted()` | ✅     |
-| InMemoryAggregateReader     | Reads from `event.Journal.ReadAll()` — single-pass, no persistence                                   | ✅     |
-| TombstonePolicy             | `Exclude` (default), `Include`, `Only` — controls visibility of soft-deleted aggregates              | ✅     |
+| InMemoryStreamReader        | Reads from `event.Journal.ReadAll()` — single-pass, no persistence                                   | ✅     |
+| TombstonePolicy             | `Exclude` (default), `Include`, `Only` — controls visibility of soft-deleted streams                 | ✅     |
 | Page[T]                     | Cursor-based pagination with `HasMore` — no expensive TotalCount                                     | ✅     |
-| AggregateListing            | Lightweight identity: ID, Type, Version, EventCount, LastEventAt                                     | ✅     |
-| AggregateStatus             | Pairs AggregateListing with computed TombstoneStatus                                                 | ✅     |
-| StatusMiddleware            | Event bus middleware that publishes aggregate status changes                                         | ✅     |
+| StreamListing               | Lightweight identity: ID, Type, Version, EventCount, LastEventAt                                     | ✅     |
+| StreamStatus                | Pairs StreamListing with computed TombstoneStatus                                                    | ✅     |
+| StatusMiddleware            | Event bus middleware that publishes stream status changes                                            | ✅     |
 | CacheInvalidationMiddleware | Returns `event.PublishMiddleware` that invalidates reader cache                                      | ✅     |
 | ListRefsFromStatus          | Helper that strips status from page                                                                  | ✅     |
 
@@ -837,7 +837,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Type aliases       | `Tracer`, `Span`, `SpanKind`, `KeyValue`, `Meter`, `Float64Histogram`, `Int64Counter` — re-exported from OTel                                                                                | ✅     |
 | Tracer factory     | `NewTracer(component)` — creates OTel Tracer with standard instrumentation name                                                                                                              | ✅     |
 | Meter factory      | `NewMeter(component)` — creates OTel Meter                                                                                                                                                   | ✅     |
-| Span helpers       | `StartSpan`, `RecordError`, `EndWithError`, `AddSpanEvent`, `AggregateAttrs`, `CommandAttrs`, `EventAttrs`, `QueryAttrs`                                                                     | ✅     |
+| Span helpers       | `StartSpan`, `RecordError`, `EndWithError`, `AddSpanEvent`, `StreamAttrs`, `CommandAttrs`, `EventAttrs`, `QueryAttrs`                                          | ✅     |
 | Context helpers    | `SpanFromContext`, `TraceIDFromContext`, `SpanIDFromContext`                                                                                                                                 | ✅     |
 | Attribute helpers  | `AttrString`, `AttrInt`, `AttrInt64`, `WithAttributes`, `WithSpanKind`, `ServiceResourceAttributes`                                                                                          | ✅     |
 | Metric helpers     | `MetricWithAttributes`, `MetricWithDescription`, `MetricWithUnit`, `CounterAddWithAttributes`, `AddOption`                                                                                   | ✅     |
@@ -845,7 +845,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Correlation        | `WithCorrelationID`, `CorrelationIDFromContext` — baggage-based correlation propagation                                                                                                      | ✅     |
 | W3C propagation    | `NewTextMapPropagator()` — W3C trace context + baggage propagator                                                                                                                            | ✅     |
 | Logging helpers    | `ComponentLogger`, `ContextLogger` — structured logging with trace correlation                                                                                                               | ✅     |
-| Standard constants | `AttrMessageKind`, `AttrCommandType`, `AttrEventType`, `AttrQueryType`, `AttrAggregateType`, `AttrAggregateID`, `AttrAggregateVersion`, `AttrEventCount`, `AttrProjectionName`, `AttrStatus` | ✅     |
+| Standard constants | `AttrMessageKind`, `AttrCommandType`, `AttrEventType`, `AttrQueryType`, `AttrStreamType`, `AttrStreamID`, `AttrStreamVersion`, `AttrEventCount`, `AttrProjectionName`, `AttrStatus`         | ✅     |
 
 ---
 
@@ -858,8 +858,8 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Event protocol       | Bidirectional `event.Event` ↔ Watermill `message.Message` via 15+ metadata keys                           | ✅     |
 | PublisherAdapter     | `NewPublisherAdapter(publisher)` — wraps `event.Publisher` as `message.Publisher`                         | ✅     |
 | SubscriberAdapter    | `NewSubscriberAdapter(bus)` — wraps `event.Bus` as `message.Subscriber`, feeds `<-chan *message.Message`  | ✅     |
-| Full event fidelity  | 15 metadata keys preserve ID, type, aggregate, version, schema version, all metadata fields               | ✅     |
-| **Command protocol** | Bidirectional `command.Command` ↔ Watermill `message.Message` (type, aggregate, tracing, custom metadata) | ✅     |
+| Full event fidelity  | 15 metadata keys preserve ID, type, stream, version, schema version, all metadata fields                | ✅     |
+| **Command protocol** | Bidirectional `command.Command` ↔ Watermill `message.Message` (type, stream, tracing, custom metadata)   | ✅     |
 | **CommandBus**       | `NewCommandBus()` — full `command.Bus` backed by Watermill GoChannel + `WithCommandBackend` for brokers   | ✅     |
 | **CommandPublisher** | `NewCommandPublisher(pub, topic)` — wraps `message.Publisher` as `command.Publisher`                      | ✅     |
 | Custom metadata      | `custom.*` prefix preserves all custom metadata entries                                                   | ✅     |
@@ -975,7 +975,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Full flow E2E        | Command dispatch → decider → store → bus → projection → query → stream loading | ✅     |
 | Chaos testing        | Error propagation, panic recovery, retry logic, context cancellation           | ✅     |
 | Cross-module BDD     | Event, command, query, signing, encryption integration via Ginkgo v2           | ✅     |
-| Simulation framework | `EventGenerator` — single/multi-aggregate event generation for testing         | ✅     |
+| Simulation framework | `EventGenerator` — single/multi-stream event generation for testing            | ✅     |
 | Benchmarking         | 17 scale benchmarks (10K-1M events), realistic pipeline/concurrent benchmarks  | ✅     |
 | OTel integration     | End-to-end OpenTelemetry tracing verification                                  | ✅     |
 
@@ -986,7 +986,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Example                      | Detail                                                                                                                                                                                            |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `example/taskmanager/`       | Flagship full HTTP service: event sourcing, CQRS, KV + tombstone projections, SSE streaming, ProjectionHost with DLQ, signing, snapshot strategy, deriver (event→command), idempotency middleware |
-| `example/getting-started/`   | Minimal 80-line example showing the core pipeline: counter aggregate, command dispatch, event store, bus, projection                                                                              |
+| `example/getting-started/`   | Minimal 80-line example showing the core pipeline: counter stream, command dispatch, event store, bus, projection                                                                                 |
 | `example/readme-quickstart/` | Compile-verified README Quick Start example — tests every API pattern from the main README                                                                                                        |
 
 **Not reference applications.** These demonstrate library usage patterns.

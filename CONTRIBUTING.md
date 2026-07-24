@@ -72,7 +72,7 @@ Multi-module Go workspace with 56 modules (verify: `find . -name go.mod -not -pa
 event/         # Event system (Event, EventSink, EventSource, Bus)
 command/       # Command dispatcher
 query/         # Query dispatcher
-decider/       # Pure-function aggregate
+decider/       # Pure-function event sourcing
 id/            # Branded IDs
 dispatcher/    # Generic dispatcher
 schema/        # Schema evolution (upcasters)
@@ -85,7 +85,7 @@ projection/    # Projection runner (replay + live)
 storage/       # SQL event store (PostgreSQL, SQLite, Turso)
 otel/          # OpenTelemetry helpers
 prometheus/    # OTel→Prometheus metrics bridge
-listing/       # Aggregate listing
+listing/       # Stream listing
 watermill/     # Watermill protocol adapter
 pebble/        # PebbleDB event store
 codec/         # Payload encoding (JSON, Raw)
