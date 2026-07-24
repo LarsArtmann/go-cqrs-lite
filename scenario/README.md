@@ -14,7 +14,7 @@ go get github.com/larsartmann/go-cqrs-lite/scenario/v4
 
 ```go
 func TestIncrement(t *testing.T) {
-    scenario.Given[t, CounterState](t, foldCounter, CounterState{},
+    scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{},
         mustEvent(evtIncremented),
     ).
         When(incrementCmd{Amount: 5}, decideIncrement).
@@ -26,14 +26,14 @@ Assert on errors or final state:
 
 ```go
 // Assert the decide function returns a specific error:
-scenario.Given(incrementFold, CounterState{}, ...).
+scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{}, ...).
     When(cmd, decide).
     ThenError(ErrAlreadyExists)
 
 // Assert the final state after folding produced events:
-scenario.Given(incrementFold, CounterState{}, ...).
+scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{}, ...).
     When(cmd, decide).
-    ThenState(incrementFold, CounterState{}, expectedState)
+    ThenState(foldCounter, counterState{}, expectedState)
 ```
 
 ### Projection Testing
