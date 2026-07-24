@@ -13,6 +13,13 @@ The codebase **compiles, tests pass (79 packages, 0 failures), lint is clean (0 
 
 **However, the rename is only ~80% done.** What remains is documentation and comment cleanup — ~99 Go files still contain the word "aggregate" in comments and doc strings, and AGENTS.md/SKILL.md still reference old type names throughout. Additionally, two exported error variables in `storage/sql/` and `storage/pebble/` were missed entirely.
 
+> **Update 2026-07-24:** As of this date, the open items below remain unresolved.
+> `ErrAggregateTypeMismatch`/`ErrAggregateIDMismatch` in `storage/sql/errors.go`
+> and `storage/pebble/errors.go` are STILL NOT renamed (no deprecated aliases
+> created). Comment cleanup across ~70 production files is pending. AGENTS.md
+> and SKILL.md still use "aggregate" terminology. See TODO_LIST.md "Rename
+> Follow-ups" for the open task.
+
 ---
 
 ## a) FULLY DONE (Verified Green)

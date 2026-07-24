@@ -73,6 +73,11 @@ Nothing remaining from the actionable TODO list.
 
 ## D) TOTALLY FUCKED UP / CRITICAL ISSUES FOUND
 
+> **Update 2026-07-24:** D2 (compiled binaries) — RESOLVED. Binaries removed from
+> tracking; `.gitignore` updated. D1 (stale golden file) — STILL OPEN as of
+> 2026-07-24: `docs/api_surface.txt` still contains 9 stale entries. D3
+> (getting-started snippet) — cosmetic, covered by `docs_compile_test.go`.
+
 ### D1. API STABILITY GOLDEN FILE IS STALE (CRITICAL — CI WILL BREAK)
 
 **`docs/api_surface.txt` still contains all removed APIs:**

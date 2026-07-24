@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-23 17:10
 **Session:** Initial benchkit implementation from design report
-**Status:** MVP functional, several gaps and dead-code issues
+**Status:** ~~MVP functional, several gaps and dead-code issues~~ Dead-code bugs fixed in [bugfix session](2026-07-24_05-59_benchkit-bugfix-session-status.md) (commits `19f540ec`–`9ac2cc52`): `Config.Codec` wired, `Config.Duration` enforced, `ReadRatio` implemented, `BenchPayload` typed. Warmup store pollution and `estimateJSONSize` accuracy remain open.
 
 ---
 

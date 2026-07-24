@@ -25,7 +25,7 @@
 
 9. **User asked the fundamental questions** — "What does the App consumer need? What do you need? What does the developer need to provide? How do we make it efficient? How do we move as much work as smartly as possible to the DB backend? How do we get/extract the core relationships between Events and Queries right?" — This is the plot I need to recover.
 
-10. **Build is broken** — 4 compilation errors remain in `encoded.go` and `planner.go` from the per-query architecture rewrite. Not yet fixed.
+10. **Build is broken** — 4 compilation errors remain in `encoded.go` and `planner.go` from the per-query architecture rewrite. ~~Not yet fixed.~~ Fixed in the next session — see [meta-engine-build-status](2026-07-23_22-27_meta-engine-build-status.md). Build, vet, and all tests pass with `-race` as of commit `046d0a4d`.
 
 ---
 
@@ -53,7 +53,7 @@
 
 | #   | What                          | Current State                                                                   | What's Missing                                                                                         |
 | --- | ----------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| 1   | **Build compiles**            | 4 errors remain                                                                 | `encoded.go` references `s.models` (removed); `planner.go` references removed fields on `queryRuntime` |
+| 1   | **Build compiles**            | ~~4 errors remain~~ **Fixed** — next session resolved all compilation errors  | All errors resolved; build green as of commit `046d0a4d`                                                                              |
 | 2   | **`readmodel.go` cleanup**    | File still exists with 67 lines of old `ReadModel` code                         | Needs to be deleted or emptied entirely                                                                |
 | 3   | **Planner per-query rewrite** | `planQuery()` replaces `planModel()` but has field reference errors             | `queryRuntime` struct fields don't match what `planQuery` populates                                    |
 | 4   | **Store per-query rewrite**   | `Apply` iterates queries, `applyFold` uses query name as collection             | `executeFilteredScan` uses new typed closures but untested                                             |

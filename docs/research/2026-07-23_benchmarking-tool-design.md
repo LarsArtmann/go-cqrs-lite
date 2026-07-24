@@ -6,7 +6,7 @@
 > data.
 
 **Date:** 2026-07-23
-**Status:** Proposal
+**Status:** ~~Proposal~~ **Implemented** (2026-07-23) as `benchkit/` module + `cmd/cqrs-bench/` CLI. Phases 1 (core types, runner, profiles, reports) and 5 (CLI) are done. Phases 2 (durability), 6 (production replay), and 7 (`benchtest.RunSuite`) remain. See [benchkit implementation status](../status/2026-07-23_17-10_benchkit-implementation-status.md) and [bugfix session](../status/2026-07-24_05-59_benchkit-bugfix-session-status.md).
 
 ---
 

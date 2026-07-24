@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-23
 **Source:** DiscordSync consumer feedback (ADR-031 architectural shift toward zero-manual-SQL materialized views)
-**Priority:** P1 — blocks analytics materialization in DiscordSync
+**Priority:** ~~P1 — blocks analytics materialization in DiscordSync~~ **RESOLVED** — Option B (`sink.Increment`) implemented in `storage/relational/sink.go` + `RelationalProjection.Reset`. 11 tests passing. See [implementation review](../reviews/2026-07-23_adr-review.md) and [architectural correction](../status/2026-07-23_17-56_rollup-increment-architectural-correction.md). Option A (`RollupSpec`) rejected as premature abstraction.
 
 ---
 
