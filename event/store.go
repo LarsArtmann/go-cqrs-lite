@@ -35,17 +35,17 @@ type EventSink interface {
 	) error
 }
 
-// MultiBatchEntry pairs an aggregate reference with the events to persist for it.
-// Used by MultiSink.SaveMultiBatch to write events for multiple aggregates
+// MultiBatchEntry pairs a stream reference with the events to persist for it.
+// Used by MultiSink.SaveMultiBatch to write events for multiple streams
 // in a single atomic operation.
 type MultiBatchEntry struct {
 	Ref    id.StreamRef
 	Events []Event
 }
 
-// MultiSink persists events for multiple aggregates in a single atomic operation.
+// MultiSink persists events for multiple streams in a single atomic operation.
 // This is an optional capability: stores that implement it enable bulk-write
-// paths (e.g., multi-aggregate ingest) to avoid N separate transactions.
+// paths (e.g., multi-stream ingest) to avoid N separate transactions.
 //
 // Implementations guarantee atomicity — either all entries are persisted or
 // none are (single lock scope for in-memory, single database transaction for SQL).
@@ -58,7 +58,7 @@ type MultiSink interface {
 // EventSource is the read side of event persistence.
 // Loads events, never writes.
 type EventSource interface {
-	// Load retrieves all events for an aggregate.
+	// Load retrieves all events for a stream.
 	Load(
 		ctx context.Context,
 		ref id.StreamRef,
@@ -72,7 +72,7 @@ type EventSource interface {
 	) ([]Event, error)
 
 	// LoadToVersion retrieves events up to and including maxVersion.
-	// Returns ErrStreamNotFound if no events exist for the aggregate.
+	// Returns ErrStreamNotFound if no events exist for the stream.
 	LoadToVersion(
 		ctx context.Context,
 		ref id.StreamRef,
@@ -80,7 +80,7 @@ type EventSource interface {
 	) ([]Event, error)
 
 	// LoadToTimestamp retrieves events where OccurredAt <= maxTime.
-	// Returns ErrStreamNotFound if no events exist for the aggregate.
+	// Returns ErrStreamNotFound if no events exist for the stream.
 	LoadToTimestamp(
 		ctx context.Context,
 		ref id.StreamRef,
@@ -95,12 +95,12 @@ type Store interface {
 	EventSource
 }
 
-// Journal reads all events across all aggregates, ordered by occurrence.
+// Journal reads all events across all streams, ordered by occurrence.
 // "Journal" is the standard event sourcing term for the complete, ordered,
 // append-only log of all domain events. This is the core interface for
 // projection replay.
 type Journal interface {
-	// ReadAll retrieves all events across all aggregates, ordered by OccurredAt.
+	// ReadAll retrieves all events across all streams, ordered by OccurredAt.
 	ReadAll(ctx context.Context) ([]Event, error)
 }
 

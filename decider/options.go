@@ -43,7 +43,7 @@ func WithEnricher[State any](enricher event.ContextEnricher) RepositoryOption[St
 }
 
 // WithLoadCoalescing enables or disables singleflight load coalescing.
-// Enabled by default — concurrent loads of the same aggregate share a
+// Enabled by default — concurrent loads of the same stream share a
 // single store.Load call. Pass false to disable when the store already
 // provides its own caching or deduplication layer.
 func WithLoadCoalescing[State any](enabled bool) RepositoryOption[State] {
@@ -52,7 +52,7 @@ func WithLoadCoalescing[State any](enabled bool) RepositoryOption[State] {
 	}
 }
 
-// WithStateCache enables an in-memory hot-state cache for folded aggregate
+// WithStateCache enables an in-memory hot-state cache for folded stream
 // state. On a cache hit, Load fetches only events since the cached version
 // instead of replaying the full history — O(new events) instead of O(total).
 //
@@ -63,7 +63,7 @@ func WithLoadCoalescing[State any](enabled bool) RepositoryOption[State] {
 //	repo, _ := decider.NewRepository(store, bus, d,
 //	    decider.WithStateCache[MyState](decider.NewStateCache[MyState](256)))
 //
-// Profile before enabling: for small aggregates the fold cost may be
+// Profile before enabling: for small streams the fold cost may be
 // negligible, and the cache adds map+mutex overhead on every Load/Execute.
 func WithStateCache[State any](cache StateCache[State]) RepositoryOption[State] {
 	return func(r *Repository[State]) {

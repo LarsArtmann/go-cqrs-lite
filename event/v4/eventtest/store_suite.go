@@ -204,7 +204,7 @@ func TestStoreLoadFromVersion(t *testing.T, store event.Store, cfg StoreTestConf
 	AssertEventVersion(t, loaded, 0, 2)
 }
 
-// newTestEvents creates a fresh aggregate and one test event per requested
+// newTestEvents creates a fresh stream and one test event per requested
 // version. Centralises the "create aggID, then N events at versions 1..N"
 // setup pattern shared by every store-suite test in this file.
 func newTestEvents(

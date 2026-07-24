@@ -36,7 +36,7 @@ type EventIterator interface {
 }
 
 // StreamingSource extends EventSource with streaming reads that avoid
-// materializing full slices. Useful for aggregates with large event histories.
+// materializing full slices. Useful for streams with large event histories.
 //
 // This is an opt-in interface — existing stores can implement it by wrapping
 // their slice-returning methods with NewSliceIterator.

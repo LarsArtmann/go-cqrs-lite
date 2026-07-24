@@ -50,7 +50,7 @@ var _ Command = (*BasicCommand)(nil)
 // Type returns the command type.
 func (c *BasicCommand) Type() Type { return c.commandType }
 
-// StreamID returns the aggregate ID.
+// StreamID returns the stream ID.
 func (c *BasicCommand) StreamID() id.StreamID { return c.streamID }
 
 // ID returns the command ID, minted at construction time.

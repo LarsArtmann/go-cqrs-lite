@@ -18,14 +18,14 @@
 // # Event Store
 //
 // EventStore implements event.Store with optimistic concurrency control via
-// per-aggregate locking (sharded mutex pool). It also implements event.Journal
+// per-stream locking (sharded mutex pool). It also implements event.Journal
 // and event.SeekableJournal for global event replay.
 //
 // Use NewStore to create a store from an existing *pebble.DB.
 //
 // # Snapshot Store
 //
-// SnapshotStore implements snapshot.SnapshotStore. One snapshot per aggregate
+// SnapshotStore implements snapshot.SnapshotStore. One snapshot per stream
 // is retained; saving an older version is silently ignored to prevent state
 // regressions. Use NewSnapshotStore to create a store.
 //
@@ -45,9 +45,9 @@
 //
 // # Key Prefixes
 //
-//	cqrs_event:{type}:{id}:{version}      — per-aggregate event log
+//	cqrs_event:{type}:{id}:{version}      — per-stream event log
 //	cqrs_journal:{nanoseconds}:{eventID}  — global event ordering index
-//	cqrs_snapshot:{type}:{id}             — one snapshot per aggregate
+//	cqrs_snapshot:{type}:{id}             — one snapshot per stream
 //	cqrs_checkpoint:{projectionName}      — one checkpoint per projection
 //
 // The prefixes are disjoint — no prefix is a substring of another. This

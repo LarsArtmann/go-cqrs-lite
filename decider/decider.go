@@ -16,7 +16,7 @@ import (
 
 // Decider defines how to reconstruct state from events.
 //
-// State is the aggregate's domain state. Apply applies a single event to the
+// State is the stream's domain state. Apply applies a single event to the
 // state, returning the updated state. Apply must be a pure function — it should
 // not perform I/O or have side effects.
 //
@@ -27,12 +27,12 @@ type Decider[State any] struct {
 	Apply   func(state State, evt event.Event) (State, error)
 }
 
-// Repository loads and saves aggregates using pure functions.
+// Repository loads and saves streams using pure functions.
 //
 // It wraps event.Store (persistence) and event.Publisher (publishing) behind a
 // Decider[State], providing load → apply → decide → save → publish semantics
-// without requiring the consumer to implement a mutable aggregate root
-// interface.
+// without requiring the consumer to implement mutable state
+// management.
 type Repository[State any] struct {
 	store            event.Store
 	publisher        event.Publisher
@@ -93,7 +93,7 @@ func (r *Repository[State]) snapshotConfigIncomplete() bool {
 // persist. Return an error to reject the command (no events will be saved).
 type DecideFunc[State any] func(state State, currentVersion event.Version) ([]event.Event, error)
 
-// Execute loads the aggregate's event history, folds it into state, calls
+// Execute loads the stream's event history, folds it into state, calls
 // decide, and if decide returns events, persists them to the store and
 // publishes them to the bus.
 //
@@ -256,7 +256,7 @@ func (r *Repository[State]) updateCacheAfterExecute(
 	r.stateCache.Put(ref, finalState, newVersion)
 }
 
-// Load reconstructs state from the aggregate's event history without any
+// Load reconstructs state from the stream's event history without any
 // side effects. Useful for read-only state access or debugging.
 func (r *Repository[State]) Load(
 	ctx context.Context,

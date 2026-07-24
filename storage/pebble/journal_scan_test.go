@@ -9,7 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// writeJournalEvents writes n events to the store across multiple aggregates,
+// writeJournalEvents writes n events to the store across multiple streams,
 // each with a strictly increasing OccurredAt timestamp to guarantee journal
 // ordering. Returns the saved events in insertion order.
 func writeJournalEvents(

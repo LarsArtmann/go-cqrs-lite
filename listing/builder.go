@@ -11,13 +11,13 @@ const (
 	maxPageSize     = 100
 )
 
-// ListBuilder provides a fluent API for aggregate listings.
+// ListBuilder provides a fluent API for stream listings.
 type ListBuilder struct {
 	reader StreamReader
 	opts   ListOptions
 }
 
-// NewListBuilder creates a builder for aggregate listings.
+// NewListBuilder creates a builder for stream listings.
 func NewListBuilder(reader StreamReader) *ListBuilder {
 	return &ListBuilder{
 		reader: reader,
@@ -28,7 +28,7 @@ func NewListBuilder(reader StreamReader) *ListBuilder {
 	}
 }
 
-// OfType filters to a specific aggregate type.
+// OfType filters to a specific stream type.
 func (b *ListBuilder) OfType(t id.StreamType) *ListBuilder {
 	b.opts.Type = t
 
@@ -57,26 +57,26 @@ func (b *ListBuilder) PageSize(n uint) *ListBuilder {
 	return b
 }
 
-// IncludeDeleted shows all aggregates, including tombstoned ones.
+// IncludeDeleted shows all streams, including tombstoned ones.
 func (b *ListBuilder) IncludeDeleted() *ListBuilder {
 	b.opts.Tombstone = TombstoneInclude
 
 	return b
 }
 
-// OnlyDeleted shows only tombstoned aggregates.
+// OnlyDeleted shows only tombstoned streams.
 func (b *ListBuilder) OnlyDeleted() *ListBuilder {
 	b.opts.Tombstone = TombstoneOnly
 
 	return b
 }
 
-// List executes the query and returns a page of aggregate references.
+// List executes the query and returns a page of stream references.
 func (b *ListBuilder) List(ctx context.Context) (*Page[StreamListing], error) {
 	return b.reader.List(ctx, b.opts) //nolint:wrapcheck // transparent proxy to reader
 }
 
-// ListWithStatus executes the query and returns aggregates with tombstone status.
+// ListWithStatus executes the query and returns streams with tombstone status.
 func (b *ListBuilder) ListWithStatus(ctx context.Context) (*Page[StreamStatus], error) {
 	return b.reader.ListWithStatus(ctx, b.opts) //nolint:wrapcheck // transparent proxy to reader
 }

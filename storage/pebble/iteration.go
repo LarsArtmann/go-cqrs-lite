@@ -132,7 +132,7 @@ func (a *EventStore) LoadToVersion(
 // LoadToTimestamp retrieves events where OccurredAt <= maxTime.
 // Uses early termination: since events are stored in version order and
 // OccurredAt is monotonically increasing, the iterator stops as soon as it
-// encounters an event past maxTime — avoiding a full aggregate scan.
+// encounters an event past maxTime — avoiding a full stream scan.
 func (a *EventStore) LoadToTimestamp(
 	ctx context.Context,
 	ref id.StreamRef,

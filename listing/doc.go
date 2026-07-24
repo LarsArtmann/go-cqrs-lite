@@ -1,13 +1,13 @@
-// Package listing provides CQRS read model capabilities for event-sourced aggregates.
+// Package listing provides CQRS read model capabilities for event-sourced streams.
 //
 // It offers:
-//   - Aggregate listing with cursor pagination
+//   - Stream listing with cursor pagination
 //   - Tombstone (soft-delete) detection and filtering
 //   - In-memory fallback readers for testing
 //   - Bus middleware for automatic tombstone/rebirth marking
 //
 // The listing module is the read model. It never writes events.
-// It queries via Journal (cross-aggregate) or StreamReader (aggregate listings).
+// It queries via Journal (cross-stream) or StreamReader (stream listings).
 //
 // Usage:
 //

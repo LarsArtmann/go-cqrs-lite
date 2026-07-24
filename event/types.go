@@ -93,7 +93,7 @@ func (ua UserAgent) String() string { return string(ua) }
 // IsZero returns true if the user agent is zero-valued.
 func (ua UserAgent) IsZero() bool { return ua == "" }
 
-// Version represents an event/aggregate version number.
+// Version represents an event/stream version number.
 // Using a phantom type ensures type safety and prevents mixing with other integers.
 type Version uint64
 

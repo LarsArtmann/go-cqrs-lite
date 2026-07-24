@@ -1,7 +1,7 @@
 // Package event provides the core event sourcing primitives for CQRS applications.
 //
 // It defines immutable events, store/bus interfaces, the 5-family error taxonomy,
-// reactive streams, and the aggregate lifecycle. Zero infrastructure dependencies
+// reactive streams, and the stream lifecycle. Zero infrastructure dependencies
 // (no HTTP, no database, no message broker).
 //
 // # Creating Events

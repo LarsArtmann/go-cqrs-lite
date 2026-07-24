@@ -132,7 +132,7 @@ type Store interface {
 	CommandSource
 }
 
-// CommandJournal reads all commands across all aggregates, ordered by
+// CommandJournal reads all commands across all streams, ordered by
 // ReceivedAt. This is the command-side equivalent of event.Journal —
 // it provides a complete audit trail of every command ever dispatched.
 //

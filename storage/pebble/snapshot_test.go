@@ -326,7 +326,7 @@ func TestSnapshotStore_SharedDB_WithEventStore(t *testing.T) {
 		t.Fatalf("event Save: %v", err)
 	}
 
-	// Same aggregate type + ID but snapshot prefix is disjoint from event prefix.
+	// Same stream type + ID but snapshot prefix is disjoint from event prefix.
 	snapRef := id.NewStreamRef("Issue", aggID)
 	snap := snapshot.Snapshot{
 		StreamID:   aggID,

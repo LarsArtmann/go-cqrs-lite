@@ -1,6 +1,6 @@
-// Package snapshot provides snapshot persistence for event-sourced aggregates.
+// Package snapshot provides snapshot persistence for event-sourced streams.
 //
-// Snapshots capture the full aggregate state at a given version, eliminating
+// Snapshots capture the full stream state at a given version, eliminating
 // the need to replay the entire event history on each load.
 //
 // # Quick Start (Typed — Recommended)
@@ -42,10 +42,10 @@
 //	strategy, _ := snapshot.EveryNEvents(100)
 //
 // Use ReadPressure to snapshot based on read count — ideal for hot-read,
-// cold-write aggregates that never hit EveryNEvents thresholds:
+// cold-write streams that never hit EveryNEvents thresholds:
 //
 //	rp, _ := snapshot.NewReadPressure(50)
-//	// Snapshots after the next write when an aggregate has been loaded
+//	// Snapshots after the next write when a stream has been loaded
 //	// at least 50 times since its last snapshot.
 //
 // Combine both via the Inner option:

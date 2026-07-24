@@ -1,6 +1,6 @@
-// Package decider implements the pure-function aggregate pattern for event sourcing.
+// Package decider implements the pure-function stream pattern for event sourcing.
 //
-// A Decider[State] replaces a mutable aggregate root with a pure fold: the
+// A Decider[State] replaces a mutable stream with a pure fold: the
 // Apply function takes the current state and an event, returning the new state.
 // The decision logic (command → events) is supplied separately as a
 // [DecideFunc] to Repository.Execute — it is NOT a field on Decider[State].
@@ -52,8 +52,8 @@
 // # Load Coalescing
 //
 // Repository uses singleflight.Group internally to coalesce concurrent Load
-// calls for the same aggregate into a single store.Load query. When N goroutines
-// execute commands targeting the same aggregate simultaneously, only one DB read
+// calls for the same stream into a single store.Load query. When N goroutines
+// execute commands targeting the same stream simultaneously, only one DB read
 // occurs — all callers receive the same immutable event slice. This is transparent:
 // no API change, no configuration needed. Only load is coalesced; Save and Publish
 // still execute independently per caller.
@@ -66,7 +66,7 @@
 //
 // # Hot-State Cache
 //
-// WithStateCache enables an in-memory LRU cache of folded aggregate state.
+// WithStateCache enables an in-memory LRU cache of folded stream state.
 // On a cache hit, Load fetches only events since the cached version
 // (O(new events)) instead of replaying the full history (O(total events)).
 // Execute updates the cache after every successful write, keeping it fresh.
@@ -77,13 +77,13 @@
 //
 // Benchmark: 7.4x faster Load (2090→283 ns/op) with 500-event history.
 // The cache is process-local and best-effort — misses fall back to the normal
-// load path. Profile before enabling; for small aggregates the fold cost may
+// load path. Profile before enabling; for small streams the fold cost may
 // be negligible.
 //
 // # Read-Pressure Snapshot Strategy
 //
 // Combine WithSnapshotStrategy with snapshot.NewReadPressure to snapshot
-// aggregates that are read frequently but written rarely. EveryNEvents only
+// streams that are read frequently but written rarely. EveryNEvents only
 // triggers on write count; ReadPressure triggers on read count:
 //
 //	rp, _ := snapshot.NewReadPressure(50)

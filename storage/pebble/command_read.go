@@ -12,7 +12,7 @@ import (
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
-// Load retrieves all commands for an aggregate, ordered by ReceivedAt.
+// Load retrieves all commands for a stream, ordered by ReceivedAt.
 func (s *CommandStore) Load(
 	ctx context.Context,
 	ref command.StreamRef,
@@ -82,7 +82,7 @@ func (s *CommandStore) LoadToTimestamp(
 	return cmds, nil
 }
 
-// ReadAll returns all commands across all aggregates, ordered by command ID
+// ReadAll returns all commands across all streams, ordered by command ID
 // (which is ULID-based, so effectively time-ordered). Implements CommandJournal.
 func (s *CommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand, error) {
 	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.command.read_all",

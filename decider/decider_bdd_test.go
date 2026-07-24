@@ -23,7 +23,7 @@ func everyN(n int) snapshot.SnapshotStrategy {
 	return s
 }
 
-// bddCounter models a simple counter aggregate for BDD scenarios.
+// bddCounter models a simple counter stream for BDD scenarios.
 type bddCounter struct {
 	Value int
 }

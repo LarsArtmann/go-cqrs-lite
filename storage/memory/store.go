@@ -40,7 +40,7 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-// Save appends events to an aggregate stream with optimistic concurrency check.
+// Save appends events to a stream stream with optimistic concurrency check.
 // Returns ErrVersionConflict if the expected version does not match the current stream length.
 func (s *MemoryStore) Save(
 	_ context.Context,
@@ -95,7 +95,7 @@ func (s *MemoryStore) AppendBatch(
 	return nil
 }
 
-// SaveMultiBatch appends events for multiple aggregates under a single lock.
+// SaveMultiBatch appends events for multiple streams under a single lock.
 // All entries are persisted atomically — either all succeed or none.
 func (s *MemoryStore) SaveMultiBatch(
 	_ context.Context,

@@ -300,7 +300,7 @@ func TestRepository_StateCache_NoEventsReturnsCached(t *testing.T) {
 
 	aggID := id.NewStreamID()
 
-	// Create the aggregate
+	// Create the stream
 	executeCreate(t, repo, aggID)
 
 	// Load to populate cache
@@ -408,7 +408,7 @@ func TestRepository_ReadPressure_TriggersSnapshot(t *testing.T) {
 	repo, _, snapStore := newReadPressureRepo(t, 3)
 	aggID := id.NewStreamID()
 
-	// Create the aggregate
+	// Create the stream
 	executeCreate(t, repo, aggID)
 
 	// Load 3 times to build up read pressure
@@ -442,7 +442,7 @@ func TestRepository_ReadPressure_NoTriggerBelowThreshold(t *testing.T) {
 	repo, _, snapStore := newReadPressureRepo(t, 10)
 	aggID := id.NewStreamID()
 
-	// Create the aggregate
+	// Create the stream
 	executeCreate(t, repo, aggID)
 
 	// Load only 2 times (below threshold of 10)

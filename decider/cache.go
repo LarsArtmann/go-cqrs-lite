@@ -11,7 +11,7 @@ import (
 // DefaultStateCacheCapacity is used when capacity <= 0.
 const DefaultStateCacheCapacity = 128
 
-// StateCache caches folded aggregate state in memory to avoid replaying the
+// StateCache caches folded stream state in memory to avoid replaying the
 // full event history on every load.
 //
 // The cache is best-effort: a miss falls back to the normal load path
@@ -25,14 +25,14 @@ const DefaultStateCacheCapacity = 128
 //
 // States stored in the cache must be treated as immutable by the consumer.
 type StateCache[State any] interface {
-	// Get retrieves the cached state and version for the given aggregate.
-	// Returns ok=false if the aggregate is not in the cache.
+	// Get retrieves the cached state and version for the given stream.
+	// Returns ok=false if the stream is not in the cache.
 	Get(ref id.StreamRef) (state State, version event.Version, ok bool)
 
-	// Put stores the state and version for the given aggregate.
+	// Put stores the state and version for the given stream.
 	Put(ref id.StreamRef, state State, version event.Version)
 
-	// Invalidate removes the aggregate from the cache.
+	// Invalidate removes the stream from the cache.
 	Invalidate(ref id.StreamRef)
 }
 

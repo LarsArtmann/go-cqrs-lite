@@ -12,8 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// Load returns all events for an aggregate.
-// Returns ErrStreamNotFound if no events exist for the aggregate.
+// Load returns all events for a stream.
+// Returns ErrStreamNotFound if no events exist for the stream.
 func (s *MemoryStore) Load(
 	_ context.Context,
 	ref id.StreamRef,
@@ -26,7 +26,7 @@ func (s *MemoryStore) Load(
 	return events, nil
 }
 
-// loadFiltered is a shared helper that loads events for an aggregate and applies a filter function.
+// loadFiltered is a shared helper that loads events for a stream and applies a filter function.
 func (s *MemoryStore) loadFiltered(
 	ref id.StreamRef,
 	op string,
@@ -47,7 +47,7 @@ func (s *MemoryStore) loadFiltered(
 }
 
 // LoadFromVersion returns events starting from the given version (exclusive). Returns a defensive copy.
-// Returns ErrStreamNotFound if no events exist for the aggregate.
+// Returns ErrStreamNotFound if no events exist for the stream.
 func (s *MemoryStore) LoadFromVersion(
 	_ context.Context,
 	ref id.StreamRef,
@@ -63,7 +63,7 @@ func (s *MemoryStore) LoadFromVersion(
 }
 
 // LoadToVersion returns events up to and including maxVersion. Returns a defensive copy.
-// Returns ErrStreamNotFound if no events exist for the aggregate.
+// Returns ErrStreamNotFound if no events exist for the stream.
 func (s *MemoryStore) LoadToVersion(
 	_ context.Context,
 	ref id.StreamRef,
@@ -79,7 +79,7 @@ func (s *MemoryStore) LoadToVersion(
 }
 
 // LoadToTimestamp returns events where OccurredAt <= maxTime. Returns a defensive copy.
-// Returns ErrStreamNotFound if no events exist for the aggregate.
+// Returns ErrStreamNotFound if no events exist for the stream.
 func (s *MemoryStore) LoadToTimestamp(
 	_ context.Context,
 	ref id.StreamRef,
@@ -128,7 +128,7 @@ func (s *MemoryStore) getEvents(
 }
 
 // LoadBackwards returns events in reverse version order (newest first).
-// Returns ErrStreamNotFound if no events exist for the aggregate.
+// Returns ErrStreamNotFound if no events exist for the stream.
 func (s *MemoryStore) LoadBackwards(
 	_ context.Context,
 	ref id.StreamRef,

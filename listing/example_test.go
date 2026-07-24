@@ -84,7 +84,7 @@ func ExampleCacheInvalidationMiddleware() {
 	// Invalidate reader cache whenever events are published
 	_ = bus.UsePublish(listing.CacheInvalidationMiddleware(reader))
 
-	// Seed an aggregate
+	// Seed a stream
 	aggID := id.NewStreamID()
 	ref := id.NewStreamRef("User", aggID)
 	evt, _ := event.NewEvent("UserCreated", aggID, "User", 1, []byte(`{}`))

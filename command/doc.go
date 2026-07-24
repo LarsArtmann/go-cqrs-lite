@@ -32,7 +32,7 @@
 // # Command Persistence (Audit Trail)
 //
 // PersistedCommand captures every received command with full audit metadata
-// (type, aggregate ref, payload, received-at timestamp). Use a CommandStore
+// (type, stream ref, payload, received-at timestamp). Use a CommandStore
 // to save and load commands for audit and replay:
 //
 //	store := memory.NewMemoryCommandStore()
@@ -40,7 +40,7 @@
 //	store.Save(ctx, ref, cmd)
 //	loaded, _ := store.Load(ctx, ref)
 //
-// For cross-aggregate audit, use the CommandJournal interface:
+// For cross-stream audit, use the CommandJournal interface:
 //
 //	all, _ := store.ReadAll(ctx)              // all commands, ordered by received_at
 //	page, _ := store.ReadFrom(ctx, lastID, 100) // position-based pagination

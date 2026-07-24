@@ -7,13 +7,13 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// TombstoneStatus represents the soft-delete state of an aggregate.
+// TombstoneStatus represents the soft-delete state of a stream.
 type TombstoneStatus int
 
 const (
-	// TombstoneActive means the aggregate is live and not soft-deleted.
+	// TombstoneActive means the stream is live and not soft-deleted.
 	TombstoneActive TombstoneStatus = iota
-	// TombstoneTombstoned means the aggregate has been soft-deleted.
+	// TombstoneTombstoned means the stream has been soft-deleted.
 	TombstoneTombstoned
 	// TombstoneUndetermined means the status cannot be determined
 	// (e.g., no tombstone/rebirth metadata found, or no detector configured).
@@ -34,17 +34,17 @@ func (s TombstoneStatus) String() string {
 	}
 }
 
-// IsActive reports whether the aggregate is active (not tombstoned).
+// IsActive reports whether the stream is active (not tombstoned).
 func (s TombstoneStatus) IsActive() bool { return s == TombstoneActive }
 
-// IsTombstoned reports whether the aggregate is soft-deleted.
+// IsTombstoned reports whether the stream is soft-deleted.
 func (s TombstoneStatus) IsTombstoned() bool { return s == TombstoneTombstoned }
 
 // IsKnown reports whether the status is determinable (not Undetermined).
 func (s TombstoneStatus) IsKnown() bool { return s != TombstoneUndetermined }
 
 // MetadataKeyTombstone marks an event as a tombstone action.
-// When present with value "true" on an event, that event's aggregate
+// When present with value "true" on an event, that event's stream
 // is considered tombstoned. The tombstone status is determined by the
 // LAST event in the stream.
 const MetadataKeyTombstone MetadataKey = "tombstone"

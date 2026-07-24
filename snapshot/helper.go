@@ -24,10 +24,10 @@ func ShouldSnapshot(
 		strategy.ShouldSnapshot(aggType, version)
 }
 
-// ShouldSnapshotFor evaluates whether to snapshot a specific aggregate.
+// ShouldSnapshotFor evaluates whether to snapshot a specific stream.
 // If the strategy implements AggregateAwareStrategy, it delegates to
 // ShouldSnapshotFor (passing the full ref); otherwise it falls back to
-// ShouldSnapshot. This allows per-aggregate strategies like ReadPressure
+// ShouldSnapshot. This allows per-stream strategies like ReadPressure
 // to coexist with simple strategies like EveryNEvents.
 func ShouldSnapshotFor(
 	strategy SnapshotStrategy,

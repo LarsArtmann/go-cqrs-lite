@@ -34,7 +34,7 @@ func setupBenchStore(b *testing.B) (id.StreamID, *eventtest.FakeStore) {
 }
 
 // BenchmarkLoad_Coalesced measures Load throughput with singleflight enabled
-// (default). Concurrent loads of the same aggregate share one store.Load call.
+// (default). Concurrent loads of the same stream share one store.Load call.
 func BenchmarkLoad_Coalesced(b *testing.B) {
 	aggID, store := setupBenchStore(b)
 	bus := eventtest.NewFakeBus()

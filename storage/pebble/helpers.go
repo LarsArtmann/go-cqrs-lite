@@ -70,7 +70,7 @@ func (a *EventStore) logEventOperation(
 }
 
 // serializeAndAddToBatchWithJournal serializes an event once and writes it to
-// both the aggregate event key and the global journal key. This eliminates the
+// both the stream event key and the global journal key. This eliminates the
 // duplicate serialization that previously occurred when appendToJournal
 // re-serialized every event from scratch.
 func (a *EventStore) serializeAndAddToBatchWithJournal(

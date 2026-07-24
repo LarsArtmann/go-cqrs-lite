@@ -8,14 +8,14 @@ import (
 )
 
 // ReadPressure is a SnapshotStrategy that triggers snapshots based on how
-// many times an aggregate has been read since its last snapshot.
+// many times a stream has been read since its last snapshot.
 //
 // EveryNEvents snapshots based on write count: every N persisted events.
-// ReadPressure snapshots based on read count: when an aggregate has been
+// ReadPressure snapshots based on read count: when a stream has been
 // loaded at least threshold times since its last snapshot, the next write
 // triggers a snapshot.
 //
-// This is ideal for "hot read" aggregates — ones queried frequently but
+// This is ideal for "hot read" streams — ones queried frequently but
 // written rarely. Without read pressure, these never hit an EveryNEvents
 // threshold and pay full replay cost on every load.
 //
@@ -74,7 +74,7 @@ func NewReadPressure(threshold int, opts ...ReadPressureOption) (*ReadPressure, 
 
 // ShouldSnapshot implements SnapshotStrategy.
 //
-// Without the aggregate identity this method cannot evaluate read pressure.
+// Without the stream identity this method cannot evaluate read pressure.
 // It delegates to the inner strategy if one is set, otherwise returns false.
 // The Repository calls ShouldSnapshotFor when the strategy implements
 // AggregateAwareStrategy.
@@ -93,9 +93,9 @@ func (rp *ReadPressure) ShouldSnapshot(
 //
 // Returns true when EITHER:
 //   - The inner strategy triggers (e.g., EveryNEvents), OR
-//   - The aggregate has been read at least threshold times since its last snapshot
+//   - The stream has been read at least threshold times since its last snapshot
 //
-// On a positive decision the read counter for this aggregate is reset so
+// On a positive decision the read counter for this stream is reset so
 // the next snapshot cycle starts fresh.
 func (rp *ReadPressure) ShouldSnapshotFor(
 	ref id.StreamRef,
@@ -123,7 +123,7 @@ func (rp *ReadPressure) ShouldSnapshotFor(
 // RecordRead implements ReadTracker.
 //
 // Called by the Repository on every successful Load. Increments the read
-// counter for the given aggregate.
+// counter for the given stream.
 func (rp *ReadPressure) RecordRead(ref id.StreamRef, _ event.Version) {
 	key := ref.String()
 
@@ -133,7 +133,7 @@ func (rp *ReadPressure) RecordRead(ref id.StreamRef, _ event.Version) {
 }
 
 // ReadCount returns the number of reads since the last snapshot for the
-// given aggregate. Primarily for testing and observability.
+// given stream. Primarily for testing and observability.
 func (rp *ReadPressure) ReadCount(ref id.StreamRef) int {
 	rp.mu.Lock()
 	defer rp.mu.Unlock()

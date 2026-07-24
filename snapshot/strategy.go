@@ -10,23 +10,23 @@ type SnapshotStrategy interface {
 }
 
 // AggregateAwareStrategy is an optional capability that strategies may implement
-// when they need the aggregate identity to make per-aggregate decisions.
+// when they need the stream identity to make per-stream decisions.
 //
 // If a SnapshotStrategy implements this interface, the Repository calls
 // ShouldSnapshotFor (passing the full ref) instead of ShouldSnapshot.
-// This enables strategies that track per-aggregate state, such as
+// This enables strategies that track per-stream state, such as
 // ReadPressure.
 type AggregateAwareStrategy interface {
 	ShouldSnapshotFor(ref id.StreamRef, version event.Version) bool
 }
 
 // ReadTracker is an optional capability that strategies may implement to
-// track aggregate read frequency.
+// track stream read frequency.
 //
 // If a SnapshotStrategy implements this interface, the Repository calls
 // RecordRead on every successful Load. This enables read-pressure-aware
 // strategies like ReadPressure to count reads and trigger snapshots when
-// hot-read aggregates accumulate replay cost.
+// hot-read streams accumulate replay cost.
 type ReadTracker interface {
 	RecordRead(ref id.StreamRef, version event.Version)
 }

@@ -106,7 +106,7 @@ func TestEventStore_ReadAll_MultipleAggregates(t *testing.T) {
 	}
 }
 
-// saveThreeTimestampedEvents creates 3 events on a fresh "Issue" aggregate with
+// saveThreeTimestampedEvents creates 3 events on a fresh "Issue" stream with
 // nanosecond-spaced timestamps and saves them to a new Pebble store. Returns
 // the store and the three events. Extracted to deduplicate the ReadFrom tests.
 func saveThreeTimestampedEvents(t *testing.T) (*EventStore, event.Event, event.Event, event.Event) {

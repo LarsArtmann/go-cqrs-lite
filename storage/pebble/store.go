@@ -19,7 +19,7 @@ const lockShardCount = 256
 
 // EventStore implements go-cqrs-lite/event.Store using Pebble.
 //
-// Save uses per-aggregate locking to prevent concurrent writes from silently
+// Save uses per-stream locking to prevent concurrent writes from silently
 // overwriting each other (Pebble batch commits are atomic, but two goroutines
 // can both pass checkVersion before either commits). A fixed-size sharded
 // mutex pool avoids unbounded memory growth from a sync.Map.
@@ -73,14 +73,14 @@ func (a *EventStore) eventKey(
 	return fmt.Appendf(nil, "%s%s:%s:%010d", a.prefix, ref.Type, ref.ID, version.Int())
 }
 
-// streamPrefix returns the prefix for all events of an aggregate.
+// streamPrefix returns the prefix for all events of a stream.
 func (a *EventStore) streamPrefix(
 	ref id.StreamRef,
 ) []byte {
 	return fmt.Appendf(nil, "%s%s:%s:", a.prefix, ref.Type, ref.ID)
 }
 
-// streamUpperBound returns the exclusive upper bound for all events of an aggregate.
+// streamUpperBound returns the exclusive upper bound for all events of a stream.
 // Pairs with streamPrefix to form a complete key range for NewIter:
 // iter := db.NewIter(&pebble.IterOptions{LowerBound: prefix, UpperBound: upperBound}).
 // The trailing 0xff byte sorts after any event version (eventKey uses %010d, max 10 digits).
@@ -90,8 +90,8 @@ func (a *EventStore) streamUpperBound(
 	return fmt.Appendf(nil, "%s%s:%s:\xff", a.prefix, ref.Type, ref.ID)
 }
 
-// startLoadSpan creates an aggregate span and returns the key range for a
-// full aggregate scan. The caller must defer span.End().
+// startLoadSpan creates a stream span and returns the key range for a
+// full stream scan. The caller must defer span.End().
 func (a *EventStore) startLoadSpan(
 	ctx context.Context,
 	spanName string,
@@ -101,7 +101,7 @@ func (a *EventStore) startLoadSpan(
 	return span, a.streamPrefix(ref), a.streamUpperBound(ref)
 }
 
-// startLoadFromVersionSpan creates an aggregate span with a version attribute
+// startLoadFromVersionSpan creates a stream span with a version attribute
 // and returns the key range starting from version+1. The caller must defer
 // span.End().
 func (a *EventStore) startLoadFromVersionSpan(
@@ -121,7 +121,7 @@ func (a *EventStore) journalBounds() ([]byte, []byte) {
 	return []byte(a.journalPrefix), []byte(a.journalPrefix + "\xff")
 }
 
-// Save implements event.Store.Save with per-aggregate locking for concurrency safety.
+// Save implements event.Store.Save with per-stream locking for concurrency safety.
 func (a *EventStore) Save(
 	ctx context.Context,
 	ref id.StreamRef,

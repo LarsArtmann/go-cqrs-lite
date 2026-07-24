@@ -19,7 +19,7 @@ import (
 
 // SnapshotStore implements snapshot.SnapshotStore backed by Pebble.
 //
-// One snapshot per aggregate is retained: saving a newer version overwrites the
+// One snapshot per stream is retained: saving a newer version overwrites the
 // prior snapshot, while saving an older version is silently ignored (matching
 // the memory implementation). Snapshots are stored as CBOR-encoded envelopes
 // under the key pattern cqrs_snapshot:{streamType}:{streamID}.
@@ -74,7 +74,7 @@ func NewSnapshotStore(
 }
 
 // Save stores the snapshot, overwriting any existing snapshot for the same
-// aggregate. Snapshots older than the currently stored version are silently
+// stream. Snapshots older than the currently stored version are silently
 // ignored to prevent state regressions.
 func (s *SnapshotStore) Save(
 	ctx context.Context,
@@ -127,8 +127,8 @@ func (s *SnapshotStore) Save(
 	return nil
 }
 
-// Load returns the latest snapshot for the aggregate.
-// startSnapshotSpan opens an aggregate span named spanName and returns it
+// Load returns the latest snapshot for the stream.
+// startSnapshotSpan opens a stream span named spanName and returns it
 // alongside the computed snapshot key. Shared by Load and Delete so the
 // span+key boilerplate stays in one place.
 func (s *SnapshotStore) startSnapshotSpan(
@@ -165,7 +165,7 @@ func (s *SnapshotStore) Load(
 	return raw.toSnapshot(ref), nil
 }
 
-// LoadAtVersion returns the snapshot for the aggregate whose version is less
+// LoadAtVersion returns the snapshot for the stream whose version is less
 // than or equal to the requested version. Returns snapshot.ErrSnapshotNotFound
 // when no such snapshot exists.
 func (s *SnapshotStore) LoadAtVersion(
@@ -193,7 +193,7 @@ func (s *SnapshotStore) LoadAtVersion(
 	return raw.toSnapshot(ref), nil
 }
 
-// Delete removes the snapshot for the given aggregate. A no-op if no snapshot
+// Delete removes the snapshot for the given stream. A no-op if no snapshot
 // exists.
 func (s *SnapshotStore) Delete(
 	ctx context.Context,

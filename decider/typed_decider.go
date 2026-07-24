@@ -11,7 +11,7 @@ import (
 //
 // Unlike [Decider], which requires the consumer to pass a separate DecideFunc
 // to Execute on every call, TypedDecider carries its Decide function as a
-// field. This is the Eventuous-style pattern: the aggregate's decision logic
+// field. This is the Eventuous-style pattern: the stream's decision logic
 // is part of the type, not a loose parameter.
 //
 // Usage:
@@ -58,7 +58,7 @@ func NewTypedRepository[State, Cmd any](
 	return &TypedRepository[State, Cmd]{decider: d, inner: inner}, nil
 }
 
-// ExecuteCommand loads the aggregate, folds its history, calls the typed
+// ExecuteCommand loads the stream, folds its history, calls the typed
 // Decide function with the command, and persists any resulting events.
 func (r *TypedRepository[State, Cmd]) ExecuteCommand(
 	ctx context.Context,

@@ -94,7 +94,7 @@ func (e *ImmutableEvent) AggregateID() id.StreamID { return e.streamID }
 // Deprecated: use StreamType.
 func (e *ImmutableEvent) AggregateType() id.StreamType { return e.streamType }
 
-// Version returns the stream position of this event within the aggregate.
+// Version returns the stream position of this event within the stream.
 func (e *ImmutableEvent) Version() Version { return e.version }
 
 // SchemaVersion returns the schema version of the event payload.

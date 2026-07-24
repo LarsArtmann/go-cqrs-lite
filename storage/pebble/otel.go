@@ -18,8 +18,8 @@ func tracer() cqrsotel.Tracer {
 	return cqrsotel.NewTracer(pebbleComponent)
 }
 
-// startStreamSpan creates a span for an aggregate-scoped snapshot operation
-// with standard aggregate type and ID attributes.
+// startStreamSpan creates a span for a stream-scoped snapshot operation
+// with standard stream type and ID attributes.
 func startStreamSpan(
 	ctx context.Context,
 	spanName string,

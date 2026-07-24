@@ -24,7 +24,7 @@ func (a *EventStore) journalKey(evt event.Event) []byte {
 	)
 }
 
-// ReadAll retrieves all events across all aggregates, ordered by OccurredAt.
+// ReadAll retrieves all events across all streams, ordered by OccurredAt.
 // Implements event.Journal by scanning the journal key prefix.
 func (a *EventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.journal.read_all",

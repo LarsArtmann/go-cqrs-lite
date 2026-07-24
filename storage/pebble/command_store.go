@@ -21,7 +21,7 @@ import (
 // Each command is dual-written to two key spaces for efficient access from both
 // access patterns:
 //
-//   - cqrs_command:{aggType}:{aggID}:{commandID} — per-aggregate index
+//   - cqrs_command:{aggType}:{aggID}:{commandID} — per-stream index
 //     Enables Load(ref), LoadFromTimestamp, LoadToTimestamp.
 //
 //   - cqrs_cmd_journal:{commandID} — global journal index
@@ -47,7 +47,7 @@ func WithCommandAsyncWrites() CommandStoreOption {
 	return func(s *CommandStore) { s.syncWrites = false }
 }
 
-// WithCommandPrefix overrides the default aggregate key prefix ("cqrs_command:").
+// WithCommandPrefix overrides the default stream key prefix ("cqrs_command:").
 // Useful when multiple logical command stores share one Pebble DB.
 func WithCommandPrefix(p string) CommandStoreOption {
 	return func(s *CommandStore) { s.prefix = p }

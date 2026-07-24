@@ -18,7 +18,7 @@ import (
 // query.SeekableQueryJournal backed by Pebble.
 //
 // Queries are global audit records ("who queried what data and when?"). Unlike
-// commands, queries have no per-aggregate index — they are stored in a single
+// commands, queries have no per-stream index — they are stored in a single
 // journal key space:
 //
 //   - cqrs_query:{requestID} — global journal, ordered by request ID

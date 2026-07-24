@@ -112,7 +112,7 @@ func (s *MemoryCommandStore) AppendBatch(
 	return nil
 }
 
-// Load retrieves all commands for an aggregate.
+// Load retrieves all commands for a stream.
 func (s *MemoryCommandStore) Load(
 	_ context.Context,
 	ref command.StreamRef,
@@ -155,7 +155,7 @@ func (s *MemoryCommandStore) Close() error {
 	return s.Lifecycle.Close()
 }
 
-// ReadAll returns all commands across all aggregates, ordered by insertion
+// ReadAll returns all commands across all streams, ordered by insertion
 // (which matches ReceivedAt order since commands are appended on receipt).
 // Implements command.CommandJournal.
 func (s *MemoryCommandStore) ReadAll(_ context.Context) ([]*command.PersistedCommand, error) {
