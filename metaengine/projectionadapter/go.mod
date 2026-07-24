@@ -7,3 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.1.0
 )
+
+// metaengine is not yet tagged (experimental). The replace will be removed
+// once metaengine/v4 gets its first stable release tag.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
