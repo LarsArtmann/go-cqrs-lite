@@ -9,7 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
@@ -371,8 +374,8 @@ func TestRun_NilEventSink(t *testing.T) {
 		t.Fatal("expected error for nil EventSink, got nil")
 	}
 
-	if !strings.Contains(err.Error(), "EventSink") {
-		t.Errorf("error should mention EventSink, got: %v", err)
+	if !strings.Contains(err.Error(), "incomplete_bundle") {
+		t.Errorf("error should mention incomplete_bundle, got: %v", err)
 	}
 }
 
@@ -393,8 +396,8 @@ func TestRun_NilEventSource(t *testing.T) {
 		t.Fatal("expected error for nil EventSource, got nil")
 	}
 
-	if !strings.Contains(err.Error(), "EventSource") {
-		t.Errorf("error should mention EventSource, got: %v", err)
+	if !strings.Contains(err.Error(), "incomplete_bundle") {
+		t.Errorf("error should mention incomplete_bundle, got: %v", err)
 	}
 }
 
@@ -464,25 +467,24 @@ func TestRun_CancelledContext(t *testing.T) {
 
 	start := time.Now()
 
-	_, err := Run(ctx, Config{
+	result, err := Run(ctx, Config{
 		Profile:     ProfileDev,
 		PayloadSize: 64,
 	}, func() (*stack.Bundle, error) { return memory.New() })
 
 	elapsed := time.Since(start)
 
-	// The run must not hang — it should complete quickly regardless of
-	// whether individual phases see the cancellation.
+	// Must not hang.
 	if elapsed > 5*time.Second {
 		t.Errorf("run with cancelled context took %v, expected < 5s", elapsed)
 	}
 
-	// An error is expected: with a cancelled context, writes may not complete,
-	// causing the read phase to fail on missing aggregates.
-	if err == nil {
-		// Some writes may squeeze through before cancellation is noticed;
-		// that's fine. The important thing is no hang or panic.
-		return
+	// With pre-cancelled context, either an error occurs or only a partial
+	// result is returned. Both are acceptable; a hang or full completion
+	// would indicate the context deadline is not respected.
+	if err == nil && result.TotalEvents >= ProfileDev.TotalEvents() {
+		t.Errorf("TotalEvents = %d (full completion) with pre-cancelled context — \
+deadline not respected", result.TotalEvents)
 	}
 }
 
@@ -549,6 +551,480 @@ func TestReadPassesFor(t *testing.T) {
 		if got != tt.want {
 			t.Errorf("readPassesFor(%.1f) = %d, want %d", tt.ratio, got, tt.want)
 		}
+	}
+}
+
+// ── Config validation tests ──
+
+func TestConfig_Validation(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name   string
+		config Config
+		errMsg string
+	}{
+		{
+			name:   "zero streams",
+			config: Config{Profile: Profile{Name: "test", Streams: 0, EventsPerStream: 5, BatchSize: 1}},
+			errMsg: "Streams",
+		},
+		{
+			name:   "zero events per stream",
+			config: Config{Profile: Profile{Name: "test", Streams: 10, EventsPerStream: 0, BatchSize: 1}},
+			errMsg: "EventsPerStream",
+		},
+		{
+			name:   "zero batch size",
+			config: Config{Profile: Profile{Name: "test", Streams: 10, EventsPerStream: 5, BatchSize: 0}},
+			errMsg: "BatchSize",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := Run(ctx, tt.config, func() (*stack.Bundle, error) { return memory.New() })
+			if err == nil {
+				t.Fatalf("expected error for %s, got nil", tt.name)
+			}
+
+			if !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("error should mention %s, got: %v", tt.errMsg, err)
+			}
+
+			if errorfamily.Classify(err) != errorfamily.Rejection {
+				t.Errorf("error should be classified as Rejection, got %s",
+					errorfamily.Classify(err))
+			}
+		})
+	}
+}
+
+// ── Warmup tests ──
+
+func TestRun_WarmupFactoryError(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	callCount := atomic.Int32{}
+
+	_, err := Run(ctx, Config{
+		Profile: ProfileDev,
+		Warmup:  3,
+	}, func() (*stack.Bundle, error) {
+		n := callCount.Add(1)
+		if n == 1 {
+			return memory.New() // measurement bundle OK
+		}
+		return nil, errTest("warmup factory boom")
+	})
+
+	if err == nil {
+		t.Fatal("expected error from warmup factory failure")
+	}
+
+	if errorfamily.Classify(err) != errorfamily.Transient {
+		t.Errorf("warmup error should be Transient, got %s", errorfamily.Classify(err))
+	}
+}
+
+func TestRun_WarmupEventsInResult(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Warmup:      5,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.WarmupEvents != 5 {
+		t.Errorf("WarmupEvents = %d, want 5", result.WarmupEvents)
+	}
+}
+
+func TestRun_NoWarmupFactoryOnce(t *testing.T) {
+	t.Parallel()
+
+	callCount := atomic.Int32{}
+
+	mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Warmup:      0,
+	}, func() (*stack.Bundle, error) {
+		callCount.Add(1)
+		return memory.New()
+	})
+
+	if got := callCount.Load(); got != 1 {
+		t.Errorf("factory called %d times with Warmup=0, want 1", got)
+	}
+}
+
+// ── Codec tests ──
+
+func TestRun_CBOR(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 128,
+		Codec:       codec.CBORCodec{},
+		Backend:     "memory-cbor",
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.Codec != "cbor" {
+		t.Errorf("Codec = %q, want %q", result.Codec, "cbor")
+	}
+
+	if result.TotalEvents != ProfileDev.TotalEvents() {
+		t.Errorf("TotalEvents = %d, want %d", result.TotalEvents, ProfileDev.TotalEvents())
+	}
+
+	if result.WriteLatency.Count == 0 {
+		t.Error("WriteLatency.Count is 0 for CBOR run")
+	}
+}
+
+func TestRun_CBOREncoding(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 256,
+		Codec:       codec.CBORCodec{},
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.Codec != "cbor" {
+		t.Errorf("Codec = %q, want 'cbor'", result.Codec)
+	}
+}
+
+// ── Pebble backend tests ──
+
+func TestRun_Pebble(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 128,
+		Backend:     "pebble",
+		DiskPath:    dir,
+	}, func() (*stack.Bundle, error) {
+		b, err := pebble.New(dir)
+		if err != nil {
+			return nil, err
+		}
+		return b.Bundle, nil
+	})
+
+	if result.Backend != "pebble" {
+		t.Errorf("Backend = %q, want 'pebble'", result.Backend)
+	}
+
+	if result.WriteLatency.Count == 0 {
+		t.Error("WriteLatency.Count is 0 for pebble")
+	}
+
+	if result.LoadLatency.Count == 0 {
+		t.Error("LoadLatency.Count is 0 for pebble")
+	}
+}
+
+func TestRun_Pebble_DiskMeasurement(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 128,
+		Backend:     "pebble",
+		DiskPath:    dir,
+	}, func() (*stack.Bundle, error) {
+		b, err := pebble.New(dir)
+		if err != nil {
+			return nil, err
+		}
+		return b.Bundle, nil
+	})
+
+	if result.Disk.DatabaseBytes <= 0 {
+		t.Errorf("Disk.DatabaseBytes = %d, expected > 0 for pebble with disk path",
+			result.Disk.DatabaseBytes)
+	}
+
+	if result.Disk.EventBytes <= 0 {
+		t.Error("Disk.EventBytes should be positive")
+	}
+}
+
+// ── SQLite Duration test ──
+
+func TestRun_SQLite_DurationAborts(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	bigProfile := Profile{
+		Name: "test-duration-sqlite", Streams: 50_000, EventsPerStream: 10,
+		Concurrency: 1, ReadRatio: 0.5, BatchSize: 1,
+	}
+
+	start := time.Now()
+
+	result, err := Run(context.Background(), Config{
+		Profile:     bigProfile,
+		PayloadSize: 64,
+		Duration:    10 * time.Millisecond,
+		Backend:     "sqlite",
+		DiskPath:    dir,
+	}, func() (*stack.Bundle, error) {
+		return sqlite.New(filepath.Join(dir, "bench.db"))
+	})
+	elapsed := time.Since(start)
+
+	if err != nil {
+		t.Fatalf("SQLite Duration run returned error: %v", err)
+	}
+
+	if elapsed > 5*time.Second {
+		t.Errorf("SQLite run took %v with Duration=10ms; expected < 5s", elapsed)
+	}
+
+	if result.TotalEvents >= bigProfile.TotalEvents() {
+		t.Errorf("TotalEvents = %d, expected < %d (duration should have limited writes)",
+			result.TotalEvents, bigProfile.TotalEvents())
+	}
+}
+
+// ── ClosedStore error message ──
+
+func TestRun_ClosedStore_ErrorMessage(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := Run(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) {
+		b, bErr := sqlite.New(filepath.Join(dir, "closed.db"))
+		if bErr != nil {
+			return nil, bErr
+		}
+		_ = b.Close()
+		return b, nil
+	})
+
+	if err == nil {
+		t.Fatal("expected error from closed store")
+	}
+
+	// The error should be classified (infrastructure or transient)
+	family := errorfamily.Classify(err)
+	if family == errorfamily.Unknown {
+		t.Errorf("error should be classified, got Unknown: %v", err)
+	}
+}
+
+// ── Compare with 3+ backends ──
+
+func TestCompare_ThreeBackends(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	dir := t.TempDir()
+
+	results, err := Compare(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, map[string]Factory{
+		"memory": func() (*stack.Bundle, error) { return memory.New() },
+		"sqlite": func() (*stack.Bundle, error) {
+			return sqlite.New(filepath.Join(t.TempDir(), "cmp.db"))
+		},
+		"pebble": func() (*stack.Bundle, error) {
+			b, pErr := pebble.New(filepath.Join(t.TempDir(), "cmp-pebble"))
+			if pErr != nil {
+				return nil, pErr
+			}
+			return b.Bundle, nil
+		},
+	})
+	if err != nil {
+		t.Fatalf("Compare failed: %v", err)
+	}
+
+	if len(results) != 3 {
+		t.Fatalf("len(results) = %d, want 3", len(results))
+	}
+
+	for _, name := range []string{"memory", "sqlite", "pebble"} {
+		if results[name] == nil {
+			t.Errorf("results[%q] is nil", name)
+			continue
+		}
+		if results[name].Error != "" {
+			t.Errorf("results[%q].Error = %q", name, results[name].Error)
+		}
+	}
+
+	_ = dir
+}
+
+// ── BatchSize > 1 test ──
+
+func TestRun_BatchSize(t *testing.T) {
+	t.Parallel()
+
+	batchProfile := Profile{
+		Name: "test-batch", Streams: 100, EventsPerStream: 10,
+		Concurrency: 1, ReadRatio: 0.2, BatchSize: 5,
+	}
+
+	result := mustRun(t, Config{
+		Profile:     batchProfile,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.TotalEvents != batchProfile.TotalEvents() {
+		t.Errorf("TotalEvents = %d, want %d", result.TotalEvents, batchProfile.TotalEvents())
+	}
+
+	// With BatchSize=5 and 10 events/stream, there should be 2 Save calls per stream
+	// (100 streams × 2 calls = 200 latency samples)
+	expectedSamples := int64(batchProfile.Streams * (batchProfile.EventsPerStream / batchProfile.BatchSize))
+	if result.WriteLatency.Count != expectedSamples {
+		t.Errorf("WriteLatency.Count = %d, want %d (streams × (events/batch))",
+			result.WriteLatency.Count, expectedSamples)
+	}
+}
+
+// ── High concurrency test ──
+
+func TestRun_HighConcurrency(t *testing.T) {
+	t.Parallel()
+
+	concurrentProfile := Profile{
+		Name: "test-concurrent", Streams: 200, EventsPerStream: 3,
+		Concurrency: 16, ReadRatio: 0.5, BatchSize: 1,
+	}
+
+	result := mustRun(t, Config{
+		Profile:     concurrentProfile,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.TotalEvents != concurrentProfile.TotalEvents() {
+		t.Errorf("TotalEvents = %d, want %d", result.TotalEvents, concurrentProfile.TotalEvents())
+	}
+
+	if result.WriteLatency.Count == 0 {
+		t.Error("WriteLatency.Count is 0")
+	}
+
+	// ReadHeavy (0.5 → 5 passes) → 200 × 5 = 1000 reads
+	expectedReads := int64(concurrentProfile.Streams * 5)
+	if result.LoadLatency.Count != expectedReads {
+		t.Errorf("LoadLatency.Count = %d, want %d", result.LoadLatency.Count, expectedReads)
+	}
+}
+
+// ── SkipPhases tests ──
+
+func TestRun_SkipReads(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		SkipReads:   true,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.LoadLatency.Count != 0 {
+		t.Errorf("LoadLatency.Count = %d, want 0 (reads skipped)",
+			result.LoadLatency.Count)
+	}
+
+	if result.ReadAllTime != 0 {
+		t.Errorf("ReadAllTime = %v, want 0 (reads skipped)", result.ReadAllTime)
+	}
+}
+
+func TestRun_SkipReadModels(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:        ProfileDev,
+		PayloadSize:    64,
+		SkipReadModels: true,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.ReadModelSet.Count != 0 {
+		t.Errorf("ReadModelSet.Count = %d, want 0 (read models skipped)",
+			result.ReadModelSet.Count)
+	}
+
+	if result.ReadModelGet.Count != 0 {
+		t.Errorf("ReadModelGet.Count = %d, want 0 (read models skipped)",
+			result.ReadModelGet.Count)
+	}
+}
+
+func TestRun_SkipProjections(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:          ProfileDev,
+		PayloadSize:      64,
+		SkipProjections: true,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.ProjectionEvents != 0 {
+		t.Errorf("ProjectionEvents = %d, want 0 (projections skipped)",
+			result.ProjectionEvents)
+	}
+}
+
+// ── Error classification test ──
+
+func TestErrorClassification(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		err  error
+		want errorfamily.Family
+	}{
+		{"ErrInvalidConfig", ErrInvalidConfig, errorfamily.Rejection},
+		{"ErrFactoryFailed", ErrFactoryFailed, errorfamily.Infrastructure},
+		{"ErrNilBundle", ErrNilBundle, errorfamily.Infrastructure},
+		{"ErrIncompleteBundle", ErrIncompleteBundle, errorfamily.Infrastructure},
+		{"ErrWarmupFailed", ErrWarmupFailed, errorfamily.Transient},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := errorfamily.Classify(tc.err); got != tc.want {
+				t.Fatalf("Classify(%s) = %s, want %s", tc.name, got, tc.want)
+			}
+		})
 	}
 }
 

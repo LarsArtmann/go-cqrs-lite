@@ -10,8 +10,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.1.0
+	github.com/larsartmann/go-error-family v0.8.0
 )
 
 require (
@@ -32,7 +34,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-error-family v0.8.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
