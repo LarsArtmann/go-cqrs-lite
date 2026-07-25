@@ -540,8 +540,9 @@
               echo "==> Secret scan complete"
             '';
 
-            verify = mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash ] ''
+            verify = mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
               ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
+              echo "=== Module Coverage ===" && nix run .#check-modules && \
               echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
               echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
               echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 && \
