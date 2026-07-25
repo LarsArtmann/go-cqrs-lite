@@ -75,6 +75,8 @@ type RelationalTable struct {
 	Name       string
 	Columns    []RelationalColumn
 	PrimaryKey []string
+	Indexes    []IndexSpec
+	Uniques    []UniqueSpec
 }
 
 func (t RelationalTable) validate() error {
@@ -120,6 +122,38 @@ func (t RelationalTable) validate() error {
 		}
 	}
 
+	for _, idx := range t.Indexes {
+		if idx.Name == "" {
+			return errorfamily.WrapRejection(errSchemaIndexNoName,
+				"relational.schema_index_no_name",
+				fmt.Sprintf("table %q", t.Name))
+		}
+
+		for _, ic := range idx.Columns {
+			if _, ok := colNames[ic]; !ok {
+				return errorfamily.WrapRejection(errSchemaUnknownIndexColumn,
+					"relational.schema_unknown_index_col",
+					fmt.Sprintf("table %q: index %q column %q", t.Name, idx.Name, ic))
+			}
+		}
+	}
+
+	for _, uq := range t.Uniques {
+		if uq.Name == "" {
+			return errorfamily.WrapRejection(errSchemaUniqueNoName,
+				"relational.schema_unique_no_name",
+				fmt.Sprintf("table %q", t.Name))
+		}
+
+		for _, uc := range uq.Columns {
+			if _, ok := colNames[uc]; !ok {
+				return errorfamily.WrapRejection(errSchemaUnknownUniqueColumn,
+					"relational.schema_unknown_unique_col",
+					fmt.Sprintf("table %q: unique %q column %q", t.Name, uq.Name, uc))
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -129,10 +163,48 @@ func (t RelationalTable) validate() error {
 // or "INTEGER PRIMARY KEY AUTOINCREMENT"). It is emitted verbatim into the
 // CREATE TABLE statement. Nullable defaults to false (NOT NULL); set to true
 // for columns that may hold NULL.
+//
+// Default, when non-empty, emits a DEFAULT clause. The value is a raw SQL
+// expression — it is appended verbatim, so callers are responsible for quoting
+// literal values (e.g. Default: "'unknown'" for a string literal, Default: "0"
+// for an integer, Default: "CURRENT_TIMESTAMP" for a timestamp).
+//
+// Unique, when true, emits a single-column UNIQUE constraint.
+//
+// References, when non-empty, emits a REFERENCES clause for a foreign key.
+// The value is the full references clause body: "other_table(id)". It is
+// appended verbatim after "REFERENCES ", so callers control the target table,
+// column, and any ON DELETE / ON UPDATE actions (e.g.
+// References: "guilds(id) ON DELETE CASCADE").
 type RelationalColumn struct {
-	Name     string
-	Type     string
-	Nullable bool
+	Name       string
+	Type       string
+	Nullable   bool
+	Default    string
+	Unique     bool
+	References string
+}
+
+// IndexSpec declares a secondary index on a [RelationalTable]. It generates a
+// portable "CREATE INDEX IF NOT EXISTS" statement during [RelationalSchema.Migrate].
+//
+// Columns lists the indexed column names (composite indexes use multiple
+// entries in order). Where, when non-empty, appends a partial-index predicate
+// verbatim ("WHERE deleted_at IS NULL"). The caller is responsible for the
+// SQL syntax of Where — it is not parameterised.
+type IndexSpec struct {
+	Name    string
+	Columns []string
+	Where   string
+}
+
+// UniqueSpec declares a composite UNIQUE constraint on a [RelationalTable].
+// Unlike the single-column [RelationalColumn.Unique] flag, UniqueSpec covers
+// multi-column uniqueness (e.g. "one reaction per user per message per emoji").
+// It emits a "UNIQUE (<cols>)" clause inside the CREATE TABLE statement.
+type UniqueSpec struct {
+	Name    string
+	Columns []string
 }
 
 // DDL returns the CREATE TABLE IF NOT EXISTS statement for one table.
@@ -142,8 +214,21 @@ func (t RelationalTable) DDL() string {
 
 	for _, c := range t.Columns {
 		col := c.Name + " " + c.Type
+
 		if !c.Nullable {
 			col += " NOT NULL"
+		}
+
+		if c.Default != "" {
+			col += " DEFAULT " + c.Default
+		}
+
+		if c.Unique {
+			col += " UNIQUE"
+		}
+
+		if c.References != "" {
+			col += " REFERENCES " + c.References
 		}
 
 		parts = append(parts, col)
@@ -151,6 +236,10 @@ func (t RelationalTable) DDL() string {
 
 	if len(t.PrimaryKey) > 0 {
 		parts = append(parts, "PRIMARY KEY ("+strings.Join(t.PrimaryKey, ", ")+")")
+	}
+
+	for _, uq := range t.Uniques {
+		parts = append(parts, "UNIQUE ("+strings.Join(uq.Columns, ", ")+")")
 	}
 
 	return fmt.Sprintf(
