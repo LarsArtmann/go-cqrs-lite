@@ -14,7 +14,7 @@ func (s *Store) Execute(input any) (any, error) {
 func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
 	select {
 	case <-ctx.Done():
-		return nil, ctx.Err()
+		return nil, fmt.Errorf("metaengine.ExecuteCtx: %w", ctx.Err())
 	default:
 	}
 
@@ -25,7 +25,7 @@ func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
 
 	queryName, ok := s.byInputType[inputType]
 	if !ok {
-		return nil, fmt.Errorf("no query declared for input type %q", inputType)
+		return nil, fmt.Errorf("%w: %q", errNoQueryForInputType, inputType)
 	}
 
 	q := s.queries[queryName]
@@ -42,37 +42,47 @@ func (s *Store) executeQuery(
 	case ReadPointLookup:
 		key := extractKeyValueByType(input, q.keyType)
 		if mb, ok := q.engine.(MapBackend); ok {
-			val, ok, err := mb.MapGet(ctx, q.name, key)
+			val, found, err := mb.MapGet(ctx, q.name, key)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("map get %s: %w", q.name, err)
 			}
 
-			if !ok {
-				return nil, nil
+			if !found {
+				return nil, errEmptyResult
 			}
 
 			return val, nil
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Map reads", q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedMapReads, q.engine.Profile().Name)
 
 	case ReadMembership:
 		key := extractKeyValueByType(input, q.keyType)
 		if sb, ok := q.engine.(SetBackend); ok {
-			return sb.SetContains(ctx, q.name, key)
+			contained, err := sb.SetContains(ctx, q.name, key)
+			if err != nil {
+				return false, fmt.Errorf("set contains %s: %w", q.name, err)
+			}
+
+			return contained, nil
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Set reads", q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedSetReads, q.engine.Profile().Name)
 
 	case ReadFilteredScan:
 		return s.executeFilteredScan(ctx, q, input)
 
 	case ReadAggregate:
 		if cb, ok := q.engine.(CounterBackend); ok {
-			return cb.CounterGet(ctx, q.name)
+			counts, err := cb.CounterGet(ctx, q.name)
+			if err != nil {
+				return nil, fmt.Errorf("counter get %s: %w", q.name, err)
+			}
+
+			return counts, nil
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Counter reads", q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedCounterReads, q.engine.Profile().Name)
 
 	case ReadTraversal:
 		node := extractKeyValueByType(input, q.keyType)
@@ -82,29 +92,47 @@ func (s *Store) executeQuery(
 
 		depth := extractDepthFromInput(input)
 		if gb, ok := q.engine.(GraphBackend); ok {
-			return gb.GraphNeighbors(ctx, q.name, node, depth)
+			neighbors, err := gb.GraphNeighbors(ctx, q.name, node, depth)
+			if err != nil {
+				return nil, fmt.Errorf("graph neighbors %s: %w", q.name, err)
+			}
+
+			return neighbors, nil
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Graph reads", q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedGraphReads, q.engine.Profile().Name)
 
 	case ReadMultiLookup:
 		key := extractFirstDomainField(input)
 		if mb, ok := q.engine.(MultimapBackend); ok {
-			return mb.MultiGet(ctx, q.name, key)
+			values, err := mb.MultiGet(ctx, q.name, key)
+			if err != nil {
+				return nil, fmt.Errorf("multi get %s: %w", q.name, err)
+			}
+
+			return values, nil
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Multimap reads", q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedMultiReads, q.engine.Profile().Name)
 
 	case ReadLogTail:
 		limit := extractLimitFromInput(input)
 		if lb, ok := q.engine.(LogBackend); ok {
-			return lb.LogTail(ctx, q.name, limit)
+			entries, err := lb.LogTail(ctx, q.name, limit)
+			if err != nil {
+				return nil, fmt.Errorf("log tail %s: %w", q.name, err)
+			}
+
+			return entries, nil
 		}
 
-		return nil, fmt.Errorf("engine %s does not support Log reads", q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedLogReads, q.engine.Profile().Name)
+
+	case ReadScan:
+		return s.executeFilteredScan(ctx, q, input)
 
 	default:
-		return nil, fmt.Errorf("unsupported read pattern: %s", q.readPattern)
+		return nil, fmt.Errorf("%w: %s", errUnsupportedPattern, q.readPattern)
 	}
 }
 
@@ -122,10 +150,7 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	}
 
 	// Build filter predicates from typed closures.
-	filterPredicates, err := buildFilterPredicates(q, input)
-	if err != nil {
-		return nil, err
-	}
+	filterPredicates := buildFilterPredicates(q, input)
 
 	// Determine sort accessor.
 	var sortFunc func(a, b any) int
@@ -137,18 +162,23 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	}
 
 	if sb, ok := q.engine.(ScanBackend); ok {
-		return sb.MapScan(ctx, q.name, filterPredicates, sortFunc, cursorVal, limit)
+		rows, err := sb.MapScan(ctx, q.name, filterPredicates, sortFunc, cursorVal, limit)
+		if err != nil {
+			return nil, fmt.Errorf("map scan %s: %w", q.name, err)
+		}
+
+		return rows, nil
 	}
 
-	return nil, fmt.Errorf("engine %s does not support Scan reads", q.engine.Profile().Name)
+	return nil, unsupportedEngine(errUnsupportedScanReads, q.engine.Profile().Name)
 }
 
 // buildFilterPredicates creates runtime filter predicates from typed closures
 // declared via FilterOn. Each closure extracts a comparable value from a result
 // item. The matching filter value is extracted from the query input by type.
-func buildFilterPredicates(q queryRuntime, input any) ([]filterPredicate, error) {
+func buildFilterPredicates(q queryRuntime, input any) []filterPredicate {
 	if len(q.config.filterAccessors) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	var predicates []filterPredicate
@@ -174,7 +204,7 @@ func buildFilterPredicates(q queryRuntime, input any) ([]filterPredicate, error)
 		})
 	}
 
-	return predicates, nil
+	return predicates
 }
 
 // extractValueByType finds a field in the input struct whose type matches
@@ -187,7 +217,7 @@ func extractValueByType(input any, targetType reflect.Type) any {
 
 	t := v.Type()
 
-	metaNames := map[string]bool{"Limit": true, "After": true, "Depth": true}
+	metaNames := map[string]bool{limitField: true, afterField: true, depthField: true}
 
 	foundIdx := -1
 
