@@ -6,6 +6,14 @@
 
 ---
 
+> **Update 2026-07-25 (commit series through `67868c53`):** The "ALL 20 tasks
+> complete / `nix run .#verify` exits 0 / workspace healthy" claims below are
+> **overstated.** The verify gate **regressed**: 13 production files exceed the
+> 350-line CI limit and an otel test flakes (see
+> [TODO_LIST.md](../../../TODO_LIST.md) "CI Quality Gate"). Module count is now
+> **58** (not 57 — `idempotency/sqlstore` added). The 20 plan tasks themselves
+> did ship; the regression is in the quality gate, not the features.
+
 ## a) FULLY DONE — Completed this session
 
 | Task              | What was done                                                                                                                                                                                                                                                                                                                                                                                                                                      | Verification                                                       |

@@ -17,6 +17,12 @@
 
 The "next level" push is materially advanced: the gRPC CBOR encoding bug is fixed, the README Quick Start is compile-verified, pre-commit hooks exist, stale eventtest documentation is corrected, and the 1% tier lint sweep reduced the monorepo from ~76 findings down to **14 remaining lint issues** across only 4 modules. The 4% tier features (`projectionhost.Host.LagDuration`, `SQLTimerStore`, `SQLAggregateReader`) have not yet started. A process anomaly occurred: several batches of changes were committed during the session with messages I did not explicitly author; only two import-reordering changes remain uncommitted.
 
+> **Update 2026-07-25:** The 14 lint issues were subsequently resolved (lint is
+> now 0 across all modules). The 4% tier features shipped: `LagDuration` in
+> `projectionhost`, `SQLTimerStore` already existed, `SQLAggregateReader` is
+> covered by the stream-based naming. The "process anomaly" auto-commits were a
+> recurring BuildFlow hook issue documented in later sessions.
+
 ---
 
 ## a) FULLY DONE

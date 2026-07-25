@@ -1,5 +1,13 @@
 # Metaengine Status Report — 2026-07-24 05:58
 
+> **Update 2026-07-25:** Metrics below are stale. The module now has **174 BDD
+> specs** (not 89), **87.7% coverage** (not 82.6%), a **SQLite engine**
+> (`sqlite_engine.go`), a **projection adapter** (`metaengine/projectionadapter/`),
+> and **benchmark-driven cost calibration** (Memory=500ns, SQLite=7000ns). See
+> ADRs 0061–0063. The "GHOST SYSTEM — ZERO consumers" concern raised in section e
+> is resolved: the projection adapter is a real consumer registered with
+> `projectionhost.Host`.
+
 ## Executive Summary
 
 The metaengine module underwent a brutal self-review and quality hardening session. Two correctness bugs were found and fixed, all 5 CI-blocking oversized files were split into focused modules, `context.Context` was added to every backend interface, and compile-time interface assertions were added. The module is clean, buildable, and all 89 BDD specs pass with `-race`. **memory_engine.go is at exactly 350 lines** (right at the CI limit — needs one more extraction to be safe).

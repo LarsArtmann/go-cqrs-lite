@@ -25,6 +25,16 @@ This session started with a practical problem and evolved into a research-grade 
 
 ---
 
+> **Update 2026-07-25:** This research session **became reality.** The
+> `metaengine/v4` module now exists with `types.go`, `query.go`, `engine.go`,
+> `sqlite_engine.go`, `memory_engine.go`, `planner.go`, `cost.go`, and
+> `metaengine/projectionadapter/`. Section b) "PARTIALLY DONE" items 2–5 and
+> section c) "NOT STARTED" items 1, 3–10, 15, 17, 18 are **DONE** — 174 BDD
+> specs, 87.7% coverage, SQLite engine, cost calibration, projection adapter
+> (ADRs 0061–0063). Still genuinely OPEN: the 4 leak fixes (b.1), hot-reload
+> (c.11), `iter.Seq2` streaming (c.12), schema migration (c.13), formal paper
+> (c.16), visual plan output (c.19), Bloom/HyperLogLog primitives (c.20).
+
 ## a) FULLY DONE
 
 | #   | Deliverable                                                                                      | File                                                                           |

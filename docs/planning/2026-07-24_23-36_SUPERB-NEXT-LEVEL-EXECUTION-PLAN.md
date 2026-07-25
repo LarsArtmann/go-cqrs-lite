@@ -6,6 +6,16 @@
 
 ---
 
+> **Update 2026-07-25:** This plan **executed.** M01–M13 (the 1%, 4%, and 20%
+> tiers) shipped: benchkit tagged v4.1.0, consistency model doc, SQL idempotency
+> store, WaitForVersion, CheckStaleness, metaengine SQLite engine + projection
+> adapter + cost calibration (ADRs 0061–0063), module-extraction ADRs (0064/0065).
+> M16–M17 (NATS/Parquet design docs) shipped. Open: M14–M15 (physical module
+> extraction needs external repos), M18–M20 (release tagging — blocked on verify
+> gate, see [TODO_LIST.md](../../TODO_LIST.md)). Module count is now **58** (not 56).
+
+---
+
 ## Context — where the project IS right now
 
 **go-cqrs-lite** is a CQRS/ES **library/SDK** (not an app). 56 `go.mod` files in a
