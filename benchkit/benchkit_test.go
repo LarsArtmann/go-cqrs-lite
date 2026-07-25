@@ -1417,11 +1417,12 @@ func TestRun_Recovery_SQLite(t *testing.T) {
 	dbPath := filepath.Join(dir, "bench.db")
 
 	result := mustRun(t, Config{
-		Profile:     ProfileDev,
-		PayloadSize: 64,
-		Backend:     "sqlite",
-		DiskPath:    dir,
-		Recovery:    true,
+		Profile:      ProfileDev,
+		PayloadSize:  64,
+		Backend:      "sqlite",
+		DiskPath:     dir,
+		Recovery:     true,
+		SkipSnapshot: true, // snapshot populate writes extra events to existing streams
 	}, func() (*stack.Bundle, error) {
 		return sqlite.New(dbPath)
 	})
@@ -1458,11 +1459,12 @@ func TestRun_Recovery_Pebble(t *testing.T) {
 	dir := t.TempDir()
 
 	result := mustRun(t, Config{
-		Profile:     ProfileDev,
-		PayloadSize: 64,
-		Backend:     "pebble",
-		DiskPath:    dir,
-		Recovery:    true,
+		Profile:      ProfileDev,
+		PayloadSize:  64,
+		Backend:      "pebble",
+		DiskPath:     dir,
+		Recovery:     true,
+		SkipSnapshot: true, // snapshot populate writes extra events to existing streams
 	}, func() (*stack.Bundle, error) {
 		b, err := pebble.New(dir)
 		if err != nil {
