@@ -50,7 +50,7 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(path, "go.mod")); os.IsNotExist(err) {
 			return nil // no go.mod here, keep walking
 		} else if err != nil {
-			return err //nolint:wrapcheck // walk error
+			return err // walk error
 		}
 		rel, err := filepath.Rel(projectRoot, path)
 		if err != nil {
