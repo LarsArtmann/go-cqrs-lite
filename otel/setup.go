@@ -27,6 +27,10 @@ type setupConfig struct {
 	metricReader   metric.Reader
 	propagator     propagation.TextMapPropagator
 	stdoutWriter   io.Writer // non-nil → construct a pretty-printing stdout span exporter
+	// skipGlobalRegistration omits registering the providers as the process-wide
+	// globals. Set by WithoutGlobalRegistration for isolated use (tests,
+	// multi-service processes). The returned Provider is fully functional.
+	skipGlobalRegistration bool
 }
 
 // WithService identifies the service in telemetry via resource attributes.
@@ -69,6 +73,18 @@ func WithPropagator(p propagation.TextMapPropagator) SetupOption {
 func WithStdoutExporter(w io.Writer) SetupOption {
 	return func(c *setupConfig) {
 		c.stdoutWriter = w
+	}
+}
+
+// WithoutGlobalRegistration skips registering the providers as the process-wide
+// global TracerProvider, MeterProvider, and TextMapPropagator. Use this when you
+// need an isolated Provider — e.g. in tests, or when running multiple services
+// in one process where each owns its providers. The returned Provider is fully
+// functional; only otel.SetTracerProvider / SetMeterProvider / SetTextMapPropagator
+// are skipped, so otel.GetTracerProvider() is left unchanged.
+func WithoutGlobalRegistration() SetupOption {
+	return func(c *setupConfig) {
+		c.skipGlobalRegistration = true
 	}
 }
 
@@ -163,7 +179,9 @@ func Setup(opts ...SetupOption) (*Provider, error) {
 		propagator = NewTextMapPropagator()
 	}
 
-	otel.SetTextMapPropagator(propagator)
+	if !cfg.skipGlobalRegistration {
+		otel.SetTextMapPropagator(propagator)
+	}
 
 	tpOpts := []sdktrace.TracerProviderOption{
 		sdktrace.WithResource(res),
@@ -186,8 +204,10 @@ func Setup(opts ...SetupOption) (*Provider, error) {
 
 	mp := metric.NewMeterProvider(mpOpts...)
 
-	otel.SetTracerProvider(tracerProvider)
-	otel.SetMeterProvider(mp)
+	if !cfg.skipGlobalRegistration {
+		otel.SetTracerProvider(tracerProvider)
+		otel.SetMeterProvider(mp)
+	}
 
 	return &Provider{tracerProvider: tracerProvider, meterProvider: mp}, nil
 }
