@@ -126,6 +126,6 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 	return &Bundle{Bundle: b, backend: backend}, nil
 }
 
-func safeInt64(v uint64) int64 {
+func safeInt64(v uint64) int64 { //nolint:gosec // G115: safe for disk sizes
 	return int64(v)
 }

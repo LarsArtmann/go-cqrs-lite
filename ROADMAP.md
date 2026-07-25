@@ -67,17 +67,21 @@ and a domain-aware linter (cqrs-lint, 60 rules).
 
 The metaengine prototype proves the Event-Query Model works: fold return types
 infer ADTs, typed closures avoid strings, pagination is detected from input
-structs. The concrete next tasks live in [TODO_LIST.md](TODO_LIST.md)
-"Metaengine → Production". The open design questions:
+structs. The Pareto execution plan landed the production maturity chain:
 
-- **Real SQLite engine** — wrap `SQLViewStore` as a metaengine backend. The first
-  production engine validates the interface design.
-- **Cost model calibration** — `nsPerOp=100` is arbitrary. Needs benchmark-driven
-  calibration with real engine profiles.
-- **Integration** — `projection.Projection` adapter, `kv.Store` bridge,
-  `graph.GraphSink` bridge. The metaengine must connect to existing infrastructure.
-- **FilterOn/SortOn → SQL pushdown** — Go closures cannot be inspected. Design
-  decision needed: DSL, codegen, or keep in-memory filtering.
+- ✅ **Real SQLite engine** — `SQLiteEngine` wrapping `SQLViewStore` (ADR-0061)
+- ✅ **Cost model calibration** — `EngineProfile.NsPerOp` with benchmark-driven
+  constants (Memory=500ns, SQLite=7000ns)
+- ✅ **Projection adapter** — `metaengine/projectionadapter` implements
+  `projection.Projection` for `projectionhost.Host` (ADR-0062)
+- ✅ **Pushdown ADR** — Phase 1: in-memory closures + `PushdownScan` interface
+  seam. Phase 2 deferred (ADR-0063)
+- ✅ **Dependency boundary** — Core `metaengine/v4` stays zero-dep; adapter is
+  a separate module (ADR-0062)
+
+**Remaining:** tag metaengine when API stabilizes; fix 143 lint issues before
+graduation from experimental; implement Phase 2 declarative pushdown when a
+production consumer needs SQL filter/sort pushdown.
 
 ### 2. Benchkit → Released
 
@@ -99,29 +103,34 @@ remaining work is maturity, not features:
 Two modules are zero-CQRS-coupling candidates for standalone repos (see
 [extraction analysis](docs/planning/2026-07-23_extraction-analysis.md)):
 
-- **Extract `retry/` → `go-retry`** — 217 LOC, zero CQRS coupling, 1 dependency.
-- **Extract `idempotency/` → `go-idempotency`** — 355 LOC, zero CQRS coupling,
-  3-method `Store` interface.
+- ✅ **Extract `retry/` → `go-retry`** — ADR-0064 written (217 LOC, zero CQRS
+  coupling, re-export alias plan). Execution requires creating the standalone repo.
+- ✅ **Extract `idempotency/` → `go-idempotency`** — ADR-0065 written (553 LOC
+  across 3 modules, re-export alias plan). Execution requires creating the repo.
 
 ### 4. Storage & Transport Expansion (design-doc-backed)
 
 These have design docs and graduated from "Raw Ideas"; concrete phases will move
 to [TODO_LIST.md](TODO_LIST.md) when actively worked:
 
-- **Parquet journal + DuckDB** — three additive phases: `storage/parquet`
-  (segment journal, pure Go), `storage/duckdb` (OLAP materializations, CGO),
-  `stack/duckdb` (preset). Design at
-  `docs/research/archive/2026-07-11_PARQUET_JOURNAL_DUCKDB_MATERIALIZATIONS.md`.
-- **Transport expansion** — NATS/ValKey stream adapters (ADR-0025 accepted) as
-  `transport/nats/` and `transport/redis/` modules; a distributed event bus
-  backend for multi-process event distribution.
+- ✅ **Parquet journal design** — `docs/planning/parquet-journal-design.md`
+  specifies Phase 1 (`storage/parquet` segment-based SeekableJournal, pure Go).
+  Phase 2 (`storage/duckdb`, CGO) and Phase 3 (`stack/duckdb`) deferred.
+  Original research at `docs/research/archive/...PARQUET_JOURNAL...md`.
+- ✅ **NATS transport design** — `docs/planning/nats-transport-design.md`
+  documents JetStream stream config, durable consumers, and CatchUpSubscriber
+  integration via the existing `watermill/` bridge (no native `transport/nats/`
+  module — ADR-0025 decision).
 
 ### 5. Consumer Experience
 
 Gaps surfaced by the [book insights vs codebase review](docs/architecture-understanding/2026-07-23_book-insights-vs-codebase.html).
-The concrete tasks (read-your-writes helper, bounded staleness, consistency-model
-doc, SQL-backed idempotency) live in [TODO_LIST.md](TODO_LIST.md) "Consumer
-Experience".
+All four consumer experience gaps shipped via the Pareto execution plan:
+
+- ✅ **Consistency model document** — `docs/CONSISTENCY_MODEL.md`
+- ✅ **SQL-backed idempotency.Store** — `idempotency/sqlstore`
+- ✅ **Read-your-writes WaitForVersion** — `decider.WaitForVersion`
+- ✅ **Bounded staleness CheckStaleness** — `projectionhost.CheckStaleness`
 
 ---
 

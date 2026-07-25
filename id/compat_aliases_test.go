@@ -14,7 +14,8 @@ func TestBackwardCompatAliases(t *testing.T) {
 	t.Parallel()
 
 	// Type aliases are identical by construction — assigning across them compiles.
-	var _ id.AggregateID = id.NewStreamID()
+	//nolint:unconvert // intentionally verifies deprecated alias compatibility
+	_ = id.AggregateID(id.NewStreamID())
 	_ = id.AggregateType("User")
 	_ = id.AggregateMarker{}
 
