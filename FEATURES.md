@@ -1069,7 +1069,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `transport/http`               | `…/transport/http/v4`               | ✅ Production                                                             |
 | `transport/grpc`               | `…/transport/grpc/v4`               | ✅ Production                                                             |
 | `prometheus`                   | `…/prometheus/v4`                   | ✅ Production                                                             |
-| `testutil`                     | `…/testutil/v4`                     | 🧪 Test utility                                                           |
+| `testutil`                     | `…/testutil/v4`                     | 🧪 Test utility (`NewCmd`, `RaceEnabled` build-tag helper)                |
 | `cmd/cqrs-gen`                 | `…/cmd/cqrs-gen/v4`                 | 🔧 Tool                                                                   |
 | `cmd/api-stability`            | `…/cmd/api-stability/v4`            | 🔧 Tool                                                                   |
 | `cmd/doc-check`                | `…/cmd/doc-check/v4`                | 🔧 Tool                                                                   |
@@ -1105,7 +1105,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                                                                                                                    |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lint posture           | `nix run .#lint` passes with 0 issues across all 58 modules (metaengine lint cleared 143→0). Note: `nix run .#verify` is currently RED due to 13 file-size violations — see [TODO_LIST.md](TODO_LIST.md). |
+| Lint posture           | `nix run .#lint` passes with 0 issues across all modules. `nix run .#verify` is GREEN: build + vet + test + race + lint + api-stability (2672 exports, with `TestEveryGoModDirIsInModulesList` meta-test) + doc-check. |
 | Race-free              | `go test -race` passes across all modules                                                                                                                                                                 |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                                            |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                                        |

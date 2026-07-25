@@ -29,6 +29,12 @@ nix run .#lint
 | Go   | 1.26+   | Language runtime  |
 | Nix  | latest  | Build environment |
 
+> **Build tag:** All Go commands require `-tags "goexperiment.jsonv2"` to enable
+> JSON v2 encoding (`encoding/json/v2`). This is a Go experiment flag, NOT a
+> standard build tag — it requires `GOEXPERIMENT` support in the toolchain.
+> `nix run .#build`, `nix run .#test`, and CI apply it automatically. If running
+> `go` commands directly, always pass `-tags "goexperiment.jsonv2"`.
+
 ### Using Nix (Recommended)
 
 ```bash
