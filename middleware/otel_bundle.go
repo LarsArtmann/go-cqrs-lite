@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
@@ -104,7 +105,7 @@ func NewOTelBundle(
 
 		recorder, err := NewOTelMetricsRecorder(meter)
 		if err != nil {
-			return nil, fmt.Errorf("create otel metrics recorder: %w", err)
+			return nil, errorfamily.WrapInfrastructure(err, "middleware.otel_recorder_init", "create otel metrics recorder")
 		}
 
 		b.recorder = recorder

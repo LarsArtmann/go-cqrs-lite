@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -85,12 +86,12 @@ func (i Instant) MarshalJSON() ([]byte, error) {
 func (i *Instant) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("instant: failed to unmarshal JSON: %w", err)
+		return errorfamily.WrapRejection(err, "event.instant_json_decode", "instant: failed to unmarshal JSON")
 	}
 
 	t, err := time.Parse(time.RFC3339Nano, s)
 	if err != nil {
-		return fmt.Errorf("instant: failed to parse time %q: %w", s, err)
+		return errorfamily.WrapRejection(err, "event.instant_parse", fmt.Sprintf("instant: failed to parse time %q", s))
 	}
 
 	i.t = t.UTC()
@@ -114,7 +115,7 @@ func (i Instant) MarshalCBOR() ([]byte, error) {
 func (i *Instant) UnmarshalCBOR(data []byte) error {
 	var nanos int64
 	if err := cbor.Unmarshal(data, &nanos); err != nil {
-		return fmt.Errorf("instant: failed to unmarshal CBOR: %w", err)
+		return errorfamily.WrapRejection(err, "event.instant_cbor_decode", "instant: failed to unmarshal CBOR")
 	}
 
 	i.t = time.Unix(0, nanos).UTC()
@@ -152,7 +153,7 @@ func NewWallTime(hour, minute int, location string) (WallTime, error) {
 	}
 
 	if _, err := time.LoadLocation(location); err != nil {
-		return WallTime{}, fmt.Errorf("wall_time: invalid IANA timezone %q: %w", location, err)
+		return WallTime{}, errorfamily.WrapRejection(err, "event.walltime_invalid_tz", fmt.Sprintf("wall_time: invalid IANA timezone %q", location))
 	}
 
 	return WallTime{Hour: hour, Minute: minute, Location: location}, nil
@@ -285,7 +286,7 @@ func (w *WallTime) UnmarshalCBOR(data []byte) error {
 		Location string `cbor:"location"`
 	}
 	if err := cbor.Unmarshal(data, &raw); err != nil {
-		return fmt.Errorf("wall_time: failed to unmarshal CBOR: %w", err)
+		return errorfamily.WrapRejection(err, "event.walltime_cbor_decode", "wall_time: failed to unmarshal CBOR")
 	}
 	w.Hour = raw.Hour
 	w.Minute = raw.Minute

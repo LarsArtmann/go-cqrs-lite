@@ -43,6 +43,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/retry/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-must v0.0.0
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -69,3 +70,5 @@ require (
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.54.0 // indirect
 )
+
+replace github.com/larsartmann/go-must => /home/lars/projects/go-must

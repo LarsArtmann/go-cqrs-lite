@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	gomust "github.com/larsartmann/go-must"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 

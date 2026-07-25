@@ -1,9 +1,9 @@
 package event
 
 import (
-	"fmt"
-
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Single creates a single event and returns it as a one-element slice.
@@ -28,7 +28,7 @@ func Single(
 ) ([]Event, error) {
 	evt, err := New(eventType, streamID, streamType, version, payload, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("event.Single: %w", err)
+		return nil, errorfamily.WrapRejection(err, "event.single", "event.Single")
 	}
 
 	return []Event{evt}, nil

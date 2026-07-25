@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -50,7 +51,7 @@ func NewDateMust(year int, month time.Month, day int) Date {
 func NewDateFromString(s string) (Date, error) {
 	t, err := time.Parse("2006-01-02", s)
 	if err != nil {
-		return Date{}, fmt.Errorf("date: failed to parse %q: %w", s, err)
+		return Date{}, errorfamily.WrapRejection(err, "event.date_parse", fmt.Sprintf("date: failed to parse %q", s))
 	}
 	return Date{Year: t.Year(), Month: t.Month(), Day: t.Day()}, nil
 }
@@ -110,7 +111,7 @@ func (d *Date) parseDateInto(s string) error {
 func (d *Date) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("date: failed to unmarshal JSON: %w", err)
+		return errorfamily.WrapRejection(err, "event.date_json_decode", "date: failed to unmarshal JSON")
 	}
 
 	return d.parseDateInto(s)
@@ -125,7 +126,7 @@ func (d Date) MarshalCBOR() ([]byte, error) {
 func (d *Date) UnmarshalCBOR(data []byte) error {
 	var s string
 	if err := cbor.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("date: failed to unmarshal CBOR: %w", err)
+		return errorfamily.WrapRejection(err, "event.date_cbor_decode", "date: failed to unmarshal CBOR")
 	}
 
 	return d.parseDateInto(s)
