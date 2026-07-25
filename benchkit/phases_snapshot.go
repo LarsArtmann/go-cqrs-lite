@@ -27,7 +27,7 @@ const maxSnapshotStreams = 50
 // Snapshot load is skipped when the bundle has no SnapshotStore.
 func (r *runner) snapshotPhase(ctx context.Context) error {
 	if ctx.Err() != nil {
-		return nil // ctx done; graceful skip
+		return nil //nolint:nilerr // ctx done; graceful skip
 	}
 
 	store, ok := r.bundle.EventStore()
@@ -76,7 +76,8 @@ func (r *runner) populateSnapshots(
 		return err
 	}
 
-	repo, err := decider.NewRepository[CounterState](store, nil, d,
+	repo, err := decider.NewRepository[CounterState](
+		store, nil, d,
 		decider.WithSnapshotStore[CounterState](r.bundle.SnapshotStore),
 		decider.WithCodec[CounterState](r.codec),
 		decider.WithSnapshotStrategy[CounterState](strategy),
@@ -88,10 +89,11 @@ func (r *runner) populateSnapshots(
 
 	for _, sid := range streamIDs {
 		if ctx.Err() != nil {
-			return nil // ctx done; graceful skip
+			return nil //nolint:nilerr // ctx done; graceful skip
 		}
 
-		err := repo.Execute(ctx, sid, benchStreamType,
+		err := repo.Execute(
+			ctx, sid, benchStreamType,
 			func(_ CounterState, ver event.Version) ([]event.Event, error) {
 				evt, eErr := event.New(
 					benchEventType, sid, benchStreamType,
@@ -121,7 +123,8 @@ func (r *runner) benchmarkColdLoad(
 	d decider.Decider[CounterState],
 	streamIDs []id.StreamID,
 ) ([]CounterState, []event.Version, error) {
-	repo, err := decider.NewRepository[CounterState](store, nil, d,
+	repo, err := decider.NewRepository[CounterState](
+		store, nil, d,
 		decider.WithLoadCoalescing[CounterState](false),
 	)
 	if err != nil {
@@ -134,7 +137,7 @@ func (r *runner) benchmarkColdLoad(
 
 	for i, sid := range streamIDs {
 		if ctx.Err() != nil {
-			return nil, nil, nil // ctx done; graceful skip
+			return nil, nil, nil //nolint:nilerr // ctx done; graceful skip
 		}
 
 		start := time.Now()
@@ -174,7 +177,8 @@ func (r *runner) benchmarkSnapshotLoad(
 		return
 	}
 
-	repo, err := decider.NewRepository[CounterState](store, nil, d,
+	repo, err := decider.NewRepository[CounterState](
+		store, nil, d,
 		decider.WithSnapshotStore[CounterState](r.bundle.SnapshotStore),
 		decider.WithCodec[CounterState](r.codec),
 		decider.WithSnapshotStrategy[CounterState](strategy),
@@ -218,7 +222,8 @@ func (r *runner) benchmarkCache(
 	coldStates []CounterState,
 	coldVersions []event.Version,
 ) error {
-	repo, err := decider.NewRepository[CounterState](store, nil, d,
+	repo, err := decider.NewRepository[CounterState](
+		store, nil, d,
 		decider.WithLoadCoalescing[CounterState](false),
 		decider.WithStateCache[CounterState](decider.NewStateCache[CounterState](len(streamIDs)*2)),
 	)
@@ -231,7 +236,7 @@ func (r *runner) benchmarkCache(
 
 	for i, sid := range streamIDs {
 		if ctx.Err() != nil {
-			return nil // ctx done; graceful skip
+			return nil //nolint:nilerr // ctx done; graceful skip
 		}
 
 		start := time.Now()

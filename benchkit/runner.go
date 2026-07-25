@@ -115,69 +115,8 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 		defer cancel()
 	}
 
-	if !r.config.ReplayOnly {
-		if err := r.writePhase(runCtx); err != nil {
-			return nil, errorfamily.WrapTransient(err, "benchkit.write_phase",
-				"write phase")
-		}
-	}
-
-	if !r.config.SkipReads {
-		if err := r.readPhase(runCtx); err != nil {
-			return nil, errorfamily.WrapTransient(err, "benchkit.read_phase",
-				"read phase")
-		}
-	}
-
-	if !r.config.SkipReadModels {
-		if err := r.readModelPhase(runCtx); err != nil {
-			return nil, errorfamily.WrapTransient(err, "benchkit.read_model_phase",
-				"read model phase")
-		}
-	}
-
-	if !r.config.SkipProjections {
-		if err := r.projectionPhase(runCtx); err != nil {
-			return nil, errorfamily.WrapTransient(err, "benchkit.projection_phase",
-				"projection phase")
-		}
-	}
-
-	if !r.config.ReplayOnly && !r.config.SkipJourney {
-		if err := r.journeyPhase(runCtx); err != nil {
-			return nil, errorfamily.WrapTransient(err, "benchkit.journey_phase",
-				"journey phase")
-		}
-	}
-
-	if !r.config.SkipQuery {
-		if err := r.queryPhase(runCtx); err != nil {
-			return nil, errorfamily.WrapTransient(err, "benchkit.query_phase",
-				"query phase")
-		}
-	}
-
-	if !r.config.ReplayOnly && !r.config.SkipSnapshot {
-		if err := r.snapshotPhase(runCtx); err != nil {
-			return nil, errorfamily.WrapTransient(err, "benchkit.snapshot_phase",
-				"snapshot phase")
-		}
-	}
-
-	r.durabilityPhase()
-
-	if !r.config.ReplayOnly && !r.config.SkipRawSink {
-		if err := r.rawSinkPhase(runCtx); err != nil {
-			return nil, errorfamily.WrapTransient(err, "benchkit.raw_sink_phase",
-				"raw sink phase")
-		}
-	}
-
-	if r.config.Recovery {
-		if err := r.recoveryPhase(ctx); err != nil {
-			return nil, errorfamily.WrapTransient(err, "benchkit.recovery_phase",
-				"recovery phase")
-		}
+	if err := r.runPhases(runCtx, ctx); err != nil {
+		return nil, err
 	}
 
 	peakMem, baselineMem := r.sampler.stopAndSnapshot()
@@ -186,6 +125,69 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 	r.finalizeResult(peakMem, baselineMem)
 
 	return &r.result, nil
+}
+
+// runPhases executes all benchmark phases in order, returning the first error.
+// runCtx is the (possibly deadline-limited) context for measured phases.
+// parentCtx is the unbounded context for the recovery phase.
+func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
+	if !r.config.ReplayOnly {
+		if err := r.writePhase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.write_phase", "write phase")
+		}
+	}
+
+	if !r.config.SkipReads {
+		if err := r.readPhase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.read_phase", "read phase")
+		}
+	}
+
+	if !r.config.SkipReadModels {
+		if err := r.readModelPhase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.read_model_phase", "read model phase")
+		}
+	}
+
+	if !r.config.SkipProjections {
+		if err := r.projectionPhase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.projection_phase", "projection phase")
+		}
+	}
+
+	if !r.config.ReplayOnly && !r.config.SkipJourney {
+		if err := r.journeyPhase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.journey_phase", "journey phase")
+		}
+	}
+
+	if !r.config.SkipQuery {
+		if err := r.queryPhase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.query_phase", "query phase")
+		}
+	}
+
+	if !r.config.ReplayOnly && !r.config.SkipSnapshot {
+		if err := r.snapshotPhase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.snapshot_phase", "snapshot phase")
+		}
+	}
+
+	r.durabilityPhase()
+
+	if !r.config.ReplayOnly && !r.config.SkipRawSink {
+		if err := r.rawSinkPhase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.raw_sink_phase", "raw sink phase")
+		}
+	}
+
+	if r.config.Recovery {
+		if err := r.recoveryPhase(parentCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.recovery_phase", "recovery phase")
+		}
+	}
+
+	return nil
 }
 
 func (r *runner) setup(ctx context.Context) error {
