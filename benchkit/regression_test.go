@@ -3,6 +3,7 @@ package benchkit
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"runtime"
 	"strings"
@@ -123,5 +124,85 @@ func TestRepeat_ReportsMedianWithSamples(t *testing.T) {
 	}
 	if len(result.RepeatSamples) != 3 {
 		t.Fatalf("RepeatSamples len = %d, want 3", len(result.RepeatSamples))
+	}
+}
+
+func TestBatchSizeSweep_StampParameter(t *testing.T) {
+	t.Parallel()
+	sizes := []int{10, 50, 100}
+	results := BatchSizeSweep(
+		context.Background(),
+		Config{Profile: ProfileDev},
+		errFactory,
+		sizes,
+	)
+	if len(results) != len(sizes) {
+		t.Fatalf("got %d results, want %d", len(results), len(sizes))
+	}
+	for i, r := range results {
+		if r.Parameter != "batchSize" {
+			t.Errorf("result[%d].Parameter = %q, want %q", i, r.Parameter, "batchSize")
+		}
+		if r.Value != sizes[i] {
+			t.Errorf("result[%d].Value = %d, want %d", i, r.Value, sizes[i])
+		}
+	}
+}
+
+func TestStreamLengthSweep_StampParameter(t *testing.T) {
+	t.Parallel()
+	lengths := []int{5, 20, 80}
+	results := StreamLengthSweep(
+		context.Background(),
+		Config{Profile: ProfileDev},
+		errFactory,
+		lengths,
+	)
+	if len(results) != len(lengths) {
+		t.Fatalf("got %d results, want %d", len(results), len(lengths))
+	}
+	for i, r := range results {
+		if r.Parameter != "streamLength" {
+			t.Errorf("result[%d].Parameter = %q, want %q", i, r.Parameter, "streamLength")
+		}
+	}
+}
+
+func TestSortedSweepResults_NonMutating(t *testing.T) {
+	t.Parallel()
+	original := []SweepResult{
+		{Parameter: "x", Value: 3},
+		{Parameter: "x", Value: 1},
+		{Parameter: "x", Value: 2},
+	}
+	sorted := SortedSweepResults(original)
+	// Verify sorted ascending by Value.
+	if sorted[0].Value != 1 || sorted[1].Value != 2 || sorted[2].Value != 3 {
+		t.Fatalf("not sorted ascending: %d, %d, %d", sorted[0].Value, sorted[1].Value, sorted[2].Value)
+	}
+	// Verify original is NOT mutated.
+	if original[0].Value != 3 {
+		t.Errorf("original slice was mutated: original[0].Value = %d, want 3", original[0].Value)
+	}
+}
+
+func TestWriteSweepJSON_ExportsValidJSON(t *testing.T) {
+	t.Parallel()
+	results := []SweepResult{
+		{Parameter: "batchSize", Value: 10, Result: &Result{Error: "fail"}},
+	}
+	var buf bytes.Buffer
+	if err := WriteSweepJSON(&buf, results); err != nil {
+		t.Fatalf("WriteSweepJSON: %v", err)
+	}
+	var decoded []map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &decoded); err != nil {
+		t.Fatalf("invalid JSON output: %v", err)
+	}
+	if len(decoded) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(decoded))
+	}
+	if decoded[0]["parameter"] != "batchSize" {
+		t.Errorf("parameter = %v, want batchSize", decoded[0]["parameter"])
 	}
 }

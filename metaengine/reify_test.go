@@ -58,10 +58,10 @@ func TestExecuteTyped_SQLite_UnexportedFieldsLost(t *testing.T) {
 	}
 	defer store.Close()
 
-	store.Apply(ctx, recordEvent{ID: "rec-1"})
+	store.Apply(ctx, "recordEvent", recordEvent{ID: "rec-1"})
 
-	result, err := metaengine.ExecuteTyped[recordResult](
-		ctx, store, "record_lookup", recordQuery{ID: "rec-1"},
+	result, err := metaengine.ExecuteTyped[recordQuery, recordResult](
+		ctx, store, recordQuery{ID: "rec-1"},
 	)
 	if err != nil {
 		t.Fatalf("ExecuteTyped: %v", err)
@@ -102,12 +102,12 @@ func BenchmarkExecuteTyped_SQLite_Reify(b *testing.B) {
 	}
 	defer store.Close()
 
-	store.Apply(ctx, recordEvent{ID: "bench-1"})
+	store.Apply(ctx, "recordEvent", recordEvent{ID: "bench-1"})
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := metaengine.ExecuteTyped[recordResult](
-			ctx, store, "bench_reify", recordQuery{ID: "bench-1"},
+		_, err := metaengine.ExecuteTyped[recordQuery, recordResult](
+			ctx, store, recordQuery{ID: "bench-1"},
 		)
 		if err != nil {
 			b.Fatalf("ExecuteTyped: %v", err)
