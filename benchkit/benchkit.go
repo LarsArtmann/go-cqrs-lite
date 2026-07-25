@@ -159,7 +159,7 @@ type Config struct {
 }
 
 // validate checks that the Config has required fields set.
-func (c Config) validate() error {
+func (c *Config) validate() error {
 	if c.Profile.Streams <= 0 {
 		return fmt.Errorf(
 			"%w: Profile.Streams must be > 0, got %d",
@@ -202,13 +202,13 @@ func (c Config) MarshalJSON() ([]byte, error) {
 func (c *Config) UnmarshalJSON(data []byte) error {
 	type alias Config
 
-	var a alias
+	var aux alias
 
-	if err := json.Unmarshal(data, &a, json.WithUnmarshalers(durationUnmarshalers)); err != nil {
+	if err := json.Unmarshal(data, &aux, json.WithUnmarshalers(durationUnmarshalers)); err != nil {
 		return fmt.Errorf("unmarshal Config: %w", err)
 	}
 
-	*c = Config(a)
+	*c = Config(aux)
 
 	if c.CodecName != "" {
 		resolved, err := codec.ForEncoding(codec.Encoding(c.CodecName))

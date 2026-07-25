@@ -63,9 +63,9 @@ func TestStore_Seen_CorruptedValue(t *testing.T) {
 	if seen {
 		t.Fatal("expected seen=false for corrupted value")
 	}
-	var ferr errorfamily.Error
+	var ferr *errorfamily.Error
 	if !errors.As(err, &ferr) {
-		t.Fatalf("expected errorfamily.Error, got %T: %v", err, err)
+		t.Fatalf("expected *errorfamily.Error, got %T: %v", err, err)
 	}
 }
 
@@ -137,9 +137,9 @@ func TestStore_CheckAndRecord_CorruptedExisting(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected corruption error")
 	}
-	var ferr errorfamily.Error
+	var ferr *errorfamily.Error
 	if !errors.As(err, &ferr) {
-		t.Fatalf("expected errorfamily.Error, got %T: %v", err, err)
+		t.Fatalf("expected *errorfamily.Error, got %T: %v", err, err)
 	}
 }
 
@@ -154,6 +154,57 @@ func TestStore_CheckAndRecord_RetryOnRace(t *testing.T) {
 	err := store.CheckAndRecord(ctx, "key", time.Minute)
 	if !errors.Is(err, idempotency.ErrDuplicate) {
 		t.Fatalf("expected ErrDuplicate, got %v", err)
+	}
+}
+
+// raceBackend simulates the race condition in CheckAndRecord:
+// After the first SetIfAbsent (which finds the key present), it deletes the key
+// so the subsequent Get returns ErrNotFound, triggering the retry path.
+type raceBackend struct {
+	*kv.MemStore
+	setIfAbsentCalls int
+}
+
+func (r *raceBackend) SetIfAbsent(ctx context.Context, key, val []byte) (bool, error) {
+	r.setIfAbsentCalls++
+	if r.setIfAbsentCalls == 1 {
+		// Pre-seed so the first SetIfAbsent finds a key present.
+		_ = r.MemStore.Set(ctx, key, []byte("1234567890"))
+	}
+	inserted, err := r.MemStore.SetIfAbsent(ctx, key, val)
+	if !inserted && r.setIfAbsentCalls == 1 {
+		// Simulate: another goroutine deletes the key between SetIfAbsent and Get.
+		_ = r.MemStore.Delete(ctx, key)
+	}
+	return inserted, err
+}
+
+func TestStore_CheckAndRecord_RetryOnRace_Succeeds(t *testing.T) {
+	t.Parallel()
+	rb := &raceBackend{MemStore: kv.NewMemStore()}
+	store := kvstore.New(rb)
+	// First call: SetIfAbsent finds key (pre-seeded), Get returns ErrNotFound
+	// (key deleted), retry SetIfAbsent succeeds.
+	err := store.CheckAndRecord(context.Background(), "race-key", time.Minute)
+	if err != nil {
+		t.Fatalf("expected nil from successful retry, got: %v", err)
+	}
+}
+
+func TestStore_CheckAndRecord_GetNonNotFoundError(t *testing.T) {
+	t.Parallel()
+	fb := &faultBackend{
+		MemStore: kv.NewMemStore(),
+	}
+	// Pre-seed the key so SetIfAbsent returns false (triggers Get path).
+	ctx := context.Background()
+	_ = fb.MemStore.Set(ctx, []byte("key"), []byte("1234567890"))
+	// Now inject a Get error that is NOT ErrNotFound.
+	fb.getErr = errors.New("connection lost")
+	store := kvstore.New(fb)
+	err := store.CheckAndRecord(ctx, "key", time.Minute)
+	if err == nil {
+		t.Fatal("expected error from non-NotFound Get failure")
 	}
 }
 
