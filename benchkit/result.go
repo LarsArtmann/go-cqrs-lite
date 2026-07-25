@@ -55,6 +55,38 @@ type Result struct {
 	ProjectionLag    time.Duration `json:"projectionLag"`
 	ProjectionEvents int64         `json:"projectionEvents"`
 
+	// Journey metrics — end-to-end publish→projection→query latency (M14).
+	// JourneyLatency times the full round trip: event Save → projection
+	// materializes → typed query returns the updated value. JourneyQueryLatency
+	// isolates the query-dispatch leg (projection already caught up).
+	// Zero-valued when Config.SkipJourney is true or the bundle lacks
+	// SeekableJournal + CheckpointStore + ReadModels.
+	JourneyLatency      LatencyStats `json:"journeyLatency"`
+	JourneyQueryLatency LatencyStats `json:"journeyQueryLatency"`
+	JourneySamples      int          `json:"journeySamples,omitempty"`
+
+	// Query dispatch metrics — typed query.Dispatcher overhead (M15).
+	// QueryHitLatency: registered handler found and invoked.
+	// QueryMissLatency: unregistered type (handler-not-found error path).
+	// QueryPaginatedLatency: paginated result construction.
+	// Zero-valued when Config.SkipQuery is true or ReadModels is absent.
+	QueryHitLatency        LatencyStats `json:"queryHitLatency"`
+	QueryMissLatency       LatencyStats `json:"queryMissLatency"`
+	QueryPaginatedLatency  LatencyStats `json:"queryPaginatedLatency"`
+	QueryCorrectnessErrors int          `json:"queryCorrectnessErrors,omitempty"`
+
+	// Snapshot/cache metrics — decider Load performance under strategies (M16).
+	// SnapshotColdLatency: full replay, no snapshot, no cache.
+	// SnapshotLoadLatency: snapshot load + delta fold (zero when no SnapshotStore).
+	// CacheMissLatency: first Load (populates cache, full replay).
+	// CacheHitLatency: second Load (cache hit, delta fold of 0 new events).
+	// SnapshotCorrectnessErrors: count of state/version mismatches across strategies.
+	SnapshotColdLatency        LatencyStats `json:"snapshotColdLatency"`
+	SnapshotLoadLatency        LatencyStats `json:"snapshotLoadLatency"`
+	CacheMissLatency           LatencyStats `json:"cacheMissLatency"`
+	CacheHitLatency            LatencyStats `json:"cacheHitLatency"`
+	SnapshotCorrectnessErrors int          `json:"snapshotCorrectnessErrors,omitempty"`
+
 	// Recovery metrics (zero-valued when Config.Recovery is false).
 	// RecoveryTime measures the wall-clock time to close the store,
 	// reopen it via the factory, and load all streams — simulating

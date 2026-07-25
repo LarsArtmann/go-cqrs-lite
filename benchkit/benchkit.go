@@ -97,6 +97,24 @@ type Config struct {
 	// SkipProjections skips the projection phase.
 	SkipProjections bool
 
+	// SkipJourney skips the end-to-end publish→projection→query journey
+	// phase (M14). The journey phase writes single events to fresh streams,
+	// waits for a projection to materialize them, and dispatches typed queries
+	// — measuring full round-trip latency. Skipped automatically when the
+	// bundle lacks SeekableJournal + CheckpointStore + ReadModels.
+	SkipJourney bool
+
+	// SkipQuery skips the typed query dispatch phase (M15). The query phase
+	// benchmarks query.Dispatcher overhead (hit, miss, paginated paths) against
+	// a pre-populated read model. Skipped automatically when ReadModels is absent.
+	SkipQuery bool
+
+	// SkipSnapshot skips the snapshot/cache hit-rate phase (M16). The snapshot
+	// phase measures decider Load performance under cold replay, snapshot load,
+	// and cache-hit strategies with correctness assertions. Skipped automatically
+	// when the bundle's EventSink does not implement event.Store.
+	SkipSnapshot bool
+
 	// SkipRawSink skips the raw prebuilt-event sink phase that isolates
 	// EventSink.Save throughput from event generation/encoding overhead.
 	// When false (default), the runner pre-builds all events, then times
