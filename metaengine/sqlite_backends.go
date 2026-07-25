@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sync"
 	"sync/atomic"
 )
 
@@ -113,9 +114,12 @@ func scanJSONValues(ctx context.Context, db *sql.DB, query string, args ...any) 
 // --- MultimapBackend ---
 
 func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value any) error {
-	seq := e.nextMultiSeq(col)
+	seq, err := e.nextMultiSeq(ctx, col)
+	if err != nil {
+		return err
+	}
 
-	_, err := e.db.ExecContext(
+	_, err = e.db.ExecContext(
 		ctx,
 		e.queries.multiAdd,
 		col,
@@ -131,10 +135,42 @@ func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any
 	return scanJSONValues(ctx, e.db, e.queries.multiGet, col, encodeKey(key))
 }
 
-func (e *sqliteEngine) nextMultiSeq(col string) int64 {
-	actual, _ := e.multiSeq.LoadOrStore(col, &atomic.Int64{})
+// multiSeqCounter is a lazily-initialized sequence counter for a multimap
+// collection. On first use after process start, sync.Once gates a DB read
+// that seeds the counter from MAX(seq), preventing PK collisions with rows
+// persisted by a previous process. All subsequent calls hit the atomic fast
+// path with no DB access.
+type multiSeqCounter struct {
+	once    sync.Once
+	counter atomic.Int64
+	initErr error
+}
 
-	return actual.(*atomic.Int64).Add(1)
+func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, error) {
+	actual, _ := e.multiSeq.LoadOrStore(col, &multiSeqCounter{})
+	c := actual.(*multiSeqCounter)
+
+	c.once.Do(func() {
+		var maxSeq sql.NullInt64
+
+		queryErr := e.db.QueryRowContext(ctx,
+			"SELECT MAX(seq) FROM meta_multimap WHERE collection = ?", col).Scan(&maxSeq)
+		if queryErr != nil {
+			c.initErr = queryErr
+
+			return
+		}
+
+		if maxSeq.Valid {
+			c.counter.Store(maxSeq.Int64)
+		}
+	})
+
+	if c.initErr != nil {
+		return 0, c.initErr //nolint:wrapcheck // passthrough
+	}
+
+	return c.counter.Add(1), nil
 }
 
 // --- LogBackend ---

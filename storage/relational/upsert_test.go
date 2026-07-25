@@ -428,7 +428,8 @@ func TestSinkUpsertCols_FreshInsert(t *testing.T) {
 	var content, author, channel string
 	err = db.QueryRowContext(ctx,
 		"SELECT content, author_id, channel_id FROM messages WHERE id = 'm7'").Scan(
-		&content, &author, &channel)
+		&content, &author, &channel,
+	)
 	if err != nil {
 		t.Fatalf("query: %v", err)
 	}

@@ -18,7 +18,8 @@ type sqliteEngine struct {
 	db      *sql.DB
 	queries sqliteQuerySet
 	// seq counters for multimap and log (SQLite AUTOINCREMENT handles log).
-	multiSeq sync.Map // collection→*atomic.Int64
+	// Lazily seeded from MAX(seq) on first use — see multiSeqCounter.
+	multiSeq sync.Map // collection→*multiSeqCounter
 }
 
 // sqliteQuerySet holds pre-built SQL strings for each operation.
@@ -172,18 +173,40 @@ func (e *sqliteEngine) MapUpdate(
 	key any,
 	update func(prev any) any,
 ) error {
-	prev, exists, err := e.MapGet(ctx, col, key)
+	// Wrap the read-modify-write in a single transaction so concurrent
+	// MapUpdate calls on the same key cannot interleave their reads and
+	// writes (lost-update). The tx pins one connection from the pool; the
+	// SELECT and INSERT commit atomically. This matches the memory engine's
+	// lock-based atomicity as closely as database/sql permits without a
+	// driver-specific BEGIN IMMEDIATE.
+	tx, err := e.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return err //nolint:wrapcheck // passthrough
 	}
 
-	if !exists {
-		prev = nil
+	defer func() { _ = tx.Rollback() }()
+
+	var valStr string
+
+	queryErr := tx.QueryRowContext(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
+
+	var prev any
+
+	if queryErr == nil {
+		if jErr := json.Unmarshal([]byte(valStr), &prev); jErr != nil {
+			prev = valStr
+		}
+	} else if !errors.Is(queryErr, sql.ErrNoRows) {
+		return queryErr //nolint:wrapcheck // passthrough
 	}
 
 	newVal := update(prev)
 
-	return e.MapSet(ctx, col, key, newVal)
+	if _, err := tx.ExecContext(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(newVal)); err != nil {
+		return err //nolint:wrapcheck // passthrough
+	}
+
+	return tx.Commit() //nolint:wrapcheck // passthrough
 }
 
 // --- ScanBackend ---
