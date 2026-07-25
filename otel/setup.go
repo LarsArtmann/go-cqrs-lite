@@ -89,9 +89,9 @@ func (p *Provider) AsMeterProvider() *metric.MeterProvider {
 }
 
 // errShutdown indicates one or more providers failed to shut down cleanly.
-var errShutdown = errors.New("shutdown")
+var errShutdown = errors.New("otel provider shutdown incomplete")
 
-var errBuildResource = errors.New("build resource")
+var errBuildResource = errors.New("failed to build OTel resource")
 
 // Shutdown flushes pending spans and metrics, then releases resources.
 // Always call this on application exit.

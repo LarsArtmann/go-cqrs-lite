@@ -52,9 +52,9 @@ go-cqrs-lite/
 ├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], StreamID, EventID, etc.
 │   └── idtest/          # Parse*(tb, s) test helpers — tb.Fatalf on error, no panics
 ├── metadata/            # Tracing, CustomData[K] (extracted from event/ — shared metadata types for command/query/event)
-├── metaengine/          # Cost-based storage planner: Engine, Store, Plan, 7 ADTs, cost model, SQLite engine (ADR-0047, ADR-0061-0063) — zero production deps in core
-│   └── projectionadapter/ # Projection adapter: wraps metaengine Store as projection.Projection (ADR-0062)
-├── idempotency/         # Dedup store: Store, MemoryStore, ErrDuplicate (dedup for at-least-once delivery) — ZERO module deps beyond go-error-family
+├── metaengine/          # Cost-based storage planner: Engine, Store, Plan, 7 ADTs, cost model, SQLite engine ([ADR-0061](docs/adr/0061-metaengine-sqlite-engine.md), [ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md), [ADR-0063](docs/adr/0063-metaengine-pushdown.md)) — zero production deps in core
+│   └── projectionadapter/ # Projection adapter: wraps metaengine Store as projection.Projection ([ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md))
+├── idempotency/         # Dedup store: Store, MemoryStore, ErrDuplicate (dedup for at-least-once delivery; extraction planned — [ADR-0065](docs/adr/0065-extract-idempotency-module.md)) — ZERO module deps beyond go-error-family
 │   └── kvstore/        # KVStore, KVBackend (KV-backed idempotency — optional subpackage, pulls kv/)
 │   └── sqlstore/       # SQLStore: NewSQLiteStore/NewPostgresStore (INSERT ON CONFLICT DO NOTHING, TTL sweep)
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
@@ -89,7 +89,7 @@ go-cqrs-lite/
 ├── kv/                  # Layer-0 KV store abstraction: Store, MemStore, Iterator, Batch. PLUS TypedStore[T,K], Cache[T,K], ViewStore[V,K] interface, ViewQuery, ViewQuerier, TombstoneQuerier
 ├── testutil/            # Shared test helpers: NewCmd(tb, ...) (cross-module test utilities)
 ├── dedup/               # Bounded dedup ring buffer: Ring, DefaultCapacity (O(1) fixed-capacity ID dedup for stream boundaries)
-├── retry/               # Zero-dep retry with exponential backoff+jitter: Do, Config, Backoff, ErrExhausted, ErrCanceled (standalone — no CQRS/OTel deps)
+├── retry/               # Zero-dep retry with exponential backoff+jitter: Do, Config, Backoff, ErrExhausted, ErrCanceled (standalone — no CQRS/OTel deps; extraction planned — [ADR-0064](docs/adr/0064-extract-retry-module.md))
 ├── scenario/            # Fluent BDD test DSL: Given/When/Then + ThenError/ThenState for deciders, GivenProjection/ThenNoError for projections (framework gap A5)
 ├── cmd/cqrs-gen/        # Code generator: typed handler registration from Go structs
 ├── cmd/cqrs-lint/       # Domain-aware linter: 60 rules across 6 categories (correctness, API misuse, boilerplate, consistency, architecture, security). Built on go-finding + cmdguard. CLI: struct-tag flags, config file (.cqrs-lint.json), --min-confidence, --health-score, --verbose, --color, SARIF/JSON/markdown output. Feature profile system: auto-detects which go-cqrs-lite modules a consumer uses (store, command-flow, server, soft-delete, tracing, snapshot) and adapts context-dependent rules. `cqrs-lint doctor` prints the detected profile. Config presets (local-cli, production, library, read-only) as sugar over feature flags

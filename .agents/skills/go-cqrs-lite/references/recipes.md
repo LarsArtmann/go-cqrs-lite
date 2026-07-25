@@ -532,3 +532,24 @@ if errors.Is(err, retry.ErrExhausted) {
     // all attempts failed
 }
 ```
+
+### 2.13 Scaling Out — NATS Transport & Parquet Journal (design docs)
+
+The library ships no opinionated broker or columnar store (principle #1: "library,
+not framework"), but design studies exist for two common scale-out backends. Read
+these before wiring NATS JetStream or a Parquet-backed event journal — they cover
+the integration shape, ordering guarantees, and materialization strategies.
+
+- **NATS JetStream transport** — [`docs/design/transport-nats.md`](../../../../docs/design/transport-nats.md)
+  (design) and [`docs/planning/nats-transport-design.md`](../../../../docs/planning/nats-transport-design.md)
+  (implementation plan). Use when you need cross-process command/event distribution
+  beyond the in-process bus and the Postgres LISTEN/NOTIFY bridge.
+- **Parquet event journal + DuckDB materializations** —
+  [`docs/planning/parquet-journal-design.md`](../../../../docs/planning/parquet-journal-design.md)
+  and [`docs/research/archive/2026-07-11_PARQUET_JOURNAL_DUCKDB_MATERIALIZATIONS.md`](../../../../docs/research/archive/2026-07-11_PARQUET_JOURNAL_DUCKDB_MATERIALIZATIONS.md).
+  Use for analytical read models over large immutable event logs (columnar scans
+  instead of row-by-row replay).
+
+> These are design-stage documents, not released modules. They describe how a
+> consumer would compose the existing store/bus/projection interfaces against
+> these backends.
