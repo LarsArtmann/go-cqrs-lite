@@ -155,7 +155,7 @@ func (r *runner) journeyPhase(ctx context.Context) error {
 
 	r.result.JourneyLatency = journeyColl.Stats()
 	r.result.JourneyQueryLatency = queryColl.Stats()
-	r.result.JourneySamples = int(journeyColl.Count)
+	r.result.JourneySamples = int(r.result.JourneyLatency.Count)
 	r.result.QueryCorrectnessErrors += correctnessErrors
 
 	return nil

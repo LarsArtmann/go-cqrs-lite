@@ -5,13 +5,17 @@ go 1.26.4
 require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.9.0
@@ -36,6 +40,10 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/pgx/v5 v5.10.0 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -44,8 +52,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.1.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
@@ -73,6 +79,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	golang.org/x/exp v0.0.0-20260718201538-764159d718ef // indirect
+	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect

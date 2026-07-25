@@ -107,6 +107,10 @@ func runCmd(args []string) {
 	)
 	cpuprofile := fs.String("cpuprofile", "", "Write CPU profile to file")
 	memprofile := fs.String("memprofile", "", "Write heap profile to file")
+	soak := fs.Duration(
+		"soak", 0,
+		"Run in soak mode for the given duration (e.g. 5m, 1h). Repeats the workload and reports leak/degradation trends",
+	)
 	_ = fs.Parse(args)
 
 	if *cpuprofile != "" {
@@ -163,8 +167,24 @@ func runCmd(args []string) {
 		config.PayloadSizes = sizes
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), max(30*time.Minute, *soak*2))
 	defer cancel()
+
+	if *soak > 0 {
+		soakResult, err := benchkit.RunSoak(ctx, benchkit.SoakConfig{
+			Duration:        *soak,
+			ReportInterval:  10 * time.Second,
+			ProgressWriter:  os.Stderr,
+			Config:          config,
+		}, factory)
+		if err != nil {
+			fatalf("soak test failed: %v", err)
+		}
+
+		writeSoakResult(*bf.format, *bf.output, soakResult)
+
+		return
+	}
 
 	result, err := benchkit.Run(ctx, config, factory)
 	if err != nil {
