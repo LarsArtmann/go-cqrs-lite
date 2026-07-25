@@ -329,3 +329,164 @@ func TestSinkUpsertExpr_EmptyExprsDoesNothing(t *testing.T) {
 		t.Fatalf("empty setExprs should do nothing, got %q", content)
 	}
 }
+
+func TestSinkUpsertExpr_BoundArgs(t *testing.T) {
+	t.Parallel()
+
+	db, ctx := openRelationalCtx(t)
+
+	schema := discordSchema()
+
+	insertHandler := func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
+		return sink.Upsert(ctx, "messages", Row{
+			"id":         "m6",
+			"channel_id": "c1",
+			"guild_id":   "g1",
+			"author_id":  "u1",
+			"content":    "hello",
+			"created_at": "2026-01-01T00:00:00Z",
+		})
+	}
+
+	proj, err := NewRelationalProjection("upsert-expr-args", schema, db, sqlpkg.SQLiteDialect{},
+		insertHandler, nil)
+	if err != nil {
+		t.Fatalf("new projection: %v", err)
+	}
+
+	if err := proj.Handle(ctx, newEvent(t, "Create", nil)); err != nil {
+		t.Fatalf("handle create: %v", err)
+	}
+
+	suffixHandler := func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
+		return sink.UpsertExpr(ctx, "messages", Row{
+			"id":         "m6",
+			"channel_id": "c1",
+			"guild_id":   "g1",
+			"author_id":  "u1",
+			"content":    "ignored-on-conflict",
+			"created_at": "2026-01-01T00:00:00Z",
+		}, []SetExpr{{
+			Column: "content",
+			Expr:   "messages.content || ?",
+			Args:   []any{" world"},
+		}})
+	}
+
+	proj2, err := NewRelationalProjection("upsert-expr-args2", schema, db, sqlpkg.SQLiteDialect{},
+		suffixHandler, nil)
+	if err != nil {
+		t.Fatalf("new projection2: %v", err)
+	}
+
+	if err := proj2.Handle(ctx, newEvent(t, "Append", nil)); err != nil {
+		t.Fatalf("handle append: %v", err)
+	}
+
+	var content string
+	err = db.QueryRowContext(ctx, "SELECT content FROM messages WHERE id = 'm6'").Scan(&content)
+	if err != nil {
+		t.Fatalf("query: %v", err)
+	}
+
+	if content != "hello world" {
+		t.Fatalf("bound-arg expression should append ' world' to 'hello', got %q", content)
+	}
+}
+
+func TestSinkUpsertCols_FreshInsert(t *testing.T) {
+	t.Parallel()
+
+	db, ctx := openRelationalCtx(t)
+
+	schema := discordSchema()
+
+	// UpsertCols on a row that does not exist yet: the INSERT path runs and
+	// writes ALL provided columns, regardless of updateCols (which only
+	// governs the ON CONFLICT DO UPDATE branch).
+	freshHandler := func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
+		return sink.UpsertCols(ctx, "messages", Row{
+			"id":         "m7",
+			"channel_id": "c1",
+			"guild_id":   "g1",
+			"author_id":  "u1",
+			"content":    "fresh-insert",
+			"created_at": "2026-01-01T00:00:00Z",
+		}, []string{"content"})
+	}
+
+	proj, err := NewRelationalProjection("upsert-cols-fresh", schema, db, sqlpkg.SQLiteDialect{},
+		freshHandler, nil)
+	if err != nil {
+		t.Fatalf("new projection: %v", err)
+	}
+
+	if err := proj.Handle(ctx, newEvent(t, "Create", nil)); err != nil {
+		t.Fatalf("handle create: %v", err)
+	}
+
+	var content, author, channel string
+	err = db.QueryRowContext(ctx,
+		"SELECT content, author_id, channel_id FROM messages WHERE id = 'm7'").Scan(
+		&content, &author, &channel)
+	if err != nil {
+		t.Fatalf("query: %v", err)
+	}
+
+	if content != "fresh-insert" {
+		t.Fatalf("fresh insert should write content, got %q", content)
+	}
+
+	if author != "u1" {
+		t.Fatalf("fresh insert should write author_id even though not in updateCols, got %q", author)
+	}
+
+	if channel != "c1" {
+		t.Fatalf("fresh insert should write channel_id, got %q", channel)
+	}
+}
+
+func TestSinkUpsertExpr_FreshInsert(t *testing.T) {
+	t.Parallel()
+
+	db, ctx := openRelationalCtx(t)
+
+	schema := discordSchema()
+
+	// UpsertExpr on a row that does not exist yet: the INSERT path runs and
+	// writes ALL provided columns; SetExprs are only evaluated on conflict.
+	freshHandler := func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
+		return sink.UpsertExpr(ctx, "messages", Row{
+			"id":         "m8",
+			"channel_id": "c1",
+			"guild_id":   "g1",
+			"author_id":  "u1",
+			"content":    "fresh-expr-insert",
+			"created_at": "2026-01-01T00:00:00Z",
+		}, []SetExpr{{
+			Column: "content",
+			Expr:   "messages.content || ?",
+			Args:   []any{" should-not-apply"},
+		}})
+	}
+
+	proj, err := NewRelationalProjection("upsert-expr-fresh", schema, db, sqlpkg.SQLiteDialect{},
+		freshHandler, nil)
+	if err != nil {
+		t.Fatalf("new projection: %v", err)
+	}
+
+	if err := proj.Handle(ctx, newEvent(t, "Create", nil)); err != nil {
+		t.Fatalf("handle create: %v", err)
+	}
+
+	var content string
+	err = db.QueryRowContext(ctx, "SELECT content FROM messages WHERE id = 'm8'").Scan(&content)
+	if err != nil {
+		t.Fatalf("query: %v", err)
+	}
+
+	if content != "fresh-expr-insert" {
+		t.Fatalf("fresh insert should write provided content, not apply SetExpr, got %q", content)
+	}
+}

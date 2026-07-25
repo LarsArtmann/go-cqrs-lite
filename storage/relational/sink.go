@@ -23,6 +23,11 @@ import (
 // domain logic.
 type Row map[string]any
 
+// conflictDoNothing is the ON CONFLICT clause emitted when an upsert has no
+// update set (empty updateCols / setExprs). Extracted as a constant to satisfy
+// goconst across the Upsert / UpsertCols / UpsertExpr implementations.
+const conflictDoNothing = "DO NOTHING"
+
 // ProjectionSink is a transactional, dialect-agnostic write context passed to
 // relational projection handlers. All writes performed through a sink during a
 // single [RelationalProjection.Handle] call commit atomically — if the handler
@@ -176,12 +181,12 @@ func (s *sqlSink) Upsert(ctx context.Context, table string, row Row, conflictCol
 		conflictCols = s.conflictTarget(table)
 	}
 
-	nonConflict, _ := partitionColumns(cols, conflictCols)
+	nonConflict := partitionColumns(cols, conflictCols)
 
 	setClause := excludedSet(nonConflict)
 	pholders := placeholders(s.dialect, len(cols))
 
-	onConflict := "DO NOTHING"
+	onConflict := conflictDoNothing
 	if setClause != "" {
 		onConflict = "DO UPDATE SET " + setClause
 	}

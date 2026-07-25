@@ -12,24 +12,22 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
-func partitionColumns(all, subset []string) ([]string, []string) {
+func partitionColumns(all, subset []string) []string {
 	subsetSet := make(map[string]struct{}, len(subset))
 
 	for _, c := range subset {
 		subsetSet[c] = struct{}{}
 	}
 
-	var nonSubset, isSubset []string
+	var nonSubset []string
 
 	for _, c := range all {
-		if _, ok := subsetSet[c]; ok {
-			isSubset = append(isSubset, c)
-		} else {
+		if _, ok := subsetSet[c]; !ok {
 			nonSubset = append(nonSubset, c)
 		}
 	}
 
-	return nonSubset, isSubset
+	return nonSubset
 }
 
 func excludedSet(cols []string) string {

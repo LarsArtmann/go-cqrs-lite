@@ -104,7 +104,7 @@ func (s *sqlSink) UpsertCols(
 		conflictCols = s.conflictTarget(table)
 	}
 
-	nonConflict, _ := partitionColumns(cols, conflictCols)
+	nonConflict := partitionColumns(cols, conflictCols)
 
 	var targetCols []string
 	if len(updateCols) > 0 {
@@ -123,7 +123,7 @@ func (s *sqlSink) UpsertCols(
 	setClause := excludedSet(targetCols)
 	pholders := placeholders(s.dialect, len(cols))
 
-	onConflict := "DO NOTHING"
+	onConflict := conflictDoNothing
 	if setClause != "" {
 		onConflict = "DO UPDATE SET " + setClause
 	}
@@ -169,7 +169,7 @@ func (s *sqlSink) UpsertExpr(
 		colSet[c.Name] = struct{}{}
 	}
 
-	onConflict := "DO NOTHING"
+	onConflict := conflictDoNothing
 	var args []any
 	args = append(args, vals...)
 

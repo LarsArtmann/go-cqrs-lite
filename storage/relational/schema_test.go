@@ -50,8 +50,8 @@ func TestRelationalColumn_Default(t *testing.T) {
 				t.Fatalf("DDL missing %q:\n%s", tt.wantExpr, ddl)
 			}
 
-			if strings.Contains(ddl, "DEFAULT DEFAULT") {
-				t.Fatalf("double DEFAULT in DDL:\n%s", ddl)
+			if strings.Count(ddl, "DEFAULT") > 1 {
+				t.Fatalf("multiple DEFAULT clauses in DDL:\n%s", ddl)
 			}
 		})
 	}
@@ -273,7 +273,8 @@ func TestRelationalTable_IndexSpec_DDL(t *testing.T) {
 
 	for _, idx := range tbl.Indexes {
 		var name string
-		err := db.QueryRow(
+		err := db.QueryRowContext(
+			context.Background(),
 			"SELECT name FROM sqlite_master WHERE type='index' AND name=?",
 			idx.Name,
 		).Scan(&name)
@@ -310,18 +311,20 @@ func TestRelationalTable_UniqueSpec_DDL(t *testing.T) {
 	}
 	defer func() { _ = db.Close() }()
 
-	if _, err := db.Exec(tbl.DDL()); err != nil {
+	if _, err := db.ExecContext(context.Background(), tbl.DDL()); err != nil {
 		t.Fatalf("create table with composite unique: %v", err)
 	}
 
-	_, err = db.Exec(
+	_, err = db.ExecContext(
+		context.Background(),
 		"INSERT INTO reactions (id, message_id, user_id, emoji) VALUES ('1', 'm1', 'u1', '👍')",
 	)
 	if err != nil {
 		t.Fatalf("first insert: %v", err)
 	}
 
-	_, err = db.Exec(
+	_, err = db.ExecContext(
+		context.Background(),
 		"INSERT INTO reactions (id, message_id, user_id, emoji) VALUES ('2', 'm1', 'u1', '👍')",
 	)
 	if err == nil {
@@ -422,7 +425,8 @@ func TestRelationalSchema_Migrate_CreatesIndexesAfterTables(t *testing.T) {
 	}
 
 	var count int
-	err = db.QueryRow(
+	err = db.QueryRowContext(
+		context.Background(),
 		"SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='idx_channels_guild'",
 	).Scan(&count)
 	if err != nil {
