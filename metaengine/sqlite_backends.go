@@ -153,7 +153,7 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 	// Query is DESC; reverse the result for chronological order.
 	fwd, err := scanJSONValues(ctx, e.db, e.queries.logTail, col, limit)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	slices.Reverse(fwd)
