@@ -230,10 +230,14 @@ func compareCmd(args []string) {
 	}
 
 	config := benchkit.Config{
-		Profile:     profile,
-		PayloadSize: *bf.payloadSize,
-		Codec:       codec,
-		Repeat:      *bf.repeat,
+		Profile:      profile,
+		PayloadSize:  *bf.payloadSize,
+		Codec:        codec,
+		Repeat:       *bf.repeat,
+		SkipRawSink:  *bf.skipRawSink,
+		SkipJourney:  *bf.skipJourney,
+		SkipQuery:    *bf.skipQuery,
+		SkipSnapshot: *bf.skipSnapshot,
 	}
 
 	if sizes, err := parsePayloadSizes(*bf.payloadSizes); err != nil {

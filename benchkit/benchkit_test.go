@@ -1772,6 +1772,86 @@ func TestWriteJSON_EnvironmentRoundTrip(t *testing.T) {
 	}
 }
 
+func TestWriteJSON_NewPhasesRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	original := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	// Verify the new phases actually ran (non-zero counts).
+	if original.JourneyLatency.Count == 0 {
+		t.Fatal("JourneyLatency.Count == 0 — journey phase did not run on memory backend")
+	}
+
+	if original.QueryHitLatency.Count == 0 {
+		t.Fatal("QueryHitLatency.Count == 0 — query phase did not run on memory backend")
+	}
+
+	if original.SnapshotColdLatency.Count == 0 {
+		t.Fatal("SnapshotColdLatency.Count == 0 — snapshot phase did not run on memory backend")
+	}
+
+	var buf bytes.Buffer
+	if err := WriteJSON(&buf, original); err != nil {
+		t.Fatalf("WriteJSON: %v", err)
+	}
+
+	var decoded Result
+	if err := json.Unmarshal(buf.Bytes(), &decoded, jsonOpts); err != nil {
+		t.Fatalf("json.Unmarshal: %v", err)
+	}
+
+	// Verify journey metrics round-trip.
+	checkLatencyRoundTrip(t, "JourneyLatency", original.JourneyLatency, decoded.JourneyLatency)
+	checkLatencyRoundTrip(t, "JourneyProjectionLatency", original.JourneyProjectionLatency, decoded.JourneyProjectionLatency)
+	checkLatencyRoundTrip(t, "JourneyQueryLatency", original.JourneyQueryLatency, decoded.JourneyQueryLatency)
+
+	if decoded.JourneySamples != original.JourneySamples {
+		t.Errorf("JourneySamples: got %d, want %d", decoded.JourneySamples, original.JourneySamples)
+	}
+
+	// Verify query dispatch metrics round-trip.
+	checkLatencyRoundTrip(t, "QueryHitLatency", original.QueryHitLatency, decoded.QueryHitLatency)
+	checkLatencyRoundTrip(t, "QueryMissLatency", original.QueryMissLatency, decoded.QueryMissLatency)
+	checkLatencyRoundTrip(t, "QueryPaginatedLatency", original.QueryPaginatedLatency, decoded.QueryPaginatedLatency)
+
+	// Verify snapshot/cache metrics round-trip.
+	checkLatencyRoundTrip(t, "SnapshotColdLatency", original.SnapshotColdLatency, decoded.SnapshotColdLatency)
+	checkLatencyRoundTrip(t, "SnapshotLoadLatency", original.SnapshotLoadLatency, decoded.SnapshotLoadLatency)
+	checkLatencyRoundTrip(t, "CacheMissLatency", original.CacheMissLatency, decoded.CacheMissLatency)
+	checkLatencyRoundTrip(t, "CacheHitLatency", original.CacheHitLatency, decoded.CacheHitLatency)
+
+	// Verify the ordering invariant: cache hit should be faster than cold replay.
+	if original.CacheHitLatency.P50 > 0 && original.SnapshotColdLatency.P50 > 0 &&
+		original.CacheHitLatency.P50 >= original.SnapshotColdLatency.P50 {
+		t.Errorf("performance invariant violated: CacheHit P50 (%s) >= ColdReplay P50 (%s)",
+			original.CacheHitLatency.P50, original.SnapshotColdLatency.P50)
+	}
+}
+
+// checkLatencyRoundTrip verifies that a LatencyStats survives JSON round-trip.
+func checkLatencyRoundTrip(t *testing.T, name string, want, got LatencyStats) {
+	t.Helper()
+
+	if got.Count != want.Count {
+		t.Errorf("%s.Count: got %d, want %d", name, got.Count, want.Count)
+	}
+
+	if got.P50 != want.P50 {
+		t.Errorf("%s.P50: got %s, want %s", name, got.P50, want.P50)
+	}
+
+	if got.P99 != want.P99 {
+		t.Errorf("%s.P99: got %s, want %s", name, got.P99, want.P99)
+	}
+
+	if got.Mean != want.Mean {
+		t.Errorf("%s.Mean: got %s, want %s", name, got.Mean, want.Mean)
+	}
+}
+
 func TestPrintComparison_RawSinkColumns(t *testing.T) {
 	t.Parallel()
 
