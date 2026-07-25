@@ -215,4 +215,3 @@ func (m *memoryEngine) MapScan(
 
 	return results, nil
 }
-
