@@ -51,7 +51,7 @@ type sqliteQuerySet struct {
 
 func defaultSQLiteQueries() sqliteQuerySet {
 	return sqliteQuerySet{
-	ddl: `CREATE TABLE IF NOT EXISTS meta_map (
+		ddl: `CREATE TABLE IF NOT EXISTS meta_map (
 		collection TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL,
 		PRIMARY KEY (collection, key)
 	);
@@ -76,19 +76,19 @@ func defaultSQLiteQueries() sqliteQuerySet {
 	);
 	CREATE INDEX IF NOT EXISTS idx_graph_from ON meta_graph_edges(collection, from_node);
 	CREATE INDEX IF NOT EXISTS idx_graph_to ON meta_graph_edges(collection, to_node);`,
-	mapSet:           `INSERT OR REPLACE INTO meta_map (collection, key, value) VALUES (?, ?, ?)`,
-	mapGet:           `SELECT value FROM meta_map WHERE collection = ? AND key = ?`,
-	mapDelete:        `DELETE FROM meta_map WHERE collection = ? AND key = ?`,
-	setAdd:           `INSERT OR IGNORE INTO meta_set (collection, key) VALUES (?, ?)`,
-	setContains:      `SELECT 1 FROM meta_set WHERE collection = ? AND key = ?`,
-	counterIncrement: `INSERT INTO meta_counter (collection, key, value) VALUES (?, ?, ?) ON CONFLICT(collection, key) DO UPDATE SET value = value + excluded.value`,
-	counterGet:       `SELECT key, value FROM meta_counter WHERE collection = ?`,
-	multiAdd:         `INSERT INTO meta_multimap (collection, key, seq, value) VALUES (?, ?, ?, ?)`,
-	multiGet:         `SELECT value FROM meta_multimap WHERE collection = ? AND key = ? ORDER BY seq`,
-	logAppend:        `INSERT INTO meta_log (collection, value) VALUES (?, ?)`,
-	logTail:          `SELECT value FROM meta_log WHERE collection = ? ORDER BY id DESC LIMIT ?`,
-	graphAddEdge:     `INSERT INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
-	graphNeighbors:   `WITH RECURSIVE bfs(depth, node) AS (SELECT 0, ? UNION ALL SELECT bfs.depth + 1, e.to_node FROM meta_graph_edges e JOIN bfs ON e.from_node = bfs.node AND e.collection = ? WHERE bfs.depth < ?) SELECT DISTINCT node FROM bfs WHERE node != ?`,
+		mapSet:           `INSERT OR REPLACE INTO meta_map (collection, key, value) VALUES (?, ?, ?)`,
+		mapGet:           `SELECT value FROM meta_map WHERE collection = ? AND key = ?`,
+		mapDelete:        `DELETE FROM meta_map WHERE collection = ? AND key = ?`,
+		setAdd:           `INSERT OR IGNORE INTO meta_set (collection, key) VALUES (?, ?)`,
+		setContains:      `SELECT 1 FROM meta_set WHERE collection = ? AND key = ?`,
+		counterIncrement: `INSERT INTO meta_counter (collection, key, value) VALUES (?, ?, ?) ON CONFLICT(collection, key) DO UPDATE SET value = value + excluded.value`,
+		counterGet:       `SELECT key, value FROM meta_counter WHERE collection = ?`,
+		multiAdd:         `INSERT INTO meta_multimap (collection, key, seq, value) VALUES (?, ?, ?, ?)`,
+		multiGet:         `SELECT value FROM meta_multimap WHERE collection = ? AND key = ? ORDER BY seq`,
+		logAppend:        `INSERT INTO meta_log (collection, value) VALUES (?, ?)`,
+		logTail:          `SELECT value FROM meta_log WHERE collection = ? ORDER BY id DESC LIMIT ?`,
+		graphAddEdge:     `INSERT INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
+		graphNeighbors:   `WITH RECURSIVE bfs(depth, node) AS (SELECT 0, ? UNION ALL SELECT bfs.depth + 1, e.to_node FROM meta_graph_edges e JOIN bfs ON e.from_node = bfs.node AND e.collection = ? WHERE bfs.depth < ?) SELECT DISTINCT node FROM bfs WHERE node != ?`,
 	}
 }
 
@@ -198,7 +198,7 @@ func (e *sqliteEngine) MapScan(
 	cursor any,
 	limit int,
 ) ([]any, error) {
-	rows, err := e.db.QueryContext(ctx,`SELECT value FROM meta_map WHERE collection = ?`, col)
+	rows, err := e.db.QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -320,7 +320,7 @@ func (e *sqliteEngine) CounterIncrement(ctx context.Context, col string, deltas 
 }
 
 func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.db.QueryContext(ctx,e.queries.counterGet, col)
+	rows, err := e.db.QueryContext(ctx, e.queries.counterGet, col)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -349,13 +349,20 @@ func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]i
 func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value any) error {
 	seq := e.nextMultiSeq(col)
 
-	_, err := e.db.ExecContext(ctx, e.queries.multiAdd, col, encodeKey(key), seq, encodeValue(value))
+	_, err := e.db.ExecContext(
+		ctx,
+		e.queries.multiAdd,
+		col,
+		encodeKey(key),
+		seq,
+		encodeValue(value),
+	)
 
 	return err //nolint:wrapcheck // passthrough
 }
 
 func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any, error) {
-	rows, err := e.db.QueryContext(ctx,e.queries.multiGet, col, encodeKey(key))
+	rows, err := e.db.QueryContext(ctx, e.queries.multiGet, col, encodeKey(key))
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -402,7 +409,7 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 		limit = -1
 	}
 
-	rows, err := e.db.QueryContext(ctx,e.queries.logTail, col, limit)
+	rows, err := e.db.QueryContext(ctx, e.queries.logTail, col, limit)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -479,14 +486,14 @@ func (e *sqliteEngine) GraphNeighbors(
 
 				visited[toKey] = true
 
-				var to any
+				var neighbor any
 
-				if jErr := json.Unmarshal([]byte(toKey), &to); jErr != nil {
-					to = toKey
+				if jErr := json.Unmarshal([]byte(toKey), &neighbor); jErr != nil {
+					neighbor = toKey
 				}
 
-				result = append(result, to)
-				next = append(next, to)
+				result = append(result, neighbor)
+				next = append(next, neighbor)
 			}
 		}
 
@@ -499,8 +506,12 @@ func (e *sqliteEngine) GraphNeighbors(
 // scanNeighborKeys returns the raw to_node keys for a single from-node. Extracted
 // from GraphNeighbors so rows.Close is handled by defer (sqlclosecheck) rather
 // than manual close calls inside a loop.
-func (e *sqliteEngine) scanNeighborKeys(ctx context.Context, col, fromKey string) ([]string, error) {
-	rows, err := e.db.QueryContext(ctx,
+func (e *sqliteEngine) scanNeighborKeys(
+	ctx context.Context,
+	col, fromKey string,
+) ([]string, error) {
+	rows, err := e.db.QueryContext(
+		ctx,
 		`SELECT to_node FROM meta_graph_edges WHERE collection = ? AND from_node = ?`,
 		col, fromKey,
 	)

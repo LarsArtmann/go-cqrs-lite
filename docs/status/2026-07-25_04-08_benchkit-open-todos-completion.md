@@ -13,6 +13,7 @@
 **What:** `Config.Recovery` enables a recovery phase that closes the bundle, reopens it via the factory, and reloads all streams to measure crash-recovery replay time.
 
 **Files changed:**
+
 - `benchkit/benchkit.go` — `Config.Recovery` field, `Result.RecoveryTime` + `Result.RecoveredEvents` fields
 - `benchkit/runner.go` — `recoveryPhase()` call in `run()`, `recoveryPhase()` method
 - `benchkit/phases.go` — `recoveryPhase()` implementation (close, factory reopen, load all streams)
@@ -27,6 +28,7 @@
 **What:** `Config.ReplayOnly` skips the write phase and benchmarks read/projection performance against an existing store with real data. The runner discovers streams from the Journal or SeekableJournal.
 
 **Files changed:**
+
 - `benchkit/benchkit.go` — `Config.ReplayOnly` field
 - `benchkit/runner.go` — `discoverStreams()` method, conditional write skip in `run()`, modified `setup()` for replay validation
 - `cmd/cqrs-bench/main.go` — `--replay` CLI flag
@@ -39,6 +41,7 @@
 **What:** `benchkit.RunSuite(b *testing.B, config, factory)` wraps the full benchkit benchmark into Go's standard `testing.B` framework with `b.ReportMetric` for custom metrics.
 
 **Files changed:**
+
 - `benchkit/benchtest.go` (new) — `RunSuite` function reporting throughput, write/load latency percentiles, journal scan time, projection events, recovery time
 - `stack/bench/benchkit_suite_test.go` (new) — 3 benchmarks: `BenchmarkBenchkitSuite_Memory`, `BenchmarkBenchkitSuite_SQLite`, `BenchmarkBenchkitSuite_Pebble`
 
@@ -49,6 +52,7 @@
 **What:** `ProfileAnalytical` profile (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans` field for multi-pass journal scanning.
 
 **Files changed:**
+
 - `benchkit/profiles.go` — `JournalScans` field on `Profile`, `ProfileAnalytical` var, `ProfileByName` case
 - `benchkit/phases.go` — `runJournalScans` loops `JournalScans` times
 - `cmd/cqrs-bench/main.go` — CLI help text updated
@@ -61,6 +65,7 @@
 **What:** `postgres` backend added to `cqrs-bench` CLI. Benchkit tests skip without `POSTGRES_TEST_DSN`.
 
 **Files changed:**
+
 - `cmd/cqrs-bench/main.go` — `postgres` case in `makeFactory`, import of `stack/postgres/v4`, CLI help text
 - `benchkit/benchkit_test.go` — 2 tests: `TestRun_Postgres`, `TestRun_Postgres_Recovery` (both skip without DSN)
 - `benchkit/go.mod` — `stack/postgres/v4` added as direct dependency
@@ -72,6 +77,7 @@
 **What:** Replaced the no-op projection handler with `newKVCountingProjection` that does Get+Set per event on `bundle.ReadModels` (kv.Store). Falls back to atomic counter when no kv.Store is available.
 
 **Files changed:**
+
 - `benchkit/phases.go` — `newCountingProjection`, `newKVCountingProjection` functions, `errors`/`encoding/binary`/`kv` imports
 - `benchkit/go.mod` — `kv/v4` promoted to direct dependency
 - `benchkit/benchkit_test.go` — `TestRun_ProjectionWithKVStore`
@@ -83,6 +89,7 @@
 **What:** `TestRun_DurationAborts` failed with `kv.ErrNotFound` because the read model phase's Get phase ran after a partial Set phase (interrupted by Duration timeout). Fixed by checking `ctx.Err()` between Set and Get phases.
 
 **File changed:**
+
 - `benchkit/phases.go` — `readModelPhase` now checks `ctx.Err()` after Set phase, skips Get if cancelled
 
 **Verification:** `TestRun_DurationAborts` passes consistently with `-race` in full suite.
@@ -90,6 +97,7 @@
 ### 8. Documentation updates ✅
 
 **Files changed:**
+
 - `TODO_LIST.md` — All 6 completed items moved from "Open" to "Done", only tag remains open
 - `benchkit/README.md` — CLI section updated with `--recovery`, `--replay`, `postgres` examples; profiles table updated with `Analytical`; metrics section updated with recovery + projection kv.Store; new "Testing.B integration" section
 - `docs/status/2026-07-24_20-15_benchkit-hardening-completion.md` — Open items table updated with completion status
@@ -229,37 +237,37 @@ I edited `docs/status/2026-07-24_20-15_benchkit-hardening-completion.md` in plac
 
 ## Verification Gates
 
-| Gate | Result |
-| --- | --- |
-| `go test -race ./benchkit/...` | ✅ PASS (86 tests, 30s) |
-| `go test -race ./cmd/cqrs-bench/...` | ✅ PASS (12 tests, 5s) |
-| `go test ./stack/bench/...` | ✅ PASS (no tests to run, benchmarks exist) |
-| `go vet` | ✅ PASS |
-| `gofmt -l` | ✅ PASS (0 unformatted) |
-| `go build` | ✅ PASS |
-| Test count | 86 benchkit + 12 CLI = 98 (up from 93) |
-| `nix run .#lint` | ⏳ NOT RUN |
-| `nix run .#verify` | ⏳ NOT RUN |
-| `nix fmt` | ⏳ NOT RUN |
-| `cmd/doc-check` | ⏳ NOT RUN |
+| Gate                                 | Result                                      |
+| ------------------------------------ | ------------------------------------------- |
+| `go test -race ./benchkit/...`       | ✅ PASS (86 tests, 30s)                     |
+| `go test -race ./cmd/cqrs-bench/...` | ✅ PASS (12 tests, 5s)                      |
+| `go test ./stack/bench/...`          | ✅ PASS (no tests to run, benchmarks exist) |
+| `go vet`                             | ✅ PASS                                     |
+| `gofmt -l`                           | ✅ PASS (0 unformatted)                     |
+| `go build`                           | ✅ PASS                                     |
+| Test count                           | 86 benchkit + 12 CLI = 98 (up from 93)      |
+| `nix run .#lint`                     | ⏳ NOT RUN                                  |
+| `nix run .#verify`                   | ⏳ NOT RUN                                  |
+| `nix fmt`                            | ⏳ NOT RUN                                  |
+| `cmd/doc-check`                      | ⏳ NOT RUN                                  |
 
 ---
 
 ## Files Changed This Session
 
-| File | Lines | What |
-| --- | ---: | --- |
-| `benchkit/benchkit.go` | 368 | `Config.Recovery`, `Config.ReplayOnly`, `Result.RecoveryTime/RecoveredEvents` |
-| `benchkit/phases.go` | 589 | `recoveryPhase`, `newCountingProjection`, `newKVCountingProjection`, `readModelPhase` fix, `runJournalScans` multi-pass |
-| `benchkit/profiles.go` | 124 | `Profile.JournalScans`, `ProfileAnalytical`, `ProfileByName` |
-| `benchkit/runner.go` | 435 | `discoverStreams`, `ReplayOnly` setup, recovery call, `fmt` import |
-| `benchkit/report.go` | 347 | Recovery section in `PrintReport` |
-| `benchkit/benchtest.go` | 67 | `RunSuite` function (new file) |
-| `benchkit/benchkit_test.go` | 2042 | 12 new tests (recovery, replay, analytical, postgres, projection kv) |
-| `benchkit/go.mod` | — | `kv/v4` + `stack/postgres/v4` as direct deps |
-| `cmd/cqrs-bench/main.go` | 590 | `--recovery`, `--replay`, postgres backend, CLI help |
-| `stack/bench/benchkit_suite_test.go` | 58 | 3 `RunSuite` benchmarks (new file) |
-| `stack/bench/go.mod` | — | `benchkit/v4` + `stack/memory/sqlite/pebble/v4` as direct deps |
-| `TODO_LIST.md` | — | 6 items moved from Open to Done |
-| `benchkit/README.md` | — | CLI examples, profiles table, metrics, testing.B section |
-| `docs/status/2026-07-24_20-15_benchkit-hardening-completion.md` | — | Open items updated |
+| File                                                            | Lines | What                                                                                                                    |
+| --------------------------------------------------------------- | ----: | ----------------------------------------------------------------------------------------------------------------------- |
+| `benchkit/benchkit.go`                                          |   368 | `Config.Recovery`, `Config.ReplayOnly`, `Result.RecoveryTime/RecoveredEvents`                                           |
+| `benchkit/phases.go`                                            |   589 | `recoveryPhase`, `newCountingProjection`, `newKVCountingProjection`, `readModelPhase` fix, `runJournalScans` multi-pass |
+| `benchkit/profiles.go`                                          |   124 | `Profile.JournalScans`, `ProfileAnalytical`, `ProfileByName`                                                            |
+| `benchkit/runner.go`                                            |   435 | `discoverStreams`, `ReplayOnly` setup, recovery call, `fmt` import                                                      |
+| `benchkit/report.go`                                            |   347 | Recovery section in `PrintReport`                                                                                       |
+| `benchkit/benchtest.go`                                         |    67 | `RunSuite` function (new file)                                                                                          |
+| `benchkit/benchkit_test.go`                                     |  2042 | 12 new tests (recovery, replay, analytical, postgres, projection kv)                                                    |
+| `benchkit/go.mod`                                               |     — | `kv/v4` + `stack/postgres/v4` as direct deps                                                                            |
+| `cmd/cqrs-bench/main.go`                                        |   590 | `--recovery`, `--replay`, postgres backend, CLI help                                                                    |
+| `stack/bench/benchkit_suite_test.go`                            |    58 | 3 `RunSuite` benchmarks (new file)                                                                                      |
+| `stack/bench/go.mod`                                            |     — | `benchkit/v4` + `stack/memory/sqlite/pebble/v4` as direct deps                                                          |
+| `TODO_LIST.md`                                                  |     — | 6 items moved from Open to Done                                                                                         |
+| `benchkit/README.md`                                            |     — | CLI examples, profiles table, metrics, testing.B section                                                                |
+| `docs/status/2026-07-24_20-15_benchkit-hardening-completion.md` |     — | Open items updated                                                                                                      |

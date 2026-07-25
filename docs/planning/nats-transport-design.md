@@ -211,16 +211,16 @@ defer host.Stop()
 
 ## Topic Mapping Summary
 
-| CQRS Concept        | JetStream Mapping                          |
-| ------------------- | ------------------------------------------ |
-| `event.Type`        | `event_type` metadata field on message     |
-| `command.Type`      | `command_type` metadata field on message   |
-| `event.EventID`     | `message.UUID` (NATS MsgId for dedup)      |
-| Event bus topic     | Subject `cqrs.events`, Stream `EVENTS`     |
-| Command bus topic   | Subject `cqrs.commands`, Stream `COMMANDS` |
-| Tracing             | W3C `traceparent` in message metadata       |
-| Codec (CBOR/JSON)   | `payload_encoding` metadata field           |
-| Tombstone           | `tombstone_status` metadata field           |
+| CQRS Concept      | JetStream Mapping                          |
+| ----------------- | ------------------------------------------ |
+| `event.Type`      | `event_type` metadata field on message     |
+| `command.Type`    | `command_type` metadata field on message   |
+| `event.EventID`   | `message.UUID` (NATS MsgId for dedup)      |
+| Event bus topic   | Subject `cqrs.events`, Stream `EVENTS`     |
+| Command bus topic | Subject `cqrs.commands`, Stream `COMMANDS` |
+| Tracing           | W3C `traceparent` in message metadata      |
+| Codec (CBOR/JSON) | `payload_encoding` metadata field          |
+| Tombstone         | `tombstone_status` metadata field          |
 
 ## JetStream-to-CatchUpSubscriber Interaction
 
@@ -251,28 +251,29 @@ Time ─────────────────────────
 
 **Key:** JetStream's durable consumer provides native at-least-once + offset
 persistence. The `CatchUpSubscriber` adds:
+
 - Cross-source dedup (events in both DB replay and JetStream live)
 - Checkpoint persistence (projection-name keyed, survives restarts)
 - Processing mode tagging (replay vs live in context)
 
 ## Error Handling
 
-| Scenario                  | Behavior                                           |
-| ------------------------- | -------------------------------------------------- |
-| NATS connection lost      | `natswatermill.Subscriber` auto-reconnects (built-in) |
-| JetStream stream full     | Publish returns error; bus middleware can retry      |
-| Consumer max deliveries   | JetStream advisory; app routes to DLQ               |
-| Poison message            | `projectionhost.WithDeadLetterStore` catches it     |
-| Replay checkpoint gap     | `CatchUpSubscriber` replays from last checkpoint    |
+| Scenario                | Behavior                                              |
+| ----------------------- | ----------------------------------------------------- |
+| NATS connection lost    | `natswatermill.Subscriber` auto-reconnects (built-in) |
+| JetStream stream full   | Publish returns error; bus middleware can retry       |
+| Consumer max deliveries | JetStream advisory; app routes to DLQ                 |
+| Poison message          | `projectionhost.WithDeadLetterStore` catches it       |
+| Replay checkpoint gap   | `CatchUpSubscriber` replays from last checkpoint      |
 
 ## When to Use Native JetStream Replay vs CatchUpSubscriber
 
-| Scenario                              | Recommendation                          |
-| ------------------------------------- | --------------------------------------- |
-| Event store IS JetStream (KV or stream) | Native `DeliverAll` + durable consumer  |
-| Event store is SQL/Pebble DB          | `CatchUpSubscriber` (DB is authoritative) |
-| Multi-projection, same events         | One durable consumer + `CatchUpSubscriber` |
-| Exactly-once required                 | Neither — use idempotency keys + `CheckAndRecord` |
+| Scenario                                | Recommendation                                    |
+| --------------------------------------- | ------------------------------------------------- |
+| Event store IS JetStream (KV or stream) | Native `DeliverAll` + durable consumer            |
+| Event store is SQL/Pebble DB            | `CatchUpSubscriber` (DB is authoritative)         |
+| Multi-projection, same events           | One durable consumer + `CatchUpSubscriber`        |
+| Exactly-once required                   | Neither — use idempotency keys + `CheckAndRecord` |
 
 ## Dependencies
 

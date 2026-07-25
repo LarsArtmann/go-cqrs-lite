@@ -123,8 +123,8 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 			return nil
 		}
 
-		if mb, ok := q.engine.(MapBackend); ok {
-			prev, exists, err := mb.MapGet(ctx, col, key)
+		if mapBackend, ok := q.engine.(MapBackend); ok {
+			prev, exists, err := mapBackend.MapGet(ctx, col, key)
 			if err != nil {
 				return fmt.Errorf("map get %s: %w", col, err)
 			}
@@ -136,7 +136,7 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 
 			updated := fold.callUpdate(payload, prevVal)
 
-			if err := mb.MapSet(ctx, col, key, updated); err != nil {
+			if err := mapBackend.MapSet(ctx, col, key, updated); err != nil {
 				return fmt.Errorf("map set %s: %w", col, err)
 			}
 

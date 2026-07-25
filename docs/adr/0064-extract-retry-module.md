@@ -1,12 +1,12 @@
 # ADR-0064: Extract `retry/` into Standalone `go-retry` Repository
 
-| Field    | Value                                                                                              |
-| -------- | -------------------------------------------------------------------------------------------------- |
-| Status   | Proposed                                                                                           |
-| Date     | 2026-07-25                                                                                         |
-| Deciders | Lars Artmann                                                                                       |
-| Related  | ADR-0046 (seven-tier model), ROADMAP (module extraction), `retry/README.md`                        |
-| Supersedes | —                                                                                                |
+| Field      | Value                                                                       |
+| ---------- | --------------------------------------------------------------------------- |
+| Status     | Proposed                                                                    |
+| Date       | 2026-07-25                                                                  |
+| Deciders   | Lars Artmann                                                                |
+| Related    | ADR-0046 (seven-tier model), ROADMAP (module extraction), `retry/README.md` |
+| Supersedes | —                                                                           |
 
 ## Context
 
@@ -38,31 +38,31 @@ Total: 217 source + 351 test = 568 lines.
 
 ### Dependencies
 
-| Dependency             | Type     | Notes                                    |
-| ---------------------- | -------- | ---------------------------------------- |
-| `go-error-family`      | Prod     | `ErrExhausted`, `ErrCanceled` use `NewInfrastructure` |
-| `onsi/ginkgo/v2`       | Test     | BDD test framework                       |
-| `onsi/gomega`          | Test     | Match library                            |
+| Dependency        | Type | Notes                                                 |
+| ----------------- | ---- | ----------------------------------------------------- |
+| `go-error-family` | Prod | `ErrExhausted`, `ErrCanceled` use `NewInfrastructure` |
+| `onsi/ginkgo/v2`  | Test | BDD test framework                                    |
+| `onsi/gomega`     | Test | Match library                                         |
 
 ### Public API (must be preserved)
 
-| Symbol                              | Type      |
-| ----------------------------------- | --------- |
-| `Do(ctx, config, fn) error`         | Function  |
-| `Backoff(config, attempt) Duration` | Function  |
+| Symbol                                               | Type     |
+| ---------------------------------------------------- | -------- |
+| `Do(ctx, config, fn) error`                          | Function |
+| `Backoff(config, attempt) Duration`                  | Function |
 | `ComputeDelay(initial, max, mult, attempt) Duration` | Function |
-| `DefaultConfig() Config`            | Function  |
-| `Config.Validate() error`           | Method    |
-| `Config` struct                     | Type      |
-| `AttemptFunc` type                  | Type      |
-| `ErrExhausted`                      | Sentinel  |
-| `ErrCanceled`                       | Sentinel  |
+| `DefaultConfig() Config`                             | Function |
+| `Config.Validate() error`                            | Method   |
+| `Config` struct                                      | Type     |
+| `AttemptFunc` type                                   | Type     |
+| `ErrExhausted`                                       | Sentinel |
+| `ErrCanceled`                                        | Sentinel |
 
 ### Internal Consumers
 
-| Consumer              | File                       | Import alias           |
-| --------------------- | -------------------------- | ---------------------- |
-| `middleware/`         | `middleware/retry.go:15`   | `retrypkg "retry/v4"`  |
+| Consumer      | File                     | Import alias          |
+| ------------- | ------------------------ | --------------------- |
+| `middleware/` | `middleware/retry.go:15` | `retrypkg "retry/v4"` |
 
 Single consumer. The `middleware` package wraps `retry.Do` as
 `middleware.Retry()` and `middleware.RetryWithConfig()`.
@@ -172,17 +172,20 @@ stability.
 ## Consequences
 
 **Positive:**
+
 - `go-retry` becomes independently consumable by non-CQRS projects
 - Monorepo module count decreases by 1 (if re-export alias replaces source)
 - Clear ownership boundary: retry logic is its own project
 - `go-retry` can evolve its own release cadence independent of CQRS
 
 **Negative:**
+
 - Two repos to maintain instead of one (mitigated by re-export alias)
 - `go-cqrs-lite/retry/` becomes a thin wrapper (217 LOC → ~40 LOC of aliases)
 - Slight indirection cost: consumers reading `retry.Do` must trace through alias
 
 **Neutral:**
+
 - `middleware` package continues to work unchanged (re-export preserves types)
 - CI continues testing `retry/v4` (the alias module is in testModules)
 

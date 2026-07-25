@@ -1,12 +1,12 @@
 # ADR-0065: Extract `idempotency/` into Standalone `go-idempotency` Repository
 
-| Field    | Value                                                                                              |
-| -------- | -------------------------------------------------------------------------------------------------- |
-| Status   | Proposed                                                                                           |
-| Date     | 2026-07-25                                                                                         |
-| Deciders | Lars Artmann                                                                                       |
-| Related  | ADR-0046 (seven-tier model), ADR-0064 (retry extraction), ROADMAP (module extraction)              |
-| Supersedes | —                                                                                                |
+| Field      | Value                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------- |
+| Status     | Proposed                                                                              |
+| Date       | 2026-07-25                                                                            |
+| Deciders   | Lars Artmann                                                                          |
+| Related    | ADR-0046 (seven-tier model), ADR-0064 (retry extraction), ROADMAP (module extraction) |
+| Supersedes | —                                                                                     |
 
 ## Context
 
@@ -45,50 +45,50 @@ Total: 553 source + 657 test = 1,210 lines across 3 Go modules.
 
 ### Dependencies
 
-| Module               | Prod Deps                          | Test Deps              |
-| -------------------- | ---------------------------------- | ---------------------- |
-| `idempotency/v4`     | `go-error-family`                  | ginkgo, gomega         |
-| `idempotency/kvstore/v4` | `idempotency/v4`, `kv/v4`, `go-error-family` | ginkgo, gomega |
-| `idempotency/sqlstore/v4` | `idempotency/v4`, `go-error-family`, `modernc.org/sqlite` | — |
+| Module                    | Prod Deps                                                 | Test Deps      |
+| ------------------------- | --------------------------------------------------------- | -------------- |
+| `idempotency/v4`          | `go-error-family`                                         | ginkgo, gomega |
+| `idempotency/kvstore/v4`  | `idempotency/v4`, `kv/v4`, `go-error-family`              | ginkgo, gomega |
+| `idempotency/sqlstore/v4` | `idempotency/v4`, `go-error-family`, `modernc.org/sqlite` | —              |
 
 ### Public API (must be preserved)
 
 **Core package:**
 
-| Symbol                                            | Type      |
-| ------------------------------------------------- | --------- |
-| `Store` interface (`Seen`, `Record`, `CheckAndRecord`) | Type   |
-| `ErrDuplicate`                                    | Sentinel  |
-| `MemoryStore` struct                              | Type      |
-| `NewMemoryStore(sweepInterval) *MemoryStore`      | Function  |
+| Symbol                                                 | Type     |
+| ------------------------------------------------------ | -------- |
+| `Store` interface (`Seen`, `Record`, `CheckAndRecord`) | Type     |
+| `ErrDuplicate`                                         | Sentinel |
+| `MemoryStore` struct                                   | Type     |
+| `NewMemoryStore(sweepInterval) *MemoryStore`           | Function |
 
 **Subpackage `kvstore`:**
 
-| Symbol                  | Type      |
-| ----------------------- | --------- |
-| `KVBackend` interface   | Type      |
-| `Store` struct          | Type      |
-| `New(backend) *Store`   | Function  |
+| Symbol                | Type     |
+| --------------------- | -------- |
+| `KVBackend` interface | Type     |
+| `Store` struct        | Type     |
+| `New(backend) *Store` | Function |
 
 **Subpackage `sqlstore`:**
 
-| Symbol                              | Type      |
-| ----------------------------------- | --------- |
+| Symbol                                         | Type        |
+| ---------------------------------------------- | ----------- |
 | `Dialect` (`DialectSQLite`, `DialectPostgres`) | Type/Consts |
-| `Store` struct                      | Type      |
-| `NewSQLiteStore(ctx, db) (*Store, error)`  | Function |
-| `NewPostgresStore(ctx, db) (*Store, error)` | Function |
-| `(*Store).Sweep(ctx) (int64, error)`       | Method   |
+| `Store` struct                                 | Type        |
+| `NewSQLiteStore(ctx, db) (*Store, error)`      | Function    |
+| `NewPostgresStore(ctx, db) (*Store, error)`    | Function    |
+| `(*Store).Sweep(ctx) (int64, error)`           | Method      |
 
 ### Internal Consumers
 
-| Consumer              | Files                                                    |
-| --------------------- | -------------------------------------------------------- |
-| `middleware/`         | `middleware/idempotency.go` + 3 test files               |
-| `example/taskmanager/`| `setup.go`, `features.go`, `idempotency_test.go`         |
-| `integration/`        | `idempotency_test.go`                                    |
-| `idempotency/kvstore/`| Depends on parent `idempotency/v4`                       |
-| `idempotency/sqlstore/`| Depends on parent `idempotency/v4`                      |
+| Consumer                | Files                                            |
+| ----------------------- | ------------------------------------------------ |
+| `middleware/`           | `middleware/idempotency.go` + 3 test files       |
+| `example/taskmanager/`  | `setup.go`, `features.go`, `idempotency_test.go` |
+| `integration/`          | `idempotency_test.go`                            |
+| `idempotency/kvstore/`  | Depends on parent `idempotency/v4`               |
+| `idempotency/sqlstore/` | Depends on parent `idempotency/v4`               |
 
 ## Decision
 
@@ -154,12 +154,12 @@ paths and types. The `middleware` package continues to use
 
 ### Tagging
 
-| Repo                                | Tag      | Notes                                |
-| ----------------------------------- | -------- | ------------------------------------ |
-| `go-idempotency` (core)             | `v1.0.0` | Stable, 3-method Store interface     |
-| `go-idempotency/kvstore`            | `v1.0.0` | KV-backed backend                    |
-| `go-idempotency/sqlstore`           | `v1.0.0` | SQL-backed backend (SQLite + PG)     |
-| `go-cqrs-lite/idempotency/v4`       | `v4.2.0` | Minor bump (re-export)               |
+| Repo                          | Tag      | Notes                            |
+| ----------------------------- | -------- | -------------------------------- |
+| `go-idempotency` (core)       | `v1.0.0` | Stable, 3-method Store interface |
+| `go-idempotency/kvstore`      | `v1.0.0` | KV-backed backend                |
+| `go-idempotency/sqlstore`     | `v1.0.0` | SQL-backed backend (SQLite + PG) |
+| `go-cqrs-lite/idempotency/v4` | `v4.2.0` | Minor bump (re-export)           |
 
 ## Alternatives Considered
 
@@ -198,12 +198,14 @@ and consolidate later if desired.
 ## Consequences
 
 **Positive:**
+
 - `go-idempotency` becomes independently consumable by any at-least-once delivery system
 - Clear ownership boundary: idempotency dedup is its own project
 - The `sqlstore` backend (SQL dedup) gets its own release cadence
 - Monorepo shrinks by 3 modules (core + 2 backends become thin aliases)
 
 **Negative:**
+
 - Three repos to maintain instead of one (mitigated by re-export aliases)
 - `kvstore` cross-depends on `go-cqrs-lite/kv/v4` — a cross-repo dependency that
   couples the two repos at this one point. If `kv/v4` breaks, `go-idempotency/kvstore`
@@ -211,6 +213,7 @@ and consolidate later if desired.
 - `go-cqrs-lite/idempotency/` becomes a thin wrapper (~30 LOC of aliases)
 
 **Neutral:**
+
 - All 4 internal consumers continue to work unchanged
 - CI continues testing `idempotency/v4` + subpackages (they're in testModules)
 

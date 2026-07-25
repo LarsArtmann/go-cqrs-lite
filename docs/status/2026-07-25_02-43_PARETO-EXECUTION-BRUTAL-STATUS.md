@@ -8,52 +8,52 @@
 
 ## a) FULLY DONE — Completed this session
 
-| Task  | What was done | Verification |
-| ----- | ------------- | ------------ |
-| **M10** | Projection adapter moved to `metaengine/projectionadapter/` subpackage (zero-dep core preserved). `Store.EventTypes() []string` added to public API. Adapter wraps Store as `projection.Projection`. Integration test with `projectionhost.Host` written (2 tests: lifecycle integration + name/types). | `go test -race` PASS (2 tests) |
-| **M11** | Cost model calibrated. `EngineProfile.NsPerOp` field added. `estimateCost()` signature takes per-engine ns/op. Benchmark suite: `BenchmarkCalibration_MapSet` (466ns), `MapGet` (21ns), `SQLiteSet` (6548ns), `SQLiteGet` (4960ns). Constants `MemoryNsPerOp=500`, `SQLiteNsPerOp=7000`. | `go test -bench` ran, `go test -race` PASS (126 specs) |
-| **M12** | Pushdown ADR written: `docs/adr/0063-metaengine-pushdown.md`. Decision: Phase 1 keep in-memory closures + add `PushdownScan` interface seam (zero breaking change). Phase 2 deferred: declarative `FilterSpec`/`SortSpec` when production SQL engine needed. | ADR file written, no code changes |
-| **M13** | Dependency decision ADR: `docs/adr/0062-metaengine-dependency-boundary.md`. Decision: subpackage approach. Alternatives A/B/C considered and rejected. | ADR file written |
-| **Dep fix** | `metaengine/go.mod` reverted to zero-dep (removed event/v4, projection/v4). `projectionadapter/` has its own go.mod with workspace-local replace directives. `go.work` updated. GOWORK=off builds verified for both modules. | `GOWORK=off go build ./...` PASS for both |
+| Task        | What was done                                                                                                                                                                                                                                                                                           | Verification                                           |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **M10**     | Projection adapter moved to `metaengine/projectionadapter/` subpackage (zero-dep core preserved). `Store.EventTypes() []string` added to public API. Adapter wraps Store as `projection.Projection`. Integration test with `projectionhost.Host` written (2 tests: lifecycle integration + name/types). | `go test -race` PASS (2 tests)                         |
+| **M11**     | Cost model calibrated. `EngineProfile.NsPerOp` field added. `estimateCost()` signature takes per-engine ns/op. Benchmark suite: `BenchmarkCalibration_MapSet` (466ns), `MapGet` (21ns), `SQLiteSet` (6548ns), `SQLiteGet` (4960ns). Constants `MemoryNsPerOp=500`, `SQLiteNsPerOp=7000`.                | `go test -bench` ran, `go test -race` PASS (126 specs) |
+| **M12**     | Pushdown ADR written: `docs/adr/0063-metaengine-pushdown.md`. Decision: Phase 1 keep in-memory closures + add `PushdownScan` interface seam (zero breaking change). Phase 2 deferred: declarative `FilterSpec`/`SortSpec` when production SQL engine needed.                                            | ADR file written, no code changes                      |
+| **M13**     | Dependency decision ADR: `docs/adr/0062-metaengine-dependency-boundary.md`. Decision: subpackage approach. Alternatives A/B/C considered and rejected.                                                                                                                                                  | ADR file written                                       |
+| **Dep fix** | `metaengine/go.mod` reverted to zero-dep (removed event/v4, projection/v4). `projectionadapter/` has its own go.mod with workspace-local replace directives. `go.work` updated. GOWORK=off builds verified for both modules.                                                                            | `GOWORK=off go build ./...` PASS for both              |
 
 ### Cumulative plan progress (including prior sessions)
 
-| Task | Status |
-| ---- | ------ |
-| M01 — Benchkit API stability audit | DONE (prior session) |
+| Task                                                | Status               |
+| --------------------------------------------------- | -------------------- |
+| M01 — Benchkit API stability audit                  | DONE (prior session) |
 | M02 — Tag benchkit/v4.0.0 + cqrs-bench + quickstart | DONE (prior session) |
-| M03 — Consistency model doc | DONE (prior session) |
-| M04 — SQL-backed idempotency.Store | DONE (prior session) |
-| M05 — WaitForVersion helper | DONE (prior session) |
-| M06 — WithMaxStaleness / CheckStaleness | DONE (prior session) |
-| M07 — Metaengine SQLite engine design ADR | DONE (prior session) |
-| M08 — SQLite engine implementation | DONE (prior session) |
-| M09 — SQLite engine BDD specs | DONE (prior session) |
-| M10 — Projection adapter + integration test | DONE (this session) |
-| M11 — Cost model calibration | DONE (this session) |
-| M12 — FilterOn/SortOn pushdown ADR | DONE (this session) |
-| M13 — event/ dependency decision | DONE (this session) |
+| M03 — Consistency model doc                         | DONE (prior session) |
+| M04 — SQL-backed idempotency.Store                  | DONE (prior session) |
+| M05 — WaitForVersion helper                         | DONE (prior session) |
+| M06 — WithMaxStaleness / CheckStaleness             | DONE (prior session) |
+| M07 — Metaengine SQLite engine design ADR           | DONE (prior session) |
+| M08 — SQLite engine implementation                  | DONE (prior session) |
+| M09 — SQLite engine BDD specs                       | DONE (prior session) |
+| M10 — Projection adapter + integration test         | DONE (this session)  |
+| M11 — Cost model calibration                        | DONE (this session)  |
+| M12 — FilterOn/SortOn pushdown ADR                  | DONE (this session)  |
+| M13 — event/ dependency decision                    | DONE (this session)  |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Task | Status | What's missing |
-| ---- | ------ | -------------- |
-| **M14** — Extract retry/ → go-retry | NOT STARTED | Todo was set to `in_progress` but zero work was done. No ADR, no repo skeleton. |
-| **M15** — Extract idempotency/ → go-idempotency | NOT STARTED | Same — todo was batched with M14, nothing written. |
+| Task                                            | Status      | What's missing                                                                  |
+| ----------------------------------------------- | ----------- | ------------------------------------------------------------------------------- |
+| **M14** — Extract retry/ → go-retry             | NOT STARTED | Todo was set to `in_progress` but zero work was done. No ADR, no repo skeleton. |
+| **M15** — Extract idempotency/ → go-idempotency | NOT STARTED | Same — todo was batched with M14, nothing written.                              |
 
 ---
 
 ## c) NOT STARTED
 
-| Task | Notes |
-| ---- | ----- |
-| **M16** — NATS transport design doc | Deferred (Tier 4) |
-| **M17** — Parquet journal design doc | Deferred (Tier 4) |
+| Task                                                | Notes                                    |
+| --------------------------------------------------- | ---------------------------------------- |
+| **M16** — NATS transport design doc                 | Deferred (Tier 4)                        |
+| **M17** — Parquet journal design doc                | Deferred (Tier 4)                        |
 | **M18** — Update AGENTS.md + SKILL.md + FEATURES.md | 7 new features shipped, zero doc updates |
-| **M19** — Full quality gate (`nix run .#verify`) | NEVER RUN (critical gap, see below) |
-| **M20** — Release notes + CHANGELOG | Not started |
+| **M19** — Full quality gate (`nix run .#verify`)    | NEVER RUN (critical gap, see below)      |
+| **M20** — Release notes + CHANGELOG                 | Not started                              |
 
 ---
 
@@ -106,6 +106,7 @@ v4.1.0 tag chain is resolved.
 
 I had 4 failed `multiedit` calls this session because I didn't read the files
 carefully enough before editing:
+
 - First attempt to write projectionadapter go.mod: used wrong replace syntax
 - Integration test: used `store.Execute(struct{}{})` without understanding the
   query input type must match the declared `Query[Q, R]` type parameter
@@ -120,6 +121,7 @@ in `projectionhost/host_test.go` more carefully BEFORE writing.
 The auto-commit hook fired and created 11 commits for what should have been
 3-4 logical commits. The commit messages are auto-generated and don't follow
 the project's conventional-commit style. Examples:
+
 - `de712fd7 feat(metaengine): add projection adapter for building event-driven projections`
 - `9bea92aa chore(metaengine/projectionadapter): add new Go module for projection adapter`
 - `20b91399 feat(metaengine): add projection adapter with isolated dependency boundary`
@@ -280,6 +282,7 @@ known limitation.
 The auto-commit hook created 11 messy commits (`de712fd7` through
 `bafcafd5`) for what should be 3-4 logical changes. The project rules ban
 `git rebase -i` (interactive flag) and `git reset`. Should I:
+
 - (a) Leave the messy history and push as-is
 - (b) Use `git rebase` non-interactively to squash (risky without -i)
 - (c) Create a new clean branch and cherry-pick logical groups
@@ -298,6 +301,7 @@ added, and the pushdown interface (ADR-0063) is designed but not implemented.
 The published `event/v4.1.0` tag's go.mod references `codec/v4.0.4`,
 `id/v4.0.3`, `metadata/v4.0.2`, and `schema/v4.0.3` — none of which exist as
 git tags. Options:
+
 - (a) Tag each missing version at the commit where its go.mod last referenced
   those versions (requires git archaeology)
 - (b) Force-move the event/v4.1.0 tag to the current HEAD (destructive, breaks

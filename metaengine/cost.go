@@ -167,7 +167,12 @@ func effectiveReadComplexity(readPattern ReadPattern, adtComplexity Complexity) 
 		if adtComplexity == ComplexityO1 {
 			return ComplexityON
 		}
-	case ReadPointLookup, ReadMembership, ReadAggregate, ReadTraversal, ReadMultiLookup, ReadLogTail:
+	case ReadPointLookup,
+		ReadMembership,
+		ReadAggregate,
+		ReadTraversal,
+		ReadMultiLookup,
+		ReadLogTail:
 		// Point/membership/aggregate/traversal/multi/log reads do not degrade the
 		// ADT-level complexity — only scans force a full collection walk.
 	}

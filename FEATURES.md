@@ -113,19 +113,19 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/decider/v4"`
 
-| Feature              | Detail                                                                                           | Status |
-| -------------------- | ------------------------------------------------------------------------------------------------ | ------ |
-| Decider[State]       | `{Initial State; Fold func(State, Event) (State, error)}` — pure-function event-sourcing pattern | ✅     |
-| Repository[State]    | `NewRepository[State](store, publisher, decider, opts...)` — manages stream lifecycle            | ✅     |
-| Execute              | `Repository.Execute(ctx, streamID, streamType, decide)` — load → decide → save → publish         | ✅     |
-| Load                 | `Repository.Load(ctx, streamID, streamType)` — returns `(State, Version, error)`                 | ✅     |
-| LoadAtVersion        | `Repository.LoadAtVersion(ctx, streamID, streamType, maxVersion)` — time-travel to version       | ✅     |
-| LoadAtTime           | `Repository.LoadAtTime(ctx, streamID, streamType, maxTime)` — time-travel to timestamp           | ✅     |
-| Snapshot integration | `WithSnapshotStore` + `WithSnapshotStrategy` + `WithCodec` — automatic snapshot optimization     | ✅     |
-| Hot-state cache      | `WithStateCache` + `NewStateCache[State](capacity)` — LRU cache, incremental loads (7.4x faster) | ✅     |
-| Load coalescing      | `WithLoadCoalescing` — singleflight dedup of concurrent Loads for same stream                    | ✅     |
-| Context enrichment   | `WithEnricher` — injects metadata from context into events                                       | ✅     |
-| OTel tracing         | OpenTelemetry spans for load/save/execute operations (opt-in)                                    | ✅     |
+| Feature              | Detail                                                                                                 | Status |
+| -------------------- | ------------------------------------------------------------------------------------------------------ | ------ |
+| Decider[State]       | `{Initial State; Fold func(State, Event) (State, error)}` — pure-function event-sourcing pattern       | ✅     |
+| Repository[State]    | `NewRepository[State](store, publisher, decider, opts...)` — manages stream lifecycle                  | ✅     |
+| Execute              | `Repository.Execute(ctx, streamID, streamType, decide)` — load → decide → save → publish               | ✅     |
+| Load                 | `Repository.Load(ctx, streamID, streamType)` — returns `(State, Version, error)`                       | ✅     |
+| LoadAtVersion        | `Repository.LoadAtVersion(ctx, streamID, streamType, maxVersion)` — time-travel to version             | ✅     |
+| LoadAtTime           | `Repository.LoadAtTime(ctx, streamID, streamType, maxTime)` — time-travel to timestamp                 | ✅     |
+| Snapshot integration | `WithSnapshotStore` + `WithSnapshotStrategy` + `WithCodec` — automatic snapshot optimization           | ✅     |
+| Hot-state cache      | `WithStateCache` + `NewStateCache[State](capacity)` — LRU cache, incremental loads (7.4x faster)       | ✅     |
+| Load coalescing      | `WithLoadCoalescing` — singleflight dedup of concurrent Loads for same stream                          | ✅     |
+| Context enrichment   | `WithEnricher` — injects metadata from context into events                                             | ✅     |
+| OTel tracing         | OpenTelemetry spans for load/save/execute operations (opt-in)                                          | ✅     |
 | WaitForVersion       | `WaitForVersion(ctx, store, streamID, version, opts)` — read-your-writes helper, polls LoadFromVersion | ✅     |
 
 **Sentinel errors:** `ErrNilStore`, `ErrNilPublisher`, `ErrNilFold`, `ErrLoadFailed`, `ErrFoldFailed`, `ErrSaveFailed`, `ErrIncompleteSnapshotConfig`
@@ -161,18 +161,18 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/idempotency/v4"`
 
-| Feature         | Detail                                                                                                        | Status |
-| --------------- | ------------------------------------------------------------------------------------------------------------- | ------ |
-| Store interface | `Store`: `Seen`, `Record`, `CheckAndRecord` — dedup opaque keys (command idempotency keys)                    | ✅     |
-| MemoryStore     | `MemoryStore` — in-memory TTL store with background sweep + lazy deletion                                     | ✅     |
-| Atomic dedup    | `CheckAndRecord` — single-lock check+record prevents the TOCTOU race (exactly one winner)                     | ✅     |
-| TTL expiration  | Keys expire after a configurable duration; removed by sweeper and lazily on read                              | ✅     |
-| ErrDuplicate    | Conflict sentinel returned when a key is already recorded (maps to HTTP 409)                                  | ✅     |
-| Generic factory | `middleware.NewIdempotency[M]` — generic dedup factory for any message type                                   | ✅     |
-| Command dedup   | `middleware.CommandIdempotency(store, ttl, keyFn)` — defaults to `cmd.ID().String()` when keyFn is nil        | ✅     |
-| Event dedup     | `middleware.EventIdempotency(store, ttl, keyFn)` — defaults to `evt.ID().String()` when keyFn is nil          | ✅     |
-| Query dedup     | `middleware.QueryIdempotency(store, ttl, keyFn)` — panics if keyFn is nil (queries have no built-in identity) | ✅     |
-| KVStore         | `idempotency/kvstore` — persistent dedup backed by any `kv.Store`                                             | ✅     |
+| Feature         | Detail                                                                                                          | Status |
+| --------------- | --------------------------------------------------------------------------------------------------------------- | ------ |
+| Store interface | `Store`: `Seen`, `Record`, `CheckAndRecord` — dedup opaque keys (command idempotency keys)                      | ✅     |
+| MemoryStore     | `MemoryStore` — in-memory TTL store with background sweep + lazy deletion                                       | ✅     |
+| Atomic dedup    | `CheckAndRecord` — single-lock check+record prevents the TOCTOU race (exactly one winner)                       | ✅     |
+| TTL expiration  | Keys expire after a configurable duration; removed by sweeper and lazily on read                                | ✅     |
+| ErrDuplicate    | Conflict sentinel returned when a key is already recorded (maps to HTTP 409)                                    | ✅     |
+| Generic factory | `middleware.NewIdempotency[M]` — generic dedup factory for any message type                                     | ✅     |
+| Command dedup   | `middleware.CommandIdempotency(store, ttl, keyFn)` — defaults to `cmd.ID().String()` when keyFn is nil          | ✅     |
+| Event dedup     | `middleware.EventIdempotency(store, ttl, keyFn)` — defaults to `evt.ID().String()` when keyFn is nil            | ✅     |
+| Query dedup     | `middleware.QueryIdempotency(store, ttl, keyFn)` — panics if keyFn is nil (queries have no built-in identity)   | ✅     |
+| KVStore         | `idempotency/kvstore` — persistent dedup backed by any `kv.Store`                                               | ✅     |
 | SQLStore        | `idempotency/sqlstore` — `NewSQLiteStore` / `NewPostgresStore` with `INSERT ON CONFLICT DO NOTHING` + TTL sweep | ✅     |
 
 **Sentinel errors:** `ErrDuplicate` (Conflict)
@@ -226,11 +226,11 @@ developer never declares "I need a Map" or "I need a Counter."
 | Collection results         | Reconstructs typed result collections by field shape from scan output                                      | 🧪     |
 | Context.Context            | All backend interfaces accept `context.Context`                                                            | 🧪     |
 | Compile-time assertions    | Interface conformance verified at compile time for all 9 backends                                          | 🧪     |
-| Zero dependencies          | Core `metaengine/v4` has zero production deps; adapter module is separate                                   | 🧪     |
-| SQLite engine              | `SQLiteEngine` wrapping `storage/view.SQLViewStore` — first production backend (ADR-0061)                 | 🧪     |
-| Projection adapter         | `metaengine/projectionadapter` implements `projection.Projection` for `projectionhost.Host` (ADR-0062)    | 🧪     |
+| Zero dependencies          | Core `metaengine/v4` has zero production deps; adapter module is separate                                  | 🧪     |
+| SQLite engine              | `SQLiteEngine` wrapping `storage/view.SQLViewStore` — first production backend (ADR-0061)                  | 🧪     |
+| Projection adapter         | `metaengine/projectionadapter` implements `projection.Projection` for `projectionhost.Host` (ADR-0062)     | 🧪     |
 | Cost calibration           | `EngineProfile.NsPerOp` — per-engine calibrated cost (Memory=500ns, SQLite=7000ns) replaces arbitrary 100  | 🧪     |
-| Store.EventTypes()         | Returns sorted unique event types from registered queries — enables adapter event routing                 | 🧪     |
+| Store.EventTypes()         | Returns sorted unique event types from registered queries — enables adapter event routing                  | 🧪     |
 
 **Coverage:** 87.7% (174 BDD specs). SQLite engine + projection adapter added via
 the Pareto execution plan. Cost model calibrated with real benchmarks. Pushdown
@@ -1038,62 +1038,62 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 > 56 independently importable modules in `go.work` (56 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
-| Module                      | Import Path                   | Maturity                                                                  |
-| --------------------------- | ----------------------------- | ------------------------------------------------------------------------- |
-| `event`                     | `…/event/v4`                  | ✅ Production                                                             |
-| `event/eventtest`           | `…/event/v4/eventtest`        | 🧪 Test helper                                                            |
-| `command`                   | `…/command/v4`                | ✅ Production                                                             |
-| `query`                     | `…/query/v4`                  | ✅ Production                                                             |
-| `decider`                   | `…/decider/v4`                | ✅ Production                                                             |
-| `id`                        | `…/id/v4`                     | ✅ Production                                                             |
-| `dispatcher`                | `…/dispatcher/v4`             | ✅ Production                                                             |
-| `schema`                    | `…/schema/v4`                 | ✅ Production                                                             |
-| `snapshot`                  | `…/snapshot/v4`               | ✅ Production                                                             |
-| `codec`                     | `…/codec/v4`                  | ✅ Production                                                             |
-| `kv`                        | `…/kv/v4`                     | ✅ Production                                                             |
-| `metadata`                  | `…/metadata/v4`               | ✅ Production                                                             |
-| `dedup`                     | `…/dedup/v4`                  | ✅ Production                                                             |
-| `storage/memory`            | `…/storage/memory/v4`         | 🧪 Test utility                                                           |
-| `catalog`                   | `…/catalog/v4`                | ✅ Production                                                             |
-| `middleware`                | `…/middleware/v4`             | ✅ Production                                                             |
-| `integration`               | `…/integration/v4`            | ✅ Test suite                                                             |
-| `signing`                   | `…/signing/v4`                | ✅ Production                                                             |
-| `encryption`                | `…/encryption/v4`             | ✅ Production                                                             |
-| `storage`                   | `…/storage/v4`                | ✅ Production                                                             |
-| `storage/sql`               | `…/storage/v4/sql`            | 🧪 Shared infra                                                           |
-| `watermill`                 | `…/watermill/v4`              | ✅ Production                                                             |
-| `listing`                   | `…/listing/v4`                | ✅ Production                                                             |
-| `otel`                      | `…/otel/v4`                   | ✅ Production                                                             |
-| `storage/pebble`            | `…/storage/pebble/v4`         | ✅ Production                                                             |
-| `storage/turso`             | `…/storage/turso/v4`          | ✅ Production                                                             |
-| `transport/http`            | `…/transport/http/v4`         | ✅ Production                                                             |
-| `transport/grpc`            | `…/transport/grpc/v4`         | ✅ Production                                                             |
-| `prometheus`                | `…/prometheus/v4`             | ✅ Production                                                             |
-| `testutil`                  | `…/testutil/v4`               | 🧪 Test utility                                                           |
-| `cmd/cqrs-gen`              | `…/cmd/cqrs-gen/v4`           | 🔧 Tool                                                                   |
-| `cmd/api-stability`         | `…/cmd/api-stability/v4`      | 🔧 Tool                                                                   |
-| `cmd/doc-check`             | `…/cmd/doc-check/v4`          | 🔧 Tool                                                                   |
-| `stack`                     | `…/stack/v4`                  | ✅ Production                                                             |
-| `stack/memory`              | `…/stack/memory/v4`           | ✅ Production                                                             |
-| `stack/sqlite`              | `…/stack/sqlite/v4`           | ✅ Production                                                             |
-| `stack/pebble`              | `…/stack/pebble/v4`           | ✅ Production                                                             |
-| `stack/postgres`            | `…/stack/postgres/v4`         | ⚠️ Partial (0% test coverage locally — skips without `POSTGRES_TEST_DSN`) |
-| `stack/turso`               | `…/stack/turso/v4`            | ✅ Production                                                             |
-| `stack/bench`               | `…/stack/bench/v4`            | 🧪 Benchmarks                                                             |
-| `deriver`                   | `…/deriver/v4`                | ✅ Production                                                             |
-| `graph`                     | `…/graph/v4`                  | ✅ Production                                                             |
-| `idempotency`               | `…/idempotency/v4`            | ✅ Production                                                             |
-| `projection`                | `…/projection/v4`             | ✅ Production                                                             |
-| `projectionhost`            | `…/projectionhost/v4`         | ✅ Production                                                             |
-| `scenario`                  | `…/scenario/v4`               | ✅ Production                                                             |
-| `scheduling`                | `…/scheduling/v4`             | ✅ Production                                                             |
-| `example/taskmanager`       | `…/example/taskmanager`       | 💡 Demo                                                                   |
-| `example/getting-started`   | `…/example/getting-started`   | 💡 Demo                                                                   |
-| `example/readme-quickstart` | `…/example/readme-quickstart` | 💡 Demo                                                                   |
-| `metaengine`                | `…/metaengine/v4`             | 🧪 Experimental (SQLite engine + cost calibration + projection adapter)  |
-| `metaengine/projectionadapter` | `…/metaengine/projectionadapter/v4` | 🧪 Experimental (projection.Projection adapter for projectionhost) |
-| `benchkit`                  | `…/benchkit/v4`               | 🧪 Experimental (functional, 88 tests, `--repeat N` available)            |
-| `cmd/cqrs-bench`            | `…/cmd/cqrs-bench`            | 🔧 Tool                                                                   |
+| Module                         | Import Path                         | Maturity                                                                  |
+| ------------------------------ | ----------------------------------- | ------------------------------------------------------------------------- |
+| `event`                        | `…/event/v4`                        | ✅ Production                                                             |
+| `event/eventtest`              | `…/event/v4/eventtest`              | 🧪 Test helper                                                            |
+| `command`                      | `…/command/v4`                      | ✅ Production                                                             |
+| `query`                        | `…/query/v4`                        | ✅ Production                                                             |
+| `decider`                      | `…/decider/v4`                      | ✅ Production                                                             |
+| `id`                           | `…/id/v4`                           | ✅ Production                                                             |
+| `dispatcher`                   | `…/dispatcher/v4`                   | ✅ Production                                                             |
+| `schema`                       | `…/schema/v4`                       | ✅ Production                                                             |
+| `snapshot`                     | `…/snapshot/v4`                     | ✅ Production                                                             |
+| `codec`                        | `…/codec/v4`                        | ✅ Production                                                             |
+| `kv`                           | `…/kv/v4`                           | ✅ Production                                                             |
+| `metadata`                     | `…/metadata/v4`                     | ✅ Production                                                             |
+| `dedup`                        | `…/dedup/v4`                        | ✅ Production                                                             |
+| `storage/memory`               | `…/storage/memory/v4`               | 🧪 Test utility                                                           |
+| `catalog`                      | `…/catalog/v4`                      | ✅ Production                                                             |
+| `middleware`                   | `…/middleware/v4`                   | ✅ Production                                                             |
+| `integration`                  | `…/integration/v4`                  | ✅ Test suite                                                             |
+| `signing`                      | `…/signing/v4`                      | ✅ Production                                                             |
+| `encryption`                   | `…/encryption/v4`                   | ✅ Production                                                             |
+| `storage`                      | `…/storage/v4`                      | ✅ Production                                                             |
+| `storage/sql`                  | `…/storage/v4/sql`                  | 🧪 Shared infra                                                           |
+| `watermill`                    | `…/watermill/v4`                    | ✅ Production                                                             |
+| `listing`                      | `…/listing/v4`                      | ✅ Production                                                             |
+| `otel`                         | `…/otel/v4`                         | ✅ Production                                                             |
+| `storage/pebble`               | `…/storage/pebble/v4`               | ✅ Production                                                             |
+| `storage/turso`                | `…/storage/turso/v4`                | ✅ Production                                                             |
+| `transport/http`               | `…/transport/http/v4`               | ✅ Production                                                             |
+| `transport/grpc`               | `…/transport/grpc/v4`               | ✅ Production                                                             |
+| `prometheus`                   | `…/prometheus/v4`                   | ✅ Production                                                             |
+| `testutil`                     | `…/testutil/v4`                     | 🧪 Test utility                                                           |
+| `cmd/cqrs-gen`                 | `…/cmd/cqrs-gen/v4`                 | 🔧 Tool                                                                   |
+| `cmd/api-stability`            | `…/cmd/api-stability/v4`            | 🔧 Tool                                                                   |
+| `cmd/doc-check`                | `…/cmd/doc-check/v4`                | 🔧 Tool                                                                   |
+| `stack`                        | `…/stack/v4`                        | ✅ Production                                                             |
+| `stack/memory`                 | `…/stack/memory/v4`                 | ✅ Production                                                             |
+| `stack/sqlite`                 | `…/stack/sqlite/v4`                 | ✅ Production                                                             |
+| `stack/pebble`                 | `…/stack/pebble/v4`                 | ✅ Production                                                             |
+| `stack/postgres`               | `…/stack/postgres/v4`               | ⚠️ Partial (0% test coverage locally — skips without `POSTGRES_TEST_DSN`) |
+| `stack/turso`                  | `…/stack/turso/v4`                  | ✅ Production                                                             |
+| `stack/bench`                  | `…/stack/bench/v4`                  | 🧪 Benchmarks                                                             |
+| `deriver`                      | `…/deriver/v4`                      | ✅ Production                                                             |
+| `graph`                        | `…/graph/v4`                        | ✅ Production                                                             |
+| `idempotency`                  | `…/idempotency/v4`                  | ✅ Production                                                             |
+| `projection`                   | `…/projection/v4`                   | ✅ Production                                                             |
+| `projectionhost`               | `…/projectionhost/v4`               | ✅ Production                                                             |
+| `scenario`                     | `…/scenario/v4`                     | ✅ Production                                                             |
+| `scheduling`                   | `…/scheduling/v4`                   | ✅ Production                                                             |
+| `example/taskmanager`          | `…/example/taskmanager`             | 💡 Demo                                                                   |
+| `example/getting-started`      | `…/example/getting-started`         | 💡 Demo                                                                   |
+| `example/readme-quickstart`    | `…/example/readme-quickstart`       | 💡 Demo                                                                   |
+| `metaengine`                   | `…/metaengine/v4`                   | 🧪 Experimental (SQLite engine + cost calibration + projection adapter)   |
+| `metaengine/projectionadapter` | `…/metaengine/projectionadapter/v4` | 🧪 Experimental (projection.Projection adapter for projectionhost)        |
+| `benchkit`                     | `…/benchkit/v4`                     | 🧪 Experimental (functional, 88 tests, `--repeat N` available)            |
+| `cmd/cqrs-bench`               | `…/cmd/cqrs-bench`                  | 🔧 Tool                                                                   |
 
 ---
 

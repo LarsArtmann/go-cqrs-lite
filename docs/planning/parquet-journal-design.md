@@ -16,6 +16,7 @@ ideal as a **segment-based append-only journal** implementing
 `event.SeekableJournal`.
 
 The ROADMAP defines three phases:
+
 1. `storage/parquet` — Parquet segment journal (pure Go, no CGO) ← **this doc**
 2. `storage/duckdb` — DuckDB connector + dialect (CGO required)
 3. `stack/duckdb` — Preset combining Parquet journal + DuckDB materializations
@@ -83,15 +84,15 @@ type EventRecord struct {
 
 **Encoding rationale:**
 
-| Column         | Encoding     | Why                                          |
-| -------------- | ------------ | -------------------------------------------- |
-| `id`           | delta        | ULID, monotonic — delta encodes as small ints |
-| `timestamp`    | timestamp+delta | Time-ordered, microsecond precision        |
-| `type`         | dict         | Low cardinality (10-100 event types)         |
-| `stream_type`  | dict         | Low cardinality (5-20 stream types)          |
-| `version`      | delta        | Sequential within a stream                   |
-| `payload`      | zstd         | Variable-length bytes, high compression      |
-| `metadata`     | zstd         | JSON/CBOR map bytes                          |
+| Column        | Encoding        | Why                                           |
+| ------------- | --------------- | --------------------------------------------- |
+| `id`          | delta           | ULID, monotonic — delta encodes as small ints |
+| `timestamp`   | timestamp+delta | Time-ordered, microsecond precision           |
+| `type`        | dict            | Low cardinality (10-100 event types)          |
+| `stream_type` | dict            | Low cardinality (5-20 stream types)           |
+| `version`     | delta           | Sequential within a stream                    |
+| `payload`     | zstd            | Variable-length bytes, high compression       |
+| `metadata`    | zstd            | JSON/CBOR map bytes                           |
 
 All columns use ZSTD compression (best ratio for event data, fast decompression).
 
@@ -135,6 +136,7 @@ var _ io.Closer = (*Journal)(nil)
 ```
 
 **NOT implemented** (Parquet is immutable):
+
 - `event.EventSink.Save` — no per-stream optimistic concurrency
 - `event.EventSink.AppendBatch` — events are append-only to the global journal, not per-stream
 - `event.EventSource.Load` — no per-stream read (Parquet is a global journal)
@@ -277,19 +279,19 @@ JSONL is also slower to scan (no row-group skipping).
 
 ## Risks
 
-| Risk                          | Mitigation                                            |
-| ----------------------------- | ----------------------------------------------------- |
-| Manifest corruption           | Atomic rename + recovery scan from segment metadata  |
-| Active segment data loss      | `WithSyncWrites(true)` fsyncs after each flush        |
-| Large replay reads            | `limit` parameter bounds memory; stream in batches     |
-| Schema evolution (new columns)| Parquet schema evolution via `parquet.Convert`         |
-| `parquet-go` API breakage     | Pin to v0.23.x; vendor if needed                      |
+| Risk                           | Mitigation                                          |
+| ------------------------------ | --------------------------------------------------- |
+| Manifest corruption            | Atomic rename + recovery scan from segment metadata |
+| Active segment data loss       | `WithSyncWrites(true)` fsyncs after each flush      |
+| Large replay reads             | `limit` parameter bounds memory; stream in batches  |
+| Schema evolution (new columns) | Parquet schema evolution via `parquet.Convert`      |
+| `parquet-go` API breakage      | Pin to v0.23.x; vendor if needed                    |
 
 ## Phase 2/3 Preview
 
-| Phase | Module           | What It Adds                                   | CGO? |
-| ----- | ---------------- | ---------------------------------------------- | ---- |
-| 2     | `storage/duckdb` | DuckDB dialect: `SQLViewStore` over Parquet     | Yes  |
+| Phase | Module           | What It Adds                                      | CGO? |
+| ----- | ---------------- | ------------------------------------------------- | ---- |
+| 2     | `storage/duckdb` | DuckDB dialect: `SQLViewStore` over Parquet       | Yes  |
 | 3     | `stack/duckdb`   | Preset: Parquet journal + DuckDB materializations | Yes  |
 
 Phase 2 requires CGO (`duckdb-go` statically links the C++ engine). This is the
