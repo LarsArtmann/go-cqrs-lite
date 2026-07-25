@@ -15,50 +15,53 @@ this list and recorded in CHANGELOG.
 
 ---
 
-## CI Quality Gate (🔴 blocks `nix run .#verify`)
+## Verify Gate — confirm GREEN end-to-end
 
-> The verify gate is currently RED. These items must be resolved before the next
-> release tag. Verify with `nix run .#verify` (build + vet + test + race + lint).
+> The file-size gate is GREEN (all 11 oversized files split under 350 lines).
+> The otel flakiness is fixed (`-race -count=10` clean). However the **full**
+> `nix run .#verify` has not been run in one pass since the splits — lint,
+> doc-check, and module-coverage sub-checks are unconfirmed on the 16 new files.
 
-- [ ] ⭐ **Split 13 oversized production files** (>350-line CI limit, excluding
-      tests/generated). Worst offenders:
-  - `benchkit/phases.go` (610), `benchkit/runner.go` (498)
-  - `cmd/cqrs-bench/main.go` (602), `cmd/cqrs-lint/main.go` (452)
-  - `cmd/cqrs-lint/pkg/analyzer/scanner_calls.go` (412), `scanner.go` (387)
-  - `projectionhost/host.go` (403), `storage/relational/sink.go` (378)
-  - `codec/cose.go` (376), `graph/schema.go` (368), `benchkit/benchkit.go` (368)
-- [ ] 🔥 **Fix otel test flakiness** — global provider state leaks across test
-      packages. Needs per-test provider isolation or a reset guard.
-- [ ] **Restore truncated sentinel error messages** — several sentinels were
-      shortened to satisfy test regex assertions during the 06-30 lint cleanup;
-      they should be complete sentences again (update the assertions instead).
+- [ ] ⭐ **Run `nix run .#verify` end-to-end** and fix anything red (lint nits
+      on split files, doc-check symbol drift, module-coverage gaps).
+- [ ] **gofmt all 16 new split files** in one pass (`gofmt -w`), confirm zero diff.
+- [ ] **Document `otel.WithoutGlobalRegistration()`** in `AGENTS.md` OTel section
+      + Crush skill `references/core.md` — new public API added during the otel
+      flakiness fix, currently undocumented for consumers.
 
 ---
 
 ## Module Tagging
 
-- [ ] 🔥 **Tag `metaengine/v4`**, `metaengine/projectionadapter/v4`, and
-      `idempotency/sqlstore/v4` when their APIs stabilize and the file-size gate
-      passes. These are the 3 untagged modules (58 `go.mod` files total; 55 tagged).
-- [BLOCKED] **Push `benchkit/v4.1.0` to origin** — tag points to grab-bag commit
-  `c3286bc8` (BuildFlow auto-commit shoved 16 unrelated files in). Decide:
-  keep the tag as-is or recreate at a cleaner commit. Push requires user
-  approval. See
-  [tagging session status](docs/status/2026-07-25_04-54_benchkit-v4.1.0-tagging-session.md).
+> 2 of 3 untagged modules tagged locally. `benchkit/v4.1.0` was pushed to origin.
+> 56 of 58 modules now have tags (55 pushed + 1 local-only).
+
+- [ ] 🔥 **Push `metaengine/v4.0.0` and `idempotency/sqlstore/v4.0.0`** to origin
+      (tags exist locally, annotated, release-clean go.mod). Requires user
+      push authorization.
+- [BLOCKED] **Tag `metaengine/projectionadapter/v4.0.0`** — its `go.mod` has a
+      local `metaengine/v4 => ../` replace; cannot resolve metaengine from the
+      Go proxy until `metaengine/v4.0.0` is pushed. After the push above, run
+      `./scripts/tag-release.sh metaengine/projectionadapter v4.0.0 "..."`.
 
 ---
 
-## Documentation Cross-links
+## Release Tooling
 
-> Minor gaps from the Pareto execution; the features shipped but the docs don't
-> all point at each other.
+- [ ] **Audit `scripts/tag-release.sh`** for other `pipefail` traps like the one
+      fixed this session (grep `-P` no-match on non-cqrs replace directives
+      aborted the whole release under `set -euo pipefail`). Consider `--dry-run`
+      mode and single-module tagging (currently touches all 58 go.mod files).
 
-- [ ] **Cross-link `docs/CONSISTENCY_MODEL.md`** from `docs/README.md` index.
-- [ ] **Add ADR index links** in `AGENTS.md` for ADR-0061 through ADR-0065
-      (metaengine pushdown, projection adapter, cost calibration, retry/idempotency
-      extraction).
-- [ ] **Reference NATS + Parquet design docs** in the Crush skill
-      (`.agents/skills/go-cqrs-lite/references/recipes.md`) so consumers discover them.
+---
+
+## Documentation Health
+
+- [ ] **Update `docs/README.md` ADR index** — the table stops at ADR-0035, then
+      jumps to ADR-0046. ADRs 0036–0065 are missing from the index (files exist
+      in `docs/adr/`).
+- [ ] **Add the 3 newly-tagged modules** (`metaengine/v4`, `idempotency/sqlstore/v4`,
+      `metaengine/projectionadapter/v4` once tagged) to `FEATURES.md` status table.
 
 ---
 
