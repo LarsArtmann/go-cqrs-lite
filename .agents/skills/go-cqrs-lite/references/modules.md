@@ -50,6 +50,10 @@
 | Module           | Import              | One-liner                                                                                                                                                                                                                                           |
 | ---------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `idempotency`    | `idempotency/v4`    | `Store`, `MemoryStore`, `KVStore` (any `kv.Store`+`ConditionalWriter`), `ErrDuplicate`. Middleware in `middleware/`.                                                                                                                                |
+| `idempotency/kvstore` | `idempotency/kvstore/v4` | `KVStore`, `KVBackend`. KV-backed idempotency (optional subpackage, pulls `kv/`). |
+| `idempotency/sqlstore` | `idempotency/sqlstore/v4` | `NewSQLiteStore`, `NewPostgresStore`. SQL-backed idempotency (`INSERT ON CONFLICT`, TTL sweep). |
+| `retry`     | `retry/v4`     | Zero-dep retry with exponential backoff+jitter: `Do`, `Config`, `ErrExhausted`. Standalone — no CQRS/OTel deps. |
+| `dedup`     | `dedup/v4`     | `Ring`, `DefaultCapacity`. Bounded O(1) fixed-capacity ID dedup for stream boundaries. |
 | `scheduling`     | `scheduling/v4`     | `TimerStore`, `MemoryTimerStore`, `Scheduler` (poll + retry). Idempotent durable deadlines ("cancel order after 30 min").                                                                                                                           |
 | `projection`     | `projection/v4`     | `Projection`, `NewProjection`. Consumer-side projection interface extracted from `event/`.                                                                                                                                                          |
 | `projectionhost` | `projectionhost/v4` | `Host`, `WorkerState`, `DeadLetterStore`, `SQLiteDeadLetterStore`, `DeadLetterStoreAdmin` (Count/ListPaged/PurgeBefore), `MemoryDeadLetterStore`, `RegisterAndWait`, `ReplayDeadLetters`. Managed lifecycle: crash-restart, checkpoint, poison DLQ. |
@@ -67,6 +71,7 @@
 | `cmd/doc-check`     | (go run)             | Doc verifier: scans Markdown for Go code references, checks symbols exist.                                   |
 | `cmd/api-stability` | (go install)         | API surface checker: compares exports against `docs/api_surface.txt` golden file.                            |
 | `cmd/cqrs-bench`    | (go build)           | Benchmarking CLI: synthetic event workloads against memory/sqlite/pebble. `cqrs-bench run --backend sqlite --profile small`. |
+| `benchkit`    | `benchkit/v4`        | Factory-driven benchmarking suite: `Run`/`Compare`, latency percentiles, throughput, memory. Mirrors contracttest pattern. |
 | `transport/grpc`    | `transport/grpc/v4`  | `RegisterCommandService`, `RegisterQueryService`, `NewCommandClient`, `NewQueryClient`. gRPC transport.      |
 
 ### Reactive & Advanced Read Models (Layer 2–5)
@@ -76,3 +81,5 @@
 | `deriver`    | `deriver/v4`    | Event→command derivation. Pure functions, composable (`.Then` fan-out, `.Filter`), wires into `bus.SubscribeAll`. Saga alternative. ADR-0040.              |
 | `graph`      | `graph/v4`      | Third projection tier: nodes + edges for traversal-heavy read models. `GraphProjection`, `MemoryDriver`, `Schema` validation, native Cypher/Gremlin reads. |
 | `prometheus` | `prometheus/v4` | OTel→Prometheus bridge: `Setup()` → MeterProvider + `/metrics` handler. Exposes all CQRS instruments. `WithRegistry()` for custom registries.              |
+| `metaengine` | `metaengine/v4` | Cost-based storage planner: `Engine`, `Store`, `Plan`, `Query[Q,R]`, `Fold`, 7 ADTs (Map/Set/Counter/Graph/Multimap/Log/Scan), `NewSQLiteEngine`, `NewMemoryEngine`. Picks the cheapest backend per query. ADR-0047. |
+| `metaengine/projectionadapter` | `metaengine/projectionadapter/v4` | Wraps a `metaengine.Store` as a `projection.Projection`. Bridges cost-planned stores into `projectionhost`. ADR-0062. |

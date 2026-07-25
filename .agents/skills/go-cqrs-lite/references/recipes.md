@@ -456,3 +456,79 @@ openAPIDoc, _  := openapi.Generate(reg)
 catalogDir, _  := eventcatalog.Generate(reg)
 d2Diagram, _   := d2.Generate(reg)
 ```
+
+### 2.10 Cost-Based Storage Planning (metaengine)
+
+The metaengine picks the cheapest backend per query — memory for small collections, SQLite for large ones.
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+// Define a query with filter pushdown
+q := metaengine.Query[FindTaskInput, FindTaskResult]("find-task",
+    metaengine.FilterOn(func(r FindTaskResult) TaskID { return r.ID }),
+    metaengine.Volume(500_000),
+)
+
+// Register folds (how events update the materialized state)
+store, _ := metaengine.Plan(
+    []metaengine.Engine{
+        metaengine.NewMemoryEngine(),
+        // sqliteEngine, // metaengine.NewSQLiteEngine(db)
+    },
+    q,
+    metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
+        return e.ID, FindTaskResult{ID: e.ID, Title: e.Title}
+    }),
+    metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
+)
+
+// Execute: the engine routes to the cheapest backend
+result, _ := store.Execute(FindTaskInput{ID: "task-1"})
+```
+
+### 2.11 SQL-Backed Idempotency (idempotency/sqlstore)
+
+Durable dedup for at-least-once delivery, surviving process restarts.
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
+)
+
+// SQLite-backed (caller owns the *sql.DB)
+store, _ := sqlstore.NewSQLiteStore(ctx, db)
+
+// Postgres-backed
+// store, _ := sqlstore.NewPostgresStore(ctx, pgDB)
+
+// Use with idempotency middleware
+cmds.Use(middleware.CommandIdempotency(store, 10*time.Minute, nil))
+```
+
+### 2.12 Retry with Backoff (retry)
+
+Zero-dependency retry with exponential backoff and jitter.
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/retry/v4"
+)
+
+config := retry.Config{
+    MaxAttempts:  5,
+    InitialDelay: 100 * time.Millisecond,
+    MaxDelay:     10 * time.Second,
+    Multiplier:   2.0,
+    Jitter:       0.1,
+}
+
+err := retry.Do(ctx, config, func(ctx context.Context) error {
+    return flakyOperation(ctx)
+})
+if errors.Is(err, retry.ErrExhausted) {
+    // all attempts failed
+}
+```
