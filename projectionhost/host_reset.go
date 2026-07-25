@@ -40,7 +40,7 @@ func WithPurgeDeadLetters() ResetOption {
 
 // Reset drops the checkpoint for the named projection and, if the projection
 // implements [Resettable], calls its Reset method to clear read-model state.
-// After Reset, the next Start replys all events from the beginning of the
+// After Reset, the next Start replays all events from the beginning of the
 // journal. Use this to rebuild a projection from scratch after fixing a
 // handler bug.
 //

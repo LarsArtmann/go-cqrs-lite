@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Journey phase** (`Config.SkipJourney`, M14): end-to-end publish→projection→query round-trip latency benchmark. For each sample, writes a single event to a fresh stream, synchronously projects it into the read model, and dispatches a typed query — measuring the full path a user request takes. Records `JourneyLatency`, `JourneyProjectionLatency`, `JourneyQueryLatency`, and `JourneySamples`. Skipped automatically when the bundle lacks EventSink + ReadModels. Capped at 200 samples.
+- **Query dispatch phase** (`Config.SkipQuery`, M15): benchmarks `query.Dispatcher` overhead across hit (registered handler reads real data), miss (unregistered type → handler-not-found), and paginated (`PaginatedResult` construction) paths. Records `QueryHitLatency`, `QueryMissLatency`, `QueryPaginatedLatency`, and `QueryCorrectnessErrors`. Skipped automatically when ReadModels is absent. Capped at 500 dispatches.
+- **Snapshot/cache hit-rate phase** (`Config.SkipSnapshot`, M16): measures decider `Load` performance under cold replay (full event fold), snapshot load (`EveryNEvents(1)`), and state-cache hit/miss strategies, with correctness assertions verifying state/version equality across all strategies. Records `SnapshotColdLatency`, `SnapshotLoadLatency`, `CacheMissLatency`, `CacheHitLatency`, and `SnapshotCorrectnessErrors`. Skipped automatically when EventSink is not an `event.Store`. Capped at 50 streams.
+- **Soak test mode** (`RunSoak` / `--soak`, M19): sustains the benchmark workload for a fixed duration, forcing GC between iterations, to detect memory leaks and performance degradation. Each iteration runs a full benchmark with a fresh Bundle. Computes drift metrics: `HeapGrowthBytes`, `HeapLeakRate`, `ThroughputDriftPct`, `WriteP99DriftPct`. CLI flag: `cqrs-bench run --soak 5m` (progress to stderr, result to stdout).
+- **CLI flags**: `--skip-journey`, `--skip-query`, `--skip-snapshot` for `cmd/cqrs-bench run` and `sweep`.
+
 ### Changed
 
 ### Deprecated

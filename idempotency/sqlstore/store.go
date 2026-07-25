@@ -131,7 +131,9 @@ func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 
 // Record marks the key as seen with the given TTL. If the key is already
 // recorded and not expired, it is a no-op (the existing expiry is not extended).
-// If the key exists but is expired, it is overwritten.
+// An expired key is reclaimed lazily by a subsequent Seen or Sweep call; until
+// then Record on an expired-but-present row is also a no-op (INSERT ... ON
+// CONFLICT DO NOTHING), so the stale expiry is NOT refreshed.
 func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error {
 	expiry := time.Now().Add(ttl).UnixNano()
 

@@ -88,6 +88,7 @@ Examples:
   cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor
   cqrs-bench run --backend memory --profile small --repeat 5
   cqrs-bench run --backend memory --profile dev --soak 5m
+  cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev --skip-snapshot
   cqrs-bench sweep --param workers --values 1,2,4,8 --backend memory --profile dev
   cqrs-bench sweep --param batchSize --values 1,5,10 --backend sqlite --profile small`)
 }
@@ -285,6 +286,9 @@ func sweepCmd(args []string) {
 		PayloadSize: *bf.payloadSize,
 		Codec:       codec,
 		SkipRawSink: *bf.skipRawSink,
+		SkipJourney: *bf.skipJourney,
+		SkipQuery:   *bf.skipQuery,
+		SkipSnapshot: *bf.skipSnapshot,
 		Backend:     *bf.backend,
 		DiskPath:    diskPath,
 	}
