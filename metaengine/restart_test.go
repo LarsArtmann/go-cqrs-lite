@@ -106,7 +106,9 @@ var _ = Describe("Regression: GraphBackend restart safety", func() {
 		Expect(err).NotTo(HaveOccurred())
 		gb1 := eng1.(metaengine.GraphBackend)
 		for _, to := range []string{"t1", "t2"} {
-			Expect(gb1.GraphAddEdge(ctx, "assign", metaengine.Edge{From: "alice", To: to})).To(Succeed())
+			Expect(
+				gb1.GraphAddEdge(ctx, "assign", metaengine.Edge{From: "alice", To: to}),
+			).To(Succeed())
 		}
 		_ = eng1.Close()
 		Expect(db1.Close()).To(Succeed())
@@ -118,7 +120,9 @@ var _ = Describe("Regression: GraphBackend restart safety", func() {
 		eng2, err := metaengine.NewSQLiteEngine(db2)
 		Expect(err).NotTo(HaveOccurred())
 		gb2 := eng2.(metaengine.GraphBackend)
-		Expect(gb2.GraphAddEdge(ctx, "assign", metaengine.Edge{From: "alice", To: "t3"})).To(Succeed())
+		Expect(
+			gb2.GraphAddEdge(ctx, "assign", metaengine.Edge{From: "alice", To: "t3"}),
+		).To(Succeed())
 
 		neighbors, err := gb2.GraphNeighbors(ctx, "assign", "alice", 1)
 		Expect(err).NotTo(HaveOccurred())

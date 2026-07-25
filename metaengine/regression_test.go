@@ -119,4 +119,3 @@ var _ = Describe("Regression: SQLite engine Close is a no-op (caller owns the DB
 		Expect(eng.Close()).To(Succeed())
 	})
 })
-

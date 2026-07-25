@@ -167,7 +167,7 @@ func TestStore_Record_DoesNotExtendTTL(t *testing.T) {
 // newSQLiteStoreForContract builds a SQL-backed idempotency store for the
 // cross-implementation contract test. Shared-cache in-memory SQLite + a single
 // connection so concurrent writers queue instead of erroring.
-func newSQLiteStoreForContract(t *testing.T) idempotency.Store {
+func newSQLiteStoreForContract(t *testing.T) *idemsqlstore.Store {
 	t.Helper()
 	db, err := sql.Open("sqlite", "file::memory:?cache=shared&_pragma=busy_timeout(5000)")
 	if err != nil {
@@ -179,6 +179,7 @@ func newSQLiteStoreForContract(t *testing.T) idempotency.Store {
 	if err != nil {
 		t.Fatalf("new sqlite store: %v", err)
 	}
+
 	return s
 }
 
@@ -301,7 +302,10 @@ func TestStore_Seen_LazilyDeletesExpiredEntry(t *testing.T) {
 
 	// The lazy delete must have removed the entry from the backend.
 	if _, err := backend.Get(ctx, []byte("k")); !errors.Is(err, kv.ErrNotFound) {
-		t.Fatalf("expected backend to have lazy-deleted the expired key (kv.ErrNotFound), got %v", err)
+		t.Fatalf(
+			"expected backend to have lazy-deleted the expired key (kv.ErrNotFound), got %v",
+			err,
+		)
 	}
 }
 
@@ -336,7 +340,10 @@ func TestStore_Record_Concurrent_FirstTTLWins(t *testing.T) {
 	wg.Wait()
 
 	if errCount.Load() != 0 {
-		t.Fatalf("Record errored under contention %d times (Record must be idempotent/no-op)", errCount.Load())
+		t.Fatalf(
+			"Record errored under contention %d times (Record must be idempotent/no-op)",
+			errCount.Load(),
+		)
 	}
 
 	seen, err := store.Seen(ctx, "k")
