@@ -105,22 +105,9 @@ Examples:
 func runCmd(args []string) {
 	fs := flag.NewFlagSet("run", flag.ExitOnError)
 
-	backend := fs.String("backend", "memory", "Backend: memory, sqlite, pebble")
-	dsn := fs.String("dsn", "", "Database connection string (sqlite)")
-	dir := fs.String("dir", "", "Database directory (pebble)")
-	profileName := fs.String("profile", "dev", "Workload profile")
-	codecName := fs.String("codec", "json", "Payload codec: json, cbor")
-	format := fs.String("format", "text", "Output format: text, json, benchstat, manifest")
-	output := fs.String("output", "", "Output file (default: stdout)")
-	payloadSize := fs.Int("payload-size", 256, "Payload size in bytes per event")
-	payloadSizes := fs.String(
-		"payload-sizes",
-		"",
-		"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size",
-	)
+	bf := registerBenchFlags(fs)
+
 	warmup := fs.Int("warmup", 0, "Number of warmup operations")
-	repeat := fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)")
-	skipRawSink := fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase")
 	recovery := fs.Bool("recovery", false, "Enable crash-recovery phase (close, reopen, reload)")
 	replay := fs.Bool(
 		"replay",
@@ -159,32 +146,27 @@ func runCmd(args []string) {
 		}()
 	}
 
-	profile, ok := benchkit.ProfileByName(*profileName)
-	if !ok {
-		fatalf("unknown profile: %s", *profileName)
-	}
+	profile, codec := loadProfileAndCodec(bf.profileName, bf.codecName)
 
-	codec := parseCodec(*codecName)
-
-	factory, diskPath, cleanup := makeFactory(*backend, *dsn, *dir)
+	factory, diskPath, cleanup := makeFactory(bf.backend, bf.dsn, bf.dir)
 	if cleanup != nil {
 		defer cleanup()
 	}
 
 	config := benchkit.Config{
 		Profile:     profile,
-		PayloadSize: *payloadSize,
+		PayloadSize: bf.payloadSize,
 		Codec:       codec,
 		Warmup:      *warmup,
-		Repeat:      *repeat,
+		Repeat:      bf.repeat,
 		Recovery:    *recovery,
 		ReplayOnly:  *replay,
-		SkipRawSink: *skipRawSink,
-		Backend:     *backend,
+		SkipRawSink: bf.skipRawSink,
+		Backend:     bf.backend,
 		DiskPath:    diskPath,
 	}
 
-	if sizes, err := parsePayloadSizes(*payloadSizes); err != nil {
+	if sizes, err := parsePayloadSizes(bf.payloadSizes); err != nil {
 		fatalf("invalid --payload-sizes: %v", err)
 	} else if len(sizes) > 0 {
 		config.PayloadSizes = sizes
@@ -198,7 +180,7 @@ func runCmd(args []string) {
 		fatalf("benchmark failed: %v", err)
 	}
 
-	writeResult(*format, *output, config, result)
+	writeResult(bf.format, bf.output, config, result)
 }
 
 // ── compare subcommand ──

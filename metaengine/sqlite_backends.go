@@ -77,6 +77,39 @@ func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]i
 	return result, rows.Err() //nolint:wrapcheck // passthrough
 }
 
+// scanJSONValues executes query with args, then walks the returned single-column
+// JSON-encoded rows, decoding each into an any. Rows that fail JSON decoding
+// fall back to their raw string form. Used by every SQLite-backed read that
+// needs to surface JSON-or-raw stored values to callers.
+func scanJSONValues(ctx context.Context, db *sql.DB, query string, args ...any) ([]any, error) {
+	rows, err := db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err //nolint:wrapcheck // passthrough
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	var out []any
+
+	for rows.Next() {
+		var valStr string
+
+		if err := rows.Scan(&valStr); err != nil {
+			return nil, err //nolint:wrapcheck // passthrough
+		}
+
+		var val any
+
+		if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
+			val = valStr
+		}
+
+		out = append(out, val)
+	}
+
+	return out, rows.Err() //nolint:wrapcheck // passthrough
+}
+
 // --- MultimapBackend ---
 
 func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value any) error {
@@ -95,32 +128,7 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 }
 
 func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any, error) {
-	rows, err := e.db.QueryContext(ctx, e.queries.multiGet, col, encodeKey(key))
-	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
-	}
-
-	defer func() { _ = rows.Close() }()
-
-	var result []any
-
-	for rows.Next() {
-		var valStr string
-
-		if err := rows.Scan(&valStr); err != nil {
-			return nil, err //nolint:wrapcheck // passthrough
-		}
-
-		var val any
-
-		if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
-			val = valStr
-		}
-
-		result = append(result, val)
-	}
-
-	return result, rows.Err() //nolint:wrapcheck // passthrough
+	return scanJSONValues(ctx, e.db, e.queries.multiGet, col, encodeKey(key))
 }
 
 func (e *sqliteEngine) nextMultiSeq(col string) int64 {
@@ -142,36 +150,12 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 		limit = -1
 	}
 
-	rows, err := e.db.QueryContext(ctx, e.queries.logTail, col, limit)
+	// Query is DESC; reverse the result for chronological order.
+	fwd, err := scanJSONValues(ctx, e.db, e.queries.logTail, col, limit)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
 
-	defer func() { _ = rows.Close() }()
-
-	var fwd []any
-
-	for rows.Next() {
-		var valStr string
-
-		if err := rows.Scan(&valStr); err != nil {
-			return nil, err //nolint:wrapcheck // passthrough
-		}
-
-		var val any
-
-		if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
-			val = valStr
-		}
-
-		fwd = append(fwd, val)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
-	}
-
-	// Reverse to get chronological order (query was DESC).
 	slices.Reverse(fwd)
 
 	return fwd, nil
