@@ -237,7 +237,7 @@ func TestStore_DialectPostgres_DDLCompiles(t *testing.T) {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS idempotency_keys (
+	_, err = db.ExecContext(context.Background(), `CREATE TABLE IF NOT EXISTS idempotency_keys (
 		key        TEXT PRIMARY KEY,
 		expires_at BIGINT NOT NULL
 	);`)

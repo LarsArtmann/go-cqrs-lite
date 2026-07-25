@@ -43,28 +43,32 @@ type queries struct {
 	sweep          string
 }
 
-var sqliteQueries = queries{
-	ddl: `CREATE TABLE IF NOT EXISTS idempotency_keys (
+func sqliteQueries() queries {
+	return queries{
+		ddl: `CREATE TABLE IF NOT EXISTS idempotency_keys (
 		key        TEXT PRIMARY KEY,
 		expires_at INTEGER NOT NULL
 	);`,
-	seen:           `SELECT expires_at FROM idempotency_keys WHERE key = ? LIMIT 1`,
-	deleteKey:      `DELETE FROM idempotency_keys WHERE key = ?`,
-	record:         `INSERT INTO idempotency_keys (key, expires_at) VALUES (?, ?) ON CONFLICT(key) DO NOTHING`,
-	checkAndRecord: `INSERT INTO idempotency_keys (key, expires_at) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET expires_at = excluded.expires_at WHERE idempotency_keys.expires_at < ?`,
-	sweep:          `DELETE FROM idempotency_keys WHERE expires_at < ?`,
+		seen:           `SELECT expires_at FROM idempotency_keys WHERE key = ? LIMIT 1`,
+		deleteKey:      `DELETE FROM idempotency_keys WHERE key = ?`,
+		record:         `INSERT INTO idempotency_keys (key, expires_at) VALUES (?, ?) ON CONFLICT(key) DO NOTHING`,
+		checkAndRecord: `INSERT INTO idempotency_keys (key, expires_at) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET expires_at = excluded.expires_at WHERE idempotency_keys.expires_at < ?`,
+		sweep:          `DELETE FROM idempotency_keys WHERE expires_at < ?`,
+	}
 }
 
-var postgresQueries = queries{
-	ddl: `CREATE TABLE IF NOT EXISTS idempotency_keys (
+func postgresQueries() queries {
+	return queries{
+		ddl: `CREATE TABLE IF NOT EXISTS idempotency_keys (
 		key        TEXT PRIMARY KEY,
 		expires_at BIGINT NOT NULL
 	);`,
-	seen:           `SELECT expires_at FROM idempotency_keys WHERE key = $1 LIMIT 1`,
-	deleteKey:      `DELETE FROM idempotency_keys WHERE key = $1`,
-	record:         `INSERT INTO idempotency_keys (key, expires_at) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING`,
-	checkAndRecord: `INSERT INTO idempotency_keys (key, expires_at) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET expires_at = EXCLUDED.expires_at WHERE idempotency_keys.expires_at < $3`,
-	sweep:          `DELETE FROM idempotency_keys WHERE expires_at < $1`,
+		seen:           `SELECT expires_at FROM idempotency_keys WHERE key = $1 LIMIT 1`,
+		deleteKey:      `DELETE FROM idempotency_keys WHERE key = $1`,
+		record:         `INSERT INTO idempotency_keys (key, expires_at) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING`,
+		checkAndRecord: `INSERT INTO idempotency_keys (key, expires_at) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET expires_at = EXCLUDED.expires_at WHERE idempotency_keys.expires_at < $3`,
+		sweep:          `DELETE FROM idempotency_keys WHERE expires_at < $1`,
+	}
 }
 
 // Store is a SQL-backed [idempotency.Store]. It stores expiry timestamps as
@@ -80,22 +84,24 @@ type Store struct {
 
 // NewSQLiteStore creates a SQLite-backed idempotency store and creates the
 // schema if it does not exist. The caller retains ownership of db.
-func NewSQLiteStore(_ context.Context, db *sql.DB) (*Store, error) {
-	if _, err := db.Exec(sqliteQueries.ddl); err != nil {
+func NewSQLiteStore(ctx context.Context, database *sql.DB) (*Store, error) {
+	q := sqliteQueries()
+	if _, err := database.ExecContext(ctx, q.ddl); err != nil {
 		return nil, fmt.Errorf("sqlstore: create table: %w", err)
 	}
 
-	return &Store{db: db, dialect: DialectSQLite, q: sqliteQueries}, nil
+	return &Store{db: database, dialect: DialectSQLite, q: q}, nil
 }
 
 // NewPostgresStore creates a PostgreSQL-backed idempotency store and creates
 // the schema if it does not exist. The caller retains ownership of db.
-func NewPostgresStore(_ context.Context, db *sql.DB) (*Store, error) {
-	if _, err := db.Exec(postgresQueries.ddl); err != nil {
+func NewPostgresStore(ctx context.Context, database *sql.DB) (*Store, error) {
+	q := postgresQueries()
+	if _, err := database.ExecContext(ctx, q.ddl); err != nil {
 		return nil, fmt.Errorf("sqlstore: create table: %w", err)
 	}
 
-	return &Store{db: db, dialect: DialectPostgres, q: postgresQueries}, nil
+	return &Store{db: database, dialect: DialectPostgres, q: q}, nil
 }
 
 // Seen reports whether the key is currently recorded and not expired.
