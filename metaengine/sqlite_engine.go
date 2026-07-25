@@ -198,7 +198,7 @@ func (e *sqliteEngine) MapScan(
 	cursor any,
 	limit int,
 ) ([]any, error) {
-	rows, err := e.db.Query(`SELECT value FROM meta_map WHERE collection = ?`, col)
+	rows, err := e.db.QueryContext(ctx,`SELECT value FROM meta_map WHERE collection = ?`, col)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -320,7 +320,7 @@ func (e *sqliteEngine) CounterIncrement(ctx context.Context, col string, deltas 
 }
 
 func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.db.Query(e.queries.counterGet, col)
+	rows, err := e.db.QueryContext(ctx,e.queries.counterGet, col)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -355,7 +355,7 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 }
 
 func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any, error) {
-	rows, err := e.db.Query(e.queries.multiGet, col, encodeKey(key))
+	rows, err := e.db.QueryContext(ctx,e.queries.multiGet, col, encodeKey(key))
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -402,7 +402,7 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 		limit = -1
 	}
 
-	rows, err := e.db.Query(e.queries.logTail, col, limit)
+	rows, err := e.db.QueryContext(ctx,e.queries.logTail, col, limit)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -459,50 +459,70 @@ func (e *sqliteEngine) GraphNeighbors(
 	frontier := []any{node}
 	result := []any{}
 
-	for d := 0; d < depth && len(frontier) > 0; d++ {
+	for range depth {
+		if len(frontier) == 0 {
+			break
+		}
+
 		var next []any
 
 		for _, n := range frontier {
-			nKey := encodeKey(n)
-
-			rows, err := e.db.Query(
-				`SELECT to_node FROM meta_graph_edges WHERE collection = ? AND from_node = ?`,
-				col, nKey,
-			)
+			keys, err := e.scanNeighborKeys(ctx, col, encodeKey(n))
 			if err != nil {
-				return nil, err //nolint:wrapcheck // passthrough
+				return nil, fmt.Errorf("scan neighbor keys: %w", err)
 			}
 
-			for rows.Next() {
-				var toKey string
-
-				if err := rows.Scan(&toKey); err != nil {
-					_ = rows.Close()
-
-					return nil, err //nolint:wrapcheck // passthrough
+			for _, toKey := range keys {
+				if visited[toKey] {
+					continue
 				}
 
-				if !visited[toKey] {
-					visited[toKey] = true
+				visited[toKey] = true
 
-					var to any
+				var to any
 
-					if jErr := json.Unmarshal([]byte(toKey), &to); jErr != nil {
-						to = toKey
-					}
-
-					result = append(result, to)
-					next = append(next, to)
+				if jErr := json.Unmarshal([]byte(toKey), &to); jErr != nil {
+					to = toKey
 				}
+
+				result = append(result, to)
+				next = append(next, to)
 			}
-
-			_ = rows.Close()
 		}
 
 		frontier = next
 	}
 
 	return result, nil
+}
+
+// scanNeighborKeys returns the raw to_node keys for a single from-node. Extracted
+// from GraphNeighbors so rows.Close is handled by defer (sqlclosecheck) rather
+// than manual close calls inside a loop.
+func (e *sqliteEngine) scanNeighborKeys(ctx context.Context, col, fromKey string) ([]string, error) {
+	rows, err := e.db.QueryContext(ctx,
+		`SELECT to_node FROM meta_graph_edges WHERE collection = ? AND from_node = ?`,
+		col, fromKey,
+	)
+	if err != nil {
+		return nil, err //nolint:wrapcheck // passthrough
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	var keys []string
+
+	for rows.Next() {
+		var toKey string
+
+		if err := rows.Scan(&toKey); err != nil {
+			return nil, err //nolint:wrapcheck // passthrough
+		}
+
+		keys = append(keys, toKey)
+	}
+
+	return keys, rows.Err() //nolint:wrapcheck // passthrough
 }
 
 // Compile-time assertions.

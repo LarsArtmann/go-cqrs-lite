@@ -43,10 +43,6 @@ var (
 	errUnsupportedSetOps      = errors.New("engine does not support Set operations")
 	errUnsupportedMultimapOps = errors.New("engine does not support Multimap operations")
 	errUnsupportedLogOps      = errors.New("engine does not support Log operations")
-
-	// ParseCursor returns this for an empty cursor string (start of stream),
-	// instead of the ambiguous (nil, nil).
-	errEmptyCursor = errors.New("metaengine.ParseCursor: empty cursor string")
 )
 
 // unsupportedEngine wraps a capability sentinel with the offending engine name.
