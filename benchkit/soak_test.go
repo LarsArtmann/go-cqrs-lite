@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
 func TestRunSoak_Memory(t *testing.T) {

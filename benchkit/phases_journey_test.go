@@ -9,7 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	storagemem "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 func TestJourneyPhase_Memory(t *testing.T) {
@@ -51,7 +51,7 @@ func TestJourneyPhase_SkippedWithoutReadModels(t *testing.T) {
 
 	// Bundle without ReadModels — journey should skip gracefully.
 	bundle, err := stack.New(
-		stack.WithEventStore(memory.NewMemoryStore()),
+		stack.WithEventStore(storagemem.NewMemoryStore()),
 	)
 	if err != nil {
 		t.Fatalf("create bundle: %v", err)

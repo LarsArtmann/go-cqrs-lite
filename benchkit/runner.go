@@ -143,7 +143,7 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 		}
 	}
 
-	if !r.config.SkipJourney {
+	if !r.config.ReplayOnly && !r.config.SkipJourney {
 		if err := r.journeyPhase(runCtx); err != nil {
 			return nil, errorfamily.WrapTransient(err, "benchkit.journey_phase",
 				"journey phase")
@@ -157,7 +157,7 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 		}
 	}
 
-	if !r.config.SkipSnapshot {
+	if !r.config.ReplayOnly && !r.config.SkipSnapshot {
 		if err := r.snapshotPhase(runCtx); err != nil {
 			return nil, errorfamily.WrapTransient(err, "benchkit.snapshot_phase",
 				"snapshot phase")
