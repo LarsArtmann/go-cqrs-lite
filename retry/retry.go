@@ -111,11 +111,11 @@ func Backoff(config Config, attempt int) time.Duration {
 //	initial * multiplier^(n-1) + random jitter (up to 50% of the delay)
 //
 // The result is capped at max.
-func ComputeDelay(initial, max time.Duration, multiplier float64, attempt int) time.Duration {
+func ComputeDelay(initial, maxDelay time.Duration, multiplier float64, attempt int) time.Duration {
 	delay := time.Duration(
 		float64(initial) * math.Pow(multiplier, float64(attempt-1)),
 	)
-	delay = min(delay, max)
+	delay = min(delay, maxDelay)
 
 	delay += time.Duration(
 		rand.Int64N(int64(delay) / 2), //nolint:mnd,gosec // jitter divisor; weak rand fine
