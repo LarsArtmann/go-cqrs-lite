@@ -31,9 +31,6 @@ const (
 	defaultWaitTimeout      = 2 * time.Second
 	defaultWaitPollInterval = 10 * time.Millisecond
 )
-	timeout      time.Duration
-	pollInterval time.Duration
-}
 
 // WithWaitTimeout sets the maximum time [Repository.WaitForVersion] will poll
 // before returning [ErrWaitTimeout]. Default: 2s.
