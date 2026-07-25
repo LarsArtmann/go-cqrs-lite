@@ -25,7 +25,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	taskID := id.NewStreamID()
 
 	if err := srv.CmdDisp.Dispatch(ctx, CreateTaskCmd{
-		BasicCommand: mustCmd(cmdCreateTask, taskID),
+		BasicCommand: gomust.Must(command.New(cmdCreateTask, taskID)),
 		Title:        "Integration Test",
 		Priority:     PriorityHigh,
 	}); err != nil {
@@ -46,7 +46,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 
 	// ── Start the task ────────────────────────────────────────────────
 	if err := srv.CmdDisp.Dispatch(ctx, StartTaskCmd{
-		BasicCommand: mustCmd(cmdStartTask, taskID),
+		BasicCommand: gomust.Must(command.New(cmdStartTask, taskID)),
 	}); err != nil {
 		t.Fatalf("start task: %v", err)
 	}
@@ -57,7 +57,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 
 	// ── Complete the task ─────────────────────────────────────────────
 	if err := srv.CmdDisp.Dispatch(ctx, CompleteTaskCmd{
-		BasicCommand: mustCmd(cmdCompleteTask, taskID),
+		BasicCommand: gomust.Must(command.New(cmdCompleteTask, taskID)),
 	}); err != nil {
 		t.Fatalf("complete task: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	// which sets Tombstoned=true on the view. We verify BOTH the
 	// read-model projection AND the event-store metadata.
 	if err := srv.CmdDisp.Dispatch(ctx, DeleteTaskCmd{
-		BasicCommand: mustCmd(cmdDeleteTask, taskID),
+		BasicCommand: gomust.Must(command.New(cmdDeleteTask, taskID)),
 	}); err != nil {
 		t.Fatalf("delete task: %v", err)
 	}
