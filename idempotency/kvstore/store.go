@@ -26,7 +26,10 @@ type KVBackend interface {
 
 // Store adapts any KVBackend into an idempotency.Store.
 // The expiry timestamp is stored as the value (Unix nano). Expired entries
-// are lazily deleted on read. CheckAndRecord uses SetIfAbsent for atomicity.
+// are lazily deleted on read. Record and CheckAndRecord both use SetIfAbsent,
+// so a key is written at most once: Record is a no-op when the key already
+// exists (the TTL is not extended), matching the documented [idempotency.Store]
+// contract shared with MemoryStore and the SQL store.
 type Store struct {
 	backend KVBackend
 }
@@ -74,7 +77,7 @@ func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error {
 	expiry := time.Now().Add(ttl).UnixNano()
 
-	if err := s.backend.Set(
+	if _, err := s.backend.SetIfAbsent(
 		ctx,
 		[]byte(key),
 		[]byte(strconv.FormatInt(expiry, 10)),

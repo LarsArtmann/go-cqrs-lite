@@ -131,3 +131,66 @@ func TestStore_SatisfiesStoreInterface(t *testing.T) {
 	t.Parallel()
 	var _ idempotency.Store = kvstore.New(kv.NewMemStore())
 }
+
+func TestStore_Record_DoesNotExtendTTL(t *testing.T) {
+	t.Parallel()
+	store := kvstore.New(kv.NewMemStore())
+	ctx := context.Background()
+
+	// Record with a short window, let it expire, then re-record with a long
+	// window. Record must be a no-op on an existing key, so the long TTL is
+	// NOT applied and the key stays expired. (The previous overwrite-on-Set
+	// implementation would extend the TTL here; this guards against regression.)
+	if err := store.Record(ctx, "k", 1*time.Millisecond); err != nil {
+		t.Fatalf("first Record: %v", err)
+	}
+	time.Sleep(5 * time.Millisecond)
+
+	if err := store.Record(ctx, "k", time.Hour); err != nil {
+		t.Fatalf("second Record: %v", err)
+	}
+
+	seen, err := store.Seen(ctx, "k")
+	if err != nil {
+		t.Fatalf("Seen: %v", err)
+	}
+	if seen {
+		t.Fatal("expected key to remain expired (Record must not extend TTL), but Seen reported true")
+	}
+}
+
+// TestStore_Record_MatchesMemoryStoreContract verifies the kvstore Record/Seen
+// contract matches the reference MemoryStore implementation. Both must be a
+// no-op on an existing key and never extend the TTL.
+func TestStore_Record_MatchesMemoryStoreContract(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	stores := map[string]idempotency.Store{
+		"memory":  idempotency.NewMemoryStore(0),
+		"kvstore": kvstore.New(kv.NewMemStore()),
+	}
+
+	for name, s := range stores {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if err := s.Record(ctx, "k", 1*time.Millisecond); err != nil {
+				t.Fatalf("first Record: %v", err)
+			}
+			time.Sleep(5 * time.Millisecond)
+
+			if err := s.Record(ctx, "k", time.Hour); err != nil {
+				t.Fatalf("second Record: %v", err)
+			}
+
+			seen, err := s.Seen(ctx, "k")
+			if err != nil {
+				t.Fatalf("Seen: %v", err)
+			}
+			if seen {
+				t.Fatalf("Record extended the TTL (Seen=true after expiry); contract requires no-op on existing")
+			}
+		})
+	}
+}
