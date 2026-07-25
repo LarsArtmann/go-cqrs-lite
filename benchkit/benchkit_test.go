@@ -811,19 +811,26 @@ func TestRun_SQLite_DurationAborts(t *testing.T) {
 	})
 	elapsed := time.Since(start)
 
+	// Under the race detector, SQLite setup and teardown inflate ~5-10x, so
+	// relax the hang threshold to catch genuine hangs without flaking.
+	hangThreshold := 5 * time.Second
+	if raceEnabled {
+		hangThreshold = 30 * time.Second
+	}
+
 	// SQLite respects context deadlines via SQL query cancellation.
 	// This can return either a partial result or an error — both are correct.
 	if err != nil {
 		// Error path: verify it's classified and not a hang
-		if elapsed > 5*time.Second {
-			t.Errorf("SQLite run took %v with Duration=10ms; expected < 5s", elapsed)
+		if elapsed > hangThreshold {
+			t.Errorf("SQLite run took %v with Duration=10ms; expected < %v", elapsed, hangThreshold)
 		}
 
 		return
 	}
 
-	if elapsed > 5*time.Second {
-		t.Errorf("SQLite run took %v with Duration=10ms; expected < 5s", elapsed)
+	if elapsed > hangThreshold {
+		t.Errorf("SQLite run took %v with Duration=10ms; expected < %v", elapsed, hangThreshold)
 	}
 
 	if result.TotalEvents >= bigProfile.TotalEvents() {

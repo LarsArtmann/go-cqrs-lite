@@ -84,9 +84,14 @@ func TestRunSoak_TrendsPopulated(t *testing.T) {
 	}
 
 	// Heap leak rate should be near-zero for memory backend (no per-cycle leak).
-	// Allow up to 1MB/iteration tolerance for GC noise.
-	if result.HeapLeakRate > 1<<20 {
-		t.Errorf("HeapLeakRate = %.0f bytes/iter, expected < 1MB", result.HeapLeakRate)
+	// The race detector inflates allocations ~5-10x, so allow more headroom.
+	maxHeapLeak := float64(1 << 20) // 1MB/iteration
+	if raceEnabled {
+		maxHeapLeak = float64(16 << 20) // 16MB/iteration
+	}
+
+	if result.HeapLeakRate > maxHeapLeak {
+		t.Errorf("HeapLeakRate = %.0f bytes/iter, expected < %.0f", result.HeapLeakRate, maxHeapLeak)
 	}
 }
 
