@@ -3,6 +3,7 @@ charm.land/glamour/v2 v2.0.1/go.mod h1:jo9z8XqVKPeEFMVdvCRLGk++RyJ3CdUwgNr7EvXLw
 cloud.google.com/go/compute/metadata v0.9.0/go.mod h1:E0bWwX5wTnLPedCKqk3pJmVgCBSM6qQI1yTBdEb3C10=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.32.0/go.mod h1:RD2SsorTmYhF6HkTmDw7KmPYQk8OBYwTkuasChwv7R4=
 github.com/HdrHistogram/hdrhistogram-go v1.1.2/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
+github.com/LarsArtmann/gogenfilter/v3 v3.3.1 h1:2AErG3HMUrFgnLtf8CF6SjMiPE9oy+32i58Y6sKS0oI=
 github.com/LarsArtmann/gogenfilter/v3 v3.3.1/go.mod h1:9iNskqhLSLHqj6KNGmgUnkQD4peM8mscz78sE7+94XQ=
 github.com/a-h/parse v0.0.0-20250122154542-74294addb73e/go.mod h1:3mnrkvGpurZ4ZrTDbYU84xhwXW2TjTKShSwjRi2ihfQ=
 github.com/aclements/go-moremath v0.0.0-20210112150236-f10218a38794/go.mod h1:7e+I0LQFUI9AXWxOfsQROs9xPhoJtbsyWcjJqDd4KPY=
