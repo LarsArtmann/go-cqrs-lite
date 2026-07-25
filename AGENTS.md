@@ -52,10 +52,10 @@ go-cqrs-lite/
 ├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], StreamID, EventID, etc.
 │   └── idtest/          # Parse*(tb, s) test helpers — tb.Fatalf on error, no panics
 ├── metadata/            # Tracing, CustomData[K] (extracted from event/ — shared metadata types for command/query/event)
-├── metaengine/          # Cost-based storage planner: Engine, Store, Plan, 7 ADTs, cost model, SQLite engine ([ADR-0061](docs/adr/0061-metaengine-sqlite-engine.md), [ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md), [ADR-0063](docs/adr/0063-metaengine-pushdown.md)) — zero production deps in core
+├── metaengine/          # Cost-based storage planner: Engine, Store, Plan, 7 ADTs, cost model, SQLite engine ([ADR-0061](docs/adr/0061-metaengine-sqlite-engine.md), [ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md), [ADR-0063](docs/adr/0063-metaengine-pushdown.md)) — zero production deps in core. SQLite engine hardened: tx-atomic MapUpdate (no lost concurrent updates), restart-safe multimap seq (sync.Once MAX(seq) seed), ExecuteTyped reifies map[string]any→struct across engines. Caller owns the *sql.DB (engine Close is a no-op)
 │   └── projectionadapter/ # Projection adapter: wraps metaengine Store as projection.Projection ([ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md))
 ├── idempotency/         # Dedup store: Store, MemoryStore, ErrDuplicate (dedup for at-least-once delivery; extraction planned — [ADR-0065](docs/adr/0065-extract-idempotency-module.md)) — ZERO module deps beyond go-error-family
-│   └── kvstore/        # KVStore, KVBackend (KV-backed idempotency — optional subpackage, pulls kv/)
+│   └── kvstore/        # KVStore, KVBackend (KV-backed idempotency — optional subpackage, pulls kv/). Record uses SetIfAbsent: no-op on an existing key, TTL NOT extended, matching MemoryStore + sqlstore + the documented Store contract
 │   └── sqlstore/       # SQLStore: NewSQLiteStore/NewPostgresStore (INSERT ON CONFLICT DO NOTHING, TTL sweep)
 ├── dispatcher/          # Generic Dispatcher[H, M] with LifecycleMixin
 ├── schema/              # Upcaster, VersionedStore, VersionedSeekableJournal, upcasterRegistry (schema evolution); Validator with RegisterType[T]() (ADR-0017)

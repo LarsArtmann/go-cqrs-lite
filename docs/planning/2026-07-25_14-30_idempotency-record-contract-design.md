@@ -1,8 +1,16 @@
 # Design Note: Idempotency `Store.Record` Contract
 
 **Date:** 2026-07-25
-**Status:** Proposed — awaiting decision
+**Status:** Decided — Option A implemented (2026-07-25)
 **Trigger:** Three `Record` implementations disagree on TTL semantics.
+
+> **Resolution:** `idempotency/kvstore.Record` now uses `SetIfAbsent` (no-op on
+> existing key, TTL not extended), matching `MemoryStore`, `sqlstore`, and the
+> documented `Store.Record` contract. The open question below ("does kv.Store
+> support SetNX?") was answered YES: `KVBackend` already requires
+> `kv.ConditionalWriter.SetIfAbsent`, which `CheckAndRecord` already used.
+> Regression tests: `TestStore_Record_DoesNotExtendTTL` and the cross-impl
+> `TestStore_Record_MatchesMemoryStoreContract` guard the unified contract.
 
 ---
 
