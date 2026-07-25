@@ -130,7 +130,13 @@ func (t RelationalTable) validate() error {
 		}
 
 		for _, ic := range idx.Columns {
-			if _, ok := colNames[ic]; !ok {
+			// Index columns may carry a trailing ASC/DESC sort qualifier
+			// (e.g. "created_at DESC" in a composite index). Strip it before
+			// validating against the table's declared column names.
+			base := strings.TrimSuffix(ic, " DESC")
+			base = strings.TrimSuffix(base, " ASC")
+
+			if _, ok := colNames[base]; !ok {
 				return errorfamily.WrapRejection(errSchemaUnknownIndexColumn,
 					"relational.schema_unknown_index_col",
 					fmt.Sprintf("table %q: index %q column %q", t.Name, idx.Name, ic))

@@ -164,16 +164,37 @@ func TestStore_Record_DoesNotExtendTTL(t *testing.T) {
 	}
 }
 
+// newSQLiteStoreForContract builds a SQL-backed idempotency store for the
+// cross-implementation contract test. Shared-cache in-memory SQLite + a single
+// connection so concurrent writers queue instead of erroring.
+func newSQLiteStoreForContract(t *testing.T) idempotency.Store {
+	t.Helper()
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared&_pragma=busy_timeout(5000)")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+	s, err := idemsqlstore.NewSQLiteStore(context.Background(), db)
+	if err != nil {
+		t.Fatalf("new sqlite store: %v", err)
+	}
+	return s
+}
+
 // TestStore_Record_MatchesMemoryStoreContract verifies the kvstore Record/Seen
-// contract matches the reference MemoryStore implementation. Both must be a
-// no-op on an existing key and never extend the TTL.
+// contract matches the reference MemoryStore implementation AND the SQL store.
+// All three implementations must be a no-op on an existing key and never extend
+// the TTL. This is the authoritative cross-implementation contract test
+// (closing the 2-of-3 gap; previously only Memory + KV were covered).
 func TestStore_Record_MatchesMemoryStoreContract(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
 	stores := map[string]idempotency.Store{
-		"memory":  idempotency.NewMemoryStore(0),
-		"kvstore": kvstore.New(kv.NewMemStore()),
+		"memory":   idempotency.NewMemoryStore(0),
+		"kvstore":  kvstore.New(kv.NewMemStore()),
+		"sqlstore": newSQLiteStoreForContract(t),
 	}
 
 	for name, s := range stores {
@@ -197,6 +218,58 @@ func TestStore_Record_MatchesMemoryStoreContract(t *testing.T) {
 				t.Fatalf(
 					"Record extended the TTL (Seen=true after expiry); contract requires no-op on existing",
 				)
+			}
+		})
+	}
+}
+
+// TestStore_CheckAndRecord_Concurrent_AllImplementations verifies that under
+// contention exactly one concurrent CheckAndRecord wins per key across every
+// implementation (atomic claim, no double-wins, no lost errors).
+func TestStore_CheckAndRecord_Concurrent_AllImplementations(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	const goroutines = 50
+
+	stores := map[string]idempotency.Store{
+		"memory":   idempotency.NewMemoryStore(0),
+		"kvstore":  kvstore.New(kv.NewMemStore()),
+		"sqlstore": newSQLiteStoreForContract(t),
+	}
+
+	for name, s := range stores {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			var wg sync.WaitGroup
+			wg.Add(goroutines)
+
+			var mu sync.Mutex
+			wins, dups := 0, 0
+
+			start := make(chan struct{})
+			for i := 0; i < goroutines; i++ {
+				go func() {
+					defer wg.Done()
+					<-start
+					err := s.CheckAndRecord(ctx, "race-key", time.Minute)
+					mu.Lock()
+					defer mu.Unlock()
+					switch {
+					case err == nil:
+						wins++
+					case errors.Is(err, idempotency.ErrDuplicate):
+						dups++
+					}
+				}()
+			}
+			close(start)
+			wg.Wait()
+
+			if wins != 1 {
+				t.Fatalf("want exactly 1 winner, got %d (dups=%d)", wins, dups)
+			}
+			if wins+dups != goroutines {
+				t.Fatalf("want %d clean outcomes, got wins=%d dups=%d", goroutines, wins, dups)
 			}
 		})
 	}
