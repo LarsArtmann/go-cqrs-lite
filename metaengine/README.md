@@ -219,3 +219,22 @@ This module is built with the `goexperiment.jsonv2` build tag (Go 1.26+), which
 enables `encoding/json/v2`. Consumers on stock Go 1.26 must build with
 `-tags goexperiment.jsonv2`; the tag graduates to default in Go 1.27+. CI and
 `nix run .#build` apply the tag automatically.
+
+## ApplyEncoded (Hot Path for Projections)
+
+`Store.ApplyEncoded` is the zero-copy entry point used by `projectionadapter`
+when wiring a metaengine Store into a `projectionhost.Host`. It accepts a
+JSON-encoded `[]byte` payload directly (no need to unmarshal first), decodes
+it via `encoding/json/v2`, and routes it to all matching fold handlers:
+
+```go
+// In a projection.Projection.Handle implementation:
+func (p *myProjection) Handle(ctx context.Context, evt event.Event) error {
+    return p.store.ApplyEncoded(string(evt.Type()), evt.Payload())
+}
+```
+
+This avoids a double-decode (the adapter would otherwise unmarshal to `any`,
+then `Apply` would need to re-inspect the type). The `projectionadapter`
+package is the canonical consumer; direct callers should use `Apply` with a
+typed value unless they are bridging from a raw-payload source.

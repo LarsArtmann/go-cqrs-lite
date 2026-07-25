@@ -44,3 +44,19 @@ calls are serialized, and no increment is lost.
   guarantee more simply.
 - **Application-level mutex:** rejected — only works single-process; the SQL
   engine exists precisely for multi-process correctness.
+
+## Prior Art
+
+- **PostgreSQL UPSERT (`INSERT ... ON CONFLICT DO UPDATE`):** The exact SQL
+  idiom this ADR uses. Documented in PostgreSQL's "UPSERT" guide since 9.5.
+  The metaengine's `MapUpdate` is the Go-level abstraction over this idiom.
+- **SQLite (`INSERT ... ON CONFLICT DO UPDATE`):** Same syntax since 3.24.0.
+  SQLite's single-writer serialization makes this pattern race-free by default.
+- **Marten (C#/.NET):** `IDocumentSession` wraps all writes in a Postgres
+  transaction. Patch operations use `jsonb` atomic updates — the C# equivalent
+  of this ADR's `fn(prev) result` applied inside a `BEGIN...COMMIT`.
+- **Ruby on Rails:** `find_or_create_by` has a well-documented race condition;
+  the fix is `upsert` (Rails 6+). This ADR avoids the race by design.
+- **EventStoreDB:** Uses `ExpectedVersion` for optimistic concurrency rather
+  than pessimistic transactions. Different approach (optimistic vs pessimistic);
+  the metaengine chose pessimistic for simplicity on single-writer SQLite.

@@ -67,13 +67,13 @@ this list and recorded in CHANGELOG.
 ## Module Health & Tooling (from 2026-07-25 self-review sweep)
 
 - 🔥 **[BLOCKED] Fix the broken published module graph.** Several published
-      `go.mod` files reference sibling versions that were never tagged:
-      `codec/v4.0.4`, `decider/v4.0.3`, `listing/v4.0.3`, `storage/v4.0.3`.
-      This makes `go mod tidy` fail for any module that newly pulls those
-      transitively (e.g. adding `idempotency/sqlstore` to `integration/`).
-      `go build`/`go test` work in workspace mode (go.work provides locals), so
-      `#verify` is green, but per-module `GOWORK=off` CI and `go mod tidy` break.
-      Fix: tag the missing versions or bump the require lines to existing tags.
+  `go.mod` files reference sibling versions that were never tagged:
+  `codec/v4.0.4`, `decider/v4.0.3`, `listing/v4.0.3`, `storage/v4.0.3`.
+  This makes `go mod tidy` fail for any module that newly pulls those
+  transitively (e.g. adding `idempotency/sqlstore` to `integration/`).
+  `go build`/`go test` work in workspace mode (go.work provides locals), so
+  `#verify` is green, but per-module `GOWORK=off` CI and `go mod tidy` break.
+  Fix: tag the missing versions or bump the require lines to existing tags.
 - [ ] **Configure gopls with `goexperiment.jsonv2`** — gopls runs without the
       build tag, so its analysis of `encoding/json/v2` code is unreliable and
       it floods false "X is not in your go.mod" errors right after restart.
@@ -96,8 +96,6 @@ this list and recorded in CHANGELOG.
       tagging.
 
 ---
-
-
 
 > Kept here so decisions are not re-litigated. Full rationale in the linked
 > ADRs/reviews.

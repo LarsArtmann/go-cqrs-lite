@@ -15,8 +15,8 @@ This is configured via the `go-import` meta tag:
 
 ```html
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core"
 />
 ```
 
@@ -382,44 +382,44 @@ or a custom landing page):
 
 ```html
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/core mod https://github.com/larsartmann/go-cqrs-lite core"
 />
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/memory mod https://github.com/larsartmann/go-cqrs-lite memory"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/memory mod https://github.com/larsartmann/go-cqrs-lite memory"
 />
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/storage mod https://github.com/larsartmann/go-cqrs-lite storage"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/storage mod https://github.com/larsartmann/go-cqrs-lite storage"
 />
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/watermill mod https://github.com/larsartmann/go-cqrs-lite watermill"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/watermill mod https://github.com/larsartmann/go-cqrs-lite watermill"
 />
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/projection mod https://github.com/larsartmann/go-cqrs-lite projection"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/projection mod https://github.com/larsartmann/go-cqrs-lite projection"
 />
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/snapshot mod https://github.com/larsartmann/go-cqrs-lite snapshot"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/snapshot mod https://github.com/larsartmann/go-cqrs-lite snapshot"
 />
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/catalog mod https://github.com/larsartmann/go-cqrs-lite catalog"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/catalog mod https://github.com/larsartmann/go-cqrs-lite catalog"
 />
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/middleware mod https://github.com/larsartmann/go-cqrs-lite middleware"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/middleware mod https://github.com/larsartmann/go-cqrs-lite middleware"
 />
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/xtypes mod https://github.com/larsartmann/go-cqrs-lite xtypes"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/xtypes mod https://github.com/larsartmann/go-cqrs-lite xtypes"
 />
 <meta
-  name="go-import"
-  content="github.com/larsartmann/go-cqrs-lite/testutil mod https://github.com/larsartmann/go-cqrs-lite testutil"
+	name="go-import"
+	content="github.com/larsartmann/go-cqrs-lite/testutil mod https://github.com/larsartmann/go-cqrs-lite testutil"
 />
 ```
 

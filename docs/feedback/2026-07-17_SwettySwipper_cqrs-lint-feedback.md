@@ -394,10 +394,10 @@ Add a `"disable"` or `"ignore-rules"` array to `.cqrs-lint.json`:
 
 ```json
 {
-  "disable": ["E005", "E007"],
-  "rules": {
-    "external-api-struct-prefixes": ["Discord"]
-  }
+	"disable": ["E005", "E007"],
+	"rules": {
+		"external-api-struct-prefixes": ["Discord"]
+	}
 }
 ```
 

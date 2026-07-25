@@ -9,17 +9,18 @@
 
 ## a) FULLY DONE ✅
 
-| # | Task | Verification |
-|---|------|--------------|
-| 1 | `--skip-journey`, `--skip-query`, `--skip-snapshot` CLI flags added to `flags.go` + wired into `runCmd` AND `sweepCmd` | smoke-tested all 3 together (sections absent, exit 0) |
-| 2 | `benchkit/CHANGELOG.md` `[Unreleased]` populated with M14/M15/M16/M19 + CLI flags | 4 milestone references |
-| 3 | `benchkit/doc.go` metric-boundaries section extended with Journey/Query/Snapshot + new "Soak testing" section | builds clean |
-| 4 | `benchkit/README.md` updated: CLI examples (soak, skip-snapshot, skip-journey+query), Metrics section (journey/query/snapshot), Skipping-phases section (3 new flags + auto-skip note), new "Soak testing" design section | — |
-| 5 | `TestWriteSoakJSON_RoundTrip` added — marshals `SoakResult` → unmarshals → verifies Backend/Iterations/Samples(count+fields)/HeapGrowthBytes/ThroughputDriftPct | passes (1.0s) |
-| 6 | Opportunistic: fixed 2 pre-existing `wsl_v5` findings in `benchkit/sweep.go` (found during lint, not mine originally) | lint 0 issues for benchkit |
-| 7 | Final verification: `go build` (both modules) ✅ · `go test` benchkit 30s/17 tests ✅ · `go test` cqrs-bench 5s ✅ · `nix run .#lint` 0 issues for benchkit+cqrs-bench ✅ · `nix fmt` ✅ · CLI smoke (`--skip-*` x3, `--soak`) ✅ | — |
+| #   | Task                                                                                                                                                                                                                              | Verification                                          |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| 1   | `--skip-journey`, `--skip-query`, `--skip-snapshot` CLI flags added to `flags.go` + wired into `runCmd` AND `sweepCmd`                                                                                                            | smoke-tested all 3 together (sections absent, exit 0) |
+| 2   | `benchkit/CHANGELOG.md` `[Unreleased]` populated with M14/M15/M16/M19 + CLI flags                                                                                                                                                 | 4 milestone references                                |
+| 3   | `benchkit/doc.go` metric-boundaries section extended with Journey/Query/Snapshot + new "Soak testing" section                                                                                                                     | builds clean                                          |
+| 4   | `benchkit/README.md` updated: CLI examples (soak, skip-snapshot, skip-journey+query), Metrics section (journey/query/snapshot), Skipping-phases section (3 new flags + auto-skip note), new "Soak testing" design section         | —                                                     |
+| 5   | `TestWriteSoakJSON_RoundTrip` added — marshals `SoakResult` → unmarshals → verifies Backend/Iterations/Samples(count+fields)/HeapGrowthBytes/ThroughputDriftPct                                                                   | passes (1.0s)                                         |
+| 6   | Opportunistic: fixed 2 pre-existing `wsl_v5` findings in `benchkit/sweep.go` (found during lint, not mine originally)                                                                                                             | lint 0 issues for benchkit                            |
+| 7   | Final verification: `go build` (both modules) ✅ · `go test` benchkit 30s/17 tests ✅ · `go test` cqrs-bench 5s ✅ · `nix run .#lint` 0 issues for benchkit+cqrs-bench ✅ · `nix fmt` ✅ · CLI smoke (`--skip-*` x3, `--soak`) ✅ | —                                                     |
 
 **Commits this session (auto-daemon, interleaved with a concurrent "72h-diff-review" session):**
+
 - `35bc9a6f` — CHANGELOG
 - `b8fbee8d` — README + doc.go
 - `bd7012f3` / `a08ec77a` — flags.go + main.go + soak_test.go
@@ -29,11 +30,11 @@
 
 ## b) PARTIALLY DONE ⚠️
 
-1. **CLI flag coverage** — Added skip flags to `runCmd` and `sweepCmd`, but **NOT `compareCmd`**. `compare` builds its own Config without skip flags. This is *probably* correct (you want all backends running the same phases for fair comparison), but I made the decision implicitly without documenting the rationale. If a user wants to compare only write performance, they can't skip the new phases in `compare`.
+1. **CLI flag coverage** — Added skip flags to `runCmd` and `sweepCmd`, but **NOT `compareCmd`**. `compare` builds its own Config without skip flags. This is _probably_ correct (you want all backends running the same phases for fair comparison), but I made the decision implicitly without documenting the rationale. If a user wants to compare only write performance, they can't skip the new phases in `compare`.
 
 2. **Soak JSON round-trip** — Tests `SoakResult` round-trip, but the nested `SoakConfig.Config.Codec` field (an interface: `codec.Codec`) does **NOT** round-trip — it has no `UnmarshalJSON`. After unmarshal the Codec is nil. I noticed this during testing and glossed over it. The test passes only because it doesn't assert on Codec. **Latent bug for anyone loading a soak result from disk and re-running.**
 
-3. **README "Skipping phases" section** — Documents the 3 new flags, but the *auto-skip behavior* (skipped when bundle lacks capabilities) is mentioned in prose only. No matrix of "which backend triggers which auto-skip."
+3. **README "Skipping phases" section** — Documents the 3 new flags, but the _auto-skip behavior_ (skipped when bundle lacks capabilities) is mentioned in prose only. No matrix of "which backend triggers which auto-skip."
 
 4. **CHANGELOG** — All entries under `[Unreleased]`. The existing `[4.1.0]` is dated today (2026-07-25). I did not decide whether these belong in 4.1.0 (retroactively) or a new 4.2.0. Versioning strategy undecided.
 
@@ -80,6 +81,7 @@
 ## f) Up to 50 things to get done next
 
 ### Immediate (verify what we shipped)
+
 1. Run `cqrs-bench run --backend sqlite --dsn ":memory:" --profile small` and save output
 2. Run `cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor`
 3. Run `cqrs-bench run --backend memory --profile dev --soak 2m` and inspect drift
@@ -91,6 +93,7 @@
 9. Verify soak heap growth is bounded on sqlite/pebble (real leak detection)
 
 ### Correctness gaps
+
 10. Add `Result` round-trip test covering the 13 new fields (JourneyLatency, QueryHitLatency, SnapshotColdLatency, etc.)
 11. Document or fix the `Config.Codec` non-round-trip in soak JSON
 12. Add CLI test: `--skip-snapshot` produces Result with `SnapshotColdLatency.Count == 0`
@@ -99,28 +102,33 @@
 15. Decide: add skip flags to `compareCmd` or document why not
 
 ### Make soak actually useful for the new phases
+
 16. Extend `SoakSample` with `JourneyP99`, `QueryHitP99`, `SnapshotLoadP99` fields
 17. Extend `computeSoakTrends` to compute drift for the new phases
 18. Extend the soak progress line to show journey/query metrics
 19. Extend `PrintSoakReport` with a per-phase drift section
 
 ### Make benchstat format track the new metrics
+
 20. Add journey/query/snapshot lines to `WriteBenchstat`
 21. Add a benchstat round-trip test (parse the lines back)
 
 ### CLI polish
+
 22. Document all three skip flags in the usage/help text (currently only `--skip-snapshot` is in examples)
 23. Add `--soak-report-interval` flag (currently hardcoded 10s)
 24. Add `--soak-json` shorthand for `--soak Xm --format json`
 25. Consider `--soak-profile` to allow a different (smaller) profile for soak iterations
 
 ### Lint / hygiene
+
 26. Fix `stack/pebble/preset.go:130` gosec G115 (extract `uint64→int64` helper)
 27. Run `nix run .#check-layers` to verify dependency budgets after adding `decider/v4` to benchkit
 28. Run the API-stability checker (`cmd/api-stability`) against benchkit's exported surface
 29. Check the `getting-started` untracked file that appeared in git status (origin unknown — concurrent session?)
 
 ### Documentation
+
 30. Add a "Benchmark interpretation guide" to README explaining what each phase's numbers mean
 31. Add expected-ordering guidance (e.g. "cache_hit should be ~10x faster than cold_replay")
 32. Document the soak decision criteria: what HeapLeakRate / ThroughputDriftPct thresholds are concerning
@@ -129,6 +137,7 @@
 35. Update the status report (`docs/status/2026-07-25_13-50_*`) to mark verification complete
 
 ### Deeper testing
+
 36. Property-based test (rapid) for the journey phase: random event counts, assert count matches
 37. Fuzz the soak JSON unmarshaler
 38. Test soak with `Recovery: true` (does recovery work inside a soak loop?)
@@ -137,6 +146,7 @@
 41. Test snapshot phase with a backend whose EventSink is not event.Store (should auto-skip)
 
 ### Performance
+
 42. Benchmark the journey phase itself — is synchronous `projection.Handle` the bottleneck?
 43. Compare synchronous projection vs projectionhost batch drain for the journey metric
 44. Measure GC pressure of the soak loop's per-iteration factory call
@@ -144,6 +154,7 @@
 46. Add `runtime.ReadMemStats().NumGC` to detect excessive GC cycles
 
 ### Future milestones
+
 47. M17/M18 — whatever they are (not in scope, but check the plan)
 48. Network-transport benchmark (HTTP SSE / gRPC dispatch latency)
 49. Multi-tenant soak (per-tenant isolation metrics)
@@ -153,7 +164,7 @@
 
 ## g) Questions I CANNOT figure out myself ❓
 
-1. **Should the soak mode track the new phases (journey/query/snapshot) or stay write-focused?** I can implement either, but the *product decision* is: is soak a "write-path leak detector" or a "full-system health monitor"? The answer determines whether items #16-19 are in scope. You've used soak in production before — what do you actually look at?
+1. **Should the soak mode track the new phases (journey/query/snapshot) or stay write-focused?** I can implement either, but the _product decision_ is: is soak a "write-path leak detector" or a "full-system health monitor"? The answer determines whether items #16-19 are in scope. You've used soak in production before — what do you actually look at?
 
 2. **Do these 4 milestones ship as v4.2.0 or get folded into the existing v4.1.0 (dated today)?** The `[4.1.0]` section is already dated 2026-07-25 and covers recovery/replay/repeat. The new phases are additive. I don't know your release cadence / whether 4.1.0 is already tagged.
 

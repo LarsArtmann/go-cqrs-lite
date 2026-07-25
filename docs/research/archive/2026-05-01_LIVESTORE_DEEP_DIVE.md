@@ -215,22 +215,22 @@ Materializers are **functions that write to the database in response to events**
 ```typescript
 // ❌ DON'T — non-deterministic ID generation inside materializer
 const materializers = State.SQLite.materializers(events, {
-  "v1.TodoCreated": ({ text }) => tables.todos.insert({ id: crypto.randomUUID(), text }),
-  //                          ^^^^^^^^^^^^^^^^^^^^^^^
-  //                          Non-deterministic! Different result on replay
+	"v1.TodoCreated": ({ text }) => tables.todos.insert({ id: crypto.randomUUID(), text }),
+	//                          ^^^^^^^^^^^^^^^^^^^^^^^
+	//                          Non-deterministic! Different result on replay
 });
 
 // ✅ DO — all data from event payload
 const events = {
-  todoCreated: Events.synced({
-    name: "v1.TodoCreated",
-    schema: Schema.Struct({ id: Schema.String, text: Schema.String }),
-    //                            ^^^^^^^^^^^^^^^^^^
-    //                            Include ID in event payload
-  }),
+	todoCreated: Events.synced({
+		name: "v1.TodoCreated",
+		schema: Schema.Struct({ id: Schema.String, text: Schema.String }),
+		//                            ^^^^^^^^^^^^^^^^^^
+		//                            Include ID in event payload
+	}),
 };
 const materializers = State.SQLite.materializers(events, {
-  "v1.TodoCreated": ({ id, text }) => tables.todos.insert({ id, text }),
+	"v1.TodoCreated": ({ id, text }) => tables.todos.insert({ id, text }),
 });
 store.commit(events.todoCreated({ id: crypto.randomUUID(), text: "Buy milk" }));
 ```
@@ -241,11 +241,11 @@ store.commit(events.todoCreated({ id: crypto.randomUUID(), text: "Buy milk" }));
 
 ```typescript
 const materializers = State.SQLite.materializers(events, {
-  todoCreated: ({ id, text, completed }, ctx) => {
-    // ctx.query gives a consistent view within the transaction
-    const previousIds = ctx.query(todos.select("id"));
-    return todos.insert({ id, text, completed: completed ?? false, previousIds });
-  },
+	todoCreated: ({ id, text, completed }, ctx) => {
+		// ctx.query gives a consistent view within the transaction
+		const previousIds = ctx.query(todos.select("id"));
+		return todos.insert({ id, text, completed: completed ?? false, previousIds });
+	},
 });
 ```
 
@@ -407,12 +407,12 @@ LiveStore has a special `clientDocument` table type for local UI state:
 
 ```typescript
 uiState: State.SQLite.clientDocument({
-  name: "uiState",
-  schema: Schema.Struct({
-    newTodoText: Schema.String,
-    filter: Schema.Literal("all", "active", "completed"),
-  }),
-  default: { id: SessionIdSymbol, value: { newTodoText: "", filter: "all" } },
+	name: "uiState",
+	schema: Schema.Struct({
+		newTodoText: Schema.String,
+		filter: Schema.Literal("all", "active", "completed"),
+	}),
+	default: { id: SessionIdSymbol, value: { newTodoText: "", filter: "all" } },
 });
 ```
 

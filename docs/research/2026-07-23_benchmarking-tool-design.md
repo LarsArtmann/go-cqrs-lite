@@ -393,12 +393,12 @@ The default generator produces payloads like:
 
 ```json
 {
-  "id": "01HX...",
-  "name": "Order-4287",
-  "value": 129.99,
-  "items": 3,
-  "tags": ["priority", "express"],
-  "metadata": { "source": "web", "session": "abc123" }
+	"id": "01HX...",
+	"name": "Order-4287",
+	"value": 129.99,
+	"items": 3,
+	"tags": ["priority", "express"],
+	"metadata": { "source": "web", "session": "abc123" }
 }
 ```
 
@@ -753,15 +753,15 @@ Storage:
 
 ```json
 {
-  "backend": "sqlite",
-  "profile": "medium",
-  "timestamp": "2026-07-23T14:30:00Z",
-  "duration": "12.4s",
-  "writeLatency": { "p50": "38µs", "p95": "82µs", "p99": "145µs" },
-  "writeThroughput": 42318.5,
-  "loadLatency": { "p50": "41µs", "p95": "89µs", "p99": "160µs" },
-  "memory": { "heapDelta": 142000000 },
-  "disk": { "databaseBytes": 18400000 }
+	"backend": "sqlite",
+	"profile": "medium",
+	"timestamp": "2026-07-23T14:30:00Z",
+	"duration": "12.4s",
+	"writeLatency": { "p50": "38µs", "p95": "82µs", "p99": "145µs" },
+	"writeThroughput": 42318.5,
+	"loadLatency": { "p50": "41µs", "p95": "89µs", "p99": "160µs" },
+	"memory": { "heapDelta": 142000000 },
+	"disk": { "databaseBytes": 18400000 }
 }
 ```
 

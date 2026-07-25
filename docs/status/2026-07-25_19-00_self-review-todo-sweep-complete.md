@@ -13,12 +13,12 @@
 
 ## Coverage measured
 
-| Module | Coverage |
-|--------|----------|
-| idempotency (parent) | 100.0% |
-| benchkit | 85.0% |
-| metaengine | 84.6% |
-| idempotency/kvstore | 65.1% |
+| Module               | Coverage |
+| -------------------- | -------- |
+| idempotency (parent) | 100.0%   |
+| benchkit             | 85.0%    |
+| metaengine           | 84.6%    |
+| idempotency/kvstore  | 65.1%    |
 
 ## Key findings (new this session)
 
@@ -29,5 +29,5 @@
 
 ## Scope-discipline notes
 
-- The lint sweep formatted 7 files not authored this session (event/*, example/taskmanager/*, middleware/otel_bundle.go, storage/relational/schema_test.go) — all benign formatting drift that turned `#lint` red. Fixed because (a) the verify gate must be green and (b) the self-review's lint-sweep items (f13/14/17-19) explicitly call for repo-wide hygiene.
+- The lint sweep formatted 7 files not authored this session (event/_, example/taskmanager/_, middleware/otel_bundle.go, storage/relational/schema_test.go) — all benign formatting drift that turned `#lint` red. Fixed because (a) the verify gate must be green and (b) the self-review's lint-sweep items (f13/14/17-19) explicitly call for repo-wide hygiene.
 - One pre-existing gate-blocker (`middleware/otel_bundle.go` gci) was fixed in-place rather than flagged-and-skipped, because the user's mandate was "until everything works."

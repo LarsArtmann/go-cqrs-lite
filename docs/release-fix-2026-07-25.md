@@ -9,18 +9,23 @@
 Created **32 annotated tags** at commit `8285da41` (the batch-release commit where replace directives are stripped), matching the descriptions from the deleted `run-v4.0.4-release.sh`:
 
 ### v4.0.3 tags (17 modules)
+
 decider, encryption, graph, id, kv, listing, middleware, otel, projectionhost, scenario, scheduling, schema, signing, snapshot, storage, storage/pebble, transport/http
 
 ### v4.0.4 tags (3 modules — only ones referenced by v4.1.0)
+
 codec, event, watermill
 
 ### v4.0.2 tags (13 modules)
+
 command, dedup, dispatcher, idempotency, metadata, projection, query, retry, stack/sqlite, stack, storage/memory, storage/turso, testutil
 
 ### v0.2.1 tag (1 module)
+
 event/v4/eventtest
 
 ### Pseudo-version (1 ref)
+
 `otel/v4.0.0-20260711192758-e443adb3bfd0` — resolved from VCS (commit `e443adb3` exists in repo). No tag needed.
 
 ## Verification
@@ -41,6 +46,7 @@ done
 ## Remaining work (not blocking the graph)
 
 The CHANGELOG `[v4.0.4]` section documents 49 modules as released. Only 3 v4.0.4 tags were needed for graph resolution (codec, event, watermill). The remaining v4.0.4 tags (catalog, signing, encryption, etc.) are documented in CHANGELOG but:
+
 1. Are not referenced by any published v4.1.0 go.mod
 2. Would be cosmetic completeness (matching CHANGELOG to reality)
 3. Can be created in a future release if desired
@@ -62,6 +68,7 @@ done
 ```
 
 After pushing, verify with:
+
 ```bash
 cd integration && GOWORK=off go mod tidy
 ```

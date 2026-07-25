@@ -456,8 +456,8 @@ Local-first, SQLite-based. Radical approach: state is fully disposable.
 
 ```typescript
 const materializers = State.SQLite.materializers(events, {
-  "v1.TodoCreated": ({ id, text }) => tables.todos.insert({ id, text, completed: false }),
-  "v1.TodoCompleted": ({ id }) => tables.todos.update({ completed: true }).where({ id }),
+	"v1.TodoCreated": ({ id, text }) => tables.todos.insert({ id, text, completed: false }),
+	"v1.TodoCompleted": ({ id }) => tables.todos.update({ completed: true }).where({ id }),
 });
 ```
 

@@ -51,3 +51,19 @@ if !ok {
   with a per-read marshal/unmarshal for no benefit.
 - **Store type tags alongside values:** rejected — couples the projection to a
   serialization format and complicates the schema. The JSON fallback is simpler.
+
+## Prior Art
+
+- **Axon Framework (Java):** Axon's `Serializer` abstraction (XStream, Jackson)
+  handles cross-engine type conversion. The upcaster chain transforms events on
+  load — conceptually similar to reify, but for schema evolution rather than
+  engine-boundary type erasure.
+- **Marten (C#/.NET):** Uses `System.Text.Json`/Newtonsoft with polymorphic
+  deserialization. Document stores return `JObject`/`JsonElement`; the consumer
+  reifies to the concrete type. Same pattern, different language.
+- **EventStoreDB:** The client SDK deserializes from the event store's wire
+  format. Type information is metadata; the payload is JSON. No multi-engine
+  reify needed because there is only one engine.
+- **GORM (Go):** JSON column serialization uses `datatypes.JSON` which stores
+  and retrieves `map[string]any`. Reification is the consumer's responsibility —
+  the metaengine's fallback is more ergonomic by doing it automatically.

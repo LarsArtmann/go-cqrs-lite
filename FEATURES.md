@@ -1103,17 +1103,17 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Architecture Guarantees
 
-| Guarantee              | Detail                                                                                                                                                                                                    |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Guarantee              | Detail                                                                                                                                                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Lint posture           | `nix run .#lint` passes with 0 issues across all modules. `nix run .#verify` is GREEN: build + vet + test + race + lint + api-stability (2672 exports, with `TestEveryGoModDirIsInModulesList` meta-test) + doc-check. |
-| Race-free              | `go test -race` passes across all modules                                                                                                                                                                 |
-| Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                                            |
-| Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                                        |
-| Library, not framework | Import what you need, compose your own stack                                                                                                                                                              |
-| Context-aware          | All handlers accept `context.Context`                                                                                                                                                                     |
-| Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy                                                                                                    |
-| Defensive copies       | All public accessors return copies — callers cannot mutate internals                                                                                                                                      |
-| Tombstone over delete  | Soft-delete via metadata — no `Delete` on Store                                                                                                                                                           |
+| Race-free              | `go test -race` passes across all modules                                                                                                                                                                              |
+| Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                                                         |
+| Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                                                     |
+| Library, not framework | Import what you need, compose your own stack                                                                                                                                                                           |
+| Context-aware          | All handlers accept `context.Context`                                                                                                                                                                                  |
+| Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy                                                                                                                 |
+| Defensive copies       | All public accessors return copies — callers cannot mutate internals                                                                                                                                                   |
+| Tombstone over delete  | Soft-delete via metadata — no `Delete` on Store                                                                                                                                                                        |
 
 ---
 

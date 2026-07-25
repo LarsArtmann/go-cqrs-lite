@@ -19,6 +19,7 @@ All four benchkit milestones are **fully implemented, tested, and lint-clean**. 
 ## Fully Done
 
 ### M14 — Journey Phase (publish→projection→query)
+
 - **Files:** `phases_journey.go` (136 lines), `phases_journey_test.go` (125 lines)
 - **What it does:** For each sample: writes a single event → synchronously projects it into a kv.Store read model (Get+Set) → dispatches a typed query that reads the materialized counter.
 - **Metrics produced:** `JourneyLatency` (full round trip), `JourneyProjectionLatency` (projection.Handle leg), `JourneyQueryLatency` (query dispatch leg), `JourneySamples`, `QueryCorrectnessErrors`.
@@ -26,12 +27,14 @@ All four benchkit milestones are **fully implemented, tested, and lint-clean**. 
 - **Correctness assertion:** Each journey stream has exactly one event → materialized count must equal 1.
 
 ### M15 — Query Dispatch Phase
+
 - **Files:** `phases_query.go` (134 lines), `phases_query_test.go` (84 lines)
 - **What it does:** Pre-populates per-stream counters in the read model, then benchmarks three query dispatch paths through `query.Dispatcher`.
 - **Metrics produced:** `QueryHitLatency` (registered handler, reads real data), `QueryMissLatency` (unregistered type → handler-not-found error path), `QueryPaginatedLatency` (paginated result construction), `QueryCorrectnessErrors`.
 - **Correctness assertions:** Hit path returns expected count (i+1); paginated path returns correct TotalCount.
 
 ### M16 — Snapshot/Cache Hit-Rate Phase
+
 - **Files:** `phases_snapshot.go` (287 lines, refactored into 5 helpers), `phases_snapshot_test.go` (141 lines)
 - **What it does:** Measures decider Load performance under three strategies, with state/version equality checks across all of them:
   1. **Cold replay:** plain repository, full event replay.
@@ -41,6 +44,7 @@ All four benchkit milestones are **fully implemented, tested, and lint-clean**. 
 - **Refactoring:** Extracted into `populateSnapshots`, `benchmarkColdLoad`, `benchmarkSnapshotLoad`, `benchmarkCache` helpers to stay under gocognit/nestif limits.
 
 ### M19 — Soak Test Mode
+
 - **Files:** `soak.go` (233 lines), `soak_test.go` (159 lines), CLI `--soak` flag
 - **What it does:** Runs the benchmark repeatedly for a fixed duration, forcing GC between iterations and recording heap usage, throughput, and latency per iteration. Computes drift metrics (heap growth, throughput drift, P99 drift).
 - **API:** `RunSoak(ctx, SoakConfig, factory) → *SoakResult`, `PrintSoakReport(w, r)`, `WriteSoakJSON(w, r)`.
@@ -48,6 +52,7 @@ All four benchkit milestones are **fully implemented, tested, and lint-clean**. 
 - **Drift metrics:** `HeapGrowthBytes`, `HeapLeakRate` (bytes/iteration), `ThroughputDriftPct`, `WriteP99DriftPct`.
 
 ### Shared Infrastructure
+
 - **`benchmodel.go`** (198 lines): Shared types — `CounterState`, `counterDecider()`, query types (`getCountQuery`, `listCountsQuery`, `missQuery`), `CountResult`, `newJourneyProjection()`, `newBenchQueryDispatcher()`, `readCount`/`writeCount` helpers.
 - **Result struct:** 13 new fields added with JSON tags and documentation.
 - **Config struct:** 3 new skip flags (`SkipJourney`, `SkipQuery`, `SkipSnapshot`).
@@ -57,6 +62,7 @@ All four benchkit milestones are **fully implemented, tested, and lint-clean**. 
 - **ReplayOnly guard:** Journey and snapshot phases skip when `ReplayOnly=true` (they write events).
 
 ### Test Regressions Fixed
+
 - `TestRun_ReplayOnly_SQLite`: Added `SkipJourney` + `SkipSnapshot` to write phase (these phases write extra events that inflate journal count).
 - `TestRun_Recovery_SQLite` / `TestRun_Recovery_Pebble`: Added `SkipSnapshot` (snapshot populate writes extra events to existing streams).
 
@@ -65,9 +71,11 @@ All four benchkit milestones are **fully implemented, tested, and lint-clean**. 
 ## Partially Done
 
 ### CLI Skip Flags
+
 The `Config` struct exposes `SkipJourney`, `SkipQuery`, `SkipSnapshot` for library users, but the `cqrs-bench` CLI does not expose `--skip-journey`, `--skip-query`, `--skip-snapshot` flags. Only `--soak` was added. CLI users cannot selectively disable the new phases.
 
 ### Documentation
+
 - `doc.go` metric boundaries section not updated with JourneyLatency, QueryHitLatency, SnapshotColdLatency descriptions.
 - `CHANGELOG.md` `[Unreleased]` section not updated with the new features.
 - `README.md` not updated.

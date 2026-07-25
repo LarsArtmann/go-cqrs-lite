@@ -56,14 +56,14 @@ You can override auto-detection in `.cqrs-lint.json`:
 
 ```json
 {
-  "features": {
-    "store": "sqlite",
-    "command-flow": "sync",
-    "server": false,
-    "soft-delete": true,
-    "tracing": "off",
-    "snapshot": "off"
-  }
+	"features": {
+		"store": "sqlite",
+		"command-flow": "sync",
+		"server": false,
+		"soft-delete": true,
+		"tracing": "off",
+		"snapshot": "off"
+	}
 }
 ```
 
@@ -77,7 +77,7 @@ For convenience, named presets set common flag combinations:
 
 ```json
 {
-  "preset": "local-cli"
+	"preset": "local-cli"
 }
 ```
 
@@ -214,10 +214,10 @@ A `.cqrs-lint.json` file in the project root is auto-loaded:
 
 ```json
 {
-  "format": "json",
-  "min-severity": "warning",
-  "min-confidence": "medium",
-  "fast": false
+	"format": "json",
+	"min-severity": "warning",
+	"min-confidence": "medium",
+	"fast": false
 }
 ```
 
@@ -243,9 +243,9 @@ adjustments prevent heuristic noise from drowning real bugs:
 
   ```json
   {
-    "health": {
-      "info-cap": 15
-    }
+  	"health": {
+  		"info-cap": 15
+  	}
   }
   ```
 
@@ -264,9 +264,9 @@ can't change, exclude those structs so they don't count toward the mix:
 
 ```json
 {
-  "rules": {
-    "external-api-struct-prefixes": ["Discord", "Stripe", "GitHub"]
-  }
+	"rules": {
+		"external-api-struct-prefixes": ["Discord", "Stripe", "GitHub"]
+	}
 }
 ```
 

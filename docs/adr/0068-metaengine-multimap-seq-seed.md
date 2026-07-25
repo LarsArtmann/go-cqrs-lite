@@ -48,3 +48,21 @@ path after the first write.
   for a multimap that may have millions of keys.
 - **Database-side autoincrement seq:** rejected — would couple ordering to a
   global counter rather than per-`(collection,key)`, changing the semantics.
+
+## Prior Art
+
+- **PostgreSQL `SEQUENCE`:** Database-maintained counters (`CREATE SEQUENCE`).
+  Per-key sequences would require a sequence per `(collection, key)` pair —
+  impractical. This ADR's `sync.Once` approach is the application-level
+  equivalent for composite-key sequences.
+- **MongoDB `ObjectId`:** Embeds a timestamp for natural ordering; no explicit
+  sequence needed. The multimap's `seq` serves a different purpose: stable
+  within-collection ordering per key, not globally unique.
+- **Redis `INCR`:** Atomically initializes to 0 and increments. If the
+  metaengine's KV layer supported atomic `INCR` per `(collection, key)`, the
+  `sync.Once` seed would be unnecessary. The current KV interface lacks an
+  atomic-increment operation (it has `SetIfAbsent` but not `Increment`).
+- **Django `bulk_create`:** Relies on the database's auto-increment for PK
+  assignment after bulk insert. The seq-seed pattern is necessary here because
+  the multimap's `(collection, key, seq)` composite PK doesn't map to a single
+  auto-increment column.

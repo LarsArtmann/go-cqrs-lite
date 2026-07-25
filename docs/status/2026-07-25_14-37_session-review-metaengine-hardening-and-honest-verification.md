@@ -17,6 +17,7 @@ I reviewed a 72h diff (382 commits, 963 files, +62,849/-10,044 lines), applied 1
 ## a) FULLY DONE ✓
 
 ### Phase 1 — Diff review + 6 safe fixes (14:00–14:19)
+
 1. **Full 72h diff reviewed** across 7 thematic areas via 3 parallel sub-agents (metaengine, benchkit, idempotency/decider/id, codec/storage/projectionhost/cqrs-lint, plus tooling/docs survey).
 2. **`idempotency/sqlstore/store.go:132`** — doc lied ("expired key is overwritten"; SQL is ON CONFLICT DO NOTHING). Corrected.
 3. **`projectionhost/host_reset.go:43`** — typo "replys" → "replays".
@@ -26,6 +27,7 @@ I reviewed a 72h diff (382 commits, 963 files, +62,849/-10,044 lines), applied 1
 7. **`getting-started`** — 8.7MB committed binary untracked (`git rm --cached`), `/getting-started` added to `.gitignore`.
 
 ### Phase 2 — Metaengine hardening + gates (14:20–14:37, after user said "harden now")
+
 8. **Ran `nix run .#verify`** (the gate I skipped in Phase 1). It caught a stale api-stability golden — fixed via `go run . -update` (2650 exports).
 9. **`metaengine/cursor.go`** — `String()` silently swallowed marshal errors → silent pagination reset. Added error-returning `Encode()` method; `String()` now delegates to it.
 10. **`metaengine/sqlite_engine.go` `MapUpdate`** — was non-atomic Get+Set (lost updates under concurrency). Wrapped in single `sql.Tx` with deferred rollback.
@@ -37,6 +39,7 @@ I reviewed a 72h diff (382 commits, 963 files, +62,849/-10,044 lines), applied 1
 16. **`metaengine/go.mod`** — `go mod tidy` confirmed `modernc.org/sqlite` placement (test-only import).
 
 ### Verification (real gates run)
+
 17. **`nix run .#verify`** — FULL gate run (build + vet + test + race + doc-check + api-stability). Non-race suite: **ALL PASS** (88 packages). Race suite: **ALL PASS except 1 flaky timing test** (see §d).
 18. **`nix fmt`** — clean (0 files changed after my edits).
 
@@ -77,7 +80,7 @@ I reviewed a 72h diff (382 commits, 963 files, +62,849/-10,044 lines), applied 1
    - `30fd8502 and planner with API documentation` (sentence fragment)
    - `d697bff1 and apply safe fixes across relational sink and cursor` (sentence fragment)
    - `f5a565b1 design and refine load tests` (vague)
-   
+
    My fixes are irrecoverably interleaved with these. The user chose "leave history as-is" (Q1), so this is accepted, but it's still a mess.
 
 4. **I restarted the LSP (`gopls`) too late and too few times.** Stale diagnostics (`[windows]` tags on Linux, phantom `DuplicateMethod` errors after fixes) polluted my entire session. I should have restarted gopls the moment I saw a `[windows]` tag on a Linux box, instead of spending cycles diagnosing cache staleness.
@@ -99,11 +102,13 @@ I reviewed a 72h diff (382 commits, 963 files, +62,849/-10,044 lines), applied 1
 ## f) Up to 50 things to get done next 📋
 
 ### CRITICAL — Fix the red gate first
+
 1. Fix `benchkit TestRun_SQLite_DurationAborts` flake — raise 5s threshold to 15s under race, or `testing.Short()` skip, or `if !raceEnabled` guard
 2. Fix `benchkit TestRunSoak_TrendsPopulated` flake — 1MB heap-growth threshold is too tight; raise to 5MB or make environment-aware
 3. Re-run `nix run .#verify` and confirm exit 0
 
 ### Regression tests for fixes applied (14 tests needed)
+
 4. Test `benchkit/sweep.go` NPE: ScalingSweep where Run returns nil → no panic
 5. Test `metaengine MapUpdate` atomicity: concurrent MapUpdate calls don't lose updates
 6. Test `metaengine multimap` restart-safety: persist rows, re-create engine, MultiAdd doesn't collide
@@ -113,12 +118,14 @@ I reviewed a 72h diff (382 commits, 963 files, +62,849/-10,044 lines), applied 1
 10. Test `benchkit/report_format.go` helpers (verify extraction preserved behavior)
 
 ### Idempotency (awaiting user decision on Q3)
+
 11. Implement Option A (no-op-on-existing) in `kvstore.Record` — conditional write
 12. Strengthen `idempotency/store.go:34-36` doc (expired keys not refreshed by Record)
 13. Investigate whether `kv.Store` supports SetNX natively
 14. Add cross-implementation contract test (all 3 impls behave identically)
 
 ### Metaengine remaining hardening
+
 15. `sqliteEngine.Close()` is a no-op lie (`sqlite_engine.go:112`) — document or implement
 16. `Store.EventTypes()` vs `Store.EventTypeNames()` near-duplicate — consolidate
 17. `Store.Apply` vs `Store.ApplyEncoded` duplicate dispatch loop — share core
@@ -128,6 +135,7 @@ I reviewed a 72h diff (382 commits, 963 files, +62,849/-10,044 lines), applied 1
 21. Per-item reflection on hot scan path (`execute.go:199-203,255,289`) — cache comparators
 
 ### Benchkit
+
 22. Slim `benchkit/go.mod` — 4 backend deps are test-only but listed as direct
 23. Fix `recoveryPhase` swallowing ALL Load errors (`phases_durability.go:84`)
 24. Fix hardcoded 30s catch-up deadline in `projectionPhase` (`phases_projection.go:53`)
@@ -137,23 +145,27 @@ I reviewed a 72h diff (382 commits, 963 files, +62,849/-10,044 lines), applied 1
 28. Extract `parseIntList` in cqrs-bench (reuses `parsePayloadSizes` with wrong error msg)
 
 ### Decider
+
 29. Move `version <= 0` check before ticker allocation (`wait_for_version.go:95`)
 30. Add `cqrsotel.RecordError` for version-rejection path
 31. Replace `time.Sleep` sync in `wait_for_version_test.go` with deterministic hooks
 32. Coalesce concurrent `WaitForVersion` via `singleflight`
 
 ### id/ rename cleanup
+
 33. Sweep stale `Aggregate*` test identifiers in `id/` to canonical `Stream*`
 34. Update `decider/README.md`, `event/README.md` still saying "aggregate"
 35. Remove duplicate `//nolint:gochecknoglobals` in `id/id.go:31-32`
 
 ### Repo hygiene
+
 36. Clean 8.7MB `getting-started` blob from git history
 37. Audit what else the daemon committed that isn't mine (integration_test.go is untracked again)
 38. Investigate daemon commit-message generation (producing fragments, not conventional commits)
 39. Sweep stale status reports in `docs/status/`
 
 ### Documentation
+
 40. Update `AGENTS.md` metaengine section (8 behavior changes, new `Cursor.Encode` API)
 41. Update `FEATURES.md` metaengine status (hardened items, remaining gaps)
 42. Record metaengine hardening in an ADR or status doc
@@ -161,6 +173,7 @@ I reviewed a 72h diff (382 commits, 963 files, +62,849/-10,044 lines), applied 1
 44. Update module list in AGENTS.md if new files change module shape
 
 ### Process
+
 45. Add CI check rejecting non-conventional commit messages
 46. Add pre-commit hook rejecting committed binaries >1MB
 47. For next session: run `nix run .#verify` FIRST, before any analysis

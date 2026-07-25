@@ -3,6 +3,7 @@ package metaengine_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 
 	_ "modernc.org/sqlite"
@@ -74,6 +75,32 @@ func TestExecuteTyped_SQLite_UnexportedFieldsLost(t *testing.T) {
 	if result.secret != "" {
 		t.Errorf("unexported field survived JSON round-trip: got %q, expected empty", result.secret)
 	}
+}
+
+// ExampleNewSQLiteEngine demonstrates the README SQLite engine pattern.
+// This ensures the documented example compiles and cannot drift.
+func ExampleNewSQLiteEngine() {
+	ctx := context.Background()
+	db, _ := sql.Open("sqlite", "file::memory:?cache=shared")
+	defer db.Close()
+	db.SetMaxOpenConns(1)
+
+	sqliteEng, _ := metaengine.NewSQLiteEngine(db)
+	store, _ := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
+		metaengine.Query[recordQuery, recordResult](
+			"example_record",
+			metaengine.On(recordEvent{}, func(e recordEvent) (string, recordResult) {
+				return e.ID, recordResult{ID: e.ID}
+			}),
+		),
+	)
+	defer store.Close()
+
+	store.Apply(ctx, "recordEvent", recordEvent{ID: "ex-1"})
+	result, _ := metaengine.ExecuteTyped[recordQuery, recordResult](ctx, store, recordQuery{ID: "ex-1"})
+	fmt.Println(result.ID)
+	// Output: ex-1
 }
 
 func BenchmarkExecuteTyped_SQLite_Reify(b *testing.B) {

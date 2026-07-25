@@ -149,16 +149,16 @@ of functional options. Keep them separate — consumers compose what they need.
 
 ```json
 {
-  "deployment": {
-    "kind": "local-cli", // local-cli | server | library | batch-job
-    "concurrency": "single-user", // single-user | multi-user
-    "data": "pii", // none | internal | pii | financial
-    "writes": "sync", // none | sync | user-commands | real-time
-    "store": "sqlite" // sqlite | postgres | pebble | in-memory
-  },
-  "rules": {
-    "exclude": ["B005"] // per-rule overrides still allowed
-  }
+	"deployment": {
+		"kind": "local-cli", // local-cli | server | library | batch-job
+		"concurrency": "single-user", // single-user | multi-user
+		"data": "pii", // none | internal | pii | financial
+		"writes": "sync", // none | sync | user-commands | real-time
+		"store": "sqlite" // sqlite | postgres | pebble | in-memory
+	},
+	"rules": {
+		"exclude": ["B005"] // per-rule overrides still allowed
+	}
 }
 ```
 
@@ -347,23 +347,23 @@ Data from two consumers (bank-sync + DiscordSync) reveals which rules provide va
 
 ```json
 {
-  "$schema": "https://larsartmann.dev/go-cqrs-lite/cqrs-lint.schema.json",
-  "format": "text",
-  "min-severity": "info",
-  "min-confidence": "low",
+	"$schema": "https://larsartmann.dev/go-cqrs-lite/cqrs-lint.schema.json",
+	"format": "text",
+	"min-severity": "info",
+	"min-confidence": "low",
 
-  "deployment": {
-    "kind": "local-cli",
-    "concurrency": "single-user",
-    "data": "pii",
-    "writes": "sync",
-    "store": "sqlite"
-  },
+	"deployment": {
+		"kind": "local-cli",
+		"concurrency": "single-user",
+		"data": "pii",
+		"writes": "sync",
+		"store": "sqlite"
+	},
 
-  "rules": {
-    "exclude": ["B005"],
-    "S002": { "confidence": "high" }
-  }
+	"rules": {
+		"exclude": ["B005"],
+		"S002": { "confidence": "high" }
+	}
 }
 ```
 

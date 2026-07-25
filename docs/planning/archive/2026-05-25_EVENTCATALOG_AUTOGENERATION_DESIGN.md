@@ -759,21 +759,21 @@ This cross-referencing should happen in `Export()` based on the catalog data.
 ```js
 /** @type {import('@eventcatalog/core/bin/eventcatalog.config').Config} */
 export default {
-  title: "E-Commerce",
-  organizationName: "E-Commerce",
-  landingPage: "/docs",
-  cId: "auto-generated-unique-id",
-  changelog: {
-    enabled: true,
-  },
-  llms: {
-    enabled: true,
-  },
-  docs: {
-    sidebar: {
-      type: "TREE_VIEW",
-    },
-  },
+	title: "E-Commerce",
+	organizationName: "E-Commerce",
+	landingPage: "/docs",
+	cId: "auto-generated-unique-id",
+	changelog: {
+		enabled: true,
+	},
+	llms: {
+		enabled: true,
+	},
+	docs: {
+		sidebar: {
+			type: "TREE_VIEW",
+		},
+	},
 };
 ```
 

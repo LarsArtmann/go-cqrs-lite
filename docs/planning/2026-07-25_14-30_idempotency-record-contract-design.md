@@ -16,14 +16,15 @@
 
 ## The Split-Brain
 
-| Implementation | Behavior on existing, non-expired key | Extends TTL? |
-|---|---|---|
-| `idempotency.MemoryStore.Record` | No-op (`set only if absent`) | **No** |
-| `idempotency/sqlstore.Store.Record` | No-op (`INSERT ... ON CONFLICT DO NOTHING`) | **No** |
-| `idempotency/kvstore.Store.Record` | **Overwrites** (calls `backend.Set` unconditionally) | **Yes** |
+| Implementation                      | Behavior on existing, non-expired key                | Extends TTL? |
+| ----------------------------------- | ---------------------------------------------------- | ------------ |
+| `idempotency.MemoryStore.Record`    | No-op (`set only if absent`)                         | **No**       |
+| `idempotency/sqlstore.Store.Record` | No-op (`INSERT ... ON CONFLICT DO NOTHING`)          | **No**       |
+| `idempotency/kvstore.Store.Record`  | **Overwrites** (calls `backend.Set` unconditionally) | **Yes**      |
 
 The interface doc (`idempotency/store.go:34-36`) says:
-> *"If the key is already recorded, it is a no-op (the TTL is not extended)."*
+
+> _"If the key is already recorded, it is a no-op (the TTL is not extended)."_
 
 Two implementations follow the doc. One violates it.
 
@@ -36,26 +37,30 @@ Two implementations follow the doc. One violates it.
 **Semantics:** Once a key is recorded, its dedup window is fixed at the original TTL. A retry arriving within the window is deduped; a retry arriving after the window expires is treated as a new request.
 
 **Pros:**
+
 - Bounded dedup window — every key is deduped for exactly `ttl`, then eligible again. Predictable.
 - Protects against infinite-retry storms: a broken consumer retrying every 100ms won't keep extending the TTL forever.
 - Matches the documented contract (2 of 3 implementations + the interface doc).
 - Simpler mental model: "the first call within `ttl` wins; after `ttl`, the door reopens."
 
 **Cons:**
+
 - A long-running operation that takes longer than `ttl` to complete will be re-executed if the caller retries. The dedup window doesn't cover the full processing time.
 - Requires the caller to choose a `ttl` that exceeds the worst-case processing time.
 
-**At-least-once implication:** Keys are re-executed after `ttl` even if the first execution is still in-flight. This is **correct for at-least-once** — the delivery guarantee is "at least once," not "exactly once," and the idempotency layer's job is to suppress *duplicate deliveries within a window*, not to guarantee single execution forever.
+**At-least-once implication:** Keys are re-executed after `ttl` even if the first execution is still in-flight. This is **correct for at-least-once** — the delivery guarantee is "at least once," not "exactly once," and the idempotency layer's job is to suppress _duplicate deliveries within a window_, not to guarantee single execution forever.
 
 ### Option B: Overwrite on every call (refresh TTL)
 
 **Semantics:** Every `Record` call (including retries) resets the TTL clock. A key stays deduped as long as retries keep arriving within the window.
 
 **Pros:**
+
 - Self-extending dedup window — a retry storm keeps the key alive, preventing re-execution as long as retries are flowing.
 - Better for long-running operations where the caller polls/retries until success.
 
 **Cons:**
+
 - Unbounded dedup window under retry storms — a broken consumer retrying forever keeps the key alive forever, permanently blocking the operation.
 - Violates the documented contract.
 - Only 1 of 3 implementations does this (kvstore).
@@ -66,12 +71,12 @@ Two implementations follow the doc. One violates it.
 
 ## Retry Semantics Matrix
 
-| Scenario | Option A (no-op) | Option B (overwrite) |
-|---|---|---|
-| First delivery, processing completes in 2s, TTL=5m | Deduped for 5m, then reopens | Same |
-| First delivery, processing takes 10m, TTL=5m, caller retries at 6m | **Re-executed** (TTL expired) | Deduped (TTL refreshed at 6m) |
-| Broken consumer retries every 100ms forever | Key expires after 5m, operation re-executes once | Key **never expires**, operation **never re-executes** (but also never completes if blocked) |
-| At-least-once with message redelivery after consumer crash | If crash+restart < 5m: deduped. If > 5m: re-executed (correct) | If retries resumed < 5m: deduped. Otherwise: re-executed (correct) |
+| Scenario                                                           | Option A (no-op)                                               | Option B (overwrite)                                                                         |
+| ------------------------------------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| First delivery, processing completes in 2s, TTL=5m                 | Deduped for 5m, then reopens                                   | Same                                                                                         |
+| First delivery, processing takes 10m, TTL=5m, caller retries at 6m | **Re-executed** (TTL expired)                                  | Deduped (TTL refreshed at 6m)                                                                |
+| Broken consumer retries every 100ms forever                        | Key expires after 5m, operation re-executes once               | Key **never expires**, operation **never re-executes** (but also never completes if blocked) |
+| At-least-once with message redelivery after consumer crash         | If crash+restart < 5m: deduped. If > 5m: re-executed (correct) | If retries resumed < 5m: deduped. Otherwise: re-executed (correct)                           |
 
 ---
 
@@ -106,6 +111,7 @@ Two implementations follow the doc. One violates it.
 ## Open Question for Decision
 
 The kvstore backend (`idempotency/kvstore/store.go`) wraps a `kv.Store` (the layer-0 KV abstraction). Does `kv.Store` support a conditional SetNX operation? If not, the fix requires either:
+
 - Adding `SetNX` to the `kv.Store` interface (API change in the kv module), or
 - Implementing Get-then-Set in kvstore.Record (non-atomic, documented limitation), or
 - Documenting that kvstore.Record is best-effort and recommending sqlstore for correctness-critical dedup.

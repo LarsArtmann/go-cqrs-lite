@@ -176,29 +176,29 @@ and Pebble journal readers.
 
 ```json
 {
-  "version": 1,
-  "segments": [
-    {
-      "id": 1,
-      "file": "segments/seg_000001.parquet",
-      "minTimestamp": "2026-07-11T10:00:00Z",
-      "maxTimestamp": "2026-07-11T10:05:00Z",
-      "minID": "01JX...",
-      "maxID": "01JX...",
-      "rowCount": 10000,
-      "sealed": true
-    },
-    {
-      "id": 2,
-      "file": "segments/seg_000002.parquet",
-      "minTimestamp": "2026-07-11T10:05:01Z",
-      "maxTimestamp": "2026-07-11T10:10:00Z",
-      "minID": "01JX...",
-      "maxID": "01JX...",
-      "rowCount": 10000,
-      "sealed": true
-    }
-  ]
+	"version": 1,
+	"segments": [
+		{
+			"id": 1,
+			"file": "segments/seg_000001.parquet",
+			"minTimestamp": "2026-07-11T10:00:00Z",
+			"maxTimestamp": "2026-07-11T10:05:00Z",
+			"minID": "01JX...",
+			"maxID": "01JX...",
+			"rowCount": 10000,
+			"sealed": true
+		},
+		{
+			"id": 2,
+			"file": "segments/seg_000002.parquet",
+			"minTimestamp": "2026-07-11T10:05:01Z",
+			"maxTimestamp": "2026-07-11T10:10:00Z",
+			"minID": "01JX...",
+			"maxID": "01JX...",
+			"rowCount": 10000,
+			"sealed": true
+		}
+	]
 }
 ```
 

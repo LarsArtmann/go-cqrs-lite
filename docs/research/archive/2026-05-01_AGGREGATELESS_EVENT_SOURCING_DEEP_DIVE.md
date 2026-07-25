@@ -170,33 +170,33 @@ Events are **not tied to any aggregate**. They are standalone records of things 
 
 ```json
 {
-  "eventType": "DeviceRegistered",
-  "payload": {
-    "deviceId": "550e8400-e29b-41d4-a716-446655440000",
-    "registeredAt": "2025-06-22T10:00:00Z"
-  }
+	"eventType": "DeviceRegistered",
+	"payload": {
+		"deviceId": "550e8400-e29b-41d4-a716-446655440000",
+		"registeredAt": "2025-06-22T10:00:00Z"
+	}
 }
 ```
 
 ```json
 {
-  "eventType": "AssetRegistered",
-  "payload": {
-    "assetId": "660e8400-e29b-41d4-a716-446655440000",
-    "assetName": "Server Rack",
-    "registeredAt": "2025-06-22T10:30:00Z"
-  }
+	"eventType": "AssetRegistered",
+	"payload": {
+		"assetId": "660e8400-e29b-41d4-a716-446655440000",
+		"assetName": "Server Rack",
+		"registeredAt": "2025-06-22T10:30:00Z"
+	}
 }
 ```
 
 ```json
 {
-  "eventType": "DeviceBoundToAsset",
-  "payload": {
-    "deviceId": "550e8400-e29b-41d4-a716-446655440000",
-    "assetId": "660e8400-e29b-41d4-a716-446655440000",
-    "boundAt": "2025-06-22T11:00:00Z"
-  }
+	"eventType": "DeviceBoundToAsset",
+	"payload": {
+		"deviceId": "550e8400-e29b-41d4-a716-446655440000",
+		"assetId": "660e8400-e29b-41d4-a716-446655440000",
+		"boundAt": "2025-06-22T11:00:00Z"
+	}
 }
 ```
 
@@ -212,8 +212,8 @@ An **EventFilter** defines which events are relevant for a specific operation. I
 
 ```typescript
 interface EventFilter {
-  eventTypes: string[]; // OR condition on event types
-  payloadPredicates?: Record<string, unknown>[]; // OR condition on payload fields
+	eventTypes: string[]; // OR condition on event types
+	payloadPredicates?: Record<string, unknown>[]; // OR condition on payload fields
 }
 ```
 
@@ -223,8 +223,8 @@ interface EventFilter {
 
 ```typescript
 const filter = EventFilter.createFilter(["AccountOpened"]).withPayloadPredicate(
-  "accountId",
-  "acc-123",
+	"accountId",
+	"acc-123",
 );
 ```
 
@@ -232,8 +232,8 @@ const filter = EventFilter.createFilter(["AccountOpened"]).withPayloadPredicate(
 
 ```typescript
 const filter = EventFilter.createFilter(
-  ["AccountOpened", "MoneyDeposited", "MoneyWithdrawn"],
-  [{ accountId: "acc-123" }],
+	["AccountOpened", "MoneyDeposited", "MoneyWithdrawn"],
+	[{ accountId: "acc-123" }],
 );
 ```
 
@@ -241,11 +241,11 @@ const filter = EventFilter.createFilter(
 
 ```typescript
 const filter = EventFilter.createFilter(
-  ["DeviceRegistered", "AssetRegistered", "DeviceBoundToAsset", "DeviceUnboundFromAsset"],
-  [
-    { deviceId: "dev-456" }, // events about this device
-    { assetId: "asset-789" }, // OR events about this asset
-  ],
+	["DeviceRegistered", "AssetRegistered", "DeviceBoundToAsset", "DeviceUnboundFromAsset"],
+	[
+		{ deviceId: "dev-456" }, // events about this device
+		{ assetId: "asset-789" }, // OR events about this asset
+	],
 );
 ```
 
@@ -420,29 +420,29 @@ State reconstruction is a **pure function** that folds events into a minimal sta
 ```typescript
 // Open Account slice — only cares about existence
 function foldAccountState(events: AccountOpened[]): AccountState {
-  return { exists: events.length > 0 };
+	return { exists: events.length > 0 };
 }
 
 // Withdraw Money slice — needs balance too
 function foldBalanceState(events: AccountEvent[]): BalanceState {
-  let exists = false;
-  let balance = 0;
+	let exists = false;
+	let balance = 0;
 
-  for (const event of events) {
-    switch (event.type) {
-      case "AccountOpened":
-        exists = true;
-        break;
-      case "MoneyDeposited":
-        balance += event.amount;
-        break;
-      case "MoneyWithdrawn":
-        balance -= event.amount;
-        break;
-    }
-  }
+	for (const event of events) {
+		switch (event.type) {
+			case "AccountOpened":
+				exists = true;
+				break;
+			case "MoneyDeposited":
+				balance += event.amount;
+				break;
+			case "MoneyWithdrawn":
+				balance -= event.amount;
+				break;
+		}
+	}
 
-  return { exists, balance };
+	return { exists, balance };
 }
 ```
 
@@ -466,26 +466,26 @@ The `decide` function is **pure** — no IO, no side effects, no mocks needed fo
 
 ```typescript
 function decideOpenAccount(
-  state: AccountState,
-  command: OpenAccountCommand,
+	state: AccountState,
+	command: OpenAccountCommand,
 ): Result<AccountOpened, OpenAccountError> {
-  if (state.exists) {
-    return {
-      success: false,
-      error: { type: "AlreadyExists", message: "Account already opened" },
-    };
-  }
+	if (state.exists) {
+		return {
+			success: false,
+			error: { type: "AlreadyExists", message: "Account already opened" },
+		};
+	}
 
-  return {
-    success: true,
-    event: new AccountOpened(
-      command.accountId,
-      command.customerName,
-      command.accountType || "checking",
-      command.initialDeposit || 0,
-      command.currency || "USD",
-    ),
-  };
+	return {
+		success: true,
+		event: new AccountOpened(
+			command.accountId,
+			command.customerName,
+			command.accountType || "checking",
+			command.initialDeposit || 0,
+			command.currency || "USD",
+		),
+	};
 }
 ```
 
@@ -500,16 +500,16 @@ type Result<T, E> = { success: true; event: T } | { success: false; error: E };
 ```typescript
 // Two-line test. No database. No mocks. No setup.
 test("opens account when it does not exist", () => {
-  const state = { exists: false };
-  const result = decideOpenAccount(state, { accountId: "123", customerName: "Alice" });
-  expect(result.success).toBe(true);
+	const state = { exists: false };
+	const result = decideOpenAccount(state, { accountId: "123", customerName: "Alice" });
+	expect(result.success).toBe(true);
 });
 
 test("rejects opening when account exists", () => {
-  const state = { exists: true };
-  const result = decideOpenAccount(state, { accountId: "123", customerName: "Alice" });
-  expect(result.success).toBe(false);
-  expect(result.error.type).toBe("AlreadyExists");
+	const state = { exists: true };
+	const result = decideOpenAccount(state, { accountId: "123", customerName: "Alice" });
+	expect(result.success).toBe(false);
+	expect(result.error.type).toBe("AlreadyExists");
 });
 ```
 
@@ -521,28 +521,28 @@ The shell handles IO — loading events, calling the pure core, persisting resul
 
 ```typescript
 async function executeOpenAccount(pool: Pool, command: OpenAccountCommand): Promise<void> {
-  // 1. Define context filter
-  const filter = EventFilter.createFilter(["AccountOpened"]).withPayloadPredicate(
-    "accountId",
-    command.accountId,
-  );
+	// 1. Define context filter
+	const filter = EventFilter.createFilter(["AccountOpened"]).withPayloadPredicate(
+		"accountId",
+		command.accountId,
+	);
 
-  // 2. Load context
-  const { events, maxSequenceNumber } = await store.query(filter);
+	// 2. Load context
+	const { events, maxSequenceNumber } = await store.query(filter);
 
-  // 3. Reconstruct state
-  const state = foldAccountState(events);
+	// 3. Reconstruct state
+	const state = foldAccountState(events);
 
-  // 4. Pure decision
-  const result = decideOpenAccount(state, command);
-  if (!result.success) {
-    throw new Error(result.error.message);
-  }
+	// 4. Pure decision
+	const result = decideOpenAccount(state, command);
+	if (!result.success) {
+		throw new Error(result.error.message);
+	}
 
-  // 5. Atomic append (CTE)
-  await store.append(filter, [result.event], maxSequenceNumber);
-  // If context changed between query and append, this throws.
-  // Caller retries.
+	// 5. Atomic append (CTE)
+	await store.append(filter, [result.event], maxSequenceNumber);
+	// If context changed between query and append, this throws.
+	// Caller retries.
 }
 ```
 
@@ -586,56 +586,56 @@ Command
 
 ```typescript
 interface HasEventType {
-  eventType(): string;
-  eventVersion?(): string;
+	eventType(): string;
+	eventVersion?(): string;
 }
 
 class AccountOpened implements HasEventType {
-  constructor(
-    public readonly accountId: string,
-    public readonly customerName: string,
-    public readonly accountType: string,
-    public readonly initialDeposit: number,
-    public readonly currency: string,
-    public readonly openedAt: Date = new Date(),
-  ) {}
+	constructor(
+		public readonly accountId: string,
+		public readonly customerName: string,
+		public readonly accountType: string,
+		public readonly initialDeposit: number,
+		public readonly currency: string,
+		public readonly openedAt: Date = new Date(),
+	) {}
 
-  eventType() {
-    return "AccountOpened";
-  }
-  eventVersion() {
-    return "1.0";
-  }
+	eventType() {
+		return "AccountOpened";
+	}
+	eventVersion() {
+		return "1.0";
+	}
 }
 
 class MoneyDeposited implements HasEventType {
-  constructor(
-    public readonly accountId: string,
-    public readonly amount: number,
-    public readonly depositedAt: Date = new Date(),
-  ) {}
+	constructor(
+		public readonly accountId: string,
+		public readonly amount: number,
+		public readonly depositedAt: Date = new Date(),
+	) {}
 
-  eventType() {
-    return "MoneyDeposited";
-  }
-  eventVersion() {
-    return "1.0";
-  }
+	eventType() {
+		return "MoneyDeposited";
+	}
+	eventVersion() {
+		return "1.0";
+	}
 }
 
 class MoneyWithdrawn implements HasEventType {
-  constructor(
-    public readonly accountId: string,
-    public readonly amount: number,
-    public readonly withdrawnAt: Date = new Date(),
-  ) {}
+	constructor(
+		public readonly accountId: string,
+		public readonly amount: number,
+		public readonly withdrawnAt: Date = new Date(),
+	) {}
 
-  eventType() {
-    return "MoneyWithdrawn";
-  }
-  eventVersion() {
-    return "1.0";
-  }
+	eventType() {
+		return "MoneyWithdrawn";
+	}
+	eventVersion() {
+		return "1.0";
+	}
 }
 ```
 
@@ -643,18 +643,18 @@ class MoneyWithdrawn implements HasEventType {
 
 ```typescript
 interface QueryResult<T extends HasEventType> {
-  events: T[];
-  maxSequenceNumber: number;
+	events: T[];
+	maxSequenceNumber: number;
 }
 
 interface IEventStore {
-  query<T extends HasEventType>(filter: EventFilter): Promise<QueryResult<T>>;
-  append<T extends HasEventType>(
-    filter: EventFilter,
-    events: T[],
-    expectedMaxSequence: number,
-  ): Promise<void>;
-  close(): Promise<void>;
+	query<T extends HasEventType>(filter: EventFilter): Promise<QueryResult<T>>;
+	append<T extends HasEventType>(
+		filter: EventFilter,
+		events: T[],
+		expectedMaxSequence: number,
+	): Promise<void>;
+	close(): Promise<void>;
 }
 ```
 
@@ -726,52 +726,52 @@ async append<T extends HasEventType>(
 ```typescript
 // State
 interface DepositState {
-  exists: boolean;
+	exists: boolean;
 }
 
 // Fold
 function foldDepositState(events: HasEventType[]): DepositState {
-  return {
-    exists: events.some((e) => e.eventType() === "AccountOpened"),
-  };
+	return {
+		exists: events.some((e) => e.eventType() === "AccountOpened"),
+	};
 }
 
 // Decide
 function decideDeposit(
-  state: DepositState,
-  command: { accountId: string; amount: number },
+	state: DepositState,
+	command: { accountId: string; amount: number },
 ): Result<MoneyDeposited, { type: string; message: string }> {
-  if (!state.exists) {
-    return {
-      success: false,
-      error: { type: "AccountNotFound", message: "Account does not exist" },
-    };
-  }
-  if (command.amount <= 0) {
-    return { success: false, error: { type: "InvalidAmount", message: "Amount must be positive" } };
-  }
-  return {
-    success: true,
-    event: new MoneyDeposited(command.accountId, command.amount),
-  };
+	if (!state.exists) {
+		return {
+			success: false,
+			error: { type: "AccountNotFound", message: "Account does not exist" },
+		};
+	}
+	if (command.amount <= 0) {
+		return { success: false, error: { type: "InvalidAmount", message: "Amount must be positive" } };
+	}
+	return {
+		success: true,
+		event: new MoneyDeposited(command.accountId, command.amount),
+	};
 }
 
 // Execute (imperative shell)
 async function executeDeposit(store: IEventStore, command: DepositCommand): Promise<void> {
-  const filter = EventFilter.createFilter(["AccountOpened"]).withPayloadPredicate(
-    "accountId",
-    command.accountId,
-  );
+	const filter = EventFilter.createFilter(["AccountOpened"]).withPayloadPredicate(
+		"accountId",
+		command.accountId,
+	);
 
-  const { events, maxSequenceNumber } = await store.query(filter);
-  const state = foldDepositState(events);
-  const result = decideDeposit(state, command);
+	const { events, maxSequenceNumber } = await store.query(filter);
+	const state = foldDepositState(events);
+	const result = decideDeposit(state, command);
 
-  if (!result.success) {
-    throw new DomainError(result.error.type, result.error.message);
-  }
+	if (!result.success) {
+		throw new DomainError(result.error.type, result.error.message);
+	}
 
-  await store.append(filter, [result.event], maxSequenceNumber);
+	await store.append(filter, [result.event], maxSequenceNumber);
 }
 ```
 
