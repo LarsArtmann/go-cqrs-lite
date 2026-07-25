@@ -37,7 +37,17 @@ func ScalingSweep(
 		cfg := base
 		modifier(&cfg, v)
 
-		r, _ := Run(ctx, cfg, factory)
+		r, runErr := Run(ctx, cfg, factory)
+		if r == nil {
+			// Run failed before producing a Result (bad config, factory error,
+			// cancelled context). Synthesize a stub so PrintSweep and other
+			// callers see a FAILED row instead of nil-dereferencing.
+			msg := "benchmark run failed"
+			if runErr != nil {
+				msg = runErr.Error()
+			}
+			r = &Result{Error: msg}
+		}
 		results[i] = SweepResult{
 			Parameter: parameter,
 			Value:     v,
@@ -128,6 +138,12 @@ func PrintSweep(w io.Writer, results []SweepResult) {
 
 	for _, sweepResult := range results {
 		r := sweepResult.Result
+		if r == nil {
+			fmt.Fprintf(w, "%-12d %s\n", sweepResult.Value, "FAILED: no result")
+
+			continue
+		}
+
 		if r.Error != "" {
 			fmt.Fprintf(w, "%-12d %s\n", sweepResult.Value, "FAILED: "+truncate(r.Error, 50))
 
