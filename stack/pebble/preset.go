@@ -125,3 +125,7 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 
 	return &Bundle{Bundle: b, backend: backend}, nil
 }
+
+func safeInt64(v uint64) int64 {
+	return int64(v)
+}
