@@ -441,3 +441,76 @@ func TestRelationalSchema_Migrate_CreatesIndexesAfterTables(t *testing.T) {
 		t.Fatalf("Migrate should be idempotent: %v", err)
 	}
 }
+
+// TestSchema_ValidateAcceptsOrderedIndexColumns verifies that an IndexSpec may
+// declare columns with trailing ASC/DESC sort qualifiers (e.g. "created_at
+// DESC" in a composite index) and still pass Validate + Migrate. The qualifier
+// must be stripped before checking the column name against the table's columns.
+func TestSchema_ValidateAcceptsOrderedIndexColumns(t *testing.T) {
+	t.Parallel()
+
+	schema := RelationalSchema{Tables: []RelationalTable{{
+		Name: "events",
+		Columns: []RelationalColumn{
+			{Name: "id", Type: "TEXT"},
+			{Name: "channel_id", Type: "TEXT"},
+			{Name: "created_at", Type: "DATETIME"},
+		},
+		PrimaryKey: []string{"id"},
+		Indexes: []IndexSpec{
+			{Name: "idx_channel_created_desc", Columns: []string{"channel_id", "created_at DESC", "id DESC"}},
+			{Name: "idx_created_asc", Columns: []string{"created_at ASC"}},
+			{Name: "idx_plain", Columns: []string{"channel_id"}},
+		},
+	}}}
+
+	if err := schema.Validate(); err != nil {
+		t.Fatalf("Validate should accept ordered index columns: %v", err)
+	}
+
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer func() { _ = db.Close() }()
+
+	if err := schema.Migrate(context.Background(), db); err != nil {
+		t.Fatalf("Migrate should create ordered indexes: %v", err)
+	}
+
+	var sql string
+	err = db.QueryRowContext(
+		context.Background(),
+		"SELECT sql FROM sqlite_master WHERE type='index' AND name='idx_channel_created_desc'",
+	).Scan(&sql)
+	if err != nil {
+		t.Fatalf("query index sql: %v", err)
+	}
+
+	want := "CREATE INDEX idx_channel_created_desc ON events (channel_id, created_at DESC, id DESC)"
+	if sql != want {
+		t.Fatalf("index SQL mismatch:\ngot:  %s\nwant: %s", sql, want)
+	}
+}
+
+// TestSchema_ValidateRejectsTrulyUnknownIndexColumn verifies that the ASC/DESC
+// stripping does not mask a genuinely unknown column name.
+func TestSchema_ValidateRejectsTrulyUnknownIndexColumn(t *testing.T) {
+	t.Parallel()
+
+	schema := RelationalSchema{Tables: []RelationalTable{{
+		Name: "events",
+		Columns: []RelationalColumn{
+			{Name: "id", Type: "TEXT"},
+		},
+		PrimaryKey: []string{"id"},
+		Indexes: []IndexSpec{
+			{Name: "idx_bad", Columns: []string{"nonexistent DESC"}},
+		},
+	}}}
+
+	err := schema.Validate()
+	if err == nil {
+		t.Fatal("Validate should reject an index column that does not exist after stripping the qualifier")
+	}
+}

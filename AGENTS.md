@@ -880,17 +880,25 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 **Module Graph** (seven-tier model, see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [FOUR-TIER-MODEL.md](docs/architecture-understanding/FOUR-TIER-MODEL.md)):
 
 ```
-Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/
+Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/, retry/, metaengine/
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
 Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/
 Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/
-Tier 4 — Infrastructure: storage/memory/, storage/, middleware/, signing/, encryption/, otel/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/
+Tier 4 — Infrastructure: storage/memory/, storage/, middleware/, signing/, encryption/, otel/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/, metaengine/projectionadapter/
 Tier 5 — Composition: stack/, stack/memory/, stack/sqlite/, stack/pebble/, stack/postgres/, stack/turso/
 Tier 6 — Tooling & Examples: catalog/, integration/, stack/bench/, examples/, cmd/*
 ```
 
 > Note: the old 7-layer system (pre-ADR-0046) was inaccurate — kv/ depends on codec/, command/
 > depends on event/, and 40 of 58 modules depend on codec/. The four-tier model reflects reality.
+>
+> **metaengine/ is Tier 0 (Primitive), not Tier 3 (Aggregation).** This is intentional but surprising:
+> the core planner has ZERO internal deps (stdlib + `database/sql` only), so by ADR-0046's
+> dependency rule it is a leaf primitive. Conceptually it aggregates events into query
+> projections, but tiering is dependency-based, not conceptual. The bridge to the rest of
+> the system lives in `metaengine/projectionadapter/` (Tier 4), which depends on
+> event/projection/projectionhost. The SQLite engine's tx-atomic MapUpdate, restart-safe
+> multimap seq-seed, and cross-engine reify are documented in ADR-0066/0067/0068.
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from bus.SubscribeAll + command dispatch. See `example/taskmanager/` for a real architecture.
 

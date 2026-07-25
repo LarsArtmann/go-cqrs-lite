@@ -166,5 +166,8 @@ watermill/     — Watermill protocol adapter
 | [0063](0063-metaengine-pushdown.md)                    | FilterOn/SortOn Pushdown Strategy                       | 2026-07-25 | Accepted                                                                                                                      |
 | [0064](0064-extract-retry-module.md)                   | Extract `retry/` into Standalone `go-retry` Repository  | 2026-07-25 | Proposed                                                                                                                      |
 | [0065](0065-extract-idempotency-module.md)             | Extract `idempotency/` into `go-idempotency` Repository | 2026-07-25 | Proposed                                                                                                                      |
+| [0066](0066-metaengine-reify-fallback.md)              | Metaengine Cross-engine JSON Reification (ExecuteTyped) | 2026-07-25 | Accepted                                                                                                                      |
+| [0067](0067-metaengine-tx-mapupdate.md)                | Metaengine Transaction-atomic MapUpdate (SQLite)        | 2026-07-25 | Accepted                                                                                                                      |
+| [0068](0068-metaengine-multimap-seq-seed.md)           | Metaengine Multimap seq-seed (sync.Once MAX(seq))       | 2026-07-25 | Accepted                                                                                                                      |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).
