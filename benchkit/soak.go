@@ -97,6 +97,7 @@ func RunSoak(ctx context.Context, config SoakConfig, factory Factory) (*SoakResu
 		iterCtx, iterCancel := context.WithTimeout(soakCtx, 5*time.Minute)
 
 		res, err := newRunner(config.Config, factory).run(iterCtx)
+
 		iterCancel()
 
 		if err != nil {

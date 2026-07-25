@@ -36,7 +36,7 @@ const maxJourneySamples = 200
 // Requires EventSink + ReadModels. Gracefully skips when either is absent.
 func (r *runner) journeyPhase(ctx context.Context) error {
 	if ctx.Err() != nil {
-		return nil //nolint:nilerr // ctx done; graceful skip
+		return nil // ctx done; graceful skip
 	}
 
 	if r.bundle.EventSink == nil || r.bundle.ReadModels == nil {
@@ -65,6 +65,7 @@ func (r *runner) journeyPhase(ctx context.Context) error {
 	journeyColl := NewLatencyCollector(0)
 	projColl := NewLatencyCollector(0)
 	queryColl := NewLatencyCollector(0)
+
 	var correctnessErrors int
 
 	for i := range sampleCount {
