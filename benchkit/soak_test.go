@@ -63,7 +63,7 @@ func TestRunSoak_TrendsPopulated(t *testing.T) {
 	defer cancel()
 
 	result, err := RunSoak(ctx, SoakConfig{
-		Duration: 2 * time.Second,
+		Duration: 5 * time.Second,
 		Config: Config{
 			Profile:     ProfileDev,
 			PayloadSize: 64,
@@ -142,7 +142,7 @@ func TestPrintSoakReport(t *testing.T) {
 	defer cancel()
 
 	result, err := RunSoak(ctx, SoakConfig{
-		Duration: 1 * time.Second,
+		Duration: 5 * time.Second,
 		Config: Config{
 			Profile:     ProfileDev,
 			PayloadSize: 64,
@@ -187,7 +187,7 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 	defer cancel()
 
 	original, err := RunSoak(ctx, SoakConfig{
-		Duration: 1 * time.Second,
+		Duration: 5 * time.Second,
 		Config: Config{
 			Profile:     ProfileDev,
 			PayloadSize: 64,
