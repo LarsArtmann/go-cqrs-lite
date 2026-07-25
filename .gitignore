@@ -142,3 +142,4 @@ cmd/cqrs-bench/cqrs-bench
 
 # Compiled binaries
 /cqrs-bench
+/getting-started

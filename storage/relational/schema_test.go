@@ -251,7 +251,11 @@ func TestRelationalTable_IndexSpec_DDL(t *testing.T) {
 		Indexes: []IndexSpec{
 			{Name: "idx_messages_channel", Columns: []string{"channel_id"}},
 			{Name: "idx_messages_created", Columns: []string{"created_at"}},
-			{Name: "idx_messages_not_deleted", Columns: []string{"channel_id", "created_at"}, Where: "deleted_at IS NULL"},
+			{
+				Name:    "idx_messages_not_deleted",
+				Columns: []string{"channel_id", "created_at"},
+				Where:   "deleted_at IS NULL",
+			},
 		},
 	}
 
@@ -311,13 +315,15 @@ func TestRelationalTable_UniqueSpec_DDL(t *testing.T) {
 	}
 
 	_, err = db.Exec(
-		"INSERT INTO reactions (id, message_id, user_id, emoji) VALUES ('1', 'm1', 'u1', '👍')")
+		"INSERT INTO reactions (id, message_id, user_id, emoji) VALUES ('1', 'm1', 'u1', '👍')",
+	)
 	if err != nil {
 		t.Fatalf("first insert: %v", err)
 	}
 
 	_, err = db.Exec(
-		"INSERT INTO reactions (id, message_id, user_id, emoji) VALUES ('2', 'm1', 'u1', '👍')")
+		"INSERT INTO reactions (id, message_id, user_id, emoji) VALUES ('2', 'm1', 'u1', '👍')",
+	)
 	if err == nil {
 		t.Fatalf("duplicate insert should violate composite unique constraint")
 	}

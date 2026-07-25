@@ -101,7 +101,13 @@ type ProjectionSink interface {
 	// (idempotent insert).
 	//
 	// conflictCols defaults to the table's declared primary key.
-	UpsertCols(ctx context.Context, table string, row Row, updateCols []string, conflictCols ...string) error
+	UpsertCols(
+		ctx context.Context,
+		table string,
+		row Row,
+		updateCols []string,
+		conflictCols ...string,
+	) error
 
 	// UpsertExpr inserts a row, or on conflict applies the given SetExpr list
 	// to the conflicting row. Each SetExpr is a raw SQL expression that may
@@ -113,7 +119,13 @@ type ProjectionSink interface {
 	// The row supplies the INSERT VALUES; the setExprs supply the
 	// ON CONFLICT DO UPDATE SET clause. conflictCols defaults to the table's
 	// primary key. If setExprs is empty, the upsert degrades to "DO NOTHING".
-	UpsertExpr(ctx context.Context, table string, row Row, setExprs []SetExpr, conflictCols ...string) error
+	UpsertExpr(
+		ctx context.Context,
+		table string,
+		row Row,
+		setExprs []SetExpr,
+		conflictCols ...string,
+	) error
 
 	// Tx returns the underlying *sql.Tx that all sink writes execute within.
 	// It is the escape hatch for operations the structured methods cannot
@@ -284,6 +296,5 @@ func (s *sqlSink) QueryOne(ctx context.Context, table, column string, match Row)
 
 	return result, nil
 }
-
 
 func (s *sqlSink) Tx() *sql.Tx { return s.tx }

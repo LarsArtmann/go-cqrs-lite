@@ -62,7 +62,8 @@ func TestSinkUpsertCols_PartialUpdateOnly(t *testing.T) {
 	var content, author, created string
 	err = db.QueryRowContext(ctx,
 		"SELECT content, author_id, created_at FROM messages WHERE id = 'm1'").Scan(
-		&content, &author, &created)
+		&content, &author, &created,
+	)
 	if err != nil {
 		t.Fatalf("query: %v", err)
 	}
@@ -136,7 +137,10 @@ func TestSinkUpsertCols_EmptyUpdateColsDoesNothing(t *testing.T) {
 	}
 
 	if content != "original" {
-		t.Fatalf("empty updateCols should do nothing, content should be 'original', got %q", content)
+		t.Fatalf(
+			"empty updateCols should do nothing, content should be 'original', got %q",
+			content,
+		)
 	}
 }
 

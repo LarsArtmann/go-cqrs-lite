@@ -20,11 +20,11 @@ type benchFlags struct {
 	output       *string
 	payloadSize  *int
 	payloadSizes *string
-	skipRawSink   *bool
-	skipJourney   *bool
-	skipQuery     *bool
-	skipSnapshot  *bool
-	repeat        *int
+	skipRawSink  *bool
+	skipJourney  *bool
+	skipQuery    *bool
+	skipSnapshot *bool
+	repeat       *int
 }
 
 // registerBenchFlags wires the flags every subcommand exposes (backend, dsn,
@@ -47,8 +47,12 @@ func registerBenchFlags(fs *flag.FlagSet) benchFlags {
 			"",
 			"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size",
 		),
-		skipRawSink:  fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase"),
-		skipJourney:  fs.Bool("skip-journey", false, "Skip end-to-end publish→projection→query journey phase"),
+		skipRawSink: fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase"),
+		skipJourney: fs.Bool(
+			"skip-journey",
+			false,
+			"Skip end-to-end publish→projection→query journey phase",
+		),
 		skipQuery:    fs.Bool("skip-query", false, "Skip typed query dispatch phase"),
 		skipSnapshot: fs.Bool("skip-snapshot", false, "Skip snapshot/cache hit-rate phase"),
 		repeat:       fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)"),

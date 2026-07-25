@@ -152,19 +152,19 @@ func runCmd(args []string) {
 	}
 
 	config := benchkit.Config{
-		Profile:     profile,
-		PayloadSize: *bf.payloadSize,
-		Codec:       codec,
-		Warmup:      *warmup,
-		Repeat:      *bf.repeat,
-		Recovery:    *recovery,
-		ReplayOnly:  *replay,
-		SkipRawSink: *bf.skipRawSink,
-		SkipJourney: *bf.skipJourney,
-		SkipQuery:   *bf.skipQuery,
+		Profile:      profile,
+		PayloadSize:  *bf.payloadSize,
+		Codec:        codec,
+		Warmup:       *warmup,
+		Repeat:       *bf.repeat,
+		Recovery:     *recovery,
+		ReplayOnly:   *replay,
+		SkipRawSink:  *bf.skipRawSink,
+		SkipJourney:  *bf.skipJourney,
+		SkipQuery:    *bf.skipQuery,
 		SkipSnapshot: *bf.skipSnapshot,
-		Backend:     *bf.backend,
-		DiskPath:    diskPath,
+		Backend:      *bf.backend,
+		DiskPath:     diskPath,
 	}
 
 	if sizes, err := parsePayloadSizes(*bf.payloadSizes); err != nil {
@@ -282,15 +282,15 @@ func sweepCmd(args []string) {
 	}
 
 	config := benchkit.Config{
-		Profile:     profile,
-		PayloadSize: *bf.payloadSize,
-		Codec:       codec,
-		SkipRawSink: *bf.skipRawSink,
-		SkipJourney: *bf.skipJourney,
-		SkipQuery:   *bf.skipQuery,
+		Profile:      profile,
+		PayloadSize:  *bf.payloadSize,
+		Codec:        codec,
+		SkipRawSink:  *bf.skipRawSink,
+		SkipJourney:  *bf.skipJourney,
+		SkipQuery:    *bf.skipQuery,
 		SkipSnapshot: *bf.skipSnapshot,
-		Backend:     *bf.backend,
-		DiskPath:    diskPath,
+		Backend:      *bf.backend,
+		DiskPath:     diskPath,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)

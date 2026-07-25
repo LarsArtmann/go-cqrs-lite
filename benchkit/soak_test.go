@@ -227,7 +227,11 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 	}
 
 	if decoded.HeapGrowthBytes != original.HeapGrowthBytes {
-		t.Errorf("HeapGrowthBytes: got %d, want %d", decoded.HeapGrowthBytes, original.HeapGrowthBytes)
+		t.Errorf(
+			"HeapGrowthBytes: got %d, want %d",
+			decoded.HeapGrowthBytes,
+			original.HeapGrowthBytes,
+		)
 	}
 
 	if decoded.ThroughputDriftPct != original.ThroughputDriftPct {
