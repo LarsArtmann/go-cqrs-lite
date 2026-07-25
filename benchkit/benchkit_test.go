@@ -1497,13 +1497,13 @@ func TestRun_ReplayOnly_SQLite(t *testing.T) {
 	// events to the same database, which would inflate the journal event
 	// count discovered during replay.
 	writeResult := mustRun(t, Config{
-		Profile:       ProfileDev,
-		PayloadSize:   64,
-		Backend:       "sqlite",
-		DiskPath:      dir,
-		SkipRawSink:   true,
-		SkipJourney:   true,
-		SkipSnapshot:  true,
+		Profile:      ProfileDev,
+		PayloadSize:  64,
+		Backend:      "sqlite",
+		DiskPath:     dir,
+		SkipRawSink:  true,
+		SkipJourney:  true,
+		SkipSnapshot: true,
 	}, func() (*stack.Bundle, error) {
 		return sqlite.New(dbPath)
 	})
