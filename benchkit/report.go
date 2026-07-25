@@ -126,6 +126,7 @@ func PrintReport(w io.Writer, r *Result) {
 	if r.JourneySamples > 0 {
 		fmt.Fprintln(w, "Journey (publish→projection→query):")
 		printLatencyLine(w, "  Round trip:", r.JourneyLatency)
+		printLatencyLine(w, "  Projection:", r.JourneyProjectionLatency)
 		printLatencyLine(w, "  Query leg:", r.JourneyQueryLatency)
 		fmt.Fprintln(w)
 	}

@@ -56,14 +56,15 @@ type Result struct {
 	ProjectionEvents int64         `json:"projectionEvents"`
 
 	// Journey metrics — end-to-end publish→projection→query latency (M14).
-	// JourneyLatency times the full round trip: event Save → projection
-	// materializes → typed query returns the updated value. JourneyQueryLatency
-	// isolates the query-dispatch leg (projection already caught up).
+	// JourneyLatency times the full round trip per event: Save → projection.Handle
+	// (materialize) → typed query returns the updated value. The three component
+	// latencies are also reported individually.
 	// Zero-valued when Config.SkipJourney is true or the bundle lacks
-	// SeekableJournal + CheckpointStore + ReadModels.
-	JourneyLatency      LatencyStats `json:"journeyLatency"`
-	JourneyQueryLatency LatencyStats `json:"journeyQueryLatency"`
-	JourneySamples      int          `json:"journeySamples,omitempty"`
+	// EventSink + ReadModels.
+	JourneyLatency           LatencyStats `json:"journeyLatency"`
+	JourneyProjectionLatency LatencyStats `json:"journeyProjectionLatency"`
+	JourneyQueryLatency      LatencyStats `json:"journeyQueryLatency"`
+	JourneySamples           int          `json:"journeySamples,omitempty"`
 
 	// Query dispatch metrics — typed query.Dispatcher overhead (M15).
 	// QueryHitLatency: registered handler found and invoked.

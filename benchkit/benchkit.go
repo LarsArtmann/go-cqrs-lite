@@ -99,9 +99,9 @@ type Config struct {
 
 	// SkipJourney skips the end-to-end publish→projection→query journey
 	// phase (M14). The journey phase writes single events to fresh streams,
-	// waits for a projection to materialize them, and dispatches typed queries
-	// — measuring full round-trip latency. Skipped automatically when the
-	// bundle lacks SeekableJournal + CheckpointStore + ReadModels.
+	// synchronously projects them into the read model, and dispatches typed
+	// queries — measuring full round-trip latency. Skipped automatically when
+	// the bundle lacks EventSink + ReadModels.
 	SkipJourney bool
 
 	// SkipQuery skips the typed query dispatch phase (M15). The query phase
