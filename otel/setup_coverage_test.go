@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
@@ -30,6 +31,7 @@ func TestSetup_ShutdownErrorPropagation(t *testing.T) {
 	t.Parallel()
 
 	provider, err := cqrsotel.Setup(
+		cqrsotel.WithoutGlobalRegistration(),
 		cqrsotel.WithService("test", "1.0", ""),
 		cqrsotel.WithSpanExporter(failingExporter{tracetest.NewInMemoryExporter()}),
 	)
@@ -47,6 +49,7 @@ func TestSetup_WithMetricReader(t *testing.T) {
 
 	reader := metric.NewManualReader()
 	provider, err := cqrsotel.Setup(
+		cqrsotel.WithoutGlobalRegistration(),
 		cqrsotel.WithService("test", "1.0", ""),
 		cqrsotel.WithMetricReader(reader),
 	)
@@ -64,7 +67,16 @@ func TestSetup_WithMetricReader(t *testing.T) {
 }
 
 func TestSetup_TextMapPropagator(t *testing.T) {
-	// NOT parallel — mutates global propagator.
+	// NOT parallel — asserts global propagator registration.
+	originalProp := otel.GetTextMapPropagator()
+	originalTP := otel.GetTracerProvider()
+	originalMP := otel.GetMeterProvider()
+	defer func() {
+		otel.SetTextMapPropagator(originalProp)
+		otel.SetTracerProvider(originalTP)
+		otel.SetMeterProvider(originalMP)
+	}()
+
 	provider, err := cqrsotel.Setup(
 		cqrsotel.WithService("test", "1.0", ""),
 	)
@@ -83,10 +95,11 @@ func TestSetup_TextMapPropagator(t *testing.T) {
 }
 
 func TestSetup_SpanExporterPrecedence(t *testing.T) {
-	// NOT parallel — mutates global state.
+	t.Parallel()
 	exporter := tracetest.NewInMemoryExporter()
 
 	provider, err := cqrsotel.Setup(
+		cqrsotel.WithoutGlobalRegistration(),
 		cqrsotel.WithService("test", "1.0", ""),
 		cqrsotel.WithSpanExporter(exporter),
 	)
@@ -112,6 +125,7 @@ func TestSetup_MetricDataExport(t *testing.T) {
 
 	reader := metric.NewManualReader()
 	provider, err := cqrsotel.Setup(
+		cqrsotel.WithoutGlobalRegistration(),
 		cqrsotel.WithService("metrics-test", "1.0", ""),
 		cqrsotel.WithMetricReader(reader),
 	)

@@ -29,7 +29,8 @@ func testTracerWithRecorder() (*sdktrace.TracerProvider, *tracetest.SpanRecorder
 }
 
 func TestNewMeter_UsesGlobalProvider(t *testing.T) {
-	t.Parallel()
+	// NOT parallel — writes the global MeterProvider, which races with
+	// parallel readers (NewMeter/NewTracer resolve via the global).
 	g := NewWithT(t)
 
 	reader := sdkmetric.NewManualReader()

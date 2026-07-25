@@ -17,6 +17,7 @@ func TestSetup_Defaults(t *testing.T) {
 	t.Parallel()
 
 	provider, err := cqrsotel.Setup(
+		cqrsotel.WithoutGlobalRegistration(),
 		cqrsotel.WithService("test-svc", "1.0.0", "test-instance"),
 	)
 	if err != nil {
@@ -68,6 +69,7 @@ func TestSetup_WithSpanExporter(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 
 	provider, err := cqrsotel.Setup(
+		cqrsotel.WithoutGlobalRegistration(),
 		cqrsotel.WithService("test-svc", "1.0.0", ""),
 		cqrsotel.WithSpanExporter(exporter),
 	)
@@ -98,6 +100,7 @@ func TestSetup_Shutdown(t *testing.T) {
 	t.Parallel()
 
 	provider, err := cqrsotel.Setup(
+		cqrsotel.WithoutGlobalRegistration(),
 		cqrsotel.WithService("test-svc", "1.0.0", ""),
 	)
 	if err != nil {
@@ -124,6 +127,7 @@ func TestSetup_ResourceAttributes(t *testing.T) {
 	exporter := tracetest.NewInMemoryExporter()
 
 	provider, err := cqrsotel.Setup(
+		cqrsotel.WithoutGlobalRegistration(),
 		cqrsotel.WithService("my-service", "2.0.0", "i-42"),
 		cqrsotel.WithSpanExporter(exporter),
 	)
@@ -163,6 +167,7 @@ func TestSetup_CQRSHistogramViews(t *testing.T) {
 
 	exporter := tracetest.NewInMemoryExporter()
 	provider, err := cqrsotel.Setup(
+		cqrsotel.WithoutGlobalRegistration(),
 		cqrsotel.WithService("test", "1.0", ""),
 		cqrsotel.WithSpanExporter(exporter),
 	)
@@ -185,6 +190,7 @@ func TestSetup_WithStdoutExporter(t *testing.T) {
 	var buf bytes.Buffer
 
 	provider, err := cqrsotel.Setup(
+		cqrsotel.WithoutGlobalRegistration(),
 		cqrsotel.WithService("test-stdout", "1.0.0", ""),
 		cqrsotel.WithStdoutExporter(&buf),
 	)
