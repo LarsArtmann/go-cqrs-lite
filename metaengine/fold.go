@@ -203,8 +203,8 @@ func verifyEventParam[E any](handlerType reflect.Type, eventType string) error {
 	}
 
 	if paramType != expectedType {
-		return fmt.Errorf("%w: %s expected %s, got %s",
-			errInvalidEventType, eventType, expectedType, handlerType.In(0))
+		return fmt.Errorf("%w %s, got %s",
+			errInvalidEventType, expectedType, handlerType.In(0))
 	}
 
 	return nil

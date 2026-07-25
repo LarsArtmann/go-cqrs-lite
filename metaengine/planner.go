@@ -120,8 +120,8 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 	}
 
 	if len(ranked) == 0 {
-		return queryRuntime{}, assignment, fmt.Errorf("%w: query %q needs %s",
-			errADTNotSupported, meta.QueryName(), adt)
+		return queryRuntime{}, assignment, fmt.Errorf("query %q requires ADT %s but %w",
+			meta.QueryName(), adt, errADTNotSupported)
 	}
 
 	sort.SliceStable(ranked, func(i, j int) bool {

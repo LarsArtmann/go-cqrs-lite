@@ -17,11 +17,11 @@ var (
 		"query does not implement queryMeta — pass a metaengine.Query[Q,R]",
 	)
 	errDuplicateQuery   = errors.New("metaengine.Plan: duplicate query name")
-	errADTNotSupported  = errors.New("query requires an ADT that no engine supports")
+	errADTNotSupported  = errors.New("no engine supports it")
 	errCannotInferADT   = errors.New("cannot infer ADT: no active folds (only skips)")
 	errAmbiguousKey     = errors.New("ambiguous key: multiple fields of matching type")
 	errNoKeyField       = errors.New("no field of matching type in event")
-	errInvalidEventType = errors.New("metaengine.On: handler first param must match event type")
+	errInvalidEventType = errors.New("metaengine.On: handler first param must be")
 
 	// Dispatch-time errors.
 	errNoQueryForInputType = errors.New("no query declared for input type")
