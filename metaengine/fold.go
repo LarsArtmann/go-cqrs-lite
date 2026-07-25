@@ -85,20 +85,20 @@ func On[E any](sample E, handler any) Fold {
 		}
 	}
 
-	ht := reflect.TypeOf(handler)
-	if ht == nil || ht.Kind() != reflect.Func {
+	handlerType := reflect.TypeOf(handler)
+	if handlerType == nil || handlerType.Kind() != reflect.Func {
 		panic(fmt.Sprintf(
 			"metaengine.On(%s): handler must be a function or Remove[V](), got %T",
 			eventType, handler,
 		))
 	}
 
-	if err := verifyEventParam[E](ht, eventType); err != nil {
+	if err := verifyEventParam[E](handlerType, eventType); err != nil {
 		panic(err.Error())
 	}
 
-	numIn := ht.NumIn()
-	numOut := ht.NumOut()
+	numIn := handlerType.NumIn()
+	numOut := handlerType.NumOut()
 
 	switch {
 	case numIn == 1 && numOut == 2:
@@ -106,8 +106,8 @@ func On[E any](sample E, handler any) Fold {
 			EventType:     eventType,
 			EventSample:   sample,
 			Kind:          FoldInsert,
-			keyType:       ht.Out(0),
-			valueType:     ht.Out(1),
+			keyType:       handlerType.Out(0),
+			valueType:     handlerType.Out(1),
 			insertHandler: handler,
 		}
 
@@ -116,12 +116,12 @@ func On[E any](sample E, handler any) Fold {
 			EventType:     eventType,
 			EventSample:   sample,
 			Kind:          FoldUpdate,
-			valueType:     ht.Out(0),
+			valueType:     handlerType.Out(0),
 			updateHandler: handler,
 		}
 
 	case numIn == 1 && numOut == 1:
-		return classifySingleReturn(sample, eventType, ht.Out(0), handler)
+		return classifySingleReturn(sample, eventType, handlerType.Out(0), handler)
 
 	default:
 		panic(fmt.Sprintf(
@@ -189,7 +189,7 @@ func classifySingleReturn[E any](
 	}
 }
 
-func verifyEventParam[E any](ht reflect.Type, eventType string) error {
+func verifyEventParam[E any](handlerType reflect.Type, eventType string) error {
 	var sample E
 
 	expectedType := reflect.TypeOf(sample)
@@ -197,16 +197,14 @@ func verifyEventParam[E any](ht reflect.Type, eventType string) error {
 		expectedType = expectedType.Elem()
 	}
 
-	paramType := ht.In(0)
+	paramType := handlerType.In(0)
 	if paramType.Kind() == reflect.Pointer {
 		paramType = paramType.Elem()
 	}
 
 	if paramType != expectedType {
-		return fmt.Errorf(
-			"metaengine.On(%s): handler first param must be %s, got %s",
-			eventType, expectedType, ht.In(0),
-		)
+		return fmt.Errorf("%w: %s expected %s, got %s",
+			errInvalidEventType, eventType, expectedType, handlerType.In(0))
 	}
 
 	return nil

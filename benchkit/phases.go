@@ -236,11 +236,7 @@ func (r *runner) readPhase(ctx context.Context) error {
 
 	readPasses := readPassesFor(profile.ReadRatio)
 
-	for range readPasses {
-		if ctx.Err() != nil {
-			break //nolint:staticcheck // graceful skip on canceled context
-		}
-
+	for pass := 0; pass < readPasses && ctx.Err() == nil; pass++ {
 		err := runConcurrent(
 			ctx, profile.Streams, r.concurrency,
 			func(ctx context.Context, aggIdx int) error {
@@ -571,7 +567,7 @@ func (r *runner) recoveryPhase(_ context.Context) error {
 	// Recovery is a post-benchmark durability check — it must run even if
 	// the benchmark context has expired. Use a fresh context so that Load
 	// calls are not canceled by the parent's deadline.
-	ctx := context.Background()
+	ctx := context.Background() //nolint:contextcheck // intentional fresh context for post-benchmark recovery
 
 	// Close the current bundle to flush all writes.
 	_ = r.bundle.Close()

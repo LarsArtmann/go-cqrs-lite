@@ -91,48 +91,52 @@ type ScaleThreshold struct {
 
 // scaleThresholds provides empirical guidance for structure selection.
 // These are conservative defaults derived from database engineering practice.
-var scaleThresholds = map[ADT]ScaleThreshold{
-	ADTMap: {
-		Structure: "hash map",
-		MinItems:  1,
-		MaxItems:  10_000_000,
-	},
-	ADTSet: {
-		Structure: "hash set",
-		MinItems:  1,
-		MaxItems:  10_000_000,
-	},
-	ADTCounter: {
-		Structure: "counter map",
-		MinItems:  1,
-		MaxItems:  1_000, // few distinct counter keys expected
-	},
-	ADTGraph: {
-		Structure: "adjacency list",
-		MinItems:  1,
-		MaxItems:  1_000_000,
-	},
-	ADTSortedMap: {
-		Structure: "sorted map",
-		MinItems:  1,
-		MaxItems:  1_000_000,
-	},
-	ADTLog: {
-		Structure: "append-only log",
-		MinItems:  1,
-		MaxItems:  math.MaxInt64, // logs are unbounded by design
-	},
-	ADTMultimap: {
-		Structure: "multimap (map of slices)",
-		MinItems:  1,
-		MaxItems:  5_000_000,
-	},
+// Returned by a function to avoid a package-level mutable global (gochecknoglobals);
+// the map is small and only consulted at plan time.
+func scaleThresholds() map[ADT]ScaleThreshold {
+	return map[ADT]ScaleThreshold{
+		ADTMap: {
+			Structure: "hash map",
+			MinItems:  1,
+			MaxItems:  10_000_000,
+		},
+		ADTSet: {
+			Structure: "hash set",
+			MinItems:  1,
+			MaxItems:  10_000_000,
+		},
+		ADTCounter: {
+			Structure: "counter map",
+			MinItems:  1,
+			MaxItems:  1_000, // few distinct counter keys expected
+		},
+		ADTGraph: {
+			Structure: "adjacency list",
+			MinItems:  1,
+			MaxItems:  1_000_000,
+		},
+		ADTSortedMap: {
+			Structure: "sorted map",
+			MinItems:  1,
+			MaxItems:  1_000_000,
+		},
+		ADTLog: {
+			Structure: "append-only log",
+			MinItems:  1,
+			MaxItems:  math.MaxInt64, // logs are unbounded by design
+		},
+		ADTMultimap: {
+			Structure: "multimap (map of slices)",
+			MinItems:  1,
+			MaxItems:  5_000_000,
+		},
+	}
 }
 
 // checkScaleThreshold returns a diagnostic if the volume falls outside
 // the optimal range for the given ADT's default structure.
 func checkScaleThreshold(adt ADT, volume int64) *Diagnostic {
-	threshold, ok := scaleThresholds[adt]
+	threshold, ok := scaleThresholds()[adt]
 	if !ok {
 		return nil
 	}
@@ -163,6 +167,9 @@ func effectiveReadComplexity(readPattern ReadPattern, adtComplexity Complexity) 
 		if adtComplexity == ComplexityO1 {
 			return ComplexityON
 		}
+	case ReadPointLookup, ReadMembership, ReadAggregate, ReadTraversal, ReadMultiLookup, ReadLogTail:
+		// Point/membership/aggregate/traversal/multi/log reads do not degrade the
+		// ADT-level complexity — only scans force a full collection walk.
 	}
 
 	return adtComplexity

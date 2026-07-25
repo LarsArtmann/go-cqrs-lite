@@ -1,7 +1,6 @@
 package metaengine
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 )

@@ -1,7 +1,6 @@
 package metaengine
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 )
@@ -87,6 +86,8 @@ func classifyADT(folds []Fold) (ADT, error) {
 			hasMulti = true
 		case FoldAppend:
 			hasAppend = true
+		case FoldSkip:
+			// Skips do not influence ADT selection.
 		}
 	}
 
@@ -104,7 +105,7 @@ func classifyADT(folds []Fold) (ADT, error) {
 	case hasInsert:
 		return ADTMap, nil
 	default:
-		return "", errors.New("cannot infer ADT: no active folds (only skips)")
+		return "", errCannotInferADT
 	}
 }
 
@@ -138,6 +139,8 @@ func deriveKeys(folds []Fold) error {
 			}
 
 			folds[i].keyExtractor = extractor
+		case FoldInsert, FoldCount, FoldEdge, FoldSet, FoldSkip, FoldMultiInsert, FoldAppend:
+			// Only update/remove folds need a derived key extractor.
 		}
 	}
 
@@ -159,10 +162,8 @@ func buildKeyExtractor(eventSample any, keyType reflect.Type) (any, error) {
 
 		if t.Field(i).Type == keyType {
 			if foundIdx >= 0 {
-				return nil, fmt.Errorf(
-					"ambiguous key: multiple fields of type %s in %s (%s, %s)",
-					keyType, t.Name(), t.Field(foundIdx).Name, t.Field(i).Name,
-				)
+				return nil, fmt.Errorf("%w: type %s in %s (%s, %s)",
+					errAmbiguousKey, keyType, t.Name(), t.Field(foundIdx).Name, t.Field(i).Name)
 			}
 
 			foundIdx = i
@@ -170,7 +171,7 @@ func buildKeyExtractor(eventSample any, keyType reflect.Type) (any, error) {
 	}
 
 	if foundIdx < 0 {
-		return nil, fmt.Errorf("no field of type %s in %s", keyType, t.Name())
+		return nil, fmt.Errorf("%w: type %s in %s", errNoKeyField, keyType, t.Name())
 	}
 
 	idx := foundIdx

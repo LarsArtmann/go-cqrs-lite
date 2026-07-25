@@ -26,48 +26,48 @@ func passesFilters(value any, filters []filterPredicate) bool {
 // compareValue performs a type-aware tri-state comparison: -1 (a < b), 0 (equal), +1 (a > b).
 // Handles same-type comparison, cross-type numeric comparison (e.g., int from item
 // vs float64 from a deserialized cursor), and falls back to string comparison.
-func compareValue(a, b any) int {
-	if a == nil || b == nil {
-		if a == b {
+func compareValue(left, right any) int {
+	if left == nil || right == nil {
+		if left == right {
 			return 0
 		}
 
-		if a == nil {
+		if left == nil {
 			return -1
 		}
 
 		return 1
 	}
 
-	if result, ok := tryNumericCompare(a, b); ok {
+	if result, ok := tryNumericCompare(left, right); ok {
 		return result
 	}
 
-	switch va := a.(type) {
+	switch vLeft := left.(type) {
 	case string:
-		if vb, ok := b.(string); ok {
-			return cmp.Compare(va, vb)
+		if vRight, ok := right.(string); ok {
+			return cmp.Compare(vLeft, vRight)
 		}
 	case time.Time:
-		if vb, ok := b.(time.Time); ok {
-			return va.Compare(vb)
+		if vRight, ok := right.(time.Time); ok {
+			return vLeft.Compare(vRight)
 		}
 	}
 
-	return strings.Compare(fmt.Sprintf("%v", a), fmt.Sprintf("%v", b))
+	return strings.Compare(fmt.Sprintf("%v", left), fmt.Sprintf("%v", right))
 }
 
 // tryNumericCompare attempts to compare two values as float64 when their Go types
 // differ (e.g., int from an item vs float64 from a deserialized cursor).
-func tryNumericCompare(a, b any) (int, bool) {
-	fa, okA := toFloat64(a)
+func tryNumericCompare(left, right any) (int, bool) {
+	fLeft, okLeft := toFloat64(left)
 
-	fb, okB := toFloat64(b)
-	if !okA || !okB {
+	fRight, okRight := toFloat64(right)
+	if !okLeft || !okRight {
 		return 0, false
 	}
 
-	return cmp.Compare(fa, fb), true
+	return cmp.Compare(fLeft, fRight), true
 }
 
 func toFloat64(v any) (float64, bool) {
