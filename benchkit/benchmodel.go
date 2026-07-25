@@ -174,20 +174,14 @@ func newBenchQueryDispatcher(
 		func(ctx context.Context, q listCountsQuery) (query.PaginatedResult[CountResult], error) {
 			page := query.NewPagination(q.page, q.pageSize)
 
-			offset := page.Offset()
-			end := offset + int(q.pageSize)
-			if end > len(streamIDs) {
-				end = len(streamIDs)
-			}
-
-			if offset > len(streamIDs) {
-				offset = len(streamIDs)
-			}
+			offset := min(page.Offset(), len(streamIDs))
+			end := min(offset+int(q.pageSize), len(streamIDs))
 
 			data := make([]CountResult, 0, end-offset)
 
 			for i := offset; i < end; i++ {
 				sid := streamIDs[i].String()
+
 				n, _, err := readCount(ctx, store, countKey(sid))
 				if err != nil {
 					return query.PaginatedResult[CountResult]{}, err

@@ -96,11 +96,11 @@ func TestSnapshotPhase_SkipFlag(t *testing.T) {
 	t.Parallel()
 
 	result := mustRun(t, Config{
-		Profile:       ProfileDev,
-		PayloadSize:   128,
-		SkipSnapshot:  true,
-		SkipReads:     true,
-		SkipRawSink:   true,
+		Profile:      ProfileDev,
+		PayloadSize:  128,
+		SkipSnapshot: true,
+		SkipReads:    true,
+		SkipRawSink:  true,
 	}, func() (*stack.Bundle, error) {
 		return memory.New()
 	})

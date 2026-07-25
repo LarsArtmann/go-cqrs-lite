@@ -35,21 +35,21 @@ type SoakConfig struct {
 type SoakSample struct {
 	Iteration   int           `json:"iteration"`
 	Duration    time.Duration `json:"duration"`
-	Throughput  float64       `json:"throughput"`   // events/sec
-	WriteP50    time.Duration `json:"writeP50"`     // write latency p50
-	WriteP99    time.Duration `json:"writeP99"`     // write latency p99
-	LoadP50     time.Duration `json:"loadP50"`      // load latency p50
-	HeapBytes   uint64        `json:"heapBytes"`    // heap after GC
+	Throughput  float64       `json:"throughput"` // events/sec
+	WriteP50    time.Duration `json:"writeP50"`   // write latency p50
+	WriteP99    time.Duration `json:"writeP99"`   // write latency p99
+	LoadP50     time.Duration `json:"loadP50"`    // load latency p50
+	HeapBytes   uint64        `json:"heapBytes"`  // heap after GC
 	TotalEvents int           `json:"totalEvents"`
 }
 
 // SoakResult holds the outcome of a soak test, including per-iteration samples
 // and trend analysis for leak and degradation detection.
 type SoakResult struct {
-	Backend   string        `json:"backend"`
-	Duration  time.Duration `json:"duration"`
-	Iterations int          `json:"iterations"`
-	Samples   []SoakSample  `json:"samples"`
+	Backend    string        `json:"backend"`
+	Duration   time.Duration `json:"duration"`
+	Iterations int           `json:"iterations"`
+	Samples    []SoakSample  `json:"samples"`
 
 	// HeapGrowthBytes = last sample heap − first sample heap. Positive values
 	// indicate a possible memory leak.
@@ -83,20 +83,16 @@ func RunSoak(ctx context.Context, config SoakConfig, factory Factory) (*SoakResu
 	defer cancel()
 
 	result := &SoakResult{
-		Backend:   config.Config.Backend,
-		Duration:  config.Duration,
-		Samples:   make([]SoakSample, 0, 64),
-		Config:    config,
+		Backend:  config.Config.Backend,
+		Duration: config.Duration,
+		Samples:  make([]SoakSample, 0, 64),
+		Config:   config,
 	}
 
 	startTime := time.Now()
 	var lastReport time.Time
 
-	for {
-		if soakCtx.Err() != nil {
-			break
-		}
-
+	for soakCtx.Err() == nil {
 		// Each iteration runs a full benchmark with a fresh factory call.
 		iterCtx, iterCancel := context.WithTimeout(soakCtx, 5*time.Minute)
 
@@ -136,7 +132,8 @@ func RunSoak(ctx context.Context, config SoakConfig, factory Factory) (*SoakResu
 			now := time.Now()
 
 			if now.Sub(lastReport) >= config.ReportInterval {
-				fmt.Fprintf(config.ProgressWriter,
+				fmt.Fprintf(
+					config.ProgressWriter,
 					"soak: iter %d | %s/s | heap %s | p99 %s\n",
 					sample.Iteration+1,
 					formatFloat(sample.Throughput),
@@ -217,7 +214,8 @@ func PrintSoakReport(w io.Writer, r *SoakResult) {
 	fmt.Fprintln(w, "  iter   throughput   heap      writeP50   writeP99")
 
 	for _, s := range r.Samples {
-		fmt.Fprintf(w, "  %-5d  %7s/s   %8s  %9s  %9s\n",
+		fmt.Fprintf(
+			w, "  %-5d  %7s/s   %8s  %9s  %9s\n",
 			s.Iteration+1,
 			formatFloat(s.Throughput),
 			formatBytes(s.HeapBytes),

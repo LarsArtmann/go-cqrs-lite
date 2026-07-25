@@ -21,7 +21,7 @@ const maxQueryDispatches = 500
 // Requires ReadModels (kv.Store); gracefully skips otherwise.
 func (r *runner) queryPhase(ctx context.Context) error {
 	if ctx.Err() != nil {
-		return nil //nolint:nilerr // ctx done; graceful skip
+		return nil // ctx done; graceful skip
 	}
 
 	if r.bundle.ReadModels == nil {
@@ -54,7 +54,7 @@ func (r *runner) queryPhase(ctx context.Context) error {
 
 	for i, sid := range streamIDs {
 		if ctx.Err() != nil {
-			break //nolint:nilerr // ctx done; report partial results
+			break // ctx done; report partial results
 		}
 
 		q := getCountQuery{streamID: sid.String()}
@@ -85,7 +85,7 @@ func (r *runner) queryPhase(ctx context.Context) error {
 
 	for range missCount {
 		if ctx.Err() != nil {
-			break //nolint:nilerr // ctx done; report partial results
+			break // ctx done; report partial results
 		}
 
 		start := time.Now()
@@ -105,7 +105,7 @@ func (r *runner) queryPhase(ctx context.Context) error {
 
 	for page := uint(0); int(page)*int(pageSize) < dispatchCount; page++ {
 		if ctx.Err() != nil {
-			break //nolint:nilerr // ctx done; report partial results
+			break // ctx done; report partial results
 		}
 
 		q := listCountsQuery{page: page, pageSize: pageSize}

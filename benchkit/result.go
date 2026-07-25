@@ -82,10 +82,10 @@ type Result struct {
 	// CacheMissLatency: first Load (populates cache, full replay).
 	// CacheHitLatency: second Load (cache hit, delta fold of 0 new events).
 	// SnapshotCorrectnessErrors: count of state/version mismatches across strategies.
-	SnapshotColdLatency        LatencyStats `json:"snapshotColdLatency"`
-	SnapshotLoadLatency        LatencyStats `json:"snapshotLoadLatency"`
-	CacheMissLatency           LatencyStats `json:"cacheMissLatency"`
-	CacheHitLatency            LatencyStats `json:"cacheHitLatency"`
+	SnapshotColdLatency       LatencyStats `json:"snapshotColdLatency"`
+	SnapshotLoadLatency       LatencyStats `json:"snapshotLoadLatency"`
+	CacheMissLatency          LatencyStats `json:"cacheMissLatency"`
+	CacheHitLatency           LatencyStats `json:"cacheHitLatency"`
 	SnapshotCorrectnessErrors int          `json:"snapshotCorrectnessErrors,omitempty"`
 
 	// Recovery metrics (zero-valued when Config.Recovery is false).
