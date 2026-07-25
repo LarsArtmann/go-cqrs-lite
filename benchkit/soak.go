@@ -90,6 +90,7 @@ func RunSoak(ctx context.Context, config SoakConfig, factory Factory) (*SoakResu
 	}
 
 	startTime := time.Now()
+
 	var lastReport time.Time
 
 	for soakCtx.Err() == nil {

@@ -27,7 +27,7 @@ const maxSnapshotStreams = 50
 // Snapshot load is skipped when the bundle has no SnapshotStore.
 func (r *runner) snapshotPhase(ctx context.Context) error {
 	if ctx.Err() != nil {
-		return nil // ctx done; graceful skip
+		return nil //nolint:nilerr // ctx done; graceful skip
 	}
 
 	store, ok := r.bundle.EventStore()
@@ -89,7 +89,7 @@ func (r *runner) populateSnapshots(
 
 	for _, sid := range streamIDs {
 		if ctx.Err() != nil {
-			return nil // ctx done; graceful skip
+			return nil //nolint:nilerr // ctx done; graceful skip
 		}
 
 		err := repo.Execute(
@@ -137,7 +137,7 @@ func (r *runner) benchmarkColdLoad(
 
 	for i, sid := range streamIDs {
 		if ctx.Err() != nil {
-			return nil, nil, nil // ctx done; graceful skip
+			return nil, nil, nil //nolint:nilerr // ctx done; graceful skip
 		}
 
 		start := time.Now()
@@ -238,7 +238,7 @@ func (r *runner) benchmarkCache(
 
 	for i, sid := range streamIDs {
 		if ctx.Err() != nil {
-			return nil // ctx done; graceful skip
+			return nil //nolint:nilerr // ctx done; graceful skip
 		}
 
 		start := time.Now()
@@ -283,5 +283,5 @@ func (r *runner) benchmarkCache(
 
 	r.result.CacheHitLatency = hitColl.Stats()
 
-	return nil
+	return nil //nolint:nilerr // loadErr checked above; clean return
 }
