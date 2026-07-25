@@ -74,6 +74,13 @@ cqrs-bench run --backend sqlite --dsn /tmp/bench.db --profile small --recovery
 # Production replay (benchmark reads + projections on existing data)
 cqrs-bench run --backend sqlite --dsn /tmp/existing.db --profile dev --replay
 
+# Soak test (sustained run for leak/degradation detection)
+cqrs-bench run --backend memory --profile dev --soak 5m
+
+# Isolate phases (skip snapshot/cache or the e2e journey)
+cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev --skip-snapshot
+cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev --skip-journey --skip-query
+
 # Postgres backend (requires --dsn)
 cqrs-bench run --backend postgres --dsn "postgres://user:pass@localhost:5432/bench?sslmode=disable" --profile dev
 
@@ -108,6 +115,9 @@ See [ADR-0060](../docs/adr/0060-benchkit-design-decisions.md) for design rationa
 - **Journal scans**: `ReadAll()` and `ReadFrom()` wall time (multi-pass when `Profile.JournalScans > 1`)
 - **Read model**: kv.Store `Set()` and `Get()` latency percentiles
 - **Projection**: lag, events processed — uses a real kv.Store-backed counting projection (Get+Set per event)
+- **Journey** (`JourneyLatency`): end-to-end publish→projection→query round trip (one event to a fresh stream + synchronous projection + typed query dispatch). Reports projection and query legs separately.
+- **Query dispatch**: `query.Dispatcher` overhead for hit (registered handler), miss (unregistered type), and paginated result paths
+- **Snapshot/cache**: decider Load under cold replay (full fold), snapshot load (`EveryNEvents`), and state-cache hit/miss — with correctness assertions across strategies
 - **Recovery**: close+reopen+reload time and recovered events (when `Config.Recovery` is set)
 - **Throughput**: events/sec sustained during write phase
 - **Memory**: peak heap allocation via runtime.MemStats
@@ -166,8 +176,15 @@ config := benchkit.Config{
     SkipReads:        true,   // skip stream loads + journal scans
     SkipReadModels:   true,   // skip kv.Store Set/Get benchmark
     SkipProjections:  true,   // skip projection phase
+    SkipJourney:      true,   // skip publish→projection→query round trip
+    SkipQuery:        true,   // skip typed query dispatch phase
+    SkipSnapshot:     true,   // skip snapshot/cache hit-rate phase
 }
 ```
+
+The journey, query, and snapshot phases also skip automatically when the
+bundle lacks the required capabilities (e.g. memory backend without
+ReadModels, or EventSink that is not an `event.Store`).
 
 ### Config validation
 
@@ -220,3 +237,25 @@ a size uniformly at random per event. CLI: `--payload-sizes 64,256,1024,4096`.
 The result reports the distribution mean in `PayloadBytes` and the full
 distribution in `PayloadSizes`. See
 [scaling report](../docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
+
+### Soak testing (`--soak`)
+
+Run the workload repeatedly for a fixed duration to detect memory leaks and
+performance degradation. Each iteration runs a full benchmark with a fresh
+Bundle, then forces a GC and records heap usage:
+
+```bash
+cqrs-bench run --backend memory --profile dev --soak 5m
+```
+
+The `SoakResult` reports drift metrics across iterations:
+
+- **HeapGrowthBytes** / **HeapLeakRate** (bytes/iteration) — a sustained
+  positive rate indicates a memory leak.
+- **ThroughputDriftPct** — percentage change in throughput from first to last
+  iteration (negative = degradation).
+- **WriteP99DriftPct** — percentage change in write P99 latency (positive =
+  latency regression).
+
+Use a small profile (`ProfileDev`) for fast iterations and more data points.
+Progress is written to stderr; the final result goes to stdout.
