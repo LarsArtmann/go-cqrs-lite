@@ -202,7 +202,13 @@ func (e *sqliteEngine) MapUpdate(
 
 	newVal := update(prev)
 
-	if _, err := tx.ExecContext(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(newVal)); err != nil {
+	if _, err := tx.ExecContext(
+		ctx,
+		e.queries.mapSet,
+		col,
+		encodeKey(key),
+		encodeValue(newVal),
+	); err != nil {
 		return err //nolint:wrapcheck // passthrough
 	}
 

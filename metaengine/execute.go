@@ -322,6 +322,14 @@ func ExecuteTyped[Q any, R any](
 
 	result, ok := raw.(R)
 	if !ok {
+		// SQLite engines return map[string]any for struct values (JSON round-trip
+		// through any). Re-reify via JSON so struct-typed results work across
+		// both memory and SQL engines. Memory values pass the direct assertion
+		// above; the reify cost is paid only on the SQLite path.
+		if reified, rErr := reify[R](raw); rErr == nil {
+			return reified, nil
+		}
+
 		return zero, fmt.Errorf("%w: got %T", errExecuteTypeMismatch, raw)
 	}
 

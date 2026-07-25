@@ -117,10 +117,10 @@ func SQLiteEngineProfile() EngineProfile {
 		Name:    "sqlite",
 		NsPerOp: SQLiteNsPerOp,
 		Supports: map[ADT]Complexity{
-			ADTMap:       ComplexityOLogN,
-			ADTSet:       ComplexityOLogN,
-			ADTCounter:   ComplexityO1,
-			ADTGraph:     ComplexityON,
+			ADTMap:     ComplexityOLogN,
+			ADTSet:     ComplexityOLogN,
+			ADTCounter: ComplexityO1,
+			ADTGraph:   ComplexityON,
 			// ADTSortedMap reflects the current MapScan implementation: SQLite
 			// loads every row in the collection via the (collection, key) PK
 			// index, then sorts in Go. That is O(N) load + O(N log N) sort, not

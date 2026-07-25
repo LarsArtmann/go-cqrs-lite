@@ -1,8 +1,26 @@
+// Cost model for the metaengine planner.
+//
+// HONESTY NOTE: This is a rough first-order model, not a calibrated query
+// optimizer. The nsPerOp constants come from a single benchmark run on one
+// machine (see engine.go calibration comments). The graph-traversal defaults
+// assume a branching factor and depth that will be wrong for most real graphs.
+// The model's purpose is to pick the obviously-right engine (O(1) memory vs
+// O(N) scan) and to flag when no engine meets a latency budget — not to make
+// fine-grained decisions between two engines with similar profiles. Re-run
+// BenchmarkCalibration_* on the target hardware before trusting absolute
+// latency estimates; relative rankings are more stable.
 package metaengine
 
 import (
 	"fmt"
 	"math"
+)
+
+// Graph-traversal defaults for ComplexityODegree cost estimation. These are
+// rough averages for social-graph-like data; real graphs vary widely.
+const (
+	defaultGraphBranchingFactor = 10
+	defaultGraphTraversalDepth  = 2
 )
 
 // CostEstimate is the estimated cost of serving a query on a given engine.
@@ -61,8 +79,9 @@ func estimateCost(complexity Complexity, volume int64, nsPerOp float64) CostEsti
 	case ComplexityONLogN:
 		ops = n * math.Log2(n)
 	case ComplexityODegree:
-		// Graph traversal: assume average branching factor 10, depth 2.
-		ops = float64(10 * 10)
+		// Graph traversal: rough estimate using assumed average branching
+		// factor and depth. See defaultGraphBranchingFactor/Depth constants.
+		ops = float64(defaultGraphBranchingFactor * defaultGraphTraversalDepth)
 	default:
 		ops = n
 	}

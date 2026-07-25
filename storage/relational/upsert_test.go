@@ -439,7 +439,10 @@ func TestSinkUpsertCols_FreshInsert(t *testing.T) {
 	}
 
 	if author != "u1" {
-		t.Fatalf("fresh insert should write author_id even though not in updateCols, got %q", author)
+		t.Fatalf(
+			"fresh insert should write author_id even though not in updateCols, got %q",
+			author,
+		)
 	}
 
 	if channel != "c1" {
