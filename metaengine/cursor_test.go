@@ -154,6 +154,12 @@ var _ = Describe("Cursor.Encode", func() {
 		Expect(err).To(HaveOccurred())
 	})
 
+	It("surfaces a marshal error for a func value", func() {
+		// Funcs hit the same json.UnsupportedTypeError as channels.
+		_, err := metaengine.Cursor{Value: func() {}}.Encode()
+		Expect(err).To(HaveOccurred())
+	})
+
 	It("String swallows the same error that Encode surfaces", func() {
 		// Documents the divergence: String returns "" (no error), Encode returns
 		// the error. Callers crossing a process boundary MUST use Encode.

@@ -117,8 +117,8 @@ func TestStore_CheckAndRecord_Expired_OverwritesAndClaims(t *testing.T) {
 func TestStore_CheckAndRecord_BackendError(t *testing.T) {
 	t.Parallel()
 	fb := &faultBackend{
-		MemStore:  kv.NewMemStore(),
-		setIAErr:  errors.New("backend down"),
+		MemStore: kv.NewMemStore(),
+		setIAErr: errors.New("backend down"),
 	}
 	store := kvstore.New(fb)
 	err := store.CheckAndRecord(context.Background(), "key", time.Minute)
@@ -223,8 +223,8 @@ func TestStore_Close_PassesThrough(t *testing.T) {
 func TestStore_Close_BackendError(t *testing.T) {
 	t.Parallel()
 	fb := &faultBackend{
-		MemStore:  kv.NewMemStore(),
-		closeErr:  io.ErrClosedPipe,
+		MemStore: kv.NewMemStore(),
+		closeErr: io.ErrClosedPipe,
 	}
 	store := kvstore.New(fb)
 	if err := store.Close(); err == nil {
