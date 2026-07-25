@@ -426,6 +426,41 @@
               echo "All production files within 350-line limit"
             '';
 
+            check-modules = mkApp "check-modules" [ pkgs.findutils pkgs.gnugrep ] ''
+              # Verify every go.mod in the workspace is covered by testModules.
+              # Prevents the "CI blind spot" where new modules ship untested.
+              expected="${builtins.concatStringsSep " " testModules}"
+              failed=false
+              while IFS= read -r moddir; do
+                # Skip root workspace go.mod
+                [ "$moddir" = "." ] && continue
+                # Check if this exact path or a parent path is in testModules
+                found=false
+                for exp in $expected; do
+                  if [ "$moddir" = "$exp" ]; then
+                    found=true; break
+                  fi
+                  # Parent coverage: moddir starts with exp/ (e.g. event/v4/eventtest under event)
+                  case "$moddir" in
+                    "$exp"/*) found=true; break ;;
+                  esac
+                done
+                if [ "$found" = false ]; then
+                  echo "WARNING: $moddir has a go.mod but is not in testModules — tests may be missing"
+                  failed=true
+                fi
+              done < <(find . -name go.mod \
+                -not -path './vendor/*' \
+                -not -path './.git/*' \
+                -not -path './example/*' \
+                -exec dirname {} \; | sed 's|^\./||' | sort)
+              if [ "$failed" = true ]; then
+                echo "Add missing modules to testModules in flake.nix"
+                exit 1
+              fi
+              echo "All go.mod modules covered by testModules"
+            '';
+
             test-grpc = mkApp "test-grpc" goModules ''
               echo "==> Testing transport/grpc (GOWORK=off)"
               (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1 "$@")
