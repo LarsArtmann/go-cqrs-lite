@@ -7,6 +7,10 @@
 **Created:** 2026-07-23
 **Status:** Active Execution Plan
 
+> **Update 2026-07-25:** Phases 1–4 shipped (unified `On` constructor, Remove/Skip
+> sentinels, per-query projections, typed `FilterOn`/`SortOn`, pagination). Still
+> deferred (Phase 5): metadata param in folds, `iter.Seq2` streaming, hot-reload.
+
 ---
 
 ## Context

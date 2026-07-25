@@ -10,6 +10,13 @@
 
 Reviewed `docs/feedback/new/2026-07-23_analytics-rollup-support.md` (a proposal for incremental rollup/aggregation support). Wrote a detailed review. Implemented the proposal's #1 priority (Option B: `sink.Increment`) with corrections. Fixed a prerequisite gap (`RelationalProjection` missing `Resettable`). All tests pass. **However, I missed several things during the session that are documented below.**
 
+> **Update 2026-07-25:** The "CRITICAL: breaking interface change" and
+> "CounterSink vs ProjectionSink" open questions in section d/g were resolved in
+> the [17:56 architectural correction session](2026-07-23_17-56_rollup-increment-architectural-correction.md):
+> `Increment` on `ProjectionSink` IS correct (sole impl = no ISP split needed).
+> The `append` aliasing bug was fixed. `sink.Increment` shipped in v4.1.0 with
+> 11 tests.
+
 ---
 
 ## a) FULLY DONE

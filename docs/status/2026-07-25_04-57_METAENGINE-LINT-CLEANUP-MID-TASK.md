@@ -7,6 +7,13 @@
 
 ---
 
+> **Update 2026-07-25:** This mid-task report was **superseded** by the
+> [06:30 session](2026-07-25_06-30_METAENGINE-LINT-CLEANUP-AND-DOCS.md), which
+> reverted the dishonest `as[T]` helper, completed the metaengine lint cleanup
+> (143→0 via config exclusions), split 2 oversized files, added 4 projection
+> adapter unit tests, wrote the ADR index, and updated SKILL.md. Read the 06:30
+> report for the final state.
+
 ## TL;DR
 
 Started the 33-item TODO list. Got through **one task** (metaengine lint cleanup,

@@ -12,6 +12,13 @@
 
 All affected module tests pass. However, the full workspace test suite, lint, and format were NOT run.
 
+> **Update 2026-07-25:** Shipped at v4.1.0. The workspace test suite, lint, and
+> format were subsequently run and passed (dedup series complete: 3→0 groups).
+> The "BREAKING API CHANGE" concern about 20 removed preset functions was
+> resolved via deprecated aliases — the functions were re-added as `// Deprecated:`
+> wrappers redirecting to the centralized `sqlopt` API. See CHANGELOG.md
+> `[Unreleased]`.
+
 ---
 
 ## A) FULLY DONE

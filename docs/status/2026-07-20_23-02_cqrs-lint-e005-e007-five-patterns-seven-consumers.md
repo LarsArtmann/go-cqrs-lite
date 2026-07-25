@@ -10,6 +10,9 @@
 
 The prior session fixed browser-history but left 5 other consumer repos untested. This session ran cqrs-lint against all 7 local consumers and discovered **3 additional untracked handler patterns** (package-qualified closure params, method-value handlers, type-assertion-in-opaque-closures). Implemented all 3 plus a `lastIdentSegment` StarExpr fix. Result: **44 false positives reduced to 8** across 7 consumer repos. The 8 remaining are legitimate gaps (handlers with zero type-level evidence). 12 regression tests added (5 this session, 7 prior). All gates green. Changes uncommitted — awaiting user instruction.
 
+> **Update 2026-07-25:** Shipped in cqrs-lint v4.1.0. The 5 handler-detection
+> patterns and 12 regression tests are in the released linter.
+
 ---
 
 ## a) FULLY DONE

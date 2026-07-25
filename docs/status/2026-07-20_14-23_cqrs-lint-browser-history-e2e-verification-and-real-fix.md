@@ -10,6 +10,11 @@
 
 The previous session's committed fix (`d01d4830`) **did not actually work** for E005/E007. End-to-end testing against the real browser-history repo proved `CommandTypesRegistered` was empty — all 9 E005/E007 false positives persisted. The const-value resolution approach (`ResolveRegisteredTypeConsts`) fundamentally cannot bridge the gap when type constants use event-style string values (`"browser_history.extract_history"`) with aliased imports (`cqrsCommand.Type`). I implemented the **real fix**: generic type-instantiation scanning (`scanGenericHandlerCall`) that detects `requireCommandType[*T](cmd)` patterns in handler bodies. Verified **0 false positives** against browser-history, bank-sync, taskmanager, and getting-started. The fix is uncommitted (3 files changed) — awaiting user instruction.
 
+> **Update 2026-07-25:** Shipped. The `scanGenericHandlerCall` fix was hardened
+> across 7 consumers in the
+> [23:02 session](2026-07-20_23-02_cqrs-lint-e005-e007-five-patterns-seven-consumers.md)
+> (44 FPs → 8 remaining) and released in cqrs-lint v4.1.0.
+
 ---
 
 ## a) FULLY DONE

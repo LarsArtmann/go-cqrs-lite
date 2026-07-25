@@ -14,6 +14,14 @@ log wrongly says 8). **I never verified end-to-end against the real browser-hist
 repo** — only synthetic unit tests. The B007 fix is architecturally fragile (denylist).
 Two narrow false-positive cases remain documented as "known limitations".
 
+> **Update 2026-07-25:** The "Fixed all 4 detector bugs" claim above was **wrong**.
+> The next session ([14:23 report](2026-07-20_14-23_cqrs-lint-browser-history-e2e-verification-and-real-fix.md))
+> proved commit `d01d4830` did not fix E005/E007 — `CommandTypesRegistered` was
+> empty and all 9 FPs persisted. The real fix (`scanGenericHandlerCall`) landed in
+> the 14:23 session and was hardened across 7 consumers in the
+> [23:02 report](2026-07-20_23-02_cqrs-lint-e005-e007-five-patterns-seven-consumers.md)
+> (44 FPs → 8). All changes shipped in cqrs-lint v4.1.0.
+
 ---
 
 ## a) FULLY DONE

@@ -4,6 +4,12 @@
 **Session goal:** Reduce harmful code clones toward zero (skill: `deduplicate-code`)
 **Bottom line:** Extracted 5 more clone groups (39→34 groups, 103→93 clones). Build + 60/60 test packages green. **But I did NOT commit, did NOT run the documented quality gate (`nix run .#verify`/`.#lint`), did NOT update API-stability goldens for the new `event.NewTypeSet` export, and did NOT document the new public API. This session is NOT verifiably complete.**
 
+> **Update 2026-07-25:** Shipped. The 5 extractions committed, API-stability
+> goldens regenerated, `event.NewTypeSet` is a stable export at v4.1.0. The dedup
+> series concluded in the [2026-07-22 session](2026-07-22_08-00_deduplication-session.md)
+> (3→0 clone groups). Remaining clone groups are Go-type-system-forced (documented
+> with `// Accept:` comments).
+
 ---
 
 ## a) FULLY DONE

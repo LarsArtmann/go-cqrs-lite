@@ -7,6 +7,10 @@
 **Status:** Active Execution Plan
 **Design doc:** `docs/planning/event-query-model.md` (THE specification)
 
+> **Update 2026-07-25:** Build fixed, all 5 ADTs tested, regression tests, and
+> README shipped — then far exceeded (SQLite engine, cost calibration, projection
+> adapter, 174 BDD specs, ADRs 0061–0063).
+
 ---
 
 ## The Three Roles
