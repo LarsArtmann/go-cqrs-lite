@@ -16,20 +16,11 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
-	"runtime/debug"
 	"runtime/pprof"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
 func main() {
