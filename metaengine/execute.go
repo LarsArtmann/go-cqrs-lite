@@ -48,7 +48,7 @@ func (s *Store) executeQuery(
 			}
 
 			if !found {
-				return nil, errEmptyResult
+				return nil, nil //nolint:nilnil // not-found is signalled as (nil result, nil error); see ExecuteTyped
 			}
 
 			return val, nil

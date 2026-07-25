@@ -395,7 +395,7 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 		return nil
 	}
 
-	proj := newCountingProjection(r.bundle.ReadModels, r.aggIDs)
+	proj := newCountingProjection(r.bundle.ReadModels)
 
 	host, err := projectionhost.New(
 		r.bundle.SeekableJournal,
@@ -464,9 +464,9 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 // the counter is persisted via Get+Set — measuring real projection I/O cost.
 // When no kv.Store is available, an in-memory atomic counter is used as a
 // fallback (still exercises the projection host machinery, but without I/O).
-func newCountingProjection(store kv.Store, aggIDs []id.StreamID) projection.Projection {
+func newCountingProjection(store kv.Store) projection.Projection {
 	if store != nil {
-		return newKVCountingProjection(store, aggIDs)
+		return newKVCountingProjection(store)
 	}
 
 	var count atomic.Int64
@@ -485,7 +485,7 @@ func newCountingProjection(store kv.Store, aggIDs []id.StreamID) projection.Proj
 // newKVCountingProjection creates a projection that persists a per-stream
 // event count to a kv.Store. Each event triggers a Get (current count) +
 // Set (incremented count), measuring real projection write amplification.
-func newKVCountingProjection(store kv.Store, _ []id.StreamID) projection.Projection {
+func newKVCountingProjection(store kv.Store) projection.Projection {
 	return projection.NewProjection(
 		"bench-counter",
 		func(ctx context.Context, evt event.Event) error {
