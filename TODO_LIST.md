@@ -25,8 +25,7 @@ this list and recorded in CHANGELOG.
 - [ ] ⭐ **Run `nix run .#verify` end-to-end** and fix anything red (lint nits
       on split files, doc-check symbol drift, module-coverage gaps).
 - [ ] **gofmt all 16 new split files** in one pass (`gofmt -w`), confirm zero diff.
-- [ ] **Document `otel.WithoutGlobalRegistration()`** in `AGENTS.md` OTel section
-      + Crush skill `references/core.md` — new public API added during the otel
+- [ ] **Document `otel.WithoutGlobalRegistration()`** in `AGENTS.md` OTel section + Crush skill `references/core.md` — new public API added during the otel
       flakiness fix, currently undocumented for consumers.
 
 ---
@@ -40,9 +39,9 @@ this list and recorded in CHANGELOG.
       (tags exist locally, annotated, release-clean go.mod). Requires user
       push authorization.
 - [BLOCKED] **Tag `metaengine/projectionadapter/v4.0.0`** — its `go.mod` has a
-      local `metaengine/v4 => ../` replace; cannot resolve metaengine from the
-      Go proxy until `metaengine/v4.0.0` is pushed. After the push above, run
-      `./scripts/tag-release.sh metaengine/projectionadapter v4.0.0 "..."`.
+  local `metaengine/v4 => ../` replace; cannot resolve metaengine from the
+  Go proxy until `metaengine/v4.0.0` is pushed. After the push above, run
+  `./scripts/tag-release.sh metaengine/projectionadapter v4.0.0 "..."`.
 
 ---
 
