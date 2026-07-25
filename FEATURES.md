@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-24 (docs-health audit: metaengine coverage/specs verified against code — 87.7%/174 specs; benchkit post-hardening features added — durability, replay, RunSuite, analytical, Postgres, kv projection; test counts recomputed) · **Module count:** 56 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+**Last audited:** 2026-07-25 (Pareto execution plan: metaengine SQLite engine + projection adapter + cost calibration added; SQL idempotency, WaitForVersion, CheckStaleness added; consistency model doc; module extraction ADRs; NATS + Parquet design docs) · **Module count:** 57 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -126,6 +126,7 @@
 | Load coalescing      | `WithLoadCoalescing` — singleflight dedup of concurrent Loads for same stream                    | ✅     |
 | Context enrichment   | `WithEnricher` — injects metadata from context into events                                       | ✅     |
 | OTel tracing         | OpenTelemetry spans for load/save/execute operations (opt-in)                                    | ✅     |
+| WaitForVersion       | `WaitForVersion(ctx, store, streamID, version, opts)` — read-your-writes helper, polls LoadFromVersion | ✅     |
 
 **Sentinel errors:** `ErrNilStore`, `ErrNilPublisher`, `ErrNilFold`, `ErrLoadFailed`, `ErrFoldFailed`, `ErrSaveFailed`, `ErrIncompleteSnapshotConfig`
 
@@ -171,7 +172,8 @@
 | Command dedup   | `middleware.CommandIdempotency(store, ttl, keyFn)` — defaults to `cmd.ID().String()` when keyFn is nil        | ✅     |
 | Event dedup     | `middleware.EventIdempotency(store, ttl, keyFn)` — defaults to `evt.ID().String()` when keyFn is nil          | ✅     |
 | Query dedup     | `middleware.QueryIdempotency(store, ttl, keyFn)` — panics if keyFn is nil (queries have no built-in identity) | ✅     |
-| KVStore         | `idempotency.KVStore` — persistent dedup backed by any `kv.Store`                                             | ✅     |
+| KVStore         | `idempotency/kvstore` — persistent dedup backed by any `kv.Store`                                             | ✅     |
+| SQLStore        | `idempotency/sqlstore` — `NewSQLiteStore` / `NewPostgresStore` with `INSERT ON CONFLICT DO NOTHING` + TTL sweep | ✅     |
 
 **Sentinel errors:** `ErrDuplicate` (Conflict)
 
@@ -224,12 +226,16 @@ developer never declares "I need a Map" or "I need a Counter."
 | Collection results         | Reconstructs typed result collections by field shape from scan output                                      | 🧪     |
 | Context.Context            | All backend interfaces accept `context.Context`                                                            | 🧪     |
 | Compile-time assertions    | Interface conformance verified at compile time for all 9 backends                                          | 🧪     |
-| Zero dependencies          | Only `ginkgo`/`gomega` for testing; zero production deps                                                   | 🧪     |
+| Zero dependencies          | Core `metaengine/v4` has zero production deps; adapter module is separate                                   | 🧪     |
+| SQLite engine              | `SQLiteEngine` wrapping `storage/view.SQLViewStore` — first production backend (ADR-0061)                 | 🧪     |
+| Projection adapter         | `metaengine/projectionadapter` implements `projection.Projection` for `projectionhost.Host` (ADR-0062)    | 🧪     |
+| Cost calibration           | `EngineProfile.NsPerOp` — per-engine calibrated cost (Memory=500ns, SQLite=7000ns) replaces arbitrary 100  | 🧪     |
+| Store.EventTypes()         | Returns sorted unique event types from registered queries — enables adapter event routing                 | 🧪     |
 
-**Coverage:** 87.7% (174 BDD specs). 16 production files, all under the 350-line
-CI limit. MemoryEngine only — no real SQL/Pebble engine yet. Not integrated with
-`projection.Projection`, `kv.Store`, or `graph.GraphSink`. See
-[TODO_LIST.md](TODO_LIST.md) "Metaengine Integration" for the open production path.
+**Coverage:** 87.7% (174 BDD specs). SQLite engine + projection adapter added via
+the Pareto execution plan. Cost model calibrated with real benchmarks. Pushdown
+ADR (0063) designs Phase 2 declarative FilterSpec/SortSpec.
+See [TODO_LIST.md](TODO_LIST.md) for the remaining production path.
 
 ---
 
@@ -326,6 +332,8 @@ into a managed lifecycle.
 | Health / liveness         | `Status()` reports per-worker state + processed/errors/restarts counters                                               | ✅     |
 | Graceful drain            | `Stop()` waits for in-flight events (30s timeout)                                                                      | ✅     |
 | RegisterAndWait           | Convenience: register + start + block until ctx cancelled                                                              | ✅     |
+| Lag monitoring            | `LagDuration()` + `LagPerProjection()` — wall-clock lag for dashboards/alerting                                        | ✅     |
+| CheckStaleness            | `WithMaxStaleness(d)` — reject reads whose projection lag exceeds threshold                                            | ✅     |
 
 Worker states: `idle`, `running`, `live`, `backoff`, `draining`, `stopped`, `failed`.
 Reads directly from `event.SeekableJournal` — no message-bus dependency. For
@@ -1082,7 +1090,8 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `example/taskmanager`       | `…/example/taskmanager`       | 💡 Demo                                                                   |
 | `example/getting-started`   | `…/example/getting-started`   | 💡 Demo                                                                   |
 | `example/readme-quickstart` | `…/example/readme-quickstart` | 💡 Demo                                                                   |
-| `metaengine`                | `…/metaengine/v4`             | 🧪 Experimental (MemoryEngine only, zero deps)                            |
+| `metaengine`                | `…/metaengine/v4`             | 🧪 Experimental (SQLite engine + cost calibration + projection adapter)  |
+| `metaengine/projectionadapter` | `…/metaengine/projectionadapter/v4` | 🧪 Experimental (projection.Projection adapter for projectionhost) |
 | `benchkit`                  | `…/benchkit/v4`               | 🧪 Experimental (functional, 88 tests, `--repeat N` available)            |
 | `cmd/cqrs-bench`            | `…/cmd/cqrs-bench`            | 🔧 Tool                                                                   |
 
@@ -1092,7 +1101,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                 |
 | ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| Lint posture           | `nix run .#lint` passes with 0 issues across all 56 modules (as of v4.1.0)                             |
+| Lint posture           | `nix run .#lint` passes with 0 issues across all 57 modules (as of v4.1.0)                             |
 | Race-free              | `go test -race` passes across all modules                                                              |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                         |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI     |
