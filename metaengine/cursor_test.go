@@ -160,3 +160,38 @@ var _ = Describe("Cursor.Encode", func() {
 		Expect(metaengine.Cursor{Value: make(chan int)}.String()).To(BeEmpty())
 	})
 })
+
+var _ = Describe("Cursor structured-value round-trip", func() {
+	// Structured values cross the JSON boundary as their generic decoded forms:
+	// structs and maps become map[string]any; slices become []any. These specs
+	// lock that contract so callers know exactly what ParseCursor yields.
+	It("round-trips a struct as map[string]any", func() {
+		original := metaengine.Cursor{Value: FindTaskResult{ID: "t1", Title: "T", Status: "open"}}
+		parsed, err := metaengine.ParseCursor(original.String())
+		Expect(err).NotTo(HaveOccurred())
+		asMap, ok := parsed.Value.(map[string]any)
+		Expect(ok).To(BeTrue(), "struct must decode to map[string]any")
+		Expect(asMap["ID"]).To(Equal("t1"))
+		Expect(asMap["Title"]).To(Equal("T"))
+	})
+
+	It("round-trips a slice as []any", func() {
+		original := metaengine.Cursor{Value: []string{"a", "b", "c"}}
+		parsed, err := metaengine.ParseCursor(original.String())
+		Expect(err).NotTo(HaveOccurred())
+		asSlice, ok := parsed.Value.([]any)
+		Expect(ok).To(BeTrue(), "slice must decode to []any")
+		Expect(asSlice).To(HaveLen(3))
+		Expect(asSlice[0]).To(Equal("a"))
+	})
+
+	It("round-trips a map as map[string]any", func() {
+		original := metaengine.Cursor{Value: map[string]int{"x": 1, "y": 2}}
+		parsed, err := metaengine.ParseCursor(original.String())
+		Expect(err).NotTo(HaveOccurred())
+		asMap, ok := parsed.Value.(map[string]any)
+		Expect(ok).To(BeTrue(), "map must decode to map[string]any")
+		Expect(asMap["x"]).To(Equal(float64(1)))
+		Expect(asMap["y"]).To(Equal(float64(2)))
+	})
+})

@@ -120,7 +120,7 @@ var _ = Describe("Regression: GraphBackend restart safety", func() {
 		gb2 := eng2.(metaengine.GraphBackend)
 		Expect(gb2.GraphAddEdge(ctx, "assign", metaengine.Edge{From: "alice", To: "t3"})).To(Succeed())
 
-		neighbors, err := gb2.GraphNeighbors(ctx, "assign", "alice")
+		neighbors, err := gb2.GraphNeighbors(ctx, "assign", "alice", 1)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(neighbors).To(ConsistOf("t1", "t2", "t3"))
 	})
