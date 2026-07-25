@@ -6,11 +6,9 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
-	"slices"
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 )
 
 // sqliteEngine implements all ADT backends backed by a SQL database.
