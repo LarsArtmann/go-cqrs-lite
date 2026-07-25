@@ -101,10 +101,11 @@ func TestSQLEventStore_LoadFromVersion(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta(loadFromVersionQuery)).
 		WithArgs("User", streamID, 2).
-		WillReturnRows(sqlmock.NewRows(eventColumns()).AddRow(
-			eventID.String(),
-			"UserUpdated", "User", streamID.String(), 3, 1, []byte(`{"name":"updated"}`), "", nil, ts,
-		),
+		WillReturnRows(
+			sqlmock.NewRows(eventColumns()).AddRow(
+				eventID.String(),
+				"UserUpdated", "User", streamID.String(), 3, 1, []byte(`{"name":"updated"}`), "", nil, ts,
+			),
 		)
 
 	events, err := store.LoadFromVersion(
