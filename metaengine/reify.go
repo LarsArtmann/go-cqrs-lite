@@ -1,6 +1,9 @@
 package metaengine
 
-import "encoding/json/v2"
+import (
+	"encoding/json/v2"
+	"fmt"
+)
 
 // reify converts a loosely-typed value (typically map[string]any from a SQL
 // engine's JSON decode) into the target type R via JSON round-trip. Returns an
@@ -16,13 +19,13 @@ func reify[R any](raw any) (R, error) {
 
 	b, err := json.Marshal(raw)
 	if err != nil {
-		return zero, err
+		return zero, fmt.Errorf("metaengine.reify: marshal value: %w", err)
 	}
 
 	var r R
 
 	if err := json.Unmarshal(b, &r); err != nil {
-		return zero, err
+		return zero, fmt.Errorf("metaengine.reify: unmarshal into %T: %w", r, err)
 	}
 
 	return r, nil

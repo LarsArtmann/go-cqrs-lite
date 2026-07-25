@@ -1,4 +1,4 @@
-// Cost model for the metaengine planner.
+// Package metaengine cost model for the planner.
 //
 // HONESTY NOTE: This is a rough first-order model, not a calibrated query
 // optimizer. The nsPerOp constants come from a single benchmark run on one

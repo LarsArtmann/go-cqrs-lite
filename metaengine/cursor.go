@@ -19,6 +19,7 @@ import (
 // and surface its error.
 func (c Cursor) String() string {
 	s, _ := c.Encode()
+
 	return s
 }
 

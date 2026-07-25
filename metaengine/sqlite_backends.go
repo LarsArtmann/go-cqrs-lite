@@ -167,7 +167,7 @@ func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, err
 	})
 
 	if c.initErr != nil {
-		return 0, c.initErr //nolint:wrapcheck // passthrough
+		return 0, c.initErr
 	}
 
 	return c.counter.Add(1), nil
