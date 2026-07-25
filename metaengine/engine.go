@@ -121,7 +121,12 @@ func SQLiteEngineProfile() EngineProfile {
 			ADTSet:       ComplexityOLogN,
 			ADTCounter:   ComplexityO1,
 			ADTGraph:     ComplexityON,
-			ADTSortedMap: ComplexityOLogN,
+			// ADTSortedMap reflects the current MapScan implementation: SQLite
+			// loads every row in the collection via the (collection, key) PK
+			// index, then sorts in Go. That is O(N) load + O(N log N) sort, not
+			// true indexed scanning. Demoting from O(logN) to O(NlogN) is the
+			// honest claim until sort-column pushdown lands (ADR-0063).
+			ADTSortedMap: ComplexityONLogN,
 			ADTLog:       ComplexityOLogN,
 			ADTMultimap:  ComplexityOLogN,
 		},

@@ -10,9 +10,11 @@ benchkit/func NewMixedGenerator
 benchkit/func PrintComparison
 benchkit/func PrintMarkdown
 benchkit/func PrintReport
+benchkit/func PrintSoakReport
 benchkit/func PrintSweep
 benchkit/func ProfileByName
 benchkit/func Run
+benchkit/func RunSoak
 benchkit/func RunSuite
 benchkit/func ScalingSweep
 benchkit/func SortedSweepResults
@@ -23,6 +25,7 @@ benchkit/func WriteBenchstat
 benchkit/func WriteComparisonJSON
 benchkit/func WriteJSON
 benchkit/func WriteManifest
+benchkit/func WriteSoakJSON
 benchkit/func WriteSweepJSON
 benchkit/interface DiskSizer
 benchkit/method MeanSize
@@ -31,8 +34,13 @@ benchkit/method Record
 benchkit/method SizeDistribution
 benchkit/method Stats
 benchkit/method TotalEvents
+benchkit/method Type
+benchkit/method Type
+benchkit/method Type
 benchkit/struct BenchPayload
 benchkit/struct Config
+benchkit/struct CountResult
+benchkit/struct CounterState
 benchkit/struct DiskStats
 benchkit/struct Environment
 benchkit/struct Generator
@@ -41,6 +49,9 @@ benchkit/struct LatencyStats
 benchkit/struct Profile
 benchkit/struct ResourceStats
 benchkit/struct Result
+benchkit/struct SoakConfig
+benchkit/struct SoakResult
+benchkit/struct SoakSample
 benchkit/struct SuiteManifest
 benchkit/struct SweepResult
 benchkit/type Factory
@@ -1358,6 +1369,7 @@ metaengine/method CounterGet
 metaengine/method CounterGet
 metaengine/method CounterIncrement
 metaengine/method CounterIncrement
+metaengine/method Encode
 metaengine/method EventTypeNames
 metaengine/method EventTypes
 metaengine/method Execute
@@ -1610,6 +1622,7 @@ otel/func WithService
 otel/func WithSpanExporter
 otel/func WithSpanKind
 otel/func WithStdoutExporter
+otel/func WithoutGlobalRegistration
 otel/method AsMeterProvider
 otel/method AsTracerProvider
 otel/method Shutdown
