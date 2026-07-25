@@ -66,16 +66,12 @@ this list and recorded in CHANGELOG.
 
 ## Module Health & Tooling (from 2026-07-25 self-review sweep)
 
-- 🔥 **[BLOCKED] Fix the broken published module graph.** Several published
-  `go.mod` files reference sibling versions that were never tagged:
-  `codec/v4.0.4`, `decider/v4.0.3`, `listing/v4.0.3`, `storage/v4.0.3`.
-  This makes `go mod tidy` fail for any module that newly pulls those
-  transitively (e.g. adding `idempotency/sqlstore` to `integration/`).
-  `go build`/`go test` work in workspace mode (go.work provides locals), so
-  `#verify` is green, but per-module `GOWORK=off` CI and `go mod tidy` break.
-  Fix: tag the missing versions or bump the require lines to existing tags.
+- ✅ **[RESOLVED] Broken published module graph** — 32 missing tags created locally
+  at commit `8285da41` (17× v4.0.3, 3× v4.0.4, 13× v4.0.2, 1× v0.2.1). All 84
+  require refs now resolve. **Push pending:** `git push origin --tags`. See
+  `docs/release-fix-2026-07-25.md`.
 - ✅ **Configure gopls with `goexperiment.jsonv2`** — Already configured in
-      `~/.config/crush/crush.json` (`GOEXPERIMENT: jsonv2` in gopls env).
+  `~/.config/crush/crush.json` (`GOEXPERIMENT: jsonv2` in gopls env).
 - [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
       unformatted code (gci/gofumpt drift), turning `#lint` red. Either gate
       daemon commits behind `nix fmt` or run a scheduled `nix fmt && nix run .#lint`.
@@ -88,11 +84,23 @@ this list and recorded in CHANGELOG.
 - [ ] **cqrs-bench profile for the metaengine SQLite engine** — no benchmark
       covers the SQLite planner path end-to-end. Add a named profile.
 - ✅ **CI badge for the api-stability gate** — Already in README; `#check-api-stability`
-      now runs inside `#verify` with `-race` and the `TestEveryGoModDirIsInModulesList`
-      meta-test.
+  now runs inside `#verify` with `-race` and the `TestEveryGoModDirIsInModulesList`
+  meta-test.
 - [ ] **Triage auto-commit daemon commit messages** — prior decision was "leave
       as-is"; revisit if garbled messages block `git log` readability or release
       tagging.
+- [ ] **Property test for `idempotency.Store`** — generate random Record/Seen/
+      CheckAndRecord sequences via `pgregory.net/rapid`, assert contract invariants
+      hold across all 3 implementations (memory, kv, sql).
+- [ ] **Fix `#vulncheck` nix app** — newer govulncheck requires explicit package
+      patterns (`./...`), not stdin. The pipeline is broken.
+- [ ] **Move 3-way idempotency contract test to integration/** — currently in
+      `idempotency/kvstore` (pulls sqlstore+sqlite as test deps). Move after
+      pushing the missing tags.
+- [ ] **Push the 32 missing module tags** — `git push origin --tags` after user
+      approval. See `docs/release-fix-2026-07-25.md`.
+- [ ] **Soak test for metaengine SQLite** — multi-hour load test.
+- [ ] **cqrs-bench workload for metaengine** — end-to-end Apply → ExecuteTyped.
 
 ---
 
