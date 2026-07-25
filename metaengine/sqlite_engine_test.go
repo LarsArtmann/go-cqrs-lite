@@ -22,15 +22,6 @@ func newSQLiteEngine() (metaengine.Engine, *sql.DB) {
 	return eng, db
 }
 
-// as is a checked type-assertion helper for the backend interfaces a sqliteEngine
-// implements. Keeps forcetypeassert satisfied while failing loudly on mismatch.
-func as[T any](eng metaengine.Engine) T {
-	backend, ok := eng.(T)
-	Expect(ok).To(BeTrue(), "engine should implement the requested backend")
-
-	return backend
-}
-
 var _ = Describe("SQLiteEngine", func() {
 	var (
 		eng metaengine.Engine
@@ -56,7 +47,7 @@ var _ = Describe("SQLiteEngine", func() {
 
 	Describe("MapBackend", func() {
 		It("sets and gets a value", func() {
-			mb := as[metaengine.MapBackend](eng)
+			mb := eng.(metaengine.MapBackend)
 			ctx := context.Background()
 
 			err := mb.MapSet(ctx, "tasks", "task-1", map[string]any{"title": "Build API"})
@@ -69,7 +60,7 @@ var _ = Describe("SQLiteEngine", func() {
 		})
 
 		It("returns false for missing key", func() {
-			mb := as[metaengine.MapBackend](eng)
+			mb := eng.(metaengine.MapBackend)
 			ctx := context.Background()
 
 			_, exists, err := mb.MapGet(ctx, "tasks", "nonexistent")
@@ -78,7 +69,7 @@ var _ = Describe("SQLiteEngine", func() {
 		})
 
 		It("deletes a value", func() {
-			mb := as[metaengine.MapBackend](eng)
+			mb := eng.(metaengine.MapBackend)
 			ctx := context.Background()
 
 			_ = mb.MapSet(ctx, "tasks", "task-1", "value")
@@ -90,7 +81,7 @@ var _ = Describe("SQLiteEngine", func() {
 		})
 
 		It("isolates collections", func() {
-			mb := as[metaengine.MapBackend](eng)
+			mb := eng.(metaengine.MapBackend)
 			ctx := context.Background()
 
 			_ = mb.MapSet(ctx, "col-a", "key-1", "val-a")
@@ -104,10 +95,10 @@ var _ = Describe("SQLiteEngine", func() {
 
 	Describe("MapUpdater", func() {
 		It("performs atomic read-modify-write", func() {
-			mu := as[metaengine.MapUpdater](eng)
+			mu := eng.(metaengine.MapUpdater)
 			ctx := context.Background()
 
-			_ = as[metaengine.MapBackend](eng).MapSet(ctx, "counters", "c1", float64(5))
+			_ = eng.(metaengine.MapBackend).MapSet(ctx, "counters", "c1", float64(5))
 
 			err := mu.MapUpdate(ctx, "counters", "c1", func(prev any) any {
 				if v, ok := prev.(float64); ok {
@@ -118,14 +109,14 @@ var _ = Describe("SQLiteEngine", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			val, _, _ := as[metaengine.MapBackend](eng).MapGet(ctx, "counters", "c1")
+			val, _, _ := eng.(metaengine.MapBackend).MapGet(ctx, "counters", "c1")
 			Expect(val.(float64)).To(Equal(float64(15)))
 		})
 	})
 
 	Describe("SetBackend", func() {
 		It("adds and checks membership", func() {
-			sb := as[metaengine.SetBackend](eng)
+			sb := eng.(metaengine.SetBackend)
 			ctx := context.Background()
 
 			err := sb.SetAdd(ctx, "active-users", "user-1")
@@ -137,7 +128,7 @@ var _ = Describe("SQLiteEngine", func() {
 		})
 
 		It("returns false for non-member", func() {
-			sb := as[metaengine.SetBackend](eng)
+			sb := eng.(metaengine.SetBackend)
 			ctx := context.Background()
 
 			contains, err := sb.SetContains(ctx, "active-users", "unknown")
@@ -148,7 +139,7 @@ var _ = Describe("SQLiteEngine", func() {
 
 	Describe("CounterBackend", func() {
 		It("increments and reads counters", func() {
-			cb := as[metaengine.CounterBackend](eng)
+			cb := eng.(metaengine.CounterBackend)
 			ctx := context.Background()
 
 			err := cb.CounterIncrement(ctx, "stats", metaengine.Delta{"total": 5, "errors": 1})
@@ -166,7 +157,7 @@ var _ = Describe("SQLiteEngine", func() {
 
 	Describe("MultimapBackend", func() {
 		It("stores multiple values per key", func() {
-			mb := as[metaengine.MultimapBackend](eng)
+			mb := eng.(metaengine.MultimapBackend)
 			ctx := context.Background()
 
 			_ = mb.MultiAdd(ctx, "assignee-tasks", "user-1", "task-a")
@@ -181,7 +172,7 @@ var _ = Describe("SQLiteEngine", func() {
 
 	Describe("LogBackend", func() {
 		It("appends and tails in order", func() {
-			lb := as[metaengine.LogBackend](eng)
+			lb := eng.(metaengine.LogBackend)
 			ctx := context.Background()
 
 			_ = lb.LogAppend(ctx, "audit", "entry-1")
@@ -199,7 +190,7 @@ var _ = Describe("SQLiteEngine", func() {
 
 	Describe("GraphBackend", func() {
 		It("finds neighbors via BFS", func() {
-			gb := as[metaengine.GraphBackend](eng)
+			gb := eng.(metaengine.GraphBackend)
 			ctx := context.Background()
 
 			// Build: A → B → C, A → D
@@ -221,8 +212,8 @@ var _ = Describe("SQLiteEngine", func() {
 
 	Describe("ScanBackend", func() {
 		It("scans with sorting and limit", func() {
-			sb := as[metaengine.ScanBackend](eng)
-			mb := as[metaengine.MapBackend](eng)
+			sb := eng.(metaengine.ScanBackend)
+			mb := eng.(metaengine.MapBackend)
 			ctx := context.Background()
 
 			_ = mb.MapSet(

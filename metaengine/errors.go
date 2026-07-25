@@ -21,7 +21,7 @@ var (
 	errCannotInferADT   = errors.New("cannot infer ADT: no active folds (only skips)")
 	errAmbiguousKey     = errors.New("ambiguous key: multiple fields of matching type")
 	errNoKeyField       = errors.New("no field of matching type in event")
-	errInvalidEventType = errors.New("metaengine.On: handler first param must be")
+	errInvalidEventType = errors.New("handler first param must be")
 
 	// Dispatch-time errors.
 	errNoQueryForInputType = errors.New("no query declared for input type")
