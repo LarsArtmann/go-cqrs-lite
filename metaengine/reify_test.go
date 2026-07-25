@@ -37,6 +37,7 @@ func newSQLiteEngineForStd(t *testing.T) (metaengine.Engine, *sql.DB) {
 	if err != nil {
 		t.Fatalf("new sqlite engine: %v", err)
 	}
+
 	return eng, db
 }
 

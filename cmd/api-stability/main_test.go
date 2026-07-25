@@ -47,8 +47,10 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 			return filepath.SkipDir
 		}
 		// Check for go.mod in this directory.
-		if _, err := os.Stat(filepath.Join(path, "go.mod")); err != nil {
+		if _, err := os.Stat(filepath.Join(path, "go.mod")); os.IsNotExist(err) {
 			return nil // no go.mod here, keep walking
+		} else if err != nil {
+			return err //nolint:wrapcheck // walk error
 		}
 		rel, err := filepath.Rel(projectRoot, path)
 		if err != nil {
@@ -56,12 +58,14 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 		}
 		if reason, ok := excluded[rel]; ok {
 			t.Logf("excluding %s (%s)", rel, reason)
+
 			return nil
 		}
 		if _, ok := tracked[rel]; !ok {
 			t.Errorf("directory %q has a go.mod but is NOT in the modules list in main.go — "+
 				"add it to the modules slice so its API surface is tracked", rel)
 		}
+
 		return nil
 	})
 	if err != nil {

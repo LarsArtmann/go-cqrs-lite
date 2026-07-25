@@ -16,7 +16,9 @@ import (
 // modules is the canonical list of library/SDK modules whose exported API
 // surface is tracked by the stability gate. Every directory with a go.mod
 // (except examples, integration, root workspace, and this tool itself) MUST
-// appear here — TestEveryGoModIsTracked enforces this automatically.
+// appear here — TestEveryGoModDirIsInModulesList enforces this automatically.
+//
+//nolint:gochecknoglobals // package-level so the meta-test can verify coverage
 var modules = []string{
 	// Layer 0: leaf modules
 	"id",

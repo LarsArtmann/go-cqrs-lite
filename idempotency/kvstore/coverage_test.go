@@ -17,6 +17,7 @@ import (
 // faultBackend wraps a real MemStore and can inject errors on specific operations.
 type faultBackend struct {
 	*kv.MemStore
+
 	getErr     error
 	setIAErr   error
 	setErr     error
@@ -28,6 +29,7 @@ func (f *faultBackend) Get(ctx context.Context, key []byte) ([]byte, error) {
 	if f.getErr != nil {
 		return nil, f.getErr
 	}
+
 	return f.MemStore.Get(ctx, key)
 }
 
@@ -35,6 +37,7 @@ func (f *faultBackend) Set(ctx context.Context, key, val []byte) error {
 	if f.setErr != nil {
 		return f.setErr
 	}
+
 	return f.MemStore.Set(ctx, key, val)
 }
 
@@ -42,6 +45,7 @@ func (f *faultBackend) SetIfAbsent(ctx context.Context, key, val []byte) (bool, 
 	if f.setIAErr != nil {
 		return false, f.setIAErr
 	}
+
 	return f.MemStore.SetIfAbsent(ctx, key, val)
 }
 
@@ -50,6 +54,7 @@ func (f *faultBackend) Close() error {
 	if f.closeErr != nil {
 		return f.closeErr
 	}
+
 	return f.MemStore.Close()
 }
 
@@ -162,6 +167,7 @@ func TestStore_CheckAndRecord_RetryOnRace(t *testing.T) {
 // so the subsequent Get returns ErrNotFound, triggering the retry path.
 type raceBackend struct {
 	*kv.MemStore
+
 	setIfAbsentCalls int
 }
 
@@ -169,13 +175,14 @@ func (r *raceBackend) SetIfAbsent(ctx context.Context, key, val []byte) (bool, e
 	r.setIfAbsentCalls++
 	if r.setIfAbsentCalls == 1 {
 		// Pre-seed so the first SetIfAbsent finds a key present.
-		_ = r.MemStore.Set(ctx, key, []byte("1234567890"))
+		_ = r.Set(ctx, key, []byte("1234567890"))
 	}
 	inserted, err := r.MemStore.SetIfAbsent(ctx, key, val)
 	if !inserted && r.setIfAbsentCalls == 1 {
 		// Simulate: another goroutine deletes the key between SetIfAbsent and Get.
-		_ = r.MemStore.Delete(ctx, key)
+		_ = r.Delete(ctx, key)
 	}
+
 	return inserted, err
 }
 

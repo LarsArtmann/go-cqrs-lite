@@ -74,10 +74,8 @@ this list and recorded in CHANGELOG.
   `go build`/`go test` work in workspace mode (go.work provides locals), so
   `#verify` is green, but per-module `GOWORK=off` CI and `go mod tidy` break.
   Fix: tag the missing versions or bump the require lines to existing tags.
-- [ ] **Configure gopls with `goexperiment.jsonv2`** — gopls runs without the
-      build tag, so its analysis of `encoding/json/v2` code is unreliable and
-      it floods false "X is not in your go.mod" errors right after restart.
-      Add the build flag to the gopls/workspace config.
+- ✅ **Configure gopls with `goexperiment.jsonv2`** — Already configured in
+      `~/.config/crush/crush.json` (`GOEXPERIMENT: jsonv2` in gopls env).
 - [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
       unformatted code (gci/gofumpt drift), turning `#lint` red. Either gate
       daemon commits behind `nix fmt` or run a scheduled `nix fmt && nix run .#lint`.
@@ -89,8 +87,9 @@ this list and recorded in CHANGELOG.
       the no-op-on-existing contract). New lint rule.
 - [ ] **cqrs-bench profile for the metaengine SQLite engine** — no benchmark
       covers the SQLite planner path end-to-end. Add a named profile.
-- [ ] **CI badge for the api-stability gate** — `#check-api-stability` now runs
-      inside `#verify`; surface its status in the README.
+- ✅ **CI badge for the api-stability gate** — Already in README; `#check-api-stability`
+      now runs inside `#verify` with `-race` and the `TestEveryGoModDirIsInModulesList`
+      meta-test.
 - [ ] **Triage auto-commit daemon commit messages** — prior decision was "leave
       as-is"; revisit if garbled messages block `git log` readability or release
       tagging.
