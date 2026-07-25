@@ -184,9 +184,16 @@
             "stack/turso"
             "stack/bench"
             "benchkit"
+            "cmd/api-stability"
             "cmd/cqrs-gen"
             "cmd/cqrs-lint"
             "cmd/cqrs-bench"
+            "cmd/doc-check"
+            "retry"
+            "idempotency/kvstore"
+            "idempotency/sqlstore"
+            "metaengine"
+            "metaengine/projectionadapter"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
