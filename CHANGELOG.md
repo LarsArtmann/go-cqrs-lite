@@ -97,7 +97,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **flake.nix testModules gap** — added `metaengine`, `metaengine/projectionadapter`,
   `retry`, `idempotency/kvstore`, `idempotency/sqlstore`, `cmd/api-stability`, and
   `cmd/doc-check` to CI test module list. These modules were silently untested in CI.
-- **Module count** — 56 → 57 `go.mod` files (added `metaengine/projectionadapter`).
+- **Module count** — 56 → 58 `go.mod` files (added `metaengine/projectionadapter`
+  and `idempotency/sqlstore`). 55 of 58 modules are tagged; `metaengine`,
+  `metaengine/projectionadapter`, and `idempotency/sqlstore` remain untagged
+  pending API stabilization and file-size-gate compliance.
 
 ### Fixed (benchkit hardening session)
 
@@ -176,8 +179,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   key modules (links to AGENTS.md for full 56). Moved "Why" section before catalog.
 - **Docs compile-verification** — `docs_compile_test.go` in `example/getting-started/`
   tests every API pattern from `docs/getting-started.md` to catch drift in CI.
-- **Module count** — 56 → 57 `go.mod` files (metaengine, benchkit, cmd/cqrs-bench,
-  example/readme-quickstart, metaengine/projectionadapter).
+- **Module count** — 56 → 58 `go.mod` files (metaengine, benchkit, cmd/cqrs-bench,
+  example/readme-quickstart, metaengine/projectionadapter, idempotency/sqlstore).
 - **Storage error var rename** — `ErrAggregateTypeMismatch` → `ErrStreamTypeMismatch`
   and `ErrAggregateIDMismatch` → `ErrStreamIDMismatch` in `storage/sql` and
   `storage/pebble`. Deprecated aliases preserve backward compatibility. Error code

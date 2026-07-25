@@ -35,7 +35,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 ## Monorepo Structure
 
-Multi-module Go workspace (`go.work`) with 57 `go.mod` files — all wired into `go.work`. Breakdown: 41 library + 7 stack presets + 3 examples + 5 cmd + 1 root workspace. Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`:
+Multi-module Go workspace (`go.work`) with 58 `go.mod` files — all wired into `go.work`. Breakdown: 42 library + 7 stack presets + 3 examples + 5 cmd + 1 root workspace. Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`:
 
 ```
 go-cqrs-lite/
@@ -888,7 +888,7 @@ Tier 6 — Tooling & Examples: catalog/, integration/, stack/bench/, examples/, 
 ```
 
 > Note: the old 7-layer system (pre-ADR-0046) was inaccurate — kv/ depends on codec/, command/
-> depends on event/, and 38 of 56 modules depend on codec/. The four-tier model reflects reality.
+> depends on event/, and 40 of 58 modules depend on codec/. The four-tier model reflects reality.
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from bus.SubscribeAll + command dispatch. See `example/taskmanager/` for a real architecture.
 
