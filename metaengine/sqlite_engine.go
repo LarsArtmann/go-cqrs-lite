@@ -94,13 +94,13 @@ func defaultSQLiteQueries() sqliteQuerySet {
 
 // NewSQLiteEngine creates a SQLite-backed metaengine engine. The caller owns
 // the *sql.DB. Tables are created automatically if they don't exist.
-func NewSQLiteEngine(db *sql.DB) (Engine, error) {
+func NewSQLiteEngine(database *sql.DB) (Engine, error) {
 	eng := &sqliteEngine{
-		db:      db,
+		db:      database,
 		queries: defaultSQLiteQueries(),
 	}
 
-	if _, err := db.ExecContext(context.Background(), eng.queries.ddl); err != nil {
+	if _, err := database.ExecContext(context.Background(), eng.queries.ddl); err != nil {
 		return nil, fmt.Errorf("metaengine: create tables: %w", err)
 	}
 
@@ -393,7 +393,7 @@ func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any
 func (e *sqliteEngine) nextMultiSeq(col string) int64 {
 	actual, _ := e.multiSeq.LoadOrStore(col, &atomic.Int64{})
 
-	return actual.(*atomic.Int64).Add(1) //nolint:forcetypeassert // stored as *atomic.Int64
+	return actual.(*atomic.Int64).Add(1)
 }
 
 // --- LogBackend ---

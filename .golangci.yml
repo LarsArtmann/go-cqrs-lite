@@ -605,6 +605,14 @@ linters:
       - path: sync/
         linters:
           - modernize
+      - path: metaengine/
+        linters:
+          - cyclop
+          - exhaustruct
+          - forcetypeassert
+          - gocognit
+          - ireturn
+          - mnd
       - path: _test\.go
         linters:
           - exhaustruct
