@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-24
+**Updated:** 2026-07-25
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here — when a task is finished it is removed from
@@ -15,55 +15,50 @@ this list and recorded in CHANGELOG.
 
 ---
 
-## Benchkit
+## CI Quality Gate (🔴 blocks `nix run .#verify`)
 
-- [ ] 🔥 **Tag `benchkit/v0.1.0`** when the API stabilizes. Currently unreleased
-      (no git tag); `metaengine`, `cmd/cqrs-bench`, and `example/readme-quickstart`
-      are in the same state and tag together when ready.
+> The verify gate is currently RED. These items must be resolved before the next
+> release tag. Verify with `nix run .#verify` (build + vet + test + race + lint).
 
-> The full benchmark suite shipped unreleased — durability/recovery, production
-> replay, `benchtest.RunSuite`, analytical profile, Postgres backend, scaling
-> sweeps, benchstat, manifest, and profiling. See [CHANGELOG.md](CHANGELOG.md)
-> `[Unreleased]` and [FEATURES.md](FEATURES.md) for what
-> exists. The first real benchmark run completed 2026-07-24 across
-> memory/pebble/sqlite — see
-> [benchmark results](docs/status/2026-07-24_17-54_benchmark-first-real-run.md).
-
----
-
-## Metaengine → Production
-
-> `metaengine/v4` is experimental (🧪): MemoryEngine only, 87.7% coverage, 174
-> BDD specs, zero production deps. The path from prototype to production:
-
-- [ ] ⭐ **Real SQLite engine** — wrap `SQLViewStore` as a metaengine backend.
-      The first production engine validates the interface design.
-- [ ] **Projection adapter** — `metaengine` has no `projection.Projection`
-      adapter. Integration tests would validate the design against the existing
-      projection host.
-- [ ] **Cost model calibration** — `nsPerOp=100` is arbitrary; needs
-      benchmark-driven calibration. Scale thresholds warn but don't auto-switch
-      structures.
-- [ ] **FilterOn/SortOn → SQL pushdown** — Go closures cannot be inspected.
-      Design decision needed: DSL, codegen, or keep in-memory filtering.
-- [ ] **Resolve `event/` dependency** — `metaengine` is zero-dependency by
-      design. If `event.Event` integration is needed, resolve the go.sum checksum
-      issue or keep the boundary.
+- [ ] ⭐ **Split 13 oversized production files** (>350-line CI limit, excluding
+      tests/generated). Worst offenders:
+  - `benchkit/phases.go` (610), `benchkit/runner.go` (498)
+  - `cmd/cqrs-bench/main.go` (602), `cmd/cqrs-lint/main.go` (452)
+  - `cmd/cqrs-lint/pkg/analyzer/scanner_calls.go` (412), `scanner.go` (387)
+  - `projectionhost/host.go` (403), `storage/relational/sink.go` (378)
+  - `codec/cose.go` (376), `graph/schema.go` (368), `benchkit/benchkit.go` (368)
+- [ ] 🔥 **Fix otel test flakiness** — global provider state leaks across test
+      packages. Needs per-test provider isolation or a reset guard.
+- [ ] **Restore truncated sentinel error messages** — several sentinels were
+      shortened to satisfy test regex assertions during the 06-30 lint cleanup;
+      they should be complete sentences again (update the assertions instead).
 
 ---
 
-## Consumer Experience
+## Module Tagging
 
-> Gaps surfaced by the [book insights vs codebase review](docs/architecture-understanding/2026-07-23_book-insights-vs-codebase.html).
+- [ ] 🔥 **Tag `metaengine/v4`**, `metaengine/projectionadapter/v4`, and
+      `idempotency/sqlstore/v4` when their APIs stabilize and the file-size gate
+      passes. These are the 3 untagged modules (58 `go.mod` files total; 55 tagged).
+- [BLOCKED] **Push `benchkit/v4.1.0` to origin** — tag points to grab-bag commit
+      `c3286bc8` (BuildFlow auto-commit shoved 16 unrelated files in). Decide:
+      keep the tag as-is or recreate at a cleaner commit. Push requires user
+      approval. See
+      [tagging session status](docs/status/2026-07-25_04-54_benchkit-v4.1.0-tagging-session.md).
 
-- [ ] **Read-your-writes helper** — `WaitForVersion(ctx, streamID, version)` for
-      consumers who need immediate consistency after a write.
-- [ ] **Bounded staleness** — `WithMaxStaleness(duration)` for projections that
-      can tolerate lag.
-- [ ] **Consistency model document** — `docs/CONSISTENCY_MODEL.md` documenting
-      single-process scope and eventual consistency between write/read models.
-- [ ] **SQL-backed `idempotency.Store`** — for multi-process Postgres deployments
-      (~100 lines: `INSERT ON CONFLICT DO NOTHING`).
+---
+
+## Documentation Cross-links
+
+> Minor gaps from the Pareto execution; the features shipped but the docs don't
+> all point at each other.
+
+- [ ] **Cross-link `docs/CONSISTENCY_MODEL.md`** from `docs/README.md` index.
+- [ ] **Add ADR index links** in `AGENTS.md` for ADR-0061 through ADR-0065
+      (metaengine pushdown, projection adapter, cost calibration, retry/idempotency
+      extraction).
+- [ ] **Reference NATS + Parquet design docs** in the Crush skill
+      (`.agents/skills/go-cqrs-lite/references/recipes.md`) so consumers discover them.
 
 ---
 
@@ -106,6 +101,7 @@ this list and recorded in CHANGELOG.
 
 ---
 
-_Long-term direction (Parquet journal + DuckDB, transport expansion, module
-extraction, goexperiment.jsonv2 / Turso MVCC blockers) lives in
-[ROADMAP.md](ROADMAP.md). Completed work is in [CHANGELOG.md](CHANGELOG.md)._
+_Long-term direction (module extraction execution, NATS/Parquet implementation,
+benchkit journey benchmarks, metaengine Phase 2 pushdown, goexperiment.jsonv2 /
+Turso MVCC blockers) lives in [ROADMAP.md](ROADMAP.md). Completed work is in
+[CHANGELOG.md](CHANGELOG.md)._

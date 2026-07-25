@@ -1,18 +1,21 @@
 # Roadmap — go-cqrs-lite
 
 > Where we are, where we're going, and what's next.
-> **Last updated:** 2026-07-24
+> **Last updated:** 2026-07-25
+>
+> ⚠️ **`nix run .#verify` is currently RED** — 13 production files exceed the
+> 350-line CI limit and an otel test flakes. See [TODO_LIST.md](TODO_LIST.md).
 
 ---
 
-## Current State (v4.1.0 shipped)
+## Current State (v4.1.0 shipped; verify gate RED)
 
 **v4.1.0 tagged** (2026-07-23) — initial module batch tagged on `/v4` import paths
-(verify: `git tag --list '*/v4.1.0' | wc -l`). The workspace has 56 `go.mod`
-files; post-tag additions (metaengine, benchkit, cmd/cqrs-bench,
-example/readme-quickstart) are unreleased and will be tagged when their APIs
-stabilize. The deprecated-API removal batch shipped (see [CHANGELOG.md](CHANGELOG.md)
-`[Unreleased]` → Removed).
+(verify: `git tag --list '*/v4.1.0' | wc -l`). The workspace has 58 `go.mod`
+files; 3 newer modules (`metaengine`, `metaengine/projectionadapter`,
+`idempotency/sqlstore`) are untagged and will be tagged when their APIs stabilize
+and the file-size gate passes. The deprecated-API removal batch shipped (see
+[CHANGELOG.md](CHANGELOG.md) `[Unreleased]` → Removed).
 
 The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs,
 command/query dispatch, pure-function deciders, three projection tiers
@@ -35,11 +38,11 @@ and a domain-aware linter (cqrs-lint, 60 rules).
   for atomic counter maintenance in relational projections.
 - **Aggregate→Stream rename** (ADR-0058) — complete across code, tests, and docs.
   Deprecated aliases + wire-format identifiers preserved for compatibility.
-- **Comprehensive README coverage** — all 56 modules with READMEs, 248 Go symbol
+- **Comprehensive README coverage** — all 58 modules with READMEs, 248 Go symbol
   references verified by `doc-check`.
 - **Error taxonomy migration** — 13 sentinels migrated to `errorfamily` constructors.
 
-56 `go.mod` files total (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`).
+58 `go.mod` files total (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`).
 
 ---
 
@@ -79,9 +82,11 @@ structs. The Pareto execution plan landed the production maturity chain:
 - ✅ **Dependency boundary** — Core `metaengine/v4` stays zero-dep; adapter is
   a separate module (ADR-0062)
 
-**Remaining:** tag metaengine when API stabilizes; fix 143 lint issues before
-graduation from experimental; implement Phase 2 declarative pushdown when a
-production consumer needs SQL filter/sort pushdown.
+**Remaining:** split 13 oversized production files so the CI file-size gate
+(350 lines) passes; tag metaengine + projectionadapter + sqlstore when ready;
+implement Phase 2 declarative pushdown when a production consumer needs SQL
+filter/sort pushdown. Metaengine lint is clean (143 → 0); cost calibration
+shipped (Memory=500ns, SQLite=7000ns).
 
 ### 2. Benchkit → Released
 
@@ -91,8 +96,9 @@ analytical profile, Postgres backend, scaling sweeps, benchstat/manifest output,
 profiling, and a first real run across memory/pebble/sqlite (2026-07-24). The
 remaining work is maturity, not features:
 
-- **Tag `benchkit/v0.1.0`** — API is stabilizing; tag when ready (also covers
-  `metaengine`, `cmd/cqrs-bench`, `example/readme-quickstart`).
+- **Tagged `benchkit/v4.1.0`** (tagged 2026-07-25; points to grab-bag commit,
+  push-to-origin pending user approval). Also covers `cmd/cqrs-bench/v0.1.0`
+  and `example/readme-quickstart/v0.1.0`.
 - **Run-to-run variance** — ~20-25% on the memory backend. `--repeat N`
   (median-of-N) mitigates it; real-world regression tracking is the next step.
 - **Real-world validation** — the first run verified plumbing and plausibility;

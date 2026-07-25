@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-25 (Pareto execution plan: metaengine SQLite engine + projection adapter + cost calibration added; SQL idempotency, WaitForVersion, CheckStaleness added; consistency model doc; module extraction ADRs; NATS + Parquet design docs) · **Module count:** 57 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+**Last audited:** 2026-07-25 (Pareto execution plan: metaengine SQLite engine + projection adapter + cost calibration added; SQL idempotency, WaitForVersion, CheckStaleness added; consistency model doc; module extraction ADRs; NATS + Parquet design docs) · **Module count:** 58 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -1036,7 +1036,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 56 independently importable modules in `go.work` (56 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 58 independently importable modules in `go.work` (58 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                         | Import Path                         | Maturity                                                                  |
 | ------------------------------ | ----------------------------------- | ------------------------------------------------------------------------- |

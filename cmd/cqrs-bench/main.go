@@ -320,17 +320,21 @@ type benchFlags struct {
 // is added.
 func registerBenchFlags(fs *flag.FlagSet) benchFlags {
 	return benchFlags{
-		backend:      fs.String("backend", "memory", "Backend: memory, sqlite, pebble"),
-		dsn:          fs.String("dsn", "", "Database connection string (sqlite)"),
-		dir:          fs.String("dir", "", "Database directory (pebble)"),
-		profileName:  fs.String("profile", "dev", "Workload profile"),
-		codecName:    fs.String("codec", "json", "Payload codec: json, cbor"),
-		format:       fs.String("format", "text", "Output format: text, json, benchstat, manifest"),
-		output:       fs.String("output", "", "Output file (default: stdout)"),
-		payloadSize:  fs.Int("payload-size", 256, "Payload size in bytes per event"),
-		payloadSizes: fs.String("payload-sizes", "", "Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size"),
-		skipRawSink:  fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase"),
-		repeat:       fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)"),
+		backend:     fs.String("backend", "memory", "Backend: memory, sqlite, pebble"),
+		dsn:         fs.String("dsn", "", "Database connection string (sqlite)"),
+		dir:         fs.String("dir", "", "Database directory (pebble)"),
+		profileName: fs.String("profile", "dev", "Workload profile"),
+		codecName:   fs.String("codec", "json", "Payload codec: json, cbor"),
+		format:      fs.String("format", "text", "Output format: text, json, benchstat, manifest"),
+		output:      fs.String("output", "", "Output file (default: stdout)"),
+		payloadSize: fs.Int("payload-size", 256, "Payload size in bytes per event"),
+		payloadSizes: fs.String(
+			"payload-sizes",
+			"",
+			"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size",
+		),
+		skipRawSink: fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase"),
+		repeat:      fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)"),
 	}
 }
 
