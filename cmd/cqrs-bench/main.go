@@ -159,6 +159,9 @@ func runCmd(args []string) {
 		Recovery:    *recovery,
 		ReplayOnly:  *replay,
 		SkipRawSink: *bf.skipRawSink,
+		SkipJourney: *bf.skipJourney,
+		SkipQuery:   *bf.skipQuery,
+		SkipSnapshot: *bf.skipSnapshot,
 		Backend:     *bf.backend,
 		DiskPath:    diskPath,
 	}
