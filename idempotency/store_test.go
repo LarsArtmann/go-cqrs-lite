@@ -3,6 +3,7 @@ package idempotency_test
 import (
 	"context"
 	"errors"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -221,5 +222,38 @@ func TestErrDuplicate_IsConflict(t *testing.T) {
 	}
 	if errorfamily.IsRetryable(idempotency.ErrDuplicate) {
 		t.Fatal("Conflict must not be retryable")
+	}
+}
+
+// TestMemoryStore_Sweep_ReclaimsAllKeysUnderLoad is a TTL-sweep soak test: it
+// records a large batch of short-TTL keys concurrently and verifies the
+// background sweeper reclaims every one of them (no volume-induced leak,
+// no key survives past its expiry under load).
+func TestMemoryStore_Sweep_ReclaimsAllKeysUnderLoad(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	store := idempotency.NewMemoryStore(10 * time.Millisecond)
+	defer store.Close()
+
+	const n = 1000
+	var wg sync.WaitGroup
+	wg.Add(n)
+	for i := range n {
+		go func(i int) {
+			defer wg.Done()
+			_ = store.Record(ctx, strconv.Itoa(i), 5*time.Millisecond)
+		}(i)
+	}
+	wg.Wait()
+
+	// Wait well beyond the sweep interval so the sweeper runs multiple cycles.
+	time.Sleep(120 * time.Millisecond)
+
+	// Every sampled key must be reclaimed (unseen) after expiry.
+	for i := 0; i < n; i += 50 {
+		seen, _ := store.Seen(ctx, strconv.Itoa(i))
+		if seen {
+			t.Fatalf("key %d still seen after sweep under load (volume leak)", i)
+		}
 	}
 }

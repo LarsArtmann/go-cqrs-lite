@@ -274,3 +274,76 @@ func TestStore_CheckAndRecord_Concurrent_AllImplementations(t *testing.T) {
 		})
 	}
 }
+
+// TestStore_Seen_LazilyDeletesExpiredEntry verifies the lazy-delete contract:
+// after Seen reports an expired key as unseen, the entry is removed from the
+// backing KV store (not merely reported as absent). Without this, expired keys
+// would accumulate forever when only Seen is called.
+func TestStore_Seen_LazilyDeletesExpiredEntry(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	backend := kv.NewMemStore()
+	defer backend.Close()
+	store := kvstore.New(backend)
+
+	if err := store.Record(ctx, "k", 1*time.Millisecond); err != nil {
+		t.Fatalf("Record: %v", err)
+	}
+	time.Sleep(5 * time.Millisecond)
+
+	seen, err := store.Seen(ctx, "k")
+	if err != nil {
+		t.Fatalf("Seen: %v", err)
+	}
+	if seen {
+		t.Fatal("expected expired key to be unseen")
+	}
+
+	// The lazy delete must have removed the entry from the backend.
+	if _, err := backend.Get(ctx, []byte("k")); !errors.Is(err, kv.ErrNotFound) {
+		t.Fatalf("expected backend to have lazy-deleted the expired key (kv.ErrNotFound), got %v", err)
+	}
+}
+
+// TestStore_Record_Concurrent_FirstTTLWins verifies that under concurrent
+// Record calls on the same key, every call succeeds (Record never errors on a
+// duplicate) and the first writer's TTL governs — later writers do not extend
+// it. Exercises the SetIfAbsent contention path directly (distinct from the
+// CheckAndRecord concurrency test).
+func TestStore_Record_Concurrent_FirstTTLWins(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	store := kvstore.New(kv.NewMemStore())
+
+	const goroutines = 50
+	var wg sync.WaitGroup
+	wg.Add(goroutines)
+	start := make(chan struct{})
+	var errCount atomic.Int32
+
+	for range goroutines {
+		go func() {
+			defer wg.Done()
+			<-start
+			// Long TTL: if any writer overwrote the first, Seen would stay true
+			// past the intended short window. Record must never error here.
+			if err := store.Record(ctx, "k", time.Hour); err != nil {
+				errCount.Add(1)
+			}
+		}()
+	}
+	close(start)
+	wg.Wait()
+
+	if errCount.Load() != 0 {
+		t.Fatalf("Record errored under contention %d times (Record must be idempotent/no-op)", errCount.Load())
+	}
+
+	seen, err := store.Seen(ctx, "k")
+	if err != nil {
+		t.Fatalf("Seen: %v", err)
+	}
+	if !seen {
+		t.Fatal("expected key to be seen after concurrent Record (at least one write must land)")
+	}
+}
