@@ -16,6 +16,12 @@ restructuring the entire package (file splits, new files, interface changes). Th
 invalidated most of my edits — two of four changes were redundant, one was overwritten,
 and one persisted. The dead code I "removed" reappeared in a split file.
 
+> **Update 2026-07-25:** Metrics below are stale. The module now has **174 BDD
+> specs** (not 89), **87.7% coverage** (not 82.6%). The `eventTypesForFolds` dead
+> code was deleted in the [17:08 BDD session](2026-07-24_17-08_metaengine-bdd-review-session.md).
+> `complexityRank` coverage went 0%→42.9%. All findings in section f were
+> addressed in that session.
+
 **Current state: 89 specs pass, 82.6% coverage, race-clean, vet-clean.**
 
 ---
