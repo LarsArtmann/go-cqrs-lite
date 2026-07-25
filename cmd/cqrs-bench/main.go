@@ -87,6 +87,7 @@ Examples:
   cqrs-bench compare --profile small --format markdown
   cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor
   cqrs-bench run --backend memory --profile small --repeat 5
+  cqrs-bench run --backend memory --profile dev --soak 5m
   cqrs-bench sweep --param workers --values 1,2,4,8 --backend memory --profile dev
   cqrs-bench sweep --param batchSize --values 1,5,10 --backend sqlite --profile small`)
 }

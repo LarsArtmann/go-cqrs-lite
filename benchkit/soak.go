@@ -226,3 +226,8 @@ func PrintSoakReport(w io.Writer, r *SoakResult) {
 		)
 	}
 }
+
+// WriteSoakJSON serializes a soak result as indented JSON.
+func WriteSoakJSON(w io.Writer, r *SoakResult) error {
+	return writeJSONAny(w, r)
+}

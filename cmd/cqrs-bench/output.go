@@ -61,6 +61,20 @@ func writeSweep(format, output string, results []benchkit.SweepResult) {
 	}
 }
 
+func writeSoakResult(format, output string, result *benchkit.SoakResult) {
+	w := openOutput(output)
+	defer closeOutput(w)
+
+	switch format {
+	case "json":
+		if err := benchkit.WriteSoakJSON(w, result); err != nil {
+			fatalf("write JSON: %v", err)
+		}
+	default:
+		benchkit.PrintSoakReport(w, result)
+	}
+}
+
 func openOutput(path string) *os.File {
 	if path == "" || path == "-" {
 		return os.Stdout
