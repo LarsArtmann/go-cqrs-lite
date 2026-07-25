@@ -166,6 +166,18 @@ func TestPrintSoakReport(t *testing.T) {
 			t.Errorf("soak report missing %q;\noutput: %s", want, output)
 		}
 	}
+
+	// When the new phases ran, the report should include their drift lines
+	// and the per-iteration phase table.
+	if len(result.Samples) > 0 && result.Samples[0].JourneyP99 > 0 {
+		if !strings.Contains(output, "Journey P99:") {
+			t.Errorf("soak report missing 'Journey P99:' line;\noutput: %s", output)
+		}
+
+		if !strings.Contains(output, "Phase P99 per iteration:") {
+			t.Errorf("soak report missing phase per-iteration table;\noutput: %s", output)
+		}
+	}
 }
 
 func TestWriteSoakJSON_RoundTrip(t *testing.T) {
@@ -246,5 +258,32 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 	if decoded.ThroughputDriftPct != original.ThroughputDriftPct {
 		t.Errorf("ThroughputDriftPct: got %f, want %f",
 			decoded.ThroughputDriftPct, original.ThroughputDriftPct)
+	}
+
+	// Verify the new-phase P99 fields round-trip per-sample.
+	for i, want := range original.Samples {
+		got := decoded.Samples[i]
+		if got.JourneyP99 != want.JourneyP99 {
+			t.Errorf("sample %d JourneyP99: got %s, want %s", i, got.JourneyP99, want.JourneyP99)
+		}
+
+		if got.QueryHitP99 != want.QueryHitP99 {
+			t.Errorf("sample %d QueryHitP99: got %s, want %s", i, got.QueryHitP99, want.QueryHitP99)
+		}
+
+		if got.CacheHitP99 != want.CacheHitP99 {
+			t.Errorf("sample %d CacheHitP99: got %s, want %s", i, got.CacheHitP99, want.CacheHitP99)
+		}
+	}
+
+	// Verify Config.Codec round-trips via CodecName (the bug this fixes).
+	if original.Config.Config.Codec != nil {
+		enc := original.Config.Config.Codec.Encoding()
+		if decoded.Config.Config.Codec == nil {
+			t.Errorf("Config.Codec is nil after round-trip (should be %q)", enc)
+		} else if decoded.Config.Config.Codec.Encoding() != enc {
+			t.Errorf("Config.Codec.Encoding(): got %q, want %q",
+				decoded.Config.Config.Codec.Encoding(), enc)
+		}
 	}
 }

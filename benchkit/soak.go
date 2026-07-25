@@ -41,6 +41,12 @@ type SoakSample struct {
 	LoadP50     time.Duration `json:"loadP50"`    // load latency p50
 	HeapBytes   uint64        `json:"heapBytes"`  // heap after GC
 	TotalEvents int           `json:"totalEvents"`
+
+	// New-phase P99 latencies (zero-valued when the corresponding phase is
+	// skipped or the bundle lacks the required capabilities).
+	JourneyP99   time.Duration `json:"journeyP99,omitempty"`   // journey round-trip
+	QueryHitP99  time.Duration `json:"queryHitP99,omitempty"`  // query dispatch hit
+	CacheHitP99  time.Duration `json:"cacheHitP99,omitempty"`  // cache hit (decider)
 }
 
 // SoakResult holds the outcome of a soak test, including per-iteration samples
@@ -66,6 +72,18 @@ type SoakResult struct {
 	// WriteP99DriftPct is the percentage change in write P99 latency from the
 	// first sample to the last. Positive values indicate latency degradation.
 	WriteP99DriftPct float64 `json:"writeP99DriftPct"`
+
+	// JourneyP99DriftPct is the percentage change in journey round-trip P99
+	// from the first sample to the last. Zero when the journey phase is skipped.
+	JourneyP99DriftPct float64 `json:"journeyP99DriftPct,omitempty"`
+
+	// QueryHitP99DriftPct is the percentage change in query dispatch hit P99
+	// from the first sample to the last. Zero when the query phase is skipped.
+	QueryHitP99DriftPct float64 `json:"queryHitP99DriftPct,omitempty"`
+
+	// CacheHitP99DriftPct is the percentage change in cache hit P99 from the
+	// first sample to the last. Zero when the snapshot phase is skipped.
+	CacheHitP99DriftPct float64 `json:"cacheHitP99DriftPct,omitempty"`
 
 	Config SoakConfig `json:"config"`
 }
@@ -131,6 +149,9 @@ func RunSoak(ctx context.Context, config SoakConfig, factory Factory) (*SoakResu
 			LoadP50:     res.LoadLatency.P50,
 			HeapBytes:   m.HeapAlloc,
 			TotalEvents: res.TotalEvents,
+			JourneyP99:  res.JourneyLatency.P99,
+			QueryHitP99: res.QueryHitLatency.P99,
+			CacheHitP99: res.CacheHitLatency.P99,
 		}
 
 		result.Samples = append(result.Samples, sample)
@@ -187,6 +208,21 @@ func computeSoakTrends(r *SoakResult) {
 		r.WriteP99DriftPct = float64(last.WriteP99-first.WriteP99) /
 			float64(first.WriteP99) * 100
 	}
+
+	if first.JourneyP99 > 0 {
+		r.JourneyP99DriftPct = float64(last.JourneyP99-first.JourneyP99) /
+			float64(first.JourneyP99) * 100
+	}
+
+	if first.QueryHitP99 > 0 {
+		r.QueryHitP99DriftPct = float64(last.QueryHitP99-first.QueryHitP99) /
+			float64(first.QueryHitP99) * 100
+	}
+
+	if first.CacheHitP99 > 0 {
+		r.CacheHitP99DriftPct = float64(last.CacheHitP99-first.CacheHitP99) /
+			float64(first.CacheHitP99) * 100
+	}
 }
 
 // PrintSoakReport writes a human-readable soak test report.
@@ -212,6 +248,24 @@ func PrintSoakReport(w io.Writer, r *SoakResult) {
 		roundDuration(first.WriteP99), roundDuration(last.WriteP99),
 		r.WriteP99DriftPct)
 
+	if first.JourneyP99 > 0 {
+		fmt.Fprintf(w, "Journey P99:%s → %s (%+.1f%%)\n",
+			roundDuration(first.JourneyP99), roundDuration(last.JourneyP99),
+			r.JourneyP99DriftPct)
+	}
+
+	if first.QueryHitP99 > 0 {
+		fmt.Fprintf(w, "Query P99:  %s → %s (%+.1f%%)\n",
+			roundDuration(first.QueryHitP99), roundDuration(last.QueryHitP99),
+			r.QueryHitP99DriftPct)
+	}
+
+	if first.CacheHitP99 > 0 {
+		fmt.Fprintf(w, "Cache P99:  %s → %s (%+.1f%%)\n",
+			roundDuration(first.CacheHitP99), roundDuration(last.CacheHitP99),
+			r.CacheHitP99DriftPct)
+	}
+
 	fmt.Fprintf(w, "Heap:       %s → %s (growth: %s, %s/iter)\n",
 		formatBytes(first.HeapBytes), formatBytes(last.HeapBytes),
 		formatBytes(r.HeapGrowthBytes),
@@ -231,6 +285,32 @@ func PrintSoakReport(w io.Writer, r *SoakResult) {
 			roundDuration(s.WriteP99),
 		)
 	}
+
+	// New-phase per-iteration table (only when phases ran).
+	if first.JourneyP99 > 0 || first.QueryHitP99 > 0 || first.CacheHitP99 > 0 {
+		fmt.Fprintln(w)
+		fmt.Fprintln(w, "Phase P99 per iteration:")
+		fmt.Fprintln(w, "  iter   journey      query       cache")
+
+		for _, s := range r.Samples {
+			fmt.Fprintf(w, "  %-5d  %9s  %9s  %9s\n",
+				s.Iteration+1,
+				dashIfZero(s.JourneyP99),
+				dashIfZero(s.QueryHitP99),
+				dashIfZero(s.CacheHitP99),
+			)
+		}
+	}
+}
+
+// dashIfZero returns "-" for zero durations (phase skipped), so the table
+// doesn't show misleading "0s" values.
+func dashIfZero(d time.Duration) string {
+	if d == 0 {
+		return "-"
+	}
+
+	return fmt.Sprint(roundDuration(d))
 }
 
 // WriteSoakJSON serializes a soak result as indented JSON.
