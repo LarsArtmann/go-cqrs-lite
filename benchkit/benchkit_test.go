@@ -1805,8 +1805,18 @@ func TestWriteJSON_NewPhasesRoundTrip(t *testing.T) {
 
 	// Verify journey metrics round-trip.
 	checkLatencyRoundTrip(t, "JourneyLatency", original.JourneyLatency, decoded.JourneyLatency)
-	checkLatencyRoundTrip(t, "JourneyProjectionLatency", original.JourneyProjectionLatency, decoded.JourneyProjectionLatency)
-	checkLatencyRoundTrip(t, "JourneyQueryLatency", original.JourneyQueryLatency, decoded.JourneyQueryLatency)
+	checkLatencyRoundTrip(
+		t,
+		"JourneyProjectionLatency",
+		original.JourneyProjectionLatency,
+		decoded.JourneyProjectionLatency,
+	)
+	checkLatencyRoundTrip(
+		t,
+		"JourneyQueryLatency",
+		original.JourneyQueryLatency,
+		decoded.JourneyQueryLatency,
+	)
 
 	if decoded.JourneySamples != original.JourneySamples {
 		t.Errorf("JourneySamples: got %d, want %d", decoded.JourneySamples, original.JourneySamples)
@@ -1814,13 +1824,38 @@ func TestWriteJSON_NewPhasesRoundTrip(t *testing.T) {
 
 	// Verify query dispatch metrics round-trip.
 	checkLatencyRoundTrip(t, "QueryHitLatency", original.QueryHitLatency, decoded.QueryHitLatency)
-	checkLatencyRoundTrip(t, "QueryMissLatency", original.QueryMissLatency, decoded.QueryMissLatency)
-	checkLatencyRoundTrip(t, "QueryPaginatedLatency", original.QueryPaginatedLatency, decoded.QueryPaginatedLatency)
+	checkLatencyRoundTrip(
+		t,
+		"QueryMissLatency",
+		original.QueryMissLatency,
+		decoded.QueryMissLatency,
+	)
+	checkLatencyRoundTrip(
+		t,
+		"QueryPaginatedLatency",
+		original.QueryPaginatedLatency,
+		decoded.QueryPaginatedLatency,
+	)
 
 	// Verify snapshot/cache metrics round-trip.
-	checkLatencyRoundTrip(t, "SnapshotColdLatency", original.SnapshotColdLatency, decoded.SnapshotColdLatency)
-	checkLatencyRoundTrip(t, "SnapshotLoadLatency", original.SnapshotLoadLatency, decoded.SnapshotLoadLatency)
-	checkLatencyRoundTrip(t, "CacheMissLatency", original.CacheMissLatency, decoded.CacheMissLatency)
+	checkLatencyRoundTrip(
+		t,
+		"SnapshotColdLatency",
+		original.SnapshotColdLatency,
+		decoded.SnapshotColdLatency,
+	)
+	checkLatencyRoundTrip(
+		t,
+		"SnapshotLoadLatency",
+		original.SnapshotLoadLatency,
+		decoded.SnapshotLoadLatency,
+	)
+	checkLatencyRoundTrip(
+		t,
+		"CacheMissLatency",
+		original.CacheMissLatency,
+		decoded.CacheMissLatency,
+	)
 	checkLatencyRoundTrip(t, "CacheHitLatency", original.CacheHitLatency, decoded.CacheHitLatency)
 
 	// Verify the ordering invariant: cache hit should be faster than cold replay.

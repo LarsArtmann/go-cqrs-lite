@@ -44,9 +44,9 @@ type SoakSample struct {
 
 	// New-phase P99 latencies (zero-valued when the corresponding phase is
 	// skipped or the bundle lacks the required capabilities).
-	JourneyP99   time.Duration `json:"journeyP99,omitempty"`   // journey round-trip
-	QueryHitP99  time.Duration `json:"queryHitP99,omitempty"`  // query dispatch hit
-	CacheHitP99  time.Duration `json:"cacheHitP99,omitempty"`  // cache hit (decider)
+	JourneyP99  time.Duration `json:"journeyP99,omitempty"`  // journey round-trip
+	QueryHitP99 time.Duration `json:"queryHitP99,omitempty"` // query dispatch hit
+	CacheHitP99 time.Duration `json:"cacheHitP99,omitempty"` // cache hit (decider)
 }
 
 // SoakResult holds the outcome of a soak test, including per-iteration samples
@@ -209,17 +209,17 @@ func computeSoakTrends(r *SoakResult) {
 			float64(first.WriteP99) * 100
 	}
 
-	if first.JourneyP99 > 0 {
+	if first.JourneyP99 > 0 && last.JourneyP99 > 0 {
 		r.JourneyP99DriftPct = float64(last.JourneyP99-first.JourneyP99) /
 			float64(first.JourneyP99) * 100
 	}
 
-	if first.QueryHitP99 > 0 {
+	if first.QueryHitP99 > 0 && last.QueryHitP99 > 0 {
 		r.QueryHitP99DriftPct = float64(last.QueryHitP99-first.QueryHitP99) /
 			float64(first.QueryHitP99) * 100
 	}
 
-	if first.CacheHitP99 > 0 {
+	if first.CacheHitP99 > 0 && last.CacheHitP99 > 0 {
 		r.CacheHitP99DriftPct = float64(last.CacheHitP99-first.CacheHitP99) /
 			float64(first.CacheHitP99) * 100
 	}
@@ -248,19 +248,19 @@ func PrintSoakReport(w io.Writer, r *SoakResult) {
 		roundDuration(first.WriteP99), roundDuration(last.WriteP99),
 		r.WriteP99DriftPct)
 
-	if first.JourneyP99 > 0 {
+	if first.JourneyP99 > 0 && last.JourneyP99 > 0 {
 		fmt.Fprintf(w, "Journey P99:%s → %s (%+.1f%%)\n",
 			roundDuration(first.JourneyP99), roundDuration(last.JourneyP99),
 			r.JourneyP99DriftPct)
 	}
 
-	if first.QueryHitP99 > 0 {
+	if first.QueryHitP99 > 0 && last.QueryHitP99 > 0 {
 		fmt.Fprintf(w, "Query P99:  %s → %s (%+.1f%%)\n",
 			roundDuration(first.QueryHitP99), roundDuration(last.QueryHitP99),
 			r.QueryHitP99DriftPct)
 	}
 
-	if first.CacheHitP99 > 0 {
+	if first.CacheHitP99 > 0 && last.CacheHitP99 > 0 {
 		fmt.Fprintf(w, "Cache P99:  %s → %s (%+.1f%%)\n",
 			roundDuration(first.CacheHitP99), roundDuration(last.CacheHitP99),
 			r.CacheHitP99DriftPct)
@@ -293,7 +293,8 @@ func PrintSoakReport(w io.Writer, r *SoakResult) {
 		fmt.Fprintln(w, "  iter   journey      query       cache")
 
 		for _, s := range r.Samples {
-			fmt.Fprintf(w, "  %-5d  %9s  %9s  %9s\n",
+			fmt.Fprintf(
+				w, "  %-5d  %9s  %9s  %9s\n",
 				s.Iteration+1,
 				dashIfZero(s.JourneyP99),
 				dashIfZero(s.QueryHitP99),

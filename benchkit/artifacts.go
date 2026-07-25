@@ -75,7 +75,11 @@ func WriteBenchstat(w io.Writer, r *Result) {
 		{"rawsink_p99_ns", float64(r.RawSinkLatency.P99.Nanoseconds()), "ns/op"},
 		{"journey_p50_ns", float64(r.JourneyLatency.P50.Nanoseconds()), "ns/op"},
 		{"journey_p99_ns", float64(r.JourneyLatency.P99.Nanoseconds()), "ns/op"},
-		{"journey_projection_p99_ns", float64(r.JourneyProjectionLatency.P99.Nanoseconds()), "ns/op"},
+		{
+			"journey_projection_p99_ns",
+			float64(r.JourneyProjectionLatency.P99.Nanoseconds()),
+			"ns/op",
+		},
 		{"journey_query_p99_ns", float64(r.JourneyQueryLatency.P99.Nanoseconds()), "ns/op"},
 		{"query_hit_p50_ns", float64(r.QueryHitLatency.P50.Nanoseconds()), "ns/op"},
 		{"query_hit_p99_ns", float64(r.QueryHitLatency.P99.Nanoseconds()), "ns/op"},

@@ -84,7 +84,6 @@ var modules = []string{
 }
 
 func main() {
-
 	projectRoot := filepath.Join(".", "..", "..")
 	goldenPath := filepath.Join(projectRoot, "docs", "api_surface.txt")
 
