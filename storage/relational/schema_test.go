@@ -458,7 +458,10 @@ func TestSchema_ValidateAcceptsOrderedIndexColumns(t *testing.T) {
 		},
 		PrimaryKey: []string{"id"},
 		Indexes: []IndexSpec{
-			{Name: "idx_channel_created_desc", Columns: []string{"channel_id", "created_at DESC", "id DESC"}},
+			{
+				Name:    "idx_channel_created_desc",
+				Columns: []string{"channel_id", "created_at DESC", "id DESC"},
+			},
 			{Name: "idx_created_asc", Columns: []string{"created_at ASC"}},
 			{Name: "idx_plain", Columns: []string{"channel_id"}},
 		},
@@ -511,6 +514,8 @@ func TestSchema_ValidateRejectsTrulyUnknownIndexColumn(t *testing.T) {
 
 	err := schema.Validate()
 	if err == nil {
-		t.Fatal("Validate should reject an index column that does not exist after stripping the qualifier")
+		t.Fatal(
+			"Validate should reject an index column that does not exist after stripping the qualifier",
+		)
 	}
 }

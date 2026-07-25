@@ -9,11 +9,12 @@ import (
 	"testing"
 	"time"
 
+	_ "modernc.org/sqlite"
+
 	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
 	idemsqlstore "github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
-	_ "modernc.org/sqlite"
 )
 
 func TestStore_SeenReturnsFalseForNewKey(t *testing.T) {

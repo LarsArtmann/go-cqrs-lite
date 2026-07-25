@@ -145,11 +145,19 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 		}
 
 		s.dispatchSimple(w, r, taskID, AssignTaskCmd{
-			BasicCommand: gomust.Must(command.New(cmdAssignTask, taskID)), AssigneeID: body.AssigneeID,
+			BasicCommand: gomust.Must(
+				command.New(cmdAssignTask, taskID),
+			),
+			AssigneeID: body.AssigneeID,
 		})
 
 	case "start":
-		s.dispatchSimple(w, r, taskID, StartTaskCmd{BasicCommand: gomust.Must(command.New(cmdStartTask, taskID))})
+		s.dispatchSimple(
+			w,
+			r,
+			taskID,
+			StartTaskCmd{BasicCommand: gomust.Must(command.New(cmdStartTask, taskID))},
+		)
 
 	case "complete":
 		s.dispatchSimple(

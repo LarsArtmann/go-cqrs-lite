@@ -3,11 +3,11 @@ package middleware
 import (
 	"context"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // OTelBundle is a pre-wired set of OpenTelemetry middleware for all three
@@ -104,7 +104,11 @@ func NewOTelBundle(
 
 		recorder, err := NewOTelMetricsRecorder(meter)
 		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(err, "middleware.otel_recorder_init", "create otel metrics recorder")
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"middleware.otel_recorder_init",
+				"create otel metrics recorder",
+			)
 		}
 
 		b.recorder = recorder

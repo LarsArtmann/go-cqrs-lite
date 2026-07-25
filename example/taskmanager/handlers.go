@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	gomust "github.com/larsartmann/go-must"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	gomust "github.com/larsartmann/go-must"
 )
 
 // ──────────────────────────────────────────────────────────────────────────
