@@ -177,3 +177,45 @@ type Engine interface {
 
 The memory engine (constructed via `NewMemoryEngine()`) implements all backends
 for testing and CI deployments.
+
+## SQLite Engine
+
+The SQLite engine persists projections to a `database/sql` database, enabling
+restart-safety and multi-process reads. Pass both engines to `Plan` and the
+cost model assigns each query to the cheaper one (memory for point lookups,
+SQLite for persistence):
+
+```go
+import (
+    "database/sql"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+    _ "modernc.org/sqlite"
+)
+
+db, _ := sql.Open("sqlite", "file:app.db")
+defer db.Close()
+
+sqliteEng, _ := metaengine.NewSQLiteEngine(db)
+// The caller owns the *sql.DB — sqliteEng.Close() is a no-op.
+store, _ := metaengine.Plan(
+    []metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
+    findUser,
+)
+defer store.Close()
+```
+
+The SQLite engine wraps `MapUpdate` in a transaction (concurrent
+read-modify-write never loses updates — see
+[ADR-0067](../docs/adr/0067-metaengine-tx-mapupdate.md)) and seeds the multimap
+`seq` counter from `MAX(seq)` on first use so it survives restarts
+([ADR-0068](../docs/adr/0068-metaengine-multimap-seq-seed.md)). Struct results
+read back through `ExecuteTyped` are JSON-reified across the SQL boundary
+([ADR-0066](../docs/adr/0066-metaengine-reify-fallback.md)) — use exported
+fields on result types.
+
+## Build Tag (Portability)
+
+This module is built with the `goexperiment.jsonv2` build tag (Go 1.26+), which
+enables `encoding/json/v2`. Consumers on stock Go 1.26 must build with
+`-tags goexperiment.jsonv2`; the tag graduates to default in Go 1.27+. CI and
+`nix run .#build` apply the tag automatically.
