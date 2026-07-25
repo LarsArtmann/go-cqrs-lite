@@ -89,6 +89,23 @@ type ProjectionSink interface {
 	// a counter going below zero signals inconsistent events (more deletes than
 	// creates), and silent clamping would hide that data-loss bug.
 	Increment(ctx context.Context, table string, key Row, counterCol string, delta int64) error
+
+	// Tx returns the underlying *sql.Tx that all sink writes execute within.
+	// It is the escape hatch for operations the structured methods cannot
+	// express: recursive CTEs, INSERT INTO ... SELECT, bulk updates with
+	// complex predicates, or calls to dialect-specific functions.
+	//
+	// The projection handler does NOT call Commit or Rollback — the
+	// RelationalProjection owns the transaction lifecycle (commit on
+	// handler-return-nil, rollback on handler-return-error). Raw SQL executed
+	// via Tx() participates in the same atomic commit/rollback as every sink
+	// call, so a handler can mix structured sink writes and raw SQL freely
+	// within one Handle call.
+	//
+	// Use sparingly. Every raw SQL statement is SQL the consumer must
+	// maintain. If a pattern recurs across handlers, promote it to a sink
+	// method instead.
+	Tx() *sql.Tx
 }
 
 // sqlSink implements ProjectionSink over a *sql.Tx with a fixed dialect.
@@ -311,3 +328,5 @@ func (s *sqlSink) Increment(
 
 	return nil
 }
+
+func (s *sqlSink) Tx() *sql.Tx { return s.tx }

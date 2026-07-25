@@ -261,6 +261,22 @@ func (s RelationalSchema) Migrate(ctx context.Context, db *sql.DB) error {
 			return errorfamily.WrapTransient(err, "relational.migrate",
 				fmt.Sprintf("migrate table %q", t.Name))
 		}
+
+		for _, idx := range t.Indexes {
+			stmt := fmt.Sprintf(
+				"CREATE INDEX IF NOT EXISTS %s ON %s (%s)",
+				idx.Name, t.Name, strings.Join(idx.Columns, ", "),
+			)
+
+			if idx.Where != "" {
+				stmt += " WHERE " + idx.Where
+			}
+
+			if _, err := db.ExecContext(ctx, stmt); err != nil {
+				return errorfamily.WrapTransient(err, "relational.migrate",
+					fmt.Sprintf("migrate index %q on %q", idx.Name, t.Name))
+			}
+		}
 	}
 
 	return nil

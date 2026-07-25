@@ -43,6 +43,22 @@ var (
 		"relational.schema.unknown_pk_column",
 		"primary key column not declared in Columns",
 	)
+	errSchemaIndexNoName = errorfamily.NewRejection(
+		"relational.schema.index_no_name",
+		"index Name is required",
+	)
+	errSchemaUnknownIndexColumn = errorfamily.NewRejection(
+		"relational.schema.unknown_index_column",
+		"index column not declared in Columns",
+	)
+	errSchemaUniqueNoName = errorfamily.NewRejection(
+		"relational.schema.unique_no_name",
+		"unique constraint Name is required",
+	)
+	errSchemaUnknownUniqueColumn = errorfamily.NewRejection(
+		"relational.schema.unknown_unique_column",
+		"unique constraint column not declared in Columns",
+	)
 
 	errSinkEmptyRow = errorfamily.NewRejection(
 		"relational.sink.empty_row",

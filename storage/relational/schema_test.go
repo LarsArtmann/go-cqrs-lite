@@ -1,8 +1,12 @@
 package relational
 
 import (
+	"context"
+	"database/sql"
 	"strings"
 	"testing"
+
+	_ "modernc.org/sqlite"
 )
 
 func TestRelationalColumn_Default(t *testing.T) {
@@ -231,5 +235,199 @@ func TestRelationalSchema_ValidateAcceptsNewFields(t *testing.T) {
 
 	if err := schema.Validate(); err != nil {
 		t.Fatalf("Validate should accept Default/References/Unique: %v", err)
+	}
+}
+
+func TestRelationalTable_IndexSpec_DDL(t *testing.T) {
+	tbl := RelationalTable{
+		Name:       "messages",
+		PrimaryKey: []string{"id"},
+		Columns: []RelationalColumn{
+			{Name: "id", Type: "TEXT"},
+			{Name: "channel_id", Type: "TEXT"},
+			{Name: "created_at", Type: "TEXT"},
+			{Name: "deleted_at", Type: "TEXT", Nullable: true},
+		},
+		Indexes: []IndexSpec{
+			{Name: "idx_messages_channel", Columns: []string{"channel_id"}},
+			{Name: "idx_messages_created", Columns: []string{"created_at"}},
+			{Name: "idx_messages_not_deleted", Columns: []string{"channel_id", "created_at"}, Where: "deleted_at IS NULL"},
+		},
+	}
+
+	schema := RelationalSchema{Tables: []RelationalTable{tbl}}
+
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer func() { _ = db.Close() }()
+
+	if err := schema.Migrate(context.Background(), db); err != nil {
+		t.Fatalf("Migrate: %v", err)
+	}
+
+	for _, idx := range tbl.Indexes {
+		var name string
+		err := db.QueryRow(
+			"SELECT name FROM sqlite_master WHERE type='index' AND name=?",
+			idx.Name,
+		).Scan(&name)
+		if err != nil {
+			t.Fatalf("index %q not created: %v", idx.Name, err)
+		}
+	}
+}
+
+func TestRelationalTable_UniqueSpec_DDL(t *testing.T) {
+	tbl := RelationalTable{
+		Name:       "reactions",
+		PrimaryKey: []string{"id"},
+		Columns: []RelationalColumn{
+			{Name: "id", Type: "TEXT"},
+			{Name: "message_id", Type: "TEXT"},
+			{Name: "user_id", Type: "TEXT"},
+			{Name: "emoji", Type: "TEXT"},
+		},
+		Uniques: []UniqueSpec{
+			{Name: "uq_reaction_user_emoji", Columns: []string{"message_id", "user_id", "emoji"}},
+		},
+	}
+
+	ddl := tbl.DDL()
+
+	if !strings.Contains(ddl, "UNIQUE (message_id, user_id, emoji)") {
+		t.Fatalf("DDL missing composite UNIQUE:\n%s", ddl)
+	}
+
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer func() { _ = db.Close() }()
+
+	if _, err := db.Exec(tbl.DDL()); err != nil {
+		t.Fatalf("create table with composite unique: %v", err)
+	}
+
+	_, err = db.Exec(
+		"INSERT INTO reactions (id, message_id, user_id, emoji) VALUES ('1', 'm1', 'u1', '👍')")
+	if err != nil {
+		t.Fatalf("first insert: %v", err)
+	}
+
+	_, err = db.Exec(
+		"INSERT INTO reactions (id, message_id, user_id, emoji) VALUES ('2', 'm1', 'u1', '👍')")
+	if err == nil {
+		t.Fatalf("duplicate insert should violate composite unique constraint")
+	}
+}
+
+func TestRelationalSchema_Validate_RejectsUnknownIndexColumn(t *testing.T) {
+	schema := RelationalSchema{Tables: []RelationalTable{{
+		Name: "test",
+		Columns: []RelationalColumn{
+			{Name: "id", Type: "TEXT"},
+		},
+		Indexes: []IndexSpec{
+			{Name: "idx_bogus", Columns: []string{"nonexistent"}},
+		},
+	}}}
+
+	err := schema.Validate()
+	if err == nil {
+		t.Fatalf("Validate should reject unknown index column")
+	}
+
+	if !strings.Contains(err.Error(), "nonexistent") {
+		t.Fatalf("error should name the unknown column: %v", err)
+	}
+}
+
+func TestRelationalSchema_Validate_RejectsUnknownUniqueColumn(t *testing.T) {
+	schema := RelationalSchema{Tables: []RelationalTable{{
+		Name: "test",
+		Columns: []RelationalColumn{
+			{Name: "id", Type: "TEXT"},
+		},
+		Uniques: []UniqueSpec{
+			{Name: "uq_bogus", Columns: []string{"ghost_col"}},
+		},
+	}}}
+
+	err := schema.Validate()
+	if err == nil {
+		t.Fatalf("Validate should reject unknown unique column")
+	}
+
+	if !strings.Contains(err.Error(), "ghost_col") {
+		t.Fatalf("error should name the unknown column: %v", err)
+	}
+}
+
+func TestRelationalSchema_Validate_RejectsIndexNoName(t *testing.T) {
+	schema := RelationalSchema{Tables: []RelationalTable{{
+		Name: "test",
+		Columns: []RelationalColumn{
+			{Name: "id", Type: "TEXT"},
+		},
+		Indexes: []IndexSpec{
+			{Columns: []string{"id"}},
+		},
+	}}}
+
+	err := schema.Validate()
+	if err == nil {
+		t.Fatalf("Validate should reject index without name")
+	}
+}
+
+func TestRelationalSchema_Migrate_CreatesIndexesAfterTables(t *testing.T) {
+	schema := RelationalSchema{Tables: []RelationalTable{
+		{
+			Name:       "guilds",
+			PrimaryKey: []string{"id"},
+			Columns: []RelationalColumn{
+				{Name: "id", Type: "TEXT"},
+				{Name: "name", Type: "TEXT"},
+			},
+		},
+		{
+			Name:       "channels",
+			PrimaryKey: []string{"id"},
+			Columns: []RelationalColumn{
+				{Name: "id", Type: "TEXT"},
+				{Name: "guild_id", Type: "TEXT", References: "guilds(id)"},
+			},
+			Indexes: []IndexSpec{
+				{Name: "idx_channels_guild", Columns: []string{"guild_id"}},
+			},
+		},
+	}}
+
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer func() { _ = db.Close() }()
+
+	if err := schema.Migrate(context.Background(), db); err != nil {
+		t.Fatalf("Migrate: %v", err)
+	}
+
+	var count int
+	err = db.QueryRow(
+		"SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='idx_channels_guild'",
+	).Scan(&count)
+	if err != nil {
+		t.Fatalf("query index: %v", err)
+	}
+
+	if count != 1 {
+		t.Fatalf("expected index idx_channels_guild to exist, got count=%d", count)
+	}
+
+	if err := schema.Migrate(context.Background(), db); err != nil {
+		t.Fatalf("Migrate should be idempotent: %v", err)
 	}
 }
