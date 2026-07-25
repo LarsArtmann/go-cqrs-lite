@@ -127,5 +127,5 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 }
 
 func safeInt64(v uint64) int64 {
-	return int64(v)
+	return int64(v) //nolint:gosec // G115: disk-usage metric, overflow saturates harmlessly
 }

@@ -202,14 +202,14 @@ func Setup(opts ...SetupOption) (*Provider, error) {
 		mpOpts = append(mpOpts, metric.WithReader(cfg.metricReader))
 	}
 
-	mp := metric.NewMeterProvider(mpOpts...)
+	meterProvider := metric.NewMeterProvider(mpOpts...)
 
 	if !cfg.skipGlobalRegistration {
 		otel.SetTracerProvider(tracerProvider)
-		otel.SetMeterProvider(mp)
+		otel.SetMeterProvider(meterProvider)
 	}
 
-	return &Provider{tracerProvider: tracerProvider, meterProvider: mp}, nil
+	return &Provider{tracerProvider: tracerProvider, meterProvider: meterProvider}, nil
 }
 
 func buildResource(cfg *setupConfig) (*resource.Resource, error) {
