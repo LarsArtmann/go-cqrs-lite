@@ -384,7 +384,7 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 // CheckpointStore is absent.
 func (r *runner) projectionPhase(ctx context.Context) error {
 	if ctx.Err() != nil {
-		return nil //nolint:nilerr // ctx done; graceful skip
+		return nil // duration expired; partial results are valid
 	}
 
 	if r.bundle.SeekableJournal == nil || r.bundle.CheckpointStore == nil {
@@ -563,11 +563,11 @@ func measureDirSize(path string) int64 {
 // replay time. For memory backends, the reopened store is empty, so
 // RecoveredEvents will be zero — this is expected and documents that
 // memory backends have no crash recovery.
-func (r *runner) recoveryPhase(_ context.Context) error {
+func (r *runner) recoveryPhase(parent context.Context) error {
 	// Recovery is a post-benchmark durability check — it must run even if
-	// the benchmark context has expired. Use a fresh context so that Load
-	// calls are not canceled by the parent's deadline.
-	ctx := context.Background() //nolint:contextcheck // intentional fresh context for post-benchmark recovery
+	// the benchmark context has expired. WithoutCancel inherits values
+	// (tracing, etc.) but strips the deadline/cancellation.
+	ctx := context.WithoutCancel(parent)
 
 	// Close the current bundle to flush all writes.
 	_ = r.bundle.Close()

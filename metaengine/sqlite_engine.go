@@ -49,7 +49,8 @@ type sqliteQuerySet struct {
 	ddl string
 }
 
-var sqliteQuerySetDefault = sqliteQuerySet{
+func defaultSQLiteQueries() sqliteQuerySet {
+	return sqliteQuerySet{
 	ddl: `CREATE TABLE IF NOT EXISTS meta_map (
 		collection TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL,
 		PRIMARY KEY (collection, key)
@@ -88,6 +89,7 @@ var sqliteQuerySetDefault = sqliteQuerySet{
 	logTail:          `SELECT value FROM meta_log WHERE collection = ? ORDER BY id DESC LIMIT ?`,
 	graphAddEdge:     `INSERT INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
 	graphNeighbors:   `WITH RECURSIVE bfs(depth, node) AS (SELECT 0, ? UNION ALL SELECT bfs.depth + 1, e.to_node FROM meta_graph_edges e JOIN bfs ON e.from_node = bfs.node AND e.collection = ? WHERE bfs.depth < ?) SELECT DISTINCT node FROM bfs WHERE node != ?`,
+	}
 }
 
 // NewSQLiteEngine creates a SQLite-backed metaengine engine. The caller owns
@@ -95,10 +97,10 @@ var sqliteQuerySetDefault = sqliteQuerySet{
 func NewSQLiteEngine(db *sql.DB) (Engine, error) {
 	eng := &sqliteEngine{
 		db:      db,
-		queries: sqliteQuerySetDefault,
+		queries: defaultSQLiteQueries(),
 	}
 
-	if _, err := db.Exec(eng.queries.ddl); err != nil {
+	if _, err := db.ExecContext(context.Background(), eng.queries.ddl); err != nil {
 		return nil, fmt.Errorf("metaengine: create tables: %w", err)
 	}
 
@@ -129,28 +131,18 @@ func encodeValue(value any) string {
 	return string(b)
 }
 
-func decodeValue[T any](s string) (T, error) {
-	var v T
-
-	if err := json.Unmarshal([]byte(s), &v); err != nil {
-		return v, fmt.Errorf("metaengine: decode value: %w", err)
-	}
-
-	return v, nil
-}
-
 // --- MapBackend ---
 
-func (e *sqliteEngine) MapSet(_ context.Context, col string, key any, value any) error {
-	_, err := e.db.Exec(e.queries.mapSet, col, encodeKey(key), encodeValue(value))
+func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value any) error {
+	_, err := e.db.ExecContext(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(value))
 
 	return err //nolint:wrapcheck // passthrough
 }
 
-func (e *sqliteEngine) MapGet(_ context.Context, col string, key any) (any, bool, error) {
+func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
 	var valStr string
 
-	err := e.db.QueryRow(e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
+	err := e.db.QueryRowContext(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil
@@ -168,8 +160,8 @@ func (e *sqliteEngine) MapGet(_ context.Context, col string, key any) (any, bool
 	return val, true, nil
 }
 
-func (e *sqliteEngine) MapDelete(_ context.Context, col string, key any) error {
-	_, err := e.db.Exec(e.queries.mapDelete, col, encodeKey(key))
+func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error {
+	_, err := e.db.ExecContext(ctx, e.queries.mapDelete, col, encodeKey(key))
 
 	return err //nolint:wrapcheck // passthrough
 }
@@ -199,7 +191,7 @@ func (e *sqliteEngine) MapUpdate(
 // --- ScanBackend ---
 
 func (e *sqliteEngine) MapScan(
-	_ context.Context,
+	ctx context.Context,
 	col string,
 	filters []filterPredicate,
 	sortFunc func(a, b any) int,
@@ -287,16 +279,16 @@ func (e *sqliteEngine) MapScan(
 
 // --- SetBackend ---
 
-func (e *sqliteEngine) SetAdd(_ context.Context, col string, key any) error {
-	_, err := e.db.Exec(e.queries.setAdd, col, encodeKey(key))
+func (e *sqliteEngine) SetAdd(ctx context.Context, col string, key any) error {
+	_, err := e.db.ExecContext(ctx, e.queries.setAdd, col, encodeKey(key))
 
 	return err //nolint:wrapcheck // passthrough
 }
 
-func (e *sqliteEngine) SetContains(_ context.Context, col string, key any) (bool, error) {
+func (e *sqliteEngine) SetContains(ctx context.Context, col string, key any) (bool, error) {
 	var one int
 
-	err := e.db.QueryRow(e.queries.setContains, col, encodeKey(key)).Scan(&one)
+	err := e.db.QueryRowContext(ctx, e.queries.setContains, col, encodeKey(key)).Scan(&one)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
@@ -310,8 +302,8 @@ func (e *sqliteEngine) SetContains(_ context.Context, col string, key any) (bool
 
 // --- CounterBackend ---
 
-func (e *sqliteEngine) CounterIncrement(_ context.Context, col string, deltas Delta) error {
-	tx, err := e.db.Begin()
+func (e *sqliteEngine) CounterIncrement(ctx context.Context, col string, deltas Delta) error {
+	tx, err := e.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err //nolint:wrapcheck // passthrough
 	}
@@ -319,7 +311,7 @@ func (e *sqliteEngine) CounterIncrement(_ context.Context, col string, deltas De
 	defer func() { _ = tx.Rollback() }()
 
 	for k, d := range deltas {
-		if _, err := tx.Exec(e.queries.counterIncrement, col, k, d); err != nil {
+		if _, err := tx.ExecContext(ctx, e.queries.counterIncrement, col, k, d); err != nil {
 			return err //nolint:wrapcheck // passthrough
 		}
 	}
@@ -327,7 +319,7 @@ func (e *sqliteEngine) CounterIncrement(_ context.Context, col string, deltas De
 	return tx.Commit() //nolint:wrapcheck // passthrough
 }
 
-func (e *sqliteEngine) CounterGet(_ context.Context, col string) (map[string]int64, error) {
+func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
 	rows, err := e.db.Query(e.queries.counterGet, col)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
@@ -354,15 +346,15 @@ func (e *sqliteEngine) CounterGet(_ context.Context, col string) (map[string]int
 
 // --- MultimapBackend ---
 
-func (e *sqliteEngine) MultiAdd(_ context.Context, col string, key any, value any) error {
+func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value any) error {
 	seq := e.nextMultiSeq(col)
 
-	_, err := e.db.Exec(e.queries.multiAdd, col, encodeKey(key), seq, encodeValue(value))
+	_, err := e.db.ExecContext(ctx, e.queries.multiAdd, col, encodeKey(key), seq, encodeValue(value))
 
 	return err //nolint:wrapcheck // passthrough
 }
 
-func (e *sqliteEngine) MultiGet(_ context.Context, col string, key any) ([]any, error) {
+func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any, error) {
 	rows, err := e.db.Query(e.queries.multiGet, col, encodeKey(key))
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
@@ -399,13 +391,13 @@ func (e *sqliteEngine) nextMultiSeq(col string) int64 {
 
 // --- LogBackend ---
 
-func (e *sqliteEngine) LogAppend(_ context.Context, col string, value any) error {
-	_, err := e.db.Exec(e.queries.logAppend, col, encodeValue(value))
+func (e *sqliteEngine) LogAppend(ctx context.Context, col string, value any) error {
+	_, err := e.db.ExecContext(ctx, e.queries.logAppend, col, encodeValue(value))
 
 	return err //nolint:wrapcheck // passthrough
 }
 
-func (e *sqliteEngine) LogTail(_ context.Context, col string, limit int) ([]any, error) {
+func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]any, error) {
 	if limit <= 0 {
 		limit = -1
 	}
@@ -447,17 +439,17 @@ func (e *sqliteEngine) LogTail(_ context.Context, col string, limit int) ([]any,
 
 // --- GraphBackend ---
 
-func (e *sqliteEngine) GraphAddEdge(_ context.Context, col string, edge Edge) error {
+func (e *sqliteEngine) GraphAddEdge(ctx context.Context, col string, edge Edge) error {
 	from := encodeKey(edge.From)
 	to := encodeKey(edge.To)
 
-	_, err := e.db.Exec(e.queries.graphAddEdge, col, from, to)
+	_, err := e.db.ExecContext(ctx, e.queries.graphAddEdge, col, from, to)
 
 	return err //nolint:wrapcheck // passthrough
 }
 
 func (e *sqliteEngine) GraphNeighbors(
-	_ context.Context,
+	ctx context.Context,
 	col string,
 	node any,
 	depth int,
