@@ -90,6 +90,32 @@ type ProjectionSink interface {
 	// creates), and silent clamping would hide that data-loss bug.
 	Increment(ctx context.Context, table string, key Row, counterCol string, delta int64) error
 
+	// UpsertCols inserts a row, or on conflict with conflictCols updates only
+	// the columns listed in updateCols (instead of all non-conflict columns
+	// like [Upsert]). This is the "partial upsert": the INSERT writes every
+	// column in row, but the ON CONFLICT DO UPDATE SET clause only touches the
+	// declared subset.
+	//
+	// Use it when an event carries a partial payload — e.g. a MessageUpdated
+	// event that should overwrite content and edited_at but must not clobber
+	// created_at or author_id. An empty updateCols degrades to "DO NOTHING"
+	// (idempotent insert).
+	//
+	// conflictCols defaults to the table's declared primary key.
+	UpsertCols(ctx context.Context, table string, row Row, updateCols []string, conflictCols ...string) error
+
+	// UpsertExpr inserts a row, or on conflict applies the given SetExpr list
+	// to the conflicting row. Each SetExpr is a raw SQL expression that may
+	// reference both excluded.<col> (the incoming values) and <table>.<col>
+	// (the existing row). This enables COALESCE/NULLIF patterns:
+	//
+	//	SetExpr{Column: "content", Expr: "COALESCE(NULLIF(excluded.content, ''), messages.content)"}
+	//
+	// The row supplies the INSERT VALUES; the setExprs supply the
+	// ON CONFLICT DO UPDATE SET clause. conflictCols defaults to the table's
+	// primary key. If setExprs is empty, the upsert degrades to "DO NOTHING".
+	UpsertExpr(ctx context.Context, table string, row Row, setExprs []SetExpr, conflictCols ...string) error
+
 	// Tx returns the underlying *sql.Tx that all sink writes execute within.
 	// It is the escape hatch for operations the structured methods cannot
 	// express: recursive CTEs, INSERT INTO ... SELECT, bulk updates with
@@ -106,6 +132,16 @@ type ProjectionSink interface {
 	// maintain. If a pattern recurs across handlers, promote it to a sink
 	// method instead.
 	Tx() *sql.Tx
+}
+
+// SetExpr is one column=expression assignment in an [ProjectionSink.UpsertExpr]
+// ON CONFLICT DO UPDATE SET clause. Expr is a raw SQL expression — it may
+// reference excluded.<col> for incoming values and <table>.<col> for the
+// existing row. Args supplies any bound parameters the expression needs.
+type SetExpr struct {
+	Column string
+	Expr   string
+	Args   []any
 }
 
 // sqlSink implements ProjectionSink over a *sql.Tx with a fixed dialect.
@@ -330,3 +366,120 @@ func (s *sqlSink) Increment(
 }
 
 func (s *sqlSink) Tx() *sql.Tx { return s.tx }
+
+func (s *sqlSink) UpsertCols(
+	ctx context.Context,
+	table string,
+	row Row,
+	updateCols []string,
+	conflictCols ...string,
+) error {
+	cols, vals, err := s.rowColumns(table, row)
+	if err != nil {
+		return err
+	}
+
+	if len(conflictCols) == 0 {
+		conflictCols = s.conflictTarget(table)
+	}
+
+	nonConflict, _ := partitionColumns(cols, conflictCols)
+
+	var targetCols []string
+	if len(updateCols) > 0 {
+		updateSet := make(map[string]struct{}, len(updateCols))
+		for _, c := range updateCols {
+			updateSet[c] = struct{}{}
+		}
+
+		for _, c := range nonConflict {
+			if _, ok := updateSet[c]; ok {
+				targetCols = append(targetCols, c)
+			}
+		}
+	}
+
+	setClause := excludedSet(targetCols)
+	pholders := placeholders(s.dialect, len(cols))
+
+	onConflict := "DO NOTHING"
+	if setClause != "" {
+		onConflict = "DO UPDATE SET " + setClause
+	}
+
+	query := fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(%s) %s",
+		table, strings.Join(cols, ", "), pholders, strings.Join(conflictCols, ", "), onConflict,
+	)
+
+	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {
+		return errorfamily.WrapTransient(err, "relational.sink_upsert_cols",
+			"upsert cols into "+table)
+	}
+
+	return nil
+}
+
+func (s *sqlSink) UpsertExpr(
+	ctx context.Context,
+	table string,
+	row Row,
+	setExprs []SetExpr,
+	conflictCols ...string,
+) error {
+	cols, vals, err := s.rowColumns(table, row)
+	if err != nil {
+		return err
+	}
+
+	if len(conflictCols) == 0 {
+		conflictCols = s.conflictTarget(table)
+	}
+
+	knownCols := s.schema.Table(table)
+	if knownCols == nil {
+		return errorfamily.WrapRejection(errSinkUnknownTable,
+			"relational.sink_unknown_table",
+			fmt.Sprintf("table %q", table))
+	}
+
+	colSet := make(map[string]struct{}, len(knownCols.Columns))
+	for _, c := range knownCols.Columns {
+		colSet[c.Name] = struct{}{}
+	}
+
+	onConflict := "DO NOTHING"
+	var args []any
+	args = append(args, vals...)
+
+	if len(setExprs) > 0 {
+		parts := make([]string, 0, len(setExprs))
+
+		for _, se := range setExprs {
+			if _, ok := colSet[se.Column]; !ok {
+				return errorfamily.WrapRejection(errSinkUnknownColumn,
+					"relational.sink_unknown_column",
+					fmt.Sprintf("table %q: SetExpr column %q", table, se.Column))
+			}
+
+			parts = append(parts, se.Column+" = "+se.Expr)
+			args = append(args, se.Args...)
+		}
+
+		onConflict = "DO UPDATE SET " + strings.Join(parts, ", ")
+	}
+
+	pholders := placeholders(s.dialect, len(cols))
+
+	query := fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(%s) %s",
+		table, strings.Join(cols, ", "), pholders, strings.Join(conflictCols, ", "), onConflict,
+	)
+
+	if _, err := s.tx.ExecContext(ctx, query, args...); err != nil {
+		return errorfamily.WrapTransient(err, "relational.sink_upsert_expr",
+			"upsert expr into "+table)
+	}
+
+	return nil
+}
