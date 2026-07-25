@@ -45,7 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   type aliases preserve backward compatibility. Wire formats (JSON tags, SQL
   columns, proto fields) preserved.
 - **Comprehensive README coverage** — 24 new module READMEs created, 9 existing
-  rewritten, 19 code example bugs fixed. All 56 modules with go.mod have READMEs.
+  rewritten, 19 code example bugs fixed. All 58 modules with go.mod have READMEs.
   248 Go symbol references verified by `doc-check`.
 
 ### Added (Pareto execution plan — consumer trust + production maturity)

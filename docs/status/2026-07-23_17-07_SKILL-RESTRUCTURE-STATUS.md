@@ -1,5 +1,10 @@
 # Status Report: SKILL.md Restructure — 2026-07-23 17:07
 
+> **Update 2026-07-25:** Superseded by the
+> [20:09 brutal self-review](2026-07-23_20-09_SKILL-RESTRUCTURE-BRUTAL-SELF-REVIEW.md),
+> which found 1 shipped bug + 3 missed issues (body size 1422→804 chars, provenance
+> note restored, wrong doc-check path fixed). Read that file for the final state.
+
 ## Task Summary
 
 **Goal:** Make the base `SKILL.md` body ~1000 chars (an index/routing file) with all content moved into proper reference sub-files.

@@ -16,6 +16,7 @@
 
 - **[Migration Guide](MIGRATION_TO_STACK.md)** — How to replace hand-wired infrastructure with stack presets (200+ lines → 5 lines)
 - **[Architecture Patterns](ARCHITECTURE_PATTERNS.md)** — CQRS, Event Sourcing, and Decider patterns explained
+- **[Consistency Model](CONSISTENCY_MODEL.md)** — Read consistency guarantees, eventual consistency windows, and projection lag semantics across the CQRS pipeline
 - **[Bundle Presets](PRESETS.md)** — Deployer-facing preset catalog (memory, SQLite, Pebble, Postgres, Turso)
 - **[Infrastructure Recommendations](INFRASTRUCTURE_RECOMMENDATIONS.md)** — Which storage engine fits which CQRS concern, and why
 - **[Storage Guide](STORAGE_GUIDE.md)** — SQL event store, snapshots, checkpoint stores, backend facade
