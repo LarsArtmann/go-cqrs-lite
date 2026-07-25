@@ -28,7 +28,7 @@ func (c Cursor) String() string {
 // Returns (nil, nil) for an empty string (no cursor — start of stream).
 func ParseCursor(s string) (*Cursor, error) {
 	if s == "" {
-		return nil, nil
+		return nil, nil //nolint:nilnil // empty cursor = start of stream (nil result, nil error); documented contract
 	}
 
 	data, err := base64.RawURLEncoding.DecodeString(s)

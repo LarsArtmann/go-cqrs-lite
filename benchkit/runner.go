@@ -254,46 +254,76 @@ func (r *runner) teardown() {
 // discoverStreams reads the journal to find existing streams and populates
 // r.aggIDs and r.refs. It caps the number of discovered streams at maxStreams.
 // Sets r.result.TotalEvents to the total events found in the journal.
+//
+// When SeekableJournal is available, streams are discovered via batched reads
+// (1000 events per batch) to avoid loading the entire journal into memory.
+// When only Journal is available, ReadAll is used (loads all events — OOM risk
+// for very large stores).
 func (r *runner) discoverStreams(ctx context.Context, maxStreams int) error {
-	var (
-		events []event.Event
-		err    error
-	)
+	const discoveryBatchSize = 1000
 
-	if r.bundle.Journal != nil {
-		events, err = r.bundle.Journal.ReadAll(ctx)
-	} else {
-		events, err = r.bundle.SeekableJournal.ReadFrom(ctx, id.EventID{}, 0)
-	}
-
-	if err != nil {
-		return fmt.Errorf("read journal for stream discovery: %w", err)
-	}
-
-	r.result.TotalEvents = len(events)
-
-	seen := make(map[string]bool)
+	seen := make(map[string]struct{})
 	r.aggIDs = make([]id.StreamID, 0, maxStreams)
 	r.refs = make([]id.StreamRef, 0, maxStreams)
 
-	for _, evt := range events {
-		streamID := evt.StreamID()
-		key := streamID.String()
+	totalEvents := 0
 
-		if seen[key] {
-			continue
-		}
+	processBatch := func(events []event.Event) {
+		totalEvents += len(events)
 
-		seen[key] = true
+		for _, evt := range events {
+			streamID := evt.StreamID()
+			key := streamID.String()
 
-		r.aggIDs = append(r.aggIDs, streamID)
-		r.refs = append(r.refs, id.NewStreamRef(evt.StreamType(), streamID))
+			if _, ok := seen[key]; ok {
+				continue
+			}
 
-		if len(r.aggIDs) >= maxStreams {
-			break
+			seen[key] = struct{}{}
+
+			if len(r.aggIDs) < maxStreams {
+				r.aggIDs = append(r.aggIDs, streamID)
+				r.refs = append(r.refs, id.NewStreamRef(evt.StreamType(), streamID))
+			}
 		}
 	}
 
+	if r.bundle.SeekableJournal != nil {
+		var afterID id.EventID
+
+		for {
+			if ctx.Err() != nil {
+				break
+			}
+
+			batch, err := r.bundle.SeekableJournal.ReadFrom(ctx, afterID, discoveryBatchSize)
+			if err != nil {
+				return fmt.Errorf("batched journal read for stream discovery: %w", err)
+			}
+
+			if len(batch) == 0 {
+				break
+			}
+
+			processBatch(batch)
+			afterID = batch[len(batch)-1].ID()
+
+			if len(batch) < discoveryBatchSize {
+				break // last page
+			}
+		}
+	} else if r.bundle.Journal != nil {
+		events, err := r.bundle.Journal.ReadAll(ctx)
+		if err != nil {
+			return fmt.Errorf("read journal for stream discovery: %w", err)
+		}
+
+		processBatch(events)
+	} else {
+		return ErrNilBundle
+	}
+
+	r.result.TotalEvents = totalEvents
 	r.result.Streams = len(r.aggIDs)
 
 	return nil

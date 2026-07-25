@@ -4,6 +4,15 @@ import (
 	"reflect"
 )
 
+// Pagination/metadata field names recognised on query input structs. Centralised
+// as constants so the literal strings are not repeated (goconst) and the set of
+// "meta" fields has a single source of truth.
+const (
+	limitField = "Limit"
+	afterField = "After"
+	depthField = "Depth"
+)
+
 func structValue(input any) (reflect.Value, bool) {
 	v := reflect.ValueOf(input)
 	if !v.IsValid() {
@@ -157,11 +166,11 @@ func detectPagination(input any) bool {
 
 	for field := range t.Fields() {
 		switch field.Name {
-		case "Limit":
+		case limitField:
 			if field.Type.Kind() == reflect.Int {
 				return true
 			}
-		case "After":
+		case afterField:
 			if field.Type == cursorPtrType {
 				return true
 			}
@@ -178,7 +187,7 @@ func extractLimitFromInput(input any) int {
 		return 0
 	}
 
-	f := v.FieldByName("Limit")
+	f := v.FieldByName(limitField)
 	if !f.IsValid() || f.Kind() != reflect.Int {
 		return 0
 	}
@@ -193,7 +202,7 @@ func extractCursorFromInput(input any) *Cursor {
 		return nil
 	}
 
-	f := v.FieldByName("After")
+	f := v.FieldByName(afterField)
 	if !f.IsValid() || f.Kind() != reflect.Pointer {
 		return nil
 	}
@@ -213,9 +222,9 @@ func extractCursorFromInput(input any) *Cursor {
 // nonMetaFields returns input fields that are NOT pagination metadata.
 func nonMetaFields(input any) []reflectField {
 	metaNames := map[string]bool{
-		"Limit": true,
-		"After": true,
-		"Depth": true,
+		limitField: true,
+		afterField: true,
+		depthField: true,
 	}
 
 	var result []reflectField

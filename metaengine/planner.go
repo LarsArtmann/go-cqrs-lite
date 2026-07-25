@@ -33,7 +33,7 @@ func WithWriteAmplificationBudget(n int) planOption {
 // each matching query's projection separately.
 func Plan(engines []Engine, args ...any) (*Store, error) {
 	if len(engines) == 0 {
-		return nil, errors.New("metaengine.Plan: at least one engine required")
+		return nil, errNoEngine
 	}
 
 	var queries []any
@@ -50,7 +50,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 	}
 
 	if len(queries) == 0 {
-		return nil, errors.New("metaengine.Plan: at least one query required")
+		return nil, errNoQuery
 	}
 
 	plan := &PlanResult{}
@@ -63,22 +63,20 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 	for _, q := range queries {
 		meta, ok := q.(queryMeta)
 		if !ok {
-			return nil, fmt.Errorf(
-				"query %T does not implement queryMeta — pass a metaengine.Query[Q,R]", q,
-			)
+			return nil, fmt.Errorf("%w: %T", errNotQueryMeta, q)
 		}
 
 		if _, exists := store.queries[meta.QueryName()]; exists {
-			return nil, fmt.Errorf("metaengine.Plan: duplicate query name %q", meta.QueryName())
+			return nil, fmt.Errorf("%w: %q", errDuplicateQuery, meta.QueryName())
 		}
 
-		qr, assignment, err := planQuery(meta, engines)
+		runtime, assignment, err := planQuery(meta, engines)
 		if err != nil {
 			return nil, fmt.Errorf("metaengine.Plan: %w", err)
 		}
 
-		store.queries[qr.name] = qr
-		store.byInputType[qr.inputTypeName] = qr.name
+		store.queries[runtime.name] = runtime
+		store.byInputType[runtime.inputTypeName] = runtime.name
 
 		plan.Queries = append(plan.Queries, assignment)
 	}
@@ -123,10 +121,8 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 	}
 
 	if len(ranked) == 0 {
-		return queryRuntime{}, assignment, fmt.Errorf(
-			"query %q requires ADT %s but no engine supports it",
-			meta.QueryName(), adt,
-		)
+		return queryRuntime{}, assignment, fmt.Errorf("%w: query %q needs %s",
+			errADTNotSupported, meta.QueryName(), adt)
 	}
 
 	sort.SliceStable(ranked, func(i, j int) bool {
@@ -144,7 +140,7 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 
 	assignment.Diagnostics = planDiagnostics(meta, best, cfg)
 
-	qr := queryRuntime{
+	runtime := queryRuntime{
 		name:          meta.QueryName(),
 		adt:           adt,
 		engine:        best.engine,
@@ -157,7 +153,7 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 		inputTypeName: meta.QueryInputTypeName(),
 	}
 
-	return qr, assignment, nil
+	return runtime, assignment, nil
 }
 
 func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagnostic {

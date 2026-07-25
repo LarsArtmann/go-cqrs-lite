@@ -25,7 +25,7 @@ func (p EngineProfile) SupportsADT(adt ADT) (Complexity, bool) {
 }
 
 func (p EngineProfile) String() string {
-	var parts []string
+	parts := make([]string, 0, len(p.Supports))
 	for adt, c := range p.Supports {
 		parts = append(parts, fmt.Sprintf("%s@%s", adt, c))
 	}

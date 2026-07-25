@@ -101,24 +101,32 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 	case FoldInsert:
 		key, value := fold.callInsert(payload)
 		if mb, ok := q.engine.(MapBackend); ok {
-			return mb.MapSet(ctx, col, key, value)
+			if err := mb.MapSet(ctx, col, key, value); err != nil {
+				return fmt.Errorf("map set %s: %w", col, err)
+			}
+
+			return nil
 		}
 
-		return fmt.Errorf("engine %s does not support Map operations", q.engine.Profile().Name)
+		return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
 
 	case FoldUpdate:
 		key := fold.callKey(payload)
 
 		if mu, ok := q.engine.(MapUpdater); ok {
-			return mu.MapUpdate(ctx, col, key, func(prev any) any {
+			if err := mu.MapUpdate(ctx, col, key, func(prev any) any {
 				return fold.callUpdate(payload, prev)
-			})
+			}); err != nil {
+				return fmt.Errorf("map update %s: %w", col, err)
+			}
+
+			return nil
 		}
 
 		if mb, ok := q.engine.(MapBackend); ok {
 			prev, exists, err := mb.MapGet(ctx, col, key)
 			if err != nil {
-				return err
+				return fmt.Errorf("map get %s: %w", col, err)
 			}
 
 			var prevVal any
@@ -128,42 +136,62 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 
 			updated := fold.callUpdate(payload, prevVal)
 
-			return mb.MapSet(ctx, col, key, updated)
+			if err := mb.MapSet(ctx, col, key, updated); err != nil {
+				return fmt.Errorf("map set %s: %w", col, err)
+			}
+
+			return nil
 		}
 
-		return fmt.Errorf("engine %s does not support Map operations", q.engine.Profile().Name)
+		return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
 
 	case FoldRemove:
 		key := fold.callKey(payload)
 		if mb, ok := q.engine.(MapBackend); ok {
-			return mb.MapDelete(ctx, col, key)
+			if err := mb.MapDelete(ctx, col, key); err != nil {
+				return fmt.Errorf("map delete %s: %w", col, err)
+			}
+
+			return nil
 		}
 
-		return fmt.Errorf("engine %s does not support Map operations", q.engine.Profile().Name)
+		return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
 
 	case FoldCount:
 		delta := fold.callCount(payload)
 		if cb, ok := q.engine.(CounterBackend); ok {
-			return cb.CounterIncrement(ctx, col, delta)
+			if err := cb.CounterIncrement(ctx, col, delta); err != nil {
+				return fmt.Errorf("counter increment %s: %w", col, err)
+			}
+
+			return nil
 		}
 
-		return fmt.Errorf("engine %s does not support Counter operations", q.engine.Profile().Name)
+		return unsupportedEngine(errUnsupportedCounterOps, q.engine.Profile().Name)
 
 	case FoldEdge:
 		edge := fold.callEdge(payload)
 		if gb, ok := q.engine.(GraphBackend); ok {
-			return gb.GraphAddEdge(ctx, col, edge)
+			if err := gb.GraphAddEdge(ctx, col, edge); err != nil {
+				return fmt.Errorf("graph add edge %s: %w", col, err)
+			}
+
+			return nil
 		}
 
-		return fmt.Errorf("engine %s does not support Graph operations", q.engine.Profile().Name)
+		return unsupportedEngine(errUnsupportedGraphOps, q.engine.Profile().Name)
 
 	case FoldSet:
 		key := fold.callSet(payload)
 		if sb, ok := q.engine.(SetBackend); ok {
-			return sb.SetAdd(ctx, col, key)
+			if err := sb.SetAdd(ctx, col, key); err != nil {
+				return fmt.Errorf("set add %s: %w", col, err)
+			}
+
+			return nil
 		}
 
-		return fmt.Errorf("engine %s does not support Set operations", q.engine.Profile().Name)
+		return unsupportedEngine(errUnsupportedSetOps, q.engine.Profile().Name)
 
 	case FoldSkip:
 		return nil
@@ -171,20 +199,28 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 	case FoldMultiInsert:
 		entry := fold.callMultiInsert(payload)
 		if mb, ok := q.engine.(MultimapBackend); ok {
-			return mb.MultiAdd(ctx, col, entry.Key, entry.Value)
+			if err := mb.MultiAdd(ctx, col, entry.Key, entry.Value); err != nil {
+				return fmt.Errorf("multi add %s: %w", col, err)
+			}
+
+			return nil
 		}
 
-		return fmt.Errorf("engine %s does not support Multimap operations", q.engine.Profile().Name)
+		return unsupportedEngine(errUnsupportedMultimapOps, q.engine.Profile().Name)
 
 	case FoldAppend:
 		app := fold.callAppend(payload)
 		if lb, ok := q.engine.(LogBackend); ok {
-			return lb.LogAppend(ctx, col, app.Value)
+			if err := lb.LogAppend(ctx, col, app.Value); err != nil {
+				return fmt.Errorf("log append %s: %w", col, err)
+			}
+
+			return nil
 		}
 
-		return fmt.Errorf("engine %s does not support Log operations", q.engine.Profile().Name)
+		return unsupportedEngine(errUnsupportedLogOps, q.engine.Profile().Name)
 
 	default:
-		return fmt.Errorf("unknown fold kind: %s", fold.Kind)
+		return fmt.Errorf("%w: %s", errUnknownFoldKind, fold.Kind)
 	}
 }

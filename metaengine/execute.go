@@ -298,13 +298,13 @@ func (s *Store) sortKeyFn(inputType string) func(any) any {
 //
 // Usage: result, err := metaengine.ExecuteTyped[FindUser, FindUserResult](ctx, store, FindUser{ID: uid}).
 func ExecuteTyped[Q any, R any](
-	_ context.Context,
+	ctx context.Context,
 	store *Store,
 	input Q,
 ) (R, error) {
 	var zero R
 
-	raw, err := store.Execute(input)
+	raw, err := store.ExecuteCtx(ctx, input)
 	if err != nil {
 		return zero, err
 	}
@@ -322,10 +322,7 @@ func ExecuteTyped[Q any, R any](
 
 	result, ok := raw.(R)
 	if !ok {
-		return zero, fmt.Errorf(
-			"metaengine.ExecuteTyped: result type %T does not match expected %T",
-			raw, zero,
-		)
+		return zero, fmt.Errorf("%w: got %T", errExecuteTypeMismatch, raw)
 	}
 
 	return result, nil
