@@ -2497,6 +2497,8 @@ storage/var NewSQLiteSnapshotStore
 storage/var SQLiteCheckpointSchema
 storage/var SQLiteSnapshotSchema
 storage/var SnapshotSchema
+testutil/const RaceEnabled
+testutil/const RaceEnabled
 testutil/func EventType
 testutil/func MetadataMap
 testutil/func NewCapturingSlogHandler
