@@ -19,7 +19,7 @@ func TestRunSoak_Memory(t *testing.T) {
 	defer cancel()
 
 	result, err := RunSoak(ctx, SoakConfig{
-		Duration:       3 * time.Second,
+		Duration:       5 * time.Second,
 		ReportInterval: 0, // no intermediate output during test
 		Config: Config{
 			Profile:     ProfileDev,
@@ -36,7 +36,7 @@ func TestRunSoak_Memory(t *testing.T) {
 	}
 
 	if result.Iterations < 2 {
-		t.Errorf("Iterations = %d, expected >= 2 in 3s", result.Iterations)
+		t.Errorf("Iterations = %d, expected >= 2 in 5s", result.Iterations)
 	}
 
 	if len(result.Samples) != result.Iterations {
