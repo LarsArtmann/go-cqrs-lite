@@ -48,6 +48,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   rewritten, 19 code example bugs fixed. All 58 modules with go.mod have READMEs.
   248 Go symbol references verified by `doc-check`.
 
+### Fixed
+
+- **`idempotency/kvstore.Record` no longer extends the TTL on an existing key.**
+  `Record` now uses `SetIfAbsent` instead of `Set`, making it a no-op when the
+  key already exists (the expiry is not refreshed). This aligns the KV store
+  with the documented `idempotency.Store` contract shared by `MemoryStore` and
+  the SQL store. Previously, a retried `Record` call silently extended the
+  dedup window; consumers relying on at-least-once delivery could see a longer
+  dedup window than requested. Behavior change: bug fix toward contract.
+- **`stack/pebble` disk-usage metric** (`safeInt64`) now clamps `uint64→int64`
+  to `math.MaxInt64` instead of wrapping to a negative value on overflow.
+
 ### Added (Pareto execution plan — consumer trust + production maturity)
 
 - **Consistency model document** (`docs/CONSISTENCY_MODEL.md`) — documents

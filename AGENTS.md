@@ -865,6 +865,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 - **Verification gate: `nix run .#verify`** — One command: build + vet + test + race + lint + doc-check + doc-assertions. Run before tagging releases.
 - **Release process** — See `CONTRIBUTING.md` → Release Process. Per-module annotated tags via `scripts/tag-release.sh`. Never use lightweight tags.
 - **NEVER use `git checkout <commit> -- .`** — This destructively overwrites the working tree. To inspect or test code at a specific commit, use `git worktree add /tmp/work <commit>` instead. Worktrees are isolated, non-destructive, and cleanable with `git worktree remove`.
+- **gopls shows phantom errors after file splits / large moves** — gopls keeps an in-memory snapshot of package positions. After a file split (e.g. `sink.go` → `sink.go` + `sink_advanced.go`) it can report `DuplicateMethod`/`already declared` at line numbers that **no longer exist** in the cited file (file is shorter than the cited line). Root cause = stale snapshot, NOT a real error. **Fix: restart the gopls LSP** (`lsp_restart gopls`); do NOT trust gopls immediately after a refactor — `go build -tags "goexperiment.jsonv2" ./...` and `go vet` are authoritative. Also: gopls runs WITHOUT the `goexperiment.jsonv2` build tag, so its analysis of `encoding/json/v2` code is unreliable; right after a restart it briefly floods "`X` is not in your go.mod file" across the whole workspace until it finishes re-loading the 58-module graph — ignore those until reindex completes.
 
 ## Dependencies
 
