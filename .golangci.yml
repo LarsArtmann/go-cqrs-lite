@@ -613,6 +613,9 @@ linters:
           - gocognit
           - ireturn
           - mnd
+      - path: cmd/doc-check/
+        linters:
+          - gosec
       - path: _test\.go
         linters:
           - exhaustruct

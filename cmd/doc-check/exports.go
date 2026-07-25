@@ -50,7 +50,7 @@ func buildExportIndex(imports []string, repoRoot string) map[string]map[string]b
 
 		exports := parsePackageExports(fullDir)
 		if len(exports) == 0 {
-			log.Printf("warning: no exports found in %s", dir) //nolint:gosec,lll // G706: CLI tool
+			log.Printf("warning: no exports found in %s", dir) //nolint:lll
 
 			continue
 		}
@@ -72,7 +72,7 @@ func buildExportIndex(imports []string, repoRoot string) map[string]map[string]b
 func parsePackageExports(dir string) map[string]bool {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		log.Printf("warning: cannot read %s: %v", dir, err) //nolint:gosec,lll // G706: CLI tool
+		log.Printf("warning: cannot read %s: %v", dir, err) //nolint:lll
 
 		return nil
 	}

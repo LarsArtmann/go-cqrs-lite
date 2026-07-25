@@ -197,15 +197,10 @@
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
-          # Experimental/unreleased modules excluded from lint until cleaned up.
-          # These ARE tested (in testModules) but NOT linted.
-          # TODO: fix lint issues and remove from this list as modules stabilize.
-          lintExcluded = [
-            "metaengine" # 143 issues — experimental, API evolving
-            "metaengine/projectionadapter" # wrapcheck, experimental
-            "idempotency/sqlstore" # 5 issues (noctx, gochecknoglobals) — prior session
-            "cmd/doc-check" # 4 issues (gosec G703 false positives, nolintlint)
-          ];
+          # All modules are linted. Previously experimental modules
+          # (metaengine, projectionadapter, sqlstore, doc-check) had lint
+          # exclusions, but all issues have been resolved.
+          lintExcluded = [ ];
           lintModules = builtins.filter (m: !builtins.elem m lintExcluded) testModules;
 
           examplePaths = builtins.concatStringsSep " " [

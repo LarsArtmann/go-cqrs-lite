@@ -64,7 +64,7 @@ func main() {
 	for _, file := range files {
 		refs, imports, err := scanMarkdown(file)
 		if err != nil {
-			log.Fatalf( //nolint:gosec // G706: CLI tool, file arg is intentional
+			log.Fatalf(
 				"error reading %s: %v",
 				file,
 				err,
@@ -98,7 +98,7 @@ func main() {
 	}
 
 	if len(allRefs) == 0 {
-		log.Printf( //nolint:gosec,lll // G706: CLI tool, no untrusted input
+		log.Printf( //nolint:lll // CLI tool, no untrusted input
 			"⚠  WARNING: 0 Go references found — no fenced ```go code blocks detected.\n" +
 				"Documents were NOT verified. Add a verification code block or pass files with Go samples.",
 		)
@@ -106,7 +106,7 @@ func main() {
 		return
 	}
 
-	log.Printf( //nolint:gosec,lll // G706: CLI tool, no untrusted input
+	log.Printf( //nolint:lll
 		"✓ All %d references valid across %d package(s).",
 		len(allRefs), len(exportIndex),
 	)
