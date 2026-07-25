@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.9.0
 	modernc.org/sqlite v1.54.0
@@ -35,9 +35,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

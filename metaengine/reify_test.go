@@ -98,7 +98,11 @@ func ExampleNewSQLiteEngine() {
 	defer store.Close()
 
 	store.Apply(ctx, "recordEvent", recordEvent{ID: "ex-1"})
-	result, _ := metaengine.ExecuteTyped[recordQuery, recordResult](ctx, store, recordQuery{ID: "ex-1"})
+	result, _ := metaengine.ExecuteTyped[recordQuery, recordResult](
+		ctx,
+		store,
+		recordQuery{ID: "ex-1"},
+	)
 	fmt.Println(result.ID)
 	// Output: ex-1
 }

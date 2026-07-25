@@ -3,7 +3,7 @@ package benchkit
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"runtime"
 	"strings"
@@ -178,7 +178,12 @@ func TestSortedSweepResults_NonMutating(t *testing.T) {
 	sorted := SortedSweepResults(original)
 	// Verify sorted ascending by Value.
 	if sorted[0].Value != 1 || sorted[1].Value != 2 || sorted[2].Value != 3 {
-		t.Fatalf("not sorted ascending: %d, %d, %d", sorted[0].Value, sorted[1].Value, sorted[2].Value)
+		t.Fatalf(
+			"not sorted ascending: %d, %d, %d",
+			sorted[0].Value,
+			sorted[1].Value,
+			sorted[2].Value,
+		)
 	}
 	// Verify original is NOT mutated.
 	if original[0].Value != 3 {

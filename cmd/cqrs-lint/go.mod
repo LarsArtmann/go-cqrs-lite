@@ -1,9 +1,9 @@
 module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint
 
-go 1.26.4
+go 1.26.5
 
 require (
-	github.com/larsartmann/cmdguard/v3 v3.0.0
+	github.com/larsartmann/cmdguard/v3 v3.1.0
 	github.com/larsartmann/go-finding v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-output v0.31.1
@@ -18,6 +18,7 @@ require (
 	github.com/LarsArtmann/gogenfilter/v3 v3.3.1 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260720091822-7cc6674724ac // indirect
 	github.com/charmbracelet/x/ansi v0.11.7 // indirect
@@ -31,8 +32,12 @@ require (
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
+	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/larsartmann/go-atomic-write v0.3.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
+	github.com/larsartmann/go-error-family v0.9.0 // indirect
+	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output/d2 v0.31.1 // indirect
 	github.com/larsartmann/go-output/daghtml v0.31.1 // indirect
 	github.com/larsartmann/go-output/delimited v0.31.1 // indirect
@@ -43,7 +48,7 @@ require (
 	github.com/larsartmann/go-output/plantuml v0.31.1 // indirect
 	github.com/larsartmann/go-output/serialization v0.31.1 // indirect
 	github.com/larsartmann/go-output/tree v0.31.1 // indirect
-	github.com/larsartmann/samber-do-auditlog v0.6.0 // indirect
+	github.com/larsartmann/samber-do-auditlog v0.7.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect
 	github.com/mattn/go-runewidth v0.0.27 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
