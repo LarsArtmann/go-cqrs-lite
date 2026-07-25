@@ -146,27 +146,27 @@ func runCmd(args []string) {
 		}()
 	}
 
-	profile, codec := loadProfileAndCodec(bf.profileName, bf.codecName)
+	profile, codec := loadProfileAndCodec(*bf.profileName, *bf.codecName)
 
-	factory, diskPath, cleanup := makeFactory(bf.backend, bf.dsn, bf.dir)
+	factory, diskPath, cleanup := makeFactory(*bf.backend, *bf.dsn, *bf.dir)
 	if cleanup != nil {
 		defer cleanup()
 	}
 
 	config := benchkit.Config{
 		Profile:     profile,
-		PayloadSize: bf.payloadSize,
+		PayloadSize: *bf.payloadSize,
 		Codec:       codec,
 		Warmup:      *warmup,
-		Repeat:      bf.repeat,
+		Repeat:      *bf.repeat,
 		Recovery:    *recovery,
 		ReplayOnly:  *replay,
-		SkipRawSink: bf.skipRawSink,
-		Backend:     bf.backend,
+		SkipRawSink: *bf.skipRawSink,
+		Backend:     *bf.backend,
 		DiskPath:    diskPath,
 	}
 
-	if sizes, err := parsePayloadSizes(bf.payloadSizes); err != nil {
+	if sizes, err := parsePayloadSizes(*bf.payloadSizes); err != nil {
 		fatalf("invalid --payload-sizes: %v", err)
 	} else if len(sizes) > 0 {
 		config.PayloadSizes = sizes
@@ -180,7 +180,7 @@ func runCmd(args []string) {
 		fatalf("benchmark failed: %v", err)
 	}
 
-	writeResult(bf.format, bf.output, config, result)
+	writeResult(*bf.format, *bf.output, config, result)
 }
 
 // ── compare subcommand ──
@@ -188,27 +188,13 @@ func runCmd(args []string) {
 func compareCmd(args []string) {
 	fs := flag.NewFlagSet("compare", flag.ExitOnError)
 
-	profileName := fs.String("profile", "dev", "Workload profile")
-	codecName := fs.String("codec", "json", "Payload codec: json, cbor")
-	format := fs.String("format", "text", "Output format: text, json, markdown")
-	output := fs.String("output", "", "Output file (default: stdout)")
+	bf := registerBenchFlags(fs)
+
 	backendList := fs.String("backends", "memory,sqlite,pebble",
 		"Comma-separated backend list (memory,sqlite,pebble)")
-	payloadSize := fs.Int("payload-size", 256, "Payload size in bytes per event")
-	payloadSizes := fs.String(
-		"payload-sizes",
-		"",
-		"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size",
-	)
-	repeat := fs.Int("repeat", 0, "Run N times per backend, report median (reduces ~20% variance)")
 	_ = fs.Parse(args)
 
-	profile, ok := benchkit.ProfileByName(*profileName)
-	if !ok {
-		fatalf("unknown profile: %s", *profileName)
-	}
-
-	codec := parseCodec(*codecName)
+	profile, codec := loadProfileAndCodec(*bf.profileName, *bf.codecName)
 
 	names := strings.Split(*backendList, ",")
 	factories := make(map[string]benchkit.Factory, len(names))
@@ -228,12 +214,12 @@ func compareCmd(args []string) {
 
 	config := benchkit.Config{
 		Profile:     profile,
-		PayloadSize: *payloadSize,
+		PayloadSize: *bf.payloadSize,
 		Codec:       codec,
-		Repeat:      *repeat,
+		Repeat:      *bf.repeat,
 	}
 
-	if sizes, err := parsePayloadSizes(*payloadSizes); err != nil {
+	if sizes, err := parsePayloadSizes(*bf.payloadSizes); err != nil {
 		fatalf("invalid --payload-sizes: %v", err)
 	} else if len(sizes) > 0 {
 		config.PayloadSizes = sizes
@@ -244,7 +230,7 @@ func compareCmd(args []string) {
 
 	results := compareWithDiskPaths(ctx, config, factories, diskPaths)
 
-	writeComparison(*format, *output, results)
+	writeComparison(*bf.format, *bf.output, results)
 }
 
 // ── sweep subcommand ──
@@ -252,29 +238,17 @@ func compareCmd(args []string) {
 func sweepCmd(args []string) {
 	fs := flag.NewFlagSet("sweep", flag.ExitOnError)
 
+	bf := registerBenchFlags(fs)
+
 	param := fs.String(
 		"param",
 		"workers",
 		"Parameter to sweep: workers, batchSize, streamLength, gomaxprocs",
 	)
 	valuesStr := fs.String("values", "1,2,4", "Comma-separated sweep values (e.g. 1,2,4,8)")
-	backend := fs.String("backend", "memory", "Backend: memory, sqlite, pebble")
-	dsn := fs.String("dsn", "", "Database connection string (sqlite)")
-	dir := fs.String("dir", "", "Database directory (pebble)")
-	profileName := fs.String("profile", "dev", "Workload profile")
-	codecName := fs.String("codec", "json", "Payload codec: json, cbor")
-	format := fs.String("format", "text", "Output format: text, json, benchstat, manifest")
-	output := fs.String("output", "", "Output file (default: stdout)")
-	payloadSize := fs.Int("payload-size", 256, "Payload size in bytes per event")
-	skipRawSink := fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase")
 	_ = fs.Parse(args)
 
-	profile, ok := benchkit.ProfileByName(*profileName)
-	if !ok {
-		fatalf("unknown profile: %s", *profileName)
-	}
-
-	codec := parseCodec(*codecName)
+	profile, codec := loadProfileAndCodec(*bf.profileName, *bf.codecName)
 
 	values, err := parsePayloadSizes(*valuesStr)
 	if err != nil {
@@ -285,17 +259,17 @@ func sweepCmd(args []string) {
 		fatalf("provide at least 2 values to sweep, got %d", len(values))
 	}
 
-	factory, diskPath, cleanup := makeFactory(*backend, *dsn, *dir)
+	factory, diskPath, cleanup := makeFactory(*bf.backend, *bf.dsn, *bf.dir)
 	if cleanup != nil {
 		defer cleanup()
 	}
 
 	config := benchkit.Config{
 		Profile:     profile,
-		PayloadSize: *payloadSize,
+		PayloadSize: *bf.payloadSize,
 		Codec:       codec,
-		SkipRawSink: *skipRawSink,
-		Backend:     *backend,
+		SkipRawSink: *bf.skipRawSink,
+		Backend:     *bf.backend,
 		DiskPath:    diskPath,
 	}
 
@@ -317,7 +291,59 @@ func sweepCmd(args []string) {
 		fatalf("unknown parameter: %s (use workers, batchSize, streamLength, gomaxprocs)", *param)
 	}
 
-	writeSweep(*format, *output, results)
+	writeSweep(*bf.format, *bf.output, results)
+}
+
+// ── shared flag plumbing ──
+
+// benchFlags holds the pointer values for the flags shared across every
+// `cqrs-bench` subcommand. Populate with registerBenchFlags, then deref at
+// the call site.
+type benchFlags struct {
+	backend      *string
+	dsn          *string
+	dir          *string
+	profileName  *string
+	codecName    *string
+	format       *string
+	output       *string
+	payloadSize  *int
+	payloadSizes *string
+	skipRawSink  *bool
+	repeat       *int
+}
+
+// registerBenchFlags wires the flags every subcommand exposes (backend, dsn,
+// dir, profile, codec, format, output, payload size/sizes, skipRawSink, repeat)
+// onto the given FlagSet and returns their pointers. Centralising the
+// declarations here keeps the three subcommands in lockstep when a new flag
+// is added.
+func registerBenchFlags(fs *flag.FlagSet) benchFlags {
+	return benchFlags{
+		backend:      fs.String("backend", "memory", "Backend: memory, sqlite, pebble"),
+		dsn:          fs.String("dsn", "", "Database connection string (sqlite)"),
+		dir:          fs.String("dir", "", "Database directory (pebble)"),
+		profileName:  fs.String("profile", "dev", "Workload profile"),
+		codecName:    fs.String("codec", "json", "Payload codec: json, cbor"),
+		format:       fs.String("format", "text", "Output format: text, json, benchstat, manifest"),
+		output:       fs.String("output", "", "Output file (default: stdout)"),
+		payloadSize:  fs.Int("payload-size", 256, "Payload size in bytes per event"),
+		payloadSizes: fs.String("payload-sizes", "", "Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size"),
+		skipRawSink:  fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase"),
+		repeat:       fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)"),
+	}
+}
+
+// loadProfileAndCodec resolves the workload profile and payload codec from
+// their flag values, calling fatalf on an unknown profile name. Used by every
+// subcommand that actually runs a benchmark.
+func loadProfileAndCodec(profileName, codecName string) (benchkit.Profile, codec.Codec) {
+	profile, ok := benchkit.ProfileByName(profileName)
+	if !ok {
+		fatalf("unknown profile: %s", profileName)
+	}
+
+	return profile, parseCodec(codecName)
 }
 
 // ── factory ──
