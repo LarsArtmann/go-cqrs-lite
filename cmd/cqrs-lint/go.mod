@@ -15,7 +15,7 @@ require (
 require (
 	charm.land/fang/v2 v2.0.1 // indirect
 	charm.land/lipgloss/v2 v2.0.5 // indirect
-	github.com/LarsArtmann/gogenfilter/v3 v3.3.0 // indirect
+	github.com/LarsArtmann/gogenfilter/v3 v3.3.1 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
