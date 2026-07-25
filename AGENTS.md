@@ -852,6 +852,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 - Golden tests use shared `eventtest.AssertGolden(t, path, got, *update)` from `event/v4/eventtest`
 - Modules without event dependency (otel, codec) keep their own local golden helper
 - **eventtest nested module**: `event/v4/eventtest` lives at `event/v4/eventtest/` (directory MUST match module path per Go spec — a path without a trailing `/vN` suffix requires `go.mod` at the exact subdirectory). `go mod tidy` in `event/` (or any consumer) emits warnings about the nested `go.mod`; run `go mod tidy -e` to suppress (warnings-only, not a build failure). Tagged as `event/v4/eventtest/v0.1.0` (v0 because the path's last element is `eventtest`, not `/vN`). See `docs/adr/0045-eventtest-module-path-fix.md` for the full rationale.
+- **Race-aware test thresholds**: the `-race` detector inflates allocations and CPU 5-10x, so hardcoded timing/heap thresholds in tests flake under `-race`. Use the `testutil.RaceEnabled` build-tag constant (`testutil/race_on.go` + `race_off.go`) to pick a relaxed bound: `if testutil.RaceEnabled { hang = 30*time.Second }`. Modules with a lean dependency budget that cannot import testutil (e.g. `benchkit`) copy the two-file idiom locally (`benchkit/race_on.go`/`race_off.go`) — see the file header for the rationale. Always run the affected test 3x with `-count=3 -race` after touching a threshold.
 
 ### Lint Conventions
 
