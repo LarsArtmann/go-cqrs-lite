@@ -477,8 +477,8 @@
             '';
 
             check-api-stability = mkApp "check-api-stability" goModules ''
-              echo "==> API surface check"
-              (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run main.go)
+              echo "==> API surface check (with -race)"
+              (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go test -race -count=1 ./...)
             '';
 
             check-printf = mkApp "check-printf" [ pkgs.gnugrep pkgs.findutils ] ''
@@ -548,7 +548,7 @@
               echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 && \
               echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 && \
               echo "=== Lint ===" && nix run .#lint && \
-              echo "=== API Stability ===" && (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run main.go) && \
+              echo "=== API Stability ===" && nix run .#check-api-stability && \
               echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md) && \
               echo "✅ All verification checks passed"
             '';

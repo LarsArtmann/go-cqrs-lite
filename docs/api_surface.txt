@@ -28,6 +28,7 @@ benchkit/func WriteManifest
 benchkit/func WriteSoakJSON
 benchkit/func WriteSweepJSON
 benchkit/interface DiskSizer
+benchkit/method MarshalJSON
 benchkit/method MeanSize
 benchkit/method Payload
 benchkit/method Record
@@ -37,6 +38,7 @@ benchkit/method TotalEvents
 benchkit/method Type
 benchkit/method Type
 benchkit/method Type
+benchkit/method UnmarshalJSON
 benchkit/struct BenchPayload
 benchkit/struct Config
 benchkit/struct CountResult
@@ -354,6 +356,7 @@ catalog/var ErrEmptyChannelID
 catalog/var ErrEmptyDomainID
 catalog/var ErrEmptyMessageID
 catalog/var ErrEmptyServiceID
+cmd/cqrs-gen/struct Entry
 cmd/cqrs-lint/func ComputeHealthScore
 cmd/cqrs-lint/func ComputeHealthScoreWithCap
 cmd/cqrs-lint/struct AppConfig
@@ -1176,6 +1179,17 @@ idempotency/method CheckAndRecord
 idempotency/method Close
 idempotency/method Record
 idempotency/method Seen
+idempotency/sqlstore/const DialectPostgres
+idempotency/sqlstore/const DialectSQLite
+idempotency/sqlstore/func NewPostgresStore
+idempotency/sqlstore/func NewSQLiteStore
+idempotency/sqlstore/method CheckAndRecord
+idempotency/sqlstore/method Close
+idempotency/sqlstore/method Record
+idempotency/sqlstore/method Seen
+idempotency/sqlstore/method Sweep
+idempotency/sqlstore/struct Store
+idempotency/sqlstore/type Dialect
 idempotency/struct MemoryStore
 idempotency/var ErrDuplicate
 kv/const OpEq
@@ -1421,6 +1435,12 @@ metaengine/method String
 metaengine/method String
 metaengine/method SupportsADT
 metaengine/method WithinBudget
+metaengine/projectionadapter/func New
+metaengine/projectionadapter/method EventTypes
+metaengine/projectionadapter/method Handle
+metaengine/projectionadapter/method Name
+metaengine/projectionadapter/struct Adapter
+metaengine/projectionadapter/type PayloadDecoder
 metaengine/struct Append
 metaengine/struct CostEstimate
 metaengine/struct Cursor

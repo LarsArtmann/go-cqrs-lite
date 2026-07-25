@@ -185,6 +185,51 @@ func (c Config) validate() error {
 	return nil
 }
 
+// MarshalJSON serializes Config with Codec replaced by CodecName, enabling
+// JSON round-trip. The [codec.Codec] interface cannot round-trip through JSON
+// (there is no concrete type information on the wire), so Codec is excluded
+// (json:"-") and CodecName carries the encoding string.
+func (c Config) MarshalJSON() ([]byte, error) {
+	type alias Config
+
+	c.CodecName = codecEncodingName(c.Codec)
+
+	return json.Marshal(alias(c), json.WithMarshalers(durationMarshalers))
+}
+
+// UnmarshalJSON deserializes Config, resolving CodecName back to a concrete
+// [codec.Codec] via [codec.ForEncoding].
+func (c *Config) UnmarshalJSON(data []byte) error {
+	type alias Config
+
+	var a alias
+
+	if err := json.Unmarshal(data, &a, json.WithUnmarshalers(durationUnmarshalers)); err != nil {
+		return fmt.Errorf("unmarshal Config: %w", err)
+	}
+
+	*c = Config(a)
+
+	if c.CodecName != "" {
+		resolved, err := codec.ForEncoding(codec.Encoding(c.CodecName))
+		if err != nil {
+			return fmt.Errorf("Config.CodecName %q: %w", c.CodecName, err)
+		}
+
+		c.Codec = resolved
+	}
+
+	return nil
+}
+
+func codecEncodingName(c codec.Codec) string {
+	if c == nil {
+		return ""
+	}
+
+	return string(c.Encoding())
+}
+
 // Run executes a benchmark against one backend and returns the result.
 //
 // The factory is called once to create the Bundle. All phases (write, read,

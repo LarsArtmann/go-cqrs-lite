@@ -110,6 +110,12 @@ func RunSoak(ctx context.Context, config SoakConfig, factory Factory) (*SoakResu
 			return nil, fmt.Errorf("soak iteration %d: %w", len(result.Samples), err)
 		}
 
+		// Skip partial iterations where the context deadline cut the run
+		// short (zero events written). These produce meaningless samples.
+		if res.TotalEvents == 0 {
+			break
+		}
+
 		// Force GC for a stable heap baseline between iterations.
 		runtime.GC()
 

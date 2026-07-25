@@ -13,69 +13,77 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+// modules is the canonical list of library/SDK modules whose exported API
+// surface is tracked by the stability gate. Every directory with a go.mod
+// (except examples, integration, root workspace, and this tool itself) MUST
+// appear here — TestEveryGoModIsTracked enforces this automatically.
+var modules = []string{
+	// Layer 0: leaf modules
+	"id",
+	"id/idtest",
+	"dispatcher",
+	"codec",
+	"kv",
+	"dedup",
+	"retry",
+	// Layer 1
+	"event",
+	"event/v4/eventtest",
+	"command",
+	"query",
+	"query/querytest",
+	"idempotency",
+	"idempotency/kvstore",
+	"idempotency/sqlstore",
+	// Layer 2
+	"schema",
+	"snapshot",
+	"projection",
+	"deriver",
+	// Layer 3
+	"decider",
+	"graph",
+	"scenario",
+	"projectionhost",
+	"scheduling",
+	"metadata",
+	"metaengine",
+	"metaengine/projectionadapter",
+	// Layer 4
+	"storage/memory",
+	"signing",
+	"encryption",
+	"otel",
+	// Layer 5
+	"middleware",
+	"storage",
+	"storage/sql",
+	"storage/pebble",
+	"storage/turso",
+	"listing",
+	"watermill",
+	"prometheus",
+	"transport/http",
+	"transport/grpc",
+	// Composition (Bundle layer)
+	"stack",
+	"stack/memory",
+	"stack/sqlite",
+	"stack/pebble",
+	"stack/postgres",
+	"stack/turso",
+	"stack/bench",
+	// Tooling + catalog
+	"testutil",
+	"catalog",
+	"benchkit",
+	"cmd/cqrs-lint",
+	"cmd/cqrs-bench",
+	"cmd/cqrs-gen",
+	"cmd/doc-check",
+}
+
 func main() {
-	modules := []string{
-		// Layer 0: leaf modules
-		"id",
-		"id/idtest",
-		"dispatcher",
-		"codec",
-		"kv",
-		"dedup",
-		"retry",
-		// Layer 1
-		"event",
-		"event/v4/eventtest",
-		"command",
-		"query",
-		"query/querytest",
-		"idempotency",
-		"idempotency/kvstore",
-		"idempotency/sqlstore",
-		// Layer 2
-		"schema",
-		"snapshot",
-		"projection",
-		"deriver",
-		// Layer 3
-		"decider",
-		"graph",
-		"scenario",
-		"projectionhost",
-		"scheduling",
-		"metadata",
-		"metaengine",
-		// Layer 4
-		"storage/memory",
-		"signing",
-		"encryption",
-		"otel",
-		// Layer 5
-		"middleware",
-		"storage",
-		"storage/sql",
-		"storage/pebble",
-		"storage/turso",
-		"listing",
-		"watermill",
-		"prometheus",
-		"transport/http",
-		"transport/grpc",
-		// Composition (Bundle layer)
-		"stack",
-		"stack/memory",
-		"stack/sqlite",
-		"stack/pebble",
-		"stack/postgres",
-		"stack/turso",
-		"stack/bench",
-		// Tooling + catalog
-		"testutil",
-		"catalog",
-		"benchkit",
-		"cmd/cqrs-lint",
-		"cmd/cqrs-bench",
-	}
 
 	projectRoot := filepath.Join(".", "..", "..")
 	goldenPath := filepath.Join(projectRoot, "docs", "api_surface.txt")
