@@ -2,9 +2,7 @@ package benchkit
 
 import (
 	"context"
-	"fmt"
 	"runtime"
-	"sync"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
