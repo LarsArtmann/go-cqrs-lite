@@ -168,8 +168,11 @@ func TestPrintSoakReport(t *testing.T) {
 	}
 
 	// When the new phases ran, the report should include their drift lines
-	// and the per-iteration phase table.
-	if len(result.Samples) > 0 && result.Samples[0].JourneyP99 > 0 {
+	// and the per-iteration phase table. PrintSoakReport requires BOTH first
+	// and last samples to have JourneyP99 > 0 before printing the drift line.
+	if len(result.Samples) >= 2 &&
+		result.Samples[0].JourneyP99 > 0 &&
+		result.Samples[len(result.Samples)-1].JourneyP99 > 0 {
 		if !strings.Contains(output, "Journey P99:") {
 			t.Errorf("soak report missing 'Journey P99:' line;\noutput: %s", output)
 		}
