@@ -300,4 +300,3 @@ func EncStructure0(bodyProtected, externalAAD []byte) ([]byte, error) {
 
 	return CBOREncMode().Marshal(arr) //nolint:wrapcheck // thin wrapper over CBOR mode
 }
-

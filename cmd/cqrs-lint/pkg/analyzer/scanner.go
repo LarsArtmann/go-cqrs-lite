@@ -260,4 +260,3 @@ func ResolveRegisteredTypeConsts(reg *CQRSRegistry) {
 		}
 	}
 }
-

@@ -68,8 +68,11 @@ find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= r
 
   # Drop all replace directives
   while IFS= read -r replace_line; do
-    # Extract the LHS module path from "replace foo/bar => ../baz" or block form
-    replace_path=$(echo "$replace_line" | grep -oP 'github\.com/larsartmann/go-cqrs-lite/\S+' | head -1)
+    # Extract the LHS module path from "replace foo/bar => ../baz" or block form.
+    # `|| true` is required: grep exits 1 when the replace targets a non-
+    # go-cqrs-lite module (e.g. a local go-finding replace), and under
+    # `set -euo pipefail` that would abort the whole release.
+    replace_path=$(echo "$replace_line" | grep -oP 'github\.com/larsartmann/go-cqrs-lite/\S+' | head -1 || true)
     if [ -n "$replace_path" ]; then
       (cd "$dir" && go mod edit "-dropreplace=${replace_path}")
     fi

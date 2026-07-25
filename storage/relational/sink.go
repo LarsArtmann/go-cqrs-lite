@@ -311,4 +311,3 @@ func (s *sqlSink) Increment(
 
 	return nil
 }
-

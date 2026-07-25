@@ -298,4 +298,3 @@ func validateProperties(props []PropertyType, kind, owner string) error {
 func hasProperty(props []PropertyType, name string) bool {
 	return slices.ContainsFunc(props, func(p PropertyType) bool { return p.Name == name })
 }
-
