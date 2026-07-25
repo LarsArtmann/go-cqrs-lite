@@ -48,6 +48,57 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   rewritten, 19 code example bugs fixed. All 56 modules with go.mod have READMEs.
   248 Go symbol references verified by `doc-check`.
 
+### Added (Pareto execution plan — consumer trust + production maturity)
+
+- **Consistency model document** (`docs/CONSISTENCY_MODEL.md`) — documents
+  single-process scope, write→read eventual consistency, projection lag,
+  read-after-write patterns, and bounded-staleness semantics. The #1 doc gap
+  for consumers reasoning about read correctness.
+- **SQL-backed idempotency.Store** (`idempotency/sqlstore/`) —
+  `NewSQLiteStore` and `NewPostgresStore` implementing `idempotency.Store`
+  via `INSERT ON CONFLICT DO NOTHING` for exactly-one-winner dedup. Includes
+  TTL sweep and concurrent race tests. The #1 horizontal-scaling blocker resolved.
+- **WaitForVersion helper** (`decider/`) — polls `store.LoadFromVersion` until
+  the target version is visible or a deadline hits. Default 2s timeout, 10ms
+  poll interval. Enables read-your-writes consistency in request/response flows.
+- **CheckStaleness / WithMaxStaleness** (`projectionhost/`) — projection read
+  option that rejects/flags reads whose projection lag exceeds a threshold.
+  Wired into `Host.LagDuration()` check.
+- **Metaengine SQLite engine** (`metaengine/`) — `SQLiteEngine` wrapping
+  `storage/view.SQLViewStore` as a metaengine backend. First production engine
+  validates the interface design. Cost-based engine selection between Memory
+  and SQLite (ADR-0061).
+- **Metaengine projection adapter** (`metaengine/projectionadapter/`) — adapter
+  implementing `projection.Projection` so a metaengine Store can be registered
+  with `projectionhost.Host`. Integration tested with full host lifecycle
+  (ADR-0062).
+- **Metaengine cost calibration** (`metaengine/`) — `EngineProfile.NsPerOp`
+  field replaces arbitrary `nsPerOp=100` constant with benchmark-driven numbers.
+  Memory=500ns, SQLite=7000ns (14x ratio). Calibration benchmarks measure
+  per-engine per-op cost.
+- **Store.EventTypes()** (`metaengine/`) — returns sorted unique event types
+  from registered queries' fold maps. Enables integration adapters to declare
+  event interests without depending on event-sourcing packages.
+- **FilterOn/SortOn pushdown ADR** (ADR-0063) — decision: Phase 1 keeps
+  in-memory closures + adds `PushdownScan` interface seam (zero breaking
+  change). Phase 2 defers declarative `FilterSpec`/`SortSpec`.
+- **Module extraction ADRs** (ADR-0064, ADR-0065) — design for extracting
+  `retry/` → `go-retry` and `idempotency/` → `go-idempotency` as standalone
+  repos with re-export aliases for backward compatibility.
+- **NATS transport design doc** (`docs/planning/nats-transport-design.md`) —
+  JetStream stream configuration, durable consumers, subject mapping, and
+  CatchUpSubscriber integration recipe via the existing `watermill/` bridge.
+- **Parquet journal design doc** (`docs/planning/parquet-journal-design.md`) —
+  Phase 1 design for `storage/parquet` segment-based SeekableJournal using
+  pure-Go `parquet-go`. Columnar compressed archival with 5-10x compression.
+
+### Fixed (Pareto execution plan)
+
+- **flake.nix testModules gap** — added `metaengine`, `metaengine/projectionadapter`,
+  `retry`, `idempotency/kvstore`, `idempotency/sqlstore`, `cmd/api-stability`, and
+  `cmd/doc-check` to CI test module list. These modules were silently untested in CI.
+- **Module count** — 56 → 57 `go.mod` files (added `metaengine/projectionadapter`).
+
 ### Fixed (benchkit hardening session)
 
 - **SQLite concurrent-write failure (SQLITE_BUSY)** — `stack/sqlite/preset.go`
