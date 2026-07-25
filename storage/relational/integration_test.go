@@ -118,7 +118,13 @@ func intCreateHandler(ctx context.Context) RelationalHandler {
 				return err
 			}
 
-			if err := sink.Increment(ctx, "reaction_counts", Row{"message_id": msgID}, "total", 0); err != nil {
+			if err := sink.Increment(
+				ctx,
+				"reaction_counts",
+				Row{"message_id": msgID},
+				"total",
+				0,
+			); err != nil {
 				return err
 			}
 		}
@@ -138,9 +144,14 @@ func intEditHandler(ctx context.Context) RelationalHandler {
 		}
 
 		tx := sink.Tx()
-		if _, err := tx.ExecContext(ctx,
+		if _, err := tx.ExecContext(
+			ctx,
 			"INSERT INTO message_edits (message_id, before_content, after_content, edited_at) VALUES (?, ?, ?, ?)",
-			"m1", before, "first (edited)", "2026-01-02T00:00:00Z"); err != nil {
+			"m1",
+			before,
+			"first (edited)",
+			"2026-01-02T00:00:00Z",
+		); err != nil {
 			return err
 		}
 
@@ -157,7 +168,13 @@ func intEditHandler(ctx context.Context) RelationalHandler {
 func intReactHandler(ctx context.Context) RelationalHandler {
 	return func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
 		for _, delta := range []int64{5, 3} {
-			if err := sink.Increment(ctx, "reaction_counts", Row{"message_id": "m1"}, "total", delta); err != nil {
+			if err := sink.Increment(
+				ctx,
+				"reaction_counts",
+				Row{"message_id": "m1"},
+				"total",
+				delta,
+			); err != nil {
 				return err
 			}
 		}
@@ -176,7 +193,12 @@ func intReactHandler(ctx context.Context) RelationalHandler {
 // intMutateHandler bulk-updates one message and deletes another's rollup row.
 func intMutateHandler(ctx context.Context) RelationalHandler {
 	return func(_ context.Context, _ cqrsevent.Event, sink ProjectionSink) error {
-		if err := sink.Update(ctx, "messages", Row{"content": "deleted"}, Row{"id": "m3"}); err != nil {
+		if err := sink.Update(
+			ctx,
+			"messages",
+			Row{"content": "deleted"},
+			Row{"id": "m3"},
+		); err != nil {
 			return err
 		}
 
@@ -223,6 +245,8 @@ func intHandle(
 // (Count, CountMany, filtered+paginated Query). The single test that would
 // break if any new capability regresses — the contract the 21 DiscordSync
 // projections will rely on.
+//
+//nolint:tparallel // phases are sequentially data-dependent (B edits A's rows).
 func TestIntegration_EndToEnd(t *testing.T) {
 	t.Parallel()
 
@@ -299,7 +323,8 @@ func intAssertPhaseA(t *testing.T, store *RelationalStore, db *sql.DB, ctx conte
 	}
 
 	var mc int
-	if err := db.QueryRowContext(ctx, "SELECT member_count FROM guilds WHERE id='g1'").Scan(&mc); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT member_count FROM guilds WHERE id='g1'").
+		Scan(&mc); err != nil {
 		t.Fatalf("query member_count: %v", err)
 	}
 	if mc != 0 {
@@ -330,8 +355,10 @@ func intAssertPhaseB(t *testing.T, db *sql.DB, ctx context.Context) {
 	}
 
 	var edits int
-	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM message_edits WHERE message_id='m1'").Scan(&edits); err != nil {
-		t.Fatalf("count edits: %v", err)
+	editErr := db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM message_edits WHERE message_id='m1'").Scan(&edits)
+	if editErr != nil {
+		t.Fatalf("count edits: %v", editErr)
 	}
 	if edits != 1 {
 		t.Fatalf("expected 1 edit history row, got %d", edits)
@@ -342,15 +369,18 @@ func intAssertPhaseC(t *testing.T, db *sql.DB, ctx context.Context) {
 	t.Helper()
 
 	var total int
-	if err := db.QueryRowContext(ctx, "SELECT total FROM reaction_counts WHERE message_id='m1'").Scan(&total); err != nil {
-		t.Fatalf("query total: %v", err)
+	totalErr := db.QueryRowContext(ctx,
+		"SELECT total FROM reaction_counts WHERE message_id='m1'").Scan(&total)
+	if totalErr != nil {
+		t.Fatalf("query total: %v", totalErr)
 	}
 	if total != 8 {
 		t.Fatalf("incremented total should be 5+3=8, got %d", total)
 	}
 
 	var content string
-	if err := db.QueryRowContext(ctx, "SELECT content FROM messages WHERE id='m1'").Scan(&content); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT content FROM messages WHERE id='m1'").
+		Scan(&content); err != nil {
 		t.Fatalf("query content: %v", err)
 	}
 	if content != "first (edited) ❤" {
@@ -362,7 +392,8 @@ func intAssertPhaseD(t *testing.T, db *sql.DB, ctx context.Context) {
 	t.Helper()
 
 	var content string
-	if err := db.QueryRowContext(ctx, "SELECT content FROM messages WHERE id='m3'").Scan(&content); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT content FROM messages WHERE id='m3'").
+		Scan(&content); err != nil {
 		t.Fatalf("query m3: %v", err)
 	}
 	if content != "deleted" {
@@ -370,8 +401,10 @@ func intAssertPhaseD(t *testing.T, db *sql.DB, ctx context.Context) {
 	}
 
 	var n int
-	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM reaction_counts WHERE message_id='m3'").Scan(&n); err != nil {
-		t.Fatalf("query deleted rollup: %v", err)
+	countErr := db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM reaction_counts WHERE message_id='m3'").Scan(&n)
+	if countErr != nil {
+		t.Fatalf("query deleted rollup: %v", countErr)
 	}
 	if n != 0 {
 		t.Fatalf("DeleteWhere should have removed m3 rollup, got %d rows", n)
@@ -419,7 +452,8 @@ func intAssertPhaseF(t *testing.T, db *sql.DB, ctx context.Context, handleErr er
 	}
 
 	var n int
-	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM messages WHERE id='m-ghost'").Scan(&n); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM messages WHERE id='m-ghost'").
+		Scan(&n); err != nil {
 		t.Fatalf("query ghost: %v", err)
 	}
 	if n != 0 {
@@ -440,8 +474,10 @@ func TestIntegration_CompositeUniqueEnforced(t *testing.T) {
 		t.Fatalf("migrate: %v", err)
 	}
 
-	if _, err := db.ExecContext(ctx,
-		"INSERT INTO reactions (id, message_id, emoji, count) VALUES ('r1','m1','👍',1)"); err != nil {
+	if _, err := db.ExecContext(
+		ctx,
+		"INSERT INTO reactions (id, message_id, emoji, count) VALUES ('r1','m1','👍',1)",
+	); err != nil {
 		t.Fatalf("first insert: %v", err)
 	}
 

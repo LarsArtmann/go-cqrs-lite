@@ -91,7 +91,11 @@ func TestRunSoak_TrendsPopulated(t *testing.T) {
 	}
 
 	if result.HeapLeakRate > maxHeapLeak {
-		t.Errorf("HeapLeakRate = %.0f bytes/iter, expected < %.0f", result.HeapLeakRate, maxHeapLeak)
+		t.Errorf(
+			"HeapLeakRate = %.0f bytes/iter, expected < %.0f",
+			result.HeapLeakRate,
+			maxHeapLeak,
+		)
 	}
 }
 

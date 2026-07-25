@@ -132,3 +132,31 @@ var _ = Describe("Cursor-based pagination across HTTP boundary", func() {
 		}
 	})
 })
+
+var _ = Describe("Cursor.Encode", func() {
+	It("returns an empty string and nil error for a nil value", func() {
+		s, err := metaengine.Cursor{Value: nil}.Encode()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(s).To(BeEmpty())
+	})
+
+	It("returns a non-empty string and nil error for a marshable value", func() {
+		s, err := metaengine.Cursor{Value: "task-123"}.Encode()
+		Expect(err).NotTo(HaveOccurred())
+		Expect(s).NotTo(BeEmpty())
+	})
+
+	It("surfaces a marshal error for an unmarshable value", func() {
+		// A channel cannot be JSON-marshaled. Encode must surface the error
+		// rather than silently returning "" (which ParseCursor treats as
+		// "start of stream", silently resetting pagination).
+		_, err := metaengine.Cursor{Value: make(chan int)}.Encode()
+		Expect(err).To(HaveOccurred())
+	})
+
+	It("String swallows the same error that Encode surfaces", func() {
+		// Documents the divergence: String returns "" (no error), Encode returns
+		// the error. Callers crossing a process boundary MUST use Encode.
+		Expect(metaengine.Cursor{Value: make(chan int)}.String()).To(BeEmpty())
+	})
+})

@@ -155,7 +155,9 @@ func TestStore_Record_DoesNotExtendTTL(t *testing.T) {
 		t.Fatalf("Seen: %v", err)
 	}
 	if seen {
-		t.Fatal("expected key to remain expired (Record must not extend TTL), but Seen reported true")
+		t.Fatal(
+			"expected key to remain expired (Record must not extend TTL), but Seen reported true",
+		)
 	}
 }
 
@@ -189,7 +191,9 @@ func TestStore_Record_MatchesMemoryStoreContract(t *testing.T) {
 				t.Fatalf("Seen: %v", err)
 			}
 			if seen {
-				t.Fatalf("Record extended the TTL (Seen=true after expiry); contract requires no-op on existing")
+				t.Fatalf(
+					"Record extended the TTL (Seen=true after expiry); contract requires no-op on existing",
+				)
 			}
 		})
 	}
