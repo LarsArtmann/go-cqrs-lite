@@ -173,6 +173,10 @@ func (r *runner) writeOneAggregate(
 	written := 0
 
 	for written < profile.EventsPerStream {
+		if ctx.Err() != nil {
+			return nil //nolint:nilerr // ctx done; graceful skip
+		}
+
 		batchSize := min(profile.BatchSize, profile.EventsPerStream-written)
 
 		events, err := r.createBatch(aggID, version, batchSize)
@@ -223,12 +227,20 @@ func (r *runner) createBatch(
 // The number of read passes scales with Profile.ReadRatio so that read-heavy
 // profiles perform more reads than write-heavy ones.
 func (r *runner) readPhase(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return nil //nolint:nilerr // ctx done; graceful skip
+	}
+
 	coll := NewLatencyCollector(0)
 	profile := r.config.Profile
 
 	readPasses := readPassesFor(profile.ReadRatio)
 
 	for range readPasses {
+		if ctx.Err() != nil {
+			break //nolint:staticcheck // graceful skip on canceled context
+		}
+
 		err := runConcurrent(
 			ctx, profile.Streams, r.concurrency,
 			func(ctx context.Context, aggIdx int) error {
@@ -299,6 +311,10 @@ func (r *runner) runJournalScans(ctx context.Context) {
 
 // readModelPhase benchmarks raw kv.Store Set and Get operations.
 func (r *runner) readModelPhase(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return nil //nolint:nilerr // ctx done; graceful skip
+	}
+
 	if r.bundle.ReadModels == nil {
 		return nil
 	}
@@ -371,6 +387,10 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 // measures lag and throughput. Skipped when SeekableJournal or
 // CheckpointStore is absent.
 func (r *runner) projectionPhase(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return nil //nolint:nilerr // ctx done; graceful skip
+	}
+
 	if r.bundle.SeekableJournal == nil || r.bundle.CheckpointStore == nil {
 		return nil
 	}
@@ -547,7 +567,12 @@ func measureDirSize(path string) int64 {
 // replay time. For memory backends, the reopened store is empty, so
 // RecoveredEvents will be zero — this is expected and documents that
 // memory backends have no crash recovery.
-func (r *runner) recoveryPhase(ctx context.Context) error {
+func (r *runner) recoveryPhase(_ context.Context) error {
+	// Recovery is a post-benchmark durability check — it must run even if
+	// the benchmark context has expired. Use a fresh context so that Load
+	// calls are not canceled by the parent's deadline.
+	ctx := context.Background()
+
 	// Close the current bundle to flush all writes.
 	_ = r.bundle.Close()
 	r.bundle = nil // prevent double-close in teardown
