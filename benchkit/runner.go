@@ -143,6 +143,27 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 		}
 	}
 
+	if !r.config.SkipJourney {
+		if err := r.journeyPhase(runCtx); err != nil {
+			return nil, errorfamily.WrapTransient(err, "benchkit.journey_phase",
+				"journey phase")
+		}
+	}
+
+	if !r.config.SkipQuery {
+		if err := r.queryPhase(runCtx); err != nil {
+			return nil, errorfamily.WrapTransient(err, "benchkit.query_phase",
+				"query phase")
+		}
+	}
+
+	if !r.config.SkipSnapshot {
+		if err := r.snapshotPhase(runCtx); err != nil {
+			return nil, errorfamily.WrapTransient(err, "benchkit.snapshot_phase",
+				"snapshot phase")
+		}
+	}
+
 	r.durabilityPhase()
 
 	if !r.config.ReplayOnly && !r.config.SkipRawSink {

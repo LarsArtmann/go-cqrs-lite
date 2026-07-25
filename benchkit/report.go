@@ -123,6 +123,30 @@ func PrintReport(w io.Writer, r *Result) {
 			formatInt(int(r.ProjectionEvents)), roundDuration(r.ProjectionLag))
 	}
 
+	if r.JourneySamples > 0 {
+		fmt.Fprintln(w, "Journey (publish→projection→query):")
+		printLatencyLine(w, "  Round trip:", r.JourneyLatency)
+		printLatencyLine(w, "  Query leg:", r.JourneyQueryLatency)
+		fmt.Fprintln(w)
+	}
+
+	if r.QueryHitLatency.Count > 0 {
+		fmt.Fprintln(w, "Query Dispatch:")
+		printLatencyLine(w, "  Hit:", r.QueryHitLatency)
+		printLatencyLine(w, "  Miss:", r.QueryMissLatency)
+		printLatencyLine(w, "  Paginated:", r.QueryPaginatedLatency)
+		fmt.Fprintln(w)
+	}
+
+	if r.SnapshotColdLatency.Count > 0 {
+		fmt.Fprintln(w, "Snapshot / Cache:")
+		printLatencyLine(w, "  Cold replay:", r.SnapshotColdLatency)
+		printLatencyLine(w, "  Snapshot load:", r.SnapshotLoadLatency)
+		printLatencyLine(w, "  Cache miss:", r.CacheMissLatency)
+		printLatencyLine(w, "  Cache hit:", r.CacheHitLatency)
+		fmt.Fprintln(w)
+	}
+
 	if r.RecoveryTime > 0 {
 		fmt.Fprintf(w, "Recovery: %s (%s events recovered)\n\n",
 			roundDuration(r.RecoveryTime), formatInt(r.RecoveredEvents))
