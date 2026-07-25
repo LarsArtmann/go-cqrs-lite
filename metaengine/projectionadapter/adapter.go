@@ -83,7 +83,10 @@ func (a *Adapter) Handle(ctx context.Context, evt event.Event) error {
 		return fmt.Errorf("projectionadapter: decode payload for %s: %w", eventType, err)
 	}
 
-	return a.store.Apply(ctx, eventType, decoded)
+	if err := a.store.Apply(ctx, eventType, decoded); err != nil {
+		return fmt.Errorf("projectionadapter: apply %s: %w", eventType, err)
+	}
+	return nil
 }
 
 // Compile-time assertion that Adapter implements projection.Projection.

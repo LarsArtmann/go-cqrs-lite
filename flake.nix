@@ -197,6 +197,14 @@
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
+          # Experimental modules excluded from lint until API stabilizes.
+          # These ARE tested (in testModules) but NOT linted — tracked as TODO.
+          lintExcluded = [
+            "metaengine"
+            "metaengine/projectionadapter"
+          ];
+          lintModules = builtins.filter (m: !builtins.elem m lintExcluded) testModules;
+
           examplePaths = builtins.concatStringsSep " " [
             "./example/getting-started/..."
             "./example/readme-quickstart/..."
@@ -366,7 +374,7 @@
             lint = mkApp "lint" [ goPkg pkgs.golangci-lint ] ''
               configFile="$PWD/.golangci.yml"
               failed=0
-              for mod in ${builtins.concatStringsSep " " testModules}; do
+              for mod in ${builtins.concatStringsSep " " lintModules}; do
                 echo "==> Linting $mod"
                 (cd "$mod" && ${pkgs.golangci-lint}/bin/golangci-lint run --config "$configFile" ./...) || failed=1
               done

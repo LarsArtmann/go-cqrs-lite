@@ -27,6 +27,14 @@ type waitConfig struct {
 	pollInterval time.Duration
 }
 
+const (
+	defaultWaitTimeout      = 2 * time.Second
+	defaultWaitPollInterval = 10 * time.Millisecond
+)
+	timeout      time.Duration
+	pollInterval time.Duration
+}
+
 // WithWaitTimeout sets the maximum time [Repository.WaitForVersion] will poll
 // before returning [ErrWaitTimeout]. Default: 2s.
 func WithWaitTimeout(d time.Duration) WaitOption {
@@ -59,8 +67,8 @@ func (r *Repository[State]) WaitForVersion(
 	opts ...WaitOption,
 ) ([]event.Event, error) {
 	cfg := waitConfig{
-		timeout:      2 * time.Second,
-		pollInterval: 10 * time.Millisecond,
+		timeout:      defaultWaitTimeout,
+		pollInterval: defaultWaitPollInterval,
 	}
 
 	for _, opt := range opts {
