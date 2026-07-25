@@ -190,7 +190,7 @@ type Result struct {
 	// Raw sink metrics — prebuilt events timed against EventSink.Save only.
 	// Isolates backend write capacity from event generation and encoding
 	// overhead. Zero-valued when Config.SkipRawSink is true.
-	RawSinkLatency    LatencyStats `json:"rawSinkLatency"` //nolint:modernize // struct omitempty
+	RawSinkLatency    LatencyStats `json:"rawSinkLatency"`
 	RawSinkThroughput float64      `json:"rawSinkThroughput,omitempty"`
 
 	// Write metrics — generated events timed including generation + encoding + Save.

@@ -61,7 +61,7 @@ func GOMAXPROCSSweep(
 	defer runtime.GOMAXPROCS(prev)
 
 	return ScalingSweep(ctx, base, factory, "gomaxprocs", procs,
-		func(cfg *Config, v int) {
+		func(_ *Config, v int) {
 			runtime.GOMAXPROCS(v)
 		})
 }
@@ -126,17 +126,17 @@ func PrintSweep(w io.Writer, results []SweepResult) {
 	fmt.Fprintln(w, header)
 	fmt.Fprintln(w, strings.Repeat("-", len(header)))
 
-	for _, sr := range results {
-		r := sr.Result
+	for _, sweepResult := range results {
+		r := sweepResult.Result
 		if r.Error != "" {
-			fmt.Fprintf(w, "%-12d %s\n", sr.Value, "FAILED: "+truncate(r.Error, 50))
+			fmt.Fprintf(w, "%-12d %s\n", sweepResult.Value, "FAILED: "+truncate(r.Error, 50))
 
 			continue
 		}
 
 		fmt.Fprintf(
 			w, "%-12d %12s %14s %14s %10s %10s\n",
-			sr.Value,
+			sweepResult.Value,
 			formatFloat(r.WriteThroughput),
 			formatFloatOrDash(r.RawSinkThroughput),
 			roundDuration(r.LoadLatency.P50),

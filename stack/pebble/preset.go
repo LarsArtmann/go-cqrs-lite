@@ -116,7 +116,7 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 		stack.WithReadModels(backend.ReadModels()),
 		stack.WithBus(cqrswatermill.NewEventBus()),
 		stack.WithCloser(backend),
-		stack.WithDiskSize(func() int64 { return int64(backend.DiskUsage()) }),
+		stack.WithDiskSize(func() int64 { return safeInt64(backend.DiskUsage()) }),
 	)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "pebble_preset.wire_bundle",
