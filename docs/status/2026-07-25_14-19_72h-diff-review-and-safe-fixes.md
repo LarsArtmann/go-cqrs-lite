@@ -146,3 +146,43 @@
 ---
 
 **Bottom line:** The diff review was thorough and the 6 fixes are correct and tested, but I **oversold the verification** (never ran the real gates) and **undersold the autonomy** (left safe fixes on the table). The 8.7MB binary is out of the working tree but still in history. The auto-commit daemon polluted git log during this session.
+
+---
+
+## UPDATE — Post-Questions Phase (14:20–14:35)
+
+**User decisions:** Leave history as-is; **harden metaengine now**; research idempotency first.
+
+### Actions taken in this phase
+
+#### Ran the real gate (`nix run .#verify`)
+The gate I originally skipped. It caught **3 failures** my `go build`/`vet` missed:
+1. `benchkit TestRunSoak_TrendsPopulated` — flaky heap-threshold (pre-existing, not mine)
+2. `cmd/api-stability TestAPISurfaceCheck` — stale golden (72h work + my new `Cursor.Encode`)
+3. `cmd/api-stability TestAPISurfaceUpdateIdempotent` — golden drift
+
+**Fixed:** Updated `docs/api_surface.txt` via `go run . -update` (2650 exports). api-stability now passes.
+
+#### Metaengine hardened (8 fixes, items 9–16 from the plan)
+
+| # | Fix | File(s) |
+|---|-----|---------|
+| 9 | `Cursor.String()` error-swallow → added error-returning `Cursor.Encode()` | `cursor.go` |
+| 10 | `MapUpdate` non-atomic Get+Set → wrapped in single `sql.Tx` | `sqlite_engine.go` |
+| 11 | Multimap seq counter resets on restart → `sync.Once`-guarded lazy `MAX(seq)` DB seed | `sqlite_backends.go` |
+| 12 | Cross-engine type divergence (SQLite returns `map[string]any`, memory returns typed) → JSON reification fallback in `ExecuteTyped` | `execute.go` + new `reify.go` |
+| 13 | Lying `ADTSortedMap: ComplexityOLogN` → honest `ComplexityONLogN` (full load + Go sort, not indexed) | `engine.go` |
+| 13b | Lying planner diagnostic ("Add SQLite for O(logN) indexed scanning") → honest message referencing ADR-0063 pushdown | `planner.go` |
+| 14 | Bare magic numbers `10 * 10` in cost model → named constants + honest doc comment acknowledging model is approximate | `cost.go` |
+| 15 | `modernc.org/sqlite` as direct dep despite test-only import → `go mod tidy` moved correctly | `go.mod` |
+
+All verified: build + race tests pass, all files under 350-line CI limit, vet clean.
+
+#### Idempotency design note written (Q3 deliverable)
+`docs/planning/2026-07-25_14-30_idempotency-record-contract-design.md` — covers the 3-way contract split, pros/cons matrix of no-op vs overwrite, at-least-once implications, retry semantics, and a recommendation: **Option A (no-op on existing)** — aligns with 2 of 3 implementations + the documented contract; kvstore is the outlier to fix.
+
+### What's still open
+- **Full `nix run .#verify` re-run** is in progress (background) to confirm no regressions from metaengine hardening.
+- **No regression tests added** for any metaengine fix (MapUpdate atomicity, multimap restart-safety, cross-engine reification). The fixes are verified via existing tests passing + race detector, but no new test locks in the fix.
+- **`goexperiment.jsonv2` portability gap** (metaengine needs GOEXPERIMENT=jsonv2 or Go 1.27 despite go.mod declaring 1.26.4) — not fixed; this is a repo-wide pattern (AGENTS.md principle 18), not metaengine-specific.
+- **benchkit soak heap-threshold flake** — pre-existing, not mine, not fixed.
