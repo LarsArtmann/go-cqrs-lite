@@ -46,8 +46,10 @@ func ScalingSweep(
 			if runErr != nil {
 				msg = runErr.Error()
 			}
+
 			r = &Result{Error: msg}
 		}
+
 		results[i] = SweepResult{
 			Parameter: parameter,
 			Value:     v,
