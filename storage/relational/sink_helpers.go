@@ -2,8 +2,11 @@ package relational
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
@@ -105,3 +108,66 @@ func formatArg(v any, dialect sqlpkg.Dialect) any {
 
 // (buildWhereClause moved to storage/sql.BuildWhereClause — shared across
 // relational and view sub-packages.)
+
+// rowColumns turns a Row into sorted column names plus dialect-formatted
+// values. Columns are sorted for deterministic SQL (stable golden output).
+// Each column name is validated against the table's declared schema —
+// unknown columns are rejected before they reach SQL.
+func (s *sqlSink) rowColumns(table string, row Row) ([]string, []any, error) {
+	if len(row) == 0 {
+		return nil, nil, errSinkEmptyRow
+	}
+
+	t := s.schema.Table(table)
+	if t == nil {
+		return nil, nil, errorfamily.WrapRejection(errSinkUnknownTable,
+			"relational.sink_unknown_table",
+			fmt.Sprintf("table %q", table))
+	}
+
+	colSet := make(map[string]struct{}, len(t.Columns))
+	for i := range t.Columns {
+		colSet[t.Columns[i].Name] = struct{}{}
+	}
+
+	cols := make([]string, 0, len(row))
+	for name := range row {
+		if _, ok := colSet[name]; !ok {
+			return nil, nil, errorfamily.WrapRejection(
+				errSinkUnknownColumn,
+				"relational.sink_unknown_column",
+				fmt.Sprintf("table %q: column %q", table, name),
+			)
+		}
+
+		cols = append(cols, name)
+	}
+
+	sort.Strings(cols)
+
+	vals := make([]any, len(cols))
+	for i, c := range cols {
+		vals[i] = s.format(row[c])
+	}
+
+	return cols, vals, nil
+}
+
+func (s *sqlSink) format(v any) any {
+	if t, ok := v.(time.Time); ok {
+		return s.dialect.FormatTime(t)
+	}
+
+	return v
+}
+
+// conflictTarget returns the table's declared primary key, or []string{"id"}
+// when no primary key is declared.
+func (s *sqlSink) conflictTarget(table string) []string {
+	t := s.schema.Table(table)
+	if t == nil || len(t.PrimaryKey) == 0 {
+		return []string{"id"}
+	}
+
+	return t.PrimaryKey
+}
