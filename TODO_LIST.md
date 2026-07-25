@@ -64,7 +64,40 @@ this list and recorded in CHANGELOG.
 
 ---
 
-## Rejected (with reasons)
+## Module Health & Tooling (from 2026-07-25 self-review sweep)
+
+- 🔥 **[BLOCKED] Fix the broken published module graph.** Several published
+      `go.mod` files reference sibling versions that were never tagged:
+      `codec/v4.0.4`, `decider/v4.0.3`, `listing/v4.0.3`, `storage/v4.0.3`.
+      This makes `go mod tidy` fail for any module that newly pulls those
+      transitively (e.g. adding `idempotency/sqlstore` to `integration/`).
+      `go build`/`go test` work in workspace mode (go.work provides locals), so
+      `#verify` is green, but per-module `GOWORK=off` CI and `go mod tidy` break.
+      Fix: tag the missing versions or bump the require lines to existing tags.
+- [ ] **Configure gopls with `goexperiment.jsonv2`** — gopls runs without the
+      build tag, so its analysis of `encoding/json/v2` code is unreliable and
+      it floods false "X is not in your go.mod" errors right after restart.
+      Add the build flag to the gopls/workspace config.
+- [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
+      unformatted code (gci/gofumpt drift), turning `#lint` red. Either gate
+      daemon commits behind `nix fmt` or run a scheduled `nix fmt && nix run .#lint`.
+- [ ] **`idempotency.RefreshTTL(ctx, key, ttl)`** — optional capability to
+      extend a live key's dedup window (design note item 3). New API; track
+      until a consumer needs sliding-window dedup.
+- [ ] **cqrs-lint rule for the `idempotency.Store` Record contract** — flag
+      custom `Store` implementations whose `Record` extends the TTL (violates
+      the no-op-on-existing contract). New lint rule.
+- [ ] **cqrs-bench profile for the metaengine SQLite engine** — no benchmark
+      covers the SQLite planner path end-to-end. Add a named profile.
+- [ ] **CI badge for the api-stability gate** — `#check-api-stability` now runs
+      inside `#verify`; surface its status in the README.
+- [ ] **Triage auto-commit daemon commit messages** — prior decision was "leave
+      as-is"; revisit if garbled messages block `git log` readability or release
+      tagging.
+
+---
+
+
 
 > Kept here so decisions are not re-litigated. Full rationale in the linked
 > ADRs/reviews.
