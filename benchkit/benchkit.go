@@ -2,6 +2,7 @@ package benchkit
 
 import (
 	"context"
+	"encoding/json/v2"
 	"fmt"
 	"sort"
 	"time"
@@ -60,7 +61,16 @@ type Config struct {
 
 	// Codec controls payload encoding for event creation.
 	// nil defaults to [codec.JSONCodec].
-	Codec codec.Codec
+	//
+	// Excluded from JSON serialization (interfaces cannot round-trip);
+	// [Config.CodecName] provides the serializable representation and resolves
+	// back to a concrete Codec during JSON unmarshal.
+	Codec codec.Codec `json:"-"`
+
+	// CodecName is the JSON-serializable encoding name derived from Codec
+	// (e.g. "json", "cbor"). Empty when Codec is nil; resolved back to a
+	// concrete Codec during JSON unmarshal via [codec.ForEncoding].
+	CodecName string
 
 	// Duration caps the wall-clock time. Zero means run to completion.
 	Duration time.Duration

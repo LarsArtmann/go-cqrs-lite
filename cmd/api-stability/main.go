@@ -31,6 +31,7 @@ func main() {
 		"query/querytest",
 		"idempotency",
 		"idempotency/kvstore",
+		"idempotency/sqlstore",
 		// Layer 2
 		"schema",
 		"snapshot",
@@ -98,9 +99,10 @@ func collectAllModuleExports(modules []string, projectRoot string) []string {
 	for _, mod := range modules {
 		modPath := filepath.Join(projectRoot, mod)
 
-		_, err := os.Stat(modPath)
-		if os.IsNotExist(err) {
-			continue
+		if _, err := os.Stat(modPath); err != nil {
+			fmt.Fprintf(os.Stderr, "FATAL: module %q not found at %s: %v\n", mod, modPath, err)
+			fmt.Fprintf(os.Stderr, "Add it to the modules list or remove the stale entry.\n")
+			os.Exit(1)
 		}
 
 		exps, err := collectExports(modPath)
