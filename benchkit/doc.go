@@ -85,7 +85,9 @@
 //	benchkit.PrintSoakReport(os.Stdout, soakResult)
 //
 // The result reports HeapGrowthBytes, HeapLeakRate (bytes/iteration),
-// ThroughputDriftPct, and WriteP99DriftPct. Use a small profile (ProfileDev)
+// ThroughputDriftPct, WriteP99DriftPct, and per-phase P99 drift metrics
+// (JourneyP99DriftPct, QueryHitP99DriftPct, CacheHitP99DriftPct — zero when
+// the corresponding phase is skipped). Use a small profile (ProfileDev)
 // for fast iterations and more data points. CLI: `cqrs-bench run --soak 5m`.
 //
 // # Build tag requirement

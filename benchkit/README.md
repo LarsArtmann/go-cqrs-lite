@@ -256,6 +256,8 @@ The `SoakResult` reports drift metrics across iterations:
   iteration (negative = degradation).
 - **WriteP99DriftPct** — percentage change in write P99 latency (positive =
   latency regression).
+- **JourneyP99DriftPct** / **QueryHitP99DriftPct** / **CacheHitP99DriftPct** —
+  per-phase P99 latency drift across iterations (zero when the phase is skipped).
 
 Use a small profile (`ProfileDev`) for fast iterations and more data points.
 Progress is written to stderr; the final result goes to stdout.
