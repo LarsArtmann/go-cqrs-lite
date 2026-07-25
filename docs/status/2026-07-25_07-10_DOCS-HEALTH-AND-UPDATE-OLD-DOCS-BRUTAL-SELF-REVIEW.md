@@ -60,24 +60,24 @@ annotation coverage is incomplete.
 Each passes the "so what?" test — citing commits, ADRs, or follow-up sessions. Full
 list with the stale claim each corrects:
 
-| # | File | Stale claim corrected |
-|---|------|-----------------------|
-| 1 | `PARETO-EXECUTION-COMPLETION-STATUS` | "verify exits 0 / workspace healthy" → verify is RED (13 file-size violations) |
-| 2 | `meta-engine-design-and-event-query-model` | "NOT STARTED: no Go code for ANY design" → full module shipped (174 specs, SQLite engine, ADRs) |
-| 3 | `SUPERB-NEXT-LEVEL-EXECUTION-PLAN` | "Drafted, pending approval" → 90% shipped (M01–M13, M16–M17 done) |
-| 4 | `NEXT-LEVEL-EXECUTION-STATUS` | "14 remaining lint issues" → lint is 0 |
-| 5 | `metaengine-brutal-review-and-quality-hardening` | "GHOST SYSTEM, ZERO consumers / 89 specs / 82.6%" → adapter shipped, 174 specs, 87.7% |
-| 6 | `cqrs-lint 12:37` | "Fixed all 4 detector bugs" → WRONG, proven broken by 14:23 session |
-| 7 | `cqrs-lint 14:23` | "uncommitted, awaiting instruction" → shipped in v4.1.0 |
-| 8 | `cqrs-lint 23:02` | "uncommitted, awaiting instruction" → shipped in v4.1.0 |
-| 9 | `metaengine-review-session` | "89 specs / 82.6% / dead code" → 174 specs / 87.7% / dead code deleted |
-| 10 | `metaengine-plan-alignment` | "Active Execution Plan" → Phases 1–4 shipped |
-| 11 | `meta-engine-build-plan` | "Active Execution Plan" → build fixed, all shipped + exceeded |
-| 12 | `analytics-rollup-review-and-implementation` | "CRITICAL: breaking interface change" open → resolved in 17:56 session |
-| 13 | `SKILL-RESTRUCTURE-STATUS` | superseded by 20:09 brutal self-review |
-| 14 | `METAENGINE-LINT-CLEANUP-MID-TASK` | abortive mid-task → superseded by 06:30 session |
-| 15 | `deduplication-session-3` | "NOT verifiably complete / not committed" → shipped at v4.1.0 |
-| 16 | `deduplication-session (07-22)` | "NOT run full suite / BREAKING API CHANGE" → shipped, aliases added |
+| #   | File                                             | Stale claim corrected                                                                           |
+| --- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| 1   | `PARETO-EXECUTION-COMPLETION-STATUS`             | "verify exits 0 / workspace healthy" → verify is RED (13 file-size violations)                  |
+| 2   | `meta-engine-design-and-event-query-model`       | "NOT STARTED: no Go code for ANY design" → full module shipped (174 specs, SQLite engine, ADRs) |
+| 3   | `SUPERB-NEXT-LEVEL-EXECUTION-PLAN`               | "Drafted, pending approval" → 90% shipped (M01–M13, M16–M17 done)                               |
+| 4   | `NEXT-LEVEL-EXECUTION-STATUS`                    | "14 remaining lint issues" → lint is 0                                                          |
+| 5   | `metaengine-brutal-review-and-quality-hardening` | "GHOST SYSTEM, ZERO consumers / 89 specs / 82.6%" → adapter shipped, 174 specs, 87.7%           |
+| 6   | `cqrs-lint 12:37`                                | "Fixed all 4 detector bugs" → WRONG, proven broken by 14:23 session                             |
+| 7   | `cqrs-lint 14:23`                                | "uncommitted, awaiting instruction" → shipped in v4.1.0                                         |
+| 8   | `cqrs-lint 23:02`                                | "uncommitted, awaiting instruction" → shipped in v4.1.0                                         |
+| 9   | `metaengine-review-session`                      | "89 specs / 82.6% / dead code" → 174 specs / 87.7% / dead code deleted                          |
+| 10  | `metaengine-plan-alignment`                      | "Active Execution Plan" → Phases 1–4 shipped                                                    |
+| 11  | `meta-engine-build-plan`                         | "Active Execution Plan" → build fixed, all shipped + exceeded                                   |
+| 12  | `analytics-rollup-review-and-implementation`     | "CRITICAL: breaking interface change" open → resolved in 17:56 session                          |
+| 13  | `SKILL-RESTRUCTURE-STATUS`                       | superseded by 20:09 brutal self-review                                                          |
+| 14  | `METAENGINE-LINT-CLEANUP-MID-TASK`               | abortive mid-task → superseded by 06:30 session                                                 |
+| 15  | `deduplication-session-3`                        | "NOT verifiably complete / not committed" → shipped at v4.1.0                                   |
+| 16  | `deduplication-session (07-22)`                  | "NOT run full suite / BREAKING API CHANGE" → shipped, aliases added                             |
 
 ### Verification performed
 
@@ -106,8 +106,8 @@ I annotated the 16 with the most misleading openings. The remaining 59 fall into
 
 ### docs/*.md living docs: spot-checked, not fully verified
 
-The task said "READ ALL docs/*.md files." I read the 4 core living docs fully and
-spot-checked the module-count claims across all docs/*.md. I did NOT verify the
+The task said "READ ALL docs/_.md files." I read the 4 core living docs fully and
+spot-checked the module-count claims across all docs/_.md. I did NOT verify the
 factual accuracy of every concrete claim in all 28 docs/*.md files (e.g. whether
 `docs/STORAGE_GUIDE.md` still references the correct API, whether `docs/PRESETS.md`
 option names match current code). The module-count drift is fixed; content drift may

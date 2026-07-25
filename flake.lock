@@ -3,11 +3,11 @@
     "cmdguard": {
       "flake": false,
       "locked": {
-        "lastModified": 1784939348,
-        "narHash": "sha256-BHWDpPVT2u8TOpowGgGw+uUZwAhF8ZLuo6QZwnLlNBA=",
+        "lastModified": 1784949487,
+        "narHash": "sha256-mZJUCgip3H5yZu7FrvPTpNeCI7gV3CzYmdO5B+PFOoA=",
         "ref": "master",
-        "rev": "6491e3357f6909b93b53aa700c054ebc46a4648c",
-        "revCount": 878,
+        "rev": "23cedb88058fc5640029a3a4a81a008d38ce9241",
+        "revCount": 880,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/cmdguard"
       },

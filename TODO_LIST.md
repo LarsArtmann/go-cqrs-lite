@@ -41,10 +41,10 @@ this list and recorded in CHANGELOG.
       `idempotency/sqlstore/v4` when their APIs stabilize and the file-size gate
       passes. These are the 3 untagged modules (58 `go.mod` files total; 55 tagged).
 - [BLOCKED] **Push `benchkit/v4.1.0` to origin** — tag points to grab-bag commit
-      `c3286bc8` (BuildFlow auto-commit shoved 16 unrelated files in). Decide:
-      keep the tag as-is or recreate at a cleaner commit. Push requires user
-      approval. See
-      [tagging session status](docs/status/2026-07-25_04-54_benchkit-v4.1.0-tagging-session.md).
+  `c3286bc8` (BuildFlow auto-commit shoved 16 unrelated files in). Decide:
+  keep the tag as-is or recreate at a cleaner commit. Push requires user
+  approval. See
+  [tagging session status](docs/status/2026-07-25_04-54_benchkit-v4.1.0-tagging-session.md).
 
 ---
 

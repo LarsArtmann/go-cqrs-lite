@@ -1083,9 +1083,9 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `deriver`                      | `…/deriver/v4`                      | ✅ Production                                                             |
 | `graph`                        | `…/graph/v4`                        | ✅ Production                                                             |
 | `idempotency`                  | `…/idempotency/v4`                  | ✅ Production                                                             |
-| `idempotency/kvstore`          | `…/idempotency/kvstore/v4`          | ✅ Production (KV-backed idempotency)                                      |
-| `idempotency/sqlstore`         | `…/idempotency/sqlstore/v4`         | ✅ Production (SQL-backed: SQLite + Postgres, `INSERT ON CONFLICT` + TTL)  |
-| `retry`                        | `…/retry/v4`                        | ✅ Production (zero-dep retry w/ backoff+jitter)                           |
+| `idempotency/kvstore`          | `…/idempotency/kvstore/v4`          | ✅ Production (KV-backed idempotency)                                     |
+| `idempotency/sqlstore`         | `…/idempotency/sqlstore/v4`         | ✅ Production (SQL-backed: SQLite + Postgres, `INSERT ON CONFLICT` + TTL) |
+| `retry`                        | `…/retry/v4`                        | ✅ Production (zero-dep retry w/ backoff+jitter)                          |
 | `projection`                   | `…/projection/v4`                   | ✅ Production                                                             |
 | `projectionhost`               | `…/projectionhost/v4`               | ✅ Production                                                             |
 | `scenario`                     | `…/scenario/v4`                     | ✅ Production                                                             |
@@ -1103,17 +1103,17 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Architecture Guarantees
 
-| Guarantee              | Detail                                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------------------------ |
+| Guarantee              | Detail                                                                                                                                                                                                    |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Lint posture           | `nix run .#lint` passes with 0 issues across all 58 modules (metaengine lint cleared 143→0). Note: `nix run .#verify` is currently RED due to 13 file-size violations — see [TODO_LIST.md](TODO_LIST.md). |
-| Race-free              | `go test -race` passes across all modules                                                              |
-| Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                         |
-| Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI     |
-| Library, not framework | Import what you need, compose your own stack                                                           |
-| Context-aware          | All handlers accept `context.Context`                                                                  |
-| Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy |
-| Defensive copies       | All public accessors return copies — callers cannot mutate internals                                   |
-| Tombstone over delete  | Soft-delete via metadata — no `Delete` on Store                                                        |
+| Race-free              | `go test -race` passes across all modules                                                                                                                                                                 |
+| Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                                            |
+| Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                                        |
+| Library, not framework | Import what you need, compose your own stack                                                                                                                                                              |
+| Context-aware          | All handlers accept `context.Context`                                                                                                                                                                     |
+| Errors as values       | Zero panics in production code, explicit error returns, classified sentinels via error-family taxonomy                                                                                                    |
+| Defensive copies       | All public accessors return copies — callers cannot mutate internals                                                                                                                                      |
+| Tombstone over delete  | Soft-delete via metadata — no `Delete` on Store                                                                                                                                                           |
 
 ---
 

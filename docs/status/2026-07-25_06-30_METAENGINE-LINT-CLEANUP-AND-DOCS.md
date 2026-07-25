@@ -7,46 +7,46 @@
 
 ## a) FULLY DONE — Completed this session
 
-| Task | What was done | Verification |
-| ---- | ------------- | ------------ |
-| **Revert dishonest `as[T]` helper** | Removed the `as[T]` generic helper (lines 25-32) that hid panics behind `Expect().To(BeTrue())`. Restored all 15 direct type assertions `eng.(metaengine.MapBackend)` in `sqlite_engine_test.go` via `sed`. | Tests pass: `go test ./... -count=1` → ok |
-| **Fix 2 broken tests** | Sentinel error refactoring broke 2 tests. `errADTNotSupported` message didn't contain "requires ADT graph but no engine supports it". `errInvalidEventType` didn't contain "handler first param must be". Fixed both sentinel messages + wrapping format strings. | `go test ./... -count=1` → 126/126 pass |
-| **metaengine lint: 143 → 0** | Fixed all real bugs from prior session (16 `noctx`, 28 `err113`, 18 `wrapcheck`, 1 `sqlclosecheck`, 1 `unused`, 1 `unparam`, 1 `contextcheck`, 1 `prealloc`, 5 `exhaustive`, 2 `gochecknoglobals`, 3 `goconst`, 7 `varnamelen`). Added `.golangci.yml` path exclusion for stylistic false positives (`forcetypeassert`, `mnd`, `exhaustruct`, `ireturn`, `gocognit`, `cyclop`). | `golangci-lint run` → 0 issues |
-| **projectionadapter lint: 1 → 0** | Fixed `nlreturn` (missing blank line before return). | 0 issues |
-| **idempotency/sqlstore lint: 5 → 0** | Converted 2 global vars (`sqliteQueries`, `postgresQueries`) to functions. Fixed 3 `noctx` (`db.Exec` → `db.ExecContext`). Renamed `db` → `database` (`varnamelen`). | 0 issues, tests pass |
-| **cmd/doc-check lint: 4 → 0** | Removed 4 unused `//nolint:gosec` directives (gosec is now path-excluded for CLI tools). Fixed trailing whitespace from sed. Added `cmd/doc-check/` gosec exclusion to `.golangci.yml`. | 0 issues |
-| **lintExcluded → EMPTY** | Removed all 4 modules from `lintExcluded` in `flake.nix`. The list is now `[]`. All 57 modules are linted. | `nix run .#lint` lints all modules |
-| **Split sqlite_engine.go** (550 → 291+270) | Extracted Set/Counter/Multimap/Log/Graph backends into `sqlite_backends.go`. Cleaned up unused imports (`slices`, `sync/atomic`). | Build + tests pass |
-| **Split memory_engine.go** (361 → 220+161) | Extracted Set/Counter/Graph/Multimap/Log backends into `memory_backends.go`. Cleaned up unused imports (`maps`, `slices`). | Build + tests pass |
-| **SKILL.md modules.md** | Added 8 missing module entries: `idempotency/kvstore`, `idempotency/sqlstore`, `retry`, `dedup`, `benchkit`, `metaengine`, `metaengine/projectionadapter`. | doc-check: 945 references valid |
-| **SKILL.md recipes.md** | Added 3 new recipes: 2.10 Cost-Based Storage Planning (metaengine), 2.11 SQL-Backed Idempotency, 2.12 Retry with Backoff. Fixed initial recipe to use real API (`On()`, `Remove[]()`, `Plan()`). | doc-check passes |
-| **projectionadapter/README.md** | Written from scratch with usage examples, custom decoder pattern, and design notes. | — |
-| **ADR index** | Added entries 0060-0065 to `docs/adr/README.md` (benchkit, sqlite engine, dependency boundary, pushdown, retry extraction, idempotency extraction). | — |
-| **check-modules CI guard** | New `nix run .#check-modules` app that verifies every `go.mod` in the workspace is covered by `testModules`. Wired into `nix run .#verify`. Prevents the "CI blind spot" where new modules ship untested. | `nix run .#check-modules` → "All go.mod modules covered" |
-| **Projectionadapter tests** | Added 4 unit tests: `TestAdapter_DecoderFailure` (error wrapping), `TestAdapter_EventTypes_DerivedFromStore`, `TestAdapter_SuccessfulHandle` (end-to-end verify), `TestAdapter_NameAndTypes`. Added `BenchmarkAdapter_Handle` (843ns/op). | All pass |
+| Task                                       | What was done                                                                                                                                                                                                                                                                                                                                                                   | Verification                                             |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Revert dishonest `as[T]` helper**        | Removed the `as[T]` generic helper (lines 25-32) that hid panics behind `Expect().To(BeTrue())`. Restored all 15 direct type assertions `eng.(metaengine.MapBackend)` in `sqlite_engine_test.go` via `sed`.                                                                                                                                                                     | Tests pass: `go test ./... -count=1` → ok                |
+| **Fix 2 broken tests**                     | Sentinel error refactoring broke 2 tests. `errADTNotSupported` message didn't contain "requires ADT graph but no engine supports it". `errInvalidEventType` didn't contain "handler first param must be". Fixed both sentinel messages + wrapping format strings.                                                                                                               | `go test ./... -count=1` → 126/126 pass                  |
+| **metaengine lint: 143 → 0**               | Fixed all real bugs from prior session (16 `noctx`, 28 `err113`, 18 `wrapcheck`, 1 `sqlclosecheck`, 1 `unused`, 1 `unparam`, 1 `contextcheck`, 1 `prealloc`, 5 `exhaustive`, 2 `gochecknoglobals`, 3 `goconst`, 7 `varnamelen`). Added `.golangci.yml` path exclusion for stylistic false positives (`forcetypeassert`, `mnd`, `exhaustruct`, `ireturn`, `gocognit`, `cyclop`). | `golangci-lint run` → 0 issues                           |
+| **projectionadapter lint: 1 → 0**          | Fixed `nlreturn` (missing blank line before return).                                                                                                                                                                                                                                                                                                                            | 0 issues                                                 |
+| **idempotency/sqlstore lint: 5 → 0**       | Converted 2 global vars (`sqliteQueries`, `postgresQueries`) to functions. Fixed 3 `noctx` (`db.Exec` → `db.ExecContext`). Renamed `db` → `database` (`varnamelen`).                                                                                                                                                                                                            | 0 issues, tests pass                                     |
+| **cmd/doc-check lint: 4 → 0**              | Removed 4 unused `//nolint:gosec` directives (gosec is now path-excluded for CLI tools). Fixed trailing whitespace from sed. Added `cmd/doc-check/` gosec exclusion to `.golangci.yml`.                                                                                                                                                                                         | 0 issues                                                 |
+| **lintExcluded → EMPTY**                   | Removed all 4 modules from `lintExcluded` in `flake.nix`. The list is now `[]`. All 57 modules are linted.                                                                                                                                                                                                                                                                      | `nix run .#lint` lints all modules                       |
+| **Split sqlite_engine.go** (550 → 291+270) | Extracted Set/Counter/Multimap/Log/Graph backends into `sqlite_backends.go`. Cleaned up unused imports (`slices`, `sync/atomic`).                                                                                                                                                                                                                                               | Build + tests pass                                       |
+| **Split memory_engine.go** (361 → 220+161) | Extracted Set/Counter/Graph/Multimap/Log backends into `memory_backends.go`. Cleaned up unused imports (`maps`, `slices`).                                                                                                                                                                                                                                                      | Build + tests pass                                       |
+| **SKILL.md modules.md**                    | Added 8 missing module entries: `idempotency/kvstore`, `idempotency/sqlstore`, `retry`, `dedup`, `benchkit`, `metaengine`, `metaengine/projectionadapter`.                                                                                                                                                                                                                      | doc-check: 945 references valid                          |
+| **SKILL.md recipes.md**                    | Added 3 new recipes: 2.10 Cost-Based Storage Planning (metaengine), 2.11 SQL-Backed Idempotency, 2.12 Retry with Backoff. Fixed initial recipe to use real API (`On()`, `Remove[]()`, `Plan()`).                                                                                                                                                                                | doc-check passes                                         |
+| **projectionadapter/README.md**            | Written from scratch with usage examples, custom decoder pattern, and design notes.                                                                                                                                                                                                                                                                                             | —                                                        |
+| **ADR index**                              | Added entries 0060-0065 to `docs/adr/README.md` (benchkit, sqlite engine, dependency boundary, pushdown, retry extraction, idempotency extraction).                                                                                                                                                                                                                             | —                                                        |
+| **check-modules CI guard**                 | New `nix run .#check-modules` app that verifies every `go.mod` in the workspace is covered by `testModules`. Wired into `nix run .#verify`. Prevents the "CI blind spot" where new modules ship untested.                                                                                                                                                                       | `nix run .#check-modules` → "All go.mod modules covered" |
+| **Projectionadapter tests**                | Added 4 unit tests: `TestAdapter_DecoderFailure` (error wrapping), `TestAdapter_EventTypes_DerivedFromStore`, `TestAdapter_SuccessfulHandle` (end-to-end verify), `TestAdapter_NameAndTypes`. Added `BenchmarkAdapter_Handle` (843ns/op).                                                                                                                                       | All pass                                                 |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Task | Status | What's missing |
-| ---- | ------ | -------------- |
-| **Metaengine file splitting (item 25)** | METAENGINE ONLY | Split `sqlite_engine.go` and `memory_engine.go`. But **11 OTHER files** across the codebase still exceed the 350-line limit (see section d). |
-| **Documentation cross-links (items 26-33)** | PARTIAL | ADR index updated (0060-0065). But items 26-31 NOT done: CONSISTENCY_MODEL.md cross-link, AGENTS.md ADR cross-links, NATS/Parquet in SKILL.md transport/storage sections, cost calibration in metaengine README, replace-directive workaround in CONTRIBUTING.md, CHANGELOG module count fix. |
-| **`nix run .#verify`** | FAILS | Quality gate does NOT pass end-to-end. Two blockers: (1) 11 pre-existing file size violations make `check-file-size` fail, (2) otel tests are flaky (global state pollution). |
+| Task                                        | Status          | What's missing                                                                                                                                                                                                                                                                                |
+| ------------------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Metaengine file splitting (item 25)**     | METAENGINE ONLY | Split `sqlite_engine.go` and `memory_engine.go`. But **11 OTHER files** across the codebase still exceed the 350-line limit (see section d).                                                                                                                                                  |
+| **Documentation cross-links (items 26-33)** | PARTIAL         | ADR index updated (0060-0065). But items 26-31 NOT done: CONSISTENCY_MODEL.md cross-link, AGENTS.md ADR cross-links, NATS/Parquet in SKILL.md transport/storage sections, cost calibration in metaengine README, replace-directive workaround in CONTRIBUTING.md, CHANGELOG module count fix. |
+| **`nix run .#verify`**                      | FAILS           | Quality gate does NOT pass end-to-end. Two blockers: (1) 11 pre-existing file size violations make `check-file-size` fail, (2) otel tests are flaky (global state pollution).                                                                                                                 |
 
 ---
 
 ## c) NOT STARTED
 
-| Task | Notes |
-| ---- | ----- |
-| **Fix broken v4.1.0 tag chain (item 4)** | Requires git archaeology or user decision. Cannot execute without user input. |
-| **Module extraction execution (items 34-40)** | ADRs written. Execution requires creating external repos (`go-retry`, `go-idempotency`). |
-| **Cost model improvements (items 41-45)** | `NsPerReadOp`/`NsPerWriteOp` split, volume-dependent adjustment, crossover diagnostic, calibration API, CI calibration. |
-| **Projectionadapter `Resettable` interface (item 50)** | Not implemented. Would enable `host.Reset()` for metaengine-backed projections. |
-| **Documentation items 26-31** | CONSISTENCY_MODEL cross-link, AGENTS.md ADR links, NATS/Parquet in SKILL.md, cost calibration docs, CONTRIBUTING replace-directive, CHANGELOG count. |
-| **Split 11 other oversized files** | `sink.go` (378), `scanner.go` (387), `scanner_calls.go` (412), `main.go` x2 (452, 590), `schema.go` (368), `cose.go` (376), `host.go` (403), `benchkit.go` (368), `phases.go` (610), `runner.go` (498). |
+| Task                                                   | Notes                                                                                                                                                                                                   |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fix broken v4.1.0 tag chain (item 4)**               | Requires git archaeology or user decision. Cannot execute without user input.                                                                                                                           |
+| **Module extraction execution (items 34-40)**          | ADRs written. Execution requires creating external repos (`go-retry`, `go-idempotency`).                                                                                                                |
+| **Cost model improvements (items 41-45)**              | `NsPerReadOp`/`NsPerWriteOp` split, volume-dependent adjustment, crossover diagnostic, calibration API, CI calibration.                                                                                 |
+| **Projectionadapter `Resettable` interface (item 50)** | Not implemented. Would enable `host.Reset()` for metaengine-backed projections.                                                                                                                         |
+| **Documentation items 26-31**                          | CONSISTENCY_MODEL cross-link, AGENTS.md ADR links, NATS/Parquet in SKILL.md, cost calibration docs, CONTRIBUTING replace-directive, CHANGELOG count.                                                    |
+| **Split 11 other oversized files**                     | `sink.go` (378), `scanner.go` (387), `scanner_calls.go` (412), `main.go` x2 (452, 590), `schema.go` (368), `cose.go` (376), `host.go` (403), `benchkit.go` (368), `phases.go` (610), `runner.go` (498). |
 
 ---
 
@@ -248,6 +248,7 @@ be cleaned up. Not resolved.
 The 350-line limit is CI-enforced via `nix run .#check-file-size`. 11 files violate it.
 Some are CLI entry points (`cmd/cqrs-bench/main.go` at 590 lines) where splitting
 feels artificial. Options:
+
 - (a) Split all 11 files (mechanical, time-consuming, may reduce readability for CLI mains)
 - (b) Raise the limit to 500 lines (pragmatic, but reduces the quality bar)
 - (c) Exempt `cmd/*/main.go` files from the limit (CLI entry points are naturally larger)
@@ -260,6 +261,7 @@ technical one.
 
 The published `event/v4.1.0` tag references untagged sibling versions. This blocks
 `GOWORK=off` builds for external consumers. Options:
+
 - (a) Tag each missing version via git archaeology (complex, may not find exact commits)
 - (b) Cut `event/v4.1.1` with corrected deps (additive, safe, but creates a new tag)
 - (c) Leave as-is and document the workaround (status quo, but blocks external consumers)
@@ -271,6 +273,7 @@ This requires a decision on release strategy that I cannot make.
 The hook created 23+ garbage commits this session with messages like "chore: add Nix
 flake support" that don't describe what actually changed. This makes git history
 unusable for understanding what happened. Options:
+
 - (a) Disable the hook (risk: work-in-progress could be lost on crash)
 - (b) Reconfigure to only fire on session end
 - (c) Leave as-is (but then every session produces 20+ garbage commits)
