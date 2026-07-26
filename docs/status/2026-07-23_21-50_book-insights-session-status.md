@@ -235,3 +235,21 @@ The HTML report (`2026-07-23_book-insights-vs-codebase.html`) and detailed Q&A (
 | Code changes          | N/A   | No code changes this session (docs only)                                                           |
 | Verification          | 7/10  | doc-check passes for new symbols; didn't run nix fmt/verify/lint; pre-existing failures not fixed  |
 | User experience       | 6/10  | User had to remind me to answer questions before editing. Should have followed instructions order. |
+
+---
+
+## Resolution (2026-07-26)
+
+All four consumer-experience gaps identified in this session were **shipped via
+the Pareto execution plan** (2026-07-25):
+
+- ✅ **`docs/CONSISTENCY_MODEL.md`** — documents single-process scope,
+  write→read eventual consistency, projection lag, read-after-write patterns.
+- ✅ **SQL-backed `idempotency.Store`** (`idempotency/sqlstore/`) —
+  `NewSQLiteStore`/`NewPostgresStore` with `INSERT ON CONFLICT DO NOTHING`.
+- ✅ **`decider.WaitForVersion`** — read-your-writes helper (polls
+  `LoadFromVersion` until target version visible).
+- ✅ **`projectionhost.CheckStaleness` / `WithMaxStaleness`** — rejects/flags
+  projection reads whose lag exceeds a threshold.
+
+See CHANGELOG `[Unreleased]` → "Pareto execution plan" section.

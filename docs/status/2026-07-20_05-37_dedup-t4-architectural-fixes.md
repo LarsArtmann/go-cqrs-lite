@@ -178,3 +178,13 @@ All tests pass across all affected modules:
 - `storage/memory/`, `storage/` (+ all sub-packages)
 - `stack/`, `stack/sqlite/`, `stack/postgres/`, `stack/turso/`
 - `watermill/`, `middleware/`, `event/v4/eventtest/`
+
+---
+
+## Resolution (2026-07-26)
+
+This session's extractions (`kv/mem.go` withRLock/withLock helpers,
+base64 JSON helpers moved to `codec/`, `codec.COSEAlgHeader` error wrapping,
+`sqlopt.DSNConfig` struct embedding for all 3 SQL presets) **shipped at
+v4.1.0** with deprecated aliases. The `DSNConfig` name was kept despite the
+Turso file-path mismatch (documented as intentional).

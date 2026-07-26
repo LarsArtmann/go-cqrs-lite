@@ -252,3 +252,23 @@ The Event-Query Model is **proven viable**. The prototype compiles, passes all t
 **What's missing:** Integration with the existing event/projection/kv infrastructure (currently a parallel world), real engine implementations beyond Memory, concurrency safety, streaming support, and computed filter support.
 
 **What's unresolved:** Computed filters (Q2), module vs separate repo (Q1), and event.Event integration depth (Q3).
+
+---
+
+## Resolution (2026-07-26)
+
+The prototype **evolved into the production `metaengine/v4` module** (tagged
+v4.0.0 → v4.1.0 → v4.1.1). Everything listed as "missing" above was addressed:
+
+- **Real engine beyond Memory:** `SQLiteEngine` shipped (ADR-0061).
+- **Integration with event/projection infrastructure:** `metaengine/projectionadapter/`
+  bridges to `projectionhost.Host` (ADR-0062).
+- **Concurrency safety:** tx-atomic `MapUpdate` (ADR-0067), multimap seq-seed
+  (ADR-0068), cross-engine meta-test (150 specs, ADR-0066).
+- **Module vs separate repo:** monorepo submodule for now (Q1 answered in 22:27
+  session). Core stays zero-dep; adapter is a separate go.mod.
+
+**Still deferred (Phase 2):** declarative `FilterSpec`/`SortSpec` for SQL pushdown
+(ADR-0063), streaming via `iter.Seq2`, hot-reload, Pebble engine.
+
+**Current state:** 174 BDD specs + 150 cross-engine meta specs, 87.7% coverage.

@@ -176,3 +176,17 @@ The code is tested, linted, formatted, and the verification gate passes. But the
 ### 3. Should `kv.ViewUpdater` be implemented as part of this feature, or as a separate follow-up?
 
 The review identifies `ViewUpdater` as P1 follow-up work. It's the KV-tier counter equivalent — defined at `kv/view_store.go:118` but never implemented. Implementing it would complete the two-tier counter story (relational Increment + KV ViewUpdater). But it's a different module, different tier, different data model. **Should I implement `ViewUpdater` now to complete the counter architecture, or keep it as a separate PR?**
+
+---
+
+## Resolution (2026-07-26)
+
+`ProjectionSink.Increment` and `RelationalProjection.Reset` **shipped at v4.1.0**
+with 11 tests. See CHANGELOG `[Unreleased]` → Added → "Incremental rollups" and
+FEATURES.md storage section.
+
+**Open questions resolved:**
+- **Q2 (commit now vs full package):** shipped at v4.1.0 batch release.
+- **Q3 (kv.ViewUpdater):** not implemented — YAGNI. `sink.Increment` is the
+  composable primitive for the relational tier. KV-tier counters use
+  `stack.Materialize` with per-key upsert. See TODO_LIST "Declined" section.

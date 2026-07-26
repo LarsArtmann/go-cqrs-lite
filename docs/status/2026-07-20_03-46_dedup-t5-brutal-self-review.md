@@ -201,3 +201,21 @@ Nothing destructive. No data lost, no tests broken, no public API changed. The w
 2. **Revert `CursorArgs` or keep it?** I introduced it to break a clone-detector match, but it obscures that the cursor ID fills two distinct SQL roles. The literal `[]any{x, x}` is arguably more honest. This is a taste/judgment call I want confirmed rather than decided silently.
 
 3. **Commit strategy: one commit for the whole `-t 5` sweep, or split by extraction (watermill / storage / contracttest)?** The `-t 6` session was one commit. This session is 20 files across 5 modules. One commit is simpler to revert; multiple commits are easier to review and bisect. I don't know your git-history preference for this repo.
+
+---
+
+## Resolution (2026-07-26)
+
+This session's extractions (`appendMiddleware` → `withLockedModify`,
+`CloseRows`, `deleteTimer`, `closeIterator`, `subscriptionState`,
+`eventtest.NewTestEvents`) **shipped at v4.1.0** with deprecated aliases.
+The dedup series concluded (see 2026-07-22 session for the final 3→0 push).
+
+**Open questions resolved:**
+- **Q1 (CloseRows location):** kept in `storage/sql/` (Tier 4). Lateral deps
+  between same-tier modules are acceptable in this repo's multi-module model.
+  `CloseRows` was later applied to the remaining 6 files in middleware,
+  projectionhost, and turso across subsequent sessions.
+- **Q2 (CursorArgs):** reverted — the literal `[]any{x, x}` is more honest.
+- **Q3 (commit strategy):** auto-commit daemon made this moot; work shipped in
+  the v4.1.0 batch release.

@@ -207,3 +207,17 @@ Commits `97394dd7`, `5b558eb1`, `580b3a80` are dangling — they contain the sen
 ### 3. Is the API stability checker (`cmd/api-stability`) configured to track the newly exported sentinels?
 
 I exported 6 previously-unexported sentinels (`ErrTypeAssertion`, `ErrUnregisteredType`, `ErrCatalogValidation`, `ErrEmptyChannelName`, `ErrInvalidChannelName`, `ErrNotGatherer`) and renamed 1 (`errUnexpectedTimeTypeDL` → `ErrUnexpectedTimeType`). If `cmd/api-stability` compares against a golden file, these additions need to be recorded. I don't know if the golden file is auto-updated or manual, and I don't know if CI runs this check.
+
+---
+
+## Resolution (2026-07-26)
+
+The 13 sentinel migrations to `errorfamily` constructors **shipped at v4.1.0**.
+See CHANGELOG `[Unreleased]` → Added → "Error taxonomy migration."
+
+**Open questions resolved:**
+- **Q2 (orphaned commits):** left as-is — auto-commit daemon behavior is expected.
+  Code changes confirmed in HEAD.
+- **Q3 (api-stability golden):** golden file regenerated. `#check-api-stability`
+  now runs inside `#verify` with `-race` and the `TestEveryGoModDirIsInModulesList`
+  meta-test. All 6 newly-exported sentinels are tracked.
