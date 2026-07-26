@@ -233,7 +233,11 @@ func (sv SchemaVersion) Sub(n int) (SchemaVersion, error) {
 	return sv.checkUnderflow(sv-SchemaVersion(n), "-", n)
 }
 
-func (sv SchemaVersion) checkUnderflow(result SchemaVersion, op string, n int) (SchemaVersion, error) {
+func (sv SchemaVersion) checkUnderflow(
+	result SchemaVersion,
+	op string,
+	n int,
+) (SchemaVersion, error) {
 	if result < 1 {
 		return 0, fmt.Errorf("%w: %d %s %d < 1", ErrSchemaVersionUnderflow, sv, op, n)
 	}
