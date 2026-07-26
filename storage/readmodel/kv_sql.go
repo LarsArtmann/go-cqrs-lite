@@ -107,12 +107,7 @@ func (s *SQLKVStore) Has(ctx context.Context, key []byte) (bool, error) {
 // Set upserts key/value atomically.
 func (s *SQLKVStore) Set(ctx context.Context, key, value []byte) error {
 	_, err := s.DB.ExecContext(ctx, s.upsertSQL(), key, value)
-	if err != nil {
-		return errorfamily.WrapTransient(err, "kv_sql.set",
-			"set value in KV store")
-	}
-
-	return nil
+	return wrapTransientOrOK(err, "kv_sql.set", "set value in KV store")
 }
 
 // Delete removes key. Deleting a missing key is a no-op.
@@ -120,12 +115,7 @@ func (s *SQLKVStore) Delete(ctx context.Context, key []byte) error {
 	q := fmt.Sprintf("DELETE FROM %s WHERE key = %s", kvTableName, s.Dialect.Placeholder(1))
 
 	_, err := s.DB.ExecContext(ctx, q, key)
-	if err != nil {
-		return errorfamily.WrapTransient(err, "kv_sql.delete",
-			"delete key from KV store")
-	}
-
-	return nil
+	return wrapTransientOrOK(err, "kv_sql.delete", "delete key from KV store")
 }
 
 // NewIterator returns an iterator over keys matching prefix in lexicographic
@@ -238,12 +228,7 @@ func (it *sqlKVIterator) Close() error {
 	err := it.rows.Close()
 	it.rows = nil
 
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "kv_sql.close_iterator",
-			"close KV iterator")
-	}
-
-	return nil
+	return wrapInfraOrOK(err, "kv_sql.close_iterator", "close KV iterator")
 }
 
 type sqlKVBatch struct {
@@ -254,24 +239,14 @@ type sqlKVBatch struct {
 
 func (b *sqlKVBatch) Set(ctx context.Context, key, value []byte) error {
 	_, err := b.tx.ExecContext(ctx, b.store.upsertSQL(), key, value)
-	if err != nil {
-		return errorfamily.WrapTransient(err, "kv_sql.batch_set",
-			"batch set in KV store")
-	}
-
-	return nil
+	return wrapTransientOrOK(err, "kv_sql.batch_set", "batch set in KV store")
 }
 
 func (b *sqlKVBatch) Delete(ctx context.Context, key []byte) error {
 	q := fmt.Sprintf("DELETE FROM %s WHERE key = %s", kvTableName, b.store.Dialect.Placeholder(1))
 
 	_, err := b.tx.ExecContext(ctx, q, key)
-	if err != nil {
-		return errorfamily.WrapTransient(err, "kv_sql.batch_delete",
-			"batch delete in KV store")
-	}
-
-	return nil
+	return wrapTransientOrOK(err, "kv_sql.batch_delete", "batch delete in KV store")
 }
 
 func (b *sqlKVBatch) Commit(ctx context.Context) error {
@@ -284,12 +259,7 @@ func (b *sqlKVBatch) Commit(ctx context.Context) error {
 	err := b.tx.Commit()
 	b.closed = true
 
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "kv_sql.batch_commit",
-			"commit KV batch")
-	}
-
-	return nil
+	return wrapInfraOrOK(err, "kv_sql.batch_commit", "commit KV batch")
 }
 
 func (b *sqlKVBatch) Close() error {
@@ -300,12 +270,28 @@ func (b *sqlKVBatch) Close() error {
 	b.closed = true
 
 	err := b.tx.Rollback()
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "kv_sql.batch_rollback",
-			"rollback KV batch on close")
+	return wrapInfraOrOK(err, "kv_sql.batch_rollback", "rollback KV batch on close")
+}
+
+// wrapTransientOrOK returns nil when err is nil, otherwise wraps err as a
+// transient error. Collapses the repeated "if err != nil { return WrapTransient(...) }; return nil"
+// boilerplate — the unique code stays a parameter.
+func wrapTransientOrOK(err error, code, msg string) error {
+	if err == nil {
+		return nil
 	}
 
-	return nil
+	return errorfamily.WrapTransient(err, code, msg)
+}
+
+// wrapInfraOrOK returns nil when err is nil, otherwise wraps err as an
+// infrastructure error.
+func wrapInfraOrOK(err error, code, msg string) error {
+	if err == nil {
+		return nil
+	}
+
+	return errorfamily.WrapInfrastructure(err, code, msg)
 }
 
 var (
