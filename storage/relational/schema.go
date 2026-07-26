@@ -191,6 +191,27 @@ type RelationalColumn struct {
 	References string
 }
 
+// DDL renders the type-and-constraint clause for one column — the text that
+// follows the column name in CREATE TABLE and ALTER TABLE ADD COLUMN. It is
+// used by [RelationalTable.DDL] during table creation and can be called
+// directly to generate consistent ALTER TABLE statements.
+func (c RelationalColumn) DDL() string {
+	clause := c.Type
+	if !c.Nullable {
+		clause += " NOT NULL"
+	}
+	if c.Default != "" {
+		clause += " DEFAULT " + c.Default
+	}
+	if c.Unique {
+		clause += " UNIQUE"
+	}
+	if c.References != "" {
+		clause += " REFERENCES " + c.References
+	}
+	return clause
+}
+
 // IndexSpec declares a secondary index on a [RelationalTable]. It generates a
 // portable "CREATE INDEX IF NOT EXISTS" statement during [RelationalSchema.Migrate].
 //
@@ -219,25 +240,7 @@ func (t RelationalTable) DDL() string {
 	parts := make([]string, 0, len(t.Columns)+1)
 
 	for _, c := range t.Columns {
-		col := c.Name + " " + c.Type
-
-		if !c.Nullable {
-			col += " NOT NULL"
-		}
-
-		if c.Default != "" {
-			col += " DEFAULT " + c.Default
-		}
-
-		if c.Unique {
-			col += " UNIQUE"
-		}
-
-		if c.References != "" {
-			col += " REFERENCES " + c.References
-		}
-
-		parts = append(parts, col)
+		parts = append(parts, c.Name+" "+c.DDL())
 	}
 
 	if len(t.PrimaryKey) > 0 {
