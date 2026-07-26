@@ -106,7 +106,7 @@ func runUpsertScenario(t *testing.T, sc upsertScenario) {
 	sc.verify(t, db, ctx)
 }
 
-func TestSinkUpsert(t *testing.T) {
+func TestSinkUpsert(t *testing.T) { //nolint:gocognit // table-driven test with 8 upsert scenarios
 	t.Parallel()
 
 	// COALESCE expr: empty new content should preserve original.
