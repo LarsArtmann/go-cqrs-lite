@@ -1,6 +1,7 @@
 package pebble
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -135,13 +136,7 @@ func (a *EventStore) corruptEventErr(key string, err error) error {
 
 // checkIteratorError checks an iterator for errors and returns an appropriate error.
 func checkIteratorError(iter *pebble.Iterator) error {
-	err := iter.Error()
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "pebble.iterator_error",
-			"iterator error")
-	}
-
-	return nil
+	return wrapInfraOrOK(iter.Error(), "pebble.iterator_error", "iterator error")
 }
 
 // keyExists reports whether the given key is present in the database. Returns
@@ -162,23 +157,29 @@ func keyExists(db *pebble.DB, key []byte) bool {
 // lastSegmentAfterByte returns the substring after the last occurrence of sep
 // in key, or the whole key if sep is not found. Shared by journal-key ID extractors.
 func lastSegmentAfterByte(key []byte, sep byte) string {
-	for i := len(key) - 1; i >= 0; i-- { //nolint:modernize // reverse scan is clearer here
-		if key[i] == sep {
-			return string(key[i+1:])
-		}
+	if i := bytes.LastIndexByte(key, sep); i >= 0 {
+		return string(key[i+1:])
 	}
 
 	return string(key)
 }
 
+// wrapInfraOrOK returns nil when err is nil, otherwise wraps err as an
+// infrastructure error with the given code and message. Collapses the
+// repeated "if err != nil { return WrapInfrastructure(...) }; return nil"
+// boilerplate — the unique code stays a parameter.
+func wrapInfraOrOK(err error, code, msg string) error {
+	if err == nil {
+		return nil
+	}
+
+	return errorfamily.WrapInfrastructure(err, code, msg)
+}
+
 // closeAndWrap closes db and wraps any failure with the given errorfamily code
 // and message. Shared by KVAdapter.Close and Backend.Close.
 func closeAndWrap(db *pebble.DB, code, msg string) error {
-	if err := db.Close(); err != nil {
-		return errorfamily.WrapInfrastructure(err, code, msg)
-	}
-
-	return nil
+	return wrapInfraOrOK(db.Close(), code, msg)
 }
 
 // Ensure EventStore implements event.Store.

@@ -58,13 +58,7 @@ func (it *pebbleIterator) Value() []byte {
 }
 
 func (it *pebbleIterator) Error() error {
-	err := it.iter.Error()
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "pebble.iterator.error",
-			"iterator error")
-	}
-
-	return nil
+	return wrapInfraOrOK(it.iter.Error(), "pebble.iterator.error", "iterator error")
 }
 
 func (it *pebbleIterator) Close() error {
