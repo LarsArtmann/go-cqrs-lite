@@ -39,11 +39,10 @@ func NewEd25519(privateKey ed25519.PrivateKey) (*ed25519Signer, error) {
 
 // Sign computes an Ed25519 signature for the event.
 func (s *ed25519Signer) Sign(evt event.Event) (Signature, error) {
-	if evt == nil {
-		return nil, ErrNilEvent
+	canonical, err := canonicalOrErr(evt)
+	if err != nil {
+		return nil, err
 	}
-
-	canonical := canonicalPayload(evt)
 
 	sig := ed25519.Sign(s.privateKey, canonical)
 
@@ -82,11 +81,10 @@ func (v *ed25519Verifier) Verify(evt event.Event, sig Signature) error {
 		return ErrNilSignature
 	}
 
-	if evt == nil {
-		return ErrNilEvent
+	canonical, err := canonicalOrErr(evt)
+	if err != nil {
+		return err
 	}
-
-	canonical := canonicalPayload(evt)
 
 	if !ed25519.Verify(v.publicKey, canonical, sig) {
 		return ErrInvalidSignature

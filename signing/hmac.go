@@ -45,11 +45,10 @@ func NewHMAC(key []byte) (*hmacSigner, error) {
 
 // Sign computes an HMAC-SHA256 signature for the event.
 func (s *hmacSigner) Sign(evt event.Event) (Signature, error) {
-	if evt == nil {
-		return nil, ErrNilEvent
+	canonical, err := canonicalOrErr(evt)
+	if err != nil {
+		return nil, err
 	}
-
-	canonical := canonicalPayload(evt)
 
 	mac := hmac.New(sha256.New, s.key)
 	mac.Write(canonical)
@@ -66,8 +65,6 @@ func (s *hmacSigner) Verify(evt event.Event, sig Signature) error {
 	if evt == nil {
 		return ErrNilEvent
 	}
-
-	expected, err := s.Sign(evt)
 	if err != nil {
 		return err
 	}

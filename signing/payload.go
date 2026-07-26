@@ -56,6 +56,16 @@ func canonicalPayload(evt event.Event) []byte {
 	return buf
 }
 
+// canonicalOrErr returns the canonical payload bytes for evt, or ErrNilEvent
+// when evt is nil. Shared by Sign and Verify in ed25519 and HMAC signers.
+func canonicalOrErr(evt event.Event) ([]byte, error) {
+	if evt == nil {
+		return nil, ErrNilEvent
+	}
+
+	return canonicalPayload(evt), nil
+}
+
 func appendPrefixed(buf, lenBuf []byte, s string) []byte {
 	putUint32(lenBuf, len(s))
 	buf = append(buf, lenBuf...)
