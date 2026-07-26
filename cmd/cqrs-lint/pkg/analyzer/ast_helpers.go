@@ -71,6 +71,18 @@ func stringLit(expr ast.Expr) string {
 	return strings.Trim(lit.Value, `"`)
 }
 
+// selectorNameAndPkg extracts the function/method name and package qualifier
+// from a call expression. Returns ok=false when the call target is not a
+// selector (e.g. a bare ident or builtin).
+func selectorNameAndPkg(call *ast.CallExpr) (funcName, pkgName string, ok bool) {
+	sel, alright := SelectorFromExpr(call.Fun)
+	if !alright {
+		return "", "", false
+	}
+
+	return sel.Sel.Name, SelectorPackage(sel), true
+}
+
 // Helper: extract the package/qualifier from a SelectorExpr.
 // SelectorPackage extracts the package name from a SelectorExpr.
 func SelectorPackage(sel *ast.SelectorExpr) string {

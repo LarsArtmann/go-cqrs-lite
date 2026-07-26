@@ -141,13 +141,10 @@ func capturePayloadTypeFromVar(
 	call *ast.CallExpr,
 	varAssigns map[string]string,
 ) {
-	sel, ok := SelectorFromExpr(call.Fun)
+	funcName, pkgName, ok := selectorNameAndPkg(call)
 	if !ok {
 		return
 	}
-
-	funcName := sel.Sel.Name
-	pkgName := SelectorPackage(sel)
 
 	if funcName != "New" && funcName != "NewEvent" {
 		return

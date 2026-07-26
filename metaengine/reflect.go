@@ -108,11 +108,21 @@ func reflectFields(v any) []reflectField {
 
 // extractKeyValueByType finds a field in the input struct whose type matches
 // the projection's key type. The engine matches purely by Go type, not name.
+// extractKeyValueByType finds a field in the input struct whose type matches
+// the projection's key type. The engine matches purely by Go type, not name.
 func extractKeyValueByType(input any, keyType reflect.Type) any {
 	if keyType == nil {
 		return nil
 	}
 
+	return findValueByType(input, keyType, func(string) bool { return false })
+}
+
+// findValueByType finds the first exported field of input's struct whose type
+// matches targetType, skipping any field whose name the skip predicate accepts.
+// Returns the field value, or nil if input is not a struct, no match is found,
+// or the match is ambiguous (two or more fields share the same type).
+func findValueByType(input any, targetType reflect.Type, skip func(name string) bool) any {
 	v, ok := structValue(input)
 	if !ok {
 		return nil
@@ -123,13 +133,13 @@ func extractKeyValueByType(input any, keyType reflect.Type) any {
 	foundIdx := -1
 
 	for i := range t.NumField() {
-		if !t.Field(i).IsExported() {
+		if !t.Field(i).IsExported() || skip(t.Field(i).Name) {
 			continue
 		}
 
-		if t.Field(i).Type == keyType {
+		if t.Field(i).Type == targetType {
 			if foundIdx >= 0 {
-				return nil
+				return nil // ambiguous
 			}
 
 			foundIdx = i

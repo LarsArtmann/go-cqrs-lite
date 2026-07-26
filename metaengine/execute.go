@@ -212,37 +212,12 @@ func buildFilterPredicates(q queryRuntime, input any) []filterPredicate {
 
 // extractValueByType finds a field in the input struct whose type matches
 // the given type, and returns its value. Returns nil if not found or ambiguous.
+// extractValueByType finds a non-meta field in the input struct whose type
+// matches targetType, and returns its value. Returns nil if not found or
+// ambiguous.
 func extractValueByType(input any, targetType reflect.Type) any {
-	v, ok := structValue(input)
-	if !ok {
-		return nil
-	}
-
-	t := v.Type()
-
 	metaNames := map[string]bool{limitField: true, afterField: true, depthField: true}
-
-	foundIdx := -1
-
-	for i := range t.NumField() {
-		if !t.Field(i).IsExported() || metaNames[t.Field(i).Name] {
-			continue
-		}
-
-		if t.Field(i).Type == targetType {
-			if foundIdx >= 0 {
-				return nil // ambiguous
-			}
-
-			foundIdx = i
-		}
-	}
-
-	if foundIdx < 0 {
-		return nil
-	}
-
-	return v.Field(foundIdx).Interface()
+	return findValueByType(input, targetType, func(name string) bool { return metaNames[name] })
 }
 
 // buildSortFunc creates a comparator from a SortOn closure.

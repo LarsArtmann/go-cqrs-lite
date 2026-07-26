@@ -70,18 +70,20 @@ func NewAutoIndexer(db *sql.DB, opts ...AutoIndexerOption) *AutoIndexer {
 
 // Enable allows the auto-indexer to create indexes.
 func (a *AutoIndexer) Enable() {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
-	a.enabled = true
+	a.setEnabled(true)
 }
 
 // Disable prevents the auto-indexer from creating indexes.
 func (a *AutoIndexer) Disable() {
+	a.setEnabled(false)
+}
+
+// setEnabled toggles the auto-indexer's active flag under the mutex.
+func (a *AutoIndexer) setEnabled(v bool) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	a.enabled = false
+	a.enabled = v
 }
 
 // IsEnabled reports whether auto-indexing is active.
@@ -238,10 +240,7 @@ func (a *AutoIndexer) Recommendations(ctx context.Context) ([]Recommendation, er
 // Close releases any resources held by the AutoIndexer.
 // The underlying *sql.DB is owned by the caller and not closed.
 func (a *AutoIndexer) Close() error {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
-	a.enabled = false
+	a.setEnabled(false)
 
 	return nil
 }

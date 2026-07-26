@@ -19,13 +19,11 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 	// link the analyzer cannot otherwise trace.
 	scanGenericHandlerCall(ctx, call)
 
-	sel, ok := SelectorFromExpr(call.Fun)
+	funcName, pkgName, ok := selectorNameAndPkg(call)
 	if !ok {
 		return
 	}
 
-	funcName := sel.Sel.Name
-	pkgName := SelectorPackage(sel)
 	pos := ctx.Fset.Position(call.Pos())
 
 	switch {

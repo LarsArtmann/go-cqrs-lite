@@ -53,7 +53,7 @@ func (a *EventStore) ReadFrom(
 	span := startLimitSpan(ctx, "pebble.journal.read_from", limit)
 	defer span.End()
 
-	upperBound := []byte(a.journalPrefix + "\xff")
+	_, upperBound := a.journalBounds()
 
 	// Fast path: no afterEventID, collect from beginning.
 	if afterEventID.IsZero() {
