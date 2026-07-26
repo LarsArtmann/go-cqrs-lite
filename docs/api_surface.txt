@@ -399,6 +399,7 @@ codec/func NormalizeCOSEAlgorithm
 codec/func PrepareCOSESetup
 codec/func SigStructure
 codec/func Size
+codec/func TranscodeToJSON
 codec/func UnmarshalBase64JSON
 codec/func UnmarshalCOSEEncrypt0
 codec/func UnmarshalCOSEProtectedHeader
@@ -2566,6 +2567,7 @@ transport/http/const DefaultSSERetryInterval
 transport/http/const SSEReplayBudgetDisabled
 transport/http/const SSEReplayIncompleteEvent
 transport/http/func BackfillHandler
+transport/http/func CBORToJSONTransform
 transport/http/func MustParseSSEEventID
 transport/http/func NewReplayMetrics
 transport/http/func NewSSEBroker

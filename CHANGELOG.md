@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **CBOR→JSON transcoding helpers** — `codec.TranscodeToJSON(payload, enc)` and
+  `transport/http.CBORToJSONTransform`. A schema-free, ready-made bridge for
+  consumers that store events in CBOR but must serve JSON to browsers via SSE.
+  Deletes the per-consumer transcode logic (~50 LOC) that every compact-codec
+  deployment otherwise duplicates. The transform receives raw payload bytes +
+  the event's encoding stamp; non-CBOR payloads pass through unchanged (zero
+  overhead); decode/encode failures fall back to the raw payload (graceful
+  degradation). `CBORToJSONTransform` is the one-liner for `WithPayloadTransform`.
+  Also fixes the `WithPayloadTransform` doc example, which previously swallowed
+  errors (`jsonBytes, _ := json.Marshal(p)`).
 - **Metaengine module** (`metaengine/v4`) — cost-based storage planner for
   event-sourced data. Derives projections and engine assignments from two
   primitives: Events (mutations) and Queries (read intent). 7 ADTs inferred
