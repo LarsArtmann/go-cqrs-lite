@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 // Fixture types for generic message constructors.
@@ -96,7 +97,7 @@ var _ = Describe("Catalog Builder", func() {
 			It("should handle single-word type names", func() {
 				type Activate struct{ Active bool }
 
-				b := catalog.NewBuilder("Test", "1.0.0")
+				b := cattest.TestBuilder()
 				b.AddService(
 					"svc", "Svc", "1.0.0", "",
 					catalog.Command[Activate]("activate"),
@@ -109,7 +110,7 @@ var _ = Describe("Catalog Builder", func() {
 			It("should preserve type names that are already short", func() {
 				type X struct{}
 
-				b := catalog.NewBuilder("Test", "1.0.0")
+				b := cattest.TestBuilder()
 				b.AddService(
 					"svc", "Svc", "1.0.0", "",
 					catalog.Command[X]("x"),

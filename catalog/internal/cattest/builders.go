@@ -16,6 +16,13 @@ func NewRegistry(tb testing.TB, title, version string) *catalog.Registry {
 func NewTestBuilder(tb testing.TB) *catalog.Builder {
 	tb.Helper()
 
+	return TestBuilder()
+}
+
+// TestBuilder returns a builder named "TestCatalog" at "1.0.0" without
+// requiring testing.TB. Use in Ginkgo BDD contexts where testing.TB is
+// not directly available (GinkgoT() cannot satisfy testing.TB's private method).
+func TestBuilder() *catalog.Builder {
 	return catalog.NewBuilder(testCatalogName, testVersion)
 }
 
