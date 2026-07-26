@@ -112,13 +112,18 @@ func (s *DeciderScenario[Cmd, State]) foldGiven() State {
 	return state
 }
 
+// prepareThen marks the helper, asserts When was called, and folds the given events.
+func (s *DeciderScenario[Cmd, State]) prepareThen(method string) State {
+	s.t.Helper()
+	s.requireWhen(method)
+
+	return s.foldGiven()
+}
+
 // Then asserts that the decide function produced the expected event types.
 // It compares event types (not payloads) — use ThenFull for deep comparison.
 func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
-	s.t.Helper()
-	s.requireWhen("Then")
-
-	state := s.foldGiven()
+	state := s.prepareThen("Then")
 
 	events, err := s.decide(state, s.cmd)
 	if err != nil {
@@ -137,10 +142,7 @@ func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
 
 // ThenError asserts that the decide function returns an error matching target.
 func (s *DeciderScenario[Cmd, State]) ThenError(target error) {
-	s.t.Helper()
-	s.requireWhen("ThenError")
-
-	state := s.foldGiven()
+	state := s.prepareThen("ThenError")
 
 	_, err := s.decide(state, s.cmd)
 	if err == nil {

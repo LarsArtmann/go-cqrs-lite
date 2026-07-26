@@ -92,6 +92,20 @@ func (a *AutoIndexer) IsEnabled() bool {
 	return a.enabled
 }
 
+// rejectIfDisabled returns a rejection error when the auto-indexer is not
+// enabled, recording it on the span. Returns nil when enabled.
+func (a *AutoIndexer) rejectIfDisabled(span trace.Span) error {
+	if a.IsEnabled() {
+		return nil
+	}
+
+	err := errorfamily.NewRejection("indexing.disabled",
+		"auto-indexer is disabled: call Enable() first")
+	cqrsotel.RecordError(span, err)
+
+	return err
+}
+
 // Apply executes the DDL for each recommendation.
 // Skips indexes that already exist.
 // Returns a rejection error if the auto-indexer is not enabled.
@@ -103,11 +117,7 @@ func (a *AutoIndexer) Apply(ctx context.Context, recs []Recommendation) error {
 	)
 	defer endSpan(span, nil)
 
-	if !a.IsEnabled() {
-		err := errorfamily.NewRejection("indexing.disabled",
-			"auto-indexer is disabled: call Enable() first")
-		cqrsotel.RecordError(span, err)
-
+	if err := a.rejectIfDisabled(span); err != nil {
 		return err
 	}
 
@@ -157,11 +167,7 @@ func (a *AutoIndexer) ApplyRecommended(ctx context.Context) error {
 	ctx, span := startIndexingSpan(ctx, "indexing.auto_indexer.apply_recommended")
 	defer endSpan(span, nil)
 
-	if !a.IsEnabled() {
-		err := errorfamily.NewRejection("indexing.disabled",
-			"auto-indexer is disabled: call Enable() first")
-		cqrsotel.RecordError(span, err)
-
+	if err := a.rejectIfDisabled(span); err != nil {
 		return err
 	}
 
@@ -186,11 +192,7 @@ func (a *AutoIndexer) ApplyCQRSIndexes(ctx context.Context) error {
 	ctx, span := startIndexingSpan(ctx, SpanAutoIndexerApplyCQRS)
 	defer endSpan(span, nil)
 
-	if !a.IsEnabled() {
-		err := errorfamily.NewRejection("indexing.disabled",
-			"auto-indexer is disabled: call Enable() first")
-		cqrsotel.RecordError(span, err)
-
+	if err := a.rejectIfDisabled(span); err != nil {
 		return err
 	}
 
@@ -255,11 +257,7 @@ func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
 	)
 	defer endSpan(span, nil)
 
-	if !a.IsEnabled() {
-		err := errorfamily.NewRejection("indexing.disabled",
-			"auto-indexer is disabled: call Enable() first")
-		cqrsotel.RecordError(span, err)
-
+	if err := a.rejectIfDisabled(span); err != nil {
 		return err
 	}
 
