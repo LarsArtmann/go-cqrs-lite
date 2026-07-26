@@ -184,6 +184,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **CI workflow** — profiling hooks and a benchmark interpretation guide
   (`docs/benchmarking/`).
 
+### Added (metaengine hardening + error-wrapping convention — 2026-07-26)
+
+- **Metaengine fold-classify** (`metaengine/`) — `classifyFold` inspects fold
+  return types to assign ADT patterns, shared across engines for consistency.
+  Eliminates divergent classification between MemoryEngine and SQLiteEngine.
+- **Cross-engine meta-test** (`metaengine/cross_engine_meta_test.go`) — 150 specs
+  run identical Apply → ExecuteTyped sequences on Memory + SQLite, asserting
+  identical typed results. Guards the contract that engine choice must not
+  affect query output.
+- **End-to-end signature/ciphertext verification** (`metaengine/`) — integrated
+  across Memory and SQLite engines so signed/encrypted events are verified at
+  the engine boundary.
+- **`metaengine/v4.1.1`** — supersedes v4.1.0's panicking `MapUpdate` (the
+  `map[string]any` → struct reification path). `reifyReflect` co-located with
+  `reify[R]` in `metaengine/reify.go`.
+- **Error-wrapping helpers convention** (ADR-0069) — documents the per-module
+  helper pattern (`wrapInfraOrOK`, `wrapTransientOrOK`, `MarshalBase64JSONWithModule`)
+  used across storage/pebble, storage/kv_sql, codec, encryption, and signing.
+  Capped at 3 modules per helper to preserve multi-module isolation.
+- **Dedup acceptance documentation** (`docs/dedup-acceptance.md`) — documents
+  the clone-group reduction methodology, thresholds (`-t 2` primary, `-t 5`
+  secondary), and accepted groups with rationale.
+
+### Fixed (metaengine hardening — 2026-07-26)
+
+- **Metaengine `SQLiteEngine` reification** — `reifyReflect` helper handles
+  `map[string]any` → struct conversion across all engine methods that return
+  `any` from SQL scans. Co-located with the generic `reify[R]` function.
+- **Metaengine tx-atomic `MapUpdate`** (ADR-0067) — SQLite `MapUpdate` wraps
+  read-modify-write in a single transaction, preventing lost updates across
+  concurrent calls.
+- **Metaengine multimap seq-seed** (ADR-0068) — lazy `sync.Once` seeding from
+  `MAX(seq)` on first use ensures safe restart without sequence collisions.
+
 ### Changed
 
 - **README rewrite** — restructured as 3-step Quick Start (define domain, event-source

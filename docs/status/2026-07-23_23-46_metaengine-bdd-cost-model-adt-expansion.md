@@ -278,3 +278,27 @@ Currently `Plan()` returns a `*Store` that holds runtime state AND diagnostic `P
 
 **Q3: Should the metaengine module stay zero-dependency (stdlib only) or is it acceptable to depend on `event/` from the monorepo?**
 Currently the module has zero production deps and one test dep (ginkgo/gomega). Integrating with `event.Event` and `projection.Projection` requires importing `event/`. But `event/` has a go.sum checksum issue that blocks the import. Should we fix the checksum issue and add the dependency, or keep the module standalone and use adapter types?
+
+---
+
+## Resolution (2026-07-26)
+
+All three open questions resolved (same answers as the 22:27 session):
+
+- **Q1 (FilterOn SQL pushdown):** Phase 1 keeps in-memory closures + `PushdownScan`
+  seam. Phase 2 deferred (ADR-0063). Does NOT block the SQLite engine — SQLite uses
+  SQL `WHERE`/`ORDER BY` natively via `SQLViewStore`.
+- **Q2 (planner shape):** `Store.Apply()` + `ExecuteTyped[Q,R]` confirmed.
+  `metaengine/projectionadapter/` bridges to `projectionhost.Host` (ADR-0062).
+- **Q3 (zero-dependency):** Core stays zero-dep. Adapter is a separate module.
+
+**Stale claims now resolved:**
+- "Cost model uncalibrated (`nsPerOp=100` arbitrary)" → calibrated with real
+  benchmarks: Memory=500ns, SQLite=7000ns via `EngineProfile.NsPerOp` (ADR-0061).
+- "6 files exceed 350-line CI limit" → all split, lint clean (143 → 0 issues).
+- "go.sum checksum issues" → resolved by the 2026-07-25 release tag fix.
+- "No real SQLite engine" → `SQLiteEngine` shipped (ADR-0061).
+- "No cursor serialization" → base64 cursors implemented.
+
+**Current state:** 174 BDD specs + 150 cross-engine meta specs, 87.7% coverage.
+`metaengine/v4.1.1` tagged and pushed.

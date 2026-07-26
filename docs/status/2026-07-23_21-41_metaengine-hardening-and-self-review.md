@@ -244,3 +244,31 @@ Full-sort is trivially correct but scans all matching items every time. A sorted
 ### Q3: Should metaengine/ stay zero-dependency (stdlib only) or should we resolve the go.sum checksum issues and add the event/ dependency?
 
 Zero-dependency means ApplyEncoded + adapter pattern only — no direct `event.Event`, `projection.Projection`, or `codec.Codec` integration. Adding the event/ dependency enables `ApplyEvent(evt event.Event)`, `AsProjection()` returning a `projection.Projection`, and codec-aware payload decoding. But it requires resolving the pre-existing `codec/v4.0.4` tag mismatch that affects the entire workspace, not just metaengine.
+
+---
+
+## Resolution (2026-07-26)
+
+The critical bugs reported above were **all fixed** in subsequent sessions:
+
+- **MapScan sort-before-scan** → resolved by design: MemoryEngine uses full-sort
+  (acceptable for testing), SQLiteEngine delegates to SQL `ORDER BY + LIMIT`
+  (ADR-0061).
+- **FoldUpdate race (data corruption)** → fixed via tx-atomic `MapUpdate` wrapping
+  read-modify-write in a single SQLite transaction (ADR-0067). Multimap seq-seed
+  made restart-safe via `sync.Once` + `MAX(seq)` seeding (ADR-0068).
+- **`map[string]any` → struct reification** → centralized in `reifyReflect`
+  (`metaengine/reify.go`), co-located with generic `reify[R]`. Cross-engine meta-test
+  (`cross_engine_meta_test.go`, 150 specs) asserts Memory and SQLite produce
+  identical typed results (ADR-0066).
+
+**Open questions resolved:**
+- **Q1 (sort strategy):** full-sort for Memory (testing-only), ORDER BY for SQLite.
+- **Q2 (FilterOn SQL pushdown):** Phase 1 keeps in-memory closures + `PushdownScan`
+  interface seam. Phase 2 declarative `FilterSpec`/`SortSpec` deferred (ADR-0063).
+- **Q3 (zero-dependency):** Core `metaengine/v4` stays zero-dep. Event/projection
+  integration lives in `metaengine/projectionadapter/` as a separate module
+  (ADR-0062). Tagged `metaengine/v4.1.1`.
+
+**Current state:** 174 BDD specs + 150 cross-engine meta specs, 87.7% coverage,
+lint clean, SQLite engine + projection adapter + cost calibration shipped.

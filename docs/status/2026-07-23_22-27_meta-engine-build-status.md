@@ -239,3 +239,27 @@
 
 **Q3: Should the planner output executable handlers or just a diagnostic plan?**
 Currently `Plan()` returns a `*Store` that holds runtime state (engines, queries, byInputType map) AND a diagnostic `PlanResult`. The project definition envisions the planner generating projection handlers (event → engine writes) and typed read API (store.Users.Get(id)). Is the current `Store.Apply()` + `ExecuteTyped[Q,R]` the right shape, or should the planner output code/handlers that get wired into `projectionhost.Host`?
+
+---
+
+## Resolution (2026-07-26)
+
+All three open questions have been resolved:
+
+- **Q1:** Confirmed as monorepo submodule. `metaengine/v4.1.1` tagged and pushed.
+- **Q2 (FilterOn SQL pushdown):** Phase 1 keeps in-memory closures + `PushdownScan`
+  interface seam. Phase 2 declarative `FilterSpec`/`SortSpec` deferred until a
+  production consumer needs SQL filter/sort pushdown (ADR-0063).
+- **Q3 (planner output shape):** `Store.Apply()` + `ExecuteTyped[Q,R]` IS the right
+  shape. The `metaengine/projectionadapter/` module wraps the Store as a
+  `projection.Projection` for `projectionhost.Host` integration (ADR-0062).
+
+**Stale claims in this report now resolved:**
+- "Planner is greedy stub (no formal cost model)" → cost model calibrated with
+  `EngineProfile.NsPerOp` (Memory=500ns, SQLite=7000ns, ADR-0061).
+- "No real SQLite/Pebble engines" → `SQLiteEngine` shipped, wrapping
+  `storage/view.SQLViewStore` (ADR-0061).
+- "No cursor serialization" → base64-encoded URL-safe cursors implemented.
+- "6 files exceed 350-line CI limit" → all split, lint clean (143 → 0 issues).
+- "go.sum checksum issues" → resolved by the 2026-07-25 release tag fix (32
+  missing tags created and pushed).
