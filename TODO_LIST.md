@@ -17,16 +17,12 @@ this list and recorded in CHANGELOG.
 
 ## Verify Gate — get to GREEN end-to-end
 
-> Lint is clean (0 issues). The file-size gate is RED on **one file**:
-> `cmd/api-stability/main.go` (353 lines, 3 over the 350-line limit).
-> The otel flakiness was fixed in the 2026-07-25 session via
+> File-size gate is GREEN (all production files within 350-line limit). Lint is
+> clean (0 issues). The otel flakiness was fixed in the 2026-07-25 session via
 > `WithoutGlobalRegistration()`. The full `nix run .#verify` has not been
 > confirmed green end-to-end since the latest metaengine + dedup work.
 
-- [ ] ⭐ **Split `cmd/api-stability/main.go`** (353 → two files under 350) so
-      `nix run .#check-file-size` passes. This is the **only** file-size
-      violation remaining.
-- [ ] 🔥 **Run `nix run .#verify` end-to-end** and fix anything red.
+- [ ] ⭐ **Run `nix run .#verify` end-to-end** and fix anything red.
       Known flaky: 5 benchkit timing tests (`TestRunSoak_TrendsPopulated`,
       `TestRunSoak_Memory`, `TestWriteSoakJSON_RoundTrip`,
       `TestSnapshotPhase_SQLite`, `TestRun_AnalyticalJournalScans`) pass in

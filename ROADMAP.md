@@ -3,14 +3,13 @@
 > Where we are, where we're going, and what's next.
 > **Last updated:** 2026-07-26
 >
-> ⚠️ **File-size gate is RED on one file** (`cmd/api-stability/main.go`, 353
-> lines). Lint is clean (0 issues). Full `nix run .#verify` not yet confirmed
-> green end-to-end on the latest metaengine + dedup work. See
-> [TODO_LIST.md](TODO_LIST.md).
+> ⚠️ **Full `nix run .#verify` not yet confirmed green end-to-end** on the
+> latest metaengine + dedup work (5 benchkit timing tests flaky under `-race`).
+> File-size gate and lint are clean. See [TODO_LIST.md](TODO_LIST.md).
 
 ---
 
-## Current State (v4.1.0 shipped; 1 file-size violation)
+## Current State (v4.1.0 shipped; file-size gate GREEN)
 
 **v4.1.0 tagged** (2026-07-23) — initial module batch tagged on `/v4` import paths
 (verify: `git tag --list '*/v4.1.0' | wc -l`). The workspace has 58 `go.mod`
@@ -88,12 +87,11 @@ structs. The Pareto execution plan landed the production maturity chain:
 - ✅ **Dependency boundary** — Core `metaengine/v4` stays zero-dep; adapter is
   a separate module (ADR-0062)
 
-**Remaining:** split `cmd/api-stability/main.go` (353 lines, the last
-file-size violation); tag `metaengine/projectionadapter` after removing its
-local replace directive; implement Phase 2 declarative pushdown when a
-production consumer needs SQL filter/sort pushdown. Metaengine lint is clean
-(143 → 0); cost calibration shipped (Memory=500ns, SQLite=7000ns);
-fold-classify logic and cross-engine meta-test guard correctness.
+**Remaining:** tag `metaengine/projectionadapter` after removing its local
+replace directive; implement Phase 2 declarative pushdown when a production
+consumer needs SQL filter/sort pushdown. Metaengine lint is clean (143 → 0);
+cost calibration shipped (Memory=500ns, SQLite=7000ns); fold-classify logic
+and cross-engine meta-test guard correctness.
 
 ### 2. Benchkit → Released
 

@@ -209,6 +209,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed (metaengine hardening — 2026-07-26)
 
+- **`cmd/api-stability/main.go` split** (353 → 238 + 123 lines) — the last
+  file-size-gate violation. AST collection functions moved to `collect.go`.
+  File-size gate now GREEN across all production files.
+
 - **Metaengine `SQLiteEngine` reification** — `reifyReflect` helper handles
   `map[string]any` → struct conversion across all engine methods that return
   `any` from SQL scans. Co-located with the generic `reify[R]` function.
