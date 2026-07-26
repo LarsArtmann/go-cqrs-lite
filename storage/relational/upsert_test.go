@@ -3,6 +3,7 @@ package relational
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 
 	_ "modernc.org/sqlite"
@@ -106,7 +107,22 @@ func runUpsertScenario(t *testing.T, sc upsertScenario) {
 	sc.verify(t, db, ctx)
 }
 
-func TestSinkUpsert(t *testing.T) { //nolint:gocognit // table-driven test with 8 upsert scenarios
+// queryMessageCol reads a single string column from the messages table.
+func queryMessageCol(t *testing.T, db *sql.DB, ctx context.Context, id, col string) string {
+	t.Helper()
+
+	var val string
+
+	if err := db.QueryRowContext(ctx,
+		fmt.Sprintf("SELECT %s FROM messages WHERE id = ?", col), id,
+	).Scan(&val); err != nil {
+		t.Fatalf("query %s for %s: %v", col, id, err)
+	}
+
+	return val
+}
+
+func TestSinkUpsert(t *testing.T) {
 	t.Parallel()
 
 	// COALESCE expr: empty new content should preserve original.
@@ -129,23 +145,14 @@ func TestSinkUpsert(t *testing.T) { //nolint:gocognit // table-driven test with 
 			},
 			verify: func(t *testing.T, db *sql.DB, ctx context.Context) {
 				t.Helper()
-
-				var content, author, created string
-				if err := db.QueryRowContext(
-					ctx,
-					"SELECT content, author_id, created_at FROM messages WHERE id = 'm1'",
-				).Scan(&content, &author, &created); err != nil {
-					t.Fatalf("query: %v", err)
+				if got := queryMessageCol(t, db, ctx, "m1", "content"); got != "edited" {
+					t.Fatalf("content: got %q, want %q", got, "edited")
 				}
-
-				if content != "edited" {
-					t.Fatalf("content should be updated to 'edited', got %q", content)
+				if got := queryMessageCol(t, db, ctx, "m1", "author_id"); got != "u1" {
+					t.Fatalf("author_id: got %q, want %q", got, "u1")
 				}
-				if author != "u1" {
-					t.Fatalf("author_id should be preserved as 'u1', got %q", author)
-				}
-				if created != "2026-01-01T00:00:00Z" {
-					t.Fatalf("created_at should be preserved, got %q", created)
+				if got := queryMessageCol(t, db, ctx, "m1", "created_at"); got != "2026-01-01T00:00:00Z" {
+					t.Fatalf("created_at: got %q, want %q", got, "2026-01-01T00:00:00Z")
 				}
 			},
 		},
@@ -168,20 +175,8 @@ func TestSinkUpsert(t *testing.T) { //nolint:gocognit // table-driven test with 
 			},
 			verify: func(t *testing.T, db *sql.DB, ctx context.Context) {
 				t.Helper()
-
-				var content string
-				if err := db.QueryRowContext(
-					ctx,
-					"SELECT content FROM messages WHERE id = 'm2'",
-				).Scan(&content); err != nil {
-					t.Fatalf("query: %v", err)
-				}
-
-				if content != "original" {
-					t.Fatalf(
-						"empty updateCols should do nothing, content should be 'original', got %q",
-						content,
-					)
+				if got := queryMessageCol(t, db, ctx, "m2", "content"); got != "original" {
+					t.Fatalf("content: got %q, want %q", got, "original")
 				}
 			},
 		},
@@ -198,20 +193,8 @@ func TestSinkUpsert(t *testing.T) { //nolint:gocognit // table-driven test with 
 			},
 			verify: func(t *testing.T, db *sql.DB, ctx context.Context) {
 				t.Helper()
-
-				var content string
-				if err := db.QueryRowContext(
-					ctx,
-					"SELECT content FROM messages WHERE id = 'm3'",
-				).Scan(&content); err != nil {
-					t.Fatalf("query: %v", err)
-				}
-
-				if content != "original content" {
-					t.Fatalf(
-						"COALESCE should preserve original content when new is empty, got %q",
-						content,
-					)
+				if got := queryMessageCol(t, db, ctx, "m3", "content"); got != "original content" {
+					t.Fatalf("content: got %q, want %q", got, "original content")
 				}
 			},
 		},
@@ -228,17 +211,8 @@ func TestSinkUpsert(t *testing.T) { //nolint:gocognit // table-driven test with 
 			},
 			verify: func(t *testing.T, db *sql.DB, ctx context.Context) {
 				t.Helper()
-
-				var content string
-				if err := db.QueryRowContext(
-					ctx,
-					"SELECT content FROM messages WHERE id = 'm4'",
-				).Scan(&content); err != nil {
-					t.Fatalf("query: %v", err)
-				}
-
-				if content != "new content" {
-					t.Fatalf("non-empty content should update, got %q", content)
+				if got := queryMessageCol(t, db, ctx, "m4", "content"); got != "new content" {
+					t.Fatalf("content: got %q, want %q", got, "new content")
 				}
 			},
 		},
@@ -261,17 +235,8 @@ func TestSinkUpsert(t *testing.T) { //nolint:gocognit // table-driven test with 
 			},
 			verify: func(t *testing.T, db *sql.DB, ctx context.Context) {
 				t.Helper()
-
-				var content string
-				if err := db.QueryRowContext(
-					ctx,
-					"SELECT content FROM messages WHERE id = 'm5'",
-				).Scan(&content); err != nil {
-					t.Fatalf("query: %v", err)
-				}
-
-				if content != "untouched" {
-					t.Fatalf("empty setExprs should do nothing, got %q", content)
+				if got := queryMessageCol(t, db, ctx, "m5", "content"); got != "untouched" {
+					t.Fatalf("content: got %q, want %q", got, "untouched")
 				}
 			},
 		},
@@ -292,20 +257,8 @@ func TestSinkUpsert(t *testing.T) { //nolint:gocognit // table-driven test with 
 			},
 			verify: func(t *testing.T, db *sql.DB, ctx context.Context) {
 				t.Helper()
-
-				var content string
-				if err := db.QueryRowContext(
-					ctx,
-					"SELECT content FROM messages WHERE id = 'm6'",
-				).Scan(&content); err != nil {
-					t.Fatalf("query: %v", err)
-				}
-
-				if content != "hello world" {
-					t.Fatalf(
-						"bound-arg expression should append ' world' to 'hello', got %q",
-						content,
-					)
+				if got := queryMessageCol(t, db, ctx, "m6", "content"); got != "hello world" {
+					t.Fatalf("content: got %q, want %q", got, "hello world")
 				}
 			},
 		},
@@ -324,26 +277,14 @@ func TestSinkUpsert(t *testing.T) { //nolint:gocognit // table-driven test with 
 			followOp: upsertOp{}, // no follow-up needed for fresh insert
 			verify: func(t *testing.T, db *sql.DB, ctx context.Context) {
 				t.Helper()
-
-				var content, author, channel string
-				if err := db.QueryRowContext(
-					ctx,
-					"SELECT content, author_id, channel_id FROM messages WHERE id = 'm7'",
-				).Scan(&content, &author, &channel); err != nil {
-					t.Fatalf("query: %v", err)
+				if got := queryMessageCol(t, db, ctx, "m7", "content"); got != "fresh-insert" {
+					t.Fatalf("content: got %q, want %q", got, "fresh-insert")
 				}
-
-				if content != "fresh-insert" {
-					t.Fatalf("fresh insert should write content, got %q", content)
+				if got := queryMessageCol(t, db, ctx, "m7", "author_id"); got != "u1" {
+					t.Fatalf("author_id: got %q, want %q", got, "u1")
 				}
-				if author != "u1" {
-					t.Fatalf(
-						"fresh insert should write author_id even though not in updateCols, got %q",
-						author,
-					)
-				}
-				if channel != "c1" {
-					t.Fatalf("fresh insert should write channel_id, got %q", channel)
+				if got := queryMessageCol(t, db, ctx, "m7", "channel_id"); got != "c1" {
+					t.Fatalf("channel_id: got %q, want %q", got, "c1")
 				}
 			},
 		},
@@ -366,20 +307,8 @@ func TestSinkUpsert(t *testing.T) { //nolint:gocognit // table-driven test with 
 			followOp: upsertOp{}, // no follow-up needed for fresh insert
 			verify: func(t *testing.T, db *sql.DB, ctx context.Context) {
 				t.Helper()
-
-				var content string
-				if err := db.QueryRowContext(
-					ctx,
-					"SELECT content FROM messages WHERE id = 'm8'",
-				).Scan(&content); err != nil {
-					t.Fatalf("query: %v", err)
-				}
-
-				if content != "fresh-expr-insert" {
-					t.Fatalf(
-						"fresh insert should write provided content, not apply SetExpr, got %q",
-						content,
-					)
+				if got := queryMessageCol(t, db, ctx, "m8", "content"); got != "fresh-expr-insert" {
+					t.Fatalf("content: got %q, want %q", got, "fresh-expr-insert")
 				}
 			},
 		},
