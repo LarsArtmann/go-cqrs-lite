@@ -51,6 +51,7 @@ func MarshalBase64JSONWithModule(raw []byte, module, noun string) ([]byte, error
 
 	return b, nil
 }
+
 // URL-safe (or standard) base64. The module and noun parameters produce
 // meaningful error locations: e.g. module="signing", noun="signature" yields
 // "signing.unmarshal_signature" and "signing.decode_signature".

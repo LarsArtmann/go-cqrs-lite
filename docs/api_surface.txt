@@ -389,6 +389,7 @@ codec/func Diagnose
 codec/func EncStructure0
 codec/func ForEncoding
 codec/func MarshalBase64JSON
+codec/func MarshalBase64JSONWithModule
 codec/func MarshalCOSEEncrypt0
 codec/func MarshalCOSEProtectedHeader
 codec/func MarshalCOSESign1
