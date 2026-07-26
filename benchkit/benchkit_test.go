@@ -871,7 +871,8 @@ func TestRun_ClosedStore_ErrorMessage(t *testing.T) {
 	family := errorfamily.Classify(err)
 	switch family {
 	case errorfamily.Rejection, errorfamily.Conflict,
-		errorfamily.Transient, errorfamily.Infrastructure, errorfamily.Corruption:
+		errorfamily.Transient, errorfamily.Infrastructure, errorfamily.Corruption,
+		errorfamily.Orchestration:
 		// OK
 	default:
 		t.Errorf("error should be classified, got %s: %v", family, err)

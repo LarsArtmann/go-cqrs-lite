@@ -278,6 +278,8 @@ func familyToName(f errorfamily.Family) string {
 		return "corruption"
 	case errorfamily.Infrastructure:
 		return "infrastructure"
+	case errorfamily.Orchestration:
+		return "orchestration"
 	default:
 		return ""
 	}

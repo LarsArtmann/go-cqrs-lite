@@ -145,7 +145,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 - **Sentinel errors**: `errors.New` in `errors.go` files
 - **Contextual errors**: `fmt.Errorf("failed to process %s: %w", name, err)`
 - **Classified errors**: `errorfamily.NewRejection(...)`, `errorfamily.WrapConflict(...)` via [go-error-family](https://github.com/larsartmann/go-error-family) — imported directly, no facade
-- **5-family taxonomy**: Rejection / Conflict / Transient / Infrastructure / Corruption
+- **6-family taxonomy**: Rejection / Conflict / Transient / Infrastructure / Corruption / Orchestration
 - **Direct import**: All modules import `errorfamily "github.com/larsartmann/go-error-family"` directly. The `event/` package retains type aliases (`event.Family`, `event.Error`) and family constants for backward compatibility, but error construction/classification/wrapping functions were removed. Use `go-error-family` directly.
 - **Error-wrapping helpers**: When `if err != nil { return WrapX(err, code, msg) }; return nil` appears 3+ times in a module, extract an unexported `wrapXOrOK(err, code, msg) error` helper (returns nil when err is nil). Keep helpers per-module — see [ADR-0069](docs/adr/0069-error-wrapping-helpers.md). When modules share a dependency (e.g., encryption + signing → codec), push the helper into the shared module (e.g., `codec.MarshalBase64JSONWithModule`).
 
