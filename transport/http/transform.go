@@ -14,7 +14,8 @@ import (
 // On any decode/encode failure, the original raw payload is returned unchanged
 // (graceful degradation) and the failure is logged at Warn via [slog.Default] —
 // so SSE clients always receive data, never a gap, while operators still see
-// transcoding failures. This deletes the per-consumer CBOR→JSON transcode
+// transcoding failures. The choice of slog over an OTel counter is documented
+// in ADR-0070. This deletes the per-consumer CBOR→JSON transcode
 // logic that every compact-codec deployment otherwise duplicates (~50 LOC of
 // memoized decoders, decode/re-encode, and fallback handling).
 //

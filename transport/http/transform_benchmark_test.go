@@ -12,7 +12,7 @@ import (
 // transform: reading the stamped encoding, dispatching to the codec transcode
 // primitive, and returning JSON bytes for the SSE Data field. This is the
 // per-event-per-client cost when WithPayloadTransform(CBORToJSONTransform) is
-// wired (ADR-0048). It composes event.PayloadReadOnly + codec.TranscodeToJSON,
+// wired (ADR-0052). It composes event.PayloadReadOnly + codec.TranscodeToJSON,
 // so its cost is dominated by the underlying transcode (see
 // codec.BenchmarkTranscodeToJSON_CBOR_To_JSON).
 func BenchmarkCBORToJSONTransform_SSEWire(b *testing.B) {

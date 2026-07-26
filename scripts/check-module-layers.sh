@@ -97,7 +97,7 @@ DEP_BUDGET[storage]=12
 DEP_BUDGET[listing]=6
 DEP_BUDGET[watermill]=9
 # codec is required for CBORToJSONTransform (SSE CBOR->JSON adapter composes
-# the codec.TranscodeToJSON primitive — ADR-0048, deletes per-consumer dupes).
+# the codec.TranscodeToJSON primitive — ADR-0052, deletes per-consumer dupes).
 DEP_BUDGET[transport/http]=6
 DEP_BUDGET[prometheus]=5
 DEP_BUDGET[storage/pebble]=10

@@ -9,7 +9,7 @@ import (
 // BenchmarkTranscodeToJSON_CBOR_To_JSON measures the transcode hot path: a
 // realistic CBOR-encoded event payload decoded into a generic value and
 // re-encoded as JSON. This is the per-event cost SSE fan-out pays when
-// CBORToJSONTransform is wired (ADR-0048).
+// CBORToJSONTransform is wired (ADR-0052).
 func BenchmarkTranscodeToJSON_CBOR_To_JSON(b *testing.B) {
 	b.ReportAllocs()
 

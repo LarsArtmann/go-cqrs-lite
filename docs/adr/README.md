@@ -170,5 +170,6 @@ watermill/     — Watermill protocol adapter
 | [0067](0067-metaengine-tx-mapupdate.md)                | Metaengine Transaction-atomic MapUpdate (SQLite)        | 2026-07-25 | Accepted                                                                                                                      |
 | [0068](0068-metaengine-multimap-seq-seed.md)           | Metaengine Multimap seq-seed (sync.Once MAX(seq))       | 2026-07-25 | Accepted                                                                                                                      |
 | [0069](0069-error-wrapping-helpers.md)                 | Error-Wrapping Helper Convention                        | 2026-07-26 | Accepted                                                                                                                      |
+| [0070](0070-transform-fallback-observability.md)       | Transform Fallback Observability (slog vs OTel)         | 2026-07-27 | Accepted                                                                                                                      |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).
