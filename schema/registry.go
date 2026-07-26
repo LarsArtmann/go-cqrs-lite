@@ -22,6 +22,19 @@ func newUpcasterRegistry() *upcasterRegistry {
 	}
 }
 
+// newUpcasterRegistryFrom creates a registry and registers all non-nil upcasters.
+func newUpcasterRegistryFrom(upcasters []Upcaster) *upcasterRegistry {
+	reg := newUpcasterRegistry()
+
+	for _, u := range upcasters {
+		if u != nil {
+			reg.register(u)
+		}
+	}
+
+	return reg
+}
+
 func (r *upcasterRegistry) register(u Upcaster) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

@@ -9,6 +9,25 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+// resolveCols extracts columns/values from row and fills in default conflict
+// columns when none were provided. Shared by UpsertCols and UpsertExpr.
+func (s *sqlSink) resolveCols(
+	table string,
+	row Row,
+	conflictCols []string,
+) ([]string, []string, []any, error) {
+	cols, vals, err := s.rowColumns(table, row)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if len(conflictCols) == 0 {
+		conflictCols = s.conflictTarget(table)
+	}
+
+	return cols, vals, conflictCols, nil
+}
+
 func (s *sqlSink) Increment(
 	ctx context.Context,
 	table string,

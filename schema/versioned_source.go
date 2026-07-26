@@ -25,13 +25,7 @@ func NewVersionedStore(store event.Store, upcasters ...Upcaster) (*VersionedStor
 		return nil, ErrNilStore
 	}
 
-	reg := newUpcasterRegistry()
-
-	for _, u := range upcasters {
-		if u != nil {
-			reg.register(u)
-		}
-	}
+	reg := newUpcasterRegistryFrom(upcasters)
 
 	return &VersionedStore{inner: store, registry: reg}, nil
 }

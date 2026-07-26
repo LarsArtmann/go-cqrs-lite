@@ -34,13 +34,7 @@ func NewVersionedSeekableJournal(
 		return nil, ErrNilJournal
 	}
 
-	reg := newUpcasterRegistry()
-
-	for _, u := range upcasters {
-		if u != nil {
-			reg.register(u)
-		}
-	}
+	reg := newUpcasterRegistryFrom(upcasters)
 
 	return &VersionedSeekableJournal{inner: journal, registry: reg}, nil
 }

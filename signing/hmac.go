@@ -62,9 +62,7 @@ func (s *hmacSigner) Verify(evt event.Event, sig Signature) error {
 		return ErrNilSignature
 	}
 
-	if evt == nil {
-		return ErrNilEvent
-	}
+	expected, err := s.Sign(evt)
 	if err != nil {
 		return err
 	}
