@@ -3,7 +3,7 @@
 > Every clone group that was reviewed and explicitly ACCEPTED during dedup sessions.
 > Each entry has a one-line rationale so the next session does not re-evaluate from scratch.
 >
-> **Measurement context**: `art-dupl --type-aware -t 2` shows 75 clone groups (Health Score: A, 0.2% duplication).
+> **Measurement context**: `art-dupl --type-aware -t 2` shows 72 clone groups (Health Score: A, 0.2% duplication, 419 duplicate lines / 197k LOC).
 > At the skill's recommended threshold `-t 5`, there are **0 clone groups** — all remaining
 > duplication is 1-5 statement snippets.
 
@@ -26,7 +26,9 @@
 | strings.Builder init | `catalog/eventcatalog/writer.go`, `writer_schemas_txt.go` | Standard Go `var buf strings.Builder` idiom. |
 | kv/mem checkClosed+fn | `kv/mem.go:47`, `kv/mem.go:62` | Standard guard-then-execute pattern. 2 occurrences. |
 | cqrs-bench openOutput | `cmd/cqrs-bench/output.go:35,51,65` | 3 one-liner calls to openOutput with different file names. The helper already exists. |
-| Turso sync/indexing error wrapping | `storage/turso/sync.go`, `indexing/optimizations.go` | Module-specific error handling for Turso database operations. Unique codes per operation. |
+| Per-module `wrapInfraOrOK` helper body | `storage/memory/errors.go`, `storage/pebble/helpers.go`, `storage/readmodel/kv_sql.go` | The 5-line helper body (`if err == nil { return nil }; return errorfamily.WrapInfrastructure(...)`) appears in 3 modules with separate go.mod files. Module isolation principle: pebble is not SQL-backed, so not all 3 share storage/sql/. NOT promoted to a shared package for a 5-line function. See ADR-0069. |
+| cqrs-lint SelectorFromExpr guard | `cmd/cqrs-lint/pkg/analyzer/scanner.go:144`, `scanner_calls.go:22` | Standard AST guard: extract selector, bail if not found. Only 2 occurrences of the exact 4-statement pattern. ADR-0069 says inline for 1-2 occurrences. Functions diverge after the guard. |
+| Turso sync/indexing error wrapping | `storage/turso/sync.go` (Push, Checkpoint, HealthCheck), `indexing/optimizations.go` (Analyze) | 4 sites of `if err != nil { return WrapInfrastructure(...) }; return nil`. Separate module (own go.mod). Adding wrapInfraOrOK here would extend the 3-way per-module clone to 4-way. Unique error codes per operation. |
 
 ## Test code — ACCEPTED (standard Go testing idioms)
 

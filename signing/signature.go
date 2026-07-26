@@ -50,11 +50,11 @@ func (s Signature) String() string {
 
 // MarshalJSON encodes the signature as a URL-safe base64 JSON string.
 func (s Signature) MarshalJSON() ([]byte, error) {
-	return codec.MarshalBase64JSONWithModule(
+	return codec.MarshalBase64JSONWithModule( //nolint:wrapcheck // wraps internally
 		s,
 		"signing",
 		"signature",
-	) //nolint:wrapcheck // wraps internally
+	)
 }
 
 // UnmarshalJSON decodes a URL-safe base64 JSON string into the signature.
