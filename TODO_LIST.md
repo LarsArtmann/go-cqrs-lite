@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-25
+**Updated:** 2026-07-26
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here — when a task is finished it is removed from
@@ -15,33 +15,40 @@ this list and recorded in CHANGELOG.
 
 ---
 
-## Verify Gate — confirm GREEN end-to-end
+## Verify Gate — get to GREEN end-to-end
 
-> The file-size gate is GREEN (all 11 oversized files split under 350 lines).
-> The otel flakiness is fixed (`-race -count=10` clean). However the **full**
-> `nix run .#verify` has not been run in one pass since the splits — lint,
-> doc-check, and module-coverage sub-checks are unconfirmed on the 16 new files.
+> Lint is clean (0 issues). The file-size gate is RED on **one file**:
+> `cmd/api-stability/main.go` (353 lines, 3 over the 350-line limit).
+> The otel flakiness was fixed in the 2026-07-25 session via
+> `WithoutGlobalRegistration()`. The full `nix run .#verify` has not been
+> confirmed green end-to-end since the latest metaengine + dedup work.
 
-- [ ] ⭐ **Run `nix run .#verify` end-to-end** and fix anything red (lint nits
-      on split files, doc-check symbol drift, module-coverage gaps).
-- [ ] **gofmt all 16 new split files** in one pass (`gofmt -w`), confirm zero diff.
-- [ ] **Document `otel.WithoutGlobalRegistration()`** in `AGENTS.md` OTel section + Crush skill `references/core.md` — new public API added during the otel
+- [ ] ⭐ **Split `cmd/api-stability/main.go`** (353 → two files under 350) so
+      `nix run .#check-file-size` passes. This is the **only** file-size
+      violation remaining.
+- [ ] 🔥 **Run `nix run .#verify` end-to-end** and fix anything red.
+      Known flaky: 5 benchkit timing tests (`TestRunSoak_TrendsPopulated`,
+      `TestRunSoak_Memory`, `TestWriteSoakJSON_RoundTrip`,
+      `TestSnapshotPhase_SQLite`, `TestRun_AnalyticalJournalScans`) pass in
+      isolation but fail under full-suite `-race` load. Fix: add
+      `testutil.RaceEnabled` thresholds (see AGENTS.md lint conventions).
+- [ ] **Document `otel.WithoutGlobalRegistration()`** in AGENTS.md OTel section
+      + Crush skill `references/core.md` — public API added during the otel
       flakiness fix, currently undocumented for consumers.
 
 ---
 
 ## Module Tagging
 
-> 2 of 3 untagged modules tagged locally. `benchkit/v4.1.0` was pushed to origin.
-> 56 of 58 modules now have tags (55 pushed + 1 local-only).
+> 57 of 58 modules are tagged and pushed. `metaengine/v4.0.0`,
+> `metaengine/v4.1.0`, `metaengine/v4.1.1`, `idempotency/sqlstore/v4.0.0`, and
+> `benchkit/v4.1.0` are all pushed to origin. The 32 missing tags from the
+> 2026-07-25 release fix are also pushed.
 
-- [ ] 🔥 **Push `metaengine/v4.0.0` and `idempotency/sqlstore/v4.0.0`** to origin
-      (tags exist locally, annotated, release-clean go.mod). Requires user
-      push authorization.
 - [BLOCKED] **Tag `metaengine/projectionadapter/v4.0.0`** — its `go.mod` has a
-  local `metaengine/v4 => ../` replace; cannot resolve metaengine from the
-  Go proxy until `metaengine/v4.0.0` is pushed. After the push above, run
-  `./scripts/tag-release.sh metaengine/projectionadapter v4.0.0 "..."`.
+  local `metaengine/v4 => ../` replace directive. Although `metaengine/v4.1.1`
+  is now published, the replace must be removed and the version pinned before
+  tagging. Run `./scripts/tag-release.sh metaengine/projectionadapter v4.0.0`.
 
 ---
 
@@ -51,67 +58,55 @@ this list and recorded in CHANGELOG.
       fixed this session (grep `-P` no-match on non-cqrs replace directives
       aborted the whole release under `set -euo pipefail`). Consider `--dry-run`
       mode and single-module tagging (currently touches all 58 go.mod files).
+- [ ] **Investigate `v4.0.4` tag-at-commit question** — `codec/v4.0.4`,
+      `event/v4.0.4`, `watermill/v4.0.4` all point to `8285da41` ("strip
+      replace directives"). A brutal self-review flagged this as potentially
+      wrong (should be `dbddbed6`), but both commits share the same message.
+      Verify the tagged tree content matches the intended release.
 
 ---
 
 ## Documentation Health
 
-- [ ] **Update `docs/README.md` ADR index** — the table stops at ADR-0035, then
-      jumps to ADR-0046. ADRs 0036–0065 are missing from the index (files exist
-      in `docs/adr/`).
-- [ ] **Add the 3 newly-tagged modules** (`metaengine/v4`, `idempotency/sqlstore/v4`,
-      `metaengine/projectionadapter/v4` once tagged) to `FEATURES.md` status table.
+- [ ] **Add ADR-0069 to the index** — `docs/README.md` and `docs/adr/README.md`
+      ADR tables stop at ADR-0068. ADR-0069 (error-wrapping helpers convention)
+      exists at `docs/adr/0069-error-wrapping-helpers.md` but is missing from
+      both index tables.
 
 ---
 
-## Module Health & Tooling (from 2026-07-25 self-review sweep)
+## Module Health & Tooling
 
-- ✅ **[RESOLVED] Broken published module graph** — 32 missing tags created locally
-  at commit `8285da41` (17× v4.0.3, 3× v4.0.4, 13× v4.0.2, 1× v0.2.1). All 84
-  require refs now resolve. **Push pending:** `git push origin --tags`. See
-  `docs/release-fix-2026-07-25.md`.
-- ✅ **Configure gopls with `goexperiment.jsonv2`** — Already configured in
-  `~/.config/crush/crush.json` (`GOEXPERIMENT: jsonv2` in gopls env).
-- [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
-      unformatted code (gci/gofumpt drift), turning `#lint` red. Either gate
-      daemon commits behind `nix fmt` or run a scheduled `nix fmt && nix run .#lint`.
-- ✅ **[DECLINED: YAGNI] `idempotency.RefreshTTL(ctx, key, ttl)`** — dropped
-      2026-07-26. Deferred across 6 sessions with no consumer; the design doc
-      (`docs/planning/2026-07-25_14-30_idempotency-record-contract-design.md`)
-      chose Option A (no-op on existing) *because* Option B's sliding window is
-      unsafe (unbounded TTL under retry storms). RefreshTTL is the escape hatch
-      for the behavior we rejected. If a consumer ever needs sliding-window
-      dedup, reopen then.
-- ✅ **[DECLINED: YAGNI] cqrs-lint rule for the `idempotency.Store` Record contract** —
-      dropped 2026-07-26. Only 3 Store impls exist (memory, kv, sql), all correct;
-      the no-op-on-existing contract is already documented in the interface
-      comment (`idempotency/store.go:34-36`). A lint rule for a 3-impl interface
-      is premature. Reopen if custom Store impls proliferate.
-- ✅ **[DONE] cqrs-bench profile for the metaengine SQLite engine** — completed
-      2026-07-26 as `metaengine/planner_bench_test.go` (6 benchmarks). Reframed
-      from a cqrs-bench profile: `benchkit.Factory` returns `*stack.Bundle`
-      (event-store workload), wrong abstraction for an ADT planner. See status
-      report `2026-07-26_16-13`.
-- ✅ **CI badge for the api-stability gate** — Already in README; `#check-api-stability`
-  now runs inside `#verify` with `-race` and the `TestEveryGoModDirIsInModulesList`
-  meta-test.
+- [ ] **Fix 5 benchkit timing tests** — add `testutil.RaceEnabled` thresholds
+      so they pass under full-suite `-race`. See report
+      `docs/status/2026-07-26_18-36_dedup-session-6-brutal-self-review.md`.
+- [ ] **Property test for `idempotency.Store`** — generate random Record/Seen/
+      CheckAndRecord sequences via `pgregory.net/rapid`, assert contract
+      invariants hold across all 3 implementations (memory, kv, sql).
+- [ ] **Move 3-way idempotency contract test to `integration/`** — currently in
+      `idempotency/kvstore` (pulls sqlstore+sqlite as test deps). Move after
+      the projectionadapter tag is sorted.
+- [ ] **Fix `#vulncheck` nix app** — newer govulncheck requires explicit package
+      patterns (`./...`), not stdin. The pipeline may be broken.
+- [ ] **Real gocognit fix for `TestSinkUpsert`** — extract `assertMessageRow`
+      helper to genuinely reduce complexity (currently band-aided with
+      `//nolint:gocognit`).
 - [ ] **Triage auto-commit daemon commit messages** — prior decision was "leave
       as-is"; revisit if garbled messages block `git log` readability or release
       tagging.
-- [ ] **Property test for `idempotency.Store`** — generate random Record/Seen/
-      CheckAndRecord sequences via `pgregory.net/rapid`, assert contract invariants
-      hold across all 3 implementations (memory, kv, sql).
-- [ ] **Fix `#vulncheck` nix app** — newer govulncheck requires explicit package
-      patterns (`./...`), not stdin. The pipeline is broken.
-- [ ] **Move 3-way idempotency contract test to integration/** — currently in
-      `idempotency/kvstore` (pulls sqlstore+sqlite as test deps). Move after
-      pushing the missing tags.
-- [ ] **Push the 32 missing module tags** — `git push origin --tags` after user
-      approval. See `docs/release-fix-2026-07-25.md`.
-- [ ] **Soak test for metaengine SQLite** — multi-hour load test.
-- [ ] **cqrs-bench workload for metaengine** — end-to-end Apply → ExecuteTyped.
+- [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
+      unformatted code (gci/gofumpt drift), turning `#lint` red. Either gate
+      daemon commits behind `nix fmt` or run a scheduled `nix fmt && nix run .#lint`.
+- [ ] **Benchkit per-module build broken** — stale `storage/pebble/v4.0.3` tag
+      references renamed `Snapshot` fields (`AggregateID`/`AggregateType`).
+      Re-tag storage/pebble or update benchkit go.mod.
+- [ ] **Dead Codec test code in benchkit** — `soak_test.go:283` Codec branch
+      never executes (test Config never sets Codec). Replace with a dedicated
+      `TestConfig_CodecRoundTrip`.
 
 ---
+
+## Declined / Rejected (do not re-litigate)
 
 > Kept here so decisions are not re-litigated. Full rationale in the linked
 > ADRs/reviews.
@@ -147,6 +142,17 @@ this list and recorded in CHANGELOG.
 - **IncrementWhere on ProjectionSink** — footgun: silently updates multiple rows.
   Use `RelationalProjection` with explicit `Upsert`.
 - **Redis adapter** — see ROADMAP Non-Goals (ValKey/NATS/Kafka preferred).
+- **`idempotency.RefreshTTL(ctx, key, ttl)`** — dropped 2026-07-26 (YAGNI).
+  Deferred across 6 sessions with no consumer; the design doc chose Option A
+  (no-op on existing) *because* Option B's sliding window is unsafe (unbounded
+  TTL under retry storms).
+- **cqrs-lint rule for the `idempotency.Store` Record contract** — dropped
+  2026-07-26 (YAGNI). Only 3 Store impls exist (memory, kv, sql), all correct;
+  the no-op-on-existing contract is already documented in the interface comment.
+- **Centralized cross-module error-wrapping helper** — ADR-0069 decided:
+  per-module helpers (`wrapInfraOrOK`, `wrapTransientOrOK`), capped at 3
+  modules. A shared `storage/internal/errwrap` package would violate the
+  multi-module isolation principle.
 
 ---
 

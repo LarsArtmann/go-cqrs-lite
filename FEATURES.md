@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-25 (Pareto execution plan: metaengine SQLite engine + projection adapter + cost calibration added; SQL idempotency, WaitForVersion, CheckStaleness added; consistency model doc; module extraction ADRs; NATS + Parquet design docs) · **Module count:** 58 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+**Last audited:** 2026-07-26 (metaengine fold-classify + cross-engine meta-test + end-to-end signature/ciphertext verification added; error-wrapping helpers ADR-0069; dedup acceptance docs) · **Module count:** 58 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -234,10 +234,14 @@ developer never declares "I need a Map" or "I need a Counter."
 | `ExecuteTyped[Q,R]`        | Cross-engine JSON reification: a query runs on any engine, results reified via JSON round-trip (ADR-0066)   | 🧪     |
 | Tx-atomic MapUpdate        | SQLite `MapUpdate` wraps read-modify-write in one tx — no lost updates across concurrent calls (ADR-0067)   | 🧪     |
 | Multimap seq-seed          | Lazy `sync.Once` seeding from `MAX(seq)` on first use — safe restart without sequence collisions (ADR-0068) | 🧪     |
+| Fold-classify              | `classifyFold` inspects fold return types to assign ADT patterns — shared across engines for consistency   | 🧪     |
+| Cross-engine meta-test     | 150 specs run identical Apply → ExecuteTyped sequences on Memory + SQLite, asserting identical typed results | 🧪     |
+| End-to-end verification    | Signature + ciphertext verification integrated across Memory and SQLite engines                             | 🧪     |
 
-**Coverage:** 87.7% (174 BDD specs). SQLite engine + projection adapter added via
-the Pareto execution plan. Cost model calibrated with real benchmarks. Pushdown
-ADR (0063) designs Phase 2 declarative FilterSpec/SortSpec.
+**Coverage:** 87.7% (174 BDD specs + 150 cross-engine meta specs). SQLite engine
++ projection adapter added via the Pareto execution plan. Cost model calibrated
+with real benchmarks. `metaengine/v4.1.1` tagged (fixes panicking MapUpdate from
+v4.1.0). Pushdown ADR (0063) designs Phase 2 declarative FilterSpec/SortSpec.
 See [TODO_LIST.md](TODO_LIST.md) for the remaining production path.
 
 ---

@@ -1,21 +1,24 @@
 # Roadmap — go-cqrs-lite
 
 > Where we are, where we're going, and what's next.
-> **Last updated:** 2026-07-25
+> **Last updated:** 2026-07-26
 >
-> ⚠️ **`nix run .#verify` is currently RED** — 13 production files exceed the
-> 350-line CI limit and an otel test flakes. See [TODO_LIST.md](TODO_LIST.md).
+> ⚠️ **File-size gate is RED on one file** (`cmd/api-stability/main.go`, 353
+> lines). Lint is clean (0 issues). Full `nix run .#verify` not yet confirmed
+> green end-to-end on the latest metaengine + dedup work. See
+> [TODO_LIST.md](TODO_LIST.md).
 
 ---
 
-## Current State (v4.1.0 shipped; verify gate RED)
+## Current State (v4.1.0 shipped; 1 file-size violation)
 
 **v4.1.0 tagged** (2026-07-23) — initial module batch tagged on `/v4` import paths
 (verify: `git tag --list '*/v4.1.0' | wc -l`). The workspace has 58 `go.mod`
-files; 3 newer modules (`metaengine`, `metaengine/projectionadapter`,
-`idempotency/sqlstore`) are untagged and will be tagged when their APIs stabilize
-and the file-size gate passes. The deprecated-API removal batch shipped (see
-[CHANGELOG.md](CHANGELOG.md) `[Unreleased]` → Removed).
+files; 57 of 58 are tagged and pushed to origin. One module
+(`metaengine/projectionadapter`) remains untagged — its `go.mod` has a local
+replace directive that must be removed before tagging. `metaengine/v4.1.1` was
+tagged 2026-07-26 (fixes a panicking `MapUpdate` from v4.1.0). The deprecated-API
+removal batch shipped (see [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` → Removed).
 
 The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs,
 command/query dispatch, pure-function deciders, three projection tiers
@@ -26,10 +29,13 @@ and a domain-aware linter (cqrs-lint, 60 rules).
 
 **New since v4.0.0:**
 
-- **Metaengine** (`metaengine/v4`, 🧪 experimental) — cost-based storage planner.
-  Derives projections and engine assignments from two primitives (Events +
-  Queries). 7 ADTs inferred from fold return types. 174 BDD specs, 87.7%
-  coverage. MemoryEngine only; no real SQL/Pebble engine yet — see Theme 1.
+- **Metaengine** (`metaengine/v4`, 🧪 experimental, tagged v4.0.0 + v4.1.0 +
+  v4.1.1) — cost-based storage planner. Derives projections and engine
+  assignments from two primitives (Events + Queries). 7 ADTs inferred from fold
+  return types. 174 BDD specs, 87.7% coverage. SQLiteEngine shipped (ADR-0061);
+  cost model calibrated; projection adapter integrated (ADR-0062); pushdown ADR
+  written (ADR-0063); cross-engine meta-test guards parity. Phase 2 declarative
+  pushdown deferred — see Theme 1.
 - **Benchkit** (`benchkit/v4` + `cmd/cqrs-bench`, 🧪 experimental) — benchmarking
   toolkit with 7 named workload profiles + an analytical profile, 9-phase runner,
   scaling sweeps, benchstat/manifest output, and a first real benchmark run
@@ -82,11 +88,12 @@ structs. The Pareto execution plan landed the production maturity chain:
 - ✅ **Dependency boundary** — Core `metaengine/v4` stays zero-dep; adapter is
   a separate module (ADR-0062)
 
-**Remaining:** split 13 oversized production files so the CI file-size gate
-(350 lines) passes; tag metaengine + projectionadapter + sqlstore when ready;
-implement Phase 2 declarative pushdown when a production consumer needs SQL
-filter/sort pushdown. Metaengine lint is clean (143 → 0); cost calibration
-shipped (Memory=500ns, SQLite=7000ns).
+**Remaining:** split `cmd/api-stability/main.go` (353 lines, the last
+file-size violation); tag `metaengine/projectionadapter` after removing its
+local replace directive; implement Phase 2 declarative pushdown when a
+production consumer needs SQL filter/sort pushdown. Metaengine lint is clean
+(143 → 0); cost calibration shipped (Memory=500ns, SQLite=7000ns);
+fold-classify logic and cross-engine meta-test guard correctness.
 
 ### 2. Benchkit → Released
 
@@ -96,9 +103,11 @@ analytical profile, Postgres backend, scaling sweeps, benchstat/manifest output,
 profiling, and a first real run across memory/pebble/sqlite (2026-07-24). The
 remaining work is maturity, not features:
 
-- **Tagged `benchkit/v4.1.0`** (tagged 2026-07-25; points to grab-bag commit,
-  push-to-origin pending user approval). Also covers `cmd/cqrs-bench/v0.1.0`
-  and `example/readme-quickstart/v0.1.0`.
+- **Tagged `benchkit/v4.1.0`** (tagged + pushed 2026-07-25; points to a grab-bag
+  commit mixing unrelated files — functionally correct but commit history is
+  noisy). Also covers `cmd/cqrs-bench/v0.1.0` and `example/readme-quickstart/v0.1.0`.
+- **5 flaky timing tests** — pass in isolation but fail under full-suite `-race`
+  load. Need `testutil.RaceEnabled` thresholds. See TODO_LIST.
 - **Run-to-run variance** — ~20-25% on the memory backend. `--repeat N`
   (median-of-N) mitigates it; real-world regression tracking is the next step.
 - **Real-world validation** — the first run verified plumbing and plausibility;
