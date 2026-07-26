@@ -188,17 +188,7 @@ func detectPagination(input any) bool {
 
 // extractLimitFromInput extracts the Limit field value from the input struct.
 func extractLimitFromInput(input any) int {
-	v, ok := structValue(input)
-	if !ok {
-		return 0
-	}
-
-	f := v.FieldByName(limitField)
-	if !f.IsValid() || f.Kind() != reflect.Int {
-		return 0
-	}
-
-	return int(f.Int())
+	return extractIntFieldByName(input, limitField, 0)
 }
 
 // extractCursorFromInput extracts the After *Cursor field from the input struct.
