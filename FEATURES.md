@@ -231,6 +231,9 @@ developer never declares "I need a Map" or "I need a Counter."
 | Projection adapter         | `metaengine/projectionadapter` implements `projection.Projection` for `projectionhost.Host` (ADR-0062)     | 🧪     |
 | Cost calibration           | `EngineProfile.NsPerOp` — per-engine calibrated cost (Memory=500ns, SQLite=7000ns) replaces arbitrary 100  | 🧪     |
 | Store.EventTypes()         | Returns sorted unique event types from registered queries — enables adapter event routing                  | 🧪     |
+| `ExecuteTyped[Q,R]`        | Cross-engine JSON reification: a query runs on any engine, results reified via JSON round-trip (ADR-0066)   | 🧪     |
+| Tx-atomic MapUpdate        | SQLite `MapUpdate` wraps read-modify-write in one tx — no lost updates across concurrent calls (ADR-0067)   | 🧪     |
+| Multimap seq-seed          | Lazy `sync.Once` seeding from `MAX(seq)` on first use — safe restart without sequence collisions (ADR-0068) | 🧪     |
 
 **Coverage:** 87.7% (174 BDD specs). SQLite engine + projection adapter added via
 the Pareto execution plan. Cost model calibrated with real benchmarks. Pushdown

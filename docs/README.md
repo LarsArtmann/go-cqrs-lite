@@ -39,7 +39,7 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Architecture Decision Records (ADR)
 
-34 ADRs documenting key architectural decisions. Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+66 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                   | Title                                             | Status                   |
 | ----------------------------------------------------- | ------------------------------------------------- | ------------------------ |
@@ -77,8 +77,38 @@ The authoritative module index with README links lives in the **[project README]
 | [0032](adr/0032-merge-readmodel-into-kv.md)           | Merge `readmodel/` into `kv/`                     | Accepted                 |
 | [0033](adr/0033-multi-db-split.md)                    | Multi-Database Split for Concern Isolation        | Accepted                 |
 | [0034](adr/0034-session-store-boundary.md)            | Session Store Boundary                            | Accepted                 |
-| [0035](adr/0035-branded-dsn-types.md)                 | Branded DSN Types (Considered and Rejected)       | Rejected                 |
-| [0046](adr/0046-seven-tier-model.md)                  | Seven-Tier Dependency Model                       | Accepted                 |
+| [0035](adr/0035-branded-dsn-types.md)                    | Branded DSN Types (Considered and Rejected)            | Rejected                 |
+| [0037](adr/0037-projection-module-extraction.md)         | Projection Interface Extraction from event/            | Accepted                 |
+| [0038](adr/0038-graph-projection-tier.md)                | Graph Projection Tier (Writes Portable, Reads Native)  | Accepted                 |
+| [0039](adr/0039-graph-schema.md)                         | Graph Schema — Boundary Typing for Graph Projections   | Accepted                 |
+| [0040](adr/0040-deriver-design.md)                       | Deriver Module Design                                  | Accepted                 |
+| [0042](adr/0042-pure-replay-dead-letters.md)             | Pure Replay for Dead-Letter Queue                      | Accepted                 |
+| [0043](adr/0043-dlq-unification-options.md)              | Dead-Letter Store Unification Options                  | Accepted                 |
+| [0044](adr/0044-blind-store-encoding-stamps.md)          | Blind Store Encoding Stamps                            | Accepted                 |
+| [0045](adr/0045-eventtest-module-path-fix.md)            | eventtest Module Path / Directory Alignment            | Accepted                 |
+| [0046](adr/0046-seven-tier-model.md)                     | Seven-Tier Dependency Model                            | Accepted                 |
+| [0047](adr/0047-cose-support.md)                         | COSE Support for Signing, Encryption, and Codec        | Accepted                 |
+| [0048](adr/0048-deterministic-json-encoding.md)          | Deterministic JSON Encoding in Security-Critical Paths | Accepted                 |
+| [0049](adr/0049-dispatch-time-middleware.md)             | Dispatch-Time Middleware Application                   | Accepted                 |
+| [0050](adr/0050-envelope-json-fallback-keep-forever.md)  | Envelope JSON Fallback — Keep Forever                   | Accepted                 |
+| [0051](adr/0051-cbor-as-default-codec.md)                | CBOR as Default Codec for event.New()                  | Accepted                 |
+| [0052](adr/0052-transport-boundary-codec-strategy.md)    | Transport Boundary Codec Strategy                      | Accepted                 |
+| [0053](adr/0053-unified-codec-default-flip.md)           | Unified Codec Default Flip (JSON → CBOR)               | Accepted                 |
+| [0054](adr/0054-json-v2-case-insensitive-decode.md)      | json/v2 Case-Insensitive Decode                        | Accepted                 |
+| [0055](adr/0055-cqrs-lint-loader-error-surfacing.md)     | cqrs-lint Loader Error Surfacing                       | Accepted                 |
+| [0056](adr/0056-timezone-safe-time-types.md)             | Timezone-Safe Time Types for Event Payloads            | Accepted                 |
+| [0057](adr/0057-catalog-rest-openapi-operation-support.md)| Catalog REST/OpenAPI Operation Support                 | Accepted                 |
+| [0058](adr/0058-rename-aggregate-to-stream.md)           | Rename Aggregate* to Stream*                           | Accepted                 |
+| [0059](adr/0059-dlq-unification-proposal.md)             | DLQ Unification Proposal                               | Proposed                 |
+| [0060](adr/0060-benchkit-design-decisions.md)            | Benchkit Design Decisions                              | Accepted                 |
+| [0061](adr/0061-metaengine-sqlite-engine.md)             | Metaengine SQLite Engine                               | Accepted                 |
+| [0062](adr/0062-metaengine-dependency-boundary.md)       | Metaengine Dependency Boundary (projectionadapter)     | Accepted                 |
+| [0063](adr/0063-metaengine-pushdown.md)                  | FilterOn/SortOn Pushdown Strategy                      | Accepted                 |
+| [0064](adr/0064-extract-retry-module.md)                 | Extract retry/ into Standalone go-retry Repository     | Proposed                 |
+| [0065](adr/0065-extract-idempotency-module.md)           | Extract idempotency/ into go-idempotency Repository    | Proposed                 |
+| [0066](adr/0066-metaengine-reify-fallback.md)            | Metaengine Cross-engine JSON Reification (ExecuteTyped)| Accepted                 |
+| [0067](adr/0067-metaengine-tx-mapupdate.md)              | Metaengine Transaction-atomic MapUpdate (SQLite)       | Accepted                 |
+| [0068](adr/0068-metaengine-multimap-seq-seed.md)         | Metaengine Multimap seq-seed (sync.Once MAX(seq))      | Accepted                 |
 
 ## API Reference
 
