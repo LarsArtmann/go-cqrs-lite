@@ -9,7 +9,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // Load retrieves all commands for a stream, ordered by ReceivedAt.
