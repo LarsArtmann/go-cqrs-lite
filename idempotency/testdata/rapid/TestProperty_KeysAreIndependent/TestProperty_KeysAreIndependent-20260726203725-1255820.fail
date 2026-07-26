@@ -1,0 +1,7 @@
+# 2026/07/26 20:37:25.184633 [TestProperty_KeysAreIndependent] [rapid] draw keyA: ""
+# 2026/07/26 20:37:25.184658 [TestProperty_KeysAreIndependent] [rapid] draw keyB: ""
+# 2026/07/26 20:37:25.184668 [TestProperty_KeysAreIndependent] keyB should not be seen (only keyA was recorded)
+# 
+v0.4.8#10867446316517638799
+0x0
+0x0

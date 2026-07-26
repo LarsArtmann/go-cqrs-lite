@@ -7,8 +7,6 @@ import (
 
 	"pgregory.net/rapid"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 )
 
@@ -66,7 +64,7 @@ func TestProperty_CheckAndRecordExactlyOnce(t *testing.T) {
 			err := <-results
 			if err == nil {
 				successes++
-			} else if errorfamily.IsConflict(err) || err == idempotency.ErrDuplicate {
+			} else if err == idempotency.ErrDuplicate {
 				duplicates++
 			} else {
 				t.Fatalf("unexpected error: %v", err)
@@ -90,8 +88,8 @@ func TestProperty_KeysAreIndependent(t *testing.T) {
 		store := idempotency.NewMemoryStore(0)
 		defer store.Close()
 
-		keyA := rapid.String().Draw(t, "keyA")
-		keyB := rapid.String().Draw(t, "keyB")
+		keyA := rapid.StringMatching(`.+`).Draw(t, "keyA")
+		keyB := rapid.StringMatching(`.+`).Filter(func(s string) bool { return s != keyA }).Draw(t, "keyB")
 		ttl := time.Minute
 
 		if err := store.Record(context.Background(), keyA, ttl); err != nil {
