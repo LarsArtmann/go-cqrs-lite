@@ -258,6 +258,37 @@ var _ = Describe("SQLiteEngine", func() {
 	})
 })
 
+var _ = Describe("SQLiteEngine FoldUpdate reify (regression)", func() {
+	It("applies a typed update fold through SQLite without panicking", func() {
+		// Regression: SQLite MapUpdate decodes the stored value into any,
+		// producing map[string]any. The fold's typed update handler
+		// (func(TaskCompleted, FindTaskResult) FindTaskResult) must receive a
+		// reified FindTaskResult, not the raw map — otherwise reflect.Call
+		// panics on the type mismatch. Memory engines store typed values, so
+		// only the SQLite path exhibited this. Found by planner_bench_test.go.
+		eng, db := newSQLiteEngine()
+		defer eng.Close()
+		defer db.Close()
+
+		store, err := metaengine.Plan([]metaengine.Engine{eng}, findTaskQuery())
+		Expect(err).NotTo(HaveOccurred())
+
+		ctx := context.Background()
+		Expect(store.Apply(ctx, "TaskCreated", TaskCreated{
+			ID: "t-1", Title: "ship it", Assignee: "u-1", Status: "open", Priority: 3,
+		})).To(Succeed())
+
+		// This used to panic: callUpdate reflect-called the handler with a
+		// map[string]any prev.
+		Expect(store.Apply(ctx, "TaskCompleted", TaskCompleted{ID: "t-1"})).To(Succeed())
+
+		got, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](ctx, store, FindTask{ID: "t-1"})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(got.Status).To(Equal("completed"))
+		Expect(got.Title).To(Equal("ship it"))
+	})
+})
+
 var _ = Describe("SQLiteEngine cost-based selection", func() {
 	It("selects MemoryEngine for O(1) Map over SQLiteEngine O(logN)", func() {
 		memEngine := metaengine.NewMemoryEngine()

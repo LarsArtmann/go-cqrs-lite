@@ -1,6 +1,7 @@
 package metaengine
 
 import (
+	"encoding/json/v2"
 	"fmt"
 	"reflect"
 )
@@ -16,15 +17,49 @@ func (f *Fold) callInsert(event any) (any, any) {
 
 func (f *Fold) callUpdate(event any, prev any) any {
 	fn := reflect.ValueOf(f.updateHandler)
+	prevType := fn.Type().In(1)
 
 	args := []reflect.Value{reflect.ValueOf(event)}
 	if prev != nil {
-		args = append(args, reflect.ValueOf(prev))
+		args = append(args, reifyPrev(prev, prevType))
 	} else {
-		args = append(args, reflect.Zero(fn.Type().In(1)))
+		args = append(args, reflect.Zero(prevType))
 	}
 
 	return fn.Call(args)[0].Interface()
+}
+
+// reifyPrev converts prev into a reflect.Value assignable to the update
+// handler's second parameter (prevType).
+//
+// Memory engines store and return typed Go values directly, so prev is
+// already assignable and is used as-is (no JSON round-trip, no alloc). SQL
+// engines JSON-encode on write and decode into any on read, producing
+// map[string]any for structs — which is NOT assignable to a typed prev
+// parameter and would panic inside the reflect.Call above.
+//
+// This mirrors reify[R] (reify.go) for the write/fold path. Reification
+// cannot fail for values the engine itself wrote: they are valid JSON of
+// exactly prevType, so the round-trip is lossless. A marshal/unmarshal
+// failure (only possible for externally-corrupted data) falls back to the
+// zero value rather than panicking the whole Apply.
+func reifyPrev(prev any, target reflect.Type) reflect.Value {
+	if rt := reflect.TypeOf(prev); rt != nil && rt.AssignableTo(target) {
+		return reflect.ValueOf(prev)
+	}
+
+	b, err := json.Marshal(prev)
+	if err != nil {
+		return reflect.Zero(target)
+	}
+
+	v := reflect.New(target)
+
+	if err := json.Unmarshal(b, v.Interface()); err != nil {
+		return reflect.Zero(target)
+	}
+
+	return v.Elem()
 }
 
 func (f *Fold) callKey(event any) any {
