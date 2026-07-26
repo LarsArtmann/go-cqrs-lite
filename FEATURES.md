@@ -411,6 +411,7 @@ as a library primitive.
 | Raw passthrough     | `RawCodec` — `[]byte` pass-through (no encoding)                                        | ✅     |
 | BufferEncoder       | Optional `BufferEncoder` interface — zero-alloc encoding into caller buffer             | ✅     |
 | CBOR diagnostic     | `Diagnose(data)` — human-readable CBOR output for debugging                             | ✅     |
+| Cross-codec transcode | `TranscodeToJSON(payload, enc)` — schema-free CBOR→JSON bridge for browser/REST output | ✅     |
 | Encoding constants  | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                                           | ✅     |
 | Envelope wrapping   | `WrapEncode`/`UnwrapDecode` — self-describing blind stores (ADR-0044)                   | ✅     |
 | CBOR default        | All codec defaults flipped to CBOR (ADR-0053) — backward-compat via envelopes           | ✅     |
