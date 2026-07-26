@@ -2,6 +2,7 @@ package codec
 
 import (
 	"encoding/json/v2"
+	"math/big"
 	"strings"
 	"testing"
 )
@@ -187,5 +188,120 @@ func TestTranscodeToJSON_CBORCompactCodec(t *testing.T) {
 
 	if got["count"] != float64(7) {
 		t.Errorf("count = %v, want 7", got["count"])
+	}
+}
+
+// TestTranscodeToJSON_LargeNumbers exercises values at and beyond the int64
+// and uint64 range. CBOR encodes uint64 values exceeding int64 max as a
+// bignum (tag 2); values beyond uint64 require *big.Int. The schema-free
+// generic decode path must still yield valid JSON without panicking. This
+// documents the boundary for the generic decode (#20).
+func TestTranscodeToJSON_LargeNumbers(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name string
+		val  any
+	}{
+		{"int64_max", uint64(1<<63 - 1)},
+		{"uint64_max", uint64(^uint64(0))},
+		{"bignum_over_uint64", new(big.Int).Lsh(big.NewInt(1), 70)}, // 2^70, a real CBOR bignum
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cborData, err := (CBORCodec{}).Encode(map[string]any{"n": tc.val})
+			if err != nil {
+				t.Fatalf("encode: %v", err)
+			}
+
+			out, err := TranscodeToJSON(cborData, EncodingCBOR)
+			if err != nil {
+				t.Fatalf("transcode: %v", err)
+			}
+
+			// The output must be valid JSON. Numeric representation varies by
+			// generic-decode path (float64 vs decimal number); we only assert
+			// validity + key presence, since float64 loses precision above 2^53.
+			var got map[string]any
+			if err := json.Unmarshal(out, &got); err != nil {
+				t.Fatalf("invalid JSON: %v\nraw: %s", err, out)
+			}
+
+			if _, ok := got["n"]; !ok {
+				t.Errorf("key n missing from %s", out)
+			}
+		})
+	}
+}
+
+// TestTranscodeToJSON_EmptyContainers verifies that empty CBOR maps and arrays
+// transcode to their JSON equivalents ("{}" and "[]").
+func TestTranscodeToJSON_EmptyContainers(t *testing.T) {
+	t.Parallel()
+
+	t.Run("empty_map", func(t *testing.T) {
+		t.Parallel()
+
+		cborData, err := (CBORCodec{}).Encode(map[string]any{})
+		if err != nil {
+			t.Fatalf("encode: %v", err)
+		}
+
+		out, err := TranscodeToJSON(cborData, EncodingCBOR)
+		if err != nil {
+			t.Fatalf("transcode: %v", err)
+		}
+
+		if string(out) != "{}" {
+			t.Errorf("empty map = %q, want {}", out)
+		}
+	})
+
+	t.Run("empty_array", func(t *testing.T) {
+		t.Parallel()
+
+		cborData, err := (CBORCodec{}).Encode([]any{})
+		if err != nil {
+			t.Fatalf("encode: %v", err)
+		}
+
+		out, err := TranscodeToJSON(cborData, EncodingCBOR)
+		if err != nil {
+			t.Fatalf("transcode: %v", err)
+		}
+
+		if string(out) != "[]" {
+			t.Errorf("empty array = %q, want []", out)
+		}
+	})
+}
+
+// TestTranscodeToJSON_MapKeyOrdering documents the key-ordering difference
+// between the two encodings (#23): CBOR canonical encoding sorts map keys, and
+// Go's json.Marshal on a map[string]any also sorts keys alphabetically. The
+// output is therefore stable and alphabetical — callers can rely on this for
+// deterministic SSE payloads.
+func TestTranscodeToJSON_MapKeyOrdering(t *testing.T) {
+	t.Parallel()
+
+	// Encode with deliberately non-alphabetical insertion order.
+	in := map[string]any{"zebra": 1, "apple": 2, "mango": 3}
+	cborData, err := (CBORCodec{}).Encode(in)
+	if err != nil {
+		t.Fatalf("encode: %v", err)
+	}
+
+	out, err := TranscodeToJSON(cborData, EncodingCBOR)
+	if err != nil {
+		t.Fatalf("transcode: %v", err)
+	}
+
+	// json.Marshal sorts map[string]any keys alphabetically.
+	want := `{"apple":2,"mango":3,"zebra":1}`
+	if string(out) != want {
+		t.Errorf("keys not alphabetically sorted\ngot  %q\nwant %q", out, want)
 	}
 }

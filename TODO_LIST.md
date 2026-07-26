@@ -18,106 +18,96 @@ this list and recorded in CHANGELOG.
 
 ## Verify Gate
 
-> `nix run .#verify` is GREEN (build + vet + test + race + lint + API stability
->
-> - doc-check). All 58 modules pass. Lint is clean (0 issues). File-size gate
->   is GREEN.
+> Individual sub-checks pass (build, vet, lint 0 issues, file-size gate GREEN,
+> doc-check 412+ refs valid). The composite `nix run .#verify` is not yet
+> confirmed green end-to-end due to 5 benchkit timing tests that flake under
+> full-suite `-race` load. `nix run .#verify-fast` (skips soak tests) is the
+> recommended rapid-iteration gate.
 
-- [ ] 🔥 **Fix stale "5-family" references** introduced by go-error-family
-      v0.10.0 upgrade. Three living docs still say "5-family" instead of
-      "6-family" (Orchestration was added):
-      `docs/error-taxonomy.md` (also says "v0.5.1" — 7 versions stale),
-      `README.md:125`, `FEATURES.md:108`. This is a **split-brain** introduced
-      in the 2026-07-26 execution session.
-- [ ] **Wire `testing.Short()` into `#verify`** — benchkit soak tests now skip
-      in short mode (35s → 0.05s), but `nix run .#verify` does not pass
-      `-short`. Add a `-short` variant or a separate `#verify-fast` app.
+- [ ] 🔥 **Fix 5 benchkit timing tests** — pass in isolation but flake under
+      full-suite `-race`. Add `testutil.RaceEnabled` relaxed thresholds (the
+      two-file idiom: `race_on.go` / `race_off.go`). Source: 18-36 brutal review.
+- [ ] **Run `nix run .#verify` green end-to-end** — confirm the composite gate
+      after the race-threshold fix above.
 
 ---
 
 ## Release
 
-> The CHANGELOG `[Unreleased]` section has 260+ lines across 12 subsections.
+> The CHANGELOG `[Unreleased]` section has 300+ lines across 12 subsections.
 > go-error-family was upgraded v0.9.0 → v0.10.0 across all 50 modules (added
-> Orchestration family). `metaengine/projectionadapter/v4.0.0` is tagged
-> locally but NOT pushed.
+> Orchestration family). 57 of 58 modules have tags reachable from HEAD.
 
 - [BLOCKED] ⭐ **Cut v4.2.0 release** — flush `[Unreleased]` CHANGELOG, tag all
   58 modules, push tags. Requires user approval for push.
-- [BLOCKED] 🔥 **Push `metaengine/projectionadapter/v4.0.0` tag** — exists
-  locally, invisible to consumers. `git push origin metaengine/projectionadapter/v4.0.0`.
-- [ ] **Regenerate api-stability golden** after v4.2.0 — new exports added
-      (idempotency property tests, metaengine gap tests, `queryMessageCol`
-      helper).
-- [ ] **Add CHANGELOG entry for go-error-family v0.10.0 upgrade** — record the
-      Orchestration family addition and the 3 exhaustive-switch fixes.
+- [BLOCKED] 🔥 **Re-tag `metaengine/projectionadapter/v4.0.0`** — the tag
+  exists locally and on origin but points to a commit **not reachable from
+  HEAD** (orphaned). Must re-tag on the correct commit so consumers resolving
+  the module actually get a buildable tree.
+- [ ] **Run `nix run .#vulncheck` after v4.2.0** — verify no known
+      vulnerabilities across all module deps.
 
 ---
 
-## Documentation Health
+## CI / Daemon
 
-- [ ] **Update `docs/error-taxonomy.md`** — change "v0.5.1" → "v0.10.0", add
-      Orchestration to the 5-row table, update all code examples.
-- [ ] **Add CI check for taxonomy-count consistency** — grep for "5-family" /
-      "5 Error Families" in living docs. Prevents future split-brain when
-      go-error-family adds families.
-- [ ] **Annotate remaining ~4 historical files** — stale openings without
-      Resolution sections: analytics-rollup-review, NEXT-LEVEL-EXECUTION-STATUS,
-      meta-engine-design, benchkit-implementation-status.
-- [ ] **Hand-edit 2 HTML dashboards** — PARETO-EXECUTION-STATUS.html,
-      cqrs-ecosystem-audit.html have stale hero sections.
+> Local nix apps exist for `#verify-fast`, `#verify-parallel`,
+> `#check-duplication`, and `#sweep` — none are wired into CI yet.
+
+- [ ] 🔥 **Wire `#check-duplication` into CI** (`.github/workflows/ci.yml`) —
+      the `.art-dupl-baseline.json` golden + `#check-duplication` app exist
+      locally; CI does not run them. Without CI wiring, new clones ship
+      undetected.
+- [ ] **Wire `#verify-parallel` into CI** — the app splits module tests into N
+      batches for concurrent execution (~4min → ~1-2min); CI still runs
+      sequential.
+- [ ] **Add `#verify-fast` as a pre-merge CI gate** — fast feedback (skips
+      soak tests), keep full `#verify` for nightly.
+- [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
+      unformatted code (gci/gofumpt drift), turning `#lint` red. The `#sweep`
+      app recovers, but gating daemon commits behind `nix fmt` prevents the
+      drift. Either gate the daemon or run a scheduled sweep.
+- [ ] **Investigate dependabot alert** `security/dependabot/10` — `gh api`
+      returned no results (auth issue). Cannot diagnose without GitHub token
+      permissions.
 
 ---
 
 ## Module Health & Tooling
 
-- [ ] ⚠️ **Complete idempotency property tests for kv + sql** — 4 rapid-based
-      property tests were written but only tested against MemoryStore. The plan
-      called for all 3 implementations (memory, kv, sql). Run the property
-      tests against `kvstore.New()` and `sqlstore.NewSQLiteStore()`.
-- [ ] **Move 3-way idempotency contract test to `integration/`** — currently in
-      `idempotency/kvstore` (pulls sqlstore+sqlite as test deps).
-- [ ] **Cursor round-trip test for non-numeric keys** — string/time keys on
-      SQLite engine. Cross-engine meta-test gap.
-- [ ] **Promote `wrapInfraOrOK` to storage/sql, signing, codec** — 20+ call
-      sites in storage/sql alone. Per ADR-0069 per-module pattern.
-- [ ] **spannedRead helper in pebble** — 4+ clone groups remain.
-- [ ] **filterDetectors extraction in cqrs-lint** — shared by multiple rules.
-- [ ] **Stack preset stackpreset builder** — parallel boilerplate across
-      presets.
-- [ ] **Test infra helpers** — eventtest.NewTestStreamID, catalogtest,
-      storagetest, codectest.
-- [ ] **art-dupl CI gate** — golden file + fail-on-new-groups.
-- [ ] **Audit accepted clone groups** — verify 72 groups genuinely acceptable.
-- [ ] **`--semantic -t 3` art-dupl run** — deeper duplication surface.
-- [ ] **Write TestTagContentMatchesChangelog meta-test** — guard against
-      tag/CHANGELOG drift.
-- [ ] **Turso sync 4-way deep look** — accepted clone, may benefit from
-      extraction.
+- [ ] **`filterDetectors` extraction in cqrs-lint** — detector-filtering logic
+      is shared by multiple rules; verified NOT yet extracted.
+- [ ] **Audit accepted clone groups** — verify 72 art-dupl groups genuinely
+      acceptable, not just tolerated.
+- [ ] **`--structural` art-dupl pass** — AST-shape clones beyond the semantic
+      mode the current gate uses.
+- [ ] **`--type-aware` art-dupl run** — eliminates false-positive clone groups
+      (`time.Time.String` vs `*big.Int.String`).
+- [ ] **Property tests for `kv.TypedStore[T,K]`** — Set/Get/Delete/Cache
+      invalidation invariants (rapid-based, mirroring the idempotency pattern).
+- [ ] **Property tests for `snapshot.TypedStore[T]`** — Save/Load round-trip
+      fidelity.
+- [ ] **Cross-engine parity tests for metaengine ADTs** — Counter, Set, Graph,
+      SortedMap across memory vs SQLite (the existing cross-engine meta-test
+      covers Map/Multimap/Log/struct results; these 4 ADTs are gaps).
+- [ ] **`cqrs-lint` rule: missing `errorfamily.New*`** — catch plain
+      `errors.New` in production code that should use classified constructors.
+- [ ] **`cqrs-lint` rule: unchecked `Close()`** — resource leak detection.
+- [ ] **`cqrs-lint` rule: `context.Background()` in handlers** — should use the
+      passed `ctx`.
 
 ---
 
-## Daemon / CI
+## Documentation
 
-- [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
-      unformatted code (gci/gofumpt drift), turning `#lint` red. Either gate
-      daemon commits behind `nix fmt` or run a scheduled sweep.
-- [ ] **Triage auto-commit daemon commit messages** — prior decision was "leave
-      as-is"; revisit if garbled messages block `git log` readability or release
-      tagging.
-- [ ] **Parallel verify** — run independent module tests concurrently to cut
-      verify time from ~4min to ~1min.
-- [ ] **Investigate dependabot alert** `security/dependabot/10` — `gh api`
-      returned no results (auth issue).
-
----
-
-## Metaengine
-
-- [ ] **Soak test metaengine SQLite** — multi-hour load test for the SQLite
-      engine under concurrent writes.
-- [ ] **cqrs-bench workload for metaengine** — end-to-end Apply → ExecuteTyped
-      benchmark profile.
+- [ ] **Update `docs/SPAN_NAMING.md`** — document the new `startReadSpan`
+      pattern consolidated in pebble.
+- [ ] **Update `CONTRIBUTING.md`** — add `#verify-fast`, `#check-duplication`,
+      and `#sweep` workflows.
+- [ ] **Document `otel.WithoutGlobalRegistration()`** — undocumented public API
+      in `otel/`. Add to AGENTS.md + skill `core.md`.
+- [ ] **Verify metaengine coverage** — run `go test -cover ./metaengine/...`
+      and update FEATURES.md if the 87.7% claim has drifted.
 
 ---
 
@@ -168,6 +158,30 @@ this list and recorded in CHANGELOG.
   per-module helpers (`wrapInfraOrOK`, `wrapTransientOrOK`), capped at 3
   modules. A shared `storage/internal/errwrap` package would violate the
   multi-module isolation principle.
+- **Move 3-way idempotency contract test to `integration/`** — dropped
+  2026-07-26. Would add 3 new direct deps to integration/ and wouldn't fix the
+  stated smell (property_test.go also imports sqlstore). Cross-implementation
+  contract tests in the published kvstore module catch regressions for
+  consumers.
+- **Promote `wrapInfraOrOK` to storage/sql, signing, codec** — dropped
+  2026-07-26. ADR-0069 explicitly caps at 3 modules. storage/sql has only ~6-8
+  real candidates, signing/codec have effectively zero matching call sites.
+- **Stack preset `stackpreset` builder** — dropped 2026-07-26. ~45 lines of
+  trivial Go idiom; the real SQL consolidation lives in `stack/sqlopt`. A shared
+  builder would create a cross-module dependency for a 5-line function.
+- **Test infra helpers (catalogtest, storagetest, codectest)** — dropped
+  2026-07-26. `idtest` (100+ call sites), `eventtest` (~30 helpers), `cattest`
+  (20+ helpers) already cover all real needs. `codectest.NewCBORCodec()` would
+  wrap a zero-value struct literal — an anti-pattern.
+- **Turso sync 4-way deep look** — dropped 2026-07-26. Correctly accepted per
+  ADR-0069; the 4 clone sites have unique error codes for traceability.
+- **Triage auto-commit daemon commit messages** — dropped 2026-07-26. Prior
+  decision stands (leave as-is). Garbled messages don't block release tagging
+  (annotated tags override) and git log readability is acceptable.
+- **`cqrs-bench` workload for metaengine** — dropped 2026-07-26.
+  `metaengine.Store` is not a `*stack.Bundle`; the benchkit runner rejects it
+  with `ErrIncompleteBundle`. Coverage already exists in
+  `metaengine/planner_bench_test.go` (deliberately separated).
 
 ---
 
