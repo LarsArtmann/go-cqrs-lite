@@ -360,3 +360,14 @@ The linter detects consumers who use OO-style aggregates (classes with `uncommit
 | Deprecated aliases compile                   | PASS                                       |
 | Wire formats preserved                       | PASS (JSON, SQL, proto, OTel, error codes) |
 | SA1019 deprecation warnings                  | 0 (all internal code uses Stream*)         |
+
+---
+
+## Resolution (2026-07-26)
+
+The aggregate-to-stream rename is 100% complete. This report's "only ~80% done" summary was accurate at the time but is now fully resolved:
+
+- **Error variables** (`ErrAggregateTypeMismatch`, `ErrAggregateIDMismatch`): renamed to `ErrStreamTypeMismatch`, `ErrStreamIDMismatch` with deprecated aliases preserving backward compatibility (ADR-0058).
+- **Comment cleanup**: all "aggregate" references in production code comments were updated to "stream" in subsequent sessions.
+- **Wire formats**: error code strings (wire format) unchanged — only Go identifiers changed.
+- **Deprecated aliases**: all compile with zero SA1019 warnings in production code.

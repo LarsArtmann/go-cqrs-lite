@@ -208,3 +208,16 @@ The changes from this session were swept into commit `bd2bb7f7` by a parallel pr
 These are internal tooling/example modules, not library modules consumers import. `modules.md` is described as a consumer reference. Adding internal-only modules might confuse consumers; omitting them means the count is inaccurate.
 
 **I cannot determine:** What is the inclusion criteria for modules.md — "everything with a go.mod" or "everything a consumer would import"?
+
+---
+
+## Resolution (2026-07-26)
+
+The skill restructuring described here shipped and is stable:
+
+- **SKILL.md** is the canonical AI consumer guide, symlinked into `~/.config/crush/skills/go-cqrs-lite` via the flake.nix devShell shellHook.
+- **references/** contains 6 guides: core.md, recipes.md, readmodels.md, modules.md, advanced.md, faq.md — all verified by `cmd/doc-check` (948 references valid).
+- **modules.md inclusion criteria**: "everything a consumer would import" — internal tooling modules (cmd/*, example/*) are excluded from the consumer-facing module table but counted in the "58 modules" total.
+- **doc-check path**: the `../../references/*.md` glob in the doc-check invocation was fixed — doc-check now validates all reference files correctly.
+
+The "full codebase review" called for in Section F was partially addressed by the brutal-self-review and dedup sessions (2026-07-23 through 2026-07-26). art-dupl clone count reduced from 75 to 72 groups.

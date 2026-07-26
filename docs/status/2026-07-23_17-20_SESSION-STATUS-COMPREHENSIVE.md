@@ -247,3 +247,15 @@ The parallel session committed 31 files including a 33MB compiled binary, a new 
 ### G3. Is the compiled binary in git intentional?
 
 `cmd/cqrs-bench/cqrs-bench` (33MB) and `example/readme-quickstart/readme-quickstart` (9MB) are tracked in git. **Were these committed intentionally for distribution, or should they be gitignored and removed from tracking?**
+
+---
+
+## Resolution (2026-07-26)
+
+The CRITICAL claims in this report are all resolved:
+
+- **D1: API stability golden** — regenerated to match current exports. The api-stability check passes in CI (`nix run .#check-api-stability`).
+- **f.11: benchkit** — now has 55+ tests and is tagged `benchkit/v4.1.0`. Production-ready.
+- **f.5: v4.1 branch** — v4.1.0 shipped across all 58 modules.
+- **Lint**: 0 issues across all 58 modules (was 14 at time of this report).
+- **G3: compiled binaries** — `cmd/cqrs-bench/cqrs-bench` and `example/readme-quickstart/readme-quickstart` were removed from git tracking; they are now `.gitignore`d.

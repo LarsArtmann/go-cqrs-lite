@@ -112,3 +112,17 @@
 2. **Run the full `nix run .#verify` now?** It's the real CI gate (build+vet+test+race+lint+doc-check+module-coverage, several minutes). I verified each changed package in isolation but not the whole gate in one pass. Should I run it and fix whatever it surfaces, or do you want to run it yourself?
 
 3. **Update `TODO_LIST.md` / `CHANGELOG.md` as part of "done"?** The docs-health rule says completed work moves from TODO_LIST → CHANGELOG. I did the work but left both files untouched (the daemon committed code, not docs). Should I now prune TODO_LIST and write the CHANGELOG entries, or is that your manual step?
+
+---
+
+## Resolution (2026-07-26)
+
+All three open questions from this report are now resolved:
+
+1. **metaengine/v4.1.1 + projectionadapter/v4.0.0 tagged** — both pushed to origin. projectionadapter was the last untagged module; the full 58/58 module graph is now tagged (ADR-0062 dependency boundary).
+
+2. **`nix run .#verify` is GREEN** — build + vet + test + race + lint (0 issues across all 58 modules) + API stability + doc-check (948 references) all pass end-to-end.
+
+3. **TODO_LIST and CHANGELOG rebuilt** — the docs-health session (2026-07-26) pruned stale items, harvested new ones, and recorded shipped work in CHANGELOG `[Unreleased]`.
+
+The ADR index gap noted in this report (f.20: "stops at ADR-0035") is fixed: docs/README.md now indexes all 67 ADRs (0001–0069, gaps 0036/0041), and a CI check in `scripts/verify-docs.sh` prevents future drift.

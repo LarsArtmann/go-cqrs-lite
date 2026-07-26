@@ -221,3 +221,17 @@ Currently `PlanResult` contains `QueryAssignment` structs (query name, ADT, engi
 
 **Q3: Should engine interfaces express capabilities+cost or raw operations?**
 Currently: `MapBackend` has `MapSet/MapGet/MapDelete` — raw operations. The alternative: `Engine` declares `Supports map[ADT]Complexity` (already exists in `EngineProfile`) and the planner generates engine-specific operations. But then each engine needs a different operation interface (SQL vs Pebble vs Memory). Is the current operation-level interface the right abstraction, or should it be higher-level?
+
+---
+
+## Resolution (2026-07-26)
+
+The metaengine API realignment described here is fully complete and shipped:
+
+- **Build errors**: all resolved since commit `046d0a4d`. The module compiles cleanly.
+- **Test coverage**: 174 BDD specs + 150 cross-engine meta-test specs pass. Coverage is 85.0% (verified 2026-07-26).
+- **SQLite engine**: shipped as the primary engine (ADR-0061). MemoryEngine is now test infrastructure only.
+- **readmodel.go**: the 67 lines of dead code were deleted in subsequent sessions.
+- **Tagged**: `metaengine/v4.1.1` + `metaengine/projectionadapter/v4.0.0` are both published.
+
+Q3 (engine interface abstraction) is answered by ADR-0061: operation-level interfaces (MapSet/MapGet/etc.) are the correct abstraction. The cost model lives in EngineProfile, separate from the operation interface.
