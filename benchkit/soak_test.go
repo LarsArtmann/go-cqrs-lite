@@ -15,6 +15,9 @@ import (
 
 func TestRunSoak_Memory(t *testing.T) {
 	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping soak test in short mode")
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -59,6 +62,9 @@ func TestRunSoak_Memory(t *testing.T) {
 
 func TestRunSoak_TrendsPopulated(t *testing.T) {
 	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping soak test in short mode")
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -102,6 +108,9 @@ func TestRunSoak_TrendsPopulated(t *testing.T) {
 
 func TestRunSoak_ProgressReport(t *testing.T) {
 	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping soak test in short mode")
+	}
 
 	var progress bytes.Buffer
 
@@ -138,6 +147,9 @@ func TestRunSoak_ProgressReport(t *testing.T) {
 
 func TestPrintSoakReport(t *testing.T) {
 	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping soak test in short mode")
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
@@ -186,6 +198,9 @@ func TestPrintSoakReport(t *testing.T) {
 
 func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping soak test in short mode")
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()

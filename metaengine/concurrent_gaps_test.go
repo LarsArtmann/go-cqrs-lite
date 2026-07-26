@@ -203,3 +203,50 @@ func mustSQLiteEngine(t *testing.T) metaengine.Engine {
 
 	return eng
 }
+
+// TestNonStructFoldUpdateSQLite (#31): FoldUpdate with a non-struct value
+// type (int) on SQLite engine. Verifies the reify path handles primitive
+// types, not just structs.
+func TestNonStructFoldUpdateSQLite(t *testing.T) {
+	t.Parallel()
+
+	type evt struct {
+		ID    string
+		Delta int
+	}
+	type input struct{ ID string }
+
+	q := metaengine.Query[input, int](
+		"counters",
+		metaengine.On(evt{}, func(e evt) (string, int) {
+			return e.ID, e.Delta
+		}),
+		metaengine.On(evt{}, func(e evt, prev int) int {
+			return prev + e.Delta
+		}),
+	)
+
+	eng := mustSQLiteEngine(t)
+	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+	defer store.Close()
+
+	ctx := context.Background()
+
+	for _, delta := range []int{10, 20, 5} {
+		if err := store.Apply(ctx, "evt", evt{ID: "c1", Delta: delta}); err != nil {
+			t.Fatalf("Apply delta=%d: %v", delta, err)
+		}
+	}
+
+	result, err := metaengine.ExecuteTyped[input, int](ctx, store, input{ID: "c1"})
+	if err != nil {
+		t.Fatalf("ExecuteTyped: %v", err)
+	}
+
+	if result != 35 {
+		t.Errorf("FoldUpdate result = %d, want 35 (10+20+5)", result)
+	}
+}
