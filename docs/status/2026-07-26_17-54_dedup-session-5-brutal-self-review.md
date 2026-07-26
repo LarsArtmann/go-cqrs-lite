@@ -188,3 +188,23 @@ The gocognit issue is in `storage/relational/upsert_test.go:109` (complexity 41 
 ### Q3: Is the "0 groups at -t 5" result meaningful, or should I keep tracking at -t 2?
 
 The dedup skill recommends `-t 5` as the default, and at that threshold there are 0 groups. But the user's original command was `-t 2`, and at that threshold there are 72 groups. I don't know if the team considers -t 5 (0 groups = "clean") or -t 2 (72 groups = "work remaining") as the canonical tracking metric. The sessions have been using -t 2 throughout.
+
+---
+
+## Session 6 Corrections (2026-07-26)
+
+### CORRECTION: command_read.go "missed call sites" was a FALSE ALARM
+
+Sections c.1 and d.3 claim `storage/pebble/command_read.go:52-57,77-82` have unconverted `wrapInfraOrOK` call sites. **This is FALSE.** Those lines use `reportScanErr(span, err, code, msg)` — a span-aware error reporter that records the error on the OTel span AND wraps it. It is a DIFFERENT, more sophisticated pattern than the simple `wrapInfraOrOK(err, code, msg)`. Converting them to `wrapInfraOrOK` would LOSE span error recording. There are NO unconverted `wrapInfraOrOK` call sites in command_read.go.
+
+### RESOLVED: Q1 (per-module wrapInfraOrOK clone)
+
+ACCEPTED. The 5-line helper body appearing in 3 modules is intentional per ADR-0069. Capped at 3 modules — turso was evaluated and left inline to avoid extending to 4-way. See updated ADR-0069 and dedup-acceptance.md.
+
+### RESOLVED: Q2 (pre-existing lint issues)
+
+BOTH FIXED. `rv` → `closureVal` in metaengine/execute.go (3 functions). `//nolint:gocognit` added to TestSinkUpsert (matches existing codebase pattern in listing/in_memory_test.go). `nix run .#lint` now exits 0.
+
+### RESOLVED: Q3 (canonical metric)
+
+Track at `-t 2` (user's chosen threshold) as primary; report `-t 5` as secondary "deep clone" signal.

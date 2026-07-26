@@ -25,11 +25,11 @@ func (c Ciphertext) String() string {
 }
 
 func (c Ciphertext) MarshalJSON() ([]byte, error) {
-	return codec.MarshalBase64JSONWithModule(
+	return codec.MarshalBase64JSONWithModule( //nolint:wrapcheck // wraps internally
 		c,
 		"encryption",
 		"ciphertext",
-	) //nolint:wrapcheck // wraps internally
+	)
 }
 
 func (c *Ciphertext) UnmarshalJSON(data []byte) error {
