@@ -1,0 +1,9 @@
+# 2026/07/26 21:33:55.799575 [TestProperty_CheckAndRecordExactlyOnce_AllStores/sqlstore] [rapid] draw key: ""
+# 2026/07/26 21:33:55.799603 [TestProperty_CheckAndRecordExactlyOnce_AllStores/sqlstore] [rapid] draw concurrent: 2
+# 2026/07/26 21:33:55.802387 [TestProperty_CheckAndRecordExactlyOnce_AllStores/sqlstore] expected exactly 1 success, got 0 (of 2)
+# 
+v0.4.8#5717931886619852616
+0x0
+0x0
+0x0
+0x0

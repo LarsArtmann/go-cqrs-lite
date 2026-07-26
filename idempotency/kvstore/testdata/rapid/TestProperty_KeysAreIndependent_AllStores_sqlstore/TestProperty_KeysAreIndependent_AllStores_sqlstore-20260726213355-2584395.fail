@@ -1,0 +1,15 @@
+# 2026/07/26 21:33:55.947878 [TestProperty_KeysAreIndependent_AllStores/sqlstore] [rapid] draw keyA: "A"
+# 2026/07/26 21:33:55.947905 [TestProperty_KeysAreIndependent_AllStores/sqlstore] [rapid] draw keyB: "a"
+# 2026/07/26 21:33:55.948528 [TestProperty_KeysAreIndependent_AllStores/sqlstore] keyB should not be seen (only keyA was recorded)
+# 
+v0.4.8#17296590736469209327
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x1
+0x0

@@ -224,6 +224,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **go-error-family upgraded v0.9.0 → v0.10.0** across all 50 modules. The new
+  `Orchestration` family (6th family) classifies internal coordination failures
+  (e.g., projection host lifecycle errors, dead-letter orchestration bugs).
+  Three exhaustive `switch` statements updated with the new case: `projectionhost`,
+  `middleware`, and `benchkit`. Not a breaking API change for consumers — the
+  new family is additive. Documentation updated: "5-family" → "6-family"
+  everywhere (error-taxonomy.md, README.md, FEATURES.md, AGENTS.md).
 - **README rewrite** — restructured as 3-step Quick Start (define domain, event-source
   with decider, go to production). Added Install section, trimmed module catalog to 12
   key modules (links to AGENTS.md for full 58). Moved "Why" section before catalog.

@@ -3,17 +3,24 @@ package kvstore_test
 import (
 	"context"
 	"errors"
-	"sync"
+	"database/sql"
+	"fmt"
 	"sync/atomic"
+	"sync"
 	"testing"
 	"time"
 
+	_ "modernc.org/sqlite"
+
 	"pgregory.net/rapid"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
+	idemsqlstore "github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
+
+var propertyDBCounter atomic.Int64
 
 // storeFactory creates a fresh, isolated idempotency.Store for property testing.
 // Each call returns a new store and a cleanup function.
@@ -38,11 +45,23 @@ func allStores() map[string]storeFactory {
 	}
 }
 
-// newSQLiteStoreForProperty reuses the contract-test SQLite helper and returns
-// the Store interface for property-test uniformity.
+// newSQLiteStoreForProperty creates a SQLite store backed by a UNIQUE named
+// in-memory database, so parallel property-test iterations never share state.
 func newSQLiteStoreForProperty(t *testing.T) idempotency.Store {
 	t.Helper()
-	return newSQLiteStoreForContract(t)
+	dbName := fmt.Sprintf("propertydb_%d", propertyDBCounter.Add(1))
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared&_pragma=busy_timeout(5000)", dbName)
+	db, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+	s, err := idemsqlstore.NewSQLiteStore(context.Background(), db)
+	if err != nil {
+		t.Fatalf("new sqlite store: %v", err)
+	}
+	return s
 }
 
 // runPropertyAllStores runs a rapid property check against every implementation.

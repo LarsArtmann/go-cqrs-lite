@@ -552,6 +552,19 @@
               echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md) && \
               echo "✅ All verification checks passed"
             '';
+
+            # verify-fast: same as verify but passes -short to skip soak tests
+            # (benchkit 35s soak suite). Use for rapid iteration during development.
+            verify-fast = mkApp "verify-fast" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
+              ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
+              echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
+              echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
+              echo "=== Test (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -count=1 && \
+              echo "=== Race (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -race -count=1 && \
+              echo "=== Lint ===" && nix run .#lint && \
+              echo "=== API Stability ===" && nix run .#check-api-stability && \
+              echo "✅ All fast verification checks passed (soak tests skipped)"
+            '';
           };
         };
 
