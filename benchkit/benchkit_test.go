@@ -22,6 +22,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
+// parallelTimeoutCtx marks the test as parallel and returns a context that
+// auto-cancels after timeout. Consolidates the t.Parallel + WithTimeout
+// boilerplate repeated across every integration test in this file.
+func parallelTimeoutCtx(t *testing.T, timeout time.Duration) (context.Context, context.CancelFunc) {
+	t.Helper()
+	t.Parallel()
+
+	return context.WithTimeout(context.Background(), timeout)
+}
+
 func mustRun(t *testing.T, config Config, factory Factory) *Result {
 	t.Helper()
 
@@ -173,9 +183,7 @@ func TestRun_SQLite_ReadModelAndJournal(t *testing.T) {
 }
 
 func TestCompare(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 60*time.Second)
 	defer cancel()
 
 	results, err := Compare(ctx, Config{
@@ -205,9 +213,7 @@ func TestCompare(t *testing.T) {
 }
 
 func TestCompare_WithFailure(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 10*time.Second)
 	defer cancel()
 
 	results, err := Compare(ctx, Config{
@@ -255,9 +261,7 @@ func TestPrintReport(t *testing.T) {
 }
 
 func TestPrintComparison(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 30*time.Second)
 	defer cancel()
 
 	results, _ := Compare(ctx, Config{
@@ -300,9 +304,7 @@ func TestWriteJSON(t *testing.T) {
 }
 
 func TestPrintMarkdown(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 30*time.Second)
 	defer cancel()
 
 	results, _ := Compare(ctx, Config{
@@ -326,9 +328,7 @@ func TestPrintMarkdown(t *testing.T) {
 }
 
 func TestRun_FactoryError(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 5*time.Second)
 	defer cancel()
 
 	_, err := Run(ctx, Config{Profile: ProfileDev}, func() (*stack.Bundle, error) {
@@ -345,9 +345,7 @@ func TestRun_FactoryError(t *testing.T) {
 }
 
 func TestRun_NilBundle(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 5*time.Second)
 	defer cancel()
 
 	_, err := Run(ctx, Config{Profile: ProfileDev}, func() (*stack.Bundle, error) {
@@ -364,9 +362,7 @@ func TestRun_NilBundle(t *testing.T) {
 }
 
 func TestRun_NilEventSink(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 5*time.Second)
 	defer cancel()
 
 	_, err := Run(ctx, Config{Profile: ProfileDev}, func() (*stack.Bundle, error) {
@@ -386,9 +382,7 @@ func TestRun_NilEventSink(t *testing.T) {
 }
 
 func TestRun_NilEventSource(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 5*time.Second)
 	defer cancel()
 
 	_, err := Run(ctx, Config{Profile: ProfileDev}, func() (*stack.Bundle, error) {
@@ -623,9 +617,7 @@ func TestConfig_Validation(t *testing.T) {
 // ── Warmup tests ──
 
 func TestRun_WarmupFactoryError(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 5*time.Second)
 	defer cancel()
 
 	callCount := atomic.Int32{}
@@ -882,9 +874,7 @@ func TestRun_ClosedStore_ErrorMessage(t *testing.T) {
 // ── Compare with 3+ backends ──
 
 func TestCompare_ThreeBackends(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 60*time.Second)
 	defer cancel()
 
 	dir := t.TempDir()
@@ -1566,9 +1556,7 @@ func TestRun_ReplayOnly_SQLite(t *testing.T) {
 }
 
 func TestRun_ReplayOnly_NoJournal(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 5*time.Second)
 	defer cancel()
 
 	// Memory backend has no Journal — should return ErrIncompleteBundle.
@@ -1899,9 +1887,7 @@ func checkLatencyRoundTrip(t *testing.T, name string, want, got LatencyStats) {
 }
 
 func TestPrintComparison_RawSinkColumns(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 30*time.Second)
 	defer cancel()
 
 	results, _ := Compare(ctx, Config{
@@ -1925,9 +1911,7 @@ func TestPrintComparison_RawSinkColumns(t *testing.T) {
 }
 
 func TestWorkerSweep(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 60*time.Second)
 	defer cancel()
 
 	results := WorkerSweep(ctx, Config{
@@ -1955,9 +1939,7 @@ func TestWorkerSweep(t *testing.T) {
 }
 
 func TestBatchSizeSweep(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 60*time.Second)
 	defer cancel()
 
 	results := BatchSizeSweep(ctx, Config{
@@ -1981,9 +1963,7 @@ func TestBatchSizeSweep(t *testing.T) {
 }
 
 func TestStreamLengthSweep(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 60*time.Second)
 	defer cancel()
 
 	results := StreamLengthSweep(ctx, Config{
@@ -2009,9 +1989,7 @@ func TestStreamLengthSweep(t *testing.T) {
 }
 
 func TestPrintSweep(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 60*time.Second)
 	defer cancel()
 
 	results := WorkerSweep(ctx, Config{
@@ -2033,9 +2011,7 @@ func TestPrintSweep(t *testing.T) {
 }
 
 func TestWriteSweepJSON(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := parallelTimeoutCtx(t, 60*time.Second)
 	defer cancel()
 
 	results := WorkerSweep(ctx, Config{
