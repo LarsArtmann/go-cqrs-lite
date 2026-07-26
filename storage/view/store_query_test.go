@@ -9,9 +9,7 @@ import (
 )
 
 func TestSQLViewStore_Query_WhereOrderBy(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	views := []struct {
@@ -54,9 +52,7 @@ func TestSQLViewStore_Query_WhereOrderBy(t *testing.T) {
 }
 
 func TestSQLViewStore_Query_Pagination(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	for i := 0; i < 10; i++ {
@@ -101,9 +97,7 @@ func TestSQLViewStore_Query_Pagination(t *testing.T) {
 }
 
 func TestSQLViewStore_Query_Desc(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	for _, name := range []string{"Alice", "Bob", "Charlie"} {
@@ -128,9 +122,7 @@ func TestSQLViewStore_Query_Desc(t *testing.T) {
 }
 
 func TestSQLViewStore_QueryByTombstone(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	if err := store.Set(

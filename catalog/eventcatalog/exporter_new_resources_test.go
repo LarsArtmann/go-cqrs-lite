@@ -126,8 +126,7 @@ func TestExporter_MessageWithDeprecationInfo(t *testing.T) {
 
 	deprecationDate := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID:      "svc",
 		Name:    "Service",
 		Version: "1.0.0",
@@ -159,8 +158,7 @@ func TestExporter_MessageWithDeprecationInfo(t *testing.T) {
 func TestExporter_MessageWithChannels(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID:      "svc",
 		Name:    "Service",
 		Version: "1.0.0",
@@ -189,8 +187,7 @@ func TestExporter_MessageWithChannels(t *testing.T) {
 func TestExporter_MessageWithSchemas(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID:      "svc",
 		Name:    "Service",
 		Version: "1.0.0",

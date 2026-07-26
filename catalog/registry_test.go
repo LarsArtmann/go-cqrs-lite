@@ -66,8 +66,7 @@ func TestRegistry_AddCommand(t *testing.T) {
 func TestRegistry_AddEvent(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
 	reg.AddEvent("order-svc", catalog.Message{
 		ID:        "OrderCreated",
 		Name:      "Order Created",
@@ -216,8 +215,7 @@ func TestRegistry_Build_MultipleServices(t *testing.T) {
 func TestRegistry_ServiceMerge(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID: "svc", Name: "Service", Version: "1.0.0",
 		Commands: []catalog.Message{{ID: "Cmd1", Name: "Cmd1", Version: "1.0.0"}},
 	})
@@ -241,8 +239,7 @@ func TestRegistry_ServiceMerge(t *testing.T) {
 func TestRegistry_ServiceMergeWithQueries(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID:      "svc",
 		Name:    "Service",
 		Version: "1.0.0",
@@ -279,8 +276,7 @@ func TestGetID_UsesID(t *testing.T) {
 func TestRegistry_AddServiceMergeNoCommands(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddService(catalog.Service{
 		ID:       "svc",
 		Name:     "Service",

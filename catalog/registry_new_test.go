@@ -167,8 +167,7 @@ func TestDomainOption_DataProducts(t *testing.T) {
 func TestServiceOption_ExternalSystem(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.SetServiceOptions("svc", catalog.ServiceExternalSystem())
 
 	cat := reg.Build()

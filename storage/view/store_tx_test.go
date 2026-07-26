@@ -8,9 +8,7 @@ import (
 // TestSQLViewStore_InTx_Commit verifies that writes via InTx are persisted when
 // the transaction commits.
 func TestSQLViewStore_InTx_Commit(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	tx, err := store.DB.BeginTx(ctx, nil)
@@ -41,9 +39,7 @@ func TestSQLViewStore_InTx_Commit(t *testing.T) {
 // TestSQLViewStore_InTx_Rollback verifies that writes via InTx are discarded
 // when the transaction rolls back — the store does not auto-commit.
 func TestSQLViewStore_InTx_Rollback(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	tx, err := store.DB.BeginTx(ctx, nil)
@@ -81,9 +77,7 @@ func TestSQLViewStore_InTx_Rollback(t *testing.T) {
 // TestSQLViewStore_InTx_ReceiverUnaffected verifies that scoping a copy to a tx
 // does not affect the receiver store (it keeps running on the connection pool).
 func TestSQLViewStore_InTx_ReceiverUnaffected(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	// Pool-level write before any tx.

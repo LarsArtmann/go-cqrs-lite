@@ -65,6 +65,16 @@ func newTestViewStore(t *testing.T) *SQLViewStore[testView, testKey] {
 	return store
 }
 
+// parallelViewStore marks the test parallel and returns a fresh in-memory view
+// store. Consolidates the t.Parallel + newTestViewStore preamble repeated
+// across every test in this package.
+func parallelViewStore(t *testing.T) *SQLViewStore[testView, testKey] {
+	t.Helper()
+	t.Parallel()
+
+	return newTestViewStore(t)
+}
+
 func safeName(views []*testView) string {
 	if len(views) == 0 {
 		return "(empty)"
@@ -74,9 +84,7 @@ func safeName(views []*testView) string {
 }
 
 func TestSQLViewStore_CRUD(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	// Get on missing key → ErrNotFound.
@@ -130,9 +138,7 @@ func TestSQLViewStore_CRUD(t *testing.T) {
 }
 
 func TestSQLViewStore_SetNil(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 
 	if err := store.Set(context.Background(), testKey("nil"), nil); err == nil {
 		t.Fatal("Set nil: expected error, got nil")
@@ -140,9 +146,7 @@ func TestSQLViewStore_SetNil(t *testing.T) {
 }
 
 func TestSQLViewStore_Scan(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	views := map[string]*testView{
@@ -188,9 +192,7 @@ func TestSQLViewStore_Scan(t *testing.T) {
 }
 
 func TestSQLViewStore_ImplementsInterfaces(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 
 	var _ kv.ViewStore[testView, testKey] = store
 	var _ kv.ViewQuerier[testView] = store

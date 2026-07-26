@@ -10,8 +10,7 @@ import (
 func TestAutoDerive_MultipleProducers(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
 	reg.AddEvent("svc-a", newEvent("OrderPlaced", "Order Placed", catalog.Sends))
 	reg.AddService(catalog.Service{ID: "svc-b", Name: "Service B", Version: "1.0.0"})
 	reg.AddEvent("svc-b", newEvent("OrderPlaced", "Order Placed", catalog.Sends))
@@ -28,8 +27,7 @@ func TestAutoDerive_MultipleProducers(t *testing.T) {
 func TestAutoDerive_CommandsGetConsumers(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
 		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order",
 		Version: "1.0.0",
@@ -47,8 +45,7 @@ func TestAutoDerive_CommandsGetConsumers(t *testing.T) {
 func TestAutoDerive_DoesNotOverrideExistingProducers(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddEvent("svc", catalog.Message{
 		Kind: catalog.EventMessage, ID: "OrderPlaced", Name: "Order Placed",
 		Version: "1.0.0", Direction: catalog.Sends,
@@ -79,8 +76,7 @@ func TestAutoDerive_EmptyCatalog(t *testing.T) {
 func TestAutoDerive_QueryGetsConsumers(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddQuery("svc", catalog.Message{
 		Kind: catalog.QueryMessage, ID: "GetOrder", Name: "Get Order",
 		Version: "1.0.0",

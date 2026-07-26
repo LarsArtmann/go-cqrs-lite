@@ -53,10 +53,7 @@ func TestExporter_Export_WriteMessageError(t *testing.T) {
 }
 
 func TestExporter_Export_WriteDomainError(t *testing.T) {
-	t.Parallel()
-	tmpDir := t.TempDir()
-
-	reg := cattest.NewTestRegistry()
+	tmpDir, reg := parallelExportEnv(t)
 	reg.AddDomain(
 		catalog.Domain{
 			ID: "dom", Name: "Dom",
@@ -166,10 +163,7 @@ func TestExporter_Export_MessageWithSchemaWriteError(t *testing.T) {
 }
 
 func TestExporter_Export_ExamplesFileMarshalError(t *testing.T) {
-	t.Parallel()
-	tmpDir := t.TempDir()
-
-	reg := cattest.NewTestRegistry()
+	tmpDir, reg := parallelExportEnv(t)
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithExample(
 		t, reg, catalog.MessageID("Cmd"), "Cmd", "1.0.0",

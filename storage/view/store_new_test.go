@@ -8,9 +8,7 @@ import (
 )
 
 func TestSQLViewStore_Count(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	for i := range 5 {
@@ -57,9 +55,7 @@ func TestSQLViewStore_Count(t *testing.T) {
 }
 
 func TestSQLViewStore_QueryConditions(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	views := []struct {
@@ -128,9 +124,7 @@ func TestSQLViewStore_QueryConditions(t *testing.T) {
 }
 
 func TestSQLViewStore_DeleteAll(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	for _, name := range []string{"a", "b", "c"} {
@@ -169,9 +163,7 @@ func TestSQLViewStore_DeleteAll(t *testing.T) {
 }
 
 func TestSQLViewStore_BatchSet(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	items := make([]kv.ViewItem[testView, testKey], 0, 100)

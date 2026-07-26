@@ -13,9 +13,7 @@ import (
 // descending order: page 2 starts strictly after the last row of page 1,
 // determined by a composite cursor on (age, key).
 func TestSQLViewStore_Query_KeysetDesc(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	for i, age := range []int{10, 20, 30, 40, 50} {
@@ -71,9 +69,7 @@ func TestSQLViewStore_Query_KeysetDesc(t *testing.T) {
 
 // TestSQLViewStore_Query_KeysetAsc verifies keyset pagination ascending.
 func TestSQLViewStore_Query_KeysetAsc(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	for i, age := range []int{10, 20, 30, 40, 50} {
@@ -112,9 +108,7 @@ func TestSQLViewStore_Query_KeysetAsc(t *testing.T) {
 // with equal sort-column values are paginated deterministically (no skip, no
 // repeat) when the cursor includes the unique key column.
 func TestSQLViewStore_Query_KeysetTiebreaker(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	// Five rows, all age=25, distinct keys u1..u5.
@@ -165,9 +159,7 @@ func TestSQLViewStore_Query_KeysetTiebreaker(t *testing.T) {
 // TestSQLViewStore_Query_KeysetDefaultColumns verifies that an empty
 // Keyset.Columns defaults to the ORDER BY column plus the key tiebreaker.
 func TestSQLViewStore_Query_KeysetDefaultColumns(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	for i, age := range []int{10, 20, 30} {
@@ -200,9 +192,7 @@ func TestSQLViewStore_Query_KeysetDefaultColumns(t *testing.T) {
 // AND-joined with structured Conditions and that placeholder numbering stays
 // correct across both arg sources.
 func TestSQLViewStore_Query_KeysetWithConditions(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	for i, age := range []int{10, 20, 30, 40, 50} {
@@ -235,9 +225,7 @@ func TestSQLViewStore_Query_KeysetWithConditions(t *testing.T) {
 // TestSQLViewStore_Query_MultiColumnOrder verifies Order with per-column
 // direction (mixed ASC/DESC), which a single OrderBy+Desc cannot express.
 func TestSQLViewStore_Query_MultiColumnOrder(t *testing.T) {
-	t.Parallel()
-
-	store := newTestViewStore(t)
+	store := parallelViewStore(t)
 	ctx := context.Background()
 
 	// Rows where age ties; the key direction decides the order within ties.

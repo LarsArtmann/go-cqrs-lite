@@ -21,8 +21,7 @@ func basicCommand(id string) catalog.Message {
 func TestExporter_Export_BasicCommand(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      "CreateOrder",
@@ -322,8 +321,7 @@ func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 
 	schema := catalog.SchemaFromType[CreateOrder]()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      "CreateOrder",
@@ -362,8 +360,7 @@ func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 func TestDocument_MarshalYAML(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", basicCommand("DoStuff"))
 
 	cat := reg.Build()
@@ -411,8 +408,7 @@ func TestDocument_MarshalJSON(t *testing.T) {
 func TestExporter_Export_NoSchema(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", basicCommand("NoSchema"))
 
 	cat := reg.Build()
@@ -497,8 +493,7 @@ func TestExporter_Export_Examples(t *testing.T) {
 func TestExporter_AgentMessages(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry()
-	reg.AddService(catalog.Service{
+	reg := cattest.NewTestRegistry(catalog.Service{
 		ID:      "order-svc",
 		Name:    "Order Service",
 		Version: "1.0.0",
