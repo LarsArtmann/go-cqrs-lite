@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint
 
-go 1.26.5
+go 1.26.4
 
 require (
 	github.com/larsartmann/cmdguard/v3 v3.1.0

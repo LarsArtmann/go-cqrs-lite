@@ -15,7 +15,7 @@ func (s *sqlSink) resolveCols(
 	table string,
 	row Row,
 	conflictCols []string,
-) ([]string, []string, []any, error) {
+) ([]string, []any, []string, error) {
 	cols, vals, err := s.rowColumns(table, row)
 	if err != nil {
 		return nil, nil, nil, err
@@ -114,13 +114,9 @@ func (s *sqlSink) UpsertCols(
 	updateCols []string,
 	conflictCols ...string,
 ) error {
-	cols, vals, err := s.rowColumns(table, row)
+	cols, vals, conflictCols, err := s.resolveCols(table, row, conflictCols)
 	if err != nil {
 		return err
-	}
-
-	if len(conflictCols) == 0 {
-		conflictCols = s.conflictTarget(table)
 	}
 
 	nonConflict := partitionColumns(cols, conflictCols)
@@ -167,13 +163,9 @@ func (s *sqlSink) UpsertExpr(
 	setExprs []SetExpr,
 	conflictCols ...string,
 ) error {
-	cols, vals, err := s.rowColumns(table, row)
+	cols, vals, conflictCols, err := s.resolveCols(table, row, conflictCols)
 	if err != nil {
 		return err
-	}
-
-	if len(conflictCols) == 0 {
-		conflictCols = s.conflictTarget(table)
 	}
 
 	knownCols := s.schema.Table(table)

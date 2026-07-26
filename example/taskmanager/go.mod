@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/example/taskmanager
 
-go 1.26.5
+go 1.26.4
 
 require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.0
