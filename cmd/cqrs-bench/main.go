@@ -96,9 +96,7 @@ Examples:
 // ── run subcommand ──
 
 func runCmd(args []string) {
-	fs := flag.NewFlagSet("run", flag.ExitOnError)
-
-	bf := registerBenchFlags(fs)
+	fs, bf := newBenchFlagSet("run")
 
 	warmup := fs.Int("warmup", 0, "Number of warmup operations")
 	recovery := fs.Bool("recovery", false, "Enable crash-recovery phase (close, reopen, reload)")
@@ -203,9 +201,7 @@ func runCmd(args []string) {
 // ── compare subcommand ──
 
 func compareCmd(args []string) {
-	fs := flag.NewFlagSet("compare", flag.ExitOnError)
-
-	bf := registerBenchFlags(fs)
+	fs, bf := newBenchFlagSet("compare")
 
 	backendList := fs.String("backends", "memory,sqlite,pebble",
 		"Comma-separated backend list (memory,sqlite,pebble)")
@@ -257,9 +253,7 @@ func compareCmd(args []string) {
 // ── sweep subcommand ──
 
 func sweepCmd(args []string) {
-	fs := flag.NewFlagSet("sweep", flag.ExitOnError)
-
-	bf := registerBenchFlags(fs)
+	fs, bf := newBenchFlagSet("sweep")
 
 	param := fs.String(
 		"param",

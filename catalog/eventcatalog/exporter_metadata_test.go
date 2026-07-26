@@ -124,7 +124,7 @@ func TestExporter_Export_LLMsTxt(t *testing.T) {
 func TestExporter_Export_ExamplesFile(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithExample(
 		t, reg, catalog.MessageID("CreateOrder"), "CreateOrder", "1.0.0",

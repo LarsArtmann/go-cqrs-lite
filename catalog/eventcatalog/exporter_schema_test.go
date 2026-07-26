@@ -29,7 +29,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithSchema(
 		t,

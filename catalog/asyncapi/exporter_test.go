@@ -110,7 +110,7 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 func TestExporter_Export_Event(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("payment-svc"), "Payment Service", "1.0.0")
 	cattest.AddEventWithSummary(
 		t,
@@ -149,7 +149,7 @@ func TestExporter_Export_Event(t *testing.T) {
 func TestExporter_Export_EventReceive(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
 	cattest.AddEvent(
 		t,
@@ -178,7 +178,7 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddServiceWithQuery(
 		t,
 		reg,
@@ -278,7 +278,7 @@ func TestExporter_Export_NoHost(t *testing.T) {
 func TestExporter_Export_MultipleServices(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("svc-a"), "Service A", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc-b"), "Service B", "1.0.0")
 	cattest.AddServiceWithCommand(
@@ -465,7 +465,7 @@ func TestDotSeparated(t *testing.T) {
 func TestExporter_Export_Examples(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithExample(
 		t, reg, catalog.MessageID("CreateOrder"), "CreateOrder", "1.0.0",

@@ -68,7 +68,7 @@ func TestExporter_Export_Query(t *testing.T) {
 func TestExporter_Export_Domain(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddDomain(
 		t,
 		reg,

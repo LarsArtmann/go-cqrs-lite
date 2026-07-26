@@ -169,7 +169,7 @@ func TestExporter_Export_ExamplesFileMarshalError(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Svc", "1.0.0")
 	cattest.AddCommandWithExample(
 		t, reg, catalog.MessageID("Cmd"), "Cmd", "1.0.0",

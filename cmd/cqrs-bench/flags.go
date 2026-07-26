@@ -32,6 +32,14 @@ type benchFlags struct {
 // repeat) onto the given FlagSet and returns their pointers. Centralising the
 // declarations here keeps the three subcommands in lockstep when a new flag
 // is added.
+// newBenchFlagSet creates a flag set for the given subcommand name and
+// registers the shared bench flags on it. Used by run, compare, and sweep.
+func newBenchFlagSet(name string) (*flag.FlagSet, benchFlags) {
+	fs := flag.NewFlagSet(name, flag.ExitOnError)
+
+	return fs, registerBenchFlags(fs)
+}
+
 func registerBenchFlags(fs *flag.FlagSet) benchFlags {
 	return benchFlags{
 		backend:     fs.String("backend", "memory", "Backend: memory, sqlite, pebble"),
