@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -115,20 +114,22 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 // openBackend opens the database, applies pragmas and schema, and returns
 // both the *sql.DB (for lifecycle) and the SQLBackend (for store access).
-func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
-	sqlDB, err := sql.Open("sqlite", dsn)
+func openBackend(dsn string, cfg config) (db *sql.DB, backend *storage.SQLBackend, err error) {
+	db, err = sqlopt.OpenDBOrErr("sqlite", dsn, "sqlite_preset.open_primary")
 	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.open_primary",
-			fmt.Sprintf("open sqlite %q", dsn))
+		return nil, nil, err
 	}
+
+	defer func() {
+		if err != nil {
+			_ = db.Close()
+		}
+	}()
 
 	ctx := context.Background()
 
 	if cfg.WAL {
-		err = storage.SQLiteEnableWAL(ctx, sqlDB)
-		if err != nil {
-			_ = sqlDB.Close()
-
+		if err = storage.SQLiteEnableWAL(ctx, db); err != nil {
 			return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.enable_wal",
 				"enable WAL mode")
 		}
@@ -136,51 +137,34 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 
 	// SQLite WAL serializes writes; capping at 1 connection prevents
 	// SQLITE_BUSY errors under concurrent access (see storage.ConfigureSQLitePool).
-	storage.ConfigureSQLitePool(sqlDB)
+	storage.ConfigureSQLitePool(db)
 
 	if cfg.ForeignKeys {
-		err = storage.SQLiteEnableForeignKeys(ctx, sqlDB)
-		if err != nil {
-			_ = sqlDB.Close()
-
-			return nil, nil, errorfamily.WrapInfrastructure(
-				err,
-				"sqlite_preset.enable_foreign_keys",
-				"enable foreign keys",
-			)
+		if err = storage.SQLiteEnableForeignKeys(ctx, db); err != nil {
+			return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.enable_foreign_keys",
+				"enable foreign keys")
 		}
 	}
 
 	if cfg.AutoMigrate {
-		err = storage.SQLiteInitSchema(ctx, sqlDB)
-		if err != nil {
-			_ = sqlDB.Close()
-
+		if err = storage.SQLiteInitSchema(ctx, db); err != nil {
 			return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.init_schema",
 				"initialize sqlite schema")
 		}
 	}
 
 	if cfg.Optimize {
-		err = storage.SQLiteApplyOptimizations(ctx, sqlDB)
-		if err != nil {
-			_ = sqlDB.Close()
-
-			return nil, nil, errorfamily.WrapInfrastructure(
-				err,
-				"sqlite_preset.apply_optimizations",
-				"apply sqlite optimizations",
-			)
+		if err = storage.SQLiteApplyOptimizations(ctx, db); err != nil {
+			return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.apply_optimizations",
+				"apply sqlite optimizations")
 		}
 	}
 
-	backend, err := storage.NewSQLiteBackend(sqlDB)
+	backend, err = storage.NewSQLiteBackend(db)
 	if err != nil {
-		_ = sqlDB.Close()
-
 		return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.create_backend",
 			"create SQL backend")
 	}
 
-	return sqlDB, backend, nil
+	return db, backend, nil
 }

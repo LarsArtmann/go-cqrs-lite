@@ -167,13 +167,8 @@ func (adapter *KVAdapter) Set(_ context.Context, key, value []byte) error {
 		return err
 	}
 
-	err = adapter.database.Set(key, value, adapter.writeOptions())
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "pebble.adapter.set",
-			fmt.Sprintf("set %q", key))
-	}
-
-	return nil
+	return wrapInfraOrOK(adapter.database.Set(key, value, adapter.writeOptions()), "pebble.adapter.set",
+		fmt.Sprintf("set %q", key))
 }
 
 // Delete implements [kv.Writer.Delete].
@@ -183,13 +178,8 @@ func (adapter *KVAdapter) Delete(_ context.Context, key []byte) error {
 		return err
 	}
 
-	err = adapter.database.Delete(key, adapter.writeOptions())
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "pebble.adapter.delete",
-			fmt.Sprintf("delete %q", key))
-	}
-
-	return nil
+	return wrapInfraOrOK(adapter.database.Delete(key, adapter.writeOptions()), "pebble.adapter.delete",
+		fmt.Sprintf("delete %q", key))
 }
 
 // SetIfAbsent implements [kv.ConditionalWriter].

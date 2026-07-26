@@ -2,7 +2,6 @@ package pebble
 
 import (
 	"github.com/cockroachdb/pebble"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Checkpoint creates a point-in-time snapshot of the entire database at the
@@ -14,13 +13,8 @@ import (
 //	err := backend.Checkpoint(dir)
 //	defer os.RemoveAll(dir) // or upload to S3/GCS
 func (b *Backend) Checkpoint(dir string) error {
-	err := b.database.Checkpoint(dir)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "pebble.checkpoint",
-			"checkpoint to "+dir)
-	}
-
-	return nil
+	return wrapInfraOrOK(b.database.Checkpoint(dir), "pebble.checkpoint",
+		"checkpoint to "+dir)
 }
 
 // NewSnapshot returns a point-in-time consistent read view of the database.
@@ -43,10 +37,5 @@ func (b *Backend) NewSnapshot() *pebble.Snapshot {
 // compaction. Call after batch writes or before a checkpoint to ensure
 // all data is persisted to SST files.
 func (b *Backend) Flush() error {
-	err := b.database.Flush()
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "pebble.flush", "flush database")
-	}
-
-	return nil
+	return wrapInfraOrOK(b.database.Flush(), "pebble.flush", "flush database")
 }

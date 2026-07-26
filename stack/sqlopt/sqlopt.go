@@ -19,6 +19,20 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )
 
+// OpenDBOrErr opens a SQL database and wraps any failure as an Infrastructure
+// error. Collapses the repeated "sql.Open + WrapInfrastructure" boilerplate in
+// preset openBackend functions. The driver and dsn are passed to sql.Open; the
+// code is the stable errorfamily code (e.g. "sqlite_preset.open_primary").
+func OpenDBOrErr(driver, dsn, code string) (*sql.DB, error) {
+	db, err := sql.Open(driver, dsn)
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err, code,
+			fmt.Sprintf("open %s %q", driver, dsn))
+	}
+
+	return db, nil
+}
+
 // NewSecondaryBackend wraps the create-secondary-backend pattern shared by the
 // postgres, sqlite, and turso presets: open the secondary DB via openDB,
 // construct its backend via newBackend, and return both along with a closer
