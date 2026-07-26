@@ -121,7 +121,7 @@ func openBackend(dsn string, cfg config) (db *sql.DB, backend *storage.SQLBacken
 	}
 
 	defer func() {
-		if err != nil {
+		if err != nil && db != nil {
 			_ = db.Close()
 		}
 	}()

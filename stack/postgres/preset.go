@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"io"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -140,34 +139,34 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 // openBackend opens the database, applies schema, and returns both the *sql.DB
 // (for lifecycle) and the SQLBackend (for store access).
-func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
-	sqlDB, err := sql.Open("pgx", dsn)
+func openBackend(dsn string, cfg config) (db *sql.DB, backend *storage.SQLBackend, err error) {
+	db, err = sqlopt.OpenDBOrErr("pgx", dsn, "postgres_preset.open_primary")
 	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "postgres_preset.open_primary",
-			fmt.Sprintf("open postgres %q", dsn))
+		return nil, nil, err
 	}
+
+	defer func() {
+		if err != nil && db != nil {
+			_ = db.Close()
+		}
+	}()
 
 	ctx := context.Background()
 
 	if cfg.AutoMigrate {
-		err = storage.PostgresInitSchema(ctx, sqlDB)
-		if err != nil {
-			_ = sqlDB.Close()
-
+		if err = storage.PostgresInitSchema(ctx, db); err != nil {
 			return nil, nil, errorfamily.WrapInfrastructure(err, "postgres_preset.init_schema",
 				"initialize postgres schema")
 		}
 	}
 
-	backend, err := storage.NewSQLBackend(sqlDB)
+	backend, err = storage.NewSQLBackend(db)
 	if err != nil {
-		_ = sqlDB.Close()
-
 		return nil, nil, errorfamily.WrapInfrastructure(err, "postgres_preset.create_backend",
 			"create SQL backend")
 	}
 
-	return sqlDB, backend, nil
+	return db, backend, nil
 }
 
 // buildBus returns the event bus to wire into the Bundle. When cfg.listener
