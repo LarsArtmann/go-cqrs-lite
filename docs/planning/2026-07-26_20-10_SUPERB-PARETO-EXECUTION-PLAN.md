@@ -76,55 +76,58 @@ polish, deeper testing, documentation, and future architecture work.
 | 2   | ✅  | 1     | **Fix 5 benchkit timing tests** — added race guard to TestRun_AnalyticalJournalScans; others already had RaceEnabled thresholds | P0 Critical | 60min  | TODO_LIST   |
 | 3   | ✅  | 1     | **Run `nix run .#verify` GREEN** — confirmed GREEN (build+vet+test+race+lint+API stability+doc-check 948 refs)                  | P0 Critical | 15min  | TODO_LIST   |
 | 4   | ✅  | 1     | **Fix benchkit per-module build** — updated stale storage/pebble, listing, scheduling deps v4.0.3 → v4.1.0                      | P0 Critical | 30min  | TODO_LIST   |
-| 5   | ⚠️  | 2     | **Tag metaengine/projectionadapter/v4.0.0** — tag created locally; **NOT pushed to origin**                                     | P1 High     | 30min  | TODO_LIST   |
+| 5   | ✅  | 2     | **Tag metaengine/projectionadapter/v4.0.0** — tag pushed to origin by user (`git push --tags`)                                 | P1 High     | 30min  | TODO_LIST   |
 | 6   | ✅  | 2     | **Document `otel.WithoutGlobalRegistration()`** — added to AGENTS.md OTel section                                               | P1 High     | 15min  | TODO_LIST   |
 | 7   | ✅  | 2     | **Fix `#vulncheck` nix app** — changed stdin to `./...` pattern, added pkgs.govulncheck                                         | P1 High     | 10min  | TODO_LIST   |
 | 8   | ✅  | 2     | **Fix dead Codec test code** — replaced dead branch with dedicated TestConfig_CodecRoundTrip                                    | P1 High     | 15min  | TODO_LIST   |
 | 9   | ✅  | 2     | **Real gocognit fix** — extracted `queryMessageCol` helper, removed //nolint:gocognit                                           | P1 High     | 20min  | TODO_LIST   |
 | 10  | ✅  | 2     | **Investigate v4.0.4 tag-at-commit** — tree content verified: both commits share same message, tags are correct                 | P1 High     | 15min  | TODO_LIST   |
 | 11  | ✅  | 2     | **Verify metaengine coverage** — 85.0% (was claimed 87.7%); updated FEATURES.md                                                 | P1 High     | 10min  | Status d.3  |
-| 12  | ❌  | 2     | **Cut v4.2.0 release** — BLOCKED on user approval for tag push. CHANGELOG has 260+ lines [Unreleased]                           | P1 High     | 45min  | Status f.17 |
-| 13  | ⚠️  | 3     | **Property test for idempotency.Store** — 4 rapid tests written but only tested MemoryStore (not kv/sql)                        | P2 Medium   | 45min  | TODO_LIST   |
-| 14  | ❌  | 3     | **Move 3-way contract test to integration/** — deferred (integration module would need 2 new deps)                              | P2 Medium   | 30min  | TODO_LIST   |
+| 12  | 🔒  | 2     | **Cut v4.2.0 release** — BLOCKED on user approval for tag push. CHANGELOG has 260+ lines [Unreleased]. Verify is GREEN          | P1 High     | 45min  | Status f.17 |
+| 13  | ✅  | 3     | **Property test for idempotency.Store** — 4 rapid tests now run against all 3 impls (MemoryStore + KVStore + SQLiteStore)       | P2 Medium   | 45min  | TODO_LIST   |
+| 14  | 🚫  | 3     | **Move 3-way contract test to integration/** — DECLINED: would lose regression protection for published consumers               | P2 Medium   | 30min  | TODO_LIST   |
 | 15  | ✅  | 3     | **Audit tag-release.sh** — script already has pipefail, --dry-run, single-module scoping. No changes needed.                    | P2 Medium   | 30min  | TODO_LIST   |
-| 16  | ⚠️  | 3     | **Annotate remaining ~10 historical files** — annotated 6 of ~10                                                                | P2 Medium   | 45min  | Status c.1  |
+| 16  | ✅  | 3     | **Annotate remaining ~10 historical files** — all 10 annotated with Resolution sections                                          | P2 Medium   | 45min  | Status c.1  |
 | 17  | ✅  | 3     | **Auto-generate ADR index** — CI check added to verify-docs.sh comparing ADR file count vs index rows                           | P2 Medium   | 45min  | Status e.1  |
 | 18  | ✅  | 3     | **Update CHANGELOG "56" → "58"** — fixed two stale references                                                                   | P2 Medium   | 5min   | Status f.22 |
-| 19  | ❌  | 4     | **Recurring lint-sweep** — needs daemon config change                                                                           | P3 Low      | 20min  | TODO_LIST   |
-| 20  | ❌  | 4     | **Triage daemon commit messages** — needs daemon config change                                                                  | P3 Low      | 15min  | TODO_LIST   |
+| 19  | ✅  | 4     | **Recurring lint-sweep** — `#sweep` nix app added (runs `nix fmt`)                                                               | P3 Low      | 20min  | TODO_LIST   |
+| 20  | 🚫  | 4     | **Triage daemon commit messages** — DECLINED: prior decision stands (leave as-is, annotated tags override)                       | P3 Low      | 15min  | TODO_LIST   |
 | 21  | ✅  | 4     | **nix fmt scoped invocation guidance** — added to AGENTS.md Lint Conventions                                                    | P3 Low      | 10min  | Status f.42 |
 | 22  | ✅  | 4     | **Run `#check-layers`** — module layer check passed                                                                             | P3 Low      | 5min   | Status f.50 |
 | 23  | ✅  | 4     | **Run `#check-arch` / `#check-isolation`** — all architecture + isolation checks passed                                         | P3 Low      | 10min  | Status f.47 |
-| 24  | ❌  | 4     | **Hand-edit 2 HTML dashboards** — not started                                                                                   | P3 Low      | 30min  | Status c.2  |
+| 24  | ✅  | 4     | **Hand-edit 2 HTML dashboards** — PARETO hero updated (Superseded), ecosystem-audit tags fixed (Resolved/GREEN)                  | P3 Low      | 30min  | Status c.2  |
 | 25  | ✅  | 4     | **Document 75→72 clone reduction** — added summary to docs/dedup-acceptance.md                                                  | P3 Low      | 15min  | Status f.48 |
 | 26  | ✅  | 4     | **storage/internal/errwrap audit** — already declined in TODO_LIST (ADR-0069)                                                   | P3 Low      | 15min  | Status f.49 |
-| 27  | ❌  | 4     | **Investigate dependabot alert** — `gh api` returned no results (auth issue)                                                    | P3 Low      | 15min  | Status f.28 |
+| 27  | 🔒  | 4     | **Investigate dependabot alert** — BLOCKED: `gh api` returned no results (GitHub auth/permissions issue)                         | P3 Low      | 15min  | Status f.28 |
 | 28  | ✅  | 4     | **Fix release-fix doc location** — git mv to docs/status/                                                                       | P3 Low      | 5min   | Status f.23 |
 | 29  | ✅  | 4     | **Annotate SKILL-RESTRUCTURE-BRUTAL report** — Resolution section added                                                         | P3 Low      | 10min  | Status f.21 |
 | 30  | ✅  | 4     | **Concurrent FoldUpdate + ExecuteTyped test** — TestConcurrentExecuteTypedUnderWritePressure (50 writers + 20 readers)          | P3 Low      | 30min  | Status f.30 |
 | 31  | ✅  | 4     | **Non-struct FoldUpdate test on SQLite** — TestNonStructFoldUpdateSQLite (int counter)                                          | P3 Low      | 20min  | Status f.29 |
-| 32  | ❌  | 4     | **Cursor round-trip test** for non-numeric keys — not started                                                                   | P3 Low      | 20min  | Status f.31 |
+| 32  | ✅  | 4     | **Cursor round-trip test** — 2 tests (string keys + time keys) across memory + SQLite engines                                    | P3 Low      | 20min  | Status f.31 |
 | 33  | ✅  | 4     | **LogTail/GraphNeighbors cross-engine test** — parity tests for memory + SQLite                                                 | P3 Low      | 20min  | Status f.32 |
-| 34  | ❌  | 4     | **Promote wrapInfraOrOK** to storage/sql, signing, codec — 20+ call sites, large refactor                                       | P3 Low      | 45min  | Status f.33 |
-| 35  | ❌  | 4     | **spannedRead helper in pebble** — not started                                                                                  | P3 Low      | 30min  | Status f.35 |
-| 36  | ❌  | 4     | **filterDetectors extraction** in cqrs-lint — not started                                                                       | P3 Low      | 20min  | Status f.36 |
-| 37  | ❌  | 4     | **Stack preset stackpreset builder** — not started                                                                              | P3 Low      | 45min  | Status f.37 |
-| 38  | ❌  | 4     | **Test infra helpers** — not started                                                                                            | P3 Low      | 45min  | Status f.38 |
-| 39  | ❌  | 4     | **art-dupl CI gate** — not started                                                                                              | P3 Low      | 45min  | Status f.34 |
-| 40  | ⚠️  | 4     | **Split slow/fast test suites** — testing.Short() skips added to benchkit soak tests; #verify -short not yet wired              | P3 Low      | 30min  | Status f.46 |
-| 41  | ❌  | 4     | **Parallel verify** — not started                                                                                               | P3 Low      | 45min  | Status f.47 |
-| 42  | ❌  | 4     | **Soak test metaengine SQLite** — not started                                                                                   | P3 Low      | 60min+ | Status f.39 |
-| 43  | ❌  | 4     | **cqrs-bench workload for metaengine** — not started                                                                            | P3 Low      | 45min  | Status f.40 |
+| 34  | 🚫  | 4     | **Promote wrapInfraOrOK** — DECLINED per ADR-0069 (cap=3, already met; signing/codec have zero matching call sites)              | P3 Low      | 45min  | Status f.33 |
+| 35  | ✅  | 4     | **spannedRead helper in pebble** — extracted `startReadSpan`, consolidated 5 sites + 3 error arms via `finalizeScan`/`reportScanErr` | P3 Low      | 30min  | Status f.35 |
+| 36  | 🚫  | 4     | **filterDetectors extraction** in cqrs-lint — DECLINED: 3-line idiomatic guard, extraction would reduce readability               | P3 Low      | 20min  | Status f.36 |
+| 37  | 🚫  | 4     | **Stack preset builder** — DECLINED: ~45 lines trivial Go idiom, violates go.mod isolation, real consolidation already in sqlopt  | P3 Low      | 45min  | Status f.37 |
+| 38  | 🚫  | 4     | **Test infra helpers** — DECLINED: idtest (100+ sites), eventtest (30 helpers), cattest (20+ helpers) already exist               | P3 Low      | 45min  | Status f.38 |
+| 39  | ✅  | 4     | **art-dupl CI gate** — `#check-duplication` nix app + `.art-dupl-baseline.json` (34 groups at t=3)                               | P3 Low      | 45min  | Status f.34 |
+| 40  | ✅  | 4     | **Split slow/fast test suites** — testing.Short() skips + `#verify-fast` nix app added                                            | P3 Low      | 30min  | Status f.46 |
+| 41  | ✅  | 4     | **Parallel verify** — `#verify-parallel` nix app + `scripts/verify-parallel.sh` (N-batch concurrent)                            | P3 Low      | 45min  | Status f.47 |
+| 42  | ✅  | 4     | **Soak test metaengine SQLite** — 2 tests: sustained writes (Map ADT) + Multimap growth, both skip in `-short`                   | P3 Low      | 60min+ | Status f.39 |
+| 43  | 🚫  | 4     | **cqrs-bench workload for metaengine** — DECLINED: wrong abstraction (Store ≠ Bundle), coverage in planner_bench_test.go         | P3 Low      | 45min  | Status f.40 |
 | 44  | ✅  | 4     | **Merge/rebase branch c9ccdd6e** — commit already in master, no action needed                                                   | P3 Low      | 15min  | Status f.41 |
-| 45  | ❌  | 4     | **Audit accepted clone groups** — not started                                                                                   | P3 Low      | 30min  | Status f.42 |
-| 46  | ❌  | 4     | **--semantic -t 3 art-dupl run** — not started                                                                                  | P3 Low      | 20min  | Status f.43 |
-| 47  | ❌  | 4     | **Write TestTagContentMatchesChangelog** meta-test — not started                                                                | P3 Low      | 30min  | Status f.27 |
-| 48  | ❌  | 4     | **Turso sync 4-way deep look** — not started                                                                                    | P3 Low      | 30min  | Status f.44 |
+| 45  | ✅  | 4     | **Audit accepted clone groups** — 34 groups at 0.1% ratio, all acceptable (test boilerplate, mutex patterns, wrapClosed)         | P3 Low      | 30min  | Status f.42 |
+| 46  | ✅  | 4     | **--semantic -t 3 art-dupl run** — baseline created (.art-dupl-baseline.json, 34 groups)                                         | P3 Low      | 20min  | Status f.43 |
+| 47  | ✅  | 4     | **Write TestTagContentMatchesChangelog** meta-test — implemented in cmd/api-stability/main_test.go                               | P3 Low      | 30min  | Status f.27 |
+| 48  | 🚫  | 4     | **Turso sync 4-way deep look** — DECLINED per ADR-0069 (cap=3, turso explicitly evaluated and rejected)                           | P3 Low      | 30min  | Status f.44 |
 
 **Total estimated effort:** ~20 hours (Phase 1: 4h, Phase 2: 3h, Phase 3: 4h, Phase 4: 9h)
 
-**Remaining effort (17 tasks):** ~8 hours (Wave 2: 1h for #12, Wave 3: 1.5h for #14+32,
-Wave 4: 5.5h for #19-20,24,27,34-39,41-43,45-48)
+**Remaining effort:** ~1.5 hours — only the 2 blocked items:
+- #12 (v4.2.0 release): 45min — needs user approval to push tags
+- #27 (dependabot alert): 15min — needs GitHub token permissions
+
+All other tasks are either completed (39) or declined with rationale (7).
 
 ---
 
@@ -328,33 +331,24 @@ graph TD
 
 ---
 
-## Issues introduced during execution
+## Issues introduced during execution (all resolved)
 
-> See `docs/status/2026-07-26_21-18_pareto-execution-session-brutal-review.md`
+> See `docs/status/2026-07-26_22-22_full-todo-list-execution-status.md`
 > section d for the full fuckup list.
 
-1. 🔥 **Stale "5-family" references in 3 living docs** — upgraded go-error-family
+1. ✅ **Stale "5-family" references in 3 living docs** — upgraded go-error-family
    to v0.10.0 (adds Orchestration family) but left `docs/error-taxonomy.md`,
-   `README.md:125`, and `FEATURES.md:108` saying "5-family". Split-brain.
-2. ⚠️ **projectionadapter tag NOT pushed** — `metaengine/projectionadapter/v4.0.0`
-   exists locally only. Invisible to consumers.
-3. ⚠️ **Property tests only cover MemoryStore** — plan said "all 3 impls (memory,
-   kv, sql)" but only MemoryStore was tested.
-
----
-
-## Issues introduced during execution
-
-> See `docs/status/2026-07-26_21-18_pareto-execution-session-brutal-review.md`
-> section d for the full fuckup list.
-
-1. **Stale "5-family" references in 3 living docs** — upgraded go-error-family
-   to v0.10.0 (adds Orchestration family) but left `docs/error-taxonomy.md`,
-   `README.md:125`, and `FEATURES.md:108` saying "5-family". Split-brain.
-2. **projectionadapter tag NOT pushed** — `metaengine/projectionadapter/v4.0.0`
-   exists locally only. Invisible to consumers until pushed.
-3. **Property tests only cover MemoryStore** — plan said "all 3 impls (memory,
-   kv, sql)" but only MemoryStore was tested.
+   `README.md:125`, and `FEATURES.md:108` saying "5-family". **Fixed**: all 3
+   docs now say "6-family", CI check added to `verify-docs.sh`.
+2. ✅ **projectionadapter tag NOT pushed** — `metaengine/projectionadapter/v4.0.0`
+   existed locally only. **Fixed**: user ran `git push --tags`.
+3. ✅ **Property tests only covered MemoryStore** — plan said "all 3 impls".
+   **Fixed**: 4 rapid property tests now run against MemoryStore + KVStore +
+   SQLiteStore (unique named in-memory DBs for parallel safety).
+4. ✅ **ireturn lint in property_test.go** — `newSQLiteStoreForProperty` returned
+   interface. **Fixed**: inlined factory into `allStores()` map.
+5. ✅ **noctx lint in TestTagContentMatchesChangelog** — used `exec.Command`.
+   **Fixed**: changed to `exec.CommandContext`.
 
 ---
 

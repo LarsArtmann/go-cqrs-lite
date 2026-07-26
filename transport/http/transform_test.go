@@ -2,6 +2,8 @@ package http
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -110,5 +112,64 @@ func TestSSEHandler_CBORToJSONTransform_Wire(t *testing.T) {
 
 	if !strings.Contains(body, `{"name":"alice-cbor"}`) {
 		t.Errorf("transformed CBOR→JSON payload missing from wire; body: %q", body)
+	}
+}
+
+// TestBackfillHandler_CBORToJSONTransform verifies the ready-made adapter works
+// through the REST backfill path: a CBOR-stamped event in the journal is served
+// as transcoded JSON by BackfillHandler, which reuses the broker's transform.
+// This proves the same one-liner configuration covers both SSE streaming and
+// REST backfill — no separate transform is needed per delivery path.
+func TestBackfillHandler_CBORToJSONTransform(t *testing.T) {
+	t.Parallel()
+
+	store := eventtest.NewFakeStore()
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
+
+	// evt0 establishes the "after" cursor; evt1 is the CBOR event we backfill.
+	evt0, _ := event.NewEvent("test.event", streamID, "Test", 1, []byte(`{"seq":0}`))
+	typed := struct {
+		Name string `cbor:"name"`
+	}{Name: "backfill-cbor"}
+	evt1, err := event.New("test.event", streamID, "Test", 2, typed)
+	if err != nil {
+		t.Fatalf("event.New: %v", err)
+	}
+	if evt1.Encoding() != codec.EncodingCBOR {
+		t.Fatalf("expected CBOR encoding, got %q", evt1.Encoding())
+	}
+
+	_ = store.Save(context.Background(), ref, []event.Event{evt0, evt1}, 0)
+
+	bus := eventtest.NewFakeBus()
+	defer bus.Close()
+	broker, err := NewSSEBroker(
+		bus,
+		WithReconnectJournal(store, 100),
+		WithPayloadTransform(CBORToJSONTransform),
+	)
+	if err != nil {
+		t.Fatalf("NewSSEBroker: %v", err)
+	}
+	defer broker.Close()
+
+	handler := BackfillHandler(broker)
+	req := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodGet,
+		"/backfill?after="+evt0.ID().String()+"&limit=10",
+		nil,
+	)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	if !strings.Contains(body, `{"name":"backfill-cbor"}`) {
+		t.Errorf("CBOR→JSON transcoded payload missing from backfill response; body: %q", body)
 	}
 }
