@@ -1,6 +1,8 @@
 package http
 
 import (
+	"log/slog"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -10,10 +12,11 @@ import (
 // Non-CBOR payloads (JSON, Raw) pass through unchanged with zero overhead.
 //
 // On any decode/encode failure, the original raw payload is returned unchanged
-// (graceful degradation) so SSE clients always receive data — never a gap. This
-// deletes the per-consumer CBOR→JSON transcode logic that every compact-codec
-// deployment otherwise duplicates (~50 LOC of memoized decoders, decode/re-encode,
-// and fallback handling).
+// (graceful degradation) and the failure is logged at Warn via [slog.Default] —
+// so SSE clients always receive data, never a gap, while operators still see
+// transcoding failures. This deletes the per-consumer CBOR→JSON transcode
+// logic that every compact-codec deployment otherwise duplicates (~50 LOC of
+// memoized decoders, decode/re-encode, and fallback handling).
 //
 // Recommended one-liner for consumers using CBOR as their default event codec:
 //
@@ -23,12 +26,16 @@ import (
 // arrays — including structs encoded with the cbor:",toarray" tag — stay arrays.
 // For schema-aware JSON output (reconstructing field names from toarray structs),
 // pass a custom transform that uses event.DecodePayloadAuto[T] with the concrete
-// payload type.
+// payload type. Consumers that need custom logging should call
+// [codec.TranscodeToJSON] directly.
 func CBORToJSONTransform(evt event.Event) []byte {
 	raw := event.PayloadReadOnly(evt)
 
 	out, err := codec.TranscodeToJSON(raw, evt.Encoding())
 	if err != nil {
+		slog.Warn("CBORToJSONTransform: transcode failed, sending raw payload",
+			"event_id", evt.ID(), "encoding", evt.Encoding(), "error", err)
+
 		return raw
 	}
 
