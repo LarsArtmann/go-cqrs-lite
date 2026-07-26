@@ -39,7 +39,7 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Architecture Decision Records (ADR)
 
-67 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+68 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                        | Title                                                   | Status                   |
 | ---------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
@@ -110,6 +110,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0067](adr/0067-metaengine-tx-mapupdate.md)                | Metaengine Transaction-atomic MapUpdate (SQLite)        | Accepted                 |
 | [0068](adr/0068-metaengine-multimap-seq-seed.md)           | Metaengine Multimap seq-seed (sync.Once MAX(seq))       | Accepted                 |
 | [0069](adr/0069-error-wrapping-helpers.md)                 | Error-Wrapping Helper Convention                        | Accepted                 |
+| [0070](adr/0070-transform-fallback-observability.md)       | Transform Fallback Observability (slog vs OTel)         | Accepted                 |
 
 ## API Reference
 
