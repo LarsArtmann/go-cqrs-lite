@@ -186,6 +186,7 @@ with 11 tests. See CHANGELOG `[Unreleased]` → Added → "Incremental rollups" 
 FEATURES.md storage section.
 
 **Open questions resolved:**
+
 - **Q2 (commit now vs full package):** shipped at v4.1.0 batch release.
 - **Q3 (kv.ViewUpdater):** not implemented — YAGNI. `sink.Increment` is the
   composable primitive for the relational tier. KV-tier counters use

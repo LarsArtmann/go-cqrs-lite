@@ -1395,7 +1395,8 @@ func TestRun_AnalyticalJournalScans(t *testing.T) {
 	if result.ReadAllTime <= singleResult.ReadAllTime {
 		msg := fmt.Sprintf(
 			"5-scan ReadAllTime (%v) should exceed 1-scan ReadAllTime (%v)",
-			result.ReadAllTime, singleResult.ReadAllTime)
+			result.ReadAllTime, singleResult.ReadAllTime,
+		)
 		if raceEnabled {
 			t.Logf("note: %s — timing noise under -race", msg)
 		} else {

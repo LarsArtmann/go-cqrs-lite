@@ -212,6 +212,7 @@ This session's extractions (`appendMiddleware` → `withLockedModify`,
 The dedup series concluded (see 2026-07-22 session for the final 3→0 push).
 
 **Open questions resolved:**
+
 - **Q1 (CloseRows location):** kept in `storage/sql/` (Tier 4). Lateral deps
   between same-tier modules are acceptable in this repo's multi-module model.
   `CloseRows` was later applied to the remaining 6 files in middleware,

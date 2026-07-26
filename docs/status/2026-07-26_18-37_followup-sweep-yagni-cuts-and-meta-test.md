@@ -10,7 +10,7 @@
 
 1. **Dropped `idempotency.RefreshTTL` as YAGNI (`TODO_LIST.md`).** Researched
    the design doc (`docs/planning/2026-07-25_14-30_idempotency-record-contract-design.md`):
-   the Store chose Option A (no-op on existing) *because* Option B's sliding
+   the Store chose Option A (no-op on existing) _because_ Option B's sliding
    window is unsafe (unbounded TTL under retry storms). `RefreshTTL` is the
    escape hatch for the behavior we explicitly rejected. Deferred across 6+
    status reports with zero consumers. Marked `[DECLINED: YAGNI]` with the
@@ -39,7 +39,7 @@
    Non-destructive appendix per docs-health convention. Corrects three
    over-dramatized claims: (a) the Engine interfaces are internal, not a public
    contract — only the Store calls them directly; (b) "5 scattered patches
-   should be 1" is architecturally impossible — 3 of 5 execute *during* the
+   should be 1" is architecturally impossible — 3 of 5 execute _during_ the
    engine call; (c) no ADR-0069 is owed because no contract changed.
 
 6. **Fixed two lint issues in my own code.** First `#verify` run flagged gci
@@ -97,7 +97,7 @@ I wrote `cross_engine_meta_test.go` with its own `func TestCrossEngineMeta(t *te
 The test passes (150/150 with `-race`). But I never verified it would **FAIL**
 if a reify call were removed. The right discipline: temporarily revert one
 `reifyReflect` call site, run the test, confirm it panics/fails, restore. I
-skipped this. The test *probably* guards the boundary (the assertions check
+skipped this. The test _probably_ guards the boundary (the assertions check
 typed struct fields, not just `len > 0`), but "probably" is not "proven." If
 the SQLite path happens to return a shape that passes shallow assertions, the
 test is theater. **This is the same failure mode as v4.1.0: a test that passes

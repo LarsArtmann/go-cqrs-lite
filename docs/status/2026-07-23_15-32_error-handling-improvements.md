@@ -216,6 +216,7 @@ The 13 sentinel migrations to `errorfamily` constructors **shipped at v4.1.0**.
 See CHANGELOG `[Unreleased]` → Added → "Error taxonomy migration."
 
 **Open questions resolved:**
+
 - **Q2 (orphaned commits):** left as-is — auto-commit daemon behavior is expected.
   Code changes confirmed in HEAD.
 - **Q3 (api-stability golden):** golden file regenerated. `#check-api-stability`

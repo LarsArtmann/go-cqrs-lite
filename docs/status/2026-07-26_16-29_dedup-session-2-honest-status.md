@@ -7,13 +7,13 @@
 
 ## a) FULLY DONE
 
-| # | Work item | Verification |
-|---|-----------|--------------|
-| 1 | **Catalog test setup consolidated** — 3 competing patterns (`NewRegistry("Test")`, `NewBuilder("Test")`, redundant `NewRegistry(t, "TestCatalog", "1.0.0")`) unified into `cattest.NewTestRegistry()` / `cattest.NewTestBuilder(t)` across **18 files, ~60 call sites** | Catalog module builds, vets, all 12 packages pass tests |
-| 2 | **`newBenchFlagSet(name)` extracted** in `cmd/cqrs-bench/flags.go` — shared by `runCmd`, `compareCmd`, `sweepCmd`. Removed dead `flag` import from `main.go` | cqrs-bench builds + tests pass (7.7s) |
-| 3 | **Workspace build clean** — `go build -tags "goexperiment.jsonv2" ./...` exit 0 | Full workspace |
-| 4 | **Workspace vet clean** — `go vet -tags "goexperiment.jsonv2" ./...` exit 0 | Full workspace |
-| 5 | **Broad test sweep** — catalog + cmd + event + storage + metaengine + encryption + signing + schema + scenario + stack + benchkit all pass | 0 failures |
+| #   | Work item                                                                                                                                                                                                                                                               | Verification                                            |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 1   | **Catalog test setup consolidated** — 3 competing patterns (`NewRegistry("Test")`, `NewBuilder("Test")`, redundant `NewRegistry(t, "TestCatalog", "1.0.0")`) unified into `cattest.NewTestRegistry()` / `cattest.NewTestBuilder(t)` across **18 files, ~60 call sites** | Catalog module builds, vets, all 12 packages pass tests |
+| 2   | **`newBenchFlagSet(name)` extracted** in `cmd/cqrs-bench/flags.go` — shared by `runCmd`, `compareCmd`, `sweepCmd`. Removed dead `flag` import from `main.go`                                                                                                            | cqrs-bench builds + tests pass (7.7s)                   |
+| 3   | **Workspace build clean** — `go build -tags "goexperiment.jsonv2" ./...` exit 0                                                                                                                                                                                         | Full workspace                                          |
+| 4   | **Workspace vet clean** — `go vet -tags "goexperiment.jsonv2" ./...` exit 0                                                                                                                                                                                             | Full workspace                                          |
+| 5   | **Broad test sweep** — catalog + cmd + event + storage + metaengine + encryption + signing + schema + scenario + stack + benchkit all pass                                                                                                                              | 0 failures                                              |
 
 ### Files changed this session (20 files, auto-committed across 3 commits)
 
@@ -43,11 +43,11 @@ cmd/cqrs-bench/main.go                     (3 call sites refactored, removed dea
 
 ## b) PARTIALLY DONE
 
-| Item | What was done | What was NOT done |
-|------|---------------|-------------------|
+| Item                                  | What was done                                                                     | What was NOT done                                                                                                                                                           |
+| ------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Triage of all 77 remaining groups** | Every group was categorized (test/prod, intra/cross, by size). All marked ACCEPT. | The ACCEPT decisions were reached too quickly for the medium-priority groups. Several 3-8 occurrence groups with 8-16 tokens could benefit from extraction (see section e). |
-| **Format check** | `gofmt -l` passed on changed files | `nix fmt` was NOT run (AGENTS.md mandates it). `nix run .#lint` was NOT run. |
-| **Per-module isolated tests** | Catalog module tested with `GOWORK=off` | cmd/cqrs-bench was NOT tested with `GOWORK=off GOEXPERIMENT=jsonv2` isolation — only via workspace build. |
+| **Format check**                      | `gofmt -l` passed on changed files                                                | `nix fmt` was NOT run (AGENTS.md mandates it). `nix run .#lint` was NOT run.                                                                                                |
+| **Per-module isolated tests**         | Catalog module tested with `GOWORK=off`                                           | cmd/cqrs-bench was NOT tested with `GOWORK=off GOEXPERIMENT=jsonv2` isolation — only via workspace build.                                                                   |
 
 ---
 
@@ -208,21 +208,21 @@ The dedup skill recommends `--semantic` mode with `-t 5`. The previous session a
 
 ## Session Metrics Summary
 
-| Metric | Session start | Session end | Delta |
-|--------|--------------|-------------|-------|
-| Clone groups | 77 | 77 | 0 |
-| Total tokens | 803 | 809 | +6 (more occurrences of unified pattern) |
-| Production groups | 65 | 65 | 0 |
-| Test groups | 12 | 12 | 0 |
-| Distinct catalog test patterns | 3 | 1 | **-2 (consistency win)** |
-| Call sites unified | — | ~60 | **Real improvement** |
-| Helpers extracted | — | 2 (`newBenchFlagSet`, implicit cattest consolidation) | — |
-| Files changed | — | 20 | — |
-| Tests run | — | catalog + cqrs-bench + broad sweep | All pass |
-| `nix fmt` run | — | **NO** | **Gap** |
-| `nix run .#lint` run | — | **NO** | **Gap** |
-| `nix run .#verify` run | — | **NO** | **Gap** |
-| `-race` tests run | — | **NO** | **Gap** |
+| Metric                         | Session start | Session end                                           | Delta                                    |
+| ------------------------------ | ------------- | ----------------------------------------------------- | ---------------------------------------- |
+| Clone groups                   | 77            | 77                                                    | 0                                        |
+| Total tokens                   | 803           | 809                                                   | +6 (more occurrences of unified pattern) |
+| Production groups              | 65            | 65                                                    | 0                                        |
+| Test groups                    | 12            | 12                                                    | 0                                        |
+| Distinct catalog test patterns | 3             | 1                                                     | **-2 (consistency win)**                 |
+| Call sites unified             | —             | ~60                                                   | **Real improvement**                     |
+| Helpers extracted              | —             | 2 (`newBenchFlagSet`, implicit cattest consolidation) | —                                        |
+| Files changed                  | —             | 20                                                    | —                                        |
+| Tests run                      | —             | catalog + cqrs-bench + broad sweep                    | All pass                                 |
+| `nix fmt` run                  | —             | **NO**                                                | **Gap**                                  |
+| `nix run .#lint` run           | —             | **NO**                                                | **Gap**                                  |
+| `nix run .#verify` run         | —             | **NO**                                                | **Gap**                                  |
+| `-race` tests run              | —             | **NO**                                                | **Gap**                                  |
 
 ---
 

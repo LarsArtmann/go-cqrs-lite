@@ -293,6 +293,7 @@ All three open questions resolved (same answers as the 22:27 session):
 - **Q3 (zero-dependency):** Core stays zero-dep. Adapter is a separate module.
 
 **Stale claims now resolved:**
+
 - "Cost model uncalibrated (`nsPerOp=100` arbitrary)" → calibrated with real
   benchmarks: Memory=500ns, SQLite=7000ns via `EngineProfile.NsPerOp` (ADR-0061).
 - "6 files exceed 350-line CI limit" → all split, lint clean (143 → 0 issues).

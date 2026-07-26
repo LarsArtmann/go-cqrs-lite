@@ -263,6 +263,7 @@ The critical bugs reported above were **all fixed** in subsequent sessions:
   identical typed results (ADR-0066).
 
 **Open questions resolved:**
+
 - **Q1 (sort strategy):** full-sort for Memory (testing-only), ORDER BY for SQLite.
 - **Q2 (FilterOn SQL pushdown):** Phase 1 keeps in-memory closures + `PushdownScan`
   interface seam. Phase 2 declarative `FilterSpec`/`SortSpec` deferred (ADR-0063).

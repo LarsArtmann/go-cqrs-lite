@@ -57,7 +57,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.0.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
@@ -70,7 +70,7 @@ require (
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_golang v1.24.0 // indirect
+	github.com/prometheus/client_golang v1.24.1 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.70.1 // indirect
 	github.com/prometheus/procfs v0.21.1 // indirect

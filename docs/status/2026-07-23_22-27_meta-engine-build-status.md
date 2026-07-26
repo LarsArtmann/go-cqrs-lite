@@ -255,6 +255,7 @@ All three open questions have been resolved:
   `projection.Projection` for `projectionhost.Host` integration (ADR-0062).
 
 **Stale claims in this report now resolved:**
+
 - "Planner is greedy stub (no formal cost model)" → cost model calibrated with
   `EngineProfile.NsPerOp` (Memory=500ns, SQLite=7000ns, ADR-0061).
 - "No real SQLite/Pebble engines" → `SQLiteEngine` shipped, wrapping

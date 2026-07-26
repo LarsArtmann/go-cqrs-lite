@@ -7,19 +7,19 @@
 
 ## a) FULLY DONE
 
-| # | Work item | Verification |
-|---|-----------|--------------|
-| 1 | **`wrapInfraOrOK(err, code, msg) error`** extracted in `storage/pebble/helpers.go` — collapsed **8 call sites** of `if err != nil { return WrapInfrastructure(...) }; return nil` across `adapter_batch.go` (4), `adapter_iterator.go` (1), `backup_retention.go` (2), `adapter.go` (2). Removed 2 unused `errorfamily` imports. Pebble clone groups: 14→11 | `GOWORK=off GOEXPERIMENT=jsonv2 go test ./...` passes, lint 0 issues |
-| 2 | **`OpenDBOrErr(driver, dsn, code)`** extracted in `stack/sqlopt/sqlopt.go` — shared `sql.Open` + error wrap helper. Refactored `openBackend` in both `postgres/preset.go` and `sqlite/preset.go` to use named returns + `defer` cleanup, eliminating **6 copies** of `_ = sqlDB.Close(); return nil, nil, WrapInfrastructure(...)` boilerplate | Both preset modules build + test + lint clean |
-| 3 | **`loadAndDecrypt(events, err)`** extracted in `encryption/store.go` — collapsed **5 functions** (Load, LoadFromVersion, LoadToVersion, LoadToTimestamp, ReadAll) from 7-line boilerplate to 1-liner returns | `GOWORK=off GOEXPERIMENT=jsonv2 go test` passes |
-| 4 | **`TestBuilder()`** no-tb variant added to `catalog/internal/cattest/builders.go` — for Ginkgo BDD contexts where `testing.TB` is unavailable (`GinkgoT()` cannot satisfy the `private()` method). Replaced 2 remaining `catalog.NewBuilder("Test", "1.0.0")` in `catalog_bdd_test.go` | Catalog module tests pass (14 packages) |
-| 5 | **`slicesbackward` hint fixed** in `storage/pebble/helpers.go:165` — replaced manual reverse `for` loop with `bytes.LastIndexByte(key, sep)`. Removed the stale `//nolint:modernize` comment. Added `"bytes"` import | gopls hint cleared, pebble tests pass |
-| 6 | **`nix fmt` run** — 30 files formatted (2 changed by golines). All changed files reformatted | Clean |
-| 7 | **`nix run .#lint` run + issues fixed** — initial run found `nonamedreturns` + `wrapcheck` + `varnamelen` issues in my new code. Fixed: added `//nolint:nonamedreturns` + `//nolint:wrapcheck` on stack preset `openBackend` (defer cleanup pattern needs named returns), renamed `db`→`sqlDB` in `OpenDBOrErr` | All changed modules: 0 issues |
-| 8 | **`nix run .#verify` passed** — full gate: build + vet + test + race + lint + doc-check + doc-assertions. All changed modules pass. 1 pre-existing failure: `benchkit/TestRunSoak_TrendsPopulated` heap threshold exceeded under `-race` (25MB vs 16MB cap) — **NOT caused by my changes** | See metrics below |
-| 9 | **`-race` tests run** on catalog (14 pkgs), storage/pebble, encryption, stack, stack/sqlite, stack/postgres — all pass | Race detector clean |
-| 10 | **api-stability golden regenerated** — `cd cmd/api-stability && go run main.go -update` after adding exported `OpenDBOrErr`. Golden diff clean (sqlopt subpackage not tracked as top-level export). Verify gate's api-stability check passes | Clean |
-| 11 | **`closeAndWrap` refactored** to delegate to `wrapInfraOrOK` — the existing helper now calls `wrapInfraOrOK(db.Close(), code, msg)` instead of duplicating the `if err != nil` guard | Pebble tests pass |
+| #   | Work item                                                                                                                                                                                                                                                                                                                                                   | Verification                                                         |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 1   | **`wrapInfraOrOK(err, code, msg) error`** extracted in `storage/pebble/helpers.go` — collapsed **8 call sites** of `if err != nil { return WrapInfrastructure(...) }; return nil` across `adapter_batch.go` (4), `adapter_iterator.go` (1), `backup_retention.go` (2), `adapter.go` (2). Removed 2 unused `errorfamily` imports. Pebble clone groups: 14→11 | `GOWORK=off GOEXPERIMENT=jsonv2 go test ./...` passes, lint 0 issues |
+| 2   | **`OpenDBOrErr(driver, dsn, code)`** extracted in `stack/sqlopt/sqlopt.go` — shared `sql.Open` + error wrap helper. Refactored `openBackend` in both `postgres/preset.go` and `sqlite/preset.go` to use named returns + `defer` cleanup, eliminating **6 copies** of `_ = sqlDB.Close(); return nil, nil, WrapInfrastructure(...)` boilerplate              | Both preset modules build + test + lint clean                        |
+| 3   | **`loadAndDecrypt(events, err)`** extracted in `encryption/store.go` — collapsed **5 functions** (Load, LoadFromVersion, LoadToVersion, LoadToTimestamp, ReadAll) from 7-line boilerplate to 1-liner returns                                                                                                                                                | `GOWORK=off GOEXPERIMENT=jsonv2 go test` passes                      |
+| 4   | **`TestBuilder()`** no-tb variant added to `catalog/internal/cattest/builders.go` — for Ginkgo BDD contexts where `testing.TB` is unavailable (`GinkgoT()` cannot satisfy the `private()` method). Replaced 2 remaining `catalog.NewBuilder("Test", "1.0.0")` in `catalog_bdd_test.go`                                                                      | Catalog module tests pass (14 packages)                              |
+| 5   | **`slicesbackward` hint fixed** in `storage/pebble/helpers.go:165` — replaced manual reverse `for` loop with `bytes.LastIndexByte(key, sep)`. Removed the stale `//nolint:modernize` comment. Added `"bytes"` import                                                                                                                                        | gopls hint cleared, pebble tests pass                                |
+| 6   | **`nix fmt` run** — 30 files formatted (2 changed by golines). All changed files reformatted                                                                                                                                                                                                                                                                | Clean                                                                |
+| 7   | **`nix run .#lint` run + issues fixed** — initial run found `nonamedreturns` + `wrapcheck` + `varnamelen` issues in my new code. Fixed: added `//nolint:nonamedreturns` + `//nolint:wrapcheck` on stack preset `openBackend` (defer cleanup pattern needs named returns), renamed `db`→`sqlDB` in `OpenDBOrErr`                                             | All changed modules: 0 issues                                        |
+| 8   | **`nix run .#verify` passed** — full gate: build + vet + test + race + lint + doc-check + doc-assertions. All changed modules pass. 1 pre-existing failure: `benchkit/TestRunSoak_TrendsPopulated` heap threshold exceeded under `-race` (25MB vs 16MB cap) — **NOT caused by my changes**                                                                  | See metrics below                                                    |
+| 9   | **`-race` tests run** on catalog (14 pkgs), storage/pebble, encryption, stack, stack/sqlite, stack/postgres — all pass                                                                                                                                                                                                                                      | Race detector clean                                                  |
+| 10  | **api-stability golden regenerated** — `cd cmd/api-stability && go run main.go -update` after adding exported `OpenDBOrErr`. Golden diff clean (sqlopt subpackage not tracked as top-level export). Verify gate's api-stability check passes                                                                                                                | Clean                                                                |
+| 11  | **`closeAndWrap` refactored** to delegate to `wrapInfraOrOK` — the existing helper now calls `wrapInfraOrOK(db.Close(), code, msg)` instead of duplicating the `if err != nil` guard                                                                                                                                                                        | Pebble tests pass                                                    |
 
 ### Files changed this session (11 files, net -35 lines, auto-committed across 4 commits)
 
@@ -41,11 +41,11 @@ storage/pebble/helpers.go             +wrapInfraOrOK, closeAndWrap delegates, by
 
 ## b) PARTIALLY DONE
 
-| Item | What was done | What was NOT done |
-|------|---------------|-------------------|
+| Item               | What was done                                                                                                                                         | What was NOT done                                                                                                                                                                                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Backlog triage** | Addressed items 1-15 from the previous report (verification gaps + high-priority extractions). Every item I touched was fully completed and verified. | Items 16-50 were never opened. 35 items untouched — lower-priority extraction groups (16-25), documentation tasks (26-30), remaining test groups (31-40), architecture questions (41-45), stretch goals (46-50). I didn't even READ them during this session. |
-| **Pebble dedup** | Eliminated the biggest clone group (5-clone error wrapping → 0). 14→11 groups. | 11 remaining groups untouched: span+error patterns (startLimitSpan, startStreamSpan, startLoadSpan), iterator error patterns, iterator close patterns. Item 12 (`spannedRead` wrapper) was never attempted. |
-| **Stack dedup** | Eliminated 2 clone groups (sql.Open pattern, Close boilerplate). | 5 remaining groups untouched: contracttest (ACCEPTED — test boilerplate), viewmodels ErrNoDatabase (ACCEPTED — intentional per-module codes), accessors nil-init (not examined), multidb error wrapping (not examined). |
+| **Pebble dedup**   | Eliminated the biggest clone group (5-clone error wrapping → 0). 14→11 groups.                                                                        | 11 remaining groups untouched: span+error patterns (startLimitSpan, startStreamSpan, startLoadSpan), iterator error patterns, iterator close patterns. Item 12 (`spannedRead` wrapper) was never attempted.                                                   |
+| **Stack dedup**    | Eliminated 2 clone groups (sql.Open pattern, Close boilerplate).                                                                                      | 5 remaining groups untouched: contracttest (ACCEPTED — test boilerplate), viewmodels ErrNoDatabase (ACCEPTED — intentional per-module codes), accessors nil-init (not examined), multidb error wrapping (not examined).                                       |
 
 ---
 
@@ -197,20 +197,20 @@ I've extracted the highest-impact helpers (`wrapInfraOrOK`: 8 sites, `OpenDBOrEr
 
 ## Session Metrics Summary
 
-| Metric | Session start (from prev report) | Session end | Delta |
-|--------|----------------------------------|-------------|-------|
-| Clone groups (`--type-aware -t 2`, all code) | 77 | 75 | **-2** |
-| Clone groups (production only, excl test files) | 65 | ~55 | **-10** (estimated) |
-| Total tokens | 809 | Not re-measured | Unknown |
-| Helpers extracted | 2 (prev session) | **+4** (`wrapInfraOrOK`, `OpenDBOrErr`, `loadAndDecrypt`, `TestBuilder`) | — |
-| Files changed | — | 11 | — |
-| Net lines | — | **-35** (111 insertions, 146 deletions) | — |
-| `nix fmt` run | NO (prev gap) | **YES** | Fixed |
-| `nix run .#lint` run | NO (prev gap) | **YES** (0 issues on changed modules) | Fixed |
-| `nix run .#verify` run | NO (prev gap) | **YES** (1 pre-existing flake) | Fixed |
-| `-race` tests run | NO (prev gap) | **YES** (all changed modules pass) | Fixed |
-| api-stability golden | Not verified | **Regenerated, clean** | Fixed |
-| Backlog items addressed | 0/50 | **8/50** (16%) | Gap |
+| Metric                                          | Session start (from prev report) | Session end                                                              | Delta               |
+| ----------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------ | ------------------- |
+| Clone groups (`--type-aware -t 2`, all code)    | 77                               | 75                                                                       | **-2**              |
+| Clone groups (production only, excl test files) | 65                               | ~55                                                                      | **-10** (estimated) |
+| Total tokens                                    | 809                              | Not re-measured                                                          | Unknown             |
+| Helpers extracted                               | 2 (prev session)                 | **+4** (`wrapInfraOrOK`, `OpenDBOrErr`, `loadAndDecrypt`, `TestBuilder`) | —                   |
+| Files changed                                   | —                                | 11                                                                       | —                   |
+| Net lines                                       | —                                | **-35** (111 insertions, 146 deletions)                                  | —                   |
+| `nix fmt` run                                   | NO (prev gap)                    | **YES**                                                                  | Fixed               |
+| `nix run .#lint` run                            | NO (prev gap)                    | **YES** (0 issues on changed modules)                                    | Fixed               |
+| `nix run .#verify` run                          | NO (prev gap)                    | **YES** (1 pre-existing flake)                                           | Fixed               |
+| `-race` tests run                               | NO (prev gap)                    | **YES** (all changed modules pass)                                       | Fixed               |
+| api-stability golden                            | Not verified                     | **Regenerated, clean**                                                   | Fixed               |
+| Backlog items addressed                         | 0/50                             | **8/50** (16%)                                                           | Gap                 |
 
 ---
 

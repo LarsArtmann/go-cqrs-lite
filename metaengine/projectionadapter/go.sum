@@ -55,8 +55,6 @@ github.com/larsartmann/go-cqrs-lite/storage/v4 v4.1.0 h1:ZtfvPZR4Jog737wsSnoFl3t
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.1.0/go.mod h1:DdswDId0TpGAHC7Tq7X8Vz7+7nRZCdapPfsXy1+DUWo=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0 h1:Quk6HrTJU/cvGezrkSl/mSTULraGvNd3kSoaRTf3hHc=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0/go.mod h1:mLyJ2JYRDO56bfoSDNYlGy25fA2fiteiVr53hFmnMFE=
-github.com/larsartmann/go-error-family v0.9.0 h1:DpIAvgi5q6+HrGbMNc979yO/0rq/uFaQLvqt33GiEaE=
-github.com/larsartmann/go-error-family v0.9.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97DphYsB9Bksr2lNmwG3Vm4=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/mattn/go-isatty v0.0.23 h1:cYwCQTQf3HB6xUC+BtyCLZNr7IzbOmoZbmssVNzSyiQ=

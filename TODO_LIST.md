@@ -28,8 +28,7 @@ this list and recorded in CHANGELOG.
       `TestSnapshotPhase_SQLite`, `TestRun_AnalyticalJournalScans`) pass in
       isolation but fail under full-suite `-race` load. Fix: add
       `testutil.RaceEnabled` thresholds (see AGENTS.md lint conventions).
-- [ ] **Document `otel.WithoutGlobalRegistration()`** in AGENTS.md OTel section
-      + Crush skill `references/core.md` — public API added during the otel
+- [ ] **Document `otel.WithoutGlobalRegistration()`** in AGENTS.md OTel section + Crush skill `references/core.md` — public API added during the otel
       flakiness fix, currently undocumented for consumers.
 
 ---
@@ -140,7 +139,7 @@ this list and recorded in CHANGELOG.
 - **Redis adapter** — see ROADMAP Non-Goals (ValKey/NATS/Kafka preferred).
 - **`idempotency.RefreshTTL(ctx, key, ttl)`** — dropped 2026-07-26 (YAGNI).
   Deferred across 6 sessions with no consumer; the design doc chose Option A
-  (no-op on existing) *because* Option B's sliding window is unsafe (unbounded
+  (no-op on existing) _because_ Option B's sliding window is unsafe (unbounded
   TTL under retry storms).
 - **cqrs-lint rule for the `idempotency.Store` Record contract** — dropped
   2026-07-26 (YAGNI). Only 3 Store impls exist (memory, kv, sql), all correct;

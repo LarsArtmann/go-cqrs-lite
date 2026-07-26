@@ -16,15 +16,15 @@
 
 2. **Metaengine feature rows added (`FEATURES.md`).** The module table already
    listed all 3 tagged modules (`metaengine`, `metaengine/projectionadapter`,
-   `idempotency/sqlstore`) — that sub-task was already done. The *feature
-   section* was missing the 3 most recent shipped capabilities. Added rows for
+   `idempotency/sqlstore`) — that sub-task was already done. The _feature
+   section_ was missing the 3 most recent shipped capabilities. Added rows for
    `ExecuteTyped[Q,R]` (ADR-0066), tx-atomic `MapUpdate` (ADR-0067), and
    Multimap seq-seed (ADR-0068). Verified each exists in code before listing.
 
 3. **`scripts/tag-release.sh` rewritten and verified.**
    - **Broadened the strip**: the old script only matched `go-cqrs-lite/*`
      replaces. Sibling-repo absolute replaces (`go-finding =>
-     /home/lars/projects/go-finding`, `go-must => ...`) were leaking into
+/home/lars/projects/go-finding`, `go-must => ...`) were leaking into
      published tags — a real latent bug confirmed by dry-run on
      `cmd/cqrs-lint`.
    - **Single-module scoping**: old script touched all 58 go.mod files; only
@@ -33,7 +33,7 @@
      no commit/tag. Tested on `stack/sqlite`, `decider`, `cmd/cqrs-lint`;
      working tree restored clean in every case.
    - **Replaced buggy `git checkout -- .`** with `git restore --staged
-     --worktree` + a two-shape undo helper. The old restore restored from the
+--worktree` + a two-shape undo helper. The old restore restored from the
      index, which after `reset --soft` still held stripped go.mod — "originals
      restored" was a lie.
    - **Pipefail-safe pseudo-version check**: replaced the fragile
@@ -68,11 +68,11 @@
    and panics on the type mismatch. **No existing test exercised a typed
    `FoldUpdate` on SQLite** — a shipped, "Accepted" ADR feature was broken.
    I added a regression spec (`sqlite_engine_test.go`: "SQLiteEngine FoldUpdate
-   reify") and a `reifyReflect` helper. The fix is *correct* and the test
+   reify") and a `reifyReflect` helper. The fix is _correct_ and the test
    passes with `-race`. **But see (d).**
 
 2. **SQLite scan path — fixed, but at the wrong layer.** The `ExecuteScan`
-   benchmark surfaced a *second* panic of the same class: `FilterOn`/`SortOn`
+   benchmark surfaced a _second_ panic of the same class: `FilterOn`/`SortOn`
    closures reflect-called on `map[string]any` rows. I patched
    `buildFilterPredicates`, `buildSortFunc`, `Store.sortKeyFn`, and
    `reconstructCollection` with `reifyReflect`. Correct, tests pass, benchmarks
@@ -114,15 +114,15 @@ MapGet(ctx, col, key) (any, bool, error)
 
 The `any` hides a **fundamental divergence** between the two implementations:
 
-| Engine         | Write                  | Read returns                    |
-| -------------- | ---------------------- | ------------------------------- |
-| `memoryEngine` | typed Go value         | same typed value ✓              |
-| `sqliteEngine` | `json.Marshal(value)`  | `map[string]any` for structs ✗  |
+| Engine         | Write                 | Read returns                   |
+| -------------- | --------------------- | ------------------------------ |
+| `memoryEngine` | typed Go value        | same typed value ✓             |
+| `sqliteEngine` | `json.Marshal(value)` | `map[string]any` for structs ✗ |
 
 The memory engine works by accident. The SQLite engine breaks every typed
-consumer. The *same root cause* manifested in **two independent places**
+consumer. The _same root cause_ manifested in **two independent places**
 (`callUpdate` panic; scan-path panic + silent empty results), and I patched
-each one *at the call site* by sprinkling `reifyReflect` into five locations
+each one _at the call site_ by sprinkling `reifyReflect` into five locations
 across three files (`fold_classify.go`, `execute.go`, `collection.go`).
 
 That is the textbook anti-pattern from AGENTS.md: **"optionality as escape
@@ -132,7 +132,7 @@ Every future consumer of an engine value must now remember to reify or it
 silently breaks. This is compound-interest pain — the exact thing the "Data
 Models First" principle exists to prevent.
 
-**What I should have done:** recognize the divergence on the *first* panic,
+**What I should have done:** recognize the divergence on the _first_ panic,
 stop, write an ADR, and centralize reification at **one** boundary (the
 Store's read dispatch, using `queryRuntime.valueType` which the Store already
 knows) — not patch five call sites. I treated two symptoms as two bugs
@@ -141,21 +141,21 @@ instead of one root cause as one bug.
 ### d2. Patched before thinking.
 
 I jumped straight from "benchmark panics" to "add reify helper, patch call
-site." I did not stop to ask *why* two unrelated code paths panic on the same
+site." I did not stop to ask _why_ two unrelated code paths panic on the same
 shape. The Data Models First checklist in AGENTS.md ("What am I assuming that
 might be wrong?") exists exactly for this moment, and I skipped it. Twice.
 
 ### d3. Did not write the ADR.
 
 ADR-0067 ("tx-atomic MapUpdate") and ADR-0066 ("ExecuteTyped reify") both
-document pieces of this, but neither names the *engine read-contract
-divergence* as the central defect. A new ADR is owed. I did not write it.
+document pieces of this, but neither names the _engine read-contract
+divergence_ as the central defect. A new ADR is owed. I did not write it.
 
 ### d4. `go mod tidy` side-effect on `metaengine/projectionadapter`.
 
 Running the projectionadapter test required `go mod tidy`, which rewrote two
 `require` lines from pseudo-versions to real tags (`event/v4 v4.1.0`, `id/v4
-v4.1.0`). This is *probably* fine and *probably* should have happened at tag
+v4.1.0`). This is _probably_ fine and _probably_ should have happened at tag
 time, but I made a dependency-file change as a side-effect of running a test,
 not as an intentional decision. Per AGENTS.md safety rules I should not edit
 dependency files manually — `go mod tidy` is the sanctioned path, but I did
@@ -167,7 +167,7 @@ not flag it or verify it against `#check-layers`.
 
 1. **Stop patching symptoms of a typed/`any` boundary.** Recognize the shape:
    a function returns `any`, two implementations diverge on what `any`
-   contains, consumers panic. The fix is *never* "reify at each consumer." It
+   contains, consumers panic. The fix is _never_ "reify at each consumer." It
    is "centralize the reify at the boundary, or strengthen the contract." Add
    this to the brutal-self-review checklist.
 
@@ -177,7 +177,7 @@ not flag it or verify it against `#check-layers`.
    the scattered-reify mess. ADR-first for any contract change.
 
 3. **The benchmark was the hero; the test suite was the villain.** The
-   `FoldUpdate`-on-SQLite panic shipped because *no test exercised it* — only
+   `FoldUpdate`-on-SQLite panic shipped because _no test exercised it_ — only
    the benchmark I wrote caught it. The lesson: "Accepted" ADR status is not
    evidence of correctness. Add a meta-test that instantiates every `Fold` kind
    against every `Engine` impl. The cqrs-lint meta-test pattern
@@ -190,7 +190,7 @@ not flag it or verify it against `#check-layers`.
 
 5. **Verify gate is non-optional.** I did not run `nix run .#verify`. Again.
    This is the same failure mode flagged in the prior brutal review. Process
-   fix: the verify gate runs *before* any status report claims "done."
+   fix: the verify gate runs _before_ any status report claims "done."
 
 ---
 
@@ -263,13 +263,13 @@ not flag it or verify it against `#check-layers`.
     scan needs a bulk-reify path.
 19. **Cursor pagination on SQLite scan** — the `reconstructCollection` cursor
     path calls `sortKeyFn(lastItem)` where `lastItem` is `map[string]any`; I
-    patched `sortKeyFn` to reify, but the cursor *value* stored is then a
+    patched `sortKeyFn` to reify, but the cursor _value_ stored is then a
     typed scalar. Verify the round-trip (cursor → base64 → next request)
     survives the typed/map boundary.
 
 ### Testing gaps
 
-20. **No test covers `Apply` of a `FoldUpdate` on SQLite for a *non-struct*
+20. **No test covers `Apply` of a `FoldUpdate` on SQLite for a _non-struct_
     value type** (e.g. a counter-ish map of scalars). Add one — the reify path
     differs for scalars vs structs.
 21. **No test covers concurrent `MapUpdate` on SQLite** — ADR-0067's whole
@@ -312,7 +312,7 @@ not flag it or verify it against `#check-layers`.
 - **Option A**: Engines keep returning `any`; the Store reifies once at the
   read boundary using `queryRuntime.valueType` (which it already holds).
   Pro: zero engine-side change; one reify site. Con: the `any` contract still
-  *lies* — a third engine impl could diverge again.
+  _lies_ — a third engine impl could diverge again.
 - **Option B**: Engines return opaque `(typeHint, bytes)` or a typed envelope;
   the Store decodes using the hint. Pro: honest contract, impossible to
   diverge. Con: every engine impl changes; more work; breaks the current
@@ -324,7 +324,7 @@ your call before I write ADR-0069.
 
 ### g2. Revert the scattered `reifyReflect` patches now, or keep as a bridge?
 
-Right now the codebase has 5 scattered reify calls *plus* the centralized one
+Right now the codebase has 5 scattered reify calls _plus_ the centralized one
 I would add under Option A. If I keep both, the scattered calls become
 redundant-but-harmless (double-reify is idempotent for typed values). If I
 revert them now, the `FoldUpdate`-on-SQLite and scan-on-SQLite paths panic
@@ -333,7 +333,7 @@ again until the centralized fix lands.
 Do you want a clean revert + single proper fix in one PR, or keep the tactical
 patches as a bridge and centralize on top?
 
-### g3. Scope for the rest of *this* thread: fix the data model first, or finish the original 6-item list first?
+### g3. Scope for the rest of _this_ thread: fix the data model first, or finish the original 6-item list first?
 
 The original list had 6 items; 3 are done, 2 deferred (RefreshTTL, C015), 1
 reframed (benchmark). The data-model defect (d1) was not on the list — I
@@ -373,7 +373,7 @@ ship today."
    `buildSortFunc`, `Store.sortKeyFn`) execute **during** the engine's `MapScan`
    call — they are closures the engine invokes per-row. You cannot centralize
    reification at the `Store.Execute` return boundary because the panic happens
-   *before* the engine returns. The five sites are five distinct user-code
+   _before_ the engine returns. The five sites are five distinct user-code
    boundaries (fold update func, FilterOn, SortOn, cursor sort key, collection
    reconstruction), and each MUST reify where engine data meets typed user code.
 
@@ -407,14 +407,14 @@ ship today."
   and use one shared helper. Reverting would reintroduce the panics.
 - **g3 (data-model first vs list first?): Moot.** The "data-model" work was 90%
   done when the report was written; the remaining 10% was cleanup (move helper)
-  + the meta-test. Both shipped this session.
+  - the meta-test. Both shipped this session.
 
 ### RefreshTTL and C015 — dropped, not deferred
 
 Both were YAGNI. RefreshTTL was punted across 6+ status reports with no
 consumer. The design doc
 (`docs/planning/2026-07-25_14-30_idempotency-record-contract-design.md`)
-chose Option A (no-op on existing) *because* Option B's sliding window is unsafe
+chose Option A (no-op on existing) _because_ Option B's sliding window is unsafe
 (unbounded TTL under retry storms). RefreshTTL is the escape hatch for the
 behavior we rejected. C015 (a lint rule for custom Store impls) is premature:
 only 3 Store impls exist, all correct, and the contract is already documented

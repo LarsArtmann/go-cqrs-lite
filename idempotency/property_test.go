@@ -91,7 +91,9 @@ func TestProperty_KeysAreIndependent(t *testing.T) {
 		defer store.Close()
 
 		keyA := rapid.StringMatching(`.+`).Draw(t, "keyA")
-		keyB := rapid.StringMatching(`.+`).Filter(func(s string) bool { return s != keyA }).Draw(t, "keyB")
+		keyB := rapid.StringMatching(`.+`).
+			Filter(func(s string) bool { return s != keyA }).
+			Draw(t, "keyB")
 		ttl := time.Minute
 
 		if err := store.Record(context.Background(), keyA, ttl); err != nil {

@@ -1,9 +1,9 @@
 # ADR-0069: Error-wrapping helper convention
 
-| | |
-|---|---|
-| **Status** | Accepted |
-| **Date** | 2026-07-26 |
+|             |                                    |
+| ----------- | ---------------------------------- |
+| **Status**  | Accepted                           |
+| **Date**    | 2026-07-26                         |
 | **Context** | go-cqrs-lite multi-module monorepo |
 
 ## Context
@@ -53,13 +53,13 @@ Helpers are **unexported and per-module**, NOT promoted to `go-error-family` or 
 
 ### When to extract vs inline
 
-| Pattern | Extract? |
-|---------|----------|
-| `if err != nil { return WrapX(err, code, msg) }; return nil` appearing 3+ times in a module | **Yes** — extract `wrapXOrOK` |
-| Same pattern appearing 1-2 times | **No** — inline is clearer |
-| `if err != nil { return nil, WrapX(err, code, msg) }` (tuple return) | **No** — a generic helper adds complexity for marginal gain |
-| Module-specific sentinel error definitions (`var ErrX = errorfamily.NewRejection(...)`) | **No** — these ARE the unique values, not duplication |
-| `if err := helper(...); err != nil { return err }` (guard pattern) | **No** — standard Go early-return idiom |
+| Pattern                                                                                     | Extract?                                                    |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `if err != nil { return WrapX(err, code, msg) }; return nil` appearing 3+ times in a module | **Yes** — extract `wrapXOrOK`                               |
+| Same pattern appearing 1-2 times                                                            | **No** — inline is clearer                                  |
+| `if err != nil { return nil, WrapX(err, code, msg) }` (tuple return)                        | **No** — a generic helper adds complexity for marginal gain |
+| Module-specific sentinel error definitions (`var ErrX = errorfamily.NewRejection(...)`)     | **No** — these ARE the unique values, not duplication       |
+| `if err := helper(...); err != nil { return err }` (guard pattern)                          | **No** — standard Go early-return idiom                     |
 
 ## Consequences
 

@@ -6,8 +6,8 @@ require (
 	github.com/larsartmann/cmdguard/v3 v3.1.0
 	github.com/larsartmann/go-finding v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-output v0.31.1
-	github.com/larsartmann/go-output/table v0.31.1
+	github.com/larsartmann/go-output v0.32.0
+	github.com/larsartmann/go-output/table v0.32.0
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.48.0
 )
@@ -15,7 +15,7 @@ require (
 require (
 	charm.land/fang/v2 v2.0.1 // indirect
 	charm.land/lipgloss/v2 v2.0.5 // indirect
-	github.com/LarsArtmann/gogenfilter/v3 v3.3.1 // indirect
+	github.com/LarsArtmann/gogenfilter/v3 v3.3.2 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -34,20 +34,20 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/larsartmann/go-atomic-write v0.3.0 // indirect
+	github.com/larsartmann/go-atomic-write v0.4.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output/d2 v0.31.1 // indirect
-	github.com/larsartmann/go-output/daghtml v0.31.1 // indirect
-	github.com/larsartmann/go-output/delimited v0.31.1 // indirect
-	github.com/larsartmann/go-output/escape v0.31.1 // indirect
-	github.com/larsartmann/go-output/graph v0.31.1 // indirect
-	github.com/larsartmann/go-output/markdown v0.31.1 // indirect
-	github.com/larsartmann/go-output/markup v0.31.1 // indirect
-	github.com/larsartmann/go-output/plantuml v0.31.1 // indirect
-	github.com/larsartmann/go-output/serialization v0.31.1 // indirect
-	github.com/larsartmann/go-output/tree v0.31.1 // indirect
+	github.com/larsartmann/go-output/d2 v0.32.0 // indirect
+	github.com/larsartmann/go-output/daghtml v0.32.0 // indirect
+	github.com/larsartmann/go-output/delimited v0.32.0 // indirect
+	github.com/larsartmann/go-output/escape v0.32.0 // indirect
+	github.com/larsartmann/go-output/graph v0.32.0 // indirect
+	github.com/larsartmann/go-output/markdown v0.32.0 // indirect
+	github.com/larsartmann/go-output/markup v0.32.0 // indirect
+	github.com/larsartmann/go-output/plantuml v0.32.0 // indirect
+	github.com/larsartmann/go-output/serialization v0.32.0 // indirect
+	github.com/larsartmann/go-output/tree v0.32.0 // indirect
 	github.com/larsartmann/samber-do-auditlog v0.7.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect
 	github.com/mattn/go-runewidth v0.0.27 // indirect

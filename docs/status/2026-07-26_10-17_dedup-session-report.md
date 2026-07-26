@@ -10,26 +10,26 @@
 
 ### Starting State
 
-| Metric | Value |
-|--------|-------|
-| Clone groups | **90** |
-| Total duplicated tokens | ~950 |
-| Production groups | 78 |
-| Test groups | 12 |
+| Metric                  | Value  |
+| ----------------------- | ------ |
+| Clone groups            | **90** |
+| Total duplicated tokens | ~950   |
+| Production groups       | 78     |
+| Test groups             | 12     |
 
 ### Ending State
 
-| Metric | Value |
-|--------|-------|
-| Clone groups | **77** |
-| Total duplicated tokens | **803** |
-| Production groups | 65 (356 tokens) |
-| Test groups | 11 (443 tokens) |
-| Extractions applied | 12 |
-| Modules touched | 10 |
-| Workspace build | ✅ PASS |
-| All module tests | ✅ PASS |
-| `go vet` | ✅ CLEAN |
+| Metric                  | Value           |
+| ----------------------- | --------------- |
+| Clone groups            | **77**          |
+| Total duplicated tokens | **803**         |
+| Production groups       | 65 (356 tokens) |
+| Test groups             | 11 (443 tokens) |
+| Extractions applied     | 12              |
+| Modules touched         | 10              |
+| Workspace build         | ✅ PASS         |
+| All module tests        | ✅ PASS         |
+| `go vet`                | ✅ CLEAN        |
 
 ---
 
@@ -37,20 +37,20 @@
 
 These extractions were applied, tested, and committed:
 
-| # | Module | Helper extracted | What it replaced | Clone groups killed |
-|---|--------|-----------------|------------------|---------------------|
-| 1 | `storage/pebble` | `lastSegmentAfterByte(key, sep)` | Two identical 8-line reverse-scan loops for journal key ID extraction | #67 |
-| 2 | `metaengine` | `extractIntFieldByName(input, name, default)` | Two identical 10-line reflect patterns (`extractDepthFromInput`, `extractLimitFromInput`) | #69, #79 |
-| 3 | `metaengine` | `derefType(sample)` | Three identical pointer-deref blocks (`decodeFromSample`, `buildKeyExtractor`, `detectPagination`) | #45, #21 |
-| 4 | `event` | `SchemaVersion.checkUnderflow(result, op, n)` | Two identical validation blocks in `Add` and `Sub` | #62 |
-| 5 | `catalog/simple` | `Builder.buildInner()` | Three identical `addConfiguredService() + inner.Build()` preamble blocks | #22 |
-| 6 | `storage/turso` | `AutoIndexer.rejectIfDisabled(span)` | Four identical 6-line "if disabled → rejection error" guards | #30, #63, #73 |
-| 7 | `scenario` | `DeciderScenario.prepareThen(method)` | Two identical `Helper + requireWhen + foldGiven` blocks in `Then` and `ThenError` | #29 |
-| 8 | `signing` | `canonicalOrErr(evt)` | Four identical nil-check + canonicalPayload blocks across ed25519/hmac Sign/Verify | #52, #69, #76 |
-| 9 | `schema` | `newUpcasterRegistryFrom(upcasters)` | Two identical registry construction loops in `versioned_journal.go` and `versioned_source.go` | #76 |
-| 10 | `storage/relational` | `sqlSink.resolveCols(table, row, conflictCols)` | Two identical rowColumns + conflictTarget resolution blocks in `UpsertCols` and `UpsertExpr` | #30 |
-| 11 | `catalog/openapi` | `registerOperation(doc, path, method, op)` | Three identical `ensurePathItem + setOperation` tail blocks | #26, #59 |
-| 12 | `catalog` tests | Standardized on `cattest.NewTestRegistry()` / `cattest.NewTestBuilder()` | ~20 direct `catalog.NewRegistry("TestCatalog", "1.0.0")` calls across asyncapi/d2/build_resources tests | #1, #2, #6, #8 (partially) |
+| #   | Module               | Helper extracted                                                         | What it replaced                                                                                        | Clone groups killed        |
+| --- | -------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------- |
+| 1   | `storage/pebble`     | `lastSegmentAfterByte(key, sep)`                                         | Two identical 8-line reverse-scan loops for journal key ID extraction                                   | #67                        |
+| 2   | `metaengine`         | `extractIntFieldByName(input, name, default)`                            | Two identical 10-line reflect patterns (`extractDepthFromInput`, `extractLimitFromInput`)               | #69, #79                   |
+| 3   | `metaengine`         | `derefType(sample)`                                                      | Three identical pointer-deref blocks (`decodeFromSample`, `buildKeyExtractor`, `detectPagination`)      | #45, #21                   |
+| 4   | `event`              | `SchemaVersion.checkUnderflow(result, op, n)`                            | Two identical validation blocks in `Add` and `Sub`                                                      | #62                        |
+| 5   | `catalog/simple`     | `Builder.buildInner()`                                                   | Three identical `addConfiguredService() + inner.Build()` preamble blocks                                | #22                        |
+| 6   | `storage/turso`      | `AutoIndexer.rejectIfDisabled(span)`                                     | Four identical 6-line "if disabled → rejection error" guards                                            | #30, #63, #73              |
+| 7   | `scenario`           | `DeciderScenario.prepareThen(method)`                                    | Two identical `Helper + requireWhen + foldGiven` blocks in `Then` and `ThenError`                       | #29                        |
+| 8   | `signing`            | `canonicalOrErr(evt)`                                                    | Four identical nil-check + canonicalPayload blocks across ed25519/hmac Sign/Verify                      | #52, #69, #76              |
+| 9   | `schema`             | `newUpcasterRegistryFrom(upcasters)`                                     | Two identical registry construction loops in `versioned_journal.go` and `versioned_source.go`           | #76                        |
+| 10  | `storage/relational` | `sqlSink.resolveCols(table, row, conflictCols)`                          | Two identical rowColumns + conflictTarget resolution blocks in `UpsertCols` and `UpsertExpr`            | #30                        |
+| 11  | `catalog/openapi`    | `registerOperation(doc, path, method, op)`                               | Three identical `ensurePathItem + setOperation` tail blocks                                             | #26, #59                   |
+| 12  | `catalog` tests      | Standardized on `cattest.NewTestRegistry()` / `cattest.NewTestBuilder()` | ~20 direct `catalog.NewRegistry("TestCatalog", "1.0.0")` calls across asyncapi/d2/build_resources tests | #1, #2, #6, #8 (partially) |
 
 **Total: ~15 original clone groups eliminated, ~150 tokens of duplication removed.**
 
@@ -79,45 +79,46 @@ These extractions were applied, tested, and committed:
 
 These are all `t.Parallel()` followed by a constructor or context setup:
 
-| Group | Module | Pattern | Occurrences |
-|-------|--------|---------|-------------|
-| #1 | catalog/d2 | `t.Parallel()` + `catalog.NewRegistry("Test", "1.0.0")` | 29 |
-| #3 | command | `t.Parallel()` + `id.NewStreamID()` | 23 |
-| #4 | benchkit | `t.Parallel()` + `context.WithTimeout(...)` | 15 |
-| #5 | catalog/build_resources | `t.Parallel()` + `cattest.NewTestBuilder(t)` | 15 |
-| #6 | catalog/asyncapi | `t.Parallel()` + `cattest.NewTestRegistry()` | 21 |
-| #7 | integration/otel | `t.Parallel()` + `NewWithT(t)` | 19 |
-| #8 | storage/view | `t.Parallel()` + `newTestViewStore(t)` | 12 |
-| #9 | event | `t.Parallel()` + `idtest.ParseStreamID(...)` | 16 |
-| #10 | codec | `t.Parallel()` + `CBORCodec{}` | 16 |
-| #11 | deriver | `t.Parallel()` + `errors.New(...)` | 16 |
+| Group | Module                  | Pattern                                                 | Occurrences |
+| ----- | ----------------------- | ------------------------------------------------------- | ----------- |
+| #1    | catalog/d2              | `t.Parallel()` + `catalog.NewRegistry("Test", "1.0.0")` | 29          |
+| #3    | command                 | `t.Parallel()` + `id.NewStreamID()`                     | 23          |
+| #4    | benchkit                | `t.Parallel()` + `context.WithTimeout(...)`             | 15          |
+| #5    | catalog/build_resources | `t.Parallel()` + `cattest.NewTestBuilder(t)`            | 15          |
+| #6    | catalog/asyncapi        | `t.Parallel()` + `cattest.NewTestRegistry()`            | 21          |
+| #7    | integration/otel        | `t.Parallel()` + `NewWithT(t)`                          | 19          |
+| #8    | storage/view            | `t.Parallel()` + `newTestViewStore(t)`                  | 12          |
+| #9    | event                   | `t.Parallel()` + `idtest.ParseStreamID(...)`            | 16          |
+| #10   | codec                   | `t.Parallel()` + `CBORCodec{}`                          | 16          |
+| #11   | deriver                 | `t.Parallel()` + `errors.New(...)`                      | 16          |
 
 **Assessment**: These are idiomatic Go test setup. The `t.Parallel()` call is required per-test. The constructor following it is the test's fixture. Extracting these into helpers would obscure what each test does. **Acceptable duplication — but the test token count (443) dominates the report.**
 
 ### Cross-module patterns (16 groups, 116 tokens)
 
-| Group | Modules | Pattern | Why it's duplicated |
-|-------|---------|---------|-------------------|
-| #12 | catalog/d2, eventcatalog, registry | Registry + service setup in tests | Test fixture — different test contexts |
-| #13 | storage/pebble, sql, readmodel | `errorfamily.WrapInfrastructure(err, "unique.code", ...)` | **The call IS the abstraction** — unique error codes per call site |
-| #15 | storage/readmodel, turso | Same WrapInfrastructure pattern | Same — unique codes |
-| #22 | command, query, dispatcher | `errorfamily.NewRejection("X.handler_not_found", ...)` | **Library modules are independently importable** — cannot share error definitions without creating a cross-module dependency |
-| #24, #28, #63 | stack/sqlite, postgres, turso | Multi-DB preset boilerplate | Stack presets are intentionally parallel — each is a self-contained deployment config |
-| #35 | encryption, signing, codec | `errorfamily.WrapInfrastructure(err, "codec.cose_marshal", ...)` | Cross-module by design — cannot share without coupling |
-| #38 | transport/grpc, http | `transportComponent = "transport.grpc"` | Each transport module owns its own component constant |
-| #42 | command, query | Typed store error wrapping | Parallel CQRS types — command and query are separate modules |
-| #52 | catalog/cmd, eventcatalog | `strings.Builder` for config generation | Different config formats |
-| #55 | metaengine, stack/debug | `strings.Builder` for plan debug output | Cross-module debug formatting |
-| #58 | signing, encryption | `if err == nil { return true }` + classify check | Different security domains |
-| #71 | event/date, event/time_types | `json.Unmarshal` into string + WrapRejection | Same module (event/) — could extract but only 4 tokens |
-| #73 | stack/sqlite, turso | `ErrNoDatabase = errorfamily.NewRejection(...)` | Parallel stack presets |
-| #74 | query, storage/pebble | Typed store save error wrapping | Cross-module |
+| Group         | Modules                            | Pattern                                                          | Why it's duplicated                                                                                                          |
+| ------------- | ---------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| #12           | catalog/d2, eventcatalog, registry | Registry + service setup in tests                                | Test fixture — different test contexts                                                                                       |
+| #13           | storage/pebble, sql, readmodel     | `errorfamily.WrapInfrastructure(err, "unique.code", ...)`        | **The call IS the abstraction** — unique error codes per call site                                                           |
+| #15           | storage/readmodel, turso           | Same WrapInfrastructure pattern                                  | Same — unique codes                                                                                                          |
+| #22           | command, query, dispatcher         | `errorfamily.NewRejection("X.handler_not_found", ...)`           | **Library modules are independently importable** — cannot share error definitions without creating a cross-module dependency |
+| #24, #28, #63 | stack/sqlite, postgres, turso      | Multi-DB preset boilerplate                                      | Stack presets are intentionally parallel — each is a self-contained deployment config                                        |
+| #35           | encryption, signing, codec         | `errorfamily.WrapInfrastructure(err, "codec.cose_marshal", ...)` | Cross-module by design — cannot share without coupling                                                                       |
+| #38           | transport/grpc, http               | `transportComponent = "transport.grpc"`                          | Each transport module owns its own component constant                                                                        |
+| #42           | command, query                     | Typed store error wrapping                                       | Parallel CQRS types — command and query are separate modules                                                                 |
+| #52           | catalog/cmd, eventcatalog          | `strings.Builder` for config generation                          | Different config formats                                                                                                     |
+| #55           | metaengine, stack/debug            | `strings.Builder` for plan debug output                          | Cross-module debug formatting                                                                                                |
+| #58           | signing, encryption                | `if err == nil { return true }` + classify check                 | Different security domains                                                                                                   |
+| #71           | event/date, event/time_types       | `json.Unmarshal` into string + WrapRejection                     | Same module (event/) — could extract but only 4 tokens                                                                       |
+| #73           | stack/sqlite, turso                | `ErrNoDatabase = errorfamily.NewRejection(...)`                  | Parallel stack presets                                                                                                       |
+| #74           | query, storage/pebble              | Typed store save error wrapping                                  | Cross-module                                                                                                                 |
 
 **Assessment**: Cross-module duplication is **acceptable by design** in a multi-module library. Each module must be independently importable. Sharing helpers would create unwanted dependencies.
 
 ### Intra-module 4-token snippets (42 groups)
 
 These are all 2-line patterns:
+
 - `if err != nil { return err }` + one more line
 - `span := startXSpan(...)` + `defer span.End()`
 - `a.mu.Lock()` + `defer a.mu.Unlock()`
@@ -265,11 +266,13 @@ The 7 stack presets each have ~200 lines of nearly identical code: flag parsing,
 ### 3. Is the remaining 77 groups acceptable, or should I push to near-zero?
 
 The skill says "Zero harmful duplication — not zero report lines." I believe the remaining 77 groups are all either:
+
 - Idiomatic Go (`t.Parallel()`, `if err != nil`, `defer span.End()`)
 - Cross-module by design (library independence)
 - 4-token snippets where abstraction would hurt readability
 
 But the user said "GET IT DOWN TO ZERO." Should I:
+
 - **A**: Accept these as intentional and stop?
 - **B**: Aggressively extract even 4-token patterns into helpers, accepting more indirection?
 - **C**: Exclude these patterns from art-dupl via config so the report shows zero?
@@ -280,20 +283,20 @@ This is a judgment call about the quality bar that I shouldn't make alone.
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Duration | ~45 minutes |
-| Files modified | 30 |
-| Clone groups eliminated | ~15 |
-| Clone groups remaining | 77 |
-| Tokens removed | ~150 |
-| Tokens remaining | 803 |
-| Tests run | 11 modules, all PASS |
-| `go vet` | CLEAN |
-| `go build ./...` | PASS |
-| `nix fmt` | Applied (1 file reformatted) |
-| Mistakes made | 1 (generic JSON helper stack overflow — reverted) |
-| Auto-commits by daemon | ~10 |
+| Metric                  | Value                                             |
+| ----------------------- | ------------------------------------------------- |
+| Duration                | ~45 minutes                                       |
+| Files modified          | 30                                                |
+| Clone groups eliminated | ~15                                               |
+| Clone groups remaining  | 77                                                |
+| Tokens removed          | ~150                                              |
+| Tokens remaining        | 803                                               |
+| Tests run               | 11 modules, all PASS                              |
+| `go vet`                | CLEAN                                             |
+| `go build ./...`        | PASS                                              |
+| `nix fmt`               | Applied (1 file reformatted)                      |
+| Mistakes made           | 1 (generic JSON helper stack overflow — reverted) |
+| Auto-commits by daemon  | ~10                                               |
 
 ---
 

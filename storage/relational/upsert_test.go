@@ -113,7 +113,8 @@ func queryMessageCol(t *testing.T, db *sql.DB, ctx context.Context, id, col stri
 
 	var val string
 
-	if err := db.QueryRowContext(ctx,
+	if err := db.QueryRowContext(
+		ctx,
 		fmt.Sprintf("SELECT %s FROM messages WHERE id = ?", col), id,
 	).Scan(&val); err != nil {
 		t.Fatalf("query %s for %s: %v", col, id, err)
@@ -151,7 +152,13 @@ func TestSinkUpsert(t *testing.T) {
 				if got := queryMessageCol(t, db, ctx, "m1", "author_id"); got != "u1" {
 					t.Fatalf("author_id: got %q, want %q", got, "u1")
 				}
-				if got := queryMessageCol(t, db, ctx, "m1", "created_at"); got != "2026-01-01T00:00:00Z" {
+				if got := queryMessageCol(
+					t,
+					db,
+					ctx,
+					"m1",
+					"created_at",
+				); got != "2026-01-01T00:00:00Z" {
 					t.Fatalf("created_at: got %q, want %q", got, "2026-01-01T00:00:00Z")
 				}
 			},
