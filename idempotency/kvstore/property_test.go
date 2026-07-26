@@ -2,11 +2,11 @@ package kvstore_test
 
 import (
 	"context"
-	"errors"
 	"database/sql"
+	"errors"
 	"fmt"
-	"sync/atomic"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -14,9 +14,9 @@ import (
 
 	"pgregory.net/rapid"
 
+	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
 	idemsqlstore "github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
-	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 

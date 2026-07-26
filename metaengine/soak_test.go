@@ -96,7 +96,11 @@ func TestSoak_SQLiteSustainedWrites(t *testing.T) {
 			for i := range writesPerWriter {
 				account := fmt.Sprintf("acct-%03d", (workerID*7+i)%accounts)
 				amt := int64(i%100 + 1)
-				if err := store.Apply(ctx, "deposit", deposit{Account: account, Amount: amt}); err != nil {
+				if err := store.Apply(
+					ctx,
+					"deposit",
+					deposit{Account: account, Amount: amt},
+				); err != nil {
 					t.Errorf("writer %d write %d: %v", workerID, i, err)
 					return
 				}
@@ -216,7 +220,11 @@ func TestSoak_SQLiteMultimapGrowth(t *testing.T) {
 		for i := range appendsPerKey {
 			key := fmt.Sprintf("key-%d", k)
 			val := fmt.Sprintf("val-%d-%d", k, i)
-			if err := store.Apply(ctx, "appendEvent", appendEvent{MapKey: key, Value: val}); err != nil {
+			if err := store.Apply(
+				ctx,
+				"appendEvent",
+				appendEvent{MapKey: key, Value: val},
+			); err != nil {
 				t.Fatalf("Apply %d-%d: %v", k, i, err)
 			}
 		}

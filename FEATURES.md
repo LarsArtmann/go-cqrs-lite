@@ -105,7 +105,7 @@
 | Command causality     | `WithCommandCausality(ctx, type, id)` + `CommandCausalityEnricher` — auto-tag events with the command that caused them                                                                                                                                                                                                                      | ✅     |
 | Checkpoint            | `Checkpoint` struct + `CheckpointSink/Source/Store` interfaces for projection positioning                                                                                                                                                                                                                                                   | ✅     |
 | Clock injection       | `Clock` type + `WithClock` option for deterministic testing                                                                                                                                                                                                                                                                                 | ✅     |
-| Error taxonomy        | 6-family: Rejection / Conflict / Transient / Infrastructure / Orchestration / Corruption; 14 helper funcs (`New*`, `Wrap*`, `Wrap*f`, `Classify`, `IsRetryable`); 16 sentinel errors                                                                                                                                                       | ✅     |
+| Error taxonomy        | 6-family: Rejection / Conflict / Transient / Infrastructure / Orchestration / Corruption; 14 helper funcs (`New*`, `Wrap*`, `Wrap*f`, `Classify`, `IsRetryable`); 16 sentinel errors                                                                                                                                                        | ✅     |
 | Event reconstruction  | `ReconstructEventFromFields` — shared deserialization for all store implementations                                                                                                                                                                                                                                                         | ✅     |
 | JSON metadata         | `MarshalMetadataJSON`, `UnmarshalMetadataJSON` — DB-safe metadata serialization                                                                                                                                                                                                                                                             | ✅     |
 
@@ -402,21 +402,21 @@ as a library primitive.
 
 > `import "github.com/larsartmann/go-cqrs-lite/codec/v4"`
 
-| Feature             | Detail                                                                                  | Status |
-| ------------------- | --------------------------------------------------------------------------------------- | ------ |
-| Codec interface     | `Codec` — `Encoding()`, `Encode(v)`, `Decode(data, v)`                                  | ✅     |
-| JSON codec          | `JSONCodec` — standard JSON encoding                                                    | ✅     |
-| CBOR codec          | `CBORCodec` — deterministic canonical CBOR with sorted map keys                         | ✅     |
-| CBOR compact codec  | `CBORCompactCodec` — ~35% smaller via `toarray` positional mode                         | ✅     |
-| Raw passthrough     | `RawCodec` — `[]byte` pass-through (no encoding)                                        | ✅     |
-| BufferEncoder       | Optional `BufferEncoder` interface — zero-alloc encoding into caller buffer             | ✅     |
-| CBOR diagnostic     | `Diagnose(data)` — human-readable CBOR output for debugging                             | ✅     |
-| Cross-codec transcode | `TranscodeToJSON(payload, enc)` — schema-free CBOR→JSON bridge for browser/REST output | ✅     |
-| Encoding constants  | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                                           | ✅     |
-| Envelope wrapping   | `WrapEncode`/`UnwrapDecode` — self-describing blind stores (ADR-0044)                   | ✅     |
-| CBOR default        | All codec defaults flipped to CBOR (ADR-0053) — backward-compat via envelopes           | ✅     |
-| Timezone-safe types | `Instant`, `WallTime`, `Date` — prevent CBOR timezone loss in event payloads (ADR-0056) | ✅     |
-| C013 lint rule      | Detects `time.Time` fields in event payloads, suggests timezone-safe alternatives       | ✅     |
+| Feature               | Detail                                                                                  | Status |
+| --------------------- | --------------------------------------------------------------------------------------- | ------ |
+| Codec interface       | `Codec` — `Encoding()`, `Encode(v)`, `Decode(data, v)`                                  | ✅     |
+| JSON codec            | `JSONCodec` — standard JSON encoding                                                    | ✅     |
+| CBOR codec            | `CBORCodec` — deterministic canonical CBOR with sorted map keys                         | ✅     |
+| CBOR compact codec    | `CBORCompactCodec` — ~35% smaller via `toarray` positional mode                         | ✅     |
+| Raw passthrough       | `RawCodec` — `[]byte` pass-through (no encoding)                                        | ✅     |
+| BufferEncoder         | Optional `BufferEncoder` interface — zero-alloc encoding into caller buffer             | ✅     |
+| CBOR diagnostic       | `Diagnose(data)` — human-readable CBOR output for debugging                             | ✅     |
+| Cross-codec transcode | `TranscodeToJSON(payload, enc)` — schema-free CBOR→JSON bridge for browser/REST output  | ✅     |
+| Encoding constants    | `EncodingJSON`, `EncodingCBOR`, `EncodingRaw`                                           | ✅     |
+| Envelope wrapping     | `WrapEncode`/`UnwrapDecode` — self-describing blind stores (ADR-0044)                   | ✅     |
+| CBOR default          | All codec defaults flipped to CBOR (ADR-0053) — backward-compat via envelopes           | ✅     |
+| Timezone-safe types   | `Instant`, `WallTime`, `Date` — prevent CBOR timezone loss in event payloads (ADR-0056) | ✅     |
+| C013 lint rule        | Detects `time.Time` fields in event payloads, suggests timezone-safe alternatives       | ✅     |
 
 ---
 
@@ -573,23 +573,23 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 
 > `import "github.com/larsartmann/go-cqrs-lite/transport/http/v4"`
 
-| Feature              | Detail                                                                                            | Status |
-| -------------------- | ------------------------------------------------------------------------------------------------- | ------ |
-| SSEBroker            | Server-Sent Events broker with `AddClient`, `RemoveClient`, `ClientCount`, `Close`                | ✅     |
-| SSEHandler           | `net/http` handler for SSE connections with client ID extraction                                  | ✅     |
-| Thread-safe          | Concurrent client management with proper channel lifecycle                                        | ✅     |
-| Last-Event-ID replay | Reconnect via `WithReconnectJournal(journal, limit)` — replays missed events before live          | ✅     |
-| Replay timeout       | `WithReplayTimeout(d)` — stops replay after duration, sends advisory event, switches to live      | ✅     |
-| Byte-budget replay   | `WithReplayByteBudget(bytes)` — stops replay when payload bytes exceed budget                     | ⚠️     |
-| Retry field          | `WithRetryInterval(d)` — writes `retry:` field on connect for browser auto-reconnect              | ✅     |
-| Event filtering      | `WithEventFilter(fn)` — broker-level predicate that drops events before fanout                    | ✅     |
-| Auth middleware      | `SSEAuthMiddleware(next, tokenFunc)` — reference bearer-token auth implementation                 | ✅     |
-| Backfill endpoint    | `BackfillHandler(broker)` — REST endpoint returning missed events as JSON array                   | ✅     |
+| Feature              | Detail                                                                                                                              | Status |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| SSEBroker            | Server-Sent Events broker with `AddClient`, `RemoveClient`, `ClientCount`, `Close`                                                  | ✅     |
+| SSEHandler           | `net/http` handler for SSE connections with client ID extraction                                                                    | ✅     |
+| Thread-safe          | Concurrent client management with proper channel lifecycle                                                                          | ✅     |
+| Last-Event-ID replay | Reconnect via `WithReconnectJournal(journal, limit)` — replays missed events before live                                            | ✅     |
+| Replay timeout       | `WithReplayTimeout(d)` — stops replay after duration, sends advisory event, switches to live                                        | ✅     |
+| Byte-budget replay   | `WithReplayByteBudget(bytes)` — stops replay when payload bytes exceed budget                                                       | ⚠️     |
+| Retry field          | `WithRetryInterval(d)` — writes `retry:` field on connect for browser auto-reconnect                                                | ✅     |
+| Event filtering      | `WithEventFilter(fn)` — broker-level predicate that drops events before fanout                                                      | ✅     |
+| Auth middleware      | `SSEAuthMiddleware(next, tokenFunc)` — reference bearer-token auth implementation                                                   | ✅     |
+| Backfill endpoint    | `BackfillHandler(broker)` — REST endpoint returning missed events as JSON array                                                     | ✅     |
 | Payload transform    | `WithPayloadTransform(fn)` + ready-made `CBORToJSONTransform` adapter — wire-format transcoding (CBOR→JSON) on SSE + backfill paths | ✅     |
-| Per-client stats     | `Stats() []ClientStats` — per-client buffered event depth for debugging slow consumers            | ✅     |
-| Graceful close       | `CloseWithGrace(d)` — drains in-flight events before closing client channels                      | ✅     |
-| Dedup ring           | Bounded `dedup.Ring` (1024 entries) for replay→live deduplication — O(1), memory-bounded          | ✅     |
-| Replay metrics       | `ReplayMetrics` struct + OTel instruments (duration histogram, event counter, incomplete counter) | ✅     |
+| Per-client stats     | `Stats() []ClientStats` — per-client buffered event depth for debugging slow consumers                                              | ✅     |
+| Graceful close       | `CloseWithGrace(d)` — drains in-flight events before closing client channels                                                        | ✅     |
+| Dedup ring           | Bounded `dedup.Ring` (1024 entries) for replay→live deduplication — O(1), memory-bounded                                            | ✅     |
+| Replay metrics       | `ReplayMetrics` struct + OTel instruments (duration histogram, event counter, incomplete counter)                                   | ✅     |
 
 ### gRPC Transport ✅ FULLY_FUNCTIONAL
 

@@ -19,8 +19,9 @@ this list and recorded in CHANGELOG.
 ## Verify Gate
 
 > `nix run .#verify` is GREEN (build + vet + test + race + lint + API stability
-> + doc-check). All 58 modules pass. Lint is clean (0 issues). File-size gate
-> is GREEN.
+>
+> - doc-check). All 58 modules pass. Lint is clean (0 issues). File-size gate
+>   is GREEN.
 
 - [ ] 🔥 **Fix stale "5-family" references** introduced by go-error-family
       v0.10.0 upgrade. Three living docs still say "5-family" instead of
@@ -42,9 +43,9 @@ this list and recorded in CHANGELOG.
 > locally but NOT pushed.
 
 - [BLOCKED] ⭐ **Cut v4.2.0 release** — flush `[Unreleased]` CHANGELOG, tag all
-      58 modules, push tags. Requires user approval for push.
+  58 modules, push tags. Requires user approval for push.
 - [BLOCKED] 🔥 **Push `metaengine/projectionadapter/v4.0.0` tag** — exists
-      locally, invisible to consumers. `git push origin metaengine/projectionadapter/v4.0.0`.
+  locally, invisible to consumers. `git push origin metaengine/projectionadapter/v4.0.0`.
 - [ ] **Regenerate api-stability golden** after v4.2.0 — new exports added
       (idempotency property tests, metaengine gap tests, `queryMessageCol`
       helper).
@@ -158,7 +159,7 @@ this list and recorded in CHANGELOG.
 - **Redis adapter** — see ROADMAP Non-Goals (ValKey/NATS/Kafka preferred).
 - **`idempotency.RefreshTTL(ctx, key, ttl)`** — dropped 2026-07-26 (YAGNI).
   Deferred across 6 sessions with no consumer; the design doc chose Option A
-  (no-op on existing) *because* Option B's sliding window is unsafe (unbounded
+  (no-op on existing) _because_ Option B's sliding window is unsafe (unbounded
   TTL under retry storms).
 - **cqrs-lint rule for the `idempotency.Store` Record contract** — dropped
   2026-07-26 (YAGNI). Only 3 Store impls exist (memory, kv, sql), all correct;

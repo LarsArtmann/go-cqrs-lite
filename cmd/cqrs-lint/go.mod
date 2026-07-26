@@ -48,7 +48,7 @@ require (
 	github.com/larsartmann/go-output/plantuml v0.32.0 // indirect
 	github.com/larsartmann/go-output/serialization v0.32.0 // indirect
 	github.com/larsartmann/go-output/tree v0.32.0 // indirect
-	github.com/larsartmann/samber-do-auditlog v0.7.1 // indirect
+	github.com/larsartmann/samber-do-auditlog v0.8.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect
 	github.com/mattn/go-runewidth v0.0.27 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect

@@ -13,8 +13,8 @@ UP1 asked for `WithPayloadTransform` on `SSEBroker`. **The option already existe
 before the feature existed and proposed a different signature
 `func(payload []byte, encoding codec.Encoding) ([]byte, error)`.
 
-Rather than break a released v4 API, I delivered UP1's actual goal — *"delete the
-~50 LOC of duplicated consumer transcode logic"* — via two **additive** helpers:
+Rather than break a released v4 API, I delivered UP1's actual goal — _"delete the
+~50 LOC of duplicated consumer transcode logic"_ — via two **additive** helpers:
 `codec.TranscodeToJSON` and `transport/http.CBORToJSONTransform`.
 
 **All local verification passes** (build, vet, test, race, lint, doc-check,
@@ -25,42 +25,42 @@ on `codec/v4 v4.1.0` (tagged), which lacks the new `TranscodeToJSON`. See §d.
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | `codec.TranscodeToJSON(payload, enc) ([]byte, error)` — schema-free CBOR→JSON | `codec/transcode.go` (46 LOC) |
-| 2 | 6 unit tests for `TranscodeToJSON` (CBOR map, toarray→array, JSON passthrough, Raw passthrough, invalid CBOR error, nested+scalars) | `codec/transcode_test.go` (160 LOC), all pass |
-| 3 | `transport/http.CBORToJSONTransform` — one-liner adapter for `WithPayloadTransform` | `transport/http/transform.go` (36 LOC) |
-| 4 | 3 tests: unit CBOR decode, JSON passthrough, full SSE-wire integration | `transport/http/transform_test.go` (114 LOC), all pass |
-| 5 | Doc anti-pattern fixed (`jsonBytes, _ :=` → proper error handling) | `sse_options.go` godoc, AGENTS.md, README.md, ADR-0052, skill `core.md` |
-| 6 | `WithPayloadTransform` godoc rewritten — now leads with `CBORToJSONTransform` one-liner | `sse_options.go:160-198` |
-| 7 | FEATURES.md updated (codec + transport/http rows) | 2 rows changed |
-| 8 | CHANGELOG `[Unreleased]` entry added | `CHANGELOG.md:11-20` |
-| 9 | `docs/api_surface.txt` golden regenerated | +2 symbols (`codec.TranscodeToJSON`, `transport/http.CBORToJSONTransform`) |
-| 10 | Verification gate: codec build+vet+test, transport/http build+vet+test+race, golangci-lint (0 issues both), doc-check (933 refs), api-stability test, workspace build | All green |
-| 11 | 7 auto-git commits created by daemon | `1b680fd4` → `cf25d5bb` |
+| #   | Item                                                                                                                                                                  | Evidence                                                                   |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 1   | `codec.TranscodeToJSON(payload, enc) ([]byte, error)` — schema-free CBOR→JSON                                                                                         | `codec/transcode.go` (46 LOC)                                              |
+| 2   | 6 unit tests for `TranscodeToJSON` (CBOR map, toarray→array, JSON passthrough, Raw passthrough, invalid CBOR error, nested+scalars)                                   | `codec/transcode_test.go` (160 LOC), all pass                              |
+| 3   | `transport/http.CBORToJSONTransform` — one-liner adapter for `WithPayloadTransform`                                                                                   | `transport/http/transform.go` (36 LOC)                                     |
+| 4   | 3 tests: unit CBOR decode, JSON passthrough, full SSE-wire integration                                                                                                | `transport/http/transform_test.go` (114 LOC), all pass                     |
+| 5   | Doc anti-pattern fixed (`jsonBytes, _ :=` → proper error handling)                                                                                                    | `sse_options.go` godoc, AGENTS.md, README.md, ADR-0052, skill `core.md`    |
+| 6   | `WithPayloadTransform` godoc rewritten — now leads with `CBORToJSONTransform` one-liner                                                                               | `sse_options.go:160-198`                                                   |
+| 7   | FEATURES.md updated (codec + transport/http rows)                                                                                                                     | 2 rows changed                                                             |
+| 8   | CHANGELOG `[Unreleased]` entry added                                                                                                                                  | `CHANGELOG.md:11-20`                                                       |
+| 9   | `docs/api_surface.txt` golden regenerated                                                                                                                             | +2 symbols (`codec.TranscodeToJSON`, `transport/http.CBORToJSONTransform`) |
+| 10  | Verification gate: codec build+vet+test, transport/http build+vet+test+race, golangci-lint (0 issues both), doc-check (933 refs), api-stability test, workspace build | All green                                                                  |
+| 11  | 7 auto-git commits created by daemon                                                                                                                                  | `1b680fd4` → `cf25d5bb`                                                    |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's done | What's missing |
-|---|------|-------------|----------------|
-| 1 | **Doc sweep for anti-pattern** | Fixed in 5 files (godoc, AGENTS.md, README, ADR-0052, skill core.md) | `CHANGELOG.md:20` still *references* the old pattern (intentionally — it's describing the bug being fixed). Acceptable. |
-| 2 | **"Logged at Warn" criterion** | Graceful fallback implemented (raw payload on error) | UP1 asks for "logged at Warn". `SSEBroker` has **no logger field**. I deferred this silently instead of raising it as a design decision. See §e. |
-| 3 | **Skill docs update** | `core.md` updated | `recipes.md` and root `SKILL.md` were NOT checked/updated for the new `CBORToJSONTransform` one-liner. |
+| #   | Item                           | What's done                                                          | What's missing                                                                                                                                   |
+| --- | ------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **Doc sweep for anti-pattern** | Fixed in 5 files (godoc, AGENTS.md, README, ADR-0052, skill core.md) | `CHANGELOG.md:20` still _references_ the old pattern (intentionally — it's describing the bug being fixed). Acceptable.                          |
+| 2   | **"Logged at Warn" criterion** | Graceful fallback implemented (raw payload on error)                 | UP1 asks for "logged at Warn". `SSEBroker` has **no logger field**. I deferred this silently instead of raising it as a design decision. See §e. |
+| 3   | **Skill docs update**          | `core.md` updated                                                    | `recipes.md` and root `SKILL.md` were NOT checked/updated for the new `CBORToJSONTransform` one-liner.                                           |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Item | Why |
-|---|------|-----|
-| 1 | **Backfill path test with `CBORToJSONTransform`** | Existing `TestBackfillHandler_PayloadTransformFromBroker` uses a custom transform. No test verifies the ready-made adapter works through the backfill REST path specifically. It *should* work (same signature), but untested. |
-| 2 | **Benchmark** | No benchmark for `TranscodeToJSON` or the transform hot path. Status archive TODO #45 asks for this. |
-| 3 | **codec/README.md update** | `TranscodeToJSON` not documented in codec's own README. Discoverability gap for codec-only consumers. |
-| 4 | **CBORCompactCodec interop test** | `CBORCompactCodec` reports `EncodingCBOR` too. Decoding via `canonicalDecMode()` *should* handle it (same wire format), but no test proves it. |
-| 5 | **`event.DecodePayloadAuto[T]` interop doc** | The godoc mentions schema-aware alternative but doesn't show a full example of wrapping it in a custom transform for `toarray` structs. |
-| 6 | **`nix run .#verify`** | Did not run the full project verification gate (build+vet+test+race+lint+doc-check+doc-assertions). Ran individual checks instead. Would catch anything I missed. |
+| #   | Item                                              | Why                                                                                                                                                                                                                            |
+| --- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **Backfill path test with `CBORToJSONTransform`** | Existing `TestBackfillHandler_PayloadTransformFromBroker` uses a custom transform. No test verifies the ready-made adapter works through the backfill REST path specifically. It _should_ work (same signature), but untested. |
+| 2   | **Benchmark**                                     | No benchmark for `TranscodeToJSON` or the transform hot path. Status archive TODO #45 asks for this.                                                                                                                           |
+| 3   | **codec/README.md update**                        | `TranscodeToJSON` not documented in codec's own README. Discoverability gap for codec-only consumers.                                                                                                                          |
+| 4   | **CBORCompactCodec interop test**                 | `CBORCompactCodec` reports `EncodingCBOR` too. Decoding via `canonicalDecMode()` _should_ handle it (same wire format), but no test proves it.                                                                                 |
+| 5   | **`event.DecodePayloadAuto[T]` interop doc**      | The godoc mentions schema-aware alternative but doesn't show a full example of wrapping it in a custom transform for `toarray` structs.                                                                                        |
+| 6   | **`nix run .#verify`**                            | Did not run the full project verification gate (build+vet+test+race+lint+doc-check+doc-assertions). Ran individual checks instead. Would catch anything I missed.                                                              |
 
 ---
 
@@ -130,7 +130,7 @@ as a question immediately.
 
 UP1 proposes `func(payload []byte, encoding codec.Encoding) ([]byte, error)`.
 The shipped API is `func(event.Event) []byte`. I correctly chose not to break v4,
-but I didn't consider a **third option**: adding a *new* option
+but I didn't consider a **third option**: adding a _new_ option
 `WithPayloadTransformE(fn func([]byte, codec.Encoding) ([]byte, error))` alongside
 the existing one (two options, last-one-wins). This would give consumers the exact
 UP1 signature with error handling, without breaking anything. Worth considering for
@@ -161,6 +161,7 @@ before optimizing.
 ## f) Up to 50 Things to Do Next
 
 ### Critical (blocks release / CI)
+
 1. **Tag `codec/v4.1.1` (or v4.2.0)** with the new `TranscodeToJSON` export
 2. **Update `transport/http/go.mod`** to require the new codec version + `go mod tidy`
 3. **Run `GOWORK=off go build` in transport/http** to confirm the cross-module break is resolved
@@ -168,6 +169,7 @@ before optimizing.
 5. **Investigate `metaengine/soak_test.go`** — is this a legit pre-existing file or test debt? Confirm provenance.
 
 ### High value (closes UP1 acceptance gaps)
+
 6. **Add backfill integration test** with `CBORToJSONTransform` through `BackfillHandler`
 7. **Verify in DiscordSync** that `CBORToJSONTransform` actually deletes the ~50 LOC (`sseCBORCache`, `getSSECBORDecMode`, `jsonPayloadForSSE`)
 8. **Decide on "logged at Warn"** — add `slog.Logger` to `SSEBroker`, or document why logging is deferred
@@ -175,12 +177,14 @@ before optimizing.
 10. **Update `codec/README.md`** with `TranscodeToJSON` documentation + example
 
 ### Documentation discoverability
+
 11. **Update root `SKILL.md`** — check if transform pattern is mentioned, add `CBORToJSONTransform`
 12. **Update `.agents/skills/go-cqrs-lite/references/recipes.md`** — add CBOR→JSON SSE recipe
 13. **Add `TranscodeToJSON` to codec doc.go** package-level docs (it lists Codec implementations but not utility functions)
 14. **Write a `WithPayloadTransformE` ADR** if option 9 is pursued — document the two-option design
 
 ### Testing improvements
+
 15. **Add `CBORCompactCodec` interop test** for `TranscodeToJSON` (compact reports `EncodingCBOR` too)
 16. **Add benchmark**: `BenchmarkTranscodeToJSON_CBOR_To_JSON` — measure allocs/op
 17. **Add benchmark**: `BenchmarkCBORToJSONTransform_SSEWire` — end-to-end transform overhead
@@ -190,12 +194,14 @@ before optimizing.
 21. **Run codec tests with `-race -count=3`** (AGENTS.md mandates this for threshold-touching changes)
 
 ### Architecture / future-proofing
+
 22. **Consider `codec.Transcode(payload, from, to Encoding)`** — generalize beyond JSON target (CBOR→CBOR-compact, etc.)
 23. **Consider a `stack.WithSSETransform()` preset option** — one-call CBOR→JSON for stack presets (TODO #35 from archive)
 24. **Document the schema-free limitation** more prominently — `toarray` structs lose field names; link to `DecodePayloadAuto[T]` as the schema-aware path
 25. **Consider `EncodingCBORCompact`** as a distinct encoding constant (currently conflated with `EncodingCBOR`)
 
 ### Process / cleanup
+
 26. **Add `CBORToJSONTransform` to the cqrs-lint feature profile** — auto-detect CBOR+SSE usage and suggest the adapter
 27. **Update `docs/migration/MIGRATION-GUIDE.md`** — mention `CBORToJSONTransform` as the migration path for CBOR adopters serving SSE
 28. **Audit all remaining `jsonBytes, _ :=` patterns** across docs (catalog/README.md:304 has one, but it's `doc.MarshalJSON()` — different context, likely fine)
@@ -203,6 +209,7 @@ before optimizing.
 30. **Check if `TranscodeToJSON` belongs in codec or event** — it uses `canonicalDecMode()` which is codec-internal; placement is correct, but document the rationale
 
 ### Stretch / nice-to-have
+
 31. **Add a `codec.TranscodeToJSONString` variant** returning `string` (avoids `[]byte`→`string` copy for SSE `Data:` field)
 32. **Consider `BufferEncoder` support for TranscodeToJSON** — write JSON directly into a caller buffer
 33. **Add `example_test.go` in transport/http** showing `CBORToJSONTransform` usage (Go playground example)
@@ -232,6 +239,7 @@ before optimizing.
 
 The `GOWORK=off` CI break (D1) means transport/http won't pass per-module CI
 until codec is tagged. But tagging is a release operation. Do you want me to:
+
 - **(a)** Tag `codec/v4.1.1` + bump `transport/http/go.mod` + `go mod tidy` right now (I can do the tag + go.mod edit, but I need your OK since it's a release action), or
 - **(b)** Leave it for the next batch release (accepting CI will be red until then)?
 
@@ -254,6 +262,7 @@ sufficient and `WithPayloadTransformE` is YAGNI?
 A 248-line file I did not create was committed by the auto-git daemon during this
 session (`d022e892`). It compiles and passes. It was NOT in the repo at session
 start (`git cat-file` confirms). Options:
+
 - **(a)** It's yours / a parallel session's work — leave it.
 - **(b)** It's test debt from a previous session that was never committed — review it.
 - **(c)** Investigate further (I can `git blame` / diff it).
@@ -264,15 +273,15 @@ I can't tell which without your input.
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Files created | 4 (`codec/transcode.go`, `codec/transcode_test.go`, `transport/http/transform.go`, `transport/http/transform_test.go`) |
-| Files modified | 8 (AGENTS.md, CHANGELOG.md, FEATURES.md, sse_options.go, README.md, ADR-0052, skill core.md, api_surface.txt) |
-| LOC added | ~401 (across all files) |
-| LOC removed | ~36 |
-| Tests added | 9 (6 codec + 3 transport/http) |
-| Tests passing | 9/9 |
-| Lint issues | 0 |
-| Commits (auto-git) | 7 |
-| CI-blocking issues | 1 (D1: GOWORK=off codec version mismatch) |
-| Acceptance criteria met | 5/6 ("logged at Warn" deferred) |
+| Metric                  | Value                                                                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Files created           | 4 (`codec/transcode.go`, `codec/transcode_test.go`, `transport/http/transform.go`, `transport/http/transform_test.go`) |
+| Files modified          | 8 (AGENTS.md, CHANGELOG.md, FEATURES.md, sse_options.go, README.md, ADR-0052, skill core.md, api_surface.txt)          |
+| LOC added               | ~401 (across all files)                                                                                                |
+| LOC removed             | ~36                                                                                                                    |
+| Tests added             | 9 (6 codec + 3 transport/http)                                                                                         |
+| Tests passing           | 9/9                                                                                                                    |
+| Lint issues             | 0                                                                                                                      |
+| Commits (auto-git)      | 7                                                                                                                      |
+| CI-blocking issues      | 1 (D1: GOWORK=off codec version mismatch)                                                                              |
+| Acceptance criteria met | 5/6 ("logged at Warn" deferred)                                                                                        |
