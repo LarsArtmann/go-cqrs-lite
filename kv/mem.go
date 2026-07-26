@@ -35,29 +35,22 @@ func (s *MemStore) checkClosed() error {
 }
 
 // withRLock acquires s's read lock for the duration of fn, returning ErrClosed
-// if the store has already been shut down. The read-lock idom duplicates across
-// every read-side method (Get, Has, Batch, NewIterator); centralising it here
-// removes the four-line `RLock/defer/checkEarly-return` preamble from each
-// public method in exchange for one closure allocation per call. MemStore is
-// the in-memory test backend, so closure allocation overhead is acceptable.
+// if the store has already been shut down.
 func (s *MemStore) withRLock(fn func()) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	if err := s.checkClosed(); err != nil {
-		return err
-	}
-
-	fn()
-
-	return nil
+	return s.runLocked(s.mu.RLock, s.mu.RUnlock, fn)
 }
 
 // withLock acquires s's write lock for the duration of fn, returning ErrClosed
 // if the store has already been shut down. See [withRLock] for the rationale.
 func (s *MemStore) withLock(fn func()) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	return s.runLocked(s.mu.Lock, s.mu.Unlock, fn)
+}
+
+// runLocked is the shared implementation behind withRLock and withLock. It
+// acquires the given lock, checks for a closed store, then invokes fn.
+func (s *MemStore) runLocked(lock, unlock func(), fn func()) error {
+	lock()
+	defer unlock()
 
 	if err := s.checkClosed(); err != nil {
 		return err

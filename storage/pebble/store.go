@@ -121,6 +121,16 @@ func (a *EventStore) journalBounds() ([]byte, []byte) {
 	return []byte(a.journalPrefix), []byte(a.journalPrefix + "\xff")
 }
 
+// journalReadSpan starts a read span and returns the journal bounds in one
+// call. Consolidates the startReadSpan + journalBounds preamble shared by
+// ReadAll and ReadStream.
+func (a *EventStore) journalReadSpan(ctx context.Context, spanName string) (cqrsotel.Span, []byte, []byte) {
+	span := startReadSpan(ctx, spanName)
+	lower, upper := a.journalBounds()
+
+	return span, lower, upper
+}
+
 // Save implements event.Store.Save with per-stream locking for concurrency safety.
 func (a *EventStore) Save(
 	ctx context.Context,

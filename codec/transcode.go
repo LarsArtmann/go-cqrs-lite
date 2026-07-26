@@ -22,6 +22,14 @@ import (
 // the cbor:",toarray" tag — become JSON arrays. For schema-aware decoding (field
 // names, typed values), use event.DecodePayloadAuto[T] with the concrete type.
 //
+// Map key order is NOT deterministic: the generic decode produces a
+// map[string]any, and json.Marshal iterates Go maps in non-deterministic order.
+// This is correct for browser SSE (JSON objects are unordered) but unsuitable
+// for byte-deterministic use cases (content hashing, cache keys, byte-for-byte
+// comparisons). Callers needing stable key order must use
+// event.DecodePayloadAuto[T] with a concrete struct type, which produces
+// field-order (declaration-order) JSON output.
+//
 // An error is returned only when CBOR decoding or JSON encoding fails. Callers
 // that want graceful degradation (fall back to the raw payload on failure)
 // should ignore the error and use the original bytes — see

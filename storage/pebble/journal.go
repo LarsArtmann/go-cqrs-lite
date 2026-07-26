@@ -26,10 +26,8 @@ func (a *EventStore) journalKey(evt event.Event) []byte {
 // ReadAll retrieves all events across all streams, ordered by OccurredAt.
 // Implements event.Journal by scanning the journal key prefix.
 func (a *EventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
-	span := startReadSpan(ctx, "pebble.journal.read_all")
+	span, lowerBound, upperBound := a.journalReadSpan(ctx, "pebble.journal.read_all")
 	defer span.End()
-
-	lowerBound, upperBound := a.journalBounds()
 
 	events, err := a.iterateEvents(lowerBound, upperBound, nil)
 

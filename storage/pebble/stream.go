@@ -148,10 +148,8 @@ func (a *EventStore) LoadStreamFromVersion(
 
 // ReadStream is the streaming equivalent of ReadAll.
 func (a *EventStore) ReadStream(ctx context.Context) (event.EventIterator, error) {
-	span := startReadSpan(ctx, "pebble.journal.read_stream")
+	span, lower, upper := a.journalReadSpan(ctx, "pebble.journal.read_stream")
 	defer span.End()
-
-	lower, upper := a.journalBounds()
 
 	return a.newPebbleIterator(lower, upper, "", 0)
 }
