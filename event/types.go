@@ -224,20 +224,18 @@ func (sv SchemaVersion) Increment() SchemaVersion { return sv + 1 }
 // Add returns a new SchemaVersion incremented by n.
 // Returns ErrSchemaVersionUnderflow if the result would be non-positive.
 func (sv SchemaVersion) Add(n int) (SchemaVersion, error) {
-	result := sv + SchemaVersion(n)
-	if result < 1 {
-		return 0, fmt.Errorf("%w: %d + %d < 1", ErrSchemaVersionUnderflow, sv, n)
-	}
-
-	return result, nil
+	return sv.checkUnderflow(sv+SchemaVersion(n), "+", n)
 }
 
 // Sub returns a new SchemaVersion decremented by n.
 // Returns ErrSchemaVersionUnderflow if the result would be non-positive.
 func (sv SchemaVersion) Sub(n int) (SchemaVersion, error) {
-	result := sv - SchemaVersion(n)
+	return sv.checkUnderflow(sv-SchemaVersion(n), "-", n)
+}
+
+func (sv SchemaVersion) checkUnderflow(result SchemaVersion, op string, n int) (SchemaVersion, error) {
 	if result < 1 {
-		return 0, fmt.Errorf("%w: %d - %d < 1", ErrSchemaVersionUnderflow, sv, n)
+		return 0, fmt.Errorf("%w: %d %s %d < 1", ErrSchemaVersionUnderflow, sv, op, n)
 	}
 
 	return result, nil
@@ -251,21 +249,26 @@ func (sv SchemaVersion) Cmp(other SchemaVersion) int {
 func (v Version) MarshalJSON() ([]byte, error) { return json.Marshal(v.Int()) }
 
 func (v *Version) UnmarshalJSON(b []byte) error {
-	var n int
-	if err := json.Unmarshal(b, &n); err != nil {
-		return err
-	}
-	*v = Version(n)
-	return nil
+	n, err := unmarshalJSONNumber[Version](b)
+	*v = n
+	return err
 }
 
 func (sv SchemaVersion) MarshalJSON() ([]byte, error) { return json.Marshal(sv.Int()) }
 
 func (sv *SchemaVersion) UnmarshalJSON(b []byte) error {
-	var n int
+	n, err := unmarshalJSONNumber[SchemaVersion](b)
+	*sv = n
+	return err
+}
+
+// unmarshalJSONNumber unmarshals a JSON integer into any integer-like type.
+func unmarshalJSONNumber[T ~int | ~uint64](b []byte) (T, error) {
+	var n T
 	if err := json.Unmarshal(b, &n); err != nil {
-		return err
+		return 0, err
 	}
-	*sv = SchemaVersion(n)
-	return nil
+
+	return n, nil
+}
 }

@@ -184,10 +184,7 @@ func deriveKeys(folds []Fold) error {
 }
 
 func buildKeyExtractor(eventSample any, keyType reflect.Type) (any, error) {
-	t := reflect.TypeOf(eventSample)
-	if t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
+	t := derefType(eventSample)
 
 	foundIdx := -1
 

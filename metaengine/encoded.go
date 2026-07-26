@@ -53,10 +53,7 @@ func (s *Store) ApplyEncoded(ctx context.Context, eventType string, payload []by
 }
 
 func decodeFromSample(sample any, payload []byte) (any, error) {
-	t := reflect.TypeOf(sample)
-	if t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
+	t := derefType(sample)
 
 	v := reflect.New(t)
 	if err := json.Unmarshal(payload, v.Interface()); err != nil {

@@ -30,6 +30,17 @@ func structValue(input any) (reflect.Value, bool) {
 	return v, v.Kind() == reflect.Struct
 }
 
+// derefType returns the reflect.Type of sample, dereferencing one level of
+// pointer indirection. Returns nil for a nil sample.
+func derefType(sample any) reflect.Type {
+	t := reflect.TypeOf(sample)
+	if t != nil && t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	return t
+}
+
 func structType(input any) (reflect.Type, bool) {
 	t := reflect.TypeOf(input)
 	if t == nil {
@@ -155,13 +166,9 @@ func extractDepthFromInput(input any) int {
 
 // detectPagination checks if the input struct has pagination fields.
 func detectPagination(input any) bool {
-	t := reflect.TypeOf(input)
+	t := derefType(input)
 	if t == nil {
 		return false
-	}
-
-	if t.Kind() == reflect.Pointer {
-		t = t.Elem()
 	}
 
 	if t.Kind() != reflect.Struct {
