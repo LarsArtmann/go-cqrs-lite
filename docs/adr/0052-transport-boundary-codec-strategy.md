@@ -58,13 +58,7 @@ Rationale:
 Consumer guidance (documented in SKILL.md and AGENTS.md):
 
 ```
-broker, _ := http.NewSSEBroker(bus,
-    http.WithPayloadTransform(func(evt event.Event) []byte {
-        p, err := event.DecodePayloadAuto[YourPayload](evt)
-        if err != nil { return event.PayloadReadOnly(evt) }
-        jsonBytes, _ := json.Marshal(p)
-        return jsonBytes
-    }))
+broker, _ := http.NewSSEBroker(bus, http.WithPayloadTransform(http.CBORToJSONTransform))
 ```
 
 ### 3. WebSocket binary frames → Deferred (no module)

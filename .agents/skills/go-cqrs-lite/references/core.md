@@ -194,13 +194,7 @@ For browser-facing SSE endpoints, CBOR payloads must be transformed to JSON
 (CBOR is penalized by SSE's text framing — base64 adds 33%):
 
 ```go
-broker, _ := http.NewSSEBroker(bus,
-    http.WithPayloadTransform(func(evt event.Event) []byte {
-        p, err := event.DecodePayloadAuto[YourPayload](evt)
-        if err != nil { return event.PayloadReadOnly(evt) }
-        jsonBytes, _ := json.Marshal(p)
-        return jsonBytes
-    }))
+broker, _ := http.NewSSEBroker(bus, http.WithPayloadTransform(http.CBORToJSONTransform))
 ```
 
 ### 3.4 OTel via otel/ — never go.opentelemetry.io directly
