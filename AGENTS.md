@@ -865,6 +865,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 - **Always `nix fmt` BEFORE placing `//nolint` directives** — golines (max-len: 120) reformats long lines and moves nolint comments to wrong positions
 - For `gosec` G115 (integer overflow) conversions, extract a helper function that isolates the `uint64()`/`uint32()` call on a short single line
+- **Scoped formatting**: `nix fmt` runs treefmt on the whole repo (can be slow). For a single module, use `gofumpt -w <path>` + `goimports -w <path>` directly
 - Keep `//nolint` comments under ~40 chars to survive formatting
 - When adding new dependencies, add them to `.golangci.yml` depguard allow list at the same time
 - **SQL store helpers live in `storage/sql/`** — `RunInTx`, `IsDuplicateKeyError`, `CommitTx`, `ScanSlice`, `MarshalMetadata`. Don't duplicate transaction/duplicate-key logic in domain-specific store files. The `sql` package already imports `otel` for span recording.
