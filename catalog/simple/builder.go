@@ -155,13 +155,18 @@ func (b *Builder) addConfiguredService() {
 	)
 }
 
+// buildInner finalises the configured service and returns the built catalog.
+func (b *Builder) buildInner() *catalog.Catalog {
+	b.addConfiguredService()
+
+	return b.inner.Build()
+}
+
 // Build creates the immutable catalog with all registered messages.
 // Panics if catalog validation fails (empty service ID, duplicate message IDs, etc.).
 // This is a Must-style convenience — use [Builder.BuildE] for an error-returning variant.
 func (b *Builder) Build() *catalog.Catalog {
-	b.addConfiguredService()
-
-	cat := b.inner.Build()
+	cat := b.buildInner()
 
 	if violations := cat.Validate(); len(violations) > 0 {
 		panic(fmt.Errorf("%w: %v", ErrCatalogValidation, violations))
@@ -173,9 +178,7 @@ func (b *Builder) Build() *catalog.Catalog {
 // BuildE creates the immutable catalog and returns validation violations as an
 // error instead of panicking. Returns nil if the catalog is valid.
 func (b *Builder) BuildE() (*catalog.Catalog, error) {
-	b.addConfiguredService()
-
-	cat := b.inner.Build()
+	cat := b.buildInner()
 
 	if violations := cat.Validate(); len(violations) > 0 {
 		return cat, fmt.Errorf("%w: %v", ErrCatalogValidation, violations)
@@ -187,9 +190,7 @@ func (b *Builder) BuildE() (*catalog.Catalog, error) {
 // BuildValid creates the immutable catalog and returns validation violations
 // instead of panicking. Returns nil violations if the catalog is valid.
 func (b *Builder) BuildValid() (*catalog.Catalog, []catalog.Violation) {
-	b.addConfiguredService()
-
-	cat := b.inner.Build()
+	cat := b.buildInner()
 
 	return cat, cat.Validate()
 }

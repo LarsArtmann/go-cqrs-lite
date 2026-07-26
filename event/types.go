@@ -249,26 +249,21 @@ func (sv SchemaVersion) Cmp(other SchemaVersion) int {
 func (v Version) MarshalJSON() ([]byte, error) { return json.Marshal(v.Int()) }
 
 func (v *Version) UnmarshalJSON(b []byte) error {
-	n, err := unmarshalJSONNumber[Version](b)
-	*v = n
-	return err
+	var n uint64
+	if err := json.Unmarshal(b, &n); err != nil {
+		return err
+	}
+	*v = Version(n)
+	return nil
 }
 
 func (sv SchemaVersion) MarshalJSON() ([]byte, error) { return json.Marshal(sv.Int()) }
 
 func (sv *SchemaVersion) UnmarshalJSON(b []byte) error {
-	n, err := unmarshalJSONNumber[SchemaVersion](b)
-	*sv = n
-	return err
-}
-
-// unmarshalJSONNumber unmarshals a JSON integer into any integer-like type.
-func unmarshalJSONNumber[T ~int | ~uint64](b []byte) (T, error) {
-	var n T
+	var n int
 	if err := json.Unmarshal(b, &n); err != nil {
-		return 0, err
+		return err
 	}
-
-	return n, nil
-}
+	*sv = SchemaVersion(n)
+	return nil
 }
