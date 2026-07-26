@@ -102,6 +102,7 @@ func TestSoak_SQLiteSustainedWrites(t *testing.T) {
 					deposit{Account: account, Amount: amt},
 				); err != nil {
 					t.Errorf("writer %d write %d: %v", workerID, i, err)
+
 					return
 				}
 				totalWrites.Add(1)
@@ -245,6 +246,7 @@ func TestSoak_SQLiteMultimapGrowth(t *testing.T) {
 			expected := fmt.Sprintf("val-%d-%d", k, i)
 			if v != expected {
 				t.Errorf("key-%d[%d]: expected %q, got %q", k, i, expected, v)
+
 				break
 			}
 		}

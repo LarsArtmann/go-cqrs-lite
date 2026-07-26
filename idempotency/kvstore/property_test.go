@@ -11,7 +11,6 @@ import (
 	"time"
 
 	_ "modernc.org/sqlite"
-
 	"pgregory.net/rapid"
 
 	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
@@ -33,10 +32,12 @@ func allStores() map[string]storeFactory {
 	return map[string]storeFactory{
 		"memory": func(t *testing.T) (idempotency.Store, func()) {
 			s := idempotency.NewMemoryStore(0)
+
 			return s, func() { s.Close() }
 		},
 		"kvstore": func(t *testing.T) (idempotency.Store, func()) {
 			s := kvstore.New(kv.NewMemStore())
+
 			return s, func() { _ = s.Close() }
 		},
 		"sqlstore": func(t *testing.T) (idempotency.Store, func()) {
@@ -61,6 +62,7 @@ func newSQLiteStoreForProperty(t *testing.T) idempotency.Store {
 	if err != nil {
 		t.Fatalf("new sqlite store: %v", err)
 	}
+
 	return s
 }
 

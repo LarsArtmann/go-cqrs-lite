@@ -32,6 +32,7 @@ func cursorNonNumericEngines(t *testing.T) map[string]metaengine.Engine {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}
 	engines["sqlite"] = eng
+
 	return engines
 }
 
@@ -62,7 +63,7 @@ func listByNameQuery() metaengine.QueryDecl[ListByNameInput, ListByNameResult] {
 	return metaengine.Query[ListByNameInput, ListByNameResult](
 		"list_by_name",
 		metaengine.On(StringKeyEvent{}, func(e StringKeyEvent) (string, StringKeyItem) {
-			return e.ID, StringKeyItem{ID: e.ID, Name: e.Name, Score: e.Score}
+			return e.ID, StringKeyItem(e)
 		}),
 		metaengine.SortOn(func(item StringKeyItem) string { return item.Name }),
 	)
@@ -95,7 +96,7 @@ func listByTimeQuery() metaengine.QueryDecl[ListByTimeInput, ListByTimeResult] {
 	return metaengine.Query[ListByTimeInput, ListByTimeResult](
 		"list_by_time",
 		metaengine.On(TimeKeyEvent{}, func(e TimeKeyEvent) (string, TimeKeyItem) {
-			return e.ID, TimeKeyItem{ID: e.ID, Label: e.Label, At: e.At}
+			return e.ID, TimeKeyItem(e)
 		}),
 		metaengine.SortOn(func(item TimeKeyItem) time.Time { return item.At }),
 	)
