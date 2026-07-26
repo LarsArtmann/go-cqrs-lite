@@ -69,6 +69,21 @@ else
   echo "OK: all $adr_files ADRs indexed in docs/README.md"
 fi
 
+# ── Error family count consistency ──────────────────────────────────────────
+echo "=== Error family count consistency ==="
+# go-error-family v0.10.0 has 6 families (Rejection, Conflict, Transient,
+# Infrastructure, Orchestration, Corruption). Living docs must say "6-family",
+# never "5-family". This check prevents split-brain after a family is added.
+stale_family=$(grep -rnE '\b5-family\b|\bfive families\b|\b5 Error Families\b' \
+  docs/error-taxonomy.md README.md FEATURES.md AGENTS.md 2>/dev/null || true)
+if [ -n "$stale_family" ]; then
+  echo "FAIL: Stale '5-family' references found (should be '6-family'):"
+  echo "$stale_family"
+  errors=$((errors + 1))
+else
+  echo "OK: no stale '5-family' references in living docs"
+fi
+
 # ── Summary ────────────────────────────────────────────────────────────────
 echo ""
 if [ "$errors" -eq 0 ]; then

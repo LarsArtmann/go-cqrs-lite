@@ -122,7 +122,7 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 - **SQL-backed read models** — `SQLViewStore` gives each projection its own table with real, queryable columns: server-side `WHERE`, `ORDER BY`, pagination, indexes, and `COUNT`. Opaque KV-blob read models cannot do this.
 - **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone (3 dependencies) or the full `stack/sqlite` preset. Your dependency tree stays clean.
 - **Production primitives, not stubs** — event signing (HMAC-SHA256, Ed25519, multisig), payload encryption (XChaCha20-Poly1305, AES-256-GCM, key rotation), OTel tracing and metrics, and a Prometheus bridge.
-- **Honest error taxonomy** — a 5-family classification (Rejection / Conflict / Transient / Infrastructure / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.
+- **Honest error taxonomy** — a 6-family classification (Rejection / Conflict / Transient / Infrastructure / Orchestration / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.
 - **Strong types throughout** — branded IDs make it impossible to mix up an `OrderID` with a `UserID`. The type system catches mistakes the compiler can express.
 
 ## Key modules

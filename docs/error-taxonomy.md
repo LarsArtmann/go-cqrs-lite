@@ -1,8 +1,8 @@
 # Error Taxonomy
 
-> The go-cqrs-lite library uses [go-error-family](https://github.com/LarsArtmann/go-error-family) v0.5.1 for structured, classified error handling.
+> The go-cqrs-lite library uses [go-error-family](https://github.com/LarsArtmann/go-error-family) v0.10.0 for structured, classified error handling.
 
-## The 5 Error Families
+## The 6 Error Families
 
 Every error produced by the library belongs to exactly one family. This enables consumers to make **programmable decisions** — retry, reject, escalate — without string matching or type assertions.
 
@@ -12,6 +12,7 @@ Every error produced by the library belongs to exactly one family. This enables 
 | **Conflict**       | Optimistic concurrency or state collision   | No (consumer decides) | `version conflict`, `user already exists`    |
 | **Transient**      | Temporary failure likely to resolve         | Yes                   | `connection reset`, `timeout`                |
 | **Infrastructure** | System-level failure requiring intervention | Maybe                 | `dispatcher closed`, `database unavailable`  |
+| **Orchestration**  | Internal coordination failure (a bug)       | No                    | `projection worker setup`, `lifecycle error` |
 | **Corruption**     | Data integrity violation                    | No                    | `type assertion failed`, `checksum mismatch` |
 
 ## Usage from Consumer Code
@@ -44,6 +45,8 @@ case errorfamily.Transient:
     // Retry with backoff
 case errorfamily.Infrastructure:
     // Alert on-call, return 500
+case errorfamily.Orchestration:
+    // Internal bug — log diagnostic context, return 500
 case errorfamily.Corruption:
     // Page on-call, investigate data integrity
 }
