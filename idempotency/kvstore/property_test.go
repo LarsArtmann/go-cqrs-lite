@@ -41,29 +41,22 @@ func allStores() map[string]storeFactory {
 			return s, func() { _ = s.Close() }
 		},
 		"sqlstore": func(t *testing.T) (idempotency.Store, func()) {
-			return newSQLiteStoreForProperty(t), func() {}
+			dbName := fmt.Sprintf("propertydb_%d", propertyDBCounter.Add(1))
+			dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared&_pragma=busy_timeout(5000)", dbName)
+			db, err := sql.Open("sqlite", dsn)
+			if err != nil {
+				t.Fatalf("open sqlite: %v", err)
+			}
+			db.SetMaxOpenConns(1)
+			t.Cleanup(func() { _ = db.Close() })
+			s, err := idemsqlstore.NewSQLiteStore(context.Background(), db)
+			if err != nil {
+				t.Fatalf("new sqlite store: %v", err)
+			}
+
+			return s, func() {}
 		},
 	}
-}
-
-// newSQLiteStoreForProperty creates a SQLite store backed by a UNIQUE named
-// in-memory database, so parallel property-test iterations never share state.
-func newSQLiteStoreForProperty(t *testing.T) idempotency.Store {
-	t.Helper()
-	dbName := fmt.Sprintf("propertydb_%d", propertyDBCounter.Add(1))
-	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared&_pragma=busy_timeout(5000)", dbName)
-	db, err := sql.Open("sqlite", dsn)
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-	db.SetMaxOpenConns(1)
-	t.Cleanup(func() { _ = db.Close() })
-	s, err := idemsqlstore.NewSQLiteStore(context.Background(), db)
-	if err != nil {
-		t.Fatalf("new sqlite store: %v", err)
-	}
-
-	return s
 }
 
 // runPropertyAllStores runs a rapid property check against every implementation.
