@@ -168,17 +168,24 @@ func WithEventFilter(fn func(event.Type) bool) SSEBrokerOption {
 // live delivery path and the replay path, so the wire format is consistent
 // regardless of whether an event arrives live or is replayed from the journal.
 //
-// Example — CBOR→JSON transcoding:
+// For the common case (CBOR store, JSON browsers), use the ready-made adapter —
+// it handles decoding, re-encoding, and graceful fallback in one line:
+//
+//	broker, _ := NewSSEBroker(bus, WithPayloadTransform(CBORToJSONTransform))
+//
+// For schema-free transcoding with explicit error handling, wrap
+// codec.TranscodeToJSON directly:
 //
 //	broker, _ := NewSSEBroker(bus, WithPayloadTransform(func(evt event.Event) []byte {
-//	    // Decode from the event's encoding, re-encode as JSON for the browser.
-//	    p, err := event.DecodePayloadAuto[YourPayload](evt)
+//	    out, err := codec.TranscodeToJSON(event.PayloadReadOnly(evt), evt.Encoding())
 //	    if err != nil {
-//	        return event.PayloadReadOnly(evt) // fallback to raw
+//	        return event.PayloadReadOnly(evt) // graceful fallback to raw payload
 //	    }
-//	    jsonBytes, _ := json.Marshal(p)
-//	    return jsonBytes
+//	    return out
 //	}))
+//
+// For schema-aware JSON (reconstructing field names from toarray structs), use
+// a typed decode with event.DecodePayloadAuto[T] in a custom transform.
 func WithPayloadTransform(fn func(event.Event) []byte) SSEBrokerOption {
 	return func(b *SSEBroker) {
 		b.payloadTransform = fn

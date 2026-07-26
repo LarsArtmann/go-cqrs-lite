@@ -44,16 +44,19 @@ broker, err := cqrshttp.NewSSEBroker(bus,
 
 ### CBOR-to-JSON Payload Transcoding
 
+For the common case (CBOR store, JSON browsers), use the ready-made adapter —
+it handles decoding, re-encoding, and graceful fallback in one line:
+
 ```go
 broker, err := cqrshttp.NewSSEBroker(bus,
-    cqrshttp.WithPayloadTransform(func(evt event.Event) []byte {
-        p, err := event.DecodePayloadAuto[YourPayload](evt)
-        if err != nil { return event.PayloadReadOnly(evt) }
-        jsonBytes, _ := json.Marshal(p)
-        return jsonBytes
-    }),
+    cqrshttp.WithPayloadTransform(cqrshttp.CBORToJSONTransform),
 )
 ```
+
+For schema-free transcoding with explicit error handling, wrap
+`codec.TranscodeToJSON` directly. For schema-aware JSON (reconstructing field
+names from `toarray` structs), use `event.DecodePayloadAuto[T]` in a custom
+transform.
 
 ### REST Backfill Endpoint
 

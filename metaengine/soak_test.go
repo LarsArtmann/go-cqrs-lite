@@ -34,19 +34,13 @@ func TestSoak_SQLiteSustainedWrites(t *testing.T) {
 		Account string
 		Total   int64
 	}
-	type query struct {
+	type lookup struct {
 		Account string
-		Limit   int
-		After   *metaengine.Cursor
-	}
-	type result struct {
-		Logs []balance
-		Next *metaengine.Cursor
 	}
 
-	q := metaengine.Query[query, result](
+	q := metaengine.Query[lookup, balance](
 		"balances",
-		// Map ADT — latest balance per account
+		// Map ADT — latest balance per account (ReadLookup pattern)
 		metaengine.On(deposit{}, func(d deposit) (string, balance) {
 			return d.Account, balance{Account: d.Account, Total: d.Amount}
 		}),
@@ -55,7 +49,6 @@ func TestSoak_SQLiteSustainedWrites(t *testing.T) {
 
 			return prev
 		}),
-		metaengine.FilterOn(func(b balance) string { return b.Account }),
 	)
 
 	dbName := fmt.Sprintf("soak_%d", time.Now().UnixNano())
@@ -122,8 +115,8 @@ func TestSoak_SQLiteSustainedWrites(t *testing.T) {
 			}()
 			for i := range readsPerReader {
 				account := fmt.Sprintf("acct-%03d", (workerID*3+i)%accounts)
-				_, err := metaengine.ExecuteTyped[query, result](
-					ctx, store, query{Account: account, Limit: 10},
+				_, err := metaengine.ExecuteTyped[lookup, balance](
+					ctx, store, lookup{Account: account},
 				)
 				if err != nil {
 					readErrors.Add(1)
@@ -155,15 +148,13 @@ func TestSoak_SQLiteSustainedWrites(t *testing.T) {
 	var grandTotal int64
 	for a := range accounts {
 		account := fmt.Sprintf("acct-%03d", a)
-		result, err := metaengine.ExecuteTyped[query, result](
-			ctx, store, query{Account: account, Limit: 1},
+		result, err := metaengine.ExecuteTyped[lookup, balance](
+			ctx, store, lookup{Account: account},
 		)
 		if err != nil {
 			t.Fatalf("final read %s: %v", account, err)
 		}
-		for _, b := range result.Logs {
-			grandTotal += b.Total
-		}
+		grandTotal += result.Total
 	}
 
 	if grandTotal != totalExpected {

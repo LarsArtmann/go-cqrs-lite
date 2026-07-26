@@ -753,15 +753,13 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // http.SSEReplayBudgetDisabled = -1 to explicitly disable budgeting.
 //
 //   // Payload transform for non-JSON codecs (CBOR→JSON for browsers):
-//   broker, _ := http.NewSSEBroker(bus,
-//       http.WithPayloadTransform(func(evt event.Event) []byte {
-//           p, err := event.DecodePayloadAuto[YourPayload](evt)
-//           if err != nil { return event.PayloadReadOnly(evt) }
-//           jsonBytes, _ := json.Marshal(p)
-//           return jsonBytes
-//       }))
-//   // Without this, CBOR-encoded events go out as raw CBOR bytes that browsers
-//   // cannot parse. Applied uniformly across live, replay, AND backfill paths.
+//   broker, _ := http.NewSSEBroker(bus, http.WithPayloadTransform(http.CBORToJSONTransform))
+//   // CBORToJSONTransform wraps codec.TranscodeToJSON with graceful fallback
+//   // (raw payload on decode failure). Without a transform, CBOR-encoded events
+//   // go out as raw CBOR bytes that browsers cannot parse.
+//   // Applied uniformly across live, replay, AND backfill paths.
+//   // For schema-aware JSON (field names from toarray structs), use a custom
+//   // transform with event.DecodePayloadAuto[T].
 //
 //   // BackfillHandler — REST backfill using the broker's journal + transform:
 //   // GET /events/backfill?after=<event-id>&limit=500 → JSON array of events.

@@ -584,7 +584,7 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 | Event filtering      | `WithEventFilter(fn)` — broker-level predicate that drops events before fanout                    | ✅     |
 | Auth middleware      | `SSEAuthMiddleware(next, tokenFunc)` — reference bearer-token auth implementation                 | ✅     |
 | Backfill endpoint    | `BackfillHandler(broker)` — REST endpoint returning missed events as JSON array                   | ✅     |
-| Payload transform    | `WithPayloadTransform(fn)` — wire-format transcoding (e.g. CBOR→JSON) on SSE + backfill paths     | ✅     |
+| Payload transform    | `WithPayloadTransform(fn)` + ready-made `CBORToJSONTransform` adapter — wire-format transcoding (CBOR→JSON) on SSE + backfill paths | ✅     |
 | Per-client stats     | `Stats() []ClientStats` — per-client buffered event depth for debugging slow consumers            | ✅     |
 | Graceful close       | `CloseWithGrace(d)` — drains in-flight events before closing client channels                      | ✅     |
 | Dedup ring           | Bounded `dedup.Ring` (1024 entries) for replay→live deduplication — O(1), memory-bounded          | ✅     |
