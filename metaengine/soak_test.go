@@ -55,6 +55,7 @@ func TestSoak_SQLiteSustainedWrites(t *testing.T) {
 
 			return prev
 		}),
+		metaengine.FilterOn(func(b balance) string { return b.Account }),
 	)
 
 	dbName := fmt.Sprintf("soak_%d", time.Now().UnixNano())
@@ -182,14 +183,17 @@ func TestSoak_SQLiteMultimapGrowth(t *testing.T) {
 		MapKey string
 		Value  string
 	}
+	type lookupInput struct {
+		Key string
+	}
+	type lookupResult struct {
+		Values []string
+	}
 
-	q := metaengine.Query[struct{ Key string }, []string](
+	q := metaengine.Query[lookupInput, lookupResult](
 		"tags",
-		metaengine.On(appendEvent{}, func(e appendEvent) (string, string) {
-			return e.MapKey, e.Value
-		}),
-		metaengine.On(appendEvent{}, func(e appendEvent, prev []string) []string {
-			return append(prev, e.Value)
+		metaengine.On(appendEvent{}, func(e appendEvent) metaengine.MultiEntry {
+			return metaengine.MultiEntry{Key: e.MapKey, Value: e.Value}
 		}),
 	)
 
@@ -227,17 +231,17 @@ func TestSoak_SQLiteMultimapGrowth(t *testing.T) {
 	}
 
 	for k := range keys {
-		result, err := metaengine.ExecuteTyped[struct{ Key string }, []string](
-			ctx, store, struct{ Key string }{Key: fmt.Sprintf("key-%d", k)},
+		result, err := metaengine.ExecuteTyped[lookupInput, lookupResult](
+			ctx, store, lookupInput{Key: fmt.Sprintf("key-%d", k)},
 		)
 		if err != nil {
 			t.Fatalf("read key-%d: %v", k, err)
 		}
-		if len(result) != appendsPerKey {
-			t.Errorf("key-%d: expected %d values, got %d", k, appendsPerKey, len(result))
+		if len(result.Values) != appendsPerKey {
+			t.Errorf("key-%d: expected %d values, got %d", k, appendsPerKey, len(result.Values))
 		}
 		// Verify ordering is preserved
-		for i, v := range result {
+		for i, v := range result.Values {
 			expected := fmt.Sprintf("val-%d-%d", k, i)
 			if v != expected {
 				t.Errorf("key-%d[%d]: expected %q, got %q", k, i, expected, v)
