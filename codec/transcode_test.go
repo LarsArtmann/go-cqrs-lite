@@ -158,3 +158,34 @@ func TestTranscodeToJSON_NestedAndScalars(t *testing.T) {
 		t.Errorf("none = %v, want nil", got["none"])
 	}
 }
+
+func TestTranscodeToJSON_CBORCompactCodec(t *testing.T) {
+	t.Parallel()
+
+	// CBORCompactCodec reports EncodingCBOR too (ADR-CODEC). Its wire format
+	// must be decodable by the canonical decoder TranscodeToJSON uses, so the
+	// two CBOR variants share one transcode path.
+	in := map[string]any{"name": "compact", "count": 7.0}
+	cborData, err := (CBORCompactCodec{}).Encode(in)
+	if err != nil {
+		t.Fatalf("encode compact CBOR: %v", err)
+	}
+
+	out, err := TranscodeToJSON(cborData, EncodingCBOR)
+	if err != nil {
+		t.Fatalf("transcode: %v", err)
+	}
+
+	var got map[string]any
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatalf("decode JSON: %v\njson: %s", err, out)
+	}
+
+	if got["name"] != "compact" {
+		t.Errorf("name = %v, want compact", got["name"])
+	}
+
+	if got["count"] != float64(7) {
+		t.Errorf("count = %v, want 7", got["count"])
+	}
+}

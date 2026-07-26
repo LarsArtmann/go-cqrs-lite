@@ -26,7 +26,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.1.0 // indirect

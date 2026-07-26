@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.1.0

@@ -173,3 +173,38 @@ func TestBackfillHandler_CBORToJSONTransform(t *testing.T) {
 		t.Errorf("CBOR→JSON transcoded payload missing from backfill response; body: %q", body)
 	}
 }
+
+// corruptCBORCodec stamps EncodingCBOR but emits invalid CBOR bytes, to
+// exercise CBORToJSONTransform's graceful-fallback path without depending on
+// event internals.
+type corruptCBORCodec struct{}
+
+func (corruptCBORCodec) Encoding() codec.Encoding   { return codec.EncodingCBOR }
+func (corruptCBORCodec) Encode(any) ([]byte, error) { return []byte{0xa1, 0xff, 0xff}, nil }
+func (corruptCBORCodec) Decode([]byte, any) error   { return nil }
+
+// TestCBORToJSONTransform_CorruptCBOR_FallsBackToRaw verifies that when the
+// payload is stamped CBOR but cannot be decoded, the transform returns the raw
+// payload unchanged — graceful degradation so SSE clients always receive data
+// rather than a gap (UP1 acceptance: transform error → raw payload sent).
+func TestCBORToJSONTransform_CorruptCBOR_FallsBackToRaw(t *testing.T) {
+	t.Parallel()
+
+	streamID := id.NewStreamID()
+	evt, err := event.New("test.event", streamID, "Test", 1,
+		map[string]any{"x": 1}, event.WithCodec(corruptCBORCodec{}))
+	if err != nil {
+		t.Fatalf("event.New: %v", err)
+	}
+
+	if evt.Encoding() != codec.EncodingCBOR {
+		t.Fatalf("encoding = %q, want cbor", evt.Encoding())
+	}
+
+	raw := event.PayloadReadOnly(evt)
+	out := CBORToJSONTransform(evt)
+
+	if string(out) != string(raw) {
+		t.Errorf("expected graceful fallback to raw payload; got %q, want %q", out, raw)
+	}
+}

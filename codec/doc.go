@@ -35,6 +35,21 @@
 // It reports its own encoding ("encrypted") and is used with event.WithCodec
 // to create events with encrypted payloads.
 //
+// # Cross-Codec Transcoding
+//
+// TranscodeToJSON converts a payload from its stamped encoding into JSON bytes
+// — the schema-free bridge for consumers that store events in CBOR but must
+// serve JSON to browsers or REST clients. Non-CBOR payloads pass through
+// unchanged; CBOR is decoded into a generic Go value and re-encoded as JSON.
+//
+//	out, err := codec.TranscodeToJSON(payload, evt.Encoding())
+//
+// It is schema-free: CBOR maps become JSON objects, but structs encoded with
+// the cbor:",toarray" tag become JSON arrays (field names are lost). For
+// schema-aware JSON, decode with the concrete type first, then json.Marshal.
+// The transport/http package provides CBORToJSONTransform, a ready-made
+// adapter that wraps TranscodeToJSON for use with WithPayloadTransform.
+//
 // # CBOR Compact Encoding (toarray)
 //
 // For maximum payload size reduction (~30-40%), add the cbor:",toarray" struct

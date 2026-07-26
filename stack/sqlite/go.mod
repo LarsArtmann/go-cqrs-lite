@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.1.0
