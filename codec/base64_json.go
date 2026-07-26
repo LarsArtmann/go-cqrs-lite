@@ -38,7 +38,19 @@ func MarshalBase64JSON(raw []byte) ([]byte, error) {
 	return json.Marshal(encoded, json.Deterministic(true)) //nolint:wrapcheck // base64 encoding
 }
 
-// UnmarshalBase64JSON unmarshals a JSON string field and decodes it from
+// MarshalBase64JSONWithModule encodes raw bytes as base64 JSON and wraps any
+// error with the given module and noun (e.g. "encryption", "ciphertext" →
+// "encryption.marshal_ciphertext"). Symmetric with [AssignBase64JSON] —
+// collapses the standard MarshalJSON body to one call.
+func MarshalBase64JSONWithModule(raw []byte, module, noun string) ([]byte, error) {
+	b, err := MarshalBase64JSON(raw)
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err,
+			module+".marshal_"+noun, "marshal "+noun)
+	}
+
+	return b, nil
+}
 // URL-safe (or standard) base64. The module and noun parameters produce
 // meaningful error locations: e.g. module="signing", noun="signature" yields
 // "signing.unmarshal_signature" and "signing.decode_signature".
