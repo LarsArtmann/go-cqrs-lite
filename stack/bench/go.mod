@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/stack/bench/v4
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.1.0
@@ -56,7 +56,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-error-family v0.9.0 // indirect
+	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

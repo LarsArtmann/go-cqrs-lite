@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/larsartmann/cmdguard/v3 v3.1.0
@@ -36,7 +36,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.3.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
-	github.com/larsartmann/go-error-family v0.9.0 // indirect
+	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output/d2 v0.31.1 // indirect
 	github.com/larsartmann/go-output/daghtml v0.31.1 // indirect

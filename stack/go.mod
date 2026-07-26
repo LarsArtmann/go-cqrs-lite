@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/stack/v4
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.2
@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.1.0
-	github.com/larsartmann/go-error-family v0.9.0
+	github.com/larsartmann/go-error-family v0.10.0
 )
 
 require (

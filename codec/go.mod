@@ -1,10 +1,10 @@
 module github.com/larsartmann/go-cqrs-lite/codec/v4
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.2
-	github.com/larsartmann/go-error-family v0.9.0
+	github.com/larsartmann/go-error-family v0.10.0
 	github.com/onsi/gomega v1.42.1
 	pgregory.net/rapid v1.3.0
 )

@@ -1,7 +1,7 @@
 module github.com/larsartmann/go-cqrs-lite/idempotency/v4
 
-go 1.26.4
+go 1.26.5
 
-require github.com/larsartmann/go-error-family v0.9.0
+require github.com/larsartmann/go-error-family v0.10.0
 
 require pgregory.net/rapid v1.1.0 // indirect

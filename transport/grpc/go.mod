@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/transport/grpc/v4
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.0
@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0
-	github.com/larsartmann/go-error-family v0.9.0
+	github.com/larsartmann/go-error-family v0.10.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
 	google.golang.org/grpc v1.82.1
