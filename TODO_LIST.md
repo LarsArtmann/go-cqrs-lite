@@ -75,14 +75,23 @@ this list and recorded in CHANGELOG.
 - [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
       unformatted code (gci/gofumpt drift), turning `#lint` red. Either gate
       daemon commits behind `nix fmt` or run a scheduled `nix fmt && nix run .#lint`.
-- [ ] **`idempotency.RefreshTTL(ctx, key, ttl)`** — optional capability to
-      extend a live key's dedup window (design note item 3). New API; track
-      until a consumer needs sliding-window dedup.
-- [ ] **cqrs-lint rule for the `idempotency.Store` Record contract** — flag
-      custom `Store` implementations whose `Record` extends the TTL (violates
-      the no-op-on-existing contract). New lint rule.
-- [ ] **cqrs-bench profile for the metaengine SQLite engine** — no benchmark
-      covers the SQLite planner path end-to-end. Add a named profile.
+- ✅ **[DECLINED: YAGNI] `idempotency.RefreshTTL(ctx, key, ttl)`** — dropped
+      2026-07-26. Deferred across 6 sessions with no consumer; the design doc
+      (`docs/planning/2026-07-25_14-30_idempotency-record-contract-design.md`)
+      chose Option A (no-op on existing) *because* Option B's sliding window is
+      unsafe (unbounded TTL under retry storms). RefreshTTL is the escape hatch
+      for the behavior we rejected. If a consumer ever needs sliding-window
+      dedup, reopen then.
+- ✅ **[DECLINED: YAGNI] cqrs-lint rule for the `idempotency.Store` Record contract** —
+      dropped 2026-07-26. Only 3 Store impls exist (memory, kv, sql), all correct;
+      the no-op-on-existing contract is already documented in the interface
+      comment (`idempotency/store.go:34-36`). A lint rule for a 3-impl interface
+      is premature. Reopen if custom Store impls proliferate.
+- ✅ **[DONE] cqrs-bench profile for the metaengine SQLite engine** — completed
+      2026-07-26 as `metaengine/planner_bench_test.go` (6 benchmarks). Reframed
+      from a cqrs-bench profile: `benchkit.Factory` returns `*stack.Bundle`
+      (event-store workload), wrong abstraction for an ADT planner. See status
+      report `2026-07-26_16-13`.
 - ✅ **CI badge for the api-stability gate** — Already in README; `#check-api-stability`
   now runs inside `#verify` with `-race` and the `TestEveryGoModDirIsInModulesList`
   meta-test.
