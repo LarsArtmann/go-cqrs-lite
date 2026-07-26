@@ -160,7 +160,15 @@ func TestTagContentMatchesChangelog(t *testing.T) {
 	}
 
 	// Get all git tags matching */v* pattern.
-	tagCmd := exec.CommandContext(context.Background(), "git", "-C", projectRoot, "tag", "-l", "*/v*")
+	tagCmd := exec.CommandContext(
+		context.Background(),
+		"git",
+		"-C",
+		projectRoot,
+		"tag",
+		"-l",
+		"*/v*",
+	)
 	tagOut, err := tagCmd.Output()
 	if err != nil {
 		t.Fatalf("git tag list: %v", err)

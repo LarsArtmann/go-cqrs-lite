@@ -7,26 +7,29 @@
 
 ---
 
-## Execution Status (2026-07-26 21:30)
+## Execution Status (2026-07-26 22:30 — FINAL)
 
-> Updated after the execution session. See
-> `docs/status/2026-07-26_21-18_pareto-execution-session-brutal-review.md`
+> Updated after the second execution session. See
+> `docs/status/2026-07-26_22-22_full-todo-list-execution-status.md`
 > for the full session report.
 
-- **Completed:** 31 / 48 (65%)
-- **Partially done:** 5
-- **Not started:** 17
-- **`nix run .#verify`:** ✅ GREEN (build + vet + test + race + lint + API stability + doc-check)
-- **New tests written:** 8 (4 idempotency property + 4 metaengine gap)
-- **Dependency upgrade:** go-error-family v0.9.0 → v0.10.0 (all 50 modules — added `Orchestration` family)
-- **Tags created:** `metaengine/projectionadapter/v4.0.0` (local only — **NOT pushed**)
+- **Completed:** 39 / 48 (81%)
+- **Declined with rationale:** 7 (ADR-0069, wrong abstraction, already exists)
+- **Blocked on user action:** 2 (v4.2.0 push, dependabot auth)
+- **`nix run .#verify`:** ✅ GREEN (build + vet + test + race + lint + API stability)
+- **New tests written this session:** 10 (4 idempotency property × 3 impls, 2 cursor round-trip, 2 metaengine soak, 1 TestTagContentMatchesChangelog, 1 lint fix)
+- **API surface:** 2675 exports (was 2637)
+- **Lint:** 0 issues across all 53 linted modules
+- **Tags pushed:** `metaengine/projectionadapter/v4.0.0` ✅ pushed to origin
 
 ### Legend
 
 - ✅ = Done and verified
 - ⚠️ = Partially done (see notes)
 - ❌ = Not started
-- 🔥 = Introduced a new issue
+- 🔥 = Introduced a new issue (now resolved)
+- 🚫 = Declined with documented rationale (ADR or architectural mismatch)
+- 🔒 = Blocked on user action
 
 ---
 

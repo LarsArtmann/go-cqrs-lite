@@ -3,11 +3,11 @@
     "cmdguard": {
       "flake": false,
       "locked": {
-        "lastModified": 1785053782,
-        "narHash": "sha256-Ubwjbi1wJCD8SRwBlKBxjlqYKrSTtlDDd9ARpPsEsEA=",
+        "lastModified": 1785096516,
+        "narHash": "sha256-rebUQvo6vlkdSDJsHe6LM8LIZ+rgfOHwf/3XMlIv1+c=",
         "ref": "master",
-        "rev": "11a03ffb5a071b76dafd9dee99a7e3dd8e581af6",
-        "revCount": 883,
+        "rev": "151709f73aa0511931f66783285413a886374171",
+        "revCount": 890,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/cmdguard"
       },
@@ -156,11 +156,11 @@
     "samber-do-auditlog": {
       "flake": false,
       "locked": {
-        "lastModified": 1785097104,
-        "narHash": "sha256-1AY+8Ad1/Txb8H8+bsi9fdkTGCW2nbQn5/7JaYTAKic=",
+        "lastModified": 1785097594,
+        "narHash": "sha256-+PYj6ZYPWv9X+WX69KJECFT9KyHzSV0+y0UCbPOCwHA=",
         "ref": "master",
-        "rev": "c4c5501f89b163ca8a907a35a06e4d6b3bcb8dad",
-        "revCount": 551,
+        "rev": "dc84da070dfccf97e01ba3c47539a03a63512696",
+        "revCount": 553,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/samber-do-auditlog"
       },

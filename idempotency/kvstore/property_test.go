@@ -42,7 +42,10 @@ func allStores() map[string]storeFactory {
 		},
 		"sqlstore": func(t *testing.T) (idempotency.Store, func()) {
 			dbName := fmt.Sprintf("propertydb_%d", propertyDBCounter.Add(1))
-			dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared&_pragma=busy_timeout(5000)", dbName)
+			dsn := fmt.Sprintf(
+				"file:%s?mode=memory&cache=shared&_pragma=busy_timeout(5000)",
+				dbName,
+			)
 			db, err := sql.Open("sqlite", dsn)
 			if err != nil {
 				t.Fatalf("open sqlite: %v", err)
