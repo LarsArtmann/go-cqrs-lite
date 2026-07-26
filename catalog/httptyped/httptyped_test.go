@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/httptyped"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/schema"
 )
 
@@ -92,7 +93,7 @@ func TestResponseSchema_ToResponseSpec(t *testing.T) {
 func TestCommand_CreatesMessageWithSchema(t *testing.T) {
 	t.Parallel()
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService(
 		"svc", "Service", "1.0.0", "Summary",
 		httptyped.Command[createUserRequest]("user.create"),
@@ -126,7 +127,7 @@ func TestCommand_CreatesMessageWithSchema(t *testing.T) {
 func TestQuery_CreatesMessageWithSchema(t *testing.T) {
 	t.Parallel()
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService(
 		"svc", "Service", "1.0.0", "Summary",
 		httptyped.Query[createUserRequest]("user.list"),
@@ -152,7 +153,7 @@ func TestQuery_CreatesMessageWithSchema(t *testing.T) {
 func TestOKResponse_Adds200Response(t *testing.T) {
 	t.Parallel()
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService(
 		"svc", "Service", "1.0.0", "Summary",
 		httptyped.Command[createUserRequest](
@@ -181,7 +182,7 @@ func TestOKResponse_Adds200Response(t *testing.T) {
 func TestCreatedResponse_Adds201Response(t *testing.T) {
 	t.Parallel()
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService(
 		"svc", "Service", "1.0.0", "Summary",
 		httptyped.Command[createUserRequest](
@@ -209,7 +210,7 @@ func TestErrorResponse_AddsTypedResponse(t *testing.T) {
 		Message string `json:"message"`
 	}
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService(
 		"svc", "Service", "1.0.0", "Summary",
 		httptyped.Command[createUserRequest](

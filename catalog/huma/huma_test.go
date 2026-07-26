@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/huma"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 func TestToMessages_GETBecomesQuery(t *testing.T) {
@@ -16,7 +17,7 @@ func TestToMessages_GETBecomesQuery(t *testing.T) {
 
 	msgs := huma.ToMessages(ops)
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService("svc", "Service", "1.0.0", "Summary", msgs...)
 
 	cat := builder.Build()
@@ -57,7 +58,7 @@ func TestToMessages_POSTBecomesCommand(t *testing.T) {
 
 	msgs := huma.ToMessages(ops)
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService("svc", "Service", "1.0.0", "Summary", msgs...)
 
 	cat := builder.Build()
@@ -92,7 +93,7 @@ func TestToMessages_PUT_DELETE_PATCH_BecomeCommands(t *testing.T) {
 		t.Fatalf("expected 3 message configs, got %d", len(msgs))
 	}
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService("svc", "Service", "1.0.0", "Summary", msgs...)
 
 	cat := builder.Build()
@@ -116,7 +117,7 @@ func TestToMessages_SummaryPropagated(t *testing.T) {
 
 	msgs := huma.ToMessages(ops)
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService("svc", "Service", "1.0.0", "Summary", msgs...)
 
 	cat := builder.Build()
@@ -149,7 +150,7 @@ func TestToMessages_MixedOps(t *testing.T) {
 
 	msgs := huma.ToMessages(ops)
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService("svc", "Service", "1.0.0", "Summary", msgs...)
 
 	cat := builder.Build()

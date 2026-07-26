@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 func TestAutoDerive_MultipleProducers(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
 	reg.AddEvent("svc-a", newEvent("OrderPlaced", "Order Placed", catalog.Sends))
 	reg.AddService(catalog.Service{ID: "svc-b", Name: "Service B", Version: "1.0.0"})
@@ -27,7 +28,7 @@ func TestAutoDerive_MultipleProducers(t *testing.T) {
 func TestAutoDerive_CommandsGetConsumers(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
 		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order",
@@ -46,7 +47,7 @@ func TestAutoDerive_CommandsGetConsumers(t *testing.T) {
 func TestAutoDerive_DoesNotOverrideExistingProducers(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddEvent("svc", catalog.Message{
 		Kind: catalog.EventMessage, ID: "OrderPlaced", Name: "Order Placed",
@@ -66,7 +67,7 @@ func TestAutoDerive_DoesNotOverrideExistingProducers(t *testing.T) {
 func TestAutoDerive_EmptyCatalog(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cat := reg.Build()
 	enriched := autoDeriveProducersConsumers(cat)
 
@@ -78,7 +79,7 @@ func TestAutoDerive_EmptyCatalog(t *testing.T) {
 func TestAutoDerive_QueryGetsConsumers(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddQuery("svc", catalog.Message{
 		Kind: catalog.QueryMessage, ID: "GetOrder", Name: "Get Order",

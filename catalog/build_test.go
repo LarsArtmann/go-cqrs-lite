@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 type TestCreateUser struct {
@@ -200,7 +201,7 @@ func TestBuilder_MultipleMessages(t *testing.T) {
 func TestBuilder_Registry(t *testing.T) {
 	t.Parallel()
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService("test-svc", "Test Service", "1.0.0", "")
 
 	reg := builder.Registry()
@@ -211,7 +212,7 @@ func TestBuilder_Registry(t *testing.T) {
 func TestBuilder_AddService_WithOwnersAndLabels(t *testing.T) {
 	t.Parallel()
 
-	builder := catalog.NewBuilder("Test", "1.0.0")
+	builder := cattest.NewTestBuilder(t)
 	builder.AddService(
 		"test-svc", "Test Service", "1.0.0", "",
 		catalog.Command[TestCreateUser](

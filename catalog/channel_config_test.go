@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 func newConfiguredChannel(t *testing.T, opts ...catalog.ChannelOption) catalog.Channel {
 	t.Helper()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddChannel(catalog.Channel{ID: "ch", Name: "Ch", Version: "1.0.0"})
 	b.ConfigureChannel("ch", opts...)
 
@@ -150,7 +151,7 @@ func TestBuilder_ConfigureChannel_MultipleOptions(t *testing.T) {
 func TestBuilder_ConfigureChannel_NonexistentIgnored(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.ConfigureChannel(
 		"nonexistent",
 		catalog.ChannelBadges(catalog.Badge{Content: "Should not panic"}),

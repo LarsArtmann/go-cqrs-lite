@@ -10,7 +10,7 @@ import (
 func TestRegistry_AddService(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddServiceWithSummary(t, reg, "user-svc", "User Service", "1.0.0", "Manages users")
 
 	cat := reg.Build()
@@ -31,7 +31,7 @@ func TestRegistry_AddService(t *testing.T) {
 func TestRegistry_AddCommand(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddCommand("user-svc", catalog.Message{
 		ID:        "CreateUser",
 		Name:      "Create User",
@@ -66,7 +66,7 @@ func TestRegistry_AddCommand(t *testing.T) {
 func TestRegistry_AddEvent(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
 	reg.AddEvent("order-svc", catalog.Message{
 		ID:        "OrderCreated",
@@ -90,7 +90,7 @@ func TestRegistry_AddEvent(t *testing.T) {
 func TestRegistry_AddQuery(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddQuery("user-svc", catalog.Message{
 		ID:      "GetUser",
 		Name:    "Get User",
@@ -112,7 +112,7 @@ func TestRegistry_AddQuery(t *testing.T) {
 func TestRegistry_AddDomain(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDomain(catalog.Domain{
 		ID:      "orders",
 		Name:    "Orders Domain",
@@ -131,7 +131,7 @@ func TestRegistry_AddDomain(t *testing.T) {
 func TestRegistry_AddServiceToDomain(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDomain(catalog.Domain{ID: "orders", Name: "Orders", Version: "1.0.0"})
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
 
@@ -151,7 +151,7 @@ func TestRegistry_AddServiceToDomain(t *testing.T) {
 func TestRegistry_AddServiceToDomain_NotFound(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 
 	err := reg.AddServiceToDomain("svc", "nonexistent")
 	if err == nil {
@@ -162,7 +162,7 @@ func TestRegistry_AddServiceToDomain_NotFound(t *testing.T) {
 func TestRegistry_AddChannel(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddChannel(catalog.Channel{
 		ID:      "orders.events",
 		Name:    "Orders Event Channel",
@@ -216,7 +216,7 @@ func TestRegistry_Build_MultipleServices(t *testing.T) {
 func TestRegistry_ServiceMerge(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{
 		ID: "svc", Name: "Service", Version: "1.0.0",
 		Commands: []catalog.Message{{ID: "Cmd1", Name: "Cmd1", Version: "1.0.0"}},
@@ -241,7 +241,7 @@ func TestRegistry_ServiceMerge(t *testing.T) {
 func TestRegistry_ServiceMergeWithQueries(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{
 		ID:      "svc",
 		Name:    "Service",
@@ -279,7 +279,7 @@ func TestGetID_UsesID(t *testing.T) {
 func TestRegistry_AddServiceMergeNoCommands(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"})
 	reg.AddService(catalog.Service{
 		ID:       "svc",
@@ -297,7 +297,7 @@ func TestRegistry_AddServiceMergeNoCommands(t *testing.T) {
 func TestRegistry_BuildWithChannels(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddChannel(catalog.Channel{
 		ID:        "ch1",
 		Name:      "Channel 1",

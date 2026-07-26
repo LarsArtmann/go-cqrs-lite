@@ -10,7 +10,7 @@ import (
 func TestRegistry_AddDataStore(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDataStore(catalog.DataStore{
 		ID: "orders-db", Name: "Orders DB", Version: "1.0.0",
 		ContainerType: "database", Technology: "postgres@16",
@@ -34,7 +34,7 @@ func TestRegistry_AddDataStore(t *testing.T) {
 func TestRegistry_AddFlow(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddFlow(cattest.NewTestCreateOrderFlow("Submit"))
 
 	cat := reg.Build()
@@ -55,7 +55,7 @@ func TestRegistry_AddFlow(t *testing.T) {
 func TestRegistry_AddTeam(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddTeam(catalog.Team{
 		ID: "order-team", Name: "Order Team",
 		Members: []string{"alice", "bob"},
@@ -79,7 +79,7 @@ func TestRegistry_AddTeam(t *testing.T) {
 func TestRegistry_AddUser(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddUser(catalog.User{
 		ID: "alice", Name: "Alice Smith", Role: "Engineer",
 	})
@@ -98,7 +98,7 @@ func TestRegistry_AddUser(t *testing.T) {
 func TestRegistry_Build_Immutability(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddDataStore(t, reg, "db1", "DB1", "1.0.0", "database")
 	reg.AddFlow(catalog.Flow{ID: "f1", Name: "F1", Version: "1.0.0"})
 	reg.AddTeam(catalog.Team{ID: "t1", Name: "T1"})

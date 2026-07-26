@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 func TestBuilder_ConfigureDomain_Sends(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management", "order-svc")
 	b.ConfigureDomain(
 		"orders",
@@ -27,7 +28,7 @@ func TestBuilder_ConfigureDomain_Sends(t *testing.T) {
 func TestBuilder_ConfigureDomain_Receives(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
 	b.ConfigureDomain(
 		"orders",
@@ -45,7 +46,7 @@ func TestBuilder_ConfigureDomain_Receives(t *testing.T) {
 func TestBuilder_ConfigureDomain_Entities(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
 	b.ConfigureDomain(
 		"orders",
@@ -67,7 +68,7 @@ func TestBuilder_ConfigureDomain_Entities(t *testing.T) {
 func TestBuilder_ConfigureDomain_Badges(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
 	b.ConfigureDomain(
 		"orders",
@@ -85,7 +86,7 @@ func TestBuilder_ConfigureDomain_Badges(t *testing.T) {
 func TestBuilder_ConfigureDomain_Owners(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
 	b.ConfigureDomain(
 		"orders",
@@ -103,7 +104,7 @@ func TestBuilder_ConfigureDomain_Owners(t *testing.T) {
 func TestBuilder_ConfigureDomain_Attachments(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
 	b.ConfigureDomain(
 		"orders",
@@ -127,7 +128,7 @@ func TestBuilder_ConfigureDomain_Attachments(t *testing.T) {
 func TestBuilder_ConfigureDomain_MultipleOptions(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddDomain("orders", "Orders", "1.0.0", "Order management")
 	b.ConfigureDomain(
 		"orders",
@@ -170,7 +171,7 @@ func TestBuilder_ConfigureDomain_MultipleOptions(t *testing.T) {
 func TestBuilder_ConfigureDomain_NonexistentIgnored(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.ConfigureDomain(
 		"nonexistent",
 		catalog.DomainBadges(catalog.Badge{Content: "Should not panic"}),

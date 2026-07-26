@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 func TestRegistry_AddEntity(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddEntity(catalog.Entity{
 		ID: "order", Name: "Order", Version: "1.0.0",
 		Summary: "Order aggregate", Owners: []string{"team-a"},
@@ -28,7 +29,7 @@ func TestRegistry_AddEntity(t *testing.T) {
 func TestRegistry_AddDataProduct(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDataProduct(catalog.DataProduct{
 		ID: "metrics", Name: "Metrics", Version: "1.0.0",
 		Inputs:  []catalog.Ref{{ID: "OrderCreated"}},
@@ -48,7 +49,7 @@ func TestRegistry_AddDataProduct(t *testing.T) {
 func TestRegistry_AddAgent(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddAgent(catalog.Agent{
 		ID: "bot", Name: "Bot", Version: "1.0.0",
 		ReadsFrom: []catalog.DataStoreID{"store1"},
@@ -78,7 +79,7 @@ func TestRegistry_AddAgent(t *testing.T) {
 func TestBuilder_AddEntity(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddEntity(catalog.Entity{ID: "e1", Name: "Entity1", Version: "1.0.0"})
 
 	cat := b.Build()
@@ -90,7 +91,7 @@ func TestBuilder_AddEntity(t *testing.T) {
 func TestBuilder_AddDataProduct(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddDataProduct(catalog.DataProduct{ID: "dp1", Name: "DP1", Version: "1.0.0"})
 
 	cat := b.Build()
@@ -102,7 +103,7 @@ func TestBuilder_AddDataProduct(t *testing.T) {
 func TestBuilder_AddAgent(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddAgent(catalog.Agent{ID: "a1", Name: "Agent1", Version: "1.0.0"})
 
 	cat := b.Build()
@@ -114,7 +115,7 @@ func TestBuilder_AddAgent(t *testing.T) {
 func TestDomainOption_UbiquitousLanguage(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDomain(catalog.Domain{ID: "d1", Name: "D1", Version: "1.0.0"})
 	reg.SetDomainOptions(
 		"d1",
@@ -134,7 +135,7 @@ func TestDomainOption_UbiquitousLanguage(t *testing.T) {
 func TestDomainOption_SubDomains(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDomain(catalog.Domain{ID: "parent", Name: "Parent", Version: "1.0.0"})
 	reg.SetDomainOptions(
 		"parent",
@@ -150,7 +151,7 @@ func TestDomainOption_SubDomains(t *testing.T) {
 func TestDomainOption_DataProducts(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddDomain(catalog.Domain{ID: "d1", Name: "D1", Version: "1.0.0"})
 	reg.SetDomainOptions(
 		"d1",
@@ -166,7 +167,7 @@ func TestDomainOption_DataProducts(t *testing.T) {
 func TestServiceOption_ExternalSystem(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.SetServiceOptions("svc", catalog.ServiceExternalSystem())
 
@@ -179,7 +180,7 @@ func TestServiceOption_ExternalSystem(t *testing.T) {
 func TestRegistry_NewResourcesSortedByID(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddEntity(catalog.Entity{ID: "zebra", Name: "Z", Version: "1.0.0"})
 	reg.AddEntity(catalog.Entity{ID: "alpha", Name: "A", Version: "1.0.0"})
 	reg.AddDataProduct(catalog.DataProduct{ID: "zeta", Name: "Z", Version: "1.0.0"})
@@ -198,7 +199,7 @@ func TestRegistry_NewResourcesSortedByID(t *testing.T) {
 func TestRegistry_NewResourcesAreCopied(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	original := catalog.Entity{
 		ID: "e1", Name: "E1", Version: "1.0.0", Owners: []string{"a", "b"},
 	}
@@ -215,7 +216,7 @@ func TestRegistry_NewResourcesAreCopied(t *testing.T) {
 func TestEntity_DeepCopyProperties(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	original := catalog.Entity{
 		ID:            "order",
 		Name:          "Order",

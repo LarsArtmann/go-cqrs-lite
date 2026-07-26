@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 func TestBuilder_MessageOption_Producers(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService(
 		"svc", "Service", "1.0.0", "test",
 		catalog.Event[struct{}](
@@ -33,7 +34,7 @@ func TestBuilder_MessageOption_Producers(t *testing.T) {
 func TestBuilder_MessageOption_Consumers(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService(
 		"svc", "Service", "1.0.0", "test",
 		catalog.Command[struct{}](
@@ -57,7 +58,7 @@ func TestBuilder_MessageOption_Consumers(t *testing.T) {
 func TestBuilder_MessageOption_Operation(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService(
 		"svc", "Service", "1.0.0", "test",
 		catalog.Command[struct{}](
@@ -89,7 +90,7 @@ func TestBuilder_MessageOption_Operation(t *testing.T) {
 func TestBuilder_MessageOption_Badges(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService(
 		"svc", "Service", "1.0.0", "test",
 		catalog.Event[struct{}](
@@ -115,7 +116,7 @@ func TestBuilder_MessageOption_Badges(t *testing.T) {
 func TestBuilder_MessageOption_Repository(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService(
 		"svc", "Service", "1.0.0", "test",
 		catalog.Command[struct{}](
@@ -168,7 +169,7 @@ func TestHttpStatusDescription_UnknownCodeFallback(t *testing.T) {
 func TestWithOperation_DefaultDescription(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService(
 		"svc", "Service", "1.0.0", "test",
 		catalog.Command[struct{}](

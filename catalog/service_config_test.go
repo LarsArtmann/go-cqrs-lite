@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 func TestBuilder_ConfigureService_Badges(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService("svc", "Service", "1.0.0", "test")
 	b.ConfigureService(
 		"svc",
@@ -33,7 +34,7 @@ func TestBuilder_ConfigureService_Badges(t *testing.T) {
 func TestBuilder_ConfigureService_Repository(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService("svc", "Service", "1.0.0", "test")
 	b.ConfigureService(
 		"svc",
@@ -55,7 +56,7 @@ func TestBuilder_ConfigureService_Repository(t *testing.T) {
 func TestBuilder_ConfigureService_WritesToReadsFrom(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService("svc", "Service", "1.0.0", "test")
 	b.ConfigureService(
 		"svc",
@@ -78,7 +79,7 @@ func TestBuilder_ConfigureService_WritesToReadsFrom(t *testing.T) {
 func TestBuilder_ConfigureService_Entities(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService("svc", "Service", "1.0.0", "test")
 	b.ConfigureService(
 		"svc",
@@ -96,7 +97,7 @@ func TestBuilder_ConfigureService_Entities(t *testing.T) {
 func TestBuilder_ConfigureService_Specifications(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService("svc", "Service", "1.0.0", "test")
 	b.ConfigureService(
 		"svc",
@@ -120,7 +121,7 @@ func TestBuilder_ConfigureService_Specifications(t *testing.T) {
 func TestBuilder_ConfigureService_MultipleOptions(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddService("svc", "Service", "1.0.0", "test")
 	b.ConfigureService(
 		"svc",

@@ -27,7 +27,7 @@ func assertNotContains(t *testing.T, output, substr, msg string) {
 func TestExporter_Export_EmptyCatalog(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	exp := NewExporter("Empty", "1.0.0")
 	output := exp.Export(reg.Build())
 
@@ -62,7 +62,7 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 func TestExporter_Export_Event(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("payment-svc"), "Payment Service", "1.0.0")
 	cattest.AddEventWithSummary(
 		t, reg, catalog.ServiceID("payment-svc"),
@@ -83,7 +83,7 @@ func TestExporter_Export_Event(t *testing.T) {
 func TestExporter_Export_EventReceive(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
 	cattest.AddEvent(
 		t,
@@ -104,7 +104,7 @@ func TestExporter_Export_EventReceive(t *testing.T) {
 func TestExporter_Export_Query(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddServiceWithQuery(
 		t,
 		reg,
@@ -126,7 +126,7 @@ func TestExporter_Export_Query(t *testing.T) {
 func TestExporter_Export_MultipleServices(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("svc-a"), "Service A", "1.0.0")
 	cattest.AddService(t, reg, catalog.ServiceID("svc-b"), "Service B", "1.0.0")
 	cattest.AddServiceWithCommand(
@@ -158,7 +158,7 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 func TestExporter_Export_DomainGrouping(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("order-svc"), "Order Service", "1.0.0")
 	cattest.AddDomain(
 		t,
@@ -181,7 +181,7 @@ func TestExporter_Export_DomainGrouping(t *testing.T) {
 func TestExporter_Export_WithDescription(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	exp := NewExporter("Test", "1.0.0", WithDescription("A test description"))
 	output := exp.Export(reg.Build())
 
@@ -219,7 +219,7 @@ func TestExporter_Export_SchemaTooltip(t *testing.T) {
 func TestExporter_Export_CrossServiceEventFlow(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("order-svc"), "Order Service", "1.0.0")
 	cattest.AddService(
 		t,
@@ -269,7 +269,7 @@ func TestExporter_Export_CrossServiceEventFlow(t *testing.T) {
 func TestExporter_Export_CrossService_NoSelfConnection(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("svc"), "Service", "1.0.0")
 	cattest.AddEvent(
 		t,
@@ -304,7 +304,7 @@ func TestExporter_Export_CrossService_NoSelfConnection(t *testing.T) {
 func TestExporter_Export_CrossService_NoConnectionWithoutMatch(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddService(t, reg, catalog.ServiceID("svc-a"), "Service A", "1.0.0")
 	cattest.AddEvent(
 		t,
@@ -371,7 +371,7 @@ func TestSanitizeID(t *testing.T) {
 func TestExporter_Export_WithDirection(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddServiceWithCommand(
 		t,
 		reg,
@@ -397,7 +397,7 @@ func TestExporter_Export_WithDirection(t *testing.T) {
 func TestExporter_Export_ValidD2(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewRegistry(t, "TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	cattest.AddServiceWithCommand(
 		t,
 		reg,
@@ -442,7 +442,7 @@ func TestExporter_Export_ValidD2(t *testing.T) {
 func TestExporter_EntityRelationships(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddEntity(catalog.Entity{
 		ID:            "order",
 		Name:          "Order",
@@ -480,7 +480,7 @@ func TestExporter_EntityRelationships(t *testing.T) {
 func TestExporter_UbiquitousLanguage(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("Test", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{
 		ID:      "order-svc",
 		Name:    "Order Service",
