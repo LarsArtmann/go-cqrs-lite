@@ -481,6 +481,14 @@
               (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go test -race -count=1 ./...)
             '';
 
+            # check-duplication: CI gate that fails if new code clones are
+            # introduced relative to the committed baseline (.art-dupl-baseline.json).
+            # To accept new clones: `art-dupl baseline . --threshold 3`
+            check-duplication = mkApp "check-duplication" [ art-dupl ] ''
+              echo "==> Duplication check (threshold=3, semantic)"
+              ${art-dupl}/bin/art-dupl check . --threshold 3 --semantic
+            '';
+
             check-printf = mkApp "check-printf" [ pkgs.gnugrep pkgs.findutils ] ''
               echo "==> Checking for fmt.Printf in production code"
               if ${pkgs.gnugrep}/bin/grep -R 'fmt\.Printf' --include='*.go' . \

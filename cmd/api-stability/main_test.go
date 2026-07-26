@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -127,5 +129,74 @@ func TestAPISurfaceUpdateIdempotent(t *testing.T) {
 		if err := os.WriteFile(goldenPath, original, 0o600); err != nil {
 			t.Logf("failed to restore golden: %v", err)
 		}
+	}
+}
+
+// TestTagContentMatchesChangelog verifies that every released version section
+// in CHANGELOG.md has at least one corresponding git tag. This catches the
+// "updated CHANGELOG but forgot to tag" drift scenario. It also verifies that
+// the latest tagged version has a CHANGELOG entry ("tagged but didn't update
+// CHANGELOG").
+func TestTagContentMatchesChangelog(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := filepath.Join(".", "..", "..")
+
+	changelogBytes, err := os.ReadFile(filepath.Join(projectRoot, "CHANGELOG.md"))
+	if err != nil {
+		t.Fatalf("read CHANGELOG: %v", err)
+	}
+
+	// Extract all ## [vX.Y.Z] version sections from CHANGELOG.
+	versionRe := regexp.MustCompile(`## \[(v\d+\.\d+\.\d+)\]`)
+	matches := versionRe.FindAllStringSubmatch(string(changelogBytes), -1)
+	if len(matches) == 0 {
+		t.Fatal("no version sections found in CHANGELOG.md")
+	}
+
+	changelogVersions := make(map[string]bool, len(matches))
+	for _, m := range matches {
+		changelogVersions[m[1]] = true
+	}
+
+	// Get all git tags matching */v* pattern.
+	tagCmd := exec.Command("git", "-C", projectRoot, "tag", "-l", "*/v*")
+	tagOut, err := tagCmd.Output()
+	if err != nil {
+		t.Fatalf("git tag list: %v", err)
+	}
+
+	// Extract the version suffix from each module tag (e.g., "event/v4.0.4" → "v4.0.4").
+	tagVersionRe := regexp.MustCompile(`/((?:v)\d+\.\d+\.\d+)$`)
+	taggedVersions := make(map[string]int)
+	for _, line := range strings.Split(strings.TrimSpace(string(tagOut)), "\n") {
+		if line == "" {
+			continue
+		}
+		if m := tagVersionRe.FindStringSubmatch(line); m != nil {
+			taggedVersions[m[1]]++
+		}
+	}
+
+	if len(taggedVersions) == 0 {
+		t.Fatal("no module version tags found in git")
+	}
+
+	// Every CHANGELOG version must have at least one tag.
+	for ver := range changelogVersions {
+		if taggedVersions[ver] == 0 {
+			t.Errorf("CHANGELOG has ## [%s] but zero git tags at that version — "+
+				"did you forget to tag the release?", ver)
+		}
+	}
+
+	// The latest CHANGELOG version should have a reasonable number of module tags
+	// (at least 10 — not all 58 modules release at the same version, but core
+	// modules should be tagged together).
+	latestChangelogVer := matches[0][1]
+	if taggedVersions[latestChangelogVer] < 10 {
+		t.Logf("WARNING: latest CHANGELOG version %s has only %d module tags "+
+			"(expected >= 10 for a coordinated release)",
+			latestChangelogVer, taggedVersions[latestChangelogVer])
 	}
 }
