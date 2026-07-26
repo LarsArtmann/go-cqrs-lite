@@ -1,10 +1,10 @@
 # ADR-0070: Transform fallback observability via slog.Default
 
-|             |                                                                                               |
-| ----------- | --------------------------------------------------------------------------------------------- |
-| **Status**  | Accepted                                                                                      |
-| **Date**    | 2026-07-27                                                                                    |
-| **Context** | transport/http (SSE CBOR→JSON delivery)                                                       |
+|             |                                         |
+| ----------- | --------------------------------------- |
+| **Status**  | Accepted                                |
+| **Date**    | 2026-07-27                              |
+| **Context** | transport/http (SSE CBOR→JSON delivery) |
 
 ## Context
 

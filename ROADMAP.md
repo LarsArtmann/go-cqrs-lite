@@ -33,7 +33,7 @@ and a domain-aware linter (cqrs-lint, 60 rules).
 - **Metaengine** (`metaengine/v4`, 🧪 experimental, tagged v4.0.0 + v4.1.0 +
   v4.1.1) — cost-based storage planner. Derives projections and engine
   assignments from two primitives (Events + Queries). 7 ADTs inferred from fold
-  return types. 174 BDD specs, 87.7% coverage. SQLiteEngine shipped (ADR-0061);
+  return types. 174 BDD specs, 86.0% coverage. SQLiteEngine shipped (ADR-0061);
   cost model calibrated; projection adapter integrated (ADR-0062); pushdown ADR
   written (ADR-0063); cross-engine meta-test guards parity. Phase 2 declarative
   pushdown deferred — see Theme 1.

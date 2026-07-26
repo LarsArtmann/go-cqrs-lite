@@ -336,13 +336,13 @@ per-module. Only 3 are codec-related (now fixed). The other 5 are **separate,
 pre-existing drift** from other sessions' untagged work — not caused by UP1,
 not in UP1's scope:
 
-| Module                       | Fails on                                  | Root cause (not UP1)             |
-| ---------------------------- | ----------------------------------------- | -------------------------------- |
-| `cmd/cqrs-bench`             | `benchkit.SoakResult`/`RunSoak`/`SoakConfig` | benchkit untagged              |
-| `metaengine/projectionadapter` | (empty build error)                     | metaengine untagged              |
-| `stack/pebble`               | `stack.WithDiskSize`/`backend.DiskUsage`  | stack + pebble untagged          |
-| `stack/postgres`             | `sqlopt.OpenDBOrErr`                      | sqlopt untagged                  |
-| `stack/sqlite`               | `sqlopt.OpenDBOrErr`                      | sqlopt untagged                  |
+| Module                         | Fails on                                     | Root cause (not UP1)    |
+| ------------------------------ | -------------------------------------------- | ----------------------- |
+| `cmd/cqrs-bench`               | `benchkit.SoakResult`/`RunSoak`/`SoakConfig` | benchkit untagged       |
+| `metaengine/projectionadapter` | (empty build error)                          | metaengine untagged     |
+| `stack/pebble`                 | `stack.WithDiskSize`/`backend.DiskUsage`     | stack + pebble untagged |
+| `stack/postgres`               | `sqlopt.OpenDBOrErr`                         | sqlopt untagged         |
+| `stack/sqlite`                 | `sqlopt.OpenDBOrErr`                         | sqlopt untagged         |
 
 These require a coordinated multi-module release (tag benchkit, metaengine,
 stack, sqlopt, pebble + bump consumers) and are out of scope for UP1. Flagged
@@ -350,15 +350,15 @@ for a dedicated release-coordination pass when the repo is ready.
 
 ### Acceptance gaps closed (this session)
 
-| #   | Gap (from §b/§c)                                  | Resolution                                                                  |
-| --- | ------------------------------------------------- | --------------------------------------------------------------------------- |
-| E2  | "logged at Warn" silently deferred                | `CBORToJSONTransform` now logs at Warn via `slog.Default` on fallback       |
-| §c1 | Backfill path test with adapter                   | `TestBackfillHandler_CBORToJSONTransform` added — REST path verified        |
-| §c4 | `CBORCompactCodec` interop                        | `TestTranscodeToJSON_CBORCompactCodec` added — both CBOR variants share path |
-| §f20 | Corrupt-CBOR graceful fallback                  | `TestCBORToJSONTransform_CorruptCBOR_FallsBackToRaw` added                 |
-| §c3 | codec discoverability                             | `codec/doc.go` "# Cross-Codec Transcoding" section added                    |
-| D3  | DiscordSync deletion path unverified              | **Verified:** `codec.TranscodeToJSON` replaces `sseCBORCache` + `getSSECBORDecMode` + `jsonPayloadForSSE` (~57 LOC) in `DiscordSync/internal/api/sse.go`. DiscordSync uses `cqrs-htmx` SSE, so the **codec primitive** is the direct deletion path there; `CBORToJSONTransform` is the SSEBroker one-liner. |
-| §f4/§f6 | `nix run .#verify` not run                    | Equivalent gate run manually: codec + transport/http `-race -count=3`; signing + encryption `-race`; lint 0 issues (all 4); api-stability 2675 exports; doc-check 918 refs — all green |
+| #       | Gap (from §b/§c)                     | Resolution                                                                                                                                                                                                                                                                                                  |
+| ------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E2      | "logged at Warn" silently deferred   | `CBORToJSONTransform` now logs at Warn via `slog.Default` on fallback                                                                                                                                                                                                                                       |
+| §c1     | Backfill path test with adapter      | `TestBackfillHandler_CBORToJSONTransform` added — REST path verified                                                                                                                                                                                                                                        |
+| §c4     | `CBORCompactCodec` interop           | `TestTranscodeToJSON_CBORCompactCodec` added — both CBOR variants share path                                                                                                                                                                                                                                |
+| §f20    | Corrupt-CBOR graceful fallback       | `TestCBORToJSONTransform_CorruptCBOR_FallsBackToRaw` added                                                                                                                                                                                                                                                  |
+| §c3     | codec discoverability                | `codec/doc.go` "# Cross-Codec Transcoding" section added                                                                                                                                                                                                                                                    |
+| D3      | DiscordSync deletion path unverified | **Verified:** `codec.TranscodeToJSON` replaces `sseCBORCache` + `getSSECBORDecMode` + `jsonPayloadForSSE` (~57 LOC) in `DiscordSync/internal/api/sse.go`. DiscordSync uses `cqrs-htmx` SSE, so the **codec primitive** is the direct deletion path there; `CBORToJSONTransform` is the SSEBroker one-liner. |
+| §f4/§f6 | `nix run .#verify` not run           | Equivalent gate run manually: codec + transport/http `-race -count=3`; signing + encryption `-race`; lint 0 issues (all 4); api-stability 2675 exports; doc-check 918 refs — all green                                                                                                                      |
 
 ### Final acceptance scorecard
 

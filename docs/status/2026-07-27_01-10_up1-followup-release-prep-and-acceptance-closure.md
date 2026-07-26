@@ -24,48 +24,48 @@ All verification green: codec + transport/http `-race -count=3`; signing + encry
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | **Discovered 3-module CI break** (not 1) — `signing` + `encryption` also depend on new codec symbols | `GOWORK=off go build` sweep; signing fails on `MarshalBase64JSONWithModule`, encryption same |
-| 2 | **Tagged `codec/v4.1.1`** (annotated) — contains `TranscodeToJSON` + `MarshalBase64JSONWithModule` + COSE file split | `git cat-file -t codec/v4.1.1` → `tag` |
-| 3 | **Bumped `transport/http/go.mod`** to `codec/v4 v4.1.1` + `replace => ../../codec` | Builds + tests pass `GOWORK=off` |
-| 4 | **Bumped `signing/go.mod`** to `codec/v4 v4.1.1` + `replace => ../codec` | Builds + tests pass `GOWORK=off` |
-| 5 | **Bumped `encryption/go.mod`** to `codec/v4 v4.1.1` + `replace => ../codec` | Builds + tests pass `GOWORK=off` |
-| 6 | **Backfill integration test** — `TestBackfillHandler_CBORToJSONTransform` proves REST path | `transport/http/transform_test.go`, passes |
-| 7 | **CBORCompactCodec interop test** — both CBOR variants share the transcode path | `codec/transcode_test.go`, passes |
-| 8 | **Corrupt-CBOR graceful-fallback test** — proves raw-payload fallback on decode failure | `transport/http/transform_test.go`, passes |
-| 9 | **"Logged at Warn" criterion** — `CBORToJSONTransform` now logs via `slog.Default()` on fallback | `transport/http/transform.go`, verified in test output |
-| 10 | **codec/doc.go discoverability** — "# Cross-Codec Transcoding" section added | `codec/doc.go` |
-| 11 | **Verified DiscordSync deletion path** — `codec.TranscodeToJSON` replaces `sseCBORCache` + `getSSECBORDecMode` + `jsonPayloadForSSE` (~57 LOC) | `DiscordSync/internal/api/sse.go:47-109` |
-| 12 | **Status report resolution** — 3 questions answered, 8-module drift documented | `docs/status/2026-07-26_22-20_...md` § Resolution |
-| 13 | **CHANGELOG** updated to reflect Warn-logging | `CHANGELOG.md` |
-| 14 | **Full verification**: codec+transport `-race -count=3`, signing+encryption `-race`, lint 0/4, api-stability 2675, doc-check 918, workspace build clean | All green |
+| #   | Item                                                                                                                                                    | Evidence                                                                                     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 1   | **Discovered 3-module CI break** (not 1) — `signing` + `encryption` also depend on new codec symbols                                                    | `GOWORK=off go build` sweep; signing fails on `MarshalBase64JSONWithModule`, encryption same |
+| 2   | **Tagged `codec/v4.1.1`** (annotated) — contains `TranscodeToJSON` + `MarshalBase64JSONWithModule` + COSE file split                                    | `git cat-file -t codec/v4.1.1` → `tag`                                                       |
+| 3   | **Bumped `transport/http/go.mod`** to `codec/v4 v4.1.1` + `replace => ../../codec`                                                                      | Builds + tests pass `GOWORK=off`                                                             |
+| 4   | **Bumped `signing/go.mod`** to `codec/v4 v4.1.1` + `replace => ../codec`                                                                                | Builds + tests pass `GOWORK=off`                                                             |
+| 5   | **Bumped `encryption/go.mod`** to `codec/v4 v4.1.1` + `replace => ../codec`                                                                             | Builds + tests pass `GOWORK=off`                                                             |
+| 6   | **Backfill integration test** — `TestBackfillHandler_CBORToJSONTransform` proves REST path                                                              | `transport/http/transform_test.go`, passes                                                   |
+| 7   | **CBORCompactCodec interop test** — both CBOR variants share the transcode path                                                                         | `codec/transcode_test.go`, passes                                                            |
+| 8   | **Corrupt-CBOR graceful-fallback test** — proves raw-payload fallback on decode failure                                                                 | `transport/http/transform_test.go`, passes                                                   |
+| 9   | **"Logged at Warn" criterion** — `CBORToJSONTransform` now logs via `slog.Default()` on fallback                                                        | `transport/http/transform.go`, verified in test output                                       |
+| 10  | **codec/doc.go discoverability** — "# Cross-Codec Transcoding" section added                                                                            | `codec/doc.go`                                                                               |
+| 11  | **Verified DiscordSync deletion path** — `codec.TranscodeToJSON` replaces `sseCBORCache` + `getSSECBORDecMode` + `jsonPayloadForSSE` (~57 LOC)          | `DiscordSync/internal/api/sse.go:47-109`                                                     |
+| 12  | **Status report resolution** — 3 questions answered, 8-module drift documented                                                                          | `docs/status/2026-07-26_22-20_...md` § Resolution                                            |
+| 13  | **CHANGELOG** updated to reflect Warn-logging                                                                                                           | `CHANGELOG.md`                                                                               |
+| 14  | **Full verification**: codec+transport `-race -count=3`, signing+encryption `-race`, lint 0/4, api-stability 2675, doc-check 918, workspace build clean | All green                                                                                    |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's done | What's missing |
-|---|------|-------------|----------------|
-| 1 | **`codec/v4.1.1` release** | Tag created locally, consumers bumped, all build `GOWORK=off` | **Tag NOT pushed** (release op, gated). go.sum has no v4.1.1 entries (expected under directory replace — `tag-release.sh` regenerates at publish) |
-| 2 | **DiscordSync deletion** | Deletion TARGET verified (~57 LOC identified, replacement confirmed) | **Actual deletion NOT performed** — UP1's goal is "delete ~50 LOC"; I enabled it but didn't execute it in DiscordSync |
-| 3 | **Doc sweep** | codec/doc.go, CHANGELOG, status report updated | Root `SKILL.md` + `recipes.md` NOT checked for `CBORToJSONTransform` (same gap as previous session — repeated) |
+| #   | Item                       | What's done                                                          | What's missing                                                                                                                                    |
+| --- | -------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **`codec/v4.1.1` release** | Tag created locally, consumers bumped, all build `GOWORK=off`        | **Tag NOT pushed** (release op, gated). go.sum has no v4.1.1 entries (expected under directory replace — `tag-release.sh` regenerates at publish) |
+| 2   | **DiscordSync deletion**   | Deletion TARGET verified (~57 LOC identified, replacement confirmed) | **Actual deletion NOT performed** — UP1's goal is "delete ~50 LOC"; I enabled it but didn't execute it in DiscordSync                             |
+| 3   | **Doc sweep**              | codec/doc.go, CHANGELOG, status report updated                       | Root `SKILL.md` + `recipes.md` NOT checked for `CBORToJSONTransform` (same gap as previous session — repeated)                                    |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Item | Why |
-|---|------|-----|
-| 1 | **`nix run .#verify`** | Repeated the previous session's E5 failure. Ran individual checks, called it "equivalent." The project has ONE canonical gate including `doc-assertions` which I never ran. |
-| 2 | **`nix fmt`** (full treefmt) | Ran `gofmt -l` on my files only. AGENTS.md mandates `nix fmt` for repo-wide consistency. |
-| 3 | **`nix run .#check-layers`** | Dependency budget check. codec gained no new deps, but not verified. |
-| 4 | **Benchmarks** | `BenchmarkTranscodeToJSON`, `BenchmarkCBORToJSONTransform` — status report flagged, not closed. |
-| 5 | **Fuzz test** | `TranscodeToJSON` with random bytes + `EncodingCBOR` — no panic guarantee unverified. |
-| 6 | **ADR for slog.Default() decision** | Adding logging to a library function is a design decision. 69 ADRs exist. Not documented. |
-| 7 | **5 other broken modules** | benchkit, stack/pebble, stack/postgres, stack/sqlite, metaengine/projectionadapter — documented as drift, not investigated for quick fixes. |
-| 8 | **Root SKILL.md + recipes.md** | Previous session flagged, I repeated the skip. |
-| 9 | **Actual DiscordSync deletion + test** | The consumer-side work that proves the library feature delivers its goal. |
+| #   | Item                                   | Why                                                                                                                                                                         |
+| --- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **`nix run .#verify`**                 | Repeated the previous session's E5 failure. Ran individual checks, called it "equivalent." The project has ONE canonical gate including `doc-assertions` which I never ran. |
+| 2   | **`nix fmt`** (full treefmt)           | Ran `gofmt -l` on my files only. AGENTS.md mandates `nix fmt` for repo-wide consistency.                                                                                    |
+| 3   | **`nix run .#check-layers`**           | Dependency budget check. codec gained no new deps, but not verified.                                                                                                        |
+| 4   | **Benchmarks**                         | `BenchmarkTranscodeToJSON`, `BenchmarkCBORToJSONTransform` — status report flagged, not closed.                                                                             |
+| 5   | **Fuzz test**                          | `TranscodeToJSON` with random bytes + `EncodingCBOR` — no panic guarantee unverified.                                                                                       |
+| 6   | **ADR for slog.Default() decision**    | Adding logging to a library function is a design decision. 69 ADRs exist. Not documented.                                                                                   |
+| 7   | **5 other broken modules**             | benchkit, stack/pebble, stack/postgres, stack/sqlite, metaengine/projectionadapter — documented as drift, not investigated for quick fixes.                                 |
+| 8   | **Root SKILL.md + recipes.md**         | Previous session flagged, I repeated the skip.                                                                                                                              |
+| 9   | **Actual DiscordSync deletion + test** | The consumer-side work that proves the library feature delivers its goal.                                                                                                   |
 
 ---
 
@@ -83,7 +83,7 @@ The project standardizes on OpenTelemetry for observability (AGENTS.md principle
 
 A more idiomatic approach: emit an OTel counter (`transform.fallback.total`) or a span event on the fallback path. This would integrate with the existing observability stack and match the `projectionhost` pattern (which uses `OnFailed` callbacks + OTel spans).
 
-**Why slog.Default() is defensible:** zero new deps, stdlib, consumer-controllable via `slog.SetDefault()`, and UP1 literally says "logged at Warn." But I didn't *consider* the OTel alternative and justify the choice — I just picked the first thing that worked.
+**Why slog.Default() is defensible:** zero new deps, stdlib, consumer-controllable via `slog.SetDefault()`, and UP1 literally says "logged at Warn." But I didn't _consider_ the OTel alternative and justify the choice — I just picked the first thing that worked.
 
 ### D3. **I repeated the previous session's `nix run .#verify` failure (E5)**
 
@@ -210,6 +210,7 @@ I tested codec at HEAD. I didn't verify that `git checkout codec/v4.1.1` (via wo
 ### Q1. Should `codec/v4.1.1` be re-tagged as `v4.2.0` (semver-correct for new API)?
 
 The tag adds two new exported functions. Per strict semver, new public API = minor bump. I tagged `v4.1.1` (patch). The project's history is mixed (`event/` has many patch releases with new API). Do you want:
+
 - **(a)** Keep `v4.1.1` (patch — matches some existing precedent, but semver-incorrect), or
 - **(b)** Delete the local tag and re-tag as `v4.2.0` (semver-correct), or
 - **(c)** You don't care about semver granularity for this repo?
@@ -217,12 +218,14 @@ The tag adds two new exported functions. Per strict semver, new public API = min
 ### Q2. Should I actually delete the ~57 LOC in DiscordSync now, or is that a separate task?
 
 UP1's stated goal is "deletes the entire application-level transcode path." I verified the target (`sseCBORCache` + `getSSECBORDecMode` + `jsonPayloadForSSE` in `DiscordSync/internal/api/sse.go`) but didn't perform the deletion. DiscordSync uses `cqrs-htmx` SSE (not SSEBroker), so the deletion uses `codec.TranscodeToJSON` directly (not `CBORToJSONTransform`). Should I:
+
 - **(a)** Switch to DiscordSync and perform the deletion + run its tests now, or
 - **(b)** Leave it as a separate consumer-side task (the library feature is complete)?
 
 ### Q3. Should `CBORToJSONTransform` use OTel instead of `slog.Default()` for the fallback signal?
 
 The project standardizes on OTel (principle #13). I added `slog.Default()` for the Warn log. `transport/http` already imports `otel/`. An OTel counter (`transform.fallback.total`) or span event would integrate with the existing observability stack. Should I:
+
 - **(a)** Replace `slog.Default()` with an OTel counter + span event (more idiomatic, but changes the "logged at Warn" semantics), or
 - **(b)** Keep `slog.Default()` (matches UP1's literal "logged at Warn" wording, zero deps), or
 - **(c)** Add both (slog for the log line, OTel counter for metrics)?
@@ -231,19 +234,19 @@ The project standardizes on OTel (principle #13). I added `slog.Default()` for t
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Modules fixed (CI break) | 3 (transport/http, signing, encryption) — was 1 in prev report |
-| Tags created | 1 (`codec/v4.1.1`, annotated, local, **not pushed**) |
-| Tests added | 3 (backfill integration, CBORCompactCodec interop, corrupt-CBOR fallback) |
-| Tests passing | 12/12 across codec + transport/http (6 + 6) |
-| Lint issues | 0 (all 4 modules) |
-| Race tests | codec + transport/http `-race -count=3` green; signing + encryption `-race` green |
-| api-stability | 2675 exports verified |
-| doc-check | 918 refs valid |
-| Acceptance criteria met | **6/6** (was 5/6 — "logged at Warn" closed) |
-| Commits (auto-git) | 1 this session (`17e8b98e`) |
-| Uncommitted files | 3 go.mod files (daemon will pick up) |
-| `nix run .#verify` run | **No** (repeated E5 failure) |
-| Process failures repeated | 1 (E5: verify gate) |
-| Process failures new | 3 (D1: tidy version reset, D2: slog vs OTel, D4: semver) |
+| Metric                    | Value                                                                             |
+| ------------------------- | --------------------------------------------------------------------------------- |
+| Modules fixed (CI break)  | 3 (transport/http, signing, encryption) — was 1 in prev report                    |
+| Tags created              | 1 (`codec/v4.1.1`, annotated, local, **not pushed**)                              |
+| Tests added               | 3 (backfill integration, CBORCompactCodec interop, corrupt-CBOR fallback)         |
+| Tests passing             | 12/12 across codec + transport/http (6 + 6)                                       |
+| Lint issues               | 0 (all 4 modules)                                                                 |
+| Race tests                | codec + transport/http `-race -count=3` green; signing + encryption `-race` green |
+| api-stability             | 2675 exports verified                                                             |
+| doc-check                 | 918 refs valid                                                                    |
+| Acceptance criteria met   | **6/6** (was 5/6 — "logged at Warn" closed)                                       |
+| Commits (auto-git)        | 1 this session (`17e8b98e`)                                                       |
+| Uncommitted files         | 3 go.mod files (daemon will pick up)                                              |
+| `nix run .#verify` run    | **No** (repeated E5 failure)                                                      |
+| Process failures repeated | 1 (E5: verify gate)                                                               |
+| Process failures new      | 3 (D1: tidy version reset, D2: slog vs OTel, D4: semver)                          |

@@ -156,11 +156,11 @@
     "samber-do-auditlog": {
       "flake": false,
       "locked": {
-        "lastModified": 1785097594,
-        "narHash": "sha256-+PYj6ZYPWv9X+WX69KJECFT9KyHzSV0+y0UCbPOCwHA=",
+        "lastModified": 1785107133,
+        "narHash": "sha256-074ikCRouc8ecZPO79APL3ei5IyVrL/7bs7WJLIiyvg=",
         "ref": "master",
-        "rev": "dc84da070dfccf97e01ba3c47539a03a63512696",
-        "revCount": 553,
+        "rev": "aae2e298f94f706689ee61b99c415b8e0714aa68",
+        "revCount": 556,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/samber-do-auditlog"
       },
