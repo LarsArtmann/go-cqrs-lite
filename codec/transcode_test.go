@@ -279,15 +279,17 @@ func TestTranscodeToJSON_EmptyContainers(t *testing.T) {
 	})
 }
 
-// TestTranscodeToJSON_MapKeyOrdering documents the key-ordering difference
-// between the two encodings (#23): CBOR canonical encoding sorts map keys, and
-// Go's json.Marshal on a map[string]any also sorts keys alphabetically. The
-// output is therefore stable and alphabetical — callers can rely on this for
-// deterministic SSE payloads.
-func TestTranscodeToJSON_MapKeyOrdering(t *testing.T) {
+// TestTranscodeToJSON_MapKeysRoundTrip documents the key-ordering reality of
+// the generic transcode path (#23): CBOR canonical encoding sorts map keys on
+// the wire, but the generic decode produces a Go map[string]any whose keys are
+// then re-encoded by json.Marshal. Under encoding/json/v2 the output key order
+// is NOT guaranteed to be sorted or stable across runs (Go map iteration is
+// randomized). So this test asserts key presence + values, not byte order.
+// Callers needing deterministic key order must use event.DecodePayloadAuto[T]
+// with a concrete struct type, or sort the JSON keys themselves.
+func TestTranscodeToJSON_MapKeysRoundTrip(t *testing.T) {
 	t.Parallel()
 
-	// Encode with deliberately non-alphabetical insertion order.
 	in := map[string]any{"zebra": 1, "apple": 2, "mango": 3}
 	cborData, err := (CBORCodec{}).Encode(in)
 	if err != nil {
@@ -299,9 +301,20 @@ func TestTranscodeToJSON_MapKeyOrdering(t *testing.T) {
 		t.Fatalf("transcode: %v", err)
 	}
 
-	// json.Marshal sorts map[string]any keys alphabetically.
-	want := `{"apple":2,"mango":3,"zebra":1}`
-	if string(out) != want {
-		t.Errorf("keys not alphabetically sorted\ngot  %q\nwant %q", out, want)
+	var got map[string]any
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatalf("invalid JSON: %v\nraw: %s", err, out)
+	}
+
+	want := map[string]any{"zebra": float64(1), "apple": float64(2), "mango": float64(3)}
+	for k, wantV := range want {
+		gotV, ok := got[k]
+		if !ok {
+			t.Errorf("key %q missing from %s", k, out)
+			continue
+		}
+		if gotV != wantV {
+			t.Errorf("key %q = %v, want %v", k, gotV, wantV)
+		}
 	}
 }

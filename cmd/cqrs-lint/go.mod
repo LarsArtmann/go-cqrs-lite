@@ -4,8 +4,8 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/cmdguard/v3 v3.1.0
-	github.com/larsartmann/go-finding v1.4.0
-	github.com/larsartmann/go-finding/pipeline v1.4.0
+	github.com/larsartmann/go-finding v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-output v0.32.0
 	github.com/larsartmann/go-output/table v0.32.0
 	github.com/spf13/cobra v1.10.2
