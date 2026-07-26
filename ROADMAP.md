@@ -13,11 +13,13 @@
 
 **v4.1.0 tagged** (2026-07-23) — initial module batch tagged on `/v4` import paths
 (verify: `git tag --list '*/v4.1.0' | wc -l`). The workspace has 58 `go.mod`
-files; 57 of 58 are tagged and pushed to origin. One module
-(`metaengine/projectionadapter`) remains untagged — its `go.mod` has a local
-replace directive that must be removed before tagging. `metaengine/v4.1.1` was
-tagged 2026-07-26 (fixes a panicking `MapUpdate` from v4.1.0). The deprecated-API
-removal batch shipped (see [CHANGELOG.md](CHANGELOG.md) `[Unreleased]` → Removed).
+files; 57 of 58 have tags reachable from HEAD. One module
+(`metaengine/projectionadapter`) is tagged locally and on origin, but its
+`v4.0.0` tag points to a commit **not reachable from HEAD** (orphaned) — it
+needs re-tagging on the correct commit before consumers can resolve it
+reliably. `metaengine/v4.1.1` was tagged 2026-07-26 (fixes a panicking
+`MapUpdate` from v4.1.0). The deprecated-API removal batch shipped (see
+[CHANGELOG.md](CHANGELOG.md) `[Unreleased]` → Removed).
 
 The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs,
 command/query dispatch, pure-function deciders, three projection tiers
@@ -87,11 +89,11 @@ structs. The Pareto execution plan landed the production maturity chain:
 - ✅ **Dependency boundary** — Core `metaengine/v4` stays zero-dep; adapter is
   a separate module (ADR-0062)
 
-**Remaining:** tag `metaengine/projectionadapter` after removing its local
-replace directive; implement Phase 2 declarative pushdown when a production
-consumer needs SQL filter/sort pushdown. Metaengine lint is clean (143 → 0);
-cost calibration shipped (Memory=500ns, SQLite=7000ns); fold-classify logic
-and cross-engine meta-test guard correctness.
+**Remaining:** re-tag `metaengine/projectionadapter/v4.0.0` (current tag is
+orphaned — points to a commit not in HEAD); implement Phase 2 declarative
+pushdown when a production consumer needs SQL filter/sort pushdown. Metaengine
+lint is clean (143 → 0); cost calibration shipped (Memory=500ns, SQLite=7000ns);
+fold-classify logic and cross-engine meta-test guard correctness.
 
 ### 2. Benchkit → Released
 

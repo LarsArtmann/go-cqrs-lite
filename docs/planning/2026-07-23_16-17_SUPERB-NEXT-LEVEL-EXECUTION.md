@@ -1,10 +1,10 @@
 # Superb Next-Level Execution Plan
 
 **Created:** 2026-07-23 16:17 CEST  
-**Status:** Active execution plan  
+**Status:** ~~Active execution plan~~ **Executed** (2026-07-23 through 2026-07-26). See [Resolution](#resolution-2026-07-26) below.  
 **Working tree:** Clean (all previous work committed)  
 **Build:** Passing  
-**Lint:** 17 issues across 5 modules (command, query, decider, schema, storage/relational)
+**Lint:** ~~17 issues across 5 modules (command, query, decider, schema, storage/relational)~~ **0 issues across all 58 modules** (achieved 2026-07-23).
 
 ---
 
@@ -182,3 +182,22 @@ graph TD
 3. **gocritic appendAssign**: This IS a real smell. `append(keyCols, counterCol)` can mutate the shared backing array if `keyCols` has capacity. The fix is to create independent slices.
 
 4. **ireturn for schema/decider**: Factory functions returning interfaces is the Go-idiomatic builder pattern. nolint with justification is correct.
+
+---
+
+## Resolution (2026-07-26)
+
+This plan was executed across sessions 2026-07-23 through 2026-07-26. Outcome:
+
+| Phase | Claim in plan | Resolution |
+| ----- | ------------- | ---------- |
+| Phase 1 (Zero-Lint) | 17 lint issues across 5 modules | **DONE** — lint is 0 across all 58 modules. The exhaustruct/wrapcheck/ireturn/gci/gocritic fixes shipped. |
+| Phase 2 (LagDuration) | `projectionhost.Host.LagDuration()` missing | **DONE** — `LagDuration()` + `LagPerProjection()` shipped in `projectionhost/`. |
+| Phase 3 (SQLTimerStore) | Implement `scheduling.SQLTimerStore` | **DONE** — `SQLTimerStore` already existed in `storage/` (`storage/timer_store.go`); confirmed wired. |
+| Phase 3 (SQLAggregateReader) | Implement `listing.SQLAggregateReader` | **N/A** — subsumed by the Aggregate→Stream rename (ADR-0058). Stream-based read APIs cover this. |
+| Phase 3 (getting-started) | Compile-verify `docs/getting-started.md` | **DONE** — `docs_compile_test.go` in `example/getting-started/` tests every API pattern. |
+| Phase 4 (README rewrite) | README "sales page" rewrite | **DONE** — README restructured as 3-step Quick Start (2026-07-24). |
+| Phase 4 (Deprecated API removal) | Batch 2 removal | **DONE** — shipped in `[Unreleased]` → Removed. |
+| Module count | 52 modules | Now **58** `go.mod` files. |
+
+All Phase 1–4 tasks are complete. The two BLOCKED items (license swap, git history scrub) remain user-gated and are not tracked here.

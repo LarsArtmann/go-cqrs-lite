@@ -553,3 +553,28 @@ the integration shape, ordering guarantees, and materialization strategies.
 > These are design-stage documents, not released modules. They describe how a
 > consumer would compose the existing store/bus/projection interfaces against
 > these backends.
+
+### 2.14 CBOR→JSON for Browser SSE Clients (codec + transport/http)
+
+Store events in compact CBOR but serve JSON over SSE to browsers. The
+`codec.TranscodeToJSON` primitive decodes CBOR generically and re-encodes as
+JSON; `http.CBORToJSONTransform` wraps it as a ready-made payload transform
+with graceful fallback (on decode failure the raw payload is sent, so clients
+never see a gap).
+
+```go
+import cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
+
+// One-liner: every SSE/backfill payload is transcoded CBOR→JSON.
+broker, err := cqrshttp.NewSSEBroker(bus,
+    cqrshttp.WithPayloadTransform(cqrshttp.CBORToJSONTransform))
+```
+
+Non-CBOR events (JSON/Raw) pass through with zero overhead (1.9 ns, 0 allocs).
+The transform is applied uniformly across live, replay, and backfill paths.
+
+When you need schema-aware JSON (reconstructing field names from `toarray`
+structs) or custom logging, call `codec.TranscodeToJSON` directly inside your
+own `func(event.Event) []byte` and use `event.DecodePayloadAuto[T]` for typed
+decoding. See `codec/README.md` → "CBOR → JSON Transcoding".
+

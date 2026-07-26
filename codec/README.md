@@ -234,6 +234,33 @@ original location. Normalizing to UTC at encode time eliminates this ambiguity.
 store wall time components + IANA timezone name instead. See
 [docs/TIMEZONE_HANDLING.md](../docs/TIMEZONE_HANDLING.md) for the full guide.
 
+## CBOR → JSON Transcoding (`TranscodeToJSON`)
+
+Schema-free bridge for consumers that store events in CBOR but must serve JSON
+to browsers or REST clients (e.g. SSE delivery). Decodes the CBOR data model
+into a generic Go value and re-encodes as JSON, without needing the original
+struct type:
+
+```go
+// payload is the stamped event payload; enc comes from evt.Encoding()
+jsonBytes, err := codec.TranscodeToJSON(payload, enc)
+```
+
+- `EncodingJSON` / `EncodingRaw`: returned **unchanged** (zero-cost passthrough).
+- `EncodingCBOR`: decoded generically and re-encoded as JSON.
+
+Because it is schema-free, CBOR maps become JSON objects and CBOR arrays —
+including structs encoded with the `cbor:",toarray"` tag — stay arrays (field
+names cannot be reconstructed). For schema-aware JSON output, use
+`event.DecodePayloadAuto[T]` with the concrete payload type.
+
+The `transport/http` package provides `CBORToJSONTransform`, a ready-made
+adapter that wraps `TranscodeToJSON` for `http.WithPayloadTransform` — including
+graceful fallback to the raw payload on decode failure, so SSE clients always
+receive data. See the
+[transport/http SSE docs](../transport/http/README.md)
+and recipe `2.14 CBOR→JSON for Browser SSE Clients` in the skill.
+
 ## Related Modules
 
 - [**event**](../event/README.md) — `DecodePayload[T]` accepts a `Codec` to decode payloads

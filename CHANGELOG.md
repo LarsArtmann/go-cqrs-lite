@@ -121,9 +121,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `retry`, `idempotency/kvstore`, `idempotency/sqlstore`, `cmd/api-stability`, and
   `cmd/doc-check` to CI test module list. These modules were silently untested in CI.
 - **Module count** — 56 → 58 `go.mod` files (added `metaengine/projectionadapter`
-  and `idempotency/sqlstore`). 55 of 58 modules are tagged; `metaengine`,
-  `metaengine/projectionadapter`, and `idempotency/sqlstore` remain untagged
-  pending API stabilization and file-size-gate compliance.
+  and `idempotency/sqlstore`). All three formerly-untagged modules
+  (`metaengine`, `metaengine/projectionadapter`, `idempotency/sqlstore`) are now
+  tagged; `metaengine/projectionadapter/v4.0.0` is orphaned (points to a commit
+  not in HEAD) and needs re-tagging — see [TODO_LIST.md](TODO_LIST.md).
 
 ### Fixed (benchkit hardening session)
 
@@ -232,6 +233,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   concurrent calls.
 - **Metaengine multimap seq-seed** (ADR-0068) — lazy `sync.Once` seeding from
   `MAX(seq)` on first use ensures safe restart without sequence collisions.
+
+### Added (full TODO-list execution — 2026-07-26)
+
+> 25 of 27 Pareto-plan tasks completed; 2 declined with documented rationale.
+> See [TODO_LIST.md](TODO_LIST.md) "Declined" for the rationale.
+
+- **`#verify-fast` nix app** — passes `-short` to skip soak tests (35s → 0.05s
+  in benchkit). The rapid-iteration gate; full `#verify` remains for nightly.
+- **`#verify-parallel` nix app** — splits module tests into N batches (default:
+  nproc) for concurrent execution. Cuts ~4min sequential → ~1-2min.
+- **`#check-duplication` nix app + `.art-dupl-baseline.json`** — CI gate that
+  fails on newly introduced code clones (34 accepted groups at threshold 3).
+  Local-only; CI wiring pending.
+- **`#sweep` nix app** — runs `nix fmt` (gofumpt + goimports + golines) for
+  auto-commit daemon drift recovery.
+- **`#vulncheck` nix app** — runs `govulncheck` across all modules.
+- **Taxonomy-consistency CI check** (`scripts/verify-docs.sh`) — greps for stale
+  "5-family" / "5 Error Families" patterns in living docs. Prevents future
+  split-brain when go-error-family adds families.
+- **Idempotency property tests across all 3 implementations** — 4 rapid-based
+  property tests (RecordIsIdempotent, CheckAndRecordExactlyOnce,
+  KeysAreIndependent, TTLExpiry) now run against MemoryStore + KVStore +
+  SQLiteStore. Each SQLite test gets a unique named in-memory DB to prevent
+  parallel-test state leakage.
+- **Cursor round-trip tests for non-numeric keys** — string + time keys across
+  memory + SQLite engines. Verifies lexicographic/chronological ordering
+  survives Encode → ParseCursor.
+- **`TestTagContentMatchesChangelog` meta-test** — guards against tag/CHANGELOG
+  drift. Verifies every `## [vX.Y.Z]` in CHANGELOG.md has ≥1 git tag.
+- **Metaengine SQLite soak tests** — sustained writes (8 writers × 500 + 4
+  readers × 200) and multimap growth (1000 writes across 10 keys), verifying
+  grand-total integrity. Skip in `-short` mode.
+- **`startReadSpan` consolidation in pebble** — extracted helper matching the
+  existing `startLimitSpan` / `startStreamSpan` pattern. Applied to 5 bare
+  `StartSpan` sites; consolidated 3 `ReadFrom` error arms. Net: -20 lines.
+- **API stability golden regenerated** — 2675 exports (was 2637). New exports
+  from property tests, cursor tests, soak tests, meta-test.
+- **go-error-family v0.10.0 CHANGELOG entry** — records the upgrade, Orchestration
+  family addition, 3 exhaustive-switch fixes, and "5-family" → "6-family" doc
+  updates across error-taxonomy.md, README.md, FEATURES.md.
+- **4 historical files annotated** + **2 HTML dashboards hand-edited** —
+  analytics-rollup-review (rejected), NEXT-LEVEL-EXECUTION-STATUS (verify
+  GREEN), meta-engine-design (shipped as metaengine/v4), benchkit-implementation
+  (shipped). HTML: PARETO-EXECUTION-STATUS (Superseded badge),
+  cqrs-ecosystem-audit (All Issues Resolved).
+- **`metaengine/projectionadapter/v4.0.0` tag pushed** to origin.
 
 ### Changed
 

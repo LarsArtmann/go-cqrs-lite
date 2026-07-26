@@ -38,7 +38,7 @@ I resumed from a prior session's handoff summary that described the git state. T
 
 ## c) NOT STARTED
 
-1. **Actual benchmark implementation (M01–M24)** — The plan is a planning document only. Zero benchmark code was written. The 24 medium tasks and 96 fine tasks are entirely unimplemented. This is the entire actual work.
+1. ~~**Actual benchmark implementation (M01–M24)** — The plan is a planning document only. Zero benchmark code was written. The 24 medium tasks and 96 fine tasks are entirely unimplemented. This is the entire actual work.~~ **DONE:** the full evidence plan landed in the immediately following sessions (2026-07-24 22:17 + 23:05). Benchkit tagged `v4.1.0`, `cmd/cqrs-bench` tagged `v0.1.0`. See [Resolution](#resolution-2026-07-26) below.
 
 2. **Raw prebuilt-event sink phase** — Not built. The plan's first Pareto tier calls for splitting raw sink measurement from generated-write measurement.
 
@@ -168,3 +168,23 @@ I resumed from a prior session's handoff summary that described the git state. T
 2. **The inline SVG in the HTML is a hand-authored custom graph, while the `.svg` file is the D2-rendered output — they are different diagrams. Should the inline SVG be replaced with the D2 output for consistency, or do you want to keep the custom hand-drawn layout and delete the `.svg` file?** This is a presentation preference I cannot infer.
 
 3. **Should the actual benchmark implementation work (M01–M24) begin now, or do you want to review and revise the plan first?** The plan is pushed but has the journey-count discrepancy and unverified semantic consistency. Starting implementation on an unreviewed plan risks building the wrong thing.
+
+---
+
+## Resolution (2026-07-26)
+
+The "NOT STARTED — zero benchmark code" claim above is now false. The full
+benchmark evidence plan landed across two sessions immediately following this
+report:
+
+| Section c item | Claim | Resolution |
+| -------------- | ----- | ---------- |
+| c.1 (M01–M24) | "Zero benchmark code was written" | **DONE** — durability/recovery, production replay, `benchtest.RunSuite`, analytical profile, Postgres backend, scaling sweeps (M05–M07), benchstat/manifest (M10–M12), command-path benchmark (M13), profiling hooks (M20), CI workflow. Implementation sessions: `2026-07-24_22-17_BENCHMARK-EVIDENCE-IMPLEMENTATION-STATUS.md` + `2026-07-24_23-05_BENCHMARK-EVIDENCE-FULL-SESSION-STATUS.md`. |
+| c.2 (raw sink phase) | "Not built" | **DONE** — raw sink phase shipped. |
+| c.3 (command-path benchmark) | "Not built" | **DONE** — M13 command dispatch journey shipped. |
+| c.4 (CPU/worker scaling) | "Not built" | **DONE** — `WorkerSweep`, `GOMAXPROCSSweep`, `BatchSizeSweep`, `StreamLengthSweep` shipped. |
+| c.5 (statistical protocol) | "Not built" | **DONE** — median selection via `--repeat N`, benchstat-compatible artifacts shipped. |
+| c.6 (regression policy) | "Not built" | **OPEN** — baseline diff / threshold gates not yet wired. See TODO_LIST. |
+| c.7 (CI integration) | "Not built" | **PARTIAL** — profiling hooks + benchmark interpretation guide shipped; full CI benchmark job not yet wired. |
+
+**Tags:** `benchkit/v4.1.0` + `cmd/cqrs-bench/v0.1.0` + `example/readme-quickstart/v0.1.0` tagged and pushed (2026-07-25).
