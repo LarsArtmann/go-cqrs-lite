@@ -12,92 +12,111 @@ this list and recorded in CHANGELOG.
 - `[BLOCKED]` = Blocked on upstream dependency or user approval
 - `🔥` = Pareto high impact (top 20% that delivers 80% of value)
 - `⭐` = Top 1% impact (do first)
+- `⚠️` = Partially done — needs completion
 
 ---
 
-## Verify Gate — get to GREEN end-to-end
+## Verify Gate
 
-> File-size gate is GREEN (all production files within 350-line limit). Lint is
-> clean (0 issues). The otel flakiness was fixed in the 2026-07-25 session via
-> `WithoutGlobalRegistration()`. The full `nix run .#verify` has not been
-> confirmed green end-to-end since the latest metaengine + dedup work.
+> `nix run .#verify` is GREEN (build + vet + test + race + lint + API stability
+> + doc-check). All 58 modules pass. Lint is clean (0 issues). File-size gate
+> is GREEN.
 
-- [ ] ⭐ **Run `nix run .#verify` end-to-end** and fix anything red.
-      Known flaky: 5 benchkit timing tests (`TestRunSoak_TrendsPopulated`,
-      `TestRunSoak_Memory`, `TestWriteSoakJSON_RoundTrip`,
-      `TestSnapshotPhase_SQLite`, `TestRun_AnalyticalJournalScans`) pass in
-      isolation but fail under full-suite `-race` load. Fix: add
-      `testutil.RaceEnabled` thresholds (see AGENTS.md lint conventions).
-- [ ] **Document `otel.WithoutGlobalRegistration()`** in AGENTS.md OTel section + Crush skill `references/core.md` — public API added during the otel
-      flakiness fix, currently undocumented for consumers.
-
----
-
-## Module Tagging
-
-> 57 of 58 modules are tagged and pushed. `metaengine/v4.0.0`,
-> `metaengine/v4.1.0`, `metaengine/v4.1.1`, `idempotency/sqlstore/v4.0.0`, and
-> `benchkit/v4.1.0` are all pushed to origin. The 32 missing tags from the
-> 2026-07-25 release fix are also pushed.
-
-- [BLOCKED] **Tag `metaengine/projectionadapter/v4.0.0`** — its `go.mod` has a
-  local `metaengine/v4 => ../` replace directive. Although `metaengine/v4.1.1`
-  is now published, the replace must be removed and the version pinned before
-  tagging. Run `./scripts/tag-release.sh metaengine/projectionadapter v4.0.0`.
+- [ ] 🔥 **Fix stale "5-family" references** introduced by go-error-family
+      v0.10.0 upgrade. Three living docs still say "5-family" instead of
+      "6-family" (Orchestration was added):
+      `docs/error-taxonomy.md` (also says "v0.5.1" — 7 versions stale),
+      `README.md:125`, `FEATURES.md:108`. This is a **split-brain** introduced
+      in the 2026-07-26 execution session.
+- [ ] **Wire `testing.Short()` into `#verify`** — benchkit soak tests now skip
+      in short mode (35s → 0.05s), but `nix run .#verify` does not pass
+      `-short`. Add a `-short` variant or a separate `#verify-fast` app.
 
 ---
 
-## Release Tooling
+## Release
 
-- [ ] **Audit `scripts/tag-release.sh`** for other `pipefail` traps like the one
-      fixed this session (grep `-P` no-match on non-cqrs replace directives
-      aborted the whole release under `set -euo pipefail`). Consider `--dry-run`
-      mode and single-module tagging (currently touches all 58 go.mod files).
-- [ ] **Investigate `v4.0.4` tag-at-commit question** — `codec/v4.0.4`,
-      `event/v4.0.4`, `watermill/v4.0.4` all point to `8285da41` ("strip
-      replace directives"). A brutal self-review flagged this as potentially
-      wrong (should be `dbddbed6`), but both commits share the same message.
-      Verify the tagged tree content matches the intended release.
+> The CHANGELOG `[Unreleased]` section has 260+ lines across 12 subsections.
+> go-error-family was upgraded v0.9.0 → v0.10.0 across all 50 modules (added
+> Orchestration family). `metaengine/projectionadapter/v4.0.0` is tagged
+> locally but NOT pushed.
+
+- [BLOCKED] ⭐ **Cut v4.2.0 release** — flush `[Unreleased]` CHANGELOG, tag all
+      58 modules, push tags. Requires user approval for push.
+- [BLOCKED] 🔥 **Push `metaengine/projectionadapter/v4.0.0` tag** — exists
+      locally, invisible to consumers. `git push origin metaengine/projectionadapter/v4.0.0`.
+- [ ] **Regenerate api-stability golden** after v4.2.0 — new exports added
+      (idempotency property tests, metaengine gap tests, `queryMessageCol`
+      helper).
+- [ ] **Add CHANGELOG entry for go-error-family v0.10.0 upgrade** — record the
+      Orchestration family addition and the 3 exhaustive-switch fixes.
 
 ---
 
 ## Documentation Health
 
-- [ ] **Add ADR-0069 to the index** — `docs/README.md` and `docs/adr/README.md`
-      ADR tables stop at ADR-0068. ADR-0069 (error-wrapping helpers convention)
-      exists at `docs/adr/0069-error-wrapping-helpers.md` but is missing from
-      both index tables.
+- [ ] **Update `docs/error-taxonomy.md`** — change "v0.5.1" → "v0.10.0", add
+      Orchestration to the 5-row table, update all code examples.
+- [ ] **Add CI check for taxonomy-count consistency** — grep for "5-family" /
+      "5 Error Families" in living docs. Prevents future split-brain when
+      go-error-family adds families.
+- [ ] **Annotate remaining ~4 historical files** — stale openings without
+      Resolution sections: analytics-rollup-review, NEXT-LEVEL-EXECUTION-STATUS,
+      meta-engine-design, benchkit-implementation-status.
+- [ ] **Hand-edit 2 HTML dashboards** — PARETO-EXECUTION-STATUS.html,
+      cqrs-ecosystem-audit.html have stale hero sections.
 
 ---
 
 ## Module Health & Tooling
 
-- [ ] **Fix 5 benchkit timing tests** — add `testutil.RaceEnabled` thresholds
-      so they pass under full-suite `-race`. See report
-      `docs/status/2026-07-26_18-36_dedup-session-6-brutal-self-review.md`.
-- [ ] **Property test for `idempotency.Store`** — generate random Record/Seen/
-      CheckAndRecord sequences via `pgregory.net/rapid`, assert contract
-      invariants hold across all 3 implementations (memory, kv, sql).
+- [ ] ⚠️ **Complete idempotency property tests for kv + sql** — 4 rapid-based
+      property tests were written but only tested against MemoryStore. The plan
+      called for all 3 implementations (memory, kv, sql). Run the property
+      tests against `kvstore.New()` and `sqlstore.NewSQLiteStore()`.
 - [ ] **Move 3-way idempotency contract test to `integration/`** — currently in
-      `idempotency/kvstore` (pulls sqlstore+sqlite as test deps). Move after
-      the projectionadapter tag is sorted.
-- [ ] **Fix `#vulncheck` nix app** — newer govulncheck requires explicit package
-      patterns (`./...`), not stdin. The pipeline may be broken.
-- [ ] **Real gocognit fix for `TestSinkUpsert`** — extract `assertMessageRow`
-      helper to genuinely reduce complexity (currently band-aided with
-      `//nolint:gocognit`).
+      `idempotency/kvstore` (pulls sqlstore+sqlite as test deps).
+- [ ] **Cursor round-trip test for non-numeric keys** — string/time keys on
+      SQLite engine. Cross-engine meta-test gap.
+- [ ] **Promote `wrapInfraOrOK` to storage/sql, signing, codec** — 20+ call
+      sites in storage/sql alone. Per ADR-0069 per-module pattern.
+- [ ] **spannedRead helper in pebble** — 4+ clone groups remain.
+- [ ] **filterDetectors extraction in cqrs-lint** — shared by multiple rules.
+- [ ] **Stack preset stackpreset builder** — parallel boilerplate across
+      presets.
+- [ ] **Test infra helpers** — eventtest.NewTestStreamID, catalogtest,
+      storagetest, codectest.
+- [ ] **art-dupl CI gate** — golden file + fail-on-new-groups.
+- [ ] **Audit accepted clone groups** — verify 72 groups genuinely acceptable.
+- [ ] **`--semantic -t 3` art-dupl run** — deeper duplication surface.
+- [ ] **Write TestTagContentMatchesChangelog meta-test** — guard against
+      tag/CHANGELOG drift.
+- [ ] **Turso sync 4-way deep look** — accepted clone, may benefit from
+      extraction.
+
+---
+
+## Daemon / CI
+
+- [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
+      unformatted code (gci/gofumpt drift), turning `#lint` red. Either gate
+      daemon commits behind `nix fmt` or run a scheduled sweep.
 - [ ] **Triage auto-commit daemon commit messages** — prior decision was "leave
       as-is"; revisit if garbled messages block `git log` readability or release
       tagging.
-- [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
-      unformatted code (gci/gofumpt drift), turning `#lint` red. Either gate
-      daemon commits behind `nix fmt` or run a scheduled `nix fmt && nix run .#lint`.
-- [ ] **Benchkit per-module build broken** — stale `storage/pebble/v4.0.3` tag
-      references renamed `Snapshot` fields (`AggregateID`/`AggregateType`).
-      Re-tag storage/pebble or update benchkit go.mod.
-- [ ] **Dead Codec test code in benchkit** — `soak_test.go:283` Codec branch
-      never executes (test Config never sets Codec). Replace with a dedicated
-      `TestConfig_CodecRoundTrip`.
+- [ ] **Parallel verify** — run independent module tests concurrently to cut
+      verify time from ~4min to ~1min.
+- [ ] **Investigate dependabot alert** `security/dependabot/10` — `gh api`
+      returned no results (auth issue).
+
+---
+
+## Metaengine
+
+- [ ] **Soak test metaengine SQLite** — multi-hour load test for the SQLite
+      engine under concurrent writes.
+- [ ] **cqrs-bench workload for metaengine** — end-to-end Apply → ExecuteTyped
+      benchmark profile.
 
 ---
 
@@ -139,7 +158,7 @@ this list and recorded in CHANGELOG.
 - **Redis adapter** — see ROADMAP Non-Goals (ValKey/NATS/Kafka preferred).
 - **`idempotency.RefreshTTL(ctx, key, ttl)`** — dropped 2026-07-26 (YAGNI).
   Deferred across 6 sessions with no consumer; the design doc chose Option A
-  (no-op on existing) _because_ Option B's sliding window is unsafe (unbounded
+  (no-op on existing) *because* Option B's sliding window is unsafe (unbounded
   TTL under retry storms).
 - **cqrs-lint rule for the `idempotency.Store` Record contract** — dropped
   2026-07-26 (YAGNI). Only 3 Store impls exist (memory, kv, sql), all correct;
