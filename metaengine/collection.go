@@ -90,8 +90,13 @@ func reconstructCollection[R any](raw any, limit int, sortKeyFn func(any) any) R
 		val := reflect.ValueOf(item)
 		if val.Type().ConvertibleTo(info.itemsElemType) {
 			slice = reflect.Append(slice, val.Convert(info.itemsElemType))
-			lastItem = item
+		} else {
+			// SQL engines decode struct rows as map[string]any; reify to the
+			// typed element or the collection result would be silently empty.
+			slice = reflect.Append(slice, reifyReflect(item, info.itemsElemType))
 		}
+
+		lastItem = item
 	}
 
 	result := reflect.New(t).Elem()

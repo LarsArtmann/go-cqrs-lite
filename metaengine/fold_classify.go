@@ -21,7 +21,7 @@ func (f *Fold) callUpdate(event any, prev any) any {
 
 	args := []reflect.Value{reflect.ValueOf(event)}
 	if prev != nil {
-		args = append(args, reifyPrev(prev, prevType))
+		args = append(args, reifyReflect(prev, prevType))
 	} else {
 		args = append(args, reflect.Zero(prevType))
 	}
@@ -29,26 +29,27 @@ func (f *Fold) callUpdate(event any, prev any) any {
 	return fn.Call(args)[0].Interface()
 }
 
-// reifyPrev converts prev into a reflect.Value assignable to the update
-// handler's second parameter (prevType).
+// reifyReflect converts value into a reflect.Value assignable to target.
 //
-// Memory engines store and return typed Go values directly, so prev is
-// already assignable and is used as-is (no JSON round-trip, no alloc). SQL
-// engines JSON-encode on write and decode into any on read, producing
-// map[string]any for structs — which is NOT assignable to a typed prev
-// parameter and would panic inside the reflect.Call above.
+// Memory engines store and return typed Go values directly, so value is
+// already assignable and is returned as-is (no JSON round-trip, no alloc).
+// SQL engines JSON-encode on write and decode into any on read, producing
+// map[string]any for structs — which is not assignable to a typed parameter
+// and would panic inside a reflect.Call. reifyReflect rebuilds the typed
+// value via JSON round-trip, mirroring reify[R] (reify.go) for the reflect
+// call sites that do not have a static type parameter.
 //
-// This mirrors reify[R] (reify.go) for the write/fold path. Reification
-// cannot fail for values the engine itself wrote: they are valid JSON of
-// exactly prevType, so the round-trip is lossless. A marshal/unmarshal
-// failure (only possible for externally-corrupted data) falls back to the
-// zero value rather than panicking the whole Apply.
-func reifyPrev(prev any, target reflect.Type) reflect.Value {
-	if rt := reflect.TypeOf(prev); rt != nil && rt.AssignableTo(target) {
-		return reflect.ValueOf(prev)
+// Reification cannot fail for values an engine itself wrote (they are valid
+// JSON of exactly target), so the round-trip is lossless. A marshal/unmarshal
+// failure (only possible for externally-corrupted data, or for a raw cursor
+// scalar passed where a struct is expected) falls back to the zero value of
+// target rather than panicking.
+func reifyReflect(value any, target reflect.Type) reflect.Value {
+	if rt := reflect.TypeOf(value); rt != nil && rt.AssignableTo(target) {
+		return reflect.ValueOf(value)
 	}
 
-	b, err := json.Marshal(prev)
+	b, err := json.Marshal(value)
 	if err != nil {
 		return reflect.Zero(target)
 	}

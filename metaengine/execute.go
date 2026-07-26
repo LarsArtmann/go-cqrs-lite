@@ -192,12 +192,15 @@ func buildFilterPredicates(q queryRuntime, input any) []filterPredicate {
 		}
 
 		closure := acc.closure
+		closureParam := reflect.TypeOf(closure).In(0)
 
 		predicates = append(predicates, filterPredicate{
 			expected: expected,
 			test: func(item any) bool {
 				rv := reflect.ValueOf(closure)
-				result := rv.Call([]reflect.Value{reflect.ValueOf(item)})
+				// SQL engines decode struct rows as map[string]any; reify to the
+				// typed parameter or reflect.Call panics on the type mismatch.
+				result := rv.Call([]reflect.Value{reifyReflect(item, closureParam)})
 
 				return reflect.DeepEqual(result[0].Interface(), expected)
 			},
@@ -251,11 +254,17 @@ func buildSortFunc(closure any) func(a, b any) int {
 	paramType := rv.Type().In(0)
 
 	extractKey := func(item any) any {
-		if reflect.TypeOf(item) == paramType {
+		t := reflect.TypeOf(item)
+		if t == paramType {
 			return rv.Call([]reflect.Value{reflect.ValueOf(item)})[0].Interface()
 		}
+		// SQL engines decode struct rows as map[string]any; reify to paramType
+		// so the SortOn closure extracts the real sort key.
+		if t != nil && t.Kind() == reflect.Map {
+			return rv.Call([]reflect.Value{reifyReflect(item, paramType)})[0].Interface()
+		}
 
-		return item
+		return item // raw cursor key — compared directly
 	}
 
 	return func(a, b any) int {
@@ -284,9 +293,10 @@ func (s *Store) sortKeyFn(inputType string) func(any) any {
 	}
 
 	rv := reflect.ValueOf(q.config.sortAccessor.closure)
+	paramType := rv.Type().In(0)
 
 	return func(item any) any {
-		return rv.Call([]reflect.Value{reflect.ValueOf(item)})[0].Interface()
+		return rv.Call([]reflect.Value{reifyReflect(item, paramType)})[0].Interface()
 	}
 }
 
