@@ -7,8 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	_ "modernc.org/sqlite"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // These benchmarks cover the metaengine SQLite engine's PLANNER PATH

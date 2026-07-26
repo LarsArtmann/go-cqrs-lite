@@ -184,11 +184,5 @@ func (a *EventStore) scanJournalWithSkip(
 // journalKeyEventID extracts the event ID portion from a journal key.
 // Journal key format: {prefix}{020d_timestamp}:{eventID}.
 func journalKeyEventID(key []byte) string {
-	for i := len(key) - 1; i >= 0; i-- { //nolint:modernize // reverse scan is clearer here
-		if key[i] == ':' {
-			return string(key[i+1:])
-		}
-	}
-
-	return string(key)
+	return lastSegmentAfterByte(key, ':')
 }

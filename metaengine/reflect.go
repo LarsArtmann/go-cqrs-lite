@@ -132,19 +132,25 @@ func extractKeyValueByType(input any, keyType reflect.Type) any {
 	return v.Field(foundIdx).Interface()
 }
 
-// extractDepthFromInput finds a field named "Depth" of type int in the input struct.
-func extractDepthFromInput(input any) int {
+// extractIntFieldByName reads an int field by name from the input struct,
+// returning defaultVal when the struct, field, or type is invalid.
+func extractIntFieldByName(input any, fieldName string, defaultVal int) int {
 	v, ok := structValue(input)
 	if !ok {
-		return 1
+		return defaultVal
 	}
 
-	f := v.FieldByName("Depth")
+	f := v.FieldByName(fieldName)
 	if !f.IsValid() || f.Kind() != reflect.Int {
-		return 1
+		return defaultVal
 	}
 
 	return int(f.Int())
+}
+
+// extractDepthFromInput finds a field named "Depth" of type int in the input struct.
+func extractDepthFromInput(input any) int {
+	return extractIntFieldByName(input, "Depth", 1)
 }
 
 // detectPagination checks if the input struct has pagination fields.

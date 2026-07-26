@@ -190,11 +190,5 @@ func (s *CommandStore) scanCommands(
 
 // journalKeyCommandID extracts the command ID portion from a journal key.
 func journalKeyCommandID(key []byte) string {
-	for i := len(key) - 1; i >= 0; i-- { //nolint:modernize // reverse scan is clearer here
-		if key[i] == ':' {
-			return string(key[i+1:])
-		}
-	}
-
-	return string(key)
+	return lastSegmentAfterByte(key, ':')
 }

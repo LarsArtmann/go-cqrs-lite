@@ -159,6 +159,18 @@ func keyExists(db *pebble.DB, key []byte) bool {
 	return !errors.Is(err, pebble.ErrNotFound)
 }
 
+// lastSegmentAfterByte returns the substring after the last occurrence of sep
+// in key, or the whole key if sep is not found. Shared by journal-key ID extractors.
+func lastSegmentAfterByte(key []byte, sep byte) string {
+	for i := len(key) - 1; i >= 0; i-- { //nolint:modernize // reverse scan is clearer here
+		if key[i] == sep {
+			return string(key[i+1:])
+		}
+	}
+
+	return string(key)
+}
+
 // closeAndWrap closes db and wraps any failure with the given errorfamily code
 // and message. Shared by KVAdapter.Close and Backend.Close.
 func closeAndWrap(db *pebble.DB, code, msg string) error {

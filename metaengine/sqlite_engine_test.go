@@ -262,7 +262,7 @@ var _ = Describe("SQLiteEngine FoldUpdate reify (regression)", func() {
 	It("applies a typed update fold through SQLite without panicking", func() {
 		// Regression: SQLite MapUpdate decodes the stored value into any,
 		// producing map[string]any. The fold's typed update handler
-		// (func(TaskCompleted, FindTaskResult) FindTaskResult) must receive a
+		// (func(TaskCompleted, FindTaskResult) must receive
 		// reified FindTaskResult, not the raw map — otherwise reflect.Call
 		// panics on the type mismatch. Memory engines store typed values, so
 		// only the SQLite path exhibited this. Found by planner_bench_test.go.
