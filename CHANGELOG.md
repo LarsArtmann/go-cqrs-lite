@@ -226,7 +226,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **README rewrite** — restructured as 3-step Quick Start (define domain, event-source
   with decider, go to production). Added Install section, trimmed module catalog to 12
-  key modules (links to AGENTS.md for full 56). Moved "Why" section before catalog.
+  key modules (links to AGENTS.md for full 58). Moved "Why" section before catalog.
 - **Docs compile-verification** — `docs_compile_test.go` in `example/getting-started/`
   tests every API pattern from `docs/getting-started.md` to catch drift in CI.
 - **Module count** — 56 → 58 `go.mod` files (metaengine, benchkit, cmd/cqrs-bench,

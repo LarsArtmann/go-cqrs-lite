@@ -273,6 +273,12 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   qryDisp.Use(bundle.Query()...)
 //   // Tracing-only: pass nil meter + middleware.WithMetricsDisabled()
 //
+//   // Isolated providers (no global registration — tests, multi-service):
+//   provider, _ := cqrsotel.Setup(
+//       cqrsotel.WithService("test", "1.0", "test"),
+//       cqrsotel.WithoutGlobalRegistration(), // skip otel.Set*Provider calls
+//   )
+//
 //   // otel.Setup + prometheus.Setup composition (tracing + Prometheus metrics):
 //   // Call otel.Setup for tracing, then override the meter provider with
 //   // prometheus.Setup, passing CQRS views so histogram boundaries are applied.

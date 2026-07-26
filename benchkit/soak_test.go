@@ -278,15 +278,38 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 			t.Errorf("sample %d CacheHitP99: got %s, want %s", i, got.CacheHitP99, want.CacheHitP99)
 		}
 	}
+}
 
-	// Verify Config.Codec round-trips via CodecName (the bug this fixes).
-	if original.Config.Config.Codec != nil {
-		enc := original.Config.Config.Codec.Encoding()
-		if decoded.Config.Config.Codec == nil {
-			t.Errorf("Config.Codec is nil after round-trip (should be %q)", enc)
-		} else if decoded.Config.Config.Codec.Encoding() != enc {
-			t.Errorf("Config.Codec.Encoding(): got %q, want %q",
-				decoded.Config.Config.Codec.Encoding(), enc)
-		}
+func TestConfig_CodecRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	original := &SoakResult{
+		Backend: "memory",
+		Config: SoakConfig{
+			Config: Config{
+				Profile:     ProfileDev,
+				PayloadSize: 64,
+				Backend:     "memory",
+				Codec:       codec.JSONCodec{},
+			},
+		},
+	}
+
+	var buf bytes.Buffer
+	if err := WriteSoakJSON(&buf, original); err != nil {
+		t.Fatalf("WriteSoakJSON: %v", err)
+	}
+
+	var decoded SoakResult
+	if err := json.Unmarshal(buf.Bytes(), &decoded, jsonOpts); err != nil {
+		t.Fatalf("json.Unmarshal: %v", err)
+	}
+
+	if decoded.Config.Config.Codec == nil {
+		t.Fatal("Config.Codec is nil after round-trip, expected JSONCodec")
+	}
+
+	if got := decoded.Config.Config.Codec.Encoding(); got != codec.EncodingJSON {
+		t.Errorf("Config.Codec.Encoding(): got %q, want %q", got, codec.EncodingJSON)
 	}
 }

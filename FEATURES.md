@@ -238,7 +238,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | Cross-engine meta-test     | 150 specs run identical Apply → ExecuteTyped sequences on Memory + SQLite, asserting identical typed results | 🧪     |
 | End-to-end verification    | Signature + ciphertext verification integrated across Memory and SQLite engines                             | 🧪     |
 
-**Coverage:** 87.7% (174 BDD specs + 150 cross-engine meta specs). SQLite engine
+**Coverage:** 85.0% (174 BDD specs + 150 cross-engine meta specs). SQLite engine
 + projection adapter added via the Pareto execution plan. Cost model calibrated
 with real benchmarks. `metaengine/v4.1.1` tagged (fixes panicking MapUpdate from
 v4.1.0). Pushdown ADR (0063) designs Phase 2 declarative FilterSpec/SortSpec.
