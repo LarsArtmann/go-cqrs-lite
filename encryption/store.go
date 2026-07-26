@@ -90,7 +90,14 @@ func (s *encryptedStore) Load(
 	ctx context.Context,
 	ref id.StreamRef,
 ) ([]event.Event, error) {
-	events, err := s.inner.Load(ctx, ref)
+	return s.loadAndDecrypt(s.inner.Load(ctx, ref))
+}
+
+// loadAndDecrypt is the shared load+decrypt tail: returns err if non-nil,
+// otherwise decrypts the events. Collapses the repeated
+// "events, err := ...; if err != nil { return nil, err }; return decrypt(events)"
+// pattern across Load, LoadFromVersion, LoadToVersion, LoadToTimestamp, and ReadAll.
+func (s *encryptedStore) loadAndDecrypt(events []event.Event, err error) ([]event.Event, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -103,12 +110,7 @@ func (s *encryptedStore) LoadFromVersion(
 	ref id.StreamRef,
 	fromVersion event.Version,
 ) ([]event.Event, error) {
-	events, err := s.inner.LoadFromVersion(ctx, ref, fromVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.decryptEvents(events)
+	return s.loadAndDecrypt(s.inner.LoadFromVersion(ctx, ref, fromVersion))
 }
 
 func (s *encryptedStore) LoadToVersion(
@@ -116,12 +118,7 @@ func (s *encryptedStore) LoadToVersion(
 	ref id.StreamRef,
 	toVersion event.Version,
 ) ([]event.Event, error) {
-	events, err := s.inner.LoadToVersion(ctx, ref, toVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.decryptEvents(events)
+	return s.loadAndDecrypt(s.inner.LoadToVersion(ctx, ref, toVersion))
 }
 
 func (s *encryptedStore) LoadToTimestamp(
@@ -129,12 +126,7 @@ func (s *encryptedStore) LoadToTimestamp(
 	ref id.StreamRef,
 	timestamp time.Time,
 ) ([]event.Event, error) {
-	events, err := s.inner.LoadToTimestamp(ctx, ref, timestamp)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.decryptEvents(events)
+	return s.loadAndDecrypt(s.inner.LoadToTimestamp(ctx, ref, timestamp))
 }
 
 // ReadAll delegates to the inner store's Journal.ReadAll if supported,
@@ -146,12 +138,7 @@ func (s *encryptedStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 			"encryption.store_not_journal", "inner store %T does not implement Journal", s.inner)
 	}
 
-	events, err := journal.ReadAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.decryptEvents(events)
+	return s.loadAndDecrypt(journal.ReadAll(ctx))
 }
 
 // ReadFrom delegates to the inner store's SeekableJournal.ReadFrom if supported,

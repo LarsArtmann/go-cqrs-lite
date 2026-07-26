@@ -141,8 +141,11 @@ func openBackend(dsn string, cfg config) (db *sql.DB, backend *storage.SQLBacken
 
 	if cfg.ForeignKeys {
 		if err = storage.SQLiteEnableForeignKeys(ctx, db); err != nil {
-			return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.enable_foreign_keys",
-				"enable foreign keys")
+			return nil, nil, errorfamily.WrapInfrastructure(
+				err,
+				"sqlite_preset.enable_foreign_keys",
+				"enable foreign keys",
+			)
 		}
 	}
 
@@ -155,8 +158,11 @@ func openBackend(dsn string, cfg config) (db *sql.DB, backend *storage.SQLBacken
 
 	if cfg.Optimize {
 		if err = storage.SQLiteApplyOptimizations(ctx, db); err != nil {
-			return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.apply_optimizations",
-				"apply sqlite optimizations")
+			return nil, nil, errorfamily.WrapInfrastructure(
+				err,
+				"sqlite_preset.apply_optimizations",
+				"apply sqlite optimizations",
+			)
 		}
 	}
 
