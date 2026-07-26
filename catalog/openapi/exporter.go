@@ -177,8 +177,7 @@ func (e *Exporter) addCommand(
 		Security: msgSecurity(msg),
 	}
 
-	item := ensurePathItem(doc, path)
-	setOperation(item, method, op)
+	registerOperation(doc, path, method, op)
 }
 
 func (e *Exporter) addQuery(
@@ -208,8 +207,7 @@ func (e *Exporter) addQuery(
 
 	path, op.Parameters = e.resolveParameters(path, msg)
 
-	item := ensurePathItem(doc, path)
-	setOperation(item, method, op)
+	registerOperation(doc, path, method, op)
 }
 
 func (e *Exporter) addEvent(
@@ -242,8 +240,7 @@ func (e *Exporter) addEvent(
 		Security: msgSecurity(msg),
 	}
 
-	item := ensurePathItem(doc, path)
-	setOperation(item, method, op)
+	registerOperation(doc, path, method, op)
 }
 
 func (e *Exporter) addSchema(doc *Document, msg catalog.Message) any {

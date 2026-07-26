@@ -169,6 +169,12 @@ func setOperation(item *PathItem, method string, op *Operation) {
 	}
 }
 
+// registerOperation ensures the path item exists and sets the operation on it.
+func registerOperation(doc *Document, path, method string, op *Operation) {
+	item := ensurePathItem(doc, path)
+	setOperation(item, method, op)
+}
+
 func (item *PathItem) operationFor(method string) *Operation {
 	switch method {
 	case httpGet:
