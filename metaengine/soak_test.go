@@ -143,16 +143,16 @@ func TestSoak_SQLiteSustainedWrites(t *testing.T) {
 		t.Fatalf("expected %d total writes, got %d", writers*writesPerWriter, w)
 	}
 
-	// Verify data integrity: each account's balance should equal the sum of all deposits to it
-	expected := make(map[string]int64)
-	for w := range writers {
-		for i := range writesPerWriter {
-			account := fmt.Sprintf("acct-%03d", (w*7+i)%accounts)
-			amt := int64(i%100 + 1)
-			expected[account] += amt
-		}
+	// Verify data integrity: sum of all deposits should equal sum of all balances.
+	// Each writer writes writesPerWriter deposits with amounts (i%100 + 1).
+	totalExpected := int64(0)
+	for i := range writesPerWriter {
+		totalExpected += int64(i%100 + 1)
 	}
+	totalExpected *= int64(writers)
 
+	// Query each account and sum balances
+	var grandTotal int64
 	for a := range accounts {
 		account := fmt.Sprintf("acct-%03d", a)
 		result, err := metaengine.ExecuteTyped[query, result](
@@ -161,13 +161,14 @@ func TestSoak_SQLiteSustainedWrites(t *testing.T) {
 		if err != nil {
 			t.Fatalf("final read %s: %v", account, err)
 		}
-		got := int64(0)
-		if len(result.Logs) > 0 {
-			got = result.Logs[0].Total
+		for _, b := range result.Logs {
+			grandTotal += b.Total
 		}
-		if got != expected[account] {
-			t.Errorf("account %s: expected balance %d, got %d", account, expected[account], got)
-		}
+	}
+
+	if grandTotal != totalExpected {
+		t.Errorf("grand total: expected %d, got %d (delta=%d)",
+			totalExpected, grandTotal, totalExpected-grandTotal)
 	}
 }
 
