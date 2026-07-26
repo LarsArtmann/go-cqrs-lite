@@ -18,6 +18,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.9.0
 )
 
@@ -25,6 +26,7 @@ require (
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/errors v1.14.0 // indirect
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
@@ -49,11 +51,15 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.1.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -69,6 +75,7 @@ require (
 	github.com/prometheus/procfs v0.21.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
+	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

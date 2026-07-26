@@ -131,7 +131,8 @@ func TestSinkUpsert(t *testing.T) {
 				t.Helper()
 
 				var content, author, created string
-				if err := db.QueryRowContext(ctx,
+				if err := db.QueryRowContext(
+					ctx,
 					"SELECT content, author_id, created_at FROM messages WHERE id = 'm1'",
 				).Scan(&content, &author, &created); err != nil {
 					t.Fatalf("query: %v", err)
@@ -169,7 +170,8 @@ func TestSinkUpsert(t *testing.T) {
 				t.Helper()
 
 				var content string
-				if err := db.QueryRowContext(ctx,
+				if err := db.QueryRowContext(
+					ctx,
 					"SELECT content FROM messages WHERE id = 'm2'",
 				).Scan(&content); err != nil {
 					t.Fatalf("query: %v", err)
@@ -198,7 +200,8 @@ func TestSinkUpsert(t *testing.T) {
 				t.Helper()
 
 				var content string
-				if err := db.QueryRowContext(ctx,
+				if err := db.QueryRowContext(
+					ctx,
 					"SELECT content FROM messages WHERE id = 'm3'",
 				).Scan(&content); err != nil {
 					t.Fatalf("query: %v", err)
@@ -227,7 +230,8 @@ func TestSinkUpsert(t *testing.T) {
 				t.Helper()
 
 				var content string
-				if err := db.QueryRowContext(ctx,
+				if err := db.QueryRowContext(
+					ctx,
 					"SELECT content FROM messages WHERE id = 'm4'",
 				).Scan(&content); err != nil {
 					t.Fatalf("query: %v", err)
@@ -259,7 +263,8 @@ func TestSinkUpsert(t *testing.T) {
 				t.Helper()
 
 				var content string
-				if err := db.QueryRowContext(ctx,
+				if err := db.QueryRowContext(
+					ctx,
 					"SELECT content FROM messages WHERE id = 'm5'",
 				).Scan(&content); err != nil {
 					t.Fatalf("query: %v", err)
@@ -289,14 +294,18 @@ func TestSinkUpsert(t *testing.T) {
 				t.Helper()
 
 				var content string
-				if err := db.QueryRowContext(ctx,
+				if err := db.QueryRowContext(
+					ctx,
 					"SELECT content FROM messages WHERE id = 'm6'",
 				).Scan(&content); err != nil {
 					t.Fatalf("query: %v", err)
 				}
 
 				if content != "hello world" {
-					t.Fatalf("bound-arg expression should append ' world' to 'hello', got %q", content)
+					t.Fatalf(
+						"bound-arg expression should append ' world' to 'hello', got %q",
+						content,
+					)
 				}
 			},
 		},
@@ -317,7 +326,8 @@ func TestSinkUpsert(t *testing.T) {
 				t.Helper()
 
 				var content, author, channel string
-				if err := db.QueryRowContext(ctx,
+				if err := db.QueryRowContext(
+					ctx,
 					"SELECT content, author_id, channel_id FROM messages WHERE id = 'm7'",
 				).Scan(&content, &author, &channel); err != nil {
 					t.Fatalf("query: %v", err)
@@ -358,14 +368,18 @@ func TestSinkUpsert(t *testing.T) {
 				t.Helper()
 
 				var content string
-				if err := db.QueryRowContext(ctx,
+				if err := db.QueryRowContext(
+					ctx,
 					"SELECT content FROM messages WHERE id = 'm8'",
 				).Scan(&content); err != nil {
 					t.Fatalf("query: %v", err)
 				}
 
 				if content != "fresh-expr-insert" {
-					t.Fatalf("fresh insert should write provided content, not apply SetExpr, got %q", content)
+					t.Fatalf(
+						"fresh insert should write provided content, not apply SetExpr, got %q",
+						content,
+					)
 				}
 			},
 		},

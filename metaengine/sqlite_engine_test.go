@@ -282,7 +282,11 @@ var _ = Describe("SQLiteEngine FoldUpdate reify (regression)", func() {
 		// map[string]any prev.
 		Expect(store.Apply(ctx, "TaskCompleted", TaskCompleted{ID: "t-1"})).To(Succeed())
 
-		got, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](ctx, store, FindTask{ID: "t-1"})
+		got, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
+			ctx,
+			store,
+			FindTask{ID: "t-1"},
+		)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(got.Status).To(Equal("completed"))
 		Expect(got.Title).To(Equal("ship it"))

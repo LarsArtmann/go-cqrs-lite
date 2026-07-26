@@ -211,26 +211,26 @@ and engine assignments from two primitives: **Events** (mutations) and
 **Queries** (read intent). The fold return type IS the ADT declaration — the
 developer never declares "I need a Map" or "I need a Counter."
 
-| Feature                    | Detail                                                                                                     | Status |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------- | ------ |
-| Unified `On[E]()` fold     | Reflection-based handler classification: 7 patterns (insert, update, set, count, edge, remove, skip)       | 🧪     |
-| ADT inference              | Map, Set, Counter, Graph, SortedMap, Multimap, Log — derived from fold return type                         | 🧪     |
-| Typed FilterOn / SortOn    | `FilterOn(func(r R) T { ... })` — typed closures, no field name strings                                    | 🧪     |
-| Pagination from input      | Detected from domain input struct fields (`Limit int`, `After *Cursor`)                                    | 🧪     |
-| Cursor serialization       | Base64-encoded URL-safe cursors for HTTP transport                                                         | 🧪     |
-| Cost model                 | `CostEstimate` with Volume-based estimation, `LatencyBudget` enforcement, scale threshold tables           | 🧪     |
-| Write amplification budget | Tracks events exceeding write amplification limit                                                          | 🧪     |
-| MemoryEngine               | In-memory backend implementing all 9 backend interfaces (Map, MapUpdater, Scan, Set, Counter, Graph, etc.) | 🧪     |
-| Planner                    | Cost-based optimizer: assigns engines to queries, produces `PlanResult` with diagnostics                   | 🧪     |
-| Store                      | `Plan(engines, queries...)` returns `*Store` for Apply/Execute; `ApplyEncoded` for JSON payloads           | 🧪     |
-| Collection results         | Reconstructs typed result collections by field shape from scan output                                      | 🧪     |
-| Context.Context            | All backend interfaces accept `context.Context`                                                            | 🧪     |
-| Compile-time assertions    | Interface conformance verified at compile time for all 9 backends                                          | 🧪     |
-| Zero dependencies          | Core `metaengine/v4` has zero production deps; adapter module is separate                                  | 🧪     |
-| SQLite engine              | `SQLiteEngine` wrapping `storage/view.SQLViewStore` — first production backend (ADR-0061)                  | 🧪     |
-| Projection adapter         | `metaengine/projectionadapter` implements `projection.Projection` for `projectionhost.Host` (ADR-0062)     | 🧪     |
-| Cost calibration           | `EngineProfile.NsPerOp` — per-engine calibrated cost (Memory=500ns, SQLite=7000ns) replaces arbitrary 100  | 🧪     |
-| Store.EventTypes()         | Returns sorted unique event types from registered queries — enables adapter event routing                  | 🧪     |
+| Feature                    | Detail                                                                                                      | Status |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------- | ------ |
+| Unified `On[E]()` fold     | Reflection-based handler classification: 7 patterns (insert, update, set, count, edge, remove, skip)        | 🧪     |
+| ADT inference              | Map, Set, Counter, Graph, SortedMap, Multimap, Log — derived from fold return type                          | 🧪     |
+| Typed FilterOn / SortOn    | `FilterOn(func(r R) T { ... })` — typed closures, no field name strings                                     | 🧪     |
+| Pagination from input      | Detected from domain input struct fields (`Limit int`, `After *Cursor`)                                     | 🧪     |
+| Cursor serialization       | Base64-encoded URL-safe cursors for HTTP transport                                                          | 🧪     |
+| Cost model                 | `CostEstimate` with Volume-based estimation, `LatencyBudget` enforcement, scale threshold tables            | 🧪     |
+| Write amplification budget | Tracks events exceeding write amplification limit                                                           | 🧪     |
+| MemoryEngine               | In-memory backend implementing all 9 backend interfaces (Map, MapUpdater, Scan, Set, Counter, Graph, etc.)  | 🧪     |
+| Planner                    | Cost-based optimizer: assigns engines to queries, produces `PlanResult` with diagnostics                    | 🧪     |
+| Store                      | `Plan(engines, queries...)` returns `*Store` for Apply/Execute; `ApplyEncoded` for JSON payloads            | 🧪     |
+| Collection results         | Reconstructs typed result collections by field shape from scan output                                       | 🧪     |
+| Context.Context            | All backend interfaces accept `context.Context`                                                             | 🧪     |
+| Compile-time assertions    | Interface conformance verified at compile time for all 9 backends                                           | 🧪     |
+| Zero dependencies          | Core `metaengine/v4` has zero production deps; adapter module is separate                                   | 🧪     |
+| SQLite engine              | `SQLiteEngine` wrapping `storage/view.SQLViewStore` — first production backend (ADR-0061)                   | 🧪     |
+| Projection adapter         | `metaengine/projectionadapter` implements `projection.Projection` for `projectionhost.Host` (ADR-0062)      | 🧪     |
+| Cost calibration           | `EngineProfile.NsPerOp` — per-engine calibrated cost (Memory=500ns, SQLite=7000ns) replaces arbitrary 100   | 🧪     |
+| Store.EventTypes()         | Returns sorted unique event types from registered queries — enables adapter event routing                   | 🧪     |
 | `ExecuteTyped[Q,R]`        | Cross-engine JSON reification: a query runs on any engine, results reified via JSON round-trip (ADR-0066)   | 🧪     |
 | Tx-atomic MapUpdate        | SQLite `MapUpdate` wraps read-modify-write in one tx — no lost updates across concurrent calls (ADR-0067)   | 🧪     |
 | Multimap seq-seed          | Lazy `sync.Once` seeding from `MAX(seq)` on first use — safe restart without sequence collisions (ADR-0068) | 🧪     |
