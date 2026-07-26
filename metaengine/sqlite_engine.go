@@ -113,18 +113,20 @@ func (e *sqliteEngine) Profile() EngineProfile {
 func (e *sqliteEngine) Close() error { return nil }
 
 func encodeKey(key any) string {
-	b, err := json.Marshal(key)
-	if err != nil {
-		return fmt.Sprintf("%v", key)
-	}
-
-	return string(b)
+	return encodeJSON(key)
 }
 
 func encodeValue(value any) string {
-	b, err := json.Marshal(value)
+	return encodeJSON(value)
+}
+
+// encodeJSON marshals v to a JSON string, falling back to fmt.Sprintf("%v", v)
+// if v is not JSON-serializable. Centralized so encodeKey/encodeValue stay
+// in sync — both are the same operation on different conceptual inputs.
+func encodeJSON(v any) string {
+	b, err := json.Marshal(v)
 	if err != nil {
-		return fmt.Sprintf("%v", value)
+		return fmt.Sprintf("%v", v)
 	}
 
 	return string(b)

@@ -30,13 +30,13 @@ func messagesRow(id, content string) Row {
 // operation (action=op) runs against it. The verify callback queries the
 // resulting row and asserts the expected state.
 type upsertScenario struct {
-	name      string
-	projName  string
-	id        string
-	initial   Row
-	insertOp  upsertOp // runs FIRST against the empty table
-	followOp  upsertOp // runs SECOND against the row inserted by insertOp
-	verify    func(t *testing.T, db *sql.DB, ctx context.Context)
+	name     string
+	projName string
+	id       string
+	initial  Row
+	insertOp upsertOp // runs FIRST against the empty table
+	followOp upsertOp // runs SECOND against the row inserted by insertOp
+	verify   func(t *testing.T, db *sql.DB, ctx context.Context)
 }
 
 // upsertOp discriminates Upsert / UpsertCols / UpsertExpr — the three sink
@@ -45,8 +45,8 @@ type upsertScenario struct {
 type upsertOp struct {
 	kind  string // "upsert", "cols", "expr"
 	row   Row
-	cols  []string   // UpsertCols
-	exprs []SetExpr  // UpsertExpr
+	cols  []string  // UpsertCols
+	exprs []SetExpr // UpsertExpr
 }
 
 func (o upsertOp) apply(ctx context.Context, sink ProjectionSink) error {
@@ -117,11 +117,11 @@ func TestSinkUpsert(t *testing.T) {
 
 	scenarios := []upsertScenario{
 		{
-			name: "UpsertCols_PartialUpdateOnly",
+			name:     "UpsertCols_PartialUpdateOnly",
 			projName: "upsert-cols",
-			id:        "m1",
-			initial:   messagesRow("m1", "original"),
-			insertOp:  upsertOp{kind: "upsert", row: messagesRow("m1", "original")},
+			id:       "m1",
+			initial:  messagesRow("m1", "original"),
+			insertOp: upsertOp{kind: "upsert", row: messagesRow("m1", "original")},
 			followOp: upsertOp{
 				kind: "cols",
 				row:  messagesRow("m1", "edited"),
@@ -190,8 +190,8 @@ func TestSinkUpsert(t *testing.T) {
 			initial:  messagesRow("m3", "original content"),
 			insertOp: upsertOp{kind: "upsert", row: messagesRow("m3", "original content")},
 			followOp: upsertOp{
-				kind: "expr",
-				row:  messagesRow("m3", ""),
+				kind:  "expr",
+				row:   messagesRow("m3", ""),
 				exprs: emptyContentExpr,
 			},
 			verify: func(t *testing.T, db *sql.DB, ctx context.Context) {
@@ -219,8 +219,8 @@ func TestSinkUpsert(t *testing.T) {
 			initial:  messagesRow("m4", "old content"),
 			insertOp: upsertOp{kind: "upsert", row: messagesRow("m4", "old content")},
 			followOp: upsertOp{
-				kind: "expr",
-				row:  messagesRow("m4", "new content"),
+				kind:  "expr",
+				row:   messagesRow("m4", "new content"),
 				exprs: emptyContentExpr,
 			},
 			verify: func(t *testing.T, db *sql.DB, ctx context.Context) {
