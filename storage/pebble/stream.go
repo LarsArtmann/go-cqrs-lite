@@ -149,8 +149,7 @@ func (a *EventStore) LoadStreamFromVersion(
 
 // ReadStream is the streaming equivalent of ReadAll.
 func (a *EventStore) ReadStream(ctx context.Context) (event.EventIterator, error) {
-	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.journal.read_stream",
-		cqrsotel.SpanKindClient)
+	span := startReadSpan(ctx, "pebble.journal.read_stream")
 	defer span.End()
 
 	lower, upper := a.journalBounds()

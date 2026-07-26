@@ -18,8 +18,7 @@ func (s *QueryStore) LoadQueries(
 	ctx context.Context,
 	after time.Time,
 ) ([]*query.PersistedQuery, error) {
-	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.query.load_queries",
-		cqrsotel.SpanKindClient)
+	span := startReadSpan(ctx, "pebble.query.load_queries")
 	defer span.End()
 
 	queries, err := s.scanQueries(0, "", func(q *query.PersistedQuery) bool {
@@ -33,8 +32,7 @@ func (s *QueryStore) LoadQueries(
 // ReadAllQueries returns all queries, ordered by request ID (time-ordered).
 // Implements query.QueryJournal.
 func (s *QueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuery, error) {
-	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.query.read_all",
-		cqrsotel.SpanKindClient)
+	span := startReadSpan(ctx, "pebble.query.read_all")
 	defer span.End()
 
 	queries, err := s.scanQueries(0, "", nil)

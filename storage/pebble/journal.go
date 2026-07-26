@@ -27,23 +27,15 @@ func (a *EventStore) journalKey(evt event.Event) []byte {
 // ReadAll retrieves all events across all streams, ordered by OccurredAt.
 // Implements event.Journal by scanning the journal key prefix.
 func (a *EventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
-	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.journal.read_all",
-		cqrsotel.SpanKindClient)
+	span := startReadSpan(ctx, "pebble.journal.read_all")
 	defer span.End()
 
 	lowerBound, upperBound := a.journalBounds()
 
 	events, err := a.iterateEvents(lowerBound, upperBound, nil)
-	if err != nil {
-		cqrsotel.RecordError(span, err)
 
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.journal_read_all",
-			"read all events from journal")
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
-
-	return events, nil
+	return finalizeScan(span, events, err, "pebble.journal_read_all",
+		"read all events from journal", "event.count")
 }
 
 // ReadFrom retrieves events ordered by OccurredAt, starting after the given event ID.
@@ -68,15 +60,11 @@ func (a *EventStore) ReadFrom(
 	if afterEventID.IsZero() {
 		events, _, err := a.scanJournalWithSkip([]byte(a.journalPrefix), upperBound, "", limit)
 		if err != nil {
-			cqrsotel.RecordError(span, err)
-
-			return nil, errorfamily.WrapInfrastructure(err, "pebble.journal_read_from",
+			return nil, reportScanErr(span, err, "pebble.journal_read_from",
 				"read events from journal beginning")
 		}
 
-		span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
-
-		return events, nil
+		return finalizeScan(span, events, nil, "", "", "event.count")
 	}
 
 	// Fast path: narrow lower bound using ULID timestamp.
@@ -88,9 +76,7 @@ func (a *EventStore) ReadFrom(
 
 	events, found, err := a.scanJournalWithSkip(narrowedLower, upperBound, targetID, limit)
 	if err != nil {
-		cqrsotel.RecordError(span, err)
-
-		return nil, errorfamily.WrapInfrastructure(err, "pebble.journal_read_from",
+		return nil, reportScanErr(span, err, "pebble.journal_read_from",
 			"read events from journal (narrowed seek)")
 	}
 
@@ -99,16 +85,12 @@ func (a *EventStore) ReadFrom(
 		events, _, err = a.scanJournalWithSkip([]byte(a.journalPrefix), upperBound,
 			targetID, limit)
 		if err != nil {
-			cqrsotel.RecordError(span, err)
-
-			return nil, errorfamily.WrapInfrastructure(err, "pebble.journal_read_from",
+			return nil, reportScanErr(span, err, "pebble.journal_read_from",
 				"read events from journal (fallback scan)")
 		}
 	}
 
-	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
-
-	return events, nil
+	return finalizeScan(span, events, nil, "", "", "event.count")
 }
 
 // journalSeekBuffer is subtracted from the ULID timestamp to create a

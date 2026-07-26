@@ -117,3 +117,17 @@ func startLimitSpan(ctx context.Context, spanName string, limit int) cqrsotel.Sp
 
 	return span
 }
+
+// startReadSpan opens a bare SpanKindClient span for read operations that
+// don't need stream/projection/limit attributes (e.g., ReadAll, ReadStream,
+// LoadQueries). Consolidates the identical
+//
+//	_, span := cqrsotel.StartSpan(ctx, tracer(), name, cqrsotel.SpanKindClient)
+//	defer span.End()
+//
+// pattern across journal, stream, command, and query read paths.
+func startReadSpan(ctx context.Context, name string) cqrsotel.Span {
+	_, span := cqrsotel.StartSpan(ctx, tracer(), name, cqrsotel.SpanKindClient)
+
+	return span
+}

@@ -85,8 +85,7 @@ func (s *CommandStore) LoadToTimestamp(
 // ReadAll returns all commands across all streams, ordered by command ID
 // (which is ULID-based, so effectively time-ordered). Implements CommandJournal.
 func (s *CommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand, error) {
-	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.command.read_all",
-		cqrsotel.SpanKindClient)
+	span := startReadSpan(ctx, "pebble.command.read_all")
 	defer span.End()
 
 	cmds, err := s.scanCommands(
