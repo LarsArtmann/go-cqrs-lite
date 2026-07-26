@@ -32,11 +32,11 @@ import (
 // crossEngineResults captures the typed outputs of the full scenario, so we can
 // deep-compare across engines without reflecting over the Store internals.
 type crossEngineResults struct {
-	pointAfterInsert  FindTaskResult
-	pointAfterUpdate  FindTaskResult
-	scanTasks         []FindTaskResult
-	counterByStatus   map[string]int64
-	membership        bool
+	pointAfterInsert FindTaskResult
+	pointAfterUpdate FindTaskResult
+	scanTasks        []FindTaskResult
+	counterByStatus  map[string]int64
+	membership       bool
 }
 
 func runCrossEngineScenario(eng metaengine.Engine) crossEngineResults {
@@ -82,14 +82,22 @@ func runCrossEngineScenario(eng metaengine.Engine) crossEngineResults {
 	Expect(err).NotTo(HaveOccurred())
 
 	// Counter aggregate — map[string]int64 (non-struct, scalar-safe).
-	counts, err := metaengine.ExecuteTyped[CountByStatus, map[string]int64](ctx, store, CountByStatus{})
+	counts, err := metaengine.ExecuteTyped[CountByStatus, map[string]int64](
+		ctx,
+		store,
+		CountByStatus{},
+	)
 	Expect(err).NotTo(HaveOccurred())
 
 	// Set membership (bool result — scalar-safe).
 	Expect(store.Apply(ctx, "TaskAssigned", TaskAssigned{
 		TaskID: "t1", Assignee: "alice", Previous: "", At: now,
 	})).To(Succeed())
-	mem, err := metaengine.ExecuteTyped[CheckAssignee, bool](ctx, store, CheckAssignee{User: "alice"})
+	mem, err := metaengine.ExecuteTyped[CheckAssignee, bool](
+		ctx,
+		store,
+		CheckAssignee{User: "alice"},
+	)
 	Expect(err).NotTo(HaveOccurred())
 
 	return crossEngineResults{

@@ -197,10 +197,10 @@ func buildFilterPredicates(q queryRuntime, input any) []filterPredicate {
 		predicates = append(predicates, filterPredicate{
 			expected: expected,
 			test: func(item any) bool {
-				rv := reflect.ValueOf(closure)
+				closureVal := reflect.ValueOf(closure)
 				// SQL engines decode struct rows as map[string]any; reify to the
 				// typed parameter or reflect.Call panics on the type mismatch.
-				result := rv.Call([]reflect.Value{reifyReflect(item, closureParam)})
+				result := closureVal.Call([]reflect.Value{reifyReflect(item, closureParam)})
 
 				return reflect.DeepEqual(result[0].Interface(), expected)
 			},
@@ -250,18 +250,18 @@ func extractValueByType(input any, targetType reflect.Type) any {
 // When comparing against a cursor value (which is already a raw sort key,
 // not a result item), the closure is skipped and the value is used directly.
 func buildSortFunc(closure any) func(a, b any) int {
-	rv := reflect.ValueOf(closure)
-	paramType := rv.Type().In(0)
+	closureVal := reflect.ValueOf(closure)
+	paramType := closureVal.Type().In(0)
 
 	extractKey := func(item any) any {
 		t := reflect.TypeOf(item)
 		if t == paramType {
-			return rv.Call([]reflect.Value{reflect.ValueOf(item)})[0].Interface()
+			return closureVal.Call([]reflect.Value{reflect.ValueOf(item)})[0].Interface()
 		}
 		// SQL engines decode struct rows as map[string]any; reify to paramType
 		// so the SortOn closure extracts the real sort key.
 		if t != nil && t.Kind() == reflect.Map {
-			return rv.Call([]reflect.Value{reifyReflect(item, paramType)})[0].Interface()
+			return closureVal.Call([]reflect.Value{reifyReflect(item, paramType)})[0].Interface()
 		}
 
 		return item // raw cursor key — compared directly
@@ -292,11 +292,11 @@ func (s *Store) sortKeyFn(inputType string) func(any) any {
 		return nil
 	}
 
-	rv := reflect.ValueOf(q.config.sortAccessor.closure)
-	paramType := rv.Type().In(0)
+	closureVal := reflect.ValueOf(q.config.sortAccessor.closure)
+	paramType := closureVal.Type().In(0)
 
 	return func(item any) any {
-		return rv.Call([]reflect.Value{reifyReflect(item, paramType)})[0].Interface()
+		return closureVal.Call([]reflect.Value{reifyReflect(item, paramType)})[0].Interface()
 	}
 }
 
