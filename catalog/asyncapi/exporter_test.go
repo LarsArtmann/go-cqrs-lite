@@ -21,7 +21,7 @@ func basicCommand(id string) catalog.Message {
 func TestExporter_Export_BasicCommand(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
@@ -211,7 +211,7 @@ func TestExporter_Export_Query(t *testing.T) {
 func TestExporter_Export_Servers(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	exp := NewExporter(
 		"Test", "1.0.0",
 		WithServer("production", "rabbitmq.example.com:5672", "amqp"),
@@ -236,7 +236,7 @@ func TestExporter_Export_Servers(t *testing.T) {
 func TestExporter_WithOptions(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	exp := NewExporter(
 		"Test", "1.0.0",
 		WithServer("staging", "kafka.staging:9092", "kafka"),
@@ -262,7 +262,7 @@ func TestExporter_WithOptions(t *testing.T) {
 func TestExporter_Export_NoHost(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	exp := NewExporter(
 		"Test", "1.0.0",
 		WithServer("production", "", "kafka"),
@@ -322,7 +322,7 @@ func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 
 	schema := catalog.SchemaFromType[CreateOrder]()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
@@ -362,7 +362,7 @@ func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 func TestDocument_MarshalYAML(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", basicCommand("DoStuff"))
 
@@ -388,7 +388,7 @@ func TestDocument_MarshalYAML(t *testing.T) {
 func TestDocument_MarshalJSON(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	doc := NewExporter("Test", "1.0.0").Export(reg.Build())
 
 	b, err := doc.MarshalJSON()
@@ -411,7 +411,7 @@ func TestDocument_MarshalJSON(t *testing.T) {
 func TestExporter_Export_NoSchema(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", basicCommand("NoSchema"))
 
@@ -497,7 +497,7 @@ func TestExporter_Export_Examples(t *testing.T) {
 func TestExporter_AgentMessages(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{
 		ID:      "order-svc",
 		Name:    "Order Service",

@@ -12,6 +12,13 @@ func NewRegistry(tb testing.TB, title, version string) *catalog.Registry {
 	return catalog.NewRegistry(title, version)
 }
 
+// NewTestBuilder creates a builder named "TestCatalog" at "1.0.0".
+func NewTestBuilder(tb testing.TB) *catalog.Builder {
+	tb.Helper()
+
+	return catalog.NewBuilder(testCatalogName, testVersion)
+}
+
 func AddService(
 	tb testing.TB,
 	r *catalog.Registry,

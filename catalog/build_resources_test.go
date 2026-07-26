@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
 
 func TestBuilder_AddDataStore(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddDataStore(catalog.DataStore{
 		ID: "orders-db", Name: "Orders DB", Version: "1.0.0",
 		ContainerType: "database", Technology: "postgres@16",
@@ -28,7 +29,7 @@ func TestBuilder_AddDataStore(t *testing.T) {
 func TestBuilder_AddFlow(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddFlow(catalog.Flow{
 		ID: "create-order", Name: "Create Order", Version: "1.0.0",
 		Steps: []catalog.FlowStep{
@@ -50,7 +51,7 @@ func TestBuilder_AddFlow(t *testing.T) {
 func TestBuilder_AddChannel(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddChannel(catalog.Channel{
 		ID: "order-events", Name: "Order Events", Version: "1.0.0",
 		Protocols: []catalog.Protocol{"kafka"}, Address: "orders.events",
@@ -69,7 +70,7 @@ func TestBuilder_AddChannel(t *testing.T) {
 func TestBuilder_AddTeam(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddTeam(catalog.Team{ID: "order-team", Name: "Order Team", Members: []string{"alice"}})
 
 	cat := b.Build()
@@ -81,7 +82,7 @@ func TestBuilder_AddTeam(t *testing.T) {
 func TestBuilder_AddUser(t *testing.T) {
 	t.Parallel()
 
-	b := catalog.NewBuilder("Test", "1.0.0")
+	b := cattest.NewTestBuilder(t)
 	b.AddUser(catalog.User{ID: "alice", Name: "Alice", Role: "Engineer"})
 
 	cat := b.Build()

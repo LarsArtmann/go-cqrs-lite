@@ -38,7 +38,7 @@ func TestExporter_Export_EmptyCatalog(t *testing.T) {
 func TestExporter_Export_BasicCommand(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
@@ -191,7 +191,7 @@ func TestExporter_Export_WithDescription(t *testing.T) {
 func TestExporter_Export_SchemaTooltip(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
@@ -330,7 +330,7 @@ func TestExporter_Export_CrossService_NoConnectionWithoutMatch(t *testing.T) {
 func TestExporter_Export_VersionInLabel(t *testing.T) {
 	t.Parallel()
 
-	reg := catalog.NewRegistry("TestCatalog", "1.0.0")
+	reg := cattest.NewTestRegistry()
 	reg.AddService(catalog.Service{ID: "svc", Name: "Svc", Version: "1.0.0"})
 	reg.AddCommand("svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
