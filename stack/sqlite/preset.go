@@ -114,10 +114,14 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 // openBackend opens the database, applies pragmas and schema, and returns
 // both the *sql.DB (for lifecycle) and the SQLBackend (for store access).
-func openBackend(dsn string, cfg config) (db *sql.DB, backend *storage.SQLBackend, err error) {
+func openBackend(dsn string, cfg config) ( //nolint:nonamedreturns // defer cleanup
+	db *sql.DB,
+	backend *storage.SQLBackend,
+	err error,
+) {
 	db, err = sqlopt.OpenDBOrErr("sqlite", dsn, "sqlite_preset.open_primary")
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, err //nolint:wrapcheck // OpenDBOrErr wraps
 	}
 
 	defer func() {
