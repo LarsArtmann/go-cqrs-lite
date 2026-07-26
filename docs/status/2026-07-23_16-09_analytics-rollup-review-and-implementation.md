@@ -184,3 +184,16 @@ The review is in `reviewed/`. The original is still in `new/`. I don't know your
 ### 3. Should I run `nix run .#verify` and `nix run .#lint` now, or do you want to make decisions (like the CounterSink question) first?
 
 The new code passes `go test` and `go vet`, but the full Nix-based verification gate (race detection, golangci-lint, doc-check, fmt) hasn't been run. If you want me to extract `CounterSink` first, running lint now would be wasted effort on code that's about to change structurally.
+
+---
+
+## Resolution (2026-07-26)
+
+**Decision: Rejected — `sink.Increment` is the composable primitive.**
+
+The `RollupSpec`/`RollupProjection` abstraction was declined as premature.
+`storage.RelationalProjection` + `ProjectionSink.Increment` covers the same
+ground with a simpler, composable primitive. The full rationale is in the
+[declined items](../../TODO_LIST.md) section and the
+[reviewed proposal](../feedback/reviewed/2026-07-23_analytics-rollup-support-review.md).
+`IncrementWhere` was also rejected (footgun: silently updates multiple rows).

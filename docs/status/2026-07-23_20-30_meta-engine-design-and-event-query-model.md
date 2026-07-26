@@ -249,3 +249,25 @@ The session evolved from a practical bug report ("apps go down on the DB layer")
 **The immediate fix (Path A):** Close 4 specific leak points in go-cqrs-lite so app code never imports storage packages. This is ~1 day of work and is the foundation everything else builds on.
 
 **What's missing:** A single line of Go code. Everything is design docs. The concept needs a prototype to prove it's buildable.
+
+---
+
+## Resolution (2026-07-26)
+
+**Built and shipped as `metaengine/v4`.** The meta-engine concept was
+prototyped and hardened into a production module:
+
+- 7 ADTs (Map, Set, Counter, Graph, SortedMap, Multimap, Log) inferred from
+  fold return types
+- `MemoryEngine` (zero deps) + `SQLiteEngine` (tx-atomic MapUpdate,
+  restart-safe multimap seq-seed, cross-engine reify)
+- Cost model, cursor-based pagination, typed `FilterOn`/`SortOn`
+- `metaengine/projectionadapter/` bridges to `projection.Projection`
+- 85.0% coverage, 174+ BDD specs
+- ADRs: [0061](../adr/0061-metaengine-sqlite-engine.md),
+  [0062](../adr/0062-metaengine-dependency-boundary.md),
+  [0063](../adr/0063-metaengine-pushdown.md)
+
+The 4 import-leak fixes (Path A) were also completed. The meta-engine is
+classified as **Tier 0 (Primitive)** by ADR-0046 — zero internal deps in
+core, bridge lives in `projectionadapter/` (Tier 4).

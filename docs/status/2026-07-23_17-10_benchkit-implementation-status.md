@@ -249,3 +249,18 @@ These three fields exist in the public API but do nothing. Options:
 - **C:** Leave them as-is with `// TODO` comments (current state, but misleading to consumers)
 
 This is a design decision about whether benchkit v1 should be minimal-but-honest or feature-complete-but-rough.
+
+---
+
+## Resolution (2026-07-26)
+
+**Option B chosen — shipped as `benchkit/v4` (minimal-but-honest).**
+
+All stub phases were properly implemented or removed. The published module
+has: 7 named workload profiles + analytical profile, 9-phase runner
+(setup → warmup → write → read → readmodel → projection → durability →
+rawsink → teardown), concurrent workers, latency percentiles, resource
+sampling, codec-aware payload sizing, `errorfamily` error classification.
+88 tests (`-race`). Soak tests skip in `-short` mode. Race-aware timing
+thresholds via build-tag-gated `raceEnabled` constant. Benchmark results
+published in `docs/status/2026-07-24_17-54_benchmark-first-real-run.md`.

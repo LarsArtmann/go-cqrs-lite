@@ -167,3 +167,13 @@ All other 48 workspace modules report `0 issues` under `nix run .#lint`.
 ## Bottom Line
 
 The project is close to a clean lint state and the highest-impact 1% work is largely landed, but the session ended with a process anomaly (auto-commits) and two unresolved batches (`command`/`query` lint, `decider`/`schema` `ireturn`). The next concrete step is to decide what to do with the auto-commits, then finish the last 14 lint findings and move to the 4% tier features.
+
+---
+
+## Resolution (2026-07-26)
+
+**All issues resolved.** The lint findings (`command`/`query` lint,
+`decider`/`schema` `ireturn`) were fixed across subsequent sessions.
+`nix run .#lint` now reports **0 issues** across all 58 modules. The
+auto-commit process anomaly was accepted as expected behavior (the daemon
+commits automatically). The verify gate is GREEN end-to-end.
