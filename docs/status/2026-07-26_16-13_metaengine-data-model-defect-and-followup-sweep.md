@@ -348,3 +348,84 @@ surfaced it. Two defensible orderings:
 I cannot decide this for you — it depends on whether you weight "the
 experimental metaengine contract is honest" above "the two promised items
 ship today."
+
+---
+
+## h) RETRACTION — 2026-07-26 (later session, re-read after stepping back)
+
+> Written after re-reading this report with fresh eyes. The headline framing
+> in section (d) was **over-dramatized**. This appendix corrects the record
+> without rewriting the original — the self-critique was real, just not
+> architecturally accurate.
+
+### What I got wrong
+
+1. **"The Engine read contract is a lie" is too strong.** I verified that
+   `MapBackend`, `ScanBackend`, and the other engine sub-interfaces are called
+   directly **only by the Store** (production) and tests. Zero external callers.
+   `projectionadapter` — the sole consumer — uses `Store.Execute`/`Plan`, never
+   the engines. These are **internal implementation details**, not a public
+   contract. The `any` return is honest for an internal boundary; the Store is
+   the public typed boundary and always reified.
+
+2. **"5 scattered patches should be 1 centralized site" is architecturally
+   impossible.** Three of the five call sites (`buildFilterPredicates`,
+   `buildSortFunc`, `Store.sortKeyFn`) execute **during** the engine's `MapScan`
+   call — they are closures the engine invokes per-row. You cannot centralize
+   reification at the `Store.Execute` return boundary because the panic happens
+   *before* the engine returns. The five sites are five distinct user-code
+   boundaries (fold update func, FilterOn, SortOn, cursor sort key, collection
+   reconstruction), and each MUST reify where engine data meets typed user code.
+
+3. **The patches were at the right layer.** They reify at the Store→user-code
+   boundary using one shared helper (`reifyReflect`). That is the correct
+   architecture for a reflective query layer. The "compound-interest pain" and
+   "every future consumer must remember" claims were drama — future consumers
+   use `ExecuteTyped[R]` or `Fold` declarations, which reify internally.
+
+### What was actually done (this session)
+
+- **Moved `reifyReflect`** from `fold_classify.go` to `reify.go`, co-located
+  with `reify[R]`. Pure cleanup; no behavior change.
+- **Added `cross_engine_meta_test.go`** — the real safety net that was missing.
+  Runs the full Apply → ExecuteTyped scenario (FoldInsert, FoldUpdate,
+  filtered+sorted scan, counter, membership) against both memory and SQLite
+  engines, asserts **identical typed results**. This is the test that would have
+  caught both panics before they shipped. 150 specs pass with `-race`.
+- **Dropped RefreshTTL and C015 from TODO_LIST** — both YAGNI (see below).
+- **No ADR-0069 was written** — no contract changed. The Engine interface
+  returns `any` (internal); the Store reifies at user-code boundaries (public).
+  That was always the design; the reify calls were missing bug fixes, not an
+  architecture change.
+
+### The three blocking questions (g1/g2/g3) — answered
+
+- **g1 (Option A vs B): Neither.** The current architecture is correct. Engine
+  returns `any` (internal); Store reifies at 5 user-code boundaries. No
+  centralization is possible beyond the shared helper that already exists.
+- **g2 (revert scattered patches?): No.** They are correct, at the right layer,
+  and use one shared helper. Reverting would reintroduce the panics.
+- **g3 (data-model first vs list first?): Moot.** The "data-model" work was 90%
+  done when the report was written; the remaining 10% was cleanup (move helper)
+  + the meta-test. Both shipped this session.
+
+### RefreshTTL and C015 — dropped, not deferred
+
+Both were YAGNI. RefreshTTL was punted across 6+ status reports with no
+consumer. The design doc
+(`docs/planning/2026-07-25_14-30_idempotency-record-contract-design.md`)
+chose Option A (no-op on existing) *because* Option B's sliding window is unsafe
+(unbounded TTL under retry storms). RefreshTTL is the escape hatch for the
+behavior we rejected. C015 (a lint rule for custom Store impls) is premature:
+only 3 Store impls exist, all correct, and the contract is already documented
+in the interface comment. Both are marked `[DECLINED: YAGNI]` in TODO_LIST.md.
+
+### What remains genuinely true from the original report
+
+- The benchmark was the hero; the test suite was the villain. (Section e3.)
+  The meta-test fixes this.
+- `metaengine/v4.1.0` ships the panicking `MapUpdate`. A `v4.1.1` fix tag is
+  owed.
+- `nix run .#verify` must pass before any "done" claim. (Still pending.)
+- The `go mod tidy` side-effect on `projectionadapter/go.mod` (section d4) was
+  fine — it replaced pseudo-versions with real tags.
