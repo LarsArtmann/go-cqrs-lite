@@ -104,6 +104,7 @@ func TestCrossEngineLogTailParity(t *testing.T) {
 
 	for name, eng := range engines {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			lb, ok := eng.(metaengine.LogBackend)
 			if !ok {
 				t.Fatalf("%s engine does not implement LogBackend", name)
@@ -153,6 +154,7 @@ func TestCrossEngineGraphNeighborsParity(t *testing.T) {
 
 	for name, eng := range engines {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			gb, ok := eng.(metaengine.GraphBackend)
 			if !ok {
 				t.Fatalf("%s engine does not implement GraphBackend", name)

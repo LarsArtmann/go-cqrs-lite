@@ -2,6 +2,7 @@ package idempotency_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -62,11 +63,12 @@ func TestProperty_CheckAndRecordExactlyOnce(t *testing.T) {
 		duplicates := 0
 		for i := 0; i < n; i++ {
 			err := <-results
-			if err == nil {
+			switch {
+			case err == nil:
 				successes++
-			} else if err == idempotency.ErrDuplicate {
+			case errors.Is(err, idempotency.ErrDuplicate):
 				duplicates++
-			} else {
+			default:
 				t.Fatalf("unexpected error: %v", err)
 			}
 		}
