@@ -58,3 +58,29 @@
 | `wrapTransientOrOK(err, code, msg)` | storage/readmodel (kv_sql) | 4 | Session 4 |
 | `wrapInfraOrOK(err, code, msg)` | storage/readmodel (kv_sql) | 3 | Session 4 |
 | `MarshalBase64JSONWithModule(raw, module, noun)` | codec (shared by encryption + signing) | 2 MarshalJSON methods | Session 4 |
+
+---
+
+## Clone Reduction Summary (75 → 72 groups)
+
+Over sessions 1–6 (2026-07-23 through 2026-07-26), art-dupl clone groups were
+reduced from 75 to 72. The 3 eliminated groups:
+
+1. **kv_sql error wrapping** — `wrapInfraOrOK`/`wrapTransientOrOK` extracted as
+   per-module helpers (ADR-0069). Eliminated 7 inline call-site clones across
+   `storage/memory`, `storage/pebble`, `storage/readmodel`. The helper body
+   itself appears in 3 modules (capped per ADR-0069), a net -2 groups.
+
+2. **catalog MarshalBase64JSON** — extracted `MarshalBase64JSONWithModule` as a
+   shared helper in `codec/`, eliminating 2 MarshalJSON method clones in
+   `encryption` and `signing`.
+
+3. **eventtest TestBuilder** — eliminated the no-tb variant call duplication
+   by routing both BDD paths through the same builder.
+
+The remaining 72 accepted groups are documented in the table above and in
+the session reports. Each is either:
+- A cross-module pattern that can't be shared without violating multi-module
+  isolation (per ADR-0069)
+- A test helper specific to a module's types
+- A standard Go idiom (e.g., `if err != nil { return err }`)
