@@ -110,8 +110,16 @@ func TestEnsureSQLiteDSNBusyTimeout(t *testing.T) {
 		{"plain_path", "/data/app.db", "/data/app.db?_pragma=busy_timeout(5000)"},
 		{"file_uri", "file:test.db", "file:test.db?_pragma=busy_timeout(5000)"},
 		{"memory", "file::memory:", "file::memory:?_pragma=busy_timeout(5000)"},
-		{"existing_params", "file:db?_pragma=journal_mode(WAL)", "file:db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)"},
-		{"already_has_busy_timeout", "db?_pragma=busy_timeout(10000)", "db?_pragma=busy_timeout(10000)"},
+		{
+			"existing_params",
+			"file:db?_pragma=journal_mode(WAL)",
+			"file:db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)",
+		},
+		{
+			"already_has_busy_timeout",
+			"db?_pragma=busy_timeout(10000)",
+			"db?_pragma=busy_timeout(10000)",
+		},
 		{"custom_ms", "app.db", "app.db?_pragma=busy_timeout(15000)"},
 	}
 
@@ -126,7 +134,13 @@ func TestEnsureSQLiteDSNBusyTimeout(t *testing.T) {
 
 			got := EnsureSQLiteDSNBusyTimeout(tc.dsn, ms)
 			if got != tc.want {
-				t.Errorf("EnsureSQLiteDSNBusyTimeout(%q, %d) = %q, want %q", tc.dsn, ms, got, tc.want)
+				t.Errorf(
+					"EnsureSQLiteDSNBusyTimeout(%q, %d) = %q, want %q",
+					tc.dsn,
+					ms,
+					got,
+					tc.want,
+				)
 			}
 		})
 	}

@@ -2097,6 +2097,7 @@ storage/func AutoMapper
 storage/func AutoMapperWithTombstone
 storage/func ConfigureSQLitePool
 storage/func ConfigureTursoPool
+storage/func EnsureSQLiteDSNBusyTimeout
 storage/func NewAggregateProjection
 storage/func NewPostgresBus
 storage/func NewSQLAggregateReader
