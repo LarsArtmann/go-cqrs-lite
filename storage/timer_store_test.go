@@ -299,6 +299,15 @@ func TestSQLTimerStore_IntegrationWithScheduler(t *testing.T) {
 	go sched.Start(runCtx)
 
 	waitForTimerDispatch(t, 3*time.Second, func() bool { return dispatched.Load() == 1 })
+
+	// The scheduler dispatches, then marks the timer as fired on the next poll
+	// cycle. Poll until the timer is actually removed, not just dispatched —
+	// otherwise cancel() can preempt MarkFired under parallel load.
+	waitForTimerDispatch(t, 3*time.Second, func() bool {
+		due, _ := store.Due(ctx, time.Now())
+		return len(due) == 0
+	})
+
 	cancel()
 
 	if dispatched.Load() != 1 {

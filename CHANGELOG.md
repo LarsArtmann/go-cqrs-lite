@@ -26,7 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   Typed `FilterOn`/`SortOn` closures, cursor-based pagination, formal cost model,
   write amplification budget. SQLiteEngine shipped (ADR-0061); projection adapter
   integrated (ADR-0062); Phase 2 SQL pushdown deferred (ADR-0063). Zero production
-  dependencies in core. 174 BDD specs, 86.0% coverage (verified 2026-07-27).
+  dependencies in core. 174 BDD specs, 86.2% coverage (verified 2026-07-27).
 - **Benchkit module** (`benchkit/v4`) — factory-driven benchmarking suite with
   7 named workload profiles (Dev, Small, Medium, Large, Stress, WriteHeavy,
   ReadHeavy) plus an analytical profile, 9-phase runner (setup → warmup → write

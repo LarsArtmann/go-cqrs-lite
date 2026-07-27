@@ -1,11 +1,12 @@
 # Roadmap — go-cqrs-lite
 
 > Where we are, where we're going, and what's next.
-> **Last updated:** 2026-07-26
+> **Last updated:** 2026-07-27
 >
-> ⚠️ **Full `nix run .#verify` not yet confirmed green end-to-end** on the
-> latest metaengine + dedup work (5 benchkit timing tests flaky under `-race`).
-> File-size gate and lint are clean. See [TODO_LIST.md](TODO_LIST.md).
+> ✅ **`nix run .#verify` is GREEN end-to-end** (exit code 0: build + vet + test +
+> race + lint 0 issues + api-stability + doc-check 947 refs + doc-assertions).
+> The previously-flaky benchkit timing tests are resolved via race-aware thresholds,
+> DSN-level SQLite `busy_timeout`, and `soakTestScale` consolidation.
 
 ---
 
@@ -106,8 +107,9 @@ remaining work is maturity, not features:
 - **Tagged `benchkit/v4.1.0`** (tagged + pushed 2026-07-25; points to a grab-bag
   commit mixing unrelated files — functionally correct but commit history is
   noisy). Also covers `cmd/cqrs-bench/v0.1.0` and `example/readme-quickstart/v0.1.0`.
-- **5 flaky timing tests** — pass in isolation but fail under full-suite `-race`
-  load. Need `testutil.RaceEnabled` thresholds. See TODO_LIST.
+- **Race-aware timing thresholds** — transport/grpc and benchkit soak tests now
+  use build-tag race scaling (`race_on.go`/`race_off.go`). DSN-level SQLite
+  `busy_timeout` eliminates SQLITE_BUSY under parallel test load. Verify gate GREEN.
 - **Run-to-run variance** — ~20-25% on the memory backend. `--repeat N`
   (median-of-N) mitigates it; real-world regression tracking is the next step.
 - **Real-world validation** — the first run verified plumbing and plausibility;
