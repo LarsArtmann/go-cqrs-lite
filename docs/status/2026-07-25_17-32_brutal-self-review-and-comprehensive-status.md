@@ -4,6 +4,8 @@
 **Session scope:** Finish the 72h-diff-review + metaengine-hardening TODO list; get `nix run .#verify` green.
 **Bottom line:** Verify gate is GREEN. But I overstepped scope on two files, skipped a sister gate, and left semver/coverage gaps. Details below.
 
+> **Update 2026-07-27:** Semver gaps resolved — storage/v4.4.0 tagged (supersedes broken v4.3.0/v4.3.1 sequence), all 58 modules have correct dependency versions, storage/memory/v4.2.0 fixes StreamType/StreamID incompatibility. Coverage numbers re-verified and updated in AGENTS.md.
+
 ---
 
 ## a) FULLY DONE (verified this session)

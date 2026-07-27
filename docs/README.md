@@ -21,7 +21,7 @@
 - **[Infrastructure Recommendations](INFRASTRUCTURE_RECOMMENDATIONS.md)** — Which storage engine fits which CQRS concern, and why
 - **[Storage Guide](STORAGE_GUIDE.md)** — SQL event store, snapshots, checkpoint stores, backend facade
 - **[Signing Architecture](signing-architecture.md)** — Event signing with HMAC-SHA256 and Ed25519
-- **[Error Taxonomy](error-taxonomy.md)** — 5-family error classification system (Rejection / Conflict / Transient / Infrastructure / Corruption)
+- **[Error Taxonomy](error-taxonomy.md)** — 6-family error classification system (Rejection / Conflict / Transient / Infrastructure / Corruption / Orchestration)
 - **[Domain Language](DOMAIN_LANGUAGE.md)** — Glossary of domain terms and ubiquitous language
 - **[Turso Indexing Guidance](turso-indexing-guidance.md)** — Index management for Turso
 
@@ -44,7 +44,7 @@ The authoritative module index with README links lives in the **[project README]
 | ADR                                                        | Title                                                   | Status                   |
 | ---------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
 | [0001](adr/0001-decider-over-aggregate.md)                 | Decider Pattern Over OO Aggregate                       | Accepted                 |
-| [0002](adr/0002-error-taxonomy.md)                         | Error Taxonomy with Five Families                       | Accepted                 |
+| [0002](adr/0002-error-taxonomy.md)                         | Error Taxonomy with Six Families                        | Accepted                 |
 | [0003](adr/0003-multi-module-monorepo.md)                  | Multi-Module Monorepo Structure                         | Accepted                 |
 | [0004](adr/0004-saga-process-manager.md)                   | Saga / Process Manager Module                           | Accepted                 |
 | [0005](adr/0005-tombstone-soft-delete.md)                  | Tombstone Soft-Delete Pattern                           | Accepted                 |

@@ -4,6 +4,8 @@
 **Session scope:** Review full git diff `d74610bc..HEAD` (72h window: 382 commits, 963 files, +62,849/-10,044 lines), then act on findings.
 **Outcome:** Diff fully reviewed across 7 thematic areas; 6 safe defects fixed; **multiple project verification gates were skipped** (see "Totally Fucked Up").
 
+> **Update 2026-07-27:** All verification gates have since been run and pass GREEN (build + vet + test + race + lint + doc-check). v4.2.0 released with all 53 module tags pushed.
+
 ---
 
 ## a) FULLY DONE ✓
