@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Coverage-drift checker** (`scripts/check-coverage.sh` + `nix run
+  .#check-coverage`) — mechanically detects when actual module coverage drifts
+  from the numbers documented in AGENTS.md. Resolves the 4-session
+  "coverage-verification gap" pattern where coverage claims were trusted from
+  prior reports instead of re-measured. Supports `--update` to recompute and
+  print the AGENTS.md-ready values. ±2% tolerance for refactor noise.
+
 - **CBOR→JSON transcoding helpers** — `codec.TranscodeToJSON(payload, enc)` and
   `transport/http.CBORToJSONTransform`. A schema-free, ready-made bridge for
   consumers that store events in CBOR but must serve JSON to browsers via SSE.
@@ -62,6 +69,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **cqrs-lint build break (hidden red gate)** — the auto-commit daemon bumped
+  `go-output` root to v0.33.0 (commit 85ac81f1), but `go-output/table` has no
+  v0.33.0 release (maxes at v0.32.0). The v0.33.0 root removed `NewTableBuilder`,
+  `Table`, and `RegisterTableMarshaler`, breaking `cmd/cqrs-lint` entirely. The
+  verify gate's "GREEN" claim across 3+ sessions was stale: `go test` failed for
+  `cmd/cqrs-lint` in both workspace and `GOWORK=off` modes. Downgraded
+  `go-output` back to v0.32.0. Gate is now genuinely green (verified exit 0).
+- **cqrs-lint lint fixes** — `main.go` struct tag had 3-space gap (golines) and
+  non-alphabetical tag order (tagalign); both were masked by the build break.
+- **AGENTS.md coverage drift (4-session pattern resolved)** — coverage claims were
+  trusted from prior reports and had drifted: dispatcher claimed 98.0% (actual
+  81.5%), id claimed 97.6% (actual 86.4%), codec claimed 76.0% (actual 70.2%),
+  decider claimed 98.3% (actual 95.9%), event claimed 91.3% (actual 88.3%). All
+  numbers re-verified via `go test -cover` (workspace mode, `goexperiment.jsonv2`
+  tag) and corrected in AGENTS.md with a "verified 2026-07-27" citation.
 - **`idempotency/kvstore.Record` no longer extends the TTL on an existing key.**
   `Record` now uses `SetIfAbsent` instead of `Set`, making it a no-op when the
   key already exists (the expiry is not refreshed). This aligns the KV store
