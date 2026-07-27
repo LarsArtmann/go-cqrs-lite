@@ -195,7 +195,7 @@ Invalid configs return `ErrInvalidConfig` (classified as Rejection).
 ### Error classification
 
 All benchkit errors use the [go-error-family](https://github.com/larsartmann/go-error-family)
-5-family taxonomy: `ErrInvalidConfig` (Rejection), `ErrFactoryFailed` /
+6-family taxonomy: `ErrInvalidConfig` (Rejection), `ErrFactoryFailed` /
 `ErrNilBundle` / `ErrIncompleteBundle` (Infrastructure), `ErrWarmupFailed`
 (Transient). Phase errors are wrapped with `errorfamily.WrapTransient`.
 

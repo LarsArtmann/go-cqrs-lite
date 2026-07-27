@@ -84,21 +84,25 @@ type Bus interface {
 
 ## Error Classification
 
+Errors use the [go-error-family](https://github.com/larsartmann/go-error-family) 6-family taxonomy. Import `errorfamily` directly:
+
 ```go
+import errorfamily "github.com/larsartmann/go-error-family"
+
 // Domain rejections (client error, not retryable)
-return event.NewRejection("user.create.empty_email", "email is required")
+return errorfamily.NewRejection("user.create.empty_email", "email is required")
 
 // Conflicts (optimistic concurrency, duplicate)
-return event.NewConflict("user.create.duplicate", "user already exists")
+return errorfamily.NewConflict("user.create.duplicate", "user already exists")
 
 // Transient (retryable)
-return event.NewTransient("user.create.timeout", "operation timed out")
+return errorfamily.NewTransient("user.create.timeout", "operation timed out")
 
 // Infrastructure (system-level)
-return event.NewInfrastructure("store.connection", "connection lost")
+return errorfamily.NewInfrastructure("store.connection", "connection lost")
 
 // Corruption (data integrity)
-return event.NewCorruption("store.invalid_event", "checksum mismatch")
+return errorfamily.NewCorruption("store.invalid_event", "checksum mismatch")
 ```
 
 ## Sub-packages

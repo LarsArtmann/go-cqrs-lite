@@ -84,5 +84,5 @@ result, err := decider.Execute(ctx, repo, aggregateID, d, command)
 - [Storage Guide](STORAGE_GUIDE.md) — SQL, Pebble, Turso backends
 - [Architecture Patterns](ARCHITECTURE_PATTERNS.md) — CQRS/ES patterns
 - [Domain Language](DOMAIN_LANGUAGE.md) — ubiquitous language glossary
-- [Error Taxonomy](error-taxonomy.md) — 5-family error classification
+- [Error Taxonomy](error-taxonomy.md) — 6-family error classification
 - [ADRs](adr/README.md) — architecture decision records
