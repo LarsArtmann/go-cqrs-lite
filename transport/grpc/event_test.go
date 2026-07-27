@@ -57,7 +57,12 @@ func (b *miniBus) UsePublish(...event.PublishMiddleware) error {
 	return nil
 }
 
-const settleDelay = 100 * time.Millisecond
+var settleDelay = func() time.Duration {
+	if raceEnabled {
+		return 500 * time.Millisecond
+	}
+	return 100 * time.Millisecond
+}()
 
 // eventTestEnv bundles the shared gRPC server, client, and subscriber state
 // used by the event pub/sub tests.

@@ -47,25 +47,29 @@ func (s *MemoryCommandStore) Save(
 	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
-	if err := wrapClosed(
-		s.CheckClosed(command.ErrStoreClosed),
-		"memory.save_failed",
-		"memory command store save",
-	); err != nil {
+	return s.withWriteLock("memory.save_failed", "memory command store save", func() error {
+		if dupErr := s.checkDuplicate(cmd.ID(), ""); dupErr != nil {
+			return dupErr
+		}
+
+		s.appendCommand(ref.StreamKey(), cmd)
+
+		return nil
+	})
+}
+
+// withWriteLock checks the store is open, acquires the write lock, and runs fn
+// under the lock. Centralises the wrapClosed + Lock + defer Unlock preamble
+// shared by all write-side methods.
+func (s *MemoryCommandStore) withWriteLock(code, msg string, fn func() error) error {
+	if err := wrapClosed(s.CheckClosed(command.ErrStoreClosed), code, msg); err != nil {
 		return err
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	dupErr := s.checkDuplicate(cmd.ID(), "")
-	if dupErr != nil {
-		return dupErr
-	}
-
-	s.appendCommand(ref.StreamKey(), cmd)
-
-	return nil
+	return fn()
 }
 
 // AppendBatch appends multiple commands without duplicate checks on individual commands.
@@ -75,41 +79,33 @@ func (s *MemoryCommandStore) AppendBatch(
 	ref command.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
-	if err := wrapClosed(
-		s.CheckClosed(command.ErrStoreClosed),
-		"memory.append_batch_failed",
-		"memory command store append batch",
-	); err != nil {
-		return err
-	}
+	return s.withWriteLock("memory.append_batch_failed", "memory command store append batch", func() error {
+		seen := make(map[id.CommandID]struct{}, len(cmds))
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+		for _, cmd := range cmds {
+			if _, dup := seen[cmd.ID()]; dup {
+				return errorfamily.WrapConflict(
+					command.ErrDuplicateCommand,
+					"memory.duplicate_command",
+					fmt.Sprintf("command with ID %s appears multiple times in batch", cmd.ID()),
+				)
+			}
 
-	seen := make(map[id.CommandID]struct{}, len(cmds))
-	for _, cmd := range cmds {
-		if _, dup := seen[cmd.ID()]; dup {
-			return errorfamily.WrapConflict(
-				command.ErrDuplicateCommand,
-				"memory.duplicate_command",
-				fmt.Sprintf("command with ID %s appears multiple times in batch", cmd.ID()),
-			)
+			seen[cmd.ID()] = struct{}{}
+
+			dupErr := s.checkDuplicate(cmd.ID(), " in batch")
+			if dupErr != nil {
+				return dupErr
+			}
 		}
 
-		seen[cmd.ID()] = struct{}{}
-
-		dupErr := s.checkDuplicate(cmd.ID(), " in batch")
-		if dupErr != nil {
-			return dupErr
+		key := ref.StreamKey()
+		for _, cmd := range cmds {
+			s.appendCommand(key, cmd)
 		}
-	}
 
-	key := ref.StreamKey()
-	for _, cmd := range cmds {
-		s.appendCommand(key, cmd)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // Load retrieves all commands for a stream.

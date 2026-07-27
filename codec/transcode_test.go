@@ -2,6 +2,7 @@ package codec
 
 import (
 	"encoding/json/v2"
+	"math"
 	"math/big"
 	"strings"
 	"testing"

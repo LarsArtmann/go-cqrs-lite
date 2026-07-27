@@ -13,17 +13,35 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
+// soakTestDuration scales up the soak loop duration under -race so the minimum
+// iteration count is still reached when instrumentation inflates CPU 5-10x.
+func soakTestDuration(base time.Duration) time.Duration {
+	if raceEnabled {
+		return base * 3
+	}
+	return base
+}
+
+// soakTestTimeout scales context deadlines proportionally to soakTestDuration
+// so the context does not expire before the soak loop finishes.
+func soakTestTimeout(base time.Duration) time.Duration {
+	if raceEnabled {
+		return base * 3
+	}
+	return base
+}
+
 func TestRunSoak_Memory(t *testing.T) {
 	t.Parallel()
 	if testing.Short() {
 		t.Skip("skipping soak test in short mode")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), soakTestTimeout(30*time.Second))
 	defer cancel()
 
 	result, err := RunSoak(ctx, SoakConfig{
-		Duration:       5 * time.Second,
+		Duration:       soakTestDuration(5 * time.Second),
 		ReportInterval: 0, // no intermediate output during test
 		Config: Config{
 			Profile:     ProfileDev,
@@ -70,7 +88,7 @@ func TestRunSoak_TrendsPopulated(t *testing.T) {
 	defer cancel()
 
 	result, err := RunSoak(ctx, SoakConfig{
-		Duration: 5 * time.Second,
+		Duration: soakTestDuration(5 * time.Second),
 		Config: Config{
 			Profile:     ProfileDev,
 			PayloadSize: 64,
@@ -114,11 +132,11 @@ func TestRunSoak_ProgressReport(t *testing.T) {
 
 	var progress bytes.Buffer
 
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), soakTestTimeout(15*time.Second))
 	defer cancel()
 
 	_, err := RunSoak(ctx, SoakConfig{
-		Duration:       2 * time.Second,
+		Duration:       soakTestDuration(2 * time.Second),
 		ReportInterval: 500 * time.Millisecond,
 		ProgressWriter: &progress,
 		Config: Config{
@@ -151,11 +169,11 @@ func TestPrintSoakReport(t *testing.T) {
 		t.Skip("skipping soak test in short mode")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), soakTestTimeout(15*time.Second))
 	defer cancel()
 
 	result, err := RunSoak(ctx, SoakConfig{
-		Duration: 5 * time.Second,
+		Duration: soakTestDuration(5 * time.Second),
 		Config: Config{
 			Profile:     ProfileDev,
 			PayloadSize: 64,
@@ -202,11 +220,11 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 		t.Skip("skipping soak test in short mode")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), soakTestTimeout(15*time.Second))
 	defer cancel()
 
 	original, err := RunSoak(ctx, SoakConfig{
-		Duration: 5 * time.Second,
+		Duration: soakTestDuration(5 * time.Second),
 		Config: Config{
 			Profile:     ProfileDev,
 			PayloadSize: 64,

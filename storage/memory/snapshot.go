@@ -32,27 +32,32 @@ func NewMemorySnapshotStore() *MemorySnapshotStore {
 }
 
 func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) error {
-	if err := wrapClosed(
-		s.CheckClosed(snappkg.ErrSnapshotStoreClosed),
-		"memory.snapshot_save_failed",
-		"snapshot store save",
-	); err != nil {
+	return s.withWriteLock("memory.snapshot_save_failed", "snapshot store save", func() error {
+		key := id.NewStreamRef(snap.StreamType, snap.StreamID).StreamKey()
+
+		existing, exists := s.snapshots[key]
+		if exists && existing.Version.Int() > snap.Version.Int() {
+			return nil
+		}
+
+		s.snapshots[key] = copySnapshot(&snap)
+
+		return nil
+	})
+}
+
+// withWriteLock checks the store is open, acquires the write lock, and runs fn
+// under the lock. Centralises the wrapClosed + Lock + defer Unlock preamble
+// shared by all write-side methods.
+func (s *MemorySnapshotStore) withWriteLock(code, msg string, fn func() error) error {
+	if err := wrapClosed(s.CheckClosed(snappkg.ErrSnapshotStoreClosed), code, msg); err != nil {
 		return err
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	key := id.NewStreamRef(snap.StreamType, snap.StreamID).StreamKey()
-
-	existing, exists := s.snapshots[key]
-	if exists && existing.Version.Int() > snap.Version.Int() {
-		return nil
-	}
-
-	s.snapshots[key] = copySnapshot(&snap)
-
-	return nil
+	return fn()
 }
 
 func (s *MemorySnapshotStore) Load(
@@ -129,21 +134,11 @@ func (s *MemorySnapshotStore) Delete(
 	_ context.Context,
 	ref id.StreamRef,
 ) error {
-	if err := wrapClosed(
-		s.CheckClosed(snappkg.ErrSnapshotStoreClosed),
-		"memory.snapshot_delete_failed",
-		"snapshot store delete",
-	); err != nil {
-		return err
-	}
+	return s.withWriteLock("memory.snapshot_delete_failed", "snapshot store delete", func() error {
+		delete(s.snapshots, ref.StreamKey())
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	key := ref.StreamKey()
-	delete(s.snapshots, key)
-
-	return nil
+		return nil
+	})
 }
 
 func (s *MemorySnapshotStore) Close() error {
