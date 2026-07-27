@@ -17,7 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   prior reports instead of re-measured. Supports `--update` to recompute and
   print the AGENTS.md-ready values. ±2% tolerance for refactor noise.
 
-- **cqrs-lint: 3 new rules (60 → 63)** —
+- **cqrs-lint: 3 new rules (now 65 total)** —
   `C015` (unchecked `Close()` — resource leak detection, flags bare
   `x.Close()` statements and `_ = x.Close()` assignments),
   `C016` (`context.Background()`/`context.TODO()` in handlers — flags detached
@@ -38,6 +38,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   and `withReadLock[T]` helper pairs across `store.go`, `command_store.go`,
   `query_store.go`, and `snapshot.go` (12 of 17 sites). Clone groups dropped
   34 → 19. Remaining: `checkpoint.go` (2) + `store_load.go` (3), same pattern.
+
+- **Property-based tests** — `kv/property_test.go` (6 rapid tests for
+  TypedStore + Cache round-trip, concurrent Set/Get, TTL expiry),
+  `snapshot/property_test.go` (4 rapid tests for TypedStore save/load/version
+  round-trip), `metaengine/cross_engine_adt_test.go` (Counter + Set parity
+  across Memory vs SQLite engines). SortedMap parity deferred — see
+  [TODO_LIST.md](TODO_LIST.md) "Module Health & Tooling".
+
+- **Testing and release documentation** — `docs/testing-guide.md` (comprehensive
+  testing patterns: table-driven, BDD/Ginkgo, property-based/rapid, scenario
+  DSL, race-aware thresholds, golden files, coverage goals) and
+  `docs/release-checklist.md` (step-by-step release process: tag-release.sh,
+  batch-release.sh, golden regen, verify gate, push sequence).
 
 - **CBOR→JSON transcoding helpers** — `codec.TranscodeToJSON(payload, enc)` and
   `transport/http.CBORToJSONTransform`. A schema-free, ready-made bridge for

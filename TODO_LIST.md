@@ -43,6 +43,10 @@ this list and recorded in CHANGELOG.
 
 - [ ] **Run `nix run .#vulncheck`** — verify no known vulnerabilities across
       all module deps after v4.2.0.
+- [ ] **Verify v4.2.0 tags resolve from a clean module** — `cd /tmp && mkdir
+      test-resolve && cd test-resolve && go mod init test && GOWORK=off go get
+      github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
+      published module resolves without workspace-local replaces.
 - [ ] **Publish go-finding + go-must as tagged modules** — the go.mod replace
       directives are needed for dev; consumers resolving the published modules
       depend on the real tagged versions (go-finding v1.4.0, go-must v0.1.2).
@@ -76,12 +80,26 @@ this list and recorded in CHANGELOG.
 
 ## Module Health & Tooling
 
+- [ ] **Run cqrs-lint against the real codebase** — C015/C016/D006 were shipped
+      in v4.2.0 with only the meta-test guard (instantiate-all-detectors).
+      `cd cmd/cqrs-lint && go run . ../../...` — check the 3 new rules for false
+      positives. D006 especially could flag legitimate sentinel errors; if it
+      spews hundreds of findings, tighten `isPackageLevelVar` exemption logic
+      in `cmd/cqrs-lint/pkg/rules/consistency/d006.go`.
+- [ ] **Update cqrs-lint README rules table** — C015/C016/D006 were added to the
+      source (`register.go`, `catalog.go`) but never documented in
+      `cmd/cqrs-lint/README.md`. Consumers reading the README see 62 rules; the
+      actual count is 65.
 - [ ] **Consolidate remaining 5 `wrapClosed()` sites** — the 2026-07-27 session
       converted 12 of 17 sites across `store.go`, `command_store.go`,
       `query_store.go`, `snapshot.go` into `withWriteLock`/`withReadLock[T]`
       helper pairs (clone groups: 34 → 19). Remaining: `checkpoint.go` (2,
       `wrapClosedf` format variant) + `store_load.go` (3, mixed read/write).
       Same pattern — straightforward follow-up.
+- [ ] **Add SortedMap to cross-engine parity tests** — the TODO said 4 ADTs to
+      test; `metaengine/cross_engine_adt_test.go` covers Counter + Set (2 of 4).
+      SortedMap routes through `MapBackend`/`ScanBackend` (no dedicated backend
+      interface). Test via `ExecuteTyped` with a sorted result type.
 - [ ] **Update AGENTS.md with dedup helper patterns** — the 2026-07-27 dedup
       session introduced `withWriteLock(code, msg, fn)` closures in
       `storage/memory`, `parallelTimeoutCtx(t, timeout)` in benchkit,
