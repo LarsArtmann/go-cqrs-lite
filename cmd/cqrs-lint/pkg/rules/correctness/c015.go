@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"slices"
 
 	"github.com/larsartmann/go-finding"
 
@@ -118,7 +119,7 @@ func isInErrorCleanup(ancestors []ast.Node) bool {
 	var block *ast.BlockStmt
 	var blockParent ast.Node
 
-	for i := len(ancestors) - 1; i >= 0; i-- {
+	for i := range slices.Backward(ancestors) {
 		if b, ok := ancestors[i].(*ast.BlockStmt); ok {
 			block = b
 			if i > 0 {
