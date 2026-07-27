@@ -16,6 +16,10 @@ import (
 // bare statement or assigned to _). Ignoring Close errors can mask data
 // corruption, incomplete flushes, or file descriptor leaks.
 //
+// NewC015Detector detects unchecked Close() calls that risk resource leaks.
+// Calls inside defer bodies (defer x.Close(), defer func(){ _ = x.Close() }())
+// are suppressed — they are the recommended cleanup pattern.
+//
 //nolint:ireturn // factory returns public interface
 func NewC015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -28,23 +32,33 @@ func NewC015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
+				var ancestors []ast.Node
+
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
-					// Pattern 1: bare expression statement x.Close()
-					exprStmt, ok := n.(*ast.ExprStmt)
-					if ok {
-						call, ok := exprStmt.X.(*ast.CallExpr)
-						if ok && isCloseCall(call) {
+					if n == nil {
+						if len(ancestors) > 0 {
+							ancestors = ancestors[:len(ancestors)-1]
+						}
+
+						return true
+					}
+
+					ancestors = append(ancestors, n)
+
+					if isInDefer(ancestors) {
+						return true
+					}
+
+					if exprStmt, ok := n.(*ast.ExprStmt); ok {
+						if call, ok := exprStmt.X.(*ast.CallExpr); ok && isCloseCall(call) {
 							reportUncheckedClose(ctx, &findings, call)
 						}
 
 						return true
 					}
 
-					// Pattern 2: _ = x.Close()
-					assignStmt, ok := n.(*ast.AssignStmt)
-					if ok && len(assignStmt.Lhs) == 1 {
-						ident, ok := assignStmt.Lhs[0].(*ast.Ident)
-						if ok && ident.Name == "_" {
+					if assignStmt, ok := n.(*ast.AssignStmt); ok && len(assignStmt.Lhs) == 1 {
+						if ident, ok := assignStmt.Lhs[0].(*ast.Ident); ok && ident.Name == "_" {
 							if call, ok := assignStmt.Rhs[0].(*ast.CallExpr); ok &&
 								isCloseCall(call) {
 								reportUncheckedClose(ctx, &findings, call)
@@ -59,6 +73,19 @@ func NewC015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// isInDefer returns true if any ancestor node is a DeferStmt, indicating the
+// current node executes inside a deferred context where Close() discarding is
+// the recommended cleanup pattern.
+func isInDefer(ancestors []ast.Node) bool {
+	for _, a := range ancestors {
+		if _, ok := a.(*ast.DeferStmt); ok {
+			return true
+		}
+	}
+
+	return false
 }
 
 // isCloseCall returns true if the call expression is a selector ending in "Close".
