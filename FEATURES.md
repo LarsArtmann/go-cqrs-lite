@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-27 (dedup extractions + UP1 test hardening + verify-gate GREEN; EnsureSQLiteDSNBusyTimeout wired into SQLite preset) · **Module count:** 58 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+**Last audited:** 2026-07-27 (v4.2.0 release: 65 lint rules, 2676 API exports, verify-gate GREEN end-to-end) · **Module count:** 58 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -991,7 +991,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 | Feature                      | Detail                                                                                               | Status |
 | ---------------------------- | ---------------------------------------------------------------------------------------------------- | ------ |
-| 60 rules across 6 categories | Correctness (12), API misuse (19), boilerplate (15), consistency (4), architecture (7), security (3) | ✅     |
+| 65 rules across 6 categories | Correctness (16), API misuse (19), boilerplate (15), consistency (5), architecture (7), security (3) | ✅     |
 | Output formats               | Text, JSON, SARIF (GitHub Code Scanning), Markdown                                                   | ✅     |
 | Health score                 | 0-100 score with severity-weighted breakdown                                                         | ✅     |
 | Auto-fix                     | `--fix` / `--dry-run` with CQRSFixProvider (BeforeCode/AfterCode matching)                           | ✅     |
@@ -999,7 +999,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | CLI features                 | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`                    | ✅     |
 | Config file                  | `.cqrs-lint.json` via cmdguard                                                                       | ✅     |
 | Monorepo support             | Multi-module scanning via go.mod discovery                                                           | ✅     |
-| Source snippets              | 34 of 60 detectors emit source-line context for SARIF/IDE integration                                | ✅     |
+| Source snippets              | 37 of 65 detectors emit source-line context for SARIF/IDE integration                                | ✅     |
 
 ---
 
@@ -1106,7 +1106,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `metaengine/projectionadapter` | `…/metaengine/projectionadapter/v4` | 🧪 Experimental (projection.Projection adapter for projectionhost)        |
 | `benchkit`                     | `…/benchkit/v4`                     | 🧪 Experimental (functional, 88 tests, `--repeat N` available)            |
 | `cmd/cqrs-bench`               | `…/cmd/cqrs-bench`                  | 🔧 Tool                                                                   |
-| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (60-rule domain-aware linter)                                     |
+| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (65-rule domain-aware linter)                                     |
 
 ---
 
@@ -1114,7 +1114,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                                                                                                                                 |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lint posture           | `nix run .#lint` passes with 0 issues across all modules. `nix run .#verify` is GREEN: build + vet + test + race + lint + api-stability (2672 exports, with `TestEveryGoModDirIsInModulesList` meta-test) + doc-check. |
+| Lint posture           | `nix run .#lint` passes with 0 issues across all modules. `nix run .#verify` is GREEN: build + vet + test + race + lint + api-stability (2676 exports, with `TestEveryGoModDirIsInModulesList` meta-test) + doc-check. |
 | Race-free              | `go test -race` passes across all modules                                                                                                                                                                              |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                                                         |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                                                     |

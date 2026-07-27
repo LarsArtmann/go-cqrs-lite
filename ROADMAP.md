@@ -13,45 +13,43 @@
 
 ---
 
-## Current State (v4.1.0 shipped; file-size gate GREEN)
+## Current State (v4.2.0 shipped; verify gate GREEN; 65 lint rules)
 
-**v4.1.0 tagged** (2026-07-23) — initial module batch tagged on `/v4` import paths
-(verify: `git tag --list '*/v4.1.0' | wc -l`). The workspace has 58 `go.mod`
-files; 57 of 58 have tags reachable from HEAD. One module
-(`metaengine/projectionadapter`) is tagged locally and on origin, but its
-`v4.0.0` tag points to a commit **not reachable from HEAD** (orphaned) — it
-needs re-tagging on the correct commit before consumers can resolve it
-reliably. `metaengine/v4.1.1` was tagged 2026-07-26 (fixes a panicking
-`MapUpdate` from v4.1.0). The deprecated-API removal batch shipped (see
-[CHANGELOG.md](CHANGELOG.md) `[Unreleased]` → Removed).
+**v4.2.0 tagged** (2026-07-27) — 53 modules tagged and pushed. All 58 modules
+have tags reachable from HEAD (verify: `git tag --list '*/v4.2.0' | wc -l` →
+53). The workspace has 58 `go.mod` files. `metaengine/projectionadapter/v4.0.0`
+was re-tagged at `be818c91` (previously orphaned); `codec/v4.2.0` tagged
+alongside v4.1.1 (semver correction — both kept). See
+[CHANGELOG.md](CHANGELOG.md) `[v4.2.0]` for the full release notes.
 
 The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs,
 command/query dispatch, pure-function deciders, three projection tiers
 (document/KV, relational/SQL, graph), durable deadline scheduling,
 event→command derivation, dead-letter quarantine, managed projection hosting,
 event signing/encryption, OTel tracing/metrics, auto-documentation generation,
-and a domain-aware linter (cqrs-lint, 60 rules).
+and a domain-aware linter (cqrs-lint, 65 rules).
 
 **New since v4.0.0:**
 
 - **Metaengine** (`metaengine/v4`, 🧪 experimental, tagged v4.0.0 + v4.1.0 +
-  v4.1.1) — cost-based storage planner. Derives projections and engine
+  v4.1.1 + v4.2.0) — cost-based storage planner. Derives projections and engine
   assignments from two primitives (Events + Queries). 7 ADTs inferred from fold
-  return types. 174 BDD specs, 86.2% coverage. SQLiteEngine shipped (ADR-0061);
-  cost model calibrated; projection adapter integrated (ADR-0062); pushdown ADR
-  written (ADR-0063); cross-engine meta-test guards parity. Phase 2 declarative
-  pushdown deferred — see Theme 1.
+  return types. 174 BDD specs + 150 cross-engine meta specs, 86.2% coverage.
+  SQLiteEngine shipped (ADR-0061); cost model calibrated; projection adapter
+  integrated (ADR-0062); pushdown ADR written (ADR-0063); cross-engine meta-test
+  guards parity. Phase 2 declarative pushdown deferred — see Theme 1.
 - **Benchkit** (`benchkit/v4` + `cmd/cqrs-bench`, 🧪 experimental) — benchmarking
-  toolkit with 7 named workload profiles + an analytical profile, 9-phase runner,
-  scaling sweeps, benchstat/manifest output, and a first real benchmark run
-  completed 2026-07-24. 88 benchkit + 12 CLI test functions. See Theme 2.
+  toolkit with 7 named workload profiles + an analytical profile, 9-phase runner
+  (incl. journey/query/snapshot/durability/replay), scaling sweeps, soak mode,
+  benchstat/manifest output, and a first real benchmark run completed 2026-07-24.
+  88 benchkit + 12 CLI test functions. See Theme 2.
 - **Incremental rollups** — `ProjectionSink.Increment` + `RelationalProjection.Reset`
   for atomic counter maintenance in relational projections.
 - **Aggregate→Stream rename** (ADR-0058) — complete across code, tests, and docs.
   Deprecated aliases + wire-format identifiers preserved for compatibility.
 - **Comprehensive README coverage** — all 58 modules with READMEs, 248 Go symbol
   references verified by `doc-check`.
-- **Error taxonomy migration** — 13 sentinels migrated to `errorfamily` constructors.
+- **Error taxonomy migration** — 13 sentinels migrated to `errorfamily` constructors; upgraded to go-error-family v0.10.0 (6-family taxonomy incl. Orchestration).
 
 58 `go.mod` files total (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`).
 
@@ -59,9 +57,10 @@ and a domain-aware linter (cqrs-lint, 60 rules).
 
 ## Release History
 
-| Version | Date       | Highlights                                                                                                                                           |
-| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| v4.1.0  | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058) |
+| Version | Date       | Highlights                                                                                                                                                                                                              |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v4.2.0  | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family) |
+| v4.1.0  | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                    |
 | v4.0.4  | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                             |
 | v4.0.3  | 2026-07-22 | SQL dialect abstraction, stack preset centralization, JSON v2 migration, harmful duplication elimination, cqrs-lint scanner overhaul                 |
 | v4.0.2  | 2026-07-18 | CBOR time encoding fix, timezone-safe types (Instant, WallTime, Date), cqrs-lint loader error surfacing                                              |
@@ -93,11 +92,12 @@ structs. The Pareto execution plan landed the production maturity chain:
 - ✅ **Dependency boundary** — Core `metaengine/v4` stays zero-dep; adapter is
   a separate module (ADR-0062)
 
-**Remaining:** re-tag `metaengine/projectionadapter/v4.0.0` (current tag is
-orphaned — points to a commit not in HEAD); implement Phase 2 declarative
-pushdown when a production consumer needs SQL filter/sort pushdown. Metaengine
-lint is clean (143 → 0); cost calibration shipped (Memory=500ns, SQLite=7000ns);
-fold-classify logic and cross-engine meta-test guard correctness.
+**Remaining:** implement Phase 2 declarative pushdown when a production
+consumer needs SQL filter/sort pushdown. `projectionadapter/v4.0.0` re-tagged
+at `be818c91` in v4.2.0 (was orphaned — now reachable from HEAD). Metaengine
+lint is clean (143 → 0); cost calibration shipped (Memory=500ns,
+SQLite=7000ns); fold-classify logic and cross-engine meta-test guard
+correctness.
 
 ### 2. Benchkit → Released
 
