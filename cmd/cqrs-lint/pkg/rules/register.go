@@ -32,6 +32,8 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		correctness.NewC012Detector(ctx),
 		correctness.NewC013Detector(ctx),
 		correctness.NewC014Detector(ctx),
+		correctness.NewC015Detector(ctx),
+		correctness.NewC016Detector(ctx),
 		// API
 		api.NewA001Detector(ctx),
 		api.NewA002Detector(ctx),
@@ -73,6 +75,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		consistency.NewD002Detector(ctx),
 		consistency.NewD003Detector(ctx),
 		consistency.NewD005Detector(ctx),
+		consistency.NewD006Detector(ctx),
 		// Architecture
 		architecture.NewE001Detector(ctx),
 		architecture.NewE002Detector(ctx),
