@@ -217,6 +217,7 @@ func buildFilterPredicates(q queryRuntime, input any) []filterPredicate {
 // ambiguous.
 func extractValueByType(input any, targetType reflect.Type) any {
 	metaNames := map[string]bool{limitField: true, afterField: true, depthField: true}
+
 	return findValueByType(input, targetType, func(name string) bool { return metaNames[name] })
 }
 

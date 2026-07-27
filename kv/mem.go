@@ -50,6 +50,7 @@ func (s *MemStore) withLock(fn func()) error {
 // acquires the given lock, checks for a closed store, then invokes fn.
 func (s *MemStore) runLocked(lock, unlock func(), fn func()) error {
 	lock()
+
 	defer unlock()
 
 	if err := s.checkClosed(); err != nil {
