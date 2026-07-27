@@ -999,7 +999,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | CLI features                 | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`                    | ✅     |
 | Config file                  | `.cqrs-lint.json` via cmdguard                                                                       | ✅     |
 | Monorepo support             | Multi-module scanning via go.mod discovery                                                           | ✅     |
-| Source snippets              | 37 of 65 detectors emit source-line context for SARIF/IDE integration                                | ✅     |
+| Source snippets              | Most detectors emit source-line context for SARIF/IDE integration                                     | ✅     |
 
 ---
 
