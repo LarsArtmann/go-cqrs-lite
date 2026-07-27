@@ -21,7 +21,9 @@ func basicCommand(id string) catalog.Message {
 func TestExporter_Export_BasicCommand(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(
+		catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"},
+	)
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      "CreateOrder",
@@ -321,7 +323,9 @@ func TestExporter_Export_SchemaFromReflection(t *testing.T) {
 
 	schema := catalog.SchemaFromType[CreateOrder]()
 
-	reg := cattest.NewTestRegistry(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(
+		catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"},
+	)
 	reg.AddCommand("order-svc", catalog.Message{
 		Kind:    catalog.CommandMessage,
 		ID:      "CreateOrder",

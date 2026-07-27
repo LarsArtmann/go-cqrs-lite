@@ -13,7 +13,7 @@ import (
 // without depending on event internals.
 type fuzzCodec struct{ data []byte }
 
-func (f fuzzCodec) Encoding() codec.Encoding { return codec.EncodingCBOR }
+func (f fuzzCodec) Encoding() codec.Encoding   { return codec.EncodingCBOR }
 func (f fuzzCodec) Encode(any) ([]byte, error) { return f.data, nil }
 func (f fuzzCodec) Decode([]byte, any) error   { return nil }
 
@@ -34,7 +34,26 @@ func FuzzCBORToJSONTransform(f *testing.F) {
 	// Valid CBOR: array [1, 2, 3]
 	f.Add([]byte{0x83, 0x01, 0x02, 0x03})
 	// Deeply nested map
-	f.Add([]byte{0xa1, 0x63, 0x6b, 0x65, 0x79, 0xa1, 0x63, 0x6b, 0x65, 0x79, 0xa1, 0x63, 0x6b, 0x65, 0x79, 0x01})
+	f.Add(
+		[]byte{
+			0xa1,
+			0x63,
+			0x6b,
+			0x65,
+			0x79,
+			0xa1,
+			0x63,
+			0x6b,
+			0x65,
+			0x79,
+			0xa1,
+			0x63,
+			0x6b,
+			0x65,
+			0x79,
+			0x01,
+		},
+	)
 
 	f.Fuzz(func(t *testing.T, payload []byte) {
 		t.Parallel()

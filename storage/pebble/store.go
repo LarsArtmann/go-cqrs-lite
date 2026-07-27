@@ -124,7 +124,10 @@ func (a *EventStore) journalBounds() ([]byte, []byte) {
 // journalReadSpan starts a read span and returns the journal bounds in one
 // call. Consolidates the startReadSpan + journalBounds preamble shared by
 // ReadAll and ReadStream.
-func (a *EventStore) journalReadSpan(ctx context.Context, spanName string) (cqrsotel.Span, []byte, []byte) {
+func (a *EventStore) journalReadSpan(
+	ctx context.Context,
+	spanName string,
+) (cqrsotel.Span, []byte, []byte) {
 	span := startReadSpan(ctx, spanName)
 	lower, upper := a.journalBounds()
 

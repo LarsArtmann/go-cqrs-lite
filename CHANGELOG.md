@@ -15,7 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   deployment otherwise duplicates. The transform receives raw payload bytes +
   the event's encoding stamp; non-CBOR payloads pass through unchanged (zero
   overhead); decode/encode failures fall back to the raw payload and log at Warn
-  (graceful degradation). `CBORToJSONTransform` is the one-liner for `WithPayloadTransform`.
+  (graceful degradation, ADR-0070 documents the slog.Default vs OTel counter
+  decision). `CBORToJSONTransform` is the one-liner for `WithPayloadTransform`.
   Also fixes the `WithPayloadTransform` doc example, which previously swallowed
   errors (`jsonBytes, _ := json.Marshal(p)`).
 - **Metaengine module** (`metaengine/v4`) — cost-based storage planner for

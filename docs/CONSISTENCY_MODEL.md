@@ -83,6 +83,14 @@ for name, lag := range host.LagPerProjection() {
 }
 ```
 
+### SSE Delivery: Encoding Projection
+
+Browser SSE clients receive JSON even when events are stored as CBOR. Wire
+`transport/http.CBORToJSONTransform` once via `WithPayloadTransform` — the
+transform converts CBOR payloads to JSON per-client-per-event on the wire.
+This is a schema-free encoding projection, not a consistency concern: the
+event data is identical, only the wire format changes.
+
 ---
 
 ## Read-After-Write: WaitForVersion

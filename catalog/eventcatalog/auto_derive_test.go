@@ -10,7 +10,9 @@ import (
 func TestAutoDerive_MultipleProducers(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry(catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(
+		catalog.Service{ID: "svc-a", Name: "Service A", Version: "1.0.0"},
+	)
 	reg.AddEvent("svc-a", newEvent("OrderPlaced", "Order Placed", catalog.Sends))
 	reg.AddService(catalog.Service{ID: "svc-b", Name: "Service B", Version: "1.0.0"})
 	reg.AddEvent("svc-b", newEvent("OrderPlaced", "Order Placed", catalog.Sends))

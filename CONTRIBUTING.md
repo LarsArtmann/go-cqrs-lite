@@ -144,6 +144,14 @@ go tool cover -html=coverage.out
 - Max 350 lines/file (production), 30 lines/function
 - Descriptive names over comments
 
+### Two-Layer Pattern (Primitive + Adapter)
+
+When a feature spans a Tier-0 primitive and a higher-tier adapter, put the
+generic, schema-free logic in the primitive and the integration glue in the
+adapter. Example: `codec.TranscodeToJSON` (Tier-0, no event dependency) +
+`transport/http.CBORToJSONTransform` (Tier-4, composes event + codec). This
+keeps the primitive reusable and the adapter thin. See ADR-0052.
+
 ## Commit Messages
 
 Format: `type(scope): description`

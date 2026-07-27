@@ -300,8 +300,8 @@ type ListUsersQuery struct {
 
 ```go
 doc := asyncapi.Exporter{}.Export(catalog)
-yamlBytes, _ := doc.MarshalYAML()
-jsonBytes, _ := doc.MarshalJSON()
+yamlBytes, err := doc.MarshalYAML()
+jsonBytes, err := doc.MarshalJSON()
 ```
 
 Maps CQRS types to AsyncAPI operations:

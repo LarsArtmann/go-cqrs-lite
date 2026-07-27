@@ -79,33 +79,37 @@ func (s *MemoryCommandStore) AppendBatch(
 	ref command.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
-	return s.withWriteLock("memory.append_batch_failed", "memory command store append batch", func() error {
-		seen := make(map[id.CommandID]struct{}, len(cmds))
+	return s.withWriteLock(
+		"memory.append_batch_failed",
+		"memory command store append batch",
+		func() error {
+			seen := make(map[id.CommandID]struct{}, len(cmds))
 
-		for _, cmd := range cmds {
-			if _, dup := seen[cmd.ID()]; dup {
-				return errorfamily.WrapConflict(
-					command.ErrDuplicateCommand,
-					"memory.duplicate_command",
-					fmt.Sprintf("command with ID %s appears multiple times in batch", cmd.ID()),
-				)
+			for _, cmd := range cmds {
+				if _, dup := seen[cmd.ID()]; dup {
+					return errorfamily.WrapConflict(
+						command.ErrDuplicateCommand,
+						"memory.duplicate_command",
+						fmt.Sprintf("command with ID %s appears multiple times in batch", cmd.ID()),
+					)
+				}
+
+				seen[cmd.ID()] = struct{}{}
+
+				dupErr := s.checkDuplicate(cmd.ID(), " in batch")
+				if dupErr != nil {
+					return dupErr
+				}
 			}
 
-			seen[cmd.ID()] = struct{}{}
-
-			dupErr := s.checkDuplicate(cmd.ID(), " in batch")
-			if dupErr != nil {
-				return dupErr
+			key := ref.StreamKey()
+			for _, cmd := range cmds {
+				s.appendCommand(key, cmd)
 			}
-		}
 
-		key := ref.StreamKey()
-		for _, cmd := range cmds {
-			s.appendCommand(key, cmd)
-		}
-
-		return nil
-	})
+			return nil
+		},
+	)
 }
 
 // Load retrieves all commands for a stream.

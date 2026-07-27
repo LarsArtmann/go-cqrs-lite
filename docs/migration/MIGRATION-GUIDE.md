@@ -125,6 +125,20 @@ bundle, _ := sqlite.New(dsn,
 event.WithCodec(bundle.EventCodec())
 ```
 
+### Serving JSON to browser SSE clients (CBOR default)
+
+With CBOR as the default codec, SSE clients receive raw CBOR bytes that browsers
+cannot parse. Wire `CBORToJSONTransform` once to convert CBOR payloads to JSON
+on the SSE wire — no per-consumer transcode logic needed:
+
+```go
+broker, _ := NewSSEBroker(bus, WithPayloadTransform(CBORToJSONTransform))
+```
+
+Non-CBOR events (JSON, Raw) pass through unchanged with zero overhead. See
+`codec.TranscodeToJSON` for the underlying primitive and ADR-0052 for the
+two-layer design.
+
 ---
 
 ## Breaking Change 4: BackfillHandler Signature Change

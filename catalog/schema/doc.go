@@ -6,6 +6,7 @@
 // nullable, deprecated, pattern). Results are cached per reflect.Type.
 //
 //	s := schema.FromType[UserCreated]()
-//	jsonBytes, _ := schema.ToJSON(s)
-//	yamlBytes, _ := schema.JSONToYAML(jsonBytes)
+//	jsonBytes, err := schema.ToJSON(s)
+//	if err != nil { return err }
+//	yamlBytes, err := schema.JSONToYAML(jsonBytes)
 package schema

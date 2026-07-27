@@ -66,7 +66,9 @@ func TestRegistry_AddCommand(t *testing.T) {
 func TestRegistry_AddEvent(t *testing.T) {
 	t.Parallel()
 
-	reg := cattest.NewTestRegistry(catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"})
+	reg := cattest.NewTestRegistry(
+		catalog.Service{ID: "order-svc", Name: "Order Service", Version: "1.0.0"},
+	)
 	reg.AddEvent("order-svc", catalog.Message{
 		ID:        "OrderCreated",
 		Name:      "Order Created",
