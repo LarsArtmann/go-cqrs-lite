@@ -82,11 +82,12 @@ this list and recorded in CHANGELOG.
 
 ## Module Health & Tooling
 
-- [ ] 🔥 **Consolidate remaining 13 `wrapClosed()` sites in `storage/memory/`** —
-      the dedup session (2026-07-27) converted only the 4 write-side methods
-      flagged by art-dupl at `-t 3`. The read-side methods use structurally
-      identical `wrapClosed + RLock + defer RUnlock` but didn't cluster due to
-      different error codes/messages. Single biggest remaining dedup win in the repo.
+- [ ] **Consolidate remaining 5 `wrapClosed()` sites** — the 2026-07-27 session
+      converted 12 of 17 sites across `store.go`, `command_store.go`,
+      `query_store.go`, `snapshot.go` into `withWriteLock`/`withReadLock[T]`
+      helper pairs (clone groups: 34 → 19). Remaining: `checkpoint.go` (2,
+      `wrapClosedf` format variant) + `store_load.go` (3, mixed read/write).
+      Same pattern — straightforward follow-up.
 - [ ] **Update AGENTS.md with dedup helper patterns** — the 2026-07-27 dedup
       session introduced `withWriteLock(code, msg, fn)` closures in
       `storage/memory`, `parallelTimeoutCtx(t, timeout)` in benchkit,
