@@ -4,6 +4,8 @@
 **Session goal:** Complete all 7 open benchkit TODO items from the prior session's status report
 **Result:** 6 of 7 items implemented and tested. 1 item (tag) blocked on user commit approval. 1 pre-existing race bug found and fixed during testing.
 
+> **Update 2026-07-27:** The blocked benchkit tag was pushed in the v4.2.0 release. All 7 items are now complete. Verify gate is GREEN.
+
 ---
 
 ## a) FULLY DONE

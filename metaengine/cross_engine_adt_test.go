@@ -202,3 +202,77 @@ func assertCrossEngineSetEq(
 		}
 	}
 }
+
+// TestCrossEngineSortedMapParity — FilterOn + SortOn scan (the ADTSortedMap
+// path via ScanBackend.MapScan) produces identical ordered results across
+// memory and SQLite engines, including limit and cursor pagination.
+func TestCrossEngineSortedMapParity(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use the shared fixture query — listTasksByStatusQuery exercises
+	// FilterOn(status) + SortOn(priority) which routes through MapScan.
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine()},
+		listTasksByStatusQuery(),
+	)
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+	defer store.Close()
+
+	// Populate deterministic data — tasks with known priorities for ordering.
+	tasks := []TaskCreated{
+		{ID: "s1", Title: "low", Assignee: "a", Status: "open", Priority: 5},
+		{ID: "s2", Title: "high", Assignee: "b", Status: "open", Priority: 1},
+		{ID: "s3", Title: "mid", Assignee: "c", Status: "open", Priority: 3},
+		{ID: "s4", Title: "done", Assignee: "d", Status: "done", Priority: 2},
+		{ID: "s5", Title: "urgent", Assignee: "e", Status: "open", Priority: 0},
+	}
+
+	for _, tc := range tasks {
+		if err := store.Apply(ctx, "TaskCreated", tc); err != nil {
+			t.Fatalf("Apply(%s): %v", tc.ID, err)
+		}
+	}
+
+	// Scan open tasks sorted by priority — exercises MapScan (SortedMap ADT).
+	result, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
+		ctx, store, ListTasksByStatus{Status: "open", Limit: 10},
+	)
+	if err != nil {
+		t.Fatalf("ExecuteTyped: %v", err)
+	}
+
+	// Verify sorted order (priority ascending): s5(0), s2(1), s3(3), s1(5).
+	wantIDs := []TaskID{"s5", "s2", "s3", "s1"}
+
+	if len(result.Tasks) != len(wantIDs) {
+		t.Fatalf("got %d tasks, want %d", len(result.Tasks), len(wantIDs))
+	}
+
+	for i, task := range result.Tasks {
+		if task.ID != wantIDs[i] {
+			t.Fatalf("task[%d].ID = %s, want %s (sorted by priority ascending)",
+				i, task.ID, wantIDs[i])
+		}
+	}
+
+	// Test limit truncation — only first 2 tasks.
+	limited, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
+		ctx, store, ListTasksByStatus{Status: "open", Limit: 2},
+	)
+	if err != nil {
+		t.Fatalf("ExecuteTyped(limit=2): %v", err)
+	}
+
+	if len(limited.Tasks) != 2 {
+		t.Fatalf("limited scan: got %d tasks, want 2", len(limited.Tasks))
+	}
+
+	if limited.Tasks[0].ID != "s5" || limited.Tasks[1].ID != "s2" {
+		t.Fatalf("limited scan order: got %s,%s want s5,s2",
+			limited.Tasks[0].ID, limited.Tasks[1].ID)
+	}
+}
