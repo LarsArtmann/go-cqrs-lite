@@ -67,7 +67,11 @@ func FuzzCBORToJSONTransform(f *testing.F) {
 			event.WithCodec(fuzzCodec{data: payload}),
 		)
 		if err != nil {
-			t.Skipf("event.New failed (expected for some fuzz inputs): %v", err)
+			// event.New can only fail if validateEventParams rejects the
+			// fuzz-derived payload (e.g., nil data from empty fuzz input).
+			// The fuzzCodec itself always returns nil error. A bare return
+			// is the standard Go fuzz pattern for "input not applicable."
+			return
 		}
 
 		// The transform must never panic.

@@ -167,14 +167,14 @@ for mod in "${!DEP_BUDGET[@]}"; do
         fi
 
         # Collect production deps for diagnostic output on violation
-        prod_dep_list="${prod_dep_list}  ${dep_path}\n"
+        prod_dep_list="${prod_dep_list}  ${dep_path}"$'\n'
     done
 
     prod_deps=$((direct - test_deps))
 
     if [ "$prod_deps" -gt "$budget" ]; then
         echo "BUDGET: ${mod} has ${prod_deps} production deps (budget: ${budget}, total: ${direct}, test: ${test_deps})"
-        echo -e "  Production deps:\n${prod_dep_list}"
+        printf "  Production deps:\n%s" "$prod_dep_list"
         failed=1
     fi
 done
