@@ -53,12 +53,20 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 
 	const numGoroutines = 5
 
+	// Start barrier: all goroutines wait on this channel so they reach
+	// singleflight's Do at nearly the same time. Without this, the goroutine
+	// scheduler may launch them sequentially, causing some to miss the
+	// in-flight singleflight call (the 50ms sleep in countLoadStore is not
+	// enough under -race or parallel test load).
+	start := make(chan struct{})
+
 	var wg sync.WaitGroup
 
 	for range numGoroutines {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			<-start
 
 			state, version, loadErr := repo.Load(context.Background(), streamID, "Counter")
 			if loadErr != nil {
@@ -74,6 +82,8 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 			}
 		}()
 	}
+
+	close(start)
 	wg.Wait()
 
 	if got := store.count.Load(); got != 1 {

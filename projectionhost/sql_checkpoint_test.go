@@ -69,13 +69,22 @@ func TestIntegration_ProjectionHost_SQLiteCheckpoint(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() { _ = host.Start(ctx) }()
 
-	requireEventually(t, 3*time.Second, func() bool { return proj.count.Load() == 3 })
+	requireEventually(t, 5*time.Second, func() bool {
+		// Wait not just for Handle count but for the checkpoint to be persisted.
+		// The host saves checkpoints asynchronously after processing a batch;
+		// checking only proj.count would return before the checkpoint write
+		// completes, causing a race with cancel()/Stop().
+		if proj.count.Load() != 3 {
+			return false
+		}
+
+		cp, err := cpStore.Load(context.Background(), "sql-test")
+		return err == nil && !cp.IsZero()
+	})
 	cancel()
 	_ = host.Stop()
 
-	// Verify the checkpoint landed in SQLite by opening a FRESH host with the
-	// same DB — the new host should resume from the persisted checkpoint.
-	host2, _ := projectionhost.New(store, cpStore, projectionhost.WithBatchSize(5))
+	// Verify the checkpoint landed in SQLite by loading it from the same store.
 	cp, err := cpStore.Load(context.Background(), "sql-test")
 	if err != nil {
 		t.Fatalf("checkpoint Load: %v", err)
@@ -83,7 +92,6 @@ func TestIntegration_ProjectionHost_SQLiteCheckpoint(t *testing.T) {
 	if cp.IsZero() {
 		t.Fatal("expected non-zero checkpoint persisted in SQLite")
 	}
-	_ = host2
 }
 
 type sqliteCountProjection struct {
