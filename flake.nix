@@ -467,7 +467,7 @@
 
             test-grpc = mkApp "test-grpc" goModules ''
               echo "==> Testing transport/grpc (GOWORK=off)"
-              (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1 "$@")
+              (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test -tags "goexperiment.jsonv2" ./... -count=1 "$@")
             '';
 
             check-wasm = mkApp "check-wasm" goModules ''
@@ -475,7 +475,7 @@
               failed=0
               for mod in $wasmMods; do
                 echo "==> WASM build: $mod"
-                (cd "$mod" && GOWORK=off GOOS=js GOARCH=wasm ${goPkg}/bin/go build ./...) || failed=1
+                (cd "$mod" && GOWORK=off GOOS=js GOARCH=wasm ${goPkg}/bin/go build -tags "goexperiment.jsonv2" ./...) || failed=1
               done
               exit "$failed"
             '';
@@ -545,8 +545,8 @@
                 echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths}
                 echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1
                 echo "=== Check Layers ===" && bash "$PWD/scripts/check-module-layers.sh"
-                echo "=== API Stability ===" && (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run main.go)
-                echo "=== transport/grpc ===" && (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1)
+                echo "=== API Stability ===" && (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run -tags "goexperiment.jsonv2" main.go)
+                echo "=== transport/grpc ===" && (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test -tags "goexperiment.jsonv2" ./... -count=1)
                 echo "✅ All CI checks passed"
               '
             '';
