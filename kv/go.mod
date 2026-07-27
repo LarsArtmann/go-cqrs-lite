@@ -16,4 +16,5 @@ require (
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	pgregory.net/rapid v1.3.0 // indirect
 )
