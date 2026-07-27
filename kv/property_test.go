@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"pgregory.net/rapid"
+
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // Property tests for kv.TypedStore[T,K] and Cache[T,K] invariants.
@@ -18,6 +19,7 @@ func allTypedStores() map[string]storeFactory {
 	return map[string]storeFactory{
 		"memstore": func() (*kv.TypedStore[testUser, testID], func()) {
 			s := kv.NewMemStore()
+
 			return kv.NewTypedStore[testUser, testID](s), func() { _ = s.Close() }
 		},
 	}
