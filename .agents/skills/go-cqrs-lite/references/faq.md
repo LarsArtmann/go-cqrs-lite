@@ -126,7 +126,7 @@ repo := decider.WithEnricher[UserState](event.CommandCausalityEnricher)
 
 ### "go-error-family vs event/v4 error constructors — which should I use?"
 
-**Relationship:** `go-error-family` is the **standalone** extraction of the five-family error taxonomy (Rejection, Conflict, Transient, Infrastructure, Corruption). `event/v4` wraps the **same** families with event-store context (event payloads, codec integration, metadata).
+**Relationship:** `go-error-family` is the **standalone** extraction of the six-family error taxonomy (Rejection, Conflict, Transient, Infrastructure, Corruption, Orchestration). `event/v4` wraps the **same** families with event-store context (event payloads, codec integration, metadata).
 
 - **CQRS apps:** use `errorfamily.NewRejection(...)`, `errorfamily.WrapTransient(err, ...)` directly from [go-error-family](https://github.com/larsartmann/go-error-family).
 - **Non-CQRS apps** (middleware-only consumers, HTTP services): use `go-error-family` directly. It's the same classification without event coupling.

@@ -16,7 +16,7 @@ A production-grade task management service that demonstrates go-cqrs-lite **to t
 | **Signing**          | HMAC-SHA256 event signing (tamper-evident streams)                                          |
 | **Tombstone**        | Soft-delete via metadata — no hard deletes, data preserved                                  |
 | **Testing**          | Scenario DSL (`Given/When/Then`), integration tests, HTTP API tests                         |
-| **Error Taxonomy**   | 5-family error classification mapped to HTTP status codes                                   |
+| **Error Taxonomy**   | 6-family error classification mapped to HTTP status codes                                   |
 | **Branded IDs**      | `id.AggregateID` for type-safe identifiers                                                  |
 
 ## Architecture
@@ -118,13 +118,14 @@ The deployer chooses infrastructure (one line: `sqlite.New(...)`). The consumer 
 
 ### Error Taxonomy → HTTP Status
 
-The 5-family error taxonomy maps directly to HTTP status codes:
+The 6-family error taxonomy maps directly to HTTP status codes:
 
 - Rejection → 400 (bad request)
 - Conflict → 409 (state conflict)
 - Transient → 503 (retry later)
 - Infrastructure → 500 (server error)
 - Corruption → 500 (data corruption)
+- Orchestration → 500 (workflow coordination failure)
 
 ## Swapping Databases
 

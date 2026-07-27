@@ -1,4 +1,6 @@
-# ADR-0002: Error Taxonomy with Five Families
+# ADR-0002: Error Taxonomy with Six Families
+
+> **Amendment (2026-07-27):** A sixth family — **Orchestration** (`NewOrchestration`, for workflow/saga coordination errors) — was added in `go-error-family` v0.10.0. The title and scope have been updated from "Five Families" to "Six Families." The original decision context (5 families) is preserved below; the Orchestration family is additive and does not change any existing classification.
 
 **Status:** Accepted  
 **Date:** 2026-05-03

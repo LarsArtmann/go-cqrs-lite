@@ -276,7 +276,7 @@ All AST inspection builds on the patterns already proven in `cqrs-gen` (see Sect
 | Output: SARIF, JSON, text, LSP, markdown                                   | ~800 lines                    | `go-finding` formatters (all built-in, round-trip tested)            |
 | Fix engine (byte-level edits, conflict detection, rollback)                | ~400 lines                    | `go-finding/pipeline.FixEngine` + `FixProvider` interface            |
 | Generated file filtering                                                   | ~50 lines                     | `go-finding/pipeline.GeneratedFileFilter` (uses `gogenfilter`)       |
-| Error classification + exit codes                                          | ~150 lines                    | `go-error-family` (5-family taxonomy, `ExitCode()`, `HandleError()`) |
+| Error classification + exit codes                                          | ~150 lines                    | `go-error-family` (6-family taxonomy, `ExitCode()`, `HandleError()`) |
 | CLI: flags, config files, subcommands, help, completion                    | ~400 lines                    | `cmdguard` (struct-tag flags, DI, validated-at-construction)         |
 | CLI: output formats (16+ via go-output)                                    | ~200 lines                    | `cmdguard.OutputResult` (text, JSON, CSV, TSV, markdown, ...)        |
 | CLI: typo suggestions, doctor checks, doc generation                       | ~200 lines                    | `cmdguard.SuggestFlag`, `DoctorCommand`, `GenerateDocs`              |

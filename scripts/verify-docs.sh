@@ -74,8 +74,18 @@ echo "=== Error family count consistency ==="
 # go-error-family v0.10.0 has 6 families (Rejection, Conflict, Transient,
 # Infrastructure, Orchestration, Corruption). Living docs must say "6-family",
 # never "5-family". This check prevents split-brain after a family is added.
-stale_family=$(grep -rnE '\b5-family\b|\bfive families\b|\b5 Error Families\b' \
-  docs/error-taxonomy.md README.md FEATURES.md AGENTS.md 2>/dev/null || true)
+# Excludes: archive/ (historical), CHANGELOG (historical), docs/status/ (point-in-time),
+# docs/feedback/ (historical consumer feedback), and ADR amendment notes.
+stale_family=$(grep -rniE '\b5[- ]family\b|\bfive families\b|\b5 error families\b' \
+  --include='*.md' . 2>/dev/null \
+  | grep -v '/archive/' \
+  | grep -v 'CHANGELOG' \
+  | grep -v 'docs/status/' \
+  | grep -v 'docs/feedback/' \
+  | grep -v 'docs/planning/' \
+  | grep -v 'Amendment.*Five Families' \
+  | grep -v '.git/' \
+  || true)
 if [ -n "$stale_family" ]; then
   echo "FAIL: Stale '5-family' references found (should be '6-family'):"
   echo "$stale_family"
