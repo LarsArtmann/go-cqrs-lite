@@ -41,5 +41,3 @@ require (
 	golang.org/x/tools v0.48.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/codec/v4 => ../codec
