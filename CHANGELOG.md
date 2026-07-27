@@ -15,6 +15,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   prior reports instead of re-measured. Supports `--update` to recompute and
   print the AGENTS.md-ready values. ±2% tolerance for refactor noise.
 
+- **cqrs-lint: 3 new rules (60 → 63)** —
+  `C015` (unchecked `Close()` — resource leak detection, flags bare
+  `x.Close()` statements and `_ = x.Close()` assignments),
+  `C016` (`context.Background()`/`context.TODO()` in handlers — flags detached
+  contexts inside functions that receive a `context.Context` parameter, which
+  discards the caller's cancellation, timeouts, and tracing),
+  `D006` (missing `errorfamily.New*` — flags `errors.New` and `fmt.Errorf`
+  without `%w` in production code, which bypasses the 6-family error taxonomy;
+  package-level sentinel `var ErrXxx = errors.New(...)` declarations are
+  exempt because they are matched by `errors.Is`, not classified).
+
+- **CI gates expanded** — `.github/workflows/ci.yml` now runs 4 additional
+  quality gates: `#check-api-stability`, `#check-duplication`,
+  `#check-layers`, `#check-coverage`. These existed as local nix apps but were
+  never wired into CI — the red cqrs-lint gate hidden for 3+ sessions is the
+  proof that local-only checks rot silently.
+
+- **wrapClosed consolidation** (`storage/memory`) — extracted `withWriteLock`
+  and `withReadLock[T]` helper pairs across `store.go`, `command_store.go`,
+  `query_store.go`, and `snapshot.go` (12 of 17 sites). Clone groups dropped
+  34 → 19. Remaining: `checkpoint.go` (2) + `store_load.go` (3), same pattern.
+
 - **CBOR→JSON transcoding helpers** — `codec.TranscodeToJSON(payload, enc)` and
   `transport/http.CBORToJSONTransform`. A schema-free, ready-made bridge for
   consumers that store events in CBOR but must serve JSON to browsers via SSE.
