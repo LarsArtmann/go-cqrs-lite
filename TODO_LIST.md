@@ -34,24 +34,18 @@ this list and recorded in CHANGELOG.
 
 ## Release
 
-> The CHANGELOG `[Unreleased]` section has 400+ lines across 15 subsections.
-> go-error-family was upgraded v0.9.0 → v0.10.0 across all 50 modules (added
-> Orchestration family). 57 of 58 modules have tags reachable from HEAD.
-> `codec/v4.1.1` is tagged and pushed to origin (contains new API:
-> `TranscodeToJSON`, `MarshalBase64JSONWithModule` — semver concern: should
-> have been v4.2.0 minor bump, not patch).
+> ✅ **v4.2.0 RELEASED** (2026-07-27). 53 modules tagged and pushed. The
+> CHANGELOG `[v4.2.0]` section has shipped; a fresh `[Unreleased]` is open.
+> `metaengine/projectionadapter/v4.0.0` re-tagged at `be818c91` (was orphaned).
+> `codec/v4.2.0` tagged alongside v4.1.1 (semver correction — both kept).
+> `cmd/cqrs-lint` and `example/taskmanager` deps fixed (go-finding pseudo-versions
+> → real v1.4.0, go-must v0.1.2) so the release batch could strip local replaces.
 
-- [BLOCKED] ⭐ **Cut v4.2.0 release** — flush `[Unreleased]` CHANGELOG, tag all
-  58 modules, push tags. Requires user approval for push.
-- [BLOCKED] 🔥 **Re-tag `metaengine/projectionadapter/v4.0.0`** — the tag
-  exists locally and on origin but points to a commit **not reachable from
-  HEAD** (orphaned). Must re-tag on the correct commit so consumers resolving
-  the module actually get a buildable tree.
-- [BLOCKED] 🔥 **Decide on codec/v4.1.1 semver violation** — `TranscodeToJSON`
-  and `MarshalBase64JSONWithModule` are new public API shipped under a patch
-  tag. Yank + re-tag as v4.2.0, or accept the violation? Requires user decision.
-- [ ] **Run `nix run .#vulncheck` after v4.2.0** — verify no known
-      vulnerabilities across all module deps.
+- [ ] **Run `nix run .#vulncheck`** — verify no known vulnerabilities across
+      all module deps after v4.2.0.
+- [ ] **Publish go-finding + go-must as tagged modules** — the go.mod replace
+      directives are needed for dev; consumers resolving the published modules
+      depend on the real tagged versions (go-finding v1.4.0, go-must v0.1.2).
 
 ---
 
