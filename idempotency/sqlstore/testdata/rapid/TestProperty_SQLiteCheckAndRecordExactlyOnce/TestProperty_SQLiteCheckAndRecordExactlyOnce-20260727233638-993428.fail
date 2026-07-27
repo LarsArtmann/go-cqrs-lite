@@ -1,0 +1,9 @@
+# 2026/07/27 23:36:38.272593 [TestProperty_SQLiteCheckAndRecordExactlyOnce] [rapid] draw key: ""
+# 2026/07/27 23:36:38.272602 [TestProperty_SQLiteCheckAndRecordExactlyOnce] [rapid] draw concurrent: 2
+# 2026/07/27 23:36:38.272709 [TestProperty_SQLiteCheckAndRecordExactlyOnce] expected exactly 1 success, got 0
+# 
+v0.4.8#11477574221380180062
+0x0
+0x0
+0x0
+0x0

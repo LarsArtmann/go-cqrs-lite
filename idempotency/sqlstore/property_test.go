@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -15,20 +17,28 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+var propDBCounter atomic.Int64
+
 func newTestStore(tb testing.TB) (*sqlstore.Store, *sql.DB) {
 	tb.Helper()
 
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared&_pragma=busy_timeout(5000)")
+	// Each test gets its own in-memory database via a unique name.
+	// Using file::memory:?cache=shared with the SAME name causes cross-test
+	// interference. A unique DSN per call avoids this.
+	n := propDBCounter.Add(1)
+	dsn := fmt.Sprintf("file:propdb%d?mode=memory&cache=shared&_pragma=busy_timeout(5000)", n)
+
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
+		tb.Fatalf("open sqlite: %v", err)
 	}
 
 	store, err := sqlstore.NewSQLiteStore(context.Background(), db)
 	if err != nil {
-		t.Fatalf("create store: %v", err)
+		tb.Fatalf("create store: %v", err)
 	}
 
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		store.Close()
 		db.Close()
 	})
@@ -41,25 +51,25 @@ func newTestStore(tb testing.TB) (*sqlstore.Store, *sql.DB) {
 func TestProperty_SQLiteRecordIsIdempotent(t *testing.T) {
 	t.Parallel()
 
-	rapid.Check(t, func(t *rapid.T) {
+	rapid.Check(t, func(rt *rapid.T) {
 		store, _ := newTestStore(t)
 
-		key := rapid.String().Draw(t, "key")
-		ttl := time.Duration(rapid.IntRange(1, 60).Draw(t, "ttl_seconds")) * time.Second
+		key := rapid.String().Draw(rt, "key")
+		ttl := time.Duration(rapid.IntRange(1, 60).Draw(rt, "ttl_seconds")) * time.Second
 
-		for i := 0; i < rapid.IntRange(2, 10).Draw(t, "repeats"); i++ {
+		for i := 0; i < rapid.IntRange(2, 10).Draw(rt, "repeats"); i++ {
 			if err := store.Record(context.Background(), key, ttl); err != nil {
-				t.Fatalf("Record attempt %d: %v", i, err)
+				rt.Fatalf("Record attempt %d: %v", i, err)
 			}
 		}
 
 		seen, err := store.Seen(context.Background(), key)
 		if err != nil {
-			t.Fatalf("Seen: %v", err)
+			rt.Fatalf("Seen: %v", err)
 		}
 
 		if !seen {
-			t.Fatal("key should be seen after repeated Record calls")
+			rt.Fatal("key should be seen after repeated Record calls")
 		}
 	})
 }
@@ -70,11 +80,11 @@ func TestProperty_SQLiteRecordIsIdempotent(t *testing.T) {
 func TestProperty_SQLiteCheckAndRecordExactlyOnce(t *testing.T) {
 	t.Parallel()
 
-	rapid.Check(t, func(t *rapid.T) {
+	rapid.Check(t, func(rt *rapid.T) {
 		store, _ := newTestStore(t)
 
-		key := rapid.String().Draw(t, "key")
-		n := rapid.IntRange(2, 10).Draw(t, "concurrent")
+		key := rapid.String().Draw(rt, "key")
+		n := rapid.IntRange(2, 10).Draw(rt, "concurrent")
 		ttl := time.Minute
 
 		results := make(chan error, n)
@@ -101,16 +111,16 @@ func TestProperty_SQLiteCheckAndRecordExactlyOnce(t *testing.T) {
 			} else if errors.Is(err, idempotency.ErrDuplicate) {
 				duplicates++
 			} else {
-				t.Fatalf("unexpected error: %v", err)
+				rt.Fatalf("unexpected error: %v", err)
 			}
 		}
 
 		if successes != 1 {
-			t.Fatalf("expected exactly 1 success, got %d", successes)
+			rt.Fatalf("expected exactly 1 success, got %d", successes)
 		}
 
 		if duplicates != n-1 {
-			t.Fatalf("expected %d duplicates, got %d", n-1, duplicates)
+			rt.Fatalf("expected %d duplicates, got %d", n-1, duplicates)
 		}
 	})
 }
@@ -120,26 +130,26 @@ func TestProperty_SQLiteCheckAndRecordExactlyOnce(t *testing.T) {
 func TestProperty_SQLiteTTLExpiry(t *testing.T) {
 	t.Parallel()
 
-	rapid.Check(t, func(t *rapid.T) {
+	rapid.Check(t, func(rt *rapid.T) {
 		store, _ := newTestStore(t)
 
-		key := rapid.String().Draw(t, "key")
+		key := rapid.String().Draw(rt, "key")
 		ttl := 50 * time.Millisecond
 
 		if err := store.Record(context.Background(), key, ttl); err != nil {
-			t.Fatalf("Record: %v", err)
+			rt.Fatalf("Record: %v", err)
 		}
 
 		seen, _ := store.Seen(context.Background(), key)
 		if !seen {
-			t.Fatal("key should be seen immediately after Record")
+			rt.Fatal("key should be seen immediately after Record")
 		}
 
 		time.Sleep(ttl + 50*time.Millisecond)
 
 		seen, _ = store.Seen(context.Background(), key)
 		if seen {
-			t.Fatal("key should be unseen after TTL expiry")
+			rt.Fatal("key should be unseen after TTL expiry")
 		}
 	})
 }
