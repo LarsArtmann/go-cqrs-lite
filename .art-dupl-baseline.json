@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-07-27T10:04:32.735567839Z",
+  "recordedAt": "2026-07-27T10:11:55.304110671Z",
   "entries": [
     {
       "hash": "0c9116afe1248bbb",
@@ -17,14 +17,6 @@
       "files": [
         "catalog/eventcatalog/writer_schemas_txt.go",
         "catalog/eventcatalog/writer.go"
-      ],
-      "tokens": 6
-    },
-    {
-      "hash": "15d259ee5682d2eb",
-      "files": [
-        "storage/memory/snapshot.go",
-        "event/v4/eventtest/fake_store.go"
       ],
       "tokens": 6
     },
@@ -53,14 +45,6 @@
       "tokens": 6
     },
     {
-      "hash": "38f4010c0de8bd90",
-      "files": [
-        "storage/memory/store_load.go",
-        "storage/memory/snapshot.go"
-      ],
-      "tokens": 6
-    },
-    {
       "hash": "3a8477484cfe9ca4",
       "files": [
         "projectionhost/dlq.go",
@@ -69,11 +53,11 @@
       "tokens": 6
     },
     {
-      "hash": "3ad1152d104b694a",
+      "hash": "4f356606f49514ed",
       "files": [
-        "storage/memory/query_store.go",
-        "storage/memory/store_load.go",
-        "storage/memory/command_store.go"
+        "storage/memory/command_store.go",
+        "storage/memory/snapshot.go",
+        "storage/memory/query_store.go"
       ],
       "tokens": 9
     },
@@ -129,10 +113,12 @@
     {
       "hash": "b87288a24d3e70e3",
       "files": [
+        "storage/memory/store.go",
         "storage/memory/snapshot.go",
-        "storage/memory/command_store.go"
+        "storage/memory/command_store.go",
+        "storage/memory/query_store.go"
       ],
-      "tokens": 6
+      "tokens": 12
     },
     {
       "hash": "d76703d70d6dd341",
@@ -171,14 +157,6 @@
       "files": [
         "storage/pebble/command_read.go",
         "storage/pebble/query_read.go"
-      ],
-      "tokens": 6
-    },
-    {
-      "hash": "febdf2070bdd6664",
-      "files": [
-        "storage/memory/store.go",
-        "event/v4/eventtest/fake_store.go"
       ],
       "tokens": 6
     }

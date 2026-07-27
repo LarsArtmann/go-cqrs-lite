@@ -40,6 +40,19 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
+// withWriteLock centralises the wrapClosed + Lock + defer Unlock preamble for
+// write-side methods. The closure body runs under the lock.
+func (s *MemoryStore) withWriteLock(code, msg string, fn func() error) error {
+	if err := wrapClosed(s.CheckClosed(event.ErrStoreClosed), code, msg); err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return fn()
+}
+
 // Save appends events to a stream with optimistic concurrency check.
 // Returns ErrVersionConflict if the expected version does not match the current stream length.
 func (s *MemoryStore) Save(
@@ -48,28 +61,19 @@ func (s *MemoryStore) Save(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
-	if err := wrapClosed(
-		s.CheckClosed(event.ErrStoreClosed),
-		"memory.save_failed",
-		"memory store save",
-	); err != nil {
-		return err
-	}
+	return s.withWriteLock("memory.save_failed", "memory store save", func() error {
+		key := ref.StreamKey()
+		streamLen := len(s.streamIndex[key])
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+		err := event.CheckVersionConflict(streamLen, expectedVersion)
+		if err != nil {
+			return errorfamily.WrapInfrastructure(err, "memory.save_failed", "memory store save")
+		}
 
-	key := ref.StreamKey()
-	streamLen := len(s.streamIndex[key])
+		s.appendToGlobalLog(key, events)
 
-	err := event.CheckVersionConflict(streamLen, expectedVersion)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "memory.save_failed", "memory store save")
-	}
-
-	s.appendToGlobalLog(key, events)
-
-	return nil
+		return nil
+	})
 }
 
 // AppendBatch appends events without a version check. Useful for testing idempotent writes.
@@ -78,21 +82,12 @@ func (s *MemoryStore) AppendBatch(
 	ref id.StreamRef,
 	events []event.Event,
 ) error {
-	if err := wrapClosed(
-		s.CheckClosed(event.ErrStoreClosed),
-		"memory.append_batch_failed",
-		"memory store append batch",
-	); err != nil {
-		return err
-	}
+	return s.withWriteLock("memory.append_batch_failed", "memory store append batch", func() error {
+		key := ref.StreamKey()
+		s.appendToGlobalLog(key, events)
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	key := ref.StreamKey()
-	s.appendToGlobalLog(key, events)
-
-	return nil
+		return nil
+	})
 }
 
 // SaveMultiBatch appends events for multiple streams under a single lock.
@@ -101,22 +96,13 @@ func (s *MemoryStore) SaveMultiBatch(
 	_ context.Context,
 	entries []event.MultiBatchEntry,
 ) error {
-	if err := wrapClosed(
-		s.CheckClosed(event.ErrStoreClosed),
-		"memory.save_multi_batch_failed",
-		"memory store save multi batch",
-	); err != nil {
-		return err
-	}
+	return s.withWriteLock("memory.save_multi_batch_failed", "memory store save multi batch", func() error {
+		for _, entry := range entries {
+			s.appendToGlobalLog(entry.Ref.StreamKey(), entry.Events)
+		}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	for _, entry := range entries {
-		s.appendToGlobalLog(entry.Ref.StreamKey(), entry.Events)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.

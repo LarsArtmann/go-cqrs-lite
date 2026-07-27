@@ -237,42 +237,26 @@ func (s *MemoryCommandStore) loadFiltered(
 	filter func([]*command.PersistedCommand) []*command.PersistedCommand,
 ) ([]*command.PersistedCommand, error) {
 	return withCommandReadLock(s, "memory.load_failed", fmt.Sprintf("memory command store %s failed", op), func() ([]*command.PersistedCommand, error) {
-		entries, exists := s.streamIndex[ref]
+		key := ref.StreamKey()
+
+		indices, exists := s.streamIndex[key]
 		if !exists {
-			return nil, nil
+			return nil, errorfamily.WrapRejection(command.ErrCommandNotFound,
+				"memory.command_not_found",
+				fmt.Sprintf("memory %s stream %s not found", op, ref))
 		}
 
-		result := make([]*command.PersistedCommand, 0, len(entries))
-		for _, idx := range entries {
-			result = append(result, s.globalLog[idx])
+		cmds := make([]*command.PersistedCommand, len(indices))
+		for i, idx := range indices {
+			cmds[i] = s.globalLog[idx]
 		}
 
-		return slices.Clone(filter(result)), nil
+		if filter != nil {
+			cmds = filter(cmds)
+		}
+
+		return slices.Clone(cmds), nil
 	})
-}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	key := ref.StreamKey()
-
-	indices, exists := s.streamIndex[key]
-	if !exists {
-		return nil, errorfamily.WrapRejection(command.ErrCommandNotFound,
-			"memory.command_not_found",
-			fmt.Sprintf("memory %s stream %s not found", op, ref))
-	}
-
-	cmds := make([]*command.PersistedCommand, len(indices))
-	for i, idx := range indices {
-		cmds[i] = s.globalLog[idx]
-	}
-
-	if filter != nil {
-		cmds = filter(cmds)
-	}
-
-	return slices.Clone(cmds), nil
 }
 
 func filterByTimestampAfter(

@@ -60,31 +60,39 @@ func (s *MemorySnapshotStore) withWriteLock(code, msg string, fn func() error) e
 	return fn()
 }
 
-func (s *MemorySnapshotStore) Load(
-	_ context.Context,
-	ref id.StreamRef,
-) (*snappkg.Snapshot, error) {
-	if err := wrapClosed(
-		s.CheckClosed(snappkg.ErrSnapshotStoreClosed),
-		"memory.snapshot_load_failed",
-		"snapshot store load",
-	); err != nil {
-		return nil, err
+// withSnapshotReadLock is the read-side companion to withWriteLock. Top-level
+// generic function because Go does not permit generic methods.
+func withSnapshotReadLock[T any](
+	s *MemorySnapshotStore,
+	code, msg string,
+	fn func() (T, error),
+) (T, error) {
+	if err := wrapClosed(s.CheckClosed(snappkg.ErrSnapshotStoreClosed), code, msg); err != nil {
+		var zero T
+
+		return zero, err
 	}
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	key := ref.StreamKey()
+	return fn()
+}
 
-	snap, exists := s.snapshots[key]
-	if !exists {
-		return nil, snappkg.ErrSnapshotNotFound
-	}
+func (s *MemorySnapshotStore) Load(
+	_ context.Context,
+	ref id.StreamRef,
+) (*snappkg.Snapshot, error) {
+	return withSnapshotReadLock(s, "memory.snapshot_load_failed", "snapshot store load", func() (*snappkg.Snapshot, error) {
+		key := ref.StreamKey()
 
-	cp := copySnapshot(snap)
+		snap, exists := s.snapshots[key]
+		if !exists {
+			return nil, snappkg.ErrSnapshotNotFound
+		}
 
-	return cp, nil
+		return copySnapshot(snap), nil
+	})
 }
 
 func (s *MemorySnapshotStore) LoadAtVersion(
@@ -92,31 +100,20 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 	ref id.StreamRef,
 	version event.Version,
 ) (*snappkg.Snapshot, error) {
-	if err := wrapClosed(
-		s.CheckClosed(snappkg.ErrSnapshotStoreClosed),
-		"memory.snapshot_load_at_version_failed",
-		"snapshot store load at version",
-	); err != nil {
-		return nil, err
-	}
+	return withSnapshotReadLock(s, "memory.snapshot_load_at_version_failed", "snapshot store load at version", func() (*snappkg.Snapshot, error) {
+		key := ref.StreamKey()
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+		snap, exists := s.snapshots[key]
+		if !exists {
+			return nil, snappkg.ErrSnapshotNotFound
+		}
 
-	key := ref.StreamKey()
+		if snap.Version.Cmp(version) > 0 {
+			return nil, snappkg.ErrSnapshotNotFound
+		}
 
-	snap, exists := s.snapshots[key]
-	if !exists {
-		return nil, snappkg.ErrSnapshotNotFound
-	}
-
-	if snap.Version.Cmp(version) > 0 {
-		return nil, snappkg.ErrSnapshotNotFound
-	}
-
-	cp := copySnapshot(snap)
-
-	return cp, nil
+		return copySnapshot(snap), nil
+	})
 }
 
 func copySnapshot(snap *snappkg.Snapshot) *snappkg.Snapshot {
