@@ -563,7 +563,7 @@
             vulncheck = mkApp "vulncheck" [ goPkg pkgs.govulncheck ] ''
               for mod in ${builtins.concatStringsSep " " testModules}; do
                 echo "==> Vulnerability scan: $mod"
-                (cd "$mod" && GOWORK=off ${pkgs.govulncheck}/bin/govulncheck ./...)
+                (cd "$mod" && GOWORK=off ${pkgs.govulncheck}/bin/govulncheck -tags "goexperiment.jsonv2" ./...)
               done
             '';
 
