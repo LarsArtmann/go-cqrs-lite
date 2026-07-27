@@ -83,16 +83,21 @@ func (s *MemorySnapshotStore) Load(
 	_ context.Context,
 	ref id.StreamRef,
 ) (*snappkg.Snapshot, error) {
-	return withSnapshotReadLock(s, "memory.snapshot_load_failed", "snapshot store load", func() (*snappkg.Snapshot, error) {
-		key := ref.StreamKey()
+	return withSnapshotReadLock(
+		s,
+		"memory.snapshot_load_failed",
+		"snapshot store load",
+		func() (*snappkg.Snapshot, error) {
+			key := ref.StreamKey()
 
-		snap, exists := s.snapshots[key]
-		if !exists {
-			return nil, snappkg.ErrSnapshotNotFound
-		}
+			snap, exists := s.snapshots[key]
+			if !exists {
+				return nil, snappkg.ErrSnapshotNotFound
+			}
 
-		return copySnapshot(snap), nil
-	})
+			return copySnapshot(snap), nil
+		},
+	)
 }
 
 func (s *MemorySnapshotStore) LoadAtVersion(
@@ -100,20 +105,25 @@ func (s *MemorySnapshotStore) LoadAtVersion(
 	ref id.StreamRef,
 	version event.Version,
 ) (*snappkg.Snapshot, error) {
-	return withSnapshotReadLock(s, "memory.snapshot_load_at_version_failed", "snapshot store load at version", func() (*snappkg.Snapshot, error) {
-		key := ref.StreamKey()
+	return withSnapshotReadLock(
+		s,
+		"memory.snapshot_load_at_version_failed",
+		"snapshot store load at version",
+		func() (*snappkg.Snapshot, error) {
+			key := ref.StreamKey()
 
-		snap, exists := s.snapshots[key]
-		if !exists {
-			return nil, snappkg.ErrSnapshotNotFound
-		}
+			snap, exists := s.snapshots[key]
+			if !exists {
+				return nil, snappkg.ErrSnapshotNotFound
+			}
 
-		if snap.Version.Cmp(version) > 0 {
-			return nil, snappkg.ErrSnapshotNotFound
-		}
+			if snap.Version.Cmp(version) > 0 {
+				return nil, snappkg.ErrSnapshotNotFound
+			}
 
-		return copySnapshot(snap), nil
-	})
+			return copySnapshot(snap), nil
+		},
+	)
 }
 
 func copySnapshot(snap *snappkg.Snapshot) *snappkg.Snapshot {

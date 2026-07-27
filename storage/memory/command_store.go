@@ -178,9 +178,14 @@ func (s *MemoryCommandStore) Close() error {
 // (which matches ReceivedAt order since commands are appended on receipt).
 // Implements command.CommandJournal.
 func (s *MemoryCommandStore) ReadAll(_ context.Context) ([]*command.PersistedCommand, error) {
-	return withCommandReadLock(s, "memory.readall_failed", "memory command journal readall", func() ([]*command.PersistedCommand, error) {
-		return slices.Clone(s.globalLog), nil
-	})
+	return withCommandReadLock(
+		s,
+		"memory.readall_failed",
+		"memory command journal readall",
+		func() ([]*command.PersistedCommand, error) {
+			return slices.Clone(s.globalLog), nil
+		},
+	)
 }
 
 // ReadFrom returns commands after the given CommandID, ordered by insertion.
@@ -190,26 +195,31 @@ func (s *MemoryCommandStore) ReadFrom(
 	afterCommandID id.CommandID,
 	limit int,
 ) ([]*command.PersistedCommand, error) {
-	return withCommandReadLock(s, "memory.readfrom_failed", "memory command journal readfrom", func() ([]*command.PersistedCommand, error) {
-		startIdx := 0
+	return withCommandReadLock(
+		s,
+		"memory.readfrom_failed",
+		"memory command journal readfrom",
+		func() ([]*command.PersistedCommand, error) {
+			startIdx := 0
 
-		if afterCommandID != (id.CommandID{}) {
-			idx, exists := s.commandIDIndex[afterCommandID]
-			if !exists {
+			if afterCommandID != (id.CommandID{}) {
+				idx, exists := s.commandIDIndex[afterCommandID]
+				if !exists {
+					return nil, nil
+				}
+
+				startIdx = idx + 1
+			}
+
+			end := min(startIdx+limit, len(s.globalLog))
+
+			if startIdx >= len(s.globalLog) {
 				return nil, nil
 			}
 
-			startIdx = idx + 1
-		}
-
-		end := min(startIdx+limit, len(s.globalLog))
-
-		if startIdx >= len(s.globalLog) {
-			return nil, nil
-		}
-
-		return slices.Clone(s.globalLog[startIdx:end]), nil
-	})
+			return slices.Clone(s.globalLog[startIdx:end]), nil
+		},
+	)
 }
 
 func (s *MemoryCommandStore) checkDuplicate(cmdID id.CommandID, suffix string) error {
@@ -236,27 +246,32 @@ func (s *MemoryCommandStore) loadFiltered(
 	op string,
 	filter func([]*command.PersistedCommand) []*command.PersistedCommand,
 ) ([]*command.PersistedCommand, error) {
-	return withCommandReadLock(s, "memory.load_failed", fmt.Sprintf("memory command store %s failed", op), func() ([]*command.PersistedCommand, error) {
-		key := ref.StreamKey()
+	return withCommandReadLock(
+		s,
+		"memory.load_failed",
+		fmt.Sprintf("memory command store %s failed", op),
+		func() ([]*command.PersistedCommand, error) {
+			key := ref.StreamKey()
 
-		indices, exists := s.streamIndex[key]
-		if !exists {
-			return nil, errorfamily.WrapRejection(command.ErrCommandNotFound,
-				"memory.command_not_found",
-				fmt.Sprintf("memory %s stream %s not found", op, ref))
-		}
+			indices, exists := s.streamIndex[key]
+			if !exists {
+				return nil, errorfamily.WrapRejection(command.ErrCommandNotFound,
+					"memory.command_not_found",
+					fmt.Sprintf("memory %s stream %s not found", op, ref))
+			}
 
-		cmds := make([]*command.PersistedCommand, len(indices))
-		for i, idx := range indices {
-			cmds[i] = s.globalLog[idx]
-		}
+			cmds := make([]*command.PersistedCommand, len(indices))
+			for i, idx := range indices {
+				cmds[i] = s.globalLog[idx]
+			}
 
-		if filter != nil {
-			cmds = filter(cmds)
-		}
+			if filter != nil {
+				cmds = filter(cmds)
+			}
 
-		return slices.Clone(cmds), nil
-	})
+			return slices.Clone(cmds), nil
+		},
+	)
 }
 
 func filterByTimestampAfter(

@@ -81,23 +81,33 @@ func (s *MemoryQueryStore) LoadQueries(
 	_ context.Context,
 	after time.Time,
 ) ([]*query.PersistedQuery, error) {
-	return withQueryReadLock(s, "memory.load_queries_failed", "memory query store load queries", func() ([]*query.PersistedQuery, error) {
-		result := make([]*query.PersistedQuery, 0, len(s.queries))
+	return withQueryReadLock(
+		s,
+		"memory.load_queries_failed",
+		"memory query store load queries",
+		func() ([]*query.PersistedQuery, error) {
+			result := make([]*query.PersistedQuery, 0, len(s.queries))
 
-		for _, q := range s.queries {
-			if q.ReceivedAt().After(after) {
-				result = append(result, q)
+			for _, q := range s.queries {
+				if q.ReceivedAt().After(after) {
+					result = append(result, q)
+				}
 			}
-		}
 
-		return result, nil
-	})
+			return result, nil
+		},
+	)
 }
 
 func (s *MemoryQueryStore) ReadAllQueries(_ context.Context) ([]*query.PersistedQuery, error) {
-	return withQueryReadLock(s, "memory.readall_queries_failed", "memory query journal readall", func() ([]*query.PersistedQuery, error) {
-		return slices.Clone(s.queries), nil
-	})
+	return withQueryReadLock(
+		s,
+		"memory.readall_queries_failed",
+		"memory query journal readall",
+		func() ([]*query.PersistedQuery, error) {
+			return slices.Clone(s.queries), nil
+		},
+	)
 }
 
 func (s *MemoryQueryStore) ReadQueriesFrom(
@@ -105,26 +115,31 @@ func (s *MemoryQueryStore) ReadQueriesFrom(
 	afterRequestID id.RequestID,
 	limit int,
 ) ([]*query.PersistedQuery, error) {
-	return withQueryReadLock(s, "memory.readqueries_from_failed", "memory query journal readfrom", func() ([]*query.PersistedQuery, error) {
-		startIdx := 0
+	return withQueryReadLock(
+		s,
+		"memory.readqueries_from_failed",
+		"memory query journal readfrom",
+		func() ([]*query.PersistedQuery, error) {
+			startIdx := 0
 
-		if afterRequestID != (id.RequestID{}) {
-			idx, exists := s.idIndex[afterRequestID]
-			if !exists {
+			if afterRequestID != (id.RequestID{}) {
+				idx, exists := s.idIndex[afterRequestID]
+				if !exists {
+					return nil, nil
+				}
+
+				startIdx = idx + 1
+			}
+
+			end := min(startIdx+limit, len(s.queries))
+
+			if startIdx >= len(s.queries) {
 				return nil, nil
 			}
 
-			startIdx = idx + 1
-		}
-
-		end := min(startIdx+limit, len(s.queries))
-
-		if startIdx >= len(s.queries) {
-			return nil, nil
-		}
-
-		return slices.Clone(s.queries[startIdx:end]), nil
-	})
+			return slices.Clone(s.queries[startIdx:end]), nil
+		},
+	)
 }
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.

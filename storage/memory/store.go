@@ -96,13 +96,17 @@ func (s *MemoryStore) SaveMultiBatch(
 	_ context.Context,
 	entries []event.MultiBatchEntry,
 ) error {
-	return s.withWriteLock("memory.save_multi_batch_failed", "memory store save multi batch", func() error {
-		for _, entry := range entries {
-			s.appendToGlobalLog(entry.Ref.StreamKey(), entry.Events)
-		}
+	return s.withWriteLock(
+		"memory.save_multi_batch_failed",
+		"memory store save multi batch",
+		func() error {
+			for _, entry := range entries {
+				s.appendToGlobalLog(entry.Ref.StreamKey(), entry.Events)
+			}
 
-		return nil
-	})
+			return nil
+		},
+	)
 }
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.

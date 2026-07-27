@@ -45,7 +45,8 @@ func NewC015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					if ok && len(assignStmt.Lhs) == 1 {
 						ident, ok := assignStmt.Lhs[0].(*ast.Ident)
 						if ok && ident.Name == "_" {
-							if call, ok := assignStmt.Rhs[0].(*ast.CallExpr); ok && isCloseCall(call) {
+							if call, ok := assignStmt.Rhs[0].(*ast.CallExpr); ok &&
+								isCloseCall(call) {
 								reportUncheckedClose(ctx, &findings, call)
 							}
 						}

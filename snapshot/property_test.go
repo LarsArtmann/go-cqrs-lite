@@ -119,7 +119,11 @@ func TestProperty_LoadAtVersionExactMatch(t *testing.T) {
 			}
 		} else {
 			if err == nil {
-				rt.Fatalf("LoadAtVersion should fail on mismatch (saved %d, query %d)", savedVer, queryVer)
+				rt.Fatalf(
+					"LoadAtVersion should fail on mismatch (saved %d, query %d)",
+					savedVer,
+					queryVer,
+				)
 			}
 		}
 	})

@@ -100,13 +100,6 @@ this list and recorded in CHANGELOG.
       mode the current gate uses.
 - [ ] **`--type-aware` art-dupl run** — eliminates false-positive clone groups
       (`time.Time.String` vs `*big.Int.String`).
-- [ ] **Property tests for `kv.TypedStore[T,K]`** — Set/Get/Delete/Cache
-      invalidation invariants (rapid-based, mirroring the idempotency pattern).
-- [ ] **Property tests for `snapshot.TypedStore[T]`** — Save/Load round-trip
-      fidelity.
-- [ ] **Cross-engine parity tests for metaengine ADTs** — Counter, Set, Graph,
-      SortedMap across memory vs SQLite (the existing cross-engine meta-test
-      covers Map/Multimap/Log/struct results; these 4 ADTs are gaps).
 
 ---
 
