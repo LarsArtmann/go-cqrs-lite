@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"log/slog"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Repository constructs a typed [decider.Repository] over the Bundle's event
