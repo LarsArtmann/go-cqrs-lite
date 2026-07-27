@@ -45,6 +45,7 @@ func CreateItemSchema() *catalog.Schema {
 
 func StringSchema(props ...string) (*catalog.Schema, error) {
 	if len(props)%2 != 0 {
+		//cqrs-lint:ignore(D006) test helper — errors consumed by test code only
 		return nil, fmt.Errorf(
 			"cattest.StringSchema: props must be key-value pairs, got %d",
 			len(props),

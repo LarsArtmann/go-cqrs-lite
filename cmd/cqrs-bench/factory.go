@@ -16,6 +16,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // compareWithDiskPaths runs the benchmark against each backend, setting
@@ -155,14 +156,17 @@ func parsePayloadSizes(s string) ([]int, error) {
 		}
 
 		if n <= 0 {
-			return nil, fmt.Errorf("size must be > 0, got %d", n)
+			return nil, errorfamily.Newf(errorfamily.Rejection,
+			"cqrs-bench.invalid_size", "size must be > 0, got %d", n)
 		}
 
 		sizes = append(sizes, n)
 	}
 
 	if len(sizes) < 2 {
-		return nil, fmt.Errorf("provide at least 2 sizes for a mixed workload, got %d", len(sizes))
+		return nil, errorfamily.Newf(errorfamily.Rejection,
+			"cqrs-bench.too_few_sizes",
+			"provide at least 2 sizes for a mixed workload, got %d", len(sizes))
 	}
 
 	return sizes, nil

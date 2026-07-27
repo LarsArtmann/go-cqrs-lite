@@ -1,7 +1,6 @@
 package stack
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
@@ -181,8 +181,9 @@ func (b *Bundle) CatchUpSubscriber() (*cqrswatermill.CatchUpSubscriber, error) {
 
 	liveSub, ok := b.Subscriber.(*cqrswatermill.EventBus)
 	if !ok {
-		return nil, errors.New(
-			"stack: subscriber must be *watermill.EventBus for CatchUpSubscriber",
+		return nil, errorfamily.NewRejection(
+			"stack.invalid_subscriber_type",
+			"subscriber must be *watermill.EventBus for CatchUpSubscriber",
 		)
 	}
 
