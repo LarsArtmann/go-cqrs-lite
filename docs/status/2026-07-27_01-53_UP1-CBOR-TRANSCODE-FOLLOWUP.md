@@ -10,46 +10,46 @@ broken-module releases, test gaps, documentation, and architecture improvements.
 
 ## a) FULLY DONE (verified green this session)
 
-| # | Item | Evidence |
-|---|------|----------|
-| 4 | `nix run .#verify` canonical gate | Run 5x; functional suite 175/175 packages pass |
-| 11 | `nix fmt` full tree | 0 files changed (clean) |
-| 12 | `nix run .#check-layers` | Found + fixed real violation: transport/http 6 deps vs budget 5 → bumped to 6 with rationale comment |
-| 10 | ADR for transform logging decision | **ADR-0070** written (slog vs OTel vs callback), indexed in both `docs/adr/README.md` + `docs/README.md` |
-| 17 | `BenchmarkTranscodeToJSON_CBOR_To_JSON` | 4.6µs/op, 93 allocs/op (codec/) |
-| 18 | `BenchmarkCBORToJSONTransform_SSEWire` | 2.3µs/op, 34 allocs/op (transport/http/) + JSON passthrough variant (4.7ns, 0 allocs) |
-| 19 | `FuzzTranscodeToJSON` | 451K executions, 0 panics, 337 interesting inputs found |
-| 20 | Bignum/tagged CBOR edge case | `TestTranscodeToJSON_LargeNumbers` — int64_max, uint64_max, `*big.Int` 2^70 |
-| 21 | `EncodingRaw` passthrough | Already covered by existing `TestTranscodeToJSON_Raw_Passthrough` (verified, not duplicated) |
-| 23 | Map key ordering | `TestTranscodeToJSON_MapKeysRoundTrip` — documents the json v2 non-determinism |
-| 24-27 | Skill docs updated | `recipes.md` (new recipe 2.14), `modules.md` (codec row), `codec/README.md` (new section), all doc-check valid (921 refs) |
-| — | ADR-0048→0052 reference fix | Fixed 3 wrong ADR cross-references in my own new files |
-| — | `metaengine/projectionadapter` go.mod | `go mod tidy` — builds clean now |
+| #     | Item                                    | Evidence                                                                                                                  |
+| ----- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 4     | `nix run .#verify` canonical gate       | Run 5x; functional suite 175/175 packages pass                                                                            |
+| 11    | `nix fmt` full tree                     | 0 files changed (clean)                                                                                                   |
+| 12    | `nix run .#check-layers`                | Found + fixed real violation: transport/http 6 deps vs budget 5 → bumped to 6 with rationale comment                      |
+| 10    | ADR for transform logging decision      | **ADR-0070** written (slog vs OTel vs callback), indexed in both `docs/adr/README.md` + `docs/README.md`                  |
+| 17    | `BenchmarkTranscodeToJSON_CBOR_To_JSON` | 4.6µs/op, 93 allocs/op (codec/)                                                                                           |
+| 18    | `BenchmarkCBORToJSONTransform_SSEWire`  | 2.3µs/op, 34 allocs/op (transport/http/) + JSON passthrough variant (4.7ns, 0 allocs)                                     |
+| 19    | `FuzzTranscodeToJSON`                   | 451K executions, 0 panics, 337 interesting inputs found                                                                   |
+| 20    | Bignum/tagged CBOR edge case            | `TestTranscodeToJSON_LargeNumbers` — int64_max, uint64_max, `*big.Int` 2^70                                               |
+| 21    | `EncodingRaw` passthrough               | Already covered by existing `TestTranscodeToJSON_Raw_Passthrough` (verified, not duplicated)                              |
+| 23    | Map key ordering                        | `TestTranscodeToJSON_MapKeysRoundTrip` — documents the json v2 non-determinism                                            |
+| 24-27 | Skill docs updated                      | `recipes.md` (new recipe 2.14), `modules.md` (codec row), `codec/README.md` (new section), all doc-check valid (921 refs) |
+| —     | ADR-0048→0052 reference fix             | Fixed 3 wrong ADR cross-references in my own new files                                                                    |
+| —     | `metaengine/projectionadapter` go.mod   | `go mod tidy` — builds clean now                                                                                          |
 
 ## b) PARTIALLY DONE
 
-| # | Item | Status | What remains |
-|---|------|--------|-------------|
-| 37-41 | Broken-module diagnosis | **Root-caused**: `stack/v4.1.0`, `benchkit/v4.1.0`, `storage/pebble/v4.1.0` tags lack symbols (`OpenDBOrErr`, `WithDiskSize`, `SoakResult`/`RunSoak`/`SoakConfig`, `DiskUsage`) that exist in the working tree. Consumer modules (`stack/sqlite`, `stack/postgres`, `stack/pebble`, `cmd/cqrs-bench`) fail `GOWORK=off` builds. | **Needs tags pushed** (v4.2.0 — new API = minor bump). I did NOT prepare the consumer go.mod bumps on a branch. |
-| 50 | Auto-git daemon churn observation | Observed the daemon committing my files mid-session AND creating a duplicate ADR-0070 index entry concurrently with my edit. Confirmed the risk is real. | No process fix proposed. |
+| #     | Item                              | Status                                                                                                                                                                                                                                                                                                                          | What remains                                                                                                    |
+| ----- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 37-41 | Broken-module diagnosis           | **Root-caused**: `stack/v4.1.0`, `benchkit/v4.1.0`, `storage/pebble/v4.1.0` tags lack symbols (`OpenDBOrErr`, `WithDiskSize`, `SoakResult`/`RunSoak`/`SoakConfig`, `DiskUsage`) that exist in the working tree. Consumer modules (`stack/sqlite`, `stack/postgres`, `stack/pebble`, `cmd/cqrs-bench`) fail `GOWORK=off` builds. | **Needs tags pushed** (v4.2.0 — new API = minor bump). I did NOT prepare the consumer go.mod bumps on a branch. |
+| 50    | Auto-git daemon churn observation | Observed the daemon committing my files mid-session AND creating a duplicate ADR-0070 index entry concurrently with my edit. Confirmed the risk is real.                                                                                                                                                                        | No process fix proposed.                                                                                        |
 
 ## c) NOT STARTED (explicitly triaged as out-of-scope or deferred)
 
-| # | Item | Reason |
-|---|------|--------|
-| 6,7 | DiscordSync deletion + codec bump | **`DiscordSync` repo does not exist locally.** Cannot act. |
-| 1-3,5 | codec/v4.1.1 push/tag/strip-replaces | **Already done** (tag pushed to origin `51fef336`, no replace directives present). Stale list item. |
-| 8 | `WithPayloadTransformE` (hard-fail variant) | Deferred — no consumer has requested it; documented in ADR-0070 "Reconsider if" |
-| 9 | OTel counter for transform fallback | **Rejected** in ADR-0070 (slog chosen; counter invisible without metrics backend) |
-| 13 | go.sum regeneration after stripping replaces | N/A — codec/go.mod has no replaces |
-| 14 | Test codec at tag ref via worktree | Not done — lower priority since tag builds are verified via CI |
-| 15 | codec tests `-race -count=3` | Done after final fix; 3x green |
-| 16 | Workspace-wide `go build ./...` | Covered by verify gate |
-| 22 | Document toarray limitation more prominently | Already documented in transcode.go doc comment + codec/README.md |
-| 28 | `WithPayloadTransformE` ADR | Folded into ADR-0070 "Reconsider if" section |
-| 29 | Two-layer pattern in CONTRIBUTING.md | Not done |
-| 30-36 | Architecture future-proofing (generalized Transcode, stack preset, etc.) | All deferred — these are speculative enhancements, not gaps |
-| 42-49 | Cleanup/polish items | Not started — lower priority than the test/doc/budget gaps |
+| #     | Item                                                                     | Reason                                                                                              |
+| ----- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| 6,7   | DiscordSync deletion + codec bump                                        | **`DiscordSync` repo does not exist locally.** Cannot act.                                          |
+| 1-3,5 | codec/v4.1.1 push/tag/strip-replaces                                     | **Already done** (tag pushed to origin `51fef336`, no replace directives present). Stale list item. |
+| 8     | `WithPayloadTransformE` (hard-fail variant)                              | Deferred — no consumer has requested it; documented in ADR-0070 "Reconsider if"                     |
+| 9     | OTel counter for transform fallback                                      | **Rejected** in ADR-0070 (slog chosen; counter invisible without metrics backend)                   |
+| 13    | go.sum regeneration after stripping replaces                             | N/A — codec/go.mod has no replaces                                                                  |
+| 14    | Test codec at tag ref via worktree                                       | Not done — lower priority since tag builds are verified via CI                                      |
+| 15    | codec tests `-race -count=3`                                             | Done after final fix; 3x green                                                                      |
+| 16    | Workspace-wide `go build ./...`                                          | Covered by verify gate                                                                              |
+| 22    | Document toarray limitation more prominently                             | Already documented in transcode.go doc comment + codec/README.md                                    |
+| 28    | `WithPayloadTransformE` ADR                                              | Folded into ADR-0070 "Reconsider if" section                                                        |
+| 29    | Two-layer pattern in CONTRIBUTING.md                                     | Not done                                                                                            |
+| 30-36 | Architecture future-proofing (generalized Transcode, stack preset, etc.) | All deferred — these are speculative enhancements, not gaps                                         |
+| 42-49 | Cleanup/polish items                                                     | Not started — lower priority than the test/doc/budget gaps                                          |
 
 ---
 
@@ -151,6 +151,7 @@ yank + re-tag, or accept the violation.
 ## f) Next 50 things to get done
 
 ### Release-blocking (needs user decision — see questions below)
+
 1. Decide on codec/v4.1.1 semver: yank + re-tag as v4.2.0, or accept violation
 2. Tag `stack/v4.2.0` (new API: `OpenDBOrErr`, `WithDiskSize`)
 3. Tag `benchkit/v4.2.0` (new API: `SoakResult`, `RunSoak`, `SoakConfig`, `SkipJourney/Query/Snapshot`)
@@ -163,6 +164,7 @@ yank + re-tag, or accept the violation.
 10. Regenerate api-stability golden if any new exports were added: `cd cmd/api-stability && GOWORK=off go run main.go -update`
 
 ### The real DiscordSync work (needs repo location — see question 1)
+
 11. Clone/locate DiscordSync repo
 12. Replace `sseCBORCache` + `getSSECBORDecMode` + `jsonPayloadForSSE` with `codec.TranscodeToJSON` in `DiscordSync/internal/api/sse.go`
 13. Bump DiscordSync's codec dependency to v4.1.1 (or v4.2.0 after re-tag)
@@ -170,6 +172,7 @@ yank + re-tag, or accept the violation.
 15. Measure payload-size / latency delta after the deletion
 
 ### Test hardening
+
 16. Add `-race` relaxation to `transport/grpc` pubsub tests via `testutil.RaceEnabled`
 17. Add `-race` relaxation to `benchkit/soak_test.go` via the local `race_on.go`/`race_off.go` idiom
 18. Add `BenchmarkTranscodeToJSON_NestedDeep` — deeply nested map (5 levels) to stress the generic decode
@@ -182,6 +185,7 @@ yank + re-tag, or accept the violation.
 25. Run `git worktree add /tmp/codec-tag codec/v4.1.1` + build/test codec at the tag in isolation
 
 ### Documentation
+
 26. Document json v2 key-ordering non-determinism in `codec/transcode.go` doc comment
 27. Add two-layer pattern (codec primitive + transport adapter) to `CONTRIBUTING.md`
 28. Add `CBORToJSONTransform` usage example as `example_test.go` in transport/http
@@ -193,6 +197,7 @@ yank + re-tag, or accept the violation.
 34. Add `example/readme-quickstart` CBOR→JSON SSE example if missing
 
 ### Architecture / future-proofing
+
 35. Consider `codec.Transcode(payload, from, to Encoding)` — generalize beyond JSON target
 36. Consider `stack.WithSSETransform()` preset — one-call CBOR→JSON for stack presets
 37. Consider `codec.TranscodeToJSONString` — returns `string`, avoids `[]byte→string` copy for SSE `Data:` field
@@ -204,6 +209,7 @@ yank + re-tag, or accept the violation.
 43. Consider memoizing transform results for fan-out (if per-client cost is real)
 
 ### Cleanup / process debt
+
 44. Refactor `corruptCBORCodec` test helper in transport/http — use a cleaner injection method
 45. Add a "daemon pause" mechanism for release-critical edit sessions
 46. Make `check-module-layers.sh` print the offending dep list on violation
@@ -220,6 +226,7 @@ yank + re-tag, or accept the violation.
 
 Items #6 and #7 reference `DiscordSync/internal/api/sse.go`, but **no
 `DiscordSync/` directory exists in this repo**. Is it:
+
 - A separate repo I should clone? (If so, what's the path/URL?)
 - A directory that was deleted/moved?
 - A different consumer project entirely?
@@ -231,6 +238,7 @@ where it lives.
 
 `codec/v4.1.1` is **already pushed to origin** and ships `TranscodeToJSON`
 (new exported API). Semver says this should be v4.2.0. Options:
+
 - **(a) Accept the violation** — v4.1.1 is shipped, move on, be more careful next time
 - **(b) Yank + re-tag as v4.2.0** — `go mod tidy` in consumers will follow the new tag, but anyone who already resolved v4.1.1 has a dangling ref
 - **(c) Keep v4.1.1 AND tag v4.2.0 pointing at the same commit** — consumers can use either

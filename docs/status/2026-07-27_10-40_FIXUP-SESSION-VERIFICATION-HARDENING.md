@@ -16,27 +16,27 @@ mismatch) that was producing real gopls/compiler errors.
 
 ## a) FULLY DONE (verified green this session)
 
-| # | Item | Evidence |
-|----|------|----------|
-| 1 | Merge `soakTestDuration`/`soakTestTimeout` into `soakTestScale` | `benchkit/soak_test.go`: replaced two identical functions with one. Updated all 6 call sites. Also fixed `TestRunSoak_TrendsPopulated` which was missing the helper on its context timeout (bare `30*time.Second` instead of `soakTestScale(30*time.Second)`). |
-| 2 | Rewrite `TestTranscodeToJSON_CBORTag0` with specific assertion | `codec/transcode_test.go`: researched actual behavior (CBOR tag 0 → `time.Time` → JSON string `"2026-07-27T00:00:00Z"`). Rewrote to assert specific decoded value instead of accepting error OR valid JSON. |
-| 3 | Replace `echo -e` with `printf` in check-module-layers.sh | `scripts/check-module-layers.sh`: `echo -e` → `printf` with `$'\n'` literal newlines in `prod_dep_list` accumulation. |
-| 4 | Update AGENTS.md race-aware thresholds for transport/grpc | `AGENTS.md`: added `transport/grpc` alongside `benchkit` in the local-copy idiom list, noting the `_test.go` suffix variant. |
-| 5 | Fix `FuzzCBORToJSONTransform` t.Skip → return | `transport/http/transform_fuzz_test.go`: replaced `t.Skipf()` with bare `return` (standard Go fuzz pattern). Added comment explaining `event.New` can only fail on validateEventParams, not the codec. |
-| 6 | **Fix broken cmd/cqrs-lint build** | `cmd/cqrs-lint/go.mod`+`go.sum`: downgraded `github.com/larsartmann/go-output` from v0.32.1 → v0.32.0. Root cause: v0.32.1 renamed/removed types (`Table`, `GraphBuilder`, `NewTableBuilder`, etc.) that own submodules (graph, delimited, plantuml, serialization) at v0.32.0 still reference. Submodules lack v0.33.0+ tags. This was a REAL build failure producing gopls `[UndeclaredImportedName]` errors, not a phantom gopls issue. |
-| 7 | Fix cmd/cqrs-lint lint (golines → tagalign) | `cmd/cqrs-lint/main.go:50`: struct tag had triple space (`json:"preset,omitempty"   default:""`). Fixed to `default:"" json:"preset,omitempty"` (tagalign requires alphabetical key order). |
-| 8 | Fix benchkit mustRun timeout (30s → race-aware 90s) | `benchkit/benchkit_test.go`: `mustRun` hardcoded 30s timeout. Under verify gate's 42+ parallel packages, SQLite I/O contention caused `context deadline exceeded`. Changed to `soakTestScale(90*time.Second)` (270s under -race). |
-| 9 | Fix `TestRun_AnalyticalJournalScans` timing assertion | `benchkit/benchkit_test.go`: the "5 scans > 1 scan" timing comparison was race-gated (`if raceEnabled { log } else { error }`). Made it ALWAYS a soft check (`t.Logf`) since timing comparisons are unreliable under ANY parallel load, not just -race. Removed unused `fmt` import. |
-| 10 | Fix benchkit lint (golines + em dash) | `benchkit/benchkit_test.go:1391`: the log message I wrote used an em dash (`—`) which AGENTS.md explicitly bans in source code. Shortened to fit within 120 chars. |
-| — | `verify-fast` gate (build/vet/test-short/race-short/lint/0-issues) | All 54 modules pass. 0 lint issues across ALL modules. |
+| #   | Item                                                               | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Merge `soakTestDuration`/`soakTestTimeout` into `soakTestScale`    | `benchkit/soak_test.go`: replaced two identical functions with one. Updated all 6 call sites. Also fixed `TestRunSoak_TrendsPopulated` which was missing the helper on its context timeout (bare `30*time.Second` instead of `soakTestScale(30*time.Second)`).                                                                                                                                                                             |
+| 2   | Rewrite `TestTranscodeToJSON_CBORTag0` with specific assertion     | `codec/transcode_test.go`: researched actual behavior (CBOR tag 0 → `time.Time` → JSON string `"2026-07-27T00:00:00Z"`). Rewrote to assert specific decoded value instead of accepting error OR valid JSON.                                                                                                                                                                                                                                |
+| 3   | Replace `echo -e` with `printf` in check-module-layers.sh          | `scripts/check-module-layers.sh`: `echo -e` → `printf` with `$'\n'` literal newlines in `prod_dep_list` accumulation.                                                                                                                                                                                                                                                                                                                      |
+| 4   | Update AGENTS.md race-aware thresholds for transport/grpc          | `AGENTS.md`: added `transport/grpc` alongside `benchkit` in the local-copy idiom list, noting the `_test.go` suffix variant.                                                                                                                                                                                                                                                                                                               |
+| 5   | Fix `FuzzCBORToJSONTransform` t.Skip → return                      | `transport/http/transform_fuzz_test.go`: replaced `t.Skipf()` with bare `return` (standard Go fuzz pattern). Added comment explaining `event.New` can only fail on validateEventParams, not the codec.                                                                                                                                                                                                                                     |
+| 6   | **Fix broken cmd/cqrs-lint build**                                 | `cmd/cqrs-lint/go.mod`+`go.sum`: downgraded `github.com/larsartmann/go-output` from v0.32.1 → v0.32.0. Root cause: v0.32.1 renamed/removed types (`Table`, `GraphBuilder`, `NewTableBuilder`, etc.) that own submodules (graph, delimited, plantuml, serialization) at v0.32.0 still reference. Submodules lack v0.33.0+ tags. This was a REAL build failure producing gopls `[UndeclaredImportedName]` errors, not a phantom gopls issue. |
+| 7   | Fix cmd/cqrs-lint lint (golines → tagalign)                        | `cmd/cqrs-lint/main.go:50`: struct tag had triple space (`json:"preset,omitempty"   default:""`). Fixed to `default:"" json:"preset,omitempty"` (tagalign requires alphabetical key order).                                                                                                                                                                                                                                                |
+| 8   | Fix benchkit mustRun timeout (30s → race-aware 90s)                | `benchkit/benchkit_test.go`: `mustRun` hardcoded 30s timeout. Under verify gate's 42+ parallel packages, SQLite I/O contention caused `context deadline exceeded`. Changed to `soakTestScale(90*time.Second)` (270s under -race).                                                                                                                                                                                                          |
+| 9   | Fix `TestRun_AnalyticalJournalScans` timing assertion              | `benchkit/benchkit_test.go`: the "5 scans > 1 scan" timing comparison was race-gated (`if raceEnabled { log } else { error }`). Made it ALWAYS a soft check (`t.Logf`) since timing comparisons are unreliable under ANY parallel load, not just -race. Removed unused `fmt` import.                                                                                                                                                       |
+| 10  | Fix benchkit lint (golines + em dash)                              | `benchkit/benchkit_test.go:1391`: the log message I wrote used an em dash (`—`) which AGENTS.md explicitly bans in source code. Shortened to fit within 120 chars.                                                                                                                                                                                                                                                                         |
+| —   | `verify-fast` gate (build/vet/test-short/race-short/lint/0-issues) | All 54 modules pass. 0 lint issues across ALL modules.                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ## b) PARTIALLY DONE
 
-| Item | Status | What remains |
-|------|--------|-------------|
-| Full verify gate (`nix run .#verify`) | Only ran `verify-fast` (soak tests skipped). The full gate includes soak tests which take ~35s and were timing out under parallel load (fixed in item #8, but not re-verified under full gate yet). | Run full `nix run .#verify` to confirm the timeout fix holds under the complete test suite including soak tests. |
-| SQLITE_BUSY root cause investigation | Identified root cause: `modernc.org/sqlite` PRAGMAs set via `db.Exec` only apply to the connection that executes them; pool-evicted connections don't inherit them. The fix is DSN-level `_pragma=busy_timeout(5000)`. **The auto-git daemon committed `EnsureSQLiteDSNBusyTimeout()` in `storage/sqlite_helpers.go` (commit `2fe68fec`) — exactly the function I was about to write.** But the SQLite preset (`stack/sqlite/preset.go`) doesn't call it yet. | Wire `EnsureSQLiteDSNBusyTimeout` into `stack/sqlite/preset.go` openBackend/openSecondaryDB so every SQLite connection gets busy_timeout at the DSN level. |
-| api-stability golden regeneration | `verify-fast` caught a NEW export: `storage/func EnsureSQLiteDSNBusyTimeout` (added by auto-git commit `2fe68fec`). The api-stability golden file hasn't been regenerated. | Run `cd cmd/api-stability && GOWORK=off go run main.go -update` to regenerate golden. |
+| Item                                  | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                        | What remains                                                                                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full verify gate (`nix run .#verify`) | Only ran `verify-fast` (soak tests skipped). The full gate includes soak tests which take ~35s and were timing out under parallel load (fixed in item #8, but not re-verified under full gate yet).                                                                                                                                                                                                                                                           | Run full `nix run .#verify` to confirm the timeout fix holds under the complete test suite including soak tests.                                           |
+| SQLITE_BUSY root cause investigation  | Identified root cause: `modernc.org/sqlite` PRAGMAs set via `db.Exec` only apply to the connection that executes them; pool-evicted connections don't inherit them. The fix is DSN-level `_pragma=busy_timeout(5000)`. **The auto-git daemon committed `EnsureSQLiteDSNBusyTimeout()` in `storage/sqlite_helpers.go` (commit `2fe68fec`) — exactly the function I was about to write.** But the SQLite preset (`stack/sqlite/preset.go`) doesn't call it yet. | Wire `EnsureSQLiteDSNBusyTimeout` into `stack/sqlite/preset.go` openBackend/openSecondaryDB so every SQLite connection gets busy_timeout at the DSN level. |
+| api-stability golden regeneration     | `verify-fast` caught a NEW export: `storage/func EnsureSQLiteDSNBusyTimeout` (added by auto-git commit `2fe68fec`). The api-stability golden file hasn't been regenerated.                                                                                                                                                                                                                                                                                    | Run `cd cmd/api-stability && GOWORK=off go run main.go -update` to regenerate golden.                                                                      |
 
 > **Update 2026-07-27 (docs-health session):** All three "Partially Done" items
 > are now RESOLVED. The full `nix run .#verify` gate passes GREEN end-to-end (exit
@@ -49,19 +49,20 @@ mismatch) that was producing real gopls/compiler errors.
 
 ## c) NOT STARTED (carried forward from prior session, still blocked)
 
-| # | Item | Reason |
-|---|------|--------|
-| 1 | codec/v4.1.1 semver decision | **Need user decision.** New API (`TranscodeToJSON`) shipped as patch tag. Yank + re-tag as v4.2.0, or accept violation? |
-| 2 | Tag stack/benchkit/storage-pebble v4.2.0 + push | **Blocked on user decision** about release timing. |
-| 3 | Bump 11 consumer go.mod files | **Blocked on tags being pushed.** |
-| 4 | DiscordSync repo location | **DiscordSync repo does not exist locally.** Cannot locate or act. |
-| 5 | Full verify gate with soak tests | Deferred — verify-fast is green, full verify needs the SQLITE_BUSY fix wired into the preset. |
+| #   | Item                                            | Reason                                                                                                                  |
+| --- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | codec/v4.1.1 semver decision                    | **Need user decision.** New API (`TranscodeToJSON`) shipped as patch tag. Yank + re-tag as v4.2.0, or accept violation? |
+| 2   | Tag stack/benchkit/storage-pebble v4.2.0 + push | **Blocked on user decision** about release timing.                                                                      |
+| 3   | Bump 11 consumer go.mod files                   | **Blocked on tags being pushed.**                                                                                       |
+| 4   | DiscordSync repo location                       | **DiscordSync repo does not exist locally.** Cannot locate or act.                                                      |
+| 5   | Full verify gate with soak tests                | Deferred — verify-fast is green, full verify needs the SQLITE_BUSY fix wired into the preset.                           |
 
 ## d) TOTALLY FUCKED UP (honest mistakes this session)
 
 ### 1. Used an em dash in source code (AGENTS.md explicitly bans this)
 
 When rewriting the `TestRun_AnalyticalJournalScans` timing assertion, I wrote:
+
 ```go
 t.Logf("note: 5-scan ReadAllTime (%v) did not exceed 1-scan ReadAllTime (%v) — timing noise under parallel load",
 ```
@@ -235,6 +236,7 @@ Always run the full gate before claiming completion.
 
 `codec/v4.1.1` is already pushed to origin and ships `TranscodeToJSON` (new
 exported API). Semver says this should be v4.2.0. Options:
+
 - (a) Accept the violation — v4.1.1 is shipped, move on
 - (b) Yank + re-tag as v4.2.0
 - (c) Keep v4.1.1 AND tag v4.2.0 pointing at the same commit
@@ -249,6 +251,7 @@ The go-output repo published v0.32.1 which renamed types (`Table`, `GraphBuilder
 submodules need v0.33.0+ tags. I downgraded to v0.32.0 as a workaround.
 
 Should I:
+
 - (a) Fix the go-output repo (tag submodules at v0.33.0) — requires switching repos
 - (b) Pin v0.32.0 in this repo and move on — current state
 - (c) Something else?
@@ -257,6 +260,7 @@ Should I:
 
 `EnsureSQLiteDSNBusyTimeout` was added by the auto-git daemon but is not yet
 called by the SQLite preset. Two approaches:
+
 - (a) Always inject: `openBackend` calls `EnsureSQLiteDSNBusyTimeout(dsn, 5000)`
   before `OpenDBOrErr`. Safe default, eliminates SQLITE_BUSY for all consumers.
 - (b) Opt-in: consumers call `EnsureSQLiteDSNBusyTimeout` themselves if they
@@ -287,20 +291,20 @@ edge case. But I want confirmation before modifying the preset.
 
 > Added by a subsequent docs-health + update-old-docs session.
 
-| Section b Item | Claim | Resolution | Evidence |
-| -------------- | ----- | ---------- | -------- |
-| Full verify gate | "Only ran verify-fast" | **DONE:** `nix run .#verify` exits 0 | Verified exit code 0; 947 doc refs, 0 lint issues |
-| EnsureSQLiteDSNBusyTimeout | "preset doesn't call it yet" | **DONE:** Wired into preset | `stack/sqlite/preset.go:127`, `multidb.go:18` |
-| api-stability golden | "hasn't been regenerated" | **DONE:** Test passes (daemon regenerated) | `cmd/api-stability` test green |
+| Section b Item             | Claim                        | Resolution                                 | Evidence                                          |
+| -------------------------- | ---------------------------- | ------------------------------------------ | ------------------------------------------------- |
+| Full verify gate           | "Only ran verify-fast"       | **DONE:** `nix run .#verify` exits 0       | Verified exit code 0; 947 doc refs, 0 lint issues |
+| EnsureSQLiteDSNBusyTimeout | "preset doesn't call it yet" | **DONE:** Wired into preset                | `stack/sqlite/preset.go:127`, `multidb.go:18`     |
+| api-stability golden       | "hasn't been regenerated"    | **DONE:** Test passes (daemon regenerated) | `cmd/api-stability` test green                    |
 
-| Section c Item | Claim | Resolution |
-| -------------- | ----- | ---------- |
-| #5 Full verify gate | "Deferred, needs SQLITE_BUSY fix" | **DONE:** GREEN end-to-end |
-| #1 codec/v4.1.1 semver | "Need user decision" | **OPEN:** Tagged + pushed to origin. Semver concern documented in TODO_LIST. |
-| #2-3 Tag v4.2.0 + bump consumers | "Blocked on user decision" | **OPEN:** In TODO_LIST Release section. |
+| Section c Item                   | Claim                             | Resolution                                                                   |
+| -------------------------------- | --------------------------------- | ---------------------------------------------------------------------------- |
+| #5 Full verify gate              | "Deferred, needs SQLITE_BUSY fix" | **DONE:** GREEN end-to-end                                                   |
+| #1 codec/v4.1.1 semver           | "Need user decision"              | **OPEN:** Tagged + pushed to origin. Semver concern documented in TODO_LIST. |
+| #2-3 Tag v4.2.0 + bump consumers | "Blocked on user decision"        | **OPEN:** In TODO_LIST Release section.                                      |
 
-| §g Question | Status |
-| ----------- | ------ |
-| Q1 (codec/v4.1.1 semver) | **OPEN** — user decision needed (TODO_LIST) |
-| Q2 (fix go-output upstream) | **DEFERRED** — v0.32.0 pin is the current workaround |
-| Q3 (DSN-level busy_timeout default) | **RESOLVED** — approach (a) adopted; always inject |
+| §g Question                         | Status                                               |
+| ----------------------------------- | ---------------------------------------------------- |
+| Q1 (codec/v4.1.1 semver)            | **OPEN** — user decision needed (TODO_LIST)          |
+| Q2 (fix go-output upstream)         | **DEFERRED** — v0.32.0 pin is the current workaround |
+| Q3 (DSN-level busy_timeout default) | **RESOLVED** — approach (a) adopted; always inject   |

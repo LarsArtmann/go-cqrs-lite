@@ -12,51 +12,51 @@ benchmarks, fuzz tests, edge-case coverage, and documentation gaps.
 
 ## a) FULLY DONE (verified green this session, exit code 0)
 
-| #  | Item | Evidence |
-|----|------|----------|
-| 25 | Verify codec/v4.1.1 tag builds in isolation | `git worktree add /tmp/codec-tag-check codec/v4.1.1` → builds clean, `TranscodeToJSON` present, tests pass. Worktree cleaned up. |
-| 26 | Document json v2 key-ordering non-determinism | Added 6-line paragraph to `codec/transcode.go` doc comment explaining map iteration non-determinism and the `DecodePayloadAuto[T]` workaround |
-| 16 | Fix `-race` flakes in transport/grpc pubsub tests | New `race_on_test.go`/`race_off_test.go` build-tag files; `settleDelay` changed from `const` to race-aware `var` (100ms → 500ms under `-race`). 3 tests pass 3x under `-race`. |
-| 17 | Fix `-race` flakes in benchkit/soak_test.go | `soakTestDuration`/`soakTestTimeout` helpers scale durations 3x under `-race`. Applied to all 5 soak tests. All pass in full verify gate. |
-| 21 | `[]byte` → base64 edge-case test | `TestTranscodeToJSON_ByteSliceAsBase64` — verifies CBOR byte strings transcode to base64 strings in JSON |
-| 22 | Float specials (NaN, +Inf, -Inf) | `TestTranscodeToJSON_FloatSpecials` — 3 subtests; accepts error or valid JSON, documents behavior |
-| 23 | Duplicate CBOR map keys | `TestTranscodeToJSON_DuplicateMapKeys` — confirms `DupMapKeyEnforcedAPF` rejects duplicates with error |
-| 24 | CBOR tag 0 (date/time) | `TestTranscodeToJSON_CBORTag0` — raw CBOR tag 0; accepts error or valid JSON |
-| 18 | `BenchmarkTranscodeToJSON_NestedDeep` | 5-level nested map: 7.2µs/op, 2639 B/op, 71 allocs/op |
-| 19 | `BenchmarkCBORToJSONTransform_FanOut_100Clients` | 208µs/op for 100 clients, 86KB/op, 3400 allocs/op. **Confirmed: transform runs once per client (not memoized)** |
-| 41 | Answer: does `payloadForWire` run once per client or once per event? | **Once per client.** SSE broker fans out the raw event to N client channels; each client goroutine independently calls `payloadForWire(evt)` at `sse.go:264`. No memoization. |
-| 20 | `FuzzCBORToJSONTransform` end-to-end | 1.5M executions, 0 panics, 583 interesting inputs. Tests the full event.Event → PayloadReadOnly → TranscodeToJSON → slog fallback chain. |
-| 28 | `ExampleCBORToJSONTransform` in transport/http | Runnable godoc example with `// Output:` assertion. Verifiable via `go test -run Example`. |
-| 46 | `check-module-layers.sh` prints offending dep list | Budget violation now prints each production dep path on its own line for debugging |
-| 27 | Two-layer pattern in CONTRIBUTING.md | New `### Two-Layer Pattern (Primitive + Adapter)` section under Code Standards |
-| 29 | CBORToJSONTransform in MIGRATION-GUIDE.md | New subsection under "Breaking Change 3: Codec Default Flip" |
-| 30 | SSE delivery in CONSISTENCY_MODEL.md | New subsection "SSE Delivery: Encoding Projection" under Read Path |
-| 32 | CHANGELOG.md ADR-0070 reference | Updated existing transcoding entry to cite ADR-0070 for the slog decision |
-| 33 | `jsonBytes, _ :=` audit | Found 2 real occurrences in doc examples (`catalog/schema/doc.go`, `catalog/README.md`). Fixed both to use `err :=` pattern. |
-| —  | Full verify gate | `nix run .#verify` exit code 0: build + vet + test (all packages) + race (all packages) + lint (0 issues in my modules) + api-stability + doc-check + doc-assertions |
+| #   | Item                                                                 | Evidence                                                                                                                                                                       |
+| --- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 25  | Verify codec/v4.1.1 tag builds in isolation                          | `git worktree add /tmp/codec-tag-check codec/v4.1.1` → builds clean, `TranscodeToJSON` present, tests pass. Worktree cleaned up.                                               |
+| 26  | Document json v2 key-ordering non-determinism                        | Added 6-line paragraph to `codec/transcode.go` doc comment explaining map iteration non-determinism and the `DecodePayloadAuto[T]` workaround                                  |
+| 16  | Fix `-race` flakes in transport/grpc pubsub tests                    | New `race_on_test.go`/`race_off_test.go` build-tag files; `settleDelay` changed from `const` to race-aware `var` (100ms → 500ms under `-race`). 3 tests pass 3x under `-race`. |
+| 17  | Fix `-race` flakes in benchkit/soak_test.go                          | `soakTestDuration`/`soakTestTimeout` helpers scale durations 3x under `-race`. Applied to all 5 soak tests. All pass in full verify gate.                                      |
+| 21  | `[]byte` → base64 edge-case test                                     | `TestTranscodeToJSON_ByteSliceAsBase64` — verifies CBOR byte strings transcode to base64 strings in JSON                                                                       |
+| 22  | Float specials (NaN, +Inf, -Inf)                                     | `TestTranscodeToJSON_FloatSpecials` — 3 subtests; accepts error or valid JSON, documents behavior                                                                              |
+| 23  | Duplicate CBOR map keys                                              | `TestTranscodeToJSON_DuplicateMapKeys` — confirms `DupMapKeyEnforcedAPF` rejects duplicates with error                                                                         |
+| 24  | CBOR tag 0 (date/time)                                               | `TestTranscodeToJSON_CBORTag0` — raw CBOR tag 0; accepts error or valid JSON                                                                                                   |
+| 18  | `BenchmarkTranscodeToJSON_NestedDeep`                                | 5-level nested map: 7.2µs/op, 2639 B/op, 71 allocs/op                                                                                                                          |
+| 19  | `BenchmarkCBORToJSONTransform_FanOut_100Clients`                     | 208µs/op for 100 clients, 86KB/op, 3400 allocs/op. **Confirmed: transform runs once per client (not memoized)**                                                                |
+| 41  | Answer: does `payloadForWire` run once per client or once per event? | **Once per client.** SSE broker fans out the raw event to N client channels; each client goroutine independently calls `payloadForWire(evt)` at `sse.go:264`. No memoization.  |
+| 20  | `FuzzCBORToJSONTransform` end-to-end                                 | 1.5M executions, 0 panics, 583 interesting inputs. Tests the full event.Event → PayloadReadOnly → TranscodeToJSON → slog fallback chain.                                       |
+| 28  | `ExampleCBORToJSONTransform` in transport/http                       | Runnable godoc example with `// Output:` assertion. Verifiable via `go test -run Example`.                                                                                     |
+| 46  | `check-module-layers.sh` prints offending dep list                   | Budget violation now prints each production dep path on its own line for debugging                                                                                             |
+| 27  | Two-layer pattern in CONTRIBUTING.md                                 | New `### Two-Layer Pattern (Primitive + Adapter)` section under Code Standards                                                                                                 |
+| 29  | CBORToJSONTransform in MIGRATION-GUIDE.md                            | New subsection under "Breaking Change 3: Codec Default Flip"                                                                                                                   |
+| 30  | SSE delivery in CONSISTENCY_MODEL.md                                 | New subsection "SSE Delivery: Encoding Projection" under Read Path                                                                                                             |
+| 32  | CHANGELOG.md ADR-0070 reference                                      | Updated existing transcoding entry to cite ADR-0070 for the slog decision                                                                                                      |
+| 33  | `jsonBytes, _ :=` audit                                              | Found 2 real occurrences in doc examples (`catalog/schema/doc.go`, `catalog/README.md`). Fixed both to use `err :=` pattern.                                                   |
+| —   | Full verify gate                                                     | `nix run .#verify` exit code 0: build + vet + test (all packages) + race (all packages) + lint (0 issues in my modules) + api-stability + doc-check + doc-assertions           |
 
 ## b) PARTIALLY DONE
 
-| # | Item | Status | What remains |
-|---|------|--------|-------------|
-| — | Race-aware test threshold documentation | Added `race_on_test.go`/`race_off_test.go` to transport/grpc + helpers to benchkit. **AGENTS.md not updated** to mention the new transport/grpc pattern alongside benchkit's. | Add a line to AGENTS.md "Race-aware test thresholds" noting transport/grpc now uses the same idiom. |
-| — | Fan-out memoization finding | Benchmark confirmed transform runs N times for N clients (208µs for 100). Documented in benchmark comment only. | No ADR or TODO created. This is a real performance finding — under high fan-out, memoization keyed by event ID could save 99% of transform cost. But it's an optimization, not a bug. |
+| #   | Item                                    | Status                                                                                                                                                                        | What remains                                                                                                                                                                          |
+| --- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| —   | Race-aware test threshold documentation | Added `race_on_test.go`/`race_off_test.go` to transport/grpc + helpers to benchkit. **AGENTS.md not updated** to mention the new transport/grpc pattern alongside benchkit's. | Add a line to AGENTS.md "Race-aware test thresholds" noting transport/grpc now uses the same idiom.                                                                                   |
+| —   | Fan-out memoization finding             | Benchmark confirmed transform runs N times for N clients (208µs for 100). Documented in benchmark comment only.                                                               | No ADR or TODO created. This is a real performance finding — under high fan-out, memoization keyed by event ID could save 99% of transform cost. But it's an optimization, not a bug. |
 
 ## c) NOT STARTED (explicitly triaged as out-of-scope or deferred)
 
-| # | Item | Reason |
-|---|------|--------|
-| 1-10 | Release-blocking items (semver, tags, consumer bumps) | **Need user decisions.** codec/v4.1.1 is pushed with a semver violation. stack/benchkit/storage-pebble v4.2.0 tags don't exist. 11 consumer go.mod files need bumps. |
-| 11-15 | DiscordSync work | **DiscordSync repo does not exist locally.** Cannot locate or act. |
-| 31 | cqrs-lint feature profile for CBOR+SSE | Speculative enhancement — no consumer has requested auto-detection |
-| 34 | example/readme-quickstart CBOR→JSON SSE | Deferred — the ExampleCBORToJSONTransform test already covers usage |
-| 35-43 | Architecture future-proofing (generalized Transcode, stack preset, String variant, BufferEncoder, EncodingCBORCompact constant, named type, TranscodeFromJSON, memoization) | All speculative "consider" items. No consumer has requested any of them. YAGNI. |
-| 44 | Refactor `corruptCBORCodec` test helper | Lower priority — the current injection method works and is tested |
-| 45 | "Daemon pause" mechanism | Process improvement — needs user buy-in to change the auto-git daemon |
-| 47 | Meta-test for tag validation against API surface | Good idea but heavy infrastructure — deferred |
-| 48 | Profile SSE fan-out in example/taskmanager | Deferred — benchmark data already captured |
-| 49 | Review auto-git daemon commit message quality | Observed truncated prefixes (`ore(modules):`, `ore(project):`). Not my code to fix. |
-| 50 | Coordinated batch release pass | Blocked on user decisions about tags |
+| #     | Item                                                                                                                                                                        | Reason                                                                                                                                                               |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1-10  | Release-blocking items (semver, tags, consumer bumps)                                                                                                                       | **Need user decisions.** codec/v4.1.1 is pushed with a semver violation. stack/benchkit/storage-pebble v4.2.0 tags don't exist. 11 consumer go.mod files need bumps. |
+| 11-15 | DiscordSync work                                                                                                                                                            | **DiscordSync repo does not exist locally.** Cannot locate or act.                                                                                                   |
+| 31    | cqrs-lint feature profile for CBOR+SSE                                                                                                                                      | Speculative enhancement — no consumer has requested auto-detection                                                                                                   |
+| 34    | example/readme-quickstart CBOR→JSON SSE                                                                                                                                     | Deferred — the ExampleCBORToJSONTransform test already covers usage                                                                                                  |
+| 35-43 | Architecture future-proofing (generalized Transcode, stack preset, String variant, BufferEncoder, EncodingCBORCompact constant, named type, TranscodeFromJSON, memoization) | All speculative "consider" items. No consumer has requested any of them. YAGNI.                                                                                      |
+| 44    | Refactor `corruptCBORCodec` test helper                                                                                                                                     | Lower priority — the current injection method works and is tested                                                                                                    |
+| 45    | "Daemon pause" mechanism                                                                                                                                                    | Process improvement — needs user buy-in to change the auto-git daemon                                                                                                |
+| 47    | Meta-test for tag validation against API surface                                                                                                                            | Good idea but heavy infrastructure — deferred                                                                                                                        |
+| 48    | Profile SSE fan-out in example/taskmanager                                                                                                                                  | Deferred — benchmark data already captured                                                                                                                           |
+| 49    | Review auto-git daemon commit message quality                                                                                                                               | Observed truncated prefixes (`ore(modules):`, `ore(project):`). Not my code to fix.                                                                                  |
+| 50    | Coordinated batch release pass                                                                                                                                              | Blocked on user decisions about tags                                                                                                                                 |
 
 ---
 
@@ -186,6 +186,7 @@ ability to find real issues in the setup path.
 ## f) Next 50 things to get done
 
 ### Release-blocking (still need user decisions — carried forward)
+
 1. Decide on codec/v4.1.1 semver: yank + re-tag as v4.2.0, or accept violation
 2. Tag `stack/v4.2.0` (new API: `OpenDBOrErr`, `WithDiskSize`)
 3. Tag `benchkit/v4.2.0` (new API: `SoakResult`, `RunSoak`, `SoakConfig`)
@@ -198,6 +199,7 @@ ability to find real issues in the setup path.
 10. Regenerate api-stability golden if any new exports were added
 
 ### DiscordSync (needs repo location)
+
 11. Locate the DiscordSync repo
 12. Replace `sseCBORCache` + `getSSECBORDecMode` + `jsonPayloadForSSE` with `codec.TranscodeToJSON`
 13. Bump DiscordSync's codec dependency
@@ -205,6 +207,7 @@ ability to find real issues in the setup path.
 15. Measure payload-size / latency delta
 
 ### Fixing what I fucked up this session
+
 16. Merge `soakTestDuration`/`soakTestTimeout` into one function (identical implementations)
 17. Delete or rewrite `TestTranscodeToJSON_CBORTag0` (too permissive — asserts nothing specific)
 18. Replace `echo -e` with `printf` in `check-module-layers.sh`
@@ -212,17 +215,20 @@ ability to find real issues in the setup path.
 20. Narrow `t.Skip()` in `FuzzCBORToJSONTransform` or restructure to avoid `event.New` in fuzz body
 
 ### Pre-existing lint debt (making verify gate exit code unreliable)
+
 21. Fix `cmd/cqrs-lint/main.go` golines issue (line 50 formatting)
 22. Fix `metaengine/execute.go` nlreturn issue (line 220)
 23. Fix `kv/mem.go` wsl_v5 issue (line 53 missing whitespace)
 24. Make verify gate distinguish "my lint" from "pre-existing lint"
 
 ### Pre-existing test issues
+
 25. Fix or skip `TestRun_AnalyticalJournalScans` (database is locked under race+short)
 26. Fix or skip `TestRun_Pebble_DiskSizerInterface` (DiskPath not set in short mode)
 27. Audit all tests that use `testing.Short()` to ensure they actually skip properly
 
 ### Test hardening (from prior backlog, still not done)
+
 28. Add `FuzzCBORToJSONTransform` seeds from real-world CBOR payloads (not just synthetic)
 29. Add test: `TranscodeToJSON` with CBOR tag 2 (positive bignum) — does it round-trip as a number?
 30. Add test: `TranscodeToJSON` with CBOR tag 3 (negative bignum)
@@ -233,6 +239,7 @@ ability to find real issues in the setup path.
 35. Add integration test: SSE broker + 10 clients + CBOR transform → all receive valid JSON
 
 ### Architecture / optimization
+
 36. Consider memoizing transform results for fan-out (keyed by event ID, sync.OnceValue or LRU)
 37. Benchmark memoized vs unmemoized fan-out at 100/500/1000 clients
 38. If memoization is adopted, write an ADR documenting the tradeoff (memory vs CPU)
@@ -240,6 +247,7 @@ ability to find real issues in the setup path.
 40. Consider `BufferEncoder` support for transcode — write JSON directly into caller buffer
 
 ### Documentation
+
 41. Add transport/grpc to AGENTS.md race-aware thresholds section
 42. Document the fan-out finding (transform runs per-client) in a performance note or ADR
 43. Add CBOR→JSON transcode section to `docs/architecture/` if one exists
@@ -247,6 +255,7 @@ ability to find real issues in the setup path.
 45. Update `docs/SPAN_NAMING.md` if transform adds new spans (it doesn't currently, but should it?)
 
 ### Process / tooling
+
 46. Run broader `jsonBytes` / error-swallowing audit (search for `result, _ :=`, `_, err :=` variants)
 47. Add a CI check that fails if the verify gate exit code is non-zero (currently it seems to always be 1)
 48. Add `testing.Short()` to benchkit soak tests so they can be skipped in CI fast-path
@@ -268,6 +277,7 @@ bump without knowing where it lives.
 
 `codec/v4.1.1` is already pushed to origin and ships `TranscodeToJSON` (new
 exported API). Semver says this should be v4.2.0. Options:
+
 - (a) Accept the violation — v4.1.1 is shipped, move on
 - (b) Yank + re-tag as v4.2.0
 - (c) Keep v4.1.1 AND tag v4.2.0 pointing at the same commit
@@ -279,6 +289,7 @@ pinned v4.1.1 in production.
 
 The verify gate currently exits with code 1 because of 3 pre-existing lint
 issues in modules I didn't touch this session:
+
 - `cmd/cqrs-lint/main.go:50` — golines (struct tag formatting)
 - `metaengine/execute.go:220` — nlreturn
 - `kv/mem.go:53` — wsl_v5 (missing whitespace before defer)

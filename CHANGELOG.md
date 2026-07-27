@@ -285,7 +285,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   still reference. Downgraded to v0.32.0. This was a REAL build failure producing
   compiler errors, not a phantom gopls issue.
 - **benchkit `mustRun` timeout** — hardcoded 30s caused `context deadline
-  exceeded` under the verify gate's 42+ parallel packages. Changed to
+exceeded` under the verify gate's 42+ parallel packages. Changed to
   `soakTestScale(90*time.Second)` (270s under `-race`).
 - **`TestRun_AnalyticalJournalScans` timing assertion** — "5 scans > 1 scan"
   timing comparison was race-gated. Made it a soft check (`t.Logf`) since timing
