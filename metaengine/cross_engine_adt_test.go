@@ -2,9 +2,12 @@ package metaengine_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sort"
 	"testing"
+
+	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -205,24 +208,12 @@ func assertCrossEngineSetEq(
 
 // TestCrossEngineSortedMapParity — FilterOn + SortOn scan (the ADTSortedMap
 // path via ScanBackend.MapScan) produces identical ordered results across
-// memory and SQLite engines, including limit and cursor pagination.
+// memory and SQLite engines, including limit truncation.
 func TestCrossEngineSortedMapParity(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 
-	// Use the shared fixture query — listTasksByStatusQuery exercises
-	// FilterOn(status) + SortOn(priority) which routes through MapScan.
-	store, err := metaengine.Plan(
-		[]metaengine.Engine{metaengine.NewMemoryEngine()},
-		listTasksByStatusQuery(),
-	)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
-
-	// Populate deterministic data — tasks with known priorities for ordering.
 	tasks := []TaskCreated{
 		{ID: "s1", Title: "low", Assignee: "a", Status: "open", Priority: 5},
 		{ID: "s2", Title: "high", Assignee: "b", Status: "open", Priority: 1},
@@ -231,48 +222,131 @@ func TestCrossEngineSortedMapParity(t *testing.T) {
 		{ID: "s5", Title: "urgent", Assignee: "e", Status: "open", Priority: 0},
 	}
 
-	for _, tc := range tasks {
-		if err := store.Apply(ctx, "TaskCreated", tc); err != nil {
-			t.Fatalf("Apply(%s): %v", tc.ID, err)
-		}
-	}
-
-	// Scan open tasks sorted by priority — exercises MapScan (SortedMap ADT).
-	result, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
-		ctx, store, ListTasksByStatus{Status: "open", Limit: 10},
-	)
-	if err != nil {
-		t.Fatalf("ExecuteTyped: %v", err)
-	}
-
-	// Verify sorted order (priority ascending): s5(0), s2(1), s3(3), s1(5).
+	// Expected open tasks sorted by priority ascending: s5(0), s2(1), s3(3), s1(5).
 	wantIDs := []TaskID{"s5", "s2", "s3", "s1"}
 
-	if len(result.Tasks) != len(wantIDs) {
-		t.Fatalf("got %d tasks, want %d", len(result.Tasks), len(wantIDs))
+	engines := map[string]metaengine.Engine{
+		"memory": metaengine.NewMemoryEngine(),
+		"sqlite": newIsolatedSQLiteEngine(t),
 	}
 
-	for i, task := range result.Tasks {
-		if task.ID != wantIDs[i] {
-			t.Fatalf("task[%d].ID = %s, want %s (sorted by priority ascending)",
-				i, task.ID, wantIDs[i])
+	scanResults := make(map[string][]TaskID, len(engines))
+	limitResults := make(map[string][]TaskID, len(engines))
+
+	for name, eng := range engines {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			store, err := metaengine.Plan(
+				[]metaengine.Engine{eng},
+				listTasksByStatusQuery(),
+			)
+			if err != nil {
+				t.Fatalf("Plan: %v", err)
+			}
+			defer store.Close()
+
+			for _, tc := range tasks {
+				if err := store.Apply(ctx, "TaskCreated", tc); err != nil {
+					t.Fatalf("Apply(%s): %v", tc.ID, err)
+				}
+			}
+
+			// Full scan — exercises MapScan (SortedMap ADT).
+			result, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
+				ctx, store, ListTasksByStatus{Status: "open", Limit: 10},
+			)
+			if err != nil {
+				t.Fatalf("ExecuteTyped: %v", err)
+			}
+
+			if len(result.Tasks) != len(wantIDs) {
+				t.Fatalf("got %d tasks, want %d", len(result.Tasks), len(wantIDs))
+			}
+
+			ids := make([]TaskID, len(result.Tasks))
+			for i, task := range result.Tasks {
+				ids[i] = task.ID
+				if task.ID != wantIDs[i] {
+					t.Fatalf("task[%d].ID = %s, want %s (sorted by priority ascending)",
+						i, task.ID, wantIDs[i])
+				}
+			}
+			scanResults[name] = ids
+
+			// Limit truncation — only first 2 tasks.
+			limited, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
+				ctx, store, ListTasksByStatus{Status: "open", Limit: 2},
+			)
+			if err != nil {
+				t.Fatalf("ExecuteTyped(limit=2): %v", err)
+			}
+
+			if len(limited.Tasks) != 2 {
+				t.Fatalf("limited scan: got %d tasks, want 2", len(limited.Tasks))
+			}
+
+			limitIDs := make([]TaskID, len(limited.Tasks))
+			for i, task := range limited.Tasks {
+				limitIDs[i] = task.ID
+			}
+
+			if limitIDs[0] != "s5" || limitIDs[1] != "s2" {
+				t.Fatalf("limited scan order: got %s,%s want s5,s2",
+					limitIDs[0], limitIDs[1])
+			}
+			limitResults[name] = limitIDs
+		})
+	}
+
+	// Cross-engine deep-equal: both engines must produce identical ordered results.
+	if len(scanResults) == len(engines) {
+		assertCrossEngineScanEq(t, scanResults, "full scan")
+		assertCrossEngineScanEq(t, limitResults, "limit=2 scan")
+	}
+}
+
+func assertCrossEngineScanEq(t *testing.T, results map[string][]TaskID, label string) {
+	t.Helper()
+
+	mem, ok := results["memory"]
+	if !ok {
+		t.Fatalf("missing memory engine results for %s", label)
+	}
+
+	sqlite, ok := results["sqlite"]
+	if !ok {
+		t.Fatalf("missing sqlite engine results for %s", label)
+	}
+
+	if len(mem) != len(sqlite) {
+		t.Fatalf("%s: memory has %d items, sqlite has %d", label, len(mem), len(sqlite))
+	}
+
+	for i := range mem {
+		if mem[i] != sqlite[i] {
+			t.Fatalf("%s: position %d differs: memory=%s sqlite=%s",
+				label, i, mem[i], sqlite[i])
 		}
 	}
+}
 
-	// Test limit truncation — only first 2 tasks.
-	limited, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
-		ctx, store, ListTasksByStatus{Status: "open", Limit: 2},
-	)
+// newIsolatedSQLiteEngine creates a SQLite engine backed by a private
+// in-memory database (NOT shared-cache), ensuring no cross-test interference.
+func newIsolatedSQLiteEngine(t *testing.T) metaengine.Engine {
+	t.Helper()
+
+	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
-		t.Fatalf("ExecuteTyped(limit=2): %v", err)
+		t.Fatalf("sql.Open: %v", err)
 	}
 
-	if len(limited.Tasks) != 2 {
-		t.Fatalf("limited scan: got %d tasks, want 2", len(limited.Tasks))
+	t.Cleanup(func() { _ = db.Close() })
+
+	eng, err := metaengine.NewSQLiteEngine(db)
+	if err != nil {
+		t.Fatalf("NewSQLiteEngine: %v", err)
 	}
 
-	if limited.Tasks[0].ID != "s5" || limited.Tasks[1].ID != "s2" {
-		t.Fatalf("limited scan order: got %s,%s want s5,s2",
-			limited.Tasks[0].ID, limited.Tasks[1].ID)
-	}
+	return eng
 }

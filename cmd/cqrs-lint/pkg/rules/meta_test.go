@@ -71,9 +71,9 @@ func TestCriticalDetectorsInstantiate(t *testing.T) {
 }
 
 // TestCatalogCountMatchesRegister verifies that the catalog (user-facing rule
-// metadata) and RegisterAll (actual detectors) agree on the rule count. This
-// catches drift when a rule is added to the catalog but not registered (or
-// vice versa).
+// metadata) and RegisterAll (actual detectors) agree on every rule ID
+// bidirectionally. This catches drift when a rule is added to the catalog but
+// not registered (or vice versa).
 func TestCatalogCountMatchesRegister(t *testing.T) {
 	t.Parallel()
 
@@ -88,6 +88,7 @@ func TestCatalogCountMatchesRegister(t *testing.T) {
 			len(catalogRules), len(detectors), catalogRuleIDs(catalogRules))
 	}
 
+	// Build catalog ID set, checking for duplicates.
 	catalogIDs := make(map[string]bool, len(catalogRules))
 	for _, r := range catalogRules {
 		if catalogIDs[r.ID] {
@@ -96,15 +97,33 @@ func TestCatalogCountMatchesRegister(t *testing.T) {
 		catalogIDs[r.ID] = true
 	}
 
+	// Build detector ID set, checking for duplicates.
+	detectorIDs := make(map[string]bool, len(detectors))
 	for _, d := range detectors {
 		name := d.Name()
 		if len(name) < 4 {
-			continue
+			t.Fatalf("detector name too short to extract rule ID: %q", name)
 		}
 
 		ruleID := name[:4]
-		if !catalogIDs[ruleID] {
-			t.Fatalf("detector %q has rule ID %s not in catalog", name, ruleID)
+
+		if detectorIDs[ruleID] {
+			t.Fatalf("duplicate detector rule ID: %s", ruleID)
+		}
+		detectorIDs[ruleID] = true
+	}
+
+	// Forward: every detector's rule ID must be in the catalog.
+	for id := range detectorIDs {
+		if !catalogIDs[id] {
+			t.Fatalf("detector rule ID %s is not in the catalog", id)
+		}
+	}
+
+	// Reverse: every catalog rule ID must have a registered detector.
+	for id := range catalogIDs {
+		if !detectorIDs[id] {
+			t.Fatalf("catalog rule ID %s has no registered detector", id)
 		}
 	}
 }
