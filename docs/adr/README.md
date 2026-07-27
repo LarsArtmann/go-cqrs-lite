@@ -40,7 +40,7 @@ Without classified errors, consumers cannot distinguish transient failures from 
 
 ### Decision
 
-Adopt a **5-family error taxonomy** via `go-error-family`:
+Adopt a **6-family error taxonomy** via `go-error-family`:
 
 | Family             | Constructor         | Meaning                      | Retry? |
 | ------------------ | ------------------- | ---------------------------- | ------ |
@@ -49,8 +49,9 @@ Adopt a **5-family error taxonomy** via `go-error-family`:
 | **Transient**      | `NewTransient`      | Temporary failure            | Yes    |
 | **Infrastructure** | `NewInfrastructure` | System-level failure         | Maybe  |
 | **Corruption**     | `NewCorruption`     | Data integrity violation     | No     |
+| **Orchestration**  | `NewOrchestration`  | Workflow/saga coordination   | Maybe  |
 
-Each family has `Is*()` predicates and `Wrap*()` wrapping functions. Middleware uses `event.IsRetryable(err)` to decide retry behavior.
+Each family has `Is*()` predicates and `Wrap*()` wrapping functions. Middleware uses `event.IsRetryable(err)` to decide retry behavior. (Originally 5 families at ADR-0002; Orchestration added in go-error-family v0.10.0.)
 
 ### Consequences
 

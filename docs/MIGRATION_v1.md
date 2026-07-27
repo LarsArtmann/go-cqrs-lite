@@ -6,7 +6,7 @@ This guide covers all breaking changes and migration paths from pre-v1.0.0 to v1
 
 - [Module Import Paths](#module-import-paths)
 - [Replace Directive Removal](#replace-directive-removal)
-- [Error Handling: 5-Family Taxonomy](#error-handling-5-family-taxonomy)
+- [Error Handling: 6-Family Taxonomy](#error-handling-6-family-taxonomy)
 - [Event Store: ISP Split](#event-store-isp-split)
 - [Deprecated API Removals](#deprecated-api-removals)
 - [Decider Pattern Over OO Aggregate](#decider-pattern-over-oo-aggregate)
@@ -60,9 +60,9 @@ require github.com/larsartmann/go-cqrs-lite/core v1.0.0
 2. Run `go get github.com/larsartmann/go-cqrs-lite/<module>@v1.0.0` for each module
 3. Run `go mod tidy`
 
-## Error Handling: 5-Family Taxonomy
+## Error Handling: 6-Family Taxonomy
 
-v1.0.0 adopts the `go-error-family` v0.2.0 error taxonomy. All errors returned by library functions are classified into one of five families:
+v1.0.0 adopts the `go-error-family` error taxonomy. All errors returned by library functions are classified into one of six families (five at v1.0.0; Orchestration added in go-error-family v0.10.0):
 
 | Family             | Factory                        | Meaning                    | Example                |
 | ------------------ | ------------------------------ | -------------------------- | ---------------------- |
@@ -71,6 +71,7 @@ v1.0.0 adopts the `go-error-family` v0.2.0 error taxonomy. All errors returned b
 | **Transient**      | `event.NewTransient(...)`      | Retryable failure          | "connection reset"     |
 | **Infrastructure** | `event.NewInfrastructure(...)` | Non-retryable system error | "database unreachable" |
 | **Corruption**     | `event.NewCorruption(...)`     | Data integrity violation   | "checksum mismatch"    |
+| **Orchestration**  | `errorfamily.NewOrchestration(...)` | Workflow/saga coordination | "compensation failed" |
 
 ### Migration
 
