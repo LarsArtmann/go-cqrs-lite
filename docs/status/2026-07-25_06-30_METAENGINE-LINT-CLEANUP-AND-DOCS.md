@@ -7,9 +7,10 @@
 > All 11 file-size violations were split in the 07-58 session (same day). The
 > otel test flakiness was fixed via `WithoutGlobalRegistration()` + guarded
 > global Set calls. `nix run .#verify` is GREEN end-to-end (build + vet + test
-> + race + lint 0 issues + api-stability 2676 exports + doc-check). The
-> metaengine is tagged v4.2.0 and lint-clean. See [CHANGELOG.md](../../../CHANGELOG.md)
-> `[v4.2.0]`.
+>
+> - race + lint 0 issues + api-stability 2676 exports + doc-check). The
+>   metaengine is tagged v4.2.0 and lint-clean. See [CHANGELOG.md](../../../CHANGELOG.md)
+>   `[v4.2.0]`.
 
 ---
 

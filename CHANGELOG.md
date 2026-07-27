@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - **Coverage-drift checker** (`scripts/check-coverage.sh` + `nix run
-  .#check-coverage`) — mechanically detects when actual module coverage drifts
+.#check-coverage`) — mechanically detects when actual module coverage drifts
   from the numbers documented in AGENTS.md. Resolves the 4-session
   "coverage-verification gap" pattern where coverage claims were trusted from
   prior reports instead of re-measured. Supports `--update` to recompute and

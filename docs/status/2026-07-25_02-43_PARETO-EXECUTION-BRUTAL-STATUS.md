@@ -6,7 +6,7 @@
 
 > **Update 2026-07-27:** All 20 Pareto tasks are now COMPLETE (this report
 > covered M10-M13; M14-M20 were finished in subsequent sessions). `nix run
-> .#verify` is GREEN end-to-end. The "broken v4.1.0 tag chain" was resolved
+.#verify` is GREEN end-to-end. The "broken v4.1.0 tag chain" was resolved
 > (all 58 modules tagged, v4.2.0 released 2026-07-27). The workspace-local
 > replace directives in `projectionadapter/go.mod` remain by design (ADR-0062).
 > See [CHANGELOG.md](../../../CHANGELOG.md) `[v4.2.0]` for the full release
