@@ -93,10 +93,9 @@ this list and recorded in CHANGELOG.
       `storage/memory`, `parallelTimeoutCtx(t, timeout)` in benchkit,
       `parallelViewStore(t)` in storage/view, variadic `NewTestRegistry(svc...)`
       in catalog — none documented in AGENTS.md.
-- [ ] **`filterDetectors` extraction in cqrs-lint** — detector-filtering logic
-      is shared by multiple rules; verified NOT yet extracted.
-- [ ] **Audit accepted clone groups** — verify 72 art-dupl groups genuinely
-      acceptable, not just tolerated.
+- [ ] **Audit accepted clone groups** — verify 19 art-dupl groups genuinely
+      acceptable, not just tolerated (was 34 before the 2026-07-27 wrapClosed
+      consolidation; now 19 after the withWriteLock/withReadLock extraction).
 - [ ] **`--structural` art-dupl pass** — AST-shape clones beyond the semantic
       mode the current gate uses.
 - [ ] **`--type-aware` art-dupl run** — eliminates false-positive clone groups
@@ -198,6 +197,13 @@ this list and recorded in CHANGELOG.
   `metaengine.Store` is not a `*stack.Bundle`; the benchkit runner rejects it
   with `ErrIncompleteBundle`. Coverage already exists in
   `metaengine/planner_bench_test.go` (deliberately separated).
+- **`filterDetectors` extraction in cqrs-lint** — dropped 2026-07-27
+  (over-engineering). The "duplication" is 5 one-line `if !ctx.FeatureProfile.X
+  { return nil, nil }` early-return guards, each checking a DIFFERENT profile
+  field (HasServer, CommandFlow, HasSoftDelete). The real detector filtering
+  (`FilterByCategory`/`FilterByRuleIDs`) is already extracted in `register.go`.
+  A helper for the profile guards would obscure intent without reducing real
+  complexity.
 
 ---
 

@@ -229,6 +229,37 @@ nix develop -c gosec ./event/... ./command/... ./decider/...
 
 CI uploads SARIF results to GitHub Security tab. Fix any findings before merging.
 
+## Quality Gates & Nix Apps
+
+The CI pipeline runs these gates. All are available locally via `nix run`:
+
+```bash
+# Full verification gate (build + vet + test + race + lint + api-stability + doc-check)
+nix run .#verify
+
+# Fast feedback (skips soak tests — use during development)
+nix run .#verify-fast
+
+# Parallel test execution (~4min → ~1-2min)
+nix run .#verify-parallel
+
+# Individual quality gates (all wired into CI)
+nix run .#check-api-stability    # API surface golden check (no breaking changes)
+nix run .#check-duplication      # clone detection (art-dupl, threshold 3, semantic)
+nix run .#check-layers           # dependency-tier + budget enforcement
+nix run .#check-coverage         # coverage drift vs AGENTS.md claims
+
+# Recovery
+nix run .#sweep                  # auto-fix formatting + lint drift (run after daemon commits)
+```
+
+**Before pushing:** run `nix run .#verify` (or at minimum `nix run .#verify-fast`).
+**After the auto-commit daemon touches code:** run `nix run .#sweep` — the daemon
+occasionally ships unformatted code or breaking dependency bumps (e.g. the
+go-output v0.33.0 incident that broke cqrs-lint for 3+ sessions).
+**When you add/remove an exported symbol:** run `cd cmd/api-stability && GOWORK=off
+go run main.go -update` to regenerate the golden in the same change.
+
 ## Golden File Tests
 
 Several modules use golden file tests to detect output format regressions:
