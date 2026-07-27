@@ -3,11 +3,32 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
+
+// EnsureSQLiteDSNBusyTimeout appends _pragma=busy_timeout(ms) to the DSN so
+// every connection the pool creates has the busy_timeout set. PRAGMAs set via
+// db.Exec only apply to the connection that executes them; if the pool evicts
+// and recreates a connection, the new one would not inherit the PRAGMA, causing
+// SQLITE_BUSY errors under concurrent access. DSN-level pragmas are applied by
+// the modernc.org/sqlite driver on every new connection.
+func EnsureSQLiteDSNBusyTimeout(dsn string, ms int) string {
+	if strings.Contains(dsn, "busy_timeout") {
+		return dsn
+	}
+
+	sep := "?"
+	if strings.Contains(dsn, "?") {
+		sep = "&"
+	}
+
+	return fmt.Sprintf("%s%s_pragma=busy_timeout(%d)", dsn, sep, ms)
+}
 
 func OpenSQLite(dbPath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", dbPath+"?_loc=auto&_time_format=sqlite")

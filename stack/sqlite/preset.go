@@ -119,6 +119,7 @@ func openBackend(dsn string, cfg config) ( //nolint:nonamedreturns // defer clea
 	backend *storage.SQLBackend,
 	err error,
 ) {
+	dsn = storage.EnsureSQLiteDSNBusyTimeout(dsn, 5000)
 	db, err = sqlopt.OpenDBOrErr("sqlite", dsn, "sqlite_preset.open_primary")
 	if err != nil {
 		return nil, nil, err //nolint:wrapcheck // OpenDBOrErr wraps
