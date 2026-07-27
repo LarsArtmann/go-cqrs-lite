@@ -268,6 +268,7 @@ func (r *runner) setup(ctx context.Context) error {
 
 func (r *runner) teardown() {
 	if r.bundle != nil {
+		//cqrs-lint:ignore(C015) best-effort cleanup in teardown
 		_ = r.bundle.Close()
 	}
 }

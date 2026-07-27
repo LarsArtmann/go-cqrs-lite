@@ -28,6 +28,7 @@ func SQLiteSchema() string {
 // use with defer: `defer sqlpkg.CloseRows(rows)`. Replaces the verbose
 // `defer func() { _ = rows.Close() }()` idiom.
 func CloseRows(rows *sql.Rows) {
+	//cqrs-lint:ignore(C015) helper exists to suppress the error — see doc comment
 	_ = rows.Close()
 }
 

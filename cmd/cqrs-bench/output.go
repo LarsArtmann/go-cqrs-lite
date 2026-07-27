@@ -90,6 +90,7 @@ func openOutput(path string) *os.File {
 
 func closeOutput(f *os.File) {
 	if f != os.Stdout {
+		//cqrs-lint:ignore(C015) file close helper, error not actionable
 		_ = f.Close()
 	}
 }
