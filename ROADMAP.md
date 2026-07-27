@@ -3,10 +3,13 @@
 > Where we are, where we're going, and what's next.
 > **Last updated:** 2026-07-27
 >
-> ✅ **`nix run .#verify` is GREEN end-to-end** (exit code 0: build + vet + test +
-> race + lint 0 issues + api-stability + doc-check 947 refs + doc-assertions).
-> The previously-flaky benchkit timing tests are resolved via race-aware thresholds,
-> DSN-level SQLite `busy_timeout`, and `soakTestScale` consolidation.
+> ✅ **`nix run .#verify` is GENUINELY GREEN end-to-end** (re-verified 2026-07-27
+> after fixing a hidden cqrs-lint build break: the auto-daemon bumped go-output
+> to v0.33.0 but `go-output/table` has no v0.33.0 release — downgraded to v0.32.0.
+> The prior "GREEN" claim was stale for 3+ sessions). CI now also runs
+> `#check-duplication`, `#check-api-stability`, `#check-layers`, `#check-coverage`.
+> Race-aware thresholds, DSN-level SQLite `busy_timeout`, `soakTestScale`
+> consolidation all in place.
 
 ---
 
@@ -152,6 +155,11 @@ All four consumer experience gaps shipped via the Pareto execution plan:
 ---
 
 ## Raw Ideas (No Design Yet)
+
+> _Triage 2026-07-27: 10 items reviewed. None stale, none ready to drop. Closest
+> to graduation: SSE fan-out memoization (benchmarked, specific numbers) and
+> Neo4j graph driver (consumer-pulled, design exists). The rest need design docs
+> before becoming actionable._
 
 - Event stream compaction / log truncation strategies
 - Multi-tenant event store (schema-per-tenant)

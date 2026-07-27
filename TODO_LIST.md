@@ -117,12 +117,10 @@ this list and recorded in CHANGELOG.
 
 ## Documentation
 
-- [ ] **Update `docs/SPAN_NAMING.md`** — document the new `startReadSpan`
-      pattern consolidated in pebble.
-- [ ] **Update `CONTRIBUTING.md`** — add `#verify-fast`, `#check-duplication`,
-      and `#sweep` workflows.
-- [ ] **Verify metaengine coverage** — run `go test -cover ./metaengine/...`
-      and update FEATURES.md if the 86.2% claim has drifted.
+- [ ] **Write `docs/testing-guide.md`** — patterns for property tests, soak
+      tests, cross-engine parity, race-aware thresholds.
+- [ ] **Write `docs/release-checklist.md`** — step-by-step with verification
+      gates.
 
 ---
 

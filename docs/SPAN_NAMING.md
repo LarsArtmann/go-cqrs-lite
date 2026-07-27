@@ -37,6 +37,25 @@ convention:
 | `sse.fanout`                    | sse         | fanout   | Broadcasting an event to SSE clients       |
 | `sse.replay`                    | sse         | replay   | Last-Event-ID reconnection replay          |
 | `retry.attempt.N`               | retry       | attempt  | Nth retry attempt (child span)             |
+| `pebble.event.load`             | pebble      | load     | Pebble event-store load (read path)        |
+| `pebble.query.load_queries`     | pebble      | load     | Pebble command/query journal load          |
+| `pebble.snapshot.load`          | pebble      | load     | Pebble snapshot load                       |
+| `pebble.checkpoint.load`        | pebble      | load     | Pebble checkpoint load                     |
+
+### Pebble span helpers
+
+The pebble module consolidates span creation into typed helpers in
+`storage/pebble/otel.go`:
+
+- `startStreamSpan` — event-store save/load (Server or Client kind, with stream attributes)
+- `startProjectionSpan` — projection sink operations
+- `startLimitSpan` — bounded scan operations (carries the `limit` attribute)
+- `startReadSpan` — bare read operations (query/snapshot/checkpoint loads,
+  `SpanKindClient`, no extra attributes)
+
+Use `startReadSpan` for simple read paths that don't need stream or limit
+context. Use `startStreamSpan` for operations tied to a specific event stream
+(it records `stream.id` and `stream.type` attributes).
 
 ## Span Kinds
 
