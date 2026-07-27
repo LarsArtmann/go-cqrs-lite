@@ -19,6 +19,7 @@ func soakTestDuration(base time.Duration) time.Duration {
 	if raceEnabled {
 		return base * 3
 	}
+
 	return base
 }
 
@@ -28,6 +29,7 @@ func soakTestTimeout(base time.Duration) time.Duration {
 	if raceEnabled {
 		return base * 3
 	}
+
 	return base
 }
 
