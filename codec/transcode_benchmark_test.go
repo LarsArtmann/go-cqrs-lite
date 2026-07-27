@@ -51,3 +51,40 @@ func BenchmarkTranscodeToJSON_JSON_Passthrough(b *testing.B) {
 		_ = out
 	}
 }
+
+// BenchmarkTranscodeToJSON_NestedDeep stresses the generic decode path with a
+// deeply nested map (5 levels). This reveals whether recursion depth in CBOR
+// payloads causes disproportionate allocation or latency in the transcode path.
+func BenchmarkTranscodeToJSON_NestedDeep(b *testing.B) {
+	b.ReportAllocs()
+
+	// Build a 5-level deep nested map to exercise recursive decode.
+	deep := map[string]any{
+		"l1": map[string]any{
+			"l2": map[string]any{
+				"l3": map[string]any{
+					"l4": map[string]any{
+						"l5_val": "bottom",
+						"l5_arr": []any{1, 2, "deep", true, 3.14},
+					},
+					"l4_sibling": 42,
+				},
+			},
+		},
+		"top_level": "root",
+	}
+
+	cborData, err := (codec.CBORCodec{}).Encode(deep)
+	if err != nil {
+		b.Fatalf("encode CBOR: %v", err)
+	}
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		_, err := codec.TranscodeToJSON(cborData, codec.EncodingCBOR)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}

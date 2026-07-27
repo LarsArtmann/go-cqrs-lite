@@ -66,6 +66,17 @@ func OrderStoreConfig() StoreTestConfig {
 	return NewStoreTestConfig("Order", "OrderPlaced", "item", "widget")
 }
 
+// newTestStreamEvent creates a fresh stream ID and a version-1 test event.
+// Shorthand for the aggID + NewTestEvent preamble shared by store suite tests.
+func newTestStreamEvent(t *testing.T, cfg StoreTestConfig) (id.StreamID, event.Event) {
+	t.Helper()
+
+	aggID := id.NewStreamID()
+	evt := cfg.NewTestEvent(t, aggID, 1)
+
+	return aggID, evt
+}
+
 // SaveEvent saves a single event at version 0 using the given config.
 func SaveEvent(
 	t *testing.T,
@@ -91,8 +102,7 @@ func SaveEvent(
 func TestStoreSaveAndLoad(t *testing.T, store event.Store, cfg StoreTestConfig) {
 	t.Helper()
 
-	aggID := id.NewStreamID()
-	evt := cfg.NewTestEvent(t, aggID, 1)
+	aggID, evt := newTestStreamEvent(t, cfg)
 
 	err := store.Save(
 		context.Background(),
@@ -126,8 +136,7 @@ func TestStoreSaveAndLoad(t *testing.T, store event.Store, cfg StoreTestConfig) 
 func TestStoreConcurrencyConflict(t *testing.T, store event.Store, cfg StoreTestConfig) {
 	t.Helper()
 
-	aggID := id.NewStreamID()
-	evt := cfg.NewTestEvent(t, aggID, 1)
+	aggID, evt := newTestStreamEvent(t, cfg)
 
 	SaveEvent(t, store, cfg, aggID, evt)
 

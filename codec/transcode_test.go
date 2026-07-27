@@ -319,3 +319,121 @@ func TestTranscodeToJSON_MapKeysRoundTrip(t *testing.T) {
 		}
 	}
 }
+
+// TestTranscodeToJSON_ByteSliceAsBase64 verifies that CBOR byte strings (major
+// type 2) transcode to JSON as base64-encoded strings, matching encoding/json's
+// default []byte handling (#22).
+func TestTranscodeToJSON_ByteSliceAsBase64(t *testing.T) {
+	t.Parallel()
+
+	in := map[string]any{"data": []byte("hello world")}
+	cborData, err := (CBORCodec{}).Encode(in)
+	if err != nil {
+		t.Fatalf("encode: %v", err)
+	}
+
+	out, err := TranscodeToJSON(cborData, EncodingCBOR)
+	if err != nil {
+		t.Fatalf("transcode: %v", err)
+	}
+
+	var got map[string]any
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatalf("decode JSON: %v\njson: %s", err, out)
+	}
+
+	// encoding/json marshals []byte as base64 standard encoding.
+	data, ok := got["data"].(string)
+	if !ok {
+		t.Fatalf("data = %T, want string (base64); json: %s", got["data"], out)
+	}
+
+	if data != "aGVsbG8gd29ybGQ=" {
+		t.Errorf("base64 = %q, want aGVsbG8gd29ybGQ=", data)
+	}
+}
+
+// TestTranscodeToJSON_FloatSpecials verifies the behavior when CBOR contains
+// NaN, +Inf, or -Inf float values (#23). JSON does not support these values,
+// so TranscodeToJSON should return an error rather than producing invalid JSON.
+func TestTranscodeToJSON_FloatSpecials(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name string
+		val  float64
+	}{
+		{"nan", math.NaN()},
+		{"pos_inf", math.Inf(1)},
+		{"neg_inf", math.Inf(-1)},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cborData, err := (CBORCodec{}).Encode(map[string]any{"v": tc.val})
+			if err != nil {
+				t.Fatalf("encode: %v", err)
+			}
+
+			out, err := TranscodeToJSON(cborData, EncodingCBOR)
+			if err != nil {
+				// Error is acceptable: JSON cannot represent NaN/Inf.
+				return
+			}
+
+			// If it didn't error, the output must still be valid JSON
+			// (some json encoders emit null for these).
+			var probe any
+			if perr := json.Unmarshal(out, &probe); perr != nil {
+				t.Errorf("produced invalid JSON for %s: %v\nraw: %s", tc.name, perr, out)
+			}
+		})
+	}
+}
+
+// TestTranscodeToJSON_DuplicateMapKeys verifies that duplicate CBOR map keys
+// are rejected by the decoder (#24). The canonical decoder uses
+// DupMapKeyEnforcedAPF, so decoding CBOR with duplicate keys yields an error.
+func TestTranscodeToJSON_DuplicateMapKeys(t *testing.T) {
+	t.Parallel()
+
+	// Raw CBOR: map of 2 pairs with duplicate key "a".
+	// 0xa2 = map(2), 0x61 0x61 = str("a"), 0x01 = int(1),
+	// 0x61 0x61 = str("a"), 0x02 = int(2).
+	dupKeys := []byte{0xa2, 0x61, 0x61, 0x01, 0x61, 0x61, 0x02}
+
+	_, err := TranscodeToJSON(dupKeys, EncodingCBOR)
+	if err == nil {
+		t.Fatal("expected error for duplicate map keys, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "transcode") {
+		t.Errorf("error should mention transcode context; got %q", err)
+	}
+}
+
+// TestTranscodeToJSON_CBORTag0 verifies the behavior when CBOR contains a tag 0
+// (standard date/time string). The generic decoder may decode tagged values
+// differently — this test documents what actually happens (#21).
+func TestTranscodeToJSON_CBORTag0(t *testing.T) {
+	t.Parallel()
+
+	// Raw CBOR: tag 0 (0xc0) wrapping an RFC3339 string.
+	// 0xc0 = tag 0, 0x74 = str(20), "2026-07-27T00:00:00Z"
+	tagged := append([]byte{0xc0, 0x74},
+		[]byte("2026-07-27T00:00:00Z")...)
+
+	out, err := TranscodeToJSON(tagged, EncodingCBOR)
+	if err != nil {
+		// Tagged values may fail generic decode — that's acceptable to document.
+		return
+	}
+
+	// If it succeeded, the output must be valid JSON.
+	var probe any
+	if perr := json.Unmarshal(out, &probe); perr != nil {
+		t.Errorf("produced invalid JSON for tag 0: %v\nraw: %s", perr, out)
+	}
+}

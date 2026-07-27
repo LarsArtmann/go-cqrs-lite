@@ -68,11 +68,20 @@ func newBundle(t *testing.T, factory Factory) *stack.Bundle {
 	return b
 }
 
-func testBundleFields(t *testing.T, factory Factory) {
+// parallelBundle marks the test parallel, then builds a bundle via newBundle.
+// Consolidates the t.Parallel + newBundle preamble shared by every contract
+// subtest that needs a live bundle.
+func parallelBundle(t *testing.T, factory Factory) *stack.Bundle {
 	t.Helper()
 	t.Parallel()
 
-	b := newBundle(t, factory)
+	return newBundle(t, factory)
+}
+
+func testBundleFields(t *testing.T, factory Factory) {
+	t.Helper()
+
+	b := parallelBundle(t, factory)
 
 	if b.EventSink == nil {
 		t.Error("EventSink is nil")
@@ -101,9 +110,8 @@ func testBundleFields(t *testing.T, factory Factory) {
 
 func testEventRoundtrip(t *testing.T, factory Factory) {
 	t.Helper()
-	t.Parallel()
 
-	b := newBundle(t, factory)
+	b := parallelBundle(t, factory)
 
 	ctx := context.Background()
 	aggID := id.NewStreamID()
@@ -146,9 +154,8 @@ func testEventRoundtrip(t *testing.T, factory Factory) {
 
 func testCommandRoundtrip(t *testing.T, factory Factory) {
 	t.Helper()
-	t.Parallel()
 
-	b := newBundle(t, factory)
+	b := parallelBundle(t, factory)
 
 	if b.CommandSink == nil {
 		t.Skip("CommandSink not available")
@@ -181,9 +188,8 @@ func testCommandRoundtrip(t *testing.T, factory Factory) {
 
 func testReadModelRoundtrip(t *testing.T, factory Factory) {
 	t.Helper()
-	t.Parallel()
 
-	b := newBundle(t, factory)
+	b := parallelBundle(t, factory)
 
 	store, err := stack.ReadModel[contractView, contractKey](
 		b, codec.JSONCodec{},
