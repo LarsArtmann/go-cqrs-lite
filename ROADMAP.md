@@ -162,6 +162,10 @@ All four consumer experience gaps shipped via the Pareto execution plan:
 - Property-based integration testing with state machine verification
 - Performance regression dashboard (historical benchmark tracking)
 - Neo4j/Memgraph graph driver (`graph/neo4j/`) — consumer-pulled sibling module
+- SSE fan-out transform memoization — `CBORToJSONTransform` runs once per client
+  (208µs for 100 clients, 3400 allocs/op). Memoization keyed by event ID could
+  save ~99% of transform cost under high fan-out. Optimization, not a bug;
+  benchmarked 2026-07-27.
 
 > Items with design docs graduate to a Theme above, then to [TODO_LIST.md](TODO_LIST.md)
 > when actively worked.

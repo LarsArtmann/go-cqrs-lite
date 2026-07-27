@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/signing/v4
 go 1.26.5
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.1.0
@@ -21,7 +21,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
-	github.com/larsartmann/go-branded-id v0.3.3 // indirect
+	github.com/larsartmann/go-branded-id v0.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
