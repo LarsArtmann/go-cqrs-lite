@@ -148,6 +148,7 @@ for mod in "${!DEP_BUDGET[@]}"; do
         found && !/\/\// && !/indirect/ && /^[[:space:]]+[^[:space:]]/{print $1}
     ' "$gomod")
 
+    prod_dep_list=""
     for dep_path in $direct_paths; do
         # Skip packages already caught by TEST_PACKAGES
         skip=0
@@ -162,13 +163,18 @@ for mod in "${!DEP_BUDGET[@]}"; do
         if ! grep -rl "\"${dep_path}" "${mod}/" --include='*.go' 2>/dev/null \
             | grep -vq '_test\.go$'; then
             test_deps=$((test_deps + 1))
+            continue
         fi
+
+        # Collect production deps for diagnostic output on violation
+        prod_dep_list="${prod_dep_list}  ${dep_path}\n"
     done
 
     prod_deps=$((direct - test_deps))
 
     if [ "$prod_deps" -gt "$budget" ]; then
         echo "BUDGET: ${mod} has ${prod_deps} production deps (budget: ${budget}, total: ${direct}, test: ${test_deps})"
+        echo -e "  Production deps:\n${prod_dep_list}"
         failed=1
     fi
 done

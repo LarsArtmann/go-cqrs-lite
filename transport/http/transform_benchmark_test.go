@@ -71,3 +71,41 @@ func BenchmarkCBORToJSONTransform_JSON_Passthrough(b *testing.B) {
 		}
 	}
 }
+
+// BenchmarkCBORToJSONTransform_FanOut_100Clients quantifies the per-event fan-out
+// cost when 100 SSE clients receive the same CBOR event. The SSE broker calls
+// payloadForWire once per client (not once per event — see sse.go line 264), so
+// the transform runs N times for N connected clients. This benchmark documents
+// that redundancy and provides a baseline for any future memoization
+// optimization (e.g., sync.OnceValue keyed by event ID).
+func BenchmarkCBORToJSONTransform_FanOut_100Clients(b *testing.B) {
+	b.ReportAllocs()
+
+	streamID := id.NewStreamID()
+	payload := map[string]any{
+		"id":     "01HQ3TS7HNW3K4PR9XJ8Z2V5MS",
+		"name":   "Alice",
+		"email":  "alice@example.com",
+		"count":  42,
+		"active": true,
+	}
+
+	evt, err := event.New("user.created", streamID, "User", 1, payload,
+		event.WithCodec(codec.CBORCodec{}))
+	if err != nil {
+		b.Fatalf("event.New: %v", err)
+	}
+
+	const clients = 100
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		for i := 0; i < clients; i++ {
+			out := CBORToJSONTransform(evt)
+			if len(out) == 0 {
+				b.Fatal("empty transform output")
+			}
+		}
+	}
+}
