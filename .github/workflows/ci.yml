@@ -52,6 +52,18 @@ jobs:
       - name: Lint
         run: nix run .#lint
 
+      - name: API stability check
+        run: nix run .#check-api-stability
+
+      - name: Duplication check
+        run: nix run .#check-duplication
+
+      - name: Dependency layer check
+        run: nix run .#check-layers
+
+      - name: Coverage drift check
+        run: nix run .#check-coverage
+
       - name: Doc cross-reference check
         run:
           cd cmd/doc-check && GOWORK=off go run .

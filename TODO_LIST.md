@@ -57,22 +57,23 @@ this list and recorded in CHANGELOG.
 
 ## CI / Daemon
 
-> Local nix apps exist for `#verify-fast`, `#verify-parallel`,
-> `#check-duplication`, and `#sweep` — none are wired into CI yet.
+> CI now runs: format, build, vet, test, test-race, lint, **api-stability**,
+> **duplication** (`#check-duplication`), **dependency-layers** (`#check-layers`),
+> **coverage-drift** (`#check-coverage`), doc-check, doc-assertions, coverage.
+> Still not wired: `#verify-parallel` (speed), `#verify-fast` (pre-merge fast path).
 
-- [ ] 🔥 **Wire `#check-duplication` into CI** (`.github/workflows/ci.yml`) —
-      the `.art-dupl-baseline.json` golden + `#check-duplication` app exist
-      locally; CI does not run them. Without CI wiring, new clones ship
-      undetected.
 - [ ] **Wire `#verify-parallel` into CI** — the app splits module tests into N
       batches for concurrent execution (~4min → ~1-2min); CI still runs
-      sequential.
+      sequential. Low-risk optimization, but the sequential path is proven.
 - [ ] **Add `#verify-fast` as a pre-merge CI gate** — fast feedback (skips
       soak tests), keep full `#verify` for nightly.
 - [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
       unformatted code (gci/gofumpt drift), turning `#lint` red. The `#sweep`
       app recovers, but gating daemon commits behind `nix fmt` prevents the
-      drift. Either gate the daemon or run a scheduled sweep.
+      drift. Either gate the daemon or run a scheduled sweep. The hidden
+      cqrs-lint build break (go-output v0.33.0 daemon bump) is exactly this
+      failure mode — discovered 2026-07-27 after 3+ sessions of stale "green
+      gate" claims.
 - [ ] **Investigate dependabot alert** `security/dependabot/10` — `gh api`
       returned no results (auth issue). Cannot diagnose without GitHub token
       permissions.
