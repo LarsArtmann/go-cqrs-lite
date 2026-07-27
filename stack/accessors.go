@@ -9,8 +9,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Repository constructs a typed [decider.Repository] over the Bundle's event

@@ -157,7 +157,7 @@ func parsePayloadSizes(s string) ([]int, error) {
 
 		if n <= 0 {
 			return nil, errorfamily.Newf(errorfamily.Rejection,
-			"cqrs-bench.invalid_size", "size must be > 0, got %d", n)
+				"cqrs-bench.invalid_size", "size must be > 0, got %d", n)
 		}
 
 		sizes = append(sizes, n)
