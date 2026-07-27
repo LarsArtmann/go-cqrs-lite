@@ -74,21 +74,16 @@ jobs:
           # CHANGELOG must have exactly one [Unreleased]
           count=$(grep -cE '^## \[Unreleased\]' CHANGELOG.md)
           [ "$count" -eq 1 ] || { echo "::error::Found $count [Unreleased] sections (expected 1)"; exit 1; }
-          # No stale module counts in core docs (whitelist: dynamic check)
+          # No stale module counts in core docs (dynamic whitelist)
           actual_count=$(find . -name go.mod -not -path './vendor/*' | wc -l)
-          stale=$(grep -rnoE '\b[0-9]+\s*(go\.mod|modules)' --include='*.md' \
+          # Check "N go.mod files" patterns (unambiguously total count)
+          grep -rnoE '\b[0-9]+\s*`?go\.mod`?\s*files?' --include='*.md' \
             README.md AGENTS.md FEATURES.md CONTRIBUTING.md docs/README.md \
             docs/v4-WISHLIST.md ROADMAP.md TODO_LIST.md 2>/dev/null \
-            | grep -v 'archive/' || true)
-          if [ -n "$stale" ]; then
-            while IFS= read -r line; do
-              num=$(echo "$line" | grep -oE '^\S+:([0-9]+)' | grep -oE '[0-9]+$')
-              if [ -n "$num" ] && [ "$num" != "$actual_count" ]; then
-                echo "::error::Stale module count ($num, expected $actual_count): $line"
-                exit 1
-              fi
-            done <<< "$stale"
-          fi
+            | grep -v 'archive/' \
+            | grep -vE ":${actual_count}:" \
+            | grep -vE ":${actual_count} " \
+            && { echo "::error::Stale go.mod file count (expected $actual_count)"; exit 1; } || true
           # License must match
           head -1 LICENSE | grep -qi proprietary && \
             grep -qi proprietary README.md || { echo "::error::License mismatch"; exit 1; }
