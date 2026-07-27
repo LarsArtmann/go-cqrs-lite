@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
+	_ "modernc.org/sqlite"
 	"pgregory.net/rapid"
 
 	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
-	_ "modernc.org/sqlite"
 )
 
 var propDBCounter atomic.Int64
