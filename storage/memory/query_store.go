@@ -35,63 +35,69 @@ func NewMemoryQueryStore() *MemoryQueryStore {
 	}
 }
 
-func (s *MemoryQueryStore) SaveQuery(_ context.Context, q *query.PersistedQuery) error {
-	if err := wrapClosed(
-		s.CheckClosed(query.ErrStoreClosed),
-		"memory.save_query_failed",
-		"memory query store save",
-	); err != nil {
+// withWriteLock centralises the wrapClosed + Lock + defer Unlock preamble for
+// write methods. The closure body runs under the lock.
+func (s *MemoryQueryStore) withWriteLock(code, msg string, fn func() error) error {
+	if err := wrapClosed(s.CheckClosed(query.ErrStoreClosed), code, msg); err != nil {
 		return err
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.idIndex[q.ID()] = len(s.queries)
-	s.queries = append(s.queries, q)
+	return fn()
+}
 
-	return nil
+// withQueryReadLock is the read-side companion to withWriteLock. It is a
+// top-level generic function because Go does not permit generic methods; the
+// [T] type parameter carries the read method's return type through the closure.
+func withQueryReadLock[T any](
+	s *MemoryQueryStore,
+	code, msg string,
+	fn func() (T, error),
+) (T, error) {
+	if err := wrapClosed(s.CheckClosed(query.ErrStoreClosed), code, msg); err != nil {
+		var zero T
+
+		return zero, err
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return fn()
+}
+
+func (s *MemoryQueryStore) SaveQuery(_ context.Context, q *query.PersistedQuery) error {
+	return s.withWriteLock("memory.save_query_failed", "memory query store save", func() error {
+		s.idIndex[q.ID()] = len(s.queries)
+		s.queries = append(s.queries, q)
+
+		return nil
+	})
 }
 
 func (s *MemoryQueryStore) LoadQueries(
 	_ context.Context,
 	after time.Time,
 ) ([]*query.PersistedQuery, error) {
-	if err := wrapClosed(
-		s.CheckClosed(query.ErrStoreClosed),
-		"memory.load_queries_failed",
-		"memory query store load queries",
-	); err != nil {
-		return nil, err
-	}
+	return withQueryReadLock(s, "memory.load_queries_failed", "memory query store load queries", func() ([]*query.PersistedQuery, error) {
+		result := make([]*query.PersistedQuery, 0, len(s.queries))
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	result := make([]*query.PersistedQuery, 0, len(s.queries))
-
-	for _, q := range s.queries {
-		if q.ReceivedAt().After(after) {
-			result = append(result, q)
+		for _, q := range s.queries {
+			if q.ReceivedAt().After(after) {
+				result = append(result, q)
+			}
 		}
-	}
 
-	return result, nil
+		return result, nil
+	})
 }
 
 func (s *MemoryQueryStore) ReadAllQueries(_ context.Context) ([]*query.PersistedQuery, error) {
-	if err := wrapClosed(
-		s.CheckClosed(query.ErrStoreClosed),
-		"memory.readall_queries_failed",
-		"memory query journal readall",
-	); err != nil {
-		return nil, err
-	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	return slices.Clone(s.queries), nil
+	return withQueryReadLock(s, "memory.readall_queries_failed", "memory query journal readall", func() ([]*query.PersistedQuery, error) {
+		return slices.Clone(s.queries), nil
+	})
 }
 
 func (s *MemoryQueryStore) ReadQueriesFrom(
@@ -99,35 +105,26 @@ func (s *MemoryQueryStore) ReadQueriesFrom(
 	afterRequestID id.RequestID,
 	limit int,
 ) ([]*query.PersistedQuery, error) {
-	if err := wrapClosed(
-		s.CheckClosed(query.ErrStoreClosed),
-		"memory.readqueries_from_failed",
-		"memory query journal readfrom",
-	); err != nil {
-		return nil, err
-	}
+	return withQueryReadLock(s, "memory.readqueries_from_failed", "memory query journal readfrom", func() ([]*query.PersistedQuery, error) {
+		startIdx := 0
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+		if afterRequestID != (id.RequestID{}) {
+			idx, exists := s.idIndex[afterRequestID]
+			if !exists {
+				return nil, nil
+			}
 
-	startIdx := 0
+			startIdx = idx + 1
+		}
 
-	if afterRequestID != (id.RequestID{}) {
-		idx, exists := s.idIndex[afterRequestID]
-		if !exists {
+		end := min(startIdx+limit, len(s.queries))
+
+		if startIdx >= len(s.queries) {
 			return nil, nil
 		}
 
-		startIdx = idx + 1
-	}
-
-	end := min(startIdx+limit, len(s.queries))
-
-	if startIdx >= len(s.queries) {
-		return nil, nil
-	}
-
-	return slices.Clone(s.queries[startIdx:end]), nil
+		return slices.Clone(s.queries[startIdx:end]), nil
+	})
 }
 
 // Close marks the store as closed. Subsequent operations return ErrStoreClosed.

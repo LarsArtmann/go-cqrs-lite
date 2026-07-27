@@ -72,6 +72,25 @@ func (s *MemoryCommandStore) withWriteLock(code, msg string, fn func() error) er
 	return fn()
 }
 
+// withCommandReadLock is the read-side companion to withWriteLock. Top-level
+// generic function because Go does not permit generic methods.
+func withCommandReadLock[T any](
+	s *MemoryCommandStore,
+	code, msg string,
+	fn func() (T, error),
+) (T, error) {
+	if err := wrapClosed(s.CheckClosed(command.ErrStoreClosed), code, msg); err != nil {
+		var zero T
+
+		return zero, err
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return fn()
+}
+
 // AppendBatch appends multiple commands without duplicate checks on individual commands.
 // If any command ID already exists, the entire batch fails.
 func (s *MemoryCommandStore) AppendBatch(
@@ -159,18 +178,9 @@ func (s *MemoryCommandStore) Close() error {
 // (which matches ReceivedAt order since commands are appended on receipt).
 // Implements command.CommandJournal.
 func (s *MemoryCommandStore) ReadAll(_ context.Context) ([]*command.PersistedCommand, error) {
-	if err := wrapClosed(
-		s.CheckClosed(command.ErrStoreClosed),
-		"memory.readall_failed",
-		"memory command journal readall",
-	); err != nil {
-		return nil, err
-	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	return slices.Clone(s.globalLog), nil
+	return withCommandReadLock(s, "memory.readall_failed", "memory command journal readall", func() ([]*command.PersistedCommand, error) {
+		return slices.Clone(s.globalLog), nil
+	})
 }
 
 // ReadFrom returns commands after the given CommandID, ordered by insertion.
@@ -180,35 +190,26 @@ func (s *MemoryCommandStore) ReadFrom(
 	afterCommandID id.CommandID,
 	limit int,
 ) ([]*command.PersistedCommand, error) {
-	if err := wrapClosed(
-		s.CheckClosed(command.ErrStoreClosed),
-		"memory.readfrom_failed",
-		"memory command journal readfrom",
-	); err != nil {
-		return nil, err
-	}
+	return withCommandReadLock(s, "memory.readfrom_failed", "memory command journal readfrom", func() ([]*command.PersistedCommand, error) {
+		startIdx := 0
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+		if afterCommandID != (id.CommandID{}) {
+			idx, exists := s.commandIDIndex[afterCommandID]
+			if !exists {
+				return nil, nil
+			}
 
-	startIdx := 0
+			startIdx = idx + 1
+		}
 
-	if afterCommandID != (id.CommandID{}) {
-		idx, exists := s.commandIDIndex[afterCommandID]
-		if !exists {
+		end := min(startIdx+limit, len(s.globalLog))
+
+		if startIdx >= len(s.globalLog) {
 			return nil, nil
 		}
 
-		startIdx = idx + 1
-	}
-
-	end := min(startIdx+limit, len(s.globalLog))
-
-	if startIdx >= len(s.globalLog) {
-		return nil, nil
-	}
-
-	return slices.Clone(s.globalLog[startIdx:end]), nil
+		return slices.Clone(s.globalLog[startIdx:end]), nil
+	})
 }
 
 func (s *MemoryCommandStore) checkDuplicate(cmdID id.CommandID, suffix string) error {
@@ -235,14 +236,20 @@ func (s *MemoryCommandStore) loadFiltered(
 	op string,
 	filter func([]*command.PersistedCommand) []*command.PersistedCommand,
 ) ([]*command.PersistedCommand, error) {
-	if err := wrapClosedf(
-		s.CheckClosed(command.ErrStoreClosed),
-		"memory.load_failed",
-		"memory command store %s failed",
-		op,
-	); err != nil {
-		return nil, err
-	}
+	return withCommandReadLock(s, "memory.load_failed", fmt.Sprintf("memory command store %s failed", op), func() ([]*command.PersistedCommand, error) {
+		entries, exists := s.streamIndex[ref]
+		if !exists {
+			return nil, nil
+		}
+
+		result := make([]*command.PersistedCommand, 0, len(entries))
+		for _, idx := range entries {
+			result = append(result, s.globalLog[idx])
+		}
+
+		return slices.Clone(filter(result)), nil
+	})
+}
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
