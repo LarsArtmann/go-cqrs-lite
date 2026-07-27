@@ -18,16 +18,17 @@ this list and recorded in CHANGELOG.
 
 ## Verify Gate
 
-> ✅ **`nix run .#verify` is GREEN end-to-end** (confirmed 2026-07-27, exit code 0:
-> build + vet + test + race + lint 0 issues + api-stability + doc-check 947 refs +
-> doc-assertions). The previously-flaky benchkit timing tests were resolved by
-> race-aware thresholds (`benchkit/race_on.go`, `transport/grpc/race_on_test.go`),
-> DSN-level SQLite `busy_timeout` (`EnsureSQLiteDSNBusyTimeout` wired into the
-> stack/sqlite preset), and `soakTestScale` consolidation. File-size gate GREEN.
-
-- [ ] **Regenerate api-stability golden** if new exports are added — the golden
-      currently passes but `storage.EnsureSQLiteDSNBusyTimeout` (auto-committed
-      by the daemon) should be verified as present after any export-touching change.
+> ✅ **`nix run .#verify` is GREEN end-to-end** (re-confirmed 2026-07-27 after
+> fixing a hidden cqrs-lint build break: go-output root was bumped to v0.33.0
+> by the auto-daemon but `go-output/table` has no v0.33.0 release — downgraded
+> root back to v0.32.0). api-stability golden verified: `EnsureSQLiteDSNBusyTimeout`
+> IS present at `docs/api_surface.txt` (2676 exports verified); the prior
+> "golden anomaly" was a wrong-path grep (`cmd/api-stability/` vs actual
+> `docs/api_surface.txt`). Race-aware thresholds, DSN-level SQLite `busy_timeout`,
+> and `soakTestScale` consolidation all in place. File-size gate GREEN.
+>
+> Coverage drift is now checked by `scripts/check-coverage.sh`
+> (`nix run .#check-coverage`) — AGENTS.md coverage claims verified 2026-07-27.
 
 ---
 
