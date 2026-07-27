@@ -2,6 +2,7 @@ package codec_test
 
 import (
 	"math"
+	"slices"
 	"testing"
 	"unicode/utf8"
 
@@ -365,10 +366,8 @@ func FuzzCBORCodec_CanonicalFidelity(f *testing.F) {
 func hasNaNMapKey(v any) bool {
 	switch x := v.(type) {
 	case []any:
-		for _, e := range x {
-			if hasNaNMapKey(e) {
-				return true
-			}
+		if slices.ContainsFunc(x, hasNaNMapKey) {
+			return true
 		}
 	case map[string]any:
 		for _, e := range x {

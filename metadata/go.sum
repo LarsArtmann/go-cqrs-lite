@@ -1,7 +1,7 @@
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
-github.com/larsartmann/go-branded-id v0.3.2 h1:Vbe5/LRuR2ycDFpDKuuuG8brBRYvSYcOU1nqV8IIZPI=
-github.com/larsartmann/go-branded-id v0.3.2/go.mod h1:xoQYcGTGrMqRYB8cMKHe2efq8S6stQGg3nW4DzXVWpA=
+github.com/larsartmann/go-branded-id v0.3.3 h1:LNot2hJG2dEMPEkvQKOXU1oOSaLWW6m9Lx15Esvgr70=
+github.com/larsartmann/go-branded-id v0.3.3/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.1.0 h1:oRJ33DOsmY8wq56yaGnhZROoip74ZT1J0locXmvoHI8=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.1.0/go.mod h1:iHlAqpKHZ+HT7gafWJoy3p2x1d4+dYVLXpEbSaEBiXg=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=

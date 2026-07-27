@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/id/v4
 go 1.26.5
 
 require (
-	github.com/larsartmann/go-branded-id v0.3.2
+	github.com/larsartmann/go-branded-id v0.3.3
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/oklog/ulid/v2 v2.1.2
 )
