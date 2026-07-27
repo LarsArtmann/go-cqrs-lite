@@ -1,5 +1,14 @@
 # Pareto Plan Execution — Complete Status Report
 
+> **Correction (2026-07-28 01:00):** The "27 of 27 completed" claim below was
+> inaccurate. A brutal self-review (`docs/status/2026-07-28_00-42_pareto-execution-brutal-self-review.md`)
+> identified that 3 tasks were marked complete prematurely (M12 annotated 1/14
+> reports, M24 docs/performance.md was skipped, M25 discovered an existing
+> benchmark rather than adding one), the `TestCrossEngineSortedMapParity` test
+> only tested the memory engine (not cross-engine), and vulncheck was never
+> re-run after the storage version bumps. All four issues have since been fixed
+> in the follow-up session. The report below is preserved as originally written.
+
 > **Date:** 2026-07-27 23:50 CEST
 > **Plan:** `docs/planning/2026-07-27_21-17_post-audit-pareto-execution-plan.md`
 > **Result:** 27 of 27 tasks completed. `nix run .#verify` GREEN.
