@@ -1388,7 +1388,7 @@ func TestRun_AnalyticalJournalScans(t *testing.T) {
 	// Always treat as a soft check — the hard assertion (ReadAllTime > 0,
 	// ReadFromTime > 0) above already proves the scan loop ran.
 	if result.ReadAllTime <= singleResult.ReadAllTime {
-		t.Logf("note: 5-scan ReadAllTime (%v) did not exceed 1-scan ReadAllTime (%v) — timing noise under parallel load",
+		t.Logf("note: 5-scan ReadAllTime (%v) <= 1-scan (%v), timing noise",
 			result.ReadAllTime, singleResult.ReadAllTime)
 	}
 }
