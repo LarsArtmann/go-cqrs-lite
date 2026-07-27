@@ -69,3 +69,51 @@ func TestCriticalDetectorsInstantiate(t *testing.T) {
 		}
 	}
 }
+
+// TestCatalogCountMatchesRegister verifies that the catalog (user-facing rule
+// metadata) and RegisterAll (actual detectors) agree on the rule count. This
+// catches drift when a rule is added to the catalog but not registered (or
+// vice versa).
+func TestCatalogCountMatchesRegister(t *testing.T) {
+	t.Parallel()
+
+	ctx := &analyzer.AnalysisContext{}
+
+	catalogRules := AllRules()
+	detectors := RegisterAll(ctx)
+
+	if len(catalogRules) != len(detectors) {
+		t.Fatalf("catalog has %d rules but RegisterAll returned %d detectors "+
+			"(catalog IDs: %v)",
+			len(catalogRules), len(detectors), catalogRuleIDs(catalogRules))
+	}
+
+	catalogIDs := make(map[string]bool, len(catalogRules))
+	for _, r := range catalogRules {
+		if catalogIDs[r.ID] {
+			t.Fatalf("duplicate catalog rule ID: %s", r.ID)
+		}
+		catalogIDs[r.ID] = true
+	}
+
+	for _, d := range detectors {
+		name := d.Name()
+		if len(name) < 4 {
+			continue
+		}
+
+		ruleID := name[:4]
+		if !catalogIDs[ruleID] {
+			t.Fatalf("detector %q has rule ID %s not in catalog", name, ruleID)
+		}
+	}
+}
+
+func catalogRuleIDs(rules []RuleInfo) []string {
+	ids := make([]string, len(rules))
+	for i, r := range rules {
+		ids[i] = r.ID
+	}
+
+	return ids
+}

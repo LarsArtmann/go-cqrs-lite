@@ -6,6 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	modernc.org/sqlite v1.54.0
+	pgregory.net/rapid v1.1.0
 )
 
 require (
