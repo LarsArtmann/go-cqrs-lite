@@ -415,9 +415,9 @@ func TestTranscodeToJSON_DuplicateMapKeys(t *testing.T) {
 	}
 }
 
-// TestTranscodeToJSON_CBORTag0 verifies the behavior when CBOR contains a tag 0
-// (standard date/time string). The generic decoder may decode tagged values
-// differently — this test documents what actually happens (#21).
+// TestTranscodeToJSON_CBORTag0 verifies that CBOR tag 0 (standard date/time
+// string) decodes to a time.Time in the generic path, which json.Marshal
+// renders as an RFC3339 string. The output is a JSON string, not an object.
 func TestTranscodeToJSON_CBORTag0(t *testing.T) {
 	t.Parallel()
 
@@ -428,13 +428,16 @@ func TestTranscodeToJSON_CBORTag0(t *testing.T) {
 
 	out, err := TranscodeToJSON(tagged, EncodingCBOR)
 	if err != nil {
-		// Tagged values may fail generic decode — that's acceptable to document.
-		return
+		t.Fatalf("transcode tag 0: %v", err)
 	}
 
-	// If it succeeded, the output must be valid JSON.
-	var probe any
-	if perr := json.Unmarshal(out, &probe); perr != nil {
-		t.Errorf("produced invalid JSON for tag 0: %v\nraw: %s", perr, out)
+	// Tag 0 decodes to time.Time → JSON string "2026-07-27T00:00:00Z".
+	var got string
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatalf("decode JSON: %v\nraw: %s", err, out)
+	}
+
+	if got != "2026-07-27T00:00:00Z" {
+		t.Errorf("tag 0 = %q, want 2026-07-27T00:00:00Z", got)
 	}
 }
