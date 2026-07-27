@@ -404,6 +404,10 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-arch.sh"
             '';
 
+            check-coverage = mkApp "check-coverage" [ goPkg pkgs.bash ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-coverage.sh" "$@"
+            '';
+
             check-file-size = mkApp "check-file-size" [ pkgs.findutils ] ''
               failed=false
               while IFS= read -r f; do
