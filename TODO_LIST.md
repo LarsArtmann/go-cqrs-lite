@@ -44,8 +44,8 @@ this list and recorded in CHANGELOG.
 - [ ] **Run `nix run .#vulncheck`** — verify no known vulnerabilities across
       all module deps after v4.2.0.
 - [ ] **Verify v4.2.0 tags resolve from a clean module** — `cd /tmp && mkdir
-      test-resolve && cd test-resolve && go mod init test && GOWORK=off go get
-      github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
+    test-resolve && cd test-resolve && go mod init test && GOWORK=off go get
+    github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
       published module resolves without workspace-local replaces.
 - [ ] **Publish go-finding + go-must as tagged modules** — the go.mod replace
       directives are needed for dev; consumers resolving the published modules
@@ -196,7 +196,7 @@ this list and recorded in CHANGELOG.
   `metaengine/planner_bench_test.go` (deliberately separated).
 - **`filterDetectors` extraction in cqrs-lint** — dropped 2026-07-27
   (over-engineering). The "duplication" is 5 one-line `if !ctx.FeatureProfile.X
-  { return nil, nil }` early-return guards, each checking a DIFFERENT profile
+{ return nil, nil }` early-return guards, each checking a DIFFERENT profile
   field (HasServer, CommandFlow, HasSoftDelete). The real detector filtering
   (`FilterByCategory`/`FilterByRuleIDs`) is already extracted in `register.go`.
   A helper for the profile guards would obscure intent without reducing real

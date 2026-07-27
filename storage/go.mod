@@ -5,18 +5,18 @@ go 1.26.5
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/jackc/pgx/v5 v5.10.0
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	modernc.org/sqlite v1.54.0
 )
@@ -33,10 +33,8 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/larsartmann/go-branded-id v0.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect

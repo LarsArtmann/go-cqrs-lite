@@ -6,25 +6,32 @@
 ## Pre-release verification
 
 1. **Full verify gate GREEN:**
+
    ```bash
    nix run .#verify
    ```
+
    Must exit 0. Includes build + vet + test + race + lint + api-stability + doc-check.
 
 2. **Coverage drift check:**
+
    ```bash
    nix run .#check-coverage
    ```
+
    If any module drifted beyond ±2%, update AGENTS.md and the `EXPECTED` map.
 
 3. **Duplication check:**
+
    ```bash
    nix run .#check-duplication
    ```
+
    If new clones are flagged, either consolidate or update the baseline:
    `art-dupl baseline . --threshold 3 --semantic`.
 
 4. **Dependency layers:**
+
    ```bash
    nix run .#check-layers
    ```
@@ -38,16 +45,20 @@
 
 1. **Verify all modules are tagged.** 57 of 58 modules should have tags reachable
    from HEAD:
+
    ```bash
    git tag --merged HEAD | grep '/v' | sort
    ```
+
    If any module is orphaned (tag points to a commit not in HEAD), re-tag before
    cutting the release.
 
 2. **Tag all modules** via the release script (annotated tags, never lightweight):
+
    ```bash
    bash scripts/tag-release.sh v4.2.0
    ```
+
    The script tags every module listed in `cmd/api-stability/main.go` `modules`.
 
 3. **Push tags** (requires user approval):

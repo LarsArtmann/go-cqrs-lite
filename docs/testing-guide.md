@@ -4,14 +4,14 @@
 
 ## Test layers
 
-| Layer         | When to use                                      | Example module                  |
-|---------------|--------------------------------------------------|---------------------------------|
-| Unit          | Pure logic (decide, fold, helpers)               | `decider/`, `event/`            |
-| Property      | Invariants across random inputs                  | `idempotency/kvstore`, `kv/`    |
-| Integration   | Cross-module contracts                           | `integration/`                  |
-| BDD / scenario| Behavior-focused decider/projection tests        | `scenario/`, `event/` (Ginkgo)  |
-| Contract      | Shared suites run by every Store implementation  | `kv/viewstoretest`, `eventtest` |
-| Cross-engine  | Parity across memory vs SQLite backends          | `metaengine/`                   |
+| Layer          | When to use                                     | Example module                  |
+| -------------- | ----------------------------------------------- | ------------------------------- |
+| Unit           | Pure logic (decide, fold, helpers)              | `decider/`, `event/`            |
+| Property       | Invariants across random inputs                 | `idempotency/kvstore`, `kv/`    |
+| Integration    | Cross-module contracts                          | `integration/`                  |
+| BDD / scenario | Behavior-focused decider/projection tests       | `scenario/`, `event/` (Ginkgo)  |
+| Contract       | Shared suites run by every Store implementation | `kv/viewstoretest`, `eventtest` |
+| Cross-engine   | Parity across memory vs SQLite backends         | `metaengine/`                   |
 
 ## Commands
 
