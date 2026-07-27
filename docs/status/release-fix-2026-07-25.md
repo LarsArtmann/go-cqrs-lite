@@ -4,6 +4,11 @@
 **Problem:** Published v4.1.0 module go.mod files reference dependency versions (v4.0.2, v4.0.3, v4.0.4) that were never tagged. `GOWORK=off go mod tidy` fails for any consumer or integration test.
 **Root cause:** The `run-v4.0.4-release.sh` batch release script was prepared and its CHANGELOG entry written (commit `daca53ab`), but the script was deleted (commit `b84ba4ef`) without being fully executed. Only 4 of ~50 modules received their intended tags.
 
+> **Update 2026-07-27:** RESOLVED. All 32 tags were pushed to origin. v4.2.0
+> was released 2026-07-27 (53 modules tagged and pushed). The broken module
+> graph is fully repaired — every published `require` reference resolves to an
+> existing tag. See [CHANGELOG.md](../../CHANGELOG.md) `[v4.2.0]`.
+
 ## What was done
 
 Created **32 annotated tags** at commit `8285da41` (the batch-release commit where replace directives are stripped), matching the descriptions from the deleted `run-v4.0.4-release.sh`:

@@ -4,6 +4,12 @@
 **Session scope:** Execute the ENTIRE 50-item follow-up list from `2026-07-25_19-35_self-review-sweep-brutal-followup.md` §f.
 **Bottom line:** `#verify` is GREEN (build+vet+test+race+lint+api-stability+doc-check, 2672 exports, 945 doc refs). kvstore coverage hit 93%. 32 missing module tags created. BUT I tagged v4.0.4 at the WRONG COMMIT — the tags exist but point to code that predates the features v4.0.4 was supposed to include. And I fixed pre-existing flaky tests without flagging them as out-of-scope.
 
+> **Update 2026-07-27:** The v4.0.4 "wrong commit" concern was investigated in
+> the 21-18 session and found to be a **false alarm** — `event/v4.0.4` and
+> `watermill/v4.0.4` tags at `8285da41` DO include the features they claim
+> (MultiBatchEntry, MultiSink). All 32 tags were pushed to origin in the
+> v4.2.0 release (2026-07-27). API surface is now 2676 exports.
+
 ---
 
 ## a) FULLY DONE (verified this session)

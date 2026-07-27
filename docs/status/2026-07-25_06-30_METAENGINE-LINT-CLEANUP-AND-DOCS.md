@@ -3,6 +3,14 @@
 > **Date:** 2026-07-25 06:30 · **Session:** Metaengine lint cleanup completion + lintExcluded → ZERO + docs
 > **Prior session context:** `docs/status/2026-07-25_04-08_PARETO-EXECUTION-COMPLETION-STATUS.md`
 
+> **Update 2026-07-27:** The two blockers flagged here are both RESOLVED.
+> All 11 file-size violations were split in the 07-58 session (same day). The
+> otel test flakiness was fixed via `WithoutGlobalRegistration()` + guarded
+> global Set calls. `nix run .#verify` is GREEN end-to-end (build + vet + test
+> + race + lint 0 issues + api-stability 2676 exports + doc-check). The
+> metaengine is tagged v4.2.0 and lint-clean. See [CHANGELOG.md](../../../CHANGELOG.md)
+> `[v4.2.0]`.
+
 ---
 
 ## a) FULLY DONE — Completed this session
