@@ -105,10 +105,9 @@ this list and recorded in CHANGELOG.
 
 ## Documentation
 
-- [ ] **Write `docs/testing-guide.md`** — patterns for property tests, soak
-      tests, cross-engine parity, race-aware thresholds.
-- [ ] **Write `docs/release-checklist.md`** — step-by-step with verification
-      gates.
+- [ ] **Write `docs/performance.md`** — benchmark results, expected throughput
+      (stretch — lower priority than testing-guide + release-checklist, which
+      shipped 2026-07-27).
 
 ---
 
