@@ -72,17 +72,15 @@ func NewD006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 func isErrorsNew(call *ast.CallExpr) bool {
-	sel, ok := call.Fun.(*ast.SelectorExpr)
-	if !ok {
-		return false
-	}
-
-	ident, ok := sel.X.(*ast.Ident)
-
-	return ok && ident.Name == "errors" && sel.Sel.Name == "New"
+	return isPkgSelectorCall(call, "errors", "New")
 }
 
 func isFmtErrorf(call *ast.CallExpr) bool {
+	return isPkgSelectorCall(call, "fmt", "Errorf")
+}
+
+// isPkgSelectorCall returns true if call is pkgName.methodName(...).
+func isPkgSelectorCall(call *ast.CallExpr, pkgName, methodName string) bool {
 	sel, ok := call.Fun.(*ast.SelectorExpr)
 	if !ok {
 		return false
@@ -90,7 +88,7 @@ func isFmtErrorf(call *ast.CallExpr) bool {
 
 	ident, ok := sel.X.(*ast.Ident)
 
-	return ok && ident.Name == "fmt" && sel.Sel.Name == "Errorf"
+	return ok && ident.Name == pkgName && sel.Sel.Name == methodName
 }
 
 // hasWrapVerb returns true if the format string contains %w (error wrapping).

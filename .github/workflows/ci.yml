@@ -66,7 +66,7 @@ jobs:
 
       - name: Doc cross-reference check
         run:
-          cd cmd/doc-check && GOWORK=off go run .
+          cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" .
           # No explicit args needed: auto-discovers repo root + all .agents/skills/*/references/*.md
 
       - name: Documentation assertions
@@ -75,7 +75,7 @@ jobs:
           count=$(grep -cE '^## \[Unreleased\]' CHANGELOG.md)
           [ "$count" -eq 1 ] || { echo "::error::Found $count [Unreleased] sections (expected 1)"; exit 1; }
           # No stale module counts in core docs
-          grep -rnE '\b(28|48|49)\s*(go\.mod|modules)' --include='*.md' \
+          grep -rnE '\b(28|48|49|56|57)\s*(go\.mod|modules)' --include='*.md' \
             README.md AGENTS.md FEATURES.md CONTRIBUTING.md docs/README.md \
             docs/v4-WISHLIST.md ROADMAP.md TODO_LIST.md 2>/dev/null \
             | grep -v 'archive/' && { echo "::error::Stale module count in docs"; exit 1; } || true
@@ -109,7 +109,7 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@v8
 
       - name: Test module in isolation
-        run: (cd ${{ matrix.module }} && GOWORK=off go test ./... -count=1 -race)
+        run: (cd ${{ matrix.module }} && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1 -race)
 
     timeout-minutes: 15
   discover-modules:

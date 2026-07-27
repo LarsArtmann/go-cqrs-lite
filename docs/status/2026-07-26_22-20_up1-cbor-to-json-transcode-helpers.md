@@ -4,6 +4,8 @@
 **Task:** Implement UP1 (`WithPayloadTransform` for SSEBroker) from `docs/upstream/UP1-with-payload-transform.md`
 **Outcome:** Feature delivered (additive, non-breaking). **One CI-blocking issue found but not resolved.**
 
+> **Update 2026-07-27:** The CI-blocking codec version mismatch (D1) has been resolved. All module dependency versions corrected, storage/v4.4.0 tagged, verify gate GREEN.
+
 ---
 
 ## Executive Summary
