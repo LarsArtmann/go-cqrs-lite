@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4)
 
-Immutable events, store/bus interfaces, event sourcing primitives, and the 5-family error taxonomy for CQRS + Event Sourcing. Zero infrastructure dependencies (no HTTP, no database, no message broker).
+Immutable events, store/bus interfaces, event sourcing primitives, and the 6-family error taxonomy for CQRS + Event Sourcing. Zero infrastructure dependencies (no HTTP, no database, no message broker).
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/event/v4
