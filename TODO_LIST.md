@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-26
+**Updated:** 2026-07-27
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here — when a task is finished it is removed from
@@ -18,25 +18,27 @@ this list and recorded in CHANGELOG.
 
 ## Verify Gate
 
-> Individual sub-checks pass (build, vet, lint 0 issues, file-size gate GREEN,
-> doc-check 412+ refs valid). The composite `nix run .#verify` is not yet
-> confirmed green end-to-end due to 5 benchkit timing tests that flake under
-> full-suite `-race` load. `nix run .#verify-fast` (skips soak tests) is the
-> recommended rapid-iteration gate.
+> ✅ **`nix run .#verify` is GREEN end-to-end** (confirmed 2026-07-27, exit code 0:
+> build + vet + test + race + lint 0 issues + api-stability + doc-check 947 refs +
+> doc-assertions). The previously-flaky benchkit timing tests were resolved by
+> race-aware thresholds (`benchkit/race_on.go`, `transport/grpc/race_on_test.go`),
+> DSN-level SQLite `busy_timeout` (`EnsureSQLiteDSNBusyTimeout` wired into the
+> stack/sqlite preset), and `soakTestScale` consolidation. File-size gate GREEN.
 
-- [ ] 🔥 **Fix 5 benchkit timing tests** — pass in isolation but flake under
-      full-suite `-race`. Add `testutil.RaceEnabled` relaxed thresholds (the
-      two-file idiom: `race_on.go` / `race_off.go`). Source: 18-36 brutal review.
-- [ ] **Run `nix run .#verify` green end-to-end** — confirm the composite gate
-      after the race-threshold fix above.
+- [ ] **Regenerate api-stability golden** if new exports are added — the golden
+      currently passes but `storage.EnsureSQLiteDSNBusyTimeout` (auto-committed
+      by the daemon) should be verified as present after any export-touching change.
 
 ---
 
 ## Release
 
-> The CHANGELOG `[Unreleased]` section has 300+ lines across 12 subsections.
+> The CHANGELOG `[Unreleased]` section has 300+ lines across 14 subsections.
 > go-error-family was upgraded v0.9.0 → v0.10.0 across all 50 modules (added
 > Orchestration family). 57 of 58 modules have tags reachable from HEAD.
+> `codec/v4.1.1` is tagged and pushed to origin (contains new API:
+> `TranscodeToJSON`, `MarshalBase64JSONWithModule` — semver concern: should
+> have been v4.2.0 minor bump, not patch).
 
 - [BLOCKED] ⭐ **Cut v4.2.0 release** — flush `[Unreleased]` CHANGELOG, tag all
   58 modules, push tags. Requires user approval for push.
@@ -44,6 +46,9 @@ this list and recorded in CHANGELOG.
   exists locally and on origin but points to a commit **not reachable from
   HEAD** (orphaned). Must re-tag on the correct commit so consumers resolving
   the module actually get a buildable tree.
+- [BLOCKED] 🔥 **Decide on codec/v4.1.1 semver violation** — `TranscodeToJSON`
+  and `MarshalBase64JSONWithModule` are new public API shipped under a patch
+  tag. Yank + re-tag as v4.2.0, or accept the violation? Requires user decision.
 - [ ] **Run `nix run .#vulncheck` after v4.2.0** — verify no known
       vulnerabilities across all module deps.
 
@@ -75,6 +80,16 @@ this list and recorded in CHANGELOG.
 
 ## Module Health & Tooling
 
+- [ ] 🔥 **Consolidate remaining 13 `wrapClosed()` sites in `storage/memory/`** —
+      the dedup session (2026-07-27) converted only the 4 write-side methods
+      flagged by art-dupl at `-t 3`. The read-side methods use structurally
+      identical `wrapClosed + RLock + defer RUnlock` but didn't cluster due to
+      different error codes/messages. Single biggest remaining dedup win in the repo.
+- [ ] **Update AGENTS.md with dedup helper patterns** — the 2026-07-27 dedup
+      session introduced `withWriteLock(code, msg, fn)` closures in
+      `storage/memory`, `parallelTimeoutCtx(t, timeout)` in benchkit,
+      `parallelViewStore(t)` in storage/view, variadic `NewTestRegistry(svc...)`
+      in catalog — none documented in AGENTS.md.
 - [ ] **`filterDetectors` extraction in cqrs-lint** — detector-filtering logic
       is shared by multiple rules; verified NOT yet extracted.
 - [ ] **Audit accepted clone groups** — verify 72 art-dupl groups genuinely
@@ -104,10 +119,8 @@ this list and recorded in CHANGELOG.
       pattern consolidated in pebble.
 - [ ] **Update `CONTRIBUTING.md`** — add `#verify-fast`, `#check-duplication`,
       and `#sweep` workflows.
-- [ ] **Document `otel.WithoutGlobalRegistration()`** — undocumented public API
-      in `otel/`. Add to AGENTS.md + skill `core.md`.
 - [ ] **Verify metaengine coverage** — run `go test -cover ./metaengine/...`
-      and update FEATURES.md if the 87.7% claim has drifted.
+      and update FEATURES.md if the 86.2% claim has drifted.
 
 ---
 

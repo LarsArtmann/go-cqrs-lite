@@ -79,6 +79,7 @@ func TestIntegration_ProjectionHost_SQLiteCheckpoint(t *testing.T) {
 		}
 
 		cp, err := cpStore.Load(context.Background(), "sql-test")
+
 		return err == nil && !cp.IsZero()
 	})
 	cancel()

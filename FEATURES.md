@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-26 (metaengine fold-classify + cross-engine meta-test + end-to-end signature/ciphertext verification added; error-wrapping helpers ADR-0069; dedup acceptance docs) · **Module count:** 58 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+**Last audited:** 2026-07-27 (dedup extractions + UP1 test hardening + verify-gate GREEN; EnsureSQLiteDSNBusyTimeout wired into SQLite preset) · **Module count:** 58 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -238,7 +238,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | Cross-engine meta-test     | 150 specs run identical Apply → ExecuteTyped sequences on Memory + SQLite, asserting identical typed results | 🧪     |
 | End-to-end verification    | Signature + ciphertext verification integrated across Memory and SQLite engines                              | 🧪     |
 
-**Coverage:** 86.0% (verified `go test -cover ./...` 2026-07-27; 174 BDD specs + 150 cross-engine meta specs). SQLite engine
+**Coverage:** 86.2% (verified `go test -cover ./...` 2026-07-27; 174 BDD specs + 150 cross-engine meta specs). SQLite engine
 
 - projection adapter added via the Pareto execution plan. Cost model calibrated
   with real benchmarks. `metaengine/v4.1.1` tagged (fixes panicking MapUpdate from
