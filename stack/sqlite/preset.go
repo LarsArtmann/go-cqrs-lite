@@ -114,12 +114,18 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 // openBackend opens the database, applies pragmas and schema, and returns
 // both the *sql.DB (for lifecycle) and the SQLBackend (for store access).
+// sqliteBusyTimeoutMs is the default busy_timeout for SQLite connections.
+// Set via DSN parameter so every pooled connection inherits it (PRAGMAs set
+// via db.Exec only apply to the connection that runs them).
+const sqliteBusyTimeoutMs = 5000
+
 func openBackend(dsn string, cfg config) ( //nolint:nonamedreturns // defer cleanup
 	db *sql.DB,
 	backend *storage.SQLBackend,
 	err error,
 ) {
-	dsn = storage.EnsureSQLiteDSNBusyTimeout(dsn, 5000)
+	dsn = storage.EnsureSQLiteDSNBusyTimeout(dsn, sqliteBusyTimeoutMs)
+
 	db, err = sqlopt.OpenDBOrErr("sqlite", dsn, "sqlite_preset.open_primary")
 	if err != nil {
 		return nil, nil, err //nolint:wrapcheck // OpenDBOrErr wraps
