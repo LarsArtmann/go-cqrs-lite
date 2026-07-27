@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
