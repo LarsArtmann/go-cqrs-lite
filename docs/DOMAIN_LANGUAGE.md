@@ -84,7 +84,7 @@ If a word means something different to a consumer than to an implementer, it is 
 
 ### Error Taxonomy
 
-All errors are classified into a 5-family taxonomy:
+All errors are classified into a 6-family taxonomy:
 
 | Family             | Meaning                                                | Constructor                          |
 | ------------------ | ------------------------------------------------------ | ------------------------------------ |
@@ -93,6 +93,7 @@ All errors are classified into a 5-family taxonomy:
 | **Transient**      | Retryable infrastructure failure (503 equivalent)      | `errorfamily.NewTransient(...)`      |
 | **Infrastructure** | Non-retryable infrastructure failure (500 equivalent)  | `errorfamily.NewInfrastructure(...)` |
 | **Corruption**     | Data integrity violation — human intervention required | `errorfamily.NewCorruption(...)`     |
+| **Orchestration**  | Saga/workflow coordination failure (compound errors)   | `errorfamily.NewOrchestration(...)`  |
 
 ---
 
