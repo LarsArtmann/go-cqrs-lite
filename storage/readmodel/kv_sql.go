@@ -153,7 +153,7 @@ func (s *SQLKVStore) iterQuery(prefix []byte) (string, []any) {
 
 // Batch returns a batch backed by a single SQL transaction.
 //
-//cqrs-lint:ignore(C001) tx is returned via kv.Batch interface; Commit happens in sqlKVBatch.Commit
+// cqrs-lint:ignore(C001) tx is returned via kv.Batch interface; Commit happens in sqlKVBatch.Commit
 func (s *SQLKVStore) Batch(ctx context.Context) (kv.Batch, error) {
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
