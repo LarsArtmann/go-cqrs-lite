@@ -21,6 +21,13 @@ ROADMAP 87.7% vs actual 86.0%) that I should have caught during VERIFY but
 didn't — fixed it. **Did NOT run the full `#verify`** (only `#verify-fast`).
 **Did NOT fix the orphaned projectionadapter tag** (documented only).
 
+> **Update 2026-07-27 (subsequent docs-health session):** The full `nix run .#verify`
+> gate is now confirmed GREEN end-to-end (exit code 0: build + vet + test + race +
+> lint 0 issues + api-stability + doc-check 947 refs + doc-assertions). The
+> previously-flaky benchkit timing tests were resolved by race-aware thresholds,
+> DSN-level SQLite `busy_timeout`, and `soakTestScale` consolidation. The
+> orphaned `metaengine/projectionadapter/v4.0.0` tag remains open (TODO_LIST).
+
 ---
 
 ## a) FULLY DONE (implemented + verified)

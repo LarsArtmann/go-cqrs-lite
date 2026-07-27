@@ -38,6 +38,15 @@ mismatch) that was producing real gopls/compiler errors.
 | SQLITE_BUSY root cause investigation | Identified root cause: `modernc.org/sqlite` PRAGMAs set via `db.Exec` only apply to the connection that executes them; pool-evicted connections don't inherit them. The fix is DSN-level `_pragma=busy_timeout(5000)`. **The auto-git daemon committed `EnsureSQLiteDSNBusyTimeout()` in `storage/sqlite_helpers.go` (commit `2fe68fec`) — exactly the function I was about to write.** But the SQLite preset (`stack/sqlite/preset.go`) doesn't call it yet. | Wire `EnsureSQLiteDSNBusyTimeout` into `stack/sqlite/preset.go` openBackend/openSecondaryDB so every SQLite connection gets busy_timeout at the DSN level. |
 | api-stability golden regeneration | `verify-fast` caught a NEW export: `storage/func EnsureSQLiteDSNBusyTimeout` (added by auto-git commit `2fe68fec`). The api-stability golden file hasn't been regenerated. | Run `cd cmd/api-stability && GOWORK=off go run main.go -update` to regenerate golden. |
 
+> **Update 2026-07-27 (docs-health session):** All three "Partially Done" items
+> are now RESOLVED. The full `nix run .#verify` gate passes GREEN end-to-end (exit
+> code 0: build + vet + test + race + lint 0 issues + api-stability + doc-check
+> 947 refs + doc-assertions). `EnsureSQLiteDSNBusyTimeout` IS wired into
+> `stack/sqlite/preset.go:127` and `multidb.go:18` (approach (a) from §g Q3 —
+> always inject). The api-stability test passes (the daemon regenerated the
+> golden in commit `c5fbfddb`). See the full resolution in
+> [Resolution](#resolution-2026-07-27) below.
+
 ## c) NOT STARTED (carried forward from prior session, still blocked)
 
 | # | Item | Reason |
@@ -271,3 +280,27 @@ edge case. But I want confirmation before modifying the preset.
 - **check-layers**: pass
 - **Full verify gate**: NOT RUN (only verify-fast)
 - **Working tree**: clean (auto-git daemon committed all changes)
+
+---
+
+## Resolution (2026-07-27)
+
+> Added by a subsequent docs-health + update-old-docs session.
+
+| Section b Item | Claim | Resolution | Evidence |
+| -------------- | ----- | ---------- | -------- |
+| Full verify gate | "Only ran verify-fast" | **DONE:** `nix run .#verify` exits 0 | Verified exit code 0; 947 doc refs, 0 lint issues |
+| EnsureSQLiteDSNBusyTimeout | "preset doesn't call it yet" | **DONE:** Wired into preset | `stack/sqlite/preset.go:127`, `multidb.go:18` |
+| api-stability golden | "hasn't been regenerated" | **DONE:** Test passes (daemon regenerated) | `cmd/api-stability` test green |
+
+| Section c Item | Claim | Resolution |
+| -------------- | ----- | ---------- |
+| #5 Full verify gate | "Deferred, needs SQLITE_BUSY fix" | **DONE:** GREEN end-to-end |
+| #1 codec/v4.1.1 semver | "Need user decision" | **OPEN:** Tagged + pushed to origin. Semver concern documented in TODO_LIST. |
+| #2-3 Tag v4.2.0 + bump consumers | "Blocked on user decision" | **OPEN:** In TODO_LIST Release section. |
+
+| §g Question | Status |
+| ----------- | ------ |
+| Q1 (codec/v4.1.1 semver) | **OPEN** — user decision needed (TODO_LIST) |
+| Q2 (fix go-output upstream) | **DEFERRED** — v0.32.0 pin is the current workaround |
+| Q3 (DSN-level busy_timeout default) | **RESOLVED** — approach (a) adopted; always inject |

@@ -10,6 +10,13 @@ Ran art-dupl at threshold 3. **Started: 17 clone groups (74 occurrences, 224 tok
 
 Auto-commit daemon has already committed all work (commits `e69547e3`, `6b52c03a`, `b5c30417`, `8cd52f70`, `04da963a`, `3cb4ba7f`).
 
+> **Update 2026-07-27 (docs-health session):** The "2 pre-existing-looking benchkit
+> failures" and all un-run verification gates from §b are now RESOLVED. The full
+> `nix run .#verify` gate passes GREEN end-to-end (exit code 0). The benchkit
+> failures were caused by missing DSN-level SQLite `busy_timeout` — now wired into
+> the `stack/sqlite` preset via `EnsureSQLiteDSNBusyTimeout`. Race-aware thresholds
+> (`soakTestScale`, transport/grpc `race_on_test.go`) also shipped.
+
 ---
 
 ## a) FULLY DONE
