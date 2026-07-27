@@ -205,7 +205,7 @@ func TestTranscodeToJSON_LargeNumbers(t *testing.T) {
 		val  any
 	}{
 		{"int64_max", uint64(1<<63 - 1)},
-		{"uint64_max", uint64(^uint64(0))},
+		{"uint64_max", ^uint64(0)},
 		{"bignum_over_uint64", new(big.Int).Lsh(big.NewInt(1), 70)}, // 2^70, a real CBOR bignum
 	}
 
@@ -312,6 +312,7 @@ func TestTranscodeToJSON_MapKeysRoundTrip(t *testing.T) {
 		gotV, ok := got[k]
 		if !ok {
 			t.Errorf("key %q missing from %s", k, out)
+
 			continue
 		}
 		if gotV != wantV {

@@ -61,6 +61,7 @@ var settleDelay = func() time.Duration {
 	if raceEnabled {
 		return 500 * time.Millisecond
 	}
+
 	return 100 * time.Millisecond
 }()
 
