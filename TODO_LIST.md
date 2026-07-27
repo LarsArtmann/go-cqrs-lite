@@ -33,7 +33,7 @@ this list and recorded in CHANGELOG.
 
 ## Release
 
-> The CHANGELOG `[Unreleased]` section has 300+ lines across 14 subsections.
+> The CHANGELOG `[Unreleased]` section has 400+ lines across 15 subsections.
 > go-error-family was upgraded v0.9.0 → v0.10.0 across all 50 modules (added
 > Orchestration family). 57 of 58 modules have tags reachable from HEAD.
 > `codec/v4.1.1` is tagged and pushed to origin (contains new API:
