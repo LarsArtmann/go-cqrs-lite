@@ -178,6 +178,15 @@ func consistencyRules() []RuleInfo {
 			Description: "Documentation references different version than go.mod",
 			AutoFix:     false,
 		},
+		{
+			ID:          "D006",
+			Name:        "missing-errorfamily",
+			Category:    "consistency",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "errors.New or fmt.Errorf without %w bypasses the 6-family error taxonomy",
+			AutoFix:     false,
+		},
 	}
 }
 

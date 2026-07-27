@@ -142,6 +142,33 @@ func correctnessRules() []RuleInfo {
 			Description: "time.Time field in event payload loses timezone via CBOR epoch encoding",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C014",
+			Name:        "time-local-usage",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "time.Local causes silent data corruption across timezone boundaries",
+			AutoFix:     false,
+		},
+		{
+			ID:          "C015",
+			Name:        "unchecked-close",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Close() error discarded — resource leak or silent data loss risk",
+			AutoFix:     false,
+		},
+		{
+			ID:          "C016",
+			Name:        "background-in-handler",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing",
+			AutoFix:     false,
+		},
 	}
 }
 

@@ -107,11 +107,6 @@ this list and recorded in CHANGELOG.
 - [ ] **Cross-engine parity tests for metaengine ADTs** — Counter, Set, Graph,
       SortedMap across memory vs SQLite (the existing cross-engine meta-test
       covers Map/Multimap/Log/struct results; these 4 ADTs are gaps).
-- [ ] **`cqrs-lint` rule: missing `errorfamily.New*`** — catch plain
-      `errors.New` in production code that should use classified constructors.
-- [ ] **`cqrs-lint` rule: unchecked `Close()`** — resource leak detection.
-- [ ] **`cqrs-lint` rule: `context.Background()` in handlers** — should use the
-      passed `ctx`.
 
 ---
 
