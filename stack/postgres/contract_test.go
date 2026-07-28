@@ -9,9 +9,7 @@ import (
 )
 
 func TestContract(t *testing.T) {
-	dsn := postgresDSN(t)
-
-	contracttest.RunSuite(t, func(_ *testing.T) (*stack.Bundle, error) {
-		return postgres.New(dsn)
+	contracttest.RunSuite(t, func(t *testing.T) (*stack.Bundle, error) {
+		return postgres.New(postgresDSN(t))
 	})
 }

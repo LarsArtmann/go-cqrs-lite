@@ -62,9 +62,14 @@ func openTestDB(t *testing.T) (*sql.DB, *storage.SQLBackend) {
 		t.Fatalf("ping pg: %v", err)
 	}
 
-	// Reset tables so each test starts clean.
+	// Reset tables so each test starts clean (shared CI database).
 	_, _ = db.ExecContext(ctx,
 		`DROP TABLE IF EXISTS events, commands, queries, snapshots, checkpoints, cqrs_kv`)
+
+	// Apply schema (fresh per-test databases start empty).
+	if err := storage.PostgresInitSchema(ctx, db); err != nil {
+		t.Fatalf("PostgresInitSchema: %v", err)
+	}
 
 	backend, err := storage.NewSQLBackend(db)
 	if err != nil {
