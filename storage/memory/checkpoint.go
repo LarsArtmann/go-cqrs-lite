@@ -30,19 +30,9 @@ func (s *MemoryCheckpointStore) Load(
 	_ context.Context,
 	projectionName string,
 ) (event.Checkpoint, error) {
-	if err := wrapClosedf(
-		s.CheckClosed(dispatcher.ErrDispatcherClosed),
-		"memory.checkpoint_load",
-		"load checkpoint for projection %q",
-		projectionName,
-	); err != nil {
-		return event.Checkpoint{}, err
-	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	return s.checkpoints[projectionName], nil
+	return withCheckpointReadLock(s, "memory.checkpoint_load", "checkpoint store load", func() (event.Checkpoint, error) {
+		return s.checkpoints[projectionName], nil
+	})
 }
 
 // Save persists the checkpoint for a projection.
@@ -51,21 +41,42 @@ func (s *MemoryCheckpointStore) Save(
 	projectionName string,
 	checkpoint event.Checkpoint,
 ) error {
-	if err := wrapClosedf(
-		s.CheckClosed(dispatcher.ErrDispatcherClosed),
-		"memory.checkpoint_save",
-		"save checkpoint for projection %q",
-		projectionName,
-	); err != nil {
+	return s.withWriteLock("memory.checkpoint_save", "checkpoint store save", func() error {
+		s.checkpoints[projectionName] = checkpoint
+
+		return nil
+	})
+}
+
+// withWriteLock checks the store is open, acquires the write lock, and runs fn
+// under the lock.
+func (s *MemoryCheckpointStore) withWriteLock(code, msg string, fn func() error) error {
+	if err := wrapClosed(s.CheckClosed(dispatcher.ErrDispatcherClosed), code, msg); err != nil {
 		return err
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.checkpoints[projectionName] = checkpoint
+	return fn()
+}
 
-	return nil
+// withCheckpointReadLock is the read-side companion to withWriteLock.
+func withCheckpointReadLock[T any](
+	s *MemoryCheckpointStore,
+	code, msg string,
+	fn func() (T, error),
+) (T, error) {
+	if err := wrapClosed(s.CheckClosed(dispatcher.ErrDispatcherClosed), code, msg); err != nil {
+		var zero T
+
+		return zero, err
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return fn()
 }
 
 // Close marks the store as closed.
