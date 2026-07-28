@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // C015: Unchecked Close() — resource leak risk.
@@ -192,9 +193,5 @@ func reportUncheckedClose(
 		WithSuggestion("Handle the error: if err := x.Close(); err != nil { return ... }, or defer func() { _ = x.Close() }() if truly ignorable with a comment explaining why.").
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
-	if err != nil {
-		return
-	}
-
-	*findings = append(*findings, f)
+	lintutil.AppendBuild(findings, f, err)
 }

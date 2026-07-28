@@ -41,6 +41,21 @@ func Repository[State any](
 	return decider.NewRepository(store, b.Publisher, d, opts...)
 }
 
+// readModelCodec validates that the Bundle has a read-model backend and
+// returns the codec to use (caller-provided, or the Bundle default when nil).
+// Shared by ReadModel and NewMaterialize.
+func (b *Bundle) readModelCodec(c codec.Codec) (codec.Codec, error) {
+	if b.ReadModels == nil {
+		return nil, ErrMissingReadModels
+	}
+
+	if c == nil {
+		return b.DefaultCodec(), nil
+	}
+
+	return c, nil
+}
+
 // ReadModel constructs a typed [kv.TypedStore] over the Bundle's read-model
 // backend.
 //
@@ -60,12 +75,9 @@ func ReadModel[T any, K fmt.Stringer](
 	c codec.Codec,
 	opts ...kv.TypedOption[T, K],
 ) (*kv.TypedStore[T, K], error) {
-	if b.ReadModels == nil {
-		return nil, ErrMissingReadModels
-	}
-
-	if c == nil {
-		c = b.DefaultCodec()
+	c, err := b.readModelCodec(c)
+	if err != nil {
+		return nil, err
 	}
 
 	allOpts := append([]kv.TypedOption[T, K]{kv.WithTypedCodec[T, K](c)}, opts...)
@@ -139,12 +151,9 @@ func NewMaterialize[V any, K fmt.Stringer](
 	c codec.Codec,
 	keyFunc func(evt event.Event) (K, error),
 ) (*Materialize[V, K], error) {
-	if b.ReadModels == nil {
-		return nil, ErrMissingReadModels
-	}
-
-	if c == nil {
-		c = b.DefaultCodec()
+	c, err := b.readModelCodec(c)
+	if err != nil {
+		return nil, err
 	}
 
 	store := kv.NewTypedStore(b.ReadModels, kv.WithTypedCodec[V, K](c))
