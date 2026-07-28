@@ -93,7 +93,8 @@ func BenchmarkLayout_Planned_FilterByStatus(b *testing.B) {
 	db := openSQLite(b)
 	defer func() { _ = db.Close() }()
 
-	plan := BuildLayoutPlan("items",
+	plan := BuildLayoutPlan(
+		"items",
 		[]string{"Status"},   // filter fields
 		[]string{"Priority"}, // sort fields
 	)
@@ -156,7 +157,8 @@ func BenchmarkLayout_Planned_FilterAndSort(b *testing.B) {
 	db := openSQLite(b)
 	defer func() { _ = db.Close() }()
 
-	plan := BuildLayoutPlan("items",
+	plan := BuildLayoutPlan(
+		"items",
 		[]string{"Status"},
 		[]string{"Priority"},
 	)
@@ -244,7 +246,8 @@ func BenchmarkLayout_Planned_PointLookup(b *testing.B) {
 
 // TestLayoutPlanner_GeneratesCorrectDDL verifies the DDL generator output.
 func TestLayoutPlanner_GeneratesCorrectDDL(t *testing.T) {
-	plan := BuildLayoutPlan("users",
+	plan := BuildLayoutPlan(
+		"users",
 		[]string{"Status", "Priority"},
 		[]string{"Priority"},
 	)
@@ -276,7 +279,8 @@ func TestLayoutPlanner_GeneratesCorrectDDL(t *testing.T) {
 // TestLayoutPlanner_DedupSameFieldInFilterAndSort verifies rule 3:
 // RangeFilter + OrderBy on same column → one index.
 func TestLayoutPlanner_DedupSameFieldInFilterAndSort(t *testing.T) {
-	plan := BuildLayoutPlan("tasks",
+	plan := BuildLayoutPlan(
+		"tasks",
 		[]string{"Priority"}, // filter
 		[]string{"Priority"}, // sort — SAME field
 	)
@@ -345,7 +349,8 @@ func TestPlannedEngine_PushdownUsesIndexedColumns(t *testing.T) {
 	// Verify pushdown uses the planned table.
 	ps := eng.(PushdownScan)
 
-	results, err := ps.PushdownMapScan(ctx, "items",
+	results, err := ps.PushdownMapScan(
+		ctx, "items",
 		[]FilterSpec{{Column: "Status", Op: FilterEq, Value: "open"}},
 		&SortSpec{Column: "Priority", Desc: true},
 		nil, 5,

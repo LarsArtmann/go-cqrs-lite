@@ -84,7 +84,9 @@ func TestCostModel_RankingMatchesActual(t *testing.T) {
 
 	// Both should be in the same order of magnitude (within 10x).
 	if memActuallyFaster && sqlActualMs > 100*memActualMs {
-		t.Logf("  NOTE: SQLite is >100x slower than Memory for point lookups — model should account for this")
+		t.Logf(
+			"  NOTE: SQLite is >100x slower than Memory for point lookups — model should account for this",
+		)
 	}
 }
 
