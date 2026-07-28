@@ -52,7 +52,7 @@ go-cqrs-lite/
 ├── id/                  # Branded IDs: id.Of[T] = cbid.ID[T, ulid.ULID], StreamID, EventID, etc.
 │   └── idtest/          # Parse*(tb, s) test helpers — tb.Fatalf on error, no panics
 ├── metadata/            # Tracing, CustomData[K] (extracted from event/ — shared metadata types for command/query/event)
-├── metaengine/          # Cost-based storage planner: Engine, Store, Plan, 7 ADTs, cost model, SQLite engine ([ADR-0061](docs/adr/0061-metaengine-sqlite-engine.md), [ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md), [ADR-0063](docs/adr/0063-metaengine-pushdown.md)) — zero production deps in core. SQLite engine hardened: tx-atomic MapUpdate (no lost concurrent updates), restart-safe multimap seq (sync.Once MAX(seq) seed), ExecuteTyped reifies map[string]any→struct across engines. Caller owns the *sql.DB (engine Close is a no-op)
+├── metaengine/          # Cost-based storage planner — THE STRATEGIC FUTURE of this project (possibly a future dedicated project). Engine, Store, Plan, 7 ADTs, cost model, SQLite engine ([ADR-0061](docs/adr/0061-metaengine-sqlite-engine.md), [ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md), [ADR-0063](docs/adr/0063-metaengine-pushdown.md)). ⚠️ CANONICAL DESIGN DOCS (read before working on metaengine): [project-definition](docs/planning/meta-engine-project-definition.md), [design/vision](docs/planning/meta-engine-design.md), [assumptions & query-planning](docs/planning/meta-engine-assumptions-and-query-planning.md). Zero production deps in core. SQLite engine hardened: tx-atomic MapUpdate (no lost concurrent updates), restart-safe multimap seq (sync.Once MAX(seq) seed), ExecuteTyped reifies map[string]any→struct across engines. Caller owns the *sql.DB (engine Close is a no-op)
 │   └── projectionadapter/ # Projection adapter: wraps metaengine Store as projection.Projection ([ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md))
 ├── idempotency/         # Dedup store: Store, MemoryStore, ErrDuplicate (dedup for at-least-once delivery; extraction planned — [ADR-0065](docs/adr/0065-extract-idempotency-module.md)) — ZERO module deps beyond go-error-family
 │   └── kvstore/        # KVStore, KVBackend (KV-backed idempotency — optional subpackage, pulls kv/). Record uses SetIfAbsent: no-op on an existing key, TTL NOT extended, matching MemoryStore + sqlstore + the documented Store contract
@@ -906,13 +906,18 @@ Tier 6 — Tooling & Examples: catalog/, integration/, stack/bench/, examples/, 
 > Note: the old 7-layer system (pre-ADR-0046) was inaccurate — kv/ depends on codec/, command/
 > depends on event/, and 40 of 58 modules depend on codec/. The four-tier model reflects reality.
 >
-> **metaengine/ is Tier 0 (Primitive), not Tier 3 (Aggregation).** This is intentional but surprising:
+> **metaengine/ is THE STRATEGIC FUTURE of this project** (possibly a future dedicated project).
+> It is Tier 0 (Primitive), not Tier 3 (Aggregation) — intentional but surprising:
 > the core planner has ZERO internal deps (stdlib + `database/sql` only), so by ADR-0046's
 > dependency rule it is a leaf primitive. Conceptually it aggregates events into query
 > projections, but tiering is dependency-based, not conceptual. The bridge to the rest of
 > the system lives in `metaengine/projectionadapter/` (Tier 4), which depends on
 > event/projection/projectionhost. The SQLite engine's tx-atomic MapUpdate, restart-safe
 > multimap seq-seed, and cross-engine reify are documented in ADR-0066/0067/0068.
+> ⚠️ **CANONICAL DESIGN DOCS** — read these before working on metaengine:
+> [project-definition](docs/planning/meta-engine-project-definition.md),
+> [design/vision](docs/planning/meta-engine-design.md),
+> [assumptions & query-planning](docs/planning/meta-engine-assumptions-and-query-planning.md).
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from bus.SubscribeAll + command dispatch. See `example/taskmanager/` for a real architecture.
 
