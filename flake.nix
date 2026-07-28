@@ -359,10 +359,12 @@
 
           apps = {
             test = mkApp "test" goModules ''
+              export CGO_ENABLED=1
               ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 "$@"
             '';
 
             test-race = mkApp "test-race" goModules ''
+              export CGO_ENABLED=1
               ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 "$@"
             '';
 
@@ -577,7 +579,8 @@
               echo "==> Secret scan complete"
             '';
 
-            verify = mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
+            verify = mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ] ''
+              export CGO_ENABLED=1
               ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
               echo "=== Module Coverage ===" && nix run .#check-modules && \
               echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
@@ -593,8 +596,9 @@
             # verify-fast: same as verify but passes -short to skip soak tests
             # (benchkit 35s soak suite). Use for rapid iteration during development.
             verify-fast =
-              mkApp "verify-fast" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep ]
+              mkApp "verify-fast" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
                 ''
+                  export CGO_ENABLED=1
                   ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
                   echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
                   echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
