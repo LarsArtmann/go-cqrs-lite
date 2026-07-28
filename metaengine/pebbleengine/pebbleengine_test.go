@@ -220,6 +220,7 @@ func TestPebbleMapScan(t *testing.T) {
 		}
 
 		id, ok := m["ID"].(float64)
+
 		return ok && id < 5
 	}
 

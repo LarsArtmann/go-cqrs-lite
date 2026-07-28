@@ -3,30 +3,26 @@ package metaengine
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"testing"
+	"time"
 
 	_ "modernc.org/sqlite"
-
-	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 )
 
-// cost_validation_bench_test.go validates that the cost model's PREDICTIONS
-// correlate with ACTUAL performance. The kill criterion: if prediction error
-// > 2x for more than 20% of cells, the cost model needs recalibration.
+// cost_validation_test.go validates that the cost model's PREDICTIONS
+// correlate with ACTUAL performance for the Memory and SQLite engines.
+// The Pebble engine has its own calibration benchmarks in pebbleengine/.
+//
+// Kill criterion: if prediction error > 2x for more than 20% of cells,
+// the cost model needs recalibration — not tuning.
 
 func TestCostModel_PredictionsVsActual(t *testing.T) {
+	if testing.Short() {
+		t.Skip("cost validation requires non-short mode")
+	}
+
 	ctx := context.Background()
 	volume := int64(10_000)
-
-	// Define test cases: engine × ADT × operation.
-	type testCase struct {
-		name     string
-		complexity Complexity
-		nsPerOp  float64
-		setup    func(t *testing.T, eng Engine) func()
-		measure  func(t *testing.T, eng Engine) int64 // returns ns/op
-	}
 
 	memEng := NewMemoryEngine()
 	defer memEng.Close()
@@ -45,60 +41,13 @@ func TestCostModel_PredictionsVsActual(t *testing.T) {
 
 	defer sqlEng.Close()
 
-	pebbleEng, err := pebbleengine.NewPebbleEngine("")
-	if err != nil {
-		t.Fatal(err)
-	}
+	// Populate data.
+	mbMem := memEng.(MapBackend)
+	mbSQL := sqlEng.(MapBackend)
 
-	defer pebbleEng.Close()
-
-	// Populate data for each engine.
-	for _, eng := range []Engine{memEng, sqlEng, pebbleEng} {
-		mb := eng.(MapBackend)
-		for i := 0; i < int(volume); i++ {
-			_ = mb.MapSet(ctx, "bench", i, i*2)
-		}
-	}
-
-	cases := []testCase{
-		{
-			name:       "Memory/Map/PointLookup",
-			complexity: ComplexityO1,
-			nsPerOp:    MemoryNsPerOp,
-			measure: func(t *testing.T, eng Engine) int64 {
-				mb := eng.(MapBackend)
-				start := testing.AllocsPerRun(1, func() {
-					_, _, _ = mb.MapGet(ctx, "bench", 42)
-				})
-				_ = start
-				// Use benchmark-style measurement.
-				return measureNs(100, func() {
-					_, _, _ = mb.MapGet(ctx, "bench", 42)
-				})
-			},
-		},
-		{
-			name:       "SQLite/Map/PointLookup",
-			complexity: ComplexityOLogN,
-			nsPerOp:    SQLiteNsPerOp,
-			measure: func(t *testing.T, eng Engine) int64 {
-				mb := eng.(MapBackend)
-				return measureNs(100, func() {
-					_, _, _ = mb.MapGet(ctx, "bench", 42)
-				})
-			},
-		},
-		{
-			name:       "Pebble/Map/PointLookup",
-			complexity: ComplexityO1,
-			nsPerOp:    pebbleengine.PebbleNsPerOp,
-			measure: func(t *testing.T, eng Engine) int64 {
-				mb := eng.(MapBackend)
-				return measureNs(100, func() {
-					_, _, _ = mb.MapGet(ctx, "bench", 42)
-				})
-			},
-		},
+	for i := 0; i < int(volume); i++ {
+		_ = mbMem.MapSet(ctx, "bench", i, i*2)
+		_ = mbSQL.MapSet(ctx, "bench", i, i*2)
 	}
 
 	type result struct {
@@ -108,72 +57,74 @@ func TestCostModel_PredictionsVsActual(t *testing.T) {
 		ratio     float64 // actual/predicted
 	}
 
-	var results []result
+	// Calculate predictions and measure actuals.
+	memPred := estimateCost(ComplexityO1, volume, MemoryNsPerOp)
+	sqlPred := estimateCost(ComplexityOLogN, volume, SQLiteNsPerOp)
 
-	// Calculate predictions.
-	for _, tc := range cases {
-		pred := estimateCost(tc.complexity, volume, tc.nsPerOp)
-		results = append(results, result{
-			name:      tc.name,
-			predicted: pred.EstimatedLatencyMs,
-		})
+	memActualNs := avgNs(200, func() {
+		_, _, _ = mbMem.MapGet(ctx, "bench", 42)
+	})
+
+	sqlActualNs := avgNs(200, func() {
+		_, _, _ = mbSQL.MapGet(ctx, "bench", 42)
+	})
+
+	results := []result{
+		{
+			name:      "Memory/Map/PointLookup",
+			predicted: memPred.EstimatedLatencyMs,
+			actual:    float64(memActualNs) / 1e6,
+		},
+		{
+			name:      "SQLite/Map/PointLookup",
+			predicted: sqlPred.EstimatedLatencyMs,
+			actual:    float64(sqlActualNs) / 1e6,
+		},
 	}
 
-	// Measure actuals.
-	engineList := []Engine{memEng, sqlEng, pebbleEng}
-
-	for i, tc := range cases {
-		actualNs := tc.measure(t, engineList[i])
-		actualMs := float64(actualNs) / 1e6
-		results[i].actual = actualMs
+	for i := range results {
 		if results[i].predicted > 0 {
-			results[i].ratio = actualMs / results[i].predicted
+			results[i].ratio = results[i].actual / results[i].predicted
 		}
 	}
 
-	// Report and check kill criterion.
+	// Report.
 	t.Log("\n=== Cost Model Validation ===")
 	t.Log("Format: predicted → actual (ratio)")
-	t.Log("-----------------------------------")
 
-	withinBudget := 0
+	withinBounds := 0
 
 	for _, r := range results {
 		status := "OK"
 		if r.ratio > 2.0 || r.ratio < 0.5 {
 			status = "OUT OF BOUNDS"
 		} else {
-			withinBudget++
+			withinBounds++
 		}
 
-		t.Logf("%-35s predicted=%.6fms actual=%.6fms ratio=%.1fx %s",
+		t.Logf("  %-30s predicted=%.6fms actual=%.6fms ratio=%.1fx %s",
 			r.name, r.predicted, r.actual, r.ratio, status)
 	}
 
-	total := len(results)
-	pctWithin := float64(withinBudget) / float64(total) * 100
-
-	t.Logf("\nWithin 2x bounds: %d/%d (%.0f%%)", withinBudget, total, pctWithin)
+	pctWithin := float64(withinBounds) / float64(len(results)) * 100
+	t.Logf("  Within 2x bounds: %d/%d (%.0f%%)", withinBounds, len(results), pctWithin)
 
 	if pctWithin < 80 {
-		t.Errorf("kill criterion FAILED: only %.0f%% within 2x bounds (need >=80%%)", pctWithin)
+		t.Errorf("cost model validation FAILED: only %.0f%% within 2x bounds (need >=80%%)", pctWithin)
 	}
 }
 
-// measureNs runs fn iterations times and returns the average ns/op.
-func measureNs(iterations int, fn func()) int64 {
-	// Warm up.
-	fn()
+// avgNs runs fn n times and returns the average ns/op.
+func avgNs(n int, fn func()) int64 {
+	fn() // warm up
 
-	var total int64
+	start := time.Now()
 
-	for i := 0; i < iterations; i++ {
-		start := testing.AllocsPerRun(1, fn)
-		total += int64(start)
+	for i := 0; i < n; i++ {
+		fn()
 	}
 
-	return total / int64(iterations)
-}
+	elapsed := time.Since(start)
 
-// Ensure imports are used.
-var _ = fmt.Sprintf
+	return elapsed.Nanoseconds() / int64(n)
+}

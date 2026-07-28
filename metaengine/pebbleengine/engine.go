@@ -17,6 +17,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -24,6 +25,7 @@ import (
 
 	"github.com/cockroachdb/pebble"
 	"github.com/cockroachdb/pebble/vfs"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -118,7 +120,7 @@ func counterKey(col, ckey string) []byte {
 }
 
 func multimapKey(col, key string, seq int64) []byte {
-	return []byte(fmt.Sprintf("mm%s%s%s%s%s%020d", sep, col, sep, key, sep, seq))
+	return fmt.Appendf(nil, "mm%s%s%s%s%s%020d", sep, col, sep, key, sep, seq)
 }
 
 func multimapPrefix(col, key string) []byte {
@@ -126,7 +128,7 @@ func multimapPrefix(col, key string) []byte {
 }
 
 func logKey(col string, seq int64) []byte {
-	return []byte(fmt.Sprintf("l%s%s%s%020d", sep, col, sep, seq))
+	return fmt.Appendf(nil, "l%s%s%s%020d", sep, col, sep, seq)
 }
 
 func logPrefix(col string) []byte {
@@ -421,6 +423,7 @@ func (e *pebbleEngine) CounterGet(_ context.Context, col string) (map[string]int
 	for iter.First(); iter.Valid(); iter.Next() {
 		// Extract counter key from the full key: "c\x00{col}\x00{counterKey}".
 		keyStr := string(iter.Key())
+
 		parts := strings.SplitN(keyStr, sep, 3)
 		if len(parts) < 3 {
 			continue
@@ -462,6 +465,7 @@ func (e *pebbleEngine) GraphNeighbors(
 	nodeStr := encodeKeyStr(node)
 	visited := map[string]bool{nodeStr: true}
 	frontier := []string{nodeStr}
+
 	var result []string
 
 	for d := 0; d < depth && len(frontier) > 0; d++ {
@@ -508,6 +512,7 @@ func (e *pebbleEngine) scanGraphNeighbors(col, node string) []string {
 	for iter.First(); iter.Valid(); iter.Next() {
 		// Key format: "g\x00{col}\x00{from}\x00{to}".
 		keyStr := string(iter.Key())
+
 		parts := strings.SplitN(keyStr, sep, 4)
 		if len(parts) < 4 {
 			continue
@@ -619,9 +624,9 @@ func nextKey(prefix []byte) []byte {
 	result := make([]byte, len(prefix))
 	copy(result, prefix)
 
-	for i := len(result) - 1; i >= 0; i-- {
-		result[i]++
-		if result[i] != 0 {
+	for _, v := range slices.Backward(result) {
+		v++
+		if v != 0 {
 			return result
 		}
 	}
