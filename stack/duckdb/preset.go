@@ -3,8 +3,8 @@ package duckdb
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -138,7 +138,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 // DSN if they were set via options and not already present in the DSN string.
 func appendDuckDBOptions(dsn string, cfg config) string {
 	if cfg.Threads > 0 {
-		dsn = appendQueryParam(dsn, "threads", fmt.Sprintf("%d", cfg.Threads))
+		dsn = appendQueryParam(dsn, "threads", strconv.Itoa(cfg.Threads))
 	}
 
 	if cfg.MemoryLimit != "" {
