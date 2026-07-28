@@ -160,6 +160,33 @@ Sorted by impact-to-effort ratio (Pareto order). Items 1-10 are the 20% that unl
 
 ---
 
+## h) DIRECTION UPDATE (2026-07-28, post-report)
+
+The project owner answered the strategic questions. **This invalidates the two
+biggest "ghost" verdicts in the original analysis:**
+
+| Module | Original verdict | **CORRECTED verdict** |
+|---|---|---|
+| `metaengine/` | Ghost #1 — extract or cut (3,947 LOC) | **THE FUTURE of this project.** Invest, wire, prove. Possibly a dedicated project later. |
+| `catalog/` | Ghost #2 — extract (9,202 LOC) | **Very important — must be superb.** Quality investment now; extraction to dedicated repo is a future option, not urgent. |
+
+### What this changes
+
+The original audit lumped ~13,000 LOC (metaengine + catalog) into "ghost
+systems to extract or cut." That was **wrong**. Both are strategic assets
+that currently lack integration proof. The gap is not "should they exist" —
+it's "they need to be wired in and elevated, not cut."
+
+### Corrected next-step priority
+
+The top priority shifts from "trim ghosts" to **"prove metaengine's value by
+wiring it into the flagship example, and invest in catalog quality."** The
+surgical deletes (error aliases, cache split-brain) and smaller ghost
+verdicts (graph, deriver, transport/grpc, turso-indexing) remain valid but
+drop in priority.
+
+---
+
 ## g) Questions I CANNOT figure out myself
 
 **Q1: Is `metaengine/` a strategic bet you want to keep investing in, or an experiment that failed to find adoption?**
