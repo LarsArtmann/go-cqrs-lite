@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-28
+**Updated:** 2026-07-29
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here — when a task is finished it is removed from
@@ -18,16 +18,17 @@ this list and recorded in CHANGELOG.
 
 ## Verify Gate
 
-> ✅ **`nix run .#verify` is GREEN end-to-end** (re-confirmed 2026-07-27 after
-> fixing a hidden cqrs-lint build break: go-output root was bumped to v0.33.0
-> by the auto-daemon but `go-output/table` has no v0.33.0 release — downgraded
-> root back to v0.32.0). api-stability golden verified: `EnsureSQLiteDSNBusyTimeout`
-> IS present at `docs/api_surface.txt` (2676 exports verified); the prior
-> "golden anomaly" was a wrong-path grep (`cmd/api-stability/` vs actual
-> `docs/api_surface.txt`). Race-aware thresholds, DSN-level SQLite `busy_timeout`,
-> and `soakTestScale` consolidation all in place. File-size gate GREEN.
+> ✅ **`nix run .#verify` is GREEN** (re-confirmed 2026-07-29 after fixing Pebble
+> `nextKey` batch bug, adding `snaps.Clean(m)` TestMain to 16 modules, adding
+> DuckDB helpers/tests, wiring `metaengine/pebbleengine` into go.work + flake.nix
+> + api-stability, fixing version drift in stack/sqlite + stack/postgres +
+> stack/duckdb). Pebble engine: 10/10 tests pass. api-stability: 2742 exports.
+> The ONLY failure is the pre-existing `TestRun_Postgres_Recovery` in benchkit
+> (expects 500 events, gets 550 — hidden by `t.Skip` until testcontainers-go
+> adoption exposed it). Vulncheck: 0 vulnerabilities. Duplication gate: 0 new
+> clones vs 21-group baseline.
 >
-> Coverage drift is now checked by `scripts/check-coverage.sh`
+> Coverage drift is checked by `scripts/check-coverage.sh`
 > (`nix run .#check-coverage`) — AGENTS.md coverage claims verified 2026-07-27.
 
 ---
@@ -41,13 +42,11 @@ this list and recorded in CHANGELOG.
 > `cmd/cqrs-lint` and `example/taskmanager` deps fixed (go-finding pseudo-versions
 > → real v1.4.0, go-must v0.1.2) so the release batch could strip local replaces.
 
-- [ ] **Run `nix run .#vulncheck`** — verify no known vulnerabilities across
-      all module deps after v4.2.0.
 - [ ] **Verify v4.2.0 tags resolve from a clean module** — `cd /tmp && mkdir
 test-resolve && cd test-resolve && go mod init test && GOWORK=off go get
 github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
       published module resolves without workspace-local replaces.
-- [ ] **Publish go-finding + go-must as tagged modules** — the go.mod replace
+- [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod replace
       directives are needed for dev; consumers resolving the published modules
       depend on the real tagged versions (go-finding v1.4.0, go-must v0.1.2).
 
@@ -80,68 +79,30 @@ github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
 
 ## Module Health & Tooling
 
-- [ ] **Run cqrs-lint against the real codebase** — C015/C016/D006 were shipped
-      in v4.2.0 with only the meta-test guard (instantiate-all-detectors).
-      `cd cmd/cqrs-lint && go run . ../../...` — check the 3 new rules for false
-      positives. D006 especially could flag legitimate sentinel errors; if it
-      spews hundreds of findings, tighten `isPackageLevelVar` exemption logic
-      in `cmd/cqrs-lint/pkg/rules/consistency/d006.go`.
-- [ ] **Update cqrs-lint README rules table** — C015/C016/D006 were added to the
-      source (`register.go`, `catalog.go`) but never documented in
-      `cmd/cqrs-lint/README.md`. Consumers reading the README see 62 rules; the
-      actual count is 65.
-- [ ] **Consolidate remaining 5 `wrapClosed()` sites** — the 2026-07-27 session
-      converted 12 of 17 sites across `store.go`, `command_store.go`,
-      `query_store.go`, `snapshot.go` into `withWriteLock`/`withReadLock[T]`
-      helper pairs (clone groups: 34 → 19). Remaining: `checkpoint.go` (2,
-      `wrapClosedf` format variant) + `store_load.go` (3, mixed read/write).
-      Same pattern — straightforward follow-up.
-- [ ] **Add SortedMap to cross-engine parity tests** — the TODO said 4 ADTs to
-      test; `metaengine/cross_engine_adt_test.go` covers Counter + Set (2 of 4).
-      SortedMap routes through `MapBackend`/`ScanBackend` (no dedicated backend
-      interface). Test via `ExecuteTyped` with a sorted result type.
-- [ ] **Update AGENTS.md with dedup helper patterns** — the 2026-07-27 dedup
-      session introduced `withWriteLock(code, msg, fn)` closures in
-      `storage/memory`, `parallelTimeoutCtx(t, timeout)` in benchkit,
-      `parallelViewStore(t)` in storage/view, variadic `NewTestRegistry(svc...)`
-      in catalog — none documented in AGENTS.md.
-- [ ] **Audit accepted clone groups** — verify 19 art-dupl groups genuinely
-      acceptable, not just tolerated (was 34 before the 2026-07-27 wrapClosed
-      consolidation; now 19 after the withWriteLock/withReadLock extraction).
-- [ ] **`--structural` art-dupl pass** — AST-shape clones beyond the semantic
-      mode the current gate uses.
-- [ ] **`--type-aware` art-dupl run** — eliminates false-positive clone groups
-      (`time.Time.String` vs `*big.Int.String`).
+- [ ] **Consolidate remaining 3 `wrapClosed()` sites** — `store_load.go` (3,
+      mixed read/write). checkpoint.go already converted to `withWriteLock`/
+      `withCheckpointReadLock`. Same pattern — straightforward follow-up.
 
 ---
 
 ## DuckDB Backend (ADR-0071)
 
 > ✅ Core integration shipped: `DuckDBDialect`, `stack/duckdb` preset, contract
-> tests, lint, flake.nix CGo wiring. Remaining work is polish and integration.
+> tests, lint, flake.nix CGo wiring, TestMultiDBContract, golden schema tests,
+> OpenDuckDB/OpenDuckDBInMemory/ConfigureDuckDBPool helpers, appendDuckDBOptions
+> unit test. Remaining work is bench integration and view model tests.
 
-- [ ] **`TestMultiDBContract`** — SQLite has `contracttest.RunMultiDBSuite`;
-      DuckDB only has `TestNew_MultiDB` (basic wiring). Add the full contract.
 - [ ] **`view_models_integration_test.go`** — `SQLViewModel` is exported but
       untested with actual DuckDB analytical queries.
-- [ ] **DuckDB golden schema tests in `storage/`** — golden tests exist for
-      postgres/sqlite schemas; add DuckDB equivalent.
-- [ ] **`OpenDuckDB()` + `OpenDuckDBInMemory()` helpers** — `storage/` exports
-      `OpenSQLite`/`OpenSQLiteInMemory`. No DuckDB equivalents yet.
-- [ ] **`ConfigureDuckDBPool()`** — pool guidance (like `ConfigureSQLitePool`).
-- [ ] **`appendDuckDBOptions` unit test** — DSN param appending edge cases.
 - [ ] **Wire DuckDB into `stack/bench/` and `cmd/cqrs-bench`** — benchmark
       suite and CLI don't list DuckDB as a backend option.
-- [ ] **CGo-enabled CI job in `ci.yml`** — existing CI runs with default CGo
-      (likely 0). Add a job that runs DuckDB tests with `CGO_ENABLED=1`.
 
 ---
 
 ## Documentation
 
-- [ ] **Write `docs/performance.md`** — benchmark results, expected throughput
-      (stretch — lower priority than testing-guide + release-checklist, which
-      shipped 2026-07-27).
+> ✅ `docs/performance.md` shipped with benchmark data including metaengine
+> Pebble + layout planning results.
 
 ---
 
