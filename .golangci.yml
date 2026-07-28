@@ -171,6 +171,7 @@ linters:
             - github.com/maypok86/otter
             - github.com/failsafe-go/failsafe-go
             - github.com/jackc/pgx
+            - github.com/duckdb/duckdb-go
             - github.com/dustin/go-humanize
             - google.golang.org/grpc
             - google.golang.org/protobuf

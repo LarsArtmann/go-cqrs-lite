@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS events (
     schema_version   INTEGER NOT NULL DEFAULT 1,
     payload          BLOB,
     payload_encoding VARCHAR NOT NULL DEFAULT 'json',
-    metadata         VARCHAR,
+    metadata         BLOB,
     occurred_at      TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(aggregate_type, aggregate_id, version)
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS commands (
     aggregate_type   VARCHAR NOT NULL,
     aggregate_id     VARCHAR NOT NULL,
     payload          BLOB,
-    metadata         VARCHAR,
+    metadata         BLOB,
     received_at      TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS queries (
     id               VARCHAR PRIMARY KEY,
     query_type       VARCHAR NOT NULL,
     payload          BLOB,
-    metadata         VARCHAR,
+    metadata         BLOB,
     received_at      TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -179,6 +179,7 @@
             "stack"
             "stack/memory"
             "stack/sqlite"
+            "stack/duckdb"
             "stack/pebble"
             "stack/postgres"
             "stack/turso"
@@ -216,7 +217,7 @@
             program = "${pkgs.writeShellApplication { inherit name runtimeInputs text; }}/bin/${name}";
           };
 
-          goModules = [ goPkg ];
+          goModules = [ goPkg pkgs.gcc ];
 
           benchstat = pkgs.buildGoModule {
             pname = "benchstat";
@@ -255,6 +256,7 @@
               pkgs.go-arch-lint
               pkgs.govulncheck
               pkgs.gitleaks
+              pkgs.gcc
             ];
 
             GOWORK = "off";

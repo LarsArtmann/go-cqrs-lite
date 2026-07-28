@@ -66,6 +66,7 @@ var modules = []string{
 	"stack",
 	"stack/memory",
 	"stack/sqlite",
+	"stack/duckdb",
 	"stack/pebble",
 	"stack/postgres",
 	"stack/turso",
