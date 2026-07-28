@@ -39,6 +39,10 @@ func NewSQLiteBackend(db *sql.DB) (*SQLBackend, error) {
 	return newSQLBackendWithDialect(db, sqlpkg.SQLiteDialect{})
 }
 
+func NewDuckDBBackend(db *sql.DB) (*SQLBackend, error) {
+	return newSQLBackendWithDialect(db, sqlpkg.DuckDBDialect{})
+}
+
 func NewSQLBackendWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLBackend, error) {
 	return newSQLBackendWithDialect(db, d)
 }

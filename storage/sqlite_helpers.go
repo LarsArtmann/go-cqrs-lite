@@ -132,3 +132,7 @@ func ConfigureTursoPool(db *sql.DB) { db.SetMaxOpenConns(1) }
 func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
 	return execDDL(ctx, db, []string{sqlpkg.PostgresSchemaEmbed()})
 }
+
+func DuckDBInitSchema(ctx context.Context, db *sql.DB) error {
+	return execDDL(ctx, db, []string{sqlpkg.DuckDBSchemaEmbed()})
+}

@@ -37,7 +37,8 @@ func IsDuplicateKeyError(err error) bool {
 	msg := err.Error()
 
 	return strings.Contains(msg, "UNIQUE constraint failed") ||
-		strings.Contains(msg, "duplicate key value violates unique constraint")
+		strings.Contains(msg, "duplicate key value violates unique constraint") ||
+		strings.Contains(msg, "UNIQUE constraint violated")
 }
 
 // pgCodeError is an interface satisfied by pgconn.PgError and similar types
