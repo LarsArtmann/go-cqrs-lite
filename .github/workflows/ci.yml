@@ -425,11 +425,18 @@ jobs:
           DATABASE_URL: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
           POSTGRES_TEST_DSN: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
         run: |
+          # Storage: event/command/query/snapshot stores + relational projections.
+          # The relational test (storage/relational/pg_test.go) was previously
+          # gated behind a postgres_integration tag that CI never passed — now
+          # unified under -tags=integration.
           cd storage && GOWORK=off go test -tags=integration -v -count=1 \
             -run TestPostgres ./...
           # stack/postgres uses pgx directly (PgxListener + PostgresBus wiring).
           # -tags=integration enables the LISTEN/NOTIFY round-trip tests that
           # validate the full preset against a real Postgres instance.
+          #
+          # Locally (without POSTGRES_TEST_DSN), testcontainers-go spins up a
+          # postgres:16-alpine container automatically — no manual setup needed.
           cd ../stack/postgres && GOWORK=off go test -tags=integration -v -count=1 ./...
 
     timeout-minutes: 15

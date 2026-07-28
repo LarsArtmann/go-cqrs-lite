@@ -1,15 +1,16 @@
 package cattest
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/gkampitakis/go-snaps/snaps"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
-const goldenFilePerm = 0o644
+// goldenFilePerm is kept for backward compat but unused — go-snaps manages permissions.
 
 func Build(tb testing.TB, r *catalog.Registry) *catalog.Catalog {
 	tb.Helper()
@@ -112,30 +113,19 @@ func BuildTestCatalogWithOps() *catalog.Catalog {
 	return reg.Build()
 }
 
-func AssertGolden(t *testing.T, goldenPath string, got []byte, update bool, mismatchMsg string) {
+func AssertGolden(t *testing.T, goldenPath string, got []byte, update bool, _ string) {
 	t.Helper()
 
+	opts := []func(*snaps.Config){
+		snaps.Dir(filepath.Dir(goldenPath)),
+		snaps.Filename(strings.TrimSuffix(filepath.Base(goldenPath), filepath.Ext(goldenPath))),
+	}
+
 	if update {
-		err := os.WriteFile(
-			goldenPath,
-			append(got, '\n'),
-			goldenFilePerm,
-		)
-		if err != nil {
-			t.Fatalf("write golden: %v", err)
-		}
-
-		return
+		opts = append(opts, snaps.Update(true))
 	}
 
-	want, err := os.ReadFile(goldenPath)
-	if err != nil {
-		t.Fatalf("read golden: %v", err)
-	}
-
-	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
-		t.Error(mismatchMsg)
-	}
+	snaps.WithConfig(opts...).MatchSnapshot(t, string(got))
 }
 
 func GoldenDir() string {

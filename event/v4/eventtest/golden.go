@@ -1,37 +1,32 @@
 package eventtest
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/gkampitakis/go-snaps/snaps"
 )
 
-// AssertGolden compares got against the golden file at path.
-// When update is true, it writes got to path instead of comparing.
-// Each caller should register its own flag: `var update = flag.Bool("update", false, "update golden files")`
-// and pass *update to this function.
+// AssertGolden compares got against the golden snapshot at path.
+//
+// Powered by go-snaps — provides colored diff output, automatic snapshot
+// management, and standardized update via UPDATE_SNAPS=true env var.
+//
+// The update parameter (from each caller's -update flag) is honored when true.
+// To update all golden files: UPDATE_SNAPS=true go test ./...
+// To clean obsolete snapshots:  UPDATE_SNAPS=clean go test ./...
 func AssertGolden(t *testing.T, path string, got []byte, update bool) {
 	t.Helper()
 
+	opts := []func(*snaps.Config){
+		snaps.Dir(filepath.Dir(path)),
+		snaps.Filename(strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))),
+	}
+
 	if update {
-		if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
-			t.Fatalf("mkdir: %v", err)
-		}
-
-		if err := os.WriteFile(path, append(got, '\n'), 0o644); err != nil {
-			t.Fatalf("write golden: %v", err)
-		}
-
-		return
+		opts = append(opts, snaps.Update(true))
 	}
 
-	want, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("read golden %s (run with -update to create): %v", path, err)
-	}
-
-	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
-		t.Errorf("golden mismatch for %s (run with -update to refresh)", path)
-	}
+	snaps.WithConfig(opts...).MatchSnapshot(t, string(got))
 }

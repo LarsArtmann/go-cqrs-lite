@@ -2,10 +2,8 @@ package otel_test
 
 import (
 	"encoding/json/v2"
-	"flag"
 	"fmt"
 	"maps"
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -13,10 +11,10 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
+	"github.com/gkampitakis/go-snaps/snaps"
+
 	"github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
-
-var update = flag.Bool("update", false, "update golden files")
 
 func TestGolden_AttributeConstants(t *testing.T) {
 	constants := map[string]string{
@@ -38,33 +36,22 @@ func TestGolden_AttributeConstants(t *testing.T) {
 		"KindQuery":          otel.KindQuery,
 	}
 
-	got := marshalSortedMap(constants)
-
-	assertOtelGolden(t, filepath.Join("testdata", "golden", "attribute-constants.json"), got)
+	matchGolden(t, "attribute-constants", marshalSortedMap(constants))
 }
 
 func TestGolden_CommandAttrs(t *testing.T) {
 	attrs := otel.CommandAttrs("CreateUser", fixedID("01HK1540X0841Y0A6BSX1VKR95"))
-
-	got := marshalSortedMap(attrsToMap(attrs))
-
-	assertOtelGolden(t, filepath.Join("testdata", "golden", "command-attrs.json"), got)
+	matchGolden(t, "command-attrs", marshalSortedMap(attrsToMap(attrs)))
 }
 
 func TestGolden_EventAttrs(t *testing.T) {
 	attrs := otel.EventAttrs("UserCreated", fixedID("01HK1540X0841Y0A6BSX1VKR95"), "User")
-
-	got := marshalSortedMap(attrsToMap(attrs))
-
-	assertOtelGolden(t, filepath.Join("testdata", "golden", "event-attrs.json"), got)
+	matchGolden(t, "event-attrs", marshalSortedMap(attrsToMap(attrs)))
 }
 
 func TestGolden_QueryAttrs(t *testing.T) {
 	attrs := otel.QueryAttrs("GetUser")
-
-	got := marshalSortedMap(attrsToMap(attrs))
-
-	assertOtelGolden(t, filepath.Join("testdata", "golden", "query-attrs.json"), got)
+	matchGolden(t, "query-attrs", marshalSortedMap(attrsToMap(attrs)))
 }
 
 func attrsToMap(attrs []attribute.KeyValue) map[string]string {
@@ -102,32 +89,11 @@ func marshalSortedMap(m map[string]string) []byte {
 	return []byte(b.String())
 }
 
-func assertOtelGolden(t *testing.T, path string, got []byte) {
+// matchGolden wraps go-snaps MatchSnapshot with the module's golden directory.
+func matchGolden(t *testing.T, name string, got []byte) {
 	t.Helper()
-
-	dir := filepath.Dir(path)
-
-	if *update {
-		if mkdirErr := os.MkdirAll(dir, 0o750); mkdirErr != nil {
-			t.Fatalf("mkdir: %v", mkdirErr)
-		}
-
-		if writeErr := os.WriteFile(path, append(got, '\n'), 0o644); writeErr != nil {
-			t.Fatalf("write golden: %v", writeErr)
-		}
-
-		return
-	}
-
-	want, readErr := os.ReadFile(path)
-	if readErr != nil {
-		t.Fatalf("read golden %s (run with -update to create): %v", path, readErr)
-	}
-
-	gotStr := strings.TrimSpace(string(got))
-	wantStr := strings.TrimSpace(string(want))
-
-	if gotStr != wantStr {
-		t.Errorf("golden mismatch for %s (run with -update to refresh)", path)
-	}
+	snaps.WithConfig(
+		snaps.Dir(filepath.Join("testdata", "golden")),
+		snaps.Filename(name),
+	).MatchSnapshot(t, string(got))
 }
