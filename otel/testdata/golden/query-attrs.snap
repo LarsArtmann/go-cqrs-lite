@@ -1,0 +1,7 @@
+
+[TestGolden_QueryAttrs - 1]
+{
+  "cqrs.message.kind": "query",
+  "cqrs.query.type": "GetUser"
+}
+---

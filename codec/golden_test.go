@@ -1,19 +1,14 @@
 package codec_test
 
 import (
-	"flag"
-	"os"
+	"encoding/hex"
 	"path/filepath"
 	"testing"
 
+	"github.com/gkampitakis/go-snaps/snaps"
+
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
-
-var updateGolden = flag.Bool("update", false, "update golden files")
-
-func goldenDir() string {
-	return "testdata/golden"
-}
 
 type goldenPayload struct {
 	Email string `json:"email"`
@@ -21,33 +16,13 @@ type goldenPayload struct {
 	Age   int    `json:"age"`
 }
 
-func assertCodecGolden(
-	t *testing.T,
-	goldenPath string,
-	got []byte,
-	compare func(got, want []byte),
-) {
+// matchGolden wraps go-snaps MatchSnapshot with the module's golden directory.
+func matchGolden(t *testing.T, name string, got []byte) {
 	t.Helper()
-
-	if *updateGolden {
-		if err := os.MkdirAll(goldenDir(), 0o750); err != nil {
-			t.Fatalf("mkdir: %v", err)
-		}
-
-		err := os.WriteFile(goldenPath, append(got, '\n'), 0o644)
-		if err != nil {
-			t.Fatalf("write golden: %v", err)
-		}
-
-		return
-	}
-
-	want, err := os.ReadFile(goldenPath)
-	if err != nil {
-		t.Fatalf("read golden: %v", err)
-	}
-
-	compare(got, want)
+	snaps.WithConfig(
+		snaps.Dir(filepath.Join("testdata", "golden")),
+		snaps.Filename(name),
+	).MatchSnapshot(t, string(got))
 }
 
 func TestGolden_JSONCodec_Encode(t *testing.T) {
@@ -60,17 +35,7 @@ func TestGolden_JSONCodec_Encode(t *testing.T) {
 		t.Fatalf("encode: %v", err)
 	}
 
-	goldenPath := filepath.Join(goldenDir(), "json_encode.json")
-
-	assertCodecGolden(t, goldenPath, got, func(got, want []byte) {
-		if string(got) != string(want)[:len(string(want))-1] {
-			t.Errorf(
-				"JSON encode mismatch (run with -update to refresh golden files)\n got: %s\nwant: %s",
-				got,
-				want,
-			)
-		}
-	})
+	matchGolden(t, "json_encode", got)
 }
 
 func TestGolden_CBORCodec_Encode(t *testing.T) {
@@ -83,21 +48,8 @@ func TestGolden_CBORCodec_Encode(t *testing.T) {
 		t.Fatalf("encode: %v", err)
 	}
 
-	goldenPath := filepath.Join(goldenDir(), "cbor_encode.bin")
-
-	assertCodecGolden(t, goldenPath, got, func(actual, expected []byte) {
-		if len(expected) > 0 && expected[len(expected)-1] == '\n' {
-			expected = expected[:len(expected)-1]
-		}
-
-		if string(actual) != string(expected) {
-			t.Errorf(
-				"CBOR encode mismatch (run with -update to refresh golden files)\n got: %x\nwant: %x",
-				actual,
-				expected,
-			)
-		}
-	})
+	// CBOR is binary — hex representation for readable diffable snapshots.
+	matchGolden(t, "cbor_encode", []byte(hex.EncodeToString(got)))
 }
 
 func TestGolden_RawCodec_Passthrough(t *testing.T) {
@@ -110,15 +62,5 @@ func TestGolden_RawCodec_Passthrough(t *testing.T) {
 		t.Fatalf("encode: %v", err)
 	}
 
-	goldenPath := filepath.Join(goldenDir(), "raw_passthrough.bin")
-
-	assertCodecGolden(t, goldenPath, got, func(actual, expected []byte) {
-		if string(actual) != string(expected)[:len(string(expected))-1] {
-			t.Errorf(
-				"Raw passthrough mismatch\n got: %s\nwant: %s",
-				actual,
-				expected,
-			)
-		}
-	})
+	matchGolden(t, "raw_passthrough", got)
 }

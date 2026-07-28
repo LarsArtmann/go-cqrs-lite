@@ -1,83 +1,34 @@
 package d2_test
 
 import (
-	"flag"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
 
+	"github.com/gkampitakis/go-snaps/snaps"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/d2"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
-
-//nolint:gochecknoglobals // golden test pattern requires package-level flag
-var d2Update = flag.Bool("update", false, "update golden files")
 
 func TestGolden_D2Export(t *testing.T) {
 	cat := cattest.BuildTestCatalog()
 	exp := d2.NewExporter("E-Commerce API", "1.0.0", d2.WithDescription("System overview"))
 	got := exp.Export(cat)
 
-	goldenPath := filepath.Join("..", "testdata", "golden", "diagram.d2")
-
-	if *d2Update {
-		if err := os.WriteFile(goldenPath, []byte(got), 0o644); err != nil {
-			t.Fatalf("write golden: %v", err)
-		}
-
-		return
-	}
-
-	want, err := os.ReadFile(goldenPath)
-	if err != nil {
-		t.Fatalf("read golden: %v", err)
-	}
-
-	gotNorm := normalizeD2(got)
-	wantNorm := normalizeD2(string(want))
-	if gotNorm != wantNorm {
-		t.Errorf(
-			"D2 diagram mismatch (run with -update to refresh golden files)\ngot len=%d, want len=%d",
-			len(gotNorm),
-			len(wantNorm),
-		)
-	}
+	matchD2Golden(t, "diagram", got)
 }
-
-var blankLineRe = regexp.MustCompile(`\n{2,}`)
 
 func TestGolden_D2WithOps(t *testing.T) {
 	cat := cattest.BuildTestCatalogWithOps()
 	exp := d2.NewExporter("REST API", "1.0.0")
 	got := exp.Export(cat)
 
-	goldenPath := filepath.Join("..", "testdata", "golden", "diagram-with-ops.d2")
-
-	if *d2Update {
-		if err := os.WriteFile(goldenPath, []byte(got), 0o644); err != nil {
-			t.Fatalf("write golden: %v", err)
-		}
-
-		return
-	}
-
-	want, err := os.ReadFile(goldenPath)
-	if err != nil {
-		t.Fatalf("read golden: %v", err)
-	}
-
-	gotNorm := normalizeD2(got)
-	wantNorm := normalizeD2(string(want))
-	if gotNorm != wantNorm {
-		t.Errorf(
-			"D2 diagram (with ops) mismatch (run with -update to refresh golden files)\ngot len=%d, want len=%d",
-			len(gotNorm),
-			len(wantNorm),
-		)
-	}
+	matchD2Golden(t, "diagram-with-ops", got)
 }
+
+var blankLineRe = regexp.MustCompile(`\n{2,}`)
 
 func normalizeD2(s string) string {
 	s = strings.TrimSpace(s)
@@ -89,4 +40,12 @@ func normalizeD2(s string) string {
 	s = strings.Join(cleaned, "\n")
 	s = blankLineRe.ReplaceAllString(s, "\n")
 	return s
+}
+
+func matchD2Golden(t *testing.T, name, got string) {
+	t.Helper()
+	snaps.WithConfig(
+		snaps.Dir(filepath.Join("..", "testdata", "golden")),
+		snaps.Filename(name),
+	).MatchSnapshot(t, normalizeD2(got))
 }

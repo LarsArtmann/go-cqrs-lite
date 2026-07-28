@@ -1,5 +1,0 @@
-CREATE TABLE IF NOT EXISTS checkpoints (
-    projection_name TEXT PRIMARY KEY,
-    event_id        TEXT NOT NULL,
-    processed_at    TEXT NOT NULL DEFAULT(datetime('now'))
-);

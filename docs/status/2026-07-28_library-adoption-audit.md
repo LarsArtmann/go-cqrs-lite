@@ -11,8 +11,8 @@
 | --- | -------------------------- | ------------------------------------------- | ---- | --------------------------------------- | --------------------------------------- | -------- |
 | 1   | LRU cache                  | `decider/cache.go`                          | 126  | Hand-rolled (`container/list` + `map`)  | **ADOPT otter/v2**                      | P0       |
 | 2   | Circuit breaker            | `middleware/circuit_breaker.go`             | 243  | Hand-rolled (`atomic` + `sync.Mutex`)   | **ADOPT failsafe-go**                   | P0       |
-| 3   | Postgres integration tests | `stack/postgres/*_test.go`                  | —    | `t.Skip` without `POSTGRES_TEST_DSN`    | **ADOPT testcontainers-go**             | P1       |
-| 4   | Snapshot/golden tests      | `eventtest/golden.go`, `cattest/catalog.go` | ~60  | Custom `AssertGolden` helpers           | **ADOPT go-snaps**                      | P2       |
+| 3   | Postgres integration tests | `stack/postgres/*_test.go`                  | —    | ~~`t.Skip` without `POSTGRES_TEST_DSN`~~ **ADOPTED testcontainers-go**    | ✅ **DONE** — postgres:16-alpine          | P1 ✅     |
+| 4   | Snapshot/golden tests      | `eventtest/golden.go`, `cattest/catalog.go` | ~60  | ~~Custom `AssertGolden` helpers~~ **ADOPTED go-snaps**           | ✅ **DONE** — snaps.MatchSnapshot        | P2 ✅     |
 | 5   | Retry module               | `retry/`                                    | 217  | Hand-rolled (zero-dep, extract planned) | **KEEP** (extract per ADR-0064)         | —        |
 | 6   | Dedup ring                 | `dedup/ring.go`                             | 95   | Hand-rolled ring buffer                 | **KEEP** (no library fit)               | —        |
 | 7   | SQL migrations             | `storage/migrations/`                       | —    | `//go:embed .sql`                       | **KEEP** (correct for library)          | —        |
@@ -71,7 +71,11 @@ built-in metrics, and state-change listeners.
 
 ## TIER 2: ADOPT FOR QUALITY (P1-P2)
 
-### 3. Testcontainers-go → `stack/postgres` Integration Tests (P1)
+### 3. Testcontainers-go → `stack/postgres` Integration Tests (P1) — ✅ DONE
+
+**Status:** Adopted 2026-07-28. testcontainers-go v0.43.0 in stack/postgres, storage, benchkit.
+
+**What shipped:** Shared Postgres container via TestMain (one per package), per-test database isolation (critical for parallel contracttest.RunSuite subtests), POSTGRES_TEST_DSN override for CI, relational test unified under `-tags=integration`.
 
 **Why:** Postgres tests currently `t.Skip("POSTGRES_TEST_DSN not set")` — they NEVER run locally and only
 run in CI if the DSN is configured. `testcontainers-go` spins up a real `postgres:16-alpine` Docker container
@@ -97,7 +101,9 @@ in `go test`, so the real Postgres code path is exercised everywhere.
 
 ---
 
-### 4. Go-snaps → Replace Custom Golden Helpers (P2)
+### 4. Go-snaps → Replace Custom Golden Helpers (P2) — ✅ DONE
+
+**Status:** Adopted 2026-07-28. go-snaps v0.5.23 across eventtest, catalog (cattest + d2 + eventcatalog), otel, codec. 38 golden files regenerated as `.snap` files. Update via `UPDATE_SNAPS=true go test ./...`.
 
 **Why:** Three separate `AssertGolden` implementations exist (`eventtest/golden.go`,
 `catalog/internal/cattest/catalog.go`, `cmd/api-stability/main.go`). The policy mandates `go-snaps` for
@@ -198,5 +204,5 @@ library modules.
 | -------- | ---------------------------------- | ------ | ----------------------------------------- |
 | **P0**   | otter → decider/cache.go           | 1h     | Unifies cache strategy, policy compliance |
 | **P0**   | failsafe-go → circuit_breaker.go   | 2-3h   | Production-grade resilience, composable   |
-| **P1**   | testcontainers-go → stack/postgres | 1-2h   | Real DB tests run everywhere              |
-| **P2**   | go-snaps → golden helpers          | 2-3h   | Standardized snapshot testing             |
+| **P1** ✅ | ~~testcontainers-go → stack/postgres~~ | 1-2h   | Real DB tests run everywhere              |
+| **P2** ✅ | ~~go-snaps → golden helpers~~          | 2-3h   | Standardized snapshot testing             |

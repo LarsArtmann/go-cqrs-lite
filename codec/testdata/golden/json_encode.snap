@@ -1,0 +1,4 @@
+
+[TestGolden_JSONCodec_Encode - 1]
+{"email":"alice@example.com","name":"Alice","age":30}
+---

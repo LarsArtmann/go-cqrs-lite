@@ -1,0 +1,20 @@
+
+[TestGolden_MessageMetadata - 1]
+{
+  "aggregate_id": "01HK1540X0841Y0A6BSX1VKR95",
+  "aggregate_type": "Order",
+  "causation_id": "01HK1540X0841Y0A6BSX1VKR98",
+  "correlation_id": "01HK1540X0841Y0A6BSX1VKR97",
+  "custom.custom.trace": "abc123",
+  "event_id": "01HK1540X0841Y0A6BSX1VKR96",
+  "event_type": "order.created",
+  "ip_address": "10.0.0.1",
+  "occurred_at": "2026-03-10T12:00:00Z",
+  "payload_encoding": "json",
+  "schema_version": "2",
+  "source": "test-service",
+  "user_agent": "test-agent/1.0",
+  "user_id": "01HK1540X0841Y0A6BSX1VKR99",
+  "version": "1"
+}
+---

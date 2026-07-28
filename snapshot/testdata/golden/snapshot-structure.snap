@@ -1,0 +1,10 @@
+
+[TestGolden_SnapshotStructure - 1]
+{
+  "aggregateId": "01HK1540X0841Y0A6BSX1VKR95",
+  "aggregateType": "User",
+  "version": 5,
+  "state": "{\"name\":\"Alice\",\"email\":\"alice@example.com\",\"items\":\"widget,gadget\"}",
+  "createdAt": "2026-06-01T12:00:00Z"
+}
+---

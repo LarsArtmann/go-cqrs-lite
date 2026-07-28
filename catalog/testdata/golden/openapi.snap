@@ -1,0 +1,142 @@
+
+[TestGolden_OpenAPIJSON - 1]
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "E-Commerce API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": ".",
+      "description": "Current server"
+    }
+  ],
+  "paths": {
+    "/api/order-svc/create-order": {
+      "post": {
+        "tags": [
+          "Order Service"
+        ],
+        "summary": "Create Order",
+        "description": "Create a new order",
+        "operationId": "postCreateorder",
+        "deprecated": false,
+        "requestBody": {
+          "description": "Create Order request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/command.CreateOrder"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/order-svc/events/order-created": {
+      "post": {
+        "tags": [
+          "Order Service"
+        ],
+        "summary": "Event: Order Created",
+        "description": "Order was created",
+        "operationId": "postOrdercreated",
+        "deprecated": false,
+        "requestBody": {
+          "description": "Order Created event payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Event received"
+          }
+        }
+      }
+    },
+    "/api/order-svc/get-order": {
+      "get": {
+        "tags": [
+          "Order Service"
+        ],
+        "summary": "Get Order",
+        "description": "Get order by ID",
+        "operationId": "getGetorder",
+        "deprecated": false,
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "command.CreateOrder": {
+        "properties": {
+          "orderId": {
+            "deprecated": false,
+            "nullable": false,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Order Service",
+      "description": "Manages orders"
+    }
+  ]
+}
+---

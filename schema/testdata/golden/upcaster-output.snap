@@ -1,0 +1,13 @@
+
+[TestGolden_UpcasterOutput - 1]
+[
+  {
+    "type": "UserCreated",
+    "aggregateId": "01HK1540X0841Y0A6BSX1VKR95",
+    "aggregateType": "User",
+    "version": 1,
+    "schemaVersion": 2,
+    "payload": "{\"name\":\"unknown\",\"email\":\"\\\"alice@example.com\\\"\",\"upgraded\":true}"
+  }
+]
+---

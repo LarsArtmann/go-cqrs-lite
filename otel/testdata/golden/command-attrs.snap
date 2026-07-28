@@ -1,0 +1,8 @@
+
+[TestGolden_CommandAttrs - 1]
+{
+  "cqrs.aggregate.id": "01HK1540X0841Y0A6BSX1VKR95",
+  "cqrs.command.type": "CreateUser",
+  "cqrs.message.kind": "command"
+}
+---

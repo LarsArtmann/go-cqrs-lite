@@ -1,23 +1,16 @@
 package eventcatalog_test
 
 import (
-	"flag"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
+
+	"github.com/gkampitakis/go-snaps/snaps"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
-
-//nolint:gochecknoglobals // golden test pattern requires package-level flag
-var update = flag.Bool("update", false, "update golden files")
-
-func goldenDir() string {
-	return filepath.Join("..", "testdata", "golden")
-}
 
 func exportToTempDir(t *testing.T, cat *catalog.Catalog) string {
 	t.Helper()
@@ -34,26 +27,12 @@ func exportToTempDir(t *testing.T, cat *catalog.Catalog) string {
 	return tmpDir
 }
 
-func readOrWriteGolden(t *testing.T, goldenPath, actualContent string) {
+func matchCatalogGolden(t *testing.T, name, got string) {
 	t.Helper()
-
-	if *update {
-		err := os.WriteFile(goldenPath, []byte(actualContent), 0o644)
-		if err != nil {
-			t.Fatalf("write golden %s: %v", goldenPath, err)
-		}
-
-		return
-	}
-
-	want, err := os.ReadFile(goldenPath)
-	if err != nil {
-		t.Fatalf("read golden %s: %v", goldenPath, err)
-	}
-
-	if strings.TrimSpace(actualContent) != strings.TrimSpace(string(want)) {
-		t.Errorf("golden file %s mismatch (run with -update to refresh)", goldenPath)
-	}
+	snaps.WithConfig(
+		snaps.Dir(filepath.Join("..", "testdata", "golden")),
+		snaps.Filename(name),
+	).MatchSnapshot(t, got)
 }
 
 func TestGolden_EventCatalog_ServiceMDX(t *testing.T) {
@@ -65,7 +44,7 @@ func TestGolden_EventCatalog_ServiceMDX(t *testing.T) {
 		t.Fatalf("read service file: %v", err)
 	}
 
-	readOrWriteGolden(t, filepath.Join(goldenDir(), "eventcatalog-service.mdx"), string(svcContent))
+	matchCatalogGolden(t, "eventcatalog-service", string(svcContent))
 }
 
 func TestGolden_EventCatalog_Config(t *testing.T) {
@@ -77,7 +56,7 @@ func TestGolden_EventCatalog_Config(t *testing.T) {
 		t.Fatalf("read config: %v", err)
 	}
 
-	readOrWriteGolden(t, filepath.Join(goldenDir(), "eventcatalog-config.js"), string(cfgContent))
+	matchCatalogGolden(t, "eventcatalog-config", string(cfgContent))
 }
 
 func TestGolden_EventCatalog_LLMsTxt(t *testing.T) {
@@ -89,7 +68,7 @@ func TestGolden_EventCatalog_LLMsTxt(t *testing.T) {
 		t.Fatalf("read llms.txt: %v", err)
 	}
 
-	readOrWriteGolden(t, filepath.Join(goldenDir(), "llms.txt"), string(llmsContent))
+	matchCatalogGolden(t, "llms", string(llmsContent))
 }
 
 func TestGolden_EventCatalog_PackageJSON(t *testing.T) {
@@ -101,5 +80,5 @@ func TestGolden_EventCatalog_PackageJSON(t *testing.T) {
 		t.Fatalf("read package.json: %v", err)
 	}
 
-	readOrWriteGolden(t, filepath.Join(goldenDir(), "package.json"), string(pkgContent))
+	matchCatalogGolden(t, "package", string(pkgContent))
 }
