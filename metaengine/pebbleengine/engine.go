@@ -214,7 +214,7 @@ func (e *pebbleEngine) MapGet(_ context.Context, col string, key any) (any, bool
 		return nil, false, err //nolint:wrapcheck // passthrough
 	}
 
-	defer func() { _ = closer.Close() }()
+	defer func() { _ = closer.Close() }() //cqrs-lint:ignore(C015) pebble closer, error is always nil
 
 	result := decodeJSON(val)
 
@@ -373,7 +373,7 @@ func (e *pebbleEngine) CounterIncrement(
 		val, closer, err := e.db.Get(ck)
 		if err == nil {
 			current = decodeCounterValue(val)
-			_ = closer.Close()
+			_ = closer.Close() //cqrs-lint:ignore(C015) pebble closer, error is always nil
 		} else if !errors.Is(err, pebble.ErrNotFound) {
 			return err //nolint:wrapcheck // passthrough
 		}
