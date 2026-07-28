@@ -42,7 +42,7 @@ func OpenDBOrErr(driver, dsn, code string) (*sql.DB, error) {
 // nil; it receives a background context and the opened DB and should return
 // already-wrapped errors. On any setup or backend-creation failure the DB is
 // closed before the error is returned.
-func OpenPrimaryBackend(
+func OpenPrimaryBackend( //nolint:nonamedreturns // defer cleanup
 	openDB func() (*sql.DB, error),
 	setup func(ctx context.Context, db *sql.DB) error,
 	newBackend func(*sql.DB) (*storage.SQLBackend, error),

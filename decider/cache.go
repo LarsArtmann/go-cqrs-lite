@@ -65,7 +65,11 @@ type lruCache[State any] struct {
 	order *list.List
 }
 
-func (c *lruCache[State]) Get(ref id.StreamRef) (state State, version event.Version, ok bool) {
+func (c *lruCache[State]) Get(ref id.StreamRef) (State, event.Version, bool) {
+	var state State
+	var version event.Version
+	var ok bool
+
 	c.locked(ref, func(key string) {
 		elem, found := c.items[key]
 		if !found {
