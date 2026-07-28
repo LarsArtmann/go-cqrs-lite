@@ -45,6 +45,18 @@
       url = "git+ssh://git@github.com/LarsArtmann/samber-do-auditlog?ref=master";
       flake = false;
     };
+    go-atomic-write = {
+      url = "git+ssh://git@github.com/LarsArtmann/go-atomic-write?ref=master";
+      flake = false;
+    };
+    go-error-family = {
+      url = "git+ssh://git@github.com/LarsArtmann/go-error-family?ref=master";
+      flake = false;
+    };
+    go-ndjson = {
+      url = "git+ssh://git@github.com/LarsArtmann/go-ndjson?ref=master";
+      flake = false;
+    };
   };
 
   outputs =
@@ -60,6 +72,9 @@
       gogenfilter,
       go-branded-id,
       samber-do-auditlog,
+      go-atomic-write,
+      go-error-family,
+      go-ndjson,
       ...
     }:
     let
@@ -99,6 +114,9 @@
             "github.com/LarsArtmann/gogenfilter/v3" = gogenfilter;
             "github.com/larsartmann/go-branded-id" = go-branded-id;
             "github.com/larsartmann/samber-do-auditlog" = samber-do-auditlog;
+            "github.com/larsartmann/go-atomic-write" = go-atomic-write;
+            "github.com/larsartmann/go-error-family" = go-error-family;
+            "github.com/larsartmann/go-ndjson" = go-ndjson;
           };
           subModules = {
             "github.com/larsartmann/go-finding" = [ "pipeline" ];
