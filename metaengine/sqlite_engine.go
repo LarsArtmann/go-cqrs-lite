@@ -329,6 +329,7 @@ func (e *sqliteEngine) PushdownMapScan(
 	// Push filter predicates into WHERE.
 	for _, f := range filters {
 		path := jsonPath(f.Column)
+
 		b.WriteString(` AND json_extract(value, '`)
 		b.WriteString(path)
 		b.WriteString(`') `)
@@ -341,6 +342,7 @@ func (e *sqliteEngine) PushdownMapScan(
 	// Push keyset cursor into WHERE (must come before ORDER BY).
 	if sort != nil && cursor != nil {
 		path := jsonPath(sort.Column)
+
 		op := ">"
 		if sort.Desc {
 			op = "<"
@@ -358,6 +360,7 @@ func (e *sqliteEngine) PushdownMapScan(
 	// Push sort into ORDER BY.
 	if sort != nil {
 		path := jsonPath(sort.Column)
+
 		b.WriteString(` ORDER BY json_extract(value, '`)
 		b.WriteString(path)
 		b.WriteString(`')`)
@@ -370,6 +373,7 @@ func (e *sqliteEngine) PushdownMapScan(
 	// Push limit (with +1 for has-more detection).
 	if limit > 0 {
 		b.WriteString(` LIMIT ?`)
+
 		args = append(args, limit+1)
 	}
 
@@ -402,6 +406,7 @@ func (e *sqliteEngine) StreamScan(
 
 		for _, f := range filters {
 			path := jsonPath(f.Column)
+
 			b.WriteString(` AND json_extract(value, '`)
 			b.WriteString(path)
 			b.WriteString(`') `)
@@ -413,6 +418,7 @@ func (e *sqliteEngine) StreamScan(
 
 		if sort != nil {
 			path := jsonPath(sort.Column)
+
 			b.WriteString(` ORDER BY json_extract(value, '`)
 			b.WriteString(path)
 			b.WriteString(`')`)
@@ -425,6 +431,7 @@ func (e *sqliteEngine) StreamScan(
 		rows, err := e.db.QueryContext(ctx, b.String(), args...)
 		if err != nil {
 			yield(nil, err)
+
 			return
 		}
 
@@ -435,6 +442,7 @@ func (e *sqliteEngine) StreamScan(
 
 			if err := rows.Scan(&valStr); err != nil {
 				yield(nil, err)
+
 				return
 			}
 

@@ -90,20 +90,20 @@ func BuildLayoutPlan(collection string, filterFields, sortFields []string) Layou
 func (p LayoutPlan) DDL() string {
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (\n", p.Table))
+	fmt.Fprintf(&b, "CREATE TABLE IF NOT EXISTS %s (\n", p.Table)
 	b.WriteString("  key TEXT PRIMARY KEY,\n")
 	b.WriteString("  value TEXT NOT NULL")
 
 	for _, c := range p.Columns {
-		b.WriteString(fmt.Sprintf(",\n  %s %s", c.Name, c.Type))
+		fmt.Fprintf(&b, ",\n  %s %s", c.Name, c.Type)
 	}
 
 	b.WriteString("\n);")
 
 	for _, idx := range p.Indexes {
 		colList := strings.Join(idx.Columns, ", ")
-		b.WriteString(fmt.Sprintf("\nCREATE INDEX IF NOT EXISTS %s ON %s(%s);",
-			idx.Name, p.Table, colList))
+		fmt.Fprintf(&b, "\nCREATE INDEX IF NOT EXISTS %s ON %s(%s);",
+			idx.Name, p.Table, colList)
 	}
 
 	return b.String()

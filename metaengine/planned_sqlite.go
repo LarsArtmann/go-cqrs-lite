@@ -19,6 +19,7 @@ import (
 // filtered scans.
 type plannedSQLiteEngine struct {
 	*sqliteEngine
+
 	plans map[string]LayoutPlan // collection → layout plan
 }
 
@@ -142,7 +143,7 @@ func (e *plannedSQLiteEngine) PushdownMapScan(
 
 	args := []any{}
 
-	b.WriteString(fmt.Sprintf("SELECT value FROM %s", plan.Table))
+	fmt.Fprintf(&b, "SELECT value FROM %s", plan.Table)
 
 	// Push filters using direct column references (not json_extract).
 	for i, f := range filters {
@@ -152,7 +153,7 @@ func (e *plannedSQLiteEngine) PushdownMapScan(
 			b.WriteString(" AND ")
 		}
 
-		b.WriteString(fmt.Sprintf("%s %s ?", f.Column, string(f.Op)))
+		fmt.Fprintf(&b, "%s %s ?", f.Column, string(f.Op))
 		args = append(args, f.Value)
 	}
 
@@ -169,13 +170,15 @@ func (e *plannedSQLiteEngine) PushdownMapScan(
 			op = "<"
 		}
 
-		b.WriteString(fmt.Sprintf("%s %s ?", sort.Column, op))
+		fmt.Fprintf(&b, "%s %s ?", sort.Column, op)
+
 		args = append(args, cursor)
 	}
 
 	// Push sort using direct column reference.
 	if sort != nil {
-		b.WriteString(fmt.Sprintf(" ORDER BY %s", sort.Column))
+		fmt.Fprintf(&b, " ORDER BY %s", sort.Column)
+
 		if sort.Desc {
 			b.WriteString(" DESC")
 		}
@@ -184,6 +187,7 @@ func (e *plannedSQLiteEngine) PushdownMapScan(
 	// Push limit.
 	if limit > 0 {
 		b.WriteString(" LIMIT ?")
+
 		args = append(args, limit+1)
 	}
 
@@ -201,6 +205,7 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 			for k, v := range m {
 				if strings.EqualFold(k, c.Name) {
 					result[c.Name] = v
+
 					break
 				}
 			}
@@ -224,6 +229,7 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 		for k, v := range m {
 			if strings.EqualFold(k, c.Name) {
 				result[c.Name] = v
+
 				break
 			}
 		}

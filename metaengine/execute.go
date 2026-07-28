@@ -154,6 +154,7 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	// LIMIT into SQL instead of loading all rows into Go.
 	if ps, ok := q.engine.(PushdownScan); ok && canPushdown(q.config) {
 		specs := buildFilterSpecs(q.config, input)
+
 		var sortSpec *SortSpec
 		if q.config.sortAccessor.spec != nil {
 			sortSpec = q.config.sortAccessor.spec
