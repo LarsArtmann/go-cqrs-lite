@@ -507,7 +507,7 @@
 
             # verify-parallel: run module tests in parallel batches (race ON).
             # Cuts ~4min sequential verify to ~1-2min depending on CPU cores.
-            verify-parallel = mkApp "verify-parallel" [ goPkg pkgs.bash pkgs.coreutils ] ''
+            verify-parallel = mkApp "verify-parallel" [ goPkg pkgs.bash pkgs.coreutils pkgs.gcc ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/verify-parallel.sh" "$@"
             '';
 
@@ -579,19 +579,21 @@
               echo "==> Secret scan complete"
             '';
 
-            verify = mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ] ''
-              export CGO_ENABLED=1
-              ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
-              echo "=== Module Coverage ===" && nix run .#check-modules && \
-              echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
-              echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
-              echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 && \
-              echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 && \
-              echo "=== Lint ===" && nix run .#lint && \
-              echo "=== API Stability ===" && nix run .#check-api-stability && \
-              echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md) && \
-              echo "✅ All verification checks passed"
-            '';
+            verify =
+              mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
+                ''
+                  export CGO_ENABLED=1
+                  ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
+                  echo "=== Module Coverage ===" && nix run .#check-modules && \
+                  echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
+                  echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
+                  echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 && \
+                  echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 && \
+                  echo "=== Lint ===" && nix run .#lint && \
+                  echo "=== API Stability ===" && nix run .#check-api-stability && \
+                  echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md) && \
+                  echo "✅ All verification checks passed"
+                '';
 
             # verify-fast: same as verify but passes -short to skip soak tests
             # (benchkit 35s soak suite). Use for rapid iteration during development.
