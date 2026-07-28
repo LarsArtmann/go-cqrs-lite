@@ -285,6 +285,101 @@ func TestDBHandle_Close(t *testing.T) {
 	}
 }
 
+func TestDuckDBDialect_Placeholder(t *testing.T) {
+	t.Parallel()
+
+	d := sqlpkg.DuckDBDialect{}
+
+	tests := []struct {
+		index    int
+		expected string
+	}{
+		{1, "$1"},
+		{2, "$2"},
+		{10, "$10"},
+	}
+
+	for _, tt := range tests {
+		if got := d.Placeholder(tt.index); got != tt.expected {
+			t.Errorf("Placeholder(%d) = %q, want %q", tt.index, got, tt.expected)
+		}
+	}
+}
+
+func TestDuckDBDialect_FormatTime(t *testing.T) {
+	t.Parallel()
+
+	d := sqlpkg.DuckDBDialect{}
+	now := time.Now()
+
+	result := d.FormatTime(now)
+	tp, ok := result.(time.Time)
+	if !ok {
+		t.Fatalf("FormatTime returned %T, want time.Time", result)
+	}
+
+	if !tp.Equal(now) {
+		t.Errorf("FormatTime = %v, want %v", tp, now)
+	}
+}
+
+func TestDuckDBDialect_ScanTimeDest(t *testing.T) {
+	t.Parallel()
+
+	d := sqlpkg.DuckDBDialect{}
+	dest := d.ScanTimeDest()
+
+	if _, ok := dest.(*time.Time); !ok {
+		t.Fatalf("ScanTimeDest returned %T, want *time.Time", dest)
+	}
+}
+
+func TestDuckDBDialect_ParseTime(t *testing.T) {
+	t.Parallel()
+
+	d := sqlpkg.DuckDBDialect{}
+	now := time.Now()
+
+	tp := &now
+	parsed, err := d.ParseTime(tp)
+	if err != nil {
+		t.Fatalf("ParseTime: %v", err)
+	}
+
+	if !parsed.Equal(now) {
+		t.Errorf("ParseTime = %v, want %v", parsed, now)
+	}
+}
+
+func TestDuckDBDialect_ParseTime_WrongType(t *testing.T) {
+	t.Parallel()
+
+	d := sqlpkg.DuckDBDialect{}
+
+	_, err := d.ParseTime("not a *time.Time")
+	if err == nil {
+		t.Fatal("expected error for wrong type")
+	}
+}
+
+func TestDuckDBDialect_Schemas(t *testing.T) {
+	t.Parallel()
+
+	assertSchemasNonEmpty(t, sqlpkg.DuckDBDialect{})
+}
+
+func TestDuckDBDialect_CommandSchema(t *testing.T) {
+	t.Parallel()
+
+	s := sqlpkg.DuckDBDialect{}.CommandSchema()
+	if s == "" {
+		t.Error("CommandSchema returned empty string")
+	}
+	if !contains(s, "commands") {
+		t.Error("CommandSchema should contain 'commands' table")
+	}
+}
+
 func TestPlaceholders(t *testing.T) {
 	t.Parallel()
 
@@ -296,7 +391,9 @@ func TestPlaceholders(t *testing.T) {
 	}{
 		{sqlpkg.SQLiteDialect{}, 3, 0, "?, ?, ?"},
 		{sqlpkg.PostgresDialect{}, 3, 0, "$1, $2, $3"},
+		{sqlpkg.DuckDBDialect{}, 3, 0, "$1, $2, $3"},
 		{sqlpkg.PostgresDialect{}, 2, 3, "$4, $5"},
+		{sqlpkg.DuckDBDialect{}, 2, 3, "$4, $5"},
 		{sqlpkg.SQLiteDialect{}, 1, 0, "?"},
 	}
 

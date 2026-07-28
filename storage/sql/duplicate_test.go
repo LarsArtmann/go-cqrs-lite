@@ -44,6 +44,11 @@ func TestIsDuplicateKeyError(t *testing.T) {
 		{"wrapped pg duplicate", fmt.Errorf("save: %w", pgFakeError{code: pgDuplicateCode}), true},
 		{"wrapped sqlite string", fmt.Errorf("insert: %w",
 			errors.New("UNIQUE constraint failed: t.x")), true},
+
+		// DuckDB string fallback (DuckDB reports "Constraint Error: UNIQUE constraint violated").
+		{"duckdb string fallback", errors.New("Constraint Error: UNIQUE constraint violated: t.x"), true},
+		{"duckdb wrapped", fmt.Errorf("insert: %w",
+			errors.New("Constraint Error: UNIQUE constraint violated: events.id")), true},
 	}
 
 	for _, tc := range tests {

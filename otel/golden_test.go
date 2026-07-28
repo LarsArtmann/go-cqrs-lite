@@ -9,9 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.opentelemetry.io/otel/attribute"
-
 	"github.com/gkampitakis/go-snaps/snaps"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
