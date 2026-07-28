@@ -44,8 +44,8 @@ this list and recorded in CHANGELOG.
 - [ ] **Run `nix run .#vulncheck`** — verify no known vulnerabilities across
       all module deps after v4.2.0.
 - [ ] **Verify v4.2.0 tags resolve from a clean module** — `cd /tmp && mkdir
-  test-resolve && cd test-resolve && go mod init test && GOWORK=off go get
-  github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
+test-resolve && cd test-resolve && go mod init test && GOWORK=off go get
+github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
       published module resolves without workspace-local replaces.
 - [ ] **Publish go-finding + go-must as tagged modules** — the go.mod replace
       directives are needed for dev; consumers resolving the published modules
