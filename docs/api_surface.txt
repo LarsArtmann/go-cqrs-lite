@@ -1327,10 +1327,8 @@ metaengine/const ComplexityODegree
 metaengine/const ComplexityOLogN
 metaengine/const ComplexityON
 metaengine/const ComplexityONLogN
-metaengine/const DefaultNsPerOp
 metaengine/const DefaultWriteAmplificationBudget
 metaengine/const DiagLevelDegraded
-metaengine/const DiagLevelInfo
 metaengine/const DiagLevelWarn
 metaengine/const FoldAppend
 metaengine/const FoldCount
@@ -1386,7 +1384,6 @@ metaengine/method CounterGet
 metaengine/method CounterIncrement
 metaengine/method CounterIncrement
 metaengine/method Encode
-metaengine/method EventTypeNames
 metaengine/method EventTypes
 metaengine/method Execute
 metaengine/method ExecuteCtx
