@@ -164,9 +164,24 @@ cqrs-bench run --backend memory --profile small --repeat 5
 
 The metaengine planner uses calibrated cost constants to select the optimal engine per query:
 
-| Operation | Memory Engine | SQLite Engine |
-| --------- | ------------- | ------------- |
-| MapSet    | 466 ns        | 6,548 ns      |
-| MapGet    | 21 ns         | 4,960 ns      |
+| Operation | Memory Engine | SQLite Engine | Pebble Engine |
+| --------- | ------------- | ------------- | ------------- |
+| MapSet    | 466 ns        | 6,548 ns      | 1,785 ns      |
+| MapGet    | 21 ns         | 4,960 ns      | 708 ns        |
 
-Planner constants: `MemoryNsPerOp=500`, `SQLiteNsPerOp=7000`. The planner selects Memory for O(1) point lookups and SQLite for persistent/complex queries.
+Planner constants: `MemoryNsPerOp=500`, `SQLiteNsPerOp=7000`, `PebbleNsPerOp=1200`.
+The planner selects Memory for O(1) point lookups and SQLite for persistent/complex queries.
+
+Pebble is **7x faster** than SQLite on point reads and **3.7x faster** on writes (LSM vs B-tree).
+
+### Layout Planning: Naive vs Planned (10K rows)
+
+| Pattern | Naive (json_extract) | Planned (indexed) | Speedup |
+| ------- | -------------------- | ----------------- | ------- |
+| FilterByStatus | ~91,500 ns | ~45,500 ns | **2.0x** |
+| FilterAndSort | ~17,050,000 ns | ~1,700,000 ns | **10x** |
+| PointLookup | ~15,200 ns | ~11,400 ns | 1.3x |
+
+The core hypothesis is validated: deployment-time layout optimization produces measurably
+better query performance. The planned engine extracts declared filter/sort fields into
+indexed columns at DDL time, replacing `json_extract()` with direct column references.

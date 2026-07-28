@@ -1,55 +1,111 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-07-28T16:21:17.761179787Z",
+  "recordedAt": "2026-07-28T22:53:07.392151066Z",
   "entries": [
     {
       "hash": "0c9116afe1248bbb",
-      "files": ["command/command.go", "event/event.go", "query/query.go"],
-      "tokens": 9
-    },
-    {
-      "hash": "1aacd504be9c3da7",
-      "files": ["kv/mem.go", "dispatcher/lifecycle.go"],
-      "tokens": 6
-    },
-    {
-      "hash": "33ed606dab284672",
-      "files": ["storage/pg_bus_dispatch.go", "command/memory_bus.go"],
-      "tokens": 6
-    },
-    {
-      "hash": "37f51fb3d742f359",
-      "files": ["metaengine/fold.go", "storage/view/auto.go"],
-      "tokens": 6
-    },
-    {
-      "hash": "3a8477484cfe9ca4",
-      "files": ["projectionhost/dlq.go", "middleware/deadletter.go"],
-      "tokens": 6
-    },
-    {
-      "hash": "4f356606f49514ed",
       "files": [
-        "storage/memory/command_store.go",
-        "storage/memory/snapshot.go",
-        "storage/memory/query_store.go"
+        "command/command.go",
+        "event/event.go",
+        "query/query.go"
       ],
       "tokens": 9
     },
     {
+      "hash": "1aacd504be9c3da7",
+      "files": [
+        "kv/mem.go",
+        "dispatcher/lifecycle.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "33ed606dab284672",
+      "files": [
+        "storage/pg_bus_dispatch.go",
+        "command/memory_bus.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "37f51fb3d742f359",
+      "files": [
+        "metaengine/fold.go",
+        "storage/view/auto.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "3a8477484cfe9ca4",
+      "files": [
+        "projectionhost/dlq.go",
+        "middleware/deadletter.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "400132d283670d88",
+      "files": [
+        "stack/sqlite/preset.go",
+        "stack/duckdb/preset.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "4f356606f49514ed",
+      "files": [
+        "storage/memory/checkpoint.go",
+        "storage/memory/command_store.go",
+        "storage/memory/snapshot.go",
+        "storage/memory/query_store.go"
+      ],
+      "tokens": 12
+    },
+    {
+      "hash": "550f4ba1d7b15437",
+      "files": [
+        "catalog/asyncapi/snaps_clean_test.go",
+        "catalog/d2/snaps_clean_test.go",
+        "catalog/eventcatalog/snaps_clean_test.go",
+        "catalog/openapi/snaps_clean_test.go",
+        "codec/snaps_clean_test.go",
+        "listing/snaps_clean_test.go",
+        "middleware/snaps_clean_test.go",
+        "otel/snaps_clean_test.go",
+        "schema/snaps_clean_test.go",
+        "signing/snaps_clean_test.go",
+        "snapshot/snaps_clean_test.go",
+        "storage/memory/snaps_clean_test.go",
+        "storage/pebble/snaps_clean_test.go",
+        "storage/snaps_clean_test.go",
+        "storage/turso/snaps_clean_test.go",
+        "watermill/snaps_clean_test.go"
+      ],
+      "tokens": 48
+    },
+    {
       "hash": "5a46df6a5b2a2414",
-      "files": ["benchkit/benchtest.go", "benchkit/benchkit_test.go"],
+      "files": [
+        "benchkit/benchtest.go",
+        "benchkit/benchkit_test.go"
+      ],
       "tokens": 6
     },
     {
       "hash": "5f5a8769ab3f049a",
-      "files": ["middleware/retry.go", "middleware/circuit_breaker.go"],
+      "files": [
+        "middleware/retry.go",
+        "middleware/circuit_breaker.go"
+      ],
       "tokens": 6
     },
     {
       "hash": "6d06d542ca42c1ec",
-      "files": ["storage/memory/store_load.go", "storage/memory/store_load.go"],
+      "files": [
+        "storage/memory/store_load.go",
+        "storage/memory/store_load.go"
+      ],
       "tokens": 6
     },
     {
@@ -62,38 +118,82 @@
       "tokens": 9
     },
     {
+      "hash": "93afccb8527cbbb4",
+      "files": [
+        "metaengine/pebbleengine/engine.go",
+        "metaengine/pebbleengine/engine.go"
+      ],
+      "tokens": 10
+    },
+    {
+      "hash": "9f4ff25f00cacc23",
+      "files": [
+        "event/v4/eventtest/golden.go",
+        "catalog/internal/cattest/catalog.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "a242d3f949e952be",
+      "files": [
+        "metaengine/pebbleengine/pebbleengine_test.go",
+        "metaengine/pebbleengine/pebbleengine_test.go",
+        "metaengine/pebbleengine/pebbleengine_test.go",
+        "metaengine/pebbleengine/pebbleengine_test.go",
+        "metaengine/pebbleengine/pebbleengine_test.go",
+        "metaengine/pebbleengine/pebbleengine_test.go"
+      ],
+      "tokens": 30
+    },
+    {
       "hash": "b343a28cac468fde",
-      "files": ["storage/pg_bus_dispatch.go", "command/memory_bus.go"],
+      "files": [
+        "storage/pg_bus_dispatch.go",
+        "command/memory_bus.go"
+      ],
       "tokens": 6
     },
     {
       "hash": "b87288a24d3e70e3",
       "files": [
         "storage/memory/store.go",
+        "storage/memory/checkpoint.go",
         "storage/memory/snapshot.go",
         "storage/memory/command_store.go",
         "storage/memory/query_store.go"
       ],
-      "tokens": 12
+      "tokens": 15
     },
     {
-      "hash": "d76703d70d6dd341",
-      "files": ["stack/postgres/preset.go", "stack/sqlite/preset.go"],
+      "hash": "d84edf168d1c9296",
+      "files": [
+        "storage/sql/dialect.go",
+        "storage/sql/dialect.go"
+      ],
       "tokens": 6
     },
     {
       "hash": "f1fdc350337a2ec2",
-      "files": ["stack/contracttest/contract.go", "stack/contracttest/multidb.go"],
+      "files": [
+        "stack/contracttest/contract.go",
+        "stack/contracttest/multidb.go"
+      ],
       "tokens": 6
     },
     {
       "hash": "f260faa278a8b3a2",
-      "files": ["signing/hmac.go", "signing/cose.go"],
+      "files": [
+        "signing/hmac.go",
+        "signing/cose.go"
+      ],
       "tokens": 8
     },
     {
       "hash": "fc3e850f71cdf42a",
-      "files": ["storage/pebble/command_read.go", "storage/pebble/query_read.go"],
+      "files": [
+        "storage/pebble/command_read.go",
+        "storage/pebble/query_read.go"
+      ],
       "tokens": 6
     }
   ]
