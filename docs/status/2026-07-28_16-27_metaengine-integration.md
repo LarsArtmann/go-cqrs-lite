@@ -9,11 +9,13 @@
 ## a) FULLY DONE
 
 ### Pre-implementation work (earlier in session)
+
 1. **Delete-vs-replace audit** (`docs/status/2026-07-28_15-37_delete-vs-replace-audit.md`) — surveyed all 58 modules, identified ghost systems, dead code, reinvented wheels. Corrected after owner clarified metaengine + catalog are strategic.
 2. **Integration-first execution plan** (`docs/planning/2026-07-28_15-51_integration-first-execution-plan.md`) — Pareto breakdown (1%/4%/20%/80%), mermaid graph, 26-task table, 12-min micro-breakdown. Committed + pushed.
 3. **AGENTS.md canonical docs marking** — marked the 3 meta-engine design docs as canonical reading, flagged metaengine as "THE STRATEGIC FUTURE." Committed + pushed.
 
 ### Implementation (the 1% → 51% task)
+
 4. **Read the full metaengine core API** — `store.go`, `fold.go`, `fold_classify.go`, `execute.go`, `planner.go`, `query.go`, `projectionadapter/adapter.go`, `projectionadapter/adapter_test.go`. Understood `On`, `Query`, `Plan`, `Apply`, `ExecuteTyped`, ADT inference, read-pattern derivation.
 5. **Created `example/taskmanager/metaengine.go`** — Counter ADT query (`task_counts_by_status`) with 4 fold handlers (created→+pending, started→+active/-pending, completed→+completed/-active, archived→+archived/-completed). `onTyped` helper to map CQRS event type strings to metaengine folds. Payload decoder. `setupMetaEngine()` with planner decision logging. `GET /api/stats` HTTP handler.
 6. **Wired into `setup.go`** — `MetaEngine *metaengine.Store` on Server struct, `setupMetaEngine()` called, projectionadapter registered with projHost alongside existing Materialize + deriver projections.
@@ -26,7 +28,9 @@
 13. **Committed + pushed** (auto-commit daemon captured the implementation; I committed the gitignore hardening).
 
 ### The planner showcase
+
 The test log proves the cost-based planner works:
+
 ```
 metaengine: query planned query=task_counts_by_status adt=counter engine=memory complexity=O(1) read_pattern=aggregate estimated_latency_ms=0.0005
 ```
@@ -37,7 +41,7 @@ metaengine: query planned query=task_counts_by_status adt=counter engine=memory 
 
 1. **The `onTyped` helper is a workaround.** metaengine.On infers event types from `reflect.Type.Name()` (Go struct name), but the CQRS event store uses semantic strings ("task.created"). I override `fold.EventType` after construction. This works but is a friction point that every consumer will hit. A first-class `OnTyped(eventType string, sample E, handler any)` in metaengine itself would be better. I did NOT file this as an issue or TODO.
 
-2. **Only one ADT demonstrated.** The plan called for the "Showcase" path — demonstrating the planner picking backends for *different* query shapes (Counter for counts, Map for lookups). I only implemented Counter. A Map-based query (e.g. "find task by ID") would show the planner making a *different* ADT inference and assignment, which is the real showcase of the cost-based optimizer.
+2. **Only one ADT demonstrated.** The plan called for the "Showcase" path — demonstrating the planner picking backends for _different_ query shapes (Counter for counts, Map for lookups). I only implemented Counter. A Map-based query (e.g. "find task by ID") would show the planner making a _different_ ADT inference and assignment, which is the real showcase of the cost-based optimizer.
 
 3. **The `handleGetTaskStats` handler doesn't use `context.Context` properly.** It uses `r.Context()` which is correct, but the `ExecuteTyped` call doesn't pass through any tracing/OTel context that the rest of the example has wired. The metaengine query path is not instrumented.
 
@@ -77,7 +81,7 @@ From the execution plan, these tasks remain:
 
 1. **Add `OnTyped` to metaengine core.** The `onTyped` workaround in taskmanager is a symptom. Every CQRS consumer using metaengine will need to override the event type because CQRS uses semantic strings, not Go struct names. This should be a first-class API: `metaengine.OnTyped(eventType string, sample E, handler any) Fold`.
 
-2. **Add a second metaengine query (Map ADT) to the showcase.** The Counter alone doesn't prove the *planner* is valuable — any counter could. Adding a Map-based point-lookup query (e.g. "find task by ID") demonstrates the planner inferring *different* ADTs and making *different* engine assignments for the same event stream.
+2. **Add a second metaengine query (Map ADT) to the showcase.** The Counter alone doesn't prove the _planner_ is valuable — any counter could. Adding a Map-based point-lookup query (e.g. "find task by ID") demonstrates the planner inferring _different_ ADTs and making _different_ engine assignments for the same event stream.
 
 3. **Instrument the metaengine query path with OTel.** The rest of the example has tracing; the `/api/stats` endpoint has none. The planner decision should be a span event.
 
@@ -94,6 +98,7 @@ From the execution plan, these tasks remain:
 Sorted by Pareto priority (impact/effort).
 
 ### Immediate fixes for what I just shipped
+
 1. Run `nix run .#verify` to confirm the full project is green after the metaengine integration
 2. Verify standalone build: `cd example/taskmanager && GOWORK=off go build -tags "goexperiment.jsonv2" ./...`
 3. Run `GOWORK=off go mod tidy` in example/taskmanager to clean the go.sum
@@ -104,6 +109,7 @@ Sorted by Pareto priority (impact/effort).
 8. Add the planner `Plan()` output to the `/health` or `/api/stats` response (visible optimizer reasoning)
 
 ### The 4% tasks (high impact)
+
 9. **Deriver split-brain:** read `deriver/deriver.go` + `deriver/doc.go`
 10. **Deriver split-brain:** rewrite `example/taskmanager/deriver.go` using `deriver.Then`/`deriver.AsHandler`
 11. **Deriver split-brain:** verify taskmanager tests still pass after the swap
@@ -113,6 +119,7 @@ Sorted by Pareto priority (impact/effort).
 15. **Cache split-brain:** verify no benchmark regression >10%
 
 ### The 20% tasks
+
 16. **Catalog → taskmanager:** read `catalog/simple/builder.go` facade
 17. **Catalog → taskmanager:** create `example/taskmanager/catalog.go` registering domain/service/events
 18. **Catalog → taskmanager:** generate AsyncAPI + OpenAPI to `example/taskmanager/docs/`
@@ -128,6 +135,7 @@ Sorted by Pareto priority (impact/effort).
 28. **gRPC example:** verify gRPC client can dispatch commands/queries
 
 ### The other 20%
+
 29. **turso indexing:** wire `WithAutoIndexing` into `stack/turso` as opt-in
 30. **turso indexing:** add a demo line showing the opt-in
 31. **Retry ADR:** write `docs/adr/XXXX-retry-zero-dep-rationale.md`
@@ -144,6 +152,7 @@ Sorted by Pareto priority (impact/effort).
 42. **Storage audit:** scan storage/ (15,404 LOC) for sub-package split candidates
 
 ### Polish and verification
+
 43. Run `nix run .#verify` at the end of ALL remaining changes
 44. Run `nix run .#check-layers` to verify dependency budgets after any library swap
 45. Run `nix run .#check-duplication` to verify no new code clones
@@ -161,7 +170,7 @@ Sorted by Pareto priority (impact/effort).
 The workaround (`fold.EventType = eventType` after `On()` construction) works but every CQRS consumer will need it because CQRS uses semantic event type strings, not Go struct names. Adding `OnTyped(eventType string, sample E, handler any)` to metaengine would eliminate this friction. But it changes the metaengine core API surface, which is the strategic future module. I can't decide whether this is a core improvement or a consumer concern.
 
 **Q2: Should the taskmanager metaengine showcase add a second query (Map ADT) now, or is the Counter sufficient for the first integration?**
-The Counter proves metaengine works. A Map query would prove the *planner* works (different ADT, different engine assignment). Adding it doubles the showcase value but also doubles the complexity of the example. Is the Counter enough to prove "the future is real," or do you want the full planner showcase before moving to the next task?
+The Counter proves metaengine works. A Map query would prove the _planner_ works (different ADT, different engine assignment). Adding it doubles the showcase value but also doubles the complexity of the example. Is the Counter enough to prove "the future is real," or do you want the full planner showcase before moving to the next task?
 
 **Q3: After the metaengine integration, should I proceed to the deriver split-brain fix (T6) or the cache split-brain fix (T8) next?**
 Both are in the 4% tier. The deriver fix proves the `deriver/` package (zero consumers). The cache fix resolves a policy violation (hand-rolled LRU vs mandated otter). The deriver is more visible (it's in the example); the cache is more correct (policy compliance). I can argue both directions.
