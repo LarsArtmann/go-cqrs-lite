@@ -11,6 +11,7 @@
 package pebbleengine
 
 import (
+	"bytes"
 	"context"
 	"encoding/binary"
 	"encoding/json/v2"
@@ -259,14 +260,13 @@ func (e *pebbleEngine) MapUpdate(
 func (e *pebbleEngine) MapScan(
 	_ context.Context,
 	col string,
-	filters []metaengine.FilterSpec,
-	sortSpec *metaengine.SortSpec,
+	filterFn func(item any) bool,
+	sortFunc func(a, b any) int,
 	cursor any,
 	limit int,
 ) ([]any, error) {
 	prefix := collectionPrefix(col)
 
-	// Use LowerBound/UpperBound for an efficient prefix scan.
 	upperBound := nextKey(prefix)
 
 	iter, err := e.db.NewIter(&pebble.IterOptions{
@@ -289,7 +289,7 @@ func (e *pebbleEngine) MapScan(
 	for iter.First(); iter.Valid(); iter.Next() {
 		val := decodeJSON(iter.Value())
 
-		if !passesPebbleFilters(val, filters) {
+		if filterFn != nil && !filterFn(val) {
 			continue
 		}
 
@@ -301,33 +301,22 @@ func (e *pebbleEngine) MapScan(
 	}
 
 	// Sort in Go (Pebble has no secondary index).
-	if sortSpec != nil {
+	if sortFunc != nil {
 		sort.Slice(pairs, func(i, j int) bool {
-			c := comparePebbleValues(
-				extractField(pairs[i].value, sortSpec.Column),
-				extractField(pairs[j].value, sortSpec.Column),
-			)
-			if sortSpec.Desc {
-				return c > 0
+			if c := sortFunc(pairs[i].value, pairs[j].value); c != 0 {
+				return c < 0
 			}
 
-			return c < 0
+			return bytes.Compare(pairs[i].key, pairs[j].key) < 0
 		})
 	}
 
 	// Keyset pagination.
-	if cursor != nil && sortSpec != nil {
+	if cursor != nil && sortFunc != nil {
 		filtered := pairs[:0]
 		for _, p := range pairs {
-			fieldVal := extractField(p.value, sortSpec.Column)
-			if sortSpec.Desc {
-				if comparePebbleValues(fieldVal, cursor) >= 0 {
-					continue
-				}
-			} else {
-				if comparePebbleValues(fieldVal, cursor) <= 0 {
-					continue
-				}
+			if sortFunc(p.value, cursor) <= 0 {
+				continue
 			}
 
 			filtered = append(filtered, p)
@@ -625,110 +614,4 @@ func nextKey(prefix []byte) []byte {
 
 	// All bytes were 0xFF — return a longer key.
 	return append(result, 0)
-}
-
-// passesPebbleFilters checks if a value passes all filter specs.
-func passesPebbleFilters(value any, filters []metaengine.FilterSpec) bool {
-	if len(filters) == 0 {
-		return true
-	}
-
-	for _, f := range filters {
-		fieldVal := extractField(value, f.Column)
-		if !compareFilter(fieldVal, f.Op, f.Value) {
-			return false
-		}
-	}
-
-	return true
-}
-
-// extractField extracts a field value from a map[string]any (JSON-decoded).
-func extractField(value any, field string) any {
-	m, ok := value.(map[string]any)
-	if !ok {
-		return nil
-	}
-
-	// Case-insensitive field lookup.
-	for k, v := range m {
-		if strings.EqualFold(k, field) {
-			return v
-		}
-	}
-
-	return nil
-}
-
-// compareFilter checks if val op target.
-func compareFilter(val any, op metaengine.FilterOp, target any) bool {
-	c := comparePebbleValues(val, target)
-
-	switch op {
-	case metaengine.FilterEq:
-		return c == 0
-	case metaengine.FilterNe:
-		return c != 0
-	case metaengine.FilterLt:
-		return c < 0
-	case metaengine.FilterLe:
-		return c <= 0
-	case metaengine.FilterGt:
-		return c > 0
-	case metaengine.FilterGe:
-		return c >= 0
-	default:
-		return false
-	}
-}
-
-// comparePebbleValues performs a type-aware tri-state comparison.
-func comparePebbleValues(left, right any) int {
-	fl, okL := toFloat(left)
-	fr, okR := toFloat(right)
-
-	if okL && okR {
-		if fl < fr {
-			return -1
-		}
-
-		if fl > fr {
-			return 1
-		}
-
-		return 0
-	}
-
-	return strings.Compare(fmt.Sprintf("%v", left), fmt.Sprintf("%v", right))
-}
-
-func toFloat(v any) (float64, bool) {
-	switch n := v.(type) {
-	case int:
-		return float64(n), true
-	case int8:
-		return float64(n), true
-	case int16:
-		return float64(n), true
-	case int32:
-		return float64(n), true
-	case int64:
-		return float64(n), true
-	case uint:
-		return float64(n), true
-	case uint8:
-		return float64(n), true
-	case uint16:
-		return float64(n), true
-	case uint32:
-		return float64(n), true
-	case uint64:
-		return float64(n), true
-	case float32:
-		return float64(n), true
-	case float64:
-		return n, true
-	default:
-		return 0, false
-	}
 }
