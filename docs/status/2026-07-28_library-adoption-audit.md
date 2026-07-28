@@ -7,20 +7,20 @@
 
 ## Summary Matrix
 
-| #   | Subsystem                  | Location                                    | LOC  | Current                                 | Recommendation                          | Priority |
-| --- | -------------------------- | ------------------------------------------- | ---- | --------------------------------------- | --------------------------------------- | -------- |
-| 1   | LRU cache                  | `decider/cache.go`                          | 126  | Hand-rolled (`container/list` + `map`)  | **ADOPT otter/v2**                      | P0       |
-| 2   | Circuit breaker            | `middleware/circuit_breaker.go`             | 243  | Hand-rolled (`atomic` + `sync.Mutex`)   | **ADOPT failsafe-go**                   | P0       |
-| 3   | Postgres integration tests | `stack/postgres/*_test.go`                  | —    | ~~`t.Skip` without `POSTGRES_TEST_DSN`~~ **ADOPTED testcontainers-go**    | ✅ **DONE** — postgres:16-alpine          | P1 ✅     |
-| 4   | Snapshot/golden tests      | `eventtest/golden.go`, `cattest/catalog.go` | ~60  | ~~Custom `AssertGolden` helpers~~ **ADOPTED go-snaps**           | ✅ **DONE** — snaps.MatchSnapshot        | P2 ✅     |
-| 5   | Retry module               | `retry/`                                    | 217  | Hand-rolled (zero-dep, extract planned) | **KEEP** (extract per ADR-0064)         | —        |
-| 6   | Dedup ring                 | `dedup/ring.go`                             | 95   | Hand-rolled ring buffer                 | **KEEP** (no library fit)               | —        |
-| 7   | SQL migrations             | `storage/migrations/`                       | —    | `//go:embed .sql`                       | **KEEP** (correct for library)          | —        |
-| 8   | SSE broker                 | `transport/http/sse.go`                     | —    | `net/http` stdlib                       | **KEEP** (correct for library)          | —        |
-| 9   | Singleflight               | `decider/load.go`                           | —    | `golang.org/x/sync/singleflight`        | **KEEP** (already correct)              | —        |
-| 10  | CLI tooling                | `cmd/cqrs-lint/main.go`                     | —    | `cmdguard` (on cobra)                   | **KEEP** (owner's wrapper)              | —        |
-| 11  | SQL queries                | `storage/**/*.go`                           | ~800 | Hand-written queries + manual scan      | **KEEP** (dynamic SQL doesn't fit sqlc) | —        |
-| 12  | Security tooling           | `.github/workflows/ci.yml`                  | —    | gosec + govulncheck in CI               | **KEEP** (already adopted)              | —        |
+| #   | Subsystem                  | Location                                    | LOC  | Current                                                                | Recommendation                          | Priority |
+| --- | -------------------------- | ------------------------------------------- | ---- | ---------------------------------------------------------------------- | --------------------------------------- | -------- |
+| 1   | LRU cache                  | `decider/cache.go`                          | 126  | Hand-rolled (`container/list` + `map`)                                 | **ADOPT otter/v2**                      | P0       |
+| 2   | Circuit breaker            | `middleware/circuit_breaker.go`             | 243  | Hand-rolled (`atomic` + `sync.Mutex`)                                  | **ADOPT failsafe-go**                   | P0       |
+| 3   | Postgres integration tests | `stack/postgres/*_test.go`                  | —    | ~~`t.Skip` without `POSTGRES_TEST_DSN`~~ **ADOPTED testcontainers-go** | ✅ **DONE** — postgres:16-alpine        | P1 ✅    |
+| 4   | Snapshot/golden tests      | `eventtest/golden.go`, `cattest/catalog.go` | ~60  | ~~Custom `AssertGolden` helpers~~ **ADOPTED go-snaps**                 | ✅ **DONE** — snaps.MatchSnapshot       | P2 ✅    |
+| 5   | Retry module               | `retry/`                                    | 217  | Hand-rolled (zero-dep, extract planned)                                | **KEEP** (extract per ADR-0064)         | —        |
+| 6   | Dedup ring                 | `dedup/ring.go`                             | 95   | Hand-rolled ring buffer                                                | **KEEP** (no library fit)               | —        |
+| 7   | SQL migrations             | `storage/migrations/`                       | —    | `//go:embed .sql`                                                      | **KEEP** (correct for library)          | —        |
+| 8   | SSE broker                 | `transport/http/sse.go`                     | —    | `net/http` stdlib                                                      | **KEEP** (correct for library)          | —        |
+| 9   | Singleflight               | `decider/load.go`                           | —    | `golang.org/x/sync/singleflight`                                       | **KEEP** (already correct)              | —        |
+| 10  | CLI tooling                | `cmd/cqrs-lint/main.go`                     | —    | `cmdguard` (on cobra)                                                  | **KEEP** (owner's wrapper)              | —        |
+| 11  | SQL queries                | `storage/**/*.go`                           | ~800 | Hand-written queries + manual scan                                     | **KEEP** (dynamic SQL doesn't fit sqlc) | —        |
+| 12  | Security tooling           | `.github/workflows/ci.yml`                  | —    | gosec + govulncheck in CI                                              | **KEEP** (already adopted)              | —        |
 
 ---
 
@@ -200,9 +200,9 @@ library modules.
 
 ## Execution Priority
 
-| Priority | Task                               | Effort | Impact                                    |
-| -------- | ---------------------------------- | ------ | ----------------------------------------- |
-| **P0**   | otter → decider/cache.go           | 1h     | Unifies cache strategy, policy compliance |
-| **P0**   | failsafe-go → circuit_breaker.go   | 2-3h   | Production-grade resilience, composable   |
+| Priority  | Task                                   | Effort | Impact                                    |
+| --------- | -------------------------------------- | ------ | ----------------------------------------- |
+| **P0**    | otter → decider/cache.go               | 1h     | Unifies cache strategy, policy compliance |
+| **P0**    | failsafe-go → circuit_breaker.go       | 2-3h   | Production-grade resilience, composable   |
 | **P1** ✅ | ~~testcontainers-go → stack/postgres~~ | 1-2h   | Real DB tests run everywhere              |
 | **P2** ✅ | ~~go-snaps → golden helpers~~          | 2-3h   | Standardized snapshot testing             |
