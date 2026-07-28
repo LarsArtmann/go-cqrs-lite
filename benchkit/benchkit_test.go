@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json/v2"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
@@ -1247,15 +1246,12 @@ func TestRun_DiskSizerFallback(t *testing.T) {
 	}
 }
 
-// ── Postgres backend test (skips without POSTGRES_TEST_DSN) ──
+// ── Postgres backend test (testcontainers when POSTGRES_TEST_DSN unset) ──
 
 func TestRun_Postgres(t *testing.T) {
 	t.Parallel()
 
-	dsn := os.Getenv("POSTGRES_TEST_DSN")
-	if dsn == "" {
-		t.Skip("POSTGRES_TEST_DSN not set; skipping Postgres benchmark test")
-	}
+	dsn := benchPostgresDSN(t)
 
 	result := mustRun(t, Config{
 		Profile:     ProfileDev,
@@ -1289,10 +1285,7 @@ func TestRun_Postgres(t *testing.T) {
 func TestRun_Postgres_Recovery(t *testing.T) {
 	t.Parallel()
 
-	dsn := os.Getenv("POSTGRES_TEST_DSN")
-	if dsn == "" {
-		t.Skip("POSTGRES_TEST_DSN not set; skipping Postgres recovery test")
-	}
+	dsn := benchPostgresDSN(t)
 
 	result := mustRun(t, Config{
 		Profile:     ProfileDev,

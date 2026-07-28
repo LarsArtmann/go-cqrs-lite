@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // register pgx driver for CREATE DATABASE
-
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
