@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
 	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -332,11 +331,5 @@ func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
 // case, so the message contract is matched explicitly and lowercased to stay
 // robust against capitalization differences across driver versions.
 func isIndexAlreadyExists(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	msg := strings.ToLower(err.Error())
-
-	return strings.Contains(msg, "already exists")
+	return errContainsAny(err, "already exists")
 }

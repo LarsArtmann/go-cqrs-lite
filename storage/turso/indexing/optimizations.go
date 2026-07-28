@@ -117,13 +117,25 @@ func applyPragmas(ctx context.Context, db *sql.DB, pragmas []Pragma) error {
 }
 
 func isUnsupportedPragma(err error) bool {
+	return errContainsAny(err, "not a valid pragma", "unknown pragma", "unrecognized pragma")
+}
+
+// errContainsAny reports whether err's lowercased message contains any of the
+// given substrings. Returns false for a nil err. Shared by error-classification
+// predicates in this package (isUnsupportedPragma, isIndexAlreadyExists) that
+// match driver error messages the driver does not expose as typed codes.
+func errContainsAny(err error, substrings ...string) bool {
 	if err == nil {
 		return false
 	}
 
 	msg := strings.ToLower(err.Error())
 
-	return strings.Contains(msg, "not a valid pragma") ||
-		strings.Contains(msg, "unknown pragma") ||
-		strings.Contains(msg, "unrecognized pragma")
+	for _, s := range substrings {
+		if strings.Contains(msg, s) {
+			return true
+		}
+	}
+
+	return false
 }
