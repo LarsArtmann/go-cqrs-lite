@@ -111,15 +111,23 @@ func (d *Date) parseDateInto(s string) error {
 	return nil
 }
 
-// UnmarshalJSON implements json.Unmarshaler, parsing a "2006-01-02" string.
-func (d *Date) UnmarshalJSON(data []byte) error {
+// unmarshalJSONString unmarshals data as a JSON string, wrapping any decode
+// failure as a rejection with the given code and message. Shared by Date and
+// Instant UnmarshalJSON implementations.
+func unmarshalJSONString(data []byte, code, msg string) (string, error) {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-		return errorfamily.WrapRejection(
-			err,
-			"event.date_json_decode",
-			"date: failed to unmarshal JSON",
-		)
+		return "", errorfamily.WrapRejection(err, code, msg)
+	}
+
+	return s, nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler, parsing a "2006-01-02" string.
+func (d *Date) UnmarshalJSON(data []byte) error {
+	s, err := unmarshalJSONString(data, "event.date_json_decode", "date: failed to unmarshal JSON")
+	if err != nil {
+		return err
 	}
 
 	return d.parseDateInto(s)

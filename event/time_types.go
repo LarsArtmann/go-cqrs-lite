@@ -84,13 +84,9 @@ func (i Instant) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements json.Unmarshaler, parsing an RFC3339Nano string
 // and normalizing to UTC.
 func (i *Instant) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return errorfamily.WrapRejection(
-			err,
-			"event.instant_json_decode",
-			"instant: failed to unmarshal JSON",
-		)
+	s, err := unmarshalJSONString(data, "event.instant_json_decode", "instant: failed to unmarshal JSON")
+	if err != nil {
+		return err
 	}
 
 	t, err := time.Parse(time.RFC3339Nano, s)
