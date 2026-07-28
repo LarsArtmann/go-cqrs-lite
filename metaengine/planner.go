@@ -170,7 +170,7 @@ func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagn
 		diags = append(diags, Diagnostic{
 			Level:   DiagLevelDegraded,
 			Query:   meta.QueryName(),
-			Message: "filtered scan via in-memory O(N). SQLite offers O(NlogN) via PK-indexed load + Go-side sort; true O(logN) requires sort-column pushdown (ADR-0063).",
+			Message: "filtered scan via in-memory O(N). SQLite with FilterOnField/SortOnField offers O(logN) via json_extract pushdown.",
 		})
 	}
 

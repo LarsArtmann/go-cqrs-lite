@@ -16,14 +16,13 @@ import (
 // SQLite caller-owns-DB Close contract) that previously had no dedicated test.
 
 var _ = Describe("Regression: engine profile honesty", func() {
-	It("reports ADTSortedMap as O(NlogN) for SQLite, NOT the optimistic O(logN)", func() {
-		// The SQLite MapScan loads every row then sorts in Go: O(N) load +
-		// O(N log N) sort. The profile must claim O(NlogN), not O(logN), until
-		// sort-column pushdown lands (ADR-0063). This guards against a
-		// regression that would make the planner over-pick SQLite for scans.
+	It("reports ADTSortedMap as O(logN) for SQLite after pushdown implementation", func() {
+		// SQLite PushdownMapScan uses json_extract() WHERE/ORDER BY/LIMIT to
+		// achieve O(logN + k) for filtered+sorted scans. Queries using
+		// FilterOnField/SortOnField get the pushdown path; closure-based
+		// FilterOn/SortOn fall back to O(NlogN) MapScan.
 		p := metaengine.SQLiteEngineProfile()
-		Expect(p.Supports[metaengine.ADTSortedMap]).To(Equal(metaengine.ComplexityONLogN))
-		Expect(p.Supports[metaengine.ADTSortedMap]).NotTo(Equal(metaengine.ComplexityOLogN))
+		Expect(p.Supports[metaengine.ADTSortedMap]).To(Equal(metaengine.ComplexityOLogN))
 	})
 
 	It("reports ADTSortedMap for the memory engine", func() {

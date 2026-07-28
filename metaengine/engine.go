@@ -165,12 +165,12 @@ func SQLiteEngineProfile() EngineProfile {
 			ADTSet:     ComplexityOLogN,
 			ADTCounter: ComplexityO1,
 			ADTGraph:   ComplexityON,
-			// ADTSortedMap reflects the current MapScan implementation: SQLite
-			// loads every row in the collection via the (collection, key) PK
-			// index, then sorts in Go. That is O(N) load + O(N log N) sort, not
-			// true indexed scanning. Demoting from O(logN) to O(NlogN) is the
-			// honest claim until sort-column pushdown lands (ADR-0063).
-			ADTSortedMap: ComplexityONLogN,
+			// ADTSortedMap: SQLite now supports PushdownMapScan with json_extract()
+			// WHERE/ORDER BY/LIMIT, giving O(logN + k) instead of O(NlogN).
+			// Without pushdown (closure-based FilterOn/SortOn), the fallback
+			// MapScan path remains O(NlogN). The cost model uses O(logN) as the
+			// best-case estimate — queries using FilterOnField/SortOnField achieve it.
+			ADTSortedMap: ComplexityOLogN,
 			ADTLog:       ComplexityOLogN,
 			ADTMultimap:  ComplexityOLogN,
 		},
