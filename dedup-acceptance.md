@@ -1,8 +1,27 @@
 # Dedup Acceptance Log
 
-Remaining clone groups from `art-dupl --type-aware -t 3` after the dedup
-session. Each entry explains why the clone is intentional and should not be
+Remaining clone groups from `art-dupl --type-aware -t 2` after two dedup
+sessions. Each entry explains why the clone is intentional and should not be
 extracted.
+
+**Session 1 (-t 3):** 3 groups accepted (below).
+**Session 2 (-t 2):** 7 extractions applied, 53 groups remaining (all accepted below).
+
+---
+
+## Extractions Applied (Session 2)
+
+| Extraction | Files | Pattern Eliminated |
+| ---------- | ----- | ------------------ |
+| `Bundle.readModelCodec` | stack/accessors.go | ReadModels nil-check + codec default (2 sites) |
+| `lintutil.AppendBuild` | cmd/cqrs-lint (5 files + new pkg) | Build-error guard + append (5 sites) |
+| `errContainsAny` | storage/turso/indexing (2 files) | err-nil guard + lowercased Contains (2 sites) |
+| `withOutput` | cmd/cqrs-bench/output.go | openOutput + defer closeOutput (4 sites) |
+| `wrapInfraOrOK` | storage/turso/errors.go + sync.go | if-err-nil return WrapInfra; return nil (3 sites) |
+| `wrapInfraBytes` | encryption/errors.go + cose.go + hkdf.go | if-err-nil return nil, WrapInfra (3 sites) |
+| `unmarshalJSONString` | event/date.go + time_types.go | json.Unmarshal + WrapRejection (2 sites) |
+| `sliceIteratorOrErr` | storage/memory/stream.go | if-err + WrapInfra + SliceIterator (4 sites) |
+| `mergeKnows` + `knowsEdgeRef` | graph/graphtest/contract.go | RunInTx + MergeEdge + EdgeRef literal (5 sites) |
 
 ---
 
@@ -67,3 +86,67 @@ content (JS config export vs Markdown schemas header). The structural
 similarity is just `var X strings.Builder` followed by `X.WriteString(...)`.
 The values are intentionally unique; the structure is the standard library
 API.
+
+---
+
+## Session 2 Accepted Categories
+
+### Test Setup Boilerplate (9 groups, ~165 clones)
+
+`t.Parallel()` followed by a setup line (`NewTestRegistry()`, `t.TempDir()`,
+`id.NewStreamID()`, `NewWithT(t)`, `context.Background()`, `CBORCodec{}`,
+`errors.New("...")`, `idtest.ParseStreamID(...)`).
+
+**Rationale:** Idiomatic Go test setup. Each test independently chooses its
+setup combination; extracting a helper would take more parameters than lines
+saved. Per dedup skill: "Table-driven tests, standard assertions" are
+acceptable. Unique values (errors.New messages, ID literals) are parameters.
+
+### Per-Module Error Helpers (Group 10, 3 clones)
+
+`wrapInfraOrOK` / `wrapClosed` in storage/memory, storage/pebble,
+storage/readmodel. Identical 5-line body.
+
+**Rationale:** ADR-0069 mandates per-module helpers. Cross-module sharing
+would create cyclic deps or a new shared module for 5 lines.
+
+### Span Creation with Unique Names (~12 groups, ~24 clones)
+
+`span := start{Type}Span(ctx, "unique.span.name", ...); defer span.End()`
+
+**Rationale:** Each call uses a unique OTel span name (the operational
+identifier). Per dedup skill: "Unique values are parameters, not duplication."
+
+### Error Wrapping with Unique Codes (~15 groups, ~30 clones)
+
+`if err != nil { return errorfamily.WrapX(err, "unique.code", "msg") }`
+
+**Rationale:** The unique error codes ARE the convention. Where 3+ same-
+pattern sites exist in one module, per-module helpers were added (see
+Extractions). Remaining sites are 2-occurrence pairs across different
+modules with unique codes.
+
+### Sibling Preset Parallelism (~5 groups, ~10 clones)
+
+stack/sqlite, stack/postgres, stack/turso share near-identical structure.
+
+**Rationale:** Each preset owns its own error sentinels, doc comments, and
+convenience wrappers. They already delegate to `sqlopt`. The parallelism is
+intentional API consistency across deployment targets.
+
+### Cross-Module Structural Patterns (3 groups)
+
+- **command.Metadata vs query.Metadata**: type alias per ADR-0031. Each
+  module owns its Metadata to prevent event-shape leakage.
+- **signing/event.go vs encryption/event.go**: identical 4-line
+  `Classify(err) != Rejection` body. The `IsRejection` predicate belongs in
+  go-error-family (external); duplicated pending upstream addition.
+- **transport/grpc/otel.go vs transport/http/otel.go**: near-identical
+  `tracer()` wrapper. 2-line cost of per-module tracer naming.
+
+### 2-Occurrence Guard Clauses (~10 groups, ~20 clones)
+
+Mutex Lock+defer, filter guards, `if i == 0 { return false }`, reportScanErr,
+rebuildHandlerChain, circuit_breaker validate+apply, sql rows Close defer.
+
+**Rationale:** Below the 3+ extraction threshold per dedup skill.
