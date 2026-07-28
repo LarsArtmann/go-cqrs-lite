@@ -240,10 +240,6 @@ func (e *pebbleEngine) MapUpdate(
 ) error {
 	k := mapKey(col, encodeKeyStr(key))
 
-	// Read-modify-write under a batch for atomicity.
-	batch := e.db.NewBatch()
-	defer func() { _ = batch.Close() }()
-
 	var prev any
 
 	val, closer, err := e.db.Get(k)
@@ -255,11 +251,8 @@ func (e *pebbleEngine) MapUpdate(
 	}
 
 	newVal := update(prev)
-	if err := batch.Set(k, encodeJSON(newVal), nil); err != nil {
-		return err //nolint:wrapcheck // passthrough
-	}
 
-	return batch.Commit(pebble.Sync)
+	return e.db.Set(k, encodeJSON(newVal), pebble.Sync) //nolint:wrapcheck // passthrough
 }
 
 // --- ScanBackend ---
@@ -377,13 +370,9 @@ func (e *pebbleEngine) CounterIncrement(
 	col string,
 	deltas metaengine.Delta,
 ) error {
-	batch := e.db.NewBatch()
-	defer func() { _ = batch.Close() }()
-
 	for k, d := range deltas {
 		ck := counterKey(col, k)
 
-		// Read current value.
 		var current int64
 
 		val, closer, err := e.db.Get(ck)
@@ -394,13 +383,12 @@ func (e *pebbleEngine) CounterIncrement(
 			return err //nolint:wrapcheck // passthrough
 		}
 
-		// Write new value.
-		if err := batch.Set(ck, encodeCounterValue(current+d), nil); err != nil {
+		if err := e.db.Set(ck, encodeCounterValue(current+d), pebble.Sync); err != nil {
 			return err //nolint:wrapcheck // passthrough
 		}
 	}
 
-	return batch.Commit(pebble.Sync)
+	return nil
 }
 
 func (e *pebbleEngine) CounterGet(_ context.Context, col string) (map[string]int64, error) {
@@ -441,19 +429,12 @@ func (e *pebbleEngine) GraphAddEdge(_ context.Context, col string, edge metaengi
 	from := encodeKeyStr(edge.From)
 	to := encodeKeyStr(edge.To)
 
-	batch := e.db.NewBatch()
-	defer func() { _ = batch.Close() }()
-
 	// Store edge in both directions for efficient neighbor lookup.
-	if err := batch.Set(graphEdgeKey(col, from, to), nil, nil); err != nil {
+	if err := e.db.Set(graphEdgeKey(col, from, to), nil, pebble.Sync); err != nil {
 		return err //nolint:wrapcheck // passthrough
 	}
 
-	if err := batch.Set(graphEdgeKey(col, to, from), nil, nil); err != nil {
-		return err //nolint:wrapcheck // passthrough
-	}
-
-	return batch.Commit(pebble.Sync)
+	return e.db.Set(graphEdgeKey(col, to, from), nil, pebble.Sync) //nolint:wrapcheck // passthrough
 }
 
 func (e *pebbleEngine) GraphNeighbors(
