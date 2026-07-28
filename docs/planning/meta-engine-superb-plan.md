@@ -1,10 +1,16 @@
 # Metaengine: How to Make It Actually Superb
 
-> A brutally honest gap analysis and Pareto-prioritized improvement plan.
-> Based on deep review of all design docs (project-definition, design, assumptions, ADRs 0061–0068),
-> all 21 non-test `.go` files, all 26 test files, and the calibration benchmarks.
+> **Revised 2026-07-28** — This is v2. V1 was feature-driven ("implement pushdown, then Pebble, then layout planning"). V2 is **hypothesis-driven**: every phase tests the core research claim, with kill criteria. If the data says the hypothesis is wrong, we stop before wasting effort.
 >
-> **Date:** 2026-07-28
+> Based on deep review of all design docs, all 21 non-test `.go` files, all 26 test files, and calibration benchmarks.
+
+---
+
+## The Core Hypothesis
+
+> **Cross-engine, deployment-time, cost-based layout optimization for event-sourced data produces measurably better query performance than single-engine or naive multi-engine approaches — and is tractable to compute.**
+
+Everything in this plan serves proving or disproving this hypothesis. If it's false, we need to know *before* investing 4 weeks of implementation.
 
 ---
 
@@ -14,7 +20,7 @@
 
 #### E1: The query optimization engine does not optimize queries
 
-The single most damning fact. Every filtered/sorted query on SQLite loads **all rows** into Go memory, then filters/sorts/cursors/paginates in Go:
+Every filtered/sorted query on SQLite loads **all rows** into Go, then filters/sorts/paginates in Go:
 
 ```
 sqlite_engine.go:222-307 — MapScan:
@@ -27,41 +33,25 @@ sqlite_engine.go:222-307 — MapScan:
   → limit+1 truncation in Go
 ```
 
-No `WHERE`, no `ORDER BY`, no `LIMIT` reach the database. This is **O(N) for every scan regardless of selectivity**. The engine has a cost profile that honestly admits this:
+No `WHERE`, no `ORDER BY`, no `LIMIT` reach the database. **O(N) for every scan regardless of selectivity.** The engine's own cost profile admits this (`engine.go:124-129`).
 
-```
-engine.go:124-129 — "loads every row in the collection via the (collection, key)
-PK index, then sorts in Go … until sort-column pushdown lands (ADR-0063)"
-```
-
-For a project whose **entire value proposition** is "make event-sourced data query-optimal," this is the definition of not eating your own dog food.
+For a project whose entire value proposition is "make event-sourced data query-optimal," this is not eating your own dog food.
 
 #### E2: The "cross-engine" claim is theoretical with 2 engines
 
-Memory (volatile, O(1) map) + SQLite (persistent, O(log N) B-tree). These aren't "heterogeneous engines with different cost profiles" — they're "RAM vs disk." The interesting research claim ("nobody has solved cross-engine view selection") requires at least 3 engines with genuinely different optimization profiles. **Pebble is promised in every design doc but has zero code.**
+Memory (volatile, O(1) map) + SQLite (persistent, O(log N) B-tree). These aren't "heterogeneous engines with different cost profiles" — they're "RAM vs disk." The interesting research claim requires at least 3 engines with genuinely different optimization profiles. **Pebble is in every design doc and has zero code.**
 
 #### E3: Every read pays a triple JSON tax
 
-The SQLite read path is:
-
-```
-TEXT column → json.Unmarshal → map[string]any → reify[R] → json.Marshal → json.Unmarshal → R
-```
-
-Three JSON operations per row on the read path. For a performance-focused engine that brands itself on cost optimization. ADR-0066 acknowledges this but calls it an acceptable tradeoff — it is not acceptable for a "superb" engine.
+The SQLite read path: `TEXT → json.Unmarshal → map[string]any → reify[R] → json.Marshal → json.Unmarshal → R`. Three JSON operations per row. ADR-0066 calls this "acceptable" — it is not for a performance-focused engine.
 
 #### E4: The "two-level optimization model" is only Level 1
 
-The design docs (`assumptions-and-query-planning.md`) promise:
-
-- **Level 1 — Engine Assignment** (across engines): which engine serves which ADT.
-- **Level 2 — Within-Engine Layout** (inside one engine): what physical structures serve the patterns.
-
-**Only Level 1 exists.** The planner picks WHICH engine but never decides HOW to structure data within it. No DDL generation from declared query patterns, no index planning, no structure selection. The "Don't Be Stupid" rules (one table + N indexes, not one table per filter combo) are eloquently argued in the docs and completely absent from the code. The SQLite schema is 6 hardcoded tables regardless of what queries are planned.
+The design docs promise Level 1 (engine assignment) AND Level 2 (within-engine layout: one table + N indexes, not one projection per filter combo). **Only Level 1 exists.** The novel part — layout planning — is eloquently argued in the docs and completely absent from the code.
 
 #### E5: The cost model is unvalidated
 
-Calibration benchmarks (`calibration_bench_test.go`) measure raw op latency (MapSet ~466 ns, MapGet ~21 ns → rounded to 500 ns/op). But **no benchmark validates that the cost model's PREDICTIONS match actual query performance.** The whole point of a cost-based optimizer is that its predictions correlate with reality. Without validation, the cost model is a formula, not a model.
+Calibration benchmarks measure raw op latency, but **no benchmark validates that the cost model's PREDICTIONS match actual query performance.** Without this, the cost model is a formula, not a model.
 
 ---
 
@@ -69,26 +59,25 @@ Calibration benchmarks (`calibration_bench_test.go`) measure raw op latency (Map
 
 | Strength | Evidence |
 | --- | --- |
-| **Greedy engine assignment works** | `engine_test.go:58-112` — fakeEngine proves cost-sort + tiebreaker, not first-match. Real engine test assigns point-lookup to memory over SQLite. |
-| **7 ADTs are a clean abstraction** | Map, Set, Counter, Graph, Multimap, Log, SortedMap — each with a well-defined interface (`engine.go:38-99`). ISP-compliant. |
-| **Zero-dependency core** | ADR-0062 — metaengine core is stdlib-only. The projection adapter is in its own module. Excellent boundary discipline. |
-| **Concurrency hardening is real** | ADR-0067 (tx-atomic MapUpdate, tested with 50 goroutines). ADR-0068 (restart-safe multimap seq via sync.Once + SELECT MAX). |
-| **Degradation diagnostics are honest** | `planner.go:158-194` — graph-scan and filtered-scan degradation detected and reported. The code admits when it's doing O(N). |
-| **Cross-engine parity testing** | `cross_engine_meta_test.go` — deep-equal Map/Set/Counter/SortedMap across memory + SQLite. |
-| **Projection adapter integration** | `projectionadapter/adapter_integration_test.go` — full event flow through projectionhost, proves the pipeline works end-to-end. |
-| **Cost model honesty** | `cost.go:3-11` — explicit "HONESTY NOTE" admitting it's first-order, not calibrated. No false claims. |
+| **Greedy engine assignment works** | `engine_test.go:58-112` — fakeEngine proves cost-sort + tiebreaker, not first-match |
+| **7 ADTs are a clean abstraction** | Map, Set, Counter, Graph, Multimap, Log, SortedMap — ISP-compliant interfaces |
+| **Zero-dependency core** | ADR-0062 — stdlib-only. Projection adapter in its own module |
+| **Concurrency hardening is real** | ADR-0067 (tx-atomic MapUpdate), ADR-0068 (restart-safe multimap seq) |
+| **Degradation diagnostics are honest** | `planner.go:158-194` — graph-scan and filtered-scan degradation detected |
+| **Cross-engine parity testing** | `cross_engine_meta_test.go` — deep-equal Map/Set/Counter/SortedMap |
+| **Cost model honesty** | `cost.go:3-11` — explicit HONESTY NOTE, no false claims |
+| **Projection adapter integration** | Full event flow through projectionhost, tested end-to-end |
 
 ---
 
-### 1.3 Ghost systems (code that serves no purpose)
+### 1.3 Ghost systems (dead code)
 
-| Ghost | Location | Action |
-| --- | --- | --- |
-| `EventTypeNames()` | `encoded.go:68` | Dead duplicate of `EventTypes()` (`store.go:40`). Same result, two methods. **Delete.** |
-| `DiagLevelInfo` | `plan_types.go:13` | Defined, exported, **never emitted** by the planner. Only used in one test. **Delete.** |
-| `graphNeighbors` recursive CTE query | `sqlite_engine.go:88-90` | Defined in the query struct, **never executed** — GraphNeighbors does BFS in Go via `scanNeighborKeys` instead. **Delete the dead query.** |
-| `DefaultNsPerOp` | `cost.go:56` | Exported const, used only as internal fallback. No external consumer. **Unexport.** |
-| `Execute()` (untyped) | `execute.go:10` | Test-only convenience wrapper. Real code uses `ExecuteCtx`/`ExecuteTyped`. **Keep but document as test-helper.** |
+| Ghost | Location | Verified? | Action |
+| --- | --- | --- | --- |
+| `EventTypeNames()` | `encoded.go:68` | ✅ Zero non-test consumers | Delete |
+| `DiagLevelInfo` | `plan_types.go:13` | ✅ Never emitted by planner | Delete |
+| `graphNeighbors` CTE query | `sqlite_engine.go:90` | ✅ Never executed | Delete |
+| `DefaultNsPerOp` (exported) | `cost.go:56` | ✅ No external consumer | Unexport |
 
 ---
 
@@ -96,65 +85,86 @@ Calibration benchmarks (`calibration_bench_test.go`) measure raw op latency (Map
 
 | Split Brain | Locations | Fix |
 | --- | --- | --- |
-| `EventTypes()` vs `EventTypeNames()` | `store.go:40` vs `encoded.go:68` | Same result, two methods. Consolidate to `EventTypes()`. |
-| Two struct-field introspection systems | `reflectField`/`reflectFields()` (`reflect.go:76-107`) vs `colResultInfo`/`collectionResultInfo()` (`collection.go:7-49`) | Both reimplement "iterate exported struct fields" with their own types. Extract a shared `fieldInfo` type. |
-| Three reflection deref entry points | `derefType()` (`reflect.go:35`), `structType()` (`reflect.go:44`), `structValue()` (`reflect.go:16`) | Overlapping deref logic. Consolidate. |
-| Filter logic split | `passesFilters` in `compare.go:12`, `filterPredicate` in `execute.go:252` | Same concept, two files. Move to one location. |
+| `EventTypes()` vs `EventTypeNames()` | `store.go:40` vs `encoded.go:68` | Delete the dead one |
+| Two struct-field introspection systems | `reflectField`/`reflectFields()` vs `colResultInfo`/`collectionResultInfo()` | Consolidate |
+| Three reflection deref entry points | `derefType()`, `structType()`, `structValue()` | Consolidate |
+| Filter logic split across files | `passesFilters` in `compare.go`, `filterPredicate` in `execute.go` | Co-locate |
 
 ---
 
-## Part 2: What's Promised but Missing (Vaporware Inventory)
+### 1.5 Vaporware inventory (promised but missing)
 
-| Feature | Design doc promise | Code status | Impact |
+| Feature | Design doc promise | Code status | Blocks hypothesis? |
 | --- | --- | --- | --- |
-| **PushdownScan** (WHERE/ORDER BY/LIMIT → SQL) | ADR-0063 Phase 1 ("now") | **Zero code.** ADR pseudocode only. | 🔴 Critical — the engine is O(N) without it |
-| **Streaming reads** (`iter.Seq2`) | Project definition Phase 3 | **Zero code.** Not even an interface stub. | 🔴 Critical — OOM risk on large collections |
-| **Pebble engine** | Every design doc, deployment walkthroughs B/C/D | **Zero code.** No file, no profile. | 🔴 High — "cross-engine" claim is hollow without it |
-| **Within-engine layout planning** (Level 2) | Assumptions doc, 5-phase planner algorithm | **Zero code.** Planner stops at engine assignment. | 🔴 High — the research-novel part is missing |
-| **Index DDL generation + dedup** | Assumptions doc, "Don't Be Stupid" rule #1 | **Zero code.** Schema is hardcoded. | 🟡 Medium |
-| **Generated typed read API** | Design doc Phase 3, `store.Users.Get(ctx, id)` | **Zero code.** `ExecuteTyped[Q,R]` does runtime switch dispatch. | 🟡 Medium — ergonomics |
-| **Auto-denormalization** | Project definition Phase 2 | **Zero code.** Write-amp counting exists, but no cross-engine denorm. | 🟡 Medium — only matters with 3+ remote engines |
-| **Cost model validation** | Implicit in "research-grade" claim | **Zero code.** Calibration measures raw ops, not prediction accuracy. | 🟡 Medium — research credibility |
-| **Query expression tree** (OR, nested predicates) | Project definition Phase 1 | **Partial.** Only AND via `FilterOn`. `RawWhere` is the escape hatch. | 🟢 Low — AND covers most real queries |
-| **Runtime degradation detection** | Design doc, future item | **Zero code.** Plan-time static analysis only. | 🟢 Low — nice-to-have |
-| **Scale-dependent structure selection** | Assumptions doc, threshold tables | **Partial.** Emits warnings, does NOT select different structures. | 🟢 Low — warnings are honest enough for v1 |
-| **Engine plugin registration** | Design doc, `Register()`/`Open(cfg)` | **Zero code.** Engines are passed as struct literals. | 🟢 Low — ergonomics |
+| **PushdownScan** (WHERE/ORDER BY/LIMIT → SQL) | ADR-0063 Phase 1 | Zero code | ✅ Yes — cost model lies without it |
+| **Streaming reads** | Project definition Phase 3 | Zero code | No (safety, not correctness) |
+| **Pebble engine** | Every design doc | Zero code | ✅ Yes — "cross-engine" is hollow without it |
+| **Within-engine layout planning** | Assumptions doc, 5-phase planner | Zero code | ✅ Yes — this IS the novelty |
+| **Index DDL generation + dedup** | "Don't Be Stupid" rules | Zero code | ✅ Yes — part of layout planning |
+| **Cost model validation** | Implicit in "research-grade" | Zero code | ✅ Yes — proves the model |
+| **Generated typed read API** | Phase 3 | Zero code | No (ergonomics) |
+| **Auto-denormalization** | Phase 2 | Zero code | No (needs 3+ remote engines) |
 
 ---
 
-## Part 3: The Pareto Plan (80/20 Impact Sort)
+## Part 2: The Revised Plan (Hypothesis-Driven)
 
-### Tier 0: Kill the ghosts (half a day, zero risk)
+### Design principle
 
-Before adding anything, clean the dead code:
+> **Test the hypothesis with minimum effort. Kill early if wrong.**
 
-1. **Delete `EventTypeNames()`** — dead duplicate of `EventTypes()`.
-2. **Delete `DiagLevelInfo`** — never emitted, test-only.
-3. **Delete the `graphNeighbors` recursive CTE query string** — dead code.
-4. **Unexport `DefaultNsPerOp`** — no external consumer.
-5. **Consolidate reflection helpers** — merge `derefType`/`structType`/`structValue` into one.
-6. **Move `filterPredicate` next to `passesFilters`** — same concept, one file.
+Each phase has:
+- **Goal** — what we're testing
+- **Deliverable** — concrete artifact
+- **Kill criterion** — when to stop
+- **Depends on** — prerequisite phases
 
 ---
 
-### Tier 1: Stop being embarrassing (highest ROI)
+### Phase 0: Cleanup — Zero-risk debt removal
 
-#### P0: Pushdown — THE priority ⭐
+| | |
+| --- | --- |
+| **Goal** | Remove dead code + split brains so future changes are clean |
+| **Deliverable** | Passing tests with 4 ghosts deleted, 2 split brains fixed |
+| **Kill criterion** | N/A (always do this) |
+| **Depends on** | Nothing |
+| **Estimated** | Half a day |
+| **Leverages** | N/A |
 
-**Without this, the metaengine is a query optimizer that doesn't optimize queries.**
+Tasks:
+1. Delete `EventTypeNames()` (`encoded.go:68`) + fix the test in `execution_test.go`
+2. Delete `DiagLevelInfo` (`plan_types.go:13`) + fix the test in `planner_test.go:188`
+3. Delete `graphNeighbors` query + struct field (`sqlite_engine.go:46,90`)
+4. Unexport `DefaultNsPerOp` (`cost.go:56`)
+5. Consolidate reflection helpers (`derefType`/`structType`/`structValue` → one)
+6. Co-locate filter logic (`filterPredicate` → `compare.go`)
 
-Implement ADR-0063 Phase 1:
+---
+
+### Phase 1: Make measurement honest
+
+| | |
+| --- | --- |
+| **Goal** | The SQLite engine must actually use SQL optimization so benchmarks measure reality, not the absence of pushdown |
+| **Deliverable** | `PushdownScan` interface implemented on SQLite; existing tests pass; new tests prove WHERE/ORDER BY/LIMIT reach the DB |
+| **Kill criterion** | N/A — this is a prerequisite, not a hypothesis test |
+| **Depends on** | Phase 0 |
+| **Estimated** | 2–3 days |
+| **Leverages** | `storage/sql/where.go` `BuildWhereClause` (pattern reference, can't import — zero-dep boundary), SQLite `json_extract()` function |
+
+**What to build:**
 
 ```go
-// New interface — engines implement if they support SQL pushdown
+// New optional interface — engines implement if they support SQL pushdown
 type PushdownScan interface {
     PushdownMapScan(ctx, collection string, filters []FilterSpec,
         sort *SortSpec, cursor any, limit int) ([]any, error)
 }
 
 type FilterSpec struct {
-    Column string    // extracted from the closure's target field name
-    Op     FilterOp  // Eq, Lt, Gt, Lte, Gte, Ne
+    Column string   // JSON path: json_extract(value, '$.field')
+    Op     FilterOp // Eq, Lt, Gt, Lte, Gte, Ne
     Value  any
 }
 
@@ -172,160 +182,175 @@ ORDER BY json_extract(value, '$.created_at') DESC
 LIMIT ?
 ```
 
-**Key insight:** `meta_map.value` is a JSON TEXT column. SQLite has `json_extract()` — we can push filters into SQL without changing the schema. This is a stopgap until layout planning (P4) generates typed columns.
+**Key insight:** `meta_map.value` is a JSON TEXT column. SQLite has `json_extract()` — we push filters into SQL without a schema change. This is a stopgap until Phase 3 generates typed columns.
 
-**Impact:** Transforms SQLite SortedMap from O(NlogN) → O(logN + k) for filtered queries. Makes the cost model honest.
-
-**Estimated:** 2–3 days.
-
-#### P1: Streaming reads
-
-```go
-type StreamBackend interface {
-    MapStream(ctx, collection string, filters []FilterSpec,
-        sort *SortSpec, cursor any) iter.Seq2[any, error]
-}
-```
-
-Use Go 1.23+ `iter.Seq2` (the repo is on Go 1.26). Never materialize full result sets. The `StreamsResults` field already exists in `EngineProfile` — wire it.
-
-**Impact:** Eliminates OOM risk. Makes the engine production-safe for large collections.
-
-**Estimated:** 1–2 days.
-
-#### P2: Kill the JSON tax
-
-Three options, in increasing effort:
-
-- **Option A (quick):** Single-pass decode. Currently `json.Unmarshal → any → json.Marshal → json.Unmarshal → R`. Collapse to `json.Unmarshal → R` directly when the target type is known (it is — `ExecuteTyped[Q,R]` has `R`).
-- **Option B (medium):** CBOR instead of JSON. `fxamacker/cbor` is already in the repo's `codec/` module. CBOR is ~35% smaller and faster to decode.
-- **Option C (proper):** Typed columns via layout planning (P4). Store `status`, `created_at` as real SQL columns, not JSON blobs. This is the real fix but depends on P4.
-
-**Recommendation:** Do Option A now (1 day), Option C when P4 lands.
+**Why this phase gates everything:** Without pushdown, the cost model claims O(logN) for SQLite but the engine does O(N). Any benchmark comparing engines would measure the ABSENCE of optimization, not the presence. You can't validate a cost model that's lying.
 
 ---
 
-### Tier 2: Make the research claim real
+### Phase 2: Make "cross-engine" real
 
-#### P3: Pebble engine
+| | |
+| --- | --- |
+| **Goal** | Add a 3rd engine with a genuinely different cost profile so the planner has a REAL choice |
+| **Deliverable** | `pebbleEngine` implementing all 7 ADT backends; cross-engine parity tests pass |
+| **Kill criterion** | If Pebble can't beat SQLite on point-lookup writes at any scale, it adds no value — drop it |
+| **Depends on** | Phase 0 (clean interfaces) |
+| **Estimated** | 3–4 days |
+| **Leverages** | `storage/pebble/` PebbleDB wrapper (pattern reference — can't import directly due to zero-dep boundary, but same `cockroachdb/pebble` dependency) |
 
-The repo already has `storage/pebble/` (PebbleDB wrapper). The metaengine needs its own `pebbleEngine` following the same `Engine` interface pattern as `memoryEngine`/`sqliteEngine`.
+**Pebble's genuinely different cost profile:**
 
-Pebble's genuinely different cost profile:
-- Map: O(1) point lookups (LSM-tree, faster than SQLite B-tree for writes)
-- SortedMap: O(logN) but **no native secondary indexes** (unlike SQLite) — one keyspace per lookup key
-- Counter: O(N) full scan (no aggregation) — **degraded** vs SQLite
-- Graph: O(N^d) — **degraded**, same as SQLite
+| ADT | SQLite | Pebble | Memory |
+| --- | --- | --- | --- |
+| Map | O(log N) B-tree | **O(1) LSM point read** | O(1) hash |
+| SortedMap | O(NlogN) load-all-sort | **O(log N) LSM range scan** (but no secondary index!) | O(N) sort |
+| Counter | O(1) upsert | **O(N) full scan** (degraded) | O(1) hash |
+| Set | O(log N) | O(1) | O(1) |
+| Graph | O(N^d) BFS | O(N^d) BFS | O(d) adjacency |
 
-This is what makes "cross-engine" real: 3 engines, 3 different optimization surfaces. The planner now has a REAL choice: point lookups → Pebble O(1), filtered scans → SQLite O(logN), counters → Memory O(1) volatile or SQLite rollup O(1).
+The critical difference: Pebble has **no native secondary indexes**. Point lookups → Pebble wins. Filtered scans → SQLite wins (it has indexes). Counters → Memory wins (Pebble can't aggregate). **This is what makes the planner's choice meaningful.**
 
-**Estimated:** 3–4 days (follow the sqliteEngine pattern, Pebble KV interface already exists).
+**How to test the kill criterion:** Run `BenchmarkCalibration_*` on Pebble. If `PebbleMapGet` is not faster than `SQLiteMapGet` at N≥10K, Pebble adds no value as a Map engine.
 
-#### P4: Within-engine layout planning (Level 2) — THE research contribution
+---
 
-This is the part that no existing tool does. The design docs argue it eloquently; the code doesn't implement it.
+### Phase 3: THE hypothesis test — Within-engine layout planning
 
-**What it does:** Given declared query patterns for a projection, generates the optimal physical layout:
+| | |
+| --- | --- |
+| **Goal** | Test the core novelty: does deployment-time layout planning produce measurably better query performance than naive single-projection-per-query? |
+| **Deliverable** | (a) Layout planner that generates DDL from declared query patterns (one table + N deduped indexes). (b) Benchmark comparing planned vs unplanned on the same workload. |
+| **Kill criterion** | **If planned layout does not beat unplanned by ≥2× on at least one real workload, the hypothesis is FALSE. Stop and rethink.** |
+| **Depends on** | Phase 1 (pushdown — so indexes are actually used), Phase 2 (Pebble — so cross-engine choices exist) |
+| **Estimated** | 5–7 days |
+| **Leverages** | `storage/view/auto.go` (struct-tag → column inference pattern), `storage/sql/dialect.go` (DDL patterns) |
+
+**What "layout planning" means concretely:**
 
 ```
-Input: Declare[V,K]("users",
+Input: Declare[UserID, UserView]("users",
     On(UserCreated, ...),
-    PointLookup[K](),
+    PointLookup[UserID](),
     FilterOn(func(v V) string { return v.Status }),
     SortOn(func(v V) time.Time { return v.JoinedAt }),
     Count(),
 )
 
-Planner output (Level 2):
-  SQLite: CREATE TABLE users (key TEXT PRIMARY KEY, value TEXT,
-            status TEXT, joined_at TEXT)  -- extracted columns
-          CREATE INDEX idx_users_status ON users(status)
-          CREATE INDEX idx_users_joined ON users(joined_at)
-          -- ONE table, TWO indexes, not three projections
+Planner output (Level 2 — the novel part):
+  SQLite: CREATE TABLE users_data (
+            key TEXT PRIMARY KEY,
+            value TEXT,
+            status TEXT,           -- extracted from JSON for indexability
+            joined_at TEXT          -- extracted from JSON for indexability
+          )
+          CREATE INDEX idx_users_status ON users_data(status)
+          CREATE INDEX idx_users_joined ON users_data(joined_at)
+          -- ONE table, TWO indexes — not three separate projections
           -- RangeFilter + OrderBy on joined_at SHARE idx_users_joined
 
-  Pebble: keyspace "users:by_id" (Map O(1))
-          keyspace "users:by_status" (SortedMap — degraded, O(N))
-          -- Pebble has no native secondary index; one keyspace per lookup key
+  Pebble: keyspace "users:by_id"     (Map O(1))
+          -- No secondary index possible; filtered scans DEGRADED → reassigned to SQLite
 ```
 
-**The "Don't Be Stupid" rules, implemented:**
-1. Don't create separate projections when one table + indexes suffices (SQLite `NativeIndex: true`).
-2. Don't index a column that's never filtered.
+**The "Don't Be Stupid" rules, implemented as code:**
+1. One table + N indexes, not one projection per (filter, sort) combo.
+2. Don't index a column never filtered.
 3. Deduplicate indexes (RangeFilter + OrderBy on same column → one index).
 4. Don't split across engines when one suffices.
+5. Let the engine's own planner handle index intersection for AND queries.
 
-**This replaces the hardcoded `meta_map`/`meta_set`/etc. schema** with generated DDL. The ADT tables become the fallback (collection-namespaced generic tables); the layout-planned tables are the optimized path.
-
-**Estimated:** 5–7 days. This is the hard part, but it's also THE differentiator.
-
-#### P5: Cost model validation
-
-Build a benchmark suite that answers: **"Does the cost model predict reality?"**
+**The benchmark (the kill criterion test):**
 
 ```
-For each (engine, ADT, volume) ∈ {memory, sqlite, pebble} × {7 ADTs} × {100, 10K, 100K, 1M}:
-    1. Measure actual query latency (ns)
-    2. Compare to predicted latency (cost model's EstimatedLatencyMs)
-    3. Compute prediction error: |predicted - actual| / actual
+Workload: 100K users, 5 query patterns (point lookup, status filter, date range,
+          sort by date, count by status)
+
+Variant A (naive):     One meta_map collection, all queries use MapScan (O(N) scan)
+Variant B (planned):   Layout-planned table with 2 indexes, queries use pushdown
+
+Measure: p50/p99 latency for each query pattern, total write amplification
+
+PASS if: Variant B is ≥2× faster on at least 3 of 5 patterns
+FAIL if: Variant B is not meaningfully faster → layout planning adds complexity for no gain
 ```
-
-If prediction error > 2× for any cell, the cost model is wrong and needs recalibration. This is what separates a research paper from a toy.
-
-The repo already has `benchkit/` — use it for the harness.
-
-**Estimated:** 2–3 days.
 
 ---
 
-### Tier 3: Polish to superb
+### Phase 4: Prove the cost model
 
-#### P6: Generated typed read API
+| | |
+| --- | --- |
+| **Goal** | Validate that the planner's cost PREDICTIONS correlate with ACTUAL performance across all 3 engines |
+| **Deliverable** | Benchmark matrix: {memory, sqlite, pebble} × {7 ADTs} × {100, 10K, 100K, 1M} with predicted vs actual latency |
+| **Kill criterion** | If prediction error > 2× for more than 20% of cells, the cost model needs fundamental recalibration — not tuning |
+| **Depends on** | Phase 1 (honest SQLite), Phase 2 (Pebble), Phase 3 (layout-planned tables) |
+| **Estimated** | 2–3 days |
+| **Leverages** | `benchkit/` (benchmark harness — pattern reference, factory-driven suite) |
 
-Replace the runtime switch dispatch in `executeQuery()` with function-field structs wired at `Plan()` time:
+**What this proves:** The difference between a research paper and a toy. If the model predicts "SQLite O(logN)" and actual is O(logN), the model is sound. If it predicts O(logN) but actual is O(N) (because pushdown wasn't used), the model is lying. Phase 1 fixes the lying; Phase 4 proves it.
 
-```go
-// Today (runtime reflection dispatch):
-result, err := metaengine.ExecuteTyped[GetUser, UserResult](ctx, store, GetUser{ID: id})
+---
 
-// Superb (Plan-time assembled, zero reflection on hot path):
-type UserStore struct {
-    Get     func(ctx context.Context, id UserID) (*UserView, error)
-    ByStatus func(ctx context.Context, status string) ([]*UserView, error)
-}
-users := plan.Users  // wired at Plan() time
-user, err := users.Get(ctx, id)
+### Phase 5: Polish to superb (only if Phase 3 passes)
+
+| | |
+| --- | --- |
+| **Goal** | Make the validated engine production-grade |
+| **Depends on** | Phase 3 kill criterion PASSED |
+| **Estimated** | 1–2 weeks ongoing |
+
+| Task | Estimated | Why |
+| --- | --- | --- |
+| Streaming reads (`iter.Seq2`) | 1–2 days | OOM safety for large collections |
+| Kill the JSON tax (single-pass decode) | 1 day | Performance — 3 JSON ops → 1 per row |
+| Generated typed read API | 2–3 days | Ergonomics — `plan.Users.Get(ctx, id)` instead of `ExecuteTyped[Q,R]` |
+| `FilterOnField(name, op)` declarative API | 1 day | ADR-0063 Phase 2 — closure-free specs for pushdown |
+| Unified 7-ADT × 3-engine test matrix | 1 day | Test confidence — one parameterized harness |
+| Auto-denormalization | 3–5 days | DEFER — only matters with 3+ REMOTE engines (local cross-engine = cheap syscalls) |
+
+---
+
+### The extraction question
+
+The design docs say: *"the meta-engine is a new project. It is not a module within go-cqrs-lite."*
+
+**When to extract:** AFTER Phase 3 validates the core hypothesis. Extracting a concept that doesn't work is worse than keeping a working concept in-repo.
+
+**Extraction criteria (all must be met):**
+1. ✅ Core hypothesis validated (Phase 3 passes)
+2. ✅ Cost model validated (Phase 4 passes)
+3. ✅ API is stable (no breaking changes expected)
+4. ✅ At least one real consumer (the case study from Phase 3)
+5. ✅ Zero-dependency core proven (already true — ADR-0062)
+
+**Don't extract until all 5 are met.** Until then, the workspace gives free cross-module testing and zero versioning friction.
+
+---
+
+## Part 3: Dependency Graph
+
+```
+Phase 0: Cleanup (½ day)
+    │
+    ├──→ Phase 1: Pushdown (2-3 days) ←── makes SQLite honest
+    │         │
+    │         └──→ Phase 3: Layout Planning (5-7 days) ←── THE hypothesis test
+    │                   │
+    │                   └──→ Phase 4: Cost Validation (2-3 days)
+    │                             │
+    │                             └──→ Phase 5: Polish (ongoing)
+    │
+    └──→ Phase 2: Pebble Engine (3-4 days) ←── makes cross-engine real
+              │
+              └──→ Phase 3: Layout Planning (needs 3 engines)
 ```
 
-This is what the design docs promise. The `queryRuntime` already holds the routing decision — extend it to hold the function field.
+**Critical path:** Phase 0 → Phase 1 → Phase 3 → Phase 4 = ~10–13 days to hypothesis validation.
+Phase 2 (Pebble) runs in parallel with Phase 1 — it's independent after Phase 0.
 
-**Estimated:** 2–3 days.
-
-#### P7: Auto-denormalization
-
-Only matters when you have 3+ **remote** engines (the docs correctly note local cross-engine reads are cheap syscalls). For v1 with local engines (memory + sqlite + pebble all in-process), this is YAGNI. Defer until someone deploys with ClickHouse + Neo4j.
-
-**Estimated:** 3–5 days (defer).
-
-#### P8: Unified ADT × engine test matrix
-
-One table-driven test iterating all 7 ADTs through all available engines:
-
-```go
-DescribeTable("ADT cross-engine parity", func(adt adtCase, eng engineFactory) {
-    // Apply events → ExecuteTyped → deep-equal against expected
-},
-    Entry("Map on memory", mapCase, memoryEngine),
-    Entry("Map on sqlite", mapCase, sqliteEngine),
-    Entry("Map on pebble", mapCase, pebbleEngine),
-    Entry("Counter on memory", counterCase, memoryEngine),
-    // ... 21 entries (7 ADTs × 3 engines)
-)
-```
-
-Currently tests exist piecemeal but no single parameterized harness. Graph, Log, and Multimap lack full Apply→Execute cross-engine deep-equal.
-
-**Estimated:** 1 day.
+**Total to "validated research contribution":** ~2.5–3 weeks.
+**Total to "superb engineering product":** ~4–5 weeks (add Phase 5).
 
 ---
 
@@ -333,137 +358,69 @@ Currently tests exist piecemeal but no single parameterized harness. Graph, Log,
 
 ### 4.1 The `any` problem
 
-The metaengine uses `any` for keys and values throughout (`MapSet(ctx, collection, key any, value any)`). This is deliberate (ADT-generic) but causes:
-- The JSON TEXT tax (can't store typed columns without knowing the type)
-- The reify hack (JSON round-trip to bridge SQL→typed Go)
-- No compile-time safety on key/value types
+`MapSet(ctx, collection, key any, value any)` — deliberate (ADT-generic) but causes the JSON tax and eliminates compile-time safety.
 
-**Improvement:** Introduce a `Collection[K, V]` type parameter at the declaration level:
+**Improvement (Phase 5):** Typed at declaration, erased at engine boundary:
 
 ```go
 // Today: untyped
 Declare[any, any]("users", On(UserCreated, ...), PointLookup[any]())
 
-// Better: typed at declaration, erased at the engine boundary
+// Better: typed declaration, any-erased at engine boundary
 Declare[UserID, UserView]("users", On(UserCreated, ...), PointLookup[UserID]())
 ```
 
-The engine boundary still uses `any` (SQLite stores JSON TEXT regardless), but the declaration API and the read API are fully typed. This eliminates `reify[R]` entirely — the type is known at compile time.
-
 ### 4.2 The `FilterOn` closure problem
 
-`FilterOn(func(r R) T)` stores a typed closure that's invoked via `reflect.Call` per row. This is:
-- Slow (reflection on every row)
-- Opaque (the planner can't see what column is being filtered — it's inside a closure)
-- The reason pushdown is hard (ADR-0063 rejected reflection-based closure inspection)
+`FilterOn(func(r R) T)` is opaque — the planner can't inspect it, can't push it down. ADR-0063 rejected reflection-based inspection.
 
-**Improvement:** Add `FilterOnField(name, op)` as the declarative, closure-free alternative:
+**Improvement (Phase 5):** `FilterOnField(name, op)` as the declarative, closure-free alternative:
 
 ```go
-// Today: opaque closure (planner can't inspect, can't push down)
+// Today: opaque closure
 FilterOn(func(v UserView) string { return v.Status })
 
-// Better: declarative spec (planner sees the column, pushes to SQL)
+// Better: declarative spec → generates FilterSpec directly
 FilterOnField("status", OpEq)
 ```
 
-This is ADR-0063 Phase 2. The closure API stays for in-memory engines; the field-based API generates `FilterSpec` directly.
+### 4.3 Consolidate introspection
 
-### 4.3 The two introspection systems
-
-Consolidate `reflectField`/`reflectFields()` and `colResultInfo`/`collectionResultInfo()` into one:
-
-```go
-type fieldInfo struct {
-    Name     string
-    Type     reflect.Type
-    Index    []int
-    JSONName string  // from struct tags
-}
-
-func inspectStruct(t reflect.Type) []fieldInfo { ... }
-```
-
-Both systems need the same thing: "iterate exported struct fields, get name + type + tag." One function, one type.
+Merge `reflectField`/`reflectFields()` and `colResultInfo`/`collectionResultInfo()` into one `fieldInfo` type (Phase 0).
 
 ---
 
-## Part 5: Self-Review (the skill's 11 questions)
+## Part 5: Self-Review
 
-### 1. What did you forget?
+### What did I forget in v1?
 
-The metaengine forgot to implement its own value proposition. The design docs describe a cost-based **layout** optimizer; the code implements a cost-based **engine selector**. The layout part — the novel part — is vaporware. The pushdown gap means the engine doesn't even use the database's own query optimization.
+V1 was feature-driven. It listed what to BUILD, not what to TEST. The metaengine's value is a research claim; the plan should serve proving that claim with minimum effort. V2 fixes this: Phase 3 is an explicit hypothesis test with a kill criterion.
 
-### 2. What is something stupid that we do anyway?
+### What is stupid that we do anyway?
 
-Loading every row from SQLite into Go memory to filter/sort it. This is O(N) for every scan. A `WHERE` clause would make it O(log N + k). The fact that a "query optimization engine" does this is embarrassing.
+Loading every row from SQLite into Go to filter it. O(N) for every scan. A `WHERE` clause makes it O(log N + k). Phase 1 fixes this.
 
-### 3. What could you have done better?
+### Did v1 lie?
 
-The pushdown seam (`PushdownScan` interface, `FilterSpec`/`SortSpec`) should have been implemented alongside the SQLite engine, not deferred to a future ADR. Without it, the SQLite engine is a proof-of-concept, not a production backend.
+V1 presented 4 weeks of implementation as if success were guaranteed. It isn't. The layout planning hypothesis might be FALSE — maybe one table + indexes isn't meaningfully better than naive scan for real workloads at realistic scale. V2 is honest: Phase 3 has a kill criterion.
 
-### 4. What could you still improve?
+### How to be less stupid?
 
-Everything in the Pareto plan above. The priority order is: **pushdown → streaming → Pebble → layout planning → cost validation**. That sequence takes the metaengine from "working prototype" to "research contribution."
+Test the hypothesis with minimum effort before investing in polish. Phase 3's benchmark IS the test. If it fails, we saved 2 weeks of Phase 5 work.
 
-### 5. Did you lie to me?
+### Are we building ghost systems?
 
-The design docs are honest (the HONESTY NOTE in `cost.go`, the degradation diagnostics, the ADR candor). But the **project framing** oversells: "cross-engine view selection" with 2 engines (one volatile) is not yet cross-engine. "Cost-based optimizer" without pushdown is not yet optimizing. The gap is between the vision docs and the implementation, not between claims and reality.
+5 ghosts found (Section 1.3). Phase 0 kills them.
 
-### 6. How can we be less stupid?
+### Split brains?
 
-Stop adding new ADT features until pushdown exists. The single highest-leverage change is making the SQLite engine actually use `WHERE`/`ORDER BY`/`LIMIT`. Everything else is secondary.
+4 found (Section 1.4). Phase 0 fixes 2; Phase 5 addresses the rest.
 
-### 7. Is everything correctly integrated or are we building ghost systems?
+### Tests?
 
-Five ghost systems found (Section 1.3). The projectionadapter is correctly integrated and tested. The calibration benchmarks are real but don't validate the cost model's predictions.
-
-### 8. Are we focusing on the scope creep trap?
-
-Slightly. Auto-denormalization (P7) is scope creep for a 2-engine system with local engines. Runtime degradation detection is nice-to-have but not core. Focus should narrow to: pushdown, streaming, Pebble, layout planning.
-
-### 9. Did we remove something that was actually useful?
-
-No. The dead code (`EventTypeNames`, `DiagLevelInfo`, `graphNeighbors` CTE) was never useful — it was preemptively added API that never got consumers.
-
-### 10. Did we create any split brains?
-
-Four split brains found (Section 1.4). The worst is `EventTypes()` vs `EventTypeNames()` — two methods producing the same result.
-
-### 11. How are we doing on tests?
-
-**Strong:** engine assignment, cost model mechanics, degradation detection, cross-engine parity, concurrency hardening, projection adapter integration, cursor/pagination.
-
-**Weak:** no streaming tests (feature doesn't exist), no pushdown tests (feature doesn't exist), no cost model validation, no comparative memory-vs-sqlite benchmarks, Graph/Log/Multimap lack full cross-engine deep-equal.
-
-**Improve:** implement the unified 7-ADT × N-engine test matrix (P8). Add cost model validation benchmarks (P5). These two additions would transform test confidence from "the pieces work" to "the system's predictions match reality."
-
----
-
-## Part 6: Execution Sequence
-
-```
-Week 1: Tier 0 (ghost cleanup, half a day)
-        + P0 Pushdown (2-3 days) ⭐
-        + P1 Streaming (1-2 days)
-        → The engine now actually optimizes queries and doesn't OOM
-
-Week 2: P2 Kill JSON tax — Option A (1 day)
-        + P3 Pebble engine (3-4 days)
-        → "Cross-engine" is now real: 3 engines, 3 profiles
-
-Week 3: P4 Within-engine layout planning (5-7 days) ⭐
-        → THE research contribution. One table + N indexes, not N projections.
-
-Week 4: P5 Cost model validation (2-3 days)
-        + P8 Unified test matrix (1 day)
-        + P6 Generated typed read API (2-3 days)
-        → Research-grade: predictions validated, API ergonomic, tests comprehensive
-```
-
-**Total: ~4 weeks of focused work to take the metaengine from "working prototype" to "actually superb."**
-
-The two starred items (⭐) are the ones that matter most. Pushdown makes the engine honest. Layout planning makes it novel. Everything else is supporting infrastructure.
+Strong: engine assignment, cost mechanics, degradation, cross-engine parity, concurrency, adapter integration.
+Weak: no streaming/pushdown/layout tests (features don't exist), no cost validation, no comparative benchmarks, Graph/Log/Multimap lack cross-engine deep-equal.
+Fix: Phase 4 adds cost validation; Phase 5 adds the unified test matrix.
 
 ---
 
@@ -475,11 +432,11 @@ The two starred items (⭐) are the ones that matter most. Pushdown makes the en
 - `reify.go:18-67` — JSON round-trip on every SQL read (ADR-0066)
 - `planner.go:31` — "Each query gets its own independent projection" (no Level 2)
 
-### Ghost systems
-- `encoded.go:68` — `EventTypeNames()` dead duplicate
-- `plan_types.go:13` — `DiagLevelInfo` never emitted
-- `sqlite_engine.go:88-90` — `graphNeighbors` CTE query string, never executed
-- `cost.go:56` — `DefaultNsPerOp` exported, no external consumer
+### Ghosts (verified dead)
+- `encoded.go:68` — `EventTypeNames()`: zero non-test consumers
+- `plan_types.go:13` — `DiagLevelInfo`: never emitted by planner
+- `sqlite_engine.go:46,90` — `graphNeighbors`: struct field + query string, never executed
+- `cost.go:56` — `DefaultNsPerOp`: exported, no external consumer
 
 ### Split brains
 - `store.go:40` + `encoded.go:68` — `EventTypes()` vs `EventTypeNames()`
@@ -495,3 +452,9 @@ The two starred items (⭐) are the ones that matter most. Pushdown makes the en
 - `sqlite_backends.go:154-166` — restart-safe multimap seq (ADR-0068)
 - `projectionadapter/adapter_integration_test.go:144` — full pipeline test
 - `calibration_bench_test.go` — real benchmarks producing real numbers
+
+### Design doc references
+- Project definition: `docs/planning/meta-engine-project-definition.md`
+- Design/vision: `docs/planning/meta-engine-design.md`
+- Assumptions & query planning: `docs/planning/meta-engine-assumptions-and-query-planning.md`
+- ADRs: `docs/adr/0061-0068`

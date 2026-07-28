@@ -373,10 +373,12 @@
             '';
 
             vet = mkApp "vet" goModules ''
+              export CGO_ENABLED=1
               ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} "$@"
             '';
 
-            lint = mkApp "lint" [ goPkg pkgs.golangci-lint ] ''
+            lint = mkApp "lint" [ goPkg pkgs.golangci-lint pkgs.gcc ] ''
+              export CGO_ENABLED=1
               configFile="$PWD/.golangci.yml"
               failed=0
               for mod in ${builtins.concatStringsSep " " lintModules}; do
@@ -387,11 +389,13 @@
             '';
 
             coverage = mkApp "coverage" goModules ''
+              export CGO_ENABLED=1
               ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -coverprofile=coverage.out -covermode=atomic "$@"
               ${goPkg}/bin/go tool cover -func=coverage.out
             '';
 
             bench = mkApp "bench" goModules ''
+              export CGO_ENABLED=1
               ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -bench=. -benchmem -count=1 -timeout=30m "$@"
             '';
 
