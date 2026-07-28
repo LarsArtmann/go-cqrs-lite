@@ -32,10 +32,15 @@ import (
 const sep = "\x00"
 
 // PebbleNsPerOp is the calibrated per-operation cost for the Pebble engine.
-// Conservative initial value; calibrate via BenchmarkCalibration_Pebble*.
-// Expected to be LOWER than SQLiteNsPerOp for point lookups due to LSM's
-// O(1) memtable read, but the JSON encode/decode overhead narrows the gap.
-const PebbleNsPerOp = 300.0
+// Calibrated via BenchmarkCalibration_PebbleSet/Get on 2026-07-28 (AMD Ryzen
+// AI MAX+ 395, in-memory vfs.NewMem):
+//   - MapSet (LSM insert + JSON encode): ~1,785 ns/op
+//   - MapGet (LSM point read + JSON decode): ~708 ns/op
+//
+// The value 1,200 ns is biased toward the write path (fold-heavy workloads
+// dominate). Pebble is ~7x faster than SQLite on point reads and ~3.7x faster
+// on writes.
+const PebbleNsPerOp = 1200.0
 
 type pebbleEngine struct {
 	db     *pebble.DB
@@ -453,7 +458,7 @@ func (e *pebbleEngine) GraphNeighbors(
 	nodeStr := encodeKeyStr(node)
 	visited := map[string]bool{nodeStr: true}
 	frontier := []string{nodeStr}
-	var result []any
+	var result []string
 
 	for d := 0; d < depth && len(frontier) > 0; d++ {
 		var next []string
@@ -472,7 +477,12 @@ func (e *pebbleEngine) GraphNeighbors(
 		frontier = next
 	}
 
-	return result, nil
+	decoded := make([]any, len(result))
+	for i, r := range result {
+		decoded[i] = decodeJSON([]byte(r))
+	}
+
+	return decoded, nil
 }
 
 func (e *pebbleEngine) scanGraphNeighbors(col, node string) []string {
