@@ -175,13 +175,7 @@ func OpenSyncWithConfig(
 
 // Push sends local writes to the remote Turso server.
 func (t *SyncDB) Push(ctx context.Context) error {
-	err := t.engine.Push(ctx)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "storage.turso_push",
-			"turso push")
-	}
-
-	return nil
+	return wrapInfraOrOK(t.engine.Push(ctx), "storage.turso_push", "turso push")
 }
 
 // Pull fetches remote changes into the local database.
@@ -198,13 +192,7 @@ func (t *SyncDB) Pull(ctx context.Context) (bool, error) {
 
 // Checkpoint writes the WAL into the main database file.
 func (t *SyncDB) Checkpoint(ctx context.Context) error {
-	err := t.engine.Checkpoint(ctx)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "storage.turso_checkpoint",
-			"turso checkpoint")
-	}
-
-	return nil
+	return wrapInfraOrOK(t.engine.Checkpoint(ctx), "storage.turso_checkpoint", "turso checkpoint")
 }
 
 // Close closes the underlying SQL database connection.
@@ -233,13 +221,7 @@ func (t *SyncDB) Stats(ctx context.Context) (tursoclient.TursoSyncDbStats, error
 //
 // Returns nil if the database responds, an [errorfamily.Infrastructure] error otherwise.
 func (t *SyncDB) HealthCheck(ctx context.Context) error {
-	err := t.PingContext(ctx)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "storage.turso_health_check",
-			"ping turso database")
-	}
-
-	return nil
+	return wrapInfraOrOK(t.PingContext(ctx), "storage.turso_health_check", "ping turso database")
 }
 
 // SyncClient returns the underlying Turso sync client, granting access to
