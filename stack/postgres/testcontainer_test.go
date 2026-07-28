@@ -2,33 +2,35 @@ package postgres_test
 
 import (
 	"context"
+	"database/sql"
 	"flag"
+	"fmt"
 	"os"
+	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
+
+	_ "github.com/jackc/pgx/v5/stdlib" // register pgx driver for CREATE DATABASE
 
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
-// sharedDSN holds the Postgres connection string used by all tests in this
-// package. It is populated by TestMain — either from POSTGRES_TEST_DSN (CI
-// service container) or from a testcontainers-managed container (local dev).
-var sharedDSN string
+var (
+	containerDSN string
+	adminDB      *sql.DB
+	dbCounter    int64
+	testDBCache  sync.Map // map[string]string — t.Name() → per-test DSN
+)
 
-// TestMain starts a single Postgres container shared across all tests in the
-// package to avoid per-test container startup latency (~2-3s each).
-//
-// Priority:
-//  1. POSTGRES_TEST_DSN env var (CI service container, manual override)
-//  2. testcontainers-managed postgres:16-alpine (local development)
-//  3. Skip (Docker unavailable) — individual tests call postgresDSN which skips
-//
-// In -short mode the container is not started; tests skip individually.
+// TestMain starts a single Postgres container shared across all tests.
+// Priority: POSTGRES_TEST_DSN env var (CI) > testcontainers (local) > skip.
 func TestMain(m *testing.M) {
 	flag.Parse()
 
 	if dsn := os.Getenv("POSTGRES_TEST_DSN"); dsn != "" {
-		sharedDSN = dsn
+		containerDSN = dsn
 		os.Exit(m.Run())
 	}
 
@@ -54,21 +56,75 @@ func TestMain(m *testing.M) {
 		os.Exit(m.Run())
 	}
 
-	sharedDSN = dsn
+	containerDSN = dsn
+	adminDB, _ = sql.Open("pgx", dsn)
+
 	code := m.Run()
+
+	if adminDB != nil {
+		_ = adminDB.Close()
+	}
 
 	_ = testcontainers.TerminateContainer(ctr)
 	os.Exit(code)
 }
 
-// postgresDSN returns a live Postgres DSN, or skips the test if no container
-// or env var is available.
+// postgresDSN returns a Postgres DSN for the calling test. When using
+// testcontainers (local dev), each test gets its own fresh database within the
+// shared container for isolation — critical because contracttest.RunSuite runs
+// subtests in parallel, each creating a bundle that applies migrations.
+//
+// When POSTGRES_TEST_DSN is set (CI service container), the DSN is returned
+// directly without per-test isolation.
 func postgresDSN(t *testing.T) string {
 	t.Helper()
 
-	if sharedDSN == "" {
+	if containerDSN == "" {
 		t.Skip("postgres not available: set POSTGRES_TEST_DSN or run with Docker")
 	}
 
-	return sharedDSN
+	if os.Getenv("POSTGRES_TEST_DSN") != "" {
+		return containerDSN
+	}
+
+	name := t.Name()
+	if dsn, ok := testDBCache.Load(name); ok {
+		return dsn.(string)
+	}
+
+	dbName := fmt.Sprintf("test_%d", atomic.AddInt64(&dbCounter, 1))
+	if _, err := adminDB.Exec(fmt.Sprintf(`CREATE DATABASE "%s"`, dbName)); err != nil {
+		t.Fatalf("create test database %s: %v", dbName, err)
+	}
+
+	dsn := replaceDBInDSN(containerDSN, dbName)
+	testDBCache.Store(name, dsn)
+
+	t.Cleanup(func() {
+		testDBCache.Delete(name)
+		_, _ = adminDB.Exec(fmt.Sprintf(`DROP DATABASE "%s" WITH (FORCE)`, dbName))
+	})
+
+	return dsn
+}
+
+// replaceDBInDSN swaps the database name in a URL-format Postgres DSN:
+// postgres://user:pass@host:port/olddb?params → .../newdb?params
+func replaceDBInDSN(dsn, newDB string) string {
+	queryStart := strings.Index(dsn, "?")
+
+	pathPart := dsn
+	query := ""
+
+	if queryStart >= 0 {
+		pathPart = dsn[:queryStart]
+		query = dsn[queryStart:]
+	}
+
+	lastSlash := strings.LastIndex(pathPart, "/")
+	if lastSlash < 0 {
+		return dsn
+	}
+
+	return pathPart[:lastSlash+1] + newDB + query
 }
