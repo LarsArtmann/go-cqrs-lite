@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // B006: Duplicate foreign-key stub SQL.
@@ -228,9 +229,5 @@ func reportRepeatedRegistration(
 		WithSuggestion("Collect handlers into a slice and register them in a loop, or use a variadic helper").
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
-	if err != nil {
-		return
-	}
-
-	*findings = append(*findings, f)
+	lintutil.AppendBuild(findings, f, err)
 }

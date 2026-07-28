@@ -124,11 +124,7 @@ func reportTimeField(
 		WithSuggestion(suggestion).
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
-	if err != nil {
-		return
-	}
-
-	*findings = append(*findings, f)
+	lintutil.AppendBuild(findings, f, err)
 }
 
 // suggestReplacement returns a specific replacement recommendation

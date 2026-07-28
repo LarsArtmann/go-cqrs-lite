@@ -21,7 +21,7 @@ import (
 //	*findings = append(*findings, f)
 //
 // boilerplate found in every rule's report* helper.
-func AppendBuild(findings *[]finding.Finding, f *finding.Finding, err error) {
+func AppendBuild(findings *[]finding.Finding, f finding.Finding, err error) {
 	if err != nil {
 		return
 	}

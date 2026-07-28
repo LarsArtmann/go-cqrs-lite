@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // D006: Missing errorfamily classification — plain errors.New in production code.
@@ -172,9 +173,5 @@ func reportUnclassified(
 		).
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
-	if err != nil {
-		return
-	}
-
-	*findings = append(*findings, f)
+	lintutil.AppendBuild(findings, f, err)
 }

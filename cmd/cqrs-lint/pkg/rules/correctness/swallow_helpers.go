@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 func isPayloadCall(expr ast.Expr) bool {
@@ -84,9 +85,7 @@ func inspectForSwallowedError(
 						WithSuggestion("Check the error return: `if err != nil { return state, fmt.Errorf(\"decode: %w\", err) }`").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
-					if err == nil {
-						*findings = append(*findings, f)
-					}
+					lintutil.AppendBuild(findings, f, err)
 				}
 			}
 		}
