@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/cmdguard/v3 v3.1.0
-	github.com/larsartmann/go-finding v1.4.0
+	github.com/larsartmann/go-finding v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-output v0.35.0
 	github.com/larsartmann/go-output/table v0.35.0
@@ -35,7 +35,7 @@ require (
 	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.4.0 // indirect
-	github.com/larsartmann/go-branded-id v0.4.0 // indirect
+	github.com/larsartmann/go-branded-id v0.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output/d2 v0.35.0 // indirect

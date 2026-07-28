@@ -11,17 +11,17 @@ extracted.
 
 ## Extractions Applied (Session 2)
 
-| Extraction | Files | Pattern Eliminated |
-| ---------- | ----- | ------------------ |
-| `Bundle.readModelCodec` | stack/accessors.go | ReadModels nil-check + codec default (2 sites) |
-| `lintutil.AppendBuild` | cmd/cqrs-lint (5 files + new pkg) | Build-error guard + append (5 sites) |
-| `errContainsAny` | storage/turso/indexing (2 files) | err-nil guard + lowercased Contains (2 sites) |
-| `withOutput` | cmd/cqrs-bench/output.go | openOutput + defer closeOutput (4 sites) |
-| `wrapInfraOrOK` | storage/turso/errors.go + sync.go | if-err-nil return WrapInfra; return nil (3 sites) |
-| `wrapInfraBytes` | encryption/errors.go + cose.go + hkdf.go | if-err-nil return nil, WrapInfra (3 sites) |
-| `unmarshalJSONString` | event/date.go + time_types.go | json.Unmarshal + WrapRejection (2 sites) |
-| `sliceIteratorOrErr` | storage/memory/stream.go | if-err + WrapInfra + SliceIterator (4 sites) |
-| `mergeKnows` + `knowsEdgeRef` | graph/graphtest/contract.go | RunInTx + MergeEdge + EdgeRef literal (5 sites) |
+| Extraction                    | Files                                    | Pattern Eliminated                                |
+| ----------------------------- | ---------------------------------------- | ------------------------------------------------- |
+| `Bundle.readModelCodec`       | stack/accessors.go                       | ReadModels nil-check + codec default (2 sites)    |
+| `lintutil.AppendBuild`        | cmd/cqrs-lint (5 files + new pkg)        | Build-error guard + append (5 sites)              |
+| `errContainsAny`              | storage/turso/indexing (2 files)         | err-nil guard + lowercased Contains (2 sites)     |
+| `withOutput`                  | cmd/cqrs-bench/output.go                 | openOutput + defer closeOutput (4 sites)          |
+| `wrapInfraOrOK`               | storage/turso/errors.go + sync.go        | if-err-nil return WrapInfra; return nil (3 sites) |
+| `wrapInfraBytes`              | encryption/errors.go + cose.go + hkdf.go | if-err-nil return nil, WrapInfra (3 sites)        |
+| `unmarshalJSONString`         | event/date.go + time_types.go            | json.Unmarshal + WrapRejection (2 sites)          |
+| `sliceIteratorOrErr`          | storage/memory/stream.go                 | if-err + WrapInfra + SliceIterator (4 sites)      |
+| `mergeKnows` + `knowsEdgeRef` | graph/graphtest/contract.go              | RunInTx + MergeEdge + EdgeRef literal (5 sites)   |
 
 ---
 

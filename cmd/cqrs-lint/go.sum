@@ -59,8 +59,8 @@ github.com/larsartmann/cmdguard/v3 v3.1.0 h1:0wmJyIbhrAE+5NwyuCmjsZzfxym8YZXOc9j
 github.com/larsartmann/cmdguard/v3 v3.1.0/go.mod h1:1rdG5CJG8OavWheOOCVWatCFkgZx9Ttpdj7NKZP5138=
 github.com/larsartmann/go-atomic-write v0.4.0 h1:4WVKiOhKz0K3Hq6+h7bmTLujkJDPf7gkSG5HfQ/fvzU=
 github.com/larsartmann/go-atomic-write v0.4.0/go.mod h1:pkmHWPaCXUdJstjggiHCQufE1vquDCfwYsQfHPywxNI=
-github.com/larsartmann/go-branded-id v0.4.0 h1:5IPQ0OWtJE2BjF6qSTjmrMpNjKYblt9ae74WQj5PthI=
-github.com/larsartmann/go-branded-id v0.4.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
+github.com/larsartmann/go-branded-id v0.5.0 h1:IyZE8bM3GT+6PtY/HlvhSON9BCL6if3OBTkEEY6A/6s=
+github.com/larsartmann/go-branded-id v0.5.0/go.mod h1:ElTJY6HNf3ziPytNA5mpW32bxjfsZ/C8ILn4nPQdbmI=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-ndjson v0.0.1 h1:wchwH5pv+0ZnFem/WrlGZA8dDGvZumT+OcVn5dbou3A=

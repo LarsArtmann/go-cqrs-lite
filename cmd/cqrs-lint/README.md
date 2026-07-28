@@ -96,23 +96,23 @@ Explicit `features` flags always override preset values.
 
 ## Correctness Rules (bugs)
 
-| ID   | Rule                             | Severity | Description                                                      |
-| ---- | -------------------------------- | -------- | ---------------------------------------------------------------- |
-| C001 | missing-tx-commit                | Critical | Transaction wrapper returns nil instead of tx.Commit()           |
-| C002 | broken-command-id                | Critical | Command ID() returns zero value — breaks idempotency             |
-| C003 | silent-unknown-event-fold        | Error    | Fold function silently ignores unknown event types               |
-| C004 | checkpoint-before-async-complete | Error    | Projection launches async work — checkpoint may save early       |
-| C005 | raw-json-unmarshal-payload       | Error    | Raw json.Unmarshal on event payload instead of DecodePayloadAuto |
-| C006 | manual-version-arithmetic        | Warning  | event.Version(x.Int()+1) instead of x.Increment()                |
-| C007 | time-now-in-decider              | Warning  | time.Now() inside decider — non-deterministic                    |
-| C008 | float64-for-money                | Warning  | float64 field with monetary name — use decimal or cents          |
-| C009 | panic-in-production              | Warning  | panic() in production code — use error returns                   |
-| C010 | swallowed-error-in-fold          | Warning  | Error from decode/unmarshal discarded in fold                    |
-| C011 | nondeterministic-decider         | Warning  | rand.* call inside decider — non-deterministic replay            |
-| C012 | missing-error-return-in-with-tx  | Critical | withTx ignores body error — failures silently lost               |
-| C013 | time-time-in-event-payload       | Warning  | time.Time field in event payload loses timezone via CBOR epoch encoding |
-| C014 | time-local-usage                 | Warning  | time.Local causes silent data corruption across timezone boundaries |
-| C015 | unchecked-close                  | Warning  | Close() error discarded — resource leak or silent data loss risk |
+| ID   | Rule                             | Severity | Description                                                                                          |
+| ---- | -------------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| C001 | missing-tx-commit                | Critical | Transaction wrapper returns nil instead of tx.Commit()                                               |
+| C002 | broken-command-id                | Critical | Command ID() returns zero value — breaks idempotency                                                 |
+| C003 | silent-unknown-event-fold        | Error    | Fold function silently ignores unknown event types                                                   |
+| C004 | checkpoint-before-async-complete | Error    | Projection launches async work — checkpoint may save early                                           |
+| C005 | raw-json-unmarshal-payload       | Error    | Raw json.Unmarshal on event payload instead of DecodePayloadAuto                                     |
+| C006 | manual-version-arithmetic        | Warning  | event.Version(x.Int()+1) instead of x.Increment()                                                    |
+| C007 | time-now-in-decider              | Warning  | time.Now() inside decider — non-deterministic                                                        |
+| C008 | float64-for-money                | Warning  | float64 field with monetary name — use decimal or cents                                              |
+| C009 | panic-in-production              | Warning  | panic() in production code — use error returns                                                       |
+| C010 | swallowed-error-in-fold          | Warning  | Error from decode/unmarshal discarded in fold                                                        |
+| C011 | nondeterministic-decider         | Warning  | rand.* call inside decider — non-deterministic replay                                                |
+| C012 | missing-error-return-in-with-tx  | Critical | withTx ignores body error — failures silently lost                                                   |
+| C013 | time-time-in-event-payload       | Warning  | time.Time field in event payload loses timezone via CBOR epoch encoding                              |
+| C014 | time-local-usage                 | Warning  | time.Local causes silent data corruption across timezone boundaries                                  |
+| C015 | unchecked-close                  | Warning  | Close() error discarded — resource leak or silent data loss risk                                     |
 | C016 | background-in-handler            | Warning  | context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing |
 
 ## API Misuse Rules
@@ -167,7 +167,7 @@ Explicit `features` flags always override preset values.
 | D002 | inconsistent-json-casing     | Info     | Mixed camelCase and snake_case JSON tags (excludes external-API mirrors — see [Rule Overrides](#rule-overrides)) |
 | D003 | inconsistent-logging-library | Info     | Project mixes multiple logging libraries                                                                         |
 | D005 | stale-documentation-version  | Warning  | Docs reference different version than go.mod                                                                     |
-| D006 | missing-errorfamily           | Info     | errors.New or fmt.Errorf without %w bypasses the 6-family error taxonomy                                         |
+| D006 | missing-errorfamily          | Info     | errors.New or fmt.Errorf without %w bypasses the 6-family error taxonomy                                         |
 
 ## Architecture Rules
 

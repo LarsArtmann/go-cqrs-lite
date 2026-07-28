@@ -40,11 +40,11 @@
     "go-branded-id": {
       "flake": false,
       "locked": {
-        "lastModified": 1785163669,
-        "narHash": "sha256-w3//OHr++pQKaHrG12iJYREUOvSnSgl3vWBzru22oBc=",
+        "lastModified": 1785226887,
+        "narHash": "sha256-jlyFMR+8p/lCdHVajy6Q4zV+VIGRfOe3QR2wf5YcRbk=",
         "ref": "master",
-        "rev": "0ef70b64cc851481305c2b145d9fe6dd2b1bf95b",
-        "revCount": 123,
+        "rev": "5c4f9955f369c90c92acd93685ffaf5a1031247c",
+        "revCount": 132,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/go-branded-id"
       },

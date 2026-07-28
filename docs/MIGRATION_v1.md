@@ -64,14 +64,14 @@ require github.com/larsartmann/go-cqrs-lite/core v1.0.0
 
 v1.0.0 adopts the `go-error-family` error taxonomy. All errors returned by library functions are classified into one of six families (five at v1.0.0; Orchestration added in go-error-family v0.10.0):
 
-| Family             | Factory                        | Meaning                    | Example                |
-| ------------------ | ------------------------------ | -------------------------- | ---------------------- |
-| **Rejection**      | `event.NewRejection(...)`      | Business rule violation    | "not found"            |
-| **Conflict**       | `event.NewConflict(...)`       | State conflict             | "duplicate type"       |
-| **Transient**      | `event.NewTransient(...)`      | Retryable failure          | "connection reset"     |
-| **Infrastructure** | `event.NewInfrastructure(...)` | Non-retryable system error | "database unreachable" |
-| **Corruption**     | `event.NewCorruption(...)`     | Data integrity violation   | "checksum mismatch"    |
-| **Orchestration**  | `errorfamily.NewOrchestration(...)` | Workflow/saga coordination | "compensation failed" |
+| Family             | Factory                             | Meaning                    | Example                |
+| ------------------ | ----------------------------------- | -------------------------- | ---------------------- |
+| **Rejection**      | `event.NewRejection(...)`           | Business rule violation    | "not found"            |
+| **Conflict**       | `event.NewConflict(...)`            | State conflict             | "duplicate type"       |
+| **Transient**      | `event.NewTransient(...)`           | Retryable failure          | "connection reset"     |
+| **Infrastructure** | `event.NewInfrastructure(...)`      | Non-retryable system error | "database unreachable" |
+| **Corruption**     | `event.NewCorruption(...)`          | Data integrity violation   | "checksum mismatch"    |
+| **Orchestration**  | `errorfamily.NewOrchestration(...)` | Workflow/saga coordination | "compensation failed"  |
 
 ### Migration
 
