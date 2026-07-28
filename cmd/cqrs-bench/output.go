@@ -9,70 +9,76 @@ import (
 )
 
 func writeResult(format, output string, config benchkit.Config, result *benchkit.Result) {
-	w := openOutput(output)
-	defer closeOutput(w)
-
-	switch format {
-	case "json":
-		if err := benchkit.WriteJSON(w, result); err != nil {
-			fatalf("write JSON: %v", err)
+	withOutput(output, func(w *os.File) {
+		switch format {
+		case "json":
+			if err := benchkit.WriteJSON(w, result); err != nil {
+				fatalf("write JSON: %v", err)
+			}
+		case "benchstat":
+			benchkit.WriteBenchstat(w, result)
+		case "manifest":
+			if err := benchkit.WriteManifest(w, config, result); err != nil {
+				fatalf("write manifest: %v", err)
+			}
+		default:
+			benchkit.PrintReport(w, result)
 		}
-	case "benchstat":
-		benchkit.WriteBenchstat(w, result)
-	case "manifest":
-		if err := benchkit.WriteManifest(w, config, result); err != nil {
-			fatalf("write manifest: %v", err)
-		}
-	default:
-		benchkit.PrintReport(w, result)
-	}
+	})
 }
 
 func writeComparison(
 	format, output string,
 	results map[string]*benchkit.Result,
 ) {
-	w := openOutput(output)
-	defer closeOutput(w)
-
-	switch format {
-	case "json":
-		if err := benchkit.WriteComparisonJSON(w, results); err != nil {
-			fatalf("write JSON: %v", err)
+	withOutput(output, func(w *os.File) {
+		switch format {
+		case "json":
+			if err := benchkit.WriteComparisonJSON(w, results); err != nil {
+				fatalf("write JSON: %v", err)
+			}
+		case "markdown":
+			benchkit.PrintMarkdown(w, results)
+		default:
+			benchkit.PrintComparison(w, results)
 		}
-	case "markdown":
-		benchkit.PrintMarkdown(w, results)
-	default:
-		benchkit.PrintComparison(w, results)
-	}
+	})
 }
 
 func writeSweep(format, output string, results []benchkit.SweepResult) {
-	w := openOutput(output)
-	defer closeOutput(w)
-
-	switch format {
-	case "json":
-		if err := benchkit.WriteSweepJSON(w, results); err != nil {
-			fatalf("write JSON: %v", err)
+	withOutput(output, func(w *os.File) {
+		switch format {
+		case "json":
+			if err := benchkit.WriteSweepJSON(w, results); err != nil {
+				fatalf("write JSON: %v", err)
+			}
+		default:
+			benchkit.PrintSweep(w, results)
 		}
-	default:
-		benchkit.PrintSweep(w, results)
-	}
+	})
 }
 
 func writeSoakResult(format, output string, result *benchkit.SoakResult) {
+	withOutput(output, func(w *os.File) {
+		switch format {
+		case "json":
+			if err := benchkit.WriteSoakJSON(w, result); err != nil {
+				fatalf("write JSON: %v", err)
+			}
+		default:
+			benchkit.PrintSoakReport(w, result)
+		}
+	})
+}
+
+// withOutput opens the output destination and calls fn with the writer,
+// ensuring it is closed when fn returns. Collapses the repeated
+// "w := openOutput(output); defer closeOutput(w)" prologue shared by every
+// write* entry point so the open/close lifecycle lives in one place.
+func withOutput(output string, fn func(w *os.File)) {
 	w := openOutput(output)
 	defer closeOutput(w)
-
-	switch format {
-	case "json":
-		if err := benchkit.WriteSoakJSON(w, result); err != nil {
-			fatalf("write JSON: %v", err)
-		}
-	default:
-		benchkit.PrintSoakReport(w, result)
-	}
+	fn(w)
 }
 
 func openOutput(path string) *os.File {
