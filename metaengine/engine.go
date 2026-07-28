@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"iter"
 	"sort"
 	"strings"
 )
@@ -105,6 +106,24 @@ type PushdownScan interface {
 		cursor any,
 		limit int,
 	) ([]any, error)
+}
+
+// StreamingScan is an optional capability for engines that support streaming
+// iteration over collection data without materializing all rows in memory.
+// This is critical for large collections that would cause OOM if loaded all at
+// once. The iterator yields values one at a time; the caller processes each
+// before the next is fetched.
+//
+// Engines that implement this interface should also implement ScanBackend or
+// PushdownScan. The streaming variant is used when the caller explicitly
+// requests streaming (e.g., for batch processing or export operations).
+type StreamingScan interface {
+	StreamScan(
+		ctx context.Context,
+		collection string,
+		filters []FilterSpec,
+		sort *SortSpec,
+	) iter.Seq2[any, error]
 }
 
 type SetBackend interface {

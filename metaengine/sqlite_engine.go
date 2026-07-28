@@ -6,6 +6,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"iter"
 	"sort"
 	"strings"
 	"sync"
@@ -381,6 +382,78 @@ func jsonPath(field string) string {
 	return "$." + field
 }
 
+// --- StreamingScan ---
+
+// StreamScan returns an iterator over collection rows, applying filter and
+// sort pushdown via json_extract. Each row is decoded lazily — no materialization
+// of the full result set. This prevents OOM for large collections.
+func (e *sqliteEngine) StreamScan(
+	ctx context.Context,
+	col string,
+	filters []FilterSpec,
+	sort *SortSpec,
+) iter.Seq2[any, error] {
+	return func(yield func(any, error) bool) {
+		var b strings.Builder
+
+		args := []any{col}
+
+		b.WriteString(`SELECT value FROM meta_map WHERE collection = ?`)
+
+		for _, f := range filters {
+			path := jsonPath(f.Column)
+			b.WriteString(` AND json_extract(value, '`)
+			b.WriteString(path)
+			b.WriteString(`') `)
+			b.WriteString(string(f.Op))
+			b.WriteString(` ?`)
+
+			args = append(args, f.Value)
+		}
+
+		if sort != nil {
+			path := jsonPath(sort.Column)
+			b.WriteString(` ORDER BY json_extract(value, '`)
+			b.WriteString(path)
+			b.WriteString(`')`)
+
+			if sort.Desc {
+				b.WriteString(` DESC`)
+			}
+		}
+
+		rows, err := e.db.QueryContext(ctx, b.String(), args...)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+
+		defer func() { _ = rows.Close() }()
+
+		for rows.Next() {
+			var valStr string
+
+			if err := rows.Scan(&valStr); err != nil {
+				yield(nil, err)
+				return
+			}
+
+			var val any
+			if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
+				val = valStr
+			}
+
+			if !yield(val, nil) {
+				return
+			}
+		}
+
+		if err := rows.Err(); err != nil {
+			yield(nil, err)
+		}
+	}
+}
+
 // Compile-time assertions.
 var (
 	_ Engine          = (*sqliteEngine)(nil)
@@ -388,6 +461,7 @@ var (
 	_ MapUpdater      = (*sqliteEngine)(nil)
 	_ ScanBackend     = (*sqliteEngine)(nil)
 	_ PushdownScan    = (*sqliteEngine)(nil)
+	_ StreamingScan   = (*sqliteEngine)(nil)
 	_ SetBackend      = (*sqliteEngine)(nil)
 	_ CounterBackend  = (*sqliteEngine)(nil)
 	_ GraphBackend    = (*sqliteEngine)(nil)
