@@ -149,16 +149,32 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 		cursorVal = cursor.Value
 	}
 
-	// Build filter predicates from typed closures.
+	// Fast path: if the engine supports pushdown AND all filter/sort accessors
+	// have declarative specs (FilterOnField/SortOnField), push WHERE/ORDER BY/
+	// LIMIT into SQL instead of loading all rows into Go.
+	if ps, ok := q.engine.(PushdownScan); ok && canPushdown(q.config) {
+		specs := buildFilterSpecs(q.config, input)
+		var sortSpec *SortSpec
+		if q.config.sortAccessor.spec != nil {
+			sortSpec = q.config.sortAccessor.spec
+		}
+
+		rows, err := ps.PushdownMapScan(ctx, q.name, specs, sortSpec, cursorVal, limit)
+		if err != nil {
+			return nil, fmt.Errorf("pushdown map scan %s: %w", q.name, err)
+		}
+
+		return rows, nil
+	}
+
+	// Fallback: closure-based in-Go filtering via ScanBackend.MapScan.
 	filterPredicates := buildFilterPredicates(q, input)
 
-	// Determine sort accessor.
 	var sortFunc func(a, b any) int
 	if q.config.sortAccessor.closure != nil {
 		sortFunc = buildSortFunc(q.config.sortAccessor.closure)
 	} else {
-		// No explicit SortOn — try default: sort by first time.Time field.
-		sortFunc = nil // engine decides internally
+		sortFunc = nil
 	}
 
 	if sb, ok := q.engine.(ScanBackend); ok {
@@ -171,6 +187,52 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	}
 
 	return nil, unsupportedEngine(errUnsupportedScanReads, q.engine.Profile().Name)
+}
+
+// canPushdown returns true when all declared filter/sort accessors carry
+// declarative specs (FilterSpec/SortSpec). If any accessor is closure-only
+// (FilterOn/SortOn), pushdown is impossible and the fallback path is used.
+func canPushdown(cfg QueryConfig) bool {
+	for _, acc := range cfg.filterAccessors {
+		if acc.spec == nil {
+			return false
+		}
+	}
+
+	if cfg.sortAccessor.closure != nil && cfg.sortAccessor.spec == nil {
+		return false
+	}
+
+	return true
+}
+
+// buildFilterSpecs converts declarative filter accessors into FilterSpec values
+// with the filter values extracted from the query input by field name.
+func buildFilterSpecs(cfg QueryConfig, input any) []FilterSpec {
+	if len(cfg.filterAccessors) == 0 {
+		return nil
+	}
+
+	var specs []FilterSpec
+
+	for _, acc := range cfg.filterAccessors {
+		if acc.spec == nil {
+			continue
+		}
+
+		val := extractValueByName(input, acc.spec.Column)
+		if val == nil {
+			continue
+		}
+
+		specs = append(specs, FilterSpec{
+			Column: acc.spec.Column,
+			Op:     acc.spec.Op,
+			Value:  val,
+		})
+	}
+
+	return specs
 }
 
 // buildFilterPredicates creates runtime filter predicates from typed closures

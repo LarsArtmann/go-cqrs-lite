@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"reflect"
+	"strings"
 )
 
 // Pagination/metadata field names recognised on query input structs. Centralised
@@ -253,4 +254,29 @@ func extractFirstDomainField(input any) any {
 	}
 
 	return v.FieldByName(fields[0].Name).Interface()
+}
+
+// extractValueByName finds an exported field in the input struct whose name
+// matches the given name case-insensitively, and returns its value.
+// Used by FilterOnField to extract filter values from the query input.
+func extractValueByName(input any, name string) any {
+	v, ok := structValue(input)
+	if !ok {
+		return nil
+	}
+
+	t := v.Type()
+
+	for i := range t.NumField() {
+		f := t.Field(i)
+		if !f.IsExported() {
+			continue
+		}
+
+		if strings.EqualFold(f.Name, name) {
+			return v.Field(i).Interface()
+		}
+	}
+
+	return nil
 }
