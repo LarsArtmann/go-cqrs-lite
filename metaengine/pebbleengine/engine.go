@@ -17,6 +17,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -600,9 +601,9 @@ func nextKey(prefix []byte) []byte {
 	result := make([]byte, len(prefix))
 	copy(result, prefix)
 
-	for i := len(result) - 1; i >= 0; i-- {
-		result[i]++
-		if result[i] != 0 {
+	for _, v := range slices.Backward(result) {
+		v++
+		if v != 0 {
 			return result
 		}
 	}

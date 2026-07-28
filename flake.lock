@@ -37,6 +37,23 @@
         "type": "github"
       }
     },
+    "go-atomic-write": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785089303,
+        "narHash": "sha256-8bGOIDPoWQvkE0tuCn6gy6SPolNJNRaMCuyfyvGnAcQ=",
+        "ref": "master",
+        "rev": "a2a3beca4b20afad1c0d6295a7135f6b9b150f4c",
+        "revCount": 74,
+        "type": "git",
+        "url": "ssh://git@github.com/LarsArtmann/go-atomic-write"
+      },
+      "original": {
+        "ref": "master",
+        "type": "git",
+        "url": "ssh://git@github.com/LarsArtmann/go-atomic-write"
+      }
+    },
     "go-branded-id": {
       "flake": false,
       "locked": {
@@ -54,6 +71,23 @@
         "url": "ssh://git@github.com/LarsArtmann/go-branded-id"
       }
     },
+    "go-error-family": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785232841,
+        "narHash": "sha256-uhHsRz66sc5pKQbnaLtnbqaz+AmQDoEZv+fNTJ5eUlU=",
+        "ref": "master",
+        "rev": "33ed468a03f93f8189c709c6f63e0d49ef27e362",
+        "revCount": 270,
+        "type": "git",
+        "url": "ssh://git@github.com/LarsArtmann/go-error-family"
+      },
+      "original": {
+        "ref": "master",
+        "type": "git",
+        "url": "ssh://git@github.com/LarsArtmann/go-error-family"
+      }
+    },
     "go-finding": {
       "flake": false,
       "locked": {
@@ -69,6 +103,23 @@
         "ref": "master",
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/go-finding"
+      }
+    },
+    "go-ndjson": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785233082,
+        "narHash": "sha256-I6j+crTOvycmc+JW8rJGD5nvVjQ5eUj76RTUbUt9tWE=",
+        "ref": "master",
+        "rev": "dd56007d6a69d88f6a6f43f002b71579c6fc8f8e",
+        "revCount": 12,
+        "type": "git",
+        "url": "ssh://git@github.com/LarsArtmann/go-ndjson"
+      },
+      "original": {
+        "ref": "master",
+        "type": "git",
+        "url": "ssh://git@github.com/LarsArtmann/go-ndjson"
       }
     },
     "go-nix-helpers": {
@@ -142,8 +193,11 @@
       "inputs": {
         "cmdguard": "cmdguard",
         "flake-parts": "flake-parts",
+        "go-atomic-write": "go-atomic-write",
         "go-branded-id": "go-branded-id",
+        "go-error-family": "go-error-family",
         "go-finding": "go-finding",
+        "go-ndjson": "go-ndjson",
         "go-nix-helpers": "go-nix-helpers",
         "go-output": "go-output",
         "gogenfilter": "gogenfilter",
