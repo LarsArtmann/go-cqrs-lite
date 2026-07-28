@@ -94,7 +94,7 @@ func BenchmarkLayout_Planned_FilterByStatus(b *testing.B) {
 	defer func() { _ = db.Close() }()
 
 	plan := BuildLayoutPlan("items",
-		[]string{"Status"}, // filter fields
+		[]string{"Status"},   // filter fields
 		[]string{"Priority"}, // sort fields
 	)
 
