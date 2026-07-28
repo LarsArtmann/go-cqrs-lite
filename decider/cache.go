@@ -65,62 +65,65 @@ type lruCache[State any] struct {
 	order *list.List
 }
 
-func (c *lruCache[State]) Get(ref id.StreamRef) (State, event.Version, bool) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+func (c *lruCache[State]) Get(ref id.StreamRef) (state State, version event.Version, ok bool) {
+	c.locked(ref, func(key string) {
+		elem, found := c.items[key]
+		if !found {
+			return
+		}
 
-	key := ref.String()
+		c.order.MoveToFront(elem)
+		entry := elem.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
 
-	elem, ok := c.items[key]
-	if !ok {
-		var zero State
+		state = entry.state
+		version = entry.version
+		ok = true
+	})
 
-		return zero, 0, false
-	}
-
-	c.order.MoveToFront(elem)
-	entry := elem.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
-
-	return entry.state, entry.version, true
+	return state, version, ok
 }
 
 func (c *lruCache[State]) Put(ref id.StreamRef, state State, version event.Version) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.locked(ref, func(key string) {
+		if elem, found := c.items[key]; found {
+			c.order.MoveToFront(elem)
+			entry := elem.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
+			entry.state = state
+			entry.version = version
 
-	key := ref.String()
-
-	if elem, ok := c.items[key]; ok {
-		c.order.MoveToFront(elem)
-		entry := elem.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
-		entry.state = state
-		entry.version = version
-
-		return
-	}
-
-	entry := &cacheEntry[State]{ref: ref, state: state, version: version}
-	elem := c.order.PushFront(entry)
-	c.items[key] = elem
-
-	if c.order.Len() > c.cap {
-		oldest := c.order.Back()
-		if oldest != nil {
-			c.order.Remove(oldest)
-			oldEntry := oldest.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
-			delete(c.items, oldEntry.ref.String())
+			return
 		}
-	}
+
+		entry := &cacheEntry[State]{ref: ref, state: state, version: version}
+		elem := c.order.PushFront(entry)
+		c.items[key] = elem
+
+		if c.order.Len() > c.cap {
+			oldest := c.order.Back()
+			if oldest != nil {
+				c.order.Remove(oldest)
+				oldEntry := oldest.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
+				delete(c.items, oldEntry.ref.String())
+			}
+		}
+	})
 }
 
 func (c *lruCache[State]) Invalidate(ref id.StreamRef) {
+	c.locked(ref, func(key string) {
+		if elem, found := c.items[key]; found {
+			c.order.Remove(elem)
+			delete(c.items, key)
+		}
+	})
+}
+
+// locked executes fn while holding the cache mutex. It provides the key derived
+// from ref so every mutating method follows the same lock + key-computation
+// pattern.
+func (c *lruCache[State]) locked(ref id.StreamRef, fn func(key string)) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	key := ref.String()
-
-	if elem, ok := c.items[key]; ok {
-		c.order.Remove(elem)
-		delete(c.items, key)
-	}
+	fn(ref.String())
 }
