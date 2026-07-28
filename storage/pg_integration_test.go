@@ -4,8 +4,8 @@ package storage_test
 
 // PostgreSQL integration tests. Run with: go test -tags=integration ./...
 //
-// Requires DATABASE_URL environment variable pointing to a PostgreSQL database.
-// Example: DATABASE_URL=postgres://user:pass@localhost:5432/test?sslmode=disable
+// Uses testcontainers (postgres:16-alpine) when DATABASE_URL/
+// POSTGRES_TEST_DSN is unset. Each test gets its own fresh database.
 //
 // These tests verify that the SQL stores work correctly against a real PostgreSQL
 // instance, not just SQLite. They cover dialect-specific behavior like placeholder
@@ -14,7 +14,6 @@ package storage_test
 import (
 	"context"
 	"database/sql"
-	"os"
 	"testing"
 	"time"
 
@@ -27,10 +26,7 @@ import (
 func pgDB(t *testing.T) *sql.DB {
 	t.Helper()
 
-	url := os.Getenv("DATABASE_URL")
-	if url == "" {
-		t.Skip("DATABASE_URL not set — skipping PostgreSQL integration tests")
-	}
+	url := pgTestDSN(t)
 
 	db, err := sql.Open("pgx", url)
 	if err != nil {
@@ -46,11 +42,10 @@ func pgDB(t *testing.T) *sql.DB {
 		t.Fatalf("ping pg: %v", err)
 	}
 
-	// Clean up any previous test data
-	_, _ = db.ExecContext(
-		ctx,
-		`DROP TABLE IF EXISTS events, commands, queries, snapshots, checkpoints`,
-	)
+	// Apply schema (fresh per-test databases start empty).
+	if err := storage.PostgresInitSchema(ctx, db); err != nil {
+		t.Fatalf("PostgresInitSchema: %v", err)
+	}
 
 	return db
 }

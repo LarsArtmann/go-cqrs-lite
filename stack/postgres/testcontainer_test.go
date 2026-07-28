@@ -40,7 +40,8 @@ func TestMain(m *testing.M) {
 
 	ctx := context.Background()
 
-	ctr, err := postgres.Run(ctx, "postgres:16-alpine",
+	ctr, err := postgres.Run(
+		ctx, "postgres:16-alpine",
 		postgres.WithDatabase("cqrs_test"),
 		postgres.WithUsername("cqrs"),
 		postgres.WithPassword("cqrs"),

@@ -1,4 +1,4 @@
-//go:build postgres_integration
+//go:build integration
 
 package relational
 
@@ -10,6 +10,8 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/testcontainers/testcontainers-go"
+	pgtest "github.com/testcontainers/testcontainers-go/modules/postgres"
 
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
@@ -35,16 +37,40 @@ func pgDiscordSchema() RelationalSchema {
 func openPostgresDB(t *testing.T) *sql.DB {
 	t.Helper()
 
-	dsn := os.Getenv("POSTGRES_TEST_DSN")
-	if dsn == "" {
-		t.Skip("POSTGRES_TEST_DSN not set; skipping Postgres relational tests")
+	// Prefer external DSN (CI service container).
+	if dsn := os.Getenv("POSTGRES_TEST_DSN"); dsn != "" {
+		db, err := sql.Open("pgx", dsn)
+		if err != nil {
+			t.Fatalf("open pg: %v", err)
+		}
+		t.Cleanup(func() { _ = db.Close() })
+		return db
+	}
+
+	// Start a testcontainer for local development.
+	ctx := context.Background()
+
+	ctr, err := pgtest.Run(
+		ctx, "postgres:16-alpine",
+		pgtest.WithDatabase("test"),
+		pgtest.WithUsername("test"),
+		pgtest.WithPassword("test"),
+		pgtest.BasicWaitStrategies(),
+	)
+	if err != nil {
+		t.Skipf("postgres not available: %v", err)
+	}
+	t.Cleanup(func() { _ = testcontainers.TerminateContainer(ctr) })
+
+	dsn, err := ctr.ConnectionString(ctx, "sslmode=disable")
+	if err != nil {
+		t.Fatalf("connection string: %v", err)
 	}
 
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		t.Fatalf("open pg: %v", err)
 	}
-
 	t.Cleanup(func() { _ = db.Close() })
 
 	return db
