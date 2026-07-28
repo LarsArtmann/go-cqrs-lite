@@ -27,7 +27,7 @@
 
 ## Modules
 
-The authoritative module index with README links lives in the **[project README](../README.md)** (58 modules). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4).
+The authoritative module index with README links lives in the **[project README](../README.md)** (59 modules). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4).
 
 ## Examples
 
@@ -39,7 +39,7 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Architecture Decision Records (ADR)
 
-68 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+69 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                        | Title                                                   | Status                   |
 | ---------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
@@ -111,6 +111,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0068](adr/0068-metaengine-multimap-seq-seed.md)           | Metaengine Multimap seq-seed (sync.Once MAX(seq))       | Accepted                 |
 | [0069](adr/0069-error-wrapping-helpers.md)                 | Error-Wrapping Helper Convention                        | Accepted                 |
 | [0070](adr/0070-transform-fallback-observability.md)       | Transform Fallback Observability (slog vs OTel)         | Accepted                 |
+| [0071](adr/0071-duckdb-cgo-introduction.md)                | DuckDB CGo Introduction                                 | Accepted                 |
 
 ## API Reference
 

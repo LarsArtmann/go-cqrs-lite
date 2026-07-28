@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-27
+**Updated:** 2026-07-28
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here — when a task is finished it is removed from
@@ -112,6 +112,28 @@ github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
       mode the current gate uses.
 - [ ] **`--type-aware` art-dupl run** — eliminates false-positive clone groups
       (`time.Time.String` vs `*big.Int.String`).
+
+---
+
+## DuckDB Backend (ADR-0071)
+
+> ✅ Core integration shipped: `DuckDBDialect`, `stack/duckdb` preset, contract
+> tests, lint, flake.nix CGo wiring. Remaining work is polish and integration.
+
+- [ ] **`TestMultiDBContract`** — SQLite has `contracttest.RunMultiDBSuite`;
+      DuckDB only has `TestNew_MultiDB` (basic wiring). Add the full contract.
+- [ ] **`view_models_integration_test.go`** — `SQLViewModel` is exported but
+      untested with actual DuckDB analytical queries.
+- [ ] **DuckDB golden schema tests in `storage/`** — golden tests exist for
+      postgres/sqlite schemas; add DuckDB equivalent.
+- [ ] **`OpenDuckDB()` + `OpenDuckDBInMemory()` helpers** — `storage/` exports
+      `OpenSQLite`/`OpenSQLiteInMemory`. No DuckDB equivalents yet.
+- [ ] **`ConfigureDuckDBPool()`** — pool guidance (like `ConfigureSQLitePool`).
+- [ ] **`appendDuckDBOptions` unit test** — DSN param appending edge cases.
+- [ ] **Wire DuckDB into `stack/bench/` and `cmd/cqrs-bench`** — benchmark
+      suite and CLI don't list DuckDB as a backend option.
+- [ ] **CGo-enabled CI job in `ci.yml`** — existing CI runs with default CGo
+      (likely 0). Add a job that runs DuckDB tests with `CGO_ENABLED=1`.
 
 ---
 

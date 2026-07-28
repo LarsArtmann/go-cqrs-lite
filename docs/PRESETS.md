@@ -27,6 +27,7 @@ store, _ := stack.ReadModel[TodoView, TodoID](b, codec.JSONCodec{},
 | Pebble   | `stack/pebble`   | PebbleDB (LSM)   | Yes        | Memory                 | Pebble KV        |
 | Postgres | `stack/postgres` | PostgreSQL (pgx) | Yes        | Memory / LISTEN-NOTIFY | SQL KV (cqrs_kv) |
 | Turso    | `stack/turso`    | Turso Database   | Yes        | Memory                 | SQL KV (cqrs_kv) |
+| DuckDB   | `stack/duckdb`   | DuckDB (CGo)     | Yes        | Memory                 | SQL KV (cqrs_kv) |
 
 All presets wire every capability: event store + bus, command store, query
 store, snapshot store, checkpoint store, and read-model backend.
@@ -151,6 +152,24 @@ sync).
 | `WithOptimizations()` | Applies CQRS-optimized indexes and performance PRAGMAs (WAL, synchronous=NORMAL, cache_size, temp_store) after schema creation. Recommended for production. |
 | `WithForeignKeys()`   | Enables foreign-key enforcement on all databases. Off by default (existing data may have orphaned references).                                              |
 | `WithoutWAL()`        | Disables WAL mode (default: on with synchronous=NORMAL + busy_timeout=5000).                                                                                |
+
+### DuckDB (analytical / OLAP)
+
+> Requires `CGO_ENABLED=1`. See [ADR-0071](adr/0071-duckdb-cgo-introduction.md).
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4"
+
+b, _ := duckdb.New("analytics.db")          // or "" for in-memory
+defer b.Close()
+```
+
+Options: `WithThreads(n)`, `WithMemoryLimit("1GB")`, `WithDSN(sqlopt.WithoutAutoMigrate, sqlopt.WithEventDB, sqlopt.WithQueryDB, sqlopt.WithViewDB)`.
+
+DuckDB is an embedded analytical engine. Use it when read models are dominated
+by analytical scans (GROUP BY, window functions, aggregations) rather than
+point lookups. The columnar engine makes `SQLViewModel` tables dramatically
+faster for analytical workloads than row-oriented SQLite.
 
 ## Bundle Fields
 
