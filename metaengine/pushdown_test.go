@@ -64,7 +64,8 @@ var _ = Describe("PushdownScan", func() {
 
 		It("filters with WHERE json_extract", func() {
 			ps := eng.(metaengine.PushdownScan)
-			results, err := ps.PushdownMapScan(ctx, "tasks",
+			results, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				[]metaengine.FilterSpec{
 					{Column: "Status", Op: metaengine.FilterEq, Value: "open"},
 				},
@@ -77,7 +78,8 @@ var _ = Describe("PushdownScan", func() {
 		It("sorts with ORDER BY json_extract", func() {
 			ps := eng.(metaengine.PushdownScan)
 			desc := false
-			results, err := ps.PushdownMapScan(ctx, "tasks",
+			results, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				nil,
 				&metaengine.SortSpec{Column: "Priority", Desc: desc},
 				nil, 0,
@@ -92,7 +94,8 @@ var _ = Describe("PushdownScan", func() {
 
 		It("sorts DESC with ORDER BY json_extract DESC", func() {
 			ps := eng.(metaengine.PushdownScan)
-			results, err := ps.PushdownMapScan(ctx, "tasks",
+			results, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				nil,
 				&metaengine.SortSpec{Column: "Priority", Desc: true},
 				nil, 0,
@@ -106,7 +109,8 @@ var _ = Describe("PushdownScan", func() {
 
 		It("limits with LIMIT", func() {
 			ps := eng.(metaengine.PushdownScan)
-			results, err := ps.PushdownMapScan(ctx, "tasks",
+			results, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				nil,
 				&metaengine.SortSpec{Column: "Priority", Desc: true},
 				nil, 2,
@@ -118,7 +122,8 @@ var _ = Describe("PushdownScan", func() {
 
 		It("combines filter + sort + limit", func() {
 			ps := eng.(metaengine.PushdownScan)
-			results, err := ps.PushdownMapScan(ctx, "tasks",
+			results, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				[]metaengine.FilterSpec{
 					{Column: "Status", Op: metaengine.FilterEq, Value: "open"},
 				},
@@ -135,7 +140,8 @@ var _ = Describe("PushdownScan", func() {
 		It("applies keyset cursor for ascending sort", func() {
 			ps := eng.(metaengine.PushdownScan)
 			// First page: top 2 by Priority ascending.
-			page1, err := ps.PushdownMapScan(ctx, "tasks",
+			page1, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				nil,
 				&metaengine.SortSpec{Column: "Priority", Desc: false},
 				nil, 2,
@@ -147,7 +153,8 @@ var _ = Describe("PushdownScan", func() {
 
 			// Cursor = Priority=2 (last item on the page, excluding the +1).
 			cursor := vals1[1] // Priority=2
-			page2, err := ps.PushdownMapScan(ctx, "tasks",
+			page2, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				nil,
 				&metaengine.SortSpec{Column: "Priority", Desc: false},
 				cursor, 2,
@@ -160,7 +167,8 @@ var _ = Describe("PushdownScan", func() {
 		It("applies keyset cursor for descending sort", func() {
 			ps := eng.(metaengine.PushdownScan)
 			// First page: top 2 by Priority descending.
-			page1, err := ps.PushdownMapScan(ctx, "tasks",
+			page1, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				nil,
 				&metaengine.SortSpec{Column: "Priority", Desc: true},
 				nil, 2,
@@ -171,7 +179,8 @@ var _ = Describe("PushdownScan", func() {
 
 			// Cursor = Priority=4 (second item).
 			cursor := vals1[1] // Priority=4
-			page2, err := ps.PushdownMapScan(ctx, "tasks",
+			page2, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				nil,
 				&metaengine.SortSpec{Column: "Priority", Desc: true},
 				cursor, 2,
@@ -183,7 +192,8 @@ var _ = Describe("PushdownScan", func() {
 
 		It("returns empty for non-matching filter", func() {
 			ps := eng.(metaengine.PushdownScan)
-			results, err := ps.PushdownMapScan(ctx, "tasks",
+			results, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				[]metaengine.FilterSpec{
 					{Column: "Status", Op: metaengine.FilterEq, Value: "nonexistent"},
 				},
@@ -195,7 +205,8 @@ var _ = Describe("PushdownScan", func() {
 
 		It("supports inequality operators", func() {
 			ps := eng.(metaengine.PushdownScan)
-			results, err := ps.PushdownMapScan(ctx, "tasks",
+			results, err := ps.PushdownMapScan(
+				ctx, "tasks",
 				[]metaengine.FilterSpec{
 					{Column: "Priority", Op: metaengine.FilterGt, Value: float64(2)},
 				},

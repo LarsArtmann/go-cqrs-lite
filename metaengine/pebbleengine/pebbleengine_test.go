@@ -82,7 +82,8 @@ func TestPebbleCounter(t *testing.T) {
 	cb := eng.(metaengine.CounterBackend)
 
 	g.Expect(cb.CounterIncrement(ctx, "counts", metaengine.Delta{"open": +3})).To(Succeed())
-	g.Expect(cb.CounterIncrement(ctx, "counts", metaengine.Delta{"open": +2, "done": +1})).To(Succeed())
+	g.Expect(cb.CounterIncrement(ctx, "counts", metaengine.Delta{"open": +2, "done": +1})).
+		To(Succeed())
 
 	counts, err := cb.CounterGet(ctx, "counts")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -146,8 +147,10 @@ func TestPebbleGraphNeighbors(t *testing.T) {
 	ctx := context.Background()
 	gb := eng.(metaengine.GraphBackend)
 
-	g.Expect(gb.GraphAddEdge(ctx, "social", metaengine.Edge{From: "alice", To: "bob"})).To(Succeed())
-	g.Expect(gb.GraphAddEdge(ctx, "social", metaengine.Edge{From: "bob", To: "carol"})).To(Succeed())
+	g.Expect(gb.GraphAddEdge(ctx, "social", metaengine.Edge{From: "alice", To: "bob"})).
+		To(Succeed())
+	g.Expect(gb.GraphAddEdge(ctx, "social", metaengine.Edge{From: "bob", To: "carol"})).
+		To(Succeed())
 
 	neighbors, err := gb.GraphNeighbors(ctx, "social", "alice", 1)
 	g.Expect(err).NotTo(HaveOccurred())

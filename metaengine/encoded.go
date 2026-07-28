@@ -62,5 +62,3 @@ func decodeFromSample(sample any, payload []byte) (any, error) {
 
 	return v.Elem().Interface(), nil
 }
-
-

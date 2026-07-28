@@ -53,29 +53,29 @@ Each tier may only import from its own tier or lower.
 
 ### Tier 4 — Infrastructure (depends on Tier 0-3)
 
-| Module            | Purpose                               |
-| ----------------- | ------------------------------------- |
-| `storage/memory/` | In-memory test impls                  |
-| `signing/`        | Event signing/verification            |
-| `encryption/`     | Payload encryption                    |
-| `otel/`           | Shared OTel helpers                   |
-| `middleware/`     | Cross-cutting: logging, retry, etc.   |
+| Module            | Purpose                                      |
+| ----------------- | -------------------------------------------- |
+| `storage/memory/` | In-memory test impls                         |
+| `signing/`        | Event signing/verification                   |
+| `encryption/`     | Payload encryption                           |
+| `otel/`           | Shared OTel helpers                          |
+| `middleware/`     | Cross-cutting: logging, retry, etc.          |
 | `storage/`        | SQL stores (PG/SQLite/Turso/DuckDB) + Pebble |
-| `transport/http/` | SSE broker                            |
-| `transport/grpc/` | gRPC transport                        |
-| `watermill/`      | Watermill bridges                     |
-| `prometheus/`     | OTel→Prometheus bridge                |
+| `transport/http/` | SSE broker                                   |
+| `transport/grpc/` | gRPC transport                               |
+| `watermill/`      | Watermill bridges                            |
+| `prometheus/`     | OTel→Prometheus bridge                       |
 
 ### Tier 5 — Composition (depends on Tier 0-4)
 
-| Module            | Purpose          |
-| ----------------- | ---------------- |
-| `stack/`          | Bundle + presets |
-| `stack/memory/`   | Memory preset    |
-| `stack/sqlite/`   | SQLite preset    |
-| `stack/pebble/`   | Pebble preset    |
-| `stack/postgres/` | Postgres preset  |
-| `stack/turso/`    | Turso preset     |
+| Module            | Purpose             |
+| ----------------- | ------------------- |
+| `stack/`          | Bundle + presets    |
+| `stack/memory/`   | Memory preset       |
+| `stack/sqlite/`   | SQLite preset       |
+| `stack/pebble/`   | Pebble preset       |
+| `stack/postgres/` | Postgres preset     |
+| `stack/turso/`    | Turso preset        |
 | `stack/duckdb/`   | DuckDB preset (CGo) |
 
 ### Tier 6 — Tooling & Examples (depends on all)

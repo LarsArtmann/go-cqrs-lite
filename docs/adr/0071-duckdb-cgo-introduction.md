@@ -1,10 +1,10 @@
 # ADR-0071: DuckDB CGo Introduction
 
-|             |                                                                                          |
-| ----------- | ---------------------------------------------------------------------------------------- |
-| **Status**  | Accepted                                                                                 |
-| **Date**    | 2026-07-28                                                                               |
-| **Context** | go-cqrs-lite was pure-Go; DuckDB requires CGo (C++ static link)                          |
+|             |                                                                 |
+| ----------- | --------------------------------------------------------------- |
+| **Status**  | Accepted                                                        |
+| **Date**    | 2026-07-28                                                      |
+| **Context** | go-cqrs-lite was pure-Go; DuckDB requires CGo (C++ static link) |
 
 ## Context
 
@@ -57,14 +57,14 @@ existing SQL store code (SQLEventStore, SQLCommandStore, etc.) is reused.
 
 ### Isolation Strategy
 
-| Layer                        | CGo? | Why                                                            |
-| ---------------------------- | ---- | ------------------------------------------------------------- |
-| `storage/sql/DuckDBDialect`  | No   | Pure SQL string generation — no driver import                 |
-| `storage/DuckDBInitSchema()` | No   | Runs DDL via `database/sql` interface — no driver import      |
-| `storage/NewDuckDBBackend()` | No   | Creates a `SQLBackend` with `DuckDBDialect{}` — no driver     |
-| `stack/duckdb/drivers.go`    | Yes  | Blank-imports `github.com/duckdb/duckdb-go/v2` to register    |
-| `stack/duckdb/preset.go`     | No   | Opens DB by driver name string `"duckdb"` — no direct import  |
-| `stack/duckdb/*_cgo_test.go` | Yes  | Tests that exercise the actual DuckDB engine                  |
+| Layer                        | CGo? | Why                                                          |
+| ---------------------------- | ---- | ------------------------------------------------------------ |
+| `storage/sql/DuckDBDialect`  | No   | Pure SQL string generation — no driver import                |
+| `storage/DuckDBInitSchema()` | No   | Runs DDL via `database/sql` interface — no driver import     |
+| `storage/NewDuckDBBackend()` | No   | Creates a `SQLBackend` with `DuckDBDialect{}` — no driver    |
+| `stack/duckdb/drivers.go`    | Yes  | Blank-imports `github.com/duckdb/duckdb-go/v2` to register   |
+| `stack/duckdb/preset.go`     | No   | Opens DB by driver name string `"duckdb"` — no direct import |
+| `stack/duckdb/*_cgo_test.go` | Yes  | Tests that exercise the actual DuckDB engine                 |
 
 Consumers who never import `stack/duckdb` never pull in CGo. The rest of
 go-cqrs-lite remains pure-Go and compiles with `CGO_ENABLED=0`.
@@ -86,7 +86,7 @@ tags — its files are simply not compiled.
 - **-** Binary size increases ~30-50MB when DuckDB is linked
 - **-** Nix build for `stack/duckdb` requires `pkgs.gcc` in the environment
 - **-** CI must run two configurations: `CGO_ENABLED=0` (pure-Go path) and
-       `CGO_ENABLED=1` (full DuckDB test path)
+  `CGO_ENABLED=1` (full DuckDB test path)
 
 ## References
 

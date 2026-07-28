@@ -848,15 +848,15 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4"`
 
-| Feature                  | Detail                                                                                          | Status |
-| ------------------------ | ----------------------------------------------------------------------------------------------- | ------ |
-| DuckDB dialect           | `storage/sql.DuckDBDialect` — Postgres-compatible placeholders, BLOB metadata, native timestamps | ✅     |
-| Stack preset             | `duckdb.New(dsn)` — full `stack.Bundle` with event store, read models, in-process bus          | ✅     |
-| CGo isolation            | `//go:build cgo` tags — pure-Go modules unaffected, consumers opt-in via import               | ✅     |
-| Multi-database topology  | `duckdb.WithDSN(sqlopt.WithEventDB(...))` — split events/queries/views across DB files        | ✅     |
-| Analytical read models   | `SQLViewModel[V,K]` — columnar scans, GROUP BY, window functions on event-sourced data        | ✅     |
-| Performance tuning       | `WithThreads(n)`, `WithMemoryLimit("1GB")` — DuckDB worker thread + memory caps              | ✅     |
-| Contract test suite      | Full `contracttest.RunSuite` — event/command/read-model roundtrips, close idempotency        | ✅     |
+| Feature                 | Detail                                                                                           | Status |
+| ----------------------- | ------------------------------------------------------------------------------------------------ | ------ |
+| DuckDB dialect          | `storage/sql.DuckDBDialect` — Postgres-compatible placeholders, BLOB metadata, native timestamps | ✅     |
+| Stack preset            | `duckdb.New(dsn)` — full `stack.Bundle` with event store, read models, in-process bus            | ✅     |
+| CGo isolation           | `//go:build cgo` tags — pure-Go modules unaffected, consumers opt-in via import                  | ✅     |
+| Multi-database topology | `duckdb.WithDSN(sqlopt.WithEventDB(...))` — split events/queries/views across DB files           | ✅     |
+| Analytical read models  | `SQLViewModel[V,K]` — columnar scans, GROUP BY, window functions on event-sourced data           | ✅     |
+| Performance tuning      | `WithThreads(n)`, `WithMemoryLimit("1GB")` — DuckDB worker thread + memory caps                  | ✅     |
+| Contract test suite     | Full `contracttest.RunSuite` — event/command/read-model roundtrips, close idempotency            | ✅     |
 
 ---
 

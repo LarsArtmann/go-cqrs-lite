@@ -370,7 +370,11 @@ func (e *pebbleEngine) SetContains(_ context.Context, col string, key any) (bool
 
 // --- CounterBackend ---
 
-func (e *pebbleEngine) CounterIncrement(_ context.Context, col string, deltas metaengine.Delta) error {
+func (e *pebbleEngine) CounterIncrement(
+	_ context.Context,
+	col string,
+	deltas metaengine.Delta,
+) error {
 	batch := e.db.NewBatch()
 	defer func() { _ = batch.Close() }()
 

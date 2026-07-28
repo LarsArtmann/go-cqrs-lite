@@ -43,7 +43,7 @@ type filterAccessor struct {
 // When spec is non-nil, the sort is declarative (SortOnField) and can be pushed
 // down to SQL-aware engines.
 type sortAccessor struct {
-	closure any // func(r R) time.T / comparable — extracts sort key from result
+	closure any       // func(r R) time.T / comparable — extracts sort key from result
 	spec    *SortSpec // declarative spec for pushdown (nil = closure-only)
 }
 

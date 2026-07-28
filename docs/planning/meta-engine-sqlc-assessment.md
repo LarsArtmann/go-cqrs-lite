@@ -4,13 +4,13 @@
 >
 > **Status:** Analysis & recommendation (not yet an ADR). No code changed.
 >
-> **Verdict:** sqlc is an **architectural mismatch for the metaengine core** (the design docs already *rejected* codegen explicitly — ADR-0063 alt-B). There **is** one genuine fit in this repo: the **fixed-schema stores** (eventstore / command / query / snapshot / checkpoint / idempotency / timer). The generic ViewStore / Relational tier in between is a trap.
+> **Verdict:** sqlc is an **architectural mismatch for the metaengine core** (the design docs already _rejected_ codegen explicitly — ADR-0063 alt-B). There **is** one genuine fit in this repo: the **fixed-schema stores** (eventstore / command / query / snapshot / checkpoint / idempotency / timer). The generic ViewStore / Relational tier in between is a trap.
 
 ---
 
 ## TL;DR
 
-- **Metaengine core:** Don't. It's a deployment-time, cost-based storage *layout planner*, not a query builder. Keys/values are `any` JSON-encoded into a `TEXT` column; one `meta_map` table namespaces N collections at runtime; the planner assembles the typed read API at `Plan()` time in-process. sqlc solves a *different* problem (type-safe SQL authoring) that the metaengine doesn't have. The 6 SQL strings it uses are already trivially correct and static.
+- **Metaengine core:** Don't. It's a deployment-time, cost-based storage _layout planner_, not a query builder. Keys/values are `any` JSON-encoded into a `TEXT` column; one `meta_map` table namespaces N collections at runtime; the planner assembles the typed read API at `Plan()` time in-process. sqlc solves a _different_ problem (type-safe SQL authoring) that the metaengine doesn't have. The 6 SQL strings it uses are already trivially correct and static.
 - **Fixed-schema stores:** Candidate. Concrete, build-time-fixed DDL + a fixed, small query set = textbook sqlc profile. Biggest win: gen-time query verification (`db-prepare` vet) on the **event store** (your source of truth).
 - **Generic ViewStore / Relational:** Trap. Columns come from `ViewMapper[V]` / `RelationalSchema` at runtime; sqlc only knows columns at gen time. Inverts the library's value proposition.
 - **Planner-emitted sqlc (research angle):** Novel ("a CBO that emits its own query layer") but conflicts with runtime re-planning. Spike-only, needs an ADR.
@@ -21,18 +21,18 @@
 
 The metaengine is not a query builder. It's a **deployment-time, cost-based storage layout planner**. These properties — taken straight from the design docs — are why sqlc can't help:
 
-| Metaengine property (from docs) | Why sqlc breaks it |
-| --- | --- |
-| **"runtime-composable, NOT codegen-dependent"** (ADR-0063 explicitly rejected codegen as alt-B) | sqlc is **build-time** codegen. Write `.sql` → run sqlc → emit Go. The metaengine assembles the typed read API at `Plan()` time in-process. |
-| **Keys/values are `any`, JSON-encoded into a `TEXT` column** (ADR-0061) | sqlc maps a column to a **concrete Go type**. A `TEXT` column gives you `string`. You'd still `json.Unmarshal` afterward — sqlc adds a layer that returns the wrong type (`string`) and you re-do the work. |
-| **One `meta_map` table + `collection TEXT` namespacing** serves N collections at runtime | sqlc models **one struct per table**. There is no table-per-collection. The whole `any`/collection design is invisible to sqlc. |
-| **"We do NOT reimplement query planning — we set up structures and let the engine optimize"** (assumptions doc) | sqlc doesn't plan either — it just emits prepared calls. It solves a *different* problem (type-safe SQL authoring) that the metaengine doesn't have. |
+| Metaengine property (from docs)                                                                                 | Why sqlc breaks it                                                                                                                                                                                          |
+| --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **"runtime-composable, NOT codegen-dependent"** (ADR-0063 explicitly rejected codegen as alt-B)                 | sqlc is **build-time** codegen. Write `.sql` → run sqlc → emit Go. The metaengine assembles the typed read API at `Plan()` time in-process.                                                                 |
+| **Keys/values are `any`, JSON-encoded into a `TEXT` column** (ADR-0061)                                         | sqlc maps a column to a **concrete Go type**. A `TEXT` column gives you `string`. You'd still `json.Unmarshal` afterward — sqlc adds a layer that returns the wrong type (`string`) and you re-do the work. |
+| **One `meta_map` table + `collection TEXT` namespacing** serves N collections at runtime                        | sqlc models **one struct per table**. There is no table-per-collection. The whole `any`/collection design is invisible to sqlc.                                                                             |
+| **"We do NOT reimplement query planning — we set up structures and let the engine optimize"** (assumptions doc) | sqlc doesn't plan either — it just emits prepared calls. It solves a _different_ problem (type-safe SQL authoring) that the metaengine doesn't have.                                                        |
 
-### The pushdown path (ADR-0063) is where you'd *expect* sqlc to help — and it can't
+### The pushdown path (ADR-0063) is where you'd _expect_ sqlc to help — and it can't
 
 The one place dynamic SQL matters is `PushdownScan` (`FilterSpec`/`SortSpec` → `WHERE`/`ORDER BY`). But **sqlc generates fixed-arity queries**. You cannot express "0-to-N dynamic `AND` conditions on arbitrary columns with arbitrary operators" in one sqlc annotation. `sqlc.slice('ids')` handles a single `IN (...)`, not a variable filter tree. You'd still need `BuildWhereClause` — sqlc would be dead code on this path.
 
-And the metaengine's *existing* SQL is already trivially correct and static:
+And the metaengine's _existing_ SQL is already trivially correct and static:
 
 ```sql
 -- These 6 constant strings ARE the entire SQL surface. sqlc can't improve them.
@@ -51,15 +51,15 @@ Generating these with sqlc means: adding a toolchain, a `sqlc.yaml`, a `.sql` fi
 
 These modules have **fully-known, build-time-fixed schemas** and a **fixed, small set of queries** — the textbook sqlc profile:
 
-| Store | Schema (fixed at build time) | Typical queries |
-| --- | --- | --- |
-| `storage/eventstore` | `events(id, stream_id, type, version, payload, encoding, metadata, timestamp)` | Load, LoadFromVersion, LoadToVersion, Append, AppendBatch |
-| `storage/` `SQLCommandStore` | commands table (fixed DDL via `dialect.CommandSchema()`) | Save, Load, ReadFrom |
-| `storage/` `SQLQueryStore` | queries table | SaveQuery, LoadQueries |
-| `storage/eventstore` `SQLSnapshotStore` | snapshots table | Save, Load |
-| `storage/eventstore` `SQLCheckpointStore` | checkpoints table | Get, Save |
-| `idempotency/sqlstore` | idempotency table | SetIfAbsent, sweep |
-| `scheduling` (if SQL) | timers table | Schedule, Cancel, Due, MarkFired |
+| Store                                     | Schema (fixed at build time)                                                   | Typical queries                                           |
+| ----------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| `storage/eventstore`                      | `events(id, stream_id, type, version, payload, encoding, metadata, timestamp)` | Load, LoadFromVersion, LoadToVersion, Append, AppendBatch |
+| `storage/` `SQLCommandStore`              | commands table (fixed DDL via `dialect.CommandSchema()`)                       | Save, Load, ReadFrom                                      |
+| `storage/` `SQLQueryStore`                | queries table                                                                  | SaveQuery, LoadQueries                                    |
+| `storage/eventstore` `SQLSnapshotStore`   | snapshots table                                                                | Save, Load                                                |
+| `storage/eventstore` `SQLCheckpointStore` | checkpoints table                                                              | Get, Save                                                 |
+| `idempotency/sqlstore`                    | idempotency table                                                              | SetIfAbsent, sweep                                        |
+| `scheduling` (if SQL)                     | timers table                                                                   | Schedule, Cancel, Due, MarkFired                          |
 
 **Why these are good sqlc candidates:**
 
@@ -68,7 +68,7 @@ These modules have **fully-known, build-time-fixed schemas** and a **fixed, smal
 - You'd trade hand-rolled `fmt.Fprintf` SELECT/scan loops for type-safe `q.AppendEvent(ctx, ...)`.
 - The current code scans into columns and re-assembles structs by hand; sqlc does that for you.
 
-**The real benefit here isn't type safety — it's the query verification.** sqlc's `db-prepare` vet rule prepares every query against a live DB at gen time, catching typos / wrong-column bugs *before* runtime. That's genuinely valuable for the event store (your source of truth).
+**The real benefit here isn't type safety — it's the query verification.** sqlc's `db-prepare` vet rule prepares every query against a live DB at gen time, catching typos / wrong-column bugs _before_ runtime. That's genuinely valuable for the event store (your source of truth).
 
 ---
 
@@ -80,7 +80,7 @@ These modules have **fully-known, build-time-fixed schemas** and a **fixed, smal
 type SQLViewStore[V any, K fmt.Stringer] struct { ... }   // columns unknown until runtime
 ```
 
-The columns come from `ViewMapper[V]` (reflection or `view:"col"` struct tags) **at runtime**. sqlc generates code for a table whose columns are known *at gen time*. To use sqlc here you'd have to run it **once per concrete view type** (`Todos`, `Users`, `Orders`, …) — which means either (a) the library can't ship the generic store, or (b) consumers must run sqlc themselves. That inverts the library's value proposition. The `relational/` sink is the same story (tables declared at runtime via `RelationalSchema`).
+The columns come from `ViewMapper[V]` (reflection or `view:"col"` struct tags) **at runtime**. sqlc generates code for a table whose columns are known _at gen time_. To use sqlc here you'd have to run it **once per concrete view type** (`Todos`, `Users`, `Orders`, …) — which means either (a) the library can't ship the generic store, or (b) consumers must run sqlc themselves. That inverts the library's value proposition. The `relational/` sink is the same story (tables declared at runtime via `RelationalSchema`).
 
 This tier is **dynamic-by-design** and that's correct — it's the escape hatch for arbitrary projections. Leave it on the dynamic builder it already has.
 
@@ -88,7 +88,7 @@ This tier is **dynamic-by-design** and that's correct — it's the escape hatch 
 
 ## 4. A research-grade idea worth a README, not a commitment
 
-Since the metaengine *is* a research project, here's the one creative angle: **planner-emitted sqlc.**
+Since the metaengine _is_ a research project, here's the one creative angle: **planner-emitted sqlc.**
 
 ```
 metaengine.Plan(engines, declarations)
@@ -116,12 +116,12 @@ The planner already knows the optimal physical layout. Instead of runtime-assemb
 
 ## 5. Decision matrix
 
-| Question | Answer |
-| --- | --- |
-| Adopt sqlc in **metaengine core**? | **No.** Architectural mismatch; design rejected codegen; SQL is already trivial + correct. |
-| Adopt sqlc in **generic ViewStore / Relational**? | **No.** Generic-over-types defeats sqlc; columns known only at runtime. |
+| Question                                                           | Answer                                                                                                                     |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Adopt sqlc in **metaengine core**?                                 | **No.** Architectural mismatch; design rejected codegen; SQL is already trivial + correct.                                 |
+| Adopt sqlc in **generic ViewStore / Relational**?                  | **No.** Generic-over-types defeats sqlc; columns known only at runtime.                                                    |
 | Adopt sqlc in **fixed-schema stores** (eventstore / cmdstore / …)? | **Yes, candidate.** Fixed DDL + fixed queries = textbook fit. Biggest win: gen-time query verification on the event store. |
-| Emit sqlc **from the planner** (research angle)? | **Spike only.** Novel but conflicts with runtime re-planning; needs an ADR. |
+| Emit sqlc **from the planner** (research angle)?                   | **Spike only.** Novel but conflicts with runtime re-planning; needs an ADR.                                                |
 
 ---
 
