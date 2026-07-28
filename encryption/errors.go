@@ -70,3 +70,15 @@ var (
 		"unknown key ID",
 	)
 )
+
+// wrapInfraBytes returns (result, nil) when err is nil, otherwise
+// (nil, errorfamily.WrapInfrastructure(err, code, msg)). Collapses the repeated
+// "if err != nil { return nil, WrapInfrastructure(...) }; return x, nil"
+// boilerplate in decrypt/derive functions that return a byte slice.
+func wrapInfraBytes(result []byte, err error, code, msg string) ([]byte, error) {
+	if err == nil {
+		return result, nil
+	}
+
+	return nil, errorfamily.WrapInfrastructure(err, code, msg)
+}

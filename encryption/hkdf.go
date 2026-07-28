@@ -36,13 +36,6 @@ func DeriveKey(masterKey []byte, info string, length int) ([]byte, error) {
 	key := make([]byte, length)
 
 	_, err := io.ReadFull(reader, key)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"encryption.derive_key",
-			"read derived key",
-		)
-	}
 
-	return key, nil
+	return wrapInfraBytes(key, err, "encryption.derive_key", "read derived key")
 }

@@ -79,15 +79,9 @@ func (e *coseXChaCha20) Encrypt(plaintext, aad []byte) ([]byte, []byte, error) {
 // Decrypt returns the plaintext for the given ciphertext, nonce, and AAD.
 func (e *coseXChaCha20) Decrypt(ciphertext, nonce, aad []byte) ([]byte, error) {
 	plaintext, err := e.x.aead.Open(nil, nonce, ciphertext, aad)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"encryption.cose_xchacha20_decrypt",
-			"decrypt XChaCha20-Poly1305",
-		)
-	}
 
-	return plaintext, nil
+	return wrapInfraBytes(plaintext, err,
+		"encryption.cose_xchacha20_decrypt", "decrypt XChaCha20-Poly1305")
 }
 
 // COSEAlgorithm returns the COSE algorithm identifier for XChaCha20-Poly1305 (24).
@@ -133,15 +127,9 @@ func (e *coseAESGCM) Encrypt(plaintext, aad []byte) ([]byte, []byte, error) {
 // Decrypt returns the plaintext for the given ciphertext, nonce, and AAD.
 func (e *coseAESGCM) Decrypt(ciphertext, nonce, aad []byte) ([]byte, error) {
 	plaintext, err := e.e.aead.Open(nil, nonce, ciphertext, aad)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"encryption.cose_aes_decrypt",
-			"decrypt AES-256-GCM",
-		)
-	}
 
-	return plaintext, nil
+	return wrapInfraBytes(plaintext, err,
+		"encryption.cose_aes_decrypt", "decrypt AES-256-GCM")
 }
 
 // COSEAlgorithm returns the COSE algorithm identifier for AES-256-GCM (3).
