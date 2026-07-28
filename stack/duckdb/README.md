@@ -4,13 +4,14 @@ DuckDB-backed preset for [go-cqrs-lite](../../README.md) — an embedded analyti
 
 ## When to Use
 
-| Workload | Recommended Preset |
-|----------|-------------------|
-| Analytical queries, dashboards, reporting | **duckdb** |
-| OLTP, high-write, single-node | sqlite |
-| Distributed, high-throughput | postgres |
+| Workload                                  | Recommended Preset |
+| ----------------------------------------- | ------------------ |
+| Analytical queries, dashboards, reporting | **duckdb**         |
+| OLTP, high-write, single-node             | sqlite             |
+| Distributed, high-throughput              | postgres           |
 
 DuckDB excels at:
+
 - Columnar scans over large datasets
 - GROUP BY aggregations and window functions
 - Complex analytical SQL (CTEs, pivots, statistical functions)

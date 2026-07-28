@@ -66,7 +66,8 @@ func TestNew_WithMemoryLimit(t *testing.T) {
 }
 
 func TestNew_WithoutAutoMigrate(t *testing.T) {
-	b, err := duckdb.New("",
+	b, err := duckdb.New(
+		"",
 		duckdb.WithDSN(sqlopt.WithoutAutoMigrate()),
 	)
 	if err != nil {

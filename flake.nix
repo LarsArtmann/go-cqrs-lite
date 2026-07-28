@@ -217,7 +217,10 @@
             program = "${pkgs.writeShellApplication { inherit name runtimeInputs text; }}/bin/${name}";
           };
 
-          goModules = [ goPkg pkgs.gcc ];
+          goModules = [
+            goPkg
+            pkgs.gcc
+          ];
 
           benchstat = pkgs.buildGoModule {
             pname = "benchstat";
