@@ -183,9 +183,9 @@ var _ = Describe("Diagnostics", func() {
 			Expect(diags.HasWarnings()).To(BeTrue())
 		})
 
-		It("returns false for info-level diagnostics only", func() {
+		It("returns false for non-warning diagnostics only", func() {
 			diags := metaengine.Diagnostics{
-				{Level: metaengine.DiagLevelInfo, Query: "q1", Message: "all good"},
+				{Level: "INFO", Query: "q1", Message: "all good"},
 			}
 			Expect(diags.HasWarnings()).To(BeFalse())
 		})

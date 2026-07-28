@@ -42,8 +42,7 @@ type sqliteQuerySet struct {
 	logAppend string
 	logTail   string
 	// Graph
-	graphAddEdge   string
-	graphNeighbors string
+	graphAddEdge string
 	// DDL
 	ddl string
 }
@@ -86,8 +85,7 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		multiGet:         `SELECT value FROM meta_multimap WHERE collection = ? AND key = ? ORDER BY seq`,
 		logAppend:        `INSERT INTO meta_log (collection, value) VALUES (?, ?)`,
 		logTail:          `SELECT value FROM meta_log WHERE collection = ? ORDER BY id DESC LIMIT ?`,
-		graphAddEdge:     `INSERT INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
-		graphNeighbors:   `WITH RECURSIVE bfs(depth, node) AS (SELECT 0, ? UNION ALL SELECT bfs.depth + 1, e.to_node FROM meta_graph_edges e JOIN bfs ON e.from_node = bfs.node AND e.collection = ? WHERE bfs.depth < ?) SELECT DISTINCT node FROM bfs WHERE node != ?`,
+		graphAddEdge: `INSERT INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
 	}
 }
 

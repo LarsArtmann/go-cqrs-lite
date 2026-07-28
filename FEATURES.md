@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-27 (v4.2.0 release: 65 lint rules, 2676 API exports, verify-gate GREEN end-to-end) · **Module count:** 58 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+**Last audited:** 2026-07-28 (DuckDB analytical SQL backend + CGo isolation, ADR-0071) · **Module count:** 59 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -844,6 +844,20 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Functional options       | `WithExcludedTables`, `WithAutoAnalyze` — configurable behavior                                 | ✅     |
 | Benchmarks               | Indexed vs unindexed `ReadFrom` benchmarks proving value                                        | ✅     |
 
+### DuckDB Analytical Store
+
+> `import "github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4"`
+
+| Feature                  | Detail                                                                                          | Status |
+| ------------------------ | ----------------------------------------------------------------------------------------------- | ------ |
+| DuckDB dialect           | `storage/sql.DuckDBDialect` — Postgres-compatible placeholders, BLOB metadata, native timestamps | ✅     |
+| Stack preset             | `duckdb.New(dsn)` — full `stack.Bundle` with event store, read models, in-process bus          | ✅     |
+| CGo isolation            | `//go:build cgo` tags — pure-Go modules unaffected, consumers opt-in via import               | ✅     |
+| Multi-database topology  | `duckdb.WithDSN(sqlopt.WithEventDB(...))` — split events/queries/views across DB files        | ✅     |
+| Analytical read models   | `SQLViewModel[V,K]` — columnar scans, GROUP BY, window functions on event-sourced data        | ✅     |
+| Performance tuning       | `WithThreads(n)`, `WithMemoryLimit("1GB")` — DuckDB worker thread + memory caps              | ✅     |
+| Contract test suite      | Full `contracttest.RunSuite` — event/command/read-model roundtrips, close idempotency        | ✅     |
+
 ---
 
 ## Stream Read Model ✅ FULLY_FUNCTIONAL
@@ -1045,7 +1059,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 58 independently importable modules in `go.work` (58 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 59 independently importable modules in `go.work` (59 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                         | Import Path                         | Maturity                                                                  |
 | ------------------------------ | ----------------------------------- | ------------------------------------------------------------------------- |
@@ -1088,6 +1102,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `stack/pebble`                 | `…/stack/pebble/v4`                 | ✅ Production                                                             |
 | `stack/postgres`               | `…/stack/postgres/v4`               | ⚠️ Partial (0% test coverage locally — skips without `POSTGRES_TEST_DSN`) |
 | `stack/turso`                  | `…/stack/turso/v4`                  | ✅ Production                                                             |
+| `stack/duckdb`                 | `…/stack/duckdb/v4`                 | ✅ Production (analytical OLAP, CGo required — ADR-0071)                  |
 | `stack/bench`                  | `…/stack/bench/v4`                  | 🧪 Benchmarks                                                             |
 | `deriver`                      | `…/deriver/v4`                      | ✅ Production                                                             |
 | `graph`                        | `…/graph/v4`                        | ✅ Production                                                             |

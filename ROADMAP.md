@@ -135,7 +135,10 @@ to [TODO_LIST.md](TODO_LIST.md) when actively worked:
 
 - ✅ **Parquet journal design** — `docs/planning/parquet-journal-design.md`
   specifies Phase 1 (`storage/parquet` segment-based SeekableJournal, pure Go).
-  Phase 2 (`storage/duckdb`, CGO) and Phase 3 (`stack/duckdb`) deferred.
+  Phase 2 (DuckDB analytical SQL via `storage/sql.DuckDBDialect`) and Phase 3
+  (`stack/duckdb` preset) shipped (ADR-0071). Implementation differs from the
+  original plan: DuckDB is a dialect in `storage/sql/`, not a separate
+  `storage/duckdb/` module. CGo is isolated in `stack/duckdb/` via build tags.
   Original research at `docs/research/archive/...PARQUET_JOURNAL...md`.
 - ✅ **NATS transport design** — `docs/planning/nats-transport-design.md`
   documents JetStream stream config, durable consumers, and CatchUpSubscriber

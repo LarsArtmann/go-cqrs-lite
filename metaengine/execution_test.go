@@ -308,7 +308,7 @@ var _ = Describe("ApplyEncoded", func() {
 	})
 })
 
-var _ = Describe("EventTypeNames", func() {
+var _ = Describe("EventTypes", func() {
 	It("returns all event type names the store reacts to, sorted", func() {
 		store, err := metaengine.Plan(
 			[]metaengine.Engine{metaengine.NewMemoryEngine()},
@@ -317,7 +317,7 @@ var _ = Describe("EventTypeNames", func() {
 		Expect(err).NotTo(HaveOccurred())
 		defer store.Close()
 
-		names := store.EventTypeNames()
+		names := store.EventTypes()
 		Expect(names).To(Equal([]string{"TaskCompleted", "TaskCreated", "TaskDeleted"}))
 	})
 })

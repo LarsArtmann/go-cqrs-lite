@@ -10,7 +10,6 @@ import (
 const (
 	DiagLevelWarn     = "WARN"
 	DiagLevelDegraded = "DEGRADED"
-	DiagLevelInfo     = "INFO"
 )
 
 type Diagnostic struct {

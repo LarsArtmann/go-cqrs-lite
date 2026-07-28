@@ -60,7 +60,7 @@ Each tier may only import from its own tier or lower.
 | `encryption/`     | Payload encryption                    |
 | `otel/`           | Shared OTel helpers                   |
 | `middleware/`     | Cross-cutting: logging, retry, etc.   |
-| `storage/`        | SQL stores (PG/SQLite/Turso) + Pebble |
+| `storage/`        | SQL stores (PG/SQLite/Turso/DuckDB) + Pebble |
 | `transport/http/` | SSE broker                            |
 | `transport/grpc/` | gRPC transport                        |
 | `watermill/`      | Watermill bridges                     |
@@ -76,6 +76,7 @@ Each tier may only import from its own tier or lower.
 | `stack/pebble/`   | Pebble preset    |
 | `stack/postgres/` | Postgres preset  |
 | `stack/turso/`    | Turso preset     |
+| `stack/duckdb/`   | DuckDB preset (CGo) |
 
 ### Tier 6 — Tooling & Examples (depends on all)
 

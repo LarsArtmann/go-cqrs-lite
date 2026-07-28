@@ -63,23 +63,4 @@ func decodeFromSample(sample any, payload []byte) (any, error) {
 	return v.Elem().Interface(), nil
 }
 
-// EventTypeNames returns all event type names the store's queries react to.
-// Useful for building projection.Projection adapters.
-func (s *Store) EventTypeNames() []string {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
 
-	seen := make(map[string]bool)
-
-	for _, q := range s.queries {
-		for _, f := range q.folds {
-			if f.Kind != FoldSkip {
-				seen[f.EventType] = true
-			}
-		}
-	}
-
-	result := slices.Sorted(maps.Keys(seen))
-
-	return result
-}
