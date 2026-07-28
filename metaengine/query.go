@@ -29,14 +29,22 @@ func WithLatencyBudget(ms int64) QueryOption {
 // filterAccessor stores a typed closure that extracts a filterable field value
 // from a result item at runtime. The returnType is used to match against query
 // input fields by TYPE — the engine never knows field names.
+//
+// When spec is non-nil, the filter is declarative (FilterOnField) and can be
+// pushed down to SQL-aware engines. When spec is nil, only the closure path
+// is available (in-Go filtering).
 type filterAccessor struct {
 	closure    any // func(r R) T — extracts field from result
 	returnType reflect.Type
+	spec       *FilterSpec // declarative spec for pushdown (nil = closure-only)
 }
 
 // sortAccessor stores a typed closure that extracts the sort key from a result item.
+// When spec is non-nil, the sort is declarative (SortOnField) and can be pushed
+// down to SQL-aware engines.
 type sortAccessor struct {
 	closure any // func(r R) time.T / comparable — extracts sort key from result
+	spec    *SortSpec // declarative spec for pushdown (nil = closure-only)
 }
 
 // FilterOn declares a filter on the result type using a typed closure accessor.
@@ -67,6 +75,34 @@ func FilterOn[R any, T any](accessor func(r R) T) QueryOption {
 func SortOn[R any, T any](accessor func(r R) T) QueryOption {
 	return func(c *QueryConfig) {
 		c.sortAccessor = sortAccessor{closure: accessor}
+	}
+}
+
+// FilterOnField declares a filter on the result type using a declarative field
+// name and operator. Unlike FilterOn (closure-based), FilterOnField produces a
+// FilterSpec that can be pushed down to SQL-aware engines (SQLite json_extract).
+// The filter value is extracted from the query input by matching the field's
+// Go type — the same type-matching mechanism as FilterOn.
+//
+//	metaengine.FilterOnField[FindUserResult]("status", metaengine.FilterEq)
+func FilterOnField[R any](field string, op FilterOp) QueryOption {
+	return func(c *QueryConfig) {
+		c.filterAccessors = append(c.filterAccessors, filterAccessor{
+			spec: &FilterSpec{Column: field, Op: op},
+		})
+	}
+}
+
+// SortOnField declares the sort field using a declarative field name. Unlike
+// SortOn (closure-based), SortOnField produces a SortSpec that can be pushed
+// down to SQL-aware engines (SQLite json_extract + ORDER BY).
+//
+//	metaengine.SortOnField[FindUserResult]("priority", true) // DESC
+func SortOnField[R any](field string, desc bool) QueryOption {
+	return func(c *QueryConfig) {
+		c.sortAccessor = sortAccessor{
+			spec: &SortSpec{Column: field, Desc: desc},
+		}
 	}
 }
 

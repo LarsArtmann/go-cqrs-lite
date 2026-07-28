@@ -60,6 +60,50 @@ type ScanBackend interface {
 	) ([]any, error)
 }
 
+// FilterOp is a comparison operator for declarative filter specs.
+type FilterOp string
+
+const (
+	FilterEq FilterOp = "="
+	FilterNe FilterOp = "!="
+	FilterLt FilterOp = "<"
+	FilterLe FilterOp = "<="
+	FilterGt FilterOp = ">"
+	FilterGe FilterOp = ">="
+)
+
+// FilterSpec is a declarative filter that can be pushed down to the database
+// engine. Column is a JSON path within the stored value (e.g. "status"),
+// producing json_extract(value, '$.status') on SQLite.
+type FilterSpec struct {
+	Column string
+	Op     FilterOp
+	Value  any
+}
+
+// SortSpec is a declarative sort directive that can be pushed down to the
+// database engine. Column is a JSON path within the stored value.
+type SortSpec struct {
+	Column string
+	Desc   bool
+}
+
+// PushdownScan is an optional capability: engines that support SQL-level
+// filtering, sorting, and limiting implement this interface to avoid loading
+// all rows into Go. The executor checks for this interface at runtime and
+// prefers it over ScanBackend.MapScan when declarative FilterSpec/SortSpec
+// are available (from FilterOnField/SortOnField).
+type PushdownScan interface {
+	PushdownMapScan(
+		ctx context.Context,
+		collection string,
+		filters []FilterSpec,
+		sort *SortSpec,
+		cursor any,
+		limit int,
+	) ([]any, error)
+}
+
 type SetBackend interface {
 	SetAdd(ctx context.Context, collection string, key any) error
 	SetContains(ctx context.Context, collection string, key any) (bool, error)
