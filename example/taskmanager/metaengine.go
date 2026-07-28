@@ -105,7 +105,8 @@ func setupMetaEngine(logger *slog.Logger) (*metaengine.Store, *projectionadapter
 	// Log the planner's decision so the optimizer's reasoning is visible.
 	if plan := store.Plan(); plan != nil {
 		for _, q := range plan.Queries {
-			logger.Info("metaengine: query planned",
+			logger.Info(
+				"metaengine: query planned",
 				"query", q.QueryName,
 				"adt", q.ADT,
 				"engine", q.EngineName,

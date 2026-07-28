@@ -37,7 +37,7 @@ type Server struct {
 	ReadModel    *kv.TypedStore[TaskView, TaskID]
 	Mat          *stack.Materialize[TaskView, TaskID]
 	ProjHost     *projectionhost.Host
-	MetaEngine  *metaengine.Store
+	MetaEngine   *metaengine.Store
 	Logger       *slog.Logger
 	otelProvider *cqrsotel.Provider
 	signer       signing.SignerVerifier
@@ -160,14 +160,14 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	}
 
 	srv := &Server{
-		Bundle:      bundle,
-		Repo:        repo,
-		CmdDisp:     command.NewDispatcher(),
-		ReadModel:   rmStore,
-		Mat:         mat,
-		ProjHost:    projHost,
-		MetaEngine:  meStore,
-		Logger:      logger,
+		Bundle:     bundle,
+		Repo:       repo,
+		CmdDisp:    command.NewDispatcher(),
+		ReadModel:  rmStore,
+		Mat:        mat,
+		ProjHost:   projHost,
+		MetaEngine: meStore,
+		Logger:     logger,
 	}
 
 	if err := setupFeatures(srv); err != nil {

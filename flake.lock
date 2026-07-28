@@ -3,11 +3,11 @@
     "cmdguard": {
       "flake": false,
       "locked": {
-        "lastModified": 1785113679,
-        "narHash": "sha256-k3q5IvCmavBAnVtdHSNrdewzf6oWfB2ojJlGbtaudMU=",
+        "lastModified": 1785247381,
+        "narHash": "sha256-+thir5f4pBX+ksbtsCwIBWA3zLGY1zVYCHTqgXQc2Ss=",
         "ref": "master",
-        "rev": "b5e0c897c27fe4d690e1d268041661d462fc2662",
-        "revCount": 901,
+        "rev": "263e36634487e7e69aaa44678791f5365038f979",
+        "revCount": 914,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/cmdguard"
       },
@@ -40,11 +40,11 @@
     "go-branded-id": {
       "flake": false,
       "locked": {
-        "lastModified": 1785226887,
-        "narHash": "sha256-jlyFMR+8p/lCdHVajy6Q4zV+VIGRfOe3QR2wf5YcRbk=",
+        "lastModified": 1785244258,
+        "narHash": "sha256-7yTIcm5KOuqNcOo35nEFi5WPUuc51RlqVpvayF+eH9c=",
         "ref": "master",
-        "rev": "5c4f9955f369c90c92acd93685ffaf5a1031247c",
-        "revCount": 132,
+        "rev": "c29a034f471c3b7b3f1bd583594bbc27b8297125",
+        "revCount": 140,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/go-branded-id"
       },
@@ -57,11 +57,11 @@
     "go-finding": {
       "flake": false,
       "locked": {
-        "lastModified": 1785178823,
-        "narHash": "sha256-pYnX6N8pjR2ObMKy0uEC0K/oZ9PxMKJTiiFNcxX+Fxg=",
+        "lastModified": 1785243204,
+        "narHash": "sha256-qCptBWgDcEXmZ+azE8fs1wY+yvMNkVHWvgnkisgtQ4I=",
         "ref": "master",
-        "rev": "0629e21e72995e0a10bb3f855b87559b87a43cbf",
-        "revCount": 1045,
+        "rev": "d3e027c22a3f9166214a398d18d64cc879d5f800",
+        "revCount": 1059,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/go-finding"
       },
@@ -91,11 +91,11 @@
     "go-output": {
       "flake": false,
       "locked": {
-        "lastModified": 1785164240,
-        "narHash": "sha256-uCZQFNEhYwUC5rNsp2y1BCrhEnTsy9jkzqPEs/xsItw=",
+        "lastModified": 1785233124,
+        "narHash": "sha256-rxTLzeIQi4K/ucFb5hhl/jZE8etClkD/m8TJb3tqsKw=",
         "ref": "master",
-        "rev": "c3bac0edc752b19f12a857af6ec8c6ab2f0740a2",
-        "revCount": 1090,
+        "rev": "3e46b9f80ad3c90624162448b8641060027f6374",
+        "revCount": 1091,
         "type": "git",
         "url": "ssh://git@github.com/LarsArtmann/go-output"
       },

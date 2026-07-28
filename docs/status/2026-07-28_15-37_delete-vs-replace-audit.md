@@ -60,9 +60,9 @@ Things I started but did not finish or verify rigorously:
 
 ## d) TOTALLY FUCKED UP
 
-1. **I didn't verify catalog's real coupling.** I said catalog has "zero imports from the rest of go-cqrs-lite" — but I only grepped for *who imports catalog*, not *what catalog imports*. Catalog's `go.mod` likely depends on `event/`, `command/`, `query/` for type reflection. If so, it's not cleanly extractable without a type-contract boundary. My "extract to its own repo" recommendation may be far harder than I implied. **This is a material factual gap in the analysis.**
+1. **I didn't verify catalog's real coupling.** I said catalog has "zero imports from the rest of go-cqrs-lite" — but I only grepped for _who imports catalog_, not _what catalog imports_. Catalog's `go.mod` likely depends on `event/`, `command/`, `query/` for type reflection. If so, it's not cleanly extractable without a type-contract boundary. My "extract to its own repo" recommendation may be far harder than I implied. **This is a material factual gap in the analysis.**
 
-2. **I overstated the retry problem.** I framed `retry/` as a policy violation ("reinvents what the policy bans"). But the policy bans `avast/retry-go` (a specific library) and recommends `failsafe-go` — it does NOT ban writing your own retry. A 217-LOC zero-dependency retry module that integrates with `errorfamily` classification may be a *deliberate, defensible* choice, not a violation. I conflated "the policy bans a library" with "the policy bans the pattern." That's sloppy.
+2. **I overstated the retry problem.** I framed `retry/` as a policy violation ("reinvents what the policy bans"). But the policy bans `avast/retry-go` (a specific library) and recommends `failsafe-go` — it does NOT ban writing your own retry. A 217-LOC zero-dependency retry module that integrates with `errorfamily` classification may be a _deliberate, defensible_ choice, not a violation. I conflated "the policy bans a library" with "the policy bans the pattern." That's sloppy.
 
 3. **I didn't read the actual module before opining on metaengine's fitness.** I called metaengine "a database-engine feature, not a CQRS concern" after reading AGENTS.md descriptions and LOC counts — never the actual code. A cost-based read-model planner may be deeply CQRS-relevant (it decides WHERE to materialize projections). My architectural judgment was made from documentation, not source.
 
@@ -72,7 +72,7 @@ Things I started but did not finish or verify rigorously:
 
 1. **Verify before opining.** Every "ghost system" verdict should be backed by `go build ./module/... && go test ./module/...` passing, a tag check (`git tag -l`), and reading at least the top-level types file. I did none of this.
 
-2. **Read what a module imports, not just who imports it.** The extraction feasibility of catalog depends entirely on its *outgoing* dependencies. One grep would have answered this.
+2. **Read what a module imports, not just who imports it.** The extraction feasibility of catalog depends entirely on its _outgoing_ dependencies. One grep would have answered this.
 
 3. **Follow the skill's output format.** The skill says HTML report. I produced a chat message. The format matters because the report is a team artifact.
 
@@ -87,6 +87,7 @@ Things I started but did not finish or verify rigorously:
 Sorted by impact-to-effort ratio (Pareto order). Items 1-10 are the 20% that unlock 80% of the value.
 
 ### Immediate verification (do these FIRST — they validate or invalidate the analysis)
+
 1. `go build -tags "goexperiment.jsonv2" ./metaengine/... ./catalog/... ./graph/... ./deriver/...` — confirm ghost modules actually compile right now
 2. `go test -tags "goexperiment.jsonv2" -count=1 ./metaengine/... ./catalog/... ./graph/... ./deriver/...` — confirm tests pass
 3. `git tag -l 'metaengine/v4*' 'catalog/v4*' 'graph/v4*' 'deriver/v4*'` — check if ghosts are published (deletion = breaking change)
@@ -95,16 +96,19 @@ Sorted by impact-to-effort ratio (Pareto order). Items 1-10 are the 20% that unl
 6. Check api-stability golden for ghost module symbols: `cmd/api-stability/main.go` modules list
 
 ### Surgical deletes (safe, high-confidence)
+
 7. Delete the 4 dead deprecated error aliases (`ErrAggregateTypeMismatch` / `ErrAggregateIDMismatch` in storage/sql + storage/pebble)
 8. Regen api-stability golden after the alias deletion (`cd cmd/api-stability && GOWORK=off go run main.go -update`)
 9. Run `nix run .#verify` after the alias deletion
 
 ### The cache split-brain fix
+
 10. Rewrite `decider/cache.go` to use `maypok86/otter/v2` (already in dependency graph via kv/)
 11. Ensure `decider/cache_test.go` + `decider/decider_cache_test.go` pass after the rewrite
 12. Run `decider` benchmarks to confirm otter is not slower than the hand-rolled LRU
 
 ### Ghost system verdicts (one decision per module)
+
 13. **metaengine:** read `metaengine/types.go` + `metaengine/store.go` to judge if it's CQRS-core or a side-quest
 14. **metaengine:** if side-quest → extract to `github.com/larsartmann/go-metaengine` (it has zero internal deps per AGENTS.md — clean extraction)
 15. **metaengine:** if core → wire `projectionadapter` into `example/taskmanager` to prove the integration story
@@ -117,18 +121,21 @@ Sorted by impact-to-effort ratio (Pareto order). Items 1-10 are the 20% that unl
 22. **storage/turso/indexing:** wire auto-indexing into `stack/turso` default path, or cut the 2,462 LOC
 
 ### Retry module decision
+
 23. Read failsafe-go's API surface to confirm it can replace `retry.Do` + `Config` + `Backoff` + `errorfamily` integration
 24. Check failsafe-go's transitive dependency count against the retry module's zero-dep budget
 25. If failsafe-go fits: rewrite `retry/retry.go` on top of it
 26. If failsafe-go doesn't fit: document WHY (zero-dep + errorfamily integration) and close the policy question
 
 ### Housekeeping found during analysis
+
 27. Modernize `dedup/ring_bench_test.go` — `b.N` → `b.Loop()` (3 gopls warnings found during the session)
 28. Audit all remaining deprecated aliases across the repo (there may be more than the 4 I found)
 29. Check if `storage/turso` is the only storage backend with an unused sub-feature (scan pebble, sql for similar)
 30. Run `nix run .#check-layers` to get current dependency-budget state before any library swaps
 
 ### Documentation alignment
+
 31. Update `FEATURES.md` — mark metaengine as "EXPERIMENTAL — 0 consumers, extraction candidate"
 32. Update `FEATURES.md` — mark catalog as "STANDALONE TOOL — consider extraction"
 33. Update `AGENTS.md` module list if any modules are deleted/extracted
@@ -136,6 +143,7 @@ Sorted by impact-to-effort ratio (Pareto order). Items 1-10 are the 20% that unl
 35. Write the HTML report the skill asked for (`docs/reviews/2026-07-28_15-37_brutal-self-review.html`)
 
 ### Deeper architectural questions surfaced
+
 36. Should `projection/` (57 LOC, pure interface) be merged into `event/` or `projectionhost/`? It has exactly one interface.
 37. Should `metadata/` (140 LOC) be merged into `event/`? It was "extracted from event/" per AGENTS.md.
 38. Should `dispatcher/` (303 LOC) be merged into `command/` or `query/`? It's a generic primitive both use.
@@ -143,17 +151,20 @@ Sorted by impact-to-effort ratio (Pareto order). Items 1-10 are the 20% that unl
 40. Audit `storage/` (15,404 LOC — the biggest module) for internal sub-modules that should split out
 
 ### Testing improvements for ghost modules
+
 41. If metaengine is kept: add a metaengine integration test (not just unit tests in isolation)
 42. If catalog is kept: add a catalog → taskmanager integration test proving end-to-end doc generation
 43. If graph is kept: add a graph projection contract test in `stack/contracttest/`
 44. Add a meta-test: "every module with a go.mod must have at least one consumer in example/ or be marked EXPERIMENTAL"
 
 ### CI / verification gates
+
 45. Add a CI check: "no new module without an example consumer" (prevents future ghosts)
 46. Add a CI check: "deprecated aliases must have a removal date in the doc comment"
 47. Run `nix run .#verify` at the end of any change session (the AGENTS.md rule I violated)
 
 ### Stretch
+
 48. Consider whether `scheduling/` (307 LOC, only used by `storage/timer_store.go`) should merge into `storage/`
 49. Consider whether `scenario/` (260 LOC, only used by taskmanager tests) should merge into `testutil/`
 50. Full brutal-self-review HTML report covering ALL 11 skill questions, not just the delete-replace lens
@@ -165,10 +176,10 @@ Sorted by impact-to-effort ratio (Pareto order). Items 1-10 are the 20% that unl
 The project owner answered the strategic questions. **This invalidates the two
 biggest "ghost" verdicts in the original analysis:**
 
-| Module | Original verdict | **CORRECTED verdict** |
-|---|---|---|
-| `metaengine/` | Ghost #1 — extract or cut (3,947 LOC) | **THE FUTURE of this project.** Invest, wire, prove. Possibly a dedicated project later. |
-| `catalog/` | Ghost #2 — extract (9,202 LOC) | **Very important — must be superb.** Quality investment now; extraction to dedicated repo is a future option, not urgent. |
+| Module        | Original verdict                      | **CORRECTED verdict**                                                                                                     |
+| ------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `metaengine/` | Ghost #1 — extract or cut (3,947 LOC) | **THE FUTURE of this project.** Invest, wire, prove. Possibly a dedicated project later.                                  |
+| `catalog/`    | Ghost #2 — extract (9,202 LOC)        | **Very important — must be superb.** Quality investment now; extraction to dedicated repo is a future option, not urgent. |
 
 ### What this changes
 
