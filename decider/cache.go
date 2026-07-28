@@ -67,7 +67,9 @@ type lruCache[State any] struct {
 
 func (c *lruCache[State]) Get(ref id.StreamRef) (State, event.Version, bool) {
 	var state State
+
 	var version event.Version
+
 	var ok bool
 
 	c.locked(ref, func(key string) {

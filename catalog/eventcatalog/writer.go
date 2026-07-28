@@ -114,7 +114,9 @@ func (e *Exporter) writeBuilderFile(filename string, fn func(*strings.Builder)) 
 
 func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 	if err := e.writeBuilderFile("eventcatalog.config.js", func(cfg *strings.Builder) {
-		cfg.WriteString("/** @type {import('@eventcatalog/core/bin/eventcatalog.config').Config} */\n")
+		cfg.WriteString(
+			"/** @type {import('@eventcatalog/core/bin/eventcatalog.config').Config} */\n",
+		)
 		cfg.WriteString("export default {\n")
 		fmt.Fprintf(cfg, "  title: %q,\n", cat.Title)
 		fmt.Fprintf(cfg, "  organizationName: %q,\n", cat.Title)

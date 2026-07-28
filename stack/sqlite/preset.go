@@ -119,16 +119,19 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 // via db.Exec only apply to the connection that runs them).
 const sqliteBusyTimeoutMs = 5000
 
-func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
-	return sqlopt.OpenPrimaryBackend(
+func openBackend(
+	dsn string,
+	cfg config,
+) (*sql.DB, *storage.SQLBackend, error) {
+	return sqlopt.OpenPrimaryBackend( //nolint:wrapcheck // OpenPrimaryBackend wraps all errors
 		func() (*sql.DB, error) {
 			return sqlopt.OpenDBOrErr("sqlite",
 				storage.EnsureSQLiteDSNBusyTimeout(dsn, sqliteBusyTimeoutMs),
 				"sqlite_preset.open_primary")
 		},
-		func(ctx context.Context, db *sql.DB) error {
+		func(ctx context.Context, sqlDB *sql.DB) error {
 			if cfg.WAL {
-				if err := storage.SQLiteEnableWAL(ctx, db); err != nil {
+				if err := storage.SQLiteEnableWAL(ctx, sqlDB); err != nil {
 					return errorfamily.WrapInfrastructure(err, "sqlite_preset.enable_wal",
 						"enable WAL mode")
 				}
@@ -136,10 +139,10 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 
 			// SQLite WAL serializes writes; capping at 1 connection prevents
 			// SQLITE_BUSY errors under concurrent access (see storage.ConfigureSQLitePool).
-			storage.ConfigureSQLitePool(db)
+			storage.ConfigureSQLitePool(sqlDB)
 
 			if cfg.ForeignKeys {
-				if err := storage.SQLiteEnableForeignKeys(ctx, db); err != nil {
+				if err := storage.SQLiteEnableForeignKeys(ctx, sqlDB); err != nil {
 					return errorfamily.WrapInfrastructure(
 						err,
 						"sqlite_preset.enable_foreign_keys",
@@ -149,14 +152,14 @@ func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
 			}
 
 			if cfg.AutoMigrate {
-				if err := storage.SQLiteInitSchema(ctx, db); err != nil {
+				if err := storage.SQLiteInitSchema(ctx, sqlDB); err != nil {
 					return errorfamily.WrapInfrastructure(err, "sqlite_preset.init_schema",
 						"initialize sqlite schema")
 				}
 			}
 
 			if cfg.Optimize {
-				if err := storage.SQLiteApplyOptimizations(ctx, db); err != nil {
+				if err := storage.SQLiteApplyOptimizations(ctx, sqlDB); err != nil {
 					return errorfamily.WrapInfrastructure(
 						err,
 						"sqlite_preset.apply_optimizations",

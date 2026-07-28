@@ -139,17 +139,20 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 // openBackend opens the database, applies schema, and returns both the *sql.DB
 // (for lifecycle) and the SQLBackend (for store access).
-func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
-	return sqlopt.OpenPrimaryBackend(
+func openBackend(
+	dsn string,
+	cfg config,
+) (*sql.DB, *storage.SQLBackend, error) {
+	return sqlopt.OpenPrimaryBackend( //nolint:wrapcheck // OpenPrimaryBackend wraps all errors
 		func() (*sql.DB, error) {
 			return sqlopt.OpenDBOrErr("pgx", dsn, "postgres_preset.open_primary")
 		},
-		func(ctx context.Context, db *sql.DB) error {
+		func(ctx context.Context, sqlDB *sql.DB) error {
 			if !cfg.AutoMigrate {
 				return nil
 			}
 
-			if err := storage.PostgresInitSchema(ctx, db); err != nil {
+			if err := storage.PostgresInitSchema(ctx, sqlDB); err != nil {
 				return errorfamily.WrapInfrastructure(err, "postgres_preset.init_schema",
 					"initialize postgres schema")
 			}
