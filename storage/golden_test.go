@@ -90,3 +90,43 @@ func TestGolden_SQLiteCheckpointSchema(t *testing.T) {
 		*update,
 	)
 }
+
+func TestGolden_DuckDBEventSchema(t *testing.T) {
+	got := sql.DuckDBDialect{}.EventSchema()
+	eventtest.AssertGolden(
+		t,
+		filepath.Join("testdata", "golden", "duckdb-events.sql"),
+		[]byte(got),
+		*update,
+	)
+}
+
+func TestGolden_DuckDBCommandSchema(t *testing.T) {
+	got := sql.DuckDBDialect{}.CommandSchema()
+	eventtest.AssertGolden(
+		t,
+		filepath.Join("testdata", "golden", "duckdb-commands.sql"),
+		[]byte(got),
+		*update,
+	)
+}
+
+func TestGolden_DuckDBSnapshotSchema(t *testing.T) {
+	got := sql.DuckDBDialect{}.SnapshotSchema()
+	eventtest.AssertGolden(
+		t,
+		filepath.Join("testdata", "golden", "duckdb-snapshots.sql"),
+		[]byte(got),
+		*update,
+	)
+}
+
+func TestGolden_DuckDBCheckpointSchema(t *testing.T) {
+	got := sql.DuckDBDialect{}.CheckpointSchema()
+	eventtest.AssertGolden(
+		t,
+		filepath.Join("testdata", "golden", "duckdb-checkpoints.sql"),
+		[]byte(got),
+		*update,
+	)
+}

@@ -4,6 +4,7 @@ package duckdb_test
 
 import (
 	"context"
+	"database/sql"
 	"path/filepath"
 	"testing"
 
@@ -97,6 +98,55 @@ func TestNew_MultiDB(t *testing.T) {
 	if b.EventSink == nil {
 		t.Fatal("EventStore not set")
 	}
+}
+
+func TestMultiDBContract(t *testing.T) {
+	contracttest.RunMultiDBSuite(t, func(t *testing.T) (*contracttest.MultiDBTest, error) {
+		dir := t.TempDir()
+
+		eventDSN := filepath.Join(dir, "events.db")
+		queryDSN := filepath.Join(dir, "queries.db")
+		viewDSN := filepath.Join(dir, "views.db")
+
+		b, err := duckdb.New(
+			filepath.Join(dir, "primary.db"),
+			duckdb.WithDSN(
+				sqlopt.WithEventDB(eventDSN),
+				sqlopt.WithQueryDB(queryDSN),
+				sqlopt.WithViewDB(viewDSN),
+			),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		return &contracttest.MultiDBTest{
+			Bundle:    b,
+			EventDSN:  eventDSN,
+			QueryDSN:  queryDSN,
+			ViewDSN:   viewDSN,
+			CountRows: countDuckDBRows,
+		}, nil
+	})
+}
+
+func countDuckDBRows(t *testing.T, dsn, table string) int {
+	t.Helper()
+
+	sqlDB, err := sql.Open("duckdb", dsn)
+	if err != nil {
+		t.Fatalf("open %s: %v", filepath.Base(dsn), err)
+	}
+
+	defer func() { _ = sqlDB.Close() }()
+
+	var count int
+
+	if err := sqlDB.QueryRow("SELECT COUNT(*) FROM " + table).Scan(&count); err != nil {
+		t.Fatalf("count rows in %s: %v", table, err)
+	}
+
+	return count
 }
 
 func TestBundle_CloseIsIdempotent(t *testing.T) {

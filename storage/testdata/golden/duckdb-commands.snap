@@ -1,0 +1,17 @@
+
+[TestGolden_DuckDBCommandSchema - 1]
+CREATE TABLE IF NOT EXISTS commands (
+    id               VARCHAR PRIMARY KEY,
+    command_type     VARCHAR NOT NULL,
+    aggregate_type   VARCHAR NOT NULL,
+    aggregate_id     VARCHAR NOT NULL,
+    payload          BLOB,
+    metadata         BLOB,
+    received_at      TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_commands_aggregate ON commands(aggregate_type, aggregate_id);
+CREATE INDEX IF NOT EXISTS idx_commands_type ON commands(command_type);
+CREATE INDEX IF NOT EXISTS idx_commands_received_at ON commands(received_at);
+---
