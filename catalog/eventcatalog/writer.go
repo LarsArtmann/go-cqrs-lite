@@ -98,21 +98,29 @@ func (e *Exporter) writeExamples(dir string, examples []jsontext.Value) error {
 	)
 }
 
-func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
-	var cfg strings.Builder
-	cfg.WriteString("/** @type {import('@eventcatalog/core/bin/eventcatalog.config').Config} */\n")
-	cfg.WriteString("export default {\n")
-	fmt.Fprintf(&cfg, "  title: %q,\n", cat.Title)
-	fmt.Fprintf(&cfg, "  organizationName: %q,\n", cat.Title)
-	cfg.WriteString("  landingPage: '',\n")
-	cfg.WriteString("};\n")
+// writeBuilderFile builds a string with fn and writes it to filename in the
+// exporter's output directory. It centralizes the strings.Builder + os.WriteFile
+// pattern used by every text-file writer.
+func (e *Exporter) writeBuilderFile(filename string, fn func(*strings.Builder)) error {
+	var b strings.Builder
+	fn(&b)
 
-	err := os.WriteFile(
-		filepath.Join(e.outputDir, "eventcatalog.config.js"),
-		[]byte(cfg.String()),
+	return os.WriteFile( //nolint:wrapcheck // direct passthrough
+		filepath.Join(e.outputDir, filename),
+		[]byte(b.String()),
 		filePerm,
 	)
-	if err != nil {
+}
+
+func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
+	if err := e.writeBuilderFile("eventcatalog.config.js", func(cfg *strings.Builder) {
+		cfg.WriteString("/** @type {import('@eventcatalog/core/bin/eventcatalog.config').Config} */\n")
+		cfg.WriteString("export default {\n")
+		fmt.Fprintf(cfg, "  title: %q,\n", cat.Title)
+		fmt.Fprintf(cfg, "  organizationName: %q,\n", cat.Title)
+		cfg.WriteString("  landingPage: '',\n")
+		cfg.WriteString("};\n")
+	}); err != nil {
 		return errorfamily.Newf(
 			errorfamily.Infrastructure,
 			"catalog.writer.4",

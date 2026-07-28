@@ -4,40 +4,32 @@ import (
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 func (e *Exporter) writeSchemasTxt(cat *catalog.Catalog) error {
-	var buf strings.Builder
+	return e.writeBuilderFile("schemas.txt", func(buf *strings.Builder) {
+		buf.WriteString("# Schemas\n\n")
+		buf.WriteString("> All message and entity schemas in this catalog.\n\n")
 
-	buf.WriteString("# Schemas\n\n")
-	buf.WriteString("> All message and entity schemas in this catalog.\n\n")
+		for _, svc := range cat.Services {
+			writeSchemasTxtMessages(buf, string(svc.Name), svc.Commands)
+			writeSchemasTxtMessages(buf, string(svc.Name), svc.Events)
+			writeSchemasTxtMessages(buf, string(svc.Name), svc.Queries)
+		}
 
-	for _, svc := range cat.Services {
-		writeSchemasTxtMessages(&buf, string(svc.Name), svc.Commands)
-		writeSchemasTxtMessages(&buf, string(svc.Name), svc.Events)
-		writeSchemasTxtMessages(&buf, string(svc.Name), svc.Queries)
-	}
-
-	for _, entity := range cat.Entities {
-		writeSchemasTxtEntry(
-			&buf,
-			"Entity",
-			string(entity.Name),
-			string(entity.Version),
-			entity.Schema,
-		)
-	}
-
-	return os.WriteFile( //nolint:wrapcheck // direct passthrough
-		filepath.Join(e.outputDir, "schemas.txt"),
-		[]byte(buf.String()),
-		filePerm,
-	)
+		for _, entity := range cat.Entities {
+			writeSchemasTxtEntry(
+				buf,
+				"Entity",
+				string(entity.Name),
+				string(entity.Version),
+				entity.Schema,
+			)
+		}
+	})
 }
 
 func writeSchemasTxtMessages(buf *strings.Builder, owner string, msgs []catalog.Message) {

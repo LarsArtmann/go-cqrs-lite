@@ -2,64 +2,56 @@ package eventcatalog
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 func (e *Exporter) writeLLMsTxt(cat *catalog.Catalog) error {
-	var buf strings.Builder
+	return e.writeBuilderFile("llms.txt", func(buf *strings.Builder) {
+		fmt.Fprintf(buf, "# %s\n\n", cat.Title)
+		buf.WriteString("> Auto-generated catalog summary for LLM consumption.\n\n")
 
-	fmt.Fprintf(&buf, "# %s\n\n", cat.Title)
-	buf.WriteString("> Auto-generated catalog summary for LLM consumption.\n\n")
+		for _, svc := range cat.Services {
+			writeLLMsTxtService(buf, svc)
+		}
 
-	for _, svc := range cat.Services {
-		writeLLMsTxtService(&buf, svc)
-	}
+		for _, ch := range cat.Channels {
+			writeLLMsTxtChannel(buf, ch)
+		}
 
-	for _, ch := range cat.Channels {
-		writeLLMsTxtChannel(&buf, ch)
-	}
+		for _, ds := range cat.DataStores {
+			writeLLMsTxtDataStore(buf, ds)
+		}
 
-	for _, ds := range cat.DataStores {
-		writeLLMsTxtDataStore(&buf, ds)
-	}
+		for _, f := range cat.Flows {
+			writeLLMsTxtFlow(buf, f)
+		}
 
-	for _, f := range cat.Flows {
-		writeLLMsTxtFlow(&buf, f)
-	}
+		for _, team := range cat.Teams {
+			writeLLMsTxtTeam(buf, team)
+		}
 
-	for _, team := range cat.Teams {
-		writeLLMsTxtTeam(&buf, team)
-	}
+		for _, user := range cat.Users {
+			writeLLMsTxtUser(buf, user)
+		}
 
-	for _, user := range cat.Users {
-		writeLLMsTxtUser(&buf, user)
-	}
+		for _, domain := range cat.Domains {
+			writeLLMsTxtDomain(buf, domain)
+		}
 
-	for _, domain := range cat.Domains {
-		writeLLMsTxtDomain(&buf, domain)
-	}
+		for _, entity := range cat.Entities {
+			writeLLMsTxtEntity(buf, entity)
+		}
 
-	for _, entity := range cat.Entities {
-		writeLLMsTxtEntity(&buf, entity)
-	}
+		for _, dp := range cat.DataProducts {
+			writeLLMsTxtDataProduct(buf, dp)
+		}
 
-	for _, dp := range cat.DataProducts {
-		writeLLMsTxtDataProduct(&buf, dp)
-	}
-
-	for _, agent := range cat.Agents {
-		writeLLMsTxtAgent(&buf, agent)
-	}
-
-	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
-		filepath.Join(e.outputDir, "llms.txt"),
-		[]byte(buf.String()),
-		filePerm,
-	)
+		for _, agent := range cat.Agents {
+			writeLLMsTxtAgent(buf, agent)
+		}
+	})
 }
 
 func writeLLMsTxtService(buf *strings.Builder, svc catalog.Service) {
