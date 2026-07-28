@@ -10,8 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
-// goldenFilePerm is kept for backward compat but unused — go-snaps manages permissions.
-
 func Build(tb testing.TB, r *catalog.Registry) *catalog.Catalog {
 	tb.Helper()
 

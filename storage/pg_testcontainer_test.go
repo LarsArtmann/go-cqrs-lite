@@ -15,6 +15,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
+	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
@@ -75,6 +76,9 @@ func TestMain(m *testing.M) {
 	}
 
 	_ = testcontainers.TerminateContainer(ctr)
+
+	snaps.Clean(m)
+
 	os.Exit(code)
 }
 

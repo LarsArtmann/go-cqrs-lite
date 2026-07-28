@@ -3,7 +3,6 @@ package metaengine
 import (
 	"context"
 	"database/sql"
-	"encoding/json/v2"
 	"fmt"
 	"math/rand/v2"
 	"testing"
@@ -404,6 +403,3 @@ func indexOf(s, substr string, start int) int {
 
 	return -1
 }
-
-// Ensure unused import is referenced.
-var _ = json.Marshal

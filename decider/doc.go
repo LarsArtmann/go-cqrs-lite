@@ -66,7 +66,7 @@
 //
 // # Hot-State Cache
 //
-// WithStateCache enables an in-memory LRU cache of folded stream state.
+// WithStateCache enables an in-memory TinyLFU cache of folded stream state.
 // On a cache hit, Load fetches only events since the cached version
 // (O(new events)) instead of replaying the full history (O(total events)).
 // Execute updates the cache after every successful write, keeping it fresh.
