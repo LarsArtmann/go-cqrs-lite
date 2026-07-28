@@ -9,6 +9,7 @@
 package sqlopt
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"io"
@@ -31,6 +32,47 @@ func OpenDBOrErr(driver, dsn, code string) (*sql.DB, error) {
 	}
 
 	return sqlDB, nil
+}
+
+// OpenPrimaryBackend opens a SQL database, runs optional setup, and creates a
+// storage backend. It centralizes the error-handling and cleanup pattern shared
+// by the postgres, sqlite, and turso preset constructors.
+//
+// openDB must return an opened *sql.DB (usually via OpenDBOrErr). setup may be
+// nil; it receives a background context and the opened DB and should return
+// already-wrapped errors. On any setup or backend-creation failure the DB is
+// closed before the error is returned.
+func OpenPrimaryBackend(
+	openDB func() (*sql.DB, error),
+	setup func(ctx context.Context, db *sql.DB) error,
+	newBackend func(*sql.DB) (*storage.SQLBackend, error),
+	backendCode string,
+) (db *sql.DB, backend *storage.SQLBackend, err error) {
+	db, err = openDB()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	defer func() {
+		if err != nil && db != nil {
+			_ = db.Close()
+		}
+	}()
+
+	ctx := context.Background()
+
+	if setup != nil {
+		if err = setup(ctx, db); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	backend, err = newBackend(db)
+	if err != nil {
+		return nil, nil, errorfamily.WrapInfrastructure(err, backendCode, "create SQL backend")
+	}
+
+	return db, backend, nil
 }
 
 // NewSecondaryBackend wraps the create-secondary-backend pattern shared by the

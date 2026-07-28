@@ -139,38 +139,26 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 // openBackend opens the database, applies schema, and returns both the *sql.DB
 // (for lifecycle) and the SQLBackend (for store access).
-func openBackend(dsn string, cfg config) ( //nolint:nonamedreturns // defer cleanup
-	db *sql.DB,
-	backend *storage.SQLBackend,
-	err error,
-) {
-	db, err = sqlopt.OpenDBOrErr("pgx", dsn, "postgres_preset.open_primary")
-	if err != nil {
-		return nil, nil, err //nolint:wrapcheck // OpenDBOrErr wraps
-	}
+func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
+	return sqlopt.OpenPrimaryBackend(
+		func() (*sql.DB, error) {
+			return sqlopt.OpenDBOrErr("pgx", dsn, "postgres_preset.open_primary")
+		},
+		func(ctx context.Context, db *sql.DB) error {
+			if !cfg.AutoMigrate {
+				return nil
+			}
 
-	defer func() {
-		if err != nil && db != nil {
-			_ = db.Close()
-		}
-	}()
+			if err := storage.PostgresInitSchema(ctx, db); err != nil {
+				return errorfamily.WrapInfrastructure(err, "postgres_preset.init_schema",
+					"initialize postgres schema")
+			}
 
-	ctx := context.Background()
-
-	if cfg.AutoMigrate {
-		if err = storage.PostgresInitSchema(ctx, db); err != nil {
-			return nil, nil, errorfamily.WrapInfrastructure(err, "postgres_preset.init_schema",
-				"initialize postgres schema")
-		}
-	}
-
-	backend, err = storage.NewSQLBackend(db)
-	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "postgres_preset.create_backend",
-			"create SQL backend")
-	}
-
-	return db, backend, nil
+			return nil
+		},
+		storage.NewSQLBackend,
+		"postgres_preset.create_backend",
+	)
 }
 
 // buildBus returns the event bus to wire into the Bundle. When cfg.listener

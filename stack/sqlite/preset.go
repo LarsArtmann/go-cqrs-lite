@@ -119,69 +119,55 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 // via db.Exec only apply to the connection that runs them).
 const sqliteBusyTimeoutMs = 5000
 
-func openBackend(dsn string, cfg config) ( //nolint:nonamedreturns // defer cleanup
-	db *sql.DB,
-	backend *storage.SQLBackend,
-	err error,
-) {
-	dsn = storage.EnsureSQLiteDSNBusyTimeout(dsn, sqliteBusyTimeoutMs)
+func openBackend(dsn string, cfg config) (*sql.DB, *storage.SQLBackend, error) {
+	return sqlopt.OpenPrimaryBackend(
+		func() (*sql.DB, error) {
+			return sqlopt.OpenDBOrErr("sqlite",
+				storage.EnsureSQLiteDSNBusyTimeout(dsn, sqliteBusyTimeoutMs),
+				"sqlite_preset.open_primary")
+		},
+		func(ctx context.Context, db *sql.DB) error {
+			if cfg.WAL {
+				if err := storage.SQLiteEnableWAL(ctx, db); err != nil {
+					return errorfamily.WrapInfrastructure(err, "sqlite_preset.enable_wal",
+						"enable WAL mode")
+				}
+			}
 
-	db, err = sqlopt.OpenDBOrErr("sqlite", dsn, "sqlite_preset.open_primary")
-	if err != nil {
-		return nil, nil, err //nolint:wrapcheck // OpenDBOrErr wraps
-	}
+			// SQLite WAL serializes writes; capping at 1 connection prevents
+			// SQLITE_BUSY errors under concurrent access (see storage.ConfigureSQLitePool).
+			storage.ConfigureSQLitePool(db)
 
-	defer func() {
-		if err != nil && db != nil {
-			_ = db.Close()
-		}
-	}()
+			if cfg.ForeignKeys {
+				if err := storage.SQLiteEnableForeignKeys(ctx, db); err != nil {
+					return errorfamily.WrapInfrastructure(
+						err,
+						"sqlite_preset.enable_foreign_keys",
+						"enable foreign keys",
+					)
+				}
+			}
 
-	ctx := context.Background()
+			if cfg.AutoMigrate {
+				if err := storage.SQLiteInitSchema(ctx, db); err != nil {
+					return errorfamily.WrapInfrastructure(err, "sqlite_preset.init_schema",
+						"initialize sqlite schema")
+				}
+			}
 
-	if cfg.WAL {
-		if err = storage.SQLiteEnableWAL(ctx, db); err != nil {
-			return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.enable_wal",
-				"enable WAL mode")
-		}
-	}
+			if cfg.Optimize {
+				if err := storage.SQLiteApplyOptimizations(ctx, db); err != nil {
+					return errorfamily.WrapInfrastructure(
+						err,
+						"sqlite_preset.apply_optimizations",
+						"apply sqlite optimizations",
+					)
+				}
+			}
 
-	// SQLite WAL serializes writes; capping at 1 connection prevents
-	// SQLITE_BUSY errors under concurrent access (see storage.ConfigureSQLitePool).
-	storage.ConfigureSQLitePool(db)
-
-	if cfg.ForeignKeys {
-		if err = storage.SQLiteEnableForeignKeys(ctx, db); err != nil {
-			return nil, nil, errorfamily.WrapInfrastructure(
-				err,
-				"sqlite_preset.enable_foreign_keys",
-				"enable foreign keys",
-			)
-		}
-	}
-
-	if cfg.AutoMigrate {
-		if err = storage.SQLiteInitSchema(ctx, db); err != nil {
-			return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.init_schema",
-				"initialize sqlite schema")
-		}
-	}
-
-	if cfg.Optimize {
-		if err = storage.SQLiteApplyOptimizations(ctx, db); err != nil {
-			return nil, nil, errorfamily.WrapInfrastructure(
-				err,
-				"sqlite_preset.apply_optimizations",
-				"apply sqlite optimizations",
-			)
-		}
-	}
-
-	backend, err = storage.NewSQLiteBackend(db)
-	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "sqlite_preset.create_backend",
-			"create SQL backend")
-	}
-
-	return db, backend, nil
+			return nil
+		},
+		storage.NewSQLiteBackend,
+		"sqlite_preset.create_backend",
+	)
 }
