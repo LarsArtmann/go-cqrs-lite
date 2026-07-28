@@ -220,7 +220,7 @@ func (e *sqliteEngine) MapUpdate(
 func (e *sqliteEngine) MapScan(
 	ctx context.Context,
 	col string,
-	filters []filterPredicate,
+	filterFn func(item any) bool,
 	sortFunc func(a, b any) int,
 	cursor any,
 	limit int,
@@ -252,7 +252,7 @@ func (e *sqliteEngine) MapScan(
 			val = valStr
 		}
 
-		if !passesFilters(val, filters) {
+		if filterFn != nil && !filterFn(val) {
 			continue
 		}
 

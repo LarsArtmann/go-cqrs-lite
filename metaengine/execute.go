@@ -170,6 +170,13 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	// Fallback: closure-based in-Go filtering via ScanBackend.MapScan.
 	filterPredicates := buildFilterPredicates(q, input)
 
+	var filterFn func(item any) bool
+	if len(filterPredicates) > 0 {
+		filterFn = func(item any) bool {
+			return passesFilters(item, filterPredicates)
+		}
+	}
+
 	var sortFunc func(a, b any) int
 	if q.config.sortAccessor.closure != nil {
 		sortFunc = buildSortFunc(q.config.sortAccessor.closure)
@@ -178,7 +185,7 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	}
 
 	if sb, ok := q.engine.(ScanBackend); ok {
-		rows, err := sb.MapScan(ctx, q.name, filterPredicates, sortFunc, cursorVal, limit)
+		rows, err := sb.MapScan(ctx, q.name, filterFn, sortFunc, cursorVal, limit)
 		if err != nil {
 			return nil, fmt.Errorf("map scan %s: %w", q.name, err)
 		}

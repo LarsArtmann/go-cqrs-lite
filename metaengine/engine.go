@@ -49,11 +49,14 @@ type MapUpdater interface {
 }
 
 // ScanBackend handles filtered+sorted scans for collection queries.
+// Engines that cannot push filtering to the database (e.g. Pebble KV) implement
+// this interface to receive a combined filter function and sort comparator
+// that are applied in Go. filterFn is nil when no filters are declared.
 type ScanBackend interface {
 	MapScan(
 		ctx context.Context,
 		collection string,
-		filters []filterPredicate,
+		filterFn func(item any) bool,
 		sortFunc func(a, b any) int,
 		cursor any,
 		limit int,

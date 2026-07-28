@@ -139,7 +139,7 @@ func (m *memoryEngine) MapUpdate(
 func (m *memoryEngine) MapScan(
 	_ context.Context,
 	col string,
-	filters []filterPredicate,
+	filterFn func(item any) bool,
 	sortFunc func(a, b any) int,
 	cursor any,
 	limit int,
@@ -163,7 +163,7 @@ func (m *memoryEngine) MapScan(
 	var pairs []kv
 
 	for k, v := range store {
-		if !passesFilters(v, filters) {
+		if filterFn != nil && !filterFn(v) {
 			continue
 		}
 

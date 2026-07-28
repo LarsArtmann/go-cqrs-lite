@@ -22,6 +22,7 @@ import (
 	"sync/atomic"
 
 	"github.com/cockroachdb/pebble"
+	"github.com/cockroachdb/pebble/vfs"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -36,31 +37,29 @@ const sep = "\x00"
 const PebbleNsPerOp = 300.0
 
 type pebbleEngine struct {
-	db      *pebble.DB
-	closer  *pebble.Close
-	ownsDB  bool
-	mu      sync.Mutex // guards counter/multimap/log seq operations
-	logSeq  sync.Map   // collection → *atomic.Int64 (log sequence counter)
-	mmSeq   sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
+	db     *pebble.DB
+	ownsDB bool
+	mu     sync.Mutex // guards counter/multimap/log seq operations
+	logSeq sync.Map   // collection → *atomic.Int64 (log sequence counter)
+	mmSeq  sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 }
 
 // NewPebbleEngine creates a Pebble-backed metaengine engine. If dir is empty,
-// a temporary in-memory database is used. The caller owns the returned Engine
-// and must call Close.
+// an in-memory database is used (for testing). The caller owns the returned
+// Engine and must call Close.
 func NewPebbleEngine(dir string) (metaengine.Engine, error) {
 	opts := &pebble.Options{}
 	if dir == "" {
 		opts.FS = vfs.NewMem()
 	}
 
-	db, closer, err := pebble.Open(dir, opts)
+	db, err := pebble.Open("", opts)
 	if err != nil {
 		return nil, fmt.Errorf("pebbleengine: open: %w", err)
 	}
 
 	return &pebbleEngine{
 		db:     db,
-		closer: closer,
 		ownsDB: true,
 	}, nil
 }
@@ -507,7 +506,7 @@ func (e *pebbleEngine) scanGraphNeighbors(col, node string) []string {
 		// Key format: "g\x00{col}\x00{from}\x00{to}".
 		keyStr := string(iter.Key())
 		parts := strings.SplitN(keyStr, sep, 4)
-		if len(parts < 4 {
+		if len(parts) < 4 {
 			continue
 		}
 
