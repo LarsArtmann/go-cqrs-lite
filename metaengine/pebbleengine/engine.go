@@ -17,7 +17,6 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
-	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -168,10 +167,6 @@ func decodeJSON(data []byte) any {
 
 func encodeKeyStr(key any) string {
 	return string(encodeJSON(key))
-}
-
-func encodeValueStr(value any) string {
-	return string(encodeJSON(value))
 }
 
 // encodeCounterValue encodes an int64 as 8 bytes big-endian.
@@ -605,9 +600,9 @@ func nextKey(prefix []byte) []byte {
 	result := make([]byte, len(prefix))
 	copy(result, prefix)
 
-	for _, v := range slices.Backward(result) {
-		v++
-		if v != 0 {
+	for i := len(result) - 1; i >= 0; i-- {
+		result[i]++
+		if result[i] != 0 {
 			return result
 		}
 	}
