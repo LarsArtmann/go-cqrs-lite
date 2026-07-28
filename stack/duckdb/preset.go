@@ -33,10 +33,6 @@ type duckdbConfig struct {
 	// Empty = DuckDB default (80% of available RAM). Maps to the DuckDB
 	// "memory_limit" configuration option.
 	MemoryLimit string
-
-	// AutoMigrate controls whether schema tables are created on startup.
-	// Defaults to true.
-	AutoMigrate bool
 }
 
 func defaultConfig() config {
