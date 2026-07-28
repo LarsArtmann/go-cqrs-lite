@@ -147,6 +147,20 @@ func nodeRef(key string) graph.NodeRef {
 	return graph.NodeRef{Label: labelUser, KeyProp: "id", KeyValue: key}
 }
 
+// knowsEdgeRef returns the canonical test edge: u1 KNOWS u2. Shared by every
+// edge-merge test to avoid repeating the 3-field EdgeRef literal.
+func knowsEdgeRef() graph.EdgeRef {
+	return graph.EdgeRef{Type: typeKnows, From: nodeRef("u1"), To: nodeRef("u2")}
+}
+
+// mergeKnows wraps a MergeEdge call for the canonical test edge in a RunInTx,
+// ignoring the transaction error (the test asserts state afterwards).
+func mergeKnows(driver graph.GraphDriver, props map[string]any) {
+	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+		return sink.MergeEdge(knowsEdgeRef(), props)
+	})
+}
+
 func testMergeNodeCreates(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
@@ -179,40 +193,22 @@ func testMergeNodeUpdates(t *testing.T, driver graph.GraphDriver) {
 func testMergeEdgeCreatesEndpoints(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
-		return sink.MergeEdge(graph.EdgeRef{
-			Type: typeKnows,
-			From: nodeRef("u1"),
-			To:   nodeRef("u2"),
-		}, map[string]any{"since": "2024"})
-	})
+	mergeKnows(driver, map[string]any{"since": "2024"})
 
 	// Both endpoints should exist even though we never called MergeNode.
 	// Removing the edge should leave endpoints.
 	_ = driver.RunInTx(func(sink graph.GraphSink) error {
-		return sink.RemoveEdge(graph.EdgeRef{
-			Type: typeKnows,
-			From: nodeRef("u1"),
-			To:   nodeRef("u2"),
-		})
+		return sink.RemoveEdge(knowsEdgeRef())
 	})
 }
 
 func testMergeEdgeUpdatesProps(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
-		return sink.MergeEdge(graph.EdgeRef{
-			Type: typeKnows, From: nodeRef("u1"), To: nodeRef("u2"),
-		}, map[string]any{"since": "2024"})
-	})
+	mergeKnows(driver, map[string]any{"since": "2024"})
 
 	// Merge again with new property — should update, not duplicate.
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
-		return sink.MergeEdge(graph.EdgeRef{
-			Type: typeKnows, From: nodeRef("u1"), To: nodeRef("u2"),
-		}, map[string]any{"strength": strengthMid})
-	})
+	mergeKnows(driver, map[string]any{"strength": strengthMid})
 }
 
 func testRemoveNodeDeletesIncidentEdges(t *testing.T, driver graph.GraphDriver) {
@@ -223,9 +219,7 @@ func testRemoveNodeDeletesIncidentEdges(t *testing.T, driver graph.GraphDriver) 
 			return fmt.Errorf("merge node u1: %w", err)
 		}
 
-		return sink.MergeEdge(graph.EdgeRef{
-			Type: typeKnows, From: nodeRef("u1"), To: nodeRef("u2"),
-		}, nil)
+		return sink.MergeEdge(knowsEdgeRef(), nil)
 	})
 
 	err := driver.RunInTx(func(sink graph.GraphSink) error {
@@ -244,11 +238,7 @@ func testRemoveNodeDeletesIncidentEdges(t *testing.T, driver graph.GraphDriver) 
 func testRemoveEdgeLeavesEndpoints(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
-		return sink.MergeEdge(graph.EdgeRef{
-			Type: typeKnows, From: nodeRef("u1"), To: nodeRef("u2"),
-		}, nil)
-	})
+	mergeKnows(driver, nil)
 
 	err := driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.RemoveEdge(graph.EdgeRef{

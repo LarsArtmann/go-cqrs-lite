@@ -12,7 +12,11 @@ import (
 // sliceIteratorOrErr wraps the "load events, on error return wrapped err,
 // else return SliceIterator" pattern shared by all streaming LoadX/ReadX
 // methods on MemoryStore.
-func sliceIteratorOrErr(events []event.Event, err error, code, msg string) (event.EventIterator, error) {
+func sliceIteratorOrErr(
+	events []event.Event,
+	err error,
+	code, msg string,
+) (event.EventIterator, error) {
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, code, msg)
 	}
