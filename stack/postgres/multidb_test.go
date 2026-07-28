@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -16,13 +15,10 @@ import (
 )
 
 // TestMultiDBContract verifies that the Postgres multi-DB split routes each
-// concern to the correct database. Requires POSTGRES_TEST_DSN and the ability
-// to CREATE DATABASE (typically a superuser or database owner).
+// concern to the correct database. Requires a Postgres instance and the
+// ability to CREATE DATABASE (the testcontainers superuser has this).
 func TestMultiDBContract(t *testing.T) {
-	primaryDSN := os.Getenv("POSTGRES_TEST_DSN")
-	if primaryDSN == "" {
-		t.Skip("POSTGRES_TEST_DSN not set; skipping Postgres multi-DB contract tests")
-	}
+	primaryDSN := postgresDSN(t)
 
 	// Derive separate database DSNs by suffixing the database name.
 	eventDSN := deriveDB(t, primaryDSN, "_events")

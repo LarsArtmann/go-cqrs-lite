@@ -10,6 +10,7 @@
 ## A) FULLY DONE
 
 ### 1. `stack/sqlopt.OpenPrimaryBackend` — extracted open/setup/cleanup boilerplate
+
 **Files:** `stack/sqlopt/sqlopt.go`, `stack/postgres/preset.go`, `stack/sqlite/preset.go`
 
 Both `postgres.openBackend` and `sqlite.openBackend` had the identical structure:
@@ -26,6 +27,7 @@ identical control flow into one call.
 **Verified:** build, vet, test, race, lint, api-stability, doc-check all green.
 
 ### 2. `catalog/eventcatalog.Exporter.writeBuilderFile` — extracted builder-to-file pattern
+
 **Files:** `catalog/eventcatalog/writer.go`, `writer_schemas_txt.go`, `writer_llms.go`
 
 Three writer methods (`writeConfig`, `writeSchemasTxt`, `writeLLMsTxt`) each had:
@@ -37,6 +39,7 @@ Each writer now just passes its filename and a closure that fills the builder.
 Removed now-unused `os`/`path/filepath` imports from `writer_schemas_txt.go` and `writer_llms.go`.
 
 ### 3. Dedup baseline golden updated
+
 **File:** `.art-dupl-baseline.json`
 
 The baseline was stale — referenced eliminated clone groups (postgres/sqlite openBackend,
@@ -44,7 +47,9 @@ catalog writer builder). Re-ran `art-dupl baseline . --threshold 3 --semantic` t
 current 16 accepted clone groups. The `nix run .#check-duplication` gate now passes cleanly.
 
 ### 4. Full verify gate passed
+
 `nix run .#verify` — all checks green:
+
 - Build, Vet, Test (all 90+ modules)
 - Race detector (all modules)
 - Lint (all modules, 0 issues)
@@ -53,6 +58,7 @@ current 16 accepted clone groups. The `nix run .#check-duplication` gate now pas
 - Duplication check (0 new clones vs baseline)
 
 ### 5. Pushed to remote
+
 7 commits pushed to `origin/master`.
 
 ---
@@ -66,6 +72,7 @@ Nothing — every consolidation attempted was either completed or reverted.
 ## C) NOT STARTED
 
 ### Turso preset — investigated, intentionally skipped
+
 `stack/turso/backend.go` uses turso-specific APIs (`cqrsturso.Open`, `cqrsturso.NewBackend`)
 instead of `sql.Open` + `storage.NewSQLBackend`. The shape is different enough that
 `OpenPrimaryBackend` would not improve it. Art-dupl confirmed no clone detected there.
@@ -96,11 +103,13 @@ explicitly calls this out: "An abstraction would take more parameters than the
 duplicated code has lines."
 
 ### Forgotten git commits between changes
+
 The auto-commit daemon handled most commits, but I should have committed each
 self-contained change explicitly. The session produced 7 commits but they were
 batched by the daemon rather than logically separated.
 
 ### Forgotten baseline update
+
 After the catalog + stack consolidations, I initially forgot to update
 `.art-dupl-baseline.json`. This would have caused `nix run .#check-duplication`
 to fail on the next session. Caught and fixed in the reflection round.
@@ -110,6 +119,7 @@ to fail on the next session. Caught and fixed in the reflection round.
 ## E) WHAT WE SHOULD IMPROVE
 
 ### Process improvements
+
 1. **Commit after each self-contained change** — don't rely on the auto-commit daemon.
    Each consolidation should be its own commit with a clear message.
 2. **Update the dedup baseline in the same change** as the consolidation — not as an
@@ -122,6 +132,7 @@ to fail on the next session. Caught and fixed in the reflection round.
    `OpenPrimaryBackend` patterns as examples of good extraction.
 
 ### Code improvements (broader, noticed during this session)
+
 6. **`writeBuilderFile` could be promoted** — the pattern (fill a `strings.Builder`,
    write to file) is common across the codebase beyond catalog. Consider a shared
    `fileutil.WriteBuilder(dir, filename, fn)` if more call sites exist.
@@ -136,6 +147,7 @@ to fail on the next session. Caught and fixed in the reflection round.
 ## F) Up to 50 things we should get done next
 
 ### Dedup / code quality (immediate)
+
 1. **Audit the 16 accepted baseline clones** — review each for whether it can be eliminated now
 2. **`storage/memory` wrap helpers** (`withWriteLock`, `withReadLock`) — are they still needed
    after this session's changes?
@@ -149,6 +161,7 @@ to fail on the next session. Caught and fixed in the reflection round.
 10. **Run `art-dupl --html`** for visual review of the 16 baseline groups
 
 ### Catalog writers (follow-up)
+
 11. **`catalog/eventcatalog` has 3 more writers** — check if `writeServices`, `writeMessages`,
     etc. can use `writeBuilderFile`
 12. **Audit all `os.WriteFile` + `strings.Builder` patterns** repo-wide for `writeBuilderFile` adoption
@@ -156,6 +169,7 @@ to fail on the next session. Caught and fixed in the reflection round.
     similar marshal-then-write pattern
 
 ### Stack presets (follow-up)
+
 14. **Add `OpenPrimaryBackend` to `stack/sqlopt` README** — document the helper
 15. **Consider extracting `ConfigureSQLitePool` + `SQLiteEnableWAL` into a single
     `SQLiteSetup` function** — they're always called together
@@ -163,6 +177,7 @@ to fail on the next session. Caught and fixed in the reflection round.
     check if `sqlopt.NewSecondaryBackend` already covers it (it does — verify all presets use it)
 
 ### Type model improvements
+
 17. **`config` struct in each preset** — `stack/sqlite/config`, `stack/postgres/config`,
     `stack/turso/config` all embed `sqlopt.DSNConfig` + `sqlopt.PragmaConfig` but add
     preset-specific fields. Consider a shared `sqlopt.PresetConfig` base.
@@ -174,6 +189,7 @@ to fail on the next session. Caught and fixed in the reflection round.
     type instead of string conventions.
 
 ### Library adoption / ecosystem
+
 20. **`hashicorp/go-multierror` or `errors.Join`** — the preset cleanup paths
     (`_ = db.Close()` in defers) silently discard errors. Consider collecting them.
 21. **`cleanerr` or similar** — the wrap-then-return pattern could benefit from a
@@ -181,6 +197,7 @@ to fail on the next session. Caught and fixed in the reflection round.
     consider standardizing.
 
 ### Testing
+
 22. **Add tests for `OpenPrimaryBackend`** — it's currently untested in isolation
     (only exercised via preset integration tests)
 23. **Add tests for `writeBuilderFile`** — currently only tested via catalog export tests
@@ -189,6 +206,7 @@ to fail on the next session. Caught and fixed in the reflection round.
 25. **Test the dedup gate in CI** — verify `nix run .#check-duplication` runs in GitHub Actions
 
 ### Documentation
+
 26. **Update `AGENTS.md` dedup helper section** with `OpenPrimaryBackend` + `writeBuilderFile`
     as examples of good extraction
 27. **Add a "when to accept duplication" section** to the dedup skill — document the
@@ -197,6 +215,7 @@ to fail on the next session. Caught and fixed in the reflection round.
 29. **Update `stack/sqlopt/doc.go`** to mention `OpenPrimaryBackend`
 
 ### Broader architecture
+
 30. **Audit all `openBackend` variants** — memory, pebble, turso all have their own.
     Is there a shared `BackendOpener` interface worth defining?
 31. **Consider a `stack.Preset` interface** — each preset (`sqlite.New`, `postgres.New`,
@@ -208,12 +227,14 @@ to fail on the next session. Caught and fixed in the reflection round.
     projectionhost pre-wired to the event store.
 
 ### CI / tooling
+
 34. **Add `art-dupl --html` output to CI artifacts** — for visual review on each PR
 35. **Add a "clone budget" check** — fail if clone count increases beyond baseline + N
 36. **Run `art-dupl` at multiple thresholds** (3, 5, 10) in CI for trend tracking
 37. **Add `gocyclo` or `cyclop`** to the lint gate — catch complexity before it becomes clones
 
 ### Cleanup
+
 38. **Remove `//nolint:wrapcheck` where `OpenPrimaryBackend` now handles wrapping** —
     verify no stale nolint directives remain
 39. **Audit unused `//nolint` directives** repo-wide — `nolintlint` catches some but not all
@@ -226,19 +247,22 @@ to fail on the next session. Caught and fixed in the reflection round.
 ## G) Questions I CANNOT figure out myself
 
 ### 1. Should `writeBuilderFile` live in `catalog/eventcatalog` or a shared `fileutil` package?
+
 The pattern (fill a `strings.Builder`, write to a file) is not catalog-specific. But extracting
 it to a shared package requires deciding: which module? `testutil`? A new `fileutil`?
 Or is it too trivial to justify a package? I cannot decide this without knowing your preference
 on utility package granularity.
 
 ### 2. Should the 16 accepted baseline clones be documented in `dedup-acceptance.md`?
+
 The dedup skill says: "When many groups are accepted, record the rationale in a
 `dedup-acceptance.md` file." There are 16 groups. Should I create this file with one-line
 rationales for each, or is the baseline JSON sufficient?
 
 ### 3. Should `OpenPrimaryBackend` replace the turso preset's `openLocalBackend` too?
+
 Turso uses `cqrsturso.Open` (not `sql.Open`) and `cqrsturso.NewBackend` (not
 `storage.NewSQLBackend`). The control flow is similar enough that `OpenPrimaryBackend`
-*could* work if we generalize the open and newBackend function signatures further.
+_could_ work if we generalize the open and newBackend function signatures further.
 But this would make the helper more abstract for one call site. Is the consistency
 worth the abstraction cost?

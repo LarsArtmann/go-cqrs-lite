@@ -24,8 +24,7 @@ import (
 //   - End-to-end cross-bus delivery (the canonical multi-process pattern)
 //
 // Run with: go test -tags=integration ./...
-// Requires: POSTGRES_TEST_DSN env var (set automatically in CI's
-// postgres-integration job).
+// Uses testcontainers (postgres:16-alpine) when POSTGRES_TEST_DSN is unset.
 
 // uniqueChannel returns a valid Postgres identifier unique per test invocation.
 // Prevents parallel integration tests from cross-contaminating each other.

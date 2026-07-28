@@ -81,54 +81,51 @@ func TestStateCache_UpdateExisting(t *testing.T) {
 	}
 }
 
-func TestStateCache_LRUEviction(t *testing.T) {
+func TestStateCache_CapacityBounded(t *testing.T) {
 	t.Parallel()
 
-	cache := decider.NewStateCache[counterState](3)
+	// Verify the cache accepts a capacity and doesn't panic on overflow.
+	// Otter's TinyLFU evicts lazily during maintenance — we don't assert
+	// exact eviction count here (that's otter's responsibility, tested upstream).
+	cache := decider.NewStateCache[counterState](10)
 
-	refs := make([]id.StreamRef, 4)
-	for i := range refs {
-		refs[i] = id.NewStreamRef("Counter", id.NewStreamID())
-		cache.Put(refs[i], counterState{Value: i}, event.Version(i))
+	for i := range 50 {
+		ref := id.NewStreamRef("Counter", id.NewStreamID())
+		cache.Put(ref, counterState{Value: i}, event.Version(i))
 	}
 
-	// refs[0] should be evicted (oldest, capacity=3)
-	if _, _, ok := cache.Get(refs[0]); ok {
-		t.Error("expected oldest entry to be evicted")
-	}
+	// Cache should not panic and should remain usable.
+	ref := id.NewStreamRef("Counter", id.NewStreamID())
+	cache.Put(ref, counterState{Value: 99}, event.Version(99))
 
-	// refs[1..3] should still be present
-	for i := 1; i < 4; i++ {
-		if _, _, ok := cache.Get(refs[i]); !ok {
-			t.Errorf("expected entry %d to be present", i)
-		}
+	state, _, ok := cache.Get(ref)
+	if !ok || state.Value != 99 {
+		t.Errorf("expected last entry to be retrievable, got ok=%v value=%d", ok, state.Value)
 	}
 }
 
-func TestStateCache_LRU_OrderAfterGet(t *testing.T) {
+func TestStateCache_FrequencyProtectsHotEntry(t *testing.T) {
 	t.Parallel()
 
-	cache := decider.NewStateCache[counterState](3)
+	cache := decider.NewStateCache[counterState](10)
 
-	refs := make([]id.StreamRef, 3)
-	for i := range refs {
-		refs[i] = id.NewStreamRef("Counter", id.NewStreamID())
-		cache.Put(refs[i], counterState{Value: i}, event.Version(i))
+	hotRef := id.NewStreamRef("Counter", id.NewStreamID())
+	cache.Put(hotRef, counterState{Value: 1}, event.Version(1))
+
+	// Access hotRef many times to build frequency in the TinyLFU sketch.
+	for range 20 {
+		_, _, _ = cache.Get(hotRef)
 	}
 
-	// Access refs[0] to make it most-recently-used
-	_, _, _ = cache.Get(refs[0]) //nolint:dogsled // testing 3-return API
-
-	// Insert a new entry — should evict refs[1] (now the least recently used)
-	newRef := id.NewStreamRef("Counter", id.NewStreamID())
-	cache.Put(newRef, counterState{Value: 99}, event.Version(99))
-
-	if _, _, ok := cache.Get(refs[1]); ok {
-		t.Error("expected refs[1] to be evicted after Get promoted refs[0]")
+	// Fill the cache with cold entries.
+	for i := range 10 {
+		coldRef := id.NewStreamRef("Counter", id.NewStreamID())
+		cache.Put(coldRef, counterState{Value: i}, event.Version(i))
 	}
 
-	if _, _, ok := cache.Get(refs[0]); !ok {
-		t.Error("expected refs[0] to survive (was recently accessed)")
+	// The frequently-accessed entry should survive eviction.
+	if _, _, ok := cache.Get(hotRef); !ok {
+		t.Error("expected hot entry to survive due to high access frequency")
 	}
 }
 

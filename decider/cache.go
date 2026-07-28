@@ -1,8 +1,7 @@
 package decider
 
 import (
-	"container/list"
-	"sync"
+	"github.com/maypok86/otter/v2"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -36,95 +35,52 @@ type StateCache[State any] interface {
 	Invalidate(ref id.StreamRef)
 }
 
-// NewStateCache creates an LRU-bounded StateCache with the given capacity.
+type cacheEntry[State any] struct {
+	state   State
+	version event.Version
+}
+
+// otterCache implements StateCache using an Otter TinyLFU cache (ADR-0032
+// pattern, matching kv.Cache). Otter is lock-free for reads and provides
+// better hit rates than plain LRU via frequency-based admission.
+type otterCache[State any] struct {
+	cache *otter.Cache[string, *cacheEntry[State]]
+}
+
+// NewStateCache creates an Otter-backed StateCache with the given capacity.
 // If capacity <= 0, DefaultStateCacheCapacity is used.
 //
-// The cache evicts the least recently used entry when capacity is exceeded.
+// The cache uses TinyLFU admission policy: entries are admitted based on
+// access frequency, providing better hit rates than simple LRU eviction.
 func NewStateCache[State any](capacity int) StateCache[State] {
 	if capacity <= 0 {
 		capacity = DefaultStateCacheCapacity
 	}
 
-	return &lruCache[State]{ //nolint:exhaustruct // mu is zero-valued
-		cap:   capacity,
-		items: make(map[string]*list.Element, capacity),
-		order: list.New(),
-	}
+	cache := otter.Must(
+		&otter.Options[string, *cacheEntry[State]]{ //nolint:exhaustruct // only MaximumSize needed
+			MaximumSize: capacity,
+		},
+	)
+
+	return &otterCache[State]{cache: cache}
 }
 
-type cacheEntry[State any] struct {
-	ref     id.StreamRef
-	state   State
-	version event.Version
-}
-
-type lruCache[State any] struct {
-	mu    sync.Mutex
-	cap   int
-	items map[string]*list.Element
-	order *list.List
-}
-
-// Get retrieves the cached state and version for the given stream.
-// Returns ok=false if the stream is not in the cache.
-//
-// The lock/unlock pattern is duplicated across Get/Put/Invalidate by design —
-// it is the idiomatic Go mutex guard and extracting a closure helper would
-// add indirection without reducing complexity.
-func (c *lruCache[State]) Get(ref id.StreamRef) (State, event.Version, bool) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	elem, ok := c.items[ref.String()]
+func (c *otterCache[State]) Get(ref id.StreamRef) (State, event.Version, bool) {
+	entry, ok := c.cache.GetIfPresent(ref.String())
 	if !ok {
 		var zero State
 
 		return zero, 0, false
 	}
 
-	c.order.MoveToFront(elem)
-	entry := elem.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
-
 	return entry.state, entry.version, true
 }
 
-// Put stores the state and version for the given stream.
-func (c *lruCache[State]) Put(ref id.StreamRef, state State, version event.Version) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	key := ref.String()
-
-	if elem, ok := c.items[key]; ok {
-		c.order.MoveToFront(elem)
-		entry := elem.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
-		entry.state = state
-		entry.version = version
-
-		return
-	}
-
-	entry := &cacheEntry[State]{ref: ref, state: state, version: version}
-	elem := c.order.PushFront(entry)
-	c.items[key] = elem
-
-	if c.order.Len() > c.cap {
-		oldest := c.order.Back()
-		if oldest != nil {
-			c.order.Remove(oldest)
-			oldEntry := oldest.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
-			delete(c.items, oldEntry.ref.String())
-		}
-	}
+func (c *otterCache[State]) Put(ref id.StreamRef, state State, version event.Version) {
+	c.cache.Set(ref.String(), &cacheEntry[State]{state: state, version: version})
 }
 
-// Invalidate removes the stream from the cache.
-func (c *lruCache[State]) Invalidate(ref id.StreamRef) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if elem, ok := c.items[ref.String()]; ok {
-		c.order.Remove(elem)
-		delete(c.items, ref.String())
-	}
+func (c *otterCache[State]) Invalidate(ref id.StreamRef) {
+	c.cache.Invalidate(ref.String())
 }

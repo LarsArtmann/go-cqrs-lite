@@ -4,23 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"sync"
-	"sync/atomic"
 	"time"
 
+	"github.com/failsafe-go/failsafe-go/circuitbreaker"
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-)
-
-type circuitState int
-
-const (
-	circuitClosed circuitState = iota
-	circuitOpen
-	circuitHalfOpen
 )
 
 const (
@@ -73,87 +64,27 @@ func (c CircuitBreakerConfig) Validate() error {
 	return nil
 }
 
+// circuitBreaker wraps a failsafe-go CircuitBreaker for production-grade
+// resilience (sliding window thresholds, half-open recovery, state listeners).
+// The IsFailure predicate is applied manually (not via HandleIf) so that
+// non-failure errors count as successes toward closing the circuit — matching
+// the original hand-rolled semantics.
 type circuitBreaker struct {
-	state     atomic.Int32
-	failures  atomic.Int32
-	successes atomic.Int32
-
-	mu          sync.Mutex
-	lastFailure time.Time
-	config      CircuitBreakerConfig
-}
-
-func (cb *circuitBreaker) allow() error {
-	switch circuitState(cb.state.Load()) {
-	case circuitClosed:
-		return nil
-	case circuitOpen:
-		cb.mu.Lock()
-		defer cb.mu.Unlock()
-
-		if circuitState(cb.state.Load()) != circuitOpen {
-			return nil
-		}
-
-		if time.Since(cb.lastFailure) > cb.config.Timeout {
-			cb.state.Store(int32(circuitHalfOpen))
-			cb.successes.Store(0)
-
-			return nil
-		}
-
-		return ErrCircuitBreakerOpen
-	case circuitHalfOpen:
-		return nil
-	}
-
-	return nil
-}
-
-func (cb *circuitBreaker) recordSuccess() {
-	switch circuitState(cb.state.Load()) {
-	case circuitHalfOpen:
-		cb.mu.Lock()
-		defer cb.mu.Unlock()
-
-		if circuitState(cb.state.Load()) != circuitHalfOpen {
-			cb.failures.Store(0)
-
-			return
-		}
-
-		newSuccesses := int(cb.successes.Add(1))
-		if newSuccesses >= cb.config.SuccessThreshold {
-			cb.state.Store(int32(circuitClosed))
-			cb.failures.Store(0)
-		}
-	case circuitClosed, circuitOpen:
-		cb.failures.Store(0)
-	}
-}
-
-func (cb *circuitBreaker) recordFailure() {
-	cb.mu.Lock()
-	defer cb.mu.Unlock()
-
-	cb.failures.Add(1)
-	cb.lastFailure = time.Now()
-
-	if circuitState(cb.state.Load()) == circuitHalfOpen {
-		cb.state.Store(int32(circuitOpen))
-	} else if int(cb.failures.Load()) >= cb.config.FailureThreshold {
-		cb.state.Store(int32(circuitOpen))
-	}
+	breaker circuitbreaker.CircuitBreaker[any]
+	config  CircuitBreakerConfig
 }
 
 func newCircuitBreaker(config CircuitBreakerConfig) *circuitBreaker {
-	breaker := &circuitBreaker{ //nolint:exhaustruct // atomics are zero-valued
-		lastFailure: time.Time{},
-		config:      config,
-	}
-	breaker.state.Store(int32(circuitClosed))
+	breaker := circuitbreaker.NewBuilder[any]().
+		WithFailureThreshold(uint(config.FailureThreshold)).
+		WithSuccessThreshold(uint(config.SuccessThreshold)).
+		WithDelay(config.Timeout).
+		Build()
 
-	return breaker
+	return &circuitBreaker{
+		breaker: breaker,
+		config:  config,
+	}
 }
 
 func (cb *circuitBreaker) execute(
@@ -162,20 +93,19 @@ func (cb *circuitBreaker) execute(
 	opName string,
 	fn func() error,
 ) error {
-	err := cb.allow()
-	if err != nil {
+	if !cb.breaker.TryAcquirePermit() {
 		if logger != nil {
 			logger.WarnContext(ctx, "circuit breaker rejected",
-				"operation", opName, "error", err)
+				"operation", opName)
 		}
 
-		return errorfamily.WrapTransient(err, "middleware.circuit_open",
+		return errorfamily.WrapTransient(ErrCircuitBreakerOpen, "middleware.circuit_open",
 			"circuit breaker rejected "+opName)
 	}
 
-	err = fn()
+	err := fn()
 	if err == nil {
-		cb.recordSuccess()
+		cb.breaker.RecordSuccess()
 
 		return nil
 	}
@@ -186,9 +116,9 @@ func (cb *circuitBreaker) execute(
 	}
 
 	if isFailure(err) {
-		cb.recordFailure()
+		cb.breaker.RecordError(err)
 	} else {
-		cb.recordSuccess()
+		cb.breaker.RecordSuccess()
 	}
 
 	return errorfamily.Wrap(err, errorfamily.Classify(err), opName, err.Error())

@@ -2,25 +2,12 @@ package postgres_test
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 )
-
-// postgresDSN returns the test Postgres DSN from the environment, or skips.
-func postgresDSN(t *testing.T) string {
-	t.Helper()
-
-	dsn := os.Getenv("POSTGRES_TEST_DSN")
-	if dsn == "" {
-		t.Skip("POSTGRES_TEST_DSN not set; skipping Postgres integration test")
-	}
-
-	return dsn
-}
 
 func TestNew_ProducesWorkingBundle(t *testing.T) {
 	dsn := postgresDSN(t)

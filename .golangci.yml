@@ -155,7 +155,9 @@ linters:
             - github.com/samber/ro
             - github.com/samber/lo
             - github.com/fxamacker/cbor
+            - github.com/gkampitakis/go-snaps
             - pgregory.net/rapid
+            - github.com/testcontainers/testcontainers-go
             - go/ast
             - go/format
             - go/parser
@@ -167,6 +169,7 @@ linters:
             - github.com/prometheus/client_golang
             - github.com/prometheus/client_model
             - github.com/maypok86/otter
+            - github.com/failsafe-go/failsafe-go
             - github.com/jackc/pgx
             - github.com/dustin/go-humanize
             - google.golang.org/grpc

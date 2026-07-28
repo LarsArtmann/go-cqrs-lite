@@ -23,7 +23,7 @@ require (
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
-	github.com/larsartmann/go-branded-id v0.5.0 // indirect
+	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0 // indirect
