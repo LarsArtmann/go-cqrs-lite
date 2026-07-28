@@ -45,6 +45,7 @@ var modules = []string{
 	"scheduling",
 	"metadata",
 	"metaengine",
+	"metaengine/pebbleengine",
 	"metaengine/projectionadapter",
 	// Layer 4
 	"storage/memory",

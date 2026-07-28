@@ -194,6 +194,7 @@
             "idempotency/kvstore"
             "idempotency/sqlstore"
             "metaengine"
+            "metaengine/pebbleengine"
             "metaengine/projectionadapter"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);

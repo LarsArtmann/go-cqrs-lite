@@ -30,9 +30,14 @@ func (s *MemoryCheckpointStore) Load(
 	_ context.Context,
 	projectionName string,
 ) (event.Checkpoint, error) {
-	return withCheckpointReadLock(s, "memory.checkpoint_load", "checkpoint store load", func() (event.Checkpoint, error) {
-		return s.checkpoints[projectionName], nil
-	})
+	return withCheckpointReadLock(
+		s,
+		"memory.checkpoint_load",
+		"checkpoint store load",
+		func() (event.Checkpoint, error) {
+			return s.checkpoints[projectionName], nil
+		},
+	)
 }
 
 // Save persists the checkpoint for a projection.
