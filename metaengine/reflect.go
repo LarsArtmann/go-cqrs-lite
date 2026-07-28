@@ -41,19 +41,6 @@ func derefType(sample any) reflect.Type {
 	return t
 }
 
-func structType(input any) (reflect.Type, bool) {
-	t := reflect.TypeOf(input)
-	if t == nil {
-		return nil, false
-	}
-
-	if t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
-
-	return t, t.Kind() == reflect.Struct
-}
-
 // qualifiedTypeName returns a package-qualified type name to prevent collisions
 // between types with the same name from different packages.
 func qualifiedTypeName(v any) string {
@@ -83,10 +70,12 @@ type reflectField struct {
 
 // reflectFields extracts the exported fields of a struct instance or pointer.
 func reflectFields(v any) []reflectField {
-	t, ok := structType(v)
+	sv, ok := structValue(v)
 	if !ok {
 		return nil
 	}
+
+	t := sv.Type()
 
 	var fields []reflectField
 

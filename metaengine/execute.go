@@ -248,12 +248,6 @@ func buildSortFunc(closure any) func(a, b any) int {
 	}
 }
 
-// filterPredicate is a runtime filter test against a result item.
-type filterPredicate struct {
-	expected any
-	test     func(item any) bool
-}
-
 func (s *Store) sortKeyFn(inputType string) func(any) any {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

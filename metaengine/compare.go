@@ -23,6 +23,12 @@ func passesFilters(value any, filters []filterPredicate) bool {
 	return true
 }
 
+// filterPredicate is a runtime filter test against a result item.
+type filterPredicate struct {
+	expected any
+	test     func(item any) bool
+}
+
 // compareValue performs a type-aware tri-state comparison: -1 (a < b), 0 (equal), +1 (a > b).
 // Handles same-type comparison, cross-type numeric comparison (e.g., int from item
 // vs float64 from a deserialized cursor), and falls back to string comparison.
