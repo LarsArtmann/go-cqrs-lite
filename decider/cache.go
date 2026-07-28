@@ -65,71 +65,66 @@ type lruCache[State any] struct {
 	order *list.List
 }
 
+// Get retrieves the cached state and version for the given stream.
+// Returns ok=false if the stream is not in the cache.
+//
+// The lock/unlock pattern is duplicated across Get/Put/Invalidate by design —
+// it is the idiomatic Go mutex guard and extracting a closure helper would
+// add indirection without reducing complexity.
 func (c *lruCache[State]) Get(ref id.StreamRef) (State, event.Version, bool) {
-	var state State
-
-	var version event.Version
-
-	var ok bool
-
-	c.locked(ref, func(key string) {
-		elem, found := c.items[key]
-		if !found {
-			return
-		}
-
-		c.order.MoveToFront(elem)
-		entry := elem.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
-
-		state = entry.state
-		version = entry.version
-		ok = true
-	})
-
-	return state, version, ok
-}
-
-func (c *lruCache[State]) Put(ref id.StreamRef, state State, version event.Version) {
-	c.locked(ref, func(key string) {
-		if elem, found := c.items[key]; found {
-			c.order.MoveToFront(elem)
-			entry := elem.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
-			entry.state = state
-			entry.version = version
-
-			return
-		}
-
-		entry := &cacheEntry[State]{ref: ref, state: state, version: version}
-		elem := c.order.PushFront(entry)
-		c.items[key] = elem
-
-		if c.order.Len() > c.cap {
-			oldest := c.order.Back()
-			if oldest != nil {
-				c.order.Remove(oldest)
-				oldEntry := oldest.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
-				delete(c.items, oldEntry.ref.String())
-			}
-		}
-	})
-}
-
-func (c *lruCache[State]) Invalidate(ref id.StreamRef) {
-	c.locked(ref, func(key string) {
-		if elem, found := c.items[key]; found {
-			c.order.Remove(elem)
-			delete(c.items, key)
-		}
-	})
-}
-
-// locked executes fn while holding the cache mutex. It provides the key derived
-// from ref so every mutating method follows the same lock + key-computation
-// pattern.
-func (c *lruCache[State]) locked(ref id.StreamRef, fn func(key string)) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	fn(ref.String())
+	elem, ok := c.items[ref.String()]
+	if !ok {
+		var zero State
+
+		return zero, 0, false
+	}
+
+	c.order.MoveToFront(elem)
+	entry := elem.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
+
+	return entry.state, entry.version, true
+}
+
+// Put stores the state and version for the given stream.
+func (c *lruCache[State]) Put(ref id.StreamRef, state State, version event.Version) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	key := ref.String()
+
+	if elem, ok := c.items[key]; ok {
+		c.order.MoveToFront(elem)
+		entry := elem.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
+		entry.state = state
+		entry.version = version
+
+		return
+	}
+
+	entry := &cacheEntry[State]{ref: ref, state: state, version: version}
+	elem := c.order.PushFront(entry)
+	c.items[key] = elem
+
+	if c.order.Len() > c.cap {
+		oldest := c.order.Back()
+		if oldest != nil {
+			c.order.Remove(oldest)
+			oldEntry := oldest.Value.(*cacheEntry[State]) //nolint:forcetypeassert // list only stores *cacheEntry
+			delete(c.items, oldEntry.ref.String())
+		}
+	}
+}
+
+// Invalidate removes the stream from the cache.
+func (c *lruCache[State]) Invalidate(ref id.StreamRef) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if elem, ok := c.items[ref.String()]; ok {
+		c.order.Remove(elem)
+		delete(c.items, ref.String())
+	}
 }
