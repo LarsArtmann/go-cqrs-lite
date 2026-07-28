@@ -78,6 +78,7 @@ func writeSoakResult(format, output string, result *benchkit.SoakResult) {
 func withOutput(output string, fn func(w *os.File)) {
 	w := openOutput(output)
 	defer closeOutput(w)
+
 	fn(w)
 }
 
