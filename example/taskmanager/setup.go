@@ -18,6 +18,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
@@ -36,6 +38,7 @@ type Server struct {
 	ReadModel    *kv.TypedStore[TaskView, TaskID]
 	Mat          *stack.Materialize[TaskView, TaskID]
 	ProjHost     *projectionhost.Host
+	MetaEngine  *metaengine.Store
 	Logger       *slog.Logger
 	otelProvider *cqrsotel.Provider
 	signer       signing.SignerVerifier
@@ -143,14 +146,29 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		return nil, fmt.Errorf("setup: register projection: %w", err)
 	}
 
+	// ── Metaengine: cost-based query planner (Counter ADT for O(1) status counts) ──
+	meStore, meAdapter, err := setupMetaEngine(logger)
+	if err != nil {
+		_ = bundle.Close()
+
+		return nil, fmt.Errorf("setup: metaengine: %w", err)
+	}
+
+	if err := projHost.Register(meAdapter); err != nil {
+		_ = bundle.Close()
+
+		return nil, fmt.Errorf("setup: register metaengine projection: %w", err)
+	}
+
 	srv := &Server{
-		Bundle:    bundle,
-		Repo:      repo,
-		CmdDisp:   command.NewDispatcher(),
-		ReadModel: rmStore,
-		Mat:       mat,
-		ProjHost:  projHost,
-		Logger:    logger,
+		Bundle:      bundle,
+		Repo:        repo,
+		CmdDisp:     command.NewDispatcher(),
+		ReadModel:   rmStore,
+		Mat:         mat,
+		ProjHost:    projHost,
+		MetaEngine:  meStore,
+		Logger:      logger,
 	}
 
 	if err := setupFeatures(srv); err != nil {

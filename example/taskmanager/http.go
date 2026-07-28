@@ -26,6 +26,7 @@ func (s *Server) routes() *http.ServeMux {
 	mux.HandleFunc("GET /api/tasks/", s.handleTaskSubresource)
 	mux.HandleFunc("PATCH /api/tasks/", s.handleTaskSubresource)
 	mux.HandleFunc("DELETE /api/tasks/", s.handleTaskSubresource)
+	mux.HandleFunc("GET /api/stats", s.handleGetTaskStats)
 
 	// SSE: real-time event stream for clients
 	if s.sseBroker != nil {
