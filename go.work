@@ -46,6 +46,7 @@ use (
 	./snapshot
 	./stack
 	./stack/bench
+	./stack/duckdb
 	./stack/memory
 	./stack/pebble
 	./stack/postgres
