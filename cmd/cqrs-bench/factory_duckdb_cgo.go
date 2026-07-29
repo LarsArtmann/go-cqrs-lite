@@ -5,9 +5,9 @@ package main
 import (
 	"path/filepath"
 
+	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench/v4/benchkit"
 )
 
 // duckdbFactory builds a DuckDB-backed bundle for benchmarking. DuckDB is an

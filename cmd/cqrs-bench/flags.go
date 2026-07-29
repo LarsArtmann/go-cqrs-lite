@@ -42,9 +42,9 @@ func newBenchFlagSet(name string) (*flag.FlagSet, benchFlags) {
 
 func registerBenchFlags(fs *flag.FlagSet) benchFlags {
 	return benchFlags{
-		backend:     fs.String("backend", "memory", "Backend: memory, sqlite, pebble"),
-		dsn:         fs.String("dsn", "", "Database connection string (sqlite)"),
-		dir:         fs.String("dir", "", "Database directory (pebble)"),
+		backend:     fs.String("backend", "memory", "Backend: memory, sqlite, pebble, postgres, duckdb"),
+		dsn:         fs.String("dsn", "", "Database connection string (sqlite, postgres, duckdb)"),
+		dir:         fs.String("dir", "", "Database directory (pebble, duckdb)"),
 		profileName: fs.String("profile", "dev", "Workload profile"),
 		codecName:   fs.String("codec", "json", "Payload codec: json, cbor"),
 		format:      fs.String("format", "text", "Output format: text, json, benchstat, manifest"),
