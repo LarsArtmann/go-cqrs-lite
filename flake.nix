@@ -14,15 +14,17 @@
     systems.url = "github:nix-systems/default";
 
     # Build infrastructure for distributable CLI packages (cmd/cqrs-lint, etc.)
-    # These are `flake = false` tarballs — fetched via SSH at eval time, used as
-    # local replace targets by mkPreparedSource so the Nix sandbox (no SSH keys)
-    # can build private deps without network access.
+    # flake=false tarballs fetched via GitHub (HTTPS) — used as local replace
+    # targets by mkPreparedSource so the Nix sandbox can build deps without
+    # network access. Only go-finding is private (GOPRIVATE); the rest are
+    # public repos. Using github: URLs (not git+ssh://) avoids requiring SSH
+    # keys at eval/build time.
     go-nix-helpers = {
-      url = "git+ssh://git@github.com/LarsArtmann/go-nix-helpers?ref=master";
+      url = "github:LarsArtmann/go-nix-helpers?ref=master";
       flake = false;
     };
     go-finding = {
-      url = "git+ssh://git@github.com/LarsArtmann/go-finding?ref=master";
+      url = "github:LarsArtmann/go-finding?ref=master";
       flake = false;
     };
     cmdguard = {
@@ -30,31 +32,31 @@
       flake = false;
     };
     go-output = {
-      url = "git+ssh://git@github.com/LarsArtmann/go-output?ref=master";
+      url = "github:LarsArtmann/go-output?ref=master";
       flake = false;
     };
     gogenfilter = {
-      url = "git+ssh://git@github.com/LarsArtmann/gogenfilter?ref=master";
+      url = "github:LarsArtmann/gogenfilter?ref=master";
       flake = false;
     };
     go-branded-id = {
-      url = "git+ssh://git@github.com/LarsArtmann/go-branded-id?ref=master";
+      url = "github:LarsArtmann/go-branded-id?ref=master";
       flake = false;
     };
     samber-do-auditlog = {
-      url = "git+ssh://git@github.com/LarsArtmann/samber-do-auditlog?ref=master";
+      url = "github:LarsArtmann/samber-do-auditlog?ref=master";
       flake = false;
     };
     go-atomic-write = {
-      url = "git+ssh://git@github.com/LarsArtmann/go-atomic-write?ref=master";
+      url = "github:LarsArtmann/go-atomic-write?ref=master";
       flake = false;
     };
     go-error-family = {
-      url = "git+ssh://git@github.com/LarsArtmann/go-error-family?ref=master";
+      url = "github:LarsArtmann/go-error-family?ref=master";
       flake = false;
     };
     go-ndjson = {
-      url = "git+ssh://git@github.com/LarsArtmann/go-ndjson?ref=master";
+      url = "github:LarsArtmann/go-ndjson?ref=master";
       flake = false;
     };
   };
