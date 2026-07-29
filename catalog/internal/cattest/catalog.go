@@ -123,7 +123,7 @@ func AssertGolden(t *testing.T, goldenPath string, got []byte, update bool, _ st
 		opts = append(opts, snaps.Update(true))
 	}
 
-	snaps.WithConfig(opts...).MatchSnapshot(t, string(got))
+	snaps.WithConfig(opts...).MatchSnapshot(t, string(got)) //art-dupl:accept go-snaps golden config; catalog has no event dep so cannot import eventtest
 }
 
 func GoldenDir() string {

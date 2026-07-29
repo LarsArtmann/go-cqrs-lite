@@ -28,5 +28,5 @@ func AssertGolden(t *testing.T, path string, got []byte, update bool) {
 		opts = append(opts, snaps.Update(true))
 	}
 
-	snaps.WithConfig(opts...).MatchSnapshot(t, string(got))
+	snaps.WithConfig(opts...).MatchSnapshot(t, string(got)) //art-dupl:accept go-snaps golden config; catalog copy in cattest cannot share (separate modules)
 }
