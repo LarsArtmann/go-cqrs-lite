@@ -44,7 +44,7 @@ func (b *CommandBus) rebuildHandlerChain() {
 }
 
 func (b *CommandBus) dispatchLocal(ctx context.Context, cmd command.Command) error {
-	return dispatchCached(&b.mu, b.cachedHandler, ctx, cmd)
+	return dispatchCached(&b.mu, &b.cachedHandler, ctx, cmd)
 }
 
 func (b *CommandBus) ensureSubscriptionLocked() {

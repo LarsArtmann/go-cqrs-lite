@@ -157,14 +157,19 @@ func registerSubscriberHandler[H any](
 
 // dispatchCached reads a handler function under a mutex and invokes it outside
 // the lock. Shared between CommandBus.dispatchLocal and EventBus.dispatchLocal.
+//
+// The cached field is passed by POINTER (not by value) so the read of the
+// struct field happens INSIDE the mutex. Passing by value would evaluate the
+// field read at the call site — before the mutex is acquired — racing with
+// rebuildHandlerChain's write to the same field.
 func dispatchCached[M any](
 	mu *sync.Mutex,
-	cached func(context.Context, M) error,
+	cached *func(context.Context, M) error,
 	ctx context.Context,
 	msg M,
 ) error {
 	mu.Lock()
-	handler := cached
+	handler := *cached
 	mu.Unlock()
 
 	return handler(ctx, msg)

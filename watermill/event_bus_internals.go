@@ -65,7 +65,7 @@ func (b *EventBus) rebuildHandlerChain() {
 }
 
 func (b *EventBus) dispatchLocal(ctx context.Context, evt event.Event) error {
-	return dispatchCached(&b.mu, b.cachedHandler, ctx, evt)
+	return dispatchCached(&b.mu, &b.cachedHandler, ctx, evt)
 }
 
 func (b *EventBus) ensureSubscriptionLocked() {
