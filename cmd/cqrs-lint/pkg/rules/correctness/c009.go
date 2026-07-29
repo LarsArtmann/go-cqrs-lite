@@ -77,13 +77,15 @@ func NewC009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// isMustFunc returns true if the function name follows the must* convention
-// (e.g., mustCommand, mustCompile, mustEvent), indicating that panics are
-// intentional — the function is a programming-error guard.
+// isMustFunc returns true if the function name follows the Must/must convention
+// (e.g., MustParseUserID, mustCommand, mustCompile), indicating that panics are
+// intentional — the function is a programming-error guard. Both exported
+// ("Must*") and unexported ("must*") forms are recognized.
 func isMustFunc(fn *ast.FuncDecl) bool {
 	if fn.Name == nil {
 		return false
 	}
 
-	return strings.HasPrefix(fn.Name.Name, "must") && len(fn.Name.Name) > 4
+	name := fn.Name.Name
+	return (strings.HasPrefix(name, "must") || strings.HasPrefix(name, "Must")) && len(name) > 4
 }

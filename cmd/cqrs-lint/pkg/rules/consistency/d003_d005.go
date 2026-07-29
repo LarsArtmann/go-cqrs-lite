@@ -266,9 +266,17 @@ func parseVersionParts(v string) []string {
 		return nil
 	}
 
+	// Strip trailing punctuation (e.g., "v4.2.0." from prose like "uses v4.2.0.")
+	v = strings.TrimRight(v, ".,")
+
 	parts := strings.Split(v, ".")
 
-	if slices.Contains(parts, "") {
+	// Trailing empty parts (from trailing dots) are stripped, not fatal.
+	for len(parts) > 0 && parts[len(parts)-1] == "" {
+		parts = parts[:len(parts)-1]
+	}
+
+	if len(parts) == 0 || slices.Contains(parts, "") {
 		return nil
 	}
 
