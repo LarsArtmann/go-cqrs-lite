@@ -11,7 +11,7 @@ on:
       - ".github/workflows/benchmarks.yml"
   # Nightly schedule for full benchmarks
   schedule:
-    - cron: "0 3 * * *"  # 03:00 UTC daily
+    - cron: "0 3 * * *" # 03:00 UTC daily
   # Manual trigger
   workflow_dispatch:
 

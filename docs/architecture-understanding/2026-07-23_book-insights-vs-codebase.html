@@ -63,9 +63,18 @@
           monospace;
       }
 
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
 
       body {
         background: var(--surface);
@@ -77,8 +86,13 @@
         -moz-osx-font-smoothing: grayscale;
       }
 
-      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      a:focus-visible { outline-offset: -1px; }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
 
       .top-bar {
         background: var(--text);
@@ -109,7 +123,11 @@
         overflow-y: auto;
         display: none;
       }
-      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
       .sidebar .label {
         font-family: var(--font-mono);
         font-size: 0.68rem;
@@ -131,20 +149,31 @@
         transition: all 0.15s ease;
         line-height: 1.4;
       }
-      .sidebar a:hover, .sidebar a.active {
+      .sidebar a:hover,
+      .sidebar a.active {
         border-left-color: var(--accent);
         background: color-mix(in srgb, var(--accent) 8%, transparent);
         color: var(--accent);
       }
-      .main { flex: 1; min-width: 0; }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
 
-      h1, h2, h3, h4 {
+      h1,
+      h2,
+      h3,
+      h4 {
         font-family: var(--font-heading);
         font-weight: 900;
         letter-spacing: -0.02em;
         color: var(--text);
       }
-      h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); line-height: 1.05; margin: 0 0 0.6rem; }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
       h2 {
         font-size: 1.5rem;
         margin: 2.5rem 0 1rem;
@@ -161,9 +190,19 @@
         font-weight: 700;
         letter-spacing: 0.04em;
       }
-      h3 { font-size: 1.15rem; margin: 0 0 0.4rem; font-weight: 700; }
-      h4 { font-size: 1rem; margin: 0 0 0.3rem; font-weight: 700; }
-      p { margin: 0 0 1rem; }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
 
       .hero {
         padding: 1.5rem 0 2rem;
@@ -179,8 +218,17 @@
         color: var(--accent);
         margin-bottom: 0.9rem;
       }
-      .subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 70ch; margin: 0 0 1rem; }
-      .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
       .tag {
         display: inline-block;
         font-family: var(--font-mono);
@@ -192,50 +240,87 @@
         color: var(--text);
         border: 1px solid var(--border-strong);
       }
-      .tag.amber { background: var(--warning); border-color: var(--warning); color: var(--text); }
-      .tag.teal { background: var(--solution); border-color: var(--solution); color: var(--surface); }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
 
-      .hero-shapes { position: relative; height: 90px; margin-bottom: 1.2rem; }
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
       .hero-shapes .circle {
-        position: absolute; top: 0; right: 180px; width: 64px; height: 64px;
-        background: var(--problem); border-radius: 50%;
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
       }
       .hero-shapes .square {
-        position: absolute; top: 26px; right: 90px; width: 56px; height: 56px;
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
         background: var(--solution);
       }
       .hero-shapes .tri {
-        position: absolute; top: 8px; right: 0; width: 0; height: 0;
-        border-left: 32px solid transparent; border-right: 32px solid transparent;
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
         border-bottom: 56px solid var(--warning);
       }
       .hero-shapes .bar {
-        position: absolute; bottom: 0; right: 230px; width: 100px; height: 14px;
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
         background: var(--text);
       }
 
-      .scorecard, .stat-grid {
+      .scorecard,
+      .stat-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
         gap: 0;
         margin: 1.5rem 0 2rem;
         border: 3px solid var(--text);
       }
-      .score-card, .stat-card {
+      .score-card,
+      .stat-card {
         padding: 1.3rem 1rem;
         text-align: center;
         border-right: 3px solid var(--text);
         background: var(--surface-raised);
       }
-      .score-card:last-child, .stat-card:last-child { border-right: none; }
-      .score, .stat-value {
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+      .score,
+      .stat-value {
         font-family: var(--font-heading);
         font-size: 2.6rem;
         font-weight: 900;
         line-height: 1;
         letter-spacing: -0.04em;
       }
-      .score-card .label, .stat-label {
+      .score-card .label,
+      .stat-label {
         font-family: var(--font-mono);
         font-size: 0.62rem;
         font-weight: 700;
@@ -243,9 +328,21 @@
         letter-spacing: 0.12em;
         margin-top: 0.5rem;
       }
-      .score-good, .stat-good { background: var(--solution); color: var(--surface); }
-      .score-warn, .stat-warn { background: var(--warning); color: var(--text); }
-      .score-bad, .stat-bad { background: var(--problem); color: var(--surface); }
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
 
       .card {
         background: var(--surface-raised);
@@ -254,9 +351,15 @@
         margin-bottom: 1rem;
         border-left: 8px solid var(--border-strong);
       }
-      .card-problem { border-left-color: var(--problem); }
-      .card-solution { border-left-color: var(--solution); }
-      .card-warning { border-left-color: var(--warning); }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
 
       .issue {
         background: var(--surface-raised);
@@ -265,17 +368,27 @@
         margin-bottom: 1rem;
         border-left: 8px solid var(--border-strong);
       }
-      .issue-critical { border-left-color: var(--problem); }
-      .issue-important { border-left-color: var(--warning); }
-      .issue-nice { border-left-color: var(--solution); }
-      .issue h3 { margin-bottom: 0.3rem; }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
       .issue .where {
         font-family: var(--font-mono);
         font-size: 0.78rem;
         color: var(--text-faint);
         margin: 0.2rem 0 0.6rem;
       }
-      .issue p:last-child { margin-bottom: 0; }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
 
       .severity {
         display: inline-block;
@@ -288,9 +401,16 @@
         margin-bottom: 0.6rem;
         color: var(--surface);
       }
-      .severity-critical { background: var(--problem); }
-      .severity-important { background: var(--warning); color: var(--text); }
-      .severity-nice { background: var(--solution); }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
 
       .badge {
         display: inline-block;
@@ -303,11 +423,24 @@
         border: 1px solid var(--text);
         color: var(--text);
       }
-      .badge-critical { background: var(--problem); color: var(--surface); }
-      .badge-high { background: var(--warning); }
-      .badge-medium { background: var(--surface-sunken); }
-      .badge-low { background: var(--surface-raised); color: var(--text-muted); }
-      .badge-fixed { background: var(--solution); color: var(--surface); }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
 
       .callout {
         margin: 0.8rem 0 0;
@@ -317,17 +450,26 @@
         background: var(--surface-sunken);
         font-size: 0.92rem;
       }
-      .callout strong { display: inline-block; margin-right: 0.4rem; }
-      .callout-teal, .callout-solution {
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
         border-left-color: var(--solution);
         background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised));
       }
-      .callout-amber, .callout-warning {
+      .callout-amber,
+      .callout-warning {
         border-left-color: var(--warning);
         background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised));
       }
 
-      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
       .strength {
         display: grid;
         grid-template-columns: auto 1fr;
@@ -342,10 +484,18 @@
         font-size: 1.3rem;
         line-height: 1.3;
       }
-      .strength .text strong { display: block; margin-bottom: 0.15rem; }
-      .strength .text span { color: var(--text-muted); font-size: 0.92rem; }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
 
-      .table-wrap { overflow-x: auto; }
+      .table-wrap {
+        overflow-x: auto;
+      }
       table {
         width: 100%;
         border-collapse: collapse;
@@ -365,16 +515,28 @@
         text-transform: uppercase;
         border-right: 1px solid var(--border-strong);
       }
-      th:last-child { border-right: none; }
+      th:last-child {
+        border-right: none;
+      }
       td {
         padding: 0.6rem 0.9rem;
         border-top: 1px solid var(--border);
         border-right: 1px solid var(--border);
       }
-      td:last-child { border-right: none; }
-      tr:nth-child(even) td { background: var(--surface-sunken); }
-      table.compare td.yes { color: var(--solution); font-weight: 700; }
-      table.compare td.no { color: var(--problem); font-weight: 700; }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
 
       pre {
         background: var(--text);
@@ -387,22 +549,47 @@
         overflow-x: auto;
         border: 2px solid var(--text);
       }
-      code { font-family: var(--font-mono); }
-      p code, li code, td code {
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
         font-size: 0.88em;
         background: var(--surface-sunken);
         padding: 0.1rem 0.35rem;
       }
-      .tok-keyword { color: var(--warning); }
-      .tok-type { color: var(--warning); }
-      .tok-string { color: #95e1d3; }
-      .tok-comment { color: rgba(244, 244, 240, 0.45); font-style: italic; }
-      .tok-func { color: #6eb5ff; }
-      .tok-number { color: var(--warning); }
-      .tok-generic { color: var(--problem); }
-      .tok-builtin { color: #6eb5ff; }
-      .tok-punct { color: rgba(244, 244, 240, 0.7); }
-      .tok-attr { color: var(--warning); }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
 
       .dep-tree {
         background: var(--surface-sunken);
@@ -415,9 +602,16 @@
         white-space: pre;
         overflow-x: auto;
       }
-      .dep-tree .root { color: var(--accent); font-weight: 700; }
-      .dep-tree .ok { color: var(--solution); }
-      .dep-tree .unwanted { color: var(--problem); }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
 
       .diagram {
         display: flex;
@@ -438,13 +632,35 @@
         background: var(--surface-sunken);
         border: 1px solid var(--text);
       }
-      .node-core { background: var(--accent); color: var(--surface); }
-      .node-problem { background: var(--problem); color: var(--surface); }
-      .node-good { background: var(--solution); color: var(--surface); }
-      .arrow { color: var(--text-faint); font-family: var(--font-mono); }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
 
-      .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1rem 0; }
-      .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
 
       .toc {
         background: var(--surface-raised);
@@ -453,11 +669,25 @@
         padding: 1rem 1.3rem;
         margin: 1rem 0 1.5rem;
       }
-      .toc h3 { margin-bottom: 0.5rem; }
-      .toc ul { list-style: none; padding: 0; }
-      .toc li { margin: 0.25rem 0; }
-      .toc a { color: var(--text); text-decoration: none; font-size: 0.92rem; font-weight: 600; }
-      .toc a:hover { color: var(--accent); }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
 
       .migration-step {
         display: grid;
@@ -476,8 +706,14 @@
         color: var(--accent);
         line-height: 1;
       }
-      .migration-content h4 { margin-bottom: 0.2rem; }
-      .migration-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.94rem; }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
 
       .footer {
         margin-top: 2rem;
@@ -488,17 +724,45 @@
         font-family: var(--font-mono);
       }
 
-      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
       @media (max-width: 768px) {
-        .layout { flex-direction: column; padding: 1rem; }
-        .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; }
-        .grid-2, .grid-3 { grid-template-columns: 1fr; }
-        .scorecard, .stat-grid { grid-template-columns: repeat(2, 1fr); }
-        .score-card:nth-child(2), .stat-card:nth-child(2) { border-right: none; }
-        .score-card:nth-child(1), .stat-card:nth-child(1),
-        .score-card:nth-child(2), .stat-card:nth-child(2) { border-bottom: 3px solid var(--text); }
-        .migration-step { grid-template-columns: 1fr; }
-        .hero-shapes { display: none; }
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
       }
     </style>
   </head>
@@ -579,8 +843,8 @@
             schema upcaster system is schema evolution. 38 of 61 catalogued insights from seven
             books are already implemented in the codebase. The 8 gaps are mostly "should consider"
             items where the library provides primitives but could improve ergonomics or
-            documentation. The 15 "must NOT do" items are anti-patterns the library correctly
-            avoids &mdash; and should continue to avoid.
+            documentation. The 15 "must NOT do" items are anti-patterns the library correctly avoids
+            &mdash; and should continue to avoid.
           </p>
           <div class="callout callout-amber">
             <strong>The bottom line</strong>
@@ -600,7 +864,9 @@
           </p>
 
           <!-- DDIA -->
-          <h3 id="ddia-applied" style="margin-top: 2rem;">Designing Data-Intensive Applications (Kleppmann)</h3>
+          <h3 id="ddia-applied" style="margin-top: 2rem">
+            Designing Data-Intensive Applications (Kleppmann)
+          </h3>
           <p>
             The most important book for this codebase. Its Part III thesis &mdash; "databases are
             logs + indexes + materialized views" &mdash; is the architecture of go-cqrs-lite.
@@ -612,10 +878,10 @@
               <div class="text">
                 <strong>Log as source of truth (DDIA Part III)</strong>
                 <span>
-                  The event store (<code>event.Store</code>) is the WAL. State is derived by
-                  folding events via <code>decider.Decider[State].Apply</code>. This is exactly
-                  DDIA's "system of record (log) &rarr; derived data (views)" pattern. ADR-0001
-                  chose pure functions over mutable aggregate roots to make this explicit.
+                  The event store (<code>event.Store</code>) is the WAL. State is derived by folding
+                  events via <code>decider.Decider[State].Apply</code>. This is exactly DDIA's
+                  "system of record (log) &rarr; derived data (views)" pattern. ADR-0001 chose pure
+                  functions over mutable aggregate roots to make this explicit.
                 </span>
               </div>
             </div>
@@ -624,10 +890,11 @@
               <div class="text">
                 <strong>Materialized views / derived data</strong>
                 <span>
-                  Three projection tiers implement DDIA's "materialized views": <code>stack.Materialize</code>
-                  (KV/document), <code>storage.RelationalProjection</code> (multi-table SQL), and
-                  <code>graph.GraphProjection</code> (nodes/edges). All are rebuildable from the log.
-                  The <code>projectionhost</code> manages their lifecycle.
+                  Three projection tiers implement DDIA's "materialized views":
+                  <code>stack.Materialize</code> (KV/document),
+                  <code>storage.RelationalProjection</code> (multi-table SQL), and
+                  <code>graph.GraphProjection</code> (nodes/edges). All are rebuildable from the
+                  log. The <code>projectionhost</code> manages their lifecycle.
                 </span>
               </div>
             </div>
@@ -636,8 +903,8 @@
               <div class="text">
                 <strong>Schema evolution (forward/backward compatibility)</strong>
                 <span>
-                  <code>schema.Upcaster</code> transforms old event versions on read &mdash;
-                  exactly DDIA's Avro schema-evolution pattern (writer schema vs reader schema).
+                  <code>schema.Upcaster</code> transforms old event versions on read &mdash; exactly
+                  DDIA's Avro schema-evolution pattern (writer schema vs reader schema).
                   <code>VersionedStore</code> and <code>VersionedSeekableJournal</code> apply
                   upcasters transparently. Events carry <code>SchemaVersion</code> stamps.
                 </span>
@@ -674,10 +941,11 @@
                 <strong>Interface Segregation (ISP) for store interfaces</strong>
                 <span>
                   <code>EventSink</code> (write), <code>EventSource</code> (read),
-                  <code>Journal</code> (cross-aggregate), <code>SeekableJournal</code>
-                  (position-based), <code>BackwardsSource</code> (reverse). ADR-0006 explicitly
-                  split the monolithic <code>Store</code> interface. This mirrors DDIA's principle
-                  of segregating read/write paths for independent scaling.
+                  <code>Journal</code> (cross-aggregate),
+                  <code>SeekableJournal</code> (position-based),
+                  <code>BackwardsSource</code> (reverse). ADR-0006 explicitly split the monolithic
+                  <code>Store</code> interface. This mirrors DDIA's principle of segregating
+                  read/write paths for independent scaling.
                 </span>
               </div>
             </div>
@@ -687,8 +955,8 @@
                 <strong>Snapshot optimization (read performance)</strong>
                 <span>
                   <code>snapshot.SnapshotStore</code> with <code>EveryNEvents</code> and
-                  <code>ReadPressure</code> strategies. On load: snapshot + delta events rather
-                  than full replay. DDIA discusses this as materialized view refresh strategies
+                  <code>ReadPressure</code> strategies. On load: snapshot + delta events rather than
+                  full replay. DDIA discusses this as materialized view refresh strategies
                   (incremental vs full rebuild). Best-effort saves (errors swallowed, logged).
                 </span>
               </div>
@@ -698,9 +966,9 @@
               <div class="text">
                 <strong>Single-writer per aggregate (= per-partition)</strong>
                 <span>
-                  Optimistic concurrency per aggregate ID = DDIA's "single-writer per
-                  partition" for ordering. The <code>MultiSink.SaveMultiBatch</code> provides
-                  atomic multi-aggregate writes when cross-aggregate atomicity is needed.
+                  Optimistic concurrency per aggregate ID = DDIA's "single-writer per partition" for
+                  ordering. The <code>MultiSink.SaveMultiBatch</code> provides atomic
+                  multi-aggregate writes when cross-aggregate atomicity is needed.
                 </span>
               </div>
             </div>
@@ -789,7 +1057,9 @@
 
         <!-- CQRS / ES -->
         <section id="cqrs-applied">
-          <h3 style="margin-top: 2rem;">Exploring CQRS and Event Sourcing / Implementing DDD, CQRS and Event Sourcing</h3>
+          <h3 style="margin-top: 2rem">
+            Exploring CQRS and Event Sourcing / Implementing DDD, CQRS and Event Sourcing
+          </h3>
           <p>
             The CQRS and event-sourcing literature is the direct theoretical foundation. Nearly
             every pattern described in these books is implemented.
@@ -869,9 +1139,9 @@
                 <strong>Anti-pattern avoided: event-sourcing CRUD</strong>
                 <span>
                   The example/taskmanager uses 11 typed events (TaskCreated, TaskAssigned,
-                  TaskStarted, TaskCompleted, etc.) &mdash; NOT anemic Created/Updated/Deleted.
-                  Each event carries only the changed data, not full state. The cqrs-lint linter
-                  (60 rules) catches CRUD-style events in consumer code.
+                  TaskStarted, TaskCompleted, etc.) &mdash; NOT anemic Created/Updated/Deleted. Each
+                  event carries only the changed data, not full state. The cqrs-lint linter (60
+                  rules) catches CRUD-style events in consumer code.
                 </span>
               </div>
             </div>
@@ -893,7 +1163,8 @@
               <div class="text">
                 <strong>Command bus pub/sub</strong>
                 <span>
-                  <code>command.NewMemoryBus</code> (in-process), <code>watermill.NewCommandBus</code>
+                  <code>command.NewMemoryBus</code> (in-process),
+                  <code>watermill.NewCommandBus</code>
                   (any broker via Watermill). Typed subscription dispatch, catch-all
                   (<code>SubscribeAll</code>), middleware chain.
                 </span>
@@ -917,7 +1188,8 @@
                 <strong>Typed commands (compile-time safety)</strong>
                 <span>
                   <code>decider.TypedDecider[State, Cmd]</code> binds the command type at compile
-                  time. <code>query.RegisterTyped[Q, R]</code> and <code>query.TypedHandler[Q, R]</code>
+                  time. <code>query.RegisterTyped[Q, R]</code> and
+                  <code>query.TypedHandler[Q, R]</code>
                   for type-safe query dispatch. ADR-0001.
                 </span>
               </div>
@@ -929,8 +1201,7 @@
                 <span>
                   <code>projectionhost.Host.Reset(ctx, name)</code> drops checkpoint + calls
                   <code>Resettable.Reset()</code> if implemented. Replays from zero. Dead-letter
-                  store admin: <code>Count</code>, <code>ListPaged</code>,
-                  <code>PurgeBefore</code>.
+                  store admin: <code>Count</code>, <code>ListPaged</code>, <code>PurgeBefore</code>.
                 </span>
               </div>
             </div>
@@ -940,9 +1211,9 @@
                 <strong>Dead letter handling (poison event quarantine)</strong>
                 <span>
                   <code>projectionhost.WithDeadLetterStore(dlq, 3)</code> &mdash; poison events
-                  exceeding retry threshold are captured to a SQLite-backed DLQ
-                  (<code>UNIQUE(projection_name, event_id)</code>). Checkpoint advances past them.
-                  Admin interface for inspection and cleanup.
+                  exceeding retry threshold are captured to a SQLite-backed DLQ (<code
+                    >UNIQUE(projection_name, event_id)</code
+                  >). Checkpoint advances past them. Admin interface for inspection and cleanup.
                 </span>
               </div>
             </div>
@@ -953,8 +1224,8 @@
                 <span>
                   <code>projectionhost.LagPerProjection()</code> and <code>LagDuration()</code> for
                   dashboards. Processing mode (<code>ModeReplay</code> vs <code>ModeLive</code>)
-                  distinguishes replay from live processing. The docs explicitly warn about
-                  eventual consistency between write and read sides.
+                  distinguishes replay from live processing. The docs explicitly warn about eventual
+                  consistency between write and read sides.
                 </span>
               </div>
             </div>
@@ -963,10 +1234,10 @@
 
         <!-- Event-Driven Systems -->
         <section id="event-driven-applied">
-          <h3 style="margin-top: 2rem;">Designing Event-Driven Systems (Kleppmann)</h3>
+          <h3 style="margin-top: 2rem">Designing Event-Driven Systems (Kleppmann)</h3>
           <p>
-            This book is essentially DDIA's stream/derived-data chapters expanded. Its thesis &mdash;
-            "turn the database inside-out" &mdash; is the go-cqrs-lite architecture.
+            This book is essentially DDIA's stream/derived-data chapters expanded. Its thesis
+            &mdash; "turn the database inside-out" &mdash; is the go-cqrs-lite architecture.
           </p>
 
           <div class="strengths">
@@ -1044,7 +1315,8 @@
               <div class="text">
                 <strong>W3C trace context propagation</strong>
                 <span>
-                  <code>cqrsotel.WithCorrelationID</code>, <code>cqrsotel.CorrelationIDFromContext</code>,
+                  <code>cqrsotel.WithCorrelationID</code>,
+                  <code>cqrsotel.CorrelationIDFromContext</code>,
                   <code>cqrsotel.NewTextMapPropagator()</code> (W3C trace + baggage). Watermill
                   <code>TraceContextMiddleware</code> injects/extracts trace context into message
                   metadata for cross-service producer&rarr;consumer span linking.
@@ -1056,10 +1328,10 @@
 
         <!-- Distributed Systems Patterns -->
         <section id="dist-patterns-applied">
-          <h3 style="margin-top: 2rem;">Patterns of Distributed Systems</h3>
+          <h3 style="margin-top: 2rem">Patterns of Distributed Systems</h3>
           <p>
-            The pattern catalogue from Berkeley/Joshi. go-cqrs-lite implements the patterns
-            relevant to an application-level CQRS library.
+            The pattern catalogue from Berkeley/Joshi. go-cqrs-lite implements the patterns relevant
+            to an application-level CQRS library.
           </p>
 
           <div class="strengths">
@@ -1069,8 +1341,8 @@
                 <strong>Write-Ahead Log (WAL)</strong>
                 <span>
                   The event store IS the WAL. Events are persisted before publishing. If publish
-                  fails, events are safe in the store. <code>decider.Repository.Execute</code>:
-                  save &rarr; publish (not the reverse).
+                  fails, events are safe in the store. <code>decider.Repository.Execute</code>: save
+                  &rarr; publish (not the reverse).
                 </span>
               </div>
             </div>
@@ -1079,8 +1351,8 @@
               <div class="text">
                 <strong>High-Water Mark / Checkpointing</strong>
                 <span>
-                  <code>event.CheckpointStore</code> + <code>projectionhost</code> worker
-                  checkpoint tracking. Save position after processing, resume on restart.
+                  <code>event.CheckpointStore</code> + <code>projectionhost</code> worker checkpoint
+                  tracking. Save position after processing, resume on restart.
                 </span>
               </div>
             </div>
@@ -1089,9 +1361,10 @@
               <div class="text">
                 <strong>Idempotent Receiver</strong>
                 <span>
-                  <code>idempotency.Store.CheckAndRecord</code> (atomic), <code>dedup.Ring</code>
-                  (bounded O(1) at stream boundaries), <code>middleware.EventIdempotency</code> /
-                  <code>CommandIdempotency</code> / <code>QueryIdempotency</code>.
+                  <code>idempotency.Store.CheckAndRecord</code> (atomic),
+                  <code>dedup.Ring</code> (bounded O(1) at stream boundaries),
+                  <code>middleware.EventIdempotency</code> / <code>CommandIdempotency</code> /
+                  <code>QueryIdempotency</code>.
                 </span>
               </div>
             </div>
@@ -1110,10 +1383,10 @@
               <div class="text">
                 <strong>Retry with exponential backoff + jitter</strong>
                 <span>
-                  <code>retry.Do</code> (standalone, zero-dep), <code>middleware.NewRetry</code>
-                  (middleware chain), <code>projectionhost</code> crash-restart with full jitter
-                  backoff. <code>scheduling.Scheduler</code> uses equal-jitter backoff for failed
-                  dispatches.
+                  <code>retry.Do</code> (standalone, zero-dep),
+                  <code>middleware.NewRetry</code> (middleware chain),
+                  <code>projectionhost</code> crash-restart with full jitter backoff.
+                  <code>scheduling.Scheduler</code> uses equal-jitter backoff for failed dispatches.
                 </span>
               </div>
             </div>
@@ -1154,7 +1427,7 @@
 
         <!-- Service Design Patterns -->
         <section id="service-applied">
-          <h3 style="margin-top: 2rem;">Service Design Patterns (Daigneau)</h3>
+          <h3 style="margin-top: 2rem">Service Design Patterns (Daigneau)</h3>
           <p>
             Service interface/API design patterns. The library provides transport helpers without
             enforcing a specific protocol.
@@ -1234,7 +1507,7 @@
 
         <!-- Data Architecture -->
         <section id="data-arch-applied">
-          <h3 style="margin-top: 2rem;">Deciphering Data Architectures</h3>
+          <h3 style="margin-top: 2rem">Deciphering Data Architectures</h3>
           <p>
             The data-platform patterns (warehouse, lakehouse, fabric, mesh) are mostly outside the
             scope of an application-level CQRS library. However, the Data Mesh's organizational
@@ -1270,10 +1543,10 @@
               <div class="text">
                 <strong>Federated governance (Data Mesh principle 4)</strong>
                 <span>
-                  The four-tier model (ADR-0046), dependency budgets (<code>nix run
-                  .#check-layers</code>), and <code>cqrs-lint</code> (60 rules) enforce governance
-                  without a central bottleneck. Modules comply with layering rules
-                  automatically.
+                  The four-tier model (ADR-0046), dependency budgets (<code
+                    >nix run .#check-layers</code
+                  >), and <code>cqrs-lint</code> (60 rules) enforce governance without a central
+                  bottleneck. Modules comply with layering rules automatically.
                 </span>
               </div>
             </div>
@@ -1292,7 +1565,9 @@
           <div class="issue issue-important" id="gap-1">
             <span class="severity severity-important">Should Apply &middot; Medium impact</span>
             <h3>Read-your-writes consistency helper</h3>
-            <div class="where">decider/Repository, projectionhost &middot; CQRS/ES books + DDIA</div>
+            <div class="where">
+              decider/Repository, projectionhost &middot; CQRS/ES books + DDIA
+            </div>
             <p>
               The CQRS books describe the "read-your-writes" problem: after a command succeeds, the
               client may query a read model that hasn't been updated yet. The library has lag
@@ -1302,10 +1577,11 @@
             </p>
             <div class="callout callout-teal">
               <strong>Recommended action</strong>
-              Add a <code>WaitForVersion(ctx, projectionName, aggregateRef, version,
-              timeout)</code> helper to <code>projectionhost</code> that blocks until the
-              projection's checkpoint reaches the given version. Or document the pattern for
-              consumers to implement using existing lag metrics + polling.
+              Add a
+              <code>WaitForVersion(ctx, projectionName, aggregateRef, version, timeout)</code>
+              helper to <code>projectionhost</code> that blocks until the projection's checkpoint
+              reaches the given version. Or document the pattern for consumers to implement using
+              existing lag metrics + polling.
             </div>
           </div>
 
@@ -1337,36 +1613,38 @@
             <p>
               When a projection handler changes (new column, new logic), the only option is
               <code>Reset()</code> &mdash; full rebuild from zero. For large read models, this is
-              expensive. The CQRS/ES books discuss incremental migration: versioned projections
-              that can transform existing read-model data in place, or dual-write during migration.
-              The library provides <code>Resettable</code> but no incremental migration path.
+              expensive. The CQRS/ES books discuss incremental migration: versioned projections that
+              can transform existing read-model data in place, or dual-write during migration. The
+              library provides <code>Resettable</code> but no incremental migration path.
             </p>
             <div class="callout callout-teal">
               <strong>Recommended action</strong>
               Document the migration pattern (reset vs dual-projection) clearly. Consider adding a
               <code>Migratable</code> optional interface that <code>projectionhost</code> calls
-              before replay, allowing projections to transform existing data instead of clearing
-              it. This keeps <code>Reset</code> as the nuclear option.
+              before replay, allowing projections to transform existing data instead of clearing it.
+              This keeps <code>Reset</code> as the nuclear option.
             </div>
           </div>
 
           <div class="issue issue-nice" id="gap-4">
             <span class="severity severity-nice">Nice to have &middot; Low impact</span>
             <h3>Distributed tracing: span links for projection replay</h3>
-            <div class="where">projectionhost, otel/ &middot; DDIA Ch. 11, Designing Event-Driven Systems</div>
+            <div class="where">
+              projectionhost, otel/ &middot; DDIA Ch. 11, Designing Event-Driven Systems
+            </div>
             <p>
               OTel tracing is well-integrated (spans for <code>projectionhost.handle_event</code>,
-              command/event/query middleware). However, during replay, all events are processed in
-              a single span tree, losing the original causal chain. The original event's trace
-              context is available in metadata but not linked as OTel span links. This makes it hard
-              to trace a specific event's journey from command to projection during replay.
+              command/event/query middleware). However, during replay, all events are processed in a
+              single span tree, losing the original causal chain. The original event's trace context
+              is available in metadata but not linked as OTel span links. This makes it hard to
+              trace a specific event's journey from command to projection during replay.
             </p>
             <div class="callout callout-teal">
               <strong>Recommended action</strong>
               When processing events during replay, extract the original trace context from event
-              metadata and add it as a span link (<code>trace.Link</code>) to the replay span.
-              This preserves causal visibility without creating child spans (replay is not a child
-              of the original command).
+              metadata and add it as a span link (<code>trace.Link</code>) to the replay span. This
+              preserves causal visibility without creating child spans (replay is not a child of the
+              original command).
             </div>
           </div>
 
@@ -1376,17 +1654,17 @@
             <div class="where">docs/ &middot; DDIA Ch. 11, Designing Event-Driven Systems</div>
             <p>
               ADR-0016 correctly declined implementing the outbox pattern as a library concern.
-              However, the "publish after save" gap (events persisted but publish fails) is the
-              most common operational problem for CQRS consumers. The library provides the
-              primitives (event store + publisher) but no documentation showing how to compose an
-              outbox using them. Consumers reinvent this every time.
+              However, the "publish after save" gap (events persisted but publish fails) is the most
+              common operational problem for CQRS consumers. The library provides the primitives
+              (event store + publisher) but no documentation showing how to compose an outbox using
+              them. Consumers reinvent this every time.
             </p>
             <div class="callout callout-teal">
               <strong>Recommended action</strong>
               Add a documented recipe (in <code>.agents/skills/go-cqrs-lite/references/</code> or
               <code>docs/</code>) showing the outbox pattern: use a projection that reads from the
-              event journal and publishes to the bus, making the journal itself the outbox. This
-              is already possible with <code>CatchUpSubscriber</code> + <code>EventPublisher</code>
+              event journal and publishes to the bus, making the journal itself the outbox. This is
+              already possible with <code>CatchUpSubscriber</code> + <code>EventPublisher</code>
               but the recipe should be explicit.
             </div>
           </div>
@@ -1428,9 +1706,9 @@
             <div class="callout callout-teal">
               <strong>Recommended action</strong>
               Document the "correlation state machine" pattern: use a projection to track
-              per-correlation-key state, then a deriver that queries it before dispatching
-              commands. This is the go-cqrs-lite answer to stream joins without adding a stream
-              processing engine.
+              per-correlation-key state, then a deriver that queries it before dispatching commands.
+              This is the go-cqrs-lite answer to stream joins without adding a stream processing
+              engine.
             </div>
           </div>
 
@@ -1504,9 +1782,9 @@
             <p>
               <strong>Book:</strong> DDIA Ch. 5<br />
               <strong>Why not:</strong> Multi-leader replication introduces write conflict
-              resolution, which is a domain decision. The library's optimistic concurrency model
-              is single-leader per aggregate. Multi-leader would require conflict resolution
-              strategies (LWW, CRDTs, custom) &mdash; a framework concern, not a library concern.
+              resolution, which is a domain decision. The library's optimistic concurrency model is
+              single-leader per aggregate. Multi-leader would require conflict resolution strategies
+              (LWW, CRDTs, custom) &mdash; a framework concern, not a library concern.
             </p>
           </div>
 
@@ -1516,8 +1794,8 @@
               <strong>Book:</strong> DDIA Ch. 3<br />
               <strong>Why not:</strong> B-trees (SQL) and LSM-trees (Pebble) have different
               tradeoffs. The library supports both, plus memory and Turso. Forcing one would
-              eliminate valid deployment scenarios. DDIA explicitly argues that no storage engine
-              is universally best.
+              eliminate valid deployment scenarios. DDIA explicitly argues that no storage engine is
+              universally best.
             </p>
           </div>
 
@@ -1525,11 +1803,12 @@
             <h3>6. Do NOT add a schema registry service</h3>
             <p>
               <strong>Book:</strong> DDIA Ch. 4, Designing Event-Driven Systems<br />
-              <strong>Why not:</strong> Schema validation is opt-in middleware
-              (<code>schema.Validator</code> with <code>RegisterType[T]()</code>). Events are
-              self-describing (encoding stamps). A centralized registry service would impose
-              operational burden and coupling. The library's approach (upcasters on read,
-              validation on publish/subscribe) is sufficient.
+              <strong>Why not:</strong> Schema validation is opt-in middleware (<code
+                >schema.Validator</code
+              >
+              with <code>RegisterType[T]()</code>). Events are self-describing (encoding stamps). A
+              centralized registry service would impose operational burden and coupling. The
+              library's approach (upcasters on read, validation on publish/subscribe) is sufficient.
             </p>
           </div>
 
@@ -1539,9 +1818,9 @@
               <strong>Book:</strong> Implementing DDD, CQRS and ES<br />
               <strong>Why not:</strong> ADR-0001 explicitly chose pure functions
               (<code>Decider[State]</code>) over a 9-method OO aggregate root interface. Pure
-              functions are easier to test, compose, and reason about. The OO aggregate root
-              pattern couples domain logic to infrastructure (loading, saving). The decider
-              pattern separates them.
+              functions are easier to test, compose, and reason about. The OO aggregate root pattern
+              couples domain logic to infrastructure (loading, saving). The decider pattern
+              separates them.
             </p>
           </div>
 
@@ -1564,8 +1843,8 @@
               dispatch. The <code>deriver</code> module provides the building blocks
               (<code>Then</code>, <code>Filter</code>, <code>Idempotent</code>). Adding a saga
               framework would impose a state machine abstraction, conflict resolution, and
-              compensation semantics &mdash; all of which are domain-specific decisions. The
-              docs correctly note: "No dedicated saga module. Multi-step orchestration emerges."
+              compensation semantics &mdash; all of which are domain-specific decisions. The docs
+              correctly note: "No dedicated saga module. Multi-step orchestration emerges."
             </p>
           </div>
 
@@ -1596,10 +1875,10 @@
             <h3>12. Do NOT add an opinionated transport / API gateway</h3>
             <p>
               <strong>Book:</strong> Service Design Patterns<br />
-              <strong>Why not:</strong> The library provides transport helpers (SSE, gRPC) but
-              does not enforce HTTP, gRPC, or any specific protocol. Consumers choose their
-              transport. Adding an API gateway or enforcing REST maturity would violate "library,
-              not framework" and limit deployment options.
+              <strong>Why not:</strong> The library provides transport helpers (SSE, gRPC) but does
+              not enforce HTTP, gRPC, or any specific protocol. Consumers choose their transport.
+              Adding an API gateway or enforcing REST maturity would violate "library, not
+              framework" and limit deployment options.
             </p>
           </div>
 
@@ -1619,10 +1898,10 @@
             <h3>14. Do NOT add leader election or quorum protocols</h3>
             <p>
               <strong>Book:</strong> Patterns of Distributed Systems<br />
-              <strong>Why not:</strong> Leader election and quorum are for replicated state
-              machines (Raft, Paxos). go-cqrs-lite's event store is not replicated at the library
-              level &mdash; replication is a storage backend concern (Postgres replication, Pebble
-              WAL replication). Adding leader election would impose a specific replication model.
+              <strong>Why not:</strong> Leader election and quorum are for replicated state machines
+              (Raft, Paxos). go-cqrs-lite's event store is not replicated at the library level
+              &mdash; replication is a storage backend concern (Postgres replication, Pebble WAL
+              replication). Adding leader election would impose a specific replication model.
             </p>
           </div>
 
@@ -1631,8 +1910,8 @@
             <p>
               <strong>Book:</strong> Patterns of Distributed Systems<br />
               <strong>Why not:</strong> Fencing tokens prevent stale leaders from writing after a
-              partition heals. This is a deployment/orchestration concern (Kubernetes leases,
-              etcd locks). The library's optimistic concurrency (expectedVersion) is the
+              partition heals. This is a deployment/orchestration concern (Kubernetes leases, etcd
+              locks). The library's optimistic concurrency (expectedVersion) is the
               application-level fencing &mdash; a stale instance's write will fail the version
               check. Adding deployment-level fencing would mix concerns.
             </p>
@@ -1731,12 +2010,12 @@
           <div class="callout callout-teal">
             <strong>Quick wins (docs only, high impact)</strong>
             Items 3, 4, 6, and 8 require zero code changes &mdash; just documentation. They would
-            collectively address the most common consumer questions: "What consistency
-            guarantees does this library make?", "How do I implement an outbox?", "How do I join
-            event streams?", and "How do I think about my events as products?"
+            collectively address the most common consumer questions: "What consistency guarantees
+            does this library make?", "How do I implement an outbox?", "How do I join event
+            streams?", and "How do I think about my events as products?"
           </div>
 
-          <h3 style="margin-top: 2rem;">What this analysis reveals about the architecture</h3>
+          <h3 style="margin-top: 2rem">What this analysis reveals about the architecture</h3>
           <div class="diagram">
             <span class="node node-core">DDIA Part III</span>
             <span class="arrow">&rarr;</span>
@@ -1749,8 +2028,8 @@
             <span class="node node-good">go-cqrs-lite</span>
           </div>
           <p>
-            The library is a faithful, well-executed implementation of the most important theoretical
-            insights from these seven books. The 62% application rate (38 of 61) is high
+            The library is a faithful, well-executed implementation of the most important
+            theoretical insights from these seven books. The 62% application rate (38 of 61) is high
             considering that many book insights (replication, consensus, data platforms) are
             intentionally out of scope for a library. The gaps are in ergonomics and documentation,
             not in fundamental architecture. The "must NOT do" list is a testament to disciplined

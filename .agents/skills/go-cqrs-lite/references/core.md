@@ -86,19 +86,19 @@ with projection + read model.
 | ----------------------------------------------------- | ------------------------------------------------------------------------------- | --------------- |
 | Create/store/load events                              | `event`                                                                         | recipes §2.1    |
 | Dispatch type-safe commands                           | `command`                                                                       | recipes §2.1    |
-| Run an event-sourced stream                        | `decider`                                                                       | recipes §2.1    |
+| Run an event-sourced stream                           | `decider`                                                                       | recipes §2.1    |
 | Generate unique, type-safe IDs                        | `id`                                                                            | recipes §2.1    |
 | Typed event metadata (tracing, custom data)           | `metadata`                                                                      | —               |
 | Encode payloads as JSON/CBOR                          | `codec`                                                                         | recipes §2.1    |
 | Build a read model from events                        | `stack.Materialize` + `kv.ViewStore` (see tier table below)                     | readmodels §2.3 |
 | Multi-table projection (composite keys, junctions)    | `storage.RelationalProjection`                                                  | readmodels §2.3 |
 | Dispatch type-safe queries                            | `query`                                                                         | readmodels §2.3 |
-| List all streams + their status                    | `listing`                                                                       | advanced §6.3   |
-| Persist to PostgreSQL / SQLite                         | `storage`                                                                       | recipes §2.2    |
+| List all streams + their status                       | `listing`                                                                       | advanced §6.3   |
+| Persist to PostgreSQL / SQLite                        | `storage`                                                                       | recipes §2.2    |
 | Persist to embedded PebbleDB                          | `storage/pebble`                                                                | recipes §2.2    |
 | Offline-first sync via Turso Database                 | `storage/turso`                                                                 | advanced §6.5   |
 | Generic key-value abstraction                         | `kv`                                                                            | advanced §6.6   |
-| Snapshot streams for speed                         | `snapshot`                                                                      | recipes §2.4    |
+| Snapshot streams for speed                            | `snapshot`                                                                      | recipes §2.4    |
 | Evolve event schemas over time                        | `schema`                                                                        | recipes §2.5    |
 | Upcast events during projection replay                | `schema` (`VersionedSeekableJournal`)                                           | advanced §6.9   |
 | Make event streams tamper-proof                       | `signing`                                                                       | recipes §2.6    |
@@ -107,7 +107,7 @@ with projection + read model.
 | Deduplicate commands on retry (idempotency)           | `idempotency` + `middleware`                                                    | recipes §2.8    |
 | Add OpenTelemetry tracing/metrics                     | `otel` + `middleware`                                                           | recipes §2.8    |
 | Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs   | `catalog`                                                                       | recipes §2.9    |
-| Soft-delete streams without data loss              | `event` (tombstone metadata)                                                    | advanced §6.1   |
+| Soft-delete streams without data loss                 | `event` (tombstone metadata)                                                    | advanced §6.1   |
 | Generate typed handler boilerplate                    | `cmd/cqrs-gen`                                                                  | advanced §6.7   |
 | Publish events to Watermill router                    | `watermill`                                                                     | advanced §6.4   |
 | Dispatch commands/queries over gRPC                   | `transport/grpc`                                                                | advanced §6.8   |

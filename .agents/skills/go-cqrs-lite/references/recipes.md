@@ -577,4 +577,3 @@ When you need schema-aware JSON (reconstructing field names from `toarray`
 structs) or custom logging, call `codec.TranscodeToJSON` directly inside your
 own `func(event.Event) []byte` and use `event.DecodePayloadAuto[T]` for typed
 decoding. See `codec/README.md` → "CBOR → JSON Transcoding".
-
