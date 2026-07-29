@@ -235,6 +235,14 @@ func (e *pebbleEngine) MapUpdate(
 ) error {
 	k := mapKey(col, encodeKeyStr(key))
 
+	// The read-modify-write must be atomic: concurrent MapUpdate calls on the
+	// same key would otherwise each read the same prev value and the last writer
+	// wins, silently dropping updates. This mirrors the SQLite engine's
+	// tx-atomic MapUpdate guarantee (ADR-0066). The engine-wide mutex is
+	// sufficient because MapUpdate is a leaf operation.
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
 	var prev any
 
 	val, closer, err := e.db.Get(k)
@@ -600,6 +608,10 @@ func nextKey(prefix []byte) []byte {
 	result := make([]byte, len(prefix))
 	copy(result, prefix)
 
+	// Iterate from the last byte backward, incrementing in place. Direct index
+	// access is required: ranging over slices.Backward yields element COPIES, so
+	// `v++` would modify the copy and leave `result` unchanged (the upper bound
+	// would then equal the lower bound and every prefix scan would return empty).
 	for i := len(result) - 1; i >= 0; i-- {
 		result[i]++
 		if result[i] != 0 {

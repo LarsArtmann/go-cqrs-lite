@@ -21,11 +21,11 @@ func BenchmarkCalibration_PebbleSet(b *testing.B) {
 	defer eng.Close()
 
 	ctx := context.Background()
+	var i int
 
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = mb.MapSet(ctx, "bench", i, i*2)
+		i++
 	}
 }
 
@@ -41,13 +41,14 @@ func BenchmarkCalibration_PebbleGet(b *testing.B) {
 	ctx := context.Background()
 
 	// Pre-populate.
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		_ = mb.MapSet(ctx, "bench", i, i*2)
 	}
 
-	b.ResetTimer()
+	var i int
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, _, _ = mb.MapGet(ctx, "bench", i%1000)
+		i++
 	}
 }

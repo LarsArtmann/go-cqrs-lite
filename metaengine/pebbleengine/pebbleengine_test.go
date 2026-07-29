@@ -2,6 +2,7 @@ package pebbleengine_test
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -200,7 +201,7 @@ func TestPebbleMapScan(t *testing.T) {
 	mb := eng.(metaengine.MapBackend)
 	sb := eng.(metaengine.ScanBackend)
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		g.Expect(mb.MapSet(ctx, "items", i, map[string]any{
 			"ID":     i,
 			"Status": "open",
@@ -240,4 +241,46 @@ func TestPebbleProfile(t *testing.T) {
 	g.Expect(p.Name).To(Equal("pebble"))
 	g.Expect(p.Supports).To(HaveKey(metaengine.ADTMap))
 	g.Expect(p.Supports[metaengine.ADTMap]).To(Equal(metaengine.ComplexityO1))
+}
+
+// TestPebbleMapUpdateConcurrent verifies the read-modify-write path is atomic:
+// N goroutines each increment the same counter once; the final value must
+// equal N. Without the engine-wide mutex guarding MapUpdate, concurrent
+// Get→Set pairs read stale values and the last writer wins, losing updates.
+func TestPebbleMapUpdateConcurrent(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
+
+	ctx := context.Background()
+	mu := eng.(metaengine.MapUpdater)
+	mb := eng.(metaengine.MapBackend)
+
+	const goroutines = 100
+
+	var wg sync.WaitGroup
+	wg.Add(goroutines)
+
+	for range goroutines {
+		go func() {
+			defer wg.Done()
+
+			_ = mu.MapUpdate(ctx, "counters", "hits", func(prev any) any {
+				if p, ok := prev.(float64); ok {
+					return p + 1
+				}
+
+				return float64(1)
+			})
+		}()
+	}
+
+	wg.Wait()
+
+	val, found, err := mb.MapGet(ctx, "counters", "hits")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(found).To(BeTrue())
+	g.Expect(val).To(Equal(float64(goroutines)))
 }
