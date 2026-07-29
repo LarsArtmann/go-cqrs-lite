@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.0
-	github.com/larsartmann/go-finding v1.4.1
+	github.com/larsartmann/go-finding v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-output v0.35.0
 	github.com/larsartmann/go-output/table v0.35.0
@@ -40,7 +40,7 @@ require (
 	github.com/knadh/koanf/parsers/toml v0.1.0 // indirect
 	github.com/knadh/koanf/parsers/yaml v1.1.0 // indirect
 	github.com/knadh/koanf/v2 v2.3.5 // indirect
-	github.com/larsartmann/go-atomic-write v0.4.0 // indirect
+	github.com/larsartmann/go-atomic-write v0.4.1 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
@@ -84,4 +84,3 @@ require (
 replace github.com/larsartmann/go-finding => /home/lars/projects/go-finding
 
 replace github.com/larsartmann/go-finding/pipeline => /home/lars/projects/go-finding/pipeline
-
