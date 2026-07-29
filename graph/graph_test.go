@@ -16,7 +16,7 @@ import (
 // guild, an optional reply target, and the reactions it received. Every one of
 // these is naturally a graph edge, not a relational FK column.
 //
-//nolint:tagliatelle // struct mirrors Discord's snake_case JSON API
+
 type messageCreated struct {
 	ID             string         `json:"id"`
 	ChannelID      string         `json:"channel_id"`
@@ -26,7 +26,6 @@ type messageCreated struct {
 	Reactions      []reactionEdge `json:"reactions"`
 }
 
-//nolint:tagliatelle // mirrors Discord's snake_case JSON API
 type reactionEdge struct {
 	UserID string `json:"user_id"`
 	Emoji  string `json:"emoji"`

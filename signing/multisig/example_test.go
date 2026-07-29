@@ -42,10 +42,10 @@ func ExampleNewMultiSigner() {
 
 func ExampleVerifyAll() {
 	_, devicePriv, _ := ed25519.GenerateKey(nil)
-	devicePub := devicePriv.Public().(ed25519.PublicKey) //nolint:forcetypeassert // ed25519.GenerateKey always returns ed25519.PublicKey
+	devicePub := devicePriv.Public().(ed25519.PublicKey)
 
 	_, serverPriv, _ := ed25519.GenerateKey(nil)
-	serverPub := serverPriv.Public().(ed25519.PublicKey) //nolint:forcetypeassert // ed25519.GenerateKey always returns ed25519.PublicKey
+	serverPub := serverPriv.Public().(ed25519.PublicKey)
 
 	deviceSigner, _ := signing.NewEd25519(devicePriv)
 	serverSigner, _ := signing.NewEd25519(serverPriv)
@@ -115,7 +115,7 @@ func ExampleVerifierMap() {
 
 func ExampleMultiVerifyMiddlewareFor() {
 	_, devicePriv, _ := ed25519.GenerateKey(nil)
-	devicePub := devicePriv.Public().(ed25519.PublicKey) //nolint:forcetypeassert // ed25519.GenerateKey always returns ed25519.PublicKey
+	devicePub := devicePriv.Public().(ed25519.PublicKey)
 
 	deviceSigner, _ := signing.NewEd25519(devicePriv)
 	deviceVerifier, _ := signing.NewEd25519Verifier(devicePub)

@@ -370,7 +370,7 @@ func TestCBORCodec_RoundTrip_TimeInPayloadStruct(t *testing.T) {
 
 	type eventPayload struct {
 		Name      string    `json:"name"`
-		CreatedAt time.Time `json:"created_at"` //nolint:tagliatelle // test fixture mirrors external JSON
+		CreatedAt time.Time `json:"created_at"`
 	}
 
 	original := eventPayload{
