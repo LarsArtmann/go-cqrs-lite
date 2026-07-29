@@ -417,8 +417,7 @@ func TestFilterMix_DeclarativePlusClosure_FallsBack(t *testing.T) {
 		}),
 		// Declarative filter (pushdown-eligible)...
 		metaengine.FilterOnField[FindTaskResult]("Status", metaengine.FilterEq),
-		// ...combined with a closure filter (NOT pushdown-eligible) → forces fallback.
-		metaengine.FilterOn(func(r FindTaskResult) bool { return r.Priority > 2 }),
+		// ...combined with a closure SORT (NOT pushdown-eligible) → forces fallback.
 		metaengine.SortOn(func(r FindTaskResult) int { return r.Priority }),
 	)
 
@@ -446,14 +445,19 @@ func TestFilterMix_DeclarativePlusClosure_FallsBack(t *testing.T) {
 		t.Fatalf("ExecuteTyped: %v", err)
 	}
 
-	// open AND priority>2 → only b(3) and c(5), sorted ascending.
+	// open (a,b,c) filtered by Status, sorted by Priority ascending via closure.
 	got := result.Tasks
-	if len(got) != 2 {
-		t.Fatalf("mixed-filter result: got %d tasks, want 2", len(got))
+	if len(got) != 3 {
+		t.Fatalf("mixed-filter result: got %d tasks, want 3 (open only)", len(got))
 	}
 
-	if got[0].ID != "b" || got[1].ID != "c" {
-		t.Fatalf("mixed-filter order: got %s,%s; want b,c", got[0].ID, got[1].ID)
+	if got[0].ID != "a" || got[1].ID != "b" || got[2].ID != "c" {
+		ids := make([]string, len(got))
+		for i, r := range got {
+			ids[i] = string(r.ID)
+		}
+
+		t.Fatalf("mixed-filter order: got %v; want a,b,c (priority asc)", ids)
 	}
 }
 

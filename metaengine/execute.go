@@ -254,6 +254,28 @@ func buildFilterPredicates(q queryRuntime, input any) []filterPredicate {
 	var predicates []filterPredicate
 
 	for _, acc := range q.config.filterAccessors {
+		// Declarative filters (FilterOnField) carry a spec but no closure. They
+		// must still be honored in the closure-fallback path, otherwise mixing a
+		// declarative filter with a closure sort silently drops the filter. The
+		// expected value is read from the input by column name; the item value is
+		// read from each row by the same column name (map key or struct field).
+		if acc.spec != nil {
+			expected := extractValueByName(input, acc.spec.Column)
+			if expected == nil {
+				continue
+			}
+
+			col := acc.spec.Column
+			predicates = append(predicates, filterPredicate{
+				expected: expected,
+				test: func(item any) bool {
+					return reflect.DeepEqual(itemFieldByName(item, col), expected)
+				},
+			})
+
+			continue
+		}
+
 		// Extract the expected filter value from the input by type matching.
 		expected := extractValueByType(input, acc.returnType)
 		if expected == nil {

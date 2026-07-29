@@ -280,3 +280,20 @@ func extractValueByName(input any, name string) any {
 
 	return nil
 }
+
+// itemFieldByName extracts a named field from a scan row, which may be a
+// map[string]any (SQL engines) or a struct (memory engine). Used by the
+// closure-fallback path to evaluate declarative FilterOnField predicates.
+func itemFieldByName(item any, name string) any {
+	if m, ok := item.(map[string]any); ok {
+		for k, v := range m {
+			if strings.EqualFold(k, name) {
+				return v
+			}
+		}
+
+		return nil
+	}
+
+	return extractValueByName(item, name)
+}
