@@ -109,7 +109,7 @@
           };
           deps = {
             "github.com/larsartmann/go-finding" = go-finding;
-            "github.com/larsartmann/cmdguard/v3" = cmdguard;
+            "github.com/larsartmann/cmdguard/v4" = cmdguard;
             "github.com/larsartmann/go-output" = go-output;
             "github.com/LarsArtmann/gogenfilter/v3" = gogenfilter;
             "github.com/larsartmann/go-branded-id" = go-branded-id;

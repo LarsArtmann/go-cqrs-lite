@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 )
 
 // registerCommand wraps the create-and-add pattern shared by every subcommand:

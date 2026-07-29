@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 )
 
 var errConfigExists = errors.New(".cqrs-lint.json already exists")

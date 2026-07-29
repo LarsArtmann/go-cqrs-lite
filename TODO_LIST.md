@@ -18,16 +18,19 @@ this list and recorded in CHANGELOG.
 
 ## Verify Gate
 
-> ✅ **`nix run .#verify` is GREEN** (re-confirmed 2026-07-29 after fixing Pebble
-> `nextKey` batch bug, adding `snaps.Clean(m)` TestMain to 16 modules, adding
-> DuckDB helpers/tests, wiring `metaengine/pebbleengine` into go.work + flake.nix
+> ⏳ **`nix run .#verify` PENDING re-verification** after the 2026-07-29 session.
+> The prior "GREEN" banner was **stale**: the auto-commit daemon had reverted the
+> Pebble `nextKey` fix (the `slices.Backward` copy bug returned), leaving 8/10
+> pebbleengine tests failing while the banner still claimed GREEN. This session
+> re-applied the fix, added regression/concurrent/disk tests, wired DuckDB into
+> `stack/bench` + `cmd/cqrs-bench`, added metaengine pushdown/layout verification
+> tests (+ a `FilterOnField`+closure fallback bug fix), split read/write
+> calibration, added `OnTyped`, and updated the api-stability golden (2747
+> exports). Run `nix run .#verify` before re-asserting GREEN.
 >
-> - api-stability, fixing version drift in stack/sqlite + stack/postgres +
->   stack/duckdb). Pebble engine: 10/10 tests pass. api-stability: 2742 exports.
->   The ONLY failure is the pre-existing `TestRun_Postgres_Recovery` in benchkit
->   (expects 500 events, gets 550 — hidden by `t.Skip` until testcontainers-go
->   adoption exposed it). Vulncheck: 0 vulnerabilities. Duplication gate: 0 new
->   clones vs 21-group baseline.
+> - Pre-existing failure: `TestRun_Postgres_Recovery` in benchkit (expects 500
+>   events, gets 550 — exposed by testcontainers-go). Vulncheck + duplication
+>   gate to be re-run post-verify.
 >
 > Coverage drift is checked by `scripts/check-coverage.sh`
 > (`nix run .#check-coverage`) — AGENTS.md coverage claims verified 2026-07-27.
@@ -90,13 +93,10 @@ github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
 
 > ✅ Core integration shipped: `DuckDBDialect`, `stack/duckdb` preset, contract
 > tests, lint, flake.nix CGo wiring, TestMultiDBContract, golden schema tests,
-> OpenDuckDB/OpenDuckDBInMemory helpers, appendDuckDBOptions
-> unit test. Remaining work is bench integration and view model tests.
-
-- [ ] **`view_models_integration_test.go`** — `SQLViewModel` is exported but
-      untested with actual DuckDB analytical queries.
-- [ ] **Wire DuckDB into `stack/bench/` and `cmd/cqrs-bench`** — benchmark
-      suite and CLI don't list DuckDB as a backend option.
+> OpenDuckDB/OpenDuckDBInMemory helpers, appendDuckDBOptions unit test,
+> `view_models_integration_test.go` (analytical GROUP BY), and DuckDB wired into
+> `stack/bench` (`BenchmarkBenchkitSuite_DuckDB`) + `cmd/cqrs-bench`
+> (`--backend duckdb`, CGo-isolated). See CHANGELOG `[Unreleased]`.
 
 ---
 

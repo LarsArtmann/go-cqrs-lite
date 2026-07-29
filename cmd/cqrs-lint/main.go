@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	cmdguard "github.com/larsartmann/cmdguard/v3/pkg/cmdguard/v3"
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 	"github.com/larsartmann/go-finding"
 	"github.com/spf13/cobra"
 
