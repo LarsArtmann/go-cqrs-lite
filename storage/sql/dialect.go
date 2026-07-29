@@ -39,17 +39,25 @@ func (PostgresDialect) ScanTimeDest() any {
 	return new(time.Time)
 }
 
-func (PostgresDialect) ParseTime(src any) (time.Time, error) {
+// parseTimePointer asserts src is a *time.Time, wraps the failure with a
+// dialect-specific code/message, and returns the dereferenced value. Shared
+// between Postgres and DuckDB (both native-time dialects); SQLite overrides
+// ParseTime because it scans timestamp strings instead of *time.Time.
+func parseTimePointer(src any, dialect string) (time.Time, error) {
 	tp, ok := src.(*time.Time)
 	if !ok {
 		return time.Time{}, errorfamily.WrapCorruption(
 			ErrUnexpectedTimeType,
 			"storage.unexpected_time_type",
-			fmt.Sprintf("postgres dialect: expected *time.Time, got %T", src),
+			fmt.Sprintf("%s dialect: expected *time.Time, got %T", dialect, src),
 		)
 	}
 
 	return *tp, nil
+}
+
+func (PostgresDialect) ParseTime(src any) (time.Time, error) {
+	return parseTimePointer(src, "postgres")
 }
 
 func (PostgresDialect) EventSchema() string {
@@ -288,16 +296,7 @@ func (DuckDBDialect) ScanTimeDest() any {
 }
 
 func (DuckDBDialect) ParseTime(src any) (time.Time, error) {
-	tp, ok := src.(*time.Time)
-	if !ok {
-		return time.Time{}, errorfamily.WrapCorruption(
-			ErrUnexpectedTimeType,
-			"storage.unexpected_time_type",
-			fmt.Sprintf("duckdb dialect: expected *time.Time, got %T", src),
-		)
-	}
-
-	return *tp, nil
+	return parseTimePointer(src, "duckdb")
 }
 
 func (DuckDBDialect) EventSchema() string {

@@ -162,9 +162,9 @@ func registerSubscriberHandler[H any](
 // struct field happens INSIDE the mutex. Passing by value would evaluate the
 // field read at the call site — before the mutex is acquired — racing with
 // rebuildHandlerChain's write to the same field.
-func dispatchCached[M any](
+func dispatchCached[M any, H ~func(context.Context, M) error](
 	mu *sync.Mutex,
-	cached *func(context.Context, M) error,
+	cached *H,
 	ctx context.Context,
 	msg M,
 ) error {

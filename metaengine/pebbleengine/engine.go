@@ -530,27 +530,41 @@ func (e *pebbleEngine) MultiAdd(_ context.Context, col string, key any, value an
 	return e.db.Set(k, encodeJSON(value), pebble.Sync)
 }
 
-func (e *pebbleEngine) MultiGet(_ context.Context, col string, key any) ([]any, error) {
-	prefix := multimapPrefix(col, encodeKeyStr(key))
-	upperBound := nextKey(prefix)
-
+// iterJSON scans the given prefix range and decodes every value as JSON. The
+// callback yields decoded values one at a time; iteration stops on the first
+// decode error. Returns the iterator's terminal error (if any).
+func (e *pebbleEngine) iterJSON(
+	prefix, upperBound []byte,
+	yield func(any),
+) error {
 	iter, err := e.db.NewIter(&pebble.IterOptions{
 		LowerBound: prefix,
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer func() { _ = iter.Close() }()
 
-	var out []any
-
 	for iter.First(); iter.Valid(); iter.Next() {
-		out = append(out, decodeJSON(iter.Value()))
+		yield(decodeJSON(iter.Value()))
 	}
 
-	return out, iter.Error()
+	return iter.Error()
+}
+
+func (e *pebbleEngine) MultiGet(_ context.Context, col string, key any) ([]any, error) {
+	prefix := multimapPrefix(col, encodeKeyStr(key))
+	upperBound := nextKey(prefix)
+
+	var out []any
+
+	err := e.iterJSON(prefix, upperBound, func(v any) {
+		out = append(out, v)
+	})
+
+	return out, err
 }
 
 func (e *pebbleEngine) nextMmSeq(col string) int64 {
@@ -572,6 +586,20 @@ func (e *pebbleEngine) LogTail(_ context.Context, col string, limit int) ([]any,
 	prefix := logPrefix(col)
 	upperBound := nextKey(prefix)
 
+	if limit <= 0 {
+		// No limit: stream everything in forward order via the shared JSON iterator.
+		var entries []any
+
+		err := e.iterJSON(prefix, upperBound, func(v any) {
+			entries = append(entries, v)
+		})
+
+		return entries, err
+	}
+
+	// Reverse iteration for tail — needs Prev(), not First/Next, so the shared
+	// helper does not apply. Take at most `limit` entries then reverse them
+	// into chronological order.
 	iter, err := e.db.NewIter(&pebble.IterOptions{
 		LowerBound: prefix,
 		UpperBound: upperBound,
@@ -582,30 +610,24 @@ func (e *pebbleEngine) LogTail(_ context.Context, col string, limit int) ([]any,
 
 	defer func() { _ = iter.Close() }()
 
-	// Collect last `limit` entries by iterating in reverse.
 	var entries []any
 
-	if limit <= 0 {
-		// Collect all in forward order.
-		for iter.First(); iter.Valid(); iter.Next() {
-			entries = append(entries, decodeJSON(iter.Value()))
-		}
-	} else {
-		// Reverse iteration for tail.
-		count := 0
+	count := 0
 
-		for iter.Last(); iter.Valid() && count < limit; iter.Prev() {
-			entries = append(entries, decodeJSON(iter.Value()))
-			count++
-		}
-
-		// Reverse to chronological order.
-		for i, j := 0, len(entries)-1; i < j; i, j = i+1, j-1 {
-			entries[i], entries[j] = entries[j], entries[i]
-		}
+	for iter.Last(); iter.Valid() && count < limit; iter.Prev() {
+		entries = append(entries, decodeJSON(iter.Value()))
+		count++
 	}
 
-	return entries, iter.Error()
+	if err := iter.Error(); err != nil {
+		return nil, err
+	}
+
+	for i, j := 0, len(entries)-1; i < j; i, j = i + 1, j - 1 {
+		entries[i], entries[j] = entries[j], entries[i]
+	}
+
+	return entries, nil
 }
 
 func (e *pebbleEngine) nextLogSeq(col string) int64 {
