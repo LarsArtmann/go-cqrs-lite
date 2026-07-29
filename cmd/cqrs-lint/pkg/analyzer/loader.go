@@ -122,7 +122,15 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 					continue
 				}
 
-				path := pkg.GoFiles[min(i, len(pkg.GoFiles)-1)]
+				// Guard against missing/short GoFiles. The syntax file at index i
+				// maps to pkg.GoFiles[i]; when they mismatch (cgo/processed files,
+				// or a package with no files) we can't get a reliable path, so skip
+				// rather than panic or silently misattribute locations.
+				if len(pkg.GoFiles) == 0 || i >= len(pkg.GoFiles) {
+					continue
+				}
+
+				path := pkg.GoFiles[i]
 				goFile := &GoFile{
 					Path:   path,
 					Pkg:    pkg,
