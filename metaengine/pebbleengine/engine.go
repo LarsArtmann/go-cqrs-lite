@@ -224,7 +224,7 @@ func (e *pebbleEngine) MapGet(_ context.Context, col string, key any) (any, bool
 			return nil, false, nil
 		}
 
-		return nil, false, err //nolint:wrapcheck // passthrough
+		return nil, false, err
 	}
 
 	defer func() { _ = closer.Close() }() //cqrs-lint:ignore(C015) pebble closer, error is always nil
@@ -263,12 +263,12 @@ func (e *pebbleEngine) MapUpdate(
 		prev = decodeJSON(val)
 		_ = closer.Close()
 	} else if !errors.Is(err, pebble.ErrNotFound) {
-		return err //nolint:wrapcheck // passthrough
+		return err
 	}
 
 	newVal := update(prev)
 
-	return e.db.Set(k, encodeJSON(newVal), pebble.Sync) //nolint:wrapcheck // passthrough
+	return e.db.Set(k, encodeJSON(newVal), pebble.Sync)
 }
 
 // --- ScanBackend ---
@@ -290,7 +290,7 @@ func (e *pebbleEngine) MapScan(
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -313,7 +313,7 @@ func (e *pebbleEngine) MapScan(
 	}
 
 	if err := iter.Error(); err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	// Sort in Go (Pebble has no secondary index).
@@ -371,7 +371,7 @@ func (e *pebbleEngine) SetContains(_ context.Context, col string, key any) (bool
 			return false, nil
 		}
 
-		return false, err //nolint:wrapcheck // passthrough
+		return false, err
 	}
 
 	defer func() { _ = closer.Close() }()
@@ -396,11 +396,11 @@ func (e *pebbleEngine) CounterIncrement(
 			current = decodeCounterValue(val)
 			_ = closer.Close() //cqrs-lint:ignore(C015) pebble closer, error is always nil
 		} else if !errors.Is(err, pebble.ErrNotFound) {
-			return err //nolint:wrapcheck // passthrough
+			return err
 		}
 
 		if err := e.db.Set(ck, encodeCounterValue(current+d), pebble.Sync); err != nil {
-			return err //nolint:wrapcheck // passthrough
+			return err
 		}
 	}
 
@@ -417,7 +417,7 @@ func (e *pebbleEngine) CounterGet(_ context.Context, col string) (map[string]int
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -447,10 +447,10 @@ func (e *pebbleEngine) GraphAddEdge(_ context.Context, col string, edge metaengi
 
 	// Store edge in both directions for efficient neighbor lookup.
 	if err := e.db.Set(graphEdgeKey(col, from, to), nil, pebble.Sync); err != nil {
-		return err //nolint:wrapcheck // passthrough
+		return err
 	}
 
-	return e.db.Set(graphEdgeKey(col, to, from), nil, pebble.Sync) //nolint:wrapcheck // passthrough
+	return e.db.Set(graphEdgeKey(col, to, from), nil, pebble.Sync)
 }
 
 func (e *pebbleEngine) GraphNeighbors(
@@ -539,7 +539,7 @@ func (e *pebbleEngine) MultiGet(_ context.Context, col string, key any) ([]any, 
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -577,7 +577,7 @@ func (e *pebbleEngine) LogTail(_ context.Context, col string, limit int) ([]any,
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	defer func() { _ = iter.Close() }()
