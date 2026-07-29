@@ -3,16 +3,16 @@
     "cmdguard": {
       "flake": false,
       "locked": {
-        "lastModified": 1785244095,
-        "narHash": "sha256-Bhi/Ns3/JjjLX8TEs8H4lvuYx0doIp3dE6UHWmhUc4s=",
+        "lastModified": 1785276803,
+        "narHash": "sha256-JYij1DOCkmp29fAKPuEa3e5RD06yNnr4TjF4AVDQX2M=",
         "owner": "LarsArtmann",
         "repo": "cmdguard",
-        "rev": "8e774641b27f66e8c8750c13b55d4a852e80d75f",
+        "rev": "49472cc1065a5b1a0f36ce42c75102c8c4cd9c6a",
         "type": "github"
       },
       "original": {
         "owner": "LarsArtmann",
-        "ref": "v4.0.0",
+        "ref": "master",
         "repo": "cmdguard",
         "type": "github"
       }
