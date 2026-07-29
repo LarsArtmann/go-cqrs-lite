@@ -338,7 +338,7 @@
 
             src = mkCqrsLintSource pkgs;
 
-            vendorHash = "sha256-8EoKvkRhiE7Jti14a7Om+mvfWZP9Wz6QDDeAeQLPhY8=";
+            vendorHash = lib.fakeHash;
             proxyVendor = true;
 
             subPackages = [ "." ];
@@ -356,6 +356,16 @@
             # buildGoModule silently drops GOEXPERIMENT from env (not in its
             # whitelist), so export it in preBuild. The "goexperiment.jsonv2"
             # build tag is set internally by the toolchain from GOEXPERIMENT.
+            #
+            # postPatch runs go mod tidy to reconcile the replace directives
+            # (added by mkPreparedSource) with the local dep sources. When a
+            # local dep (e.g. cmdguard master) has newer indirect deps than the
+            # pinned tag in go.mod, Go rejects the inconsistency. tidy fixes it.
+            postPatch = ''
+              export GOEXPERIMENT=jsonv2
+              go mod tidy
+            '';
+
             preBuild = ''
               export GOEXPERIMENT=jsonv2
             '';
