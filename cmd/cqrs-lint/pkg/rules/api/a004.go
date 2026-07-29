@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // A004: Untyped dispatch register.
@@ -38,7 +39,14 @@ func NewA004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					if sel.Sel.Name != "Register" && sel.Sel.Name != "Handle" {
 						return true
 					}
-					// Check if the handler function literal contains a type assertion.
+					// Skip third-party Register/Handle APIs (http, grpc, mux, chi, …)
+				// whose method name collides with CQRS but serves a different
+				// purpose. Without this, any router/handler framework triggers the
+				// rule whenever a closure argument uses a type assertion.
+				if lintutil.IsNonCQRSRegisterPackage(analyzer.SelectorPackage(sel)) {
+					return true
+				}
+				// Check if the handler function literal contains a type assertion.
 					for _, arg := range call.Args {
 						funcLit, ok := arg.(*ast.FuncLit)
 						if !ok {

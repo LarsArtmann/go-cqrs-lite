@@ -107,18 +107,6 @@ func NewB006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // cmdDisp.Register) are always counted — they are the idiomatic CQRS pattern.
 // See the browser-history feedback (B007 fired on 12 huma.Register calls).
 //
-//nolint:gochecknoglobals // read-only denylist
-var nonCQRSRegisterPackages = map[string]bool{
-	"huma":  true, // Huma v2 HTTP framework: huma.Register[I,O,Body]
-	"http":  true, // net/http
-	"mux":   true, // gorilla/mux
-	"chi":   true, // go-chi/chi
-	"gin":   true, // gin-gonic/gin
-	"echo":  true, // labstack/echo
-	"fiber": true, // gofiber/fiber
-	"grpc":  true, // grpc-go Server.Register (proto service registration)
-}
-
 //nolint:ireturn // factory returns public interface
 func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -175,7 +163,7 @@ func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							// method name collides with CQRS but serves a different
 							// purpose. Variable qualifiers (d, cmdDisp) are never
 							// denylisted — they are the idiomatic CQRS pattern.
-							if nonCQRSRegisterPackages[analyzer.SelectorPackage(sel)] {
+							if lintutil.IsNonCQRSRegisterPackage(analyzer.SelectorPackage(sel)) {
 								continue
 							}
 

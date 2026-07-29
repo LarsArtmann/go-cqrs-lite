@@ -67,7 +67,7 @@ func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(fn.Pos())
 
-					f, err := finding.NewBuilder(
+					b := finding.NewBuilder(
 						"C001",
 						toolName,
 						fmt.Sprintf(
@@ -79,13 +79,30 @@ func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					).
 						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
-						WithFixStrategy(finding.FixStrategyDirect).
-						WithSuggestion(fmt.Sprintf("Change `return nil` to `return %s.Commit()`", txVar)).
-						WithBeforeCode("return nil").
-						WithAfterCode(fmt.Sprintf("return %s.Commit()", txVar)).
-						WithMetadata(map[string]string{"txVar": txVar}).
-						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
-						Build()
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line))
+
+					if tx.returnsNil {
+						// Direct auto-fix: rewrite the bare success-path "return nil"
+						// to "return tx.Commit()".
+						b = b.
+							WithFixStrategy(finding.FixStrategyDirect).
+							WithSuggestion(fmt.Sprintf("Change `return nil` to `return %s.Commit()`", txVar)).
+							WithBeforeCode("return nil").
+							WithAfterCode(fmt.Sprintf("return %s.Commit()", txVar)).
+							WithMetadata(map[string]string{"txVar": txVar})
+					} else {
+						// tx is used but there is no bare "return nil" to rewrite.
+						// Suggest only — a direct BeforeCode("return nil") fix would
+						// match an unrelated "return nil" elsewhere in the file and
+						// silently corrupt it.
+						b = b.
+							WithFixStrategy(finding.FixStrategySuggest).
+							WithSuggestion(fmt.Sprintf(
+								"%s is used but never committed — add %s.Commit() (and handle its error) on the success path",
+								txVar, txVar))
+					}
+
+					f, err := b.Build()
 					if err != nil {
 						continue
 					}
