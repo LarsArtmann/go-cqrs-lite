@@ -98,6 +98,46 @@ jobs:
           fail_ci_if_error: false
 
     timeout-minutes: 15
+
+  cgo:
+    name: CGo Build (DuckDB)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Build CGo modules (DuckDB + cqrs-bench duckdb factory)
+        run: |
+          nix develop -c bash -c '
+            set -e
+            CGO_ENABLED=1 go build -tags "goexperiment.jsonv2" ./stack/duckdb/...
+            CGO_ENABLED=1 go build -tags "goexperiment.jsonv2" ./cmd/cqrs-bench/...
+            CGO_ENABLED=1 go vet -tags "goexperiment.jsonv2" ./stack/duckdb/...
+          '
+
+      - name: Test DuckDB (CGo required)
+        run: |
+          nix develop -c bash -c '
+            set -e
+            cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" ./... -count=1
+          '
+
+  verify-fast-gate:
+    name: Verify (fast pre-merge gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Run verify-fast (build + vet + short tests + lint)
+        run: nix run .#verify-fast
+
   per-module-test:
     name: Module ${{ matrix.module }}
     runs-on: ubuntu-latest

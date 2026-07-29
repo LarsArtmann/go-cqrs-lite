@@ -15,6 +15,15 @@ if ! git diff --quiet --exit-code; then
   exit 1
 fi
 
+echo "==> Building all modules (catches broken-code commits, incl. auto-commit daemon)"
+# Compile-check the whole workspace before allowing a commit. This is the gate
+# that prevents the auto-commit daemon (or a human) from shipping code that does
+# not build — the recurring "stale GREEN" / broken-daemon-commit class of failure.
+if ! go build -tags "goexperiment.jsonv2" ./...; then
+  echo "ERROR: go build failed. Fix compile errors before committing."
+  exit 1
+fi
+
 echo "==> Checking for fmt.Printf in production code"
 # Allow fmt.Printf in tests, examples, generated/testdata files, and cmd tooling.
 if grep -R 'fmt\.Printf' --include='*.go' . \
