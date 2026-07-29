@@ -363,6 +363,7 @@
             # pinned tag in go.mod, Go rejects the inconsistency. tidy fixes it.
             postPatch = ''
               export GOEXPERIMENT=jsonv2
+              export HOME="$TMPDIR"
               go mod tidy
             '';
 

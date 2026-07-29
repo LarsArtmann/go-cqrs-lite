@@ -2499,6 +2499,7 @@ storage/turso/func ConfigurePool
 storage/turso/func InitSchema
 storage/turso/func InitSchemaWithIndexes
 storage/turso/func InitSchemaWithIndexesAndOptimizations
+storage/turso/func IsQuotaExceeded
 storage/turso/func NewAutoIndexer
 storage/turso/func NewBackend
 storage/turso/func NewCheckpointStore
@@ -2539,6 +2540,7 @@ storage/turso/type RemoteURL
 storage/turso/type SyncOption
 storage/turso/type TursoSyncDB
 storage/turso/var ErrMemorySync
+storage/turso/var ErrQuotaExceeded
 storage/turso/var NewTursoCheckpointStore
 storage/turso/var NewTursoCommandStore
 storage/turso/var NewTursoEventStore
