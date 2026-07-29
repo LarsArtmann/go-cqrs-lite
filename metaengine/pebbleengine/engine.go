@@ -623,7 +623,7 @@ func (e *pebbleEngine) LogTail(_ context.Context, col string, limit int) ([]any,
 		return nil, err
 	}
 
-	for i, j := 0, len(entries)-1; i < j; i, j = i + 1, j - 1 {
+	for i, j := 0, len(entries)-1; i < j; i, j = i+1, j-1 {
 		entries[i], entries[j] = entries[j], entries[i]
 	}
 
