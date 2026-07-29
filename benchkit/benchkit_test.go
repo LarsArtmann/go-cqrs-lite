@@ -1288,10 +1288,11 @@ func TestRun_Postgres_Recovery(t *testing.T) {
 	dsn := benchPostgresDSN(t)
 
 	result := mustRun(t, Config{
-		Profile:     ProfileDev,
-		PayloadSize: 64,
-		Backend:     "postgres",
-		Recovery:    true,
+		Profile:      ProfileDev,
+		PayloadSize:  64,
+		Backend:      "postgres",
+		Recovery:     true,
+		SkipSnapshot: true, // snapshot populate writes extra events to existing streams
 	}, func() (*stack.Bundle, error) {
 		return postgres.New(dsn)
 	})
@@ -1300,6 +1301,8 @@ func TestRun_Postgres_Recovery(t *testing.T) {
 		t.Error("RecoveryTime should be positive for postgres")
 	}
 
+	// Postgres is persistent — all written events should be recovered. SkipSnapshot
+	// keeps the recovered count exactly at the write-phase total.
 	if result.RecoveredEvents != ProfileDev.TotalEvents() {
 		t.Errorf("RecoveredEvents = %d, want %d (postgres is persistent)",
 			result.RecoveredEvents, ProfileDev.TotalEvents())
