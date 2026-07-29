@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0-20260728231650-e0855503374a
+	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.1.0
