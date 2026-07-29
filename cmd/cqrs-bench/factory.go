@@ -107,8 +107,11 @@ func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
 
 		return func() (*stack.Bundle, error) { return postgres.New(dsn) }, "", nil
 
+	case "duckdb", "duck":
+		return duckdbFactory(dsn, dir)
+
 	default:
-		fatalf("unknown backend: %s (use memory, sqlite, or pebble)", backend)
+		fatalf("unknown backend: %s (use memory, sqlite, pebble, postgres, or duckdb)", backend)
 
 		return nil, "", nil // unreachable
 	}
