@@ -38,6 +38,7 @@ func TestCrossEngineCounterParity(t *testing.T) {
 	}
 
 	results := make(map[string]map[string]int64, len(engines))
+	var resultsMu sync.Mutex
 
 	for name, eng := range engines {
 		t.Run(name, func(t *testing.T) {
@@ -59,7 +60,9 @@ func TestCrossEngineCounterParity(t *testing.T) {
 				t.Fatalf("CounterGet: %v", err)
 			}
 
+			resultsMu.Lock()
 			results[name] = got
+			resultsMu.Unlock()
 
 			// Expected: alpha=1+2+10=13, beta=5-3=2, gamma=3+1=4
 			want := map[string]int64{"alpha": 13, "beta": 2, "gamma": 4}
@@ -88,6 +91,7 @@ func TestCrossEngineSetParity(t *testing.T) {
 	}
 
 	results := make(map[string]map[string]bool, len(engines))
+	var setResultsMu sync.Mutex
 
 	for name, eng := range engines {
 		t.Run(name, func(t *testing.T) {
@@ -109,7 +113,9 @@ func TestCrossEngineSetParity(t *testing.T) {
 				t.Fatalf("SetAdd(apple) re-add not idempotent: %v", err)
 			}
 
+			setResultsMu.Lock()
 			results[name] = make(map[string]bool, len(probe))
+			setResultsMu.Unlock()
 
 			for _, k := range probe {
 				got, err := sb.SetContains(ctx, "fruits", k)
@@ -117,7 +123,9 @@ func TestCrossEngineSetParity(t *testing.T) {
 					t.Fatalf("SetContains(%s): %v", k, err)
 				}
 
+				setResultsMu.Lock()
 				results[name][k] = got
+				setResultsMu.Unlock()
 			}
 		})
 	}
