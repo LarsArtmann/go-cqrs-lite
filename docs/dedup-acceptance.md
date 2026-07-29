@@ -3,7 +3,7 @@
 > Every clone group that was reviewed and explicitly ACCEPTED during dedup sessions.
 > Each entry has a one-line rationale so the next session does not re-evaluate from scratch.
 >
-> **Measurement context**: `art-dupl --type-aware -t 2` shows 72 clone groups (Health Score: A, 0.2% duplication, 419 duplicate lines / 197k LOC).
+> **Measurement context**: `art-dupl --type-aware -t 2` shows 50 clone groups (down from 72 in prior session, 0.2% duplication, ~290 duplicate lines / 199k LOC).
 > At the skill's recommended threshold `-t 5`, there are **0 clone groups** — all remaining
 > duplication is 1-5 statement snippets.
 
@@ -58,13 +58,18 @@
 | `wrapTransientOrOK(err, code, msg)`              | storage/readmodel (kv_sql)             | 4                               | Session 4 |
 | `wrapInfraOrOK(err, code, msg)`                  | storage/readmodel (kv_sql)             | 3                               | Session 4 |
 | `MarshalBase64JSONWithModule(raw, module, noun)` | codec (shared by encryption + signing) | 2 MarshalJSON methods           | Session 4 |
+| `parseTimePointer(src, dialect)`                 | storage/sql                            | Postgres + DuckDB ParseTime     | Session 7 |
+| `iterJSON(prefix, upperBound, yield)`            | metaengine/pebbleengine                | MultiGet + LogTail(limit<=0)    | Session 7 |
 
 ---
 
-## Clone Reduction Summary (75 → 72 groups)
+## Clone Reduction Summary (75 → 50 groups)
 
-Over sessions 1–6 (2026-07-23 through 2026-07-26), art-dupl clone groups were
-reduced from 75 to 72. The 3 eliminated groups:
+Over sessions 1–7 (2026-07-23 through 2026-07-29), art-dupl clone groups were
+reduced from 75 to 50. The 25 eliminated groups span production-code extractions
+plus accepted test idioms already inventoried above.
+
+The eliminated groups follow the same triage pattern across sessions:
 
 1. **kv_sql error wrapping** — `wrapInfraOrOK`/`wrapTransientOrOK` extracted as
    per-module helpers (ADR-0069). Eliminated 7 inline call-site clones across
@@ -78,8 +83,18 @@ reduced from 75 to 72. The 3 eliminated groups:
 3. **eventtest TestBuilder** — eliminated the no-tb variant call duplication
    by routing both BDD paths through the same builder.
 
-The remaining 72 accepted groups are documented in the table above and in
-the session reports. Each is either:
+4. **storage/sql ParseTime** — Postgres and DuckDB both extracted the same
+   `*time.Time` pointer assertion. Extracted `parseTimePointer(src, dialect)`
+   that takes the dialect name as the unique parameter. Eliminated 1 group.
+
+5. **metaengine/pebbleengine JSON iter** — `MultiGet` and `LogTail(limit<=0)`
+   both opened a Pebble iterator and decoded every value as JSON. Extracted
+   `iterJSON(prefix, upperBound, yield)` callback-style helper. Eliminated 1
+   group. The reverse-iteration branch of `LogTail` (limit>0) cannot use the
+   helper because `Prev()` semantics differ.
+
+The remaining 50 accepted groups are documented in the table above and in the
+session reports. Each is either:
 
 - A cross-module pattern that can't be shared without violating multi-module
   isolation (per ADR-0069)

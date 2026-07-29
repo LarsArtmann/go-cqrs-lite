@@ -1,5 +1,10 @@
 # Dedup Acceptance Log
 
+**Session 7 (-t 2):** 2 extractions applied (`parseTimePointer`, `iterJSON`),
+reducing clone groups from 52 to 50 (test boilerplate unchanged).
+Production-code patterns at the 3+ threshold are now exhausted; the
+remaining 50 groups are all 2-occurrence test idioms or unique-value sites.
+
 Remaining clone groups from `art-dupl --type-aware -t 2` after two dedup
 sessions. Each entry explains why the clone is intentional and should not be
 extracted.
