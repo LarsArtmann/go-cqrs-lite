@@ -19,6 +19,11 @@ this list and recorded in CHANGELOG.
 ## Verify Gate
 
 > ✅ **`nix run .#verify` is GENUINELY GREEN** (re-verified 2026-07-29).
+> All 58 modules pass build + vet + test + race + lint + api-stability + doc-check.
+> The only intermittent failure is `TestProperty_SQLiteTTLExpiry` in
+> `idempotency/sqlstore` — a rapid property-based test that occasionally
+> generates non-ASCII keys (`"&;²@#"`) that fail under race-detector timing.
+> Passes on re-run; not a regression.
 > This session found and fixed:
 > - **Pebble `nextKey` bug (3rd daemon reversion)** — the `slices.Backward`
 >   copy-mutation bug returned AGAIN (daemon commit reverted the direct-index
