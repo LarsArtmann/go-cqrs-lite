@@ -171,8 +171,8 @@ func BuildLayoutPlanFromType[R any](
 		}
 
 		if typeOf.Kind() == reflect.Struct {
-			for i := range typeOf.NumField() {
-				f := typeOf.Field(i)
+			for f := range typeOf.Fields() {
+				f := f
 				if f.IsExported() {
 					fieldTypes[f.Name] = f.Type
 				}
