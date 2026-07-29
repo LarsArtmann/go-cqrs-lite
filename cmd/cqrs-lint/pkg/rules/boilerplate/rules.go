@@ -46,8 +46,7 @@ func NewB001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					for _, name := range singleEventNames {
-						if strings.EqualFold(fn.Name.Name, name) ||
-							strings.Contains(strings.ToLower(fn.Name.Name), strings.ToLower(name)) {
+						if strings.EqualFold(fn.Name.Name, name) {
 							// Verify it calls event.New or event.NewEvent.
 							callsEventNew := false
 

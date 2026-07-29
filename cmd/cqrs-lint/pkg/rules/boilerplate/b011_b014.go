@@ -38,6 +38,7 @@ func NewB011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					hasMarshal := false
+					hasPanic := false
 
 					if fn.Body != nil {
 						ast.Inspect(fn.Body, func(n ast.Node) bool {
@@ -62,6 +63,25 @@ func NewB011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					if !hasMarshal {
+						continue
+					}
+
+					// Confirm the helper actually panics; a must*-prefixed function that
+					// returns the error instead of panicking is not the anti-pattern.
+					if fn.Body != nil {
+						ast.Inspect(fn.Body, func(n ast.Node) bool {
+							call, ok := n.(*ast.CallExpr)
+							if ok {
+								if id, ok := call.Fun.(*ast.Ident); ok && id.Name == "panic" {
+									hasPanic = true
+								}
+							}
+
+							return true
+						})
+					}
+
+					if !hasPanic {
 						continue
 					}
 
