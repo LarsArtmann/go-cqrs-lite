@@ -152,7 +152,7 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	// Fast path: if the engine supports pushdown AND all filter/sort accessors
 	// have declarative specs (FilterOnField/SortOnField), push WHERE/ORDER BY/
 	// LIMIT into SQL instead of loading all rows into Go.
-	if ps, ok := q.engine.(PushdownScan); ok && canPushdown(q.config) {
+	if pushdown, ok := q.engine.(PushdownScan); ok && canPushdown(q.config) {
 		specs := buildFilterSpecs(q.config, input)
 
 		var sortSpec *SortSpec
@@ -160,7 +160,7 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 			sortSpec = q.config.sortAccessor.spec
 		}
 
-		rows, err := ps.PushdownMapScan(ctx, q.name, specs, sortSpec, cursorVal, limit)
+		rows, err := pushdown.PushdownMapScan(ctx, q.name, specs, sortSpec, cursorVal, limit)
 		if err != nil {
 			return nil, fmt.Errorf("pushdown map scan %s: %w", q.name, err)
 		}

@@ -400,7 +400,8 @@ func (e *sqliteEngine) StreamScan(
 	return func(yield func(any, error) bool) {
 		var b strings.Builder
 
-		args := []any{col}
+		args := make([]any, 0, 1+len(filters))
+		args = append(args, col)
 
 		b.WriteString(`SELECT value FROM meta_map WHERE collection = ?`)
 

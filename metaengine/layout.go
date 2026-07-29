@@ -70,7 +70,7 @@ func BuildLayoutPlan(collection string, filterFields, sortFields []string) Layou
 	})
 
 	// One index per column (rule 3: dedup).
-	var indexes []PlannedIndex
+	indexes := make([]PlannedIndex, 0, len(columns))
 
 	for _, c := range columns {
 		indexes = append(indexes, PlannedIndex{
@@ -165,16 +165,14 @@ func BuildLayoutPlanFromType[R any](
 	typeOf := reflect.TypeFor[R]()
 	fieldTypes := map[string]reflect.Type{}
 
-	if typeOf != nil {
-		if typeOf.Kind() == reflect.Pointer {
-			typeOf = typeOf.Elem()
-		}
+	if typeOf.Kind() == reflect.Pointer {
+		typeOf = typeOf.Elem()
+	}
 
-		if typeOf.Kind() == reflect.Struct {
-			for f := range typeOf.Fields() {
-				if f.IsExported() {
-					fieldTypes[f.Name] = f.Type
-				}
+	if typeOf.Kind() == reflect.Struct {
+		for f := range typeOf.Fields() {
+			if f.IsExported() {
+				fieldTypes[f.Name] = f.Type
 			}
 		}
 	}

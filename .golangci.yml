@@ -283,6 +283,7 @@ linters:
         - mu
         - rs
         - j
+        - db
   exclusions:
     generated: lax
     rules:
@@ -310,6 +311,9 @@ linters:
           - gocritic
           - errname
           - predeclared
+          - noctx
+          - forcetypeassert
+          - tagliatelle
       - path: internal/cattest/
         linters:
           - thelper
@@ -617,6 +621,17 @@ linters:
           - gocognit
           - ireturn
           - mnd
+          - gosec
+          - goconst
+          - exhaustive
+      - path: metaengine/pebbleengine/
+        linters:
+          - wrapcheck
+          - makezero
+          - modernize
+          - prealloc
+          - varnamelen
+          - gosec
       - path: cmd/doc-check/
         linters:
           - gosec
