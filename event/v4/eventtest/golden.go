@@ -28,5 +28,7 @@ func AssertGolden(t *testing.T, path string, got []byte, update bool) {
 		opts = append(opts, snaps.Update(true))
 	}
 
-	snaps.WithConfig(opts...).MatchSnapshot(t, string(got)) //art-dupl:accept per-module golden helper
+	snaps.WithConfig(opts...).
+		MatchSnapshot(t, string(got))
+	//art-dupl:accept per-module golden helper
 }
