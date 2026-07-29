@@ -173,5 +173,8 @@ watermill/     — Watermill protocol adapter
 | [0069](0069-error-wrapping-helpers.md)                 | Error-Wrapping Helper Convention                        | 2026-07-26 | Accepted                                                                                                                      |
 | [0070](0070-transform-fallback-observability.md)       | Transform Fallback Observability (slog vs OTel)         | 2026-07-27 | Accepted                                                                                                                      |
 | [0071](0071-duckdb-cgo-introduction.md)                | DuckDB CGo Introduction                                 | 2026-07-28 | Accepted                                                                                                                      |
+| [0072](0072-metaengine-pushdown.md)                    | Metaengine Pushdown (json_extract SQL pushdown)         | 2026-07-29 | Accepted                                                                                                                      |
+| [0073](0073-metaengine-layout-planning.md)             | Metaengine Layout Planning (deployment-time DDL)        | 2026-07-29 | Accepted                                                                                                                      |
+| [0074](0074-pebble-engine.md)                          | Pebble Metaengine (cost profile & slices.Backward)      | 2026-07-29 | Accepted                                                                                                                      |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).
