@@ -26,7 +26,7 @@
       flake = false;
     };
     cmdguard = {
-      url = "github:LarsArtmann/cmdguard?ref=v4.0.0";
+      url = "github:LarsArtmann/cmdguard?ref=master";
       flake = false;
     };
     go-output = {
