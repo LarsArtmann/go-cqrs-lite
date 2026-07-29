@@ -21,12 +21,13 @@ this list and recorded in CHANGELOG.
 > ✅ **`nix run .#verify` is GREEN** (re-confirmed 2026-07-29 after fixing Pebble
 > `nextKey` batch bug, adding `snaps.Clean(m)` TestMain to 16 modules, adding
 > DuckDB helpers/tests, wiring `metaengine/pebbleengine` into go.work + flake.nix
-> + api-stability, fixing version drift in stack/sqlite + stack/postgres +
-> stack/duckdb). Pebble engine: 10/10 tests pass. api-stability: 2742 exports.
-> The ONLY failure is the pre-existing `TestRun_Postgres_Recovery` in benchkit
-> (expects 500 events, gets 550 — hidden by `t.Skip` until testcontainers-go
-> adoption exposed it). Vulncheck: 0 vulnerabilities. Duplication gate: 0 new
-> clones vs 21-group baseline.
+>
+> - api-stability, fixing version drift in stack/sqlite + stack/postgres +
+>   stack/duckdb). Pebble engine: 10/10 tests pass. api-stability: 2742 exports.
+>   The ONLY failure is the pre-existing `TestRun_Postgres_Recovery` in benchkit
+>   (expects 500 events, gets 550 — hidden by `t.Skip` until testcontainers-go
+>   adoption exposed it). Vulncheck: 0 vulnerabilities. Duplication gate: 0 new
+>   clones vs 21-group baseline.
 >
 > Coverage drift is checked by `scripts/check-coverage.sh`
 > (`nix run .#check-coverage`) — AGENTS.md coverage claims verified 2026-07-27.
@@ -47,8 +48,8 @@ test-resolve && cd test-resolve && go mod init test && GOWORK=off go get
 github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
       published module resolves without workspace-local replaces.
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod replace
-      directives are needed for dev; consumers resolving the published modules
-      depend on the real tagged versions (go-finding v1.4.0, go-must v0.1.2).
+  directives are needed for dev; consumers resolving the published modules
+  depend on the real tagged versions (go-finding v1.4.0, go-must v0.1.2).
 
 ---
 

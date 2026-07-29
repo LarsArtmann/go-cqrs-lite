@@ -176,11 +176,11 @@ Pebble is **7x faster** than SQLite on point reads and **3.7x faster** on writes
 
 ### Layout Planning: Naive vs Planned (10K rows)
 
-| Pattern | Naive (json_extract) | Planned (indexed) | Speedup |
-| ------- | -------------------- | ----------------- | ------- |
-| FilterByStatus | ~91,500 ns | ~45,500 ns | **2.0x** |
-| FilterAndSort | ~17,050,000 ns | ~1,700,000 ns | **10x** |
-| PointLookup | ~15,200 ns | ~11,400 ns | 1.3x |
+| Pattern        | Naive (json_extract) | Planned (indexed) | Speedup  |
+| -------------- | -------------------- | ----------------- | -------- |
+| FilterByStatus | ~91,500 ns           | ~45,500 ns        | **2.0x** |
+| FilterAndSort  | ~17,050,000 ns       | ~1,700,000 ns     | **10x**  |
+| PointLookup    | ~15,200 ns           | ~11,400 ns        | 1.3x     |
 
 The core hypothesis is validated: deployment-time layout optimization produces measurably
 better query performance. The planned engine extracts declared filter/sort fields into
