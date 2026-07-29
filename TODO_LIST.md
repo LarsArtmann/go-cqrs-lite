@@ -89,7 +89,7 @@ github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`. Confirm every
 
 > ✅ Core integration shipped: `DuckDBDialect`, `stack/duckdb` preset, contract
 > tests, lint, flake.nix CGo wiring, TestMultiDBContract, golden schema tests,
-> OpenDuckDB/OpenDuckDBInMemory/ConfigureDuckDBPool helpers, appendDuckDBOptions
+> OpenDuckDB/OpenDuckDBInMemory helpers, appendDuckDBOptions
 > unit test. Remaining work is bench integration and view model tests.
 
 - [ ] **`view_models_integration_test.go`** — `SQLViewModel` is exported but

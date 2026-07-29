@@ -2143,7 +2143,6 @@ stack/var ErrMissingSubscriber
 storage/const DefaultPostgresBusChannel
 storage/func AutoMapper
 storage/func AutoMapperWithTombstone
-storage/func ConfigureDuckDBPool
 storage/func ConfigureSQLitePool
 storage/func ConfigureTursoPool
 storage/func DuckDBInitSchema

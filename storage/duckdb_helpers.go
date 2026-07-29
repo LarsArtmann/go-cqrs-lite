@@ -35,12 +35,3 @@ func OpenDuckDB(dbPath string) (*sql.DB, error) {
 func OpenDuckDBInMemory() (*sql.DB, error) {
 	return OpenDuckDB("")
 }
-
-// ConfigureDuckDBPool sets connection pool defaults for DuckDB.
-//
-// DuckDB supports concurrent reads and handles write locking internally,
-// so unlike SQLite it does not need to be capped at 1 connection.
-// This is a no-op — DuckDB's default pool settings are appropriate for
-// most analytical workloads. Consumers with specific needs (e.g. limiting
-// memory via fewer connections) can call db.SetMaxOpenConns directly.
-func ConfigureDuckDBPool(_ *sql.DB) {}
