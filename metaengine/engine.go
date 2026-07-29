@@ -17,6 +17,36 @@ type EngineProfile struct {
 	// engine. Used by the cost estimator to compute latency estimates.
 	// Zero means use the legacy default (100ns).
 	NsPerOp float64
+
+	// NsPerRead is the calibrated nanoseconds-per-READ-operation (point lookups,
+	// scans). Engines whose read and write costs differ noticeably (e.g. Pebble:
+	// fast LSM point reads, slower writes) should set this. When zero, the
+	// planner falls back to NsPerOp, preserving backward compatibility.
+	NsPerRead float64
+
+	// NsPerWrite is the calibrated nanoseconds-per-WRITE-operation (inserts,
+	// updates, folds). When zero, the planner falls back to NsPerOp.
+	NsPerWrite float64
+}
+
+// ReadNsPerOp returns the calibrated per-read-operation cost, falling back to
+// NsPerOp when NsPerRead is unset (backward compatibility for older engines).
+func (p EngineProfile) ReadNsPerOp() float64 {
+	if p.NsPerRead > 0 {
+		return p.NsPerRead
+	}
+
+	return p.NsPerOp
+}
+
+// WriteNsPerOp returns the calibrated per-write-operation cost, falling back to
+// NsPerOp when NsPerWrite is unset.
+func (p EngineProfile) WriteNsPerOp() float64 {
+	if p.NsPerWrite > 0 {
+		return p.NsPerWrite
+	}
+
+	return p.NsPerOp
 }
 
 func (p EngineProfile) SupportsADT(adt ADT) (Complexity, bool) {

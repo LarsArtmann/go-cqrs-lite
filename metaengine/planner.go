@@ -107,7 +107,7 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 			ranked = append(ranked, rankedEngine{
 				engine:     eng,
 				complexity: c,
-				cost:       estimateCost(readC, cfg.Volume, profile.NsPerOp),
+				cost:       estimateCost(readC, cfg.Volume, profile.ReadNsPerOp()),
 			})
 		}
 	}

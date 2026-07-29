@@ -43,6 +43,16 @@ const sep = "\x00"
 // on writes.
 const PebbleNsPerOp = 1200.0
 
+// PebbleNsPerRead is the calibrated per-READ-operation cost (LSM point read +
+// JSON decode). Sourced from BenchmarkCalibration_PebbleGet (~708 ns/op).
+// Used by the planner's read-cost path (EngineProfile.ReadNsPerOp).
+const PebbleNsPerRead = 708.0
+
+// PebbleNsPerWrite is the calibrated per-WRITE-operation cost (LSM insert +
+// JSON encode). Sourced from BenchmarkCalibration_PebbleSet (~1,785 ns/op).
+// Used by the planner's write-cost path (EngineProfile.WriteNsPerOp).
+const PebbleNsPerWrite = 1785.0
+
 type pebbleEngine struct {
 	db     *pebble.DB
 	ownsDB bool
@@ -52,7 +62,8 @@ type pebbleEngine struct {
 }
 
 // NewPebbleEngine creates a Pebble-backed metaengine engine. If dir is empty,
-// an in-memory database is used (for testing). The caller owns the returned
+// an in-memory database is used (for testing); otherwise dir is the on-disk
+// database directory (persisted across opens). The caller owns the returned
 // Engine and must call Close.
 func NewPebbleEngine(dir string) (metaengine.Engine, error) {
 	opts := &pebble.Options{}
@@ -60,7 +71,7 @@ func NewPebbleEngine(dir string) (metaengine.Engine, error) {
 		opts.FS = vfs.NewMem()
 	}
 
-	db, err := pebble.Open("", opts)
+	db, err := pebble.Open(dir, opts)
 	if err != nil {
 		return nil, fmt.Errorf("pebbleengine: open: %w", err)
 	}
@@ -82,8 +93,10 @@ func NewPebbleEngineFromDB(db *pebble.DB) metaengine.Engine {
 
 func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 	return metaengine.EngineProfile{
-		Name:    "pebble",
-		NsPerOp: PebbleNsPerOp,
+		Name:       "pebble",
+		NsPerOp:    PebbleNsPerOp,
+		NsPerRead:  PebbleNsPerRead,
+		NsPerWrite: PebbleNsPerWrite,
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityO1, // LSM point read
 			metaengine.ADTSet:       metaengine.ComplexityO1,
