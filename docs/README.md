@@ -39,7 +39,7 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Architecture Decision Records (ADR)
 
-69 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+72 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                        | Title                                                   | Status                   |
 | ---------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
@@ -112,6 +112,9 @@ The authoritative module index with README links lives in the **[project README]
 | [0069](adr/0069-error-wrapping-helpers.md)                 | Error-Wrapping Helper Convention                        | Accepted                 |
 | [0070](adr/0070-transform-fallback-observability.md)       | Transform Fallback Observability (slog vs OTel)         | Accepted                 |
 | [0071](adr/0071-duckdb-cgo-introduction.md)                | DuckDB CGo Introduction                                 | Accepted                 |
+| [0072](adr/0072-metaengine-pushdown.md)                    | Metaengine Pushdown (json_extract SQL pushdown)         | Accepted                 |
+| [0073](adr/0073-metaengine-layout-planning.md)             | Metaengine Layout Planning (deployment-time DDL)        | Accepted                 |
+| [0074](adr/0074-pebble-engine.md)                          | Pebble Metaengine (cost profile & slices.Backward)      | Accepted                 |
 
 ## API Reference
 
