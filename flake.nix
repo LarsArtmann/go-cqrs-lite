@@ -26,7 +26,7 @@
       flake = false;
     };
     cmdguard = {
-      url = "git+ssh://git@github.com/LarsArtmann/cmdguard?ref=v4.0.0";
+      url = "github:LarsArtmann/cmdguard?ref=v4.0.0";
       flake = false;
     };
     go-output = {
