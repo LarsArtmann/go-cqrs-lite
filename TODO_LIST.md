@@ -25,6 +25,7 @@ this list and recorded in CHANGELOG.
 > generates non-ASCII keys (`"&;²@#"`) that fail under race-detector timing.
 > Passes on re-run; not a regression.
 > This session found and fixed:
+>
 > - **Pebble `nextKey` bug (3rd daemon reversion)** — the `slices.Backward`
 >   copy-mutation bug returned AGAIN (daemon commit reverted the direct-index
 >   fix). Re-applied with indexed loop.

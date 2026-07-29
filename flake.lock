@@ -57,11 +57,11 @@
     "go-branded-id": {
       "flake": false,
       "locked": {
-        "lastModified": 1785273885,
-        "narHash": "sha256-om+DUNW7IzN95Y8xMj6zvP8TQ1yawlIHmODDVhWYDpQ=",
+        "lastModified": 1785342361,
+        "narHash": "sha256-6I/LnMiphDuhAIkDq2PPKUqh08ZTkr+kRbj5bD9TRZk=",
         "owner": "LarsArtmann",
         "repo": "go-branded-id",
-        "rev": "bc00089bd00bd0a47203bf7fa1237906196a2b83",
+        "rev": "5d44ba995d0cfa70d11e5aae7a3cf3b2d13a4446",
         "type": "github"
       },
       "original": {
