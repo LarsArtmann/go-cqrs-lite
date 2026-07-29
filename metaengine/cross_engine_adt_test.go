@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"sort"
+	"sync"
 	"testing"
 
 	_ "modernc.org/sqlite"
@@ -232,6 +233,7 @@ func TestCrossEngineSortedMapParity(t *testing.T) {
 
 	scanResults := make(map[string][]TaskID, len(engines))
 	limitResults := make(map[string][]TaskID, len(engines))
+	var resultsMu sync.Mutex
 
 	for name, eng := range engines {
 		t.Run(name, func(t *testing.T) {
@@ -272,7 +274,9 @@ func TestCrossEngineSortedMapParity(t *testing.T) {
 						i, task.ID, wantIDs[i])
 				}
 			}
+			resultsMu.Lock()
 			scanResults[name] = ids
+			resultsMu.Unlock()
 
 			// Limit truncation — only first 2 tasks.
 			limited, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
@@ -295,7 +299,9 @@ func TestCrossEngineSortedMapParity(t *testing.T) {
 				t.Fatalf("limited scan order: got %s,%s want s5,s2",
 					limitIDs[0], limitIDs[1])
 			}
+			resultsMu.Lock()
 			limitResults[name] = limitIDs
+			resultsMu.Unlock()
 		})
 	}
 
