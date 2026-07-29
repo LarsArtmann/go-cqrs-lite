@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"go/token"
+	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -34,6 +36,12 @@ func NewD006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
+			// Precompute package-level sentinel-var initializer positions once,
+			// instead of re-scanning every file for each errors.New call. The
+			// previous O(calls × files × decls) scan made D006 a performance
+			// hazard on large codebases.
+			sentinels := collectPackageLevelVarCalls(ctx)
+
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
 					continue
@@ -49,7 +57,7 @@ func NewD006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					if isErrorsNew(call) {
 						// Skip package-level sentinel declarations:
 						// var ErrXxx = errors.New(...)
-						if isPackageLevelVar(ctx, call) {
+						if sentinels[call.Pos()] {
 							return true
 						}
 
@@ -104,27 +112,24 @@ func hasWrapVerb(call *ast.CallExpr) bool {
 		return true
 	}
 
-	// Check if the string value contains %w.
-	return containsString(lit.Value, "%w")
+	return strings.Contains(lit.Value, "%w")
 }
 
-func containsString(s, substr string) bool {
-	for i := 0; i+len(substr) <= len(s); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
+// collectPackageLevelVarCalls returns the set of CallExpr positions that are
+// the initializer of a package-level var declaration (the sentinel-error
+// pattern: var ErrXxx = errors.New(...)). Computed once per D006 run, over
+// non-test files only.
+func collectPackageLevelVarCalls(ctx *analyzer.AnalysisContext) map[token.Pos]bool {
+	positions := make(map[token.Pos]bool)
 
-	return false
-}
-
-// isPackageLevelVar checks if the call is the RHS of a package-level var
-// declaration (sentinel error pattern).
-func isPackageLevelVar(ctx *analyzer.AnalysisContext, call *ast.CallExpr) bool {
 	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
 		for _, decl := range gf.AST.Decls {
 			genDecl, ok := decl.(*ast.GenDecl)
-			if !ok || genDecl.Tok.String() != "var" {
+			if !ok || genDecl.Tok != token.VAR {
 				continue
 			}
 
@@ -135,15 +140,15 @@ func isPackageLevelVar(ctx *analyzer.AnalysisContext, call *ast.CallExpr) bool {
 				}
 
 				for _, val := range valSpec.Values {
-					if c, ok := val.(*ast.CallExpr); ok && c.Pos() == call.Pos() {
-						return true
+					if c, ok := val.(*ast.CallExpr); ok {
+						positions[c.Pos()] = true
 					}
 				}
 			}
 		}
 	}
 
-	return false
+	return positions
 }
 
 func reportUnclassified(

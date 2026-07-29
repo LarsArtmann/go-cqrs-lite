@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
-	"go/token"
 
 	"github.com/larsartmann/go-finding"
 
@@ -139,8 +138,6 @@ func isContextType(expr ast.Expr) bool {
 	if ell, ok := expr.(*ast.Ellipsis); ok {
 		return isContextType(ell.Elt)
 	}
-
-	_ = token.NoPos // keep import if future checks need positions
 
 	return false
 }

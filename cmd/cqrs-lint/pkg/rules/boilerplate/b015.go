@@ -18,26 +18,38 @@ func NewB015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		"B015-missing-test-utilities",
 		func(_ context.Context) ([]finding.Finding, error) {
 			hasTestFiles := false
-			hasTestUtils := false
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
 					hasTestFiles = true
+
+					break
+				}
+			}
+
+			// Scan packages once (not once per file) — the import set is global,
+			// independent of which source file we happen to be visiting. The
+			// previous nesting was O(files × packages) for no reason.
+			hasTestUtils := false
+
+			for _, pkg := range ctx.Packages {
+				for _, imp := range pkg.Imports {
+					if imp == nil {
+						continue
+					}
+
+					if strings.Contains(imp.PkgPath, "testutil") ||
+						strings.Contains(imp.PkgPath, "eventtest") ||
+						strings.Contains(imp.PkgPath, "querytest") ||
+						strings.Contains(imp.PkgPath, "scenario") {
+						hasTestUtils = true
+
+						break
+					}
 				}
 
-				for _, pkg := range ctx.Packages {
-					for _, imp := range pkg.Imports {
-						if imp == nil {
-							continue
-						}
-
-						if strings.Contains(imp.PkgPath, "testutil") ||
-							strings.Contains(imp.PkgPath, "eventtest") ||
-							strings.Contains(imp.PkgPath, "querytest") ||
-							strings.Contains(imp.PkgPath, "scenario") {
-							hasTestUtils = true
-						}
-					}
+				if hasTestUtils {
+					break
 				}
 			}
 
