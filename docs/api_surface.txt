@@ -1356,6 +1356,7 @@ metaengine/const ReadScan
 metaengine/const ReadTraversal
 metaengine/const SQLiteNsPerOp
 metaengine/func BuildLayoutPlan
+metaengine/func BuildLayoutPlanFromType
 metaengine/func EventTypeName
 metaengine/func ExecuteTyped
 metaengine/func FilterOn
@@ -1364,6 +1365,7 @@ metaengine/func NewMemoryEngine
 metaengine/func NewPlannedSQLiteEngine
 metaengine/func NewSQLiteEngine
 metaengine/func On
+metaengine/func OnTyped
 metaengine/func ParseCursor
 metaengine/func Plan
 metaengine/func Query
@@ -1439,6 +1441,7 @@ metaengine/method QueryIsPaginated
 metaengine/method QueryKeyType
 metaengine/method QueryName
 metaengine/method QueryReadPattern
+metaengine/method ReadNsPerOp
 metaengine/method Report
 metaengine/method SetAdd
 metaengine/method SetAdd
@@ -1453,7 +1456,10 @@ metaengine/method String
 metaengine/method String
 metaengine/method SupportsADT
 metaengine/method WithinBudget
+metaengine/method WriteNsPerOp
 metaengine/pebbleengine/const PebbleNsPerOp
+metaengine/pebbleengine/const PebbleNsPerRead
+metaengine/pebbleengine/const PebbleNsPerWrite
 metaengine/pebbleengine/func NewPebbleEngine
 metaengine/pebbleengine/func NewPebbleEngineFromDB
 metaengine/pebbleengine/method Close
