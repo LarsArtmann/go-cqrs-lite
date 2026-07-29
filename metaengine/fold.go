@@ -62,7 +62,8 @@ func Remove[V any]() removeSignal {
 }
 
 // On declares a fold: how an event of type E updates the query's projection.
-// The handler's Go signature determines the ADT operation:
+// The event type string is derived from the sample's Go type name. The handler's
+// Go signature determines the ADT operation:
 //
 //	metaengine.On(Event{}, func(e Event) (Key, Value) { ... })   // Map insert
 //	metaengine.On(Event{}, func(e Event, prev Value) Value { ... }) // Map update
@@ -70,12 +71,23 @@ func Remove[V any]() removeSignal {
 //	metaengine.On(Event{}, func(e Event) metaengine.Delta { ... }) // Counter
 //	metaengine.On(Event{}, func(e Event) metaengine.Edge { ... })  // Graph edge
 //	metaengine.On(Event{}, metaengine.Remove[Value]())             // Delete
-//	metaengine.On(Event{}, func(e Event) metaengine.Skip { ... })  // No-op
 //
-// On panics at init time if the handler signature is unclassifiable.
+// Use OnTyped when the event type string must differ from the Go type name
+// (e.g. binding to a CQRS event.Type() string like "user.created").
 func On[E any](sample E, handler any) Fold {
-	eventType := EventTypeName(sample)
+	return onFold(EventTypeName(sample), sample, handler)
+}
 
+// OnTyped is like On but binds the fold to an explicit event-type string
+// instead of deriving it from the sample's Go type name. This is the bridge for
+// CQRS events whose wire type string (event.Type(), e.g. "user.created") does
+// not match the payload struct name (e.g. "UserCreated"). store.Apply(ctx,
+// eventType, payload) matches folds by this string.
+func OnTyped[E any](eventType string, sample E, handler any) Fold {
+	return onFold(eventType, sample, handler)
+}
+
+func onFold[E any](eventType string, sample E, handler any) Fold {
 	if rs, ok := handler.(removeSignal); ok {
 		return Fold{
 			EventType:   eventType,

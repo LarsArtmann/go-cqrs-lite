@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 )
@@ -125,8 +126,10 @@ func sanitize(s string) string {
 }
 
 // inferColumnType guesses a SQL column type from a field name.
+// inferColumnType guesses a SQL column type from a field name.
 // This is intentionally conservative — TEXT works for all JSON types.
-// A future version could infer from the result type's Go field.
+// Prefer BuildLayoutPlanFromType for reflection-based inference from the result
+// type's Go fields, which is accurate instead of name-heuristic.
 func inferColumnType(field string) string {
 	field = strings.ToLower(field)
 
@@ -140,6 +143,73 @@ func inferColumnType(field string) string {
 		strings.Contains(field, "num"),
 		strings.Contains(field, "amount"),
 		strings.Contains(field, "price"):
+		return "INTEGER"
+	default:
+		return "TEXT"
+	}
+}
+
+// BuildLayoutPlanFromType is the reflection-based variant of BuildLayoutPlan:
+// it infers each column's SQL type from the corresponding field of the result
+// type R, instead of guessing from the field name. Fields not present on R fall
+// back to the name heuristic (TEXT-safe). This is the recommended constructor
+// when the result type is known at plan time.
+//
+// Type mapping: int*/float* → INTEGER/REAL, bool → INTEGER, string → TEXT,
+// time.Time → TEXT (ISO-8601). Everything else defaults to TEXT so JSON blobs
+// still round-trip.
+func BuildLayoutPlanFromType[R any](collection string, filterFields, sortFields []string) LayoutPlan {
+	typeOf := reflect.TypeFor[R]()
+	fieldTypes := map[string]reflect.Type{}
+
+	if typeOf != nil {
+		if typeOf.Kind() == reflect.Pointer {
+			typeOf = typeOf.Elem()
+		}
+
+		if typeOf.Kind() == reflect.Struct {
+			for i := range typeOf.NumField() {
+				f := typeOf.Field(i)
+				if f.IsExported() {
+					fieldTypes[f.Name] = f.Type
+				}
+			}
+		}
+	}
+
+	plan := BuildLayoutPlan(collection, filterFields, sortFields)
+
+	for i, c := range plan.Columns {
+		if t, ok := lookupFieldType(fieldTypes, c.Name); ok {
+			plan.Columns[i].Type = sqlTypeOf(t)
+		}
+	}
+
+	return plan
+}
+
+func lookupFieldType(fields map[string]reflect.Type, name string) (reflect.Type, bool) {
+	for fname, t := range fields {
+		if strings.EqualFold(fname, name) {
+			return t, true
+		}
+	}
+
+	return nil, false
+}
+
+func sqlTypeOf(t reflect.Type) string {
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	switch t.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return "INTEGER"
+	case reflect.Float32, reflect.Float64:
+		return "REAL"
+	case reflect.Bool:
 		return "INTEGER"
 	default:
 		return "TEXT"
