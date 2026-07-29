@@ -98,33 +98,23 @@ func (s *MemoryStore) getEvents(
 	ref id.StreamRef,
 	op string,
 ) ([]event.Event, error) {
-	if err := wrapClosedf(
-		s.CheckClosed(event.ErrStoreClosed),
-		"memory.load_failed",
-		"memory store %s failed",
-		op,
-	); err != nil {
-		return nil, err
-	}
+	return withReadLock(s, "memory.load_failed", fmt.Sprintf("memory store %s failed", op), func() ([]event.Event, error) {
+		key := ref.StreamKey()
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+		indices, exists := s.streamIndex[key]
+		if !exists {
+			return nil, errorfamily.WrapRejection(event.ErrStreamNotFound,
+				"memory.aggregate_not_found",
+				fmt.Sprintf("memory %s stream %s not found", op, ref))
+		}
 
-	key := ref.StreamKey()
+		events := make([]event.Event, len(indices))
+		for i, idx := range indices {
+			events[i] = s.globalLog[idx]
+		}
 
-	indices, exists := s.streamIndex[key]
-	if !exists {
-		return nil, errorfamily.WrapRejection(event.ErrStreamNotFound,
-			"memory.aggregate_not_found",
-			fmt.Sprintf("memory %s stream %s not found", op, ref))
-	}
-
-	events := make([]event.Event, len(indices))
-	for i, idx := range indices {
-		events[i] = s.globalLog[idx]
-	}
-
-	return events, nil
+		return events, nil
+	})
 }
 
 // LoadBackwards returns events in reverse version order (newest first).
@@ -149,18 +139,9 @@ func copyEvents(events []event.Event) []event.Event {
 }
 
 func (s *MemoryStore) ReadAll(_ context.Context) ([]event.Event, error) {
-	if err := wrapClosed(
-		s.CheckClosed(event.ErrStoreClosed),
-		"memory.read_all_failed",
-		"memory store read all",
-	); err != nil {
-		return nil, err
-	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	return copyEvents(s.globalLog), nil
+	return withReadLock(s, "memory.read_all_failed", "memory store read all", func() ([]event.Event, error) {
+		return copyEvents(s.globalLog), nil
+	})
 }
 
 // ReadFrom retrieves events ordered by insertion order, starting after the given event ID.
@@ -170,30 +151,22 @@ func (s *MemoryStore) ReadFrom(
 	afterEventID id.EventID,
 	limit int,
 ) ([]event.Event, error) {
-	if err := wrapClosedf(
-		s.CheckClosed(event.ErrStoreClosed),
-		"memory.read_from_failed",
-		"memory store read from (limit=%d) failed",
-		limit,
-	); err != nil {
-		return nil, err
-	}
+	return withReadLock(s, "memory.read_from_failed",
+		fmt.Sprintf("memory store read from (limit=%d) failed", limit),
+		func() ([]event.Event, error) {
+			startIdx := 0
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+			if !afterEventID.IsZero() {
+				if idx, ok := s.eventIDIndex[afterEventID]; ok {
+					startIdx = idx + 1
+				}
+			}
 
-	startIdx := 0
+			filtered := s.globalLog[startIdx:]
+			if limit > 0 && len(filtered) > limit {
+				filtered = filtered[:limit]
+			}
 
-	if !afterEventID.IsZero() {
-		if idx, ok := s.eventIDIndex[afterEventID]; ok {
-			startIdx = idx + 1
-		}
-	}
-
-	filtered := s.globalLog[startIdx:]
-	if limit > 0 && len(filtered) > limit {
-		filtered = filtered[:limit]
-	}
-
-	return copyEvents(filtered), nil
+			return copyEvents(filtered), nil
+		})
 }
