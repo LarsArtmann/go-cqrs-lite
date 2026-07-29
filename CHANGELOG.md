@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [Unreleased]
+
+### Added
+
+- **DuckDB analytical helpers** (`stack/duckdb.SQLViewModel`) — creates a real
+  columnar view table backed by DuckDB, enabling server-side WHERE/ORDER BY and
+  native GROUP BY / window-function aggregations (DuckDB's reason for existing in
+  this stack). Integration test proves the OLAP path (revenue + avg-price per
+  category) end-to-end. DuckDB is now a benchmarkable backend in `stack/bench`
+  (`BenchmarkBenchkitSuite_DuckDB`, CGo-gated) and `cmd/cqrs-bench`
+  (`--backend duckdb`, CGo-isolated so the CLI stays pure-Go otherwise).
+- **Pebble engine `nextKey` regression test** (`metaengine/pebbleengine`) — pure-
+  function test pinning the exclusive-upper-bound helper behind every prefix
+  scan, plus a concurrent `MapUpdate` test (100 goroutines) proving atomicity.
+
+### Fixed
+
+- **Pebble engine `nextKey` + `MapUpdate`** (`metaengine/pebbleengine`) — the
+  auto-commit daemon had reverted the `nextKey` fix to the broken
+  `slices.Backward` form (range yields copies, so the increment was discarded and
+  every prefix scan returned empty — 8/10 tests failing). Re-applied direct-index
+  access and guarded `MapUpdate`'s read-modify-write with the engine mutex so
+  concurrent updates no longer lose increments (matches the SQLite engine's
+  atomic MapUpdate guarantee, ADR-0066).
+
+### Changed
+
+- **`storage/memory` read-path dedup** — extracted a generic `withReadLock[T]`
+  helper that centralises the `wrapClosed` + `RLock` preamble for the three
+  remaining read sites (`getEvents`, `ReadAll`, `ReadFrom`), mirroring the
+  existing `withWriteLock` write-side pattern.
+
 ## [v4.2.0] — 2026-07-27
 
 ### Added
