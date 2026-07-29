@@ -24,15 +24,6 @@ func wrapClosed(err error, code, msg string) error {
 	return errorfamily.WrapInfrastructure(err, code, msg)
 }
 
-// wrapClosedf is the format-args variant of wrapClosed.
-func wrapClosedf(err error, code, format string, args ...any) error {
-	if err == nil {
-		return nil
-	}
-
-	return errorfamily.Wrapf(err, errorfamily.Infrastructure, code, format, args...)
-}
-
 // withReadLock centralises the wrapClosed + RLock + defer RUnlock preamble for
 // read-side MemoryStore methods. It is a top-level generic function because Go
 // does not permit generic methods; the store is passed explicitly. The message

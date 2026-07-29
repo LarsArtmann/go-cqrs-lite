@@ -357,15 +357,18 @@
             # whitelist), so export it in preBuild. The "goexperiment.jsonv2"
             # build tag is set internally by the toolchain from GOEXPERIMENT.
             #
-            # postPatch runs go mod tidy to reconcile the replace directives
-            # (added by mkPreparedSource) with the local dep sources. When a
-            # local dep (e.g. cmdguard master) has newer indirect deps than the
-            # pinned tag in go.mod, Go rejects the inconsistency. tidy fixes it.
-            postPatch = ''
-              export GOEXPERIMENT=jsonv2
-              export HOME="$TMPDIR"
-              go mod tidy
-            '';
+            # overrideModAttrs runs go mod tidy ONLY in the go-modules FOD
+            # (which has network access), not in the main derivation (sandboxed,
+            # no network). When a local dep (e.g. cmdguard master) has newer
+            # indirect deps than the pinned tag in go.mod, Go rejects the
+            # inconsistency. tidy reconciles go.mod with the replace directives.
+            overrideModAttrs = _: {
+              postPatch = ''
+                export GOEXPERIMENT=jsonv2
+                export HOME="$TMPDIR"
+                go mod tidy
+              '';
+            };
 
             preBuild = ''
               export GOEXPERIMENT=jsonv2
