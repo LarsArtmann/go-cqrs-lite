@@ -25,8 +25,14 @@ func TestIsQuotaExceeded_PlainError_NotQuota(t *testing.T) {
 		{"network error", errors.New("connection refused")},
 		{"DNS error", errors.New("no such host")},
 		{"timeout", errors.New("i/o timeout")},
-		{"sync engine error (non-quota)", errors.New("sync engine operation failed: internal error")},
-		{"database tape error (corruption)", errors.New("database tape error: frame checksum mismatch")},
+		{
+			"sync engine error (non-quota)",
+			errors.New("sync engine operation failed: internal error"),
+		},
+		{
+			"database tape error (corruption)",
+			errors.New("database tape error: frame checksum mismatch"),
+		},
 	}
 
 	for _, tc := range cases {
@@ -49,11 +55,15 @@ func TestIsQuotaExceeded_QuotaErrors(t *testing.T) {
 	}{
 		{
 			"reads blocked (real Turso free-tier 403)",
-			errors.New(`turso: error: sync engine operation failed: database sync engine error: remote server returned an error: status=403, body={"error":"Operation was blocked: SQL read operations are forbidden (reads are blocked, do you need to upgrade your plan?)"}`),
+			errors.New(
+				`turso: error: sync engine operation failed: database sync engine error: remote server returned an error: status=403, body={"error":"Operation was blocked: SQL read operations are forbidden (reads are blocked, do you need to upgrade your plan?)"}`,
+			),
 		},
 		{
 			"writes blocked",
-			errors.New(`status=403, body={"error":"Operation was blocked: SQL write operations are forbidden (writes are blocked, do you need to upgrade your plan?)"}`),
+			errors.New(
+				`status=403, body={"error":"Operation was blocked: SQL write operations are forbidden (writes are blocked, do you need to upgrade your plan?)"}`,
+			),
 		},
 		{
 			"bare 'Operation was blocked'",
@@ -79,7 +89,9 @@ func TestIsQuotaExceeded_QuotaErrors(t *testing.T) {
 func TestIsQuotaExceeded_WrappedQuotaError(t *testing.T) {
 	t.Parallel()
 
-	raw := errors.New(`status=403, body={"error":"Operation was blocked: SQL read operations are forbidden (reads are blocked, do you need to upgrade your plan?)"}`)
+	raw := errors.New(
+		`status=403, body={"error":"Operation was blocked: SQL read operations are forbidden (reads are blocked, do you need to upgrade your plan?)"}`,
+	)
 
 	wrapped := errorfamily.WrapInfrastructure(
 		errorfamily.WrapInfrastructure(raw, "turso.create_sync_db", "NewTursoSyncDb"),
@@ -138,7 +150,9 @@ func TestWrapInfraOrOK_InfrastructureForNormalError(t *testing.T) {
 func TestWrapInfraOrOK_RejectionForQuotaError(t *testing.T) {
 	t.Parallel()
 
-	raw := errors.New(`status=403, body={"error":"Operation was blocked: SQL read operations are forbidden"}`)
+	raw := errors.New(
+		`status=403, body={"error":"Operation was blocked: SQL read operations are forbidden"}`,
+	)
 	wrapped := wrapInfraOrOK(raw, "turso.push", "push failed")
 
 	if !errors.Is(wrapped, raw) {

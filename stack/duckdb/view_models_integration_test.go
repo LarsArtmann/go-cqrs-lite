@@ -45,7 +45,11 @@ func TestDuckDB_SQLViewModel_AnalyticalQueries(t *testing.T) {
 	mapper := storage.ViewMapper[productView]{
 		Table: "products_view",
 		Columns: []storage.ViewColumn[productView]{
-			{Name: "category", Type: "VARCHAR", Extract: func(v *productView) any { return v.Category }},
+			{
+				Name:    "category",
+				Type:    "VARCHAR",
+				Extract: func(v *productView) any { return v.Category },
+			},
 			{Name: "price", Type: "DOUBLE", Extract: func(v *productView) any { return v.Price }},
 			{Name: "units", Type: "INTEGER", Extract: func(v *productView) any { return v.Units }},
 		},
@@ -80,7 +84,11 @@ func TestDuckDB_SQLViewModel_AnalyticalQueries(t *testing.T) {
 	}
 
 	for _, s := range seed {
-		if err := store.Set(ctx, s.key, &productView{Category: s.category, Price: s.price, Units: s.units}); err != nil {
+		if err := store.Set(
+			ctx,
+			s.key,
+			&productView{Category: s.category, Price: s.price, Units: s.units},
+		); err != nil {
 			t.Fatalf("Set %s: %v", s.key, err)
 		}
 	}

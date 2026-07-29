@@ -158,7 +158,10 @@ func inferColumnType(field string) string {
 // Type mapping: int*/float* → INTEGER/REAL, bool → INTEGER, string → TEXT,
 // time.Time → TEXT (ISO-8601). Everything else defaults to TEXT so JSON blobs
 // still round-trip.
-func BuildLayoutPlanFromType[R any](collection string, filterFields, sortFields []string) LayoutPlan {
+func BuildLayoutPlanFromType[R any](
+	collection string,
+	filterFields, sortFields []string,
+) LayoutPlan {
 	typeOf := reflect.TypeFor[R]()
 	fieldTypes := map[string]reflect.Type{}
 

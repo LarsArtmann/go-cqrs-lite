@@ -21,7 +21,11 @@ func TestIsInDefer(t *testing.T) {
 		{"defer ancestor suppresses", []ast.Node{&ast.DeferStmt{}}, true},
 		{"no defer does not suppress", []ast.Node{&ast.AssignStmt{}}, false},
 		{"empty stack", nil, false},
-		{"defer nested in other nodes", []ast.Node{&ast.FuncDecl{}, &ast.DeferStmt{}, &ast.BlockStmt{}}, true},
+		{
+			"defer nested in other nodes",
+			[]ast.Node{&ast.FuncDecl{}, &ast.DeferStmt{}, &ast.BlockStmt{}},
+			true,
+		},
 	}
 
 	for _, tc := range cases {
@@ -46,7 +50,11 @@ func TestIsInCleanupCallback(t *testing.T) {
 		{"func lit ancestor suppresses", []ast.Node{&ast.FuncLit{}}, true},
 		{"no func lit does not suppress", []ast.Node{&ast.AssignStmt{}}, false},
 		{"empty stack", nil, false},
-		{"func lit nested in other nodes", []ast.Node{&ast.CallExpr{}, &ast.FuncLit{}, &ast.BlockStmt{}}, true},
+		{
+			"func lit nested in other nodes",
+			[]ast.Node{&ast.CallExpr{}, &ast.FuncLit{}, &ast.BlockStmt{}},
+			true,
+		},
 	}
 
 	for _, tc := range cases {

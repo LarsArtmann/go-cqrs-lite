@@ -27,9 +27,13 @@ func TestOnTyped_BindsToExplicitEventTypeString(t *testing.T) {
 	q := metaengine.Query[onTypedInput, string](
 		"ontyped_lookup",
 		// Bind to the wire string "user.created", NOT the struct name.
-		metaengine.OnTyped("user.created", onTypedUserCreated{}, func(e onTypedUserCreated) (string, string) {
-			return e.ID, e.Name
-		}),
+		metaengine.OnTyped(
+			"user.created",
+			onTypedUserCreated{},
+			func(e onTypedUserCreated) (string, string) {
+				return e.ID, e.Name
+			},
+		),
 	)
 
 	store, err := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, q)
@@ -38,7 +42,11 @@ func TestOnTyped_BindsToExplicitEventTypeString(t *testing.T) {
 	}
 
 	// Apply uses the SAME wire string — this is the contract OnTyped enables.
-	if err := store.Apply(ctx, "user.created", onTypedUserCreated{ID: "u1", Name: "Alice"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"user.created",
+		onTypedUserCreated{ID: "u1", Name: "Alice"},
+	); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 
@@ -53,7 +61,11 @@ func TestOnTyped_BindsToExplicitEventTypeString(t *testing.T) {
 
 	// Sanity: the struct name ("onTypedUserCreated") must NOT match — proving the
 	// fold is keyed to the wire string, not the Go type name.
-	if err := store.Apply(ctx, "onTypedUserCreated", onTypedUserCreated{ID: "u2", Name: "Bob"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"onTypedUserCreated",
+		onTypedUserCreated{ID: "u2", Name: "Bob"},
+	); err != nil {
 		t.Fatalf("Apply unrelated type should be a no-op: %v", err)
 	}
 

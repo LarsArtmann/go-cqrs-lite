@@ -80,7 +80,10 @@ func TestPushdownSQL_JSONExtractReachesDB(t *testing.T) {
 	}
 
 	if strings.Contains(ddl, "Status") {
-		t.Fatalf("meta_map DDL should not declare a Status column (pushdown must use json_extract): %s", ddl)
+		t.Fatalf(
+			"meta_map DDL should not declare a Status column (pushdown must use json_extract): %s",
+			ddl,
+		)
 	}
 }
 
@@ -100,15 +103,19 @@ func TestPlannedEngine_FallbackToMetaMap(t *testing.T) {
 
 	defer func() { _ = db.Close() }()
 
-	plans := []metaengine.LayoutPlan{{
-		Collection: "tasks",
-		Table:      "meta_planned_tasks",
-		Columns: []metaengine.PlannedColumn{
-			{Name: "status", Type: "TEXT"},
-			{Name: "priority", Type: "INTEGER"},
+	plans := []metaengine.LayoutPlan{
+		{
+			Collection: "tasks",
+			Table:      "meta_planned_tasks",
+			Columns: []metaengine.PlannedColumn{
+				{Name: "status", Type: "TEXT"},
+				{Name: "priority", Type: "INTEGER"},
+			},
+			Indexes: []metaengine.PlannedIndex{
+				{Name: "idx_planned_tasks_status", Columns: []string{"status"}},
+			},
 		},
-		Indexes: []metaengine.PlannedIndex{{Name: "idx_planned_tasks_status", Columns: []string{"status"}}},
-	}}
+	}
 
 	eng, err := metaengine.NewPlannedSQLiteEngine(db, plans)
 	if err != nil {
@@ -120,12 +127,22 @@ func TestPlannedEngine_FallbackToMetaMap(t *testing.T) {
 	mb := eng.(metaengine.MapBackend)
 
 	// Planned collection → meta_planned_tasks.
-	if err := mb.MapSet(ctx, "tasks", "t1", map[string]any{"status": "open", "priority": float64(5)}); err != nil {
+	if err := mb.MapSet(
+		ctx,
+		"tasks",
+		"t1",
+		map[string]any{"status": "open", "priority": float64(5)},
+	); err != nil {
 		t.Fatalf("MapSet tasks: %v", err)
 	}
 
 	// Unplanned collection → must fall back to meta_map.
-	if err := mb.MapSet(ctx, "notes", "n1", map[string]any{"body": "hello", "status": "draft"}); err != nil {
+	if err := mb.MapSet(
+		ctx,
+		"notes",
+		"n1",
+		map[string]any{"body": "hello", "status": "draft"},
+	); err != nil {
 		t.Fatalf("MapSet notes: %v", err)
 	}
 
@@ -152,7 +169,10 @@ func TestPlannedEngine_FallbackToMetaMap(t *testing.T) {
 	}
 
 	if len(fallbackResults) != 1 {
-		t.Fatalf("fallback notes: expected 1 via meta_map json_extract, got %d", len(fallbackResults))
+		t.Fatalf(
+			"fallback notes: expected 1 via meta_map json_extract, got %d",
+			len(fallbackResults),
+		)
 	}
 
 	// The planned table physically exists; meta_map also exists for the fallback.
@@ -169,7 +189,8 @@ func tableExists(t *testing.T, db *sql.DB, name string) bool {
 	t.Helper()
 
 	var n string
-	err := db.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name=?", name).Scan(&n)
+	err := db.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name=?", name).
+		Scan(&n)
 	if err == sql.ErrNoRows {
 		return false
 	}
@@ -440,7 +461,8 @@ func TestFilterMix_DeclarativePlusClosure_FallsBack(t *testing.T) {
 	}
 
 	result, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
-		ctx, store, ListTasksByStatus{Status: "open", Limit: 100})
+		ctx, store, ListTasksByStatus{Status: "open", Limit: 100},
+	)
 	if err != nil {
 		t.Fatalf("ExecuteTyped: %v", err)
 	}
@@ -500,7 +522,8 @@ func TestReplay_10KEvents(t *testing.T) {
 
 	// Scan all open tasks (sorted by priority ascending). Half are open.
 	result, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
-		ctx, store, ListTasksByStatus{Status: "open", Limit: total})
+		ctx, store, ListTasksByStatus{Status: "open", Limit: total},
+	)
 	if err != nil {
 		t.Fatalf("ExecuteTyped: %v", err)
 	}

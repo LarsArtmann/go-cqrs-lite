@@ -1,10 +1,10 @@
 # ADR-0073: Metaengine Layout Planning (deployment-time DDL)
 
-|             |                                                                               |
-| ----------- | ----------------------------------------------------------------------------- |
-| **Status**  | Accepted                                                                      |
-| **Date**    | 2026-07-29                                                                    |
-| **Context** | json_extract pushdown still scans every row; no secondary index is used       |
+|             |                                                                         |
+| ----------- | ----------------------------------------------------------------------- |
+| **Status**  | Accepted                                                                |
+| **Date**    | 2026-07-29                                                              |
+| **Context** | json_extract pushdown still scans every row; no secondary index is used |
 
 ## Context
 

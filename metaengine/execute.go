@@ -266,6 +266,7 @@ func buildFilterPredicates(q queryRuntime, input any) []filterPredicate {
 			}
 
 			col := acc.spec.Column
+
 			predicates = append(predicates, filterPredicate{
 				expected: expected,
 				test: func(item any) bool {

@@ -1,10 +1,10 @@
 # ADR-0072: Metaengine Pushdown (json_extract SQL pushdown)
 
-|             |                                                                               |
-| ----------- | ----------------------------------------------------------------------------- |
-| **Status**  | Accepted                                                                      |
-| **Date**    | 2026-07-29                                                                    |
-| **Context** | Filtered/sorted scans on the SQLite metaengine loaded every row into Go       |
+|             |                                                                         |
+| ----------- | ----------------------------------------------------------------------- |
+| **Status**  | Accepted                                                                |
+| **Date**    | 2026-07-29                                                              |
+| **Context** | Filtered/sorted scans on the SQLite metaengine loaded every row into Go |
 
 ## Context
 

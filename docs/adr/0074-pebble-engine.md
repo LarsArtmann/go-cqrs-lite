@@ -1,10 +1,10 @@
 # ADR-0074: Pebble Metaengine (cost profile & the slices.Backward lesson)
 
-|             |                                                                               |
-| ----------- | ----------------------------------------------------------------------------- |
-| **Status**  | Accepted                                                                      |
-| **Date**    | 2026-07-29                                                                    |
-| **Context** | The metaengine needs a third engine with a genuinely different cost profile   |
+|             |                                                                             |
+| ----------- | --------------------------------------------------------------------------- |
+| **Status**  | Accepted                                                                    |
+| **Date**    | 2026-07-29                                                                  |
+| **Context** | The metaengine needs a third engine with a genuinely different cost profile |
 
 ## Context
 
@@ -51,6 +51,7 @@ the broken form mid-session, and a status report claimed GREEN on stale
 evidence.
 
 Fixes:
+
 1. Direct index access: `for i := len(result)-1; i >= 0; i-- { result[i]++ ... }`.
 2. A pure-function regression test (`nextkey_test.go`) pins the helper.
 3. `MapUpdate`'s read-modify-write is guarded by the engine mutex (atomicity

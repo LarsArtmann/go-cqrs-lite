@@ -18,7 +18,8 @@ func TestBuildLayoutPlanFromType_InfersColumnTypes(t *testing.T) {
 	t.Parallel()
 
 	plan := metaengine.BuildLayoutPlanFromType[layoutSample](
-		"tasks", []string{"status", "priority"}, []string{"score", "name"})
+		"tasks", []string{"status", "priority"}, []string{"score", "name"},
+	)
 
 	got := map[string]string{}
 	for _, c := range plan.Columns {
@@ -49,7 +50,8 @@ func TestBuildLayoutPlanFromType_FallsBackToTextForUnknown(t *testing.T) {
 
 	// "unknown" is not a field on layoutSample → name heuristic → TEXT.
 	plan := metaengine.BuildLayoutPlanFromType[layoutSample](
-		"tasks", []string{"unknown"}, nil)
+		"tasks", []string{"unknown"}, nil,
+	)
 
 	if len(plan.Columns) != 1 || plan.Columns[0].Type != "TEXT" {
 		t.Fatalf("unknown field should fall back to TEXT, got %+v", plan.Columns)
