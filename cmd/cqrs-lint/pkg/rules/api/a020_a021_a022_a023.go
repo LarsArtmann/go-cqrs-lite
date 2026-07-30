@@ -15,10 +15,10 @@ import (
 // typeMethodMap maps a receiver type name to its method names and the
 // position of the first method encountered (for reporting).
 type typeMethodMap struct {
-	methods  map[string]bool
-	file     string
-	line     int
-	col      int
+	methods map[string]bool
+	file    string
+	line    int
+	col     int
 }
 
 // collectMethodsByType scans all non-test Go files and returns a map of
@@ -175,7 +175,8 @@ func NewA021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			for typeName, entry := range methodsByType {
-				if !entry.methods["Save"] || !entry.methods["Load"] || !entry.methods["LoadFromVersion"] {
+				if !entry.methods["Save"] || !entry.methods["Load"] ||
+					!entry.methods["LoadFromVersion"] {
 					continue
 				}
 
@@ -253,7 +254,8 @@ func NewA022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						"A022", toolName,
 						fmt.Sprintf(
 							"Raw otel.%s() — use cqrsotel.New%s instead for CQRS-specific span names and views",
-							sel.Sel.Name, sel.Sel.Name,
+							sel.Sel.Name,
+							sel.Sel.Name,
 						),
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

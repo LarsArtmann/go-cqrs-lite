@@ -51,8 +51,10 @@ func handle(evt event.Event) error {
 	}
 
 	if d006ErrorfCount != 0 {
-		t.Errorf("D006 should not report fmt.Errorf in CQRS files (deferred to C025), got %d D006 findings",
-			d006ErrorfCount)
+		t.Errorf(
+			"D006 should not report fmt.Errorf in CQRS files (deferred to C025), got %d D006 findings",
+			d006ErrorfCount,
+		)
 		for _, f := range d006Findings {
 			t.Logf("  D006: %s", f.Message)
 		}

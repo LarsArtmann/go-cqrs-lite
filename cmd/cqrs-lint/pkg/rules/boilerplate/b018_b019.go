@@ -27,9 +27,9 @@ func NewB018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 
 				type subscribeCall struct {
-					file   string
-					line   int
-					col    int
+					file    string
+					line    int
+					col     int
 					handler ast.Expr
 				}
 
@@ -93,7 +93,7 @@ func NewB018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
-					WithSuggestion("Define a []struct{Type string; Handler func(...)} slice and loop over it "+
+					WithSuggestion("Define a []struct{Type string; Handler func(...)} slice and loop over it " +
 						"calling bus.Subscribe for each entry").
 					WithSnippet(ctx.SourceLine(s.file, s.line)).
 					Build()
@@ -208,7 +208,7 @@ func NewB019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceHigh).
 							WithFixStrategy(finding.FixStrategySuggest).
-							WithSuggestion("Project directly from event payloads — use the event data, "+
+							WithSuggestion("Project directly from event payloads — use the event data, " +
 								"don't re-load the aggregate state per event").
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()

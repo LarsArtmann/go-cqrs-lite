@@ -89,7 +89,7 @@ func NewB022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceMedium).
 							WithFixStrategy(finding.FixStrategySuggest).
-							WithSuggestion("Replace the custom enricher with decider.CommandCausalityEnricher — "+
+							WithSuggestion("Replace the custom enricher with decider.CommandCausalityEnricher — " +
 								"it stamps metadata.command.type and metadata.command.id on every event").
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
@@ -178,7 +178,7 @@ func NewB025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceLow).
 						WithFixStrategy(finding.FixStrategySuggest).
-						WithSuggestion("Add decider.WithStateCache(decider.NewStateCache[State](256)) to "+
+						WithSuggestion("Add decider.WithStateCache(decider.NewStateCache[State](256)) to " +
 							"NewRepository options for incremental event loading on hot streams").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()

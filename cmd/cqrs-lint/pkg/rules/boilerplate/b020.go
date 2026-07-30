@@ -71,7 +71,14 @@ func NewB020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return false
 			}
 
-			decodeNames := []string{"decode", "unmarshal", "adapt", "migrate", "fromlegacy", "fromrow"}
+			decodeNames := []string{
+				"decode",
+				"unmarshal",
+				"adapt",
+				"migrate",
+				"fromlegacy",
+				"fromrow",
+			}
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -116,7 +123,8 @@ func NewB020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							sel, ok := analyzer.SelectorFromExpr(call.Fun)
 							if ok {
 								name := sel.Sel.Name
-								if name == "Unmarshal" || name == "Decode" || name == "UnmarshalJSON" {
+								if name == "Unmarshal" || name == "Decode" ||
+									name == "UnmarshalJSON" {
 									hasUnmarshal = true
 								}
 							}
@@ -151,7 +159,7 @@ func NewB020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
-						WithSuggestion("Use schema.NewUpcaster(eventName, fromVersion, func(evt) (*ImmutableEvent, error) {...}) "+
+						WithSuggestion("Use schema.NewUpcaster(eventName, fromVersion, func(evt) (*ImmutableEvent, error) {...}) " +
 							"with schema.VersionedStore for type-safe, versioned upcasting").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()

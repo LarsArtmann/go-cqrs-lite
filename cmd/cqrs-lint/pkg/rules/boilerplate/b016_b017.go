@@ -36,7 +36,8 @@ func NewB016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					// Detect SQL string literals mentioning checkpoint/projection_offset tables.
 					if lit, ok := n.(*ast.BasicLit); ok && lit.Kind == token.STRING {
 						val := strings.ToLower(lit.Value)
-						if strings.Contains(val, "checkpoint") || strings.Contains(val, "projection_offset") {
+						if strings.Contains(val, "checkpoint") ||
+							strings.Contains(val, "projection_offset") {
 							if strings.Contains(val, "create table") {
 								hasCheckpointTable = true
 								if reportPos == nil {
@@ -76,7 +77,7 @@ func NewB016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
-						WithSuggestion("Replace manual checkpoint logic with projectionhost.New(journal, cpStore) — "+
+						WithSuggestion("Replace manual checkpoint logic with projectionhost.New(journal, cpStore) — " +
 							"it handles checkpoint persistence, replay, and crash-restart automatically").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
@@ -160,7 +161,7 @@ func NewB017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
 						WithFixStrategy(finding.FixStrategySuggest).
-						WithSuggestion("Use projectionhost.Host with a checkpoint store — "+
+						WithSuggestion("Use projectionhost.Host with a checkpoint store — " +
 							"it replays only new events on restart instead of rebuilding everything").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
