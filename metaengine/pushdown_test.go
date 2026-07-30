@@ -3,7 +3,6 @@ package metaengine_test
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -221,27 +220,9 @@ var _ = Describe("PushdownScan", func() {
 	})
 
 	Describe("Pushdown via Store API (FilterOnField + SortOnField)", func() {
-		BeforeEach(func() {
-			mb := eng.(metaengine.MapBackend)
-			now := time.Now()
-			tasks := []struct {
-				key   string
-				value FindTaskResult
-			}{
-				{"t1", FindTaskResult{ID: "t1", Title: "A", Status: "open", Priority: 3}},
-				{"t2", FindTaskResult{ID: "t2", Title: "B", Status: "open", Priority: 1}},
-				{"t3", FindTaskResult{ID: "t3", Title: "C", Status: "done", Priority: 2}},
-				{"t4", FindTaskResult{ID: "t4", Title: "D", Status: "open", Priority: 5}},
-				{"t5", FindTaskResult{ID: "t5", Title: "E", Status: "done", Priority: 4}},
-			}
-			for _, t := range tasks {
-				Expect(mb.MapSet(ctx, "pd_tasks", t.key, t.value)).To(Succeed())
-			}
-			_ = now
-		})
-
 		It("produces same results as closure-based filtering", func() {
-			// Declarative query (pushdown).
+			// Declarative query (pushdown). Auto-layout (LayoutPlanner) is
+			// applied by Plan() — no need for manual NewPlannedSQLiteEngine.
 			pdQuery := metaengine.Query[ListTasksByStatus, ListTasksByStatusResult](
 				"pd_tasks",
 				metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
@@ -258,9 +239,18 @@ var _ = Describe("PushdownScan", func() {
 			Expect(err).NotTo(HaveOccurred())
 			defer pdStore.Close()
 
-			// Rename the collection to match the populated data.
-			// Actually, the query name IS the collection name. Let me use the
-			// same name. But the data was stored under "pd_tasks" which matches.
+			// Populate data through Apply (Plan → Apply → Execute flow).
+			// Auto-layout routes writes to the planned table.
+			tasks := []TaskCreated{
+				{ID: "t1", Title: "A", Status: "open", Priority: 3},
+				{ID: "t2", Title: "B", Status: "open", Priority: 1},
+				{ID: "t3", Title: "C", Status: "done", Priority: 2},
+				{ID: "t4", Title: "D", Status: "open", Priority: 5},
+				{ID: "t5", Title: "E", Status: "done", Priority: 4},
+			}
+			for _, t := range tasks {
+				Expect(pdStore.Apply(ctx, "TaskCreated", t)).To(Succeed())
+			}
 
 			pdResult, err := metaengine.ExecuteTyped[ListTasksByStatus, ListTasksByStatusResult](
 				ctx, pdStore, ListTasksByStatus{Status: "open", Limit: 10},

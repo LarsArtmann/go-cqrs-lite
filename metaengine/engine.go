@@ -156,6 +156,15 @@ type StreamingScan interface {
 	) iter.Seq2[any, error]
 }
 
+// LayoutPlanner is an optional capability: engines that can create optimized
+// table layouts (extracted columns + indexes) for declared filter/sort fields
+// implement this interface. Plan() calls ApplyLayout automatically when a query
+// uses FilterOnField/SortOnField and the assigned engine implements this
+// interface, eliminating the need for manual NewPlannedSQLiteEngine setup.
+type LayoutPlanner interface {
+	ApplyLayout(collection string, filterFields, sortFields []string) error
+}
+
 type SetBackend interface {
 	SetAdd(ctx context.Context, collection string, key any) error
 	SetContains(ctx context.Context, collection string, key any) (bool, error)

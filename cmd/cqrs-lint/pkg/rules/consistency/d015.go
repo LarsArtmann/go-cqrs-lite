@@ -3,12 +3,11 @@ package consistency
 import (
 	"context"
 	"go/ast"
-	"strings"
 
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lint/pkg/rules/lintutil"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // D015: Nullable pointer fields in event payloads.
@@ -47,21 +46,18 @@ func NewD015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							continue
 						}
 
-						if _, ok := field.Type.(*ast.StarExpr); !ok {
+						starExpr, ok := field.Type.(*ast.StarExpr)
+						if !ok {
 							continue
 						}
 
-						// Skip pointer-to-struct (nested events are OK).
-						if sel, ok := field.Type.(*ast.StarExpr).X.(*ast.SelectorExpr); ok {
-							_ = sel
-							continue
-						}
-						if _, ok := field.Type.(*ast.StarExpr).X.(*ast.Ident); ok {
-							// Only flag primitive-type pointers (*string, *int, etc.)
-							ident := field.Type.(*ast.StarExpr).X.(*ast.Ident)
+						// Only flag primitive-type pointers (*string, *int, etc.)
+						if ident, ok := starExpr.X.(*ast.Ident); ok {
 							if !isPrimitiveType(ident.Name) {
 								continue
 							}
+						} else {
+							continue
 						}
 
 						pos := ctx.Fset.Position(field.Pos())
@@ -100,5 +96,3 @@ func isPrimitiveType(name string) bool {
 		return false
 	}
 }
-
-var _ = strings.TrimSpace // keep import for future use

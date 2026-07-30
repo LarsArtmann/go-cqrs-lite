@@ -99,16 +99,24 @@ func scanJSONValues(ctx context.Context, db *sql.DB, query string, args ...any) 
 			return nil, err //nolint:wrapcheck // passthrough
 		}
 
-		var val any
-
-		if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
-			val = valStr
-		}
-
-		out = append(out, val)
+			out = append(out, decodeJSONValue(valStr))
 	}
 
 	return out, rows.Err() //nolint:wrapcheck // passthrough
+}
+
+// decodeJSONValue unmarshals a JSON string into an any. If the string is not
+// valid JSON, it returns the raw string. Centralised so every SQLite read path
+// (MapGet, MapScan, scanJSONValues, planned reads) uses the same decode-fallback
+// contract.
+func decodeJSONValue(valStr string) any {
+	var val any
+
+	if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
+		return valStr
+	}
+
+	return val
 }
 
 // --- MultimapBackend ---

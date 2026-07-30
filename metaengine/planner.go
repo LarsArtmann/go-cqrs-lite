@@ -74,6 +74,20 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 			return nil, fmt.Errorf("metaengine.Plan: %w", err)
 		}
 
+		// Auto-apply layout planning: if the assigned engine supports layout
+		// planning (LayoutPlanner) and the query declares filter/sort fields
+		// via FilterOnField/SortOnField, generate and apply a LayoutPlan
+		// automatically. This eliminates the need for manual
+		// NewPlannedSQLiteEngine setup (ADR-0073 consequence).
+		if lp, ok := runtime.engine.(LayoutPlanner); ok {
+			filterFields, sortFields := extractDeclarativeFields(meta.QueryConfig())
+			if len(filterFields) > 0 || len(sortFields) > 0 {
+				if err := lp.ApplyLayout(runtime.name, filterFields, sortFields); err != nil {
+					return nil, fmt.Errorf("metaengine.Plan: auto-layout for %q: %w", runtime.name, err)
+				}
+			}
+		}
+
 		store.queries[runtime.name] = runtime
 		store.byInputType[runtime.inputTypeName] = runtime.name
 

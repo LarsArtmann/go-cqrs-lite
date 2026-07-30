@@ -9,58 +9,73 @@ import (
 	"strings"
 )
 
-// plannedSQLiteEngine extends sqliteEngine with layout-planned tables.
-// Instead of storing all data in meta_map with json_extract() scans,
-// it creates dedicated tables with extracted columns and indexes.
-//
-// This is the Level 2 optimization: within-engine layout planning.
-// The planned table enables the SQLite query planner to use B-tree indexes
-// for WHERE/ORDER BY, achieving true O(logN + k) instead of O(N) for
-// filtered scans.
-type plannedSQLiteEngine struct {
-	*sqliteEngine
-
-	plans map[string]LayoutPlan // collection → layout plan
-}
-
 // NewPlannedSQLiteEngine creates a SQLite engine with layout-planned tables
 // for the given collections. Collections without a plan fall back to the
 // standard meta_map table.
+//
+// As of ADR-0073 update, Plan() auto-applies layouts for queries using
+// FilterOnField/SortOnField — manual NewPlannedSQLiteEngine is only needed
+// when you want explicit control over the LayoutPlan (e.g., custom column types
+// via BuildLayoutPlanFromType[R]).
 func NewPlannedSQLiteEngine(database *sql.DB, plans []LayoutPlan) (Engine, error) {
-	base, err := NewSQLiteEngine(database)
+	eng, err := NewSQLiteEngine(database)
 	if err != nil {
 		return nil, err
 	}
 
-	eng := &plannedSQLiteEngine{
-		sqliteEngine: base.(*sqliteEngine),
-		plans:        make(map[string]LayoutPlan),
-	}
+	sqlEng := eng.(*sqliteEngine)
 
 	for _, plan := range plans {
-		// Create the planned table + indexes.
-		if _, err := database.ExecContext(context.Background(), plan.DDL()); err != nil {
+		if err := sqlEng.registerLayout(plan); err != nil {
 			return nil, fmt.Errorf("planned engine: create table %s: %w", plan.Table, err)
 		}
-
-		eng.plans[plan.Collection] = plan
 	}
 
-	return eng, nil
+	return sqlEng, nil
 }
 
-// MapSet overrides the base implementation to populate extracted columns.
-func (e *plannedSQLiteEngine) MapSet(ctx context.Context, col string, key any, value any) error {
-	plan, hasPlan := e.plans[col]
-	if !hasPlan {
-		return e.sqliteEngine.MapSet(ctx, col, key, value)
+// ApplyLayout implements LayoutPlanner. It auto-generates a LayoutPlan from
+// the declared filter/sort field names and registers it on this engine. Called
+// automatically by Plan() for queries that use FilterOnField/SortOnField.
+func (e *sqliteEngine) ApplyLayout(collection string, filterFields, sortFields []string) error {
+	if e.plans == nil {
+		e.plans = make(map[string]LayoutPlan)
 	}
 
-	// Extract field values from the JSON value.
+	if _, exists := e.plans[collection]; exists {
+		return nil // already planned (idempotent)
+	}
+
+	plan := BuildLayoutPlan(collection, filterFields, sortFields)
+
+	if err := e.registerLayout(plan); err != nil {
+		return fmt.Errorf("apply layout %q: %w", collection, err)
+	}
+
+	return nil
+}
+
+// registerLayout creates the planned table + indexes and stores the plan.
+func (e *sqliteEngine) registerLayout(plan LayoutPlan) error {
+	if _, err := e.db.ExecContext(context.Background(), plan.DDL()); err != nil {
+		return err //nolint:wrapcheck // passthrough
+	}
+
+	if e.plans == nil {
+		e.plans = make(map[string]LayoutPlan)
+	}
+
+	e.plans[plan.Collection] = plan
+
+	return nil
+}
+
+// --- Planned table helpers (used when a collection has a LayoutPlan) ---
+
+func (e *sqliteEngine) mapSetPlanned(ctx context.Context, plan LayoutPlan, key any, value any) error {
 	valueJSON := encodeValue(value)
 	extracted := extractFields(value, plan.Columns)
 
-	// Build INSERT with extracted columns.
 	colNames := []string{"key", "value"}
 	args := []any{encodeKey(key), valueJSON}
 
@@ -82,13 +97,7 @@ func (e *plannedSQLiteEngine) MapSet(ctx context.Context, col string, key any, v
 	return err //nolint:wrapcheck // passthrough
 }
 
-// MapGet overrides to read from the planned table.
-func (e *plannedSQLiteEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
-	plan, hasPlan := e.plans[col]
-	if !hasPlan {
-		return e.sqliteEngine.MapGet(ctx, col, key)
-	}
-
+func (e *sqliteEngine) mapGetPlanned(ctx context.Context, plan LayoutPlan, key any) (any, bool, error) {
 	var valStr string
 
 	err := e.db.QueryRowContext(ctx,
@@ -102,50 +111,23 @@ func (e *plannedSQLiteEngine) MapGet(ctx context.Context, col string, key any) (
 		return nil, false, err //nolint:wrapcheck // passthrough
 	}
 
-	var val any
-
-	if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
-		val = valStr
-	}
-
-	return val, true, nil
+	return decodeJSONValue(valStr), true, nil
 }
 
-// MapDelete overrides to delete from the planned table.
-func (e *plannedSQLiteEngine) MapDelete(ctx context.Context, col string, key any) error {
-	plan, hasPlan := e.plans[col]
-	if !hasPlan {
-		return e.sqliteEngine.MapDelete(ctx, col, key)
-	}
-
-	_, err := e.db.ExecContext(ctx,
-		fmt.Sprintf("DELETE FROM %s WHERE key = ?", plan.Table),
-		encodeKey(key))
-
-	return err //nolint:wrapcheck // passthrough
-}
-
-// PushdownMapScan overrides to use indexed columns instead of json_extract.
-func (e *plannedSQLiteEngine) PushdownMapScan(
+func (e *sqliteEngine) pushdownMapScanPlanned(
 	ctx context.Context,
-	col string,
+	plan LayoutPlan,
 	filters []FilterSpec,
 	sort *SortSpec,
 	cursor any,
 	limit int,
 ) ([]any, error) {
-	plan, hasPlan := e.plans[col]
-	if !hasPlan {
-		return e.sqliteEngine.PushdownMapScan(ctx, col, filters, sort, cursor, limit)
-	}
-
 	var b strings.Builder
 
 	args := []any{}
 
 	fmt.Fprintf(&b, "SELECT value FROM %s", plan.Table)
 
-	// Push filters using direct column references (not json_extract).
 	for i, f := range filters {
 		if i == 0 {
 			b.WriteString(" WHERE ")
@@ -157,7 +139,6 @@ func (e *plannedSQLiteEngine) PushdownMapScan(
 		args = append(args, f.Value)
 	}
 
-	// Push cursor using direct column reference.
 	if sort != nil && cursor != nil {
 		if len(filters) == 0 {
 			b.WriteString(" WHERE ")
@@ -171,11 +152,9 @@ func (e *plannedSQLiteEngine) PushdownMapScan(
 		}
 
 		fmt.Fprintf(&b, "%s %s ?", sort.Column, op)
-
 		args = append(args, cursor)
 	}
 
-	// Push sort using direct column reference.
 	if sort != nil {
 		fmt.Fprintf(&b, " ORDER BY %s", sort.Column)
 
@@ -184,10 +163,8 @@ func (e *plannedSQLiteEngine) PushdownMapScan(
 		}
 	}
 
-	// Push limit.
 	if limit > 0 {
 		b.WriteString(" LIMIT ?")
-
 		args = append(args, limit+1)
 	}
 
@@ -199,13 +176,11 @@ func (e *plannedSQLiteEngine) PushdownMapScan(
 func extractFields(value any, columns []PlannedColumn) map[string]any {
 	result := make(map[string]any, len(columns))
 
-	// Try map[string]any first (JSON-decoded values).
 	if m, ok := value.(map[string]any); ok {
 		for _, c := range columns {
 			for k, v := range m {
 				if strings.EqualFold(k, c.Name) {
 					result[c.Name] = v
-
 					break
 				}
 			}
@@ -214,7 +189,6 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 		return result
 	}
 
-	// Fallback: JSON round-trip to map[string]any.
 	b, err := json.Marshal(value)
 	if err != nil {
 		return result
@@ -229,7 +203,6 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 		for k, v := range m {
 			if strings.EqualFold(k, c.Name) {
 				result[c.Name] = v
-
 				break
 			}
 		}
@@ -237,6 +210,3 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 
 	return result
 }
-
-// Compile-time assertion.
-var _ Engine = (*plannedSQLiteEngine)(nil)

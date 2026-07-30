@@ -21,6 +21,10 @@ type sqliteEngine struct {
 	// seq counters for multimap and log (SQLite AUTOINCREMENT handles log).
 	// Lazily seeded from MAX(seq) on first use — see multiSeqCounter.
 	multiSeq sync.Map // collection→*multiSeqCounter
+	// plans maps collection → LayoutPlan for layout-planned tables.
+	// Populated by ApplyLayout (called by Plan() for queries with
+	// FilterOnField/SortOnField, or by NewPlannedSQLiteEngine).
+	plans map[string]LayoutPlan
 }
 
 // sqliteQuerySet holds pre-built SQL strings for each operation.
@@ -134,12 +138,20 @@ func encodeJSON(v any) string {
 // --- MapBackend ---
 
 func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value any) error {
+	if plan, ok := e.plans[col]; ok {
+		return e.mapSetPlanned(ctx, plan, key, value)
+	}
+
 	_, err := e.db.ExecContext(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(value))
 
 	return err //nolint:wrapcheck // passthrough
 }
 
 func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
+	if plan, ok := e.plans[col]; ok {
+		return e.mapGetPlanned(ctx, plan, key)
+	}
+
 	var valStr string
 
 	err := e.db.QueryRowContext(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
@@ -151,16 +163,17 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 		return nil, false, err //nolint:wrapcheck // passthrough
 	}
 
-	var val any
-
-	if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
-		val = valStr
-	}
-
-	return val, true, nil
+	return decodeJSONValue(valStr), true, nil
 }
 
 func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error {
+	if plan, ok := e.plans[col]; ok {
+		_, err := e.db.ExecContext(ctx,
+			fmt.Sprintf("DELETE FROM %s WHERE key = ?", plan.Table),
+			encodeKey(key))
+		return err //nolint:wrapcheck // passthrough
+	}
+
 	_, err := e.db.ExecContext(ctx, e.queries.mapDelete, col, encodeKey(key))
 
 	return err //nolint:wrapcheck // passthrough
@@ -194,9 +207,7 @@ func (e *sqliteEngine) MapUpdate(
 	var prev any
 
 	if queryErr == nil {
-		if jErr := json.Unmarshal([]byte(valStr), &prev); jErr != nil {
-			prev = valStr
-		}
+		prev = decodeJSONValue(valStr)
 	} else if !errors.Is(queryErr, sql.ErrNoRows) {
 		return queryErr //nolint:wrapcheck // passthrough
 	}
@@ -226,7 +237,18 @@ func (e *sqliteEngine) MapScan(
 	cursor any,
 	limit int,
 ) ([]any, error) {
-	rows, err := e.db.QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
+	// Planned collections store rows in a dedicated table; MapScan (the
+	// closure-based fallback) must read from it, not meta_map.
+	var rows *sql.Rows
+
+	var err error
+
+	if plan, ok := e.plans[col]; ok {
+		rows, err = e.db.QueryContext(ctx, fmt.Sprintf("SELECT value FROM %s", plan.Table))
+	} else {
+		rows, err = e.db.QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
+	}
+
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -247,11 +269,7 @@ func (e *sqliteEngine) MapScan(
 			return nil, err //nolint:wrapcheck // passthrough
 		}
 
-		var val any
-
-		if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
-			val = valStr
-		}
+		val := decodeJSONValue(valStr)
 
 		if filterFn != nil && !filterFn(val) {
 			continue
@@ -320,6 +338,10 @@ func (e *sqliteEngine) PushdownMapScan(
 	cursor any,
 	limit int,
 ) ([]any, error) {
+	if plan, ok := e.plans[col]; ok {
+		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
+	}
+
 	var b strings.Builder
 
 	args := []any{col}
@@ -388,9 +410,10 @@ func jsonPath(field string) string {
 
 // --- StreamingScan ---
 
-// StreamScan returns an iterator over collection rows, applying filter and
-// sort pushdown via json_extract. Each row is decoded lazily — no materialization
-// of the full result set. This prevents OOM for large collections.
+// StreamScan returns an iterator over collection rows, applying filter and sort
+// pushdown. Planned collections use indexed column references; standard ones use
+// json_extract. Each row is decoded lazily — no materialization of the full
+// result set. This prevents OOM for large collections.
 func (e *sqliteEngine) StreamScan(
 	ctx context.Context,
 	col string,
@@ -398,38 +421,9 @@ func (e *sqliteEngine) StreamScan(
 	sort *SortSpec,
 ) iter.Seq2[any, error] {
 	return func(yield func(any, error) bool) {
-		var b strings.Builder
+		query, args := e.buildStreamQuery(col, filters, sort)
 
-		args := make([]any, 0, 1+len(filters))
-		args = append(args, col)
-
-		b.WriteString(`SELECT value FROM meta_map WHERE collection = ?`)
-
-		for _, f := range filters {
-			path := jsonPath(f.Column)
-
-			b.WriteString(` AND json_extract(value, '`)
-			b.WriteString(path)
-			b.WriteString(`') `)
-			b.WriteString(string(f.Op))
-			b.WriteString(` ?`)
-
-			args = append(args, f.Value)
-		}
-
-		if sort != nil {
-			path := jsonPath(sort.Column)
-
-			b.WriteString(` ORDER BY json_extract(value, '`)
-			b.WriteString(path)
-			b.WriteString(`')`)
-
-			if sort.Desc {
-				b.WriteString(` DESC`)
-			}
-		}
-
-		rows, err := e.db.QueryContext(ctx, b.String(), args...)
+		rows, err := e.db.QueryContext(ctx, query, args...)
 		if err != nil {
 			yield(nil, err)
 
@@ -447,12 +441,7 @@ func (e *sqliteEngine) StreamScan(
 				return
 			}
 
-			var val any
-			if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
-				val = valStr
-			}
-
-			if !yield(val, nil) {
+			if !yield(decodeJSONValue(valStr), nil) {
 				return
 			}
 		}
@@ -463,6 +452,74 @@ func (e *sqliteEngine) StreamScan(
 	}
 }
 
+// buildStreamQuery constructs the SELECT statement for StreamScan, using direct
+// column references for planned collections and json_extract for standard ones.
+func (e *sqliteEngine) buildStreamQuery(
+	col string,
+	filters []FilterSpec,
+	sort *SortSpec,
+) (string, []any) {
+	var b strings.Builder
+
+	if plan, ok := e.plans[col]; ok {
+		fmt.Fprintf(&b, "SELECT value FROM %s", plan.Table)
+
+		args := []any{}
+
+		for i, f := range filters {
+			if i == 0 {
+				b.WriteString(" WHERE ")
+			} else {
+				b.WriteString(" AND ")
+			}
+
+			fmt.Fprintf(&b, "%s %s ?", f.Column, string(f.Op))
+			args = append(args, f.Value)
+		}
+
+		if sort != nil {
+			fmt.Fprintf(&b, " ORDER BY %s", sort.Column)
+
+			if sort.Desc {
+				b.WriteString(" DESC")
+			}
+		}
+
+		return b.String(), args
+	}
+
+	args := make([]any, 0, 1+len(filters))
+	args = append(args, col)
+
+	b.WriteString(`SELECT value FROM meta_map WHERE collection = ?`)
+
+	for _, f := range filters {
+		path := jsonPath(f.Column)
+
+		b.WriteString(` AND json_extract(value, '`)
+		b.WriteString(path)
+		b.WriteString(`') `)
+		b.WriteString(string(f.Op))
+		b.WriteString(` ?`)
+
+		args = append(args, f.Value)
+	}
+
+	if sort != nil {
+		path := jsonPath(sort.Column)
+
+		b.WriteString(` ORDER BY json_extract(value, '`)
+		b.WriteString(path)
+		b.WriteString(`')`)
+
+		if sort.Desc {
+			b.WriteString(` DESC`)
+		}
+	}
+
+	return b.String(), args
+}
+
 // Compile-time assertions.
 var (
 	_ Engine          = (*sqliteEngine)(nil)
@@ -471,6 +528,7 @@ var (
 	_ ScanBackend     = (*sqliteEngine)(nil)
 	_ PushdownScan    = (*sqliteEngine)(nil)
 	_ StreamingScan   = (*sqliteEngine)(nil)
+	_ LayoutPlanner   = (*sqliteEngine)(nil)
 	_ SetBackend      = (*sqliteEngine)(nil)
 	_ CounterBackend  = (*sqliteEngine)(nil)
 	_ GraphBackend    = (*sqliteEngine)(nil)

@@ -322,6 +322,15 @@ func performanceRules() []RuleInfo {
 			Description: "Read model with map field without size limit — grows unboundedly, risk of OOM",
 			AutoFix:     false,
 		},
+		{
+			ID:          "P012",
+			Name:        "missing-sqlite-wal",
+			Category:    "performance",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "SQLite store without WAL mode — prone to 'database is locked' errors under concurrent access",
+			AutoFix:     false,
+		},
 	}
 }
 
@@ -501,6 +510,15 @@ func consistencyRules() []RuleInfo {
 			Severity:    "info",
 			Confidence:  "medium",
 			Description: "Event payload struct without json tags — Go field names used in JSON encoding",
+			AutoFix:     false,
+		},
+		{
+			ID:          "D015",
+			Name:        "nullable-payload-fields",
+			Category:    "consistency",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Nullable pointer fields in event payloads — nil-dereference panic risk on decode",
 			AutoFix:     false,
 		},
 	}
@@ -736,6 +754,15 @@ func securityRules() []RuleInfo { //nolint:dupl // catalog entries are structura
 			Severity:    "error",
 			Confidence:  "high",
 			Description: "EncryptMiddleware without DecryptMiddleware (or vice versa) — encrypted events break consumers",
+			AutoFix:     false,
+		},
+		{
+			ID:          "S010",
+			Name:        "encryption-signing-mismatch",
+			Category:    "security",
+			Severity:    "error",
+			Confidence:  "medium",
+			Description: "Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext",
 			AutoFix:     false,
 		},
 	}

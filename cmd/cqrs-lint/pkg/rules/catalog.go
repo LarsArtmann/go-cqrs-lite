@@ -340,6 +340,15 @@ func correctnessRules() []RuleInfo {
 			Description: "Bare return err from CQRS call — wrap with context for debuggability",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C034",
+			Name:        "goroutine-without-ctx",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "go func() without ctx — goroutine outlives parent handler, resource leak on shutdown",
+			AutoFix:     false,
+		},
 	}
 }
 

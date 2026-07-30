@@ -2,7 +2,7 @@
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **167 rules** (C001-C033, A001-A027+A029+A030+A032, B001-B028, D001-D003+D005-D014, E001-E017, S001-S003+S005-S009, P001+P006-P011, V001-V006, T001-T008, F001-F017).
+> The current linter has **171 rules** (C001-C034, A001-A027+A029+A030+A032, B001-B028, D001-D003+D005-D014, E001-E017, S001-S003+S005-S010, P001+P006-P011, V001-V006, T001-T008, F001-F017).
 >
 > **191 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
@@ -404,7 +404,7 @@
 
 ### Cross-module rules
 
-142. **Detect encryption/signing mismatch** — If the event bus has encryption middleware but the event store doesn't (or vice versa), events are stored in cleartext but transmitted encrypted (or vice versa). Cross-check bus middleware vs store wrapper.
+142. ~~**Detect encryption/signing mismatch** — If the event bus has encryption middleware but the event store doesn't (or vice versa), events are stored in cleartext but transmitted encrypted (or vice versa). Cross-check bus middleware vs store wrapper.~~ **done** — S010 detects bus encryption/signing without store wrapper
 
 143. **Detect snapshot codec / event codec mismatch** — If events use CBOR but snapshots use JSON (or vice versa), there's an inconsistency that could cause decode failures on recovery. Detect: `codec.CBORCodec{}` for events but `codec.JSONCodec{}` for snapshots.
 
@@ -462,7 +462,7 @@
 
 165. ~~**Detect missing graceful shutdown** — `bundle.GracefulClose` and `projectionhost.Stop` should be called on SIGTERM. Detect: `signal.Notify` without Close/Stop calls.~~ **done** — E017 detects signal.Notify without GracefulClose/Stop/Shutdown
 
-166. **Detect missing WAL mode for SQLite** — `storage.SQLiteEnableWAL` should be called for all SQLite-backed stores in production. Detect: SQLite store without WAL pragma.
+166. ~~**Detect missing WAL mode for SQLite** — `storage.SQLiteEnableWAL` should be called for all SQLite-backed stores in production. Detect: SQLite store without WAL pragma.~~ **done** — P012 detects SQLite stores without SQLiteEnableWAL
 
 167. **Detect missing busy_timeout for SQLite** — `storage.SQLiteEnableWAL` includes busy_timeout=5000. Detect: `database/sql` open with SQLite DSN without busy_timeout.
 
@@ -482,7 +482,7 @@
 
 173. **Detect shared mutable state in event handler** — Global or package-level variables modified inside event handlers. A015 exists but should also detect `var x = map[...]` modified in handlers.
 
-174. **Detect goroutine without context cancellation** — `go func()` without a derived context can outlive the parent. Detect: `go func()` in handler code without `ctx` propagation.
+174. ~~**Detect goroutine without context cancellation** — `go func()` without a derived context can outlive the parent. Detect: `go func()` in handler code without `ctx` propagation.~~ **done** — C034 detects go func() without ctx in functions with a context.Context parameter
 
 ### Data model rules
 
@@ -494,7 +494,7 @@
 
 178. **Detect event payload with embedded `time.Time`** — Embedded `time.Time` in event payloads can cause timezone issues via CBOR encoding. C013 exists; extend to embedded fields.
 
-179. **Detect nullable fields in event payloads** — `*string`, `*int` pointer fields in event payloads can cause nil-dereference on decode. Suggest value types with `omitempty` or sentinel values.
+179. ~~**Detect nullable fields in event payloads** — `*string`, `*int` pointer fields in event payloads can cause nil-dereference on decode. Suggest value types with `omitempty` or sentinel values.~~ **done** — D015 detects primitive-type pointer fields in event payloads
 
 ---
 
@@ -530,19 +530,19 @@
 
 | Category              | Rules in code                    | Open ideas                                      |
 | --------------------- | -------------------------------- | ----------------------------------------------- |
-| Correctness (C)       | 33 (C001-C033)                   | 0                                               |
+| Correctness (C)       | 33 (C001-C034)                   | 0                                               |
 | API Misuse (A)        | 30 (A001-A027, A029, A030, A032) | A028 skipped (too project-specific)             |
 | Boilerplate (B)       | 28 (B001-B028)                   | 0                                               |
 | Architecture (E)      | 17 (E001-E017)                   | DONE (items 40-47, 164-165)                     |
-| Consistency (D)       | 13 (D001, D002, D003, D005-D014) | 0                                               |
-| Security (S)          | 8 (S001-S003, S005-S009)         | S004 proposed (item 54)                         |
-| Performance (P)       | 7 (P001, P006-P011)              | P002-P005 are NOT-DO (duplicates)               |
+| Consistency (D)       | 13 (D001, D002, D003, D005-D015) | 0                                               |
+| Security (S)          | 9 (S001-S003, S005-S010)         | S004 proposed (item 54)                         |
+| Performance (P)       | 7 (P001, P006-P012)              | P002-P005 are NOT-DO (duplicates)               |
 | Version/Migration (V) | 6 (V001-V006)                    | 0                                               |
 | Testing (T)           | 8 (T001-T008)                    | 0                                               |
 | Feature Adoption (F)  | 17 (F001-F017)                   | 0                                               |
 | DX & Infrastructure   | N/A                              | 22 items (99-133, 13 pruned as won't-implement) |
 | Extended Ideas        | N/A                              | 34 items (134-179, 12 pruned, 12 done)          |
-| **Total**             | **167**                          | ~42 open                                        |
+| **Total**             | **171**                          | ~42 open                                        |
 
 ---
 

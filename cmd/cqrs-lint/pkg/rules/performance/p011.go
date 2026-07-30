@@ -93,7 +93,7 @@ var readModelKeywords = []string{
 // read model (ViewStore, ReadModel, Projection, etc). We check the struct
 // name rather than method signatures because the struct definition may be
 // in a different file from the Handle/Apply methods.
-func isReadModelStruct(st *ast.StructType, name string) bool {
+func isReadModelStruct(_ *ast.StructType, name string) bool {
 	lower := strings.ToLower(name)
 	for _, kw := range readModelKeywords {
 		if strings.Contains(lower, kw) {

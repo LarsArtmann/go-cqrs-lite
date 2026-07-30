@@ -210,6 +210,23 @@ func (q *QueryDecl[Q, R]) infer() {
 	}
 }
 
+// extractDeclarativeFields returns the filter and sort field names declared
+// via FilterOnField/SortOnField (specs with non-nil Column). Closure-only
+// filters (FilterOn/SortOn) are excluded — they cannot be pushed to SQL.
+func extractDeclarativeFields(cfg QueryConfig) (filterFields, sortFields []string) {
+	for _, acc := range cfg.filterAccessors {
+		if acc.spec != nil {
+			filterFields = append(filterFields, acc.spec.Column)
+		}
+	}
+
+	if cfg.sortAccessor.spec != nil {
+		sortFields = append(sortFields, cfg.sortAccessor.spec.Column)
+	}
+
+	return filterFields, sortFields
+}
+
 // queryMeta is the planner-facing interface.
 type queryMeta interface {
 	QueryName() string
