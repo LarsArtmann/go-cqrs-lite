@@ -16,7 +16,7 @@ import (
 func (e *sqliteEngine) SetAdd(ctx context.Context, col string, key any) error {
 	_, err := e.cache.exec(ctx, e.queries.setAdd, col, encodeKey(key))
 
-	return err //nolint:wrapcheck // passthrough
+	return err
 }
 
 func (e *sqliteEngine) SetContains(ctx context.Context, col string, key any) (bool, error) {
@@ -135,7 +135,7 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 		encodeValue(value),
 	)
 
-	return err //nolint:wrapcheck // passthrough
+	return err
 }
 
 func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any, error) {
@@ -185,7 +185,7 @@ func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, err
 func (e *sqliteEngine) LogAppend(ctx context.Context, col string, value any) error {
 	_, err := e.cache.exec(ctx, e.queries.logAppend, col, encodeValue(value))
 
-	return err //nolint:wrapcheck // passthrough
+	return err
 }
 
 func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]any, error) {
@@ -196,7 +196,7 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 	// Query is DESC; reverse the result for chronological order.
 	fwd, err := scanJSONValues(ctx, e.db, e.queries.logTail, col, limit)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	slices.Reverse(fwd)

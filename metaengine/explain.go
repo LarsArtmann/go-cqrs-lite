@@ -77,12 +77,13 @@ func explainStandard(col string, filters []FilterSpec, sort *SortSpec, limit int
 	b.WriteString(`SELECT value FROM meta_map WHERE collection = ?`)
 
 	for _, f := range filters {
-		b.WriteString(fmt.Sprintf(` AND json_extract(value, '$.%s') %s ?`, f.Column, string(f.Op)))
+		fmt.Fprintf(&b, ` AND json_extract(value, '$.%s') %s ?`, f.Column, string(f.Op))
 		args = append(args, f.Value)
 	}
 
 	if sort != nil {
-		b.WriteString(fmt.Sprintf(` ORDER BY json_extract(value, '$.%s')`, sort.Column))
+		fmt.Fprintf(&b, ` ORDER BY json_extract(value, '$.%s')`, sort.Column)
+
 		if sort.Desc {
 			b.WriteString(` DESC`)
 		}
@@ -90,6 +91,7 @@ func explainStandard(col string, filters []FilterSpec, sort *SortSpec, limit int
 
 	if limit > 0 {
 		b.WriteString(` LIMIT ?`)
+
 		args = append(args, limit+1)
 	}
 
@@ -121,6 +123,7 @@ func explainPlanned(
 
 	if sort != nil {
 		fmt.Fprintf(&b, " ORDER BY %s", sort.Column)
+
 		if sort.Desc {
 			b.WriteString(" DESC")
 		}
@@ -128,6 +131,7 @@ func explainPlanned(
 
 	if limit > 0 {
 		b.WriteString(" LIMIT ?")
+
 		args = append(args, limit+1)
 	}
 

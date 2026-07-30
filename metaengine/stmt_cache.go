@@ -76,6 +76,7 @@ func (c *stmtCache) query(ctx context.Context, query string, args ...any) (*sql.
 func (c *stmtCache) close() {
 	c.m.Range(func(key, val any) bool {
 		_ = val.(*sql.Stmt).Close()
+
 		return true
 	})
 }

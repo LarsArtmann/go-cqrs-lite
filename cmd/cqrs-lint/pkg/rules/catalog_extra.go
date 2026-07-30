@@ -682,7 +682,7 @@ func architectureRules() []RuleInfo {
 	}
 }
 
-func securityRules() []RuleInfo { //nolint:dupl // catalog entries are structurally similar
+func securityRules() []RuleInfo {
 	return []RuleInfo{
 		{
 			ID:          "S001",

@@ -30,17 +30,7 @@ func TestA032_NoFindingForBrandedID(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"types.go": `package main
-
-import "github.com/larsartmann/go-cqrs-lite/id/v4"
-
-type UserID = id.Of[id.UserMarker]
-
-type User struct {
-	UserID UserID
-	Name   string
-}
-`,
+		"types.go": "package main\n\nimport \"github.com/larsartmann/go-cqrs-lite/id/v4\"\n\ntype UserID = id.Of[id.UserMarker]\n\ntype User struct {\n\tUserID Name   string",
 	})
 	findings := runDetector(t, api.NewA032Detector(ctx))
 	assertRule(t, findings, "A032", 0)

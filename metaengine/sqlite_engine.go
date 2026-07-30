@@ -172,7 +172,7 @@ func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value an
 
 	_, err := e.cache.exec(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(value))
 
-	return err //nolint:wrapcheck // passthrough
+	return err
 }
 
 func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
@@ -199,12 +199,13 @@ func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error
 		_, err := e.db.ExecContext(ctx,
 			fmt.Sprintf("DELETE FROM %s WHERE key = ?", plan.Table),
 			encodeKey(key))
+
 		return err //nolint:wrapcheck // passthrough
 	}
 
 	_, err := e.cache.exec(ctx, e.queries.mapDelete, col, encodeKey(key))
 
-	return err //nolint:wrapcheck // passthrough
+	return err
 }
 
 // --- MapUpdater ---
@@ -243,6 +244,7 @@ func (e *sqliteEngine) MapUpdate(
 				encodeKey(key),
 				encodeValue(newVal),
 			)
+
 			return err //nolint:wrapcheck // passthrough
 		},
 	)
@@ -265,7 +267,7 @@ func (e *sqliteEngine) MapScan(
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		rows, err = e.db.QueryContext(ctx, fmt.Sprintf("SELECT value FROM %s", plan.Table))
+		rows, err = e.db.QueryContext(ctx, "SELECT value FROM "+plan.Table)
 	} else {
 		rows, err = e.db.QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
 	}

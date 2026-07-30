@@ -93,6 +93,7 @@ func (p LayoutPlan) ColumnNames() []string {
 	for i, c := range p.Columns {
 		names[i] = c.Name
 	}
+
 	return names
 }
 

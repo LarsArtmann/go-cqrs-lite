@@ -187,13 +187,13 @@ func runTxReadModifyWrite(
 	prev, readErr := readFn(ctx, tx)
 
 	if readErr != nil && !errors.Is(readErr, sql.ErrNoRows) {
-		return readErr //nolint:wrapcheck // passthrough
+		return readErr
 	}
 
 	newVal := update(prev)
 
 	if err := writeFn(ctx, tx, newVal); err != nil {
-		return err //nolint:wrapcheck // passthrough
+		return err
 	}
 
 	return tx.Commit() //nolint:wrapcheck // passthrough
@@ -237,6 +237,7 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 		}
 
 		fmt.Fprintf(&b, "%s %s ?", sort.Column, op)
+
 		args = append(args, cursor)
 	}
 
@@ -250,6 +251,7 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 
 	if limit > 0 {
 		b.WriteString(" LIMIT ?")
+
 		args = append(args, limit+1)
 	}
 
@@ -269,6 +271,7 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 			for k, v := range m {
 				if strings.EqualFold(k, c.Name) {
 					result[c.Name] = v
+
 					break
 				}
 			}
@@ -294,6 +297,7 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 
 				if strings.EqualFold(fieldName, c.Name) {
 					result[c.Name] = rv.Field(i).Interface()
+
 					break
 				}
 			}
@@ -317,6 +321,7 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 		for k, v := range m {
 			if strings.EqualFold(k, c.Name) {
 				result[c.Name] = v
+
 				break
 			}
 		}

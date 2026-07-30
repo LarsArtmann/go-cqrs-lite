@@ -54,8 +54,6 @@ func TestADTMatrix(t *testing.T) {
 			results := make(map[string]string, len(factories))
 
 			for _, factory := range factories {
-				factory := factory
-
 				t.Run(factory.name, func(t *testing.T) {
 					t.Parallel()
 
@@ -207,6 +205,7 @@ func adtScenarios() []adtScenario {
 			},
 			read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				cb := eng.(metaengine.CounterBackend)
+
 				return cb.CounterGet(ctx, "counters")
 			},
 			canonicalize: canonicalizeCounter,
@@ -233,6 +232,7 @@ func adtScenarios() []adtScenario {
 			},
 			read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				gb := eng.(metaengine.GraphBackend)
+
 				return gb.GraphNeighbors(ctx, "graph", "A", 1)
 			},
 			canonicalize: canonicalizeNeighbors,
@@ -262,6 +262,7 @@ func adtScenarios() []adtScenario {
 			},
 			read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				sb := eng.(metaengine.ScanBackend)
+
 				return sb.MapScan(
 					ctx, "sorted",
 					func(item any) bool {
@@ -308,6 +309,7 @@ func adtScenarios() []adtScenario {
 			},
 			read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				lb := eng.(metaengine.LogBackend)
+
 				return lb.LogTail(ctx, "log", 3)
 			},
 			canonicalize: canonicalizeAny,
@@ -338,6 +340,7 @@ func adtScenarios() []adtScenario {
 			},
 			read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				mb := eng.(metaengine.MultimapBackend)
+
 				return mb.MultiGet(ctx, "tasks_by_user", "alice")
 			},
 			canonicalize: canonicalizeAny,

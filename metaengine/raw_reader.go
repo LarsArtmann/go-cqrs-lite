@@ -126,6 +126,7 @@ func scanRawStandard(
 
 	if limit > 0 {
 		b.WriteString(` LIMIT ?`)
+
 		args = append(args, limit+1)
 	}
 
@@ -171,6 +172,7 @@ func scanRawPlanned(
 		}
 
 		fmt.Fprintf(&b, "%s %s ?", sort.Column, op)
+
 		args = append(args, cursor)
 	}
 
@@ -184,6 +186,7 @@ func scanRawPlanned(
 
 	if limit > 0 {
 		b.WriteString(" LIMIT ?")
+
 		args = append(args, limit+1)
 	}
 
@@ -221,5 +224,5 @@ func stringToBytes(s string) []byte {
 		return nil
 	}
 
-	return []byte(s) //nolint:gocritic // intentional — json.Unmarshal accepts []byte
+	return []byte(s)
 }

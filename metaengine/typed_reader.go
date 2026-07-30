@@ -51,7 +51,7 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 
 		v, err := reify[V](jsonValue(raw))
 
-		return v, true, err //nolint:wrapcheck // reify already wraps
+		return v, true, err
 	}
 
 	// Standard MapGet path.
@@ -67,7 +67,7 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 
 		v, err := reify[V](val)
 
-		return v, true, err //nolint:wrapcheck // reify already wraps
+		return v, true, err
 	}
 
 	return zero, false, fmt.Errorf("%w: %s", errUnsupportedMapReads, eng.Profile().Name)
@@ -161,6 +161,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 					for _, v := range in.Values {
 						if reflect.DeepEqual(val, v) {
 							found = true
+
 							break
 						}
 					}
