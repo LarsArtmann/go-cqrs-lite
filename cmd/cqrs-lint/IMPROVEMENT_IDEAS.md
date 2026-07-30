@@ -2,7 +2,7 @@
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **151 rules** (C001-C030, A001-A027+A029+A030, B001-B028, D001-D003+D005-D013, E001-E007, S001-S003+S005-S009, P001+P006-P010, V001-V006, T001-T008, F001-F017).
+> The current linter has **165 rules** (C001-C033, A001-A027+A029+A030+A032, B001-B028, D001-D003+D005-D014, E001-E015, S001-S003+S005-S009, P001+P006-P011, V001-V006, T001-T008, F001-F017).
 >
 > **191 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
@@ -386,7 +386,7 @@
 
 ### Deep pattern detection
 
-134. **Detect custom retry loops more accurately** — DiscordSync's `appendWithRetry` (storage.go:207-241) has a bitshift backoff bug (`baseBackoff << time.Duration(attempt-1)` shifts Duration's nanosecond representation). The current B008 rule should catch this but may miss the bitshift variant.
+134. ~~**Detect custom retry loops more accurately** — DiscordSync's `appendWithRetry` (storage.go:207-241) has a bitshift backoff bug (`baseBackoff << time.Duration(attempt-1)` shifts Duration's nanosecond representation). The current B008 rule should catch this but may miss the bitshift variant.~~ **done** — B008 now detects bitshift operations in retry loops and escalates to error severity
 
 135. **Detect event type string typos** — If a fold function handles "UserCreated" but the emit code uses "user.created", the event is silently ignored. Cross-reference fold switch cases with `event.New` type strings.
 
@@ -488,9 +488,9 @@
 
 175. **Detect branded ID misuse** — Using `id.StreamID` where `id.UserID` is intended (or vice versa). Type-safe branded IDs prevent mixing aggregate types.
 
-176. **Detect string IDs instead of branded IDs** — Plain `string` or `int` used as IDs instead of `id.Of[T]`. Detect: struct fields named `*ID` or `*Id` with type `string`.
+176. ~~**Detect string IDs instead of branded IDs** — Plain `string` or `int` used as IDs instead of `id.Of[T]`. Detect: struct fields named `*ID` or `*Id` with type `string`.~~ **done** — A032 detects string/int fields named *ID/*Id in files importing go-cqrs-lite/id
 
-177. **Detect event payload without json tags** — Event payload structs without `json:"..."` tags use Go field names in JSON encoding, which is inconsistent with typical JSON conventions.
+177. ~~**Detect event payload without json tags** — Event payload structs without `json:"..."` tags use Go field names in JSON encoding, which is inconsistent with typical JSON conventions.~~ **done** — D014 detects event payload structs without json tags
 
 178. **Detect event payload with embedded `time.Time`** — Embedded `time.Time` in event payloads can cause timezone issues via CBOR encoding. C013 exists; extend to embedded fields.
 
@@ -528,21 +528,21 @@
 
 ## Summary Statistics
 
-| Category              | Rules in code                    | Open ideas                                       |
-| --------------------- | -------------------------------- | ------------------------------------------------ |
-| Correctness (C)       | 30 (C001-C030)                   | 0                                                |
-| API Misuse (A)        | 29 (A001-A027, A029, A030)       | A028 skipped (too project-specific)              |
-| Boilerplate (B)       | 28 (B001-B028)                   | 0                                                |
-| Architecture (E)      | 15 (E001-E015)                   | DONE (items 40-47)                               |
-| Consistency (D)       | 12 (D001, D002, D003, D005-D013) | 0                                                |
-| Security (S)          | 8 (S001-S003, S005-S009)         | S004 proposed (item 54)                          |
-| Performance (P)       | 6 (P001, P006-P010)              | P002-P005 are NOT-DO (duplicates)                |
-| Version/Migration (V) | 6 (V001-V006)                    | 0                                                |
-| Testing (T)           | 8 (T001-T008)                    | 0                                                |
-| Feature Adoption (F)  | 17 (F001-F017)                   | 0                                                |
-| DX & Infrastructure   | N/A                              | 22 items (99-133, 13 pruned as won't-implement)  |
-| Extended Ideas        | N/A                              | 34 items (134-179, 12 pruned as won't-implement) |
-| **Total**             | **151**                          | ~56 open                                         |
+| Category              | Rules in code                    | Open ideas                                      |
+| --------------------- | -------------------------------- | ----------------------------------------------- |
+| Correctness (C)       | 33 (C001-C033)                   | 0                                               |
+| API Misuse (A)        | 30 (A001-A027, A029, A030, A032) | A028 skipped (too project-specific)             |
+| Boilerplate (B)       | 28 (B001-B028)                   | 0                                               |
+| Architecture (E)      | 15 (E001-E015)                   | DONE (items 40-47)                              |
+| Consistency (D)       | 13 (D001, D002, D003, D005-D014) | 0                                               |
+| Security (S)          | 8 (S001-S003, S005-S009)         | S004 proposed (item 54)                         |
+| Performance (P)       | 7 (P001, P006-P011)              | P002-P005 are NOT-DO (duplicates)               |
+| Version/Migration (V) | 6 (V001-V006)                    | 0                                               |
+| Testing (T)           | 8 (T001-T008)                    | 0                                               |
+| Feature Adoption (F)  | 17 (F001-F017)                   | 0                                               |
+| DX & Infrastructure   | N/A                              | 22 items (99-133, 13 pruned as won't-implement) |
+| Extended Ideas        | N/A                              | 34 items (134-179, 12 pruned, 8 done)           |
+| **Total**             | **165**                          | ~46 open                                        |
 
 ---
 

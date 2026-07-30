@@ -643,6 +643,24 @@ func architectureRules() []RuleInfo {
 			Description: "BlockPublishUntilSubscriberAck: false breaks ordered delivery",
 			AutoFix:     false,
 		},
+		{
+			ID:          "E016",
+			Name:        "missing-health-checks",
+			Category:    "architecture",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Server-mode project without HealthCheck — Kubernetes probes need it",
+			AutoFix:     false,
+		},
+		{
+			ID:          "E017",
+			Name:        "missing-graceful-shutdown",
+			Category:    "architecture",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM",
+			AutoFix:     false,
+		},
 	}
 }
 

@@ -67,7 +67,7 @@ func NewD014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							finding.SeverityInfo,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryConsistency).
+							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceMedium).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Add `json:\"fieldName\"` tag").

@@ -181,21 +181,46 @@ func NewB008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							return true
 						}
 
+						// Check for bitshift backoff bug (item 134).
+						hasBitshift := false
+						ast.Inspect(loop, func(nnn ast.Node) bool {
+							bin, ok := nnn.(*ast.BinaryExpr)
+							if !ok {
+								return true
+							}
+							if bin.Op.String() == "<<" || bin.Op.String() == ">>" {
+								hasBitshift = true
+								return false
+							}
+							return true
+						})
+
 						pos := ctx.Fset.Position(loop.Pos())
+						msg := fmt.Sprintf(
+							"Manual retry loop in %s — use retry.Do for exponential backoff with jitter",
+							fn.Name.Name,
+						)
+						severity := finding.SeverityWarning
+						suggestion := "Replace with retry.Do(ctx, func() error { ... }, retry.WithMaxRetries(3))"
+						if hasBitshift {
+							msg = fmt.Sprintf(
+								"Manual retry loop in %s with bitshift backoff — bitshifting time.Duration produces garbage values",
+								fn.Name.Name,
+							)
+							severity = finding.SeverityError
+							suggestion = "Bitshifting Duration values is always wrong — use retry.Do with exponential backoff"
+						}
 
 						f, err := finding.NewBuilder(
 							"B008",
 							toolName,
-							fmt.Sprintf(
-								"Manual retry loop in %s — use retry.Do for exponential backoff with jitter",
-								fn.Name.Name,
-							),
-							finding.SeverityWarning,
+							msg,
+							severity,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
 							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceHigh).
-							WithSuggestion("Replace with retry.Do(ctx, func() error { ... }, retry.WithMaxRetries(3))").
+							WithSuggestion(suggestion).
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
 						if err != nil {

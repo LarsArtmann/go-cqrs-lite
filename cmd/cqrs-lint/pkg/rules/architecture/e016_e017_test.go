@@ -1,0 +1,126 @@
+package architecture_test
+
+import (
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/architecture"
+)
+
+func TestE016_DetectsMissingHealthCheck(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"server.go": `package main
+
+import "net/http"
+
+func runServer() {
+	srv := &http.Server{Addr: ":8080"}
+	_ = srv.ListenAndServe()
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE016Detector(ctx))
+	assertRule(t, findings, "E016", 1)
+}
+
+func TestE016_NoFindingWhenHealthCheckPresent(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"server.go": `package main
+
+import (
+	"context"
+	"net/http"
+)
+
+func runServer(bundle Bundle) {
+	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		_ = bundle.HealthCheck(context.Background())
+	})
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE016Detector(ctx))
+	assertRule(t, findings, "E016", 0)
+}
+
+func TestE016_NoFindingForNonServerProject(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	println("hello")
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE016Detector(ctx))
+	assertRule(t, findings, "E016", 0)
+}
+
+func TestE017_DetectsMissingGracefulShutdown(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+func main() {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTERM)
+	<-ch
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE017Detector(ctx))
+	assertRule(t, findings, "E017", 1)
+}
+
+func TestE017_NoFindingWhenGracefulShutdownPresent(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+func main(bundle Bundle) {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTERM)
+	<-ch
+	bundle.GracefulClose(context.Background())
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE017Detector(ctx))
+	assertRule(t, findings, "E017", 0)
+}
+
+func TestE017_NoFindingForNoSignalNotify(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	println("hello")
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE017Detector(ctx))
+	assertRule(t, findings, "E017", 0)
+}

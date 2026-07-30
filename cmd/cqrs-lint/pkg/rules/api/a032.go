@@ -68,7 +68,7 @@ func NewA032Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryAPI).
+							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceHigh).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Use `type UserID = id.Of[id.UserMarker]` and type the field as UserID").
@@ -112,7 +112,7 @@ func fileImportsIDPackage(root ast.Node) bool {
 		}
 
 		path := strings.Trim(imp.Path.Value, `"`)
-		if strings.Contains(path, "go-cqrs-lite") && strings.HasSuffix(path, "/id") {
+		if strings.Contains(path, "go-cqrs-lite") && (strings.Contains(path, "/id/") || strings.HasSuffix(path, "/id")) {
 			hasID = true
 			return false
 		}
