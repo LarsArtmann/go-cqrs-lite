@@ -23,12 +23,13 @@ type queryRuntime struct {
 }
 
 type Store struct {
-	mu          sync.RWMutex
-	engines     []Engine
-	queries     map[string]queryRuntime
-	byInputType map[string]string
-	plan        *PlanResult
-	poisoned    sync.Map // collection name → poison error
+	mu           sync.RWMutex
+	engines      []Engine
+	queries      map[string]queryRuntime
+	byInputType  map[string]string
+	plan         *PlanResult
+	poisoned     sync.Map // collection name → poison error
+	appliedEvent sync.Map // event ID → struct{} (idempotent Apply dedup)
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -170,6 +171,24 @@ func (s *Store) ApplyBatch(ctx context.Context, events []EventInput) error {
 	}
 
 	return nil
+}
+
+// ApplyIdempotent processes an event with deduplication by event ID. If the
+// same eventID has been applied before, the call is a no-op. This is essential
+// for at-least-once delivery scenarios where events may be replayed.
+//
+// The dedup is in-memory (process-local); for durable dedup across restarts,
+// consumers should wrap the Store with an external idempotency store.
+func (s *Store) ApplyIdempotent(ctx context.Context, eventID, eventType string, payload any) error {
+	if eventID == "" {
+		return s.Apply(ctx, eventType, payload)
+	}
+
+	if _, exists := s.appliedEvent.LoadOrStore(eventID, struct{}{}); exists {
+		return nil // already applied
+	}
+
+	return s.Apply(ctx, eventType, payload)
 }
 
 func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payload any) (err error) {

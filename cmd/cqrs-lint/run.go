@@ -45,7 +45,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		return err
 	}
 
-	active, unsuppressed, suppressed := filterFindings(cfg, collectFindings(result))
+	active, unsuppressed, suppressed := filterFindings(cfg, actx, collectFindings(result))
 
 	printSummary(
 		cfg,
@@ -218,13 +218,19 @@ func runPipeline(
 // findings (for --show-suppressed auditing).
 func filterFindings(
 	cfg *AppConfig,
+	actx *analyzer.AnalysisContext,
 	allFindings []finding.Finding,
 ) (active, unsuppressed, suppressed []finding.Finding) {
 	if cfg.Exclude != "" {
 		allFindings = filterByExcludedPaths(allFindings, strings.Split(cfg.Exclude, ","))
 	}
 
+	// Auto-suppress consumer-only rules when linting the library itself.
+	var librarySuppressed []finding.Finding
+	allFindings, librarySuppressed = filterLibrarySelfLint(allFindings, actx.IsLibrarySelfLint())
+
 	unsuppressed, suppressed = filterSuppressed(allFindings)
+	suppressed = append(suppressed, librarySuppressed...)
 
 	active = filterBySeverity(unsuppressed, cfg.MinSeverity)
 	if cfg.FPSuspects {
@@ -256,6 +262,9 @@ func printSummary(
 			len(actx.GoFiles),
 			elapsed.Round(time.Millisecond),
 		)
+		if actx.IsLibrarySelfLint() {
+			fmt.Fprintln(os.Stderr, "Library self-lint mode: consumer-only rules auto-suppressed")
+		}
 		if suppressedCount > 0 {
 			fmt.Fprintf(os.Stderr, "%d finding(s) suppressed by inline comments\n", suppressedCount)
 		}

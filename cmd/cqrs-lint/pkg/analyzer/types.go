@@ -178,3 +178,26 @@ func IsCQRSModulePath(path string) bool {
 
 	return false
 }
+
+// IsLibrarySelfLint reports whether the analyzed code IS the go-cqrs-lite
+// library itself (not a consumer importing it). This is used to auto-suppress
+// consumer-coaching rules (A001/A008/A020/A021/A023/E005/E007) that are
+// meaningless when linting the library's own source — the library cannot
+// coach itself to "adopt" its own features.
+//
+// Detection checks the module path and package import paths. When any
+// analyzed package's import path starts with the go-cqrs-lite prefix, the
+// code is the library itself.
+func (ctx *AnalysisContext) IsLibrarySelfLint() bool {
+	if IsCQRSModulePath(ctx.ModulePath) {
+		return true
+	}
+
+	for _, gf := range ctx.GoFiles {
+		if gf.Pkg != nil && IsCQRSModulePath(gf.Pkg.PkgPath) {
+			return true
+		}
+	}
+
+	return false
+}

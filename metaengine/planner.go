@@ -108,7 +108,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 					if err := lp.ApplyLayout(runtime.name, filterFields, sortFields); err != nil {
 						return nil, fmt.Errorf("metaengine.Plan: auto-layout for %q: %w", runtime.name, err)
 					}
-			}
+				}
 			}
 		}
 

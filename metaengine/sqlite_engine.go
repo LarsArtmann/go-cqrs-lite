@@ -109,6 +109,10 @@ func NewSQLiteEngine(database *sql.DB) (Engine, error) {
 		return nil, fmt.Errorf("metaengine: create tables: %w", err)
 	}
 
+	// Enable memory-mapped I/O for faster point lookups on file-backed databases.
+	// 256MB mmap window; harmless on :memory: databases.
+	_, _ = database.ExecContext(context.Background(), `PRAGMA mmap_size = 268435456`)
+
 	return eng, nil
 }
 

@@ -290,12 +290,12 @@ func (r *TypedReader[V]) Distinct(ctx context.Context, column string, opts ...Sc
 // --- Scan options ---
 
 type scanConfig struct {
-	filters  []FilterSpec
-	sort     *SortSpec
-	cursor   any
-	limit    int
-	ranges   []RangeSpec
-	inSpecs  []InSpec
+	filters []FilterSpec
+	sort    *SortSpec
+	cursor  any
+	limit   int
+	ranges  []RangeSpec
+	inSpecs []InSpec
 }
 
 // RangeSpec declares a range filter (SQL BETWEEN) on a column.

@@ -8,6 +8,51 @@ import (
 	"github.com/larsartmann/go-finding/pipeline"
 )
 
+// consumerOnlyRules are rules that coach CONSUMERS of go-cqrs-lite to adopt
+// features (use BasicCommand embedding, adopt the built-in event bus, etc.).
+// When linting the library itself (self-lint mode), these rules are
+// meaningless — the library defines these features, it can't "adopt" them.
+// Auto-suppressing them eliminates the need for 181+ manual inline
+// suppressions across the library's own source.
+var consumerOnlyRules = map[string]bool{
+	"A001": true, // manual-command-interface
+	"A008": true, // parallel-type-system
+	"A020": true, // custom-event-bus
+	"A021": true, // custom-event-store
+	"A023": true, // custom-snapshot-store
+	"E005": true, // uncataloged-event-type (library defines types, not catalogs them)
+	"E007": true, // unregistered-query-type (library defines query types)
+}
+
+// filterLibrarySelfLint drops consumer-only coaching rules when the analyzed
+// code is the go-cqrs-lite library itself. The dropped findings are returned
+// as suppressed so they appear in --show-suppressed auditing.
+func filterLibrarySelfLint(
+	findings []finding.Finding,
+	isLibrary bool,
+) (active, librarySuppressed []finding.Finding) {
+	if !isLibrary {
+		return findings, nil
+	}
+
+	active = make([]finding.Finding, 0, len(findings))
+
+	for _, f := range findings {
+		if consumerOnlyRules[string(f.Rule)] {
+			f.Suppression = &finding.Suppression{
+				Kind:   finding.SuppressionInSource,
+				Rule:   f.Rule,
+				Reason: "auto-suppressed: consumer-only rule in library self-lint mode",
+			}
+			librarySuppressed = append(librarySuppressed, f)
+		} else {
+			active = append(active, f)
+		}
+	}
+
+	return active, librarySuppressed
+}
+
 func collectFindings(result *pipeline.PipelineResult) []finding.Finding {
 	var all []finding.Finding
 	for _, iter := range result.Iterations {

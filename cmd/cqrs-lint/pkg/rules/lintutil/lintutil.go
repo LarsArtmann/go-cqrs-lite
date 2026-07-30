@@ -268,10 +268,24 @@ func QualifierResolvesTo(file *ast.File, qualifier, expectedPathSuffix string) b
 	return strings.Contains(path, expectedPathSuffix)
 }
 
-// lastSegment returns the last path segment of an import path.
+// lastSegment returns the likely package name from an import path.
+// Go convention: the package name matches the last path segment, EXCEPT for
+// major-version suffixes (/v2, /v3, ...) which are stripped. For example,
+// "github.com/foo/event/v4" → "event", not "v4".
 func lastSegment(importPath string) string {
 	if idx := strings.LastIndex(importPath, "/"); idx >= 0 {
-		return importPath[idx+1:]
+		seg := importPath[idx+1:]
+		// Strip major-version suffix (v2, v3, etc.) — the package name is
+		// the segment before it.
+		if len(seg) == 2 && seg[0] == 'v' && seg[1] >= '2' && seg[1] <= '9' {
+			rest := importPath[:idx]
+			if idx2 := strings.LastIndex(rest, "/"); idx2 >= 0 {
+				return rest[idx2+1:]
+			}
+			return rest
+		}
+
+		return seg
 	}
 
 	return importPath
