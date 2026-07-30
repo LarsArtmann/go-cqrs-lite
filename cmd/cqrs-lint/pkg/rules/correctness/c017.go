@@ -1,0 +1,112 @@
+package correctness
+
+import (
+	"context"
+	"go/ast"
+
+	"github.com/larsartmann/go-finding"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+)
+
+// Detects in-memory snapshot/checkpoint/DLQ stores paired with a persistent
+// event store (SQLite/Postgres/Pebble). In-memory stores lose their data on
+// restart, making the snapshot/checkpoint optimization useless and causing
+// full projection replays every time.
+//
+// C017: In-memory snapshot store with persistent event store.
+//
+//nolint:ireturn // factory returns public interface
+func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
+	return finding.NamedDetectorFunc(
+		"C017-inmem-snapshot-persistent-store",
+		func(_ context.Context) ([]finding.Finding, error) {
+			if !isPersistentStore(ctx.FeatureProfile.Store) {
+				return nil, nil
+			}
+
+			var findings []finding.Finding
+
+			memoryStoreFns := map[string]bool{
+				"NewMemorySnapshotStore":     true,
+				"NewMemoryCheckpointStore":   true,
+				"NewMemoryDeadLetterStore":   true,
+				"NewMemoryTimerStore":        true,
+			}
+
+			for _, gf := range ctx.GoFiles {
+				if gf.IsTest {
+					continue
+				}
+
+				ast.Inspect(gf.AST, func(n ast.Node) bool {
+					call, ok := n.(*ast.CallExpr)
+					if !ok {
+						return true
+					}
+
+					sel, ok := analyzer.SelectorFromExpr(call.Fun)
+					if !ok {
+						return true
+					}
+
+					fnName := sel.Sel.Name
+					if !memoryStoreFns[fnName] {
+						return true
+					}
+
+					pkg := analyzer.SelectorPackage(sel)
+					if pkg != "memory" && pkg != "projectionhost" {
+						return true
+					}
+
+					pos := ctx.Fset.Position(call.Pos())
+					what := describeInMemStore(fnName)
+
+					f, err := finding.NewBuilder(
+						"C017", toolName,
+						"In-memory "+what+" paired with persistent event store ("+string(ctx.FeatureProfile.Store)+
+							") — lost on restart",
+						finding.SeverityError,
+						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+					).
+						WithCategory(finding.CategoryCorrectness).
+						WithConfidence(finding.ConfidenceHigh).
+						WithFixStrategy(finding.FixStrategySuggest).
+						WithSuggestion("Use a persistent " + what +
+							" (SQLite/Postgres/Pebble) matching the event store backend").
+						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+						Build()
+					if err != nil {
+						return true
+					}
+
+					findings = append(findings, f)
+					return true
+				})
+			}
+
+			return findings, nil
+		},
+	)
+}
+
+func isPersistentStore(s analyzer.StoreKind) bool {
+	return s == analyzer.StoreSQLite || s == analyzer.StorePostgres ||
+		s == analyzer.StorePebble || s == analyzer.StoreTurso
+}
+
+func describeInMemStore(fnName string) string {
+	switch fnName {
+	case "NewMemorySnapshotStore":
+		return "snapshot store"
+	case "NewMemoryCheckpointStore":
+		return "checkpoint store"
+	case "NewMemoryDeadLetterStore":
+		return "dead-letter store"
+	case "NewMemoryTimerStore":
+		return "timer store"
+	default:
+		return "store"
+	}
+}
