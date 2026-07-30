@@ -42,7 +42,7 @@ func NewC020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					// Find the handler function argument (last arg or second arg).
-					handlerExpr := findHandlerArg(call)
+					handlerExpr := analyzer.FindHandlerArg(call)
 					if handlerExpr == nil {
 						return true
 					}
@@ -55,7 +55,7 @@ func NewC020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					// Case 2: function reference (ident) — find the FuncDecl.
 					if ident, ok := handlerExpr.(*ast.Ident); ok {
-						fn := findFuncDecl(ctx, ident.Name, gf)
+						fn := analyzer.FindFuncDecl(ctx, ident.Name)
 						if fn != nil && fn.Body != nil {
 							reportPanicsInFunc(ctx, fn.Body, &findings)
 						}
@@ -63,7 +63,7 @@ func NewC020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					// Case 3: method value (x.Method) — find the method on the type.
 					if msel, ok := handlerExpr.(*ast.SelectorExpr); ok {
-						fn := findMethodDecl(ctx, msel)
+						fn := analyzer.FindMethodDecl(ctx, msel)
 						if fn != nil && fn.Body != nil {
 							reportPanicsInFunc(ctx, fn.Body, &findings)
 						}
@@ -76,17 +76,6 @@ func NewC020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-// findHandlerArg returns the function argument of a Subscribe/SubscribeAll call.
-func findHandlerArg(call *ast.CallExpr) ast.Expr {
-	if len(call.Args) == 0 {
-		return nil
-	}
-
-	// Subscribe("type", handler) → last arg
-	// SubscribeAll(handler) → last arg
-	return call.Args[len(call.Args)-1]
 }
 
 // reportPanicsInFunc finds all panic() calls in a function body and appends findings.
@@ -125,41 +114,3 @@ func reportPanicsInFunc(ctx *analyzer.AnalysisContext, body *ast.BlockStmt, find
 	})
 }
 
-// findFuncDecl searches all GoFiles for a top-level func with the given name.
-func findFuncDecl(ctx *analyzer.AnalysisContext, name string, currentFile *analyzer.GoFile) *ast.FuncDecl {
-	for _, gf := range ctx.GoFiles {
-		for _, decl := range gf.AST.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || fn.Name == nil {
-				continue
-			}
-
-			if fn.Name.Name == name {
-				return fn
-			}
-		}
-	}
-
-	return nil
-}
-
-// findMethodDecl searches for a method declaration matching a selector expression.
-func findMethodDecl(ctx *analyzer.AnalysisContext, sel *ast.SelectorExpr) *ast.FuncDecl {
-	methodName := sel.Sel.Name
-	recvType := analyzer.BaseTypeName(sel.X)
-
-	for _, gf := range ctx.GoFiles {
-		for _, decl := range gf.AST.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || fn.Name == nil || fn.Recv == nil {
-				continue
-			}
-
-			if fn.Name.Name == methodName && analyzer.BaseTypeName(fn.Recv.List[0].Type) == recvType {
-				return fn
-			}
-		}
-	}
-
-	return nil
-}

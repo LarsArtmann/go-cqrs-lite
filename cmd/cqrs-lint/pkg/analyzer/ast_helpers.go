@@ -148,6 +148,57 @@ func ExprString(expr ast.Expr) string {
 	}
 }
 
+// FindHandlerArg returns the function argument of a Subscribe/SubscribeAll call.
+// Both calls pass the handler as the last argument.
+func FindHandlerArg(call *ast.CallExpr) ast.Expr {
+	if len(call.Args) == 0 {
+		return nil
+	}
+
+	return call.Args[len(call.Args)-1]
+}
+
+// FindFuncDecl searches all GoFiles for a top-level non-method function with
+// the given name. Returns nil if not found.
+func FindFuncDecl(ctx *AnalysisContext, name string) *ast.FuncDecl {
+	for _, gf := range ctx.GoFiles {
+		for _, decl := range gf.AST.Decls {
+			fn, ok := decl.(*ast.FuncDecl)
+			if !ok || fn.Name == nil || fn.Recv != nil {
+				continue
+			}
+
+			if fn.Name.Name == name {
+				return fn
+			}
+		}
+	}
+
+	return nil
+}
+
+// FindMethodDecl searches for a method declaration matching a selector expression
+// (e.g. x.Method → method "Method" on type of x). Returns nil if not found.
+func FindMethodDecl(ctx *AnalysisContext, sel *ast.SelectorExpr) *ast.FuncDecl {
+	methodName := sel.Sel.Name
+	recvType := BaseTypeName(sel.X)
+
+	for _, gf := range ctx.GoFiles {
+		for _, decl := range gf.AST.Decls {
+			fn, ok := decl.(*ast.FuncDecl)
+			if !ok || fn.Name == nil || fn.Recv == nil {
+				continue
+			}
+
+			if fn.Name.Name == methodName && BaseTypeName(fn.Recv.List[0].Type) == recvType {
+				return fn
+			}
+		}
+	}
+
+	return nil
+}
+
 // ExtractJSONTag extracts the JSON field name from a struct tag string.
 // Returns empty string if no json tag is present.
 func ExtractJSONTag(tag string) string {

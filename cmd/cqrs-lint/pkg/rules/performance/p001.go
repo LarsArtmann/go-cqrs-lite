@@ -41,7 +41,7 @@ func NewP001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					handlerExpr := findHandlerArgP001(call)
+					handlerExpr := analyzer.FindHandlerArg(call)
 					if handlerExpr == nil {
 						return true
 					}
@@ -52,12 +52,12 @@ func NewP001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					case *ast.FuncLit:
 						body = h.Body
 					case *ast.Ident:
-						fn := findFuncDeclP001(ctx, h.Name)
+						fn := analyzer.FindFuncDecl(ctx, h.Name)
 						if fn != nil {
 							body = fn.Body
 						}
 					case *ast.SelectorExpr:
-						fn := findMethodDeclP001(ctx, h)
+						fn := analyzer.FindMethodDecl(ctx, h)
 						if fn != nil {
 							body = fn.Body
 						}
@@ -118,49 +118,4 @@ func NewP001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-func findHandlerArgP001(call *ast.CallExpr) ast.Expr {
-	if len(call.Args) == 0 {
-		return nil
-	}
-
-	return call.Args[len(call.Args)-1]
-}
-
-func findFuncDeclP001(ctx *analyzer.AnalysisContext, name string) *ast.FuncDecl {
-	for _, gf := range ctx.GoFiles {
-		for _, decl := range gf.AST.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || fn.Name == nil || fn.Recv != nil {
-				continue
-			}
-
-			if fn.Name.Name == name {
-				return fn
-			}
-		}
-	}
-
-	return nil
-}
-
-func findMethodDeclP001(ctx *analyzer.AnalysisContext, sel *ast.SelectorExpr) *ast.FuncDecl {
-	methodName := sel.Sel.Name
-	recvType := analyzer.BaseTypeName(sel.X)
-
-	for _, gf := range ctx.GoFiles {
-		for _, decl := range gf.AST.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || fn.Name == nil || fn.Recv == nil {
-				continue
-			}
-
-			if fn.Name.Name == methodName && analyzer.BaseTypeName(fn.Recv.List[0].Type) == recvType {
-				return fn
-			}
-		}
-	}
-
-	return nil
 }
