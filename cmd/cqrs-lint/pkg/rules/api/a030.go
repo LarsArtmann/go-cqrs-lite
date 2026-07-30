@@ -84,8 +84,8 @@ func NewA030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
 						WithFixStrategy(finding.FixStrategySuggest).
-						WithSuggestion("Add decider.WithSnapshotStore(snapStore) "+
-							"alongside WithSnapshotStrategy, or remove WithSnapshotStrategy if "+
+						WithSuggestion("Add decider.WithSnapshotStore(snapStore) " +
+							"alongside WithSnapshotStrategy, or remove WithSnapshotStrategy if " +
 							"snapshotting is not needed").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()

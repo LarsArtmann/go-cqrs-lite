@@ -25,13 +25,13 @@ func NewB027Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			// streamType is the 3rd arg (index 2) for event.New / NewEvent.
 			// For repo.Execute/Load it's the 3rd arg (index 2).
 			cqrsCallsWithStreamType := map[string]int{
-				"New":            2,
-				"NewEvent":       2,
-				"NewEvents":      2,
-				"Execute":        2,
-				"Load":           2,
-				"LoadAtVersion":  2,
-				"LoadAtTime":     2,
+				"New":           2,
+				"NewEvent":      2,
+				"NewEvents":     2,
+				"Execute":       2,
+				"Load":          2,
+				"LoadAtVersion": 2,
+				"LoadAtTime":    2,
 			}
 
 			for _, gf := range ctx.GoFiles {

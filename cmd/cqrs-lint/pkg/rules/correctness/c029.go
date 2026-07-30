@@ -64,8 +64,8 @@ func NewC029Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithFixStrategy(finding.FixStrategySuggest).
-						WithSuggestion("Provide a keyExtractor function, e.g. "+
-							"middleware.QueryIdempotency(store, ttl, "+
+						WithSuggestion("Provide a keyExtractor function, e.g. " +
+							"middleware.QueryIdempotency(store, ttl, " +
 							"func(q query.Query) string { return string(q.Type()) })").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()

@@ -68,7 +68,7 @@ func NewS008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
-					WithSuggestion("Add signing.VerifyMiddleware(verifier) to bus.Use() "+
+					WithSuggestion("Add signing.VerifyMiddleware(verifier) to bus.Use() " +
 						"so consumers verify signatures on every event").
 					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 					Build()
@@ -88,7 +88,7 @@ func NewS008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
-					WithSuggestion("Add signing.SignMiddleware(signer) to bus.UsePublish() "+
+					WithSuggestion("Add signing.SignMiddleware(signer) to bus.UsePublish() " +
 						"so events carry signatures").
 					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 					Build()
@@ -160,7 +160,7 @@ func NewS009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
-					WithSuggestion("Add encryption.DecryptMiddleware(decrypter) to bus.Use() "+
+					WithSuggestion("Add encryption.DecryptMiddleware(decrypter) to bus.Use() " +
 						"so consumers can decrypt payloads").
 					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 					Build()
@@ -180,7 +180,7 @@ func NewS009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
-					WithSuggestion("Add encryption.EncryptMiddleware(encrypter) to bus.UsePublish() "+
+					WithSuggestion("Add encryption.EncryptMiddleware(encrypter) to bus.UsePublish() " +
 						"so payloads are encrypted before storage").
 					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 					Build()

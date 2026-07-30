@@ -201,7 +201,7 @@
 
 62. **NOT-DO/DUPLICATE — P005: No state cache on hot aggregate** — For aggregates with high event counts (>100 events/stream), the lack of `decider.WithStateCache` means every command triggers a full stream load. Suggest `WithStateCache` + snapshot strategy. **"Hot" (>100 events) is a runtime property a static analyzer cannot observe.** The statically-detectable part (no `WithStateCache`) is already covered by B025 (fires on every `NewRepository` missing it), A017 (missing snapshot strategy), and P010 (large state heuristic). Adding P005 would duplicate B025 or claim knowledge it can't have.
 
-63. **P006: Polling loop for drain check** — cqrs-htmx's `waitForDrain` polls every 10ms (es_projection_setup.go:150-192). A channel/callback would be zero-latency. Flag: polling loop with <100ms interval for state-change detection.
+63. ~~**P006: Polling loop for drain check** — cqrs-htmx's `waitForDrain` polls every 10ms (es_projection_setup.go:150-192). A channel/callback would be zero-latency. Flag: polling loop with <100ms interval for state-change detection.~~ done
 
 64. ~~**P007: Manual retry loop with bit-shift backoff** — DiscordSync has a hand-rolled `appendWithRetry` (storage.go:207-241) with `baseBackoff << time.Duration(attempt-1)` bitshift. This has a subtle bug: left-shifting a Duration shifts the nanoseconds representation. Suggest `retry.Do` from the library.~~ done (existing rule)
 
@@ -253,9 +253,10 @@
 
 ---
 
-## 10. Feature Adoption Coaching (F-series)
+## 10. Feature Adoption Coaching (F-series) — DONE (17/17)
 
-> New category — proactively suggest features consumers are missing.
+> All 17 F-series rules implemented in `pkg/rules/adoption/`. New "adoption" category.
+> Each rule fires at most once per project at SeverityInfo with actionable suggestions.
 
 82. **F001: No tombstone soft-delete** — Only github-local-sync uses `event.MarkTombstone`. Projects with delete operations should use tombstone metadata for soft-delete. Detect: function/method named `Delete*` in a project with events but no `MarkTombstone` usage.
 
@@ -494,6 +495,34 @@
 178. **Detect event payload with embedded `time.Time`** — Embedded `time.Time` in event payloads can cause timezone issues via CBOR encoding. C013 exists; extend to embedded fields.
 
 179. **Detect nullable fields in event payloads** — `*string`, `*int` pointer fields in event payloads can cause nil-dereference on decode. Suggest value types with `omitempty` or sentinel values.
+
+---
+
+## Implemented: Session 2026-07-30 (S008-S009, C028-C030, A030, P006, B027-B028, D012, C003/C010 extensions)
+
+180. ~~**S008: Asymmetric event signing** — SignMiddleware without VerifyMiddleware (or vice versa). Signing is decorative if events are never verified.~~ done
+
+181. ~~**S009: Asymmetric event encryption** — EncryptMiddleware without DecryptMiddleware (or vice versa). Encrypted events break consumers.~~ done
+
+182. ~~**C028: Swallowed CQRS operation errors** — `_ = dispatch.Dispatch(...)` or `_ = repo.Execute(...)`. The #1 anti-pattern in example code.~~ done
+
+183. ~~**C029: QueryIdempotency nil keyExtractor panic** — Unlike Command/Event variants, queries have no default identity. Passing nil panics at runtime.~~ done
+
+184. ~~**C030: Infinite loop without context cancellation** — `for {}` without `case <-ctx.Done()` leaks goroutines on shutdown.~~ done
+
+185. ~~**A030: Incomplete snapshot configuration** — WithSnapshotStrategy without WithSnapshotStore returns ErrIncompleteSnapshotConfig (startup crash).~~ done
+
+186. ~~**B027: Hardcoded stream-type string literals** — Bare `"User"` / `"Order"` instead of constants.~~ done
+
+187. ~~**B028: Manual goroutine dispatch instead of deriver** — `go func() { disp.Dispatch(ctx, cmd) }()` loses idempotency and error propagation.~~ done
+
+188. ~~**D012: Raw print in handler code** — fmt.Printf/log.Fatal in CQRS handlers instead of structured slog logging.~~ done
+
+189. ~~**C003 extend: if-statement unknown-event** — Same bug as switch-default-nil, expressed as `if evt.Type() != X { return s, nil }`.~~ done
+
+190. ~~**C010 extend: inline closure decode** — Swallowed decode errors in OnCreate/OnUpdate/Apply/Handle FuncLit assignments (C010 only covered registered folds).~~ done
+
+191. ~~**P009 improve: registry-based detection** — Switched from name-suffix matching to ctx.Registry.EventPayloadTypes + narrowed codec gate to event-path JSON.~~ done
 
 ---
 

@@ -125,6 +125,9 @@ Explicit `features` flags always override preset values.
 | C025 | bare-errorf-in-cqrs                       | Warning  | fmt.Errorf without %w in CQRS code — loses error classification                                      |
 | C026 | idempotency-ttl-mismatch                  | Warning  | Literal TTL passed but a TTL constant is defined and not used — dead/misleading code                 |
 | C027 | bus-subscription-alongside-projectionhost | Warning  | bus.Subscribe alongside projectionhost — events may be processed twice                               |
+| C028 | swallowed-cqrs-error                  | Warning  | Error from Dispatch/Execute/Load/Register discarded — operation failures indicate real problems     |
+| C029 | queryidempotency-nil-keyextractor     | Error    | QueryIdempotency with nil keyExtractor panics at runtime — queries have no default identity          |
+| C030 | no-ctx-cancel-in-loop                 | Warning  | Infinite loop without context cancellation — goroutine leaks on shutdown                             |
 
 ## API Misuse Rules
 
@@ -150,6 +153,7 @@ Explicit `features` flags always override preset values.
 | A018 | no-actual-event-sourcing                    | Info     | Imports go-cqrs-lite but never calls Save/Publish                                   |
 | A019 | vendored-cqrs                               | Warning  | Vendored copy of go-cqrs-lite detected                                              |
 | A027 | repeated-withcodec                          | Info     | event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec |
+| A030 | incomplete-snapshot-config                  | Error    | WithSnapshotStrategy without WithSnapshotStore — ErrIncompleteSnapshotConfig        |
 
 ## Boilerplate Rules
 
@@ -173,6 +177,10 @@ Explicit `features` flags always override preset values.
 | B021 | fold-without-strictapply        | Warning  | Fold function silently ignores unknown events — use decider.StrictApply     |
 | B023 | missing-command-middleware      | Warning  | Command dispatcher has no middleware — panics in handlers crash the process |
 | B024 | missing-bus-recovery            | Warning  | Event bus has no recovery middleware — panics in handlers crash the bus     |
+| B025 | missing-state-cache             | Info     | Repository without WithStateCache — hot streams benefit from incremental loads |
+| B026 | missing-catalog-registration    | Info     | 3+ event types but no catalog import — documentation generation unavailable |
+| B027 | hardcoded-stream-type           | Info     | Hardcoded stream-type string literal — use a constant                        |
+| B028 | manual-goroutine-dispatch       | Info     | Manual goroutine dispatch instead of deriver.AsHandler — loses idempotency  |
 
 ## Consistency Rules
 
@@ -184,6 +192,7 @@ Explicit `features` flags always override preset values.
 | D005 | stale-documentation-version  | Warning  | Docs reference different version than go.mod                                                                     |
 | D006 | missing-errorfamily          | Info     | errors.New or fmt.Errorf without %w bypasses the 6-family error taxonomy                                         |
 | D011 | nil-payload-event            | Warning  | Event created with nil payload — cannot be decoded, provides no audit trail                                      |
+| D012 | raw-print-in-handler         | Info     | Raw fmt/log print in CQRS handler — use structured logging (slog)                                               |
 
 ## Architecture Rules
 
@@ -205,6 +214,8 @@ Explicit `features` flags always override preset values.
 | S002 | missing-encryption-for-sensitive-payloads | Error    | PII event payloads without encryption middleware     |
 | S003 | missing-event-signing                     | Warning  | Event store without signing middleware               |
 | S007 | in-memory-session-store                   | Warning  | In-memory session/token store loses state on restart |
+| S008 | asymmetric-signing                       | Error    | SignMiddleware without VerifyMiddleware (or vice versa) — signing is decorative |
+| S009 | asymmetric-encryption                    | Error    | EncryptMiddleware without DecryptMiddleware (or vice versa) — events break consumers |
 
 ## Performance Rules
 
@@ -215,6 +226,7 @@ Explicit `features` flags always override preset values.
 | P008 | projectionhost-no-batchsize | Info     | projectionhost.New without WithBatchSize — throughput bottleneck on large streams |
 | P009 | json-codec-large-payloads   | Info     | Large event payload using JSON codec — CBOR is ~35% smaller                       |
 | P010 | no-snapshot-large-aggregate | Warning  | Collection-type state without snapshot strategy or cache — expensive reloads      |
+| P006 | polling-loop-short-interval | Info     | time.Sleep <100ms inside a for-loop — busy-poll pattern                            |
 
 ## Version Rules
 

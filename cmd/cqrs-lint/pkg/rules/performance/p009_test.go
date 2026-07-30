@@ -13,9 +13,12 @@ func TestP009_DetectsLargePayloadWithJSONCodec(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"events.go": `package main
 
-import "some/codec"
+import "some/event"
 
-var defaultCodec = codec.JSONCodec{}
+func create() {
+	evt, _ := event.New("msg.created", "s", "S", 1, MessageCreated{})
+	_ = evt
+}
 
 type MessageCreated struct {
 	ID        string
@@ -31,6 +34,17 @@ type MessageCreated struct {
 	ReplyID   string
 }
 `,
+		"setup.go": `package main
+
+import "some/codec"
+
+var _ = event.DefaultCodec
+var _ = codec.JSONCodec{}
+
+func init() {
+	event.DefaultCodec = codec.JSONCodec{}
+}
+`,
 	})
 	findings := runDetector(t, performance.NewP009Detector(ctx))
 	assertRule(t, findings, "P009", 1)
@@ -42,13 +56,24 @@ func TestP009_DetectsByteSliceWithJSONCodec(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"events.go": `package main
 
-import "some/codec"
+import "some/event"
 
-var defaultCodec = codec.JSONCodec{}
+func create() {
+	evt, _ := event.New("file.uploaded", "s", "S", 1, FileUploaded{})
+	_ = evt
+}
 
 type FileUploaded struct {
 	Filename string
 	Data     []byte
+}
+`,
+		"setup.go": `package main
+
+import "some/codec"
+
+func init() {
+	event.DefaultCodec = codec.JSONCodec{}
 }
 `,
 	})
@@ -62,9 +87,12 @@ func TestP009_NoFindingWhenUsingCBOR(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"events.go": `package main
 
-import "some/codec"
+import "some/event"
 
-var defaultCodec = codec.CBORCodec{}
+func create() {
+	evt, _ := event.New("msg.created", "s", "S", 1, MessageCreated{})
+	_ = evt
+}
 
 type MessageCreated struct {
 	ID        string
@@ -91,13 +119,24 @@ func TestP009_NoFindingForSmallPayload(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"events.go": `package main
 
-import "some/codec"
+import "some/event"
 
-var defaultCodec = codec.JSONCodec{}
+func create() {
+	evt, _ := event.New("user.created", "s", "S", 1, UserCreated{})
+	_ = evt
+}
 
 type UserCreated struct {
 	ID   string
 	Name string
+}
+`,
+		"setup.go": `package main
+
+import "some/codec"
+
+func init() {
+	event.DefaultCodec = codec.JSONCodec{}
 }
 `,
 	})
@@ -111,9 +150,14 @@ func TestP009_NoFindingForNonEventStruct(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"events.go": `package main
 
-import "some/codec"
+import "some/event"
 
-var defaultCodec = codec.JSONCodec{}
+func create() {
+	evt, _ := event.New("user.created", "s", "S", 1, UserCreated{})
+	_ = evt
+}
+
+type UserCreated struct{ Name string }
 
 type Configuration struct {
 	Field1  string
@@ -127,6 +171,14 @@ type Configuration struct {
 	Field9  string
 	Field10 string
 	Field11 string
+}
+`,
+		"setup.go": `package main
+
+import "some/codec"
+
+func init() {
+	event.DefaultCodec = codec.JSONCodec{}
 }
 `,
 	})
