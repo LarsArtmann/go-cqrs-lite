@@ -99,7 +99,9 @@ func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion(fmt.Sprintf(
 								"%s is used but never committed — add %s.Commit() (and handle its error) on the success path",
-								txVar, txVar))
+								txVar,
+								txVar,
+							))
 					}
 
 					f, err := b.Build()

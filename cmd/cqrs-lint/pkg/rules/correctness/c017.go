@@ -64,8 +64,11 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					what := describeInMemStore(fnName)
 
 					f, err := finding.NewBuilder(
-						"C017", toolName,
-						"In-memory "+what+" paired with persistent event store ("+string(ctx.FeatureProfile.Store)+
+						"C017",
+						toolName,
+						"In-memory "+what+" paired with persistent event store ("+string(
+							ctx.FeatureProfile.Store,
+						)+
 							") — lost on restart",
 						finding.SeverityError,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

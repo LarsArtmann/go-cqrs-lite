@@ -8,23 +8,23 @@
 
 ## Summary
 
-| Metric             | Before | After |
-| ------------------ | ------ | ----- |
-| Rules              | 65     | 78    |
-| Categories         | 6      | 8     |
-| Behavioral tests   | ~120   | 359   |
-| False-positive fixes | 0    | 3     |
-| New packages       | 0      | 2     |
+| Metric               | Before | After |
+| -------------------- | ------ | ----- |
+| Rules                | 65     | 78    |
+| Categories           | 6      | 8     |
+| Behavioral tests     | ~120   | 359   |
+| False-positive fixes | 0      | 3     |
+| New packages         | 0      | 2     |
 
 ---
 
 ## False-Positive Fixes (Phase 0)
 
-| Rule  | Issue                                     | Fix                                              |
-| ----- | ----------------------------------------- | ------------------------------------------------ |
-| D005  | Trailing punctuation in version caused FP | `parseVersionParts` strips trailing `.,`        |
-| C009  | Exported `Must*` functions flagged        | `isMustFunc` now checks both `must` and `Must`   |
-| C006  | Missed `event.Version(ver+1)` pattern     | Added bare-arithmetic detection + `NewEvent` arg |
+| Rule | Issue                                     | Fix                                              |
+| ---- | ----------------------------------------- | ------------------------------------------------ |
+| D005 | Trailing punctuation in version caused FP | `parseVersionParts` strips trailing `.,`         |
+| C009 | Exported `Must*` functions flagged        | `isMustFunc` now checks both `must` and `Must`   |
+| C006 | Missed `event.Version(ver+1)` pattern     | Added bare-arithmetic detection + `NewEvent` arg |
 
 ---
 
@@ -32,46 +32,46 @@
 
 ### Correctness (5 new)
 
-| Rule  | Name                        | Detects                                                      | Tests |
-| ----- | --------------------------- | ------------------------------------------------------------ | ----- |
-| C017  | in-memory-store-persistent  | Memory snapshot/checkpoint/DLQ with persistent event store   | 3     |
-| C019  | duplicate-repository-type   | Multiple `NewRepository[T]` for same state type              | 3     |
-| C020  | panic-in-bus-handler        | `panic()` inside Subscribe/SubscribeAll handler             | 2     |
-| C022  | context-discarded           | `_ = ctx` explicitly discarding context parameter           | 2     |
-| C023  | ignored-lifecycle-error     | `_ = host.Stop()` ignoring lifecycle errors (non-defer)      | 3     |
+| Rule | Name                       | Detects                                                    | Tests |
+| ---- | -------------------------- | ---------------------------------------------------------- | ----- |
+| C017 | in-memory-store-persistent | Memory snapshot/checkpoint/DLQ with persistent event store | 3     |
+| C019 | duplicate-repository-type  | Multiple `NewRepository[T]` for same state type            | 3     |
+| C020 | panic-in-bus-handler       | `panic()` inside Subscribe/SubscribeAll handler            | 2     |
+| C022 | context-discarded          | `_ = ctx` explicitly discarding context parameter          | 2     |
+| C023 | ignored-lifecycle-error    | `_ = host.Stop()` ignoring lifecycle errors (non-defer)    | 3     |
 
 ### Consistency (1 new)
 
-| Rule  | Name                | Detects                                          | Tests |
-| ----- | ------------------- | ------------------------------------------------ | ----- |
-| D011  | nil-payload-event   | `event.New/NewEvent` with `nil` payload arg      | 2     |
+| Rule | Name              | Detects                                     | Tests |
+| ---- | ----------------- | ------------------------------------------- | ----- |
+| D011 | nil-payload-event | `event.New/NewEvent` with `nil` payload arg | 2     |
 
 ### API (1 new)
 
-| Rule  | Name                 | Detects                                          | Tests |
-| ----- | -------------------- | ------------------------------------------------ | ----- |
-| A027  | repeated-withcodec   | `event.WithCodec` 3+ times in one file           | 2     |
+| Rule | Name               | Detects                                | Tests |
+| ---- | ------------------ | -------------------------------------- | ----- |
+| A027 | repeated-withcodec | `event.WithCodec` 3+ times in one file | 2     |
 
 ### Boilerplate (3 new)
 
-| Rule  | Name                     | Detects                                              | Tests |
-| ----- | ------------------------ | ---------------------------------------------------- | ----- |
-| B021  | fold-without-strictapply | Fold with silent default-nil, not using StrictApply  | 2     |
-| B023  | missing-command-middleware | Dispatcher with zero `.Use()` calls                | 2     |
-| B024  | missing-bus-recovery     | Event bus without recovery middleware               | 2     |
+| Rule | Name                       | Detects                                             | Tests |
+| ---- | -------------------------- | --------------------------------------------------- | ----- |
+| B021 | fold-without-strictapply   | Fold with silent default-nil, not using StrictApply | 2     |
+| B023 | missing-command-middleware | Dispatcher with zero `.Use()` calls                 | 2     |
+| B024 | missing-bus-recovery       | Event bus without recovery middleware               | 2     |
 
 ### Performance (2 new — new category)
 
-| Rule  | Name                   | Detects                                                | Tests |
-| ----- | ---------------------- | ------------------------------------------------------ | ----- |
-| P001  | repo-load-in-subscribeall | `repo.Load` inside SubscribeAll handler (O(N²))     | 2     |
-| P007  | manual-retry-loop      | Bitshift backoff on Duration in retry loop             | 2     |
+| Rule | Name                      | Detects                                         | Tests |
+| ---- | ------------------------- | ----------------------------------------------- | ----- |
+| P001 | repo-load-in-subscribeall | `repo.Load` inside SubscribeAll handler (O(N²)) | 2     |
+| P007 | manual-retry-loop         | Bitshift backoff on Duration in retry loop      | 2     |
 
 ### Version (1 new — new category)
 
-| Rule  | Name                | Detects                                          | Tests |
-| ----- | ------------------- | ------------------------------------------------ | ----- |
-| V001  | mixed-major-versions | v3 and v4 go-cqrs-lite imports in same project   | 2     |
+| Rule | Name                 | Detects                                        | Tests |
+| ---- | -------------------- | ---------------------------------------------- | ----- |
+| V001 | mixed-major-versions | v3 and v4 go-cqrs-lite imports in same project | 2     |
 
 ---
 
@@ -80,11 +80,13 @@
 All 13 new rules have positive + negative behavioral tests (29 tests total for new rules).
 
 FP fix regression tests:
+
 - D005: 5 sub-tests (trailing punctuation variants + compatibility check)
 - C009: 1 test (exported Must* function skip)
 - C006: 2 tests (var arithmetic + bare NewEvent arithmetic)
 
 Meta-tests verify structural integrity:
+
 - `TestAllDetectorsInstantiate` — 78 detectors instantiate without panic
 - `TestCatalogCountMatchesRegister` — catalog ↔ register bidirectional agreement
 

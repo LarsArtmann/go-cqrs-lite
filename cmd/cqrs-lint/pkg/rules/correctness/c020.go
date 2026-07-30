@@ -79,7 +79,11 @@ func NewC020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // reportPanicsInFunc finds all panic() calls in a function body and appends findings.
-func reportPanicsInFunc(ctx *analyzer.AnalysisContext, body *ast.BlockStmt, findings *[]finding.Finding) {
+func reportPanicsInFunc(
+	ctx *analyzer.AnalysisContext,
+	body *ast.BlockStmt,
+	findings *[]finding.Finding,
+) {
 	ast.Inspect(body, func(n ast.Node) bool {
 		call, ok := n.(*ast.CallExpr)
 		if !ok {

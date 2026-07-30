@@ -44,7 +44,10 @@ func writeAndReturnSentinel(ctx context.Context, db *sql.DB) error {
 			"(would let the fixer rewrite an unrelated return nil)", f.BeforeCode)
 	}
 	if f.AfterCode != "" {
-		t.Errorf("txUsed-without-returnNil finding must be suggest-only, but AfterCode=%q", f.AfterCode)
+		t.Errorf(
+			"txUsed-without-returnNil finding must be suggest-only, but AfterCode=%q",
+			f.AfterCode,
+		)
 	}
 }
 

@@ -96,77 +96,77 @@ Explicit `features` flags always override preset values.
 
 ## Correctness Rules (bugs)
 
-| ID   | Rule                             | Severity | Description                                                                                          |
-| ---- | -------------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
-| C001 | missing-tx-commit                | Critical | Transaction wrapper returns nil instead of tx.Commit()                                               |
-| C002 | broken-command-id                | Critical | Command ID() returns zero value — breaks idempotency                                                 |
-| C003 | silent-unknown-event-fold        | Error    | Fold function silently ignores unknown event types                                                   |
-| C004 | checkpoint-before-async-complete | Error    | Projection launches async work — checkpoint may save early                                           |
-| C005 | raw-json-unmarshal-payload       | Error    | Raw json.Unmarshal on event payload instead of DecodePayloadAuto                                     |
-| C006 | manual-version-arithmetic        | Warning  | event.Version(x.Int()+1) instead of x.Increment()                                                    |
-| C007 | time-now-in-decider              | Warning  | time.Now() inside decider — non-deterministic                                                        |
-| C008 | float64-for-money                | Warning  | float64 field with monetary name — use decimal or cents                                              |
-| C009 | panic-in-production              | Warning  | panic() in production code — use error returns                                                       |
-| C010 | swallowed-error-in-fold          | Warning  | Error from decode/unmarshal discarded in fold                                                        |
-| C011 | nondeterministic-decider         | Warning  | rand.* call inside decider — non-deterministic replay                                                |
-| C012 | missing-error-return-in-with-tx  | Critical | withTx ignores body error — failures silently lost                                                   |
-| C013 | time-time-in-event-payload       | Warning  | time.Time field in event payload loses timezone via CBOR epoch encoding                              |
-| C014 | time-local-usage                 | Warning  | time.Local causes silent data corruption across timezone boundaries                                  |
-| C015 | unchecked-close                  | Warning  | Close() error discarded — resource leak or silent data loss risk                                     |
-| C016 | background-in-handler            | Warning  | context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing |
-| C017 | inmem-store-persistent-eventstore | Error    | In-memory snapshot/checkpoint/DLQ store with persistent event store — lost on restart |
-| C019 | multiple-repos-same-aggregate     | Warning  | Multiple Repository instances for the same aggregate type — wastes singleflight/cache |
-| C020 | panic-in-handler                  | Error    | panic() in bus.Subscribe/SubscribeAll handler — crashes the bus/projection host |
-| C022 | context-discarded                 | Warning  | `_ = ctx` explicitly discards context — breaks cancellation, timeouts, tracing |
-| C023 | shutdown-error-ignored            | Warning  | Stop/Close/Shutdown error ignored — pending events or resources may be lost |
+| ID   | Rule                              | Severity | Description                                                                                          |
+| ---- | --------------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| C001 | missing-tx-commit                 | Critical | Transaction wrapper returns nil instead of tx.Commit()                                               |
+| C002 | broken-command-id                 | Critical | Command ID() returns zero value — breaks idempotency                                                 |
+| C003 | silent-unknown-event-fold         | Error    | Fold function silently ignores unknown event types                                                   |
+| C004 | checkpoint-before-async-complete  | Error    | Projection launches async work — checkpoint may save early                                           |
+| C005 | raw-json-unmarshal-payload        | Error    | Raw json.Unmarshal on event payload instead of DecodePayloadAuto                                     |
+| C006 | manual-version-arithmetic         | Warning  | event.Version(x.Int()+1) instead of x.Increment()                                                    |
+| C007 | time-now-in-decider               | Warning  | time.Now() inside decider — non-deterministic                                                        |
+| C008 | float64-for-money                 | Warning  | float64 field with monetary name — use decimal or cents                                              |
+| C009 | panic-in-production               | Warning  | panic() in production code — use error returns                                                       |
+| C010 | swallowed-error-in-fold           | Warning  | Error from decode/unmarshal discarded in fold                                                        |
+| C011 | nondeterministic-decider          | Warning  | rand.* call inside decider — non-deterministic replay                                                |
+| C012 | missing-error-return-in-with-tx   | Critical | withTx ignores body error — failures silently lost                                                   |
+| C013 | time-time-in-event-payload        | Warning  | time.Time field in event payload loses timezone via CBOR epoch encoding                              |
+| C014 | time-local-usage                  | Warning  | time.Local causes silent data corruption across timezone boundaries                                  |
+| C015 | unchecked-close                   | Warning  | Close() error discarded — resource leak or silent data loss risk                                     |
+| C016 | background-in-handler             | Warning  | context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing |
+| C017 | inmem-store-persistent-eventstore | Error    | In-memory snapshot/checkpoint/DLQ store with persistent event store — lost on restart                |
+| C019 | multiple-repos-same-aggregate     | Warning  | Multiple Repository instances for the same aggregate type — wastes singleflight/cache                |
+| C020 | panic-in-handler                  | Error    | panic() in bus.Subscribe/SubscribeAll handler — crashes the bus/projection host                      |
+| C022 | context-discarded                 | Warning  | `_ = ctx` explicitly discards context — breaks cancellation, timeouts, tracing                       |
+| C023 | shutdown-error-ignored            | Warning  | Stop/Close/Shutdown error ignored — pending events or resources may be lost                          |
 
 ## API Misuse Rules
 
-| ID   | Rule                                        | Severity | Description                                              |
-| ---- | ------------------------------------------- | -------- | -------------------------------------------------------- |
-| A001 | manual-command-interface                    | Error    | Manual Type()/ID()/AggregateID() instead of BasicCommand |
-| A002 | newevent-manual-marshal                     | Warning  | event.NewEvent with json.Marshal — use event.New         |
-| A003 | explicit-codec-in-decode                    | Info     | Explicit codec — use DecodePayloadAuto                   |
-| A004 | untyped-dispatch-register                   | Warning  | Type assertion in handler — use RegisterTyped            |
-| A005 | custom-projection-runner                    | Warning  | Manual bus.SubscribeAll — use projectionhost             |
-| A006 | adapter-layer-wrapping                      | Info     | WrapEvent/UnwrapEvent adapter methods                    |
-| A007 | dual-model-oo-functional                    | Error    | Both OO aggregates and functional deciders               |
-| A008 | parallel-type-system                        | Error    | Custom AggregateID/Version types duplicating library     |
-| A009 | missing-stack-preset                        | Info     | No stack/ preset — manual wiring is error-prone          |
-| A010 | custom-error-types                          | Warning  | Custom error interface duplicating go-error-family       |
-| A011 | inconsistent-json-key-casing-event-payloads | Info     | Event payload structs with mixed JSON key casing         |
-| A012 | missing-tombstone-handling                  | Info     | Fold function does not check for tombstone events        |
-| A013 | pointer-vs-value-basic-command              | Info     | Embeds *BasicCommand (pointer) instead of value          |
-| A014 | deprecated-api-usage                        | Warning  | Calls to deprecated APIs (event.NewEvent, Register)      |
-| A015 | global-mutable-state                        | Error    | Global mutable variable — race condition risk            |
-| A016 | missing-idempotency-middleware              | Warning  | Command dispatcher lacks idempotency middleware          |
-| A017 | missing-snapshot-strategy                   | Info     | Repository without snapshot strategy — slow aggregates   |
-| A018 | no-actual-event-sourcing                    | Info     | Imports go-cqrs-lite but never calls Save/Publish        |
-| A019 | vendored-cqrs                               | Warning  | Vendored copy of go-cqrs-lite detected                   |
+| ID   | Rule                                        | Severity | Description                                                                         |
+| ---- | ------------------------------------------- | -------- | ----------------------------------------------------------------------------------- |
+| A001 | manual-command-interface                    | Error    | Manual Type()/ID()/AggregateID() instead of BasicCommand                            |
+| A002 | newevent-manual-marshal                     | Warning  | event.NewEvent with json.Marshal — use event.New                                    |
+| A003 | explicit-codec-in-decode                    | Info     | Explicit codec — use DecodePayloadAuto                                              |
+| A004 | untyped-dispatch-register                   | Warning  | Type assertion in handler — use RegisterTyped                                       |
+| A005 | custom-projection-runner                    | Warning  | Manual bus.SubscribeAll — use projectionhost                                        |
+| A006 | adapter-layer-wrapping                      | Info     | WrapEvent/UnwrapEvent adapter methods                                               |
+| A007 | dual-model-oo-functional                    | Error    | Both OO aggregates and functional deciders                                          |
+| A008 | parallel-type-system                        | Error    | Custom AggregateID/Version types duplicating library                                |
+| A009 | missing-stack-preset                        | Info     | No stack/ preset — manual wiring is error-prone                                     |
+| A010 | custom-error-types                          | Warning  | Custom error interface duplicating go-error-family                                  |
+| A011 | inconsistent-json-key-casing-event-payloads | Info     | Event payload structs with mixed JSON key casing                                    |
+| A012 | missing-tombstone-handling                  | Info     | Fold function does not check for tombstone events                                   |
+| A013 | pointer-vs-value-basic-command              | Info     | Embeds *BasicCommand (pointer) instead of value                                     |
+| A014 | deprecated-api-usage                        | Warning  | Calls to deprecated APIs (event.NewEvent, Register)                                 |
+| A015 | global-mutable-state                        | Error    | Global mutable variable — race condition risk                                       |
+| A016 | missing-idempotency-middleware              | Warning  | Command dispatcher lacks idempotency middleware                                     |
+| A017 | missing-snapshot-strategy                   | Info     | Repository without snapshot strategy — slow aggregates                              |
+| A018 | no-actual-event-sourcing                    | Info     | Imports go-cqrs-lite but never calls Save/Publish                                   |
+| A019 | vendored-cqrs                               | Warning  | Vendored copy of go-cqrs-lite detected                                              |
 | A027 | repeated-withcodec                          | Info     | event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec |
 
 ## Boilerplate Rules
 
-| ID   | Rule                            | Severity | Description                                     |
-| ---- | ------------------------------- | -------- | ----------------------------------------------- |
-| B001 | single-event-helper             | Info     | Use event.Single() instead                      |
-| B002 | manual-repository-wiring        | Info     | Use stack preset instead                        |
-| B003 | subscribeall-large-switch       | Info     | Split into separate projections                 |
-| B004 | command-constructor-boilerplate | Info     | Command with many fields — use cqrs-gen         |
-| B005 | fold-switch-boilerplate         | Info     | Fold uses switch — consider decider.StrictApply |
-| B006 | duplicate-fk-stub-sql           | Info     | Duplicated foreign-key SQL — centralize         |
-| B007 | repeated-handler-registration   | Info     | 3+ consecutive registrations — table-driven     |
-| B008 | manual-retry-implementation     | Warning  | Manual retry loop — use retry.Do                |
-| B009 | emit-function-boilerplate       | Info     | Hand-written emit helper wrapping event.New     |
-| B010 | catalog-event-list-boilerplate  | Info     | 3+ catalog.Event calls — use cqrs-gen           |
-| B011 | must-marshal-helper             | Info     | mustMarshal helper — use event.New              |
-| B012 | make-event-helper               | Info     | Hand-written makeEvent helper — use event.New   |
-| B013 | missing-correlation-enricher    | Warning  | Repository without correlation enricher         |
-| B014 | missing-otel-middleware         | Info     | Bus/dispatcher lacks OTel tracing               |
-| B015 | missing-test-utilities          | Info     | Project has tests but no testutil imports       |
-| B021 | fold-without-strictapply       | Warning  | Fold function silently ignores unknown events — use decider.StrictApply |
+| ID   | Rule                            | Severity | Description                                                                 |
+| ---- | ------------------------------- | -------- | --------------------------------------------------------------------------- |
+| B001 | single-event-helper             | Info     | Use event.Single() instead                                                  |
+| B002 | manual-repository-wiring        | Info     | Use stack preset instead                                                    |
+| B003 | subscribeall-large-switch       | Info     | Split into separate projections                                             |
+| B004 | command-constructor-boilerplate | Info     | Command with many fields — use cqrs-gen                                     |
+| B005 | fold-switch-boilerplate         | Info     | Fold uses switch — consider decider.StrictApply                             |
+| B006 | duplicate-fk-stub-sql           | Info     | Duplicated foreign-key SQL — centralize                                     |
+| B007 | repeated-handler-registration   | Info     | 3+ consecutive registrations — table-driven                                 |
+| B008 | manual-retry-implementation     | Warning  | Manual retry loop — use retry.Do                                            |
+| B009 | emit-function-boilerplate       | Info     | Hand-written emit helper wrapping event.New                                 |
+| B010 | catalog-event-list-boilerplate  | Info     | 3+ catalog.Event calls — use cqrs-gen                                       |
+| B011 | must-marshal-helper             | Info     | mustMarshal helper — use event.New                                          |
+| B012 | make-event-helper               | Info     | Hand-written makeEvent helper — use event.New                               |
+| B013 | missing-correlation-enricher    | Warning  | Repository without correlation enricher                                     |
+| B014 | missing-otel-middleware         | Info     | Bus/dispatcher lacks OTel tracing                                           |
+| B015 | missing-test-utilities          | Info     | Project has tests but no testutil imports                                   |
+| B021 | fold-without-strictapply        | Warning  | Fold function silently ignores unknown events — use decider.StrictApply     |
 | B023 | missing-command-middleware      | Warning  | Command dispatcher has no middleware — panics in handlers crash the process |
-| B024 | missing-bus-recovery            | Warning  | Event bus has no recovery middleware — panics in handlers crash the bus |
+| B024 | missing-bus-recovery            | Warning  | Event bus has no recovery middleware — panics in handlers crash the bus     |
 
 ## Consistency Rules
 
@@ -177,7 +177,7 @@ Explicit `features` flags always override preset values.
 | D003 | inconsistent-logging-library | Info     | Project mixes multiple logging libraries                                                                         |
 | D005 | stale-documentation-version  | Warning  | Docs reference different version than go.mod                                                                     |
 | D006 | missing-errorfamily          | Info     | errors.New or fmt.Errorf without %w bypasses the 6-family error taxonomy                                         |
-| D011 | nil-payload-event            | Warning  | Event created with nil payload — cannot be decoded, provides no audit trail |
+| D011 | nil-payload-event            | Warning  | Event created with nil payload — cannot be decoded, provides no audit trail                                      |
 
 ## Architecture Rules
 
@@ -201,15 +201,15 @@ Explicit `features` flags always override preset values.
 
 ## Performance Rules
 
-| ID   | Rule                   | Severity | Description                                                              |
-| ---- | ---------------------- | -------- | ------------------------------------------------------------------------ |
-| P001 | load-in-subscribeall   | Error    | repo.Load inside SubscribeAll handler — O(N²) replay                     |
-| P007 | manual-retry-bitshift  | Error    | Manual retry loop with bitshift backoff — corrupts time.Duration         |
+| ID   | Rule                  | Severity | Description                                                      |
+| ---- | --------------------- | -------- | ---------------------------------------------------------------- |
+| P001 | load-in-subscribeall  | Error    | repo.Load inside SubscribeAll handler — O(N²) replay             |
+| P007 | manual-retry-bitshift | Error    | Manual retry loop with bitshift backoff — corrupts time.Duration |
 
 ## Version Rules
 
-| ID   | Rule                 | Severity | Description                                                        |
-| ---- | -------------------- | -------- | ------------------------------------------------------------------ |
+| ID   | Rule                 | Severity | Description                                                          |
+| ---- | -------------------- | -------- | -------------------------------------------------------------------- |
 | V001 | mixed-major-versions | Error    | Project mixes v3 and v4 go-cqrs-lite modules — APIs are incompatible |
 
 ## CLI

@@ -14,13 +14,14 @@
 1. **D005 trailing-dot FP fixed** — `parseVersionParts` now strips trailing `.,` via `TrimRight`. Regression test with 5 sub-cases in `d005_internal_test.go`.
    - ⚠️ NOTE: My original fix stripped `.,;:!?` but the daemon committed only `.,`. The test covers all punctuation variants but the code only handles period and comma. Semicolons, colons, exclamation marks, and question marks would still produce FPs.
 
-2. **C009 exported Must* FP fixed** — `isMustFunc` now checks both `must` and `Must` prefixes. Regression test added (`TestC009_NoFindingInExportedMustFunc`).
+2. _*C009 exported Must* FP fixed_* — `isMustFunc` now checks both `must` and `Must` prefixes. Regression test added (`TestC009_NoFindingInExportedMustFunc`).
 
 3. **C006 enhanced** — Now catches three patterns: `event.Version(x.Int()+1)` (auto-fix), `event.Version(ver+1)` (suggest), `event.NewEvent(..., ver+1, ...)` (suggest). Tests added for all three forms.
 
 ### Phase 1-4: All 13 Rules Implemented (committed by daemon)
 
 All 13 detectors exist, are registered, and pass the meta-tests:
+
 - Correctness: C017, C019, C020, C022, C023 (5 rules)
 - Consistency: D011 (1 rule)
 - API: A027 (1 rule)
@@ -186,6 +187,7 @@ I wrote `finding.SeverityInfo` for B021 (it's a recommendation, not a bug). The 
 ## F) NEXT 50 THINGS TO GET DONE 📋
 
 ### Immediate fixes (critical)
+
 1. Fix git index corruption (`git read-tree HEAD` or index rebuild)
 2. Fix C023 O(N×M) isInsideDefer → ancestor-stack approach
 3. Fix D005 TrimRight to strip `.,;:!?` (not just `.,`)
@@ -196,6 +198,7 @@ I wrote `finding.SeverityInfo` for B021 (it's a recommendation, not a bug). The 
 8. Run doc-check on VALIDATION_REPORT.md and README.md
 
 ### Real-code validation
+
 9. Build cqrs-lint binary
 10. Run against Kernovia — audit all new rule findings
 11. Run against Standup-Killer — audit all new rule findings
@@ -206,6 +209,7 @@ I wrote `finding.SeverityInfo` for B021 (it's a recommendation, not a bug). The 
 16. Tune rules with >10% FP rate
 
 ### Code quality
+
 17. Extract `findFuncDecl`/`findMethodDecl` to shared helper
 18. Extract `tokenPos` → use `token.Position` directly
 19. Extract handler-body resolution (C020/P001 share logic)
@@ -218,6 +222,7 @@ I wrote `finding.SeverityInfo` for B021 (it's a recommendation, not a bug). The 
 26. Add edge-case negative tests for all 13 rules
 
 ### Phase 2 completion (high-value rules)
+
 27. Implement D012 (missing WithSchemaVersion)
 28. Implement A024 (decorative event sourcing)
 29. Verify A014 catches ALL event.NewEvent calls
@@ -225,6 +230,7 @@ I wrote `finding.SeverityInfo` for B021 (it's a recommendation, not a bug). The 
 31. Add marshalPayload two-step detection to A002
 
 ### Phase 3 rules (next batch)
+
 32. Implement C018 (silent journal fallback)
 33. Implement C024 (dual-write without rollback)
 34. Implement C026 (idempotency TTL mismatch)
@@ -242,6 +248,7 @@ I wrote `finding.SeverityInfo` for B021 (it's a recommendation, not a bug). The 
 46. Implement E008 (stack preset bypass)
 
 ### Infrastructure
+
 47. Fix go.work linter bug (GOWORK=off fallback)
 48. Implement `cqrs-lint profile` subcommand
 49. Implement `--scorecard` flag
@@ -254,6 +261,7 @@ I wrote `finding.SeverityInfo` for B021 (it's a recommendation, not a bug). The 
 ### 1. The git index is corrupted — how should I fix it?
 
 `git status` returns `fatal: unknown index entry format 0x68690000`. This breaks ALL git operations (status, add, commit, diff). Options:
+
 - `git read-tree HEAD` to rebuild the index from the last commit
 - Delete `.git/index` and run `git read-tree HEAD`
 - `git fsck --full` to diagnose
@@ -263,6 +271,7 @@ I don't know which is safe given the auto-commit daemon may have been mid-write 
 ### 2. Should I continue adding new rules, or pause and harden the 78 existing?
 
 The plan calls for ~105 new rules total. We have 78. The remaining 92 are increasingly lower-impact. But the 78 include one O(N×M) performance bug (C023), a stale README, zero FP auditing, and duplicate code. Should I:
+
 - (A) Fix the critical issues (C023, README, D005, git index), audit FPs, THEN resume new rules
 - (B) Keep implementing new rules and fix quality issues in parallel
 - (C) Stop at 78 rules, declare the improvement "done enough", and focus entirely on hardening
@@ -270,6 +279,7 @@ The plan calls for ~105 new rules total. We have 78. The remaining 92 are increa
 ### 3. The auto-commit daemon keeps committing mid-session and overwriting my fixes. How do I work with this?
 
 The daemon committed the previous session's code (including bugs) WHILE I was implementing fixes this session. My C023 ancestor-stack fix was silently replaced by the broken version. My D005 `TrimRight(".,;:!?")` was replaced with `TrimRight(".,")`. I lost track of what was actually on disk multiple times. Options:
+
 - (A) Disable the daemon for this session
 - (B) Work in a branch the daemon doesn't touch
 - (C) Accept it and always re-read files before editing

@@ -49,8 +49,10 @@ func NewC006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					// Pattern 1 & 2: event.Version(arg) where arg involves +1.
 					if sel.Sel.Name == "Version" && len(call.Args) == 1 {
-						if binOp, ok := call.Args[0].(*ast.BinaryExpr); ok && binOp.Op == token.ADD {
-							if rightLit, ok := binOp.Y.(*ast.BasicLit); ok && rightLit.Value == "1" {
+						if binOp, ok := call.Args[0].(*ast.BinaryExpr); ok &&
+							binOp.Op == token.ADD {
+							if rightLit, ok := binOp.Y.(*ast.BasicLit); ok &&
+								rightLit.Value == "1" {
 								if !seen[call.Pos()] {
 									seen[call.Pos()] = true
 									findings = append(findings, c006Finding(ctx, call, binOp))
@@ -61,9 +63,12 @@ func NewC006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					// Pattern 3: event.NewEvent / event.New with bare +1 in the
 					// version position (4th argument, index 3).
-					if (sel.Sel.Name == "NewEvent" || sel.Sel.Name == "New") && len(call.Args) >= 4 {
-						if binOp, ok := call.Args[3].(*ast.BinaryExpr); ok && binOp.Op == token.ADD {
-							if rightLit, ok := binOp.Y.(*ast.BasicLit); ok && rightLit.Value == "1" {
+					if (sel.Sel.Name == "NewEvent" || sel.Sel.Name == "New") &&
+						len(call.Args) >= 4 {
+						if binOp, ok := call.Args[3].(*ast.BinaryExpr); ok &&
+							binOp.Op == token.ADD {
+							if rightLit, ok := binOp.Y.(*ast.BasicLit); ok &&
+								rightLit.Value == "1" {
 								if !seen[binOp.Pos()] {
 									seen[binOp.Pos()] = true
 									findings = append(findings, c006Finding(ctx, binOp, binOp))

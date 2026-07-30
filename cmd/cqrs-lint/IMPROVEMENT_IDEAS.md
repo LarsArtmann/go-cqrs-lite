@@ -26,12 +26,12 @@
 
 ## Consumer Project Reference
 
-| Tier | Projects | Description |
-|------|----------|-------------|
-| **Power users** | Kernovia, Standup-Killer, DiscordSync, SwettySwipperWeb | Use 10-15+ modules, deep integration |
-| **Framework** | cqrs-htmx (+ usermgmt, dashboardui) | Wraps go-cqrs-lite for ~20 consumers |
-| **Medium direct** | bank-sync, browser-history, github-local-sync, go-localsync, InboxClean, crush-daily, timesheets | Direct imports of 5-15 modules |
-| **Light/indirect** | Cyberdom, CV, KeyHolderAI, accountability-system, go-plugin-mvp, overview, storbi, standard-bug-tracking-schema, KeyCountdown | Minimal or transitive usage |
+| Tier               | Projects                                                                                                                      | Description                          |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| **Power users**    | Kernovia, Standup-Killer, DiscordSync, SwettySwipperWeb                                                                       | Use 10-15+ modules, deep integration |
+| **Framework**      | cqrs-htmx (+ usermgmt, dashboardui)                                                                                           | Wraps go-cqrs-lite for ~20 consumers |
+| **Medium direct**  | bank-sync, browser-history, github-local-sync, go-localsync, InboxClean, crush-daily, timesheets                              | Direct imports of 5-15 modules       |
+| **Light/indirect** | Cyberdom, CV, KeyHolderAI, accountability-system, go-plugin-mvp, overview, storbi, standard-bug-tracking-schema, KeyCountdown | Minimal or transitive usage          |
 
 ---
 
@@ -479,20 +479,20 @@
 
 ## Summary Statistics
 
-| Category | Ideas | Existing rules in category |
-|----------|-------|---------------------------|
-| Correctness (C) | 27 (C001-C016 existing + C017-C027 new) | 16 |
-| API Misuse (A) | 31 (A001-A019 existing + A020-A031 new) | 19 |
-| Boilerplate (B) | 26 (B001-B015 existing + B016-B026 new) | 15 |
-| Architecture (E) | 15 (E001-E007 existing + E008-E015 new) | 7 |
-| Consistency (D) | 12 (D001-D006 existing + D007-D012 new) | 5 |
-| Security (S) | 7 (S001-S003 existing + S004-S007 new) | 3 |
-| Performance (P) | 13 (new category) | 0 |
-| Version/Migration (V) | 6 (new category) | 0 |
-| Testing (T) | 8 (new category) | 0 |
-| Feature Adoption (F) | 17 (new category) | 0 |
-| DX & Infrastructure | 24 | N/A |
-| **Total** | **170** | **65 existing** |
+| Category              | Ideas                                   | Existing rules in category |
+| --------------------- | --------------------------------------- | -------------------------- |
+| Correctness (C)       | 27 (C001-C016 existing + C017-C027 new) | 16                         |
+| API Misuse (A)        | 31 (A001-A019 existing + A020-A031 new) | 19                         |
+| Boilerplate (B)       | 26 (B001-B015 existing + B016-B026 new) | 15                         |
+| Architecture (E)      | 15 (E001-E007 existing + E008-E015 new) | 7                          |
+| Consistency (D)       | 12 (D001-D006 existing + D007-D012 new) | 5                          |
+| Security (S)          | 7 (S001-S003 existing + S004-S007 new)  | 3                          |
+| Performance (P)       | 13 (new category)                       | 0                          |
+| Version/Migration (V) | 6 (new category)                        | 0                          |
+| Testing (T)           | 8 (new category)                        | 0                          |
+| Feature Adoption (F)  | 17 (new category)                       | 0                          |
+| DX & Infrastructure   | 24                                      | N/A                        |
+| **Total**             | **170**                                 | **65 existing**            |
 
 ---
 
