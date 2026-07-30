@@ -27,7 +27,7 @@ func NewV004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if !strings.Contains(gf.Path, "/third_party/") {
+				if !isInThirdParty(gf.Path) {
 					continue
 				}
 

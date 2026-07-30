@@ -27,8 +27,7 @@ func NewV005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if strings.Contains(gf.Path, "/third_party/") ||
-					strings.Contains(gf.Path, "/vendor/") {
+				if isInThirdParty(gf.Path) || isInVendor(gf.Path) {
 					continue
 				}
 
@@ -57,8 +56,7 @@ func NewV005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				isNonStandard := strings.Contains(gf.Path, "/third_party/") ||
-					strings.Contains(gf.Path, "/vendor/")
+				isNonStandard := isInThirdParty(gf.Path) || isInVendor(gf.Path)
 				if !isNonStandard {
 					continue
 				}

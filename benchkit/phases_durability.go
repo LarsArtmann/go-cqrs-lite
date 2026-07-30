@@ -58,7 +58,7 @@ func (r *runner) recoveryPhase(parent context.Context) error {
 	ctx := context.WithoutCancel(parent)
 
 	// Close the current bundle to flush all writes.
-	//cqrs-lint:ignore(C015) deliberate close-and-reopen for recovery test
+	//cqrs-lint:ignore(C023) deliberate close-and-reopen for recovery test
 	_ = r.bundle.Close()
 	r.bundle = nil // prevent double-close in teardown
 
@@ -71,7 +71,7 @@ func (r *runner) recoveryPhase(parent context.Context) error {
 
 	if recovered == nil || recovered.EventSource == nil {
 		if recovered != nil {
-			//cqrs-lint:ignore(C015) cleanup before error return
+			//cqrs-lint:ignore(C023) cleanup before error return
 			_ = recovered.Close()
 		}
 

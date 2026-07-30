@@ -15,6 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/performance"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/security"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/testrules"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/version"
 )
 
@@ -133,6 +134,15 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		security.NewS001Detector(ctx),
 		security.NewS002Detector(ctx),
 		security.NewS003Detector(ctx),
+		// Testing
+		testrules.NewT001Detector(ctx),
+		testrules.NewT002Detector(ctx),
+		testrules.NewT003Detector(ctx),
+		testrules.NewT004Detector(ctx),
+		testrules.NewT005Detector(ctx),
+		testrules.NewT006Detector(ctx),
+		testrules.NewT007Detector(ctx),
+		testrules.NewT008Detector(ctx),
 	}
 }
 
