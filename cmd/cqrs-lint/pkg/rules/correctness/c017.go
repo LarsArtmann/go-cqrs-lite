@@ -39,6 +39,12 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
+				// If this file also uses memory.NewMemoryStore() for the event
+				// store, the setup is entirely in-memory — no mismatch.
+				if fileUsesMemoryEventStore(gf.AST) {
+					continue
+				}
+
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					call, ok := n.(*ast.CallExpr)
 					if !ok {
@@ -113,4 +119,36 @@ func describeInMemStore(fnName string) string {
 	default:
 		return "store"
 	}
+}
+
+// fileUsesMemoryEventStore returns true if the file contains a call to
+// memory.NewMemoryStore(), indicating the event store itself is in-memory.
+// In that case C017 should not fire — the entire setup is in-memory.
+func fileUsesMemoryEventStore(root ast.Node) bool {
+	found := false
+
+	ast.Inspect(root, func(n ast.Node) bool {
+		if found {
+			return false
+		}
+
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		sel, ok := analyzer.SelectorFromExpr(call.Fun)
+		if !ok {
+			return true
+		}
+
+		if sel.Sel.Name == "NewMemoryStore" && analyzer.SelectorPackage(sel) == "memory" {
+			found = true
+			return false
+		}
+
+		return true
+	})
+
+	return found
 }
