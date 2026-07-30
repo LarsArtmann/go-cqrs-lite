@@ -199,7 +199,16 @@ func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if sel.Sel.Name == "CommandIdempotency" || sel.Sel.Name == "EventIdempotency" {
+					if sel.Sel.Name == "CommandIdempotency" || sel.Sel.Name == "EventIdempotency" ||
+						sel.Sel.Name == "QueryIdempotency" {
+						hasIdempotency = true
+
+						return false
+					}
+
+					// Direct idempotency.NewMemoryStore usage also counts.
+					if sel.Sel.Name == "NewMemoryStore" &&
+						analyzer.SelectorPackage(sel) == "idempotency" {
 						hasIdempotency = true
 
 						return false

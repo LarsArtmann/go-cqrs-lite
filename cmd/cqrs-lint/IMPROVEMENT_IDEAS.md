@@ -195,9 +195,9 @@
 
 59. **P002: Full read model rebuild on every startup** — crush-daily rebuilds the entire read model from scratch on every startup (setup.go:43-62). With 10K events, this adds seconds to startup time. Suggest checkpoint-based incremental catch-up via projectionhost.
 
-60. **P003: Mutex held during payload decode** — crush-daily holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). Decode is CPU-bound and doesn't need lock protection. Suggest decoding outside the lock, then acquiring the lock only for the map mutation.
+60. ~**P003: Mutex held during payload decode** — crush-daily holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). Decode is CPU-bound and doesn't need lock protection. Suggest decoding outside the lock, then acquiring the lock only for the map mutation.~ done at `c165b2e8` (covered by C021, implemented in the correctness category instead of performance)
 
-61. **P004: Multiple repository instances for same aggregate** — browser-history creates 3 `decider.NewRepository` instances for one aggregate type (handlers.go:87,143,189). Each instance has its own singleflight group and state cache. Suggest sharing one repository.
+61. ~**P004: Multiple repository instances for same aggregate** — browser-history creates 3 `decider.NewRepository` instances for one aggregate type (handlers.go:87,143,189). Each instance has its own singleflight group and state cache. Suggest sharing one repository.~ done at `b31eb572` (covered by C019, implemented in the correctness category instead of performance)
 
 62. **P005: No state cache on hot aggregate** — For aggregates with high event counts (>100 events/stream), the lack of `decider.WithStateCache` means every command triggers a full stream load. Suggest `WithStateCache` + snapshot strategy.
 

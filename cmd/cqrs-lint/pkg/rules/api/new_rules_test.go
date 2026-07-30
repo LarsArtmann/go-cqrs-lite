@@ -234,7 +234,38 @@ func TestA017_NoFindingForRepoWithSnapshot(t *testing.T) {
 		"repo.go": `package main
 
 func setup() {
+	repo := decider.NewRepository(store, bus, d,
+		decider.WithSnapshotStore(snap),
+		decider.WithSnapshotStrategy(strategy),
+	)
+}
+`,
+	})
+	findings := runDetector(t, api.NewA017Detector(ctx))
+	assertRule(t, findings, "A017", 0)
+}
+
+// A017: WithSnapshotStore without WithSnapshotStrategy should fire (warning).
+func TestA017_SnapshotStoreWithoutStrategy(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"repo.go": `package main
+
+func setup() {
 	repo := decider.NewRepository(store, bus, d, decider.WithSnapshotStore(snap))
+}
+`,
+	})
+	findings := runDetector(t, api.NewA017Detector(ctx))
+	assertRule(t, findings, "A017", 1)
+}
+
+// A017: WithStateCache alone is fine (no snapshot needed).
+func TestA017_NoFindingWithStateCacheOnly(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"repo.go": `package main
+
+func setup() {
+	repo := decider.NewRepository(store, bus, d, decider.WithStateCache(cache))
 }
 `,
 	})

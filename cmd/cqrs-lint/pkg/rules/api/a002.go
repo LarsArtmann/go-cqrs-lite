@@ -11,6 +11,8 @@ import (
 
 // A002: event.NewEvent with json.Marshal argument.
 // Detects event.NewEvent(type, id, aggType, ver, json.Marshal(payload)) instead of event.New.
+// Also detects the indirect marshalPayload helper pattern: a local function
+// that calls json.Marshal and whose result is passed to event.NewEvent.
 //
 //nolint:ireturn // factory returns public interface
 func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -18,6 +20,10 @@ func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		"A002-newevent-manual-marshal",
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
+
+			// Pre-scan: find local functions that call json.Marshal and return the result.
+			// These are the "marshalPayload" helper pattern.
+			marshalHelpers := collectMarshalPayloadHelpers(ctx)
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -39,6 +45,7 @@ func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					if !ok || pkgIdent.Name != "event" || sel.Sel.Name != "NewEvent" {
 						return true
 					}
+
 					// Check if the 5th argument (payload) is a json.Marshal call.
 					if len(call.Args) < 5 {
 						return true
@@ -46,39 +53,27 @@ func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					payloadArg := call.Args[4]
 
-					argCall, ok := payloadArg.(*ast.CallExpr)
-					if !ok {
-						return true
+					if isDirectJSONMarshal(payloadArg) || isMarshalHelperCall(payloadArg, marshalHelpers) {
+						pos := ctx.Fset.Position(call.Pos())
+
+						f, err := finding.NewBuilder(
+							"A002", toolName,
+							"event.NewEvent with json.Marshal payload — use event.New which auto-marshals typed payloads",
+							finding.SeverityWarning,
+							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+						).
+							WithCategory(finding.CategoryBestPractice).
+							WithConfidence(finding.ConfidenceHigh).
+							WithSuggestion("Replace event.NewEvent(type, id, aggType, ver, json.Marshal(payload)) " +
+								"with event.New(type, id, aggType, ver, payload)").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+							Build()
+						if err != nil {
+							return true
+						}
+
+						findings = append(findings, f)
 					}
-
-					argSel, ok := analyzer.SelectorFromExpr(argCall.Fun)
-					if !ok {
-						return true
-					}
-
-					argPkg, ok := argSel.X.(*ast.Ident)
-					if !ok || argPkg.Name != "json" || argSel.Sel.Name != "Marshal" {
-						return true
-					}
-
-					pos := ctx.Fset.Position(call.Pos())
-
-					f, err := finding.NewBuilder(
-						"A002", toolName,
-						"event.NewEvent with json.Marshal payload — use event.New which auto-marshals typed payloads",
-						finding.SeverityWarning,
-						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
-					).
-						WithCategory(finding.CategoryBestPractice).
-						WithConfidence(finding.ConfidenceHigh).
-						WithSuggestion("Replace event.NewEvent(type, id, aggType, ver, json.Marshal(payload)) with event.New(type, id, aggType, ver, payload)").
-						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
-						Build()
-					if err != nil {
-						return true
-					}
-
-					findings = append(findings, f)
 
 					return true
 				})
@@ -87,4 +82,139 @@ func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// isDirectJSONMarshal returns true if expr is a direct json.Marshal() call.
+func isDirectJSONMarshal(expr ast.Expr) bool {
+	argCall, ok := expr.(*ast.CallExpr)
+	if !ok {
+		return false
+	}
+
+	argSel, ok := analyzer.SelectorFromExpr(argCall.Fun)
+	if !ok {
+		return false
+	}
+
+	argPkg, ok := argSel.X.(*ast.Ident)
+
+	return ok && argPkg.Name == "json" && argSel.Sel.Name == "Marshal"
+}
+
+// isMarshalHelperCall returns true if expr is a call to one of the
+// marshalPayload helper functions (indirect json.Marshal).
+func isMarshalHelperCall(expr ast.Expr, helpers map[string]bool) bool {
+	argCall, ok := expr.(*ast.CallExpr)
+	if !ok {
+		return false
+	}
+
+	// Direct function call: marshalPayload(p)
+	if ident, ok := argCall.Fun.(*ast.Ident); ok {
+		return helpers[ident.Name]
+	}
+
+	// Method call: x.marshalPayload(p)
+	if sel, ok := analyzer.SelectorFromExpr(argCall.Fun); ok {
+		return helpers[sel.Sel.Name]
+	}
+
+	return false
+}
+
+// collectMarshalPayloadHelperHelpers scans all non-test files for function
+// declarations that call json.Marshal and return the result. These are the
+// "marshalPayload" helper pattern found in github-local-sync and InboxClean.
+func collectMarshalPayloadHelpers(ctx *analyzer.AnalysisContext) map[string]bool {
+	helpers := make(map[string]bool)
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		for _, decl := range gf.AST.Decls {
+			fn, ok := decl.(*ast.FuncDecl)
+			if !ok || fn.Body == nil {
+				continue
+			}
+
+			if !funcReturnsJSONMarshal(fn) {
+				continue
+			}
+
+			helpers[fn.Name.Name] = true
+		}
+	}
+
+	return helpers
+}
+
+// funcReturnsJSONMarshal returns true if the function body contains a
+// json.Marshal call whose result is returned.
+func funcReturnsJSONMarshal(fn *ast.FuncDecl) bool {
+	found := false
+
+	ast.Inspect(fn.Body, func(n ast.Node) bool {
+		if found {
+			return false
+		}
+
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		sel, ok := analyzer.SelectorFromExpr(call.Fun)
+		if !ok {
+			return true
+		}
+
+		pkg, ok := sel.X.(*ast.Ident)
+		if !ok || pkg.Name != "json" || sel.Sel.Name != "Marshal" {
+			return true
+		}
+
+		// Check if this json.Marshal call is in a return statement.
+		found = isInReturnStmt(call, fn.Body)
+
+		return !found
+	})
+
+	return found
+}
+
+// isInReturnStmt returns true if call is a direct argument of a return statement
+// anywhere in body.
+func isInReturnStmt(call *ast.CallExpr, body *ast.BlockStmt) bool {
+	found := false
+
+	ast.Inspect(body, func(n ast.Node) bool {
+		if found {
+			return false
+		}
+
+		ret, ok := n.(*ast.ReturnStmt)
+		if !ok {
+			return true
+		}
+
+		for _, expr := range ret.Results {
+			if expr == call {
+				found = true
+				return false
+			}
+
+			// Also check for return json.Marshal(p) where Marshal is wrapped
+			// in parentheses or is the sole expression.
+			if innerCall, ok := expr.(*ast.CallExpr); ok && innerCall == call {
+				found = true
+				return false
+			}
+		}
+
+		return true
+	})
+
+	return found
 }

@@ -56,6 +56,30 @@ func createEvent(type_ string, id string, streamType string, ver event.Version, 
 	assertRule(t, findings, "A002", 1)
 }
 
+// A002: Indirect json.Marshal via marshalPayload helper pattern also fires.
+func TestA002_DetectsMarshalPayloadHelper(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+import (
+	"encoding/json"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+)
+
+func marshalPayload(p any) []byte {
+	data, _ := json.Marshal(p)
+	return data
+}
+
+func createEvent(type_ string, id string, streamType string, ver event.Version, payload any) {
+	_ = event.NewEvent(type_, id, streamType, ver, marshalPayload(payload))
+}
+`,
+	})
+	findings := runDetector(t, api.NewA002Detector(ctx))
+	assertRule(t, findings, "A002", 1)
+}
+
 // --- A006: Adapter layer wrapping ---
 
 func TestA006_DetectsAdapterMethods(t *testing.T) {

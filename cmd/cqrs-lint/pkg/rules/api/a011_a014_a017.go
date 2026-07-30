@@ -198,7 +198,9 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // A017: Missing snapshot strategy.
-// Detects repositories created without a snapshot store option.
+// Detects repositories created with WithSnapshotStore but without
+// WithSnapshotStrategy — the store is useless without a strategy.
+// Also flags repositories with neither snapshot store nor state cache.
 //
 //nolint:ireturn // factory returns public interface
 func NewA017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -223,42 +225,72 @@ func NewA017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					hasSnapshot := false
+					hasSnapshotStore := false
+					hasSnapshotStrategy := false
+					hasStateCache := false
 
 					for _, arg := range call.Args {
 						if fnCall, ok := arg.(*ast.CallExpr); ok {
 							if fnSel, ok := analyzer.SelectorFromExpr(fnCall.Fun); ok {
-								if fnSel.Sel.Name == "WithSnapshotStore" ||
-									fnSel.Sel.Name == "WithSnapshotStrategy" ||
-									fnSel.Sel.Name == "WithStateCache" {
-									hasSnapshot = true
+								switch fnSel.Sel.Name {
+								case "WithSnapshotStore":
+									hasSnapshotStore = true
+								case "WithSnapshotStrategy":
+									hasSnapshotStrategy = true
+								case "WithStateCache":
+									hasStateCache = true
 								}
 							}
 						}
 					}
 
-					if hasSnapshot {
-						return true
-					}
-
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"A017", toolName,
-						"Repository created without snapshot strategy — long event streams will cause slow loads",
-						finding.SeverityInfo,
-						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
-					).
-						WithCategory(finding.CategoryBestPractice).
-						WithConfidence(finding.ConfidenceLow).
-						WithSuggestion("Add decider.WithSnapshotStore(snapStore) or decider.WithStateCache(cache) for large aggregates").
-						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
-						Build()
-					if err != nil {
+					// WithSnapshotStore without WithSnapshotStrategy — store is useless.
+					if hasSnapshotStore && !hasSnapshotStrategy {
+						f, err := finding.NewBuilder(
+							"A017", toolName,
+							"WithSnapshotStore without WithSnapshotStrategy — "+
+								"snapshot store is never triggered, snapshots are never taken",
+							finding.SeverityWarning,
+							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+						).
+							WithCategory(finding.CategoryBestPractice).
+							WithConfidence(finding.ConfidenceHigh).
+							WithSuggestion("Add decider.WithSnapshotStrategy(snapshot.EveryNEvents(n)) " +
+								"to actually trigger snapshot creation").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+							Build()
+						if err != nil {
+							return true
+						}
+
+						findings = append(findings, f)
 						return true
 					}
 
-					findings = append(findings, f)
+					// No snapshot store and no state cache — slow loads on long streams.
+					if !hasSnapshotStore && !hasStateCache {
+						f, err := finding.NewBuilder(
+							"A017", toolName,
+							"Repository created without snapshot strategy — "+
+								"long event streams will cause slow loads",
+							finding.SeverityInfo,
+							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+						).
+							WithCategory(finding.CategoryBestPractice).
+							WithConfidence(finding.ConfidenceLow).
+							WithSuggestion("Add decider.WithSnapshotStore(snapStore) " +
+								"with decider.WithSnapshotStrategy(snapshot.EveryNEvents(n)), " +
+								"or decider.WithStateCache(cache) for large aggregates").
+							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+							Build()
+						if err != nil {
+							return true
+						}
+
+						findings = append(findings, f)
+					}
 
 					return true
 				})
