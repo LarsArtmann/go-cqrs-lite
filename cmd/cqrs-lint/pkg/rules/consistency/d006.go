@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
-	"go/token"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -28,6 +27,7 @@ import (
 //   - Sentinel errors defined at package level (var ErrXxx = errors.New(...))
 //     — sentinels are pattern-matched by errors.Is, not classified.
 //   - fmt.Errorf with %w (wrapping preserves classification)
+//   - fmt.Errorf in CQRS files (owned by C025 at warning severity)
 //
 //nolint:ireturn // factory returns public interface
 func NewD006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -36,16 +36,14 @@ func NewD006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
-			// Precompute package-level sentinel-var initializer positions once,
-			// instead of re-scanning every file for each errors.New call. The
-			// previous O(calls × files × decls) scan made D006 a performance
-			// hazard on large codebases.
-			sentinels := collectPackageLevelVarCalls(ctx)
+			sentinels := lintutil.CollectPkgLevelVarCalls(ctx)
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
 					continue
 				}
+
+				cqrsFile := fileImportsCQRS(gf.AST)
 
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					call, ok := n.(*ast.CallExpr)
@@ -65,8 +63,10 @@ func NewD006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					// Check fmt.Errorf without %w
-					if isFmtErrorf(call) && !hasWrapVerb(call) {
+					// Check fmt.Errorf without %w.
+					// C025 owns fmt.Errorf in CQRS files (warning severity);
+					// D006 only reports fmt.Errorf in non-CQRS files.
+					if !cqrsFile && lintutil.IsFmtErrorf(call) && !lintutil.HasWrapVerb(call) {
 						reportUnclassified(ctx, &findings, call, "fmt.Errorf (no %w)")
 						return true
 					}
@@ -84,10 +84,6 @@ func isErrorsNew(call *ast.CallExpr) bool {
 	return isPkgSelectorCall(call, "errors", "New")
 }
 
-func isFmtErrorf(call *ast.CallExpr) bool {
-	return isPkgSelectorCall(call, "fmt", "Errorf")
-}
-
 // isPkgSelectorCall returns true if call is pkgName.methodName(...).
 func isPkgSelectorCall(call *ast.CallExpr, pkgName, methodName string) bool {
 	sel, ok := call.Fun.(*ast.SelectorExpr)
@@ -100,55 +96,21 @@ func isPkgSelectorCall(call *ast.CallExpr, pkgName, methodName string) bool {
 	return ok && ident.Name == pkgName && sel.Sel.Name == methodName
 }
 
-// hasWrapVerb returns true if the format string contains %w (error wrapping).
-func hasWrapVerb(call *ast.CallExpr) bool {
-	if len(call.Args) == 0 {
-		return false
-	}
-
-	lit, ok := call.Args[0].(*ast.BasicLit)
-	if !ok {
-		// Non-literal format string — can't analyze statically.
-		return true
-	}
-
-	return strings.Contains(lit.Value, "%w")
-}
-
-// collectPackageLevelVarCalls returns the set of CallExpr positions that are
-// the initializer of a package-level var declaration (the sentinel-error
-// pattern: var ErrXxx = errors.New(...)). Computed once per D006 run, over
-// non-test files only.
-func collectPackageLevelVarCalls(ctx *analyzer.AnalysisContext) map[token.Pos]bool {
-	positions := make(map[token.Pos]bool)
-
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
+// fileImportsCQRS returns true if the file's import declarations include
+// any go-cqrs-lite module path. Shared between D006 and C025.
+func fileImportsCQRS(file *ast.File) bool {
+	for _, imp := range file.Imports {
+		if imp == nil || imp.Path == nil {
 			continue
 		}
 
-		for _, decl := range gf.AST.Decls {
-			genDecl, ok := decl.(*ast.GenDecl)
-			if !ok || genDecl.Tok != token.VAR {
-				continue
-			}
-
-			for _, spec := range genDecl.Specs {
-				valSpec, ok := spec.(*ast.ValueSpec)
-				if !ok {
-					continue
-				}
-
-				for _, val := range valSpec.Values {
-					if c, ok := val.(*ast.CallExpr); ok {
-						positions[c.Pos()] = true
-					}
-				}
-			}
+		path := strings.Trim(imp.Path.Value, `"`)
+		if analyzer.IsCQRSModulePath(path) {
+			return true
 		}
 	}
 
-	return positions
+	return false
 }
 
 func reportUnclassified(

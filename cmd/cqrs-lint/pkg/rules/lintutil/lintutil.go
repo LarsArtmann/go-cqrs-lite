@@ -3,7 +3,13 @@
 package lintutil
 
 import (
+	"go/ast"
+	"go/token"
+	"strings"
+
 	"github.com/larsartmann/go-finding"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
 // AppendBuild appends a built [finding.Finding] to findings unless err is
@@ -50,4 +56,67 @@ var nonCQRSRegisterPackages = map[string]bool{
 // Use to suppress false positives in rules that detect handler registration.
 func IsNonCQRSRegisterPackage(pkgName string) bool {
 	return nonCQRSRegisterPackages[pkgName]
+}
+
+// CollectPkgLevelVarCalls returns the set of CallExpr positions that are
+// the initializer of a package-level var declaration (the sentinel-error
+// pattern: var ErrXxx = errors.New(...)). Computed once per lint run, over
+// non-test files only. Shared by D006 (consistency) and C025 (correctness).
+func CollectPkgLevelVarCalls(ctx *analyzer.AnalysisContext) map[token.Pos]bool {
+	positions := make(map[token.Pos]bool)
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		for _, decl := range gf.AST.Decls {
+			genDecl, ok := decl.(*ast.GenDecl)
+			if !ok || genDecl.Tok != token.VAR {
+				continue
+			}
+
+			for _, spec := range genDecl.Specs {
+				valSpec, ok := spec.(*ast.ValueSpec)
+				if !ok {
+					continue
+				}
+
+				for _, val := range valSpec.Values {
+					if c, ok := val.(*ast.CallExpr); ok {
+						positions[c.Pos()] = true
+					}
+				}
+			}
+		}
+	}
+
+	return positions
+}
+
+// IsFmtErrorf returns true if call is fmt.Errorf(...).
+func IsFmtErrorf(call *ast.CallExpr) bool {
+	sel, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return false
+	}
+
+	ident, ok := sel.X.(*ast.Ident)
+
+	return ok && ident.Name == "fmt" && sel.Sel.Name == "Errorf"
+}
+
+// HasWrapVerb returns true if the format string contains %w (error wrapping).
+// Non-literal format strings return true (can't analyze statically, assume wrapping).
+func HasWrapVerb(call *ast.CallExpr) bool {
+	if len(call.Args) == 0 {
+		return false
+	}
+
+	lit, ok := call.Args[0].(*ast.BasicLit)
+	if !ok {
+		return true // Non-literal format string — can't analyze statically.
+	}
+
+	return strings.Contains(lit.Value, "%w")
 }

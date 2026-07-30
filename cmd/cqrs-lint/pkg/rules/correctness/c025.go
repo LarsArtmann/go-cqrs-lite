@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
-	"go/token"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -17,6 +16,7 @@ import (
 // While D006 catches this globally at info severity, C025 escalates to warning
 // for CQRS consumer code — bare fmt.Errorf in event/command/query handlers
 // loses error classification and breaks the 6-family error taxonomy.
+// D006 defers fmt.Errorf in CQRS files to C025 to avoid double-reporting.
 //
 // C025: fmt.Errorf without %w in CQRS error paths.
 //
@@ -27,6 +27,8 @@ func NewC025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
+			sentinels := lintutil.CollectPkgLevelVarCalls(ctx)
+
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
 					continue
@@ -36,15 +38,13 @@ func NewC025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				sentinels := collectPkgLevelVarCalls(ctx)
-
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					call, ok := n.(*ast.CallExpr)
 					if !ok {
 						return true
 					}
 
-					if !isFmtErrorf(call) || hasWrapVerb(call) {
+					if !lintutil.IsFmtErrorf(call) || lintutil.HasWrapVerb(call) {
 						return true
 					}
 
@@ -78,64 +78,6 @@ func fileImportsCQRS(file *ast.File) bool {
 	}
 
 	return false
-}
-
-func isFmtErrorf(call *ast.CallExpr) bool {
-	sel, ok := call.Fun.(*ast.SelectorExpr)
-	if !ok {
-		return false
-	}
-
-	ident, ok := sel.X.(*ast.Ident)
-
-	return ok && ident.Name == "fmt" && sel.Sel.Name == "Errorf"
-}
-
-func hasWrapVerb(call *ast.CallExpr) bool {
-	if len(call.Args) == 0 {
-		return false
-	}
-
-	lit, ok := call.Args[0].(*ast.BasicLit)
-	if !ok {
-		return true // Non-literal format string — can't analyze statically.
-	}
-
-	return strings.Contains(lit.Value, "%w")
-}
-
-// collectPkgLevelVarCalls returns the set of CallExpr positions that are
-// the initializer of a package-level var declaration (sentinel-error pattern).
-func collectPkgLevelVarCalls(ctx *analyzer.AnalysisContext) map[token.Pos]bool {
-	positions := make(map[token.Pos]bool)
-
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		for _, decl := range gf.AST.Decls {
-			genDecl, ok := decl.(*ast.GenDecl)
-			if !ok || genDecl.Tok != token.VAR {
-				continue
-			}
-
-			for _, spec := range genDecl.Specs {
-				valSpec, ok := spec.(*ast.ValueSpec)
-				if !ok {
-					continue
-				}
-
-				for _, val := range valSpec.Values {
-					if c, ok := val.(*ast.CallExpr); ok {
-						positions[c.Pos()] = true
-					}
-				}
-			}
-		}
-	}
-
-	return positions
 }
 
 func reportBareErrorf(
