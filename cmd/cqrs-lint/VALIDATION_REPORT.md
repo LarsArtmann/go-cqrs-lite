@@ -1,7 +1,7 @@
 # cqrs-lint Validation Report
 
 > **Date:** 2026-07-30
-> **Scope:** Improvement plan execution — 65→78 rules, 6→8 categories
+> **Scope:** Improvement plan execution — 65→84 rules, 6→8 categories
 > **Status:** ALL GREEN — build, test, vet clean
 
 ---

@@ -92,7 +92,7 @@ Explicit `features` flags always override preset values.
 
 ## Rule Count
 
-**78 rules** across 8 categories: correctness (21), API misuse (20), boilerplate (18), consistency (6), architecture (7), security (3), performance (2), version (1).
+**84 rules** across 8 categories: correctness (27), API misuse (20), boilerplate (18), consistency (6), architecture (7), security (3), performance (2), version (1).
 
 ## Correctness Rules (bugs)
 
@@ -115,10 +115,16 @@ Explicit `features` flags always override preset values.
 | C015 | unchecked-close                   | Warning  | Close() error discarded — resource leak or silent data loss risk                                     |
 | C016 | background-in-handler             | Warning  | context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing |
 | C017 | inmem-store-persistent-eventstore | Error    | In-memory snapshot/checkpoint/DLQ store with persistent event store — lost on restart                |
+| C018 | silent-journal-fallback           | Error    | memory.NewMemoryStore() as journal fallback — projections replay from empty journal                |
 | C019 | multiple-repos-same-aggregate     | Warning  | Multiple Repository instances for the same aggregate type — wastes singleflight/cache                |
 | C020 | panic-in-handler                  | Error    | panic() in bus.Subscribe/SubscribeAll handler — crashes the bus/projection host                      |
+| C021 | mutex-held-during-decode          | Warning  | Payload decode while mutex is held — serializes all event processing                                 |
 | C022 | context-discarded                 | Warning  | `_ = ctx` explicitly discards context — breaks cancellation, timeouts, tracing                       |
 | C023 | shutdown-error-ignored            | Warning  | Stop/Close/Shutdown error ignored — pending events or resources may be lost                          |
+| C024 | dual-write-without-rollback       | Error    | In-memory mutation + DB write without transaction — state diverges on failure                        |
+| C025 | bare-errorf-in-cqrs               | Warning  | fmt.Errorf without %w in CQRS code — loses error classification                                      |
+| C026 | idempotency-ttl-mismatch          | Warning  | Literal TTL passed but a TTL constant is defined and not used — dead/misleading code                 |
+| C027 | bus-subscription-alongside-projectionhost | Warning | bus.Subscribe alongside projectionhost — events may be processed twice                           |
 
 ## API Misuse Rules
 
