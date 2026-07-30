@@ -275,13 +275,124 @@ func (r *TypedReader[V]) GetBatch(ctx context.Context, keys []any) ([]V, error) 
 }
 
 // Count returns the number of values matching the given filter options.
+// When the engine implements AggregateReader, COUNT(*) is pushed to SQL;
+// otherwise it falls back to Scan + len(rows).
 func (r *TypedReader[V]) Count(ctx context.Context, opts ...ScanOption) (int, error) {
+	filters := buildScanFilters(opts...)
+
+	eng, ok := r.store.collectionEngine(r.collection)
+	if ok {
+		if ar, ok := eng.(AggregateReader); ok {
+			n, err := ar.Aggregate(ctx, r.collection, AggregateCount, "", filters)
+			if err != nil {
+				return 0, err
+			}
+			return int(n), nil
+		}
+	}
+
 	rows, err := r.Scan(ctx, opts...)
 	if err != nil {
 		return 0, err
 	}
 
 	return len(rows), nil
+}
+
+// Sum returns the sum of a numeric column across matching rows.
+// Uses SQL SUM pushdown when the engine supports it.
+func (r *TypedReader[V]) Sum(ctx context.Context, column string, opts ...ScanOption) (float64, error) {
+	return r.aggregatePushdown(ctx, AggregateSum, column, opts...)
+}
+
+// Min returns the minimum value of a column across matching rows.
+func (r *TypedReader[V]) Min(ctx context.Context, column string, opts ...ScanOption) (float64, error) {
+	return r.aggregatePushdown(ctx, AggregateMin, column, opts...)
+}
+
+// Max returns the maximum value of a column across matching rows.
+func (r *TypedReader[V]) Max(ctx context.Context, column string, opts ...ScanOption) (float64, error) {
+	return r.aggregatePushdown(ctx, AggregateMax, column, opts...)
+}
+
+// Avg returns the average value of a column across matching rows.
+func (r *TypedReader[V]) Avg(ctx context.Context, column string, opts ...ScanOption) (float64, error) {
+	return r.aggregatePushdown(ctx, AggregateAvg, column, opts...)
+}
+
+// aggregatePushdown tries SQL pushdown for a single aggregate function.
+// Falls back to in-Go computation via Scan when the engine doesn't support
+// AggregateReader.
+func (r *TypedReader[V]) aggregatePushdown(
+	ctx context.Context,
+	fn AggregateFn,
+	column string,
+	opts ...ScanOption,
+) (float64, error) {
+	filters := buildScanFilters(opts...)
+
+	eng, ok := r.store.collectionEngine(r.collection)
+	if ok {
+		if ar, ok := eng.(AggregateReader); ok {
+			return ar.Aggregate(ctx, r.collection, fn, column, filters)
+		}
+	}
+
+	// Fallback: in-Go aggregation via Scan.
+	rows, err := r.Scan(ctx, opts...)
+	if err != nil {
+		return 0, err
+	}
+
+	var result float64
+
+	for _, row := range rows {
+		val := extractValueByName(row, column)
+		if n, ok := toFloat64(val); ok {
+			switch fn {
+			case AggregateSum, AggregateAvg:
+				result += n
+			case AggregateMin:
+				if result == 0 || n < result {
+					result = n
+				}
+			case AggregateMax:
+				if n > result {
+					result = n
+				}
+			}
+		}
+	}
+
+	if fn == AggregateAvg && len(rows) > 0 {
+		return result / float64(len(rows)), nil
+	}
+
+	return result, nil
+}
+
+// buildScanFilters applies scan options and returns the expanded filter list
+// (ranges and IN specs expanded into FilterSpecs).
+func buildScanFilters(opts ...ScanOption) []FilterSpec {
+	cfg := scanConfig{limit: 100}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	for _, rg := range cfg.ranges {
+		cfg.filters = append(cfg.filters,
+			FilterSpec{Column: rg.Column, Op: FilterGe, Value: rg.Low},
+			FilterSpec{Column: rg.Column, Op: FilterLe, Value: rg.High},
+		)
+	}
+
+	for _, in := range cfg.inSpecs {
+		cfg.filters = append(cfg.filters, FilterSpec{
+			Column: in.Column, Op: FilterIn, Value: in.Values,
+		})
+	}
+
+	return cfg.filters
 }
 
 // Distinct returns the unique values of a column across matching rows.

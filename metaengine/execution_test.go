@@ -80,24 +80,24 @@ var _ = Describe("Apply and Execute", func() {
 				).To(Succeed())
 			})
 
-			It("returns a zero-value result", func() {
+			It("returns ErrNotFound", func() {
 				result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
 					ctx,
 					store,
 					FindTask{ID: "t1"},
 				)
-				Expect(err).NotTo(HaveOccurred())
+				Expect(err).To(MatchError(metaengine.ErrNotFound))
 				Expect(result.Title).To(BeEmpty())
 			})
 		})
 
-		It("returns a zero-value result for an unknown ID", func() {
+		It("returns ErrNotFound for an unknown ID", func() {
 			result, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
 				ctx,
 				store,
 				FindTask{ID: "nonexistent"},
 			)
-			Expect(err).NotTo(HaveOccurred())
+			Expect(err).To(MatchError(metaengine.ErrNotFound))
 			Expect(result.Title).To(BeEmpty())
 		})
 	})

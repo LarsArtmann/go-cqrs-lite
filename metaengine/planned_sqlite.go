@@ -43,8 +43,15 @@ func (e *sqliteEngine) ApplyLayout(collection string, filterFields, sortFields [
 		e.plans = make(map[string]LayoutPlan)
 	}
 
-	if _, exists := e.plans[collection]; exists {
-		return nil // already planned (idempotent)
+	if existing, exists := e.plans[collection]; exists {
+		// Idempotent: same column set → no-op. Different columns → conflict.
+		newPlan := BuildLayoutPlan(collection, filterFields, sortFields)
+		if !plansColumnCompatible(existing, newPlan) {
+			return fmt.Errorf("%w: collection %q already has columns %v, requested %v",
+				ErrLayoutConflict, collection, existing.ColumnNames(), newPlan.ColumnNames())
+		}
+
+		return nil // already planned with same columns
 	}
 
 	plan := BuildLayoutPlan(collection, filterFields, sortFields)
@@ -54,6 +61,29 @@ func (e *sqliteEngine) ApplyLayout(collection string, filterFields, sortFields [
 	}
 
 	return nil
+}
+
+// plansColumnCompatible returns true when two plans have the same set of
+// column names (order-independent). Used to detect layout conflicts.
+func plansColumnCompatible(a, b LayoutPlan) bool {
+	ac := a.ColumnNames()
+	bc := b.ColumnNames()
+	if len(ac) != len(bc) {
+		return false
+	}
+
+	bset := make(map[string]bool, len(bc))
+	for _, c := range bc {
+		bset[c] = true
+	}
+
+	for _, c := range ac {
+		if !bset[c] {
+			return false
+		}
+	}
+
+	return true
 }
 
 // registerLayout creates the planned table + indexes and stores the plan.
