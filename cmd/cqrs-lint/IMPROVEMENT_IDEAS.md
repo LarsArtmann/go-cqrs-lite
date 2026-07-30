@@ -2,7 +2,7 @@
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **84 rules** (C001-C027, A001-A019+A027, B001-B015+B021+B023+B024, D001-D006+D011, E001-E007, S001-S003, P001+P007, V001).
+> The current linter has **100 rules** (C001-C027, A001-A027+A029, B001-B026, D001-D003+D005+D006+D011, E001-E007, S001-S003, P001+P007, V001).
 >
 > **170 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
@@ -39,29 +39,29 @@
 
 ### Existing rule gaps (improvements to current rules)
 
-1. ~**C006 should catch `ver+1` and `version.Int()+1` directly in event creation** — Kernovia uses `ver+1` in `event.NewEvent(..., ver+1, data)` (stack.go:469), Standup-Killer uses `event.Version(version.Int()+1)` (decide.go:29). Verify C006 covers both forms and also catches `event.Version(ver+1)`.~ done at `ec402374`
+1. ~~**C006 should catch `ver+1` and `version.Int()+1` directly in event creation** — Kernovia uses `ver+1` in `event.NewEvent(..., ver+1, data)` (stack.go:469), Standup-Killer uses `event.Version(version.Int()+1)` (decide.go:29). Verify C006 covers both forms and also catches `event.Version(ver+1)`.~~ done at `ec402374`
 
-2. ~**C017: In-memory snapshot store with persistent event store** — Kernovia pairs a SQLite event store with `memory.NewMemorySnapshotStore()` — snapshots are lost on restart, making the snapshot optimization useless and potentially causing consistency issues on recovery. Detect: snapshot store type is memory when event store is persistent (SQLite/Postgres/Pebble).~ done at `b31eb572`
+2. ~~**C017: In-memory snapshot store with persistent event store** — Kernovia pairs a SQLite event store with `memory.NewMemorySnapshotStore()` — snapshots are lost on restart, making the snapshot optimization useless and potentially causing consistency issues on recovery. Detect: snapshot store type is memory when event store is persistent (SQLite/Postgres/Pebble).~~ done at `b31eb572`
 
-3. ~**C018: Silent journal fallback to empty store** — cqrs-htmx's `journalFromStore` falls back to `memory.NewMemoryStore()` when the store doesn't implement `event.Journal`, meaning projections replay from an empty journal with NO error or warning. Detect: `memory.NewMemoryStore()` used as a journal fallback in a type switch / type assertion chain.~ done at `c165b2e8`
+3. ~~**C018: Silent journal fallback to empty store** — cqrs-htmx's `journalFromStore` falls back to `memory.NewMemoryStore()` when the store doesn't implement `event.Journal`, meaning projections replay from an empty journal with NO error or warning. Detect: `memory.NewMemoryStore()` used as a journal fallback in a type switch / type assertion chain.~~ done at `c165b2e8`
 
-4. ~**C019: Multiple Repository instances for the same aggregate** — browser-history creates 3 separate `decider.NewRepository` instances for the same aggregate state type (handlers.go:87,143,189). This defeats load coalescing (singleflight) and wastes memory. Detect: >1 `NewRepository` call with the same state type parameter.~ done at `b31eb572`
+4. ~~**C019: Multiple Repository instances for the same aggregate** — browser-history creates 3 separate `decider.NewRepository` instances for the same aggregate state type (handlers.go:87,143,189). This defeats load coalescing (singleflight) and wastes memory. Detect: >1 `NewRepository` call with the same state type parameter.~~ done at `b31eb572`
 
-5. ~**C020: Panic in read model / projection handler** — Standup-Killer's `readmodel.go:184` calls `panic` on ID parse failure inside a SubscribeAll handler. A panic in a projection handler can crash the entire projection host or bus. Detect: `panic()` call inside a function that implements `projection.Projection.Handle` or is used as a bus subscriber.~ done at `b31eb572`
+5. ~~**C020: Panic in read model / projection handler** — Standup-Killer's `readmodel.go:184` calls `panic` on ID parse failure inside a SubscribeAll handler. A panic in a projection handler can crash the entire projection host or bus. Detect: `panic()` call inside a function that implements `projection.Projection.Handle` or is used as a bus subscriber.~~ done at `b31eb572`
 
-6. ~**C021: Mutex held during payload decode** — crush-daily's ReadModelStore holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). This serializes all event processing unnecessarily. Detect: `Lock()`/`RLock()` call followed by `DecodePayloadAuto` or `json.Unmarshal` before `Unlock()`.~ done at `c165b2e8`
+6. ~~**C021: Mutex held during payload decode** — crush-daily's ReadModelStore holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). This serializes all event processing unnecessarily. Detect: `Lock()`/`RLock()` call followed by `DecodePayloadAuto` or `json.Unmarshal` before `Unlock()`.~~ done at `c165b2e8`
 
-7. ~**C022: Context ignored in handler (`_ = ctx`)** — crush-daily's Handle method ignores the context (setup.go:185). C016 exists for `context.Background()` but not for `_ = ctx` — the context is explicitly discarded. Detect: `_ = ctx` or `ctx` assigned to `_` inside a function with a `context.Context` parameter.~ done at `1422f8e2`
+7. ~~**C022: Context ignored in handler (`_ = ctx`)** — crush-daily's Handle method ignores the context (setup.go:185). C016 exists for `context.Background()` but not for `_ = ctx` — the context is explicitly discarded. Detect: `_ = ctx` or `ctx` assigned to `_` inside a function with a `context.Context` parameter.~~ done at `1422f8e2`
 
-8. ~**C023: Shutdown error ignored** — go-appkit's `Shutdown` ignores `host.Stop()` error (`eventservice.go:117`: `_ = es.host.Stop()`). The projection host may have pending events that are lost. Detect: `_ = ` assignment on `.Close()`, `.Stop()`, `.Shutdown()` return values. Extends C015 (unchecked Close) to lifecycle methods.~ done at `3285a3e7`
+8. ~~**C023: Shutdown error ignored** — go-appkit's `Shutdown` ignores `host.Stop()` error (`eventservice.go:117`: `_ = es.host.Stop()`). The projection host may have pending events that are lost. Detect: `_ = ` assignment on `.Close()`, `.Stop()`, `.Shutdown()` return values. Extends C015 (unchecked Close) to lifecycle methods.~~ done at `3285a3e7`
 
-9. ~**C024: Dual-write read model without rollback** — cqrs-htmx's SQL read model mutates in-memory state before `syncToSQL` (sql_readmodel.go:98-103). If SQL write fails, in-memory and SQL diverge with no rollback. Detect: in-memory mutation followed by `syncToSQL`/`WriteToSQL`/DB write in same handler without transaction/rollback.~ done at `c165b2e8`
+9. ~~**C024: Dual-write read model without rollback** — cqrs-htmx's SQL read model mutates in-memory state before `syncToSQL` (sql_readmodel.go:98-103). If SQL write fails, in-memory and SQL diverge with no rollback. Detect: in-memory mutation followed by `syncToSQL`/`WriteToSQL`/DB write in same handler without transaction/rollback.~~ done at `c165b2e8`
 
-10. ~**C025: `fmt.Errorf` without `%w` in CQRS error paths** — D006 catches this in general, but several projects (browser-history otel.go:50,58) use bare `fmt.Errorf` in CQRS-adjacent code. Tighten D006 to flag `fmt.Errorf` without `%w` in files that import go-cqrs-lite modules.~ done at `d84eb572`
+10. ~~**C025: `fmt.Errorf` without `%w` in CQRS error paths** — D006 catches this in general, but several projects (browser-history otel.go:50,58) use bare `fmt.Errorf` in CQRS-adjacent code. Tighten D006 to flag `fmt.Errorf` without `%w` in files that import go-cqrs-lite modules.~~ done at `d84eb572`
 
-11. ~**C026: Idempotency TTL mismatch** — bank-sync defines `idempotencyTTL = 5 * time.Minute` (infrastructure.go:38) but passes `24*time.Hour` to the middleware (infrastructure.go:270) — the constant is dead/misleading code. Detect: named TTL constant that differs from the value actually passed to `idempotency.NewMemoryStore` or `middleware.CommandIdempotency`.~ done at `d84eb572`
+11. ~~**C026: Idempotency TTL mismatch** — bank-sync defines `idempotencyTTL = 5 * time.Minute` (infrastructure.go:38) but passes `24*time.Hour` to the middleware (infrastructure.go:270) — the constant is dead/misleading code. Detect: named TTL constant that differs from the value actually passed to `idempotency.NewMemoryStore` or `middleware.CommandIdempotency`.~~ done at `d84eb572`
 
-12. ~**C027: Bus subscription started alongside projectionhost** — InboxClean starts a projection host AND has separate bus subscriptions active. If both subscribe to the same events, duplicate processing occurs. Detect: both `projectionhost.New`/`host.Start` and `bus.Subscribe`/`bus.SubscribeAll` for overlapping event types in the same codebase.~ done at `d84eb572`
+12. ~~**C027: Bus subscription started alongside projectionhost** — InboxClean starts a projection host AND has separate bus subscriptions active. If both subscribe to the same events, duplicate processing occurs. Detect: both `projectionhost.New`/`host.Start` and `bus.Subscribe`/`bus.SubscribeAll` for overlapping event types in the same codebase.~~ done at `d84eb572`
 
 ---
 
@@ -69,39 +69,39 @@
 
 ### Existing rule improvements
 
-13. ~**A002 should detect `marshalPayload` helper pattern** — github-local-sync (events.go:95-103) and InboxClean (decide.go:107-115) both have a `marshalPayload` function that calls `json.Marshal` and passes the result to `event.NewEvent`. The current A002 detector may miss this indirection. Add detection of the two-step pattern.~ done at `748a8cb4`
+13. ~~**A002 should detect `marshalPayload` helper pattern** — github-local-sync (events.go:95-103) and InboxClean (decide.go:107-115) both have a `marshalPayload` function that calls `json.Marshal` and passes the result to `event.NewEvent`. The current A002 detector may miss this indirection. Add detection of the two-step pattern.~~ done at `748a8cb4`
 
-14. ~**A014 should flag ALL `event.NewEvent` calls, not just some** — Many projects (Standup-Killer, github-local-sync, InboxClean, Kernovia) use `event.NewEvent` instead of `event.New`. Verify the rule catches every call site, not just those in certain function name patterns.~ done at `8ddf364a` (verified: A014 uses ast.Inspect on all call expressions, no function name filtering)
+14. ~~**A014 should flag ALL `event.NewEvent` calls, not just some** — Many projects (Standup-Killer, github-local-sync, InboxClean, Kernovia) use `event.NewEvent` instead of `event.New`. Verify the rule catches every call site, not just those in certain function name patterns.~~ done at `8ddf364a` (verified: A014 uses ast.Inspect on all call expressions, no function name filtering)
 
-15. ~**A016 should be context-aware about idempotency** — The rule currently checks for idempotency middleware. Extend: if the project uses `idempotency.NewMemoryStore` directly (like Kernovia's custom store), note that the library module exists. If the project defines its OWN idempotency store interface, flag it.~ done at `8ddf364a` (A016 now detects idempotency.NewMemoryStore and QueryIdempotency)
+15. ~~**A016 should be context-aware about idempotency** — The rule currently checks for idempotency middleware. Extend: if the project uses `idempotency.NewMemoryStore` directly (like Kernovia's custom store), note that the library module exists. If the project defines its OWN idempotency store interface, flag it.~~ done at `8ddf364a` (A016 now detects idempotency.NewMemoryStore and QueryIdempotency)
 
-16. ~**A017 should check for snapshot strategy, not just store** — Standup-Killer creates repos with `WithSnapshotStore` but no `WithSnapshotStrategy`. The store is useless without a strategy. Detect: `WithSnapshotStore` without `WithSnapshotStrategy`.~ done at `8ddf364a` (A017 now flags WithSnapshotStore without WithSnapshotStrategy at warning severity)
+16. ~~**A017 should check for snapshot strategy, not just store** — Standup-Killer creates repos with `WithSnapshotStore` but no `WithSnapshotStrategy`. The store is useless without a strategy. Detect: `WithSnapshotStore` without `WithSnapshotStrategy`.~~ done at `8ddf364a` (A017 now flags WithSnapshotStore without WithSnapshotStrategy at warning severity)
 
 ### New rules
 
-17. **A020: Custom event.Bus reimplementation** — Kernovia (memory_bus.go:19) and timesheets (NewSyncBus) reimplement `event.Bus` instead of using `watermill.NewEventBus()` or the library's memory bus. Detect: a struct implementing `Subscribe`, `SubscribeAll`, `Use`, `UsePublish`, `Close` that is NOT from go-cqrs-lite or watermill.
+17. ~~**A020: Custom event.Bus reimplementation** — Kernovia (memory_bus.go:19) and timesheets (NewSyncBus) reimplement `event.Bus` instead of using `watermill.NewEventBus()` or the library's memory bus. Detect: a struct implementing `Subscribe`, `SubscribeAll`, `Use`, `UsePublish`, `Close` that is NOT from go-cqrs-lite or watermill.~~ done at `c9c2fe86` (A020 detects structs with 4+ of 6 bus methods including UsePublish)
 
-18. **A021: Custom event.Store reimplementation** — accountability-system (memory.go) reimplements `event.Store` instead of using `storage/memory.MemoryStore`. Detect: a struct implementing `Save`, `Load`, `LoadFromVersion` that is not from a go-cqrs-lite storage module.
+18. ~~**A021: Custom event.Store reimplementation** — accountability-system (memory.go) reimplements `event.Store` instead of using `storage/memory.MemoryStore`. Detect: a struct implementing `Save`, `Load`, `LoadFromVersion` that is not from a go-cqrs-lite storage module.~~ done at `c9c2fe86` (A021 detects structs with Save+Load+LoadFromVersion)
 
-19. **A022: Raw `otel.Tracer()` instead of `cqrsotel`** — standard-bug-tracking-schema uses `otel.Tracer("event-sourcing/adapter")` instead of `cqrsotel.NewTracer("app")`. The library's `otel/` module provides re-exports with CQRS-specific span names and views. Detect: direct `otel.Tracer()`/`otel.Meter()` call in files that import go-cqrs-lite modules.
+19. ~~**A022: Raw `otel.Tracer()` instead of `cqrsotel`** — standard-bug-tracking-schema uses `otel.Tracer("event-sourcing/adapter")` instead of `cqrsotel.NewTracer("app")`. The library's `otel/` module provides re-exports with CQRS-specific span names and views. Detect: direct `otel.Tracer()`/`otel.Meter()` call in files that import go-cqrs-lite modules.~~ done at `c9c2fe86` (A022 detects otel.Tracer/otel.Meter in CQRS-importing files)
 
-20. **A023: Custom in-memory snapshot store** — cqrs-htmx usermgmt reimplements MemorySnapshotStore (snapshot.go:89-173, ~80 LOC) instead of using `storage/memory.NewMemorySnapshotStore()`. Detect: a struct implementing `SnapshotSink`/`SnapshotSource` methods that is not from go-cqrs-lite.
+20. ~~**A023: Custom in-memory snapshot store** — cqrs-htmx usermgmt reimplements MemorySnapshotStore (snapshot.go:89-173, ~80 LOC) instead of using `storage/memory.NewMemorySnapshotStore()`. Detect: a struct implementing `SnapshotSink`/`SnapshotSource` methods that is not from go-cqrs-lite.~~ done at `c9c2fe86` (A023 detects structs with "Snapshot" in name + Save+Load methods)
 
-21. **A024: Decorative event sourcing (decider shape, no wiring)** — storbi has state folding and event types but never creates an event store, bus, or repository. The decider pattern is imported but the pipeline is never wired. Detect: imports `event/`, `decider/` but no `event.New`/`event.NewEvent` calls and no `decider.NewRepository` / `decider.NewTypedRepository`.
+21. ~~**A024: Decorative event sourcing (decider shape, no wiring)** — storbi has state folding and event types but never creates an event store, bus, or repository. The decider pattern is imported but the pipeline is never wired. Detect: imports `event/`, `decider/` but no `event.New`/`event.NewEvent` calls and no `decider.NewRepository` / `decider.NewTypedRepository`.~~ done at `c9c2fe86` (A024 detects event/decider imports without New/NewEvent/NewRepository calls)
 
-22. **A025: Command/query only, no events** — KeyHolderAI imports `command` and `query` but has no event sourcing, no decider, no event store. It uses CQRS dispatchers as a thin service layer. Flag: this may be intentional (CQRS without ES), but suggest event sourcing for audit trail.
+22. ~~**A025: Command/query only, no events** — KeyHolderAI imports `command` and `query` but has no event sourcing, no decider, no event store. It uses CQRS dispatchers as a thin service layer. Flag: this may be intentional (CQRS without ES), but suggest event sourcing for audit trail.~~ done at `c9c2fe86` (A025 detects command+query imports without event/decider)
 
-23. **A026: Event bus only, no CQRS pipeline** — Cyberdom uses only `event` and `watermill` with no command dispatcher, decider, or query handler. It's using go-cqrs-lite as a bare event bus. Flag: suggest adding command/query separation for a fuller CQRS architecture.
+23. ~~**A026: Event bus only, no CQRS pipeline** — Cyberdom uses only `event` and `watermill` with no command dispatcher, decider, or query handler. It's using go-cqrs-lite as a bare event bus. Flag: suggest adding command/query separation for a fuller CQRS architecture.~~ done at `c9c2fe86` (A026 detects event+watermill imports without command/decider/query)
 
 24. **A027: `event.WithCodec` repeated on every event** — crush-daily calls `event.WithCodec(codec.JSONCodec{})` on every single `event.New` call (decider.go:33,71,101,126). The codec should be set once via `event.DefaultCodec` or at the repository/bundle level. Detect: `event.WithCodec` appearing 3+ times in the same file.
 
-25. **A028: cqrs-htmx used only for HTTP middleware** — CV and overview import cqrs-htmx but use it only for `RequestIDFromContext`, `CSRFMiddleware`, `SecurityHeadersMiddleware`. Zero CQRS types. This isn't using go-cqrs-lite at all — cqrs-htmx is an HTTP framework that happens to depend on go-cqrs-lite. Flag: no CQRS-related types used despite cqrs-htmx import.
+25. **A028: cqrs-htmx used only for HTTP middleware** — Skipped: too project-specific. cqrs-htmx is a separate framework, not a go-cqrs-lite module. The analyzer cannot detect it without hardcoding a specific external import path.
 
-26. **A029: `bus.UsePublish` is a stub returning nil** — accountability-system's custom bus has `UsePublish` that returns `nil` (no middleware chain). Detect: `func ... UsePublish(...) error { return nil }` in a struct implementing `event.Bus`.
+26. ~~**A029: `bus.UsePublish` is a stub returning nil** — accountability-system's custom bus has `UsePublish` that returns `nil` (no middleware chain). Detect: `func ... UsePublish(...) error { return nil }` in a struct implementing `event.Bus`.~~ done at `c9c2fe86` (A029 detects UsePublish methods with body `return nil`)
 
-27. **A030: In-memory checkpoint store with persistent event store** — Similar to C017 but for checkpoints. cqrs-htmx defaults to `memory.NewMemoryCheckpointStore()` even with SQLite event stores. Projections replay from zero on every restart. Detect: `MemoryCheckpointStore` paired with a persistent event store.
+27. **A030: In-memory checkpoint store with persistent event store** — Covered by C017, which already detects `NewMemoryCheckpointStore` from the `memory` package paired with a persistent event store.
 
-28. **A031: In-memory DLQ with persistent event store** — cqrs-htmx hardcodes `projectionhost.NewMemoryDeadLetterStore()` (es_projection_setup.go:83). Dead letters are lost on restart. Detect: `NewMemoryDeadLetterStore` paired with a persistent event store.
+28. **A031: In-memory DLQ with persistent event store** — Covered by C017, which already detects `NewMemoryDeadLetterStore` from the `projectionhost` package paired with a persistent event store.
 
 ---
 
@@ -195,9 +195,9 @@
 
 59. **P002: Full read model rebuild on every startup** — crush-daily rebuilds the entire read model from scratch on every startup (setup.go:43-62). With 10K events, this adds seconds to startup time. Suggest checkpoint-based incremental catch-up via projectionhost.
 
-60. ~**P003: Mutex held during payload decode** — crush-daily holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). Decode is CPU-bound and doesn't need lock protection. Suggest decoding outside the lock, then acquiring the lock only for the map mutation.~ done at `c165b2e8` (covered by C021, implemented in the correctness category instead of performance)
+60. ~~**P003: Mutex held during payload decode** — crush-daily holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). Decode is CPU-bound and doesn't need lock protection. Suggest decoding outside the lock, then acquiring the lock only for the map mutation.~~ done at `c165b2e8` (covered by C021, implemented in the correctness category instead of performance)
 
-61. ~**P004: Multiple repository instances for same aggregate** — browser-history creates 3 `decider.NewRepository` instances for one aggregate type (handlers.go:87,143,189). Each instance has its own singleflight group and state cache. Suggest sharing one repository.~ done at `b31eb572` (covered by C019, implemented in the correctness category instead of performance)
+61. ~~**P004: Multiple repository instances for same aggregate** — browser-history creates 3 `decider.NewRepository` instances for one aggregate type (handlers.go:87,143,189). Each instance has its own singleflight group and state cache. Suggest sharing one repository.~~ done at `b31eb572` (covered by C019, implemented in the correctness category instead of performance)
 
 62. **P005: No state cache on hot aggregate** — For aggregates with high event counts (>100 events/stream), the lack of `decider.WithStateCache` means every command triggers a full stream load. Suggest `WithStateCache` + snapshot strategy.
 
@@ -482,8 +482,8 @@
 | Category              | Ideas                                   | Existing rules in category |
 | --------------------- | --------------------------------------- | -------------------------- |
 | Correctness (C)       | 27 (C001-C016 existing + C017-C027 new) | 27                         |
-| API Misuse (A)        | 31 (A001-A019 existing + A020-A031 new) | 20                         |
-| Boilerplate (B)       | 26 (B001-B015 existing + B016-B026 new) | 18                         |
+| API Misuse (A)        | 31 (A001-A019 existing + A020-A031 new) | 28                         |
+| Boilerplate (B)       | 26 (B001-B015 existing + B016-B026 new) | 26                         |
 | Architecture (E)      | 15 (E001-E007 existing + E008-E015 new) | 7                          |
 | Consistency (D)       | 12 (D001-D006 existing + D007-D012 new) | 6                          |
 | Security (S)          | 7 (S001-S003 existing + S004-S007 new)  | 3                          |
@@ -492,7 +492,7 @@
 | Testing (T)           | 8 (new category)                        | 0                          |
 | Feature Adoption (F)  | 17 (new category)                       | 0                          |
 | DX & Infrastructure   | 24                                      | N/A                        |
-| **Total**             | **170**                                 | **84 existing**            |
+| **Total**             | **170**                                 | **100 existing**           |
 
 ---
 
@@ -502,22 +502,22 @@
 
 1. **C006 version arithmetic** — observed in Kernovia, Standup-Killer (verify current detection)
 2. **A014 event.NewEvent → event.New** — observed in most projects
-3. **B021 StrictApply recommendation** — 6/8 projects miss this
-4. **B023 missing command middleware** — several projects have zero protection
-5. **P001 O(N^2) read model** — timesheets has a critical performance bug
+3. ~**B021 StrictApply recommendation** — 6/8 projects miss this~ done
+4. ~**B023 missing command middleware** — several projects have zero protection~ done
+5. ~**P001 O(N^2) read model** — timesheets has a critical performance bug~ done
 6. **V001 v3/v4 mixing** — go-plugin-mvp, go-appkit need upgrading
 7. **C017 in-memory snapshot with persistent store** — Kernovia loses snapshots
-8. **B019 manual read model rebuild** — crush-daily adds seconds to every startup
+8. ~**B019 manual read model rebuild** — crush-daily adds seconds to every startup~ done
 9. **C019 multiple repos for same aggregate** — browser-history wastes resources
 10. **F001 tombstone soft-delete** — delete operations without audit trail
 
 ### Short-term (high value, moderate effort)
 
-11. **B016 manual checkpoint replay** — browser-history reinvents projectionhost
+11. ~**B016 manual checkpoint replay** — browser-history reinvents projectionhost~ done
 12. **A020/A021 custom bus/store reimplementation** — accountability-system, Kernovia
-13. **P007 bit-shift retry bug** — DiscordSync has a real bug
+13. ~**P007 bit-shift retry bug** — DiscordSync has a real bug~ done
 14. **D012 missing schema version stamping** — most projects
-15. **B025 missing state cache** — most projects
+15. ~**B025 missing state cache** — most projects~ done
 16. **E010 event capture without validation** — DiscordSync pattern
 17. **F003/F004 missing OTel/Prometheus** — most server projects
 18. **T001 no scenario tests** — most projects with deciders

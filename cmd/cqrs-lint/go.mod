@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.0
-	github.com/larsartmann/go-finding v1.4.1
+	github.com/larsartmann/go-finding v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-output v0.35.0
 	github.com/larsartmann/go-output/table v0.35.0
@@ -20,7 +20,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260729215302-f2cf2bdb65a2 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260730002925-d9e819d7acab // indirect
 	github.com/charmbracelet/x/ansi v0.11.7 // indirect
 	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260727090823-41c9e6be3365 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect

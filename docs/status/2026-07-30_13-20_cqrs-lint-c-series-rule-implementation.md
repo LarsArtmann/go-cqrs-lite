@@ -10,14 +10,14 @@
 
 ### Rules implemented (6 new detectors + 19 test cases)
 
-| Rule | File | Detection | Tests |
-|------|------|-----------|-------|
-| **C018** | `pkg/rules/correctness/c018.go` | `memory.NewMemoryStore()` used as journal fallback in type assertion/switch chains | 3 tests (type assert, type switch, negative) |
-| **C021** | `pkg/rules/correctness/c021.go` | `Lock()`/`RLock()` followed by `DecodePayloadAuto`/`json.Unmarshal` before `Unlock()` (deferred unlocks ignored, function literals skipped) | 4 tests (DecodePayloadAuto, json.Unmarshal, decode outside lock, no decode) |
-| **C024** | `pkg/rules/correctness/c024.go` | In-memory mutation (`s.field = ...`, `m[key] = ...`) + `*ToSQL`/`*ToDB` write call without `Begin`/`BeginTx`/`RunInTx` transaction | 3 tests (dual-write, with transaction, no mutation) |
-| **C025** | `pkg/rules/correctness/c025.go` | `fmt.Errorf` without `%w` in files importing go-cqrs-lite modules (escalates D006 from info to warning for CQRS code) | 3 tests (bare errorf in CQRS file, with %w, non-CQRS file) |
-| **C026** | `pkg/rules/correctness/c026.go` | TTL constant defined (`*TTL*` in name) but different literal value passed to `idempotency.NewMemoryStore` or `middleware.*Idempotency` | 4 tests (NewMemoryStore mismatch, const used, middleware mismatch, no const) |
-| **C027** | `pkg/rules/correctness/c027.go` | `bus.Subscribe`/`SubscribeAll` in a codebase that also calls `projectionhost.New` | 3 tests (both present, no projectionhost, projectionhost only) |
+| Rule     | File                            | Detection                                                                                                                                   | Tests                                                                        |
+| -------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **C018** | `pkg/rules/correctness/c018.go` | `memory.NewMemoryStore()` used as journal fallback in type assertion/switch chains                                                          | 3 tests (type assert, type switch, negative)                                 |
+| **C021** | `pkg/rules/correctness/c021.go` | `Lock()`/`RLock()` followed by `DecodePayloadAuto`/`json.Unmarshal` before `Unlock()` (deferred unlocks ignored, function literals skipped) | 4 tests (DecodePayloadAuto, json.Unmarshal, decode outside lock, no decode)  |
+| **C024** | `pkg/rules/correctness/c024.go` | In-memory mutation (`s.field = ...`, `m[key] = ...`) + `*ToSQL`/`*ToDB` write call without `Begin`/`BeginTx`/`RunInTx` transaction          | 3 tests (dual-write, with transaction, no mutation)                          |
+| **C025** | `pkg/rules/correctness/c025.go` | `fmt.Errorf` without `%w` in files importing go-cqrs-lite modules (escalates D006 from info to warning for CQRS code)                       | 3 tests (bare errorf in CQRS file, with %w, non-CQRS file)                   |
+| **C026** | `pkg/rules/correctness/c026.go` | TTL constant defined (`*TTL*` in name) but different literal value passed to `idempotency.NewMemoryStore` or `middleware.*Idempotency`      | 4 tests (NewMemoryStore mismatch, const used, middleware mismatch, no const) |
+| **C027** | `pkg/rules/correctness/c027.go` | `bus.Subscribe`/`SubscribeAll` in a codebase that also calls `projectionhost.New`                                                           | 3 tests (both present, no projectionhost, projectionhost only)               |
 
 ### Wiring & registration
 
@@ -48,16 +48,20 @@
 ## b) PARTIALLY DONE
 
 ### IMPROVEMENT_IDEAS.md annotations
+
 - The 6 new rules are marked `done at pending` — the commit hash needs to be filled in after committing.
 - The summary statistics table at line 484 still says `16` existing rules for Correctness — should be `27` now (16 original + 11 new across sessions).
 
 ### C025 code duplication
+
 - `collectPkgLevelVarCalls` in `c025.go` is a copy of `collectPackageLevelVarCalls` in `consistency/d006.go`. Both scan package-level var declarations for sentinel error positions. This should be extracted to `lintutil` as a shared helper.
 
 ### C024 detection heuristic
+
 - The dual-write detection uses name-based heuristics (`*SQL` + `*sync*`/`*write*`/`*save*`/`*persist*`). This catches the documented pattern (`syncToSQL`, `writeToDB`) but may miss methods with different naming conventions. A more robust approach would track data-flow from mutation to DB call, but that requires type information beyond AST-only analysis.
 
 ### C021 lock tracking
+
 - The lock-state tracking is linear (source order), which works for simple `Lock() ... Unlock()` sequences but doesn't handle complex control flow (e.g., `Lock()` in one branch of an if-statement). This is a known limitation of AST-based analysis without control-flow graph construction.
 
 ---
@@ -65,7 +69,9 @@
 ## c) NOT STARTED
 
 ### Remaining IMPROVEMENT_IDEAS.md items (158 of 170)
+
 The 170-item improvement plan has 12 items done (all C-series). The remaining 158 items span:
+
 - **A-series (A002-A031):** 16 ideas — API misuse improvements and new rules
 - **B-series (B016-B026):** 10 ideas — boilerplate reduction
 - **E-series (E008-E015):** 8 ideas — architecture rules
@@ -79,12 +85,15 @@ The 170-item improvement plan has 12 items done (all C-series). The remaining 15
 - **Misc:** 27 ideas — additional detection patterns
 
 ### `nix fmt` (treefmt) not run
+
 - `gofmt` was applied to new files, but the full `nix fmt` (which runs `gofumpt` + `goimports` + `golines` at 120 chars) was not run. Long lines in the new files may need wrapping.
 
 ### `nix run .#verify` not run
+
 - The comprehensive verify gate (build + vet + test + race + lint + doc-check + doc-assertions) was not run. Individual `go build`, `go vet`, `go test`, and `go test -race` were run manually.
 
 ### API-stability golden not regenerated
+
 - No exported symbols were added/removed in the library modules (only in `cmd/cqrs-lint`), so the api-stability golden should be unaffected. But this was not verified.
 
 ---
@@ -92,6 +101,7 @@ The 170-item improvement plan has 12 items done (all C-series). The remaining 15
 ## d) TOTALLY FUCKED UP
 
 ### Nothing is irrevocably broken.
+
 - All code compiles, all tests pass, `go vet` is clean.
 - The `IMPROVEMENT_IDEAS.md` annotation format went through 3 iterations before matching the user's desired format (`~<original text>~ done at <hash>`). This wasted time but caused no damage.
 - The `hasDeferAncestor` function name collision between `c021.go` and `c023.go` was caught by the compiler and fixed immediately (renamed to `hasDeferAncestorC021`).
@@ -117,6 +127,7 @@ The 170-item improvement plan has 12 items done (all C-series). The remaining 15
 ## f) Next 50 things to get done
 
 ### Immediate (this session's loose ends)
+
 1. Commit the 6 new rules and fill in the `pending` hash annotations in `IMPROVEMENT_IDEAS.md`
 2. Run `nix fmt` on the new files
 3. Run `nix run .#verify` for full gate verification
@@ -126,6 +137,7 @@ The 170-item improvement plan has 12 items done (all C-series). The remaining 15
 7. Add deeper test cases: C018 with `event.SeekableJournal`, C021 with `RLock`/`RUnlock`, C024 with `RunInTx`, C026 with `EventIdempotency`/`QueryIdempotency`
 
 ### A-series rules (next priority from IMPROVEMENT_IDEAS.md)
+
 8. A002: Detect `marshalPayload` helper two-step pattern
 9. A014: Verify ALL `event.NewEvent` calls are flagged
 10. A016: Context-aware idempotency (custom store detection)
@@ -143,6 +155,7 @@ The 170-item improvement plan has 12 items done (all C-series). The remaining 15
 22. A031: In-memory DLQ with persistent event store (similar to C017)
 
 ### B-series rules
+
 23. B016: Manual checkpoint replay table
 24. B017: Manual read model rebuild from scratch on startup
 25. B018: Repeated bus.Subscribe boilerplate (3+ with identical error handling)
@@ -153,6 +166,7 @@ The 170-item improvement plan has 12 items done (all C-series). The remaining 15
 30. B026: Manual event type registration instead of catalog
 
 ### E/D/S/P/V/T/F-series (selection)
+
 31. E008: cqrs-htmx primary path bypasses stack presets
 32. E009: No HTTP integration for CQRS
 33. E013: Signing configured but disabled by default
@@ -171,6 +185,7 @@ The 170-item improvement plan has 12 items done (all C-series). The remaining 15
 46. F-series: Feature adoption coaching (scorecard, profile command)
 
 ### Linter DX & Infrastructure
+
 47. Incremental analysis — cache AST results for faster re-runs
 48. Feature adoption scorecard — show what each project uses vs misses
 49. Profile command — detailed usage analysis per project

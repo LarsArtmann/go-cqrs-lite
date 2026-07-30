@@ -5,12 +5,12 @@ go 1.26.5
 require (
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0-20260729094629-b5628220609c
+	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0-20260730112151-90dfbdfe6cfc
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260729094629-b5628220609c
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260730112151-90dfbdfe6cfc
 	github.com/larsartmann/go-error-family v0.10.0
 )
 
@@ -72,7 +72,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.1-0.20260729094629-b5628220609c // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.1-0.20260730112151-90dfbdfe6cfc // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

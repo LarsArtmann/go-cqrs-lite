@@ -96,35 +96,35 @@ Explicit `features` flags always override preset values.
 
 ## Correctness Rules (bugs)
 
-| ID   | Rule                              | Severity | Description                                                                                          |
-| ---- | --------------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
-| C001 | missing-tx-commit                 | Critical | Transaction wrapper returns nil instead of tx.Commit()                                               |
-| C002 | broken-command-id                 | Critical | Command ID() returns zero value — breaks idempotency                                                 |
-| C003 | silent-unknown-event-fold         | Error    | Fold function silently ignores unknown event types                                                   |
-| C004 | checkpoint-before-async-complete  | Error    | Projection launches async work — checkpoint may save early                                           |
-| C005 | raw-json-unmarshal-payload        | Error    | Raw json.Unmarshal on event payload instead of DecodePayloadAuto                                     |
-| C006 | manual-version-arithmetic         | Warning  | event.Version(x.Int()+1) instead of x.Increment()                                                    |
-| C007 | time-now-in-decider               | Warning  | time.Now() inside decider — non-deterministic                                                        |
-| C008 | float64-for-money                 | Warning  | float64 field with monetary name — use decimal or cents                                              |
-| C009 | panic-in-production               | Warning  | panic() in production code — use error returns                                                       |
-| C010 | swallowed-error-in-fold           | Warning  | Error from decode/unmarshal discarded in fold                                                        |
-| C011 | nondeterministic-decider          | Warning  | rand.* call inside decider — non-deterministic replay                                                |
-| C012 | missing-error-return-in-with-tx   | Critical | withTx ignores body error — failures silently lost                                                   |
-| C013 | time-time-in-event-payload        | Warning  | time.Time field in event payload loses timezone via CBOR epoch encoding                              |
-| C014 | time-local-usage                  | Warning  | time.Local causes silent data corruption across timezone boundaries                                  |
-| C015 | unchecked-close                   | Warning  | Close() error discarded — resource leak or silent data loss risk                                     |
-| C016 | background-in-handler             | Warning  | context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing |
-| C017 | inmem-store-persistent-eventstore | Error    | In-memory snapshot/checkpoint/DLQ store with persistent event store — lost on restart                |
-| C018 | silent-journal-fallback           | Error    | memory.NewMemoryStore() as journal fallback — projections replay from empty journal                |
-| C019 | multiple-repos-same-aggregate     | Warning  | Multiple Repository instances for the same aggregate type — wastes singleflight/cache                |
-| C020 | panic-in-handler                  | Error    | panic() in bus.Subscribe/SubscribeAll handler — crashes the bus/projection host                      |
-| C021 | mutex-held-during-decode          | Warning  | Payload decode while mutex is held — serializes all event processing                                 |
-| C022 | context-discarded                 | Warning  | `_ = ctx` explicitly discards context — breaks cancellation, timeouts, tracing                       |
-| C023 | shutdown-error-ignored            | Warning  | Stop/Close/Shutdown error ignored — pending events or resources may be lost                          |
-| C024 | dual-write-without-rollback       | Error    | In-memory mutation + DB write without transaction — state diverges on failure                        |
-| C025 | bare-errorf-in-cqrs               | Warning  | fmt.Errorf without %w in CQRS code — loses error classification                                      |
-| C026 | idempotency-ttl-mismatch          | Warning  | Literal TTL passed but a TTL constant is defined and not used — dead/misleading code                 |
-| C027 | bus-subscription-alongside-projectionhost | Warning | bus.Subscribe alongside projectionhost — events may be processed twice                           |
+| ID   | Rule                                      | Severity | Description                                                                                          |
+| ---- | ----------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| C001 | missing-tx-commit                         | Critical | Transaction wrapper returns nil instead of tx.Commit()                                               |
+| C002 | broken-command-id                         | Critical | Command ID() returns zero value — breaks idempotency                                                 |
+| C003 | silent-unknown-event-fold                 | Error    | Fold function silently ignores unknown event types                                                   |
+| C004 | checkpoint-before-async-complete          | Error    | Projection launches async work — checkpoint may save early                                           |
+| C005 | raw-json-unmarshal-payload                | Error    | Raw json.Unmarshal on event payload instead of DecodePayloadAuto                                     |
+| C006 | manual-version-arithmetic                 | Warning  | event.Version(x.Int()+1) instead of x.Increment()                                                    |
+| C007 | time-now-in-decider                       | Warning  | time.Now() inside decider — non-deterministic                                                        |
+| C008 | float64-for-money                         | Warning  | float64 field with monetary name — use decimal or cents                                              |
+| C009 | panic-in-production                       | Warning  | panic() in production code — use error returns                                                       |
+| C010 | swallowed-error-in-fold                   | Warning  | Error from decode/unmarshal discarded in fold                                                        |
+| C011 | nondeterministic-decider                  | Warning  | rand.* call inside decider — non-deterministic replay                                                |
+| C012 | missing-error-return-in-with-tx           | Critical | withTx ignores body error — failures silently lost                                                   |
+| C013 | time-time-in-event-payload                | Warning  | time.Time field in event payload loses timezone via CBOR epoch encoding                              |
+| C014 | time-local-usage                          | Warning  | time.Local causes silent data corruption across timezone boundaries                                  |
+| C015 | unchecked-close                           | Warning  | Close() error discarded — resource leak or silent data loss risk                                     |
+| C016 | background-in-handler                     | Warning  | context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing |
+| C017 | inmem-store-persistent-eventstore         | Error    | In-memory snapshot/checkpoint/DLQ store with persistent event store — lost on restart                |
+| C018 | silent-journal-fallback                   | Error    | memory.NewMemoryStore() as journal fallback — projections replay from empty journal                  |
+| C019 | multiple-repos-same-aggregate             | Warning  | Multiple Repository instances for the same aggregate type — wastes singleflight/cache                |
+| C020 | panic-in-handler                          | Error    | panic() in bus.Subscribe/SubscribeAll handler — crashes the bus/projection host                      |
+| C021 | mutex-held-during-decode                  | Warning  | Payload decode while mutex is held — serializes all event processing                                 |
+| C022 | context-discarded                         | Warning  | `_ = ctx` explicitly discards context — breaks cancellation, timeouts, tracing                       |
+| C023 | shutdown-error-ignored                    | Warning  | Stop/Close/Shutdown error ignored — pending events or resources may be lost                          |
+| C024 | dual-write-without-rollback               | Error    | In-memory mutation + DB write without transaction — state diverges on failure                        |
+| C025 | bare-errorf-in-cqrs                       | Warning  | fmt.Errorf without %w in CQRS code — loses error classification                                      |
+| C026 | idempotency-ttl-mismatch                  | Warning  | Literal TTL passed but a TTL constant is defined and not used — dead/misleading code                 |
+| C027 | bus-subscription-alongside-projectionhost | Warning  | bus.Subscribe alongside projectionhost — events may be processed twice                               |
 
 ## API Misuse Rules
 

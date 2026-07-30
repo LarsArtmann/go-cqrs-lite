@@ -47,14 +47,14 @@
 11. **A016: idempotency context-awareness** — Detector now detects three additional idempotency signs beyond `CommandIdempotency`/`EventIdempotency`:
     - `middleware.QueryIdempotency` (was missing)
     - `idempotency.NewMemoryStore` direct usage (Kernovia pattern)
-    Added tests `TestA016_NoFindingWithDirectIdempotencyStore` and `TestA016_NoFindingWithQueryIdempotency`.
+      Added tests `TestA016_NoFindingWithDirectIdempotencyStore` and `TestA016_NoFindingWithQueryIdempotency`.
 
 12. **A017: snapshot strategy check** — Detector now distinguishes between three states:
     - `WithSnapshotStore` without `WithSnapshotStrategy` → **warning** (high confidence): store is useless, snapshots never taken
     - `WithSnapshotStore` + `WithSnapshotStrategy` → no finding (correct)
     - Neither snapshot store nor state cache → **info** (low confidence): slow loads on long streams
     - `WithStateCache` alone → no finding (cache is sufficient)
-    Updated existing test `TestA017_NoFindingForRepoWithSnapshot` to include `WithSnapshotStrategy`. Added `TestA017_SnapshotStoreWithoutStrategy` and `TestA017_NoFindingWithStateCacheOnly`.
+      Updated existing test `TestA017_NoFindingForRepoWithSnapshot` to include `WithSnapshotStrategy`. Added `TestA017_SnapshotStoreWithoutStrategy` and `TestA017_NoFindingWithStateCacheOnly`.
 
 13. **A-series IMPROVEMENT_IDEAS.md annotated** — Items 13-16 annotated with `~...~ done at <hash>` format, matching the C-series annotation style.
 
@@ -143,6 +143,7 @@ Nothing. All changes compile, all tests pass, no regressions introduced.
 ## f) Up to 50 things we should get done next
 
 ### Immediate (this session's loose ends)
+
 1. Extract `fileImportsCQRS` to `lintutil.FileImportsCQRS`
 2. Remove dead `isInReturnStmt` function from `a002.go`
 3. Regenerate API stability golden (`cd cmd/api-stability && GOWORK=off go run main.go -update`)
@@ -150,6 +151,7 @@ Nothing. All changes compile, all tests pass, no regressions introduced.
 5. Add integration test for C025/D006 overlap (D006 skips CQRS files, C025 fires)
 
 ### A-series new rules (items 17-31 from IMPROVEMENT_IDEAS.md)
+
 6. A020: Custom event.Bus reimplementation detection
 7. A021: Custom event.Store reimplementation detection
 8. A022: Raw `otel.Tracer()` instead of `cqrsotel`
@@ -164,6 +166,7 @@ Nothing. All changes compile, all tests pass, no regressions introduced.
 17. A031: Missing health check endpoint
 
 ### B-series new rules (items 22-35)
+
 18. B016: Manual checkpoint replay table
 19. B017: Manual fold function that could use scenario DSL
 20. B018: Manual event type constants instead of catalog
@@ -177,6 +180,7 @@ Nothing. All changes compile, all tests pass, no regressions introduced.
 28. B026: Manual pagination instead of PaginatedResult
 
 ### E-series new rules (items 36-42)
+
 29. E008: God package (single package with >2000 LOC)
 30. E009: Missing bounded context separation
 31. E010: Event capture without validation
@@ -187,6 +191,7 @@ Nothing. All changes compile, all tests pass, no regressions introduced.
 36. E015: Missing graceful shutdown ordering
 
 ### D-series, S-series, P-series, V-series, T-series, F-series
+
 37. D007: Inconsistent error wrapping style
 38. D008: Mixed receiver pointer/value types
 39. D009: Inconsistent naming for event types
@@ -206,6 +211,7 @@ Nothing. All changes compile, all tests pass, no regressions introduced.
 53. V002-V006: Various version/migration rules
 
 ### Infrastructure
+
 54. Run `nix run .#vulncheck` to verify no version-sequence breaks in published tags
 55. Run `nix run .#check-duplication` to verify no new code duplication introduced
 56. Run `nix run .#check-coverage` to verify coverage didn't drop
