@@ -31,7 +31,7 @@ func NewC022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						continue
 					}
 
-					if !hasContextParam(fn.Type.Params) {
+					if !hasContextParam(fn) {
 						continue
 					}
 
@@ -83,28 +83,4 @@ func NewC022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-func hasContextParam(params *ast.FieldList) bool {
-	if params == nil {
-		return false
-	}
-
-	for _, field := range params.List {
-		sel, ok := field.Type.(*ast.SelectorExpr)
-		if !ok {
-			continue
-		}
-
-		pkg, ok := sel.X.(*ast.Ident)
-		if !ok || pkg.Name != "context" {
-			continue
-		}
-
-		if sel.Sel.Name == "Context" {
-			return true
-		}
-	}
-
-	return false
 }

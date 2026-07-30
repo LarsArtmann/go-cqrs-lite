@@ -152,7 +152,7 @@ func detectMissingMiddleware(
 		}
 
 		f, err := finding.NewBuilder(
-			ruleID, toolName,
+			finding.RuleName(ruleID), toolName,
 			desc+" has no middleware (.Use) — panics in handlers crash the process",
 			finding.SeverityWarning,
 			finding.Pos(finding.FilePath(d.file), d.line, d.col),
