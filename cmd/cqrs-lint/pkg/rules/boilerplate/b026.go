@@ -45,6 +45,24 @@ func NewB026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 			}
 
+			// Also check AST import declarations (fallback for test contexts
+			// where ctx.Packages is empty).
+			if !hasCatalogImport {
+				for _, gf := range ctx.GoFiles {
+					for _, imp := range gf.AST.Imports {
+						if imp.Path != nil &&
+							strings.Contains(imp.Path.Value, "go-cqrs-lite/catalog") {
+							hasCatalogImport = true
+							break
+						}
+					}
+
+					if hasCatalogImport {
+						break
+					}
+				}
+			}
+
 			if hasCatalogImport {
 				return nil, nil
 			}

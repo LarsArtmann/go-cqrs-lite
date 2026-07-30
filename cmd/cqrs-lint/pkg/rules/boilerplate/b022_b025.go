@@ -151,8 +151,18 @@ func NewB025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					// Check if WithStateCache is among the arguments.
 					hasStateCache := false
 					for _, arg := range call.Args {
-						argSel, ok := analyzer.SelectorFromExpr(arg)
-						if !ok {
+						// Options are typically call expressions like
+						// decider.WithStateCache(cache) or
+						// decider.WithStateCache[State](cache).
+						var argSel *ast.SelectorExpr
+
+						if argCall, ok := arg.(*ast.CallExpr); ok {
+							argSel, _ = analyzer.SelectorFromExpr(argCall.Fun)
+						} else {
+							argSel, _ = analyzer.SelectorFromExpr(arg)
+						}
+
+						if argSel == nil {
 							continue
 						}
 
