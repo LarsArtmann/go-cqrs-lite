@@ -302,6 +302,15 @@ func correctnessRules() []RuleInfo {
 			Description: "QueryIdempotency with nil keyExtractor panics at runtime — queries have no default identity",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C030",
+			Name:        "no-ctx-cancel-in-loop",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Infinite loop without context cancellation — goroutine leaks on shutdown",
+			AutoFix:     false,
+		},
 	}
 }
 

@@ -236,6 +236,24 @@ func boilerplateRules() []RuleInfo {
 			Description: "3+ event types but no catalog import — documentation generation unavailable",
 			AutoFix:     false,
 		},
+		{
+			ID:          "B027",
+			Name:        "hardcoded-stream-type",
+			Category:    "boilerplate",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Hardcoded stream-type string literal — use a constant for consistency",
+			AutoFix:     false,
+		},
+		{
+			ID:          "B028",
+			Name:        "manual-goroutine-dispatch",
+			Category:    "boilerplate",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Manual goroutine dispatch of command — deriver.AsHandler provides idempotent dispatch",
+			AutoFix:     false,
+		},
 	}
 }
 
@@ -248,6 +266,15 @@ func performanceRules() []RuleInfo {
 			Severity:    "error",
 			Confidence:  "high",
 			Description: "repo.Load inside SubscribeAll handler — O(N²) replay",
+			AutoFix:     false,
+		},
+		{
+			ID:          "P006",
+			Name:        "polling-loop-short-interval",
+			Category:    "performance",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "time.Sleep <100ms inside a for-loop — busy-poll pattern, use channel/callback/sync.Cond",
 			AutoFix:     false,
 		},
 		{
@@ -284,6 +311,15 @@ func performanceRules() []RuleInfo {
 			Severity:    "warning",
 			Confidence:  "medium",
 			Description: "Aggregate with collection-type state without snapshot strategy or cache — expensive reloads",
+			AutoFix:     false,
+		},
+		{
+			ID:          "P006",
+			Name:        "polling-loop-short-interval",
+			Category:    "performance",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "time.Sleep with short interval inside a loop — busy-poll wastes CPU",
 			AutoFix:     false,
 		},
 	}
@@ -402,6 +438,15 @@ func consistencyRules() []RuleInfo {
 			Severity:    "warning",
 			Confidence:  "high",
 			Description: "Event created with nil payload — cannot be decoded, provides no audit trail",
+			AutoFix:     false,
+		},
+		{
+			ID:          "D012",
+			Name:        "raw-print-in-handler",
+			Category:    "consistency",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Raw fmt/log print in CQRS handler — use structured logging (slog)",
 			AutoFix:     false,
 		},
 	}
