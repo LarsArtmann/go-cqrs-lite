@@ -62,7 +62,7 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					pkg := analyzer.SelectorPackage(sel)
-					if pkg != "memory" && pkg != "projectionhost" {
+					if pkg != "memory" && pkg != "projectionhost" && pkg != "scheduling" {
 						return true
 					}
 

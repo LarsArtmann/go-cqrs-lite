@@ -2,7 +2,7 @@
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **113 rules** (C001-C027, A001-A027+A029, B001-B026, D001-D003+D005+D006+D011, E001-E007, S001-S003, P001+P007, V001-V006, T001-T008).
+> The current linter has **117 rules** (C001-C027, A001-A027+A029, B001-B026, D001-D003+D005+D006+D011, E001-E007, S001-S003+S007, P001+P007, V001-V006, T001-T008).
 >
 > **179 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
@@ -183,7 +183,7 @@
 
 56. **S006: Financial data without encryption** — bank-sync uses AES-256-GCM encryption (gold standard), but other financial projects (timesheets) store financial data without encryption. Detect: monetary field names (amount, price, balance, salary) without encryption module import.
 
-57. **S007: In-memory session/token store** — cqrs-htmx defaults to `NewInMemorySessionStore()`. Session tokens are lost on restart, forcing re-authentication. Detect: in-memory session/token store used in production server context.
+57. ~~**S007: In-memory session/token store** — cqrs-htmx defaults to `NewInMemorySessionStore()`. Session tokens are lost on restart, forcing re-authentication. Detect: in-memory session/token store used in production server context.~~ done (security/s007.go)
 
 ---
 
@@ -205,11 +205,11 @@
 
 64. ~~**P007: Manual retry loop with bit-shift backoff** — DiscordSync has a hand-rolled `appendWithRetry` (storage.go:207-241) with `baseBackoff << time.Duration(attempt-1)` bitshift. This has a subtle bug: left-shifting a Duration shifts the nanoseconds representation. Suggest `retry.Do` from the library.~~ done (existing rule)
 
-65. **P008: Projection host WithBatchSize not set** — InboxClean sets batch size 500 but most projects don't set it at all, defaulting to whatever the library default is. For large event streams, the batch size significantly affects throughput. Flag: `projectionhost.New` without `WithBatchSize`.
+65. ~~**P008: Projection host WithBatchSize not set** — InboxClean sets batch size 500 but most projects don't set it at all, defaulting to whatever the library default is. For large event streams, the batch size significantly affects throughput. Flag: `projectionhost.New` without `WithBatchSize`.~~ done
 
-66. **P009: JSON codec for large payloads** — Projects with large event payloads (DiscordSync's message events) should use CBOR for ~35% smaller payloads. Detect: event payload structs with many fields (>10) or `[]byte` fields using JSON codec.
+66. ~~**P009: JSON codec for large payloads** — Projects with large event payloads (DiscordSync's message events) should use CBOR for ~35% smaller payloads. Detect: event payload structs with many fields (>10) or `[]byte` fields using JSON codec.~~ done
 
-67. **P010: No snapshot strategy on large aggregates** — Projects with aggregates that could accumulate >100 events should configure snapshot strategy. Detect: aggregate with >50 events in the stream without `WithSnapshotStrategy`.
+67. ~~**P010: No snapshot strategy on large aggregates** — Projects with aggregates that could accumulate >100 events should configure snapshot strategy. Detect: aggregate with >50 events in the stream without `WithSnapshotStrategy`.~~ done
 
 ---
 
@@ -506,7 +506,7 @@
 | Boilerplate (B)       | 11 (B001-B015 existing + B016-B026 new)               | 26             |
 | Architecture (E)      | 8 (E001-E007 existing + E008-E015 new)                | 7              |
 | Consistency (D)       | 6 (D001-D003+D005+D006+D011 existing + D007-D012 new) | 6              |
-| Security (S)          | 4 (S001-S003 existing + S004-S007 new)                | 3              |
+| Security (S)          | 4 (S001-S003 existing + S004-S007 new)                | 4 (S001-S003, S007) |
 | Performance (P)       | 10 (P001-P010)                                        | 2 (P001, P007) |
 | Version/Migration (V) | 6 (V001-V006)                                         | 6 (all done)   |
 | Testing (T)           | 8 (T001-T008)                                         | 8 (all done)   |

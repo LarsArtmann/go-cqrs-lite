@@ -81,6 +81,121 @@ func setup() {
 	}
 }
 
+// C017: In-memory checkpoint store with persistent event store fires (A030).
+func TestC017_InMemCheckpointStoreWithPersistentStore(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	store := memory.NewMemoryCheckpointStore()
+	_ = store
+}
+`,
+	})
+	ctx.FeatureProfile.Store = analyzer.StoreSQLite
+
+	findings, err := correctness.NewC017Detector(ctx).Detect(context.Background())
+	if err != nil {
+		t.Fatalf("detect: %v", err)
+	}
+
+	if len(findings) != 1 {
+		t.Fatalf("expected 1 finding for in-memory checkpoint store, got %d", len(findings))
+	}
+
+	if string(findings[0].Rule) != "C017" {
+		t.Errorf("expected C017, got %s", findings[0].Rule)
+	}
+}
+
+// C017: In-memory dead-letter store from projectionhost with persistent event
+// store fires (A031).
+func TestC017_InMemDeadLetterStoreWithPersistentStore(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	store := projectionhost.NewMemoryDeadLetterStore()
+	_ = store
+}
+`,
+	})
+	ctx.FeatureProfile.Store = analyzer.StoreSQLite
+
+	findings, err := correctness.NewC017Detector(ctx).Detect(context.Background())
+	if err != nil {
+		t.Fatalf("detect: %v", err)
+	}
+
+	if len(findings) != 1 {
+		t.Fatalf("expected 1 finding for in-memory DLQ, got %d", len(findings))
+	}
+
+	if string(findings[0].Rule) != "C017" {
+		t.Errorf("expected C017, got %s", findings[0].Rule)
+	}
+}
+
+// C017: In-memory timer store with persistent event store fires.
+func TestC017_InMemTimerStoreWithPersistentStore(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	store := scheduling.NewMemoryTimerStore()
+	_ = store
+}
+`,
+	})
+	ctx.FeatureProfile.Store = analyzer.StorePostgres
+
+	findings, err := correctness.NewC017Detector(ctx).Detect(context.Background())
+	if err != nil {
+		t.Fatalf("detect: %v", err)
+	}
+
+	if len(findings) != 1 {
+		t.Fatalf("expected 1 finding for in-memory timer store, got %d", len(findings))
+	}
+
+	if string(findings[0].Rule) != "C017" {
+		t.Errorf("expected C017, got %s", findings[0].Rule)
+	}
+}
+
+// C017: No finding when the same file uses memory.NewMemoryStore() for the
+// event store — the entire setup is in-memory (fileUsesMemoryEventStore exemption).
+func TestC017_NoFindingWhenMemoryEventStoreInSameFile(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	eventStore := memory.NewMemoryStore()
+	snapStore := memory.NewMemorySnapshotStore()
+	_, _ = eventStore, snapStore
+}
+`,
+	})
+	ctx.FeatureProfile.Store = analyzer.StoreSQLite
+
+	findings, err := correctness.NewC017Detector(ctx).Detect(context.Background())
+	if err != nil {
+		t.Fatalf("detect: %v", err)
+	}
+
+	if len(findings) != 0 {
+		t.Fatalf("expected 0 findings when memory event store in same file, got %d", len(findings))
+	}
+}
+
 // C019: Multiple NewRepository for same type fires.
 func TestC019_MultipleReposSameType(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{

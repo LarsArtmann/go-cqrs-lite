@@ -212,6 +212,9 @@ Explicit `features` flags always override preset values.
 | ---- | --------------------- | -------- | ---------------------------------------------------------------- |
 | P001 | load-in-subscribeall  | Error    | repo.Load inside SubscribeAll handler — O(N²) replay             |
 | P007 | manual-retry-bitshift | Error    | Manual retry loop with bitshift backoff — corrupts time.Duration |
+| P008 | projectionhost-no-batchsize | Info     | projectionhost.New without WithBatchSize — throughput bottleneck on large streams |
+| P009 | json-codec-large-payloads  | Info     | Large event payload using JSON codec — CBOR is ~35% smaller |
+| P010 | no-snapshot-large-aggregate | Warning  | Collection-type state without snapshot strategy or cache — expensive reloads |
 
 ## Version Rules
 
