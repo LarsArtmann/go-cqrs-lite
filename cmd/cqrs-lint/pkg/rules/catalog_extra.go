@@ -479,3 +479,80 @@ func securityRules() []RuleInfo {
 		},
 	}
 }
+
+func testingRules() []RuleInfo {
+	return []RuleInfo{
+		{
+			ID:          "T001",
+			Name:        "no-scenario-tests-for-deciders",
+			Category:    "testing",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Project defines deciders but has no scenario.Given BDD tests",
+			AutoFix:     false,
+		},
+		{
+			ID:          "T002",
+			Name:        "no-scenario-tests-for-projections",
+			Category:    "testing",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Project defines projections but has no scenario.GivenProjection tests",
+			AutoFix:     false,
+		},
+		{
+			ID:          "T003",
+			Name:        "no-eventtest-imports",
+			Category:    "testing",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Project uses events but lacks eventtest fake stores/buses in tests",
+			AutoFix:     false,
+		},
+		{
+			ID:          "T004",
+			Name:        "no-golden-snapshot-tests",
+			Category:    "testing",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Catalog/documentation output has no snapshot tests",
+			AutoFix:     false,
+		},
+		{
+			ID:          "T005",
+			Name:        "projection-without-error-test",
+			Category:    "testing",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Projections have no error-path tests for malformed payloads",
+			AutoFix:     false,
+		},
+		{
+			ID:          "T006",
+			Name:        "decider-without-conflict-test",
+			Category:    "testing",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Decider scenario tests only cover happy paths, not conflict/error scenarios",
+			AutoFix:     false,
+		},
+		{
+			ID:          "T007",
+			Name:        "no-event-roundtrip-test",
+			Category:    "testing",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "No save→load round-trip test for event stores",
+			AutoFix:     false,
+		},
+		{
+			ID:          "T008",
+			Name:        "test-imports-production-store",
+			Category:    "testing",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Test file imports a production store instead of eventtest/memory fakes",
+			AutoFix:     false,
+		},
+	}
+}

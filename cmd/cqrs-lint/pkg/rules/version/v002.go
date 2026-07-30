@@ -48,7 +48,8 @@ func NewV002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion(fmt.Sprintf(
-						"Run go get %s@latest to pin a tagged release", req.Path)).
+						"Run go get %s@latest to pin a tagged release", req.Path,
+					)).
 					WithSnippet(ctx.SourceLine(ctx.ProjectRoot+"/go.mod", req.Line)).
 					Build()
 				if err == nil {

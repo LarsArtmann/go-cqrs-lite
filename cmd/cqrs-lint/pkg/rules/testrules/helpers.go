@@ -166,7 +166,7 @@ func projectFinding(
 	ctx *analyzer.AnalysisContext,
 ) finding.Finding {
 	f, _ := finding.NewBuilder(
-		ruleID, toolName,
+		finding.RuleName(ruleID), toolName,
 		message, severity,
 		finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
 	).

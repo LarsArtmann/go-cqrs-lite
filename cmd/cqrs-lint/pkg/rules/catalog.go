@@ -28,6 +28,7 @@ var allRulesCache = sync.OnceValue(func() []RuleInfo {
 		securityRules(),
 		performanceRules(),
 		versionRules(),
+		testingRules(),
 	)
 })
 

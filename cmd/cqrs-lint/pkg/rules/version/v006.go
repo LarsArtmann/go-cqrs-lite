@@ -49,7 +49,8 @@ func NewV006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 
 				versionByMajor[major][req.Version] = append(
-					versionByMajor[major][req.Version], req)
+					versionByMajor[major][req.Version], req,
+				)
 			}
 
 			var findings []finding.Finding
@@ -81,7 +82,8 @@ func NewV006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						"%s is on %s but other v%d modules use %s — "+
 							"go-cqrs-lite modules within the same major version should be pinned to the same release",
 						modName, req.Version, major,
-						strings.Join(sortedVersions[1:], ", ")),
+						strings.Join(sortedVersions[1:], ", "),
+					),
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), req.Line, 1),
 				).
@@ -89,7 +91,8 @@ func NewV006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion(fmt.Sprintf(
 						"Update all go-cqrs-lite/v%d modules to %s with: go get github.com/larsartmann/go-cqrs-lite/...@%s",
-						major, sortedVersions[len(sortedVersions)-1], sortedVersions[len(sortedVersions)-1])).
+						major, sortedVersions[len(sortedVersions)-1], sortedVersions[len(sortedVersions)-1],
+					)).
 					WithSnippet(ctx.SourceLine(ctx.ProjectRoot+"/go.mod", req.Line)).
 					Build()
 				if err == nil {
