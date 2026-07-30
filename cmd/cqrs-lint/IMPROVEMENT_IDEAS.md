@@ -500,16 +500,16 @@
 
 ### Immediate (highest impact for real consumers)
 
-1. **C006 version arithmetic** — observed in Kernovia, Standup-Killer (verify current detection)
-2. **A014 event.NewEvent → event.New** — observed in most projects
+1. ~~**C006 version arithmetic** — observed in Kernovia, Standup-Killer (verify current detection)~~ done
+2. ~~**A014 event.NewEvent → event.New** — observed in most projects~~ done
 3. ~~**B021 StrictApply recommendation** — 6/8 projects miss this~~ done
 4. ~~**B023 missing command middleware** — several projects have zero protection~~ done
 5. ~~**P001 O(N^2) read model** — timesheets has a critical performance bug~~ done
 6. **V001 v3/v4 mixing** — go-plugin-mvp, go-appkit need upgrading
-7. **C017 in-memory snapshot with persistent store** — Kernovia loses snapshots
+7. ~~**C017 in-memory snapshot with persistent store** — Kernovia loses snapshots~~ done
 8. ~~**B019 manual read model rebuild** — crush-daily adds seconds to every startup~~ done
-9. **C019 multiple repos for same aggregate** — browser-history wastes resources
-10. **F001 tombstone soft-delete** — delete operations without audit trail
+9. ~~**C019 multiple repos for same aggregate** — browser-history wastes resources~~ done
+10. **F001 tombstone soft-delete** — delete operations without audit trail (F-series not yet implemented)
 
 ### Short-term (high value, moderate effort)
 
@@ -518,11 +518,11 @@
 13. ~~**P007 bit-shift retry bug** — DiscordSync has a real bug~~ done
 14. **D012 missing schema version stamping** — most projects
 15. ~~**B025 missing state cache** — most projects~~ done
-16. **E010 event capture without validation** — DiscordSync pattern
-17. **F003/F004 missing OTel/Prometheus** — most server projects
-18. **T001 no scenario tests** — most projects with deciders
-19. **C021 mutex held during decode** — crush-daily
-20. **C022 context ignored in handler** — crush-daily
+16. **E010 event capture without validation** — DiscordSync pattern (E008-E015 not yet implemented)
+17. **F003/F004 missing OTel/Prometheus** — most server projects (F-series not yet implemented)
+18. **T001 no scenario tests** — most projects with deciders (T-series not yet implemented)
+19. ~~**C021 mutex held during decode** — crush-daily~~ done
+20. ~~**C022 context ignored in handler** — crush-daily~~ done
 
 ### Long-term (nice to have, ecosystem-wide)
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -16,6 +17,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/suppression"
 )
 
+// errAbortClean signals that the lint found nothing to analyze but no error
+// occurred — the run should exit zero (e.g. no Go files, no CQRS imports).
+var errAbortClean = errors.New("nothing to lint")
+
 func run(ctx context.Context, cfg *AppConfig) error {
 	start := time.Now()
 
@@ -24,24 +29,65 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		return fmt.Errorf("load packages: %w", err)
 	}
 
-	// Apply config-declared feature overrides on top of auto-detection.
+	applyConfigOverrides(cfg, actx)
+
+	if err := handleLoadErrors(cfg, actx); err != nil {
+		if errors.Is(err, errAbortClean) {
+			return nil
+		}
+		return err
+	}
+
+	detectors := selectDetectors(cfg, actx)
+
+	result, err := runPipeline(ctx, cfg, detectors)
+	if err != nil {
+		return err
+	}
+
+	active, unsuppressed, suppressed := filterFindings(cfg, collectFindings(result))
+
+	printSummary(cfg, actx, start, active, unsuppressed, len(suppressed), detectors, result)
+
+	if err := outputFindings(ctx, active, cfg); err != nil {
+		return fmt.Errorf("output: %w", err)
+	}
+
+	if cfg.ShowSuppressed && len(suppressed) > 0 && !cfg.Quiet {
+		formatSuppressedFindings(os.Stdout, suppressed, parseColorMode(cfg.Color))
+	}
+
+	if cfg.HealthScore {
+		infoCap := cfg.Health.InfoCap
+		if infoCap == 0 {
+			infoCap = defaultInfoDeductionCap
+		}
+		hs := ComputeHealthScoreWithCap(unsuppressed, infoCap)
+		fmt.Print(renderHealthScore(hs, parseColorMode(cfg.Color)))
+	}
+
+	return shouldExitWithError(cfg, active)
+}
+
+// applyConfigOverrides merges config-declared feature overrides and rule-specific
+// overrides onto the auto-detected analysis context. Also validates rule config
+// keys to surface typos that would silently disable an override.
+func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 	actx.FeatureProfile = analyzer.ResolveFeatureProfile(
 		cfg.Features,
 		cfg.Preset,
 		actx.FeatureProfile,
 	)
 
-	// Rule-specific overrides (external-API allowlists, etc.).
-	actx.RulesConfig = cfg.Rules
-
-	// Validate + normalize rule overrides: warn on typos, unknown keys, and
-	// empty/duplicate prefixes. Closes the silent-failure gap where a typo'd
-	// config key (e.g. "external-api-prefixes") silently disabled an override.
 	rawRules := loadRawRulesJSON()
 	cfg.Rules.Validate(os.Stderr, rawRules)
 	actx.RulesConfig = cfg.Rules
+}
 
-	// --strict-load: any package load error is fatal, even if some packages loaded.
+// handleLoadErrors processes package-loading failures and returns an error
+// if the lint should abort (--strict-load, no files with errors). Returns nil
+// when the analysis can proceed, possibly after printing a partial-analysis warning.
+func handleLoadErrors(cfg *AppConfig, actx *analyzer.AnalysisContext) error {
 	if cfg.StrictLoad && len(actx.LoadErrors) > 0 {
 		fmt.Fprintln(os.Stderr, "cqrs-lint: --strict-load mode — package loading reported errors:")
 		fmt.Fprintln(os.Stderr)
@@ -86,10 +132,9 @@ func run(ctx context.Context, cfg *AppConfig) error {
 			}
 		}
 
-		return nil
+		return errAbortClean
 	}
 
-	// Warn about partial analysis (non-strict mode with load errors).
 	if !cfg.Quiet && len(actx.LoadErrors) > 0 {
 		fmt.Fprintf(
 			os.Stderr,
@@ -100,21 +145,35 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		fmt.Fprintln(os.Stderr)
 	}
 
-	var detectors []finding.Detector
+	return nil
+}
+
+// selectDetectors builds the detector list based on mode (fast, all, filtered).
+func selectDetectors(cfg *AppConfig, actx *analyzer.AnalysisContext) []finding.Detector {
 	if cfg.FastMode {
-		detectors = rules.RegisterCritical(actx)
-	} else {
-		detectors = rules.RegisterAll(actx)
-		if cfg.Categories != "" {
-			parts := strings.Split(cfg.Categories, ",")
-			if rules.IsRuleID(parts[0]) {
-				detectors = rules.FilterByRuleIDs(detectors, parts)
-			} else {
-				detectors = rules.FilterByCategory(detectors, parts)
-			}
-		}
+		return rules.RegisterCritical(actx)
 	}
 
+	detectors := rules.RegisterAll(actx)
+
+	if cfg.Categories != "" {
+		parts := strings.Split(cfg.Categories, ",")
+		if rules.IsRuleID(parts[0]) {
+			return rules.FilterByRuleIDs(detectors, parts)
+		}
+
+		return rules.FilterByCategory(detectors, parts)
+	}
+
+	return detectors
+}
+
+// runPipeline builds the pipeline configuration, creates the pipeline, and runs it.
+func runPipeline(
+	ctx context.Context,
+	cfg *AppConfig,
+	detectors []finding.Detector,
+) (*pipeline.PipelineResult, error) {
 	pipeConfig := pipeline.Config{
 		MaxIterations:       5,
 		ParallelDetectors:   true,
@@ -132,34 +191,52 @@ func run(ctx context.Context, cfg *AppConfig) error {
 
 	pipe, err := pipeline.New(pipeConfig, cfg.Path, detectors...)
 	if err != nil {
-		return fmt.Errorf("create pipeline: %w", err)
+		return nil, fmt.Errorf("create pipeline: %w", err)
 	}
 
 	result, err := pipe.Run(ctx)
 	if err != nil {
-		return fmt.Errorf("pipeline run: %w", err)
+		return nil, fmt.Errorf("pipeline run: %w", err)
 	}
 
-	allFindings := collectFindings(result)
+	return result, nil
+}
+
+// filterFindings applies path exclusion, suppression splitting, severity, and
+// confidence filters. Returns active findings (for output + exit), unsuppressed
+// findings (for health score + stale suppression detection), and suppressed
+// findings (for --show-suppressed auditing).
+func filterFindings(
+	cfg *AppConfig,
+	allFindings []finding.Finding,
+) (active, unsuppressed, suppressed []finding.Finding) {
 	if cfg.Exclude != "" {
 		allFindings = filterByExcludedPaths(allFindings, strings.Split(cfg.Exclude, ","))
 	}
 
-	// Split suppressed findings (//cqrs-lint:ignore) from active ones.
-	// unsuppressedFindings feeds the severity/confidence filters and health
-	// score. suppressedFindings is retained for --show-suppressed auditing.
-	unsuppressedFindings, suppressedFindings := filterSuppressed(allFindings)
-	suppressedCount := len(suppressedFindings)
+	unsuppressed, suppressed = filterSuppressed(allFindings)
 
-	activeFindings := filterBySeverity(unsuppressedFindings, cfg.MinSeverity)
+	active = filterBySeverity(unsuppressed, cfg.MinSeverity)
 	if cfg.FPSuspects {
-		// --fp-suspects: show only low-confidence findings (likely false
-		// positives). Overrides the normal confidence filter.
-		activeFindings = filterFPSuspects(activeFindings)
+		active = filterFPSuspects(active)
 	} else {
-		activeFindings = filterByConfidence(activeFindings, cfg.MinConfidence)
+		active = filterByConfidence(active, cfg.MinConfidence)
 	}
 
+	return active, unsuppressed, suppressed
+}
+
+// printSummary writes the text-mode analysis summary to stderr, including
+// timing, suppression counts, stale-suppression warnings, and verbose detail.
+func printSummary(
+	cfg *AppConfig,
+	actx *analyzer.AnalysisContext,
+	start time.Time,
+	active, unsuppressed []finding.Finding,
+	suppressedCount int,
+	detectors []finding.Detector,
+	result *pipeline.PipelineResult,
+) {
 	if !cfg.Quiet && cfg.Format == "text" {
 		elapsed := time.Since(start)
 		fmt.Fprintf(
@@ -177,7 +254,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 			goFilePaths = append(goFilePaths, gf.Path)
 		}
 
-		stale := suppression.DetectStaleSuppressions(goFilePaths, unsuppressedFindings)
+		stale := suppression.DetectStaleSuppressions(goFilePaths, unsuppressed)
 		for _, s := range stale {
 			fmt.Fprintln(os.Stderr, suppression.FormatStaleWarning(s))
 		}
@@ -186,7 +263,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 			fmt.Fprintf(os.Stderr,
 				"Showing %d low-confidence finding(s) — likely false positives.\n"+
 					"Suppress confirmed FPs with //cqrs-lint:ignore(RULE)\n",
-				len(activeFindings))
+				len(active))
 		}
 
 		fmt.Fprintln(os.Stderr)
@@ -195,7 +272,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	if cfg.Verbose && !cfg.Quiet {
 		modules := countModules(actx.GoFiles)
 		fmt.Fprintf(os.Stderr, "Modules: %d  Detectors: %d  Findings: %d (before filtering)\n\n",
-			modules, len(detectors), len(allFindings))
+			modules, len(detectors), len(unsuppressed)+suppressedCount)
 		fmt.Fprintf(os.Stderr, "Feature profile:\n%s\n", actx.FeatureProfile.String())
 		if len(actx.LoadErrors) > 0 {
 			fmt.Fprintf(os.Stderr, "Load errors (%d):\n", len(actx.LoadErrors))
@@ -204,23 +281,4 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		}
 		printDetectorTimings(os.Stderr, result.Metrics)
 	}
-
-	if err := outputFindings(ctx, activeFindings, cfg); err != nil {
-		return fmt.Errorf("output: %w", err)
-	}
-
-	if cfg.ShowSuppressed && len(suppressedFindings) > 0 && !cfg.Quiet {
-		formatSuppressedFindings(os.Stdout, suppressedFindings, parseColorMode(cfg.Color))
-	}
-
-	if cfg.HealthScore {
-		infoCap := cfg.Health.InfoCap
-		if infoCap == 0 {
-			infoCap = defaultInfoDeductionCap
-		}
-		hs := ComputeHealthScoreWithCap(unsuppressedFindings, infoCap)
-		fmt.Print(renderHealthScore(hs, parseColorMode(cfg.Color)))
-	}
-
-	return shouldExitWithError(cfg, activeFindings)
 }

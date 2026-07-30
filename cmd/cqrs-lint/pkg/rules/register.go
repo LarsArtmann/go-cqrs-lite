@@ -3,6 +3,7 @@ package rules
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/larsartmann/go-finding"
 
@@ -207,15 +208,27 @@ func IsRuleID(s string) bool {
 	return true
 }
 
-func detectorCategory(name string) string {
-	info := AllRules()
-
-	for _, r := range info {
-		if r.ID != "" && len(name) >= len(r.ID) && name[:len(r.ID)] == r.ID {
-			return r.Category
+// ruleCategoryCache maps rule ID → category, built once from AllRules.
+// Eliminates the O(N) linear scan that detectorCategory used to do per detector.
+var ruleCategoryCache = sync.OnceValue(func() map[string]string {
+	m := make(map[string]string, len(AllRules()))
+	for _, r := range AllRules() {
+		if r.ID != "" {
+			m[r.ID] = r.Category
 		}
 	}
+	return m
+})
 
+// detectorCategory returns the category for a detector by its rule ID prefix.
+// Uses a cached O(1) map lookup instead of a per-call linear scan.
+func detectorCategory(name string) string {
+	cats := ruleCategoryCache()
+	for id, cat := range cats {
+		if len(name) >= len(id) && name[:len(id)] == id {
+			return cat
+		}
+	}
 	return ""
 }
 
