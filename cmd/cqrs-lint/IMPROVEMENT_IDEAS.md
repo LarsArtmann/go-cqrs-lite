@@ -433,9 +433,9 @@
 
 ### Migration and upgrade rules
 
-154. **Detect `event.NewEvent` deprecation migration progress** — Track how many `event.NewEvent` calls remain vs `event.New`. Show progress: "15/20 event creation calls migrated to event.New (75%)."
+154. ~~**Detect `event.NewEvent` deprecation migration progress** — Track how many `event.NewEvent` calls remain vs `event.New`. Show progress: "15/20 event creation calls migrated to event.New (75%)."~~ **Won't implement — false premise.** `event.NewEvent` is not deprecated; it's a lower-level API taking `payload []byte` (raw), while `event.New` takes `payload any` (auto-marshaled). The 6 production call sites (signing, encryption, watermill, transport/grpc) legitimately need raw bytes for wire-format reconstruction. The ~320 test calls are style preference, not a migration. A014 already flags domain misuse and A002 catches the `json.Marshal` anti-pattern specifically. A `// Deprecated:` comment would be incorrect — it would make staticcheck SA1019 flag legitimate infrastructure code.
 
-155. **Detect `Register` (deprecated) vs `RegisterTyped` migration** — A014 flags deprecated `Register`. Track migration progress across the codebase.
+155. ~~**Detect `Register` (deprecated) vs `RegisterTyped` migration** — A014 flags deprecated `Register`. Track migration progress across the codebase.~~ **Won't implement — migration already complete.** Zero production `Register` callers exist across the codebase (all production code uses `RegisterTyped`). The ~15 remaining calls are in test files. `RegisterTyped` is a thin wrapper that calls `Register` internally — deprecating the implementation while shipping a wrapper is contradictory. A014 already flags any new non-test usage. There is nothing left to track.
 
 156. **Detect v3-to-v4 migration blockers** — For projects still on v3, identify specific API differences that block migration (removed types, renamed functions).
 
