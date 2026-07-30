@@ -499,21 +499,21 @@
 
 ## Summary Statistics
 
-| Category              | Listed items                                          | Existing rules |
-| --------------------- | ----------------------------------------------------- | -------------- |
-| Correctness (C)       | 12 (C001-C016 existing + C017-C027 new)               | 27             |
-| API Misuse (A)        | 16 (A001-A019 existing + A020-A031 new)               | 28             |
-| Boilerplate (B)       | 11 (B001-B015 existing + B016-B026 new)               | 26             |
-| Architecture (E)      | 8 (E001-E007 existing + E008-E015 new)                | 7              |
-| Consistency (D)       | 6 (D001-D003+D005+D006+D011 existing + D007-D012 new) | 6              |
+| Category              | Listed items                                          | Existing rules      |
+| --------------------- | ----------------------------------------------------- | ------------------- |
+| Correctness (C)       | 12 (C001-C016 existing + C017-C027 new)               | 27                  |
+| API Misuse (A)        | 16 (A001-A019 existing + A020-A031 new)               | 28                  |
+| Boilerplate (B)       | 11 (B001-B015 existing + B016-B026 new)               | 26                  |
+| Architecture (E)      | 8 (E001-E007 existing + E008-E015 new)                | 7                   |
+| Consistency (D)       | 6 (D001-D003+D005+D006+D011 existing + D007-D012 new) | 6                   |
 | Security (S)          | 4 (S001-S003 existing + S004-S007 new)                | 4 (S001-S003, S007) |
-| Performance (P)       | 10 (P001-P010)                                        | 2 (P001, P007) |
-| Version/Migration (V) | 6 (V001-V006)                                         | 6 (all done)   |
-| Testing (T)           | 8 (T001-T008)                                         | 8 (all done)   |
-| Feature Adoption (F)  | 17 (F001-F017)                                        | 0              |
-| DX & Infrastructure   | 35 (items 99-133)                                     | N/A            |
-| Extended Ideas        | 46 (items 134-179)                                    | N/A            |
-| **Total**             | **179**                                               | **113**        |
+| Performance (P)       | 10 (P001-P010)                                        | 2 (P001, P007)      |
+| Version/Migration (V) | 6 (V001-V006)                                         | 6 (all done)        |
+| Testing (T)           | 8 (T001-T008)                                         | 8 (all done)        |
+| Feature Adoption (F)  | 17 (F001-F017)                                        | 0                   |
+| DX & Infrastructure   | 35 (items 99-133)                                     | N/A                 |
+| Extended Ideas        | 46 (items 134-179)                                    | N/A                 |
+| **Total**             | **179**                                               | **113**             |
 
 ---
 

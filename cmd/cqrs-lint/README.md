@@ -199,22 +199,22 @@ Explicit `features` flags always override preset values.
 
 ## Security Rules
 
-| ID   | Rule                                      | Severity | Description                                      |
-| ---- | ----------------------------------------- | -------- | ------------------------------------------------ |
-| S001 | hardcoded-secrets                         | Critical | Potential hardcoded secret in string literal     |
-| S002 | missing-encryption-for-sensitive-payloads | Error    | PII event payloads without encryption middleware |
-| S003 | missing-event-signing                     | Warning  | Event store without signing middleware           |
+| ID   | Rule                                      | Severity | Description                                          |
+| ---- | ----------------------------------------- | -------- | ---------------------------------------------------- |
+| S001 | hardcoded-secrets                         | Critical | Potential hardcoded secret in string literal         |
+| S002 | missing-encryption-for-sensitive-payloads | Error    | PII event payloads without encryption middleware     |
+| S003 | missing-event-signing                     | Warning  | Event store without signing middleware               |
 | S007 | in-memory-session-store                   | Warning  | In-memory session/token store loses state on restart |
 
 ## Performance Rules
 
-| ID   | Rule                  | Severity | Description                                                      |
-| ---- | --------------------- | -------- | ---------------------------------------------------------------- |
-| P001 | load-in-subscribeall  | Error    | repo.Load inside SubscribeAll handler — O(N²) replay             |
-| P007 | manual-retry-bitshift | Error    | Manual retry loop with bitshift backoff — corrupts time.Duration |
+| ID   | Rule                        | Severity | Description                                                                       |
+| ---- | --------------------------- | -------- | --------------------------------------------------------------------------------- |
+| P001 | load-in-subscribeall        | Error    | repo.Load inside SubscribeAll handler — O(N²) replay                              |
+| P007 | manual-retry-bitshift       | Error    | Manual retry loop with bitshift backoff — corrupts time.Duration                  |
 | P008 | projectionhost-no-batchsize | Info     | projectionhost.New without WithBatchSize — throughput bottleneck on large streams |
-| P009 | json-codec-large-payloads  | Info     | Large event payload using JSON codec — CBOR is ~35% smaller |
-| P010 | no-snapshot-large-aggregate | Warning  | Collection-type state without snapshot strategy or cache — expensive reloads |
+| P009 | json-codec-large-payloads   | Info     | Large event payload using JSON codec — CBOR is ~35% smaller                       |
+| P010 | no-snapshot-large-aggregate | Warning  | Collection-type state without snapshot strategy or cache — expensive reloads      |
 
 ## Version Rules
 
@@ -224,16 +224,16 @@ Explicit `features` flags always override preset values.
 
 ## Testing Rules
 
-| ID   | Rule                              | Severity | Description                                                                       |
-| ---- | --------------------------------- | -------- | --------------------------------------------------------------------------------- |
-| T001 | no-scenario-tests-for-deciders    | Info     | Project defines deciders but has no scenario.Given BDD tests                      |
-| T002 | no-scenario-tests-for-projections | Info     | Project defines projections but has no scenario.GivenProjection tests             |
-| T003 | no-eventtest-imports              | Info     | Project uses events but lacks eventtest fake stores/buses in tests                |
-| T004 | no-golden-snapshot-tests          | Info     | Catalog/documentation output has no snapshot tests                                |
-| T005 | projection-without-error-test     | Info     | Projections have no error-path tests for malformed payloads                       |
-| T006 | decider-without-conflict-test     | Info     | Decider scenario tests only cover happy paths, not conflict/error scenarios       |
-| T007 | no-event-roundtrip-test           | Info     | No save→load round-trip test for event stores                                     |
-| T008 | test-imports-production-store     | Warning  | Test file imports a production store instead of eventtest/memory fakes            |
+| ID   | Rule                              | Severity | Description                                                                 |
+| ---- | --------------------------------- | -------- | --------------------------------------------------------------------------- |
+| T001 | no-scenario-tests-for-deciders    | Info     | Project defines deciders but has no scenario.Given BDD tests                |
+| T002 | no-scenario-tests-for-projections | Info     | Project defines projections but has no scenario.GivenProjection tests       |
+| T003 | no-eventtest-imports              | Info     | Project uses events but lacks eventtest fake stores/buses in tests          |
+| T004 | no-golden-snapshot-tests          | Info     | Catalog/documentation output has no snapshot tests                          |
+| T005 | projection-without-error-test     | Info     | Projections have no error-path tests for malformed payloads                 |
+| T006 | decider-without-conflict-test     | Info     | Decider scenario tests only cover happy paths, not conflict/error scenarios |
+| T007 | no-event-roundtrip-test           | Info     | No save→load round-trip test for event stores                               |
+| T008 | test-imports-production-store     | Warning  | Test file imports a production store instead of eventtest/memory fakes      |
 
 ## CLI
 

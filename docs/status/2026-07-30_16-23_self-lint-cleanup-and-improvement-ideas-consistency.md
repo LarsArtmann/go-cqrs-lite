@@ -14,13 +14,16 @@ Fixed the summary statistics table (column sums didn't add up to 170), stale ann
 ### 2. Linter bug fixes (3 real bugs fixed, benefiting all consumers)
 
 **Suppression parser** (`cmd/cqrs-lint/pkg/suppression/parser.go`):
+
 - Now accepts `// cqrs-lint:ignore` with space after `//` (was only matching `//cqrs-lint:ignore`)
 - Now splits comma-separated rule IDs: `ignore(A001,E005)` is treated as two rules, not one literal `"A001,E005"` string
 
 **C017 false positive** (`cmd/cqrs-lint/pkg/rules/correctness/c017.go`):
+
 - Now skips files that use `memory.NewMemoryStore()` for the event store. Previously, `example/getting-started` and `stack/memory` were flagged because they import `stack/sqlite` (for the `stack.New` function) but use all-memory stores. The detector used import-based feature detection, not actual `WithEventStore()` call inspection.
 
 **Stale suppression checker** (`cmd/cqrs-lint/run.go:257`):
+
 - Now passes ALL findings (including suppressed ones) to `DetectStaleSuppressions`. Previously passed only unsuppressed findings, meaning when ALL findings at a location were suppressed, every suppression comment was falsely reported as stale (178 false stale warnings).
 
 ### 3. Self-lint cleanup (83 files modified)
@@ -50,6 +53,7 @@ The planning doc describes a clean phased approach. Reality was messier: the bat
 ### 3. Test coverage for new fixes — partially done
 
 The suppression parser tests pass, but no NEW test cases were added for:
+
 - Comma-separated rule IDs (`ignore(A001,E005)`)
 - Space after `//` (`// cqrs-lint:ignore`)
 - `fileUsesMemoryEventStore` helper in C017
@@ -114,88 +118,88 @@ The auto-commit daemon split my work across 6+ commits with nonsensical messages
 
 ### Critical (blocking correctness)
 
-| # | Task | Why |
-|---|------|-----|
-| 1 | Fix `v002.go` build error (`seenPseudo` undefined) | Pre-existing build break, left unfixed |
-| 2 | Remove `//cqrs-lint:ignore(E003)` from root go.mod | Wrong file, does nothing |
-| 3 | Fix `extractRuleID` to return ALL rules for comma-separated IDs | Partial fix in snippet fallback path |
-| 4 | Add test: comma-separated rule IDs in `ParseSuppressions` | No test coverage for the fix |
-| 5 | Add test: space after `//` in suppression comments | No test coverage for the fix |
-| 6 | Add test: `fileUsesMemoryEventStore` returns true for memory store, false for SQLite | No test coverage for the fix |
-| 7 | Add test: stale checker receives all findings (including suppressed) | No test coverage for the fix |
+| #   | Task                                                                                 | Why                                    |
+| --- | ------------------------------------------------------------------------------------ | -------------------------------------- |
+| 1   | Fix `v002.go` build error (`seenPseudo` undefined)                                   | Pre-existing build break, left unfixed |
+| 2   | Remove `//cqrs-lint:ignore(E003)` from root go.mod                                   | Wrong file, does nothing               |
+| 3   | Fix `extractRuleID` to return ALL rules for comma-separated IDs                      | Partial fix in snippet fallback path   |
+| 4   | Add test: comma-separated rule IDs in `ParseSuppressions`                            | No test coverage for the fix           |
+| 5   | Add test: space after `//` in suppression comments                                   | No test coverage for the fix           |
+| 6   | Add test: `fileUsesMemoryEventStore` returns true for memory store, false for SQLite | No test coverage for the fix           |
+| 7   | Add test: stale checker receives all findings (including suppressed)                 | No test coverage for the fix           |
 
 ### High priority (quality gates)
 
-| # | Task | Why |
-|---|------|-----|
-| 8 | Run `nix fmt` on all 83 modified files | AGENTS.md mandate, never done |
-| 9 | Run `nix run .#verify` | Full gate, never run this session |
-| 10 | Regenerate api-stability golden | `printSummary` signature changed |
-| 11 | Run `go test` on modified library modules (not just cqrs-lint) | Only tested cqrs-lint package, not storage/benchkit/etc |
-| 12 | Verify suppression comments survive `gofmt` reformatting | Never verified |
+| #   | Task                                                           | Why                                                     |
+| --- | -------------------------------------------------------------- | ------------------------------------------------------- |
+| 8   | Run `nix fmt` on all 83 modified files                         | AGENTS.md mandate, never done                           |
+| 9   | Run `nix run .#verify`                                         | Full gate, never run this session                       |
+| 10  | Regenerate api-stability golden                                | `printSummary` signature changed                        |
+| 11  | Run `go test` on modified library modules (not just cqrs-lint) | Only tested cqrs-lint package, not storage/benchkit/etc |
+| 12  | Verify suppression comments survive `gofmt` reformatting       | Never verified                                          |
 
 ### Medium priority (documentation & cleanup)
 
-| # | Task | Why |
-|---|------|-----|
-| 13 | Update cqrs-lint README.md with current rule count (100) | Stale documentation |
-| 14 | Fix `b023_b024.go:99` gopls `slicescontains` hint | Noticed at session start, never fixed |
-| 15 | Investigate gopls `stdversion` warnings (json/v2 requires go1.27) | 5 warnings, never investigated |
-| 16 | Update planning doc to reflect what actually happened | Drifted from reality |
-| 17 | Add a `.cqrs-lint.json` at repo root for self-linting config | Better than 181 inline suppressions |
-| 18 | Review the 6 daemon commits for correctness | Never reviewed |
+| #   | Task                                                              | Why                                   |
+| --- | ----------------------------------------------------------------- | ------------------------------------- |
+| 13  | Update cqrs-lint README.md with current rule count (100)          | Stale documentation                   |
+| 14  | Fix `b023_b024.go:99` gopls `slicescontains` hint                 | Noticed at session start, never fixed |
+| 15  | Investigate gopls `stdversion` warnings (json/v2 requires go1.27) | 5 warnings, never investigated        |
+| 16  | Update planning doc to reflect what actually happened             | Drifted from reality                  |
+| 17  | Add a `.cqrs-lint.json` at repo root for self-linting config      | Better than 181 inline suppressions   |
+| 18  | Review the 6 daemon commits for correctness                       | Never reviewed                        |
 
 ### New linter rules (from IMPROVEMENT_IDEAS.md)
 
-| # | Task | Why |
-|---|------|-----|
-| 19 | Implement V001 (v3/v4 module mixing) | Priority recommendation #6 |
-| 20 | Implement D012 (schema version not stamped) | Priority recommendation #14 |
-| 21 | Implement E010 (event capture without validation) | Priority recommendation #16 |
-| 22 | Implement F001 (tombstone soft-delete coaching) | Priority recommendation #10 |
-| 23 | Implement F003/F004 (missing OTel/Prometheus) | Priority recommendation #17 |
-| 24 | Implement T001 (no scenario tests) | Priority recommendation #18 |
-| 25 | Implement D007 (inconsistent event.New vs NewEvent) | Consistency rule |
-| 26 | Implement D008 (inconsistent codec usage) | Consistency rule |
-| 27 | Implement S004 (PII without encryption) | Security rule |
-| 28 | Implement P002 (full rebuild on startup, now suppressed) | Performance rule |
+| #   | Task                                                     | Why                         |
+| --- | -------------------------------------------------------- | --------------------------- |
+| 19  | Implement V001 (v3/v4 module mixing)                     | Priority recommendation #6  |
+| 20  | Implement D012 (schema version not stamped)              | Priority recommendation #14 |
+| 21  | Implement E010 (event capture without validation)        | Priority recommendation #16 |
+| 22  | Implement F001 (tombstone soft-delete coaching)          | Priority recommendation #10 |
+| 23  | Implement F003/F004 (missing OTel/Prometheus)            | Priority recommendation #17 |
+| 24  | Implement T001 (no scenario tests)                       | Priority recommendation #18 |
+| 25  | Implement D007 (inconsistent event.New vs NewEvent)      | Consistency rule            |
+| 26  | Implement D008 (inconsistent codec usage)                | Consistency rule            |
+| 27  | Implement S004 (PII without encryption)                  | Security rule               |
+| 28  | Implement P002 (full rebuild on startup, now suppressed) | Performance rule            |
 
 ### Linter improvements
 
-| # | Task | Why |
-|---|------|-----|
-| 29 | C017: trace `WithEventStore()` call args instead of import detection | Root cause fix |
-| 30 | Add file-level suppression support (`.cqrs-lint-ignore`) | 181 inline comments is noisy |
-| 31 | Add `--self-lint` mode that auto-excludes library source files | Library self-detection is inherently noisy |
-| 32 | A001/A020/A021/A023: detect if file IS in a go-cqrs-lite module path | Would eliminate ~18 false positives |
-| 33 | E005/E007: detect if type is in the library's own package | Would eliminate ~12 false positives |
-| 34 | Add `cqrs-lint doctor --self-test` that lints the linter repo | CI guard against regressions |
-| 35 | Suppression parser: support `//cqrs-lint:ignore(*)` wildcard | Suppress all rules on a line |
-| 36 | Suppression parser: support block-level `//cqrs-lint:ignore-start` / `//cqrs-lint:ignore-end` | Less noisy for large suppression regions |
+| #   | Task                                                                                          | Why                                        |
+| --- | --------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| 29  | C017: trace `WithEventStore()` call args instead of import detection                          | Root cause fix                             |
+| 30  | Add file-level suppression support (`.cqrs-lint-ignore`)                                      | 181 inline comments is noisy               |
+| 31  | Add `--self-lint` mode that auto-excludes library source files                                | Library self-detection is inherently noisy |
+| 32  | A001/A020/A021/A023: detect if file IS in a go-cqrs-lite module path                          | Would eliminate ~18 false positives        |
+| 33  | E005/E007: detect if type is in the library's own package                                     | Would eliminate ~12 false positives        |
+| 34  | Add `cqrs-lint doctor --self-test` that lints the linter repo                                 | CI guard against regressions               |
+| 35  | Suppression parser: support `//cqrs-lint:ignore(*)` wildcard                                  | Suppress all rules on a line               |
+| 36  | Suppression parser: support block-level `//cqrs-lint:ignore-start` / `//cqrs-lint:ignore-end` | Less noisy for large suppression regions   |
 
 ### Infrastructure
 
-| # | Task | Why |
-|---|------|-----|
-| 37 | Add CI job: `cqrs-lint` self-lint must pass | Prevents regression |
-| 38 | Add pre-commit hook: verify no build errors before daemon commits | Catches `v002.go`-class errors |
-| 39 | Run `nix run .#check-layers` after dependency changes | Verify dependency budgets |
-| 40 | Run `nix run .#check-duplication` | Verify no new code duplication |
-| 41 | Run `nix run .#check-coverage` | Verify coverage didn't drop |
-| 42 | Run `nix run .#vulncheck` | 39 dependabot vulnerabilities flagged on push |
-| 43 | Update AGENTS.md with suppression parser comma-split syntax | Documentation |
-| 44 | Add AGENTS.md note about `printSummary` signature change | Architecture context |
+| #   | Task                                                              | Why                                           |
+| --- | ----------------------------------------------------------------- | --------------------------------------------- |
+| 37  | Add CI job: `cqrs-lint` self-lint must pass                       | Prevents regression                           |
+| 38  | Add pre-commit hook: verify no build errors before daemon commits | Catches `v002.go`-class errors                |
+| 39  | Run `nix run .#check-layers` after dependency changes             | Verify dependency budgets                     |
+| 40  | Run `nix run .#check-duplication`                                 | Verify no new code duplication                |
+| 41  | Run `nix run .#check-coverage`                                    | Verify coverage didn't drop                   |
+| 42  | Run `nix run .#vulncheck`                                         | 39 dependabot vulnerabilities flagged on push |
+| 43  | Update AGENTS.md with suppression parser comma-split syntax       | Documentation                                 |
+| 44  | Add AGENTS.md note about `printSummary` signature change          | Architecture context                          |
 
 ### Feature adoption
 
-| # | Task | Why |
-|---|------|-----|
-| 45 | Add `cqrs-lint profile` command | Priority recommendation #22 |
-| 46 | Add feature adoption scorecard | Priority recommendation #21 |
-| 47 | Add incremental analysis (AST caching) | Priority recommendation #23 |
-| 48 | Add `cqrs-lint compare` command | Compare projects |
-| 49 | Add SARIF output with rule metadata | GitHub Code Scanning integration |
-| 50 | Add `--diff` mode for CI regression prevention | Priority recommendation #114 |
+| #   | Task                                           | Why                              |
+| --- | ---------------------------------------------- | -------------------------------- |
+| 45  | Add `cqrs-lint profile` command                | Priority recommendation #22      |
+| 46  | Add feature adoption scorecard                 | Priority recommendation #21      |
+| 47  | Add incremental analysis (AST caching)         | Priority recommendation #23      |
+| 48  | Add `cqrs-lint compare` command                | Compare projects                 |
+| 49  | Add SARIF output with rule metadata            | GitHub Code Scanning integration |
+| 50  | Add `--diff` mode for CI regression prevention | Priority recommendation #114     |
 
 ---
 

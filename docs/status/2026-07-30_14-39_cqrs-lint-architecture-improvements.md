@@ -10,19 +10,23 @@
 ## a) FULLY DONE
 
 ### 1. Cached `AllRules()` with `sync.OnceValue` ✅
+
 **File:** `pkg/rules/catalog.go`
 
 `AllRules()` was rebuilding a 100-entry catalog slice via nested `append` chains on every call. Called from `detectorCategory`, `renderRulesTable`, `ListRules`, and the meta-test. Now memoized via `sync.OnceValue` — built once, returned from cache on every subsequent call.
 
 ### 2. Optimized `detectorCategory` from O(N) to O(1) ✅
+
 **File:** `pkg/rules/register.go`
 
 `detectorCategory` called `AllRules()` and linear-scanned 100 entries for each detector name. With 100 detectors filtered by category, that was 10,000 string comparisons per `FilterByCategory` call. Replaced with a cached `map[ruleID]category` built once from `AllRules()`.
 
 ### 3. Refactored `run()` god function into 6 focused stages ✅
+
 **File:** `run.go`
 
 The 226-line `run()` function had 17 responsibilities crammed into one body. Split into:
+
 - `applyConfigOverrides` — merges feature + rule config overrides
 - `handleLoadErrors` — strict-load abort, no-files handling, partial-analysis warning
 - `selectDetectors` — fast-mode, all, or filtered by category/rule-IDs
@@ -33,25 +37,30 @@ The 226-line `run()` function had 17 responsibilities crammed into one body. Spl
 `run()` is now a 30-line orchestrator. Each stage is independently testable.
 
 ### 4. Added 3 consistency tests + fixed 2 name drifts ✅
+
 **File:** `pkg/rules/meta_test.go`, `pkg/rules/correctness/c017.go`, `pkg/rules/performance/p007.go`
 
 Added:
+
 - `TestCatalogSeverityAndConfidenceValid` — validates every catalog entry's severity/confidence strings map to valid `finding.Severity`/`finding.Confidence` values
 - `TestCriticalDetectorsAreCriticalOrError` — verifies `--fast` mode only includes critical/error severity rules
 - `TestDetectorNamesMatchCatalog` — verifies detector name suffixes match catalog `Name` field
 
 The name test immediately caught 2 drifts:
+
 - **C017:** detector `"inmem-snapshot-persistent-store"` vs catalog `"inmem-store-persistent-eventstore"`
 - **P007:** detector `"manual-retry-loop"` vs catalog `"manual-retry-bitshift"`
 
 Fixed by aligning detector names to the catalog (the canonical source).
 
 ### 5. Consolidated duplicate `toolName` constant ✅
+
 **Files:** `pkg/rules/lintutil/lintutil.go` + 8 rule packages
 
 `const toolName finding.ToolName = "cqrs-lint"` was copy-pasted across 8 packages (correctness, api, boilerplate, consistency, architecture, security, performance, version). Centralized as `lintutil.ToolName` — each package now aliases via `const toolName = lintutil.ToolName`. Zero usage-site changes needed.
 
 ### 6. Full verification ✅
+
 - `GOWORK=off go build -tags "goexperiment.jsonv2" ./...` — clean
 - `GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1` — all 14 packages pass
 - `GOWORK=off go vet -tags "goexperiment.jsonv2" ./...` — clean
@@ -61,6 +70,7 @@ Fixed by aligning detector names to the catalog (the canonical source).
 ## b) PARTIALLY DONE
 
 ### Nothing partially done.
+
 All 6 planned steps were completed and verified.
 
 ---
@@ -68,15 +78,19 @@ All 6 planned steps were completed and verified.
 ## c) NOT STARTED
 
 ### go-linter-sdk integration analysis (answered, not implemented)
+
 The user asked whether cqrs-lint is built on `go-linter-sdk`. I analyzed the SDK's `Rule.Check(ctx, dir)` interface and determined it's incompatible with cqrs-lint's architecture: cqrs-lint rules need shared cross-file state (`AnalysisContext` with CQRS registry, feature profile, 100 scanned Go files), but the SDK assumes stateless rules that each scan independently. This was documented in the final summary but no migration was attempted — it requires a deeper design discussion.
 
 ### CONTRIBUTING.md category count is stale
+
 CONTRIBUTING.md says "6 categories" but there are actually 8 (missing `performance` and `version`). Not fixed.
 
 ### README.md rule count is stale
+
 README.md says "**84 rules** across 8 categories" but the actual count is **100 rules**. The IMPROVEMENT_IDEAS.md correctly says 100. Not fixed.
 
 ### CONTRIBUTING.md architecture diagram is stale
+
 The architecture diagram in CONTRIBUTING.md lists `correctness/ # C001-C012`, `api/ # A001-A019`, `boilerplate/ # B001-B015`, etc. — all stale (correctness goes to C027, api to A029, boilerplate to B026, etc.). Not fixed.
 
 ---
@@ -84,6 +98,7 @@ The architecture diagram in CONTRIBUTING.md lists `correctness/ # C001-C012`, `a
 ## d) TOTALLY FUCKED UP
 
 ### Nothing was fucked up.
+
 No regressions, no broken builds, no data loss. The auto-commit daemon committed all changes cleanly across 4 commits (`77da17ea`, `75dabd10`, `ea4a37d3`, `2f0a85d0`).
 
 ---
@@ -125,6 +140,7 @@ No regressions, no broken builds, no data loss. The auto-commit daemon committed
 ## f) Up to 50 things to do next
 
 ### Documentation fixes (quick wins)
+
 1. Fix README.md rule count: "84 rules" → "100 rules" with correct per-category breakdown
 2. Fix CONTRIBUTING.md category count: "6 categories" → "8 categories" (add performance + version)
 3. Fix CONTRIBUTING.md architecture diagram: update rule ranges (C001-C027, A001-A029, B001-B026, etc.)
@@ -135,6 +151,7 @@ No regressions, no broken builds, no data loss. The auto-commit daemon committed
 8. Update AGENTS.md: mention `sync.OnceValue` caching of `AllRules()`
 
 ### Architecture improvements
+
 9. Optimize `FilterByRuleIDs`: extract `name[:4]` and do set lookup instead of nested loop
 10. Optimize `detectorCategory`: extract `name[:4]` and do direct `map[ruleID]` lookup instead of iterating all entries
 11. Refactor `printSummary` to take a struct instead of 8 parameters
@@ -149,6 +166,7 @@ No regressions, no broken builds, no data loss. The auto-commit daemon committed
 20. Verify `AllRules()` returned slice is never mutated by any caller (race safety)
 
 ### Rule quality improvements
+
 21. Fix `B019` / `P001` overlap: both detect `repo.Load` inside `SubscribeAll` — deduplicate or clarify the boundary
 22. Fix `C003` / `B021` overlap: both detect fold functions that silently ignore unknown events
 23. Add `Documentation` field to `RuleInfo` for a per-rule URL (IMPROVEMENT_IDEAS #104)
@@ -160,18 +178,21 @@ No regressions, no broken builds, no data loss. The auto-commit daemon committed
 29. Add feature-adoption scorecard to `doctor` command (IMPROVEMENT_IDEAS #113)
 
 ### Performance
+
 30. Benchmark the linter itself: 100 detectors on a medium project (IMPROVEMENT_IDEAS #123)
 31. Add incremental analysis: cache AST scan results, only re-scan changed files (IMPROVEMENT_IDEAS #122)
 32. Profile detector hot paths: which detectors are slowest? (the `--verbose` timing output exists but isn't benchmarked)
 33. Consider parallel file scanning in `scanFile` (currently sequential per module)
 
 ### go-linter-sdk evaluation
+
 34. Prototype a `CQRSRule` interface that extends `linter.Rule` with `CheckContext(ctx, *AnalysisContext)`
 35. Evaluate if go-linter-sdk could accept an optional pre-built context parameter
 36. Document the impedance mismatch: go-linter-sdk assumes stateless rules, cqrs-lint needs shared state
 37. If SDK adoption is feasible: migrate rules one category at a time (start with `version/` — smallest, most stateless)
 
 ### Code quality
+
 38. Run `nix run .#lint` on the cqrs-lint module to catch formatting/nolint issues
 39. Run `nix fmt` on changed files
 40. Regenerate api-stability golden: `cd cmd/api-stability && GOWORK=off go run main.go -update`
@@ -181,6 +202,7 @@ No regressions, no broken builds, no data loss. The auto-commit daemon committed
 44. Check if `lintutil` import in `doc.go` files creates circular dependency risk (it doesn't, but document why)
 
 ### Testing
+
 45. Add `-race` test run for the `AllRules()` cache (prove no data race on the shared slice)
 46. Add a benchmark test for `detectorCategory` (before/after the map cache)
 47. Add a benchmark test for `FilterByCategory` with 100 detectors
@@ -193,7 +215,9 @@ No regressions, no broken builds, no data loss. The auto-commit daemon committed
 ## g) Questions I cannot answer myself
 
 ### 1. Should cqrs-lint adopt go-linter-sdk, or should go-linter-sdk be extended to support shared analysis context?
+
 The SDK's `Rule.Check(ctx, dir)` signature has no way to pass the pre-built `AnalysisContext` (CQRS registry, feature profile, 100 scanned Go files). Options:
+
 - **A:** Extend go-linter-sdk's `Rule` interface with an optional `CheckContext` method — but this breaks all existing consumers (branching-flow, erraudit, go-structure-linter).
 - **B:** Add a `ContextAwareRule` interface in go-linter-sdk that `Registry.Run` type-asserts for — backward compatible but adds a second rule interface.
 - **C:** Don't adopt go-linter-sdk — cqrs-lint's shared-state architecture is fundamentally different from the stateless-rule assumption.
@@ -202,7 +226,9 @@ The SDK's `Rule.Check(ctx, dir)` signature has no way to pass the pre-built `Ana
 This is a strategic architecture decision I cannot make autonomously.
 
 ### 2. Should the catalog (`AllRules()`) be auto-generated from detector constructors instead of manually maintained?
+
 Currently, every rule exists in TWO places: the detector implementation (`NewC001Detector`) and the catalog metadata (`RuleInfo{ID: "C001", ...}`). The `TestCatalogCountMatchesRegister` test guards against drift, but the metadata (severity, confidence, description, category) is still hand-maintained in `catalog.go`. An alternative: add `Metadata()` method to detectors and auto-build the catalog from `RegisterAll()`. This eliminates the entire `catalog.go` + `catalog_extra.go` files (~400 LOC) and the drift risk. But it changes the architecture significantly and may make the `cqrs-lint rules` command slower (it would need to instantiate all detectors).
 
 ### 3. Should the `run()` orchestrator be extracted into a testable `LintRunner` struct?
+
 The extracted functions (`applyConfigOverrides`, `handleLoadErrors`, etc.) are all free functions in `run.go`. They're hard to unit-test because they take `*AppConfig` and `*analyzer.AnalysisContext` directly. A `LintRunner` struct with fields for config, context, and dependencies would make the stages mockable and testable in isolation. But it's a bigger refactor and changes the package's public surface (currently `run()` is unexported). Is this worth the complexity, or is the current function-per-stage approach sufficient?
