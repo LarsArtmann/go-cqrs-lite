@@ -171,9 +171,15 @@ func ParseSuppressions(commentText string) map[string]string {
 		if strings.HasPrefix(rest, "(") {
 			end := strings.Index(rest, ")")
 			if end > 0 {
-				ruleID := rest[1:end]
+				rawIDs := rest[1:end]
 				reason := strings.TrimSpace(rest[end+1:])
-				result[ruleID] = reason
+				// Support comma-separated rule IDs: ignore(A001,E005).
+				for _, id := range strings.Split(rawIDs, ",") {
+					id = strings.TrimSpace(id)
+					if id != "" {
+						result[id] = reason
+					}
+				}
 			}
 		}
 	}
@@ -194,7 +200,9 @@ func extractRuleID(snippet string) string {
 	if strings.HasPrefix(rest, "(") {
 		end := strings.Index(rest, ")")
 		if end > 0 {
-			return rest[1:end]
+			// Return only the first rule for comma-separated IDs.
+			first := strings.SplitN(rest[1:end], ",", 2)[0]
+			return strings.TrimSpace(first)
 		}
 	}
 

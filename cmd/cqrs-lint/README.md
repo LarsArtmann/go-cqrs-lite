@@ -92,7 +92,7 @@ Explicit `features` flags always override preset values.
 
 ## Rule Count
 
-**84 rules** across 8 categories: correctness (27), API misuse (20), boilerplate (18), consistency (6), architecture (7), security (3), performance (2), version (1).
+**113 rules** across 9 categories: correctness (27), API misuse (28), boilerplate (26), consistency (6), architecture (7), security (3), performance (2), version (6), testing (8).
 
 ## Correctness Rules (bugs)
 
@@ -217,6 +217,19 @@ Explicit `features` flags always override preset values.
 | ID   | Rule                 | Severity | Description                                                          |
 | ---- | -------------------- | -------- | -------------------------------------------------------------------- |
 | V001 | mixed-major-versions | Error    | Project mixes v3 and v4 go-cqrs-lite modules — APIs are incompatible |
+
+## Testing Rules
+
+| ID   | Rule                              | Severity | Description                                                                       |
+| ---- | --------------------------------- | -------- | --------------------------------------------------------------------------------- |
+| T001 | no-scenario-tests-for-deciders    | Info     | Project defines deciders but has no scenario.Given BDD tests                      |
+| T002 | no-scenario-tests-for-projections | Info     | Project defines projections but has no scenario.GivenProjection tests             |
+| T003 | no-eventtest-imports              | Info     | Project uses events but lacks eventtest fake stores/buses in tests                |
+| T004 | no-golden-snapshot-tests          | Info     | Catalog/documentation output has no snapshot tests                                |
+| T005 | projection-without-error-test     | Info     | Projections have no error-path tests for malformed payloads                       |
+| T006 | decider-without-conflict-test     | Info     | Decider scenario tests only cover happy paths, not conflict/error scenarios       |
+| T007 | no-event-roundtrip-test           | Info     | No save→load round-trip test for event stores                                     |
+| T008 | test-imports-production-store     | Warning  | Test file imports a production store instead of eventtest/memory fakes            |
 
 ## CLI
 
