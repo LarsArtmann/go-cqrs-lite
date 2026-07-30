@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/adoption"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/api"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/architecture"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/boilerplate"
@@ -126,6 +127,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		consistency.NewD005Detector(ctx),
 		consistency.NewD006Detector(ctx),
 		consistency.NewD011Detector(ctx),
+		consistency.NewD012Detector(ctx),
 		// Architecture
 		architecture.NewE001Detector(ctx),
 		architecture.NewE002Detector(ctx),
@@ -153,6 +155,24 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		testrules.NewT006Detector(ctx),
 		testrules.NewT007Detector(ctx),
 		testrules.NewT008Detector(ctx),
+		// Adoption (Feature Adoption Coaching)
+		adoption.NewF001Detector(ctx),
+		adoption.NewF002Detector(ctx),
+		adoption.NewF003Detector(ctx),
+		adoption.NewF004Detector(ctx),
+		adoption.NewF005Detector(ctx),
+		adoption.NewF006Detector(ctx),
+		adoption.NewF007Detector(ctx),
+		adoption.NewF008Detector(ctx),
+		adoption.NewF009Detector(ctx),
+		adoption.NewF010Detector(ctx),
+		adoption.NewF011Detector(ctx),
+		adoption.NewF012Detector(ctx),
+		adoption.NewF013Detector(ctx),
+		adoption.NewF014Detector(ctx),
+		adoption.NewF015Detector(ctx),
+		adoption.NewF016Detector(ctx),
+		adoption.NewF017Detector(ctx),
 	}
 }
 

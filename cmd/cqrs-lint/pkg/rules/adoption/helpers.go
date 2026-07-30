@@ -468,7 +468,7 @@ func singleInfoFinding(
 	confidence finding.Confidence,
 ) []finding.Finding {
 	f, err := finding.NewBuilder(
-		ruleID, toolName,
+		finding.RuleName(ruleID), toolName,
 		message,
 		finding.SeverityInfo,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
