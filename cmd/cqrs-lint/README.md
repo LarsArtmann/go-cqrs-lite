@@ -92,7 +92,7 @@ Explicit `features` flags always override preset values.
 
 ## Rule Count
 
-**117 rules** across 9 categories: correctness (27), API misuse (28), boilerplate (26), consistency (6), architecture (7), security (4), performance (5), version (6), testing (8).
+**145 rules** across 10 categories: correctness (30), API misuse (29), boilerplate (28), consistency (7), architecture (7), security (7), performance (6), version (6), testing (8), adoption (17).
 
 ## Correctness Rules (bugs)
 
@@ -213,6 +213,7 @@ Explicit `features` flags always override preset values.
 | S001 | hardcoded-secrets                         | Critical | Potential hardcoded secret in string literal         |
 | S002 | missing-encryption-for-sensitive-payloads | Error    | PII event payloads without encryption middleware     |
 | S003 | missing-event-signing                     | Warning  | Event store without signing middleware               |
+| S006 | financial-data-without-encryption          | Warning  | Financial data in structs without encryption module |
 | S007 | in-memory-session-store                   | Warning  | In-memory session/token store loses state on restart |
 | S008 | asymmetric-signing                       | Error    | SignMiddleware without VerifyMiddleware (or vice versa) — signing is decorative |
 | S009 | asymmetric-encryption                    | Error    | EncryptMiddleware without DecryptMiddleware (or vice versa) — events break consumers |

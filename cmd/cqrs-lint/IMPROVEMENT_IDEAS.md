@@ -2,7 +2,7 @@
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **117 rules** (C001-C027, A001-A027+A029, B001-B026, D001-D003+D005+D006+D011, E001-E007, S001-S003+S007, P001+P007, V001-V006, T001-T008).
+> The current linter has **145 rules** (C001-C030, A001-A030, B001-B028, D001-D003+D005+D006+D011+D012, E001-E007, S001-S003+S006-S009, P001+P006-P010, V001-V006, T001-T008, F001-F017).
 >
 > **179 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
@@ -181,7 +181,7 @@
 
 55. **S005: Event signing available but disabled** — Kernovia has `signing.go` with `DefaultSignerConfig()` setting `Enabled: false`. Detect: signing module imported but signer construction guarded by a boolean flag that defaults to false.
 
-56. **S006: Financial data without encryption** — bank-sync uses AES-256-GCM encryption (gold standard), but other financial projects (timesheets) store financial data without encryption. Detect: monetary field names (amount, price, balance, salary) without encryption module import.
+56. ~~**S006: Financial data without encryption** — bank-sync uses AES-256-GCM encryption (gold standard), but other financial projects (timesheets) store financial data without encryption. Detect: monetary field names (amount, price, balance, salary) without encryption module import.~~ done (security/s006.go) — tiered indicator system (strong/medium/weak), serialization-tag gate, module-scope encryption absence check
 
 57. ~~**S007: In-memory session/token store** — cqrs-htmx defaults to `NewInMemorySessionStore()`. Session tokens are lost on restart, forcing re-authentication. Detect: in-memory session/token store used in production server context.~~ done (security/s007.go)
 
