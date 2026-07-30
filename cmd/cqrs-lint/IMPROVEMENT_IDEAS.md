@@ -193,13 +193,13 @@
 
 58. ~~**P001: O(N^2) read model via repo.Load in projection** — timesheets' projection calls `repo.Load` on every event (cqrs.go:82). For N events, this is O(N^2) because each Load re-reads all prior events. Suggest projecting directly from event payloads.~~ done (existing rule)
 
-59. **P002: Full read model rebuild on every startup** — crush-daily rebuilds the entire read model from scratch on every startup (setup.go:43-62). With 10K events, this adds seconds to startup time. Suggest checkpoint-based incremental catch-up via projectionhost. _(Overlaps with B017, which is done.)_
+59. **NOT-DO/DUPLICATE — P002: Full read model rebuild on every startup** — crush-daily rebuilds the entire read model from scratch on every startup (setup.go:43-62). With 10K events, this adds seconds to startup time. Suggest checkpoint-based incremental catch-up via projectionhost. _(Overlaps with B017, which is done.)_ **Duplicate of B017** (`b016_b017.go:100`) — B017 already detects `Rehydrate`/`Rebuild`/`Replay` methods calling `ReadAll` and suggests `projectionhost.Host` + checkpoint store. The entry itself notes the overlap.
 
 60. ~~**P003: Mutex held during payload decode** — crush-daily holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). Decode is CPU-bound and doesn't need lock protection. Suggest decoding outside the lock, then acquiring the lock only for the map mutation.~~ done at `c165b2e8` (covered by C021, implemented in the correctness category instead of performance)
 
 61. ~~**P004: Multiple repository instances for same aggregate** — browser-history creates 3 `decider.NewRepository` instances for one aggregate type (handlers.go:87,143,189). Each instance has its own singleflight group and state cache. Suggest sharing one repository.~~ done at `b31eb572` (covered by C019, implemented in the correctness category instead of performance)
 
-62. **P005: No state cache on hot aggregate** — For aggregates with high event counts (>100 events/stream), the lack of `decider.WithStateCache` means every command triggers a full stream load. Suggest `WithStateCache` + snapshot strategy.
+62. **NOT-DO/DUPLICATE — P005: No state cache on hot aggregate** — For aggregates with high event counts (>100 events/stream), the lack of `decider.WithStateCache` means every command triggers a full stream load. Suggest `WithStateCache` + snapshot strategy. **"Hot" (>100 events) is a runtime property a static analyzer cannot observe.** The statically-detectable part (no `WithStateCache`) is already covered by B025 (fires on every `NewRepository` missing it), A017 (missing snapshot strategy), and P010 (large state heuristic). Adding P005 would duplicate B025 or claim knowledge it can't have.
 
 63. **P006: Polling loop for drain check** — cqrs-htmx's `waitForDrain` polls every 10ms (es_projection_setup.go:150-192). A channel/callback would be zero-latency. Flag: polling loop with <100ms interval for state-change detection.
 
