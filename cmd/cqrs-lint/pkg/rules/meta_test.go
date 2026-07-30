@@ -19,8 +19,8 @@ func TestAllDetectorsInstantiate(t *testing.T) {
 	ctx := &analyzer.AnalysisContext{}
 	detectors := RegisterAll(ctx)
 
-	if len(detectors) != 119 {
-		t.Fatalf("expected 119 detectors, got %d", len(detectors))
+	if len(detectors) != 122 {
+		t.Fatalf("expected 122 detectors, got %d", len(detectors))
 	}
 
 	for _, d := range detectors {

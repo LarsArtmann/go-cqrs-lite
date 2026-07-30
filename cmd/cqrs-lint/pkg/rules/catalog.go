@@ -283,6 +283,24 @@ func correctnessRules() []RuleInfo {
 			Description: "bus.Subscribe alongside projectionhost — events may be processed twice",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C028",
+			Name:        "swallowed-cqrs-error",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Error from Dispatch/Execute/Load/Register discarded — CQRS operation failures indicate real problems",
+			AutoFix:     false,
+		},
+		{
+			ID:          "C029",
+			Name:        "queryidempotency-nil-keyextractor",
+			Category:    "correctness",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "QueryIdempotency with nil keyExtractor panics at runtime — queries have no default identity",
+			AutoFix:     false,
+		},
 	}
 }
 
@@ -538,6 +556,15 @@ func apiRules() []RuleInfo {
 			Severity:    "warning",
 			Confidence:  "high",
 			Description: "UsePublish method is a stub returning nil — publish middleware chain discarded",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A030",
+			Name:        "incomplete-snapshot-config",
+			Category:    "api",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "WithSnapshotStrategy without WithSnapshotStore — ErrIncompleteSnapshotConfig at runtime",
 			AutoFix:     false,
 		},
 	}

@@ -1,0 +1,48 @@
+package correctness_test
+
+import (
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
+)
+
+func TestC029_DetectsNilKeyExtractor(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup(store interface{}, ttl int) {
+	qry.Use(middleware.QueryIdempotency(store, ttl, nil))
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC029Detector(ctx))
+	assertRule(t, findings, "C029", 1)
+}
+
+func TestC029_NoFindingWhenKeyExtractorProvided(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup(store interface{}, ttl int) {
+	qry.Use(middleware.QueryIdempotency(store, ttl, keyFn))
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC029Detector(ctx))
+	assertRule(t, findings, "C029", 0)
+}
+
+func TestC029_NoFindingOnEmptyContext(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	findings := runDetector(t, correctness.NewC029Detector(ctx))
+	assertRule(t, findings, "C029", 0)
+}
