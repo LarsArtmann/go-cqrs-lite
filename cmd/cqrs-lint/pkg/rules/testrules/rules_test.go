@@ -172,7 +172,7 @@ func TestT002_NoFindingWhenNoProjection(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go":     `package main`,
+		"main.go": `package main`,
 		"main_test.go": `package main
 import "testing"
 func TestMain(t *testing.T) {}`,
@@ -236,7 +236,7 @@ func TestT003_NoFindingWhenNoEventImport(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go":      `package main`,
+		"main.go": `package main`,
 		"main_test.go": `package main
 import "testing"
 func TestMain(t *testing.T) {}`,
@@ -300,7 +300,7 @@ func TestT004_NoFindingWhenNoCatalogImport(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go":      `package main`,
+		"main.go": `package main`,
 		"main_test.go": `package main
 import "testing"
 func TestMain(t *testing.T) {}`,
@@ -365,7 +365,7 @@ func TestT005_NoFindingWhenNoProjection(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go":      `package main`,
+		"main.go": `package main`,
 		"main_test.go": `package main
 import "testing"
 func TestMain(t *testing.T) {}`,
@@ -488,7 +488,7 @@ func TestT007_NoFindingWhenNoEventImport(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go":      `package main`,
+		"main.go": `package main`,
 		"main_test.go": `package main
 import "testing"
 func TestMain(t *testing.T) {}`,

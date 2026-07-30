@@ -93,15 +93,15 @@
 
 23. ~~**A026: Event bus only, no CQRS pipeline** — Cyberdom uses only `event` and `watermill` with no command dispatcher, decider, or query handler. It's using go-cqrs-lite as a bare event bus. Flag: suggest adding command/query separation for a fuller CQRS architecture.~~ done at `c9c2fe86` (A026 detects event+watermill imports without command/decider/query)
 
-24. **A027: `event.WithCodec` repeated on every event** — crush-daily calls `event.WithCodec(codec.JSONCodec{})` on every single `event.New` call (decider.go:33,71,101,126). The codec should be set once via `event.DefaultCodec` or at the repository/bundle level. Detect: `event.WithCodec` appearing 3+ times in the same file.
+24. ~~**A027: `event.WithCodec` repeated on every event** — crush-daily calls `event.WithCodec(codec.JSONCodec{})` on every single `event.New` call (decider.go:33,71,101,126). The codec should be set once via `event.DefaultCodec` or at the repository/bundle level. Detect: `event.WithCodec` appearing 3+ times in the same file.~~ done (A027 detects `event.WithCodec` 3+ times in one file, suggests `event.DefaultCodec`)
 
 25. **A028: cqrs-htmx used only for HTTP middleware** — Skipped: too project-specific. cqrs-htmx is a separate framework, not a go-cqrs-lite module. The analyzer cannot detect it without hardcoding a specific external import path.
 
 26. ~~**A029: `bus.UsePublish` is a stub returning nil** — accountability-system's custom bus has `UsePublish` that returns `nil` (no middleware chain). Detect: `func ... UsePublish(...) error { return nil }` in a struct implementing `event.Bus`.~~ done at `c9c2fe86` (A029 detects UsePublish methods with body `return nil`)
 
-27. **A030: In-memory checkpoint store with persistent event store** — Covered by C017, which already detects `NewMemoryCheckpointStore` from the `memory` package paired with a persistent event store.
+27. ~~**A030: In-memory checkpoint store with persistent event store** — Covered by C017, which detects `NewMemoryCheckpointStore` from the `memory` package paired with a persistent event store. Test coverage added (`TestC017_InMemCheckpointStoreWithPersistentStore`).~~
 
-28. **A031: In-memory DLQ with persistent event store** — Covered by C017, which already detects `NewMemoryDeadLetterStore` from the `projectionhost` package paired with a persistent event store.
+28. ~~**A031: In-memory DLQ with persistent event store** — Covered by C017, which detects `NewMemoryDeadLetterStore` from the `projectionhost` package paired with a persistent event store. Test coverage added (`TestC017_InMemDeadLetterStoreWithPersistentStore`).~~
 
 ---
 

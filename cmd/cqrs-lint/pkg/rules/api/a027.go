@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"go/ast"
+	"strconv"
 
 	"github.com/larsartmann/go-finding"
 
@@ -64,7 +65,7 @@ func NewA027Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				f, err := finding.NewBuilder(
 					"A027", toolName,
-					"event.WithCodec called "+itoa(count)+
+					"event.WithCodec called "+strconv.Itoa(count)+
 						" times in this file — set codec once via event.DefaultCodec",
 					finding.SeverityInfo,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
@@ -85,21 +86,4 @@ func NewA027Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-
-	var buf [20]byte
-	i := len(buf)
-
-	for n > 0 {
-		i--
-		buf[i] = byte('0' + n%10)
-		n /= 10
-	}
-
-	return string(buf[i:])
 }
