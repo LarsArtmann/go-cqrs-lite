@@ -77,7 +77,7 @@ func NewC028Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						// test helper (already filtered by IsTest).
 						pkgName := analyzer.SelectorPackage(sel)
 
-						if !isCQRSContext(pkgName, sel.Sel.Name) {
+						if !isCQRSContext(pkgName) {
 							continue
 						}
 
@@ -116,7 +116,7 @@ func NewC028Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // indicates a go-cqrs-lite operation. We accept any package that looks like
 // a CQRS module (dispatch, repo, store, cmd, qry, bus) or an unqualified
 // call (local variable).
-func isCQRSContext(pkgName, methodName string) bool {
+func isCQRSContext(pkgName string) bool {
 	pkg := strings.ToLower(pkgName)
 
 	cqrsPkgHints := []string{

@@ -37,7 +37,6 @@ func NewT007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"T007",
 					"Project uses event stores but has no save→load round-trip test — serialization and ordering bugs go undetected",
 					"Add a test that calls store.Save then store.Load on the same stream and asserts event count, types, and version ordering",
-					finding.SeverityInfo,
 					finding.ConfidenceLow,
 					ctx,
 				),

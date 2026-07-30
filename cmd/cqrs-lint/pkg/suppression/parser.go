@@ -174,7 +174,7 @@ func ParseSuppressions(commentText string) map[string]string {
 				rawIDs := rest[1:end]
 				reason := strings.TrimSpace(rest[end+1:])
 				// Support comma-separated rule IDs: ignore(A001,E005).
-				for _, id := range strings.Split(rawIDs, ",") {
+				for id := range strings.SplitSeq(rawIDs, ",") {
 					id = strings.TrimSpace(id)
 					if id != "" {
 						result[id] = reason

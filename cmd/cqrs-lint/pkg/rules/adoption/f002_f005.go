@@ -68,11 +68,11 @@ func NewF005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			msg := "Project has evolving event schemas but no schema.NewUpcaster — "+
+			msg := "Project has evolving event schemas but no schema.NewUpcaster — " +
 				"schema migrations on load are not handled"
 
 			if hasVersioning {
-				msg = "Project uses event.WithSchemaVersion but has no schema.NewUpcaster — "+
+				msg = "Project uses event.WithSchemaVersion but has no schema.NewUpcaster — " +
 					"versioned events need upcasters for backward-compatible migration"
 			}
 

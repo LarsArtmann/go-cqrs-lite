@@ -91,7 +91,9 @@ func NewV006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion(fmt.Sprintf(
 						"Update all go-cqrs-lite/v%d modules to %s with: go get github.com/larsartmann/go-cqrs-lite/...@%s",
-						major, sortedVersions[len(sortedVersions)-1], sortedVersions[len(sortedVersions)-1],
+						major,
+						sortedVersions[len(sortedVersions)-1],
+						sortedVersions[len(sortedVersions)-1],
 					)).
 					WithSnippet(ctx.SourceLine(ctx.ProjectRoot+"/go.mod", req.Line)).
 					Build()

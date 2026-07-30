@@ -58,7 +58,7 @@ func NewP008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryPerformance).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
-						WithSuggestion("Add projectionhost.WithBatchSize(n) — "+
+						WithSuggestion("Add projectionhost.WithBatchSize(n) — " +
 							"tune based on event payload size and journal latency").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()

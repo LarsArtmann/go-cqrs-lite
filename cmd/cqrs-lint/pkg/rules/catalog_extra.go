@@ -658,39 +658,73 @@ func testingRules() []RuleInfo {
 
 func adoptionRules() []RuleInfo {
 	return []RuleInfo{
-		{ID: "F001", Name: "no-tombstone-softdelete", Category: "adoption", Severity: "info", Confidence: "medium",
-			Description: "Delete operations without event.MarkTombstone — consider tombstone soft-delete for audit trail", AutoFix: false},
-		{ID: "F002", Name: "no-catalog-documentation", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "3+ event types but no catalog.NewBuilder — event documentation not generated", AutoFix: false},
-		{ID: "F003", Name: "no-otel-tracing", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Server-mode project with no OpenTelemetry tracing", AutoFix: false},
-		{ID: "F004", Name: "no-prometheus-metrics", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Server-mode project with no Prometheus metrics", AutoFix: false},
-		{ID: "F005", Name: "no-schema-upcasters", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Evolving event schemas but no schema.NewUpcaster — version migrations not handled", AutoFix: false},
-		{ID: "F006", Name: "no-encryption-for-sensitive-data", Category: "adoption", Severity: "info", Confidence: "medium",
-			Description: "Event payload with PII fields but no encryption module — sensitive data in plaintext", AutoFix: false},
-		{ID: "F007", Name: "no-idempotency-middleware", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Command dispatcher without idempotency middleware — duplicate commands under at-least-once delivery", AutoFix: false},
-		{ID: "F008", Name: "no-cbor-codec", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Event-heavy project using JSON codec — CBOR is ~35% smaller", AutoFix: false},
-		{ID: "F009", Name: "no-scheduling-module", Category: "adoption", Severity: "info", Confidence: "medium",
-			Description: "Time-based patterns (timers, deadlines) but no scheduling module — hand-rolled timers are fragile", AutoFix: false},
-		{ID: "F010", Name: "no-graph-projections", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Graph-traversal patterns but no graph module — recursive SQL CTEs are slow for deep traversals", AutoFix: false},
-		{ID: "F011", Name: "no-relational-projections", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Multi-statement SQL projections without storage.RelationalProjection — manual writes lack atomicity", AutoFix: false},
-		{ID: "F012", Name: "no-deriver-module", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Saga-like SubscribeAll + command dispatch but no deriver module", AutoFix: false},
-		{ID: "F013", Name: "no-transport-module", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Manual HTTP handlers for dispatch but no transport module", AutoFix: false},
-		{ID: "F014", Name: "no-kv-cache", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "kv.NewTypedStore without kv.NewCache — read model hits backing store on every read", AutoFix: false},
-		{ID: "F015", Name: "no-metaengine", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Complex query patterns but no metaengine cost-based planner", AutoFix: false},
-		{ID: "F016", Name: "no-listing-module", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Many aggregate types but no listing module — stream status tracking unavailable", AutoFix: false},
-		{ID: "F017", Name: "no-dedup-module", Category: "adoption", Severity: "info", Confidence: "low",
-			Description: "Bus subscriptions without dedup module — duplicate event delivery not handled at stream boundaries", AutoFix: false},
+		{
+			ID: "F001", Name: "no-tombstone-softdelete", Category: "adoption", Severity: "info", Confidence: "medium",
+			Description: "Delete operations without event.MarkTombstone — consider tombstone soft-delete for audit trail", AutoFix: false,
+		},
+		{
+			ID: "F002", Name: "no-catalog-documentation", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "3+ event types but no catalog.NewBuilder — event documentation not generated", AutoFix: false,
+		},
+		{
+			ID: "F003", Name: "no-otel-tracing", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Server-mode project with no OpenTelemetry tracing", AutoFix: false,
+		},
+		{
+			ID: "F004", Name: "no-prometheus-metrics", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Server-mode project with no Prometheus metrics", AutoFix: false,
+		},
+		{
+			ID: "F005", Name: "no-schema-upcasters", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Evolving event schemas but no schema.NewUpcaster — version migrations not handled", AutoFix: false,
+		},
+		{
+			ID: "F006", Name: "no-encryption-for-sensitive-data", Category: "adoption", Severity: "info", Confidence: "medium",
+			Description: "Event payload with PII fields but no encryption module — sensitive data in plaintext", AutoFix: false,
+		},
+		{
+			ID: "F007", Name: "no-idempotency-middleware", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Command dispatcher without idempotency middleware — duplicate commands under at-least-once delivery", AutoFix: false,
+		},
+		{
+			ID: "F008", Name: "no-cbor-codec", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Event-heavy project using JSON codec — CBOR is ~35% smaller", AutoFix: false,
+		},
+		{
+			ID: "F009", Name: "no-scheduling-module", Category: "adoption", Severity: "info", Confidence: "medium",
+			Description: "Time-based patterns (timers, deadlines) but no scheduling module — hand-rolled timers are fragile", AutoFix: false,
+		},
+		{
+			ID: "F010", Name: "no-graph-projections", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Graph-traversal patterns but no graph module — recursive SQL CTEs are slow for deep traversals", AutoFix: false,
+		},
+		{
+			ID: "F011", Name: "no-relational-projections", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Multi-statement SQL projections without storage.RelationalProjection — manual writes lack atomicity", AutoFix: false,
+		},
+		{
+			ID: "F012", Name: "no-deriver-module", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Saga-like SubscribeAll + command dispatch but no deriver module", AutoFix: false,
+		},
+		{
+			ID: "F013", Name: "no-transport-module", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Manual HTTP handlers for dispatch but no transport module", AutoFix: false,
+		},
+		{
+			ID: "F014", Name: "no-kv-cache", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "kv.NewTypedStore without kv.NewCache — read model hits backing store on every read", AutoFix: false,
+		},
+		{
+			ID: "F015", Name: "no-metaengine", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Complex query patterns but no metaengine cost-based planner", AutoFix: false,
+		},
+		{
+			ID: "F016", Name: "no-listing-module", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Many aggregate types but no listing module — stream status tracking unavailable", AutoFix: false,
+		},
+		{
+			ID: "F017", Name: "no-dedup-module", Category: "adoption", Severity: "info", Confidence: "low",
+			Description: "Bus subscriptions without dedup module — duplicate event delivery not handled at stream boundaries", AutoFix: false,
+		},
 	}
 }

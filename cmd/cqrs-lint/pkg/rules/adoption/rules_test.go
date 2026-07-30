@@ -35,6 +35,8 @@ func assertRule(t *testing.T, findings []finding.Finding, ruleID string, wantCou
 	}
 }
 
-var _ = context.Background
-var _ = analyzer.BuildContextFromSource
-var _ = adoption.NewF001Detector
+var (
+	_ = context.Background
+	_ = analyzer.BuildContextFromSource
+	_ = adoption.NewF001Detector
+)

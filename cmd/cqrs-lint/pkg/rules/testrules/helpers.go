@@ -161,13 +161,12 @@ func astFileCallsPkgFunc(file *ast.File, pkgName, funcName string) bool {
 // projectFinding builds a single project-level finding positioned at go.mod.
 func projectFinding(
 	ruleID, message, suggestion string,
-	severity finding.Severity,
 	confidence finding.Confidence,
 	ctx *analyzer.AnalysisContext,
 ) finding.Finding {
 	f, _ := finding.NewBuilder(
 		finding.RuleName(ruleID), toolName,
-		message, severity,
+		message, finding.SeverityInfo,
 		finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
 	).
 		WithCategory(finding.CategoryTesting).

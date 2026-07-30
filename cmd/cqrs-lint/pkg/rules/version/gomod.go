@@ -48,8 +48,8 @@ func parseGoModCQRSRequires(path string) []cqrsRequire {
 		var req string
 		if inRequireBlock {
 			req = trimmed
-		} else if strings.HasPrefix(trimmed, "require ") {
-			req = strings.TrimPrefix(trimmed, "require ")
+		} else if rest, ok := strings.CutPrefix(trimmed, "require "); ok {
+			req = rest
 		} else {
 			continue
 		}
