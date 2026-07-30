@@ -87,6 +87,15 @@ func BuildLayoutPlan(collection string, filterFields, sortFields []string) Layou
 	}
 }
 
+// ColumnNames returns the names of all planned columns in order.
+func (p LayoutPlan) ColumnNames() []string {
+	names := make([]string, len(p.Columns))
+	for i, c := range p.Columns {
+		names[i] = c.Name
+	}
+	return names
+}
+
 // DDL generates the CREATE TABLE and CREATE INDEX statements for this plan.
 func (p LayoutPlan) DDL() string {
 	var b strings.Builder

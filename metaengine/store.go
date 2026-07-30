@@ -28,9 +28,41 @@ type Store struct {
 	queries     map[string]queryRuntime
 	byInputType map[string]string
 	plan        *PlanResult
+	poisoned    sync.Map // collection name → poison error
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
+
+// CollectionInfo describes a planned query collection.
+type CollectionInfo struct {
+	Name        string
+	ADT         ADT
+	ReadPattern ReadPattern
+	EngineName  string
+	Complexity  Complexity
+}
+
+// Collections returns metadata for every registered query collection.
+// The result is sorted by collection name.
+func (s *Store) Collections() []CollectionInfo {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	result := make([]CollectionInfo, 0, len(s.queries))
+
+	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
+		q := s.queries[name]
+		result = append(result, CollectionInfo{
+			Name:        q.name,
+			ADT:         q.adt,
+			ReadPattern: q.readPattern,
+			EngineName:  q.engine.Profile().Name,
+			Complexity:  q.complexity,
+		})
+	}
+
+	return result
+}
 
 // collectionEngine returns the engine assigned to a query/collection by name.
 // Used by TypedReader to access the engine for typed reads without going through
@@ -45,6 +77,17 @@ func (s *Store) collectionEngine(collection string) (Engine, bool) {
 	}
 
 	return q.engine, true
+}
+
+// IsPoisoned returns the poison error if the collection was poisoned by a fold
+// panic, or nil if healthy. Once poisoned, a collection refuses reads until
+// the store is recreated (or the poison is cleared via Reset).
+func (s *Store) IsPoisoned(collection string) error {
+	if v, ok := s.poisoned.Load(collection); ok {
+		return v.(error)
+	}
+
+	return nil
 }
 
 // EventTypes returns every event type that at least one registered query
@@ -129,7 +172,15 @@ func (s *Store) ApplyBatch(ctx context.Context, events []EventInput) error {
 	return nil
 }
 
-func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payload any) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			poisonErr := fmt.Errorf("metaengine: collection %q poisoned by fold panic: %v", q.name, r)
+			s.poisoned.Store(q.name, poisonErr)
+			err = poisonErr
+		}
+	}()
+
 	col := q.name
 
 	switch fold.Kind {

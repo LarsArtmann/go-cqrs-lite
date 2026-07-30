@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"reflect"
 )
 
 // TypedReader provides typed read access to a collection's values without
@@ -81,6 +82,14 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 		opt(&cfg)
 	}
 
+	// Expand range specs into filter pairs for pushdown/raw paths.
+	for _, rg := range cfg.ranges {
+		cfg.filters = append(cfg.filters,
+			FilterSpec{Column: rg.Column, Op: FilterGe, Value: rg.Low},
+			FilterSpec{Column: rg.Column, Op: FilterLe, Value: rg.High},
+		)
+	}
+
 	eng, ok := r.store.collectionEngine(r.collection)
 	if !ok {
 		return nil, fmt.Errorf("%w: %q", errNoQueryForInputType, r.collection)
@@ -136,9 +145,31 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 	if sb, ok := eng.(ScanBackend); ok {
 		var filterFn func(item any) bool
 
-		if len(cfg.filters) > 0 {
+		if len(cfg.filters) > 0 || len(cfg.inSpecs) > 0 {
+			inSpecs := cfg.inSpecs
+			filters := cfg.filters
 			filterFn = func(item any) bool {
-				return passesFilterSpecs(item, cfg.filters)
+				if !passesFilterSpecs(item, filters) {
+					return false
+				}
+
+				for _, in := range inSpecs {
+					val := itemFieldByName(item, in.Column)
+					found := false
+
+					for _, v := range in.Values {
+						if reflect.DeepEqual(val, v) {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						return false
+					}
+				}
+
+				return true
 			}
 		}
 
@@ -199,22 +230,112 @@ func (r *TypedReader[V]) Exists(ctx context.Context, key any) (bool, error) {
 	return false, fmt.Errorf("%w: %s", errUnsupportedSetReads, eng.Profile().Name)
 }
 
+// GetBatch performs point lookups for multiple keys. Returns values in the same
+// order as the input keys; missing keys are skipped from the result.
+func (r *TypedReader[V]) GetBatch(ctx context.Context, keys []any) ([]V, error) {
+	result := make([]V, 0, len(keys))
+
+	for _, key := range keys {
+		v, found, err := r.Get(ctx, key)
+		if err != nil {
+			return nil, err
+		}
+
+		if found {
+			result = append(result, v)
+		}
+	}
+
+	return result, nil
+}
+
+// Count returns the number of values matching the given filter options.
+func (r *TypedReader[V]) Count(ctx context.Context, opts ...ScanOption) (int, error) {
+	rows, err := r.Scan(ctx, opts...)
+	if err != nil {
+		return 0, err
+	}
+
+	return len(rows), nil
+}
+
+// Distinct returns the unique values of a column across matching rows.
+func (r *TypedReader[V]) Distinct(ctx context.Context, column string, opts ...ScanOption) ([]any, error) {
+	rows, err := r.Scan(ctx, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	seen := make(map[any]struct{}, len(rows))
+
+	var result []any
+
+	for _, row := range rows {
+		val := extractValueByName(row, column)
+		if val == nil {
+			continue
+		}
+
+		if _, exists := seen[val]; exists {
+			continue
+		}
+
+		seen[val] = struct{}{}
+		result = append(result, val)
+	}
+
+	return result, nil
+}
+
 // --- Scan options ---
 
 type scanConfig struct {
-	filters []FilterSpec
-	sort    *SortSpec
-	cursor  any
-	limit   int
+	filters  []FilterSpec
+	sort     *SortSpec
+	cursor   any
+	limit    int
+	ranges   []RangeSpec
+	inSpecs  []InSpec
+}
+
+// RangeSpec declares a range filter (SQL BETWEEN) on a column.
+type RangeSpec struct {
+	Column string
+	Low    any
+	High   any
+}
+
+// InSpec declares an IN filter (SQL WHERE col IN (...)) on a column.
+type InSpec struct {
+	Column string
+	Values []any
 }
 
 // ScanOption tunes a TypedReader.Scan call.
 type ScanOption func(*scanConfig)
 
-// WithFilter adds an equality filter on a column.
+// WithFilter adds a comparison filter on a column.
 func WithFilter(column string, op FilterOp, value any) ScanOption {
 	return func(c *scanConfig) {
 		c.filters = append(c.filters, FilterSpec{Column: column, Op: op, Value: value})
+	}
+}
+
+// WithRange adds a range filter (low <= column <= high) on a column.
+// On pushdown engines this generates SQL BETWEEN; on closure-based engines it
+// generates two comparison predicates.
+func WithRange(column string, low, high any) ScanOption {
+	return func(c *scanConfig) {
+		c.ranges = append(c.ranges, RangeSpec{Column: column, Low: low, High: high})
+	}
+}
+
+// WithIn adds an IN filter (column IN values) on a column.
+// On pushdown engines this generates SQL WHERE col IN (...); on closure-based
+// engines it generates a membership predicate.
+func WithIn(column string, values []any) ScanOption {
+	return func(c *scanConfig) {
+		c.inSpecs = append(c.inSpecs, InSpec{Column: column, Values: values})
 	}
 }
 

@@ -10,6 +10,7 @@ import (
 const (
 	DiagLevelWarn     = "WARN"
 	DiagLevelDegraded = "DEGRADED"
+	DiagLevelInfo     = "INFO"
 )
 
 type Diagnostic struct {
@@ -66,6 +67,10 @@ func (a QueryAssignment) String() string {
 type PlanResult struct {
 	Queries     []QueryAssignment
 	Diagnostics Diagnostics
+	// LayoutPlans holds the auto-generated LayoutPlans for collections that
+	// used FilterOnField/SortOnField with a LayoutPlanner engine.
+	// Populated during Plan(); empty when no auto-layout was applied.
+	LayoutPlans []LayoutPlan
 }
 
 func (p PlanResult) Report() string {

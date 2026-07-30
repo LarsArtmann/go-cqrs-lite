@@ -17,6 +17,7 @@ const DefaultWriteAmplificationBudget = 3
 
 type planConfig struct {
 	writeAmplificationBudget int
+	dryRun                   bool
 }
 
 type planOption func(*planConfig)
@@ -25,6 +26,14 @@ type planOption func(*planConfig)
 // may update without triggering a write amplification warning.
 func WithWriteAmplificationBudget(n int) planOption {
 	return func(c *planConfig) { c.writeAmplificationBudget = n }
+}
+
+// WithDryRun returns a planOption that skips DDL creation and engine pinning —
+// Plan() returns the PlanResult (cost estimates, engine assignments, auto-
+// generated layout plans) without modifying any engine state. Useful for
+// inspecting what the planner would do before committing.
+func WithDryRun() planOption {
+	return func(c *planConfig) { c.dryRun = true }
 }
 
 // Plan creates a storage plan from available engines and declared queries.
@@ -82,9 +91,24 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		if lp, ok := runtime.engine.(LayoutPlanner); ok {
 			filterFields, sortFields := extractDeclarativeFields(meta.QueryConfig())
 			if len(filterFields) > 0 || len(sortFields) > 0 {
-				if err := lp.ApplyLayout(runtime.name, filterFields, sortFields); err != nil {
-					return nil, fmt.Errorf("metaengine.Plan: auto-layout for %q: %w", runtime.name, err)
-				}
+				layoutPlan := BuildLayoutPlan(runtime.name, filterFields, sortFields)
+
+				plan.LayoutPlans = append(plan.LayoutPlans, layoutPlan)
+
+				plan.Diagnostics = append(plan.Diagnostics, Diagnostic{
+					Level: DiagLevelInfo,
+					Query: runtime.name,
+					Message: fmt.Sprintf(
+						"auto-planned table %s with columns %v",
+						layoutPlan.Table, layoutPlan.ColumnNames(),
+					),
+				})
+
+				if !cfg.dryRun {
+					if err := lp.ApplyLayout(runtime.name, filterFields, sortFields); err != nil {
+						return nil, fmt.Errorf("metaengine.Plan: auto-layout for %q: %w", runtime.name, err)
+					}
+			}
 			}
 		}
 
