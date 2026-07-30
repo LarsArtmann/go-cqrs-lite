@@ -3,6 +3,7 @@ package correctness
 import (
 	"context"
 	"go/ast"
+	"slices"
 
 	"github.com/larsartmann/go-finding"
 
@@ -102,8 +103,8 @@ func isLifecycleIgnore(assign *ast.AssignStmt, methods map[string]bool) bool {
 }
 
 func hasDeferAncestor(ancestors []ast.Node) bool {
-	for i := len(ancestors) - 1; i >= 0; i-- {
-		if _, ok := ancestors[i].(*ast.DeferStmt); ok {
+	for _, v := range slices.Backward(ancestors) {
+		if _, ok := v.(*ast.DeferStmt); ok {
 			return true
 		}
 	}

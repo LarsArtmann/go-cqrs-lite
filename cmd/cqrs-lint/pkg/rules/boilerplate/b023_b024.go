@@ -3,6 +3,7 @@ package boilerplate
 import (
 	"context"
 	"go/ast"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -95,13 +96,7 @@ func detectMissingMiddleware(
 					continue
 				}
 
-				found := false
-				for _, ctor := range constructors {
-					if sel.Sel.Name == ctor {
-						found = true
-						break
-					}
-				}
+				found := slices.Contains(constructors, sel.Sel.Name)
 
 				if !found {
 					continue

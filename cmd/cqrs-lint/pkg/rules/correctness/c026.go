@@ -101,7 +101,7 @@ func collectTTLConsts(ctx *analyzer.AnalysisContext) map[string]bool {
 // - idempotency.NewMemoryStore(ttl) → arg[0]
 // - middleware.CommandIdempotency(store, ttl, ...) → arg[1]
 // - middleware.EventIdempotency(store, ttl, ...) → arg[1]
-// - middleware.QueryIdempotency(store, ttl, ...) → arg[1]
+// - middleware.QueryIdempotency(store, ttl, ...) → arg[1].
 func extractTTLArg(call *ast.CallExpr) ast.Expr {
 	sel, ok := analyzer.SelectorFromExpr(call.Fun)
 	if !ok {

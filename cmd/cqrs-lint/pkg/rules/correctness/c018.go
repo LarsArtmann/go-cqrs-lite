@@ -3,6 +3,7 @@ package correctness
 import (
 	"context"
 	"go/ast"
+	"slices"
 
 	"github.com/larsartmann/go-finding"
 
@@ -101,11 +102,9 @@ func funcHasJournalTypeAssert(fn *ast.FuncDecl) bool {
 		if sw, ok := n.(*ast.TypeSwitchStmt); ok {
 			for _, s := range sw.Body.List {
 				if cc, ok := s.(*ast.CaseClause); ok {
-					for _, t := range cc.List {
-						if mentionsJournal(t) {
-							found = true
-							return false
-						}
+					if slices.ContainsFunc(cc.List, mentionsJournal) {
+						found = true
+						return false
 					}
 				}
 			}
