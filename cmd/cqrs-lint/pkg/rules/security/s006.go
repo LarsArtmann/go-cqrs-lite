@@ -165,8 +165,8 @@ func maxTier(a, b indicatorTier) indicatorTier {
 
 var strongFinancial = []string{ //nolint:gochecknoglobals // static lookup table
 	"cardnumber", "creditcardnumber", "cvv", "cvc",
-	"pan", "iban", "bic", "swift", "routingnumber",
-	"sortcode", "aba",
+	"primaryaccountnumber", "iban", "bic", "swift", "routingnumber",
+	"sortcode",
 }
 
 var mediumFinancial = []string{ //nolint:gochecknoglobals // static lookup table

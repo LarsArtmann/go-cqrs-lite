@@ -1,0 +1,223 @@
+package architecture_test
+
+import (
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/architecture"
+)
+
+// --- E012: Dual-write without completion ---
+
+func TestE012_DetectsDualWriteWithoutFlag(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"bus.go": `package main
+
+type DualWriteBus struct {
+	legacy Publisher
+	newSystem Publisher
+}
+
+type Publisher interface{ Publish(any) error }
+`,
+	})
+	findings := runDetector(t, architecture.NewE012Detector(ctx))
+	assertRule(t, findings, "E012", 1)
+}
+
+func TestE012_NoFindingWithFeatureFlag(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"bus.go": `package main
+
+type DualWriteBus struct {
+	legacy Publisher
+	newSystem Publisher
+}
+
+type Config struct {
+	DualWriteEnabled bool
+}
+
+type Publisher interface{ Publish(any) error }
+
+func newDualWriteBus(cfg Config) *DualWriteBus {
+	return &DualWriteBus{}
+}
+
+func setup() *DualWriteBus {
+	return newDualWriteBus(Config{DualWriteEnabled: true})
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE012Detector(ctx))
+	assertRule(t, findings, "E012", 0)
+}
+
+func TestE012_NoFindingOnEmptyProject(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	findings := runDetector(t, architecture.NewE012Detector(ctx))
+	assertRule(t, findings, "E012", 0)
+}
+
+// --- E013: Signing disabled by default ---
+
+func TestE013_DetectsSigningDisabled(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"config.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/signing"
+
+type SignerConfig struct {
+	Enabled bool
+	Key     string
+}
+
+func DefaultSignerConfig() SignerConfig {
+	_ = signing.NewHMAC
+	return SignerConfig{Enabled: false, Key: ""}
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE013Detector(ctx))
+	assertRule(t, findings, "E013", 1)
+}
+
+func TestE013_NoFindingWhenEnabled(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"config.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/signing"
+
+type SignerConfig struct {
+	Enabled bool
+	Key     string
+}
+
+func DefaultSignerConfig() SignerConfig {
+	_ = signing.NewHMAC
+	return SignerConfig{Enabled: true, Key: "secret"}
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE013Detector(ctx))
+	assertRule(t, findings, "E013", 0)
+}
+
+func TestE013_NoFindingWithoutSigningImport(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"config.go": `package main
+
+type Config struct {
+	Enabled bool
+}
+
+func defaultConfig() Config {
+	return Config{Enabled: false}
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE013Detector(ctx))
+	assertRule(t, findings, "E013", 0)
+}
+
+// --- E014: No read-your-writes ---
+
+func TestE014_DetectsNoDrain(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/projectionhost"
+
+func setup(host *projectionhost.Host) {
+	go host.Start(nil)
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE014Detector(ctx))
+	assertRule(t, findings, "E014", 1)
+}
+
+func TestE014_NoFindingWithHostStop(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/projectionhost"
+
+func shutdown(host *projectionhost.Host) {
+	host.Stop()
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE014Detector(ctx))
+	assertRule(t, findings, "E014", 0)
+}
+
+func TestE014_NoFindingWithoutProjectionHost(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func setup() {
+	println("hello")
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE014Detector(ctx))
+	assertRule(t, findings, "E014", 0)
+}
+
+// --- E015: Watermill no ordered delivery ---
+
+func TestE015_DetectsFalseBlockPublish(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/watermill"
+
+func setup() {
+	cfg := watermill.EventBusConfig{
+		BlockPublishUntilSubscriberAck: false,
+	}
+	_ = cfg
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE015Detector(ctx))
+	assertRule(t, findings, "E015", 1)
+}
+
+func TestE015_NoFindingWhenTrue(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/watermill"
+
+func setup() {
+	cfg := watermill.EventBusConfig{
+		BlockPublishUntilSubscriberAck: true,
+	}
+	_ = cfg
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE015Detector(ctx))
+	assertRule(t, findings, "E015", 0)
+}
+
+func TestE015_NoFindingWithoutWatermill(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+type Config struct {
+	BlockPublishUntilSubscriberAck bool
+}
+
+func setup() {
+	_ = Config{BlockPublishUntilSubscriberAck: false}
+}
+`,
+	})
+	findings := runDetector(t, architecture.NewE015Detector(ctx))
+	assertRule(t, findings, "E015", 0)
+}

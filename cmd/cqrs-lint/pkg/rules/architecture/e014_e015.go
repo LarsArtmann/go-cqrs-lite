@@ -3,6 +3,8 @@ package architecture
 import (
 	"context"
 	"go/ast"
+	"go/token"
+	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -143,7 +145,7 @@ func firstKeyBoolPos(
 	ctx *analyzer.AnalysisContext,
 	keyName string,
 	wantBool bool,
-) (tokenPosition, bool) {
+) (token.Position, bool) {
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
 			continue
@@ -187,20 +189,11 @@ func firstKeyBoolPos(
 		})
 
 		if hit != nil {
-			p := ctx.Fset.Position(hit.Pos())
-			return tokenPosition{Filename: p.Filename, Line: p.Line, Column: p.Column}, true
+			return ctx.Fset.Position(hit.Pos()), true
 		}
 	}
 
-	return tokenPosition{}, false
-}
-
-// tokenPosition is a local alias to avoid importing go/token in the return
-// signature of firstKeyBoolPos (keeps the file import list lean).
-type tokenPosition struct {
-	Filename string
-	Line     int
-	Column   int
+	return token.Position{}, false
 }
 
 // containsSubstring reports whether s contains substr.
