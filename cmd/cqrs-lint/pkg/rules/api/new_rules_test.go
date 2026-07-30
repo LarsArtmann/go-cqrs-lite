@@ -529,6 +529,39 @@ func setup() {
 	assertRule(t, findings, "A016", 0)
 }
 
+// A016: idempotency.NewMemoryStore direct usage also satisfies idempotency check.
+func TestA016_NoFindingWithDirectIdempotencyStore(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	d := dispatcher.NewDispatcher()
+	store := idempotency.NewMemoryStore(5 * time.Minute)
+	d.Use(middleware.CommandIdempotency(store, ttl, nil))
+	d.Dispatch(ctx, cmd)
+}
+`,
+	})
+	findings := runDetector(t, api.NewA016Detector(ctx))
+	assertRule(t, findings, "A016", 0)
+}
+
+// A016: QueryIdempotency also counts as idempotency.
+func TestA016_NoFindingWithQueryIdempotency(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	d := dispatcher.NewDispatcher()
+	d.Use(middleware.QueryIdempotency(store, ttl, keyFn))
+	d.Dispatch(ctx, cmd)
+}
+`,
+	})
+	findings := runDetector(t, api.NewA016Detector(ctx))
+	assertRule(t, findings, "A016", 0)
+}
+
 // --- A016: Dispatcher that never dispatches is NOT flagged ---
 
 func TestA016_NoFindingForReadOnlyDispatcher(t *testing.T) {

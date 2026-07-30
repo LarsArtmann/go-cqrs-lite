@@ -53,7 +53,8 @@ func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					payloadArg := call.Args[4]
 
-					if isDirectJSONMarshal(payloadArg) || isMarshalHelperCall(payloadArg, marshalHelpers) {
+					if isDirectJSONMarshal(payloadArg) ||
+						isMarshalHelperCall(payloadArg, marshalHelpers) {
 						pos := ctx.Fset.Position(call.Pos())
 
 						f, err := finding.NewBuilder(
@@ -151,12 +152,14 @@ func collectMarshalPayloadHelpers(ctx *analyzer.AnalysisContext) map[string]bool
 }
 
 // funcReturnsJSONMarshal returns true if the function body contains a
-// json.Marshal call whose result is returned.
+// json.Marshal call and returns at least one result. This is a heuristic
+// for detecting marshalPayload helper functions: they call json.Marshal
+// and return the (possibly assigned-then-returned) result.
 func funcReturnsJSONMarshal(fn *ast.FuncDecl) bool {
-	found := false
+	hasMarshal := false
 
 	ast.Inspect(fn.Body, func(n ast.Node) bool {
-		if found {
+		if hasMarshal {
 			return false
 		}
 
@@ -171,50 +174,13 @@ func funcReturnsJSONMarshal(fn *ast.FuncDecl) bool {
 		}
 
 		pkg, ok := sel.X.(*ast.Ident)
-		if !ok || pkg.Name != "json" || sel.Sel.Name != "Marshal" {
-			return true
+
+		if ok && pkg.Name == "json" && sel.Sel.Name == "Marshal" {
+			hasMarshal = true
 		}
 
-		// Check if this json.Marshal call is in a return statement.
-		found = isInReturnStmt(call, fn.Body)
-
-		return !found
+		return !hasMarshal
 	})
 
-	return found
-}
-
-// isInReturnStmt returns true if call is a direct argument of a return statement
-// anywhere in body.
-func isInReturnStmt(call *ast.CallExpr, body *ast.BlockStmt) bool {
-	found := false
-
-	ast.Inspect(body, func(n ast.Node) bool {
-		if found {
-			return false
-		}
-
-		ret, ok := n.(*ast.ReturnStmt)
-		if !ok {
-			return true
-		}
-
-		for _, expr := range ret.Results {
-			if expr == call {
-				found = true
-				return false
-			}
-
-			// Also check for return json.Marshal(p) where Marshal is wrapped
-			// in parentheses or is the sole expression.
-			if innerCall, ok := expr.(*ast.CallExpr); ok && innerCall == call {
-				found = true
-				return false
-			}
-		}
-
-		return true
-	})
-
-	return found
+	return hasMarshal
 }
