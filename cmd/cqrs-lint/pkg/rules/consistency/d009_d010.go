@@ -3,6 +3,7 @@ package consistency
 import (
 	"context"
 	"go/ast"
+	"go/token"
 
 	"github.com/larsartmann/go-finding"
 
@@ -188,7 +189,7 @@ func isErrorFamilyWrapper(name string) bool {
 func hasInternalLiteral(call *ast.CallExpr) bool {
 	for _, arg := range call.Args {
 		lit, ok := arg.(*ast.BasicLit)
-		if !ok || lit.Kind != ast.STRING {
+		if !ok || lit.Kind != token.STRING {
 			continue
 		}
 

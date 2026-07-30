@@ -129,8 +129,13 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		consistency.NewD003Detector(ctx),
 		consistency.NewD005Detector(ctx),
 		consistency.NewD006Detector(ctx),
+		consistency.NewD007Detector(ctx),
+		consistency.NewD008Detector(ctx),
+		consistency.NewD009Detector(ctx),
+		consistency.NewD010Detector(ctx),
 		consistency.NewD011Detector(ctx),
 		consistency.NewD012Detector(ctx),
+		consistency.NewD013Detector(ctx),
 		// Architecture
 		architecture.NewE001Detector(ctx),
 		architecture.NewE002Detector(ctx),

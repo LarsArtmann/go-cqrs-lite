@@ -111,6 +111,8 @@ func NewS006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					severity = finding.SeverityInfo
 					confidence = finding.ConfidenceLow
 					suggestion = "Consider encrypting monetary fields if this data is sensitive"
+				case tierNone:
+					// Filtered by scoreFinancialStruct; unreachable here.
 				}
 
 				if !ctx.FeatureProfile.HasServer {

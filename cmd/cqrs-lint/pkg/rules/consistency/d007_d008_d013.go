@@ -148,7 +148,8 @@ func NewD008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			pos := anchorPos(ctx, firstFile, firstLine)
 
 			f, err := finding.NewBuilder(
-				"D008", toolName,
+				"D008",
+				toolName,
 				"Project mixes event.DecodePayload (explicit codec) and event.DecodePayloadAuto — pick one decode strategy",
 				finding.SeverityInfo,
 				pos,
