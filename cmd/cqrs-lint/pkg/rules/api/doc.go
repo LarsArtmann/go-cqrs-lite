@@ -1,6 +1,6 @@
 // Package api implements API-misuse detection rules.
 package api
 
-import "github.com/larsartmann/go-finding"
+import "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 
-const toolName finding.ToolName = "cqrs-lint"
+const toolName = lintutil.ToolName

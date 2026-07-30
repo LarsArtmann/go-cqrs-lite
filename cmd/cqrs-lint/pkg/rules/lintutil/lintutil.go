@@ -12,6 +12,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
+// ToolName is the canonical linter name used in every finding. Centralized
+// here so the value is defined once instead of copy-pasted across 8 rule
+// packages. Each package aliases it via `const toolName = lintutil.ToolName`.
+const ToolName finding.ToolName = "cqrs-lint"
+
 // AppendBuild appends a built [finding.Finding] to findings unless err is
 // non-nil. Building a finding only fails when the builder was mis-configured
 // at construction time (a programming bug in the rule itself), so the error

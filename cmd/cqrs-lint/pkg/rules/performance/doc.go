@@ -2,6 +2,6 @@
 // anti-patterns in go-cqrs-lite consumer code.
 package performance
 
-import "github.com/larsartmann/go-finding"
+import "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 
-const toolName finding.ToolName = "cqrs-lint"
+const toolName = lintutil.ToolName

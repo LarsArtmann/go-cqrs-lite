@@ -167,7 +167,7 @@
 
 51. **D010: Generic error code `"internal"`** — cqrs-htmx uses `errorfamily.WrapTransient(err, "internal", ...)` instead of a descriptive namespaced code. Detect: `"internal"` used as an error code in `errorfamily.Wrap*` calls.
 
-52. **D011: Nil payload events** — InboxClean passes `nil` as event payload for toggle events (decide.go:25). This creates events with empty payloads that can't be decoded. Detect: `event.NewEvent`/`event.New` with `nil` as the payload argument.
+52. ~~**D011: Nil payload events** — InboxClean passes `nil` as event payload for toggle events (decide.go:25). This creates events with empty payloads that can't be decoded. Detect: `event.NewEvent`/`event.New` with `nil` as the payload argument.~~ done (existing rule)
 
 53. **D012: Schema version not stamped on events** — Most projects don't use `event.WithSchemaVersion()`. Without it, schema evolution (upcasting) is impossible to implement retroactively. Detect: `event.New`/`event.NewEvent` calls without `event.WithSchemaVersion` in the options.
 
@@ -189,11 +189,11 @@
 
 ## 7. Performance & Efficiency (P-series)
 
-> New category — the linter has no performance rules today.
+> P001 and P007 are existing rules; P002-P006, P008-P010 are proposed.
 
-58. **P001: O(N^2) read model via repo.Load in projection** — timesheets' projection calls `repo.Load` on every event (cqrs.go:82). For N events, this is O(N^2) because each Load re-reads all prior events. Suggest projecting directly from event payloads.
+58. ~~**P001: O(N^2) read model via repo.Load in projection** — timesheets' projection calls `repo.Load` on every event (cqrs.go:82). For N events, this is O(N^2) because each Load re-reads all prior events. Suggest projecting directly from event payloads.~~ done (existing rule)
 
-59. **P002: Full read model rebuild on every startup** — crush-daily rebuilds the entire read model from scratch on every startup (setup.go:43-62). With 10K events, this adds seconds to startup time. Suggest checkpoint-based incremental catch-up via projectionhost.
+59. **P002: Full read model rebuild on every startup** — crush-daily rebuilds the entire read model from scratch on every startup (setup.go:43-62). With 10K events, this adds seconds to startup time. Suggest checkpoint-based incremental catch-up via projectionhost. _(Overlaps with B017, which is done.)_
 
 60. ~~**P003: Mutex held during payload decode** — crush-daily holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). Decode is CPU-bound and doesn't need lock protection. Suggest decoding outside the lock, then acquiring the lock only for the map mutation.~~ done at `c165b2e8` (covered by C021, implemented in the correctness category instead of performance)
 
@@ -203,7 +203,7 @@
 
 63. **P006: Polling loop for drain check** — cqrs-htmx's `waitForDrain` polls every 10ms (es_projection_setup.go:150-192). A channel/callback would be zero-latency. Flag: polling loop with <100ms interval for state-change detection.
 
-64. **P007: Manual retry loop with bit-shift backoff** — DiscordSync has a hand-rolled `appendWithRetry` (storage.go:207-241) with `baseBackoff << time.Duration(attempt-1)` bitshift. This has a subtle bug: left-shifting a Duration shifts the nanoseconds representation. Suggest `retry.Do` from the library.
+64. ~~**P007: Manual retry loop with bit-shift backoff** — DiscordSync has a hand-rolled `appendWithRetry` (storage.go:207-241) with `baseBackoff << time.Duration(attempt-1)` bitshift. This has a subtle bug: left-shifting a Duration shifts the nanoseconds representation. Suggest `retry.Do` from the library.~~ done (existing rule)
 
 65. **P008: Projection host WithBatchSize not set** — InboxClean sets batch size 500 but most projects don't set it at all, defaulting to whatever the library default is. For large event streams, the batch size significantly affects throughput. Flag: `projectionhost.New` without `WithBatchSize`.
 
@@ -479,20 +479,21 @@
 
 ## Summary Statistics
 
-| Category              | Ideas                                   | Existing rules in category |
-| --------------------- | --------------------------------------- | -------------------------- |
-| Correctness (C)       | 27 (C001-C016 existing + C017-C027 new) | 27                         |
-| API Misuse (A)        | 31 (A001-A019 existing + A020-A031 new) | 28                         |
-| Boilerplate (B)       | 26 (B001-B015 existing + B016-B026 new) | 26                         |
-| Architecture (E)      | 15 (E001-E007 existing + E008-E015 new) | 7                          |
-| Consistency (D)       | 12 (D001-D006 existing + D007-D012 new) | 6                          |
-| Security (S)          | 7 (S001-S003 existing + S004-S007 new)  | 3                          |
-| Performance (P)       | 13 (new category)                       | 2                          |
-| Version/Migration (V) | 6 (new category)                        | 1                          |
-| Testing (T)           | 8 (new category)                        | 0                          |
-| Feature Adoption (F)  | 17 (new category)                       | 0                          |
-| DX & Infrastructure   | 24                                      | N/A                        |
-| **Total**             | **170**                                 | **100 existing**           |
+| Category              | Listed items                                          | Existing rules |
+| --------------------- | ----------------------------------------------------- | -------------- |
+| Correctness (C)       | 12 (C001-C016 existing + C017-C027 new)               | 27             |
+| API Misuse (A)        | 16 (A001-A019 existing + A020-A031 new)               | 28             |
+| Boilerplate (B)       | 11 (B001-B015 existing + B016-B026 new)               | 26             |
+| Architecture (E)      | 8 (E001-E007 existing + E008-E015 new)                | 7              |
+| Consistency (D)       | 6 (D001-D003+D005+D006+D011 existing + D007-D012 new) | 6              |
+| Security (S)          | 4 (S001-S003 existing + S004-S007 new)                | 3              |
+| Performance (P)       | 10 (P001-P010)                                        | 2 (P001, P007) |
+| Version/Migration (V) | 6 (V001-V006)                                         | 1 (V001)       |
+| Testing (T)           | 8 (T001-T008)                                         | 0              |
+| Feature Adoption (F)  | 17 (F001-F017)                                        | 0              |
+| DX & Infrastructure   | 26                                                    | N/A            |
+| Extended Ideas        | 46 (items 125-170)                                    | N/A            |
+| **Total**             | **170**                                               | **100**        |
 
 ---
 
