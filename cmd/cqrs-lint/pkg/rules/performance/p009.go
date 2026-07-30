@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
-	"slices"
-	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -13,30 +11,29 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
-// eventPayloadSuffixes are struct name suffixes that identify event payloads.
-var eventPayloadSuffixes = []string{
-	"Created", "Updated", "Deleted", "Removed", "Added", "Changed", "Event",
-	"Uploaded", "Downloaded", "Sent", "Received", "Registered", "Submitted",
-}
-
 // largePayloadFieldThreshold is the minimum number of fields in an event
 // payload struct to trigger P009 (>10 fields suggests a large payload).
 const largePayloadFieldThreshold = 10
 
 // P009: JSON codec for large payloads.
-// Detects event payload structs with many fields (>10) or []byte fields
-// in projects that use codec.JSONCodec. CBOR produces ~35% smaller payloads
-// for the same data, which reduces storage and network transfer costs.
+// Detects event payload structs (from the registry's EventPayloadTypes)
+// with many fields (>10) or []byte fields in projects that configure JSON
+// for event encoding. CBOR produces ~35% smaller payloads for the same data.
 //
 //nolint:ireturn // factory returns public interface
 func NewP009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
-	usesJSON := projectUsesJSONCodec(ctx)
+	usesJSONEventCodec := projectUsesJSONEventCodec(ctx)
 
 	return finding.NamedDetectorFunc(
 		"P009-json-codec-large-payloads",
 		func(_ context.Context) ([]finding.Finding, error) {
-			// Only flag if the project actually uses JSON codec.
-			if !usesJSON {
+			if !usesJSONEventCodec {
+				return nil, nil
+			}
+
+			// Build a set of event payload struct names from the registry.
+			payloadSet := ctx.Registry.EventPayloadTypes
+			if len(payloadSet) == 0 {
 				return nil, nil
 			}
 
@@ -53,8 +50,7 @@ func NewP009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					name := ts.Name.Name
-					if !isEventPayloadName(name) {
+					if !payloadSet[ts.Name.Name] {
 						return true
 					}
 
@@ -89,7 +85,7 @@ func NewP009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						"P009", toolName,
 						fmt.Sprintf(
 							"Event payload %s uses JSON codec — %s; CBOR is ~35%% smaller",
-							name, reason,
+							ts.Name.Name, reason,
 						),
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
@@ -111,12 +107,4 @@ func NewP009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-// isEventPayloadName returns true if the struct name ends with a common
-// event-payload suffix (Created, Updated, Deleted, etc.).
-func isEventPayloadName(name string) bool {
-	return slices.ContainsFunc(eventPayloadSuffixes, func(s string) bool {
-		return strings.HasSuffix(name, s)
-	})
 }

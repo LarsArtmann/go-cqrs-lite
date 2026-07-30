@@ -313,15 +313,6 @@ func performanceRules() []RuleInfo {
 			Description: "Aggregate with collection-type state without snapshot strategy or cache — expensive reloads",
 			AutoFix:     false,
 		},
-		{
-			ID:          "P006",
-			Name:        "polling-loop-short-interval",
-			Category:    "performance",
-			Severity:    "info",
-			Confidence:  "low",
-			Description: "time.Sleep with short interval inside a loop — busy-poll wastes CPU",
-			AutoFix:     false,
-		},
 	}
 }
 

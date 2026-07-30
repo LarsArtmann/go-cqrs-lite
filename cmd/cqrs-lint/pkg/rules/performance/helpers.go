@@ -122,6 +122,91 @@ func hasByteSliceField(st *ast.StructType) bool {
 	return false
 }
 
+// projectUsesJSONEventCodec detects event-path-specific JSON codec usage.
+// Unlike the broader projectUsesJSONCodec, this only returns true when
+// JSONCodec is used in an event-encoding context:
+//   - event.DefaultCodec = codec.JSONCodec{}
+//   - event.WithCodec(codec.JSONCodec{})
+//   - stack.WithEventCodec(codec.JSONCodec{})
+func projectUsesJSONEventCodec(ctx *analyzer.AnalysisContext) bool {
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		found := false
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			if found {
+				return false
+			}
+
+			// Check for JSONCodec in event/stack codec-related calls.
+			call, ok := n.(*ast.CallExpr)
+			if ok {
+				sel, ok := analyzer.SelectorFromExpr(call.Fun)
+				if ok {
+					switch sel.Sel.Name {
+					case "WithCodec", "WithEventCodec", "WithDefaultCodec":
+						if callContainsJSONCodec(call) {
+							found = true
+							return false
+						}
+					}
+				}
+			}
+
+			// Check for DefaultCodec assignment.
+			assign, ok := n.(*ast.AssignStmt)
+			if ok {
+				for _, lhs := range assign.Lhs {
+					sel, ok := lhs.(*ast.SelectorExpr)
+					if !ok || sel.Sel.Name != "DefaultCodec" {
+						continue
+					}
+					if ident, ok := sel.X.(*ast.Ident); ok && ident.Name == "event" {
+						for _, rhs := range assign.Rhs {
+							if exprReferencesJSONCodec(rhs) {
+								found = true
+								return false
+							}
+						}
+					}
+				}
+			}
+
+			return true
+		})
+
+		if found {
+			return true
+		}
+	}
+
+	return false
+}
+
+func callContainsJSONCodec(call *ast.CallExpr) bool {
+	for _, arg := range call.Args {
+		if exprReferencesJSONCodec(arg) {
+			return true
+		}
+	}
+	return false
+}
+
+func exprReferencesJSONCodec(expr ast.Expr) bool {
+	// Composite literal: codec.JSONCodec{}
+	if lit, ok := expr.(*ast.CompositeLit); ok {
+		sel, ok := lit.Type.(*ast.SelectorExpr)
+		if ok && sel.Sel.Name == "JSONCodec" {
+			return true
+		}
+	}
+
+	return false
+}
+
 // projectUsesJSONCodec scans all non-test source files for any reference to
 // codec.JSONCodec. Since the default codec for event.New is CBOR, a JSONCodec
 // reference means the project explicitly chose JSON encoding.
