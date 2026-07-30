@@ -92,7 +92,7 @@ Explicit `features` flags always override preset values.
 
 ## Rule Count
 
-**113 rules** across 9 categories: correctness (27), API misuse (28), boilerplate (26), consistency (6), architecture (7), security (3), performance (2), version (6), testing (8).
+**117 rules** across 9 categories: correctness (27), API misuse (28), boilerplate (26), consistency (6), architecture (7), security (4), performance (5), version (6), testing (8).
 
 ## Correctness Rules (bugs)
 
@@ -204,6 +204,7 @@ Explicit `features` flags always override preset values.
 | S001 | hardcoded-secrets                         | Critical | Potential hardcoded secret in string literal     |
 | S002 | missing-encryption-for-sensitive-payloads | Error    | PII event payloads without encryption middleware |
 | S003 | missing-event-signing                     | Warning  | Event store without signing middleware           |
+| S007 | in-memory-session-store                   | Warning  | In-memory session/token store loses state on restart |
 
 ## Performance Rules
 

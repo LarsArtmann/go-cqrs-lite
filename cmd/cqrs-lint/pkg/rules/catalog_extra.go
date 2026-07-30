@@ -259,6 +259,33 @@ func performanceRules() []RuleInfo {
 			Description: "Manual retry loop with bitshift backoff — corrupts time.Duration, use retry.Do",
 			AutoFix:     false,
 		},
+		{
+			ID:          "P008",
+			Name:        "projectionhost-no-batchsize",
+			Category:    "performance",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "projectionhost.New without WithBatchSize — default batch size may bottleneck throughput",
+			AutoFix:     false,
+		},
+		{
+			ID:          "P009",
+			Name:        "json-codec-large-payloads",
+			Category:    "performance",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Large event payload using JSON codec — CBOR is ~35% smaller",
+			AutoFix:     false,
+		},
+		{
+			ID:          "P010",
+			Name:        "no-snapshot-large-aggregate",
+			Category:    "performance",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Aggregate with collection-type state without snapshot strategy or cache — expensive reloads",
+			AutoFix:     false,
+		},
 	}
 }
 

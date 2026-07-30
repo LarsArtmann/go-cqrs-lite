@@ -16,6 +16,7 @@ import (
 // eventPayloadSuffixes are struct name suffixes that identify event payloads.
 var eventPayloadSuffixes = []string{
 	"Created", "Updated", "Deleted", "Removed", "Added", "Changed", "Event",
+	"Uploaded", "Downloaded", "Sent", "Received", "Registered", "Submitted",
 }
 
 // largePayloadFieldThreshold is the minimum number of fields in an event
