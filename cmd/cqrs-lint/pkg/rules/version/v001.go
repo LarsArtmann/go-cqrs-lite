@@ -19,30 +19,32 @@ func NewV001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			hasV3 := false
 			hasV4 := false
-			var firstPos analyzer.GoFile
-			var firstPkgPath string
+			var firstFile string
+			var firstLine int
 
 			for _, gf := range ctx.GoFiles {
-				if gf.Pkg == nil {
+				if gf.IsTest {
 					continue
 				}
 
-				for _, imp := range gf.Pkg.Imports {
-					if imp == nil || !analyzer.IsCQRSModulePath(imp.PkgPath) {
+				for _, imp := range gf.AST.Imports {
+					path := strings.Trim(imp.Path.Value, `"`)
+					if !analyzer.IsCQRSModulePath(path) {
 						continue
 					}
 
-					if strings.Contains(imp.PkgPath, "/v3") {
+					if strings.Contains(path, "/v3") {
 						hasV3 = true
 					}
 
-					if strings.Contains(imp.PkgPath, "/v4") {
+					if strings.Contains(path, "/v4") {
 						hasV4 = true
 					}
 
-					if firstPkgPath == "" {
-						firstPkgPath = imp.PkgPath
-						firstPos = *gf
+					if firstFile == "" {
+						pos := ctx.Fset.Position(imp.Pos())
+						firstFile = pos.Filename
+						firstLine = pos.Line
 					}
 				}
 			}
@@ -53,18 +55,18 @@ func NewV001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			pos := ctx.Fset.Position(firstPos.AST.Pos())
 			f, err := finding.NewBuilder(
 				"V001", toolName,
 				"Project mixes v3 and v4 go-cqrs-lite modules — "+
 					"APIs are incompatible, migrate everything to v4",
 				finding.SeverityError,
-				finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+				finding.Pos(finding.FilePath(firstFile), firstLine, 1),
 			).
 				WithCategory(finding.CategoryCorrectness).
 				WithConfidence(finding.ConfidenceHigh).
 				WithFixStrategy(finding.FixStrategySuggest).
 				WithSuggestion("Update all go-cqrs-lite imports to /v4 and run go mod tidy").
+				WithSnippet(ctx.SourceLine(firstFile, firstLine)).
 				Build()
 			if err == nil {
 				findings = append(findings, f)

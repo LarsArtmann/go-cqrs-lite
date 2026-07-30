@@ -1,0 +1,41 @@
+package api_test
+
+import (
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/api"
+)
+
+func TestA027_DetectsRepeatedWithCodec(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"decide.go": `package main
+
+func emit() {
+	_ = event.New("a", "id", "T", 1, p, event.WithCodec(c.JSONCodec{}))
+	_ = event.New("b", "id", "T", 2, p, event.WithCodec(c.JSONCodec{}))
+	_ = event.New("c", "id", "T", 3, p, event.WithCodec(c.JSONCodec{}))
+}
+`,
+	})
+	findings := runDetector(t, api.NewA027Detector(ctx))
+	assertRule(t, findings, "A027", 1)
+}
+
+func TestA027_NoFindingForFewCalls(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"decide.go": `package main
+
+func emit() {
+	_ = event.New("a", "id", "T", 1, p, event.WithCodec(c.JSONCodec{}))
+	_ = event.New("b", "id", "T", 2, p)
+}
+`,
+	})
+	findings := runDetector(t, api.NewA027Detector(ctx))
+	assertRule(t, findings, "A027", 0)
+}

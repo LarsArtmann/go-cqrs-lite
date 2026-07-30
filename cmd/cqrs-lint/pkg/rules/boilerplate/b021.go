@@ -40,7 +40,7 @@ func NewB021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceHigh).
 					WithFixStrategy(finding.FixStrategySuggest).
-					WithSuggestion("Wrap the fold in decider.StrictApply(fold, []event.Type{...}) "+
+					WithSuggestion("Wrap the fold in decider.StrictApply(fold, []event.Type{...}) " +
 						"so adding a new event type without handling it becomes a compile-time error.").
 					WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).
 					Build()

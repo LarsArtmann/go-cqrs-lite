@@ -28,10 +28,10 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			memoryStoreFns := map[string]bool{
-				"NewMemorySnapshotStore":     true,
-				"NewMemoryCheckpointStore":   true,
-				"NewMemoryDeadLetterStore":   true,
-				"NewMemoryTimerStore":        true,
+				"NewMemorySnapshotStore":   true,
+				"NewMemoryCheckpointStore": true,
+				"NewMemoryDeadLetterStore": true,
+				"NewMemoryTimerStore":      true,
 			}
 
 			for _, gf := range ctx.GoFiles {

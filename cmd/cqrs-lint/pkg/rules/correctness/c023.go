@@ -31,63 +31,7 @@ func NewC023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				ast.Inspect(gf.AST, func(n ast.Node) bool {
-					assign, ok := n.(*ast.AssignStmt)
-					if !ok || len(assign.Lhs) != 1 {
-						return true
-					}
-
-					ident, ok := assign.Lhs[0].(*ast.Ident)
-					if !ok || ident.Name != "_" {
-						return true
-					}
-
-					if len(assign.Rhs) != 1 {
-						return true
-					}
-
-					call, ok := assign.Rhs[0].(*ast.CallExpr)
-					if !ok {
-						return true
-					}
-
-					sel, ok := call.Fun.(*ast.SelectorExpr)
-					if !ok {
-						return true
-					}
-
-					if !lifecycleMethods[sel.Sel.Name] {
-						return true
-					}
-
-					// Skip defer statements — deferred close/stop is the standard
-					// Go cleanup pattern. Error in defer is conventionally ignored.
-					if isInsideDefer(gf.AST, assign) {
-						return true
-					}
-
-					pos := ctx.Fset.Position(assign.Pos())
-
-					f, err := finding.NewBuilder(
-						"C023", toolName,
-						sel.Sel.Name+"() error ignored — pending events or resources may be lost",
-						finding.SeverityWarning,
-						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
-					).
-						WithCategory(finding.CategoryCorrectness).
-						WithConfidence(finding.ConfidenceMedium).
-						WithFixStrategy(finding.FixStrategySuggest).
-						WithSuggestion("Check the error from " + sel.Sel.Name +
-							"() and log/handle failures during shutdown").
-						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
-						Build()
-					if err != nil {
-						return true
-					}
-
-					findings = append(findings, f)
-					return true
-				})
+				findings = append(findings, scanLifecycleIgnores(ctx, gf, lifecycleMethods)...)
 			}
 
 			return findings, nil
@@ -95,50 +39,98 @@ func NewC023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// isInsideDefer checks whether a statement is inside a defer expression.
-// It walks the AST looking for a DeferStmt ancestor.
-func isInsideDefer(file *ast.File, target ast.Node) bool {
-	found := false
+// scanLifecycleIgnores walks a file in a single O(N) pass, maintaining an
+// ancestor stack. When it finds an assignment that discards a lifecycle-method
+// error (`_ = x.Stop()`), it checks the ancestor chain for a DeferStmt —
+// deferred close/stop is the standard Go cleanup pattern where errors are
+// conventionally ignored.
+func scanLifecycleIgnores(
+	ctx *analyzer.AnalysisContext,
+	gf *analyzer.GoFile,
+	methods map[string]bool,
+) []finding.Finding {
+	var ancestors []ast.Node
+	var findings []finding.Finding
 
-	ast.Inspect(file, func(n ast.Node) bool {
-		if found {
+	ast.Inspect(gf.AST, func(n ast.Node) bool {
+		if n == nil {
+			if len(ancestors) > 0 {
+				ancestors = ancestors[:len(ancestors)-1]
+			}
+
 			return false
 		}
 
-		deferStmt, ok := n.(*ast.DeferStmt)
-		if !ok {
-			return true
+		assign, ok := n.(*ast.AssignStmt)
+		if ok && isLifecycleIgnore(assign, methods) && !hasDeferAncestor(ancestors) {
+			emitC023(ctx, assign, &findings)
 		}
 
-		// Check if the target is inside the defer's call.
-		containsTarget(deferStmt.Call, target, &found)
-
-		return !found
-	})
-
-	return found
-}
-
-func containsTarget(container, target ast.Node, found *bool) {
-	if *found {
-		return
-	}
-
-	if container == target {
-		*found = true
-		return
-	}
-
-	ast.Inspect(container, func(n ast.Node) bool {
-		if *found {
-			return false
-		}
-
-		if n == target {
-			*found = true
-			return false
-		}
+		ancestors = append(ancestors, n)
 
 		return true
 	})
+
+	return findings
+}
+
+func isLifecycleIgnore(assign *ast.AssignStmt, methods map[string]bool) bool {
+	if len(assign.Lhs) != 1 {
+		return false
+	}
+
+	ident, ok := assign.Lhs[0].(*ast.Ident)
+	if !ok || ident.Name != "_" {
+		return false
+	}
+
+	if len(assign.Rhs) != 1 {
+		return false
+	}
+
+	call, ok := assign.Rhs[0].(*ast.CallExpr)
+	if !ok {
+		return false
+	}
+
+	sel, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return false
+	}
+
+	return methods[sel.Sel.Name]
+}
+
+func hasDeferAncestor(ancestors []ast.Node) bool {
+	for i := len(ancestors) - 1; i >= 0; i-- {
+		if _, ok := ancestors[i].(*ast.DeferStmt); ok {
+			return true
+		}
+	}
+
+	return false
+}
+
+func emitC023(ctx *analyzer.AnalysisContext, assign *ast.AssignStmt, findings *[]finding.Finding) {
+	sel := assign.Rhs[0].(*ast.CallExpr).Fun.(*ast.SelectorExpr)
+	pos := ctx.Fset.Position(assign.Pos())
+
+	f, err := finding.NewBuilder(
+		"C023", toolName,
+		sel.Sel.Name+"() error ignored — pending events or resources may be lost",
+		finding.SeverityWarning,
+		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+	).
+		WithCategory(finding.CategoryCorrectness).
+		WithConfidence(finding.ConfidenceMedium).
+		WithFixStrategy(finding.FixStrategySuggest).
+		WithSuggestion("Check the error from " + sel.Sel.Name +
+			"() and log/handle failures during shutdown").
+		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+		Build()
+	if err != nil {
+		return
+	}
+
+	*findings = append(*findings, f)
 }
