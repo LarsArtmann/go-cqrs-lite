@@ -162,7 +162,7 @@ func reportTTLMismatch(
 		WithCategory(finding.CategoryCorrectness).
 		WithConfidence(finding.ConfidenceHigh).
 		WithFixStrategy(finding.FixStrategySuggest).
-		WithSuggestion("Use the defined TTL constant instead of a bare literal, "+
+		WithSuggestion("Use the defined TTL constant instead of a bare literal, " +
 			"or remove the dead constant if the literal is intentional").
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
