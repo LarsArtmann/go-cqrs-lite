@@ -10,7 +10,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
-// Detects `_, _ = decode(evt)` or `_, := decode(evt); _ = err` in fold functions.
+// Detects `_, _ = decode(evt)` or `_, := decode(evt); _ = err` in fold
+// functions AND inline closures assigned to CQRS callback fields
+// (OnCreate, OnUpdate, OnTombstone, Apply, Fold, Handle).
 //
 //nolint:ireturn // factory returns public interface
 func NewC010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -20,7 +22,6 @@ func NewC010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			for _, fold := range ctx.Registry.Folds {
-				// We need to find the function in the AST to check for swallowed errors.
 				for _, gf := range ctx.GoFiles {
 					if gf.Path != fold.File || gf.IsTest {
 						continue
@@ -32,8 +33,6 @@ func NewC010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							return true
 						}
 
-						// fold.FuncName may include a receiver prefix (e.g.
-						// "MyAggregate.Fold"); strip it to match fn.Name.Name.
 						name := fold.FuncName
 						if idx := strings.LastIndex(name, "."); idx >= 0 {
 							name = name[idx+1:]
@@ -46,6 +45,46 @@ func NewC010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return inspectForSwallowedError(ctx, fn, &findings)
 					})
 				}
+			}
+
+			// Also scan inline closures assigned to CQRS callback fields.
+			cqrsCallbackFields := map[string]bool{
+				"OnCreate": true, "OnUpdate": true, "OnTombstone": true,
+				"Apply": true, "Fold": true, "Handle": true,
+				"HandleEvent": true, "HandleFunc": true,
+			}
+
+			for _, gf := range ctx.GoFiles {
+				if gf.IsTest {
+					continue
+				}
+
+				ast.Inspect(gf.AST, func(n ast.Node) bool {
+					assign, ok := n.(*ast.AssignStmt)
+					if !ok {
+						return true
+					}
+
+					for i, lhs := range assign.Lhs {
+						if i >= len(assign.Rhs) {
+							break
+						}
+
+						sel, ok := lhs.(*ast.SelectorExpr)
+						if !ok || !cqrsCallbackFields[sel.Sel.Name] {
+							continue
+						}
+
+						lit, ok := assign.Rhs[i].(*ast.FuncLit)
+						if !ok || lit.Body == nil {
+							continue
+						}
+
+						inspectBodyForSwallowedError(ctx, lit.Body, &findings)
+					}
+
+					return true
+				})
 			}
 
 			return findings, nil

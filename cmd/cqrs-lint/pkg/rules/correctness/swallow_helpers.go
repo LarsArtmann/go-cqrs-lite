@@ -43,7 +43,18 @@ func inspectForSwallowedError(
 	fn *ast.FuncDecl,
 	findings *[]finding.Finding,
 ) bool {
-	ast.Inspect(fn.Body, func(n ast.Node) bool {
+	inspectBodyForSwallowedError(ctx, fn.Body, findings)
+	return true
+}
+
+// inspectBodyForSwallowedError scans a function body for swallowed
+// decode/unmarshal errors (p, _ := event.DecodePayloadAuto[T](evt)).
+func inspectBodyForSwallowedError(
+	ctx *analyzer.AnalysisContext,
+	body *ast.BlockStmt,
+	findings *[]finding.Finding,
+) {
+	ast.Inspect(body, func(n ast.Node) bool {
 		assign, ok := n.(*ast.AssignStmt)
 		if !ok {
 			return true
@@ -92,8 +103,6 @@ func inspectForSwallowedError(
 
 		return true
 	})
-
-	return true
 }
 
 func findBodyParam(fn *ast.FuncDecl) string {
