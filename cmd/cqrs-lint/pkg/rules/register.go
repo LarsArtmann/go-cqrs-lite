@@ -14,6 +14,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/performance"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/security"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/version"
 )
 
 func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
@@ -39,6 +40,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		correctness.NewC019Detector(ctx),
 		correctness.NewC020Detector(ctx),
 		correctness.NewC022Detector(ctx),
+		correctness.NewC023Detector(ctx),
 		// API
 		api.NewA001Detector(ctx),
 		api.NewA002Detector(ctx),
@@ -81,12 +83,16 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		boilerplate.NewB024Detector(ctx),
 		// Performance
 		performance.NewP001Detector(ctx),
+		performance.NewP007Detector(ctx),
+		// Version
+		version.NewV001Detector(ctx),
 		// Consistency
 		consistency.NewD001Detector(ctx),
 		consistency.NewD002Detector(ctx),
 		consistency.NewD003Detector(ctx),
 		consistency.NewD005Detector(ctx),
 		consistency.NewD006Detector(ctx),
+		consistency.NewD011Detector(ctx),
 		// Architecture
 		architecture.NewE001Detector(ctx),
 		architecture.NewE002Detector(ctx),

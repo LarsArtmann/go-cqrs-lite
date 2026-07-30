@@ -13,7 +13,7 @@ type RuleInfo struct {
 
 // AllRules returns metadata for all available rules, organized by category.
 func AllRules() []RuleInfo {
-	return append(append(append(append(append(append(
+	return append(append(append(append(append(append(append(
 		correctnessRules(),
 		apiRules()...,
 	),
@@ -21,7 +21,8 @@ func AllRules() []RuleInfo {
 		consistencyRules()...),
 		architectureRules()...),
 		securityRules()...),
-		performanceRules()...)
+		performanceRules()...),
+		versionRules()...)
 }
 
 func correctnessRules() []RuleInfo {
