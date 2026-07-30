@@ -208,3 +208,22 @@ It's 9,202 LOC (the 2nd biggest module), generates AsyncAPI/OpenAPI/EventCatalog
 
 **Q3: For the ghost modules — do you want me to default to "wire into an example" or "extract to its own repo" when a module has zero consumers?**
 These are opposite actions with opposite risks. Wiring proves value but adds maintenance; extracting reduces scope but loses the multi-module monorepo convenience. I can argue both directions but the default preference is yours to set — I hit this fork 5 times (metaengine, catalog, graph, deriver, turso-indexing) and couldn't resolve it from the code alone.
+
+---
+
+## Resolution (2026-07-30)
+
+> **Direction update (section h) is load-bearing.** The owner's correction —
+> metaengine is "THE FUTURE of this project" and catalog is "very important"
+> — superseded the original "ghost" verdicts. This direction has held:
+> metaengine shipped pushdown/layout/Pebble (ADRs 0072-0074) and integrated into
+> taskmanager. Catalog remains a first-class module.
+
+- ✅ **4 dead deprecated error aliases deleted** (`ErrAggregateTypeMismatch`/
+  `ErrAggregateIDMismatch` in storage/sql + storage/pebble).
+- ✅ **Cache split-brain resolved** — `decider/cache.go` rewritten on otter
+  TinyLFU, matching `kv/cache.go`. Both now use the same library.
+- ✅ **Otter + failsafe-go adopted** (P0 recommendations). See CHANGELOG [Unreleased].
+- **turso indexing opt-in** — still a future integration idea, not blocking.
+- **retry module decision** — ADR-0064 written (keep as-is for now, extraction
+  requires standalone repo). See ROADMAP Theme 4.

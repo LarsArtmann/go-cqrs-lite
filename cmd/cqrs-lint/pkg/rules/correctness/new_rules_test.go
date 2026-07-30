@@ -154,6 +154,30 @@ func TestC010_NoCrashOnEmptyInput(t *testing.T) {
 	assertRule(t, findings, "C010", 0)
 }
 
+func TestC010_DetectsSwallowedSQLError(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"proj.go": `package main
+
+type View struct{ ID string }
+type Materialize struct {
+	OnCreate func(id string) (*View, error)
+}
+
+func makeHandler() {
+	mat := Materialize{}
+	mat.OnCreate = func(id string) (*View, error) {
+		v := &View{ID: id}
+		_ = db.Exec("INSERT INTO views (id) VALUES (?)", v.ID)
+		return v, nil
+	}
+	_ = mat
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC010Detector(ctx))
+	assertRule(t, findings, "C010", 1)
+}
+
 // --- C012: Missing error return in withTx ---
 
 func TestC012_DetectsMissingErrorReturn(t *testing.T) {

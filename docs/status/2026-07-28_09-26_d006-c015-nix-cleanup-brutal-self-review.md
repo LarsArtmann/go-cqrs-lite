@@ -255,3 +255,12 @@ Currently `verify` runs build+vet+test+race+lint+api-stability+doc-check but NOT
 | F2  | C015 suppression heuristics have ZERO test coverage                                  | HIGH     | Yes (write c015_test.go)                |
 | F3  | `isInCleanupCallback` is dangerously broad (suppresses goroutines)                   | MEDIUM   | Yes (narrow to cleanup patterns)        |
 | F4  | 3 rounds of format/lint fixes (imports introduced out of order)                      | LOW      | Process fix (run nix fmt before verify) |
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **D006 + C015 rules shipped** — both are part of the 159-rule cqrs-lint
+  release. C015 false-positive suppression (defer-body) was further refined
+  in later sessions.
+- ✅ **Nix cleanup shipped** — all items resolved.

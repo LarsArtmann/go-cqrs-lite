@@ -185,3 +185,16 @@ The daemon "optimizes" the indexed loop back to `slices.Backward`, not understan
 The verify gate is **GENUINELY GREEN** — not a stale claim. All 58 modules pass build, vet, test, race, lint, api-stability, and doc-check. The one intermittent failure (`TestProperty_SQLiteTTLExpiry`) is a pre-existing rapid property test flake, not a regression.
 
 The biggest lesson: **fixing a blocking test unmasked a cascade of latent issues** (lint problems, data races) that were invisible while the blocker existed. Always run the FULL pipeline after fixing a blocker — not just the previously-failing step.
+
+---
+
+## Resolution (2026-07-30)
+
+- ⚠️ **Verify gate is now RED again** — the GREEN claim in this report was
+  accurate at the time (2026-07-29), but the gate broke again on 2026-07-30 due
+  to a build error in `cmd/cqrs-lint/pkg/rules/correctness/c031.go:83`
+  (`ifStmt.Body` is `*ast.BlockStmt`, not an interface). See TODO_LIST.md
+  "Verify Gate".
+- ✅ All 11 issues fixed in this session remain fixed.
+- ✅ Pebble `nextKey` fix survived (the 3rd daemon reversion was the last).
+- The `TestProperty_SQLiteTTLExpiry` flake remains intermittent as described.

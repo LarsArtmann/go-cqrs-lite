@@ -313,6 +313,15 @@ func performanceRules() []RuleInfo {
 			Description: "Aggregate with collection-type state without snapshot strategy or cache — expensive reloads",
 			AutoFix:     false,
 		},
+		{
+			ID:          "P011",
+			Name:        "unbounded-memory-growth",
+			Category:    "performance",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Read model with map field without size limit — grows unboundedly, risk of OOM",
+			AutoFix:     false,
+		},
 	}
 }
 
@@ -483,6 +492,15 @@ func consistencyRules() []RuleInfo {
 			Severity:    "info",
 			Confidence:  "low",
 			Description: "Events created without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively",
+			AutoFix:     false,
+		},
+		{
+			ID:          "D014",
+			Name:        "event-payload-without-json-tags",
+			Category:    "consistency",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Event payload struct without json tags — Go field names used in JSON encoding",
 			AutoFix:     false,
 		},
 	}

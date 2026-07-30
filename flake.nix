@@ -293,6 +293,21 @@
               if [ -d "''${HOME:-}/.config/crush/skills" ]; then
                 ln -sfn "${self}/.agents/skills/go-cqrs-lite" "$HOME/.config/crush/skills/go-cqrs-lite"
               fi
+
+              # Non-interactive auth for private LarsArtmann Go modules.
+              # GOWORK=off (above) forces every internal module to be fetched from
+              # VCS as a consumer would. GOPRIVATE makes Go bypass the public proxy
+              # and clone over HTTPS, which fails without a display/keyring
+              # ("could not read Username … terminal prompts disabled"). Redirecting
+              # HTTPS to SSH lets the fetch use the user's key with no credential
+              # helper. Without this, govalid / go mod download / vulncheck break on
+              # any untagged pseudo-version that isn't already in the module cache.
+              # See AGENTS.md → "Private Go module auth".
+              export GIT_CONFIG_COUNT=2
+              export GIT_CONFIG_KEY_0="url.git@github.com:LarsArtmann/.insteadOf"
+              export GIT_CONFIG_VALUE_0="https://github.com/larsartmann/"
+              export GIT_CONFIG_KEY_1="url.git@github.com:LarsArtmann/.insteadOf"
+              export GIT_CONFIG_VALUE_1="https://github.com/LarsArtmann/"
             '';
           };
 

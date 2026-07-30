@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-29
+**Updated:** 2026-07-30
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here — when a task is finished it is removed from
@@ -11,94 +11,110 @@ this list and recorded in CHANGELOG.
 - `[ ]` = Open
 - `[BLOCKED]` = Blocked on upstream dependency or user approval
 - `🔥` = Pareto high impact (top 20% that delivers 80% of value)
-- `⭐` = Top 1% impact (do first)
-- `⚠️` = Partially done — needs completion
 
 ---
 
 ## Verify Gate
 
-> ✅ **`nix run .#verify` is GENUINELY GREEN** (re-verified 2026-07-29).
-> All 58 modules pass build + vet + test + race + lint + api-stability + doc-check.
-> The only intermittent failure is `TestProperty_SQLiteTTLExpiry` in
+> ⚠️ **`nix run .#verify` is currently RED** (2026-07-30). Build error in
+> `cmd/cqrs-lint/pkg/rules/correctness/c031.go:83` — `ifStmt.Body` (type
+> `*ast.BlockStmt`) is used in a type assertion, which is invalid. The cqrs-lint
+> module does not compile. This must be fixed before any release.
+>
+> Pre-existing intermittent failure: `TestProperty_SQLiteTTLExpiry` in
 > `idempotency/sqlstore` — a rapid property-based test that occasionally
-> generates non-ASCII keys (`"&;²@#"`) that fail under race-detector timing.
-> Passes on re-run; not a regression.
-> This session found and fixed:
->
-> - **Pebble `nextKey` bug (3rd daemon reversion)** — the `slices.Backward`
->   copy-mutation bug returned AGAIN (daemon commit reverted the direct-index
->   fix). Re-applied with indexed loop.
-> - **Stale api-stability golden** — 2 new `storage/turso` exports
->   (`IsQuotaExceeded`, `ErrQuotaExceeded`) were untracked. Regenerated
->   (2747→2749 exports).
-> - **Dead code** — removed unused `wrapClosedf` from `storage/memory/errors.go`.
-> - **17 lint issues in `metaengine/pebbleengine/engine.go`** — wrapcheck (9),
->   gosec (2), makezero (1), modernize (1), prealloc (1), varnamelen (3).
->   Resolved via targeted `.golangci.yml` path exclusion (pebbleengine is an
->   external-KV adapter; pebble errors pass through by design) + removing
->   13 now-unused `//nolint:wrapcheck` directives.
-> - **Metaengine core lint issues** — prealloc (2), staticcheck SA4023 (nil
->   check always true), varnamelen (`ps` too short). Fixed in code.
-> - **Broken flake input** — daemon changed `cmdguard` ref to `v4.0.0`; the
->   `github:` shorthand couldn't resolve the tag via SSH. Updated `flake.lock`.
-> - **6 `nolintlint` issues** — adding `tagliatelle` + `forcetypeassert` to
->   test exclusions made existing nolint directives unused. Removed them.
-> - **v4.2.0 tags verified** — event, storage, decider, command, middleware,
->   metaengine all resolve + compile from a clean module.
->
-> - Pre-existing failure: `TestRun_Postgres_Recovery` in benchkit (expects 500
->   events, gets 550 — exposed by testcontainers-go). Not a regression; needs
->   investigation.
-> - Coverage drift is checked by `scripts/check-coverage.sh`
->   (`nix run .#check-coverage`) — AGENTS.md coverage claims verified 2026-07-27.
+> generates non-ASCII keys that fail under race-detector timing. Passes on
+> re-run; not a regression.
+
+- [ ] 🔥 **Fix c031.go build error** — `ifStmt.Body` is `*ast.BlockStmt`, not an
+      interface. This breaks the entire `cmd/cqrs-lint` module and the verify gate.
+- [ ] **Fix 3 flaky benchkit soak tests** — `TestRunSoak_Memory`,
+      `TestRunSoak_TrendsPopulated`, `TestRunSoakJSON_RoundTrip`. All timing-
+      sensitive tests that flake under parallel race-detector load. Use
+      `testutil.RaceEnabled` build-tag thresholds or `testing.Short()` guards.
+- [ ] **Investigate `TestRun_Postgres_Recovery` benchkit failure** — root cause
+      was found (populateSnapshots writes +50 events; fixed with `SkipSnapshot: true`)
+      but may still flake. Monitor.
 
 ---
 
-## Release
+## cqrs-lint Quality (159 rules shipped; needs hardening)
 
-> ✅ **v4.2.0 RELEASED** (2026-07-27). 53 modules tagged and pushed. The
-> CHANGELOG `[v4.2.0]` section has shipped; a fresh `[Unreleased]` is open.
-> `metaengine/projectionadapter/v4.0.0` re-tagged at `be818c91` (was orphaned).
-> `codec/v4.2.0` tagged alongside v4.1.1 (semver correction — both kept).
-> `cmd/cqrs-lint` and `example/taskmanager` deps fixed (go-finding pseudo-versions
-> → real v1.4.0, go-must v0.1.2) so the release batch could strip local replaces.
-> ✅ v4.2.0 tags verified to resolve from a clean module (2026-07-29).
+> The linter grew from 65 to 159 rules across 10 categories in a single day of
+> rapid expansion (2026-07-30). Many rules have known quality issues that need
+> addressing before the linter is trustworthy.
 
-- [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod replace
-  directives are needed for dev; consumers resolving the published modules
-  depend on the real tagged versions (go-finding v1.4.0, go-must v0.1.2).
+- [ ] 🔥 **Fix E010/E011/E013/E014 — architecturally wrong rules** — E010 uses
+      package qualifier instead of type info; E011 uses name-counting instead of
+      call-graph analysis; E013 doesn't verify the config struct type; E014
+      detects the wrong concept (absence of `host.Stop()` vs no drain-before-return).
+- [ ] 🔥 **Library self-lint mode** — auto-detect `go-cqrs-lite` module path and
+      suppress consumer-only rules (A001/A008/A020/A021/A023/E005/E007) for
+      library files. Currently requires 181+ manual inline suppressions.
+- [ ] 🔥 **Import-alias resolution** — D007/D008/D010/D013 and all E-series rules
+      assume unqualified package names. Build a shared `qualifierToImportPath`
+      helper in `lintutil` so rules resolve import aliases correctly.
+- [ ] **Fix P010 registry improvement** — was dishonestly marked "done"; never
+      actually switched to `ctx.Registry.Deciders[].StateType`.
+- [ ] **Promote `callHasOption` to `lintutil`** — was dishonestly marked "done";
+      refactor A017, B025, P008, P010 to use the shared helper.
+- [ ] **Fix F-series detection gaps** — F011 broad `.Exec` matching needs receiver
+      type checking; F009 timer detection should include `time.Tick`/`time.After`;
+      F013 HTTP handler detection should cover chi/gin/echo/fiber; F005 version
+      detection should parse the version argument.
+- [ ] **Review C030 over-suppression** — "any return = safe" may mask real bugs
+      where a loop returns on error but has no ctx cancellation.
+- [ ] **Audit S006 indicators for substring false positives** — only `pan`→`panel`
+      and `aba`→`database` were fixed; other indicators may have similar substring
+      collisions.
+- [ ] **Add meta-test: `len(AllRules())` matches README-documented count** —
+      prevents rule-count drift between code and docs.
+- [ ] **Resolve D007/D009 self-lint findings** — `benchkit/phases.go` (event.New
+      vs NewEvent), `command/dispatcher.go` (io.Closer vs anonymous interface).
+- [ ] **Fix C017 stale doc/title** — detects 4 store types (snapshot, event,
+      checkpoint, timer) but titled "snapshot store only".
+- [ ] **50-item improvement backlog** — see
+      `docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md`
+      for the triaged 50 will-implement items (L1.1–L1.51).
+
+---
+
+## Metaengine (experimental; 5 phases shipped)
+
+> Pushdown (ADR-0072), layout planning (ADR-0073), Pebble engine (ADR-0074),
+> and streaming reads all shipped. Remaining work is production maturity, not
+> features.
+
+- [ ] **Wire layout planning into `Plan()`** — auto-generate `LayoutPlan` from
+      `FilterOnField`/`SortOnField` query options instead of requiring manual
+      `plannedSQLiteEngine` setup.
+- [ ] **JSON tax reduction** — single-pass decode for SQLite reads (currently
+      3 JSON operations: load row, extract field, decode payload → could be 1).
+- [ ] **Generated typed read API** — `plan.Users.Get(ctx, id)` from declared
+      query fields.
+- [ ] **Unified 7-ADT × 3-engine test matrix** — parameterized table-driven
+      harness replacing the ad-hoc per-ADT parity tests.
 
 ---
 
 ## CI / Daemon
 
-> CI now runs: format, build, vet, test, test-race, lint, **api-stability**,
-> **duplication** (`#check-duplication`), **dependency-layers** (`#check-layers`),
-> **coverage-drift** (`#check-coverage`), doc-check, doc-assertions, coverage.
-> `#verify-fast` is wired as `verify-fast-gate` (ci.yml:128). Per-module matrix
-> testing (ci.yml:141) provides module isolation + parallelism.
-
 - [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits
-      unformatted code (gci/gofumpt drift), turning `#lint` red. The `#sweep`
-      app recovers, but gating daemon commits behind `nix fmt` prevents the
-      drift. Either gate the daemon or run a scheduled sweep. The hidden
-      cqrs-lint build break (go-output v0.33.0 daemon bump) is exactly this
-      failure mode — discovered 2026-07-27 after 3+ sessions of stale "green
-      gate" claims.
+      unformatted code (gci/gofumpt drift), turning `#lint` red. Either gate
+      daemon commits behind `nix fmt` or run a scheduled sweep.
+- [ ] **CGo-enabled CI job** — add a separate CI job with `CGO_ENABLED=1` for
+      DuckDB tests (currently only in flake.nix local apps, not CI).
 - [ ] **Investigate dependabot alert** `security/dependabot/10` — `gh api`
       returned no results (auth issue). Cannot diagnose without GitHub token
       permissions.
-- [ ] **Investigate `TestRun_Postgres_Recovery` benchkit failure** — expects
-      500 events, gets 550. Exposed by testcontainers-go. Not blocking (passes
-      with `-short`), but should be fixed for full-test accuracy.
 
 ---
 
-## Module Health & Tooling
+## Release
 
-> ✅ `wrapClosed` consolidation complete — `store_load.go` fully routed through
-> `withReadLock`, dead `wrapClosedf` removed. Clone groups 34→19.
+- [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod replace
+  directives are needed for dev; consumers resolving the published modules
+  depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
 
 ---
 
@@ -108,88 +124,32 @@ this list and recorded in CHANGELOG.
 > ADRs/reviews.
 
 - **Wire `#verify-parallel` into CI** — declined 2026-07-29. CI already has a
-  per-module matrix strategy (ci.yml:141) that runs each module standalone
-  with `GOWORK=off -race`, providing BETTER isolation than workspace-mode
-  batched tests. The `#verify-parallel` app is redundant with this matrix.
+  per-module matrix strategy that provides better isolation.
 - **Add `#verify-fast` as a pre-merge CI gate** — done (already wired as
   `verify-fast-gate` at ci.yml:128).
-- **Strengthen envelope magic string (`"cqrs" → "cqrs-envelope-v1"`)** — the `"$"`
-  JSON key provides 99% of collision avoidance. Extra bytes per record for
-  near-zero benefit.
-- **Composite keys in `SQLViewStore`** — breaks `K fmt.Stringer`. Composite keys
-  are relational territory — use `RelationalProjection` (junction tables,
-  multi-table atomic writes). See ADR-0033.
+- **Composite keys in `SQLViewStore`** — breaks `K fmt.Stringer`. Use
+  `RelationalProjection` (junction tables). See ADR-0033.
 - **OR conditions / query builder in ViewStore** — `RawWhere` covers the 5% case.
-  `OrClause`/`NotClause`/nested groups is ORM creep. Principle #1: "Library, not
-  framework."
-- **Unify VersionedStore + VersionedSeekableJournal** — different interfaces
-  (Store: Load/Save per stream, SeekableJournal: ReadFrom position-based). YAGNI.
-- **VersionedJournal (ReadAll only)** — no consumer needs `ReadAll` with
-  upcasters. YAGNI.
-- **Expose `SSEBroker.PayloadTransform()` accessor** — implemented for
-  BackfillHandler (necessary), but no standalone demand.
-- **`WithPayloadTransform` on SSEHandler** — duplicates responsibility (SRP
-  violation); SSEHandler wraps the broker.
-- **Auto-apply CQRS views by default** — violates "library, not framework."
-- **VersionedSeekableJournal implementing event.Store** — different scope
-  (position-based vs stream-based). YAGNI.
-- **Integration test in `integration/` module** — redundant with
-  `projectionhost/versioned_journal_integration_test.go`.
-- **`storage/auditstore/` package** — lying name. Renamed to "dispatch log" and
-  kept in `storage/`.
-- **Split `event/` module** — 27 importers, real cohesion. Explicitly decided in
-  v4.
+  ORM creep. Principle #1: "Library, not framework."
+- **Unify VersionedStore + VersionedSeekableJournal** — different interfaces. YAGNI.
 - **RollupSpec / RollupProjection** — premature abstraction. `sink.Increment` is
-  the composable primitive. See [analytics rollup review](docs/feedback/reviewed/2026-07-23_analytics-rollup-support-review.md).
-- **IncrementWhere on ProjectionSink** — footgun: silently updates multiple rows.
-  Use `RelationalProjection` with explicit `Upsert`.
+  the composable primitive. See analytics rollup review.
 - **Redis adapter** — see ROADMAP Non-Goals (ValKey/NATS/Kafka preferred).
 - **`idempotency.RefreshTTL(ctx, key, ttl)`** — dropped 2026-07-26 (YAGNI).
-  Deferred across 6 sessions with no consumer; the design doc chose Option A
-  (no-op on existing) _because_ Option B's sliding window is unsafe (unbounded
-  TTL under retry storms).
-- **cqrs-lint rule for the `idempotency.Store` Record contract** — dropped
-  2026-07-26 (YAGNI). Only 3 Store impls exist (memory, kv, sql), all correct;
-  the no-op-on-existing contract is already documented in the interface comment.
+  Sliding window is unsafe (unbounded TTL under retry storms).
 - **Centralized cross-module error-wrapping helper** — ADR-0069 decided:
-  per-module helpers (`wrapInfraOrOK`, `wrapTransientOrOK`), capped at 3
-  modules. A shared `storage/internal/errwrap` package would violate the
-  multi-module isolation principle.
+  per-module helpers, capped at 3 modules.
 - **Move 3-way idempotency contract test to `integration/`** — dropped
-  2026-07-26. Would add 3 new direct deps to integration/ and wouldn't fix the
-  stated smell (property_test.go also imports sqlstore). Cross-implementation
-  contract tests in the published kvstore module catch regressions for
-  consumers.
-- **Promote `wrapInfraOrOK` to storage/sql, signing, codec** — dropped
-  2026-07-26. ADR-0069 explicitly caps at 3 modules. storage/sql has only ~6-8
-  real candidates, signing/codec have effectively zero matching call sites.
+  2026-07-26. Would add 3 new direct deps to integration/.
 - **Stack preset `stackpreset` builder** — dropped 2026-07-26. ~45 lines of
-  trivial Go idiom; the real SQL consolidation lives in `stack/sqlopt`. A shared
-  builder would create a cross-module dependency for a 5-line function.
+  trivial Go idiom; real SQL consolidation lives in `stack/sqlopt`.
 - **Test infra helpers (catalogtest, storagetest, codectest)** — dropped
-  2026-07-26. `idtest` (100+ call sites), `eventtest` (~30 helpers), `cattest`
-  (20+ helpers) already cover all real needs. `codectest.NewCBORCodec()` would
-  wrap a zero-value struct literal — an anti-pattern.
-- **Turso sync 4-way deep look** — dropped 2026-07-26. Correctly accepted per
-  ADR-0069; the 4 clone sites have unique error codes for traceability.
-- **Triage auto-commit daemon commit messages** — dropped 2026-07-26. Prior
-  decision stands (leave as-is). Garbled messages don't block release tagging
-  (annotated tags override) and git log readability is acceptable.
-- **`cqrs-bench` workload for metaengine** — dropped 2026-07-26.
-  `metaengine.Store` is not a `*stack.Bundle`; the benchkit runner rejects it
-  with `ErrIncompleteBundle`. Coverage already exists in
-  `metaengine/planner_bench_test.go` (deliberately separated).
+  2026-07-26. `idtest`, `eventtest`, `cattest` already cover all real needs.
 - **`filterDetectors` extraction in cqrs-lint** — dropped 2026-07-27
-  (over-engineering). The "duplication" is 5 one-line `if !ctx.FeatureProfile.X
-{ return nil, nil }` early-return guards, each checking a DIFFERENT profile
-  field (HasServer, CommandFlow, HasSoftDelete). The real detector filtering
-  (`FilterByCategory`/`FilterByRuleIDs`) is already extracted in `register.go`.
-  A helper for the profile guards would obscure intent without reducing real
-  complexity.
+  (over-engineering).
+- **Split `event/` module** — 27 importers, real cohesion. Decided in v4.
 
 ---
 
-_Long-term direction (module extraction execution, NATS/Parquet implementation,
-benchkit journey benchmarks, metaengine Phase 2 pushdown, goexperiment.jsonv2 /
-Turso MVCC blockers) lives in [ROADMAP.md](ROADMAP.md). Completed work is in
+_Long-term direction lives in [ROADMAP.md](ROADMAP.md). Completed work is in
 [CHANGELOG.md](CHANGELOG.md)._

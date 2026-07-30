@@ -29,7 +29,7 @@ var strongMoneyFields = []string{"amount", "price", "cost", "balance", "fee"}
 // struct/package name also looks monetary.
 //
 //nolint:gochecknoglobals // read-only keyword list
-var weakMoneyFields = []string{"value", "total", "charge", "payment", "salary"}
+var weakMoneyFields = []string{"value", "total", "charge", "payment", "salary", "rate"}
 
 // moneyKeywords is the unified set of monetary terms used for struct-name,
 // package-path, and embedded-type corroboration. Previously duplicated across
@@ -162,7 +162,7 @@ func scanMoneyFields(
 				"C008",
 				toolName,
 				fmt.Sprintf(
-					"Field %s is float64 — use decimal or integer cents for money to avoid rounding errors",
+					"Field %s is float64/float32 — use decimal or integer cents for money to avoid rounding errors",
 					name.Name,
 				),
 				severity,

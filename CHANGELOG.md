@@ -8,33 +8,155 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### cqrs-lint: massive rule expansion (65 → 159 rules across 10 categories)
+
+- **94 new detector rules** across 8 new and existing categories. The linter grew
+  from 65 rules in 6 categories (v4.2.0) to **159 rules in 10 categories**.
+  New categories: testing (T-series), adoption (F-series), architecture (E-series),
+  version (V-series expanded). Existing categories expanded: correctness (+13),
+  API (+14), boilerplate (+13), consistency (+7), security (+5), performance (+5).
+  Every rule has unit tests and is registered via the catalog meta-test
+  (`TestCatalogCountMatchesRegister`).
+- **F-series adoption coaching rules** (17 rules, F001–F017) — proactively coach
+  consumers toward unused features: tombstone soft-delete, catalog docs, OTel,
+  Prometheus, encryption, CBOR, scheduling, graph/relational projections, deriver,
+  transport, kv.Cache, metaengine, listing, dedup.
+- **T-series testing-quality rules** (8 rules, T001–T008) — detect missing test
+  helpers, t.Parallel coverage gaps, snapshot store mock misuse, replay-mode test
+  isolation issues.
+- **E-series architecture rules** (8 rules, E008–E015) — detect consumer design
+  issues: stack preset bypass, missing HTTP integration, capture without domain
+  validation, excessive adapter layers, dual-write without completion, signing
+  disabled by default, no read-your-writes, ordered delivery disabled.
+- **V-series version rules** (5 new, V002–V006) — detect unpinned go.mod versions,
+  version lag behind latest tag, vendored third-party modules, eventtest version
+  mismatch, mixed version pins across modules.
+- **Architecture refactor of cqrs-lint cmd** — `AllRules()` memoized via
+  `sync.OnceValue`, `detectorCategory` cached as O(1) map lookup, `run()` god
+  function split into 6 stages (applyConfigOverrides, handleLoadErrors,
+  selectDetectors, runPipeline, filterFindings, printSummary). `toolName`
+  consolidated to `lintutil.ToolName`. 3 new meta-tests (severity/confidence
+  valid, critical detectors, detector names match catalog).
+- **Self-lint suppression** — 181 inline suppressions across 83 files for
+  library self-referential false positives. Suppression parser extended to
+  handle space after `//` and comma-separated rule IDs.
+- **Pareto improvement backlog** (`docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md`)
+  — 50 will-implement items triaged from 75 open ideas, with 25 pruned with
+  rationale.
+
+#### Metaengine: pushdown, layout planning, Pebble engine, streaming
+
+- **SQL pushdown** (`metaengine`) — `FilterOnField`/`SortOnField` declarative
+  specs push WHERE/ORDER BY/LIMIT into SQLite via `json_extract()` (ADR-0072).
+  Reduces SortedMap scan from O(N) to O(log N) for filtered/sorted queries.
+- **Layout planning** (`metaengine`) — `LayoutPlan`/`BuildLayoutPlanFromType[R]`
+  generate indexed-column DDL from declared query fields (ADR-0073). Planned
+  tables use indexed columns instead of `json_extract` — 10x speedup on
+  filter+sort. `plannedSQLiteEngine` for deployment-time table creation.
+- **Pebble engine** (`metaengine/pebbleengine`) — LSM point reads (~7x faster
+  than SQLite on MapGet). Separate module with `cockroachdb/pebble` dependency
+  (ADR-0074). All 7 ADT backends implemented: Map, Set, Counter, Multimap, Log,
+  Graph, MapUpdater/Scan. 10 parity tests.
+- **Streaming reads** (`metaengine`) — `StreamingScan`/`StreamScan` interface
+  for OOM-safe lazy iteration via `iter.Seq2`.
+- **Cost model calibration** — `EngineProfile.NsPerRead`/`NsPerWrite` split
+  (backward-compat fallback to `NsPerOp`). Pebble calibration: MapGet=708ns,
+  MapSet=1785ns. SQLite=7000ns. Memory=500ns.
+- **`OnTyped(eventType, handler)`** — bind a fold to an explicit CQRS event-type
+  string, decoupling from the Go struct name.
+- **Pebble engine `nextKey` regression test** (`metaengine/pebbleengine`) —
+  pinning the exclusive-upper-bound helper behind every prefix scan, plus a
+  concurrent `MapUpdate` test (100 goroutines) proving atomicity.
+- **Metaengine → taskmanager integration** (`example/taskmanager`) — Counter ADT
+  query (`task_counts_by_status`) with `/api/stats` endpoint via
+  `projectionadapter`. First proof that metaengine works in a real CQRS app.
+
+#### DuckDB analytical SQL backend
+
 - **DuckDB analytical helpers** (`stack/duckdb.SQLViewModel`) — creates a real
   columnar view table backed by DuckDB, enabling server-side WHERE/ORDER BY and
-  native GROUP BY / window-function aggregations (DuckDB's reason for existing in
-  this stack). Integration test proves the OLAP path (revenue + avg-price per
-  category) end-to-end. DuckDB is now a benchmarkable backend in `stack/bench`
-  (`BenchmarkBenchkitSuite_DuckDB`, CGo-gated) and `cmd/cqrs-bench`
-  (`--backend duckdb`, CGo-isolated so the CLI stays pure-Go otherwise).
-- **Pebble engine `nextKey` regression test** (`metaengine/pebbleengine`) — pure-
-  function test pinning the exclusive-upper-bound helper behind every prefix
-  scan, plus a concurrent `MapUpdate` test (100 goroutines) proving atomicity.
+  native GROUP BY / window-function aggregations. Integration test proves the
+  OLAP path (revenue + avg-price per category) end-to-end. DuckDB is now a
+  benchmarkable backend in `stack/bench` (`BenchmarkBenchkitSuite_DuckDB`,
+  CGo-gated) and `cmd/cqrs-bench` (`--backend duckdb`, CGo-isolated so the CLI
+  stays pure-Go otherwise).
+- **DuckDB helpers** — `OpenDuckDB()`, `OpenDuckDBInMemory()`,
+  `ConfigureDuckDBPool()`, `appendDuckDBOptions` unit test (6 cases), golden
+  schema tests (4 tests), `TestMultiDBContract` in `stack/duckdb`.
+- **ADR-0071** — documents the DuckDB CGo introduction decision and isolation
+  strategy (`stack/duckdb/` is the only module requiring CGo; `//go:build cgo`
+  on `drivers.go`).
+
+#### Library adoption: otter, failsafe-go, testcontainers-go, go-snaps
+
+- **Otter TinyLFU cache** (`decider/cache.go`) — replaced hand-rolled LRU
+  (131→87 LOC) with `maypok86/otter/v2` TinyLFU cache. Same API surface; internal
+  cache implementation changed.
+- **Failsafe-go circuit breaker** (`middleware/circuit_breaker.go`) — replaced
+  hand-rolled circuit breaker (243→175 LOC) with `failsafe-go/circuitbreaker`.
+  Note: half-open semantics differ (limits trial executions to SuccessThreshold
+  count, not unlimited). The `CircuitBreakerConfig` API is preserved.
+- **testcontainers-go** (v0.43.0) — Postgres integration tests now use
+  `testcontainers-go/modules/postgres` (postgres:16-alpine). Each test gets its
+  own fresh database within a shared container for isolation. First time
+  `storage/relational` Postgres tests ever ran. `stack/postgres` coverage went
+  from 0% to tested.
+- **go-snaps** (v0.5.23) — golden/snapshot testing adopted across `eventtest`
+  (`AssertGolden`), `cattest`, catalog sub-packages, `otel`, `codec`. 38 golden
+  files converted to `.snap` format. `snaps.Clean(m)` in TestMain for
+  obsolete-snapshot cleanup across 16 modules. Update snapshots with
+  `UPDATE_SNAPS=true go test ./...`.
+
+#### Documentation & CI
+
+- **Module count** — 58 → 60 `go.mod` files (added `stack/duckdb`,
+  `metaengine/pebbleengine`). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`.
+- **ADRs 0071–0074** — DuckDB CGo introduction, SQL pushdown, layout planning,
+  Pebble engine.
+- **CGo CI** — `CGO_ENABLED=1` added to 8 flake.nix test/test-race/verify apps;
+  `pkgs.gcc` added to devShell for DuckDB CGo compilation.
 
 ### Fixed
 
 - **Pebble engine `nextKey` + `MapUpdate`** (`metaengine/pebbleengine`) — the
-  auto-commit daemon had reverted the `nextKey` fix to the broken
-  `slices.Backward` form (range yields copies, so the increment was discarded and
-  every prefix scan returned empty — 8/10 tests failing). Re-applied direct-index
-  access and guarded `MapUpdate`'s read-modify-write with the engine mutex so
-  concurrent updates no longer lose increments (matches the SQLite engine's
-  atomic MapUpdate guarantee, ADR-0066).
+  auto-commit daemon reverted the `nextKey` fix to the broken `slices.Backward`
+  form THREE TIMES (range yields copies, so the increment was discarded and every
+  prefix scan returned empty). Re-applied direct-index access each time and
+  guarded `MapUpdate`'s read-modify-write with the engine mutex.
+- **`TestRun_Postgres_Recovery` benchkit failure** — root cause: `populateSnapshots`
+  writes +50 events; fixed with `SkipSnapshot: true`.
+- **Metaengine declarative filter bug** — declarative `FilterOnField` filters were
+  silently dropped in the closure fallback path. Fixed: both declarative and
+  closure filters now apply.
+- **`NewPebbleEngine(dir)` ignoring dir** — the disk-backed mode constructor
+  silently used `vfs.NewMem()` instead of the provided directory. Fixed.
+- **Dead deprecated error aliases** — removed 4 unused aliases
+  (`ErrAggregateTypeMismatch`/`ErrAggregateIDMismatch`) from `storage/sql` and
+  `storage/pebble`.
+- **Data race in cross-engine tests** — `t.Parallel()` subtests had concurrent
+  map/slice writes; fixed with `sync.Mutex`.
+- **17 pebbleengine lint issues** — wrapcheck (9), gosec (2), makezero (1),
+  modernize (1), prealloc (1), varnamelen (3). Resolved via targeted
+  `.golangci.yml` path exclusion.
+- **`decider/doc.go`** — corrected "LRU cache" to "TinyLFU cache" (otter).
+- **Broken flake input** — daemon changed `cmdguard` ref to `v4.0.0`; the
+  `github:` shorthand couldn't resolve the tag via SSH. Fixed `flake.lock`.
 
 ### Changed
 
 - **`storage/memory` read-path dedup** — extracted a generic `withReadLock[T]`
   helper that centralises the `wrapClosed` + `RLock` preamble for the three
   remaining read sites (`getEvents`, `ReadAll`, `ReadFrom`), mirroring the
-  existing `withWriteLock` write-side pattern.
+  existing `withWriteLock` write-side pattern. Clone groups 34→19.
+- **Dedup consolidation** — extracted `stack/sqlopt.OpenPrimaryBackend`
+  (collapsing ~30 lines of identical postgres/sqlite openBackend control flow)
+  and `catalog/eventcatalog.writeBuilderFile` (3 writer methods consolidated).
+  `.art-dupl-baseline.json` updated. Full dedup triage at `-t 2` (48 groups)
+  confirmed zero actionable extraction targets remain.
+- **AGENTS.md updated** — metaengine canonical design docs marked, cqrs-lint
+  description updated (159 rules, 10 categories), Pebble `slices.Backward`
+  footgun documented, otter/failsafe-go adoption noted, `snaps.Clean` convention
+  documented.
 
 ## [v4.2.0] — 2026-07-27
 

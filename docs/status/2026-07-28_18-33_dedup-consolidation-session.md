@@ -266,3 +266,15 @@ Turso uses `cqrsturso.Open` (not `sql.Open`) and `cqrsturso.NewBackend` (not
 _could_ work if we generalize the open and newBackend function signatures further.
 But this would make the helper more abstract for one call site. Is the consistency
 worth the abstraction cost?
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **Dedup consolidation shipped** — `stack/sqlopt.OpenPrimaryBackend` and
+  `catalog/eventcatalog.writeBuilderFile` extracted. Clone groups at 0 at
+  threshold 3. `nix run .#verify` was GREEN at the time.
+- ⚠️ **Verify gate now RED** — c031.go build error (2026-07-30). Unrelated to
+  this session's work.
+- **Remaining dedup items** (audit 16 accepted baseline clones, art-dupl at
+  threshold 5) are forward-looking polish, not blocking.

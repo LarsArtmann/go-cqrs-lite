@@ -272,3 +272,16 @@
 2. **Should tasks 36, 40, 41 (metaengine auto-wiring, single-pass JSON decode, generated typed read API) be prioritized now, or are they explicitly deferred to a future "metaengine v2" effort?** They are substantial design decisions (new ADRs, codegen, type-erasure plumbing) and I don't want to half-build them. The design docs (`docs/planning/meta-engine-*.md`) describe the vision but don't prioritize these three against other work.
 
 3. **Are the `metaengine/pebbleengine/v4.0.0` and `metaengine/v4.3.0` tags (tasks 43-44) something you want me to create, or do you handle releases manually?** The release process (`scripts/tag-release.sh`) creates annotated tags, but I don't know if you have a release cadence or want these shipped immediately vs. batched with other work.
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **All work shipped** — the 5 bugs (nextKey, MapUpdate race, NewPebbleEngine
+  dir, declarative filter drop, TestRun_Postgres_Recovery) are all fixed.
+- ✅ **ADRs 0072-0074 written** — pushdown, layout planning, Pebble engine.
+- ✅ **Layout planning, cost calibration, OnTyped, streaming reads** — all shipped.
+- ⚠️ **Verify gate now RED** — c031.go build error (2026-07-30). Not related to
+  this session's work. See TODO_LIST.md "Verify Gate".
+- **Remaining:** wire layout planning into Plan(), JSON tax reduction, generated
+  typed read API, unified test matrix. Tracked in TODO_LIST.md "Metaengine".

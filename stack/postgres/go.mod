@@ -6,7 +6,7 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260730145510-7e1d18cf2e8b
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260730192115-787a39deadfd
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0

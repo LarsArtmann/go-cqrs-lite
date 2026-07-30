@@ -223,3 +223,20 @@ nix run .#verify (full):         RED (benchkit soak + graph projection flake —
 | `eb0b7c03`             | metaengine reflection/comparison/execution enhancements         |
 | `50aa1295`, `f54f99e6` | meta-engine planning docs                                       |
 | `d8338268`             | meta-engine sqlc assessment doc                                 |
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **Ghost `metaengine/pebbleengine/` wired** — the daemon-created module is
+  now a first-class citizen. Wired into go.work, flake.nix, api-stability.
+  ADR-0074 written. Pebble engine is ~7x faster than SQLite on MapGet (708ns vs
+  7000ns). See ROADMAP Theme 1.
+- ✅ **DuckDB P0 fixes shipped** — godoclint, wrapcheck, CGO_ENABLED=1 in flake.nix.
+  ADR-0071 written. DuckDB is a benchmarkable backend (`stack/duckdb`,
+  `cmd/cqrs-bench --backend duckdb`).
+- ⚠️ **Daemon's unreviewed metaengine changes** — accepted into production after
+  review. The pushdown (ADR-0072), layout planning (ADR-0073), and Pebble engine
+  (ADR-0074) are all documented and tested.
+- ⚠️ **Verify gate now RED** (2026-07-30) — unrelated build error in c031.go.
+  See TODO_LIST.md "Verify Gate".

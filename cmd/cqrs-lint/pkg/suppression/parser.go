@@ -143,12 +143,10 @@ func checkSuppressionInSnippet(f finding.Finding) bool {
 		return false
 	}
 
-	ruleID := extractRuleID(f.Snippet)
-	if ruleID == "" {
-		return false
-	}
+	suppressedRules := ParseSuppressions(f.Snippet)
+	_, ok := suppressedRules[string(f.Rule)]
 
-	return ruleID == string(f.Rule)
+	return ok
 }
 
 // ParseSuppressions extracts suppressed rule IDs from comment text.
@@ -185,26 +183,4 @@ func ParseSuppressions(commentText string) map[string]string {
 	}
 
 	return result
-}
-
-func extractRuleID(snippet string) string {
-	// Accept both "//cqrs-lint:ignore" and "// cqrs-lint:ignore".
-	snippet = strings.ReplaceAll(snippet, "// cqrs-lint:ignore", commentPrefix)
-
-	_, after, ok := strings.Cut(snippet, commentPrefix)
-	if !ok {
-		return ""
-	}
-
-	rest := strings.TrimSpace(after)
-	if strings.HasPrefix(rest, "(") {
-		end := strings.Index(rest, ")")
-		if end > 0 {
-			// Return only the first rule for comma-separated IDs.
-			first := strings.SplitN(rest[1:end], ",", 2)[0]
-			return strings.TrimSpace(first)
-		}
-	}
-
-	return ""
 }

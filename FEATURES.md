@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-29 (DuckDB analytical SQL backend + CGo isolation, ADR-0071; metaengine pushdown/layout-planning/Pebble, ADR-0072/0073/0074) · **Module count:** 59 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+**Last audited:** 2026-07-30 (cqrs-lint 159-rule expansion, metaengine pushdown/layout/Pebble, DuckDB backend, otter/failsafe-go adoption) · **Module count:** 60 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -1009,17 +1009,23 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 > `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4`
 
-| Feature                      | Detail                                                                                               | Status |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------- | ------ |
-| 65 rules across 6 categories | Correctness (16), API misuse (19), boilerplate (15), consistency (5), architecture (7), security (3) | ✅     |
-| Output formats               | Text, JSON, SARIF (GitHub Code Scanning), Markdown                                                   | ✅     |
-| Health score                 | 0-100 score with severity-weighted breakdown                                                         | ✅     |
-| Auto-fix                     | `--fix` / `--dry-run` with CQRSFixProvider (BeforeCode/AfterCode matching)                           | ✅     |
-| Suppression comments         | `//cqrs-lint:ignore(rule-id) reason`                                                                 | ✅     |
-| CLI features                 | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`                    | ✅     |
-| Config file                  | `.cqrs-lint.json` via cmdguard                                                                       | ✅     |
-| Monorepo support             | Multi-module scanning via go.mod discovery                                                           | ✅     |
-| Source snippets              | Most detectors emit source-line context for SARIF/IDE integration                                    | ✅     |
+| Feature                        | Detail                                                                                                                                                           | Status |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 159 rules across 10 categories | Correctness (31), API misuse (28), boilerplate (28), performance (6), version (6), consistency (12), architecture (15), security (8), testing (8), adoption (17) | ✅     |
+| Output formats                 | Text, JSON, SARIF (GitHub Code Scanning), Markdown                                                                                                               | ✅     |
+| Health score                   | 0-100 score with severity-weighted breakdown                                                                                                                     | ✅     |
+| Auto-fix                       | `--fix` / `--dry-run` with CQRSFixProvider (BeforeCode/AfterCode matching)                                                                                       | ✅     |
+| Suppression comments           | `//cqrs-lint:ignore(rule-id) reason` (space after `//` supported, comma-separated IDs supported)                                                                 | ✅     |
+| CLI features                   | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`, `--min-confidence`                                                            | ✅     |
+| Config file                    | `.cqrs-lint.json` via cmdguard; presets (local-cli, production, library, read-only)                                                                              | ✅     |
+| Config presets                 | `local-cli`, `production`, `library`, `read-only` — sugar over feature flags                                                                                     | ✅     |
+| Feature profile system         | Auto-detects which go-cqrs-lite modules a consumer uses (store, command-flow, server, soft-delete, tracing, snapshot) and adapts rules                           | ✅     |
+| Monorepo support               | Multi-module scanning via go.mod discovery                                                                                                                       | ✅     |
+| Source snippets                | Most detectors emit source-line context for SARIF/IDE integration                                                                                                | ✅     |
+| `doctor` subcommand            | Prints the detected feature profile for the target project                                                                                                       | ✅     |
+| F-series adoption coaching     | 17 rules (F001–F017) that proactively coach consumers toward unused features                                                                                     | ✅     |
+| T-series testing quality       | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse                                                                | ✅     |
+| E-series architecture          | 8 rules (E008–E015) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.)                                                       | ✅     |
 
 ---
 
@@ -1054,18 +1060,18 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 Features mentioned in project docs/planning but with **no production code yet**:
 
-| Feature                       | Description                                         |
-| ----------------------------- | --------------------------------------------------- |
-| PostgreSQL testcontainers     | testcontainers-based real PG testing                |
-| Documentation site            | Docusaurus/MkDocs/Hugo site                         |
-| Transport adapters            | gRPC ✅, NATS/ValKey (ADR-0025 accepted, no code)   |
-| Distributed projection runner | Leader election, multi-node coordination — raw idea |
+| Feature                       | Description                                                       |
+| ----------------------------- | ----------------------------------------------------------------- |
+| PostgreSQL testcontainers     | ✅ DONE — testcontainers-go adopted (v0.43.0, postgres:16-alpine) |
+| Documentation site            | Docusaurus/MkDocs/Hugo site                                       |
+| Transport adapters            | gRPC ✅, NATS/ValKey (ADR-0025 accepted, no code)                 |
+| Distributed projection runner | Leader election, multi-node coordination — raw idea               |
 
 ---
 
 ## Module Maturity Matrix
 
-> 59 independently importable modules in `go.work` (59 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 60 independently importable modules in `go.work` (60 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                         | Import Path                         | Maturity                                                                  |
 | ------------------------------ | ----------------------------------- | ------------------------------------------------------------------------- |
@@ -1127,7 +1133,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `metaengine/projectionadapter` | `…/metaengine/projectionadapter/v4` | 🧪 Experimental (projection.Projection adapter for projectionhost)        |
 | `benchkit`                     | `…/benchkit/v4`                     | 🧪 Experimental (functional, 88 tests, `--repeat N` available)            |
 | `cmd/cqrs-bench`               | `…/cmd/cqrs-bench`                  | 🔧 Tool                                                                   |
-| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (65-rule domain-aware linter)                                     |
+| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (159-rule domain-aware linter)                                    |
 
 ---
 

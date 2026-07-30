@@ -156,3 +156,17 @@
 2. **Cache `Close()` on `StateCache`:** `kv.Cache` has a `Close()` method (no-op for otter). `decider.StateCache` does not. Should I add `Close()` to the `StateCache` interface for consistency, or leave it (adding a method to an interface is a breaking change for external implementors)?
 
 3. **Shared cache construction:** Both `kv/cache.go` and `decider/cache.go` now construct otter caches with near-identical option patterns. Should I extract a shared `otter.NewBoundedCache[K,V](capacity, ttl)` helper into a common package (e.g., a new `cache/` module), or is the duplication acceptable since they're in different modules?
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **otter TinyLFU + failsafe-go shipped** — both are in production code now.
+  `decider/doc.go:69` corrected from "LRU cache" to "TinyLFU cache" (otter).
+- ✅ **Verify gate was GREEN** — confirmed in the 2026-07-29 brutal-status session
+  (this session never ran verify, but the next session did).
+- Q1 (half-open semantics): accepted as-is. Documented in AGENTS.md principle #17.
+- Q2 (StateCache.Close): left as-is. Adding Close() is a breaking interface change
+  for no consumer benefit.
+- Q3 (shared cache helper): declined. Different modules, different generics
+  constraints. Duplication is 2 call sites in different go.mod files.

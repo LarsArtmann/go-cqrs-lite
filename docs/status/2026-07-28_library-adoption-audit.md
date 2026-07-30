@@ -206,3 +206,15 @@ library modules.
 | **P0**    | failsafe-go → circuit_breaker.go       | 2-3h   | Production-grade resilience, composable   |
 | **P1** ✅ | ~~testcontainers-go → stack/postgres~~ | 1-2h   | Real DB tests run everywhere              |
 | **P2** ✅ | ~~go-snaps → golden helpers~~          | 2-3h   | Standardized snapshot testing             |
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **P0 items DONE** — otter TinyLFU (decider/cache.go) and failsafe-go
+  (middleware/circuit_breaker.go) both adopted and shipped. See CHANGELOG
+  [Unreleased] "Library adoption".
+- ✅ **P1/P2 DONE** — testcontainers-go (v0.43.0) and go-snaps (v0.5.23)
+  both adopted. 38 golden files converted to .snap format.
+- **Retry extraction** — ADR-0064 written. Execution requires creating the
+  standalone `go-retry` repo. Tracked in ROADMAP Theme 4.

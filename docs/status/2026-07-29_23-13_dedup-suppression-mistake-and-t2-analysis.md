@@ -118,3 +118,13 @@
 2. **Is `dedup-acceptance.md` or `.art-dupl-baseline.json` the canonical acceptance record?** They overlap but aren't identical. The baseline is machine-checked (CI gate); the doc is human-readable. Should one be generated from the other, or should one be deleted?
 
 3. **Should `storage/pebble/iteration.go` and `stream.go` be consolidated?** They share 7 span-factory patterns but serve different read paths (iteration vs streaming). Merging them could eliminate duplication but might blur the semantic boundary. This is an architecture decision, not a mechanical refactor.
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **Suppression mistake resolved** — the `-t 3` threshold run that introduced
+  false suppression was reverted. The `-t 2` full triage in the next session
+  (`2026-07-29_23-23`) concluded "ZERO actionable extraction targets remain."
+- ✅ **Codebase dedup is clean** — 0 clone groups at threshold 3, 48 groups at
+  threshold 2 all triaged and accepted/documented.

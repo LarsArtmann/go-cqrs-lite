@@ -1,76 +1,58 @@
 # Roadmap — go-cqrs-lite
 
 > Where we are, where we're going, and what's next.
-> **Last updated:** 2026-07-27
->
-> ✅ **`nix run .#verify` is GENUINELY GREEN end-to-end** (re-verified 2026-07-27
-> after fixing a hidden cqrs-lint build break: the auto-daemon bumped go-output
-> to v0.33.0 but `go-output/table` has no v0.33.0 release — downgraded to v0.32.0.
-> The prior "GREEN" claim was stale for 3+ sessions). CI now also runs
-> `#check-duplication`, `#check-api-stability`, `#check-layers`, `#check-coverage`.
-> Race-aware thresholds, DSN-level SQLite `busy_timeout`, `soakTestScale`
-> consolidation all in place.
+> **Last updated:** 2026-07-30
 
 ---
 
-## Current State (v4.2.0 shipped; verify gate GREEN; 65 lint rules)
+## Current State (v4.2.0 shipped; 60 modules; 159 cqrs-lint rules; verify gate RED)
 
-**v4.2.0 tagged** (2026-07-27) — 53 modules tagged and pushed. All 58 modules
-have tags reachable from HEAD (verify: `git tag --list '*/v4.2.0' | wc -l` →
-53). The workspace has 58 `go.mod` files. `metaengine/projectionadapter/v4.0.0`
-was re-tagged at `be818c91` (previously orphaned); `codec/v4.2.0` tagged
-alongside v4.1.1 (semver correction — both kept). See
-[CHANGELOG.md](CHANGELOG.md) `[v4.2.0]` for the full release notes.
+**v4.2.0 tagged** (2026-07-27) — 53 modules tagged and pushed. The workspace now
+has **60 `go.mod` files** (added `stack/duckdb` and `metaengine/pebbleengine`
+since v4.2.0). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`.
+
+> ⚠️ **Verify gate is currently RED** (2026-07-30) — build error in
+> `cmd/cqrs-lint/pkg/rules/correctness/c031.go:83`. The cqrs-lint module does not
+> compile. See [TODO_LIST.md](TODO_LIST.md) "Verify Gate".
 
 The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs,
 command/query dispatch, pure-function deciders, three projection tiers
 (document/KV, relational/SQL, graph), durable deadline scheduling,
 event→command derivation, dead-letter quarantine, managed projection hosting,
 event signing/encryption, OTel tracing/metrics, auto-documentation generation,
-and a domain-aware linter (cqrs-lint, 65 rules).
+a cost-based storage planner (metaengine), and a domain-aware linter (cqrs-lint,
+159 rules).
 
-**New since v4.0.0:**
+**Major work since v4.2.0 (unreleased):**
 
-- **Metaengine** (`metaengine/v4`, 🧪 experimental, tagged v4.0.0 + v4.1.0 +
-  v4.1.1 + v4.2.0) — cost-based storage planner. Derives projections and engine
-  assignments from two primitives (Events + Queries). 7 ADTs inferred from fold
-  return types. 174 BDD specs + 150 cross-engine meta specs, 86.2% coverage.
-  SQLiteEngine shipped (ADR-0061); cost model calibrated; projection adapter
-  integrated (ADR-0062); pushdown ADR written (ADR-0063); cross-engine meta-test
-  guards parity. Phase 2 declarative pushdown deferred — see Theme 1.
-- **Benchkit** (`benchkit/v4` + `cmd/cqrs-bench`, 🧪 experimental) — benchmarking
-  toolkit with 7 named workload profiles + an analytical profile, 9-phase runner
-  (incl. journey/query/snapshot/durability/replay), scaling sweeps, soak mode,
-  benchstat/manifest output, and a first real benchmark run completed 2026-07-24.
-  88 benchkit + 12 CLI test functions. See Theme 2.
-- **Incremental rollups** — `ProjectionSink.Increment` + `RelationalProjection.Reset`
-  for atomic counter maintenance in relational projections.
-- **Aggregate→Stream rename** (ADR-0058) — complete across code, tests, and docs.
-  Deprecated aliases + wire-format identifiers preserved for compatibility.
-- **Comprehensive README coverage** — all 58 modules with READMEs, 248 Go symbol
-  references verified by `doc-check`.
-- **Error taxonomy migration** — 13 sentinels migrated to `errorfamily` constructors; upgraded to go-error-family v0.10.0 (6-family taxonomy incl. Orchestration).
-
-58 `go.mod` files total (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`).
+- **cqrs-lint: 65 → 159 rules** across 10 categories — 94 new detectors including
+  feature-adoption coaching (F-series), testing quality (T-series), architecture
+  validation (E-series), and expanded correctness/API/boilerplate/security. See
+  Theme 6.
+- **Metaengine Phases 2–5** — SQL pushdown (ADR-0072), layout planning
+  (ADR-0073), Pebble engine (ADR-0074), streaming reads, cost calibration.
+- **DuckDB analytical backend** — `stack/duckdb` preset with CGo isolation
+  (ADR-0071). Columnar OLAP queries alongside the transactional store.
+- **Library adoption** — otter TinyLFU cache (decider), failsafe-go circuit
+  breaker (middleware), testcontainers-go (Postgres integration tests), go-snaps
+  (golden/snapshot testing across 16 modules).
+- **Metaengine → taskmanager integration** — Counter ADT query with `/api/stats`
+  endpoint. First proof of concept that metaengine works in a real CQRS app.
 
 ---
 
 ## Release History
 
-| Version | Date       | Highlights                                                                                                                                                                                                              |
-| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| v4.2.0  | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family) |
-| v4.1.0  | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                    |
-| v4.0.4  | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                |
-| v4.0.3  | 2026-07-22 | SQL dialect abstraction, stack preset centralization, JSON v2 migration, harmful duplication elimination, cqrs-lint scanner overhaul                                                                                    |
-| v4.0.2  | 2026-07-18 | CBOR time encoding fix, timezone-safe types (Instant, WallTime, Date), cqrs-lint loader error surfacing                                                                                                                 |
-| v4.0.1  | 2026-07-16 | projectionhost deadlock/leak/sort fix, watermill deadlock fix, storage/view IS NULL+RawWhere+ViewUpdater, cqrs-lint first release (60 rules)                                                                            |
-| v4.0.0  | 2026-07-11 | CBOR defaults, API cleanup, BackfillHandler consolidation, HealthCheck, storage split, `/v4` path migration                                                                                                             |
-| v3.6.0  | 2026-07-05 | Error taxonomy, deriver module, DOMAIN_LANGUAGE rebuild                                                                                                                                                                 |
-| v3.5.0  | 2026-06-29 | Idempotency, dispatch middleware, scenario DSL, scheduling, projectionhost                                                                                                                                              |
-| v3.3.0  | 2026-06-28 | Three projection tiers, Watermill command bridge                                                                                                                                                                        |
-| v3.1.0  | 2026-06-25 | SQL-backed view stores, multi-database split                                                                                                                                                                            |
-| v3.0.0  | 2026-06-22 | 11 breaking changes — see [V3 Migration Guide](docs/migration/V3_MIGRATION.md)                                                                                                                                          |
+| Version    | Date       | Highlights                                                                                                                                                                                                              |
+| ---------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unreleased | 2026-07-30 | cqrs-lint 65→159 rules (10 categories), metaengine pushdown/layout/Pebble/streaming, DuckDB backend (ADR-0071), otter/failsafe-go/testcontainers-go/go-snaps adoption, metaengine→taskmanager integration               |
+| v4.2.0     | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family) |
+| v4.1.0     | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                    |
+| v4.0.4     | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                |
+| v4.0.3     | 2026-07-22 | SQL dialect abstraction, stack preset centralization, JSON v2 migration, harmful duplication elimination, cqrs-lint scanner overhaul                                                                                    |
+| v4.0.2     | 2026-07-18 | CBOR time encoding fix, timezone-safe types (Instant, WallTime, Date), cqrs-lint loader error surfacing                                                                                                                 |
+| v4.0.1     | 2026-07-16 | projectionhost deadlock/leak/sort fix, watermill deadlock fix, storage/view IS NULL+RawWhere+ViewUpdater, cqrs-lint first release (60 rules)                                                                            |
+| v4.0.0     | 2026-07-11 | CBOR defaults, API cleanup, BackfillHandler consolidation, HealthCheck, storage split, `/v4` path migration                                                                                                             |
 
 ---
 
@@ -84,68 +66,79 @@ structs. The Pareto execution plan landed the production maturity chain:
 
 - ✅ **Real SQLite engine** — `SQLiteEngine` wrapping `SQLViewStore` (ADR-0061)
 - ✅ **Cost model calibration** — `EngineProfile.NsPerOp` with benchmark-driven
-  constants (Memory=500ns, SQLite=7000ns)
+  constants (Memory=500ns, SQLite=7000ns), now split into `NsPerRead`/`NsPerWrite`
 - ✅ **Projection adapter** — `metaengine/projectionadapter` implements
   `projection.Projection` for `projectionhost.Host` (ADR-0062)
-- ✅ **Pushdown ADR** — Phase 1: in-memory closures + `PushdownScan` interface
-  seam. Phase 2 deferred (ADR-0063)
-- ✅ **Dependency boundary** — Core `metaengine/v4` stays zero-dep; adapter is
-  a separate module (ADR-0062)
+- ✅ **Pebble engine** — `metaengine/pebbleengine` with LSM point reads
+  (~7x faster than SQLite on MapGet). Separate module (ADR-0074)
+- ✅ **SQL pushdown** — `FilterOnField`/`SortOnField` push WHERE/ORDER BY/LIMIT
+  into SQLite via `json_extract()` (ADR-0072)
+- ✅ **Layout planning** — `LayoutPlan` generates indexed-column DDL from
+  declared query fields — 10x speedup on filter+sort (ADR-0073)
+- ✅ **Streaming reads** — `StreamScan(ctx) iter.Seq2` for OOM-safe iteration
+- ✅ **Taskmanager integration** — Counter ADT query with `/api/stats` endpoint
 
-**Remaining:** implement Phase 2 declarative pushdown when a production
-consumer needs SQL filter/sort pushdown. `projectionadapter/v4.0.0` re-tagged
-at `be818c91` in v4.2.0 (was orphaned — now reachable from HEAD). Metaengine
-lint is clean (143 → 0); cost calibration shipped (Memory=500ns,
-SQLite=7000ns); fold-classify logic and cross-engine meta-test guard
-correctness.
+**Remaining:** wire layout planning into `Plan()` (auto-generate), JSON tax
+reduction (single-pass decode), generated typed read API (`plan.Users.Get(ctx, id)`),
+unified 7-ADT × 3-engine test matrix. See [TODO_LIST.md](TODO_LIST.md).
 
 ### 2. Benchkit → Released
 
-The benchmarking toolkit is functionally complete — the full evidence plan
-shipped: durability/recovery, production replay, `benchtest.RunSuite`,
-analytical profile, Postgres backend, scaling sweeps, benchstat/manifest output,
-profiling, and a first real run across memory/pebble/sqlite (2026-07-24). The
-remaining work is maturity, not features:
+The benchmarking toolkit is functionally complete. The full evidence plan shipped:
+durability/recovery, production replay, `benchtest.RunSuite`, analytical profile,
+Postgres backend, scaling sweeps, benchstat/manifest output, profiling, and a
+first real run across memory/pebble/sqlite (2026-07-24). DuckDB backend added
+(2026-07-29).
 
-- **Tagged `benchkit/v4.1.0`** (tagged + pushed 2026-07-25; points to a grab-bag
-  commit mixing unrelated files — functionally correct but commit history is
-  noisy). Also covers `cmd/cqrs-bench/v0.1.0` and `example/readme-quickstart/v0.1.0`.
-- **Race-aware timing thresholds** — transport/grpc and benchkit soak tests now
-  use build-tag race scaling (`race_on.go`/`race_off.go`). DSN-level SQLite
-  `busy_timeout` eliminates SQLITE_BUSY under parallel test load. Verify gate GREEN.
+- ✅ **Tagged `benchkit/v4.2.0`** (tagged + pushed 2026-07-27)
+- ✅ **DuckDB backend** — benchmarkable via `--backend duckdb` (CGo-isolated)
 - **Run-to-run variance** — ~20-25% on the memory backend. `--repeat N`
   (median-of-N) mitigates it; real-world regression tracking is the next step.
 - **Real-world validation** — the first run verified plumbing and plausibility;
   a regression baseline + CI integration is the path to trustworthy numbers.
 
-### 3. Module Extraction
+### 3. cqrs-lint → Trustworthy
+
+The linter grew explosively from 65 to 159 rules across 10 categories in a
+single day (2026-07-30). The breadth is impressive but the quality needs
+hardening before the linter is trustworthy for production use.
+
+- ✅ **159 rules shipped** — correctness (31), API (28), boilerplate (28),
+  performance (6), version (6), consistency (12), architecture (15), security (8),
+  testing (8), adoption (17)
+- ✅ **Feature profile system** — auto-detects consumer module usage and adapts
+  context-dependent rules
+- ✅ **Self-lint** — 181 suppressions across 83 files for library self-references
+- 🔥 **Quality hardening needed** — E010/E011/E013/E014 are architecturally wrong;
+  import-alias resolution missing; library self-lint mode would eliminate 35+ FPs.
+  See [TODO_LIST.md](TODO_LIST.md) "cqrs-lint Quality".
+- **50-item improvement backlog** — triaged in Pareto plan
+  (`docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md`)
+
+### 4. Module Extraction
 
 Two modules are zero-CQRS-coupling candidates for standalone repos (see
 [extraction analysis](docs/planning/2026-07-23_extraction-analysis.md)):
 
 - ✅ **Extract `retry/` → `go-retry`** — ADR-0064 written (217 LOC, zero CQRS
-  coupling, re-export alias plan). Execution requires creating the standalone repo.
+  coupling). Execution requires creating the standalone repo.
 - ✅ **Extract `idempotency/` → `go-idempotency`** — ADR-0065 written (553 LOC
-  across 3 modules, re-export alias plan). Execution requires creating the repo.
+  across 3 modules). Execution requires creating the repo.
 
-### 4. Storage & Transport Expansion (design-doc-backed)
+### 5. Storage & Transport Expansion (design-doc-backed)
 
 These have design docs and graduated from "Raw Ideas"; concrete phases will move
 to [TODO_LIST.md](TODO_LIST.md) when actively worked:
 
-- ✅ **Parquet journal design** — `docs/planning/parquet-journal-design.md`
-  specifies Phase 1 (`storage/parquet` segment-based SeekableJournal, pure Go).
-  Phase 2 (DuckDB analytical SQL via `storage/sql.DuckDBDialect`) and Phase 3
-  (`stack/duckdb` preset) shipped (ADR-0071). Implementation differs from the
-  original plan: DuckDB is a dialect in `storage/sql/`, not a separate
-  `storage/duckdb/` module. CGo is isolated in `stack/duckdb/` via build tags.
-  Original research at `docs/research/archive/...PARQUET_JOURNAL...md`.
+- ✅ **DuckDB analytical backend** — shipped as `stack/duckdb` preset +
+  `DuckDBDialect` in `storage/sql/`. CGo isolated (ADR-0071). Columnar OLAP
+  queries alongside the transactional store.
 - ✅ **NATS transport design** — `docs/planning/nats-transport-design.md`
   documents JetStream stream config, durable consumers, and CatchUpSubscriber
   integration via the existing `watermill/` bridge (no native `transport/nats/`
   module — ADR-0025 decision).
 
-### 5. Consumer Experience
+### 6. Consumer Experience
 
 Gaps surfaced by the [book insights vs codebase review](docs/architecture-understanding/2026-07-23_book-insights-vs-codebase.html).
 All four consumer experience gaps shipped via the Pareto execution plan:
@@ -159,10 +152,7 @@ All four consumer experience gaps shipped via the Pareto execution plan:
 
 ## Raw Ideas (No Design Yet)
 
-> _Triage 2026-07-27: 10 items reviewed. None stale, none ready to drop. Closest
-> to graduation: SSE fan-out memoization (benchmarked, specific numbers) and
-> Neo4j graph driver (consumer-pulled, design exists). The rest need design docs
-> before becoming actionable._
+> _Triage 2026-07-30: 10 items reviewed. None stale, none ready to drop._
 
 - Event stream compaction / log truncation strategies
 - Multi-tenant event store (schema-per-tenant)
@@ -175,8 +165,7 @@ All four consumer experience gaps shipped via the Pareto execution plan:
 - Neo4j/Memgraph graph driver (`graph/neo4j/`) — consumer-pulled sibling module
 - SSE fan-out transform memoization — `CBORToJSONTransform` runs once per client
   (208µs for 100 clients, 3400 allocs/op). Memoization keyed by event ID could
-  save ~99% of transform cost under high fan-out. Optimization, not a bug;
-  benchmarked 2026-07-27.
+  save ~99% of transform cost under high fan-out.
 
 > Items with design docs graduate to a Theme above, then to [TODO_LIST.md](TODO_LIST.md)
 > when actively worked.

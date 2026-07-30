@@ -282,3 +282,15 @@ nix run .#verify (full):                NOT RE-RUN after Pebble fix re-applicati
 | `example/taskmanager/metaengine.go`   | Modified    | Added D006 suppression for example code                                                                                                                                                                                                   |
 
 **Total: ~20 files modified, 18 files created, ~500 lines of production code + ~400 lines of tests.**
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **All work shipped** — Pebble nextKey fix, snaps.Clean across 16 modules,
+  DuckDB helpers/tests, dead code cleanup, ADRs 0072-0074.
+- ⚠️ **`nix run .#verify` was GREEN** at the time (achieved in the 15-34
+  session), but is **now RED again** due to c031.go build error (2026-07-30).
+  See TODO_LIST.md "Verify Gate".
+- The Pebble `nextKey` fix survived (no 4th daemon reversion).
+- The `slices.Backward` footgun is now documented in AGENTS.md.

@@ -303,3 +303,20 @@ When a query declares `FilterOnField("status", Eq)` + `SortOnField("priority", t
 | `go.work`                            | Modified    | +1 line (./metaengine/pebbleengine)                                                |
 
 **Total: ~1,500 lines of production code + ~600 lines of tests across 3 modules.**
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **Phases 0-5 all shipped** — pushdown (ADR-0072), Pebble engine (ADR-0074),
+  layout planning (ADR-0073), cost model validation, streaming reads.
+- ✅ **Pebble batch bug root-caused** — NOT a batch/vfs issue. The real bug was
+  `slices.Backward` yielding copies (the `nextKey` increment was discarded).
+  Fixed with direct index access. The daemon reverted this fix 3 times.
+- ✅ **Pebble engine wired** into go.work, flake.nix, api-stability (2742 exports
+  at time of wiring, now 2749+).
+- **Remaining open items tracked in TODO_LIST.md "Metaengine"**: wire layout
+  planning into Plan(), JSON tax reduction, generated typed read API, unified
+  test matrix.
+- ✅ **`metaengine/v4.3.0` NOT yet tagged** — pending the c031.go build fix.
+  See TODO_LIST.md "Verify Gate".

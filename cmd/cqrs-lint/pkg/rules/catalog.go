@@ -313,6 +313,33 @@ func correctnessRules() []RuleInfo {
 			Description: "Infinite loop without context cancellation — goroutine leaks on shutdown",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C031",
+			Name:        "error-swallow-in-handler",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Handler checks error but returns nil — command/query appears successful when it failed",
+			AutoFix:     false,
+		},
+		{
+			ID:          "C032",
+			Name:        "ctx-propagation-gap",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "context.Background()/TODO() inside handler that receives ctx — breaks tracing and cancellation",
+			AutoFix:     false,
+		},
+		{
+			ID:          "C033",
+			Name:        "missing-error-wrapping",
+			Category:    "correctness",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Bare return err from CQRS call — wrap with context for debuggability",
+			AutoFix:     false,
+		},
 	}
 }
 
@@ -577,6 +604,15 @@ func apiRules() []RuleInfo {
 			Severity:    "error",
 			Confidence:  "high",
 			Description: "WithSnapshotStrategy without WithSnapshotStore — ErrIncompleteSnapshotConfig at runtime",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A032",
+			Name:        "string-id-instead-of-branded",
+			Category:    "api",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Struct field named *ID with type string/int — use id.Of[T] branded ID for type safety",
 			AutoFix:     false,
 		},
 	}

@@ -283,3 +283,18 @@ The daemon committed the previous session's code (including bugs) WHILE I was im
 - (A) Disable the daemon for this session
 - (B) Work in a branch the daemon doesn't touch
 - (C) Accept it and always re-read files before editing
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **All 94 new cqrs-lint rules committed** — the 65→159 rule expansion is
+  complete (10 categories). The verify gate was GREEN at commit `832437e9`
+  before the c031.go build error was introduced.
+- ✅ **Git index corruption fixed** — `git read-tree HEAD` resolved it.
+- ✅ **C023 O(N×M) fixed** — rewritten to single-pass ancestor-stack.
+- ✅ **D005 TrimRight fixed** — strips `.,;:!?` not just `.,`.
+- ⚠️ **Verify gate now RED** — c031.go build error. See TODO_LIST.md.
+- **Open quality items** (E010/E011/E013/E014 architecturally wrong, import-alias
+  resolution, library self-lint mode, P010/callHasOption) tracked in
+  TODO_LIST.md "cqrs-lint Quality".

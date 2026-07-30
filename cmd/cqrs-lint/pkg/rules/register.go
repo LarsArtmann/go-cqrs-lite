@@ -80,6 +80,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		api.NewA027Detector(ctx),
 		api.NewA029Detector(ctx),
 		api.NewA030Detector(ctx),
+		api.NewA032Detector(ctx),
 		// Boilerplate
 		boilerplate.NewB001Detector(ctx),
 		boilerplate.NewB002Detector(ctx),
@@ -116,6 +117,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		performance.NewP008Detector(ctx),
 		performance.NewP009Detector(ctx),
 		performance.NewP010Detector(ctx),
+		performance.NewP011Detector(ctx),
 		// Version
 		version.NewV001Detector(ctx),
 		version.NewV002Detector(ctx),
@@ -136,6 +138,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		consistency.NewD011Detector(ctx),
 		consistency.NewD012Detector(ctx),
 		consistency.NewD013Detector(ctx),
+		consistency.NewD014Detector(ctx),
 		// Architecture
 		architecture.NewE001Detector(ctx),
 		architecture.NewE002Detector(ctx),
@@ -165,6 +168,9 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		correctness.NewC028Detector(ctx),
 		correctness.NewC029Detector(ctx),
 		correctness.NewC030Detector(ctx),
+		correctness.NewC031Detector(ctx),
+		correctness.NewC032Detector(ctx),
+		correctness.NewC033Detector(ctx),
 		// Testing
 		testrules.NewT001Detector(ctx),
 		testrules.NewT002Detector(ctx),

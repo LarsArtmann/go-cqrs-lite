@@ -298,11 +298,11 @@
 
 ### Analysis accuracy improvements
 
-99. **Feature profile should detect adapter/bridge patterns** — KeyCountdown wraps its own event system in adapters conforming to go-cqrs-lite interfaces. The linter's feature detection should recognize adapter types and adjust rules accordingly.
+99. ~~**Feature profile should detect adapter/bridge patterns** — KeyCountdown wraps its own event system in adapters conforming to go-cqrs-lite interfaces. The linter's feature detection should recognize adapter types and adjust rules accordingly.~~ **Won't implement** — too niche; use `.cqrs-lint.json` profile flag instead
 
-100. **Feature profile should detect cqrs-htmx usage** — Projects going through cqrs-htmx get different defaults than projects using go-cqrs-lite directly. The linter should detect cqrs-htmx imports and apply different rule sets.
+100. ~~**Feature profile should detect cqrs-htmx usage** — Projects going through cqrs-htmx get different defaults than projects using go-cqrs-lite directly. The linter should detect cqrs-htmx imports and apply different rule sets.~~ **Won't implement** — config flag, not a detector rule
 
-101. **Feature profile should detect event-capture architecture** — DiscordSync has no command/decider/query. The linter shouldn't flag "missing decider" when the architecture is intentionally event-capture-only.
+101. ~~**Feature profile should detect event-capture architecture** — DiscordSync has no command/decider/query. The linter shouldn't flag "missing decider" when the architecture is intentionally event-capture-only.~~ **Won't implement** — config flag, not a detector rule
 
 102. **Severity calibration based on aggregate type** — Financial aggregates (bank-sync, timesheets) should have stricter rules (encryption, idempotency) than internal tools (Standup-Killer, overview).
 
@@ -312,11 +312,11 @@
 
 104. **Rules should link to documentation** — Each finding should include a URL to the relevant SKILL.md or ADR for the recommended pattern.
 
-105. **Rules should respect project conventions** — If a project consistently uses manual wiring (like Kernovia), don't flag every manual wiring instance; flag only the ones with actual bugs.
+105. ~~**Rules should respect project conventions** — If a project consistently uses manual wiring (like Kernovia), don't flag every manual wiring instance; flag only the ones with actual bugs.~~ **Won't implement** — too fuzzy to implement reliably; a bug is a bug regardless of convention
 
 106. **Rules should understand the stack preset boundary** — If a project uses `stack/sqlite`, the linter should know that the store, bus, snapshot, and checkpoint are configured correctly and skip related rules.
 
-107. **Confidence scoring should consider codebase maturity** — A 500-line prototype shouldn't get the same severity as a 50K-line production system. Add a `--maturity` flag or auto-detect.
+107. ~~**Confidence scoring should consider codebase maturity** — A 500-line prototype shouldn't get the same severity as a 50K-line production system. Add a `--maturity` flag or auto-detect.~~ **Won't implement** — heuristic noise; a bug is a bug at any codebase size
 
 ### New rule categories
 
@@ -334,31 +334,31 @@
 
 113. **Show feature adoption scorecard** — Beyond the health score, show which features the project uses vs misses. "You use 8/15 modules. Consider: scheduling, encryption, catalog."
 
-114. **Diff mode** — `cqrs-lint --diff` shows only NEW findings since the last run. Useful for CI to prevent regressions without overwhelming developers.
+114. ~~**Diff mode** — `cqrs-lint --diff` shows only NEW findings since the last run. Useful for CI to prevent regressions without overwhelming developers.~~ **Won't implement** — requires stateful caching of prior runs; different product scope
 
-115. **Fix-all command** — `cqrs-lint --fix-all` applies all auto-fixable findings in dependency order (version arithmetic before missing commit, etc.).
+115. ~~**Fix-all command** — `cqrs-lint --fix-all` applies all auto-fixable findings in dependency order (version arithmetic before missing commit, etc.).~~ **Won't implement** — dangerous without review; C001 auto-fix works because it's surgical
 
-116. **Interactive suppression** — `cqrs-lint --suppress` walks through each finding and lets the developer accept (suppress) or fix it interactively.
+116. ~~**Interactive suppression** — `cqrs-lint --suppress` walks through each finding and lets the developer accept (suppress) or fix it interactively.~~ **Won't implement** — different product (interactive CLI UX)
 
 117. **SARIF rule metadata** — Include rule documentation URL, severity guidance, and remediation steps in SARIF output for GitHub Code Scanning.
 
 ### CLI improvements
 
-118. **`cqrs-lint profile <project>` command** — Analyzes a project and prints a detailed usage profile (modules used, features enabled, anti-patterns found, feature adoption scorecard).
+118. ~~**`cqrs-lint profile <project>` command** — Analyzes a project and prints a detailed usage profile (modules used, features enabled, anti-patterns found, feature adoption scorecard).~~ **Won't implement** — `doctor` command already provides profile analysis
 
-119. **`cqrs-lint compare <project1> <project2>` command** — Compares two projects' CQRS usage and highlights differences. Useful for teams standardizing across services.
+119. ~~**`cqrs-lint compare <project1> <project2>` command** — Compares two projects' CQRS usage and highlights differences. Useful for teams standardizing across services.~~ **Won't implement** — feature creep beyond linter scope
 
-120. **`cqrs-lint upgrade-check`** — Checks if the project's go-cqrs-lite version has breaking changes or new features since the pinned version.
+120. ~~**`cqrs-lint upgrade-check`** — Checks if the project's go-cqrs-lite version has breaking changes or new features since the pinned version.~~ **Won't implement** — feature creep beyond linter scope
 
 121. **Config inheritance** — `.cqrs-lint.json` in a parent directory should be inherited by subdirectories, with local overrides. Useful for monorepos.
 
 ### Performance
 
-122. **Incremental analysis** — Cache the AST scan results and only re-scan changed files. Currently, every run re-parses all Go files.
+122. ~~**Incremental analysis** — Cache the AST scan results and only re-scan changed files. Currently, every run re-parses all Go files.~~ **Won't implement** — premature optimization for ~45-project ecosystem
 
 123. **Parallel rule execution** — The pipeline already supports `ParallelDetectors: true`, but verify all rules are thread-safe. Add a benchmark suite for the linter itself.
 
-124. **Memory-bounded analysis** — For very large codebases (>1000 files), the linter should stream files rather than loading all ASTs into memory.
+124. ~~**Memory-bounded analysis** — For very large codebases (>1000 files), the linter should stream files rather than loading all ASTs into memory.~~ **Won't implement** — premature optimization; measure first
 
 ### Suppression & self-lint infrastructure (discovered 2026-07-30 self-lint session)
 
@@ -372,7 +372,7 @@
 
 129. **C017 should trace `WithEventStore()` call arguments** — Current band-aid (`fileUsesMemoryEventStore`) checks if the same file uses `memory.NewMemoryStore()`, but the real fix is tracing the actual `WithEventStore()` call to determine the concrete store type, rather than inferring from imports.
 
-130. **`extractRuleID` snippet fallback only returns first rule** — For comma-separated `ignore(A001,E005)`, the snippet fallback path in `extractRuleID` returns only `"A001"`. If the finding's rule is the second ID and the file can't be read (falling back to snippet), it won't match.
+130. ~~**`extractRuleID` snippet fallback only returns first rule** — For comma-separated `ignore(A001,E005)`, the snippet fallback path in `extractRuleID` returns only `"A001"`. If the finding's rule is the second ID and the file can't be read (falling back to snippet), it won't match.~~ **done** — replaced `checkSuppressionInSnippet` to use `ParseSuppressions` (handles all comma-separated IDs), removed the buggy `extractRuleID` entirely
 
 131. **Library self-detection is inherently noisy** — A001/A020/A021/A023/E005/E007 fire on go-cqrs-lite's own type definitions (`BasicCommand`, `MemoryStore`, `SQLEventStore`, etc.). 181 inline suppressions were needed. Options: (a) `--self-lint` flag that excludes library module paths, (b) `.cqrs-lint.json` exclude config, (c) detectors check if the file IS in a `go-cqrs-lite/` module path.
 
@@ -396,9 +396,9 @@
 
 138. **Detect missing error family classification in domain logic** — Several projects use `fmt.Errorf` or `errors.New` in domain logic instead of `errorfamily` constructors. D006 exists but should be stricter in files that import `event` or `decider`.
 
-139. **Detect context propagation gaps in event handlers** — If a projection handler receives `ctx` but calls a function that creates a new context, tracing is broken. Detect: `context.Background()`, `context.TODO()`, or `context.WithCancel(context.Background())` inside a handler function body.
+139. ~~**Detect context propagation gaps in event handlers** — If a projection handler receives `ctx` but calls a function that creates a new context, tracing is broken. Detect: `context.Background()`, `context.TODO()`, or `context.WithCancel(context.Background())` inside a handler function body.~~ **done** — C032 detects context.Background()/TODO() in functions with a context.Context parameter
 
-140. **Detect unbounded in-memory growth** — In-memory read models that use `map[string]T` without eviction grow unboundedly. Detect: `map[` in a projection handler that subscribes to `SubscribeAll` without any size limit or eviction.
+140. ~~**Detect unbounded in-memory growth** — In-memory read models that use `map[string]T` without eviction grow unboundedly. Detect: `map[` in a projection handler that subscribes to `SubscribeAll` without any size limit or eviction.~~ **done** — P011 detects map fields in read-model-named structs without sync.RWMutex
 
 141. **Detect goroutine leaks in event handlers** — If a handler starts a goroutine (`go func()`) that is not tracked or cancelled, it may outlive the projection host. Detect: `go func()` inside a `Handle` method without context cancellation.
 
@@ -414,17 +414,17 @@
 
 ### cqrs-htmx specific rules
 
-146. **Detect `journalFromStore` silent fallback** — cqrs-htmx's journal detection falls back to empty memory store without error. The linter should detect this pattern in cqrs-htmx consumers specifically.
+146. ~~**Detect `journalFromStore` silent fallback** — cqrs-htmx's journal detection falls back to empty memory store without error. The linter should detect this pattern in cqrs-htmx consumers specifically.~~ **Won't implement** — belongs in cqrs-htmx's own `.cqrs-lint.json` config
 
-147. **Detect hardcoded memory DLQ in cqrs-htmx** — `projectionhost.NewMemoryDeadLetterStore()` with `0` retry threshold in server-mode projects means poison events are immediately dropped.
+147. ~~**Detect hardcoded memory DLQ in cqrs-htmx** — `projectionhost.NewMemoryDeadLetterStore()` with `0` retry threshold in server-mode projects means poison events are immediately dropped.~~ **Won't implement** — belongs in cqrs-htmx's own config
 
-148. **Detect `waitForDrain` polling overhead** — cqrs-htmx's 10ms polling loop adds latency. Suggest using a channel-based notification from projectionhost.
+148. ~~**Detect `waitForDrain` polling overhead** — cqrs-htmx's 10ms polling loop adds latency. Suggest using a channel-based notification from projectionhost.~~ **Won't implement** — belongs in cqrs-htmx's own repo
 
-149. **Detect ProjectionStatusEntry field duplication** — cqrs-htmx's `ProjectionStatusEntry` manually mirrors `projectionhost.WorkerState`. Changes to `WorkerState` won't be reflected.
+149. ~~**Detect ProjectionStatusEntry field duplication** — cqrs-htmx's `ProjectionStatusEntry` manually mirrors `projectionhost.WorkerState`. Changes to `WorkerState` won't be reflected.~~ **Won't implement** — cqrs-htmx code issue, not a linter rule
 
 ### Domain-specific rules
 
-150. **Detect money as float64 (extend C008)** — C008 exists but should also check for `float32`, `float64` fields with names like `amount`, `balance`, `price`, `cost`, `fee`, `tax`, `salary`, `rate`, `total`.
+150. ~~**Detect money as float64 (extend C008)** — C008 exists but should also check for `float32`, `float64` fields with names like `amount`, `balance`, `price`, `cost`, `fee`, `tax`, `salary`, `rate`, `total`.~~ **done** — C008 now detects both float32 and float64 for money fields; added `rate` to weakMoneyFields
 
 151. **Detect timestamp without timezone** — C013 exists for `time.Time` in event payloads. Extend to also flag `time.Time` fields without explicit timezone documentation in projections.
 
@@ -438,23 +438,23 @@
 
 155. ~~**Detect `Register` (deprecated) vs `RegisterTyped` migration** — A014 flags deprecated `Register`. Track migration progress across the codebase.~~ **Won't implement — migration already complete.** Zero production `Register` callers exist across the codebase (all production code uses `RegisterTyped`). The ~15 remaining calls are in test files. `RegisterTyped` is a thin wrapper that calls `Register` internally — deprecating the implementation while shipping a wrapper is contradictory. A014 already flags any new non-test usage. There is nothing left to track.
 
-156. **Detect v3-to-v4 migration blockers** — For projects still on v3, identify specific API differences that block migration (removed types, renamed functions).
+156. ~~**Detect v3-to-v4 migration blockers** — For projects still on v3, identify specific API differences that block migration (removed types, renamed functions).~~ **Won't implement** — niche; all consumers are on v4
 
-157. **Detect feature flag cleanup needed** — Dual-write buses and migration code should have feature flags that are eventually cleaned up. Detect: dual-write patterns without flag cleanup in the same codebase.
+157. ~~**Detect feature flag cleanup needed** — Dual-write buses and migration code should have feature flags that are eventually cleaned up. Detect: dual-write patterns without flag cleanup in the same codebase.~~ **Won't implement** — niche, low frequency
 
 ### Educational and coaching rules
 
-158. **Suggest event storming documentation** — If a project has >10 event types, suggest creating an event catalog with `catalog.NewBuilder` for documentation.
+158. ~~**Suggest event storming documentation** — If a project has >10 event types, suggest creating an event catalog with `catalog.NewBuilder` for documentation.~~ **Won't implement** — tutorial system, not a correctness tool (overlaps F-series)
 
-159. **Suggest CQRS diagram generation** — If a project has commands, events, and projections, suggest generating a D2 architecture diagram with the catalog module.
+159. ~~**Suggest CQRS diagram generation** — If a project has commands, events, and projections, suggest generating a D2 architecture diagram with the catalog module.~~ **Won't implement** — tutorial system (overlaps F-series)
 
-160. **Suggest read model tier upgrade** — If a project uses in-memory read models with SubscribeAll, suggest upgrading to SQLViewStore or RelationalProjection for persistence.
+160. ~~**Suggest read model tier upgrade** — If a project uses in-memory read models with SubscribeAll, suggest upgrading to SQLViewStore or RelationalProjection for persistence.~~ **Won't implement** — tutorial system (overlaps F-series)
 
-161. **Suggest snapshot strategy** — If aggregate event count is high (detect from test data or schema), suggest EveryNEvents or ReadPressure snapshot strategy.
+161. ~~**Suggest snapshot strategy** — If aggregate event count is high (detect from test data or schema), suggest EveryNEvents or ReadPressure snapshot strategy.~~ **Won't implement** — tutorial system
 
-162. **Suggest StrictApply adoption** — If a fold function uses a plain switch with a default that returns nil, suggest `decider.StrictApply` for compile-time safety.
+162. ~~**Suggest StrictApply adoption** — If a fold function uses a plain switch with a default that returns nil, suggest `decider.StrictApply` for compile-time safety.~~ **Won't implement** — duplicate of B021
 
-163. **Suggest BDD scenario tests for critical aggregates** — If an aggregate handles financial or security operations, strongly suggest scenario tests.
+163. ~~**Suggest BDD scenario tests for critical aggregates** — If an aggregate handles financial or security operations, strongly suggest scenario tests.~~ **Won't implement** — duplicate of T001
 
 ### Integration rules
 
@@ -468,13 +468,13 @@
 
 ### Error handling rules
 
-168. **Detect error swallowing in command handlers** — Command handlers that return nil after an error silently lose failures. Detect: `if err != nil { return nil }` in a function registered with `RegisterTyped`.
+168. ~~**Detect error swallowing in command handlers** — Command handlers that return nil after an error silently lose failures. Detect: `if err != nil { return nil }` in a function registered with `RegisterTyped`.~~ **done** — C031 detects `if err != nil { return nil }` / `return` in RegisterTyped/RegisterQuery handlers
 
-169. **Detect error swallowing in projection handlers** — Projection handlers that ignore errors from `DecodePayloadAuto` or SQL operations. C010 exists but should also cover SQL errors.
+169. ~~**Detect error swallowing in projection handlers** — Projection handlers that ignore errors from `DecodePayloadAuto` or SQL operations. C010 exists but should also cover SQL errors.~~ **done** — C010 now detects swallowed SQL errors (Exec, Query, Scan, Get, Select) in addition to decode/unmarshal
 
 170. **Detect panic in marshal/encode paths** — Functions with `panic()` in marshal/encode paths (B011 exists for must*-prefixed, extend to all marshal helpers).
 
-171. **Detect missing error wrapping** — Errors returned from library calls should be wrapped with context. Detect: `return err` (bare) for errors from go-cqrs-lite function calls.
+171. ~~**Detect missing error wrapping** — Errors returned from library calls should be wrapped with context. Detect: `return err` (bare) for errors from go-cqrs-lite function calls.~~ **done** — C033 detects bare `return err` after CQRS method calls (Save, Load, Execute, Dispatch, etc.)
 
 ### Concurrency rules
 
@@ -528,21 +528,21 @@
 
 ## Summary Statistics
 
-| Category              | Rules in code                    | Open ideas                          |
-| --------------------- | -------------------------------- | ----------------------------------- |
-| Correctness (C)       | 30 (C001-C030)                   | 0                                   |
-| API Misuse (A)        | 29 (A001-A027, A029, A030)       | A028 skipped (too project-specific) |
-| Boilerplate (B)       | 28 (B001-B028)                   | 0                                   |
-| Architecture (E)      | 15 (E001-E015)                   | DONE (items 40-47)                  |
-| Consistency (D)       | 12 (D001, D002, D003, D005-D013) | 0                                   |
-| Security (S)          | 8 (S001-S003, S005-S009)         | S004 proposed (item 54)             |
-| Performance (P)       | 6 (P001, P006-P010)              | P002-P005 are NOT-DO (duplicates)   |
-| Version/Migration (V) | 6 (V001-V006)                    | 0                                   |
-| Testing (T)           | 8 (T001-T008)                    | 0                                   |
-| Feature Adoption (F)  | 17 (F001-F017)                   | 0                                   |
-| DX & Infrastructure   | N/A                              | 35 items (99-133)                   |
-| Extended Ideas        | N/A                              | 46 items (134-179)                  |
-| **Total**             | **151**                          | ~88 open                            |
+| Category              | Rules in code                    | Open ideas                                       |
+| --------------------- | -------------------------------- | ------------------------------------------------ |
+| Correctness (C)       | 30 (C001-C030)                   | 0                                                |
+| API Misuse (A)        | 29 (A001-A027, A029, A030)       | A028 skipped (too project-specific)              |
+| Boilerplate (B)       | 28 (B001-B028)                   | 0                                                |
+| Architecture (E)      | 15 (E001-E015)                   | DONE (items 40-47)                               |
+| Consistency (D)       | 12 (D001, D002, D003, D005-D013) | 0                                                |
+| Security (S)          | 8 (S001-S003, S005-S009)         | S004 proposed (item 54)                          |
+| Performance (P)       | 6 (P001, P006-P010)              | P002-P005 are NOT-DO (duplicates)                |
+| Version/Migration (V) | 6 (V001-V006)                    | 0                                                |
+| Testing (T)           | 8 (T001-T008)                    | 0                                                |
+| Feature Adoption (F)  | 17 (F001-F017)                   | 0                                                |
+| DX & Infrastructure   | N/A                              | 22 items (99-133, 13 pruned as won't-implement)  |
+| Extended Ideas        | N/A                              | 34 items (134-179, 12 pruned as won't-implement) |
+| **Total**             | **151**                          | ~56 open                                         |
 
 ---
 

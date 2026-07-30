@@ -229,3 +229,15 @@ nix run .#verify:                ❌ NOT RUN (would fail on lint)
 - `cmd/api-stability/main.go` (+1 modules)
 - `docs/api_surface.txt` (+21 exports)
 - Plus auto-daemon go.mod/go.sum churn in benchkit, codec, encryption, otel, signing, eventtest, transport/http
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **All 3 P0 issues fixed** in the next session (`2026-07-28_23-59`):
+  godoclint, wrapcheck, CGO_ENABLED=1 in flake.nix.
+- ✅ **ADR-0071 written** — DuckDB CGo introduction decision.
+- ✅ **DuckDB shipped** as `stack/duckdb` preset + `DuckDBDialect`. CGo
+  isolated via build tags. See CHANGELOG [Unreleased] "DuckDB".
+- ✅ **DuckDB wired into `stack/bench`** and `cmd/cqrs-bench --backend duckdb`.
+- ✅ **`TestMultiDBContract`** and golden schema tests added in later sessions.

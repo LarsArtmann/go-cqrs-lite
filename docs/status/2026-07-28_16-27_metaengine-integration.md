@@ -174,3 +174,15 @@ The Counter proves metaengine works. A Map query would prove the _planner_ works
 
 **Q3: After the metaengine integration, should I proceed to the deriver split-brain fix (T6) or the cache split-brain fix (T8) next?**
 Both are in the 4% tier. The deriver fix proves the `deriver/` package (zero consumers). The cache fix resolves a policy violation (hand-rolled LRU vs mandated otter). The deriver is more visible (it's in the example); the cache is more correct (policy compliance). I can argue both directions.
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **Metaengine → taskmanager integration shipped** — `example/taskmanager/metaengine.go`
+  with Counter ADT query (`task_counts_by_status`) and `GET /api/stats` endpoint.
+  Build passes, all taskmanager tests pass.
+- ✅ **`OnTyped(eventType, handler)` added** to metaengine core (`fold.go`).
+  The `onTyped` workaround in taskmanager was replaced with the first-class API.
+- **Remaining open items** (deriver rewrite, catalog→taskmanager, graph→taskmanager)
+  are forward-looking integration ideas, not blocking.

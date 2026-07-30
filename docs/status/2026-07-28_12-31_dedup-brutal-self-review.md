@@ -238,3 +238,15 @@ The per-module `wrapInfraOrOK` pattern now exists in 4 modules (memory, pebble, 
 | Verify gate          | RED (metaengine race, likely pre-existing) |
 | Time to "done"       | ~30 min                                    |
 | Fuckups identified   | 4                                          |
+
+---
+
+## Resolution (2026-07-30)
+
+- ✅ **All 9 helpers shipped** — `Bundle.readModelCodec`, `lintutil.AppendBuild`,
+  `errContainsAny`, `withOutput`, `wrapInfraOrOK`, `wrapInfraBytes`,
+  `unmarshalJSONString`, `sliceIteratorOrErr`, `mergeKnows`+`knowsEdgeRef`.
+- ✅ **`nix run .#verify` GREEN** — achieved in the next session
+  (`2026-07-28_18-33_dedup-consolidation-session.md`).
+- ✅ **api-stability golden regenerated** — for all 9 new exported helpers.
+- ⚠️ **Verify gate now RED** — c031.go build error (2026-07-30). Unrelated.

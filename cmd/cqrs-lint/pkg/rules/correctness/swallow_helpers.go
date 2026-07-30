@@ -35,7 +35,7 @@ func isLikelyDecider(fn *ast.FuncDecl) bool {
 func isFloat64(expr ast.Expr) bool {
 	id, ok := expr.(*ast.Ident)
 
-	return ok && id.Name == "float64"
+	return ok && (id.Name == "float64" || id.Name == "float32")
 }
 
 func inspectForSwallowedError(
@@ -82,18 +82,18 @@ func inspectBodyForSwallowedError(
 				}
 
 				callStr := analyzer.ExprString(call.Fun)
-				if strings.Contains(callStr, "Decode") || strings.Contains(callStr, "Unmarshal") {
+				if cat := swallowedCallCategory(callStr); cat != "" {
 					pos := ctx.Fset.Position(assign.Pos())
 
 					f, err := finding.NewBuilder(
 						"C010", toolName,
-						"Error from decode/unmarshal call is discarded — use the error or handle it",
+						"Error from "+cat+" call is discarded — use the error or handle it",
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
 						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
-						WithSuggestion("Check the error return: `if err != nil { return state, fmt.Errorf(\"decode: %w\", err) }`").
+						WithSuggestion("Check the error return: `if err != nil { return state, fmt.Errorf(\"" + cat + ": %w\", err) }`").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					lintutil.AppendBuild(findings, f, err)
@@ -151,4 +151,25 @@ func ignoresBodyError(fn *ast.FuncDecl, bodyVar string) bool {
 	})
 
 	return calledWithoutCheck
+}
+
+// swallowedCallCategory returns a human-readable category string if the call
+// expression is one whose error return should never be silently discarded.
+// Returns "" if the call does not match any known swallowable pattern.
+//
+// Covers decode/unmarshal operations (original C010 scope) and SQL operations
+// (item 169 extension: Exec, Query, QueryRow, Scan, Get, Select).
+func swallowedCallCategory(callStr string) string {
+	switch {
+	case strings.Contains(callStr, "Decode"), strings.Contains(callStr, "Unmarshal"):
+		return "decode/unmarshal"
+	case strings.Contains(callStr, ".Exec"),
+		strings.Contains(callStr, ".Query"),
+		strings.Contains(callStr, ".Scan"),
+		strings.Contains(callStr, ".Get"),
+		strings.Contains(callStr, ".Select"):
+		return "SQL"
+	default:
+		return ""
+	}
 }
