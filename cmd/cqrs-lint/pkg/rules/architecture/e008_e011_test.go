@@ -125,11 +125,14 @@ func TestE010_DetectsDirectStoreSave(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main
 
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
 func capture(store Store) {
 	store.Save(nil)
 }
 
 type Store interface{ Save(any) error }
+var _ event.Event
 `,
 	})
 	findings := runDetector(t, architecture.NewE010Detector(ctx))
@@ -172,9 +175,16 @@ func TestE011_DetectsThreeAdapters(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"adapters.go": `package main
 
+import (
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
+)
+
 type EventSourcingAdapter struct{}
 type BusAdapter struct{}
 type CommandAdapter struct{}
+var _ command.Command
+var _ decider.Decider[any]
 `,
 	})
 	findings := runDetector(t, architecture.NewE011Detector(ctx))

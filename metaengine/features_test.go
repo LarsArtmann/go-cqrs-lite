@@ -97,7 +97,7 @@ func TestDryRun(t *testing.T) {
 	store, err := Plan([]Engine{eng},
 		WithDryRun(),
 		Query[testFindTask, testTask]("find_filtered",
-			On("task_created", func(e testTask) (testTaskID, testTask) {
+			OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
 				return e.ID, e
 			}),
 			FilterOnField[testTask]("status", FilterEq),

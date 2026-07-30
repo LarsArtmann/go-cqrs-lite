@@ -69,14 +69,14 @@ func TestE013_DetectsSigningDisabled(t *testing.T) {
 
 import "github.com/larsartmann/go-cqrs-lite/signing"
 
-type SignerConfig struct {
+type SigningConfig struct {
 	Enabled bool
 	Key     string
 }
 
-func DefaultSignerConfig() SignerConfig {
+func DefaultSigningConfig() SigningConfig {
 	_ = signing.NewHMAC
-	return SignerConfig{Enabled: false, Key: ""}
+	return SigningConfig{Enabled: false, Key: ""}
 }
 `,
 	})
@@ -90,14 +90,14 @@ func TestE013_NoFindingWhenEnabled(t *testing.T) {
 
 import "github.com/larsartmann/go-cqrs-lite/signing"
 
-type SignerConfig struct {
+type SigningConfig struct {
 	Enabled bool
 	Key     string
 }
 
-func DefaultSignerConfig() SignerConfig {
+func DefaultSigningConfig() SigningConfig {
 	_ = signing.NewHMAC
-	return SignerConfig{Enabled: true, Key: "secret"}
+	return SigningConfig{Enabled: true, Key: "secret"}
 }
 `,
 	})
@@ -139,14 +139,14 @@ func setup(host *projectionhost.Host) {
 	assertRule(t, findings, "E014", 1)
 }
 
-func TestE014_NoFindingWithHostStop(t *testing.T) {
+func TestE014_NoFindingWithDrain(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main
 
 import "github.com/larsartmann/go-cqrs-lite/projectionhost"
 
-func shutdown(host *projectionhost.Host) {
-	host.Stop()
+func respond(host *projectionhost.Host) {
+	host.Drain()
 }
 `,
 	})

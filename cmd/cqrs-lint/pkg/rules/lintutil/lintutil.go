@@ -180,3 +180,99 @@ func IsEventPayloadName(name string) bool {
 
 	return false
 }
+
+// QualifierToImportPath resolves a package qualifier (the identifier before
+// the dot in a selector expression like "event.NewEvent") to its full import
+// path using the file's import declarations. This handles import aliases:
+//
+//	import event "github.com/larsartmann/go-cqrs-lite/event/v4"
+//	// qualifier "event" → "github.com/larsartmann/go-cqrs-lite/event/v4"
+//
+//	import cqrs "github.com/larsartmann/go-cqrs-lite/event/v4"
+//	// qualifier "cqrs" → "github.com/larsartmann/go-cqrs-lite/event/v4"
+//
+// Rules that previously hardcoded the expected package name (e.g., matching
+// selector X == "event") should use this helper to resolve the actual import
+// path, making them resilient to import aliases. Returns "" and false if the
+// qualifier does not match any import in the file.
+func QualifierToImportPath(file *ast.File, qualifier string) (string, bool) {
+	for _, imp := range file.Imports {
+		if imp == nil || imp.Path == nil {
+			continue
+		}
+
+		path := strings.Trim(imp.Path.Value, `"`)
+
+		if imp.Name != nil && imp.Name.Name == "_" {
+			continue
+		}
+
+		if imp.Name != nil && imp.Name.Name == "." {
+			return path, true
+		}
+
+		if imp.Name != nil {
+			if imp.Name.Name == qualifier {
+				return path, true
+			}
+
+			continue
+		}
+
+		if lastSegment(path) == qualifier {
+			return path, true
+		}
+	}
+
+	return "", false
+}
+
+// ImportQualifierMap builds a complete qualifier to import-path map for a file.
+func ImportQualifierMap(file *ast.File) map[string]string {
+	result := make(map[string]string)
+
+	for _, imp := range file.Imports {
+		if imp == nil || imp.Path == nil {
+			continue
+		}
+
+		path := strings.Trim(imp.Path.Value, `"`)
+
+		if imp.Name != nil {
+			switch imp.Name.Name {
+			case "_":
+				continue
+			case ".":
+				result["."] = path
+				continue
+			default:
+				result[imp.Name.Name] = path
+				continue
+			}
+		}
+
+		result[lastSegment(path)] = path
+	}
+
+	return result
+}
+
+// QualifierResolvesTo checks whether a qualifier in the given file resolves to
+// an import path that contains the expected suffix.
+func QualifierResolvesTo(file *ast.File, qualifier, expectedPathSuffix string) bool {
+	path, ok := QualifierToImportPath(file, qualifier)
+	if !ok {
+		return false
+	}
+
+	return strings.Contains(path, expectedPathSuffix)
+}
+
+// lastSegment returns the last path segment of an import path.
+func lastSegment(importPath string) string {
+	if idx := strings.LastIndex(importPath, "/"); idx >= 0 {
+		return importPath[idx+1:]
+	}
+
+	return importPath
+}
