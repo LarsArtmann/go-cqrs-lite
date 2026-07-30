@@ -586,6 +586,15 @@ func securityRules() []RuleInfo { //nolint:dupl // catalog entries are structura
 			AutoFix:     false,
 		},
 		{
+			ID:          "S005",
+			Name:        "signing-available-but-disabled",
+			Category:    "security",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Signing module imported but signer construction guarded by a default-false bool flag",
+			AutoFix:     false,
+		},
+		{
 			ID:          "S006",
 			Name:        "financial-data-without-encryption",
 			Category:    "security",
