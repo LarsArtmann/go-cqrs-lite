@@ -133,25 +133,25 @@
 
 ---
 
-## 4. Architecture & Design (E-series)
+## 4. Architecture & Design (E-series) — DONE (8/8 new rules E008-E015)
 
 ### New rules
 
-40. **E008: cqrs-htmx primary path bypasses stack presets** — cqrs-htmx's `NewService` uses `buildDeciderRepositories` (manual) instead of `buildStackRepositories` (stack presets). The most common consumer path doesn't benefit from stack's opinionated defaults. Detect: `decider.NewRepository` called directly when `stack.Bundle` is available in the same module.
+40. ~~**E008: cqrs-htmx primary path bypasses stack presets** — cqrs-htmx's `NewService` uses `buildDeciderRepositories` (manual) instead of `buildStackRepositories` (stack presets). The most common consumer path doesn't benefit from stack's opinionated defaults. Detect: `decider.NewRepository` called directly when `stack.Bundle` is available in the same module.~~ done (architecture/e008_e011.go)
 
-41. **E009: No HTTP integration for CQRS** — standard-bug-tracking-schema has a full ES setup but no HTTP transport layer (no cqrs-htmx, no transport/http). Commands/queries can only be dispatched programmatically. Detect: `command.Dispatcher` + `query.Dispatcher` with no HTTP handler registration.
+41. ~~**E009: No HTTP integration for CQRS** — standard-bug-tracking-schema has a full ES setup but no HTTP transport layer (no cqrs-htmx, no transport/http). Commands/queries can only be dispatched programmatically. Detect: `command.Dispatcher` + `query.Dispatcher` with no HTTP handler registration.~~ done (architecture/e008_e011.go)
 
-42. **E010: Event capture without domain validation** — DiscordSync captures Discord events directly into the store without command/decider validation. There's no domain rule enforcement before persistence. Flag: this is a valid pattern for external event ingestion, but suggest wrapping in a command for validation.
+42. ~~**E010: Event capture without domain validation** — DiscordSync captures Discord events directly into the store without command/decider validation. There's no domain rule enforcement before persistence. Flag: this is a valid pattern for external event ingestion, but suggest wrapping in a command for validation.~~ done (architecture/e008_e011.go)
 
-43. **E011: Adapter layer between decider and command handlers** — standard-bug-tracking-schema has an `EventSourcingAdapter` that bridges decider output to command handlers. KeyCountdown has a `BusAdapter` with double event conversion (211+ LOC). Excessive adapter layers add indirection. Detect: >2 layers between `command.Handler` and `decider.Repository.Execute`.
+43. ~~**E011: Adapter layer between decider and command handlers** — standard-bug-tracking-schema has an `EventSourcingAdapter` that bridges decider output to command handlers. KeyCountdown has a `BusAdapter` with double event conversion (211+ LOC). Excessive adapter layers add indirection. Detect: >2 layers between `command.Handler` and `decider.Repository.Execute`.~~ done (architecture/e008_e011.go)
 
-44. **E012: Dual-write migration bus without completion criteria** — Kernovia has a `dual_write_bus.go` that publishes to both legacy and new systems, but no mechanism to detect when the migration is complete or disable the dual-write. Detect: dual-write pattern (publishing to 2+ buses) without a feature flag or completion check.
+44. ~~**E012: Dual-write migration bus without completion criteria** — Kernovia has a `dual_write_bus.go` that publishes to both legacy and new systems, but no mechanism to detect when the migration is complete or disable the dual-write. Detect: dual-write pattern (publishing to 2+ buses) without a feature flag or completion check.~~ done (architecture/e012_e013.go)
 
-45. **E013: Signing configured but disabled by default** — Kernovia has full signing infrastructure (signing.go) but `DefaultSignerConfig()` sets `Enabled: false`. The security infrastructure is present but inert. Detect: signing/encryption setup code present but disabled via a config flag defaulting to false.
+45. ~~**E013: Signing configured but disabled by default** — Kernovia has full signing infrastructure (signing.go) but `DefaultSignerConfig()` sets `Enabled: false`. The security infrastructure is present but inert. Detect: signing/encryption setup code present but disabled via a config flag defaulting to false.~~ done (architecture/e012_e013.go)
 
-46. **E014: No read-your-writes consistency** — Several projects (crush-daily, timesheets) don't wait for projection drain before responding to commands. The read model may be stale when the command handler returns. Detect: `host.Start` / projection setup without `waitForDrain` or blocking call.
+46. ~~**E014: No read-your-writes consistency** — Several projects (crush-daily, timesheets) don't wait for projection drain before responding to commands. The read model may be stale when the command handler returns. Detect: `host.Start` / projection setup without `waitForDrain` or blocking call.~~ done (architecture/e014_e015.go)
 
-47. **E015: Watermill EventBus without ordered delivery** — Projects using `watermill.NewEventBus()` should verify that ordered delivery is configured for projections. The library's EventBus uses `BlockPublishUntilSubscriberAck=true` by default, but custom configurations may break this. Detect: watermill EventBus config with `BlockPublishUntilSubscriberAck=false`.
+47. ~~**E015: Watermill EventBus without ordered delivery** — Projects using `watermill.NewEventBus()` should verify that ordered delivery is configured for projections. The library's EventBus uses `BlockPublishUntilSubscriberAck=true` by default, but custom configurations may break this. Detect: watermill EventBus config with `BlockPublishUntilSubscriberAck=false`.~~ done (architecture/e014_e015.go)
 
 ---
 
@@ -533,7 +533,7 @@
 | Correctness (C)       | 30 (C001-C030)                                          | 0                                   |
 | API Misuse (A)        | 29 (A001-A027, A029, A030)                              | A028 skipped (too project-specific) |
 | Boilerplate (B)       | 28 (B001-B028)                                          | 0                                   |
-| Architecture (E)      | 7 (E001-E007)                                           | E008-E015 proposed (items 40-47)    |
+| Architecture (E)      | 15 (E001-E015)                                          | DONE (items 40-47)                  |
 | Consistency (D)       | 12 (D001, D002, D003, D005-D013)                        | 0                                   |
 | Security (S)          | 8 (S001-S003, S005-S009)                               | S004 proposed (item 54)             |
 | Performance (P)       | 6 (P001, P006-P010)                                     | P002-P005 are NOT-DO (duplicates)   |
@@ -568,7 +568,7 @@
 13. ~~**P007 bit-shift retry bug** — DiscordSync has a real bug~~ done
 14. ~~**D013 missing schema version stamping** — most projects~~ done
 15. ~~**B025 missing state cache** — most projects~~ done
-16. **E010 event capture without validation** — DiscordSync pattern (E008-E015 not yet implemented)
+16. ~~**E010 event capture without validation** — DiscordSync pattern (E008-E015 DONE)~~
 17. ~~**F003/F004 missing OTel/Prometheus** — most server projects~~ done (F001-F017 all implemented)
 18. ~~**T001 no scenario tests** — most projects with deciders~~ done (T001-T008 implemented)
 19. ~~**C021 mutex held during decode** — crush-daily~~ done

@@ -3,6 +3,7 @@ package correctness
 import (
 	"context"
 	"go/ast"
+	"go/token"
 
 	"github.com/larsartmann/go-finding"
 
@@ -83,6 +84,20 @@ func isInfiniteLoop(stmt *ast.ForStmt) bool {
 }
 
 func loopHasCtxDone(body *ast.BlockStmt) bool {
+	// A for{} loop is only truly infinite if it has no exit path at all.
+	// We check for two kinds of exits:
+	//
+	//  1. Any .Done() call — context cancellation signal (any receiver,
+	//     not just the literal name "ctx"). Covers r.Context().Done(),
+	//     pollCtx.Done(), etc.
+	//
+	//  2. Any return or break statement — the loop body contains an
+	//     explicit exit. This covers ctx.Err() checks, custom stop
+	//     channels (case <-stop: return), bounded loops (if cond { break }),
+	//     and blocking calls that return on error (stream.Recv()).
+	//
+	// We do NOT descend into *ast.FuncLit subtrees — a return inside a
+	// goroutine or callback does not exit the enclosing loop.
 	found := false
 
 	ast.Inspect(body, func(n ast.Node) bool {
@@ -90,16 +105,28 @@ func loopHasCtxDone(body *ast.BlockStmt) bool {
 			return false
 		}
 
-		sel, ok := n.(*ast.SelectorExpr)
-		if !ok {
-			return true
+		// Don't descend into function literals — their return/break
+		// statements belong to the inner function, not the loop.
+		if _, ok := n.(*ast.FuncLit); ok {
+			return false
 		}
 
-		if sel.Sel.Name == "Done" {
-			if recv, ok := sel.X.(*ast.Ident); ok && recv.Name == "ctx" {
-				found = true
-				return false
-			}
+		// Check for .Done() — any receiver, not just "ctx".
+		if sel, ok := n.(*ast.SelectorExpr); ok && sel.Sel.Name == "Done" {
+			found = true
+			return false
+		}
+
+		// Check for break.
+		if branch, ok := n.(*ast.BranchStmt); ok && branch.Tok == token.BREAK {
+			found = true
+			return false
+		}
+
+		// Check for return.
+		if _, ok := n.(*ast.ReturnStmt); ok {
+			found = true
+			return false
 		}
 
 		return true

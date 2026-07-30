@@ -456,3 +456,49 @@ type User struct {
 	findings := runDetector(t, security.NewS006Detector(ctx))
 	assertRule(t, findings, "S006", 0)
 }
+
+func TestS006_IgnoresPanelSubstring(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"ui.go": `package main
+
+type DetailsPanelConfig struct {
+	Sections []string ` + "`json:\"sections,omitempty\"`" + `
+}`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 0)
+}
+
+func TestS006_IgnoresDatabaseSubstring(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"stats.go": `package main
+
+type DiskStats struct {
+	DatabaseBytes int64 ` + "`json:\"databaseBytes\"`" + `
+	EventBytes    int64 ` + "`json:\"eventBytes\"`" + `
+}`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 0)
+}
+
+func TestS006_DetectsPrimaryAccountNumber(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"card.go": `package main
+
+type PaymentCard struct {
+	PrimaryAccountNumber string ` + "`json:\"pan\"`" + `
+}`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 1)
+}
