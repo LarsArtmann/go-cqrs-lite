@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -135,7 +136,7 @@ func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
 		gotTypes[i] = e.Type()
 	}
 
-	if !reflect.DeepEqual(gotTypes, expectedEventTypes) {
+	if len(gotTypes) != len(expectedEventTypes) || !slices.Equal(gotTypes, expectedEventTypes) {
 		s.t.Fatalf("Then: expected event types %v, got %v", expectedEventTypes, gotTypes)
 	}
 }

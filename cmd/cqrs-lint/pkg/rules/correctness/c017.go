@@ -92,8 +92,9 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 func isPersistentStore(s analyzer.StoreKind) bool {
-	return s == analyzer.StoreSQLite || s == analyzer.StorePostgres ||
-		s == analyzer.StorePebble || s == analyzer.StoreTurso
+	// Any non-memory, non-unknown, non-none store is considered persistent.
+	// Custom stores typically wrap SQLite/Postgres and would also lose data.
+	return s != analyzer.StoreMemory && s != analyzer.StoreUnknown && s != analyzer.StoreNone
 }
 
 func describeInMemStore(fnName string) string {
