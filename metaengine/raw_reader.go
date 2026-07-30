@@ -8,6 +8,17 @@ import (
 	"strings"
 )
 
+// jsonValue carries raw JSON bytes from a SQL engine, deferring decode until
+// the typed result is reconstructed. ExecuteTyped and TypedReader recognize
+// this type and unmarshal directly into the target type, avoiding the
+// intermediate map[string]any + reify round-trip (3 JSON ops → 1).
+//
+// This is an internal optimization: memory engines return typed Go values
+// directly (no jsonValue), and the closure-based MapScan path returns decoded
+// any values (filtering needs them). Only pushdown paths (PushdownMapScan,
+// GetRawValue, ScanRawValues) return jsonValue.
+type jsonValue []byte
+
 // --- RawValueReader ---
 
 // GetRawValue reads the raw JSON bytes for a key without decoding to any.
@@ -34,7 +45,7 @@ func (e *sqliteEngine) GetRawValue(ctx context.Context, col string, key any) ([]
 		return nil, false, err //nolint:wrapcheck // passthrough
 	}
 
-	return unsafeStringToBytes(valStr), true, nil
+	return stringToBytes(valStr), true, nil
 }
 
 // --- RawScanReader ---
@@ -196,16 +207,16 @@ func scanRawRows(ctx context.Context, db *sql.DB, query string, args ...any) ([]
 			return nil, err //nolint:wrapcheck // passthrough
 		}
 
-		out = append(out, unsafeStringToBytes(valStr))
+		out = append(out, stringToBytes(valStr))
 	}
 
 	return out, rows.Err() //nolint:wrapcheck // passthrough
 }
 
-// unsafeStringToBytes converts a string to []byte without copying. The result
+// stringToBytes converts a string to []byte without copying. The result
 // shares the string's backing array — safe for read-only use (the caller does
 // not mutate the bytes). This avoids allocating a new []byte for every row.
-func unsafeStringToBytes(s string) []byte {
+func stringToBytes(s string) []byte {
 	if len(s) == 0 {
 		return nil
 	}

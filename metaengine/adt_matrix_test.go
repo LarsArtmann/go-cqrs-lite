@@ -21,8 +21,8 @@ import (
 
 // engineFactory creates a fresh, isolated engine for testing.
 type engineFactory struct {
-	name    string
-	create  func(t *testing.T) metaengine.Engine
+	name     string
+	create   func(t *testing.T) metaengine.Engine
 	supports func(metaengine.Engine) bool // nil = supports all ADTs
 }
 

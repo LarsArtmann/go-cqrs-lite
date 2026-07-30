@@ -3,6 +3,7 @@ package metaengine
 import (
 	"cmp"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -27,6 +28,42 @@ func passesFilters(value any, filters []filterPredicate) bool {
 type filterPredicate struct {
 	expected any
 	test     func(item any) bool
+}
+
+// passesFilterSpecs evaluates declarative FilterSpec predicates against a scan
+// row. Unlike passesFilters (which uses closure-based filterPredicate), this
+// works with declarative FilterSpec values (Column + Op + Value) used by
+// TypedReader.Scan when falling back to ScanBackend.
+func passesFilterSpecs(item any, specs []FilterSpec) bool {
+	for _, spec := range specs {
+		actual := itemFieldByName(item, spec.Column)
+
+		if !evalFilterOp(spec.Op, actual, spec.Value) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// evalFilterOp evaluates a single filter comparison against an actual value.
+func evalFilterOp(op FilterOp, actual, expected any) bool {
+	switch op {
+	case FilterEq:
+		return reflect.DeepEqual(actual, expected)
+	case FilterNe:
+		return !reflect.DeepEqual(actual, expected)
+	case FilterLt:
+		return compareValue(actual, expected) < 0
+	case FilterLe:
+		return compareValue(actual, expected) <= 0
+	case FilterGt:
+		return compareValue(actual, expected) > 0
+	case FilterGe:
+		return compareValue(actual, expected) >= 0
+	default:
+		return false
+	}
 }
 
 // compareValue performs a type-aware tri-state comparison: -1 (a < b), 0 (equal), +1 (a > b).

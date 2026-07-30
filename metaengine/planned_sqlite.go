@@ -133,30 +133,49 @@ func (e *sqliteEngine) mapUpdatePlanned(
 	key any,
 	update func(prev any) any,
 ) error {
-	tx, err := e.db.BeginTx(ctx, nil)
+	return runTxReadModifyWrite(ctx, e.db, update,
+		func(ctx context.Context, tx *sql.Tx) (any, error) {
+			var valStr string
+			if err := tx.QueryRowContext(ctx,
+				fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
+				encodeKey(key)).Scan(&valStr); err != nil {
+				return nil, err //nolint:wrapcheck // ErrNoRows handled by caller
+			}
+
+			return decodeJSONValue(valStr), nil
+		},
+		func(ctx context.Context, tx *sql.Tx, newVal any) error {
+			return execPlannedSet(ctx, tx, plan, key, newVal)
+		},
+	)
+}
+
+// runTxReadModifyWrite wraps a read-modify-write cycle in a single transaction
+// so concurrent updates on the same key cannot interleave. The readFn may
+// return sql.ErrNoRows (treated as nil prev); all other errors propagate.
+func runTxReadModifyWrite(
+	ctx context.Context,
+	db *sql.DB,
+	update func(prev any) any,
+	readFn func(ctx context.Context, tx *sql.Tx) (any, error),
+	writeFn func(ctx context.Context, tx *sql.Tx, newVal any) error,
+) error {
+	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err //nolint:wrapcheck // passthrough
 	}
 
 	defer func() { _ = tx.Rollback() }()
 
-	var valStr string
+	prev, readErr := readFn(ctx, tx)
 
-	queryErr := tx.QueryRowContext(ctx,
-		fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
-		encodeKey(key)).Scan(&valStr)
-
-	var prev any
-
-	if queryErr == nil {
-		prev = decodeJSONValue(valStr)
-	} else if !errors.Is(queryErr, sql.ErrNoRows) {
-		return queryErr //nolint:wrapcheck // passthrough
+	if readErr != nil && !errors.Is(readErr, sql.ErrNoRows) {
+		return readErr //nolint:wrapcheck // passthrough
 	}
 
 	newVal := update(prev)
 
-	if err := execPlannedSet(ctx, tx, plan, key, newVal); err != nil {
+	if err := writeFn(ctx, tx, newVal); err != nil {
 		return err //nolint:wrapcheck // passthrough
 	}
 
