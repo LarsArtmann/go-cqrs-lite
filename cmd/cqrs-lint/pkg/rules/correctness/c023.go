@@ -113,7 +113,16 @@ func hasDeferAncestor(ancestors []ast.Node) bool {
 }
 
 func emitC023(ctx *analyzer.AnalysisContext, assign *ast.AssignStmt, findings *[]finding.Finding) {
-	sel := assign.Rhs[0].(*ast.CallExpr).Fun.(*ast.SelectorExpr)
+	call, ok := assign.Rhs[0].(*ast.CallExpr)
+	if !ok {
+		return
+	}
+
+	sel, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return
+	}
+
 	pos := ctx.Fset.Position(assign.Pos())
 
 	f, err := finding.NewBuilder(
