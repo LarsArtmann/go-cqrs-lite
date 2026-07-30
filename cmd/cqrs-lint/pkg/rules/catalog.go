@@ -193,7 +193,7 @@ func correctnessRules() []RuleInfo {
 			Category:    "correctness",
 			Severity:    "error",
 			Confidence:  "high",
-			Description: "In-memory snapshot/checkpoint/DLQ store with persistent event store — lost on restart",
+			Description: "In-memory snapshot/checkpoint/dead-letter/timer store with persistent event store — lost on restart",
 			AutoFix:     false,
 		},
 		{

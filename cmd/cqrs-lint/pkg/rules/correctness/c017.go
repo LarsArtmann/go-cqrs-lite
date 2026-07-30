@@ -14,7 +14,8 @@ import (
 // restart, making the snapshot/checkpoint optimization useless and causing
 // full projection replays every time.
 //
-// C017: In-memory snapshot store with persistent event store.
+// C017: In-memory snapshot/checkpoint/dead-letter/timer store with persistent
+// event store.
 //
 //nolint:ireturn // factory returns public interface
 func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {

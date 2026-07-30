@@ -3,6 +3,7 @@ package correctness
 import (
 	"context"
 	"go/ast"
+	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -11,14 +12,16 @@ import (
 )
 
 // C032: Context propagation gaps in handlers.
-// Detects `context.Background()` or `context.TODO()` calls inside functions
-// that already receive a context.Context parameter. Using a fresh context
-// breaks distributed tracing (the trace ID is lost), cancels parent
-// cancellation propagation, and disconnects timeout budgets.
+// Detects `context.Background()` or `context.TODO()` calls inside CQRS
+// handlers/projectors that already receive a context.Context parameter.
+// Using a fresh context breaks distributed tracing (the trace ID is lost),
+// cancels parent cancellation propagation, and disconnects timeout budgets.
 //
-// This detector scans functions whose signature includes a context.Context
-// first parameter (the standard Go convention), looking for context creation
-// calls in the body.
+// Scope is deliberately narrow: only functions that look like CQRS handlers
+// (Handle/Apply/Project/etc.) or methods on handler/projection/read-model
+// receiver types. Firing on EVERY ctx-accepting function produces false
+// positives (background workers, initializers, detached goroutines all
+// legitimately create fresh contexts).
 //
 //nolint:ireturn // factory returns public interface
 func NewC032Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -38,7 +41,7 @@ func NewC032Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if !hasCtxParam(fn.Type) {
+					if !hasCtxParam(fn.Type) || !isHandlerOrProjector(fn) {
 						return true
 					}
 
@@ -97,6 +100,62 @@ func hasCtxParam(ft *ast.FuncType) bool {
 	}
 
 	return false
+}
+
+// handlerFuncNames are CQRS handler/projector method names (lowercased —
+// matching is case-insensitive so "handle", "Handle", and "HANDLE" all match).
+var handlerFuncNames = map[string]bool{
+	"handle": true, "handleevent": true, "handlecommand": true,
+	"handlequery": true, "handlecontext": true, "handlectx": true,
+	"handleerror": true, "apply": true, "project": true,
+	"fold": true, "decide": true, "execute": true, "executectx": true,
+}
+
+// handlerReceiverKeywords identify receiver type names that look like CQRS
+// handlers, projectors, or read models.
+var handlerReceiverKeywords = []string{
+	"handler", "projector", "projection", "readmodel", "viewstore",
+	"view", "consumer", "subscriber", "listener", "worker",
+}
+
+// isHandlerOrProjector reports whether the function declaration looks like a
+// CQRS handler or projector. It matches either by function name (Handle,
+// Apply, Project, etc.) or by the receiver type name containing
+// handler/projection/read-model keywords.
+func isHandlerOrProjector(fn *ast.FuncDecl) bool {
+	if handlerFuncNames[strings.ToLower(fn.Name.Name)] {
+		return true
+	}
+
+	if fn.Recv == nil || len(fn.Recv.List) == 0 {
+		return false
+	}
+
+	recvName := receiverTypeName(fn.Recv.List[0].Type)
+	lower := strings.ToLower(recvName)
+	for _, kw := range handlerReceiverKeywords {
+		if strings.Contains(lower, kw) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// receiverTypeName extracts the type name from a receiver expression,
+// unwrapping pointers and generics.
+func receiverTypeName(expr ast.Expr) string {
+	switch t := expr.(type) {
+	case *ast.StarExpr:
+		return receiverTypeName(t.X)
+	case *ast.Ident:
+		return t.Name
+	case *ast.IndexExpr:
+		return receiverTypeName(t.X)
+	case *ast.IndexListExpr:
+		return receiverTypeName(t.X)
+	}
+	return ""
 }
 
 // isContextCreation reports whether the call is context.Background() or

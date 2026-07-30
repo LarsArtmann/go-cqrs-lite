@@ -114,7 +114,7 @@ Explicit `features` flags always override preset values.
 | C014 | time-local-usage                          | Warning  | time.Local causes silent data corruption across timezone boundaries                                  |
 | C015 | unchecked-close                           | Warning  | Close() error discarded — resource leak or silent data loss risk                                     |
 | C016 | background-in-handler                     | Warning  | context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing |
-| C017 | inmem-store-persistent-eventstore         | Error    | In-memory snapshot/checkpoint/DLQ store with persistent event store — lost on restart                |
+| C017 | inmem-store-persistent-eventstore         | Error    | In-memory snapshot/checkpoint/dead-letter/timer store with persistent event store — lost on restart  |
 | C018 | silent-journal-fallback                   | Error    | memory.NewMemoryStore() as journal fallback — projections replay from empty journal                  |
 | C019 | multiple-repos-same-aggregate             | Warning  | Multiple Repository instances for the same aggregate type — wastes singleflight/cache                |
 | C020 | panic-in-handler                          | Error    | panic() in bus.Subscribe/SubscribeAll handler — crashes the bus/projection host                      |

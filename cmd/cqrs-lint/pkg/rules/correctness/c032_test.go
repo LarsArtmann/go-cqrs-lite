@@ -78,6 +78,44 @@ func setup() {
 	assertRule(t, findings, "C032", 0)
 }
 
+func TestC032_NoFindingForNonHandlerWithContextParam(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "context"
+
+func backgroundWorker(ctx context.Context) {
+	detached := context.Background()
+	go run(detached)
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC032Detector(ctx))
+	assertRule(t, findings, "C032", 0)
+}
+
+func TestC032_DetectsInProjectionMethod(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "context"
+
+type UserProjection struct{}
+
+func (p *UserProjection) Sync(ctx context.Context, evt Event) error {
+	bg := context.Background()
+	return apply(bg, evt)
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC032Detector(ctx))
+	assertRule(t, findings, "C032", 1)
+}
+
 func TestC032_NoFindingOnEmptyContext(t *testing.T) {
 	t.Parallel()
 
