@@ -125,19 +125,19 @@ transactional event store.
 
 **DSN format:**
 
-| DSN                      | Meaning                                                                  |
-| ------------------------ | ------------------------------------------------------------------------ |
-| `""` (empty)             | In-memory database (process-local, lost on close)                        |
-| `/path/to/file.db`       | Persistent single-file database                                          |
-| `:memory:`               | Explicit in-memory                                                       |
+| DSN                | Meaning                                           |
+| ------------------ | ------------------------------------------------- |
+| `""` (empty)       | In-memory database (process-local, lost on close) |
+| `/path/to/file.db` | Persistent single-file database                   |
+| `:memory:`         | Explicit in-memory                                |
 
 Query-string options tune the engine and are appended to the DSN automatically
 by the helpers:
 
-| Option          | Helper                  | Effect                                  |
-| --------------- | ----------------------- | --------------------------------------- |
-| `threads=N`     | `duckdb.WithThreads(4)` | DuckDB worker threads                   |
-| `memory_limit`  | `duckdb.WithMemoryLimit("1GB")` | Memory cap (DuckDB syntax, e.g. `1GB`) |
+| Option         | Helper                          | Effect                                 |
+| -------------- | ------------------------------- | -------------------------------------- |
+| `threads=N`    | `duckdb.WithThreads(4)`         | DuckDB worker threads                  |
+| `memory_limit` | `duckdb.WithMemoryLimit("1GB")` | Memory cap (DuckDB syntax, e.g. `1GB`) |
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/stack/duckdb"
@@ -155,6 +155,7 @@ bundle, _ := duckdb.New("primary.db",
 ```
 
 Notes:
+
 - The `metadata` column is `BLOB` (not VARCHAR) to avoid byte-slice escaping on
   roundtrip; the dialect uses `$1` placeholders (Postgres-compatible) and returns
   `time.Time` natively.

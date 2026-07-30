@@ -125,9 +125,9 @@ Explicit `features` flags always override preset values.
 | C025 | bare-errorf-in-cqrs                       | Warning  | fmt.Errorf without %w in CQRS code — loses error classification                                      |
 | C026 | idempotency-ttl-mismatch                  | Warning  | Literal TTL passed but a TTL constant is defined and not used — dead/misleading code                 |
 | C027 | bus-subscription-alongside-projectionhost | Warning  | bus.Subscribe alongside projectionhost — events may be processed twice                               |
-| C028 | swallowed-cqrs-error                  | Warning  | Error from Dispatch/Execute/Load/Register discarded — operation failures indicate real problems     |
-| C029 | queryidempotency-nil-keyextractor     | Error    | QueryIdempotency with nil keyExtractor panics at runtime — queries have no default identity          |
-| C030 | no-ctx-cancel-in-loop                 | Warning  | Infinite loop without context cancellation — goroutine leaks on shutdown                             |
+| C028 | swallowed-cqrs-error                      | Warning  | Error from Dispatch/Execute/Load/Register discarded — operation failures indicate real problems      |
+| C029 | queryidempotency-nil-keyextractor         | Error    | QueryIdempotency with nil keyExtractor panics at runtime — queries have no default identity          |
+| C030 | no-ctx-cancel-in-loop                     | Warning  | Infinite loop without context cancellation — goroutine leaks on shutdown                             |
 
 ## API Misuse Rules
 
@@ -157,30 +157,30 @@ Explicit `features` flags always override preset values.
 
 ## Boilerplate Rules
 
-| ID   | Rule                            | Severity | Description                                                                 |
-| ---- | ------------------------------- | -------- | --------------------------------------------------------------------------- |
-| B001 | single-event-helper             | Info     | Use event.Single() instead                                                  |
-| B002 | manual-repository-wiring        | Info     | Use stack preset instead                                                    |
-| B003 | subscribeall-large-switch       | Info     | Split into separate projections                                             |
-| B004 | command-constructor-boilerplate | Info     | Command with many fields — use cqrs-gen                                     |
-| B005 | fold-switch-boilerplate         | Info     | Fold uses switch — consider decider.StrictApply                             |
-| B006 | duplicate-fk-stub-sql           | Info     | Duplicated foreign-key SQL — centralize                                     |
-| B007 | repeated-handler-registration   | Info     | 3+ consecutive registrations — table-driven                                 |
-| B008 | manual-retry-implementation     | Warning  | Manual retry loop — use retry.Do                                            |
-| B009 | emit-function-boilerplate       | Info     | Hand-written emit helper wrapping event.New                                 |
-| B010 | catalog-event-list-boilerplate  | Info     | 3+ catalog.Event calls — use cqrs-gen                                       |
-| B011 | must-marshal-helper             | Info     | mustMarshal helper — use event.New                                          |
-| B012 | make-event-helper               | Info     | Hand-written makeEvent helper — use event.New                               |
-| B013 | missing-correlation-enricher    | Warning  | Repository without correlation enricher                                     |
-| B014 | missing-otel-middleware         | Info     | Bus/dispatcher lacks OTel tracing                                           |
-| B015 | missing-test-utilities          | Info     | Project has tests but no testutil imports                                   |
-| B021 | fold-without-strictapply        | Warning  | Fold function silently ignores unknown events — use decider.StrictApply     |
-| B023 | missing-command-middleware      | Warning  | Command dispatcher has no middleware — panics in handlers crash the process |
-| B024 | missing-bus-recovery            | Warning  | Event bus has no recovery middleware — panics in handlers crash the bus     |
+| ID   | Rule                            | Severity | Description                                                                    |
+| ---- | ------------------------------- | -------- | ------------------------------------------------------------------------------ |
+| B001 | single-event-helper             | Info     | Use event.Single() instead                                                     |
+| B002 | manual-repository-wiring        | Info     | Use stack preset instead                                                       |
+| B003 | subscribeall-large-switch       | Info     | Split into separate projections                                                |
+| B004 | command-constructor-boilerplate | Info     | Command with many fields — use cqrs-gen                                        |
+| B005 | fold-switch-boilerplate         | Info     | Fold uses switch — consider decider.StrictApply                                |
+| B006 | duplicate-fk-stub-sql           | Info     | Duplicated foreign-key SQL — centralize                                        |
+| B007 | repeated-handler-registration   | Info     | 3+ consecutive registrations — table-driven                                    |
+| B008 | manual-retry-implementation     | Warning  | Manual retry loop — use retry.Do                                               |
+| B009 | emit-function-boilerplate       | Info     | Hand-written emit helper wrapping event.New                                    |
+| B010 | catalog-event-list-boilerplate  | Info     | 3+ catalog.Event calls — use cqrs-gen                                          |
+| B011 | must-marshal-helper             | Info     | mustMarshal helper — use event.New                                             |
+| B012 | make-event-helper               | Info     | Hand-written makeEvent helper — use event.New                                  |
+| B013 | missing-correlation-enricher    | Warning  | Repository without correlation enricher                                        |
+| B014 | missing-otel-middleware         | Info     | Bus/dispatcher lacks OTel tracing                                              |
+| B015 | missing-test-utilities          | Info     | Project has tests but no testutil imports                                      |
+| B021 | fold-without-strictapply        | Warning  | Fold function silently ignores unknown events — use decider.StrictApply        |
+| B023 | missing-command-middleware      | Warning  | Command dispatcher has no middleware — panics in handlers crash the process    |
+| B024 | missing-bus-recovery            | Warning  | Event bus has no recovery middleware — panics in handlers crash the bus        |
 | B025 | missing-state-cache             | Info     | Repository without WithStateCache — hot streams benefit from incremental loads |
-| B026 | missing-catalog-registration    | Info     | 3+ event types but no catalog import — documentation generation unavailable |
-| B027 | hardcoded-stream-type           | Info     | Hardcoded stream-type string literal — use a constant                        |
-| B028 | manual-goroutine-dispatch       | Info     | Manual goroutine dispatch instead of deriver.AsHandler — loses idempotency  |
+| B026 | missing-catalog-registration    | Info     | 3+ event types but no catalog import — documentation generation unavailable    |
+| B027 | hardcoded-stream-type           | Info     | Hardcoded stream-type string literal — use a constant                          |
+| B028 | manual-goroutine-dispatch       | Info     | Manual goroutine dispatch instead of deriver.AsHandler — loses idempotency     |
 
 ## Consistency Rules
 
@@ -192,7 +192,7 @@ Explicit `features` flags always override preset values.
 | D005 | stale-documentation-version  | Warning  | Docs reference different version than go.mod                                                                     |
 | D006 | missing-errorfamily          | Info     | errors.New or fmt.Errorf without %w bypasses the 6-family error taxonomy                                         |
 | D011 | nil-payload-event            | Warning  | Event created with nil payload — cannot be decoded, provides no audit trail                                      |
-| D012 | raw-print-in-handler         | Info     | Raw fmt/log print in CQRS handler — use structured logging (slog)                                               |
+| D012 | raw-print-in-handler         | Info     | Raw fmt/log print in CQRS handler — use structured logging (slog)                                                |
 
 ## Architecture Rules
 
@@ -208,15 +208,15 @@ Explicit `features` flags always override preset values.
 
 ## Security Rules
 
-| ID   | Rule                                      | Severity | Description                                          |
-| ---- | ----------------------------------------- | -------- | ---------------------------------------------------- |
-| S001 | hardcoded-secrets                         | Critical | Potential hardcoded secret in string literal         |
-| S002 | missing-encryption-for-sensitive-payloads | Error    | PII event payloads without encryption middleware     |
-| S003 | missing-event-signing                     | Warning  | Event store without signing middleware               |
-| S006 | financial-data-without-encryption          | Warning  | Financial data in structs without encryption module |
-| S007 | in-memory-session-store                   | Warning  | In-memory session/token store loses state on restart |
-| S008 | asymmetric-signing                       | Error    | SignMiddleware without VerifyMiddleware (or vice versa) — signing is decorative |
-| S009 | asymmetric-encryption                    | Error    | EncryptMiddleware without DecryptMiddleware (or vice versa) — events break consumers |
+| ID   | Rule                                      | Severity | Description                                                                          |
+| ---- | ----------------------------------------- | -------- | ------------------------------------------------------------------------------------ |
+| S001 | hardcoded-secrets                         | Critical | Potential hardcoded secret in string literal                                         |
+| S002 | missing-encryption-for-sensitive-payloads | Error    | PII event payloads without encryption middleware                                     |
+| S003 | missing-event-signing                     | Warning  | Event store without signing middleware                                               |
+| S006 | financial-data-without-encryption         | Warning  | Financial data in structs without encryption module                                  |
+| S007 | in-memory-session-store                   | Warning  | In-memory session/token store loses state on restart                                 |
+| S008 | asymmetric-signing                        | Error    | SignMiddleware without VerifyMiddleware (or vice versa) — signing is decorative      |
+| S009 | asymmetric-encryption                     | Error    | EncryptMiddleware without DecryptMiddleware (or vice versa) — events break consumers |
 
 ## Performance Rules
 
@@ -227,7 +227,7 @@ Explicit `features` flags always override preset values.
 | P008 | projectionhost-no-batchsize | Info     | projectionhost.New without WithBatchSize — throughput bottleneck on large streams |
 | P009 | json-codec-large-payloads   | Info     | Large event payload using JSON codec — CBOR is ~35% smaller                       |
 | P010 | no-snapshot-large-aggregate | Warning  | Collection-type state without snapshot strategy or cache — expensive reloads      |
-| P006 | polling-loop-short-interval | Info     | time.Sleep <100ms inside a for-loop — busy-poll pattern                            |
+| P006 | polling-loop-short-interval | Info     | time.Sleep <100ms inside a for-loop — busy-poll pattern                           |
 
 ## Version Rules
 

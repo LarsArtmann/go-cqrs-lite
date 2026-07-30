@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
-	turso.tech/database/tursogo v0.7.1
+	turso.tech/database/tursogo v0.7.2
 )
 
 require (
@@ -49,7 +49,7 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
-	github.com/tursodatabase/turso-go-platform-libs v0.7.1 // indirect
+	github.com/tursodatabase/turso-go-platform-libs v0.7.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.44.0 // indirect

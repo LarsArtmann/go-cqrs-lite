@@ -65,6 +65,7 @@
 ## f) Up to 50 Things to Get Done Next
 
 ### S005 follow-ups (immediate)
+
 1. Run `nix run .#verify` and fix whatever it surfaces
 2. Run `nix run .#lint` and fix linter findings
 3. Run `cmd/doc-check` on IMPROVEMENT_IDEAS.md
@@ -76,11 +77,13 @@
 9. Regenerate api-stability golden (after fixing the build error)
 
 ### api-stability tool
+
 10. Fix `undefined: collectExports` build error in `cmd/api-stability/main.go`
 11. Regenerate the golden file with S005 export included
 12. Verify `TestEveryGoModDirIsInModulesList` still passes
 
 ### Prior-session carried-over work
+
 13. P010 improvement — switch from `extractStateTypeFromCall` to `ctx.Registry.Deciders[].StateType`
 14. Promote `callHasOption` from `performance/helpers.go` to `lintutil/lintutil.go`
 15. Write C003 extension tests (`foldHasSilentIfStmt` detection)
@@ -88,22 +91,26 @@
 17. Decide on daemon-created `adoption/` package (F001-F017) — keep or revert
 
 ### S-series remaining
+
 18. Implement S004 (PII data without encryption at field level)
 19. Audit S002/S003 for the same `ctx.Packages`-only import check bug (likely affects S002 too)
 20. Consider whether S005 should detect `else` branches (signing when flag is false)
 
 ### Documentation
+
 21. Update AGENTS.md module table to reflect S005 addition
 22. Run `UPDATE_SNAPS=true` if any golden snapshots reference rule counts
 23. Check if README.md references the rule count (150 → 151)
 
 ### Code quality
+
 24. Run `nix run .#check-duplication` — `moduleHasSigning` + `moduleHasEncryption` are structurally identical with only the module path differing; may trigger the dedup gate
 25. Run `nix run .#check-layers` — verify dependency budget unchanged
 26. Run `nix run .#check-coverage` — verify coverage didn't regress
 27. Consider parameterizing `moduleHasSigning`/`moduleHasEncryption` into `moduleHasImport(ctx, pathPart string)` in lintutil
 
 ### Testing improvements
+
 28. Add S005 test for `GenerateEd25519KeyPair` inside a guard
 29. Add S005 test for COSE constructors inside a guard
 30. Add S005 test for `RequireSignatureMiddleware` inside a guard
@@ -111,6 +118,7 @@
 32. Add S005 test for multiple enable fields in the same struct
 
 ### Broader cqrs-lint improvements
+
 33. Audit all S-series detectors for the `ctx.Packages` vs AST import asymmetry
 34. Audit all detectors that check imports — ensure they all have AST fallbacks
 35. Consider a shared `moduleHasImport(ctx, pathFragment string)` helper in lintutil for all import checks
@@ -119,6 +127,7 @@
 38. Review F001-F017 adoption rules for quality (daemon-created, unchecked)
 
 ### Process
+
 39. Never claim GREEN without `nix run .#verify` — update personal checklist
 40. Always check api-stability golden after adding exported symbols
 41. Run doc-check after every markdown edit containing import paths
@@ -126,6 +135,7 @@
 43. When research disproves a documented claim, correct the documentation in the same edit
 
 ### Stretch
+
 44. S005 confidence/severity tuning — consider FeatureProfile.HasServer downgrade (like S002/S006)
 45. S005 should SUGGEST a specific fix (e.g., "set SigningEnabled: true in DefaultConfig()")
 46. Consider a "disabled-by-default" pattern detector for encryption too (analogous S005 for S009)
@@ -139,10 +149,13 @@
 ## g) Questions I Cannot Answer Myself
 
 ### 1. Should S005 fire for server projects at a higher severity?
+
 S002 and S006 downgrade to `SeverityInfo` for non-server projects. I did NOT implement FeatureProfile gating for S005 — it fires at `SeverityWarning` regardless. For a production server, a disabled signer is arguably a `SeverityError` (tamper protection silently absent). Should I add `HasServer`-based severity escalation?
 
 ### 2. Should I fix S003's broken import check now, or is that out of scope?
+
 S003 (`s002_s003.go:174-188`) has the same signing-import check but without the AST fallback — it's silently broken in test contexts and potentially in real lint runs where `ctx.Packages` doesn't carry import data. Fixing it is a 2-line change (call `moduleHasSigning`). But it's a behavior change to an existing rule. Fix now or ticket it?
 
 ### 3. Should `moduleHasSigning` and `moduleHasEncryption` be parameterized into one helper?
+
 They are structurally identical — the only difference is the string `"go-cqrs-lite/signing"` vs `"go-cqrs-lite/encryption"`. The dedup gate (`nix run .#check-duplication`) may flag this. Should I extract `moduleHasImport(ctx *analyzer.AnalysisContext, pathFragment string) bool` into lintutil, or keep them separate for readability?

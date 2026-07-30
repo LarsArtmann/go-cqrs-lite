@@ -528,21 +528,21 @@
 
 ## Summary Statistics
 
-| Category              | Rules in code                                           | Open ideas                          |
-| --------------------- | ------------------------------------------------------- | ----------------------------------- |
-| Correctness (C)       | 30 (C001-C030)                                          | 0                                   |
-| API Misuse (A)        | 29 (A001-A027, A029, A030)                              | A028 skipped (too project-specific) |
-| Boilerplate (B)       | 28 (B001-B028)                                          | 0                                   |
-| Architecture (E)      | 15 (E001-E015)                                          | DONE (items 40-47)                  |
-| Consistency (D)       | 12 (D001, D002, D003, D005-D013)                        | 0                                   |
-| Security (S)          | 8 (S001-S003, S005-S009)                               | S004 proposed (item 54)             |
-| Performance (P)       | 6 (P001, P006-P010)                                     | P002-P005 are NOT-DO (duplicates)   |
-| Version/Migration (V) | 6 (V001-V006)                                           | 0                                   |
-| Testing (T)           | 8 (T001-T008)                                           | 0                                   |
-| Feature Adoption (F)  | 17 (F001-F017)                                          | 0                                   |
-| DX & Infrastructure   | N/A                                                     | 35 items (99-133)                   |
-| Extended Ideas        | N/A                                                     | 46 items (134-179)                  |
-| **Total**             | **151**                                                 | ~88 open                            |
+| Category              | Rules in code                    | Open ideas                          |
+| --------------------- | -------------------------------- | ----------------------------------- |
+| Correctness (C)       | 30 (C001-C030)                   | 0                                   |
+| API Misuse (A)        | 29 (A001-A027, A029, A030)       | A028 skipped (too project-specific) |
+| Boilerplate (B)       | 28 (B001-B028)                   | 0                                   |
+| Architecture (E)      | 15 (E001-E015)                   | DONE (items 40-47)                  |
+| Consistency (D)       | 12 (D001, D002, D003, D005-D013) | 0                                   |
+| Security (S)          | 8 (S001-S003, S005-S009)         | S004 proposed (item 54)             |
+| Performance (P)       | 6 (P001, P006-P010)              | P002-P005 are NOT-DO (duplicates)   |
+| Version/Migration (V) | 6 (V001-V006)                    | 0                                   |
+| Testing (T)           | 8 (T001-T008)                    | 0                                   |
+| Feature Adoption (F)  | 17 (F001-F017)                   | 0                                   |
+| DX & Infrastructure   | N/A                              | 35 items (99-133)                   |
+| Extended Ideas        | N/A                              | 46 items (134-179)                  |
+| **Total**             | **151**                          | ~88 open                            |
 
 ---
 

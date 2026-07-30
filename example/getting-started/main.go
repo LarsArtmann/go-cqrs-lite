@@ -23,7 +23,10 @@ import (
 // the domain (events, state, decide). Swap memory → sqlite/pebble/postgres
 // by changing ONE line — the consumer code doesn't change.
 
-const evtIncremented = event.Type("counter.incremented")
+const (
+	evtIncremented = event.Type("counter.incremented")
+	streamType     = "Counter"
+)
 
 type IncrementedPayload struct {
 	Amount int `json:"amount"`
@@ -50,7 +53,7 @@ func applyCounter(s CounterState, evt event.Event) (CounterState, error) {
 // the current (replayed) state. Version enables optimistic concurrency.
 func increment(aggID id.StreamID, amount int) decider.DecideFunc[CounterState] {
 	return func(_ CounterState, v event.Version) ([]event.Event, error) {
-		evt, err := event.New(evtIncremented, aggID, "Counter",
+		evt, err := event.New(evtIncremented, aggID, streamType,
 			v.Increment(), IncrementedPayload{Amount: amount})
 		if err != nil {
 			return nil, err
@@ -96,13 +99,19 @@ func main() {
 	}
 
 	mat.OnCreate = func(_ context.Context, evt event.Event) (*CounterView, error) {
-		p, _ := event.DecodePayloadAuto[IncrementedPayload](evt)
+		p, err := event.DecodePayloadAuto[IncrementedPayload](evt)
+		if err != nil {
+			return nil, fmt.Errorf("decode incremented: %w", err)
+		}
 
 		return &CounterView{Value: p.Amount}, nil
 	}
 
 	mat.OnUpdate = func(_ context.Context, evt event.Event, ex *CounterView) (*CounterView, error) {
-		p, _ := event.DecodePayloadAuto[IncrementedPayload](evt)
+		p, err := event.DecodePayloadAuto[IncrementedPayload](evt)
+		if err != nil {
+			return nil, fmt.Errorf("decode incremented: %w", err)
+		}
 
 		return &CounterView{Value: ex.Value + p.Amount}, nil
 	}
@@ -116,7 +125,7 @@ func main() {
 	counterID := id.NewStreamID()
 
 	for _, amt := range []int{5, 3, 2} {
-		if err := repo.Execute(ctx, counterID, "Counter", increment(counterID, amt)); err != nil {
+		if err := repo.Execute(ctx, counterID, streamType, increment(counterID, amt)); err != nil {
 			log.Fatal(err)
 		}
 	}

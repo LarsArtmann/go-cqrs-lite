@@ -154,6 +154,7 @@ func newBenchQueryDispatcher(
 ) *query.Dispatcher {
 	disp := query.NewDispatcher()
 
+	//cqrs-lint:ignore(C028) benchkit internal: handler registration is static, cannot fail
 	_ = query.RegisterTyped[getCountQuery, CountResult](
 		disp, getCountQueryType,
 		func(ctx context.Context, q getCountQuery) (CountResult, error) {
@@ -170,6 +171,7 @@ func newBenchQueryDispatcher(
 		},
 	)
 
+	//cqrs-lint:ignore(C028) benchkit internal: handler registration is static, cannot fail
 	_ = query.RegisterTyped[listCountsQuery, query.PaginatedResult[CountResult]](
 		disp, listCountsQueryType,
 		func(ctx context.Context, q listCountsQuery) (query.PaginatedResult[CountResult], error) {

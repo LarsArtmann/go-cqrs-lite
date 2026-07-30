@@ -10,13 +10,13 @@
 
 ### 5 New D-Series Detectors Implemented
 
-| Rule | File | Lines | Detection Type | Severity |
-|------|------|-------|----------------|----------|
-| D007 | `d007_d008_d013.go` | — | Project-level (both `event.New` + `event.NewEvent`) | info/medium |
-| D008 | `d007_d008_d013.go` | — | Project-level (both `DecodePayload` + `DecodePayloadAuto`) | info/medium |
-| D009 | `d009_d010.go` | — | Project-level (`io.Closer` + anonymous `interface{ Close() error }`) | info/low |
-| D010 | `d009_d010.go` | — | Per-occurrence (`"internal"` literal in `errorfamily.Wrap*`) | info/medium |
-| D013 | `d007_d008_d013.go` | — | Project-level (event creation without `WithSchemaVersion`) | info/low |
+| Rule | File                | Lines | Detection Type                                                       | Severity    |
+| ---- | ------------------- | ----- | -------------------------------------------------------------------- | ----------- |
+| D007 | `d007_d008_d013.go` | —     | Project-level (both `event.New` + `event.NewEvent`)                  | info/medium |
+| D008 | `d007_d008_d013.go` | —     | Project-level (both `DecodePayload` + `DecodePayloadAuto`)           | info/medium |
+| D009 | `d009_d010.go`      | —     | Project-level (`io.Closer` + anonymous `interface{ Close() error }`) | info/low    |
+| D010 | `d009_d010.go`      | —     | Per-occurrence (`"internal"` literal in `errorfamily.Wrap*`)         | info/medium |
+| D013 | `d007_d008_d013.go` | —     | Project-level (event creation without `WithSchemaVersion`)           | info/low    |
 
 ### Wiring
 

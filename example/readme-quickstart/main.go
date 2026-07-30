@@ -12,6 +12,8 @@ import (
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
+const streamType = "User"
+
 type (
 	UserState   struct{ Name string }
 	UserCreated struct{ Name string }
@@ -49,9 +51,9 @@ func main() {
 			return repo.Execute(
 				ctx,
 				cmd.StreamID(),
-				"User",
+				streamType,
 				func(_ UserState, v event.Version) ([]event.Event, error) {
-					return event.NewEvents(cmd.StreamID(), "User", v,
+					return event.NewEvents(cmd.StreamID(), streamType, v,
 						[]event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
 				},
 			)
@@ -60,6 +62,6 @@ func main() {
 	basic, _ := command.New("user.create", aggID)
 	_ = cmds.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Alice"})
 
-	state, _, _ := repo.Load(ctx, aggID, "User")
+	state, _, _ := repo.Load(ctx, aggID, streamType)
 	fmt.Printf("User: %s\n", state.Name) // User: Alice
 }
