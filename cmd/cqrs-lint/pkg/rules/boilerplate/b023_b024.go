@@ -203,7 +203,7 @@ func detectMissingBusRecovery(ctx *analyzer.AnalysisContext) ([]finding.Finding,
 			fnName := sel.Sel.Name
 
 			// Detect event bus creation.
-			if fnName == "NewEventBus" || fnName == "NewBus" {
+			if fnName == "NewEventBus" || fnName == "NewBus" || fnName == "NewMemoryBus" {
 				pkg := analyzer.SelectorPackage(sel)
 				if pkg == "event" || pkg == "watermill" || pkg == "memory" {
 					if !hasBusCreation {

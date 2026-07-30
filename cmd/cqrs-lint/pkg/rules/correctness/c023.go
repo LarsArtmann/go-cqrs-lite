@@ -60,6 +60,12 @@ func NewC023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
+					// Skip defer statements — deferred close/stop is the standard
+					// Go cleanup pattern. Error in defer is conventionally ignored.
+					if isInsideDefer(gf.AST, assign) {
+						return true
+					}
+
 					pos := ctx.Fset.Position(assign.Pos())
 
 					f, err := finding.NewBuilder(
@@ -87,4 +93,52 @@ func NewC023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// isInsideDefer checks whether a statement is inside a defer expression.
+// It walks the AST looking for a DeferStmt ancestor.
+func isInsideDefer(file *ast.File, target ast.Node) bool {
+	found := false
+
+	ast.Inspect(file, func(n ast.Node) bool {
+		if found {
+			return false
+		}
+
+		deferStmt, ok := n.(*ast.DeferStmt)
+		if !ok {
+			return true
+		}
+
+		// Check if the target is inside the defer's call.
+		containsTarget(deferStmt.Call, target, &found)
+
+		return !found
+	})
+
+	return found
+}
+
+func containsTarget(container, target ast.Node, found *bool) {
+	if *found {
+		return
+	}
+
+	if container == target {
+		*found = true
+		return
+	}
+
+	ast.Inspect(container, func(n ast.Node) bool {
+		if *found {
+			return false
+		}
+
+		if n == target {
+			*found = true
+			return false
+		}
+
+		return true
+	})
 }
