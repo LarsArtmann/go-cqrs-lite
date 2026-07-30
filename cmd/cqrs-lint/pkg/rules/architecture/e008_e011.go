@@ -99,23 +99,31 @@ func NewE009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // This is a valid pattern for external event ingestion (Discord sync, webhook
 // receivers), but the finding suggests wrapping in a command for validation.
 //
+// Gated on the event module import to avoid false positives from non-CQRS
+// code that happens to have a variable named "store" with a Save method.
+// The decider-suppression check uses any .Execute() call, not just "repo.Execute",
+// because the repository variable can be named anything.
+//
 //nolint:ireturn // factory returns public interface
 func NewE010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"E010-capture-without-validation",
 		func(_ context.Context) ([]finding.Finding, error) {
+			if !importsPathSuffix(ctx, "go-cqrs-lite/event") {
+				return nil, nil
+			}
+
 			if !projectCallsAny(ctx, "store", "Save", "AppendBatch", "Append") {
 				return nil, nil
 			}
 
-			if projectCalls(ctx, "decider", "Execute") ||
-				projectCalls(ctx, "repo", "Execute") {
+			if projectHasCallContaining(ctx, "Execute") {
 				return nil, nil
 			}
 
-			pos, ok := firstFilePos(ctx)
+			pos, ok := firstCallPosAny(ctx, "store", "Save", "AppendBatch", "Append")
 			if !ok {
-				return nil, nil
+				pos, _ = firstFilePos(ctx)
 			}
 
 			return singleFinding(
@@ -134,16 +142,27 @@ func NewE010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // E011: Excessive adapter layers.
-// Detects projects with 3+ types named *Adapter that bridge between command
-// handlers and decider repositories. Excessive adapter layers add indirection
-// and make the data flow hard to trace. The threshold is deliberately high
-// (3) to avoid flagging a single legitimate adapter.
+// Detects CQRS projects with 3+ types named *Adapter. Excessive adapter
+// layers add indirection and make the data flow hard to trace. The threshold
+// is deliberately high (3) to avoid flagging a single legitimate adapter.
+//
+// Gated on the project importing both command and decider/event modules — the
+// adapter layers this rule targets bridge between command handlers and the
+// decider/event store. Non-CQRS projects (e.g., HTTP API gateways) may
+// legitimately have many adapter types for unrelated reasons.
 //
 //nolint:ireturn // factory returns public interface
 func NewE011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"E011-excessive-adapter-layers",
 		func(_ context.Context) ([]finding.Finding, error) {
+			hasCommand := importsPathSuffix(ctx, "go-cqrs-lite/command")
+			hasDeciderOrEvent := importsPathSuffix(ctx, "go-cqrs-lite/decider") ||
+				importsPathSuffix(ctx, "go-cqrs-lite/event")
+			if !hasCommand || !hasDeciderOrEvent {
+				return nil, nil
+			}
+
 			adapterCount := countTypesWithSuffix(ctx, "Adapter")
 			if adapterCount < 3 {
 				return nil, nil

@@ -12,11 +12,14 @@ import (
 )
 
 // E014: No read-your-writes consistency.
-// Detects projects using projectionhost that don't wait for projection drain
+// Detects projects using projectionhost that don't drain or sync projections
 // before responding to commands. The read model may be stale when the command
 // handler returns, leading to "I just created it but it's not there" bugs.
-// The finding checks for absence of Drain/Wait/Sync calls that would block
-// until the projection catches up.
+//
+// Checks for drain/sync/flush/wait calls using generic name matching (not
+// variable-name assumptions like "host.Stop()") because the projectionhost
+// variable can be named anything. host.Stop() is a shutdown call, not a
+// drain-before-return — the correct signals are Drain, Sync, WaitFor, Flush.
 //
 //nolint:ireturn // factory returns public interface
 func NewE014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -27,11 +30,11 @@ func NewE014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			// Check for drain/wait patterns: host.Stop(), host.Sync(), or
-			// any call containing "Drain"/"Wait"/"Sync" in the project.
-			if projectCalls(ctx, "host", "Stop") ||
-				projectCalls(ctx, "host", "Sync") ||
-				projectHasCallContaining(ctx, "Drain") ||
+			// Check for drain/sync/flush/wait patterns using generic name
+			// matching, which works regardless of the variable name.
+			if projectHasCallContaining(ctx, "Drain") ||
+				projectHasCallContaining(ctx, "Sync") ||
+				projectHasCallContaining(ctx, "Flush") ||
 				projectHasCallContaining(ctx, "WaitFor") {
 				return nil, nil
 			}
@@ -44,11 +47,11 @@ func NewE014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return singleFinding(
 				ctx,
 				"E014",
-				"Project uses projectionhost but has no projection drain/wait call — "+
+				"Project uses projectionhost but has no projection drain/sync/flush call — "+
 					"the read model may be stale when the command handler returns",
-				"Call host.Stop() or a sync/drain method before responding to commands, "+
-					"or use a read-your-writes strategy (synchronous projection for the "+
-					"command's own stream)",
+				"Call a drain/sync method (e.g., host.Sync() or host.Drain()) before "+
+					"responding to commands, or use a read-your-writes strategy "+
+					"(synchronous projection for the command's own stream)",
 				pos,
 				finding.SeverityInfo,
 				finding.ConfidenceLow,

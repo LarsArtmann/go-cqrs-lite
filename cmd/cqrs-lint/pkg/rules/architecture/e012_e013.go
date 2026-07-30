@@ -59,10 +59,14 @@ func NewE012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // E013: Signing/encryption configured but disabled by default.
 // Detects projects that import signing or encryption modules but set their
-// config Enabled field to false. The security infrastructure is present but
-// inert — events are not actually signed or encrypted. This is especially
-// dangerous when the code looks production-ready but silently ships without
-// security guarantees.
+// config Enabled field to false IN a signing/encryption config struct. The
+// security infrastructure is present but inert — events are not actually
+// signed or encrypted. This is especially dangerous when the code looks
+// production-ready but silently ships without security guarantees.
+//
+// The composite literal type is verified to prevent false positives from
+// unrelated structs that also have an Enabled: false field (e.g., feature
+// flags, debug configs).
 //
 //nolint:ireturn // factory returns public interface
 func NewE013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -75,13 +79,14 @@ func NewE013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			if !findKeyBoolLit(ctx, "Enabled", false) {
+			typeSubs := []string{"signing", "encryption"}
+			if !findKeyBoolLitInTypedComposite(ctx, "Enabled", false, typeSubs...) {
 				return nil, nil
 			}
 
-			pos, ok := firstFilePos(ctx)
+			pos, ok := firstKeyBoolPosInTypedComposite(ctx, "Enabled", false, typeSubs...)
 			if !ok {
-				return nil, nil
+				pos, _ = firstFilePos(ctx)
 			}
 
 			module := "signing"
