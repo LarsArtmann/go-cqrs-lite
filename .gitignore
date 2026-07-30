@@ -74,6 +74,7 @@ example/todo/cmd/api/api
 /api-stability
 /cmd/cqrs-gen/cqrs-gen
 /cmd/api-stability/api-stability
+/cmd/cqrs-lint/cqrs-lint
 
 # Nix
 result

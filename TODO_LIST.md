@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-30 (session 22:01)
+**Updated:** 2026-07-30 (session 22:22)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here — when a task is finished it is removed from
@@ -16,7 +16,15 @@ this list and recorded in CHANGELOG.
 
 ## Verify Gate
 
-> ⚠️ **`nix run .#verify` has NOT been run** since the 159→171 rule expansion.
+> ⚠️ **`nix run .#verify` has NOT been run** since the 159→171 rule expansion
+> AND the metaengine production-maturity session (auto-layout, raw readers,
+> TypedReader, ADT matrix).
+>
+> **Two blockers from the metaengine session:**
+> - `gofmt -l` reports `metaengine/adt_matrix_test.go` (misaligned struct fields)
+> - `cmd/api-stability` has a pre-existing build error (`undefined: collectExports`
+>   at main.go:114) — blocks api-stability golden regeneration for ANY export change
+>
 > The cqrs-lint module builds and passes tests locally (`go build`/`go vet`/`go test -race`),
 > but the full monorepo verify gate has not confirmed: formatting, lint, api-stability
 > golden, doc-check. This must be run before any release.
@@ -29,8 +37,10 @@ this list and recorded in CHANGELOG.
 > `idempotency/sqlstore` — passes on re-run; not a regression.
 
 - [ ] 🔥 **Remove committed binary** — `git rm --cached cmd/cqrs-lint/cqrs-lint` + add to `.gitignore`
+- [ ] 🔥 **Run `gofmt -w metaengine/adt_matrix_test.go`** — misaligned struct fields from this session
+- [ ] 🔥 **Fix `cmd/api-stability` build error** — `undefined: collectExports` at main.go:114 (pre-existing, blocks golden regen)
+- [ ] 🔥 **Regenerate api-stability golden** — ~15 new metaengine exports + 12 new cqrs-lint `New*Detector` functions
 - [ ] 🔥 **Run `nix run .#verify`** — fix formatting, lint, api-stability golden, doc-check
-- [ ] 🔥 **Regenerate api-stability golden** — 12 new exported `New*Detector` functions added
 - [ ] **Fix 3 flaky benchkit soak tests** — `TestRunSoak_Memory`,
       `TestRunSoak_TrendsPopulated`, `TestRunSoakJSON_RoundTrip`. All timing-
       sensitive tests that flake under parallel race-detector load. Use
@@ -89,21 +99,182 @@ this list and recorded in CHANGELOG.
 
 ---
 
-## Metaengine (experimental; 5 phases shipped)
+## Metaengine (experimental; 6 phases shipped)
 
-> Pushdown (ADR-0072), layout planning (ADR-0073), Pebble engine (ADR-0074),
-> and streaming reads all shipped. Remaining work is production maturity, not
-> features.
+> Auto-layout in `Plan()` (ADR-0073 consequence), raw value readers (JSON tax
+> reduction), `TypedReader[V]`, and unified 7-ADT test matrix all shipped this
+> session. The remaining work is making it production-grade and genuinely superb.
+>
+> Session report: `docs/status/2026-07-30_22-22_metaengine-production-maturity.md`
 
-- [ ] **Wire layout planning into `Plan()`** — auto-generate `LayoutPlan` from
-      `FilterOnField`/`SortOnField` query options instead of requiring manual
-      `plannedSQLiteEngine` setup.
-- [ ] **JSON tax reduction** — single-pass decode for SQLite reads (currently
-      3 JSON operations: load row, extract field, decode payload → could be 1).
-- [ ] **Generated typed read API** — `plan.Users.Get(ctx, id)` from declared
-      query fields.
-- [ ] **Unified 7-ADT × 3-engine test matrix** — parameterized table-driven
-      harness replacing the ad-hoc per-ADT parity tests.
+### Immediate Fixes (from this session)
+
+- [ ] 🔥 **Fix `TypedReader.Scan` closure-fallback drops filters** — when engine
+      only implements `ScanBackend` (not `RawScanReader`/`PushdownScan`), the nil
+      `filterFn` means all rows are returned regardless of `WithFilter` options.
+      Build runtime predicates from declarative `FilterSpec`s.
+- [ ] **Rename `unsafeStringToBytes`** — it does `[]byte(s)` which COPIES. Either
+      rename to `stringToBytes` or use `unsafe.StringData` for true zero-copy.
+- [ ] **Merge `jsonValue` type into `raw_reader.go`** — 12-line file is too small
+      to justify its own file. Inline the type alias.
+- [ ] **Extract shared transaction helper** from `MapUpdate` + `mapUpdatePlanned`
+      — both duplicate the identical begin/read/update/commit pattern.
+- [ ] **Update AGENTS.md metaengine section** — document `LayoutPlanner`,
+      `RawValueReader`, `RawScanReader`, `TypedReader`. Remove manual
+      `NewPlannedSQLiteEngine` as the recommended path.
+- [ ] **Update ADR-0073 consequence section** — auto-layout is now wired into
+      `Plan()`; the manual setup is no longer the primary path.
+
+### Performance & Hot Paths
+
+- [ ] 🔥 **Prepared statement cache for SQLite** — cache `*sql.Stmt` by query
+      string in a `sync.Map`. Eliminates SQL parse overhead on every `MapSet`/
+      `MapGet`/`PushdownMapScan`. Expected 30-50% latency improvement.
+- [ ] 🔥 **Batch Apply API** — `store.ApplyBatch(ctx, []EventInput{...})` wraps
+      multiple events in one SQLite transaction. 10-50x write throughput for replay.
+- [ ] **Zero-copy key encoding** — `encodeKey` JSON-marshals every key. For
+      `string`/`int`/`ulid` keys (95% case), use direct `fmt.Sprintf`. JSON only
+      for complex types.
+- [ ] **Cost model auto-calibration** — run a micro-benchmark on engine
+      construction, override hardcoded `SQLiteNsPerOp`/`MemoryNsPerOp` with real
+      per-hardware values.
+- [ ] **Read coalescing via singleflight** — coalesce concurrent `MapGet` calls
+      for the same key into one DB query (same pattern as `decider.Repository`).
+- [ ] **Cursor pre-fetch** — speculatively read `limit + N` rows and cache overflow
+      for the next page request. Eliminates `limit+1` round-trip pattern.
+- [ ] **Memory-mapped SQLite** — `PRAGMA mmap_size` for file-backed databases.
+      2-5x faster point lookups on large datasets.
+- [ ] **Write-side JSON tax** — `extractFields` JSON-round-trips values to extract
+      field values for planned columns. Use `reflect` for struct values, avoid the
+      marshal/unmarshal cycle on writes.
+
+### API Ergonomics & DX
+
+- [ ] 🔥 **Multi-key Get** — `TypedReader[V].GetBatch(ctx, keys []K) ([]V, error)`
+      — one call, one query, one decode pass for N keys.
+- [ ] 🔥 **Aggregations** — `reader.Count(ctx, opts...)`, `reader.Sum(ctx, "amount")`,
+      `reader.Min/Max/Avg` — push `COUNT`/`SUM`/`MIN`/`MAX` to SQL instead of
+      loading all rows.
+- [ ] **Range queries** — `WithRange("priority", 1, 5)` — SQL `BETWEEN` pushdown.
+- [ ] **IN filter** — `FilterIn("status", []string{"open", "pending"})` —
+      `WHERE status IN (...)` pushdown.
+- [ ] **OR filters** — `FilterOr(FilterEq("status", "open"), ...)` — SQL `OR`.
+- [ ] **Transaction API** — `store.InTransaction(ctx, func(tx *Tx) error { ... })`
+      — atomic multi-event application with rollback.
+- [ ] **Fluent query builder** — `metaengine.New("find_user").On(...).Filter(...).
+      Sort(...).Volume(1M)` as alternative to variadic-`any` constructor.
+- [ ] **Compile-time query registration** — `//go:generate metaengine-gen`
+      generating typed `Store` methods (`store.FindUser(ctx, id)`) from query
+      declarations. Eliminates `ExecuteTyped[Q, R]` boilerplate.
+- [ ] **Dry-run mode** — `Plan(engines, queries, WithDryRun())` returns the
+      `PlanResult` without creating tables or pinning engines.
+- [ ] **Watch / reactive reads** — `reader.Watch(ctx, key) <-chan V` — subscribers
+      notified on value change. SQLite update hooks or memory engine pub/sub.
+- [ ] **Distinct values** — `reader.Distinct(ctx, "status")` — `SELECT DISTINCT`.
+- [ ] **Group-by** — `reader.GroupBy(ctx, "status")` → `map[string][]V`.
+- [ ] **Compound sort keys** — `SortOn("priority", "created_at")` — multi-column
+      ORDER BY pushdown.
+- [ ] **Typed error taxonomy** — `ErrNotFound`, `ErrAmbiguousKey`,
+      `ErrUnsupportedADT`, `ErrLayoutConflict` — instead of generic `fmt.Errorf`.
+
+### Reliability & Data Integrity
+
+- [ ] **Idempotent Apply** — `store.ApplyIdempotent(ctx, eventID, eventType, payload)`
+      — dedup by event ID so replaying events doesn't double-apply.
+- [ ] **Schema versioning for layouts** — `LayoutPlan.Version`; when a plan changes
+      (new filter field), auto-migrate with `ALTER TABLE ADD COLUMN`.
+- [ ] **Consistency checker** — `store.Verify(ctx)` re-folds all events from scratch
+      and compares against stored projections. Detects drift.
+- [ ] **TTL / expiration** — `WithTTL(24h)` on a query — entries auto-expire.
+      SQLite: background sweeper. Memory: lazy eviction on read.
+- [ ] **Poison-pill detection** — if a fold handler panics, mark the collection as
+      poisoned and refuse reads with a clear error.
+- [ ] **Crash recovery tests** — inject panics mid-transaction, verify no partial
+      writes survive. Property-based via `pgregory.net/rapid`.
+- [ ] **Checksums on stored values** — companion `checksum INTEGER` column (FNV-1a)
+      for silent-corruption detection.
+
+### Observability & Debugging
+
+- [ ] **Query tracing** — `WithTracing(tracer)` wraps every `Apply`/`Execute` in
+      an OTel span: collection, ADT, engine, latency.
+- [ ] **EXPLAIN output** — `reader.Explain(ctx, opts...)` returns the SQL that
+      would execute, without running it.
+- [ ] **Plan visualization** — `PlanResult.DotGraph()` generates a D2 diagram:
+      event → fold → ADT → engine → complexity.
+- [ ] **Debug mode** — `WithDebug(logger)` logs every fold:
+      `[find_user] TaskCreated → FoldInsert(u1, {...}) → MapSet`.
+- [ ] **Slow query log** — log queries exceeding threshold with full context.
+      "find_user took 45ms (budget 5ms) — consider index on 'status'".
+- [ ] **Live metrics** — `WithMetrics(meter)`: ops/sec per collection, cache hit
+      rate, scan vs point-lookup ratio, average result size.
+- [ ] **Collection introspection** — `store.Collections()` returns metadata: ADT,
+      engine, row count, layout plan, last modified.
+- [ ] **Cost accuracy reporter** — compare estimated vs actual latency, log drift.
+      Feeds back into auto-calibration.
+
+### Engine Sophistication
+
+- [ ] 🔥 **Pebble: implement `RawValueReader` + `RawScanReader`** — Pebble misses
+      the JSON tax reduction. It still JSON-decodes every value on read.
+- [ ] 🔥 **Pebble: add to ADT matrix test** — extend `engineFactories()` in
+      `adt_matrix_test.go` with the Pebble engine.
+- [ ] **Pebble LayoutPlanner** — Pebble can create prefixed key ranges for indexed
+      fields. A Pebble layout encodes `collection:field:value:key` prefixes.
+- [ ] **Postgres engine** — native `JSONB` operators (`->>`, `@>`), GIN indexes on
+      JSON, `PARTITION BY` for time-series.
+- [ ] **DuckDB analytical engine** — columnar OLAP. `GROUP BY`/`COUNT`/`SUM` pushed
+      to DuckDB — 100x faster for analytics.
+- [ ] **Multi-engine tiering** — assign the SAME query to multiple engines: memory
+      for hot reads, SQLite for persistence. Write-fan-out, read-from-cheapest.
+- [ ] **Engine hot-swap** — swap an engine at runtime without rebuilding the Store.
+
+### Ecosystem & Integration
+
+- [ ] 🔥 **projectionhost integration** — register metaengine collections as
+      `projectionhost.Projection` workers. Crash-restart lifecycle, DLQ, checkpointing.
+- [ ] **CQRS event store adapter** — `metaengine.FromEventStore(store)` auto-wires
+      as a projection consuming a CQRS `event.Store` journal.
+- [ ] **HTTP/SSE adapter** — `metaengine.ServeSSE(reader, w, r)` streams updates.
+- [ ] **Export/import** — `store.Export(ctx, w)` / `store.Import(ctx, r)` for
+      backup, migration, seed data.
+- [ ] **CLI inspector** — `metaengine inspect <db> --collection find_user --scan
+      --filter status=open --limit 10`.
+- [ ] **cqrs-lint rules** — detect `FilterOn` where `FilterOnField` enables pushdown,
+      missing `Volume` hint, `SortOn` without index, write amplification over budget.
+
+### Testing & Verification
+
+- [ ] 🔥 **Cross-engine contract suite** — extract the ADT matrix into a reusable
+      `metaengine.ContractSuite(t, engineFactory)` so any new engine gets full
+      parity by importing one function.
+- [ ] **Property-based fold testing** — `rapid` generator verifying the engine
+      produces identical results to a pure Go fold over the same events.
+- [ ] **Soak test with 10M events** — replay through all 7 ADTs, verify memory
+      doesn't grow unboundedly, latency stays constant, no corruption.
+- [ ] **Chaos testing** — randomly kill transactions mid-flight, inject errors,
+      swap engines between reads — verify no corruption.
+- [ ] **Benchmarks** — `BenchmarkRawReader_Get` vs `BenchmarkMapGet`,
+      `BenchmarkRawReader_Scan` vs `BenchmarkPushdownMapScan` — prove the JSON tax
+      reduction with numbers.
+- [ ] **Fuzz the fold classifier** — feed arbitrary function signatures to `On()`
+      and verify classification never panics.
+
+### Architecture & Maturity
+
+- [ ] **Stabilize and tag v1** — once `TypedReader` + `LayoutPlanner` + raw readers
+      are validated by consumers, freeze the API and tag `metaengine/v4.1.0`.
+- [ ] **Generated typed read API** — `//go:generate metaengine-gen` producing
+      `plan.Users.Get(ctx, id)` from declared query fields (original TODO item,
+      `TypedReader` was the runtime precursor).
+- [ ] **Schema enforcement at Plan() time** — validate that fold return types match
+      the declared result type `R`. Currently mismatches surface only at runtime.
+- [ ] **Diagnostic when auto-layout is applied** — "query X: auto-planned table with
+      columns [status, priority]" so consumers know what happened.
+- [ ] **Expose layout plans in `PlanResult`** — so consumers can inspect auto-generated
+      tables, column types, and indexes.
+- [ ] **Extract as standalone project** — AGENTS.md says "possibly a future dedicated
+      project." A zero-dependency storage planner is valuable beyond CQRS. (→ ROADMAP)
 
 ---
 
