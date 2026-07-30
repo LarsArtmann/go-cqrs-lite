@@ -2,7 +2,6 @@ package boilerplate
 
 import (
 	"context"
-	"go/ast"
 
 	"github.com/larsartmann/go-finding"
 
@@ -23,12 +22,11 @@ func NewB021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			for _, fold := range ctx.Registry.Folds {
-				if foldHasStrictApply(ctx, fold.FuncName) {
+				if !fold.DefaultNil {
 					continue
 				}
 
-				// Only flag folds whose default case returns nil (silently ignores).
-				if !fold.DefaultNil {
+				if ctx.Registry.StrictApplyFolds[fold.FuncName] {
 					continue
 				}
 
@@ -36,14 +34,14 @@ func NewB021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"B021", toolName,
 					"Fold function silently ignores unknown event types — "+
 						"use decider.StrictApply for compile-time safety",
-					finding.SeverityWarning,
+					finding.SeverityInfo,
 					finding.Pos(finding.FilePath(fold.File), fold.Pos.Line, fold.Pos.Column),
 				).
 					WithCategory(finding.CategoryBestPractice).
-					WithConfidence(finding.ConfidenceMedium).
+					WithConfidence(finding.ConfidenceHigh).
 					WithFixStrategy(finding.FixStrategySuggest).
-					WithSuggestion("Replace the switch/default pattern with decider.StrictApply " +
-						"to get compile-time exhaustiveness checking").
+					WithSuggestion("Wrap the fold in decider.StrictApply(fold, []event.Type{...}) "+
+						"so adding a new event type without handling it becomes a compile-time error.").
 					WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).
 					Build()
 				if err != nil {
@@ -56,53 +54,4 @@ func NewB021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-// foldHasStrictApply checks if a fold function's body contains a call to
-// StrictApply.
-func foldHasStrictApply(ctx *analyzer.AnalysisContext, funcName string) bool {
-	fn := findFoldFunc(ctx, funcName)
-	if fn == nil || fn.Body == nil {
-		return false
-	}
-
-	found := false
-
-	ast.Inspect(fn.Body, func(n ast.Node) bool {
-		call, ok := n.(*ast.CallExpr)
-		if !ok {
-			return true
-		}
-
-		sel, ok := analyzer.SelectorFromExpr(call.Fun)
-		if !ok {
-			return true
-		}
-
-		if sel.Sel.Name == "StrictApply" {
-			found = true
-			return false
-		}
-
-		return true
-	})
-
-	return found
-}
-
-func findFoldFunc(ctx *analyzer.AnalysisContext, name string) *ast.FuncDecl {
-	for _, gf := range ctx.GoFiles {
-		for _, decl := range gf.AST.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || fn.Name == nil {
-				continue
-			}
-
-			if fn.Name.Name == name {
-				return fn
-			}
-		}
-	}
-
-	return nil
 }
