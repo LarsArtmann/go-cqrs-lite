@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // eventCount returns the number of distinct event types emitted by the project.
@@ -62,7 +63,7 @@ func hasPIIInEventPayloads(ctx *analyzer.AnalysisContext) (token.Position, bool)
 					continue
 				}
 
-				if !looksLikeEventPayload(ts.Name.Name, gf.Path) {
+				if !lintutil.LooksLikeEventPayload(ts.Name.Name, gf.Path) {
 					continue
 				}
 
@@ -81,27 +82,6 @@ func hasPIIInEventPayloads(ctx *analyzer.AnalysisContext) (token.Position, bool)
 	}
 
 	return token.Position{}, false
-}
-
-// looksLikeEventPayload checks if a struct name or file path suggests the
-// struct is an event payload.
-func looksLikeEventPayload(structName, filePath string) bool {
-	upper := strings.ToUpper(structName)
-
-	for _, suffix := range []string{"EVENT", "PAYLOAD", "EVENTDATA"} {
-		if strings.HasSuffix(upper, suffix) {
-			return true
-		}
-	}
-
-	base := filePath
-	if idx := strings.LastIndex(base, "/"); idx >= 0 {
-		base = base[idx+1:]
-	}
-
-	base = strings.TrimSuffix(base, ".go")
-
-	return base == "events" || base == "payloads"
 }
 
 // hasTimeBasedPatterns detects signals that the domain has time-based business

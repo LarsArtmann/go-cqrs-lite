@@ -40,7 +40,7 @@ func NewP011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if !isReadModelStruct(st, ts.Name.Name) {
+					if !isReadModelStruct(ts.Name.Name) {
 						return true
 					}
 
@@ -93,7 +93,7 @@ var readModelKeywords = []string{
 // read model (ViewStore, ReadModel, Projection, etc). We check the struct
 // name rather than method signatures because the struct definition may be
 // in a different file from the Handle/Apply methods.
-func isReadModelStruct(_ *ast.StructType, name string) bool {
+func isReadModelStruct(name string) bool {
 	lower := strings.ToLower(name)
 	for _, kw := range readModelKeywords {
 		if strings.Contains(lower, kw) {

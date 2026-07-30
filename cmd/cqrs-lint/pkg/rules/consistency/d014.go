@@ -44,7 +44,7 @@ func NewD014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if !isEventPayloadName(ts.Name.Name) && !ctx.Registry.EventPayloadTypes[ts.Name.Name] {
+					if !lintutil.IsEventPayloadName(ts.Name.Name) && !ctx.Registry.EventPayloadTypes[ts.Name.Name] {
 						return true
 					}
 
@@ -83,20 +83,6 @@ func NewD014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-// isEventPayloadName reports whether the struct name follows the CQRS event
-// payload naming convention.
-func isEventPayloadName(name string) bool {
-	lower := strings.ToLower(name)
-
-	for _, suffix := range []string{"created", "updated", "deleted", "event"} {
-		if strings.HasSuffix(lower, suffix) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // hasJSONTag reports whether the field has a `json:"..."` struct tag.

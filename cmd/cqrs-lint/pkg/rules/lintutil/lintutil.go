@@ -143,3 +143,40 @@ func FileImportsCQRS(file *ast.File) bool {
 
 	return false
 }
+
+// LooksLikeEventPayload checks if a struct name or file path suggests the
+// struct is an event payload. Shared by C013 (correctness) and the F-series
+// adoption rules to avoid duplicating the heuristic across packages.
+func LooksLikeEventPayload(structName, filePath string) bool {
+	upper := strings.ToUpper(structName)
+
+	for _, suffix := range []string{"EVENT", "PAYLOAD", "EVENTDATA"} {
+		if strings.HasSuffix(upper, suffix) {
+			return true
+		}
+	}
+
+	base := filePath
+	if idx := strings.LastIndex(base, "/"); idx >= 0 {
+		base = base[idx+1:]
+	}
+
+	base = strings.TrimSuffix(base, ".go")
+
+	return base == "events" || base == "payloads"
+}
+
+// IsEventPayloadName reports whether the struct name follows the CQRS event
+// payload naming convention (created/updated/deleted/event suffixes). Shared
+// by D014 and D015 (consistency) which gate payload-specific checks on it.
+func IsEventPayloadName(name string) bool {
+	lower := strings.ToLower(name)
+
+	for _, suffix := range []string{"created", "updated", "deleted", "event"} {
+		if strings.HasSuffix(lower, suffix) {
+			return true
+		}
+	}
+
+	return false
+}

@@ -37,7 +37,7 @@ func NewD015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if !isEventPayloadName(ts.Name.Name) && !ctx.Registry.EventPayloadTypes[ts.Name.Name] {
+					if !lintutil.IsEventPayloadName(ts.Name.Name) && !ctx.Registry.EventPayloadTypes[ts.Name.Name] {
 						return true
 					}
 

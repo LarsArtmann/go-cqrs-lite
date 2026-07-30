@@ -52,7 +52,7 @@ func NewC013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 
 						structName := typeSpec.Name.Name
-						if !looksLikeEventPayload(structName, gf.Path) {
+						if !lintutil.LooksLikeEventPayload(structName, gf.Path) {
 							continue
 						}
 
@@ -165,27 +165,6 @@ func suggestReplacement(fieldName string) string {
 		"or event.WallTime for local times (schedules, reminders). " +
 		"For calendar dates (birth dates, employment dates), use event.Date. " +
 		"See docs/TIMEZONE_HANDLING.md for guidance."
-}
-
-// looksLikeEventPayload checks if a struct name or file path suggests
-// the struct is an event payload.
-func looksLikeEventPayload(structName, filePath string) bool {
-	upper := strings.ToUpper(structName)
-
-	for _, suffix := range []string{"EVENT", "PAYLOAD", "EVENTDATA"} {
-		if strings.HasSuffix(upper, suffix) {
-			return true
-		}
-	}
-
-	base := filePath
-	if idx := strings.LastIndex(base, "/"); idx >= 0 {
-		base = base[idx+1:]
-	}
-
-	base = strings.TrimSuffix(base, ".go")
-
-	return base == "events" || base == "payloads"
 }
 
 // isTimeType checks if an AST type expression is time.Time or *time.Time.
