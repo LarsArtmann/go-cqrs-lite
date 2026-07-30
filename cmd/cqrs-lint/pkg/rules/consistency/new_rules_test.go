@@ -167,6 +167,32 @@ func TestD005_NoFindingForMigrationArrow(t *testing.T) {
 	assertRule(t, findings, "D005", 0)
 }
 
+// D005 must NOT fire when the doc version has trailing punctuation
+// (e.g., "uses go-cqrs-lite v4.2.0." with trailing period). The version
+// extraction must strip trailing dots/commas before comparing. Regression
+// for bank-sync false positive.
+func TestD005_NoFindingForTrailingDotVersion(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(
+		"module example.com/app\n\nrequire github.com/larsartmann/go-cqrs-lite v4.2.0\n",
+	),
+		0o644)
+	_ = os.WriteFile(filepath.Join(tmpDir, "AGENTS.md"), []byte(
+		"# Project\n\nBuilt with go-cqrs-lite v4.2.0. Events are persisted on startup.\n",
+	),
+		0o644)
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	ctx.ProjectRoot = tmpDir
+
+	findings := runDetector(t, consistency.NewD005Detector(ctx))
+	assertRule(t, findings, "D005", 0)
+}
+
 func TestD005_NoFindingForADRTitleHeading(t *testing.T) {
 	t.Parallel()
 

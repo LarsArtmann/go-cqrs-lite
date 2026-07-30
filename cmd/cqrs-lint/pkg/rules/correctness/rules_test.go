@@ -328,6 +328,25 @@ func mustCommand(cmdType string, streamID string) *Command {
 	assertRule(t, findings, "C009", 0)
 }
 
+// C009 must also skip exported Must* functions (MustParse, MustCompile, etc.)
+// following the same Go convention as regexp.MustCompile / template.Must.
+func TestC009_NoFindingInExportedMustFunc(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"parse.go": `package main
+
+func MustParseUserID(s string) UserID {
+	id, err := parseUserID(s)
+	if err != nil {
+		panic(fmt.Sprintf("MustParseUserID: %v", err))
+	}
+	return id
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC009Detector(ctx))
+	assertRule(t, findings, "C009", 0)
+}
+
 // --- C008: float64 for money ---
 
 func TestC008_DetectsFloat64ForMoney(t *testing.T) {
