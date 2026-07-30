@@ -108,6 +108,9 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		// Performance
 		performance.NewP001Detector(ctx),
 		performance.NewP007Detector(ctx),
+		performance.NewP008Detector(ctx),
+		performance.NewP009Detector(ctx),
+		performance.NewP010Detector(ctx),
 		// Version
 		version.NewV001Detector(ctx),
 		version.NewV002Detector(ctx),
@@ -134,6 +137,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		security.NewS001Detector(ctx),
 		security.NewS002Detector(ctx),
 		security.NewS003Detector(ctx),
+		security.NewS007Detector(ctx),
 		// Testing
 		testrules.NewT001Detector(ctx),
 		testrules.NewT002Detector(ctx),

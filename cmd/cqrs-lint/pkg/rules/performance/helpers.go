@@ -1,0 +1,210 @@
+package performance
+
+import (
+	"go/ast"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+)
+
+// callHasOption returns true if any argument to call is a function call
+// whose selector name matches optionName (e.g. "WithBatchSize").
+// Handles generic wrappers: decider.WithSnapshotStore[State](store).
+func callHasOption(call *ast.CallExpr, optionName string) bool {
+	for _, arg := range call.Args {
+		argCall, ok := arg.(*ast.CallExpr)
+		if !ok {
+			continue
+		}
+
+		sel, ok := analyzer.SelectorFromExpr(argCall.Fun)
+		if !ok {
+			continue
+		}
+
+		if sel.Sel.Name == optionName {
+			return true
+		}
+	}
+
+	return false
+}
+
+// findStructType searches all GoFiles for a top-level type spec with the
+// given name that is a struct type. Returns nil if not found.
+func findStructType(ctx *analyzer.AnalysisContext, name string) *ast.StructType {
+	for _, gf := range ctx.GoFiles {
+		for _, decl := range gf.AST.Decls {
+			genDecl, ok := decl.(*ast.GenDecl)
+			if !ok {
+				continue
+			}
+
+			for _, spec := range genDecl.Specs {
+				ts, ok := spec.(*ast.TypeSpec)
+				if !ok || ts.Name == nil || ts.Name.Name != name {
+					continue
+				}
+
+				if st, ok := ts.Type.(*ast.StructType); ok {
+					return st
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// structFieldCount returns the number of named fields in a struct type,
+// counting each name in multi-name declarations separately. Embedded
+// fields (no names) count as one.
+func structFieldCount(st *ast.StructType) int {
+	if st.Fields == nil {
+		return 0
+	}
+
+	count := 0
+
+	for _, field := range st.Fields.List {
+		if len(field.Names) == 0 {
+			count++
+		} else {
+			count += len(field.Names)
+		}
+	}
+
+	return count
+}
+
+// hasCollectionField returns true if the struct has at least one slice
+// or map field, indicating unbounded growth potential in an aggregate state.
+func hasCollectionField(st *ast.StructType) bool {
+	if st.Fields == nil {
+		return false
+	}
+
+	for _, field := range st.Fields.List {
+		switch t := field.Type.(type) {
+		case *ast.ArrayType:
+			if t.Len == nil { // slice — unbounded growth
+				return true
+			}
+		case *ast.MapType:
+			return true
+		}
+	}
+
+	return false
+}
+
+// hasByteSliceField returns true if the struct has a []byte or []uint8 field.
+func hasByteSliceField(st *ast.StructType) bool {
+	if st.Fields == nil {
+		return false
+	}
+
+	for _, field := range st.Fields.List {
+		arr, ok := field.Type.(*ast.ArrayType)
+		if !ok || arr.Len != nil { // only slices
+			continue
+		}
+
+		elt, ok := arr.Elt.(*ast.Ident)
+		if !ok {
+			continue
+		}
+
+		if elt.Name == "byte" || elt.Name == "uint8" {
+			return true
+		}
+	}
+
+	return false
+}
+
+// projectUsesJSONCodec scans all non-test source files for any reference to
+// codec.JSONCodec. Since the default codec for event.New is CBOR, a JSONCodec
+// reference means the project explicitly chose JSON encoding.
+func projectUsesJSONCodec(ctx *analyzer.AnalysisContext) bool {
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		found := false
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			if found {
+				return false
+			}
+
+			sel, ok := n.(*ast.SelectorExpr)
+			if !ok {
+				return true
+			}
+
+			if sel.Sel.Name == "JSONCodec" {
+				found = true
+				return false
+			}
+
+			return true
+		})
+
+		if found {
+			return true
+		}
+	}
+
+	return false
+}
+
+// typeName extracts the bare type name from an AST expression, unwrapping
+// package qualifiers (e.g. models.UserState → UserState).
+func typeName(expr ast.Expr) string {
+	switch e := expr.(type) {
+	case *ast.Ident:
+		return e.Name
+	case *ast.SelectorExpr:
+		return e.Sel.Name
+	}
+
+	return ""
+}
+
+// extractStateTypeFromCall tries to determine the state type name from a
+// decider.NewRepository or decider.NewTypedRepository call.
+// It first checks explicit type parameters, then falls back to the decider
+// argument if it is a composite literal (e.g. decider.Decider[State]{...}).
+func extractStateTypeFromCall(call *ast.CallExpr) string {
+	// 1. Explicit type parameters on the function itself.
+	if stateType := extractStateType(call.Fun); stateType != "" {
+		return stateType
+	}
+
+	// 2. Try the decider argument (3rd positional arg: store, bus, decider).
+	if len(call.Args) >= 3 {
+		if composite, ok := call.Args[2].(*ast.CompositeLit); ok {
+			if stateType := extractStateType(composite.Type); stateType != "" {
+				return stateType
+			}
+		}
+	}
+
+	return ""
+}
+
+// extractStateType extracts the first type parameter from a generic
+// instantiation expression (IndexExpr or IndexListExpr).
+func extractStateType(expr ast.Expr) string {
+	switch f := expr.(type) {
+	case *ast.IndexExpr: // NewRepository[State]
+		return typeName(f.Index)
+	case *ast.IndexListExpr: // NewTypedRepository[State, Cmd]
+		if len(f.Indices) > 0 {
+			return typeName(f.Indices[0])
+		}
+	}
+
+	return ""
+}

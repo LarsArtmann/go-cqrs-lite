@@ -477,6 +477,15 @@ func securityRules() []RuleInfo {
 			Description: "Event store without signing middleware",
 			AutoFix:     false,
 		},
+		{
+			ID:          "S007",
+			Name:        "in-memory-session-store",
+			Category:    "security",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "In-memory session/token store loses state on restart",
+			AutoFix:     false,
+		},
 	}
 }
 

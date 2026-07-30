@@ -149,3 +149,105 @@ func saveEvents(store event.Store, ref event.StreamRef, events []event.Event) er
 	findings := runDetector(t, security.NewS003Detector(ctx))
 	assertRule(t, findings, "S003", 0)
 }
+
+// --- S007: In-memory session/token store ---
+
+func TestS007_NoCrashOnEmptyInput(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	findings := runDetector(t, security.NewS007Detector(ctx))
+	assertRule(t, findings, "S007", 0)
+}
+
+func TestS007_DetectsInMemorySessionStore(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"server.go": `package main
+
+func setup() {
+	store := NewInMemorySessionStore()
+	_ = store
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS007Detector(ctx))
+	assertRule(t, findings, "S007", 1)
+}
+
+func TestS007_SuppressedWithoutServer(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cli.go": `package main
+
+func setup() {
+	store := NewInMemorySessionStore()
+	_ = store
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = false
+	findings := runDetector(t, security.NewS007Detector(ctx))
+	assertRule(t, findings, "S007", 0)
+}
+
+func TestS007_DetectsMemoryTokenStoreComposite(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"auth.go": `package main
+
+type MemoryTokenStore struct{}
+
+func setup() {
+	s := MemoryTokenStore{}
+	_ = s
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS007Detector(ctx))
+	assertRule(t, findings, "S007", 1)
+}
+
+func TestS007_IgnoresCQRSEventMemoryStore(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"store.go": `package main
+
+func setup() {
+	s := memory.NewStore()
+	_ = s
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS007Detector(ctx))
+	assertRule(t, findings, "S007", 0)
+}
+
+func TestS007_IgnoresInMemoryTokenBucket(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"ratelimit.go": `package main
+
+func setup() {
+	b := NewInMemoryTokenBucket()
+	_ = b
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS007Detector(ctx))
+	assertRule(t, findings, "S007", 0)
+}
+
+func TestS007_IgnoresTestFiles(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"session_test.go": `package main
+
+func setup() {
+	store := NewInMemorySessionStore()
+	_ = store
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS007Detector(ctx))
+	assertRule(t, findings, "S007", 0)
+}
