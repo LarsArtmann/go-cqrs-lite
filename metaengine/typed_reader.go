@@ -134,7 +134,29 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 
 	// Closure-based fallback (in-Go filter + sort).
 	if sb, ok := eng.(ScanBackend); ok {
-		rows, err := sb.MapScan(ctx, r.collection, nil, nil, cfg.cursor, cfg.limit)
+		var filterFn func(item any) bool
+
+		if len(cfg.filters) > 0 {
+			filterFn = func(item any) bool {
+				return passesFilterSpecs(item, cfg.filters)
+			}
+		}
+
+		var sortFn func(a, b any) int
+
+		if cfg.sort != nil {
+			col := cfg.sort.Column
+			sortFn = func(a, b any) int {
+				return compareValue(itemFieldByName(a, col), itemFieldByName(b, col))
+			}
+
+			if cfg.sort.Desc {
+				baseSort := sortFn
+				sortFn = func(a, b any) int { return -baseSort(a, b) }
+			}
+		}
+
+		rows, err := sb.MapScan(ctx, r.collection, filterFn, sortFn, cfg.cursor, cfg.limit)
 		if err != nil {
 			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 		}

@@ -1,6 +1,10 @@
 package rules
 
 import (
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -263,5 +267,42 @@ func TestDetectorNamesMatchCatalog(t *testing.T) {
 				info.Name,
 			)
 		}
+	}
+}
+
+// readmeRuleCountRe matches the "**N rules** across" headline in README.md.
+var readmeRuleCountRe = regexp.MustCompile(`\*\*(\d+)\s+rules?\*\*`)
+
+// TestReadmeRuleCountMatchesCatalog verifies that the rule count stated in the
+// README.md headline matches the actual number of catalog rules. This prevents
+// documentation drift: when rules are added or removed, the README must be
+// updated too. If this test fails, update the "**N rules**" line in README.md.
+func TestReadmeRuleCountMatchesCatalog(t *testing.T) {
+	t.Parallel()
+
+	readmePath := filepath.Join("..", "..", "README.md")
+	data, err := os.ReadFile(readmePath)
+	if err != nil {
+		t.Fatalf("cannot read README.md: %v", err)
+	}
+
+	matches := readmeRuleCountRe.FindStringSubmatch(string(data))
+	if len(matches) < 2 {
+		t.Fatal("README.md does not contain a '**N rules**' headline")
+	}
+
+	readmeCount, err := strconv.Atoi(matches[1])
+	if err != nil {
+		t.Fatalf("could not parse rule count from README.md: %v", err)
+	}
+
+	actualCount := len(AllRules())
+	if readmeCount != actualCount {
+		t.Fatalf(
+			"README.md documents %d rules but the catalog has %d — "+
+				"update the '**N rules**' headline and per-category counts in README.md",
+			readmeCount,
+			actualCount,
+		)
 	}
 }

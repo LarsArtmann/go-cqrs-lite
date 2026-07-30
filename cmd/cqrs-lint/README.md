@@ -92,7 +92,7 @@ Explicit `features` flags always override preset values.
 
 ## Rule Count
 
-**145 rules** across 10 categories: correctness (30), API misuse (29), boilerplate (28), consistency (7), architecture (7), security (7), performance (6), version (6), testing (8), adoption (17).
+**171 rules** across 10 categories: correctness (34), API misuse (30), boilerplate (28), consistency (14), architecture (17), security (9), performance (8), version (6), testing (8), adoption (17).
 
 ## Correctness Rules (bugs)
 
