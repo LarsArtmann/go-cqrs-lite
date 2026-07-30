@@ -373,15 +373,7 @@ func (e *sqliteEngine) PushdownMapScan(
 
 	// Push filter predicates into WHERE.
 	for _, f := range filters {
-		path := jsonPath(f.Column)
-
-		b.WriteString(` AND json_extract(value, '`)
-		b.WriteString(path)
-		b.WriteString(`') `)
-		b.WriteString(string(f.Op))
-		b.WriteString(` ?`)
-
-		args = append(args, f.Value)
+		appendStandardFilter(&b, &args, f)
 	}
 
 	// Push keyset cursor into WHERE (must come before ORDER BY).

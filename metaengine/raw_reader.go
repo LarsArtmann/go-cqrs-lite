@@ -84,15 +84,7 @@ func scanRawStandard(
 	b.WriteString(`SELECT value FROM meta_map WHERE collection = ?`)
 
 	for _, f := range filters {
-		path := jsonPath(f.Column)
-
-		b.WriteString(` AND json_extract(value, '`)
-		b.WriteString(path)
-		b.WriteString(`') `)
-		b.WriteString(string(f.Op))
-		b.WriteString(` ?`)
-
-		args = append(args, f.Value)
+		appendStandardFilter(&b, &args, f)
 	}
 
 	if sort != nil && cursor != nil {
@@ -148,20 +140,16 @@ func scanRawPlanned(
 
 	fmt.Fprintf(&b, "SELECT value FROM %s", plan.Table)
 
-	for i, f := range filters {
-		if i == 0 {
-			b.WriteString(" WHERE ")
-		} else {
-			b.WriteString(" AND ")
-		}
+	whereStarted := false
 
-		fmt.Fprintf(&b, "%s %s ?", f.Column, string(f.Op))
-		args = append(args, f.Value)
+	for _, f := range filters {
+		appendPlannedFilter(&b, &args, f, &whereStarted)
 	}
 
 	if sort != nil && cursor != nil {
-		if len(filters) == 0 {
+		if !whereStarted {
 			b.WriteString(" WHERE ")
+			whereStarted = true
 		} else {
 			b.WriteString(" AND ")
 		}

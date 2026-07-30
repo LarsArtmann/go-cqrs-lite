@@ -77,8 +77,7 @@ func explainStandard(col string, filters []FilterSpec, sort *SortSpec, limit int
 	b.WriteString(`SELECT value FROM meta_map WHERE collection = ?`)
 
 	for _, f := range filters {
-		fmt.Fprintf(&b, ` AND json_extract(value, '$.%s') %s ?`, f.Column, string(f.Op))
-		args = append(args, f.Value)
+		appendStandardFilter(&b, &args, f)
 	}
 
 	if sort != nil {
@@ -110,15 +109,10 @@ func explainPlanned(
 
 	fmt.Fprintf(&b, "SELECT value FROM %s", plan.Table)
 
-	for i, f := range filters {
-		if i == 0 {
-			b.WriteString(" WHERE ")
-		} else {
-			b.WriteString(" AND ")
-		}
+	whereStarted := false
 
-		fmt.Fprintf(&b, "%s %s ?", f.Column, string(f.Op))
-		args = append(args, f.Value)
+	for _, f := range filters {
+		appendPlannedFilter(&b, &args, f, &whereStarted)
 	}
 
 	if sort != nil {

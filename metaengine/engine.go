@@ -104,6 +104,10 @@ const (
 	FilterLe FilterOp = "<="
 	FilterGt FilterOp = ">"
 	FilterGe FilterOp = ">="
+	// FilterIn is a special operator: Value must be a []any of membership
+	// values. SQL builders emit "column IN (?, ?, ...)" instead of a
+	// binary operator with a single placeholder.
+	FilterIn FilterOp = "IN"
 )
 
 // FilterSpec is a declarative filter that can be pushed down to the database

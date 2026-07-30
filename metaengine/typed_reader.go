@@ -91,6 +91,21 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 		)
 	}
 
+	// Expand IN specs into FilterIn FilterSpecs so pushdown/raw paths
+	// handle them. Without this, WithIn is silently dropped on
+	// RawScanReader and PushdownScan paths (data correctness bug).
+	for _, in := range cfg.inSpecs {
+		cfg.filters = append(cfg.filters, FilterSpec{
+			Column: in.Column,
+			Op:     FilterIn,
+			Value:  in.Values,
+		})
+	}
+
+	// IN specs are now merged into filters — clear so closure fallback
+	// doesn't double-evaluate.
+	cfg.inSpecs = nil
+
 	eng, ok := r.store.collectionEngine(r.collection)
 	if !ok {
 		return nil, fmt.Errorf("%w: %q", errNoQueryForInputType, r.collection)

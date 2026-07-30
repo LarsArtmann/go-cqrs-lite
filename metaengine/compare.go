@@ -61,6 +61,19 @@ func evalFilterOp(op FilterOp, actual, expected any) bool {
 		return compareValue(actual, expected) > 0
 	case FilterGe:
 		return compareValue(actual, expected) >= 0
+	case FilterIn:
+		values, ok := expected.([]any)
+		if !ok {
+			return false
+		}
+
+		for _, v := range values {
+			if reflect.DeepEqual(actual, v) {
+				return true
+			}
+		}
+
+		return false
 	default:
 		return false
 	}
