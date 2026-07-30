@@ -79,9 +79,9 @@ func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]i
 }
 
 // scanJSONValues executes query with args, then walks the returned single-column
-// JSON-encoded rows, decoding each into an any. Rows that fail JSON decoding
-// fall back to their raw string form. Used by every SQLite-backed read that
-// needs to surface JSON-or-raw stored values to callers.
+// JSON-encoded rows. Each row is wrapped in a jsonValue carrier (raw bytes) so
+// that ExecuteTyped can decode directly to the target type in one pass instead
+// of decoding to map[string]any then re-marshalling (3 JSON ops → 1).
 func scanJSONValues(ctx context.Context, db *sql.DB, query string, args ...any) ([]any, error) {
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -99,16 +99,15 @@ func scanJSONValues(ctx context.Context, db *sql.DB, query string, args ...any) 
 			return nil, err //nolint:wrapcheck // passthrough
 		}
 
-			out = append(out, decodeJSONValue(valStr))
+		out = append(out, jsonValue(valStr))
 	}
 
 	return out, rows.Err() //nolint:wrapcheck // passthrough
 }
 
 // decodeJSONValue unmarshals a JSON string into an any. If the string is not
-// valid JSON, it returns the raw string. Centralised so every SQLite read path
-// (MapGet, MapScan, scanJSONValues, planned reads) uses the same decode-fallback
-// contract.
+// valid JSON, it returns the raw string. Used by MapScan (closure-based path)
+// where Go-side filter/sort functions need decoded values.
 func decodeJSONValue(valStr string) any {
 	var val any
 
@@ -140,7 +139,12 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 }
 
 func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any, error) {
-	return scanJSONValues(ctx, e.db, e.queries.multiGet, col, encodeKey(key))
+	raw, err := scanJSONValues(ctx, e.db, e.queries.multiGet, col, encodeKey(key))
+	if err != nil {
+		return nil, err //nolint:wrapcheck // passthrough
+	}
+
+	return decodeScanResults(raw), nil
 }
 
 // multiSeqCounter is a lazily-initialized sequence counter for a multimap
@@ -197,12 +201,26 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 	// Query is DESC; reverse the result for chronological order.
 	fwd, err := scanJSONValues(ctx, e.db, e.queries.logTail, col, limit)
 	if err != nil {
-		return nil, err
+		return nil, err //nolint:wrapcheck // passthrough
 	}
 
 	slices.Reverse(fwd)
 
-	return fwd, nil
+	return decodeScanResults(fwd), nil
+}
+
+// decodeScanResults converts jsonValue items to decoded any values. Used by
+// MultiGet and LogTail, which return []any to direct callers (tests, other
+// backends) that expect decoded values. The pushdown path (PushdownMapScan,
+// MapGet) keeps jsonValue for the ExecuteTyped single-pass decode optimization.
+func decodeScanResults(items []any) []any {
+	for i, item := range items {
+		if jv, ok := item.(jsonValue); ok {
+			items[i] = decodeJSONValue(string(jv))
+		}
+	}
+
+	return items
 }
 
 // --- GraphBackend ---

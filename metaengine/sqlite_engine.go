@@ -163,7 +163,7 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 		return nil, false, err //nolint:wrapcheck // passthrough
 	}
 
-	return decodeJSONValue(valStr), true, nil
+	return jsonValue(valStr), true, nil
 }
 
 func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error {

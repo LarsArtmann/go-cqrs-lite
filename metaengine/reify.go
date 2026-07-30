@@ -18,6 +18,18 @@ import (
 func reify[R any](raw any) (R, error) {
 	var zero R
 
+	// Fast path: jsonValue carries raw JSON bytes from a SQL engine — decode
+	// directly to R in one pass (1 JSON op instead of 2).
+	if jv, ok := raw.(jsonValue); ok {
+		var r R
+
+		if err := json.Unmarshal(jv, &r); err != nil {
+			return zero, fmt.Errorf("metaengine.reify: unmarshal jsonValue into %T: %w", r, err)
+		}
+
+		return r, nil
+	}
+
 	b, err := json.Marshal(raw)
 	if err != nil {
 		return zero, fmt.Errorf("metaengine.reify: marshal value: %w", err)
@@ -48,6 +60,17 @@ func reify[R any](raw any) (R, error) {
 // scalar passed where a struct is expected) falls back to the zero value of
 // target rather than panicking.
 func reifyReflect(value any, target reflect.Type) reflect.Value {
+	// Fast path: jsonValue carries raw JSON bytes — decode directly.
+	if jv, ok := value.(jsonValue); ok {
+		v := reflect.New(target)
+
+		if err := json.Unmarshal(jv, v.Interface()); err == nil {
+			return v.Elem()
+		}
+
+		return reflect.Zero(target)
+	}
+
 	if rt := reflect.TypeOf(value); rt != nil && rt.AssignableTo(target) {
 		return reflect.ValueOf(value)
 	}

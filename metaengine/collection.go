@@ -1,6 +1,7 @@
 package metaengine
 
 import (
+	"encoding/json/v2"
 	"reflect"
 )
 
@@ -84,6 +85,20 @@ func reconstructCollection[R any](raw any, limit int, sortKeyFn func(any) any) R
 
 	for _, item := range items {
 		if item == nil {
+			continue
+		}
+
+		// Fast path: jsonValue carries raw JSON bytes from a SQL engine —
+		// decode directly to the element type (1 JSON op instead of 2).
+		if jv, ok := item.(jsonValue); ok {
+			elem := reflect.New(info.itemsElemType)
+
+			if err := json.Unmarshal(jv, elem.Interface()); err == nil {
+				slice = reflect.Append(slice, elem.Elem())
+			}
+
+			lastItem = item
+
 			continue
 		}
 

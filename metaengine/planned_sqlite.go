@@ -111,7 +111,7 @@ func (e *sqliteEngine) mapGetPlanned(ctx context.Context, plan LayoutPlan, key a
 		return nil, false, err //nolint:wrapcheck // passthrough
 	}
 
-	return decodeJSONValue(valStr), true, nil
+	return jsonValue(valStr), true, nil
 }
 
 func (e *sqliteEngine) pushdownMapScanPlanned(
