@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-30
+**Updated:** 2026-07-30 (session 22:01)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here — when a task is finished it is removed from
@@ -16,18 +16,21 @@ this list and recorded in CHANGELOG.
 
 ## Verify Gate
 
-> ⚠️ **`nix run .#verify` is currently RED** (2026-07-30). Build error in
-> `cmd/cqrs-lint/pkg/rules/correctness/c031.go:83` — `ifStmt.Body` (type
-> `*ast.BlockStmt`) is used in a type assertion, which is invalid. The cqrs-lint
-> module does not compile. This must be fixed before any release.
+> ⚠️ **`nix run .#verify` has NOT been run** since the 159→171 rule expansion.
+> The cqrs-lint module builds and passes tests locally (`go build`/`go vet`/`go test -race`),
+> but the full monorepo verify gate has not confirmed: formatting, lint, api-stability
+> golden, doc-check. This must be run before any release.
+>
+> **22MB compiled binary** (`cmd/cqrs-lint/cqrs-lint`) was committed to git by
+> the auto-commit daemon in `f791da84`. Must be `git rm --cached` and added
+> to `.gitignore`.
 >
 > Pre-existing intermittent failure: `TestProperty_SQLiteTTLExpiry` in
-> `idempotency/sqlstore` — a rapid property-based test that occasionally
-> generates non-ASCII keys that fail under race-detector timing. Passes on
-> re-run; not a regression.
+> `idempotency/sqlstore` — passes on re-run; not a regression.
 
-- [ ] 🔥 **Fix c031.go build error** — `ifStmt.Body` is `*ast.BlockStmt`, not an
-      interface. This breaks the entire `cmd/cqrs-lint` module and the verify gate.
+- [ ] 🔥 **Remove committed binary** — `git rm --cached cmd/cqrs-lint/cqrs-lint` + add to `.gitignore`
+- [ ] 🔥 **Run `nix run .#verify`** — fix formatting, lint, api-stability golden, doc-check
+- [ ] 🔥 **Regenerate api-stability golden** — 12 new exported `New*Detector` functions added
 - [ ] **Fix 3 flaky benchkit soak tests** — `TestRunSoak_Memory`,
       `TestRunSoak_TrendsPopulated`, `TestRunSoakJSON_RoundTrip`. All timing-
       sensitive tests that flake under parallel race-detector load. Use
@@ -38,11 +41,11 @@ this list and recorded in CHANGELOG.
 
 ---
 
-## cqrs-lint Quality (159 rules shipped; needs hardening)
+## cqrs-lint Quality (171 rules shipped; needs hardening)
 
-> The linter grew from 65 to 159 rules across 10 categories in a single day of
-> rapid expansion (2026-07-30). Many rules have known quality issues that need
-> addressing before the linter is trustworthy.
+> The linter grew from 65 to 171 rules across 10 categories. 12 new rules + 3
+> extensions shipped in the Pareto plan execution session (2026-07-30 22:01).
+> Known quality gaps below need addressing before the linter is trustworthy.
 
 - [ ] 🔥 **Fix E010/E011/E013/E014 — architecturally wrong rules** — E010 uses
       package qualifier instead of type info; E011 uses name-counting instead of
@@ -75,7 +78,14 @@ this list and recorded in CHANGELOG.
       checkpoint, timer) but titled "snapshot store only".
 - [ ] **50-item improvement backlog** — see
       `docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md`
-      for the triaged 50 will-implement items (L1.1–L1.51).
+      for the triaged 50 will-implement items (L1.1–L1.51). **15 items done this session**
+      (L1.1, L1.3, L1.4, L1.10, L1.11, L1.12, L1.13, L1.42, items 134/139/140/150/164-166/168-171/174/176-177/179).
+      **25 items pruned** as won't-implement. ~35 items remain open.
+- [ ] 🔥 **Add suppression tests for 12 new rules** — C031-C034, P011-P012, D014-D015,
+      A032, E016-E017, S010 all lack `//cqrs-lint:ignore(RULE)` verification tests.
+- [ ] **Extract shared `isEventPayloadName`** — duplicated in d014.go and d015.go.
+- [ ] **Fix P011 unused `st` parameter** in `isReadModelStruct`.
+- [ ] **Narrow C032 scope** — fires on ALL ctx functions, should be handler/projector only.
 
 ---
 

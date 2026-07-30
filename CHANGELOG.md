@@ -8,6 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### cqrs-lint: Pareto plan execution (159 → 171 rules, +12 new + 3 extensions)
+
+- **12 new detector rules** from the Pareto improvement backlog:
+  - **C031** — error swallowing in `RegisterTyped` handlers (`return nil` on error)
+  - **C032** — context propagation gaps (`context.Background()`/`TODO()` in ctx functions)
+  - **C033** — missing error wrapping (bare `return err` after CQRS method calls)
+  - **C034** — goroutine without ctx (`go func()` without context propagation)
+  - **P011** — unbounded map growth in read models (OOM risk)
+  - **P012** — missing SQLite WAL mode (lock contention risk)
+  - **D014** — event payloads without json tags (Go field names in JSON)
+  - **D015** — nullable pointer fields in event payloads (nil-deref panic risk)
+  - **A032** — string/int IDs instead of branded `id.Of[T]` (type safety loss)
+  - **E016** — missing health checks in server-mode projects (K8s survival)
+  - **E017** — missing graceful shutdown on SIGTERM (in-flight events lost)
+  - **S010** — bus encryption/signing without store wrapper (cleartext storage)
+- **3 existing rules extended**:
+  - **C008** — now detects `float32` money fields + added `rate` keyword
+  - **C010** — now detects SQL error swallowing (`Exec`/`Query`/`Scan`/`Get`/`Select`)
+  - **B008** — now detects bitshift backoff bug in retry loops (escalates to error)
+- **Bug fix: suppression snippet fallback** (item 130) — `extractRuleID` returned
+  only the first ID for comma-separated suppressions; replaced with
+  `ParseSuppressions` which handles all IDs.
+- **Backlog pruning**: 25 improvement ideas marked won't-implement with rationale
+  (tutorial system, premature optimization, scope creep, cqrs-htmx-specific).
+  Open backlog reduced from 75 to ~42 items.
+
 #### cqrs-lint: massive rule expansion (65 → 159 rules across 10 categories)
 
 - **94 new detector rules** across 8 new and existing categories. The linter grew

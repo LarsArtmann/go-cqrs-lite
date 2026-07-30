@@ -97,31 +97,31 @@ See Level 1 and Level 2 tables below.
 
 ### Phase 1: Triage & Bug Fixes
 
-| #    | Task                                                                  | Items    | Pareto   | Impact                                    | Effort | Dependencies |
-| ---- | --------------------------------------------------------------------- | -------- | -------- | ----------------------------------------- | ------ | ------------ |
-| L1.1 | Fix `extractRuleID` snippet fallback (return all comma-separated IDs) | 130      | **[P1]** | Critical (suppression system correctness) | 30 min | None         |
-| L1.2 | Prune 25 won't-implement items from IMPROVEMENT_IDEAS.md              | 25 items | **[P1]** | High (unblocks planning)                  | 30 min | None         |
+| #    | Task                                                                  | Items    | Pareto   | Impact                                    | Effort | Dependencies | Status       |
+| ---- | --------------------------------------------------------------------- | -------- | -------- | ----------------------------------------- | ------ | ------------ | ------------ |
+| L1.1 | Fix `extractRuleID` snippet fallback (return all comma-separated IDs) | 130      | **[P1]** | Critical (suppression system correctness) | 30 min | None         | ✅ DONE     |
+| L1.2 | Prune 25 won't-implement items from IMPROVEMENT_IDEAS.md              | 25 items | **[P1]** | High (unblocks planning)                  | 30 min | None         | ✅ DONE     |
 
 ### Phase 2: High-Value Rules (The 4%)
 
-| #    | Task                                                                             | Items | Pareto   | Impact                              | Effort  | Dependencies |
-| ---- | -------------------------------------------------------------------------------- | ----- | -------- | ----------------------------------- | ------- | ------------ |
-| L1.3 | Implement error swallowing in command handlers (NEW rule C031)                   | 168   | **[P4]** | Critical (catches #1 handler bug)   | 90 min  | None         |
-| L1.4 | Implement error swallowing in projection handlers (extend C010 to SQL errors)    | 169   | **[P4]** | Critical (extends existing rule)    | 90 min  | L1.3         |
-| L1.5 | Implement domain-based severity calibration (add `DomainBias` to FeatureProfile) | 102   | **[P4]** | Strategic (makes all rules smarter) | 100 min | None         |
+| #    | Task                                                                             | Items | Pareto   | Impact                              | Effort  | Dependencies | Status       |
+| ---- | -------------------------------------------------------------------------------- | ----- | -------- | ----------------------------------- | ------- | ------------ | ------------ |
+| L1.3 | Implement error swallowing in command handlers (NEW rule C031)                   | 168   | **[P4]** | Critical (catches #1 handler bug)   | 90 min  | None         | ✅ DONE     |
+| L1.4 | Implement error swallowing in projection handlers (extend C010 to SQL errors)    | 169   | **[P4]** | Critical (extends existing rule)    | 90 min  | L1.3         | ✅ DONE     |
+| L1.5 | Implement domain-based severity calibration (add `DomainBias` to FeatureProfile) | 102   | **[P4]** | Strategic (makes all rules smarter) | 100 min | None         | Open         |
 
 ### Phase 3: Production Safety Rules (The 20%)
 
-| #     | Task                                                                              | Items | Pareto    | Impact                            | Effort | Dependencies |
-| ----- | --------------------------------------------------------------------------------- | ----- | --------- | --------------------------------- | ------ | ------------ |
-| L1.6  | Implement missing health checks detection (NEW rule RES-series or E-series)       | 164   | **[P20]** | High (K8s survival)               | 90 min | L1.5         |
-| L1.7  | Implement missing graceful shutdown detection                                     | 165   | **[P20]** | High (K8s survival)               | 90 min | L1.6         |
-| L1.8  | Implement encryption/signing mismatch detection (NEW rule S-series)               | 142   | **[P20]** | High (architectural security bug) | 90 min | None         |
-| L1.9  | Fix C017: trace `WithEventStore()` call arguments instead of file-level heuristic | 129   | **[P20]** | Medium (removes band-aid)         | 90 min | None         |
-| L1.10 | Extend C008 to detect money as float64/float32                                    | 150   | **[P20]** | High (financial correctness)      | 45 min | None         |
-| L1.11 | Extend B008 to catch bitshift backoff bug variant                                 | 134   | **[P20]** | Medium (real bug in DiscordSync)  | 60 min | None         |
-| L1.12 | Implement unbounded in-memory growth detection (NEW rule P-series)                | 140   | **[P20]** | Medium (OOM prevention)           | 90 min | None         |
-| L1.13 | Implement context propagation gap detection (NEW rule C-series)                   | 139   | **[P20]** | Medium (tracing correctness)      | 90 min | None         |
+| #     | Task                                                                              | Items | Pareto    | Impact                            | Effort | Dependencies | Status       |
+| ----- | --------------------------------------------------------------------------------- | ----- | --------- | --------------------------------- | ------ | ------------ | ------------ |
+| L1.6  | Implement missing health checks detection (NEW rule E-series)                     | 164   | **[P20]** | High (K8s survival)               | 90 min | L1.5         | ✅ DONE (E016) |
+| L1.7  | Implement missing graceful shutdown detection                                     | 165   | **[P20]** | High (K8s survival)               | 90 min | L1.6         | ✅ DONE (E017) |
+| L1.8  | Implement encryption/signing mismatch detection (NEW rule S-series)               | 142   | **[P20]** | High (architectural security bug) | 90 min | None         | ✅ DONE (S010) |
+| L1.9  | Fix C017: trace `WithEventStore()` call arguments instead of file-level heuristic | 129   | **[P20]** | Medium (removes band-aid)         | 90 min | None         | Open         |
+| L1.10 | Extend C008 to detect money as float64/float32                                    | 150   | **[P20]** | High (financial correctness)      | 45 min | None         | ✅ DONE     |
+| L1.11 | Extend B008 to catch bitshift backoff bug variant                                 | 134   | **[P20]** | Medium (real bug in DiscordSync)  | 60 min | None         | ✅ DONE     |
+| L1.12 | Implement unbounded in-memory growth detection (NEW rule P-series)                | 140   | **[P20]** | Medium (OOM prevention)           | 90 min | None         | ✅ DONE (P011) |
+| L1.13 | Implement context propagation gap detection (NEW rule C-series)                   | 139   | **[P20]** | Medium (tracing correctness)      | 90 min | None         | ✅ DONE (C032) |
 
 ### Phase 4: Infrastructure & DX
 
