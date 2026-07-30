@@ -92,7 +92,7 @@ Explicit `features` flags always override preset values.
 
 ## Rule Count
 
-**65 rules** across 6 categories: correctness (16), API misuse (19), boilerplate (15), consistency (5), architecture (7), security (3).
+**78 rules** across 8 categories: correctness (21), API misuse (20), boilerplate (18), consistency (6), architecture (7), security (3), performance (2), version (1).
 
 ## Correctness Rules (bugs)
 
@@ -114,6 +114,11 @@ Explicit `features` flags always override preset values.
 | C014 | time-local-usage                 | Warning  | time.Local causes silent data corruption across timezone boundaries                                  |
 | C015 | unchecked-close                  | Warning  | Close() error discarded — resource leak or silent data loss risk                                     |
 | C016 | background-in-handler            | Warning  | context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing |
+| C017 | inmem-store-persistent-eventstore | Error    | In-memory snapshot/checkpoint/DLQ store with persistent event store — lost on restart |
+| C019 | multiple-repos-same-aggregate     | Warning  | Multiple Repository instances for the same aggregate type — wastes singleflight/cache |
+| C020 | panic-in-handler                  | Error    | panic() in bus.Subscribe/SubscribeAll handler — crashes the bus/projection host |
+| C022 | context-discarded                 | Warning  | `_ = ctx` explicitly discards context — breaks cancellation, timeouts, tracing |
+| C023 | shutdown-error-ignored            | Warning  | Stop/Close/Shutdown error ignored — pending events or resources may be lost |
 
 ## API Misuse Rules
 
@@ -138,6 +143,7 @@ Explicit `features` flags always override preset values.
 | A017 | missing-snapshot-strategy                   | Info     | Repository without snapshot strategy — slow aggregates   |
 | A018 | no-actual-event-sourcing                    | Info     | Imports go-cqrs-lite but never calls Save/Publish        |
 | A019 | vendored-cqrs                               | Warning  | Vendored copy of go-cqrs-lite detected                   |
+| A027 | repeated-withcodec                          | Info     | event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec |
 
 ## Boilerplate Rules
 
@@ -158,6 +164,9 @@ Explicit `features` flags always override preset values.
 | B013 | missing-correlation-enricher    | Warning  | Repository without correlation enricher         |
 | B014 | missing-otel-middleware         | Info     | Bus/dispatcher lacks OTel tracing               |
 | B015 | missing-test-utilities          | Info     | Project has tests but no testutil imports       |
+| B021 | fold-without-strictapply       | Warning  | Fold function silently ignores unknown events — use decider.StrictApply |
+| B023 | missing-command-middleware      | Warning  | Command dispatcher has no middleware — panics in handlers crash the process |
+| B024 | missing-bus-recovery            | Warning  | Event bus has no recovery middleware — panics in handlers crash the bus |
 
 ## Consistency Rules
 
@@ -168,6 +177,7 @@ Explicit `features` flags always override preset values.
 | D003 | inconsistent-logging-library | Info     | Project mixes multiple logging libraries                                                                         |
 | D005 | stale-documentation-version  | Warning  | Docs reference different version than go.mod                                                                     |
 | D006 | missing-errorfamily          | Info     | errors.New or fmt.Errorf without %w bypasses the 6-family error taxonomy                                         |
+| D011 | nil-payload-event            | Warning  | Event created with nil payload — cannot be decoded, provides no audit trail |
 
 ## Architecture Rules
 
@@ -188,6 +198,19 @@ Explicit `features` flags always override preset values.
 | S001 | hardcoded-secrets                         | Critical | Potential hardcoded secret in string literal     |
 | S002 | missing-encryption-for-sensitive-payloads | Error    | PII event payloads without encryption middleware |
 | S003 | missing-event-signing                     | Warning  | Event store without signing middleware           |
+
+## Performance Rules
+
+| ID   | Rule                   | Severity | Description                                                              |
+| ---- | ---------------------- | -------- | ------------------------------------------------------------------------ |
+| P001 | load-in-subscribeall   | Error    | repo.Load inside SubscribeAll handler — O(N²) replay                     |
+| P007 | manual-retry-bitshift  | Error    | Manual retry loop with bitshift backoff — corrupts time.Duration         |
+
+## Version Rules
+
+| ID   | Rule                 | Severity | Description                                                        |
+| ---- | -------------------- | -------- | ------------------------------------------------------------------ |
+| V001 | mixed-major-versions | Error    | Project mixes v3 and v4 go-cqrs-lite modules — APIs are incompatible |
 
 ## CLI
 

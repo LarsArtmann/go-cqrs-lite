@@ -113,4 +113,3 @@ func reportPanicsInFunc(ctx *analyzer.AnalysisContext, body *ast.BlockStmt, find
 		return true
 	})
 }
-
