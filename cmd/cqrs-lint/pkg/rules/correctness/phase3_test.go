@@ -64,6 +64,26 @@ func newStore() Store {
 	assertRule(t, findings, "C018", 0)
 }
 
+// C018: SeekableJournal type assertion also triggers the detector.
+func TestC018_SilentJournalFallback_SeekableJournal(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func journalFromStore(store Store) Journal {
+	j, ok := store.(event.SeekableJournal)
+	if !ok {
+		return memory.NewMemoryStore()
+	}
+	return j
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC018Detector(ctx))
+	assertRule(t, findings, "C018", 1)
+}
+
 // C021: DecodePayloadAuto while mutex is held fires.
 func TestC021_MutexHeldDuringDecode(t *testing.T) {
 	t.Parallel()
@@ -155,6 +175,28 @@ func (r *ReadModelStore) Handle(evt Event) error {
 	assertRule(t, findings, "C021", 0)
 }
 
+// C021: RLock held during decode also fires.
+func TestC021_RLockHeldDuringDecode(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"readmodel.go": `package main
+
+func (r *ReadModelStore) Handle(evt Event) error {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	p, err := event.DecodePayloadAuto[Payload](evt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC021Detector(ctx))
+	assertRule(t, findings, "C021", 1)
+}
+
 // C024: Dual-write without transaction fires.
 func TestC024_DualWriteWithoutTransaction(t *testing.T) {
 	t.Parallel()
@@ -189,6 +231,25 @@ func (r *ReadModelStore) Handle(evt Event) error {
 	r.syncToSQL()
 	tx.Commit()
 	return nil
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC024Detector(ctx))
+	assertRule(t, findings, "C024", 0)
+}
+
+// C024: No finding when RunInTx is used as transaction wrapper.
+func TestC024_NoFindingWithRunInTx(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"readmodel.go": `package main
+
+func (r *ReadModelStore) Handle(evt Event) error {
+	return RunInTx(db, func(tx Tx) error {
+		r.data[evt.ID()] = evt.Payload()
+		return r.syncToSQL()
+	})
 }
 `,
 	})
@@ -348,6 +409,52 @@ const idempotencyTTL = 5 * time.Minute
 
 func setup(d Dispatcher) {
 	d.Use(middleware.CommandIdempotency(store, 24*time.Hour, nil))
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC026Detector(ctx))
+	assertRule(t, findings, "C026", 1)
+}
+
+// C026: TTL mismatch in middleware.EventIdempotency.
+func TestC026_TTLMismatch_EventIdempotency(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"infra.go": `package main
+
+import (
+	"middleware"
+	"time"
+)
+
+const idempotencyTTL = 5 * time.Minute
+
+func setup(bus Bus) {
+	bus.Use(middleware.EventIdempotency(store, 24*time.Hour, nil))
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC026Detector(ctx))
+	assertRule(t, findings, "C026", 1)
+}
+
+// C026: TTL mismatch in middleware.QueryIdempotency.
+func TestC026_TTLMismatch_QueryIdempotency(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"infra.go": `package main
+
+import (
+	"middleware"
+	"time"
+)
+
+const idempotencyTTL = 5 * time.Minute
+
+func setup(q Q) {
+	q.Use(middleware.QueryIdempotency(store, 24*time.Hour, keyFn))
 }
 `,
 	})
