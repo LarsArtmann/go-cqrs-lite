@@ -137,6 +137,29 @@ func boilerplateRules() []RuleInfo {
 			Description: "Project has tests but no testutil/eventtest imports",
 			AutoFix:     false,
 		},
+		{
+			ID:          "B021",
+			Name:        "fold-without-strictapply",
+			Category:    "boilerplate",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Fold function silently ignores unknown events — use decider.StrictApply",
+			AutoFix:     false,
+		},
+	}
+}
+
+func performanceRules() []RuleInfo {
+	return []RuleInfo{
+		{
+			ID:          "P001",
+			Name:        "load-in-subscribeall",
+			Category:    "performance",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "repo.Load inside SubscribeAll handler — O(N²) replay",
+			AutoFix:     false,
+		},
 	}
 }
 

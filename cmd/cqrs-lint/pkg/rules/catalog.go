@@ -13,14 +13,15 @@ type RuleInfo struct {
 
 // AllRules returns metadata for all available rules, organized by category.
 func AllRules() []RuleInfo {
-	return append(append(append(append(append(
+	return append(append(append(append(append(append(
 		correctnessRules(),
 		apiRules()...,
 	),
 		boilerplateRules()...),
 		consistencyRules()...),
 		architectureRules()...),
-		securityRules()...)
+		securityRules()...),
+		performanceRules()...)
 }
 
 func correctnessRules() []RuleInfo {
@@ -167,6 +168,33 @@ func correctnessRules() []RuleInfo {
 			Severity:    "warning",
 			Confidence:  "high",
 			Description: "context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing",
+			AutoFix:     false,
+		},
+		{
+			ID:          "C017",
+			Name:        "inmem-store-persistent-eventstore",
+			Category:    "correctness",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "In-memory snapshot/checkpoint/DLQ store with persistent event store — lost on restart",
+			AutoFix:     false,
+		},
+		{
+			ID:          "C019",
+			Name:        "multiple-repos-same-aggregate",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Multiple Repository instances for the same aggregate type — wastes singleflight/cache",
+			AutoFix:     false,
+		},
+		{
+			ID:          "C020",
+			Name:        "panic-in-handler",
+			Category:    "correctness",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "panic() in bus.Subscribe/SubscribeAll handler — crashes the bus/projection host",
 			AutoFix:     false,
 		},
 	}

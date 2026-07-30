@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/boilerplate"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/consistency"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/performance"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/security"
 )
 
@@ -34,6 +35,9 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		correctness.NewC014Detector(ctx),
 		correctness.NewC015Detector(ctx),
 		correctness.NewC016Detector(ctx),
+		correctness.NewC017Detector(ctx),
+		correctness.NewC019Detector(ctx),
+		correctness.NewC020Detector(ctx),
 		// API
 		api.NewA001Detector(ctx),
 		api.NewA002Detector(ctx),
@@ -70,6 +74,9 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		boilerplate.NewB013Detector(ctx),
 		boilerplate.NewB014Detector(ctx),
 		boilerplate.NewB015Detector(ctx),
+		boilerplate.NewB021Detector(ctx),
+		// Performance
+		performance.NewP001Detector(ctx),
 		// Consistency
 		consistency.NewD001Detector(ctx),
 		consistency.NewD002Detector(ctx),
