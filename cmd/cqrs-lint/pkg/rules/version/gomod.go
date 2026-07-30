@@ -73,6 +73,13 @@ func shortModuleName(path string) string {
 	return path
 }
 
+// isPseudoVersion reports whether a version string is a Go pseudo-version
+// (e.g. "v0.0.0-20260729094629-b5628220609c"). Pseudo-versions are
+// non-reproducible and indicate an untagged dependency.
+func isPseudoVersion(v string) bool {
+	return strings.HasPrefix(v, "v0.0.0-")
+}
+
 // majorMinorVersion extracts the major and minor numbers from a semver string.
 // e.g. "v4.2.0" → (4, 2, true). Returns (0, 0, false) on parse failure.
 func majorMinorVersion(v string) (major, minor int, ok bool) {
