@@ -488,7 +488,7 @@ func consistencyRules() []RuleInfo {
 	}
 }
 
-func architectureRules() []RuleInfo { //nolint:dupl // catalog entries are structurally similar
+func architectureRules() []RuleInfo {
 	return []RuleInfo{
 		{
 			ID:          "E001",

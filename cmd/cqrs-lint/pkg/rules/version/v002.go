@@ -32,7 +32,7 @@ func NewV002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			for _, req := range requires {
-				if !isPseudoVersion(req.Version) {
+				if !strings.HasPrefix(req.Version, "v0.0.0-") {
 					continue
 				}
 
@@ -61,10 +61,4 @@ func NewV002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-// isPseudoVersion returns true for Go pseudo-versions like
-// "v0.0.0-00010101000000-000000000000" or "v0.0.0-20240115120000-abcdef123456".
-func isPseudoVersion(v string) bool {
-	return strings.HasPrefix(v, "v0.0.0-")
 }
