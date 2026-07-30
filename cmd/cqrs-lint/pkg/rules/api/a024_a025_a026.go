@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"go/ast"
 	"strings"
 
@@ -35,9 +34,9 @@ func projectImportsModule(ctx *analyzer.AnalysisContext, moduleSuffix string) bo
 	return false
 }
 
-// projectCallsFunction returns true if any non-test file in the project contains
-// a call to a function with the given name (any package qualifier).
-func projectCallsFunction(ctx *analyzer.AnalysisContext, fnName string) bool {
+// projectCallsPkgFunction returns true if any non-test file in the project
+// contains a call to pkgName.fnName (e.g., event.New, decider.NewRepository).
+func projectCallsPkgFunction(ctx *analyzer.AnalysisContext, pkgName, fnName string) bool {
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
 			continue
@@ -60,7 +59,7 @@ func projectCallsFunction(ctx *analyzer.AnalysisContext, fnName string) bool {
 				return true
 			}
 
-			if sel.Sel.Name == fnName {
+			if sel.Sel.Name == fnName && analyzer.SelectorPackage(sel) == pkgName {
 				found = true
 				return false
 			}
@@ -91,9 +90,10 @@ func NewA024Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			hasNewEvent := projectCallsFunction(ctx, "New") || projectCallsFunction(ctx, "NewEvent")
-			hasRepository := projectCallsFunction(ctx, "NewRepository") ||
-				projectCallsFunction(ctx, "NewTypedRepository")
+			hasNewEvent := projectCallsPkgFunction(ctx, "event", "New") ||
+				projectCallsPkgFunction(ctx, "event", "NewEvent")
+			hasRepository := projectCallsPkgFunction(ctx, "decider", "NewRepository") ||
+				projectCallsPkgFunction(ctx, "decider", "NewTypedRepository")
 
 			if hasNewEvent || hasRepository {
 				return nil, nil

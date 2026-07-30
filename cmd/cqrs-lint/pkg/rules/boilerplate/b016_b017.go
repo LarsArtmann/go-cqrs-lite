@@ -3,6 +3,7 @@ package boilerplate
 import (
 	"context"
 	"go/ast"
+	"go/token"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -33,10 +34,10 @@ func NewB016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					// Detect SQL string literals mentioning checkpoint/projection_offset tables.
-					if lit, ok := n.(*ast.BasicLit); ok && lit.Kind == 6 { // token.STRING
+					if lit, ok := n.(*ast.BasicLit); ok && lit.Kind == token.STRING {
 						val := strings.ToLower(lit.Value)
 						if strings.Contains(val, "checkpoint") || strings.Contains(val, "projection_offset") {
-							if strings.Contains(val, "create table") || strings.Contains(val, "create table") {
+							if strings.Contains(val, "create table") {
 								hasCheckpointTable = true
 								if reportPos == nil {
 									reportPos = lit
