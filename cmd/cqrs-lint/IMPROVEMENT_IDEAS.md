@@ -69,13 +69,13 @@
 
 ### Existing rule improvements
 
-13. ~**A002 should detect `marshalPayload` helper pattern** — github-local-sync (events.go:95-103) and InboxClean (decide.go:107-115) both have a `marshalPayload` function that calls `json.Marshal` and passes the result to `event.NewEvent`. The current A002 detector may miss this indirection. Add detection of the two-step pattern.~ done
+13. ~**A002 should detect `marshalPayload` helper pattern** — github-local-sync (events.go:95-103) and InboxClean (decide.go:107-115) both have a `marshalPayload` function that calls `json.Marshal` and passes the result to `event.NewEvent`. The current A002 detector may miss this indirection. Add detection of the two-step pattern.~ done at `748a8cb4`
 
-14. ~**A014 should flag ALL `event.NewEvent` calls, not just some** — Many projects (Standup-Killer, github-local-sync, InboxClean, Kernovia) use `event.NewEvent` instead of `event.New`. Verify the rule catches every call site, not just those in certain function name patterns.~ done (verified: A014 uses ast.Inspect on all call expressions, no function name filtering)
+14. ~**A014 should flag ALL `event.NewEvent` calls, not just some** — Many projects (Standup-Killer, github-local-sync, InboxClean, Kernovia) use `event.NewEvent` instead of `event.New`. Verify the rule catches every call site, not just those in certain function name patterns.~ done at `8ddf364a` (verified: A014 uses ast.Inspect on all call expressions, no function name filtering)
 
-15. ~**A016 should be context-aware about idempotency** — The rule currently checks for idempotency middleware. Extend: if the project uses `idempotency.NewMemoryStore` directly (like Kernovia's custom store), note that the library module exists. If the project defines its OWN idempotency store interface, flag it.~ done (A016 now detects idempotency.NewMemoryStore and QueryIdempotency)
+15. ~**A016 should be context-aware about idempotency** — The rule currently checks for idempotency middleware. Extend: if the project uses `idempotency.NewMemoryStore` directly (like Kernovia's custom store), note that the library module exists. If the project defines its OWN idempotency store interface, flag it.~ done at `8ddf364a` (A016 now detects idempotency.NewMemoryStore and QueryIdempotency)
 
-16. ~**A017 should check for snapshot strategy, not just store** — Standup-Killer creates repos with `WithSnapshotStore` but no `WithSnapshotStrategy`. The store is useless without a strategy. Detect: `WithSnapshotStore` without `WithSnapshotStrategy`.~ done (A017 now flags WithSnapshotStore without WithSnapshotStrategy at warning severity)
+16. ~**A017 should check for snapshot strategy, not just store** — Standup-Killer creates repos with `WithSnapshotStore` but no `WithSnapshotStrategy`. The store is useless without a strategy. Detect: `WithSnapshotStore` without `WithSnapshotStrategy`.~ done at `8ddf364a` (A017 now flags WithSnapshotStore without WithSnapshotStrategy at warning severity)
 
 ### New rules
 
