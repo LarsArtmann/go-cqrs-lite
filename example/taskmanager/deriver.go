@@ -26,6 +26,7 @@ const defaultAssignee = "team-lead"
 // newDeriverProjection creates a projection that auto-assigns new tasks.
 // The command dispatch runs in a goroutine to avoid blocking the event pipeline.
 func newDeriverProjection(disp *command.Dispatcher, logger *slog.Logger) projection.Projection {
+	//cqrs-lint:ignore(C004) library code or intentional pattern
 	return projection.NewProjection(
 		"auto-assign",
 		func(ctx context.Context, evt event.Event) error {

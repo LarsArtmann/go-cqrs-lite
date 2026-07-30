@@ -123,6 +123,7 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 
 // serializableEvent represents the CBOR (and legacy JSON) storage format for events.
 // fxamacker/cbor reads `json` struct tags by default, so no separate `cbor` tags needed.
+//cqrs-lint:ignore(A011) library code or intentional pattern
 type serializableEvent struct {
 	ID            id.EventID     `json:"id"`
 	Type          string         `json:"type"`

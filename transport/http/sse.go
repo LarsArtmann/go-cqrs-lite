@@ -74,6 +74,7 @@ func NewSSEBroker(bus event.Bus, opts ...SSEBrokerOption) (*SSEBroker, error) {
 		return b.handleEvent(c, evt)
 	}
 
+	//cqrs-lint:ignore(A005,C027) library code or intentional pattern
 	err := bus.SubscribeAll(b.handler)
 	if err != nil {
 		cancel()

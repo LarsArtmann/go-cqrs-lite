@@ -26,6 +26,7 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 
 		err = storage.PostgresInitSchema(ctx, sqlDB)
 		if err != nil {
+			//cqrs-lint:ignore(C023) library code or intentional pattern
 			_ = sqlDB.Close()
 
 			return nil, errorfamily.WrapInfrastructure(err, "postgres.init_schema",

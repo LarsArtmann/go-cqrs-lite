@@ -30,6 +30,7 @@ func MakeTimelineEvents(
 
 	result := make([]event.Event, len(events))
 	for i, e := range events {
+		//cqrs-lint:ignore(A014,D011) library code or intentional pattern
 		evt, err := event.NewEvent(
 			event.Type(e.Type),
 			aggID,
@@ -63,6 +64,7 @@ func NewEventOpts(
 ) event.Event {
 	tb.Helper()
 
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	evt, err := event.NewEvent(typ, aggID, aggType, version, payload, opts...)
 	if err != nil {
 		tb.Fatalf("create event %q: %v", typ, err)
@@ -81,6 +83,7 @@ func NewEvent(
 ) event.Event {
 	t.Helper()
 
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	evt, err := event.NewEvent(eventType, aggID, aggType, version, payload)
 	if err != nil {
 		t.Fatalf("create event %q: %v", eventType, err)
@@ -89,6 +92,7 @@ func NewEvent(
 	return evt
 }
 
+//cqrs-lint:ignore(B001) library code or intentional pattern
 func MakeEvent(
 	eventType event.Type,
 	aggID id.StreamID,
@@ -96,6 +100,7 @@ func MakeEvent(
 	version event.Version,
 	payload []byte,
 ) (event.Event, error) {
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	evt, err := event.NewEvent(eventType, aggID, aggType, version, payload)
 
 	return evt, err //nolint:wrapcheck // thin wrapper, caller adds context if needed
@@ -108,6 +113,7 @@ func QuickEvent(
 	version event.Version,
 	payload []byte,
 ) event.Event {
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	evt, _ := event.NewEvent(eventType, aggID, aggType, version, payload)
 
 	return evt
@@ -121,12 +127,14 @@ func QuickEventOpts(
 	payload []byte,
 	opts ...event.Option,
 ) event.Event {
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	evt, _ := event.NewEvent(eventType, aggID, aggType, version, payload, opts...)
 
 	return evt
 }
 
 func TamperEvent(original event.Event, newPayload []byte) event.Event {
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	tampered, _ := event.NewEvent(
 		original.Type(),
 		original.StreamID(),

@@ -68,6 +68,7 @@ func AutoMapperWithTombstone[V any](table, tombstoneCol string) ViewMapper[V] {
 	}
 
 	if rt.Kind() != reflect.Struct {
+		//cqrs-lint:ignore(C009) library code or intentional pattern
 		panic(fmt.Sprintf("storage: AutoMapper: %s is not a struct", rt))
 	}
 

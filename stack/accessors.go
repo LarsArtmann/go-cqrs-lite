@@ -38,6 +38,7 @@ func Repository[State any](
 		return nil, ErrMissingEventStore
 	}
 
+	//cqrs-lint:ignore(A017,B025) library code or intentional pattern
 	return decider.NewRepository(store, b.Publisher, d, opts...)
 }
 

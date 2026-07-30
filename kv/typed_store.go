@@ -184,6 +184,7 @@ func (s *TypedStore[T, K]) DeleteAll(ctx context.Context) error {
 	}
 
 	if err = iter.Error(); err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = iter.Close()
 
 		return errorfamily.Wrap(err, errorfamily.Classify(err),

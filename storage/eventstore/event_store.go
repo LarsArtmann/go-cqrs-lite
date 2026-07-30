@@ -51,6 +51,7 @@ func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 	return &SQLEventStore{OwnedDBHandle: handle, insertEventSQL: buildInsertEventSQL(d)}, nil
 }
 
+//cqrs-lint:ignore(A021) library code or intentional pattern
 func (s *SQLEventStore) checkClosed() error {
 	return s.CheckClosed(sqlpkg.ErrClosed)
 }

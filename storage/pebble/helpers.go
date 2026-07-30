@@ -16,6 +16,7 @@ import (
 
 // AppendBatch implements event.Store.AppendBatch.
 // Appends events without optimistic concurrency checks.
+//cqrs-lint:ignore(A021) library code or intentional pattern
 func (a *EventStore) AppendBatch(
 	_ context.Context,
 	ref id.StreamRef,
@@ -146,6 +147,7 @@ func checkIteratorError(iter *pebble.Iterator) error {
 func keyExists(db *pebble.DB, key []byte) bool {
 	_, closer, err := db.Get(key)
 	if err == nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = closer.Close()
 
 		return true

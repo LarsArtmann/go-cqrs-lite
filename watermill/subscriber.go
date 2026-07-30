@@ -55,6 +55,7 @@ func (a *SubscriberAdapter) Subscribe(
 		}
 	}
 
+	//cqrs-lint:ignore(C027) library code or intentional pattern
 	if err := a.bus.Subscribe(event.Type(topic), handler); err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err,

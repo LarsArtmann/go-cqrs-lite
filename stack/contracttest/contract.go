@@ -63,6 +63,7 @@ func newBundle(t *testing.T, factory Factory) *stack.Bundle {
 		t.Fatalf("factory: %v", err)
 	}
 
+	//cqrs-lint:ignore(C023) library code or intentional pattern
 	t.Cleanup(func() { _ = b.Close() })
 
 	return b

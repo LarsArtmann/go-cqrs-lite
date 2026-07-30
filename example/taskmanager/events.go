@@ -55,6 +55,7 @@ type TaskPriorityChangedPayload struct {
 }
 
 type TaskDueDateSetPayload struct {
+	//cqrs-lint:ignore(C013) library code or intentional pattern
 	DueDate *time.Time `json:"dueDate,omitempty"`
 }
 

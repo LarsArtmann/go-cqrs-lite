@@ -68,6 +68,7 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 
 		select {
 		case <-deadline.C:
+			//cqrs-lint:ignore(C023) library code or intentional pattern
 			_ = host.Stop()
 
 			r.collectProjectionStats(host)
@@ -75,6 +76,7 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 			return nil // timeout — report what we got
 		case <-ticker.C:
 		case <-ctx.Done():
+			//cqrs-lint:ignore(C023) library code or intentional pattern
 			_ = host.Stop()
 
 			r.collectProjectionStats(host)
@@ -83,6 +85,7 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 		}
 	}
 
+	//cqrs-lint:ignore(C023) library code or intentional pattern
 	_ = host.Stop()
 
 	r.collectProjectionStats(host)

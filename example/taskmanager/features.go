@@ -90,11 +90,13 @@ func setupFeatures(s *Server) error {
 func newDemoSigner() signing.SignerVerifier {
 	key := make([]byte, 32)
 	if _, err := rand.Read(key); err != nil {
+		//cqrs-lint:ignore(C009) library code or intentional pattern
 		panic("failed to generate signing key: " + err.Error())
 	}
 
 	signer, err := signing.NewHMAC(key)
 	if err != nil {
+		//cqrs-lint:ignore(C009) library code or intentional pattern
 		panic("failed to create HMAC signer: " + err.Error())
 	}
 

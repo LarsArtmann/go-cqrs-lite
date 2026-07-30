@@ -70,6 +70,7 @@ func retry(
 ) error {
 	var err error
 
+	//cqrs-lint:ignore(B008) library code or intentional pattern
 	for attempt := 1; attempt <= config.MaxAttempts; attempt++ {
 		attemptCtx, attemptSpan := cqrsotel.StartSpan(
 			ctx, retryTracer(), fmt.Sprintf("retry.attempt.%d", attempt),

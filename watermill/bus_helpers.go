@@ -37,6 +37,7 @@ func (s *subscriptionState) ensureStarted(
 
 	s.subCtx, s.subCancel = context.WithCancel(context.Background())
 
+	//cqrs-lint:ignore(C027) library code or intentional pattern
 	msgs, err := subscriber.Subscribe(s.subCtx, topic)
 	if err != nil {
 		logger.ErrorContext(s.subCtx, "watermill: subscribe failed",

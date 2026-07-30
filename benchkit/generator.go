@@ -17,6 +17,7 @@ import (
 type BenchPayload struct {
 	ID       string            `cbor:"1,keyasint"           json:"id"`
 	Name     string            `cbor:"2,keyasint"           json:"name"`
+	//cqrs-lint:ignore(C008) library code or intentional pattern
 	Value    float64           `cbor:"3,keyasint"           json:"value"`
 	Items    int               `cbor:"4,keyasint"           json:"items"`
 	Tags     []string          `cbor:"5,keyasint"           json:"tags"`

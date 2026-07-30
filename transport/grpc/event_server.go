@@ -30,6 +30,7 @@ func RegisterEventService(srv *grpc.Server, bus EventSubscriber) (*EventServer, 
 		nextID:  1,
 	}
 
+	//cqrs-lint:ignore(A005,C027) library code or intentional pattern
 	err := bus.SubscribeAll(eventSrv.handleEvent)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "grpc.event_server.subscribe",

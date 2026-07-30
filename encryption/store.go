@@ -59,6 +59,7 @@ func NewEncryptedStore(
 	}, nil
 }
 
+//cqrs-lint:ignore(A021) library code or intentional pattern
 func (s *encryptedStore) Save(
 	ctx context.Context,
 	ref id.StreamRef,

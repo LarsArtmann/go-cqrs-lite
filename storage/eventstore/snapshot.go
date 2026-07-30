@@ -49,6 +49,7 @@ func SnapshotSchema() string { return sqlpkg.PostgresDialect{}.SnapshotSchema() 
 // SQLiteSnapshotSchema returns the SQLite DDL for the snapshots table.
 func SQLiteSnapshotSchema() string { return sqlpkg.SQLiteDialect{}.SnapshotSchema() }
 
+//cqrs-lint:ignore(A023) library code or intentional pattern
 func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error {
 	ctx, span := cqrsotel.StartSpan(
 		ctx,

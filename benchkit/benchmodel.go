@@ -71,6 +71,7 @@ func (q listCountsQuery) Type() query.Type { return listCountsQueryType }
 
 // missQuery is dispatched against an unregistered type to measure the miss
 // (handler-not-found) path through the dispatcher.
+//cqrs-lint:ignore(E007) library code or intentional pattern
 type missQuery struct{}
 
 func (missQuery) Type() query.Type { return missQueryType }

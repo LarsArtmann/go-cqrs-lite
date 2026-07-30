@@ -10,6 +10,7 @@ import (
 )
 
 // serializableQuery is the CBOR (and legacy JSON) storage format for queries.
+//cqrs-lint:ignore(E007) library code or intentional pattern
 type serializableQuery struct {
 	ID         id.RequestID   `json:"id"`
 	Type       string         `json:"type"`

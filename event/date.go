@@ -42,6 +42,7 @@ func NewDate(year int, month time.Month, day int) (Date, error) {
 func NewDateMust(year int, month time.Month, day int) Date {
 	d, err := NewDate(year, month, day)
 	if err != nil {
+		//cqrs-lint:ignore(C009) library code or intentional pattern
 		panic(err)
 	}
 	return d

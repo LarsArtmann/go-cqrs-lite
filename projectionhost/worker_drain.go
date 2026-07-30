@@ -157,6 +157,7 @@ func (w *worker) handleProcessEventError(
 func (w *worker) processLive(ctx context.Context) error {
 	w.setStatus(WorkerLive)
 
+	//cqrs-lint:ignore(A005,C027) library code or intentional pattern
 	if err := w.opts.subscriber.SubscribeAll(func(_ context.Context, evt event.Event) error {
 		select {
 		case <-ctx.Done():

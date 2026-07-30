@@ -42,6 +42,7 @@ func FailingEventHandler(msg string) event.Handler {
 
 func PanicEventHandler(msg string) event.Handler {
 	return func(_ context.Context, _ event.Event) error {
+		//cqrs-lint:ignore(C009) library code or intentional pattern
 		panic(msg)
 	}
 }

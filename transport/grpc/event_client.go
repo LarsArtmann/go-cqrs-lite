@@ -32,6 +32,7 @@ func (c *EventClient) Subscribe(
 	handler event.Handler,
 	eventTypes ...string,
 ) error {
+	//cqrs-lint:ignore(C027) library code or intentional pattern
 	stream, err := c.client.Subscribe(ctx, &cqrsproto.SubscriptionRequest{
 		EventTypes: eventTypes,
 	})
@@ -84,6 +85,7 @@ func envelopeToEvent(envelope *cqrsproto.EventEnvelope) (event.Event, error) {
 		opts = append(opts, event.WithEncoding(codec.Encoding(enc)))
 	}
 
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	evt, err := event.NewEvent(
 		event.Type(envelope.GetType()),
 		aggID,

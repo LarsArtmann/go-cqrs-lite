@@ -49,6 +49,7 @@ var (
 // MessageSubscriber exposes the internal Watermill [message.Subscriber]
 // (GoChannel by default). This is needed for CatchUpSubscriber, which
 // requires a message.Subscriber for the live-delivery phase.
+//cqrs-lint:ignore(A020) library code or intentional pattern
 func (b *EventBus) MessageSubscriber() message.Subscriber { return b.subscriber }
 
 // DefaultEventBusTopic is the default Watermill topic used by EventBus.

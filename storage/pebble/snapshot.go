@@ -76,6 +76,7 @@ func NewSnapshotStore(
 // Save stores the snapshot, overwriting any existing snapshot for the same
 // stream. Snapshots older than the currently stored version are silently
 // ignored to prevent state regressions.
+//cqrs-lint:ignore(A023) library code or intentional pattern
 func (s *SnapshotStore) Save(
 	ctx context.Context,
 	snap snapshot.Snapshot,

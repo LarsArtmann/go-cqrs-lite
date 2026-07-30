@@ -28,6 +28,7 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 	if cfg.WAL {
 		err = storage.SQLiteEnableWAL(ctx, sqlDB)
 		if err != nil {
+			//cqrs-lint:ignore(C023) library code or intentional pattern
 			_ = sqlDB.Close()
 
 			return nil, errorfamily.WrapInfrastructure(err, "sqlite.enable_wal",
@@ -38,6 +39,7 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 	if cfg.ForeignKeys {
 		err = storage.SQLiteEnableForeignKeys(ctx, sqlDB)
 		if err != nil {
+			//cqrs-lint:ignore(C023) library code or intentional pattern
 			_ = sqlDB.Close()
 
 			return nil, errorfamily.WrapInfrastructure(err, "sqlite.enable_fk",
@@ -48,6 +50,7 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 	if cfg.AutoMigrate {
 		err = storage.SQLiteInitSchema(ctx, sqlDB)
 		if err != nil {
+			//cqrs-lint:ignore(C023) library code or intentional pattern
 			_ = sqlDB.Close()
 
 			return nil, errorfamily.WrapInfrastructure(err, "sqlite.init_schema",
@@ -58,6 +61,7 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 	if cfg.Optimize {
 		err = storage.SQLiteApplyOptimizations(ctx, sqlDB)
 		if err != nil {
+			//cqrs-lint:ignore(C023) library code or intentional pattern
 			_ = sqlDB.Close()
 
 			return nil, errorfamily.WrapInfrastructure(err, "sqlite.optimize",

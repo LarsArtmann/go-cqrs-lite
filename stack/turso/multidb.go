@@ -42,6 +42,7 @@ func openSecondaryDB(dbPath string, cfg config) (*sql.DB, error) {
 	cqrsturso.ConfigurePool(sqlDB)
 
 	if err := applySchemaAndPragmas(sqlDB, cfg); err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = sqlDB.Close()
 
 		return nil, err

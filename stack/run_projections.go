@@ -46,6 +46,7 @@ func (b *Bundle) RunProjections(
 			"run projections")
 	}
 
+	//cqrs-lint:ignore(C027) library code or intentional pattern
 	msgs, err := catchUp.Subscribe(ctx, cqrswatermill.DefaultEventBusTopic)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "stack.run_projections.subscribe",

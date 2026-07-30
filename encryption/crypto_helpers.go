@@ -68,6 +68,7 @@ func decryptEvent(evt event.Event, dec Decrypter) (event.Event, error) {
 	delete(md.Custom, AlgorithmKey)
 	delete(md.Custom, KeyIDKey)
 
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	plainEvt, err := event.NewEvent(
 		evt.Type(),
 		evt.StreamID(),

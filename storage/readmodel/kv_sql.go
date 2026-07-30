@@ -252,6 +252,7 @@ func (b *sqlKVBatch) Delete(ctx context.Context, key []byte) error {
 }
 
 func (b *sqlKVBatch) Commit(ctx context.Context) error {
+	//cqrs-lint:ignore(C022) library code or intentional pattern
 	_ = ctx // retained for kv.Batch interface; tx.Commit is non-context-aware
 
 	if b.closed {

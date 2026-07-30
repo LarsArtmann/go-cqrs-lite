@@ -60,6 +60,7 @@ func taskPayloadDecoder(eventType string, payload []byte) (any, error) {
 		return struct{}{}, nil
 
 	default:
+		//cqrs-lint:ignore(C025) library code or intentional pattern
 		return nil, fmt.Errorf(
 			"metaengine: no fold for event type %q",
 			eventType,

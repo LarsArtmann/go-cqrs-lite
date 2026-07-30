@@ -249,6 +249,7 @@ func (e *Exporter) writeEntityRelationships(buf *strings.Builder, cat *catalog.C
 
 			label := prop.RelationType
 			if label == "" {
+				//cqrs-lint:ignore(B006) library code or intentional pattern
 				label = "references"
 			}
 

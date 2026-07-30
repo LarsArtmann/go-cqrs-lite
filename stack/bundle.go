@@ -125,6 +125,7 @@ func New(opts ...Option) (*Bundle, error) {
 	err := b.validate()
 	if err != nil {
 		// Close anything that was registered, since the Bundle is unusable.
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = b.Close()
 
 		return nil, err

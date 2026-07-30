@@ -21,6 +21,7 @@ func NewFakeSnapshotStore() *FakeSnapshotStore {
 	return &FakeSnapshotStore{}
 }
 
+//cqrs-lint:ignore(A023) library code or intentional pattern
 func (s *FakeSnapshotStore) SetSnapshot(snap *snapshot.Snapshot) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

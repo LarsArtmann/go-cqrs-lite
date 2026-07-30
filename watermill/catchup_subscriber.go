@@ -160,6 +160,7 @@ func (s *CatchUpSubscriber) runCatchUp(ctx context.Context, sub *catchUpSubscrip
 }
 
 func (s *CatchUpSubscriber) livePhase(ctx context.Context, sub *catchUpSubscription) error {
+	//cqrs-lint:ignore(C027) library code or intentional pattern
 	liveMsgs, err := s.live.Subscribe(ctx, sub.topic)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "watermill.catchup.subscribe_live",
@@ -233,6 +234,7 @@ func (s *CatchUpSubscriber) Close() error {
 		}
 		s.mu.Unlock()
 
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = s.live.Close()
 	})
 

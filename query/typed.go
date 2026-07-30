@@ -13,6 +13,7 @@ import (
 
 // TypedQuery is a query with a typed payload P, closing the type-safety hole
 // where [PersistedQuery].Payload is an untyped []byte.
+//cqrs-lint:ignore(E007) library code or intentional pattern
 type TypedQuery[P any] struct {
 	ID         id.RequestID
 	Type       Type

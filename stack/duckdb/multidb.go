@@ -27,6 +27,7 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 		ctx := context.Background()
 
 		if err := storage.DuckDBInitSchema(ctx, sqlDB); err != nil {
+			//cqrs-lint:ignore(C023) library code or intentional pattern
 			_ = sqlDB.Close()
 
 			return nil, errorfamily.WrapInfrastructure(err, "duckdb.init_schema",

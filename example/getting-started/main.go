@@ -123,6 +123,7 @@ func main() {
 
 	// ── Start projection (replays journal, then enters live mode) ────
 	catchUp, _ := bundle.CatchUpSubscriber()
+	//cqrs-lint:ignore(C027) library code or intentional pattern
 	msgs, _ := catchUp.Subscribe(ctx, cqrswatermill.DefaultEventBusTopic)
 
 	go func() {

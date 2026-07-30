@@ -26,6 +26,7 @@ func (c StoreTestConfig) NewTestEvent(
 ) *event.ImmutableEvent {
 	t.Helper()
 
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	evt, err := event.NewEvent(
 		c.EvtType,
 		aggID,

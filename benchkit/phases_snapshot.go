@@ -76,6 +76,7 @@ func (r *runner) populateSnapshots(
 		return err
 	}
 
+	//cqrs-lint:ignore(B025) library code or intentional pattern
 	repo, err := decider.NewRepository[CounterState](
 		store, nil, d,
 		decider.WithSnapshotStore[CounterState](r.bundle.SnapshotStore),
@@ -123,6 +124,7 @@ func (r *runner) benchmarkColdLoad(
 	d decider.Decider[CounterState],
 	streamIDs []id.StreamID,
 ) ([]CounterState, []event.Version, error) {
+	//cqrs-lint:ignore(A017,B025,C019) library code or intentional pattern
 	repo, err := decider.NewRepository[CounterState](
 		store, nil, d,
 		decider.WithLoadCoalescing[CounterState](false),
@@ -178,6 +180,7 @@ func (r *runner) benchmarkSnapshotLoad(
 		return
 	}
 
+	//cqrs-lint:ignore(B025,C019) library code or intentional pattern
 	repo, err := decider.NewRepository[CounterState](
 		store, nil, d,
 		decider.WithSnapshotStore[CounterState](r.bundle.SnapshotStore),
@@ -224,6 +227,7 @@ func (r *runner) benchmarkCache(
 	coldStates []CounterState,
 	coldVersions []event.Version,
 ) error {
+	//cqrs-lint:ignore(C019) library code or intentional pattern
 	repo, err := decider.NewRepository[CounterState](
 		store, nil, d,
 		decider.WithLoadCoalescing[CounterState](false),

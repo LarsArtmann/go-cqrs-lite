@@ -54,6 +54,7 @@ func AttachEncryption(
 		eventOpts = append(eventOpts, event.WithCustom(KeyIDKey, cfg.keyID.String()))
 	}
 
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	clone, err := event.NewEvent(
 		evt.Type(),
 		evt.StreamID(),

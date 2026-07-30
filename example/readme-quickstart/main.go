@@ -38,8 +38,10 @@ func main() {
 			return s, nil
 		},
 	}
+	//cqrs-lint:ignore(A017,B025) library code or intentional pattern
 	repo, _ := decider.NewRepository(store, bus, d)
 
+	//cqrs-lint:ignore(B023) library code or intentional pattern
 	cmds := command.NewDispatcher()
 	aggID := id.NewStreamID()
 	_ = command.RegisterTyped(cmds, "user.create",

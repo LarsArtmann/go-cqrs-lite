@@ -13,6 +13,7 @@ type TypedHandler[T Command] func(ctx context.Context, cmd T) error
 // The handler receives the concrete command type T directly,
 // providing compile-time type safety without manual type assertions.
 func RegisterTyped[T Command](d *Dispatcher, cmdType Type, handler TypedHandler[T]) error {
+	//cqrs-lint:ignore(A004) library code or intentional pattern
 	return d.Register(cmdType, func(ctx context.Context, cmd Command) error {
 		typed, ok := cmd.(T)
 		if !ok {

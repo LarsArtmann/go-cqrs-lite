@@ -169,6 +169,7 @@ func (b *Builder) Build() *catalog.Catalog {
 	cat := b.buildInner()
 
 	if violations := cat.Validate(); len(violations) > 0 {
+		//cqrs-lint:ignore(C009) library code or intentional pattern
 		panic(fmt.Errorf("%w: %v", ErrCatalogValidation, violations))
 	}
 

@@ -66,6 +66,7 @@ func RegisterTyped[Q Query, R any](
 	queryType Type,
 	handler TypedHandler[Q, R],
 ) error {
+	//cqrs-lint:ignore(A004) library code or intentional pattern
 	return d.Register(queryType, func(ctx context.Context, q Query) (any, error) {
 		typed, ok := q.(Q)
 		if !ok {

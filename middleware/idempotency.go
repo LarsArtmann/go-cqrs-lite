@@ -98,6 +98,7 @@ func QueryIdempotency(
 	keyExtractor func(query.Query) string,
 ) query.Middleware {
 	if keyExtractor == nil {
+		//cqrs-lint:ignore(C009) library code or intentional pattern
 		panic("middleware.QueryIdempotency: keyExtractor must not be nil " +
 			"(queries have no built-in identity; provide a func(query.Query) string)")
 	}

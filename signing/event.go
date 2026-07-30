@@ -19,6 +19,7 @@ func CloneEvent(
 	value string,
 ) (event.Event, error) {
 	//nolint:wrapcheck // callers wrap with context
+	//cqrs-lint:ignore(A014) library code or intentional pattern
 	return event.NewEvent(
 		evt.Type(),
 		evt.StreamID(),

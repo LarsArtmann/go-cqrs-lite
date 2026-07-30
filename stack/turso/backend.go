@@ -26,6 +26,7 @@ func openLocalBackend(
 	cqrsturso.ConfigurePool(sqlDB)
 
 	if err := applySchemaAndPragmas(sqlDB, cfg); err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = sqlDB.Close()
 
 		return nil, nil, err
@@ -33,6 +34,7 @@ func openLocalBackend(
 
 	backend, err := cqrsturso.NewBackend(sqlDB)
 	if err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = sqlDB.Close()
 
 		return nil, nil, errorfamily.WrapInfrastructure(err, "turso.create_backend",

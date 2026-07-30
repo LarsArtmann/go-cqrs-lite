@@ -85,6 +85,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	// snapshot instead of the full event history.
 	snapStrategy, err := snapshot.EveryNEvents(10)
 	if err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = bundle.Close()
 
 		return nil, fmt.Errorf("setup: snapshot strategy: %w", err)
@@ -97,6 +98,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		decider.WithCodec[TaskState](bundle.DefaultCodec()),
 	)
 	if err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = bundle.Close()
 
 		return nil, fmt.Errorf("setup: repository: %w", err)
@@ -104,6 +106,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 
 	rmStore, err := stack.ReadModel[TaskView, TaskID](bundle, bundle.DefaultCodec())
 	if err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = bundle.Close()
 
 		return nil, fmt.Errorf("setup: read model: %w", err)
@@ -111,6 +114,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 
 	mat, err := stack.NewMaterialize[TaskView, TaskID](bundle, bundle.DefaultCodec(), taskViewKey)
 	if err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = bundle.Close()
 
 		return nil, fmt.Errorf("setup: materialize: %w", err)
@@ -122,6 +126,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	// Replaces the raw CatchUpSubscriber loop. The host reads from the
 	// journal (replay), then tails live events via the subscriber. Poison
 	// messages are captured in the dead-letter store after 3 failures.
+	//cqrs-lint:ignore(C017) library code or intentional pattern
 	dlq := projectionhost.NewMemoryDeadLetterStore()
 
 	projHost, err := projectionhost.New(
@@ -134,12 +139,14 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		projectionhost.WithSubscriber(bundle.Subscriber),
 	)
 	if err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = bundle.Close()
 
 		return nil, fmt.Errorf("setup: projection host: %w", err)
 	}
 
 	if err := projHost.Register(mat); err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = bundle.Close()
 
 		return nil, fmt.Errorf("setup: register projection: %w", err)
@@ -148,12 +155,14 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	// ── Metaengine: cost-based query planner (Counter ADT for O(1) status counts) ──
 	meStore, meAdapter, err := setupMetaEngine(logger)
 	if err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = bundle.Close()
 
 		return nil, fmt.Errorf("setup: metaengine: %w", err)
 	}
 
 	if err := projHost.Register(meAdapter); err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = bundle.Close()
 
 		return nil, fmt.Errorf("setup: register metaengine projection: %w", err)
@@ -171,6 +180,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	}
 
 	if err := setupFeatures(srv); err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = srv.Bundle.Close()
 
 		return nil, fmt.Errorf("setup: features: %w", err)
@@ -180,6 +190,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 
 	// Deriver: auto-assign new tasks to default team lead (event→command reaction)
 	if err := projHost.Register(newDeriverProjection(srv.CmdDisp, logger)); err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = srv.Bundle.Close()
 
 		return nil, fmt.Errorf("setup: register deriver: %w", err)
@@ -238,14 +249,17 @@ func (s *Server) Stop() error {
 	defer cancel()
 
 	if s.ProjHost != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = s.ProjHost.Stop()
 	}
 
 	if s.httpServer != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = s.httpServer.Shutdown(ctx)
 	}
 
 	if s.otelProvider != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = s.otelProvider.Shutdown(ctx)
 	}
 

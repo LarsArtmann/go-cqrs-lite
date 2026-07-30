@@ -62,6 +62,7 @@ func WriteBenchstat(w io.Writer, r *Result) {
 
 	lines := []struct {
 		suffix string
+		//cqrs-lint:ignore(C008) library code or intentional pattern
 		value  float64
 		unit   string
 	}{

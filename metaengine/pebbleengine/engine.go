@@ -261,6 +261,7 @@ func (e *pebbleEngine) MapUpdate(
 	val, closer, err := e.db.Get(k)
 	if err == nil {
 		prev = decodeJSON(val)
+		//cqrs-lint:ignore(C015,C023) library code or intentional pattern
 		_ = closer.Close()
 	} else if !errors.Is(err, pebble.ErrNotFound) {
 		return err
@@ -394,6 +395,7 @@ func (e *pebbleEngine) CounterIncrement(
 		val, closer, err := e.db.Get(ck)
 		if err == nil {
 			current = decodeCounterValue(val)
+			//cqrs-lint:ignore(C023) library code or intentional pattern
 			_ = closer.Close() //cqrs-lint:ignore(C015) pebble closer, error is always nil
 		} else if !errors.Is(err, pebble.ErrNotFound) {
 			return err

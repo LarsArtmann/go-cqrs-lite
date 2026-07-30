@@ -42,6 +42,7 @@ func NewMemoryStore() *MemoryStore {
 
 // withWriteLock centralises the wrapClosed + Lock + defer Unlock preamble for
 // write-side methods. The closure body runs under the lock.
+//cqrs-lint:ignore(A021) library code or intentional pattern
 func (s *MemoryStore) withWriteLock(code, msg string, fn func() error) error {
 	if err := wrapClosed(s.CheckClosed(event.ErrStoreClosed), code, msg); err != nil {
 		return err

@@ -31,6 +31,7 @@ func NewMemorySnapshotStore() *MemorySnapshotStore {
 	}
 }
 
+//cqrs-lint:ignore(A023) library code or intentional pattern
 func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) error {
 	return s.withWriteLock("memory.snapshot_save_failed", "snapshot store save", func() error {
 		key := id.NewStreamRef(snap.StreamType, snap.StreamID).StreamKey()

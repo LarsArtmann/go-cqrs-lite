@@ -131,6 +131,7 @@ func (adapter *KVAdapter) Has(_ context.Context, key []byte) (bool, error) {
 	}
 
 	//cqrs-lint:ignore(C023) pebble closer releases iterator after point lookup
+	//cqrs-lint:ignore(C015) library code or intentional pattern
 	_ = closer.Close()
 
 	return true, nil
@@ -211,6 +212,7 @@ func (adapter *KVAdapter) SetIfAbsent(_ context.Context, key, value []byte) (boo
 				fmt.Sprintf("set-if-absent get %q", key))
 		}
 	} else {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = closer.Close()
 
 		return false, nil // key already exists

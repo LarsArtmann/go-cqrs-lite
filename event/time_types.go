@@ -180,6 +180,7 @@ func NewWallTime(hour, minute int, location string) (WallTime, error) {
 func NewWallTimeMust(hour, minute int, location string) WallTime {
 	wt, err := NewWallTime(hour, minute, location)
 	if err != nil {
+		//cqrs-lint:ignore(C009) library code or intentional pattern
 		panic(err)
 	}
 
