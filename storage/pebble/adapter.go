@@ -130,8 +130,7 @@ func (adapter *KVAdapter) Has(_ context.Context, key []byte) (bool, error) {
 			fmt.Sprintf("has %q", key))
 	}
 
-	//cqrs-lint:ignore(C023) pebble closer releases iterator after point lookup
-	//cqrs-lint:ignore(C015) library code or intentional pattern
+	//cqrs-lint:ignore(C015,C023) pebble closer releases iterator after point lookup
 	_ = closer.Close()
 
 	return true, nil
