@@ -39,21 +39,21 @@
 
 ### Existing rule gaps (improvements to current rules)
 
-1. **C006 should catch `ver+1` and `version.Int()+1` directly in event creation** — Kernovia uses `ver+1` in `event.NewEvent(..., ver+1, data)` (stack.go:469), Standup-Killer uses `event.Version(version.Int()+1)` (decide.go:29). Verify C006 covers both forms and also catches `event.Version(ver+1)`. `ORIGINAL` `ec402374`
+1. ~**C006 should catch `ver+1` and `version.Int()+1` directly in event creation** — Kernovia uses `ver+1` in `event.NewEvent(..., ver+1, data)` (stack.go:469), Standup-Killer uses `event.Version(version.Int()+1)` (decide.go:29). Verify C006 covers both forms and also catches `event.Version(ver+1)`.~ done at `ec402374`
 
-2. **C017: In-memory snapshot store with persistent event store** — Kernovia pairs a SQLite event store with `memory.NewMemorySnapshotStore()` — snapshots are lost on restart, making the snapshot optimization useless and potentially causing consistency issues on recovery. Detect: snapshot store type is memory when event store is persistent (SQLite/Postgres/Pebble). `ORIGINAL` `b31eb572`
+2. ~**C017: In-memory snapshot store with persistent event store** — Kernovia pairs a SQLite event store with `memory.NewMemorySnapshotStore()` — snapshots are lost on restart, making the snapshot optimization useless and potentially causing consistency issues on recovery. Detect: snapshot store type is memory when event store is persistent (SQLite/Postgres/Pebble).~ done at `b31eb572`
 
 3. **C018: Silent journal fallback to empty store** — cqrs-htmx's `journalFromStore` falls back to `memory.NewMemoryStore()` when the store doesn't implement `event.Journal`, meaning projections replay from an empty journal with NO error or warning. Detect: `memory.NewMemoryStore()` used as a journal fallback in a type switch / type assertion chain.
 
-4. **C019: Multiple Repository instances for the same aggregate** — browser-history creates 3 separate `decider.NewRepository` instances for the same aggregate state type (handlers.go:87,143,189). This defeats load coalescing (singleflight) and wastes memory. Detect: >1 `NewRepository` call with the same state type parameter. `ORIGINAL` `b31eb572`
+4. ~**C019: Multiple Repository instances for the same aggregate** — browser-history creates 3 separate `decider.NewRepository` instances for the same aggregate state type (handlers.go:87,143,189). This defeats load coalescing (singleflight) and wastes memory. Detect: >1 `NewRepository` call with the same state type parameter.~ done at `b31eb572`
 
-5. **C020: Panic in read model / projection handler** — Standup-Killer's `readmodel.go:184` calls `panic` on ID parse failure inside a SubscribeAll handler. A panic in a projection handler can crash the entire projection host or bus. Detect: `panic()` call inside a function that implements `projection.Projection.Handle` or is used as a bus subscriber. `ORIGINAL` `b31eb572`
+5. ~**C020: Panic in read model / projection handler** — Standup-Killer's `readmodel.go:184` calls `panic` on ID parse failure inside a SubscribeAll handler. A panic in a projection handler can crash the entire projection host or bus. Detect: `panic()` call inside a function that implements `projection.Projection.Handle` or is used as a bus subscriber.~ done at `b31eb572`
 
 6. **C021: Mutex held during payload decode** — crush-daily's ReadModelStore holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). This serializes all event processing unnecessarily. Detect: `Lock()`/`RLock()` call followed by `DecodePayloadAuto` or `json.Unmarshal` before `Unlock()`.
 
-7. **C022: Context ignored in handler (`_ = ctx`)** — crush-daily's Handle method ignores the context (setup.go:185). C016 exists for `context.Background()` but not for `_ = ctx` — the context is explicitly discarded. Detect: `_ = ctx` or `ctx` assigned to `_` inside a function with a `context.Context` parameter. `ORIGINAL` `1422f8e2`
+7. ~**C022: Context ignored in handler (`_ = ctx`)** — crush-daily's Handle method ignores the context (setup.go:185). C016 exists for `context.Background()` but not for `_ = ctx` — the context is explicitly discarded. Detect: `_ = ctx` or `ctx` assigned to `_` inside a function with a `context.Context` parameter.~ done at `1422f8e2`
 
-8. **C023: Shutdown error ignored** — go-appkit's `Shutdown` ignores `host.Stop()` error (`eventservice.go:117`: `_ = es.host.Stop()`). The projection host may have pending events that are lost. Detect: `_ = ` assignment on `.Close()`, `.Stop()`, `.Shutdown()` return values. Extends C015 (unchecked Close) to lifecycle methods. `ORIGINAL` `3285a3e7`
+8. ~**C023: Shutdown error ignored** — go-appkit's `Shutdown` ignores `host.Stop()` error (`eventservice.go:117`: `_ = es.host.Stop()`). The projection host may have pending events that are lost. Detect: `_ = ` assignment on `.Close()`, `.Stop()`, `.Shutdown()` return values. Extends C015 (unchecked Close) to lifecycle methods.~ done at `3285a3e7`
 
 9. **C024: Dual-write read model without rollback** — cqrs-htmx's SQL read model mutates in-memory state before `syncToSQL` (sql_readmodel.go:98-103). If SQL write fails, in-memory and SQL diverge with no rollback. Detect: in-memory mutation followed by `syncToSQL`/`WriteToSQL`/DB write in same handler without transaction/rollback.
 
