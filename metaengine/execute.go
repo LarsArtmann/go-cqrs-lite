@@ -164,6 +164,30 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 		cursorVal = cursor.Value
 	}
 
+	// Fastest path: raw JSON bytes per row → direct decode to element type
+	// (1 JSON op per row instead of 3). Preferred when the engine supports it
+	// and all filter/sort accessors are declarative (pushdown-eligible).
+	if rsr, ok := q.engine.(RawScanReader); ok && canPushdown(q.config) {
+		specs := buildFilterSpecs(q.config, input)
+
+		var sortSpec *SortSpec
+		if q.config.sortAccessor.spec != nil {
+			sortSpec = q.config.sortAccessor.spec
+		}
+
+		rawRows, err := rsr.ScanRawValues(ctx, q.name, specs, sortSpec, cursorVal, limit)
+		if err != nil {
+			return nil, fmt.Errorf("raw scan %s: %w", q.name, err)
+		}
+
+		result := make([]any, len(rawRows))
+		for i, raw := range rawRows {
+			result[i] = jsonValue(raw)
+		}
+
+		return result, nil
+	}
+
 	// Fast path: if the engine supports pushdown AND all filter/sort accessors
 	// have declarative specs (FilterOnField/SortOnField), push WHERE/ORDER BY/
 	// LIMIT into SQL instead of loading all rows into Go.

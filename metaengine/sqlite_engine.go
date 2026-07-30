@@ -534,6 +534,8 @@ var (
 	_ PushdownScan    = (*sqliteEngine)(nil)
 	_ StreamingScan   = (*sqliteEngine)(nil)
 	_ LayoutPlanner   = (*sqliteEngine)(nil)
+	_ RawValueReader  = (*sqliteEngine)(nil)
+	_ RawScanReader   = (*sqliteEngine)(nil)
 	_ SetBackend      = (*sqliteEngine)(nil)
 	_ CounterBackend  = (*sqliteEngine)(nil)
 	_ GraphBackend    = (*sqliteEngine)(nil)

@@ -32,6 +32,21 @@ type Store struct {
 
 func (s *Store) Plan() *PlanResult { return s.plan }
 
+// collectionEngine returns the engine assigned to a query/collection by name.
+// Used by TypedReader to access the engine for typed reads without going through
+// the reflective Execute path.
+func (s *Store) collectionEngine(collection string) (Engine, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	q, ok := s.queries[collection]
+	if !ok {
+		return nil, false
+	}
+
+	return q.engine, true
+}
+
 // EventTypes returns every event type that at least one registered query
 // listens to. The result is sorted for deterministic ordering.
 // Used by integration adapters (e.g. projectionadapter) that need to
