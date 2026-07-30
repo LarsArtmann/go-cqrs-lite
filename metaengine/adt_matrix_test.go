@@ -350,29 +350,14 @@ func canonicalizeAny(v any) string {
 func canonicalizeValue(v any) string {
 	switch val := v.(type) {
 	case map[string]any:
-		keys := make([]string, 0, len(val))
-		for k := range val {
-			keys = append(keys, k)
+		return canonicalizeStringMap(val)
+	case map[string]bool:
+		m := make(map[string]any, len(val))
+		for k, b := range val {
+			m[k] = b
 		}
 
-		sort.Strings(keys)
-
-		var b strings.Builder
-		b.WriteString("{")
-
-		for i, k := range keys {
-			if i > 0 {
-				b.WriteString(",")
-			}
-
-			b.WriteString(k)
-			b.WriteString(":")
-			b.WriteString(canonicalizeValue(val[k]))
-		}
-
-		b.WriteString("}")
-
-		return b.String()
+		return canonicalizeStringMap(m)
 	case []any:
 		var b strings.Builder
 		b.WriteString("[")
@@ -457,4 +442,30 @@ func mustJSON(v any) string {
 	}
 
 	return string(b)
+}
+
+func canonicalizeStringMap(val map[string]any) string {
+	keys := make([]string, 0, len(val))
+	for k := range val {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	var b strings.Builder
+	b.WriteString("{")
+
+	for i, k := range keys {
+		if i > 0 {
+			b.WriteString(",")
+		}
+
+		b.WriteString(k)
+		b.WriteString(":")
+		b.WriteString(canonicalizeValue(val[k]))
+	}
+
+	b.WriteString("}")
+
+	return b.String()
 }
