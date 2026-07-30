@@ -112,7 +112,8 @@ func fileImportsIDPackage(root ast.Node) bool {
 		}
 
 		path := strings.Trim(imp.Path.Value, `"`)
-		if strings.Contains(path, "go-cqrs-lite") && (strings.Contains(path, "/id/") || strings.HasSuffix(path, "/id")) {
+		if strings.Contains(path, "go-cqrs-lite") &&
+			(strings.Contains(path, "/id/") || strings.HasSuffix(path, "/id")) {
 			hasID = true
 			return false
 		}

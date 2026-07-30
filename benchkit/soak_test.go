@@ -53,7 +53,11 @@ func TestRunSoak_Memory(t *testing.T) {
 	}
 
 	if result.Iterations < 1 {
-		t.Errorf("Iterations = %d, expected >= 1 in %s", result.Iterations, soakTestScale(5*time.Second))
+		t.Errorf(
+			"Iterations = %d, expected >= 1 in %s",
+			result.Iterations,
+			soakTestScale(5*time.Second),
+		)
 	}
 
 	if len(result.Samples) != result.Iterations {
@@ -101,7 +105,10 @@ func TestRunSoak_TrendsPopulated(t *testing.T) {
 	// Trends require at least 2 samples; under extreme parallel race-detector
 	// load a single iteration may not complete in time, so skip gracefully.
 	if len(result.Samples) < 2 {
-		t.Skipf("need >= 2 samples for trend analysis, got %d (likely CPU contention under -race)", len(result.Samples))
+		t.Skipf(
+			"need >= 2 samples for trend analysis, got %d (likely CPU contention under -race)",
+			len(result.Samples),
+		)
 	}
 
 	// Heap leak rate should be near-zero for memory backend (no per-cycle leak).

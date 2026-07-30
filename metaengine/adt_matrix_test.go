@@ -129,11 +129,21 @@ func adtScenarios() []adtScenario {
 			requires: "MapBackend",
 			setup: func(ctx context.Context, eng metaengine.Engine) error {
 				mb := eng.(metaengine.MapBackend)
-				if err := mb.MapSet(ctx, "users", "u1", map[string]any{"name": "Alice", "age": float64(30)}); err != nil {
+				if err := mb.MapSet(
+					ctx,
+					"users",
+					"u1",
+					map[string]any{"name": "Alice", "age": float64(30)},
+				); err != nil {
 					return err
 				}
 
-				return mb.MapSet(ctx, "users", "u2", map[string]any{"name": "Bob", "age": float64(25)})
+				return mb.MapSet(
+					ctx,
+					"users",
+					"u2",
+					map[string]any{"name": "Bob", "age": float64(25)},
+				)
 			},
 			read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				mb := eng.(metaengine.MapBackend)
@@ -252,7 +262,8 @@ func adtScenarios() []adtScenario {
 			},
 			read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				sb := eng.(metaengine.ScanBackend)
-				return sb.MapScan(ctx, "sorted",
+				return sb.MapScan(
+					ctx, "sorted",
 					func(item any) bool {
 						m, ok := item.(map[string]any)
 						if !ok {

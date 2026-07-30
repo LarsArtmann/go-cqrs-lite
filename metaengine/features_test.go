@@ -23,7 +23,8 @@ type testFindTask struct {
 }
 
 func testTaskQuery() QueryDecl[testFindTask, testTask] {
-	return Query[testFindTask, testTask]("tasks",
+	return Query[testFindTask, testTask](
+		"tasks",
 		OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
 			return e.ID, e
 		}),
@@ -94,9 +95,11 @@ func TestDryRun(t *testing.T) {
 
 	eng, _ := NewSQLiteEngine(db)
 
-	store, err := Plan([]Engine{eng},
+	store, err := Plan(
+		[]Engine{eng},
 		WithDryRun(),
-		Query[testFindTask, testTask]("find_filtered",
+		Query[testFindTask, testTask](
+			"find_filtered",
 			OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
 				return e.ID, e
 			}),
@@ -140,7 +143,8 @@ func TestExplain(t *testing.T) {
 
 	reader := NewReader[testTask](store, "tasks")
 
-	query, args := reader.Explain(context.Background(),
+	query, args := reader.Explain(
+		context.Background(),
 		WithFilter("title", FilterEq, "test"),
 		WithLimit(10),
 	)

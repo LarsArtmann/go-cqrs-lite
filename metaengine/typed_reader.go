@@ -84,7 +84,8 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 
 	// Expand range specs into filter pairs for pushdown/raw paths.
 	for _, rg := range cfg.ranges {
-		cfg.filters = append(cfg.filters,
+		cfg.filters = append(
+			cfg.filters,
 			FilterSpec{Column: rg.Column, Op: FilterGe, Value: rg.Low},
 			FilterSpec{Column: rg.Column, Op: FilterLe, Value: rg.High},
 		)
@@ -260,7 +261,11 @@ func (r *TypedReader[V]) Count(ctx context.Context, opts ...ScanOption) (int, er
 }
 
 // Distinct returns the unique values of a column across matching rows.
-func (r *TypedReader[V]) Distinct(ctx context.Context, column string, opts ...ScanOption) ([]any, error) {
+func (r *TypedReader[V]) Distinct(
+	ctx context.Context,
+	column string,
+	opts ...ScanOption,
+) ([]any, error) {
 	rows, err := r.Scan(ctx, opts...)
 	if err != nil {
 		return nil, err

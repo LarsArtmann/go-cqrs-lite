@@ -220,7 +220,10 @@ func setup() {
 				}
 			}
 			if len(ruleFindings) == 0 {
-				t.Fatalf("rule %s produced 0 findings — trigger source may need adjustment", tc.ruleID)
+				t.Fatalf(
+					"rule %s produced 0 findings — trigger source may need adjustment",
+					tc.ruleID,
+				)
 			}
 
 			// Run the suppression filter.

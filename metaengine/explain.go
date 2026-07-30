@@ -21,7 +21,10 @@ type ExplainOptions struct {
 //	sql, args := reader.Explain(ctx,
 //	    metaengine.WithFilter("status", metaengine.FilterEq, "open"),
 //	)
-func (r *TypedReader[V]) Explain(ctx context.Context, opts ...ScanOption) (query string, args []any) {
+func (r *TypedReader[V]) Explain(
+	ctx context.Context,
+	opts ...ScanOption,
+) (query string, args []any) {
 	cfg := scanConfig{limit: 100}
 
 	for _, opt := range opts {
@@ -43,12 +46,17 @@ func (r *TypedReader[V]) Explain(ctx context.Context, opts ...ScanOption) (query
 }
 
 // explainScan generates the SQL that would execute for a scan on sqliteEngine.
-func (e *sqliteEngine) explainScan(ctx context.Context, col string, cfg scanConfig) (string, []any) {
+func (e *sqliteEngine) explainScan(
+	ctx context.Context,
+	col string,
+	cfg scanConfig,
+) (string, []any) {
 	filters := cfg.filters
 
 	// Expand ranges
 	for _, rg := range cfg.ranges {
-		filters = append(filters,
+		filters = append(
+			filters,
 			FilterSpec{Column: rg.Column, Op: FilterGe, Value: rg.Low},
 			FilterSpec{Column: rg.Column, Op: FilterLe, Value: rg.High},
 		)
@@ -88,7 +96,12 @@ func explainStandard(col string, filters []FilterSpec, sort *SortSpec, limit int
 	return b.String(), args
 }
 
-func explainPlanned(plan LayoutPlan, filters []FilterSpec, sort *SortSpec, limit int) (string, []any) {
+func explainPlanned(
+	plan LayoutPlan,
+	filters []FilterSpec,
+	sort *SortSpec,
+	limit int,
+) (string, []any) {
 	var b strings.Builder
 
 	args := []any{}

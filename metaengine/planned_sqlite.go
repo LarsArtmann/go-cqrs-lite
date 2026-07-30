@@ -73,7 +73,12 @@ func (e *sqliteEngine) registerLayout(plan LayoutPlan) error {
 
 // --- Planned table helpers (used when a collection has a LayoutPlan) ---
 
-func (e *sqliteEngine) mapSetPlanned(ctx context.Context, plan LayoutPlan, key any, value any) error {
+func (e *sqliteEngine) mapSetPlanned(
+	ctx context.Context,
+	plan LayoutPlan,
+	key any,
+	value any,
+) error {
 	return execPlannedSet(ctx, e.db, plan, key, value)
 }
 
@@ -83,7 +88,13 @@ type execContext interface {
 	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
 }
 
-func execPlannedSet(ctx context.Context, exec execContext, plan LayoutPlan, key any, value any) error {
+func execPlannedSet(
+	ctx context.Context,
+	exec execContext,
+	plan LayoutPlan,
+	key any,
+	value any,
+) error {
 	valueJSON := encodeValue(value)
 	extracted := extractFields(value, plan.Columns)
 
@@ -108,7 +119,11 @@ func execPlannedSet(ctx context.Context, exec execContext, plan LayoutPlan, key 
 	return err //nolint:wrapcheck // passthrough
 }
 
-func (e *sqliteEngine) mapGetPlanned(ctx context.Context, plan LayoutPlan, key any) (any, bool, error) {
+func (e *sqliteEngine) mapGetPlanned(
+	ctx context.Context,
+	plan LayoutPlan,
+	key any,
+) (any, bool, error) {
 	var valStr string
 
 	err := e.db.QueryRowContext(ctx,
@@ -134,7 +149,8 @@ func (e *sqliteEngine) mapUpdatePlanned(
 	key any,
 	update func(prev any) any,
 ) error {
-	return runTxReadModifyWrite(ctx, e.db, update,
+	return runTxReadModifyWrite(
+		ctx, e.db, update,
 		func(ctx context.Context, tx *sql.Tx) (any, error) {
 			var valStr string
 			if err := tx.QueryRowContext(ctx,

@@ -194,7 +194,11 @@ func (s *Store) ApplyIdempotent(ctx context.Context, eventID, eventType string, 
 func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payload any) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			poisonErr := fmt.Errorf("metaengine: collection %q poisoned by fold panic: %v", q.name, r)
+			poisonErr := fmt.Errorf(
+				"metaengine: collection %q poisoned by fold panic: %v",
+				q.name,
+				r,
+			)
 			s.poisoned.Store(q.name, poisonErr)
 			err = poisonErr
 		}

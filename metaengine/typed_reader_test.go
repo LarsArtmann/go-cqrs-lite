@@ -126,7 +126,8 @@ func TestTypedReader_Scan(t *testing.T) {
 	reader := metaengine.NewReader[FindTaskResult](store, "typed_scan_tasks")
 
 	// Scan with filter + sort + limit.
-	results, err := reader.Scan(ctx,
+	results, err := reader.Scan(
+		ctx,
 		metaengine.WithFilter("Status", metaengine.FilterEq, "open"),
 		metaengine.WithSort("Priority", true),
 		metaengine.WithLimit(10),
@@ -148,7 +149,8 @@ func TestTypedReader_Scan(t *testing.T) {
 	}
 
 	// Scan with limit.
-	limited, err := reader.Scan(ctx,
+	limited, err := reader.Scan(
+		ctx,
 		metaengine.WithFilter("Status", metaengine.FilterEq, "open"),
 		metaengine.WithSort("Priority", true),
 		metaengine.WithLimit(2),

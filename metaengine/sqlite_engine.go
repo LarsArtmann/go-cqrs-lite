@@ -224,17 +224,25 @@ func (e *sqliteEngine) MapUpdate(
 	// MapUpdate calls on the same key cannot interleave their reads and
 	// writes (lost-update). The tx pins one connection from the pool; the
 	// SELECT and INSERT commit atomically.
-	return runTxReadModifyWrite(ctx, e.db, update,
+	return runTxReadModifyWrite(
+		ctx, e.db, update,
 		func(ctx context.Context, tx *sql.Tx) (any, error) {
 			var valStr string
-			if err := tx.QueryRowContext(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr); err != nil {
+			if err := tx.QueryRowContext(ctx, e.queries.mapGet, col, encodeKey(key)).
+				Scan(&valStr); err != nil {
 				return nil, err //nolint:wrapcheck // ErrNoRows handled by caller
 			}
 
 			return decodeJSONValue(valStr), nil
 		},
 		func(ctx context.Context, tx *sql.Tx, newVal any) error {
-			_, err := tx.ExecContext(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(newVal))
+			_, err := tx.ExecContext(
+				ctx,
+				e.queries.mapSet,
+				col,
+				encodeKey(key),
+				encodeValue(newVal),
+			)
 			return err //nolint:wrapcheck // passthrough
 		},
 	)

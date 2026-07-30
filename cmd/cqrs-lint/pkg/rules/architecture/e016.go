@@ -46,7 +46,8 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					callStr := analyzer.ExprString(call.Fun)
 
-					if strings.Contains(callStr, "Bundle") || strings.Contains(callStr, "stack.New") {
+					if strings.Contains(callStr, "Bundle") ||
+						strings.Contains(callStr, "stack.New") {
 						if !hasBundle && !hasServer {
 							triggerPos = ctx.Fset.Position(call.Pos())
 						}

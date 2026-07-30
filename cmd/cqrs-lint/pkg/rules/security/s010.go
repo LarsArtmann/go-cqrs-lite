@@ -42,21 +42,24 @@ func NewS010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					callStr := analyzer.ExprString(call.Fun)
 
-					if strings.Contains(callStr, "EncryptMiddleware") || strings.Contains(callStr, "encryption.New") {
+					if strings.Contains(callStr, "EncryptMiddleware") ||
+						strings.Contains(callStr, "encryption.New") {
 						if !busEncrypted && !busSigned {
 							triggerPos = ctx.Fset.Position(call.Pos())
 						}
 						busEncrypted = true
 					}
 
-					if strings.Contains(callStr, "SignMiddleware") || strings.Contains(callStr, "signing.New") {
+					if strings.Contains(callStr, "SignMiddleware") ||
+						strings.Contains(callStr, "signing.New") {
 						if !busEncrypted && !busSigned {
 							triggerPos = ctx.Fset.Position(call.Pos())
 						}
 						busSigned = true
 					}
 
-					if strings.Contains(callStr, "NewSignedStore") || strings.Contains(callStr, "NewEncryptedStore") {
+					if strings.Contains(callStr, "NewSignedStore") ||
+						strings.Contains(callStr, "NewEncryptedStore") {
 						storeWrapped = true
 					}
 

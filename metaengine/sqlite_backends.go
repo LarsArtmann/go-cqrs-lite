@@ -126,7 +126,8 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 		return err
 	}
 
-	_, err = e.cache.exec(ctx,
+	_, err = e.cache.exec(
+		ctx,
 		e.queries.multiAdd,
 		col,
 		encodeKey(key),

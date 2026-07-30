@@ -12,6 +12,7 @@ api-stability golden regen remain unaddressed.
 ## a) FULLY DONE
 
 ### 1. Auto-Layout in Plan() (ADR-0073 consequence)
+
 - **`LayoutPlanner` interface** added to `engine.go` — engines declare `ApplyLayout(collection, filterFields, sortFields)`
 - **`sqliteEngine` now carries plans directly** — `plannedSQLiteEngine` wrapper type eliminated; logic merged into `sqliteEngine` itself
 - **`Plan()` auto-applies layouts** — when a query declares `FilterOnField`/`SortOnField` and the assigned engine implements `LayoutPlanner`, the layout plan is generated and applied automatically. No more manual `NewPlannedSQLiteEngine` needed.
@@ -21,6 +22,7 @@ api-stability golden regen remain unaddressed.
 - Files: `engine.go`, `sqlite_engine.go`, `planned_sqlite.go`, `planner.go`, `query.go`, `sqlite_backends.go`
 
 ### 2. JSON Tax Reduction (3 ops → 1)
+
 - **`RawValueReader` interface** — `GetRawValue(ctx, col, key) ([]byte, bool, error)` for single-pass point lookups
 - **`RawScanReader` interface** — `ScanRawValues(ctx, col, filters, sort, cursor, limit) ([][]byte, error)` for single-pass filtered scans
 - **`jsonValue` carrier type** — internal `[]byte` wrapper; `reify[R]`, `reifyReflect`, `reconstructCollection` fast-path it to decode raw bytes directly to the target type
@@ -29,6 +31,7 @@ api-stability golden regen remain unaddressed.
 - Files: `engine.go`, `jsonvalue.go`, `raw_reader.go`, `reify.go`, `collection.go`, `execute.go`
 
 ### 3. Typed Read API
+
 - **`TypedReader[V]`** — `metaengine.NewReader[V](store, collection)` with:
   - `.Get(ctx, key) (V, bool, error)` — point lookup
   - `.Scan(ctx, opts...) ([]V, error)` — filtered + sorted scan
@@ -39,12 +42,14 @@ api-stability golden regen remain unaddressed.
 - Files: `typed_reader.go`, `typed_reader_test.go`, `store.go`
 
 ### 4. Unified 7-ADT × Engine Test Matrix
+
 - **`TestADTMatrix`** — parameterized table-driven harness covering all 7 ADTs (Map, Set, Counter, Graph, SortedMap, Log, Multimap) × 2 engines (memory, SQLite)
 - **Cross-engine parity assertions** — canonical string comparison after normalizing map key order
 - **Extensible**: add Pebble by appending to `engineFactories()`
 - Files: `adt_matrix_test.go`
 
 ### 5. Code Cleanup
+
 - **`decodeJSONValue()`** centralized — extracted from 4 duplicate inline decode-fallback blocks
 - **`extractFields()`** now uses `json.Marshal`/`json.Unmarshal` directly (removed placeholder function names)
 - **`execPlannedSet()`** accepts a generic `execContext` interface — works with both `*sql.DB` and `*sql.Tx`
@@ -54,15 +59,18 @@ api-stability golden regen remain unaddressed.
 ## b) PARTIALLY DONE
 
 ### Pebble engine not updated with new interfaces
+
 - Pebble engine (`metaengine/pebbleengine/`) does NOT implement `RawValueReader`, `RawScanReader`, or `LayoutPlanner`
 - It still works (falls back to the `MapBackend`/`ScanBackend` paths) but doesn't benefit from the JSON tax reduction
 - The ADT matrix test only covers memory + SQLite, not Pebble (Pebble is in a separate module with `cockroachdb/pebble` dependency)
 
 ### StreamScan not optimized with jsonValue
+
 - `StreamScan` still calls `decodeJSONValue` per row instead of returning raw bytes
 - The streaming path was refactored to support planned tables but not the jsonValue optimization
 
 ### AGENTS.md not updated
+
 - New interfaces (`LayoutPlanner`, `RawValueReader`, `RawScanReader`, `TypedReader`) not documented
 - The metaengine section in AGENTS.md still describes the manual `NewPlannedSQLiteEngine` as required
 
@@ -81,12 +89,14 @@ api-stability golden regen remain unaddressed.
 ## d) TOTALLY FUCKED UP
 
 ### api-stability golden NOT regenerated
+
 - I added ~15 new exported symbols: `LayoutPlanner`, `RawValueReader`, `RawScanReader`, `NewReader`, `ScanOption`, `WithFilter`, `WithSort`, `WithLimit`, `WithCursor`, `TypedReader` (type + 3 methods)
 - The api-stability tool (`cmd/api-stability`) has a **pre-existing build error** (`undefined: collectExports` at main.go:114) — NOT caused by my changes
 - I noted this but did not fix it or work around it
 - **Impact**: `nix run .#verify` will fail on the api-stability check until the golden is regenerated or the tool is fixed
 
 ### gofmt violation in adt_matrix_test.go
+
 - The `engineFactory` struct has misaligned fields — `gofmt` would fix it but I didn't run `gofmt -w` before finishing
 - This will fail `nix run .#lint`
 
@@ -108,12 +118,14 @@ api-stability golden regen remain unaddressed.
 ## f) NEXT 50 THINGS TO DO
 
 ### Critical (blocks verify gate)
+
 1. Run `gofmt -w metaengine/adt_matrix_test.go`
 2. Fix `cmd/api-stability` `collectExports` build error
 3. Regenerate api-stability golden (`GOWORK=off go run . -update` from `cmd/api-stability`)
 4. Run `nix run .#verify` to confirm full GREEN
 
 ### High Priority (correctness)
+
 5. Fix `TypedReader.Scan` closure-fallback path to apply declarative filters (currently silently drops them)
 6. Add Pebble engine to `RawValueReader`/`RawScanReader` interfaces
 7. Add Pebble to `engineFactories()` in the ADT matrix test
@@ -122,6 +134,7 @@ api-stability golden regen remain unaddressed.
 10. Write `BenchmarkRawReader_Scan` vs `BenchmarkPushdownMapScan`
 
 ### Documentation
+
 11. Update AGENTS.md metaengine section with `LayoutPlanner`, `RawValueReader`, `RawScanReader`, `TypedReader`
 12. Update ADR-0073 consequence section — auto-layout is now wired into Plan()
 13. Write ADR-0075 for the RawValueReader/RawScanReader interfaces
@@ -130,6 +143,7 @@ api-stability golden regen remain unaddressed.
 16. Document that Pebble falls back to MapBackend (no RawValueReader)
 
 ### Code Quality
+
 17. Extract shared transaction helper from `MapUpdate` + `mapUpdatePlanned`
 18. Optimize `extractFields` to avoid JSON round-trip on writes
 19. Update `StreamScan` to use `jsonValue` optimization (or raw bytes)
@@ -139,6 +153,7 @@ api-stability golden regen remain unaddressed.
 23. Consider whether `NewPlannedSQLiteEngine` should be deprecated in favor of auto-layout
 
 ### Testing
+
 24. Add `TestTypedReader_Get_NotFound` edge case
 25. Add `TestTypedReader_Scan_EmptyCollection` edge case
 26. Add `TestTypedReader_Scan_WithCursor` pagination test
@@ -151,6 +166,7 @@ api-stability golden regen remain unaddressed.
 33. Add `TestCrossEngine_TypedReader_Parity` — TypedReader returns identical results across engines
 
 ### Feature Extensions
+
 34. Add `TypedReader[V].Count(ctx, opts...)` — filtered count
 35. Add `TypedReader[V].Stream(ctx, opts...)` — streaming scan returning `iter.Seq2[V, error]`
 36. Add `WithOffset(n)` ScanOption for offset-based pagination (alongside cursor)
@@ -160,6 +176,7 @@ api-stability golden regen remain unaddressed.
 40. Add `LayoutPlanner.ApplyLayoutFromType[R]()` — reflection-based column type inference
 
 ### Architecture
+
 41. Consider whether `jsonValue` should be a public type (consumers could benefit from the single-pass decode)
 42. Consider a `RawBackend` interface combining `RawValueReader` + `RawScanReader`
 43. Document the executor's interface cascade: RawScanReader → PushdownScan → ScanBackend
@@ -167,6 +184,7 @@ api-stability golden regen remain unaddressed.
 45. Consider exposing layout plans in `PlanResult` so consumers can inspect what was auto-generated
 
 ### Ecosystem
+
 46. Check if `projectionadapter` needs updates for the new interfaces
 47. Check if `cmd/cqrs-lint` should lint for FilterOnField vs FilterOn usage (recommend pushdown-eligible)
 48. Consider a `cqrs-lint` rule that warns when a query uses FilterOn (closure) instead of FilterOnField (pushdown)
