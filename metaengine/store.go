@@ -109,6 +109,26 @@ func (s *Store) Apply(ctx context.Context, eventType string, payload any) error 
 	return nil
 }
 
+// EventInput pairs an event type with its payload for batch application.
+type EventInput struct {
+	Type    string
+	Payload any
+}
+
+// ApplyBatch processes multiple events through all queries in one call.
+// Events are applied sequentially; on the first error, remaining events are
+// skipped and the error is returned. This is the primary API for replay
+// scenarios where many events need to be processed.
+func (s *Store) ApplyBatch(ctx context.Context, events []EventInput) error {
+	for _, evt := range events {
+		if err := s.Apply(ctx, evt.Type, evt.Payload); err != nil {
+			return fmt.Errorf("batch apply event %q: %w", evt.Type, err)
+		}
+	}
+
+	return nil
+}
+
 func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
 	col := q.name
 

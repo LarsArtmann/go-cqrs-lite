@@ -6,6 +6,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -241,6 +242,9 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 
 // extractFields pulls field values from a Go value (struct or map) for the
 // planned columns. Missing fields produce nil (stored as NULL).
+//
+// Structs use a reflect fast path (no JSON marshal/unmarshal on writes).
+// Maps and other types fall back to JSON round-trip.
 func extractFields(value any, columns []PlannedColumn) map[string]any {
 	result := make(map[string]any, len(columns))
 
@@ -257,6 +261,32 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 		return result
 	}
 
+	// Reflect fast path for structs — avoids JSON marshal/unmarshal cycle.
+	rv := reflect.ValueOf(value)
+
+	if rv.IsValid() && rv.Kind() == reflect.Struct {
+		rt := rv.Type()
+
+		for _, c := range columns {
+			for i := range rt.NumField() {
+				f := rt.Field(i)
+				if !f.IsExported() {
+					continue
+				}
+
+				fieldName := jsonFieldName(f)
+
+				if strings.EqualFold(fieldName, c.Name) {
+					result[c.Name] = rv.Field(i).Interface()
+					break
+				}
+			}
+		}
+
+		return result
+	}
+
+	// Fallback: JSON round-trip for non-struct values.
 	b, err := json.Marshal(value)
 	if err != nil {
 		return result
@@ -277,4 +307,16 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 	}
 
 	return result
+}
+
+// jsonFieldName returns the JSON field name for a struct field, respecting
+// json tags. Falls back to the Go field name when no tag is present.
+func jsonFieldName(f reflect.StructField) string {
+	if tag := f.Tag.Get("json"); tag != "" {
+		if name, _, _ := strings.Cut(tag, ","); name != "" {
+			return name
+		}
+	}
+
+	return f.Name
 }

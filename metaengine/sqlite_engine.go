@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"iter"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -124,7 +125,22 @@ func (e *sqliteEngine) Close() error {
 }
 
 func encodeKey(key any) string {
-	return encodeJSON(key)
+	switch k := key.(type) {
+	case string:
+		return k
+	case int:
+		return strconv.Itoa(k)
+	case int64:
+		return strconv.FormatInt(k, 10)
+	case int32:
+		return strconv.FormatInt(int64(k), 10)
+	case uint64:
+		return strconv.FormatUint(k, 10)
+	case uint32:
+		return strconv.FormatUint(uint64(k), 10)
+	default:
+		return encodeJSON(key)
+	}
 }
 
 func encodeValue(value any) string {

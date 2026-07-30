@@ -30,11 +30,11 @@ func (e *sqliteEngine) GetRawValue(ctx context.Context, col string, key any) ([]
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		err = e.db.QueryRowContext(ctx,
+		err = e.cache.queryRow(ctx,
 			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
 			encodeKey(key)).Scan(&valStr)
 	} else {
-		err = e.db.QueryRowContext(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
+		err = e.cache.queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
 	}
 
 	if err != nil {
