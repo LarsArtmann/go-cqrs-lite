@@ -38,6 +38,10 @@ func (s *Store) executeQuery(
 	q queryRuntime,
 	input any,
 ) (any, error) {
+	if err := s.IsPoisoned(q.name); err != nil {
+		return nil, err
+	}
+
 	switch q.readPattern {
 	case ReadPointLookup:
 		key := extractKeyValueByType(input, q.keyType)
@@ -422,7 +426,7 @@ func ExecuteTyped[Q any, R any](
 	}
 
 	if raw == nil {
-		return zero, nil
+		return zero, ErrNotFound
 	}
 
 	if isCollectionResult[R]() {

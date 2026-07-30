@@ -33,6 +33,10 @@ func NewReader[V any](store *Store, collection string) *TypedReader[V] {
 func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 	var zero V
 
+	if err := r.store.IsPoisoned(r.collection); err != nil {
+		return zero, false, err
+	}
+
 	eng, ok := r.store.collectionEngine(r.collection)
 	if !ok {
 		return zero, false, fmt.Errorf("%w: %q", errNoQueryForInputType, r.collection)
@@ -76,6 +80,10 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 // Scan returns all values matching the given filter/sort/limit options.
 // Uses raw scan when available for single-pass decode per row.
 func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, error) {
+	if err := r.store.IsPoisoned(r.collection); err != nil {
+		return nil, err
+	}
+
 	cfg := scanConfig{limit: 100}
 
 	for _, opt := range opts {

@@ -60,8 +60,9 @@ func unsupportedEngine(base error, engineName string) error {
 // of string matching. Each maps to an internal sentinel already in use.
 
 var (
-	// ErrNotFound is returned when a point lookup finds no value for the key.
-	// Returned by TypedReader.Get and ExecuteTyped for missing keys.
+	// ErrNotFound is returned by ExecuteTyped when a point lookup finds no
+	// value for the key. TypedReader.Get signals not-found via its bool
+	// return (idiomatic Go map-lookup pattern) and does NOT return this error.
 	ErrNotFound = errors.New("metaengine: key not found")
 
 	// ErrAmbiguousKey is returned at Plan time when multiple fields of a struct
