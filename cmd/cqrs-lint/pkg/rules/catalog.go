@@ -1,6 +1,8 @@
 // Package rules provides centralized rule registration for cqrs-lint.
 package rules
 
+import "sync"
+
 type RuleInfo struct {
 	ID          string
 	Name        string
@@ -11,8 +13,9 @@ type RuleInfo struct {
 	AutoFix     bool
 }
 
-// AllRules returns metadata for all available rules, organized by category.
-func AllRules() []RuleInfo {
+// allRulesCache memoizes the full rule catalog so AllRules is only built once.
+// Called from detectorCategory, renderRulesTable, ListRules, and the meta-test.
+var allRulesCache = sync.OnceValue(func() []RuleInfo {
 	return append(append(append(append(append(append(append(
 		correctnessRules(),
 		apiRules()...,
@@ -23,6 +26,12 @@ func AllRules() []RuleInfo {
 		securityRules()...),
 		performanceRules()...),
 		versionRules()...)
+})
+
+// AllRules returns metadata for all available rules, organized by category.
+// The result is cached after the first call.
+func AllRules() []RuleInfo {
+	return allRulesCache()
 }
 
 func correctnessRules() []RuleInfo {

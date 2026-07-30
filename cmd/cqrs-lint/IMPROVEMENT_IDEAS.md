@@ -109,27 +109,27 @@
 
 ### New rules
 
-29. **B016: Manual checkpoint replay table** — browser-history manually creates a checkpoint table and replay logic (server.go:351-387) that duplicates `projectionhost.Host`. Detect: SQL table named `checkpoint`/`projection_offset` + manual `ReadFrom`/`ReadAll` loop.
+29. ~~**B016: Manual checkpoint replay table** — browser-history manually creates a checkpoint table and replay logic (server.go:351-387) that duplicates `projectionhost.Host`. Detect: SQL table named `checkpoint`/`projection_offset` + manual `ReadFrom`/`ReadAll` loop.~~ done at `0ba9686e`
 
-30. **B017: Manual read model rebuild from scratch** — crush-daily rebuilds the entire read model from scratch on every startup (setup.go:43-62). No checkpoint, no incremental catch-up. Detect: `Rehydrate`/`Rebuild`/`Replay` method that loads ALL events from the store on startup.
+30. ~~**B017: Manual read model rebuild from scratch** — crush-daily rebuilds the entire read model from scratch on every startup (setup.go:43-62). No checkpoint, no incremental catch-up. Detect: `Rehydrate`/`Rebuild`/`Replay` method that loads ALL events from the store on startup.~~ done at `0ba9686e`
 
-31. **B018: Repeated bus.Subscribe boilerplate** — bank-sync has 5 projections each subscribing with the same error-wrapping pattern (projections.go). Detect: 3+ `bus.Subscribe` calls with identical error-handling structure in the same file.
+31. ~~**B018: Repeated bus.Subscribe boilerplate** — bank-sync has 5 projections each subscribing with the same error-wrapping pattern (projections.go). Detect: 3+ `bus.Subscribe` calls with identical error-handling structure in the same file.~~ done at `0ba9686e`
 
-32. **B019: O(n^2) read model (repo.Load per event)** — timesheets' read model calls `repo.Load` on every event in the SubscribeAll handler (cqrs.go:82). For N events this is O(N^2) because Load re-reads all prior events each time. Detect: `repo.Load` or `repository.Load` call inside a `bus.SubscribeAll` handler.
+32. ~~**B019: O(n^2) read model (repo.Load per event)** — timesheets' read model calls `repo.Load` on every event in the SubscribeAll handler (cqrs.go:82). For N events this is O(N^2) because Load re-reads all prior events each time. Detect: `repo.Load` or `repository.Load` call inside a `bus.SubscribeAll` handler.~~ done at `0ba9686e`
 
-33. **B020: Manual legacy field upcasting** — go-localsync manually upcasts legacy fields at decode time (item_adapter.go:57-115) instead of using `schema.Upcaster`/`schema.VersionedStore`. Detect: field-renaming or field-defaulting logic in a decode/unmarshal function that is NOT inside a `schema.NewUpcaster` callback.
+33. ~~**B020: Manual legacy field upcasting** — go-localsync manually upcasts legacy fields at decode time (item_adapter.go:57-115) instead of using `schema.Upcaster`/`schema.VersionedStore`. Detect: field-renaming or field-defaulting logic in a decode/unmarshal function that is NOT inside a `schema.NewUpcaster` callback.~~ done at `0ba9686e`
 
-34. **B021: Missing `StrictApply` / `decider.StrictApply`** — 6 of 8 medium consumers use plain `fold` or `apply` instead of `decider.StrictApply`. Without it, unknown event types are silently ignored (related to C003, but for the recommendation side). Detect: `decider.Decider` with `Fold:` set to a function that does NOT call `decider.StrictApply`.
+34. ~~**B021: Missing `StrictApply` / `decider.StrictApply`** — 6 of 8 medium consumers use plain `fold` or `apply` instead of `decider.StrictApply`. Without it, unknown event types are silently ignored (related to C003, but for the recommendation side). Detect: `decider.Decider` with `Fold:` set to a function that does NOT call `decider.StrictApply`.~~ done at `0ba9686e`
 
-35. **B022: Manual correlation enricher instead of `CommandCausalityEnricher`** — crush-daily uses a custom `correlation.ContextEnricher()` (setup.go:225) instead of `decider.CommandCausalityEnricher`. Detect: custom enricher function passed to `decider.NewRepository` that is not `decider.CommandCausalityEnricher`.
+35. ~~**B022: Manual correlation enricher instead of `CommandCausalityEnricher`** — crush-daily uses a custom `correlation.ContextEnricher()` (setup.go:225) instead of `decider.CommandCausalityEnricher`. Detect: custom enricher function passed to `decider.NewRepository` that is not `decider.CommandCausalityEnricher`.~~ done at `4bcb8267`
 
-36. **B023: Missing command middleware entirely** — timesheets, go-localsync, and storbi have ZERO command middleware (no recovery, no logging, no retry). A panic in any command handler crashes the process. Detect: `command.Dispatcher` with no `.Use()` calls.
+36. ~~**B023: Missing command middleware entirely** — timesheets, go-localsync, and storbi have ZERO command middleware (no recovery, no logging, no retry). A panic in any command handler crashes the process. Detect: `command.Dispatcher` with no `.Use()` calls.~~ done at `4bcb8267`
 
-37. **B024: Missing event bus recovery middleware** — Several projects don't use `middleware.EventRecovery`. A panic in a bus handler can crash the entire bus. Detect: `event.Bus` or `watermill.NewEventBus` with no `middleware.EventRecovery` / `middleware.NewRecovery` in the middleware chain.
+37. ~~**B024: Missing event bus recovery middleware** — Several projects don't use `middleware.EventRecovery`. A panic in a bus handler can crash the entire bus. Detect: `event.Bus` or `watermill.NewEventBus` with no `middleware.EventRecovery` / `middleware.NewRecovery` in the middleware chain.~~ done at `4bcb8267`
 
-38. **B025: Missing state cache on repository** — Most projects don't use `decider.WithStateCache`. For hot streams, incremental loads are 7.4x faster. Detect: `decider.NewRepository` without `WithStateCache` option, especially for aggregates with high event counts.
+38. ~~**B025: Missing state cache on repository** — Most projects don't use `decider.WithStateCache`. For hot streams, incremental loads are 7.4x faster. Detect: `decider.NewRepository` without `WithStateCache` option, especially for aggregates with high event counts.~~ done at `4bcb8267`
 
-39. **B026: Manual event type registration instead of catalog** — Many projects define event types as string constants but never register them with `catalog.NewBuilder`. Event documentation and OpenAPI/AsyncAPI generation is unavailable. Detect: 3+ event type string constants with no `catalog` import.
+39. ~~**B026: Manual event type registration instead of catalog** — Many projects define event types as string constants but never register them with `catalog.NewBuilder`. Event documentation and OpenAPI/AsyncAPI generation is unavailable. Detect: 3+ event type string constants with no `catalog` import.~~ done at `4bcb8267`
 
 ---
 
@@ -502,22 +502,22 @@
 
 1. **C006 version arithmetic** — observed in Kernovia, Standup-Killer (verify current detection)
 2. **A014 event.NewEvent → event.New** — observed in most projects
-3. ~**B021 StrictApply recommendation** — 6/8 projects miss this~ done
-4. ~**B023 missing command middleware** — several projects have zero protection~ done
-5. ~**P001 O(N^2) read model** — timesheets has a critical performance bug~ done
+3. ~~**B021 StrictApply recommendation** — 6/8 projects miss this~~ done
+4. ~~**B023 missing command middleware** — several projects have zero protection~~ done
+5. ~~**P001 O(N^2) read model** — timesheets has a critical performance bug~~ done
 6. **V001 v3/v4 mixing** — go-plugin-mvp, go-appkit need upgrading
 7. **C017 in-memory snapshot with persistent store** — Kernovia loses snapshots
-8. ~**B019 manual read model rebuild** — crush-daily adds seconds to every startup~ done
+8. ~~**B019 manual read model rebuild** — crush-daily adds seconds to every startup~~ done
 9. **C019 multiple repos for same aggregate** — browser-history wastes resources
 10. **F001 tombstone soft-delete** — delete operations without audit trail
 
 ### Short-term (high value, moderate effort)
 
-11. ~**B016 manual checkpoint replay** — browser-history reinvents projectionhost~ done
-12. **A020/A021 custom bus/store reimplementation** — accountability-system, Kernovia
-13. ~**P007 bit-shift retry bug** — DiscordSync has a real bug~ done
+11. ~~**B016 manual checkpoint replay** — browser-history reinvents projectionhost~~ done
+12. ~~**A020/A021 custom bus/store reimplementation** — accountability-system, Kernovia~~ done at `c9c2fe86`
+13. ~~**P007 bit-shift retry bug** — DiscordSync has a real bug~~ done
 14. **D012 missing schema version stamping** — most projects
-15. ~**B025 missing state cache** — most projects~ done
+15. ~~**B025 missing state cache** — most projects~~ done
 16. **E010 event capture without validation** — DiscordSync pattern
 17. **F003/F004 missing OTel/Prometheus** — most server projects
 18. **T001 no scenario tests** — most projects with deciders

@@ -9,16 +9,16 @@
 
 ### 1. Eight new B-series detectors implemented and tested
 
-| Rule | File | Detection | Severity | Confidence | Tests |
-|------|------|-----------|----------|------------|-------|
-| B016 | `b016_b017.go` | Manual checkpoint table + journal replay loop | warning | medium | 2 (pos+neg) |
-| B017 | `b016_b017.go` | Rehydrate/Rebuild/Replay methods calling ReadAll (full rebuild on startup) | warning | high | 2 (pos+neg) |
-| B018 | `b018_b019.go` | 3+ bus.Subscribe calls in same file | info | medium | 2 (pos+neg) |
-| B019 | `b018_b019.go` | repo.Load inside SubscribeAll handler (O(N^2)) | warning | high | 2 (pos+neg) |
-| B020 | `b020.go` | Field renaming/defaulting in decode functions outside schema.NewUpcaster | warning | medium | 2 (pos+neg) |
-| B022 | `b022_b025.go` | Custom enricher (not CommandCausalityEnricher) passed to NewRepository | warning | medium | 2 (pos+neg) |
-| B025 | `b022_b025.go` | NewRepository without WithStateCache option | info | low | 2 (pos+neg) |
-| B026 | `b026.go` | 3+ event types emitted but no catalog import | info | medium | 2 (pos+neg) |
+| Rule | File           | Detection                                                                  | Severity | Confidence | Tests       |
+| ---- | -------------- | -------------------------------------------------------------------------- | -------- | ---------- | ----------- |
+| B016 | `b016_b017.go` | Manual checkpoint table + journal replay loop                              | warning  | medium     | 2 (pos+neg) |
+| B017 | `b016_b017.go` | Rehydrate/Rebuild/Replay methods calling ReadAll (full rebuild on startup) | warning  | high       | 2 (pos+neg) |
+| B018 | `b018_b019.go` | 3+ bus.Subscribe calls in same file                                        | info     | medium     | 2 (pos+neg) |
+| B019 | `b018_b019.go` | repo.Load inside SubscribeAll handler (O(N^2))                             | warning  | high       | 2 (pos+neg) |
+| B020 | `b020.go`      | Field renaming/defaulting in decode functions outside schema.NewUpcaster   | warning  | medium     | 2 (pos+neg) |
+| B022 | `b022_b025.go` | Custom enricher (not CommandCausalityEnricher) passed to NewRepository     | warning  | medium     | 2 (pos+neg) |
+| B025 | `b022_b025.go` | NewRepository without WithStateCache option                                | info     | low        | 2 (pos+neg) |
+| B026 | `b026.go`      | 3+ event types emitted but no catalog import                               | info     | medium     | 2 (pos+neg) |
 
 **16 tests total** (8 positive + 8 negative), all passing.
 
@@ -59,6 +59,7 @@ B019 (repo.Load inside SubscribeAll — boilerplate category, severity warning) 
 ### 2. Uncommitted changes (daemon-originated, not mine)
 
 Two files have uncommitted changes that the auto-commit daemon produced after my session work:
+
 - `cmd/cqrs-lint/go.mod` — go-finding version pinned from pseudo-version to v1.4.1
 - `cmd/cqrs-lint/pkg/rules/correctness/c023.go` — type assertion safety fix (unchecked `*ast.CallExpr` / `*ast.SelectorExpr` → safe type assertion with ok-check)
 
