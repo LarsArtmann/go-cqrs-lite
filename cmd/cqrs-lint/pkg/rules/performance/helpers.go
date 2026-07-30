@@ -2,6 +2,7 @@ package performance
 
 import (
 	"go/ast"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
@@ -165,11 +166,9 @@ func projectUsesJSONEventCodec(ctx *analyzer.AnalysisContext) bool {
 						continue
 					}
 					if ident, ok := sel.X.(*ast.Ident); ok && ident.Name == "event" {
-						for _, rhs := range assign.Rhs {
-							if exprReferencesJSONCodec(rhs) {
-								found = true
-								return false
-							}
+						if slices.ContainsFunc(assign.Rhs, exprReferencesJSONCodec) {
+							found = true
+							return false
 						}
 					}
 				}
@@ -187,12 +186,7 @@ func projectUsesJSONEventCodec(ctx *analyzer.AnalysisContext) bool {
 }
 
 func callContainsJSONCodec(call *ast.CallExpr) bool {
-	for _, arg := range call.Args {
-		if exprReferencesJSONCodec(arg) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(call.Args, exprReferencesJSONCodec)
 }
 
 func exprReferencesJSONCodec(expr ast.Expr) bool {
@@ -200,43 +194,6 @@ func exprReferencesJSONCodec(expr ast.Expr) bool {
 	if lit, ok := expr.(*ast.CompositeLit); ok {
 		sel, ok := lit.Type.(*ast.SelectorExpr)
 		if ok && sel.Sel.Name == "JSONCodec" {
-			return true
-		}
-	}
-
-	return false
-}
-
-// projectUsesJSONCodec scans all non-test source files for any reference to
-// codec.JSONCodec. Since the default codec for event.New is CBOR, a JSONCodec
-// reference means the project explicitly chose JSON encoding.
-func projectUsesJSONCodec(ctx *analyzer.AnalysisContext) bool {
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		found := false
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if found {
-				return false
-			}
-
-			sel, ok := n.(*ast.SelectorExpr)
-			if !ok {
-				return true
-			}
-
-			if sel.Sel.Name == "JSONCodec" {
-				found = true
-				return false
-			}
-
-			return true
-		})
-
-		if found {
 			return true
 		}
 	}

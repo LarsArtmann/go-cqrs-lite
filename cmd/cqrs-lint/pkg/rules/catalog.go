@@ -18,6 +18,8 @@ type RuleInfo struct {
 
 // allRulesCache memoizes the full rule catalog so AllRules is only built once.
 // Called from detectorCategory, renderRulesTable, ListRules, and the meta-test.
+//
+//nolint:gochecknoglobals // intentional memoized cache
 var allRulesCache = sync.OnceValue(func() []RuleInfo {
 	return slices.Concat(
 		correctnessRules(),

@@ -260,6 +260,8 @@ func IsRuleID(s string) bool {
 
 // ruleCategoryCache maps rule ID → category, built once from AllRules.
 // Eliminates the O(N) linear scan that detectorCategory used to do per detector.
+//
+//nolint:gochecknoglobals // intentional memoized cache
 var ruleCategoryCache = sync.OnceValue(func() map[string]string {
 	m := make(map[string]string, len(AllRules()))
 	for _, r := range AllRules() {

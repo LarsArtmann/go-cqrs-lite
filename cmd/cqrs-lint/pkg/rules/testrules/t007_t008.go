@@ -49,6 +49,8 @@ func NewT007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // productionStoreSubstrings lists import-path substrings that identify
 // production (non-test) event store backends. Importing these in _test.go
 // files couples tests to a real database instead of using eventtest fakes.
+//
+//nolint:gochecknoglobals // intentional static lookup table
 var productionStoreSubstrings = []string{
 	"go-cqrs-lite/storage/v4",
 	"go-cqrs-lite/storage/turso",
