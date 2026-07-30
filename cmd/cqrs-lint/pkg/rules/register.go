@@ -109,6 +109,11 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		performance.NewP007Detector(ctx),
 		// Version
 		version.NewV001Detector(ctx),
+		version.NewV002Detector(ctx),
+		version.NewV003Detector(ctx),
+		version.NewV004Detector(ctx),
+		version.NewV005Detector(ctx),
+		version.NewV006Detector(ctx),
 		// Consistency
 		consistency.NewD001Detector(ctx),
 		consistency.NewD002Detector(ctx),
