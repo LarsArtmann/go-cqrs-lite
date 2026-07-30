@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
-	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -34,7 +33,7 @@ func NewC025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if !fileImportsCQRS(gf.AST) {
+				if !lintutil.FileImportsCQRS(gf.AST) {
 					continue
 				}
 
@@ -61,23 +60,6 @@ func NewC025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-// fileImportsCQRS returns true if the file's import declarations include
-// any go-cqrs-lite module path.
-func fileImportsCQRS(file *ast.File) bool {
-	for _, imp := range file.Imports {
-		if imp == nil || imp.Path == nil {
-			continue
-		}
-
-		path := strings.Trim(imp.Path.Value, `"`)
-		if analyzer.IsCQRSModulePath(path) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func reportBareErrorf(

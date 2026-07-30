@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
-	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -43,7 +42,7 @@ func NewD006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				cqrsFile := fileImportsCQRS(gf.AST)
+				cqrsFile := lintutil.FileImportsCQRS(gf.AST)
 
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					call, ok := n.(*ast.CallExpr)
@@ -94,23 +93,6 @@ func isPkgSelectorCall(call *ast.CallExpr, pkgName, methodName string) bool {
 	ident, ok := sel.X.(*ast.Ident)
 
 	return ok && ident.Name == pkgName && sel.Sel.Name == methodName
-}
-
-// fileImportsCQRS returns true if the file's import declarations include
-// any go-cqrs-lite module path. Shared between D006 and C025.
-func fileImportsCQRS(file *ast.File) bool {
-	for _, imp := range file.Imports {
-		if imp == nil || imp.Path == nil {
-			continue
-		}
-
-		path := strings.Trim(imp.Path.Value, `"`)
-		if analyzer.IsCQRSModulePath(path) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func reportUnclassified(

@@ -120,3 +120,21 @@ func HasWrapVerb(call *ast.CallExpr) bool {
 
 	return strings.Contains(lit.Value, "%w")
 }
+
+// FileImportsCQRS returns true if the file's import declarations include
+// any go-cqrs-lite module path. Shared by D006 (consistency) and C025
+// (correctness) to gate CQRS-specific error-handling checks.
+func FileImportsCQRS(file *ast.File) bool {
+	for _, imp := range file.Imports {
+		if imp == nil || imp.Path == nil {
+			continue
+		}
+
+		path := strings.Trim(imp.Path.Value, `"`)
+		if analyzer.IsCQRSModulePath(path) {
+			return true
+		}
+	}
+
+	return false
+}
