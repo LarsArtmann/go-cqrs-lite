@@ -336,4 +336,3 @@ func blockContainsSigningCall(block *ast.BlockStmt) bool {
 	})
 	return found
 }
-

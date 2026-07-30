@@ -2,7 +2,7 @@
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **150 rules** (C001-C030, A001-A027+A029+A030, B001-B028, D001-D003+D005-D013, E001-E007, S001-S003+S006-S009, P001+P006-P010, V001-V006, T001-T008, F001-F017).
+> The current linter has **151 rules** (C001-C030, A001-A027+A029+A030, B001-B028, D001-D003+D005-D013, E001-E007, S001-S003+S005-S009, P001+P006-P010, V001-V006, T001-T008, F001-F017).
 >
 > **191 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
@@ -155,7 +155,7 @@
 
 ---
 
-## 5. Consistency & Style (D-series) — DONE (6/6 new rules)
+## 5. Consistency & Style (D-series) — DONE (5/5 new rules + D011 pre-existing)
 
 ### New rules
 
@@ -179,7 +179,7 @@
 
 54. **S004: PII data without encryption (field-level)** — browser-history stores browsing history (URLs, timestamps) without encryption. Detect: event payload structs with fields named `url`, `email`, `phone`, `address`, `ssn`, `token`, `password`, `apikey` when no encryption module is imported.
 
-55. **S005: Event signing available but disabled** — Kernovia has `signing.go` with `DefaultSignerConfig()` setting `Enabled: false`. Detect: signing module imported but signer construction guarded by a boolean flag that defaults to false.
+55. ~~**S005: Event signing available but disabled** — Kernovia has `signing.go` with `DefaultSignerConfig()` setting `Enabled: false`. Detect: signing module imported but signer construction guarded by a boolean flag that defaults to false.~~ done (security/s005.go) — detects `if cfg.SigningEnabled { signing.NewHMAC(...) }` pattern where the bool field defaults to false; suppressed when signing is also used unconditionally or the flag has an explicit `true` default
 
 56. ~~**S006: Financial data without encryption** — bank-sync uses AES-256-GCM encryption (gold standard), but other financial projects (timesheets) store financial data without encryption. Detect: monetary field names (amount, price, balance, salary) without encryption module import.~~ done (security/s006.go) — tiered indicator system (strong/medium/weak), serialization-tag gate, module-scope encryption absence check
 
@@ -535,14 +535,14 @@
 | Boilerplate (B)       | 28 (B001-B028)                                          | 0                                   |
 | Architecture (E)      | 7 (E001-E007)                                           | E008-E015 proposed (items 40-47)    |
 | Consistency (D)       | 12 (D001, D002, D003, D005-D013)                        | 0                                   |
-| Security (S)          | 7 (S001-S003, S006-S009)                                | S004-S005 proposed (items 54-55)    |
+| Security (S)          | 8 (S001-S003, S005-S009)                               | S004 proposed (item 54)             |
 | Performance (P)       | 6 (P001, P006-P010)                                     | P002-P005 are NOT-DO (duplicates)   |
 | Version/Migration (V) | 6 (V001-V006)                                           | 0                                   |
 | Testing (T)           | 8 (T001-T008)                                           | 0                                   |
 | Feature Adoption (F)  | 17 (F001-F017)                                          | 0                                   |
 | DX & Infrastructure   | N/A                                                     | 35 items (99-133)                   |
 | Extended Ideas        | N/A                                                     | 46 items (134-179)                  |
-| **Total**             | **150**                                                 | ~89 open                            |
+| **Total**             | **151**                                                 | ~88 open                            |
 
 ---
 
