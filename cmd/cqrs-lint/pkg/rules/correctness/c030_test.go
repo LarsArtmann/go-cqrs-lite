@@ -66,3 +66,115 @@ func worker() {
 	findings := runDetector(t, correctness.NewC030Detector(ctx))
 	assertRule(t, findings, "C030", 0)
 }
+
+func TestC030_NoFindingWhenDoneOnNonCtxReceiver(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"worker.go": `package main
+
+import "net/http"
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		}
+	}
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC030Detector(ctx))
+	assertRule(t, findings, "C030", 0)
+}
+
+func TestC030_NoFindingWhenCtxErrCheck(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"worker.go": `package main
+
+import "context"
+
+func poll(ctx context.Context) {
+	for {
+		if ctx.Err() != nil {
+			return
+		}
+		doWork()
+	}
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC030Detector(ctx))
+	assertRule(t, findings, "C030", 0)
+}
+
+func TestC030_NoFindingWhenLoopHasBreak(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"worker.go": `package main
+
+func reconstruct(parent map[int]int, end int) []int {
+	var path []int
+	for k := end; ; k = parent[k] {
+		path = append(path, k)
+		if k == parent[k] {
+			break
+		}
+	}
+	return path
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC030Detector(ctx))
+	assertRule(t, findings, "C030", 0)
+}
+
+func TestC030_NoFindingWhenCustomStopChannel(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"worker.go": `package main
+
+import "time"
+
+func sampler(stop <-chan struct{}) {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-stop:
+			return
+		case <-ticker.C:
+			doWork()
+		}
+	}
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC030Detector(ctx))
+	assertRule(t, findings, "C030", 0)
+}
+
+func TestC030_StillFlagsLoopWithOnlyReturnInGoroutine(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"worker.go": `package main
+
+func worker() {
+	for {
+		go func() {
+			return
+		}()
+		doWork()
+	}
+}
+`,
+	})
+	findings := runDetector(t, correctness.NewC030Detector(ctx))
+	assertRule(t, findings, "C030", 1)
+}
