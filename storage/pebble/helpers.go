@@ -16,7 +16,7 @@ import (
 
 // AppendBatch implements event.Store.AppendBatch.
 // Appends events without optimistic concurrency checks.
-//cqrs-lint:ignore(A021) library code or intentional pattern
+// cqrs-lint:ignore(A021) library code or intentional pattern
 func (a *EventStore) AppendBatch(
 	_ context.Context,
 	ref id.StreamRef,

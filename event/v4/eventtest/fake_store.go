@@ -36,7 +36,7 @@ func getOverride[T any](s *FakeStore, fn *T) T {
 	return *fn
 }
 
-//cqrs-lint:ignore(A021) library code or intentional pattern
+// cqrs-lint:ignore(A021) library code or intentional pattern
 func (s *FakeStore) Save(
 	ctx context.Context,
 	ref id.StreamRef,

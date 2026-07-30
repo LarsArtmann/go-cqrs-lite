@@ -39,7 +39,8 @@ func NewF012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F012",
 				"bus.SubscribeAll with command dispatch detected but deriver "+
 					"module is not used — saga-like patterns benefit from "+
@@ -88,7 +89,8 @@ func NewF013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F013",
 				"Manual HTTP handlers for dispatch but transport module is not "+
 					"used — hand-rolled HTTP/gRPC lacks SSE delivery and typed "+

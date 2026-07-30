@@ -29,7 +29,8 @@ func NewF002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F002",
 				"Project has "+itoa(eventCount(ctx))+
 					" event types but no catalog.NewBuilder — event documentation "+
@@ -76,7 +77,8 @@ func NewF005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"versioned events need upcasters for backward-compatible migration"
 			}
 
-			return singleInfoFinding(ctx, "F005", msg,
+			return singleInfoFinding(
+				ctx, "F005", msg,
 				"Use schema.NewUpcaster(eventType, fromVersion, migrateFn) to transform "+
 					"old event payloads to the current schema on load. Register upcasters "+
 					"via schema.NewVersionedStore.",

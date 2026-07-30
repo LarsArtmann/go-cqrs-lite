@@ -26,7 +26,7 @@ func ParseType(s string) (Type, error) {
 }
 
 // Query represents a read-side query.
-//cqrs-lint:ignore(E007) library code or intentional pattern
+// cqrs-lint:ignore(E007) library code or intentional pattern
 type Query interface {
 	Type() Type
 }
@@ -70,7 +70,7 @@ func WithRequestID(v id.RequestID) Option {
 }
 
 // BasicQuery provides a default implementation.
-//cqrs-lint:ignore(E007) library code or intentional pattern
+// cqrs-lint:ignore(E007) library code or intentional pattern
 type BasicQuery struct {
 	queryType Type
 	metadata  Metadata

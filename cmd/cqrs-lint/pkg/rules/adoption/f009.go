@@ -27,7 +27,8 @@ func NewF009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F009",
 				"Time-based patterns detected (timers, deadlines, expirations) "+
 					"but scheduling module is not used — hand-rolled timers are "+

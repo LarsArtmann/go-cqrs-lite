@@ -47,7 +47,17 @@ func run(ctx context.Context, cfg *AppConfig) error {
 
 	active, unsuppressed, suppressed := filterFindings(cfg, collectFindings(result))
 
-	printSummary(cfg, actx, start, active, unsuppressed, len(suppressed), detectors, result, collectFindings(result))
+	printSummary(
+		cfg,
+		actx,
+		start,
+		active,
+		unsuppressed,
+		len(suppressed),
+		detectors,
+		result,
+		collectFindings(result),
+	)
 
 	if err := outputFindings(ctx, active, cfg); err != nil {
 		return fmt.Errorf("output: %w", err)

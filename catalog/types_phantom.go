@@ -6,7 +6,7 @@ func (n Name) String() string { return string(n) }
 
 func (n Name) IsZero() bool { return n == "" }
 
-//cqrs-lint:ignore(A008) library code or intentional pattern
+// cqrs-lint:ignore(A008) library code or intentional pattern
 type Version string
 
 func (v Version) String() string { return string(v) }

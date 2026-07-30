@@ -16,7 +16,7 @@ import (
 // Publish dispatches events to local handlers and sends a NOTIFY so other
 // processes can re-fetch and process the event. The NOTIFY payload is a
 // lightweight JSON reference — never the full event payload.
-//cqrs-lint:ignore(A020) library code or intentional pattern
+// cqrs-lint:ignore(A020) library code or intentional pattern
 func (b *PostgresBus) Publish(ctx context.Context, events ...event.Event) error {
 	if b.closed.Load() {
 		return errorfamily.WrapInfrastructure(event.ErrBusClosed, "storage.pg_bus_publish",

@@ -36,7 +36,8 @@ func NewF015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F015",
 				"Project has "+itoa(queryCount)+
 					" query registrations but metaengine is not used — "+
@@ -72,7 +73,8 @@ func NewF016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F016",
 				"Project has "+itoa(distinctAggregateCount(ctx))+
 					" aggregate types but listing module is not used — "+
@@ -115,7 +117,8 @@ func NewF017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F017",
 				"bus.Subscribe/SubscribeAll is used but dedup module is not — "+
 					"duplicate event delivery under at-least-once semantics is "+

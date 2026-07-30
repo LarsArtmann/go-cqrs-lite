@@ -40,7 +40,8 @@ func NewV002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"V002", toolName,
 					fmt.Sprintf(
 						"%s is pinned to pseudo-version %s — use a tagged release for reproducibility",
-						shortModuleName(req.Path), req.Version,
+						shortModuleName(req.Path),
+						req.Version,
 					),
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), req.Line, 1),

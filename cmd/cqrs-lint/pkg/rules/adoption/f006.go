@@ -25,7 +25,8 @@ func NewF006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F006",
 				"Event payload contains PII-like field but no encryption module — "+
 					"sensitive data is stored in plaintext",

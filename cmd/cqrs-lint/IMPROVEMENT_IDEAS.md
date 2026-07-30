@@ -2,9 +2,9 @@
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **145 rules** (C001-C030, A001-A030, B001-B028, D001-D003+D005+D006+D011+D012, E001-E007, S001-S003+S006-S009, P001+P006-P010, V001-V006, T001-T008, F001-F017).
+> The current linter has **150 rules** (C001-C030, A001-A027+A029+A030, B001-B028, D001-D003+D005-D013, E001-E007, S001-S003+S006-S009, P001+P006-P010, V001-V006, T001-T008, F001-F017).
 >
-> **179 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
+> **191 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
 ---
 
@@ -99,7 +99,7 @@
 
 26. ~~**A029: `bus.UsePublish` is a stub returning nil** — accountability-system's custom bus has `UsePublish` that returns `nil` (no middleware chain). Detect: `func ... UsePublish(...) error { return nil }` in a struct implementing `event.Bus`.~~ done at `c9c2fe86` (A029 detects UsePublish methods with body `return nil`)
 
-27. ~~**A030: In-memory checkpoint store with persistent event store** — Covered by C017, which detects `NewMemoryCheckpointStore` from the `memory` package paired with a persistent event store. Test coverage added (`TestC017_InMemCheckpointStoreWithPersistentStore`).~~
+27. ~~**A030 (original): In-memory checkpoint store with persistent event store** — Covered by C017, which detects `NewMemoryCheckpointStore` from the `memory` package paired with a persistent event store. Test coverage added (`TestC017_InMemCheckpointStoreWithPersistentStore`). Note: ID A030 was later reused for "incomplete snapshot configuration" (item 185); this idea was never implemented as a standalone rule.~~
 
 28. ~~**A031: In-memory DLQ with persistent event store** — Covered by C017, which detects `NewMemoryDeadLetterStore` from the `projectionhost` package paired with a persistent event store. Test coverage added (`TestC017_InMemDeadLetterStoreWithPersistentStore`).~~
 
@@ -155,21 +155,21 @@
 
 ---
 
-## 5. Consistency & Style (D-series)
+## 5. Consistency & Style (D-series) — DONE (6/6 new rules)
 
 ### New rules
 
-48. **D007: Inconsistent event creation API (`event.New` vs `event.NewEvent`)** — Kernovia uses both `event.New` and `event.NewEvent` in the same codebase. Detect: both APIs used in the same project; recommend standardizing on `event.New`.
+48. ~~**D007: Inconsistent event creation API (`event.New` vs `event.NewEvent`)** — Kernovia uses both `event.New` and `event.NewEvent` in the same codebase. Detect: both APIs used in the same project; recommend standardizing on `event.New`.~~ done (consistency/d007_d008_d013.go)
 
-49. **D008: Inconsistent codec usage** — github-local-sync uses `event.DecodePayload[T](evt, p.codec)` (explicit codec) in projections but `event.DecodePayloadAuto` in folds. Mixing explicit and auto decode is inconsistent. Detect: both `DecodePayload[` and `DecodePayloadAuto[` in the same project.
+49. ~~**D008: Inconsistent codec usage** — github-local-sync uses `event.DecodePayload[T](evt, p.codec)` (explicit codec) in projections but `event.DecodePayloadAuto` in folds. Mixing explicit and auto decode is inconsistent. Detect: both `DecodePayload[` and `DecodePayloadAuto[` in the same project.~~ done (consistency/d007_d008_d013.go)
 
-50. **D009: Inconsistent Close detection pattern** — cqrs-htmx uses `io.Closer` in one place (es_setup.go:117) and anonymous `interface{ Close() error }` in another (service_core.go:430) for the same operation. Detect: multiple patterns for the same interface check.
+50. ~~**D009: Inconsistent Close detection pattern** — cqrs-htmx uses `io.Closer` in one place (es_setup.go:117) and anonymous `interface{ Close() error }` in another (service_core.go:430) for the same operation. Detect: multiple patterns for the same interface check.~~ done (consistency/d009_d010.go)
 
-51. **D010: Generic error code `"internal"`** — cqrs-htmx uses `errorfamily.WrapTransient(err, "internal", ...)` instead of a descriptive namespaced code. Detect: `"internal"` used as an error code in `errorfamily.Wrap*` calls.
+51. ~~**D010: Generic error code `"internal"`** — cqrs-htmx uses `errorfamily.WrapTransient(err, "internal", ...)` instead of a descriptive namespaced code. Detect: `"internal"` used as an error code in `errorfamily.Wrap*` calls.~~ done (consistency/d009_d010.go)
 
 52. ~~**D011: Nil payload events** — InboxClean passes `nil` as event payload for toggle events (decide.go:25). This creates events with empty payloads that can't be decoded. Detect: `event.NewEvent`/`event.New` with `nil` as the payload argument.~~ done (existing rule)
 
-53. **D012: Schema version not stamped on events** — Most projects don't use `event.WithSchemaVersion()`. Without it, schema evolution (upcasting) is impossible to implement retroactively. Detect: `event.New`/`event.NewEvent` calls without `event.WithSchemaVersion` in the options.
+53. ~~**D013: Schema version not stamped on events** — Most projects don't use `event.WithSchemaVersion()`. Without it, schema evolution (upcasting) is impossible to implement retroactively. Detect: `event.New`/`event.NewEvent` calls without `event.WithSchemaVersion` in the options.~~ done — implemented as D013 (D012 was already taken by raw-print-in-handler; consistency/d007_d008_d013.go)
 
 ---
 
@@ -189,7 +189,7 @@
 
 ## 7. Performance & Efficiency (P-series)
 
-> P001 and P007 are existing rules; P002-P006, P008-P010 are proposed.
+> P001 and P007 are the original rules. P006, P008, P009, P010 are implemented. P002-P005 are NOT-DO (duplicates of B017, B025, A017, P010).
 
 58. ~~**P001: O(N^2) read model via repo.Load in projection** — timesheets' projection calls `repo.Load` on every event (cqrs.go:82). For N events, this is O(N^2) because each Load re-reads all prior events. Suggest projecting directly from event payloads.~~ done (existing rule)
 
@@ -528,21 +528,21 @@
 
 ## Summary Statistics
 
-| Category              | Listed items                                          | Existing rules      |
-| --------------------- | ----------------------------------------------------- | ------------------- |
-| Correctness (C)       | 12 (C001-C016 existing + C017-C027 new)               | 27                  |
-| API Misuse (A)        | 16 (A001-A019 existing + A020-A031 new)               | 28                  |
-| Boilerplate (B)       | 11 (B001-B015 existing + B016-B026 new)               | 26                  |
-| Architecture (E)      | 8 (E001-E007 existing + E008-E015 new)                | 7                   |
-| Consistency (D)       | 6 (D001-D003+D005+D006+D011 existing + D007-D012 new) | 6                   |
-| Security (S)          | 4 (S001-S003 existing + S004-S007 new)                | 4 (S001-S003, S007) |
-| Performance (P)       | 10 (P001-P010)                                        | 2 (P001, P007)      |
-| Version/Migration (V) | 6 (V001-V006)                                         | 6 (all done)        |
-| Testing (T)           | 8 (T001-T008)                                         | 8 (all done)        |
-| Feature Adoption (F)  | 17 (F001-F017)                                        | 0                   |
-| DX & Infrastructure   | 35 (items 99-133)                                     | N/A                 |
-| Extended Ideas        | 46 (items 134-179)                                    | N/A                 |
-| **Total**             | **179**                                               | **113**             |
+| Category              | Rules in code                                           | Open ideas                          |
+| --------------------- | ------------------------------------------------------- | ----------------------------------- |
+| Correctness (C)       | 30 (C001-C030)                                          | 0                                   |
+| API Misuse (A)        | 29 (A001-A027, A029, A030)                              | A028 skipped (too project-specific) |
+| Boilerplate (B)       | 28 (B001-B028)                                          | 0                                   |
+| Architecture (E)      | 7 (E001-E007)                                           | E008-E015 proposed (items 40-47)    |
+| Consistency (D)       | 12 (D001, D002, D003, D005-D013)                        | 0                                   |
+| Security (S)          | 7 (S001-S003, S006-S009)                                | S004-S005 proposed (items 54-55)    |
+| Performance (P)       | 6 (P001, P006-P010)                                     | P002-P005 are NOT-DO (duplicates)   |
+| Version/Migration (V) | 6 (V001-V006)                                           | 0                                   |
+| Testing (T)           | 8 (T001-T008)                                           | 0                                   |
+| Feature Adoption (F)  | 17 (F001-F017)                                          | 0                                   |
+| DX & Infrastructure   | N/A                                                     | 35 items (99-133)                   |
+| Extended Ideas        | N/A                                                     | 46 items (134-179)                  |
+| **Total**             | **150**                                                 | ~89 open                            |
 
 ---
 
@@ -559,17 +559,17 @@
 7. ~~**C017 in-memory snapshot with persistent store** — Kernovia loses snapshots~~ done
 8. ~~**B019 manual read model rebuild** — crush-daily adds seconds to every startup~~ done
 9. ~~**C019 multiple repos for same aggregate** — browser-history wastes resources~~ done
-10. **F001 tombstone soft-delete** — delete operations without audit trail (F-series not yet implemented)
+10. ~~**F001 tombstone soft-delete** — delete operations without audit trail~~ done (F001-F017 all implemented)
 
 ### Short-term (high value, moderate effort)
 
 11. ~~**B016 manual checkpoint replay** — browser-history reinvents projectionhost~~ done
 12. ~~**A020/A021 custom bus/store reimplementation** — accountability-system, Kernovia~~ done at `c9c2fe86`
 13. ~~**P007 bit-shift retry bug** — DiscordSync has a real bug~~ done
-14. **D012 missing schema version stamping** — most projects
+14. ~~**D013 missing schema version stamping** — most projects~~ done
 15. ~~**B025 missing state cache** — most projects~~ done
 16. **E010 event capture without validation** — DiscordSync pattern (E008-E015 not yet implemented)
-17. **F003/F004 missing OTel/Prometheus** — most server projects (F-series not yet implemented)
+17. ~~**F003/F004 missing OTel/Prometheus** — most server projects~~ done (F001-F017 all implemented)
 18. ~~**T001 no scenario tests** — most projects with deciders~~ done (T001-T008 implemented)
 19. ~~**C021 mutex held during decode** — crush-daily~~ done
 20. ~~**C022 context ignored in handler** — crush-daily~~ done

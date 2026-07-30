@@ -30,7 +30,8 @@ func NewF003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F003",
 				"Server-mode project has no OpenTelemetry tracing — "+
 					"distributed tracing is unavailable",
@@ -65,7 +66,8 @@ func NewF004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F004",
 				"Server-mode project has no Prometheus metrics — "+
 					"runtime observability is unavailable",

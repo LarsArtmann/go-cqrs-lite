@@ -67,8 +67,8 @@ type ImmutableEvent struct {
 	payload       []byte
 	metadata      Metadata
 	//cqrs-lint:ignore(C013) library code or intentional pattern
-	occurredAt    time.Time
-	opts          *eventOptions
+	occurredAt time.Time
+	opts       *eventOptions
 }
 
 type eventOptions struct {
@@ -78,7 +78,7 @@ type eventOptions struct {
 }
 
 // ID returns the event ID.
-//cqrs-lint:ignore(A001,E005) library code or intentional pattern
+// cqrs-lint:ignore(A001,E005) library code or intentional pattern
 func (e *ImmutableEvent) ID() id.EventID { return e.id }
 
 // Type returns the event type.

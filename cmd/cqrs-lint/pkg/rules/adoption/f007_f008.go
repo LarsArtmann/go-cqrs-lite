@@ -38,7 +38,8 @@ func NewF007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F007",
 				"Command dispatcher has no idempotency middleware — "+
 					"duplicate commands cause duplicate side effects under "+
@@ -77,7 +78,8 @@ func NewF008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F008",
 				"Project has "+itoa(eventCount(ctx))+
 					" event types and uses JSON codec — CBOR is ~35% smaller "+

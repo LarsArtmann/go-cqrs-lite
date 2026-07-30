@@ -92,7 +92,7 @@ func NewEvent(
 	return evt
 }
 
-//cqrs-lint:ignore(B001) library code or intentional pattern
+// cqrs-lint:ignore(B001) library code or intentional pattern
 func MakeEvent(
 	eventType event.Type,
 	aggID id.StreamID,

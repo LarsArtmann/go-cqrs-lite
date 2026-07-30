@@ -30,7 +30,7 @@ type ViewStore[V any, K fmt.Stringer] interface {
 //
 // OrderBy is a column name (default: "key"). Desc reverses the order.
 // Limit and Offset control pagination; zero Limit means no limit.
-//cqrs-lint:ignore(E007) library code or intentional pattern
+// cqrs-lint:ignore(E007) library code or intentional pattern
 type ViewQuery struct {
 	Conditions []Condition
 	OrderBy    string

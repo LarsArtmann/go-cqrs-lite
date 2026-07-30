@@ -33,7 +33,7 @@ const (
 	cmdAddBlocker   = command.Type("task.add_blocker")
 )
 
-//cqrs-lint:ignore(B004) library code or intentional pattern
+// cqrs-lint:ignore(B004) library code or intentional pattern
 type CreateTaskCmd struct {
 	*command.BasicCommand
 
@@ -85,7 +85,7 @@ const (
 	qryListAll = query.Type("task.list")
 )
 
-//cqrs-lint:ignore(E007) library code or intentional pattern
+// cqrs-lint:ignore(E007) library code or intentional pattern
 type GetTaskQuery struct {
 	*query.BasicQuery
 }
@@ -94,7 +94,7 @@ type GetTaskResult struct {
 	Task *TaskView `json:"task"`
 }
 
-//cqrs-lint:ignore(E007) library code or intentional pattern
+// cqrs-lint:ignore(E007) library code or intentional pattern
 type ListTasksQuery struct {
 	*query.BasicQuery
 

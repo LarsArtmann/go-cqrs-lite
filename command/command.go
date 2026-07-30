@@ -54,7 +54,7 @@ func (c *BasicCommand) Type() Type { return c.commandType }
 func (c *BasicCommand) StreamID() id.StreamID { return c.streamID }
 
 // ID returns the command ID, minted at construction time.
-//cqrs-lint:ignore(A001) library code or intentional pattern
+// cqrs-lint:ignore(A001) library code or intentional pattern
 func (c *BasicCommand) ID() id.CommandID { return c.commandID }
 
 // Metadata returns the command metadata.

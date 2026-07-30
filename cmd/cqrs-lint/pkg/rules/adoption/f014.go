@@ -32,7 +32,8 @@ func NewF014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F014",
 				"kv.NewTypedStore is used but kv.NewCache is not — read model "+
 					"access hits the backing store on every read",

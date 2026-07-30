@@ -58,7 +58,7 @@ func (p Priority) String() string {
 }
 
 // Version tracks which schema or advisor version produced this index/recommendation.
-//cqrs-lint:ignore(A008) library code or intentional pattern
+// cqrs-lint:ignore(A008) library code or intentional pattern
 type Version string
 
 // Recommendation is a suggested index with context.

@@ -79,7 +79,7 @@ func NewD009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 				WithSnippet(ctx.SourceLine(firstFile, firstLine)).
 				Build()
-			if err != nil {
+			if err != nil { //nolint:nilerr // best-effort: drop malformed finding
 				return nil, nil
 			}
 

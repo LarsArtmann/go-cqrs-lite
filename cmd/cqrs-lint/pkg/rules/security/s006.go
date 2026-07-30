@@ -204,7 +204,10 @@ func financialIndicatorLevel(name string) indicatorTier {
 
 // scoreFinancialStruct evaluates a struct's type name and field names,
 // returning the highest tier found and the count of weak-only indicators.
-func scoreFinancialStruct(typeName string, st *ast.StructType) (bestTier indicatorTier, weakCount int) {
+func scoreFinancialStruct(
+	typeName string,
+	st *ast.StructType,
+) (bestTier indicatorTier, weakCount int) {
 	if t := financialIndicatorLevel(typeName); t != tierNone {
 		bestTier = maxTier(bestTier, t)
 		if t == tierWeak {

@@ -59,7 +59,10 @@ func NewV003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"V003", toolName,
 					fmt.Sprintf(
 						"%s is on v4.%d.x — %d minor versions behind latest (v4.%d.x), missing bug fixes and features",
-						shortModuleName(req.Path), minor, lag, latestKnownMinor,
+						shortModuleName(req.Path),
+						minor,
+						lag,
+						latestKnownMinor,
 					),
 					finding.SeverityInfo,
 					finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), req.Line, 1),

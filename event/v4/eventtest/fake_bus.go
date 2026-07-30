@@ -37,7 +37,7 @@ func NewFakeBus() *FakeBus {
 	return b
 }
 
-//cqrs-lint:ignore(A020) library code or intentional pattern
+// cqrs-lint:ignore(A020) library code or intentional pattern
 func (b *FakeBus) rebuildPublishChain() {
 	var chain event.Publisher = event.PublisherFunc(b.dispatch)
 

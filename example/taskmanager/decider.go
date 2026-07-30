@@ -25,7 +25,7 @@ const maxTitleLength = 500
 // applyTask is the fold function: it takes the current state and an event,
 // and returns the new state. It never returns an error for valid event
 // streams — errors only occur on corrupt/unexpected payloads.
-//cqrs-lint:ignore(B005) library code or intentional pattern
+// cqrs-lint:ignore(B005) library code or intentional pattern
 func applyTask(state TaskState, evt event.Event) (TaskState, error) {
 	switch evt.Type() {
 	case evtTaskCreated:

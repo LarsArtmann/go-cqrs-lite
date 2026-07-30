@@ -63,8 +63,8 @@ func WriteBenchstat(w io.Writer, r *Result) {
 	lines := []struct {
 		suffix string
 		//cqrs-lint:ignore(C008) library code or intentional pattern
-		value  float64
-		unit   string
+		value float64
+		unit  string
 	}{
 		{"write_throughput", r.WriteThroughput, "ops/s"},
 		{"rawsink_throughput", r.RawSinkThroughput, "ops/s"},

@@ -80,7 +80,7 @@ func NewD007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				WithSuggestion("Replace all event.NewEvent calls with event.New — they are aliases").
 				WithSnippet(ctx.SourceLine(firstFile, firstLine)).
 				Build()
-			if err != nil {
+			if err != nil { //nolint:nilerr // best-effort: drop malformed finding
 				return nil, nil
 			}
 
@@ -162,7 +162,7 @@ func NewD008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 				WithSnippet(ctx.SourceLine(firstFile, firstLine)).
 				Build()
-			if err != nil {
+			if err != nil { //nolint:nilerr // best-effort: drop malformed finding
 				return nil, nil
 			}
 
@@ -244,7 +244,7 @@ func NewD013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 				WithSnippet(ctx.SourceLine(firstFile, firstLine)).
 				Build()
-			if err != nil {
+			if err != nil { //nolint:nilerr // best-effort: drop malformed finding
 				return nil, nil
 			}
 

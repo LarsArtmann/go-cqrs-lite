@@ -31,7 +31,8 @@ func NewF001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F001",
 				"Delete operations detected but event.MarkTombstone is not used — "+
 					"consider tombstone soft-delete for audit trail and replay safety",

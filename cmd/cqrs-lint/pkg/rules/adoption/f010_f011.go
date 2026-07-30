@@ -27,7 +27,8 @@ func NewF010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F010",
 				"Graph-traversal patterns detected (recursive queries, ancestry, "+
 					"path-finding) but graph module is not used — recursive SQL "+
@@ -74,7 +75,8 @@ func NewF011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			return singleInfoFinding(ctx,
+			return singleInfoFinding(
+				ctx,
 				"F011",
 				"Multiple SQL Exec calls in event-handling code but "+
 					"storage.RelationalProjection is not used — manual "+
