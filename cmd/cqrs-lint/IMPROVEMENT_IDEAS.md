@@ -4,7 +4,7 @@
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
 > The current linter has **113 rules** (C001-C027, A001-A027+A029, B001-B026, D001-D003+D005+D006+D011, E001-E007, S001-S003, P001+P007, V001-V006, T001-T008).
 >
-> **170 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
+> **179 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
 ---
 
@@ -41,7 +41,7 @@
 
 1. ~~**C006 should catch `ver+1` and `version.Int()+1` directly in event creation** — Kernovia uses `ver+1` in `event.NewEvent(..., ver+1, data)` (stack.go:469), Standup-Killer uses `event.Version(version.Int()+1)` (decide.go:29). Verify C006 covers both forms and also catches `event.Version(ver+1)`.~~ done at `ec402374`
 
-2. ~~**C017: In-memory snapshot store with persistent event store** — Kernovia pairs a SQLite event store with `memory.NewMemorySnapshotStore()` — snapshots are lost on restart, making the snapshot optimization useless and potentially causing consistency issues on recovery. Detect: snapshot store type is memory when event store is persistent (SQLite/Postgres/Pebble).~~ done at `b31eb572`
+2. ~~**C017: In-memory snapshot store with persistent event store** — Kernovia pairs a SQLite event store with `memory.NewMemorySnapshotStore()` — snapshots are lost on restart, making the snapshot optimization useless and potentially causing consistency issues on recovery. Detect: snapshot store type is memory when event store is persistent (SQLite/Postgres/Pebble).~~ done at `b31eb572` (false-positive fix at `19e9bb9c`: now skips files that also use `memory.NewMemoryStore()` for the event store)
 
 3. ~~**C018: Silent journal fallback to empty store** — cqrs-htmx's `journalFromStore` falls back to `memory.NewMemoryStore()` when the store doesn't implement `event.Journal`, meaning projections replay from an empty journal with NO error or warning. Detect: `memory.NewMemoryStore()` used as a journal fallback in a type switch / type assertion chain.~~ done at `c165b2e8`
 
@@ -215,7 +215,7 @@
 
 ## 8. Version & Migration Health (V-series)
 
-> New category — critical for the multi-version ecosystem.
+> All 6 V-series rules are now implemented (V001-V006).
 
 68. ~~**V001: v3 and v4 modules mixed in the same project** — go-plugin-mvp imports v3 modules directly while cqrs-htmx is v4. go-appkit is entirely v3. Detect: both `go-cqrs-lite/.../v3` and `go-cqrs-lite/.../v4` import paths in the same go.mod.~~ done (existing rule, detects mixed v3/v4 import paths in `.go` files)
 
@@ -233,7 +233,7 @@
 
 ## 9. Testing & Quality (T-series)
 
-> New category — the linter has B015 for test utilities but no testing-specific rules.
+> All 8 T-series rules are now implemented (T001-T008).
 
 74. ~~**T001: No scenario tests for deciders** — Only Standup-Killer, DiscordSync, SwettySwipperWeb, and KeyCountdown use `scenario/v4`. Most projects with deciders have no BDD tests. Detect: `decider.Decider` defined but no `scenario.Given` calls in test files.~~ done — implemented in `pkg/rules/testrules/t001_t002.go`
 
@@ -359,121 +359,141 @@
 
 124. **Memory-bounded analysis** — For very large codebases (>1000 files), the linter should stream files rather than loading all ASTs into memory.
 
+### Suppression & self-lint infrastructure (discovered 2026-07-30 self-lint session)
+
+125. ~~**Comma-separated rule IDs in suppression comments** — `//cqrs-lint:ignore(A001,E005)` should parse as two rules, not one literal string `"A001,E005"`.~~ done — `ParseSuppressions` now splits on comma
+
+126. ~~**Space after `//` in suppression comments** — `// cqrs-lint:ignore(X)` (with space) should be accepted alongside `//cqrs-lint:ignore(X)`. gofmt may produce either form.~~ done — parser now strips `// ` prefix before checking
+
+127. ~~**Stale suppression checker must see ALL findings** — `DetectStaleSuppressions` received only unsuppressed findings, meaning every suppression was falsely reported as stale when all findings at a location were suppressed.~~ done — `printSummary` now passes `allFindings` instead of `unsuppressed`
+
+128. ~~**C017 false positive on all-in-memory setups** — C017 fired on `example/getting-started` (uses `memory.NewMemoryStore()` for events) because it imports `stack/sqlite` for the `stack.New` function. Import-based feature detection is too coarse.~~ done — detector now skips files that also use `memory.NewMemoryStore()`
+
+129. **C017 should trace `WithEventStore()` call arguments** — Current band-aid (`fileUsesMemoryEventStore`) checks if the same file uses `memory.NewMemoryStore()`, but the real fix is tracing the actual `WithEventStore()` call to determine the concrete store type, rather than inferring from imports.
+
+130. **`extractRuleID` snippet fallback only returns first rule** — For comma-separated `ignore(A001,E005)`, the snippet fallback path in `extractRuleID` returns only `"A001"`. If the finding's rule is the second ID and the file can't be read (falling back to snippet), it won't match.
+
+131. **Library self-detection is inherently noisy** — A001/A020/A021/A023/E005/E007 fire on go-cqrs-lite's own type definitions (`BasicCommand`, `MemoryStore`, `SQLEventStore`, etc.). 181 inline suppressions were needed. Options: (a) `--self-lint` flag that excludes library module paths, (b) `.cqrs-lint.json` exclude config, (c) detectors check if the file IS in a `go-cqrs-lite/` module path.
+
+132. **CI job: cqrs-lint self-lint must pass** — Add a CI step that runs `cqrs-lint` on the go-cqrs-lite repo itself. Prevents regressions where new rules or detector changes break the self-lint baseline.
+
+133. **File-level / block-level suppression** — 181 inline `//cqrs-lint:ignore` comments is noisy. Consider `//cqrs-lint:ignore-start` / `//cqrs-lint:ignore-end` block syntax, or file-level `.cqrs-lint-ignore` for known false-positive zones.
+
 ---
 
-## Extended Ideas (125-170)
+## Extended Ideas (134-179)
 
 ### Deep pattern detection
 
-125. **Detect custom retry loops more accurately** — DiscordSync's `appendWithRetry` (storage.go:207-241) has a bitshift backoff bug (`baseBackoff << time.Duration(attempt-1)` shifts Duration's nanosecond representation). The current B008 rule should catch this but may miss the bitshift variant.
+134. **Detect custom retry loops more accurately** — DiscordSync's `appendWithRetry` (storage.go:207-241) has a bitshift backoff bug (`baseBackoff << time.Duration(attempt-1)` shifts Duration's nanosecond representation). The current B008 rule should catch this but may miss the bitshift variant.
 
-126. **Detect event type string typos** — If a fold function handles "UserCreated" but the emit code uses "user.created", the event is silently ignored. Cross-reference fold switch cases with `event.New` type strings.
+135. **Detect event type string typos** — If a fold function handles "UserCreated" but the emit code uses "user.created", the event is silently ignored. Cross-reference fold switch cases with `event.New` type strings.
 
-127. **Detect orphaned event types** — Events emitted but never handled by any fold or projection. E006 exists but may miss events emitted through adapters/bridges (like KeyCountdown's BusAdapter).
+136. **Detect orphaned event types** — Events emitted but never handled by any fold or projection. E006 exists but may miss events emitted through adapters/bridges (like KeyCountdown's BusAdapter).
 
-128. **Detect orphaned commands** — Commands defined but never dispatched. E005 exists but may miss commands dispatched through cqrs-htmx's HTTP layer.
+137. **Detect orphaned commands** — Commands defined but never dispatched. E005 exists but may miss commands dispatched through cqrs-htmx's HTTP layer.
 
-129. **Detect missing error family classification in domain logic** — Several projects use `fmt.Errorf` or `errors.New` in domain logic instead of `errorfamily` constructors. D006 exists but should be stricter in files that import `event` or `decider`.
+138. **Detect missing error family classification in domain logic** — Several projects use `fmt.Errorf` or `errors.New` in domain logic instead of `errorfamily` constructors. D006 exists but should be stricter in files that import `event` or `decider`.
 
-130. **Detect context propagation gaps in event handlers** — If a projection handler receives `ctx` but calls a function that creates a new context, tracing is broken. Detect: `context.Background()`, `context.TODO()`, or `context.WithCancel(context.Background())` inside a handler function body.
+139. **Detect context propagation gaps in event handlers** — If a projection handler receives `ctx` but calls a function that creates a new context, tracing is broken. Detect: `context.Background()`, `context.TODO()`, or `context.WithCancel(context.Background())` inside a handler function body.
 
-131. **Detect unbounded in-memory growth** — In-memory read models that use `map[string]T` without eviction grow unboundedly. Detect: `map[` in a projection handler that subscribes to `SubscribeAll` without any size limit or eviction.
+140. **Detect unbounded in-memory growth** — In-memory read models that use `map[string]T` without eviction grow unboundedly. Detect: `map[` in a projection handler that subscribes to `SubscribeAll` without any size limit or eviction.
 
-132. **Detect goroutine leaks in event handlers** — If a handler starts a goroutine (`go func()`) that is not tracked or cancelled, it may outlive the projection host. Detect: `go func()` inside a `Handle` method without context cancellation.
+141. **Detect goroutine leaks in event handlers** — If a handler starts a goroutine (`go func()`) that is not tracked or cancelled, it may outlive the projection host. Detect: `go func()` inside a `Handle` method without context cancellation.
 
 ### Cross-module rules
 
-133. **Detect encryption/signing mismatch** — If the event bus has encryption middleware but the event store doesn't (or vice versa), events are stored in cleartext but transmitted encrypted (or vice versa). Cross-check bus middleware vs store wrapper.
+142. **Detect encryption/signing mismatch** — If the event bus has encryption middleware but the event store doesn't (or vice versa), events are stored in cleartext but transmitted encrypted (or vice versa). Cross-check bus middleware vs store wrapper.
 
-134. **Detect snapshot codec / event codec mismatch** — If events use CBOR but snapshots use JSON (or vice versa), there's an inconsistency that could cause decode failures on recovery. Detect: `codec.CBORCodec{}` for events but `codec.JSONCodec{}` for snapshots.
+143. **Detect snapshot codec / event codec mismatch** — If events use CBOR but snapshots use JSON (or vice versa), there's an inconsistency that could cause decode failures on recovery. Detect: `codec.CBORCodec{}` for events but `codec.JSONCodec{}` for snapshots.
 
-135. **Detect checkpoint store / event store backend mismatch** — SQLite event store with memory checkpoint store means checkpoints are lost on restart, causing full projection replay every time.
+144. **Detect checkpoint store / event store backend mismatch** — SQLite event store with memory checkpoint store means checkpoints are lost on restart, causing full projection replay every time.
 
-136. **Detect idempotency store / event store backend mismatch** — Memory idempotency store with persistent event store means dedup state is lost on restart, allowing duplicate processing after restart.
+145. **Detect idempotency store / event store backend mismatch** — Memory idempotency store with persistent event store means dedup state is lost on restart, allowing duplicate processing after restart.
 
 ### cqrs-htmx specific rules
 
-137. **Detect `journalFromStore` silent fallback** — cqrs-htmx's journal detection falls back to empty memory store without error. The linter should detect this pattern in cqrs-htmx consumers specifically.
+146. **Detect `journalFromStore` silent fallback** — cqrs-htmx's journal detection falls back to empty memory store without error. The linter should detect this pattern in cqrs-htmx consumers specifically.
 
-138. **Detect hardcoded memory DLQ in cqrs-htmx** — `projectionhost.NewMemoryDeadLetterStore()` with `0` retry threshold in server-mode projects means poison events are immediately dropped.
+147. **Detect hardcoded memory DLQ in cqrs-htmx** — `projectionhost.NewMemoryDeadLetterStore()` with `0` retry threshold in server-mode projects means poison events are immediately dropped.
 
-139. **Detect `waitForDrain` polling overhead** — cqrs-htmx's 10ms polling loop adds latency. Suggest using a channel-based notification from projectionhost.
+148. **Detect `waitForDrain` polling overhead** — cqrs-htmx's 10ms polling loop adds latency. Suggest using a channel-based notification from projectionhost.
 
-140. **Detect ProjectionStatusEntry field duplication** — cqrs-htmx's `ProjectionStatusEntry` manually mirrors `projectionhost.WorkerState`. Changes to `WorkerState` won't be reflected.
+149. **Detect ProjectionStatusEntry field duplication** — cqrs-htmx's `ProjectionStatusEntry` manually mirrors `projectionhost.WorkerState`. Changes to `WorkerState` won't be reflected.
 
 ### Domain-specific rules
 
-141. **Detect money as float64 (extend C008)** — C008 exists but should also check for `float32`, `float64` fields with names like `amount`, `balance`, `price`, `cost`, `fee`, `tax`, `salary`, `rate`, `total`.
+150. **Detect money as float64 (extend C008)** — C008 exists but should also check for `float32`, `float64` fields with names like `amount`, `balance`, `price`, `cost`, `fee`, `tax`, `salary`, `rate`, `total`.
 
-142. **Detect timestamp without timezone** — C013 exists for `time.Time` in event payloads. Extend to also flag `time.Time` fields without explicit timezone documentation in projections.
+151. **Detect timestamp without timezone** — C013 exists for `time.Time` in event payloads. Extend to also flag `time.Time` fields without explicit timezone documentation in projections.
 
-143. **Detect PII in event payloads without redaction** — Event payloads containing email addresses, phone numbers, or SSNs should be encrypted or redacted before persistence.
+152. **Detect PII in event payloads without redaction** — Event payloads containing email addresses, phone numbers, or SSNs should be encrypted or redacted before persistence.
 
-144. **Detect event payload struct size** — Event payloads with >20 fields are hard to evolve and should be split. Suggest smaller, more focused event types.
+153. **Detect event payload struct size** — Event payloads with >20 fields are hard to evolve and should be split. Suggest smaller, more focused event types.
 
 ### Migration and upgrade rules
 
-145. **Detect `event.NewEvent` deprecation migration progress** — Track how many `event.NewEvent` calls remain vs `event.New`. Show progress: "15/20 event creation calls migrated to event.New (75%)."
+154. **Detect `event.NewEvent` deprecation migration progress** — Track how many `event.NewEvent` calls remain vs `event.New`. Show progress: "15/20 event creation calls migrated to event.New (75%)."
 
-146. **Detect `Register` (deprecated) vs `RegisterTyped` migration** — A014 flags deprecated `Register`. Track migration progress across the codebase.
+155. **Detect `Register` (deprecated) vs `RegisterTyped` migration** — A014 flags deprecated `Register`. Track migration progress across the codebase.
 
-147. **Detect v3-to-v4 migration blockers** — For projects still on v3, identify specific API differences that block migration (removed types, renamed functions).
+156. **Detect v3-to-v4 migration blockers** — For projects still on v3, identify specific API differences that block migration (removed types, renamed functions).
 
-148. **Detect feature flag cleanup needed** — Dual-write buses and migration code should have feature flags that are eventually cleaned up. Detect: dual-write patterns without flag cleanup in the same codebase.
+157. **Detect feature flag cleanup needed** — Dual-write buses and migration code should have feature flags that are eventually cleaned up. Detect: dual-write patterns without flag cleanup in the same codebase.
 
 ### Educational and coaching rules
 
-149. **Suggest event storming documentation** — If a project has >10 event types, suggest creating an event catalog with `catalog.NewBuilder` for documentation.
+158. **Suggest event storming documentation** — If a project has >10 event types, suggest creating an event catalog with `catalog.NewBuilder` for documentation.
 
-150. **Suggest CQRS diagram generation** — If a project has commands, events, and projections, suggest generating a D2 architecture diagram with the catalog module.
+159. **Suggest CQRS diagram generation** — If a project has commands, events, and projections, suggest generating a D2 architecture diagram with the catalog module.
 
-151. **Suggest read model tier upgrade** — If a project uses in-memory read models with SubscribeAll, suggest upgrading to SQLViewStore or RelationalProjection for persistence.
+160. **Suggest read model tier upgrade** — If a project uses in-memory read models with SubscribeAll, suggest upgrading to SQLViewStore or RelationalProjection for persistence.
 
-152. **Suggest snapshot strategy** — If aggregate event count is high (detect from test data or schema), suggest EveryNEvents or ReadPressure snapshot strategy.
+161. **Suggest snapshot strategy** — If aggregate event count is high (detect from test data or schema), suggest EveryNEvents or ReadPressure snapshot strategy.
 
-153. **Suggest StrictApply adoption** — If a fold function uses a plain switch with a default that returns nil, suggest `decider.StrictApply` for compile-time safety.
+162. **Suggest StrictApply adoption** — If a fold function uses a plain switch with a default that returns nil, suggest `decider.StrictApply` for compile-time safety.
 
-154. **Suggest BDD scenario tests for critical aggregates** — If an aggregate handles financial or security operations, strongly suggest scenario tests.
+163. **Suggest BDD scenario tests for critical aggregates** — If an aggregate handles financial or security operations, strongly suggest scenario tests.
 
 ### Integration rules
 
-155. **Detect missing health checks** — `stack.Bundle.HealthCheck` exists for Kubernetes probes. Detect: server-mode project without health check endpoint.
+164. **Detect missing health checks** — `stack.Bundle.HealthCheck` exists for Kubernetes probes. Detect: server-mode project without health check endpoint.
 
-156. **Detect missing graceful shutdown** — `bundle.GracefulClose` and `projectionhost.Stop` should be called on SIGTERM. Detect: `signal.Notify` without Close/Stop calls.
+165. **Detect missing graceful shutdown** — `bundle.GracefulClose` and `projectionhost.Stop` should be called on SIGTERM. Detect: `signal.Notify` without Close/Stop calls.
 
-157. **Detect missing WAL mode for SQLite** — `storage.SQLiteEnableWAL` should be called for all SQLite-backed stores in production. Detect: SQLite store without WAL pragma.
+166. **Detect missing WAL mode for SQLite** — `storage.SQLiteEnableWAL` should be called for all SQLite-backed stores in production. Detect: SQLite store without WAL pragma.
 
-158. **Detect missing busy_timeout for SQLite** — `storage.SQLiteEnableWAL` includes busy_timeout=5000. Detect: `database/sql` open with SQLite DSN without busy_timeout.
+167. **Detect missing busy_timeout for SQLite** — `storage.SQLiteEnableWAL` includes busy_timeout=5000. Detect: `database/sql` open with SQLite DSN without busy_timeout.
 
 ### Error handling rules
 
-159. **Detect error swallowing in command handlers** — Command handlers that return nil after an error silently lose failures. Detect: `if err != nil { return nil }` in a function registered with `RegisterTyped`.
+168. **Detect error swallowing in command handlers** — Command handlers that return nil after an error silently lose failures. Detect: `if err != nil { return nil }` in a function registered with `RegisterTyped`.
 
-160. **Detect error swallowing in projection handlers** — Projection handlers that ignore errors from `DecodePayloadAuto` or SQL operations. C010 exists but should also cover SQL errors.
+169. **Detect error swallowing in projection handlers** — Projection handlers that ignore errors from `DecodePayloadAuto` or SQL operations. C010 exists but should also cover SQL errors.
 
-161. **Detect panic in marshal/encode paths** — Functions with `panic()` in marshal/encode paths (B011 exists for must*-prefixed, extend to all marshal helpers).
+170. **Detect panic in marshal/encode paths** — Functions with `panic()` in marshal/encode paths (B011 exists for must*-prefixed, extend to all marshal helpers).
 
-162. **Detect missing error wrapping** — Errors returned from library calls should be wrapped with context. Detect: `return err` (bare) for errors from go-cqrs-lite function calls.
+171. **Detect missing error wrapping** — Errors returned from library calls should be wrapped with context. Detect: `return err` (bare) for errors from go-cqrs-lite function calls.
 
 ### Concurrency rules
 
-163. **Detect race condition in read model** — In-memory read models accessed from multiple goroutines without proper synchronization. Detect: `map` field in a read model struct without `sync.RWMutex` or `sync.Map`.
+172. **Detect race condition in read model** — In-memory read models accessed from multiple goroutines without proper synchronization. Detect: `map` field in a read model struct without `sync.RWMutex` or `sync.Map`.
 
-164. **Detect shared mutable state in event handler** — Global or package-level variables modified inside event handlers. A015 exists but should also detect `var x = map[...]` modified in handlers.
+173. **Detect shared mutable state in event handler** — Global or package-level variables modified inside event handlers. A015 exists but should also detect `var x = map[...]` modified in handlers.
 
-165. **Detect goroutine without context cancellation** — `go func()` without a derived context can outlive the parent. Detect: `go func()` in handler code without `ctx` propagation.
+174. **Detect goroutine without context cancellation** — `go func()` without a derived context can outlive the parent. Detect: `go func()` in handler code without `ctx` propagation.
 
 ### Data model rules
 
-166. **Detect branded ID misuse** — Using `id.StreamID` where `id.UserID` is intended (or vice versa). Type-safe branded IDs prevent mixing aggregate types.
+175. **Detect branded ID misuse** — Using `id.StreamID` where `id.UserID` is intended (or vice versa). Type-safe branded IDs prevent mixing aggregate types.
 
-167. **Detect string IDs instead of branded IDs** — Plain `string` or `int` used as IDs instead of `id.Of[T]`. Detect: struct fields named `*ID` or `*Id` with type `string`.
+176. **Detect string IDs instead of branded IDs** — Plain `string` or `int` used as IDs instead of `id.Of[T]`. Detect: struct fields named `*ID` or `*Id` with type `string`.
 
-168. **Detect event payload without json tags** — Event payload structs without `json:"..."` tags use Go field names in JSON encoding, which is inconsistent with typical JSON conventions.
+177. **Detect event payload without json tags** — Event payload structs without `json:"..."` tags use Go field names in JSON encoding, which is inconsistent with typical JSON conventions.
 
-169. **Detect event payload with embedded `time.Time`** — Embedded `time.Time` in event payloads can cause timezone issues via CBOR encoding. C013 exists; extend to embedded fields.
+178. **Detect event payload with embedded `time.Time`** — Embedded `time.Time` in event payloads can cause timezone issues via CBOR encoding. C013 exists; extend to embedded fields.
 
-170. **Detect nullable fields in event payloads** — `*string`, `*int` pointer fields in event payloads can cause nil-dereference on decode. Suggest value types with `omitempty` or sentinel values.
+179. **Detect nullable fields in event payloads** — `*string`, `*int` pointer fields in event payloads can cause nil-dereference on decode. Suggest value types with `omitempty` or sentinel values.
 
 ---
 
@@ -488,12 +508,12 @@
 | Consistency (D)       | 6 (D001-D003+D005+D006+D011 existing + D007-D012 new) | 6              |
 | Security (S)          | 4 (S001-S003 existing + S004-S007 new)                | 3              |
 | Performance (P)       | 10 (P001-P010)                                        | 2 (P001, P007) |
-| Version/Migration (V) | 6 (V001-V006)                                         | 1 (V001)       |
-| Testing (T)           | 8 (T001-T008)                                         | 8              |
+| Version/Migration (V) | 6 (V001-V006)                                         | 6 (all done)   |
+| Testing (T)           | 8 (T001-T008)                                         | 8 (all done)   |
 | Feature Adoption (F)  | 17 (F001-F017)                                        | 0              |
-| DX & Infrastructure   | 26                                                    | N/A            |
-| Extended Ideas        | 46 (items 125-170)                                    | N/A            |
-| **Total**             | **170**                                               | **113**        |
+| DX & Infrastructure   | 35 (items 99-133)                                     | N/A            |
+| Extended Ideas        | 46 (items 134-179)                                    | N/A            |
+| **Total**             | **179**                                               | **113**        |
 
 ---
 
@@ -506,7 +526,7 @@
 3. ~~**B021 StrictApply recommendation** — 6/8 projects miss this~~ done
 4. ~~**B023 missing command middleware** — several projects have zero protection~~ done
 5. ~~**P001 O(N^2) read model** — timesheets has a critical performance bug~~ done
-6. **V001 v3/v4 mixing** — go-plugin-mvp, go-appkit need upgrading
+6. ~~**V001 v3/v4 mixing** — go-plugin-mvp, go-appkit need upgrading~~ done (V001-V006 all implemented)
 7. ~~**C017 in-memory snapshot with persistent store** — Kernovia loses snapshots~~ done
 8. ~~**B019 manual read model rebuild** — crush-daily adds seconds to every startup~~ done
 9. ~~**C019 multiple repos for same aggregate** — browser-history wastes resources~~ done
@@ -532,3 +552,5 @@
 23. **Incremental analysis** — cache AST results for faster re-runs
 24. **cqrs-htmx-aware rules** — different defaults for framework consumers
 25. **Domain-specific severity calibration** — stricter rules for financial/security domains
+26. ~~**Self-lint CI job** — cqrs-lint must pass on its own repo~~ done (181 suppressions, 0 unsuppressed findings as of 2026-07-30)
+27. **Library self-detection mode** — `--self-lint` flag or `.cqrs-lint.json` to reduce 181 inline suppressions (items 131-133)
