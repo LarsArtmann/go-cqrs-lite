@@ -115,6 +115,52 @@ db, _ := turso.Open(turso.DbPath("app.db")) // or turso.OpenInMemory() for tests
 backend, _ := turso.NewBackend(db)
 ```
 
+### DuckDB (analytical / CGo)
+
+DuckDB is an embedded **columnar (OLAP)** engine, wrapped as a `stack.Bundle`
+preset (`stack/duckdb`). It requires CGo (statically links a C++ engine, ~30-50MB
+binary) — see ADR-0071. Use it for dashboard/reporting read models that need
+GROUP BY, window functions, and fast columnar scans; prefer SQLite/Pebble for the
+transactional event store.
+
+**DSN format:**
+
+| DSN                      | Meaning                                                                  |
+| ------------------------ | ------------------------------------------------------------------------ |
+| `""` (empty)             | In-memory database (process-local, lost on close)                        |
+| `/path/to/file.db`       | Persistent single-file database                                          |
+| `:memory:`               | Explicit in-memory                                                       |
+
+Query-string options tune the engine and are appended to the DSN automatically
+by the helpers:
+
+| Option          | Helper                  | Effect                                  |
+| --------------- | ----------------------- | --------------------------------------- |
+| `threads=N`     | `duckdb.WithThreads(4)` | DuckDB worker threads                   |
+| `memory_limit`  | `duckdb.WithMemoryLimit("1GB")` | Memory cap (DuckDB syntax, e.g. `1GB`) |
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/stack/duckdb"
+
+bundle, _ := duckdb.New("analytics.db")                       // persistent
+bundle, _ := duckdb.New("", duckdb.WithThreads(4),
+    duckdb.WithMemoryLimit("1GB"))                            // in-memory, tuned
+
+// Multi-DB split (events/queries/views in separate files), like SQLite/Postgres:
+bundle, _ := duckdb.New("primary.db",
+    duckdb.WithDSN(
+        sqlopt.WithEventDB("events.db"),
+        sqlopt.WithViewDB("views.db"),
+    ))
+```
+
+Notes:
+- The `metadata` column is `BLOB` (not VARCHAR) to avoid byte-slice escaping on
+  roundtrip; the dialect uses `$1` placeholders (Postgres-compatible) and returns
+  `time.Time` natively.
+- Analytical read models: `duckdb.SQLViewModel[V,K]` builds a real columnar view
+  table enabling server-side WHERE/ORDER BY and native GROUP BY.
+
 ---
 
 ## Event Store operations

@@ -70,6 +70,30 @@ golangci-lint run
 gofumpt -w .
 ```
 
+### CGo / DuckDB
+
+The project is pure-Go by default (`CGO_ENABLED=0` works for everything except
+the DuckDB modules). The only module that **requires** CGo is `stack/duckdb`
+(and its CGo-gated wiring in `stack/bench` and `cmd/cqrs-bench`). DuckDB
+statically links a C++ engine (~30-50MB binary), so it is isolated in its own
+module — consumers who never import it never need CGo (ADR-0071).
+
+To build/test DuckDB locally you need a C compiler (`gcc`, included in the Nix
+devShell via `pkgs.gcc`):
+
+```bash
+# Inside nix develop (gcc is already on PATH)
+CGO_ENABLED=1 go build -tags "goexperiment.jsonv2" ./stack/duckdb/...
+cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" ./...
+
+# The cqrs-bench DuckDB factory is CGo-gated; without CGo a stub is compiled:
+CGO_ENABLED=0 go build ./cmd/cqrs-bench/...   # uses the no-cgo stub (duckdb backend errors at runtime)
+CGO_ENABLED=1 go build ./cmd/cqrs-bench/...   # full DuckDB backend available
+```
+
+CI runs a dedicated `cgo` job (`CGO_ENABLED=1`) so DuckDB regressions are caught
+even though the default build is pure-Go.
+
 ## Project Structure
 
 Multi-module Go workspace with 58 modules (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`):

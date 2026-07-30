@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-28 (DuckDB analytical SQL backend + CGo isolation, ADR-0071) · **Module count:** 59 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+**Last audited:** 2026-07-29 (DuckDB analytical SQL backend + CGo isolation, ADR-0071; metaengine pushdown/layout-planning/Pebble, ADR-0072/0073/0074) · **Module count:** 59 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
 
 ## Status Legend
 
@@ -237,6 +237,11 @@ developer never declares "I need a Map" or "I need a Counter."
 | Fold-classify              | `classifyFold` inspects fold return types to assign ADT patterns — shared across engines for consistency     | 🧪     |
 | Cross-engine meta-test     | 150 specs run identical Apply → ExecuteTyped sequences on Memory + SQLite, asserting identical typed results | 🧪     |
 | End-to-end verification    | Signature + ciphertext verification integrated across Memory and SQLite engines                              | 🧪     |
+| SQL pushdown               | `PushdownScan` + `FilterOnField`/`SortOnField` push WHERE/ORDER BY/LIMIT into SQLite via json_extract (ADR-0072) | 🧪  |
+| Layout planning            | `LayoutPlan`/`BuildLayoutPlanFromType[R]` generate indexed-column DDL for declared query fields (ADR-0073)    | 🧪     |
+| Pebble engine              | `metaengine/pebbleengine` — LSM point reads (~7x faster than SQLite); separate module (ADR-0074)              | 🧪     |
+| `OnTyped(eventType, ...)`  | Bind a fold to an explicit CQRS event-type string (decouples from the Go struct name)                         | 🧪     |
+| Read/write calibration     | `EngineProfile.NsPerRead`/`NsPerWrite` — split read vs write cost (backward-compat fallback to NsPerOp)       | 🧪     |
 
 **Coverage:** 86.1% (verified `go test -cover ./...` 2026-07-27; 174 BDD specs + 150 cross-engine meta specs). SQLite engine
 
@@ -857,6 +862,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Analytical read models  | `SQLViewModel[V,K]` — columnar scans, GROUP BY, window functions on event-sourced data           | ✅     |
 | Performance tuning      | `WithThreads(n)`, `WithMemoryLimit("1GB")` — DuckDB worker thread + memory caps                  | ✅     |
 | Contract test suite     | Full `contracttest.RunSuite` — event/command/read-model roundtrips, close idempotency            | ✅     |
+| Benchmarkable backend   | `stack/bench` `BenchmarkBenchkitSuite_DuckDB` (CGo-gated) + `cmd/cqrs-bench --backend duckdb`    | ✅     |
 
 ---
 
