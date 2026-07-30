@@ -19,7 +19,7 @@ import (
 //nolint:ireturn // factory returns public interface
 func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
-		"C017-inmem-snapshot-persistent-store",
+		"C017-inmem-store-persistent-eventstore",
 		func(_ context.Context) ([]finding.Finding, error) {
 			if !isPersistentStore(ctx.FeatureProfile.Store) {
 				return nil, nil

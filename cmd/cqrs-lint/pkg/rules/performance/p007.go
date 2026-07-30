@@ -17,7 +17,7 @@ import (
 //nolint:ireturn // factory returns public interface
 func NewP007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
-		"P007-manual-retry-loop",
+		"P007-manual-retry-bitshift",
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 

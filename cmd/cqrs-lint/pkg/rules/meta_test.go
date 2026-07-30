@@ -1,7 +1,10 @@
 package rules
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
@@ -135,4 +138,130 @@ func catalogRuleIDs(rules []RuleInfo) []string {
 	}
 
 	return ids
+}
+
+// TestCatalogSeverityAndConfidenceValid verifies that every catalog entry's
+// Severity and Confidence strings map to valid finding.Severity and
+// finding.Confidence values. Catches typos like "warn" instead of "warning"
+// or "hi" instead of "high" that would silently break filtering and the
+// health score computation.
+func TestCatalogSeverityAndConfidenceValid(t *testing.T) {
+	t.Parallel()
+
+	validSeverities := map[string]finding.Severity{
+		"critical": finding.SeverityCritical,
+		"error":    finding.SeverityError,
+		"warning":  finding.SeverityWarning,
+		"info":     finding.SeverityInfo,
+	}
+
+	validConfidences := map[string]finding.Confidence{
+		"high":   finding.ConfidenceHigh,
+		"medium": finding.ConfidenceMedium,
+		"low":    finding.ConfidenceLow,
+	}
+
+	for _, r := range AllRules() {
+		if _, ok := validSeverities[strings.ToLower(r.Severity)]; !ok {
+			t.Errorf(
+				"rule %s: invalid severity %q (must be critical/error/warning/info)",
+				r.ID,
+				r.Severity,
+			)
+		}
+
+		if _, ok := validConfidences[strings.ToLower(r.Confidence)]; !ok {
+			t.Errorf("rule %s: invalid confidence %q (must be high/medium/low)", r.ID, r.Confidence)
+		}
+
+		if r.Category == "" {
+			t.Errorf("rule %s: empty category", r.ID)
+		}
+
+		if r.Description == "" {
+			t.Errorf("rule %s: empty description", r.ID)
+		}
+
+		if r.Name == "" {
+			t.Errorf("rule %s: empty name", r.ID)
+		}
+	}
+}
+
+// TestCriticalDetectorsAreCriticalOrError verifies that every detector in
+// RegisterCritical maps to a catalog entry with critical or error severity.
+// The --fast mode promises "critical correctness rules only"; including a
+// warning or info rule would be misleading.
+func TestCriticalDetectorsAreCriticalOrError(t *testing.T) {
+	t.Parallel()
+
+	ctx := &analyzer.AnalysisContext{}
+	detectors := RegisterCritical(ctx)
+
+	catalogByID := make(map[string]RuleInfo, len(AllRules()))
+	for _, r := range AllRules() {
+		catalogByID[r.ID] = r
+	}
+
+	for _, d := range detectors {
+		name := d.Name()
+		if len(name) < 4 {
+			t.Fatalf("detector name too short: %q", name)
+		}
+
+		ruleID := name[:4]
+		info, ok := catalogByID[ruleID]
+		if !ok {
+			t.Fatalf("critical detector %s not in catalog", ruleID)
+		}
+
+		sev := strings.ToLower(info.Severity)
+		if sev != "critical" && sev != "error" {
+			t.Errorf(
+				"critical detector %s has severity %q in catalog — expected critical or error",
+				ruleID,
+				info.Severity,
+			)
+		}
+	}
+}
+
+// TestDetectorNamesMatchCatalog verifies that each detector's name suffix
+// matches the catalog Name field. The detector name format is "C001-name"
+// and the catalog Name is "name". A mismatch means the detector and catalog
+// describe different rules.
+func TestDetectorNamesMatchCatalog(t *testing.T) {
+	t.Parallel()
+
+	ctx := &analyzer.AnalysisContext{}
+	detectors := RegisterAll(ctx)
+
+	catalogByID := make(map[string]RuleInfo, len(AllRules()))
+	for _, r := range AllRules() {
+		catalogByID[r.ID] = r
+	}
+
+	for _, d := range detectors {
+		name := d.Name()
+		if len(name) < 5 || name[4] != '-' {
+			t.Fatalf("detector name %q does not follow ID-name format", name)
+		}
+
+		ruleID := name[:4]
+		detectorSuffix := name[5:]
+
+		info, ok := catalogByID[ruleID]
+		if !ok {
+			t.Fatalf("detector %s not in catalog", ruleID)
+		}
+
+		if detectorSuffix != info.Name {
+			t.Errorf(
+				"detector %s: name suffix %q != catalog name %q",
+				ruleID,
+				detectorSuffix,
+				info.Name,
+			)
+		}
+	}
 }

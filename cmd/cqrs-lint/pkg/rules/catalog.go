@@ -1,7 +1,10 @@
 // Package rules provides centralized rule registration for cqrs-lint.
 package rules
 
-import "sync"
+import (
+	"slices"
+	"sync"
+)
 
 type RuleInfo struct {
 	ID          string
@@ -16,16 +19,16 @@ type RuleInfo struct {
 // allRulesCache memoizes the full rule catalog so AllRules is only built once.
 // Called from detectorCategory, renderRulesTable, ListRules, and the meta-test.
 var allRulesCache = sync.OnceValue(func() []RuleInfo {
-	return append(append(append(append(append(append(append(
+	return slices.Concat(
 		correctnessRules(),
-		apiRules()...,
-	),
-		boilerplateRules()...),
-		consistencyRules()...),
-		architectureRules()...),
-		securityRules()...),
-		performanceRules()...),
-		versionRules()...)
+		apiRules(),
+		boilerplateRules(),
+		consistencyRules(),
+		architectureRules(),
+		securityRules(),
+		performanceRules(),
+		versionRules(),
+	)
 })
 
 // AllRules returns metadata for all available rules, organized by category.
