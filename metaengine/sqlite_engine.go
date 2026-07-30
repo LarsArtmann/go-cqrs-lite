@@ -163,7 +163,7 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 		return nil, false, err //nolint:wrapcheck // passthrough
 	}
 
-	return jsonValue(valStr), true, nil
+	return decodeJSONValue(valStr), true, nil
 }
 
 func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error {
@@ -187,6 +187,11 @@ func (e *sqliteEngine) MapUpdate(
 	key any,
 	update func(prev any) any,
 ) error {
+	// Planned collections read/write from the planned table, not meta_map.
+	if plan, ok := e.plans[col]; ok {
+		return e.mapUpdatePlanned(ctx, plan, key, update)
+	}
+
 	// Wrap the read-modify-write in a single transaction so concurrent
 	// MapUpdate calls on the same key cannot interleave their reads and
 	// writes (lost-update). The tx pins one connection from the pool; the

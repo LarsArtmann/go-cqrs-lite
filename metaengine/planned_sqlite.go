@@ -73,6 +73,16 @@ func (e *sqliteEngine) registerLayout(plan LayoutPlan) error {
 // --- Planned table helpers (used when a collection has a LayoutPlan) ---
 
 func (e *sqliteEngine) mapSetPlanned(ctx context.Context, plan LayoutPlan, key any, value any) error {
+	return execPlannedSet(ctx, e.db, plan, key, value)
+}
+
+// execPlannedSet writes a key-value pair to a planned table with extracted columns.
+// Works with both *sql.DB and *sql.Tx (for transactional MapUpdate).
+type execContext interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+}
+
+func execPlannedSet(ctx context.Context, exec execContext, plan LayoutPlan, key any, value any) error {
 	valueJSON := encodeValue(value)
 	extracted := extractFields(value, plan.Columns)
 
@@ -92,7 +102,7 @@ func (e *sqliteEngine) mapSetPlanned(ctx context.Context, plan LayoutPlan, key a
 		plan.Table, strings.Join(colNames, ", "), placeholder,
 	)
 
-	_, err := e.db.ExecContext(ctx, query, args...)
+	_, err := exec.ExecContext(ctx, query, args...)
 
 	return err //nolint:wrapcheck // passthrough
 }
@@ -111,7 +121,46 @@ func (e *sqliteEngine) mapGetPlanned(ctx context.Context, plan LayoutPlan, key a
 		return nil, false, err //nolint:wrapcheck // passthrough
 	}
 
-	return jsonValue(valStr), true, nil
+	return decodeJSONValue(valStr), true, nil
+}
+
+// mapUpdatePlanned performs an atomic read-modify-write on a planned table.
+// Same transaction pattern as the standard MapUpdate but reads/writes the
+// planned table (with extracted columns) instead of meta_map.
+func (e *sqliteEngine) mapUpdatePlanned(
+	ctx context.Context,
+	plan LayoutPlan,
+	key any,
+	update func(prev any) any,
+) error {
+	tx, err := e.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err //nolint:wrapcheck // passthrough
+	}
+
+	defer func() { _ = tx.Rollback() }()
+
+	var valStr string
+
+	queryErr := tx.QueryRowContext(ctx,
+		fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
+		encodeKey(key)).Scan(&valStr)
+
+	var prev any
+
+	if queryErr == nil {
+		prev = decodeJSONValue(valStr)
+	} else if !errors.Is(queryErr, sql.ErrNoRows) {
+		return queryErr //nolint:wrapcheck // passthrough
+	}
+
+	newVal := update(prev)
+
+	if err := execPlannedSet(ctx, tx, plan, key, newVal); err != nil {
+		return err //nolint:wrapcheck // passthrough
+	}
+
+	return tx.Commit() //nolint:wrapcheck // passthrough
 }
 
 func (e *sqliteEngine) pushdownMapScanPlanned(

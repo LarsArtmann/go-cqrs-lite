@@ -165,6 +165,28 @@ type LayoutPlanner interface {
 	ApplyLayout(collection string, filterFields, sortFields []string) error
 }
 
+// RawValueReader is an optional capability: engines that can read a value's raw
+// JSON bytes without decoding to any. ExecuteTyped prefers this path for point
+// lookups, avoiding the double-decode tax (any → reify → R becomes raw → R,
+// cutting 3 JSON operations to 1).
+type RawValueReader interface {
+	GetRawValue(ctx context.Context, col string, key any) ([]byte, bool, error)
+}
+
+// RawScanReader is an optional capability: engines that can scan collection
+// values as raw JSON bytes without decoding each row to any. ExecuteTyped
+// prefers this path for filtered scans, avoiding the double-decode tax.
+type RawScanReader interface {
+	ScanRawValues(
+		ctx context.Context,
+		col string,
+		filters []FilterSpec,
+		sort *SortSpec,
+		cursor any,
+		limit int,
+	) ([][]byte, error)
+}
+
 type SetBackend interface {
 	SetAdd(ctx context.Context, collection string, key any) error
 	SetContains(ctx context.Context, collection string, key any) (bool, error)
