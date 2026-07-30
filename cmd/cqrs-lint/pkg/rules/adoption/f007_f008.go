@@ -30,7 +30,7 @@ func NewF007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			pos, ok := firstCallPos(ctx, "", "NewDispatcher")
+			pos, ok := firstCallByName(ctx, "NewDispatcher")
 			if !ok {
 				pos, ok = firstFilePos(ctx)
 				if !ok {
