@@ -197,6 +197,15 @@ func correctnessRules() []RuleInfo {
 			Description: "panic() in bus.Subscribe/SubscribeAll handler — crashes the bus/projection host",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C022",
+			Name:        "context-discarded",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "_ = ctx explicitly discards context — breaks cancellation, timeouts, tracing",
+			AutoFix:     false,
+		},
 	}
 }
 
@@ -371,6 +380,15 @@ func apiRules() []RuleInfo {
 			Severity:    "warning",
 			Confidence:  "high",
 			Description: "Vendored copy of go-cqrs-lite detected",
+			AutoFix:     false,
+		},
+		{
+			ID:          "A027",
+			Name:        "repeated-withcodec",
+			Category:    "api",
+			Severity:    "info",
+			Confidence:  "high",
+			Description: "event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec",
 			AutoFix:     false,
 		},
 	}

@@ -146,6 +146,24 @@ func boilerplateRules() []RuleInfo {
 			Description: "Fold function silently ignores unknown events — use decider.StrictApply",
 			AutoFix:     false,
 		},
+		{
+			ID:          "B023",
+			Name:        "missing-command-middleware",
+			Category:    "boilerplate",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Command dispatcher has no middleware — panics in handlers crash the process",
+			AutoFix:     false,
+		},
+		{
+			ID:          "B024",
+			Name:        "missing-bus-recovery",
+			Category:    "boilerplate",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Event bus has no recovery middleware — panics in handlers crash the bus",
+			AutoFix:     false,
+		},
 	}
 }
 
