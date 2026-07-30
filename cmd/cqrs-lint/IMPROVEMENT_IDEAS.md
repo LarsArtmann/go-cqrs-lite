@@ -2,7 +2,7 @@
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **100 rules** (C001-C027, A001-A027+A029, B001-B026, D001-D003+D005+D006+D011, E001-E007, S001-S003, P001+P007, V001).
+> The current linter has **105 rules** (C001-C027, A001-A027+A029, B001-B026, D001-D003+D005+D006+D011, E001-E007, S001-S003, P001+P007, V001-V006, T001-T008).
 >
 > **170 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
@@ -217,17 +217,17 @@
 
 > New category — critical for the multi-version ecosystem.
 
-68. **V001: v3 and v4 modules mixed in the same project** — go-plugin-mvp imports v3 modules directly while cqrs-htmx is v4. go-appkit is entirely v3. Detect: both `go-cqrs-lite/.../v3` and `go-cqrs-lite/.../v4` import paths in the same go.mod.
+68. ~~**V001: v3 and v4 modules mixed in the same project** — go-plugin-mvp imports v3 modules directly while cqrs-htmx is v4. go-appkit is entirely v3. Detect: both `go-cqrs-lite/.../v3` and `go-cqrs-lite/.../v4` import paths in the same go.mod.~~ done (existing rule, detects mixed v3/v4 import paths in `.go` files)
 
-69. **V002: Unpinned go-cqrs-lite version** — Several projects (sec, SwettySwipperWeb for some modules) use `(unpinned)` versions. Detect: go-cqrs-lite dependency without a specific version tag.
+69. ~~**V002: Unpinned go-cqrs-lite version** — Several projects (sec, SwettySwipperWeb for some modules) use `(unpinned)` versions. Detect: go-cqrs-lite dependency without a specific version tag.~~ done — detects pseudo-versions (`v0.0.0-*`) in go.mod requires; flags each with a `go get ...@latest` suggestion
 
-70. **V003: Version lag behind latest** — Many projects are on v4.0.x or v4.1.x while latest is v4.2.0+. Detect: go-cqrs-lite version more than 2 minor versions behind the latest known release.
+70. ~~**V003: Version lag behind latest** — Many projects are on v4.0.x or v4.1.x while latest is v4.2.0+. Detect: go-cqrs-lite version more than 2 minor versions behind the latest known release.~~ done — checks direct (non-indirect) v4 requires against `latestKnownMinor` (currently 3 = v4.3.x); hardcoded constant needs manual bumps
 
-71. **V004: Vendored copy of go-cqrs-lite** — go-plugin-mvp has a vendored `third_party/go-cqrs-lite-eventtest` workaround. A019 exists for vendored copies; extend to detect `third_party` directory copies.
+71. ~~**V004: Vendored copy of go-cqrs-lite** — go-plugin-mvp has a vendored `third_party/go-cqrs-lite-eventtest` workaround. A019 exists for vendored copies; extend to detect `third_party` directory copies.~~ done — detects Go files in `third_party/` directories with go-cqrs-lite imports (extends A019 which covers `vendor/`)
 
-72. **V005: eventtest pseudo-version mismatch** — go-plugin-mvp vendors eventtest because the published version doesn't match the stack version requirement. Detect: vendored eventtest package alongside go-cqrs-lite imports.
+72. ~~**V005: eventtest pseudo-version mismatch** — go-plugin-mvp vendors eventtest because the published version doesn't match the stack version requirement. Detect: vendored eventtest package alongside go-cqrs-lite imports.~~ done — detects vendored `eventtest` (in `third_party/` or `vendor/`) alongside regular go-cqrs-lite imports
 
-73. **V006: Mixed direct/indirect version pins** — Some projects pin event/v4 at v4.2.0 directly but get v4.1.0 transitively through cqrs-htmx. Detect: direct require with different version than the indirect require for the same module.
+73. ~~**V006: Mixed direct/indirect version pins** — Some projects pin event/v4 at v4.2.0 directly but get v4.1.0 transitively through cqrs-htmx. Detect: direct require with different version than the indirect require for the same module.~~ done — groups non-pseudo requires by major version, flags when >1 distinct version exists within a group; reports on the lowest version line
 
 ---
 

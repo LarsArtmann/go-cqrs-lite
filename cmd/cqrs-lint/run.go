@@ -47,7 +47,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 
 	active, unsuppressed, suppressed := filterFindings(cfg, collectFindings(result))
 
-	printSummary(cfg, actx, start, active, unsuppressed, len(suppressed), detectors, result)
+	printSummary(cfg, actx, start, active, unsuppressed, len(suppressed), detectors, result, collectFindings(result))
 
 	if err := outputFindings(ctx, active, cfg); err != nil {
 		return fmt.Errorf("output: %w", err)
@@ -236,6 +236,7 @@ func printSummary(
 	suppressedCount int,
 	detectors []finding.Detector,
 	result *pipeline.PipelineResult,
+	allFindings []finding.Finding,
 ) {
 	if !cfg.Quiet && cfg.Format == "text" {
 		elapsed := time.Since(start)
@@ -254,7 +255,7 @@ func printSummary(
 			goFilePaths = append(goFilePaths, gf.Path)
 		}
 
-		stale := suppression.DetectStaleSuppressions(goFilePaths, unsuppressed)
+		stale := suppression.DetectStaleSuppressions(goFilePaths, allFindings)
 		for _, s := range stale {
 			fmt.Fprintln(os.Stderr, suppression.FormatStaleWarning(s))
 		}
