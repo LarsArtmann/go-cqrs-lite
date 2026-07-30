@@ -181,7 +181,7 @@
 
 55. ~~**S005: Event signing available but disabled** — Kernovia has `signing.go` with `DefaultSignerConfig()` setting `Enabled: false`. Detect: signing module imported but signer construction guarded by a boolean flag that defaults to false.~~ done (security/s005.go) — detects `if cfg.SigningEnabled { signing.NewHMAC(...) }` pattern where the bool field defaults to false; suppressed when signing is also used unconditionally or the flag has an explicit `true` default
 
-56. ~~**S006: Financial data without encryption** — bank-sync uses AES-256-GCM encryption (gold standard), but other financial projects (timesheets) store financial data without encryption. Detect: monetary field names (amount, price, balance, salary) without encryption module import.~~ done (security/s006.go) — tiered indicator system (strong/medium/weak), serialization-tag gate, module-scope encryption absence check
+56. ~~**S006: Financial data without encryption** — bank-sync uses AES-256-GCM encryption (gold standard), but other financial projects (timesheets) store financial data without encryption. Detect: monetary field names (amount, price, balance, salary) without encryption module import.~~ done (security/s006.go) — tiered indicator system (strong/medium/weak), serialization-tag gate, module-scope encryption absence check. **Precision fix (2026-07-30):** removed short indicators `pan` and `aba` — they matched common substrings (`panel`, `database`) producing false ERRORs on every consumer with those words. Replaced with long-form `primaryaccountnumber`.
 
 57. ~~**S007: In-memory session/token store** — cqrs-htmx defaults to `NewInMemorySessionStore()`. Session tokens are lost on restart, forcing re-authentication. Detect: in-memory session/token store used in production server context.~~ done (security/s007.go)
 
@@ -508,7 +508,7 @@
 
 183. ~~**C029: QueryIdempotency nil keyExtractor panic** — Unlike Command/Event variants, queries have no default identity. Passing nil panics at runtime.~~ done
 
-184. ~~**C030: Infinite loop without context cancellation** — `for {}` without `case <-ctx.Done()` leaks goroutines on shutdown.~~ done
+184. ~~**C030: Infinite loop without context cancellation** — `for {}` without `case <-ctx.Done()` leaks goroutines on shutdown.~~ done. **Precision fix (2026-07-30):** original only recognized literal `ctx.Done` — missed `.Done()` on other receivers (`r.Context().Done()`), `ctx.Err()` checks, `return` on custom stop channels, and bounded loops with `break`. Rewrote `loopHasCtxDone` to recognize any `.Done()`, any `return`/`break` (outside FuncLit). Eliminated 7/7 false positives on the library itself.
 
 185. ~~**A030: Incomplete snapshot configuration** — WithSnapshotStrategy without WithSnapshotStore returns ErrIncompleteSnapshotConfig (startup crash).~~ done
 

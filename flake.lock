@@ -159,11 +159,11 @@
     "gogenfilter": {
       "flake": false,
       "locked": {
-        "lastModified": 1785115784,
-        "narHash": "sha256-D35Ex/UR0iqxjOuU98TXnGAXFIkinp0KTOLFC3swz0E=",
+        "lastModified": 1785428074,
+        "narHash": "sha256-QWRgjO9CBn9xonGuIyowSyzk5R3BMglE988jMzFHHks=",
         "owner": "LarsArtmann",
         "repo": "gogenfilter",
-        "rev": "15dca9aa9761ea0e029f62c54ee2547f7724b5e3",
+        "rev": "13d7f74d29f9e86edf055a0616ccb64b80068145",
         "type": "github"
       },
       "original": {
@@ -210,11 +210,11 @@
     "samber-do-auditlog": {
       "flake": false,
       "locked": {
-        "lastModified": 1785421702,
-        "narHash": "sha256-1WBkUN2rYous7EkmNP5AN2FgLi7997BeSbV5bLCi1DA=",
+        "lastModified": 1785428078,
+        "narHash": "sha256-GUrt4PbesLzRZnugCPMvxwCpEIlha6zrjmJpl8YWtL0=",
         "owner": "LarsArtmann",
         "repo": "samber-do-auditlog",
-        "rev": "734a89a41059488588acfc296323056054096af8",
+        "rev": "8da648ba3bdd493ad8c1e10578344558a315eff1",
         "type": "github"
       },
       "original": {
