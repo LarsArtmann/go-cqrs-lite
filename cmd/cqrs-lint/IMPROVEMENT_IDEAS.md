@@ -2,7 +2,7 @@
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **105 rules** (C001-C027, A001-A027+A029, B001-B026, D001-D003+D005+D006+D011, E001-E007, S001-S003, P001+P007, V001-V006, T001-T008).
+> The current linter has **113 rules** (C001-C027, A001-A027+A029, B001-B026, D001-D003+D005+D006+D011, E001-E007, S001-S003, P001+P007, V001-V006, T001-T008).
 >
 > **170 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
@@ -235,21 +235,21 @@
 
 > New category — the linter has B015 for test utilities but no testing-specific rules.
 
-74. **T001: No scenario tests for deciders** — Only Standup-Killer, DiscordSync, SwettySwipperWeb, and KeyCountdown use `scenario/v4`. Most projects with deciders have no BDD tests. Detect: `decider.Decider` defined but no `scenario.Given` calls in test files.
+74. ~~**T001: No scenario tests for deciders** — Only Standup-Killer, DiscordSync, SwettySwipperWeb, and KeyCountdown use `scenario/v4`. Most projects with deciders have no BDD tests. Detect: `decider.Decider` defined but no `scenario.Given` calls in test files.~~ done — implemented in `pkg/rules/testrules/t001_t002.go`
 
-75. **T002: No scenario tests for projections** — Only DiscordSync uses `scenario.GivenProjection`. Detect: `projection.Projection` implementations with no `scenario.GivenProjection` in test files.
+75. ~~**T002: No scenario tests for projections** — Only DiscordSync uses `scenario.GivenProjection`. Detect: `projection.Projection` implementations with no `scenario.GivenProjection` in test files.~~ done — implemented in `pkg/rules/testrules/t001_t002.go`
 
-76. **T003: No eventtest imports** — Projects with event stores should use `event/v4/eventtest` for fake stores/buses in tests. Only 9 projects import testutil, 20 import eventtest. Detect: event store usage with no eventtest import.
+76. ~~**T003: No eventtest imports** — Projects with event stores should use `event/v4/eventtest` for fake stores/buses in tests. Only 9 projects import testutil, 20 import eventtest. Detect: event store usage with no eventtest import.~~ done — implemented in `pkg/rules/testrules/t003_t004.go`
 
-77. **T004: No golden/snapshot tests** — Projects with catalog/documentation generation should snapshot-test their output. Detect: `catalog` usage with no `go-snaps` / `snaps` import.
+77. ~~**T004: No golden/snapshot tests** — Projects with catalog/documentation generation should snapshot-test their output. Detect: `catalog` usage with no `go-snaps` / `snaps` import.~~ done — implemented in `pkg/rules/testrules/t003_t004.go`
 
-78. **T005: Projection without error-handling test** — Projections should have tests for malformed payloads and unknown event types. Detect: `projection.Projection` with no test for `ThenError` or error-path assertions.
+78. ~~**T005: Projection without error-handling test** — Projections should have tests for malformed payloads and unknown event types. Detect: `projection.Projection` with no test for `ThenError` or error-path assertions.~~ done — implemented in `pkg/rules/testrules/t005_t006.go`
 
-79. **T006: Decider test without conflict-path test** — Standup-Killer tests both success AND conflict paths (ThenError). Most projects only test happy paths. Detect: `scenario.Given` with `Then` but no `ThenError` for the same decider.
+79. ~~**T006: Decider test without conflict-path test** — Standup-Killer tests both success AND conflict paths (ThenError). Most projects only test happy paths. Detect: `scenario.Given` with `Then` but no `ThenError` for the same decider.~~ done — implemented in `pkg/rules/testrules/t005_t006.go`
 
-80. **T007: No integration test for event round-trip** — Projects with event stores should test save→load→publish round-trips. Detect: event store usage with no test that calls both Save and Load on the same stream.
+80. ~~**T007: No integration test for event round-trip** — Projects with event stores should test save→load→publish round-trips. Detect: event store usage with no test that calls both Save and Load on the same stream.~~ done — implemented in `pkg/rules/testrules/t007_t008.go`
 
-81. **T008: Test files import production event store** — Tests should use `eventtest.FakeStore` or `storage/memory.MemoryStore`, not the production store. Detect: test files importing `storage` or `storage/turso` (production stores) instead of test utilities.
+81. ~~**T008: Test files import production event store** — Tests should use `eventtest.FakeStore` or `storage/memory.MemoryStore`, not the production store. Detect: test files importing `storage` or `storage/turso` (production stores) instead of test utilities.~~ done — implemented in `pkg/rules/testrules/t007_t008.go`
 
 ---
 
@@ -489,11 +489,11 @@
 | Security (S)          | 4 (S001-S003 existing + S004-S007 new)                | 3              |
 | Performance (P)       | 10 (P001-P010)                                        | 2 (P001, P007) |
 | Version/Migration (V) | 6 (V001-V006)                                         | 1 (V001)       |
-| Testing (T)           | 8 (T001-T008)                                         | 0              |
+| Testing (T)           | 8 (T001-T008)                                         | 8              |
 | Feature Adoption (F)  | 17 (F001-F017)                                        | 0              |
 | DX & Infrastructure   | 26                                                    | N/A            |
 | Extended Ideas        | 46 (items 125-170)                                    | N/A            |
-| **Total**             | **170**                                               | **100**        |
+| **Total**             | **170**                                               | **113**        |
 
 ---
 
@@ -521,7 +521,7 @@
 15. ~~**B025 missing state cache** — most projects~~ done
 16. **E010 event capture without validation** — DiscordSync pattern (E008-E015 not yet implemented)
 17. **F003/F004 missing OTel/Prometheus** — most server projects (F-series not yet implemented)
-18. **T001 no scenario tests** — most projects with deciders (T-series not yet implemented)
+18. ~~**T001 no scenario tests** — most projects with deciders~~ done (T001-T008 implemented)
 19. ~~**C021 mutex held during decode** — crush-daily~~ done
 20. ~~**C022 context ignored in handler** — crush-daily~~ done
 
