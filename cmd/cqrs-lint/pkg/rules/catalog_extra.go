@@ -178,6 +178,29 @@ func performanceRules() []RuleInfo {
 			Description: "repo.Load inside SubscribeAll handler — O(N²) replay",
 			AutoFix:     false,
 		},
+		{
+			ID:          "P007",
+			Name:        "manual-retry-bitshift",
+			Category:    "performance",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "Manual retry loop with bitshift backoff — corrupts time.Duration, use retry.Do",
+			AutoFix:     false,
+		},
+	}
+}
+
+func versionRules() []RuleInfo {
+	return []RuleInfo{
+		{
+			ID:          "V001",
+			Name:        "mixed-major-versions",
+			Category:    "version",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "Project mixes v3 and v4 go-cqrs-lite modules — APIs are incompatible",
+			AutoFix:     false,
+		},
 	}
 }
 
@@ -226,6 +249,15 @@ func consistencyRules() []RuleInfo {
 			Severity:    "info",
 			Confidence:  "medium",
 			Description: "errors.New or fmt.Errorf without %w bypasses the 6-family error taxonomy",
+			AutoFix:     false,
+		},
+		{
+			ID:          "D011",
+			Name:        "nil-payload-event",
+			Category:    "consistency",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Event created with nil payload — cannot be decoded, provides no audit trail",
 			AutoFix:     false,
 		},
 	}

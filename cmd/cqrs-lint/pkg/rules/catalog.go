@@ -207,6 +207,15 @@ func correctnessRules() []RuleInfo {
 			Description: "_ = ctx explicitly discards context — breaks cancellation, timeouts, tracing",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C023",
+			Name:        "shutdown-error-ignored",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Stop/Close/Shutdown error ignored — pending events or resources may be lost",
+			AutoFix:     false,
+		},
 	}
 }
 
