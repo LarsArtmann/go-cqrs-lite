@@ -541,6 +541,15 @@ func securityRules() []RuleInfo {
 			AutoFix:     false,
 		},
 		{
+			ID:          "S006",
+			Name:        "financial-data-without-encryption",
+			Category:    "security",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Financial data in structs without encryption module",
+			AutoFix:     false,
+		},
+		{
 			ID:          "S007",
 			Name:        "in-memory-session-store",
 			Category:    "security",

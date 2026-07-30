@@ -251,3 +251,208 @@ func setup() {
 	findings := runDetector(t, security.NewS007Detector(ctx))
 	assertRule(t, findings, "S007", 0)
 }
+
+// --- S006: Financial data without encryption ---
+
+func TestS006_NoCrashOnEmptyInput(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 0)
+}
+
+func TestS006_DetectsStrongFinancialField(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"payment.go": `package main
+
+type PaymentMethod struct {
+	CardNumber string ` + "`json:\"card_number\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 1)
+}
+
+func TestS006_StrongSeverityIsError(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"bank.go": `package main
+
+type BankAccount struct {
+	IBAN string ` + "`json:\"iban\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 1)
+	if findings[0].Severity != finding.SeverityError {
+		t.Fatalf("strong financial indicator should be ERROR, got %s", findings[0].Severity)
+	}
+}
+
+func TestS006_DetectsMediumFinancialField(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"payroll.go": `package main
+
+type EmployeePayroll struct {
+	Salary float64 ` + "`json:\"salary\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 1)
+}
+
+func TestS006_DetectsWeakCompound(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"order.go": `package main
+
+type OrderTotal struct {
+	Amount  float64 ` + "`json:\"amount\"`" + `
+	Balance float64 ` + "`json:\"balance\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 1)
+}
+
+func TestS006_SuppressesSingleWeakField(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"product.go": `package main
+
+type Product struct {
+	Price float64 ` + "`json:\"price\"`" + `
+	Name  string ` + "`json:\"name\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 0)
+}
+
+func TestS006_RequiresSerializationTags(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"calc.go": `package main
+
+type TaxCalculator struct {
+	CardNumber string
+	Amount     float64
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 0)
+}
+
+func TestS006_SuppressedWithEncryptionImport(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"payroll.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/encryption/v4"
+
+type EmployeePayroll struct {
+	Salary float64 ` + "`json:\"salary\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 0)
+}
+
+func TestS006_DowngradedForLocalCLI(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"payroll.go": `package main
+
+type EmployeePayroll struct {
+	Salary float64 ` + "`json:\"salary\"`" + `
+}
+`,
+	})
+
+	ctx.FeatureProfile.HasServer = true
+	serverFindings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, serverFindings, "S006", 1)
+
+	ctx.FeatureProfile.HasServer = false
+	localFindings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, localFindings, "S006", 1)
+	if localFindings[0].Severity != finding.SeverityInfo {
+		t.Errorf("local-only financial data should be downgraded to INFO, got %s",
+			localFindings[0].Severity)
+	}
+}
+
+func TestS006_IgnoresTestFiles(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"payment_test.go": `package main
+
+type PaymentMethod struct {
+	CardNumber string ` + "`json:\"card_number\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 0)
+}
+
+func TestS006_DetectsFinancialTypeName(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"billing.go": `package main
+
+type Invoice struct {
+	ID    string ` + "`json:\"id\"`" + `
+	Title string ` + "`json:\"title\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 1)
+}
+
+func TestS006_IgnoresNonFinancialStruct(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"user.go": `package main
+
+type User struct {
+	Name  string ` + "`json:\"name\"`" + `
+	Email string ` + "`json:\"email\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := runDetector(t, security.NewS006Detector(ctx))
+	assertRule(t, findings, "S006", 0)
+}

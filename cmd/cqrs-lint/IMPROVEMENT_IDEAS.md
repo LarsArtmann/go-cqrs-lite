@@ -258,39 +258,39 @@
 > All 17 F-series rules implemented in `pkg/rules/adoption/`. New "adoption" category.
 > Each rule fires at most once per project at SeverityInfo with actionable suggestions.
 
-82. **F001: No tombstone soft-delete** — Only github-local-sync uses `event.MarkTombstone`. Projects with delete operations should use tombstone metadata for soft-delete. Detect: function/method named `Delete*` in a project with events but no `MarkTombstone` usage.
+82. ~~**F001: No tombstone soft-delete** — Only github-local-sync uses `event.MarkTombstone`. Projects with delete operations should use tombstone metadata for soft-delete. Detect: function/method named `Delete*` in a project with events but no `MarkTombstone` usage.~~ done
 
-83. **F002: No catalog/documentation** — Only DiscordSync, bank-sync, github-local-sync, crush-daily, Kernovia (stub) use catalog. Most projects have no event documentation. Detect: 3+ event types with no `catalog.NewBuilder` usage.
+83. ~~**F002: No catalog/documentation** — Only DiscordSync, bank-sync, github-local-sync, crush-daily, Kernovia (stub) use catalog. Most projects have no event documentation. Detect: 3+ event types with no `catalog.NewBuilder` usage.~~ done
 
-84. **F003: No OTel tracing** — Only 6 projects import `otel/v4`. The rest have zero distributed tracing. Detect: server-mode project (feature profile) with no OTel import.
+84. ~~**F003: No OTel tracing** — Only 6 projects import `otel/v4`. The rest have zero distributed tracing. Detect: server-mode project (feature profile) with no OTel import.~~ done
 
-85. **F004: No Prometheus metrics** — Only DiscordSync, crush-daily, SwettySwipperWeb use Prometheus. Detect: server-mode project with no Prometheus import.
+85. ~~**F004: No Prometheus metrics** — Only DiscordSync, crush-daily, SwettySwipperWeb use Prometheus. Detect: server-mode project with no Prometheus import.~~ done
 
-86. **F005: No schema upcasters** — Only bank-sync, Kernovia, DiscordSync use schema upcasters. Projects with evolving event schemas should plan for upcasting. Detect: event payloads with version >1 but no `schema.NewUpcaster`.
+86. ~~**F005: No schema upcasters** — Only bank-sync, Kernovia, DiscordSync use schema upcasters. Projects with evolving event schemas should plan for upcasting. Detect: event payloads with version >1 but no `schema.NewUpcaster`.~~ done
 
-87. **F006: No encryption for sensitive data** — Only bank-sync and Kernovia (disabled) use encryption. Detect: event payloads with PII field names and no encryption import.
+87. ~~**F006: No encryption for sensitive data** — Only bank-sync and Kernovia (disabled) use encryption. Detect: event payloads with PII field names and no encryption import.~~ done
 
-88. **F007: No idempotency middleware** — Many projects with command dispatchers don't use idempotency. Detect: `command.Dispatcher` with no idempotency middleware in server/async mode.
+88. ~~**F007: No idempotency middleware** — Many projects with command dispatchers don't use idempotency. Detect: `command.Dispatcher` with no idempotency middleware in server/async mode.~~ done
 
-89. **F008: No CBOR codec** — Most projects default to JSON. For event-heavy systems, CBOR is ~35% smaller. Detect: high event volume (many event types) with JSON codec default.
+89. ~~**F008: No CBOR codec** — Most projects default to JSON. For event-heavy systems, CBOR is ~35% smaller. Detect: high event volume (many event types) with JSON codec default.~~ done
 
-90. **F009: No scheduling module** — No project uses `scheduling/v4` despite it being available for deadline timers ("cancel order after 30 min"). Detect: domain with time-based business rules (deadlines, expirations, timeouts) with no scheduling import.
+90. ~~**F009: No scheduling module** — No project uses `scheduling/v4` despite it being available for deadline timers ("cancel order after 30 min"). Detect: domain with time-based business rules (deadlines, expirations, timeouts) with no scheduling import.~~ done
 
-91. **F010: No graph projections** — Only Kernovia and Standup-Killer import `graph/v4`. Projects with relationship-heavy domains (social networks, org charts) could benefit. Detect: domain with recursive traversal queries and no graph import.
+91. ~~**F010: No graph projections** — Only Kernovia and Standup-Killer import `graph/v4`. Projects with relationship-heavy domains (social networks, org charts) could benefit. Detect: domain with recursive traversal queries and no graph import.~~ done
 
-92. **F011: No relational projections** — Only DiscordSync and github-local-sync use relational projections. Projects with multi-table writes per event should use `storage.RelationalProjection`. Detect: multiple SQL INSERT/UPDATE statements in a single projection handler.
+92. ~~**F011: No relational projections** — Only DiscordSync and github-local-sync use relational projections. Projects with multi-table writes per event should use `storage.RelationalProjection`. Detect: multiple SQL INSERT/UPDATE statements in a single projection handler.~~ done
 
-93. **F012: No deriver module** — No project uses `deriver/v4`. Projects that derive commands from events (saga-like patterns) should use it. Detect: bus.SubscribeAll handler that dispatches commands based on events.
+93. ~~**F012: No deriver module** — No project uses `deriver/v4`. Projects that derive commands from events (saga-like patterns) should use it. Detect: bus.SubscribeAll handler that dispatches commands based on events.~~ done
 
-94. **F013: No transport/http or transport/grpc** — Most projects don't use the transport modules. Projects that need remote dispatch should use them instead of hand-rolled HTTP/gRPC handlers. Detect: manual HTTP handler for command/query dispatch.
+94. ~~**F013: No transport/http or transport/grpc** — Most projects don't use the transport modules. Projects that need remote dispatch should use them instead of hand-rolled HTTP/gRPC handlers. Detect: manual HTTP handler for command/query dispatch.~~ done
 
-95. **F014: No kv.Cache** — Projects using `kv.TypedStore` without `kv.Cache` miss the caching layer. Detect: `kv.NewTypedStore` without `kv.NewCache`.
+95. ~~**F014: No kv.Cache** — Projects using `kv.TypedStore` without `kv.Cache` miss the caching layer. Detect: `kv.NewTypedStore` without `kv.NewCache`.~~ done
 
-96. **F015: No metaengine** — Only Kernovia uses metaengine. Projects with complex query patterns could benefit from the cost-based planner. (Low priority — metaengine is early stage.)
+96. ~~**F015: No metaengine** — Only Kernovia uses metaengine. Projects with complex query patterns could benefit from the cost-based planner. (Low priority — metaengine is early stage.)~~ done
 
-97. **F016: No listing module for stream management** — Projects with many event streams should use `listing.StreamListing` for stream status tracking. Detect: >5 aggregate types with no listing import.
+97. ~~**F016: No listing module for stream management** — Projects with many event streams should use `listing.StreamListing` for stream status tracking. Detect: >5 aggregate types with no listing import.~~ done
 
-98. **F017: No dedup module** — The `dedup` ring buffer is imported by many projects indirectly but rarely used directly. Projects with at-least-once delivery should use it explicitly. Detect: bus subscription without dedup module.
+98. ~~**F017: No dedup module** — The `dedup` ring buffer is imported by many projects indirectly but rarely used directly. Projects with at-least-once delivery should use it explicitly. Detect: bus subscription without dedup module.~~ done
 
 ---
 
