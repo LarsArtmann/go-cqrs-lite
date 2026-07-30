@@ -53,3 +53,26 @@ var (
 func unsupportedEngine(base error, engineName string) error {
 	return fmt.Errorf("%w: engine %s", base, engineName)
 }
+
+// --- Exported sentinel errors for consumers ---
+//
+// These allow consumers to use errors.Is for type-safe error matching instead
+// of string matching. Each maps to an internal sentinel already in use.
+
+var (
+	// ErrNotFound is returned when a point lookup finds no value for the key.
+	// Returned by TypedReader.Get and ExecuteTyped for missing keys.
+	ErrNotFound = errors.New("metaengine: key not found")
+
+	// ErrAmbiguousKey is returned at Plan time when multiple fields of a struct
+	// match the declared key type, making key extraction ambiguous.
+	ErrAmbiguousKey = errAmbiguousKey
+
+	// ErrUnsupportedADT is returned when no registered engine supports the
+	// declared ADT for a query.
+	ErrUnsupportedADT = errADTNotSupported
+
+	// ErrLayoutConflict is returned when ApplyLayout or Plan detects a
+	// conflicting table layout for the same collection.
+	ErrLayoutConflict = errors.New("metaengine: conflicting layout plan")
+)

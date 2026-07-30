@@ -3,6 +3,7 @@ package architecture
 import (
 	"context"
 	"go/ast"
+	"go/token"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -25,6 +26,7 @@ func NewE017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			hasSignalNotify := false
 			hasGracefulShutdown := false
+			var triggerPos token.Position
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -40,6 +42,9 @@ func NewE017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					callStr := analyzer.ExprString(call.Fun)
 
 					if strings.Contains(callStr, "signal.Notify") {
+						if !hasSignalNotify {
+							triggerPos = ctx.Fset.Position(call.Pos())
+						}
 						hasSignalNotify = true
 					}
 
@@ -54,18 +59,17 @@ func NewE017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			if hasSignalNotify && !hasGracefulShutdown {
-				pos := finding.Pos("project", 1, 1)
-
 				f, err := finding.NewBuilder(
 					"E017", toolName,
 					"signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM",
 					finding.SeverityWarning,
-					pos,
+					finding.Pos(finding.FilePath(triggerPos.Filename), triggerPos.Line, triggerPos.Column),
 				).
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion("Call bundle.GracefulClose(ctx) or projectionhost.Stop() on signal receipt").
+					WithSnippet(ctx.SourceLine(triggerPos.Filename, triggerPos.Line)).
 					Build()
 				lintutil.AppendBuild(&findings, f, err)
 			}

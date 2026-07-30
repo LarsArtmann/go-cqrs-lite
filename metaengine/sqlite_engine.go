@@ -18,6 +18,7 @@ import (
 type sqliteEngine struct {
 	db      *sql.DB
 	queries sqliteQuerySet
+	cache   *stmtCache
 	// seq counters for multimap and log (SQLite AUTOINCREMENT handles log).
 	// Lazily seeded from MAX(seq) on first use — see multiSeqCounter.
 	multiSeq sync.Map // collection→*multiSeqCounter
@@ -100,6 +101,7 @@ func NewSQLiteEngine(database *sql.DB) (Engine, error) {
 	eng := &sqliteEngine{
 		db:      database,
 		queries: defaultSQLiteQueries(),
+		cache:   newStmtCache(database),
 	}
 
 	if _, err := database.ExecContext(context.Background(), eng.queries.ddl); err != nil {
@@ -113,7 +115,13 @@ func (e *sqliteEngine) Profile() EngineProfile {
 	return SQLiteEngineProfile()
 }
 
-func (e *sqliteEngine) Close() error { return nil }
+func (e *sqliteEngine) Close() error {
+	if e.cache != nil {
+		e.cache.close()
+	}
+
+	return nil
+}
 
 func encodeKey(key any) string {
 	return encodeJSON(key)
@@ -142,7 +150,7 @@ func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value an
 		return e.mapSetPlanned(ctx, plan, key, value)
 	}
 
-	_, err := e.db.ExecContext(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(value))
+	_, err := e.cache.exec(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(value))
 
 	return err //nolint:wrapcheck // passthrough
 }
@@ -154,7 +162,7 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 
 	var valStr string
 
-	err := e.db.QueryRowContext(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
+	err := e.cache.queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil
@@ -174,7 +182,7 @@ func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error
 		return err //nolint:wrapcheck // passthrough
 	}
 
-	_, err := e.db.ExecContext(ctx, e.queries.mapDelete, col, encodeKey(key))
+	_, err := e.cache.exec(ctx, e.queries.mapDelete, col, encodeKey(key))
 
 	return err //nolint:wrapcheck // passthrough
 }

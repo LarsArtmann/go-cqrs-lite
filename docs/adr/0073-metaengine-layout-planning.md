@@ -44,14 +44,21 @@ ordered limited pages, and graceful degradation for unplanned collections.
 
 ## Consequences
 
-- The planned engine is opt-in (constructed explicitly via
-  `NewPlannedSQLiteEngine`). Auto-wiring it into `Plan()` is future work — it
-  requires either the result-type sample (for reflection inference) or accepting
-  TEXT-everything, plus lifecycle care around a shared `*sql.DB`.
+- Auto-layout is wired into `Plan()`: when the assigned engine implements
+  `LayoutPlanner` and the query declares filter/sort fields via
+  `FilterOnField`/`SortOnField`, the plan is generated and applied automatically.
+  Manual `NewPlannedSQLiteEngine` is still available for explicit control over
+  column types (e.g., `BuildLayoutPlanFromType[R]`).
+- The `LayoutPlanner` interface is an optional capability — engines that cannot
+  create optimized layouts (memory, Pebble today) simply don't implement it,
+  and `Plan()` silently skips the auto-layout step.
+- Raw value readers (`RawValueReader`, `RawScanReader`) and `TypedReader[V]`
+  shipped alongside auto-layout as the Level-2.5 optimization: single-pass JSON
+  decode (1 op instead of 3) for both point lookups and filtered scans.
 - Planned and unplanned collections coexist on one engine.
 - This is the Level-2 optimization: within-engine layout. Level-1 (ADR-0072) was
   within-engine pushdown. A future Level-3 (generated typed read API) would make
-  reads fully typed without `ExecuteTyped`.
+  reads fully typed without `ExecuteTyped` or `TypedReader`.
 
 ## Alternatives considered
 

@@ -14,7 +14,7 @@ import (
 // --- SetBackend ---
 
 func (e *sqliteEngine) SetAdd(ctx context.Context, col string, key any) error {
-	_, err := e.db.ExecContext(ctx, e.queries.setAdd, col, encodeKey(key))
+	_, err := e.cache.exec(ctx, e.queries.setAdd, col, encodeKey(key))
 
 	return err //nolint:wrapcheck // passthrough
 }
@@ -22,7 +22,7 @@ func (e *sqliteEngine) SetAdd(ctx context.Context, col string, key any) error {
 func (e *sqliteEngine) SetContains(ctx context.Context, col string, key any) (bool, error) {
 	var one int
 
-	err := e.db.QueryRowContext(ctx, e.queries.setContains, col, encodeKey(key)).Scan(&one)
+	err := e.cache.queryRow(ctx, e.queries.setContains, col, encodeKey(key)).Scan(&one)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
@@ -126,8 +126,7 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 		return err
 	}
 
-	_, err = e.db.ExecContext(
-		ctx,
+	_, err = e.cache.exec(ctx,
 		e.queries.multiAdd,
 		col,
 		encodeKey(key),
@@ -183,7 +182,7 @@ func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, err
 // --- LogBackend ---
 
 func (e *sqliteEngine) LogAppend(ctx context.Context, col string, value any) error {
-	_, err := e.db.ExecContext(ctx, e.queries.logAppend, col, encodeValue(value))
+	_, err := e.cache.exec(ctx, e.queries.logAppend, col, encodeValue(value))
 
 	return err //nolint:wrapcheck // passthrough
 }

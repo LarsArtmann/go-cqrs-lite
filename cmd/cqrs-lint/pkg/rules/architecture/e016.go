@@ -3,6 +3,7 @@ package architecture
 import (
 	"context"
 	"go/ast"
+	"go/token"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -25,6 +26,7 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			hasBundle := false
 			hasServer := false
 			hasHealthCheck := false
+			var triggerPos token.Position
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -45,11 +47,17 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					callStr := analyzer.ExprString(call.Fun)
 
 					if strings.Contains(callStr, "Bundle") || strings.Contains(callStr, "stack.New") {
+						if !hasBundle && !hasServer {
+							triggerPos = ctx.Fset.Position(call.Pos())
+						}
 						hasBundle = true
 					}
 
 					if sel.Sel.Name == "ListenAndServe" || sel.Sel.Name == "ListenAndServeTLS" ||
 						strings.Contains(callStr, "http.Server") {
+						if !hasBundle && !hasServer {
+							triggerPos = ctx.Fset.Position(call.Pos())
+						}
 						hasServer = true
 					}
 
@@ -62,18 +70,17 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			if (hasBundle || hasServer) && !hasHealthCheck {
-				pos := finding.Pos("project", 1, 1)
-
 				f, err := finding.NewBuilder(
 					"E016", toolName,
 					"Server-mode project without HealthCheck — Kubernetes probes need stack.Bundle.HealthCheck()",
 					finding.SeverityWarning,
-					pos,
+					finding.Pos(finding.FilePath(triggerPos.Filename), triggerPos.Line, triggerPos.Column),
 				).
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion("Add bundle.HealthCheck(ctx) to your /healthz or /readyz endpoint").
+					WithSnippet(ctx.SourceLine(triggerPos.Filename, triggerPos.Line)).
 					Build()
 				lintutil.AppendBuild(&findings, f, err)
 			}

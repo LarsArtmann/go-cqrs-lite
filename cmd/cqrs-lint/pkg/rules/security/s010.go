@@ -3,6 +3,7 @@ package security
 import (
 	"context"
 	"go/ast"
+	"go/token"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -26,6 +27,7 @@ func NewS010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			busEncrypted := false
 			busSigned := false
 			storeWrapped := false
+			var triggerPos token.Position
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -41,10 +43,16 @@ func NewS010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					callStr := analyzer.ExprString(call.Fun)
 
 					if strings.Contains(callStr, "EncryptMiddleware") || strings.Contains(callStr, "encryption.New") {
+						if !busEncrypted && !busSigned {
+							triggerPos = ctx.Fset.Position(call.Pos())
+						}
 						busEncrypted = true
 					}
 
 					if strings.Contains(callStr, "SignMiddleware") || strings.Contains(callStr, "signing.New") {
+						if !busEncrypted && !busSigned {
+							triggerPos = ctx.Fset.Position(call.Pos())
+						}
 						busSigned = true
 					}
 
@@ -57,18 +65,17 @@ func NewS010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			if (busEncrypted || busSigned) && !storeWrapped {
-				pos := finding.Pos("project", 1, 1)
-
 				f, err := finding.NewBuilder(
 					"S010", toolName,
 					"Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext",
 					finding.SeverityError,
-					pos,
+					finding.Pos(finding.FilePath(triggerPos.Filename), triggerPos.Line, triggerPos.Column),
 				).
 					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion("Wrap the store with signing.NewSignedStore or encryption.NewEncryptedStore to match bus protection").
+					WithSnippet(ctx.SourceLine(triggerPos.Filename, triggerPos.Line)).
 					Build()
 				lintutil.AppendBuild(&findings, f, err)
 			}
