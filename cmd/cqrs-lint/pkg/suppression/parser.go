@@ -159,6 +159,8 @@ func ParseSuppressions(commentText string) map[string]string {
 	lines := strings.SplitSeq(commentText, "\n")
 	for line := range lines {
 		line = strings.TrimSpace(line)
+		// Accept both "//cqrs-lint:ignore" and "// cqrs-lint:ignore".
+		line = strings.TrimPrefix(line, "// ")
 		if !strings.HasPrefix(line, commentPrefix) {
 			continue
 		}
@@ -180,6 +182,9 @@ func ParseSuppressions(commentText string) map[string]string {
 }
 
 func extractRuleID(snippet string) string {
+	// Accept both "//cqrs-lint:ignore" and "// cqrs-lint:ignore".
+	snippet = strings.ReplaceAll(snippet, "// cqrs-lint:ignore", commentPrefix)
+
 	_, after, ok := strings.Cut(snippet, commentPrefix)
 	if !ok {
 		return ""
