@@ -8,9 +8,10 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
-const toolName finding.ToolName = "cqrs-lint"
+const toolName = lintutil.ToolName
 
 // E004: Event not in catalog.
 // Detects event types emitted via event.New/NewEvent that are not registered in the catalog.

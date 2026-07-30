@@ -11,9 +11,10 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
-const toolName finding.ToolName = "cqrs-lint"
+const toolName = lintutil.ToolName
 
 // S001: Hardcoded secrets.
 // Detects fields with secret-like names assigned string literals.

@@ -10,9 +10,10 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
-const toolName finding.ToolName = "cqrs-lint"
+const toolName = lintutil.ToolName
 
 // B001: Single-event helper pattern.
 // Detects helper functions that wrap event.New/NewEvent to create a single event slice.

@@ -11,9 +11,10 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
-const toolName finding.ToolName = "cqrs-lint"
+const toolName = lintutil.ToolName
 
 // D001: Inconsistent event naming.
 // Detects events with inconsistent naming conventions (mix of PascalCase, snake_case, camelCase).
