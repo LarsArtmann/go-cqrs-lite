@@ -2,7 +2,7 @@
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **65 rules** (C001-C016, A001-A019, B001-B015, D001-D006, E001-E007, S001-S003).
+> The current linter has **84 rules** (C001-C027, A001-A019+A027, B001-B015+B021+B023+B024, D001-D006+D011, E001-E007, S001-S003, P001+P007, V001).
 >
 > **170 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
@@ -43,25 +43,25 @@
 
 2. ~**C017: In-memory snapshot store with persistent event store** — Kernovia pairs a SQLite event store with `memory.NewMemorySnapshotStore()` — snapshots are lost on restart, making the snapshot optimization useless and potentially causing consistency issues on recovery. Detect: snapshot store type is memory when event store is persistent (SQLite/Postgres/Pebble).~ done at `b31eb572`
 
-3. ~**C018: Silent journal fallback to empty store** — cqrs-htmx's `journalFromStore` falls back to `memory.NewMemoryStore()` when the store doesn't implement `event.Journal`, meaning projections replay from an empty journal with NO error or warning. Detect: `memory.NewMemoryStore()` used as a journal fallback in a type switch / type assertion chain.~ done at `pending`
+3. ~**C018: Silent journal fallback to empty store** — cqrs-htmx's `journalFromStore` falls back to `memory.NewMemoryStore()` when the store doesn't implement `event.Journal`, meaning projections replay from an empty journal with NO error or warning. Detect: `memory.NewMemoryStore()` used as a journal fallback in a type switch / type assertion chain.~ done at `c165b2e8`
 
 4. ~**C019: Multiple Repository instances for the same aggregate** — browser-history creates 3 separate `decider.NewRepository` instances for the same aggregate state type (handlers.go:87,143,189). This defeats load coalescing (singleflight) and wastes memory. Detect: >1 `NewRepository` call with the same state type parameter.~ done at `b31eb572`
 
 5. ~**C020: Panic in read model / projection handler** — Standup-Killer's `readmodel.go:184` calls `panic` on ID parse failure inside a SubscribeAll handler. A panic in a projection handler can crash the entire projection host or bus. Detect: `panic()` call inside a function that implements `projection.Projection.Handle` or is used as a bus subscriber.~ done at `b31eb572`
 
-6. ~**C021: Mutex held during payload decode** — crush-daily's ReadModelStore holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). This serializes all event processing unnecessarily. Detect: `Lock()`/`RLock()` call followed by `DecodePayloadAuto` or `json.Unmarshal` before `Unlock()`.~ done at `pending`
+6. ~**C021: Mutex held during payload decode** — crush-daily's ReadModelStore holds `sync.Mutex` during `DecodePayloadAuto` (setup.go:135-188). This serializes all event processing unnecessarily. Detect: `Lock()`/`RLock()` call followed by `DecodePayloadAuto` or `json.Unmarshal` before `Unlock()`.~ done at `c165b2e8`
 
 7. ~**C022: Context ignored in handler (`_ = ctx`)** — crush-daily's Handle method ignores the context (setup.go:185). C016 exists for `context.Background()` but not for `_ = ctx` — the context is explicitly discarded. Detect: `_ = ctx` or `ctx` assigned to `_` inside a function with a `context.Context` parameter.~ done at `1422f8e2`
 
 8. ~**C023: Shutdown error ignored** — go-appkit's `Shutdown` ignores `host.Stop()` error (`eventservice.go:117`: `_ = es.host.Stop()`). The projection host may have pending events that are lost. Detect: `_ = ` assignment on `.Close()`, `.Stop()`, `.Shutdown()` return values. Extends C015 (unchecked Close) to lifecycle methods.~ done at `3285a3e7`
 
-9. ~**C024: Dual-write read model without rollback** — cqrs-htmx's SQL read model mutates in-memory state before `syncToSQL` (sql_readmodel.go:98-103). If SQL write fails, in-memory and SQL diverge with no rollback. Detect: in-memory mutation followed by `syncToSQL`/`WriteToSQL`/DB write in same handler without transaction/rollback.~ done at `pending`
+9. ~**C024: Dual-write read model without rollback** — cqrs-htmx's SQL read model mutates in-memory state before `syncToSQL` (sql_readmodel.go:98-103). If SQL write fails, in-memory and SQL diverge with no rollback. Detect: in-memory mutation followed by `syncToSQL`/`WriteToSQL`/DB write in same handler without transaction/rollback.~ done at `c165b2e8`
 
-10. ~**C025: `fmt.Errorf` without `%w` in CQRS error paths** — D006 catches this in general, but several projects (browser-history otel.go:50,58) use bare `fmt.Errorf` in CQRS-adjacent code. Tighten D006 to flag `fmt.Errorf` without `%w` in files that import go-cqrs-lite modules.~ done at `pending`
+10. ~**C025: `fmt.Errorf` without `%w` in CQRS error paths** — D006 catches this in general, but several projects (browser-history otel.go:50,58) use bare `fmt.Errorf` in CQRS-adjacent code. Tighten D006 to flag `fmt.Errorf` without `%w` in files that import go-cqrs-lite modules.~ done at `d84eb572`
 
-11. ~**C026: Idempotency TTL mismatch** — bank-sync defines `idempotencyTTL = 5 * time.Minute` (infrastructure.go:38) but passes `24*time.Hour` to the middleware (infrastructure.go:270) — the constant is dead/misleading code. Detect: named TTL constant that differs from the value actually passed to `idempotency.NewMemoryStore` or `middleware.CommandIdempotency`.~ done at `pending`
+11. ~**C026: Idempotency TTL mismatch** — bank-sync defines `idempotencyTTL = 5 * time.Minute` (infrastructure.go:38) but passes `24*time.Hour` to the middleware (infrastructure.go:270) — the constant is dead/misleading code. Detect: named TTL constant that differs from the value actually passed to `idempotency.NewMemoryStore` or `middleware.CommandIdempotency`.~ done at `d84eb572`
 
-12. ~**C027: Bus subscription started alongside projectionhost** — InboxClean starts a projection host AND has separate bus subscriptions active. If both subscribe to the same events, duplicate processing occurs. Detect: both `projectionhost.New`/`host.Start` and `bus.Subscribe`/`bus.SubscribeAll` for overlapping event types in the same codebase.~ done at `pending`
+12. ~**C027: Bus subscription started alongside projectionhost** — InboxClean starts a projection host AND has separate bus subscriptions active. If both subscribe to the same events, duplicate processing occurs. Detect: both `projectionhost.New`/`host.Start` and `bus.Subscribe`/`bus.SubscribeAll` for overlapping event types in the same codebase.~ done at `d84eb572`
 
 ---
 
@@ -481,18 +481,18 @@
 
 | Category              | Ideas                                   | Existing rules in category |
 | --------------------- | --------------------------------------- | -------------------------- |
-| Correctness (C)       | 27 (C001-C016 existing + C017-C027 new) | 16                         |
-| API Misuse (A)        | 31 (A001-A019 existing + A020-A031 new) | 19                         |
-| Boilerplate (B)       | 26 (B001-B015 existing + B016-B026 new) | 15                         |
+| Correctness (C)       | 27 (C001-C016 existing + C017-C027 new) | 27                         |
+| API Misuse (A)        | 31 (A001-A019 existing + A020-A031 new) | 20                         |
+| Boilerplate (B)       | 26 (B001-B015 existing + B016-B026 new) | 18                         |
 | Architecture (E)      | 15 (E001-E007 existing + E008-E015 new) | 7                          |
-| Consistency (D)       | 12 (D001-D006 existing + D007-D012 new) | 5                          |
+| Consistency (D)       | 12 (D001-D006 existing + D007-D012 new) | 6                          |
 | Security (S)          | 7 (S001-S003 existing + S004-S007 new)  | 3                          |
-| Performance (P)       | 13 (new category)                       | 0                          |
-| Version/Migration (V) | 6 (new category)                        | 0                          |
+| Performance (P)       | 13 (new category)                       | 2                          |
+| Version/Migration (V) | 6 (new category)                        | 1                          |
 | Testing (T)           | 8 (new category)                        | 0                          |
 | Feature Adoption (F)  | 17 (new category)                       | 0                          |
 | DX & Infrastructure   | 24                                      | N/A                        |
-| **Total**             | **170**                                 | **65 existing**            |
+| **Total**             | **170**                                 | **84 existing**            |
 
 ---
 
