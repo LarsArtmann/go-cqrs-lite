@@ -513,6 +513,24 @@ func securityRules() []RuleInfo {
 			Description: "In-memory session/token store loses state on restart",
 			AutoFix:     false,
 		},
+		{
+			ID:          "S008",
+			Name:        "asymmetric-signing",
+			Category:    "security",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "SignMiddleware without VerifyMiddleware (or vice versa) — signing is decorative",
+			AutoFix:     false,
+		},
+		{
+			ID:          "S009",
+			Name:        "asymmetric-encryption",
+			Category:    "security",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "EncryptMiddleware without DecryptMiddleware (or vice versa) — encrypted events break consumers",
+			AutoFix:     false,
+		},
 	}
 }
 

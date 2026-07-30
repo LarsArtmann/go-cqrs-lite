@@ -2,13 +2,11 @@ package security
 
 import (
 	"context"
-	"fmt"
 	"go/ast"
 
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // S008: Asymmetric event signing setup.
@@ -28,6 +26,7 @@ func NewS008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var signPos ast.Node
 
 			hasVerify := false
+			var verifyPos ast.Node
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -51,6 +50,7 @@ func NewS008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						signPos = call
 					case "VerifyMiddleware", "RequireSignatureMiddleware":
 						hasVerify = true
+						verifyPos = call
 					}
 
 					return true
@@ -59,60 +59,41 @@ func NewS008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			if hasSign && !hasVerify {
 				pos := ctx.Fset.Position(signPos.Pos())
-				lintutil.AppendBuild(&findings, finding.NewBuilder(
+				f, err := finding.NewBuilder(
 					"S008", toolName,
-					"SignMiddleware configured but no VerifyMiddleware/RequireSignatureMiddleware on consume side — signed events are never verified",
+					"SignMiddleware configured but no VerifyMiddleware/RequireSignatureMiddleware "+
+						"on consume side — signed events are never verified",
 					finding.SeverityError,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
 					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
-					WithSuggestion("Add signing.VerifyMiddleware(verifier) to bus.Use() so consumers verify signatures on every event").
+					WithSuggestion("Add signing.VerifyMiddleware(verifier) to bus.Use() "+
+						"so consumers verify signatures on every event").
 					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
-					Build())
+					Build()
+				if err == nil {
+					findings = append(findings, f)
+				}
 			}
 
-			if !hasSign && hasVerify {
-				var verifyPos ast.Node
-				for _, gf := range ctx.GoFiles {
-					if gf.IsTest {
-						continue
-					}
-					ast.Inspect(gf.AST, func(n ast.Node) bool {
-						call, ok := n.(*ast.CallExpr)
-						if !ok {
-							return true
-						}
-						sel, ok := analyzer.SelectorFromExpr(call.Fun)
-						if !ok {
-							return true
-						}
-						if sel.Sel.Name == "VerifyMiddleware" || sel.Sel.Name == "RequireSignatureMiddleware" {
-							verifyPos = call
-							return false
-						}
-						return true
-					})
-					if verifyPos != nil {
-						break
-					}
-				}
-				if verifyPos != nil {
-					pos := ctx.Fset.Position(verifyPos.Pos())
-					f, err := finding.NewBuilder(
-						"S008", toolName,
-						"VerifyMiddleware configured but events are never signed — verification is a no-op on unsigned events",
-						finding.SeverityWarning,
-						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
-					).
-						WithCategory(finding.CategorySecurity).
-						WithConfidence(finding.ConfidenceHigh).
-						WithSuggestion("Add signing.SignMiddleware(signer) to bus.UsePublish() so events carry signatures").
-						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
-						Build()
-					if err == nil {
-						findings = append(findings, f)
-					}
+			if !hasSign && hasVerify && verifyPos != nil {
+				pos := ctx.Fset.Position(verifyPos.Pos())
+				f, err := finding.NewBuilder(
+					"S008", toolName,
+					"VerifyMiddleware configured but events are never signed — "+
+						"verification is a no-op on unsigned events",
+					finding.SeverityWarning,
+					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+				).
+					WithCategory(finding.CategorySecurity).
+					WithConfidence(finding.ConfidenceHigh).
+					WithSuggestion("Add signing.SignMiddleware(signer) to bus.UsePublish() "+
+						"so events carry signatures").
+					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+					Build()
+				if err == nil {
+					findings = append(findings, f)
 				}
 			}
 
@@ -137,6 +118,7 @@ func NewS009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var encryptPos ast.Node
 
 			hasDecrypt := false
+			var decryptPos ast.Node
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -160,6 +142,7 @@ func NewS009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						encryptPos = call
 					case "DecryptMiddleware":
 						hasDecrypt = true
+						decryptPos = call
 					}
 
 					return true
@@ -170,13 +153,15 @@ func NewS009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				pos := ctx.Fset.Position(encryptPos.Pos())
 				f, err := finding.NewBuilder(
 					"S009", toolName,
-					"EncryptMiddleware configured but no DecryptMiddleware on consume side — encrypted events cannot be read by consumers",
+					"EncryptMiddleware configured but no DecryptMiddleware on consume side — "+
+						"encrypted events cannot be read by consumers",
 					finding.SeverityError,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
 					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
-					WithSuggestion("Add encryption.DecryptMiddleware(decrypter) to bus.Use() so consumers can decrypt payloads").
+					WithSuggestion("Add encryption.DecryptMiddleware(decrypter) to bus.Use() "+
+						"so consumers can decrypt payloads").
 					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 					Build()
 				if err == nil {
@@ -184,47 +169,23 @@ func NewS009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 			}
 
-			if !hasEncrypt && hasDecrypt {
-				var decryptPos ast.Node
-				for _, gf := range ctx.GoFiles {
-					if gf.IsTest {
-						continue
-					}
-					ast.Inspect(gf.AST, func(n ast.Node) bool {
-						call, ok := n.(*ast.CallExpr)
-						if !ok {
-							return true
-						}
-						sel, ok := analyzer.SelectorFromExpr(call.Fun)
-						if !ok {
-							return true
-						}
-						if sel.Sel.Name == "DecryptMiddleware" {
-							decryptPos = call
-							return false
-						}
-						return true
-					})
-					if decryptPos != nil {
-						break
-					}
-				}
-				if decryptPos != nil {
-					pos := ctx.Fset.Position(decryptPos.Pos())
-					f, err := finding.NewBuilder(
-						"S009", toolName,
-						"DecryptMiddleware configured but events are never encrypted — decryption will fail on every event",
-						finding.SeverityWarning,
-						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
-					).
-						WithCategory(finding.CategorySecurity).
-						WithConfidence(finding.ConfidenceHigh).
-						WithSuggestion("Add encryption.EncryptMiddleware(encrypter) to bus.UsePublish() so payloads are encrypted before storage").
-						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
-						Build()
-					if err == nil {
-						findings = append(findings, f)
-					}
+			if !hasEncrypt && hasDecrypt && decryptPos != nil {
+				pos := ctx.Fset.Position(decryptPos.Pos())
+				f, err := finding.NewBuilder(
+					"S009", toolName,
+					"DecryptMiddleware configured but events are never encrypted — "+
+						"decryption will fail on every event",
+					finding.SeverityWarning,
+					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+				).
+					WithCategory(finding.CategorySecurity).
+					WithConfidence(finding.ConfidenceHigh).
+					WithSuggestion("Add encryption.EncryptMiddleware(encrypter) to bus.UsePublish() "+
+						"so payloads are encrypted before storage").
+					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+					Build()
+				if err == nil {
+					findings = append(findings, f)
 				}
 			}
 

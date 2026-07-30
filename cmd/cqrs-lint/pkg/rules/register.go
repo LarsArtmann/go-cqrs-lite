@@ -138,6 +138,8 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		security.NewS002Detector(ctx),
 		security.NewS003Detector(ctx),
 		security.NewS007Detector(ctx),
+		security.NewS008Detector(ctx),
+		security.NewS009Detector(ctx),
 		// Testing
 		testrules.NewT001Detector(ctx),
 		testrules.NewT002Detector(ctx),
