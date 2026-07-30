@@ -125,61 +125,61 @@ See Level 1 and Level 2 tables below.
 
 ### Phase 4: Infrastructure & DX
 
-| #     | Task                                                                            | Items | Pareto    | Impact                          | Effort | Dependencies |
-| ----- | ------------------------------------------------------------------------------- | ----- | --------- | ------------------------------- | ------ | ------------ |
-| L1.14 | Implement `--self-lint` flag (auto-exclude library module paths)                | 131   | **[P20]** | High (reduces 181 suppressions) | 90 min | None         |
-| L1.15 | Add CI step: `cqrs-lint` self-lint must pass on own repo                        | 132   | **[P20]** | High (regression gate)          | 60 min | L1.14        |
-| L1.16 | Implement migration paths in findings (add `Suggestion` / `FixHint` to Finding) | 103   | **[P80]** | Medium (DX quality)             | 90 min | None         |
-| L1.17 | Implement doc links in findings (add `DocURL` to Finding + catalog entries)     | 104   | **[P80]** | Medium (DX quality)             | 60 min | L1.16        |
-| L1.18 | Implement config inheritance (parent `.cqrs-lint.json` with local overrides)    | 121   | **[P80]** | Medium (monorepo support)       | 60 min | None         |
-| L1.19 | Implement feature adoption scorecard (beyond health score)                      | 113   | **[P80]** | Medium (DX quality)             | 90 min | None         |
-| L1.20 | Implement grouped output by aggregate/domain                                    | 112   | **[P80]** | Medium (DX quality)             | 90 min | None         |
-| L1.21 | Add SARIF rule metadata (doc URL, severity, remediation in SARIF output)        | 117   | **[P80]** | Medium (GitHub Code Scanning)   | 60 min | L1.17        |
-| L1.22 | Implement block-level suppression (`//cqrs-lint:ignore-start` / `ignore-end`)   | 133   | **[P80]** | Medium (DX quality)             | 90 min | L1.1         |
-| L1.23 | Verify parallel rule safety + add linter benchmark suite                        | 123   | **[P80]** | Low (premature but cheap)       | 60 min | None         |
+| #     | Task                                                                            | Items | Pareto    | Impact                          | Effort | Dependencies | Status |
+| ----- | ------------------------------------------------------------------------------- | ----- | --------- | ------------------------------- | ------ | ------------ | ------ |
+| L1.14 | Implement `--self-lint` flag (auto-exclude library module paths)                | 131   | **[P20]** | High (reduces 181 suppressions) | 90 min | None         | Open   |
+| L1.15 | Add CI step: `cqrs-lint` self-lint must pass on own repo                        | 132   | **[P20]** | High (regression gate)          | 60 min | L1.14        | Open   |
+| L1.16 | Implement migration paths in findings (add `Suggestion` / `FixHint` to Finding) | 103   | **[P80]** | Medium (DX quality)             | 90 min | None         | Open   |
+| L1.17 | Implement doc links in findings (add `DocURL` to Finding + catalog entries)     | 104   | **[P80]** | Medium (DX quality)             | 60 min | L1.16        | Open   |
+| L1.18 | Implement config inheritance (parent `.cqrs-lint.json` with local overrides)    | 121   | **[P80]** | Medium (monorepo support)       | 60 min | None         | Open   |
+| L1.19 | Implement feature adoption scorecard (beyond health score)                      | 113   | **[P80]** | Medium (DX quality)             | 90 min | None         | Open   |
+| L1.20 | Implement grouped output by aggregate/domain                                    | 112   | **[P80]** | Medium (DX quality)             | 90 min | None         | Open   |
+| L1.21 | Add SARIF rule metadata (doc URL, severity, remediation in SARIF output)        | 117   | **[P80]** | Medium (GitHub Code Scanning)   | 60 min | L1.17        | Open   |
+| L1.22 | Implement block-level suppression (`//cqrs-lint:ignore-start` / `ignore-end`)   | 133   | **[P80]** | Medium (DX quality)             | 90 min | L1.1         | Open   |
+| L1.23 | Verify parallel rule safety + add linter benchmark suite                        | 123   | **[P80]** | Low (premature but cheap)       | 60 min | None         | Open   |
 
 ### Phase 5: Cross-Module & Integration Rules
 
-| #     | Task                                                | Items | Pareto    | Impact                        | Effort | Dependencies |
-| ----- | --------------------------------------------------- | ----- | --------- | ----------------------------- | ------ | ------------ |
-| L1.24 | Implement checkpoint/event store backend mismatch   | 144   | **[P80]** | Medium (replay correctness)   | 45 min | None         |
-| L1.25 | Implement idempotency/event store backend mismatch  | 145   | **[P80]** | Medium (dedup correctness)    | 45 min | None         |
-| L1.26 | Implement snapshot/event codec mismatch             | 143   | **[P80]** | Low (rare)                    | 60 min | None         |
-| L1.27 | Implement missing WAL mode for SQLite detection     | 166   | **[P80]** | Medium (SQLite best practice) | 45 min | None         |
-| L1.28 | Implement missing busy_timeout for SQLite detection | 167   | **[P80]** | Medium (SQLite best practice) | 45 min | None         |
+| #     | Task                                                | Items | Pareto    | Impact                        | Effort | Dependencies | Status           |
+| ----- | --------------------------------------------------- | ----- | --------- | ----------------------------- | ------ | ------------ | ---------------- |
+| L1.24 | Implement checkpoint/event store backend mismatch   | 144   | **[P80]** | Medium (replay correctness)   | 45 min | None         | Open             |
+| L1.25 | Implement idempotency/event store backend mismatch  | 145   | **[P80]** | Medium (dedup correctness)    | 45 min | None         | Open             |
+| L1.26 | Implement snapshot/event codec mismatch             | 143   | **[P80]** | Low (rare)                    | 60 min | None         | Open             |
+| L1.27 | Implement missing WAL mode for SQLite detection     | 166   | **[P80]** | Medium (SQLite best practice) | 45 min | None         | ✅ DONE (P012)  |
+| L1.28 | Implement missing busy_timeout for SQLite detection | 167   | **[P80]** | Medium (SQLite best practice) | 45 min | None         | Open             |
 
 ### Phase 6: Deep Pattern Detection
 
-| #     | Task                                                                | Items | Pareto    | Impact                     | Effort | Dependencies |
-| ----- | ------------------------------------------------------------------- | ----- | --------- | -------------------------- | ------ | ------------ |
-| L1.29 | Implement event type string typo detection (cross-ref fold vs emit) | 135   | **[P80]** | Medium (silent event drop) | 90 min | None         |
-| L1.30 | Implement orphaned event types detection (extend E006 for adapters) | 136   | **[P80]** | Low-medium                 | 90 min | None         |
-| L1.31 | Implement orphaned commands detection (extend E005 for HTTP layer)  | 137   | **[P80]** | Low-medium                 | 60 min | None         |
-| L1.32 | Extend D006: stricter error family detection in domain files        | 138   | **[P80]** | Medium (consistency)       | 60 min | None         |
-| L1.33 | Implement goroutine leak in event handler detection                 | 141   | **[P80]** | Medium (resource leak)     | 60 min | None         |
+| #     | Task                                                                | Items | Pareto    | Impact                     | Effort | Dependencies | Status |
+| ----- | ------------------------------------------------------------------- | ----- | --------- | -------------------------- | ------ | ------------ | ------ |
+| L1.29 | Implement event type string typo detection (cross-ref fold vs emit) | 135   | **[P80]** | Medium (silent event drop) | 90 min | None         | Open   |
+| L1.30 | Implement orphaned event types detection (extend E006 for adapters) | 136   | **[P80]** | Low-medium                 | 90 min | None         | Open   |
+| L1.31 | Implement orphaned commands detection (extend E005 for HTTP layer)  | 137   | **[P80]** | Low-medium                 | 60 min | None         | Open   |
+| L1.32 | Extend D006: stricter error family detection in domain files        | 138   | **[P80]** | Medium (consistency)       | 60 min | None         | Open   |
+| L1.33 | Implement goroutine leak in event handler detection                 | 141   | **[P80]** | Medium (resource leak)     | 60 min | None         | Open   |
 
 ### Phase 7: Domain & Data Model Rules
 
-| #     | Task                                                         | Items | Pareto    | Impact                | Effort | Dependencies |
-| ----- | ------------------------------------------------------------ | ----- | --------- | --------------------- | ------ | ------------ |
-| L1.34 | Extend C013: timestamp without timezone in projections       | 151   | **[P80]** | Medium (timezone bug) | 45 min | None         |
-| L1.35 | Implement PII in event payloads without encryption/redaction | 152   | **[P80]** | Medium (compliance)   | 90 min | None         |
-| L1.36 | Implement event payload struct size limit (>20 fields)       | 153   | **[P80]** | Low (maintainability) | 45 min | None         |
-| L1.37 | Implement string IDs instead of branded IDs                  | 176   | **[P80]** | Medium (type safety)  | 45 min | None         |
-| L1.38 | Implement event payload without json tags                    | 177   | **[P80]** | Low (convention)      | 30 min | None         |
-| L1.39 | Implement branded ID misuse detection                        | 175   | **[P80]** | Low (hard to detect)  | 90 min | None         |
-| L1.40 | Extend C013: embedded `time.Time` in payloads                | 178   | **[P80]** | Low (timezone)        | 45 min | None         |
-| L1.41 | Implement nullable pointer fields in event payloads          | 179   | **[P80]** | Low (nil-deref)       | 45 min | None         |
+| #     | Task                                                         | Items | Pareto    | Impact                | Effort | Dependencies | Status           |
+| ----- | ------------------------------------------------------------ | ----- | --------- | --------------------- | ------ | ------------ | ---------------- |
+| L1.34 | Extend C013: timestamp without timezone in projections       | 151   | **[P80]** | Medium (timezone bug) | 45 min | None         | Open             |
+| L1.35 | Implement PII in event payloads without encryption/redaction | 152   | **[P80]** | Medium (compliance)   | 90 min | None         | Open             |
+| L1.36 | Implement event payload struct size limit (>20 fields)       | 153   | **[P80]** | Low (maintainability) | 45 min | None         | Open             |
+| L1.37 | Implement string IDs instead of branded IDs                  | 176   | **[P80]** | Medium (type safety)  | 45 min | None         | ✅ DONE (A032)  |
+| L1.38 | Implement event payload without json tags                    | 177   | **[P80]** | Low (convention)      | 30 min | None         | ✅ DONE (D014)  |
+| L1.39 | Implement branded ID misuse detection                        | 175   | **[P80]** | Low (hard to detect)  | 90 min | None         | Open             |
+| L1.40 | Extend C013: embedded `time.Time` in payloads                | 178   | **[P80]** | Low (timezone)        | 45 min | None         | Open             |
+| L1.41 | Implement nullable pointer fields in event payloads          | 179   | **[P80]** | Low (nil-deref)       | 45 min | None         | ✅ DONE (D015)  |
 
 ### Phase 8: Error Handling & Concurrency Rules
 
-| #     | Task                                                          | Items | Pareto    | Impact                 | Effort | Dependencies |
-| ----- | ------------------------------------------------------------- | ----- | --------- | ---------------------- | ------ | ------------ |
-| L1.42 | Implement missing error wrapping detection                    | 171   | **[P80]** | Medium (debuggability) | 90 min | None         |
-| L1.43 | Extend B011: panic in all marshal helpers                     | 170   | **[P80]** | Low (crash prevention) | 45 min | None         |
-| L1.44 | Implement race condition in read model (map without mutex)    | 172   | **[P80]** | Medium (data race)     | 60 min | None         |
-| L1.45 | Implement shared mutable state in event handler (extend A015) | 173   | **[P80]** | Low (overlaps A015)    | 45 min | None         |
-| L1.46 | Implement goroutine without context cancellation              | 174   | **[P80]** | Medium (overlaps C030) | 60 min | None         |
+| #     | Task                                                          | Items | Pareto    | Impact                 | Effort | Dependencies | Status           |
+| ----- | ------------------------------------------------------------- | ----- | --------- | ---------------------- | ------ | ------------ | ---------------- |
+| L1.42 | Implement missing error wrapping detection                    | 171   | **[P80]** | Medium (debuggability) | 90 min | None         | ✅ DONE (C033)  |
+| L1.43 | Extend B011: panic in all marshal helpers                     | 170   | **[P80]** | Low (crash prevention) | 45 min | None         | Open             |
+| L1.44 | Implement race condition in read model (map without mutex)    | 172   | **[P80]** | Medium (data race)     | 60 min | None         | Open             |
+| L1.45 | Implement shared mutable state in event handler (extend A015) | 173   | **[P80]** | Low (overlaps A015)    | 45 min | None         | Open             |
+| L1.46 | Implement goroutine without context cancellation              | 174   | **[P80]** | Medium (overlaps C030) | 60 min | None         | ✅ DONE (C034)  |
 
 ### Phase 9: New Rule Categories (Ambitious)
 

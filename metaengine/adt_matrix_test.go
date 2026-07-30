@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json/v2"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -340,7 +341,58 @@ func canonicalizeAny(v any) string {
 		return "<nil>"
 	}
 
-	return strings.TrimSpace(mustJSON(v))
+	return canonicalizeValue(v)
+}
+
+// canonicalizeValue produces a deterministic string representation of any value,
+// sorting map keys so cross-engine comparison is order-independent. This is
+// necessary because encoding/json/v2 does not sort map keys alphabetically.
+func canonicalizeValue(v any) string {
+	switch val := v.(type) {
+	case map[string]any:
+		keys := make([]string, 0, len(val))
+		for k := range val {
+			keys = append(keys, k)
+		}
+
+		sort.Strings(keys)
+
+		var b strings.Builder
+		b.WriteString("{")
+
+		for i, k := range keys {
+			if i > 0 {
+				b.WriteString(",")
+			}
+
+			b.WriteString(k)
+			b.WriteString(":")
+			b.WriteString(canonicalizeValue(val[k]))
+		}
+
+		b.WriteString("}")
+
+		return b.String()
+	case []any:
+		var b strings.Builder
+		b.WriteString("[")
+
+		for i, item := range val {
+			if i > 0 {
+				b.WriteString(",")
+			}
+
+			b.WriteString(canonicalizeValue(item))
+		}
+
+		b.WriteString("]")
+
+		return b.String()
+	case string:
+		return strconv.Quote(val)
+	default:
+		return mustJSON(v)
+	}
 }
 
 func canonicalizeCounter(v any) string {
