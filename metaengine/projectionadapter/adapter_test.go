@@ -304,6 +304,7 @@ func TestAdapter_EventDecoder_PrecedenceOverPayloadDecoder(t *testing.T) {
 	// Both decoders set — EventDecoder MUST win.
 	payloadDec := func(string, []byte) (any, error) {
 		payloadDecoderCalled = true
+
 		return benchItem{}, nil
 	}
 

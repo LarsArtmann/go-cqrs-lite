@@ -84,7 +84,7 @@ func New(
 		types[i] = event.Type(t)
 	}
 
-	a := &Adapter{
+	adapter := &Adapter{
 		store:   store,
 		name:    name,
 		decoder: decoder,
@@ -92,10 +92,10 @@ func New(
 	}
 
 	for _, opt := range opts {
-		opt(a)
+		opt(adapter)
 	}
 
-	return a
+	return adapter
 }
 
 // Name implements projection.Projection.

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -206,13 +207,13 @@ func (s *Store) Doctor(ctx context.Context) string {
 	if err != nil {
 		fmt.Fprintf(&b, "  ERROR: %v\n", err)
 	} else {
-		for _, st := range stats {
+		for _, stat := range stats {
 			rowStr := "N/A"
-			if st.RowCount >= 0 {
-				rowStr = fmt.Sprintf("%d", st.RowCount)
+			if stat.RowCount >= 0 {
+				rowStr = strconv.FormatInt(stat.RowCount, 10)
 			}
 
-			fmt.Fprintf(&b, "  %s: %s rows (%s)\n", st.Name, rowStr, st.EngineName)
+			fmt.Fprintf(&b, "  %s: %s rows (%s)\n", stat.Name, rowStr, stat.EngineName)
 		}
 	}
 
@@ -224,6 +225,7 @@ func (s *Store) Doctor(ctx context.Context) string {
 		}
 
 		poisonedCount++
+
 		fmt.Fprintf(&b, "  %s: %v\n", key, value)
 
 		return true
