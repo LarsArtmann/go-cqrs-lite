@@ -249,11 +249,16 @@ func SharedCheckpointSave(
 	cp event.Checkpoint,
 	d Dialect,
 ) error {
+	setExprs := []string{
+		"event_id = " + d.ExcludedRef("event_id"),
+		"processed_at = " + d.ExcludedRef("processed_at"),
+	}
 	query := fmt.Sprintf(
-		"INSERT INTO "+TableCheckpoints+" (projection_name, event_id, processed_at) VALUES (%s, %s, %s) ON CONFLICT (projection_name) DO UPDATE SET event_id = EXCLUDED.event_id, processed_at = EXCLUDED.processed_at",
+		"INSERT INTO "+TableCheckpoints+" (projection_name, event_id, processed_at) VALUES (%s, %s, %s) %s",
 		d.Placeholder(1),
 		d.Placeholder(2),
 		d.Placeholder(3),
+		d.OnConflictDoUpdate([]string{"projection_name"}, setExprs),
 	)
 
 	_, err := db.ExecContext(ctx, query, projectionName, cp.EventID, d.FormatTime(cp.ProcessedAt))

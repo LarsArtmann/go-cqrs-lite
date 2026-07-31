@@ -30,7 +30,7 @@ func partitionColumns(all, subset []string) []string {
 	return nonSubset
 }
 
-func excludedSet(cols []string) string {
+func excludedSet(cols []string, dialect sqlpkg.Dialect) string {
 	if len(cols) == 0 {
 		return ""
 	}
@@ -38,7 +38,7 @@ func excludedSet(cols []string) string {
 	parts := make([]string, len(cols))
 
 	for i, c := range cols {
-		parts[i] = c + " = excluded." + c
+		parts[i] = c + " = " + dialect.ExcludedRef(c)
 	}
 
 	return strings.Join(parts, ", ")

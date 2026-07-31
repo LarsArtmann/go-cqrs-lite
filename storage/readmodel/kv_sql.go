@@ -57,18 +57,21 @@ func newSQLKVStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLKVStore, error)
 }
 
 func (s *SQLKVStore) upsertSQL() string {
+	keyCol := s.Dialect.QuoteIdentifier("key")
+	setExprs := []string{"value = " + s.Dialect.ExcludedRef("value")}
 	return fmt.Sprintf(
-		"INSERT INTO %s (key, value) VALUES (%s, %s) "+
-			"ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+		"INSERT INTO %s (%s, value) VALUES (%s, %s) %s",
 		kvTableName,
+		keyCol,
 		s.Dialect.Placeholder(1),
 		s.Dialect.Placeholder(2),
+		s.Dialect.OnConflictDoUpdate([]string{"key"}, setExprs),
 	)
 }
 
 // Get returns the value for key, or [kv.ErrNotFound] if no row exists.
 func (s *SQLKVStore) Get(ctx context.Context, key []byte) ([]byte, error) {
-	q := fmt.Sprintf("SELECT value FROM %s WHERE key = %s", kvTableName, s.Dialect.Placeholder(1))
+	q := fmt.Sprintf("SELECT value FROM %s WHERE %s = %s", kvTableName, s.Dialect.QuoteIdentifier("key"), s.Dialect.Placeholder(1))
 
 	var value []byte
 
@@ -87,7 +90,7 @@ func (s *SQLKVStore) Get(ctx context.Context, key []byte) ([]byte, error) {
 
 // Has reports whether a row exists for key.
 func (s *SQLKVStore) Has(ctx context.Context, key []byte) (bool, error) {
-	q := fmt.Sprintf("SELECT 1 FROM %s WHERE key = %s", kvTableName, s.Dialect.Placeholder(1))
+	q := fmt.Sprintf("SELECT 1 FROM %s WHERE %s = %s", kvTableName, s.Dialect.QuoteIdentifier("key"), s.Dialect.Placeholder(1))
 
 	var one int
 
@@ -112,7 +115,7 @@ func (s *SQLKVStore) Set(ctx context.Context, key, value []byte) error {
 
 // Delete removes key. Deleting a missing key is a no-op.
 func (s *SQLKVStore) Delete(ctx context.Context, key []byte) error {
-	q := fmt.Sprintf("DELETE FROM %s WHERE key = %s", kvTableName, s.Dialect.Placeholder(1))
+	q := fmt.Sprintf("DELETE FROM %s WHERE %s = %s", kvTableName, s.Dialect.QuoteIdentifier("key"), s.Dialect.Placeholder(1))
 
 	_, err := s.DB.ExecContext(ctx, q, key)
 	return wrapTransientOrOK(err, "kv_sql.delete", "delete key from KV store")
@@ -133,8 +136,9 @@ func (s *SQLKVStore) NewIterator(ctx context.Context, prefix []byte) (kv.Iterato
 }
 
 func (s *SQLKVStore) iterQuery(prefix []byte) (string, []any) {
+	keyCol := s.Dialect.QuoteIdentifier("key")
 	if len(prefix) == 0 {
-		return fmt.Sprintf("SELECT key, value FROM %s ORDER BY key", kvTableName), nil
+		return fmt.Sprintf("SELECT %s, value FROM %s ORDER BY %s", keyCol, kvTableName, keyCol), nil
 	}
 
 	end, bounded := prefixEnd(prefix)
@@ -142,12 +146,12 @@ func (s *SQLKVStore) iterQuery(prefix []byte) (string, []any) {
 
 	if bounded {
 		return fmt.Sprintf(
-			"SELECT key, value FROM %s WHERE key >= %s AND key < %s ORDER BY key",
-			kvTableName, p1, s.Dialect.Placeholder(2),
+			"SELECT %s, value FROM %s WHERE %s >= %s AND %s < %s ORDER BY %s",
+			keyCol, kvTableName, keyCol, p1, keyCol, s.Dialect.Placeholder(2), keyCol,
 		), []any{prefix, end}
 	}
 
-	return fmt.Sprintf("SELECT key, value FROM %s WHERE key >= %s ORDER BY key", kvTableName, p1),
+	return fmt.Sprintf("SELECT %s, value FROM %s WHERE %s >= %s ORDER BY %s", keyCol, kvTableName, keyCol, p1, keyCol),
 		[]any{prefix}
 }
 

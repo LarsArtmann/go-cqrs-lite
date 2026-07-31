@@ -216,7 +216,7 @@ func (MySQLDialect) ParseTime(src any) (time.Time, error) {
 func (MySQLDialect) ExcludedRef(col string) string { return "VALUES(" + col + ")" }
 
 func (MySQLDialect) OnConflictDoNothing(noOpCol string) string {
-	return noOpCol + " = " + noOpCol
+	return "ON DUPLICATE KEY UPDATE " + noOpCol + " = " + noOpCol
 }
 
 func (MySQLDialect) OnConflictDoUpdate(_ []string, setExprs []string) string {

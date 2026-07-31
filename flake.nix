@@ -559,6 +559,8 @@
               nix fmt
               echo "==> Quick build check"
               ${goPkg}/bin/go build -tags "goexperiment.jsonv2" ./... 2>/dev/null || echo "WARN: build has errors (formatting still applied)"
+              echo "==> Lint auto-fix (golangci-lint --fix)"
+              ${pkgs.golangci-lint}/bin/golangci-lint run --fix --timeout 5m ./... 2>/dev/null || true
               echo "==> Lint sweep (golangci-lint)"
               ${pkgs.golangci-lint}/bin/golangci-lint run --timeout 5m ./... 2>/dev/null || echo "WARN: lint findings remain (review manually)"
               echo "✅ Sweep complete — format + lint applied"

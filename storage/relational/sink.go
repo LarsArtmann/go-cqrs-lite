@@ -183,17 +183,19 @@ func (s *sqlSink) Upsert(ctx context.Context, table string, row Row, conflictCol
 
 	nonConflict := partitionColumns(cols, conflictCols)
 
-	setClause := excludedSet(nonConflict)
+	setClause := excludedSet(nonConflict, s.dialect)
 	pholders := placeholders(s.dialect, len(cols))
 
-	onConflict := conflictDoNothing
+	var conflictClause string
 	if setClause != "" {
-		onConflict = "DO UPDATE SET " + setClause
+		conflictClause = s.dialect.OnConflictDoUpdate(conflictCols, []string{setClause})
+	} else {
+		conflictClause = s.dialect.OnConflictDoNothing(cols[0])
 	}
 
 	query := fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(%s) %s",
-		table, strings.Join(cols, ", "), pholders, strings.Join(conflictCols, ", "), onConflict,
+		"INSERT INTO %s (%s) VALUES (%s) %s",
+		table, strings.Join(cols, ", "), pholders, conflictClause,
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {
@@ -213,8 +215,8 @@ func (s *sqlSink) Ensure(ctx context.Context, table string, row Row) error {
 	pholders := placeholders(s.dialect, len(cols))
 
 	query := fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT DO NOTHING",
-		table, strings.Join(cols, ", "), pholders,
+		"INSERT INTO %s (%s) VALUES (%s) %s",
+		table, strings.Join(cols, ", "), pholders, s.dialect.OnConflictDoNothing(cols[0]),
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {

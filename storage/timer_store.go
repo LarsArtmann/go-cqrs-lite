@@ -77,12 +77,14 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 			"marshal timer payload for "+t.ID)
 	}
 
-	// ON CONFLICT DO NOTHING makes scheduling idempotent: a retry of the same
-	// timer ID (e.g. after a crash) is a no-op rather than a duplicate fire.
-	// Both SQLite (>=3.24) and Postgres support this syntax.
+	// Idempotent scheduling: a retry of the same timer ID (e.g. after a crash)
+	// is a no-op rather than a duplicate fire. Uses dialect-specific conflict
+	// handling (ON CONFLICT DO NOTHING for PG/SQLite, ON DUPLICATE KEY UPDATE
+	// id = id for MySQL).
 	query := fmt.Sprintf(
-		`INSERT INTO timers (id, fire_at, payload) VALUES (%s, %s, %s) ON CONFLICT(id) DO NOTHING`,
+		`INSERT INTO timers (id, fire_at, payload) VALUES (%s, %s, %s) %s`,
 		s.Dialect.Placeholder(1), s.Dialect.Placeholder(2), s.Dialect.Placeholder(3),
+		s.Dialect.OnConflictDoNothing("id"),
 	)
 
 	if _, err := s.DB.ExecContext(

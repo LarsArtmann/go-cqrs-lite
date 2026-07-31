@@ -216,20 +216,26 @@ func (q *QueryDecl[Q, R]) infer() {
 // filters (FilterOn/SortOn) are excluded — they cannot be pushed to SQL.
 func extractDeclarativeFields(
 	cfg QueryConfig,
-) ([]string, []string) {
+) ([]string, []string, error) {
 	var filterFields, sortFields []string
 
 	for _, acc := range cfg.filterAccessors {
 		if acc.spec != nil {
+			if acc.spec.Column == "" {
+				return nil, nil, fmt.Errorf("%w: FilterOnField has empty column name", errEmptyField)
+			}
 			filterFields = append(filterFields, acc.spec.Column)
 		}
 	}
 
 	if cfg.sortAccessor.spec != nil {
+		if cfg.sortAccessor.spec.Column == "" {
+			return nil, nil, fmt.Errorf("%w: SortOnField has empty column name", errEmptyField)
+		}
 		sortFields = append(sortFields, cfg.sortAccessor.spec.Column)
 	}
 
-	return filterFields, sortFields
+	return filterFields, sortFields, nil
 }
 
 // queryMeta is the planner-facing interface.

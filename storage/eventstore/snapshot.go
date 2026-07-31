@@ -65,16 +65,16 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 	defer span.End()
 	p1, p2, p3, p4, p5 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2),
 		s.Dialect.Placeholder(3), s.Dialect.Placeholder(4), s.Dialect.Placeholder(5)
+	setExprs := []string{
+		"version = " + s.Dialect.ExcludedRef("version"),
+		"state = " + s.Dialect.ExcludedRef("state"),
+		"created_at = " + s.Dialect.ExcludedRef("created_at"),
+	}
 	query := fmt.Sprintf(
 		`INSERT INTO `+sqlpkg.TableSnapshots+` (aggregate_type, aggregate_id, version, state, created_at)
-		VALUES (%s, %s, %s, %s, %s)
-		ON CONFLICT (aggregate_type, aggregate_id)
-		DO UPDATE SET version = EXCLUDED.version, state = EXCLUDED.state, created_at = EXCLUDED.created_at`,
-		p1,
-		p2,
-		p3,
-		p4,
-		p5,
+		VALUES (%s, %s, %s, %s, %s) %s`,
+		p1, p2, p3, p4, p5,
+		s.Dialect.OnConflictDoUpdate([]string{"aggregate_type", "aggregate_id"}, setExprs),
 	)
 	_, err := s.DB.ExecContext(ctx, query, string(snap.StreamType), snap.StreamID,
 		snap.Version.Int(), snap.State, s.Dialect.FormatTime(snap.CreatedAt))
