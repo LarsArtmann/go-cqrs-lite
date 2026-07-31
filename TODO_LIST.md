@@ -1,96 +1,86 @@
 # TODO List
 
-**Updated:** 2026-07-31 (session 14:30)
+**Updated:** 2026-07-31
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
-and is **never** duplicated here — when a task is finished it is removed from
-this list and recorded in CHANGELOG.
+and is **never** duplicated here.
 
 ## Legend
 
 - `[ ]` = Open
 - `[BLOCKED]` = Blocked on upstream dependency or user approval
 - `🔥` = Pareto high impact (top 20% that delivers 80% of value)
+- `🐛` = Known bug
 
 ---
 
-## cqrs-lint Quality (175 rules shipped; hardening in progress)
+## Metaengine — Open Bugs & Gaps
 
-> The linter grew from 65 to 175 rules across 10 categories. Most quality gaps
-> are now addressed. Remaining items are polish + the 50-item improvement backlog.
+> The metaengine grew from a prototype to a production-ready multi-engine
+> cost-based storage planner across 6 sessions (2026-07-30 to 2026-07-31).
+> Most items are done and shipped. These remain open.
 
-- [x] 🔥 **Fix E010/E011/E013/E014** — E010 + E014 rewritten with go/types-aware
-      receiver matching (`projectCallsMethodOnType`). E011 left as-is (name-counting
-      is reasonable for low-confidence advisory with threshold 3). E013 already uses
-      type-aware composite literal matching (`findKeyBoolLitInTypedComposite`).
-- [x] 🔥 **Library self-lint mode** — `RegisterAll` now checks `IsLibrarySelfLint()`
-      and skips 29 consumer-coaching rules (8 architecture E008-E015 + 21 adoption
-      F001-F021) when linting the go-cqrs-lite source itself. Eliminates need for
-      181+ manual inline suppressions.
-- [x] 🔥 **Import-alias resolution** — `QualifierToImportPath` + `ImportQualifierMap`
-      helpers exist in lintutil.go. `projectCallsImportPath` wrapper added to
-      architecture/helpers.go. E008 migrated as proof of concept. Pattern documented
-      for other rules to follow.
-- [x] **Fix F-series detection gaps** — F011 countSQLExec now uses type info to
-      verify receiver is `*sql.DB`/`*sql.Tx`/`*sql.Conn` (with variable-name fallback).
-      F013 now detects chi/gin/echo/fiber/gorilla/httprouter web framework imports.
-      F009 timer detection already expanded (prior session).
-- [x] **Review C030 over-suppression** — "any return/break/.Done() = safe" heuristic
-      is intentional. The concern about masking graceful-shutdown bugs represents a
-      different rule category, not a C030 deficiency. No change needed.
-- [x] **Audit S006 for substring false positives** — Three-tier system (STRONG/MEDIUM/WEAK
-      with ≥2 compound threshold), serialization tag gate, and encryption module check
-      minimize false positives. Short indicators (`swift`, `bic`) are financial-specific
-      enough. No change needed.
-- [x] **Fix C017 stale doc/title** — catalog description already covers all 4 store types.
-- [x] **Narrow C032 scope** — already scoped to handler/projector function names.
-- [x] **Fix F009 timer detection** — added time.Tick, time.After, time.NewTicker.
-- [x] **Dedicated unit tests for F018-F021** — 8 tests covering fire + no-fire paths.
-- [x] **Fix A032 test** — malformed Go source in test case fixed.
-- [ ] **50-item improvement backlog** — see
-      `docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md`.
-      ~35 items remain open.
-- [ ] **Add suppression tests for new rules** — C031-C034, P011-P012, D014-D015,
-      A032, E016-E017, S010, F018-F021 all lack `//cqrs-lint:ignore(RULE)` verification.
+- 🐛 `[ ]` **Pebble LayoutPlanner range filter numeric bug** — lexicographic
+      key ordering ≠ numeric ordering for values with different digit counts
+      (e.g., `2` vs `10`). Test passed by accident (used only 2-digit values).
+      Fix: zero-pad numeric keys or use a numeric-aware comparator.
+      _(Source: `docs/status/2026-07-31_14-57_metaengine-pebble-layoutplanner-cqrs-lint-hardening.md` §D5)_
+- 🐛 `[ ]` **Fix `TestSSE_DropOldSemantics` hang** — SSE goroutines
+      (`forwardWithDropOld`) block on channel selects that never drain after
+      `httptest.Server.Close()`. Blocks the full metaengine test suite from
+      completing cleanly. Workaround: use `-run` filters to exclude it.
+      _(Source: `docs/status/2026-07-31_17-19_metaengine-engine-sophistication-complete.md` §D1)_
+- `[ ]` **Pebble LayoutPlanner sort index** — `sortFields` stored but unused
+      for ordering. Requires a separate sort-prefix index structure.
+      _(Source: `docs/status/2026-07-31_14-57_*.md` §B1)_
+- `[ ]` **Add Pebble to metaengine `adt_matrix_test.go`** — currently only
+      memory + SQLite. No triple-parity test exists.
+      _(Source: `docs/status/2026-07-31_17-19_*.md` §G3)_
+- `[ ]` **Fix `scanWithIndex` cursor pagination gap** — the index fast path
+      in `ScanRawValues` doesn't apply cursor pagination.
+      _(Source: `docs/status/2026-07-31_17-19_*.md` §F44)_
 
 ---
 
-## Metaengine — Engine Sophistication
+## cqrs-lint — Open Quality Items
 
-> Multi-day engine creation work (Postgres, DuckDB, metaengine-gen) moved to
-> [ROADMAP.md](ROADMAP.md) — each is a 2-4 day new-module effort.
+> The linter has **175 rules across 10 categories**. Most quality gaps from the
+> brutal review are addressed. These remain open.
 
-- [x] **Schema enforcement at Plan() time** — validate fold return types match `R`.
-      Already implemented and tested.
-- [x] **Pebble LayoutPlanner** — secondary index with O(matches) prefix scan.
-      MapDelete + MapUpdate now clean up index entries atomically.
-      Benchmark: 108x speedup over full scan (6ms→56μs, 80K→311 allocs).
-- [x] **Soak test** — concurrent correctness, multimap growth safety, memory boundedness.
-- [x] **Chaos testing** — concurrent stress tests, error injection, engine swaps.
-- [x] **Pebble LayoutPlanner range filters** — FilterGt/FilterGe/FilterLt/FilterLe
-      now use index bounds (LowerBound/UpperBound) for O(matches) range scans.
-      Only FilterIn remains unindexed (multiple equality scans would be needed).
-- [ ] **Pebble LayoutPlanner sort index** — sortFields stored but unused for ordering.
-      Requires separate sort-prefix index structure.
-
----
-
-## CI / Daemon
-
-- [x] **Fix 3 flaky benchkit soak tests** — mitigated via `soakTestScale` with
-      `raceEnabled` build-tag multiplier.
-- [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits unformatted
-      code. Either gate daemon commits behind `nix fmt` or run a scheduled sweep.
-- [ ] **CGo-enabled CI job** — add a separate CI job with `CGO_ENABLED=1` for DuckDB tests.
-- [ ] **Investigate `TestRun_Postgres_Recovery` benchkit failure** — may still flake.
+- `[ ]` 🔥 **50-item improvement backlog** — ~35 items remain open in the
+      [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
+      Includes domain-based severity calibration (L1.5), C017 tracing (L1.9),
+      migration paths in findings (L1.16), doc links (L1.17), block-level
+      suppression (L1.22), new categories (DOC/OBS/RES/DI, L1.47–L1.50).
+- `[ ]` **Add suppression tests for new rules** — C031-C034, P011-P012,
+      D014-D015, A032, E016-E017, S010, F018-F021 all lack
+      `//cqrs-lint:ignore(RULE)` verification.
+- `[ ]` **Migrate import-alias resolution to remaining E-series rules** —
+      `QualifierToImportPath` + `ImportQualifierMap` helpers exist and E008
+      was migrated as proof of concept. D007/D008/D010/D013 and E009-E015
+      still use variable-name heuristics.
+      _(Source: `docs/status/2026-07-30_23-22_cqrs-lint-hardening-and-verify-gate-repair.md` §F1)_
+- `[ ]` **Run cqrs-lint against real consumer projects** — validate against
+      Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
 
 ---
 
-## Release
+## CI / Daemon / Release
 
-- [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod replace
-  directives are needed for dev; consumers resolving the published modules
-  depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
+- `[ ]` **Recurring lint-sweep** — the auto-commit daemon occasionally commits
+      unformatted code. Either gate daemon commits behind `nix fmt` or run a
+      scheduled sweep.
+- `[ ]` **CGo-enabled CI job** — add a separate CI job with `CGO_ENABLED=1`
+      for DuckDB tests (stack/duckdb requires CGo).
+- `[ ]` **Investigate `TestRun_Postgres_Recovery` benchkit failure** — may
+      still flake.
+- [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
+  replace directives are needed for dev; consumers resolving the published
+  modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
+- [BLOCKED] **Tag `stack/duckdb/v4`** — the module exists but is untagged.
+  Consumers resolving the latest version get a 404 from the Go proxy. The
+  `govalid-generate` step was patched via SSH redirect in `flake.nix`, but the
+  root cause (no published tag) remains.
 
 ---
 

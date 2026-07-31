@@ -1,43 +1,16 @@
 # Roadmap — go-cqrs-lite
 
 > Where we are, where we're going, and what's next.
-> **Last updated:** 2026-07-30
+
 
 ---
 
-## Current State (v4.2.0 shipped; 60 modules; 159 cqrs-lint rules; verify gate RED)
+
 
 **v4.2.0 tagged** (2026-07-27) — 53 modules tagged and pushed. The workspace now
-has **60 `go.mod` files** (added `stack/duckdb` and `metaengine/pebbleengine`
-since v4.2.0). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`.
 
-> ⚠️ **Verify gate is currently RED** (2026-07-30) — build error in
-> `cmd/cqrs-lint/pkg/rules/correctness/c031.go:83`. The cqrs-lint module does not
-> compile. See [TODO_LIST.md](TODO_LIST.md) "Verify Gate".
 
-The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs,
-command/query dispatch, pure-function deciders, three projection tiers
-(document/KV, relational/SQL, graph), durable deadline scheduling,
-event→command derivation, dead-letter quarantine, managed projection hosting,
-event signing/encryption, OTel tracing/metrics, auto-documentation generation,
-a cost-based storage planner (metaengine), and a domain-aware linter (cqrs-lint,
-159 rules).
 
-**Major work since v4.2.0 (unreleased):**
-
-- **cqrs-lint: 65 → 159 rules** across 10 categories — 94 new detectors including
-  feature-adoption coaching (F-series), testing quality (T-series), architecture
-  validation (E-series), and expanded correctness/API/boilerplate/security. See
-  Theme 6.
-- **Metaengine Phases 2–5** — SQL pushdown (ADR-0072), layout planning
-  (ADR-0073), Pebble engine (ADR-0074), streaming reads, cost calibration.
-- **DuckDB analytical backend** — `stack/duckdb` preset with CGo isolation
-  (ADR-0071). Columnar OLAP queries alongside the transactional store.
-- **Library adoption** — otter TinyLFU cache (decider), failsafe-go circuit
-  breaker (middleware), testcontainers-go (Postgres integration tests), go-snaps
-  (golden/snapshot testing across 16 modules).
-- **Metaengine → taskmanager integration** — Counter ADT query with `/api/stats`
-  endpoint. First proof of concept that metaengine works in a real CQRS app.
 
 ---
 
@@ -45,7 +18,7 @@ a cost-based storage planner (metaengine), and a domain-aware linter (cqrs-lint,
 
 | Version    | Date       | Highlights                                                                                                                                                                                                              |
 | ---------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unreleased | 2026-07-30 | cqrs-lint 65→159 rules (10 categories), metaengine pushdown/layout/Pebble/streaming, DuckDB backend (ADR-0071), otter/failsafe-go/testcontainers-go/go-snaps adoption, metaengine→taskmanager integration               |
+
 | v4.2.0     | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family) |
 | v4.1.0     | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                    |
 | v4.0.4     | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                |
@@ -108,21 +81,7 @@ first real run across memory/pebble/sqlite (2026-07-24). DuckDB backend added
 
 ### 3. cqrs-lint → Trustworthy
 
-The linter grew explosively from 65 to 159 rules across 10 categories in a
-single day (2026-07-30). The breadth is impressive but the quality needs
-hardening before the linter is trustworthy for production use.
 
-- ✅ **159 rules shipped** — correctness (31), API (28), boilerplate (28),
-  performance (6), version (6), consistency (12), architecture (15), security (8),
-  testing (8), adoption (17)
-- ✅ **Feature profile system** — auto-detects consumer module usage and adapts
-  context-dependent rules
-- ✅ **Self-lint** — 181 suppressions across 83 files for library self-references
-- 🔥 **Quality hardening needed** — E010/E011/E013/E014 are architecturally wrong;
-  import-alias resolution missing; library self-lint mode would eliminate 35+ FPs.
-  See [TODO_LIST.md](TODO_LIST.md) "cqrs-lint Quality".
-- **50-item improvement backlog** — triaged in Pareto plan
-  (`docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md`)
 
 ### 4. Module Extraction
 

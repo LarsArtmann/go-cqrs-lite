@@ -3,6 +3,13 @@
 > **Date:** 2026-07-30
 > **Scope:** 75 open items from `cmd/cqrs-lint/IMPROVEMENT_IDEAS.md` (Sections 11 + Extended Ideas 134-179)
 > **Goal:** Turn an unmanaged backlog into a prioritized, actionable execution plan
+>
+> **Update 2026-07-31:** 17 items are ✅ DONE (see status column below). L1.14
+> (`--self-lint` flag) was implemented differently as auto-detection via
+> `IsLibrarySelfLint()` in the 23:22 hardening session — functionally equivalent.
+> E010/E011/E013/E014 were rewritten with type-aware matching (hardening session),
+> closing the "architecturally wrong" quality gap. C030/S006 were reviewed and found
+> correct (no change needed). ~29 items remain open; the linter now has 175 rules.
 
 ---
 
