@@ -19,6 +19,7 @@ The incoming paste_1.txt contained a prioritized backlog from a prior session's 
 > (architecture rules). Suppression tests were written for all new rules (C031-C034,
 > P011-P012, D014-D015, A032, E016-E017, S010, F018-F021). The verify gate is
 > GREEN (`nix run .#verify` confirmed in the 17:53 session).
+
 3. **Known issues**: stale docs, flaky benchkit tests, pre-existing intermittent failures
 
 ---

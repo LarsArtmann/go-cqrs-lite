@@ -1,9 +1,9 @@
 # ADR-0075: ADT test harness extraction (metaengine/adttest)
 
-|             |                                                                              |
-| ----------- | --------------------------------------------------------------------------- |
-| **Status**  | Accepted                                                                     |
-| **Date**    | 2026-07-31                                                                   |
+|             |                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------- |
+| **Status**  | Accepted                                                                                        |
+| **Date**    | 2026-07-31                                                                                      |
 | **Context** | The 7-ADT cross-engine parity test harness needed to be reusable by engines in separate modules |
 
 ## Context

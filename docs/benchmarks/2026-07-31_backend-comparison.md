@@ -75,12 +75,12 @@ At 256-byte payloads, SQLite's fsync dominates. Codec choice is irrelevant on SQ
 
 ## 5. Concurrency Sweep (memory backend, small profile)
 
-| Workers | Write ops/s | RawSink ops/s | Load P50 | Heap   |
-| ------- | ----------- | ------------- | -------- | ------ |
-| 1       | 235.0K/s    | 2.1M/s        | 110ns    | 21 MB  |
-| 2       | 224.8K/s    | 1.7M/s        | 170ns    | 28 MB  |
-| 4       | 223.2K/s    | 1.3M/s        | 140ns    | 54 MB  |
-| 8       | 226.9K/s    | 1.4M/s        | 250ns    | 65 MB  |
+| Workers | Write ops/s | RawSink ops/s | Load P50 | Heap  |
+| ------- | ----------- | ------------- | -------- | ----- |
+| 1       | 235.0K/s    | 2.1M/s        | 110ns    | 21 MB |
+| 2       | 224.8K/s    | 1.7M/s        | 170ns    | 28 MB |
+| 4       | 223.2K/s    | 1.3M/s        | 140ns    | 54 MB |
+| 8       | 226.9K/s    | 1.4M/s        | 250ns    | 65 MB |
 
 Memory scales flat on concurrency: already CPU-saturated at 1 worker for map operations.
 

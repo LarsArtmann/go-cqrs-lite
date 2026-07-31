@@ -11,33 +11,33 @@
 
 ### New Rules Implemented (4 detectors)
 
-| Rule | Item(s) | Description | Tests |
-| ---- | ------- | ----------- | ----- |
-| **P013** | 167 (L1.28) | Missing SQLite busy_timeout — "database is locked" prevention | 3 tests |
-| **D016** | 153 (L1.36) | Event payload struct >20 fields — maintainability guard | 3 tests |
-| **C035** | 172 (L1.44) | Unprotected map field in read model/handler — data race prevention | 4 tests |
+| Rule     | Item(s)                | Description                                                                                | Tests   |
+| -------- | ---------------------- | ------------------------------------------------------------------------------------------ | ------- |
+| **P013** | 167 (L1.28)            | Missing SQLite busy_timeout — "database is locked" prevention                              | 3 tests |
+| **D016** | 153 (L1.36)            | Event payload struct >20 fields — maintainability guard                                    | 3 tests |
+| **C035** | 172 (L1.44)            | Unprotected map field in read model/handler — data race prevention                         | 4 tests |
 | **C036** | 144, 145 (L1.24/L1.25) | Store backend mismatch (checkpoint/idempotency vs event store) — crash-recovery guarantees | 3 tests |
 
 ### Existing Rules Extended (3)
 
-| Rule | Item(s) | What changed |
-| ---- | ------- | ------------ |
-| **C013** | 151 (L1.34) | Extended to projection view structs (timestamp without timezone in SQL storage) |
-| **C013** | 178 (L1.40) | Verified embedded `time.Time` detection already works (added regression test) |
+| Rule     | Item(s)     | What changed                                                                                                      |
+| -------- | ----------- | ----------------------------------------------------------------------------------------------------------------- |
+| **C013** | 151 (L1.34) | Extended to projection view structs (timestamp without timezone in SQL storage)                                   |
+| **C013** | 178 (L1.40) | Verified embedded `time.Time` detection already works (added regression test)                                     |
 | **B011** | 170 (L1.43) | Extended to catch `Unmarshal`, `Encode`, `Decode`, `MarshalJSON`, `UnmarshalJSON` (not just `Marshal`/`NewEvent`) |
 
 ### Infrastructure Features (3)
 
-| Feature | Item(s) | What was built |
-| ------- | ------- | -------------- |
-| **Domain severity calibration** | 102 (L1.5) | `DomainKind` enum + `detectDomain()` from event/command type names + `applyDomainBias()` escalates S001-S010 + C008 to Error for financial domains + config override via `ConfigFeatures.Domain` |
-| **Doc links in findings** | 103, 104 (L1.16/L1.17) | `DocURL` field on `RuleInfo`, `LookupRule()` function, `enrichWithDocURLs()` pipeline step, 10 high-value rules have doc URLs |
-| **C017 function-level tracing** | 129 (L1.9) | Replaced file-level `fileUsesMemoryEventStore` band-aid with `enclosingFunctionUsesMemoryStore` — traces the actual function scope instead of skipping entire files |
+| Feature                         | Item(s)                | What was built                                                                                                                                                                                   |
+| ------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Domain severity calibration** | 102 (L1.5)             | `DomainKind` enum + `detectDomain()` from event/command type names + `applyDomainBias()` escalates S001-S010 + C008 to Error for financial domains + config override via `ConfigFeatures.Domain` |
+| **Doc links in findings**       | 103, 104 (L1.16/L1.17) | `DocURL` field on `RuleInfo`, `LookupRule()` function, `enrichWithDocURLs()` pipeline step, 10 high-value rules have doc URLs                                                                    |
+| **C017 function-level tracing** | 129 (L1.9)             | Replaced file-level `fileUsesMemoryEventStore` band-aid with `enclosingFunctionUsesMemoryStore` — traces the actual function scope instead of skipping entire files                              |
 
 ### Verified Already Working (1)
 
-| Item | What was verified |
-| ---- | ----------------- |
+| Item            | What was verified                                                                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **L1.14** (131) | Self-lint auto-detection already works via `IsLibrarySelfLint()` + `filterLibrarySelfLint()` — auto-suppresses 7 consumer-only rules when linting the library |
 
 ---
@@ -58,25 +58,25 @@
 
 ## C) NOT STARTED (17 items from the plan)
 
-| # | Task | Items | Pareto | Why not started |
-| - | ---- | ----- | ------ | --------------- |
-| L1.15 | CI self-lint job | 132 | P20 | Dependent on L1.14 (now verified done) |
-| L1.18 | Config inheritance | 121 | P80 | Monorepo support — lower priority |
-| L1.19 | Feature adoption scorecard | 113 | P80 | DX enhancement |
-| L1.20 | Grouped output by aggregate/domain | 112 | P80 | DX enhancement |
-| L1.21 | SARIF rule metadata | 117 | P80 | Depends on L1.17 (now partially done) |
-| L1.22 | Block-level suppression | 133 | P80 | DX enhancement |
-| L1.23 | Parallel safety + benchmarks | 123 | P80 | Premature optimization |
-| L1.26 | Snapshot/event codec mismatch | 143 | P80 | Low impact, complex detection |
-| L1.29 | Event type string typo detection | 135 | P80 | Cross-ref analysis needed |
-| L1.30 | Orphaned event types (adapters) | 136 | P80 | Extends E006 |
-| L1.31 | Orphaned commands (HTTP layer) | 137 | P80 | Extends E005 |
-| L1.32 | Stricter error family detection | 138 | P80 | Extends D006 |
-| L1.33 | Goroutine leak in handler | 141 | P80 | Resource leak detection |
-| L1.35 | PII in event payloads | 152 | P80 | Compliance |
-| L1.39 | Branded ID misuse | 175 | P80 | Hard to detect reliably |
-| L1.45 | Shared mutable state in handler | 173 | P80 | Overlaps A015 |
-| L1.47-L1.51 | New categories (DOC/OBS/RES/DI/stack-aware) | 108-111, 106 | P80 | Ambitious, last priority |
+| #           | Task                                        | Items        | Pareto | Why not started                        |
+| ----------- | ------------------------------------------- | ------------ | ------ | -------------------------------------- |
+| L1.15       | CI self-lint job                            | 132          | P20    | Dependent on L1.14 (now verified done) |
+| L1.18       | Config inheritance                          | 121          | P80    | Monorepo support — lower priority      |
+| L1.19       | Feature adoption scorecard                  | 113          | P80    | DX enhancement                         |
+| L1.20       | Grouped output by aggregate/domain          | 112          | P80    | DX enhancement                         |
+| L1.21       | SARIF rule metadata                         | 117          | P80    | Depends on L1.17 (now partially done)  |
+| L1.22       | Block-level suppression                     | 133          | P80    | DX enhancement                         |
+| L1.23       | Parallel safety + benchmarks                | 123          | P80    | Premature optimization                 |
+| L1.26       | Snapshot/event codec mismatch               | 143          | P80    | Low impact, complex detection          |
+| L1.29       | Event type string typo detection            | 135          | P80    | Cross-ref analysis needed              |
+| L1.30       | Orphaned event types (adapters)             | 136          | P80    | Extends E006                           |
+| L1.31       | Orphaned commands (HTTP layer)              | 137          | P80    | Extends E005                           |
+| L1.32       | Stricter error family detection             | 138          | P80    | Extends D006                           |
+| L1.33       | Goroutine leak in handler                   | 141          | P80    | Resource leak detection                |
+| L1.35       | PII in event payloads                       | 152          | P80    | Compliance                             |
+| L1.39       | Branded ID misuse                           | 175          | P80    | Hard to detect reliably                |
+| L1.45       | Shared mutable state in handler             | 173          | P80    | Overlaps A015                          |
+| L1.47-L1.51 | New categories (DOC/OBS/RES/DI/stack-aware) | 108-111, 106 | P80    | Ambitious, last priority               |
 
 ---
 
@@ -230,18 +230,18 @@ This is the canonical backlog document. Having a stale rule count undermines tru
 
 ## Session Metrics
 
-| Metric | Value |
-| ------ | ----- |
-| Items resolved | 12 backlog items |
-| New detectors | 4 (P013, D016, C035, C036) |
-| Existing rules extended | 3 (C013, C017, B011) |
-| Infrastructure features | 3 (domain bias, doc URLs, C017 function tracing) |
-| New test files | 7 |
-| New test cases | 20+ |
-| Lines added | ~1,189 |
-| Lines modified | ~23 |
-| Test status | GREEN (179 detectors, all pass with `-race`) |
-| `go vet` | Clean |
-| Plan document updated | Partially (L1.5 status update failed) |
-| IMPROVEMENT_IDEAS.md updated | NOT DONE |
-| api-stability golden | NOT DONE |
+| Metric                       | Value                                            |
+| ---------------------------- | ------------------------------------------------ |
+| Items resolved               | 12 backlog items                                 |
+| New detectors                | 4 (P013, D016, C035, C036)                       |
+| Existing rules extended      | 3 (C013, C017, B011)                             |
+| Infrastructure features      | 3 (domain bias, doc URLs, C017 function tracing) |
+| New test files               | 7                                                |
+| New test cases               | 20+                                              |
+| Lines added                  | ~1,189                                           |
+| Lines modified               | ~23                                              |
+| Test status                  | GREEN (179 detectors, all pass with `-race`)     |
+| `go vet`                     | Clean                                            |
+| Plan document updated        | Partially (L1.5 status update failed)            |
+| IMPROVEMENT_IDEAS.md updated | NOT DONE                                         |
+| api-stability golden         | NOT DONE                                         |

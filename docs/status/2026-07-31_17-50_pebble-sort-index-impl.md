@@ -191,23 +191,23 @@
 
 Every non-test `MapScan` caller confirms this is unreachable for sort-indexed queries:
 
-| Caller | Sort passed | Indexable? |
-|--------|-------------|------------|
-| `execute.go:251` (closure fallback) | closure | No |
-| `typed_reader.go:278` (closure fallback) | closure | No |
-| `stats.go:51` (row count) | nil | N/A |
-| `consistency.go:105` (row count) | nil | N/A |
-| `export_import.go:40` (export) | nil | N/A |
+| Caller                                   | Sort passed | Indexable? |
+| ---------------------------------------- | ----------- | ---------- |
+| `execute.go:251` (closure fallback)      | closure     | No         |
+| `typed_reader.go:278` (closure fallback) | closure     | No         |
+| `stats.go:51` (row count)                | nil         | N/A        |
+| `consistency.go:105` (row count)         | nil         | N/A        |
+| `export_import.go:40` (export)           | nil         | N/A        |
 
 The executor prefers `ScanRawValues` (Tier 1) over `MapScan` (Tier 3) whenever declarative accessors are used. Any query using `SortOnField` already gets the sort index.
 
 ### Q2: Should the cursor carry the primaryKey? — **Defer + document.**
 
-| Option | Precision | Complexity | Consistency with Go-sort |
-|--------|-----------|------------|--------------------------|
-| A. Value-only (current) | Drops items with duplicate sort values during pagination | Zero — already shipped | Consistent — same limitation |
-| B. Composite `{value, pk}` | Precise — no items dropped | High — cursor API, query layer, all 3 engines, encoding round-trip | Must also fix Go-sort path |
-| C. Defer + document | Same as A | Zero | Consistent |
+| Option                     | Precision                                                | Complexity                                                         | Consistency with Go-sort     |
+| -------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------- |
+| A. Value-only (current)    | Drops items with duplicate sort values during pagination | Zero — already shipped                                             | Consistent — same limitation |
+| B. Composite `{value, pk}` | Precise — no items dropped                               | High — cursor API, query layer, all 3 engines, encoding round-trip | Must also fix Go-sort path   |
+| C. Defer + document        | Same as A                                                | Zero                                                               | Consistent                   |
 
 A composite cursor is a **system-wide cursor redesign**: the query layer must produce `{value, primaryKey}` after each page, all three engines must accept/compare composite cursors, and the cursor encoding round-trip (`Cursor.Encode()` → base64+JSON) must be updated with backward compat. Fixing it only in the sort index path while leaving the Go-sort path broken creates a **split-brain**: two code paths with different pagination semantics depending on whether a layout is declared.
 
@@ -215,11 +215,11 @@ Consistency with the Go-sort path is the right call. The limitation is pre-exist
 
 ### Q3: Should `Profile().Supports[ADTSortedMap]` be dynamic? — **Revert to `ComplexityON`.**
 
-| Option | Honest? | Surprising? | Planner accuracy |
-|--------|---------|-------------|------------------|
-| A. Revert to `ComplexityON` (no comment) | Yes — conservative | No | Under-promises when sort index exists (safe) |
-| B. Dynamic (check layouts at call time) | Yes — accurate | Yes — Profile() returns different values depending on when called | Accurate but fragile |
-| C. Add `SupportsSortIndex bool` flag | Yes — capability without claiming complexity | No | Planner can be smarter without lying |
+| Option                                   | Honest?                                      | Surprising?                                                       | Planner accuracy                             |
+| ---------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------- |
+| A. Revert to `ComplexityON` (no comment) | Yes — conservative                           | No                                                                | Under-promises when sort index exists (safe) |
+| B. Dynamic (check layouts at call time)  | Yes — accurate                               | Yes — Profile() returns different values depending on when called | Accurate but fragile                         |
+| C. Add `SupportsSortIndex bool` flag     | Yes — capability without claiming complexity | No                                                                | Planner can be smarter without lying         |
 
 `Profile()` is called at **construction time** by the cost-based planner. Layouts are applied **later** via `ApplyLayout`. The current edit (`"O(limit) with sort index, O(N) fallback"`) is dishonest — at construction time, no layout exists, so the answer is always O(N).
 

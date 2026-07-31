@@ -1,9 +1,9 @@
 # ADR-0076: Pebble raw value readers (single-pass JSON decode)
 
-|             |                                                                                   |
-| ----------- | --------------------------------------------------------------------------------- |
-| **Status**  | Accepted                                                                          |
-| **Date**    | 2026-07-31                                                                        |
+|             |                                                                                                  |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| **Status**  | Accepted                                                                                         |
+| **Date**    | 2026-07-31                                                                                       |
 | **Context** | The Pebble LayoutPlanner's filter/sort index path decoded JSON 3x per row (filter, sort, cursor) |
 
 ## Context

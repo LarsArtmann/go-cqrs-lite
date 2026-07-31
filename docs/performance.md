@@ -45,8 +45,8 @@ Full benchmark output: `benchmarks/2026-06-02_20-18-40.md`
 
 Benchkit results (small profile: 1K aggregates × 10 events = 10K total, 256B payloads, JSON codec). Measured 2026-07-31 on AMD Ryzen AI MAX+ 395, 96 GB RAM, Go 1.26.5, Linux. Full data: [`docs/benchmarks/2026-07-31_backend-comparison.md`](benchmarks/2026-07-31_backend-comparison.md).
 
-| Backend  | Write P50 | Write P99 | Write ops/s | Load P50 | Load P99 | Heap  | Disk  |
-| -------- | --------- | --------- | ----------- | -------- | -------- | ----- | ----- |
+| Backend  | Write P50 | Write P99 | Write ops/s  | Load P50 | Load P99 | Heap  | Disk  |
+| -------- | --------- | --------- | ------------ | -------- | -------- | ----- | ----- |
 | memory   | 350ns     | 2.9µs     | **189.8K/s** | 170ns    | 1.2µs    | 17 MB | 0     |
 | pebble   | 11.6µs    | 129µs     | **100.0K/s** | 55.6µs   | 240µs    | 41 MB | 13 MB |
 | sqlite   | 212µs     | 990µs     | **14.4K/s**  | 225µs    | 1.1ms    | 37 MB | 12 MB |
@@ -69,9 +69,9 @@ That's 3+ round-trips per event, with a COMMIT that flushes WAL to disk. The mul
 
 **Proof — the same Postgres with `synchronous_commit=off`:**
 
-| Config                          | Write P50 | Write ops/s | Improvement |
-| ------------------------------- | --------- | ----------- | ----------- |
-| `synchronous_commit=on` (default) | 27.6ms    | 47/s        | baseline    |
+| Config                            | Write P50 | Write ops/s  | Improvement |
+| --------------------------------- | --------- | ------------ | ----------- |
+| `synchronous_commit=on` (default) | 27.6ms    | 47/s         | baseline    |
 | `synchronous_commit=off`          | 130µs     | **18,200/s** | **387x**    |
 
 Postgres **reads are already the fastest** of all SQL backends (137µs P50 Load). It's purely the fsync-per-event write path that cripples throughput at BatchSize=1.

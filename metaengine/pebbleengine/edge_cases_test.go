@@ -28,11 +28,14 @@ func TestPebbleLayoutPlanner_EmptyFilterResults(t *testing.T) {
 	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", []string{"status"}, nil)).To(gomega.Succeed())
 
 	mb := eng.(metaengine.MapBackend)
-	gomega.NewWithT(t).Expect(mb.MapSet(ctx, "items", "k1", map[string]any{"status": "active"})).To(gomega.Succeed())
+	gomega.NewWithT(t).
+		Expect(mb.MapSet(ctx, "items", "k1", map[string]any{"status": "active"})).
+		To(gomega.Succeed())
 
 	rsr := eng.(metaengine.RawScanReader)
 
-	results, err := rsr.ScanRawValues(ctx, "items",
+	results, err := rsr.ScanRawValues(
+		ctx, "items",
 		[]metaengine.FilterSpec{{Column: "status", Op: metaengine.FilterEq, Value: "nonexistent"}},
 		nil, nil, 0,
 	)
@@ -83,7 +86,8 @@ func TestPebbleLayoutPlanner_ConcurrentReadWrite(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			_, _ = rsr.ScanRawValues(ctx, "items",
+			_, _ = rsr.ScanRawValues(
+				ctx, "items",
 				[]metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGe, Value: 0}},
 				&metaengine.SortSpec{Column: "score"}, nil, 10,
 			)
@@ -124,11 +128,15 @@ func TestPebbleLayoutPlanner_KeyCollision(t *testing.T) {
 
 	results, err := rsr.ScanRawValues(ctx, "items", nil, nil, nil, 0)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(1), "key collision: expected 1 result, got %d", len(results))
+	gomega.NewWithT(t).
+		Expect(results).
+		To(gomega.HaveLen(1), "key collision: expected 1 result, got %d", len(results))
 
 	var decoded map[string]any
 	gomega.NewWithT(t).Expect(json.Unmarshal(results[0], &decoded)).To(gomega.Succeed())
-	gomega.NewWithT(t).Expect(decoded["score"]).To(gomega.Equal(float64(50)), "expected last write to win")
+	gomega.NewWithT(t).
+		Expect(decoded["score"]).
+		To(gomega.Equal(float64(50)), "expected last write to win")
 }
 
 // TestPebbleLayoutPlanner_NoLayoutFullScan verifies that ScanRawValues works
@@ -154,7 +162,8 @@ func TestPebbleLayoutPlanner_NoLayoutFullScan(t *testing.T) {
 	sortSpec := &metaengine.SortSpec{Column: "score", Desc: true}
 
 	// Full scan with filter + sort (no layout plan).
-	results, err := rsr.ScanRawValues(ctx, "items",
+	results, err := rsr.ScanRawValues(
+		ctx, "items",
 		[]metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGt, Value: 20}},
 		sortSpec, nil, 0,
 	)

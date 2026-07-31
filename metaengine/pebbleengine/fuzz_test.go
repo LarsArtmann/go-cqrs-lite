@@ -46,7 +46,8 @@ func FuzzScanRawValues(f *testing.F) {
 		rsr := eng.(metaengine.RawScanReader)
 		sortSpec := &metaengine.SortSpec{Column: "score", Desc: false}
 
-		results, err := rsr.ScanRawValues(ctx, "items",
+		results, err := rsr.ScanRawValues(
+			ctx, "items",
 			[]metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGe, Value: threshold}},
 			sortSpec, nil, 3,
 		)

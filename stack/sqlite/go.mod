@@ -9,8 +9,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260731153713-9172e44daee3
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260731164542-e5fcb296dc77
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	modernc.org/sqlite v1.55.0
@@ -31,6 +31,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 // indirect

@@ -9,6 +9,7 @@
 ## a) FULLY DONE (working, tested, committed)
 
 ### L1-01: `stack.WithMetaEngine()` option (keystone)
+
 - `stack/bundle.go` — `metaEngine *metaengine.Store` field + `MetaEngine()` accessor
 - `stack/options.go` — `WithMetaEngine(store)` option + `registerCloser` for lifecycle
 - `stack/metaengine_test.go` — field set, accessor, Close lifecycle, nil case
@@ -16,6 +17,7 @@
 - **Commit:** `2bd759f9`
 
 ### L1-02: benchkit metaengine benchmark phase
+
 - `benchkit/phases_metaengine.go` — counter workload, Apply throughput + ExecuteTyped latency
 - `benchkit/phases_metaengine_test.go` — memory, skip-flag, no-metaengine tests
 - `benchkit/benchkit.go` — `SkipMetaEngine` config field
@@ -24,28 +26,33 @@
 - **Commit:** `8e7fd0de`
 
 ### L1-03: Refactor taskmanager example
+
 - `stack/sqlite/preset.go` — `WithStack(opts ...stack.Option)` passthrough option
 - `example/taskmanager/setup.go` — uses `sqlite.WithStack(stack.WithMetaEngine(meStore))`
 - MetaEngine Store now lifecycle-managed by Bundle.Close()
 - **Commit:** `7d6fa640`
 
 ### L1-04: scenario.ThenQueryResult
+
 - `scenario/dsl.go` — `ThenQueryResult(queryFn func() (any, error), expected any)` on ProjectionScenario
 - `scenario/thenquery_test.go` — simple closure + map result tests
 - Zero new deps for scenario/ (takes `func() (any, error)`, not metaengine types)
 - **Commit:** `01788dc8`
 
 ### L1-05: Integration test
+
 - `integration/metaengine_test.go` — Counter pipeline (event→adapter→Apply→ExecuteTyped) + Map pipeline
 - `integration/go.mod` — metaengine/v4 + projectionadapter/v4 deps
 - **Commit:** `2bd759f9`
 
 ### L1-06: SSE cross-documentation
+
 - `metaengine/sse.go` — doc comment pointing to `transport/http.SSEBroker`
 - `transport/http/sse.go` — doc comment pointing to `metaengine.ServeSSE`
 - **Commit:** `6e27b732` + `e59b670f`
 
 ### L1-07: AGENTS.md + skill references
+
 - `AGENTS.md` — `WithMetaEngine` pattern example in Key Patterns section
 - `.agents/skills/go-cqrs-lite/references/core.md` — decision matrix row for metaengine
 - `.agents/skills/go-cqrs-lite/references/recipes.md` — "Metaengine + Stack Bundle Integration" recipe
@@ -54,10 +61,12 @@
 - **Commit:** `6e27b732`
 
 ### L1-10: Deferred items documentation
+
 - `ROADMAP.md` — 4 deferred items with rationale (catalog bridge, transport wiring, SSE consolidation, Pebble StreamingScan)
 - **Commit:** auto-committed with other ROADMAP changes
 
 ### L1-08: Verification gate (partial — see section b)
+
 - `nix fmt` — ran, formatted 30 files
 - `cmd/api-stability -update` — golden regenerated (2911 exports)
 - `cmd/doc-check` — 1031 references valid across 39 packages
@@ -69,17 +78,20 @@
 ## b) PARTIALLY DONE
 
 ### Verification gate (L1-08)
+
 - Build/Vet/Test/Race: GREEN
 - API Stability: GREEN
 - Doc Check: GREEN
 - **Lint: FAILING** — 9 lint issues across 7 modules. All in files I did not author, but 2 were reformatted by my `nix fmt` run (`benchkit/generator.go`, `storage/eventstore/snapshot.go`).
 
 ### `WithStack` option on presets
+
 - Only added to `stack/sqlite/preset.go`
 - NOT added to `stack/memory`, `stack/pebble`, `stack/postgres`, `stack/turso`, `stack/duckdb`
 - Consumers using non-SQLite presets cannot inject `WithMetaEngine` through the preset constructor
 
 ### Planning document status
+
 - `docs/planning/2026-07-31_17-34_metaengine-first-class-integration.md` still says `Status: PLANNING — not yet executed`
 - Should be updated to `Status: EXECUTED`
 
@@ -98,9 +110,11 @@
 ## d) TOTALLY FUCKED UP / Design Mistakes
 
 ### D1: benchkit phase benchmarks the WRONG store
+
 **Severity: Medium (design integrity)**
 
 The plan says "benchkit auto-discovers metaengine via `bundle.MetaEngine()`" but my implementation **creates its own private memory-backed counter store** instead of using the bundle's actual metaengine Store. This means:
+
 - The phase benchmarks a different store than what the consumer configured
 - If the consumer configured a SQLite metaengine, benchkit still benchmarks memory
 - The "auto-discover" check (`bundle.MetaEngine() != nil`) only gates whether to RUN, not what to benchmark
@@ -108,31 +122,38 @@ The plan says "benchkit auto-discovers metaengine via `bundle.MetaEngine()`" but
 **Fix:** The phase should use `r.bundle.MetaEngine()` directly, or accept a benchmark-specific query declaration from the consumer. The current approach measures "planner overhead ceiling" which is defensible, but the doc comment should be honest about this, and the plan's intent was to benchmark the consumer's actual engine.
 
 ### D2: `WithStack` only on SQLite preset — not composable
+
 **Severity: Medium (usability)**
 
 Only `stack/sqlite/preset.go` got `WithStack`. The other 5 presets (memory, pebble, postgres, turso, duckdb) have no passthrough. This means:
+
 - A Pebble consumer can't do `pebble.New(dir, pebble.WithStack(stack.WithMetaEngine(store)))`
 - The integration is SQLite-only in practice
 
 **Fix:** Add `WithStack` to all 6 presets, or better: push it into `sqlopt.InitStack` so it's shared.
 
 ### D3: Integration test doesn't go through a stack preset
+
 **Severity: Low (coverage gap)**
 
 The plan says "through a real stack preset" but the integration test manually constructs the store + adapter. It never calls `sqlite.New` or `stack.WithMetaEngine`. The `WithMetaEngine` → `bundle.MetaEngine()` → projectionadapter path is only tested in the taskmanager example, not in the integration module.
 
 ### D4: `ThenQueryResult` API inconsistency
+
 **Severity: Low (polish)**
 
 `ThenQueryResult` returns `*ProjectionScenario` (chainable), but `ThenNoError` and `ThenError` return nothing (not chainable). The test had to split the chain:
+
 ```go
 s := scenario.GivenProjection(t, proj, evt, evt, evt)
 s.ThenNoError()
 s.ThenQueryResult(...)  // can chain after ThenNoError, but ThenNoError can't chain
 ```
+
 All three should return `*ProjectionScenario` for consistency.
 
 ### D5: Uncommitted `nix fmt` changes left in working tree
+
 **Severity: Low (hygiene)**
 
 `nix fmt` reformatted `benchkit/generator.go` and `storage/eventstore/snapshot.go` (aligning struct tags / adding blank line). These are uncommitted in the working tree. The auto-commit daemon may pick them up, but they're orphaned changes right now.
@@ -156,6 +177,7 @@ All three should return `*ProjectionScenario` for consistency.
 ## f) Up to 50 Things to Get Done Next
 
 ### Critical (blocks publish)
+
 1. Fix the 9 lint failures (or at minimum the 2 files my `nix fmt` touched)
 2. Run `nix run .#verify` to FULL GREEN (including lint)
 3. Verify `GOWORK=off` builds for stack, benchkit, scenario, integration
@@ -165,6 +187,7 @@ All three should return `*ProjectionScenario` for consistency.
 7. Push to remote
 
 ### High priority (design integrity)
+
 8. Fix benchkit metaengine phase to use `bundle.MetaEngine()` instead of private store
 9. Add `WithStack` to all 6 presets (memory, pebble, postgres, turso, duckdb)
 10. Make `ThenNoError` and `ThenError` return `*ProjectionScenario` for chaining
@@ -172,6 +195,7 @@ All three should return `*ProjectionScenario` for consistency.
 12. Commit the orphaned `nix fmt` changes in `benchkit/generator.go` + `storage/eventstore/snapshot.go`
 
 ### Medium priority (polish)
+
 13. Add `WithStack` to the memory preset (it has no config struct, needs one or a different approach)
 14. Document in benchkit phase why it uses a private store (or fix it per #8)
 15. Add HealthCheck integration for metaengine Store (deferred in plan but could be quick)
@@ -180,6 +204,7 @@ All three should return `*ProjectionScenario` for consistency.
 18. Write a status report for this session (this document)
 
 ### Testing improvements
+
 19. Add benchkit metaengine test with SQLite engine (not just memory)
 20. Add integration test for the Map ADT through a stack preset
 21. Add scenario test that uses ThenQueryResult with an actual metaengine Store
@@ -188,6 +213,7 @@ All three should return `*ProjectionScenario` for consistency.
 24. Add concurrent Apply test in the integration module
 
 ### Documentation
+
 25. Update FEATURES.md with metaengine stack integration status
 26. Update TODO_LIST.md with the remaining integration items
 27. Add ADR for `WithMetaEngine` design decision (why `*Store` not `Plan()`)
@@ -196,6 +222,7 @@ All three should return `*ProjectionScenario` for consistency.
 30. Add metaengine benchkit phase to the benchkit README
 
 ### Code quality
+
 31. Consider extracting `WithStack` into a shared `stack.WithStack` option on the Bundle itself
 32. Consider whether benchkit should benchmark the consumer's actual queries, not a synthetic counter
 33. Add godoc examples for `WithMetaEngine` (testable example)
@@ -204,6 +231,7 @@ All three should return `*ProjectionScenario` for consistency.
 36. Consider `WithMetaEngineFromPlan(engines, queries)` convenience (rejected in plan but revisit)
 
 ### Architecture
+
 37. Add catalog bridge for metaengine queries (deferred — revisit when consumer asks)
 38. Implement Pebble StreamingScan (deferred — separate sprint)
 39. Consider SSE consolidation (deferred — revisit with more data)
@@ -211,6 +239,7 @@ All three should return `*ProjectionScenario` for consistency.
 41. Add metaengine to the stack/bench module for automated regression benchmarking
 
 ### CI / Release
+
 42. Verify CI passes with the new lint failures fixed
 43. Run `nix run .#vulncheck` to verify no security issues from new deps
 44. Run `nix run .#check-layers` to verify dependency budgets aren't exceeded

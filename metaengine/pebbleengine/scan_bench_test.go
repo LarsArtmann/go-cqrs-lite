@@ -35,7 +35,9 @@ func BenchmarkPebbleScanRawValues_FilterIndex(b *testing.B) {
 			}
 
 			rsr := eng.(metaengine.RawScanReader)
-			filter := []metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGe, Value: n / 2}}
+			filter := []metaengine.FilterSpec{
+				{Column: "score", Op: metaengine.FilterGe, Value: n / 2},
+			}
 			sortSpec := &metaengine.SortSpec{Column: "score", Desc: false}
 
 			b.ResetTimer()

@@ -210,9 +210,10 @@ the passthrough use case without coupling.
 Extracting a shared `sse` helper package from `metaengine/sse.go` and
 `transport/http/sse.go`. The two implementations serve different layers:
 `metaengine/sse.go` watches a Store collection for mutations (collection-watch
-+ replay), while `transport/http/sse.go` bridges an `event.Bus` to HTTP clients
-(bus-to-client). Merging risks a leaky abstraction. Cross-reference comments
-were added to both files instead.
+
+- replay), while `transport/http/sse.go` bridges an `event.Bus` to HTTP clients
+  (bus-to-client). Merging risks a leaky abstraction. Cross-reference comments
+  were added to both files instead.
 
 ### Pebble Engine StreamingScan (DEFERRED — Separate Sprint)
 

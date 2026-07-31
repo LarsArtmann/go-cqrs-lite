@@ -37,7 +37,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
@@ -55,7 +54,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/retry/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-must v0.0.0-00010101000000-000000000000
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
