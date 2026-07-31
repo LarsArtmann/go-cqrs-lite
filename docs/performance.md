@@ -43,13 +43,46 @@ Full benchmark output: `benchmarks/2026-06-02_20-18-40.md`
 
 ## Storage Backend Comparison
 
-Benchkit results (small profile: 1K aggregates × 10 events = 10K total):
+Benchkit results (small profile: 1K aggregates × 10 events = 10K total, 256B payloads, JSON codec). Measured 2026-07-31 on AMD Ryzen AI MAX+ 395, 96 GB RAM, Go 1.26.5, Linux. Full data: [`docs/benchmarks/2026-07-31_backend-comparison.md`](benchmarks/2026-07-31_backend-comparison.md).
 
-| Backend       | Throughput           | Notes                         |
-| ------------- | -------------------- | ----------------------------- |
-| Memory        | ~227K events/sec     | CPU-bound below 256B payloads |
-| Pebble + CBOR | **80.4K events/sec** | 6.5× faster than SQLite       |
-| SQLite        | 12.2K events/sec     | WAL mode + busy_timeout       |
+| Backend  | Write P50 | Write P99 | Write ops/s | Load P50 | Load P99 | Heap  | Disk  |
+| -------- | --------- | --------- | ----------- | -------- | -------- | ----- | ----- |
+| memory   | 350ns     | 2.9µs     | **189.8K/s** | 170ns    | 1.2µs    | 17 MB | 0     |
+| pebble   | 11.6µs    | 129µs     | **100.0K/s** | 55.6µs   | 240µs    | 41 MB | 13 MB |
+| sqlite   | 212µs     | 990µs     | **14.4K/s**  | 225µs    | 1.1ms    | 37 MB | 12 MB |
+| duckdb   | 1.71ms    | 4.97ms    | **2.1K/s**   | 1.01ms   | 1.76ms   | 16 MB | —     |
+| postgres | 27.6ms    | 779ms     | **47/s**     | 137µs    | 1.17ms   | 16 MB | —     |
+
+> **Turso** is not included — the `stack/turso/` preset exists and passes the contract suite, but `cqrs-bench` has no `case "turso"` factory entry yet. Turso is libSQL (SQLite fork), so numbers would be SQLite-class. To add it, add a case to `cmd/cqrs-bench/factory.go`.
+
+### Why Postgres and DuckDB look slow (and why it's NOT the engine)
+
+The `small` profile uses **`BatchSize: 1`** (`benchkit/profiles.go:50`) — every `Save()` call writes exactly one event. The SQL write path (`storage/eventstore/event_store.go:84-109`) executes a **full transaction per event**:
+
+```
+BEGIN → SELECT MAX(version) → INSERT (1 row) → COMMIT
+```
+
+That's 3+ round-trips per event, with a COMMIT that flushes WAL to disk. The multi-row INSERT path (up to 99 rows/batch, `storage/sql/helpers.go:109`) is never exercised at BatchSize=1.
+
+**Postgres (47 writes/sec)** is bottlenecked by `synchronous_commit=on` (the default): each COMMIT fsyncs WAL to disk before returning. With one event per transaction, that's one fsync per event. The `stack/postgres` preset (`preset.go:148`) calls bare `sql.Open("pgx", dsn)` with zero pool tuning.
+
+**Proof — the same Postgres with `synchronous_commit=off`:**
+
+| Config                          | Write P50 | Write ops/s | Improvement |
+| ------------------------------- | --------- | ----------- | ----------- |
+| `synchronous_commit=on` (default) | 27.6ms    | 47/s        | baseline    |
+| `synchronous_commit=off`          | 130µs     | **18,200/s** | **387x**    |
+
+Postgres **reads are already the fastest** of all SQL backends (137µs P50 Load). It's purely the fsync-per-event write path that cripples throughput at BatchSize=1.
+
+**DuckDB (2.1K writes/sec)** is a **columnar OLAP engine**. Single-row INSERTs are its worst case — each INSERT rewrites column chunks instead of appending to a row log. DuckDB excels at analytical scans, GROUP BY aggregations, and bulk loads, not transactional row-by-row appends. The `analytical` profile (90% reads, 5x journal scans) would show its strengths.
+
+### How to get fair numbers for SQL backends
+
+1. **Use a larger profile** — `medium` (BatchSize=5) or `large` (BatchSize=10) amortizes fsync across multiple events per transaction.
+2. **Tune durability** — For Postgres: `synchronous_commit=off` or use a connection pool with batching. For SQLite: `synchronous=NORMAL` (already done in the preset) gives 3-10x better write throughput.
+3. **Use the `analytical` profile for DuckDB** — 90% reads + 5x journal scans shows DuckDB's columnar scan advantage.
 
 ### Event-size scaling (memory backend)
 

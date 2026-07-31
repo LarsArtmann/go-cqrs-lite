@@ -26,6 +26,7 @@ var (
 )
 
 // cqrs-lint:ignore(A001,E005) library code or intentional pattern
+
 func (c *PersistedCommand) ID() id.CommandID       { return c.id }
 func (c *PersistedCommand) Type() Type             { return c.cmdType }
 func (c *PersistedCommand) StreamID() id.StreamID  { return c.streamRef.ID }

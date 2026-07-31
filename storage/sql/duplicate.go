@@ -38,7 +38,8 @@ func IsDuplicateKeyError(err error) bool {
 
 	return strings.Contains(msg, "UNIQUE constraint failed") ||
 		strings.Contains(msg, "duplicate key value violates unique constraint") ||
-		strings.Contains(msg, "UNIQUE constraint violated")
+		strings.Contains(msg, "UNIQUE constraint violated") ||
+		strings.Contains(msg, "Duplicate entry") // MySQL Error 1062
 }
 
 // pgCodeError is an interface satisfied by pgconn.PgError and similar types

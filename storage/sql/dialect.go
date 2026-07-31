@@ -150,6 +150,109 @@ func (PostgresDialect) TimerSchema() string {
 CREATE INDEX IF NOT EXISTS idx_timers_fire_at ON timers(fire_at);`
 }
 
+// MySQLDialect is the Dialect for MySQL databases (event-store-only support).
+// MySQL uses ? placeholders, native time.Time handling, and LONGBLOB/JSON types.
+// Indexes are embedded in CREATE TABLE (MySQL lacks CREATE INDEX IF NOT EXISTS).
+type MySQLDialect struct{}
+
+func (MySQLDialect) Placeholder(_ int) string { return "?" }
+
+func (MySQLDialect) FormatTime(t time.Time) any { return t }
+
+func (MySQLDialect) ScanTimeDest() any {
+	return new(time.Time)
+}
+
+func (MySQLDialect) ParseTime(src any) (time.Time, error) {
+	return parseTimePointer(src, "mysql")
+}
+
+func (MySQLDialect) EventSchema() string {
+	return `CREATE TABLE IF NOT EXISTS events (
+    id               VARCHAR(255) PRIMARY KEY,
+    event_type       VARCHAR(255) NOT NULL,
+    aggregate_type   VARCHAR(255) NOT NULL,
+    aggregate_id     VARCHAR(255) NOT NULL,
+    version          INTEGER NOT NULL,
+    schema_version   INTEGER NOT NULL DEFAULT 1,
+    payload          LONGBLOB,
+    payload_encoding VARCHAR(32) NOT NULL DEFAULT 'json',
+    metadata         JSON,
+    occurred_at      DATETIME(3) NOT NULL,
+    created_at       DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    UNIQUE KEY uq_events_agg_version (aggregate_type, aggregate_id, version),
+    KEY idx_events_aggregate (aggregate_type, aggregate_id),
+    KEY idx_events_type (event_type),
+    KEY idx_events_occurred_at (occurred_at),
+    KEY idx_events_agg_time (aggregate_type, aggregate_id, occurred_at)
+);`
+}
+
+func (MySQLDialect) CommandSchema() string {
+	return `CREATE TABLE IF NOT EXISTS commands (
+    id               VARCHAR(255) PRIMARY KEY,
+    command_type     VARCHAR(255) NOT NULL,
+    aggregate_type   VARCHAR(255) NOT NULL,
+    aggregate_id     VARCHAR(255) NOT NULL,
+    payload          LONGBLOB,
+    metadata         JSON,
+    received_at      DATETIME(3) NOT NULL,
+    created_at       DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    KEY idx_commands_aggregate (aggregate_type, aggregate_id),
+    KEY idx_commands_type (command_type),
+    KEY idx_commands_received_at (received_at)
+);`
+}
+
+func (MySQLDialect) QuerySchema() string {
+	return `CREATE TABLE IF NOT EXISTS queries (
+    id               VARCHAR(255) PRIMARY KEY,
+    query_type       VARCHAR(255) NOT NULL,
+    payload          LONGBLOB,
+    metadata         JSON,
+    received_at      DATETIME(3) NOT NULL,
+    created_at       DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    KEY idx_queries_type (query_type),
+    KEY idx_queries_received_at (received_at)
+);`
+}
+
+func (MySQLDialect) SnapshotSchema() string {
+	return `CREATE TABLE IF NOT EXISTS snapshots (
+    aggregate_type  VARCHAR(255) NOT NULL,
+    aggregate_id    VARCHAR(255) NOT NULL,
+    version         INTEGER NOT NULL,
+    state           JSON NOT NULL,
+    created_at      DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (aggregate_type, aggregate_id)
+);`
+}
+
+func (MySQLDialect) CheckpointSchema() string {
+	return `CREATE TABLE IF NOT EXISTS checkpoints (
+    projection_name VARCHAR(255) PRIMARY KEY,
+    event_id        VARCHAR(255) NOT NULL,
+    processed_at    DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+);`
+}
+
+func (MySQLDialect) KVSchema() string {
+	return `CREATE TABLE IF NOT EXISTS cqrs_kv (
+    kv_key   VARBINARY(512) PRIMARY KEY,
+    kv_value LONGBLOB NOT NULL
+);`
+}
+
+func (MySQLDialect) TimerSchema() string {
+	return `CREATE TABLE IF NOT EXISTS timers (
+    id         VARCHAR(255) PRIMARY KEY,
+    fire_at    DATETIME(3) NOT NULL,
+    payload    LONGBLOB NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    KEY idx_timers_fire_at (fire_at)
+);`
+}
+
 // SQLiteDialect is the Dialect for SQLite databases.
 type SQLiteDialect struct{}
 

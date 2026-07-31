@@ -30,7 +30,9 @@ import (
 // Extra options (e.g. [stack.WithMetaEngine]) can be passed to override or
 // extend the default wiring.
 func New(extra ...stack.Option) (*stack.Bundle, error) {
-	opts := make([]stack.Option, 0, 7+len(extra))
+	const defaultOpts = 7
+
+	opts := make([]stack.Option, 0, defaultOpts+len(extra))
 	opts = append(
 		opts,
 		stack.WithEventStore(memory.NewMemoryStore()),

@@ -15,6 +15,7 @@ import (
 // PersistedQuery is a stored query with full audit metadata.
 // It is the query-side equivalent of command.PersistedCommand.
 // cqrs-lint:ignore(E007) library code or intentional pattern
+
 type PersistedQuery struct {
 	id         id.RequestID
 	queryType  Type
@@ -26,6 +27,7 @@ type PersistedQuery struct {
 var _ fmt.Stringer = (*PersistedQuery)(nil)
 
 // cqrs-lint:ignore(A001,E005) library code or intentional pattern
+
 func (q *PersistedQuery) ID() id.RequestID      { return q.id }
 func (q *PersistedQuery) Type() Type            { return q.queryType }
 func (q *PersistedQuery) ReceivedAt() time.Time { return q.receivedAt }
