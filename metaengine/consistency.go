@@ -53,7 +53,7 @@ func WithEventLog(store *Store, log *EventLog) {
 // Requires WithEventLog and the original query declarations stored on Plan.
 func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 	if s.eventLog == nil {
-		return errors.New("metaengine.Verify: no event log attached — call WithEventLog first")
+		return errNoEventLog
 	}
 
 	events := s.eventLog.Events()
@@ -62,7 +62,7 @@ func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 	}
 
 	if s.queryDecls == nil {
-		return errors.New("metaengine.Verify: no query declarations stored")
+		return errNoQueryDecls
 	}
 
 	freshStore, err := Plan(engines, s.queryDecls...)
@@ -81,7 +81,7 @@ func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 
 	for i := range liveCols {
 		if i >= len(freshCols) {
-			return errors.New("metaengine.Verify: collection count mismatch")
+			return errCollectionCountMismatch
 		}
 
 		liveEng, _ := s.collectionEngine(liveCols[i].Name)
@@ -92,8 +92,8 @@ func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 
 		if liveCount != freshCount {
 			return fmt.Errorf(
-				"metaengine.Verify: drift in %q — live has %d rows, replay has %d",
-				liveCols[i].Name, liveCount, freshCount,
+				"%w in %q — live has %d rows, replay has %d",
+				errVerifyDrift, liveCols[i].Name, liveCount, freshCount,
 			)
 		}
 	}

@@ -35,7 +35,7 @@ func (c *stmtCache) prepare(ctx context.Context, query string) (*sql.Stmt, error
 
 	actual, loaded := c.m.LoadOrStore(query, stmt)
 	if loaded {
-		_ = stmt.Close() // another goroutine won the race
+		_ = stmt.Close() //nolint:sqlclosecheck // intentional immediate close — loser of race
 	}
 
 	return actual.(*sql.Stmt), nil
@@ -44,17 +44,17 @@ func (c *stmtCache) prepare(ctx context.Context, query string) (*sql.Stmt, error
 // exec executes a statement via the cache, falling back to db.ExecContext on
 // prepare errors (e.g., transient connection issues).
 func (c *stmtCache) exec(ctx context.Context, query string, args ...any) (sql.Result, error) {
-	stmt, err := c.prepare(ctx, query)
+	stmt, err := c.prepare(ctx, query) //nolint:sqlclosecheck // cached stmt
 	if err != nil {
-		return c.db.ExecContext(ctx, query, args...)
+		return c.db.ExecContext(ctx, query, args...) //nolint:wrapcheck // passthrough
 	}
 
-	return stmt.ExecContext(ctx, args...)
+	return stmt.ExecContext(ctx, args...) //nolint:wrapcheck // passthrough
 }
 
 // queryRow executes a one-row query via the cache.
 func (c *stmtCache) queryRow(ctx context.Context, query string, args ...any) *sql.Row {
-	stmt, err := c.prepare(ctx, query)
+	stmt, err := c.prepare(ctx, query) //nolint:sqlclosecheck // cached stmt
 	if err != nil {
 		return c.db.QueryRowContext(ctx, query, args...)
 	}
@@ -64,9 +64,9 @@ func (c *stmtCache) queryRow(ctx context.Context, query string, args ...any) *sq
 
 // query executes a multi-row query via the cache.
 func (c *stmtCache) query(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
-	stmt, err := c.prepare(ctx, query)
+	stmt, err := c.prepare(ctx, query) //nolint:sqlclosecheck // cached stmt
 	if err != nil {
-		return c.db.QueryContext(ctx, query, args...)
+		return c.db.QueryContext(ctx, query, args...) //nolint:wrapcheck // passthrough
 	}
 
 	return stmt.QueryContext(ctx, args...) //nolint:wrapcheck // passthrough
