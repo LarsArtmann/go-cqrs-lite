@@ -4,7 +4,6 @@ import (
 	"context"
 	"go/ast"
 	"go/token"
-	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -100,47 +99,6 @@ func NewE015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// projectHasCallContaining reports whether any non-test file calls a function
-// whose name contains substring, regardless of package qualifier.
-func projectHasCallContaining(ctx *analyzer.AnalysisContext, substring string) bool {
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		found := false
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if found {
-				return false
-			}
-
-			call, ok := n.(*ast.CallExpr)
-			if !ok {
-				return true
-			}
-
-			sel, ok := analyzer.SelectorFromExpr(call.Fun)
-			if !ok {
-				return true
-			}
-
-			if containsSubstring(sel.Sel.Name, substring) {
-				found = true
-				return false
-			}
-
-			return true
-		})
-
-		if found {
-			return true
-		}
-	}
-
-	return false
-}
-
 // firstKeyBoolPos returns the position of the first composite-literal
 // key-value pair where key == keyName and value is a bool matching wantBool.
 func firstKeyBoolPos(
@@ -196,9 +154,4 @@ func firstKeyBoolPos(
 	}
 
 	return token.Position{}, false
-}
-
-// containsSubstring reports whether s contains substr.
-func containsSubstring(s, substr string) bool {
-	return len(s) >= len(substr) && strings.Contains(s, substr)
 }

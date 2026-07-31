@@ -122,7 +122,9 @@ func TestPebbleScanRawValuesWithFilter(t *testing.T) {
 	}
 }
 
-func TestPebbleScanRawValuesWithSort(t *testing.T) {
+func testSortedScan(t *testing.T, desc bool, expected []float64) {
+	t.Helper()
+
 	g := NewGomegaWithT(t)
 
 	eng, err := pebbleengine.NewPebbleEngine("")
@@ -147,7 +149,7 @@ func TestPebbleScanRawValuesWithSort(t *testing.T) {
 			To(Succeed())
 	}
 
-	sortSpec := &metaengine.SortSpec{Column: "priority", Desc: false}
+	sortSpec := &metaengine.SortSpec{Column: "priority", Desc: desc}
 	raw, err := rsr.ScanRawValues(ctx, "sorted", nil, sortSpec, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(raw).To(HaveLen(3))
@@ -161,49 +163,15 @@ func TestPebbleScanRawValuesWithSort(t *testing.T) {
 		priorities = append(priorities, p)
 	}
 
-	g.Expect(priorities).To(Equal([]float64{1, 2, 3}))
+	g.Expect(priorities).To(Equal(expected))
+}
+
+func TestPebbleScanRawValuesWithSort(t *testing.T) {
+	testSortedScan(t, false, []float64{1, 2, 3})
 }
 
 func TestPebbleScanRawValuesWithSortDesc(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
-
-	items := []struct {
-		key      string
-		priority float64
-	}{
-		{"s1", 3},
-		{"s2", 1},
-		{"s3", 2},
-	}
-	for _, item := range items {
-		g.Expect(mb.MapSet(ctx, "sorted", item.key,
-			map[string]any{"priority": item.priority, "key": item.key})).
-			To(Succeed())
-	}
-
-	sortSpec := &metaengine.SortSpec{Column: "priority", Desc: true}
-	raw, err := rsr.ScanRawValues(ctx, "sorted", nil, sortSpec, nil, 0)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(3))
-
-	priorities := make([]float64, 0, 3)
-	for _, b := range raw {
-		var v map[string]any
-		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
-		p, ok := v["priority"].(float64)
-		g.Expect(ok).To(BeTrue())
-		priorities = append(priorities, p)
-	}
-
-	g.Expect(priorities).To(Equal([]float64{3, 2, 1}))
+	testSortedScan(t, true, []float64{3, 2, 1})
 }
 
 func TestPebbleScanRawValuesWithCursor(t *testing.T) {

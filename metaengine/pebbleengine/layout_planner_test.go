@@ -220,6 +220,7 @@ func TestPebbleLayoutPlanner_MapUpdateReindexes(t *testing.T) {
 		m := prev.(map[string]any)
 		m["cat"] = "b"
 		m["val"] = 2
+
 		return m
 	}); err != nil {
 		t.Fatalf("MapUpdate: %v", err)
@@ -343,5 +344,81 @@ func TestPebbleLayoutPlanner_RangeFilters(t *testing.T) {
 	}
 	if len(results) != 3 {
 		t.Errorf("FilterLe(30): expected 3 results, got %d", len(results))
+	}
+}
+
+func TestPebbleLayoutPlanner_NumericRangeMixedDigits(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	if err := lp.ApplyLayout("items", []string{"score"}, nil); err != nil {
+		t.Fatalf("ApplyLayout: %v", err)
+	}
+
+	mb := eng.(metaengine.MapBackend)
+
+	// Scores with DIFFERENT digit counts: 5, 10, 100.
+	// Without type-aware encoding, "10" < "100" < "5" lexicographically,
+	// producing wrong range scan results.
+	scores := []struct {
+		key   string
+		score int
+	}{
+		{"five", 5}, {"ten", 10}, {"hundred", 100},
+	}
+
+	for _, item := range scores {
+		if err := mb.MapSet(ctx, "items", item.key, map[string]any{
+			"score": item.score,
+			"name":  item.key,
+		}); err != nil {
+			t.Fatalf("MapSet %s: %v", item.key, err)
+		}
+	}
+
+	rawReader := eng.(metaengine.RawScanReader)
+
+	// FilterGt(5) → 2 results (10, 100). Old encoding returns 0.
+	results, err := rawReader.ScanRawValues(
+		ctx, "items",
+		[]metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGt, Value: 5}},
+		nil, nil, 0,
+	)
+	if err != nil {
+		t.Fatalf("ScanRawValues FilterGt: %v", err)
+	}
+	if len(results) != 2 {
+		t.Errorf("FilterGt(5): expected 2 results (10, 100), got %d", len(results))
+	}
+
+	// FilterLt(10) → 1 result (5). Old encoding incorrectly includes 100.
+	results, err = rawReader.ScanRawValues(
+		ctx, "items",
+		[]metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterLt, Value: 10}},
+		nil, nil, 0,
+	)
+	if err != nil {
+		t.Fatalf("ScanRawValues FilterLt: %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("FilterLt(10): expected 1 result (5), got %d", len(results))
+	}
+
+	// FilterGe(100) → 1 result (100).
+	results, err = rawReader.ScanRawValues(
+		ctx, "items",
+		[]metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGe, Value: 100}},
+		nil, nil, 0,
+	)
+	if err != nil {
+		t.Fatalf("ScanRawValues FilterGe: %v", err)
+	}
+	if len(results) != 1 {
+		t.Errorf("FilterGe(100): expected 1 result (100), got %d", len(results))
 	}
 }

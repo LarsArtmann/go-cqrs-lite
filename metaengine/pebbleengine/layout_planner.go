@@ -260,7 +260,7 @@ func (e *pebbleEngine) scanWithIndex(
 	}
 
 	if err := iter.Error(); err != nil {
-			return nil, err
+		return nil, err
 	}
 
 	return results, nil

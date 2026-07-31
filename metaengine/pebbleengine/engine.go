@@ -213,7 +213,7 @@ var (
 
 // --- MapBackend ---
 
-func (e *pebbleEngine) MapSet(_ context.Context, col string, key any, value any) error {
+func (e *pebbleEngine) MapSet(_ context.Context, col string, key, value any) error {
 	keyStr := encodeKeyStr(key)
 	valueJSON := encodeJSON(value)
 
@@ -230,7 +230,7 @@ func (e *pebbleEngine) MapSet(_ context.Context, col string, key any, value any)
 		if oldVal, closer, err := e.db.Get(mapKey(col, keyStr)); err == nil {
 			e.deleteIndexEntries(batch, col, keyStr, oldVal, plan)
 
-			_ = closer.Close() //nolint:errcheck // pebble closer
+			_ = closer.Close()
 		}
 
 		if err := batch.Set(mapKey(col, keyStr), valueJSON, nil); err != nil {
@@ -271,7 +271,7 @@ func (e *pebbleEngine) MapDelete(_ context.Context, col string, key any) error {
 		if oldVal, closer, err := e.db.Get(mapKey(col, keyStr)); err == nil {
 			e.deleteIndexEntries(batch, col, keyStr, oldVal, plan)
 
-			_ = closer.Close() //nolint:errcheck // pebble closer
+			_ = closer.Close()
 		}
 
 		if err := batch.Delete(mapKey(col, keyStr), nil); err != nil {
@@ -566,7 +566,7 @@ func (e *pebbleEngine) scanGraphNeighbors(col, node string) []string {
 
 // --- MultimapBackend ---
 
-func (e *pebbleEngine) MultiAdd(_ context.Context, col string, key any, value any) error {
+func (e *pebbleEngine) MultiAdd(_ context.Context, col string, key, value any) error {
 	seq := e.nextMmSeq(col)
 	k := multimapKey(col, encodeKeyStr(key), seq)
 
