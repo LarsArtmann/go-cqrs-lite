@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -25,6 +26,11 @@ type SSEConfig struct {
 	// (":keepalive\n\n") to keep the connection alive through proxies.
 	// Zero disables heartbeats.
 	HeartbeatInterval time.Duration
+
+	// ReplayLimit caps the number of events replayed on reconnection.
+	// Zero means replay all available events from the journal.
+	// Only applies when the watcher has a replay journal (WithReplay).
+	ReplayLimit int
 }
 
 // SSEOption configures an SSEConfig.
@@ -46,6 +52,14 @@ func WithSSEHeartbeat(d time.Duration) SSEOption {
 	return func(c *SSEConfig) { c.HeartbeatInterval = d }
 }
 
+// WithSSEReplayLimit caps the number of events replayed from the journal on
+// reconnection. Zero (default) replays all available events. Use a bounded
+// limit to prevent slow clients from receiving a huge backlog on reconnect.
+// Only applies when the watcher has a replay journal (WithReplay).
+func WithSSEReplayLimit(n int) SSEOption {
+	return func(c *SSEConfig) { c.ReplayLimit = n }
+}
+
 // ServeSSE streams Watcher notifications as Server-Sent Events over HTTP.
 // Each value change is JSON-encoded and sent as an SSE "data" event.
 //
@@ -53,18 +67,28 @@ func WithSSEHeartbeat(d time.Duration) SSEOption {
 // client is slow and the buffer fills, the oldest unread event is dropped.
 // A timeout option closes the stream after a maximum duration.
 //
+// Reconnection: when the watcher has a replay journal (attached via
+// [Watcher.WithReplay]), ServeSSE writes an "id: <seq>" field on every event.
+// On reconnect, clients send the "Last-Event-ID" header with the last sequence
+// number they received. ServeSSE replays missed events from the journal
+// before switching to live streaming, with dedup to handle the replay→live
+// overlap. Use [WithSSEReplayLimit] to cap the number of replayed events.
+//
 // Usage:
 //
 //	watcher := NewWatcher[UserView](store, "users")
+//	replay := watcher.WithReplay(1000) // enable reconnection
 //	defer watcher.Close()
 //	http.HandleFunc("/events/users", func(w http.ResponseWriter, r *http.Request) {
 //	    _ = metaengine.ServeSSE(w, r, watcher,
 //	        metaengine.WithSSETimeout(30*time.Minute),
 //	        metaengine.WithSSEHeartbeat(30*time.Second),
+//	        metaengine.WithSSEReplayLimit(500),
 //	    )
 //	})
 //
-// Clients connect with EventSource in the browser:
+// Clients connect with EventSource in the browser — Last-Event-ID is handled
+// automatically:
 //
 //	const es = new EventSource("/events/users");
 //	es.onmessage = (e) => console.log(JSON.parse(e.data));
@@ -92,6 +116,22 @@ func ServeSSE[V any](
 	w.WriteHeader(http.StatusOK)
 	flusher.Flush()
 
+	replay := watcher.Replay()
+	if replay != nil {
+		return serveSSEReplay(w, r, flusher, watcher, replay, cfg)
+	}
+
+	return serveSSEPlain(w, r, flusher, watcher, cfg)
+}
+
+// serveSSEPlain is the non-reconnection path: no id field, no dedup.
+func serveSSEPlain[V any](
+	w http.ResponseWriter,
+	r *http.Request,
+	flusher http.Flusher,
+	watcher *Watcher[V],
+	cfg SSEConfig,
+) error {
 	ctx := r.Context()
 
 	var timer *time.Timer
@@ -100,12 +140,9 @@ func ServeSSE[V any](
 		defer timer.Stop()
 	}
 
-	// Buffered pipeline: watcher values → SSE writer.
-	// Drop-old semantics: if the buffer is full, the oldest value is discarded.
 	buf := make(chan V, cfg.MaxBuffer)
 	watchCh := watcher.Watch(ctx, nil)
 
-	// Pump goroutine: read from watcher, push to buffer with drop-old.
 	go func() {
 		defer close(buf)
 
@@ -121,9 +158,8 @@ func ServeSSE[V any](
 				select {
 				case buf <- val:
 				default:
-					// Buffer full: drop oldest, push newest (drop-old semantics).
 					select {
-					case <-buf: // discard oldest
+					case <-buf:
 					default:
 					}
 
@@ -142,7 +178,6 @@ func ServeSSE[V any](
 		defer heartbeat.Stop()
 	}
 
-	// Extract timer/heartbeat channels (nil channel = disabled in select).
 	var timerCh, heartbeatCh <-chan time.Time
 	if timer != nil {
 		timerCh = timer.C
@@ -174,7 +209,148 @@ func ServeSSE[V any](
 			flusher.Flush()
 
 		case <-timerCh:
-			return nil // timeout reached
+			return nil
+
+		case <-heartbeatCh:
+			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil {
+				return err
+			}
+
+			flusher.Flush()
+		}
+	}
+}
+
+// serveSSEReplay is the reconnection path: replays missed events from the
+// journal on reconnect, then switches to live with dedup.
+func serveSSEReplay[V any](
+	w http.ResponseWriter,
+	r *http.Request,
+	flusher http.Flusher,
+	watcher *Watcher[V],
+	replay *SSEReplay[V],
+	cfg SSEConfig,
+) error {
+	ctx := r.Context()
+
+	// Parse Last-Event-ID header (uint64 sequence number).
+	var afterSeq uint64
+
+	if lastID := r.Header.Get("Last-Event-ID"); lastID != "" {
+		if parsed, err := strconv.ParseUint(lastID, 10, 64); err == nil {
+			afterSeq = parsed
+		}
+	}
+
+	// Phase 1: Replay missed events from the journal.
+	replayed := replay.Replay(afterSeq)
+	if cfg.ReplayLimit > 0 && len(replayed) > cfg.ReplayLimit {
+		replayed = replayed[:cfg.ReplayLimit]
+	}
+
+	replayedSeqs := make(map[uint64]struct{}, len(replayed))
+
+	for _, sv := range replayed {
+		data, err := json.Marshal(sv.Value)
+		if err != nil {
+			continue
+		}
+
+		if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil {
+			return err
+		}
+
+		replayedSeqs[sv.Seq] = struct{}{}
+	}
+
+	if len(replayed) > 0 {
+		flusher.Flush()
+	}
+
+	// Phase 2: Live streaming with dedup (skip events already replayed).
+	var timer *time.Timer
+	if cfg.Timeout > 0 {
+		timer = time.NewTimer(cfg.Timeout)
+		defer timer.Stop()
+	}
+
+	buf := make(chan SeqValue[V], cfg.MaxBuffer)
+	watchCh := watcher.WatchWithSeq(ctx, nil)
+
+	go func() {
+		defer close(buf)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case sv, ok := <-watchCh:
+				if !ok {
+					return
+				}
+
+				// Dedup: skip events that were already replayed.
+				if sv.Seq > 0 {
+					if _, dup := replayedSeqs[sv.Seq]; dup {
+						continue
+					}
+				}
+
+				select {
+				case buf <- sv:
+				default:
+					select {
+					case <-buf:
+					default:
+					}
+
+					select {
+					case buf <- sv:
+					default:
+					}
+				}
+			}
+		}
+	}()
+
+	var heartbeat *time.Ticker
+	if cfg.HeartbeatInterval > 0 {
+		heartbeat = time.NewTicker(cfg.HeartbeatInterval)
+		defer heartbeat.Stop()
+	}
+
+	var timerCh, heartbeatCh <-chan time.Time
+	if timer != nil {
+		timerCh = timer.C
+	}
+
+	if heartbeat != nil {
+		heartbeatCh = heartbeat.C
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+
+		case sv, ok := <-buf:
+			if !ok {
+				return nil
+			}
+
+			data, err := json.Marshal(sv.Value)
+			if err != nil {
+				continue
+			}
+
+			if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil {
+				return err
+			}
+
+			flusher.Flush()
+
+		case <-timerCh:
+			return nil
 
 		case <-heartbeatCh:
 			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil {

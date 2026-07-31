@@ -198,7 +198,7 @@ func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 	// Register on the store so Apply can notify
 	w.store.registerWatcher(w.coll, entry)
 
-	// Adapter goroutine: convert any→V
+	// Adapter goroutine: convert any→V, unwrap watcherNotification if present.
 	go func() {
 		for {
 			select {
@@ -209,7 +209,8 @@ func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 					return
 				}
 
-				if v, ok := val.(V); ok {
+				v, ok := unwrapWatcherValue[V](val)
+				if ok {
 					select {
 					case ch <- v:
 					default: // drop if consumer is slow
@@ -222,7 +223,82 @@ func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 	return ch
 }
 
-// Close stops all subscriptions.
+// WatchWithSeq is like Watch but returns SeqValue pairs (sequence number +
+// value). The sequence number comes from the replay journal attached via
+// WithReplay. Use this when you need the event ID for SSE Last-Event-ID
+// support. If no replay journal is attached, Seq is always 0.
+func (w *Watcher[V]) WatchWithSeq(ctx context.Context, key any) <-chan SeqValue[V] {
+	ch := make(chan SeqValue[V], 1)
+
+	entry := &watcherEntry{ch: make(chan any, 1), key: key}
+
+	w.mu.Lock()
+	w.entries = append(w.entries, entry)
+	w.mu.Unlock()
+
+	w.store.registerWatcher(w.coll, entry)
+
+	// Adapter goroutine: convert any→SeqValue[V], unwrap watcherNotification.
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case val, ok := <-entry.ch:
+				if !ok {
+					return
+				}
+
+				sv, ok := unwrapWatcherSeqValue[V](val)
+				if ok {
+					select {
+					case ch <- sv:
+					default: // drop if consumer is slow
+					}
+				}
+			}
+		}
+	}()
+
+	return ch
+}
+
+// unwrapWatcherValue extracts V from a notification (raw value or
+// watcherNotification wrapper). Returns (zeroV, false) on type mismatch.
+func unwrapWatcherValue[V any](val any) (V, bool) {
+	if notif, ok := val.(watcherNotification); ok {
+		v, ok := notif.value.(V)
+		return v, ok
+	}
+
+	v, ok := val.(V)
+	return v, ok
+}
+
+// unwrapWatcherSeqValue extracts SeqValue[V] from a notification (raw value
+// or watcherNotification wrapper). When the value arrives without a seq
+// (no replay recorder), Seq is 0.
+func unwrapWatcherSeqValue[V any](val any) (SeqValue[V], bool) {
+	var zero SeqValue[V]
+
+	if notif, ok := val.(watcherNotification); ok {
+		v, ok := notif.value.(V)
+		if !ok {
+			return zero, false
+		}
+
+		return SeqValue[V]{Seq: notif.seq, Value: v}, true
+	}
+
+	v, ok := val.(V)
+	if !ok {
+		return zero, false
+	}
+
+	return SeqValue[V]{Seq: 0, Value: v}, true
+}
+
+// Close stops all subscriptions and unregisters the replay journal if attached.
 func (w *Watcher[V]) Close() {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -233,6 +309,10 @@ func (w *Watcher[V]) Close() {
 	}
 
 	w.entries = nil
+
+	if w.replay != nil {
+		w.store.unregisterReplay(w.coll)
+	}
 }
 
 // --- Cursor pre-fetch cache ---
