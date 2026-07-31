@@ -84,16 +84,16 @@ that are out of scope for a single session.
 
 These were listed as open in the Pareto plan but were already resolved:
 
-| Item | Status | Who |
-|------|--------|-----|
-| T1.1 Pebble numeric bug | `formatIndexInt` 20-digit zero-pad already fixes it | Prior session |
-| T1.2 SSE test hang | Test passes in 0.005s | Prior session |
-| T2.2 Pebble ADT matrix | `TestPebbleADTMatrix` exists in pebbleengine | Prior session |
-| T2.3 Suppression tests | `TestSuppression_WorksForAllNewRuleIDs` + integration tests exist | Prior session |
-| T2.4 SKILL.md refs | Daemon committed update at `6e27b732` | Auto-commit daemon |
-| T3.3 E-series alias | E009-E015 already import-path aware | Prior session |
-| T3.5 CGo CI job | `cgo` job exists at ci.yml:102-126 | Prior session |
-| T3.7 Pebble sort index | 9 sort index tests all pass | Prior session |
+| Item                    | Status                                                            | Who                |
+| ----------------------- | ----------------------------------------------------------------- | ------------------ |
+| T1.1 Pebble numeric bug | `formatIndexInt` 20-digit zero-pad already fixes it               | Prior session      |
+| T1.2 SSE test hang      | Test passes in 0.005s                                             | Prior session      |
+| T2.2 Pebble ADT matrix  | `TestPebbleADTMatrix` exists in pebbleengine                      | Prior session      |
+| T2.3 Suppression tests  | `TestSuppression_WorksForAllNewRuleIDs` + integration tests exist | Prior session      |
+| T2.4 SKILL.md refs      | Daemon committed update at `6e27b732`                             | Auto-commit daemon |
+| T3.3 E-series alias     | E009-E015 already import-path aware                               | Prior session      |
+| T3.5 CGo CI job         | `cgo` job exists at ci.yml:102-126                                | Prior session      |
+| T3.7 Pebble sort index  | 9 sort index tests all pass                                       | Prior session      |
 
 ---
 
@@ -178,7 +178,7 @@ These were listed as open in the Pareto plan but were already resolved:
    - Was the fix intentional or accidental?
    - Is there a regression test pinning the fix?
    - Did the fix introduce a different bug?
-   
+
    For T1.1 (numeric bug): `formatIndexInt` does 20-digit zero-padding. The test
    `TestPebbleLayoutPlanner_NumericRangeMixedDigits` exists and tests `{5, 10, 100}`.
    This looks legitimate.

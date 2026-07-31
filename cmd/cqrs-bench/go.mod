@@ -5,12 +5,12 @@ go 1.26.5
 require (
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0-20260731164542-e5fcb296dc77
+	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0-20260731174855-00ddf243d19f
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260731164542-e5fcb296dc77
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260731174855-00ddf243d19f
 	github.com/larsartmann/go-error-family v0.10.0
 )
 

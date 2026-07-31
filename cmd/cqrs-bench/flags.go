@@ -70,8 +70,12 @@ func registerBenchFlags(fs *flag.FlagSet) benchFlags {
 		skipQuery:    fs.Bool("skip-query", false, "Skip typed query dispatch phase"),
 		skipSnapshot: fs.Bool("skip-snapshot", false, "Skip snapshot/cache hit-rate phase"),
 		skipMixed:    fs.Bool("skip-mixed", false, "Skip concurrent read-during-write phase"),
-		durability:   fs.String("durability", "", "Durability tier: strict, normal, relaxed (default: normal)"),
-		repeat:       fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)"),
+		durability: fs.String(
+			"durability",
+			"",
+			"Durability tier: strict, normal, relaxed (default: normal)",
+		),
+		repeat: fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)"),
 	}
 }
 

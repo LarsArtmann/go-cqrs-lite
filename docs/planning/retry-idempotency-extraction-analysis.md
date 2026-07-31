@@ -8,12 +8,12 @@
 
 ## Executive Summary
 
-| Module | Lines | Internal Consumers | Verdict | Replacement |
-|---|---|---|---|---|
-| `retry/` | 210 | **None** (middleware ignores `retry.Do`, uses only `ComputeDelay`) | **DELETE** | `cenkalti/backoff/v4` |
-| `idempotency/` (interface + middleware) | ~160 | middleware (3 middleware funcs) | **KEEP** | No equivalent exists |
-| `idempotency/sqlstore/` | ~260 | standalone module | **KEEP** (but stop over-celebrating) | No equivalent exists |
-| `idempotency/kvstore/` | ~100 | standalone module | **KEEP** | Genuine composition with `kv/` |
+| Module                                  | Lines | Internal Consumers                                                 | Verdict                              | Replacement                    |
+| --------------------------------------- | ----- | ------------------------------------------------------------------ | ------------------------------------ | ------------------------------ |
+| `retry/`                                | 210   | **None** (middleware ignores `retry.Do`, uses only `ComputeDelay`) | **DELETE**                           | `cenkalti/backoff/v4`          |
+| `idempotency/` (interface + middleware) | ~160  | middleware (3 middleware funcs)                                    | **KEEP**                             | No equivalent exists           |
+| `idempotency/sqlstore/`                 | ~260  | standalone module                                                  | **KEEP** (but stop over-celebrating) | No equivalent exists           |
+| `idempotency/kvstore/`                  | ~100  | standalone module                                                  | **KEEP**                             | Genuine composition with `kv/` |
 
 ---
 
@@ -50,6 +50,7 @@ This is YAGNI. No consumer has asked for this. It's a hypothetical convenience m
 ### The replacement: `cenkalti/backoff/v4`
 
 The de facto Go retry library. 12k+ stars. Handles:
+
 - Exponential backoff with decorrelated jitter (better than our fixed 50% jitter)
 - Context cancellation
 - Permanent errors (non-retryable)
@@ -128,29 +129,31 @@ QueryIdempotency(store, ttl, keyFn)  // query result dedup
 
 These are real CQRS value — they wire the store into the dispatch pipeline with the right error handling (`ErrDuplicate` → skip handler, don't propagate).
 
-**`ErrDuplicate`** — classified as `Conflict` by error-family. This classification is deliberate: a retried command with the same key *conflicts* with a prior recording.
+**`ErrDuplicate`** — classified as `Conflict` by error-family. This classification is deliberate: a retried command with the same key _conflicts_ with a prior recording.
 
 ### Why no off-the-shelf replacement exists
 
 There is **no well-known Go idempotency-key library**. This is usually either:
+
 - Hand-rolled inline SQL (`INSERT ... ON CONFLICT`)
 - A 20-line Redis `SET NX` wrapper
 - Part of a framework (Rails, Django) but never extracted as a standalone library
 
 The reason: it's conceptually simple. But the devil is in the details:
+
 - TTL semantics (not extended on re-record — documented and tested)
 - Expired key reclamation (lazy on read + background sweep)
 - Atomicity across 3 SQL dialects with different syntax
 
 ### What's genuinely valuable vs commodity
 
-| Component | Value | Justification |
-|---|---|---|
-| `Store` interface | **High** | The `CheckAndRecord` atomicity contract is the core insight |
-| `MemoryStore` | Medium | ~80 lines, but well-tested with sweep + lazy deletion |
-| `ErrDuplicate` + middleware | **High** | CQRS-specific wiring into dispatch pipelines |
-| `sqlstore` (3 dialects) | Medium | `ON CONFLICT` is boilerplate; MySQL `IF()` is a Stack Overflow answer. But no library to delegate to. |
-| `kvstore` | Medium | Genuine composition with `kv/` module — shows the Store abstraction works across backends |
+| Component                   | Value    | Justification                                                                                         |
+| --------------------------- | -------- | ----------------------------------------------------------------------------------------------------- |
+| `Store` interface           | **High** | The `CheckAndRecord` atomicity contract is the core insight                                           |
+| `MemoryStore`               | Medium   | ~80 lines, but well-tested with sweep + lazy deletion                                                 |
+| `ErrDuplicate` + middleware | **High** | CQRS-specific wiring into dispatch pipelines                                                          |
+| `sqlstore` (3 dialects)     | Medium   | `ON CONFLICT` is boilerplate; MySQL `IF()` is a Stack Overflow answer. But no library to delegate to. |
+| `kvstore`                   | Medium   | Genuine composition with `kv/` module — shows the Store abstraction works across backends             |
 
 ### What we should NOT do
 

@@ -1,9 +1,9 @@
 # ADR-0079: SSE consolidation — two implementations, two layers
 
-|             |                                                                   |
-| ----------- | ----------------------------------------------------------------- |
-| **Status**  | Accepted                                                          |
-| **Date**    | 2026-07-31                                                        |
+|             |                                                                                 |
+| ----------- | ------------------------------------------------------------------------------- |
+| **Status**  | Accepted                                                                        |
+| **Date**    | 2026-07-31                                                                      |
 | **Context** | Two SSE implementations exist: transport/http.SSEBroker and metaengine.ServeSSE |
 
 ## Context
@@ -36,6 +36,7 @@ The codebase has two Server-Sent Events implementations:
   not event history.
 
 Consolidating them would require either:
+
 - Making SSEBroker aware of projections (violates transport/http's
   dependency boundary — it only depends on event/)
 - Making ServeSSE independent of metaengine (defeats its purpose)
@@ -44,12 +45,12 @@ Neither is desirable. The separation is architecturally correct.
 
 ## When to Use Which
 
-| Need | Use |
-|------|-----|
-| Stream raw domain events to clients | `transport/http.SSEBroker` |
-| Stream materialized read-model changes to clients | `metaengine.ServeSSE` |
-| Simple CRUD without projections | `transport/http.SSEBroker` |
-| Reactive UI synced to query results | `metaengine.ServeSSE` |
+| Need                                              | Use                        |
+| ------------------------------------------------- | -------------------------- |
+| Stream raw domain events to clients               | `transport/http.SSEBroker` |
+| Stream materialized read-model changes to clients | `metaengine.ServeSSE`      |
+| Simple CRUD without projections                   | `transport/http.SSEBroker` |
+| Reactive UI synced to query results               | `metaengine.ServeSSE`      |
 
 ## Consequences
 

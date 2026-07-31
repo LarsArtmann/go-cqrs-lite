@@ -326,13 +326,13 @@ Engines implement whichever ADT backends they support (`MapBackend`,
 `LogBackend`). Additionally, engines can implement these optional capability
 interfaces for optimized read paths:
 
-| Interface          | Method                          | Benefit                              |
-| ------------------ | ------------------------------- | ------------------------------------ |
-| `PushdownScan`     | `PushdownMapScan`               | SQL WHERE/ORDER BY/LIMIT pushdown    |
-| `RawValueReader`   | `GetRawValue`                   | Single-pass JSON decode on Get       |
-| `RawScanReader`    | `ScanRawValues`                 | Single-pass JSON decode per scan row |
-| `MapUpdater`       | `MapUpdate`                     | Atomic read-modify-write             |
-| `Transactional`    | `RunInTx`                       | Cross-collection transactional writes|
+| Interface        | Method            | Benefit                               |
+| ---------------- | ----------------- | ------------------------------------- |
+| `PushdownScan`   | `PushdownMapScan` | SQL WHERE/ORDER BY/LIMIT pushdown     |
+| `RawValueReader` | `GetRawValue`     | Single-pass JSON decode on Get        |
+| `RawScanReader`  | `ScanRawValues`   | Single-pass JSON decode per scan row  |
+| `MapUpdater`     | `MapUpdate`       | Atomic read-modify-write              |
+| `Transactional`  | `RunInTx`         | Cross-collection transactional writes |
 
 The SQLite engine implements all of these. The Memory engine implements
 `MapUpdater` but not the pushdown/raw interfaces (it returns decoded Go

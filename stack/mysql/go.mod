@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/stack/mysql/v4
 go 1.26.5
 
 require (
-	github.com/go-sql-driver/mysql v1.9.3
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260731164542-e5fcb296dc77
+	github.com/go-sql-driver/mysql v1.10.0
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260731174855-00ddf243d19f
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
@@ -14,7 +14,7 @@ require (
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
-	filippo.io/edwards25519 v1.1.0 // indirect
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect

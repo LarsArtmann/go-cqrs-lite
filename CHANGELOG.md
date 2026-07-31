@@ -41,7 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `memory.New(stack.WithMetaEngine(store))` produces a fully wired bundle with
   both default capabilities AND the metaengine store.
 - **Doc rule count CI check** — `scripts/check-rule-count.sh` + `nix run
-  .#check-rule-count` verifies FEATURES.md, ROADMAP.md, AGENTS.md rule counts
+.#check-rule-count` verifies FEATURES.md, ROADMAP.md, AGENTS.md rule counts
   match `rules.RegisterAll()` length. Prevents doc drift.
 - **E012 alias-awareness** — migrated from raw `projectCalls(ctx, "flag", ...)`
   to alias-aware `projectCallsImportPathBool`. Removed dead code (`projectCalls`

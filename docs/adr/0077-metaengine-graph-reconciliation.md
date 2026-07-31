@@ -1,9 +1,9 @@
 # ADR-0077: Metaengine GraphBackend vs graph/ module reconciliation
 
-|             |                                                                              |
-| ----------- | ---------------------------------------------------------------------------- |
-| **Status**  | Accepted                                                                     |
-| **Date**    | 2026-07-31                                                                   |
+|             |                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------- |
+| **Status**  | Accepted                                                                                          |
+| **Date**    | 2026-07-31                                                                                        |
 | **Context** | The metaengine ships a `GraphBackend` (in-memory BFS) that overlaps the dedicated `graph/` module |
 
 ## Context

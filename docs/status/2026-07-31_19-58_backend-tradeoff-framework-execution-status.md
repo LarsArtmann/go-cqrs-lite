@@ -10,51 +10,51 @@
 
 ### Foundation: DurabilityTier (P1-P7)
 
-| Task | What was done | Key files |
-|------|--------------|-----------|
-| **P1** Pebble DefaultOptions | Changed `&pebble.Options{}` → `cqrspebble.DefaultOptions()` in `defaultConfig()`. Bloom filters (10 bits/key, ~1% FPR) and `MaxConcurrentCompactions=4` now active by default. | `stack/pebble/preset.go` |
-| **P2** DurabilityTier type | Created `stack/durability.go`: `DurabilityTier` (Strict/Normal/Relaxed), `WithDurability()` option, `Bundle.Durability()` accessor. Added `durability` field to `Bundle` struct. | `stack/durability.go`, `stack/bundle.go` |
-| **P3** SQLite translation | `sqlopt.SQLiteSynchronousLevel()` maps tier→PRAGMA synchronous. `sqlopt.ApplySQLiteDurability()` runs after WAL setup. `sqlite.WithDurability()` option added. Applied in `openBackend` setup callback. Durability recorded on Bundle. | `stack/sqlopt/durability.go`, `stack/sqlite/preset.go` |
-| **P4** Pebble translation | `pebble.WithDurability()` option. `DurabilityRelaxed` → `DisableWAL=true`. Strict and Normal are no-ops (WAL already on, sync already default). | `stack/pebble/preset.go` |
-| **P5** Postgres translation | `storage.PostgresSetSynchronousCommit()` helper. `postgres.WithDurability()` option. Strict→`synchronous_commit=on`, Normal/Relaxed→`synchronous_commit=off`. Applied in `openBackend` setup callback. | `storage/sqlite_helpers.go`, `stack/postgres/preset.go` |
-| **P6** Turso translation | `turso.WithDurability()` option. Reuses `sqlopt.ApplySQLiteDurability()` (Turso is libSQL = SQLite fork). Applied in `applySchemaAndPragmas`. Durability recorded on Bundle in both `newLocalBundle` and `newSyncBundle`. | `stack/turso/preset.go`, `stack/turso/backend.go` |
-| **P7** Cross-backend test | 4 tests in `stack/sqlopt/durability_test.go`: level mapping, Normal is no-op, Strict→FULL (value 2), Relaxed→OFF (value 0). All pass. | `stack/sqlopt/durability_test.go` |
+| Task                         | What was done                                                                                                                                                                                                                          | Key files                                               |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| **P1** Pebble DefaultOptions | Changed `&pebble.Options{}` → `cqrspebble.DefaultOptions()` in `defaultConfig()`. Bloom filters (10 bits/key, ~1% FPR) and `MaxConcurrentCompactions=4` now active by default.                                                         | `stack/pebble/preset.go`                                |
+| **P2** DurabilityTier type   | Created `stack/durability.go`: `DurabilityTier` (Strict/Normal/Relaxed), `WithDurability()` option, `Bundle.Durability()` accessor. Added `durability` field to `Bundle` struct.                                                       | `stack/durability.go`, `stack/bundle.go`                |
+| **P3** SQLite translation    | `sqlopt.SQLiteSynchronousLevel()` maps tier→PRAGMA synchronous. `sqlopt.ApplySQLiteDurability()` runs after WAL setup. `sqlite.WithDurability()` option added. Applied in `openBackend` setup callback. Durability recorded on Bundle. | `stack/sqlopt/durability.go`, `stack/sqlite/preset.go`  |
+| **P4** Pebble translation    | `pebble.WithDurability()` option. `DurabilityRelaxed` → `DisableWAL=true`. Strict and Normal are no-ops (WAL already on, sync already default).                                                                                        | `stack/pebble/preset.go`                                |
+| **P5** Postgres translation  | `storage.PostgresSetSynchronousCommit()` helper. `postgres.WithDurability()` option. Strict→`synchronous_commit=on`, Normal/Relaxed→`synchronous_commit=off`. Applied in `openBackend` setup callback.                                 | `storage/sqlite_helpers.go`, `stack/postgres/preset.go` |
+| **P6** Turso translation     | `turso.WithDurability()` option. Reuses `sqlopt.ApplySQLiteDurability()` (Turso is libSQL = SQLite fork). Applied in `applySchemaAndPragmas`. Durability recorded on Bundle in both `newLocalBundle` and `newSyncBundle`.              | `stack/turso/preset.go`, `stack/turso/backend.go`       |
+| **P7** Cross-backend test    | 4 tests in `stack/sqlopt/durability_test.go`: level mapping, Normal is no-op, Strict→FULL (value 2), Relaxed→OFF (value 0). All pass.                                                                                                  | `stack/sqlopt/durability_test.go`                       |
 
 ### Backend Option Surfacing (P8-P9)
 
-| Task | What was done | Key files |
-|------|--------------|-----------|
-| **P8** Postgres pool/timeout | `postgres.WithPoolSize(maxOpen, maxIdle)` calls `db.SetMaxOpenConns/SetMaxIdleConns`. `postgres.WithStatementTimeout(d)` runs `SET statement_timeout`. Both applied in `openBackend` before schema migration. | `stack/postgres/preset.go` |
-| **P9** SQLite granular options | `sqlite.WithCacheSize(bytes)` runs `PRAGMA cache_size=-<KiB>`. `sqlite.WithBusyTimeout(d)` feeds `resolveBusyTimeoutMs()` which overrides the DSN busy_timeout parameter. Applied after WithOptimizations so custom values override defaults. | `stack/sqlite/preset.go` |
+| Task                           | What was done                                                                                                                                                                                                                                 | Key files                  |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| **P8** Postgres pool/timeout   | `postgres.WithPoolSize(maxOpen, maxIdle)` calls `db.SetMaxOpenConns/SetMaxIdleConns`. `postgres.WithStatementTimeout(d)` runs `SET statement_timeout`. Both applied in `openBackend` before schema migration.                                 | `stack/postgres/preset.go` |
+| **P9** SQLite granular options | `sqlite.WithCacheSize(bytes)` runs `PRAGMA cache_size=-<KiB>`. `sqlite.WithBusyTimeout(d)` feeds `resolveBusyTimeoutMs()` which overrides the DSN busy_timeout parameter. Applied after WithOptimizations so custom values override defaults. | `stack/sqlite/preset.go`   |
 
 ### Capability Metadata (P17-P18)
 
-| Task | What was done | Key files |
-|------|--------------|-----------|
-| **P17** Capabilities type | `stack/capabilities.go`: `Capabilities` struct (Backend, Persistent, Embedded, Distributed, OLAP, CGoRequired, SyncEnabled, DurabilityRange). `WithCapabilities()` option, `Bundle.Capabilities()` accessor. Added `capabilities` field to Bundle. | `stack/capabilities.go`, `stack/bundle.go` |
-| **P18** Per-preset impl | All 6 presets declare capabilities: memory (not persistent, embedded), sqlite (persistent, embedded), pebble (persistent, embedded), postgres (persistent, not embedded, distributed when listener set), turso (persistent, embedded, SyncEnabled for NewSync), duckdb (OLAP, CGoRequired, persistent when dsn != ""). | `stack/{memory,sqlite,pebble,postgres,turso,duckdb}/preset.go` |
+| Task                      | What was done                                                                                                                                                                                                                                                                                                          | Key files                                                      |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **P17** Capabilities type | `stack/capabilities.go`: `Capabilities` struct (Backend, Persistent, Embedded, Distributed, OLAP, CGoRequired, SyncEnabled, DurabilityRange). `WithCapabilities()` option, `Bundle.Capabilities()` accessor. Added `capabilities` field to Bundle.                                                                     | `stack/capabilities.go`, `stack/bundle.go`                     |
+| **P18** Per-preset impl   | All 6 presets declare capabilities: memory (not persistent, embedded), sqlite (persistent, embedded), pebble (persistent, embedded), postgres (persistent, not embedded, distributed when listener set), turso (persistent, embedded, SyncEnabled for NewSync), duckdb (OLAP, CGoRequired, persistent when dsn != ""). | `stack/{memory,sqlite,pebble,postgres,turso,duckdb}/preset.go` |
 
 ### Mixed Workload Benchmark (P12-P14)
 
-| Task | What was done | Key files |
-|------|--------------|-----------|
-| **P12-P13** Mixed phase | `benchkit/phases_mixed.go`: N writer goroutines write to fresh streams while M reader goroutines continuously load random existing streams. Reader count = `Concurrency * ReadRatio`. Writers finish, readers cancel. Separate latency collectors for write and read paths. `MixedResult` struct on `Result`. Wired into `runPhases` after projection, before journey. `SkipMixed` config flag. Report format includes mixed workload section. | `benchkit/phases_mixed.go`, `benchkit/result.go`, `benchkit/benchkit.go`, `benchkit/runner.go`, `benchkit/report.go` |
-| **P14** Test mixed phase | 3 tests: `TestMixedWorkload_Memory` (verifies ops > 0, latency populated, readers >= 1), `TestMixedWorkload_SQLite` (verifies completion despite single-conn pool), `TestMixedWorkload_SkipMixed` (verifies zero ops when skipped). Race-clean on 3x `-race -count=3`. Fixed `TestRun_ReplayOnly_SQLite` by adding `SkipMixed: true`. | `benchkit/phases_mixed_test.go`, `benchkit/benchkit_test.go` |
+| Task                     | What was done                                                                                                                                                                                                                                                                                                                                                                                                                                  | Key files                                                                                                            |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **P12-P13** Mixed phase  | `benchkit/phases_mixed.go`: N writer goroutines write to fresh streams while M reader goroutines continuously load random existing streams. Reader count = `Concurrency * ReadRatio`. Writers finish, readers cancel. Separate latency collectors for write and read paths. `MixedResult` struct on `Result`. Wired into `runPhases` after projection, before journey. `SkipMixed` config flag. Report format includes mixed workload section. | `benchkit/phases_mixed.go`, `benchkit/result.go`, `benchkit/benchkit.go`, `benchkit/runner.go`, `benchkit/report.go` |
+| **P14** Test mixed phase | 3 tests: `TestMixedWorkload_Memory` (verifies ops > 0, latency populated, readers >= 1), `TestMixedWorkload_SQLite` (verifies completion despite single-conn pool), `TestMixedWorkload_SkipMixed` (verifies zero ops when skipped). Race-clean on 3x `-race -count=3`. Fixed `TestRun_ReplayOnly_SQLite` by adding `SkipMixed: true`.                                                                                                          | `benchkit/phases_mixed_test.go`, `benchkit/benchkit_test.go`                                                         |
 
 ### cqrs-bench CLI (P15)
 
-| Task | What was done | Key files |
-|------|--------------|-----------|
+| Task                      | What was done                                                                                                                                                                                                                                               | Key files                                                                        |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | **P15** --durability flag | `--durability` string flag (strict/normal/relaxed), `--skip-mixed` bool flag. `parseDurability()` helper in `factory.go`. Durability passed through to each backend's `WithDurability()` option in `makeFactory()`. All 3 `makeFactory` call sites updated. | `cmd/cqrs-bench/flags.go`, `cmd/cqrs-bench/factory.go`, `cmd/cqrs-bench/main.go` |
 
 ### Documentation (P11, P2-doc, P20-P22)
 
-| Task | What was done | Key files |
-|------|--------------|-----------|
-| **P2-doc** BatchSize semantics | Added comprehensive comment on `Profile.BatchSize` field explaining that BatchSize=1 profiles produce misleading SQL numbers (one fsync per event). Points to medium/large profiles for fair comparisons. | `benchkit/profiles.go` |
-| **P11** BACKEND_TRADEOFFS.md | 228-line single-source-of-truth: quick decision matrix (7 dimensions x 6 backends), durability vocabulary table, synchronous_commit 387x lever table, BatchSize semantics, "when to use X" guide for all 6 backends, Capabilities API docs, mixed workload docs, cross-links to related docs. | `docs/BACKEND_TRADEOFFS.md` |
-| **P20-P22** Doc cross-links | STORAGE_GUIDE.md, CONSISTENCY_MODEL.md, PRESETS.md: all cross-linked to BACKEND_TRADEOFFS.md with durability vocabulary references. | `docs/STORAGE_GUIDE.md`, `docs/CONSISTENCY_MODEL.md`, `docs/PRESETS.md` |
-| **AGENTS.md** | Added durability tier patterns, capabilities patterns, SQLite granular options, Postgres pool/timeout patterns to the Key Patterns section. | `AGENTS.md` |
+| Task                           | What was done                                                                                                                                                                                                                                                                                 | Key files                                                               |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **P2-doc** BatchSize semantics | Added comprehensive comment on `Profile.BatchSize` field explaining that BatchSize=1 profiles produce misleading SQL numbers (one fsync per event). Points to medium/large profiles for fair comparisons.                                                                                     | `benchkit/profiles.go`                                                  |
+| **P11** BACKEND_TRADEOFFS.md   | 228-line single-source-of-truth: quick decision matrix (7 dimensions x 6 backends), durability vocabulary table, synchronous_commit 387x lever table, BatchSize semantics, "when to use X" guide for all 6 backends, Capabilities API docs, mixed workload docs, cross-links to related docs. | `docs/BACKEND_TRADEOFFS.md`                                             |
+| **P20-P22** Doc cross-links    | STORAGE_GUIDE.md, CONSISTENCY_MODEL.md, PRESETS.md: all cross-linked to BACKEND_TRADEOFFS.md with durability vocabulary references.                                                                                                                                                           | `docs/STORAGE_GUIDE.md`, `docs/CONSISTENCY_MODEL.md`, `docs/PRESETS.md` |
+| **AGENTS.md**                  | Added durability tier patterns, capabilities patterns, SQLite granular options, Postgres pool/timeout patterns to the Key Patterns section.                                                                                                                                                   | `AGENTS.md`                                                             |
 
 ### Verification (P29 - partial)
 
@@ -71,14 +71,17 @@
 ## b) PARTIALLY DONE
 
 ### P7: Cross-backend DurabilityTier test
+
 **What's there**: sqlopt-level unit tests verify the PRAGMA translation is correct (FULL=2, OFF=0, NORMAL no-op).
 **What's missing**: No integration test that creates a full `sqlite.New()` / `postgres.New()` bundle at each tier and verifies the actual PRAGMA/setting persists. The translation was verified at the helper level, not the preset level.
 
 ### P9: SQLite granular options
+
 **What's there**: `WithCacheSize` and `WithBusyTimeout`.
 **What's missing**: The plan called for a standalone `WithSynchronous(SyncLevel)` option. I folded this into `WithDurability` instead, which is arguably better design (unified vocabulary) but doesn't match the plan's separate API.
 
 ### P29: Final verification
+
 **What's there**: Per-module go test, vet, build, race tests, doc-check, api-stability.
 **What's missing**: Full `nix run .#verify` gate (started but not completed at time of writing). The verify gate also runs lint (golangci-lint), coverage checks, and per-module `GOWORK=off` builds which I did NOT run.
 
@@ -86,16 +89,16 @@
 
 ## c) NOT STARTED
 
-| Plan Task | Description | Why deferred |
-|-----------|-------------|-------------|
-| **P10** | Turso: wire `indexing.*` API into preset (`WithCacheSize`, `WithMemoryMap`, `WithOptimize`) | Lower priority — Turso already works, this unlocks optimization knobs |
-| **P16** | Turso factory in cqrs-bench (`case "turso"` in factory.go) | **THIS WAS IN SCOPE AND I MISSED IT** — see section (d) |
-| **P19** | Warm/cold read split in `readPhase` | Lower priority — improves honesty of read numbers |
-| **P23** | DuckDB: surface `WithPreserveInsertionOrder`, `WithTempDirectory` | Low impact — DuckDB is niche |
-| **P24-P25** | DuckDB analytical benchmark phase (bulk load + GROUP BY scans) | Important for fair DuckDB benchmarking but DuckDB is a secondary backend |
-| **P26** | metaengine `CostEstimate` extension (add Durability, DiskBytesEstimate, RAMBytesEstimate, WriteAmplification) | Metaengine is "the strategic future" but independent of this session's backend tradeoff work |
-| **P27** | metaengine budget-based planning (multi-constraint optimizer) | Same as P26 — deferred to metaengine-focused work |
-| **P28** | Re-run full benchmark suite with optimized backends | Requires the verify gate to pass first, then ~45min of benchmark runtime |
+| Plan Task   | Description                                                                                                   | Why deferred                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **P10**     | Turso: wire `indexing.*` API into preset (`WithCacheSize`, `WithMemoryMap`, `WithOptimize`)                   | Lower priority — Turso already works, this unlocks optimization knobs                        |
+| **P16**     | Turso factory in cqrs-bench (`case "turso"` in factory.go)                                                    | **THIS WAS IN SCOPE AND I MISSED IT** — see section (d)                                      |
+| **P19**     | Warm/cold read split in `readPhase`                                                                           | Lower priority — improves honesty of read numbers                                            |
+| **P23**     | DuckDB: surface `WithPreserveInsertionOrder`, `WithTempDirectory`                                             | Low impact — DuckDB is niche                                                                 |
+| **P24-P25** | DuckDB analytical benchmark phase (bulk load + GROUP BY scans)                                                | Important for fair DuckDB benchmarking but DuckDB is a secondary backend                     |
+| **P26**     | metaengine `CostEstimate` extension (add Durability, DiskBytesEstimate, RAMBytesEstimate, WriteAmplification) | Metaengine is "the strategic future" but independent of this session's backend tradeoff work |
+| **P27**     | metaengine budget-based planning (multi-constraint optimizer)                                                 | Same as P26 — deferred to metaengine-focused work                                            |
+| **P28**     | Re-run full benchmark suite with optimized backends                                                           | Requires the verify gate to pass first, then ~45min of benchmark runtime                     |
 
 ---
 
@@ -237,6 +240,7 @@ The daemon committed `preset.go` with the DefaultOptions change but without the 
 ### Q1: Should Postgres durability use DSN parameters or `ALTER DATABASE`?
 
 The session-scoped `SET synchronous_commit = off` only affects one connection in a pool. Two options:
+
 - **(a)** Append `?default_transaction_sync_commit=off` to the DSN (per-connection, no DBA needed, but requires DSN manipulation)
 - **(b)** Run `ALTER DATABASE <db> SET synchronous_commit = off` (server-level, requires CREATEDB privilege, affects all connections)
 
@@ -245,6 +249,7 @@ Option (a) is simpler but pgx may not support all parameters via DSN. Option (b)
 ### Q2: Should the mixed-workload phase write to EXISTING streams (with version contention) or fresh streams?
 
 The current implementation writes to fresh streams (no version conflicts possible). A true production mixed workload would write to the SAME streams readers are loading from, introducing:
+
 - Optimistic concurrency failures (version mismatches)
 - Read-after-write consistency testing
 - Lock contention between concurrent Save and Load on the same stream
@@ -259,19 +264,19 @@ The AGENTS.md says "every session that changes code must run `nix run .#verify` 
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Tasks planned | 29 |
-| Tasks completed | 18 |
-| Tasks missed (in scope) | 1 (P16: Turso factory) |
-| Tasks deferred (out of scope) | 8 |
-| Files created | 7 (`durability.go`, `capabilities.go`, `phases_mixed.go`, `phases_mixed_test.go`, `durability_test.go`, `BACKEND_TRADEOFFS.md`, `phases_mixed_test.go`) |
-| Files modified | 16 (presets, options, bundle, benchkit, docs) |
-| Tests written | 7 new tests (durability x4, mixed workload x3) |
-| Tests fixed | 1 (`TestRun_ReplayOnly_SQLite` — added `SkipMixed: true`) |
-| Lines added | ~800 (code) + ~250 (docs) |
-| Build | Clean |
-| Vet | Clean |
-| Race | Clean (3x on mixed workload) |
-| doc-check | 147 refs valid |
-| `nix run .#verify` | STARTED, NOT COMPLETED |
+| Metric                        | Value                                                                                                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tasks planned                 | 29                                                                                                                                                      |
+| Tasks completed               | 18                                                                                                                                                      |
+| Tasks missed (in scope)       | 1 (P16: Turso factory)                                                                                                                                  |
+| Tasks deferred (out of scope) | 8                                                                                                                                                       |
+| Files created                 | 7 (`durability.go`, `capabilities.go`, `phases_mixed.go`, `phases_mixed_test.go`, `durability_test.go`, `BACKEND_TRADEOFFS.md`, `phases_mixed_test.go`) |
+| Files modified                | 16 (presets, options, bundle, benchkit, docs)                                                                                                           |
+| Tests written                 | 7 new tests (durability x4, mixed workload x3)                                                                                                          |
+| Tests fixed                   | 1 (`TestRun_ReplayOnly_SQLite` — added `SkipMixed: true`)                                                                                               |
+| Lines added                   | ~800 (code) + ~250 (docs)                                                                                                                               |
+| Build                         | Clean                                                                                                                                                   |
+| Vet                           | Clean                                                                                                                                                   |
+| Race                          | Clean (3x on mixed workload)                                                                                                                            |
+| doc-check                     | 147 refs valid                                                                                                                                          |
+| `nix run .#verify`            | STARTED, NOT COMPLETED                                                                                                                                  |

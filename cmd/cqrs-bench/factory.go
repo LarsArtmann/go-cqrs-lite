@@ -126,7 +126,10 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 		return duckdbFactory(dsn, dir)
 
 	default:
-		fatalf("unknown backend: %s (use memory, sqlite, pebble, postgres, duckdb, or turso)", backend)
+		fatalf(
+			"unknown backend: %s (use memory, sqlite, pebble, postgres, duckdb, or turso)",
+			backend,
+		)
 
 		return nil, "", nil // unreachable
 	}

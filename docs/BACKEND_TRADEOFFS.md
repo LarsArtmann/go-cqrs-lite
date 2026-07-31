@@ -9,17 +9,17 @@ backed by benchmark data in [`docs/benchmarks/`](benchmarks/) and
 
 ## Quick Decision Matrix
 
-| Dimension | memory | sqlite | pebble | postgres | turso | duckdb |
-|-----------|--------|--------|--------|----------|-------|--------|
-| **Persistent** | No | Yes | Yes | Yes | Yes | Yes |
-| **Embedded** | Yes | Yes | Yes | No (server) | Yes | Yes |
-| **Distributed** | No | No | No | Optional (LISTEN/NOTIFY) | Via sync | No |
-| **Remote Sync** | No | No | No | No | Yes | No |
-| **CGo Required** | No | No | No | No | No | Yes |
-| **OLAP Optimized** | No | No | No | No | No | Yes |
-| **Write P50** (small profile) | 350ns | 212us | 11.6us | 47/s (strict) | ~sqlite | 480us |
-| **Read P50** (small profile) | 170ns | 225us | 55.6us | 137us | ~sqlite | 1.01ms |
-| **Durability Tiers** | normal, relaxed | strict, normal, relaxed | strict, normal, relaxed | strict, normal, relaxed | strict, normal, relaxed | normal |
+| Dimension                     | memory          | sqlite                  | pebble                  | postgres                 | turso                   | duckdb |
+| ----------------------------- | --------------- | ----------------------- | ----------------------- | ------------------------ | ----------------------- | ------ |
+| **Persistent**                | No              | Yes                     | Yes                     | Yes                      | Yes                     | Yes    |
+| **Embedded**                  | Yes             | Yes                     | Yes                     | No (server)              | Yes                     | Yes    |
+| **Distributed**               | No              | No                      | No                      | Optional (LISTEN/NOTIFY) | Via sync                | No     |
+| **Remote Sync**               | No              | No                      | No                      | No                       | Yes                     | No     |
+| **CGo Required**              | No              | No                      | No                      | No                       | No                      | Yes    |
+| **OLAP Optimized**            | No              | No                      | No                      | No                       | No                      | Yes    |
+| **Write P50** (small profile) | 350ns           | 212us                   | 11.6us                  | 47/s (strict)            | ~sqlite                 | 480us  |
+| **Read P50** (small profile)  | 170ns           | 225us                   | 55.6us                  | 137us                    | ~sqlite                 | 1.01ms |
+| **Durability Tiers**          | normal, relaxed | strict, normal, relaxed | strict, normal, relaxed | strict, normal, relaxed  | strict, normal, relaxed | normal |
 
 > **Note on write numbers**: SQLite/Postgres/DuckDB write numbers reflect
 > `BatchSize=1` (one fsync per event). See [BatchSize Semantics](#batchsize-semantics).
@@ -29,11 +29,11 @@ backed by benchmark data in [`docs/benchmarks/`](benchmarks/) and
 All backends now support a shared [DurabilityTier] vocabulary via
 `stack.WithDurability(tier)`:
 
-| Tier | SQLite | Postgres | Pebble | Meaning |
-|------|--------|----------|--------|---------|
-| `DurabilityStrict` | synchronous=FULL | synchronous_commit=on | WAL on, sync writes | Every commit fsyncs to disk |
-| `DurabilityNormal` | synchronous=NORMAL | synchronous_commit=off | WAL on, default | Safe against app crash; small window on kernel crash |
-| `DurabilityRelaxed` | synchronous=OFF | synchronous_commit=off | DisableWAL=true | Data may be lost on crash |
+| Tier                | SQLite             | Postgres               | Pebble              | Meaning                                              |
+| ------------------- | ------------------ | ---------------------- | ------------------- | ---------------------------------------------------- |
+| `DurabilityStrict`  | synchronous=FULL   | synchronous_commit=on  | WAL on, sync writes | Every commit fsyncs to disk                          |
+| `DurabilityNormal`  | synchronous=NORMAL | synchronous_commit=off | WAL on, default     | Safe against app crash; small window on kernel crash |
+| `DurabilityRelaxed` | synchronous=OFF    | synchronous_commit=off | DisableWAL=true     | Data may be lost on crash                            |
 
 **Default**: Every preset ships with `DurabilityNormal`. This matches the
 pre-existing behavior of each backend.
@@ -42,10 +42,10 @@ pre-existing behavior of each backend.
 
 The single biggest performance lever for Postgres:
 
-| Setting | Writes/sec | Relative |
-|---------|-----------|----------|
-| `synchronous_commit=on` (strict) | 47 | 1x |
-| `synchronous_commit=off` (normal) | 18,200 | 387x |
+| Setting                           | Writes/sec | Relative |
+| --------------------------------- | ---------- | -------- |
+| `synchronous_commit=on` (strict)  | 47         | 1x       |
+| `synchronous_commit=off` (normal) | 18,200     | 387x     |
 
 Both settings are safe against application crashes. The difference is only in
 the kernel-crash window (a few hundred ms of committed transactions).

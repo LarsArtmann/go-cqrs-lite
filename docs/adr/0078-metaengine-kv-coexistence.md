@@ -1,9 +1,9 @@
 # ADR-0078: Metaengine and kv.ViewStore coexistence
 
-|             |                                                                    |
-| ----------- | ------------------------------------------------------------------ |
-| **Status**  | Accepted                                                           |
-| **Date**    | 2026-07-31                                                         |
+|             |                                                                                      |
+| ----------- | ------------------------------------------------------------------------------------ |
+| **Status**  | Accepted                                                                             |
+| **Date**    | 2026-07-31                                                                           |
 | **Context** | Two query layers exist: kv.ViewStore (simple KV) and metaengine (cost-based planner) |
 
 ## Context
