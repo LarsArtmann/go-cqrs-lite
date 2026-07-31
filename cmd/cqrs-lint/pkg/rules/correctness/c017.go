@@ -3,6 +3,7 @@ package correctness
 import (
 	"context"
 	"go/ast"
+	"go/token"
 
 	"github.com/larsartmann/go-finding"
 
@@ -40,12 +41,6 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				// If this file also uses memory.NewMemoryStore() for the event
-				// store, the setup is entirely in-memory — no mismatch.
-				if fileUsesMemoryEventStore(gf.AST) {
-					continue
-				}
-
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					call, ok := n.(*ast.CallExpr)
 					if !ok {
@@ -64,6 +59,13 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pkg := analyzer.SelectorPackage(sel)
 					if pkg != "memory" && pkg != "projectionhost" && pkg != "scheduling" {
+						return true
+					}
+
+					// Skip if the enclosing function also creates a memory
+					// event store — the entire setup is in-memory within
+					// that function scope.
+					if enclosingFunctionUsesMemoryStore(gf.AST, call.Pos()) {
 						return true
 					}
 
@@ -122,14 +124,38 @@ func describeInMemStore(fnName string) string {
 	}
 }
 
-// fileUsesMemoryEventStore returns true if the file contains a call to
-// memory.NewMemoryStore(), indicating the event store itself is in-memory.
-// In that case C017 should not fire — the entire setup is in-memory.
-func fileUsesMemoryEventStore(root ast.Node) bool {
-	found := false
+// enclosingFunctionUsesMemoryStore finds the innermost function enclosing
+// pos and checks whether it also creates a memory event store
+// (memory.NewMemoryStore). This replaces the old file-level heuristic
+// (fileUsesMemoryEventStore) which skipped entire files even when only one
+// function used in-memory setup while another used a persistent store.
+func enclosingFunctionUsesMemoryStore(root ast.Node, pos token.Pos) bool {
+	var funcNode ast.Node
 
 	ast.Inspect(root, func(n ast.Node) bool {
-		if found {
+		if n == nil {
+			return false
+		}
+
+		if n.Pos() <= pos && n.End() >= pos {
+			switch n.(type) {
+			case *ast.FuncDecl, *ast.FuncLit:
+				funcNode = n
+			}
+			return true
+		}
+
+		return false
+	})
+
+	if funcNode == nil {
+		return false
+	}
+
+	found := false
+
+	ast.Inspect(funcNode, func(n ast.Node) bool {
+		if found || n == nil {
 			return false
 		}
 

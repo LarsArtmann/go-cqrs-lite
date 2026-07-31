@@ -229,6 +229,9 @@ func filterFindings(
 	var librarySuppressed []finding.Finding
 	allFindings, librarySuppressed = filterLibrarySelfLint(allFindings, actx.IsLibrarySelfLint())
 
+	// Escalate security/money rule severities for financial domains.
+	allFindings = applyDomainBias(allFindings, actx.FeatureProfile.Domain)
+
 	unsuppressed, suppressed = filterSuppressed(allFindings)
 	suppressed = append(suppressed, librarySuppressed...)
 

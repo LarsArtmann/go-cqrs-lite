@@ -3,6 +3,7 @@ package pebbleengine_test
 import (
 	"context"
 	"encoding/json/v2"
+	"fmt"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -421,4 +422,361 @@ func TestPebbleLayoutPlanner_NumericRangeMixedDigits(t *testing.T) {
 	if len(results) != 1 {
 		t.Errorf("FilterGe(100): expected 1 result (100), got %d", len(results))
 	}
+}
+
+// --- Sort index tests ---
+
+func TestPebbleLayoutPlanner_SortIndexAscending(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("tasks", nil, []string{"priority"})).To(gomega.Succeed())
+
+	mb := eng.(metaengine.MapBackend)
+
+	items := []struct {
+		key      string
+		priority int
+	}{
+		{"t1", 5}, {"t2", 1}, {"t3", 3}, {"t4", 4}, {"t5", 2},
+	}
+
+	for _, item := range items {
+		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "tasks", item.key, map[string]any{
+			"priority": item.priority,
+			"name":     item.key,
+		})).To(gomega.Succeed())
+	}
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "priority", Desc: false}
+
+	results, err := rsr.ScanRawValues(ctx, "tasks", nil, sortSpec, nil, 0)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(5))
+
+	priorities := extractField[float64](t, results, "priority")
+	gomega.NewWithT(t).Expect(priorities).To(gomega.Equal([]float64{1, 2, 3, 4, 5}))
+}
+
+func TestPebbleLayoutPlanner_SortIndexDescending(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("tasks", nil, []string{"priority"})).To(gomega.Succeed())
+
+	mb := eng.(metaengine.MapBackend)
+
+	items := []struct {
+		key      string
+		priority int
+	}{
+		{"t1", 5}, {"t2", 1}, {"t3", 3}, {"t4", 4}, {"t5", 2},
+	}
+
+	for _, item := range items {
+		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "tasks", item.key, map[string]any{
+			"priority": item.priority,
+			"name":     item.key,
+		})).To(gomega.Succeed())
+	}
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "priority", Desc: true}
+
+	results, err := rsr.ScanRawValues(ctx, "tasks", nil, sortSpec, nil, 0)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(5))
+
+	priorities := extractField[float64](t, results, "priority")
+	gomega.NewWithT(t).Expect(priorities).To(gomega.Equal([]float64{5, 4, 3, 2, 1}))
+}
+
+func TestPebbleLayoutPlanner_SortIndexCursorAscending(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("paged", nil, []string{"id"})).To(gomega.Succeed())
+
+	mb := eng.(metaengine.MapBackend)
+
+	for i := range 10 {
+		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "paged", i, map[string]any{
+			"id": float64(i),
+		})).To(gomega.Succeed())
+	}
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "id", Desc: false}
+
+	// First page: items 0..2 + overflow.
+	page1, err := rsr.ScanRawValues(ctx, "paged", nil, sortSpec, nil, 3)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(page1).To(gomega.HaveLen(4))
+
+	ids1 := extractField[float64](t, page1, "id")
+	gomega.NewWithT(t).Expect(ids1).To(gomega.Equal([]float64{0, 1, 2, 3}))
+
+	// Second page: cursor=2, skip items <= 2.
+	page2, err := rsr.ScanRawValues(ctx, "paged", nil, sortSpec, float64(2), 3)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(page2).To(gomega.HaveLen(4))
+
+	ids2 := extractField[float64](t, page2, "id")
+	gomega.NewWithT(t).Expect(ids2).To(gomega.Equal([]float64{3, 4, 5, 6}))
+}
+
+func TestPebbleLayoutPlanner_SortIndexCursorDescending(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("paged", nil, []string{"id"})).To(gomega.Succeed())
+
+	mb := eng.(metaengine.MapBackend)
+
+	for i := range 10 {
+		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "paged", i, map[string]any{
+			"id": float64(i),
+		})).To(gomega.Succeed())
+	}
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "id", Desc: true}
+
+	// Cursor=7: skip items >= 7 in descending → [6, 5, 4, 3]
+	results, err := rsr.ScanRawValues(ctx, "paged", nil, sortSpec, float64(7), 3)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(4))
+
+	ids := extractField[float64](t, results, "id")
+	gomega.NewWithT(t).Expect(ids).To(gomega.Equal([]float64{6, 5, 4, 3}))
+}
+
+func TestPebbleLayoutPlanner_SortIndexFilterAndSort(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	// Declare both filter and sort fields — the sort index path is preferred.
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", []string{"status"}, []string{"priority"})).To(
+		gomega.Succeed(),
+	)
+
+	mb := eng.(metaengine.MapBackend)
+
+	items := []struct {
+		key      string
+		status   string
+		priority int
+	}{
+		{"s1", "open", 3}, {"s2", "done", 5}, {"s3", "open", 1},
+		{"s4", "open", 2}, {"s5", "done", 4},
+	}
+
+	for _, item := range items {
+		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "items", item.key, map[string]any{
+			"status":   item.status,
+			"priority": item.priority,
+			"name":     item.key,
+		})).To(gomega.Succeed())
+	}
+
+	rsr := eng.(metaengine.RawScanReader)
+	filters := []metaengine.FilterSpec{{Column: "status", Op: metaengine.FilterEq, Value: "open"}}
+	sortSpec := &metaengine.SortSpec{Column: "priority", Desc: false}
+
+	results, err := rsr.ScanRawValues(ctx, "items", filters, sortSpec, nil, 0)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(3))
+
+	priorities := extractField[float64](t, results, "priority")
+	gomega.NewWithT(t).Expect(priorities).To(gomega.Equal([]float64{1, 2, 3}))
+}
+
+func TestPebbleLayoutPlanner_SortIndexUpdateReindexes(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", nil, []string{"priority"})).To(gomega.Succeed())
+
+	mb := eng.(metaengine.MapBackend)
+
+	gomega.NewWithT(t).Expect(mb.MapSet(ctx, "items", "k1", map[string]any{"priority": 1})).To(
+		gomega.Succeed(),
+	)
+	gomega.NewWithT(t).Expect(mb.MapSet(ctx, "items", "k2", map[string]any{"priority": 2})).To(
+		gomega.Succeed(),
+	)
+
+	mu := eng.(metaengine.MapUpdater)
+	gomega.NewWithT(t).Expect(mu.MapUpdate(ctx, "items", "k1", func(prev any) any {
+		m := prev.(map[string]any)
+		m["priority"] = 5
+
+		return m
+	})).To(gomega.Succeed())
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "priority", Desc: false}
+
+	results, err := rsr.ScanRawValues(ctx, "items", nil, sortSpec, nil, 0)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(2))
+
+	priorities := extractField[float64](t, results, "priority")
+	// k1 was updated to 5, so ascending order is [2, 5].
+	gomega.NewWithT(t).Expect(priorities).To(gomega.Equal([]float64{2, 5}))
+}
+
+func TestPebbleLayoutPlanner_SortIndexDeleteRemovesIndex(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", nil, []string{"priority"})).To(gomega.Succeed())
+
+	mb := eng.(metaengine.MapBackend)
+
+	priorities := []struct {
+		key      string
+		priority int
+	}{
+		{"k1", 1}, {"k2", 2}, {"k3", 3},
+	}
+
+	for _, item := range priorities {
+		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "items", item.key, map[string]any{
+			"priority": item.priority,
+		})).To(gomega.Succeed())
+	}
+
+	gomega.NewWithT(t).Expect(mb.MapDelete(ctx, "items", "k2")).To(gomega.Succeed())
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "priority", Desc: false}
+
+	results, err := rsr.ScanRawValues(ctx, "items", nil, sortSpec, nil, 0)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(2))
+
+	scores := extractField[float64](t, results, "priority")
+	gomega.NewWithT(t).Expect(scores).To(gomega.Equal([]float64{1, 3}))
+}
+
+func TestPebbleLayoutPlanner_SortIndexEarlyTermination(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", nil, []string{"score"})).To(gomega.Succeed())
+
+	mb := eng.(metaengine.MapBackend)
+
+	for i := range 100 {
+		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "items", fmt.Sprintf("k%d", i), map[string]any{
+			"score": i,
+		})).To(gomega.Succeed())
+	}
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "score", Desc: false}
+
+	// limit=5 → 5+1=6 results (overflow detection).
+	results, err := rsr.ScanRawValues(ctx, "items", nil, sortSpec, nil, 5)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(6))
+
+	scores := extractField[float64](t, results, "score")
+	gomega.NewWithT(t).Expect(scores).To(gomega.Equal([]float64{0, 1, 2, 3, 4, 5}))
+}
+
+func TestPebbleLayoutPlanner_SortIndexStringValues(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("users", nil, []string{"name"})).To(gomega.Succeed())
+
+	mb := eng.(metaengine.MapBackend)
+
+	for _, name := range []string{"Charlie", "Alice", "Bob"} {
+		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "users", name, map[string]any{
+			"name": name,
+		})).To(gomega.Succeed())
+	}
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "name", Desc: false}
+
+	results, err := rsr.ScanRawValues(ctx, "users", nil, sortSpec, nil, 0)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(3))
+
+	names := extractField[string](t, results, "name")
+	gomega.NewWithT(t).Expect(names).To(gomega.Equal([]string{"Alice", "Bob", "Charlie"}))
+}
+
+// extractField decodes each raw JSON result and extracts the named field as
+// the requested type T. Panics via t.Fatal on decode failure.
+func extractField[T any](t *testing.T, rawResults [][]byte, field string) []T {
+	t.Helper()
+
+	values := make([]T, 0, len(rawResults))
+
+	for _, raw := range rawResults {
+		var decoded map[string]any
+		if err := json.Unmarshal(raw, &decoded); err != nil {
+			t.Fatalf("unmarshal result: %v", err)
+		}
+
+		val, ok := decoded[field].(T)
+		if !ok {
+			t.Fatalf("field %q is %T, not %T", field, decoded[field], *new(T))
+		}
+
+		values = append(values, val)
+	}
+
+	return values
 }

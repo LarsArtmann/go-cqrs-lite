@@ -6,6 +6,8 @@ import (
 
 	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-finding/pipeline"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
 // consumerOnlyRules are rules that coach CONSUMERS of go-cqrs-lite to adopt
@@ -205,7 +207,7 @@ func applyDomainBias(
 
 	result := make([]finding.Finding, len(findings))
 	for i, f := range findings {
-		if financialEscalatedRules[string(f.Rule)] && !f.Severity.AtLeast(finding.SeverityError) {
+		if financialEscalatedRules[string(f.Rule)] && f.Severity.Compare(finding.SeverityError) < 0 {
 			f.Severity = finding.SeverityError
 			if f.Message != "" {
 				f.Message += " [escalated: financial domain]"
