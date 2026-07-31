@@ -143,6 +143,31 @@ func BenchmarkPebbleScanRawValues(b *testing.B) {
 	}
 }
 
+func BenchmarkPebbleScanRawValuesFiltered(b *testing.B) {
+	eng, _ := setupBenchEngine(b)
+	rsr := eng.(metaengine.RawScanReader)
+	ctx := context.Background()
+
+	filters := []metaengine.FilterSpec{
+		{Column: "age", Op: metaengine.FilterGe, Value: float64(50)},
+	}
+	sortSpec := &metaengine.SortSpec{Column: "age", Desc: true}
+
+	b.ResetTimer()
+	for b.Loop() {
+		raw, err := rsr.ScanRawValues(ctx, "bench", filters, sortSpec, nil, 10)
+		if err != nil {
+			b.Fatal(err)
+		}
+		for _, r := range raw {
+			var u benchUser
+			if err := json.Unmarshal(r, &u); err != nil {
+				b.Fatal(err)
+			}
+		}
+	}
+}
+
 func BenchmarkPebbleMapScan(b *testing.B) {
 	eng, _ := setupBenchEngine(b)
 	sb := eng.(metaengine.ScanBackend)

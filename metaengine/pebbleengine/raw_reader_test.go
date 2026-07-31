@@ -3,6 +3,7 @@ package pebbleengine_test
 import (
 	"context"
 	"encoding/json/v2"
+	"fmt"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -388,9 +389,10 @@ func TestPebbleScanRawValuesFilterNe(t *testing.T) {
 	mb := eng.(metaengine.MapBackend)
 	rsr := eng.(metaengine.RawScanReader)
 
-	for _, s := range []string{"open", "open", "done", "open"} {
-		g.Expect(mb.MapSet(ctx, "ne", s+strconv.Itoa(int(time.Now().UnixNano())),
-			map[string]any{"status": s})). //nolint:wsl_v5
+	statuses := []string{"open", "open", "done", "open"}
+	for i, s := range statuses {
+		g.Expect(mb.MapSet(ctx, "ne", fmt.Sprintf("k%d", i),
+			map[string]any{"status": s})).
 			To(Succeed())
 	}
 

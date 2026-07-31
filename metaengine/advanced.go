@@ -108,9 +108,19 @@ func (s *Store) SwapEngine(oldName, _ string, newEngine Engine) error {
 
 // --- P4-2: Cross-Engine Contract Suite ---
 
-// ContractSuite runs a comprehensive test suite against any engine factory.
-// Use to verify that a new engine implementation matches the behavior of
-// existing engines across all ADTs.
+// ContractSuite runs a comprehensive test suite against any single engine
+// factory. Use to verify that a new engine implementation correctly handles
+// all 7 ADTs (Map, Set, Counter, Graph, SortedMap, Log, Multimap).
+//
+// This is the SINGLE-ENGINE correctness test. For CROSS-ENGINE parity
+// testing (verifying that multiple engines produce identical results), use
+// adttest.RunMatrix instead. ContractSuite answers "does my engine work?";
+// RunMatrix answers "do all engines agree?".
+//
+// When to use each:
+//   - ContractSuite: add a new engine, verify it passes all ADT operations
+//   - adttest.RunMatrix: add a new engine to the parity matrix, verify it
+//     produces the same canonical results as existing engines
 //
 //	func TestMyEngine(t *testing.T) {
 //	    metaengine.ContractSuite(t, func() metaengine.Engine {
@@ -357,7 +367,7 @@ func contractScan(t interface {
 var V1StabilizationChecklist = []string{ //nolint:gochecknoglobals // documentation checklist
 	"TypedReader API frozen (Get, Scan, Count, Sum, Min, Max, Avg, Distinct, GroupBy)",
 	"LayoutPlanner + auto-layout wired into Plan()",
-	"RawValueReader + RawScanReader interfaces stable",
+	"RawValueReader + RawScanReader interfaces stable (SQLite + Pebble engines implement them)",
 	"Exported sentinel errors (ErrNotFound, ErrLayoutConflict, ErrAmbiguousKey, ErrUnsupportedADT)",
 	"Aggregation pushdown (AggregateReader interface) stable",
 	"FilterIn operator stable (no silent-drop on any path)",

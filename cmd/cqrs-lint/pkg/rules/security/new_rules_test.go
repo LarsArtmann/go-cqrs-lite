@@ -255,30 +255,108 @@ func setup() {
 
 // --- S006: Financial data without encryption ---
 
-func TestS006_NoCrashOnEmptyInput(t *testing.T) {
+func TestS006(t *testing.T) {
 	t.Parallel()
 
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go": `package main`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 0)
-}
-
-func TestS006_DetectsStrongFinancialField(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"payment.go": `package main
+	tests := []struct {
+		name      string
+		filename  string
+		source    string
+		hasServer bool
+		wantCount int
+	}{
+		{"NoCrashOnEmptyInput", "main.go", `package main`, false, 0},
+		{"DetectsStrongFinancialField", "payment.go", `package main
 
 type PaymentMethod struct {
 	CardNumber string ` + "`json:\"card_number\"`" + `
 }
-`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 1)
+`, true, 1},
+		{"DetectsMediumFinancialField", "payroll.go", `package main
+
+type EmployeePayroll struct {
+	Salary float64 ` + "`json:\"salary\"`" + `
+}
+`, true, 1},
+		{"DetectsWeakCompound", "order.go", `package main
+
+type OrderTotal struct {
+	Amount  float64 ` + "`json:\"amount\"`" + `
+	Balance float64 ` + "`json:\"balance\"`" + `
+}
+`, true, 1},
+		{"SuppressesSingleWeakField", "product.go", `package main
+
+type Product struct {
+	Price float64 ` + "`json:\"price\"`" + `
+	Name  string ` + "`json:\"name\"`" + `
+}
+`, true, 0},
+		{"RequiresSerializationTags", "calc.go", `package main
+
+type TaxCalculator struct {
+	CardNumber string
+	Amount     float64
+}
+`, true, 0},
+		{"SuppressedWithEncryptionImport", "payroll.go", `package main
+
+import "github.com/larsartmann/go-cqrs-lite/encryption/v4"
+
+type EmployeePayroll struct {
+	Salary float64 ` + "`json:\"salary\"`" + `
+}
+`, true, 0},
+		{"IgnoresTestFiles", "payment_test.go", `package main
+
+type PaymentMethod struct {
+	CardNumber string ` + "`json:\"card_number\"`" + `
+}
+`, true, 0},
+		{"DetectsFinancialTypeName", "billing.go", `package main
+
+type Invoice struct {
+	ID    string ` + "`json:\"id\"`" + `
+	Title string ` + "`json:\"title\"`" + `
+}
+`, true, 1},
+		{"IgnoresNonFinancialStruct", "user.go", `package main
+
+type User struct {
+	Name  string ` + "`json:\"name\"`" + `
+	Email string ` + "`json:\"email\"`" + `
+}
+`, true, 0},
+		{"IgnoresPanelSubstring", "ui.go", `package main
+
+type DetailsPanelConfig struct {
+	Sections []string ` + "`json:\"sections,omitempty\"`" + `
+}`, true, 0},
+		{"IgnoresDatabaseSubstring", "stats.go", `package main
+
+type DiskStats struct {
+	DatabaseBytes int64 ` + "`json:\"databaseBytes\"`" + `
+	EventBytes    int64 ` + "`json:\"eventBytes\"`" + `
+}`, true, 0},
+		{"DetectsPrimaryAccountNumber", "card.go", `package main
+
+type PaymentCard struct {
+	PrimaryAccountNumber string ` + "`json:\"pan\"`" + `
+}`, true, 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := analyzer.BuildContextFromSource(t, map[string]string{
+				tt.filename: tt.source,
+			})
+			ctx.FeatureProfile.HasServer = tt.hasServer
+			findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+			ruletest.AssertRule(t, findings, "S006", tt.wantCount)
+		})
+	}
 }
 
 func TestS006_StrongSeverityIsError(t *testing.T) {
@@ -298,91 +376,6 @@ type BankAccount struct {
 	if findings[0].Severity != finding.SeverityError {
 		t.Fatalf("strong financial indicator should be ERROR, got %s", findings[0].Severity)
 	}
-}
-
-func TestS006_DetectsMediumFinancialField(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"payroll.go": `package main
-
-type EmployeePayroll struct {
-	Salary float64 ` + "`json:\"salary\"`" + `
-}
-`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 1)
-}
-
-func TestS006_DetectsWeakCompound(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"order.go": `package main
-
-type OrderTotal struct {
-	Amount  float64 ` + "`json:\"amount\"`" + `
-	Balance float64 ` + "`json:\"balance\"`" + `
-}
-`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 1)
-}
-
-func TestS006_SuppressesSingleWeakField(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"product.go": `package main
-
-type Product struct {
-	Price float64 ` + "`json:\"price\"`" + `
-	Name  string ` + "`json:\"name\"`" + `
-}
-`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 0)
-}
-
-func TestS006_RequiresSerializationTags(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"calc.go": `package main
-
-type TaxCalculator struct {
-	CardNumber string
-	Amount     float64
-}
-`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 0)
-}
-
-func TestS006_SuppressedWithEncryptionImport(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"payroll.go": `package main
-
-import "github.com/larsartmann/go-cqrs-lite/encryption/v4"
-
-type EmployeePayroll struct {
-	Salary float64 ` + "`json:\"salary\"`" + `
-}
-`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 0)
 }
 
 func TestS006_DowngradedForLocalCLI(t *testing.T) {
@@ -406,100 +399,4 @@ type EmployeePayroll struct {
 		t.Errorf("local-only financial data should be downgraded to INFO, got %s",
 			localFindings[0].Severity)
 	}
-}
-
-func TestS006_IgnoresTestFiles(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"payment_test.go": `package main
-
-type PaymentMethod struct {
-	CardNumber string ` + "`json:\"card_number\"`" + `
-}
-`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 0)
-}
-
-func TestS006_DetectsFinancialTypeName(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"billing.go": `package main
-
-type Invoice struct {
-	ID    string ` + "`json:\"id\"`" + `
-	Title string ` + "`json:\"title\"`" + `
-}
-`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 1)
-}
-
-func TestS006_IgnoresNonFinancialStruct(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"user.go": `package main
-
-type User struct {
-	Name  string ` + "`json:\"name\"`" + `
-	Email string ` + "`json:\"email\"`" + `
-}
-`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 0)
-}
-
-func TestS006_IgnoresPanelSubstring(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"ui.go": `package main
-
-type DetailsPanelConfig struct {
-	Sections []string ` + "`json:\"sections,omitempty\"`" + `
-}`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 0)
-}
-
-func TestS006_IgnoresDatabaseSubstring(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"stats.go": `package main
-
-type DiskStats struct {
-	DatabaseBytes int64 ` + "`json:\"databaseBytes\"`" + `
-	EventBytes    int64 ` + "`json:\"eventBytes\"`" + `
-}`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 0)
-}
-
-func TestS006_DetectsPrimaryAccountNumber(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"card.go": `package main
-
-type PaymentCard struct {
-	PrimaryAccountNumber string ` + "`json:\"pan\"`" + `
-}`,
-	})
-	ctx.FeatureProfile.HasServer = true
-	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
-	ruletest.AssertRule(t, findings, "S006", 1)
 }

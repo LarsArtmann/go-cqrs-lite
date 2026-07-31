@@ -31,6 +31,42 @@ func testTaskQuery() QueryDecl[testFindTask, testTask] {
 	)
 }
 
+func newMemoryTestStore(t *testing.T) Store {
+	t.Helper()
+
+	eng := NewMemoryEngine()
+
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return store
+}
+
+func newSQLiteTestStore(t *testing.T) Store {
+	t.Helper()
+
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+
+	t.Cleanup(func() { db.Close() })
+
+	eng, err := NewSQLiteEngine(db)
+	if err != nil {
+		t.Fatalf("NewSQLiteEngine: %v", err)
+	}
+
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	return store
+}
+
 func TestApplyBatch(t *testing.T) {
 	t.Parallel()
 
