@@ -35,10 +35,15 @@ this list and recorded in CHANGELOG.
 - [ ] **Lint cleanup pass for metaengine** — 72 lint issues (err113: 8, wrapcheck: 18,
       varnamelen: 14, gocyclo: 3, nestif: 7, nlreturn: 4). Mechanical but time-consuming.
       Highest priority: err113 in `sse.go`, wrapcheck in `sse.go`/`export_import.go`.
-- [ ] **SSE Last-Event-ID reconnection** — no replay support. Clients can't reconnect
-      after disconnect. Needs either a journal mechanism or Watcher event tracking.
-- [ ] **Integrate Cursor.Encode/ParseCursor with PrefetchCache** — opaque cursor
-      strings for HTTP-safe pagination.
+- [x] **SSE Last-Event-ID reconnection** — implemented via `Watcher.WithReplay` +
+      `SSEReplay[V]` ring buffer. ServeSSE writes `id: <seq>` on every event and
+      replays missed values on reconnect via `Last-Event-ID` header with dedup.
+      Files: `sse_replay.go`, `sse.go`, `dx.go`, `store.go`.
+- [x] **Integrate Cursor.Encode/ParseCursor with PrefetchCache** — prefetch
+      cache keys now use `Cursor.Encode()` (base64+JSON) for HTTP-safe opaque
+      strings. Added `WithCursorString` scan option for encoded cursor input.
+      Both `WithCursor(raw)` and `WithCursorString(encoded)` produce matching
+      cache keys. Files: `typed_reader.go`.
 - [ ] **Refactor ContractSuite** — cyclomatic complexity 41 (threshold 30). Split by ADT.
 - [ ] **Refactor applyFold** — cyclomatic complexity 33 (threshold 30). Split by FoldKind.
 - [ ] **Refactor TypedReader.Scan** — cyclomatic complexity 39 (threshold 30). Extract

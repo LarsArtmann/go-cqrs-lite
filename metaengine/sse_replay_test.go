@@ -208,7 +208,8 @@ func TestSSE_LastEventID_Reconnect(t *testing.T) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
-		_ = ServeSSE(w, r, watcher,
+		_ = ServeSSE(
+			w, r, watcher,
 			WithSSETimeout(5*time.Second),
 		)
 	})
@@ -286,7 +287,9 @@ func TestSSE_LastEventID_Reconnect(t *testing.T) {
 
 	defer conn2.Close()
 
-	_, _ = conn2.Write([]byte("GET /events HTTP/1.0\r\nHost: localhost\r\nLast-Event-ID: 2\r\n\r\n"))
+	_, _ = conn2.Write(
+		[]byte("GET /events HTTP/1.0\r\nHost: localhost\r\nLast-Event-ID: 2\r\n\r\n"),
+	)
 
 	// Read replayed events.
 	var data2 string
@@ -359,7 +362,8 @@ func TestSSE_ReplayLimit(t *testing.T) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
-		_ = ServeSSE(w, r, watcher,
+		_ = ServeSSE(
+			w, r, watcher,
 			WithSSETimeout(2*time.Second),
 			WithSSEReplayLimit(2), // cap replay at 2 events
 		)

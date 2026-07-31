@@ -148,7 +148,8 @@ func ContractSuite(t interface {
 
 func contractMap(t interface {
 	Errorf(format string, args ...any)
-}, eng Engine, ctx context.Context) {
+}, eng Engine, ctx context.Context,
+) {
 	mb, ok := eng.(MapBackend)
 	if !ok {
 		return
@@ -177,7 +178,8 @@ func contractMap(t interface {
 
 func contractMapUpdate(t interface {
 	Errorf(format string, args ...any)
-}, eng Engine, mb MapBackend, ctx context.Context) {
+}, eng Engine, mb MapBackend, ctx context.Context,
+) {
 	mu, ok := eng.(MapUpdater)
 	if !ok {
 		return
@@ -203,7 +205,8 @@ func contractMapUpdate(t interface {
 
 func contractSet(t interface {
 	Errorf(format string, args ...any)
-}, eng Engine, ctx context.Context) {
+}, eng Engine, ctx context.Context,
+) {
 	sb, ok := eng.(SetBackend)
 	if !ok {
 		return
@@ -226,7 +229,8 @@ func contractSet(t interface {
 
 func contractCounter(t interface {
 	Errorf(format string, args ...any)
-}, eng Engine, ctx context.Context) {
+}, eng Engine, ctx context.Context,
+) {
 	cb, ok := eng.(CounterBackend)
 	if !ok {
 		return
@@ -252,7 +256,8 @@ func contractCounter(t interface {
 
 func contractMultimap(t interface {
 	Errorf(format string, args ...any)
-}, eng Engine, ctx context.Context) {
+}, eng Engine, ctx context.Context,
+) {
 	mb, ok := eng.(MultimapBackend)
 	if !ok {
 		return
@@ -278,7 +283,8 @@ func contractMultimap(t interface {
 
 func contractLog(t interface {
 	Errorf(format string, args ...any)
-}, eng Engine, ctx context.Context) {
+}, eng Engine, ctx context.Context,
+) {
 	lb, ok := eng.(LogBackend)
 	if !ok {
 		return
@@ -304,7 +310,8 @@ func contractLog(t interface {
 
 func contractGraph(t interface {
 	Errorf(format string, args ...any)
-}, eng Engine, ctx context.Context) {
+}, eng Engine, ctx context.Context,
+) {
 	gb, ok := eng.(GraphBackend)
 	if !ok {
 		return
@@ -321,7 +328,8 @@ func contractGraph(t interface {
 
 func contractScan(t interface {
 	Errorf(format string, args ...any)
-}, eng Engine, ctx context.Context) {
+}, eng Engine, ctx context.Context,
+) {
 	if mbScan, ok := eng.(MapBackend); ok {
 		_ = mbScan.MapSet(ctx, "csscan", "k1", "v1")
 		_ = mbScan.MapSet(ctx, "csscan", "k2", "v2")

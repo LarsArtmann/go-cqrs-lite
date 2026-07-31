@@ -212,7 +212,12 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 	return nil, fmt.Errorf("%w: %s", errUnsupportedScanReads, eng.Profile().Name)
 }
 
-func (r *TypedReader[V]) scanRaw(ctx context.Context, rsr RawScanReader, cfg scanConfig, fetchLimit int) ([]V, error) {
+func (r *TypedReader[V]) scanRaw(
+	ctx context.Context,
+	rsr RawScanReader,
+	cfg scanConfig,
+	fetchLimit int,
+) ([]V, error) {
 	rawRows, err := rsr.ScanRawValues(
 		ctx, r.collection, cfg.filters, cfg.sort, rawCursorValue(cfg.cursor), fetchLimit,
 	)
@@ -261,11 +266,23 @@ func (r *TypedReader[V]) scanPushdown(
 	return r.trimAndCache(result, cfg), nil
 }
 
-func (r *TypedReader[V]) scanClosure(ctx context.Context, sb ScanBackend, cfg scanConfig, fetchLimit int) ([]V, error) {
+func (r *TypedReader[V]) scanClosure(
+	ctx context.Context,
+	sb ScanBackend,
+	cfg scanConfig,
+	fetchLimit int,
+) ([]V, error) {
 	filterFn := buildClosureFilter(cfg)
 	sortFn := buildClosureSort(cfg)
 
-	rows, err := sb.MapScan(ctx, r.collection, filterFn, sortFn, rawCursorValue(cfg.cursor), fetchLimit)
+	rows, err := sb.MapScan(
+		ctx,
+		r.collection,
+		filterFn,
+		sortFn,
+		rawCursorValue(cfg.cursor),
+		fetchLimit,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 	}

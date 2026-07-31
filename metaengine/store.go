@@ -36,8 +36,8 @@ type Store struct {
 	queryDecls   []any          // original query declarations (for Verify)
 	coalescer    *ReadCoalescer // optional read coalescer (nil = disabled)
 	watcherMu    sync.Mutex
-	watchers     map[string][]*watcherEntry  // collection → watcher entries
-	replays      map[string]replayRecorder   // collection → replay recorder (nil = no replay)
+	watchers     map[string][]*watcherEntry // collection → watcher entries
+	replays      map[string]replayRecorder  // collection → replay recorder (nil = no replay)
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
