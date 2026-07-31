@@ -7,6 +7,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 )

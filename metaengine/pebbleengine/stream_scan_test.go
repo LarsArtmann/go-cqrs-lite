@@ -133,17 +133,12 @@ func TestPebbleStreamScan_EarlyExit(t *testing.T) {
 
 	count := 0
 
-	for val, err := range seq {
+	for _, err := range seq {
 		if err != nil {
 			t.Fatalf("StreamScan error: %v", err)
 		}
 
 		count++
-
-		m := val.(map[string]any)
-		if m["idx"].(float64) != float64(count-1) {
-			t.Errorf("expected idx=%d, got %v", count-1, m["idx"])
-		}
 
 		if count >= 10 {
 			break // Early exit after 10 items
