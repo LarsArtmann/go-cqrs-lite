@@ -18,14 +18,26 @@ type config struct {
 	sqlopt.DSNConfig
 	sqlopt.PragmaConfig
 
-	syncOpts []cqrsturso.SyncOption
+	durability stack.DurabilityTier
+	syncOpts   []cqrsturso.SyncOption
 }
 
 func defaultConfig() config {
 	return config{
 		DSNConfig:    sqlopt.DSNConfig{AutoMigrate: true},
 		PragmaConfig: sqlopt.PragmaConfig{WAL: true},
+		durability:   stack.DurabilityNormal,
 	}
+}
+
+// WithDurability sets the durability tier for the Turso backend. Maps to
+// SQLite's PRAGMA synchronous (Turso is libSQL, a SQLite fork):
+//
+//   - [stack.DurabilityStrict]  → synchronous=FULL
+//   - [stack.DurabilityNormal]  → synchronous=NORMAL (the default)
+//   - [stack.DurabilityRelaxed] → synchronous=OFF
+func WithDurability(tier stack.DurabilityTier) Option {
+	return func(c *config) { c.durability = tier }
 }
 
 // WithPragmas applies shared SQLite PRAGMA options from sqlopt (WAL,

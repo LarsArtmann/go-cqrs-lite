@@ -113,6 +113,23 @@ func SQLiteApplyOptimizations(ctx context.Context, db *sql.DB) error {
 // "database is locked" errors entirely.
 func ConfigureSQLitePool(db *sql.DB) { db.SetMaxOpenConns(1) }
 
+// SQLiteSetSynchronous overrides the synchronous PRAGMA after WAL setup.
+// SQLiteEnableWAL sets synchronous=NORMAL (a safe default for WAL mode);
+// this function lets a caller tighten to FULL (fsync per commit) or loosen
+// to OFF (no fsync — data loss on crash) without re-running the full WAL
+// initialisation.
+//
+// Valid levels: "FULL", "NORMAL", "OFF" (SQLite is case-insensitive).
+func SQLiteSetSynchronous(ctx context.Context, db *sql.DB, level string) error {
+	pragma := fmt.Sprintf("PRAGMA synchronous=%s", level)
+
+	if _, err := db.ExecContext(ctx, pragma); err != nil {
+		return errorfamily.WrapInfrastructure(err, "storage.set_synchronous", "exec "+pragma)
+	}
+
+	return nil
+}
+
 // ConfigureTursoPool caps the connection pool at 1 for the embedded Turso
 // Database engine. The engine defaults to WAL mode, which — like SQLite WAL —
 // serializes writes through a single exclusive write lock. The cap makes this

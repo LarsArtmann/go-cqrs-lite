@@ -20,6 +20,7 @@ type config struct {
 	sqlopt.DSNConfig
 	sqlopt.PragmaConfig
 
+	durability     stack.DurabilityTier
 	extraStackOpts []stack.Option
 }
 
@@ -36,8 +37,22 @@ func defaultConfig() config {
 			QueryDSN:    "",
 			ViewDSN:     "",
 		},
+		durability:     stack.DurabilityNormal,
 		extraStackOpts: nil,
 	}
+}
+
+// WithDurability sets the durability tier for the SQLite backend. This maps
+// to SQLite's PRAGMA synchronous setting:
+//
+//   - [stack.DurabilityStrict]  → synchronous=FULL (fsync per commit)
+//   - [stack.DurabilityNormal]  → synchronous=NORMAL (WAL default — the default)
+//   - [stack.DurabilityRelaxed] → synchronous=OFF (no fsync)
+//
+// The chosen tier is recorded on the Bundle via [stack.WithDurability] so
+// benchmark tools can compare backends at the same durability level.
+func WithDurability(tier stack.DurabilityTier) Option {
+	return func(c *config) { c.durability = tier }
 }
 
 // WithPragmas applies shared SQLite PRAGMA options from sqlopt (WAL,
@@ -114,6 +129,9 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	// Bus is in-process GoChannel (SQLite has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 
+	// Record the durability tier on the Bundle for introspection.
+	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
+
 	// Extra consumer-provided stack.Options (e.g. stack.WithMetaEngine).
 	stackOpts = append(stackOpts, cfg.extraStackOpts...)
 
@@ -150,6 +168,13 @@ func openBackend(
 				if err := storage.SQLiteEnableWAL(ctx, sqlDB); err != nil {
 					return errorfamily.WrapInfrastructure(err, "sqlite_preset.enable_wal",
 						"enable WAL mode")
+				}
+
+				// Apply durability tier after WAL setup so the override
+				// takes precedence over the NORMAL default.
+				if err := sqlopt.ApplySQLiteDurability(ctx, sqlDB, cfg.durability); err != nil {
+					return errorfamily.WrapInfrastructure(err, "sqlite_preset.apply_durability",
+						"apply durability tier")
 				}
 			}
 

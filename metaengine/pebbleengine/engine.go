@@ -209,6 +209,7 @@ var (
 	_ metaengine.GraphBackend    = (*pebbleEngine)(nil)
 	_ metaengine.MultimapBackend = (*pebbleEngine)(nil)
 	_ metaengine.LogBackend      = (*pebbleEngine)(nil)
+	_ metaengine.StreamingScan   = (*pebbleEngine)(nil)
 )
 
 // --- MapBackend ---

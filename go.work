@@ -49,6 +49,7 @@ use (
 	./stack/bench
 	./stack/duckdb
 	./stack/memory
+	./stack/mysql
 	./stack/pebble
 	./stack/postgres
 	./stack/sqlite
