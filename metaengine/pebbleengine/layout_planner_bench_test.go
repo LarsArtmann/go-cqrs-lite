@@ -111,6 +111,7 @@ func BenchmarkLayoutPlanner_SortIndexVsGoSort(b *testing.B) {
 		})
 	}
 }
+
 // index. Only matching items are visited — O(matches) instead of O(all rows).
 func BenchmarkLayoutPlanner_IndexedScan(b *testing.B) {
 	ctx := context.Background()

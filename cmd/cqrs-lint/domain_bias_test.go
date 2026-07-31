@@ -19,10 +19,16 @@ func TestApplyDomainBias_FinancialEscalatesSecurity(t *testing.T) {
 	result := applyDomainBias(findings, analyzer.DomainFinancial)
 
 	if result[0].Severity != finding.SeverityError {
-		t.Errorf("S002 should be escalated to Error for financial domain, got %s", result[0].Severity)
+		t.Errorf(
+			"S002 should be escalated to Error for financial domain, got %s",
+			result[0].Severity,
+		)
 	}
 	if result[1].Severity != finding.SeverityError {
-		t.Errorf("C008 should be escalated to Error for financial domain, got %s", result[1].Severity)
+		t.Errorf(
+			"C008 should be escalated to Error for financial domain, got %s",
+			result[1].Severity,
+		)
 	}
 }
 
@@ -53,7 +59,10 @@ func TestApplyDomainBias_AlreadyErrorNoDoubleEscalate(t *testing.T) {
 		t.Errorf("S002 already Error should stay Error, got %s", result[0].Severity)
 	}
 	if result[0].Message != "signing disabled" {
-		t.Errorf("Message should not have escalation tag when already Error, got %s", result[0].Message)
+		t.Errorf(
+			"Message should not have escalation tag when already Error, got %s",
+			result[0].Message,
+		)
 	}
 }
 

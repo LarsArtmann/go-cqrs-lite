@@ -21,24 +21,24 @@ and is **never** duplicated here.
 > Most items are done and shipped. These remain open.
 
 - 🐛 `[ ]` **Pebble LayoutPlanner range filter numeric bug** — lexicographic
-      key ordering ≠ numeric ordering for values with different digit counts
-      (e.g., `2` vs `10`). Test passed by accident (used only 2-digit values).
-      Fix: zero-pad numeric keys or use a numeric-aware comparator.
-      _(Source: `docs/status/2026-07-31_14-57_metaengine-pebble-layoutplanner-cqrs-lint-hardening.md` §D5)_
+  key ordering ≠ numeric ordering for values with different digit counts
+  (e.g., `2` vs `10`). Test passed by accident (used only 2-digit values).
+  Fix: zero-pad numeric keys or use a numeric-aware comparator.
+  _(Source: `docs/status/2026-07-31_14-57_metaengine-pebble-layoutplanner-cqrs-lint-hardening.md` §D5)_
 - 🐛 `[ ]` **Fix `TestSSE_DropOldSemantics` hang** — SSE goroutines
-      (`forwardWithDropOld`) block on channel selects that never drain after
-      `httptest.Server.Close()`. Blocks the full metaengine test suite from
-      completing cleanly. Workaround: use `-run` filters to exclude it.
-      _(Source: `docs/status/2026-07-31_17-19_metaengine-engine-sophistication-complete.md` §D1)_
+  (`forwardWithDropOld`) block on channel selects that never drain after
+  `httptest.Server.Close()`. Blocks the full metaengine test suite from
+  completing cleanly. Workaround: use `-run` filters to exclude it.
+  _(Source: `docs/status/2026-07-31_17-19_metaengine-engine-sophistication-complete.md` §D1)_
 - `[ ]` **Pebble LayoutPlanner sort index** — `sortFields` stored but unused
-      for ordering. Requires a separate sort-prefix index structure.
-      _(Source: `docs/status/2026-07-31_14-57_*.md` §B1)_
+  for ordering. Requires a separate sort-prefix index structure.
+  _(Source: `docs/status/2026-07-31_14-57_*.md` §B1)_
 - `[ ]` **Add Pebble to metaengine `adt_matrix_test.go`** — currently only
-      memory + SQLite. No triple-parity test exists.
-      _(Source: `docs/status/2026-07-31_17-19_*.md` §G3)_
+  memory + SQLite. No triple-parity test exists.
+  _(Source: `docs/status/2026-07-31_17-19_*.md` §G3)_
 - `[ ]` **Fix `scanWithIndex` cursor pagination gap** — the index fast path
-      in `ScanRawValues` doesn't apply cursor pagination.
-      _(Source: `docs/status/2026-07-31_17-19_*.md` §F44)_
+  in `ScanRawValues` doesn't apply cursor pagination.
+  _(Source: `docs/status/2026-07-31_17-19_*.md` §F44)_
 
 ---
 
@@ -48,32 +48,32 @@ and is **never** duplicated here.
 > brutal review are addressed. These remain open.
 
 - `[ ]` 🔥 **50-item improvement backlog** — ~35 items remain open in the
-      [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
-      Includes domain-based severity calibration (L1.5), C017 tracing (L1.9),
-      migration paths in findings (L1.16), doc links (L1.17), block-level
-      suppression (L1.22), new categories (DOC/OBS/RES/DI, L1.47–L1.50).
+  [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
+  Includes domain-based severity calibration (L1.5), C017 tracing (L1.9),
+  migration paths in findings (L1.16), doc links (L1.17), block-level
+  suppression (L1.22), new categories (DOC/OBS/RES/DI, L1.47–L1.50).
 - `[ ]` **Add suppression tests for new rules** — C031-C034, P011-P012,
-      D014-D015, A032, E016-E017, S010, F018-F021 all lack
-      `//cqrs-lint:ignore(RULE)` verification.
+  D014-D015, A032, E016-E017, S010, F018-F021 all lack
+  `//cqrs-lint:ignore(RULE)` verification.
 - `[ ]` **Migrate import-alias resolution to remaining E-series rules** —
-      `QualifierToImportPath` + `ImportQualifierMap` helpers exist and E008
-      was migrated as proof of concept. D007/D008/D010/D013 and E009-E015
-      still use variable-name heuristics.
-      _(Source: `docs/status/2026-07-30_23-22_cqrs-lint-hardening-and-verify-gate-repair.md` §F1)_
+  `QualifierToImportPath` + `ImportQualifierMap` helpers exist and E008
+  was migrated as proof of concept. D007/D008/D010/D013 and E009-E015
+  still use variable-name heuristics.
+  _(Source: `docs/status/2026-07-30_23-22_cqrs-lint-hardening-and-verify-gate-repair.md` §F1)_
 - `[ ]` **Run cqrs-lint against real consumer projects** — validate against
-      Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
+  Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
 
 ---
 
 ## CI / Daemon / Release
 
 - `[ ]` **Recurring lint-sweep** — the auto-commit daemon occasionally commits
-      unformatted code. Either gate daemon commits behind `nix fmt` or run a
-      scheduled sweep.
+  unformatted code. Either gate daemon commits behind `nix fmt` or run a
+  scheduled sweep.
 - `[ ]` **CGo-enabled CI job** — add a separate CI job with `CGO_ENABLED=1`
-      for DuckDB tests (stack/duckdb requires CGo).
+  for DuckDB tests (stack/duckdb requires CGo).
 - `[ ]` **Investigate `TestRun_Postgres_Recovery` benchkit failure** — may
-      still flake.
+  still flake.
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).

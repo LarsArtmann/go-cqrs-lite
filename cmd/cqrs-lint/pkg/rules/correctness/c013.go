@@ -55,7 +55,13 @@ func NewC013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						if lintutil.LooksLikeEventPayload(structName, gf.Path) {
 							checkStructFields(ctx, gf, structName, structType.Fields, &findings)
 						} else if looksLikeProjectionView(structName, gf.Path) {
-							checkProjectionTimeFields(ctx, gf, structName, structType.Fields, &findings)
+							checkProjectionTimeFields(
+								ctx,
+								gf,
+								structName,
+								structType.Fields,
+								&findings,
+							)
 						}
 					}
 				}

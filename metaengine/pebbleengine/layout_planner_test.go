@@ -435,7 +435,9 @@ func TestPebbleLayoutPlanner_SortIndexAscending(t *testing.T) {
 	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
-	gomega.NewWithT(t).Expect(lp.ApplyLayout("tasks", nil, []string{"priority"})).To(gomega.Succeed())
+	gomega.NewWithT(t).
+		Expect(lp.ApplyLayout("tasks", nil, []string{"priority"})).
+		To(gomega.Succeed())
 
 	mb := eng.(metaengine.MapBackend)
 
@@ -473,7 +475,9 @@ func TestPebbleLayoutPlanner_SortIndexDescending(t *testing.T) {
 	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
-	gomega.NewWithT(t).Expect(lp.ApplyLayout("tasks", nil, []string{"priority"})).To(gomega.Succeed())
+	gomega.NewWithT(t).
+		Expect(lp.ApplyLayout("tasks", nil, []string{"priority"})).
+		To(gomega.Succeed())
 
 	mb := eng.(metaengine.MapBackend)
 
@@ -593,8 +597,11 @@ func TestPebbleLayoutPlanner_SortIndexFilterAndSort(t *testing.T) {
 		status   string
 		priority int
 	}{
-		{"s1", "open", 3}, {"s2", "done", 5}, {"s3", "open", 1},
-		{"s4", "open", 2}, {"s5", "done", 4},
+		{"s1", "open", 3},
+		{"s2", "done", 5},
+		{"s3", "open", 1},
+		{"s4", "open", 2},
+		{"s5", "done", 4},
 	}
 
 	for _, item := range items {
@@ -626,7 +633,9 @@ func TestPebbleLayoutPlanner_SortIndexUpdateReindexes(t *testing.T) {
 	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
-	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", nil, []string{"priority"})).To(gomega.Succeed())
+	gomega.NewWithT(t).
+		Expect(lp.ApplyLayout("items", nil, []string{"priority"})).
+		To(gomega.Succeed())
 
 	mb := eng.(metaengine.MapBackend)
 
@@ -666,7 +675,9 @@ func TestPebbleLayoutPlanner_SortIndexDeleteRemovesIndex(t *testing.T) {
 	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
-	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", nil, []string{"priority"})).To(gomega.Succeed())
+	gomega.NewWithT(t).
+		Expect(lp.ApplyLayout("items", nil, []string{"priority"})).
+		To(gomega.Succeed())
 
 	mb := eng.(metaengine.MapBackend)
 

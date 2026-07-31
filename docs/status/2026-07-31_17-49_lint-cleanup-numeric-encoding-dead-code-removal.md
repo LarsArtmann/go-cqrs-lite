@@ -18,6 +18,7 @@ but BEFORE "2". Numeric range filters (FilterGt, FilterLt, etc.) silently return
 results for values with different digit counts (5, 10, 100).
 
 **Fix:** Added `encodeIndexValue` — a type-aware order-preserving encoding function:
+
 - Integers (all widths: int8-int64, uint8-uint64): sign-offset to `uint64` domain, then
   `%020d` fixed-width. This maps `[-2^63, 2^63-1]` to `[0, 2^64-1]` so lexicographic
   byte comparison matches numeric comparison for ALL integers including negatives.
@@ -37,14 +38,14 @@ FilterLt(10) would incorrectly include 100 (lexicographically "100" < "10").
 
 ### A2. Dead Code Removal — 5 functions deleted
 
-| File | Function | Reason |
-|------|----------|--------|
-| `layout_planner.go` | `indexPrefix` | Replaced by `indexBounds` (range-aware) |
-| `layout_planner.go` | `PebbleLayoutSupport` var | `var _ sync.Locker = (*sync.Mutex)(nil)` — trivially true, cargo cult |
-| `e014_e015.go` | `projectHasCallContaining` | Duplicate of `projectHasMethodCallContaining` in helpers.go |
-| `e014_e015.go` | `containsSubstring` | Only used by `projectHasCallContaining` (removed) |
-| `helpers.go` | `firstCallPos` + `firstCallPosAny` | Unused (no callers) |
-| `s006.go` | `moduleHasEncryption` | Unused (no callers) |
+| File                | Function                           | Reason                                                                |
+| ------------------- | ---------------------------------- | --------------------------------------------------------------------- |
+| `layout_planner.go` | `indexPrefix`                      | Replaced by `indexBounds` (range-aware)                               |
+| `layout_planner.go` | `PebbleLayoutSupport` var          | `var _ sync.Locker = (*sync.Mutex)(nil)` — trivially true, cargo cult |
+| `e014_e015.go`      | `projectHasCallContaining`         | Duplicate of `projectHasMethodCallContaining` in helpers.go           |
+| `e014_e015.go`      | `containsSubstring`                | Only used by `projectHasCallContaining` (removed)                     |
+| `helpers.go`        | `firstCallPos` + `firstCallPosAny` | Unused (no callers)                                                   |
+| `s006.go`           | `moduleHasEncryption`              | Unused (no callers)                                                   |
 
 Also removed the now-unused `strings` import from e014_e015.go and `sync` import from
 layout_planner.go.
@@ -53,43 +54,43 @@ layout_planner.go.
 
 All 28 lint issues in `metaengine/pebbleengine/` fixed:
 
-| Linter | Count | Fix |
-|--------|-------|-----|
-| dupl | 2 | Extracted `testSortedScan` shared helper for asc/desc sort tests |
-| wsl_v5 | 5 | Added whitespace before `closer.Close()`, combined `var` blocks, blank before `defer` |
-| nolintlint | 7 | Removed unused `//nolint:wrapcheck`, `//nolint:errcheck`, `//nolint:sqlclosecheck` directives |
-| nlreturn | 6 | Added blank lines before returns in switch cases (or refactored to eliminate nesting) |
-| godot | 2 | Added periods to comment endings |
-| mirror | 1 | `strings.Compare(string(...), ...)` → `bytes.Compare(...)` |
-| nestif | 1 | Already refactored by daemon (cursor pagination extracted) |
-| nonamedreturns | 1 | Removed named returns from `indexBounds` |
-| gci | 2 | Fixed import ordering via gofumpt |
-| unused | 1 | Removed dead `indexPrefix` method |
+| Linter         | Count | Fix                                                                                           |
+| -------------- | ----- | --------------------------------------------------------------------------------------------- |
+| dupl           | 2     | Extracted `testSortedScan` shared helper for asc/desc sort tests                              |
+| wsl_v5         | 5     | Added whitespace before `closer.Close()`, combined `var` blocks, blank before `defer`         |
+| nolintlint     | 7     | Removed unused `//nolint:wrapcheck`, `//nolint:errcheck`, `//nolint:sqlclosecheck` directives |
+| nlreturn       | 6     | Added blank lines before returns in switch cases (or refactored to eliminate nesting)         |
+| godot          | 2     | Added periods to comment endings                                                              |
+| mirror         | 1     | `strings.Compare(string(...), ...)` → `bytes.Compare(...)`                                    |
+| nestif         | 1     | Already refactored by daemon (cursor pagination extracted)                                    |
+| nonamedreturns | 1     | Removed named returns from `indexBounds`                                                      |
+| gci            | 2     | Fixed import ordering via gofumpt                                                             |
+| unused         | 1     | Removed dead `indexPrefix` method                                                             |
 
 ### A4. cqrs-lint Lint Cleanup — 26 → 0 issues
 
 Fixed pre-existing and daemon-introduced lint issues in cqrs-lint:
 
-| Category | Count | Fix |
-|----------|-------|-----|
-| dupl (test files) | 14 | Added `dupl`+`dupword` to global `_test.go` exclusion in `.golangci.yml` |
-| dupl (catalog_extra.go) | 2 | Added `//nolint:dupl` to `performanceRules` and `testingRules` (same pattern, different categories) |
-| gochecknoglobals | 6 | Added `//nolint:gochecknoglobals` to 6 immutable lookup tables |
-| unused | 3 | Deleted `firstCallPos`, `firstCallPosAny`, `moduleHasEncryption` |
-| dupword | 1 | `UserID UserID` → `ID UserID` in test struct |
-| prealloc | 1 | `var findings []T` → `make([]T, 0, 7)` |
+| Category                | Count | Fix                                                                                                 |
+| ----------------------- | ----- | --------------------------------------------------------------------------------------------------- |
+| dupl (test files)       | 14    | Added `dupl`+`dupword` to global `_test.go` exclusion in `.golangci.yml`                            |
+| dupl (catalog_extra.go) | 2     | Added `//nolint:dupl` to `performanceRules` and `testingRules` (same pattern, different categories) |
+| gochecknoglobals        | 6     | Added `//nolint:gochecknoglobals` to 6 immutable lookup tables                                      |
+| unused                  | 3     | Deleted `firstCallPos`, `firstCallPosAny`, `moduleHasEncryption`                                    |
+| dupword                 | 1     | `UserID UserID` → `ID UserID` in test struct                                                        |
+| prealloc                | 1     | `var findings []T` → `make([]T, 0, 7)`                                                              |
 
 ### A5. Daemon-Inflicted Build Breaks Fixed (5 reactive fixes)
 
 The auto-commit daemon introduced multiple build-breaking changes during this session:
 
-| File | Issue | Fix |
-|------|-------|-----|
-| `features2_test.go:56` | `err =` → `err :=` (undefined: err) | Restored `:=` + fixed indentation |
-| `features3_test.go:142,548` | `err =` → `err :=` (undefined: err) | Restored `:=` |
-| `c017.go:6` | `"go/token" imported and not used` | Removed unused import |
-| `d016.go:72` | `finding.CategoryConsistency` undefined | Changed to `finding.CategoryBestPractice` |
-| `a032_test.go:34` | Malformed Go source: `UserID Name string` (missing newline) | Fixed to proper struct field |
+| File                        | Issue                                                       | Fix                                       |
+| --------------------------- | ----------------------------------------------------------- | ----------------------------------------- |
+| `features2_test.go:56`      | `err =` → `err :=` (undefined: err)                         | Restored `:=` + fixed indentation         |
+| `features3_test.go:142,548` | `err =` → `err :=` (undefined: err)                         | Restored `:=`                             |
+| `c017.go:6`                 | `"go/token" imported and not used`                          | Removed unused import                     |
+| `d016.go:72`                | `finding.CategoryConsistency` undefined                     | Changed to `finding.CategoryBestPractice` |
+| `a032_test.go:34`           | Malformed Go source: `UserID Name string` (missing newline) | Fixed to proper struct field              |
 
 ### A6. README Rule Count Updated
 
@@ -99,6 +100,7 @@ Updated to match actual catalog count.
 ### A7. Metaengine Core Lint Fixes
 
 3 lint issues in `metaengine/` core (daemon-introduced):
+
 - `gochecknoglobals` on `backendInterfaces` → added nolint
 - `nolintlint` on unused `funlen` directive → removed (kept only `maintidx`)
 - `nonamedreturns` on `extractDeclarativeFields` → removed named returns, added local vars
@@ -128,14 +130,17 @@ bits for negatives). Low priority — fractional range filters are rare in pract
 ## C) NOT STARTED
 
 ### C1. FilterIn Index Expansion (from prior session's TODO)
+
 `FilterIn` (membership test) doesn't use the secondary index. Would require expanding
 into multiple equality scans and merging results. Low priority.
 
 ### C2. Sort Index (from prior session's TODO)
+
 `sortFields` in `layoutPlan` is stored but unused for ordering. Currently sort is done
 in Go on the filtered result set. Deferred as low value for moderate result sets.
 
 ### C3. Concurrent Read/Write Race Test for LayoutPlanner
+
 The index infrastructure uses `layoutMu` for plan registration but the batch writes in
 MapSet/MapDelete/MapUpdate are not explicitly tested under concurrent access with the
 race detector. Tests pass under `-race` but no dedicated concurrent stress test exists.
@@ -148,6 +153,7 @@ race detector. Tests pass under `-race` but no dedicated concurrent stress test 
 
 This is the #1 quality concern. The daemon committed **at least 6 times during this
 session**, introducing:
+
 - `:=` → `=` corruption in test files (3 times in features2_test.go, features3_test.go)
 - Undefined constants (`CategoryConsistency`)
 - Unused imports (`go/token`)
@@ -218,6 +224,7 @@ since. The gate status is a point-in-time snapshot, not a continuous guarantee.
 ## F) Next 50 Things to Get Done (Prioritized)
 
 ### Immediate (blocking or high-risk)
+
 1. **Gate daemon commits behind `go build ./...`** — prevents the entire class of
    build-break commits
 2. **Delete unused `jsonValue` type in `metaengine/jsonvalue.go`** — gopls flagged it
@@ -225,6 +232,7 @@ since. The gate status is a point-in-time snapshot, not a continuous guarantee.
    within seconds of a daemon commit
 
 ### Pebbleengine Polish
+
 4. Add concurrent read/write race-detector test for LayoutPlanner
 5. Implement IEEE 754 encoding for fractional float range filters
 6. Add test for LayoutPlanner with null byte values in keys (edge case)
@@ -237,6 +245,7 @@ since. The gate status is a point-in-time snapshot, not a continuous guarantee.
 13. Add Pebble LayoutPlanner to the ADT matrix test
 
 ### cqrs-lint Hardening
+
 14. Migrate E009 to `projectCallsImportPath`
 15. Migrate E010-E013 to import-alias-aware helpers
 16. Migrate D007-D013 to `QualifierToImportPath`
@@ -250,6 +259,7 @@ since. The gate status is a point-in-time snapshot, not a continuous guarantee.
 24. Add P013 test coverage (daemon-added)
 
 ### Metaengine
+
 25. Write ADR for Pebble secondary index design
 26. Add Pebble LayoutPlanner to the Crush skill reference
 27. Update metaengine design docs with LayoutPlanner
@@ -258,6 +268,7 @@ since. The gate status is a point-in-time snapshot, not a continuous guarantee.
 30. Add sort_index.go documentation (daemon added this file)
 
 ### CI / Infrastructure
+
 31. CGo-enabled CI job for DuckDB tests
 32. Recurring lint-sweep (gate daemon commits behind `nix fmt`)
 33. Investigate `TestRun_Postgres_Recovery` benchkit failure
@@ -266,6 +277,7 @@ since. The gate status is a point-in-time snapshot, not a continuous guarantee.
 36. Verify metaengine/pebbleengine go.mod has correct dependency budget
 
 ### Code Quality Polish
+
 37. Modernize `b.N` → `b.Loop()` in metaengine benchmark files (29 gopls warnings)
 38. Add gofumpt checks to pre-commit for all modules
 39. Verify all new exported symbols are documented
@@ -275,11 +287,13 @@ since. The gate status is a point-in-time snapshot, not a continuous guarantee.
 43. Review daemon-added feature_detect.go and feature_profile.go for quality
 
 ### API Surface
+
 44. Verify api-stability golden is current
 45. Add `ApplyLayout` + `encodeIndexValue` to public documentation
 46. Document the `LayoutPlanner` interface contract
 
 ### Testing Improvements
+
 47. Add race-detector run for Pebble LayoutPlanner tests (dedicated concurrent test)
 48. Test LayoutPlanner with large key values (edge case)
 49. Test LayoutPlanner with non-JSON values (should gracefully skip indexing)
@@ -296,6 +310,7 @@ breaks 5 times. Each break required reactive investigation and fixing. The daemo
 also added new rules (D016, P013, C017, domain_bias_test.go) and new files
 (sort_index.go, feature_detect.go, feature_profile.go) that I did not write and
 cannot vouch for the quality of. Should the daemon be:
+
 - **A:** Disabled entirely during sessions (manual commits only)
 - **B:** Gated behind `go build ./...` (auto-abort commits that don't compile)
 - **C:** Left as-is (the reactive fixing is acceptable overhead)
@@ -303,6 +318,7 @@ cannot vouch for the quality of. Should the daemon be:
 ### G2. Should I review and verify the daemon-added code (D016, P013, C017, sort_index.go, feature_detect.go)?
 
 The daemon added several new files during this session that I did not author:
+
 - `cmd/cqrs-lint/pkg/rules/consistency/d016.go` — new consistency rule
 - `cmd/cqrs-lint/pkg/rules/performance/p013.go` — new performance rule
 - `cmd/cqrs-lint/pkg/rules/correctness/c017.go` — new correctness rule
@@ -325,19 +341,19 @@ Which do you prefer?
 
 ## Summary Statistics
 
-| Metric | Value |
-|--------|-------|
-| Tasks planned | 12 |
-| Tasks completed | 12 (100%) |
-| Lint issues fixed (pebbleengine) | 28 → 0 |
-| Lint issues fixed (cqrs-lint) | 26 → 0 |
-| Lint issues fixed (metaengine core) | 3 → 0 |
-| Dead functions removed | 6 |
-| Bug fixes | 1 (numeric range filter ordering — critical) |
-| Regression tests added | 1 (`TestPebbleLayoutPlanner_NumericRangeMixedDigits`) |
-| Daemon build breaks fixed | 5 (reactive) |
-| Files changed | ~25 |
-| Verify-fast gate | GREEN (0 issues across all modules) |
-| Verify gate | GREEN (all tests pass, api-stability passes) |
-| Session duration | ~2 hours |
-| Time wasted on daemon breaks | ~15-20 minutes |
+| Metric                              | Value                                                 |
+| ----------------------------------- | ----------------------------------------------------- |
+| Tasks planned                       | 12                                                    |
+| Tasks completed                     | 12 (100%)                                             |
+| Lint issues fixed (pebbleengine)    | 28 → 0                                                |
+| Lint issues fixed (cqrs-lint)       | 26 → 0                                                |
+| Lint issues fixed (metaengine core) | 3 → 0                                                 |
+| Dead functions removed              | 6                                                     |
+| Bug fixes                           | 1 (numeric range filter ordering — critical)          |
+| Regression tests added              | 1 (`TestPebbleLayoutPlanner_NumericRangeMixedDigits`) |
+| Daemon build breaks fixed           | 5 (reactive)                                          |
+| Files changed                       | ~25                                                   |
+| Verify-fast gate                    | GREEN (0 issues across all modules)                   |
+| Verify gate                         | GREEN (all tests pass, api-stability passes)          |
+| Session duration                    | ~2 hours                                              |
+| Time wasted on daemon breaks        | ~15-20 minutes                                        |

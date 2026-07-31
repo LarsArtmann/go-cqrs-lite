@@ -208,7 +208,8 @@ func applyDomainBias(
 
 	result := make([]finding.Finding, len(findings))
 	for i, f := range findings {
-		if financialEscalatedRules[string(f.Rule)] && f.Severity.Compare(finding.SeverityError) < 0 {
+		if financialEscalatedRules[string(f.Rule)] &&
+			f.Severity.Compare(finding.SeverityError) < 0 {
 			f.Severity = finding.SeverityError
 			if f.Message != "" {
 				f.Message += " [escalated: financial domain]"

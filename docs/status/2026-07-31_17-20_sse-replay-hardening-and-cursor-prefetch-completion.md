@@ -42,21 +42,22 @@
 
 ### Verification results
 
-| Check | Status | Detail |
-|-------|--------|--------|
-| Build | ✓ | All 60+ modules compile |
-| Vet | ✓ | Clean |
-| Test | ✓ | All modules pass |
-| Race | ✓ | metaengine: 94.9s, all others pass |
-| Lint (metaengine) | ✓ | **0 issues** |
-| Doc-check | ✓ | 964 references valid across 38 packages |
-| API-stability | ✓ | 2907 exports, golden matches |
+| Check             | Status | Detail                                  |
+| ----------------- | ------ | --------------------------------------- |
+| Build             | ✓      | All 60+ modules compile                 |
+| Vet               | ✓      | Clean                                   |
+| Test              | ✓      | All modules pass                        |
+| Race              | ✓      | metaengine: 94.9s, all others pass      |
+| Lint (metaengine) | ✓      | **0 issues**                            |
+| Doc-check         | ✓      | 964 references valid across 38 packages |
+| API-stability     | ✓      | 2907 exports, golden matches            |
 
 ---
 
 ## B) PARTIALLY DONE
 
 ### Skill reference updates
+
 - `modules.md` — done
 - `recipes.md` — done (§2.15 + §2.16)
 - `advanced.md` — done (§6.16)
@@ -65,6 +66,7 @@
 - `faq.md` — **NOT updated** (no SSE reconnection FAQ entry)
 
 ### Dedup ring capacity
+
 - Uses hardcoded `dedup.DefaultCapacity` (1024). This is a reasonable default but not configurable per-SSE-connection. If a replay writes >1024 events, older entries get evicted from the dedup ring before the live phase checks them, potentially causing duplicate delivery on the overlap boundary. This is an edge case that could matter for very high-throughput streams with slow reconnecting clients.
 
 ---
@@ -91,7 +93,7 @@
    - Changed `newMemoryTestStore` and `newSQLiteTestStore` return types from `*Store` to `Store` (value instead of pointer) — broke compilation
    - Removed `err` variable declarations in multiple test functions (replaced `store, err := Plan(...)` with `store := newMemoryTestStore(t)`, leaving `_, err =` references undefined)
    - Broke indentation (0-indent instead of tab-indent)
-   **I had to fix all of these** before the verify gate could run. This is documented in AGENTS.md as a known anti-pattern ("Auto-commit daemon can break the build").
+     **I had to fix all of these** before the verify gate could run. This is documented in AGENTS.md as a known anti-pattern ("Auto-commit daemon can break the build").
 
 3. **ReplayLimit semantics change was undocumented** — I changed the behavior from "keep oldest N" to "keep most recent N" without initially documenting the change. The new behavior is arguably better (clients care about current state), but it's a behavior change that could surprise consumers.
 
@@ -130,6 +132,7 @@
 ## F) Up to 50 things to get done next
 
 ### High priority (correctness & safety)
+
 1. Write replay→live overlap dedup test (event in both journal AND live stream → delivered once)
 2. Write subscribe-before-replay ordering test (events applied DURING replay phase)
 3. Write brutal-self-review HTML report at `docs/reviews/`
@@ -140,6 +143,7 @@
 8. Document ReplayLimit behavior change (most-recent-N, not oldest-N) in godoc
 
 ### Medium priority (hardening)
+
 9. Add SSE replay metrics (OTel spans: replay duration, event count, dedup hit rate)
 10. Add SSE connection limit option (max concurrent connections)
 11. Add graceful shutdown support for SSE streams
@@ -156,6 +160,7 @@
 22. Add benchmark: PrefetchCache hit rate vs miss rate
 
 ### Lower priority (polish)
+
 23. Fix `pebbleengine/raw_reader.go:56` pre-existing `undefined: pebble` error (gopls only, not a build error)
 24. Add `WithSSEMaxRetry` for automatic reconnection on transient write failures
 25. Consider SSE event type field (`event: task_created`) for client-side filtering
