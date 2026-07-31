@@ -98,26 +98,26 @@
 
 Written `features4_test.go` with 18 tests covering every new feature:
 
-| Test | What it verifies |
-|------|-----------------|
-| `TestStats_ReturnsRowCounts` | Stats() returns correct row counts |
-| `TestHealthCheck_AllEnginesHealthy` | Memory engine health check passes |
-| `TestHealthCheck_SQLiteEngine` | SQLite engine health check passes |
-| `TestPrefetchCache_AutoPopulation` | Cache auto-populates after limited scan |
-| `TestWatcher_PerKeyFiltering` | Per-key watcher only receives matching notifications |
-| `TestSSE_DropOldSemantics` | SSE server doesn't block under burst load |
-| `TestSSE_Timeout` | SSE stream closes after configured timeout |
-| `TestInspectJSON_ValidJSON` | InspectJSON returns valid JSON |
-| `TestExpandedErrorSentinels` | All 10 sentinels non-nil, errors.Is works |
-| `TestExportImport_RoundTrip` | Export → Import → Scan verifies data integrity |
-| `TestCrashRecovery_PanicPoisonsCollection` | Panic in fold → collection poisoned, reads fail |
-| `TestEventLog_ReplayAndVerify` | EventLog records, Verify replays successfully |
-| `TestVerify_DetectsDrift` | Manual corruption → Verify detects row count drift |
-| `TestSQLiteWatcher_ReceivesValue` | SQLite engine watcher receives correct value |
-| `TestSQLiteCoalescer_ConcurrentReadsCoalesced` | 20 concurrent reads on SQLite coalesced correctly |
-| `TestApplyIdempotent_DeduplicatesByEventID` | Same event ID → second apply is no-op |
-| `TestChecksum_VerifyRoundTrip` | FNV-1a checksum verify + corruption detection |
-| `TestProperty_RandomOpsMaintainConsistency` | 200 random insert/update/delete ops, seeded RNG |
+| Test                                           | What it verifies                                     |
+| ---------------------------------------------- | ---------------------------------------------------- |
+| `TestStats_ReturnsRowCounts`                   | Stats() returns correct row counts                   |
+| `TestHealthCheck_AllEnginesHealthy`            | Memory engine health check passes                    |
+| `TestHealthCheck_SQLiteEngine`                 | SQLite engine health check passes                    |
+| `TestPrefetchCache_AutoPopulation`             | Cache auto-populates after limited scan              |
+| `TestWatcher_PerKeyFiltering`                  | Per-key watcher only receives matching notifications |
+| `TestSSE_DropOldSemantics`                     | SSE server doesn't block under burst load            |
+| `TestSSE_Timeout`                              | SSE stream closes after configured timeout           |
+| `TestInspectJSON_ValidJSON`                    | InspectJSON returns valid JSON                       |
+| `TestExpandedErrorSentinels`                   | All 10 sentinels non-nil, errors.Is works            |
+| `TestExportImport_RoundTrip`                   | Export → Import → Scan verifies data integrity       |
+| `TestCrashRecovery_PanicPoisonsCollection`     | Panic in fold → collection poisoned, reads fail      |
+| `TestEventLog_ReplayAndVerify`                 | EventLog records, Verify replays successfully        |
+| `TestVerify_DetectsDrift`                      | Manual corruption → Verify detects row count drift   |
+| `TestSQLiteWatcher_ReceivesValue`              | SQLite engine watcher receives correct value         |
+| `TestSQLiteCoalescer_ConcurrentReadsCoalesced` | 20 concurrent reads on SQLite coalesced correctly    |
+| `TestApplyIdempotent_DeduplicatesByEventID`    | Same event ID → second apply is no-op                |
+| `TestChecksum_VerifyRoundTrip`                 | FNV-1a checksum verify + corruption detection        |
+| `TestProperty_RandomOpsMaintainConsistency`    | 200 random insert/update/delete ops, seeded RNG      |
 
 ### A13. Verify Gate
 
@@ -151,33 +151,43 @@ Written `features4_test.go` with 18 tests covering every new feature:
 ## C) NOT STARTED (from the original 50-item list)
 
 ### C1. Code Generator (`metaengine-gen`)
+
 - Zero code. Would be a new `cmd/metaengine-gen` module generating typed Store methods from query declarations.
 
 ### C2. Postgres Engine
+
 - Zero code. Would be a new `metaengine/pgengine` module with JSONB operators, GIN indexes, PARTITION BY.
 
 ### C3. DuckDB Analytical Engine
+
 - Zero code. Would be a new `metaengine/duckdbengine` module with columnar OLAP pushdown.
 
 ### C4. Pebble RawValueReader + RawScanReader
+
 - Pebble engine still JSON-decodes every value on read. Lives in `metaengine/pebbleengine`.
 
 ### C5. Pebble ADT Matrix Test Integration
+
 - `engineFactories()` in `adt_matrix_test.go` doesn't include Pebble.
 
 ### C6. Soak Test (10M Events)
+
 - Not written.
 
 ### C7. Chaos Testing
+
 - Not written.
 
 ### C8. `MapUpdateTyped[V]` — Typed Callback
+
 - The `MapUpdate` callback still receives `any`. A typed variant that auto-reifies `prev` would fix the engine-dependent type footgun. Not implemented.
 
 ### C9. `SortOn` Without Index Lint Rule (F020) — Done!
+
 - Actually completed as part of this session (A9).
 
 ### C10. Items 20-50 from the original list
+
 - TTL functional test, multi-engine tiering test, SwapEngine migration test, MigrateLayout test, SSE reconnection, SSE multi-subscriber, PlanResult.DotGraph(), compound sort keys, cost accuracy reporter, collection introspection metadata, filter range optimization, OR group pushdown, streaming aggregation, layout plan versioning — all not started.
 
 ---

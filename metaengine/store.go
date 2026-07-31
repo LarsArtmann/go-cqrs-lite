@@ -288,154 +288,191 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 
 	defer func() {
 		if r := recover(); r != nil {
-			poisonErr := fmt.Errorf(
-				"metaengine: collection %q poisoned by fold panic: %v",
-				q.name,
-				r,
-			)
+			poisonErr := fmt.Errorf("%w: collection %q, panic: %v", ErrPoisoned, q.name, r)
 			s.poisoned.Store(q.name, poisonErr)
 			err = poisonErr
 		}
 	}()
 
-	col := q.name
-
 	switch fold.Kind {
 	case FoldInsert:
-		key, value := fold.callInsert(payload)
-		if mb, ok := q.engine.(MapBackend); ok {
-			if err := mb.MapSet(ctx, col, key, value); err != nil {
-				return fmt.Errorf("map set %s: %w", col, err)
-			}
-
-			s.notifyWatchers(col, key, value)
-
-			return nil
-		}
-
-		return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
-
+		return s.applyFoldInsert(ctx, q, fold, payload)
 	case FoldUpdate:
-		key := fold.callKey(payload)
-
-		if mu, ok := q.engine.(MapUpdater); ok {
-			var updatedVal any
-
-			if err := mu.MapUpdate(ctx, col, key, func(prev any) any {
-				updatedVal = fold.callUpdate(payload, prev)
-
-				return updatedVal
-			}); err != nil {
-				return fmt.Errorf("map update %s: %w", col, err)
-			}
-
-			s.notifyWatchers(col, key, updatedVal)
-
-			return nil
-		}
-
-		if mapBackend, ok := q.engine.(MapBackend); ok {
-			prev, exists, err := mapBackend.MapGet(ctx, col, key)
-			if err != nil {
-				return fmt.Errorf("map get %s: %w", col, err)
-			}
-
-			var prevVal any
-			if exists {
-				prevVal = prev
-			}
-
-			updated := fold.callUpdate(payload, prevVal)
-
-			if err := mapBackend.MapSet(ctx, col, key, updated); err != nil {
-				return fmt.Errorf("map set %s: %w", col, err)
-			}
-
-			s.notifyWatchers(col, key, updated)
-
-			return nil
-		}
-
-		return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
-
+		return s.applyFoldUpdate(ctx, q, fold, payload)
 	case FoldRemove:
-		key := fold.callKey(payload)
-		if mb, ok := q.engine.(MapBackend); ok {
-			if err := mb.MapDelete(ctx, col, key); err != nil {
-				return fmt.Errorf("map delete %s: %w", col, err)
-			}
-
-			s.notifyWatchers(col, key, nil)
-
-			return nil
-		}
-
-		return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
-
+		return s.applyFoldRemove(ctx, q, fold, payload)
 	case FoldCount:
-		delta := fold.callCount(payload)
-		if cb, ok := q.engine.(CounterBackend); ok {
-			if err := cb.CounterIncrement(ctx, col, delta); err != nil {
-				return fmt.Errorf("counter increment %s: %w", col, err)
-			}
-
-			return nil
-		}
-
-		return unsupportedEngine(errUnsupportedCounterOps, q.engine.Profile().Name)
-
+		return s.applyFoldCount(ctx, q, fold, payload)
 	case FoldEdge:
-		edge := fold.callEdge(payload)
-		if gb, ok := q.engine.(GraphBackend); ok {
-			if err := gb.GraphAddEdge(ctx, col, edge); err != nil {
-				return fmt.Errorf("graph add edge %s: %w", col, err)
-			}
-
-			return nil
-		}
-
-		return unsupportedEngine(errUnsupportedGraphOps, q.engine.Profile().Name)
-
+		return s.applyFoldEdge(ctx, q, fold, payload)
 	case FoldSet:
-		key := fold.callSet(payload)
-		if sb, ok := q.engine.(SetBackend); ok {
-			if err := sb.SetAdd(ctx, col, key); err != nil {
-				return fmt.Errorf("set add %s: %w", col, err)
-			}
-
-			return nil
-		}
-
-		return unsupportedEngine(errUnsupportedSetOps, q.engine.Profile().Name)
-
+		return s.applyFoldSet(ctx, q, fold, payload)
 	case FoldSkip:
 		return nil
-
 	case FoldMultiInsert:
-		entry := fold.callMultiInsert(payload)
-		if mb, ok := q.engine.(MultimapBackend); ok {
-			if err := mb.MultiAdd(ctx, col, entry.Key, entry.Value); err != nil {
-				return fmt.Errorf("multi add %s: %w", col, err)
-			}
-
-			return nil
-		}
-
-		return unsupportedEngine(errUnsupportedMultimapOps, q.engine.Profile().Name)
-
+		return s.applyFoldMultiInsert(ctx, q, fold, payload)
 	case FoldAppend:
-		app := fold.callAppend(payload)
-		if lb, ok := q.engine.(LogBackend); ok {
-			if err := lb.LogAppend(ctx, col, app.Value); err != nil {
-				return fmt.Errorf("log append %s: %w", col, err)
-			}
-
-			return nil
-		}
-
-		return unsupportedEngine(errUnsupportedLogOps, q.engine.Profile().Name)
-
+		return s.applyFoldAppend(ctx, q, fold, payload)
 	default:
 		return fmt.Errorf("%w: %s", errUnknownFoldKind, fold.Kind)
 	}
+}
+
+func (s *Store) applyFoldInsert(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+	key, value := fold.callInsert(payload)
+	col := q.name
+
+	if mb, ok := q.engine.(MapBackend); ok {
+		if err := mb.MapSet(ctx, col, key, value); err != nil {
+			return fmt.Errorf("map set %s: %w", col, err)
+		}
+
+		s.notifyWatchers(col, key, value)
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
+}
+
+func (s *Store) applyFoldUpdate(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+	key := fold.callKey(payload)
+	col := q.name
+
+	if mu, ok := q.engine.(MapUpdater); ok {
+		var updatedVal any
+
+		if err := mu.MapUpdate(ctx, col, key, func(prev any) any {
+			updatedVal = fold.callUpdate(payload, prev)
+
+			return updatedVal
+		}); err != nil {
+			return fmt.Errorf("map update %s: %w", col, err)
+		}
+
+		s.notifyWatchers(col, key, updatedVal)
+
+		return nil
+	}
+
+	if mapBackend, ok := q.engine.(MapBackend); ok {
+		prev, exists, err := mapBackend.MapGet(ctx, col, key)
+		if err != nil {
+			return fmt.Errorf("map get %s: %w", col, err)
+		}
+
+		var prevVal any
+		if exists {
+			prevVal = prev
+		}
+
+		updated := fold.callUpdate(payload, prevVal)
+
+		if err := mapBackend.MapSet(ctx, col, key, updated); err != nil {
+			return fmt.Errorf("map set %s: %w", col, err)
+		}
+
+		s.notifyWatchers(col, key, updated)
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
+}
+
+func (s *Store) applyFoldRemove(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+	key := fold.callKey(payload)
+	col := q.name
+
+	if mb, ok := q.engine.(MapBackend); ok {
+		if err := mb.MapDelete(ctx, col, key); err != nil {
+			return fmt.Errorf("map delete %s: %w", col, err)
+		}
+
+		s.notifyWatchers(col, key, nil)
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
+}
+
+func (s *Store) applyFoldCount(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+	col := q.name
+	delta := fold.callCount(payload)
+
+	if cb, ok := q.engine.(CounterBackend); ok {
+		if err := cb.CounterIncrement(ctx, col, delta); err != nil {
+			return fmt.Errorf("counter increment %s: %w", col, err)
+		}
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedCounterOps, q.engine.Profile().Name)
+}
+
+func (s *Store) applyFoldEdge(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+	col := q.name
+	edge := fold.callEdge(payload)
+
+	if gb, ok := q.engine.(GraphBackend); ok {
+		if err := gb.GraphAddEdge(ctx, col, edge); err != nil {
+			return fmt.Errorf("graph add edge %s: %w", col, err)
+		}
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedGraphOps, q.engine.Profile().Name)
+}
+
+func (s *Store) applyFoldSet(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+	col := q.name
+	key := fold.callSet(payload)
+
+	if sb, ok := q.engine.(SetBackend); ok {
+		if err := sb.SetAdd(ctx, col, key); err != nil {
+			return fmt.Errorf("set add %s: %w", col, err)
+		}
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedSetOps, q.engine.Profile().Name)
+}
+
+func (s *Store) applyFoldMultiInsert(
+	ctx context.Context,
+	q queryRuntime,
+	fold Fold,
+	payload any,
+) error {
+	col := q.name
+	entry := fold.callMultiInsert(payload)
+
+	if mb, ok := q.engine.(MultimapBackend); ok {
+		if err := mb.MultiAdd(ctx, col, entry.Key, entry.Value); err != nil {
+			return fmt.Errorf("multi add %s: %w", col, err)
+		}
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedMultimapOps, q.engine.Profile().Name)
+}
+
+func (s *Store) applyFoldAppend(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+	col := q.name
+	app := fold.callAppend(payload)
+
+	if lb, ok := q.engine.(LogBackend); ok {
+		if err := lb.LogAppend(ctx, col, app.Value); err != nil {
+			return fmt.Errorf("log append %s: %w", col, err)
+		}
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedLogOps, q.engine.Profile().Name)
 }

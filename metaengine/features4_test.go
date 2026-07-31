@@ -735,7 +735,11 @@ func TestProperty_RandomOpsMaintainConsistency(t *testing.T) {
 
 			newTitle := fmt.Sprintf("Updated-%d", rng.Intn(10000))
 			expected[string(id)] = newTitle
-			if err := store.Apply(ctx, "task_title_changed", testTask{ID: id, Title: newTitle}); err != nil {
+			if err := store.Apply(
+				ctx,
+				"task_title_changed",
+				testTask{ID: id, Title: newTitle},
+			); err != nil {
 				t.Errorf("update %s: %v", id, err)
 			}
 		case 2: // delete (only if exists)
@@ -820,7 +824,12 @@ func TestPrefetchCache_EndToEndPagination(t *testing.T) {
 	}
 
 	// Page 2: use cursor from page1 — should be served from PrefetchCache.
-	page2, cursor2, err := reader.ScanPage(ctx, WithSort("Title", false), WithLimit(3), WithCursor(cursor1.Value))
+	page2, cursor2, err := reader.ScanPage(
+		ctx,
+		WithSort("Title", false),
+		WithLimit(3),
+		WithCursor(cursor1.Value),
+	)
 	if err != nil {
 		t.Fatalf("ScanPage page2: %v", err)
 	}
@@ -891,7 +900,12 @@ func TestPrefetchCache_SQLiteEndToEnd(t *testing.T) {
 	}
 
 	// Page 2 from cache (or engine fallback).
-	page2, _, err := reader.ScanPage(ctx, WithSort("Title", false), WithLimit(3), WithCursor(cursor1.Value))
+	page2, _, err := reader.ScanPage(
+		ctx,
+		WithSort("Title", false),
+		WithLimit(3),
+		WithCursor(cursor1.Value),
+	)
 	if err != nil {
 		t.Fatalf("ScanPage page2: %v", err)
 	}
@@ -1097,20 +1111,20 @@ func TestMapUpdateTyped_ReifiesPrevValue(t *testing.T) {
 		t.Errorf("expected title 'Updated', got %q", task.Title)
 	}
 
-	// Test not-found case.
+	// Test not-found case — data stored under the key, not the returned value's ID.
 	err = MapUpdateTyped[testTask](store, ctx, "tasks", testTaskID("nonexistent"),
 		func(prev testTask, found bool) testTask {
 			if found {
 				t.Error("expected found=false for nonexistent key")
 			}
 
-			return testTask{ID: "new", Title: "Created"}
+			return testTask{ID: "nonexistent", Title: "Created"}
 		})
 	if err != nil {
 		t.Fatalf("MapUpdateTyped not-found: %v", err)
 	}
 
-	task, found, err = reader.Get(ctx, testTaskID("new"))
+	task, found, err = reader.Get(ctx, testTaskID("nonexistent"))
 	if err != nil || !found {
 		t.Fatalf("expected new task to exist, found=%v, err=%v", found, err)
 	}
@@ -1118,5 +1132,4 @@ func TestMapUpdateTyped_ReifiesPrevValue(t *testing.T) {
 	if task.Title != "Created" {
 		t.Errorf("expected title 'Created', got %q", task.Title)
 	}
-}
 }
