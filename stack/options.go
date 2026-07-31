@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
@@ -213,6 +214,25 @@ func WithReadModels(backend kv.Store) Option {
 	return func(b *Bundle) {
 		b.ReadModels = backend
 		b.registerCloser(backend)
+	}
+}
+
+// WithMetaEngine sets the metaengine Store on the Bundle and registers it for
+// Close. The Store is a cost-based query planner — the consumer constructs it
+// via metaengine.Plan(engines, queries...) and passes it here for lifecycle
+// management (Close releases engine resources like SQLite connections).
+//
+// benchkit auto-discovers the metaengine via [Bundle.MetaEngine] (unless
+// Config.SkipMetaEngine is set), measuring Apply throughput and ExecuteTyped
+// read latency.
+//
+//	bundle, _ := sqlite.New(dsn,
+//	    stack.WithMetaEngine(meStore),
+//	)
+func WithMetaEngine(store *metaengine.Store) Option {
+	return func(b *Bundle) {
+		b.metaEngine = store
+		b.registerCloser(store)
 	}
 }
 

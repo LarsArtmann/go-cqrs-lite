@@ -63,9 +63,7 @@ func NewC035Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						pos := ctx.Fset.Position(typeSpec.Pos())
 
 						names := make([]string, len(mapFields))
-						for i, mf := range mapFields {
-							names[i] = mf
-						}
+						copy(names, mapFields)
 
 						f, err := finding.NewBuilder(
 							"C035", toolName,

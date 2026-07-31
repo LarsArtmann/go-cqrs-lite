@@ -172,6 +172,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		correctness.NewC033Detector(ctx),
 		correctness.NewC034Detector(ctx),
 		correctness.NewC035Detector(ctx),
+		correctness.NewC036Detector(ctx),
 		// Testing
 		testrules.NewT001Detector(ctx),
 		testrules.NewT002Detector(ctx),

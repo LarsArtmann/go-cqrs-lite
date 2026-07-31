@@ -77,7 +77,9 @@ func NewC036Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						"C036", toolName,
 						fmt.Sprintf(
 							"%s uses %s backend but event store uses %s — backends cannot share a transaction, crash-recovery guarantees break",
-							what, storeBackend, eventBackend,
+							what,
+							storeBackend,
+							eventBackend,
 						),
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
@@ -120,8 +122,13 @@ func detectBackend(pkg, fnName string) string {
 }
 
 // isStackPresetCall returns true for stack bundle constructors that already
-// use a consistent backend internally.
+// use a consistent backend internally. These are one-call factory functions
+// like sqlite.New, postgres.New — not individual store constructors.
 func isStackPresetCall(pkg, fnName string) bool {
+	if fnName != "New" {
+		return false
+	}
+
 	return pkg == "sqlite" || pkg == "postgres" || pkg == "pebble" ||
 		pkg == "memory" || pkg == "turso" || pkg == "duckdb"
 }

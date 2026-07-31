@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
@@ -63,6 +64,12 @@ type Bundle struct {
 	SnapshotStore   snapshot.SnapshotStore
 	CheckpointStore event.CheckpointStore
 	ReadModels      kv.Store
+
+	// ── Metaengine (optional) ──
+	// The cost-based storage planner. Set via WithMetaEngine. Consumers call
+	// metaengine.Plan() themselves (typed generics) and pass the *Store here
+	// for lifecycle management and discoverability by benchkit.
+	metaEngine *metaengine.Store
 
 	// ── Projection runner prerequisites (optional) ──
 	// ProjectionJournal and ProjectionSubscriber are usually the same as
@@ -237,6 +244,18 @@ func (b *Bundle) EventCodec() codec.Codec {
 	}
 
 	return event.DefaultCodec
+}
+
+// MetaEngine returns the metaengine Store registered via [WithMetaEngine], or
+// nil if none was set. The Store is a cost-based query planner with 7 ADTs
+// (Map, Set, Counter, Graph, SortedMap, Multimap, Log) backed by memory,
+// SQLite, or Pebble engines. Consumers call metaengine.Plan() themselves
+// (typed generics) and pass the *Store to the Bundle for lifecycle management.
+//
+// benchkit auto-discovers metaengine via this accessor (unless Config.SkipMetaEngine
+// is set), measuring Apply throughput and ExecuteTyped read latency.
+func (b *Bundle) MetaEngine() *metaengine.Store {
+	return b.metaEngine
 }
 
 // Drainer stops accepting new work and finishes in-flight work, bounded by

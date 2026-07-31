@@ -1,4 +1,4 @@
-package encryption_test //nolint:dupl
+package encryption_test
 
 import (
 	"crypto/rand"

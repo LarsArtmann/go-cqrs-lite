@@ -386,6 +386,15 @@ func correctnessRules() []RuleInfo {
 			Description: "Map field without sync.Mutex/sync.RWMutex in read model/handler — data race risk in concurrent handlers",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C036",
+			Name:        "store-backend-mismatch",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Checkpoint/snapshot/idempotency store backend differs from event store — crash-recovery guarantees break",
+			AutoFix:     false,
+		},
 	}
 }
 

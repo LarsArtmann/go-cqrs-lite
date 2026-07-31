@@ -1,6 +1,7 @@
 package consistency_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
@@ -13,9 +14,11 @@ func TestD016_TooManyFields(t *testing.T) {
 
 	// Build a struct with 25 fields
 	src := "package main\n\ntype BigPayloadCreated struct {\n"
+	var srcSb16 strings.Builder
 	for i := 0; i < 25; i++ {
-		src += "\tField  string\n"
+		srcSb16.WriteString("\tField  string\n")
 	}
+	src += srcSb16.String()
 	src += "}\n"
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
@@ -29,9 +32,11 @@ func TestD016_UnderLimit(t *testing.T) {
 	t.Parallel()
 
 	src := "package main\n\ntype SmallCreated struct {\n"
+	var srcSb32 strings.Builder
 	for i := 0; i < 5; i++ {
-		src += "\tField  string\n"
+		srcSb32.WriteString("\tField  string\n")
 	}
+	src += srcSb32.String()
 	src += "}\n"
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
