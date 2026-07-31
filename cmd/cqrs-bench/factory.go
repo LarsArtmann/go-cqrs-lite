@@ -62,7 +62,7 @@ func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
 
 	switch backend {
 	case "memory", "mem":
-		return memory.New, "", nil
+		return func() (*stack.Bundle, error) { return memory.New() }, "", nil
 
 	case "sqlite", "sq":
 		dbDir := dir

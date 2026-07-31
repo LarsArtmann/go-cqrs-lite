@@ -245,3 +245,35 @@ func (s *ProjectionScenario) ThenError() {
 		s.t.Fatalf("projection %q: expected at least one error, got none", s.proj.Name())
 	}
 }
+
+// ThenQueryResult calls queryFn and asserts the result matches expected via
+// reflect.DeepEqual. The function signature is generic (func() (any, error))
+// so scenario does not depend on any specific query engine. Wrap metaengine's
+// ExecuteTyped or any other query in a closure:
+//
+//	scenario.GivenProjection(t, adapter, evt1).
+//	    ThenNoError().
+//	    ThenQueryResult(
+//	        func() (any, error) {
+//	            return metaengine.ExecuteTyped[Input, Result](ctx, store, Input{})
+//	        },
+//	        Result{"count": 5},
+//	    )
+func (s *ProjectionScenario) ThenQueryResult(queryFn func() (any, error), expected any) *ProjectionScenario {
+	s.t.Helper()
+
+	if len(s.errs) > 0 {
+		s.t.Fatalf("ThenQueryResult: cannot assert query result — projection had %d errors", len(s.errs))
+	}
+
+	result, err := queryFn()
+	if err != nil {
+		s.t.Fatalf("ThenQueryResult: query returned error: %v", err)
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		s.t.Fatalf("ThenQueryResult: expected %v, got %v", expected, result)
+	}
+
+	return s
+}

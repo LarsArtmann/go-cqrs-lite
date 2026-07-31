@@ -66,11 +66,23 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 	}
 
+	// ── Metaengine: cost-based query planner (Counter ADT for O(1) status counts) ──
+	// Build the store BEFORE the bundle so it can be registered for lifecycle
+	// management via stack.WithMetaEngine (passed through sqlite.WithStack).
+	meStore, meAdapter, err := setupMetaEngine(logger)
+	if err != nil {
+		return nil, fmt.Errorf("setup: metaengine: %w", err)
+	}
+
 	bundle, err := sqlite.New(
 		cfg.DatabasePath,
 		sqlite.WithPragmas(sqlopt.WithOptimizations()),
+		sqlite.WithStack(stack.WithMetaEngine(meStore)),
 	)
 	if err != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
+		_ = meStore.Close()
+
 		return nil, fmt.Errorf("setup: sqlite bundle: %w", err)
 	}
 
@@ -152,15 +164,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		return nil, fmt.Errorf("setup: register projection: %w", err)
 	}
 
-	// ── Metaengine: cost-based query planner (Counter ADT for O(1) status counts) ──
-	meStore, meAdapter, err := setupMetaEngine(logger)
-	if err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = bundle.Close()
-
-		return nil, fmt.Errorf("setup: metaengine: %w", err)
-	}
-
+	// ── Metaengine adapter registered with projection host ──
 	if err := projHost.Register(meAdapter); err != nil {
 		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = bundle.Close()
@@ -175,7 +179,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		ReadModel:  rmStore,
 		Mat:        mat,
 		ProjHost:   projHost,
-		MetaEngine: meStore,
+		MetaEngine: bundle.MetaEngine(),
 		Logger:     logger,
 	}
 

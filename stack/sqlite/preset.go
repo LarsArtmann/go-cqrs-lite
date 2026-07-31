@@ -19,6 +19,7 @@ type Option func(*config)
 type config struct {
 	sqlopt.DSNConfig
 	sqlopt.PragmaConfig
+	extraStackOpts []stack.Option
 }
 
 func defaultConfig() config {
@@ -61,6 +62,16 @@ func WithDSN(opts ...sqlopt.DSNOption) Option {
 	return func(c *config) { sqlopt.ApplyTo(opts, &c.DSNConfig) }
 }
 
+// WithStack passes additional stack.Options through to the Bundle. Use this to
+// add capabilities not covered by the preset itself, such as
+// stack.WithMetaEngine:
+//
+//	meStore, _ := metaengine.Plan(engines, queries)
+//	b, _ := sqlite.New(dsn, sqlite.WithStack(stack.WithMetaEngine(meStore)))
+func WithStack(opts ...stack.Option) Option {
+	return func(c *config) { c.extraStackOpts = append(c.extraStackOpts, opts...) }
+}
+
 // New opens a SQLite database at dsn, configures it, and returns a
 // fully-wired [stack.Bundle].
 //
@@ -100,6 +111,9 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	// Bus is in-process GoChannel (SQLite has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
+
+	// Extra consumer-provided stack.Options (e.g. stack.WithMetaEngine).
+	stackOpts = append(stackOpts, cfg.extraStackOpts...)
 
 	bundle, err := sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "sqlite", cfg.ViewDSN,
 		func(dsn string) (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
