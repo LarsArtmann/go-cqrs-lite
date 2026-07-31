@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/onsi/gomega"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // TestPebbleStreamScan_Unsorted verifies lazy iteration without sort.

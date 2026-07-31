@@ -41,10 +41,9 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 
 	// Fresh streams for the mixed-phase writers so we don't need version
 	// tracking for existing streams.
-	mixedStreams := profile.Streams
-	if mixedStreams > 1000 {
-		mixedStreams = 1000 // cap to keep phase duration reasonable
-	}
+	mixedStreams := min(profile.Streams,
+		// cap to keep phase duration reasonable
+		1000)
 
 	mixedRefs := make([]id.StreamRef, mixedStreams)
 	mixedStreamIDs := make([]id.StreamID, mixedStreams)
@@ -70,27 +69,21 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 	readerCtx, readerCancel := context.WithCancel(ctx)
 	defer readerCancel()
 
-	readerCount := int(float64(r.concurrency) * profile.ReadRatio)
-	if readerCount < 1 {
-		readerCount = 1
-	}
+	readerCount := max(int(float64(r.concurrency)*profile.ReadRatio), 1)
 
 	var readerWg sync.WaitGroup
 
 	rng := rand.New(rand.NewPCG(uint64(r.config.Seed), uint64(0xDEAD)))
 
-	for i := 0; i < readerCount; i++ {
-		readerWg.Add(1)
-
-		go func() {
-			defer readerWg.Done()
-
+	for range readerCount {
+		readerWg.Go(func() {
 			for readerCtx.Err() == nil {
 				ref := r.refs[rng.IntN(len(r.refs))]
 
 				start := time.Now()
 
 				_, err := r.bundle.EventSource.Load(readerCtx, ref)
+
 				readColl.Record(time.Since(start))
 
 				readOps.Add(1)
@@ -99,7 +92,7 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 					readErrors.Add(1)
 				}
 			}
-		}()
+		})
 	}
 
 	// Writer goroutines: write to fresh streams using runConcurrent.
@@ -107,14 +100,12 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 		ctx, mixedStreams, r.concurrency,
 		func(ctx context.Context, idx int) error {
 			ref := mixedRefs[idx]
+
 			var version event.Version
 
-			remaining := profile.EventsPerStream / profile.BatchSize
-			if remaining < 1 {
-				remaining = 1
-			}
+			remaining := max(profile.EventsPerStream/profile.BatchSize, 1)
 
-			for i := 0; i < remaining; i++ {
+			for range remaining {
 				if ctx.Err() != nil {
 					return nil
 				}

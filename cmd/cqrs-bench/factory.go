@@ -83,6 +83,7 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 			if tier, ok := parseDurability(durability); ok {
 				opts = append(opts, sqlite.WithDurability(tier))
 			}
+
 			return sqlite.New(dsn, opts...)
 		}, diskPath, cleanup
 
@@ -100,10 +101,12 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 			if tier, ok := parseDurability(durability); ok {
 				opts = append(opts, pebble.WithDurability(tier))
 			}
+
 			b, err := pebble.New(pebDir, opts...)
 			if err != nil {
 				return nil, err
 			}
+
 			return b.Bundle, nil
 		}, diskPath, cleanup
 
@@ -119,6 +122,7 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 			if tier, ok := parseDurability(durability); ok {
 				opts = append(opts, postgres.WithDurability(tier))
 			}
+
 			return postgres.New(dsn, opts...)
 		}, "", nil
 
@@ -147,6 +151,7 @@ func parseDurability(s string) (stack.DurabilityTier, bool) {
 		return stack.DurabilityNormal, false
 	default:
 		fatalf("unknown durability tier: %s (use strict, normal, or relaxed)", s)
+
 		return "", false
 	}
 }

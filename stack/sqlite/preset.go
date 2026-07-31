@@ -255,6 +255,7 @@ func openBackend(
 			// Custom cache size overrides the WithOptimizations default.
 			if cfg.cacheSizeBytes > 0 {
 				kib := cfg.cacheSizeBytes / 1024
+
 				pragma := fmt.Sprintf("PRAGMA cache_size=-%d", kib)
 				if _, err := sqlDB.ExecContext(ctx, pragma); err != nil {
 					return errorfamily.WrapInfrastructure(err, "sqlite_preset.cache_size",

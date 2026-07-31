@@ -34,6 +34,7 @@ func (e *pebbleEngine) StreamScan(
 		})
 		if err != nil {
 			yield(nil, err)
+
 			return
 		}
 
@@ -75,16 +76,19 @@ func (e *pebbleEngine) StreamScan(
 
 		if err := dbIter.Error(); err != nil {
 			yield(nil, err)
+
 			return
 		}
 
 		slices.SortFunc(matched, func(a, b any) int {
 			av := metaengine.ItemFieldByName(a, sort.Column)
 			bv := metaengine.ItemFieldByName(b, sort.Column)
+
 			cmp := metaengine.CompareValues(av, bv)
 			if sort.Desc {
 				return -cmp
 			}
+
 			return cmp
 		})
 

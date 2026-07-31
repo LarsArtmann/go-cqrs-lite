@@ -127,6 +127,7 @@ func PrintReport(w io.Writer, r *Result) {
 		fmt.Fprintf(w, "  Writers=%d Readers=%d | writes=%s reads=%s",
 			r.MixedWorkload.Writers, r.MixedWorkload.Readers,
 			formatInt(int(r.MixedWorkload.WriteOps)), formatInt(int(r.MixedWorkload.ReadOps)))
+
 		if r.MixedWorkload.WriteErrors > 0 || r.MixedWorkload.ReadErrors > 0 {
 			fmt.Fprintf(w, " | errors: write=%d read=%d",
 				r.MixedWorkload.WriteErrors, r.MixedWorkload.ReadErrors)

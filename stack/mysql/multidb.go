@@ -20,6 +20,7 @@ func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
 	if cfg.AutoMigrate {
 		if err := storage.MySQLInitSchema(context.Background(), db); err != nil {
 			db.Close()
+
 			return nil, errorfamily.WrapInfrastructure(err, "mysql_preset.secondary_init_schema",
 				"initialize MySQL schema on secondary DB")
 		}
@@ -43,5 +44,6 @@ func openSecondaryBackend(
 			"create secondary MySQL backend",
 		)
 	}
+
 	return backend, closer, nil
 }

@@ -66,7 +66,7 @@ func TestFormatIndexInt_MixedDigitNumbers(t *testing.T) {
 	v10 := formatIndexInt(10)
 	v100 := formatIndexInt(100)
 
-	if !(v5 < v10 && v10 < v100) {
+	if v5 >= v10 || v10 >= v100 {
 		t.Errorf("expected 5 < 10 < 100 in encoded form, got: 5=%q 10=%q 100=%q", v5, v10, v100)
 	}
 }
@@ -80,7 +80,7 @@ func TestFormatIndexInt_NegativeBeforePositive(t *testing.T) {
 	zero := formatIndexInt(0)
 	pos := formatIndexInt(1)
 
-	if !(neg < zero && zero < pos) {
+	if neg >= zero || zero >= pos {
 		t.Errorf("expected -1 < 0 < 1 in encoded form, got: -1=%q 0=%q 1=%q", neg, zero, pos)
 	}
 }

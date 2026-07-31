@@ -227,6 +227,7 @@ func extractDeclarativeFields(
 					errEmptyField,
 				)
 			}
+
 			filterFields = append(filterFields, acc.spec.Column)
 		}
 	}
@@ -235,6 +236,7 @@ func extractDeclarativeFields(
 		if cfg.sortAccessor.spec.Column == "" {
 			return nil, nil, fmt.Errorf("%w: SortOnField has empty column name", errEmptyField)
 		}
+
 		sortFields = append(sortFields, cfg.sortAccessor.spec.Column)
 	}
 

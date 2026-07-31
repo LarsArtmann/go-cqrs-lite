@@ -121,7 +121,7 @@ func ConfigureSQLitePool(db *sql.DB) { db.SetMaxOpenConns(1) }
 //
 // Valid levels: "FULL", "NORMAL", "OFF" (SQLite is case-insensitive).
 func SQLiteSetSynchronous(ctx context.Context, db *sql.DB, level string) error {
-	pragma := fmt.Sprintf("PRAGMA synchronous=%s", level)
+	pragma := "PRAGMA synchronous=" + level
 
 	if _, err := db.ExecContext(ctx, pragma); err != nil {
 		return errorfamily.WrapInfrastructure(err, "storage.set_synchronous", "exec "+pragma)
@@ -168,7 +168,7 @@ func PostgresSetSynchronousCommit(ctx context.Context, db *sql.DB, on bool) erro
 		level = "on"
 	}
 
-	stmt := fmt.Sprintf("SET synchronous_commit = %s", level)
+	stmt := "SET synchronous_commit = " + level
 
 	if _, err := db.ExecContext(ctx, stmt); err != nil {
 		return errorfamily.WrapInfrastructure(err, "storage.set_synchronous_commit", "exec "+stmt)

@@ -56,6 +56,7 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+
 	return newBundle(dsn, cfg)
 }
 
@@ -102,6 +103,7 @@ func openBackend(
 						"initialize MySQL schema")
 				}
 			}
+
 			return nil
 		},
 		storage.NewMySQLBackend,

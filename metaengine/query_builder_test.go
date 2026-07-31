@@ -28,7 +28,7 @@ func TestQueryBuilder(t *testing.T) {
 	q := metaengine.Query[testItemInput, testItem](
 		"items",
 		metaengine.On(testItemCreated{}, func(e testItemCreated) (string, testItem) {
-			return e.ID, testItem{ID: e.ID, Status: e.Status, Priority: e.Priority}
+			return e.ID, testItem(e)
 		}),
 		metaengine.FilterOnField[testItem]("status", metaengine.FilterEq),
 	)
