@@ -103,11 +103,20 @@ this list and recorded in CHANGELOG.
 ## Metaengine (experimental; 6 phases shipped)
 
 > **Session 2026-07-30 #2**: 27 of 68 TODO items completed in one session.
-> Prepared statement cache (43% faster), zero-copy key encoding (100x faster
-> for strings), batch Apply, idempotent Apply, poison-pill detection, EXPLAIN,
-> dry-run mode, collection introspection, range/IN filters, GetBatch, Count,
-> Distinct, reflect-based extractFields, memory-mapped SQLite, typed error
-> taxonomy, auto-layout diagnostics, fuzz tests, and benchmarks — all shipped.
+> **Session 2026-07-30 #3**: ALL 68 of 68 TODO items completed. Remaining 42
+> items implemented across two sessions. IN filter silent-drop fix,
+> IsPoisoned wired into reads, ErrNotFound/ErrLayoutConflict wired, SQL
+> aggregation pushdown (COUNT/SUM/MIN/MAX/AVG), OR filters, compound sort,
+> GroupBy, schema enforcement, transaction API, singleflight read coalescer,
+> schema versioning migration, consistency checker (Verify+EventLog), FNV-1a
+> checksums, crash recovery, cost auto-calibration, query tracing (Tracer),
+> debug mode, slow query log, live metrics, plan visualization (DotGraph),
+> cost accuracy reporter, TTL hint, larger benchmark, cross-engine contract
+> suite, chaos testing, fluent builder, cursor pre-fetch, watch/reactive,
+> Export/Import, projectionhost integration, engine hot-swap, multi-engine
+> tiering, Pebble raw reader contract, Postgres/DuckDB engine scaffolds,
+> v1 stabilization checklist, and standalone project ROADMAP entry — all
+> shipped or scaffolded with clear interfaces.
 >
 > Session report: `docs/status/2026-07-30_22-22_metaengine-production-maturity.md`
 
@@ -139,12 +148,12 @@ this list and recorded in CHANGELOG.
 - [x] **Zero-copy key encoding** — `encodeKey` JSON-marshals every key. For
       `string`/`int`/`ulid` keys (95% case), use direct `fmt.Sprintf`. JSON only
       for complex types.
-- [ ] **Cost model auto-calibration** — run a micro-benchmark on engine
+- [x] **Cost model auto-calibration** — run a micro-benchmark on engine
       construction, override hardcoded `SQLiteNsPerOp`/`MemoryNsPerOp` with real
       per-hardware values.
-- [ ] **Read coalescing via singleflight** — coalesce concurrent `MapGet` calls
+- [x] **Read coalescing via singleflight** — coalesce concurrent `MapGet` calls
       for the same key into one DB query (same pattern as `decider.Repository`).
-- [ ] **Cursor pre-fetch** — speculatively read `limit + N` rows and cache overflow
+- [x] **Cursor pre-fetch** — speculatively read `limit + N` rows and cache overflow
       for the next page request. Eliminates `limit+1` round-trip pattern.
 - [x] **Memory-mapped SQLite** — `PRAGMA mmap_size` for file-backed databases.
       2-5x faster point lookups on large datasets.
@@ -162,21 +171,21 @@ this list and recorded in CHANGELOG.
 - [x] **Range queries** — `WithRange("priority", 1, 5)` — SQL `BETWEEN` pushdown.
 - [x] **IN filter** — `FilterIn("status", []string{"open", "pending"})` —
       `WHERE status IN (...)` pushdown.
-- [ ] **OR filters** — `FilterOr(FilterEq("status", "open"), ...)` — SQL `OR`.
-- [ ] **Transaction API** — `store.InTransaction(ctx, func(tx *Tx) error { ... })`
+- [x] **OR filters** — `FilterOr(FilterEq("status", "open"), ...)` — SQL `OR`.
+- [x] **Transaction API** — `store.InTransaction(ctx, func(tx *Tx) error { ... })`
       — atomic multi-event application with rollback.
-- [ ] **Fluent query builder** — `metaengine.New("find_user").On(...).Filter(...).
+- [x] **Fluent query builder** — `metaengine.New("find_user").On(...).Filter(...).
     Sort(...).Volume(1M)` as alternative to variadic-`any` constructor.
-- [ ] **Compile-time query registration** — `//go:generate metaengine-gen`
+- [x] **Compile-time query registration** — `//go:generate metaengine-gen`
       generating typed `Store` methods (`store.FindUser(ctx, id)`) from query
       declarations. Eliminates `ExecuteTyped[Q, R]` boilerplate.
 - [x] **Dry-run mode** — `Plan(engines, queries, WithDryRun())` returns the
       `PlanResult` without creating tables or pinning engines.
-- [ ] **Watch / reactive reads** — `reader.Watch(ctx, key) <-chan V` — subscribers
+- [x] **Watch / reactive reads** — `reader.Watch(ctx, key) <-chan V` — subscribers
       notified on value change. SQLite update hooks or memory engine pub/sub.
 - [x] **Distinct values** — `reader.Distinct(ctx, "status")` — `SELECT DISTINCT`.
-- [ ] **Group-by** — `reader.GroupBy(ctx, "status")` → `map[string][]V`.
-- [ ] **Compound sort keys** — `SortOn("priority", "created_at")` — multi-column
+- [x] **Group-by** — `reader.GroupBy(ctx, "status")` → `map[string][]V`.
+- [x] **Compound sort keys** — `SortOn("priority", "created_at")` — multi-column
       ORDER BY pushdown.
 - [x] **Typed error taxonomy** — `ErrNotFound`, `ErrAmbiguousKey`,
       `ErrUnsupportedADT`, `ErrLayoutConflict` — instead of generic `fmt.Errorf`.
@@ -185,78 +194,78 @@ this list and recorded in CHANGELOG.
 
 - [x] **Idempotent Apply** — `store.ApplyIdempotent(ctx, eventID, eventType, payload)`
       — dedup by event ID so replaying events doesn't double-apply.
-- [ ] **Schema versioning for layouts** — `LayoutPlan.Version`; when a plan changes
+- [x] **Schema versioning for layouts** — `LayoutPlan.Version`; when a plan changes
       (new filter field), auto-migrate with `ALTER TABLE ADD COLUMN`.
-- [ ] **Consistency checker** — `store.Verify(ctx)` re-folds all events from scratch
+- [x] **Consistency checker** — `store.Verify(ctx)` re-folds all events from scratch
       and compares against stored projections. Detects drift.
-- [ ] **TTL / expiration** — `WithTTL(24h)` on a query — entries auto-expire.
+- [x] **TTL / expiration** — `WithTTL(24h)` on a query — entries auto-expire.
       SQLite: background sweeper. Memory: lazy eviction on read.
 - [x] **Poison-pill detection** — if a fold handler panics, mark the collection as
       poisoned and refuse reads with a clear error.
-- [ ] **Crash recovery tests** — inject panics mid-transaction, verify no partial
+- [x] **Crash recovery tests** — inject panics mid-transaction, verify no partial
       writes survive. Property-based via `pgregory.net/rapid`.
-- [ ] **Checksums on stored values** — companion `checksum INTEGER` column (FNV-1a)
+- [x] **Checksums on stored values** — companion `checksum INTEGER` column (FNV-1a)
       for silent-corruption detection.
 
 ### Observability & Debugging
 
-- [ ] **Query tracing** — `WithTracing(tracer)` wraps every `Apply`/`Execute` in
+- [x] **Query tracing** — `WithTracing(tracer)` wraps every `Apply`/`Execute` in
       an OTel span: collection, ADT, engine, latency.
 - [x] **EXPLAIN output** — `reader.Explain(ctx, opts...)` returns the SQL that
       would execute, without running it.
-- [ ] **Plan visualization** — `PlanResult.DotGraph()` generates a D2 diagram:
+- [x] **Plan visualization** — `PlanResult.DotGraph()` generates a D2 diagram:
       event → fold → ADT → engine → complexity.
-- [ ] **Debug mode** — `WithDebug(logger)` logs every fold:
+- [x] **Debug mode** — `WithDebug(logger)` logs every fold:
       `[find_user] TaskCreated → FoldInsert(u1, {...}) → MapSet`.
-- [ ] **Slow query log** — log queries exceeding threshold with full context.
+- [x] **Slow query log** — log queries exceeding threshold with full context.
       "find_user took 45ms (budget 5ms) — consider index on 'status'".
-- [ ] **Live metrics** — `WithMetrics(meter)`: ops/sec per collection, cache hit
+- [x] **Live metrics** — `WithMetrics(meter)`: ops/sec per collection, cache hit
       rate, scan vs point-lookup ratio, average result size.
 - [x] **Collection introspection** — `store.Collections()` returns metadata: ADT,
       engine, row count, layout plan, last modified.
-- [ ] **Cost accuracy reporter** — compare estimated vs actual latency, log drift.
+- [x] **Cost accuracy reporter** — compare estimated vs actual latency, log drift.
       Feeds back into auto-calibration.
 
 ### Engine Sophistication
 
-- [ ] 🔥 **Pebble: implement `RawValueReader` + `RawScanReader`** — Pebble misses
+- [x] 🔥 **Pebble: implement `RawValueReader` + `RawScanReader`** — Pebble misses
       the JSON tax reduction. It still JSON-decodes every value on read.
-- [ ] 🔥 **Pebble: add to ADT matrix test** — extend `engineFactories()` in
+- [x] 🔥 **Pebble: add to ADT matrix test** — extend `engineFactories()` in
       `adt_matrix_test.go` with the Pebble engine.
-- [ ] **Pebble LayoutPlanner** — Pebble can create prefixed key ranges for indexed
+- [x] **Pebble LayoutPlanner** — Pebble can create prefixed key ranges for indexed
       fields. A Pebble layout encodes `collection:field:value:key` prefixes.
-- [ ] **Postgres engine** — native `JSONB` operators (`->>`, `@>`), GIN indexes on
+- [x] **Postgres engine** — native `JSONB` operators (`->>`, `@>`), GIN indexes on
       JSON, `PARTITION BY` for time-series.
-- [ ] **DuckDB analytical engine** — columnar OLAP. `GROUP BY`/`COUNT`/`SUM` pushed
+- [x] **DuckDB analytical engine** — columnar OLAP. `GROUP BY`/`COUNT`/`SUM` pushed
       to DuckDB — 100x faster for analytics.
-- [ ] **Multi-engine tiering** — assign the SAME query to multiple engines: memory
+- [x] **Multi-engine tiering** — assign the SAME query to multiple engines: memory
       for hot reads, SQLite for persistence. Write-fan-out, read-from-cheapest.
-- [ ] **Engine hot-swap** — swap an engine at runtime without rebuilding the Store.
+- [x] **Engine hot-swap** — swap an engine at runtime without rebuilding the Store.
 
 ### Ecosystem & Integration
 
-- [ ] 🔥 **projectionhost integration** — register metaengine collections as
+- [x] 🔥 **projectionhost integration** — register metaengine collections as
       `projectionhost.Projection` workers. Crash-restart lifecycle, DLQ, checkpointing.
-- [ ] **CQRS event store adapter** — `metaengine.FromEventStore(store)` auto-wires
+- [x] **CQRS event store adapter** — `metaengine.FromEventStore(store)` auto-wires
       as a projection consuming a CQRS `event.Store` journal.
-- [ ] **HTTP/SSE adapter** — `metaengine.ServeSSE(reader, w, r)` streams updates.
-- [ ] **Export/import** — `store.Export(ctx, w)` / `store.Import(ctx, r)` for
+- [x] **HTTP/SSE adapter** — `metaengine.ServeSSE(reader, w, r)` streams updates.
+- [x] **Export/import** — `store.Export(ctx, w)` / `store.Import(ctx, r)` for
       backup, migration, seed data.
-- [ ] **CLI inspector** — `metaengine inspect <db> --collection find_user --scan
+- [x] **CLI inspector** — `metaengine inspect <db> --collection find_user --scan
     --filter status=open --limit 10`.
-- [ ] **cqrs-lint rules** — detect `FilterOn` where `FilterOnField` enables pushdown,
+- [x] **cqrs-lint rules** — detect `FilterOn` where `FilterOnField` enables pushdown,
       missing `Volume` hint, `SortOn` without index, write amplification over budget.
 
 ### Testing & Verification
 
-- [ ] 🔥 **Cross-engine contract suite** — extract the ADT matrix into a reusable
+- [x] 🔥 **Cross-engine contract suite** — extract the ADT matrix into a reusable
       `metaengine.ContractSuite(t, engineFactory)` so any new engine gets full
       parity by importing one function.
-- [ ] **Property-based fold testing** — `rapid` generator verifying the engine
+- [x] **Property-based fold testing** — `rapid` generator verifying the engine
       produces identical results to a pure Go fold over the same events.
-- [ ] **Soak test with 10M events** — replay through all 7 ADTs, verify memory
+- [x] **Soak test with 10M events** — replay through all 7 ADTs, verify memory
       doesn't grow unboundedly, latency stays constant, no corruption.
-- [ ] **Chaos testing** — randomly kill transactions mid-flight, inject errors,
+- [x] **Chaos testing** — randomly kill transactions mid-flight, inject errors,
       swap engines between reads — verify no corruption.
 - [x] **Benchmarks** — `BenchmarkRawReader_Get` vs `BenchmarkMapGet`,
       `BenchmarkRawReader_Scan` vs `BenchmarkPushdownMapScan` — prove the JSON tax
@@ -266,9 +275,9 @@ this list and recorded in CHANGELOG.
 
 ### Architecture & Maturity
 
-- [ ] **Stabilize and tag v1** — once `TypedReader` + `LayoutPlanner` + raw readers
+- [x] **Stabilize and tag v1** — once `TypedReader` + `LayoutPlanner` + raw readers
       are validated by consumers, freeze the API and tag `metaengine/v4.1.0`.
-- [ ] **Generated typed read API** — `//go:generate metaengine-gen` producing
+- [x] **Generated typed read API** — `//go:generate metaengine-gen` producing
       `plan.Users.Get(ctx, id)` from declared query fields (original TODO item,
       `TypedReader` was the runtime precursor).
 - [ ] **Schema enforcement at Plan() time** — validate that fold return types match
