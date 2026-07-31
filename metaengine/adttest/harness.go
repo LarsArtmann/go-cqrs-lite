@@ -108,7 +108,7 @@ func RunMatrix(t *testing.T, factories []Factory) {
 // Scenarios returns the 7-ADT test matrix. Each scenario exercises one ADT
 // via its backend interface (not the Store/Execute path — that's covered by
 // the cross_engine_meta_test.go Ginkgo suite).
-func Scenarios() //nolint:funlen []Scenario {
+func Scenarios() []Scenario { //nolint:funlen,maintidx // 7-ADT test matrix
 	ctx := context.Background()
 	_ = ctx
 
