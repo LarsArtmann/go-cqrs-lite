@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"runtime"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -251,4 +252,74 @@ func TestSoak_SQLiteMultimapGrowth(t *testing.T) {
 			}
 		}
 	}
+}
+
+// TestSoak_MemoryBounded verifies that processing many events into a bounded
+// set of keys does not cause unbounded memory growth. The memory engine should
+// be O(unique keys), not O(total events). Skips in -short mode.
+func TestSoak_MemoryBounded(t *testing.T) {
+	if testing.Short() {
+		t.Skip("soak test: skips in -short mode")
+	}
+
+	t.Parallel()
+
+	type updateEvent struct {
+		Key    string
+		Value  int64
+	}
+	type lookup struct {
+		Key string
+	}
+	type state struct {
+		Key   string
+		Total int64
+	}
+
+	q := metaengine.Query[lookup, state](
+		"counters",
+		metaengine.On(updateEvent{}, func(e updateEvent) (string, state) {
+			return e.Key, state{Key: e.Key, Total: e.Value}
+		}),
+		metaengine.On(updateEvent{}, func(e updateEvent, prev state) state {
+			prev.Total += e.Value
+
+			return prev
+		}),
+	)
+
+	eng := metaengine.NewMemoryEngine()
+	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	ctx := context.Background()
+	const numEvents = 50_000
+	const numKeys = 100 // 500 updates per key — memory bounded by numKeys
+
+	runtime.GC()
+
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+
+	for i := 0; i < numEvents; i++ {
+		key := fmt.Sprintf("k-%d", i%numKeys)
+		if err := store.Apply(ctx, "updateEvent", updateEvent{Key: key, Value: int64(i)}); err != nil {
+			t.Fatalf("Apply %d: %v", i, err)
+		}
+	}
+
+	runtime.GC()
+	runtime.ReadMemStats(&after)
+
+	heapGrowth := int64(after.HeapAlloc) - int64(before.HeapAlloc)
+	maxExpected := int64(numKeys) * 200 * 100 // 2MB — generous for map overhead
+
+	if heapGrowth > maxExpected {
+		t.Errorf("heap grew %d bytes after %d events with %d keys (max %d)",
+			heapGrowth, numEvents, numKeys, maxExpected)
+	}
+
+	t.Logf("heap: %d bytes for %d keys after %d updates", heapGrowth, numKeys, numEvents)
 }
