@@ -75,6 +75,15 @@ type MapBackend interface {
 }
 
 // MapUpdater is an optional capability for atomic read-modify-write on map entries.
+//
+// Type contract: the `prev` parameter in the update callback is engine-dependent:
+//   - MemoryEngine: preserves the original Go struct type (e.g. UserView).
+//   - SQLite engine: returns map[string]any (decoded from JSON).
+//
+// The fold-based applyFold path automatically reifies prev to the correct type
+// via reifyReflect. For direct MapUpdater usage outside folds, either call
+// reify[V](prev) manually or use Store.MapUpdateTyped[V] which handles
+// reification automatically.
 type MapUpdater interface {
 	MapUpdate(ctx context.Context, collection string, key any, update func(prev any) any) error
 }

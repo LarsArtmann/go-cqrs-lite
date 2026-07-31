@@ -974,10 +974,13 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 	}
 
 	// Give clients time to connect.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	// Apply an event that should reach all subscribers.
 	_ = store.Apply(ctx, "task_created", testTask{ID: "fanout-1", Title: "FanOut"})
+
+	// Give events time to propagate through watcher → SSE → HTTP.
+	time.Sleep(200 * time.Millisecond)
 
 	cancel()
 	wg.Wait()
@@ -1050,4 +1053,70 @@ func TestExportImport_CrossEngine(t *testing.T) {
 	if len(results) != 2 {
 		t.Fatalf("expected 2 tasks after cross-engine import, got %d", len(results))
 	}
+}
+
+// --- MapUpdateTyped test ---
+
+func TestMapUpdateTyped_ReifiesPrevValue(t *testing.T) {
+	t.Parallel()
+
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	ctx := context.Background()
+	_ = store.Apply(ctx, "task_created", testTask{ID: "tu1", Title: "Original"})
+
+	// Update via MapUpdateTyped — prev should be correctly typed.
+	err = MapUpdateTyped[testTask](store, ctx, "tasks", testTaskID("tu1"),
+		func(prev testTask, found bool) testTask {
+			if !found {
+				t.Error("expected found=true for existing key")
+			}
+
+			prev.Title = "Updated"
+			return prev
+		})
+	if err != nil {
+		t.Fatalf("MapUpdateTyped: %v", err)
+	}
+
+	reader := NewReader[testTask](store, "tasks")
+	task, found, err := reader.Get(ctx, testTaskID("tu1"))
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+
+	if !found {
+		t.Fatal("expected task to exist after update")
+	}
+
+	if task.Title != "Updated" {
+		t.Errorf("expected title 'Updated', got %q", task.Title)
+	}
+
+	// Test not-found case.
+	err = MapUpdateTyped[testTask](store, ctx, "tasks", testTaskID("nonexistent"),
+		func(prev testTask, found bool) testTask {
+			if found {
+				t.Error("expected found=false for nonexistent key")
+			}
+
+			return testTask{ID: "new", Title: "Created"}
+		})
+	if err != nil {
+		t.Fatalf("MapUpdateTyped not-found: %v", err)
+	}
+
+	task, found, err = reader.Get(ctx, testTaskID("new"))
+	if err != nil || !found {
+		t.Fatalf("expected new task to exist, found=%v, err=%v", found, err)
+	}
+
+	if task.Title != "Created" {
+		t.Errorf("expected title 'Created', got %q", task.Title)
+	}
+}
 }

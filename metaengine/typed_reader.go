@@ -154,6 +154,13 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 		}
 	}
 
+	// When a PrefetchCache is attached, fetch double the limit so trimAndCache
+	// can cache a full next page (not just 1 overflow row).
+	fetchLimit := cfg.limit
+	if r.prefetch != nil && cfg.limit > 0 {
+		fetchLimit = cfg.limit * 2
+	}
+
 	// Expand range specs into filter pairs for pushdown/raw paths.
 	for _, rg := range cfg.ranges {
 		cfg.filters = append(
@@ -190,7 +197,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 	// Fastest path: raw scan → direct decode per row (1 JSON op instead of 3).
 	if rsr, ok := eng.(RawScanReader); ok && !needsClosure {
 		rawRows, err := rsr.ScanRawValues(
-			ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, cfg.limit,
+			ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, fetchLimit,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
@@ -213,7 +220,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 	// Standard pushdown scan (decoded values).
 	if pushdown, ok := eng.(PushdownScan); ok && !needsClosure {
 		rows, err := pushdown.PushdownMapScan(
-			ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, cfg.limit,
+			ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, fetchLimit,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
@@ -299,7 +306,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 			}
 		}
 
-		rows, err := sb.MapScan(ctx, r.collection, filterFn, sortFn, cfg.cursor, cfg.limit)
+		rows, err := sb.MapScan(ctx, r.collection, filterFn, sortFn, cfg.cursor, fetchLimit)
 		if err != nil {
 			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 		}

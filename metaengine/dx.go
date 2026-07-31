@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -247,4 +248,81 @@ func WithTTL(d time.Duration) QueryOption {
 	return func(c *QueryConfig) {
 		c.TTL = d.Nanoseconds()
 	}
+}
+
+// --- Typed map update ---
+
+// MapUpdateTyped performs a typed read-modify-write on a collection entry.
+// The prev value is automatically reified to type V before being passed to
+// the update function, eliminating the engine-dependent `any` type footgun:
+// MemoryEngine preserves Go struct types, but SQLite returns map[string]any
+// from JSON. Without MapUpdateTyped, direct users of the MapUpdater interface
+// must call reify[V] themselves.
+//
+// When the key does not exist, found is false and prev is the zero value of V.
+//
+// Example:
+//
+//	err := metaengine.MapUpdateTyped[UserView](store, ctx, "users", userID,
+//	    func(prev UserView, found bool) UserView {
+//	        if !found { return UserView{ID: userID, Count: 1} }
+//	        prev.Count++
+//	        return prev
+//	    })
+func MapUpdateTyped[V any](
+	store *Store,
+	ctx context.Context,
+	collection string,
+	key any,
+	update func(prev V, found bool) V,
+) error {
+	eng, ok := store.collectionEngine(collection)
+	if !ok {
+		return fmt.Errorf("%w: %q", errNoQueryForInputType, collection)
+	}
+
+	if mu, ok := eng.(MapUpdater); ok {
+		return mu.MapUpdate(ctx, collection, key, func(prev any) any {
+			var prevVal V
+
+			found := prev != nil
+			if found {
+				reified, err := reify[V](prev)
+				if err != nil {
+					return prev
+				}
+
+				prevVal = reified
+			}
+
+			return update(prevVal, found)
+		})
+	}
+
+	if mb, ok := eng.(MapBackend); ok {
+		existing, found, err := mb.MapGet(ctx, collection, key)
+		if err != nil {
+			return fmt.Errorf("typed map get %s: %w", collection, err)
+		}
+
+		var prevVal V
+		if found {
+			reified, err := reify[V](existing)
+			if err != nil {
+				return fmt.Errorf("typed map reify %s: %w", collection, err)
+			}
+
+			prevVal = reified
+		}
+
+		updated := update(prevVal, found)
+
+		if err := mb.MapSet(ctx, collection, key, updated); err != nil {
+			return fmt.Errorf("typed map set %s: %w", collection, err)
+		}
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedMapOps, eng.Profile().Name)
 }
