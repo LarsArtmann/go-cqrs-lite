@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"sync/atomic"
 )
 
 // dbExec is the common interface between *sql.DB and *sql.Tx.

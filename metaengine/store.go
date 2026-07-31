@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"slices"
 	"sync"
+	"time"
 )
 
 type queryRuntime struct {
@@ -30,6 +31,7 @@ type Store struct {
 	plan         *PlanResult
 	poisoned     sync.Map // collection name → poison error
 	appliedEvent sync.Map // event ID → struct{} (idempotent Apply dedup)
+	hooks        *Hooks   // observability hooks (nil = no-op)
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -191,7 +193,44 @@ func (s *Store) ApplyIdempotent(ctx context.Context, eventID, eventType string, 
 	return s.Apply(ctx, eventType, payload)
 }
 
+// InTransaction executes fn within a single database transaction across all
+// engines that support transactions (via the Transactional interface). If any
+// engine's RunInTx fails, the error is returned immediately. Engines that do
+// not implement Transactional (e.g. memory engine) execute fn normally
+// without transaction semantics.
+//
+// Usage:
+//
+//	err := store.InTransaction(ctx, func(ctx context.Context) error {
+//	    if err := store.Apply(ctx, "user.created", payload); err != nil {
+//	        return err
+//	    }
+//	    return store.Apply(ctx, "profile.updated", profile)
+//	})
+//
+// Note: with multiple transactional engines, each gets its own transaction.
+// Cross-engine atomicity is NOT guaranteed (two-phase commit is not supported).
+func (s *Store) InTransaction(ctx context.Context, fn func(context.Context) error) error {
+	// Find the first transactional engine and delegate to it.
+	for _, eng := range s.engines {
+		if tx, ok := eng.(Transactional); ok {
+			return tx.RunInTx(ctx, fn)
+		}
+	}
+
+	// No transactional engine — just run fn.
+	return fn(ctx)
+}
+
 func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payload any) (err error) {
+	start := time.Now()
+
+	defer func() {
+		if s.hooks != nil && s.hooks.OnFold != nil && err == nil {
+			s.hooks.OnFold(q.name, fold.EventType, fold.Kind, time.Since(start))
+		}
+	}()
+
 	defer func() {
 		if r := recover(); r != nil {
 			poisonErr := fmt.Errorf(

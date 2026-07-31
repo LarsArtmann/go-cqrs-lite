@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"time"
 )
 
 // Execute dispatches a query input to its query's engine and returns the result.
@@ -42,6 +43,24 @@ func (s *Store) executeQuery(
 		return nil, err
 	}
 
+	start := time.Now()
+	result, err := s.executeQueryInner(ctx, q, input)
+
+	if s.hooks != nil && s.hooks.OnExecute != nil {
+		elapsed := time.Since(start)
+		if s.hooks.SlowQueryThreshold == 0 || elapsed >= s.hooks.SlowQueryThreshold {
+			s.hooks.OnExecute(q.name, q.readPattern, elapsed)
+		}
+	}
+
+	return result, err
+}
+
+func (s *Store) executeQueryInner(
+	ctx context.Context,
+	q queryRuntime,
+	input any,
+) (any, error) {
 	switch q.readPattern {
 	case ReadPointLookup:
 		key := extractKeyValueByType(input, q.keyType)
