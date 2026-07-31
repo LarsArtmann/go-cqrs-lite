@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Metaengine Brutal Self-Review &mdash; 2026-07-31</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
+      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); }
+      .sidebar a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem; border-left: 2px solid transparent; transition: all 0.15s ease; line-height: 1.4; font-weight: 500; }
+      .sidebar a:hover, .sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+      .main { flex: 1; min-width: 0; }
+      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
+      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h2 { font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem; }
+      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
+      h3 { font-size: 1.1rem; margin: 0 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .hero-shapes { position: relative; height: 80px; margin-bottom: 1rem; }
+      .hero-shapes .circle { position: absolute; top: 0; left: 0; width: 56px; height: 56px; background: var(--problem); border-radius: 50%; }
+      .hero-shapes .square { position: absolute; top: 24px; left: 72px; width: 48px; height: 48px; background: var(--solution); }
+      .hero-shapes .tri { position: absolute; top: 8px; left: 140px; width: 0; height: 0; border-left: 28px solid transparent; border-right: 28px solid transparent; border-bottom: 48px solid var(--warning); }
+      .hero-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent); padding: 0.3rem 0.7rem; margin-bottom: 0.9rem; }
+      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
+      .card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .issue { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem; margin-bottom: 1rem; border-left: 4px solid var(--border-strong); }
+      .issue-critical { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .issue-important { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .issue-nice { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .issue h3 { margin-bottom: 0.3rem; }
+      .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
+      .issue p:last-child { margin-bottom: 0; }
+      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.55rem; margin-bottom: 0.6rem; color: var(--surface); }
+      .severity-critical { background: var(--problem); }
+      .severity-important { background: var(--warning); }
+      .severity-nice { background: var(--solution); }
+      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--border-strong); color: var(--text-muted); }
+      .badge-critical { color: var(--problem); border-color: var(--problem); }
+      .badge-high { color: var(--warning); border-color: var(--warning); }
+      .badge-medium { color: var(--accent); border-color: var(--accent); }
+      .badge-fixed { color: var(--solution); border-color: var(--solution); }
+      .badge-missing { color: var(--problem); border-color: var(--problem); background: color-mix(in srgb, var(--problem) 12%, transparent); }
+      .callout { margin: 0.8rem 0 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--border-strong); background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 0.9rem; }
+      .callout strong { display: inline-block; margin-right: 0.4rem; }
+      .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, transparent); }
+      .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); }
+      .stat-grid, .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+      .stat-card, .score-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative; }
+      .stat-card::before, .score-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong); }
+      .stat-bad::before, .score-bad::before { background: var(--problem); }
+      .stat-good::before, .score-good::before { background: var(--solution); }
+      .stat-warn::before, .score-warn::before { background: var(--warning); }
+      .stat-value, .score { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
+      .stat-bad .stat-value, .score-bad .score { color: var(--problem); }
+      .stat-good .stat-value, .score-good .score { color: var(--solution); }
+      .stat-warn .stat-value, .score-warn .score { color: var(--warning); }
+      .stat-label, .score-card .label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem; }
+      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+      .strength .check { font-family: var(--font-mono); font-weight: 700; color: var(--solution); font-size: 1.1rem; line-height: 1.4; }
+      .strength .text strong { display: block; margin-bottom: 0.15rem; }
+      .strength .text span { color: var(--text-muted); font-size: 0.9rem; }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
+      td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
+      tr:hover td { background: var(--surface-raised); }
+      pre { background: var(--surface-sunken); border: 1px solid var(--border); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; }
+      code { font-family: var(--font-mono); }
+      p code, li code, td code { font-size: 0.88em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
+      .tok-keyword { color: var(--accent); }
+      .tok-type { color: var(--warning); }
+      .tok-string { color: var(--solution); }
+      .tok-comment { color: var(--text-faint); font-style: italic; }
+      .tok-func { color: #74a9ff; }
+      .tok-builtin { color: #4dd9ff; }
+      .dep-tree { background: var(--surface-sunken); border: 1px solid var(--border); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.7; white-space: pre; overflow-x: auto; }
+      .dep-tree .root { color: var(--accent); font-weight: 700; }
+      .dep-tree .ok { color: var(--solution); }
+      .dep-tree .unwanted { color: var(--problem); }
+      .migration-step { display: grid; grid-template-columns: 48px 1fr; gap: 1rem; margin: 1rem 0; padding: 1rem; background: var(--surface-raised); border: 1px solid var(--border); border-left: 3px solid var(--accent); }
+      .migration-num { font-family: var(--font-mono); font-weight: 800; font-size: 1.5rem; color: var(--accent); line-height: 1; }
+      .migration-content h4 { margin-bottom: 0.2rem; }
+      .migration-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.92rem; }
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .stat-grid, .scorecard { grid-template-columns: repeat(2, 1fr); } .migration-step { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Brutal Self-Review</span>
+      <span>2026-07-31 19:12</span>
+      <span>Scope: metaengine module</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#verdict">The Verdict</a>
+          <a href="#strengths">What Works</a>
+          <a href="#ghosts">Ghost Systems</a>
+          <a href="#splitbrains">Split Brains</a>
+          <a href="#vision-gap">Vision vs Reality</a>
+          <a href="#lies">Where Docs Lie</a>
+          <a href="#tests">Testing Gaps</a>
+          <a href="#honest">The 11 Questions</a>
+          <a href="#plan">Improvement Plan</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Brutal Self-Review</div>
+          <h1>The Metaengine: 19,350 Lines of Ambition vs One Counter in Production</h1>
+          <p class="hero-subtitle">
+            An honest audit of the cost-based storage planner module. It is labelled "THE STRATEGIC FUTURE"
+            but its only real consumer uses it to count tasks by status. The core planner is solid;
+            everything around it is ghost systems, split brains, and vision debt.
+          </p>
+        </div>
+
+        <h2 id="verdict"><span class="num">00</span>The Verdict</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Core planner works</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Ghost systems</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Split brains</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Vision features missing</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Real read model served</div>
+          </div>
+        </div>
+
+        <div class="card card-problem">
+          <h4>The one-sentence truth</h4>
+          <p>
+            The metaengine has a <strong>genuinely good cost-based planner core</strong> (per-query engine
+            selection, ADT inference from fold signatures, degradation diagnostics, SQL pushdown, layout
+            planning) buried under <strong>three ghost systems, four split brains, four missing vision
+            features, and exactly one real consumer that uses it for a single counter</strong>. The
+            integration work this session added <code>stack.WithMetaEngine()</code> &mdash; a lifecycle hook
+            &mdash; but did not make metaengine serve a single real read model. It attached a side-store.
+          </p>
+        </div>
+
+        <h2 id="strengths"><span class="num">&diams;</span>What Actually Works (preserve this)</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Cost-based per-query engine assignment</strong>
+              <span><code>planner.go:153-220</code> genuinely scores every engine per query pattern and pins the cheapest. Pass 2+ engines and different queries land on different engines. This is the real innovation.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>ADT inference from fold return types</strong>
+              <span>The planner infers Map vs SortedMap vs Counter from the Go function signature. Clever and correct &mdash; reduces declaration boilerplate.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Degradation diagnostics</strong>
+              <span><code>planDiagnostics()</code> emits real DEGRADED/WARN levels when a pattern is served suboptimally. Matches the design vision exactly.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>SQL pushdown + layout planning</strong>
+              <span><code>FilterOnField</code>/<code>SortOnField</code> &rarr; SQLite <code>json_extract()</code> WHERE/ORDER BY pushdown, plus layout plans generating indexed DDL. ADR-0063/0073 delivered. Real 10x wins on filter+sort.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Cross-engine parity testing</strong>
+              <span><code>adttest.RunMatrix</code> verifies memory&harr;sqlite&harr;pebble behavioral parity for all 7 ADTs. Plus fuzz tests, benchmarks, and the <code>nextKey</code> regression guard. Test discipline here is strong.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Zero-dependency core boundary</strong>
+              <span>The core planner is stdlib + <code>database/sql</code> only. Pebble and projection-bridge are separate modules. This is correct dependency hygiene.</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="ghosts"><span class="num">01</span>Ghost Systems (built, never consumed)</h2>
+        <p>Three systems exist in the metaengine that duplicate richer, already-shipped modules. Each one reinvents a weaker version of something that already works.</p>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Ghost #1</span>
+          <h3>metaengine.GraphBackend reinvents the graph/ module (weaker)</h3>
+          <div class="where">metaengine/engine.go:213-215 &middot; metaengine/memory_backends.go:60-105 &middot; graph/graph.go:1-131</div>
+          <p>
+            The metaengine ships its own <code>GraphBackend</code> doing BFS traversal in Go &mdash; basic adjacency
+            lists. ADR-0061 honestly calls it "Basic." But the repo already has a <strong>full graph
+            projection tier</strong> (<code>graph/</code>): <code>GraphDriver</code>, <code>GraphSink</code>,
+            <code>GraphProjection</code>, transactional snapshot semantics, schema validation, openCypher
+            MERGE portability, <code>MemoryDriver</code> + Neo4j/Memgraph driver abstraction, a real Read API
+            (Query/Traverse/Neighbors/ShortestPath).
+          </p>
+          <p>
+            The metaengine's BFS-in-Go is strictly weaker. There is <strong>no ADR reconciling them</strong>.
+            The design vision even proposes <code>projection.Graph[Friendship]</code> as if metaengine should
+            own graph &mdash; yet <code>graph/</code> already does, more richly. This is the clearest ghost.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Decision required:</strong> Either (a) delete <code>GraphBackend</code> and have the planner
+            assign Graph ADTs to the <code>graph/</code> module's driver, or (b) write an ADR documenting why
+            a second graph system exists. Currently it is an undocumented duplication.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Ghost #2</span>
+          <h3>FluentBuilder (dx.go) is dead code with a broken doc example</h3>
+          <div class="where">metaengine/dx.go:21,95-115</div>
+          <p>
+            <code>FluentBuilder</code> (<code>New(name).Fold(...).Filter(...).Build[Q,R]()</code>) is a
+            syntactic sugar layer over <code>query.go</code>'s <code>Query[Q,R]()</code> constructor. It is
+            <strong>never used by any consumer</strong> &mdash; grep finds matches only in <code>dx.go</code>
+            itself and docs. Worse, its doc comment example (<code>dx.go:21</code>) shows a chained method call
+            that <strong>would not compile</strong> (<code>Build</code> is a free function, not a method).
+          </p>
+          <div class="callout callout-warning">
+            <strong>The fix:</strong> Delete <code>FluentBuilder</code> entirely. <code>Query[Q,R]()</code> with
+            <code>On()</code>/<code>FilterOnField()</code>/<code>SortOnField()</code> is the real API and it is
+            already documented in the README. Two declaration APIs for the same thing is a split brain.
+          </div>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Ghost #3</span>
+          <h3>Two SSE implementations with overlapping logic, no reconciling ADR</h3>
+          <div class="where">metaengine/sse.go:17-21 &middot; transport/http/sse.go:27-32</div>
+          <p>
+            <code>metaengine.ServeSSE</code> and <code>transport/http.SSEBroker</code> both implement SSE with
+            replay, dedup, heartbeat, and Last-Event-ID reconnection &mdash; independently. Their doc comments
+            cross-reference each other and claim "intentionally separate &mdash; see ADR discussion on SSE
+            consolidation." <strong>No such ADR exists.</strong> Grep of <code>docs/adr/</code> finds nothing
+            on SSE consolidation. This is a dangling promise asserted as a decision.
+          </p>
+          <div class="callout callout-warning">
+            <strong>The fix:</strong> Write the missing ADR, or consolidate. Two implementations of the same
+            protocol with shared concerns (replay, dedup, backpressure) is a maintenance liability.
+          </div>
+        </div>
+
+        <h2 id="splitbrains"><span class="num">02</span>Split Brains</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Split Brain #1</span>
+          <h3>Two query layers coexist with no migration path</h3>
+          <div class="where">kv/view_store.go:18 &middot; storage/view/store.go:102 &middot; metaengine/store.go:26</div>
+          <p>
+            The OLD query layer (<code>kv.ViewStore</code>, <code>storage.SQLViewStore</code>,
+            <code>storage.ViewMapper</code>, <code>stack.Materialize</code>) and the NEW layer
+            (<code>metaengine.Store</code>) are <strong>parallel, not layered</strong>. ADR-0061 deliberately
+            makes metaengine not wrap <code>SQLViewStore</code>. The vision doc says the developer will write
+            "No <code>storage.ViewMapper</code>&hellip; No <code>kv.ViewStore</code>" &mdash; i.e., the intent
+            is replacement. <strong>But nothing migrates existing consumers.</strong>
+          </p>
+          <p>
+            The flagship example (taskmanager) registers <strong>both</strong> stacks to the same
+            <code>projectionhost</code>, processing the same events twice. <code>handleListTasks</code> still
+            does the O(N) load+filter that metaengine's filtered-scan is designed to eliminate. The migration
+            hasn't started.
+          </p>
+        </div>
+
+        <div class="card card-problem">
+          <h4>Split Brain #2: The "separate project" contradiction</h4>
+          <p>
+            The canonical design doc (<code>meta-engine-project-definition.md</code>) opens with: <em>"The
+            meta-engine is a new project. It is not a module within go-cqrs-lite. It is a standalone
+            research-grade system."</em> It lists 7 reasons why it must be separate (complexity, dependencies,
+            audience, research nature, versioning, reusability, the "lite" in the brand).
+          </p>
+          <p>
+            <strong>It is a module in go-cqrs-lite.</strong> This session's integration work
+            (<code>stack.WithMetaEngine</code>) doubled down on the contradiction by deepening the coupling
+            rather than addressing it. Every "improvement" to the integration is a step further from the stated
+            architectural boundary.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Split Brain #3</span>
+          <h3>Two declaration APIs for the same thing</h3>
+          <div class="where">metaengine/query.go:139 &middot; metaengine/dx.go:95</div>
+          <p>
+            <code>Query[Q,R](name, On(...), FilterOn(...))</code> and <code>FluentBuilder.Build[Q,R]()</code>
+            build the same thing via different ergonomics. The README documents <code>Query[]</code>; the
+            FluentBuilder is undocumented and unused. Two ways to do one thing.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Split Brain #4</span>
+          <h3>TTL: declared hint, no engine honors it</h3>
+          <div class="where">metaengine/dx.go:370</div>
+          <p>
+            <code>WithTTL(d)</code> now stores <code>c.TTL = d.Nanoseconds()</code> with a doc comment
+            "actual expiration requires engine support (SQLite: background sweeper, Memory: lazy eviction)."
+            <strong>No engine implements either.</strong> The value is stored and ignored. This is a documented
+            dead hint, not a feature. Either wire it into one engine or remove it.
+          </p>
+        </div>
+
+        <h2 id="vision-gap"><span class="num">03</span>Vision vs Reality: The Gap Table</h2>
+        <p>The design docs (<code>meta-engine-design.md</code>, <code>meta-engine-project-definition.md</code>) promise features that do not exist. The README has correctly drifted toward the shipped API, but the vision docs still describe the unshipped future as if it were the plan.</p>
+
+        <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Feature</th>
+              <th>Design promise</th>
+              <th>Reality</th>
+              <th>Gap</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Multi-engine distribution</td>
+              <td>Split work across engines</td>
+              <td>Per-query cheapest-engine pick works; <strong>no</strong> per-collection sharding</td>
+              <td><span class="badge badge-medium">Small (selection) / Large (sharding)</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Auto-denormalization</td>
+              <td>Detect &amp; eliminate federated reads across remote engines</td>
+              <td><strong>Nothing.</strong> No detector, no cross-query dependency graph, no projection injection</td>
+              <td><span class="badge badge-missing">Missing</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Degradation warnings</td>
+              <td>Warn on suboptimal patterns</td>
+              <td><code>planDiagnostics()</code> emits DEGRADED/WARN &mdash; works</td>
+              <td><span class="badge badge-fixed">Done</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><code>Declare[V,K]</code> API</td>
+              <td><code>projection.Declare[V,K]("users", Lookup(), Filter("status"))</code></td>
+              <td><code>Query[Q,R](name, On(...), FilterOnField(...))</code> &mdash; different surface</td>
+              <td><span class="badge badge-high">Medium</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Generated typed read API</td>
+              <td><code>store.Users.ByStatus(ctx, "active")</code> &mdash; one method per pattern</td>
+              <td><code>NewReader[V](store,col).Scan(WithFilter(...))</code> &mdash; generic, option-based</td>
+              <td><span class="badge badge-high">Large</span></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Operator YAML config</td>
+              <td>Declarative <code>engines:</code> block in deploy.yaml</td>
+              <td><strong>Nothing.</strong> All Go code: <code>[]Engine{NewSQLiteEngine(db)}</code></td>
+              <td><span class="badge badge-missing">Missing</span></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Plugin registry</td>
+              <td><code>metaengine.Register(sqliteEngine{})</code> in <code>init()</code></td>
+              <td><strong>Nothing.</strong> Explicit <code>[]Engine</code> arg to <code>Plan()</code></td>
+              <td><span class="badge badge-missing">Missing</span></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Separate project</td>
+              <td>"It is not a module within go-cqrs-lite"</td>
+              <td>It is a module, deeply coupled via <code>stack.WithMetaEngine</code></td>
+              <td><span class="badge badge-critical">Contradicted</span></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+
+        <div class="card card-warning">
+          <h4>Scope creep trap (self-review Q8)</h4>
+          <p>
+            The 19,350-line module has accumulated features far ahead of proving its core value. Watchers,
+            SSE, PrefetchCache, TieredStore, engine hot-swap, Export/Import, cost calibration, DOT graph
+            visualization &mdash; all shipped before <strong>a single real read model</strong> is served by
+            metaengine in the flagship example. We built ergonomics for a system nobody uses yet. The Pareto
+            principle says: prove the core (cost-based multi-engine planning in ONE real app) before adding the
+            10th nice-to-have.
+          </p>
+        </div>
+
+        <h2 id="lies"><span class="num">04</span>Where Documentation Lies</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Lie #1</span>
+          <h3>SSE comments reference an ADR that does not exist</h3>
+          <div class="where">metaengine/sse.go:17-21 &middot; transport/http/sse.go:27-32</div>
+          <p>
+            Both files say "see ADR discussion on SSE consolidation." There is no such ADR. A reader trusting
+            this comment would search <code>docs/adr/</code> and find nothing. This is a fabricated reference.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Lie #2</span>
+          <h3>FluentBuilder doc example does not compile</h3>
+          <div class="where">metaengine/dx.go:21</div>
+          <p>
+            The comment shows <code>.Build[FindUser, UserView]()</code> as a chained method, but
+            <code>Build</code> is <code>func Build[Q,R](b *FluentBuilder)</code> &mdash; a free function taking
+            the builder as an argument. The documented usage is invalid Go.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Lie #3</span>
+          <h3>TTL documented as needing "engine support" that will never come</h3>
+          <div class="where">metaengine/dx.go:368-374</div>
+          <p>
+            The comment names SQLite "background sweeper" and Memory "lazy eviction" as the implementation
+            paths. Neither exists, neither is planned in any ADR or TODO. This reads like a feature with a
+            roadmap; it is a stored int64 that nothing reads.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Lie #4</span>
+          <h3>README omits dx.go, Watcher, ServeSSE entirely</h3>
+          <div class="where">metaengine/README.md (241 lines)</div>
+          <p>
+            The README documents <code>Query[]</code>/<code>Plan()</code>/<code>ExecuteTyped</code> (correct),
+            but <code>Watcher</code>, <code>ServeSSE</code>, <code>SSEReplay</code>, <code>FluentBuilder</code>,
+            and the 7 optional backend interfaces (<code>MapBackend</code>, <code>RawValueReader</code>, etc.)
+            are invisible. Shipped features with zero discoverability.
+          </p>
+        </div>
+
+        <h2 id="tests"><span class="num">05</span>Testing Gaps</h2>
+        <div class="card card-warning">
+          <h4>What is tested well</h4>
+          <p>
+            Cross-engine parity (<code>adttest.RunMatrix</code>), pebble engine (fuzz + benchmarks + regression
+            guards), pushdown paths, layout planning, cursor pagination, concurrency. The test discipline in
+            the engine/planner layer is genuinely strong. This is worth preserving.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Gap #1</span>
+          <h3>No test that stack.WithMetaEngine serves a real query through a preset</h3>
+          <div class="where">integration/metaengine_test.go</div>
+          <p>
+            The integration test manually constructs the store + adapter. It never calls <code>sqlite.New</code>
+            + <code>WithMetaEngine</code> + <code>bundle.MetaEngine()</code> end-to-end. The
+            <code>WithMetaEngine &rarr; bundle.MetaEngine() &rarr; projectionadapter</code> path is only
+            exercised in the taskmanager example, not in a test module. The integration work this session
+            claimed to close this gap but didn't.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Gap #2</span>
+          <h3>No multi-engine distribution test</h3>
+          <div class="where">metaengine/planner_test.go</div>
+          <p>
+            No test proves that passing 2+ engines to <code>Plan()</code> actually splits different query
+            collections across different engines. The per-query selection logic exists
+            (<code>planner.go:165-202</code>) but there is no assertion test showing "query A on engine X,
+            query B on engine Y." The headline feature is untested at the integration level.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Gap #3</span>
+          <h3>No real-app benchmark (metaengine serving a real read model)</h3>
+          <div class="where">benchkit/phases_metaengine.go</div>
+          <p>
+            The benchkit phase benchmarks a <strong>private synthetic counter store</strong>, not the
+            consumer's actual metaengine. It measures "planner overhead ceiling," which is defensible, but it
+            does not measure what a consumer experiences. There is no benchmark of metaengine serving a filtered
+            scan on a real projection.
+          </p>
+        </div>
+
+        <h2 id="honest"><span class="num">06</span>The 11 Brutal Questions</h2>
+
+        <div class="grid-2">
+          <div class="card card-problem">
+            <h4>1. What did you forget?</h4>
+            <p>The design doc says this should be a <strong>separate project</strong>. The integration work deepened the coupling instead of addressing the contradiction. We forgot to question whether <code>stack.WithMetaEngine</code> is even the right direction.</p>
+          </div>
+          <div class="card card-problem">
+            <h4>2. What is stupid that we do anyway?</h4>
+            <p>Registering <strong>two parallel projection stacks</strong> (old <code>kv.ViewStore</code> + metaengine) to the same host in the taskmanager, processing every event twice, while only one of them serves real reads.</p>
+          </div>
+          <div class="card card-warning">
+            <h4>3. What could you have done better?</h4>
+            <p>Instead of <code>stack.WithMetaEngine</code>, migrate <strong>one real read model</strong> in the taskmanager from <code>kv.ViewStore</code> to metaengine. Prove the value with a working filtered-scan query, then wire the lifecycle hook.</p>
+          </div>
+          <div class="card card-warning">
+            <h4>4. What could you still improve?</h4>
+            <p>Auto-denormalization (missing), <code>Declare[]</code> API (medium gap), generated typed reads (large gap), operator config (missing), plugin registry (missing). Pick the one that unlocks the most real consumers.</p>
+          </div>
+          <div class="card card-problem">
+            <h4>5. Did you lie to you?</h4>
+            <p>Yes. The SSE "ADR discussion on SSE consolidation" does not exist. The FluentBuilder example does not compile. TTL is documented as needing "engine support" that no engine provides and none will.</p>
+          </div>
+          <div class="card card-solution">
+            <h4>6. How can we be less stupid?</h4>
+            <p>Decide the query-layer question in an ADR: is metaengine replacing or coexisting with <code>kv.ViewStore</code>? Then act on it. Undecided architecture is the root of all the split brains.</p>
+          </div>
+          <div class="card card-problem">
+            <h4>7. Ghost systems?</h4>
+            <p>Three: <code>GraphBackend</code> (reinvents <code>graph/</code>), <code>FluentBuilder</code> (dead, broken example), and the second SSE impl (overlaps <code>transport/http.SSEBroker</code>). See <a href="#ghosts">Ghost Systems</a>.</p>
+          </div>
+          <div class="card card-warning">
+            <h4>8. Scope creep trap?</h4>
+            <p>Yes. 19,350 lines of features (watchers, SSE, prefetch, tiering, hot-swap, export, calibration, DOT graphs) shipped before <strong>one real read model</strong> is served. Ergonomics for a system with no users.</p>
+          </div>
+          <div class="card">
+            <h4>9. Did we remove something useful?</h4>
+            <p>No. The risk is the opposite: we keep <em>adding</em> without consolidating. The previously-broken items (transactions, tiering, watcher wiring) <em>were</em> fixed in later sessions &mdash; that was good.</p>
+          </div>
+          <div class="card card-problem">
+            <h4>10. Split brains?</h4>
+            <p>Four: two query layers (no migration path), "separate project" vs module, two declaration APIs, TTL hint vs no engine. See <a href="#splitbrains">Split Brains</a>.</p>
+          </div>
+          <div class="card card-warning">
+            <h4>11. How are we doing on tests?</h4>
+            <p>Engine/planner layer: excellent (parity, fuzz, benchmarks, regression guards). Integration layer: weak (no preset end-to-end test, no multi-engine distribution test, benchkit benchmarks the wrong store).</p>
+          </div>
+        </div>
+
+        <h2 id="plan"><span class="num">07</span>Improvement Plan (Pareto-sorted)</h2>
+        <p>Sorted by impact &divide; effort. Each step is small and self-contained.</p>
+
+        <h3>Tier 1 &mdash; Strategic decisions (unblock everything)</h3>
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Write ADR: query-layer migration path</h4>
+            <p>Decide whether metaengine replaces or coexists with <code>kv.ViewStore</code>/<code>storage.SQLViewStore</code>. This single decision unblocks the taskmanager migration, the graph reconciliation, and the "separate project" question. Without it, every improvement is ambiguous.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Write the missing SSE consolidation ADR (or remove the comment)</h4>
+            <p>The dangling "see ADR discussion" reference is a lie. Either write the ADR documenting why two SSE impls exist, or delete the comment and consolidate. Low effort, high trust payoff.</p>
+          </div>
+        </div>
+
+        <h3>Tier 2 &mdash; Eliminate ghost systems</h3>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Delete FluentBuilder (dx.go) &mdash; dead code, broken example</h4>
+            <p>Zero consumers. <code>Query[Q,R]()</code> is the documented API. Removing it eliminates split brain #3 and fixes lie #2 in one edit. Low effort, zero risk.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Reconcile GraphBackend vs graph/ module</h4>
+            <p>Either delete <code>GraphBackend</code> and delegate Graph ADT planning to the <code>graph/</code> driver, or write an ADR. The current state (undocumented weaker duplicate) is the worst option.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">5</div>
+          <div class="migration-content">
+            <h4>Migrate ONE real read model in taskmanager to metaengine</h4>
+            <p>Move <code>handleListTasks</code> from <code>mat.List()</code> + Go-side filter to a metaengine filtered-scan query. Remove the parallel projection registration. This proves the value and removes the stupidity of processing every event twice.</p>
+          </div>
+        </div>
+
+        <h3>Tier 3 &mdash; Close integration gaps</h3>
+        <div class="migration-step">
+          <div class="migration-num">6</div>
+          <div class="migration-content">
+            <h4>Add multi-engine distribution test</h4>
+            <p>Test that <code>Plan([engineA, engineB], ...)</code> assigns different query collections to different engines. Assert "query A &rarr; engineA, query B &rarr; engineB." The headline feature needs a headline test.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">7</div>
+          <div class="migration-content">
+            <h4>Add preset end-to-end integration test</h4>
+            <p><code>sqlite.New(dsn, sqlite.WithStack(stack.WithMetaEngine(store)))</code> &rarr; <code>bundle.MetaEngine()</code> &rarr; projectionadapter &rarr; real query. Close the gap the session claimed to close but didn't.</p>
+          </div>
+        </div>
+
+        <h3>Tier 4 &mdash; Vision alignment (decide or remove)</h3>
+        <div class="migration-step">
+          <div class="migration-num">8</div>
+          <div class="migration-content">
+            <h4>Either wire TTL into one engine or remove it</h4>
+            <p>A stored int64 that nothing reads is a lie. Wire a Memory lazy-eviction or delete the option. Do not ship documented dead hints.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">9</div>
+          <div class="migration-content">
+            <h4>Update vision docs to reflect reality (or vice versa)</h4>
+            <p>The design docs describe <code>Declare[]</code>, <code>store.Users.ByStatus()</code>, operator YAML, plugin registry, auto-denormalization &mdash; none of which exist. Either build them or mark the vision docs as "aspirational, not current API" so readers aren't misled.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">10</div>
+          <div class="migration-content">
+            <h4>Document dx.go features (Watcher, ServeSSE) in README or remove them</h4>
+            <p>Shipped features with zero README presence are invisible. If they are real, document them. If they are exploratory, move to a branch.</p>
+          </div>
+        </div>
+
+        <h2><span class="num">&diams;</span>The Dependency Tree of Truth</h2>
+        <div class="dep-tree"><span class="root">metaengine/</span> (19,350 lines, 84 files)
+├── <span class="ok">core planner</span>          (cost assignment, ADT inference, diagnostics) ✓ REAL
+├── <span class="ok">sqlite engine</span>        (pushdown, layout planning) ✓ REAL
+├── <span class="ok">pebble engine</span>        (LSM, raw readers, sort index) ✓ REAL
+├── <span class="ok">projectionadapter</span>    (bridge to projectionhost) ✓ REAL
+├── <span class="unwanted">GraphBackend</span>       (reinvents graph/ module, weaker) ✗ GHOST
+├── <span class="unwanted">FluentBuilder</span>      (dead, broken doc example) ✗ GHOST
+├── <span class="unwanted">ServeSSE</span>           (overlaps transport/http.SSEBroker) ✗ GHOST
+├── <span class="unwanted">WithTTL</span>             (stored, never enforced) ✗ DEAD HINT
+├── TieredStore           (fan-out works now) ✓ FIXED
+├── Transaction API       (threaded now) ✓ FIXED
+└── Watcher               (wired now) ✓ FIXED</div>
+
+        <footer class="footer">
+          Generated 2026-07-31 19:12 &middot; All claims verified against source code with file:line references &middot; Core planner assessment based on planner.go, plan_types.go, explain.go &middot; Ghost systems verified by grep for consumers
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) { return l.getAttribute("href").slice(1); });
+        var sections = ids.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              links.forEach(function (link) {
+                link.classList.toggle("active", link.getAttribute("href") === "#" + entry.target.id);
+              });
+            }
+          });
+        }, { rootMargin: "-80px 0px -60% 0px", threshold: 0 });
+        sections.forEach(function (s) { observer.observe(s); });
+      })();
+    </script>
+  </body>
+</html>
