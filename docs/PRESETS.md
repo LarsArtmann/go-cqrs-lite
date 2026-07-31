@@ -4,6 +4,10 @@
 > CQRS stack from one call. The deployer picks a preset; the app developer
 > never imports a backend. For **why** each engine fits each concern, see
 > [Infrastructure Recommendations](INFRASTRUCTURE_RECOMMENDATIONS.md).
+>
+> **Which backend?** See [BACKEND_TRADEOFFS.md](BACKEND_TRADEOFFS.md) for the
+> full comparison matrix. Every preset supports
+> `stack.WithDurability(tier)` for crash-safety vs speed tradeoffs.
 
 ## Quick Start
 

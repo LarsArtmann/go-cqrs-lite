@@ -4,6 +4,11 @@ go-cqrs-lite separates **consumer code** (engine-agnostic) from **deployer choic
 (where data lives). Two paths exist: **presets** (one engine for everything) and
 **manual assembly** (mix engines per concern).
 
+> **Choosing a backend?** See [BACKEND_TRADEOFFS.md](BACKEND_TRADEOFFS.md) for
+> the full comparison matrix (durability, speed, resources, operational burden)
+> and per-backend selection guide. Each preset now supports
+> `stack.WithDurability(tier)` — see [Durability Vocabulary](BACKEND_TRADEOFFS.md#durability-vocabulary).
+
 For the full deployer-first architecture, see
 [`docs/research/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md`](research/2026-06-23_DEPLOYER_FIRST_ARCHITECTURE_AUDIT.md).
 

@@ -4,6 +4,12 @@
 > the consistency guarantees consumers can rely on, the patterns for handling
 > eventual consistency, and the explicit out-of-scope areas.
 
+> **Per-backend durability**: Each preset now supports
+> `stack.WithDurability(tier)` to control the trade-off between write latency
+> and crash safety. See [BACKEND_TRADEOFFS.md → Durability Vocabulary](BACKEND_TRADEOFFS.md#durability-vocabulary)
+> for the full mapping of tiers to native settings (synchronous_commit,
+> PRAGMA synchronous, DisableWAL).
+
 ---
 
 ## Scope: Single-Process

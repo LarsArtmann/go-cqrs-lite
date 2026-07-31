@@ -19,7 +19,17 @@ type Profile struct {
 	ReadRatio float64
 
 	// BatchSize is the number of events per Save() call.
-	// 1 = single-event saves. Higher values test batch write performance.
+	// 1 = single-event saves (one transaction, one fsync per event — worst
+	// case for SQL backends). Higher values test batch write performance
+	// and amortize the per-transaction/fsync cost across N events.
+	//
+	// WARNING: Profiles with BatchSize=1 (dev, small, stress, write-heavy,
+	// read-heavy, analytical) produce write throughput numbers that reflect
+	// per-event fsync cost, NOT the backend's sustainable write capacity.
+	// SQL backends (SQLite, Postgres) appear artificially slow because each
+	// event triggers a full BEGIN→INSERT→COMMIT cycle with an fsync.
+	// For fair write comparisons use medium (BatchSize=5) or large
+	// (BatchSize=10), or set --durability relaxed to disable fsyncs.
 	BatchSize int
 
 	// JournalScans controls how many times the journal scan phase runs
