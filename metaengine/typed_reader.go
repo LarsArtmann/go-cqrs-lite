@@ -207,7 +207,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 			result = append(result, v)
 		}
 
-		return trimToLimit(result, cfg.limit), nil
+		return r.trimAndCache(result, cfg), nil
 	}
 
 	// Standard pushdown scan (decoded values).
@@ -230,7 +230,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 			result = append(result, v)
 		}
 
-		return trimToLimit(result, cfg.limit), nil
+		return r.trimAndCache(result, cfg), nil
 	}
 
 	// Closure-based fallback (in-Go filter + sort).
@@ -315,7 +315,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 			result = append(result, v)
 		}
 
-		return trimToLimit(result, cfg.limit), nil
+		return r.trimAndCache(result, cfg), nil
 	}
 
 	return nil, fmt.Errorf("%w: %s", errUnsupportedScanReads, eng.Profile().Name)
@@ -657,6 +657,42 @@ func WithLimit(n int) ScanOption {
 // previous page).
 func WithCursor(v any) ScanOption {
 	return func(c *scanConfig) { c.cursor = v }
+}
+
+// trimAndCache trims results to the limit and, when a PrefetchCache is attached,
+// caches the extra rows beyond the limit for the next page. The next page's
+// cursor key is derived from the last returned item's sort field (or the item
+// itself when no sort is specified).
+func (r *TypedReader[V]) trimAndCache(result []V, cfg scanConfig) []V {
+	if r.prefetch != nil && cfg.limit > 0 && len(result) > cfg.limit {
+		nextKey := r.cursorKeyFor(result[cfg.limit-1], cfg)
+		extra := make([]any, len(result)-cfg.limit)
+
+		for i, v := range result[cfg.limit:] {
+			extra[i] = v
+		}
+
+		r.prefetch.Put(nextKey, extra)
+	}
+
+	return trimToLimit(result, cfg.limit)
+}
+
+// cursorKeyFor derives the PrefetchCache key for the NEXT page from the last
+// item of the current page. When a sort spec is set, the cursor is the sort
+// column value; otherwise the whole item is used as the cursor identity.
+func (r *TypedReader[V]) cursorKeyFor(item V, cfg scanConfig) string {
+	var cursorVal any
+
+	if cfg.sort != nil {
+		cursorVal = itemFieldByName(item, cfg.sort.Column)
+	} else if len(cfg.sortCols) > 0 {
+		cursorVal = itemFieldByName(item, cfg.sortCols[0].Column)
+	} else {
+		cursorVal = item
+	}
+
+	return fmt.Sprintf("%s:%v", r.collection, cursorVal)
 }
 
 // trimToLimit trims the result to the limit (engines return limit+1 rows for
