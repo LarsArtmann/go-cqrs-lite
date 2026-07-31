@@ -137,7 +137,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 
 	// PrefetchCache: serve from cache when a cursor key matches.
 	if r.prefetch != nil && cfg.cursor != nil {
-		cacheKey := fmt.Sprintf("%s:%v", r.collection, cfg.cursor)
+		cacheKey := prefetchKey(r.collection, cfg.cursor)
 		if cached := r.prefetch.Get(cacheKey); cached != nil {
 			result := make([]V, 0, len(cached))
 
@@ -659,13 +659,44 @@ func WithCursor(v any) ScanOption {
 	return func(c *scanConfig) { c.cursor = v }
 }
 
+// ScanPage performs a scan and returns both the results and the next-page
+// cursor for keyset pagination. The cursor is derived from the sort field of
+// the last returned item. Pass it back via WithCursor(cursor.Value) on the
+// next call, or use cursor.Encode() for an HTTP-safe opaque string.
+//
+// When a PrefetchCache is attached, ScanPage auto-populates it: extra rows
+// beyond the limit are cached so the next page request is served from cache
+// instead of hitting the engine.
+//
+// Returns (items, nil cursor, nil) when there are no more pages.
+func (r *TypedReader[V]) ScanPage(ctx context.Context, opts ...ScanOption) ([]V, *Cursor, error) {
+	result, err := r.Scan(ctx, opts...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cfg := scanConfig{limit: 100}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	if len(result) == 0 || cfg.limit <= 0 || len(result) < cfg.limit {
+		return result, nil, nil
+	}
+
+	nextVal := extractCursorValue(result[cfg.limit-1], cfg)
+
+	return result, &Cursor{Value: nextVal}, nil
+}
+
 // trimAndCache trims results to the limit and, when a PrefetchCache is attached,
 // caches the extra rows beyond the limit for the next page. The next page's
 // cursor key is derived from the last returned item's sort field (or the item
 // itself when no sort is specified).
 func (r *TypedReader[V]) trimAndCache(result []V, cfg scanConfig) []V {
 	if r.prefetch != nil && cfg.limit > 0 && len(result) > cfg.limit {
-		nextKey := r.cursorKeyFor(result[cfg.limit-1], cfg)
+		cursorVal := extractCursorValue(result[cfg.limit-1], cfg)
+		nextKey := prefetchKey(r.collection, cursorVal)
 		extra := make([]any, len(result)-cfg.limit)
 
 		for i, v := range result[cfg.limit:] {
@@ -678,21 +709,26 @@ func (r *TypedReader[V]) trimAndCache(result []V, cfg scanConfig) []V {
 	return trimToLimit(result, cfg.limit)
 }
 
-// cursorKeyFor derives the PrefetchCache key for the NEXT page from the last
-// item of the current page. When a sort spec is set, the cursor is the sort
-// column value; otherwise the whole item is used as the cursor identity.
-func (r *TypedReader[V]) cursorKeyFor(item V, cfg scanConfig) string {
-	var cursorVal any
-
+// extractCursorValue derives the raw cursor value from an item using the scan
+// config's sort specification. When a sort spec is set, the cursor is the sort
+// column value; otherwise the whole item is used.
+func extractCursorValue[V any](item V, cfg scanConfig) any {
 	if cfg.sort != nil {
-		cursorVal = itemFieldByName(item, cfg.sort.Column)
-	} else if len(cfg.sortCols) > 0 {
-		cursorVal = itemFieldByName(item, cfg.sortCols[0].Column)
-	} else {
-		cursorVal = item
+		return itemFieldByName(item, cfg.sort.Column)
 	}
 
-	return fmt.Sprintf("%s:%v", r.collection, cursorVal)
+	if len(cfg.sortCols) > 0 {
+		return itemFieldByName(item, cfg.sortCols[0].Column)
+	}
+
+	return item
+}
+
+// prefetchKey builds the PrefetchCache lookup key from a collection name and
+// cursor value. Both trimAndCache (cache write) and the prefetch check in Scan
+// (cache read) use this function, ensuring the key formats always match.
+func prefetchKey(collection string, cursorVal any) string {
+	return fmt.Sprintf("%s:%v", collection, cursorVal)
 }
 
 // trimToLimit trims the result to the limit (engines return limit+1 rows for
