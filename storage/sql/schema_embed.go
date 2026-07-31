@@ -11,6 +11,9 @@ var sqliteSchema string
 //go:embed migrations/duckdb.sql
 var duckdbSchema string
 
+//go:embed migrations/mysql.sql
+var mysqlSchema string
+
 // PostgresSchemaEmbed returns the full Postgres schema DDL from the embedded
 // migrations/postgres.sql file.
 func PostgresSchemaEmbed() string { return postgresSchema }
@@ -22,3 +25,7 @@ func SQLiteSchemaEmbed() string { return sqliteSchema }
 // DuckDBSchemaEmbed returns the full DuckDB schema DDL from the embedded
 // migrations/duckdb.sql file.
 func DuckDBSchemaEmbed() string { return duckdbSchema }
+
+// MySQLSchemaEmbed returns the full MySQL schema DDL from the embedded
+// migrations/mysql.sql file.
+func MySQLSchemaEmbed() string { return mysqlSchema }

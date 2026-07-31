@@ -136,3 +136,7 @@ func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
 func DuckDBInitSchema(ctx context.Context, db *sql.DB) error {
 	return execDDL(ctx, db, []string{sqlpkg.DuckDBSchemaEmbed()})
 }
+
+func MySQLInitSchema(ctx context.Context, db *sql.DB) error {
+	return execDDL(ctx, db, []string{sqlpkg.MySQLSchemaEmbed()})
+}

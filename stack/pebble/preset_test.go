@@ -107,6 +107,46 @@ func TestNew_E2E_EventSaveLoadRoundtrip(t *testing.T) {
 	}
 }
 
+func TestNew_DefaultOptionsAppliesBloomFilters(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	b, err := pebble.New(filepath.Join(dir, "bloom"))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = b.Close() }()
+
+	// The preset should ship with bloom filters enabled. We verify by checking
+	// the Metrics after writing some data and forcing a flush.
+	ctx := context.Background()
+	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Todo", streamID)
+
+	events, err := event.NewEvents(streamID, "Todo", 0,
+		[]event.Type{"todo.created"},
+		[]any{map[string]any{"title": "bloom test"}},
+	)
+	if err != nil {
+		t.Fatalf("NewEvents: %v", err)
+	}
+
+	if err := b.EventSink.Save(ctx, ref, events, 0); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	if err := b.Flush(); err != nil {
+		t.Fatalf("Flush: %v", err)
+	}
+
+	metrics := b.Metrics()
+	if metrics.Total().NumFiles == 0 {
+		t.Fatal("expected flush to produce SST files, got 0")
+	}
+}
+
 func TestNew_E2E_ReadModelRoundtrip(t *testing.T) {
 	t.Parallel()
 

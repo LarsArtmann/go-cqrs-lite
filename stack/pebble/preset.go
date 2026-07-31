@@ -23,14 +23,15 @@ type config struct {
 
 func defaultConfig() config {
 	return config{
-		pebbleOpts: &pebble.Options{},
+		pebbleOpts: cqrspebble.DefaultOptions(),
 		logger:     slog.Default(),
 	}
 }
 
-// WithPebbleOptions overrides the default PebbleDB options (empty Options{}).
-// Use pebble.DefaultOptions() for recommended production settings (bloom
-// filters, concurrent compactions).
+// WithPebbleOptions overrides the default PebbleDB options. The preset ships
+// with [cqrspebble.DefaultOptions] (bloom filters at 10 bits/key for ~1% FPR
+// on point reads, MaxConcurrentCompactions=4 for write throughput). Callers
+// who need different settings pass a fully constructed *pebble.Options.
 func WithPebbleOptions(opts *pebble.Options) Option {
 	return func(c *config) { c.pebbleOpts = opts }
 }

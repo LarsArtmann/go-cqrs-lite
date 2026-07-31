@@ -30,6 +30,11 @@ const (
 	DialectSQLite Dialect = iota
 	// DialectPostgres uses $N placeholders and PostgreSQL-specific DDL.
 	DialectPostgres
+	// DialectMySQL uses ? placeholders and MySQL-specific DDL.
+	// MySQL's ON DUPLICATE KEY UPDATE replaces ON CONFLICT; the conditional
+	// update uses IF() since MySQL does not support a WHERE clause in
+	// ON DUPLICATE KEY UPDATE.
+	DialectMySQL
 )
 
 // queries holds pre-built SQL strings for each operation, avoiding runtime

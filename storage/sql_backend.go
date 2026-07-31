@@ -43,6 +43,10 @@ func NewDuckDBBackend(db *sql.DB) (*SQLBackend, error) {
 	return newSQLBackendWithDialect(db, sqlpkg.DuckDBDialect{})
 }
 
+func NewMySQLBackend(db *sql.DB) (*SQLBackend, error) {
+	return newSQLBackendWithDialect(db, sqlpkg.MySQLDialect{})
+}
+
 func NewSQLBackendWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLBackend, error) {
 	return newSQLBackendWithDialect(db, d)
 }
