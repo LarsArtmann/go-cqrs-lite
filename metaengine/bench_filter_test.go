@@ -178,6 +178,8 @@ func TestCostModelCalibration(t *testing.T) {
 
 	for _, n := range []int{100, 1_000, 10_000} {
 		t.Run(fmt.Sprintf("n%d", n), func(t *testing.T) {
+			t.Parallel()
+
 			store, reader := setupBenchStore(t, n, true)
 			defer store.Close()
 

@@ -12,7 +12,7 @@ import (
 // V4: Stress test — seed 100K events and verify scan correctness + point-lookup
 // accuracy + memory stability. This proves metaengine handles production-scale
 // volumes without OOM or correctness regressions.
-func TestStress_100KEvents(t *testing.T) {
+func TestStress_100KEvents(t *testing.T) { //nolint:tparallel // subtests share the parent's store
 	t.Parallel()
 
 	const N = 100_000
@@ -24,6 +24,7 @@ func TestStress_100KEvents(t *testing.T) {
 
 	// ─── Point-lookup correctness ───
 	t.Run("PointLookup", func(t *testing.T) {
+		// Sequential: shares the parent's store.
 		// Verify 100 random IDs return correct data.
 		for i := 0; i < 100; i++ {
 			idx := i * (N / 100) // spread across the full range
@@ -46,6 +47,7 @@ func TestStress_100KEvents(t *testing.T) {
 
 	// ─── Filtered scan correctness ───
 	t.Run("FilteredScan", func(t *testing.T) {
+		// Sequential: shares the parent's store.
 		openItems, err := reader.Scan(ctx,
 			metaengine.WithFilter("Status", metaengine.FilterEq, "open"),
 			metaengine.WithLimit(0))
@@ -80,6 +82,7 @@ func TestStress_100KEvents(t *testing.T) {
 
 	// ─── Sorted scan returns priority-ordered results ───
 	t.Run("SortedScan", func(t *testing.T) {
+		// Sequential: shares the parent's store.
 		results, err := reader.Scan(ctx,
 			metaengine.WithFilter("Status", metaengine.FilterEq, "closed"),
 			metaengine.WithSort("Priority", true))
@@ -98,6 +101,7 @@ func TestStress_100KEvents(t *testing.T) {
 
 	// ─── Memory stability ───
 	t.Run("MemoryStability", func(t *testing.T) {
+		// Sequential: shares the parent's store.
 		var before, after runtime.MemStats
 		runtime.GC()
 		runtime.ReadMemStats(&before)

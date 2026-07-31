@@ -122,11 +122,19 @@ These items were deferred by the previous session and I did not pick them up (ou
 
 ## d) TOTALLY FUCKED UP / SCREWED UP
 
-### 1. Turso factory ignores `--dsn` flag
+### 1. Turso factory ignores `--dsn` flag AND has zero sync-mode coverage
 
-My `case "turso"` in factory.go hardcodes `dbPath := filepath.Join(dbDir, "bench.db")` and never uses the `dsn` parameter. If a user runs `cqrs-bench run --backend turso --dsn /custom/path.db`, the dsn is silently ignored. Compare with the sqlite case which does `if dsn == "" { dsn = dbPath }` — turso should follow the same pattern.
+Two issues, both in `case "turso"`:
 
-**Impact:** Users cannot benchmark Turso at a custom database path via the CLI.
+**a) Local mode ignores `--dsn`.** `turso.New(dbPath)` takes a single file path. The factory hardcodes `filepath.Join(dbDir, "bench.db")` and never checks `dsn`. If a user runs `cqrs-bench run --backend turso --dsn /custom/path.db`, the path is silently ignored. SQLite handles this correctly: `if dsn == "" { dsn = dbPath }` — turso should follow the same pattern.
+
+**b) Sync mode (`turso.NewSync`) has no CLI path at all.** The Turso preset has two constructors:
+- `turso.New(dbPath, opts...)` — local embedded database
+- `turso.NewSync(ctx, dbPath, remoteURL, authToken, opts...)` — local database + remote sync
+
+The factory only covers `New`. There are no CLI flags for `remoteURL` or `authToken`, so `NewSync` cannot be benchmarked at all. This needs either a separate `case "turso-sync"` or new flags (`--turso-url`, `--turso-token`).
+
+**Impact:** Users cannot benchmark Turso at a custom path (a) or with remote sync enabled (b).
 
 ### 2. No unit tests for `EnsurePostgresSynchronousCommit` / `EnsurePostgresStatementTimeout` / `appendPostgresDSNParam`
 
@@ -162,6 +170,10 @@ The `compareCmd` config (main.go:228-237) is missing `SkipMixed: *bf.skipMixed`.
 
 The file `docs/status/2026-07-31_19-58_backend-tradeoff-framework-execution-status.md` still says "CORE COMPLETE — 18 of 29 tasks done, 3 missed, 8 deferred" and lists the bugs I just fixed as open issues. I should have annotated or updated it to reflect that the bugs are now fixed.
 
+### 7. I answered questions about the code from memory instead of reading it
+
+When asked about `--dsn` vs `--dir` for Turso, I flip-flopped three times without checking the actual code. First I said the factory was correct (using `--dir`). Then I backtracked. Then I guessed about sync mode. The user had to tell me to "check some fucking code." The root cause: I was reasoning from the factory.go I'd read earlier in the session, but I didn't re-read the Turso preset's `New` and `NewSync` signatures before answering. I should have immediately viewed the relevant code when asked a specific question about it.
+
 ---
 
 ## e) WHAT WE SHOULD IMPROVE
@@ -173,6 +185,8 @@ The file `docs/status/2026-07-31_19-58_backend-tradeoff-framework-execution-stat
 3. **`DurabilityTier` translations should be centralized** — each preset independently translates the tier. A registry or strategy pattern would ensure consistency. Currently, if a new tier is added, you'd need to find every preset.
 4. **The `compare` subcommand should default to `SkipMixed: true`** — running mixed workloads across 3+ backends sequentially can take 10+ minutes. Users almost always want raw throughput comparison, not mixed.
 5. **Factory functions in cqrs-bench should accept a struct, not 4 string params** — `makeFactory(backend, dsn, dir, durability string)` is unwieldy. A `FactoryConfig` struct with named fields is clearer and more future-proof.
+6. **Turso `NewSync` has zero CLI coverage** — `turso.NewSync(ctx, dbPath, remoteURL, authToken)` is a full mode of the backend (local + cloud sync) that can't be benchmarked. The factory only covers `turso.New` (local). Needs new flags or a separate backend case.
+7. **Factory pattern should expose all constructor variants** — the DuckDB factory already splits CGo/no-CGo via build tags. Turso local vs sync should follow a similar pattern (separate case or subcommand).
 
 ### Testing
 
@@ -202,7 +216,8 @@ The file `docs/status/2026-07-31_19-58_backend-tradeoff-framework-execution-stat
 
 ### Critical (blocking or broken)
 
-1. **Fix turso factory to respect `--dsn` flag** — use `dsn` if provided, fall back to `filepath.Join(dbDir, "bench.db")`
+1. **Fix turso factory to respect `--dsn` flag** — use `dsn` if provided (it's a file path), fall back to `filepath.Join(dbDir, "bench.db")`. Same pattern as the SQLite case.
+2. **Add turso sync-mode CLI support** — `turso.NewSync` needs `remoteURL` and `authToken`. Either a new `case "turso-sync"` or new flags (`--turso-url`, `--turso-token`). This is a whole mode of operation that can't be benchmarked.
 2. **Fix `DurabilityRelaxed` Postgres comment in `stack/durability.go:51`** — remove "+ local synchronous_standby_names"
 3. **Fix `wrapcheck` lint in `stack/sqlopt/durability.go:37`** — wrap the returned error
 4. **Add `SkipMixed: *bf.skipMixed` to compare subcommand config** (main.go:228-237)
