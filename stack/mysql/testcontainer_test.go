@@ -57,19 +57,22 @@ func TestMain(m *testing.M) {
 	}
 
 	containerDSN = ensureParseTime(dsn)
-	adminDB, _ = sql.Open("mysql", containerDSN)
 
 	// Grant the cqrs user global CREATE/DROP DATABASE privilege (needed for
-	// per-test database isolation in mysqlDSN and multidb tests).
-	rootDSN := strings.Replace(containerDSN, "cqrs:cqrs@", "root:rootpass@", 1)
-	rootDB, _ := sql.Open("mysql", replaceDBInMySQLDSN(rootDSN, "mysql"))
-	if rootDB != nil {
-		if _, err := rootDB.Exec("GRANT ALL PRIVILEGES ON *.* TO 'cqrs'@'%'"); err != nil {
-			fmt.Fprintf(os.Stderr, "WARN: GRANT failed: %v\n", err)
-		}
-
-		_ = rootDB.Close()
+	// per-test database isolation in mysqlDSN and multidb tests). We use
+	// ctr.Exec to run the GRANT inside the container via the unix socket,
+	// avoiding caching_sha2_password auth issues with host-side root connections.
+	grantSQL := "GRANT ALL PRIVILEGES ON *.* TO 'cqrs'@'%' WITH GRANT OPTION"
+	exitCode, _, execErr := ctr.Exec(ctx, []string{
+		"mysql", "-uroot", "-prootpass", "-e", grantSQL,
+	})
+	if execErr != nil || exitCode != 0 {
+		fmt.Fprintf(os.Stderr, "WARN: GRANT failed (exit %d): %v — tests will skip\n", exitCode, execErr)
+		_ = testcontainers.TerminateContainer(ctr)
+		os.Exit(m.Run())
 	}
+
+	adminDB, _ = sql.Open("mysql", containerDSN)
 
 	code := m.Run()
 
