@@ -7,6 +7,12 @@ auto-layout in Plan(), JSON tax reduction, typed read API, and unified ADT test 
 All tests pass (memory + SQLite + Pebble + projectionadapter). One gofmt issue and one
 api-stability golden regen remain unaddressed.
 
+> **Update (2026-07-31):** The gofmt issue and api-stability golden were both
+> resolved by the 23:22 session. The verify gate is now GREEN (confirmed in the
+> 17:53 session with `nix run .#verify`). API surface grew from ~2783 to 2911
+> exports across subsequent hardening sessions. Items e3/e7/e8 (jsonValue merge,
+> unsafeStringToBytes rename, TypedReader filter fix) were all resolved.
+
 ---
 
 ## a) FULLY DONE

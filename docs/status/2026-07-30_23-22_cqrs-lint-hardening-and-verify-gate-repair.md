@@ -12,6 +12,13 @@ The incoming paste_1.txt contained a prioritized backlog from a prior session's 
 
 1. **Verify Gate** (pre-release blockers): committed binary, stale api-stability golden, flaky tests
 2. **cqrs-lint Quality** (171 rules shipped, needs hardening): architecturally wrong rules, missing suppression tests, missing helpers
+
+> **Update (2026-07-31):** The linter has since grown from 171 to **179 rules**
+> across 10 categories. Import-alias resolution (`lintutil.QualifierToImportPath`)
+> was integrated into D007/D008/D010/D013 (consistency rules) and E008-E015
+> (architecture rules). Suppression tests were written for all new rules (C031-C034,
+> P011-P012, D014-D015, A032, E016-E017, S010, F018-F021). The verify gate is
+> GREEN (`nix run .#verify` confirmed in the 17:53 session).
 3. **Known issues**: stale docs, flaky benchkit tests, pre-existing intermittent failures
 
 ---

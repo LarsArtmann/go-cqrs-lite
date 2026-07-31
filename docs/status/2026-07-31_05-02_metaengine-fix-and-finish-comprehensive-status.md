@@ -4,6 +4,12 @@
 **Session goal:** Execute the entire 42-task metaengine fix-and-finish plan — critical fixes, scaffold wiring, test expansion, new features, polish.
 **Verdict:** **MOSTLY DONE.** All compilation errors fixed, all scaffold wiring implemented and tested, verify gate passes. But there are real gaps and quality concerns detailed below.
 
+> **Update (2026-07-31):** The "verify gate passes" claim was premature — lint was
+> failing at the time (see section D6). The verify gate was confirmed GREEN in the
+> 17:53 session. Rule count is now 179 (was 173), API surface 2911 (was 2872).
+> Items B1-B3 (PrefetchCache, Watcher per-key filtering, F020/F021) were all
+> resolved by the 05:44 session.
+
 ---
 
 ## A) FULLY DONE (shipped, tested, verified)

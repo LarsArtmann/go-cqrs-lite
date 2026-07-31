@@ -4,6 +4,10 @@
 **Session goal:** Execute the entire 50-item metaengine improvement list from the prior session's self-assessment. Fix bugs, implement features, add tests, pass verify gate.
 **Verdict:** **MOSTLY DONE.** Build, test, race, and API stability gates pass. Lint has remaining issues (reduced from 83→72). Two architectural gaps acknowledged but not fixed. One new feature has a logic bug discovered in the final review (PrefetchCache auto-population key mismatch).
 
+> **Update (2026-07-31):** The PrefetchCache key mismatch (D1, marked CRITICAL)
+> was fixed in the 07:06 session. Lint was fully resolved (0 issues) by the
+> 17:53 session. Rule count is now 179 (was 175), API surface 2911 (was 2888).
+
 ---
 
 ## A) FULLY DONE (shipped, tested, verified)
