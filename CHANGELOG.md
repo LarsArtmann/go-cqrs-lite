@@ -8,6 +8,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### Self-review execution: goroutine leak, fuzz tests, StreamScan, lint fixes
+
+- **Goroutine leak fix in Watch/WatchWithSeq** — the adapter goroutine in
+  `metaengine.Watcher.Watch` and `WatchWithSeq` exited without closing the
+  consumer-facing channel, leaving consumers blocked forever. Added
+  `defer close(ch)` in both adapter goroutines. Regression tests verify
+  channels close on context cancel AND Watcher.Close.
+- **Pebble StreamScan** — implemented `StreamingScan` interface on
+  `pebbleEngine` with `iter.Seq2` lazy iteration. Unsorted scans are O(1)
+  memory per row; sorted scans materialize internally (documented tradeoff).
+  Tested with unsorted, filtered, and early-exit scenarios.
+- **Pebble ScanCount** — new `ScanCounter` optional interface. Counts
+  collection items with O(1) memory (no JSON decode for unfiltered path).
+  Filtered path decodes only to evaluate predicates.
+- **formatIndexInt regression tests** — pin the 20-digit zero-pad encoding
+  that ensures lexicographic ordering matches numeric ordering for ALL
+  integers (negative, mixed-digit, max/min int64).
+- **SortSpec/FilterSpec validation** — `extractDeclarativeFields` now returns
+  an error when any FilterSpec or SortSpec has an empty Column name. Caught
+  at Plan() time, not at scan time.
+- **MapUpdate fuzz tests** — `FuzzMapUpdate_ConcurrentCounter` verifies no
+  lost updates under concurrent MapUpdate (2-200 goroutines).
+  `FuzzMapUpdate_CreateOrUpdate` verifies the create-if-absent pattern.
+- **Cross-engine property-based parity test** — `TestProperty_MapSetGetParity`
+  uses `pgregory.net/rapid` to generate random MapSet/MapGet/MapDelete
+  sequences and verifies memory engine and SQLite engine agree on existence
+  after every operation.
+- **100K cursor pagination benchmark** — extends scan benchmarks from 10K to
+  100K items for filter-indexed cursor pagination.
+- **memory.New(metaengine) integration test** — verifies that
+  `memory.New(stack.WithMetaEngine(store))` produces a fully wired bundle with
+  both default capabilities AND the metaengine store.
+- **Doc rule count CI check** — `scripts/check-rule-count.sh` + `nix run
+  .#check-rule-count` verifies FEATURES.md, ROADMAP.md, AGENTS.md rule counts
+  match `rules.RegisterAll()` length. Prevents doc drift.
+- **E012 alias-awareness** — migrated from raw `projectCalls(ctx, "flag", ...)`
+  to alias-aware `projectCallsImportPathBool`. Removed dead code (`projectCalls`
+  and `projectCallsAny` — superseded by alias-aware versions).
+- **financialKeywords lint fix** — added `//nolint:gochecknoglobals` (constant
+  lookup table belongs at package level).
+- **Sweep app auto-fix** — sweep now runs `golangci-lint --fix` before lint
+  check, not just formatting + report.
+- **Float encoding limitation documented** — `encodeIndexValue` doc now
+  explicitly warns that floats with fractional parts do NOT preserve
+  lexicographic ordering and recommends integer-scaled values for indexed
+  columns.
+- **API surface** — updated from 2911 to 2965 exports (StreamScan, ScanCount,
+  ScanCounter interface, property test types).
+
 #### Pareto plan execution: correctness, tests, docs, release prep
 
 - **scanWithIndex cursor pagination fix** — the Pebble LayoutPlanner's filter

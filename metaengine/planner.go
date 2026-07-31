@@ -115,6 +115,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 			if err != nil {
 				return nil, fmt.Errorf("metaengine.Plan: %w", err)
 			}
+
 			if len(filterFields) > 0 || len(sortFields) > 0 {
 				layoutPlan := BuildLayoutPlan(runtime.name, filterFields, sortFields)
 

@@ -17,13 +17,10 @@ and is **never** duplicated here.
 
 > The metaengine is production-ready: 3 engines (memory, SQLite, Pebble),
 > 7-ADT cross-engine parity tests, LayoutPlanner (filter + sort indexes),
-> cursor pagination, SSE delivery, transaction API, ADT test harness.
-> All known bugs are fixed.
+> cursor pagination, SSE delivery, transaction API, ADT test harness,
+> StreamScan (lazy iter.Seq2), ScanCount, property-based parity testing.
+> All known bugs are fixed (including goroutine leak in Watch).
 
-- `[ ]` 🔥 **Pebble StreamScan** — OOM-safe lazy iteration via `iter.Seq2` for
-  large collections. The interface is defined but not implemented on pebbleEngine.
-- `[ ]` **Property-based cross-engine parity** — use `pgregory.net/rapid` to
-  generate random ADT operation sequences and verify all 3 engines agree.
 - `[ ]` **10M-event soak test** — verify memory boundedness at scale (currently 50K).
 - `[ ]` **Postgres engine (`pgengine/`)** — JSONB operators, GIN indexes.
   Multi-day effort. See ROADMAP.
