@@ -410,8 +410,8 @@ func TestCrashRecovery_PanicPoisonsCollection(t *testing.T) {
 	panicQuery := Query[testFindTask, testTask](
 		"panic_tasks",
 		Fold{
-			EventType:   "panic_event",
-			Kind:        FoldInsert,
+			EventType: "panic_event",
+			Kind:      FoldInsert,
 			insertHandler: func(e testTask) (testTaskID, testTask) {
 				panic("intentional crash")
 			},
@@ -682,8 +682,8 @@ func TestProperty_RandomOpsMaintainConsistency(t *testing.T) {
 			return e.ID, e
 		}),
 		Fold{
-			EventType:   "task_title_changed",
-			Kind:        FoldUpdate,
+			EventType:    "task_title_changed",
+			Kind:         FoldUpdate,
 			keyExtractor: func(e testTask) any { return e.ID },
 			updateHandler: func(e testTask, prev testTask) testTask {
 				prev.Title = e.Title
@@ -691,8 +691,8 @@ func TestProperty_RandomOpsMaintainConsistency(t *testing.T) {
 			},
 		},
 		Fold{
-			EventType: "task_deleted",
-			Kind:      FoldRemove,
+			EventType:    "task_deleted",
+			Kind:         FoldRemove,
 			keyExtractor: func(e testTask) any { return e.ID },
 		},
 	)

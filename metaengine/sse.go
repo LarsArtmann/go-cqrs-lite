@@ -142,6 +142,16 @@ func ServeSSE[V any](
 		defer heartbeat.Stop()
 	}
 
+	// Extract timer/heartbeat channels (nil channel = disabled in select).
+	var timerCh, heartbeatCh <-chan time.Time
+	if timer != nil {
+		timerCh = timer.C
+	}
+
+	if heartbeat != nil {
+		heartbeatCh = heartbeat.C
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -163,20 +173,10 @@ func ServeSSE[V any](
 
 			flusher.Flush()
 
-		case <-func() <-chan time.Time {
-			if timer != nil {
-				return timer.C
-			}
-			return nil
-		}():
+		case <-timerCh:
 			return nil // timeout reached
 
-		case <-func() <-chan time.Time {
-			if heartbeat != nil {
-				return heartbeat.C
-			}
-			return nil
-		}():
+		case <-heartbeatCh:
 			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil {
 				return err
 			}
@@ -197,13 +197,14 @@ func (s *Store) Inspect() string {
 
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf("metaengine: %d collection(s)\n", len(collections)))
+	fmt.Fprintf(&sb, "metaengine: %d collection(s)\n", len(collections))
 
 	for _, c := range collections {
-		sb.WriteString(fmt.Sprintf(
+		fmt.Fprintf(
+			&sb,
 			"  %-20s  ADT=%-10s  pattern=%-20s  engine=%-15s  complexity=%s\n",
 			c.Name, c.ADT, c.ReadPattern, c.EngineName, c.Complexity,
-		))
+		)
 	}
 
 	return sb.String()
