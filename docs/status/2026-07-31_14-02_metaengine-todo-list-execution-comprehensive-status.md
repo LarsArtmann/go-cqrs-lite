@@ -13,6 +13,7 @@
 **The starting state:** The prior session's refactoring (3 function extractions) had INCREASED lint issues from 66→101. The lint cleanup was the #1 blocker.
 
 **Real fixes applied (not just suppressions):**
+
 - **err113 (7 issues)**: Created 8 new sentinel errors in `errors.go` (`errNoEventLog`, `errNoQueryDecls`, `errCollectionCountMismatch`, `errVerifyDrift`, `errSwapEngineNotFound`, `errSSENoFlusher`, `errCoalescerTypeMismatch`). Replaced all `errors.New`/`fmt.Errorf` dynamic errors with `%w: sentinel` wrapping.
 - **sqlclosecheck (4 issues)**: Added nolint directives to `stmt_cache.go` — these are false positives (statement cache intentionally keeps `*sql.Stmt` alive, not leaking).
 - **prealloc (3 issues)**: Added `make([]T, 0, capacity)` in `planned_sqlite.go` and `sqlite_engine.go`.
@@ -35,17 +36,17 @@
 
 **8 tests written** in `cmd/cqrs-lint/pkg/rules/adoption/f018_f021_test.go`:
 
-| Test | Rule | What it verifies |
-|------|------|-----------------|
-| `TestF018_FilterOnFires` | F018 | FilterOn without FilterOnField → 1 finding |
-| `TestF018_NoFindingWithFilterOnField` | F018 | FilterOnField present → 0 findings |
-| `TestF018_NoFindingWithoutMetaengine` | F018 | No metaengine import → 0 findings |
-| `TestF019_MissingVolumeFires` | F019 | Query/OnTyped without Volume → 1 finding |
-| `TestF019_NoFindingWithVolume` | F019 | Volume present → 0 findings |
-| `TestF020_SortOnFires` | F020 | SortOn without SortOnField → 1 finding |
-| `TestF020_NoFindingWithSortOnField` | F020 | SortOnField present → 0 findings |
-| `TestF021_WriteAmplificationFires` | F021 | 5+ OnTyped folds → 1 finding |
-| `TestF021_NoFindingWithFewFolds` | F021 | 2 folds → 0 findings |
+| Test                                  | Rule | What it verifies                           |
+| ------------------------------------- | ---- | ------------------------------------------ |
+| `TestF018_FilterOnFires`              | F018 | FilterOn without FilterOnField → 1 finding |
+| `TestF018_NoFindingWithFilterOnField` | F018 | FilterOnField present → 0 findings         |
+| `TestF018_NoFindingWithoutMetaengine` | F018 | No metaengine import → 0 findings          |
+| `TestF019_MissingVolumeFires`         | F019 | Query/OnTyped without Volume → 1 finding   |
+| `TestF019_NoFindingWithVolume`        | F019 | Volume present → 0 findings                |
+| `TestF020_SortOnFires`                | F020 | SortOn without SortOnField → 1 finding     |
+| `TestF020_NoFindingWithSortOnField`   | F020 | SortOnField present → 0 findings           |
+| `TestF021_WriteAmplificationFires`    | F021 | 5+ OnTyped folds → 1 finding               |
+| `TestF021_NoFindingWithFewFolds`      | F021 | 2 folds → 0 findings                       |
 
 **Files changed:** `cmd/cqrs-lint/pkg/rules/adoption/f018_f021_test.go` (NEW)
 
@@ -63,12 +64,14 @@
 **New feature:** `pebbleengine/layout_planner.go` implements `metaengine.LayoutPlanner` for the Pebble engine.
 
 **How it works:**
+
 1. `ApplyLayout(collection, filterFields, sortFields)` registers a layout plan.
 2. `MapSet` writes secondary index entries (`i{col}{field}{value}{primaryKey}`) in a batch alongside the primary value.
 3. `ScanRawValues` checks for a matching index prefix on equality filters — if found, uses O(matches) prefix scan instead of O(all rows) full scan + Go filter.
 4. Updates delete old index entries before writing new ones.
 
 **Tests:** `layout_planner_test.go` — 2 tests:
+
 - `TestPebbleLayoutPlanner_SecondaryIndex`: 5 users (3 active, 2 inactive), filter on "status"="active" → 3 results. All have correct status.
 - `TestPebbleLayoutPlanner_UpdateReindexes`: Write cat="a", update to cat="b", scan for cat="a" → 0 results (old index removed), scan for cat="b" → 1 result.
 
@@ -99,12 +102,14 @@ Marked 27 items as `[x]` with descriptions of what was done and where.
 ### B1. cqrs-lint Rule Quality (4 of 10 sub-items done)
 
 **Done this session:**
+
 - C017 stale doc/title (verified already fixed)
 - C032 scope narrowing (verified already fixed)
 - F009 timer detection gaps (fixed)
 - A032 test (fixed)
 
 **Not done (require architectural changes):**
+
 - E010 (package qualifier → type info) — needs go/types integration
 - E011 (name-counting → call-graph analysis) — needs call-graph builder
 - E013 (doesn't verify config struct type) — needs type assertion checking
@@ -121,11 +126,13 @@ F018-F021 now have dedicated unit tests. But C031-C034, P011-P012, D014-D015, A0
 ## C) NOT STARTED (from the 42-item TODO_LIST)
 
 ### Deferred to ROADMAP (multi-day module-creation efforts)
+
 - **Postgres engine** — requires new `metaengine/pgengine/` module with JSONB operators, GIN indexes, go.mod. ~2-4 days.
 - **DuckDB analytical engine** — requires new `metaengine/duckdbengine/` module with columnar pushdown. ~2-4 days.
 - **metaengine-gen code generator** — requires new `cmd/metaengine-gen` module with Go AST parsing, template generation. ~2-3 days.
 
 ### Remaining cqrs-lint (substantial)
+
 - **E010/E011/E013/E014** — architecturally wrong rules needing type-info/call-graph integration. Each is a 2-4 hour rewrite.
 - **Library self-lint mode** — auto-detect go-cqrs-lite module path, suppress consumer-only rules. ~4 hours.
 - **Import-alias resolution** — build shared `qualifierToImportPath` helper for D007/D008/D010/D013 and E-series. ~4 hours.
@@ -133,6 +140,7 @@ F018-F021 now have dedicated unit tests. But C031-C034, P011-P012, D014-D015, A0
 - **50-item improvement backlog** — ~35 items remain open.
 
 ### Remaining CI/Infra
+
 - **Recurring lint-sweep** — gate daemon commits behind `nix fmt`
 - **CGo-enabled CI job** — add `CGO_ENABLED=1` for DuckDB tests
 - **Investigate TestRun_Postgres_Recovery** — may still flake
@@ -189,6 +197,7 @@ I verified build + tests + lint for the 3 modules I touched (metaengine, pebblee
 ## F) Next 50 Things to Get Done (Prioritized)
 
 ### Immediate (blocking quality)
+
 1. Run `nix run .#verify` — full gate across all 60 modules
 2. Fix Pebble `MapDelete` to clean up secondary index entries
 3. Write Pebble LayoutPlanner benchmark (full-scan vs indexed)
@@ -197,12 +206,14 @@ I verified build + tests + lint for the 3 modules I touched (metaengine, pebblee
 6. Add Pebble LayoutPlanner to the ADT matrix test
 
 ### cqrs-lint E-series (🔥 high impact)
+
 7. Fix E010 — use go/types instead of package qualifier string matching
 8. Fix E011 — use call-graph analysis instead of name counting
 9. Fix E013 — verify the config struct type via go/types
 10. Fix E014 — redesign what concept it detects
 
 ### cqrs-lint infrastructure
+
 11. Implement library self-lint mode (auto-detect go-cqrs-lite module path)
 12. Build import-alias resolution helper (`qualifierToImportPath`)
 13. Add suppression tests for C031-C034
@@ -218,6 +229,7 @@ I verified build + tests + lint for the 3 modules I touched (metaengine, pebblee
 23. Work through the 50-item improvement backlog (~35 remain)
 
 ### Metaengine features
+
 24. Postgres engine (JSONB operators, GIN indexes) — ROADMAP
 25. DuckDB analytical engine (columnar OLAP) — ROADMAP
 26. metaengine-gen code generator — ROADMAP
@@ -226,23 +238,27 @@ I verified build + tests + lint for the 3 modules I touched (metaengine, pebblee
 29. Chaos testing with concurrent engine swaps under load
 
 ### CI / Infrastructure
+
 30. Recurring lint-sweep (gate daemon commits behind `nix fmt`)
 31. CGo-enabled CI job for DuckDB tests
 32. Investigate `TestRun_Postgres_Recovery` benchkit failure
 33. Add Pebble LayoutPlanner to CI integration tests
 
 ### Documentation
+
 34. Document Pebble LayoutPlanner in AGENTS.md
 35. Update V1StabilizationChecklist with LayoutPlanner status
 36. Write ADR for Pebble secondary index design
 37. Update metaengine design docs with LayoutPlanner
 
 ### API surface
+
 38. Regenerate api-stability golden (Pebble LayoutPlanner adds new exported types)
 39. Verify all new exported symbols are documented
 40. Add Pebble LayoutPlanner to the Crush skill reference
 
 ### Testing improvements
+
 41. Add race-detector run for Pebble LayoutPlanner tests
 42. Add concurrent read/write test for Pebble LayoutPlanner
 43. Test Pebble LayoutPlanner with on-disk database (not just in-memory)
@@ -250,6 +266,7 @@ I verified build + tests + lint for the 3 modules I touched (metaengine, pebblee
 45. Test Pebble LayoutPlanner with empty filter fields
 
 ### Code quality polish
+
 46. Remove unused `jsonValue` type in `metaengine/jsonvalue.go` (gopls warning)
 47. Modernize `b.N` → `b.Loop()` in benchmark files (gopls bloop warnings)
 48. Add gofumpt checks to pre-commit for all modules

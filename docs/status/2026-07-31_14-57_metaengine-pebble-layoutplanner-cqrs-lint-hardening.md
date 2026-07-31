@@ -39,6 +39,7 @@ exists. Non-layout path unchanged (direct `db.Set`).
 on 10K items with 1% selectivity (100 matching).
 
 **Results:**
+
 ```
 BenchmarkLayoutPlanner_FullScan-32       586   6036978 ns/op   4279416 B/op   80127 allocs/op
 BenchmarkLayoutPlanner_IndexedScan-32  59193     55972 ns/op     15694 B/op     311 allocs/op
@@ -55,6 +56,7 @@ BenchmarkLayoutPlanner_IndexedScan-32  59193     55972 ns/op     15694 B/op     
 
 **Fix:** New `indexBounds` method computes `LowerBound`/`UpperBound` for the Pebble
 iterator based on the filter operator:
+
 - FilterEq → prefix scan (exact value)
 - FilterGt → scan from (value+1) to end of field's keyspace
 - FilterGe → scan from value to end
@@ -126,6 +128,7 @@ inline suppressions on every file.
 **Fix:** `RegisterAll` now checks `ctx.IsLibrarySelfLint()` (which already existed
 but was never called). When the analyzed code IS the go-cqrs-lite library, 29
 consumer-coaching rules are auto-suppressed:
+
 - Architecture: E008-E015 (8 rules: stack bypass, HTTP integration, capture, adapters, dual-write, signing, read-your-writes, ordering)
 - Adoption: F001-F021 (21 rules: all feature-adoption coaching)
 
@@ -191,6 +194,7 @@ them all is mechanical but time-consuming. The pattern is proven and documented.
 
 **Status:** The auto-commit daemon committed this session's changes, and the
 verify-fast gate found 28 lint issues in `metaengine/pebbleengine/`:
+
 - 2 dupl (test code duplication in raw_reader_test.go)
 - 5 wsl_v5 (missing whitespace in engine.go + layout_planner.go)
 - 7 nolintlint (nolint directives that may be malformed or unused)
@@ -253,9 +257,11 @@ prior session.
 ### D2. PebbleLayoutSupport Dead Code
 
 `metaengine/pebbleengine/layout_planner.go:230` has:
+
 ```go
 var _ sync.Locker = (*sync.Mutex)(nil) // ensures sync import is used
 ```
+
 This is a hack. The `sync` import IS used (by `sync.Mutex` in the struct),
 so this line is unnecessary dead code. I should have removed it instead of
 adding this compile-time assertion.
@@ -294,6 +300,7 @@ a type-aware encoding that preserves ordering.
 ```go
 var _ sync.Locker = (*sync.Mutex)(nil)
 ```
+
 This "compile-time assertion" asserts that `*sync.Mutex` implements `sync.Locker`,
 which is trivially true and provides no value. It's cargo-cult code that looks
 important but does nothing.
@@ -349,6 +356,7 @@ important but does nothing.
 ## F) Next 50 Things to Get Done (Prioritized)
 
 ### Immediate (blocking — lint gate is RED)
+
 1. Fix 28 lint issues in `metaengine/pebbleengine/` (wsl_v5, nlreturn, nolintlint, dupl, etc.)
 2. Fix numeric range filter ordering bug in layout_planner.go (zero-pad or type-aware encoding)
 3. Remove dead code: `PebbleLayoutSupport` assertion, unused `indexPrefix` method
@@ -356,6 +364,7 @@ important but does nothing.
 5. Re-run `nix run .#verify` AND `nix run .#verify-fast` to confirm GREEN
 
 ### Pebble LayoutPlanner
+
 6. Add concurrent read/write race-detector test for LayoutPlanner
 7. Add test for LayoutPlanner with empty filter fields
 8. Add test for LayoutPlanner key collision edge cases
@@ -366,6 +375,7 @@ important but does nothing.
 13. Document LayoutPlanner in AGENTS.md
 
 ### cqrs-lint
+
 14. Migrate E009 to `projectCallsImportPath` (command+query import detection)
 15. Migrate E010 to `projectCallsImportPath` (currently uses method-on-type)
 16. Migrate E012-E015 to import-alias-aware helpers
@@ -378,6 +388,7 @@ important but does nothing.
 23. Verify library self-lint mode works on the actual go-cqrs-lite source
 
 ### Metaengine
+
 24. Write ADR for Pebble secondary index design
 25. Add Pebble LayoutPlanner to the Crush skill reference
 26. Update V1StabilizationChecklist with LayoutPlanner status
@@ -387,6 +398,7 @@ important but does nothing.
 30. Error injection with random transaction kills
 
 ### CI / Infrastructure
+
 31. CGo-enabled CI job for DuckDB tests
 32. Recurring lint-sweep (gate daemon commits behind `nix fmt`)
 33. Investigate `TestRun_Postgres_Recovery` benchkit failure
@@ -395,17 +407,20 @@ important but does nothing.
 36. Verify metaengine/pebbleengine go.mod has correct dependency budget
 
 ### Code Quality Polish
+
 37. Modernize `b.N` → `b.Loop()` in metaengine benchmark files (29 gopls warnings)
 38. Add gofumpt checks to pre-commit for all modules
 39. Verify all new exported symbols are documented
 40. Run `nix run .#check-coverage` on metaengine/pebbleengine
 
 ### API Surface
+
 41. Verify api-stability golden is current (2907 exports)
 42. Add `ApplyLayout` to public documentation
 43. Document the `LayoutPlanner` interface contract
 
 ### Testing Improvements
+
 44. Add race-detector run for Pebble LayoutPlanner tests
 45. Test LayoutPlanner with large key values (edge case: keys containing null bytes)
 46. Test LayoutPlanner with non-JSON values (should gracefully skip indexing)
@@ -413,6 +428,7 @@ important but does nothing.
 48. Add test for ApplyLayout on non-existent collection (should be no-op on scan)
 
 ### Documentation
+
 49. Write session report (THIS FILE)
 50. Update AGENTS.md with LayoutPlanner details
 
@@ -464,6 +480,7 @@ This suggests verify and verify-fast check different things, and running only
 one is insufficient.
 
 Should we:
+
 - **A:** Merge verify-fast checks INTO verify (one gate to rule them all)
 - **B:** Keep them separate but always run BOTH before declaring done
 - **C:** Something else
@@ -472,15 +489,15 @@ Should we:
 
 ## Summary Statistics
 
-| Metric | Value |
-|--------|-------|
-| Files changed this session | 26 |
-| Lines added | ~1,286 |
-| Lines removed | ~339 |
-| New tests added | 7 (4 layout planner + 1 range filters + 1 benchmark pair + suppression tests) |
-| New exported API | 0 (ApplyLayout was from prior session) |
-| Bug fixes | 3 (MapDelete orphan, MapUpdate stale index, range filter support) |
-| cqrs-lint rules improved | 5 (F011, F013, E010, E014, E008) |
-| Lint issues remaining | 28 (in pebbleengine — formatting/style only) |
-| Verify gate | RED (lint issues in pebbleengine) |
-| Test suite | GREEN (all tests pass) |
+| Metric                     | Value                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| Files changed this session | 26                                                                            |
+| Lines added                | ~1,286                                                                        |
+| Lines removed              | ~339                                                                          |
+| New tests added            | 7 (4 layout planner + 1 range filters + 1 benchmark pair + suppression tests) |
+| New exported API           | 0 (ApplyLayout was from prior session)                                        |
+| Bug fixes                  | 3 (MapDelete orphan, MapUpdate stale index, range filter support)             |
+| cqrs-lint rules improved   | 5 (F011, F013, E010, E014, E008)                                              |
+| Lint issues remaining      | 28 (in pebbleengine — formatting/style only)                                  |
+| Verify gate                | RED (lint issues in pebbleengine)                                             |
+| Test suite                 | GREEN (all tests pass)                                                        |

@@ -9,6 +9,7 @@
 ## What This Session Did
 
 ### 1. Pebble RawValueReader (`GetRawValue`) — FULLY DONE
+
 - **File:** `metaengine/pebbleengine/raw_reader.go`
 - Returns raw JSON bytes from Pebble's LSM point read, skipping the `decodeJSON → any` intermediate step.
 - `TypedReader.Get` and `ExecuteTyped` paths prefer this interface, decoding directly to `V` (1 JSON op instead of 2).
@@ -17,6 +18,7 @@
 - Byte-copy safety verified: returned bytes are independent of Pebble's internal buffers.
 
 ### 2. Pebble RawScanReader (`ScanRawValues`) — FULLY DONE
+
 - **File:** `metaengine/pebbleengine/raw_reader.go`
 - Prefix-scans the collection, applies `FilterSpec`/`SortSpec` in Go (Pebble has no SQL engine), returns raw bytes.
 - Caller decodes directly to target type `V`, skipping the reify-from-map reflection step.
@@ -25,6 +27,7 @@
 - Uses exported helpers from metaengine core: `PassesFilterSpecs`, `ItemFieldByName`, `CompareValues`, `EvalFilterOp`.
 
 ### 3. Exported Helpers (`metaengine/exported_helpers.go`) — FULLY DONE
+
 - 4 thin wrappers exposing existing internal helpers for non-SQL engines:
   - `PassesFilterSpecs(item, specs)` — evaluate declarative filters in Go
   - `ItemFieldByName(item, name)` — extract field by JSON key name
@@ -32,11 +35,13 @@
   - `EvalFilterOp(op, actual, expected)` — single filter comparison
 
 ### 4. Tests (12 tests, all passing) — FULLY DONE
+
 - **File:** `metaengine/pebbleengine/raw_reader_test.go`
 - Covers: point lookup, not-found, no-filter scan, filtered scan, sort asc, sort desc, cursor pagination, filter+sort combined, interface assertions, byte-copy safety, limit=0.
 - All tests pass with `-race` detector.
 
 ### 5. Benchmarks — FULLY DONE
+
 - **File:** `metaengine/pebbleengine/raw_reader_bench_test.go`
 - Results (100 items, in-memory Pebble):
   - `GetRawValue` vs `MapGet`: **2.7x faster** (36µs vs 97µs), **5.5x fewer allocs** (400 vs 1199)
@@ -44,23 +49,27 @@
   - `ScanRawValues` vs `MapScan`: **4.5x faster** (35µs vs 156µs), **5.8x fewer allocs** (312 vs 1811)
 
 ### 6. ADT Test Harness Extraction — FULLY DONE
+
 - **File:** `metaengine/adttest/harness.go` (new package, 480 lines)
 - Exported: `RunMatrix`, `Scenarios`, `Factory`, `Scenario`, `CanonicalizeAny`, `CanonicalizeCounter`, `CanonicalizeNeighbors`, `CanonicalizeScanResults`.
 - Follows the existing `kv/viewstoretest` pattern.
 - **File:** `metaengine/adt_matrix_test.go` — refactored from ~486 lines to ~27 lines using the shared harness.
 
 ### 7. Pebble ADT Matrix Test — FULLY DONE
+
 - **File:** `metaengine/pebbleengine/adt_matrix_test.go`
 - Runs all 7 ADTs (Map, Set, Counter, Graph, SortedMap, Log, Multimap) across memory↔pebble.
 - Cross-engine parity verified: all 7 ADTs pass.
 - By transitivity: memory↔sqlite (in metaengine's test) + memory↔pebble (here) = all three engines produce identical results.
 
 ### 8. Documentation Updates — FULLY DONE
+
 - `AGENTS.md`: Added `metaengine/adttest` to module list, test command, monorepo structure tree.
 - `metaengine/advanced.go`: Updated P6-1 comment from "interface contract" (TODO) to "implemented".
 - Pebble engine description updated to mention RawValueReader + RawScanReader.
 
 ### 9. Bug Fix — FULLY DONE
+
 - `metaengine/sse.go`: Removed unused `strconv` import that was blocking the pebbleengine module from building (it depends on metaengine core).
 
 ---
@@ -69,15 +78,15 @@
 
 These items from the original task list were **not attempted** in this session:
 
-| # | Item | Status | Reason |
-|---|------|--------|--------|
-| 3 | Pebble LayoutPlanner — prefixed key ranges for indexed fields | NOT STARTED | Out of scope for this session — the two 🔥 items were prioritized. |
-| 4 | Postgres engine — native JSONB operators | NOT STARTED | Requires a new `metaengine/postgresengine` module. |
-| 5 | DuckDB analytical engine — columnar OLAP | NOT STARTED | Requires a new `metaengine/duckdbengine` module (CGo). |
-| 6 | Soak test (10M events) | NOT STARTED | Needs a long-running test harness with memory profiling. |
-| 7 | Chaos testing — random transaction kills, error injection | NOT STARTED | Needs a chaos testing framework. |
-| 8 | metaengine-gen code generator | NOT STARTED | New `cmd/metaengine-gen` tool — large scope. |
-| 9 | Schema enforcement at Plan() time | NOT STARTED | Requires planner changes. |
+| #   | Item                                                          | Status      | Reason                                                             |
+| --- | ------------------------------------------------------------- | ----------- | ------------------------------------------------------------------ |
+| 3   | Pebble LayoutPlanner — prefixed key ranges for indexed fields | NOT STARTED | Out of scope for this session — the two 🔥 items were prioritized. |
+| 4   | Postgres engine — native JSONB operators                      | NOT STARTED | Requires a new `metaengine/postgresengine` module.                 |
+| 5   | DuckDB analytical engine — columnar OLAP                      | NOT STARTED | Requires a new `metaengine/duckdbengine` module (CGo).             |
+| 6   | Soak test (10M events)                                        | NOT STARTED | Needs a long-running test harness with memory profiling.           |
+| 7   | Chaos testing — random transaction kills, error injection     | NOT STARTED | Needs a chaos testing framework.                                   |
+| 8   | metaengine-gen code generator                                 | NOT STARTED | New `cmd/metaengine-gen` tool — large scope.                       |
+| 9   | Schema enforcement at Plan() time                             | NOT STARTED | Requires planner changes.                                          |
 
 ---
 
@@ -123,14 +132,14 @@ These items from the original task list were **not attempted** in this session:
 nix run .#verify — 2026-07-31 12:40
 ```
 
-| Module | Result |
-|--------|--------|
-| metaengine/v4 | ✅ PASS (3.267s) |
-| metaengine/v4/adttest | ✅ (no test files) |
-| metaengine/pebbleengine/v4 | ✅ PASS (0.058s) |
-| metaengine/projectionadapter/v4 | ✅ PASS (0.029s) |
-| cmd/cqrs-lint/pkg/rules/api | ❌ FAIL (pre-existing: `TestA032_NoFindingForBrandedID` parse error) |
-| All other modules | ✅ PASS |
+| Module                          | Result                                                               |
+| ------------------------------- | -------------------------------------------------------------------- |
+| metaengine/v4                   | ✅ PASS (3.267s)                                                     |
+| metaengine/v4/adttest           | ✅ (no test files)                                                   |
+| metaengine/pebbleengine/v4      | ✅ PASS (0.058s)                                                     |
+| metaengine/projectionadapter/v4 | ✅ PASS (0.029s)                                                     |
+| cmd/cqrs-lint/pkg/rules/api     | ❌ FAIL (pre-existing: `TestA032_NoFindingForBrandedID` parse error) |
+| All other modules               | ✅ PASS                                                              |
 
 **The one failure is pre-existing and unrelated to our changes.**
 
@@ -147,11 +156,11 @@ BenchmarkPebbleScanRawValues-32         33902     34877 ns/op    29985 B/op    3
 BenchmarkPebbleMapScan-32                7723    155788 ns/op    74873 B/op   1811 allocs/op
 ```
 
-| Operation | Speedup | Alloc Reduction |
-|-----------|---------|-----------------|
-| Point lookup (raw) | 2.7x | 3.0x |
-| Point lookup + typed decode | 2.6x | 4.0x |
-| Full scan + typed decode | 4.5x | 5.8x |
+| Operation                   | Speedup | Alloc Reduction |
+| --------------------------- | ------- | --------------- |
+| Point lookup (raw)          | 2.7x    | 3.0x            |
+| Point lookup + typed decode | 2.6x    | 4.0x            |
+| Full scan + typed decode    | 4.5x    | 5.8x            |
 
 ---
 

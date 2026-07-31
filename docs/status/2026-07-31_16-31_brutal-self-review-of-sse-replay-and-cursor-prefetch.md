@@ -14,57 +14,57 @@ Two features were implemented: **SSE reconnection via replay journal** and **Cur
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | **SSEReplay ring buffer** — record, Replay(afterSeq), LatestSeq | `sse_replay.go` (134 lines), 4 unit tests pass |
-| 2 | **Watcher.WithReplay** — attaches replay journal, registers recorder on Store | `dx.go:164`, integration test passes |
-| 3 | **Watcher.WatchWithSeq** — seq-aware channel for SSE id field | `dx.go:230`, test passes |
-| 4 | **ServeSSE reconnection path** — Last-Event-ID parsing, journal replay, live dedup | `sse.go:226`, HTTP end-to-end test passes |
-| 5 | **WithSSEReplayLimit** option — caps replay backlog | `sse.go:59`, test passes |
-| 6 | **WithCursorString** — ParseCursor-based cursor input option | `typed_reader.go:722`, 4 tests pass |
-| 7 | **prefetchCursorKey** — normalizes cursor via Cursor.Encode() for cache key | `typed_reader.go:816`, round-trip test passes |
-| 8 | **rawCursorValue** — unwraps *Cursor for engine scan calls (all 3 paths) | `typed_reader.go:801`, scanRaw/scanPushdown/scanClosure all updated |
-| 9 | **api-stability golden regenerated** | `docs/api_surface.txt` updated (2888→2906 exports) |
-| 10 | **AGENTS.md metaengine description updated** | Line 55 mentions SSE reconnection + cursor-encoded prefetch |
-| 11 | **Tests pass with -race** | `go test -race ./... -count=1` → ok 55.7s |
-| 12 | **go vet clean** | `go vet -tags "goexperiment.jsonv2" ./...` → no output |
-| 13 | **go build clean** | `go build -tags "goexperiment.jsonv2" ./...` → no output |
+| #   | Item                                                                               | Evidence                                                            |
+| --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 1   | **SSEReplay ring buffer** — record, Replay(afterSeq), LatestSeq                    | `sse_replay.go` (134 lines), 4 unit tests pass                      |
+| 2   | **Watcher.WithReplay** — attaches replay journal, registers recorder on Store      | `dx.go:164`, integration test passes                                |
+| 3   | **Watcher.WatchWithSeq** — seq-aware channel for SSE id field                      | `dx.go:230`, test passes                                            |
+| 4   | **ServeSSE reconnection path** — Last-Event-ID parsing, journal replay, live dedup | `sse.go:226`, HTTP end-to-end test passes                           |
+| 5   | **WithSSEReplayLimit** option — caps replay backlog                                | `sse.go:59`, test passes                                            |
+| 6   | **WithCursorString** — ParseCursor-based cursor input option                       | `typed_reader.go:722`, 4 tests pass                                 |
+| 7   | **prefetchCursorKey** — normalizes cursor via Cursor.Encode() for cache key        | `typed_reader.go:816`, round-trip test passes                       |
+| 8   | **rawCursorValue** — unwraps *Cursor for engine scan calls (all 3 paths)           | `typed_reader.go:801`, scanRaw/scanPushdown/scanClosure all updated |
+| 9   | **api-stability golden regenerated**                                               | `docs/api_surface.txt` updated (2888→2906 exports)                  |
+| 10  | **AGENTS.md metaengine description updated**                                       | Line 55 mentions SSE reconnection + cursor-encoded prefetch         |
+| 11  | **Tests pass with -race**                                                          | `go test -race ./... -count=1` → ok 55.7s                           |
+| 12  | **go vet clean**                                                                   | `go vet -tags "goexperiment.jsonv2" ./...` → no output              |
+| 13  | **go build clean**                                                                 | `go build -tags "goexperiment.jsonv2" ./...` → no output            |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's Done | What's Missing |
-|---|------|-------------|----------------|
-| 1 | **Dedup in serveSSEReplay** | Dedup logic exists (map-based `replayedSeqs`) | Uses unbounded `map[uint64]struct{}` — should use `dedup.Ring` (bounded memory). The `dedup` module already exists in the monorepo and is used by `transport/http` SSE for exactly this pattern. |
-| 2 | **serveSSE code dedup** | Both `serveSSEPlain` and `serveSSEReplay` work correctly | ~80% code duplication between them (timer setup, heartbeat ticker, buffer channel, drop-old select pattern, main select loop). No shared `serveSSELoop` extracted. |
-| 3 | **SSE replay test coverage** | MemoryEngine end-to-end test passes | No SQLite engine SSE replay test — all replay tests use `NewMemoryEngine()` only. SQLite engine has different scan paths that could surface bugs. |
-| 4 | **SKILL.md / references update** | AGENTS.md updated (line 55) | `.agents/skills/go-cqrs-lite/references/*.md` NOT updated — `ServeSSE`, `Watcher`, `WithReplay`, `WithCursorString`, `PrefetchCache`, `ScanPage` are completely absent from all 5 reference files. AI consumers have no guidance for these APIs. |
+| #   | Item                             | What's Done                                              | What's Missing                                                                                                                                                                                                                                   |
+| --- | -------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **Dedup in serveSSEReplay**      | Dedup logic exists (map-based `replayedSeqs`)            | Uses unbounded `map[uint64]struct{}` — should use `dedup.Ring` (bounded memory). The `dedup` module already exists in the monorepo and is used by `transport/http` SSE for exactly this pattern.                                                 |
+| 2   | **serveSSE code dedup**          | Both `serveSSEPlain` and `serveSSEReplay` work correctly | ~80% code duplication between them (timer setup, heartbeat ticker, buffer channel, drop-old select pattern, main select loop). No shared `serveSSELoop` extracted.                                                                               |
+| 3   | **SSE replay test coverage**     | MemoryEngine end-to-end test passes                      | No SQLite engine SSE replay test — all replay tests use `NewMemoryEngine()` only. SQLite engine has different scan paths that could surface bugs.                                                                                                |
+| 4   | **SKILL.md / references update** | AGENTS.md updated (line 55)                              | `.agents/skills/go-cqrs-lite/references/*.md` NOT updated — `ServeSSE`, `Watcher`, `WithReplay`, `WithCursorString`, `PrefetchCache`, `ScanPage` are completely absent from all 5 reference files. AI consumers have no guidance for these APIs. |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Item | Impact | Effort |
-|---|------|--------|--------|
-| 1 | **`nix run .#lint`** | golangci-lint may flag err113, wrapcheck, or other issues in new code | ~5 min |
-| 2 | **`nix run .#verify`** | Full verification gate (build + vet + test + race + lint + doc-check + doc-assertions) not run this session | ~4 min |
-| 3 | **`cmd/doc-check` on AGENTS.md** | Markdown import paths not verified after AGENTS.md update | ~1 min |
-| 4 | **Concurrent PrefetchCache test** | `PrefetchCache` has no mutex — `Get`/`Put`/`Clear` are not safe for concurrent use. No test exercises concurrent access. | ~15 min |
-| 5 | **SKILL.md references update** | 5 reference files need new API documentation | ~30 min |
-| 6 | **HTML report for brutal-self-review** | Skill says to write `docs/reviews/<date>_brutal-self-review.html` | ~20 min |
-| 7 | **Git commit** | Changes are uncommitted (auto-commit daemon may have committed some, but the latest changes from this session need verification) | ~1 min |
-| 8 | **Git push** | Not done — user hasn't requested it yet | ~1 min |
+| #   | Item                                   | Impact                                                                                                                           | Effort  |
+| --- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1   | **`nix run .#lint`**                   | golangci-lint may flag err113, wrapcheck, or other issues in new code                                                            | ~5 min  |
+| 2   | **`nix run .#verify`**                 | Full verification gate (build + vet + test + race + lint + doc-check + doc-assertions) not run this session                      | ~4 min  |
+| 3   | **`cmd/doc-check` on AGENTS.md**       | Markdown import paths not verified after AGENTS.md update                                                                        | ~1 min  |
+| 4   | **Concurrent PrefetchCache test**      | `PrefetchCache` has no mutex — `Get`/`Put`/`Clear` are not safe for concurrent use. No test exercises concurrent access.         | ~15 min |
+| 5   | **SKILL.md references update**         | 5 reference files need new API documentation                                                                                     | ~30 min |
+| 6   | **HTML report for brutal-self-review** | Skill says to write `docs/reviews/<date>_brutal-self-review.html`                                                                | ~20 min |
+| 7   | **Git commit**                         | Changes are uncommitted (auto-commit daemon may have committed some, but the latest changes from this session need verification) | ~1 min  |
+| 8   | **Git push**                           | Not done — user hasn't requested it yet                                                                                          | ~1 min  |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| # | Issue | Severity | Root Cause |
-|---|-------|----------|------------|
-| 1 | **`strconv` imported but unused** | **COMPILE ERROR** (gopls) | `sse.go:8` imports `strconv` but it IS used at line 240 (`strconv.ParseUint`). gopls reports it as unused because gopls runs WITHOUT the `goexperiment.jsonv2` build tag — it analyzes a different build configuration. `go build -tags "goexperiment.jsonv2"` succeeds. This is a **false positive from gopls**, NOT a real error. The import is correct. |
-| 2 | **Unbounded `replayedSeqs` map** | **MEMORY LEAK** | `sse.go:251` creates `make(map[uint64]struct{}, len(replayed))` and adds every replayed seq to it. For a connection that replays 10,000 events, this allocates 10,000 entries that are never freed during the connection lifetime. The `dedup.Ring` module (already in the monorepo, already used by `transport/http` SSE) exists for exactly this purpose and should be used instead. |
-| 3 | **PrefetchCache has NO mutex** | **DATA RACE RISK** | `PrefetchCache` (`dx.go:322`) stores `pages map[string][]any` with no synchronization. `Get`, `Put`, and `Clear` access the map without any lock. If a consumer calls `Scan` from multiple goroutines (e.g., HTTP handler serving concurrent requests sharing one reader), this is a data race. The `-race` tests pass only because no test exercises concurrent access. This is a latent bug waiting to happen. |
+| #   | Issue                             | Severity                  | Root Cause                                                                                                                                                                                                                                                                                                                                                                                                       |
+| --- | --------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **`strconv` imported but unused** | **COMPILE ERROR** (gopls) | `sse.go:8` imports `strconv` but it IS used at line 240 (`strconv.ParseUint`). gopls reports it as unused because gopls runs WITHOUT the `goexperiment.jsonv2` build tag — it analyzes a different build configuration. `go build -tags "goexperiment.jsonv2"` succeeds. This is a **false positive from gopls**, NOT a real error. The import is correct.                                                       |
+| 2   | **Unbounded `replayedSeqs` map**  | **MEMORY LEAK**           | `sse.go:251` creates `make(map[uint64]struct{}, len(replayed))` and adds every replayed seq to it. For a connection that replays 10,000 events, this allocates 10,000 entries that are never freed during the connection lifetime. The `dedup.Ring` module (already in the monorepo, already used by `transport/http` SSE) exists for exactly this purpose and should be used instead.                           |
+| 3   | **PrefetchCache has NO mutex**    | **DATA RACE RISK**        | `PrefetchCache` (`dx.go:322`) stores `pages map[string][]any` with no synchronization. `Get`, `Put`, and `Clear` access the map without any lock. If a consumer calls `Scan` from multiple goroutines (e.g., HTTP handler serving concurrent requests sharing one reader), this is a data race. The `-race` tests pass only because no test exercises concurrent access. This is a latent bug waiting to happen. |
 
 ---
 
@@ -114,73 +114,73 @@ Two features were implemented: **SSE reconnection via replay journal** and **Cur
 
 ### Critical (fix now — bugs and compile errors)
 
-| # | Task | Est. Time | Impact |
-|---|------|-----------|--------|
-| 1 | Replace unbounded `replayedSeqs` map with `dedup.Ring` in `sse.go:251` | 15 min | Fixes memory leak |
-| 2 | Add `sync.RWMutex` to `PrefetchCache` (`dx.go:322`) | 10 min | Fixes data race |
-| 3 | Add `dedup/v4` dependency to `metaengine/go.mod` | 5 min | Unblocks #1 |
-| 4 | Run `nix run .#lint` and fix all findings | 15 min | Catches lint issues |
-| 5 | Run `nix run .#verify` — full gate | 4 min | Definitive green/red |
-| 6 | Run `cmd/doc-check` on AGENTS.md | 1 min | Verifies import paths |
+| #   | Task                                                                   | Est. Time | Impact                |
+| --- | ---------------------------------------------------------------------- | --------- | --------------------- |
+| 1   | Replace unbounded `replayedSeqs` map with `dedup.Ring` in `sse.go:251` | 15 min    | Fixes memory leak     |
+| 2   | Add `sync.RWMutex` to `PrefetchCache` (`dx.go:322`)                    | 10 min    | Fixes data race       |
+| 3   | Add `dedup/v4` dependency to `metaengine/go.mod`                       | 5 min     | Unblocks #1           |
+| 4   | Run `nix run .#lint` and fix all findings                              | 15 min    | Catches lint issues   |
+| 5   | Run `nix run .#verify` — full gate                                     | 4 min     | Definitive green/red  |
+| 6   | Run `cmd/doc-check` on AGENTS.md                                       | 1 min     | Verifies import paths |
 
 ### High (code quality & deduplication)
 
-| # | Task | Est. Time | Impact |
-|---|------|-----------|--------|
-| 7 | Extract `serveSSELoop` to eliminate ~80% duplication between `serveSSEPlain` and `serveSSEReplay` | 30 min | Maintainability |
-| 8 | Register `WatchWithSeq` BEFORE replay (buffer during replay) | 20 min | Correctness |
-| 9 | Add concurrent PrefetchCache access test (N goroutines, shared reader) | 15 min | Catches data race |
-| 10 | Add SQLite engine SSE replay test | 20 min | Test coverage |
-| 11 | Add test for `replayShim` type-assertion failure (wrong V type) | 10 min | Edge case |
-| 12 | Fix `TestSSE_ReplayLimit` ID generation (`fmt.Sprintf` instead of `string(rune())`) | 5 min | Readability |
-| 13 | Break AGENTS.md line 55 into bullet list | 5 min | Readability |
+| #   | Task                                                                                              | Est. Time | Impact            |
+| --- | ------------------------------------------------------------------------------------------------- | --------- | ----------------- |
+| 7   | Extract `serveSSELoop` to eliminate ~80% duplication between `serveSSEPlain` and `serveSSEReplay` | 30 min    | Maintainability   |
+| 8   | Register `WatchWithSeq` BEFORE replay (buffer during replay)                                      | 20 min    | Correctness       |
+| 9   | Add concurrent PrefetchCache access test (N goroutines, shared reader)                            | 15 min    | Catches data race |
+| 10  | Add SQLite engine SSE replay test                                                                 | 20 min    | Test coverage     |
+| 11  | Add test for `replayShim` type-assertion failure (wrong V type)                                   | 10 min    | Edge case         |
+| 12  | Fix `TestSSE_ReplayLimit` ID generation (`fmt.Sprintf` instead of `string(rune())`)               | 5 min     | Readability       |
+| 13  | Break AGENTS.md line 55 into bullet list                                                          | 5 min     | Readability       |
 
 ### Medium (documentation & integration)
 
-| # | Task | Est. Time | Impact |
-|---|------|-----------|--------|
-| 14 | Update `references/advanced.md` §6.15 with metaengine SSE replay alternative | 15 min | AI consumer guidance |
-| 15 | Update `references/recipes.md` with metaengine SSE replay recipe | 10 min | AI consumer guidance |
-| 16 | Update `references/modules.md` metaengine row with new exports | 5 min | AI consumer guidance |
-| 17 | Update `references/core.md` with metaengine SSE + cursor mention | 10 min | AI consumer guidance |
-| 18 | Update `references/readmodels.md` with metaengine pagination cursor section | 15 min | AI consumer guidance |
-| 19 | Run `cmd/doc-check` on all updated reference files | 1 min | Verifies import paths |
-| 20 | Write brutal-self-review HTML report (`docs/reviews/`) | 20 min | Skill compliance |
+| #   | Task                                                                         | Est. Time | Impact                |
+| --- | ---------------------------------------------------------------------------- | --------- | --------------------- |
+| 14  | Update `references/advanced.md` §6.15 with metaengine SSE replay alternative | 15 min    | AI consumer guidance  |
+| 15  | Update `references/recipes.md` with metaengine SSE replay recipe             | 10 min    | AI consumer guidance  |
+| 16  | Update `references/modules.md` metaengine row with new exports               | 5 min     | AI consumer guidance  |
+| 17  | Update `references/core.md` with metaengine SSE + cursor mention             | 10 min    | AI consumer guidance  |
+| 18  | Update `references/readmodels.md` with metaengine pagination cursor section  | 15 min    | AI consumer guidance  |
+| 19  | Run `cmd/doc-check` on all updated reference files                           | 1 min     | Verifies import paths |
+| 20  | Write brutal-self-review HTML report (`docs/reviews/`)                       | 20 min    | Skill compliance      |
 
 ### Low (polish & future-proofing)
 
-| # | Task | Est. Time | Impact |
-|---|------|-----------|--------|
-| 21 | Consider `sync.Map` vs `RWMutex` for PrefetchCache (benchmark) | 30 min | Performance |
-| 22 | Add `SSEReplay.Capacity()` and `SSEReplay.Len()` exported methods | 5 min | Observability |
-| 23 | Add `SSEReplay.Reset()` method for replaying from zero | 5 min | Operations |
-| 24 | Document `watcherNotification` internal type-safety trade-off in code comment | 5 min | Maintainability |
-| 25 | Consider typed `chan watcherNotification` instead of `chan any` | 45 min | Type safety |
-| 26 | Add SSE replay metrics (events replayed, dedup hits, live events) | 30 min | Observability |
-| 27 | Add `WithSSEReplayCapacity` option (currently only via `Watcher.WithReplay`) | 10 min | API ergonomics |
-| 28 | Add SSE connection close on context cancel (graceful drain) | 15 min | Correctness |
-| 29 | Add SSE flush on every N events (batch flush) | 15 min | Performance |
-| 30 | Consider `io.Closer` on `Watcher` (currently just `Close()`) | 5 min | Interface compliance |
-| 31 | Add `PrefetchCache.Len()` and `PrefetchCache.Stats()` methods | 10 min | Observability |
-| 32 | Add `PrefetchCache` TTL/eviction (currently unbounded growth) | 45 min | Memory safety |
-| 33 | Add `WithPrefetchTTL` option on `TypedReader` | 15 min | API ergonomics |
-| 34 | Add cursor validation (reject nil-value cursor in `WithCursor`) | 10 min | Defensive |
-| 35 | Add `Cursor.Equal()` method for testing | 5 min | Test ergonomics |
-| 36 | Add `Cursor.Zero()` sentinel for "start of stream" | 5 min | API clarity |
-| 37 | Consider `errors.Is`/`errors.As` for `ParseCursor` errors | 10 min | Error handling |
-| 38 | Add `ServeSSE` context-aware shutdown (close channel on ctx done) | 15 min | Correctness |
-| 39 | Add SSE content-type negotiation (text/event-stream vs application/json) | 20 min | HTTP compliance |
-| 40 | Add SSE CORS headers for cross-origin EventSource | 10 min | Browser support |
-| 41 | Add SSE retry directive (`retry: <ms>`) for client reconnection interval | 5 min | SSE spec |
-| 42 | Add SSE event type field (`event: <type>`) for typed client handlers | 10 min | SSE spec |
-| 43 | Add SSE comment field for metadata | 5 min | SSE spec |
-| 44 | Consider `EventSource` polyfill detection (Accept header) | 15 min | Browser compat |
-| 45 | Add `ServeSSE` integration test with real `http.Client` | 20 min | E2E coverage |
-| 46 | Add `PrefetchCache` benchmark (hit rate, latency) | 30 min | Performance |
-| 47 | Add `SSEReplay` benchmark (record throughput, replay latency) | 30 min | Performance |
-| 48 | Add `Watcher.WatchWithSeq` vs `Watch` benchmark | 20 min | Performance |
-| 49 | Consider `golang.org/x/sync/singleflight` for PrefetchCache miss coalescing | 45 min | Performance |
-| 50 | Update `TODO_LIST.md` with all remaining items | 10 min | Planning |
+| #   | Task                                                                          | Est. Time | Impact               |
+| --- | ----------------------------------------------------------------------------- | --------- | -------------------- |
+| 21  | Consider `sync.Map` vs `RWMutex` for PrefetchCache (benchmark)                | 30 min    | Performance          |
+| 22  | Add `SSEReplay.Capacity()` and `SSEReplay.Len()` exported methods             | 5 min     | Observability        |
+| 23  | Add `SSEReplay.Reset()` method for replaying from zero                        | 5 min     | Operations           |
+| 24  | Document `watcherNotification` internal type-safety trade-off in code comment | 5 min     | Maintainability      |
+| 25  | Consider typed `chan watcherNotification` instead of `chan any`               | 45 min    | Type safety          |
+| 26  | Add SSE replay metrics (events replayed, dedup hits, live events)             | 30 min    | Observability        |
+| 27  | Add `WithSSEReplayCapacity` option (currently only via `Watcher.WithReplay`)  | 10 min    | API ergonomics       |
+| 28  | Add SSE connection close on context cancel (graceful drain)                   | 15 min    | Correctness          |
+| 29  | Add SSE flush on every N events (batch flush)                                 | 15 min    | Performance          |
+| 30  | Consider `io.Closer` on `Watcher` (currently just `Close()`)                  | 5 min     | Interface compliance |
+| 31  | Add `PrefetchCache.Len()` and `PrefetchCache.Stats()` methods                 | 10 min    | Observability        |
+| 32  | Add `PrefetchCache` TTL/eviction (currently unbounded growth)                 | 45 min    | Memory safety        |
+| 33  | Add `WithPrefetchTTL` option on `TypedReader`                                 | 15 min    | API ergonomics       |
+| 34  | Add cursor validation (reject nil-value cursor in `WithCursor`)               | 10 min    | Defensive            |
+| 35  | Add `Cursor.Equal()` method for testing                                       | 5 min     | Test ergonomics      |
+| 36  | Add `Cursor.Zero()` sentinel for "start of stream"                            | 5 min     | API clarity          |
+| 37  | Consider `errors.Is`/`errors.As` for `ParseCursor` errors                     | 10 min    | Error handling       |
+| 38  | Add `ServeSSE` context-aware shutdown (close channel on ctx done)             | 15 min    | Correctness          |
+| 39  | Add SSE content-type negotiation (text/event-stream vs application/json)      | 20 min    | HTTP compliance      |
+| 40  | Add SSE CORS headers for cross-origin EventSource                             | 10 min    | Browser support      |
+| 41  | Add SSE retry directive (`retry: <ms>`) for client reconnection interval      | 5 min     | SSE spec             |
+| 42  | Add SSE event type field (`event: <type>`) for typed client handlers          | 10 min    | SSE spec             |
+| 43  | Add SSE comment field for metadata                                            | 5 min     | SSE spec             |
+| 44  | Consider `EventSource` polyfill detection (Accept header)                     | 15 min    | Browser compat       |
+| 45  | Add `ServeSSE` integration test with real `http.Client`                       | 20 min    | E2E coverage         |
+| 46  | Add `PrefetchCache` benchmark (hit rate, latency)                             | 30 min    | Performance          |
+| 47  | Add `SSEReplay` benchmark (record throughput, replay latency)                 | 30 min    | Performance          |
+| 48  | Add `Watcher.WatchWithSeq` vs `Watch` benchmark                               | 20 min    | Performance          |
+| 49  | Consider `golang.org/x/sync/singleflight` for PrefetchCache miss coalescing   | 45 min    | Performance          |
+| 50  | Update `TODO_LIST.md` with all remaining items                                | 10 min    | Planning             |
 
 ---
 
@@ -203,10 +203,12 @@ Currently, `WatchWithSeq` is called AFTER the replay phase (line 278). This mean
 ## File Inventory (this session's scope)
 
 ### Files Created
+
 - `metaengine/sse_replay.go` (134 lines) — SSEReplay ring buffer, SeqValue, watcherNotification, replayRecorder, replayShim
 - `metaengine/sse_replay_test.go` (660 lines) — 11 tests covering replay, reconnection, cursor round-trip, edge cases
 
 ### Files Modified
+
 - `metaengine/dx.go` — Watcher.replay field, WithReplay, Replay, WatchWithSeq, unwrapWatcherValue, unwrapWatcherSeqValue, Close
 - `metaengine/store.go` — Store.replays field, registerReplay, unregisterReplay, notifyWatchers replay integration
 - `metaengine/sse.go` — SSEConfig.ReplayLimit, WithSSEReplayLimit, ServeSSE dispatch, serveSSEPlain, serveSSEReplay
@@ -216,6 +218,7 @@ Currently, `WatchWithSeq` is called AFTER the replay phase (line 278). This mean
 - `TODO_LIST.md` — both items marked [x]
 
 ### Files NOT Modified (but should be)
+
 - `.agents/skills/go-cqrs-lite/references/advanced.md` — no metaengine SSE replay section
 - `.agents/skills/go-cqrs-lite/references/recipes.md` — no metaengine SSE recipe
 - `.agents/skills/go-cqrs-lite/references/modules.md` — no metaengine new exports
@@ -226,22 +229,23 @@ Currently, `WatchWithSeq` is called AFTER the replay phase (line 278). This mean
 
 ## Verification Status
 
-| Check | Status | Command |
-|-------|--------|---------|
-| Build | ✅ PASS | `GOWORK=off go build -tags "goexperiment.jsonv2" ./...` |
-| Vet | ✅ PASS | `GOWORK=off go vet -tags "goexperiment.jsonv2" ./...` |
-| Tests | ✅ PASS | `GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1 -timeout 120s` |
-| Race | ✅ PASS | `GOWORK=off go test -tags "goexperiment.jsonv2" -race ./... -count=1 -timeout 180s` |
-| Lint | ❌ NOT RUN | `nix run .#lint` |
-| Verify gate | ❌ NOT RUN | `nix run .#verify` |
-| Doc-check | ❌ NOT RUN | `cmd/doc-check` on AGENTS.md |
-| API-stability | ✅ PASS (regenerated) | `TestAPISurfaceCheck` |
+| Check         | Status                | Command                                                                             |
+| ------------- | --------------------- | ----------------------------------------------------------------------------------- |
+| Build         | ✅ PASS               | `GOWORK=off go build -tags "goexperiment.jsonv2" ./...`                             |
+| Vet           | ✅ PASS               | `GOWORK=off go vet -tags "goexperiment.jsonv2" ./...`                               |
+| Tests         | ✅ PASS               | `GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1 -timeout 120s`       |
+| Race          | ✅ PASS               | `GOWORK=off go test -tags "goexperiment.jsonv2" -race ./... -count=1 -timeout 180s` |
+| Lint          | ❌ NOT RUN            | `nix run .#lint`                                                                    |
+| Verify gate   | ❌ NOT RUN            | `nix run .#verify`                                                                  |
+| Doc-check     | ❌ NOT RUN            | `cmd/doc-check` on AGENTS.md                                                        |
+| API-stability | ✅ PASS (regenerated) | `TestAPISurfaceCheck`                                                               |
 
 ---
 
 ## Honest Self-Assessment
 
 **What I did well:**
+
 - The SSEReplay ring buffer is clean, bounded, and correct
 - The Watcher integration is backward-compatible (Watch still works without replay)
 - Cursor-encoded prefetch keys normalize correctly across both input paths
@@ -249,6 +253,7 @@ Currently, `WatchWithSeq` is called AFTER the replay phase (line 278). This mean
 - The `rawCursorValue` unwrapping covers all 3 scan paths
 
 **What I did poorly:**
+
 - The `replayedSeqs` map is an unbounded memory leak — I knew about `dedup.Ring` and didn't use it
 - I didn't extract the shared SSE loop — ~80% code duplication is unacceptable
 - I didn't run the full verification gate — the "stale GREEN" anti-pattern I documented in AGENTS.md
@@ -257,6 +262,7 @@ Currently, `WatchWithSeq` is called AFTER the replay phase (line 278). This mean
 - The `watcherNotification` through `chan any` is a type-safety compromise I didn't flag clearly enough
 
 **What I'm unsure about:**
+
 - Whether the subscribe-before-replay ordering matters for the metaengine's in-process model
 - Whether the PrefetchCache should be thread-safe by default
 - Whether cross-process replay persistence is needed for metaengine SSE

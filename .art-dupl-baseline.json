@@ -44,10 +44,7 @@
     },
     {
       "hash": "846186fe28146918",
-      "files": [
-        "event/v4/eventtest/golden.go",
-        "catalog/internal/cattest/catalog.go"
-      ],
+      "files": ["event/v4/eventtest/golden.go", "catalog/internal/cattest/catalog.go"],
       "tokens": 8
     },
     {
@@ -93,10 +90,7 @@
     },
     {
       "hash": "dee87fef488da5c6",
-      "files": [
-        "metaengine/plan_types.go",
-        "metaengine/observability.go"
-      ],
+      "files": ["metaengine/plan_types.go", "metaengine/observability.go"],
       "tokens": 6
     }
   ]

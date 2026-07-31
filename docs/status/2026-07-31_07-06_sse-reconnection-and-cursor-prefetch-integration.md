@@ -13,22 +13,23 @@
 The `metaengine/sse.go` `ServeSSE` function previously had no reconnection support. Clients that
 disconnect lost all missed events. Now fully implemented:
 
-| Component | File | Status |
-|-----------|------|--------|
-| `SSEReplay[V]` ring buffer | `sse_replay.go` (new, 134 lines) | DONE — bounded ring buffer with monotonic `uint64` seq counter, `Replay(afterSeq)`, `LatestSeq()` |
-| `SeqValue[V]` type | `sse_replay.go` | DONE — pairs value with seq number |
-| `Watcher.WithReplay(capacity)` | `dx.go` | DONE — attaches replay journal, registers `replayRecorder` on Store |
-| `Watcher.WatchWithSeq(ctx, key)` | `dx.go` | DONE — returns `<-chan SeqValue[V]` for seq-aware consumption |
-| `Watcher.Replay()` accessor | `dx.go` | DONE — returns `*SSEReplay[V]` or nil |
-| `Store.notifyWatchers` replay recording | `store.go` | DONE — records + sends `watcherNotification` wrappers when replay is active |
-| `Store.registerReplay`/`unregisterReplay` | `store.go` | DONE — thread-safe replay recorder lifecycle |
-| `ServeSSE` reconnection path | `sse.go` | DONE — split into `serveSSEPlain` (no replay) and `serveSSEReplay` (Last-Event-ID header → replay → live with dedup) |
-| `WithSSEReplayLimit(n)` option | `sse.go` | DONE — caps replay backlog |
-| `SSEConfig.ReplayLimit` field | `sse.go` | DONE |
-| Backward compatibility | `dx.go` | DONE — `Watch()` (non-seq) transparently unwraps `watcherNotification`; existing callers unaffected |
-| `Watcher.Close()` cleanup | `dx.go` | DONE — unregisters replay recorder from Store |
+| Component                                 | File                             | Status                                                                                                               |
+| ----------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `SSEReplay[V]` ring buffer                | `sse_replay.go` (new, 134 lines) | DONE — bounded ring buffer with monotonic `uint64` seq counter, `Replay(afterSeq)`, `LatestSeq()`                    |
+| `SeqValue[V]` type                        | `sse_replay.go`                  | DONE — pairs value with seq number                                                                                   |
+| `Watcher.WithReplay(capacity)`            | `dx.go`                          | DONE — attaches replay journal, registers `replayRecorder` on Store                                                  |
+| `Watcher.WatchWithSeq(ctx, key)`          | `dx.go`                          | DONE — returns `<-chan SeqValue[V]` for seq-aware consumption                                                        |
+| `Watcher.Replay()` accessor               | `dx.go`                          | DONE — returns `*SSEReplay[V]` or nil                                                                                |
+| `Store.notifyWatchers` replay recording   | `store.go`                       | DONE — records + sends `watcherNotification` wrappers when replay is active                                          |
+| `Store.registerReplay`/`unregisterReplay` | `store.go`                       | DONE — thread-safe replay recorder lifecycle                                                                         |
+| `ServeSSE` reconnection path              | `sse.go`                         | DONE — split into `serveSSEPlain` (no replay) and `serveSSEReplay` (Last-Event-ID header → replay → live with dedup) |
+| `WithSSEReplayLimit(n)` option            | `sse.go`                         | DONE — caps replay backlog                                                                                           |
+| `SSEConfig.ReplayLimit` field             | `sse.go`                         | DONE                                                                                                                 |
+| Backward compatibility                    | `dx.go`                          | DONE — `Watch()` (non-seq) transparently unwraps `watcherNotification`; existing callers unaffected                  |
+| `Watcher.Close()` cleanup                 | `dx.go`                          | DONE — unregisters replay recorder from Store                                                                        |
 
 **Tests written:** 11 new tests in `sse_replay_test.go` (660 lines):
+
 - `TestSSEReplay_RecordAndReplay` — unit test for ring buffer record/replay/seq
 - `TestSSEReplay_RingBufferEviction` — capacity overflow evicts oldest
 - `TestSSEReplay_DefaultCapacity` — 0 → 64 default
@@ -49,13 +50,13 @@ The `PrefetchCache` used `fmt.Sprintf("%s:%v", collection, cursorVal)` for cache
 complex cursor values that don't round-trip cleanly through `%v`. Now uses `Cursor.Encode()`
 (base64+JSON) for HTTP-safe opaque keys:
 
-| Component | File | Status |
-|-----------|------|--------|
+| Component                                  | File              | Status                                                                                  |
+| ------------------------------------------ | ----------------- | --------------------------------------------------------------------------------------- |
 | `prefetchCursorKey` replaces `prefetchKey` | `typed_reader.go` | DONE — normalizes any cursor input (*Cursor, Cursor, raw any) through `Cursor.Encode()` |
-| `WithCursorString(s)` scan option | `typed_reader.go` | DONE — parses encoded cursor string via `ParseCursor` |
-| `rawCursorValue(cursor)` helper | `typed_reader.go` | DONE — unwraps `*Cursor` to `.Value` for engine consumption |
-| All 3 scan paths use `rawCursorValue` | `typed_reader.go` | DONE — `scanRaw`, `scanPushdown` (PushdownMapScan), closure (MapScan) |
-| Backward compatibility | `typed_reader.go` | DONE — `WithCursor(cursor.Value)` (raw) still works; both paths produce same cache key |
+| `WithCursorString(s)` scan option          | `typed_reader.go` | DONE — parses encoded cursor string via `ParseCursor`                                   |
+| `rawCursorValue(cursor)` helper            | `typed_reader.go` | DONE — unwraps `*Cursor` to `.Value` for engine consumption                             |
+| All 3 scan paths use `rawCursorValue`      | `typed_reader.go` | DONE — `scanRaw`, `scanPushdown` (PushdownMapScan), closure (MapScan)                   |
+| Backward compatibility                     | `typed_reader.go` | DONE — `WithCursor(cursor.Value)` (raw) still works; both paths produce same cache key  |
 
 **Key design property:** `WithCursor(cursor.Value)` and `WithCursorString(cursor.Encode())` produce
 identical `prefetchCursorKey` output because both normalize through `Cursor.Encode()`. This means
@@ -117,7 +118,7 @@ golden file. Regenerated `docs/api_surface.txt` (2888 → 2906 exports). Verifie
    in the new code (e.g., `err113` in `sse.go` for `errors.New` literals).
 
 9. **No `nix run .#verify` run** — the full verification gate (build + vet + test + race + lint
-   + doc-check + doc-assertions) was not run. Only the metaengine module was tested in isolation.
+   - doc-check + doc-assertions) was not run. Only the metaengine module was tested in isolation.
 
 10. **No `cmd/doc-check` run** — the doc checker verifies Go import paths in markdown files.
     AGENTS.md was edited but doc-check was not run to verify the new content.
@@ -314,16 +315,16 @@ same edit." This rule was violated and fixed only retroactively.
 
 ## Session Statistics
 
-| Metric | Value |
-|--------|-------|
-| Files created | 2 (`sse_replay.go`, `sse_replay_test.go`) |
-| Files modified | 5 (`sse.go`, `dx.go`, `store.go`, `typed_reader.go`, `AGENTS.md`, `TODO_LIST.md`) |
+| Metric               | Value                                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Files created        | 2 (`sse_replay.go`, `sse_replay_test.go`)                                                                                                  |
+| Files modified       | 5 (`sse.go`, `dx.go`, `store.go`, `typed_reader.go`, `AGENTS.md`, `TODO_LIST.md`)                                                          |
 | New exported symbols | 9 (`NewSSEReplay`, `SSEReplay`, `SeqValue`, `WithReplay`, `WatchWithSeq`, `Replay`, `LatestSeq`, `WithSSEReplayLimit`, `WithCursorString`) |
-| New tests | 11 (660 lines) |
-| Total lines added | ~2,780 |
-| Test suite result | GREEN (2.4s plain, 54s race) |
-| `go vet` | Clean |
-| `go build` | Clean |
-| `nix run .#lint` | NOT RUN |
-| `nix run .#verify` | NOT RUN |
-| API-surface golden | REGENERATED (2888 → 2906) |
+| New tests            | 11 (660 lines)                                                                                                                             |
+| Total lines added    | ~2,780                                                                                                                                     |
+| Test suite result    | GREEN (2.4s plain, 54s race)                                                                                                               |
+| `go vet`             | Clean                                                                                                                                      |
+| `go build`           | Clean                                                                                                                                      |
+| `nix run .#lint`     | NOT RUN                                                                                                                                    |
+| `nix run .#verify`   | NOT RUN                                                                                                                                    |
+| API-surface golden   | REGENERATED (2888 → 2906)                                                                                                                  |

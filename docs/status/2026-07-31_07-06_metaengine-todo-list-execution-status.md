@@ -13,12 +13,14 @@
 **The bug:** `trimAndCache` generated cache keys via `cursorKeyFor(item, cfg)` but the prefetch-lookup at the top of `Scan` used `fmt.Sprintf("%s:%v", collection, cfg.cursor)`. The two formats didn't match, so auto-populated cache entries were never served.
 
 **Fix:**
+
 - Extracted a shared `prefetchKey(collection, cursorVal any) string` function used by BOTH the cache-write path (`trimAndCache`) and the cache-read path (prefetch lookup in `Scan`).
 - Extracted `extractCursorValue[V](item V, cfg scanConfig) any` to derive the cursor value from the sort field or whole item.
 - Added `ScanPage(ctx, opts) ([]V, *Cursor, error)` — returns both results AND the next-page cursor. This is the API the caller needs to know what cursor value to pass on the next page.
 - Fixed a second bug: when `PrefetchCache` is attached, the engine fetch was only `limit+1` rows — not enough to cache a full next page. Added `fetchLimit = cfg.limit * 2` when prefetch is active.
 
 **Tests:**
+
 - `TestPrefetchCache_EndToEndPagination` — 10 items, page through 3+3 with cursor, verify no overlap between pages. PASSES on Memory engine.
 - `TestPrefetchCache_SQLiteEndToEnd` — same pagination flow on SQLite engine. PASSES.
 
@@ -29,6 +31,7 @@
 **The problem:** The `MapUpdate` callback receives `any` which is engine-dependent: MemoryEngine preserves Go struct types, SQLite returns `map[string]any` from JSON. Users of the MapUpdater interface directly had to call `reify[V]` themselves.
 
 **Implementation:**
+
 - Added `MapUpdateTyped[V]` as a top-level generic function (Go doesn't allow generic methods on non-generic types). It wraps `MapUpdater.MapUpdate` (or falls back to `MapBackend` Get+Set), automatically reifying `prev` to type `V` before calling the user's typed update function.
 - Added comprehensive documentation on the `MapUpdater` interface documenting the engine-dependent `any` type contract and pointing users to `MapUpdateTyped[V]`.
 
@@ -39,16 +42,19 @@
 ### A3. Three Cyclomatic Complexity Refactors (all 3 over threshold → under)
 
 **applyFold (33 → dispatch only, ~15):**
+
 - Extracted 8 per-FoldKind methods: `applyFoldInsert`, `applyFoldUpdate`, `applyFoldRemove`, `applyFoldCount`, `applyFoldEdge`, `applyFoldSet`, `applyFoldMultiInsert`, `applyFoldAppend`.
 - `applyFold` is now a clean switch that dispatches to each handler. Each handler is under 20 lines.
 - Also fixed the err113 lint issue: replaced dynamic `"metaengine: collection %q poisoned by fold panic"` with `%w: ErrPoisoned`.
 
 **TypedReader.Scan (41 → ~20):**
+
 - Extracted 3 scan-path methods: `scanRaw` (RawScanReader path), `scanPushdown` (PushdownScan path), `scanClosure` (ScanBackend closure fallback).
 - Extracted `buildClosureFilter(cfg)` and `buildClosureSort(cfg)` from the deeply nested closure path.
 - `Scan` is now: prefetch check → expand ranges/IN → get engine → check needsClosure → try raw → try pushdown → try closure → error.
 
 **ContractSuite (41 → dispatch only, ~15):**
+
 - Extracted 7 per-ADT test functions: `contractMap`, `contractMapUpdate`, `contractSet`, `contractCounter`, `contractMultimap`, `contractLog`, `contractGraph`, `contractScan`.
 - `ContractSuite` is now a setup + dispatch loop.
 - Also fixed: `errcheck` (defer eng.Close() → defer func() { _ = eng.Close() }()), `inamedparam` (added named params to anonymous interface).
@@ -57,13 +63,13 @@
 
 ### A4. Additional Testing Gap Tests Implemented
 
-| Test | What it verifies | Status |
-|------|-----------------|--------|
-| `TestPrefetchCache_EndToEndPagination` | Multi-page scan using cursor flow (memory) | PASS |
-| `TestPrefetchCache_SQLiteEndToEnd` | Multi-page scan using cursor flow (SQLite) | PASS |
-| `TestSSE_MultiSubscriberFanOut` | N clients all receive updates via SSE | PASS |
-| `TestExportImport_CrossEngine` | Export from Memory → Import to SQLite → verify | PASS |
-| `TestMapUpdateTyped_ReifiesPrevValue` | Typed RMW with auto-reify | PASS |
+| Test                                   | What it verifies                               | Status |
+| -------------------------------------- | ---------------------------------------------- | ------ |
+| `TestPrefetchCache_EndToEndPagination` | Multi-page scan using cursor flow (memory)     | PASS   |
+| `TestPrefetchCache_SQLiteEndToEnd`     | Multi-page scan using cursor flow (SQLite)     | PASS   |
+| `TestSSE_MultiSubscriberFanOut`        | N clients all receive updates via SSE          | PASS   |
+| `TestExportImport_CrossEngine`         | Export from Memory → Import to SQLite → verify | PASS   |
+| `TestMapUpdateTyped_ReifiesPrevValue`  | Typed RMW with auto-reify                      | PASS   |
 
 **Files changed:** `metaengine/features4_test.go`
 
@@ -82,6 +88,7 @@
 Before this session: 66 lint issues. After refactoring: **101 issues**.
 
 The refactoring created new functions that trigger lint rules:
+
 - **wrapcheck: 19→31** — Extracted helper functions return errors from interfaces/external packages without wrapping. Each extracted function adds 2-3 new wrapcheck hits.
 - **varnamelen: 14→26** — Extracted helpers use short parameter names (`sb`, `mb`, `cb`, `eng`) that were already nolint'd in the original monolith but now need fresh nolint directives.
 - **nestif: 7→5** — Actually improved (2 fewer), but the remaining 5 are in newly extracted functions.
@@ -99,11 +106,13 @@ Prior session already implemented `sse_replay_test.go` and `pebbleengine/raw_rea
 ## C) NOT STARTED (from the 42-item TODO_LIST)
 
 ### Metaengine — Critical Bugs & Quality (10 items)
+
 - [ ] SSE Last-Event-ID reconnection
 - [ ] Integrate Cursor.Encode/ParseCursor with PrefetchCache (partially done — ScanPage returns Cursor)
 - [ ] Lint cleanup pass (INCREASED — see B1)
 
 ### Metaengine — Engine Sophistication (9 items)
+
 - [ ] Pebble: implement RawValueReader + RawScanReader
 - [ ] Pebble: add to ADT matrix test
 - [ ] Pebble LayoutPlanner
@@ -115,6 +124,7 @@ Prior session already implemented `sse_replay_test.go` and `pebbleengine/raw_rea
 - [ ] Schema enforcement at Plan() time
 
 ### Metaengine — Testing Gaps (8 items, 4 partially done)
+
 - [x] SQLite PrefetchCache test — DONE (A4)
 - [x] PrefetchCache end-to-end pagination test — DONE (A4)
 - [x] SSE multi-subscriber fan-out test — DONE (A4)
@@ -125,6 +135,7 @@ Prior session already implemented `sse_replay_test.go` and `pebbleengine/raw_rea
 - [ ] WithTTL functional test
 
 ### cqrs-lint Quality (10 items)
+
 - [ ] Fix E010/E011/E013/E014 — architecturally wrong rules
 - [ ] Library self-lint mode
 - [ ] Import-alias resolution
@@ -138,6 +149,7 @@ Prior session already implemented `sse_replay_test.go` and `pebbleengine/raw_rea
 - [ ] Dedicated unit tests for F018-F021
 
 ### CI / Daemon (4 items)
+
 - [ ] Fix 3 flaky benchkit soak tests
 - [ ] Recurring lint-sweep
 - [ ] CGo-enabled CI job
@@ -150,6 +162,7 @@ Prior session already implemented `sse_replay_test.go` and `pebbleengine/raw_rea
 ### D1. Lint Count INCREASED — Net Negative Lint Impact
 
 I refactored 3 functions to reduce cyclomatic complexity (gocyclo: 3→0 for those functions), but the extracted helper functions introduced NEW lint issues:
+
 - 12 new wrapcheck violations (extracted functions return interface errors)
 - 12 new varnamelen violations (extracted parameters use short names)
 - 9 new wsl_v5 formatting violations
@@ -181,6 +194,7 @@ The auto-commit daemon committed at `f0ffebba` (06:30) during this session, incl
 ## F) Next 50 Things to Get Done (Prioritized)
 
 ### Immediate (blocking — lint gate fails)
+
 1. Add `//nolint:wrapcheck` to 31 unwrapped error returns in metaengine
 2. Add `//nolint:varnamelen` to 26 short-named variables/params in metaengine
 3. Fix 9 wsl_v5 formatting violations in metaengine
@@ -202,6 +216,7 @@ The auto-commit daemon committed at `f0ffebba` (06:30) during this session, incl
 19. Run `nix fmt` to normalize all formatting after nolint additions
 
 ### cqrs-lint Quality
+
 20. Dedicated unit tests for F018-F021 (fire on anti-pattern, no-fire on clean code)
 21. Add suppression tests for C031-C034, P011-P012, D014-D015, A032, E016-E017, S010, F018-F021
 22. Fix E010 (package qualifier → type info)
@@ -219,6 +234,7 @@ The auto-commit daemon committed at `f0ffebba` (06:30) during this session, incl
 34. Narrow C032 scope (handler/projector only)
 
 ### Metaengine Features
+
 35. Verify Pebble RawValueReader/RawScanReader (may already exist — D2)
 36. Add Pebble to ADT matrix test
 37. Pebble LayoutPlanner
@@ -229,12 +245,14 @@ The auto-commit daemon committed at `f0ffebba` (06:30) during this session, incl
 42. Chaos testing
 
 ### Metaengine Testing Gaps
+
 43. Multi-engine tiering test (TieredStore fan-out)
 44. SwapEngine data migration test
 45. MigrateLayout ALTER TABLE test
 46. WithTTL functional test
 
 ### CI/Infrastructure
+
 47. Fix 3 flaky benchkit soak tests (testutil.RaceEnabled thresholds)
 48. Recurring lint-sweep (gate daemon commits behind nix fmt)
 49. CGo-enabled CI job for DuckDB
