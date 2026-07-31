@@ -3,7 +3,6 @@ package metaengine
 import (
 	"context"
 	"fmt"
-	"reflect"
 )
 
 // TypedReader provides typed read access to a collection's values without
@@ -441,6 +440,29 @@ func (r *TypedReader[V]) Distinct(
 
 		seen[val] = struct{}{}
 		result = append(result, val)
+	}
+
+	return result, nil
+}
+
+// GroupBy scans matching rows and groups them by the value of a column.
+// Returns a map from column value to the slice of values in that group.
+// Uses Scan + Go-side grouping (no SQL GROUP BY pushdown yet).
+func (r *TypedReader[V]) GroupBy(
+	ctx context.Context,
+	column string,
+	opts ...ScanOption,
+) (map[any][]V, error) {
+	rows, err := r.Scan(ctx, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[any][]V, len(rows))
+
+	for _, row := range rows {
+		key := extractValueByName(row, column)
+		result[key] = append(result[key], row)
 	}
 
 	return result, nil

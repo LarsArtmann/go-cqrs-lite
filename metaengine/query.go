@@ -237,6 +237,7 @@ type queryMeta interface {
 	QueryInputTypeName() string
 	QueryConfig() QueryConfig
 	QueryKeyType() reflect.Type
+	QueryResultType() reflect.Type
 }
 
 func (q QueryDecl[Q, R]) QueryName() string             { return q.Name }
@@ -258,6 +259,13 @@ func (q QueryDecl[Q, R]) QueryKeyType() reflect.Type {
 	}
 
 	return nil
+}
+
+// QueryResultType returns the reflect.Type of the query's result type R.
+// Used by Plan() for schema enforcement: validating that fold return types
+// match the declared result type.
+func (q QueryDecl[Q, R]) QueryResultType() reflect.Type {
+	return reflect.TypeOf(q.resultSample)
 }
 
 func (q QueryDecl[Q, R]) String() string {

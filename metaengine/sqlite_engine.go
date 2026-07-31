@@ -21,12 +21,10 @@ type sqliteEngine struct {
 	queries sqliteQuerySet
 	cache   *stmtCache
 	// seq counters for multimap and log (SQLite AUTOINCREMENT handles log).
-	// Lazily seeded from MAX(seq) on first use — see multiSeqCounter.
 	multiSeq sync.Map // collection→*multiSeqCounter
-	// plans maps collection → LayoutPlan for layout-planned tables.
-	// Populated by ApplyLayout (called by Plan() for queries with
-	// FilterOnField/SortOnField, or by NewPlannedSQLiteEngine).
-	plans map[string]LayoutPlan
+	plans    map[string]LayoutPlan
+	txMu     sync.Mutex
+	activeTx atomic.Pointer[txExecutor]
 }
 
 // sqliteQuerySet holds pre-built SQL strings for each operation.

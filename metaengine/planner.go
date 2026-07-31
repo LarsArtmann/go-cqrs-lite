@@ -83,6 +83,27 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 			return nil, fmt.Errorf("metaengine.Plan: %w", err)
 		}
 
+		// Schema enforcement: validate that fold value types match the
+		// declared result type. Mismatches would surface at runtime as
+		// decode errors; catching them at Plan time gives early feedback.
+		if resultType := meta.QueryResultType(); resultType != nil {
+			for _, fold := range meta.QueryFolds() {
+				if fold.valueType != nil && fold.valueType != resultType {
+					plan.Diagnostics = append(plan.Diagnostics, Diagnostic{
+						Level:  DiagLevelWarn,
+						Query:  runtime.name,
+						Message: fmt.Sprintf(
+							"fold for %s returns %s but query result type is %s — "+
+								"runtime decode may fail",
+							fold.EventType,
+							fold.valueType.String(),
+							resultType.String(),
+						),
+					})
+				}
+			}
+		}
+
 		// Auto-apply layout planning: if the assigned engine supports layout
 		// planning (LayoutPlanner) and the query declares filter/sort fields
 		// via FilterOnField/SortOnField, generate and apply a LayoutPlan
