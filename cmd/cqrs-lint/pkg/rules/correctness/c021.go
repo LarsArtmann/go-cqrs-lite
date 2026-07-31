@@ -107,21 +107,11 @@ func hasDeferAncestorC021(ancestors []ast.Node) bool {
 }
 
 func isLockCall(call *ast.CallExpr) bool {
-	sel, ok := analyzer.SelectorFromExpr(call.Fun)
-	if !ok {
-		return false
-	}
-
-	return sel.Sel.Name == "Lock" || sel.Sel.Name == "RLock"
+	return lintutil.CallSelectorMatches(call, "Lock", "RLock")
 }
 
 func isUnlockCall(call *ast.CallExpr) bool {
-	sel, ok := analyzer.SelectorFromExpr(call.Fun)
-	if !ok {
-		return false
-	}
-
-	return sel.Sel.Name == "Unlock" || sel.Sel.Name == "RUnlock"
+	return lintutil.CallSelectorMatches(call, "Unlock", "RUnlock")
 }
 
 func isDecodeCall(call *ast.CallExpr) bool {

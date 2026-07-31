@@ -125,13 +125,7 @@ func isDualWriteCall(call *ast.CallExpr) bool {
 // isTransactionCall returns true for calls that start a transaction
 // (Begin, BeginTx, RunInTx).
 func isTransactionCall(call *ast.CallExpr) bool {
-	sel, ok := analyzer.SelectorFromExpr(call.Fun)
-	if !ok {
-		return false
-	}
-
-	method := sel.Sel.Name
-	return method == "Begin" || method == "BeginTx" || method == "RunInTx"
+	return lintutil.CallSelectorMatches(call, "Begin", "BeginTx", "RunInTx")
 }
 
 func reportDualWrite(

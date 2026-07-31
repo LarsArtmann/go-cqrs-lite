@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // D012: Raw print in handler/projection code.
@@ -123,7 +124,5 @@ func isContextType(expr ast.Expr) bool {
 		return false
 	}
 
-	ident, ok := sel.X.(*ast.Ident)
-
-	return ok && ident.Name == "context" && sel.Sel.Name == "Context"
+	return lintutil.SelectorMatches(sel, "context", "Context")
 }

@@ -11,12 +11,7 @@ import (
 )
 
 func isPayloadCall(expr ast.Expr) bool {
-	call, ok := expr.(*ast.CallExpr)
-	if !ok {
-		return false
-	}
-
-	sel, ok := analyzer.SelectorFromExpr(call.Fun)
+	sel, ok := lintutil.ExprCallSelector(expr)
 	if !ok {
 		return false
 	}

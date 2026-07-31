@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // importsPath reports whether any non-test file imports a path containing
@@ -183,17 +184,7 @@ func firstCallPos(
 // firstFilePos returns the package declaration position of the first non-test
 // file. Used as an anchor for project-level findings without a specific call site.
 func firstFilePos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		if gf.AST.Package != token.NoPos {
-			return ctx.Fset.Position(gf.AST.Package), true
-		}
-	}
-
-	return token.Position{}, false
+	return lintutil.FirstFilePos(ctx)
 }
 
 // firstFuncDeclPos returns the position of the first function or method
