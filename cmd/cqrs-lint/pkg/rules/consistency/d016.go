@@ -69,7 +69,7 @@ func NewD016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							finding.SeverityInfo,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryConsistency).
+							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceHigh).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Split large payloads into smaller, focused events or reference entity state by ID").

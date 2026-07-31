@@ -530,6 +530,15 @@ func consistencyRules() []RuleInfo {
 			Description: "Nullable pointer fields in event payloads — nil-dereference panic risk on decode",
 			AutoFix:     false,
 		},
+		{
+			ID:          "D016",
+			Name:        "payload-too-many-fields",
+			Category:    "consistency",
+			Severity:    "info",
+			Confidence:  "high",
+			Description: "Event payload struct with >20 fields — hard to evolve and serialize",
+			AutoFix:     false,
+		},
 	}
 }
 

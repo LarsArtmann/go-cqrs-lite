@@ -52,11 +52,11 @@ func NewC013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 
 						structName := typeSpec.Name.Name
-						if !lintutil.LooksLikeEventPayload(structName, gf.Path) {
-							continue
+						if lintutil.LooksLikeEventPayload(structName, gf.Path) {
+							checkStructFields(ctx, gf, structName, structType.Fields, &findings)
+						} else if looksLikeProjectionView(structName, gf.Path) {
+							checkProjectionTimeFields(ctx, gf, structName, structType.Fields, &findings)
 						}
-
-						checkStructFields(ctx, gf, structName, structType.Fields, &findings)
 					}
 				}
 			}
@@ -165,6 +165,66 @@ func suggestReplacement(fieldName string) string {
 		"or event.WallTime for local times (schedules, reminders). " +
 		"For calendar dates (birth dates, employment dates), use event.Date. " +
 		"See docs/TIMEZONE_HANDLING.md for guidance."
+}
+
+// looksLikeProjectionView returns true if the struct name or file path
+// suggests it is a projection/read-model view struct.
+func looksLikeProjectionView(structName, filePath string) bool {
+	upper := strings.ToUpper(structName)
+
+	for _, suffix := range []string{"VIEW", "READMODEL", "READMODELSTATE", "PROJECTION"} {
+		if strings.HasSuffix(upper, suffix) {
+			return true
+		}
+	}
+
+	base := filePath
+	if idx := strings.LastIndex(base, "/"); idx >= 0 {
+		base = base[idx+1:]
+	}
+
+	base = strings.TrimSuffix(base, ".go")
+
+	return base == "views" || base == "projection" || base == "readmodel"
+}
+
+// checkProjectionTimeFields checks for time.Time fields in projection view
+// structs. Unlike event payloads (which lose timezone via CBOR), projection
+// views lose timezone when stored in SQL columns without timezone info
+// (TIMESTAMP without TZ). The message and suggestion are tailored to this.
+func checkProjectionTimeFields(
+	ctx *analyzer.AnalysisContext,
+	gf *analyzer.GoFile,
+	structName string,
+	fields *ast.FieldList,
+	findings *[]finding.Finding,
+) {
+	if fields == nil {
+		return
+	}
+
+	for _, field := range fields.List {
+		if isTimeType(field.Type) && !hasAllowPragma(ctx, gf.Path, field) {
+			pos := ctx.Fset.Position(field.Pos())
+			fieldName := getFieldNames(field)
+
+			f, err := finding.NewBuilder(
+				"C013", toolName,
+				fmt.Sprintf(
+					"Projection view %s has %s of type time.Time — timezone may be lost in SQL storage",
+					structName, fieldName,
+				),
+				finding.SeverityWarning,
+				finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+			).
+				WithCategory(finding.CategoryCorrectness).
+				WithConfidence(finding.ConfidenceMedium).
+				WithSuggestion("Store timestamps as UTC ISO-8601 strings (timestamptz) or use event.Instant to preserve timezone info across SQL round-trips").
+				WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+				Build()
+			lintutil.AppendBuild(findings, f, err)
+		}
+	}
 }
 
 // isTimeType checks if an AST type expression is time.Time or *time.Time.
