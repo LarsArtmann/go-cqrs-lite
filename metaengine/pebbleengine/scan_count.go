@@ -13,7 +13,11 @@ import (
 // rows match this filter?" in O(N) time with O(1) memory (no JSON decode for
 // the unfiltered case).
 type ScanCounter interface {
-	ScanCount(ctx context.Context, collection string, filters []metaengine.FilterSpec) (int64, error)
+	ScanCount(
+		ctx context.Context,
+		collection string,
+		filters []metaengine.FilterSpec,
+	) (int64, error)
 }
 
 // ScanCount returns the number of items in a collection that match the given

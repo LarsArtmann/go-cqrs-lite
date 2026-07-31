@@ -155,11 +155,15 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
 
 	caps := stack.Capabilities{
-		Backend:        "turso",
-		Persistent:     true,
-		Embedded:       true,
-		SyncEnabled:    false,
-		DurabilityRange: []stack.DurabilityTier{stack.DurabilityStrict, stack.DurabilityNormal, stack.DurabilityRelaxed},
+		Backend:     "turso",
+		Persistent:  true,
+		Embedded:    true,
+		SyncEnabled: false,
+		DurabilityRange: []stack.DurabilityTier{
+			stack.DurabilityStrict,
+			stack.DurabilityNormal,
+			stack.DurabilityRelaxed,
+		},
 	}
 	stackOpts = append(stackOpts, stack.WithCapabilities(caps))
 
@@ -276,11 +280,15 @@ func newSyncBundle(
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
 	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
 	stackOpts = append(stackOpts, stack.WithCapabilities(stack.Capabilities{
-		Backend:        "turso",
-		Persistent:     true,
-		Embedded:       true,
-		SyncEnabled:    true,
-		DurabilityRange: []stack.DurabilityTier{stack.DurabilityStrict, stack.DurabilityNormal, stack.DurabilityRelaxed},
+		Backend:     "turso",
+		Persistent:  true,
+		Embedded:    true,
+		SyncEnabled: true,
+		DurabilityRange: []stack.DurabilityTier{
+			stack.DurabilityStrict,
+			stack.DurabilityNormal,
+			stack.DurabilityRelaxed,
+		},
 	}))
 
 	kvStore, err := backend.KVStore()

@@ -71,7 +71,12 @@ func (s *SQLKVStore) upsertSQL() string {
 
 // Get returns the value for key, or [kv.ErrNotFound] if no row exists.
 func (s *SQLKVStore) Get(ctx context.Context, key []byte) ([]byte, error) {
-	q := fmt.Sprintf("SELECT value FROM %s WHERE %s = %s", kvTableName, s.Dialect.QuoteIdentifier("key"), s.Dialect.Placeholder(1))
+	q := fmt.Sprintf(
+		"SELECT value FROM %s WHERE %s = %s",
+		kvTableName,
+		s.Dialect.QuoteIdentifier("key"),
+		s.Dialect.Placeholder(1),
+	)
 
 	var value []byte
 
@@ -90,7 +95,12 @@ func (s *SQLKVStore) Get(ctx context.Context, key []byte) ([]byte, error) {
 
 // Has reports whether a row exists for key.
 func (s *SQLKVStore) Has(ctx context.Context, key []byte) (bool, error) {
-	q := fmt.Sprintf("SELECT 1 FROM %s WHERE %s = %s", kvTableName, s.Dialect.QuoteIdentifier("key"), s.Dialect.Placeholder(1))
+	q := fmt.Sprintf(
+		"SELECT 1 FROM %s WHERE %s = %s",
+		kvTableName,
+		s.Dialect.QuoteIdentifier("key"),
+		s.Dialect.Placeholder(1),
+	)
 
 	var one int
 
@@ -115,7 +125,12 @@ func (s *SQLKVStore) Set(ctx context.Context, key, value []byte) error {
 
 // Delete removes key. Deleting a missing key is a no-op.
 func (s *SQLKVStore) Delete(ctx context.Context, key []byte) error {
-	q := fmt.Sprintf("DELETE FROM %s WHERE %s = %s", kvTableName, s.Dialect.QuoteIdentifier("key"), s.Dialect.Placeholder(1))
+	q := fmt.Sprintf(
+		"DELETE FROM %s WHERE %s = %s",
+		kvTableName,
+		s.Dialect.QuoteIdentifier("key"),
+		s.Dialect.Placeholder(1),
+	)
 
 	_, err := s.DB.ExecContext(ctx, q, key)
 	return wrapTransientOrOK(err, "kv_sql.delete", "delete key from KV store")
@@ -151,8 +166,17 @@ func (s *SQLKVStore) iterQuery(prefix []byte) (string, []any) {
 		), []any{prefix, end}
 	}
 
-	return fmt.Sprintf("SELECT %s, value FROM %s WHERE %s >= %s ORDER BY %s", keyCol, kvTableName, keyCol, p1, keyCol),
-		[]any{prefix}
+	return fmt.Sprintf(
+			"SELECT %s, value FROM %s WHERE %s >= %s ORDER BY %s",
+			keyCol,
+			kvTableName,
+			keyCol,
+			p1,
+			keyCol,
+		),
+		[]any{
+			prefix,
+		}
 }
 
 // Batch returns a batch backed by a single SQL transaction.

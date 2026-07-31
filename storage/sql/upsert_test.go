@@ -64,7 +64,10 @@ func TestUpsertMethods(t *testing.T) {
 			}
 
 			setExprs := []string{"x = " + tt.dialect.ExcludedRef("x")}
-			if got := tt.dialect.OnConflictDoUpdate([]string{"a", "b"}, setExprs); got != tt.doUpdate {
+			if got := tt.dialect.OnConflictDoUpdate(
+				[]string{"a", "b"},
+				setExprs,
+			); got != tt.doUpdate {
 				t.Errorf("OnConflictDoUpdate([a,b], [x=...]) = %q, want %q", got, tt.doUpdate)
 			}
 

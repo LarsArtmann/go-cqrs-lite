@@ -46,7 +46,12 @@ func TestFormatIndexInt_LexicographicOrderingMatchesNumeric(t *testing.T) {
 	// The sorted order should match the original numeric order.
 	for i := 1; i < len(encoded); i++ {
 		if encoded[i] <= encoded[i-1] {
-			t.Errorf("lexicographic order breaks at index %d: %q <= %q", i, encoded[i], encoded[i-1])
+			t.Errorf(
+				"lexicographic order breaks at index %d: %q <= %q",
+				i,
+				encoded[i],
+				encoded[i-1],
+			)
 		}
 	}
 }

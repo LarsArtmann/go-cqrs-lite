@@ -123,7 +123,7 @@ func TestPebbleStreamScan_EarlyExit(t *testing.T) {
 	mb := eng.(metaengine.MapBackend)
 
 	for i := range 100 {
-		key := string(rune('a' + i%26)) + string(rune('a'+i/26))
+		key := string(rune('a'+i%26)) + string(rune('a'+i/26))
 		_ = mb.MapSet(ctx, "bulk", key, map[string]any{"idx": i})
 	}
 

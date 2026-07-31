@@ -142,10 +142,14 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 		stack.WithDiskSize(func() int64 { return safeInt64(backend.DiskUsage()) }),
 		stack.WithDurability(cfg.durability),
 		stack.WithCapabilities(stack.Capabilities{
-			Backend:        "pebble",
-			Persistent:     true,
-			Embedded:       true,
-			DurabilityRange: []stack.DurabilityTier{stack.DurabilityStrict, stack.DurabilityNormal, stack.DurabilityRelaxed},
+			Backend:    "pebble",
+			Persistent: true,
+			Embedded:   true,
+			DurabilityRange: []stack.DurabilityTier{
+				stack.DurabilityStrict,
+				stack.DurabilityNormal,
+				stack.DurabilityRelaxed,
+			},
 		}),
 	)
 	if err != nil {

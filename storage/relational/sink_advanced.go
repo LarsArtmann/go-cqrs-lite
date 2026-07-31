@@ -89,7 +89,12 @@ func (s *sqlSink) Increment(
 	pholders := placeholders(s.dialect, len(allCols))
 
 	setExprs := []string{
-		fmt.Sprintf("%s = COALESCE(%s, 0) + %s", counterCol, counterCol, s.dialect.ExcludedRef(counterCol)),
+		fmt.Sprintf(
+			"%s = COALESCE(%s, 0) + %s",
+			counterCol,
+			counterCol,
+			s.dialect.ExcludedRef(counterCol),
+		),
 	}
 	query := fmt.Sprintf(
 		"INSERT INTO %s (%s) VALUES (%s) %s",

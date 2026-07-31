@@ -22,7 +22,7 @@ func TestSQLiteSynchronousLevel(t *testing.T) {
 		{stack.DurabilityStrict, "FULL"},
 		{stack.DurabilityNormal, "NORMAL"},
 		{stack.DurabilityRelaxed, "OFF"},
-		{"", "NORMAL"},     // unset → default
+		{"", "NORMAL"},      // unset → default
 		{"bogus", "NORMAL"}, // unknown → default
 	}
 

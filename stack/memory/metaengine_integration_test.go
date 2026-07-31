@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	stackmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
 // meItemKey is a test key type for metaengine integration.
@@ -32,7 +32,8 @@ func TestNew_WithMetaEngine(t *testing.T) {
 
 	eng := metaengine.NewMemoryEngine()
 
-	store, err := metaengine.Plan([]metaengine.Engine{eng},
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{eng},
 		metaengine.Query[meItemKey, meItemView](
 			"items",
 			metaengine.On(meItemCreated{}, func(e meItemCreated) (meItemKey, meItemView) {

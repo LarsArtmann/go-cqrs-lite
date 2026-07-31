@@ -168,11 +168,15 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	stackOpts = append(stackOpts, stack.WithBus(bus))
 	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
 	stackOpts = append(stackOpts, stack.WithCapabilities(stack.Capabilities{
-		Backend:        "postgres",
-		Persistent:     true,
-		Embedded:       false,
-		Distributed:    cfg.listener != nil,
-		DurabilityRange: []stack.DurabilityTier{stack.DurabilityStrict, stack.DurabilityNormal, stack.DurabilityRelaxed},
+		Backend:     "postgres",
+		Persistent:  true,
+		Embedded:    false,
+		Distributed: cfg.listener != nil,
+		DurabilityRange: []stack.DurabilityTier{
+			stack.DurabilityStrict,
+			stack.DurabilityNormal,
+			stack.DurabilityRelaxed,
+		},
 	}))
 
 	if busCleanup != nil {
@@ -221,7 +225,10 @@ func openBackend(
 			}
 
 			if cfg.statementTimeout > 0 {
-				stmt := fmt.Sprintf("SET statement_timeout = %d", cfg.statementTimeout.Milliseconds())
+				stmt := fmt.Sprintf(
+					"SET statement_timeout = %d",
+					cfg.statementTimeout.Milliseconds(),
+				)
 				if _, err := sqlDB.ExecContext(ctx, stmt); err != nil {
 					return errorfamily.WrapInfrastructure(err, "postgres_preset.statement_timeout",
 						"set statement timeout")

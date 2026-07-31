@@ -125,7 +125,8 @@ func TestNew_DefaultOptionsAppliesBloomFilters(t *testing.T) {
 	streamID := id.NewStreamID()
 	ref := id.NewStreamRef("Todo", streamID)
 
-	events, err := event.NewEvents(streamID, "Todo", 0,
+	events, err := event.NewEvents(
+		streamID, "Todo", 0,
 		[]event.Type{"todo.created"},
 		[]any{map[string]any{"title": "bloom test"}},
 	)

@@ -236,8 +236,18 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 	}
 
 	// Wait for both to appear in the metaengine projection.
-	waitForMetaEngineView(t, srv, task1, func(v *TaskView) bool { return v.Title == "Metaengine Task 1" })
-	waitForMetaEngineView(t, srv, task2, func(v *TaskView) bool { return v.Title == "Metaengine Task 2" })
+	waitForMetaEngineView(
+		t,
+		srv,
+		task1,
+		func(v *TaskView) bool { return v.Title == "Metaengine Task 1" },
+	)
+	waitForMetaEngineView(
+		t,
+		srv,
+		task2,
+		func(v *TaskView) bool { return v.Title == "Metaengine Task 2" },
+	)
 
 	// ── Point lookup via TaskReader.Get ──
 	view, found, err := srv.TaskReader.Get(ctx, task1.String())
@@ -279,7 +289,8 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 	waitForMetaEngineView(t, srv, task1, func(v *TaskView) bool { return v.Status == StatusActive })
 
 	// Filter by status=active — should find task1 but not task2 (still pending).
-	active, err := srv.TaskReader.Scan(ctx,
+	active, err := srv.TaskReader.Scan(
+		ctx,
 		metaengine.WithFilter("status", metaengine.FilterEq, string(StatusActive)),
 	)
 	if err != nil {
@@ -303,7 +314,8 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 	}
 
 	// Filter by status=pending — should find task2 but not task1 (now active).
-	pending, err := srv.TaskReader.Scan(ctx,
+	pending, err := srv.TaskReader.Scan(
+		ctx,
 		metaengine.WithFilter("status", metaengine.FilterEq, string(StatusPending)),
 	)
 	if err != nil {

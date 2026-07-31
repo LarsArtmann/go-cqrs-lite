@@ -121,7 +121,13 @@ func TestProperty_MapSetGetParity_MemoryVsSQLite(t *testing.T) {
 				}
 
 				if memOk != sqlOk {
-					rt.Fatalf("after op on %q: key %q differs: mem=%v, sql=%v", key, k, memOk, sqlOk)
+					rt.Fatalf(
+						"after op on %q: key %q differs: mem=%v, sql=%v",
+						key,
+						k,
+						memOk,
+						sqlOk,
+					)
 				}
 			}
 		}

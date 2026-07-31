@@ -73,7 +73,11 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 	query := fmt.Sprintf(
 		`INSERT INTO `+sqlpkg.TableSnapshots+` (aggregate_type, aggregate_id, version, state, created_at)
 		VALUES (%s, %s, %s, %s, %s) %s`,
-		p1, p2, p3, p4, p5,
+		p1,
+		p2,
+		p3,
+		p4,
+		p5,
 		s.Dialect.OnConflictDoUpdate([]string{"aggregate_type", "aggregate_id"}, setExprs),
 	)
 	_, err := s.DB.ExecContext(ctx, query, string(snap.StreamType), snap.StreamID,

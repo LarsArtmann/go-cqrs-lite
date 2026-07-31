@@ -222,7 +222,10 @@ func extractDeclarativeFields(
 	for _, acc := range cfg.filterAccessors {
 		if acc.spec != nil {
 			if acc.spec.Column == "" {
-				return nil, nil, fmt.Errorf("%w: FilterOnField has empty column name", errEmptyField)
+				return nil, nil, fmt.Errorf(
+					"%w: FilterOnField has empty column name",
+					errEmptyField,
+				)
 			}
 			filterFields = append(filterFields, acc.spec.Column)
 		}

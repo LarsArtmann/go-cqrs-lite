@@ -37,8 +37,11 @@ func openSecondaryBackend(
 		storage.NewMySQLBackend,
 		"mysql_preset.create_secondary_backend")
 	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "mysql_preset.create_secondary_backend",
-			"create secondary MySQL backend")
+		return nil, nil, errorfamily.WrapInfrastructure(
+			err,
+			"mysql_preset.create_secondary_backend",
+			"create secondary MySQL backend",
+		)
 	}
 	return backend, closer, nil
 }

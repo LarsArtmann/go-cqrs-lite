@@ -103,7 +103,8 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 	}
 
 	// Writer goroutines: write to fresh streams using runConcurrent.
-	writeErr := runConcurrent(ctx, mixedStreams, r.concurrency,
+	writeErr := runConcurrent(
+		ctx, mixedStreams, r.concurrency,
 		func(ctx context.Context, idx int) error {
 			ref := mixedRefs[idx]
 			var version event.Version
@@ -145,7 +146,11 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 	readerWg.Wait()
 
 	if writeErr != nil {
-		return errorfamily.WrapTransient(writeErr, "benchkit.mixed_workload", "mixed workload write phase")
+		return errorfamily.WrapTransient(
+			writeErr,
+			"benchkit.mixed_workload",
+			"mixed workload write phase",
+		)
 	}
 
 	r.result.MixedWorkload = MixedResult{

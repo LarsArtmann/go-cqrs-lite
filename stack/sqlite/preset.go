@@ -22,10 +22,10 @@ type config struct {
 	sqlopt.DSNConfig
 	sqlopt.PragmaConfig
 
-	durability      stack.DurabilityTier
-	cacheSizeBytes  int64
-	busyTimeout     time.Duration
-	extraStackOpts  []stack.Option
+	durability     stack.DurabilityTier
+	cacheSizeBytes int64
+	busyTimeout    time.Duration
+	extraStackOpts []stack.Option
 }
 
 func defaultConfig() config {
@@ -157,10 +157,14 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	// Record the durability tier on the Bundle for introspection.
 	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
 	stackOpts = append(stackOpts, stack.WithCapabilities(stack.Capabilities{
-		Backend:        "sqlite",
-		Persistent:     true,
-		Embedded:       true,
-		DurabilityRange: []stack.DurabilityTier{stack.DurabilityStrict, stack.DurabilityNormal, stack.DurabilityRelaxed},
+		Backend:    "sqlite",
+		Persistent: true,
+		Embedded:   true,
+		DurabilityRange: []stack.DurabilityTier{
+			stack.DurabilityStrict,
+			stack.DurabilityNormal,
+			stack.DurabilityRelaxed,
+		},
 	}))
 
 	// Extra consumer-provided stack.Options (e.g. stack.WithMetaEngine).

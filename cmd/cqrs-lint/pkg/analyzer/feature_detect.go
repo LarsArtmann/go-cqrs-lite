@@ -173,10 +173,26 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 // financial domain. When any of these appear, the domain is classified as
 // financial, which escalates security and money-handling rule severities.
 var financialKeywords = []string{ //nolint:gochecknoglobals // constant lookup table, package-level is correct
-	"amount", "balance", "payment", "invoice", "salary",
-	"transaction", "transfer", "deposit", "withdraw", "refund",
-	"price", "cost", "fee", "tax", "currency",
-	"bank", "wallet", "ledger", "billing", "payroll",
+	"amount",
+	"balance",
+	"payment",
+	"invoice",
+	"salary",
+	"transaction",
+	"transfer",
+	"deposit",
+	"withdraw",
+	"refund",
+	"price",
+	"cost",
+	"fee",
+	"tax",
+	"currency",
+	"bank",
+	"wallet",
+	"ledger",
+	"billing",
+	"payroll",
 }
 
 // detectDomain scans event and command type names for domain-specific
