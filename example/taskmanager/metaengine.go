@@ -170,6 +170,20 @@ func setupMetaEngine(
 
 	meDB.SetMaxOpenConns(1) // SQLite: serialize writes, ensure :memory: visibility.
 
+	// PRAGMA busy_timeout eliminates "database is locked" errors under
+	// concurrent access; WAL mode improves write throughput (3-10x faster).
+	// On :memory: databases WAL is a no-op (returns "memory") but never errors.
+	for _, pragma := range []string{
+		"PRAGMA journal_mode=WAL",
+		"PRAGMA busy_timeout=5000",
+	} {
+		if _, err := meDB.Exec(pragma); err != nil {
+			_ = meDB.Close()
+
+			return nil, nil, nil, fmt.Errorf("metaengine: %s: %w", pragma, err)
+		}
+	}
+
 	sqliteEng, err := metaengine.NewSQLiteEngine(meDB)
 	if err != nil {
 		_ = meDB.Close()

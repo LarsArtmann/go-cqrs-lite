@@ -176,6 +176,15 @@ func TestInit_PostgresClassifier(t *testing.T) {
 	}
 }
 
+// fakeMySQLNumberError is a test double implementing mysqlNumberError.
+type fakeMySQLNumberError struct {
+	number uint16
+	msg    string
+}
+
+func (e *fakeMySQLNumberError) Error() string  { return e.msg }
+func (e *fakeMySQLNumberError) Number() uint16 { return e.number }
+
 func TestInit_ClassifierHandlesNonMatching(t *testing.T) {
 	t.Parallel()
 
@@ -190,5 +199,79 @@ func TestInit_ClassifierHandlesNonMatching(t *testing.T) {
 	fam, ok = classifyPostgresError(err)
 	if ok {
 		t.Errorf("classifyPostgresError on plain error should return ok=false, got %v, %v", fam, ok)
+	}
+
+	fam, ok = classifyMySQLError(err)
+	if ok {
+		t.Errorf("classifyMySQLError on plain error should return ok=false, got %v, %v", fam, ok)
+	}
+}
+
+func TestInit_MySQLClassifier(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		err  error
+		want errorfamily.Family
+	}{
+		{
+			"1062 (dup entry) → Conflict",
+			&fakeMySQLNumberError{number: 1062, msg: "Error 1062: Duplicate entry"},
+			errorfamily.Conflict,
+		},
+		{
+			"1205 (lock timeout) → Transient",
+			&fakeMySQLNumberError{number: 1205, msg: "Error 1205: Lock wait timeout"},
+			errorfamily.Transient,
+		},
+		{
+			"1213 (deadlock) → Transient",
+			&fakeMySQLNumberError{number: 1213, msg: "Error 1213: Deadlock found"},
+			errorfamily.Transient,
+		},
+		{
+			"unknown number → unclassified",
+			&fakeMySQLNumberError{number: 1234, msg: "Error 1234: unknown"},
+			errorfamily.Transient,
+		},
+		{
+			"string fallback 1062 → Conflict",
+			errors.New("Error 1062: Duplicate entry 'foo' for key 'bar'"),
+			errorfamily.Conflict,
+		},
+		{
+			"string fallback 1213 → Transient",
+			errors.New("Error 1213: Deadlock found when trying to get lock"),
+			errorfamily.Transient,
+		},
+		{
+			"string fallback 2003 → Transient",
+			errors.New("Error 2003: Can't connect to MySQL server"),
+			errorfamily.Transient,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, ok := classifyMySQLError(tt.err)
+			if tt.name == "unknown number → unclassified" {
+				if ok {
+					t.Errorf("expected unclassified for unknown MySQL number, got %v", got)
+				}
+
+				return
+			}
+
+			if !ok {
+				t.Fatalf("expected classified, got ok=false")
+			}
+
+			if got != tt.want {
+				t.Errorf("classifyMySQLError(%v) = %v, want %v", tt.err, got, tt.want)
+			}
+		})
 	}
 }
