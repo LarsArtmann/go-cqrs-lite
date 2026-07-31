@@ -106,6 +106,12 @@ type Result struct {
 	RecoveryTime    time.Duration `json:"recoveryTime,omitempty"`
 	RecoveredEvents int           `json:"recoveredEvents,omitempty"`
 
+	// Mixed workload metrics — concurrent reads + writes against the same
+	// store. WriteLatency is measured under read contention; ReadLatency is
+	// measured under write contention. Zero-valued when Config.SkipMixed is
+	// true or the bundle lacks EventSink + EventSource.
+	MixedWorkload MixedResult `json:"mixedWorkload,omitempty"`
+
 	// Resource metrics
 	Memory ResourceStats `json:"memory"`
 	CPU    ResourceStats `json:"cpu"`
@@ -152,4 +158,19 @@ type DiskStats struct {
 	EventBytes    int64   `json:"eventBytes"`
 	OverheadBytes int64   `json:"overheadBytes"`
 	OverheadPct   float64 `json:"overheadPct"`
+}
+
+// MixedResult holds concurrent read + write metrics from the mixed workload
+// phase. The key insight: WriteLatency under read contention and ReadLatency
+// under write contention reveal whether the backend can serve both paths
+// simultaneously without degradation.
+type MixedResult struct {
+	WriteLatency LatencyStats `json:"writeLatency"`
+	ReadLatency  LatencyStats `json:"readLatency"`
+	WriteOps     int64        `json:"writeOps"`
+	ReadOps      int64        `json:"readOps"`
+	WriteErrors  int64        `json:"writeErrors,omitempty"`
+	ReadErrors   int64        `json:"readErrors,omitempty"`
+	Writers      int          `json:"writers"`
+	Readers      int          `json:"readers"`
 }

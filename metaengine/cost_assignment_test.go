@@ -46,4 +46,57 @@ var _ = Describe("Regression: cost model picks the cheaper engine", func() {
 		Expect(mem.Supports[metaengine.ADTMap]).To(Equal(metaengine.ComplexityO1))
 		Expect(sqlite.Supports[metaengine.ADTMap]).To(Equal(metaengine.ComplexityOLogN))
 	})
+
+	It("distributes different queries to different engines based on cost", func() {
+		// The headline promise of the metaengine: different queries land on
+		// different engines based on the cost model. A Counter query (O(1) on
+		// both engines, but Memory has 14x lower NsPerOp) should go to Memory.
+		// A Map query with FilterOnField (SQLite pushdown: O(logN) vs Memory
+		// closure scan O(N)) should go to SQLite. This proves the planner
+		// distributes work, not just picks one engine for everything.
+		db, err := sql.Open("sqlite", "file::memory:?cache=shared")
+		Expect(err).NotTo(HaveOccurred())
+		DeferCleanup(func() { _ = db.Close() })
+		sqliteEng, err := metaengine.NewSQLiteEngine(db)
+		Expect(err).NotTo(HaveOccurred())
+
+		counterQ := countByStatusQuery()
+
+		filteredMapQ := metaengine.Query[FindTask, FindTaskResult](
+			"filtered_find_task",
+			metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
+				return e.ID, FindTaskResult{ID: e.ID, Title: e.Title, Status: e.Status}
+			}),
+			metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
+			metaengine.FilterOnField[FindTaskResult]("Status", metaengine.FilterEq),
+			metaengine.Volume(100_000),
+		)
+
+		store, err := metaengine.Plan(
+			[]metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
+			counterQ, filteredMapQ,
+		)
+		Expect(err).NotTo(HaveOccurred())
+		defer store.Close()
+
+		plan := store.Plan()
+		Expect(plan.Queries).To(HaveLen(2))
+
+		assignments := map[string]string{}
+		for _, q := range plan.Queries {
+			assignments[q.QueryName] = q.EngineName
+		}
+
+		// Counter → Memory (O(1) on both, but Memory is 14x cheaper per op).
+		Expect(assignments["count_by_status"]).To(Equal("memory"),
+			"Counter query should go to Memory (cheaper NsPerOp at equal complexity)")
+
+		// Filtered Map → SQLite (O(logN) pushdown beats Memory O(N) scan).
+		Expect(assignments["filtered_find_task"]).To(Equal("sqlite"),
+			"Filtered Map query should go to SQLite (pushdown O(logN) beats Memory O(N))")
+
+		// The core assertion: they went to DIFFERENT engines.
+		Expect(assignments["count_by_status"]).NotTo(Equal(assignments["filtered_find_task"]),
+			"Distribution test: queries must land on different engines")
+	})
 })

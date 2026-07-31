@@ -138,6 +138,13 @@ type Config struct {
 	// that are independent of generator and codec cost.
 	SkipRawSink bool
 
+	// SkipMixed skips the mixed read-during-write phase. When false (default),
+	// the runner runs N writer goroutines and M reader goroutines concurrently
+	// against the same store, measuring read latency under write contention
+	// and write latency under read contention. Reader count is derived from
+	// Profile.ReadRatio * Config.Concurrency.
+	SkipMixed bool
+
 	// Recovery enables the durability recovery phase: after all other
 	// phases complete, the runner closes the bundle, reopens it via the
 	// factory (reopening at the same path), and loads all streams to
