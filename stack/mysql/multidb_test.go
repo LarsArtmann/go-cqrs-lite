@@ -49,7 +49,7 @@ func TestMultiDBContract(t *testing.T) {
 }
 
 // deriveMySQLDB replaces the database name in a MySQL DSN with name+suffix.
-// MySQL DSN format: user:pass@tcp(host:port)/dbname?params
+// MySQL DSN format: user:pass@tcp(host:port)/dbname?params.
 func deriveMySQLDB(t *testing.T, dsn, suffix string) string {
 	t.Helper()
 
