@@ -167,6 +167,13 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	stackOpts = append(stackOpts, stack.WithBus(bus))
 	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
+	stackOpts = append(stackOpts, stack.WithCapabilities(stack.Capabilities{
+		Backend:        "postgres",
+		Persistent:     true,
+		Embedded:       false,
+		Distributed:    cfg.listener != nil,
+		DurabilityRange: []stack.DurabilityTier{stack.DurabilityStrict, stack.DurabilityNormal, stack.DurabilityRelaxed},
+	}))
 
 	if busCleanup != nil {
 		stackOpts = append(stackOpts, stack.WithCloser(busCleanup))

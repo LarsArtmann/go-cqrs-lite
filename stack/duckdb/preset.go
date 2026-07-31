@@ -122,6 +122,14 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 
 	// Bus is in-process GoChannel (DuckDB has no pub/sub).
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
+	stackOpts = append(stackOpts, stack.WithCapabilities(stack.Capabilities{
+		Backend:        "duckdb",
+		Persistent:     dsn != "",
+		Embedded:       true,
+		OLAP:           true,
+		CGoRequired:    true,
+		DurabilityRange: []stack.DurabilityTier{stack.DurabilityNormal},
+	}))
 
 	bundle, err := sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "duckdb", cfg.ViewDSN,
 		func(dsn string) (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },

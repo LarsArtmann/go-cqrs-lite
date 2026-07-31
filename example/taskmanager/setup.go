@@ -38,6 +38,7 @@ type Server struct {
 	Mat          *stack.Materialize[TaskView, TaskID]
 	ProjHost     *projectionhost.Host
 	MetaEngine   *metaengine.Store
+	TaskReader   *metaengine.TypedReader[TaskView]
 	Logger       *slog.Logger
 	otelProvider *cqrsotel.Provider
 	signer       signing.SignerVerifier
@@ -187,6 +188,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		Mat:        mat,
 		ProjHost:   projHost,
 		MetaEngine: bundle.MetaEngine(),
+		TaskReader: metaengine.NewReader[TaskView](bundle.MetaEngine(), "task_views"),
 		Logger:     logger,
 	}
 

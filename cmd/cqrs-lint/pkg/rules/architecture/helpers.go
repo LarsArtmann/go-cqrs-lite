@@ -36,62 +36,6 @@ func importsPathSuffix(ctx *analyzer.AnalysisContext, suffix string) bool {
 	return false
 }
 
-// projectCalls reports whether any non-test file calls pkgName.funcName.
-func projectCalls(ctx *analyzer.AnalysisContext, pkgName, funcName string) bool {
-	return projectCallsAny(ctx, pkgName, funcName)
-}
-
-// projectCallsAny reports whether any non-test file calls any of funcNames
-// on pkgName.
-func projectCallsAny(ctx *analyzer.AnalysisContext, pkgName string, funcNames ...string) bool {
-	nameSet := make(map[string]bool, len(funcNames))
-	for _, n := range funcNames {
-		nameSet[n] = true
-	}
-
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		found := false
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if found {
-				return false
-			}
-
-			call, ok := n.(*ast.CallExpr)
-			if !ok {
-				return true
-			}
-
-			sel, ok := analyzer.SelectorFromExpr(call.Fun)
-			if !ok {
-				return true
-			}
-
-			pkg, ok := sel.X.(*ast.Ident)
-			if !ok || pkg.Name != pkgName {
-				return true
-			}
-
-			if nameSet[sel.Sel.Name] {
-				found = true
-				return false
-			}
-
-			return true
-		})
-
-		if found {
-			return true
-		}
-	}
-
-	return false
-}
-
 // findKeyBoolLit reports whether any non-test file contains a composite literal
 // key-value pair where the key is keyName and the value is a boolean literal
 // matching wantBool. Used to detect config flags like Enabled: false or

@@ -42,6 +42,12 @@ func New(extra ...stack.Option) (*stack.Bundle, error) {
 		stack.WithSnapshotStore(memory.NewMemorySnapshotStore()),
 		stack.WithCheckpointStore(memory.NewMemoryCheckpointStore()),
 		stack.WithReadModels(kv.NewMemStore()),
+		stack.WithCapabilities(stack.Capabilities{
+			Backend:        "memory",
+			Persistent:     false,
+			Embedded:       true,
+			DurabilityRange: []stack.DurabilityTier{stack.DurabilityNormal, stack.DurabilityRelaxed},
+		}),
 	)
 	opts = append(opts, extra...)
 

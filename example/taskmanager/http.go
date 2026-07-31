@@ -12,7 +12,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
 )
 
@@ -76,21 +76,21 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleListTasks(w http.ResponseWriter, r *http.Request) {
 	statusFilter := r.URL.Query().Get("status")
 
-	all, err := s.Mat.List(r.Context(), stack.ExcludeTombstoned)
+	var opts []metaengine.ScanOption
+	if statusFilter != "" {
+		opts = append(opts, metaengine.WithFilter("status", metaengine.FilterEq, statusFilter))
+	}
+
+	tasks, err := s.TaskReader.Scan(r.Context(), opts...)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "list tasks: "+err.Error())
 
 		return
 	}
 
-	result := make([]*TaskView, 0, len(all))
-
-	for _, t := range all {
-		if statusFilter != "" && string(t.Status) != statusFilter {
-			continue
-		}
-
-		result = append(result, t)
+	result := make([]*TaskView, 0, len(tasks))
+	for i := range tasks {
+		result = append(result, &tasks[i])
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{"tasks": result, "count": len(result)})
@@ -205,8 +205,14 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGetTask(w http.ResponseWriter, r *http.Request, taskID id.StreamID) {
-	view, err := s.Mat.View(r.Context(), taskID)
-	if err != nil || view == nil {
+	view, found, err := s.TaskReader.Get(r.Context(), taskID.String())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "get task: "+err.Error())
+
+		return
+	}
+
+	if !found {
 		writeError(w, http.StatusNotFound, "task not found")
 
 		return

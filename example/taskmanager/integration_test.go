@@ -13,6 +13,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // TestIntegration_FullLifecycle exercises the entire CQRS pipeline:
@@ -205,6 +206,149 @@ func TestIntegration_HTTPAPI(t *testing.T) {
 	if resp4.StatusCode != http.StatusOK {
 		t.Errorf("health status: got %d, want %d", resp4.StatusCode, http.StatusOK)
 	}
+}
+
+// TestIntegration_MetaEngineTaskReader verifies the metaengine Map ADT
+// projection serves real read-model queries: point lookup via Get and
+// filtered scan via Scan with WithFilter on the "status" JSON field.
+// This is the query that replaces the O(N) Materialize.List + Go-side filter.
+func TestIntegration_MetaEngineTaskReader(t *testing.T) {
+	t.Parallel()
+
+	srv := newTestServer(t)
+	ctx := context.Background()
+
+	// Create two tasks.
+	task1 := id.NewStreamID()
+	if err := srv.CmdDisp.Dispatch(ctx, CreateTaskCmd{
+		BasicCommand: gomust.Must(command.New(cmdCreateTask, task1)),
+		Title:        "Metaengine Task 1", Priority: PriorityHigh,
+	}); err != nil {
+		t.Fatalf("create task1: %v", err)
+	}
+
+	task2 := id.NewStreamID()
+	if err := srv.CmdDisp.Dispatch(ctx, CreateTaskCmd{
+		BasicCommand: gomust.Must(command.New(cmdCreateTask, task2)),
+		Title:        "Metaengine Task 2", Priority: PriorityMedium,
+	}); err != nil {
+		t.Fatalf("create task2: %v", err)
+	}
+
+	// Wait for both to appear in the metaengine projection.
+	waitForMetaEngineView(t, srv, task1, func(v *TaskView) bool { return v.Title == "Metaengine Task 1" })
+	waitForMetaEngineView(t, srv, task2, func(v *TaskView) bool { return v.Title == "Metaengine Task 2" })
+
+	// ── Point lookup via TaskReader.Get ──
+	view, found, err := srv.TaskReader.Get(ctx, task1.String())
+	if err != nil {
+		t.Fatalf("TaskReader.Get: %v", err)
+	}
+
+	if !found {
+		t.Fatal("TaskReader.Get: task1 not found")
+	}
+
+	if view.Title != "Metaengine Task 1" {
+		t.Errorf("title: got %q, want %q", view.Title, "Metaengine Task 1")
+	}
+
+	if view.Status != StatusPending {
+		t.Errorf("status: got %q, want %q", view.Status, StatusPending)
+	}
+
+	// ── Scan all (no filter) ──
+	all, err := srv.TaskReader.Scan(ctx)
+	if err != nil {
+		t.Fatalf("TaskReader.Scan all: %v", err)
+	}
+
+	if len(all) < 2 {
+		t.Errorf("scan all: got %d, want >= 2", len(all))
+	}
+
+	// ── Start task1, then filter by status=active ──
+	waitForView(t, srv, task1, func(v *TaskView) bool { return v.AssigneeID == defaultAssignee })
+
+	if err := srv.CmdDisp.Dispatch(ctx, StartTaskCmd{
+		BasicCommand: gomust.Must(command.New(cmdStartTask, task1)),
+	}); err != nil {
+		t.Fatalf("start task1: %v", err)
+	}
+
+	waitForMetaEngineView(t, srv, task1, func(v *TaskView) bool { return v.Status == StatusActive })
+
+	// Filter by status=active — should find task1 but not task2 (still pending).
+	active, err := srv.TaskReader.Scan(ctx,
+		metaengine.WithFilter("status", metaengine.FilterEq, string(StatusActive)),
+	)
+	if err != nil {
+		t.Fatalf("TaskReader.Scan active: %v", err)
+	}
+
+	foundTask1 := false
+
+	for _, v := range active {
+		if v.ID == task1.String() {
+			foundTask1 = true
+		}
+
+		if v.Status != StatusActive {
+			t.Errorf("active filter returned non-active task: %s status=%s", v.ID, v.Status)
+		}
+	}
+
+	if !foundTask1 {
+		t.Error("active filter: task1 not found in results")
+	}
+
+	// Filter by status=pending — should find task2 but not task1 (now active).
+	pending, err := srv.TaskReader.Scan(ctx,
+		metaengine.WithFilter("status", metaengine.FilterEq, string(StatusPending)),
+	)
+	if err != nil {
+		t.Fatalf("TaskReader.Scan pending: %v", err)
+	}
+
+	foundTask2 := false
+
+	for _, v := range pending {
+		if v.ID == task2.String() {
+			foundTask2 = true
+		}
+
+		if v.Status != StatusPending {
+			t.Errorf("pending filter returned non-pending task: %s status=%s", v.ID, v.Status)
+		}
+	}
+
+	if !foundTask2 {
+		t.Error("pending filter: task2 not found in results")
+	}
+}
+
+// waitForMetaEngineView polls the metaengine TaskReader until the task view
+// matches the predicate or times out.
+func waitForMetaEngineView(
+	t *testing.T,
+	srv *Server,
+	taskID id.StreamID,
+	matches func(*TaskView) bool,
+) {
+	t.Helper()
+
+	deadline := time.Now().Add(5 * time.Second)
+
+	for time.Now().Before(deadline) {
+		view, found, err := srv.TaskReader.Get(context.Background(), taskID.String())
+		if err == nil && found && matches(&view) {
+			return
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	t.Fatalf("timed out waiting for metaengine view %s", taskID)
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

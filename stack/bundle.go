@@ -102,6 +102,11 @@ type Bundle struct {
 	// via [Bundle.Durability].
 	durability DurabilityTier
 
+	// capabilities describes the backend's machine-checkable properties
+	// (persistence, OLAP, CGo, etc.). Set via [WithCapabilities] at preset
+	// construction time. Accessed via [Bundle.Capabilities].
+	capabilities Capabilities
+
 	closers []io.Closer
 
 	// shutdownDeps declares ordering constraints for Close(). Each edge says
