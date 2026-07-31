@@ -410,7 +410,7 @@ func MapUpdateTyped[V any](
 		})
 	}
 
-	if mb, ok := eng.(MapBackend); ok { //nolint:nestif // type-switch + error check
+	if mb, ok := eng.(MapBackend); ok { //nolint:nestif,varnamelen // type-switch + error check
 		existing, found, err := mb.MapGet(ctx, collection, key)
 		if err != nil {
 			return fmt.Errorf("typed map get %s: %w", collection, err)

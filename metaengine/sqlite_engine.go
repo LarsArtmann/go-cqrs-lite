@@ -493,7 +493,7 @@ func (e *sqliteEngine) buildStreamQuery(
 ) (string, []any) {
 	var b strings.Builder
 
-	if plan, ok := e.plans[col]; ok {
+	if plan, ok := e.plans[col]; ok { //nolint:nestif // plan lookup + SQL builder
 		fmt.Fprintf(&b, "SELECT value FROM %s", quoteIdent(plan.Table))
 
 		args := make([]any, 0, len(filters))

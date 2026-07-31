@@ -43,7 +43,7 @@ func appendStandardFilter(b *strings.Builder, args *[]any, f FilterSpec) {
 // The caller passes a pointer to started so the first clause gets " WHERE "
 // and subsequent ones get " AND ".
 func appendPlannedFilter(b *strings.Builder, args *[]any, f FilterSpec, started *bool) {
-	if f.Op == FilterIn {
+	if f.Op == FilterIn { //nolint:nestif // type assert + branch
 		values, ok := f.Value.([]any)
 		if !ok || len(values) == 0 {
 			return

@@ -110,7 +110,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		// via FilterOnField/SortOnField, generate and apply a LayoutPlan
 		// automatically. This eliminates the need for manual
 		// NewPlannedSQLiteEngine setup (ADR-0073 consequence).
-		if lp, ok := runtime.engine.(LayoutPlanner); ok { //nolint:nestif // type-switch + field extraction
+		if lp, ok := runtime.engine.(LayoutPlanner); ok { //nolint:nestif,varnamelen // type-switch + field extraction
 			filterFields, sortFields := extractDeclarativeFields(meta.QueryConfig())
 			if len(filterFields) > 0 || len(sortFields) > 0 {
 				layoutPlan := BuildLayoutPlan(runtime.name, filterFields, sortFields)
