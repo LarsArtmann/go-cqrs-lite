@@ -77,14 +77,14 @@ func (e *sqliteEngine) aggregateStandard(
 
 	if fn == AggregateCount {
 		var count int64
-		if err := e.db.QueryRowContext(ctx, b.String(), args...).Scan(&count); err != nil {
+		if err := e.xd().QueryRowContext(ctx, b.String(), args...).Scan(&count); err != nil {
 			return 0, fmt.Errorf("aggregate %s count: %w", col, err)
 		}
 
 		return float64(count), nil
 	}
 
-	if err := e.db.QueryRowContext(ctx, b.String(), args...).Scan(&result); err != nil {
+	if err := e.xd().QueryRowContext(ctx, b.String(), args...).Scan(&result); err != nil {
 		return 0, fmt.Errorf("aggregate %s %s(%s): %w", col, fn, column, err)
 	}
 
@@ -118,14 +118,14 @@ func (e *sqliteEngine) aggregatePlanned(
 
 	if fn == AggregateCount {
 		var count int64
-		if err := e.db.QueryRowContext(ctx, b.String(), args...).Scan(&count); err != nil {
+		if err := e.xd().QueryRowContext(ctx, b.String(), args...).Scan(&count); err != nil {
 			return 0, fmt.Errorf("aggregate %s count: %w", plan.Collection, err)
 		}
 
 		return float64(count), nil
 	}
 
-	if err := e.db.QueryRowContext(ctx, b.String(), args...).Scan(&result); err != nil {
+	if err := e.xd().QueryRowContext(ctx, b.String(), args...).Scan(&result); err != nil {
 		return 0, fmt.Errorf("aggregate %s %s(%s): %w", plan.Collection, fn, column, err)
 	}
 

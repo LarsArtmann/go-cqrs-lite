@@ -30,11 +30,11 @@ func (e *sqliteEngine) GetRawValue(ctx context.Context, col string, key any) ([]
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		err = e.cache.queryRow(ctx,
+		err = e.xc().queryRow(ctx,
 			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
 			encodeKey(key)).Scan(&valStr)
 	} else {
-		err = e.cache.queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
+		err = e.xc().queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
 	}
 
 	if err != nil {
@@ -62,15 +62,15 @@ func (e *sqliteEngine) ScanRawValues(
 	limit int,
 ) ([][]byte, error) {
 	if plan, ok := e.plans[col]; ok {
-		return scanRawPlanned(ctx, e.db, plan, filters, sort, cursor, limit)
+		return scanRawPlanned(ctx, e.xd(), plan, filters, sort, cursor, limit)
 	}
 
-	return scanRawStandard(ctx, e.db, col, filters, sort, cursor, limit)
+	return scanRawStandard(ctx, e.xd(), col, filters, sort, cursor, limit)
 }
 
 func scanRawStandard(
 	ctx context.Context,
-	db *sql.DB,
+	db dbExec,
 	col string,
 	filters []FilterSpec,
 	sort *SortSpec,
@@ -127,7 +127,7 @@ func scanRawStandard(
 
 func scanRawPlanned(
 	ctx context.Context,
-	db *sql.DB,
+	db dbExec,
 	plan LayoutPlan,
 	filters []FilterSpec,
 	sort *SortSpec,
@@ -182,7 +182,7 @@ func scanRawPlanned(
 	return scanRawRows(ctx, db, b.String(), args...)
 }
 
-func scanRawRows(ctx context.Context, db *sql.DB, query string, args ...any) ([][]byte, error) {
+func scanRawRows(ctx context.Context, db dbExec, query string, args ...any) ([][]byte, error) {
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough

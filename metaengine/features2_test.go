@@ -245,22 +245,69 @@ func TestSchemaEnforcement(t *testing.T) {
 	}
 }
 
-// --- P1-7: Transaction API (interface availability) ---
+// --- P1-7: Transaction API (real behavior test) ---
 
-func TestTransactionInterface(t *testing.T) {
+func TestTransaction_CommitRollback(t *testing.T) {
 	t.Parallel()
 
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
 	eng, _ := NewSQLiteEngine(db)
+	ctx := context.Background()
 
-	// Verify Transactional interface is available on the concrete type
-	if _, ok := eng.(Transactional); !ok {
-		t.Error("expected sqliteEngine to implement Transactional")
+	// Verify Transactional interface
+	txEng, ok := eng.(Transactional)
+	if !ok {
+		t.Fatal("expected sqliteEngine to implement Transactional")
 	}
 
-	// Verify Store.InTransaction delegates to engine
+	// Commit path: write inside tx, verify visible after commit
+	err := txEng.RunInTx(ctx, func(ctx context.Context) error {
+		mb := eng.(MapBackend)
+		return mb.MapSet(ctx, "col1", "key1", "value1")
+	})
+	if err != nil {
+		t.Fatalf("RunInTx commit: %v", err)
+	}
+
+	mb := eng.(MapBackend)
+	val, found, err := mb.MapGet(ctx, "col1", "key1")
+	if err != nil || !found || val != "value1" {
+		t.Errorf("after commit: expected value1, got val=%v found=%v err=%v", val, found, err)
+	}
+
+	// Rollback path: write inside tx, return error → data must NOT persist
+	err = txEng.RunInTx(ctx, func(ctx context.Context) error {
+		mb := eng.(MapBackend)
+		if err := mb.MapSet(ctx, "col1", "key2", "value2"); err != nil {
+			return err
+		}
+		return errors.New("intentional rollback")
+	})
+	if err == nil {
+		t.Fatal("expected error from RunInTx rollback")
+	}
+
+	_, found, _ = mb.MapGet(ctx, "col1", "key2")
+	if found {
+		t.Error("after rollback: key2 should NOT exist")
+	}
+
+	// Original data must still be intact
+	val, found, _ = mb.MapGet(ctx, "col1", "key1")
+	if !found || val != "value1" {
+		t.Error("after rollback: key1 should still exist")
+	}
+}
+
+func TestTransaction_StoreInTransaction(t *testing.T) {
+	t.Parallel()
+
+	db, _ := sql.Open("sqlite", ":memory:")
+	defer db.Close()
+
+	eng, _ := NewSQLiteEngine(db)
 	store, err := Plan([]Engine{eng}, testTaskQuery())
 	if err != nil {
 		t.Fatal(err)
@@ -268,16 +315,84 @@ func TestTransactionInterface(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Memory engine (no Transactional) — fn runs directly
+	// Atomic batch: both events succeed → both visible
+	err = store.InTransaction(ctx, func(ctx context.Context) error {
+		if err := store.Apply(ctx, "task_created", testTask{ID: "t1"}); err != nil {
+			return err
+		}
+		return store.Apply(ctx, "task_created", testTask{ID: "t2"})
+	})
+	if err != nil {
+		t.Fatalf("InTransaction commit: %v", err)
+	}
+
+	r1, err := ExecuteTyped[testFindTask, testTask](ctx, store, testFindTask{ID: "t1"})
+	if err != nil {
+		t.Errorf("t1 should exist after commit: %v", err)
+	}
+	if r1.ID != "t1" {
+		t.Errorf("expected t1, got %s", r1.ID)
+	}
+
+	// Failed batch: second event fails → first must rollback
+	err = store.InTransaction(ctx, func(ctx context.Context) error {
+		if err := store.Apply(ctx, "task_created", testTask{ID: "t3"}); err != nil {
+			return err
+		}
+		return errors.New("deliberate failure")
+	})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	_, err = ExecuteTyped[testFindTask, testTask](ctx, store, testFindTask{ID: "t3"})
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("t3 should NOT exist after rollback: %v", err)
+	}
+}
+
+func TestTransaction_MapUpdateInTx(t *testing.T) {
+	t.Parallel()
+
+	db, _ := sql.Open("sqlite", ":memory:")
+	defer db.Close()
+
+	eng, _ := NewSQLiteEngine(db)
+	ctx := context.Background()
+
+	mb := eng.(MapBackend)
+	_ = mb.MapSet(ctx, "col", "k", 10)
+
+	// MapUpdate inside a transaction must work without nested BeginTx
+	txEng := eng.(Transactional)
+	err := txEng.RunInTx(ctx, func(ctx context.Context) error {
+		mu := eng.(MapUpdater)
+		return mu.MapUpdate(ctx, "col", "k", func(prev any) any {
+			return prev.(float64) + 5
+		})
+	})
+	if err != nil {
+		t.Fatalf("MapUpdate in tx: %v", err)
+	}
+
+	val, _, _ := mb.MapGet(ctx, "col", "k")
+	if val != float64(15) {
+		t.Errorf("expected 15, got %v", val)
+	}
+}
+
+func TestTransactionInterface(t *testing.T) {
+	t.Parallel()
+
+	// Memory engine (no Transactional) — fn runs directly without tx
 	memStore, _ := Plan([]Engine{NewMemoryEngine()}, testTaskQuery())
-	err = memStore.InTransaction(ctx, func(ctx context.Context) error {
+	ctx := context.Background()
+	err := memStore.InTransaction(ctx, func(ctx context.Context) error {
 		return memStore.Apply(ctx, "task_created", testTask{ID: "t1"})
 	})
 	if err != nil {
 		t.Errorf("InTransaction on memory engine: %v", err)
 	}
-
-	_ = store // SQLite engine Transactional path tested separately
 }
 
 // --- P3-6: Plan visualization ---
