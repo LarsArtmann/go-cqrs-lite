@@ -119,8 +119,12 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 		return nil, fmt.Errorf("%w: %q", errNoQueryForInputType, r.collection)
 	}
 
+	// OR groups and multi-column sort require the closure path — they
+	// cannot be expressed as a single FilterSpec or SortSpec for SQL pushdown.
+	needsClosure := len(cfg.orGroups) > 0 || len(cfg.sortCols) > 1
+
 	// Fastest path: raw scan → direct decode per row (1 JSON op instead of 3).
-	if rsr, ok := eng.(RawScanReader); ok {
+	if rsr, ok := eng.(RawScanReader); ok && !needsClosure {
 		rawRows, err := rsr.ScanRawValues(
 			ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, cfg.limit,
 		)
@@ -143,7 +147,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 	}
 
 	// Standard pushdown scan (decoded values).
-	if pushdown, ok := eng.(PushdownScan); ok {
+	if pushdown, ok := eng.(PushdownScan); ok && !needsClosure {
 		rows, err := pushdown.PushdownMapScan(
 			ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, cfg.limit,
 		)
@@ -169,27 +173,26 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 	if sb, ok := eng.(ScanBackend); ok {
 		var filterFn func(item any) bool
 
-		if len(cfg.filters) > 0 || len(cfg.inSpecs) > 0 {
-			inSpecs := cfg.inSpecs
-			filters := cfg.filters
+		filters := cfg.filters
+		orGroups := cfg.orGroups
+
+		if len(filters) > 0 || len(orGroups) > 0 {
 			filterFn = func(item any) bool {
 				if !passesFilterSpecs(item, filters) {
 					return false
 				}
 
-				for _, in := range inSpecs {
-					val := itemFieldByName(item, in.Column)
-					found := false
+				for _, group := range orGroups {
+					matchFound := false
 
-					for _, v := range in.Values {
-						if reflect.DeepEqual(val, v) {
-							found = true
-
+					for _, spec := range group {
+						if evalFilterOp(spec.Op, itemFieldByName(item, spec.Column), spec.Value) {
+							matchFound = true
 							break
 						}
 					}
 
-					if !found {
+					if !matchFound {
 						return false
 					}
 				}
@@ -200,7 +203,23 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 
 		var sortFn func(a, b any) int
 
-		if cfg.sort != nil {
+		if len(cfg.sortCols) > 1 {
+			cols := cfg.sortCols
+			sortFn = func(a, b any) int {
+				for _, col := range cols {
+					c := compareValue(itemFieldByName(a, col.Column), itemFieldByName(b, col.Column))
+					if c != 0 {
+						if col.Desc {
+							return -c
+						}
+
+						return c
+					}
+				}
+
+				return 0
+			}
+		} else if cfg.sort != nil {
 			col := cfg.sort.Column
 			sortFn = func(a, b any) int {
 				return compareValue(itemFieldByName(a, col), itemFieldByName(b, col))
@@ -430,12 +449,14 @@ func (r *TypedReader[V]) Distinct(
 // --- Scan options ---
 
 type scanConfig struct {
-	filters []FilterSpec
-	sort    *SortSpec
-	cursor  any
-	limit   int
-	ranges  []RangeSpec
-	inSpecs []InSpec
+	filters   []FilterSpec
+	orGroups  [][]FilterSpec
+	sort      *SortSpec
+	sortCols  []SortColumn
+	cursor    any
+	limit     int
+	ranges    []RangeSpec
+	inSpecs   []InSpec
 }
 
 // RangeSpec declares a range filter (SQL BETWEEN) on a column.
@@ -483,6 +504,38 @@ func WithIn(column string, values []any) ScanOption {
 func WithSort(column string, desc bool) ScanOption {
 	return func(c *scanConfig) {
 		c.sort = &SortSpec{Column: column, Desc: desc}
+	}
+}
+
+// SortColumn declares one column in a compound sort.
+type SortColumn struct {
+	Column string
+	Desc   bool
+}
+
+// WithSortColumns sets a compound sort (multi-column ORDER BY). When set,
+// single-column WithSort is ignored. Pushdown engines use only the first
+// column; the full multi-column sort is applied in the closure fallback path.
+func WithSortColumns(cols ...SortColumn) ScanOption {
+	return func(c *scanConfig) {
+		c.sortCols = cols
+		if len(cols) > 0 {
+			c.sort = &SortSpec{Column: cols[0].Column, Desc: cols[0].Desc}
+		}
+	}
+}
+
+// WithOr adds an OR group of filters. Each call adds one parenthesized OR
+// group: at least one filter in the group must match. Multiple WithOr calls
+// are ANDed together (and with WithFilter conditions).
+//
+// On pushdown engines, OR groups generate SQL: AND (cond1 OR cond2 ...).
+// On closure-based engines, they are evaluated in Go.
+func WithOr(filters ...FilterSpec) ScanOption {
+	return func(c *scanConfig) {
+		if len(filters) > 0 {
+			c.orGroups = append(c.orGroups, filters)
+		}
 	}
 }
 
