@@ -71,11 +71,14 @@ func (e *pebbleEngine) ScanRawValues(
 		}
 
 		// Filter index path: prefix-range lookup when a filter matches a declared
-		// filter field. Results are then Go-sorted if a sortSpec is present.
+		// filter field. Results are then Go-sorted, cursor-paginated, and limited.
 		if indexed, err := e.scanWithIndex(ctx, col, filters, plan); err == nil && indexed != nil {
-			// Apply sort + limit on indexed results.
 			if sortSpec != nil {
 				sortIndexedResults(indexed, sortSpec.Column, sortSpec.Desc)
+
+				if cursor != nil {
+					indexed = paginateIndexedResults(indexed, sortSpec, cursor)
+				}
 			}
 
 			return applyLimit(indexed, limit), nil

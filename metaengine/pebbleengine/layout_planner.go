@@ -340,3 +340,29 @@ func applyLimit(results [][]byte, limit int) [][]byte {
 
 	return results[:limit+1]
 }
+
+// paginateIndexedResults applies keyset cursor pagination to filter-indexed
+// results. Must be called after sortIndexedResults so results are in order.
+// Items at or before the cursor are skipped (already seen by the caller).
+func paginateIndexedResults(results [][]byte, sortSpec *metaengine.SortSpec, cursor any) [][]byte {
+	cursorVal := extractOrDirect(cursor, sortSpec.Column)
+	filtered := results[:0]
+
+	for _, raw := range results {
+		decoded := decodeJSON(raw)
+		fieldVal := metaengine.ItemFieldByName(decoded, sortSpec.Column)
+		c := metaengine.CompareValues(fieldVal, cursorVal)
+
+		if sortSpec.Desc {
+			c = -c
+		}
+
+		if c <= 0 {
+			continue
+		}
+
+		filtered = append(filtered, raw)
+	}
+
+	return filtered
+}
