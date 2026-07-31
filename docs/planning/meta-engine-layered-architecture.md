@@ -11,18 +11,15 @@
 ## Table of Contents
 
 1. [The Thesis: Two Axes, Not One](#1-the-thesis-two-axes-not-one)
-2. [The Four Decision Dimensions](#2-the-four-decision-dimensions)
-3. [Axis 1 — Data Models (The Interface Layer)](#3-axis-1--data-models-the-interface-layer)
-4. [Axis 2 — Storage Engines (The Physical Layer)](#4-axis-2--storage-engines-the-physical-layer)
-5. [Axis 3 — Temporality (The Time Dimension)](#5-axis-3--temporality-the-time-dimension)
-6. [Axis 4 — Retention (The Cost Knob)](#6-axis-4--retention-the-cost-knob)
-7. [Backends = Smart Combinations](#7-backends--smart-combinations)
-8. [The Cost Matrix (The Heart)](#8-the-cost-matrix-the-heart)
-9. [The Planner's Decision Logic](#9-the-planners-decision-logic)
-10. [The Missing Three: Vector, Search, Spatial](#10-the-missing-three-vector-search-spatial)
-11. [Migration Path: From Bundled Engine to Separated Layers](#11-migration-path-from-bundled-engine-to-separated-layers)
-12. [What Is Hard (Honest Assessment)](#12-what-is-hard-honest-assessment)
-13. [Relationship to Existing Canon](#13-relationship-to-existing-canon)
+2. [The Universal Cost Matrix](#2-the-universal-cost-matrix)
+3. [Temporality as a Storage Capability](#3-temporality-as-a-storage-capability)
+4. [The Missing Three: Vector, Search, Spatial](#4-the-missing-three-vector-search-spatial)
+5. [Hybrid Engines: One Database, Multiple Layouts](#5-hybrid-engines-one-database-multiple-layouts)
+6. [The Event Store Is Also a Storage Choice](#6-the-event-store-is-also-a-storage-choice)
+7. [Concrete Before/After: What Changes for the Consumer](#7-concrete-beforeafter-what-changes-for-the-consumer)
+8. [Migration Path: Actual Code Diffs](#8-migration-path-actual-code-diffs)
+9. [What This Does NOT Change (Brutal Honesty)](#9-what-this-does-not-change-brutal-honesty)
+10. [Relationship to Existing Canon](#10-relationship-to-existing-canon)
 
 ---
 
@@ -30,15 +27,15 @@
 
 ### The DDIA Insight
 
-Martin Kleppmann's _Designing Data-Intensive Applications_ devotes two foundational chapters to
+Martin Kleppmann's *Designing Data-Intensive Applications* devotes two foundational chapters to
 what are actually **two orthogonal axes**:
 
 - **Chapter 2 (Data Models):** How data is shaped and queried — relational, document, graph,
-  time-series, wide-column. This is the **interface contract**: what operations the consumer
-  sees.
+  time-series, wide-column, vector, search. This is the **interface contract**: what operations
+  the consumer sees.
 - **Chapter 3 (Storage & Retrieval):** How data physically lives on disk — B-trees, LSM-trees,
-  hash indexes, columnar layouts, append-only logs. This is the **storage engine**: the
-  physical data structure under the hood.
+  hash indexes, columnar layouts, append-only logs, HNSW graphs, inverted indexes. This is the
+  **storage engine**: the physical data structure under the hood.
 
 The central observation: **databases historically bundle these two axes into one product.**
 PostgreSQL is Relational × B-Tree. Cassandra is Wide-Column × LSM. Neo4j is Graph ×
@@ -75,172 +72,116 @@ characteristics are opaque, buried inside a calibrated nanosecond number.
 The bundling was harmless with three engines (Memory, SQLite, Pebble) that each cover all 7
 ADTs. It becomes a **structural blocker** as the catalog grows:
 
-| Scenario                                         | Bundled (today)                                                   | Separated (proposed)                                                                         |
-| ------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Add Vector search                                | Write a whole new `VectorEngine` with its own opaque cost profile | Define `VectorBackend` (data model) once; any HNSW-capable storage engine can serve it       |
-| Add a ClickHouse columnar engine                 | Duplicate all 7 ADT backend impls; cost profile is opaque         | Declare `LayoutColumnar`; the cost matrix already knows columnar makes Counter O(1)          |
-| Reason about _why_ Pebble beats SQLite for a Log | Can only compare `NsPerOp` numbers                                | The matrix says: LSM makes append O(1); B-Tree makes it O(logN). The _reason_ is visible.    |
-| Combine pgvector (Vector × HNSW)                 | Must implement as a monolithic engine                             | pgvector = `VectorBackend` (data model) × `LayoutHNSW` (storage) × pgx (driver). Composable. |
+| Scenario | Bundled (today) | Separated (proposed) |
+| --- | --- | --- |
+| Add Vector search | Write a whole new `VectorEngine` with its own opaque cost profile | Define `VectorBackend` (data model) once; any HNSW-capable storage engine can serve it |
+| Add a ClickHouse columnar engine | Duplicate all 7 ADT backend impls; cost profile is opaque | Declare `LayoutColumnar`; the cost matrix already knows columnar makes Counter O(1) |
+| Reason about *why* Pebble beats SQLite for a Log | Can only compare `NsPerOp` numbers | The matrix says: LSM makes append O(1); B-Tree makes it O(logN). The *reason* is visible. |
+| Combine pgvector (Vector × HNSW) | Must implement as a monolithic engine | pgvector = `VectorBackend` (data model) × `LayoutHNSW` (storage) × pgx (driver). Composable. |
 
 The separation turns "add a new specialized database" from a monolithic engine-writing task
 into a **combinatorial** task: pick a data model, pick a storage engine, wire a driver. The
 planner does the matching.
 
----
+### Two Axes Plus One Cross-Cutting Capability
 
-## 2. The Four Decision Dimensions
+The decomposition is **two orthogonal axes** plus **one cross-cutting capability**:
 
-The axis separation reveals that backend selection is actually a **four-dimensional** decision,
-not the one-dimensional "pick an engine" it appears today:
+| Layer | What it controls | Who declares it | Example values |
+| --- | --- | --- | --- |
+| **Data Model** (Axis 1) | The interface contract (ADT) — what operations exist | Developer (via fold return type) | Map, Set, Counter, Graph, Vector, Search, Spatial |
+| **Storage Engine** (Axis 2) | The physical layout — how bytes live on disk | Operator (engine config) | B-Tree, LSM, Hash, Columnar, HNSW, Inverted Index |
+| **Temporality** (cross-cutting) | Whether cells are versioned (as-of reads) or latest-only | Operator (engine capability + retention config) | Versioned with retention, or latest-only |
 
-| Dimension          | What it controls                                         | Who declares it                  | Example values                                            |
-| ------------------ | -------------------------------------------------------- | -------------------------------- | --------------------------------------------------------- |
-| **Data Model**     | The interface contract (ADT) — what operations exist     | Developer (via fold return type) | Map, Set, Counter, Graph, Vector, Search, Spatial         |
-| **Storage Engine** | The physical layout — how bytes live on disk             | Operator (engine config)         | B-Tree, LSM, Hash, Columnar, HNSW, Inverted Index         |
-| **Temporality**    | Whether cells are versioned (as-of reads) or latest-only | Operator (engine capability)     | Versioned (BigTable), Latest-only (Pebble)                |
-| **Retention**      | How much history to keep — the storage-cost knob         | Operator (GC policy)             | `max_versions=1` (cheap), `max_versions=0` (full history) |
-
-Dimensions 1–2 are the DDIA axes. Dimension 3 (temporality) is the BigTable insight — some
-storage engines natively timestamp every cell, making point-in-time reads O(1). Dimension 4
-(retention) is the cost lever that lets the operator trade history depth for storage savings.
-
-**A concrete backend is a point in this four-dimensional space:**
-
-```
-BigTable   = Wide-Column(Map) × LSM × Versioned × GC(max_versions=N)
-DuckDB     = Relational × Columnar × Latest-only × n/a
-pgvector   = Vector × B-Tree+HNSW × Latest-only × n/a
-Cassandra  = Wide-Column(Map) × LSM × Versioned × TTL(per-cell)
-Pebble     = KV(Map) × LSM × Latest-only × n/a
-SQLite     = Relational × B-Tree × Latest-only × n/a
-```
-
-The planner's job: given a query pattern + volume + latency budget + temporal requirement,
-find the cheapest point in this space from the engines the operator provided.
+Temporality is not a third axis because it doesn't combine freely with every data model — it
+modifies *how* a storage engine stores cells, regardless of which data model sits on top.
+Retention (`max_versions`, `max_age`) is a config knob on temporality, not a separate axis: it
+only makes sense when versioning is enabled.
 
 ---
 
-## 3. Axis 1 — Data Models (The Interface Layer)
+## 2. The Universal Cost Matrix
 
-### What Exists Today
+### The Single Source of Truth
 
-The metaengine derives data-model requirements from **fold return types** — the developer never
-declares "I need a Map." The return type IS the declaration:
+This is the heart of the document. One matrix. Memorized by the planner, inherited by every
+driver for free. Rows = data models (ADTs). Columns = storage engines. Cells = read complexity.
 
-| Fold signature       | Return type    | ADT            | Read pattern           |
-| -------------------- | -------------- | -------------- | ---------------------- |
-| `func(e) (K, V)`     | `(Key, Value)` | `Map`          | Point lookup           |
-| `func(e) K`          | `Key`          | `Set`          | Membership test        |
-| `func(e) Delta`      | `Delta`        | `Counter`      | Aggregate              |
-| `func(e) Edge`       | `Edge`         | `Graph`        | Traversal              |
-| `func(e) MultiEntry` | `MultiEntry`   | `Multimap`     | One-to-many lookup     |
-| `func(e) Append`     | `Append`       | `Log`          | Append-only tail       |
-| `func(e, prev V) V`  | `Value`        | `Map` (update) | Read-modify-write      |
-| `Remove[V]()`        | Sentinel       | Delete         | Remove from projection |
+```
+                     B+Tree     LSM       Hash      Columnar   HNSW/IVF   Inverted   R-Tree    Append-Log   In-Memory
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Map (point lookup)   O(logN)    O(logN)   O(1)      O(N/k)▾    —          —          —         O(N)         O(1)
+Set (membership)     O(logN)    O(logN)   O(1)      O(N/k)▾    —          —          —         O(N)         O(1)
+SortedMap (filter+)  O(logN)    O(logN)   —         O(N/k)✓     —          —          —         O(N)         O(N)
+Counter (aggregate)  O(N)       O(N)      —         O(1)✓✓     —          —          —         O(N)         O(N)
+Graph (traverse d)   O(N)       O(N)      —         O(N)       —          —          —         O(N)         O(d)✓
+Multimap (1→many)    O(logN)    O(logN)   O(1)      O(N/k)▾    —          —          —         O(N)         O(1)
+Log (append tail)    O(logN)    O(1)✓     —         O(1)✓      —          —          —         O(1)✓✓       O(1)
+Vector (k-NN)        —          —         —         —          O(logN)‡   —          —         —            O(N)‡
+Search (full-text)   —          —         —         —          —          O(1)§      —         —            —
+Spatial (geo range)  —          —         —         —          —          —          O(logN)   —            —
 
-Seven ADTs. This is elegant and correct — but it covers only **5 of the 13 interface models**
-in the taxonomy. Five entire families of databases have no representation:
+Legend:
+  ✓✓  optimal — this is what the storage engine was designed for
+  ✓   good fit
+  ▾   technically possible but suboptimal (planner warns at scale)
+  ‡   approximate — recall vs speed tradeoff (HNSW) or brute-force scan (In-Memory)
+  §   term→postings is O(1); ranking adds O(k log k) for BM25/TF-IDF
+  —   wrong engine for this ADT (planner rejects)
+```
 
-### What Is Missing
+### Why a Static Matrix Works
 
-| Interface model         | Taxonomy section    | Required ADT                 | Required fold signature         | Status                   |
-| ----------------------- | ------------------- | ---------------------------- | ------------------------------- | ------------------------ |
-| **Vector / Similarity** | Taxonomy §12        | `Vector` (k-NN)              | `func(e) Embedding`             | **No ADT exists**        |
-| **Search / Full-text**  | Taxonomy §6         | `Search` (inverted index)    | `func(e) IndexedText`           | **No ADT exists**        |
-| **Spatial / Geo**       | (implied by §6 geo) | `Spatial` (R-tree / geohash) | `func(e) Geometry`              | **No ADT exists**        |
-| **Wide-Column**         | Taxonomy §7         | `Map` (partition-key)        | Already served by `Map` ADT     | Driver-only gap          |
-| **Time-Series**         | Taxonomy §5         | `Counter` + `Log`            | Already served by existing ADTs | Driver-only gap          |
-| **Triple Store / RDF**  | Taxonomy §9         | `Graph`                      | Already served by `Graph` ADT   | Driver-only gap          |
-| **Datalog**             | Taxonomy §10        | (esoteric, skip)             | —                               | Out of scope             |
-| **Streaming**           | Taxonomy §11        | (transport, not storage)     | —                               | Out of scope             |
-| **Object Storage**      | Taxonomy §8         | (blob, not queryable)        | —                               | Out of scope             |
-| **Multi-Model**         | Taxonomy §13        | (union of above)             | —                               | Emerges from composition |
+This matrix is **structural** — it encodes Big-O classes, not calibrated nanosecond numbers.
+The properties it captures (hash is O(1) for point lookup, columnar is O(1) for aggregation,
+LSM is O(1) for append) are **mathematical facts about data structures**, not benchmarks that
+drift with hardware. A driver declares which column it occupies; the matrix tells the planner
+the complexity for free. No per-engine calibration needed for structural decisions.
 
-The first three — **Vector, Search, Spatial** — are the deep gap. They have no fold return type,
-no backend interface, no read pattern. You cannot express "find the 10 nearest neighbors to this
-embedding" or "full-text search for 'invoice' ranked by relevance" or "all users within 5km of
-this point" as a metaengine projection today. These require new ADTs (see
-[§10](#10-the-missing-three-vector-search-spatial)).
+Calibrated `NsPerOp` numbers (from benchmarks like `calibration_bench_test.go`) are still used
+for **tie-breaking within the same complexity class** — when two engines are both O(logN), the
+one with lower nanoseconds wins. But the structural decision ("is columnar or B-Tree right for
+this Counter query?") comes from the matrix, not from benchmarks.
 
-The next three — **Wide-Column, Time-Series, Triple Store** — are NOT blocked at the type level.
-Their access patterns already map to existing ADTs (Map, Counter/Log, Graph). Adding Cassandra
-or InfluxDB is "just" writing a driver that implements `MapBackend` or `CounterBackend` with the
-right cost profile. The architecture is ready; the drivers don't exist yet.
+### Scale Thresholds (The Statistical Layer)
+
+Complexity alone doesn't pick the winner — volume matters. The
+[assumptions doc](meta-engine-assumptions-and-query-planning.md) already publishes threshold
+tables. The matrix is the structural layer; thresholds add the statistical layer:
+
+```
+For SortedMap (filtered scan):
+  N < 10K       → any engine is fine (In-Memory O(N) is fast enough)
+  N < 1M        → B+Tree or LSM (O(logN) index seek + bounded scan)
+  N < 100M      → B+Tree or LSM with strong indexes
+  N > 100M      → Columnar wins (O(N/k) sequential scan beats O(logN) random I/O at this scale)
+                 (at N=100M with k=20 columns, columnar reads 5M values sequentially vs
+                  100M random I/O seeks — sequential wins by ~100x)
+```
+
+The planner combines both layers: `cost = complexity_matrix[ADT][storage] × volume_factor(N)`.
+
+### Write Costs (The Other Half)
+
+The matrix above shows **read** complexity. Write cost matters too — it determines write
+amplification (how many projections an event updates):
+
+```
+                     B+Tree              LSM                 Hash               Columnar           HNSW/IVF           Inverted           R-Tree             Append-Log
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Write (insert)       O(logN)             O(1) amortized      O(1)               O(1) batched       O(logN)             O(doc_len)         O(logN)             O(1)
+Write amplification  High (page rewrite) Low (sequential)    Low                Low (column merge) Medium (graph rewire) Medium (postings update) Medium      Minimal
+Best for write rate  Low-moderate        High                High               High (batch)       Moderate            Moderate            Moderate            Unlimited
+```
+
+The planner uses this to estimate write amplification: if a `UserCreated` event feeds a Map on
+Pebble (LSM, O(1) write) and a Counter on ClickHouse (columnar, O(1) batched), total write cost
+is low. If it feeds a Map on SQLite (B+Tree, O(logN) page rewrite) and a Graph on Neo4j
+(adjacency rewrite), write amplification is higher.
 
 ---
 
-## 4. Axis 2 — Storage Engines (The Physical Layer)
-
-### What a Storage Engine Is
-
-A storage engine is the physical data structure that holds bytes on disk (or in RAM). DDIA
-Chapter 3 catalogs the major families. Each has a characteristic cost profile for the basic
-operations (point lookup, range scan, insert, ordered iteration):
-
-| Storage engine       | Point lookup       | Range scan    | Insert         | Write amplification      | Best at                         |
-| -------------------- | ------------------ | ------------- | -------------- | ------------------------ | ------------------------------- |
-| **B+Tree**           | O(logN)            | O(logN + k)   | O(logN)        | High (rewrites pages)    | Read-heavy OLTP                 |
-| **LSM-Tree**         | O(logN)            | O(logN + k)   | O(1) amortized | Low (sequential)         | Write-heavy, append-only        |
-| **Hash**             | O(1)               | ❌ (no range) | O(1)           | Low                      | Point-only KV                   |
-| **Columnar**         | O(N/k)             | O(N/k)        | O(1) batched   | Low (column compression) | Analytics, aggregation          |
-| **Append-only log**  | O(N)               | O(N)          | O(1)           | Minimal                  | Event sourcing (the log itself) |
-| **CoW B-Tree**       | O(logN)            | O(logN + k)   | O(logN)        | High (path copy)         | Lock-free snapshot reads        |
-| **HNSW / IVF**       | O(logN) approx     | ❌            | O(logN)        | Medium                   | Vector similarity (k-NN)        |
-| **Inverted index**   | O(1) term→postings | O(k)          | O(doc_len)     | Medium                   | Full-text search                |
-| **R-Tree / Geohash** | O(logN)            | O(logN + k)   | O(logN)        | Medium                   | Spatial range queries           |
-| **In-memory (any)**  | O(1)–O(logN)       | O(logN + k)   | O(1)           | n/a (volatile)           | Speed, not persistence          |
-
-### Why This Is Separable From the Data Model
-
-The same data model performs differently on different storage engines. The **Map ADT** (point
-lookup by key) is the clearest example:
-
-```
-Map ADT point lookup cost by storage engine:
-  Hash:         O(1)     ← fastest (Redis, Memcached)
-  LSM-Tree:     O(logN)  ← fast, persistent (Pebble, RocksDB)
-  B+Tree:       O(logN)  ← fast, persistent (Postgres, SQLite)
-  Columnar:     O(N/k)   ← slow (must scan a column stripe) — WRONG engine for this ADT
-  Inverted idx: ❌       ← not designed for key-value (WRONG engine entirely)
-```
-
-The planner should know this. Today, it only sees "Engine A costs 7ns, Engine B costs 100ns" —
-opaque numbers. With separation, it sees "this Map query needs O(1) point lookup → Hash or LSM
-storage → which drivers are available?" The **reason** for the cost difference is visible and
-composable.
-
-### The Cost Matrix Becomes Two-Dimensional
-
-Today's `EngineProfile.Supports map[ADT]Complexity` is a 1D mapping (ADT → complexity) per
-engine. With separation, the cost matrix becomes **ADT × StorageEngine** — a 2D lookup that any
-new driver inherits for free:
-
-```
-                    B+Tree      LSM         Hash        Columnar    HNSW        Inverted    R-Tree
-Map (point)         O(logN)     O(logN)     O(1)        O(N/k)*     ❌          ❌          ❌
-Set (membership)    O(logN)     O(logN)     O(1)        O(N/k)*     ❌          ❌          ❌
-Counter             O(N)        O(N)        ❌          O(1)†       ❌          ❌          ❌
-Graph (traversal)   O(N)        O(N)        ❌          O(N)        ❌          ❌          ❌
-Multimap            O(logN)     O(logN)     O(1)        O(N/k)      ❌          ❌          ❌
-Log (append)        O(logN)     O(1)        ❌          O(1)        ❌          ❌          ❌
-Vector (k-NN)       ❌          ❌          ❌          ❌          O(logN)‡    ❌          ❌
-Search (full-text)  ❌          ❌          ❌          ❌          ❌          O(1)§       ❌
-Spatial (range)     ❌          ❌          ❌          ❌          ❌          ❌          O(logN)
-
-*  Columnar point lookup requires scanning a column stripe — technically possible but the wrong engine
-†  Columnar SUM/COUNT is native O(1) — this is why ClickHouse makes Counter optimal
-‡  HNSW gives approximate O(logN) with recall/speed tradeoff
-§  Inverted index maps term → postings list in O(1), then ranks
-```
-
-This matrix is the **planner's lookup table**. A driver declares which row(s) and column(s) it
-occupies. The planner reads the cell at (required ADT, available storage engine) and gets the
-complexity. No per-engine cost calibration needed for structural decisions — the matrix is
-universal.
-
----
-
-## 5. Axis 3 — Temporality (The Time Dimension)
+## 3. Temporality as a Storage Capability
 
 ### The BigTable Insight
 
@@ -272,25 +213,94 @@ natively.
 This means temporal projection reads have **multiple physical strategies**, and the planner
 chooses based on engine capability:
 
-| Query needs as-of? | Engine versions cells?   | Planner picks            | Cost           | Storage cost            |
-| ------------------ | ------------------------ | ------------------------ | -------------- | ----------------------- |
-| Yes                | Yes (BigTable/Cassandra) | **Native as-of read**    | **O(1)**       | Higher (keeps versions) |
-| Yes                | No (plain Pebble/SQLite) | **Event-log replay**     | O(events to T) | Low (latest only)       |
-| No                 | Yes                      | Read latest, GC the rest | O(1)           | Configurable            |
-| No                 | No                       | Normal latest-only read  | O(1)           | Low                     |
+| Query needs as-of? | Engine versions cells? | Planner picks | Cost | Storage cost |
+| --- | --- | --- | --- | --- |
+| Yes | Yes (BigTable/Cassandra) | **Native as-of read** | **O(1)** | Higher (keeps versions) |
+| Yes | No (plain Pebble/SQLite) | **Event-log replay** | O(events to T) | Low (latest only) |
+| No | Yes | Read latest, GC the rest | O(1) | Configurable via retention |
+| No | No | Normal latest-only read | O(1) | Low |
 
 The top-left cell is the BigTable-enabled future: O(1) time travel with zero replay cost. The
 bottom row is today's world. The middle row is the **honest degradation** the planner warns
 about.
 
+### Retention: The Cost Knob
+
+Versioned storage is powerful but expensive — keeping every version of every cell costs disk
+space proportional to write rate × history depth. The **retention policy** is the knob:
+
+```go
+type RetentionPolicy struct {
+    MaxVersions int           // 1 = latest only (cheap), 0 = unlimited (expensive)
+    MaxAge      time.Duration // 0 = keep forever, else GC versions older than this
+}
+```
+
+`MaxVersions = 1` collapses a versioned engine into a plain mutable KV. The capability is
+present but unused — the engine keeps only the latest version, paying zero history-storage
+overhead. This is the operator's "save on data cost" lever: full temporal querying when you need
+it, cheap latest-only storage when you don't, on the **same engine**, selected at deploy time.
+
+This maps directly to real database GC mechanisms:
+
+| Database | Retention mechanism | Equivalent config |
+| --- | --- | --- |
+| **BigTable / HBase** | GC rules (max versions + max age per column family) | `MaxVersions`, `MaxAge` |
+| **Cassandra / Scylla** | Cell TTL + `compaction_window` | `MaxAge` (TTL), tombstone compaction |
+| **Datomic / XTDB** | Built-in (immutable indexes, manual pruning) | Application-controlled |
+| **DuckDB** | `ASOF JOIN` (temporal queries without versioning) | n/a (query-time, not storage-time) |
+
+### The Mechanics: How Versioned Folds Work
+
+This is the part that needs careful design. When a projection handler processes events, how do
+timestamps flow?
+
+```
+Event arrives:  UserCreated{ID: "u1", Name: "Alice"} at wall-time T1
+                → projection handler calls MapSetAt("users", "u1", view, T1)
+
+Event arrives:  UserRenamed{ID: "u1", Name: "Bob"} at wall-time T2
+                → projection handler calls MapSetAt("users", "u1", view, T2)
+
+As-of query:    "What was user u1's name at time T1.5?"
+                → MapGetAt("users", "u1", T1.5) → returns {Name: "Alice"} in O(1)
+```
+
+The cell timestamp comes from the **event's metadata timestamp** (or event version, if using
+version-based temporality), not from wall-clock at write time. This ensures correctness during
+replay: when the projection host replays historical events, each event's original timestamp is
+preserved, so the versioned cells reflect the true temporal order.
+
+### The Hard Interaction: Retention vs Query Correctness
+
+What happens when retention GC's versions that a live query needs?
+
+```
+Timeline:
+  T1: UserCreated → cell versioned at T1
+  T2: UserRenamed → cell versioned at T2
+  T3: retention GC (max_age=1h) → version T1 pruned (older than 1 hour)
+  T4: Query: "user at T1" → VERSION NOT FOUND
+```
+
+This is a **correctness-critical** interaction. The planner must know the retention policy and
+warn (or refuse) when:
+
+- A query declares `AsOf` intent
+- But the retention policy would GC versions older than the query's temporal range
+
+The mitigation: either (a) widen the retention policy, (b) fall back to event-log replay for
+that query, or (c) document that temporal queries beyond the retention window are unsupported.
+This is a deployment-time decision, surfaced by the planner.
+
 ### Relationship to the DataFusion Doc's TemporalAnchor
 
 The [DataFusion lessons](2026-07-31_datafusion-lessons-for-metaengine.md) doc already proposes
-`TemporalAnchor` on the **logical plan** — the _query_ declares "I want state as-of version 42."
+`TemporalAnchor` on the **logical plan** — the *query* declares "I want state as-of version 42."
 That doc covers the **logical layer**: which replay strategy to use (snapshot+delta, full
 replay, cached projection).
 
-This document adds the **storage layer**: whether the _engine itself_ versions cells natively.
+This document adds the **storage layer**: whether the *engine itself* versions cells natively.
 The two are complementary:
 
 ```
@@ -301,289 +311,73 @@ Storage layer (this doc):          "Is the engine versioned?" → O(1) read or O
 Together they're complete. The logical plan carries the temporal intent; the storage-engine
 capability determines whether it's cheap or expensive.
 
-### The `VersionedStorage` Capability
-
-```go
-// VersionedStorage is a cross-cutting storage-engine capability.
-// Engines that natively version cells (BigTable, Cassandra, HBase) implement
-// this for O(1) as-of reads. Engines that don't (Pebble, SQLite, Memory) omit
-// it, and the planner falls back to event-log replay.
-type VersionedStorage interface {
-    MapSetAt(ctx context.Context, collection string, key any, value any, at time.Time) error
-    MapGetAt(ctx context.Context, collection string, key any, at time.Time) (any, bool, error)
-    MapHistory(ctx context.Context, collection string, key any, from, to time.Time) ([]VersionedValue, error)
-}
-
-type VersionedValue struct {
-    Value any
-    At    time.Time
-}
-```
-
-The planner checks for this interface at runtime, exactly as it checks for `PushdownScan` or
-`RawValueReader` today. If present and the query has an `AsOf` field, it uses the native path.
-If absent, it falls back to replay with a degradation warning.
-
 ---
 
-## 6. Axis 4 — Retention (The Cost Knob)
-
-### The Tradeoff
-
-Versioned storage is powerful but expensive — keeping every version of every cell costs disk
-space proportional to write rate × history depth. The **retention policy** is the knob that lets
-the operator control this tradeoff:
-
-```go
-// RetentionPolicy controls storage cost vs history depth on versioned engines.
-type RetentionPolicy struct {
-    MaxVersions int           // 1 = latest only (cheap), 0 = unlimited (expensive)
-    MaxAge      time.Duration // 0 = keep forever, else GC versions older than this
-}
-```
-
-This maps directly to real database GC mechanisms:
-
-| Database               | Retention mechanism                                 | Equivalent config                    |
-| ---------------------- | --------------------------------------------------- | ------------------------------------ |
-| **BigTable / HBase**   | GC rules (max versions + max age per column family) | `MaxVersions`, `MaxAge`              |
-| **Cassandra / Scylla** | Cell TTL + `compaction_window`                      | `MaxAge` (TTL), tombstone compaction |
-| **Datomic / XTDB**     | Built-in (immutable indexes, manual pruning)        | Application-controlled               |
-| **DuckDB**             | Manual (history table, app-managed)                 | Application-controlled               |
-| **Postgres**           | SQL:2011 temporal tables / `tstzrange`              | Application-managed                  |
-
-### The "Make It Null" Knob
-
-The operator's key decision: `MaxVersions = 1` collapses a versioned engine into a plain mutable
-KV. The capability is present but unused — the engine keeps only the latest version, paying zero
-history-storage overhead. This is the "save on data cost" lever: full temporal querying when you
-need it, cheap latest-only storage when you don't, on the **same engine**, selected at deploy
-time.
-
-```go
-// Example: BigTable configured for latest-only (cheap, no time travel)
-btEngine, _ := bigtable.New(cluster, bigtable.WithRetention(
-    metaengine.RetentionPolicy{MaxVersions: 1},
-))
-
-// Example: same engine, full history (expensive, O(1) time travel)
-btEngine, _ := bigtable.New(cluster, bigtable.WithRetention(
-    metaengine.RetentionPolicy{MaxVersions: 0}, // unlimited
-))
-```
-
-The planner sees the retention policy and knows whether as-of reads will be O(1) (versions
-retained) or will require replay (versions GC'd to 1).
-
----
-
-## 7. Backends = Smart Combinations
-
-A concrete backend is a **combination** of all four dimensions plus a driver. The planner's job
-is to find the optimal combination from what the operator provides.
-
-### The Combination Table
-
-| Backend                | Data Model                           | Storage Engine     | Temporal                | Retention             | Driver              |
-| ---------------------- | ------------------------------------ | ------------------ | ----------------------- | --------------------- | ------------------- |
-| **PostgreSQL**         | Relational (Map, SortedMap)          | B+Tree             | Latest-only             | n/a                   | pgx                 |
-| **SQLite**             | Relational (Map, SortedMap)          | B+Tree             | Latest-only             | n/a                   | modernc.org/sqlite  |
-| **MySQL**              | Relational (Map, SortedMap)          | B+Tree             | Latest-only             | n/a                   | go-sql-driver/mysql |
-| **Pebble**             | KV (Map)                             | LSM                | Latest-only             | n/a                   | cockroachdb/pebble  |
-| **DuckDB**             | Relational (Map, SortedMap, Counter) | Columnar           | Latest-only (ASOF JOIN) | Manual                | duckdb-go           |
-| **BigTable / HBase**   | Wide-Column (Map)                    | LSM                | **Versioned**           | **GC (versions/age)** | googleapis          |
-| **Cassandra / Scylla** | Wide-Column (Map)                    | LSM                | **Versioned**           | **TTL + compaction**  | gocql               |
-| **ClickHouse**         | Relational (SortedMap, Counter)      | Columnar           | Latest-only             | TTL per table         | clickhouse-go       |
-| **Neo4j / Memgraph**   | Graph (Graph)                        | Adjacency list     | Latest-only             | n/a                   | neo4j-go-driver     |
-| **InfluxDB**           | Time-Series (Counter, Log)           | TSM (LSM variant)  | Latest-only             | retention policy      | influxdb-client     |
-| **pgvector**           | Vector (k-NN)                        | HNSW over B+Tree   | Latest-only             | n/a                   | pgx + extension     |
-| **Milvus / Qdrant**    | Vector (k-NN)                        | HNSW / IVF         | Latest-only             | n/a                   | milvus-sdk-go       |
-| **Elasticsearch**      | Search (full-text)                   | Inverted index     | Latest-only             | ILM policies          | olivere/elastic     |
-| **Redis**              | KV (Map, Set, Counter)               | Hash / append-only | Latest-only             | eviction policies     | go-redis            |
-
-### How the Planner Combines
-
-The planner does NOT pick a backend by name. It picks by **capability match**:
-
-```
-INPUT:
-  Query pattern:  Filter("status") + Sort("joined_at") + Count, Volume=50M
-  Temporal need:  AsOf = nil (latest only)
-  Available engines: [SQLite(B+Tree), ClickHouse(Columnar), Pebble(LSM)]
-
-STEP 1 — Classify the ADT:
-  Filter + Sort → SortedMap
-  Count → Counter
-
-STEP 2 — Look up the cost matrix:
-  SortedMap × B+Tree     = O(logN)   ← SQLite
-  SortedMap × Columnar   = O(N/k)    ← ClickHouse (fast at scale: N/20 columns)
-  SortedMap × LSM        = O(logN)   ← Pebble
-  Counter × Columnar     = O(1)      ← ClickHouse (native SUM) ✓ OPTIMAL
-  Counter × B+Tree       = O(N)      ← SQLite (full scan)
-  Counter × LSM          = O(N)      ← Pebble (full scan)
-
-STEP 3 — Check temporal requirement:
-  AsOf = nil → no versioned storage needed → any engine qualifies
-
-STEP 4 — Assign by volume threshold:
-  Volume 50M exceeds B+Tree/LSM optimal range for scan-heavy queries
-  → ClickHouse (Columnar) wins for both SortedMap and Counter at this scale
-
-OUTPUT:
-  SortedMap → ClickHouse (columnar scan, O(N/k))
-  Counter   → ClickHouse (native columnar aggregation, O(1))
-  Write amplification: 2 projections (both on ClickHouse, same engine)
-```
-
-The developer's code is identical whether the result is SQLite or ClickHouse. The planner reads
-the matrix and picks. This is the "smart combination."
-
----
-
-## 8. The Cost Matrix (The Heart)
-
-The full decision matrix the planner consults. Rows = data models (ADTs). Columns = storage
-engines. Cells = read complexity. Empty cells = wrong engine for that ADT (planner rejects or
-warns).
-
-```
-Data Model          B+Tree    LSM       Hash      Columnar   HNSW/IVF   Inverted   R-Tree    In-Memory
-─────────────────────────────────────────────────────────────────────────────────────────────────────────
-Map (point)         O(logN)   O(logN)   O(1)      O(N/k)▾    —          —          —         O(1)
-Set (membership)    O(logN)   O(logN)   O(1)      O(N/k)▾    —          —          —         O(1)
-SortedMap (filter)  O(logN)   O(logN)   —         O(N/k)✓     —          —          —         O(N)
-Counter             O(N)      O(N)      —         O(1)✓✓     —          —          —         O(N)
-Graph (traverse)    O(N)      O(N)      —         O(N)       —          —          —         O(d)✓
-Multimap            O(logN)   O(logN)   O(1)      O(N/k)▾    —          —          —         O(1)
-Log (append)        O(logN)   O(1)✓     —         O(1)✓      —          —          —         O(1)
-Vector (k-NN)       —         —         —         —          O(logN)‡   —          —         O(logN)‡
-Search (full-text)  —         —         —         —          —          O(1)§      —         —
-Spatial (range)     —         —         —         —          —          —          O(logN)   —
-
-Legend:
-  ✓✓  optimal (this is what the engine was designed for)
-  ✓   good fit
-  ▾   technically possible but suboptimal (planner warns)
-  ‡   approximate (recall vs speed tradeoff)
-  §   term→postings is O(1); ranking adds O(k log k)
-  —   wrong engine / not applicable (planner rejects)
-```
-
-### Scale Thresholds
-
-Complexity alone isn't enough — the planner also considers volume. The
-[assumptions doc](meta-engine-assumptions-and-query-planning.md) already publishes threshold
-tables. The matrix above is the structural layer; thresholds add the statistical layer:
-
-```
-For SortedMap (filtered scan):
-  N < 10K       → any engine is fine (In-Memory O(N) is fast enough)
-  N < 1M        → B+Tree or LSM (O(logN) index seek)
-  N < 100M      → B+Tree or LSM with strong indexes
-  N > 100M      → Columnar (O(N/k) — scan is faster than random I/O at this scale)
-```
-
-The planner combines: `cost = complexity_matrix[ADT][storage] × volume_threshold(N)`.
-
----
-
-## 9. The Planner's Decision Logic
-
-### The Algorithm
-
-```
-INPUT:
-  - Declared query patterns (from developer: fold return types → ADTs, filters, sorts)
-  - Available engines (from operator: each declares DataModel + StorageEngine + Temporal + Retention)
-  - Volume hints and latency budgets (from query declarations)
-  - Temporal requirements (AsOf fields in query input structs)
-
-ALGORITHM:
-  1. CLASSIFY each query pattern → required ADT(s)
-     - func(e) (K,V)       → Map
-     - func(e) Embedding   → Vector
-     - AsOf field present  → temporal read required
-
-  2. For each (query, ADT) pair:
-     a. Look up cost_matrix[ADT][storage] for every available engine
-     b. Filter out engines where the cell is "—" (wrong engine) or "▾" (below volume threshold)
-     c. If temporal required: filter to engines with VersionedStorage, OR mark replay fallback
-     d. Pick the cheapest surviving engine (lowest complexity × volume factor)
-
-  3. VALIDATE:
-     a. Every query has an assigned engine (or a documented fallback)
-     b. Write amplification within budget (sum of projections per event)
-     c. No query requires cross-REMOTE-engine read (denormalize if needed)
-
-  4. WARN:
-     a. Degraded patterns (O(N) where O(logN) is possible with a better engine)
-     b. Temporal queries falling back to replay (O(events) instead of O(1))
-     c. High write amplification (>3 projections per event)
-```
-
-### Temporal-Aware Planning
-
-When a query input struct has an `AsOf *time.Time` field (mirroring how `*Cursor` signals
-pagination today), the planner knows temporal reads are needed:
-
-```go
-type AccountBalanceQuery struct {
-    ID   AccountID
-    AsOf *time.Time  // nil = latest, non-nil = point-in-time read
-}
-```
-
-The planner then:
-
-1. Checks if any available engine implements `VersionedStorage`
-2. If yes → as-of reads are O(1), assign normally
-3. If no → as-of reads require replay (O(events to T)), emit degradation warning:
-   `"query AccountBalanceQuery needs as-of reads but no versioned engine is available;
-falling back to event-log replay (cost: O(events to T))"`
-
----
-
-## 10. The Missing Three: Vector, Search, Spatial
+## 4. The Missing Three: Vector, Search, Spatial
 
 These three data models have **no ADT, no backend interface, no fold return type** today. They
 are the deepest gap. Adding them requires type-system design (data-model-first), not just driver
-work.
+work. Each one has a specific design challenge that makes it harder than "just add an
+interface."
 
 ### Vector (Similarity Search)
 
 ```go
 // Embedding is the fold return type for vector projections.
 type Embedding struct {
-    ID     any       // the entity ID
-    Vector []float32 // the embedding (e.g., 1536-dim from OpenAI)
+    ID     any
+    Vector []float32 // e.g., 1536-dim from OpenAI text-embedding-3-small
 }
 
 // metaengine.On(DocumentIndexed{}, func(e DocumentIndexed) metaengine.Embedding {
 //     return metaengine.Embedding{ID: e.ID, Vector: e.Embedding}
 // })
+```
 
-// VectorBackend is the data-model interface for k-NN search.
+**What makes this hard — three design decisions:**
+
+1. **Distance metric is not universal.** Cosine similarity, L2 (Euclidean), and inner-product
+   are the three common metrics. Different use cases need different ones. The interface must
+   either parameterize the metric at query time (flexible but prevents engine-specific
+   optimization) or at declaration time (the `Query[...]` call fixes it for that projection).
+  pgvector solves this with operator classes (`<=>` for cosine, `<->` for L2, `<#>` for inner
+   product). The metaengine needs an equivalent.
+
+2. **Hybrid search (vector + metadata filter).** Real-world RAG pipelines don't just do pure
+   k-NN — they do "find the 10 most similar documents *that are tagged 'finance' and published
+   after 2024*." This is vector search + filtered scan combined. The `VectorBackend` interface
+   must compose with `FilterSpec` (which already exists for `PushdownScan`). pgvector and
+   Qdrant support this natively; the interface must express it.
+
+3. **Approximation parameters.** HNSW has `ef_construction`, `ef_search`, and `M` parameters
+   that trade recall for speed. IVF has `nlist` and `nprobe`. The interface must expose these
+   as query-time or declaration-time options without leaking engine-specific details.
+
+**Sketch interface (honest about what's unresolved):**
+
+```go
 type VectorBackend interface {
     VectorAdd(ctx context.Context, collection string, id any, vec []float32) error
-    VectorSearch(ctx context.Context, collection string, query []float32, k int) ([]VectorHit, error)
+    VectorSearch(ctx context.Context, collection string, query []float32, k int,
+        opts ...VectorSearchOption) ([]VectorHit, error)
     VectorDelete(ctx context.Context, collection string, id any) error
 }
 
 type VectorHit struct {
     ID    any
-    Score float64 // cosine similarity or L2 distance
+    Score float64 // interpretation depends on metric (similarity: higher is better; distance: lower)
 }
 
-// Query declaration:
-// findSimilar := metaengine.Query[FindSimilar, VectorHit]("similar_docs",
-//     metaengine.On(DocumentIndexed{}, func(e DocumentIndexed) metaengine.Embedding { ... }),
-// )
-// // The planner sees Embedding return type → Vector ADT → needs HNSW/IVF storage engine
+// VectorSearchOption addresses design decision #2 (hybrid) and #3 (approximation):
+type VectorSearchOption func(*vectorSearchConfig)
+
+func WithVectorFilter(filters []FilterSpec) VectorSearchOption  // hybrid: vector + metadata
+func WithVectorMetric(m VectorMetric) VectorSearchOption        // cosine, l2, inner_product
+func WithEFSearch(ef int) VectorSearchOption                    // HNSW approximation knob
 ```
 
 **Storage engines:** HNSW (pgvector, Qdrant, Weaviate), IVF (Milvus), or brute-force scan
-(In-Memory, for small sets). The cost matrix cell `Vector × HNSW = O(logN) approximate`.
+(In-Memory, for small sets under ~10K vectors where exact search is faster than approximate).
 
 ### Search (Full-Text)
 
@@ -591,23 +385,46 @@ type VectorHit struct {
 // IndexedText is the fold return type for full-text search projections.
 type IndexedText struct {
     ID     any
-    Fields map[string]string // field name → text to index (title, body, etc.)
+    Fields map[string]string // field name → text to index (title, body, tags)
 }
+```
 
-// SearchBackend is the data-model interface for inverted-index search.
+**What makes this hard — two design decisions:**
+
+1. **Query DSL complexity.** Full-text search is not "grep with ranking." Real queries use
+   boolean operators (`invoice AND NOT draft`), phrase queries (`"exact phrase"`), fuzzy
+   matching (`invoice~2` — Levenshtein distance 2), proximity (`"quick fox"~5` — within 5
+   words), and field-scoped search (`title:invoice AND body:payment`). The interface must
+   either accept a structured query type (complex but type-safe) or a query string (simple but
+   engine-dependent in syntax).
+
+2. **Analyzer chain.** Text is processed through tokenization, lowercasing, stemming,
+   stop-word removal, and synonym expansion *before* indexing. Different analyzer chains
+   produce different indexes for the same text. The projection declaration must specify the
+   analyzer config (or accept the engine default), and the same config must apply at query time.
+
+**Sketch interface:**
+
+```go
 type SearchBackend interface {
     SearchIndex(ctx context.Context, collection string, docID any, fields map[string]string) error
-    SearchQuery(ctx context.Context, collection string, query string, limit int) ([]SearchHit, error)
+    SearchQuery(ctx context.Context, collection string, query SearchQuery, limit int) ([]SearchHit, error)
+}
+
+type SearchQuery struct {
+    Text    string            // the query string (engine-interpreted)
+    Fields  []string          // restrict to specific fields (nil = all)
+    Filters []FilterSpec      // combine full-text with structured filters (hybrid)
 }
 
 type SearchHit struct {
     ID    any
-    Score float64 // BM25 or TF-IDF relevance
+    Score float64 // BM25, TF-IDF, or DFR depending on engine
 }
 ```
 
-**Storage engines:** Inverted index (Elasticsearch, OpenSearch, Meilisearch, Bleve). The cost
-matrix cell `Search × Inverted = O(1)` for term lookup, plus O(k log k) for ranking.
+**Storage engines:** Inverted index (Elasticsearch, OpenSearch, Meilisearch, Bleve). PostgreSQL
+can do this via `tsvector`/`tsquery` (less powerful but embedded). SQLite has FTS5.
 
 ### Spatial (Geo Range)
 
@@ -615,21 +432,42 @@ matrix cell `Search × Inverted = O(1)` for term lookup, plus O(k log k) for ran
 // Geometry is the fold return type for spatial projections.
 type Geometry struct {
     ID   any
-        Type  SpatialType // Point, Polygon, etc.
-    Data []float64     // [lng, lat, lng, lat, ...] or GeoJSON
+    Type SpatialType    // Point, Polygon, LineString
+    Data []float64      // [lng, lat, ...] flattened coordinates
 }
+```
 
-// SpatialBackend is the data-model interface for geo range queries.
+**What makes this hard — one design decision:**
+
+1. **Query shape variety.** "Within radius" is the simplest spatial query, but real
+   applications need: bounding box (`WITHIN( SW, NE )`), polygon containment
+   (`WITHIN_POLYGON( geom )`), nearest-neighbor (`KNN( point, k )`), and intersection
+   (`INTERSECTS( geom )`). Each maps to different index operations on the storage engine. R-Tree
+   handles bounding-box containment in O(logN) but polygon containment requires a secondary
+   filter step.
+
+**Sketch interface:**
+
+```go
 type SpatialBackend interface {
     SpatialIndex(ctx context.Context, collection string, id any, geom Geometry) error
-    SpatialWithin(ctx context.Context, collection string, center [2]float64, radiusMeters float64) ([]SpatialHit, error)
+    SpatialWithin(ctx context.Context, collection string, q SpatialQuery) ([]SpatialHit, error)
+}
+
+type SpatialQuery struct {
+    Type    SpatialQueryType // WithinRadius, WithinBox, WithinPolygon, Intersects
+    Center  [2]float64       // for WithinRadius
+    Radius  float64          // meters, for WithinRadius
+    Box     [4]float64       // SW_lng, SW_lat, NE_lng, NE_lat for WithinBox
+    Polygon []float64        // flattened [lng, lat, lng, lat, ...] for WithinPolygon/Intersects
+    Limit   int
 }
 ```
 
 **Storage engines:** R-Tree (PostGIS, SQLite RTree module), Geohash (Redis GEO, Elasticsearch
-geo). The cost matrix cell `Spatial × R-Tree = O(logN)`.
+geo_point). Google S2 / H3 are cell-based alternatives for spherical geometry.
 
-### Why These Are Type-System Decisions
+### Why These Are Type-System Decisions, Not Driver Work
 
 Each of the three requires:
 
@@ -639,174 +477,414 @@ Each of the three requires:
    engine contract
 3. **A new ADT constant** (`ADTVector`, `ADTSearch`, `ADTSpatial`) — for the planner's
    classification
-4. **New cost matrix entries** — the (ADT × StorageEngine) cells
+4. **New cost matrix entries** — the row in §2's matrix
+5. **Honest interface design** — each has a design challenge (distance metrics, query DSL,
+   query shapes) that must be resolved *before* any driver can plug in
 
 This is data-model-first work. Until the types exist, no driver can plug in. This is the
-strategic priority — it unblocks an entire category of use cases (semantic search, RAG,
-geospatial) that are currently impossible to express.
+strategic priority — it unblocks semantic search, RAG, and geospatial use cases that are
+currently impossible to express.
 
 ---
 
-## 11. Migration Path: From Bundled Engine to Separated Layers
+## 5. Hybrid Engines: One Database, Multiple Layouts
 
-### Today's Interface (Keep the ISP Split)
+### The Problem with "One Layout Per Engine"
 
-The current per-ADT interface split (`MapBackend`, `ScanBackend`, `SetBackend`,
-`CounterBackend`, `GraphBackend`, `MultimapBackend`, `LogBackend`) is already correct — it is
-the data-model layer. **Do not change it.** The optional capability interfaces
-(`PushdownScan`, `RawValueReader`, `StreamingScan`, `LayoutPlanner`) are also correct — they are
-storage-engine capabilities.
+The model so far assumes each engine has ONE storage layout. Reality is messier:
 
-### What Changes: `EngineProfile` Gains Storage-Engine Metadata
+| Database | Primary layout | Secondary layout | Via |
+| --- | --- | --- | --- |
+| **PostgreSQL** | B+Tree (tables) | Inverted index (full-text via `tsvector`) | Built-in |
+| **PostgreSQL + PostGIS** | B+Tree (tables) | R-Tree (spatial via GiST index) | Extension |
+| **PostgreSQL + pgvector** | B+Tree (tables) | HNSW (vector via `vector` extension) | Extension |
+| **DuckDB** | Columnar (analytics) | — but has `ASOF JOIN` (temporal-ish at query time) | Built-in |
+| **SQLite** | B+Tree (tables) | Inverted index (FTS5 module) | Built-in module |
+| **ClickHouse** | Columnar (MergeTree) | Skip indexes (bloom filter, set) | Built-in |
 
-The only structural change is enriching `EngineProfile` to name the storage engine explicitly,
-rather than encoding it opaquely in `NsPerOp`:
+PostgreSQL alone can serve **four different ADTs** from four different storage layouts: Map
+(B+Tree), Search (tsvector/inverted), Spatial (PostGIS R-Tree), and Vector (pgvector HNSW) —
+all in one database, one connection, one transaction.
+
+### How the Model Handles This
+
+An engine declares **multiple layouts**, one per ADT it serves:
 
 ```go
-// PROPOSED — EngineProfile names the storage engine, not just the cost
+// PROPOSED — EngineProfile carries a layout per ADT, not one global layout
 type EngineProfile struct {
     Name     string
-    Layout   StorageLayout       // NEW: B-Tree, LSM, Hash, Columnar, HNSW, Inverted, R-Tree
-    Supports map[ADT]Complexity   // unchanged: which data models this engine serves
+    Layouts  map[ADT]StorageLayout  // NEW: which physical layout serves each ADT
+    Supports map[ADT]Complexity      // unchanged: complexity per ADT
 
-    NsPerOp    float64            // unchanged: calibrated cost (still useful for tie-breaking)
-    NsPerRead  float64            // unchanged
-    NsPerWrite float64            // unchanged
+    NsPerOp    float64               // unchanged: calibrated cost for tie-breaking
+    NsPerRead  float64
+    NsPerWrite float64
 }
-
-type StorageLayout string
-
-const (
-    LayoutBTree       StorageLayout = "btree"
-    LayoutLSM         StorageLayout = "lsm"
-    LayoutHash        StorageLayout = "hash"
-    LayoutColumnar    StorageLayout = "columnar"
-    LayoutAppendLog   StorageLayout = "append_log"
-    LayoutHNSW        StorageLayout = "hnsw"        // for Vector engines
-    LayoutInverted    StorageLayout = "inverted"     // for Search engines
-    LayoutRTree       StorageLayout = "rtree"        // for Spatial engines
-    LayoutInMemory    StorageLayout = "in_memory"
-)
 ```
 
-This is **backward compatible**: existing engines set `Layout` to the appropriate constant and
-keep everything else unchanged. The planner gains the ability to reason about storage engines
-without breaking any existing code.
-
-### The Planner Reads the Matrix
+PostgreSQL's profile would declare:
 
 ```go
-// The planner consults a static cost matrix keyed by (ADT, StorageLayout).
-// This replaces opaque per-engine NsPerOp comparisons for structural decisions.
-var costMatrix = map[ADT]map[StorageLayout]Complexity{
-    ADTMap: {
-        LayoutBTree:    ComplexityOLogN,
-        LayoutLSM:      ComplexityOLogN,
-        LayoutHash:     ComplexityO1,
-        LayoutColumnar: ComplexityON, // suboptimal — planner warns
-        LayoutInMemory: ComplexityO1,
+EngineProfile{
+    Name: "postgres",
+    Layouts: map[ADT]StorageLayout{
+        ADTMap:     LayoutBTree,
+        ADTSearch:  LayoutInverted,   // via tsvector
+        ADTSpatial: LayoutRTree,      // via PostGIS GiST
+        ADTVector:  LayoutHNSW,       // via pgvector
     },
-    ADTCounter: {
-        LayoutBTree:    ComplexityON,
-        LayoutLSM:      ComplexityON,
-        LayoutColumnar: ComplexityO1, // optimal — columnar SUM is native
-        LayoutInMemory: ComplexityON,
+    Supports: map[ADT]Complexity{
+        ADTMap:     ComplexityOLogN,
+        ADTSearch:  ComplexityO1,
+        ADTSpatial: ComplexityOLogN,
+        ADTVector:  ComplexityOLogN,
     },
-    ADTVector: {
-        LayoutHNSW:     ComplexityOLogN, // approximate k-NN
-        LayoutInMemory: ComplexityON,    // brute force
-    },
-    // ... full matrix from §8
-}
-
-// The planner uses the matrix to pick engines:
-func pickEngine(adt ADT, engines []Engine) (Engine, Complexity) {
-    best := engines[0]
-    bestCost := costMatrix[adt][best.Profile().Layout]
-    for _, e := range engines[1:] {
-        c := costMatrix[adt][e.Profile().Layout]
-        if rankComplexity(c) < rankComplexity(bestCost) {
-            best, bestCost = e, c
-        }
-    }
-    return best, bestCost
 }
 ```
 
-### Migration Steps
+This is **more honest** than a single `Layout` field. It says: "I serve Map via B+Tree, Search
+via inverted index, Vector via HNSW." The planner reads the layout *for the specific ADT* and
+gets the right complexity from the matrix.
 
-1. **Add `StorageLayout` to `EngineProfile`** — set `Layout` on Memory, SQLite, Pebble engines.
-   No behavior change; the planner still uses `NsPerOp` for tie-breaking.
-2. **Add the static cost matrix** — the (ADT × StorageLayout) table from §8. The planner uses
-   it for structural classification (which engine family fits), then `NsPerOp` for fine-grained
-   tie-breaking within the same family.
-3. **Add `VersionedStorage` interface** — optional capability, checked at runtime. No existing
-   engine implements it initially; it's ready for BigTable/Cassandra drivers.
-4. **Add new ADTs** (`ADTVector`, `ADTSearch`, `ADTSpatial`) + backend interfaces + fold return
-   types. These are additive — they don't affect existing queries.
-5. **Add the temporal query signal** (`AsOf *time.Time` in query input structs) — the planner
-   checks for it and routes to `VersionedStorage` or replay fallback.
+For engines that use one layout for everything (Pebble = LSM for all ADTs), the map just has the
+same value in every cell. No overhead.
 
-Each step is independently shippable. Steps 1–2 are a refactor with no behavior change. Steps
-3–5 are additive features.
+### Why This Matters for Adoption
+
+The single-layout model would force pgvector into its own `metaengine/pgvectorengine/` module,
+separate from the PostgreSQL engine — even though they share the same connection, transaction,
+and process. The multi-layout model lets one PostgreSQL engine serve four ADTs from four
+layouts, which is how real consumers use it.
 
 ---
 
-## 12. What Is Hard (Honest Assessment)
+## 6. The Event Store Is Also a Storage Choice
 
-### The Combination Explosion
+### The Blind Spot
 
-With 9 data models × 8 storage engines × 2 temporal modes × 3 retention policies, the
-theoretical space is 432 combinations. In practice:
+This document (and the metaengine generally) focuses on **projections** — the read side. But
+the event store itself is a storage-engine choice. The taxonomy lists append-only log as a
+storage engine, and the event store IS an append-only log:
 
-- Most engines only support 1–3 data models (Neo4j doesn't do Vector)
-- Most deployments have 1–5 engines
-- The matrix has many empty cells (wrong engine for that ADT)
+| Event store implementation | Data Model | Storage Engine | Why chosen |
+| --- | --- | --- | --- |
+| `SQLEventStore` (SQLite) | Ordered KV (aggregate+version key) | B+Tree | Transactional, queryable |
+| `SQLEventStore` (Postgres) | Ordered KV | B+Tree | Transactional, durable, replicable |
+| `PebbleEventStore` | Ordered KV | LSM | Write-optimized (events are append-only) |
+| `MemoryStore` | Ordered KV | In-Memory | Speed, testing |
 
-The real decision space is small (tens of valid combinations), but the **matrix must be
-correct** — a wrong cell produces wrong planner decisions. Calibration and testing matter.
+The layered model applies here too: the event store's access pattern is **Ordered KV**
+(load-by-aggregate = prefix scan, append = put). The storage engine determines write throughput
+(LSM wins) vs. transactional durability (B+Tree wins). The taxonomy doc
+([§4: Relevance to go-cqrs-lite](../research/database-architecture-taxonomy.md)) already makes
+this exact point.
 
-### Calibration Drift
+### What This Means for the Planner
 
-The static cost matrix is structural (Big-O classes). The `NsPerOp` numbers are calibrated
-(benchmarks). Calibrated numbers drift with hardware, data shape, and engine versions. The
-matrix is stable; the calibration is not. Mitigation: the `calibration_bench_test.go` pattern
-already in `metaengine/pebbleengine/` should extend to every engine.
+Today, the event store is chosen at deployment time (operator picks SQLite vs Pebble vs
+Postgres) and the metaengine has no visibility into it. The planner optimizes *projections*
+only.
 
-### When Separation Hurts
+A more ambitious framing: the planner could reason about the **whole stack** — event store +
+projections — and recommend an event store storage engine based on write rate. If the operator
+declares "10K events/sec," the planner might recommend LSM (Pebble) for the event store AND
+columnar (DuckDB) for the Counter projections. This is out of scope for the current metaengine
+(which only plans projections), but the layered model makes it *thinkable*.
 
-For the common case (single SQLite engine, small scale), the axis separation adds cognitive
-overhead without benefit. The planner picks SQLite for everything because it's the only engine.
-The separation pays off only when:
+---
 
-- Multiple engines are available (2+)
+## 7. Concrete Before/After: What Changes for the Consumer
+
+### Example 1: Vector Search (Impossible Today → Possible After)
+
+**BEFORE (today):** No way to express this. The developer must build a separate pgvector
+integration outside the metaengine, manually wire it as a projection, and bypass the planner.
+
+```go
+// TODAY — not expressible in metaengine. Must hand-wire:
+store, _ := metaengine.Plan(engines, findUser, listByStatus)
+// findSimilar is NOT a metaengine query — it's custom code against pgvector directly
+```
+
+**AFTER (with ADTVector):** The developer declares it like any other query:
+
+```go
+type FindSimilar struct {
+    Query []float32
+    K     int
+}
+type SimilarDoc struct {
+    ID    string
+    Score float64
+}
+
+findSimilar := metaengine.Query[FindSimilar, SimilarDoc]("similar_docs",
+    metaengine.On(DocumentIndexed{}, func(e DocumentIndexed) metaengine.Embedding {
+        return metaengine.Embedding{ID: e.ID, Vector: e.Embedding}
+    }),
+)
+
+store, _ := metaengine.Plan(
+    []metaengine.Engine{sqliteEngine, pgvectorEngine},
+    findUser, listByStatus, findSimilar,
+)
+
+// The planner sees Embedding return type → ADTVector → checks which engines serve it
+// → pgvectorEngine (LayoutHNSW) is the only one → assigns findSimilar to pgvector
+// → EXPLAIN says: "similar_docs → pgvector (HNSW, O(logN) approx)"
+
+results, _ := metaengine.ExecuteTyped[FindSimilar, SimilarDoc](
+    ctx, store, FindSimilar{Query: qvec, K: 10})
+```
+
+### Example 2: Temporal Query (O(N) Replay → O(1) Native)
+
+**BEFORE (today):** No temporal projection support. "Balance as of last Tuesday" requires
+custom replay code.
+
+**AFTER (with VersionedStorage):**
+
+```go
+type AccountBalance struct {
+    ID      AccountID
+    AsOf    *time.Time  // nil = latest, non-nil = point-in-time
+}
+
+balanceQuery := metaengine.Query[AccountBalance, BalanceResult]("balance",
+    metaengine.On(DepositRecorded{}, func(e DepositRecorded) (AccountID, BalanceResult) {
+        return e.AccountID, BalanceResult{Amount: e.Amount}
+    }),
+    metaengine.On(WithdrawalRecorded{}, func(e WithdrawalRecorded, prev BalanceResult) BalanceResult {
+        prev.Amount -= e.Amount
+        return prev
+    }),
+)
+
+// Operator provides BigTable engine with versioned cells:
+store, _ := metaengine.Plan(
+    []metaengine.Engine{bigtableEngine}, // implements VersionedStorage
+    balanceQuery,
+)
+// EXPLAIN: "balance → bigtable (Versioned LSM, as-of O(1))"
+
+// Latest balance — O(1)
+latest, _ := metaengine.ExecuteTyped[AccountBalance, BalanceResult](
+    ctx, store, AccountBalance{ID: acctID})
+
+// Historical balance — also O(1) on BigTable (vs O(events) replay on Pebble)
+historical, _ := metaengine.ExecuteTyped[AccountBalance, BalanceResult](
+    ctx, store, AccountBalance{ID: acctID, AsOf: &lastTuesday})
+```
+
+### Example 3: Planner EXPLAIN Output Changes When a New Engine Arrives
+
+```
+# Deployment A: SQLite only
+EXPLAIN:
+  findUser    → sqlite (B+Tree, O(logN))     ✓
+  listByStatus→ sqlite (B+Tree, O(logN))     ✓
+  countUsers  → sqlite (B+Tree, O(N))        ⚠ DEGRADED (Counter on B+Tree = full scan)
+
+# Deployment B: SQLite + ClickHouse added
+EXPLAIN:
+  findUser    → sqlite (B+Tree, O(logN))     ✓
+  listByStatus→ sqlite (B+Tree, O(logN))     ✓
+  countUsers  → clickhouse (Columnar, O(1))  ✓✓ OPTIMAL (reassigned: columnar Counter is native)
+```
+
+The developer's code is identical between Deployments A and B. The planner reads the cost matrix
+and reassigns `countUsers` when a better engine becomes available. This is the "smart
+combination" in action.
+
+---
+
+## 8. Migration Path: Actual Code Diffs
+
+The migration is **backward compatible** and **incrementally shippable**. Five steps, each
+independently deployable.
+
+### Step 1: Add `Layouts` to `EngineProfile` (refactor, no behavior change)
+
+```diff
+ // metaengine/engine.go
+ type EngineProfile struct {
+     Name     string
++    Layouts  map[ADT]StorageLayout  // which physical layout serves each ADT
+     Supports map[ADT]Complexity
+     NsPerOp    float64
+     NsPerRead  float64
+     NsPerWrite float64
+ }
++
++type StorageLayout string
++
++const (
++    LayoutBTree     StorageLayout = "btree"
++    LayoutLSM       StorageLayout = "lsm"
++    LayoutHash      StorageLayout = "hash"
++    LayoutColumnar  StorageLayout = "columnar"
++    LayoutAppendLog StorageLayout = "append_log"
++    LayoutHNSW      StorageLayout = "hnsw"
++    LayoutInverted  StorageLayout = "inverted"
++    LayoutRTree     StorageLayout = "rtree"
++    LayoutInMemory  StorageLayout = "in_memory"
++)
+```
+
+Then update each engine's `Profile()`:
+
+```diff
+ // metaengine/memory_engine.go — Memory uses hash/in-memory for everything
+ func (m *memoryEngine) Profile() EngineProfile {
+     return EngineProfile{
+         Name:    "memory",
++        Layouts: map[ADT]StorageLayout{
++            ADTMap: LayoutInMemory, ADTSet: LayoutInMemory,
++            ADTCounter: LayoutInMemory, ADTGraph: LayoutInMemory,
++            ADTSortedMap: LayoutInMemory, ADTLog: LayoutInMemory,
++            ADTMultimap: LayoutInMemory,
++        },
+         // ... Supports unchanged
+```
+
+```diff
+ // metaengine/pebbleengine/engine.go — Pebble uses LSM for everything
+ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
+     return metaengine.EngineProfile{
+         Name:       "pebble",
++        Layouts: map[metaengine.ADT]metaengine.StorageLayout{
++            metaengine.ADTMap: metaengine.LayoutLSM, /* ... all LSM */
++        },
+         // ... Supports unchanged
+```
+
+```diff
+ // metaengine/sqlite_engine.go — SQLite uses B+Tree for everything
+ func (e *sqliteEngine) Profile() EngineProfile {
+     return EngineProfile{
+         Name: "sqlite",
++        Layouts: map[ADT]StorageLayout{
++            ADTMap: LayoutBTree, /* ... all B+Tree */
++        },
+         // ... Supports unchanged
+```
+
+**No behavior change.** The planner still uses `Supports` (ADT → complexity) for assignment and
+`NsPerOp` for tie-breaking. `Layouts` is metadata, ready for Step 2.
+
+### Step 2: Add the Static Cost Matrix (planner uses it for structural reasoning)
+
+```go
+// metaengine/cost_matrix.go
+var costMatrix = map[ADT]map[StorageLayout]Complexity{
+    ADTMap: {
+        LayoutBTree: ComplexityOLogN, LayoutLSM: ComplexityOLogN,
+        LayoutHash: ComplexityO1, LayoutColumnar: ComplexityON, LayoutInMemory: ComplexityO1,
+    },
+    ADTCounter: {
+        LayoutBTree: ComplexityON, LayoutLSM: ComplexityON,
+        LayoutColumnar: ComplexityO1, LayoutInMemory: ComplexityON,
+    },
+    // ... full matrix from §2
+}
+```
+
+The planner consults this for structural classification ("is columnar or B+Tree right for this
+Counter?") and falls back to `NsPerOp` for tie-breaking within the same complexity class. Still
+no behavior change for existing 3 engines — they produce the same assignments.
+
+### Step 3: Add `VersionedStorage` Interface (additive, no existing engine implements it)
+
+```go
+// metaengine/engine.go
+type VersionedStorage interface {
+    MapSetAt(ctx context.Context, collection string, key any, value any, at time.Time) error
+    MapGetAt(ctx context.Context, collection string, key any, at time.Time) (any, bool, error)
+    MapHistory(ctx context.Context, collection string, key any, from, to time.Time) ([]VersionedValue, error)
+}
+```
+
+No existing engine implements it. It's ready for BigTable/Cassandra drivers. The planner checks
+for it at runtime (like `PushdownScan` today) and routes `AsOf` queries accordingly.
+
+### Step 4: Add New ADTs (additive — doesn't affect existing queries)
+
+Add `ADTVector`, `ADTSearch`, `ADTSpatial` constants + `VectorBackend`, `SearchBackend`,
+`SpatialBackend` interfaces + `Embedding`, `IndexedText`, `Geometry` fold return types. These
+are purely additive — existing queries don't reference them. See §4 for the interface sketches
+and their design challenges.
+
+### Step 5: Add Temporal Query Signal (additive)
+
+The planner detects `AsOf *time.Time` fields in query input structs (mirroring how `*Cursor`
+signals pagination today). If present and no `VersionedStorage` engine is available, emit a
+degradation warning. If present and a versioned engine IS available, route to it.
+
+---
+
+## 9. What This Does NOT Change (Brutal Honesty)
+
+### For the Current Three Engines: Zero Behavior Change
+
+With only Memory, SQLite, and Pebble — all covering all 7 ADTs via the same layout families —
+the axis separation produces **identical assignments** to today's planner. The separation pays
+off only when:
+
+- A second storage-engine family is available (e.g., adding ClickHouse columnar alongside
+  SQLite B+Tree)
 - Specialized query patterns exist (Vector, Search, Spatial)
-- Scale pushes past single-engine comfort (high write rate, large volumes)
+- Scale pushes past single-engine comfort (high write rate, large volumes, temporal reads)
 
 For single-engine deployments, the layers are transparent — the planner collapses them into one
 assignment. The complexity is paid only when the value is realized.
+
+### The Cost Matrix Must Be Correct
+
+A wrong cell produces wrong planner decisions. The matrix encodes mathematical facts about data
+structures (hash is O(1), columnar Counter is O(1)), but the **scale thresholds** and
+**calibrated tie-breaking numbers** are empirical. Both must be tested:
+
+- Structural correctness: property-based tests verifying matrix invariants
+- Calibration: the `calibration_bench_test.go` pattern should extend to every engine
+- Threshold validation: regression tests that verify the planner picks the right engine at
+  boundary volumes
 
 ### The Temporal Replay Fallback Is Expensive
 
 When no versioned engine is available and a query needs as-of reads, the fallback is
 event-log replay — O(events to T). For a stream with 100K events queried for state at event 90K,
 that's 90K folds per query. The planner must warn loudly, and the operator must either provide
-a versioned engine or accept the cost.
+a versioned engine or accept the cost. Retention policy interacts with correctness: if the
+operator sets `max_age=1h`, temporal queries older than 1 hour are impossible without replay.
+
+### The Missing Three Interfaces Are Hard Design Work
+
+The sketches in §4 are **starting points, not final designs**. Each has unresolved design
+challenges:
+
+- **Vector:** distance metric parameterization, hybrid search composition, approximation knobs
+- **Search:** query DSL (structured vs string), analyzer chain config
+- **Spatial:** query shape variety (radius, box, polygon, intersection)
+
+These must be designed before any driver can implement them. Getting the interface wrong means
+every driver is constrained by the wrong abstraction. This is the highest-risk part of the
+proposal.
 
 ---
 
-## 13. Relationship to Existing Canon
+## 10. Relationship to Existing Canon
 
 This document is the **unifying lens**. It does not replace the existing docs — it connects
 them:
 
-| Document                                                                                       | Role                                                        | This doc's relationship                                                                                                                                                                                    |
-| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [database-architecture-taxonomy.md](../research/database-architecture-taxonomy.md)             | Reference: 13 interface models × 12 storage engines         | Provides the raw material. This doc identifies which models map to existing ADTs and which need new ones.                                                                                                  |
-| [meta-engine-project-definition.md](meta-engine-project-definition.md)                         | Vision: why cross-engine view selection is novel            | Provides the research framing. This doc provides the architectural decomposition that makes it implementable.                                                                                              |
-| [meta-engine-design.md](meta-engine-design.md)                                                 | Technical design: cost profiles, optimizer, deployments     | Provides the cost model and optimizer algorithm. This doc refines `EngineProfile` to separate the two axes the design doc conflates.                                                                       |
-| [meta-engine-assumptions-and-query-planning.md](meta-engine-assumptions-and-query-planning.md) | Scale thresholds: N → data structure                        | Provides the volume thresholds. This doc's cost matrix is the structural layer those thresholds operate on.                                                                                                |
-| [DataFusion lessons](2026-07-31_datafusion-lessons-for-metaengine.md)                          | Engineering patterns: rule pipeline, logical/physical split | Provides the logical/physical plan separation and tier classification. This doc adds the storage-engine axis and the temporal-storage capability that the DataFusion doc treats only at the logical layer. |
+| Document | Role | This doc's relationship |
+| --- | --- | --- |
+| [database-architecture-taxonomy.md](../research/database-architecture-taxonomy.md) | Reference: 13 interface models × 12 storage engines | Provides the raw material. This doc identifies which models map to existing ADTs and which need new ones. |
+| [meta-engine-project-definition.md](meta-engine-project-definition.md) | Vision: why cross-engine view selection is novel | Provides the research framing. This doc provides the architectural decomposition that makes it implementable. |
+| [meta-engine-design.md](meta-engine-design.md) | Technical design: cost profiles, optimizer, deployments | Provides the cost model and optimizer algorithm. This doc refines `EngineProfile` to separate the two axes the design doc conflates, and adds `Layouts` for hybrid engines. |
+| [meta-engine-assumptions-and-query-planning.md](meta-engine-assumptions-and-query-planning.md) | Scale thresholds: N → data structure | Provides the volume thresholds. This doc's cost matrix is the structural layer those thresholds operate on. |
+| [DataFusion lessons](2026-07-31_datafusion-lessons-for-metaengine.md) | Engineering patterns: rule pipeline, logical/physical split | Provides the logical/physical plan separation and tier classification. This doc adds the storage-engine axis and the temporal-storage capability that the DataFusion doc treats only at the logical layer. |
 
 ### The Single Sentence
 

@@ -439,3 +439,31 @@ func setup() {
 		t.Errorf("WithSnapshotStore call should detect Snapshot=on, got %s", fp.Snapshot)
 	}
 }
+
+func TestDetectFeatures_MySQLStore(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func setup() {
+	_ = mysql.New(dsn)
+}
+`,
+	})
+	ctx.Packages = []*packages.Package{
+		{
+			PkgPath: "example.com/app",
+			Imports: map[string]*packages.Package{
+				"github.com/larsartmann/go-cqrs-lite/stack/mysql/v4": {
+					PkgPath: "github.com/larsartmann/go-cqrs-lite/stack/mysql/v4",
+				},
+			},
+		},
+	}
+
+	fp := DetectFeatures(ctx)
+	if fp.Store != StoreMySQL {
+		t.Errorf("stack/mysql import should detect StoreMySQL, got %s", fp.Store)
+	}
+}
