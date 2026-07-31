@@ -88,15 +88,15 @@ func (s *sqlSink) Increment(
 
 	pholders := placeholders(s.dialect, len(allCols))
 
+	setExprs := []string{
+		fmt.Sprintf("%s = COALESCE(%s, 0) + %s", counterCol, counterCol, s.dialect.ExcludedRef(counterCol)),
+	}
 	query := fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(%s) DO UPDATE SET %s = COALESCE(%s, 0) + excluded.%s",
+		"INSERT INTO %s (%s) VALUES (%s) %s",
 		table,
 		strings.Join(allCols, ", "),
 		pholders,
-		strings.Join(conflictCols, ", "),
-		counterCol,
-		counterCol,
-		counterCol,
+		s.dialect.OnConflictDoUpdate(conflictCols, setExprs),
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, allVals...); err != nil {
