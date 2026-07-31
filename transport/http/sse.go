@@ -26,10 +26,11 @@ type SSEBrokerOption func(*SSEBroker)
 // SSEBroker bridges an event bus to Server-Sent Events HTTP clients.
 //
 // This SSE implementation bridges an event.Bus to HTTP clients
-// (bus-to-client). For collection-watch SSE (watching a metaengine Store
-// collection for mutations with journal replay), see metaengine.ServeSSE.
-// The two implementations serve different layers and are intentionally
-// separate.
+// (bus-to-client, raw domain events). For collection-watch SSE (watching a
+// metaengine Store collection for materialized-query mutations with journal
+// replay), see metaengine.ServeSSE. The two implementations serve different
+// layers: transport/http SSE pushes raw events, metaengine SSE pushes
+// read-model query results.
 type SSEBroker struct {
 	mu               sync.RWMutex
 	clients          map[SSEClientID]chan event.Event

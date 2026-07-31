@@ -248,9 +248,12 @@ type TTLConfig struct {
 	DefaultTTL time.Duration
 }
 
-// WithTTL sets a TTL on a query configuration. Entries older than the TTL
-// are expired. This is a declarative hint — actual expiration requires
-// engine support (SQLite: background sweeper, Memory: lazy eviction).
+// WithTTL sets a TTL hint on a query configuration. The TTL value is stored
+// in the query config and surfaced in the plan, but no engine currently
+// enforces automatic expiration. This is advisory-only — callers that need
+// TTL semantics must implement their own eviction (e.g. a background sweeper
+// or lazy expiry on read). Engine-level TTL support may be added in a future
+// release.
 func WithTTL(d time.Duration) QueryOption {
 	return func(c *QueryConfig) {
 		c.TTL = d.Nanoseconds()

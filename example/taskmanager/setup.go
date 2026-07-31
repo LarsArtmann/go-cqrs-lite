@@ -17,7 +17,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
@@ -34,7 +33,6 @@ type Server struct {
 	Bundle       *stack.Bundle
 	Repo         *decider.Repository[TaskState]
 	CmdDisp      *command.Dispatcher
-	ReadModel    *kv.TypedStore[TaskView, TaskID]
 	Mat          *stack.Materialize[TaskView, TaskID]
 	ProjHost     *projectionhost.Host
 	MetaEngine   *metaengine.Store
@@ -124,14 +122,6 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		return nil, fmt.Errorf("setup: repository: %w", err)
 	}
 
-	rmStore, err := stack.ReadModel[TaskView, TaskID](bundle, bundle.DefaultCodec())
-	if err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = bundle.Close()
-
-		return nil, fmt.Errorf("setup: read model: %w", err)
-	}
-
 	mat, err := stack.NewMaterialize[TaskView, TaskID](bundle, bundle.DefaultCodec(), taskViewKey)
 	if err != nil {
 		//cqrs-lint:ignore(C023) library code or intentional pattern
@@ -184,7 +174,6 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		Bundle:     bundle,
 		Repo:       repo,
 		CmdDisp:    command.NewDispatcher(),
-		ReadModel:  rmStore,
 		Mat:        mat,
 		ProjHost:   projHost,
 		MetaEngine: bundle.MetaEngine(),

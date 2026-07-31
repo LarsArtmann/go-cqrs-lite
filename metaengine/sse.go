@@ -17,8 +17,9 @@ import (
 // This SSE implementation watches a metaengine Store collection for changes
 // (collection-watch + replay from journal). For event-bus-to-client SSE
 // (bridging an event.Bus to HTTP clients), see transport/http.SSEBroker.
-// The two implementations serve different layers and are intentionally
-// separate — see ADR discussion on SSE consolidation.
+// The two implementations serve different layers: metaengine SSE streams
+// materialized query results (read-model push), while transport/http SSE
+// streams raw domain events (event-bus push).
 type SSEConfig struct {
 	// Timeout is the maximum duration the SSE stream stays open.
 	// Zero means no timeout (stream until client disconnects).
