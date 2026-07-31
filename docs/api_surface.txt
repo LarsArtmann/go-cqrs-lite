@@ -1545,6 +1545,7 @@ metaengine/method QueryResultType
 metaengine/method ReadNsPerOp
 metaengine/method Record
 metaengine/method Record
+metaengine/method RegisterQuery
 metaengine/method Replay
 metaengine/method Replay
 metaengine/method Report

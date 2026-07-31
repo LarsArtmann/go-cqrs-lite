@@ -96,7 +96,11 @@ func BenchmarkFilteredScan(b *testing.B) {
 	}
 }
 
-func setupBenchStore(tb testing.TB, n int, useSQLite bool) (*metaengine.Store, *metaengine.TypedReader[benchItemResult]) {
+func setupBenchStore(
+	tb testing.TB,
+	n int,
+	useSQLite bool,
+) (*metaengine.Store, *metaengine.TypedReader[benchItemResult]) {
 	tb.Helper()
 
 	var engines []metaengine.Engine
