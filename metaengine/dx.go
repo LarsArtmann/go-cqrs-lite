@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"sync"
 	"time"
 )
 
@@ -127,18 +128,24 @@ func eventNameFromSample(sample any) string {
 
 // --- Watch / Reactive reads (scaffold) ---
 
+// watcherEntry is a registered watcher subscription stored on the Store.
+type watcherEntry struct {
+	ch     chan any
+	closed bool
+}
+
 // Watcher provides reactive read notifications. When a value changes, all
-// subscribers are notified. This is a scaffold — the memory engine supports
-// pub/sub internally; SQL engines would need update hooks.
+// subscribers are notified.
 type Watcher[V any] struct {
-	store      *Store
-	collection string
-	subs       []chan V
+	mu       sync.Mutex
+	store    *Store
+	coll    string
+	entries []*watcherEntry
 }
 
 // NewWatcher creates a watcher for a collection.
 func NewWatcher[V any](store *Store, collection string) *Watcher[V] {
-	return &Watcher[V]{store: store, collection: collection}
+	return &Watcher[V]{store: store, coll: collection}
 }
 
 // Watch returns a channel that receives updated values. The channel is
@@ -146,18 +153,50 @@ func NewWatcher[V any](store *Store, collection string) *Watcher[V] {
 // Callers must close the watcher when done (via Close).
 func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 	ch := make(chan V, 1)
-	w.subs = append(w.subs, ch)
+
+	entry := &watcherEntry{ch: make(chan any, 1)}
+
+	w.mu.Lock()
+	w.entries = append(w.entries, entry)
+	w.mu.Unlock()
+
+	// Register on the store so Apply can notify
+	w.store.registerWatcher(w.coll, entry)
+
+	// Adapter goroutine: convert any→V
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case val, ok := <-entry.ch:
+				if !ok {
+					return
+				}
+				if v, ok := val.(V); ok {
+					select {
+					case ch <- v:
+					default: // drop if consumer is slow
+					}
+				}
+			}
+		}
+	}()
 
 	return ch
 }
 
 // Close stops all subscriptions.
 func (w *Watcher[V]) Close() {
-	for _, ch := range w.subs {
-		close(ch)
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	for _, entry := range w.entries {
+		close(entry.ch)
+		entry.closed = true
 	}
 
-	w.subs = nil
+	w.entries = nil
 }
 
 // --- Cursor pre-fetch cache ---

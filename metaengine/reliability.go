@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"hash/fnv"
+	"sync"
 	"time"
 )
 
@@ -52,6 +53,13 @@ func CalibrateEngine(eng Engine, iterations int) {
 		profile.NsPerRead = readNs
 		profile.NsPerWrite = writeNs
 	}
+}
+
+// WithReadCoalescer enables concurrent read coalescing on the Store. When
+// multiple goroutines read the same key simultaneously, only one actual
+// engine read is performed; the result is shared with all waiters.
+func WithReadCoalescer(store *Store, rc *ReadCoalescer) {
+	store.coalescer = rc
 }
 
 // --- Schema Versioning for Layouts ---

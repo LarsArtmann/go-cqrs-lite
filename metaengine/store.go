@@ -33,7 +33,10 @@ type Store struct {
 	appliedEvent sync.Map // event ID → struct{} (idempotent Apply dedup)
 	hooks        *Hooks   // observability hooks (nil = no-op)
 	eventLog     *EventLog
-	queryDecls   []any // original query declarations (for Verify)
+	queryDecls   []any          // original query declarations (for Verify)
+	coalescer    *ReadCoalescer // optional read coalescer (nil = disabled)
+	watcherMu    sync.Mutex
+	watchers     map[string][]*watcherEntry // collection → watcher entries
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -133,6 +136,36 @@ func (s *Store) Close() error {
 	return firstErr
 }
 
+// registerWatcher adds a watcher entry for a collection. Called by
+// Watcher.Watch during setup. Thread-safe.
+func (s *Store) registerWatcher(collection string, entry *watcherEntry) {
+	s.watcherMu.Lock()
+	defer s.watcherMu.Unlock()
+
+	if s.watchers == nil {
+		s.watchers = make(map[string][]*watcherEntry)
+	}
+
+	s.watchers[collection] = append(s.watchers[collection], entry)
+}
+
+// notifyWatchers sends a value update to all watchers of a collection.
+// Non-blocking: if a watcher's channel is full, the notification is dropped.
+func (s *Store) notifyWatchers(collection string, value any) {
+	s.watcherMu.Lock()
+	entries := s.watchers[collection]
+	s.watcherMu.Unlock()
+
+	for _, entry := range entries {
+		if !entry.closed {
+			select {
+			case entry.ch <- value:
+			default: // drop if consumer is slow
+			}
+		}
+	}
+}
+
 // Apply processes an event through ALL queries that listen to it.
 // Each query has its own independent projection — the same event updates
 // each matching query's collection separately.
@@ -156,6 +189,8 @@ func (s *Store) Apply(ctx context.Context, eventType string, payload any) error 
 		if err := s.applyFold(ctx, q, fold, payload); err != nil {
 			return fmt.Errorf("query %q fold for %s: %w", q.name, eventType, err)
 		}
+
+		s.notifyWatchers(q.name, payload)
 	}
 
 	return nil
