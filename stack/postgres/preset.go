@@ -20,8 +20,9 @@ type Option func(*config)
 type config struct {
 	sqlopt.DSNConfig
 
-	listener storage.NotificationListener // nil → in-memory bus
-	busOpts  []storage.PostgresBusOption  // forwarded when listener != nil
+	durability stack.DurabilityTier
+	listener   storage.NotificationListener // nil → in-memory bus
+	busOpts    []storage.PostgresBusOption  // forwarded when listener != nil
 }
 
 func defaultConfig() config {
@@ -32,9 +33,28 @@ func defaultConfig() config {
 			QueryDSN:    "",
 			ViewDSN:     "",
 		},
-		listener: nil,
-		busOpts:  nil,
+		durability: stack.DurabilityNormal,
+		listener:   nil,
+		busOpts:    nil,
 	}
+}
+
+// WithDurability sets the durability tier for the Postgres backend. This maps
+// to Postgres's synchronous_commit setting:
+//
+//   - [stack.DurabilityStrict]  → synchronous_commit=on (fsync WAL per commit)
+//   - [stack.DurabilityNormal]  → synchronous_commit=off (no per-commit fsync,
+//     ~200x faster writes, small window of lost transactions on OS crash)
+//   - [stack.DurabilityRelaxed] → synchronous_commit=off (same as Normal for
+//     Postgres)
+//
+// The setting is applied as a session-level SET command. For pool-wide effect
+// with MaxOpenConns > 1, set synchronous_commit in the DSN or via ALTER DATABASE.
+//
+// The chosen tier is recorded on the Bundle via [stack.WithDurability] so
+// benchmark tools can compare backends at the same durability level.
+func WithDurability(tier stack.DurabilityTier) Option {
+	return func(c *config) { c.durability = tier }
 }
 
 // WithDSN applies shared multi-database DSN options from sqlopt. Use this to
@@ -119,6 +139,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	}
 
 	stackOpts = append(stackOpts, stack.WithBus(bus))
+	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
 
 	if busCleanup != nil {
 		stackOpts = append(stackOpts, stack.WithCloser(busCleanup))
@@ -148,6 +169,14 @@ func openBackend(
 			return sqlopt.OpenDBOrErr("pgx", dsn, "postgres_preset.open_primary")
 		},
 		func(ctx context.Context, sqlDB *sql.DB) error {
+			if cfg.durability != "" {
+				if err := storage.PostgresSetSynchronousCommit(ctx, sqlDB,
+					cfg.durability == stack.DurabilityStrict); err != nil {
+					return errorfamily.WrapInfrastructure(err, "postgres_preset.apply_durability",
+						"apply durability tier")
+				}
+			}
+
 			if !cfg.AutoMigrate {
 				return nil
 			}

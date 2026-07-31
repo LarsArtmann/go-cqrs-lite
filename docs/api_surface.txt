@@ -2261,6 +2261,7 @@ stack/mysql/func WithStack
 stack/mysql/type Option
 stack/mysql/var ErrNoDatabase
 stack/pebble/func New
+stack/pebble/func WithDurability
 stack/pebble/func WithLogger
 stack/pebble/func WithPebbleOptions
 stack/pebble/method Checkpoint
@@ -2276,6 +2277,7 @@ stack/postgres/func NewPgxListenerFromDSN
 stack/postgres/func SQLViewModel
 stack/postgres/func WithDSN
 stack/postgres/func WithDistributedBus
+stack/postgres/func WithDurability
 stack/postgres/func WithPgxListenerLogger
 stack/postgres/func WithPgxListenerQueue
 stack/postgres/func WithReconnect
@@ -2362,6 +2364,7 @@ storage/func OpenDuckDBInMemory
 storage/func OpenSQLite
 storage/func OpenSQLiteInMemory
 storage/func PostgresInitSchema
+storage/func PostgresSetSynchronousCommit
 storage/func SQLiteApplyOptimizations
 storage/func SQLiteEnableForeignKeys
 storage/func SQLiteEnableWAL

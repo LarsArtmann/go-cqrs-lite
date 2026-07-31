@@ -19,13 +19,29 @@ type Option func(*config)
 type config struct {
 	pebbleOpts *pebble.Options
 	logger     *slog.Logger
+	durability stack.DurabilityTier
 }
 
 func defaultConfig() config {
 	return config{
 		pebbleOpts: cqrspebble.DefaultOptions(),
 		logger:     slog.Default(),
+		durability: stack.DurabilityNormal,
 	}
+}
+
+// WithDurability sets the durability tier for the Pebble backend. This maps
+// to Pebble's WAL and sync settings:
+//
+//   - [stack.DurabilityStrict]  → WAL enabled, sync writes (the default)
+//   - [stack.DurabilityNormal]  → same as Strict for Pebble (no change)
+//   - [stack.DurabilityRelaxed] → DisableWAL=true (writes go to memtable only,
+//     data loss on crash)
+//
+// The chosen tier is recorded on the Bundle via [stack.WithDurability] so
+// benchmark tools can compare backends at the same durability level.
+func WithDurability(tier stack.DurabilityTier) Option {
+	return func(c *config) { c.durability = tier }
 }
 
 // WithPebbleOptions overrides the default PebbleDB options. The preset ships
@@ -103,6 +119,11 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 		opt(&cfg)
 	}
 
+	// Translate durability tier to Pebble WAL settings.
+	if cfg.durability == stack.DurabilityRelaxed {
+		cfg.pebbleOpts.DisableWAL = true
+	}
+
 	backend, err := cqrspebble.Open(dir, cfg.pebbleOpts, cfg.logger)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "pebble_preset.open_backend",
@@ -119,6 +140,7 @@ func New(dir string, opts ...Option) (*Bundle, error) {
 		stack.WithBus(cqrswatermill.NewEventBus()),
 		stack.WithCloser(backend),
 		stack.WithDiskSize(func() int64 { return safeInt64(backend.DiskUsage()) }),
+		stack.WithDurability(cfg.durability),
 	)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "pebble_preset.wire_bundle",

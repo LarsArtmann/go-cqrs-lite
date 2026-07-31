@@ -150,6 +150,33 @@ func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
 	return execDDL(ctx, db, []string{sqlpkg.PostgresSchemaEmbed()})
 }
 
+// PostgresSetSynchronousCommit sets the synchronous_commit GUC for the
+// current session. With on (true), every COMMIT fsyncs the WAL to disk before
+// returning — maximum durability but high write latency. With off (false),
+// COMMIT returns immediately and the WAL is flushed periodically by the
+// wal_writer — up to ~200x faster at the cost of a small window of lost
+// transactions on OS crash.
+//
+// Note: this setting is session-scoped. With a connection pool (MaxOpenConns >
+// 1), new connections created by the pool will NOT inherit this setting. For
+// pool-wide effect, set it in the DSN via the options parameter or use
+// ALTER DATABASE. This function is sufficient for single-writer benchmark
+// scenarios and for pools where MaxOpenConns is 1.
+func PostgresSetSynchronousCommit(ctx context.Context, db *sql.DB, on bool) error {
+	level := "off"
+	if on {
+		level = "on"
+	}
+
+	stmt := fmt.Sprintf("SET synchronous_commit = %s", level)
+
+	if _, err := db.ExecContext(ctx, stmt); err != nil {
+		return errorfamily.WrapInfrastructure(err, "storage.set_synchronous_commit", "exec "+stmt)
+	}
+
+	return nil
+}
+
 func DuckDBInitSchema(ctx context.Context, db *sql.DB) error {
 	return execDDL(ctx, db, []string{sqlpkg.DuckDBSchemaEmbed()})
 }
