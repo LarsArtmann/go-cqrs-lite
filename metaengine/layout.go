@@ -116,6 +116,7 @@ func (p LayoutPlan) DDL() string {
 		for i, col := range idx.Columns {
 			quotedCols[i] = quoteIdent(col)
 		}
+
 		colList := strings.Join(quotedCols, ", ")
 		fmt.Fprintf(&b, "\nCREATE INDEX IF NOT EXISTS %s ON %s(%s);",
 			quoteIdent(idx.Name), quoteIdent(p.Table), colList)

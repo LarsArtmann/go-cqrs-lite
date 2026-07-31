@@ -2,8 +2,10 @@ package metaengine
 
 import (
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // ServeSSE streams Watcher notifications as Server-Sent Events over HTTP.
@@ -25,7 +27,7 @@ import (
 func ServeSSE[V any](w http.ResponseWriter, r *http.Request, watcher *Watcher[V]) error {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		return fmt.Errorf("metaengine.ServeSSE: response writer does not support flushing")
+		return errors.New("metaengine.ServeSSE: response writer does not support flushing")
 	}
 
 	w.Header().Set("Content-Type", "text/event-stream")
@@ -75,12 +77,14 @@ func (s *Store) Inspect() string {
 
 	result := fmt.Sprintf("metaengine: %d collection(s)\n", len(collections))
 
+	var resultSb78 strings.Builder
 	for _, c := range collections {
-		result += fmt.Sprintf(
+		resultSb78.WriteString(fmt.Sprintf(
 			"  %-20s  ADT=%-10s  pattern=%-20s  engine=%-15s  complexity=%s\n",
 			c.Name, c.ADT, c.ReadPattern, c.EngineName, c.Complexity,
-		)
+		))
 	}
+	result += resultSb78.String()
 
 	return result
 }

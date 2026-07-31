@@ -436,6 +436,7 @@ func (e *sqliteEngine) PushdownMapScan(
 // breaking out of the SQL string literal that wraps the path.
 func jsonPath(field string) string {
 	escaped := strings.ReplaceAll(field, "'", "''")
+
 	return "$." + escaped
 }
 

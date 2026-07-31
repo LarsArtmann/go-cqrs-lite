@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -29,6 +30,7 @@ func TestContractSuite_SQLiteEngine(t *testing.T) {
 
 	ContractSuite(t, func() Engine {
 		eng, _ := NewSQLiteEngine(db)
+
 		return eng
 	})
 }
@@ -79,7 +81,7 @@ func BenchmarkLargePayload_SQLite(b *testing.B) {
 			AssigneeID:  "user-67890",
 			ProjectID:   "proj-abcdef",
 			Tags:        "bug,critical,urgent",
-			URL:         "https://example.com/issues/id-" + fmt.Sprint(i),
+			URL:         "https://example.com/issues/id-" + strconv.Itoa(i),
 			Hash:        "abc123def456ghi789",
 			ParentID:    "parent-xyz",
 			MilestoneID: "m-42",
@@ -110,7 +112,7 @@ func BenchmarkLargePayload_Memory(b *testing.B) {
 			AssigneeID:  "user-67890",
 			ProjectID:   "proj-abcdef",
 			Tags:        "bug,critical,urgent",
-			URL:         "https://example.com/issues/id-" + fmt.Sprint(i),
+			URL:         "https://example.com/issues/id-" + strconv.Itoa(i),
 			Hash:        "abc123def456ghi789",
 			ParentID:    "parent-xyz",
 			MilestoneID: "m-42",
@@ -535,6 +537,7 @@ func TestReadCoalescer_ConcurrentReadsCoalesced(t *testing.T) {
 			v, f, err := reader.Get(ctx, testTaskID("t1"))
 			if err != nil {
 				t.Errorf("coalescer Get %d: %v", idx, err)
+
 				return
 			}
 			results[idx] = v
@@ -547,6 +550,7 @@ func TestReadCoalescer_ConcurrentReadsCoalesced(t *testing.T) {
 	for i := range 20 {
 		if !found[i] {
 			t.Errorf("coalescer: goroutine %d got found=false", i)
+
 			continue
 		}
 		if results[i].ID != testTaskID("t1") {
@@ -633,6 +637,7 @@ func (mt *mockTracer) StartSpan(_ context.Context, name string) (context.Context
 	mt.mu.Lock()
 	mt.spans = append(mt.spans, span)
 	mt.mu.Unlock()
+
 	return context.Background(), span
 }
 
@@ -665,6 +670,7 @@ func TestWithTracing_CreatesSpans(t *testing.T) {
 	for _, s := range tracer.spans {
 		if contains(s.name, "fold") {
 			foldSpan = s
+
 			break
 		}
 	}

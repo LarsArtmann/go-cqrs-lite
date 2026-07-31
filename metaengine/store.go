@@ -307,6 +307,7 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 
 			if err := mu.MapUpdate(ctx, col, key, func(prev any) any {
 				updatedVal = fold.callUpdate(payload, prev)
+
 				return updatedVal
 			}); err != nil {
 				return fmt.Errorf("map update %s: %w", col, err)

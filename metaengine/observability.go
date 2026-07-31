@@ -256,6 +256,7 @@ func WithTracing(store *Store, tracer Tracer) {
 			span.SetAttribute("event", eventType)
 			span.SetAttribute("kind", string(kind))
 			span.SetAttribute("duration_ms", d.Milliseconds())
+
 			if err != nil {
 				span.SetAttribute("error", err.Error())
 			}
@@ -272,6 +273,7 @@ func WithTracing(store *Store, tracer Tracer) {
 			span.SetAttribute("collection", collection)
 			span.SetAttribute("pattern", string(pattern))
 			span.SetAttribute("duration_ms", d.Milliseconds())
+
 			if err != nil {
 				span.SetAttribute("error", err.Error())
 			}

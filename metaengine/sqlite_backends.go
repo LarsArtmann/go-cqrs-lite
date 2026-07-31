@@ -42,9 +42,10 @@ func (e *sqliteEngine) CounterIncrement(ctx context.Context, col string, deltas 
 		xc := e.xc()
 		for k, d := range deltas {
 			if _, err := xc.exec(ctx, e.queries.counterIncrement, col, k, d); err != nil {
-				return err //nolint:wrapcheck // passthrough
+				return err
 			}
 		}
+
 		return nil
 	}
 

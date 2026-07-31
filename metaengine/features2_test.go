@@ -265,6 +265,7 @@ func TestTransaction_CommitRollback(t *testing.T) {
 	// Commit path: write inside tx, verify visible after commit
 	err := txEng.RunInTx(ctx, func(ctx context.Context) error {
 		mb := eng.(MapBackend)
+
 		return mb.MapSet(ctx, "col1", "key1", "value1")
 	})
 	if err != nil {
@@ -283,6 +284,7 @@ func TestTransaction_CommitRollback(t *testing.T) {
 		if err := mb.MapSet(ctx, "col1", "key2", "value2"); err != nil {
 			return err
 		}
+
 		return errors.New("intentional rollback")
 	})
 	if err == nil {
@@ -320,6 +322,7 @@ func TestTransaction_StoreInTransaction(t *testing.T) {
 		if err := store.Apply(ctx, "task_created", testTask{ID: "t1"}); err != nil {
 			return err
 		}
+
 		return store.Apply(ctx, "task_created", testTask{ID: "t2"})
 	})
 	if err != nil {
@@ -339,6 +342,7 @@ func TestTransaction_StoreInTransaction(t *testing.T) {
 		if err := store.Apply(ctx, "task_created", testTask{ID: "t3"}); err != nil {
 			return err
 		}
+
 		return errors.New("deliberate failure")
 	})
 	if err == nil {
@@ -367,6 +371,7 @@ func TestTransaction_MapUpdateInTx(t *testing.T) {
 	txEng := eng.(Transactional)
 	err := txEng.RunInTx(ctx, func(ctx context.Context) error {
 		mu := eng.(MapUpdater)
+
 		return mu.MapUpdate(ctx, "col", "k", func(prev any) any {
 			return prev.(float64) + 5
 		})

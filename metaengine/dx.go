@@ -173,6 +173,7 @@ func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 				if !ok {
 					return
 				}
+
 				if v, ok := val.(V); ok {
 					select {
 					case ch <- v:

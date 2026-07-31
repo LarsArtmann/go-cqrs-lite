@@ -144,7 +144,7 @@ func readModifyWriteCached(
 
 	_, err = xc.exec(ctx, setQuery, col, encodeKey(key), encodeValue(newVal))
 
-	return err //nolint:wrapcheck // passthrough
+	return err
 }
 
 // Compile-time interface assertion.
