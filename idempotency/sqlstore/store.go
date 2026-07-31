@@ -132,6 +132,17 @@ func NewPostgresStore(ctx context.Context, database *sql.DB) (*Store, error) {
 	return &Store{db: database, dialect: DialectPostgres, q: q}, nil
 }
 
+// NewMySQLStore creates a MySQL/MariaDB-backed idempotency store and creates
+// the schema if it does not exist. The caller retains ownership of db.
+func NewMySQLStore(ctx context.Context, database *sql.DB) (*Store, error) {
+	q := mysqlQueries()
+	if _, err := database.ExecContext(ctx, q.ddl); err != nil {
+		return nil, fmt.Errorf("sqlstore: create table: %w", err)
+	}
+
+	return &Store{db: database, dialect: DialectMySQL, q: q}, nil
+}
+
 // Seen reports whether the key is currently recorded and not expired.
 // Expired entries are lazily deleted.
 func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
