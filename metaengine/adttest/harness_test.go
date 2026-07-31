@@ -29,7 +29,10 @@ func TestRunMatrix_SingleFactory(t *testing.T) {
 	// Single factory — no cross-engine parity check (len < 2).
 	// Each scenario should run and pass for the memory engine.
 	RunMatrix(t, []Factory{
-		{Name: "memory", Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() }},
+		{
+			Name:   "memory",
+			Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
+		},
 	})
 }
 

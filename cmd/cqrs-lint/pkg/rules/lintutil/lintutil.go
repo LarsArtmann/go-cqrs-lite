@@ -5,6 +5,7 @@ package lintutil
 import (
 	"go/ast"
 	"go/token"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -118,13 +119,7 @@ func SelectorMatches(sel *ast.SelectorExpr, pkgName string, selNames ...string) 
 		return false
 	}
 
-	for _, name := range selNames {
-		if sel.Sel.Name == name {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(selNames, sel.Sel.Name)
 }
 
 // ExprCallSelector extracts the selector from an expression that is a function
@@ -151,13 +146,7 @@ func CallSelectorMatches(call *ast.CallExpr, names ...string) bool {
 		return false
 	}
 
-	for _, name := range names {
-		if sel.Sel.Name == name {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(names, sel.Sel.Name)
 }
 
 // ModuleImportsPath reports whether any non-test file in the analysis context

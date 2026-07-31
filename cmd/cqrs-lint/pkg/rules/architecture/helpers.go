@@ -3,6 +3,7 @@ package architecture
 import (
 	"go/ast"
 	"go/token"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -570,22 +571,16 @@ func receiverTypeMatches(
 		for _, sub := range typePathSubstrs {
 			switch {
 			case strings.Contains(sub, "event") || strings.Contains(sub, "storage"):
-				for _, pattern := range []string{"store", "eventstore", "repo", "es"} {
-					if name == pattern {
-						return true
-					}
+				if slices.Contains([]string{"store", "eventstore", "repo", "es"}, name) {
+					return true
 				}
 			case strings.Contains(sub, "projectionhost"):
-				for _, pattern := range []string{"host", "projectionhost", "proj"} {
-					if name == pattern {
-						return true
-					}
+				if slices.Contains([]string{"host", "projectionhost", "proj"}, name) {
+					return true
 				}
 			case strings.Contains(sub, "signing") || strings.Contains(sub, "encryption"):
-				for _, pattern := range []string{"signer", "encryptor", "enc", "sign"} {
-					if name == pattern {
-						return true
-					}
+				if slices.Contains([]string{"signer", "encryptor", "enc", "sign"}, name) {
+					return true
 				}
 			}
 		}

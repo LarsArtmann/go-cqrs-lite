@@ -23,6 +23,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -77,6 +78,7 @@ func RunMatrix(t *testing.T, factories []Factory) {
 			t.Parallel()
 
 			results := make(map[string]string, len(factories))
+			var mu sync.Mutex
 
 			for _, factory := range factories {
 				t.Run(factory.Name, func(t *testing.T) {
@@ -110,7 +112,9 @@ func RunMatrix(t *testing.T, factories []Factory) {
 						t.Fatalf("%s/%s read: %v", factory.Name, scenario.Name, err)
 					}
 
+					mu.Lock()
 					results[factory.Name] = scenario.Canonicalize(raw)
+					mu.Unlock()
 				})
 			}
 

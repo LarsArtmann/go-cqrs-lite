@@ -16,6 +16,22 @@ import (
 // RawValueReader and RawScanReader interfaces and that the raw bytes returned
 // match the JSON representation of the stored values.
 
+func setupRawScanTest(t *testing.T) (
+	*GomegaWithT, context.Context, metaengine.MapBackend, metaengine.RawScanReader,
+) {
+	t.Helper()
+
+	g := NewGomegaWithT(t)
+
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	t.Cleanup(func() { _ = eng.Close() })
+
+	ctx := context.Background()
+
+	return g, ctx, eng.(metaengine.MapBackend), eng.(metaengine.RawScanReader)
+}
+
 func TestPebbleGetRawValue(t *testing.T) {
 	g := NewGomegaWithT(t)
 
@@ -56,15 +72,7 @@ func TestPebbleGetRawValueNotFound(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesNoFilter(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	for i := range 5 {
 		g.Expect(mb.MapSet(ctx, "items", i, map[string]any{"id": i, "status": "open"})).
@@ -83,15 +91,7 @@ func TestPebbleScanRawValuesNoFilter(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesWithFilter(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	items := []struct {
 		key    string
@@ -126,15 +126,7 @@ func TestPebbleScanRawValuesWithFilter(t *testing.T) {
 func testSortedScan(t *testing.T, desc bool, expected []float64) {
 	t.Helper()
 
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	items := []struct {
 		key      string
@@ -176,15 +168,7 @@ func TestPebbleScanRawValuesWithSortDesc(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesWithCursor(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	for i := range 10 {
 		g.Expect(mb.MapSet(ctx, "paged", i, map[string]any{"id": float64(i)})).
@@ -221,15 +205,7 @@ func TestPebbleScanRawValuesWithCursor(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesWithFilterAndSort(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	items := []struct {
 		key      string
@@ -323,15 +299,7 @@ func TestPebbleRawValueBytesAreCopies(t *testing.T) {
 
 // TestPebbleScanRawValuesLimitZero verifies that limit=0 returns all values.
 func TestPebbleScanRawValuesLimitZero(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	for i := range 7 {
 		g.Expect(mb.MapSet(ctx, "nolimit", i, map[string]any{"id": float64(i)})).
@@ -344,15 +312,7 @@ func TestPebbleScanRawValuesLimitZero(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesFilterIn(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	statuses := []string{"open", "pending", "done", "archived"}
 	for i, s := range statuses {
@@ -379,15 +339,7 @@ func TestPebbleScanRawValuesFilterIn(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesFilterNe(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	statuses := []string{"open", "open", "done", "open"}
 	for i, s := range statuses {
@@ -409,15 +361,7 @@ func TestPebbleScanRawValuesFilterNe(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesFilterRange(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	priorities := []float64{1, 3, 5, 7, 9}
 	for i, p := range priorities {
@@ -451,15 +395,7 @@ func TestPebbleScanRawValuesFilterRange(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesCursorDesc(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	for i := range 10 {
 		g.Expect(mb.MapSet(ctx, "desc", i, map[string]any{"id": float64(i)})).
@@ -498,15 +434,7 @@ func TestPebbleScanRawValuesEmptyCollection(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesAllFilteredOut(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	for i := range 5 {
 		g.Expect(mb.MapSet(ctx, "filtered", i, map[string]any{"status": "open"})).
@@ -522,15 +450,7 @@ func TestPebbleScanRawValuesAllFilteredOut(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesLimitOne(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	for i := range 10 {
 		g.Expect(mb.MapSet(ctx, "one", i, map[string]any{"id": float64(i)})).
@@ -543,15 +463,7 @@ func TestPebbleScanRawValuesLimitOne(t *testing.T) {
 }
 
 func TestPebbleScanRawValuesFilterAndSortCombined(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	mb := eng.(metaengine.MapBackend)
-	rsr := eng.(metaengine.RawScanReader)
+	g, ctx, mb, rsr := setupRawScanTest(t)
 
 	items := []struct {
 		key      string

@@ -835,7 +835,8 @@ func TestSSE_LastEventID_Reconnect_SQLite(t *testing.T) {
 
 		data2 += string(rbuf[:n])
 
-		if strings.Contains(data2, "SQLite Reconnect 3") && strings.Contains(data2, "SQLite Reconnect 4") {
+		if strings.Contains(data2, "SQLite Reconnect 3") &&
+			strings.Contains(data2, "SQLite Reconnect 4") {
 			break
 		}
 	}

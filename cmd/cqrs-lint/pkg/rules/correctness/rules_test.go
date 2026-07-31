@@ -3,10 +3,11 @@ package correctness_test
 import (
 	"testing"
 
+	"github.com/larsartmann/go-finding"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
-	"github.com/larsartmann/go-finding"
 )
 
 // --- C006: Manual Version Arithmetic ---
