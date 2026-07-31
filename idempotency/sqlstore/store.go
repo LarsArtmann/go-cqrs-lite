@@ -76,6 +76,29 @@ func postgresQueries() queries {
 	}
 }
 
+func mysqlQueries() queries {
+	return queries{
+		ddl: "CREATE TABLE IF NOT EXISTS idempotency_keys (\n" +
+			"\t`key`        VARCHAR(255) PRIMARY KEY,\n" +
+			"\texpires_at BIGINT NOT NULL\n" +
+			");",
+		seen:      "SELECT expires_at FROM idempotency_keys WHERE `key` = ? LIMIT 1",
+		deleteKey: "DELETE FROM idempotency_keys WHERE `key` = ?",
+		// ON DUPLICATE KEY UPDATE with a self-assignment no-op (key = key)
+		// is the MySQL equivalent of ON CONFLICT DO NOTHING.
+		record: "INSERT INTO idempotency_keys (`key`, expires_at) VALUES (?, ?) " +
+			"ON DUPLICATE KEY UPDATE `key` = `key`",
+		// MySQL does not support WHERE in ON DUPLICATE KEY UPDATE, so the
+		// conditional update uses IF(). When the existing row is expired
+		// (expires_at < now), the new expiry is written; otherwise the old
+		// value is kept (no-op → RowsAffected returns 0 → ErrDuplicate).
+		checkAndRecord: "INSERT INTO idempotency_keys (`key`, expires_at) VALUES (?, ?) " +
+			"ON DUPLICATE KEY UPDATE expires_at = " +
+			"IF(idempotency_keys.expires_at < ?, VALUES(expires_at), idempotency_keys.expires_at)",
+		sweep: "DELETE FROM idempotency_keys WHERE expires_at < ?",
+	}
+}
+
 // Store is a SQL-backed [idempotency.Store]. It stores expiry timestamps as
 // UnixNano integers. Expired entries are cleaned lazily on read and via the
 // optional [Store.Sweep] method.
