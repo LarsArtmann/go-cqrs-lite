@@ -228,7 +228,15 @@ func (e *sqliteEngine) MapUpdate(
 	// When inside an outer transaction (RunInTx), reuse it instead of
 	// starting a nested BeginTx (SQLite does not support nested BEGIN).
 	if e.txExec() != nil {
-		return readModifyWriteCached(ctx, e.xc(), e.queries.mapGet, e.queries.mapSet, col, key, update)
+		return readModifyWriteCached(
+			ctx,
+			e.xc(),
+			e.queries.mapGet,
+			e.queries.mapSet,
+			col,
+			key,
+			update,
+		)
 	}
 
 	return runTxReadModifyWrite(
@@ -501,7 +509,7 @@ func (e *sqliteEngine) buildStreamQuery(
 		}
 
 		if sort != nil {
-				fmt.Fprintf(&b, " ORDER BY %s", quoteIdent(sort.Column))
+			fmt.Fprintf(&b, " ORDER BY %s", quoteIdent(sort.Column))
 
 			if sort.Desc {
 				b.WriteString(" DESC")

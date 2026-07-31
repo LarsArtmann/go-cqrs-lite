@@ -77,7 +77,13 @@ func WithSlowQueryLog(store *Store, threshold time.Duration, logger *log.Logger)
 // MetricsRecorder collects runtime metrics from the Store.
 type MetricsRecorder interface {
 	RecordApply(collection, eventType string, kind FoldKind, d time.Duration, err error)
-	RecordExecute(collection string, pattern ReadPattern, d time.Duration, resultCount int, err error)
+	RecordExecute(
+		collection string,
+		pattern ReadPattern,
+		d time.Duration,
+		resultCount int,
+		err error,
+	)
 }
 
 // WithMetrics wraps the Store's hooks to forward events to a MetricsRecorder.

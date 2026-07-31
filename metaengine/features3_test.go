@@ -200,7 +200,12 @@ func TestMigrateLayout_EndToEnd(t *testing.T) {
 
 	// Verify data can be written with the new schema
 	mb := eng.(MapBackend)
-	if err := mb.MapSet(ctx, "test_col", "k1", map[string]any{"status": "open", "priority": 1, "category": "bug"}); err != nil {
+	if err := mb.MapSet(
+		ctx,
+		"test_col",
+		"k1",
+		map[string]any{"status": "open", "priority": 1, "category": "bug"},
+	); err != nil {
 		t.Errorf("MapSet after migration: %v", err)
 	}
 
@@ -356,7 +361,8 @@ func TestExplain_FilterIn(t *testing.T) {
 	_ = store.Apply(ctx, "task_created", testTask{ID: "t1"})
 
 	reader := NewReader[testTask](store, "tasks")
-	query, args := reader.Explain(ctx,
+	query, args := reader.Explain(
+		ctx,
 		WithFilter("id", FilterIn, []any{"t1", "t2", "t3"}),
 	)
 
@@ -630,8 +636,8 @@ func (mt *mockTracer) StartSpan(_ context.Context, name string) (context.Context
 	return context.Background(), span
 }
 
-func (ms *mockSpan) End()                                 { ms.ended = true }
-func (ms *mockSpan) SetAttribute(key string, value any)   { ms.attributes[key] = value }
+func (ms *mockSpan) End()                               { ms.ended = true }
+func (ms *mockSpan) SetAttribute(key string, value any) { ms.attributes[key] = value }
 
 func TestWithTracing_CreatesSpans(t *testing.T) {
 	eng := NewMemoryEngine()

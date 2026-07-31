@@ -137,8 +137,8 @@ type watcherEntry struct {
 // Watcher provides reactive read notifications. When a value changes, all
 // subscribers are notified.
 type Watcher[V any] struct {
-	mu       sync.Mutex
-	store    *Store
+	mu      sync.Mutex
+	store   *Store
 	coll    string
 	entries []*watcherEntry
 }

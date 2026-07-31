@@ -175,7 +175,7 @@ this list and recorded in CHANGELOG.
 - [x] **Transaction API** — `store.InTransaction(ctx, func(tx *Tx) error { ... })`
       — atomic multi-event application with rollback.
 - [x] **Fluent query builder** — `metaengine.New("find_user").On(...).Filter(...).
-  Sort(...).Volume(1M)` as alternative to variadic-`any` constructor.
+Sort(...).Volume(1M)` as alternative to variadic-`any` constructor.
 - [ ] **Compile-time query registration** — `//go:generate metaengine-gen`
       generating typed `Store` methods (`store.FindUser(ctx, id)`) from query
       declarations. Eliminates `ExecuteTyped[Q, R]` boilerplate.
@@ -252,9 +252,9 @@ this list and recorded in CHANGELOG.
 - [x] **Export/import** — `store.Export(ctx, w)` / `store.Import(ctx, r)` for
       backup, migration, seed data.
 - [x] **CLI inspector** — `store.Inspect()` returns formatted collection metadata.
-  --filter status=open --limit 10`.
+      --filter status=open --limit 10`.
 - [~] **cqrs-lint rules** — F018 (FilterOn pushdown), F019 (missing Volume hint) implemented.
-      missing `Volume` hint, `SortOn` without index, write amplification over budget.
+  missing `Volume` hint, `SortOn` without index, write amplification over budget.
 
 ### Testing & Verification
 
