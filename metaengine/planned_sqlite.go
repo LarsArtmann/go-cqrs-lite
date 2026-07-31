@@ -110,7 +110,7 @@ func (e *sqliteEngine) mapSetPlanned(
 	key any,
 	value any,
 ) error {
-	return execPlannedSet(ctx, e.db, plan, key, value)
+	return execPlannedSet(ctx, e.xd(), plan, key, value)
 }
 
 // execPlannedSet writes a key-value pair to a planned table with extracted columns.
@@ -157,7 +157,7 @@ func (e *sqliteEngine) mapGetPlanned(
 ) (any, bool, error) {
 	var valStr string
 
-	err := e.db.QueryRowContext(ctx,
+	err := e.xd().QueryRowContext(ctx,
 		fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
 		encodeKey(key)).Scan(&valStr)
 	if err != nil {
@@ -180,6 +180,29 @@ func (e *sqliteEngine) mapUpdatePlanned(
 	key any,
 	update func(prev any) any,
 ) error {
+	// Inside outer tx: reuse it (SQLite doesn't support nested BEGIN).
+	if e.txExec() != nil {
+		xd := e.xd()
+
+		var valStr string
+
+		err := xd.QueryRowContext(ctx,
+			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
+			encodeKey(key)).Scan(&valStr)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err //nolint:wrapcheck // passthrough
+		}
+
+		var prev any
+		if err == nil {
+			prev = decodeJSONValue(valStr)
+		}
+
+		newVal := update(prev)
+
+		return execPlannedSet(ctx, xd, plan, key, newVal)
+	}
+
 	return runTxReadModifyWrite(
 		ctx, e.db, update,
 		func(ctx context.Context, tx *sql.Tx) (any, error) {
@@ -283,7 +306,7 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 		args = append(args, limit+1)
 	}
 
-	return scanJSONValues(ctx, e.db, b.String(), args...)
+	return scanJSONValues(ctx, e.xd(), b.String(), args...)
 }
 
 // extractFields pulls field values from a Go value (struct or map) for the

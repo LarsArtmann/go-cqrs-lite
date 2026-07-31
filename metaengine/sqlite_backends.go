@@ -14,7 +14,7 @@ import (
 // --- SetBackend ---
 
 func (e *sqliteEngine) SetAdd(ctx context.Context, col string, key any) error {
-	_, err := e.cache.exec(ctx, e.queries.setAdd, col, encodeKey(key))
+	_, err := e.xc().exec(ctx, e.queries.setAdd, col, encodeKey(key))
 
 	return err
 }
@@ -22,7 +22,7 @@ func (e *sqliteEngine) SetAdd(ctx context.Context, col string, key any) error {
 func (e *sqliteEngine) SetContains(ctx context.Context, col string, key any) (bool, error) {
 	var one int
 
-	err := e.cache.queryRow(ctx, e.queries.setContains, col, encodeKey(key)).Scan(&one)
+	err := e.xc().queryRow(ctx, e.queries.setContains, col, encodeKey(key)).Scan(&one)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
@@ -37,6 +37,17 @@ func (e *sqliteEngine) SetContains(ctx context.Context, col string, key any) (bo
 // --- CounterBackend ---
 
 func (e *sqliteEngine) CounterIncrement(ctx context.Context, col string, deltas Delta) error {
+	// When inside an outer transaction, reuse its executor.
+	if e.txExec() != nil {
+		xc := e.xc()
+		for k, d := range deltas {
+			if _, err := xc.exec(ctx, e.queries.counterIncrement, col, k, d); err != nil {
+				return err //nolint:wrapcheck // passthrough
+			}
+		}
+		return nil
+	}
+
 	tx, err := e.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err //nolint:wrapcheck // passthrough
@@ -54,7 +65,7 @@ func (e *sqliteEngine) CounterIncrement(ctx context.Context, col string, deltas 
 }
 
 func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.db.QueryContext(ctx, e.queries.counterGet, col)
+	rows, err := e.xd().QueryContext(ctx, e.queries.counterGet, col)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -82,7 +93,7 @@ func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]i
 // JSON-encoded rows, decoding each into an any. Rows that fail JSON decoding
 // fall back to their raw string form. Used by PushdownMapScan, MultiGet, and
 // LogTail — all paths where direct callers expect decoded values.
-func scanJSONValues(ctx context.Context, db *sql.DB, query string, args ...any) ([]any, error) {
+func scanJSONValues(ctx context.Context, db dbExec, query string, args ...any) ([]any, error) {
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
@@ -126,7 +137,7 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 		return err
 	}
 
-	_, err = e.cache.exec(
+	_, err = e.xc().exec(
 		ctx,
 		e.queries.multiAdd,
 		col,
@@ -139,7 +150,7 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 }
 
 func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any, error) {
-	return scanJSONValues(ctx, e.db, e.queries.multiGet, col, encodeKey(key))
+	return scanJSONValues(ctx, e.xd(), e.queries.multiGet, col, encodeKey(key))
 }
 
 // multiSeqCounter is a lazily-initialized sequence counter for a multimap
@@ -160,7 +171,7 @@ func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, err
 	c.once.Do(func() {
 		var maxSeq sql.NullInt64
 
-		queryErr := e.db.QueryRowContext(ctx,
+		queryErr := e.xd().QueryRowContext(ctx,
 			"SELECT MAX(seq) FROM meta_multimap WHERE collection = ?", col).Scan(&maxSeq)
 		if queryErr != nil {
 			c.initErr = queryErr
@@ -183,7 +194,7 @@ func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, err
 // --- LogBackend ---
 
 func (e *sqliteEngine) LogAppend(ctx context.Context, col string, value any) error {
-	_, err := e.cache.exec(ctx, e.queries.logAppend, col, encodeValue(value))
+	_, err := e.xc().exec(ctx, e.queries.logAppend, col, encodeValue(value))
 
 	return err
 }
@@ -194,7 +205,7 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 	}
 
 	// Query is DESC; reverse the result for chronological order.
-	fwd, err := scanJSONValues(ctx, e.db, e.queries.logTail, col, limit)
+	fwd, err := scanJSONValues(ctx, e.xd(), e.queries.logTail, col, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +221,7 @@ func (e *sqliteEngine) GraphAddEdge(ctx context.Context, col string, edge Edge) 
 	from := encodeKey(edge.From)
 	to := encodeKey(edge.To)
 
-	_, err := e.db.ExecContext(ctx, e.queries.graphAddEdge, col, from, to)
+	_, err := e.xd().ExecContext(ctx, e.queries.graphAddEdge, col, from, to)
 
 	return err //nolint:wrapcheck // passthrough
 }
@@ -270,7 +281,7 @@ func (e *sqliteEngine) scanNeighborKeys(
 	ctx context.Context,
 	col, fromKey string,
 ) ([]string, error) {
-	rows, err := e.db.QueryContext(
+	rows, err := e.xd().QueryContext(
 		ctx,
 		`SELECT to_node FROM meta_graph_edges WHERE collection = ? AND from_node = ?`,
 		col, fromKey,

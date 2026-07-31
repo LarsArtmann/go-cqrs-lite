@@ -169,7 +169,7 @@ func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value an
 		return e.mapSetPlanned(ctx, plan, key, value)
 	}
 
-	_, err := e.cache.exec(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(value))
+	_, err := e.xc().exec(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(value))
 
 	return err
 }
@@ -181,7 +181,7 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 
 	var valStr string
 
-	err := e.cache.queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
+	err := e.xc().queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil
@@ -195,14 +195,14 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 
 func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error {
 	if plan, ok := e.plans[col]; ok {
-		_, err := e.db.ExecContext(ctx,
+		_, err := e.xd().ExecContext(ctx,
 			fmt.Sprintf("DELETE FROM %s WHERE key = ?", plan.Table),
 			encodeKey(key))
 
 		return err //nolint:wrapcheck // passthrough
 	}
 
-	_, err := e.cache.exec(ctx, e.queries.mapDelete, col, encodeKey(key))
+	_, err := e.xc().exec(ctx, e.queries.mapDelete, col, encodeKey(key))
 
 	return err
 }
@@ -224,6 +224,13 @@ func (e *sqliteEngine) MapUpdate(
 	// MapUpdate calls on the same key cannot interleave their reads and
 	// writes (lost-update). The tx pins one connection from the pool; the
 	// SELECT and INSERT commit atomically.
+	//
+	// When inside an outer transaction (RunInTx), reuse it instead of
+	// starting a nested BeginTx (SQLite does not support nested BEGIN).
+	if e.txExec() != nil {
+		return readModifyWriteCached(ctx, e.xc(), e.queries.mapGet, e.queries.mapSet, col, key, update)
+	}
+
 	return runTxReadModifyWrite(
 		ctx, e.db, update,
 		func(ctx context.Context, tx *sql.Tx) (any, error) {
@@ -266,9 +273,9 @@ func (e *sqliteEngine) MapScan(
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		rows, err = e.db.QueryContext(ctx, "SELECT value FROM "+plan.Table)
+		rows, err = e.xd().QueryContext(ctx, "SELECT value FROM "+plan.Table)
 	} else {
-		rows, err = e.db.QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
+		rows, err = e.xd().QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
 	}
 
 	if err != nil {
@@ -413,7 +420,7 @@ func (e *sqliteEngine) PushdownMapScan(
 		args = append(args, limit+1)
 	}
 
-	return scanJSONValues(ctx, e.db, b.String(), args...)
+	return scanJSONValues(ctx, e.xd(), b.String(), args...)
 }
 
 // jsonPath converts a field name to a JSON path for json_extract.
@@ -437,7 +444,7 @@ func (e *sqliteEngine) StreamScan(
 	return func(yield func(any, error) bool) {
 		query, args := e.buildStreamQuery(col, filters, sort)
 
-		rows, err := e.db.QueryContext(ctx, query, args...)
+		rows, err := e.xd().QueryContext(ctx, query, args...)
 		if err != nil {
 			yield(nil, err)
 
