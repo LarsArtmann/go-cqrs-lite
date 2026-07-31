@@ -554,10 +554,14 @@
             # sweep: auto-fix formatting + lint drift. Run after daemon commits
             # or schedule via cron to keep the codebase clean between sessions.
             # Runs nix fmt (gofumpt + goimports + golines) then golangci-lint.
-            sweep = mkApp "sweep" [ pkgs.bash ] ''
+            sweep = mkApp "sweep" [ pkgs.bash pkgs.golangci-lint goPkg ] ''
               echo "==> Formatting (nix fmt)"
               nix fmt
-              echo "✅ Format sweep complete"
+              echo "==> Quick build check"
+              ${goPkg}/bin/go build -tags "goexperiment.jsonv2" ./... 2>/dev/null || echo "WARN: build has errors (formatting still applied)"
+              echo "==> Lint sweep (golangci-lint)"
+              ${pkgs.golangci-lint}/bin/golangci-lint run --timeout 5m ./... 2>/dev/null || echo "WARN: lint findings remain (review manually)"
+              echo "✅ Sweep complete — format + lint applied"
             '';
 
             check-printf = mkApp "check-printf" [ pkgs.gnugrep pkgs.findutils ] ''
