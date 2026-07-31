@@ -181,5 +181,6 @@ watermill/     — Watermill protocol adapter
 | [0077](0077-metaengine-graph-reconciliation.md)        | Metaengine GraphBackend vs graph/ reconciliation        | 2026-07-31 | Accepted                                                                                                                      |
 | [0078](0078-metaengine-kv-coexistence.md)              | Metaengine and kv.ViewStore coexistence                 | 2026-07-31 | Accepted                                                                                                                      |
 | [0079](0079-sse-consolidation.md)                      | SSE consolidation (two implementations, two layers)     | 2026-07-31 | Accepted                                                                                                                      |
+| [0080](0080-metaengine-runtime-casts.md)               | Why metaengine uses runtime casts (Go generics limits)  | 2026-07-31 | Accepted                                                                                                                      |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).

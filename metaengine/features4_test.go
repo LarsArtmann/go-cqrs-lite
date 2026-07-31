@@ -930,13 +930,13 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 	}
 
 	// Give clients time to connect.
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	// Apply an event that should reach all subscribers.
 	_ = store.Apply(ctx, "task_created", testTask{ID: "fanout-1", Title: "FanOut"})
 
 	// Give events time to propagate through watcher → SSE → HTTP.
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	cancel()
 	wg.Wait()
