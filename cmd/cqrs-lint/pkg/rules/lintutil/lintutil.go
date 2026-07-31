@@ -106,9 +106,94 @@ func IsFmtErrorf(call *ast.CallExpr) bool {
 		return false
 	}
 
-	ident, ok := sel.X.(*ast.Ident)
+	return SelectorMatches(sel, "fmt", "Errorf")
+}
 
-	return ok && ident.Name == "fmt" && sel.Sel.Name == "Errorf"
+// SelectorMatches reports whether sel is pkgName.selName where selName matches
+// any of selNames. Shared by rules that check call targets by package and
+// method name (d012 isContextType, c032 isContextCreation, IsFmtErrorf).
+func SelectorMatches(sel *ast.SelectorExpr, pkgName string, selNames ...string) bool {
+	ident, ok := sel.X.(*ast.Ident)
+	if !ok || ident.Name != pkgName {
+		return false
+	}
+
+	for _, name := range selNames {
+		if sel.Sel.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ExprCallSelector extracts the selector from an expression that is a function
+// call: expr → *ast.CallExpr → analyzer.SelectorFromExpr(call.Fun). Returns
+// (nil, false) when expr is not a call or its target is not a selector.
+// Shared by rules that inspect call expressions for method patterns
+// (a002 isDirectJSONMarshal, swallow_helpers isPayloadCall).
+func ExprCallSelector(expr ast.Expr) (*ast.SelectorExpr, bool) {
+	call, ok := expr.(*ast.CallExpr)
+	if !ok {
+		return nil, false
+	}
+
+	return analyzer.SelectorFromExpr(call.Fun)
+}
+
+// ModuleImportsPath reports whether any non-test file in the analysis context
+// imports a path containing the given substring. Checks both the packages
+// loader (ctx.Packages) and raw AST import declarations (ctx.GoFiles).
+// Shared by s005 (moduleHasSigning) and s006 (moduleHasEncryption).
+func ModuleImportsPath(ctx *analyzer.AnalysisContext, path string) bool {
+	for _, pkg := range ctx.Packages {
+		for _, imp := range pkg.Imports {
+			if imp == nil {
+				continue
+			}
+
+			if strings.Contains(imp.PkgPath, path) {
+				return true
+			}
+		}
+	}
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		for _, imp := range gf.AST.Imports {
+			if imp.Path == nil {
+				continue
+			}
+
+			p := strings.Trim(imp.Path.Value, `"`)
+
+			if strings.Contains(p, path) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// FirstFilePos returns the package declaration position of the first non-test
+// file. Used as an anchor for project-level findings without a specific call
+// site. Shared by adoption and architecture rule packages.
+func FirstFilePos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		if gf.AST.Package != token.NoPos {
+			return ctx.Fset.Position(gf.AST.Package), true
+		}
+	}
+
+	return token.Position{}, false
 }
 
 // HasWrapVerb returns true if the format string contains %w (error wrapping).

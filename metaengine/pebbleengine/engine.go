@@ -249,20 +249,12 @@ func (e *pebbleEngine) MapSet(_ context.Context, col string, key any, value any)
 }
 
 func (e *pebbleEngine) MapGet(_ context.Context, col string, key any) (any, bool, error) {
-	val, closer, err := e.db.Get(mapKey(col, encodeKeyStr(key)))
-	if err != nil {
-		if errors.Is(err, pebble.ErrNotFound) {
-			return nil, false, nil
-		}
-
-		return nil, false, err
+	val, ok, err := e.getPebbleRaw(col, key)
+	if err != nil || !ok {
+		return nil, ok, err
 	}
 
-	defer func() { _ = closer.Close() }() //cqrs-lint:ignore(C015) pebble closer, error is always nil
-
-	result := decodeJSON(val)
-
-	return result, true, nil
+	return decodeJSON(val), true, nil
 }
 
 func (e *pebbleEngine) MapDelete(_ context.Context, col string, key any) error {

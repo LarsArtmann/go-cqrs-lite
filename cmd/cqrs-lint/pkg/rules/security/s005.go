@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // S005: Event signing available but disabled.
@@ -35,7 +36,7 @@ func NewS005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"S005-signing-available-but-disabled",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !moduleHasSigning(ctx) {
+			if !lintutil.ModuleImportsPath(ctx, "go-cqrs-lite/signing") {
 				return nil, nil
 			}
 
@@ -109,38 +110,6 @@ type signingGuardSite struct {
 	filename  string
 	line      int
 	column    int
-}
-
-// --- Module-scope signing import check (mirrors moduleHasEncryption) ---
-
-func moduleHasSigning(ctx *analyzer.AnalysisContext) bool {
-	for _, pkg := range ctx.Packages {
-		for _, imp := range pkg.Imports {
-			if imp == nil {
-				continue
-			}
-			if strings.Contains(imp.PkgPath, "go-cqrs-lite/signing") {
-				return true
-			}
-		}
-	}
-
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-		for _, imp := range gf.AST.Imports {
-			if imp.Path == nil {
-				continue
-			}
-			path := strings.Trim(imp.Path.Value, `"`)
-			if strings.Contains(path, "go-cqrs-lite/signing") {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 // --- Enable-field collection ---

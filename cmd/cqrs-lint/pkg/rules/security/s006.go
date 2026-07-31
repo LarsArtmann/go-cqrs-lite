@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // S006: Financial data without encryption.
@@ -38,7 +39,7 @@ func NewS006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"S006-financial-data-without-encryption",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if moduleHasEncryption(ctx) {
+			if lintutil.ModuleImportsPath(ctx, "go-cqrs-lite/encryption") {
 				return nil, nil
 			}
 

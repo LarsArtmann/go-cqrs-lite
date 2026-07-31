@@ -181,6 +181,20 @@ func (w *Watcher[V]) Replay() *SSEReplay[V] {
 	return w.replay
 }
 
+// addWatcherEntry creates a watcherEntry, registers it under the watcher's
+// mutex, and subscribes it to the store for change notifications.
+func (w *Watcher[V]) addWatcherEntry(key any) *watcherEntry {
+	entry := &watcherEntry{ch: make(chan any, 1), key: key}
+
+	w.mu.Lock()
+	w.entries = append(w.entries, entry)
+	w.mu.Unlock()
+
+	w.store.registerWatcher(w.coll, entry)
+
+	return entry
+}
+
 // Watch returns a channel that receives updated values. The optional key
 // parameter filters notifications to that specific key only; pass nil to
 // receive all changes in the collection. The channel is buffered (1) and
@@ -223,13 +237,7 @@ func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 func (w *Watcher[V]) WatchWithSeq(ctx context.Context, key any) <-chan SeqValue[V] {
 	ch := make(chan SeqValue[V], 1)
 
-	entry := &watcherEntry{ch: make(chan any, 1), key: key}
-
-	w.mu.Lock()
-	w.entries = append(w.entries, entry)
-	w.mu.Unlock()
-
-	w.store.registerWatcher(w.coll, entry)
+	entry := w.addWatcherEntry(key)
 
 	// Adapter goroutine: convert any→SeqValue[V], unwrap watcherNotification.
 	go func() {

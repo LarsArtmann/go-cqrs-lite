@@ -19,11 +19,10 @@ var (
 
 // --- RawValueReader ---
 
-// GetRawValue reads the raw JSON bytes for a key without decoding to any.
-// The TypedReader and ExecuteTyped paths prefer this over MapGet for point
-// lookups, decoding directly to the target type V (1 JSON op instead of 2:
-// decode-to-any + reify-from-map).
-func (e *pebbleEngine) GetRawValue(_ context.Context, col string, key any) ([]byte, bool, error) {
+// getPebbleRaw reads the raw bytes for a collection key from Pebble, handling
+// ErrNotFound and closer lifecycle. The returned slice is a copy ( Pebble
+// values are only valid until closer.Close). Shared by MapGet and GetRawValue.
+func (e *pebbleEngine) getPebbleRaw(col string, key any) ([]byte, bool, error) {
 	val, closer, err := e.db.Get(mapKey(col, encodeKeyStr(key)))
 	if err != nil {
 		if errors.Is(err, pebble.ErrNotFound) {
@@ -35,8 +34,15 @@ func (e *pebbleEngine) GetRawValue(_ context.Context, col string, key any) ([]by
 
 	defer func() { _ = closer.Close() }() //cqrs-lint:ignore(C015) pebble closer, error is always nil
 
-	// Pebble values are only valid until closer.Close — copy.
 	return append([]byte(nil), val...), true, nil
+}
+
+// GetRawValue reads the raw JSON bytes for a key without decoding to any.
+// The TypedReader and ExecuteTyped paths prefer this over MapGet for point
+// lookups, decoding directly to the target type V (1 JSON op instead of 2:
+// decode-to-any + reify-from-map).
+func (e *pebbleEngine) GetRawValue(_ context.Context, col string, key any) ([]byte, bool, error) {
+	return e.getPebbleRaw(col, key)
 }
 
 // --- RawScanReader ---
