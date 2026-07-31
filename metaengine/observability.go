@@ -143,10 +143,10 @@ func sanitizeDotID(s string) string {
 // CostReport compares estimated latency against actual measured latency
 // for each query in a PlanResult.
 type CostReport struct {
-	Query          string
+	Query              string
 	EstimatedLatencyNs float64 // ns
-	ActualLatency  float64 // ns
-	DriftPercent   float64 // (actual - estimated) / estimated * 100
+	ActualLatency      float64 // ns
+	DriftPercent       float64 // (actual - estimated) / estimated * 100
 }
 
 // CostAccuracyReporter measures actual query latency and compares it
@@ -208,10 +208,10 @@ func (r *CostAccuracyReporter) Report(plan *PlanResult) []CostReport {
 		}
 
 		reports = append(reports, CostReport{
-			Query:          q.QueryName,
+			Query:              q.QueryName,
 			EstimatedLatencyNs: estimatedNs,
-			ActualLatency:  actualNs,
-			DriftPercent:   drift,
+			ActualLatency:      actualNs,
+			DriftPercent:       drift,
 		})
 	}
 
@@ -238,7 +238,10 @@ func WithTracing(store *Store, tracer Tracer) {
 	// OnFold creates a span for each fold; OnExecute creates a span for each query.
 	hooks := Hooks{
 		OnFold: func(collection, eventType string, kind FoldKind, d time.Duration) {
-			ctx, span := tracer.StartSpan(context.Background(), fmt.Sprintf("metaengine.fold.%s", collection))
+			ctx, span := tracer.StartSpan(
+				context.Background(),
+				fmt.Sprintf("metaengine.fold.%s", collection),
+			)
 			span.SetAttribute("collection", collection)
 			span.SetAttribute("event", eventType)
 			span.SetAttribute("kind", string(kind))
@@ -247,7 +250,10 @@ func WithTracing(store *Store, tracer Tracer) {
 			_ = ctx
 		},
 		OnExecute: func(collection string, pattern ReadPattern, d time.Duration) {
-			_, span := tracer.StartSpan(context.Background(), fmt.Sprintf("metaengine.execute.%s", collection))
+			_, span := tracer.StartSpan(
+				context.Background(),
+				fmt.Sprintf("metaengine.execute.%s", collection),
+			)
 			span.SetAttribute("collection", collection)
 			span.SetAttribute("pattern", string(pattern))
 			span.SetAttribute("duration_ms", d.Milliseconds())

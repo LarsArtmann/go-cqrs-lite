@@ -57,7 +57,11 @@ func TestErrNotFound_ExecuteTyped(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = ExecuteTyped[testFindTask, testTask](context.Background(), store, testFindTask{ID: "missing"})
+	_, err = ExecuteTyped[testFindTask, testTask](
+		context.Background(),
+		store,
+		testFindTask{ID: "missing"},
+	)
 	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("expected ErrNotFound, got %v", err)
 	}
@@ -234,7 +238,8 @@ func TestSchemaEnforcement(t *testing.T) {
 
 	// Should not have schema mismatch warnings for correct types
 	for _, diag := range store.Plan().Diagnostics {
-		if strings.Contains(diag.Message, "fold returns") && strings.Contains(diag.Message, "but query result type is") {
+		if strings.Contains(diag.Message, "fold returns") &&
+			strings.Contains(diag.Message, "but query result type is") {
 			t.Errorf("unexpected schema mismatch: %s", diag.Message)
 		}
 	}

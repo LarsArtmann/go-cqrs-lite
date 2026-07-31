@@ -206,7 +206,10 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 			cols := cfg.sortCols
 			sortFn = func(a, b any) int {
 				for _, col := range cols {
-					c := compareValue(itemFieldByName(a, col.Column), itemFieldByName(b, col.Column))
+					c := compareValue(
+						itemFieldByName(a, col.Column),
+						itemFieldByName(b, col.Column),
+					)
 					if c != 0 {
 						if col.Desc {
 							return -c
@@ -319,22 +322,38 @@ func (r *TypedReader[V]) Count(ctx context.Context, opts ...ScanOption) (int, er
 
 // Sum returns the sum of a numeric column across matching rows.
 // Uses SQL SUM pushdown when the engine supports it.
-func (r *TypedReader[V]) Sum(ctx context.Context, column string, opts ...ScanOption) (float64, error) {
+func (r *TypedReader[V]) Sum(
+	ctx context.Context,
+	column string,
+	opts ...ScanOption,
+) (float64, error) {
 	return r.aggregatePushdown(ctx, AggregateSum, column, opts...)
 }
 
 // Min returns the minimum value of a column across matching rows.
-func (r *TypedReader[V]) Min(ctx context.Context, column string, opts ...ScanOption) (float64, error) {
+func (r *TypedReader[V]) Min(
+	ctx context.Context,
+	column string,
+	opts ...ScanOption,
+) (float64, error) {
 	return r.aggregatePushdown(ctx, AggregateMin, column, opts...)
 }
 
 // Max returns the maximum value of a column across matching rows.
-func (r *TypedReader[V]) Max(ctx context.Context, column string, opts ...ScanOption) (float64, error) {
+func (r *TypedReader[V]) Max(
+	ctx context.Context,
+	column string,
+	opts ...ScanOption,
+) (float64, error) {
 	return r.aggregatePushdown(ctx, AggregateMax, column, opts...)
 }
 
 // Avg returns the average value of a column across matching rows.
-func (r *TypedReader[V]) Avg(ctx context.Context, column string, opts ...ScanOption) (float64, error) {
+func (r *TypedReader[V]) Avg(
+	ctx context.Context,
+	column string,
+	opts ...ScanOption,
+) (float64, error) {
 	return r.aggregatePushdown(ctx, AggregateAvg, column, opts...)
 }
 
@@ -398,7 +417,8 @@ func buildScanFilters(opts ...ScanOption) []FilterSpec {
 	}
 
 	for _, rg := range cfg.ranges {
-		cfg.filters = append(cfg.filters,
+		cfg.filters = append(
+			cfg.filters,
 			FilterSpec{Column: rg.Column, Op: FilterGe, Value: rg.Low},
 			FilterSpec{Column: rg.Column, Op: FilterLe, Value: rg.High},
 		)
@@ -471,14 +491,14 @@ func (r *TypedReader[V]) GroupBy(
 // --- Scan options ---
 
 type scanConfig struct {
-	filters   []FilterSpec
-	orGroups  [][]FilterSpec
-	sort      *SortSpec
-	sortCols  []SortColumn
-	cursor    any
-	limit     int
-	ranges    []RangeSpec
-	inSpecs   []InSpec
+	filters  []FilterSpec
+	orGroups [][]FilterSpec
+	sort     *SortSpec
+	sortCols []SortColumn
+	cursor   any
+	limit    int
+	ranges   []RangeSpec
+	inSpecs  []InSpec
 }
 
 // RangeSpec declares a range filter (SQL BETWEEN) on a column.

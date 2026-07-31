@@ -25,7 +25,13 @@ func appendStandardFilter(b *strings.Builder, args *[]any, f FilterSpec) {
 			*args = append(*args, v)
 		}
 
-		b.WriteString(fmt.Sprintf(` AND json_extract(value, '%s') IN (%s)`, path, strings.Join(placeholders, ",")))
+		b.WriteString(
+			fmt.Sprintf(
+				` AND json_extract(value, '%s') IN (%s)`,
+				path,
+				strings.Join(placeholders, ","),
+			),
+		)
 	} else {
 		b.WriteString(fmt.Sprintf(` AND json_extract(value, '%s') %s ?`, path, string(f.Op)))
 		*args = append(*args, f.Value)

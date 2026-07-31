@@ -91,8 +91,8 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 			for _, fold := range meta.QueryFolds() {
 				if fold.valueType != nil && fold.valueType != resultType {
 					plan.Diagnostics = append(plan.Diagnostics, Diagnostic{
-						Level:  DiagLevelWarn,
-						Query:  runtime.name,
+						Level: DiagLevelWarn,
+						Query: runtime.name,
 						Message: fmt.Sprintf(
 							"fold for %s returns %s but query result type is %s — "+
 								"runtime decode may fail",

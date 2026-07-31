@@ -22,7 +22,13 @@ const (
 // all rows into Go memory. TypedReader.Count/Sum/Min/Max/Avg prefer this
 // interface when available.
 type AggregateReader interface {
-	Aggregate(ctx context.Context, col string, fn AggregateFn, column string, filters []FilterSpec) (float64, error)
+	Aggregate(
+		ctx context.Context,
+		col string,
+		fn AggregateFn,
+		column string,
+		filters []FilterSpec,
+	) (float64, error)
 }
 
 // Aggregate pushes the aggregate function into SQL, returning a single scalar.
@@ -58,7 +64,13 @@ func (e *sqliteEngine) aggregateStandard(
 		b.WriteString(`SELECT COUNT(*) FROM meta_map WHERE collection = ?`)
 	} else {
 		path := jsonPath(column)
-		b.WriteString(fmt.Sprintf(`SELECT %s(json_extract(value, '%s')) FROM meta_map WHERE collection = ?`, fn, path))
+		b.WriteString(
+			fmt.Sprintf(
+				`SELECT %s(json_extract(value, '%s')) FROM meta_map WHERE collection = ?`,
+				fn,
+				path,
+			),
+		)
 	}
 
 	for _, f := range filters {

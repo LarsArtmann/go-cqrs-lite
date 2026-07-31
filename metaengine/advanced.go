@@ -112,7 +112,10 @@ func (s *Store) SwapEngine(oldName, newName string, newEngine Engine) error {
 //	        return myEngine.New()
 //	    })
 //	}
-func ContractSuite(t interface{ Fatal(...any); Errorf(string, ...any) }, factory func() Engine) {
+func ContractSuite(t interface {
+	Fatal(...any)
+	Errorf(string, ...any)
+}, factory func() Engine) {
 	eng := factory()
 	if eng == nil {
 		t.Fatal("ContractSuite: factory returned nil engine")
