@@ -462,7 +462,7 @@ func TestPrefetchCache_CursorEncodeRoundTrip(t *testing.T) {
 
 	// Verify it's base64 (HTTP-safe, no special chars).
 	for _, c := range encoded {
-		if !(c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '-' || c == '_') {
+		if (c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9') && c != '-' && c != '_' {
 			t.Fatalf("encoded cursor contains non-base64 char: %q in %q", c, encoded)
 		}
 	}

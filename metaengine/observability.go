@@ -19,11 +19,11 @@ type Hooks struct {
 	// OnFold is called after each fold operation with the collection name,
 	// event type, fold kind, duration, and any error (nil on success).
 	// Use for debug logging, error tracking, and metrics.
-	OnFold func(collection, eventType string, kind FoldKind, d time.Duration, err error)
+	OnFold func(collection, eventType string, kind FoldKind, d time.Duration, _ error)
 
 	// OnExecute is called after each Execute/ExecuteCtx call with the
 	// collection name, read pattern, duration, and any error (nil on success).
-	OnExecute func(collection string, pattern ReadPattern, d time.Duration, err error)
+	OnExecute func(collection string, pattern ReadPattern, d time.Duration, _ error)
 
 	// SlowQueryThreshold, when > 0, causes OnExecute to be invoked only
 	// for queries exceeding this threshold. When 0, all queries invoke it.
@@ -55,7 +55,7 @@ func WithHooks(store *Store, hooks Hooks) {
 func WithDebug(store *Store, logger *log.Logger) {
 	WithHooks(store, Hooks{
 		Logger: logger,
-		OnFold: func(collection, eventType string, kind FoldKind, d time.Duration, err error) {
+		OnFold: func(collection, eventType string, kind FoldKind, d time.Duration, _ error) {
 			logger.Printf("[metaengine] %s: %s → %s (%v)", collection, eventType, kind, d)
 		},
 	})
@@ -66,7 +66,7 @@ func WithDebug(store *Store, logger *log.Logger) {
 func WithSlowQueryLog(store *Store, threshold time.Duration, logger *log.Logger) {
 	WithHooks(store, Hooks{
 		SlowQueryThreshold: threshold,
-		OnExecute: func(col string, pattern ReadPattern, d time.Duration, err error) {
+		OnExecute: func(col string, pattern ReadPattern, d time.Duration, _ error) {
 			logger.Printf("[metaengine] slow query %s (%s): %v", col, pattern, d)
 		},
 	})
@@ -76,7 +76,7 @@ func WithSlowQueryLog(store *Store, threshold time.Duration, logger *log.Logger)
 
 // MetricsRecorder collects runtime metrics from the Store.
 type MetricsRecorder interface {
-	RecordApply(collection, eventType string, kind FoldKind, d time.Duration, err error)
+	RecordApply(collection, eventType string, kind FoldKind, d time.Duration, _ error)
 	RecordExecute(
 		collection string,
 		pattern ReadPattern,
@@ -90,7 +90,7 @@ type MetricsRecorder interface {
 func WithMetrics(store *Store, rec MetricsRecorder) {
 	hooks := Hooks{
 		OnFold: rec.RecordApply,
-		OnExecute: func(col string, pattern ReadPattern, d time.Duration, err error) {
+		OnExecute: func(col string, pattern ReadPattern, d time.Duration, _ error) {
 			rec.RecordExecute(col, pattern, d, 0, err)
 		},
 	}
@@ -107,7 +107,7 @@ func WithMetrics(store *Store, rec MetricsRecorder) {
 // DotGraph generates a D2/Graphviz diagram from the PlanResult showing the
 // event → fold → ADT → engine → complexity mapping. Returns a string
 // suitable for piping to `d2` or any Graphviz renderer.
-func (p *PlanResult) DotGraph() string {
+func (p PlanResult) DotGraph() string {
 	var b strings.Builder
 
 	b.WriteString("digraph metaengine_plan {\n")
@@ -247,7 +247,7 @@ func WithTracing(store *Store, tracer Tracer) {
 	// Tracing is implemented via the existing hook system.
 	// OnFold creates a span for each fold; OnExecute creates a span for each query.
 	hooks := Hooks{
-		OnFold: func(collection, eventType string, kind FoldKind, d time.Duration, err error) {
+		OnFold: func(collection, eventType string, kind FoldKind, d time.Duration, _ error) {
 			ctx, span := tracer.StartSpan(
 				context.Background(),
 				"metaengine.fold."+collection,
@@ -265,7 +265,7 @@ func WithTracing(store *Store, tracer Tracer) {
 
 			_ = ctx
 		},
-		OnExecute: func(collection string, pattern ReadPattern, d time.Duration, err error) {
+		OnExecute: func(collection string, pattern ReadPattern, d time.Duration, _ error) {
 			_, span := tracer.StartSpan(
 				context.Background(),
 				"metaengine.execute."+collection,
