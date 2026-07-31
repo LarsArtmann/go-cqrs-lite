@@ -52,7 +52,10 @@ func NewB011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 								return true
 							}
 
-							if sel.Sel.Name == "Marshal" || sel.Sel.Name == "NewEvent" {
+							if sel.Sel.Name == "Marshal" || sel.Sel.Name == "NewEvent" ||
+								sel.Sel.Name == "Unmarshal" || sel.Sel.Name == "Encode" ||
+								sel.Sel.Name == "Decode" ||
+								sel.Sel.Name == "MarshalJSON" || sel.Sel.Name == "UnmarshalJSON" {
 								hasMarshal = true
 
 								return false

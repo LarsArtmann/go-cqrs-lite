@@ -349,6 +349,15 @@ func correctnessRules() []RuleInfo {
 			Description: "go func() without ctx — goroutine outlives parent handler, resource leak on shutdown",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C035",
+			Name:        "unprotected-map-field",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Map field without sync.Mutex/sync.RWMutex in read model/handler — data race risk in concurrent handlers",
+			AutoFix:     false,
+		},
 	}
 }
 
