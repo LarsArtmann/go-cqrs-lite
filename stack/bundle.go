@@ -97,6 +97,11 @@ type Bundle struct {
 	// presets (Pebble). nil means "not available"; DiskSize() returns -1.
 	diskSizeFn func() int64
 
+	// durability records the [DurabilityTier] the Bundle was constructed
+	// with. Set via [WithDurability] or a preset-specific adapter. Accessed
+	// via [Bundle.Durability].
+	durability DurabilityTier
+
 	closers []io.Closer
 
 	// shutdownDeps declares ordering constraints for Close(). Each edge says

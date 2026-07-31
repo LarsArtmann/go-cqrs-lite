@@ -142,7 +142,7 @@ func TestNew_DefaultOptionsAppliesBloomFilters(t *testing.T) {
 	}
 
 	metrics := b.Metrics()
-	if metrics.Total().NumFiles == 0 {
+	if metrics.NumFilesTotal == 0 {
 		t.Fatal("expected flush to produce SST files, got 0")
 	}
 }
