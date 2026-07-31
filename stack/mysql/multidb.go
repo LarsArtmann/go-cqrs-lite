@@ -12,14 +12,15 @@ import (
 )
 
 func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
-	db, err := sqlopt.OpenDBOrErr("mysql", dsn, "mysql_preset.open_secondary")
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.WrapInfrastructure(err, "mysql_preset.open_secondary",
+			"open MySQL secondary DB")
 	}
 
 	if cfg.AutoMigrate {
 		if err := storage.MySQLInitSchema(context.Background(), db); err != nil {
-			db.Close()
+			_ = db.Close()
 
 			return nil, errorfamily.WrapInfrastructure(err, "mysql_preset.secondary_init_schema",
 				"initialize MySQL schema on secondary DB")

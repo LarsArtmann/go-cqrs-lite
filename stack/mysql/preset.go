@@ -92,7 +92,7 @@ func openBackend(
 	dsn string,
 	cfg config,
 ) (*sql.DB, *storage.SQLBackend, error) {
-	return sqlopt.OpenPrimaryBackend(
+	return sqlopt.OpenPrimaryBackend( //nolint:wrapcheck // OpenPrimaryBackend wraps all errors
 		func() (*sql.DB, error) {
 			return sqlopt.OpenDBOrErr("mysql", dsn, "mysql_preset.open_primary")
 		},
