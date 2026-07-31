@@ -91,13 +91,22 @@ func NewF011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// countSQLExec counts calls to Exec/ExecContext on db/tx variables across
-// non-test files. Used as a heuristic for multi-statement projection handlers.
+// countSQLExec counts calls to Exec/ExecContext on *sql.DB, *sql.Tx, or
+// *sql.Conn variables across non-test files. Uses type info to avoid counting
+// unrelated .Exec() calls (e.g., os/exec, custom types).
 func countSQLExec(ctx *analyzer.AnalysisContext) int {
 	count := 0
 
 	execMethods := map[string]bool{
 		"Exec": true, "ExecContext": true,
+	}
+
+	// SQL types whose Exec/ExecContext methods we care about.
+	sqlTypes := map[string]bool{
+		"*database/sql.DB":   true,
+		"*database/sql.Tx":   true,
+		"*database/sql.Conn": true,
+		"*github.com/larsartmann/go-cqrs-lite/storage/sql.DBCloser": true,
 	}
 
 	for _, gf := range ctx.GoFiles {
@@ -111,8 +120,29 @@ func countSQLExec(ctx *analyzer.AnalysisContext) int {
 				return true
 			}
 
-			if execMethods[sel.Sel.Name] {
-				count++
+			if !execMethods[sel.Sel.Name] {
+				return true
+			}
+
+			// Use type info to verify the receiver is a *sql.DB/Tx/Conn.
+			if gf.Pkg != nil && gf.Pkg.TypesInfo != nil {
+				if tv, ok := gf.Pkg.TypesInfo.Types[sel.X]; ok {
+					typeStr := tv.Type.String()
+					if sqlTypes[typeStr] {
+						count++
+					}
+
+					return true
+				}
+			}
+
+			// Fallback: no type info available (AST-only mode in unit tests).
+			// Use variable-name heuristic: db, tx, conn, stmt.
+			if ident, ok := sel.X.(*ast.Ident); ok {
+				switch ident.Name {
+				case "db", "tx", "conn", "stmt", "store":
+					count++
+				}
 			}
 
 			return true

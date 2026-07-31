@@ -71,9 +71,13 @@ func NewF013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			// Check for manual HTTP handlers.
-			if !projectHasCallAny(ctx, "http", "HandleFunc", "Handle") &&
-				!projectHasCallAny(ctx, "mux", "HandleFunc", "Handle") {
+			// Check for manual HTTP handlers via stdlib, gorilla/mux, or
+			// third-party web frameworks (chi, gin, echo, fiber).
+			hasHTTPHandlers := projectHasCallAny(ctx, "http", "HandleFunc", "Handle") ||
+				projectHasCallAny(ctx, "mux", "HandleFunc", "Handle") ||
+				hasWebFrameworkHandlers(ctx)
+
+			if !hasHTTPHandlers {
 				return nil, nil
 			}
 

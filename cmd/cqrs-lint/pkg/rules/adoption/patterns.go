@@ -165,3 +165,29 @@ func hasTraversalPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) 
 
 	return token.Position{}, false
 }
+
+// webFrameworkImportPaths are the import path prefixes of popular Go web
+// frameworks whose presence signals manual HTTP handler registration.
+var webFrameworkImportPaths = []string{
+	"github.com/go-chi/chi",
+	"github.com/gin-gonic/gin",
+	"github.com/labstack/echo",
+	"github.com/gofiber/fiber",
+	"github.com/gorilla/mux",
+	"github.com/julienschmidt/httprouter",
+	"github.com/labstack/echo/v4",
+}
+
+// hasWebFrameworkHandlers reports whether the project imports any third-party
+// web framework (chi, gin, echo, fiber, gorilla/mux, httprouter). These
+// frameworks are used for manual HTTP handler registration, which is an
+// alternative to go-cqrs-lite transport/http + transport/grpc.
+func hasWebFrameworkHandlers(ctx *analyzer.AnalysisContext) bool {
+	for _, prefix := range webFrameworkImportPaths {
+		if importsPath(ctx, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
