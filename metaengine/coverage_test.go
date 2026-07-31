@@ -392,3 +392,79 @@ func TestStore_Doctor(t *testing.T) {
 
 	t.Logf("Doctor output:\n%s", report)
 }
+
+// ─── F3: RegisterQuery at runtime ───
+
+func TestStore_RegisterQuery(t *testing.T) {
+	t.Parallel()
+
+	// Start with just the counter query.
+	counterQ := metaengine.Query[benchListInput, map[string]int64](
+		"runtime_counter",
+		metaengine.On(benchItemResult{}, func(e benchItemResult) metaengine.Delta {
+			return metaengine.Delta{e.Status: +1}
+		}),
+	)
+
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer db.Close()
+
+	eng, err := metaengine.NewSQLiteEngine(db)
+	if err != nil {
+		t.Fatalf("sqlite engine: %v", err)
+	}
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine(), eng},
+		counterQ,
+	)
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+	defer store.Close()
+
+	ctx := context.Background()
+
+	// Register a Map query at runtime.
+	mapQ := metaengine.Query[benchListInput, benchItemResult](
+		"runtime_map",
+		metaengine.On(benchItemResult{}, func(e benchItemResult) (string, benchItemResult) {
+			return e.ID, e
+		}),
+	)
+
+	if err := store.RegisterQuery(mapQ); err != nil {
+		t.Fatalf("RegisterQuery: %v", err)
+	}
+
+	// Apply an event — both queries should receive it.
+	err = store.Apply(ctx, "benchItemResult", benchItemResult{
+		ID: "reg-01", Status: "open", Priority: 5,
+	})
+	if err != nil {
+		t.Fatalf("Apply: %v", err)
+	}
+
+	// Verify the runtime-registered Map query works.
+	reader := metaengine.NewReader[benchItemResult](store, "runtime_map")
+	item, found, err := reader.Get(ctx, "reg-01")
+	if err != nil {
+		t.Fatalf("Get from runtime query: %v", err)
+	}
+
+	if !found {
+		t.Fatal("runtime-registered query should find the item")
+	}
+
+	if item.ID != "reg-01" {
+		t.Errorf("got ID=%s, want reg-01", item.ID)
+	}
+
+	// Verify duplicate registration fails.
+	if err := store.RegisterQuery(mapQ); err == nil {
+		t.Error("duplicate RegisterQuery should fail")
+	}
+}

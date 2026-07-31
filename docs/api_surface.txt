@@ -1474,6 +1474,7 @@ metaengine/method Cursor
 metaengine/method DDL
 metaengine/method Distinct
 metaengine/method Do
+metaengine/method Doctor
 metaengine/method DotGraph
 metaengine/method Encode
 metaengine/method EventTypes
@@ -1483,6 +1484,7 @@ metaengine/method Execute
 metaengine/method ExecuteCtx
 metaengine/method Exists
 metaengine/method Explain
+metaengine/method ExplainPlan
 metaengine/method Export
 metaengine/method Get
 metaengine/method Get

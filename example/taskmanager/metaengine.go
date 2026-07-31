@@ -193,9 +193,9 @@ func setupMetaEngine(
 
 	taskCounts := metaengine.Query[taskCountsInput, map[string]int64](
 		"task_counts_by_status",
-		// Counter folds: each event returns a Delta (map[string]int64) of
-		// counter increments/decrements. The planner infers ADTCounter from
-		// the Delta return type.
+		// Counter ADT for O(1) status aggregate reads. Kept alongside the Map
+		// query because O(1) counter reads are cheaper than O(N) scan+count
+		// from task_views — the right pattern for dashboard/stats endpoints.
 		onTyped(string(evtTaskCreated), eventWithID[TaskCreatedPayload]{},
 			func(_ eventWithID[TaskCreatedPayload]) metaengine.Delta {
 				return metaengine.Delta{"pending": 1}
