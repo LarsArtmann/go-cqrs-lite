@@ -122,41 +122,143 @@ func (s *Store) SwapEngine(oldName, newName string, newEngine Engine) error {
 func ContractSuite(t interface {
 	Fatal(...any)
 	Errorf(string, ...any)
+	Logf(string, ...any)
 }, factory func() Engine,
 ) {
+	ctx := context.Background()
 	eng := factory()
 	if eng == nil {
 		t.Fatal("ContractSuite: factory returned nil engine")
 	}
+	defer eng.Close()
 
 	profile := eng.Profile()
 	if profile.Name == "" {
 		t.Errorf("ContractSuite: engine has empty name")
 	}
 
-	// Test Map backend if supported
+	// --- Map ---
 	if mb, ok := eng.(MapBackend); ok {
-		ctx := context.Background()
-		if err := mb.MapSet(ctx, "test", "key1", "value1"); err != nil {
-			t.Errorf("ContractSuite: MapSet failed: %v", err)
+		if err := mb.MapSet(ctx, "cs", "k1", "v1"); err != nil {
+			t.Errorf("ContractSuite Map.Set: %v", err)
 		}
-
-		val, found, err := mb.MapGet(ctx, "test", "key1")
+		val, found, err := mb.MapGet(ctx, "cs", "k1")
 		if err != nil || !found || val == nil {
-			t.Errorf("ContractSuite: MapGet failed: err=%v found=%v val=%v", err, found, val)
+			t.Errorf("ContractSuite Map.Get: err=%v found=%v val=%v", err, found, val)
 		}
-
-		if err := mb.MapDelete(ctx, "test", "key1"); err != nil {
-			t.Errorf("ContractSuite: MapDelete failed: %v", err)
+		if err := mb.MapDelete(ctx, "cs", "k1"); err != nil {
+			t.Errorf("ContractSuite Map.Delete: %v", err)
 		}
-
-		_, found, _ = mb.MapGet(ctx, "test", "key1")
+		_, found, _ = mb.MapGet(ctx, "cs", "k1")
 		if found {
-			t.Errorf("ContractSuite: MapGet should return found=false after delete")
+			t.Errorf("ContractSuite: Map.Get should return found=false after delete")
+		}
+		// MapUpdate
+		if mu, ok := eng.(MapUpdater); ok {
+			_ = mb.MapSet(ctx, "cs", "u1", 10)
+			if err := mu.MapUpdate(ctx, "cs", "u1", func(prev any) any {
+				if v, ok := prev.(float64); ok {
+					return v + 5
+				}
+				return 5
+			}); err != nil {
+				t.Errorf("ContractSuite Map.Update: %v", err)
+			}
+			val, _, _ := mb.MapGet(ctx, "cs", "u1")
+			if val != float64(15) {
+				t.Errorf("ContractSuite Map.Update: expected 15, got %v", val)
+			}
 		}
 	}
 
-	_ = eng.Close()
+	// --- Set ---
+	if sb, ok := eng.(SetBackend); ok {
+		if err := sb.SetAdd(ctx, "cs", "s1"); err != nil {
+			t.Errorf("ContractSuite Set.Add: %v", err)
+		}
+		found, err := sb.SetContains(ctx, "cs", "s1")
+		if err != nil || !found {
+			t.Errorf("ContractSuite Set.Contains: err=%v found=%v", err, found)
+		}
+		found, _ = sb.SetContains(ctx, "cs", "missing")
+		if found {
+			t.Errorf("ContractSuite Set: missing key should not be found")
+		}
+	}
+
+	// --- Counter ---
+	if cb, ok := eng.(CounterBackend); ok {
+		if err := cb.CounterIncrement(ctx, "cs", Delta{"c1": 5}); err != nil {
+			t.Errorf("ContractSuite Counter.Increment: %v", err)
+		}
+		if err := cb.CounterIncrement(ctx, "cs", Delta{"c1": 3}); err != nil {
+			t.Errorf("ContractSuite Counter.Increment2: %v", err)
+		}
+		counts, err := cb.CounterGet(ctx, "cs")
+		if err != nil {
+			t.Errorf("ContractSuite Counter.Get: %v", err)
+		}
+		if counts["c1"] != 8 {
+			t.Errorf("ContractSuite Counter: expected 8, got %d", counts["c1"])
+		}
+	}
+
+	// --- Multimap ---
+	if mb, ok := eng.(MultimapBackend); ok {
+		if err := mb.MultiAdd(ctx, "cs", "m1", "v1"); err != nil {
+			t.Errorf("ContractSuite Multi.Add: %v", err)
+		}
+		if err := mb.MultiAdd(ctx, "cs", "m1", "v2"); err != nil {
+			t.Errorf("ContractSuite Multi.Add2: %v", err)
+		}
+		vals, err := mb.MultiGet(ctx, "cs", "m1")
+		if err != nil {
+			t.Errorf("ContractSuite Multi.Get: %v", err)
+		}
+		if len(vals) != 2 {
+			t.Errorf("ContractSuite Multi: expected 2 values, got %d", len(vals))
+		}
+	}
+
+	// --- Log ---
+	if lb, ok := eng.(LogBackend); ok {
+		if err := lb.LogAppend(ctx, "cs", "entry1"); err != nil {
+			t.Errorf("ContractSuite Log.Append: %v", err)
+		}
+		if err := lb.LogAppend(ctx, "cs", "entry2"); err != nil {
+			t.Errorf("ContractSuite Log.Append2: %v", err)
+		}
+		vals, err := lb.LogTail(ctx, "cs", 10)
+		if err != nil {
+			t.Errorf("ContractSuite Log.Tail: %v", err)
+		}
+		if len(vals) != 2 {
+			t.Errorf("ContractSuite Log: expected 2 entries, got %d", len(vals))
+		}
+	}
+
+	// --- Graph ---
+	if gb, ok := eng.(GraphBackend); ok {
+		if err := gb.GraphAddEdge(ctx, "cs", Edge{From: "a", To: "b"}); err != nil {
+			t.Errorf("ContractSuite Graph.AddEdge: %v", err)
+		}
+		if err := gb.GraphAddEdge(ctx, "cs", Edge{From: "b", To: "c"}); err != nil {
+			t.Errorf("ContractSuite Graph.AddEdge2: %v", err)
+		}
+	}
+
+	// --- ScanBackend ---
+	if sb, ok := eng.(ScanBackend); ok {
+		_ = sb.MapSet(ctx, "csscan", "k1", "v1")
+		_ = sb.MapSet(ctx, "csscan", "k2", "v2")
+		results, err := sb.MapScan(ctx, "csscan", nil, nil, nil, 0)
+		if err != nil {
+			t.Errorf("ContractSuite Scan: %v", err)
+		}
+		if len(results) != 2 {
+			t.Errorf("ContractSuite Scan: expected 2 results, got %d", len(results))
+		}
+	}
 }
 
 // --- P7-3: V1 Stabilization Checklist ---
