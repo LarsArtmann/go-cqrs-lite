@@ -180,6 +180,7 @@ func ServeSSE[V any](
 			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil {
 				return err
 			}
+
 			flusher.Flush()
 		}
 	}

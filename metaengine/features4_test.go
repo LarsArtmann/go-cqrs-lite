@@ -388,6 +388,7 @@ func TestExportImport_RoundTrip(t *testing.T) {
 	for _, task := range all {
 		if task.Title == "Alpha" && task.Status == "open" {
 			found = true
+
 			break
 		}
 	}
@@ -754,11 +755,13 @@ func TestProperty_RandomOpsMaintainConsistency(t *testing.T) {
 		task, found, err := reader.Get(ctx, testTaskID(taskID))
 		if err != nil {
 			t.Errorf("Get %s: %v", taskID, err)
+
 			continue
 		}
 
 		if !found {
 			t.Errorf("task %s should exist with title %q", taskID, expectedTitle)
+
 			continue
 		}
 
