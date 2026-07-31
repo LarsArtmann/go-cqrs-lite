@@ -8,11 +8,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0-20260728231650-e0855503374a
+	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260728151153-8b013dc7cdc2
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260731153713-9172e44daee3
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
 )
 
@@ -38,7 +38,6 @@ require (
 	github.com/duckdb/duckdb-go-bindings/lib/windows-amd64 v0.10505.0 // indirect
 	github.com/duckdb/duckdb-go/v2 v2.10505.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ebitengine/purego v0.10.2 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/getsentry/sentry-go v0.48.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -68,7 +67,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.0.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.1-0.20260728180508-1465c28928c7 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.1-0.20260731153713-9172e44daee3 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
@@ -92,15 +91,12 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
-	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/exp v0.0.0-20260727155853-b88d891fe743 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect

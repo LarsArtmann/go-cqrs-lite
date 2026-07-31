@@ -30,7 +30,7 @@
 
 ### The DDIA Insight
 
-Martin Kleppmann's *Designing Data-Intensive Applications* devotes two foundational chapters to
+Martin Kleppmann's _Designing Data-Intensive Applications_ devotes two foundational chapters to
 what are actually **two orthogonal axes**:
 
 - **Chapter 2 (Data Models):** How data is shaped and queried — relational, document, graph,
@@ -75,12 +75,12 @@ characteristics are opaque, buried inside a calibrated nanosecond number.
 The bundling was harmless with three engines (Memory, SQLite, Pebble) that each cover all 7
 ADTs. It becomes a **structural blocker** as the catalog grows:
 
-| Scenario | Bundled (today) | Separated (proposed) |
-| --- | --- | --- |
-| Add Vector search | Write a whole new `VectorEngine` with its own opaque cost profile | Define `VectorBackend` (data model) once; any HNSW-capable storage engine can serve it |
-| Add a ClickHouse columnar engine | Duplicate all 7 ADT backend impls; cost profile is opaque | Declare `LayoutColumnar`; the cost matrix already knows columnar makes Counter O(1) |
-| Reason about *why* Pebble beats SQLite for a Log | Can only compare `NsPerOp` numbers | The matrix says: LSM makes append O(1); B-Tree makes it O(logN). The *reason* is visible. |
-| Combine pgvector (Vector × HNSW) | Must implement as a monolithic engine | pgvector = `VectorBackend` (data model) × `LayoutHNSW` (storage) × pgx (driver). Composable. |
+| Scenario                                         | Bundled (today)                                                   | Separated (proposed)                                                                         |
+| ------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Add Vector search                                | Write a whole new `VectorEngine` with its own opaque cost profile | Define `VectorBackend` (data model) once; any HNSW-capable storage engine can serve it       |
+| Add a ClickHouse columnar engine                 | Duplicate all 7 ADT backend impls; cost profile is opaque         | Declare `LayoutColumnar`; the cost matrix already knows columnar makes Counter O(1)          |
+| Reason about _why_ Pebble beats SQLite for a Log | Can only compare `NsPerOp` numbers                                | The matrix says: LSM makes append O(1); B-Tree makes it O(logN). The _reason_ is visible.    |
+| Combine pgvector (Vector × HNSW)                 | Must implement as a monolithic engine                             | pgvector = `VectorBackend` (data model) × `LayoutHNSW` (storage) × pgx (driver). Composable. |
 
 The separation turns "add a new specialized database" from a monolithic engine-writing task
 into a **combinatorial** task: pick a data model, pick a storage engine, wire a driver. The
@@ -93,12 +93,12 @@ planner does the matching.
 The axis separation reveals that backend selection is actually a **four-dimensional** decision,
 not the one-dimensional "pick an engine" it appears today:
 
-| Dimension | What it controls | Who declares it | Example values |
-| --- | --- | --- | --- |
-| **Data Model** | The interface contract (ADT) — what operations exist | Developer (via fold return type) | Map, Set, Counter, Graph, Vector, Search, Spatial |
-| **Storage Engine** | The physical layout — how bytes live on disk | Operator (engine config) | B-Tree, LSM, Hash, Columnar, HNSW, Inverted Index |
-| **Temporality** | Whether cells are versioned (as-of reads) or latest-only | Operator (engine capability) | Versioned (BigTable), Latest-only (Pebble) |
-| **Retention** | How much history to keep — the storage-cost knob | Operator (GC policy) | `max_versions=1` (cheap), `max_versions=0` (full history) |
+| Dimension          | What it controls                                         | Who declares it                  | Example values                                            |
+| ------------------ | -------------------------------------------------------- | -------------------------------- | --------------------------------------------------------- |
+| **Data Model**     | The interface contract (ADT) — what operations exist     | Developer (via fold return type) | Map, Set, Counter, Graph, Vector, Search, Spatial         |
+| **Storage Engine** | The physical layout — how bytes live on disk             | Operator (engine config)         | B-Tree, LSM, Hash, Columnar, HNSW, Inverted Index         |
+| **Temporality**    | Whether cells are versioned (as-of reads) or latest-only | Operator (engine capability)     | Versioned (BigTable), Latest-only (Pebble)                |
+| **Retention**      | How much history to keep — the storage-cost knob         | Operator (GC policy)             | `max_versions=1` (cheap), `max_versions=0` (full history) |
 
 Dimensions 1–2 are the DDIA axes. Dimension 3 (temporality) is the BigTable insight — some
 storage engines natively timestamp every cell, making point-in-time reads O(1). Dimension 4
@@ -127,34 +127,34 @@ find the cheapest point in this space from the engines the operator provided.
 The metaengine derives data-model requirements from **fold return types** — the developer never
 declares "I need a Map." The return type IS the declaration:
 
-| Fold signature | Return type | ADT | Read pattern |
-| --- | --- | --- | --- |
-| `func(e) (K, V)` | `(Key, Value)` | `Map` | Point lookup |
-| `func(e) K` | `Key` | `Set` | Membership test |
-| `func(e) Delta` | `Delta` | `Counter` | Aggregate |
-| `func(e) Edge` | `Edge` | `Graph` | Traversal |
-| `func(e) MultiEntry` | `MultiEntry` | `Multimap` | One-to-many lookup |
-| `func(e) Append` | `Append` | `Log` | Append-only tail |
-| `func(e, prev V) V` | `Value` | `Map` (update) | Read-modify-write |
-| `Remove[V]()` | Sentinel | Delete | Remove from projection |
+| Fold signature       | Return type    | ADT            | Read pattern           |
+| -------------------- | -------------- | -------------- | ---------------------- |
+| `func(e) (K, V)`     | `(Key, Value)` | `Map`          | Point lookup           |
+| `func(e) K`          | `Key`          | `Set`          | Membership test        |
+| `func(e) Delta`      | `Delta`        | `Counter`      | Aggregate              |
+| `func(e) Edge`       | `Edge`         | `Graph`        | Traversal              |
+| `func(e) MultiEntry` | `MultiEntry`   | `Multimap`     | One-to-many lookup     |
+| `func(e) Append`     | `Append`       | `Log`          | Append-only tail       |
+| `func(e, prev V) V`  | `Value`        | `Map` (update) | Read-modify-write      |
+| `Remove[V]()`        | Sentinel       | Delete         | Remove from projection |
 
 Seven ADTs. This is elegant and correct — but it covers only **5 of the 13 interface models**
 in the taxonomy. Five entire families of databases have no representation:
 
 ### What Is Missing
 
-| Interface model | Taxonomy section | Required ADT | Required fold signature | Status |
-| --- | --- | --- | --- | --- |
-| **Vector / Similarity** | Taxonomy §12 | `Vector` (k-NN) | `func(e) Embedding` | **No ADT exists** |
-| **Search / Full-text** | Taxonomy §6 | `Search` (inverted index) | `func(e) IndexedText` | **No ADT exists** |
-| **Spatial / Geo** | (implied by §6 geo) | `Spatial` (R-tree / geohash) | `func(e) Geometry` | **No ADT exists** |
-| **Wide-Column** | Taxonomy §7 | `Map` (partition-key) | Already served by `Map` ADT | Driver-only gap |
-| **Time-Series** | Taxonomy §5 | `Counter` + `Log` | Already served by existing ADTs | Driver-only gap |
-| **Triple Store / RDF** | Taxonomy §9 | `Graph` | Already served by `Graph` ADT | Driver-only gap |
-| **Datalog** | Taxonomy §10 | (esoteric, skip) | — | Out of scope |
-| **Streaming** | Taxonomy §11 | (transport, not storage) | — | Out of scope |
-| **Object Storage** | Taxonomy §8 | (blob, not queryable) | — | Out of scope |
-| **Multi-Model** | Taxonomy §13 | (union of above) | — | Emerges from composition |
+| Interface model         | Taxonomy section    | Required ADT                 | Required fold signature         | Status                   |
+| ----------------------- | ------------------- | ---------------------------- | ------------------------------- | ------------------------ |
+| **Vector / Similarity** | Taxonomy §12        | `Vector` (k-NN)              | `func(e) Embedding`             | **No ADT exists**        |
+| **Search / Full-text**  | Taxonomy §6         | `Search` (inverted index)    | `func(e) IndexedText`           | **No ADT exists**        |
+| **Spatial / Geo**       | (implied by §6 geo) | `Spatial` (R-tree / geohash) | `func(e) Geometry`              | **No ADT exists**        |
+| **Wide-Column**         | Taxonomy §7         | `Map` (partition-key)        | Already served by `Map` ADT     | Driver-only gap          |
+| **Time-Series**         | Taxonomy §5         | `Counter` + `Log`            | Already served by existing ADTs | Driver-only gap          |
+| **Triple Store / RDF**  | Taxonomy §9         | `Graph`                      | Already served by `Graph` ADT   | Driver-only gap          |
+| **Datalog**             | Taxonomy §10        | (esoteric, skip)             | —                               | Out of scope             |
+| **Streaming**           | Taxonomy §11        | (transport, not storage)     | —                               | Out of scope             |
+| **Object Storage**      | Taxonomy §8         | (blob, not queryable)        | —                               | Out of scope             |
+| **Multi-Model**         | Taxonomy §13        | (union of above)             | —                               | Emerges from composition |
 
 The first three — **Vector, Search, Spatial** — are the deep gap. They have no fold return type,
 no backend interface, no read pattern. You cannot express "find the 10 nearest neighbors to this
@@ -177,18 +177,18 @@ A storage engine is the physical data structure that holds bytes on disk (or in 
 Chapter 3 catalogs the major families. Each has a characteristic cost profile for the basic
 operations (point lookup, range scan, insert, ordered iteration):
 
-| Storage engine | Point lookup | Range scan | Insert | Write amplification | Best at |
-| --- | --- | --- | --- | --- | --- |
-| **B+Tree** | O(logN) | O(logN + k) | O(logN) | High (rewrites pages) | Read-heavy OLTP |
-| **LSM-Tree** | O(logN) | O(logN + k) | O(1) amortized | Low (sequential) | Write-heavy, append-only |
-| **Hash** | O(1) | ❌ (no range) | O(1) | Low | Point-only KV |
-| **Columnar** | O(N/k) | O(N/k) | O(1) batched | Low (column compression) | Analytics, aggregation |
-| **Append-only log** | O(N) | O(N) | O(1) | Minimal | Event sourcing (the log itself) |
-| **CoW B-Tree** | O(logN) | O(logN + k) | O(logN) | High (path copy) | Lock-free snapshot reads |
-| **HNSW / IVF** | O(logN) approx | ❌ | O(logN) | Medium | Vector similarity (k-NN) |
-| **Inverted index** | O(1) term→postings | O(k) | O(doc_len) | Medium | Full-text search |
-| **R-Tree / Geohash** | O(logN) | O(logN + k) | O(logN) | Medium | Spatial range queries |
-| **In-memory (any)** | O(1)–O(logN) | O(logN + k) | O(1) | n/a (volatile) | Speed, not persistence |
+| Storage engine       | Point lookup       | Range scan    | Insert         | Write amplification      | Best at                         |
+| -------------------- | ------------------ | ------------- | -------------- | ------------------------ | ------------------------------- |
+| **B+Tree**           | O(logN)            | O(logN + k)   | O(logN)        | High (rewrites pages)    | Read-heavy OLTP                 |
+| **LSM-Tree**         | O(logN)            | O(logN + k)   | O(1) amortized | Low (sequential)         | Write-heavy, append-only        |
+| **Hash**             | O(1)               | ❌ (no range) | O(1)           | Low                      | Point-only KV                   |
+| **Columnar**         | O(N/k)             | O(N/k)        | O(1) batched   | Low (column compression) | Analytics, aggregation          |
+| **Append-only log**  | O(N)               | O(N)          | O(1)           | Minimal                  | Event sourcing (the log itself) |
+| **CoW B-Tree**       | O(logN)            | O(logN + k)   | O(logN)        | High (path copy)         | Lock-free snapshot reads        |
+| **HNSW / IVF**       | O(logN) approx     | ❌            | O(logN)        | Medium                   | Vector similarity (k-NN)        |
+| **Inverted index**   | O(1) term→postings | O(k)          | O(doc_len)     | Medium                   | Full-text search                |
+| **R-Tree / Geohash** | O(logN)            | O(logN + k)   | O(logN)        | Medium                   | Spatial range queries           |
+| **In-memory (any)**  | O(1)–O(logN)       | O(logN + k)   | O(1)           | n/a (volatile)           | Speed, not persistence          |
 
 ### Why This Is Separable From the Data Model
 
@@ -272,12 +272,12 @@ natively.
 This means temporal projection reads have **multiple physical strategies**, and the planner
 chooses based on engine capability:
 
-| Query needs as-of? | Engine versions cells? | Planner picks | Cost | Storage cost |
-| --- | --- | --- | --- | --- |
-| Yes | Yes (BigTable/Cassandra) | **Native as-of read** | **O(1)** | Higher (keeps versions) |
-| Yes | No (plain Pebble/SQLite) | **Event-log replay** | O(events to T) | Low (latest only) |
-| No | Yes | Read latest, GC the rest | O(1) | Configurable |
-| No | No | Normal latest-only read | O(1) | Low |
+| Query needs as-of? | Engine versions cells?   | Planner picks            | Cost           | Storage cost            |
+| ------------------ | ------------------------ | ------------------------ | -------------- | ----------------------- |
+| Yes                | Yes (BigTable/Cassandra) | **Native as-of read**    | **O(1)**       | Higher (keeps versions) |
+| Yes                | No (plain Pebble/SQLite) | **Event-log replay**     | O(events to T) | Low (latest only)       |
+| No                 | Yes                      | Read latest, GC the rest | O(1)           | Configurable            |
+| No                 | No                       | Normal latest-only read  | O(1)           | Low                     |
 
 The top-left cell is the BigTable-enabled future: O(1) time travel with zero replay cost. The
 bottom row is today's world. The middle row is the **honest degradation** the planner warns
@@ -286,11 +286,11 @@ about.
 ### Relationship to the DataFusion Doc's TemporalAnchor
 
 The [DataFusion lessons](2026-07-31_datafusion-lessons-for-metaengine.md) doc already proposes
-`TemporalAnchor` on the **logical plan** — the *query* declares "I want state as-of version 42."
+`TemporalAnchor` on the **logical plan** — the _query_ declares "I want state as-of version 42."
 That doc covers the **logical layer**: which replay strategy to use (snapshot+delta, full
 replay, cached projection).
 
-This document adds the **storage layer**: whether the *engine itself* versions cells natively.
+This document adds the **storage layer**: whether the _engine itself_ versions cells natively.
 The two are complementary:
 
 ```
@@ -344,13 +344,13 @@ type RetentionPolicy struct {
 
 This maps directly to real database GC mechanisms:
 
-| Database | Retention mechanism | Equivalent config |
-| --- | --- | --- |
-| **BigTable / HBase** | GC rules (max versions + max age per column family) | `MaxVersions`, `MaxAge` |
-| **Cassandra / Scylla** | Cell TTL + `compaction_window` | `MaxAge` (TTL), tombstone compaction |
-| **Datomic / XTDB** | Built-in (immutable indexes, manual pruning) | Application-controlled |
-| **DuckDB** | Manual (history table, app-managed) | Application-controlled |
-| **Postgres** | SQL:2011 temporal tables / `tstzrange` | Application-managed |
+| Database               | Retention mechanism                                 | Equivalent config                    |
+| ---------------------- | --------------------------------------------------- | ------------------------------------ |
+| **BigTable / HBase**   | GC rules (max versions + max age per column family) | `MaxVersions`, `MaxAge`              |
+| **Cassandra / Scylla** | Cell TTL + `compaction_window`                      | `MaxAge` (TTL), tombstone compaction |
+| **Datomic / XTDB**     | Built-in (immutable indexes, manual pruning)        | Application-controlled               |
+| **DuckDB**             | Manual (history table, app-managed)                 | Application-controlled               |
+| **Postgres**           | SQL:2011 temporal tables / `tstzrange`              | Application-managed                  |
 
 ### The "Make It Null" Knob
 
@@ -384,22 +384,22 @@ is to find the optimal combination from what the operator provides.
 
 ### The Combination Table
 
-| Backend | Data Model | Storage Engine | Temporal | Retention | Driver |
-| --- | --- | --- | --- | --- | --- |
-| **PostgreSQL** | Relational (Map, SortedMap) | B+Tree | Latest-only | n/a | pgx |
-| **SQLite** | Relational (Map, SortedMap) | B+Tree | Latest-only | n/a | modernc.org/sqlite |
-| **MySQL** | Relational (Map, SortedMap) | B+Tree | Latest-only | n/a | go-sql-driver/mysql |
-| **Pebble** | KV (Map) | LSM | Latest-only | n/a | cockroachdb/pebble |
-| **DuckDB** | Relational (Map, SortedMap, Counter) | Columnar | Latest-only (ASOF JOIN) | Manual | duckdb-go |
-| **BigTable / HBase** | Wide-Column (Map) | LSM | **Versioned** | **GC (versions/age)** | googleapis |
-| **Cassandra / Scylla** | Wide-Column (Map) | LSM | **Versioned** | **TTL + compaction** | gocql |
-| **ClickHouse** | Relational (SortedMap, Counter) | Columnar | Latest-only | TTL per table | clickhouse-go |
-| **Neo4j / Memgraph** | Graph (Graph) | Adjacency list | Latest-only | n/a | neo4j-go-driver |
-| **InfluxDB** | Time-Series (Counter, Log) | TSM (LSM variant) | Latest-only | retention policy | influxdb-client |
-| **pgvector** | Vector (k-NN) | HNSW over B+Tree | Latest-only | n/a | pgx + extension |
-| **Milvus / Qdrant** | Vector (k-NN) | HNSW / IVF | Latest-only | n/a | milvus-sdk-go |
-| **Elasticsearch** | Search (full-text) | Inverted index | Latest-only | ILM policies | olivere/elastic |
-| **Redis** | KV (Map, Set, Counter) | Hash / append-only | Latest-only | eviction policies | go-redis |
+| Backend                | Data Model                           | Storage Engine     | Temporal                | Retention             | Driver              |
+| ---------------------- | ------------------------------------ | ------------------ | ----------------------- | --------------------- | ------------------- |
+| **PostgreSQL**         | Relational (Map, SortedMap)          | B+Tree             | Latest-only             | n/a                   | pgx                 |
+| **SQLite**             | Relational (Map, SortedMap)          | B+Tree             | Latest-only             | n/a                   | modernc.org/sqlite  |
+| **MySQL**              | Relational (Map, SortedMap)          | B+Tree             | Latest-only             | n/a                   | go-sql-driver/mysql |
+| **Pebble**             | KV (Map)                             | LSM                | Latest-only             | n/a                   | cockroachdb/pebble  |
+| **DuckDB**             | Relational (Map, SortedMap, Counter) | Columnar           | Latest-only (ASOF JOIN) | Manual                | duckdb-go           |
+| **BigTable / HBase**   | Wide-Column (Map)                    | LSM                | **Versioned**           | **GC (versions/age)** | googleapis          |
+| **Cassandra / Scylla** | Wide-Column (Map)                    | LSM                | **Versioned**           | **TTL + compaction**  | gocql               |
+| **ClickHouse**         | Relational (SortedMap, Counter)      | Columnar           | Latest-only             | TTL per table         | clickhouse-go       |
+| **Neo4j / Memgraph**   | Graph (Graph)                        | Adjacency list     | Latest-only             | n/a                   | neo4j-go-driver     |
+| **InfluxDB**           | Time-Series (Counter, Log)           | TSM (LSM variant)  | Latest-only             | retention policy      | influxdb-client     |
+| **pgvector**           | Vector (k-NN)                        | HNSW over B+Tree   | Latest-only             | n/a                   | pgx + extension     |
+| **Milvus / Qdrant**    | Vector (k-NN)                        | HNSW / IVF         | Latest-only             | n/a                   | milvus-sdk-go       |
+| **Elasticsearch**      | Search (full-text)                   | Inverted index     | Latest-only             | ILM policies          | olivere/elastic     |
+| **Redis**              | KV (Map, Set, Counter)               | Hash / append-only | Latest-only             | eviction policies     | go-redis            |
 
 ### How the Planner Combines
 
@@ -540,7 +540,7 @@ The planner then:
 2. If yes → as-of reads are O(1), assign normally
 3. If no → as-of reads require replay (O(events to T)), emit degradation warning:
    `"query AccountBalanceQuery needs as-of reads but no versioned engine is available;
-   falling back to event-log replay (cost: O(events to T))"`
+falling back to event-log replay (cost: O(events to T))"`
 
 ---
 
@@ -800,13 +800,13 @@ a versioned engine or accept the cost.
 This document is the **unifying lens**. It does not replace the existing docs — it connects
 them:
 
-| Document | Role | This doc's relationship |
-| --- | --- | --- |
-| [database-architecture-taxonomy.md](../research/database-architecture-taxonomy.md) | Reference: 13 interface models × 12 storage engines | Provides the raw material. This doc identifies which models map to existing ADTs and which need new ones. |
-| [meta-engine-project-definition.md](meta-engine-project-definition.md) | Vision: why cross-engine view selection is novel | Provides the research framing. This doc provides the architectural decomposition that makes it implementable. |
-| [meta-engine-design.md](meta-engine-design.md) | Technical design: cost profiles, optimizer, deployments | Provides the cost model and optimizer algorithm. This doc refines `EngineProfile` to separate the two axes the design doc conflates. |
-| [meta-engine-assumptions-and-query-planning.md](meta-engine-assumptions-and-query-planning.md) | Scale thresholds: N → data structure | Provides the volume thresholds. This doc's cost matrix is the structural layer those thresholds operate on. |
-| [DataFusion lessons](2026-07-31_datafusion-lessons-for-metaengine.md) | Engineering patterns: rule pipeline, logical/physical split | Provides the logical/physical plan separation and tier classification. This doc adds the storage-engine axis and the temporal-storage capability that the DataFusion doc treats only at the logical layer. |
+| Document                                                                                       | Role                                                        | This doc's relationship                                                                                                                                                                                    |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [database-architecture-taxonomy.md](../research/database-architecture-taxonomy.md)             | Reference: 13 interface models × 12 storage engines         | Provides the raw material. This doc identifies which models map to existing ADTs and which need new ones.                                                                                                  |
+| [meta-engine-project-definition.md](meta-engine-project-definition.md)                         | Vision: why cross-engine view selection is novel            | Provides the research framing. This doc provides the architectural decomposition that makes it implementable.                                                                                              |
+| [meta-engine-design.md](meta-engine-design.md)                                                 | Technical design: cost profiles, optimizer, deployments     | Provides the cost model and optimizer algorithm. This doc refines `EngineProfile` to separate the two axes the design doc conflates.                                                                       |
+| [meta-engine-assumptions-and-query-planning.md](meta-engine-assumptions-and-query-planning.md) | Scale thresholds: N → data structure                        | Provides the volume thresholds. This doc's cost matrix is the structural layer those thresholds operate on.                                                                                                |
+| [DataFusion lessons](2026-07-31_datafusion-lessons-for-metaengine.md)                          | Engineering patterns: rule pipeline, logical/physical split | Provides the logical/physical plan separation and tier classification. This doc adds the storage-engine axis and the temporal-storage capability that the DataFusion doc treats only at the logical layer. |
 
 ### The Single Sentence
 

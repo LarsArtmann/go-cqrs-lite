@@ -148,11 +148,11 @@ page2, _, _ := reader.ScanPage(ctx,
 
 ### When to Use Each Engine
 
-| Engine | Best For | Persistence | Filter Pushdown |
-|--------|----------|-------------|-----------------|
-| Memory | Counters, small datasets, testing | No | O(N) Go-side |
-| SQLite | Filtered scans, point lookups with persistence | Yes | json_extract WHERE/ORDER BY |
-| Pebble | Ultra-fast point lookups (LSM) | Yes | Raw value scan + closure filter |
+| Engine | Best For                                       | Persistence | Filter Pushdown                 |
+| ------ | ---------------------------------------------- | ----------- | ------------------------------- |
+| Memory | Counters, small datasets, testing              | No          | O(N) Go-side                    |
+| SQLite | Filtered scans, point lookups with persistence | Yes         | json_extract WHERE/ORDER BY     |
+| Pebble | Ultra-fast point lookups (LSM)                 | Yes         | Raw value scan + closure filter |
 
 ### TieredStore (Read Replicas)
 

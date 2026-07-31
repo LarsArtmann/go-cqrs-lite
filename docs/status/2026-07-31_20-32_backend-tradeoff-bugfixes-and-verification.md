@@ -15,8 +15,8 @@
 
 **Fix:** Changed signature from `(stack.DurabilityTier, bool)` to `(stack.DurabilityTier, bool, error)`. Parsing now happens once at the top of `makeFactory()` — invalid input fails at CLI startup, not mid-benchmark.
 
-| File | What changed |
-|------|-------------|
+| File                        | What changed                                                                                                                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `cmd/cqrs-bench/factory.go` | `parseDurability` returns `(tier, isSet, error)`. All 3 factory closures (sqlite/pebble/postgres) now use pre-parsed `tier`/`tierSet` instead of re-calling `parseDurability` inside the closure. |
 
 **Tested:** `TestParseDurability_Valid` (6 cases: strict/STRICT/ strict /normal/relaxed/empty), `TestParseDurability_InvalidReturnsError`
@@ -27,12 +27,12 @@
 
 **Fix:** Added `case "turso"` with temp-dir creation, durability option support, and proper cleanup wiring.
 
-| File | What changed |
-|------|-------------|
+| File                        | What changed                                                                                                      |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `cmd/cqrs-bench/factory.go` | Added `case "turso"`: creates temp dir, builds `turso.Option` list, calls `turso.New(dbPath)`, returns `b.Bundle` |
-| `cmd/cqrs-bench/go.mod` | Added `stack/turso/v4 v4.2.0` (direct), `storage/turso/v4 v4.2.0` (indirect) |
-| `cmd/cqrs-bench/main.go` | Help text: added `turso     Turso embedded database (libSQL/SQLite fork)` |
-| `cmd/cqrs-bench/flags.go` | Backend flag help: added `turso` to the list |
+| `cmd/cqrs-bench/go.mod`     | Added `stack/turso/v4 v4.2.0` (direct), `storage/turso/v4 v4.2.0` (indirect)                                      |
+| `cmd/cqrs-bench/main.go`    | Help text: added `turso     Turso embedded database (libSQL/SQLite fork)`                                         |
+| `cmd/cqrs-bench/flags.go`   | Backend flag help: added `turso` to the list                                                                      |
 
 **Tested:** `TestMakeFactory_TursoBackend` — creates a real Turso bundle via the factory, verifies no error, closes cleanly
 
@@ -42,13 +42,14 @@
 
 **Fix:** Created DSN-level injection helpers that append GUCs as query parameters. pgx applies these on every new connection — the pool-safe equivalent. Replaced session-level `SET` calls in both `openBackend` and `openSecondaryDB`.
 
-| File | What changed |
-|------|-------------|
-| `storage/sqlite_helpers.go` | New: `EnsurePostgresSynchronousCommit(dsn, on) string`, `EnsurePostgresStatementTimeout(dsn, ms) string`, `appendPostgresDSNParam(dsn, key, value) string` (handles both URL-format and keyword=value DSNs). `PostgresSetSynchronousCommit` marked Deprecated. |
-| `stack/postgres/preset.go` | New `applyDSNSettings(dsn, cfg)` helper. `openBackend` passes `applyDSNSettings(dsn, cfg)` to `OpenDBOrErr` instead of raw DSN. Removed session-level `SET` calls for durability and statement_timeout. Updated doc comments to reflect DSN-level injection. Removed unused `fmt` import. |
-| `stack/postgres/multidb.go` | `openSecondaryDB` passes `applyDSNSettings(dsn, cfg)` to `sql.Open` instead of raw DSN |
+| File                        | What changed                                                                                                                                                                                                                                                                              |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `storage/sqlite_helpers.go` | New: `EnsurePostgresSynchronousCommit(dsn, on) string`, `EnsurePostgresStatementTimeout(dsn, ms) string`, `appendPostgresDSNParam(dsn, key, value) string` (handles both URL-format and keyword=value DSNs). `PostgresSetSynchronousCommit` marked Deprecated.                            |
+| `stack/postgres/preset.go`  | New `applyDSNSettings(dsn, cfg)` helper. `openBackend` passes `applyDSNSettings(dsn, cfg)` to `OpenDBOrErr` instead of raw DSN. Removed session-level `SET` calls for durability and statement_timeout. Updated doc comments to reflect DSN-level injection. Removed unused `fmt` import. |
+| `stack/postgres/multidb.go` | `openSecondaryDB` passes `applyDSNSettings(dsn, cfg)` to `sql.Open` instead of raw DSN                                                                                                                                                                                                    |
 
 **Tested:** 4 integration tests using testcontainers:
+
 - `TestNew_WithDurability_Strict` → `SHOW synchronous_commit` = "on"
 - `TestNew_WithDurability_Normal` → "off"
 - `TestNew_WithDurability_Relaxed` → "off"
@@ -60,29 +61,29 @@
 
 **Fix:** 3 tests that create real SQLite databases and query `PRAGMA synchronous`:
 
-| File | Tests |
-|------|-------|
+| File                              | Tests                                                                                                                                         |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `stack/sqlite/durability_test.go` | `TestNew_WithDurability_Strict` (sync=2/FULL), `TestNew_WithDurability_Relaxed` (sync=0/OFF), `TestNew_WithDurability_Normal` (sync=1/NORMAL) |
 
 ### Fix 5: cqrs-bench factory smoke tests
 
-| File | Tests |
-|------|-------|
+| File                             | Tests                                                                                                                                                       |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `cmd/cqrs-bench/factory_test.go` | `TestParseDurability_Valid` (6 subtests), `TestParseDurability_InvalidReturnsError`, `TestMakeFactory_MemoryWithDurability`, `TestMakeFactory_TursoBackend` |
 
 ### Verification & Infrastructure
 
-| Item | Result |
-|------|--------|
-| Build | `go build -tags "goexperiment.jsonv2"` clean on all modified modules |
-| Vet | `go vet` clean on all modified modules |
-| Tests | All pass (storage, stack/*, benchkit, cmd/cqrs-bench) |
-| Race | Clean on cmd/cqrs-bench and stack/sqlite |
-| api-stability golden | Regenerated: 2978 exports (+2) |
-| doc-check | 147 references valid across 9 packages |
-| `nix fmt` | Applied (33 files formatted, 5 changed) |
-| ADR index | Fixed pre-existing gap: ADR-0080 was created by commit `563bdf43` but never indexed in `docs/README.md`. Added it. |
-| `nix run .#verify` | Run to completion. See section (b) for the pre-existing failures. |
+| Item                 | Result                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Build                | `go build -tags "goexperiment.jsonv2"` clean on all modified modules                                               |
+| Vet                  | `go vet` clean on all modified modules                                                                             |
+| Tests                | All pass (storage, stack/*, benchkit, cmd/cqrs-bench)                                                              |
+| Race                 | Clean on cmd/cqrs-bench and stack/sqlite                                                                           |
+| api-stability golden | Regenerated: 2978 exports (+2)                                                                                     |
+| doc-check            | 147 references valid across 9 packages                                                                             |
+| `nix fmt`            | Applied (33 files formatted, 5 changed)                                                                            |
+| ADR index            | Fixed pre-existing gap: ADR-0080 was created by commit `563bdf43` but never indexed in `docs/README.md`. Added it. |
+| `nix run .#verify`   | Run to completion. See section (b) for the pre-existing failures.                                                  |
 
 ---
 
@@ -108,15 +109,15 @@ The function is marked `Deprecated:` in its doc comment and no callers remain (t
 
 These items were deferred by the previous session and I did not pick them up (out of scope for bug-fix session):
 
-| Plan Task | Description |
-|-----------|-------------|
-| **P10** | Turso: wire `indexing.*` API into preset (`WithCacheSize`, `WithMemoryMap`, `WithOptimize`) |
-| **P19** | Warm/cold read split in `readPhase` |
-| **P23** | DuckDB: surface `WithPreserveInsertionOrder`, `WithTempDirectory` |
-| **P24-P25** | DuckDB analytical benchmark phase (bulk load + GROUP BY scans) |
-| **P26** | metaengine `CostEstimate` extension |
-| **P27** | metaengine budget-based planning |
-| **P28** | Re-run full benchmark suite with optimized backends, update `docs/performance.md` |
+| Plan Task   | Description                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------- |
+| **P10**     | Turso: wire `indexing.*` API into preset (`WithCacheSize`, `WithMemoryMap`, `WithOptimize`) |
+| **P19**     | Warm/cold read split in `readPhase`                                                         |
+| **P23**     | DuckDB: surface `WithPreserveInsertionOrder`, `WithTempDirectory`                           |
+| **P24-P25** | DuckDB analytical benchmark phase (bulk load + GROUP BY scans)                              |
+| **P26**     | metaengine `CostEstimate` extension                                                         |
+| **P27**     | metaengine budget-based planning                                                            |
+| **P28**     | Re-run full benchmark suite with optimized backends, update `docs/performance.md`           |
 
 ---
 
@@ -129,6 +130,7 @@ Two issues, both in `case "turso"`:
 **a) Local mode ignores `--dsn`.** `turso.New(dbPath)` takes a single file path. The factory hardcodes `filepath.Join(dbDir, "bench.db")` and never checks `dsn`. If a user runs `cqrs-bench run --backend turso --dsn /custom/path.db`, the path is silently ignored. SQLite handles this correctly: `if dsn == "" { dsn = dbPath }` — turso should follow the same pattern.
 
 **b) Sync mode (`turso.NewSync`) has no CLI path at all.** The Turso preset has two constructors:
+
 - `turso.New(dbPath, opts...)` — local embedded database
 - `turso.NewSync(ctx, dbPath, remoteURL, authToken, opts...)` — local database + remote sync
 
@@ -139,6 +141,7 @@ The factory only covers `New`. There are no CLI flags for `remoteURL` or `authTo
 ### 2. No unit tests for `EnsurePostgresSynchronousCommit` / `EnsurePostgresStatementTimeout` / `appendPostgresDSNParam`
 
 These three new exported functions in `storage/sqlite_helpers.go` have zero direct unit tests. They're tested indirectly through the Postgres integration tests (which require Docker/testcontainers), but a direct unit test of the DSN string manipulation would be:
+
 - Faster (no container needed)
 - More thorough (can test edge cases: keyword=value DSNs, existing parameters, `postgresql://` vs `postgres://`)
 
@@ -147,6 +150,7 @@ The `appendPostgresDSNParam` function has a potential edge case: if a DSN contai
 ### 3. `DurabilityRelaxed` doc comment in `stack/durability.go` is inaccurate
 
 Line 51 says:
+
 ```
 //   - Postgres: synchronous_commit=off + local synchronous_standby_names
 ```
@@ -156,6 +160,7 @@ The implementation does NOT set `synchronous_standby_names`. For Postgres, Relax
 ### 4. `sqlopt/durability.go` has a lint warning I didn't fix
 
 The verify gate showed:
+
 ```
 stack/sqlopt/durability.go:37:9: error returned from external package is unwrapped (wrapcheck)
 ```
@@ -218,12 +223,12 @@ When asked about `--dsn` vs `--dir` for Turso, I flip-flopped three times withou
 
 1. **Fix turso factory to respect `--dsn` flag** — use `dsn` if provided (it's a file path), fall back to `filepath.Join(dbDir, "bench.db")`. Same pattern as the SQLite case.
 2. **Add turso sync-mode CLI support** — `turso.NewSync` needs `remoteURL` and `authToken`. Either a new `case "turso-sync"` or new flags (`--turso-url`, `--turso-token`). This is a whole mode of operation that can't be benchmarked.
-2. **Fix `DurabilityRelaxed` Postgres comment in `stack/durability.go:51`** — remove "+ local synchronous_standby_names"
-3. **Fix `wrapcheck` lint in `stack/sqlopt/durability.go:37`** — wrap the returned error
-4. **Add `SkipMixed: *bf.skipMixed` to compare subcommand config** (main.go:228-237)
-5. **Investigate metaengine `TestCostModelCalibration` failure** — filtered scan returns 100 items, not 500+. Broken by commit `13cab837`.
-6. **Investigate metaengine `TestStress_100KEvents` failure** — same filtered scan issue, 100 items returned instead of 66666
-7. **Fix MySQL testcontainer permissions** — `cqrs` user needs CREATE DATABASE privilege for per-test isolation
+3. **Fix `DurabilityRelaxed` Postgres comment in `stack/durability.go:51`** — remove "+ local synchronous_standby_names"
+4. **Fix `wrapcheck` lint in `stack/sqlopt/durability.go:37`** — wrap the returned error
+5. **Add `SkipMixed: *bf.skipMixed` to compare subcommand config** (main.go:228-237)
+6. **Investigate metaengine `TestCostModelCalibration` failure** — filtered scan returns 100 items, not 500+. Broken by commit `13cab837`.
+7. **Investigate metaengine `TestStress_100KEvents` failure** — same filtered scan issue, 100 items returned instead of 66666
+8. **Fix MySQL testcontainer permissions** — `cqrs` user needs CREATE DATABASE privilege for per-test isolation
 
 ### High Priority (missing tests)
 

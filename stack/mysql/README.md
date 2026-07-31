@@ -50,27 +50,27 @@ returned as `[]byte` instead of `time.Time`, breaking event timestamps.
 
 Common parameters:
 
-| Parameter         | Default | Recommendation         |
-| ----------------- | ------- | ---------------------- |
-| `parseTime`       | `false` | **`true`** (required)  |
-| `charset`         | none    | `utf8mb4`              |
-| `loc`             | `UTC`   | `UTC` (or `Local`)     |
-| `timeTruncate`    | none    | `AUTO` (MySQL 8.0.28+) |
+| Parameter      | Default | Recommendation         |
+| -------------- | ------- | ---------------------- |
+| `parseTime`    | `false` | **`true`** (required)  |
+| `charset`      | none    | `utf8mb4`              |
+| `loc`          | `UTC`   | `UTC` (or `Local`)     |
+| `timeTruncate` | none    | `AUTO` (MySQL 8.0.28+) |
 
 ## API
 
 ### Constructor
 
-| Symbol              | Description                                                        |
-| ------------------- | ------------------------------------------------------------------ |
+| Symbol              | Description                                                         |
+| ------------------- | ------------------------------------------------------------------- |
 | `New(dsn, opts...)` | Creates a MySQL/MariaDB-backed `*stack.Bundle` with auto-migration. |
 
 ### Options
 
-| Option              | Description                                          |
-| ------------------- | ---------------------------------------------------- |
-| `WithDSN(opts...)`  | Configures multi-database topology and auto-migrate. |
-| `WithStack(opts...)`| Passes through additional `stack.Option` values.     |
+| Option               | Description                                          |
+| -------------------- | ---------------------------------------------------- |
+| `WithDSN(opts...)`   | Configures multi-database topology and auto-migrate. |
+| `WithStack(opts...)` | Passes through additional `stack.Option` values.     |
 
 ## Design
 

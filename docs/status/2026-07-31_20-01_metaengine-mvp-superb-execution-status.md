@@ -18,14 +18,14 @@ Executed the entire metaengine improvement plan. **All 5 phases completed.** The
 
 ### Phase A — Migrate handleListTasks/handleGetTask (the 1% that delivers 51%)
 
-| Task | Status | Evidence |
-|------|--------|----------|
-| Declare `task_views` Map query with FilterOnField for Status | DONE | `example/taskmanager/metaengine.go` — 10 fold handlers (Created→insert, Assigned/Started/Completed/Archived/TitleUpdated/PriorityChanged/DueDateSet/BlockedBy/Unblocked→update, Deleted→Remove) |
-| Wire SQLite engine from same DSN | DONE | `setupMetaEngine(logger, dsn)` opens `*sql.DB`, creates `NewSQLiteEngine`, passes Memory + SQLite engines to `Plan()` |
-| Register task_views adapter with projectionhost | DONE | `projectionadapter.New("metaengine-tasks", store, nil, WithEventDecoder(taskEventDecoder))` registered at `setup.go:168` |
-| Migrate handleListTasks to reader.Scan | DONE | `http.go:handleListTasks` — `s.TaskReader.Scan(ctx, WithFilter("status", FilterEq, statusFilter)...)` |
-| Migrate handleGetTask to reader.Get | DONE | `http.go:handleGetTask` — `s.TaskReader.Get(ctx, taskID.String())` returns `(TaskView, found, err)` |
-| Integration test proving the migration | DONE | `TestIntegration_MetaEngineTaskReader` — creates 2 tasks, starts 1, filters by status=active and status=pending, verifies correct results |
+| Task                                                         | Status | Evidence                                                                                                                                                                                        |
+| ------------------------------------------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Declare `task_views` Map query with FilterOnField for Status | DONE   | `example/taskmanager/metaengine.go` — 10 fold handlers (Created→insert, Assigned/Started/Completed/Archived/TitleUpdated/PriorityChanged/DueDateSet/BlockedBy/Unblocked→update, Deleted→Remove) |
+| Wire SQLite engine from same DSN                             | DONE   | `setupMetaEngine(logger, dsn)` opens `*sql.DB`, creates `NewSQLiteEngine`, passes Memory + SQLite engines to `Plan()`                                                                           |
+| Register task_views adapter with projectionhost              | DONE   | `projectionadapter.New("metaengine-tasks", store, nil, WithEventDecoder(taskEventDecoder))` registered at `setup.go:168`                                                                        |
+| Migrate handleListTasks to reader.Scan                       | DONE   | `http.go:handleListTasks` — `s.TaskReader.Scan(ctx, WithFilter("status", FilterEq, statusFilter)...)`                                                                                           |
+| Migrate handleGetTask to reader.Get                          | DONE   | `http.go:handleGetTask` — `s.TaskReader.Get(ctx, taskID.String())` returns `(TaskView, found, err)`                                                                                             |
+| Integration test proving the migration                       | DONE   | `TestIntegration_MetaEngineTaskReader` — creates 2 tasks, starts 1, filters by status=active and status=pending, verifies correct results                                                       |
 
 **Planner output confirmed:** `task_views` assigned to **sqlite** engine, ADT=map, complexity=O(logN), read_pattern=filtered_scan.
 
@@ -33,42 +33,42 @@ Executed the entire metaengine improvement plan. **All 5 phases completed.** The
 
 ### Phase B — Kill Ghosts (the 4% that delivers 64%)
 
-| Task | Status | Evidence |
-|------|--------|----------|
-| Delete FluentBuilder (dx.go:1-128) | DONE | Zero `FluentBuilder` / `filterSpecBuilder` / `sortSpecBuilder` / `eventNameFromSample` / `toAnySlice` references remain. `metaengine/dx.go` now starts at `// --- Watch / Reactive reads ---` |
-| Remove dead ReadModel field from Server struct | DONE | `ReadModel *kv.TypedStore` field removed, `rmStore` creation removed, `kv/v4` import removed from setup.go |
-| Verify taskmanager still builds + tests pass | DONE | `ok github.com/larsartmann/go-cqrs-lite/example/taskmanager 0.076s` |
+| Task                                           | Status | Evidence                                                                                                                                                                                      |
+| ---------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Delete FluentBuilder (dx.go:1-128)             | DONE   | Zero `FluentBuilder` / `filterSpecBuilder` / `sortSpecBuilder` / `eventNameFromSample` / `toAnySlice` references remain. `metaengine/dx.go` now starts at `// --- Watch / Reactive reads ---` |
+| Remove dead ReadModel field from Server struct | DONE   | `ReadModel *kv.TypedStore` field removed, `rmStore` creation removed, `kv/v4` import removed from setup.go                                                                                    |
+| Verify taskmanager still builds + tests pass   | DONE   | `ok github.com/larsartmann/go-cqrs-lite/example/taskmanager 0.076s`                                                                                                                           |
 
 ### Phase C — Fix the Lies (the 20% that delivers 80%)
 
-| Task | Status | Evidence |
-|------|--------|----------|
-| Fix SSE lying comment in metaengine/sse.go | DONE | Removed "see ADR discussion on SSE consolidation" (nonexistent ADR). Now states: "metaengine SSE streams materialized query results (read-model push), while transport/http SSE streams raw domain events (event-bus push)" |
-| Fix SSE comment in transport/http/sse.go | DONE | Enhanced cross-reference to explain the layer difference |
-| Fix TTL doc comment in dx.go | DONE | Was: "actual expiration requires engine support (SQLite: background sweeper, Memory: lazy eviction)". Now: "advisory-only; no engine currently enforces TTL" |
-| Multi-engine distribution test | DONE | `cost_assignment_test.go` — "distributes different queries to different engines based on cost". Asserts Counter→Memory, FilteredMap→SQLite, and they land on DIFFERENT engines |
-| Graph reconciliation ADR | DONE | `docs/adr/0077-metaengine-graph-reconciliation.md` — documents why GraphBackend (planner ADT) and graph/ (projection tier) coexist |
+| Task                                       | Status | Evidence                                                                                                                                                                                                                    |
+| ------------------------------------------ | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fix SSE lying comment in metaengine/sse.go | DONE   | Removed "see ADR discussion on SSE consolidation" (nonexistent ADR). Now states: "metaengine SSE streams materialized query results (read-model push), while transport/http SSE streams raw domain events (event-bus push)" |
+| Fix SSE comment in transport/http/sse.go   | DONE   | Enhanced cross-reference to explain the layer difference                                                                                                                                                                    |
+| Fix TTL doc comment in dx.go               | DONE   | Was: "actual expiration requires engine support (SQLite: background sweeper, Memory: lazy eviction)". Now: "advisory-only; no engine currently enforces TTL"                                                                |
+| Multi-engine distribution test             | DONE   | `cost_assignment_test.go` — "distributes different queries to different engines based on cost". Asserts Counter→Memory, FilteredMap→SQLite, and they land on DIFFERENT engines                                              |
+| Graph reconciliation ADR                   | DONE   | `docs/adr/0077-metaengine-graph-reconciliation.md` — documents why GraphBackend (planner ADT) and graph/ (projection tier) coexist                                                                                          |
 
 ### Phase D — Superb DX (the other 20%)
 
-| Task | Status | Evidence |
-|------|--------|----------|
-| Typed read API builder (QueryBuilder) | DONE | `metaengine/query_builder.go` — `NewQueryBuilder(reader).Where().SortBy().Limit().Execute(ctx)`. Also `.Get()` convenience. Test: `TestQueryBuilder` |
-| Query-layer direction ADR | DONE | `docs/adr/0078-metaengine-kv-coexistence.md` — metaengine and kv.ViewStore coexist, consumer chooses by query complexity |
-| SSE consolidation ADR | DONE | `docs/adr/0079-sse-consolidation.md` — two implementations, two layers, architecturally correct |
-| README: Watcher/ServeSSE/interfaces docs | DONE | Added 6 new sections: Typed Reads (TypedReader + QueryBuilder), FilterOnField Pushdown, Watcher, ServeSSE, Optional Engine Interfaces table, Projection Adapter with EventDecoder |
-| Preset end-to-end integration test | DONE | `stack/sqlite/metaengine_preset_test.go` — `TestPreset_WithMetaEngine` verifies sqlite.New + WithMetaEngine → bundle.MetaEngine() → Apply + ExecuteTyped |
-| Mark vision docs as aspirational | DONE | Both `meta-engine-design.md` and `meta-engine-project-definition.md` have STATUS: ASPIRATIONAL headers listing what exists vs what doesn't |
+| Task                                     | Status | Evidence                                                                                                                                                                          |
+| ---------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Typed read API builder (QueryBuilder)    | DONE   | `metaengine/query_builder.go` — `NewQueryBuilder(reader).Where().SortBy().Limit().Execute(ctx)`. Also `.Get()` convenience. Test: `TestQueryBuilder`                              |
+| Query-layer direction ADR                | DONE   | `docs/adr/0078-metaengine-kv-coexistence.md` — metaengine and kv.ViewStore coexist, consumer chooses by query complexity                                                          |
+| SSE consolidation ADR                    | DONE   | `docs/adr/0079-sse-consolidation.md` — two implementations, two layers, architecturally correct                                                                                   |
+| README: Watcher/ServeSSE/interfaces docs | DONE   | Added 6 new sections: Typed Reads (TypedReader + QueryBuilder), FilterOnField Pushdown, Watcher, ServeSSE, Optional Engine Interfaces table, Projection Adapter with EventDecoder |
+| Preset end-to-end integration test       | DONE   | `stack/sqlite/metaengine_preset_test.go` — `TestPreset_WithMetaEngine` verifies sqlite.New + WithMetaEngine → bundle.MetaEngine() → Apply + ExecuteTyped                          |
+| Mark vision docs as aspirational         | DONE   | Both `meta-engine-design.md` and `meta-engine-project-definition.md` have STATUS: ASPIRATIONAL headers listing what exists vs what doesn't                                        |
 
 ### Phase E — Ship
 
-| Task | Status | Evidence |
-|------|--------|----------|
-| Regenerate api-stability golden | DONE | `docs/api_surface.txt` — 2976 exports verified. Removed: FluentBuilder. Added: NewQueryBuilder, WithEventDecoder, AdapterOption, EventDecoder, QueryBuilder |
-| Format | DONE | `nix fmt` — 78 files formatted |
-| ADR index | DONE | Both `docs/README.md` and `docs/adr/README.md` updated with ADRs 0075-0079, count corrected to 77 |
-| Verify gate | PARTIAL | All my modules GREEN (metaengine, projectionadapter, stack/sqlite, taskmanager, api-stability). Pre-existing failures in untouched modules (see below) |
-| Commit | DONE | Auto-commit daemon committed all changes |
+| Task                            | Status  | Evidence                                                                                                                                                    |
+| ------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Regenerate api-stability golden | DONE    | `docs/api_surface.txt` — 2976 exports verified. Removed: FluentBuilder. Added: NewQueryBuilder, WithEventDecoder, AdapterOption, EventDecoder, QueryBuilder |
+| Format                          | DONE    | `nix fmt` — 78 files formatted                                                                                                                              |
+| ADR index                       | DONE    | Both `docs/README.md` and `docs/adr/README.md` updated with ADRs 0075-0079, count corrected to 77                                                           |
+| Verify gate                     | PARTIAL | All my modules GREEN (metaengine, projectionadapter, stack/sqlite, taskmanager, api-stability). Pre-existing failures in untouched modules (see below)      |
+| Commit                          | DONE    | Auto-commit daemon committed all changes                                                                                                                    |
 
 ---
 
@@ -76,19 +76,19 @@ Executed the entire metaengine improvement plan. **All 5 phases completed.** The
 
 ### Verify Gate — My Modules GREEN, Pre-Existing Failures Remain
 
-| Module | Status | Cause |
-|--------|--------|-------|
-| `metaengine/v4` | GREEN (normal + race) | — |
-| `metaengine/projectionadapter/v4` | GREEN | — |
-| `metaengine/pebbleengine/v4` | GREEN | — |
-| `metaengine/v4/adttest` | GREEN | — |
-| `stack/sqlite/v4` | GREEN | — |
-| `example/taskmanager` | GREEN | — |
-| `cmd/api-stability/v4` | GREEN | — |
-| `benchkit/v4` | FAIL | Pre-existing race condition in soak tests (`TestRunSoak_TrendsPopulated`, `TestWriteSoakJSON_RoundTrip`, `TestRunSoak_Memory`). Not caused by my changes — I only reformatted `profiles.go`. |
-| `transport/grpc/v4` | FAIL | Pre-existing: `TestEventPubSub_FilterByType`, `TestEventPubSub_RoundTrip`. Untouched module. |
-| `storage/v4` | FAIL | Pre-existing: `TestSQLTimerStore_IntegrationWithScheduler`. Untouched module. |
-| `stack/v4` | FAIL | Pre-existing: `TestBundle_RunProjections_ReplayAndLive`. Untouched module. |
+| Module                            | Status                | Cause                                                                                                                                                                                        |
+| --------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `metaengine/v4`                   | GREEN (normal + race) | —                                                                                                                                                                                            |
+| `metaengine/projectionadapter/v4` | GREEN                 | —                                                                                                                                                                                            |
+| `metaengine/pebbleengine/v4`      | GREEN                 | —                                                                                                                                                                                            |
+| `metaengine/v4/adttest`           | GREEN                 | —                                                                                                                                                                                            |
+| `stack/sqlite/v4`                 | GREEN                 | —                                                                                                                                                                                            |
+| `example/taskmanager`             | GREEN                 | —                                                                                                                                                                                            |
+| `cmd/api-stability/v4`            | GREEN                 | —                                                                                                                                                                                            |
+| `benchkit/v4`                     | FAIL                  | Pre-existing race condition in soak tests (`TestRunSoak_TrendsPopulated`, `TestWriteSoakJSON_RoundTrip`, `TestRunSoak_Memory`). Not caused by my changes — I only reformatted `profiles.go`. |
+| `transport/grpc/v4`               | FAIL                  | Pre-existing: `TestEventPubSub_FilterByType`, `TestEventPubSub_RoundTrip`. Untouched module.                                                                                                 |
+| `storage/v4`                      | FAIL                  | Pre-existing: `TestSQLTimerStore_IntegrationWithScheduler`. Untouched module.                                                                                                                |
+| `stack/v4`                        | FAIL                  | Pre-existing: `TestBundle_RunProjections_ReplayAndLive`. Untouched module.                                                                                                                   |
 
 ### Tagging — NOT DONE
 

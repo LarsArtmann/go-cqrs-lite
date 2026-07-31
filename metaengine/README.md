@@ -428,6 +428,7 @@ metaengine.WithMetrics(store, &myRecorder{})
 ```
 
 Built-in helpers:
+
 - `metaengine.WithDebug(store, logger)` — debug logging of every fold
 - `metaengine.WithSlowQueryLog(store, threshold, logger)` — slow query detection
 - `metaengine.NewCostAccuracyReporter(n)` — cost model drift detection

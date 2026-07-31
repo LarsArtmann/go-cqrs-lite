@@ -54,7 +54,7 @@ func (s *Store) RegisterQuery(query any) error {
 // applyAutoLayoutForQuery generates and applies a LayoutPlan for declarative
 // FilterOnField/SortOnField queries when the assigned engine supports it.
 func (s *Store) applyAutoLayoutForQuery(meta queryMeta, runtime queryRuntime) error {
-	lp, ok := runtime.engine.(LayoutPlanner)
+	layoutPlanner, ok := runtime.engine.(LayoutPlanner)
 	if !ok {
 		return nil
 	}
@@ -74,7 +74,7 @@ func (s *Store) applyAutoLayoutForQuery(meta queryMeta, runtime queryRuntime) er
 		s.plan.LayoutPlans = append(s.plan.LayoutPlans, layoutPlan)
 	}
 
-	if err := lp.ApplyLayout(runtime.name, filterFields, sortFields); err != nil {
+	if err := layoutPlanner.ApplyLayout(runtime.name, filterFields, sortFields); err != nil {
 		return fmt.Errorf(
 			"metaengine.RegisterQuery: auto-layout for %q: %w",
 			runtime.name, err,

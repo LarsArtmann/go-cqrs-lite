@@ -7,13 +7,13 @@ This guide walks you through migrating a read model from `stack.Materialize` +
 
 Migrate when you hit **any** of these signals:
 
-| Signal | Materialize Limitation | Metaengine Solution |
-|--------|----------------------|---------------------|
-| Filtered scans are slow at scale | O(N) Go-side filter on every List call | `FilterOnField` → SQLite `json_extract` WHERE pushdown (50x faster at 10K rows) |
-| You need sorted results | Sort in Go after loading all records | `SortOnField` → SQLite ORDER BY pushdown |
-| You need O(1) aggregates | Count by scanning all records | Counter ADT with Delta folds |
-| Multiple read patterns on same data | One projection per pattern | One Map query, multiple fold handlers |
-| Point lookups dominate | kv.Get is already fast | Memory engine for O(1) or SQLite for persistence |
+| Signal                              | Materialize Limitation                 | Metaengine Solution                                                             |
+| ----------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------- |
+| Filtered scans are slow at scale    | O(N) Go-side filter on every List call | `FilterOnField` → SQLite `json_extract` WHERE pushdown (50x faster at 10K rows) |
+| You need sorted results             | Sort in Go after loading all records   | `SortOnField` → SQLite ORDER BY pushdown                                        |
+| You need O(1) aggregates            | Count by scanning all records          | Counter ADT with Delta folds                                                    |
+| Multiple read patterns on same data | One projection per pattern             | One Map query, multiple fold handlers                                           |
+| Point lookups dominate              | kv.Get is already fast                 | Memory engine for O(1) or SQLite for persistence                                |
 
 **Don't migrate** if your read model is small (< 1K records) or you only do
 simple key-value lookups. Materialize + kv.ViewStore is simpler and sufficient.

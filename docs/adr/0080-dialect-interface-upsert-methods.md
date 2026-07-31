@@ -1,9 +1,9 @@
 # ADR-0080: Dialect interface expansion for cross-database upsert support
 
-|             |                                                                                  |
-| ----------- | -------------------------------------------------------------------------------- |
-| **Status**  | Accepted                                                                         |
-| **Date**    | 2026-07-31                                                                       |
+|             |                                                                                                                              |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Status**  | Accepted                                                                                                                     |
+| **Date**    | 2026-07-31                                                                                                                   |
 | **Context** | The `Dialect` interface had no upsert/quoting methods; 11 SQL sites hardcoded `ON CONFLICT` syntax, preventing MySQL support |
 
 ## Context
@@ -77,6 +77,7 @@ This is acceptable because:
 3. The methods are trivially implementable (most return constant strings).
 
 **Positive consequences:**
+
 - MySQL and MariaDB are now fully supported across all SQL stores.
 - Future database dialects (e.g., Oracle, SQL Server) can be added by
   implementing 4 methods instead of branching at 11 call sites.
@@ -90,12 +91,12 @@ dual code paths (old + new), increasing complexity instead of reducing it.
 
 ## MySQL-specific patterns
 
-| Pattern | PostgreSQL/SQLite | MySQL |
-|---------|-------------------|-------|
-| Upsert update ref | `excluded.col` | `VALUES(col)` |
-| Do-nothing | `ON CONFLICT DO NOTHING` | `ON DUPLICATE KEY UPDATE col = col` |
-| Do-update | `ON CONFLICT (cols) DO UPDATE SET ...` | `ON DUPLICATE KEY UPDATE ...` |
-| Reserved word `key` | `key` (not reserved) | `` `key` `` (backtick-quoted) |
+| Pattern                 | PostgreSQL/SQLite                        | MySQL                                                                 |
+| ----------------------- | ---------------------------------------- | --------------------------------------------------------------------- |
+| Upsert update ref       | `excluded.col`                           | `VALUES(col)`                                                         |
+| Do-nothing              | `ON CONFLICT DO NOTHING`                 | `ON DUPLICATE KEY UPDATE col = col`                                   |
+| Do-update               | `ON CONFLICT (cols) DO UPDATE SET ...`   | `ON DUPLICATE KEY UPDATE ...`                                         |
+| Reserved word `key`     | `key` (not reserved)                     | `` `key` `` (backtick-quoted)                                         |
 | Idempotency conditional | `WHERE expires_at < excluded.expires_at` | `IF(expires_at < VALUES(expires_at), VALUES(expires_at), expires_at)` |
 
 The last row is notable: MySQL's `ON DUPLICATE KEY UPDATE` does not support a
