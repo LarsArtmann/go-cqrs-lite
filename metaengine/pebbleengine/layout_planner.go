@@ -332,6 +332,19 @@ func sortIndexedResults(results [][]byte, sortField string, desc bool) {
 	})
 }
 
+// processFilterIndex sorts, cursor-paginates, and limits filter-indexed results.
+func processFilterIndex(indexed [][]byte, sortSpec *metaengine.SortSpec, cursor any, limit int) [][]byte {
+	if sortSpec != nil {
+		sortIndexedResults(indexed, sortSpec.Column, sortSpec.Desc)
+
+		if cursor != nil {
+			indexed = paginateIndexedResults(indexed, sortSpec, cursor)
+		}
+	}
+
+	return applyLimit(indexed, limit)
+}
+
 // applyLimit truncates results to limit+1 (the extra row signals "has more").
 func applyLimit(results [][]byte, limit int) [][]byte {
 	if limit <= 0 || len(results) <= limit+1 {
