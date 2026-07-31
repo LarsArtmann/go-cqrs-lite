@@ -79,8 +79,8 @@
 
 | Item | Status |
 |------|--------|
-| ADR-0080: Runtime casts analysis | DONE |
-| ADR-0081: Store redesign analysis | DONE |
+| ADR-0081: Runtime casts analysis | DONE |
+| ADR-0082: Store redesign analysis | DONE |
 | api-stability golden regenerated | DONE (2981 exports, up from 2976) |
 | Lint issues fixed | DONE (nestif, perfsprint, tparallel, varnamelen, nlreturn, wsl_v5) |
 
@@ -263,7 +263,7 @@ The entire session's work — 20+ files created/modified — is **uncommitted**.
 47. **Doc: Add metaengine section to SKILL.md core.md** — Module decision matrix
 48. **Doc: Add metaengine to architecture D2 diagram** — Visual flow
 49. **ADR: Document the WithLimit(0) = unlimited design decision**
-50. **Explore: Codegen path (cmd/cqrs-gen) for typed Store** — Per ADR-0081 Alternative C
+50. **Explore: Codegen path (cmd/cqrs-gen) for typed Store** — Per ADR-0082 Alternative C
 
 ---
 
@@ -277,6 +277,6 @@ The master plan's D1 asks whether to tag and push. I cannot push to remote per p
 
 I decided to keep it because test helpers depend on it. But it's running alongside the metaengine adapter as a parallel projection — doubling write cost. **Should I migrate the test helpers to use the metaengine TypedReader instead, then remove `mat`?** This would eliminate the redundancy but require rewriting test assertions.
 
-### Q3: Is the `any` boundary in Store acceptable, or should I prototype the codegen path (Alternative C from ADR-0081)?
+### Q3: Is the `any` boundary in Store acceptable, or should I prototype the codegen path (Alternative C from ADR-0082)?
 
-The runtime casts are structurally necessary given Go's type system (ADR-0080). The current `TypedReader[V]` wrapper hides them from consumers. **Should I invest in `cmd/cqrs-gen` to generate a fully-typed `TaskStore` from query declarations?** This would eliminate all casts but add a build step. Or is the current typed-reader API sufficient?
+The runtime casts are structurally necessary given Go's type system (ADR-0081). The current `TypedReader[V]` wrapper hides them from consumers. **Should I invest in `cmd/cqrs-gen` to generate a fully-typed `TaskStore` from query declarations?** This would eliminate all casts but add a build step. Or is the current typed-reader API sufficient?
