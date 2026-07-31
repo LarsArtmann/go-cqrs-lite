@@ -1,6 +1,7 @@
 package pebbleengine
 
 import (
+	"bytes"
 	"context"
 	"encoding/json/v2"
 	"fmt"
@@ -107,9 +108,59 @@ func (e *pebbleEngine) deleteIndexEntries(
 	}
 }
 
-// indexKeysForFilter returns the secondary index prefix for a filter on a
-// declared field. Returns ok=false if the field is not indexed or the filter
-// is not an equality filter.
+// fieldIndexPrefix builds the secondary index key prefix for a field (all values).
+// Format: "i{sep}{col}{sep}{field}{sep}"
+func fieldIndexPrefix(col, field string) []byte {
+	return []byte("i" + sep + col + sep + field + sep)
+}
+
+// indexBounds returns LowerBound and UpperBound for an index scan based on the
+// first indexable filter in filters. Supports FilterEq, FilterGt, FilterGe,
+// FilterLt, FilterLe, and FilterIn (expanded to multiple equality scans).
+// Returns ok=false if no indexable filter is found.
+func (p layoutPlan) indexBounds(col string, filters []metaengine.FilterSpec) (lower, upper []byte, ok bool) {
+	if len(filters) == 0 {
+		return nil, nil, false
+	}
+
+	for _, f := range filters {
+		for _, field := range p.filterFields {
+			if field != f.Column {
+				continue
+			}
+
+			fp := fieldIndexPrefix(col, field)
+			valStr := fmt.Sprintf("%v", f.Value)
+
+			switch f.Op {
+			case metaengine.FilterEq:
+				vp := layoutKeyPrefix(col, field, valStr)
+				return vp, nextKey(vp), true
+
+			case metaengine.FilterGt:
+				vp := layoutKeyPrefix(col, field, valStr)
+				return nextKey(vp), nextKey(fp), true
+
+			case metaengine.FilterGe:
+				vp := layoutKeyPrefix(col, field, valStr)
+				return vp, nextKey(fp), true
+
+			case metaengine.FilterLt:
+				vp := layoutKeyPrefix(col, field, valStr)
+				return fp, vp, true
+
+			case metaengine.FilterLe:
+				vp := layoutKeyPrefix(col, field, valStr)
+				return fp, nextKey(vp), true
+			}
+		}
+	}
+
+	return nil, nil, false
+}
+
+// indexPrefix returns the prefix for an equality filter scan. Kept for
+// backward compatibility with the deleteIndexEntries path.
 func (p layoutPlan) indexPrefix(col string, filters []metaengine.FilterSpec) ([]byte, bool) {
 	if len(filters) == 0 {
 		return nil, false
@@ -134,21 +185,20 @@ func (p layoutPlan) indexPrefix(col string, filters []metaengine.FilterSpec) ([]
 
 // scanWithIndex uses a secondary index to find matching keys, then reads
 // their values. This is O(matches) instead of O(all rows in collection).
+// Supports FilterEq, FilterGt, FilterGe, FilterLt, FilterLe via index bounds.
 func (e *pebbleEngine) scanWithIndex(
 	_ context.Context,
 	col string,
 	filters []metaengine.FilterSpec,
 	plan layoutPlan,
 ) ([][]byte, error) {
-	prefix, ok := plan.indexPrefix(col, filters)
+	lowerBound, upperBound, ok := plan.indexBounds(col, filters)
 	if !ok {
 		return nil, nil
 	}
 
-	upperBound := nextKey(prefix)
-
 	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
+		LowerBound: lowerBound,
 		UpperBound: upperBound,
 	})
 	if err != nil {
@@ -160,18 +210,14 @@ func (e *pebbleEngine) scanWithIndex(
 	var results [][]byte
 
 	for iter.First(); iter.Valid(); iter.Next() {
-		// The index key is: i{col}{field}{value}{primaryKey}
-		// Extract primaryKey from the end of the key.
+		// The index key is: i{sep}{col}{sep}{field}{sep}{value}{sep}{primaryKey}
+		// Extract primaryKey by finding the last separator.
 		fullKey := append([]byte(nil), iter.Key()...)
-		primaryKey := extractPrimaryKey(fullKey, prefix)
+		primaryKey := extractPrimaryKeyFromIndex(fullKey)
 
 		// Read the actual value from the map store.
 		val, closer, err := e.db.Get(mapKey(col, primaryKey))
 		if err != nil {
-			if err == pebble.ErrNotFound {
-				continue
-			}
-
 			continue
 		}
 
@@ -188,14 +234,16 @@ func (e *pebbleEngine) scanWithIndex(
 	return results, nil
 }
 
-// extractPrimaryKey extracts the primary key portion from an index entry key.
-// The index key is prefix + primaryKey, so we strip the prefix.
-func extractPrimaryKey(fullKey, prefix []byte) string {
-	if len(fullKey) <= len(prefix) {
+// extractPrimaryKeyFromIndex extracts the primary key portion from any index
+// entry key by finding the last separator. Works for both equality and range
+// scans where the value portion varies in length.
+func extractPrimaryKeyFromIndex(fullKey []byte) string {
+	idx := bytes.LastIndex(fullKey, []byte(sep))
+	if idx < 0 || idx >= len(fullKey)-1 {
 		return ""
 	}
 
-	return string(fullKey[len(prefix):])
+	return string(fullKey[idx+1:])
 }
 
 // sortIndexedResults sorts raw JSON values by a sort field.

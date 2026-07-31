@@ -67,8 +67,9 @@ this list and recorded in CHANGELOG.
       Benchmark: 108x speedup over full scan (6ms→56μs, 80K→311 allocs).
 - [x] **Soak test** — concurrent correctness, multimap growth safety, memory boundedness.
 - [x] **Chaos testing** — concurrent stress tests, error injection, engine swaps.
-- [ ] **Pebble LayoutPlanner range filters** — FilterGt/FilterLt/FilterIn fall through
-      to full scan (only FilterEq uses the index). Requires lexicographic value encoding.
+- [x] **Pebble LayoutPlanner range filters** — FilterGt/FilterGe/FilterLt/FilterLe
+      now use index bounds (LowerBound/UpperBound) for O(matches) range scans.
+      Only FilterIn remains unindexed (multiple equality scans would be needed).
 - [ ] **Pebble LayoutPlanner sort index** — sortFields stored but unused for ordering.
       Requires separate sort-prefix index structure.
 
