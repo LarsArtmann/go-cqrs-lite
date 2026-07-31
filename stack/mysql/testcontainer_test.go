@@ -44,7 +44,6 @@ func TestMain(m *testing.M) {
 		tcmysql.WithDatabase("cqrs_test"),
 		tcmysql.WithUsername("cqrs"),
 		tcmysql.WithPassword("cqrs"),
-		testcontainers.WithEnv(map[string]string{"MYSQL_ROOT_PASSWORD": "rootpass"}),
 	)
 	if err != nil {
 		os.Exit(m.Run())
@@ -62,12 +61,15 @@ func TestMain(m *testing.M) {
 	// per-test database isolation in mysqlDSN and multidb tests). We use
 	// ctr.Exec to run the GRANT inside the container via the unix socket,
 	// avoiding caching_sha2_password auth issues with host-side root connections.
+	// The tcmysql module's WithDefaultCredentials sets MYSQL_ROOT_PASSWORD to
+	// the same value as MYSQL_PASSWORD, so the root password is "cqrs".
 	grantSQL := "GRANT ALL PRIVILEGES ON *.* TO 'cqrs'@'%' WITH GRANT OPTION"
 	exitCode, _, execErr := ctr.Exec(ctx, []string{
-		"mysql", "-uroot", "-prootpass", "-e", grantSQL,
+		"mysql", "-uroot", "-pcqrs", "-e", grantSQL,
 	})
 	if execErr != nil || exitCode != 0 {
 		fmt.Fprintf(os.Stderr, "WARN: GRANT failed (exit %d): %v — tests will skip\n", exitCode, execErr)
+		containerDSN = ""
 		_ = testcontainers.TerminateContainer(ctr)
 		os.Exit(m.Run())
 	}
