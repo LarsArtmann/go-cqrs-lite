@@ -53,7 +53,7 @@ func TestFilterLibrarySelfLint_LibraryProject(t *testing.T) {
 func TestFilterLibrarySelfLint_AllConsumerRulesSuppressed(t *testing.T) {
 	t.Parallel()
 
-	var findings []finding.Finding
+	findings := make([]finding.Finding, 0, 7)
 	for _, rule := range []string{"A001", "A008", "A020", "A021", "A023", "E005", "E007"} {
 		findings = append(findings, mustFinding(rule, "test"))
 	}

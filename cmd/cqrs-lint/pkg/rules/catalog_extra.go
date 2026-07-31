@@ -257,7 +257,7 @@ func boilerplateRules() []RuleInfo {
 	}
 }
 
-func performanceRules() []RuleInfo {
+func performanceRules() []RuleInfo { //nolint:dupl // catalog pattern
 	return []RuleInfo{
 		{
 			ID:          "P001",

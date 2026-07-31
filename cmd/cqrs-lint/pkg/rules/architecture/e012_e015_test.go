@@ -1,4 +1,4 @@
-package architecture_test
+package architecture_test //nolint:dupl // test boilerplate
 
 import (
 	"testing"

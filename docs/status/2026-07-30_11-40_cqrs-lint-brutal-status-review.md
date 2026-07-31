@@ -4,6 +4,12 @@
 > **Session scope:** Resumed execution of the 4-phase improvement plan. Found the previous session's work had been committed by the auto-commit daemon. Fixed quality gaps: added missing tests, fixed bugs, wrote validation report.
 > **Starting state:** 65 rules, 6 categories (per README — still says this)
 > **Actual state:** 78 detectors registered, 8 categories in catalog, all tests green — BUT multiple critical issues remain.
+>
+> **Update 2026-07-31 (commit `30bfcb73`):** The linter grew to **175 rules across 10 categories**.
+> The verify gate is GREEN (c031.go build error was fixed in the 23:22 hardening session).
+> E010/E011/E013/E014 were rewritten with type-aware matching, library self-lint mode was
+> implemented, and import-alias resolution was built. See full status in the Resolution
+> section below.
 
 ---
 
@@ -286,15 +292,24 @@ The daemon committed the previous session's code (including bugs) WHILE I was im
 
 ---
 
-## Resolution (2026-07-30)
+## Resolution (2026-07-30, updated 2026-07-31)
 
-- ✅ **All 94 new cqrs-lint rules committed** — the 65→159 rule expansion is
-  complete (10 categories). The verify gate was GREEN at commit `832437e9`
-  before the c031.go build error was introduced.
+- ✅ **All 94 new cqrs-lint rules committed** — the 65→159 rule expansion was the
+  baseline; as of 2026-07-31 the linter has **175 rules across 10 categories**.
 - ✅ **Git index corruption fixed** — `git read-tree HEAD` resolved it.
 - ✅ **C023 O(N×M) fixed** — rewritten to single-pass ancestor-stack.
 - ✅ **D005 TrimRight fixed** — strips `.,;:!?` not just `.,`.
-- ⚠️ **Verify gate now RED** — c031.go build error. See TODO_LIST.md.
-- **Open quality items** (E010/E011/E013/E014 architecturally wrong, import-alias
-  resolution, library self-lint mode, P010/callHasOption) tracked in
-  TODO_LIST.md "cqrs-lint Quality".
+- ✅ **Verify gate GREEN** — c031.go build error was fixed in the 23:22 hardening
+  session (`838609a8`). The full `nix run .#verify` passed.
+- ✅ **Quality items resolved** (23:22 hardening session):
+  - E010 rewritten with type-aware receiver matching (`projectCallsMethodOnType`)
+  - E014 rewritten with type-aware projection-host matching
+  - Library self-lint mode implemented (`IsLibrarySelfLint()`) — skips 29
+    consumer-coaching rules when linting go-cqrs-lite source itself
+  - Import-alias resolution helper built (`QualifierToImportPath`,
+    `ImportQualifierMap`, `projectCallsImportPath`) — E008 migrated as proof of concept
+  - Suppression tests added for all 12 new rules (C031-C034, P011-P012, D014-D015,
+    A032, E016-E017, S010)
+  - 22MB committed binary removed; api-stability golden regenerated (2907 exports)
+- **Still open**: F011/F013 import-alias migration to remaining E-series rules;
+  50-item improvement backlog (~35 items remain). See TODO_LIST.md "cqrs-lint Quality".
