@@ -99,10 +99,10 @@ func NewE009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // This is a valid pattern for external event ingestion (Discord sync, webhook
 // receivers), but the finding suggests wrapping in a command for validation.
 //
-// Gated on the event module import to avoid false positives from non-CQRS
-// code that happens to have a variable named "store" with a Save method.
-// The decider-suppression check uses any .Execute() call, not just "repo.Execute",
-// because the repository variable can be named anything.
+// Uses type-aware receiver matching when type info is available: checks that
+// the receiver of Save/Append/AppendBatch is a type from go-cqrs-lite event or
+// storage packages. Falls back to variable-name heuristic ("store") in unit
+// tests where type info is absent.
 //
 //nolint:ireturn // factory returns public interface
 func NewE010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -113,17 +113,18 @@ func NewE010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			if !projectCallsAny(ctx, "store", "Save", "AppendBatch", "Append") {
+			// Type-aware check: any Save/Append/AppendBatch on a CQRS store type.
+			pos, found := projectCallsMethodOnType(ctx,
+				[]string{"Save", "AppendBatch", "Append"},
+				[]string{"go-cqrs-lite/event", "go-cqrs-lite/storage", "cqrs-lite/event"},
+			)
+			if !found {
 				return nil, nil
 			}
 
-			if projectHasCallContaining(ctx, "Execute") {
+			// Suppress if any decider.Execute call is present.
+			if projectHasMethodCallContaining(ctx, "Execute") {
 				return nil, nil
-			}
-
-			pos, ok := firstCallPosAny(ctx, "store", "Save", "AppendBatch", "Append")
-			if !ok {
-				pos, _ = firstFilePos(ctx)
 			}
 
 			return singleFinding(

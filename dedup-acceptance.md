@@ -1,6 +1,11 @@
 # Dedup Acceptance Log
 
-**Session 7 (-t 2):** 2 extractions applied (`parseTimePointer`, `iterJSON`),
+**Session 3 (-t 3):** 12 extractions applied across metaengine + cqrs-lint,
+reducing clone groups from 19 to 8. All production-code clones eliminated;
+the remaining 8 are idiomatic test patterns (table-driven tests, per-package
+test helpers) or false positives. See "Session 3 Extractions" below.
+
+**Session 2 (-t 2):** 2 extractions applied (`parseTimePointer`, `iterJSON`),
 reducing clone groups from 52 to 50 (test boilerplate unchanged).
 Production-code patterns at the 3+ threshold are now exhausted; the
 remaining 50 groups are all 2-occurrence test idioms or unique-value sites.
@@ -27,6 +32,31 @@ extracted.
 | `unmarshalJSONString`         | event/date.go + time_types.go            | json.Unmarshal + WrapRejection (2 sites)          |
 | `sliceIteratorOrErr`          | storage/memory/stream.go                 | if-err + WrapInfra + SliceIterator (4 sites)      |
 | `mergeKnows` + `knowsEdgeRef` | graph/graphtest/contract.go              | RunInTx + MergeEdge + EdgeRef literal (5 sites)   |
+
+---
+
+## Session 3 Extractions (-t 3)
+
+| Extraction | Files | Pattern Eliminated |
+|---|---|---|
+| `buildPlannedSelectQuery` | metaengine/planned_sqlite.go + raw_reader.go | SQL query builder (SELECT/WHERE/ORDER BY/LIMIT) for planned tables (2 sites) |
+| `scanSingleColumn[T]` | metaengine/raw_reader.go + sqlite_backends.go | QueryContext + rows.Scan + transform generic (2 sites: raw bytes + JSON decode) |
+| `Watcher.addWatcherEntry` | metaengine/dx.go | watcherEntry creation + lock + register (2 sites: Watch + WatchWithSeq) |
+| `pebbleEngine.getPebbleRaw` | metaengine/pebbleengine/engine.go + raw_reader.go | db.Get + ErrNotFound + closer.Close (2 sites: MapGet + GetRawValue) |
+| `lintutil.ModuleImportsPath` | cmd/cqrs-lint security/s005.go + s006.go | Package import path search (2 sites: signing + encryption) |
+| `lintutil.FirstFilePos` | cmd/cqrs-lint adoption/helpers.go + architecture/helpers.go | First non-test file package position (2 sites, now one-line delegates) |
+| `lintutil.SelectorMatches` | cmd/cqrs-lint lintutil.go + d012.go + c032.go | SelectorExpr pkg.name check (3 sites: fmt.Errorf, context.Context, context.Background/TODO) |
+| `lintutil.ExprCallSelector` | cmd/cqrs-lint api/a002.go + correctness/swallow_helpers.go | expr → CallExpr → SelectorFromExpr (2 sites: json.Marshal + Payload) |
+| `lintutil.CallSelectorMatches` | cmd/cqrs-lint correctness/c021.go + c024.go | SelectorFromExpr + name check (3 sites: Lock/RLock, Unlock/RUnlock, Begin/BeginTx/RunInTx) |
+
+### Session 3 Accepted Groups (8 remaining, all test/false-positive)
+
+| Group | Location | Reason |
+|---|---|---|
+| Test helpers | 6 `rules_test.go` files | `runDetector`/`assertRule` across 6 rule packages; Go per-package test model |
+| Table-driven tests | s005_test, c030_test, new_rules_test, features*_test | `t.Parallel()` + setup + assert; idiomatic Go test structure |
+| Golden helpers | catalog/cattest + event/eventtest | Per-module `AssertGolden`; go-snaps config is path-relative |
+| strings.Builder | observability.go + plan_types.go | `var b strings.Builder` + different content; false positive |
 
 ---
 

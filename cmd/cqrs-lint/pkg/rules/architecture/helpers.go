@@ -480,3 +480,161 @@ func firstKeyBoolPosInTypedComposite(
 
 	return token.Position{}, false
 }
+
+// projectCallsMethodOnType scans for calls to any of methodNames on any
+// receiver whose type path contains any of typePathSubstrs. Uses type info
+// when available (real analysis); falls back to variable-name matching when
+// type info is absent (unit tests with AST-only context).
+//
+// Example: projectCallsMethodOnType(ctx, []string{"Save", "Append"},
+// []string{"go-cqrs-lite/event", "go-cqrs-lite/storage"}) matches
+// `myStore.Save(...)` when myStore's type path contains "go-cqrs-lite/event"
+// or "go-cqrs-lite/storage".
+func projectCallsMethodOnType(
+	ctx *analyzer.AnalysisContext,
+	methodNames []string,
+	typePathSubstrs []string,
+) (token.Position, bool) {
+	nameSet := make(map[string]bool, len(methodNames))
+	for _, n := range methodNames {
+		nameSet[n] = true
+	}
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		var hit *ast.CallExpr
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			if hit != nil {
+				return false
+			}
+
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+
+			sel, ok := analyzer.SelectorFromExpr(call.Fun)
+			if !ok {
+				return true
+			}
+
+			if !nameSet[sel.Sel.Name] {
+				return true
+			}
+
+			if receiverTypeMatches(gf, sel.X, typePathSubstrs) {
+				hit = call
+				return false
+			}
+
+			return true
+		})
+
+		if hit != nil {
+			return ctx.Fset.Position(hit.Pos()), true
+		}
+	}
+
+	return token.Position{}, false
+}
+
+// receiverTypeMatches checks whether the expression's type path contains any
+// of the substrings. Uses go/types when available, falls back to variable-name
+// heuristic otherwise.
+func receiverTypeMatches(
+	gf *analyzer.GoFile,
+	expr ast.Expr,
+	typePathSubstrs []string,
+) bool {
+	// Try type info first (real analysis path).
+	if gf.Pkg != nil && gf.Pkg.TypesInfo != nil {
+		if tv, ok := gf.Pkg.TypesInfo.Types[expr]; ok {
+			typeStr := tv.Type.String()
+			for _, sub := range typePathSubstrs {
+				if strings.Contains(typeStr, sub) {
+					return true
+				}
+			}
+			// Type info available but type doesn't match — trust the type info.
+			return false
+		}
+	}
+
+	// Fallback: no type info (unit tests). Use variable-name heuristic.
+	if ident, ok := expr.(*ast.Ident); ok {
+		name := strings.ToLower(ident.Name)
+		for _, sub := range typePathSubstrs {
+			switch {
+			case strings.Contains(sub, "event") || strings.Contains(sub, "storage"):
+				for _, pattern := range []string{"store", "eventstore", "repo", "es"} {
+					if name == pattern {
+						return true
+					}
+				}
+			case strings.Contains(sub, "projectionhost"):
+				for _, pattern := range []string{"host", "projectionhost", "proj"} {
+					if name == pattern {
+						return true
+					}
+				}
+			case strings.Contains(sub, "signing") || strings.Contains(sub, "encryption"):
+				for _, pattern := range []string{"signer", "encryptor", "enc", "sign"} {
+					if name == pattern {
+						return true
+					}
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+// projectHasMethodCallContaining reports whether any non-test file has a call
+// to a method whose name contains substr. This is a broad check used for
+// suppression (e.g., any .Execute() call suppresses E010).
+func projectHasMethodCallContaining(
+	ctx *analyzer.AnalysisContext,
+	substr string,
+) bool {
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		found := false
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			if found {
+				return false
+			}
+
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+
+			sel, ok := analyzer.SelectorFromExpr(call.Fun)
+			if !ok {
+				return true
+			}
+
+			if strings.Contains(sel.Sel.Name, substr) {
+				found = true
+				return false
+			}
+
+			return true
+		})
+
+		if found {
+			return true
+		}
+	}
+
+	return false
+}

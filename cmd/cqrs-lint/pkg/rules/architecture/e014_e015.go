@@ -16,10 +16,9 @@ import (
 // before responding to commands. The read model may be stale when the command
 // handler returns, leading to "I just created it but it's not there" bugs.
 //
-// Checks for drain/sync/flush/wait calls using generic name matching (not
-// variable-name assumptions like "host.Stop()") because the projectionhost
-// variable can be named anything. host.Stop() is a shutdown call, not a
-// drain-before-return — the correct signals are Drain, Sync, WaitFor, Flush.
+// Uses type-aware receiver matching: checks that Drain/Sync/Flush/WaitFor is
+// called on a projectionhost.Host variable. Falls back to variable-name
+// heuristic ("host", "proj") in unit tests without type info.
 //
 //nolint:ireturn // factory returns public interface
 func NewE014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -30,12 +29,11 @@ func NewE014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			// Check for drain/sync/flush/wait patterns using generic name
-			// matching, which works regardless of the variable name.
-			if projectHasCallContaining(ctx, "Drain") ||
-				projectHasCallContaining(ctx, "Sync") ||
-				projectHasCallContaining(ctx, "Flush") ||
-				projectHasCallContaining(ctx, "WaitFor") {
+			// Type-aware check: drain/sync/flush/wait on a projectionhost type.
+			if _, found := projectCallsMethodOnType(ctx,
+				[]string{"Drain", "Sync", "Flush", "WaitFor"},
+				[]string{"go-cqrs-lite/projectionhost", "cqrs-lite/projectionhost"},
+			); found {
 				return nil, nil
 			}
 
