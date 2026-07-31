@@ -306,6 +306,7 @@ func MapUpdateTyped[V any](
 		}
 
 		var prevVal V
+
 		if found {
 			reified, err := reify[V](existing)
 			if err != nil {

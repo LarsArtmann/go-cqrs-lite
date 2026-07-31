@@ -196,136 +196,166 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 
 	// Fastest path: raw scan → direct decode per row (1 JSON op instead of 3).
 	if rsr, ok := eng.(RawScanReader); ok && !needsClosure {
-		rawRows, err := rsr.ScanRawValues(
-			ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, fetchLimit,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
-		}
-
-		result := make([]V, 0, len(rawRows))
-
-		for _, raw := range rawRows {
-			v, err := reify[V](jsonValue(raw))
-			if err != nil {
-				return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
-			}
-
-			result = append(result, v)
-		}
-
-		return r.trimAndCache(result, cfg), nil
+		return r.scanRaw(ctx, rsr, cfg, fetchLimit)
 	}
 
 	// Standard pushdown scan (decoded values).
 	if pushdown, ok := eng.(PushdownScan); ok && !needsClosure {
-		rows, err := pushdown.PushdownMapScan(
-			ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, fetchLimit,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
-		}
-
-		result := make([]V, 0, len(rows))
-
-		for _, row := range rows {
-			v, err := reify[V](row)
-			if err != nil {
-				return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
-			}
-
-			result = append(result, v)
-		}
-
-		return r.trimAndCache(result, cfg), nil
+		return r.scanPushdown(ctx, pushdown, cfg, fetchLimit)
 	}
 
 	// Closure-based fallback (in-Go filter + sort).
 	if sb, ok := eng.(ScanBackend); ok {
-		var filterFn func(item any) bool
+		return r.scanClosure(ctx, sb, cfg, fetchLimit)
+	}
 
-		filters := cfg.filters
-		orGroups := cfg.orGroups
+	return nil, fmt.Errorf("%w: %s", errUnsupportedScanReads, eng.Profile().Name)
+}
 
-		if len(filters) > 0 || len(orGroups) > 0 {
-			filterFn = func(item any) bool {
-				if !passesFilterSpecs(item, filters) {
-					return false
-				}
+func (r *TypedReader[V]) scanRaw(ctx context.Context, rsr RawScanReader, cfg scanConfig, fetchLimit int) ([]V, error) {
+	rawRows, err := rsr.ScanRawValues(
+		ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, fetchLimit,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+	}
 
-				for _, group := range orGroups {
-					matchFound := false
+	result := make([]V, 0, len(rawRows))
 
-					for _, spec := range group {
-						if evalFilterOp(spec.Op, itemFieldByName(item, spec.Column), spec.Value) {
-							matchFound = true
-
-							break
-						}
-					}
-
-					if !matchFound {
-						return false
-					}
-				}
-
-				return true
-			}
-		}
-
-		var sortFn func(a, b any) int
-
-		if len(cfg.sortCols) > 1 {
-			cols := cfg.sortCols
-			sortFn = func(a, b any) int {
-				for _, col := range cols {
-					c := compareValue(
-						itemFieldByName(a, col.Column),
-						itemFieldByName(b, col.Column),
-					)
-					if c != 0 {
-						if col.Desc {
-							return -c
-						}
-
-						return c
-					}
-				}
-
-				return 0
-			}
-		} else if cfg.sort != nil {
-			col := cfg.sort.Column
-			sortFn = func(a, b any) int {
-				return compareValue(itemFieldByName(a, col), itemFieldByName(b, col))
-			}
-
-			if cfg.sort.Desc {
-				baseSort := sortFn
-				sortFn = func(a, b any) int { return -baseSort(a, b) }
-			}
-		}
-
-		rows, err := sb.MapScan(ctx, r.collection, filterFn, sortFn, cfg.cursor, fetchLimit)
+	for _, raw := range rawRows {
+		v, err := reify[V](jsonValue(raw))
 		if err != nil {
 			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 		}
 
-		result := make([]V, 0, len(rows))
-
-		for _, row := range rows {
-			v, err := reify[V](row)
-			if err != nil {
-				return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
-			}
-
-			result = append(result, v)
-		}
-
-		return r.trimAndCache(result, cfg), nil
+		result = append(result, v)
 	}
 
-	return nil, fmt.Errorf("%w: %s", errUnsupportedScanReads, eng.Profile().Name)
+	return r.trimAndCache(result, cfg), nil
+}
+
+func (r *TypedReader[V]) scanPushdown(
+	ctx context.Context,
+	pushdown PushdownScan,
+	cfg scanConfig,
+	fetchLimit int,
+) ([]V, error) {
+	rows, err := pushdown.PushdownMapScan(
+		ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, fetchLimit,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+	}
+
+	result := make([]V, 0, len(rows))
+
+	for _, row := range rows {
+		v, err := reify[V](row)
+		if err != nil {
+			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+		}
+
+		result = append(result, v)
+	}
+
+	return r.trimAndCache(result, cfg), nil
+}
+
+func (r *TypedReader[V]) scanClosure(ctx context.Context, sb ScanBackend, cfg scanConfig, fetchLimit int) ([]V, error) {
+	filterFn := buildClosureFilter(cfg)
+	sortFn := buildClosureSort(cfg)
+
+	rows, err := sb.MapScan(ctx, r.collection, filterFn, sortFn, cfg.cursor, fetchLimit)
+	if err != nil {
+		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+	}
+
+	result := make([]V, 0, len(rows))
+
+	for _, row := range rows {
+		v, err := reify[V](row)
+		if err != nil {
+			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+		}
+
+		result = append(result, v)
+	}
+
+	return r.trimAndCache(result, cfg), nil
+}
+
+func buildClosureFilter(cfg scanConfig) func(item any) bool {
+	filters := cfg.filters
+	orGroups := cfg.orGroups
+
+	if len(filters) == 0 && len(orGroups) == 0 {
+		return nil
+	}
+
+	return func(item any) bool {
+		if !passesFilterSpecs(item, filters) {
+			return false
+		}
+
+		for _, group := range orGroups {
+			matchFound := false
+
+			for _, spec := range group {
+				if evalFilterOp(spec.Op, itemFieldByName(item, spec.Column), spec.Value) {
+					matchFound = true
+
+					break
+				}
+			}
+
+			if !matchFound {
+				return false
+			}
+		}
+
+		return true
+	}
+}
+
+func buildClosureSort(cfg scanConfig) func(a, b any) int {
+	if len(cfg.sortCols) > 1 {
+		cols := cfg.sortCols
+
+		return func(a, b any) int {
+			for _, col := range cols {
+				c := compareValue(
+					itemFieldByName(a, col.Column),
+					itemFieldByName(b, col.Column),
+				)
+				if c != 0 {
+					if col.Desc {
+						return -c
+					}
+
+					return c
+				}
+			}
+
+			return 0
+		}
+	}
+
+	if cfg.sort != nil {
+		col := cfg.sort.Column
+		sortFn := func(a, b any) int {
+			return compareValue(itemFieldByName(a, col), itemFieldByName(b, col))
+		}
+
+		if cfg.sort.Desc {
+			baseSort := sortFn
+
+			return func(a, b any) int { return -baseSort(a, b) }
+		}
+
+		return sortFn
+	}
+
+	return nil
 }
 
 // Exists checks whether a key is present in the collection.

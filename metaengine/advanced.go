@@ -120,9 +120,9 @@ func (s *Store) SwapEngine(oldName, newName string, newEngine Engine) error {
 //	    })
 //	}
 func ContractSuite(t interface {
-	Fatal(...any)
-	Errorf(string, ...any)
-	Logf(string, ...any)
+	Fatal(args ...any)
+	Errorf(format string, args ...any)
+	Logf(format string, args ...any)
 }, factory func() Engine,
 ) {
 	ctx := context.Background()
@@ -131,155 +131,216 @@ func ContractSuite(t interface {
 	if eng == nil {
 		t.Fatal("ContractSuite: factory returned nil engine")
 	}
-	defer eng.Close()
+
+	defer func() { _ = eng.Close() }()
 
 	profile := eng.Profile()
 	if profile.Name == "" {
 		t.Errorf("ContractSuite: engine has empty name")
 	}
 
-	// --- Map ---
-	if mb, ok := eng.(MapBackend); ok {
-		if err := mb.MapSet(ctx, "cs", "k1", "v1"); err != nil {
-			t.Errorf("ContractSuite Map.Set: %v", err)
-		}
+	contractMap(t, eng, ctx)
+	contractSet(t, eng, ctx)
+	contractCounter(t, eng, ctx)
+	contractMultimap(t, eng, ctx)
+	contractLog(t, eng, ctx)
+	contractGraph(t, eng, ctx)
+	contractScan(t, eng, ctx)
+}
 
-		val, found, err := mb.MapGet(ctx, "cs", "k1")
-		if err != nil || !found || val == nil {
-			t.Errorf("ContractSuite Map.Get: err=%v found=%v val=%v", err, found, val)
-		}
-
-		if err := mb.MapDelete(ctx, "cs", "k1"); err != nil {
-			t.Errorf("ContractSuite Map.Delete: %v", err)
-		}
-
-		_, found, _ = mb.MapGet(ctx, "cs", "k1")
-		if found {
-			t.Errorf("ContractSuite: Map.Get should return found=false after delete")
-		}
-		// MapUpdate
-		if mu, ok := eng.(MapUpdater); ok {
-			_ = mb.MapSet(ctx, "cs", "u1", float64(10))
-			if err := mu.MapUpdate(ctx, "cs", "u1", func(prev any) any {
-				if v, ok := prev.(float64); ok {
-					return v + 5
-				}
-
-				return 5
-			}); err != nil {
-				t.Errorf("ContractSuite Map.Update: %v", err)
-			}
-
-			val, _, _ := mb.MapGet(ctx, "cs", "u1")
-			if val != float64(15) {
-				t.Errorf("ContractSuite Map.Update: expected 15, got %v", val)
-			}
-		}
+func contractMap(t interface {
+	Errorf(format string, args ...any)
+}, eng Engine, ctx context.Context) {
+	mb, ok := eng.(MapBackend)
+	if !ok {
+		return
 	}
 
-	// --- Set ---
-	if sb, ok := eng.(SetBackend); ok {
-		if err := sb.SetAdd(ctx, "cs", "s1"); err != nil {
-			t.Errorf("ContractSuite Set.Add: %v", err)
-		}
-
-		found, err := sb.SetContains(ctx, "cs", "s1")
-		if err != nil || !found {
-			t.Errorf("ContractSuite Set.Contains: err=%v found=%v", err, found)
-		}
-
-		found, _ = sb.SetContains(ctx, "cs", "missing")
-		if found {
-			t.Errorf("ContractSuite Set: missing key should not be found")
-		}
+	if err := mb.MapSet(ctx, "cs", "k1", "v1"); err != nil {
+		t.Errorf("ContractSuite Map.Set: %v", err)
 	}
 
-	// --- Counter ---
-	if cb, ok := eng.(CounterBackend); ok {
-		if err := cb.CounterIncrement(ctx, "cs", Delta{"c1": 5}); err != nil {
-			t.Errorf("ContractSuite Counter.Increment: %v", err)
-		}
-
-		if err := cb.CounterIncrement(ctx, "cs", Delta{"c1": 3}); err != nil {
-			t.Errorf("ContractSuite Counter.Increment2: %v", err)
-		}
-
-		counts, err := cb.CounterGet(ctx, "cs")
-		if err != nil {
-			t.Errorf("ContractSuite Counter.Get: %v", err)
-		}
-
-		if counts["c1"] != 8 {
-			t.Errorf("ContractSuite Counter: expected 8, got %d", counts["c1"])
-		}
+	val, found, err := mb.MapGet(ctx, "cs", "k1")
+	if err != nil || !found || val == nil {
+		t.Errorf("ContractSuite Map.Get: err=%v found=%v val=%v", err, found, val)
 	}
 
-	// --- Multimap ---
-	if mb, ok := eng.(MultimapBackend); ok {
-		if err := mb.MultiAdd(ctx, "cs", "m1", "v1"); err != nil {
-			t.Errorf("ContractSuite Multi.Add: %v", err)
-		}
-
-		if err := mb.MultiAdd(ctx, "cs", "m1", "v2"); err != nil {
-			t.Errorf("ContractSuite Multi.Add2: %v", err)
-		}
-
-		vals, err := mb.MultiGet(ctx, "cs", "m1")
-		if err != nil {
-			t.Errorf("ContractSuite Multi.Get: %v", err)
-		}
-
-		if len(vals) != 2 {
-			t.Errorf("ContractSuite Multi: expected 2 values, got %d", len(vals))
-		}
+	if err := mb.MapDelete(ctx, "cs", "k1"); err != nil {
+		t.Errorf("ContractSuite Map.Delete: %v", err)
 	}
 
-	// --- Log ---
-	if lb, ok := eng.(LogBackend); ok {
-		if err := lb.LogAppend(ctx, "cs", "entry1"); err != nil {
-			t.Errorf("ContractSuite Log.Append: %v", err)
-		}
-
-		if err := lb.LogAppend(ctx, "cs", "entry2"); err != nil {
-			t.Errorf("ContractSuite Log.Append2: %v", err)
-		}
-
-		vals, err := lb.LogTail(ctx, "cs", 10)
-		if err != nil {
-			t.Errorf("ContractSuite Log.Tail: %v", err)
-		}
-
-		if len(vals) != 2 {
-			t.Errorf("ContractSuite Log: expected 2 entries, got %d", len(vals))
-		}
+	_, found, _ = mb.MapGet(ctx, "cs", "k1")
+	if found {
+		t.Errorf("ContractSuite: Map.Get should return found=false after delete")
 	}
 
-	// --- Graph ---
-	if gb, ok := eng.(GraphBackend); ok {
-		if err := gb.GraphAddEdge(ctx, "cs", Edge{From: "a", To: "b"}); err != nil {
-			t.Errorf("ContractSuite Graph.AddEdge: %v", err)
-		}
+	contractMapUpdate(t, eng, mb, ctx)
+}
 
-		if err := gb.GraphAddEdge(ctx, "cs", Edge{From: "b", To: "c"}); err != nil {
-			t.Errorf("ContractSuite Graph.AddEdge2: %v", err)
-		}
+func contractMapUpdate(t interface {
+	Errorf(format string, args ...any)
+}, eng Engine, mb MapBackend, ctx context.Context) {
+	mu, ok := eng.(MapUpdater)
+	if !ok {
+		return
 	}
 
-	// --- ScanBackend (needs MapBackend to seed data first) ---
+	_ = mb.MapSet(ctx, "cs", "u1", float64(10))
+
+	if err := mu.MapUpdate(ctx, "cs", "u1", func(prev any) any {
+		if v, ok := prev.(float64); ok {
+			return v + 5
+		}
+
+		return 5
+	}); err != nil {
+		t.Errorf("ContractSuite Map.Update: %v", err)
+	}
+
+	val, _, _ := mb.MapGet(ctx, "cs", "u1")
+	if val != float64(15) {
+		t.Errorf("ContractSuite Map.Update: expected 15, got %v", val)
+	}
+}
+
+func contractSet(t interface {
+	Errorf(format string, args ...any)
+}, eng Engine, ctx context.Context) {
+	sb, ok := eng.(SetBackend)
+	if !ok {
+		return
+	}
+
+	if err := sb.SetAdd(ctx, "cs", "s1"); err != nil {
+		t.Errorf("ContractSuite Set.Add: %v", err)
+	}
+
+	found, err := sb.SetContains(ctx, "cs", "s1")
+	if err != nil || !found {
+		t.Errorf("ContractSuite Set.Contains: err=%v found=%v", err, found)
+	}
+
+	found, _ = sb.SetContains(ctx, "cs", "missing")
+	if found {
+		t.Errorf("ContractSuite Set: missing key should not be found")
+	}
+}
+
+func contractCounter(t interface {
+	Errorf(format string, args ...any)
+}, eng Engine, ctx context.Context) {
+	cb, ok := eng.(CounterBackend)
+	if !ok {
+		return
+	}
+
+	if err := cb.CounterIncrement(ctx, "cs", Delta{"c1": 5}); err != nil {
+		t.Errorf("ContractSuite Counter.Increment: %v", err)
+	}
+
+	if err := cb.CounterIncrement(ctx, "cs", Delta{"c1": 3}); err != nil {
+		t.Errorf("ContractSuite Counter.Increment2: %v", err)
+	}
+
+	counts, err := cb.CounterGet(ctx, "cs")
+	if err != nil {
+		t.Errorf("ContractSuite Counter.Get: %v", err)
+	}
+
+	if counts["c1"] != 8 {
+		t.Errorf("ContractSuite Counter: expected 8, got %d", counts["c1"])
+	}
+}
+
+func contractMultimap(t interface {
+	Errorf(format string, args ...any)
+}, eng Engine, ctx context.Context) {
+	mb, ok := eng.(MultimapBackend)
+	if !ok {
+		return
+	}
+
+	if err := mb.MultiAdd(ctx, "cs", "m1", "v1"); err != nil {
+		t.Errorf("ContractSuite Multi.Add: %v", err)
+	}
+
+	if err := mb.MultiAdd(ctx, "cs", "m1", "v2"); err != nil {
+		t.Errorf("ContractSuite Multi.Add2: %v", err)
+	}
+
+	vals, err := mb.MultiGet(ctx, "cs", "m1")
+	if err != nil {
+		t.Errorf("ContractSuite Multi.Get: %v", err)
+	}
+
+	if len(vals) != 2 {
+		t.Errorf("ContractSuite Multi: expected 2 values, got %d", len(vals))
+	}
+}
+
+func contractLog(t interface {
+	Errorf(format string, args ...any)
+}, eng Engine, ctx context.Context) {
+	lb, ok := eng.(LogBackend)
+	if !ok {
+		return
+	}
+
+	if err := lb.LogAppend(ctx, "cs", "entry1"); err != nil {
+		t.Errorf("ContractSuite Log.Append: %v", err)
+	}
+
+	if err := lb.LogAppend(ctx, "cs", "entry2"); err != nil {
+		t.Errorf("ContractSuite Log.Append2: %v", err)
+	}
+
+	vals, err := lb.LogTail(ctx, "cs", 10)
+	if err != nil {
+		t.Errorf("ContractSuite Log.Tail: %v", err)
+	}
+
+	if len(vals) != 2 {
+		t.Errorf("ContractSuite Log: expected 2 entries, got %d", len(vals))
+	}
+}
+
+func contractGraph(t interface {
+	Errorf(format string, args ...any)
+}, eng Engine, ctx context.Context) {
+	gb, ok := eng.(GraphBackend)
+	if !ok {
+		return
+	}
+
+	if err := gb.GraphAddEdge(ctx, "cs", Edge{From: "a", To: "b"}); err != nil {
+		t.Errorf("ContractSuite Graph.AddEdge: %v", err)
+	}
+
+	if err := gb.GraphAddEdge(ctx, "cs", Edge{From: "b", To: "c"}); err != nil {
+		t.Errorf("ContractSuite Graph.AddEdge2: %v", err)
+	}
+}
+
+func contractScan(t interface {
+	Errorf(format string, args ...any)
+}, eng Engine, ctx context.Context) {
 	if mbScan, ok := eng.(MapBackend); ok {
 		_ = mbScan.MapSet(ctx, "csscan", "k1", "v1")
 		_ = mbScan.MapSet(ctx, "csscan", "k2", "v2")
 	}
 
-	if sb, ok := eng.(ScanBackend); ok {
-		results, err := sb.MapScan(ctx, "csscan", nil, nil, nil, 0)
-		if err != nil {
-			t.Errorf("ContractSuite Scan: %v", err)
-		}
+	sb, ok := eng.(ScanBackend)
+	if !ok {
+		return
+	}
 
-		if len(results) != 2 {
-			t.Errorf("ContractSuite Scan: expected 2 results, got %d", len(results))
-		}
+	results, err := sb.MapScan(ctx, "csscan", nil, nil, nil, 0)
+	if err != nil {
+		t.Errorf("ContractSuite Scan: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Errorf("ContractSuite Scan: expected 2 results, got %d", len(results))
 	}
 }
 

@@ -686,6 +686,7 @@ func TestProperty_RandomOpsMaintainConsistency(t *testing.T) {
 			keyExtractor: func(e testTask) any { return e.ID },
 			updateHandler: func(e testTask, prev testTask) testTask {
 				prev.Title = e.Title
+
 				return prev
 			},
 		},
@@ -968,6 +969,7 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				results[idx].err = err
+
 				return
 			}
 
@@ -1091,6 +1093,7 @@ func TestMapUpdateTyped_ReifiesPrevValue(t *testing.T) {
 			}
 
 			prev.Title = "Updated"
+
 			return prev
 		})
 	if err != nil {
