@@ -76,4 +76,28 @@ var (
 	// ErrLayoutConflict is returned when ApplyLayout or Plan detects a
 	// conflicting table layout for the same collection.
 	ErrLayoutConflict = errors.New("metaengine: conflicting layout plan")
+
+	// ErrPoisoned is returned when a collection was poisoned by a fold panic.
+	// Once poisoned, the collection refuses reads until the store is recreated.
+	ErrPoisoned = errors.New("metaengine: collection poisoned by fold panic")
+
+	// ErrNoQueryForInputType is returned when no registered query matches the
+	// input struct type passed to Execute/ExecuteCtx.
+	ErrNoQueryForInputType = errNoQueryForInputType
+
+	// ErrUnsupportedPattern is returned when the engine does not support the
+	// query's read pattern.
+	ErrUnsupportedPattern = errUnsupportedPattern
+
+	// ErrUnknownFoldKind is returned when a fold has an unrecognized FoldKind.
+	ErrUnknownFoldKind = errUnknownFoldKind
+
+	// ErrExecuteTypeMismatch is returned by ExecuteTyped when the result type
+	// does not match the expected type parameter.
+	ErrExecuteTypeMismatch = errExecuteTypeMismatch
+
+	// ErrDuplicateEvent is returned when ApplyIdempotent detects a duplicate
+	// event ID. The event is silently skipped (no error returned to caller);
+	// this sentinel is available for consumers building their own dedup layers.
+	ErrDuplicateEvent = errors.New("metaengine: duplicate event (idempotent skip)")
 )
