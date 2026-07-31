@@ -56,7 +56,10 @@ this list and recorded in CHANGELOG.
       Compile-time assertions: `_ metaengine.RawValueReader = (*pebbleEngine)(nil)`.
 - [x] **Pebble: add to ADT matrix test** — `pebbleengine/adt_matrix_test.go` runs the full
       7-ADT matrix across memory + pebble engines for cross-engine parity.
-- [ ] **Pebble LayoutPlanner** — prefixed key ranges for indexed fields.
+- [x] **Pebble LayoutPlanner** — `pebbleengine/layout_planner.go` implements
+      `metaengine.LayoutPlanner` with secondary index entries on MapSet, enabling
+      O(matches) prefix-scan filtering instead of O(all rows) full scan + Go filter.
+      Tests: `layout_planner_test.go` (secondary index + update reindex).
 - [ ] **Postgres engine** — native JSONB operators (`->>`, `@>`), GIN indexes.
 - [ ] **DuckDB analytical engine** — columnar OLAP, GROUP BY/COUNT/SUM pushdown.
 - [ ] **Soak test (10M events)** — verify memory doesn't grow unboundedly.

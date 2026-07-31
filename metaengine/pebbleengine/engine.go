@@ -225,11 +225,7 @@ func (e *pebbleEngine) MapSet(_ context.Context, col string, key any, value any)
 	e.layoutMu.Unlock()
 
 	if hasLayout {
-		batch, err := e.db.NewBatch()
-		if err != nil {
-			return fmt.Errorf("pebbleengine: MapSet batch: %w", err)
-		}
-
+		batch := e.db.NewBatch()
 		defer func() { _ = batch.Close() }()
 
 		// Delete old index entries if the key already exists.
