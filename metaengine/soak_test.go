@@ -265,8 +265,8 @@ func TestSoak_MemoryBounded(t *testing.T) {
 	t.Parallel()
 
 	type updateEvent struct {
-		Key    string
-		Value  int64
+		Key   string
+		Value int64
 	}
 	type lookup struct {
 		Key string

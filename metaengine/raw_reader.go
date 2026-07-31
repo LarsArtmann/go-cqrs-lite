@@ -125,15 +125,17 @@ func scanRawStandard(
 	return scanRawRows(ctx, db, b.String(), args...)
 }
 
-func scanRawPlanned(
-	ctx context.Context,
-	db dbExec,
+// buildPlannedSelectQuery constructs a parameterised SELECT for a layout-planned
+// table: SELECT value FROM <table> [WHERE filters] [AND cursor] [ORDER BY] [LIMIT].
+// The query string and args are shared by scanRawPlanned (raw bytes) and
+// pushdownMapScanPlanned (decoded values).
+func buildPlannedSelectQuery(
 	plan LayoutPlan,
 	filters []FilterSpec,
 	sort *SortSpec,
 	cursor any,
 	limit int,
-) ([][]byte, error) {
+) (string, []any) {
 	var b strings.Builder
 
 	args := []any{}
@@ -160,13 +162,13 @@ func scanRawPlanned(
 			op = "<"
 		}
 
-		fmt.Fprintf(&b, "%s %s ?", sort.Column, op)
+		fmt.Fprintf(&b, "%s %s ?", quoteIdent(sort.Column), op)
 
 		args = append(args, cursor)
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", sort.Column)
+		fmt.Fprintf(&b, " ORDER BY %s", quoteIdent(sort.Column))
 
 		if sort.Desc {
 			b.WriteString(" DESC")
@@ -179,10 +181,32 @@ func scanRawPlanned(
 		args = append(args, limit+1)
 	}
 
-	return scanRawRows(ctx, db, b.String(), args...)
+	return b.String(), args
 }
 
-func scanRawRows(ctx context.Context, db dbExec, query string, args ...any) ([][]byte, error) {
+func scanRawPlanned(
+	ctx context.Context,
+	db dbExec,
+	plan LayoutPlan,
+	filters []FilterSpec,
+	sort *SortSpec,
+	cursor any,
+	limit int,
+) ([][]byte, error) {
+	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
+	return scanRawRows(ctx, db, query, args...)
+}
+
+// scanSingleColumn executes query, scans the single string column of each row,
+// and applies transform to produce the output slice. Shared by scanRawRows
+// (raw bytes) and scanJSONValues (decoded values).
+func scanSingleColumn[T any](
+	ctx context.Context,
+	db dbExec,
+	query string,
+	transform func(string) T,
+	args ...any,
+) ([]T, error) {
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
@@ -190,7 +214,7 @@ func scanRawRows(ctx context.Context, db dbExec, query string, args ...any) ([][
 
 	defer func() { _ = rows.Close() }()
 
-	var out [][]byte
+	var out []T
 
 	for rows.Next() {
 		var valStr string
@@ -199,10 +223,14 @@ func scanRawRows(ctx context.Context, db dbExec, query string, args ...any) ([][
 			return nil, err //nolint:wrapcheck // passthrough
 		}
 
-		out = append(out, stringToBytes(valStr))
+		out = append(out, transform(valStr))
 	}
 
 	return out, rows.Err() //nolint:wrapcheck // passthrough
+}
+
+func scanRawRows(ctx context.Context, db dbExec, query string, args ...any) ([][]byte, error) {
+	return scanSingleColumn(ctx, db, query, stringToBytes, args...)
 }
 
 // stringToBytes converts a string to []byte without copying. The result

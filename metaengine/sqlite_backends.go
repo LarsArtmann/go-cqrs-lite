@@ -95,26 +95,7 @@ func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]i
 // fall back to their raw string form. Used by PushdownMapScan, MultiGet, and
 // LogTail — all paths where direct callers expect decoded values.
 func scanJSONValues(ctx context.Context, db dbExec, query string, args ...any) ([]any, error) {
-	rows, err := db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
-	}
-
-	defer func() { _ = rows.Close() }()
-
-	var out []any
-
-	for rows.Next() {
-		var valStr string
-
-		if err := rows.Scan(&valStr); err != nil {
-			return nil, err //nolint:wrapcheck // passthrough
-		}
-
-		out = append(out, decodeJSONValue(valStr))
-	}
-
-	return out, rows.Err() //nolint:wrapcheck // passthrough
+	return scanSingleColumn(ctx, db, query, decodeJSONValue, args...)
 }
 
 // decodeJSONValue unmarshals a JSON string into an any. If the string is not

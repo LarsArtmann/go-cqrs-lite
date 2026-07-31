@@ -189,14 +189,7 @@ func (w *Watcher[V]) Replay() *SSEReplay[V] {
 func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 	ch := make(chan V, 1)
 
-	entry := &watcherEntry{ch: make(chan any, 1), key: key}
-
-	w.mu.Lock()
-	w.entries = append(w.entries, entry)
-	w.mu.Unlock()
-
-	// Register on the store so Apply can notify
-	w.store.registerWatcher(w.coll, entry)
+	entry := w.addWatcherEntry(key)
 
 	// Adapter goroutine: convert any→V, unwrap watcherNotification if present.
 	go func() {

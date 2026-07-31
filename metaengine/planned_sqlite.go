@@ -263,52 +263,8 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 	cursor any,
 	limit int,
 ) ([]any, error) {
-	var b strings.Builder
-
-	args := []any{}
-
-	fmt.Fprintf(&b, "SELECT value FROM %s", quoteIdent(plan.Table))
-
-	whereStarted := false
-
-	for _, f := range filters {
-		appendPlannedFilter(&b, &args, f, &whereStarted)
-	}
-
-	if sort != nil && cursor != nil {
-		if !whereStarted {
-			b.WriteString(" WHERE ")
-
-			whereStarted = true
-		} else {
-			b.WriteString(" AND ")
-		}
-
-		op := ">"
-		if sort.Desc {
-			op = "<"
-		}
-
-		fmt.Fprintf(&b, "%s %s ?", quoteIdent(sort.Column), op)
-
-		args = append(args, cursor)
-	}
-
-	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", quoteIdent(sort.Column))
-
-		if sort.Desc {
-			b.WriteString(" DESC")
-		}
-	}
-
-	if limit > 0 {
-		b.WriteString(" LIMIT ?")
-
-		args = append(args, limit+1)
-	}
-
-	return scanJSONValues(ctx, e.xd(), b.String(), args...)
+	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
+	return scanJSONValues(ctx, e.xd(), query, args...)
 }
 
 // extractFields pulls field values from a Go value (struct or map) for the
