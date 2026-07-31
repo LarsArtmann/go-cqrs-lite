@@ -24,7 +24,7 @@ func meQueryDecl() metaengine.QueryDecl[meTestKey, meTestResult] {
 	return metaengine.Query[meTestKey, meTestResult](
 		"me_test_items",
 		metaengine.On(itemCreated{}, func(e itemCreated) (meTestKey, meTestResult) {
-			return e.ID, meTestResult{ID: e.ID, Title: e.Title}
+			return e.ID, meTestResult(e)
 		}),
 	)
 }

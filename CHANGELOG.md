@@ -8,11 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-#### cqrs-lint: quality hardening (171 → 175 rules)
+#### cqrs-lint: quality hardening (171 → 179 rules)
 
 - **4 new architecture rules** (E008–E011) — stack preset bypass detection,
   missing HTTP integration, capture without domain validation, excessive
-  adapter layers. Brings total to **175 rules across 10 categories**.
+  adapter layers. Brings total to **179 rules across 10 categories**.
 - **Type-aware rule rewrites** — E010 rewritten with `projectCallsMethodOnType`
   (go/types receiver matching), E014 rewritten with type-aware projection-host
   matching. E013 already used type-aware composite literal matching.

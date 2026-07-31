@@ -1035,9 +1035,9 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Monorepo support | Multi-module scanning via go.mod discovery | ✅ |
 | Source snippets | Most detectors emit source-line context for SARIF/IDE integration | ✅ |
 | `doctor` subcommand | Prints the detected feature profile for the target project | ✅ |
-| F-series adoption coaching | 17 rules (F001–F017) that proactively coach consumers toward unused features | ✅ |
+| F-series adoption coaching | 21 rules (F001–F021) that proactively coach consumers toward unused features | ✅ |
 | T-series testing quality | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse | ✅ |
-| E-series architecture | 8 rules (E008–E015) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
+| E-series architecture | 17 rules (E001–E017) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
 
 ---
 
@@ -1145,7 +1145,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `metaengine/projectionadapter` | `…/metaengine/projectionadapter/v4` | 🧪 Experimental (projection.Projection adapter for projectionhost)        |
 | `benchkit`                     | `…/benchkit/v4`                     | 🧪 Experimental (functional, 88 tests, `--repeat N` available)            |
 | `cmd/cqrs-bench`               | `…/cmd/cqrs-bench`                  | 🔧 Tool                                                                   |
-| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (175-rule domain-aware linter)                                    |
+| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (179-rule domain-aware linter: correctness 36, API 30, boilerplate 28, adoption 21, architecture 17, consistency 15, performance 9, security 9, testing 8, version 6)                                    |
 
 ---
 

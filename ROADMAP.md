@@ -85,11 +85,12 @@ first real run across memory/pebble/sqlite (2026-07-24). DuckDB backend added
 
 ### 3. cqrs-lint → Trustworthy
 
-The linter grew from 65 to 175 rules across 10 categories. Quality has been
+The linter grew from 65 to 179 rules across 10 categories. Quality has been
 hardened through multiple brutal review passes.
 
-- ✅ **175 rules shipped** across correctness, API, boilerplate, performance,
-  version, consistency, architecture, security, testing, adoption
+- ✅ **179 rules shipped** across correctness (36), API (30), boilerplate (28),
+  adoption (21), architecture (17), consistency (15), performance (9),
+  security (9), testing (8), version (6)
 - ✅ **Feature profile system** — auto-detects consumer module usage and adapts
   context-dependent rules
 - ✅ **Self-lint mode** — `IsLibrarySelfLint()` auto-detects and skips 29

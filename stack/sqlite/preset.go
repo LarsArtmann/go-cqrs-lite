@@ -19,6 +19,7 @@ type Option func(*config)
 type config struct {
 	sqlopt.DSNConfig
 	sqlopt.PragmaConfig
+
 	extraStackOpts []stack.Option
 }
 
@@ -35,6 +36,7 @@ func defaultConfig() config {
 			QueryDSN:    "",
 			ViewDSN:     "",
 		},
+		extraStackOpts: nil,
 	}
 }
 

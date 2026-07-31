@@ -738,6 +738,88 @@ func TestPebbleLayoutPlanner_SortIndexEarlyTermination(t *testing.T) {
 	gomega.NewWithT(t).Expect(scores).To(gomega.Equal([]float64{0, 1, 2, 3, 4, 5}))
 }
 
+func TestPebbleLayoutPlanner_FilterIndexCursorAscending(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	// "score" is a filter field only (not a sort field) so the filter index
+	// path is used, not the sort index path.
+	lp := eng.(metaengine.LayoutPlanner)
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", []string{"score"}, nil)).To(gomega.Succeed())
+
+	mb := eng.(metaengine.MapBackend)
+
+	for i := 1; i <= 6; i++ {
+		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "items", fmt.Sprintf("k%d", i), map[string]any{
+			"score": float64(i * 10),
+		})).To(gomega.Succeed())
+	}
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "score", Desc: false}
+	filter := []metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGe, Value: 10}}
+
+	// Page 1: no cursor, limit=2 → 3 results (overflow).
+	page1, err := rsr.ScanRawValues(ctx, "items", filter, sortSpec, nil, 2)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(page1).To(gomega.HaveLen(3))
+
+	scores1 := extractField[float64](t, page1, "score")
+	gomega.NewWithT(t).Expect(scores1).To(gomega.Equal([]float64{10, 20, 30}))
+
+	// Page 2: cursor=20, skip items <= 20.
+	page2, err := rsr.ScanRawValues(ctx, "items", filter, sortSpec, float64(20), 2)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(page2).To(gomega.HaveLen(3))
+
+	scores2 := extractField[float64](t, page2, "score")
+	gomega.NewWithT(t).Expect(scores2).To(gomega.Equal([]float64{30, 40, 50}))
+
+	// Page 3: cursor=50, skip items <= 50 → only 60 remains.
+	page3, err := rsr.ScanRawValues(ctx, "items", filter, sortSpec, float64(50), 2)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(page3).To(gomega.HaveLen(1))
+
+	scores3 := extractField[float64](t, page3, "score")
+	gomega.NewWithT(t).Expect(scores3).To(gomega.Equal([]float64{60}))
+}
+
+func TestPebbleLayoutPlanner_FilterIndexCursorDescending(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", []string{"score"}, nil)).To(gomega.Succeed())
+
+	mb := eng.(metaengine.MapBackend)
+
+	for i := 1; i <= 6; i++ {
+		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "items", fmt.Sprintf("k%d", i), map[string]any{
+			"score": float64(i * 10),
+		})).To(gomega.Succeed())
+	}
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "score", Desc: true}
+	filter := []metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGe, Value: 10}}
+
+	// Descending: cursor=50, skip items >= 50 → [40, 30, 20].
+	results, err := rsr.ScanRawValues(ctx, "items", filter, sortSpec, float64(50), 2)
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(3))
+
+	scores := extractField[float64](t, results, "score")
+	gomega.NewWithT(t).Expect(scores).To(gomega.Equal([]float64{40, 30, 20}))
+}
+
 func TestPebbleLayoutPlanner_SortIndexStringValues(t *testing.T) {
 	t.Parallel()
 

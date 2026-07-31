@@ -74,9 +74,11 @@ func (r *runner) metaEnginePhase(ctx context.Context) error {
 		evt := meBenchIncrementEvent{Status: status}
 
 		start := time.Now()
+
 		if err := store.Apply(ctx, "MeBenchIncrementEvent", evt); err != nil {
 			return err
 		}
+
 		applyColl.Record(time.Since(start))
 	}
 
@@ -100,6 +102,7 @@ func (r *runner) metaEnginePhase(ctx context.Context) error {
 		_, err := metaengine.ExecuteTyped[meBenchCounterInput, map[string]int64](
 			ctx, store, meBenchCounterInput{},
 		)
+
 		queryColl.Record(time.Since(start))
 
 		if err != nil {

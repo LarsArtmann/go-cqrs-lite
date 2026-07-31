@@ -39,7 +39,9 @@ func integPayloadDecoder(eventType string, payload []byte) (any, error) {
 		if err := json.Unmarshal(payload, &p); err != nil {
 			return nil, err
 		}
+
 		return p, nil
+
 	case "IntegItemCompleted":
 		return IntegItemCompleted{}, nil
 	default:
@@ -151,6 +153,7 @@ func TestMetaEngine_MapPipeline(t *testing.T) {
 		if err := json.Unmarshal(payload, &p); err != nil {
 			return nil, err
 		}
+
 		return p, nil
 	}
 
