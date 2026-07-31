@@ -196,7 +196,7 @@ func (PostgresDialect) TimerSchema() string {
 CREATE INDEX IF NOT EXISTS idx_timers_fire_at ON timers(fire_at);`
 }
 
-// MySQLDialect is the Dialect for MySQL databases (event-store-only support).
+// MySQLDialect is the Dialect for MySQL and MariaDB databases.
 // MySQL uses ? placeholders, native time.Time handling, and LONGBLOB/JSON types.
 // Indexes are embedded in CREATE TABLE (MySQL lacks CREATE INDEX IF NOT EXISTS).
 type MySQLDialect struct{}

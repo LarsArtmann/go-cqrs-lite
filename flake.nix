@@ -202,6 +202,7 @@
             "stack/duckdb"
             "stack/pebble"
             "stack/postgres"
+            "stack/mysql"
             "stack/turso"
             "stack/bench"
             "benchkit"
