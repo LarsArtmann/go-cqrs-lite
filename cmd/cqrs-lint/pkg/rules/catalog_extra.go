@@ -768,7 +768,7 @@ func securityRules() []RuleInfo {
 	}
 }
 
-func testingRules() []RuleInfo {
+func testingRules() []RuleInfo { //nolint:dupl // catalog pattern
 	return []RuleInfo{
 		{
 			ID:          "T001",

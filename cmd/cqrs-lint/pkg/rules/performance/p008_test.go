@@ -1,4 +1,4 @@
-package performance_test //nolint:dupl // test boilerplate
+package performance_test
 
 import (
 	"testing"

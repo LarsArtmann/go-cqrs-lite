@@ -1,4 +1,3 @@
-//nolint:dupl // similar test structure is intentional
 package boilerplate_test
 
 import (

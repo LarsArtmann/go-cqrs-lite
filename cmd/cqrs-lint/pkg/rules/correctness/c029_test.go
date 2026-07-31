@@ -1,4 +1,4 @@
-package correctness_test //nolint:dupl // test boilerplate
+package correctness_test
 
 import (
 	"testing"

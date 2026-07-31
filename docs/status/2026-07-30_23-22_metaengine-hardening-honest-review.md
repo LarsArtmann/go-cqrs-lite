@@ -4,6 +4,14 @@
 **Session:** Metaengine TODO execution (68 items)
 **Prior session:** `2026-07-30_22-22_metaengine-production-maturity.md`
 
+> **Update 2026-07-31 (commits `ea684c50`–`30e03b3f`):** The 4 critical issues from
+> section e) are resolved. IN filter silent-drop was fixed (03:46 session). IsPoisoned
+> was wired into read paths (03:46). ErrNotFound is now returned from ExecuteTyped
+> (03:46). Count() gained SQL COUNT pushdown via AggregateReader (03:46). The IN filter
+> question below is answered: FilterSpec gained an `InSpecs` field that expands to
+> individual FilterSpec{Op:FilterIn} entries. Remaining open: real 10M soak test,
+> chaos testing, Postgres/DuckDB engines (ROADMAP).
+
 ---
 
 ## a) FULLY DONE (genuinely complete, tested, verified)

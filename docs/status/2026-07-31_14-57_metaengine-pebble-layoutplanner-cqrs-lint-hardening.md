@@ -8,6 +8,13 @@ and tested. All API changes are stable. But 28 lint issues exist in pebbleengine
 (2 dupl, 5 wsl_v5, 7 nolintlint, 6 nlreturn, 1 nestif, 1 nonamedreturns, 1 mirror,
 2 godot, 2 gci) from this session's edits.
 
+> **⚠️ Update 2026-07-31 (commit `30e03b3f`):** D5 reveals a **real numeric correctness
+> bug** in the range filter — lexicographic key ordering ≠ numeric ordering for values
+> with different digit counts (e.g., 2 vs 10). The test passed by accident because it
+> used only 2-digit values (10–50). This bug is **still open**. The triple-decode bug
+> in ScanRawValues (understated as "double-decode" in the 12:40 report) was fixed in
+> the 17:19 session. The Pebble LayoutPlanner sort index remains unimplemented (deferred).
+
 ---
 
 ## A) FULLY DONE (shipped, tested, verified this session)

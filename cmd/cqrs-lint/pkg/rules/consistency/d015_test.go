@@ -1,4 +1,4 @@
-package consistency_test //nolint:dupl // test boilerplate
+package consistency_test
 
 import (
 	"testing"

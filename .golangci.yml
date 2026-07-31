@@ -301,6 +301,8 @@ linters:
           - wsl_v5
           - intrange
           - modernize
+          - dupl
+          - dupword
           - revive
           - unparam
           - fatcontext

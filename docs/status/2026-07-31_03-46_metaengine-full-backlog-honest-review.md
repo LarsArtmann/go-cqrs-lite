@@ -392,3 +392,24 @@ api-stability: golden regenerated (2867 exports)
 ---
 
 _Honesty over ego. The code compiles, the tests pass, but the TODO_LIST.md lies and the transaction API is broken. Fix both before shipping._
+
+---
+
+## Resolution (2026-07-31, commits `ea684c50`–`30e03b3f`)
+
+All 5 critical issues from section d) were fixed by the 04:17 session:
+Transaction API (fully threaded `*sql.Tx`), SQL injection (`quoteIdent`), Hooks-on-error
+(added err param), weakened test (replaced with real transaction test), TODO_LIST.md
+honesty (bulk `sed` marks reverted).
+
+The 14 partially-done items from section b) were resolved by sessions 04:17–05:44:
+ReadCoalescer wired into Get, Watcher sends values + per-key filtering, PrefetchCache
+wired + auto-population + cursor-encode integration, ContractSuite expanded to all 7 ADTs,
+Store.Verify tested (TestVerify_DetectsDrift), SSE adapter with backpressure + Last-Event-ID.
+
+The 10 not-started items from section c): SSE adapter DONE (05:02), crash recovery test
+DONE (05:44), cqrs-lint F018-F021 DONE (05:02+05:44). Remaining (Postgres engine, DuckDB
+engine, metaengine-gen, 10M soak, chaos testing, projectionhost integration, CLI inspector)
+moved to ROADMAP.
+
+API surface grew from 2867 to 2907 exports across the metaengine sessions.
