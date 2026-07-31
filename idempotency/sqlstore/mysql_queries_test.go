@@ -74,8 +74,11 @@ func TestMySQLQueries_SQLSyntax(t *testing.T) {
 
 		count := strings.Count(q.checkAndRecord, "?")
 		if count != 3 {
-			t.Errorf("MySQL checkAndRecord should have 3 placeholders (key, expiry, now), got %d:\n%s",
-				count, q.checkAndRecord)
+			t.Errorf(
+				"MySQL checkAndRecord should have 3 placeholders (key, expiry, now), got %d:\n%s",
+				count,
+				q.checkAndRecord,
+			)
 		}
 	})
 

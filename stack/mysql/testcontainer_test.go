@@ -68,7 +68,12 @@ func TestMain(m *testing.M) {
 		"mysql", "-uroot", "-pcqrs", "-e", grantSQL,
 	})
 	if execErr != nil || exitCode != 0 {
-		fmt.Fprintf(os.Stderr, "WARN: GRANT failed (exit %d): %v — tests will skip\n", exitCode, execErr)
+		fmt.Fprintf(
+			os.Stderr,
+			"WARN: GRANT failed (exit %d): %v — tests will skip\n",
+			exitCode,
+			execErr,
+		)
 		containerDSN = ""
 		_ = testcontainers.TerminateContainer(ctr)
 		os.Exit(m.Run())

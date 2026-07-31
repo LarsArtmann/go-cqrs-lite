@@ -8,6 +8,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### MySQL/MariaDB support: stack preset, dialect methods, classifier, docs
+
+- **`stack/mysql` preset** — full MySQL/MariaDB stack bundle with
+  auto-migration, multi-DB topology support (`mysql.WithDSN`), and the same
+  API surface as `stack/postgres` and `stack/sqlite`. Uses the pure-Go
+  `go-sql-driver/mysql` driver (no CGo). Contract test suite and multi-DB
+  routing tests pass against `mysql:8.0` via testcontainers.
+- **Dialect upsert methods** (ADR-0080) — 4 new methods on `Dialect`:
+  `UpsertEventSQL`, `UpsertSnapshotSQL`, `UpsertKVSQL`, `QuoteIdentifier`.
+  MySQL uses `ON DUPLICATE KEY UPDATE` + `IF()` conditional logic instead
+  of `ON CONFLICT ... WHERE`. The existing Postgres/SQLite paths are
+  unchanged.
+- **MySQL error classifier** — `storage/sql` now classifies MySQL error
+  numbers: 1062 (duplicate key) → Conflict, 1205/1213 (lock timeout/deadlock)
+  → Transient. Tested with 7 cases covering numeric codes and string fallbacks.
+- **MySQL multi-statement DDL** — `MySQLInitSchema` splits the embedded schema
+  into individual `CREATE TABLE` statements, avoiding the need for
+  `multiStatements=true` in the DSN (a SQL-injection risk).
+- **MySQL testcontainer pattern** — `ctr.Exec` for root privilege escalation
+  (GRANT ALL PRIVILEGES) instead of host-side root DSN string replacement.
+  Reliable, no `caching_sha2_password` auth issues.
+- **`idempotency/sqlstore` MySQL support** — `NewMySQLStore` with
+  `ON DUPLICATE KEY UPDATE` + `IF()` conditional TTL reclaim. Unit tests
+  verify MySQL-specific SQL syntax correctness.
+- **`cqrs-lint` MySQL detection** — `StoreMySQL` feature detection + A009
+  suggestion + T007/T008 production-store rules. Test coverage for
+  detection via `stack/mysql` import.
+- **Documentation** — ADR-0080, `stack/mysql/README.md`, updated skill
+  references (core/modules/recipes/faq), FEATURES.md, ROADMAP.md.
+
 #### Self-review execution: goroutine leak, fuzz tests, StreamScan, lint fixes
 
 - **Goroutine leak fix in Watch/WatchWithSeq** — the adapter goroutine in
