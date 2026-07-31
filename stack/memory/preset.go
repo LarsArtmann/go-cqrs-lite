@@ -26,8 +26,11 @@ import (
 //	    stack.WithEventStore(memory.NewMemoryStore()),
 //	    stack.WithReadModels(kv.NewMemStore()),
 //	)
-func New() (*stack.Bundle, error) {
-	b, err := stack.New(
+//
+// Extra options (e.g. [stack.WithMetaEngine]) can be passed to override or
+// extend the default wiring.
+func New(extra ...stack.Option) (*stack.Bundle, error) {
+	opts := []stack.Option{
 		stack.WithEventStore(memory.NewMemoryStore()),
 		stack.WithBus(cqrswatermill.NewEventBus()),
 		stack.WithCommandStore(memory.NewMemoryCommandStore()),
@@ -35,7 +38,9 @@ func New() (*stack.Bundle, error) {
 		stack.WithSnapshotStore(memory.NewMemorySnapshotStore()),
 		stack.WithCheckpointStore(memory.NewMemoryCheckpointStore()),
 		stack.WithReadModels(kv.NewMemStore()),
-	)
+	}
+	opts = append(opts, extra...)
+	b, err := stack.New(opts...)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "memory.wire_bundle",
 			"wire bundle")
