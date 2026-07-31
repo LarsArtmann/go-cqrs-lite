@@ -172,7 +172,7 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 // financialKeywords are event/command type name fragments that indicate a
 // financial domain. When any of these appear, the domain is classified as
 // financial, which escalates security and money-handling rule severities.
-var financialKeywords = []string{
+var financialKeywords = []string{ //nolint:gochecknoglobals // constant lookup table, package-level is correct
 	"amount", "balance", "payment", "invoice", "salary",
 	"transaction", "transfer", "deposit", "withdraw", "refund",
 	"price", "cost", "fee", "tax", "currency",

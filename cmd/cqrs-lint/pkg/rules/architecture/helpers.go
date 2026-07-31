@@ -570,6 +570,17 @@ func projectHasMethodCallContaining(
 	return false
 }
 
+// projectCallsImportPathBool is a boolean-only wrapper around
+// projectCallsImportPath for use in compound boolean expressions.
+func projectCallsImportPathBool(
+	ctx *analyzer.AnalysisContext,
+	importPathSubstr string,
+	funcNames ...string,
+) bool {
+	_, ok := projectCallsImportPath(ctx, importPathSubstr, funcNames...)
+	return ok
+}
+
 // projectCallsImportPath checks whether any non-test file calls any of funcNames
 // on a receiver whose import path contains importPathSubstr. This resolves
 // import aliases: `import es "go-cqrs-lite/event"` then `es.NewEvent(...)` is

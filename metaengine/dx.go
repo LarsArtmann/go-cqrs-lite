@@ -207,6 +207,8 @@ func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 
 	// Adapter goroutine: convert any→V, unwrap watcherNotification if present.
 	go func() {
+		defer close(ch)
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -241,6 +243,8 @@ func (w *Watcher[V]) WatchWithSeq(ctx context.Context, key any) <-chan SeqValue[
 
 	// Adapter goroutine: convert any→SeqValue[V], unwrap watcherNotification.
 	go func() {
+		defer close(ch)
+
 		for {
 			select {
 			case <-ctx.Done():

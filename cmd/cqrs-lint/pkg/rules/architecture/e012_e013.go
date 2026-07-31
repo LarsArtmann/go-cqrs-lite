@@ -30,7 +30,7 @@ func NewE012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			hasFeatureFlag := findKeyBoolLit(ctx, "DualWriteEnabled", true) ||
 				findKeyBoolLit(ctx, "DualWriteActive", true) ||
 				findKeyBoolLit(ctx, "MigrationEnabled", true) ||
-				projectCalls(ctx, "flag", "BoolVar")
+				projectCallsImportPathBool(ctx, "flag", "BoolVar")
 
 			if hasFeatureFlag {
 				return nil, nil

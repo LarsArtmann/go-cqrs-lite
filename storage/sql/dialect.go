@@ -9,9 +9,10 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// Dialect abstracts SQL differences between database backends (PostgreSQL, SQLite).
-// Each store method delegates placeholder formatting and time handling to a Dialect,
-// eliminating the duplicated PostgreSQL/SQLite store pairs.
+// Dialect abstracts SQL differences between database backends (PostgreSQL, SQLite,
+// MySQL, DuckDB). Each store method delegates placeholder formatting, time handling,
+// and upsert clause generation to a Dialect, eliminating the duplicated per-backend
+// store pairs.
 type Dialect interface { //nolint:interfacebloat // each method returns a distinct schema DDL
 	Placeholder(index int) string
 	FormatTime(t time.Time) any
@@ -24,6 +25,38 @@ type Dialect interface { //nolint:interfacebloat // each method returns a distin
 	CheckpointSchema() string
 	KVSchema() string
 	TimerSchema() string
+
+	// ExcludedRef returns the SQL reference to the "excluded" (would-be-inserted)
+	// value of a column in an upsert SET clause.
+	//
+	// PostgreSQL/SQLite/DuckDB return "excluded.col".
+	// MySQL returns "VALUES(col)".
+	ExcludedRef(col string) string
+
+	// OnConflictDoNothing generates the clause appended to an INSERT statement
+	// for insert-or-ignore-on-conflict semantics (no update on conflict).
+	//
+	// noOpCol is a guaranteed-present column that MySQL uses for its
+	// self-assignment no-op trick (ON DUPLICATE KEY UPDATE col = col).
+	// PostgreSQL/SQLite/DuckDB ignore it and emit "ON CONFLICT DO NOTHING".
+	OnConflictDoNothing(noOpCol string) string
+
+	// OnConflictDoUpdate generates the clause appended to an INSERT statement
+	// for insert-or-update-on-conflict semantics.
+	//
+	// conflictCols are the unique-constraint target columns (empty for MySQL,
+	// which infers the conflict target from unique keys automatically).
+	// setExprs are the SET assignments — build each with [Dialect.ExcludedRef]
+	// (e.g. "version = excluded.version" or "version = VALUES(version)").
+	//
+	// PostgreSQL/SQLite/DuckDB: "ON CONFLICT(cols) DO UPDATE SET exprs".
+	// MySQL: "ON DUPLICATE KEY UPDATE exprs".
+	OnConflictDoUpdate(conflictCols []string, setExprs []string) string
+
+	// QuoteIdentifier quotes a SQL identifier if the dialect requires it.
+	// MySQL backtick-quotes reserved-word columns like `key`; all other dialects
+	// return the name unchanged.
+	QuoteIdentifier(name string) string
 }
 
 // PostgresDialect is the Dialect for PostgreSQL databases.
@@ -59,6 +92,19 @@ func parseTimePointer(src any, dialect string) (time.Time, error) {
 func (PostgresDialect) ParseTime(src any) (time.Time, error) {
 	return parseTimePointer(src, "postgres")
 }
+
+func (PostgresDialect) ExcludedRef(col string) string { return "excluded." + col }
+
+func (PostgresDialect) OnConflictDoNothing(_ string) string {
+	return "ON CONFLICT DO NOTHING"
+}
+
+func (PostgresDialect) OnConflictDoUpdate(conflictCols []string, setExprs []string) string {
+	return fmt.Sprintf("ON CONFLICT(%s) DO UPDATE SET %s",
+		strings.Join(conflictCols, ", "), strings.Join(setExprs, ", "))
+}
+
+func (PostgresDialect) QuoteIdentifier(name string) string { return name }
 
 func (PostgresDialect) EventSchema() string {
 	return `CREATE TABLE IF NOT EXISTS events (
@@ -167,6 +213,20 @@ func (MySQLDialect) ParseTime(src any) (time.Time, error) {
 	return parseTimePointer(src, "mysql")
 }
 
+func (MySQLDialect) ExcludedRef(col string) string { return "VALUES(" + col + ")" }
+
+func (MySQLDialect) OnConflictDoNothing(noOpCol string) string {
+	return noOpCol + " = " + noOpCol
+}
+
+func (MySQLDialect) OnConflictDoUpdate(_ []string, setExprs []string) string {
+	return "ON DUPLICATE KEY UPDATE " + strings.Join(setExprs, ", ")
+}
+
+func (MySQLDialect) QuoteIdentifier(name string) string {
+	return "`" + name + "`"
+}
+
 func (MySQLDialect) EventSchema() string {
 	return `CREATE TABLE IF NOT EXISTS events (
     id               VARCHAR(255) PRIMARY KEY,
@@ -237,10 +297,10 @@ func (MySQLDialect) CheckpointSchema() string {
 }
 
 func (MySQLDialect) KVSchema() string {
-	return `CREATE TABLE IF NOT EXISTS cqrs_kv (
-    kv_key   VARBINARY(512) PRIMARY KEY,
-    kv_value LONGBLOB NOT NULL
-);`
+	return "CREATE TABLE IF NOT EXISTS cqrs_kv (\n" +
+		"    `key`   VARBINARY(512) PRIMARY KEY,\n" +
+		"    `value` LONGBLOB NOT NULL\n" +
+		");"
 }
 
 func (MySQLDialect) TimerSchema() string {
@@ -284,6 +344,19 @@ func (SQLiteDialect) ParseTime(src any) (time.Time, error) {
 
 	return ParseSQLiteTimestamp(*sp)
 }
+
+func (SQLiteDialect) ExcludedRef(col string) string { return "excluded." + col }
+
+func (SQLiteDialect) OnConflictDoNothing(_ string) string {
+	return "ON CONFLICT DO NOTHING"
+}
+
+func (SQLiteDialect) OnConflictDoUpdate(conflictCols []string, setExprs []string) string {
+	return fmt.Sprintf("ON CONFLICT(%s) DO UPDATE SET %s",
+		strings.Join(conflictCols, ", "), strings.Join(setExprs, ", "))
+}
+
+func (SQLiteDialect) QuoteIdentifier(name string) string { return name }
 
 func (SQLiteDialect) EventSchema() string {
 	return `CREATE TABLE IF NOT EXISTS events (
@@ -401,6 +474,19 @@ func (DuckDBDialect) ScanTimeDest() any {
 func (DuckDBDialect) ParseTime(src any) (time.Time, error) {
 	return parseTimePointer(src, "duckdb")
 }
+
+func (DuckDBDialect) ExcludedRef(col string) string { return "excluded." + col }
+
+func (DuckDBDialect) OnConflictDoNothing(_ string) string {
+	return "ON CONFLICT DO NOTHING"
+}
+
+func (DuckDBDialect) OnConflictDoUpdate(conflictCols []string, setExprs []string) string {
+	return fmt.Sprintf("ON CONFLICT(%s) DO UPDATE SET %s",
+		strings.Join(conflictCols, ", "), strings.Join(setExprs, ", "))
+}
+
+func (DuckDBDialect) QuoteIdentifier(name string) string { return name }
 
 func (DuckDBDialect) EventSchema() string {
 	return `CREATE TABLE IF NOT EXISTS events (
