@@ -638,3 +638,69 @@ func projectHasMethodCallContaining(
 
 	return false
 }
+
+// projectCallsImportPath checks whether any non-test file calls any of funcNames
+// on a receiver whose import path contains importPathSubstr. This resolves
+// import aliases: `import es "go-cqrs-lite/event"` then `es.NewEvent(...)` is
+// correctly matched even though the qualifier is "es", not "event".
+func projectCallsImportPath(
+	ctx *analyzer.AnalysisContext,
+	importPathSubstr string,
+	funcNames ...string,
+) (token.Position, bool) {
+	nameSet := make(map[string]bool, len(funcNames))
+	for _, n := range funcNames {
+		nameSet[n] = true
+	}
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		var hit *ast.CallExpr
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			if hit != nil {
+				return false
+			}
+
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+
+			sel, ok := analyzer.SelectorFromExpr(call.Fun)
+			if !ok {
+				return true
+			}
+
+			if !nameSet[sel.Sel.Name] {
+				return true
+			}
+
+			pkgIdent, ok := sel.X.(*ast.Ident)
+			if !ok {
+				return true
+			}
+
+			impPath, found := lintutil.QualifierToImportPath(gf.AST, pkgIdent.Name)
+			if !found {
+				return true
+			}
+
+			if strings.Contains(impPath, importPathSubstr) {
+				hit = call
+				return false
+			}
+
+			return true
+		})
+
+		if hit != nil {
+			return ctx.Fset.Position(hit.Pos()), true
+		}
+	}
+
+	return token.Position{}, false
+}

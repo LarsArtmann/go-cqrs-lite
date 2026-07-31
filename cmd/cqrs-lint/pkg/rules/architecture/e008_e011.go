@@ -24,13 +24,11 @@ func NewE008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			if !projectCalls(ctx, "decider", "NewRepository") {
+			// Import-alias-aware check: matches d.NewRepository() even when
+			// decider is imported as `import d "go-cqrs-lite/decider"`.
+			pos, found := projectCallsImportPath(ctx, "go-cqrs-lite/decider", "NewRepository")
+			if !found {
 				return nil, nil
-			}
-
-			pos, ok := firstCallPos(ctx, "decider", "NewRepository")
-			if !ok {
-				pos, _ = firstFilePos(ctx)
 			}
 
 			return singleFinding(

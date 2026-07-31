@@ -82,6 +82,15 @@ structs. The Pareto execution plan landed the production maturity chain:
 reduction (single-pass decode), generated typed read API (`plan.Users.Get(ctx, id)`),
 unified 7-ADT × 3-engine test matrix. See [TODO_LIST.md](TODO_LIST.md).
 
+**Long-term engine work (ROADMAP — each is a multi-day new-module effort):**
+
+- **Postgres engine** — `metaengine/pgengine/` with native JSONB operators (`->>`, `@>`),
+  GIN indexes. ~2-4 days. Depends on JSONB operator research + GIN index design.
+- **DuckDB analytical engine** — `metaengine/duckdbengine/` with columnar OLAP pushdown
+  (GROUP BY/COUNT/SUM). ~2-4 days. Depends on DuckDB columnar API research.
+- **`metaengine-gen` code generator** — `cmd/metaengine-gen` for typed Store methods
+  from query declarations. ~2-3 days. Go AST parsing + template generation.
+
 ### 2. Benchkit → Released
 
 The benchmarking toolkit is functionally complete. The full evidence plan shipped:
