@@ -32,6 +32,7 @@ func NewTieredStore(store *Store) *TieredStore {
 func (ts *TieredStore) WithTier(collection string, cfg TierConfig) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
+
 	ts.tiers[collection] = cfg
 }
 
@@ -66,10 +67,12 @@ func (s *Store) SwapEngine(oldName, newName string, newEngine Engine) error {
 	defer s.mu.Unlock()
 
 	swapped := false
+
 	for i, eng := range s.engines {
 		if eng.Profile().Name == oldName {
 			s.engines[i] = newEngine
 			swapped = true
+
 			break
 		}
 	}
@@ -115,7 +118,8 @@ func (s *Store) SwapEngine(oldName, newName string, newEngine Engine) error {
 func ContractSuite(t interface {
 	Fatal(...any)
 	Errorf(string, ...any)
-}, factory func() Engine) {
+}, factory func() Engine,
+) {
 	eng := factory()
 	if eng == nil {
 		t.Fatal("ContractSuite: factory returned nil engine")

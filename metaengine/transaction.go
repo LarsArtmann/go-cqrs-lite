@@ -70,6 +70,7 @@ func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 
 	if fnErr != nil {
 		_ = tx.Rollback()
+
 		return fnErr
 	}
 

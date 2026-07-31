@@ -187,6 +187,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 					for _, spec := range group {
 						if evalFilterOp(spec.Op, itemFieldByName(item, spec.Column), spec.Value) {
 							matchFound = true
+
 							break
 						}
 					}
@@ -308,6 +309,7 @@ func (r *TypedReader[V]) Count(ctx context.Context, opts ...ScanOption) (int, er
 			if err != nil {
 				return 0, err
 			}
+
 			return int(n), nil
 		}
 	}

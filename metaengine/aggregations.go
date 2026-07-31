@@ -64,13 +64,9 @@ func (e *sqliteEngine) aggregateStandard(
 		b.WriteString(`SELECT COUNT(*) FROM meta_map WHERE collection = ?`)
 	} else {
 		path := jsonPath(column)
-		b.WriteString(
-			fmt.Sprintf(
-				`SELECT %s(json_extract(value, '%s')) FROM meta_map WHERE collection = ?`,
-				fn,
-				path,
-			),
-		)
+		fmt.Fprintf(&b, `SELECT %s(json_extract(value, '%s')) FROM meta_map WHERE collection = ?`,
+			fn,
+			path)
 	}
 
 	for _, f := range filters {
@@ -84,6 +80,7 @@ func (e *sqliteEngine) aggregateStandard(
 		if err := e.db.QueryRowContext(ctx, b.String(), args...).Scan(&count); err != nil {
 			return 0, fmt.Errorf("aggregate %s count: %w", col, err)
 		}
+
 		return float64(count), nil
 	}
 
@@ -124,6 +121,7 @@ func (e *sqliteEngine) aggregatePlanned(
 		if err := e.db.QueryRowContext(ctx, b.String(), args...).Scan(&count); err != nil {
 			return 0, fmt.Errorf("aggregate %s count: %w", plan.Collection, err)
 		}
+
 		return float64(count), nil
 	}
 

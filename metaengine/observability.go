@@ -91,6 +91,7 @@ func WithMetrics(store *Store, rec MetricsRecorder) {
 		hooks.Logger = store.hooks.Logger
 		hooks.SlowQueryThreshold = store.hooks.SlowQueryThreshold
 	}
+
 	store.hooks = &hooks
 }
 
@@ -108,18 +109,18 @@ func (p *PlanResult) DotGraph() string {
 
 	for _, q := range p.Queries {
 		// Engine node
-		b.WriteString(fmt.Sprintf("  %s [label=\"%s\\n(%s)\", shape=cylinder];\n",
-			sanitizeDotID(q.QueryName), q.QueryName, q.EngineName))
-		b.WriteString(fmt.Sprintf("  %s_adt [label=\"%s\", shape=hexagon];\n",
-			sanitizeDotID(q.QueryName), q.ADT))
-		b.WriteString(fmt.Sprintf("  %s -> %s_adt;\n",
-			sanitizeDotID(q.QueryName), sanitizeDotID(q.QueryName)))
+		fmt.Fprintf(&b, "  %s [label=\"%s\\n(%s)\", shape=cylinder];\n",
+			sanitizeDotID(q.QueryName), q.QueryName, q.EngineName)
+		fmt.Fprintf(&b, "  %s_adt [label=\"%s\", shape=hexagon];\n",
+			sanitizeDotID(q.QueryName), q.ADT)
+		fmt.Fprintf(&b, "  %s -> %s_adt;\n",
+			sanitizeDotID(q.QueryName), sanitizeDotID(q.QueryName))
 	}
 
 	for _, diag := range p.Diagnostics {
 		if diag.Level == DiagLevelDegraded || diag.Level == DiagLevelWarn {
-			b.WriteString(fmt.Sprintf("  %s_warn [label=\"%s\", color=orange];\n",
-				sanitizeDotID(diag.Query), diag.Message))
+			fmt.Fprintf(&b, "  %s_warn [label=\"%s\", color=orange];\n",
+				sanitizeDotID(diag.Query), diag.Message)
 		}
 	}
 
@@ -134,6 +135,7 @@ func sanitizeDotID(s string) string {
 		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' {
 			return r
 		}
+
 		return '_'
 	}, s)
 }
@@ -202,6 +204,7 @@ func (r *CostAccuracyReporter) Report(plan *PlanResult) []CostReport {
 
 		actualNs := float64(total.Nanoseconds()) / float64(len(measurements))
 		estimatedNs := q.Cost.EstimatedLatencyMs * 1e6
+
 		drift := 0.0
 		if estimatedNs > 0 {
 			drift = (actualNs - estimatedNs) / estimatedNs * 100
@@ -240,19 +243,20 @@ func WithTracing(store *Store, tracer Tracer) {
 		OnFold: func(collection, eventType string, kind FoldKind, d time.Duration) {
 			ctx, span := tracer.StartSpan(
 				context.Background(),
-				fmt.Sprintf("metaengine.fold.%s", collection),
+				"metaengine.fold."+collection,
 			)
 			span.SetAttribute("collection", collection)
 			span.SetAttribute("event", eventType)
 			span.SetAttribute("kind", string(kind))
 			span.SetAttribute("duration_ms", d.Milliseconds())
 			span.End()
+
 			_ = ctx
 		},
 		OnExecute: func(collection string, pattern ReadPattern, d time.Duration) {
 			_, span := tracer.StartSpan(
 				context.Background(),
-				fmt.Sprintf("metaengine.execute.%s", collection),
+				"metaengine.execute."+collection,
 			)
 			span.SetAttribute("collection", collection)
 			span.SetAttribute("pattern", string(pattern))

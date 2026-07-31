@@ -149,6 +149,7 @@ func scanRawPlanned(
 	if sort != nil && cursor != nil {
 		if !whereStarted {
 			b.WriteString(" WHERE ")
+
 			whereStarted = true
 		} else {
 			b.WriteString(" AND ")

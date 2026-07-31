@@ -43,48 +43,56 @@ func New(name string) *FluentBuilder {
 // Fold adds an insert fold (func(e E) (K, V)).
 func (b *FluentBuilder) Fold(eventSample any, handler any) *FluentBuilder {
 	b.folds = append(b.folds, OnTyped(eventNameFromSample(eventSample), eventSample, handler))
+
 	return b
 }
 
 // FoldUpdate adds an update fold. The handler signature must be func(e E, prev V) V.
 func (b *FluentBuilder) FoldUpdate(eventType string, handler any) *FluentBuilder {
 	b.folds = append(b.folds, Fold{EventType: eventType, Kind: FoldUpdate, updateHandler: handler})
+
 	return b
 }
 
 // FoldDelete adds a delete fold.
 func (b *FluentBuilder) FoldDelete(eventType string) *FluentBuilder {
 	b.folds = append(b.folds, Fold{EventType: eventType, Kind: FoldRemove})
+
 	return b
 }
 
 // Filter declares a pushdown filter.
 func (b *FluentBuilder) Filter(column string, op FilterOp) *FluentBuilder {
 	b.filters = append(b.filters, filterSpecBuilder{column: column, op: op})
+
 	return b
 }
 
 // Sort declares a pushdown sort.
 func (b *FluentBuilder) Sort(column string, desc bool) *FluentBuilder {
 	b.sort = &sortSpecBuilder{column: column, desc: desc}
+
 	return b
 }
 
 // Volume sets the expected query volume.
 func (b *FluentBuilder) Volume(n int64) *FluentBuilder {
 	b.cfg.Volume = n
+
 	return b
 }
 
 // LatencyBudget sets the target latency budget.
 func (b *FluentBuilder) LatencyBudget(ms int64) *FluentBuilder {
 	b.cfg.LatencyBudgetMs = ms
+
 	return b
 }
 
 // Build finalizes the query declaration with generic type parameters.
 func Build[Q any, R any](b *FluentBuilder) QueryDecl[Q, R] {
 	var args []any
+
 	args = append(args, toAnySlice(b.folds)...)
 
 	for _, f := range b.filters {
@@ -109,6 +117,7 @@ func toAnySlice[T any](s []T) []any {
 	for i, v := range s {
 		result[i] = v
 	}
+
 	return result
 }
 
@@ -138,6 +147,7 @@ func NewWatcher[V any](store *Store, collection string) *Watcher[V] {
 func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 	ch := make(chan V, 1)
 	w.subs = append(w.subs, ch)
+
 	return ch
 }
 
@@ -146,6 +156,7 @@ func (w *Watcher[V]) Close() {
 	for _, ch := range w.subs {
 		close(ch)
 	}
+
 	w.subs = nil
 }
 
@@ -189,6 +200,7 @@ type TTLConfig struct {
 // engine support (SQLite: background sweeper, Memory: lazy eviction).
 func WithTTL(d time.Duration) QueryOption {
 	_ = d // Stored as metadata for future engine support
+
 	return func(c *QueryConfig) {
 		// TTL is stored in the config metadata for engines that support it.
 		// Currently a no-op hint; actual enforcement is engine-specific.

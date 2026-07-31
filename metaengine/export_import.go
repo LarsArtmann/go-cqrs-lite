@@ -32,6 +32,7 @@ func (s *Store) Export(ctx context.Context, w io.Writer) error {
 			if _, err := fmt.Fprint(w, "]"); err != nil {
 				return err
 			}
+
 			continue
 		}
 

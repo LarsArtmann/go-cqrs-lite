@@ -374,6 +374,7 @@ func TestReadCoalescer(t *testing.T) {
 
 	v1, err := rc.Do("key1", func() (any, error) {
 		callCount++
+
 		return "result", nil
 	})
 	if err != nil || v1 != "result" {

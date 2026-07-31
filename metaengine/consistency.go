@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 )
@@ -17,24 +18,28 @@ func NewEventLog() *EventLog { return &EventLog{} }
 func (l *EventLog) Record(eventType string, payload any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	l.events = append(l.events, EventInput{Type: eventType, Payload: payload})
 }
 
 func (l *EventLog) Events() []EventInput {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	return append([]EventInput(nil), l.events...)
 }
 
 func (l *EventLog) Len() int {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	return len(l.events)
 }
 
 func (l *EventLog) Clear() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	l.events = nil
 }
 
@@ -48,7 +53,7 @@ func WithEventLog(store *Store, log *EventLog) {
 // Requires WithEventLog and the original query declarations stored on Plan.
 func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 	if s.eventLog == nil {
-		return fmt.Errorf("metaengine.Verify: no event log attached — call WithEventLog first")
+		return errors.New("metaengine.Verify: no event log attached — call WithEventLog first")
 	}
 
 	events := s.eventLog.Events()
@@ -57,7 +62,7 @@ func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 	}
 
 	if s.queryDecls == nil {
-		return fmt.Errorf("metaengine.Verify: no query declarations stored")
+		return errors.New("metaengine.Verify: no query declarations stored")
 	}
 
 	freshStore, err := Plan(engines, s.queryDecls...)
@@ -76,7 +81,7 @@ func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 
 	for i := range liveCols {
 		if i >= len(freshCols) {
-			return fmt.Errorf("metaengine.Verify: collection count mismatch")
+			return errors.New("metaengine.Verify: collection count mismatch")
 		}
 
 		liveEng, _ := s.collectionEngine(liveCols[i].Name)
@@ -102,7 +107,9 @@ func countRows(ctx context.Context, eng Engine, collection string) int {
 		if err != nil {
 			return -1
 		}
+
 		return len(rows)
 	}
+
 	return -1
 }

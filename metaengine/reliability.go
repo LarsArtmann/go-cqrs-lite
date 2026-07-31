@@ -26,7 +26,7 @@ func CalibrateEngine(eng Engine, iterations int) {
 
 		start := time.Now()
 
-		for i := 0; i < iterations; i++ {
+		for i := range iterations {
 			_ = mb.MapSet(ctx, "__calibrate", i, i)
 		}
 
@@ -35,7 +35,7 @@ func CalibrateEngine(eng Engine, iterations int) {
 
 		start = time.Now()
 
-		for i := 0; i < iterations; i++ {
+		for i := range iterations {
 			_, _, _ = mb.MapGet(ctx, "__calibrate", i)
 		}
 
@@ -43,7 +43,7 @@ func CalibrateEngine(eng Engine, iterations int) {
 		readNs := float64(elapsed.Nanoseconds()) / float64(iterations)
 
 		// Cleanup
-		for i := 0; i < iterations; i++ {
+		for i := range iterations {
 			_ = mb.MapDelete(ctx, "__calibrate", i)
 		}
 
@@ -105,6 +105,7 @@ func (e *sqliteEngine) MigrateLayout(collection string, newPlan LayoutPlan) erro
 func Checksum(data []byte) uint64 {
 	h := fnv.New64a()
 	h.Write(data)
+
 	return h.Sum64()
 }
 
@@ -142,6 +143,7 @@ func NewReadCoalescer() *ReadCoalescer {
 func (rc *ReadCoalescer) Do(key string, fn func() (any, error)) (any, error) {
 	if existing, ok := rc.calls[key]; ok {
 		<-existing.wg
+
 		return existing.value, existing.err
 	}
 

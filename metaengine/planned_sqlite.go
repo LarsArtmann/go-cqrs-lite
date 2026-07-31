@@ -67,6 +67,7 @@ func (e *sqliteEngine) ApplyLayout(collection string, filterFields, sortFields [
 // column names (order-independent). Used to detect layout conflicts.
 func plansColumnCompatible(a, b LayoutPlan) bool {
 	ac := a.ColumnNames()
+
 	bc := b.ColumnNames()
 	if len(ac) != len(bc) {
 		return false
@@ -252,6 +253,7 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 	if sort != nil && cursor != nil {
 		if !whereStarted {
 			b.WriteString(" WHERE ")
+
 			whereStarted = true
 		} else {
 			b.WriteString(" AND ")

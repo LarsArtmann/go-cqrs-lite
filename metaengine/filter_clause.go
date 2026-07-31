@@ -22,18 +22,17 @@ func appendStandardFilter(b *strings.Builder, args *[]any, f FilterSpec) {
 		placeholders := make([]string, len(values))
 		for i, v := range values {
 			placeholders[i] = "?"
+
 			*args = append(*args, v)
 		}
 
-		b.WriteString(
-			fmt.Sprintf(
-				` AND json_extract(value, '%s') IN (%s)`,
-				path,
-				strings.Join(placeholders, ","),
-			),
-		)
+		fmt.Fprintf(b,
+
+			` AND json_extract(value, '%s') IN (%s)`,
+			path,
+			strings.Join(placeholders, ","))
 	} else {
-		b.WriteString(fmt.Sprintf(` AND json_extract(value, '%s') %s ?`, path, string(f.Op)))
+		fmt.Fprintf(b, ` AND json_extract(value, '%s') %s ?`, path, string(f.Op))
 		*args = append(*args, f.Value)
 	}
 }
@@ -52,6 +51,7 @@ func appendPlannedFilter(b *strings.Builder, args *[]any, f FilterSpec, started 
 
 		if !*started {
 			b.WriteString(" WHERE ")
+
 			*started = true
 		} else {
 			b.WriteString(" AND ")
@@ -60,19 +60,21 @@ func appendPlannedFilter(b *strings.Builder, args *[]any, f FilterSpec, started 
 		placeholders := make([]string, len(values))
 		for i, v := range values {
 			placeholders[i] = "?"
+
 			*args = append(*args, v)
 		}
 
-		b.WriteString(fmt.Sprintf("%s IN (%s)", f.Column, strings.Join(placeholders, ",")))
+		fmt.Fprintf(b, "%s IN (%s)", f.Column, strings.Join(placeholders, ","))
 	} else {
 		if !*started {
 			b.WriteString(" WHERE ")
+
 			*started = true
 		} else {
 			b.WriteString(" AND ")
 		}
 
-		b.WriteString(fmt.Sprintf("%s %s ?", f.Column, string(f.Op)))
+		fmt.Fprintf(b, "%s %s ?", f.Column, string(f.Op))
 		*args = append(*args, f.Value)
 	}
 }
