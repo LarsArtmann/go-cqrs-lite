@@ -112,5 +112,9 @@ func RegisterWithHost(
 ) error {
 	adapter := New(name, store, decoder)
 
-	return host.Register(adapter)
+	if err := host.Register(adapter); err != nil {
+		return fmt.Errorf("projectionadapter.RegisterWithHost: %w", err)
+	}
+
+	return nil
 }
