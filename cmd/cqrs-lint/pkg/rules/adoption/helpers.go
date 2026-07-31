@@ -90,6 +90,43 @@ func projectHasCallAny(ctx *analyzer.AnalysisContext, pkgName string, funcNames 
 	return false
 }
 
+// countCalls counts how many times pkgName.funcName is called across all
+// non-test Go files.
+func countCalls(ctx *analyzer.AnalysisContext, pkgName, funcName string) int {
+	count := 0
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+
+			sel, ok := analyzer.SelectorFromExpr(call.Fun)
+			if !ok {
+				return true
+			}
+
+			pkg, ok := sel.X.(*ast.Ident)
+			if !ok || pkg.Name != pkgName {
+				return true
+			}
+
+			if sel.Sel.Name == funcName {
+				count++
+			}
+
+			return true
+		})
+	}
+
+	return count
+}
+
 // projectHasSelector reports whether any non-test file references pkgName.selName
 // in any selector expression (covers type usage, composite literals, calls).
 func projectHasSelector(ctx *analyzer.AnalysisContext, pkgName, selName string) bool {

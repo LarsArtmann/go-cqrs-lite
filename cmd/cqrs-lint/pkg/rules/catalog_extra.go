@@ -1018,5 +1018,23 @@ func adoptionRules() []RuleInfo {
 			Description: "metaengine queries lack Volume hint — cost-based planner cannot optimize engine selection",
 			AutoFix:     false,
 		},
+		{
+			ID:          "F020",
+			Name:        "metaengine-sorton-pushdown",
+			Category:    "adoption",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "metaengine.SortOn (closure-based) prevents SQL ORDER BY pushdown — use SortOnField for indexed sort",
+			AutoFix:     false,
+		},
+		{
+			ID:          "F021",
+			Name:        "metaengine-write-amplification",
+			Category:    "adoption",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "metaengine query has many fold declarations — high write amplification may degrade ingest throughput",
+			AutoFix:     false,
+		},
 	}
 }
