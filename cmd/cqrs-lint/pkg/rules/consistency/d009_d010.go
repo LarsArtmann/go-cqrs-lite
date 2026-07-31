@@ -128,7 +128,7 @@ func NewD010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					pkg, name, ok := selectorPkgAndName(call.Fun)
-					if !ok || pkg != "errorfamily" {
+					if !ok || !isErrorFamilyPkg(gf.AST, pkg) {
 						return true
 					}
 

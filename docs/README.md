@@ -115,6 +115,8 @@ The authoritative module index with README links lives in the **[project README]
 | [0072](adr/0072-metaengine-pushdown.md)                    | Metaengine Pushdown (json_extract SQL pushdown)         | Accepted                 |
 | [0073](adr/0073-metaengine-layout-planning.md)             | Metaengine Layout Planning (deployment-time DDL)        | Accepted                 |
 | [0074](adr/0074-pebble-engine.md)                          | Pebble Metaengine (cost profile & slices.Backward)      | Accepted                 |
+| [0075](adr/0075-metaengine-adttest-extraction.md)          | ADT Test Harness Extraction (cross-engine parity)       | Accepted                 |
+| [0076](adr/0076-pebble-raw-readers.md)                     | Pebble Raw Value Readers (single-pass JSON decode)      | Accepted                 |
 
 ## API Reference
 

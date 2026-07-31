@@ -442,9 +442,13 @@ graph TD
 
 ## 6. Summary Statistics
 
+> **Update (2026-07-31):** Of the original 75 items, ~46 are now DONE (rules shipped,
+> infrastructure implemented, or pruned). ~29 items remain open. The linter has grown
+> from 65 to 179 rules. See the TL;DR at the top of this file for details.
+
 | Metric                            | Value                                                                     |
 | --------------------------------- | ------------------------------------------------------------------------- |
-| Total open items                  | 75                                                                        |
+| Total open items (original)       | 75 → ~29 remain open (2026-07-31)                                         |
 | Items to prune (won't implement)  | 25                                                                        |
 | Items to implement                | 50                                                                        |
 | Level 1 tasks                     | 51 (2 triage + 48 implementation + 1 stack-awareness)                     |

@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // D007: Inconsistent event creation API.
@@ -38,7 +39,7 @@ func NewD007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					pkg, name, ok := selectorPkgAndName(call.Fun)
-					if !ok || pkg != "event" {
+					if !ok || !isEventPkg(gf.AST, pkg) {
 						return true
 					}
 
@@ -116,7 +117,7 @@ func NewD008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					pkg, name, ok := selectorPkgAndName(call.Fun)
-					if !ok || pkg != "event" {
+					if !ok || !isEventPkg(gf.AST, pkg) {
 						return true
 					}
 
@@ -204,7 +205,7 @@ func NewD013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if pkg == "event" && (name == "New" || name == "NewEvent") {
+					if isEventPkg(gf.AST, pkg) && (name == "New" || name == "NewEvent") {
 						eventCreateCount++
 						if firstFile == "" {
 							pos := ctx.Fset.Position(call.Pos())
@@ -213,7 +214,7 @@ func NewD013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 					}
 
-					if pkg == "event" && name == "WithSchemaVersion" {
+					if isEventPkg(gf.AST, pkg) && name == "WithSchemaVersion" {
 						hasSchemaVersion = true
 					}
 
@@ -268,6 +269,27 @@ func selectorPkgAndName(expr ast.Expr) (pkg, name string, ok bool) {
 	}
 
 	return ident.Name, sel.Sel.Name, true
+}
+
+// isEventPkg checks whether a qualifier (e.g. the "event" in event.New) refers
+// to the go-cqrs-lite/event module, accounting for import aliases. The raw-name
+// fast path handles the common case without file scanning.
+func isEventPkg(file *ast.File, qualifier string) bool {
+	if qualifier == "event" {
+		return true
+	}
+
+	return lintutil.QualifierResolvesTo(file, qualifier, "go-cqrs-lite/event")
+}
+
+// isErrorFamilyPkg checks whether a qualifier refers to the go-error-family
+// module, accounting for import aliases.
+func isErrorFamilyPkg(file *ast.File, qualifier string) bool {
+	if qualifier == "errorfamily" {
+		return true
+	}
+
+	return lintutil.QualifierResolvesTo(file, qualifier, "go-error-family")
 }
 
 // anchorPos returns a finding.Position anchored at the given file/line, or
