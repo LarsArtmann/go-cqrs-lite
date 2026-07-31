@@ -129,9 +129,12 @@ func eventNameFromSample(sample any) string {
 // --- Watch / Reactive reads (scaffold) ---
 
 // watcherEntry is a registered watcher subscription stored on the Store.
+// A nil key means "all keys" (collection-level); a non-nil key means
+// notifications are filtered to that specific key only.
 type watcherEntry struct {
 	ch     chan any
 	closed bool
+	key    any // optional: filter to this key only (nil = all keys)
 }
 
 // Watcher provides reactive read notifications. When a value changes, all
@@ -148,13 +151,15 @@ func NewWatcher[V any](store *Store, collection string) *Watcher[V] {
 	return &Watcher[V]{store: store, coll: collection}
 }
 
-// Watch returns a channel that receives updated values. The channel is
-// buffered (1) and drops notifications if the consumer is slow.
+// Watch returns a channel that receives updated values. The optional key
+// parameter filters notifications to that specific key only; pass nil to
+// receive all changes in the collection. The channel is buffered (1) and
+// drops notifications if the consumer is slow.
 // Callers must close the watcher when done (via Close).
 func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 	ch := make(chan V, 1)
 
-	entry := &watcherEntry{ch: make(chan any, 1)}
+	entry := &watcherEntry{ch: make(chan any, 1), key: key}
 
 	w.mu.Lock()
 	w.entries = append(w.entries, entry)

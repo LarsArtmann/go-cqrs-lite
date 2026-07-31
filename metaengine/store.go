@@ -149,19 +149,35 @@ func (s *Store) registerWatcher(collection string, entry *watcherEntry) {
 	s.watchers[collection] = append(s.watchers[collection], entry)
 }
 
-// notifyWatchers sends a value update to all watchers of a collection.
+// keysMatch compares two keys for watcher filtering. Uses reflect.DeepEqual
+// for correctness across types (strings, ints, branded IDs).
+func keysMatch(a, b any) bool {
+	return reflect.DeepEqual(a, b)
+}
+
+// notifyWatchers sends a value update to all watchers of a collection that
+// match the given key. A watcher with a nil key receives all notifications;
+// a watcher with a non-nil key receives only notifications for that key.
 // Non-blocking: if a watcher's channel is full, the notification is dropped.
-func (s *Store) notifyWatchers(collection string, value any) {
+func (s *Store) notifyWatchers(collection string, key any, value any) {
 	s.watcherMu.Lock()
 	entries := s.watchers[collection]
 	s.watcherMu.Unlock()
 
 	for _, entry := range entries {
-		if !entry.closed {
-			select {
-			case entry.ch <- value:
-			default: // drop if consumer is slow
-			}
+		if entry.closed {
+			continue
+		}
+
+		// Per-key filter: if the watcher subscribed to a specific key,
+		// only forward notifications for that key.
+		if entry.key != nil && !keysMatch(entry.key, key) {
+			continue
+		}
+
+		select {
+		case entry.ch <- value:
+		default: // drop if consumer is slow
 		}
 	}
 }
@@ -292,7 +308,7 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 				return fmt.Errorf("map set %s: %w", col, err)
 			}
 
-			s.notifyWatchers(col, value)
+			s.notifyWatchers(col, key, value)
 
 			return nil
 		}
@@ -313,7 +329,7 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 				return fmt.Errorf("map update %s: %w", col, err)
 			}
 
-			s.notifyWatchers(col, updatedVal)
+			s.notifyWatchers(col, key, updatedVal)
 
 			return nil
 		}
@@ -335,6 +351,8 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 				return fmt.Errorf("map set %s: %w", col, err)
 			}
 
+			s.notifyWatchers(col, key, updated)
+
 			return nil
 		}
 
@@ -347,7 +365,7 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 				return fmt.Errorf("map delete %s: %w", col, err)
 			}
 
-			s.notifyWatchers(col, nil)
+			s.notifyWatchers(col, key, nil)
 
 			return nil
 		}
