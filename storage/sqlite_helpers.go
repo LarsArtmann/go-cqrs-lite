@@ -230,5 +230,26 @@ func DuckDBInitSchema(ctx context.Context, db *sql.DB) error {
 }
 
 func MySQLInitSchema(ctx context.Context, db *sql.DB) error {
-	return execDDL(ctx, db, []string{sqlpkg.MySQLSchemaEmbed()})
+	// go-sql-driver/mysql does not support multi-statement execution unless
+	// multiStatements=true is in the DSN (a SQL-injection risk for non-DDL).
+	// Split the schema into individual CREATE TABLE statements instead.
+	return execDDL(ctx, db, splitMySQLDDL(sqlpkg.MySQLSchemaEmbed()))
+}
+
+// splitMySQLDDL splits a multi-statement DDL schema into individual statements
+// by splitting on semicolons followed by newlines. This is safe for CQRS DDL
+// (no triggers or stored procedures with internal semicolons).
+func splitMySQLDDL(schema string) []string {
+	var stmts []string
+
+	for _, stmt := range strings.Split(schema, ";\n") {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" {
+			continue
+		}
+
+		stmts = append(stmts, stmt)
+	}
+
+	return stmts
 }
