@@ -1406,6 +1406,7 @@ metaengine/func WithLimit
 metaengine/func WithMetrics
 metaengine/func WithOr
 metaengine/func WithRange
+metaengine/func WithReadCoalescer
 metaengine/func WithSlowQueryLog
 metaengine/func WithSort
 metaengine/func WithSortColumns
@@ -1435,6 +1436,7 @@ metaengine/interface Transactional
 metaengine/method Aggregate
 metaengine/method Apply
 metaengine/method Apply
+metaengine/method ApplyBatch
 metaengine/method ApplyBatch
 metaengine/method ApplyEncoded
 metaengine/method ApplyIdempotent
@@ -1506,6 +1508,7 @@ metaengine/method MultiAdd
 metaengine/method MultiGet
 metaengine/method MultiGet
 metaengine/method Plan
+metaengine/method Primary
 metaengine/method Profile
 metaengine/method Profile
 metaengine/method PushdownMapScan
@@ -1545,7 +1548,7 @@ metaengine/method SwapEngine
 metaengine/method Verify
 metaengine/method Volume
 metaengine/method Watch
-metaengine/method WithTier
+metaengine/method WithPrefetch
 metaengine/method WithinBudget
 metaengine/method WriteNsPerOp
 metaengine/pebbleengine/const PebbleNsPerOp
@@ -1611,7 +1614,6 @@ metaengine/struct SortColumn
 metaengine/struct SortSpec
 metaengine/struct Store
 metaengine/struct TTLConfig
-metaengine/struct TierConfig
 metaengine/struct TieredStore
 metaengine/struct TypedReader
 metaengine/struct Watcher

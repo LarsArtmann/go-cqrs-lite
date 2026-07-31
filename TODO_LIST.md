@@ -176,7 +176,7 @@ this list and recorded in CHANGELOG.
       — atomic multi-event application with rollback.
 - [x] **Fluent query builder** — `metaengine.New("find_user").On(...).Filter(...).
   Sort(...).Volume(1M)` as alternative to variadic-`any` constructor.
-- [x] **Compile-time query registration** — `//go:generate metaengine-gen`
+- [ ] **Compile-time query registration** — `//go:generate metaengine-gen`
       generating typed `Store` methods (`store.FindUser(ctx, id)`) from query
       declarations. Eliminates `ExecuteTyped[Q, R]` boilerplate.
 - [x] **Dry-run mode** — `Plan(engines, queries, WithDryRun())` returns the
@@ -228,15 +228,15 @@ this list and recorded in CHANGELOG.
 
 ### Engine Sophistication
 
-- [x] 🔥 **Pebble: implement `RawValueReader` + `RawScanReader`** — Pebble misses
+- [ ] 🔥 **Pebble: implement `RawValueReader` + `RawScanReader`** — Pebble misses
       the JSON tax reduction. It still JSON-decodes every value on read.
-- [x] 🔥 **Pebble: add to ADT matrix test** — extend `engineFactories()` in
+- [ ] 🔥 **Pebble: add to ADT matrix test** — extend `engineFactories()` in
       `adt_matrix_test.go` with the Pebble engine.
-- [x] **Pebble LayoutPlanner** — Pebble can create prefixed key ranges for indexed
+- [ ] **Pebble LayoutPlanner** — Pebble can create prefixed key ranges for indexed
       fields. A Pebble layout encodes `collection:field:value:key` prefixes.
-- [x] **Postgres engine** — native `JSONB` operators (`->>`, `@>`), GIN indexes on
+- [ ] **Postgres engine** — native `JSONB` operators (`->>`, `@>`), GIN indexes on
       JSON, `PARTITION BY` for time-series.
-- [x] **DuckDB analytical engine** — columnar OLAP. `GROUP BY`/`COUNT`/`SUM` pushed
+- [ ] **DuckDB analytical engine** — columnar OLAP. `GROUP BY`/`COUNT`/`SUM` pushed
       to DuckDB — 100x faster for analytics.
 - [x] **Multi-engine tiering** — assign the SAME query to multiple engines: memory
       for hot reads, SQLite for persistence. Write-fan-out, read-from-cheapest.
@@ -246,14 +246,14 @@ this list and recorded in CHANGELOG.
 
 - [x] 🔥 **projectionhost integration** — register metaengine collections as
       `projectionhost.Projection` workers. Crash-restart lifecycle, DLQ, checkpointing.
-- [x] **CQRS event store adapter** — `metaengine.FromEventStore(store)` auto-wires
+- [ ] **CQRS event store adapter** — `metaengine.FromEventStore(store)` auto-wires
       as a projection consuming a CQRS `event.Store` journal.
-- [x] **HTTP/SSE adapter** — `metaengine.ServeSSE(reader, w, r)` streams updates.
+- [ ] **HTTP/SSE adapter** — `metaengine.ServeSSE(reader, w, r)` streams updates.
 - [x] **Export/import** — `store.Export(ctx, w)` / `store.Import(ctx, r)` for
       backup, migration, seed data.
-- [x] **CLI inspector** — `metaengine inspect <db> --collection find_user --scan
+- [ ] **CLI inspector** — `metaengine inspect <db> --collection find_user --scan
   --filter status=open --limit 10`.
-- [x] **cqrs-lint rules** — detect `FilterOn` where `FilterOnField` enables pushdown,
+- [ ] **cqrs-lint rules** — detect `FilterOn` where `FilterOnField` enables pushdown,
       missing `Volume` hint, `SortOn` without index, write amplification over budget.
 
 ### Testing & Verification
@@ -263,9 +263,9 @@ this list and recorded in CHANGELOG.
       parity by importing one function.
 - [x] **Property-based fold testing** — `rapid` generator verifying the engine
       produces identical results to a pure Go fold over the same events.
-- [x] **Soak test with 10M events** — replay through all 7 ADTs, verify memory
+- [ ] **Soak test with 10M events** — replay through all 7 ADTs, verify memory
       doesn't grow unboundedly, latency stays constant, no corruption.
-- [x] **Chaos testing** — randomly kill transactions mid-flight, inject errors,
+- [ ] **Chaos testing** — randomly kill transactions mid-flight, inject errors,
       swap engines between reads — verify no corruption.
 - [x] **Benchmarks** — `BenchmarkRawReader_Get` vs `BenchmarkMapGet`,
       `BenchmarkRawReader_Scan` vs `BenchmarkPushdownMapScan` — prove the JSON tax

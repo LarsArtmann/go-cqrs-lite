@@ -393,3 +393,185 @@ func TestExportImport_AllADTs(t *testing.T) {
 }
 
 // Helper: contains is already defined in layout_bench_test.go
+
+// --- P2.1: ReadCoalescer integration ---
+
+func TestReadCoalescer_ConcurrentReadsCoalesced(t *testing.T) {
+	t.Parallel()
+
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rc := NewReadCoalescer()
+	WithReadCoalescer(store, rc)
+
+	ctx := context.Background()
+	_ = store.Apply(ctx, "task_created", testTask{ID: "t1", Title: "Task 1"})
+
+	reader := NewReader[testTask](store, "tasks")
+
+	var wg sync.WaitGroup
+	results := make([]testTask, 20)
+	found := make([]bool, 20)
+
+	for i := range 20 {
+		wg.Add(1)
+
+		go func(idx int) {
+			defer wg.Done()
+			v, f, err := reader.Get(ctx, testTaskID("t1"))
+			if err != nil {
+				t.Errorf("coalescer Get %d: %v", idx, err)
+				return
+			}
+			results[idx] = v
+			found[idx] = f
+		}(i)
+	}
+
+	wg.Wait()
+
+	for i := range 20 {
+		if !found[i] {
+			t.Errorf("coalescer: goroutine %d got found=false", i)
+			continue
+		}
+		if results[i].ID != testTaskID("t1") {
+			t.Errorf("coalescer: goroutine %d got ID %s, expected t1", i, results[i].ID)
+		}
+	}
+}
+
+// --- P2.2: Watcher receives actual projection values ---
+
+func TestWatcher_ReceivesActualValue(t *testing.T) {
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	w := NewWatcher[testTask](store, "tasks")
+	defer w.Close()
+
+	ch := w.Watch(ctx, nil)
+
+	// Apply an event — the watcher should receive the actual testTask value
+	err = store.Apply(ctx, "task_created", testTask{ID: "t1", Title: "Task 1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case val := <-ch:
+		if val.ID != testTaskID("t1") {
+			t.Errorf("watcher: expected ID t1, got %s", val.ID)
+		}
+		if val.Title != "Task 1" {
+			t.Errorf("watcher: expected Title 'Task 1', got %s", val.Title)
+		}
+	case <-time.After(2 * time.Second):
+		t.Error("watcher: timed out waiting for notification")
+	}
+}
+
+// --- P2.5: PrefetchCache integration ---
+
+func TestPrefetchCache_ServesCachedPage(t *testing.T) {
+	t.Parallel()
+
+	cache := NewPrefetchCache()
+
+	// Simulate a cached scan result
+	cache.Put("tasks:last_key", []any{
+		map[string]any{"id": "t2", "title": "Task 2"},
+		map[string]any{"id": "t3", "title": "Task 3"},
+	})
+
+	cached := cache.Get("tasks:last_key")
+	if len(cached) != 2 {
+		t.Errorf("prefetch: expected 2 cached rows, got %d", len(cached))
+	}
+
+	cache.Clear()
+	if cache.Get("tasks:last_key") != nil {
+		t.Error("prefetch: expected nil after Clear")
+	}
+}
+
+// --- P2.7: WithTracing creates spans ---
+
+type mockSpan struct {
+	name       string
+	attributes map[string]any
+	ended      bool
+}
+
+type mockTracer struct {
+	spans []*mockSpan
+	mu    sync.Mutex
+}
+
+func (mt *mockTracer) StartSpan(_ context.Context, name string) (context.Context, Span) {
+	span := &mockSpan{name: name, attributes: make(map[string]any)}
+	mt.mu.Lock()
+	mt.spans = append(mt.spans, span)
+	mt.mu.Unlock()
+	return context.Background(), span
+}
+
+func (ms *mockSpan) End()                                 { ms.ended = true }
+func (ms *mockSpan) SetAttribute(key string, value any)   { ms.attributes[key] = value }
+
+func TestWithTracing_CreatesSpans(t *testing.T) {
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tracer := &mockTracer{}
+	WithTracing(store, tracer)
+
+	ctx := context.Background()
+	_ = store.Apply(ctx, "task_created", testTask{ID: "t1", Title: "Task 1"})
+	_, _ = ExecuteTyped[testFindTask, testTask](ctx, store, testFindTask{ID: "t1"})
+
+	tracer.mu.Lock()
+	defer tracer.mu.Unlock()
+
+	if len(tracer.spans) < 2 {
+		t.Errorf("tracing: expected at least 2 spans (fold + execute), got %d", len(tracer.spans))
+	}
+
+	// Verify fold span attributes
+	var foldSpan *mockSpan
+	for _, s := range tracer.spans {
+		if contains(s.name, "fold") {
+			foldSpan = s
+			break
+		}
+	}
+
+	if foldSpan == nil {
+		t.Fatal("tracing: no fold span found")
+	}
+
+	if !foldSpan.ended {
+		t.Error("tracing: fold span not ended")
+	}
+
+	if foldSpan.attributes["collection"] != "tasks" {
+		t.Errorf("tracing: expected collection 'tasks', got %v", foldSpan.attributes["collection"])
+	}
+
+	if foldSpan.attributes["event"] != "task_created" {
+		t.Errorf("tracing: expected event 'task_created', got %v", foldSpan.attributes["event"])
+	}
+}
