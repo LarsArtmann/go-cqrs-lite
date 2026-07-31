@@ -27,7 +27,7 @@ func (e *pebbleEngine) getPebbleRaw(col string, key any) ([]byte, bool, error) {
 			return nil, false, nil
 		}
 
-		return nil, false, err //nolint:wrapcheck // passthrough
+		return nil, false, err
 	}
 
 	defer func() { _ = closer.Close() }() //cqrs-lint:ignore(C015) pebble closer, error is always nil
@@ -81,7 +81,7 @@ func (e *pebbleEngine) ScanRawValues(
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -104,7 +104,7 @@ func (e *pebbleEngine) ScanRawValues(
 	}
 
 	if err := iter.Error(); err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	// Build sort comparator from SortSpec. Direction (Desc) is encoded into
