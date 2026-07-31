@@ -73,12 +73,14 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 
 	var readerWg sync.WaitGroup
 
-	rng := rand.New(rand.NewPCG(uint64(r.config.Seed), uint64(0xDEAD)))
-
-	for range readerCount {
+	for i := range readerCount {
 		readerWg.Go(func() {
+			// Each reader goroutine needs its own *rand.Rand — math/rand/v2
+			// (*Rand) is NOT safe for concurrent use.
+			localRng := rand.New(rand.NewPCG(uint64(r.config.Seed), uint64(i)+1))
+
 			for readerCtx.Err() == nil {
-				ref := r.refs[rng.IntN(len(r.refs))]
+				ref := r.refs[localRng.IntN(len(r.refs))]
 
 				start := time.Now()
 

@@ -38,6 +38,7 @@ const (
 	StoreUnknown  StoreKind = "unknown"
 	StoreSQLite   StoreKind = "sqlite"
 	StorePostgres StoreKind = "postgres"
+	StoreMySQL    StoreKind = "mysql"
 	StorePebble   StoreKind = "pebble"
 	StoreMemory   StoreKind = "memory"
 	StoreTurso    StoreKind = "turso"

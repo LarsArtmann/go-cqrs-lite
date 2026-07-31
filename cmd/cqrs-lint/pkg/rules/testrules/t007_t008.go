@@ -57,6 +57,7 @@ var productionStoreSubstrings = []string{
 	"go-cqrs-lite/stack/sqlite",
 	"go-cqrs-lite/stack/pebble",
 	"go-cqrs-lite/stack/postgres",
+	"go-cqrs-lite/stack/mysql",
 	"go-cqrs-lite/stack/turso",
 	"go-cqrs-lite/stack/duckdb",
 }

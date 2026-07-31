@@ -55,6 +55,8 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				suggestion = "Use stack/sqlite.New(dsn) for one-call setup with sane defaults"
 			case analyzer.StorePostgres:
 				suggestion = "Use stack/postgres.New(dsn) for one-call setup with sane defaults"
+			case analyzer.StoreMySQL:
+				suggestion = "Use stack/mysql.New(dsn) for one-call setup with sane defaults"
 			case analyzer.StorePebble:
 				suggestion = "Use stack/pebble.New(dir) for one-call setup with sane defaults"
 			case analyzer.StoreCustom:

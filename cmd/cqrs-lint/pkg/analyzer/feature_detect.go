@@ -40,6 +40,8 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 				fp.Store = StoreSQLite
 			} else if strings.Contains(path, "go-cqrs-lite/stack/postgres") {
 				fp.Store = StorePostgres
+			} else if strings.Contains(path, "go-cqrs-lite/stack/mysql") {
+				fp.Store = StoreMySQL
 			} else if strings.Contains(path, "go-cqrs-lite/stack/pebble") {
 				fp.Store = StorePebble
 			} else if strings.Contains(path, "go-cqrs-lite/stack/memory") {
