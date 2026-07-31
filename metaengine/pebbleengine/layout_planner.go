@@ -333,7 +333,12 @@ func sortIndexedResults(results [][]byte, sortField string, desc bool) {
 }
 
 // processFilterIndex sorts, cursor-paginates, and limits filter-indexed results.
-func processFilterIndex(indexed [][]byte, sortSpec *metaengine.SortSpec, cursor any, limit int) [][]byte {
+func processFilterIndex(
+	indexed [][]byte,
+	sortSpec *metaengine.SortSpec,
+	cursor any,
+	limit int,
+) [][]byte {
 	if sortSpec != nil {
 		sortIndexedResults(indexed, sortSpec.Column, sortSpec.Desc)
 

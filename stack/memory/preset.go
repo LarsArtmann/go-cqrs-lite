@@ -31,7 +31,8 @@ import (
 // extend the default wiring.
 func New(extra ...stack.Option) (*stack.Bundle, error) {
 	opts := make([]stack.Option, 0, 7+len(extra))
-	opts = append(opts,
+	opts = append(
+		opts,
 		stack.WithEventStore(memory.NewMemoryStore()),
 		stack.WithBus(cqrswatermill.NewEventBus()),
 		stack.WithCommandStore(memory.NewMemoryCommandStore()),
@@ -43,7 +44,6 @@ func New(extra ...stack.Option) (*stack.Bundle, error) {
 	opts = append(opts, extra...)
 
 	b, err := stack.New(opts...)
-
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "memory.wire_bundle",
 			"wire bundle")
