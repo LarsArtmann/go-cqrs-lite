@@ -105,6 +105,7 @@
 ## F) NEXT TASKS (up to 50, prioritized)
 
 ### Immediate hygiene (do now)
+
 1. Run `nix fmt` on changed files
 2. Run `nix run .#verify` (full gate)
 3. Fix stale comment on `ApplyLayout` (mention sort index)
@@ -113,6 +114,7 @@
 6. Revert or rethink the `Profile()` complexity comment for `ADTSortedMap`
 
 ### Edge-case tests
+
 7. Test: duplicate sort values + ascending cursor (documents the skip-all-duplicates behavior)
 8. Test: duplicate sort values + descending cursor
 9. Test: FilterIn + sort index path
@@ -126,6 +128,7 @@
 17. Regression: sort index produces same results as Go-sort path for identical data+query
 
 ### Performance & correctness
+
 18. Add sort index support to `MapScan` (ScanBackend path)
 19. Benchmark: sort index with filter (filter in Go vs composite index)
 20. Benchmark: sort index write overhead (MapSet with sort index vs without)
@@ -133,11 +136,13 @@
 22. Consider composite filter+sort index for the filter-then-sort pattern
 
 ### Cursor improvements
+
 23. Design composite cursor `{value, primaryKey}` for precise duplicate-value pagination
 24. Wire composite cursor through the Pebble sort index path
 25. Add cursor round-trip test (encode → decode → re-query)
 
 ### Documentation
+
 26. Write ADR for sort-prefix index design
 27. Update AGENTS.md Pebble engine description (mention sort index)
 28. Update `docs/planning/meta-engine-design.md` with sort index optimization
@@ -145,6 +150,7 @@
 30. Add sort index to the Pebble engine section of the module README (if exists)
 
 ### Architecture / deeper improvements
+
 31. Consider whether the SQLite engine should also support a sort index (it already has ORDER BY pushdown via json_extract, so less urgent)
 32. Consider whether `scanWithSortIndex` should fall back to `scanWithIndex` + Go sort when the filter is highly selective (cost-based decision)
 33. Consider whether the sort index should be used for cursor-only queries (no sort, just pagination by insertion order) — currently requires a declared sort field
@@ -152,6 +158,7 @@
 35. Consider lazy sort index population (don't index on every write, batch-index on first query) — trade write latency for read latency
 
 ### Metaengine ecosystem
+
 36. Update `metaengine/adttest` Scenarios to include sorted-scan assertions that exercise the sort index
 37. Update `metaengine/projectionadapter` if it uses MapScan for sorted reads
 38. Check if `metaengine/pebbleengine/layout_planner_bench_test.go` needs updating for the sort index benchmarks in the calibration suite
@@ -159,6 +166,7 @@
 40. Update `EngineProfile.Supports` or add a capability flag for sort index support
 
 ### Process / CI
+
 41. Verify api-stability golden doesn't need regen (all new symbols are unexported — should be fine)
 42. Check `scripts/check-coverage.sh` impact (new code in sort_index.go needs coverage)
 43. Run `art-dupl baseline` to check if sort_index.go introduces duplication
@@ -166,6 +174,7 @@
 45. If test file violates limit, split sort index tests into `sort_index_test.go`
 
 ### Polish
+
 46. Add `//nolint` comments if needed after `nix fmt`
 47. Review benchmark `b.N` modernization hints (use `b.Loop()` where applicable)
 48. Add godoc examples for sort index usage patterns

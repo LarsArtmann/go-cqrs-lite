@@ -8,22 +8,22 @@
 
 ## 1. Problem Statement
 
-metaengine is described in `AGENTS.md` as *"THE STRATEGIC FUTURE of this project"* — a cost-based storage planner with 7 ADTs, 3 fully-implemented engines, SSE streaming, cursor pagination, and layout planning. It is architecturally sound, substantially complete, and has ~52 test files.
+metaengine is described in `AGENTS.md` as _"THE STRATEGIC FUTURE of this project"_ — a cost-based storage planner with 7 ADTs, 3 fully-implemented engines, SSE streaming, cursor pagination, and layout planning. It is architecturally sound, substantially complete, and has ~52 test files.
 
 **But it is a parallel island.** It has zero production dependencies on the rest of the library. It is consumed by exactly one bridge module (`projectionadapter`) and one example (`taskmanager`, manually wired). It is absent from:
 
-| Layer | Integrated? | Evidence |
-|-------|-------------|----------|
-| `stack/` presets | **NO** | Zero `metaengine` references in `stack/` |
-| `benchkit/` | **NO** | Zero `metaengine` references in `benchkit/` |
+| Layer                   | Integrated? | Evidence                                                                    |
+| ----------------------- | ----------- | --------------------------------------------------------------------------- |
+| `stack/` presets        | **NO**      | Zero `metaengine` references in `stack/`                                    |
+| `benchkit/`             | **NO**      | Zero `metaengine` references in `benchkit/`                                 |
 | `scenario/` testing DSL | **PARTIAL** | Works via `projection.Projection` interface, but no query-result assertions |
-| `integration/` tests | **NO** | `integration/go.mod` has no metaengine dep |
-| `catalog/` | **NO** | Zero go-cqrs-lite deps |
-| `cmd/cqrs-bench` | **NO** | No metaengine backend in the factory switch |
+| `integration/` tests    | **NO**      | `integration/go.mod` has no metaengine dep                                  |
+| `catalog/`              | **NO**      | Zero go-cqrs-lite deps                                                      |
+| `cmd/cqrs-bench`        | **NO**      | No metaengine backend in the factory switch                                 |
 
 Meanwhile, `benchkit` is mature (9 phases, 8 profiles, ~100 tests, zero TODOs) but benchmarks **only** the `stack.Bundle` layer — never the metaengine query planner, Apply throughput, or ExecuteTyped read latency.
 
-**The core problem:** The library's composition story is strong *within* the event-sourcing core, but the strategic future (metaengine) is disconnected from the composition hub (Bundle), the measurement layer (benchkit), and the testing DSL (scenario).
+**The core problem:** The library's composition story is strong _within_ the event-sourcing core, but the strategic future (metaengine) is disconnected from the composition hub (Bundle), the measurement layer (benchkit), and the testing DSL (scenario).
 
 ---
 
@@ -31,7 +31,7 @@ Meanwhile, `benchkit` is mature (9 phases, 8 profiles, ~100 tests, zero TODOs) b
 
 These constraints protect the system from **verschlimmbessern** (well-intentioned destruction):
 
-1. **metaengine stays zero-dep at its core.** All integration flows *toward* metaengine via bridges/options, never the reverse. `metaengine/go.mod` must not gain production deps on `event/`, `command/`, `decider/`, etc.
+1. **metaengine stays zero-dep at its core.** All integration flows _toward_ metaengine via bridges/options, never the reverse. `metaengine/go.mod` must not gain production deps on `event/`, `command/`, `decider/`, etc.
 
 2. **The dependency direction is stack → metaengine (Tier 5 → Tier 0).** This is a legal, clean dependency. stack/ already depends on Tier 0 modules (codec, kv).
 
@@ -54,6 +54,7 @@ These constraints protect the system from **verschlimmbessern** (well-intentione
 This single change makes metaengine available through the Bundle, which is the composition hub that ALL 6 presets (memory, sqlite, pebble, postgres, turso, duckdb) use. Without this, metaengine requires ~40 lines of manual setup (`example/taskmanager/metaengine.go:75-131`). With this, it's a one-liner in the preset constructor.
 
 The implementation is minimal:
+
 - Add `metaengine/v4` to `stack/go.mod` (zero deps, negligible binary impact)
 - Add `metaEngine *metaengine.Store` private field to `Bundle`
 - Add `WithMetaEngine(store)` Option that sets the field + registers the Store as a closer
@@ -86,18 +87,18 @@ These three changes transform metaengine from "parallel island" to "first-class 
 
 ## 4. Verschlimmbessern Risk Assessment
 
-| Task | Risk | Mitigation | Verdict |
-|------|------|------------|---------|
-| `stack.WithMetaEngine()` | Adds metaengine dep to stack | metaengine has ZERO production deps. Binary impact is negligible. | **SAFE** |
-| benchkit metaengine phase | benchkit pulls metaengine + projectionadapter | benchkit ALREADY imports projectionhost. metaengine adds zero deps. projectionadapter is already a transitive dep. | **SAFE** |
-| Refactor taskmanager | Breaking the working example | Keep old code path as fallback; WithMetaEngine is additive. Run example tests. | **SAFE** |
-| scenario.ThenQueryResult | Expanding scenario deps | Takes `func() (any, error)`, NOT metaengine.Store. Zero new deps. | **SAFE** |
-| integration test | New dep in integration module | integration/ is Tier 6 — depends on everything. Normal. | **SAFE** |
-| SSE cross-documentation | Touching working SSE code | Comments ONLY. No logic changes. | **TRIVIAL** |
-| ~~catalog bridge~~ | Creating unused module | No consumer needs it yet. Pure YAGNI. | **DEFER** |
-| ~~stack.WithHTTPServer()~~ | Coupling stack to net/http | Consumers wire in 5 lines. Adding option adds complexity for marginal value. | **DEFER** |
-| ~~SSE code consolidation~~ | Merging two different-layer SSE implementations | Different semantics (collection-watch vs bus-to-client). High risk, low value. | **DEFER** |
-| ~~Pebble StreamingScan~~ | Complex iterator implementation | Real engineering work, not integration. Separate concern. | **DEFER** |
+| Task                       | Risk                                            | Mitigation                                                                                                         | Verdict     |
+| -------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------- |
+| `stack.WithMetaEngine()`   | Adds metaengine dep to stack                    | metaengine has ZERO production deps. Binary impact is negligible.                                                  | **SAFE**    |
+| benchkit metaengine phase  | benchkit pulls metaengine + projectionadapter   | benchkit ALREADY imports projectionhost. metaengine adds zero deps. projectionadapter is already a transitive dep. | **SAFE**    |
+| Refactor taskmanager       | Breaking the working example                    | Keep old code path as fallback; WithMetaEngine is additive. Run example tests.                                     | **SAFE**    |
+| scenario.ThenQueryResult   | Expanding scenario deps                         | Takes `func() (any, error)`, NOT metaengine.Store. Zero new deps.                                                  | **SAFE**    |
+| integration test           | New dep in integration module                   | integration/ is Tier 6 — depends on everything. Normal.                                                            | **SAFE**    |
+| SSE cross-documentation    | Touching working SSE code                       | Comments ONLY. No logic changes.                                                                                   | **TRIVIAL** |
+| ~~catalog bridge~~         | Creating unused module                          | No consumer needs it yet. Pure YAGNI.                                                                              | **DEFER**   |
+| ~~stack.WithHTTPServer()~~ | Coupling stack to net/http                      | Consumers wire in 5 lines. Adding option adds complexity for marginal value.                                       | **DEFER**   |
+| ~~SSE code consolidation~~ | Merging two different-layer SSE implementations | Different semantics (collection-watch vs bus-to-client). High risk, low value.                                     | **DEFER**   |
+| ~~Pebble StreamingScan~~   | Complex iterator implementation                 | Real engineering work, not integration. Separate concern.                                                          | **DEFER**   |
 
 ---
 
@@ -105,18 +106,18 @@ These three changes transform metaengine from "parallel island" to "first-class 
 
 > Sorted by importance/impact/effort/customer-value.
 
-| # | Task | Phase | Impact | Effort | Priority | Depends On |
-|---|------|-------|--------|--------|----------|------------|
-| L1-01 | **stack.WithMetaEngine() option** — Add metaengine/v4 to stack/go.mod, Bundle field, Option func, accessor, Close() wiring | 1 (Keystone) | Critical — enables everything | 45min | P0 | — |
-| L1-02 | **benchkit metaengine phase** — phases_metaengine.go: Apply throughput + ExecuteTyped latency, Config flag, Result fields, runner wiring | 2 (Measurement) | High — validates performance claims | 70min | P1 | L1-01 |
-| L1-03 | **Refactor taskmanager** — Replace manual setupMetaEngine with WithMetaEngine, prove end-to-end | 3 (Proof) | High — validates real-world usability | 30min | P1 | L1-01 |
-| L1-04 | **scenario.ThenQueryResult** — Generic query-result assertion on ProjectionScenario, no metaengine dep | 3 (Testing) | Medium — enables BDD testing of query results | 30min | P2 | — |
-| L1-05 | **integration test** — Cross-module: event→adapter→store→query through real stack preset | 3 (Testing) | Medium — guards against bridge regressions | 35min | P2 | L1-01 |
-| L1-06 | **SSE cross-documentation** — Comments in both sse.go files explaining the distinction | 4 (Polish) | Low — prevents future confusion | 15min | P3 | — |
-| L1-07 | **AGENTS.md + skill references** — Update patterns, decision matrix, recipes, modules, FAQ | 4 (Docs) | High — discoverability for consumers | 40min | P1 | L1-01 |
-| L1-08 | **Verify gate** — nix fmt, api-stability -update, doc-check, nix run .#verify | 4 (Gate) | Critical — must pass before commit | 25min | P0 | All above |
-| L1-09 | **Write this planning document** | Pre | Critical — the plan itself | 30min | P0 | — |
-| L1-10 | **Deferred items documentation** — Document catalog/transport/StreamingScan deferrals with rationale | 4 (Polish) | Low — prevents "why wasn't X done?" confusion | 15min | P3 | — |
+| #     | Task                                                                                                                                     | Phase           | Impact                                        | Effort | Priority | Depends On |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------- | --------------------------------------------- | ------ | -------- | ---------- |
+| L1-01 | **stack.WithMetaEngine() option** — Add metaengine/v4 to stack/go.mod, Bundle field, Option func, accessor, Close() wiring               | 1 (Keystone)    | Critical — enables everything                 | 45min  | P0       | —          |
+| L1-02 | **benchkit metaengine phase** — phases_metaengine.go: Apply throughput + ExecuteTyped latency, Config flag, Result fields, runner wiring | 2 (Measurement) | High — validates performance claims           | 70min  | P1       | L1-01      |
+| L1-03 | **Refactor taskmanager** — Replace manual setupMetaEngine with WithMetaEngine, prove end-to-end                                          | 3 (Proof)       | High — validates real-world usability         | 30min  | P1       | L1-01      |
+| L1-04 | **scenario.ThenQueryResult** — Generic query-result assertion on ProjectionScenario, no metaengine dep                                   | 3 (Testing)     | Medium — enables BDD testing of query results | 30min  | P2       | —          |
+| L1-05 | **integration test** — Cross-module: event→adapter→store→query through real stack preset                                                 | 3 (Testing)     | Medium — guards against bridge regressions    | 35min  | P2       | L1-01      |
+| L1-06 | **SSE cross-documentation** — Comments in both sse.go files explaining the distinction                                                   | 4 (Polish)      | Low — prevents future confusion               | 15min  | P3       | —          |
+| L1-07 | **AGENTS.md + skill references** — Update patterns, decision matrix, recipes, modules, FAQ                                               | 4 (Docs)        | High — discoverability for consumers          | 40min  | P1       | L1-01      |
+| L1-08 | **Verify gate** — nix fmt, api-stability -update, doc-check, nix run .#verify                                                            | 4 (Gate)        | Critical — must pass before commit            | 25min  | P0       | All above  |
+| L1-09 | **Write this planning document**                                                                                                         | Pre             | Critical — the plan itself                    | 30min  | P0       | —          |
+| L1-10 | **Deferred items documentation** — Document catalog/transport/StreamingScan deferrals with rationale                                     | 4 (Polish)      | Low — prevents "why wasn't X done?" confusion | 15min  | P3       | —          |
 
 **Total estimated effort: ~335min (~5.6h)**
 
@@ -128,108 +129,108 @@ These three changes transform metaengine from "parallel island" to "first-class 
 
 ### L1-01: stack.WithMetaEngine() option (45min → 9 sub-tasks)
 
-| # | Sub-task | Est | Verifies |
-|---|----------|-----|----------|
-| L2-01.1 | Read stack/bundle.go Close() + registerCloser() pattern (lines 143-268) | 5min | Understand existing pattern |
-| L2-01.2 | Add `metaengine/v4` to `stack/go.mod` via `cd stack && GOWORK=off go get github.com/larsartmann/go-cqrs-lite/metaengine/v4@v4.2.0` | 3min | `go mod tidy` succeeds |
-| L2-01.3 | Add `metaEngine *metaengine.Store` private field to `Bundle` struct in `bundle.go` | 3min | Package compiles |
-| L2-01.4 | Write `WithMetaEngine(store *metaengine.Store) Option` in `options.go` — sets field + calls `b.registerCloser(store)` | 5min | `go build` passes |
-| L2-01.5 | Write `Bundle.MetaEngine() *metaengine.Store` accessor in `bundle.go` | 3min | `go build` passes |
-| L2-01.6 | Write `stack/metaengine_test.go` — test WithMetaEngine sets field, Close() closes store, accessor returns correct value | 10min | Test passes |
-| L2-01.7 | Run `cd stack && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1` | 3min | All stack tests pass |
-| L2-01.8 | Run `gofumpt -w stack/*.go && goimports -w stack/*.go` | 2min | Clean format |
-| L2-01.9 | Verify `go vet -tags "goexperiment.jsonv2" ./...` clean | 2min | Zero vet issues |
+| #       | Sub-task                                                                                                                           | Est   | Verifies                    |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----- | --------------------------- |
+| L2-01.1 | Read stack/bundle.go Close() + registerCloser() pattern (lines 143-268)                                                            | 5min  | Understand existing pattern |
+| L2-01.2 | Add `metaengine/v4` to `stack/go.mod` via `cd stack && GOWORK=off go get github.com/larsartmann/go-cqrs-lite/metaengine/v4@v4.2.0` | 3min  | `go mod tidy` succeeds      |
+| L2-01.3 | Add `metaEngine *metaengine.Store` private field to `Bundle` struct in `bundle.go`                                                 | 3min  | Package compiles            |
+| L2-01.4 | Write `WithMetaEngine(store *metaengine.Store) Option` in `options.go` — sets field + calls `b.registerCloser(store)`              | 5min  | `go build` passes           |
+| L2-01.5 | Write `Bundle.MetaEngine() *metaengine.Store` accessor in `bundle.go`                                                              | 3min  | `go build` passes           |
+| L2-01.6 | Write `stack/metaengine_test.go` — test WithMetaEngine sets field, Close() closes store, accessor returns correct value            | 10min | Test passes                 |
+| L2-01.7 | Run `cd stack && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1`                                                    | 3min  | All stack tests pass        |
+| L2-01.8 | Run `gofumpt -w stack/*.go && goimports -w stack/*.go`                                                                             | 2min  | Clean format                |
+| L2-01.9 | Verify `go vet -tags "goexperiment.jsonv2" ./...` clean                                                                            | 2min  | Zero vet issues             |
 
 ### L1-02: benchkit metaengine phase (70min → 11 sub-tasks)
 
-| # | Sub-task | Est | Verifies |
-|---|----------|-----|----------|
-| L2-02.1 | Add `metaengine/v4` + `metaengine/projectionadapter/v4` to `benchkit/go.mod` | 5min | `go mod tidy` succeeds |
-| L2-02.2 | Read `benchkit/phases_query.go` as the reference phase pattern | 5min | Understand Config flag, Result fields, runner wiring |
-| L2-02.3 | Design metaengine benchmark: build a Counter ADT store, Apply N events, ExecuteTyped read | 5min | Design review |
-| L2-02.4 | Write `phases_metaengine.go` skeleton: function signature, skip-condition, nil check | 10min | Compiles |
-| L2-02.5 | Implement Apply throughput measurement: batch-apply events, measure latency + ops/sec | 10min | Produces metrics |
-| L2-02.6 | Implement ExecuteTyped read latency measurement: query the counter, measure p50/p99 | 10min | Produces metrics |
-| L2-02.7 | Add `SkipMetaEngine bool` to `Config` struct in `benchkit.go` | 3min | Field exists |
-| L2-02.8 | Add Result fields: `MetaEngineApplyLatency`, `MetaEngineQueryLatency`, `MetaEngineApplyThroughput` in `result.go` | 5min | Fields exist |
-| L2-02.9 | Wire phase into `runner.go` runPhases() after projection phase | 5min | Phase executes |
-| L2-02.10 | Write `phases_metaengine_test.go` — test with memory engine, verify metrics populated | 10min | Test passes |
-| L2-02.11 | Run `cd benchkit && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1` | 5min | All benchkit tests pass |
+| #        | Sub-task                                                                                                          | Est   | Verifies                                             |
+| -------- | ----------------------------------------------------------------------------------------------------------------- | ----- | ---------------------------------------------------- |
+| L2-02.1  | Add `metaengine/v4` + `metaengine/projectionadapter/v4` to `benchkit/go.mod`                                      | 5min  | `go mod tidy` succeeds                               |
+| L2-02.2  | Read `benchkit/phases_query.go` as the reference phase pattern                                                    | 5min  | Understand Config flag, Result fields, runner wiring |
+| L2-02.3  | Design metaengine benchmark: build a Counter ADT store, Apply N events, ExecuteTyped read                         | 5min  | Design review                                        |
+| L2-02.4  | Write `phases_metaengine.go` skeleton: function signature, skip-condition, nil check                              | 10min | Compiles                                             |
+| L2-02.5  | Implement Apply throughput measurement: batch-apply events, measure latency + ops/sec                             | 10min | Produces metrics                                     |
+| L2-02.6  | Implement ExecuteTyped read latency measurement: query the counter, measure p50/p99                               | 10min | Produces metrics                                     |
+| L2-02.7  | Add `SkipMetaEngine bool` to `Config` struct in `benchkit.go`                                                     | 3min  | Field exists                                         |
+| L2-02.8  | Add Result fields: `MetaEngineApplyLatency`, `MetaEngineQueryLatency`, `MetaEngineApplyThroughput` in `result.go` | 5min  | Fields exist                                         |
+| L2-02.9  | Wire phase into `runner.go` runPhases() after projection phase                                                    | 5min  | Phase executes                                       |
+| L2-02.10 | Write `phases_metaengine_test.go` — test with memory engine, verify metrics populated                             | 10min | Test passes                                          |
+| L2-02.11 | Run `cd benchkit && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1`                                | 5min  | All benchkit tests pass                              |
 
 ### L1-03: Refactor taskmanager (30min → 6 sub-tasks)
 
-| # | Sub-task | Est | Verifies |
-|---|----------|-----|----------|
-| L2-03.1 | Read `taskmanager/setup.go` — understand current metaengine wiring (lines 20-40, 155-170) | 5min | Understand current flow |
-| L2-03.2 | Add `stack.WithMetaEngine(store)` to the `sqlite.New()` options in setup.go | 5min | Option applied |
-| L2-03.3 | Change `Server.MetaEngine` to use `bundle.MetaEngine()` instead of standalone variable | 5min | Uses accessor |
-| L2-03.4 | Remove standalone `store.Close()` — Bundle.Close() now handles it | 3min | No double-close |
-| L2-03.5 | Run `cd example/taskmanager && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1` | 5min | All example tests pass |
-| L2-03.6 | Verify HTTP handler still works (TestMetaEngine_TaskCountsByStatus) | 5min | Test passes |
+| #       | Sub-task                                                                                      | Est  | Verifies                |
+| ------- | --------------------------------------------------------------------------------------------- | ---- | ----------------------- |
+| L2-03.1 | Read `taskmanager/setup.go` — understand current metaengine wiring (lines 20-40, 155-170)     | 5min | Understand current flow |
+| L2-03.2 | Add `stack.WithMetaEngine(store)` to the `sqlite.New()` options in setup.go                   | 5min | Option applied          |
+| L2-03.3 | Change `Server.MetaEngine` to use `bundle.MetaEngine()` instead of standalone variable        | 5min | Uses accessor           |
+| L2-03.4 | Remove standalone `store.Close()` — Bundle.Close() now handles it                             | 3min | No double-close         |
+| L2-03.5 | Run `cd example/taskmanager && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1` | 5min | All example tests pass  |
+| L2-03.6 | Verify HTTP handler still works (TestMetaEngine_TaskCountsByStatus)                           | 5min | Test passes             |
 
 ### L1-04: scenario.ThenQueryResult (30min → 5 sub-tasks)
 
-| # | Sub-task | Est | Verifies |
-|---|----------|-----|----------|
-| L2-04.1 | Read `scenario/dsl.go` ProjectionScenario (lines 196-247) — understand ThenNoError/ThenError patterns | 5min | Understand pattern |
-| L2-04.2 | Design `ThenQueryResult(queryFn func() (any, error), expected any) *ProjectionScenario` — calls fn, compares result | 5min | Design review |
-| L2-04.3 | Write `ThenQueryResult` method in `dsl.go` — uses reflect.DeepEqual for comparison, reports mismatch | 5min | Compiles |
-| L2-04.4 | Write test: create a simple counter store via metaengine, apply events via GivenProjection, ThenQueryResult asserts counts | 10min | Test passes |
-| L2-04.5 | Run `cd scenario && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1` | 3min | All scenario tests pass |
+| #       | Sub-task                                                                                                                   | Est   | Verifies                |
+| ------- | -------------------------------------------------------------------------------------------------------------------------- | ----- | ----------------------- |
+| L2-04.1 | Read `scenario/dsl.go` ProjectionScenario (lines 196-247) — understand ThenNoError/ThenError patterns                      | 5min  | Understand pattern      |
+| L2-04.2 | Design `ThenQueryResult(queryFn func() (any, error), expected any) *ProjectionScenario` — calls fn, compares result        | 5min  | Design review           |
+| L2-04.3 | Write `ThenQueryResult` method in `dsl.go` — uses reflect.DeepEqual for comparison, reports mismatch                       | 5min  | Compiles                |
+| L2-04.4 | Write test: create a simple counter store via metaengine, apply events via GivenProjection, ThenQueryResult asserts counts | 10min | Test passes             |
+| L2-04.5 | Run `cd scenario && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1`                                         | 3min  | All scenario tests pass |
 
 ### L1-05: integration test (35min → 5 sub-tasks)
 
-| # | Sub-task | Est | Verifies |
-|---|----------|-----|----------|
-| L2-05.1 | Read `integration/` existing test patterns (e.g., integration/event_test.go) | 5min | Understand structure |
-| L2-05.2 | Add `metaengine/v4` + `metaengine/projectionadapter/v4` to `integration/go.mod` | 5min | go mod tidy succeeds |
-| L2-05.3 | Write `integration/metaengine_test.go` — Test 1: Counter ADT pipeline (event→adapter→Apply→ExecuteTyped) | 10min | Test 1 passes |
-| L2-05.4 | Write Test 2: Map ADT pipeline (multiple event types, key-based query) | 10min | Test 2 passes |
-| L2-05.5 | Run `cd integration && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1` | 5min | All integration tests pass |
+| #       | Sub-task                                                                                                 | Est   | Verifies                   |
+| ------- | -------------------------------------------------------------------------------------------------------- | ----- | -------------------------- |
+| L2-05.1 | Read `integration/` existing test patterns (e.g., integration/event_test.go)                             | 5min  | Understand structure       |
+| L2-05.2 | Add `metaengine/v4` + `metaengine/projectionadapter/v4` to `integration/go.mod`                          | 5min  | go mod tidy succeeds       |
+| L2-05.3 | Write `integration/metaengine_test.go` — Test 1: Counter ADT pipeline (event→adapter→Apply→ExecuteTyped) | 10min | Test 1 passes              |
+| L2-05.4 | Write Test 2: Map ADT pipeline (multiple event types, key-based query)                                   | 10min | Test 2 passes              |
+| L2-05.5 | Run `cd integration && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1`                    | 5min  | All integration tests pass |
 
 ### L1-06: SSE cross-documentation (15min → 3 sub-tasks)
 
-| # | Sub-task | Est | Verifies |
-|---|----------|-----|----------|
+| #       | Sub-task                                                                                                         | Est  | Verifies      |
+| ------- | ---------------------------------------------------------------------------------------------------------------- | ---- | ------------- |
 | L2-06.1 | Add cross-reference comment to `metaengine/sse.go` — "For event-bus-to-client SSE, see transport/http.SSEBroker" | 5min | Comment added |
-| L2-06.2 | Add cross-reference comment to `transport/http/sse.go` — "For collection-watch SSE, see metaengine.ServeSSE" | 5min | Comment added |
-| L2-06.3 | Note the distinction in AGENTS.md patterns section | 5min | Doc updated |
+| L2-06.2 | Add cross-reference comment to `transport/http/sse.go` — "For collection-watch SSE, see metaengine.ServeSSE"     | 5min | Comment added |
+| L2-06.3 | Note the distinction in AGENTS.md patterns section                                                               | 5min | Doc updated   |
 
 ### L1-07: AGENTS.md + skill references (40min → 6 sub-tasks)
 
-| # | Sub-task | Est | Verifies |
-|---|----------|-----|----------|
-| L2-07.1 | Update AGENTS.md Quick Reference modules table — note metaengine stack integration | 3min | Table updated |
-| L2-07.2 | Update AGENTS.md Key Patterns — add `WithMetaEngine` code example showing Bundle wiring | 10min | Example added |
-| L2-07.3 | Update `core.md` decision matrix — metaengine now in stack composition row | 5min | Matrix updated |
-| L2-07.4 | Update `recipes.md` — add "Metaengine + Stack Bundle Integration" recipe | 10min | Recipe added |
-| L2-07.5 | Update `modules.md` — note metaengine's stack integration capability | 5min | Description updated |
-| L2-07.6 | Update `faq.md` — add "How do I integrate metaengine with my stack?" Q&A | 5min | FAQ added |
+| #       | Sub-task                                                                                | Est   | Verifies            |
+| ------- | --------------------------------------------------------------------------------------- | ----- | ------------------- |
+| L2-07.1 | Update AGENTS.md Quick Reference modules table — note metaengine stack integration      | 3min  | Table updated       |
+| L2-07.2 | Update AGENTS.md Key Patterns — add `WithMetaEngine` code example showing Bundle wiring | 10min | Example added       |
+| L2-07.3 | Update `core.md` decision matrix — metaengine now in stack composition row              | 5min  | Matrix updated      |
+| L2-07.4 | Update `recipes.md` — add "Metaengine + Stack Bundle Integration" recipe                | 10min | Recipe added        |
+| L2-07.5 | Update `modules.md` — note metaengine's stack integration capability                    | 5min  | Description updated |
+| L2-07.6 | Update `faq.md` — add "How do I integrate metaengine with my stack?" Q&A                | 5min  | FAQ added           |
 
 ### L1-08: Verify gate (25min → 4 sub-tasks)
 
-| # | Sub-task | Est | Verifies |
-|---|----------|-----|----------|
-| L2-08.1 | Run `nix fmt` (format entire repo) | 5min | Clean format |
-| L2-08.2 | Run api-stability golden regen: `cd cmd/api-stability && GOWORK=off go run main.go -update` | 5min | Golden matches new exports |
-| L2-08.3 | Run doc-check: `cd cmd/doc-check && GOWORK=off go run . ../../AGENTS.md ../../.agents/skills/go-cqrs-lite/references/*.md` | 5min | All references valid |
-| L2-08.4 | Run `nix run .#verify` (build + vet + test + race + lint + doc-check + api-stability) | 10min | FULL GREEN |
+| #       | Sub-task                                                                                                                   | Est   | Verifies                   |
+| ------- | -------------------------------------------------------------------------------------------------------------------------- | ----- | -------------------------- |
+| L2-08.1 | Run `nix fmt` (format entire repo)                                                                                         | 5min  | Clean format               |
+| L2-08.2 | Run api-stability golden regen: `cd cmd/api-stability && GOWORK=off go run main.go -update`                                | 5min  | Golden matches new exports |
+| L2-08.3 | Run doc-check: `cd cmd/doc-check && GOWORK=off go run . ../../AGENTS.md ../../.agents/skills/go-cqrs-lite/references/*.md` | 5min  | All references valid       |
+| L2-08.4 | Run `nix run .#verify` (build + vet + test + race + lint + doc-check + api-stability)                                      | 10min | FULL GREEN                 |
 
 ### L1-09: Write planning document (30min → 4 sub-tasks)
 
-| # | Sub-task | Est | Verifies |
-|---|----------|-----|----------|
+| #       | Sub-task                                           | Est   | Verifies          |
+| ------- | -------------------------------------------------- | ----- | ----------------- |
 | L2-09.1 | Write Pareto analysis section (Sections 3-4 above) | 10min | Analysis complete |
-| L2-09.2 | Write Level 1 task table (Section 5 above) | 5min | Table complete |
-| L2-09.3 | Write Level 2 task table (Section 6 above) | 10min | Table complete |
-| L2-09.4 | Write mermaid execution graph (Section 7 below) | 5min | Graph renders |
+| L2-09.2 | Write Level 1 task table (Section 5 above)         | 5min  | Table complete    |
+| L2-09.3 | Write Level 2 task table (Section 6 above)         | 10min | Table complete    |
+| L2-09.4 | Write mermaid execution graph (Section 7 below)    | 5min  | Graph renders     |
 
 ### L1-10: Deferred items documentation (15min → 2 sub-tasks)
 
-| # | Sub-task | Est | Verifies |
-|---|----------|-----|----------|
-| L2-10.1 | Write Section 8 (deferred items) with rationale | 10min | Rationale documented |
-| L2-10.2 | Add deferred items to TODO_LIST.md or ROADMAP.md | 5min | Items tracked |
+| #       | Sub-task                                         | Est   | Verifies             |
+| ------- | ------------------------------------------------ | ----- | -------------------- |
+| L2-10.1 | Write Section 8 (deferred items) with rationale  | 10min | Rationale documented |
+| L2-10.2 | Add deferred items to TODO_LIST.md or ROADMAP.md | 5min  | Items tracked        |
 
 ---
 
@@ -341,6 +342,7 @@ These items are **intentionally NOT in this plan.** Each has a clear rationale.
 **What:** Extract a shared `sse` helper package from `metaengine/sse.go` and `transport/http/sse.go` to eliminate duplicated ring-buffer, drop-old, Last-Event-ID, and heartbeat infrastructure.
 
 **Why deferred:** The two SSE implementations serve fundamentally different layers:
+
 - `metaengine/sse.go` — **collection watch + replay** (watch a metaengine Store collection for changes, replay from journal)
 - `transport/http/sse.go` — **event bus to client** (bridge an `event.Bus` to HTTP SSE clients)
 
@@ -427,33 +429,33 @@ They share implementation patterns but NOT semantics. Merging them risks creatin
 
 ## 11. Files That Will Change
 
-| File | Change | New? |
-|------|--------|------|
-| `stack/go.mod` | Add `metaengine/v4` require | Modified |
-| `stack/bundle.go` | Add `metaEngine` field + accessor | Modified |
-| `stack/options.go` | Add `WithMetaEngine()` option | Modified |
-| `stack/metaengine_test.go` | Test WithMetaEngine lifecycle | **NEW** |
-| `benchkit/go.mod` | Add `metaengine/v4` + `projectionadapter/v4` | Modified |
-| `benchkit/phases_metaengine.go` | Apply + ExecuteTyped benchmark phase | **NEW** |
-| `benchkit/benchkit.go` | Add `SkipMetaEngine` to Config | Modified |
-| `benchkit/result.go` | Add metaengine Result fields | Modified |
-| `benchkit/runner.go` | Wire metaengine phase into runPhases | Modified |
-| `benchkit/phases_metaengine_test.go` | Test the new phase | **NEW** |
-| `example/taskmanager/setup.go` | Use `WithMetaEngine` in sqlite.New | Modified |
-| `example/taskmanager/metaengine.go` | Simplify (remove standalone Close) | Modified |
-| `scenario/dsl.go` | Add `ThenQueryResult` method | Modified |
-| `scenario/metaengine_test.go` | Test ThenQueryResult with metaengine | **NEW** |
-| `integration/go.mod` | Add metaengine + projectionadapter | Modified |
-| `integration/metaengine_test.go` | End-to-end pipeline test | **NEW** |
-| `metaengine/sse.go` | Cross-reference comment | Modified |
-| `transport/http/sse.go` | Cross-reference comment | Modified |
-| `AGENTS.md` | Update patterns + modules list | Modified |
-| `.agents/skills/go-cqrs-lite/references/core.md` | Decision matrix | Modified |
-| `.agents/skills/go-cqrs-lite/references/recipes.md` | Integration recipe | Modified |
-| `.agents/skills/go-cqrs-lite/references/modules.md` | Stack integration note | Modified |
-| `.agents/skills/go-cqrs-lite/references/faq.md` | Integration FAQ | Modified |
-| `cmd/api-stability/main.go` | Add `benchkit` + `scenario` if new modules created | Maybe |
-| `docs/planning/2026-07-31_17-34_metaengine-first-class-integration.md` | This file | **NEW** |
+| File                                                                   | Change                                             | New?     |
+| ---------------------------------------------------------------------- | -------------------------------------------------- | -------- |
+| `stack/go.mod`                                                         | Add `metaengine/v4` require                        | Modified |
+| `stack/bundle.go`                                                      | Add `metaEngine` field + accessor                  | Modified |
+| `stack/options.go`                                                     | Add `WithMetaEngine()` option                      | Modified |
+| `stack/metaengine_test.go`                                             | Test WithMetaEngine lifecycle                      | **NEW**  |
+| `benchkit/go.mod`                                                      | Add `metaengine/v4` + `projectionadapter/v4`       | Modified |
+| `benchkit/phases_metaengine.go`                                        | Apply + ExecuteTyped benchmark phase               | **NEW**  |
+| `benchkit/benchkit.go`                                                 | Add `SkipMetaEngine` to Config                     | Modified |
+| `benchkit/result.go`                                                   | Add metaengine Result fields                       | Modified |
+| `benchkit/runner.go`                                                   | Wire metaengine phase into runPhases               | Modified |
+| `benchkit/phases_metaengine_test.go`                                   | Test the new phase                                 | **NEW**  |
+| `example/taskmanager/setup.go`                                         | Use `WithMetaEngine` in sqlite.New                 | Modified |
+| `example/taskmanager/metaengine.go`                                    | Simplify (remove standalone Close)                 | Modified |
+| `scenario/dsl.go`                                                      | Add `ThenQueryResult` method                       | Modified |
+| `scenario/metaengine_test.go`                                          | Test ThenQueryResult with metaengine               | **NEW**  |
+| `integration/go.mod`                                                   | Add metaengine + projectionadapter                 | Modified |
+| `integration/metaengine_test.go`                                       | End-to-end pipeline test                           | **NEW**  |
+| `metaengine/sse.go`                                                    | Cross-reference comment                            | Modified |
+| `transport/http/sse.go`                                                | Cross-reference comment                            | Modified |
+| `AGENTS.md`                                                            | Update patterns + modules list                     | Modified |
+| `.agents/skills/go-cqrs-lite/references/core.md`                       | Decision matrix                                    | Modified |
+| `.agents/skills/go-cqrs-lite/references/recipes.md`                    | Integration recipe                                 | Modified |
+| `.agents/skills/go-cqrs-lite/references/modules.md`                    | Stack integration note                             | Modified |
+| `.agents/skills/go-cqrs-lite/references/faq.md`                        | Integration FAQ                                    | Modified |
+| `cmd/api-stability/main.go`                                            | Add `benchkit` + `scenario` if new modules created | Maybe    |
+| `docs/planning/2026-07-31_17-34_metaengine-first-class-integration.md` | This file                                          | **NEW**  |
 
 **Total: ~25 files (7 new, 18 modified)**
 

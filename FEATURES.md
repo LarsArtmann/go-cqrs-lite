@@ -2,8 +2,6 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-
-
 ## Status Legend
 
 | Status                  | Meaning                                                    |
@@ -243,11 +241,11 @@ developer never declares "I need a Map" or "I need a Counter."
 | `OnTyped(eventType, ...)`  | Bind a fold to an explicit CQRS event-type string (decouples from the Go struct name)                            | 🧪     |
 | Read/write calibration     | `EngineProfile.NsPerRead`/`NsPerWrite` — split read vs write cost (backward-compat fallback to NsPerOp)          | 🧪     |
 | Pebble LayoutPlanner       | Secondary index with O(matches) prefix scan (108x speedup); range filters via index bounds                       | 🧪     |
-| Raw value readers          | `RawValueReader`/`RawScanReader` skip JSON decode for filter/sort/cursor paths (single-pass decode)             | 🧪     |
-| SSE event delivery         | `ServeSSE` with Last-Event-ID reconnection, backpressure, `dedup.Ring`, byte-budgeted replay                   | 🧪     |
-| PrefetchCache              | Cursor-encoded auto-population cache for paginated reads; thread-safe (`sync.RWMutex`)                         | 🧪     |
+| Raw value readers          | `RawValueReader`/`RawScanReader` skip JSON decode for filter/sort/cursor paths (single-pass decode)              | 🧪     |
+| SSE event delivery         | `ServeSSE` with Last-Event-ID reconnection, backpressure, `dedup.Ring`, byte-budgeted replay                     | 🧪     |
+| PrefetchCache              | Cursor-encoded auto-population cache for paginated reads; thread-safe (`sync.RWMutex`)                           | 🧪     |
 | Watcher                    | Reactive change notifications with per-key filtering                                                             | 🧪     |
-| Transaction API            | Fully threaded `*sql.Tx` through engine operations (atomic multi-collection updates)                            | 🧪     |
+| Transaction API            | Fully threaded `*sql.Tx` through engine operations (atomic multi-collection updates)                             | 🧪     |
 | ADT test harness           | `adttest.RunMatrix` — cross-engine parity tests for all 7 ADTs (Map, Set, Counter, Multimap, Log, Graph, Scan)   | 🧪     |
 | Aggregate pushdown         | `AggregateReader` interface — SQL COUNT/SUM/MIN/MAX/AVG pushdown via the engine                                  | 🧪     |
 | Error sentinels            | Exported `ErrNotFound`, `ErrAmbiguousKey`, `ErrUnsupportedADT`, `ErrLayoutConflict` wired into execution paths   | 🧪     |
@@ -1023,23 +1021,23 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 > `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4`
 
-| Feature                        | Detail                                                                                                                                                           | Status |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Feature | Detail | Status |
+| ------- | ------ | ------ |
 
-| Output formats                 | Text, JSON, SARIF (GitHub Code Scanning), Markdown                                                                                                               | ✅     |
-| Health score                   | 0-100 score with severity-weighted breakdown                                                                                                                     | ✅     |
-| Auto-fix                       | `--fix` / `--dry-run` with CQRSFixProvider (BeforeCode/AfterCode matching)                                                                                       | ✅     |
-| Suppression comments           | `//cqrs-lint:ignore(rule-id) reason` (space after `//` supported, comma-separated IDs supported)                                                                 | ✅     |
-| CLI features                   | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`, `--min-confidence`                                                            | ✅     |
-| Config file                    | `.cqrs-lint.json` via cmdguard; presets (local-cli, production, library, read-only)                                                                              | ✅     |
-| Config presets                 | `local-cli`, `production`, `library`, `read-only` — sugar over feature flags                                                                                     | ✅     |
-| Feature profile system         | Auto-detects which go-cqrs-lite modules a consumer uses (store, command-flow, server, soft-delete, tracing, snapshot) and adapts rules                           | ✅     |
-| Monorepo support               | Multi-module scanning via go.mod discovery                                                                                                                       | ✅     |
-| Source snippets                | Most detectors emit source-line context for SARIF/IDE integration                                                                                                | ✅     |
-| `doctor` subcommand            | Prints the detected feature profile for the target project                                                                                                       | ✅     |
-| F-series adoption coaching     | 17 rules (F001–F017) that proactively coach consumers toward unused features                                                                                     | ✅     |
-| T-series testing quality       | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse                                                                | ✅     |
-| E-series architecture          | 8 rules (E008–E015) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.)                                                       | ✅     |
+| Output formats | Text, JSON, SARIF (GitHub Code Scanning), Markdown | ✅ |
+| Health score | 0-100 score with severity-weighted breakdown | ✅ |
+| Auto-fix | `--fix` / `--dry-run` with CQRSFixProvider (BeforeCode/AfterCode matching) | ✅ |
+| Suppression comments | `//cqrs-lint:ignore(rule-id) reason` (space after `//` supported, comma-separated IDs supported) | ✅ |
+| CLI features | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`, `--min-confidence` | ✅ |
+| Config file | `.cqrs-lint.json` via cmdguard; presets (local-cli, production, library, read-only) | ✅ |
+| Config presets | `local-cli`, `production`, `library`, `read-only` — sugar over feature flags | ✅ |
+| Feature profile system | Auto-detects which go-cqrs-lite modules a consumer uses (store, command-flow, server, soft-delete, tracing, snapshot) and adapts rules | ✅ |
+| Monorepo support | Multi-module scanning via go.mod discovery | ✅ |
+| Source snippets | Most detectors emit source-line context for SARIF/IDE integration | ✅ |
+| `doctor` subcommand | Prints the detected feature profile for the target project | ✅ |
+| F-series adoption coaching | 17 rules (F001–F017) that proactively coach consumers toward unused features | ✅ |
+| T-series testing quality | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse | ✅ |
+| E-series architecture | 8 rules (E008–E015) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
 
 ---
 
