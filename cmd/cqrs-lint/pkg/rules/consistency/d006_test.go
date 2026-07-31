@@ -20,8 +20,8 @@ func boom() error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD006Detector(ctx))
-	assertRule(t, findings, "D006", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD006Detector(ctx))
+	ruletest.AssertRule(t, findings, "D006", 1)
 }
 
 func TestD006_DetectsFmtErrorfWithoutWrap(t *testing.T) {
@@ -35,8 +35,8 @@ func boom() error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD006Detector(ctx))
-	assertRule(t, findings, "D006", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD006Detector(ctx))
+	ruletest.AssertRule(t, findings, "D006", 1)
 }
 
 // fmt.Errorf WITH %w wraps an error and preserves its classification — not flagged.
@@ -56,8 +56,8 @@ func boom() error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD006Detector(ctx))
-	assertRule(t, findings, "D006", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD006Detector(ctx))
+	ruletest.AssertRule(t, findings, "D006", 0)
 }
 
 // Package-level sentinel errors (var ErrXxx = errors.New(...)) are matched by
@@ -71,6 +71,6 @@ import "errors"
 var ErrNotFound = errors.New("not found")
 `,
 	})
-	findings := runDetector(t, consistency.NewD006Detector(ctx))
-	assertRule(t, findings, "D006", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD006Detector(ctx))
+	ruletest.AssertRule(t, findings, "D006", 0)
 }

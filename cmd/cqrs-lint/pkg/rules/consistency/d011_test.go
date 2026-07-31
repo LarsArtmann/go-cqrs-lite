@@ -18,8 +18,8 @@ func emit() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD011Detector(ctx))
-	assertRule(t, findings, "D011", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD011Detector(ctx))
+	ruletest.AssertRule(t, findings, "D011", 1)
 }
 
 func TestD011_NoFindingForTypedPayload(t *testing.T) {
@@ -35,6 +35,6 @@ func emit() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD011Detector(ctx))
-	assertRule(t, findings, "D011", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD011Detector(ctx))
+	ruletest.AssertRule(t, findings, "D011", 0)
 }

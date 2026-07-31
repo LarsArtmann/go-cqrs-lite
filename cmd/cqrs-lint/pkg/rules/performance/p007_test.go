@@ -23,8 +23,8 @@ func appendWithRetry(baseBackoff time.Duration, data []byte) {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP007Detector(ctx))
-	assertRule(t, findings, "P007", 1)
+	findings := ruletest.RunDetector(t, performance.NewP007Detector(ctx))
+	ruletest.AssertRule(t, findings, "P007", 1)
 }
 
 func TestP007_NoFindingForNormalBitshift(t *testing.T) {
@@ -38,6 +38,6 @@ func bitmask(n int) int {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP007Detector(ctx))
-	assertRule(t, findings, "P007", 0)
+	findings := ruletest.RunDetector(t, performance.NewP007Detector(ctx))
+	ruletest.AssertRule(t, findings, "P007", 0)
 }

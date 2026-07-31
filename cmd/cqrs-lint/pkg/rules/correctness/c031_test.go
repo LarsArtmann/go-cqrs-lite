@@ -27,8 +27,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC031Detector(ctx))
-	assertRule(t, findings, "C031", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC031Detector(ctx))
+	ruletest.AssertRule(t, findings, "C031", 1)
 }
 
 func TestC031_DetectsBareReturnOnError(t *testing.T) {
@@ -50,8 +50,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC031Detector(ctx))
-	assertRule(t, findings, "C031", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC031Detector(ctx))
+	ruletest.AssertRule(t, findings, "C031", 1)
 }
 
 func TestC031_NoFindingWhenErrorPropagated(t *testing.T) {
@@ -77,8 +77,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC031Detector(ctx))
-	assertRule(t, findings, "C031", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC031Detector(ctx))
+	ruletest.AssertRule(t, findings, "C031", 0)
 }
 
 func TestC031_NoFindingOutsideRegisterTyped(t *testing.T) {
@@ -96,8 +96,8 @@ func regularFunc() error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC031Detector(ctx))
-	assertRule(t, findings, "C031", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC031Detector(ctx))
+	ruletest.AssertRule(t, findings, "C031", 0)
 }
 
 func TestC031_NoFindingOnEmptyContext(t *testing.T) {
@@ -106,6 +106,6 @@ func TestC031_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, correctness.NewC031Detector(ctx))
-	assertRule(t, findings, "C031", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC031Detector(ctx))
+	ruletest.AssertRule(t, findings, "C031", 0)
 }

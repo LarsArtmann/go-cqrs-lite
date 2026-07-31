@@ -21,8 +21,8 @@ func emitEvents() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD001Detector(ctx))
-	assertRule(t, findings, "D001", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD001Detector(ctx))
+	ruletest.AssertRule(t, findings, "D001", 1)
 }
 
 func TestD001_NoFindingForConsistentNaming(t *testing.T) {
@@ -35,8 +35,8 @@ func emitEvents() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD001Detector(ctx))
-	assertRule(t, findings, "D001", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD001Detector(ctx))
+	ruletest.AssertRule(t, findings, "D001", 0)
 }
 
 // --- D003: Inconsistent logging library ---
@@ -45,8 +45,8 @@ func TestD003_NoCrashOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, consistency.NewD003Detector(ctx))
-	assertRule(t, findings, "D003", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD003Detector(ctx))
+	ruletest.AssertRule(t, findings, "D003", 0)
 }
 
 // --- D003: Positive test — mixed logging libraries ---
@@ -70,8 +70,8 @@ import (
 var _ = zap.New
 `,
 	})
-	findings := runDetector(t, consistency.NewD003Detector(ctx))
-	assertRule(t, findings, "D003", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD003Detector(ctx))
+	ruletest.AssertRule(t, findings, "D003", 1)
 }
 
 // D003 must NOT fire when the project standardizes on a single logging
@@ -97,8 +97,8 @@ import (
 var _ = slog.Info
 `,
 	})
-	findings := runDetector(t, consistency.NewD003Detector(ctx))
-	assertRule(t, findings, "D003", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD003Detector(ctx))
+	ruletest.AssertRule(t, findings, "D003", 0)
 }
 
 // --- D005: Positive test — stale documentation version ---
@@ -119,8 +119,8 @@ func TestD005_DetectsStaleDocVersion(t *testing.T) {
 	})
 	ctx.ProjectRoot = tmpDir
 
-	findings := runDetector(t, consistency.NewD005Detector(ctx))
-	assertRule(t, findings, "D005", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD005Detector(ctx))
+	ruletest.AssertRule(t, findings, "D005", 1)
 }
 
 // --- D005: Wildcard version (v4.0.x) is compatible with v4.0.0
@@ -141,8 +141,8 @@ func TestD005_NoFindingForWildcardVersion(t *testing.T) {
 	})
 	ctx.ProjectRoot = tmpDir
 
-	findings := runDetector(t, consistency.NewD005Detector(ctx))
-	assertRule(t, findings, "D005", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD005Detector(ctx))
+	ruletest.AssertRule(t, findings, "D005", 0)
 }
 
 // --- D005: Migration arrow (v2→v3) in ADR context is NOT flagged
@@ -163,8 +163,8 @@ func TestD005_NoFindingForMigrationArrow(t *testing.T) {
 	})
 	ctx.ProjectRoot = tmpDir
 
-	findings := runDetector(t, consistency.NewD005Detector(ctx))
-	assertRule(t, findings, "D005", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD005Detector(ctx))
+	ruletest.AssertRule(t, findings, "D005", 0)
 }
 
 // D005 must NOT fire when the doc version has trailing punctuation
@@ -189,8 +189,8 @@ func TestD005_NoFindingForTrailingDotVersion(t *testing.T) {
 	})
 	ctx.ProjectRoot = tmpDir
 
-	findings := runDetector(t, consistency.NewD005Detector(ctx))
-	assertRule(t, findings, "D005", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD005Detector(ctx))
+	ruletest.AssertRule(t, findings, "D005", 0)
 }
 
 func TestD005_NoFindingForADRTitleHeading(t *testing.T) {
@@ -211,8 +211,8 @@ func TestD005_NoFindingForADRTitleHeading(t *testing.T) {
 	})
 	ctx.ProjectRoot = tmpDir
 
-	findings := runDetector(t, consistency.NewD005Detector(ctx))
-	assertRule(t, findings, "D005", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD005Detector(ctx))
+	ruletest.AssertRule(t, findings, "D005", 0)
 }
 
 // D005 must NOT treat prose words like "via" as a version token. The old
@@ -236,6 +236,6 @@ func TestD005_NoFindingForProseWordVia(t *testing.T) {
 	})
 	ctx.ProjectRoot = tmpDir
 
-	findings := runDetector(t, consistency.NewD005Detector(ctx))
-	assertRule(t, findings, "D005", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD005Detector(ctx))
+	ruletest.AssertRule(t, findings, "D005", 0)
 }

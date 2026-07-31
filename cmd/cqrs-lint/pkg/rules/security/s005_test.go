@@ -15,8 +15,8 @@ func TestS005_NoCrashOnEmptyInput(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, security.NewS005Detector(ctx))
-	assertRule(t, findings, "S005", 0)
+	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+	ruletest.AssertRule(t, findings, "S005", 0)
 }
 
 func TestS005_DetectsSigningGuardedByDefaultFalseFlag(t *testing.T) {
@@ -39,8 +39,8 @@ func setupSigning(cfg SignerConfig, key []byte) {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS005Detector(ctx))
-	assertRule(t, findings, "S005", 1)
+	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+	ruletest.AssertRule(t, findings, "S005", 1)
 }
 
 func TestS005_DetectsSigningMiddlewareGuarded(t *testing.T) {
@@ -62,8 +62,8 @@ func wireSigning(cfg Config, signer signing.Signer, bus EventBus) {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS005Detector(ctx))
-	assertRule(t, findings, "S005", 1)
+	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+	ruletest.AssertRule(t, findings, "S005", 1)
 }
 
 func TestS005_SuppressedWhenSigningNotImported(t *testing.T) {
@@ -83,8 +83,8 @@ func setup(cfg Config) {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS005Detector(ctx))
-	assertRule(t, findings, "S005", 0)
+	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+	ruletest.AssertRule(t, findings, "S005", 0)
 }
 
 func TestS005_SuppressedWhenSigningUsedUnconditionally(t *testing.T) {
@@ -107,8 +107,8 @@ func setup(cfg Config, signer signing.Signer, bus EventBus) {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS005Detector(ctx))
-	assertRule(t, findings, "S005", 0)
+	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+	ruletest.AssertRule(t, findings, "S005", 0)
 }
 
 func TestS005_SuppressedWhenFlagExplicitlyTrue(t *testing.T) {
@@ -134,8 +134,8 @@ func setup(cfg Config, signer signing.Signer, bus EventBus) {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS005Detector(ctx))
-	assertRule(t, findings, "S005", 0)
+	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+	ruletest.AssertRule(t, findings, "S005", 0)
 }
 
 func TestS005_NoFindingWhenSigningBehindErrorCheck(t *testing.T) {
@@ -155,8 +155,8 @@ func setup(key []byte, bus EventBus) {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS005Detector(ctx))
-	assertRule(t, findings, "S005", 0)
+	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+	ruletest.AssertRule(t, findings, "S005", 0)
 }
 
 func TestS005_NoFindingWhenNoSigningCalls(t *testing.T) {
@@ -178,8 +178,8 @@ func setup(cfg Config) {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS005Detector(ctx))
-	assertRule(t, findings, "S005", 0)
+	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+	ruletest.AssertRule(t, findings, "S005", 0)
 }
 
 func TestS005_DetectsVerifyMiddlewareGuarded(t *testing.T) {
@@ -201,8 +201,8 @@ func setup(cfg Config, verifier signing.Verifier, bus EventBus) {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS005Detector(ctx))
-	assertRule(t, findings, "S005", 1)
+	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+	ruletest.AssertRule(t, findings, "S005", 1)
 }
 
 func TestS005_NoFindingForNonEnableBoolField(t *testing.T) {
@@ -224,6 +224,6 @@ func setup(cfg Config, signer signing.Signer, bus EventBus) {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS005Detector(ctx))
-	assertRule(t, findings, "S005", 0)
+	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+	ruletest.AssertRule(t, findings, "S005", 0)
 }

@@ -19,8 +19,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP008Detector(ctx))
-	assertRule(t, findings, "P008", 1)
+	findings := ruletest.RunDetector(t, performance.NewP008Detector(ctx))
+	ruletest.AssertRule(t, findings, "P008", 1)
 }
 
 func TestP008_NoFindingWhenBatchSizeSet(t *testing.T) {
@@ -36,8 +36,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP008Detector(ctx))
-	assertRule(t, findings, "P008", 0)
+	findings := ruletest.RunDetector(t, performance.NewP008Detector(ctx))
+	ruletest.AssertRule(t, findings, "P008", 0)
 }
 
 func TestP008_NoFindingForOtherNewCalls(t *testing.T) {
@@ -52,6 +52,6 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP008Detector(ctx))
-	assertRule(t, findings, "P008", 0)
+	findings := ruletest.RunDetector(t, performance.NewP008Detector(ctx))
+	ruletest.AssertRule(t, findings, "P008", 0)
 }

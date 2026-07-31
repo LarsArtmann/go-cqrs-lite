@@ -21,8 +21,8 @@ func handle(ctx context.Context, cmd *Command) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC032Detector(ctx))
-	assertRule(t, findings, "C032", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC032Detector(ctx))
+	ruletest.AssertRule(t, findings, "C032", 1)
 }
 
 func TestC032_DetectsContextTODOInHandler(t *testing.T) {
@@ -39,8 +39,8 @@ func handle(ctx context.Context, cmd *Command) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC032Detector(ctx))
-	assertRule(t, findings, "C032", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC032Detector(ctx))
+	ruletest.AssertRule(t, findings, "C032", 1)
 }
 
 func TestC032_NoFindingWhenCtxPropagated(t *testing.T) {
@@ -56,8 +56,8 @@ func handle(ctx context.Context, cmd *Command) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC032Detector(ctx))
-	assertRule(t, findings, "C032", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC032Detector(ctx))
+	ruletest.AssertRule(t, findings, "C032", 0)
 }
 
 func TestC032_NoFindingForFunctionWithoutContextParam(t *testing.T) {
@@ -74,8 +74,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC032Detector(ctx))
-	assertRule(t, findings, "C032", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC032Detector(ctx))
+	ruletest.AssertRule(t, findings, "C032", 0)
 }
 
 func TestC032_NoFindingForNonHandlerWithContextParam(t *testing.T) {
@@ -92,8 +92,8 @@ func backgroundWorker(ctx context.Context) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC032Detector(ctx))
-	assertRule(t, findings, "C032", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC032Detector(ctx))
+	ruletest.AssertRule(t, findings, "C032", 0)
 }
 
 func TestC032_DetectsInProjectionMethod(t *testing.T) {
@@ -112,8 +112,8 @@ func (p *UserProjection) Sync(ctx context.Context, evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC032Detector(ctx))
-	assertRule(t, findings, "C032", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC032Detector(ctx))
+	ruletest.AssertRule(t, findings, "C032", 1)
 }
 
 func TestC032_NoFindingOnEmptyContext(t *testing.T) {
@@ -122,6 +122,6 @@ func TestC032_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, correctness.NewC032Detector(ctx))
-	assertRule(t, findings, "C032", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC032Detector(ctx))
+	ruletest.AssertRule(t, findings, "C032", 0)
 }

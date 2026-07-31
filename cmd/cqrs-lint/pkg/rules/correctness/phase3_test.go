@@ -23,8 +23,8 @@ func journalFromStore(store Store) Journal {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC018Detector(ctx))
-	assertRule(t, findings, "C018", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC018Detector(ctx))
+	ruletest.AssertRule(t, findings, "C018", 1)
 }
 
 // C018: memory.NewMemoryStore() as journal fallback in type switch fires.
@@ -44,8 +44,8 @@ func journalFromStore(store Store) Journal {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC018Detector(ctx))
-	assertRule(t, findings, "C018", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC018Detector(ctx))
+	ruletest.AssertRule(t, findings, "C018", 1)
 }
 
 // C018: No finding when NewMemoryStore is not in a journal fallback function.
@@ -60,8 +60,8 @@ func newStore() Store {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC018Detector(ctx))
-	assertRule(t, findings, "C018", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC018Detector(ctx))
+	ruletest.AssertRule(t, findings, "C018", 0)
 }
 
 // C018: SeekableJournal type assertion also triggers the detector.
@@ -80,8 +80,8 @@ func journalFromStore(store Store) Journal {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC018Detector(ctx))
-	assertRule(t, findings, "C018", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC018Detector(ctx))
+	ruletest.AssertRule(t, findings, "C018", 1)
 }
 
 // C021: DecodePayloadAuto while mutex is held fires.
@@ -103,8 +103,8 @@ func (r *ReadModelStore) Handle(evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC021Detector(ctx))
-	assertRule(t, findings, "C021", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC021Detector(ctx))
+	ruletest.AssertRule(t, findings, "C021", 1)
 }
 
 // C021: json.Unmarshal while mutex is held fires.
@@ -129,8 +129,8 @@ func (r *ReadModelStore) Handle(evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC021Detector(ctx))
-	assertRule(t, findings, "C021", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC021Detector(ctx))
+	ruletest.AssertRule(t, findings, "C021", 1)
 }
 
 // C021: No finding when decode is outside the lock.
@@ -152,8 +152,8 @@ func (r *ReadModelStore) Handle(evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC021Detector(ctx))
-	assertRule(t, findings, "C021", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC021Detector(ctx))
+	ruletest.AssertRule(t, findings, "C021", 0)
 }
 
 // C021: No finding when no decode at all.
@@ -171,8 +171,8 @@ func (r *ReadModelStore) Handle(evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC021Detector(ctx))
-	assertRule(t, findings, "C021", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC021Detector(ctx))
+	ruletest.AssertRule(t, findings, "C021", 0)
 }
 
 // C021: RLock held during decode also fires.
@@ -193,8 +193,8 @@ func (r *ReadModelStore) Handle(evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC021Detector(ctx))
-	assertRule(t, findings, "C021", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC021Detector(ctx))
+	ruletest.AssertRule(t, findings, "C021", 1)
 }
 
 // C024: Dual-write without transaction fires.
@@ -211,8 +211,8 @@ func (r *ReadModelStore) Handle(evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC024Detector(ctx))
-	assertRule(t, findings, "C024", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC024Detector(ctx))
+	ruletest.AssertRule(t, findings, "C024", 1)
 }
 
 // C024: No finding when transaction is used.
@@ -234,8 +234,8 @@ func (r *ReadModelStore) Handle(evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC024Detector(ctx))
-	assertRule(t, findings, "C024", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC024Detector(ctx))
+	ruletest.AssertRule(t, findings, "C024", 0)
 }
 
 // C024: No finding when RunInTx is used as transaction wrapper.
@@ -253,8 +253,8 @@ func (r *ReadModelStore) Handle(evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC024Detector(ctx))
-	assertRule(t, findings, "C024", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC024Detector(ctx))
+	ruletest.AssertRule(t, findings, "C024", 0)
 }
 
 // C024: No finding when no in-memory mutation.
@@ -270,8 +270,8 @@ func (r *ReadModelStore) Handle(evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC024Detector(ctx))
-	assertRule(t, findings, "C024", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC024Detector(ctx))
+	ruletest.AssertRule(t, findings, "C024", 0)
 }
 
 // C025: fmt.Errorf without %w in CQRS-importing file fires.
@@ -295,8 +295,8 @@ func handle(evt event.Event) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC025Detector(ctx))
-	assertRule(t, findings, "C025", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC025Detector(ctx))
+	ruletest.AssertRule(t, findings, "C025", 1)
 }
 
 // C025: No finding when %w is used.
@@ -320,8 +320,8 @@ func handle(evt event.Event, err error) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC025Detector(ctx))
-	assertRule(t, findings, "C025", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC025Detector(ctx))
+	ruletest.AssertRule(t, findings, "C025", 0)
 }
 
 // C025: No finding when file doesn't import CQRS modules.
@@ -341,8 +341,8 @@ func handle(id string) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC025Detector(ctx))
-	assertRule(t, findings, "C025", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC025Detector(ctx))
+	ruletest.AssertRule(t, findings, "C025", 0)
 }
 
 // C026: TTL constant defined but different literal passed to NewMemoryStore.
@@ -365,8 +365,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC026Detector(ctx))
-	assertRule(t, findings, "C026", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC026Detector(ctx))
+	ruletest.AssertRule(t, findings, "C026", 1)
 }
 
 // C026: TTL constant used correctly — no finding.
@@ -389,8 +389,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC026Detector(ctx))
-	assertRule(t, findings, "C026", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC026Detector(ctx))
+	ruletest.AssertRule(t, findings, "C026", 0)
 }
 
 // C026: TTL mismatch in middleware.CommandIdempotency.
@@ -412,8 +412,8 @@ func setup(d Dispatcher) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC026Detector(ctx))
-	assertRule(t, findings, "C026", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC026Detector(ctx))
+	ruletest.AssertRule(t, findings, "C026", 1)
 }
 
 // C026: TTL mismatch in middleware.EventIdempotency.
@@ -435,8 +435,8 @@ func setup(bus Bus) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC026Detector(ctx))
-	assertRule(t, findings, "C026", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC026Detector(ctx))
+	ruletest.AssertRule(t, findings, "C026", 1)
 }
 
 // C026: TTL mismatch in middleware.QueryIdempotency.
@@ -458,8 +458,8 @@ func setup(q Q) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC026Detector(ctx))
-	assertRule(t, findings, "C026", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC026Detector(ctx))
+	ruletest.AssertRule(t, findings, "C026", 1)
 }
 
 // C026: No TTL constant defined — no finding.
@@ -480,8 +480,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC026Detector(ctx))
-	assertRule(t, findings, "C026", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC026Detector(ctx))
+	ruletest.AssertRule(t, findings, "C026", 0)
 }
 
 // C027: bus.Subscribe alongside projectionhost.New fires.
@@ -499,8 +499,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC027Detector(ctx))
-	assertRule(t, findings, "C027", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC027Detector(ctx))
+	ruletest.AssertRule(t, findings, "C027", 1)
 }
 
 // C027: No finding when projectionhost is not used.
@@ -515,8 +515,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC027Detector(ctx))
-	assertRule(t, findings, "C027", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC027Detector(ctx))
+	ruletest.AssertRule(t, findings, "C027", 0)
 }
 
 // C027: No finding when only projectionhost is used (no bus.Subscribe).
@@ -532,6 +532,6 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC027Detector(ctx))
-	assertRule(t, findings, "C027", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC027Detector(ctx))
+	ruletest.AssertRule(t, findings, "C027", 0)
 }

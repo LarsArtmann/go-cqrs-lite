@@ -22,8 +22,8 @@ type User struct {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA032Detector(ctx))
-	assertRule(t, findings, "A032", 2)
+	findings := ruletest.RunDetector(t, api.NewA032Detector(ctx))
+	ruletest.AssertRule(t, findings, "A032", 2)
 }
 
 func TestA032_NoFindingForBrandedID(t *testing.T) {
@@ -42,8 +42,8 @@ type User struct {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA032Detector(ctx))
-	assertRule(t, findings, "A032", 0)
+	findings := ruletest.RunDetector(t, api.NewA032Detector(ctx))
+	ruletest.AssertRule(t, findings, "A032", 0)
 }
 
 func TestA032_NoFindingWithoutIDImport(t *testing.T) {
@@ -57,8 +57,8 @@ type User struct {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA032Detector(ctx))
-	assertRule(t, findings, "A032", 0)
+	findings := ruletest.RunDetector(t, api.NewA032Detector(ctx))
+	ruletest.AssertRule(t, findings, "A032", 0)
 }
 
 func TestA032_NoFindingOnEmptyContext(t *testing.T) {
@@ -67,6 +67,6 @@ func TestA032_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, api.NewA032Detector(ctx))
-	assertRule(t, findings, "A032", 0)
+	findings := ruletest.RunDetector(t, api.NewA032Detector(ctx))
+	ruletest.AssertRule(t, findings, "A032", 0)
 }

@@ -21,8 +21,8 @@ func runServer() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE016Detector(ctx))
-	assertRule(t, findings, "E016", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE016Detector(ctx))
+	ruletest.AssertRule(t, findings, "E016", 1)
 }
 
 func TestE016_NoFindingWhenHealthCheckPresent(t *testing.T) {
@@ -43,8 +43,8 @@ func runServer(bundle Bundle) {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE016Detector(ctx))
-	assertRule(t, findings, "E016", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE016Detector(ctx))
+	ruletest.AssertRule(t, findings, "E016", 0)
 }
 
 func TestE016_NoFindingForNonServerProject(t *testing.T) {
@@ -58,8 +58,8 @@ func main() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE016Detector(ctx))
-	assertRule(t, findings, "E016", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE016Detector(ctx))
+	ruletest.AssertRule(t, findings, "E016", 0)
 }
 
 func TestE017_DetectsMissingGracefulShutdown(t *testing.T) {
@@ -81,8 +81,8 @@ func main() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE017Detector(ctx))
-	assertRule(t, findings, "E017", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE017Detector(ctx))
+	ruletest.AssertRule(t, findings, "E017", 1)
 }
 
 func TestE017_NoFindingWhenGracefulShutdownPresent(t *testing.T) {
@@ -106,8 +106,8 @@ func main(bundle Bundle) {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE017Detector(ctx))
-	assertRule(t, findings, "E017", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE017Detector(ctx))
+	ruletest.AssertRule(t, findings, "E017", 0)
 }
 
 func TestE017_NoFindingForNoSignalNotify(t *testing.T) {
@@ -121,6 +121,6 @@ func main() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE017Detector(ctx))
-	assertRule(t, findings, "E017", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE017Detector(ctx))
+	ruletest.AssertRule(t, findings, "E017", 0)
 }

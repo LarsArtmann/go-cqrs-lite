@@ -45,6 +45,6 @@ func singleEvent(type_ string, id string, streamType string, ver event.Version, 
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB001Detector(ctx))
-	assertRule(t, findings, "B001", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB001Detector(ctx))
+	ruletest.AssertRule(t, findings, "B001", 1)
 }

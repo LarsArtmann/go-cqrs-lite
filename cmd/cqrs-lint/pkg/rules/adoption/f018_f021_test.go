@@ -25,8 +25,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF018Detector(ctx))
-	assertRule(t, findings, "F018", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF018Detector(ctx))
+	ruletest.AssertRule(t, findings, "F018", 1)
 }
 
 func TestF018_NoFindingWithFilterOnField(t *testing.T) {
@@ -45,8 +45,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF018Detector(ctx))
-	assertRule(t, findings, "F018", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF018Detector(ctx))
+	ruletest.AssertRule(t, findings, "F018", 0)
 }
 
 func TestF018_NoFindingWithoutMetaengine(t *testing.T) {
@@ -61,8 +61,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF018Detector(ctx))
-	assertRule(t, findings, "F018", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF018Detector(ctx))
+	ruletest.AssertRule(t, findings, "F018", 0)
 }
 
 // --- F019: Missing Volume hint ---
@@ -83,8 +83,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF019Detector(ctx))
-	assertRule(t, findings, "F019", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF019Detector(ctx))
+	ruletest.AssertRule(t, findings, "F019", 1)
 }
 
 func TestF019_NoFindingWithVolume(t *testing.T) {
@@ -104,8 +104,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF019Detector(ctx))
-	assertRule(t, findings, "F019", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF019Detector(ctx))
+	ruletest.AssertRule(t, findings, "F019", 0)
 }
 
 // --- F020: SortOn without SortOnField ---
@@ -126,8 +126,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF020Detector(ctx))
-	assertRule(t, findings, "F020", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF020Detector(ctx))
+	ruletest.AssertRule(t, findings, "F020", 1)
 }
 
 func TestF020_NoFindingWithSortOnField(t *testing.T) {
@@ -146,8 +146,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF020Detector(ctx))
-	assertRule(t, findings, "F020", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF020Detector(ctx))
+	ruletest.AssertRule(t, findings, "F020", 0)
 }
 
 // --- F021: Write amplification (5+ folds) ---
@@ -174,8 +174,8 @@ func f(e any) (any, any) { return nil, nil }
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF021Detector(ctx))
-	assertRule(t, findings, "F021", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF021Detector(ctx))
+	ruletest.AssertRule(t, findings, "F021", 1)
 }
 
 func TestF021_NoFindingWithFewFolds(t *testing.T) {
@@ -197,6 +197,6 @@ func f(e any) (any, any) { return nil, nil }
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF021Detector(ctx))
-	assertRule(t, findings, "F021", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF021Detector(ctx))
+	ruletest.AssertRule(t, findings, "F021", 0)
 }

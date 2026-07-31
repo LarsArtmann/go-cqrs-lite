@@ -23,8 +23,8 @@ func handle(ctx context.Context, evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB028Detector(ctx))
-	assertRule(t, findings, "B028", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB028Detector(ctx))
+	ruletest.AssertRule(t, findings, "B028", 1)
 }
 
 func TestB028_NoFindingForSynchronousDispatch(t *testing.T) {
@@ -41,8 +41,8 @@ func handle(ctx context.Context, evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB028Detector(ctx))
-	assertRule(t, findings, "B028", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB028Detector(ctx))
+	ruletest.AssertRule(t, findings, "B028", 0)
 }
 
 func TestB028_NoFindingOnEmptyContext(t *testing.T) {
@@ -51,6 +51,6 @@ func TestB028_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, boilerplate.NewB028Detector(ctx))
-	assertRule(t, findings, "B028", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB028Detector(ctx))
+	ruletest.AssertRule(t, findings, "B028", 0)
 }

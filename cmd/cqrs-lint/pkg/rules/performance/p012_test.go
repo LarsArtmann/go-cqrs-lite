@@ -19,8 +19,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP012Detector(ctx))
-	assertRule(t, findings, "P012", 1)
+	findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
+	ruletest.AssertRule(t, findings, "P012", 1)
 }
 
 func TestP012_NoFindingWhenWALEnabled(t *testing.T) {
@@ -36,8 +36,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP012Detector(ctx))
-	assertRule(t, findings, "P012", 0)
+	findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
+	ruletest.AssertRule(t, findings, "P012", 0)
 }
 
 func TestP012_NoFindingForNonSQLite(t *testing.T) {
@@ -51,6 +51,6 @@ func main() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP012Detector(ctx))
-	assertRule(t, findings, "P012", 0)
+	findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
+	ruletest.AssertRule(t, findings, "P012", 0)
 }

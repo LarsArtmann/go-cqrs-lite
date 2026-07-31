@@ -18,8 +18,8 @@ func setup(store interface{}, ttl int) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC029Detector(ctx))
-	assertRule(t, findings, "C029", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC029Detector(ctx))
+	ruletest.AssertRule(t, findings, "C029", 1)
 }
 
 func TestC029_NoFindingWhenKeyExtractorProvided(t *testing.T) {
@@ -33,8 +33,8 @@ func setup(store interface{}, ttl int) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC029Detector(ctx))
-	assertRule(t, findings, "C029", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC029Detector(ctx))
+	ruletest.AssertRule(t, findings, "C029", 0)
 }
 
 func TestC029_NoFindingOnEmptyContext(t *testing.T) {
@@ -43,6 +43,6 @@ func TestC029_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, correctness.NewC029Detector(ctx))
-	assertRule(t, findings, "C029", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC029Detector(ctx))
+	ruletest.AssertRule(t, findings, "C029", 0)
 }

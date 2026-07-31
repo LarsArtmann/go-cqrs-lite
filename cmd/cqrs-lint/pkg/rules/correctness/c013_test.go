@@ -23,8 +23,8 @@ type UserCreatedPayload struct {
 `,
 	})
 
-	findings := runDetector(t, correctness.NewC013Detector(ctx))
-	assertRule(t, findings, "C013", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC013Detector(ctx))
+	ruletest.AssertRule(t, findings, "C013", 1)
 }
 
 func TestC013_DetectsPointerTimeTime(t *testing.T) {
@@ -41,8 +41,8 @@ type OrderShippedEvent struct {
 `,
 	})
 
-	findings := runDetector(t, correctness.NewC013Detector(ctx))
-	assertRule(t, findings, "C013", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC013Detector(ctx))
+	ruletest.AssertRule(t, findings, "C013", 1)
 }
 
 func TestC013_DetectsByPayloadSuffix(t *testing.T) {
@@ -59,8 +59,8 @@ type BattleCreatedPayload struct {
 `,
 	})
 
-	findings := runDetector(t, correctness.NewC013Detector(ctx))
-	assertRule(t, findings, "C013", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC013Detector(ctx))
+	ruletest.AssertRule(t, findings, "C013", 1)
 }
 
 func TestC013_DoesNotFlagNonEventStructs(t *testing.T) {
@@ -78,8 +78,8 @@ type User struct {
 `,
 	})
 
-	findings := runDetector(t, correctness.NewC013Detector(ctx))
-	assertRule(t, findings, "C013", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC013Detector(ctx))
+	ruletest.AssertRule(t, findings, "C013", 0)
 }
 
 func TestC013_RespectsAllowPragma(t *testing.T) {
@@ -97,8 +97,8 @@ type UserCreatedPayload struct {
 `,
 	})
 
-	findings := runDetector(t, correctness.NewC013Detector(ctx))
-	assertRule(t, findings, "C013", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC013Detector(ctx))
+	ruletest.AssertRule(t, findings, "C013", 0)
 }
 
 func TestC013_NoTimeTimeNoFinding(t *testing.T) {
@@ -113,8 +113,8 @@ type UserCreatedEvent struct {
 `,
 	})
 
-	findings := runDetector(t, correctness.NewC013Detector(ctx))
-	assertRule(t, findings, "C013", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC013Detector(ctx))
+	ruletest.AssertRule(t, findings, "C013", 0)
 }
 
 // Ensure runDetector and assertRule are available in this test package.

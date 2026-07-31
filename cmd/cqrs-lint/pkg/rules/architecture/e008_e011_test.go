@@ -26,8 +26,8 @@ func setup() {
 type State struct{}
 `,
 	})
-	findings := runDetector(t, architecture.NewE008Detector(ctx))
-	assertRule(t, findings, "E008", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE008Detector(ctx))
+	ruletest.AssertRule(t, findings, "E008", 1)
 }
 
 func TestE008_NoFindingWithoutStackImport(t *testing.T) {
@@ -43,8 +43,8 @@ func setup() {
 type State struct{}
 `,
 	})
-	findings := runDetector(t, architecture.NewE008Detector(ctx))
-	assertRule(t, findings, "E008", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE008Detector(ctx))
+	ruletest.AssertRule(t, findings, "E008", 0)
 }
 
 func TestE008_NoFindingWithoutDirectNewRepository(t *testing.T) {
@@ -58,8 +58,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE008Detector(ctx))
-	assertRule(t, findings, "E008", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE008Detector(ctx))
+	ruletest.AssertRule(t, findings, "E008", 0)
 }
 
 // --- E009: No HTTP integration ---
@@ -79,8 +79,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE009Detector(ctx))
-	assertRule(t, findings, "E009", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE009Detector(ctx))
+	ruletest.AssertRule(t, findings, "E009", 1)
 }
 
 func TestE009_NoFindingWithHTTPTransport(t *testing.T) {
@@ -100,8 +100,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE009Detector(ctx))
-	assertRule(t, findings, "E009", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE009Detector(ctx))
+	ruletest.AssertRule(t, findings, "E009", 0)
 }
 
 func TestE009_NoFindingWithOnlyCommand(t *testing.T) {
@@ -115,8 +115,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE009Detector(ctx))
-	assertRule(t, findings, "E009", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE009Detector(ctx))
+	ruletest.AssertRule(t, findings, "E009", 0)
 }
 
 // --- E010: Event capture without validation ---
@@ -135,8 +135,8 @@ type Store interface{ Save(any) error }
 var _ event.Event
 `,
 	})
-	findings := runDetector(t, architecture.NewE010Detector(ctx))
-	assertRule(t, findings, "E010", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE010Detector(ctx))
+	ruletest.AssertRule(t, findings, "E010", 1)
 }
 
 func TestE010_NoFindingWhenUsingDecider(t *testing.T) {
@@ -152,8 +152,8 @@ type Store interface{ Save(any) error }
 type Decider interface{ Execute(any, any) error }
 `,
 	})
-	findings := runDetector(t, architecture.NewE010Detector(ctx))
-	assertRule(t, findings, "E010", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE010Detector(ctx))
+	ruletest.AssertRule(t, findings, "E010", 0)
 }
 
 func TestE010_NoFindingWithoutStoreSave(t *testing.T) {
@@ -165,8 +165,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE010Detector(ctx))
-	assertRule(t, findings, "E010", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE010Detector(ctx))
+	ruletest.AssertRule(t, findings, "E010", 0)
 }
 
 // --- E011: Excessive adapter layers ---
@@ -187,8 +187,8 @@ var _ command.Command
 var _ decider.Decider[any]
 `,
 	})
-	findings := runDetector(t, architecture.NewE011Detector(ctx))
-	assertRule(t, findings, "E011", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE011Detector(ctx))
+	ruletest.AssertRule(t, findings, "E011", 1)
 }
 
 func TestE011_NoFindingWithTwoAdapters(t *testing.T) {
@@ -199,14 +199,14 @@ type EventSourcingAdapter struct{}
 type BusAdapter struct{}
 `,
 	})
-	findings := runDetector(t, architecture.NewE011Detector(ctx))
-	assertRule(t, findings, "E011", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE011Detector(ctx))
+	ruletest.AssertRule(t, findings, "E011", 0)
 }
 
 func TestE011_NoFindingOnEmptyProject(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, architecture.NewE011Detector(ctx))
-	assertRule(t, findings, "E011", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE011Detector(ctx))
+	ruletest.AssertRule(t, findings, "E011", 0)
 }

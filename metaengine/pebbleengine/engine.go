@@ -11,13 +11,11 @@
 package pebbleengine
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
 	"encoding/json/v2"
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -231,6 +229,7 @@ func (e *pebbleEngine) MapSet(_ context.Context, col string, key any, value any)
 		// Delete old index entries if the key already exists.
 		if oldVal, closer, err := e.db.Get(mapKey(col, keyStr)); err == nil {
 			e.deleteIndexEntries(batch, col, keyStr, oldVal, plan)
+
 			_ = closer.Close() //nolint:errcheck // pebble closer
 		}
 
@@ -271,6 +270,7 @@ func (e *pebbleEngine) MapDelete(_ context.Context, col string, key any) error {
 
 		if oldVal, closer, err := e.db.Get(mapKey(col, keyStr)); err == nil {
 			e.deleteIndexEntries(batch, col, keyStr, oldVal, plan)
+
 			_ = closer.Close() //nolint:errcheck // pebble closer
 		}
 
@@ -302,8 +302,10 @@ func (e *pebbleEngine) MapUpdate(
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	var prev any
-	var oldValJSON []byte
+	var (
+		prev       any
+		oldValJSON []byte
+	)
 
 	val, closer, err := e.db.Get(k)
 	if err == nil {
@@ -326,6 +328,7 @@ func (e *pebbleEngine) MapUpdate(
 	if hasLayout {
 		keyStr := encodeKeyStr(key)
 		batch := e.db.NewBatch()
+
 		defer func() { _ = batch.Close() }()
 
 		e.deleteIndexEntries(batch, col, keyStr, oldValJSON, plan)
@@ -368,12 +371,7 @@ func (e *pebbleEngine) MapScan(
 
 	defer func() { _ = iter.Close() }()
 
-	type kv struct {
-		key   []byte
-		value any
-	}
-
-	var pairs []kv
+	var pairs []kvPair
 
 	for iter.First(); iter.Valid(); iter.Next() {
 		val := decodeJSON(iter.Value())
@@ -382,46 +380,17 @@ func (e *pebbleEngine) MapScan(
 			continue
 		}
 
-		pairs = append(pairs, kv{key: append([]byte(nil), iter.Key()...), value: val})
+		pairs = append(pairs, kvPair{
+			key:   append([]byte(nil), iter.Key()...),
+			value: val,
+		})
 	}
 
 	if err := iter.Error(); err != nil {
 		return nil, err
 	}
 
-	// Sort in Go (Pebble has no secondary index).
-	if sortFunc != nil {
-		sort.Slice(pairs, func(i, j int) bool {
-			if c := sortFunc(pairs[i].value, pairs[j].value); c != 0 {
-				return c < 0
-			}
-
-			return bytes.Compare(pairs[i].key, pairs[j].key) < 0
-		})
-	}
-
-	// Keyset pagination.
-	if cursor != nil && sortFunc != nil {
-		filtered := pairs[:0]
-		for _, p := range pairs {
-			if sortFunc(p.value, cursor) <= 0 {
-				continue
-			}
-
-			filtered = append(filtered, p)
-		}
-
-		pairs = filtered
-	}
-
-	truncLimit := 0
-	if limit > 0 {
-		truncLimit = limit + 1
-	}
-
-	if truncLimit > 0 && len(pairs) > truncLimit {
-		pairs = pairs[:truncLimit]
-	}
+	pairs = sortAndPaginate(pairs, sortFunc, cursor, limit)
 
 	results := make([]any, len(pairs))
 	for i, p := range pairs {

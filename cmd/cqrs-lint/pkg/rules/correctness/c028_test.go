@@ -18,8 +18,8 @@ func handle(ctx context.Context) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC028Detector(ctx))
-	assertRule(t, findings, "C028", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC028Detector(ctx))
+	ruletest.AssertRule(t, findings, "C028", 1)
 }
 
 func TestC028_DetectsSwallowedExecute(t *testing.T) {
@@ -33,8 +33,8 @@ func handle(ctx context.Context) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC028Detector(ctx))
-	assertRule(t, findings, "C028", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC028Detector(ctx))
+	ruletest.AssertRule(t, findings, "C028", 1)
 }
 
 func TestC028_DetectsSwallowedRegister(t *testing.T) {
@@ -48,8 +48,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC028Detector(ctx))
-	assertRule(t, findings, "C028", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC028Detector(ctx))
+	ruletest.AssertRule(t, findings, "C028", 1)
 }
 
 func TestC028_NoFindingWhenErrorChecked(t *testing.T) {
@@ -65,8 +65,8 @@ func handle(ctx context.Context) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC028Detector(ctx))
-	assertRule(t, findings, "C028", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC028Detector(ctx))
+	ruletest.AssertRule(t, findings, "C028", 0)
 }
 
 func TestC028_NoFindingForNonCQRSMethod(t *testing.T) {
@@ -80,8 +80,8 @@ func doSomething() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC028Detector(ctx))
-	assertRule(t, findings, "C028", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC028Detector(ctx))
+	ruletest.AssertRule(t, findings, "C028", 0)
 }
 
 func TestC028_NoFindingOnEmptyContext(t *testing.T) {
@@ -90,6 +90,6 @@ func TestC028_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, correctness.NewC028Detector(ctx))
-	assertRule(t, findings, "C028", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC028Detector(ctx))
+	ruletest.AssertRule(t, findings, "C028", 0)
 }

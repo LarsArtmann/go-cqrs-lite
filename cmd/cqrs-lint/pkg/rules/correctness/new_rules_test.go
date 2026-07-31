@@ -15,8 +15,8 @@ func TestC004_NoFindingWithoutProjections(t *testing.T) {
 		"proj.go": `package main
 `,
 	})
-	findings := runDetector(t, correctness.NewC004Detector(ctx))
-	assertRule(t, findings, "C004", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC004Detector(ctx))
+	ruletest.AssertRule(t, findings, "C004", 0)
 }
 
 // --- C007: time.Now in decider ---
@@ -31,8 +31,8 @@ func decide(state int, cmd Command) (int, error) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC007Detector(ctx))
-	assertRule(t, findings, "C007", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC007Detector(ctx))
+	ruletest.AssertRule(t, findings, "C007", 1)
 }
 
 func TestC007_NoFindingOutsideDecider(t *testing.T) {
@@ -45,8 +45,8 @@ func handleRequest() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC007Detector(ctx))
-	assertRule(t, findings, "C007", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC007Detector(ctx))
+	ruletest.AssertRule(t, findings, "C007", 0)
 }
 
 func TestC004_DetectsAsyncProjection(t *testing.T) {
@@ -64,8 +64,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC004Detector(ctx))
-	assertRule(t, findings, "C004", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC004Detector(ctx))
+	ruletest.AssertRule(t, findings, "C004", 1)
 }
 
 func TestC004_NoFindingOnSyncProjection(t *testing.T) {
@@ -83,8 +83,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC004Detector(ctx))
-	assertRule(t, findings, "C004", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC004Detector(ctx))
+	ruletest.AssertRule(t, findings, "C004", 0)
 }
 
 // --- C011: Nondeterministic decider ---
@@ -99,8 +99,8 @@ func decide(state int) (int, error) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC011Detector(ctx))
-	assertRule(t, findings, "C011", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC011Detector(ctx))
+	ruletest.AssertRule(t, findings, "C011", 1)
 }
 
 func TestC011_NoFindingInTestFiles(t *testing.T) {
@@ -113,8 +113,8 @@ func testDecide() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC011Detector(ctx))
-	assertRule(t, findings, "C011", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC011Detector(ctx))
+	ruletest.AssertRule(t, findings, "C011", 0)
 }
 
 // --- C010: Swallowed error in fold ---
@@ -141,8 +141,8 @@ func fold(s State, evt event.Event) (State, error) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC010Detector(ctx))
-	assertRule(t, findings, "C010", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC010Detector(ctx))
+	ruletest.AssertRule(t, findings, "C010", 1)
 }
 
 func TestC010_NoCrashOnEmptyInput(t *testing.T) {
@@ -150,8 +150,8 @@ func TestC010_NoCrashOnEmptyInput(t *testing.T) {
 		"empty.go": `package main
 `,
 	})
-	findings := runDetector(t, correctness.NewC010Detector(ctx))
-	assertRule(t, findings, "C010", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC010Detector(ctx))
+	ruletest.AssertRule(t, findings, "C010", 0)
 }
 
 func TestC010_DetectsSwallowedSQLError(t *testing.T) {
@@ -174,8 +174,8 @@ func makeHandler() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC010Detector(ctx))
-	assertRule(t, findings, "C010", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC010Detector(ctx))
+	ruletest.AssertRule(t, findings, "C010", 1)
 }
 
 // --- C012: Missing error return in withTx ---
@@ -196,8 +196,8 @@ func withTx(ctx context.Context, db *sql.DB, body func(*sql.Tx) error) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC012Detector(ctx))
-	assertRule(t, findings, "C012", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC012Detector(ctx))
+	ruletest.AssertRule(t, findings, "C012", 1)
 }
 
 func TestC012_NoFindingForProperErrorReturn(t *testing.T) {
@@ -219,8 +219,8 @@ func withTx(ctx context.Context, db *sql.DB, body func(*sql.Tx) error) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC012Detector(ctx))
-	assertRule(t, findings, "C012", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC012Detector(ctx))
+	ruletest.AssertRule(t, findings, "C012", 0)
 }
 
 // --- C002: Broken command ID ---
@@ -238,8 +238,8 @@ func (c *MyCmd) ID() CommandID {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC002Detector(ctx))
-	assertRule(t, findings, "C002", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC002Detector(ctx))
+	ruletest.AssertRule(t, findings, "C002", 1)
 }
 
 func TestC002_NoCrashOnEmptyInput(t *testing.T) {

@@ -20,8 +20,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB023Detector(ctx))
-	assertRule(t, findings, "B023", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB023Detector(ctx))
+	ruletest.AssertRule(t, findings, "B023", 1)
 }
 
 func TestB023_NoFindingWithMiddleware(t *testing.T) {
@@ -36,8 +36,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB023Detector(ctx))
-	assertRule(t, findings, "B023", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB023Detector(ctx))
+	ruletest.AssertRule(t, findings, "B023", 0)
 }
 
 func TestB024_DetectsMissingBusRecovery(t *testing.T) {
@@ -52,8 +52,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB024Detector(ctx))
-	assertRule(t, findings, "B024", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB024Detector(ctx))
+	ruletest.AssertRule(t, findings, "B024", 1)
 }
 
 func TestB024_NoFindingWithRecovery(t *testing.T) {
@@ -68,6 +68,6 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB024Detector(ctx))
-	assertRule(t, findings, "B024", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB024Detector(ctx))
+	ruletest.AssertRule(t, findings, "B024", 0)
 }

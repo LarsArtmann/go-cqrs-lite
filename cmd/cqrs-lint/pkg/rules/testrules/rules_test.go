@@ -68,8 +68,8 @@ func TestDecider(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT001Detector(ctx))
-	assertRule(t, findings, "T001", 1)
+	findings := ruletest.RunDetector(t, testrules.NewT001Detector(ctx))
+	ruletest.AssertRule(t, findings, "T001", 1)
 }
 
 func TestT001_NoFindingWhenScenarioGivenPresent(t *testing.T) {
@@ -93,8 +93,8 @@ func TestDecider(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT001Detector(ctx))
-	assertRule(t, findings, "T001", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT001Detector(ctx))
+	ruletest.AssertRule(t, findings, "T001", 0)
 }
 
 func TestT001_NoFindingWhenNoDeciderImport(t *testing.T) {
@@ -114,8 +114,8 @@ import "testing"
 func TestSomething(t *testing.T) {}
 `,
 	})
-	findings := runDetector(t, testrules.NewT001Detector(ctx))
-	assertRule(t, findings, "T001", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT001Detector(ctx))
+	ruletest.AssertRule(t, findings, "T001", 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -140,8 +140,8 @@ import "testing"
 func TestProj(t *testing.T) {}
 `,
 	})
-	findings := runDetector(t, testrules.NewT002Detector(ctx))
-	assertRule(t, findings, "T002", 1)
+	findings := ruletest.RunDetector(t, testrules.NewT002Detector(ctx))
+	ruletest.AssertRule(t, findings, "T002", 1)
 }
 
 func TestT002_NoFindingWhenGivenProjectionPresent(t *testing.T) {
@@ -164,8 +164,8 @@ func TestProj(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT002Detector(ctx))
-	assertRule(t, findings, "T002", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT002Detector(ctx))
+	ruletest.AssertRule(t, findings, "T002", 0)
 }
 
 func TestT002_NoFindingWhenNoProjection(t *testing.T) {
@@ -177,8 +177,8 @@ func TestT002_NoFindingWhenNoProjection(t *testing.T) {
 import "testing"
 func TestMain(t *testing.T) {}`,
 	})
-	findings := runDetector(t, testrules.NewT002Detector(ctx))
-	assertRule(t, findings, "T002", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT002Detector(ctx))
+	ruletest.AssertRule(t, findings, "T002", 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -202,8 +202,8 @@ import "testing"
 func TestEvent(t *testing.T) {}
 `,
 	})
-	findings := runDetector(t, testrules.NewT003Detector(ctx))
-	assertRule(t, findings, "T003", 1)
+	findings := ruletest.RunDetector(t, testrules.NewT003Detector(ctx))
+	ruletest.AssertRule(t, findings, "T003", 1)
 }
 
 func TestT003_NoFindingWhenEventtestImported(t *testing.T) {
@@ -228,8 +228,8 @@ func TestEvent(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT003Detector(ctx))
-	assertRule(t, findings, "T003", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT003Detector(ctx))
+	ruletest.AssertRule(t, findings, "T003", 0)
 }
 
 func TestT003_NoFindingWhenNoEventImport(t *testing.T) {
@@ -241,8 +241,8 @@ func TestT003_NoFindingWhenNoEventImport(t *testing.T) {
 import "testing"
 func TestMain(t *testing.T) {}`,
 	})
-	findings := runDetector(t, testrules.NewT003Detector(ctx))
-	assertRule(t, findings, "T003", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT003Detector(ctx))
+	ruletest.AssertRule(t, findings, "T003", 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -266,8 +266,8 @@ import "testing"
 func TestCatalog(t *testing.T) {}
 `,
 	})
-	findings := runDetector(t, testrules.NewT004Detector(ctx))
-	assertRule(t, findings, "T004", 1)
+	findings := ruletest.RunDetector(t, testrules.NewT004Detector(ctx))
+	ruletest.AssertRule(t, findings, "T004", 1)
 }
 
 func TestT004_NoFindingWhenSnapsImported(t *testing.T) {
@@ -292,8 +292,8 @@ func TestCatalog(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT004Detector(ctx))
-	assertRule(t, findings, "T004", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT004Detector(ctx))
+	ruletest.AssertRule(t, findings, "T004", 0)
 }
 
 func TestT004_NoFindingWhenNoCatalogImport(t *testing.T) {
@@ -305,8 +305,8 @@ func TestT004_NoFindingWhenNoCatalogImport(t *testing.T) {
 import "testing"
 func TestMain(t *testing.T) {}`,
 	})
-	findings := runDetector(t, testrules.NewT004Detector(ctx))
-	assertRule(t, findings, "T004", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT004Detector(ctx))
+	ruletest.AssertRule(t, findings, "T004", 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -333,8 +333,8 @@ func TestProj(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT005Detector(ctx))
-	assertRule(t, findings, "T005", 1)
+	findings := ruletest.RunDetector(t, testrules.NewT005Detector(ctx))
+	ruletest.AssertRule(t, findings, "T005", 1)
 }
 
 func TestT005_NoFindingWhenThenErrorPresent(t *testing.T) {
@@ -357,8 +357,8 @@ func TestProjError(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT005Detector(ctx))
-	assertRule(t, findings, "T005", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT005Detector(ctx))
+	ruletest.AssertRule(t, findings, "T005", 0)
 }
 
 func TestT005_NoFindingWhenNoProjection(t *testing.T) {
@@ -370,8 +370,8 @@ func TestT005_NoFindingWhenNoProjection(t *testing.T) {
 import "testing"
 func TestMain(t *testing.T) {}`,
 	})
-	findings := runDetector(t, testrules.NewT005Detector(ctx))
-	assertRule(t, findings, "T005", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT005Detector(ctx))
+	ruletest.AssertRule(t, findings, "T005", 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -393,8 +393,8 @@ func TestDecider(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT006Detector(ctx))
-	assertRule(t, findings, "T006", 1)
+	findings := ruletest.RunDetector(t, testrules.NewT006Detector(ctx))
+	ruletest.AssertRule(t, findings, "T006", 1)
 }
 
 func TestT006_NoFindingWhenThenErrorPresent(t *testing.T) {
@@ -412,8 +412,8 @@ func TestDeciderConflict(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT006Detector(ctx))
-	assertRule(t, findings, "T006", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT006Detector(ctx))
+	ruletest.AssertRule(t, findings, "T006", 0)
 }
 
 func TestT006_NoFindingWhenNoScenarioGiven(t *testing.T) {
@@ -427,8 +427,8 @@ import "testing"
 func TestMain(t *testing.T) {}
 `,
 	})
-	findings := runDetector(t, testrules.NewT006Detector(ctx))
-	assertRule(t, findings, "T006", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT006Detector(ctx))
+	ruletest.AssertRule(t, findings, "T006", 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -455,8 +455,8 @@ func TestStore(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT007Detector(ctx))
-	assertRule(t, findings, "T007", 1)
+	findings := ruletest.RunDetector(t, testrules.NewT007Detector(ctx))
+	ruletest.AssertRule(t, findings, "T007", 1)
 }
 
 func TestT007_NoFindingWhenBothSaveAndLoadCalled(t *testing.T) {
@@ -480,8 +480,8 @@ func TestRoundTrip(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT007Detector(ctx))
-	assertRule(t, findings, "T007", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT007Detector(ctx))
+	ruletest.AssertRule(t, findings, "T007", 0)
 }
 
 func TestT007_NoFindingWhenNoEventImport(t *testing.T) {
@@ -493,8 +493,8 @@ func TestT007_NoFindingWhenNoEventImport(t *testing.T) {
 import "testing"
 func TestMain(t *testing.T) {}`,
 	})
-	findings := runDetector(t, testrules.NewT007Detector(ctx))
-	assertRule(t, findings, "T007", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT007Detector(ctx))
+	ruletest.AssertRule(t, findings, "T007", 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -517,8 +517,8 @@ func TestStore(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT008Detector(ctx))
-	assertRule(t, findings, "T008", 1)
+	findings := ruletest.RunDetector(t, testrules.NewT008Detector(ctx))
+	ruletest.AssertRule(t, findings, "T008", 1)
 }
 
 func TestT008_FiresForStackSqlite(t *testing.T) {
@@ -537,8 +537,8 @@ func TestStore(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT008Detector(ctx))
-	assertRule(t, findings, "T008", 1)
+	findings := ruletest.RunDetector(t, testrules.NewT008Detector(ctx))
+	ruletest.AssertRule(t, findings, "T008", 1)
 }
 
 func TestT008_NoFindingWhenTestUsesMemoryStore(t *testing.T) {
@@ -557,8 +557,8 @@ func TestStore(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT008Detector(ctx))
-	assertRule(t, findings, "T008", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT008Detector(ctx))
+	ruletest.AssertRule(t, findings, "T008", 0)
 }
 
 func TestT008_NoFindingWhenTestUsesEventtest(t *testing.T) {
@@ -577,8 +577,8 @@ func TestStore(t *testing.T) {
 }
 `,
 	})
-	findings := runDetector(t, testrules.NewT008Detector(ctx))
-	assertRule(t, findings, "T008", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT008Detector(ctx))
+	ruletest.AssertRule(t, findings, "T008", 0)
 }
 
 func TestT008_NoFindingForNonTestFiles(t *testing.T) {
@@ -592,6 +592,6 @@ import "github.com/larsartmann/go-cqrs-lite/storage/v4"
 var _ = storage.NewSQLiteBackend
 `,
 	})
-	findings := runDetector(t, testrules.NewT008Detector(ctx))
-	assertRule(t, findings, "T008", 0)
+	findings := ruletest.RunDetector(t, testrules.NewT008Detector(ctx))
+	ruletest.AssertRule(t, findings, "T008", 0)
 }

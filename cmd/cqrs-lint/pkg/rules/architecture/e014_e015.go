@@ -30,7 +30,8 @@ func NewE014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			// Type-aware check: drain/sync/flush/wait on a projectionhost type.
-			if _, found := projectCallsMethodOnType(ctx,
+			if _, found := projectCallsMethodOnType(
+				ctx,
 				[]string{"Drain", "Sync", "Flush", "WaitFor"},
 				[]string{"go-cqrs-lite/projectionhost", "cqrs-lite/projectionhost"},
 			); found {

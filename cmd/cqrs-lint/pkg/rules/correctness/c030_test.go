@@ -22,8 +22,8 @@ func worker(ctx context.Context) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC030Detector(ctx))
-	assertRule(t, findings, "C030", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
+	ruletest.AssertRule(t, findings, "C030", 1)
 }
 
 func TestC030_NoFindingWhenCtxDoneInSelect(t *testing.T) {
@@ -46,8 +46,8 @@ func worker(ctx context.Context) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC030Detector(ctx))
-	assertRule(t, findings, "C030", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
+	ruletest.AssertRule(t, findings, "C030", 0)
 }
 
 func TestC030_NoFindingForBoundedLoop(t *testing.T) {
@@ -63,8 +63,8 @@ func worker() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC030Detector(ctx))
-	assertRule(t, findings, "C030", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
+	ruletest.AssertRule(t, findings, "C030", 0)
 }
 
 func TestC030_NoFindingWhenDoneOnNonCtxReceiver(t *testing.T) {
@@ -85,8 +85,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC030Detector(ctx))
-	assertRule(t, findings, "C030", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
+	ruletest.AssertRule(t, findings, "C030", 0)
 }
 
 func TestC030_NoFindingWhenCtxErrCheck(t *testing.T) {
@@ -107,8 +107,8 @@ func poll(ctx context.Context) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC030Detector(ctx))
-	assertRule(t, findings, "C030", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
+	ruletest.AssertRule(t, findings, "C030", 0)
 }
 
 func TestC030_NoFindingWhenLoopHasBreak(t *testing.T) {
@@ -129,8 +129,8 @@ func reconstruct(parent map[int]int, end int) []int {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC030Detector(ctx))
-	assertRule(t, findings, "C030", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
+	ruletest.AssertRule(t, findings, "C030", 0)
 }
 
 func TestC030_NoFindingWhenCustomStopChannel(t *testing.T) {
@@ -155,8 +155,8 @@ func sampler(stop <-chan struct{}) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC030Detector(ctx))
-	assertRule(t, findings, "C030", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
+	ruletest.AssertRule(t, findings, "C030", 0)
 }
 
 func TestC030_StillFlagsLoopWithOnlyReturnInGoroutine(t *testing.T) {
@@ -175,6 +175,6 @@ func worker() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC030Detector(ctx))
-	assertRule(t, findings, "C030", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
+	ruletest.AssertRule(t, findings, "C030", 1)
 }

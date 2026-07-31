@@ -46,8 +46,8 @@ func init() {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS001Detector(ctx))
-	assertRule(t, findings, "S001", 1)
+	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+	ruletest.AssertRule(t, findings, "S001", 1)
 }
 
 func TestS001_NoFindingForShortString(t *testing.T) {
@@ -60,6 +60,6 @@ func init() {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS001Detector(ctx))
-	assertRule(t, findings, "S001", 0)
+	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+	ruletest.AssertRule(t, findings, "S001", 0)
 }

@@ -6,8 +6,6 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"sort"
-	"strings"
-	"sync"
 
 	"github.com/cockroachdb/pebble"
 
@@ -26,9 +24,71 @@ type layoutPlan struct {
 }
 
 // layoutKeyPrefix builds the secondary index key prefix for a field value.
-// Format: "i{sep}{col}{sep}{field}{sep}{value}{sep}{primaryKey}"
+// Format: "i{sep}{col}{sep}{field}{sep}{value}{sep}{primaryKey}".
 func layoutKeyPrefix(col, field, value string) []byte {
 	return []byte("i" + sep + col + sep + field + sep + value + sep)
+}
+
+// formatIndexInt encodes a signed int64 into a fixed-width lexicographically-
+// ordered string. The offset maps [-2^63, 2^63-1] to [0, 2^64-1] so that
+// lexicographic byte comparison matches numeric comparison for ALL integers,
+// including negatives and mixed digit counts.
+func formatIndexInt(v int64) string {
+	return fmt.Sprintf("%020d", uint64(v)-uint64(1<<63))
+}
+
+// encodeIndexValue converts a field value to an order-preserving string for
+// secondary index keys. Integers (including float64-encoded JSON numbers
+// without fractional parts) are zero-padded to 20 chars with sign offset.
+// Strings and bools use their natural representation. Floats with fractional
+// parts fall through to fmt.Sprintf (best-effort, documented limitation).
+func encodeIndexValue(v any) string {
+	switch val := v.(type) {
+	case int:
+		return formatIndexInt(int64(val))
+	case int8:
+		return formatIndexInt(int64(val))
+	case int16:
+		return formatIndexInt(int64(val))
+	case int32:
+		return formatIndexInt(int64(val))
+	case int64:
+		return formatIndexInt(val)
+	case uint:
+		return formatIndexInt(int64(val))
+	case uint8:
+		return formatIndexInt(int64(val))
+	case uint16:
+		return formatIndexInt(int64(val))
+	case uint32:
+		return formatIndexInt(int64(val))
+	case uint64:
+		return formatIndexInt(int64(val))
+	case float64:
+		if val == float64(int64(val)) {
+			return formatIndexInt(int64(val))
+		}
+
+		return fmt.Sprintf("%v", val)
+	case float32:
+		if val == float32(int64(val)) {
+			return formatIndexInt(int64(val))
+		}
+
+		return fmt.Sprintf("%v", val)
+	case string:
+		return val
+	case bool:
+		if val {
+			return "true"
+		}
+
+		return "false"
+	case nil:
+		return ""
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }
 
 // ApplyLayout creates a secondary index layout for the collection. After this,
@@ -69,8 +129,9 @@ func (e *pebbleEngine) writeIndexEntries(
 			continue
 		}
 
-		valStr := fmt.Sprintf("%v", fieldVal)
+		valStr := encodeIndexValue(fieldVal)
 		idxKey := append(layoutKeyPrefix(col, field, valStr), []byte(key)...)
+
 		if err := batch.Set(idxKey, nil, nil); err != nil {
 			return fmt.Errorf("pebbleengine: write index entry: %w", err)
 		}
@@ -102,14 +163,14 @@ func (e *pebbleEngine) deleteIndexEntries(
 			continue
 		}
 
-		valStr := fmt.Sprintf("%v", fieldVal)
+		valStr := encodeIndexValue(fieldVal)
 		idxKey := append(layoutKeyPrefix(col, field, valStr), []byte(key)...)
-		_ = batch.Delete(idxKey, nil) //nolint:errcheck // best-effort cleanup
+		_ = batch.Delete(idxKey, nil)
 	}
 }
 
 // fieldIndexPrefix builds the secondary index key prefix for a field (all values).
-// Format: "i{sep}{col}{sep}{field}{sep}"
+// Format: "i{sep}{col}{sep}{field}{sep}".
 func fieldIndexPrefix(col, field string) []byte {
 	return []byte("i" + sep + col + sep + field + sep)
 }
@@ -118,7 +179,10 @@ func fieldIndexPrefix(col, field string) []byte {
 // first indexable filter in filters. Supports FilterEq, FilterGt, FilterGe,
 // FilterLt, FilterLe, and FilterIn (expanded to multiple equality scans).
 // Returns ok=false if no indexable filter is found.
-func (p layoutPlan) indexBounds(col string, filters []metaengine.FilterSpec) (lower, upper []byte, ok bool) {
+func (p layoutPlan) indexBounds(
+	col string,
+	filters []metaengine.FilterSpec,
+) ([]byte, []byte, bool) {
 	if len(filters) == 0 {
 		return nil, nil, false
 	}
@@ -130,57 +194,25 @@ func (p layoutPlan) indexBounds(col string, filters []metaengine.FilterSpec) (lo
 			}
 
 			fp := fieldIndexPrefix(col, field)
-			valStr := fmt.Sprintf("%v", f.Value)
+			valStr := encodeIndexValue(f.Value)
+			vp := layoutKeyPrefix(col, field, valStr)
 
 			switch f.Op {
 			case metaengine.FilterEq:
-				vp := layoutKeyPrefix(col, field, valStr)
 				return vp, nextKey(vp), true
-
 			case metaengine.FilterGt:
-				vp := layoutKeyPrefix(col, field, valStr)
 				return nextKey(vp), nextKey(fp), true
-
 			case metaengine.FilterGe:
-				vp := layoutKeyPrefix(col, field, valStr)
 				return vp, nextKey(fp), true
-
 			case metaengine.FilterLt:
-				vp := layoutKeyPrefix(col, field, valStr)
 				return fp, vp, true
-
 			case metaengine.FilterLe:
-				vp := layoutKeyPrefix(col, field, valStr)
 				return fp, nextKey(vp), true
 			}
 		}
 	}
 
 	return nil, nil, false
-}
-
-// indexPrefix returns the prefix for an equality filter scan. Kept for
-// backward compatibility with the deleteIndexEntries path.
-func (p layoutPlan) indexPrefix(col string, filters []metaengine.FilterSpec) ([]byte, bool) {
-	if len(filters) == 0 {
-		return nil, false
-	}
-
-	for _, f := range filters {
-		if f.Op != metaengine.FilterEq {
-			continue
-		}
-
-		for _, field := range p.filterFields {
-			if field == f.Column {
-				valStr := fmt.Sprintf("%v", f.Value)
-
-				return layoutKeyPrefix(col, field, valStr), true
-			}
-		}
-	}
-
-	return nil, false
 }
 
 // scanWithIndex uses a secondary index to find matching keys, then reads
@@ -202,7 +234,7 @@ func (e *pebbleEngine) scanWithIndex(
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -222,13 +254,13 @@ func (e *pebbleEngine) scanWithIndex(
 		}
 
 		valCopy := append([]byte(nil), val...)
-		_ = closer.Close() //nolint:sqlclosecheck,errcheck // pebble closer
+		_ = closer.Close()
 
 		results = append(results, valCopy)
 	}
 
 	if err := iter.Error(); err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+			return nil, err
 	}
 
 	return results, nil
@@ -269,13 +301,9 @@ func sortIndexedResults(results [][]byte, sortField string, desc bool) {
 			return c < 0
 		}
 
-		return strings.Compare(string(results[i]), string(results[j])) < 0
+		return bytes.Compare(results[i], results[j]) < 0
 	})
 }
-
-// PebbleLayoutSupport is a compile-time assertion that pebbleEngine has the
-// layout infrastructure wired.
-var _ sync.Locker = (*sync.Mutex)(nil) // ensures sync import is used
 
 // applyLimit truncates results to limit+1 (the extra row signals "has more").
 func applyLimit(results [][]byte, limit int) [][]byte {

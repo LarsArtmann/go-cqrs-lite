@@ -305,7 +305,11 @@ func TestSoak_MemoryBounded(t *testing.T) {
 
 	for i := 0; i < numEvents; i++ {
 		key := fmt.Sprintf("k-%d", i%numKeys)
-		if err := store.Apply(ctx, "updateEvent", updateEvent{Key: key, Value: int64(i)}); err != nil {
+		if err := store.Apply(
+			ctx,
+			"updateEvent",
+			updateEvent{Key: key, Value: int64(i)},
+		); err != nil {
 			t.Fatalf("Apply %d: %v", i, err)
 		}
 	}

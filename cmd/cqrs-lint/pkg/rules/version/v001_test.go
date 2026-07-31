@@ -20,8 +20,8 @@ import "github.com/larsartmann/go-cqrs-lite/event/v3"
 import "github.com/larsartmann/go-cqrs-lite/event/v4"
 `,
 	})
-	findings := runDetector(t, version.NewV001Detector(ctx))
-	assertRule(t, findings, "V001", 1)
+	findings := ruletest.RunDetector(t, version.NewV001Detector(ctx))
+	ruletest.AssertRule(t, findings, "V001", 1)
 }
 
 func TestV001_NoFindingForV4Only(t *testing.T) {
@@ -37,6 +37,6 @@ import "github.com/larsartmann/go-cqrs-lite/event/v4"
 import "github.com/larsartmann/go-cqrs-lite/decider/v4"
 `,
 	})
-	findings := runDetector(t, version.NewV001Detector(ctx))
-	assertRule(t, findings, "V001", 0)
+	findings := ruletest.RunDetector(t, version.NewV001Detector(ctx))
+	ruletest.AssertRule(t, findings, "V001", 0)
 }

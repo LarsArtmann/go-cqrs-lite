@@ -1,10 +1,8 @@
 package pebbleengine
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"sort"
 
 	"github.com/cockroachdb/pebble"
 
@@ -88,27 +86,20 @@ func (e *pebbleEngine) ScanRawValues(
 
 	defer func() { _ = iter.Close() }()
 
-	type kv struct {
-		key   []byte
-		value []byte // raw JSON bytes (owned copy)
-	}
-
-	var pairs []kv
+	var pairs []kvPair
 
 	for iter.First(); iter.Valid(); iter.Next() {
 		raw := append([]byte(nil), iter.Value()...)
+		decoded := decodeJSON(raw)
 
-		if len(filters) > 0 {
-			decoded := decodeJSON(raw)
-
-			if !metaengine.PassesFilterSpecs(decoded, filters) {
-				continue
-			}
+		if len(filters) > 0 && !metaengine.PassesFilterSpecs(decoded, filters) {
+			continue
 		}
 
-		pairs = append(pairs, kv{
+		pairs = append(pairs, kvPair{
 			key:   append([]byte(nil), iter.Key()...),
-			value: raw,
+			value: decoded,
+			raw:   raw,
 		})
 	}
 
@@ -116,66 +107,31 @@ func (e *pebbleEngine) ScanRawValues(
 		return nil, err //nolint:wrapcheck // passthrough
 	}
 
-	// Sort in Go (Pebble has no secondary index).
+	// Build sort comparator from SortSpec. Direction (Desc) is encoded into
+	// the comparator so the keyset pagination in sortAndPaginate handles both
+	// ascending and descending correctly. extractOrDirect lets the same
+	// comparator handle item-vs-item sort and item-vs-cursor pagination.
+	var sortFn func(a, b any) int
+
 	if sortSpec != nil {
-		sort.Slice(pairs, func(i, j int) bool {
-			vi := decodeJSON(pairs[i].value)
-			vj := decodeJSON(pairs[j].value)
+		sortFn = func(a, b any) int {
+			va := extractOrDirect(a, sortSpec.Column)
+			vb := extractOrDirect(b, sortSpec.Column)
+			c := metaengine.CompareValues(va, vb)
 
-			c := metaengine.CompareValues(
-				metaengine.ItemFieldByName(vi, sortSpec.Column),
-				metaengine.ItemFieldByName(vj, sortSpec.Column),
-			)
-
-			if c != 0 {
-				if sortSpec.Desc {
-					return c > 0
-				}
-
-				return c < 0
+			if sortSpec.Desc {
+				return -c
 			}
 
-			return bytes.Compare(pairs[i].key, pairs[j].key) < 0
-		})
-
-		// Keyset pagination: skip items at or before the cursor.
-		if cursor != nil {
-			filtered := pairs[:0]
-
-			for _, p := range pairs {
-				v := decodeJSON(p.value)
-				fieldVal := metaengine.ItemFieldByName(v, sortSpec.Column)
-				c := metaengine.CompareValues(fieldVal, cursor)
-
-				if sortSpec.Desc {
-					if c >= 0 {
-						continue
-					}
-				} else {
-					if c <= 0 {
-						continue
-					}
-				}
-
-				filtered = append(filtered, p)
-			}
-
-			pairs = filtered
+			return c
 		}
 	}
 
-	truncLimit := 0
-	if limit > 0 {
-		truncLimit = limit + 1
-	}
-
-	if truncLimit > 0 && len(pairs) > truncLimit {
-		pairs = pairs[:truncLimit]
-	}
+	pairs = sortAndPaginate(pairs, sortFn, cursor, limit)
 
 	results := make([][]byte, len(pairs))
 	for i, p := range pairs {
-		results[i] = p.value
+		results[i] = p.raw
 	}
 
 	return results, nil

@@ -15,8 +15,8 @@ func TestE001_NoCrashOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, architecture.NewE001Detector(ctx))
-	assertRule(t, findings, "E001", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE001Detector(ctx))
+	ruletest.AssertRule(t, findings, "E001", 0)
 }
 
 func TestE001_DetectsLayerViolation(t *testing.T) {
@@ -33,8 +33,8 @@ func TestE001_DetectsLayerViolation(t *testing.T) {
 			},
 		},
 	}
-	findings := runDetector(t, architecture.NewE001Detector(ctx))
-	assertRule(t, findings, "E001", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE001Detector(ctx))
+	ruletest.AssertRule(t, findings, "E001", 1)
 }
 
 // --- E002: Circular dependency ---
@@ -43,8 +43,8 @@ func TestE002_NoCrashOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, architecture.NewE002Detector(ctx))
-	assertRule(t, findings, "E002", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE002Detector(ctx))
+	ruletest.AssertRule(t, findings, "E002", 0)
 }
 
 // --- E002: Positive test — circular dependency ---
@@ -67,8 +67,8 @@ func TestE002_DetectsCircularDependency(t *testing.T) {
 			},
 		},
 	}
-	findings := runDetector(t, architecture.NewE002Detector(ctx))
-	assertRule(t, findings, "E002", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE002Detector(ctx))
+	ruletest.AssertRule(t, findings, "E002", 1)
 }
 
 // --- E003: Positive test — missing module boundary ---
@@ -94,8 +94,8 @@ func fold(s State, evt event.Event) (State, error) {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE003Detector(ctx))
-	assertRule(t, findings, "E003", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE003Detector(ctx))
+	ruletest.AssertRule(t, findings, "E003", 1)
 }
 
 // --- E004: Event not in catalog ---
@@ -104,8 +104,8 @@ func TestE004_NoFindingOnEmptyRegistry(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, architecture.NewE004Detector(ctx))
-	assertRule(t, findings, "E004", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE004Detector(ctx))
+	ruletest.AssertRule(t, findings, "E004", 0)
 }
 
 // --- E005: Command without handler ---
@@ -114,8 +114,8 @@ func TestE005_NoFindingOnEmptyRegistry(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, architecture.NewE005Detector(ctx))
-	assertRule(t, findings, "E005", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
 }
 
 // --- E005: Positive test — command without handler ---
@@ -130,8 +130,8 @@ type CreateUser struct {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE005Detector(ctx))
-	assertRule(t, findings, "E005", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 1)
 }
 
 // --- E005: Command registered via closure-based RegisterTyped is NOT flagged
@@ -152,8 +152,8 @@ func register() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE005Detector(ctx))
-	assertRule(t, findings, "E005", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
 }
 
 // --- E005: Non-CQRS type with Type() method (e.g., pflag.Value) is NOT flagged
@@ -172,8 +172,8 @@ func (f *idFlag[T]) String() string { return "" }
 func (f *idFlag[T]) Set(s string) error { return nil }
 `,
 	})
-	findings := runDetector(t, architecture.NewE005Detector(ctx))
-	assertRule(t, findings, "E005", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
 }
 
 // E005 must NOT fire when a command is registered via plain dispatcher.Register
@@ -211,8 +211,8 @@ func register(cmdDisp *dispatcher) {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE005Detector(ctx))
-	assertRule(t, findings, "E005", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
 }
 
 // TestE005_NoFindingWhenHandlerUsesRequireCommandType verifies E005 is
@@ -243,8 +243,8 @@ func requireCommandType[T any](cmd any, expected string) (T, error) {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE005Detector(ctx))
-	assertRule(t, findings, "E005", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
 }
 
 // TestE005_NoFindingWhenClosureUsesPackageQualifiedType verifies E005 is
@@ -279,8 +279,8 @@ type contextType struct{}
 type battle struct{}
 `,
 	})
-	findings := runDetector(t, architecture.NewE005Detector(ctx))
-	assertRule(t, findings, "E005", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
 }
 
 // TestE005_NoFindingWhenHandlerUsesMethodValue verifies E005 is suppressed
@@ -313,8 +313,8 @@ type dispatcher struct{}
 func (d *dispatcher) RegisterTyped(t string, h interface{}) error { return nil }
 `,
 	})
-	findings := runDetector(t, architecture.NewE005Detector(ctx))
-	assertRule(t, findings, "E005", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
 }
 
 // TestE005_NoFindingWhenHandlerUsesTypeAssertion verifies E005 is suppressed
@@ -345,8 +345,8 @@ type dispatcher struct{}
 func (d *dispatcher) Register(t string, h interface{}) {}
 `,
 	})
-	findings := runDetector(t, architecture.NewE005Detector(ctx))
-	assertRule(t, findings, "E005", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
 }
 
 // --- E006: Event without projection ---
@@ -355,8 +355,8 @@ func TestE006_NoFindingOnEmptyRegistry(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, architecture.NewE006Detector(ctx))
-	assertRule(t, findings, "E006", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE006Detector(ctx))
+	ruletest.AssertRule(t, findings, "E006", 0)
 }
 
 func TestE006_DetectsEmittedWithoutProjection(t *testing.T) {
@@ -368,8 +368,8 @@ func emit() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE006Detector(ctx))
-	assertRule(t, findings, "E006", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE006Detector(ctx))
+	ruletest.AssertRule(t, findings, "E006", 1)
 }
 
 // E006 must NOT flag a SQL row struct whose name coincidentally matches an event
@@ -391,8 +391,8 @@ func GetCandidates() []GCSMigrationCandidate {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE006Detector(ctx))
-	assertRule(t, findings, "E006", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE006Detector(ctx))
+	ruletest.AssertRule(t, findings, "E006", 0)
 }
 
 // --- E007: Query without handler ---
@@ -406,8 +406,8 @@ type GetUserQuery struct {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE007Detector(ctx))
-	assertRule(t, findings, "E007", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE007Detector(ctx))
+	ruletest.AssertRule(t, findings, "E007", 1)
 }
 
 // E007 must NOT fire on "*Request" types. These are HTTP/gRPC request DTOs,
@@ -426,8 +426,8 @@ type RegisterRequest struct {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE007Detector(ctx))
-	assertRule(t, findings, "E007", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE007Detector(ctx))
+	ruletest.AssertRule(t, findings, "E007", 0)
 }
 
 func TestE007_NoFindingForNonQueryStruct(t *testing.T) {
@@ -439,8 +439,8 @@ type User struct {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE007Detector(ctx))
-	assertRule(t, findings, "E007", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE007Detector(ctx))
+	ruletest.AssertRule(t, findings, "E007", 0)
 }
 
 // --- E007: Query registered via closure-based RegisterTyped is NOT flagged
@@ -460,8 +460,8 @@ func register() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE007Detector(ctx))
-	assertRule(t, findings, "E007", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE007Detector(ctx))
+	ruletest.AssertRule(t, findings, "E007", 0)
 }
 
 // E007 must NOT fire when a query is registered via RegisterTyped with a
@@ -497,8 +497,8 @@ func register(disp *queryDispatcher) {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE007Detector(ctx))
-	assertRule(t, findings, "E007", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE007Detector(ctx))
+	ruletest.AssertRule(t, findings, "E007", 0)
 }
 
 // E007 must fire when a type constant is NOT registered: the const declaration
@@ -520,8 +520,8 @@ import "github.com/larsartmann/go-cqrs-lite/query/v4"
 const GetUserQueryType query.Type = "GetUserQuery"
 `,
 	})
-	findings := runDetector(t, architecture.NewE007Detector(ctx))
-	assertRule(t, findings, "E007", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE007Detector(ctx))
+	ruletest.AssertRule(t, findings, "E007", 1)
 }
 
 // TestE007_NoFindingWhenHandlerUsesRequireQueryType verifies E007 is suppressed
@@ -551,6 +551,6 @@ func requireQueryType[T any](q any, expected string) (T, error) {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE007Detector(ctx))
-	assertRule(t, findings, "E007", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE007Detector(ctx))
+	ruletest.AssertRule(t, findings, "E007", 0)
 }

@@ -18,8 +18,8 @@ type UserReadModel struct {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP011Detector(ctx))
-	assertRule(t, findings, "P011", 1)
+	findings := ruletest.RunDetector(t, performance.NewP011Detector(ctx))
+	ruletest.AssertRule(t, findings, "P011", 1)
 }
 
 func TestP011_NoFindingForNonReadModelStruct(t *testing.T) {
@@ -33,8 +33,8 @@ type Config struct {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP011Detector(ctx))
-	assertRule(t, findings, "P011", 0)
+	findings := ruletest.RunDetector(t, performance.NewP011Detector(ctx))
+	ruletest.AssertRule(t, findings, "P011", 0)
 }
 
 func TestP011_NoFindingForStructWithSyncMutex(t *testing.T) {
@@ -51,8 +51,8 @@ type SafeReadModel struct {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP011Detector(ctx))
-	assertRule(t, findings, "P011", 0)
+	findings := ruletest.RunDetector(t, performance.NewP011Detector(ctx))
+	ruletest.AssertRule(t, findings, "P011", 0)
 }
 
 func TestP011_NoFindingOnEmptyContext(t *testing.T) {
@@ -61,6 +61,6 @@ func TestP011_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, performance.NewP011Detector(ctx))
-	assertRule(t, findings, "P011", 0)
+	findings := ruletest.RunDetector(t, performance.NewP011Detector(ctx))
+	ruletest.AssertRule(t, findings, "P011", 0)
 }

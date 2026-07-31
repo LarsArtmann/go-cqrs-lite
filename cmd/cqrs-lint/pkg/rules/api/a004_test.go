@@ -29,8 +29,8 @@ type Mux interface{ Handle(string, Handler) }
 type Request struct{ Path string }
 `,
 	})
-	findings := runDetector(t, api.NewA004Detector(ctx))
-	assertRule(t, findings, "A004", 0)
+	findings := ruletest.RunDetector(t, api.NewA004Detector(ctx))
+	ruletest.AssertRule(t, findings, "A004", 0)
 }
 
 // A004 must NOT fire on package-qualified third-party Register APIs whose
@@ -55,6 +55,6 @@ var op = opT{}
 type Body struct{ Name string }
 `,
 	})
-	findings := runDetector(t, api.NewA004Detector(ctx))
-	assertRule(t, findings, "A004", 0)
+	findings := ruletest.RunDetector(t, api.NewA004Detector(ctx))
+	ruletest.AssertRule(t, findings, "A004", 0)
 }

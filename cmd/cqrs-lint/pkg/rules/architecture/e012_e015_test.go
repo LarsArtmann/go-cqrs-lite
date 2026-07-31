@@ -21,8 +21,8 @@ type DualWriteBus struct {
 type Publisher interface{ Publish(any) error }
 `,
 	})
-	findings := runDetector(t, architecture.NewE012Detector(ctx))
-	assertRule(t, findings, "E012", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE012Detector(ctx))
+	ruletest.AssertRule(t, findings, "E012", 1)
 }
 
 func TestE012_NoFindingWithFeatureFlag(t *testing.T) {
@@ -49,16 +49,16 @@ func setup() *DualWriteBus {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE012Detector(ctx))
-	assertRule(t, findings, "E012", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE012Detector(ctx))
+	ruletest.AssertRule(t, findings, "E012", 0)
 }
 
 func TestE012_NoFindingOnEmptyProject(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, architecture.NewE012Detector(ctx))
-	assertRule(t, findings, "E012", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE012Detector(ctx))
+	ruletest.AssertRule(t, findings, "E012", 0)
 }
 
 // --- E013: Signing disabled by default ---
@@ -80,8 +80,8 @@ func DefaultSigningConfig() SigningConfig {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE013Detector(ctx))
-	assertRule(t, findings, "E013", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE013Detector(ctx))
+	ruletest.AssertRule(t, findings, "E013", 1)
 }
 
 func TestE013_NoFindingWhenEnabled(t *testing.T) {
@@ -101,8 +101,8 @@ func DefaultSigningConfig() SigningConfig {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE013Detector(ctx))
-	assertRule(t, findings, "E013", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE013Detector(ctx))
+	ruletest.AssertRule(t, findings, "E013", 0)
 }
 
 func TestE013_NoFindingWithoutSigningImport(t *testing.T) {
@@ -118,8 +118,8 @@ func defaultConfig() Config {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE013Detector(ctx))
-	assertRule(t, findings, "E013", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE013Detector(ctx))
+	ruletest.AssertRule(t, findings, "E013", 0)
 }
 
 // --- E014: No read-your-writes ---
@@ -135,8 +135,8 @@ func setup(host *projectionhost.Host) {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE014Detector(ctx))
-	assertRule(t, findings, "E014", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE014Detector(ctx))
+	ruletest.AssertRule(t, findings, "E014", 1)
 }
 
 func TestE014_NoFindingWithDrain(t *testing.T) {
@@ -150,8 +150,8 @@ func respond(host *projectionhost.Host) {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE014Detector(ctx))
-	assertRule(t, findings, "E014", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE014Detector(ctx))
+	ruletest.AssertRule(t, findings, "E014", 0)
 }
 
 func TestE014_NoFindingWithoutProjectionHost(t *testing.T) {
@@ -163,8 +163,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE014Detector(ctx))
-	assertRule(t, findings, "E014", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE014Detector(ctx))
+	ruletest.AssertRule(t, findings, "E014", 0)
 }
 
 // --- E015: Watermill no ordered delivery ---
@@ -183,8 +183,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE015Detector(ctx))
-	assertRule(t, findings, "E015", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE015Detector(ctx))
+	ruletest.AssertRule(t, findings, "E015", 1)
 }
 
 func TestE015_NoFindingWhenTrue(t *testing.T) {
@@ -201,8 +201,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE015Detector(ctx))
-	assertRule(t, findings, "E015", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE015Detector(ctx))
+	ruletest.AssertRule(t, findings, "E015", 0)
 }
 
 func TestE015_NoFindingWithoutWatermill(t *testing.T) {
@@ -218,6 +218,6 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE015Detector(ctx))
-	assertRule(t, findings, "E015", 0)
+	findings := ruletest.RunDetector(t, architecture.NewE015Detector(ctx))
+	ruletest.AssertRule(t, findings, "E015", 0)
 }

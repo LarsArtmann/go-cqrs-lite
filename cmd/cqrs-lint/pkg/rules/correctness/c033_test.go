@@ -23,8 +23,8 @@ func handle(ctx context.Context, store Store) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC033Detector(ctx))
-	assertRule(t, findings, "C033", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC033Detector(ctx))
+	ruletest.AssertRule(t, findings, "C033", 1)
 }
 
 func TestC033_DetectsBareReturnFromExecute(t *testing.T) {
@@ -43,8 +43,8 @@ func handle(ctx context.Context, repo Repo) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC033Detector(ctx))
-	assertRule(t, findings, "C033", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC033Detector(ctx))
+	ruletest.AssertRule(t, findings, "C033", 1)
 }
 
 func TestC033_NoFindingWhenErrorWrapped(t *testing.T) {
@@ -66,8 +66,8 @@ func handle(ctx context.Context, store Store) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC033Detector(ctx))
-	assertRule(t, findings, "C033", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC033Detector(ctx))
+	ruletest.AssertRule(t, findings, "C033", 0)
 }
 
 func TestC033_NoFindingForNonCQRSMethod(t *testing.T) {
@@ -84,8 +84,8 @@ func handle() error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC033Detector(ctx))
-	assertRule(t, findings, "C033", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC033Detector(ctx))
+	ruletest.AssertRule(t, findings, "C033", 0)
 }
 
 func TestC033_NoFindingOnEmptyContext(t *testing.T) {
@@ -94,6 +94,6 @@ func TestC033_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, correctness.NewC033Detector(ctx))
-	assertRule(t, findings, "C033", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC033Detector(ctx))
+	ruletest.AssertRule(t, findings, "C033", 0)
 }

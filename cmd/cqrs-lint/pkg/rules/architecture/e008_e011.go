@@ -112,7 +112,8 @@ func NewE010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			// Type-aware check: any Save/Append/AppendBatch on a CQRS store type.
-			pos, found := projectCallsMethodOnType(ctx,
+			pos, found := projectCallsMethodOnType(
+				ctx,
 				[]string{"Save", "AppendBatch", "Append"},
 				[]string{"go-cqrs-lite/event", "go-cqrs-lite/storage", "cqrs-lite/event"},
 			)

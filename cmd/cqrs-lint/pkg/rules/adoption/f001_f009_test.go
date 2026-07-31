@@ -21,8 +21,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF001Detector(ctx))
-	assertRule(t, findings, "F001", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF001Detector(ctx))
+	ruletest.AssertRule(t, findings, "F001", 1)
 }
 
 func TestF001_NoFindingWithMarkTombstone(t *testing.T) {
@@ -40,8 +40,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF001Detector(ctx))
-	assertRule(t, findings, "F001", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF001Detector(ctx))
+	ruletest.AssertRule(t, findings, "F001", 0)
 }
 
 func TestF002_NoCatalogWithThreeEventTypes(t *testing.T) {
@@ -58,8 +58,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF002Detector(ctx))
-	assertRule(t, findings, "F002", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF002Detector(ctx))
+	ruletest.AssertRule(t, findings, "F002", 1)
 }
 
 func TestF002_NoFindingWithCatalogBuilder(t *testing.T) {
@@ -77,8 +77,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF002Detector(ctx))
-	assertRule(t, findings, "F002", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF002Detector(ctx))
+	ruletest.AssertRule(t, findings, "F002", 0)
 }
 
 func TestF003_ServerWithoutOTel(t *testing.T) {
@@ -95,8 +95,8 @@ func main() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF003Detector(ctx))
-	assertRule(t, findings, "F003", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF003Detector(ctx))
+	ruletest.AssertRule(t, findings, "F003", 1)
 }
 
 func TestF003_NoFindingWithoutServer(t *testing.T) {
@@ -109,8 +109,8 @@ func main() {}
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF003Detector(ctx))
-	assertRule(t, findings, "F003", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF003Detector(ctx))
+	ruletest.AssertRule(t, findings, "F003", 0)
 }
 
 func TestF004_ServerWithoutPrometheus(t *testing.T) {
@@ -127,8 +127,8 @@ func main() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF004Detector(ctx))
-	assertRule(t, findings, "F004", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF004Detector(ctx))
+	ruletest.AssertRule(t, findings, "F004", 1)
 }
 
 func TestF005_WithSchemaVersionNoUpcaster(t *testing.T) {
@@ -143,8 +143,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF005Detector(ctx))
-	assertRule(t, findings, "F005", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF005Detector(ctx))
+	ruletest.AssertRule(t, findings, "F005", 1)
 }
 
 func TestF005_NoFindingWithUpcaster(t *testing.T) {
@@ -160,8 +160,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF005Detector(ctx))
-	assertRule(t, findings, "F005", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF005Detector(ctx))
+	ruletest.AssertRule(t, findings, "F005", 0)
 }
 
 func TestF006_PIIFieldWithoutEncryption(t *testing.T) {
@@ -177,8 +177,8 @@ type UserCreatedEvent struct {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF006Detector(ctx))
-	assertRule(t, findings, "F006", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF006Detector(ctx))
+	ruletest.AssertRule(t, findings, "F006", 1)
 }
 
 func TestF006_NoFindingWithoutPII(t *testing.T) {
@@ -193,8 +193,8 @@ type UserCreatedEvent struct {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF006Detector(ctx))
-	assertRule(t, findings, "F006", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF006Detector(ctx))
+	ruletest.AssertRule(t, findings, "F006", 0)
 }
 
 func TestF007_CommandDispatchWithoutIdempotency(t *testing.T) {
@@ -209,8 +209,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF007Detector(ctx))
-	assertRule(t, findings, "F007", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF007Detector(ctx))
+	ruletest.AssertRule(t, findings, "F007", 1)
 }
 
 func TestF008_JSONCodecWithManyEvents(t *testing.T) {
@@ -231,8 +231,8 @@ var jsonCodec = codec.JSONCodec{}
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF008Detector(ctx))
-	assertRule(t, findings, "F008", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF008Detector(ctx))
+	ruletest.AssertRule(t, findings, "F008", 1)
 }
 
 func TestF008_NoFindingWithCBOR(t *testing.T) {
@@ -253,8 +253,8 @@ var cborCodec = codec.CBORCodec{}
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF008Detector(ctx))
-	assertRule(t, findings, "F008", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF008Detector(ctx))
+	ruletest.AssertRule(t, findings, "F008", 0)
 }
 
 func TestF009_TimeAfterFuncWithoutScheduling(t *testing.T) {
@@ -271,6 +271,6 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF009Detector(ctx))
-	assertRule(t, findings, "F009", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF009Detector(ctx))
+	ruletest.AssertRule(t, findings, "F009", 1)
 }

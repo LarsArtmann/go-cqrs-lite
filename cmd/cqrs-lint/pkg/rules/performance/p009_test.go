@@ -46,8 +46,8 @@ func init() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP009Detector(ctx))
-	assertRule(t, findings, "P009", 1)
+	findings := ruletest.RunDetector(t, performance.NewP009Detector(ctx))
+	ruletest.AssertRule(t, findings, "P009", 1)
 }
 
 func TestP009_DetectsByteSliceWithJSONCodec(t *testing.T) {
@@ -77,8 +77,8 @@ func init() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP009Detector(ctx))
-	assertRule(t, findings, "P009", 1)
+	findings := ruletest.RunDetector(t, performance.NewP009Detector(ctx))
+	ruletest.AssertRule(t, findings, "P009", 1)
 }
 
 func TestP009_NoFindingWhenUsingCBOR(t *testing.T) {
@@ -109,8 +109,8 @@ type MessageCreated struct {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP009Detector(ctx))
-	assertRule(t, findings, "P009", 0)
+	findings := ruletest.RunDetector(t, performance.NewP009Detector(ctx))
+	ruletest.AssertRule(t, findings, "P009", 0)
 }
 
 func TestP009_NoFindingForSmallPayload(t *testing.T) {
@@ -140,8 +140,8 @@ func init() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP009Detector(ctx))
-	assertRule(t, findings, "P009", 0)
+	findings := ruletest.RunDetector(t, performance.NewP009Detector(ctx))
+	ruletest.AssertRule(t, findings, "P009", 0)
 }
 
 func TestP009_NoFindingForNonEventStruct(t *testing.T) {
@@ -182,6 +182,6 @@ func init() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP009Detector(ctx))
-	assertRule(t, findings, "P009", 0)
+	findings := ruletest.RunDetector(t, performance.NewP009Detector(ctx))
+	ruletest.AssertRule(t, findings, "P009", 0)
 }

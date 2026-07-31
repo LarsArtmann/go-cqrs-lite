@@ -24,8 +24,8 @@ func (b *CustomBus) UsePublish(mw interface{}) error { return nil }
 func (b *CustomBus) Close() error { return nil }
 `,
 	})
-	findings := runDetector(t, api.NewA020Detector(ctx))
-	assertRule(t, findings, "A020", 1)
+	findings := ruletest.RunDetector(t, api.NewA020Detector(ctx))
+	ruletest.AssertRule(t, findings, "A020", 1)
 }
 
 func TestA020_NoFindingForPartialBus(t *testing.T) {
@@ -41,8 +41,8 @@ func (b *PartialBus) Use(mw interface{}) {}
 func (b *PartialBus) Close() error { return nil }
 `,
 	})
-	findings := runDetector(t, api.NewA020Detector(ctx))
-	assertRule(t, findings, "A020", 0)
+	findings := ruletest.RunDetector(t, api.NewA020Detector(ctx))
+	ruletest.AssertRule(t, findings, "A020", 0)
 }
 
 func TestA020_NoFindingWithoutUsePublish(t *testing.T) {
@@ -60,8 +60,8 @@ func (b *NoPublishBus) Publish(evt event.Event) {}
 func (b *NoPublishBus) Close() error { return nil }
 `,
 	})
-	findings := runDetector(t, api.NewA020Detector(ctx))
-	assertRule(t, findings, "A020", 0)
+	findings := ruletest.RunDetector(t, api.NewA020Detector(ctx))
+	ruletest.AssertRule(t, findings, "A020", 0)
 }
 
 func TestA020_NoFindingWithoutCQRSImport(t *testing.T) {
@@ -77,8 +77,8 @@ func (b *CustomBus) UsePublish(mw interface{}) error { return nil }
 func (b *CustomBus) Close() error { return nil }
 `,
 	})
-	findings := runDetector(t, api.NewA020Detector(ctx))
-	assertRule(t, findings, "A020", 0)
+	findings := ruletest.RunDetector(t, api.NewA020Detector(ctx))
+	ruletest.AssertRule(t, findings, "A020", 0)
 }
 
 // --- A021: Custom event.Store reimplementation ---
@@ -98,8 +98,8 @@ func (s *CustomStore) LoadFromVersion(ctx interface{}, ref string, ver event.Ver
 }
 `,
 	})
-	findings := runDetector(t, api.NewA021Detector(ctx))
-	assertRule(t, findings, "A021", 1)
+	findings := ruletest.RunDetector(t, api.NewA021Detector(ctx))
+	ruletest.AssertRule(t, findings, "A021", 1)
 }
 
 func TestA021_NoFindingForPartialStore(t *testing.T) {
@@ -112,8 +112,8 @@ func (s *CustomStore) Save(ctx interface{}, ref string) error { return nil }
 func (s *CustomStore) Load(ctx interface{}, ref string) error { return nil }
 `,
 	})
-	findings := runDetector(t, api.NewA021Detector(ctx))
-	assertRule(t, findings, "A021", 0)
+	findings := ruletest.RunDetector(t, api.NewA021Detector(ctx))
+	ruletest.AssertRule(t, findings, "A021", 0)
 }
 
 // --- A022: Raw otel.Tracer/Meter ---
@@ -133,8 +133,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA022Detector(ctx))
-	assertRule(t, findings, "A022", 1)
+	findings := ruletest.RunDetector(t, api.NewA022Detector(ctx))
+	ruletest.AssertRule(t, findings, "A022", 1)
 }
 
 func TestA022_DetectsRawOtelMeter(t *testing.T) {
@@ -152,8 +152,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA022Detector(ctx))
-	assertRule(t, findings, "A022", 1)
+	findings := ruletest.RunDetector(t, api.NewA022Detector(ctx))
+	ruletest.AssertRule(t, findings, "A022", 1)
 }
 
 func TestA022_NoFindingForCqrsotel(t *testing.T) {
@@ -168,8 +168,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA022Detector(ctx))
-	assertRule(t, findings, "A022", 0)
+	findings := ruletest.RunDetector(t, api.NewA022Detector(ctx))
+	ruletest.AssertRule(t, findings, "A022", 0)
 }
 
 func TestA022_NoFindingWithoutCQRSImport(t *testing.T) {
@@ -184,8 +184,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA022Detector(ctx))
-	assertRule(t, findings, "A022", 0)
+	findings := ruletest.RunDetector(t, api.NewA022Detector(ctx))
+	ruletest.AssertRule(t, findings, "A022", 0)
 }
 
 // --- A023: Custom snapshot store ---
@@ -204,8 +204,8 @@ func (s *MemorySnapshotStore) Load(ctx interface{}, ref string) (interface{}, er
 }
 `,
 	})
-	findings := runDetector(t, api.NewA023Detector(ctx))
-	assertRule(t, findings, "A023", 1)
+	findings := ruletest.RunDetector(t, api.NewA023Detector(ctx))
+	ruletest.AssertRule(t, findings, "A023", 1)
 }
 
 func TestA023_NoFindingForNonSnapshotNamedStore(t *testing.T) {
@@ -220,8 +220,8 @@ func (s *CustomStore) Save(ctx interface{}, ref string) error { return nil }
 func (s *CustomStore) Load(ctx interface{}, ref string) error { return nil }
 `,
 	})
-	findings := runDetector(t, api.NewA023Detector(ctx))
-	assertRule(t, findings, "A023", 0)
+	findings := ruletest.RunDetector(t, api.NewA023Detector(ctx))
+	ruletest.AssertRule(t, findings, "A023", 0)
 }
 
 // --- A024: Decorative event sourcing ---
@@ -242,8 +242,8 @@ func fold(s State, evt event.Event) (State, error) { return s, nil }
 var d = decider.Decider[State]{Initial: State{}, Fold: fold}
 `,
 	})
-	findings := runDetector(t, api.NewA024Detector(ctx))
-	assertRule(t, findings, "A024", 1)
+	findings := ruletest.RunDetector(t, api.NewA024Detector(ctx))
+	ruletest.AssertRule(t, findings, "A024", 1)
 }
 
 func TestA024_NoFindingWhenWired(t *testing.T) {
@@ -261,8 +261,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA024Detector(ctx))
-	assertRule(t, findings, "A024", 0)
+	findings := ruletest.RunDetector(t, api.NewA024Detector(ctx))
+	ruletest.AssertRule(t, findings, "A024", 0)
 }
 
 func TestA024_NoFindingWithoutEventImport(t *testing.T) {
@@ -275,8 +275,8 @@ type State struct{ Count int }
 var d = decider.Decider[State]{Initial: State{}}
 `,
 	})
-	findings := runDetector(t, api.NewA024Detector(ctx))
-	assertRule(t, findings, "A024", 0)
+	findings := ruletest.RunDetector(t, api.NewA024Detector(ctx))
+	ruletest.AssertRule(t, findings, "A024", 0)
 }
 
 // --- A025: Command/query only, no events ---
@@ -296,8 +296,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA025Detector(ctx))
-	assertRule(t, findings, "A025", 1)
+	findings := ruletest.RunDetector(t, api.NewA025Detector(ctx))
+	ruletest.AssertRule(t, findings, "A025", 1)
 }
 
 func TestA025_NoFindingWhenEventSourcingPresent(t *testing.T) {
@@ -315,8 +315,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA025Detector(ctx))
-	assertRule(t, findings, "A025", 0)
+	findings := ruletest.RunDetector(t, api.NewA025Detector(ctx))
+	ruletest.AssertRule(t, findings, "A025", 0)
 }
 
 // --- A026: Event bus only, no CQRS pipeline ---
@@ -336,8 +336,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA026Detector(ctx))
-	assertRule(t, findings, "A026", 1)
+	findings := ruletest.RunDetector(t, api.NewA026Detector(ctx))
+	ruletest.AssertRule(t, findings, "A026", 1)
 }
 
 func TestA026_NoFindingWhenCommandPresent(t *testing.T) {
@@ -355,8 +355,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA026Detector(ctx))
-	assertRule(t, findings, "A026", 0)
+	findings := ruletest.RunDetector(t, api.NewA026Detector(ctx))
+	ruletest.AssertRule(t, findings, "A026", 0)
 }
 
 // --- A029: UsePublish stub returning nil ---
@@ -372,8 +372,8 @@ type CustomBus struct{}
 func (b *CustomBus) UsePublish(mw interface{}) error { return nil }
 `,
 	})
-	findings := runDetector(t, api.NewA029Detector(ctx))
-	assertRule(t, findings, "A029", 1)
+	findings := ruletest.RunDetector(t, api.NewA029Detector(ctx))
+	ruletest.AssertRule(t, findings, "A029", 1)
 }
 
 func TestA029_NoFindingForImplementedUsePublish(t *testing.T) {
@@ -392,8 +392,8 @@ func (b *CustomBus) UsePublish(mw interface{}) error {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA029Detector(ctx))
-	assertRule(t, findings, "A029", 0)
+	findings := ruletest.RunDetector(t, api.NewA029Detector(ctx))
+	ruletest.AssertRule(t, findings, "A029", 0)
 }
 
 func TestA029_NoFindingWithoutCQRSImport(t *testing.T) {
@@ -405,6 +405,6 @@ type CustomBus struct{}
 func (b *CustomBus) UsePublish(mw interface{}) error { return nil }
 `,
 	})
-	findings := runDetector(t, api.NewA029Detector(ctx))
-	assertRule(t, findings, "A029", 0)
+	findings := ruletest.RunDetector(t, api.NewA029Detector(ctx))
+	ruletest.AssertRule(t, findings, "A029", 0)
 }

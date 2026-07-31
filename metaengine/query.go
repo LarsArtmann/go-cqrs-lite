@@ -214,7 +214,9 @@ func (q *QueryDecl[Q, R]) infer() {
 // extractDeclarativeFields returns the filter and sort field names declared
 // via FilterOnField/SortOnField (specs with non-nil Column). Closure-only
 // filters (FilterOn/SortOn) are excluded — they cannot be pushed to SQL.
-func extractDeclarativeFields(cfg QueryConfig) (filterFields, sortFields []string) { //nolint:nonamedreturns
+func extractDeclarativeFields(
+	cfg QueryConfig,
+) (filterFields, sortFields []string) { //nolint:nonamedreturns
 	for _, acc := range cfg.filterAccessors {
 		if acc.spec != nil {
 			filterFields = append(filterFields, acc.spec.Column)

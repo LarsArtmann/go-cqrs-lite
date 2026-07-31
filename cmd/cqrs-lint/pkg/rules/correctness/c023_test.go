@@ -18,8 +18,8 @@ func shutdown(host *Host) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC023Detector(ctx))
-	assertRule(t, findings, "C023", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC023Detector(ctx))
+	ruletest.AssertRule(t, findings, "C023", 1)
 }
 
 func TestC023_NoFindingInDefer(t *testing.T) {
@@ -33,8 +33,8 @@ func shutdown(host *Host) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC023Detector(ctx))
-	assertRule(t, findings, "C023", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC023Detector(ctx))
+	ruletest.AssertRule(t, findings, "C023", 0)
 }
 
 func TestC023_NoFindingWhenErrorChecked(t *testing.T) {
@@ -48,6 +48,6 @@ func shutdown(host *Host) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC023Detector(ctx))
-	assertRule(t, findings, "C023", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC023Detector(ctx))
+	ruletest.AssertRule(t, findings, "C023", 0)
 }

@@ -21,8 +21,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB002Detector(ctx))
-	assertRule(t, findings, "B002", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB002Detector(ctx))
+	ruletest.AssertRule(t, findings, "B002", 1)
 }
 
 func TestB002_NoFindingForSimpleFunc(t *testing.T) {
@@ -32,8 +32,8 @@ func TestB002_NoFindingForSimpleFunc(t *testing.T) {
 func main() {}
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB002Detector(ctx))
-	assertRule(t, findings, "B002", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB002Detector(ctx))
+	ruletest.AssertRule(t, findings, "B002", 0)
 }
 
 // --- B003: SubscribeAll with large switch ---
@@ -56,8 +56,8 @@ func subscribe(bus *Bus) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB003Detector(ctx))
-	assertRule(t, findings, "B003", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB003Detector(ctx))
+	ruletest.AssertRule(t, findings, "B003", 1)
 }
 
 func TestB003_NoFindingForSmallSwitch(t *testing.T) {
@@ -74,8 +74,8 @@ func subscribe(bus *Bus) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB003Detector(ctx))
-	assertRule(t, findings, "B003", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB003Detector(ctx))
+	ruletest.AssertRule(t, findings, "B003", 0)
 }
 
 // --- B006: Duplicate FK stub SQL ---
@@ -88,8 +88,8 @@ const userFK = "REFERENCES users(id)"
 const orderFK = "REFERENCES users(id)"
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB006Detector(ctx))
-	assertRule(t, findings, "B006", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB006Detector(ctx))
+	ruletest.AssertRule(t, findings, "B006", 1)
 }
 
 func TestB006_NoFindingForUniqueFK(t *testing.T) {
@@ -100,8 +100,8 @@ const userFK = "REFERENCES users(id)"
 const orderFK = "REFERENCES orders(id)"
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB006Detector(ctx))
-	assertRule(t, findings, "B006", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB006Detector(ctx))
+	ruletest.AssertRule(t, findings, "B006", 0)
 }
 
 // --- B007: Repeated handler registration ---
@@ -117,8 +117,8 @@ func setup(d *Dispatcher) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB007Detector(ctx))
-	assertRule(t, findings, "B007", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB007Detector(ctx))
+	ruletest.AssertRule(t, findings, "B007", 1)
 }
 
 func TestB007_NoFindingForTwoRegistrations(t *testing.T) {
@@ -131,8 +131,8 @@ func setup(d *Dispatcher) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB007Detector(ctx))
-	assertRule(t, findings, "B007", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB007Detector(ctx))
+	ruletest.AssertRule(t, findings, "B007", 0)
 }
 
 // B007 must NOT fire on third-party Register calls whose method name collides
@@ -155,8 +155,8 @@ func registerRoutes(api huma.API) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB007Detector(ctx))
-	assertRule(t, findings, "B007", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB007Detector(ctx))
+	ruletest.AssertRule(t, findings, "B007", 0)
 }
 
 // B007 counts CQRS registrations qualified by a variable (the idiomatic
@@ -177,8 +177,8 @@ func setup(d *Dispatcher, api huma.API) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB007Detector(ctx))
-	assertRule(t, findings, "B007", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB007Detector(ctx))
+	ruletest.AssertRule(t, findings, "B007", 1)
 }
 
 // --- B008: Manual retry ---
@@ -201,8 +201,8 @@ func withRetry(fn func() error) error {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB008Detector(ctx))
-	assertRule(t, findings, "B008", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB008Detector(ctx))
+	ruletest.AssertRule(t, findings, "B008", 1)
 }
 
 func TestB008_NoFindingForSimpleLoop(t *testing.T) {
@@ -216,8 +216,8 @@ func process(items []int) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB008Detector(ctx))
-	assertRule(t, findings, "B008", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB008Detector(ctx))
+	ruletest.AssertRule(t, findings, "B008", 0)
 }
 
 // --- B009: Emit function boilerplate ---
@@ -232,8 +232,8 @@ func emitCreated(bus *Bus, id string) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB009Detector(ctx))
-	assertRule(t, findings, "B009", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB009Detector(ctx))
+	ruletest.AssertRule(t, findings, "B009", 1)
 }
 
 func TestB009_NoFindingForRegularFunction(t *testing.T) {
@@ -245,8 +245,8 @@ func handle(id string) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB009Detector(ctx))
-	assertRule(t, findings, "B009", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB009Detector(ctx))
+	ruletest.AssertRule(t, findings, "B009", 0)
 }
 
 // --- B010: Catalog event list boilerplate ---
@@ -262,8 +262,8 @@ func registerCatalog(r *Registry) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB010Detector(ctx))
-	assertRule(t, findings, "B010", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB010Detector(ctx))
+	ruletest.AssertRule(t, findings, "B010", 1)
 }
 
 func TestB010_NoFindingForTwoEvents(t *testing.T) {
@@ -276,8 +276,8 @@ func registerCatalog(r *Registry) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB010Detector(ctx))
-	assertRule(t, findings, "B010", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB010Detector(ctx))
+	ruletest.AssertRule(t, findings, "B010", 0)
 }
 
 // --- B011: Must-marshal helper ---
@@ -295,8 +295,8 @@ func mustMarshal(v any) []byte {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB011Detector(ctx))
-	assertRule(t, findings, "B011", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB011Detector(ctx))
+	ruletest.AssertRule(t, findings, "B011", 1)
 }
 
 func TestB011_NoFindingForRegularFunc(t *testing.T) {
@@ -308,8 +308,8 @@ func handle(v any) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB011Detector(ctx))
-	assertRule(t, findings, "B011", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB011Detector(ctx))
+	ruletest.AssertRule(t, findings, "B011", 0)
 }
 
 // --- B012: Make-event helper ---
@@ -324,8 +324,8 @@ func makeEvent(t string, payload any) []byte {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB012Detector(ctx))
-	assertRule(t, findings, "B012", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB012Detector(ctx))
+	ruletest.AssertRule(t, findings, "B012", 1)
 }
 
 func TestB012_NoFindingForNonEventHelper(t *testing.T) {
@@ -337,8 +337,8 @@ func makeRequest(id string) string {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB012Detector(ctx))
-	assertRule(t, findings, "B012", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB012Detector(ctx))
+	ruletest.AssertRule(t, findings, "B012", 0)
 }
 
 // --- B013: Missing correlation enricher ---
@@ -347,8 +347,8 @@ func TestB013_NoFindingWithoutRepository(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, boilerplate.NewB013Detector(ctx))
-	assertRule(t, findings, "B013", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB013Detector(ctx))
+	ruletest.AssertRule(t, findings, "B013", 0)
 }
 
 func TestB013_DetectsMissingCorrelation(t *testing.T) {
@@ -361,8 +361,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB013Detector(ctx))
-	assertRule(t, findings, "B013", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB013Detector(ctx))
+	ruletest.AssertRule(t, findings, "B013", 1)
 }
 
 // --- B014: Missing OTel middleware ---
@@ -371,8 +371,8 @@ func TestB014_NoFindingWithoutMiddleware(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, boilerplate.NewB014Detector(ctx))
-	assertRule(t, findings, "B014", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB014Detector(ctx))
+	ruletest.AssertRule(t, findings, "B014", 0)
 }
 
 func TestB014_DetectsMissingOTel(t *testing.T) {
@@ -386,8 +386,8 @@ func setup(bus *EventBus) {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, boilerplate.NewB014Detector(ctx))
-	assertRule(t, findings, "B014", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB014Detector(ctx))
+	ruletest.AssertRule(t, findings, "B014", 1)
 }
 
 // TestB014_SuppressedForNoServer: the same middleware fixture fires when
@@ -404,8 +404,8 @@ func setup(bus *EventBus) {
 `,
 	})
 	ctx.FeatureProfile.HasServer = false
-	findings := runDetector(t, boilerplate.NewB014Detector(ctx))
-	assertRule(t, findings, "B014", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB014Detector(ctx))
+	ruletest.AssertRule(t, findings, "B014", 0)
 }
 
 // --- B004: Command constructor boilerplate ---
@@ -414,8 +414,8 @@ func TestB004_NoFindingWithoutCommands(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, boilerplate.NewB004Detector(ctx))
-	assertRule(t, findings, "B004", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB004Detector(ctx))
+	ruletest.AssertRule(t, findings, "B004", 0)
 }
 
 func TestB004_DetectsManyFields(t *testing.T) {
@@ -435,8 +435,8 @@ type CreateOrder struct {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB004Detector(ctx))
-	assertRule(t, findings, "B004", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB004Detector(ctx))
+	ruletest.AssertRule(t, findings, "B004", 1)
 }
 
 // --- B005: Fold switch boilerplate ---
@@ -445,8 +445,8 @@ func TestB005_NoFindingWithoutFolds(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, boilerplate.NewB005Detector(ctx))
-	assertRule(t, findings, "B005", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB005Detector(ctx))
+	ruletest.AssertRule(t, findings, "B005", 0)
 }
 
 func TestB005_DetectsFoldSwitch(t *testing.T) {
@@ -463,8 +463,8 @@ func fold(state int, event event.Event) (int, error) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB005Detector(ctx))
-	assertRule(t, findings, "B005", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB005Detector(ctx))
+	ruletest.AssertRule(t, findings, "B005", 1)
 }
 
 // B005 must NOT fire when the fold function is already wrapped in
@@ -497,8 +497,8 @@ var CounterDecider = decider.Decider[int]{
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB005Detector(ctx))
-	assertRule(t, findings, "B005", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB005Detector(ctx))
+	ruletest.AssertRule(t, findings, "B005", 0)
 }
 
 // B005 must still fire for a fold that is NOT wrapped in StrictApply even when
@@ -537,8 +537,8 @@ var CounterDecider = decider.Decider[int]{
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB005Detector(ctx))
-	assertRule(t, findings, "B005", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB005Detector(ctx))
+	ruletest.AssertRule(t, findings, "B005", 1)
 }
 
 // --- B015: Missing test utilities ---
@@ -547,8 +547,8 @@ func TestB015_NoCrashOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, boilerplate.NewB015Detector(ctx))
-	assertRule(t, findings, "B015", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB015Detector(ctx))
+	ruletest.AssertRule(t, findings, "B015", 0)
 }
 
 func TestB015_DetectsMissingTestUtils(t *testing.T) {
@@ -561,6 +561,6 @@ import "testing"
 func TestSomething(t *testing.T) {}
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB015Detector(ctx))
-	assertRule(t, findings, "B015", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB015Detector(ctx))
+	ruletest.AssertRule(t, findings, "B015", 1)
 }

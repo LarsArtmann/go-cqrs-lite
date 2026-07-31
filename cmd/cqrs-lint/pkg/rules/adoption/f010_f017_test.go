@@ -19,8 +19,8 @@ func FindAncestors(id string) []string {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF010Detector(ctx))
-	assertRule(t, findings, "F010", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF010Detector(ctx))
+	ruletest.AssertRule(t, findings, "F010", 1)
 }
 
 func TestF010_NoFindingWithoutTraversal(t *testing.T) {
@@ -35,8 +35,8 @@ func GetUser(id string) *User {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF010Detector(ctx))
-	assertRule(t, findings, "F010", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF010Detector(ctx))
+	ruletest.AssertRule(t, findings, "F010", 0)
 }
 
 func TestF011_MultiExecWithoutRelationalProjection(t *testing.T) {
@@ -56,8 +56,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF011Detector(ctx))
-	assertRule(t, findings, "F011", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF011Detector(ctx))
+	ruletest.AssertRule(t, findings, "F011", 1)
 }
 
 func TestF012_SubscribeAllWithDispatchWithoutDeriver(t *testing.T) {
@@ -73,8 +73,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF012Detector(ctx))
-	assertRule(t, findings, "F012", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF012Detector(ctx))
+	ruletest.AssertRule(t, findings, "F012", 1)
 }
 
 func TestF013_ManualHTTPHandlerWithoutTransport(t *testing.T) {
@@ -92,8 +92,8 @@ func main() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF013Detector(ctx))
-	assertRule(t, findings, "F013", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF013Detector(ctx))
+	ruletest.AssertRule(t, findings, "F013", 1)
 }
 
 func TestF014_TypedStoreWithoutCache(t *testing.T) {
@@ -108,8 +108,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF014Detector(ctx))
-	assertRule(t, findings, "F014", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF014Detector(ctx))
+	ruletest.AssertRule(t, findings, "F014", 1)
 }
 
 func TestF014_NoFindingWithCache(t *testing.T) {
@@ -125,8 +125,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF014Detector(ctx))
-	assertRule(t, findings, "F014", 0)
+	findings := ruletest.RunDetector(t, adoption.NewF014Detector(ctx))
+	ruletest.AssertRule(t, findings, "F014", 0)
 }
 
 func TestF015_ManyQueriesWithoutMetaengine(t *testing.T) {
@@ -145,8 +145,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF015Detector(ctx))
-	assertRule(t, findings, "F015", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF015Detector(ctx))
+	ruletest.AssertRule(t, findings, "F015", 1)
 }
 
 func TestF016_ManyAggregatesWithoutListing(t *testing.T) {
@@ -165,8 +165,8 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF016Detector(ctx))
-	assertRule(t, findings, "F016", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF016Detector(ctx))
+	ruletest.AssertRule(t, findings, "F016", 1)
 }
 
 func TestF017_BusSubscriptionWithoutDedup(t *testing.T) {
@@ -181,6 +181,6 @@ func _() {
 `,
 	})
 
-	findings := runDetector(t, adoption.NewF017Detector(ctx))
-	assertRule(t, findings, "F017", 1)
+	findings := ruletest.RunDetector(t, adoption.NewF017Detector(ctx))
+	ruletest.AssertRule(t, findings, "F017", 1)
 }

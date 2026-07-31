@@ -44,6 +44,6 @@ func createEvent() {
 }
 `,
 	})
-	findings := runDetector(t, architecture.NewE004Detector(ctx))
-	assertRule(t, findings, "E004", 1)
+	findings := ruletest.RunDetector(t, architecture.NewE004Detector(ctx))
+	ruletest.AssertRule(t, findings, "E004", 1)
 }

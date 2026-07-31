@@ -19,8 +19,8 @@ type UserCreated struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD015Detector(ctx))
-	assertRule(t, findings, "D015", 2)
+	findings := ruletest.RunDetector(t, consistency.NewD015Detector(ctx))
+	ruletest.AssertRule(t, findings, "D015", 2)
 }
 
 func TestD015_NoFindingForValueFields(t *testing.T) {
@@ -35,8 +35,8 @@ type UserCreated struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD015Detector(ctx))
-	assertRule(t, findings, "D015", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD015Detector(ctx))
+	ruletest.AssertRule(t, findings, "D015", 0)
 }
 
 func TestD015_NoFindingForNonEventStruct(t *testing.T) {
@@ -50,8 +50,8 @@ type Config struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD015Detector(ctx))
-	assertRule(t, findings, "D015", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD015Detector(ctx))
+	ruletest.AssertRule(t, findings, "D015", 0)
 }
 
 func TestD015_NoFindingOnEmptyContext(t *testing.T) {
@@ -60,6 +60,6 @@ func TestD015_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, consistency.NewD015Detector(ctx))
-	assertRule(t, findings, "D015", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD015Detector(ctx))
+	ruletest.AssertRule(t, findings, "D015", 0)
 }

@@ -21,8 +21,8 @@ func handleEvent(ctx context.Context, evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD012Detector(ctx))
-	assertRule(t, findings, "D012", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD012Detector(ctx))
+	ruletest.AssertRule(t, findings, "D012", 1)
 }
 
 func TestD012_DetectsLogFatalInHandler(t *testing.T) {
@@ -39,8 +39,8 @@ func handleEvent(ctx context.Context, evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD012Detector(ctx))
-	assertRule(t, findings, "D012", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD012Detector(ctx))
+	ruletest.AssertRule(t, findings, "D012", 1)
 }
 
 func TestD012_NoFindingForSlogInHandler(t *testing.T) {
@@ -57,8 +57,8 @@ func handleEvent(ctx context.Context, evt Event) error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD012Detector(ctx))
-	assertRule(t, findings, "D012", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD012Detector(ctx))
+	ruletest.AssertRule(t, findings, "D012", 0)
 }
 
 func TestD012_NoFindingForPrintOutsideHandler(t *testing.T) {
@@ -72,6 +72,6 @@ func main() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD012Detector(ctx))
-	assertRule(t, findings, "D012", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD012Detector(ctx))
+	ruletest.AssertRule(t, findings, "D012", 0)
 }

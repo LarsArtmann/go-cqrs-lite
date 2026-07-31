@@ -46,8 +46,8 @@ type User struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD002Detector(ctx))
-	assertRule(t, findings, "D002", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD002Detector(ctx))
+	ruletest.AssertRule(t, findings, "D002", 1)
 }
 
 func TestD002_NoFindingForConsistentCasing(t *testing.T) {
@@ -60,8 +60,8 @@ type User struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD002Detector(ctx))
-	assertRule(t, findings, "D002", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD002Detector(ctx))
+	ruletest.AssertRule(t, findings, "D002", 0)
 }
 
 // D002 reports per-struct, not per-file. Cross-struct mixing (struct A all
@@ -84,8 +84,8 @@ type User struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD002Detector(ctx))
-	assertRule(t, findings, "D002", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD002Detector(ctx))
+	ruletest.AssertRule(t, findings, "D002", 0)
 }
 
 func TestD002_NoFindingWhenExternalAPIMarkerPresent(t *testing.T) {
@@ -106,8 +106,8 @@ type User struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD002Detector(ctx))
-	assertRule(t, findings, "D002", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD002Detector(ctx))
+	ruletest.AssertRule(t, findings, "D002", 0)
 }
 
 func TestD002_NoFindingWhenMarkerOnGroupedTypeBlock(t *testing.T) {
@@ -129,8 +129,8 @@ type User struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD002Detector(ctx))
-	assertRule(t, findings, "D002", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD002Detector(ctx))
+	ruletest.AssertRule(t, findings, "D002", 0)
 }
 
 func TestD002_NoFindingForConfiguredExternalAPIPrefix(t *testing.T) {
@@ -151,8 +151,8 @@ type User struct {
 `,
 	})
 	ctx.RulesConfig.ExternalAPIStructPrefixes = []string{"Discord"}
-	findings := runDetector(t, consistency.NewD002Detector(ctx))
-	assertRule(t, findings, "D002", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD002Detector(ctx))
+	ruletest.AssertRule(t, findings, "D002", 0)
 }
 
 func TestD002_FiresWhenPrefixDoesNotMatch(t *testing.T) {
@@ -169,6 +169,6 @@ type DiscordWebhook struct {
 `,
 	})
 	ctx.RulesConfig.ExternalAPIStructPrefixes = []string{"Stripe"}
-	findings := runDetector(t, consistency.NewD002Detector(ctx))
-	assertRule(t, findings, "D002", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD002Detector(ctx))
+	ruletest.AssertRule(t, findings, "D002", 1)
 }

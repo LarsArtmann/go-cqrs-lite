@@ -22,8 +22,8 @@ func setupReplay() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB016Detector(ctx))
-	assertRule(t, findings, "B016", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB016Detector(ctx))
+	ruletest.AssertRule(t, findings, "B016", 1)
 }
 
 func TestB016_NoFindingWithoutJournalLoop(t *testing.T) {
@@ -37,8 +37,8 @@ func setupDB() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB016Detector(ctx))
-	assertRule(t, findings, "B016", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB016Detector(ctx))
+	ruletest.AssertRule(t, findings, "B016", 0)
 }
 
 func TestB017_DetectsManualRebuild(t *testing.T) {
@@ -56,8 +56,8 @@ func Rebuild(ctx context.Context) error {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB017Detector(ctx))
-	assertRule(t, findings, "B017", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB017Detector(ctx))
+	ruletest.AssertRule(t, findings, "B017", 1)
 }
 
 func TestB017_NoFindingForRehydrateWithCheckpoint(t *testing.T) {
@@ -76,8 +76,8 @@ func Rehydrate(ctx context.Context) error {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB017Detector(ctx))
-	assertRule(t, findings, "B017", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB017Detector(ctx))
+	ruletest.AssertRule(t, findings, "B017", 0)
 }
 
 func TestB018_DetectsRepeatedSubscribe(t *testing.T) {
@@ -93,8 +93,8 @@ func setup(bus *eventBus) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB018Detector(ctx))
-	assertRule(t, findings, "B018", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB018Detector(ctx))
+	ruletest.AssertRule(t, findings, "B018", 1)
 }
 
 func TestB018_NoFindingForTwoSubscribes(t *testing.T) {
@@ -109,8 +109,8 @@ func setup(bus *eventBus) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB018Detector(ctx))
-	assertRule(t, findings, "B018", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB018Detector(ctx))
+	ruletest.AssertRule(t, findings, "B018", 0)
 }
 
 func TestB019_DetectsLoadInSubscribeAll(t *testing.T) {
@@ -128,8 +128,8 @@ func setup(bus *eventBus) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB019Detector(ctx))
-	assertRule(t, findings, "B019", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB019Detector(ctx))
+	ruletest.AssertRule(t, findings, "B019", 1)
 }
 
 func TestB019_NoFindingForDirectProjection(t *testing.T) {
@@ -147,8 +147,8 @@ func setup(bus *eventBus) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB019Detector(ctx))
-	assertRule(t, findings, "B019", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB019Detector(ctx))
+	ruletest.AssertRule(t, findings, "B019", 0)
 }
 
 func TestB020_DetectsManualUpcasting(t *testing.T) {
@@ -172,8 +172,8 @@ func decodeItem(data []byte) (*Item, error) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB020Detector(ctx))
-	assertRule(t, findings, "B020", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB020Detector(ctx))
+	ruletest.AssertRule(t, findings, "B020", 1)
 }
 
 func TestB020_NoFindingInsideSchemaUpcaster(t *testing.T) {
@@ -196,8 +196,8 @@ func makeUpcaster() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB020Detector(ctx))
-	assertRule(t, findings, "B020", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB020Detector(ctx))
+	ruletest.AssertRule(t, findings, "B020", 0)
 }
 
 func TestB022_DetectsCustomEnricher(t *testing.T) {
@@ -212,8 +212,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB022Detector(ctx))
-	assertRule(t, findings, "B022", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB022Detector(ctx))
+	ruletest.AssertRule(t, findings, "B022", 1)
 }
 
 func TestB022_NoFindingForCommandCausalityEnricher(t *testing.T) {
@@ -228,8 +228,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB022Detector(ctx))
-	assertRule(t, findings, "B022", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB022Detector(ctx))
+	ruletest.AssertRule(t, findings, "B022", 0)
 }
 
 func TestB025_DetectsMissingStateCache(t *testing.T) {
@@ -244,8 +244,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB025Detector(ctx))
-	assertRule(t, findings, "B025", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB025Detector(ctx))
+	ruletest.AssertRule(t, findings, "B025", 1)
 }
 
 func TestB025_NoFindingWithStateCache(t *testing.T) {
@@ -261,8 +261,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB025Detector(ctx))
-	assertRule(t, findings, "B025", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB025Detector(ctx))
+	ruletest.AssertRule(t, findings, "B025", 0)
 }
 
 func TestB026_DetectsMissingCatalogRegistration(t *testing.T) {
@@ -280,8 +280,8 @@ func createEvents() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB026Detector(ctx))
-	assertRule(t, findings, "B026", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB026Detector(ctx))
+	ruletest.AssertRule(t, findings, "B026", 1)
 }
 
 func TestB026_NoFindingWithCatalogImport(t *testing.T) {
@@ -303,6 +303,6 @@ func createEvents() {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB026Detector(ctx))
-	assertRule(t, findings, "B026", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB026Detector(ctx))
+	ruletest.AssertRule(t, findings, "B026", 0)
 }

@@ -16,9 +16,9 @@ func TestA009_FiresWithoutStackPreset(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, api.NewA009Detector(ctx))
+	findings := ruletest.RunDetector(t, api.NewA009Detector(ctx))
 	// A009 fires when no package imports stack/ — the test context has no imports
-	assertRule(t, findings, "A009", 1)
+	ruletest.AssertRule(t, findings, "A009", 1)
 }
 
 // A009 must NOT fire when the project uses the storage/ facade directly — this
@@ -37,8 +37,8 @@ func TestA009_NoFindingForStorageFacadeArchitecture(t *testing.T) {
 			},
 		},
 	}}
-	findings := runDetector(t, api.NewA009Detector(ctx))
-	assertRule(t, findings, "A009", 0)
+	findings := ruletest.RunDetector(t, api.NewA009Detector(ctx))
+	ruletest.AssertRule(t, findings, "A009", 0)
 }
 
 // --- A010: Custom error types ---
@@ -53,8 +53,8 @@ type DomainError interface {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA010Detector(ctx))
-	assertRule(t, findings, "A010", 1)
+	findings := ruletest.RunDetector(t, api.NewA010Detector(ctx))
+	ruletest.AssertRule(t, findings, "A010", 1)
 }
 
 func TestA010_NoFindingForNonErrorInterface(t *testing.T) {
@@ -66,8 +66,8 @@ type Handler interface {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA010Detector(ctx))
-	assertRule(t, findings, "A010", 0)
+	findings := ruletest.RunDetector(t, api.NewA010Detector(ctx))
+	ruletest.AssertRule(t, findings, "A010", 0)
 }
 
 // --- A011: Inconsistent JSON key casing in event payloads ---
@@ -82,8 +82,8 @@ type UserCreated struct {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA011Detector(ctx))
-	assertRule(t, findings, "A011", 1)
+	findings := ruletest.RunDetector(t, api.NewA011Detector(ctx))
+	ruletest.AssertRule(t, findings, "A011", 1)
 }
 
 func TestA011_NoFindingForConsistentCasing(t *testing.T) {
@@ -96,8 +96,8 @@ type UserCreated struct {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA011Detector(ctx))
-	assertRule(t, findings, "A011", 0)
+	findings := ruletest.RunDetector(t, api.NewA011Detector(ctx))
+	ruletest.AssertRule(t, findings, "A011", 0)
 }
 
 // --- A012: Missing tombstone handling ---
@@ -106,8 +106,8 @@ func TestA012_NoFindingWithoutFolds(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, api.NewA012Detector(ctx))
-	assertRule(t, findings, "A012", 0)
+	findings := ruletest.RunDetector(t, api.NewA012Detector(ctx))
+	ruletest.AssertRule(t, findings, "A012", 0)
 }
 
 // --- A013: Pointer vs value BasicCommand ---
@@ -122,8 +122,8 @@ type CreateCmd struct {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA013Detector(ctx))
-	assertRule(t, findings, "A013", 1)
+	findings := ruletest.RunDetector(t, api.NewA013Detector(ctx))
+	ruletest.AssertRule(t, findings, "A013", 1)
 }
 
 // --- A014: Deprecated API usage ---
@@ -137,8 +137,8 @@ func createEvent() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA014Detector(ctx))
-	assertRule(t, findings, "A014", 1)
+	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
+	ruletest.AssertRule(t, findings, "A014", 1)
 }
 
 func TestA014_NoFindingForEventNew(t *testing.T) {
@@ -150,8 +150,8 @@ func createEvent() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA014Detector(ctx))
-	assertRule(t, findings, "A014", 0)
+	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
+	ruletest.AssertRule(t, findings, "A014", 0)
 }
 
 // --- A015: Global mutable state ---
@@ -168,8 +168,8 @@ func update(key, val string) {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, api.NewA015Detector(ctx))
-	assertRule(t, findings, "A015", 1)
+	findings := ruletest.RunDetector(t, api.NewA015Detector(ctx))
+	ruletest.AssertRule(t, findings, "A015", 1)
 }
 
 func TestA015_NoFindingForErrPrefix(t *testing.T) {
@@ -179,8 +179,8 @@ func TestA015_NoFindingForErrPrefix(t *testing.T) {
 var ErrCacheMiss = errors.New("cache miss")
 `,
 	})
-	findings := runDetector(t, api.NewA015Detector(ctx))
-	assertRule(t, findings, "A015", 0)
+	findings := ruletest.RunDetector(t, api.NewA015Detector(ctx))
+	ruletest.AssertRule(t, findings, "A015", 0)
 }
 
 func TestA015_NoFindingForNonMutableVar(t *testing.T) {
@@ -190,8 +190,8 @@ func TestA015_NoFindingForNonMutableVar(t *testing.T) {
 var defaultTimeout = 30 * time.Second
 `,
 	})
-	findings := runDetector(t, api.NewA015Detector(ctx))
-	assertRule(t, findings, "A015", 0)
+	findings := ruletest.RunDetector(t, api.NewA015Detector(ctx))
+	ruletest.AssertRule(t, findings, "A015", 0)
 }
 
 // --- A015: Read-only global registry (initialized at load, never written) ---
@@ -210,8 +210,8 @@ func lookup(key string) string {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA015Detector(ctx))
-	assertRule(t, findings, "A015", 0)
+	findings := ruletest.RunDetector(t, api.NewA015Detector(ctx))
+	ruletest.AssertRule(t, findings, "A015", 0)
 }
 
 // --- A017: Missing snapshot strategy ---
@@ -225,8 +225,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA017Detector(ctx))
-	assertRule(t, findings, "A017", 1)
+	findings := ruletest.RunDetector(t, api.NewA017Detector(ctx))
+	ruletest.AssertRule(t, findings, "A017", 1)
 }
 
 func TestA017_NoFindingForRepoWithSnapshot(t *testing.T) {
@@ -241,8 +241,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA017Detector(ctx))
-	assertRule(t, findings, "A017", 0)
+	findings := ruletest.RunDetector(t, api.NewA017Detector(ctx))
+	ruletest.AssertRule(t, findings, "A017", 0)
 }
 
 // A017: WithSnapshotStore without WithSnapshotStrategy should fire (warning).
@@ -255,8 +255,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA017Detector(ctx))
-	assertRule(t, findings, "A017", 1)
+	findings := ruletest.RunDetector(t, api.NewA017Detector(ctx))
+	ruletest.AssertRule(t, findings, "A017", 1)
 }
 
 // A017: WithStateCache alone is fine (no snapshot needed).
@@ -269,8 +269,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA017Detector(ctx))
-	assertRule(t, findings, "A017", 0)
+	findings := ruletest.RunDetector(t, api.NewA017Detector(ctx))
+	ruletest.AssertRule(t, findings, "A017", 0)
 }
 
 // --- A016, A018, A019: Package-import-based rules ---
@@ -279,26 +279,26 @@ func TestA016_NoCrashOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, api.NewA016Detector(ctx))
-	assertRule(t, findings, "A016", 0)
+	findings := ruletest.RunDetector(t, api.NewA016Detector(ctx))
+	ruletest.AssertRule(t, findings, "A016", 0)
 }
 
 func TestA018_FiresOnNoEventSourcing(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, api.NewA018Detector(ctx))
+	findings := ruletest.RunDetector(t, api.NewA018Detector(ctx))
 	// A018 fires when there are no Save/Publish calls and no folds
 	// since the test context has none, it reports the anti-pattern
-	assertRule(t, findings, "A018", 1)
+	ruletest.AssertRule(t, findings, "A018", 1)
 }
 
 func TestA019_NoCrashOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, api.NewA019Detector(ctx))
-	assertRule(t, findings, "A019", 0)
+	findings := ruletest.RunDetector(t, api.NewA019Detector(ctx))
+	ruletest.AssertRule(t, findings, "A019", 0)
 }
 
 // --- Positive tests for previously untested rules ---
@@ -316,8 +316,8 @@ func (c *CreateUser) Type() string { return "createUser" }
 func (c *CreateUser) StreamID() string { return "" }
 `,
 	})
-	findings := runDetector(t, api.NewA001Detector(ctx))
-	assertRule(t, findings, "A001", 1)
+	findings := ruletest.RunDetector(t, api.NewA001Detector(ctx))
+	ruletest.AssertRule(t, findings, "A001", 1)
 }
 
 func TestA003_DetectsExplicitCodec(t *testing.T) {
@@ -329,8 +329,8 @@ func handle(evt Event) {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA003Detector(ctx))
-	assertRule(t, findings, "A003", 1)
+	findings := ruletest.RunDetector(t, api.NewA003Detector(ctx))
+	ruletest.AssertRule(t, findings, "A003", 1)
 }
 
 func TestA004_DetectsTypeAssertionInHandler(t *testing.T) {
@@ -346,8 +346,8 @@ func register(d Dispatcher) {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA004Detector(ctx))
-	assertRule(t, findings, "A004", 1)
+	findings := ruletest.RunDetector(t, api.NewA004Detector(ctx))
+	ruletest.AssertRule(t, findings, "A004", 1)
 }
 
 func TestA005_DetectsSubscribeAllWithoutProjectionHost(t *testing.T) {
@@ -361,8 +361,8 @@ func setup(bus EventBus, store Store) {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA005Detector(ctx))
-	assertRule(t, findings, "A005", 1)
+	findings := ruletest.RunDetector(t, api.NewA005Detector(ctx))
+	ruletest.AssertRule(t, findings, "A005", 1)
 }
 
 // A005 must NOT flag SubscribeAll callbacks that only broadcast/notify —
@@ -386,8 +386,8 @@ func setupStats(bus EventBus, notifier *Notifier) {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA005Detector(ctx))
-	assertRule(t, findings, "A005", 0)
+	findings := ruletest.RunDetector(t, api.NewA005Detector(ctx))
+	ruletest.AssertRule(t, findings, "A005", 0)
 }
 
 // A005 must NOT flag SubscribeAll callbacks that use the widened broadcast
@@ -424,8 +424,8 @@ func dispatchDerived(bus EventBus, cmdBus CommandBus) {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA005Detector(ctx))
-	assertRule(t, findings, "A005", 0)
+	findings := ruletest.RunDetector(t, api.NewA005Detector(ctx))
+	ruletest.AssertRule(t, findings, "A005", 0)
 }
 
 // A005 must STILL flag a callback that both broadcasts AND persists — the
@@ -443,8 +443,8 @@ func setup(bus EventBus, store Store, out EventBus) {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA005Detector(ctx))
-	assertRule(t, findings, "A005", 1)
+	findings := ruletest.RunDetector(t, api.NewA005Detector(ctx))
+	ruletest.AssertRule(t, findings, "A005", 1)
 }
 
 func TestA007_DetectsDualModel(t *testing.T) {
@@ -466,8 +466,8 @@ var d = decider.Decider[OrderState]{
 }
 `,
 	})
-	findings := runDetector(t, api.NewA007Detector(ctx))
-	assertRule(t, findings, "A007", 1)
+	findings := ruletest.RunDetector(t, api.NewA007Detector(ctx))
+	ruletest.AssertRule(t, findings, "A007", 1)
 }
 
 // --- A012: Positive test — fold with switch but no tombstone handling ---
@@ -493,8 +493,8 @@ func emitDelete() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA012Detector(ctx))
-	assertRule(t, findings, "A012", 1)
+	findings := ruletest.RunDetector(t, api.NewA012Detector(ctx))
+	ruletest.AssertRule(t, findings, "A012", 1)
 }
 
 // --- A016: Positive test — dispatcher with Use but no idempotency ---
@@ -510,8 +510,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA016Detector(ctx))
-	assertRule(t, findings, "A016", 1)
+	findings := ruletest.RunDetector(t, api.NewA016Detector(ctx))
+	ruletest.AssertRule(t, findings, "A016", 1)
 }
 
 func TestA016_NoFindingWithIdempotency(t *testing.T) {
@@ -525,8 +525,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA016Detector(ctx))
-	assertRule(t, findings, "A016", 0)
+	findings := ruletest.RunDetector(t, api.NewA016Detector(ctx))
+	ruletest.AssertRule(t, findings, "A016", 0)
 }
 
 // A016: idempotency.NewMemoryStore direct usage also satisfies idempotency check.
@@ -542,8 +542,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA016Detector(ctx))
-	assertRule(t, findings, "A016", 0)
+	findings := ruletest.RunDetector(t, api.NewA016Detector(ctx))
+	ruletest.AssertRule(t, findings, "A016", 0)
 }
 
 // A016: QueryIdempotency also counts as idempotency.
@@ -558,8 +558,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA016Detector(ctx))
-	assertRule(t, findings, "A016", 0)
+	findings := ruletest.RunDetector(t, api.NewA016Detector(ctx))
+	ruletest.AssertRule(t, findings, "A016", 0)
 }
 
 // --- A016: Dispatcher that never dispatches is NOT flagged ---
@@ -574,8 +574,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA016Detector(ctx))
-	assertRule(t, findings, "A016", 0)
+	findings := ruletest.RunDetector(t, api.NewA016Detector(ctx))
+	ruletest.AssertRule(t, findings, "A016", 0)
 }
 
 // --- A019: Positive test — vendored cqrs import ---
@@ -594,8 +594,8 @@ func TestA019_DetectsVendoredCqrs(t *testing.T) {
 			},
 		},
 	}
-	findings := runDetector(t, api.NewA019Detector(ctx))
-	assertRule(t, findings, "A019", 1)
+	findings := ruletest.RunDetector(t, api.NewA019Detector(ctx))
+	ruletest.AssertRule(t, findings, "A019", 1)
 }
 
 // --- FeatureProfile suppression guards ---
@@ -617,8 +617,8 @@ func update(key, val string) {
 `,
 	})
 	ctx.FeatureProfile.HasServer = false
-	findings := runDetector(t, api.NewA015Detector(ctx))
-	assertRule(t, findings, "A015", 0)
+	findings := ruletest.RunDetector(t, api.NewA015Detector(ctx))
+	ruletest.AssertRule(t, findings, "A015", 0)
 }
 
 // TestA016_SuppressedForReadOnlyFlow: the dispatcher+Dispatch fixture fires
@@ -636,8 +636,8 @@ func setup() {
 `,
 	})
 	ctx.FeatureProfile.CommandFlow = analyzer.CommandFlowReadOnly
-	findings := runDetector(t, api.NewA016Detector(ctx))
-	assertRule(t, findings, "A016", 0)
+	findings := ruletest.RunDetector(t, api.NewA016Detector(ctx))
+	ruletest.AssertRule(t, findings, "A016", 0)
 }
 
 // TestA012_SuppressedForNoSoftDelete: the fold+deleted-event fixture fires
@@ -665,8 +665,8 @@ func emitDelete() {
 `,
 	})
 	ctx.FeatureProfile.HasSoftDelete = false
-	findings := runDetector(t, api.NewA012Detector(ctx))
-	assertRule(t, findings, "A012", 0)
+	findings := ruletest.RunDetector(t, api.NewA012Detector(ctx))
+	ruletest.AssertRule(t, findings, "A012", 0)
 }
 
 // TestA009_AdaptiveSuggestion proves the suggestion text adapts to the detected
@@ -687,8 +687,8 @@ func TestA009_AdaptiveSuggestion(t *testing.T) {
 				"main.go": `package main`,
 			})
 			ctx.FeatureProfile.Store = tc.store
-			findings := runDetector(t, api.NewA009Detector(ctx))
-			assertRule(t, findings, "A009", 1)
+			findings := ruletest.RunDetector(t, api.NewA009Detector(ctx))
+			ruletest.AssertRule(t, findings, "A009", 1)
 			if !strings.Contains(findings[0].Suggestion, tc.wantInSug) {
 				t.Errorf("Store=%s: suggestion should mention %q, got %q",
 					tc.store, tc.wantInSug, findings[0].Suggestion)

@@ -24,8 +24,8 @@ func makeB() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD007Detector(ctx))
-	assertRule(t, findings, "D007", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD007Detector(ctx))
+	ruletest.AssertRule(t, findings, "D007", 1)
 }
 
 func TestD007_NoFindingForConsistentAPI(t *testing.T) {
@@ -41,8 +41,8 @@ func makeB() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD007Detector(ctx))
-	assertRule(t, findings, "D007", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD007Detector(ctx))
+	ruletest.AssertRule(t, findings, "D007", 0)
 }
 
 func TestD007_NoFindingWhenNoEventCreation(t *testing.T) {
@@ -52,8 +52,8 @@ func TestD007_NoFindingWhenNoEventCreation(t *testing.T) {
 func doSomething() {}
 `,
 	})
-	findings := runDetector(t, consistency.NewD007Detector(ctx))
-	assertRule(t, findings, "D007", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD007Detector(ctx))
+	ruletest.AssertRule(t, findings, "D007", 0)
 }
 
 // --- D008: Inconsistent codec usage ---
@@ -73,8 +73,8 @@ func project() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD008Detector(ctx))
-	assertRule(t, findings, "D008", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD008Detector(ctx))
+	ruletest.AssertRule(t, findings, "D008", 1)
 }
 
 func TestD008_NoFindingForConsistentCodec(t *testing.T) {
@@ -90,8 +90,8 @@ func project() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD008Detector(ctx))
-	assertRule(t, findings, "D008", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD008Detector(ctx))
+	ruletest.AssertRule(t, findings, "D008", 0)
 }
 
 // --- D009: Inconsistent Close detection pattern ---
@@ -113,8 +113,8 @@ func closeB(c interface{ Close() error }) error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD009Detector(ctx))
-	assertRule(t, findings, "D009", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD009Detector(ctx))
+	ruletest.AssertRule(t, findings, "D009", 1)
 }
 
 func TestD009_NoFindingForConsistentClosePattern(t *testing.T) {
@@ -128,8 +128,8 @@ func closeA(c io.Closer) error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD009Detector(ctx))
-	assertRule(t, findings, "D009", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD009Detector(ctx))
+	ruletest.AssertRule(t, findings, "D009", 0)
 }
 
 // --- D010: Generic error code "internal" ---
@@ -143,8 +143,8 @@ func save() error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD010Detector(ctx))
-	assertRule(t, findings, "D010", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD010Detector(ctx))
+	ruletest.AssertRule(t, findings, "D010", 1)
 }
 
 func TestD010_DetectsMultipleOccurrences(t *testing.T) {
@@ -157,8 +157,8 @@ func save() error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD010Detector(ctx))
-	assertRule(t, findings, "D010", 2)
+	findings := ruletest.RunDetector(t, consistency.NewD010Detector(ctx))
+	ruletest.AssertRule(t, findings, "D010", 2)
 }
 
 func TestD010_NoFindingForDescriptiveCode(t *testing.T) {
@@ -170,8 +170,8 @@ func save() error {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD010Detector(ctx))
-	assertRule(t, findings, "D010", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD010Detector(ctx))
+	ruletest.AssertRule(t, findings, "D010", 0)
 }
 
 // --- D013: Schema version not stamped on events ---
@@ -185,8 +185,8 @@ func createEvent() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD013Detector(ctx))
-	assertRule(t, findings, "D013", 1)
+	findings := ruletest.RunDetector(t, consistency.NewD013Detector(ctx))
+	ruletest.AssertRule(t, findings, "D013", 1)
 }
 
 func TestD013_NoFindingWhenSchemaVersionUsed(t *testing.T) {
@@ -199,8 +199,8 @@ func createEvent() {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD013Detector(ctx))
-	assertRule(t, findings, "D013", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD013Detector(ctx))
+	ruletest.AssertRule(t, findings, "D013", 0)
 }
 
 func TestD013_NoFindingWhenNoEvents(t *testing.T) {
@@ -210,6 +210,6 @@ func TestD013_NoFindingWhenNoEvents(t *testing.T) {
 func doSomething() {}
 `,
 	})
-	findings := runDetector(t, consistency.NewD013Detector(ctx))
-	assertRule(t, findings, "D013", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD013Detector(ctx))
+	ruletest.AssertRule(t, findings, "D013", 0)
 }

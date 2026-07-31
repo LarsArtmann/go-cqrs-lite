@@ -46,8 +46,8 @@ func decide(version event.Version) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC006Detector(ctx))
-	assertRule(t, findings, "C006", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC006Detector(ctx))
+	ruletest.AssertRule(t, findings, "C006", 1)
 }
 
 func TestC006_NoFindingForIncrement(t *testing.T) {
@@ -61,8 +61,8 @@ func decide(version event.Version) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC006Detector(ctx))
-	assertRule(t, findings, "C006", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC006Detector(ctx))
+	ruletest.AssertRule(t, findings, "C006", 0)
 }
 
 // --- C003: Silent Unknown Event Fold ---
@@ -87,8 +87,8 @@ func fold(s State, evt event.Event) (State, error) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC003Detector(ctx))
-	assertRule(t, findings, "C003", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC003Detector(ctx))
+	ruletest.AssertRule(t, findings, "C003", 1)
 }
 
 func TestC003_NoFindingForErrorInDefault(t *testing.T) {
@@ -114,8 +114,8 @@ func fold(s State, evt event.Event) (State, error) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC003Detector(ctx))
-	assertRule(t, findings, "C003", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC003Detector(ctx))
+	ruletest.AssertRule(t, findings, "C003", 0)
 }
 
 // --- C001: Missing Transaction Commit ---
@@ -136,8 +136,8 @@ func writeNoCommit(ctx context.Context, db *sql.DB) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC001Detector(ctx))
-	assertRule(t, findings, "C001", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC001Detector(ctx))
+	ruletest.AssertRule(t, findings, "C001", 1)
 }
 
 func TestC001_NoFindingForProperCommit(t *testing.T) {
@@ -156,8 +156,8 @@ func writeWithCommit(ctx context.Context, db *sql.DB) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC001Detector(ctx))
-	assertRule(t, findings, "C001", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC001Detector(ctx))
+	ruletest.AssertRule(t, findings, "C001", 0)
 }
 
 // C001 must NOT flag closure-based transaction helpers where the tx variable
@@ -183,8 +183,8 @@ func withTx(ctx context.Context, db *sql.DB, body func(*sql.Tx) error) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC001Detector(ctx))
-	assertRule(t, findings, "C001", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC001Detector(ctx))
+	ruletest.AssertRule(t, findings, "C001", 0)
 }
 
 // C001 must flag a function that uses the tx (tx.Exec) and never commits,
@@ -208,8 +208,8 @@ func writeAndReturnSentinel(ctx context.Context, db *sql.DB) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC001Detector(ctx))
-	assertRule(t, findings, "C001", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC001Detector(ctx))
+	ruletest.AssertRule(t, findings, "C001", 1)
 }
 
 // C001 must NOT flag a function that begins a tx but neither uses it nor
@@ -232,8 +232,8 @@ func stub(ctx context.Context, db *sql.DB) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC001Detector(ctx))
-	assertRule(t, findings, "C001", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC001Detector(ctx))
+	ruletest.AssertRule(t, findings, "C001", 0)
 }
 
 // --- C005: Raw json.Unmarshal on Event Payload ---
@@ -252,11 +252,11 @@ func handle(payloadBytes []byte) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC005Detector(ctx))
+	findings := ruletest.RunDetector(t, correctness.NewC005Detector(ctx))
 	// Note: without type info, this will match any json.Unmarshal where first arg is a call.
 	// In the test fixture, payloadBytes is not a .Payload() call, so it should be 0.
 	// We need a fixture with evt.Payload().
-	assertRule(t, findings, "C005", 0)
+	ruletest.AssertRule(t, findings, "C005", 0)
 }
 
 func TestC005_DetectsPayloadCall(t *testing.T) {
@@ -277,8 +277,8 @@ func handle(e *evt) {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC005Detector(ctx))
-	assertRule(t, findings, "C005", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC005Detector(ctx))
+	ruletest.AssertRule(t, findings, "C005", 1)
 }
 
 // --- C009: panic in production ---
@@ -292,8 +292,8 @@ func doSomething() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC009Detector(ctx))
-	assertRule(t, findings, "C009", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC009Detector(ctx))
+	ruletest.AssertRule(t, findings, "C009", 1)
 }
 
 func TestC009_NoFindingInTestFiles(t *testing.T) {
@@ -305,8 +305,8 @@ func doSomething() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC009Detector(ctx))
-	assertRule(t, findings, "C009", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC009Detector(ctx))
+	ruletest.AssertRule(t, findings, "C009", 0)
 }
 
 // --- C009: panic inside must* functions is NOT flagged (established Go convention)
@@ -324,8 +324,8 @@ func mustCommand(cmdType string, streamID string) *Command {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC009Detector(ctx))
-	assertRule(t, findings, "C009", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC009Detector(ctx))
+	ruletest.AssertRule(t, findings, "C009", 0)
 }
 
 // C009 must also skip exported Must* functions (MustParse, MustCompile, etc.)
@@ -343,8 +343,8 @@ func MustParseUserID(s string) UserID {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC009Detector(ctx))
-	assertRule(t, findings, "C009", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC009Detector(ctx))
+	ruletest.AssertRule(t, findings, "C009", 0)
 }
 
 // --- C008: float64 for money ---
@@ -358,8 +358,8 @@ type Order struct {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC008Detector(ctx))
-	assertRule(t, findings, "C008", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 1)
 }
 
 func TestC008_NoFindingForNonMoneyFloat(t *testing.T) {
@@ -371,8 +371,8 @@ type Config struct {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC008Detector(ctx))
-	assertRule(t, findings, "C008", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 0)
 }
 
 // C008 must NOT flag a generic "value" field in an observability struct —
@@ -392,8 +392,8 @@ type rateTracker struct {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC008Detector(ctx))
-	assertRule(t, findings, "C008", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 0)
 }
 
 // C008 flags a weak "value" field when the enclosing struct name corroborates
@@ -407,8 +407,8 @@ type Wallet struct {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC008Detector(ctx))
-	assertRule(t, findings, "C008", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 1)
 }
 
 // C008 downgrades strong-field findings (amount, balance) to Info/Low when the
@@ -425,7 +425,7 @@ type Buffer struct {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC008Detector(ctx))
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
 	if len(findings) != 1 {
 		t.Fatalf("expected 1 C008 finding, got %d", len(findings))
 	}
@@ -455,7 +455,7 @@ type Wallet struct {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC008Detector(ctx))
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
 	// Wallet/Balance is unambiguously monetary → full severity. Buffer/Amount
 	// is corroborated by the project signal too, so both stay Warning/Medium.
 	count := 0
@@ -491,8 +491,8 @@ func (c CreateCmd) ID() CommandID {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC002Detector(ctx))
-	assertRule(t, findings, "C002", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC002Detector(ctx))
+	ruletest.AssertRule(t, findings, "C002", 1)
 }
 
 // C008 must detect money fields exposed via embedded structs. An embedded
@@ -513,7 +513,7 @@ type Order struct {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC008Detector(ctx))
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
 	// MoneyMixin/Amount should fire (strong field). Order/Total should fire
 	// too (weak field, but structMoney is true via the MoneyMixin embed).
 	count := 0
@@ -544,6 +544,6 @@ func writeNoCommit(ctx context.Context, db DB) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC001Detector(ctx))
-	assertRule(t, findings, "C001", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC001Detector(ctx))
+	ruletest.AssertRule(t, findings, "C001", 1)
 }

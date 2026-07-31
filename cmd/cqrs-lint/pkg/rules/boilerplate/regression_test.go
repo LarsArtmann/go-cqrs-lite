@@ -22,8 +22,8 @@ func dismissSingleEvent(type_ string, id string, streamType string, ver event.Ve
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB001Detector(ctx))
-	assertRule(t, findings, "B001", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB001Detector(ctx))
+	ruletest.AssertRule(t, findings, "B001", 0)
 }
 
 // B011 must NOT fire on a must*-prefixed helper that RETURNS the marshal error
@@ -44,6 +44,6 @@ func mustMarshal(v any) ([]byte, error) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB011Detector(ctx))
-	assertRule(t, findings, "B011", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB011Detector(ctx))
+	ruletest.AssertRule(t, findings, "B011", 0)
 }

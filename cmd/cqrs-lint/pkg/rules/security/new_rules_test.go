@@ -15,8 +15,8 @@ func TestS001_NoCrashOnEmptyInput(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, security.NewS001Detector(ctx))
-	assertRule(t, findings, "S001", 0)
+	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+	ruletest.AssertRule(t, findings, "S001", 0)
 }
 
 // --- S002: Missing encryption for sensitive payloads ---
@@ -25,8 +25,8 @@ func TestS002_NoCrashOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, security.NewS002Detector(ctx))
-	assertRule(t, findings, "S002", 0)
+	findings := ruletest.RunDetector(t, security.NewS002Detector(ctx))
+	ruletest.AssertRule(t, findings, "S002", 0)
 }
 
 // --- S003: Missing event signing ---
@@ -35,8 +35,8 @@ func TestS003_NoCrashOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, security.NewS003Detector(ctx))
-	assertRule(t, findings, "S003", 0)
+	findings := ruletest.RunDetector(t, security.NewS003Detector(ctx))
+	ruletest.AssertRule(t, findings, "S003", 0)
 }
 
 // --- S001: Positive test — hardcoded API key ---
@@ -51,8 +51,8 @@ func init() {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS001Detector(ctx))
-	assertRule(t, findings, "S001", 1)
+	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+	ruletest.AssertRule(t, findings, "S001", 1)
 }
 
 // --- S002: Positive test — PII event without encryption ---
@@ -66,8 +66,8 @@ type UserEmailChanged struct {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS002Detector(ctx))
-	assertRule(t, findings, "S002", 1)
+	findings := ruletest.RunDetector(t, security.NewS002Detector(ctx))
+	ruletest.AssertRule(t, findings, "S002", 1)
 }
 
 // --- S003: Positive test — event store without signing ---
@@ -90,8 +90,8 @@ func saveEvents(store event.Store, ref event.StreamRef, events []event.Event) er
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS003Detector(ctx))
-	assertRule(t, findings, "S003", 1)
+	findings := ruletest.RunDetector(t, security.NewS003Detector(ctx))
+	ruletest.AssertRule(t, findings, "S003", 1)
 }
 
 // --- FeatureProfile suppression guards ---
@@ -111,15 +111,15 @@ type UserEmailChanged struct {
 	})
 
 	ctx.FeatureProfile.HasServer = true
-	serverFindings := runDetector(t, security.NewS002Detector(ctx))
-	assertRule(t, serverFindings, "S002", 1)
+	serverFindings := ruletest.RunDetector(t, security.NewS002Detector(ctx))
+	ruletest.AssertRule(t, serverFindings, "S002", 1)
 	if serverFindings[0].Severity != finding.SeverityError {
 		t.Fatalf("server project PII should be ERROR, got %s", serverFindings[0].Severity)
 	}
 
 	ctx.FeatureProfile.HasServer = false
-	localFindings := runDetector(t, security.NewS002Detector(ctx))
-	assertRule(t, localFindings, "S002", 1)
+	localFindings := ruletest.RunDetector(t, security.NewS002Detector(ctx))
+	ruletest.AssertRule(t, localFindings, "S002", 1)
 	if localFindings[0].Severity != finding.SeverityInfo {
 		t.Errorf("local-only PII should be downgraded to INFO, got %s", localFindings[0].Severity)
 	}
@@ -146,8 +146,8 @@ func saveEvents(store event.Store, ref event.StreamRef, events []event.Event) er
 	})
 
 	ctx.FeatureProfile.HasServer = false
-	findings := runDetector(t, security.NewS003Detector(ctx))
-	assertRule(t, findings, "S003", 0)
+	findings := ruletest.RunDetector(t, security.NewS003Detector(ctx))
+	ruletest.AssertRule(t, findings, "S003", 0)
 }
 
 // --- S007: In-memory session/token store ---
@@ -156,8 +156,8 @@ func TestS007_NoCrashOnEmptyInput(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, security.NewS007Detector(ctx))
-	assertRule(t, findings, "S007", 0)
+	findings := ruletest.RunDetector(t, security.NewS007Detector(ctx))
+	ruletest.AssertRule(t, findings, "S007", 0)
 }
 
 func TestS007_DetectsInMemorySessionStore(t *testing.T) {
@@ -171,8 +171,8 @@ func setup() {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS007Detector(ctx))
-	assertRule(t, findings, "S007", 1)
+	findings := ruletest.RunDetector(t, security.NewS007Detector(ctx))
+	ruletest.AssertRule(t, findings, "S007", 1)
 }
 
 func TestS007_SuppressedWithoutServer(t *testing.T) {
@@ -186,8 +186,8 @@ func setup() {
 `,
 	})
 	ctx.FeatureProfile.HasServer = false
-	findings := runDetector(t, security.NewS007Detector(ctx))
-	assertRule(t, findings, "S007", 0)
+	findings := ruletest.RunDetector(t, security.NewS007Detector(ctx))
+	ruletest.AssertRule(t, findings, "S007", 0)
 }
 
 func TestS007_DetectsMemoryTokenStoreComposite(t *testing.T) {
@@ -203,8 +203,8 @@ func setup() {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS007Detector(ctx))
-	assertRule(t, findings, "S007", 1)
+	findings := ruletest.RunDetector(t, security.NewS007Detector(ctx))
+	ruletest.AssertRule(t, findings, "S007", 1)
 }
 
 func TestS007_IgnoresCQRSEventMemoryStore(t *testing.T) {
@@ -218,8 +218,8 @@ func setup() {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS007Detector(ctx))
-	assertRule(t, findings, "S007", 0)
+	findings := ruletest.RunDetector(t, security.NewS007Detector(ctx))
+	ruletest.AssertRule(t, findings, "S007", 0)
 }
 
 func TestS007_IgnoresInMemoryTokenBucket(t *testing.T) {
@@ -233,8 +233,8 @@ func setup() {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS007Detector(ctx))
-	assertRule(t, findings, "S007", 0)
+	findings := ruletest.RunDetector(t, security.NewS007Detector(ctx))
+	ruletest.AssertRule(t, findings, "S007", 0)
 }
 
 func TestS007_IgnoresTestFiles(t *testing.T) {
@@ -248,8 +248,8 @@ func setup() {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS007Detector(ctx))
-	assertRule(t, findings, "S007", 0)
+	findings := ruletest.RunDetector(t, security.NewS007Detector(ctx))
+	ruletest.AssertRule(t, findings, "S007", 0)
 }
 
 // --- S006: Financial data without encryption ---
@@ -260,8 +260,8 @@ func TestS006_NoCrashOnEmptyInput(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 0)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 0)
 }
 
 func TestS006_DetectsStrongFinancialField(t *testing.T) {
@@ -276,8 +276,8 @@ type PaymentMethod struct {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 1)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 1)
 }
 
 func TestS006_StrongSeverityIsError(t *testing.T) {
@@ -292,8 +292,8 @@ type BankAccount struct {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 1)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 1)
 	if findings[0].Severity != finding.SeverityError {
 		t.Fatalf("strong financial indicator should be ERROR, got %s", findings[0].Severity)
 	}
@@ -311,8 +311,8 @@ type EmployeePayroll struct {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 1)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 1)
 }
 
 func TestS006_DetectsWeakCompound(t *testing.T) {
@@ -328,8 +328,8 @@ type OrderTotal struct {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 1)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 1)
 }
 
 func TestS006_SuppressesSingleWeakField(t *testing.T) {
@@ -345,8 +345,8 @@ type Product struct {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 0)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 0)
 }
 
 func TestS006_RequiresSerializationTags(t *testing.T) {
@@ -362,8 +362,8 @@ type TaxCalculator struct {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 0)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 0)
 }
 
 func TestS006_SuppressedWithEncryptionImport(t *testing.T) {
@@ -380,8 +380,8 @@ type EmployeePayroll struct {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 0)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 0)
 }
 
 func TestS006_DowngradedForLocalCLI(t *testing.T) {
@@ -395,12 +395,12 @@ type EmployeePayroll struct {
 	})
 
 	ctx.FeatureProfile.HasServer = true
-	serverFindings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, serverFindings, "S006", 1)
+	serverFindings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, serverFindings, "S006", 1)
 
 	ctx.FeatureProfile.HasServer = false
-	localFindings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, localFindings, "S006", 1)
+	localFindings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, localFindings, "S006", 1)
 	if localFindings[0].Severity != finding.SeverityInfo {
 		t.Errorf("local-only financial data should be downgraded to INFO, got %s",
 			localFindings[0].Severity)
@@ -419,8 +419,8 @@ type PaymentMethod struct {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 0)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 0)
 }
 
 func TestS006_DetectsFinancialTypeName(t *testing.T) {
@@ -436,8 +436,8 @@ type Invoice struct {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 1)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 1)
 }
 
 func TestS006_IgnoresNonFinancialStruct(t *testing.T) {
@@ -453,8 +453,8 @@ type User struct {
 `,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 0)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 0)
 }
 
 func TestS006_IgnoresPanelSubstring(t *testing.T) {
@@ -468,8 +468,8 @@ type DetailsPanelConfig struct {
 }`,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 0)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 0)
 }
 
 func TestS006_IgnoresDatabaseSubstring(t *testing.T) {
@@ -484,8 +484,8 @@ type DiskStats struct {
 }`,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 0)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 0)
 }
 
 func TestS006_DetectsPrimaryAccountNumber(t *testing.T) {
@@ -499,6 +499,6 @@ type PaymentCard struct {
 }`,
 	})
 	ctx.FeatureProfile.HasServer = true
-	findings := runDetector(t, security.NewS006Detector(ctx))
-	assertRule(t, findings, "S006", 1)
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 1)
 }

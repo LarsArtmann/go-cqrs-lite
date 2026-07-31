@@ -20,8 +20,8 @@ func createEvent(aggID string) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB027Detector(ctx))
-	assertRule(t, findings, "B027", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB027Detector(ctx))
+	ruletest.AssertRule(t, findings, "B027", 1)
 }
 
 func TestB027_DetectsHardcodedInExecute(t *testing.T) {
@@ -35,8 +35,8 @@ func handle(ctx context.Context) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB027Detector(ctx))
-	assertRule(t, findings, "B027", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB027Detector(ctx))
+	ruletest.AssertRule(t, findings, "B027", 1)
 }
 
 func TestB027_NoFindingForConstantStreamType(t *testing.T) {
@@ -53,8 +53,8 @@ func createEvent(aggID string) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB027Detector(ctx))
-	assertRule(t, findings, "B027", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB027Detector(ctx))
+	ruletest.AssertRule(t, findings, "B027", 0)
 }
 
 func TestB027_NoFindingOnEmptyContext(t *testing.T) {
@@ -63,6 +63,6 @@ func TestB027_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, boilerplate.NewB027Detector(ctx))
-	assertRule(t, findings, "B027", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB027Detector(ctx))
+	ruletest.AssertRule(t, findings, "B027", 0)
 }

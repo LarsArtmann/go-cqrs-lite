@@ -29,8 +29,8 @@ func fold(s State, evt event.Event) (State, error) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB021Detector(ctx))
-	assertRule(t, findings, "B021", 1)
+	findings := ruletest.RunDetector(t, boilerplate.NewB021Detector(ctx))
+	ruletest.AssertRule(t, findings, "B021", 1)
 }
 
 func TestB021_NoFindingForFoldWithErrorDefault(t *testing.T) {
@@ -55,6 +55,6 @@ func fold(s State, evt event.Event) (State, error) {
 }
 `,
 	})
-	findings := runDetector(t, boilerplate.NewB021Detector(ctx))
-	assertRule(t, findings, "B021", 0)
+	findings := ruletest.RunDetector(t, boilerplate.NewB021Detector(ctx))
+	ruletest.AssertRule(t, findings, "B021", 0)
 }

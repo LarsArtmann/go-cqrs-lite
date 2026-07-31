@@ -50,8 +50,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v0.0.0-00010101000000-000000000000
 )
 `)
-	findings := runDetector(t, version.NewV002Detector(ctx))
-	assertRule(t, findings, "V002", 1)
+	findings := ruletest.RunDetector(t, version.NewV002Detector(ctx))
+	ruletest.AssertRule(t, findings, "V002", 1)
 }
 
 func TestV002_NoFindingForTaggedRelease(t *testing.T) {
@@ -65,8 +65,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 )
 `)
-	findings := runDetector(t, version.NewV002Detector(ctx))
-	assertRule(t, findings, "V002", 0)
+	findings := ruletest.RunDetector(t, version.NewV002Detector(ctx))
+	ruletest.AssertRule(t, findings, "V002", 0)
 }
 
 func TestV002_NoProjectRoot(t *testing.T) {
@@ -78,8 +78,8 @@ func TestV002_NoProjectRoot(t *testing.T) {
 import "github.com/larsartmann/go-cqrs-lite/event/v4"
 `,
 	})
-	findings := runDetector(t, version.NewV002Detector(ctx))
-	assertRule(t, findings, "V002", 0)
+	findings := ruletest.RunDetector(t, version.NewV002Detector(ctx))
+	ruletest.AssertRule(t, findings, "V002", 0)
 }
 
 // --- V003: version-lag ---
@@ -95,8 +95,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0
 )
 `)
-	findings := runDetector(t, version.NewV003Detector(ctx))
-	assertRule(t, findings, "V003", 1)
+	findings := ruletest.RunDetector(t, version.NewV003Detector(ctx))
+	ruletest.AssertRule(t, findings, "V003", 1)
 }
 
 func TestV003_NoFindingForRecentVersion(t *testing.T) {
@@ -110,8 +110,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
 )
 `)
-	findings := runDetector(t, version.NewV003Detector(ctx))
-	assertRule(t, findings, "V003", 0)
+	findings := ruletest.RunDetector(t, version.NewV003Detector(ctx))
+	ruletest.AssertRule(t, findings, "V003", 0)
 }
 
 func TestV003_NoFindingForIndirect(t *testing.T) {
@@ -125,8 +125,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0 // indirect
 )
 `)
-	findings := runDetector(t, version.NewV003Detector(ctx))
-	assertRule(t, findings, "V003", 0)
+	findings := ruletest.RunDetector(t, version.NewV003Detector(ctx))
+	ruletest.AssertRule(t, findings, "V003", 0)
 }
 
 // --- V004: vendored-third-party ---
@@ -142,8 +142,8 @@ import "github.com/larsartmann/go-cqrs-lite/event/v4"
 var _ = event.New
 `,
 	})
-	findings := runDetector(t, version.NewV004Detector(ctx))
-	assertRule(t, findings, "V004", 1)
+	findings := ruletest.RunDetector(t, version.NewV004Detector(ctx))
+	ruletest.AssertRule(t, findings, "V004", 1)
 }
 
 func TestV004_NoFindingForRegularPath(t *testing.T) {
@@ -157,8 +157,8 @@ import "github.com/larsartmann/go-cqrs-lite/event/v4"
 var _ = event.New
 `,
 	})
-	findings := runDetector(t, version.NewV004Detector(ctx))
-	assertRule(t, findings, "V004", 0)
+	findings := ruletest.RunDetector(t, version.NewV004Detector(ctx))
+	ruletest.AssertRule(t, findings, "V004", 0)
 }
 
 func TestV004_NoFindingForThirdPartyWithoutCQRS(t *testing.T) {
@@ -172,8 +172,8 @@ import "fmt"
 var _ = fmt.Println
 `,
 	})
-	findings := runDetector(t, version.NewV004Detector(ctx))
-	assertRule(t, findings, "V004", 0)
+	findings := ruletest.RunDetector(t, version.NewV004Detector(ctx))
+	ruletest.AssertRule(t, findings, "V004", 0)
 }
 
 // --- V005: eventtest-vendored-mismatch ---
@@ -193,8 +193,8 @@ var _ = event.New
 type FakeStore struct{}
 `,
 	})
-	findings := runDetector(t, version.NewV005Detector(ctx))
-	assertRule(t, findings, "V005", 1)
+	findings := ruletest.RunDetector(t, version.NewV005Detector(ctx))
+	ruletest.AssertRule(t, findings, "V005", 1)
 }
 
 func TestV005_NoFindingWithoutCQRSImports(t *testing.T) {
@@ -212,8 +212,8 @@ var _ = fmt.Println
 type FakeStore struct{}
 `,
 	})
-	findings := runDetector(t, version.NewV005Detector(ctx))
-	assertRule(t, findings, "V005", 0)
+	findings := ruletest.RunDetector(t, version.NewV005Detector(ctx))
+	ruletest.AssertRule(t, findings, "V005", 0)
 }
 
 func TestV005_NoFindingForRegularEventtest(t *testing.T) {
@@ -231,8 +231,8 @@ var _ = event.New
 type FakeStore struct{}
 `,
 	})
-	findings := runDetector(t, version.NewV005Detector(ctx))
-	assertRule(t, findings, "V005", 0)
+	findings := ruletest.RunDetector(t, version.NewV005Detector(ctx))
+	ruletest.AssertRule(t, findings, "V005", 0)
 }
 
 // --- V006: mixed-version-pins ---
@@ -249,8 +249,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.1.0
 )
 `)
-	findings := runDetector(t, version.NewV006Detector(ctx))
-	assertRule(t, findings, "V006", 1)
+	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
+	ruletest.AssertRule(t, findings, "V006", 1)
 }
 
 func TestV006_NoFindingForConsistentVersions(t *testing.T) {
@@ -265,8 +265,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0
 )
 `)
-	findings := runDetector(t, version.NewV006Detector(ctx))
-	assertRule(t, findings, "V006", 0)
+	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
+	ruletest.AssertRule(t, findings, "V006", 0)
 }
 
 func TestV006_NoFindingForSingleModule(t *testing.T) {
@@ -280,6 +280,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 )
 `)
-	findings := runDetector(t, version.NewV006Detector(ctx))
-	assertRule(t, findings, "V006", 0)
+	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
+	ruletest.AssertRule(t, findings, "V006", 0)
 }

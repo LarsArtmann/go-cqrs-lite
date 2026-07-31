@@ -23,8 +23,8 @@ func handle(ctx context.Context, cmd *Command) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC034Detector(ctx))
-	assertRule(t, findings, "C034", 1)
+	findings := ruletest.RunDetector(t, correctness.NewC034Detector(ctx))
+	ruletest.AssertRule(t, findings, "C034", 1)
 }
 
 func TestC034_NoFindingWhenCtxPassed(t *testing.T) {
@@ -41,8 +41,8 @@ func handle(ctx context.Context, cmd *Command) error {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC034Detector(ctx))
-	assertRule(t, findings, "C034", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC034Detector(ctx))
+	ruletest.AssertRule(t, findings, "C034", 0)
 }
 
 func TestC034_NoFindingForFuncWithoutCtxParam(t *testing.T) {
@@ -58,8 +58,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, correctness.NewC034Detector(ctx))
-	assertRule(t, findings, "C034", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC034Detector(ctx))
+	ruletest.AssertRule(t, findings, "C034", 0)
 }
 
 func TestC034_NoFindingOnEmptyContext(t *testing.T) {
@@ -68,6 +68,6 @@ func TestC034_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, correctness.NewC034Detector(ctx))
-	assertRule(t, findings, "C034", 0)
+	findings := ruletest.RunDetector(t, correctness.NewC034Detector(ctx))
+	ruletest.AssertRule(t, findings, "C034", 0)
 }

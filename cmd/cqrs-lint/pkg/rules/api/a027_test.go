@@ -20,8 +20,8 @@ func emit() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA027Detector(ctx))
-	assertRule(t, findings, "A027", 1)
+	findings := ruletest.RunDetector(t, api.NewA027Detector(ctx))
+	ruletest.AssertRule(t, findings, "A027", 1)
 }
 
 func TestA027_NoFindingForFewCalls(t *testing.T) {
@@ -36,6 +36,6 @@ func emit() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA027Detector(ctx))
-	assertRule(t, findings, "A027", 0)
+	findings := ruletest.RunDetector(t, api.NewA027Detector(ctx))
+	ruletest.AssertRule(t, findings, "A027", 0)
 }

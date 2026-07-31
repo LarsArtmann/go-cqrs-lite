@@ -25,8 +25,8 @@ func poll() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP006Detector(ctx))
-	assertRule(t, findings, "P006", 1)
+	findings := ruletest.RunDetector(t, performance.NewP006Detector(ctx))
+	ruletest.AssertRule(t, findings, "P006", 1)
 }
 
 func TestP006_NoFindingForLongInterval(t *testing.T) {
@@ -47,8 +47,8 @@ func poll() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP006Detector(ctx))
-	assertRule(t, findings, "P006", 0)
+	findings := ruletest.RunDetector(t, performance.NewP006Detector(ctx))
+	ruletest.AssertRule(t, findings, "P006", 0)
 }
 
 func TestP006_NoFindingForSleepOutsideLoop(t *testing.T) {
@@ -64,6 +64,6 @@ func wait() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP006Detector(ctx))
-	assertRule(t, findings, "P006", 0)
+	findings := ruletest.RunDetector(t, performance.NewP006Detector(ctx))
+	ruletest.AssertRule(t, findings, "P006", 0)
 }

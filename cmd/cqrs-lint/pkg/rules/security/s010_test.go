@@ -18,8 +18,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS010Detector(ctx))
-	assertRule(t, findings, "S010", 1)
+	findings := ruletest.RunDetector(t, security.NewS010Detector(ctx))
+	ruletest.AssertRule(t, findings, "S010", 1)
 }
 
 func TestS010_NoFindingWhenStoreWrapped(t *testing.T) {
@@ -34,8 +34,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS010Detector(ctx))
-	assertRule(t, findings, "S010", 0)
+	findings := ruletest.RunDetector(t, security.NewS010Detector(ctx))
+	ruletest.AssertRule(t, findings, "S010", 0)
 }
 
 func TestS010_NoFindingWithoutEncryption(t *testing.T) {
@@ -49,6 +49,6 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, security.NewS010Detector(ctx))
-	assertRule(t, findings, "S010", 0)
+	findings := ruletest.RunDetector(t, security.NewS010Detector(ctx))
+	ruletest.AssertRule(t, findings, "S010", 0)
 }

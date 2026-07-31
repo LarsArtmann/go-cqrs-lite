@@ -52,8 +52,8 @@ func createEvent(type_ string, id string, streamType string, ver event.Version, 
 }
 `,
 	})
-	findings := runDetector(t, api.NewA002Detector(ctx))
-	assertRule(t, findings, "A002", 1)
+	findings := ruletest.RunDetector(t, api.NewA002Detector(ctx))
+	ruletest.AssertRule(t, findings, "A002", 1)
 }
 
 // A002: Indirect json.Marshal via marshalPayload helper pattern also fires.
@@ -76,8 +76,8 @@ func createEvent(type_ string, id string, streamType string, ver event.Version, 
 }
 `,
 	})
-	findings := runDetector(t, api.NewA002Detector(ctx))
-	assertRule(t, findings, "A002", 1)
+	findings := ruletest.RunDetector(t, api.NewA002Detector(ctx))
+	ruletest.AssertRule(t, findings, "A002", 1)
 }
 
 // --- A006: Adapter layer wrapping ---
@@ -90,8 +90,8 @@ func (a *Adapter) WrapEvent() {}
 func (a *Adapter) UnwrapEvent() {}
 `,
 	})
-	findings := runDetector(t, api.NewA006Detector(ctx))
-	assertRule(t, findings, "A006", 2)
+	findings := ruletest.RunDetector(t, api.NewA006Detector(ctx))
+	ruletest.AssertRule(t, findings, "A006", 2)
 }
 
 // --- A008: Parallel type system ---
@@ -104,8 +104,8 @@ type StreamID string
 type Version uint64
 `,
 	})
-	findings := runDetector(t, api.NewA008Detector(ctx))
-	assertRule(t, findings, "A008", 2)
+	findings := ruletest.RunDetector(t, api.NewA008Detector(ctx))
+	ruletest.AssertRule(t, findings, "A008", 2)
 }
 
 func TestA008_NoFindingInEventPackage(t *testing.T) {
@@ -115,8 +115,8 @@ func TestA008_NoFindingInEventPackage(t *testing.T) {
 type StreamID string
 `,
 	})
-	findings := runDetector(t, api.NewA008Detector(ctx))
-	assertRule(t, findings, "A008", 0)
+	findings := ruletest.RunDetector(t, api.NewA008Detector(ctx))
+	ruletest.AssertRule(t, findings, "A008", 0)
 }
 
 // --- A017: Repository with generic snapshot options is NOT flagged
@@ -135,8 +135,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA017Detector(ctx))
-	assertRule(t, findings, "A017", 0)
+	findings := ruletest.RunDetector(t, api.NewA017Detector(ctx))
+	ruletest.AssertRule(t, findings, "A017", 0)
 }
 
 func TestA017_DetectsMissingSnapshotStrategy(t *testing.T) {
@@ -149,6 +149,6 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, api.NewA017Detector(ctx))
-	assertRule(t, findings, "A017", 1)
+	findings := ruletest.RunDetector(t, api.NewA017Detector(ctx))
+	ruletest.AssertRule(t, findings, "A017", 1)
 }

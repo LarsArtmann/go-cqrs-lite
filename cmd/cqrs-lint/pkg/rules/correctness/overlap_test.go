@@ -35,11 +35,11 @@ func handle(evt event.Event) error {
 `,
 	})
 
-	c025Findings := runDetector(t, correctness.NewC025Detector(ctx))
-	d006Findings := runDetector(t, consistency.NewD006Detector(ctx))
+	c025Findings := ruletest.RunDetector(t, correctness.NewC025Detector(ctx))
+	d006Findings := ruletest.RunDetector(t, consistency.NewD006Detector(ctx))
 
 	// C025 fires on fmt.Errorf without %w in the CQRS file.
-	assertRule(t, c025Findings, "C025", 1)
+	ruletest.AssertRule(t, c025Findings, "C025", 1)
 
 	// D006 must NOT report fmt.Errorf in CQRS files (deferred to C025).
 	d006ErrorfCount := 0
@@ -85,7 +85,7 @@ func handle(evt event.Event) error {
 `,
 	})
 
-	d006Findings := runDetector(t, consistency.NewD006Detector(ctx))
+	d006Findings := ruletest.RunDetector(t, consistency.NewD006Detector(ctx))
 
 	// D006 reports errors.New even in CQRS files (only fmt.Errorf is deferred).
 	d006Count := 0
@@ -118,11 +118,11 @@ func validate(id string) error {
 `,
 	})
 
-	c025Findings := runDetector(t, correctness.NewC025Detector(ctx))
-	d006Findings := runDetector(t, consistency.NewD006Detector(ctx))
+	c025Findings := ruletest.RunDetector(t, correctness.NewC025Detector(ctx))
+	d006Findings := ruletest.RunDetector(t, consistency.NewD006Detector(ctx))
 
 	// C025 skips non-CQRS files.
-	assertRule(t, c025Findings, "C025", 0)
+	ruletest.AssertRule(t, c025Findings, "C025", 0)
 
 	// D006 reports fmt.Errorf in non-CQRS files.
 	d006Count := 0

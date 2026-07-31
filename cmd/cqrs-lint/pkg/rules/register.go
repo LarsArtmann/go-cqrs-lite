@@ -188,7 +188,8 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 	// consumer-architecture patterns (preset bypass, read-your-writes,
 	// signing defaults) are meaningless in library source.
 	if !selfLint {
-		detectors = append(detectors,
+		detectors = append(
+			detectors,
 			// Architecture (consumer-coaching)
 			architecture.NewE008Detector(ctx),
 			architecture.NewE009Detector(ctx),

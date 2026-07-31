@@ -19,8 +19,8 @@ type UserCreated struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD014Detector(ctx))
-	assertRule(t, findings, "D014", 2)
+	findings := ruletest.RunDetector(t, consistency.NewD014Detector(ctx))
+	ruletest.AssertRule(t, findings, "D014", 2)
 }
 
 func TestD014_NoFindingWhenJSONTagsPresent(t *testing.T) {
@@ -35,8 +35,8 @@ type UserCreated struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD014Detector(ctx))
-	assertRule(t, findings, "D014", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD014Detector(ctx))
+	ruletest.AssertRule(t, findings, "D014", 0)
 }
 
 func TestD014_NoFindingForNonEventStruct(t *testing.T) {
@@ -51,8 +51,8 @@ type Config struct {
 }
 `,
 	})
-	findings := runDetector(t, consistency.NewD014Detector(ctx))
-	assertRule(t, findings, "D014", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD014Detector(ctx))
+	ruletest.AssertRule(t, findings, "D014", 0)
 }
 
 func TestD014_NoFindingOnEmptyContext(t *testing.T) {
@@ -61,6 +61,6 @@ func TestD014_NoFindingOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
 	})
-	findings := runDetector(t, consistency.NewD014Detector(ctx))
-	assertRule(t, findings, "D014", 0)
+	findings := ruletest.RunDetector(t, consistency.NewD014Detector(ctx))
+	ruletest.AssertRule(t, findings, "D014", 0)
 }

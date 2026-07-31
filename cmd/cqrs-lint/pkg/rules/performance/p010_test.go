@@ -33,8 +33,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP010Detector(ctx))
-	assertRule(t, findings, "P010", 1)
+	findings := ruletest.RunDetector(t, performance.NewP010Detector(ctx))
+	ruletest.AssertRule(t, findings, "P010", 1)
 }
 
 func TestP010_DetectsMapStateWithoutSnapshot(t *testing.T) {
@@ -60,8 +60,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP010Detector(ctx))
-	assertRule(t, findings, "P010", 1)
+	findings := ruletest.RunDetector(t, performance.NewP010Detector(ctx))
+	ruletest.AssertRule(t, findings, "P010", 1)
 }
 
 func TestP010_NoFindingWhenSnapshotStrategySet(t *testing.T) {
@@ -85,8 +85,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP010Detector(ctx))
-	assertRule(t, findings, "P010", 0)
+	findings := ruletest.RunDetector(t, performance.NewP010Detector(ctx))
+	ruletest.AssertRule(t, findings, "P010", 0)
 }
 
 func TestP010_NoFindingWhenStateCacheSet(t *testing.T) {
@@ -109,8 +109,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP010Detector(ctx))
-	assertRule(t, findings, "P010", 0)
+	findings := ruletest.RunDetector(t, performance.NewP010Detector(ctx))
+	ruletest.AssertRule(t, findings, "P010", 0)
 }
 
 func TestP010_NoFindingForScalarState(t *testing.T) {
@@ -132,8 +132,8 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP010Detector(ctx))
-	assertRule(t, findings, "P010", 0)
+	findings := ruletest.RunDetector(t, performance.NewP010Detector(ctx))
+	ruletest.AssertRule(t, findings, "P010", 0)
 }
 
 func TestP010_NoFindingForNonDeciderNewRepository(t *testing.T) {
@@ -154,6 +154,6 @@ func setup() {
 }
 `,
 	})
-	findings := runDetector(t, performance.NewP010Detector(ctx))
-	assertRule(t, findings, "P010", 0)
+	findings := ruletest.RunDetector(t, performance.NewP010Detector(ctx))
+	ruletest.AssertRule(t, findings, "P010", 0)
 }

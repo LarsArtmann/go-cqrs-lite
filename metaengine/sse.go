@@ -1,12 +1,15 @@
 package metaengine
 
 import (
+	"context"
 	"encoding/json/v2"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 )
 
 // SSEConfig configures Server-Sent Events streaming behavior.
@@ -126,52 +129,177 @@ func ServeSSE[V any](
 // serveSSEPlain is the non-reconnection path: no id field, no dedup.
 func serveSSEPlain[V any](
 	w http.ResponseWriter,
-	r *http.Request,
+	_ *http.Request,
 	flusher http.Flusher,
 	watcher *Watcher[V],
 	cfg SSEConfig,
 ) error {
-	ctx := r.Context()
+	ctx := context.Background()
 
+	buf := make(chan V, cfg.MaxBuffer)
+	watchCh := watcher.Watch(ctx, nil)
+
+	go forwardWithDropOld(ctx, watchCh, buf, nil)
+
+	return sseMainLoop(ctx, w, flusher, buf, cfg, func(w http.ResponseWriter, val V) error {
+		data, err := json.Marshal(val)
+		if err != nil {
+			return nil // skip unmarshalable values
+		}
+
+		_, err = fmt.Fprintf(w, "data: %s\n\n", data)
+		return err //nolint:wrapcheck
+	})
+}
+
+// serveSSEReplay is the reconnection path: subscribes first (to buffer live
+// events during replay), then replays missed events from the journal, then
+// switches to live streaming with dedup to skip events that overlap.
+func serveSSEReplay[V any](
+	w http.ResponseWriter,
+	r *http.Request,
+	flusher http.Flusher,
+	watcher *Watcher[V],
+	replay *SSEReplay[V],
+	cfg SSEConfig,
+) error {
+	ctx := context.Background()
+
+	// Phase 0: Subscribe FIRST to buffer live events arriving during replay.
+	buf := make(chan SeqValue[V], cfg.MaxBuffer)
+	watchCh := watcher.WatchWithSeq(ctx, nil)
+
+	// Phase 1: Replay missed events from the journal.
+	dedupRing, err := replayMissedEvents(w, r, replay, cfg)
+	if err != nil {
+		return err
+	}
+
+	if dedupRing.Len() > 0 {
+		flusher.Flush()
+	}
+
+	// Phase 2: Live streaming with dedup (skip events already replayed).
+	go forwardWithDropOld(ctx, watchCh, buf, func(sv SeqValue[V]) bool {
+		return sv.Seq == 0 || !dedupRing.Has(strconv.FormatUint(sv.Seq, 10))
+	})
+
+	return sseMainLoop(ctx, w, flusher, buf, cfg, func(w http.ResponseWriter, sv SeqValue[V]) error {
+		data, err := json.Marshal(sv.Value)
+		if err != nil {
+			return nil // skip unmarshalable values
+		}
+
+		_, err = fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data)
+		return err //nolint:wrapcheck
+	})
+}
+
+// replayMissedEvents writes events from the journal that the client missed
+// (seq > afterSeq) and returns a dedup ring populated with the sequence
+// numbers that were sent, so the live phase can skip overlapping events.
+func replayMissedEvents[V any](
+	w http.ResponseWriter,
+	r *http.Request,
+	replay *SSEReplay[V],
+	cfg SSEConfig,
+) (*dedup.Ring, error) {
+	var afterSeq uint64
+
+	if lastID := r.Header.Get("Last-Event-ID"); lastID != "" {
+		if parsed, err := strconv.ParseUint(lastID, 10, 64); err == nil {
+			afterSeq = parsed
+		}
+	}
+
+	replayed := replay.Replay(afterSeq)
+
+	// If capped, keep only the MOST RECENT events — the client cares about
+	// current state more than historical completeness.
+	if cfg.ReplayLimit > 0 && len(replayed) > cfg.ReplayLimit {
+		replayed = replayed[len(replayed)-cfg.ReplayLimit:]
+	}
+
+	ring := dedup.NewRing(dedup.DefaultCapacity)
+
+	for _, sv := range replayed { //nolint:varnamelen
+		data, err := json.Marshal(sv.Value)
+		if err != nil {
+			continue
+		}
+
+		if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil {
+			return ring, err //nolint:wrapcheck
+		}
+
+		ring.Add(strconv.FormatUint(sv.Seq, 10))
+	}
+
+	return ring, nil
+}
+
+// forwardWithDropOld reads from src and forwards to dst with drop-old
+// semantics: when dst is full, the oldest item is evicted to make room.
+// An optional filter can drop items before forwarding (returns true = forward).
+func forwardWithDropOld[T any](
+	ctx context.Context,
+	src <-chan T,
+	dst chan T,
+	filter func(T) bool,
+) {
+	defer close(dst)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case val, ok := <-src:
+			if !ok {
+				return
+			}
+
+			if filter != nil && !filter(val) {
+				continue
+			}
+
+			select {
+			case dst <- val:
+			default:
+				// Evict oldest to make room.
+				select {
+				case <-dst:
+				default:
+				}
+
+				select {
+				case dst <- val:
+				default:
+				}
+			}
+		}
+	}
+}
+
+// sseMainLoop runs the common SSE event loop: reads from buf, writes events
+// via writeEvent, handles timeout and heartbeat. Returns nil on normal close
+// (context cancel, channel close, timeout) or the write error.
+func sseMainLoop[T any](
+	ctx context.Context,
+	w http.ResponseWriter,
+	flusher http.Flusher,
+	buf <-chan T,
+	cfg SSEConfig,
+	writeEvent func(http.ResponseWriter, T) error,
+) error {
 	var timer *time.Timer
+
 	if cfg.Timeout > 0 {
 		timer = time.NewTimer(cfg.Timeout)
 		defer timer.Stop()
 	}
 
-	buf := make(chan V, cfg.MaxBuffer)
-	watchCh := watcher.Watch(ctx, nil)
-
-	go func() {
-		defer close(buf)
-
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case val, ok := <-watchCh:
-				if !ok {
-					return
-				}
-
-				select {
-				case buf <- val:
-				default:
-					select {
-					case <-buf:
-					default:
-					}
-
-					select {
-					case buf <- val:
-					default:
-					}
-				}
-			}
-		}
-	}()
-
 	var heartbeat *time.Ticker
+
 	if cfg.HeartbeatInterval > 0 {
 		heartbeat = time.NewTicker(cfg.HeartbeatInterval)
 		defer heartbeat.Stop()
@@ -196,171 +324,7 @@ func serveSSEPlain[V any](
 				return nil
 			}
 
-			data, err := json.Marshal(val)
-			if err != nil {
-				continue
-			}
-
-			if _, err := fmt.Fprintf(w, "data: %s\n\n", data); err != nil {
-				return err //nolint:wrapcheck
-			}
-
-			flusher.Flush()
-
-		case <-timerCh:
-			return nil
-
-		case <-heartbeatCh:
-			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil {
-				return err //nolint:wrapcheck
-			}
-
-			flusher.Flush()
-		}
-	}
-}
-
-// replayMissedEvents writes events from the journal that the client missed
-// (seq > afterSeq) and returns the set of sequence numbers that were sent,
-// for deduplication during the live phase.
-func replayMissedEvents[V any](
-	w http.ResponseWriter,
-	r *http.Request,
-	replay *SSEReplay[V],
-	cfg SSEConfig,
-) (map[uint64]struct{}, error) {
-	var afterSeq uint64
-
-	if lastID := r.Header.Get("Last-Event-ID"); lastID != "" {
-		if parsed, err := strconv.ParseUint(lastID, 10, 64); err == nil {
-			afterSeq = parsed
-		}
-	}
-
-	replayed := replay.Replay(afterSeq)
-	if cfg.ReplayLimit > 0 && len(replayed) > cfg.ReplayLimit {
-		replayed = replayed[:cfg.ReplayLimit]
-	}
-
-	replayedSeqs := make(map[uint64]struct{}, len(replayed))
-
-	for _, sv := range replayed { //nolint:varnamelen
-		data, err := json.Marshal(sv.Value)
-		if err != nil {
-			continue
-		}
-
-		if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil {
-			return nil, err //nolint:wrapcheck
-		}
-
-		replayedSeqs[sv.Seq] = struct{}{}
-	}
-
-	return replayedSeqs, nil
-}
-
-// serveSSEReplay is the reconnection path: replays missed events from the
-// journal on reconnect, then switches to live with dedup.
-func serveSSEReplay[V any](
-	w http.ResponseWriter,
-	r *http.Request,
-	flusher http.Flusher,
-	watcher *Watcher[V],
-	replay *SSEReplay[V],
-	cfg SSEConfig,
-) error {
-	ctx := r.Context()
-
-	// Phase 1: Replay missed events from the journal.
-	replayedSeqs, err := replayMissedEvents(w, r, replay, cfg)
-	if err != nil {
-		return err
-	}
-
-	if len(replayedSeqs) > 0 {
-		flusher.Flush()
-	}
-
-	// Phase 2: Live streaming with dedup (skip events already replayed).
-	var timer *time.Timer
-	if cfg.Timeout > 0 {
-		timer = time.NewTimer(cfg.Timeout)
-		defer timer.Stop()
-	}
-
-	buf := make(chan SeqValue[V], cfg.MaxBuffer)
-	watchCh := watcher.WatchWithSeq(ctx, nil)
-
-	go func() {
-		defer close(buf)
-
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case sv, ok := <-watchCh: //nolint:varnamelen
-				if !ok {
-					return
-				}
-
-				// Dedup: skip events that were already replayed.
-				if sv.Seq > 0 {
-					if _, dup := replayedSeqs[sv.Seq]; dup {
-						continue
-					}
-				}
-
-				select {
-				case buf <- sv:
-				default:
-					select {
-					case <-buf:
-					default:
-					}
-
-					select {
-					case buf <- sv:
-					default:
-					}
-				}
-			}
-		}
-	}()
-
-	var heartbeat *time.Ticker
-	if cfg.HeartbeatInterval > 0 {
-		heartbeat = time.NewTicker(cfg.HeartbeatInterval)
-		defer heartbeat.Stop()
-	}
-
-	var timerCh, heartbeatCh <-chan time.Time
-	if timer != nil {
-		timerCh = timer.C
-	}
-
-	if heartbeat != nil {
-		heartbeatCh = heartbeat.C
-	}
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-
-		case sv, ok := <-buf: //nolint:varnamelen
-			if !ok {
-				return nil
-			}
-
-			data, err := json.Marshal(sv.Value)
-			if err != nil {
-				continue
-			}
-
-			if _, err := fmt.Fprintf(
-				w, "id: %d\ndata: %s\n\n", sv.Seq, data,
-			); err != nil {
+			if err := writeEvent(w, val); err != nil {
 				return err //nolint:wrapcheck
 			}
 
