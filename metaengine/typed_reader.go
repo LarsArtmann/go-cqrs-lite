@@ -19,6 +19,7 @@ import (
 type TypedReader[V any] struct {
 	store      *Store
 	collection string
+	prefetch   *PrefetchCache
 }
 
 // NewReader creates a typed reader for a collection's values. The collection
@@ -27,53 +28,97 @@ func NewReader[V any](store *Store, collection string) *TypedReader[V] {
 	return &TypedReader[V]{store: store, collection: collection}
 }
 
+// WithPrefetch attaches a PrefetchCache to the reader for cursor-based
+// pagination caching. When set, Scan results beyond the requested limit are
+// cached for the next page request, eliminating redundant engine round-trips.
+func (r *TypedReader[V]) WithPrefetch(cache *PrefetchCache) *TypedReader[V] {
+	r.prefetch = cache
+
+	return r
+}
+
+// readResult packs a point-lookup result for coalescer transport.
+type readResult struct {
+	value any
+	found bool
+}
+
 // Get performs a point lookup by key, decoding the value directly to V.
 // Returns (zero, false, nil) when the key is not found.
+// When a ReadCoalescer is configured on the Store, concurrent Get calls for
+// the same key are coalesced into a single engine read.
 func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 	var zero V
 
-	if err := r.store.IsPoisoned(r.collection); err != nil {
+	if r.store.coalescer != nil {
+		coalesceKey := r.collection + ":" + fmt.Sprint(key)
+		result, err := r.store.coalescer.Do(coalesceKey, func() (any, error) {
+			return r.getUncached(ctx, key)
+		})
+		if err != nil {
+			return zero, false, err
+		}
+
+		rr, ok := result.(readResult)
+		if !ok {
+			return zero, false, fmt.Errorf("coalescer: unexpected result type %T", result)
+		}
+
+		if !rr.found {
+			return zero, false, nil
+		}
+
+		v, err := reify[V](rr.value)
+
+		return v, true, err
+	}
+
+	rr, err := r.getUncached(ctx, key)
+	if err != nil {
 		return zero, false, err
+	}
+
+	if !rr.found {
+		return zero, false, nil
+	}
+
+	v, err := reify[V](rr.value)
+
+	return v, true, err
+}
+
+// getUncached performs the actual engine read without coalescer wrapping.
+func (r *TypedReader[V]) getUncached(ctx context.Context, key any) (readResult, error) {
+	if err := r.store.IsPoisoned(r.collection); err != nil {
+		return readResult{}, err
 	}
 
 	eng, ok := r.store.collectionEngine(r.collection)
 	if !ok {
-		return zero, false, fmt.Errorf("%w: %q", errNoQueryForInputType, r.collection)
+		return readResult{}, fmt.Errorf("%w: %q", errNoQueryForInputType, r.collection)
 	}
 
 	// Prefer raw value reader for single-pass decode (1 JSON op instead of 3).
 	if rvr, ok := eng.(RawValueReader); ok {
 		raw, found, err := rvr.GetRawValue(ctx, r.collection, key)
 		if err != nil {
-			return zero, false, fmt.Errorf("typed reader get %s: %w", r.collection, err)
+			return readResult{}, fmt.Errorf("typed reader get %s: %w", r.collection, err)
 		}
 
-		if !found {
-			return zero, false, nil
-		}
-
-		v, err := reify[V](jsonValue(raw))
-
-		return v, true, err
+		return readResult{value: jsonValue(raw), found: found}, nil
 	}
 
 	// Standard MapGet path.
 	if mb, ok := eng.(MapBackend); ok {
 		val, found, err := mb.MapGet(ctx, r.collection, key)
 		if err != nil {
-			return zero, false, fmt.Errorf("typed reader get %s: %w", r.collection, err)
+			return readResult{}, fmt.Errorf("typed reader get %s: %w", r.collection, err)
 		}
 
-		if !found {
-			return zero, false, nil
-		}
-
-		v, err := reify[V](val)
-
-		return v, true, err
+		return readResult{value: val, found: found}, nil
 	}
 
-	return zero, false, fmt.Errorf("%w: %s", errUnsupportedMapReads, eng.Profile().Name)
+	return readResult{}, fmt.Errorf("%w: %s", errUnsupportedMapReads, eng.Profile().Name)
 }
 
 // Scan returns all values matching the given filter/sort/limit options.
@@ -87,6 +132,25 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 
 	for _, opt := range opts {
 		opt(&cfg)
+	}
+
+	// PrefetchCache: serve from cache when a cursor key matches.
+	if r.prefetch != nil && cfg.cursor != nil {
+		cacheKey := fmt.Sprintf("%s:%v", r.collection, cfg.cursor)
+		if cached := r.prefetch.Get(cacheKey); cached != nil {
+			result := make([]V, 0, len(cached))
+
+			for _, row := range cached {
+				v, err := reify[V](row)
+				if err != nil {
+					return nil, fmt.Errorf("prefetch decode %s: %w", r.collection, err)
+				}
+
+				result = append(result, v)
+			}
+
+			return trimToLimit(result, cfg.limit), nil
+		}
 	}
 
 	// Expand range specs into filter pairs for pushdown/raw paths.

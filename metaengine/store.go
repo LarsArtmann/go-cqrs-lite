@@ -189,8 +189,6 @@ func (s *Store) Apply(ctx context.Context, eventType string, payload any) error 
 		if err := s.applyFold(ctx, q, fold, payload); err != nil {
 			return fmt.Errorf("query %q fold for %s: %w", q.name, eventType, err)
 		}
-
-		s.notifyWatchers(q.name, payload)
 	}
 
 	return nil
@@ -294,6 +292,8 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 				return fmt.Errorf("map set %s: %w", col, err)
 			}
 
+			s.notifyWatchers(col, value)
+
 			return nil
 		}
 
@@ -303,11 +303,16 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 		key := fold.callKey(payload)
 
 		if mu, ok := q.engine.(MapUpdater); ok {
+			var updatedVal any
+
 			if err := mu.MapUpdate(ctx, col, key, func(prev any) any {
-				return fold.callUpdate(payload, prev)
+				updatedVal = fold.callUpdate(payload, prev)
+				return updatedVal
 			}); err != nil {
 				return fmt.Errorf("map update %s: %w", col, err)
 			}
+
+			s.notifyWatchers(col, updatedVal)
 
 			return nil
 		}
@@ -340,6 +345,8 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 			if err := mb.MapDelete(ctx, col, key); err != nil {
 				return fmt.Errorf("map delete %s: %w", col, err)
 			}
+
+			s.notifyWatchers(col, nil)
 
 			return nil
 		}
