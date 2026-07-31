@@ -455,6 +455,10 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-coverage.sh" "$@"
             '';
 
+            check-rule-count = mkApp "check-rule-count" [ goPkg pkgs.bash ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-rule-count.sh" "$@"
+            '';
+
             check-file-size = mkApp "check-file-size" [ pkgs.findutils ] ''
               failed=false
               while IFS= read -r f; do

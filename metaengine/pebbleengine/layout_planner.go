@@ -42,8 +42,13 @@ func formatIndexInt(v int64) string {
 // encodeIndexValue converts a field value to an order-preserving string for
 // secondary index keys. Integers (including float64-encoded JSON numbers
 // without fractional parts) are zero-padded to 20 chars with sign offset.
-// Strings and bools use their natural representation. Floats with fractional
-// parts fall through to fmt.Sprintf (best-effort, documented limitation).
+// Strings and bools use their natural representation.
+//
+// LIMITATION: Floats with fractional parts (e.g. 3.14) fall through to
+// fmt.Sprintf("%v"), which does NOT preserve lexicographic ordering
+// ("10.5" < "3.14" lexicographically). Filter/sort pushdown on float
+// columns may produce wrong results. Use integer-scaled values (cents,
+// milliseconds) instead of floats for indexed columns.
 func encodeIndexValue(v any) string {
 	switch val := v.(type) {
 	case int:

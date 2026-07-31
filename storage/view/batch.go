@@ -72,11 +72,11 @@ func (s *SQLViewStore[V, K]) batchChunk(ctx context.Context, items []kv.ViewItem
 	}
 
 	q := fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES %s ON CONFLICT(key) DO UPDATE SET %s",
+		"INSERT INTO %s (%s) VALUES %s %s",
 		s.mapper.Table,
 		strings.Join(cols, ", "),
 		strings.Join(placeholders, ", "),
-		s.buildConflictSet(cols[1:]),
+		s.Dialect.OnConflictDoUpdate([]string{"key"}, []string{s.buildConflictSet(cols[1:])}),
 	)
 
 	if _, err := s.executor().ExecContext(ctx, q, args...); err != nil {

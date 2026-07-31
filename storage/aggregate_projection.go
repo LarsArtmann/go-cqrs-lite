@@ -60,15 +60,18 @@ func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
 		p3 := p.dialect.Placeholder(3)
 		p4 := p.dialect.Placeholder(4)
 
+		setExprs := []string{
+			"version = " + p.dialect.ExcludedRef("version"),
+			"event_count = " + p.table.name + ".event_count + 1",
+			"last_event_at = " + p.dialect.ExcludedRef("last_event_at"),
+		}
 		_, err := p.db.ExecContext(
 			ctx,
 			fmt.Sprintf(`INSERT INTO %s
 				(aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
-				VALUES (%s, %s, %s, 1, %s, 0)
-				ON CONFLICT (aggregate_type, aggregate_id) DO UPDATE SET
-					version = excluded.version,
-					event_count = %s.event_count + 1,
-					last_event_at = excluded.last_event_at`, p.table.name, p1, p2, p3, p4, p.table.name),
+				VALUES (%s, %s, %s, 1, %s, 0) %s`,
+				p.table.name, p1, p2, p3, p4,
+				p.dialect.OnConflictDoUpdate([]string{"aggregate_type", "aggregate_id"}, setExprs)),
 			evt.StreamType(),
 			evt.StreamID().String(),
 			evt.Version().Int(),
@@ -84,16 +87,19 @@ func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
 	p4 := p.dialect.Placeholder(4)
 	p5 := p.dialect.Placeholder(5)
 
+	setExprs := []string{
+		"version = " + p.dialect.ExcludedRef("version"),
+		"event_count = " + p.table.name + ".event_count + 1",
+		"last_event_at = " + p.dialect.ExcludedRef("last_event_at"),
+		"tombstone_status = " + p.dialect.ExcludedRef("tombstone_status"),
+	}
 	_, err := p.db.ExecContext(
 		ctx,
 		fmt.Sprintf(`INSERT INTO %s
 			(aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
-			VALUES (%s, %s, %s, 1, %s, %s)
-			ON CONFLICT (aggregate_type, aggregate_id) DO UPDATE SET
-				version = excluded.version,
-				event_count = %s.event_count + 1,
-				last_event_at = excluded.last_event_at,
-				tombstone_status = excluded.tombstone_status`, p.table.name, p1, p2, p3, p4, p5, p.table.name),
+			VALUES (%s, %s, %s, 1, %s, %s) %s`,
+			p.table.name, p1, p2, p3, p4, p5,
+			p.dialect.OnConflictDoUpdate([]string{"aggregate_type", "aggregate_id"}, setExprs)),
 		evt.StreamType(),
 		evt.StreamID().String(),
 		evt.Version().Int(),

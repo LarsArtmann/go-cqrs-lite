@@ -23,11 +23,6 @@ import (
 // domain logic.
 type Row map[string]any
 
-// conflictDoNothing is the ON CONFLICT clause emitted when an upsert has no
-// update set (empty updateCols / setExprs). Extracted as a constant to satisfy
-// goconst across the Upsert / UpsertCols / UpsertExpr implementations.
-const conflictDoNothing = "DO NOTHING"
-
 // ProjectionSink is a transactional, dialect-agnostic write context passed to
 // relational projection handlers. All writes performed through a sink during a
 // single [RelationalProjection.Handle] call commit atomically — if the handler

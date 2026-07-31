@@ -11,6 +11,9 @@ const pgDuplicateCode = "23505"
 // sqliteExtendedCode is the SQLite extended result code for SQLITE_CONSTRAINT_UNIQUE.
 const sqliteExtendedCode = 2067
 
+// mysqlDupNumber is the MySQL error number for duplicate entry (ER_DUP_ENTRY).
+const mysqlDupNumber = 1062
+
 // IsDuplicateKeyError returns true if the error is a unique constraint violation
 // from either SQLite ("UNIQUE constraint failed") or PostgreSQL
 // ("duplicate key value violates unique constraint").
@@ -33,6 +36,11 @@ func IsDuplicateKeyError(err error) bool {
 		return true
 	}
 
+	// Typed check: MySQL/MariaDB duplicate entry (go-sql-driver/mysql).
+	if hasMySQLDuplicateNumber(err) {
+		return true
+	}
+
 	// String fallback for drivers without typed errors.
 	msg := err.Error()
 
@@ -47,6 +55,13 @@ func IsDuplicateKeyError(err error) bool {
 type pgCodeError interface {
 	error
 	Code() string
+}
+
+// mysqlNumberError is an interface satisfied by go-sql-driver/mysql's MySQLError
+// and similar types that expose a numeric error code.
+type mysqlNumberError interface {
+	error
+	Number() uint16
 }
 
 // hasDuplicateCode checks for PostgreSQL SQLSTATE 23505 via typed interface.
@@ -83,4 +98,14 @@ func hasSQLiteUniqueCode(err error) bool {
 	}
 
 	return false
+}
+
+// hasMySQLDuplicateNumber checks for MySQL ER_DUP_ENTRY (1062) via the typed
+// mysqlNumberError interface (satisfied by go-sql-driver/mysql's *MySQLError).
+func hasMySQLDuplicateNumber(err error) bool {
+	me, ok := errors.AsType[mysqlNumberError](err)
+	if !ok {
+		return false
+	}
+	return me.Number() == mysqlDupNumber
 }

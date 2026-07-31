@@ -2,6 +2,7 @@ package sql
 
 import (
 	"errors"
+	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -19,7 +20,7 @@ func init() { //nolint:gochecknoinits // package-wide registration of stdlib/dri
 	// by sentinel identity (each error is a fresh instance). These use the
 	// same interface-based detection as IsDuplicateKeyError, so no additional
 	// driver dependencies are introduced.
-	errorfamily.RegisterClassifiers(classifySQLiteError, classifyPostgresError)
+	errorfamily.RegisterClassifiers(classifySQLiteError, classifyPostgresError, classifyMySQLError)
 }
 
 // classifySQLiteError classifies modernc.org/sqlite errors via the
@@ -68,6 +69,49 @@ func classifyPostgresError(err error) (errorfamily.Family, bool) {
 	case "23": // integrity constraint violation
 		return errorfamily.Conflict, true
 	case "40", "53", "57", "58": // transient classes
+		return errorfamily.Transient, true
+	default:
+		return errorfamily.Transient, false
+	}
+}
+
+// classifyMySQLError classifies MySQL/MariaDB errors. The go-sql-driver/mysql
+// driver exposes error codes via the *MySQLError.Number field (not a method),
+// which cannot be matched by an interface without importing the driver. This
+// classifier uses the driver's stable "Error NNNN:" message prefix instead.
+//
+// Error numbers:
+//
+//   - 1062 (ER_DUP_ENTRY) → Conflict (duplicate key, not retryable)
+//   - 1205 (ER_LOCK_WAIT_TIMEOUT) → Transient (retryable)
+//   - 1213 (ER_DEADLOCK) → Transient (retryable)
+//   - 2003 (CR_CONN_HOST_ERROR) → Transient (retryable)
+//   - 2006 (CR_SERVER_GONE_ERROR) → Transient (retryable)
+//   - 2013 (CR_SERVER_LOST) → Transient (retryable)
+func classifyMySQLError(err error) (errorfamily.Family, bool) {
+	// Typed check via mysqlNumberError interface (forward-looking).
+	if me, ok := errors.AsType[mysqlNumberError](err); ok {
+		switch me.Number() {
+		case mysqlDupNumber: // 1062
+			return errorfamily.Conflict, true
+		case 1205, 1213, 2003, 2006, 2013:
+			return errorfamily.Transient, true
+		}
+		return errorfamily.Transient, false
+	}
+
+	// String-based fallback: the go-sql-driver/mysql error format is
+	// "Error NNNN: <message>".
+	msg := err.Error()
+
+	switch {
+	case strings.Contains(msg, "Error 1062"):
+		return errorfamily.Conflict, true
+	case strings.Contains(msg, "Error 1205"),
+		strings.Contains(msg, "Error 1213"),
+		strings.Contains(msg, "Error 2003"),
+		strings.Contains(msg, "Error 2006"),
+		strings.Contains(msg, "Error 2013"):
 		return errorfamily.Transient, true
 	default:
 		return errorfamily.Transient, false

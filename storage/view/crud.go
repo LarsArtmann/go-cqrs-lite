@@ -58,11 +58,11 @@ func (s *SQLViewStore[V, K]) Set(ctx context.Context, key K, val *V) error {
 	}
 
 	q := fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(key) DO UPDATE SET %s",
+		"INSERT INTO %s (%s) VALUES (%s) %s",
 		s.mapper.Table,
 		strings.Join(cols, ", "),
 		strings.Join(placeholders, ", "),
-		s.buildConflictSet(cols[1:]),
+		s.Dialect.OnConflictDoUpdate([]string{"key"}, []string{s.buildConflictSet(cols[1:])}),
 	)
 
 	_, err := s.executor().ExecContext(ctx, q, args...)
@@ -78,7 +78,7 @@ func (s *SQLViewStore[V, K]) buildConflictSet(dataCols []string) string {
 	parts := make([]string, 0, len(dataCols))
 
 	for _, col := range dataCols {
-		parts = append(parts, col+" = excluded."+col)
+		parts = append(parts, col+" = "+s.Dialect.ExcludedRef(col))
 	}
 
 	return strings.Join(parts, ", ")

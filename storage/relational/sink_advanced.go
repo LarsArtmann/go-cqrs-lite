@@ -135,17 +135,19 @@ func (s *sqlSink) UpsertCols(
 		}
 	}
 
-	setClause := excludedSet(targetCols)
+	setClause := excludedSet(targetCols, s.dialect)
 	pholders := placeholders(s.dialect, len(cols))
 
-	onConflict := conflictDoNothing
+	var conflictClause string
 	if setClause != "" {
-		onConflict = "DO UPDATE SET " + setClause
+		conflictClause = s.dialect.OnConflictDoUpdate(conflictCols, []string{setClause})
+	} else {
+		conflictClause = s.dialect.OnConflictDoNothing(cols[0])
 	}
 
 	query := fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(%s) %s",
-		table, strings.Join(cols, ", "), pholders, strings.Join(conflictCols, ", "), onConflict,
+		"INSERT INTO %s (%s) VALUES (%s) %s",
+		table, strings.Join(cols, ", "), pholders, conflictClause,
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {
@@ -180,7 +182,7 @@ func (s *sqlSink) UpsertExpr(
 		colSet[c.Name] = struct{}{}
 	}
 
-	onConflict := conflictDoNothing
+	var conflictClause string
 	var args []any
 	args = append(args, vals...)
 
@@ -198,14 +200,16 @@ func (s *sqlSink) UpsertExpr(
 			args = append(args, se.Args...)
 		}
 
-		onConflict = "DO UPDATE SET " + strings.Join(parts, ", ")
+		conflictClause = s.dialect.OnConflictDoUpdate(conflictCols, parts)
+	} else {
+		conflictClause = s.dialect.OnConflictDoNothing(cols[0])
 	}
 
 	pholders := placeholders(s.dialect, len(cols))
 
 	query := fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT(%s) %s",
-		table, strings.Join(cols, ", "), pholders, strings.Join(conflictCols, ", "), onConflict,
+		"INSERT INTO %s (%s) VALUES (%s) %s",
+		table, strings.Join(cols, ", "), pholders, conflictClause,
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, args...); err != nil {
