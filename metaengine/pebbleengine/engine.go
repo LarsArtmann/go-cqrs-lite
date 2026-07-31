@@ -258,7 +258,30 @@ func (e *pebbleEngine) MapGet(_ context.Context, col string, key any) (any, bool
 }
 
 func (e *pebbleEngine) MapDelete(_ context.Context, col string, key any) error {
-	return e.db.Delete(mapKey(col, encodeKeyStr(key)), pebble.Sync)
+	keyStr := encodeKeyStr(key)
+
+	// Clean up secondary index entries if a layout plan exists.
+	e.layoutMu.Lock()
+	plan, hasLayout := e.layouts[col]
+	e.layoutMu.Unlock()
+
+	if hasLayout {
+		batch := e.db.NewBatch()
+		defer func() { _ = batch.Close() }()
+
+		if oldVal, closer, err := e.db.Get(mapKey(col, keyStr)); err == nil {
+			e.deleteIndexEntries(batch, col, keyStr, oldVal, plan)
+			_ = closer.Close() //nolint:errcheck // pebble closer
+		}
+
+		if err := batch.Delete(mapKey(col, keyStr), nil); err != nil {
+			return fmt.Errorf("pebbleengine: MapDelete: %w", err)
+		}
+
+		return batch.Commit(pebble.Sync)
+	}
+
+	return e.db.Delete(mapKey(col, keyStr), pebble.Sync)
 }
 
 // --- MapUpdater ---
@@ -280,10 +303,12 @@ func (e *pebbleEngine) MapUpdate(
 	defer e.mu.Unlock()
 
 	var prev any
+	var oldValJSON []byte
 
 	val, closer, err := e.db.Get(k)
 	if err == nil {
 		prev = decodeJSON(val)
+		oldValJSON = append([]byte(nil), val...)
 		//cqrs-lint:ignore(C015,C023) library code or intentional pattern
 		_ = closer.Close()
 	} else if !errors.Is(err, pebble.ErrNotFound) {
@@ -291,8 +316,32 @@ func (e *pebbleEngine) MapUpdate(
 	}
 
 	newVal := update(prev)
+	newValJSON := encodeJSON(newVal)
 
-	return e.db.Set(k, encodeJSON(newVal), pebble.Sync)
+	// Update secondary index entries if a layout plan exists.
+	e.layoutMu.Lock()
+	plan, hasLayout := e.layouts[col]
+	e.layoutMu.Unlock()
+
+	if hasLayout {
+		keyStr := encodeKeyStr(key)
+		batch := e.db.NewBatch()
+		defer func() { _ = batch.Close() }()
+
+		e.deleteIndexEntries(batch, col, keyStr, oldValJSON, plan)
+
+		if err := batch.Set(k, newValJSON, nil); err != nil {
+			return fmt.Errorf("pebbleengine: MapUpdate: %w", err)
+		}
+
+		if err := e.writeIndexEntries(batch, col, keyStr, newValJSON, plan); err != nil {
+			return err
+		}
+
+		return batch.Commit(pebble.Sync)
+	}
+
+	return e.db.Set(k, newValJSON, pebble.Sync)
 }
 
 // --- ScanBackend ---

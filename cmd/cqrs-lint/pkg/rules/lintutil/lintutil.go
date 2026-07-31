@@ -141,6 +141,25 @@ func ExprCallSelector(expr ast.Expr) (*ast.SelectorExpr, bool) {
 	return analyzer.SelectorFromExpr(call.Fun)
 }
 
+// CallSelectorMatches reports whether call's function target is a selector
+// whose method name matches any of names. Convenience for the common
+// analyzer.SelectorFromExpr(call.Fun) → check Sel.Name pattern.
+// Shared by c021 (isLockCall/isUnlockCall) and c024 (isTransactionCall).
+func CallSelectorMatches(call *ast.CallExpr, names ...string) bool {
+	sel, ok := analyzer.SelectorFromExpr(call.Fun)
+	if !ok {
+		return false
+	}
+
+	for _, name := range names {
+		if sel.Sel.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
 // ModuleImportsPath reports whether any non-test file in the analysis context
 // imports a path containing the given substring. Checks both the packages
 // loader (ctx.Packages) and raw AST import declarations (ctx.GoFiles).

@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
 // A002: event.NewEvent with json.Marshal argument.
@@ -88,19 +89,12 @@ func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // isDirectJSONMarshal returns true if expr is a direct json.Marshal() call.
 func isDirectJSONMarshal(expr ast.Expr) bool {
-	argCall, ok := expr.(*ast.CallExpr)
+	sel, ok := lintutil.ExprCallSelector(expr)
 	if !ok {
 		return false
 	}
 
-	argSel, ok := analyzer.SelectorFromExpr(argCall.Fun)
-	if !ok {
-		return false
-	}
-
-	argPkg, ok := argSel.X.(*ast.Ident)
-
-	return ok && argPkg.Name == "json" && argSel.Sel.Name == "Marshal"
+	return lintutil.SelectorMatches(sel, "json", "Marshal")
 }
 
 // isMarshalHelperCall returns true if expr is a call to one of the
