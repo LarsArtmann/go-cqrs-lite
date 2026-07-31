@@ -92,3 +92,24 @@ func (a *Adapter) Handle(ctx context.Context, evt event.Event) error {
 
 // Compile-time assertion that Adapter implements projection.Projection.
 var _ projection.Projection = (*Adapter)(nil)
+
+// RegisterWithHost is a convenience that creates an Adapter and registers it
+// with a projectionhost.Host in one call. This is the one-liner for wiring
+// a metaengine Store into the CQRS event sourcing lifecycle:
+//
+//	host, _ := projectionhost.New(journal, cpStore)
+//	projectionadapter.RegisterWithHost(host, "users", store, decoder)
+//	go host.Start(ctx)
+//
+// The event types are auto-derived from the store's planned queries.
+func RegisterWithHost(
+	host interface {
+		Register(projection.Projection) error
+	},
+	name string,
+	store *metaengine.Store,
+	decoder PayloadDecoder,
+) error {
+	adapter := New(name, store, decoder)
+	return host.Register(adapter)
+}

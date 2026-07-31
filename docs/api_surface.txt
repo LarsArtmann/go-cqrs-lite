@@ -1574,6 +1574,7 @@ metaengine/pebbleengine/method Profile
 metaengine/pebbleengine/method SetAdd
 metaengine/pebbleengine/method SetContains
 metaengine/projectionadapter/func New
+metaengine/projectionadapter/func RegisterWithHost
 metaengine/projectionadapter/method EventTypes
 metaengine/projectionadapter/method Handle
 metaengine/projectionadapter/method Name
