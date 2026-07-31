@@ -1,9 +1,9 @@
 package metaengine
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -319,8 +319,8 @@ func TestPropertyFoldInsert_HoldsInvariants(t *testing.T) {
 
 	// Apply N random-ish tasks, verify each is readable
 	for i := range 50 {
-		id := fmt.Sprintf("task-%03d", i)
-		err := store.Apply(ctx, "task_created", testTask{ID: id, Title: id})
+		id := testTaskID(fmt.Sprintf("task-%03d", i))
+		err := store.Apply(ctx, "task_created", testTask{ID: id, Title: string(id)})
 		if err != nil {
 			t.Errorf("Apply %d: %v", i, err)
 		}
@@ -385,11 +385,10 @@ func TestExportImport_AllADTs(t *testing.T) {
 		{Type: "task_created", Payload: testTask{ID: "t3", Title: "Task 3"}},
 	})
 
-	// Export
-	exported := exportData{}
-	if err := store.Export(ctx, &exported); err != nil {
-		// Export might use a different type — try via io.Writer
-		t.Logf("Export type note: %v", err)
+	// Export to a buffer (Export takes io.Writer)
+	var buf bytes.Buffer
+	if err := store.Export(ctx, &buf); err != nil {
+		t.Logf("Export note: %v", err)
 	}
 }
 

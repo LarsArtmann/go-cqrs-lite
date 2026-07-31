@@ -155,7 +155,7 @@ func ContractSuite(t interface {
 		}
 		// MapUpdate
 		if mu, ok := eng.(MapUpdater); ok {
-			_ = mb.MapSet(ctx, "cs", "u1", 10)
+			_ = mb.MapSet(ctx, "cs", "u1", float64(10))
 			if err := mu.MapUpdate(ctx, "cs", "u1", func(prev any) any {
 				if v, ok := prev.(float64); ok {
 					return v + 5
@@ -247,10 +247,12 @@ func ContractSuite(t interface {
 		}
 	}
 
-	// --- ScanBackend ---
+	// --- ScanBackend (needs MapBackend to seed data first) ---
+	if mbScan, ok := eng.(MapBackend); ok {
+		_ = mbScan.MapSet(ctx, "csscan", "k1", "v1")
+		_ = mbScan.MapSet(ctx, "csscan", "k2", "v2")
+	}
 	if sb, ok := eng.(ScanBackend); ok {
-		_ = sb.MapSet(ctx, "csscan", "k1", "v1")
-		_ = sb.MapSet(ctx, "csscan", "k2", "v2")
 		results, err := sb.MapScan(ctx, "csscan", nil, nil, nil, 0)
 		if err != nil {
 			t.Errorf("ContractSuite Scan: %v", err)
