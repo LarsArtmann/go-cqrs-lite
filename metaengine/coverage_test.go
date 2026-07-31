@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -343,4 +344,51 @@ func TestTypedReader_Count(t *testing.T) {
 	if open < 60 || open > 70 {
 		t.Errorf("Count open = %d, expected ~66", open)
 	}
+}
+
+// ─── O3: ExplainPlan ───
+
+func TestStore_ExplainPlan(t *testing.T) {
+	t.Parallel()
+
+	store, _ := setupBenchStore(t, 10, true)
+	defer store.Close()
+
+	explanation := store.ExplainPlan()
+	if explanation == "" {
+		t.Fatal("ExplainPlan returned empty string")
+	}
+
+	// Should mention the query name, ADT, and engine.
+	for _, want := range []string{"bench_filter_scan", "map", "sqlite"} {
+		if !strings.Contains(explanation, want) {
+			t.Errorf("ExplainPlan output missing %q:\n%s", want, explanation)
+		}
+	}
+
+	t.Logf("ExplainPlan output:\n%s", explanation)
+}
+
+// ─── O4: Doctor ───
+
+func TestStore_Doctor(t *testing.T) {
+	t.Parallel()
+
+	store, _ := setupBenchStore(t, 10, true)
+	defer store.Close()
+
+	ctx := context.Background()
+	report := store.Doctor(ctx)
+	if report == "" {
+		t.Fatal("Doctor returned empty string")
+	}
+
+	// Should mention health, collections, and poisoned sections.
+	for _, want := range []string{"Health", "Collections", "Poisoned", "healthy"} {
+		if !strings.Contains(report, want) {
+			t.Errorf("Doctor output missing %q:\n%s", want, report)
+		}
+	}
+
+	t.Logf("Doctor output:\n%s", report)
 }

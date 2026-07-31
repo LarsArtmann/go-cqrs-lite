@@ -403,3 +403,34 @@ results, _ := qb.
     Limit(50).
     Execute(ctx)
 ```
+
+## Observability (Hooks + MetricsRecorder)
+
+The Store provides zero-dependency observability hooks. Wire OTel, Prometheus,
+or any metrics system by implementing `MetricsRecorder`:
+
+```go
+// Implement MetricsRecorder (zero-dep interface):
+type myRecorder struct{}
+
+func (r *myRecorder) RecordApply(col, evt string, kind metaengine.FoldKind,
+    d time.Duration, err error) {
+    // Forward to OTel counter/histogram or Prometheus metrics
+}
+
+func (r *myRecorder) RecordExecute(col string, pattern metaengine.ReadPattern,
+    d time.Duration, count int, err error) {
+    // Forward to OTel span or Prometheus histogram
+}
+
+// Wire it:
+metaengine.WithMetrics(store, &myRecorder{})
+```
+
+Built-in helpers:
+- `metaengine.WithDebug(store, logger)` — debug logging of every fold
+- `metaengine.WithSlowQueryLog(store, threshold, logger)` — slow query detection
+- `metaengine.NewCostAccuracyReporter(n)` — cost model drift detection
+- `store.ExplainPlan()` — human-readable plan explanation
+- `store.Doctor(ctx)` — runtime diagnostic report (health + stats + poisoned)
+- `reader.Explain(ctx, opts...)` — SQL that would execute for a scan

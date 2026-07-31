@@ -3,6 +3,8 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 )
 
@@ -130,4 +132,106 @@ func explainPlanned(
 	}
 
 	return b.String(), args
+}
+
+// ─── Store-level observability (O3 + O4) ───
+
+// ExplainPlan returns a human-readable explanation of the full query plan.
+// It shows each engine's capabilities, each query's assignment (engine, ADT,
+// complexity, cost), and any diagnostics.
+//
+// This is the primary tool for understanding WHY the planner assigned each
+// query to a particular engine. Use it during development to verify
+// FilterOnField/SortOnField declarations produce pushdown scans.
+func (s *Store) ExplainPlan() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var b strings.Builder
+
+	b.WriteString("=== Metaengine Plan ===\n\n--- Engines ---\n")
+
+	for _, eng := range s.engines {
+		p := eng.Profile()
+		fmt.Fprintf(&b, "  %s (read=%.0fns/op, write=%.0fns/op)\n",
+			p.Name, p.ReadNsPerOp(), p.WriteNsPerOp())
+	}
+
+	b.WriteString("\n--- Queries ---\n")
+
+	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
+		q := s.queries[name]
+		fmt.Fprintf(&b, "  %s: %s via %s (%s)", name, q.adt,
+			q.engine.Profile().Name, q.complexity)
+
+		if s.plan != nil {
+			for _, qa := range s.plan.Queries {
+				if qa.QueryName == name && qa.Cost.Volume > 0 {
+					fmt.Fprintf(&b, " est=%.3fms", qa.Cost.EstimatedLatencyMs)
+				}
+			}
+		}
+
+		b.WriteString("\n")
+	}
+
+	if s.plan != nil && len(s.plan.Diagnostics) > 0 {
+		b.WriteString("\n--- Diagnostics ---\n")
+
+		for _, d := range s.plan.Diagnostics {
+			fmt.Fprintf(&b, "  %s\n", d)
+		}
+	}
+
+	return b.String()
+}
+
+// Doctor returns a runtime diagnostic report combining health checks,
+// collection stats, and poisoned-collection detection. Use for debugging,
+// startup diagnostics, or readiness probes.
+func (s *Store) Doctor(ctx context.Context) string {
+	var b strings.Builder
+
+	b.WriteString("=== Metaengine Doctor ===\n\n--- Health ---\n")
+
+	if err := s.HealthCheck(ctx); err != nil {
+		fmt.Fprintf(&b, "  UNHEALTHY: %v\n", err)
+	} else {
+		b.WriteString("  all engines healthy\n")
+	}
+
+	b.WriteString("\n--- Collections ---\n")
+
+	stats, err := s.Stats(ctx)
+	if err != nil {
+		fmt.Fprintf(&b, "  ERROR: %v\n", err)
+	} else {
+		for _, st := range stats {
+			rowStr := "N/A"
+			if st.RowCount >= 0 {
+				rowStr = fmt.Sprintf("%d", st.RowCount)
+			}
+
+			fmt.Fprintf(&b, "  %s: %s rows (%s)\n", st.Name, rowStr, st.EngineName)
+		}
+	}
+
+	poisonedCount := 0
+
+	s.poisoned.Range(func(key, value any) bool {
+		if poisonedCount == 0 {
+			b.WriteString("\n--- Poisoned ---\n")
+		}
+
+		poisonedCount++
+		fmt.Fprintf(&b, "  %s: %v\n", key, value)
+
+		return true
+	})
+
+	if poisonedCount == 0 {
+		b.WriteString("\n--- Poisoned ---\n  none\n")
+	}
+
+	return b.String()
 }
