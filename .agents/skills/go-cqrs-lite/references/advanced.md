@@ -509,6 +509,56 @@ delivered as a JSON array response. `BackfillHandler(journal)` is shorthand for
 `event.Event` and returns `[]byte` for the wire; it must be read-only (no
 mutation).
 
+### 6.16 Metaengine SSE Streaming & Cursor Pagination (metaengine)
+
+The metaengine ships its own lightweight SSE streaming and pagination,
+separate from the `transport/http` SSE broker. Use it when you want to
+stream **projected values** (not raw events) directly from a `metaengine.Store`.
+
+**SSE with Last-Event-ID reconnection:**
+
+```go
+watcher := metaengine.NewWatcher[TaskView](store, "tasks")
+watcher.WithReplay(1000) // enable reconnection
+defer watcher.Close()
+
+http.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+    _ = metaengine.ServeSSE(w, r, watcher,
+        metaengine.WithSSETimeout(30*time.Minute),
+        metaengine.WithSSEReplayLimit(500),
+    )
+})
+```
+
+Key differences from `transport/http` SSE:
+
+| Aspect            | `metaengine.ServeSSE`                  | `transport/http.SSEBroker`  |
+| ----------------- | -------------------------------------- | --------------------------- |
+| **Source**        | Watcher (projected values)             | Event bus (raw events)      |
+| **Replay**        | In-memory ring buffer (`SSEReplay[V]`) | Journal-backed (persistent) |
+| **Dedup**         | `dedup.Ring` (bounded)                 | `dedup.Ring` (bounded)      |
+| **Cross-process** | No (in-process watcher)                | Yes (journal + bus)         |
+| **Payload**       | Projected value (JSON)                 | Raw event payload           |
+
+**Cursor pagination with prefetch cache:**
+
+```go
+reader := metaengine.NewReader[TaskView](store, "tasks").
+    WithPrefetch(metaengine.NewPrefetchCache())
+
+page1, cursor1, _ := reader.ScanPage(ctx,
+    metaengine.WithSort("Title", false), metaengine.WithLimit(20))
+
+// cursor1.Encode() → base64 string for HTTP ?cursor=...
+page2, _, _ := reader.ScanPage(ctx,
+    metaengine.WithSort("Title", false), metaengine.WithLimit(20),
+    metaengine.WithCursorString(cursor1.Encode()))
+```
+
+The `PrefetchCache` is thread-safe and normalizes cache keys through
+`Cursor.Encode()`, so `WithCursor(raw)` and `WithCursorString(encoded)`
+hit the same cache entry.
+
 ---
 
 These are the failure modes we see most often. Read them before reaching for an advanced pattern.

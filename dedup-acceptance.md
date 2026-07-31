@@ -1,5 +1,13 @@
 # Dedup Acceptance Log
 
+**Session 4 (-t 3):** Eliminated ALL harmful duplication — clone groups
+reduced from 8 to 2 (both intentionally accepted). Extractions:
+`ruletest.RunDetector`/`AssertRule` (10 copies → 1 shared package),
+table-driven conversions (s005, c030, S006 tests), `newMemoryTestStore`/
+`newSQLiteTestStore` (13 metaengine test setups), `setupRawScanTest`
+(6 pebbleengine test setups). Only 2 groups remain: cross-module golden
+helpers and trivial strings.Builder idiom.
+
 **Session 3 (-t 3):** 12 extractions applied across metaengine + cqrs-lint,
 reducing clone groups from 19 to 8. All production-code clones eliminated;
 the remaining 8 are idiomatic test patterns (table-driven tests, per-package

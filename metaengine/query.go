@@ -216,7 +216,7 @@ func (q *QueryDecl[Q, R]) infer() {
 // filters (FilterOn/SortOn) are excluded — they cannot be pushed to SQL.
 func extractDeclarativeFields(
 	cfg QueryConfig,
-) (filterFields, sortFields []string) { //nolint:nonamedreturns
+) (filterFields, sortFields []string) {
 	for _, acc := range cfg.filterAccessors {
 		if acc.spec != nil {
 			filterFields = append(filterFields, acc.spec.Column)

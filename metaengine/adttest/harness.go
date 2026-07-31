@@ -52,13 +52,13 @@ type Scenario struct {
 // required backend interface, RunMatrix skips that subtest instead of
 // panicking on a failed type assertion inside Setup/Read.
 var backendInterfaces = map[string]reflect.Type{
-	"MapBackend":      reflect.TypeOf((*metaengine.MapBackend)(nil)).Elem(),
-	"SetBackend":      reflect.TypeOf((*metaengine.SetBackend)(nil)).Elem(),
-	"CounterBackend":  reflect.TypeOf((*metaengine.CounterBackend)(nil)).Elem(),
-	"GraphBackend":    reflect.TypeOf((*metaengine.GraphBackend)(nil)).Elem(),
-	"ScanBackend":     reflect.TypeOf((*metaengine.ScanBackend)(nil)).Elem(),
-	"LogBackend":      reflect.TypeOf((*metaengine.LogBackend)(nil)).Elem(),
-	"MultimapBackend": reflect.TypeOf((*metaengine.MultimapBackend)(nil)).Elem(),
+	"MapBackend":      reflect.TypeFor[metaengine.MapBackend](),
+	"SetBackend":      reflect.TypeFor[metaengine.SetBackend](),
+	"CounterBackend":  reflect.TypeFor[metaengine.CounterBackend](),
+	"GraphBackend":    reflect.TypeFor[metaengine.GraphBackend](),
+	"ScanBackend":     reflect.TypeFor[metaengine.ScanBackend](),
+	"LogBackend":      reflect.TypeFor[metaengine.LogBackend](),
+	"MultimapBackend": reflect.TypeFor[metaengine.MultimapBackend](),
 }
 
 // RunMatrix runs all ADT scenarios across all engine factories and asserts
@@ -78,6 +78,7 @@ func RunMatrix(t *testing.T, factories []Factory) {
 			t.Parallel()
 
 			results := make(map[string]string, len(factories))
+
 			var mu sync.Mutex
 
 			for _, factory := range factories {

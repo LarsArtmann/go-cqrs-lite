@@ -194,6 +194,7 @@ func scanRawPlanned(
 	limit int,
 ) ([][]byte, error) {
 	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
+
 	return scanRawRows(ctx, db, query, args...)
 }
 

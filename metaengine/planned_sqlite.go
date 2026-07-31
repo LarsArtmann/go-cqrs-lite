@@ -264,6 +264,7 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 	limit int,
 ) ([]any, error) {
 	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
+
 	return scanJSONValues(ctx, e.xd(), query, args...)
 }
 

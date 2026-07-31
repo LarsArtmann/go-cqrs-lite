@@ -577,3 +577,69 @@ When you need schema-aware JSON (reconstructing field names from `toarray`
 structs) or custom logging, call `codec.TranscodeToJSON` directly inside your
 own `func(event.Event) []byte` and use `event.DecodePayloadAuto[T]` for typed
 decoding. See `codec/README.md` → "CBOR → JSON Transcoding".
+
+### 2.15 Metaengine SSE Streaming with Reconnection (metaengine)
+
+Stream metaengine value changes as Server-Sent Events with automatic
+Last-Event-ID reconnection. Clients that disconnect receive missed events
+from a bounded replay journal on reconnect.
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+
+// 1. Create a watcher with replay journal (buffer 1000 recent changes).
+watcher := metaengine.NewWatcher[TaskView](store, "tasks")
+replay := watcher.WithReplay(1000)
+defer watcher.Close()
+
+// 2. Serve SSE — writes id: <seq> on every event.
+http.HandleFunc("/events/tasks", func(w http.ResponseWriter, r *http.Request) {
+    _ = metaengine.ServeSSE(w, r, watcher,
+        metaengine.WithSSETimeout(30*time.Minute),
+        metaengine.WithSSEHeartbeat(30*time.Second),
+        metaengine.WithSSEReplayLimit(500), // cap replay backlog
+    )
+})
+
+// Browser clients connect with EventSource — Last-Event-ID is automatic:
+//   const es = new EventSource("/events/tasks");
+//   es.onmessage = (e) => console.log(JSON.parse(e.data));
+```
+
+Without `WithReplay`, ServeSSE works as a plain live stream (no id field,
+no reconnection). The replay journal uses a ring buffer with `dedup.Ring`
+for the replay-to-live overlap.
+
+### 2.16 Metaengine Cursor Pagination with PrefetchCache (metaengine)
+
+Paginate metaengine scans with HTTP-safe encoded cursors and a prefetch
+cache that eliminates the limit+1 round-trip pattern.
+
+```go
+reader := metaengine.NewReader[TaskView](store, "tasks").
+    WithPrefetch(metaengine.NewPrefetchCache())
+
+// Page 1: no cursor.
+page1, cursor1, _ := reader.ScanPage(ctx,
+    metaengine.WithSort("Title", false),
+    metaengine.WithLimit(20),
+)
+
+// Encode cursor for HTTP transport (base64+JSON, URL-safe).
+encoded, _ := cursor1.Encode()
+// → pass `encoded` as ?cursor=... query param
+
+// Page 2: parse encoded cursor string (cache hit from prefetch).
+page2, cursor2, _ := reader.ScanPage(ctx,
+    metaengine.WithSort("Title", false),
+    metaengine.WithLimit(20),
+    metaengine.WithCursorString(encoded), // HTTP-safe path
+)
+
+// Or use the raw value directly:
+// page2, _, _ := reader.ScanPage(ctx, ..., metaengine.WithCursor(cursor1.Value))
+```
+
+Both `WithCursor(raw)` and `WithCursorString(encoded)` produce identical
+PrefetchCache keys because the cache normalizes through `Cursor.Encode()`.
+The `PrefetchCache` is thread-safe (RWMutex).

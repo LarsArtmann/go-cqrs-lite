@@ -1,96 +1,112 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-07-31T12:27:09.789421451Z",
+  "recordedAt": "2026-07-31T15:06:13.471448973Z",
   "entries": [
     {
-      "hash": "3cc7762dae3f54c6",
-      "files": [
-        "metaengine/features3_test.go",
-        "metaengine/features2_test.go",
-        "metaengine/features_test.go",
-        "metaengine/features3_test.go",
-        "metaengine/features_test.go",
-        "metaengine/features2_test.go",
-        "metaengine/features3_test.go",
-        "metaengine/features2_test.go",
-        "metaengine/features2_test.go"
-      ],
-      "tokens": 36
+      "hash": "0c9116afe1248bbb",
+      "files": ["command/command.go", "event/event.go", "query/query.go"],
+      "tokens": 9
     },
     {
-      "hash": "4afb61e88c4ea79b",
-      "files": [
-        "metaengine/features4_test.go",
-        "metaengine/features4_test.go",
-        "metaengine/features4_test.go",
-        "metaengine/features4_test.go"
-      ],
-      "tokens": 32
+      "hash": "0e0ebbe875ac73f2",
+      "files": ["metaengine/plan_types.go", "metaengine/observability.go"],
+      "tokens": 6
     },
     {
-      "hash": "56802cd2402a55e0",
-      "files": [
-        "cmd/cqrs-lint/pkg/rules/correctness/c030_test.go",
-        "cmd/cqrs-lint/pkg/rules/correctness/c030_test.go",
-        "cmd/cqrs-lint/pkg/rules/correctness/c030_test.go",
-        "cmd/cqrs-lint/pkg/rules/correctness/c030_test.go",
-        "cmd/cqrs-lint/pkg/rules/correctness/c030_test.go",
-        "cmd/cqrs-lint/pkg/rules/correctness/c030_test.go",
-        "cmd/cqrs-lint/pkg/rules/correctness/c030_test.go",
-        "cmd/cqrs-lint/pkg/rules/correctness/c030_test.go"
-      ],
-      "tokens": 32
+      "hash": "1aacd504be9c3da7",
+      "files": ["kv/mem.go", "dispatcher/lifecycle.go"],
+      "tokens": 6
     },
     {
-      "hash": "846186fe28146918",
+      "hash": "33ed606dab284672",
+      "files": ["storage/pg_bus_dispatch.go", "command/memory_bus.go"],
+      "tokens": 6
+    },
+    {
+      "hash": "37f51fb3d742f359",
+      "files": ["metaengine/fold.go", "storage/view/auto.go"],
+      "tokens": 6
+    },
+    {
+      "hash": "3a8477484cfe9ca4",
+      "files": ["projectionhost/dlq.go", "middleware/deadletter.go"],
+      "tokens": 6
+    },
+    {
+      "hash": "400132d283670d88",
+      "files": ["stack/sqlite/preset.go", "stack/duckdb/preset.go"],
+      "tokens": 8
+    },
+    {
+      "hash": "4f356606f49514ed",
+      "files": [
+        "storage/memory/errors.go",
+        "storage/memory/checkpoint.go",
+        "storage/memory/command_store.go",
+        "storage/memory/snapshot.go",
+        "storage/memory/query_store.go"
+      ],
+      "tokens": 15
+    },
+    {
+      "hash": "5a46df6a5b2a2414",
+      "files": ["benchkit/benchtest.go", "benchkit/benchkit_test.go"],
+      "tokens": 6
+    },
+    {
+      "hash": "5f5a8769ab3f049a",
+      "files": ["middleware/retry.go", "middleware/circuit_breaker.go"],
+      "tokens": 6
+    },
+    {
+      "hash": "7c9b0e5b3d2ae56b",
+      "files": ["benchkit/report_format.go", "metaengine/adttest/harness.go"],
+      "tokens": 6
+    },
+    {
+      "hash": "9091985b22737058",
+      "files": [
+        "stack/contracttest/multidb.go",
+        "schema/versioned_source_test.go",
+        "schema/benchmark_test.go"
+      ],
+      "tokens": 9
+    },
+    {
+      "hash": "9f4ff25f00cacc23",
       "files": ["event/v4/eventtest/golden.go", "catalog/internal/cattest/catalog.go"],
       "tokens": 8
     },
     {
-      "hash": "90e01e20994aaa53",
-      "files": [
-        "cmd/cqrs-lint/pkg/rules/security/new_rules_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/new_rules_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/new_rules_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/new_rules_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/new_rules_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/new_rules_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/new_rules_test.go"
-      ],
-      "tokens": 35
+      "hash": "b343a28cac468fde",
+      "files": ["storage/pg_bus_dispatch.go", "command/memory_bus.go"],
+      "tokens": 6
     },
     {
-      "hash": "976b47ccca7e0cfc",
+      "hash": "b87288a24d3e70e3",
       "files": [
-        "cmd/cqrs-lint/pkg/rules/adoption/rules_test.go",
-        "cmd/cqrs-lint/pkg/rules/architecture/rules_test.go",
-        "cmd/cqrs-lint/pkg/rules/boilerplate/rules_test.go",
-        "cmd/cqrs-lint/pkg/rules/correctness/rules_test.go",
-        "cmd/cqrs-lint/pkg/rules/performance/test_helpers_test.go",
-        "cmd/cqrs-lint/pkg/rules/version/test_helpers_test.go"
+        "storage/memory/store.go",
+        "storage/memory/checkpoint.go",
+        "storage/memory/snapshot.go",
+        "storage/memory/command_store.go",
+        "storage/memory/query_store.go"
       ],
-      "tokens": 48
+      "tokens": 15
     },
     {
-      "hash": "c909314b6ccccbb2",
-      "files": [
-        "cmd/cqrs-lint/pkg/rules/security/s005_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/s005_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/s005_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/s005_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/s005_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/s005_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/s005_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/s005_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/s005_test.go",
-        "cmd/cqrs-lint/pkg/rules/security/s005_test.go"
-      ],
-      "tokens": 40
+      "hash": "f1fdc350337a2ec2",
+      "files": ["stack/contracttest/contract.go", "stack/contracttest/multidb.go"],
+      "tokens": 6
     },
     {
-      "hash": "dee87fef488da5c6",
-      "files": ["metaengine/plan_types.go", "metaengine/observability.go"],
+      "hash": "f260faa278a8b3a2",
+      "files": ["signing/hmac.go", "signing/cose.go"],
+      "tokens": 8
+    },
+    {
+      "hash": "fc3e850f71cdf42a",
+      "files": ["storage/pebble/command_read.go", "storage/pebble/query_read.go"],
       "tokens": 6
     }
   ]
