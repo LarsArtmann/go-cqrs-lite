@@ -143,7 +143,7 @@ func runCmd(args []string) {
 
 	profile, codec := loadProfileAndCodec(*bf.profileName, *bf.codecName)
 
-	factory, diskPath, cleanup := makeFactory(*bf.backend, *bf.dsn, *bf.dir)
+	factory, diskPath, cleanup := makeFactory(*bf.backend, *bf.dsn, *bf.dir, *bf.durability)
 	if cleanup != nil {
 		defer cleanup()
 	}
@@ -160,6 +160,7 @@ func runCmd(args []string) {
 		SkipJourney:  *bf.skipJourney,
 		SkipQuery:    *bf.skipQuery,
 		SkipSnapshot: *bf.skipSnapshot,
+		SkipMixed:    *bf.skipMixed,
 		Backend:      *bf.backend,
 		DiskPath:     diskPath,
 	}
@@ -215,7 +216,7 @@ func compareCmd(args []string) {
 	for _, name := range names {
 		name = strings.TrimSpace(name)
 
-		factory, diskPath, cleanup := makeFactory(name, "", "")
+		factory, diskPath, cleanup := makeFactory(name, "", "", *bf.durability)
 		factories[name] = factory
 		diskPaths[name] = diskPath
 
@@ -273,7 +274,7 @@ func sweepCmd(args []string) {
 		fatalf("provide at least 2 values to sweep, got %d", len(values))
 	}
 
-	factory, diskPath, cleanup := makeFactory(*bf.backend, *bf.dsn, *bf.dir)
+	factory, diskPath, cleanup := makeFactory(*bf.backend, *bf.dsn, *bf.dir, *bf.durability)
 	if cleanup != nil {
 		defer cleanup()
 	}

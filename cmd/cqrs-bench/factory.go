@@ -54,7 +54,7 @@ func compareWithDiskPaths(
 	return results
 }
 
-func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
+func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string, func()) {
 	var (
 		diskPath string
 		cleanup  func()
@@ -78,7 +78,13 @@ func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
 
 		diskPath = dbDir
 
-		return func() (*stack.Bundle, error) { return sqlite.New(dsn) }, diskPath, cleanup
+		return func() (*stack.Bundle, error) {
+			opts := []sqlite.Option{}
+			if tier, ok := parseDurability(durability); ok {
+				opts = append(opts, sqlite.WithDurability(tier))
+			}
+			return sqlite.New(dsn, opts...)
+		}, diskPath, cleanup
 
 	case "pebble", "peb":
 		pebDir := dir
@@ -90,11 +96,14 @@ func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
 		diskPath = pebDir
 
 		return func() (*stack.Bundle, error) {
-			b, err := pebble.New(pebDir)
+			opts := []pebble.Option{}
+			if tier, ok := parseDurability(durability); ok {
+				opts = append(opts, pebble.WithDurability(tier))
+			}
+			b, err := pebble.New(pebDir, opts...)
 			if err != nil {
 				return nil, err
 			}
-
 			return b.Bundle, nil
 		}, diskPath, cleanup
 
@@ -105,15 +114,37 @@ func makeFactory(backend, dsn, dir string) (benchkit.Factory, string, func()) {
 			)
 		}
 
-		return func() (*stack.Bundle, error) { return postgres.New(dsn) }, "", nil
+		return func() (*stack.Bundle, error) {
+			opts := []postgres.Option{}
+			if tier, ok := parseDurability(durability); ok {
+				opts = append(opts, postgres.WithDurability(tier))
+			}
+			return postgres.New(dsn, opts...)
+		}, "", nil
 
 	case "duckdb", "duck":
 		return duckdbFactory(dsn, dir)
 
 	default:
-		fatalf("unknown backend: %s (use memory, sqlite, pebble, postgres, or duckdb)", backend)
+		fatalf("unknown backend: %s (use memory, sqlite, pebble, postgres, duckdb, or turso)", backend)
 
 		return nil, "", nil // unreachable
+	}
+}
+
+func parseDurability(s string) (stack.DurabilityTier, bool) {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "strict":
+		return stack.DurabilityStrict, true
+	case "normal":
+		return stack.DurabilityNormal, true
+	case "relaxed":
+		return stack.DurabilityRelaxed, true
+	case "":
+		return stack.DurabilityNormal, false
+	default:
+		fatalf("unknown durability tier: %s (use strict, normal, or relaxed)", s)
+		return "", false
 	}
 }
 
