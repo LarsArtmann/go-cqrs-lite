@@ -8,46 +8,51 @@ import (
 
 // --- P6-6: Multi-Engine Tiering ---
 
-// TierConfig configures multi-engine tiering for a collection. When set,
-// writes are fanned out to ALL tier engines, and reads use the first
-// available (cheapest) tier.
-type TierConfig struct {
-	WriteEngines []Engine // all engines receive writes
-	ReadEngine   Engine   // primary read engine (cheapest)
-}
-
-// TieredStore wraps a Store with multi-engine tiering support.
+// TieredStore wraps a primary Store with optional replica Stores. Writes
+// (Apply/ApplyBatch) are fanned out to ALL stores sequentially — if any
+// replica fails, remaining replicas are skipped and the error is returned.
+// Reads use the primary store exclusively.
+//
+// Use for read-scale-out (multiple read replicas) or for warm-standby
+// scenarios (primary SQLite + replica in-memory cache).
 type TieredStore struct {
-	inner *Store
-	tiers map[string]TierConfig // collection name → tier config
-	mu    sync.RWMutex
+	primary  *Store
+	replicas []*Store
 }
 
-// NewTieredStore creates a tiered store wrapper.
-func NewTieredStore(store *Store) *TieredStore {
-	return &TieredStore{inner: store, tiers: make(map[string]TierConfig)}
+// NewTieredStore creates a tiered store with a primary and zero or more replicas.
+func NewTieredStore(primary *Store, replicas ...*Store) *TieredStore {
+	return &TieredStore{primary: primary, replicas: replicas}
 }
 
-// WithTier assigns a multi-engine tier to a collection.
-func (ts *TieredStore) WithTier(collection string, cfg TierConfig) {
-	ts.mu.Lock()
-	defer ts.mu.Unlock()
+// Primary returns the primary store (used for all reads).
+func (ts *TieredStore) Primary() *Store { return ts.primary }
 
-	ts.tiers[collection] = cfg
-}
-
-// Apply fans out to all tier engines for the matching collection.
+// Apply fans out to the primary and all replica stores. If any store returns
+// an error, remaining replicas are skipped.
 func (ts *TieredStore) Apply(ctx context.Context, eventType string, payload any) error {
-	if err := ts.inner.Apply(ctx, eventType, payload); err != nil {
+	if err := ts.primary.Apply(ctx, eventType, payload); err != nil {
 		return err
 	}
 
-	ts.mu.RLock()
-	defer ts.mu.RUnlock()
+	for i, rep := range ts.replicas {
+		if err := rep.Apply(ctx, eventType, payload); err != nil {
+			return fmt.Errorf("tiered store: replica %d apply %s: %w", i, eventType, err)
+		}
+	}
 
-	for _, cfg := range ts.tiers {
-		for _, eng := range cfg.WriteEngines {
-			_ = eng // tier write fan-out would go here
+	return nil
+}
+
+// ApplyBatch fans out a batch to the primary and all replicas.
+func (ts *TieredStore) ApplyBatch(ctx context.Context, events []EventInput) error {
+	if err := ts.primary.ApplyBatch(ctx, events); err != nil {
+		return err
+	}
+
+	for i, rep := range ts.replicas {
+		if err := rep.ApplyBatch(ctx, events); err != nil {
+			return fmt.Errorf("tiered store: replica %d batch: %w", i, err)
 		}
 	}
 
