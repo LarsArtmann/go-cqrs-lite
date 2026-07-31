@@ -62,7 +62,7 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 
 		rr, ok := result.(readResult)
 		if !ok {
-			return zero, false, fmt.Errorf("coalescer: unexpected result type %T", result)
+			return zero, false, fmt.Errorf("%w: %T", errCoalescerTypeMismatch, result)
 		}
 
 		if !rr.found {

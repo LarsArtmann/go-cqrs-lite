@@ -2,7 +2,6 @@ package metaengine
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 )

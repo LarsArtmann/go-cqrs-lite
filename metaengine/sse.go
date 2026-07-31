@@ -2,7 +2,6 @@ package metaengine
 
 import (
 	"encoding/json/v2"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -105,7 +104,7 @@ func ServeSSE[V any](
 
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		return errors.New("metaengine.ServeSSE: response writer does not support flushing")
+		return errSSENoFlusher
 	}
 
 	w.Header().Set("Content-Type", "text/event-stream")
@@ -221,19 +220,15 @@ func serveSSEPlain[V any](
 	}
 }
 
-// serveSSEReplay is the reconnection path: replays missed events from the
-// journal on reconnect, then switches to live with dedup.
-func serveSSEReplay[V any](
+// replayMissedEvents writes events from the journal that the client missed
+// (seq > afterSeq) and returns the set of sequence numbers that were sent,
+// for deduplication during the live phase.
+func replayMissedEvents[V any](
 	w http.ResponseWriter,
 	r *http.Request,
-	flusher http.Flusher,
-	watcher *Watcher[V],
 	replay *SSEReplay[V],
 	cfg SSEConfig,
-) error {
-	ctx := r.Context()
-
-	// Parse Last-Event-ID header (uint64 sequence number).
+) (map[uint64]struct{}, error) {
 	var afterSeq uint64
 
 	if lastID := r.Header.Get("Last-Event-ID"); lastID != "" {
@@ -242,7 +237,6 @@ func serveSSEReplay[V any](
 		}
 	}
 
-	// Phase 1: Replay missed events from the journal.
 	replayed := replay.Replay(afterSeq)
 	if cfg.ReplayLimit > 0 && len(replayed) > cfg.ReplayLimit {
 		replayed = replayed[:cfg.ReplayLimit]
@@ -256,14 +250,35 @@ func serveSSEReplay[V any](
 			continue
 		}
 
-		if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil {
-			return err
+		if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil { //nolint:wrapcheck // SSE write
+			return nil, err
 		}
 
 		replayedSeqs[sv.Seq] = struct{}{}
 	}
 
-	if len(replayed) > 0 {
+	return replayedSeqs, nil
+}
+
+// serveSSEReplay is the reconnection path: replays missed events from the
+// journal on reconnect, then switches to live with dedup.
+func serveSSEReplay[V any](
+	w http.ResponseWriter,
+	r *http.Request,
+	flusher http.Flusher,
+	watcher *Watcher[V],
+	replay *SSEReplay[V],
+	cfg SSEConfig,
+) error {
+	ctx := r.Context()
+
+	// Phase 1: Replay missed events from the journal.
+	replayedSeqs, err := replayMissedEvents(w, r, replay, cfg)
+	if err != nil {
+		return err
+	}
+
+	if len(replayedSeqs) > 0 {
 		flusher.Flush()
 	}
 
@@ -343,7 +358,7 @@ func serveSSEReplay[V any](
 				continue
 			}
 
-			if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil {
+			if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil { //nolint:wrapcheck // SSE write
 				return err
 			}
 
@@ -353,7 +368,7 @@ func serveSSEReplay[V any](
 			return nil
 
 		case <-heartbeatCh:
-			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil {
+			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil { //nolint:wrapcheck // SSE write
 				return err
 			}
 

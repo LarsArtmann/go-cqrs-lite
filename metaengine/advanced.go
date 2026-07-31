@@ -66,7 +66,7 @@ func (ts *TieredStore) ApplyBatch(ctx context.Context, events []EventInput) erro
 //
 // This is useful for zero-downtime engine upgrades (e.g., swapping a memory
 // engine for a SQLite engine after warmup).
-func (s *Store) SwapEngine(oldName, newName string, newEngine Engine) error {
+func (s *Store) SwapEngine(oldName, _ string, newEngine Engine) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -82,7 +82,7 @@ func (s *Store) SwapEngine(oldName, newName string, newEngine Engine) error {
 	}
 
 	if !swapped {
-		return fmt.Errorf("metaengine.SwapEngine: engine %q not found", oldName)
+		return fmt.Errorf("%w: %q", errSwapEngineNotFound, oldName)
 	}
 
 	// Reassign queries
@@ -354,7 +354,7 @@ func contractScan(t interface {
 
 // V1StabilizationChecklist documents the criteria for tagging metaengine/v4.1.0.
 // All items must be checked before the v1 tag.
-var V1StabilizationChecklist = []string{
+var V1StabilizationChecklist = []string{ //nolint:gochecknoglobals // documentation checklist
 	"TypedReader API frozen (Get, Scan, Count, Sum, Min, Max, Avg, Distinct, GroupBy)",
 	"LayoutPlanner + auto-layout wired into Plan()",
 	"RawValueReader + RawScanReader interfaces stable",
