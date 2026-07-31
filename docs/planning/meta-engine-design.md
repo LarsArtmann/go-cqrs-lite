@@ -1,5 +1,13 @@
 # The Meta-Engine: A Cost-Based Storage Optimizer for Event-Sourced Data
 
+> **STATUS: ASPIRATIONAL.** This document describes the long-term vision.
+> The current implementation delivers a subset: 7 ADTs, multi-engine planning
+> (Memory + SQLite + Pebble), FilterOnField/SortOnField pushdown, pagination,
+> TypedReader, and QueryBuilder. Features described here that do NOT exist yet:
+> `projection.Declare[V,K]`, `store.Users.ByStatus()` typed accessor generation,
+> operator YAML config, plugin registry, auto-denormalization. See the
+> [README](../../metaengine/README.md) for what actually ships.
+
 > **The vision:** Given event-sourced data + declared query patterns, automatically distribute
 > projections across whatever combination of engines the operator provides — optimizing each
 > query pattern to its ideal physical data structure within real hardware constraints.

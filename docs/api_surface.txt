@@ -48,6 +48,7 @@ benchkit/struct Environment
 benchkit/struct Generator
 benchkit/struct LatencyCollector
 benchkit/struct LatencyStats
+benchkit/struct MixedResult
 benchkit/struct Profile
 benchkit/struct ResourceStats
 benchkit/struct Result
@@ -1364,7 +1365,6 @@ metaengine/const ReadPointLookup
 metaengine/const ReadScan
 metaengine/const ReadTraversal
 metaengine/const SQLiteNsPerOp
-metaengine/func Build
 metaengine/func BuildLayoutPlan
 metaengine/func BuildLayoutPlanFromType
 metaengine/func CalibrateEngine
@@ -1378,12 +1378,12 @@ metaengine/func FilterOn
 metaengine/func FilterOnField
 metaengine/func ItemFieldByName
 metaengine/func MapUpdateTyped
-metaengine/func New
 metaengine/func NewCostAccuracyReporter
 metaengine/func NewEventLog
 metaengine/func NewMemoryEngine
 metaengine/func NewPlannedSQLiteEngine
 metaengine/func NewPrefetchCache
+metaengine/func NewQueryBuilder
 metaengine/func NewReadCoalescer
 metaengine/func NewReader
 metaengine/func NewSQLiteEngine
@@ -1470,6 +1470,7 @@ metaengine/method CounterGet
 metaengine/method CounterGet
 metaengine/method CounterIncrement
 metaengine/method CounterIncrement
+metaengine/method Cursor
 metaengine/method DDL
 metaengine/method Distinct
 metaengine/method Do
@@ -1478,14 +1479,12 @@ metaengine/method Encode
 metaengine/method EventTypes
 metaengine/method Events
 metaengine/method Execute
+metaengine/method Execute
 metaengine/method ExecuteCtx
 metaengine/method Exists
 metaengine/method Explain
 metaengine/method Export
-metaengine/method Filter
-metaengine/method Fold
-metaengine/method FoldDelete
-metaengine/method FoldUpdate
+metaengine/method Get
 metaengine/method Get
 metaengine/method Get
 metaengine/method GetBatch
@@ -1502,9 +1501,9 @@ metaengine/method InTransaction
 metaengine/method Inspect
 metaengine/method InspectJSON
 metaengine/method IsPoisoned
-metaengine/method LatencyBudget
 metaengine/method LatestSeq
 metaengine/method Len
+metaengine/method Limit
 metaengine/method LogAppend
 metaengine/method LogAppend
 metaengine/method LogTail
@@ -1556,7 +1555,7 @@ metaengine/method SetAdd
 metaengine/method SetAdd
 metaengine/method SetContains
 metaengine/method SetContains
-metaengine/method Sort
+metaengine/method SortBy
 metaengine/method Stats
 metaengine/method StreamScan
 metaengine/method String
@@ -1569,9 +1568,11 @@ metaengine/method Sum
 metaengine/method SupportsADT
 metaengine/method SwapEngine
 metaengine/method Verify
-metaengine/method Volume
 metaengine/method Watch
 metaengine/method WatchWithSeq
+metaengine/method Where
+metaengine/method WhereIn
+metaengine/method WhereRange
 metaengine/method WithPrefetch
 metaengine/method WithReplay
 metaengine/method WithinBudget
@@ -1606,10 +1607,13 @@ metaengine/pebbleengine/method SetContains
 metaengine/pebbleengine/method StreamScan
 metaengine/projectionadapter/func New
 metaengine/projectionadapter/func RegisterWithHost
+metaengine/projectionadapter/func WithEventDecoder
 metaengine/projectionadapter/method EventTypes
 metaengine/projectionadapter/method Handle
 metaengine/projectionadapter/method Name
 metaengine/projectionadapter/struct Adapter
+metaengine/projectionadapter/type AdapterOption
+metaengine/projectionadapter/type EventDecoder
 metaengine/projectionadapter/type PayloadDecoder
 metaengine/struct Append
 metaengine/struct CollectionInfo
@@ -1625,7 +1629,6 @@ metaengine/struct EventInput
 metaengine/struct EventLog
 metaengine/struct ExplainOptions
 metaengine/struct FilterSpec
-metaengine/struct FluentBuilder
 metaengine/struct Fold
 metaengine/struct Hooks
 metaengine/struct InSpec
@@ -1637,6 +1640,7 @@ metaengine/struct PlannedColumn
 metaengine/struct PlannedIndex
 metaengine/struct PrefetchCache
 metaengine/struct QueryAssignment
+metaengine/struct QueryBuilder
 metaengine/struct QueryConfig
 metaengine/struct QueryDecl
 metaengine/struct RangeSpec
@@ -2203,6 +2207,7 @@ stack/func Repository
 stack/func TypedRepository
 stack/func WithBackwardsSource
 stack/func WithBus
+stack/func WithCapabilities
 stack/func WithCheckpointStore
 stack/func WithCloser
 stack/func WithCommandSink
@@ -2231,6 +2236,7 @@ stack/func WithSubscriber
 stack/interface Drainer
 stack/interface HealthChecker
 stack/memory/func New
+stack/method Capabilities
 stack/method CatchUpSubscriber
 stack/method Close
 stack/method Close
@@ -2280,8 +2286,10 @@ stack/postgres/func WithDistributedBus
 stack/postgres/func WithDurability
 stack/postgres/func WithPgxListenerLogger
 stack/postgres/func WithPgxListenerQueue
+stack/postgres/func WithPoolSize
 stack/postgres/func WithReconnect
 stack/postgres/func WithReconnectBackoff
+stack/postgres/func WithStatementTimeout
 stack/postgres/func WithoutReconnect
 stack/postgres/method Close
 stack/postgres/method Listen
@@ -2296,6 +2304,8 @@ stack/postgres/var ErrListenerClosed
 stack/postgres/var ErrNoDatabase
 stack/sqlite/func New
 stack/sqlite/func SQLViewModel
+stack/sqlite/func WithBusyTimeout
+stack/sqlite/func WithCacheSize
 stack/sqlite/func WithDSN
 stack/sqlite/func WithDurability
 stack/sqlite/func WithPragmas
@@ -2303,6 +2313,7 @@ stack/sqlite/func WithStack
 stack/sqlite/type Option
 stack/sqlite/var ErrNoDatabase
 stack/struct Bundle
+stack/struct Capabilities
 stack/struct FuncCloser
 stack/struct Materialize
 stack/struct MultiCloser

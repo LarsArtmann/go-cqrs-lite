@@ -1,5 +1,12 @@
 # The Meta-Engine: Project Definition & Research Contribution
 
+> **STATUS: ASPIRATIONAL.** This document proposed the meta-engine as a separate
+> project. In reality, it shipped AS A MODULE within go-cqrs-lite
+> (`metaengine/v4`), deeply integrated via `stack.WithMetaEngine`. The
+> "separate project" framing below reflects the original ambition, not the
+> current architecture. The module is fully functional — see the
+> [README](../../metaengine/README.md) for the shipped API.
+
 > **The meta-engine is a new project.** It is not a module within go-cqrs-lite. It is a
 > standalone research-grade system for making event-sourced data query-optimal across any
 > combination of storage engines.

@@ -1495,7 +1495,7 @@ func TestRun_ReplayOnly_SQLite(t *testing.T) {
 	dbPath := filepath.Join(dir, "bench.db")
 
 	// Phase 1: write events to a SQLite store.
-	// SkipRawSink, SkipJourney, and SkipSnapshot because these phases write
+	// SkipRawSink, SkipJourney, SkipMixed, and SkipSnapshot because these phases write
 	// events to the same database, which would inflate the journal event
 	// count discovered during replay.
 	writeResult := mustRun(t, Config{
@@ -1505,6 +1505,7 @@ func TestRun_ReplayOnly_SQLite(t *testing.T) {
 		DiskPath:     dir,
 		SkipRawSink:  true,
 		SkipJourney:  true,
+		SkipMixed:    true,
 		SkipSnapshot: true,
 	}, func() (*stack.Bundle, error) {
 		return sqlite.New(dbPath)
