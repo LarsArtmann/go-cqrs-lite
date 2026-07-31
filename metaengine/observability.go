@@ -84,8 +84,8 @@ type MetricsRecorder interface {
 func WithMetrics(store *Store, rec MetricsRecorder) {
 	hooks := Hooks{
 		OnFold: rec.RecordApply,
-		OnExecute: func(col string, pattern ReadPattern, d time.Duration) {
-			rec.RecordExecute(col, pattern, d, 0)
+		OnExecute: func(col string, pattern ReadPattern, d time.Duration, err error) {
+			rec.RecordExecute(col, pattern, d, 0, err)
 		},
 	}
 	if store.hooks != nil {
@@ -241,7 +241,7 @@ func WithTracing(store *Store, tracer Tracer) {
 	// Tracing is implemented via the existing hook system.
 	// OnFold creates a span for each fold; OnExecute creates a span for each query.
 	hooks := Hooks{
-		OnFold: func(collection, eventType string, kind FoldKind, d time.Duration) {
+		OnFold: func(collection, eventType string, kind FoldKind, d time.Duration, err error) {
 			ctx, span := tracer.StartSpan(
 				context.Background(),
 				"metaengine.fold."+collection,
@@ -250,11 +250,14 @@ func WithTracing(store *Store, tracer Tracer) {
 			span.SetAttribute("event", eventType)
 			span.SetAttribute("kind", string(kind))
 			span.SetAttribute("duration_ms", d.Milliseconds())
+			if err != nil {
+				span.SetAttribute("error", err.Error())
+			}
 			span.End()
 
 			_ = ctx
 		},
-		OnExecute: func(collection string, pattern ReadPattern, d time.Duration) {
+		OnExecute: func(collection string, pattern ReadPattern, d time.Duration, err error) {
 			_, span := tracer.StartSpan(
 				context.Background(),
 				"metaengine.execute."+collection,
@@ -262,6 +265,9 @@ func WithTracing(store *Store, tracer Tracer) {
 			span.SetAttribute("collection", collection)
 			span.SetAttribute("pattern", string(pattern))
 			span.SetAttribute("duration_ms", d.Milliseconds())
+			if err != nil {
+				span.SetAttribute("error", err.Error())
+			}
 			span.End()
 		},
 	}

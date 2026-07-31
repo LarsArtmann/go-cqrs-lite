@@ -81,7 +81,7 @@ func explainStandard(col string, filters []FilterSpec, sort *SortSpec, limit int
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, ` ORDER BY json_extract(value, '$.%s')`, sort.Column)
+		fmt.Fprintf(&b, ` ORDER BY json_extract(value, '%s')`, jsonPath(sort.Column))
 
 		if sort.Desc {
 			b.WriteString(` DESC`)
@@ -107,7 +107,7 @@ func explainPlanned(
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT value FROM %s", plan.Table)
+	fmt.Fprintf(&b, "SELECT value FROM %s", quoteIdent(plan.Table))
 
 	whereStarted := false
 
@@ -116,7 +116,7 @@ func explainPlanned(
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", sort.Column)
+		fmt.Fprintf(&b, " ORDER BY %s", quoteIdent(sort.Column))
 
 		if sort.Desc {
 			b.WriteString(" DESC")

@@ -129,6 +129,7 @@ type readCall struct {
 // When multiple goroutines request the same key simultaneously, only one
 // actual read is performed; the result is shared with all waiters.
 type ReadCoalescer struct {
+	mu    sync.Mutex
 	calls map[string]*readCall
 }
 
@@ -143,7 +144,10 @@ func NewReadCoalescer() *ReadCoalescer {
 // for the in-flight call and returns its result. The key is an opaque string
 // (typically "collection:key").
 func (rc *ReadCoalescer) Do(key string, fn func() (any, error)) (any, error) {
+	rc.mu.Lock()
+
 	if existing, ok := rc.calls[key]; ok {
+		rc.mu.Unlock()
 		<-existing.wg
 
 		return existing.value, existing.err
@@ -151,11 +155,14 @@ func (rc *ReadCoalescer) Do(key string, fn func() (any, error)) (any, error) {
 
 	call := &readCall{wg: make(chan struct{})}
 	rc.calls[key] = call
+	rc.mu.Unlock()
 
 	call.value, call.err = fn()
 	close(call.wg)
 
+	rc.mu.Lock()
 	delete(rc.calls, key)
+	rc.mu.Unlock()
 
 	return call.value, call.err
 }
