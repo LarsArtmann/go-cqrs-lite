@@ -168,7 +168,7 @@ func hasTraversalPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) 
 
 // webFrameworkImportPaths are the import path prefixes of popular Go web
 // frameworks whose presence signals manual HTTP handler registration.
-var webFrameworkImportPaths = []string{
+var webFrameworkImportPaths = []string{ //nolint:gochecknoglobals // static lookup table
 	"github.com/go-chi/chi",
 	"github.com/gin-gonic/gin",
 	"github.com/labstack/echo",

@@ -104,7 +104,7 @@ func hasCtxParam(ft *ast.FuncType) bool {
 
 // handlerFuncNames are CQRS handler/projector method names (lowercased —
 // matching is case-insensitive so "handle", "Handle", and "HANDLE" all match).
-var handlerFuncNames = map[string]bool{
+var handlerFuncNames = map[string]bool{ //nolint:gochecknoglobals // static lookup table
 	"handle": true, "handleevent": true, "handlecommand": true,
 	"handlequery": true, "handlecontext": true, "handlectx": true,
 	"handleerror": true, "apply": true, "project": true,
@@ -113,7 +113,7 @@ var handlerFuncNames = map[string]bool{
 
 // handlerReceiverKeywords identify receiver type names that look like CQRS
 // handlers, projectors, or read models.
-var handlerReceiverKeywords = []string{
+var handlerReceiverKeywords = []string{ //nolint:gochecknoglobals // static lookup table
 	"handler", "projector", "projection", "readmodel", "viewstore",
 	"view", "consumer", "subscriber", "listener", "worker",
 }

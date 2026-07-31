@@ -251,38 +251,6 @@ func hasSerializationTags(st *ast.StructType) bool {
 	return false
 }
 
-// --- Module-scope encryption check ---
-
-func moduleHasEncryption(ctx *analyzer.AnalysisContext) bool {
-	for _, pkg := range ctx.Packages {
-		for _, imp := range pkg.Imports {
-			if imp == nil {
-				continue
-			}
-			if strings.Contains(imp.PkgPath, "go-cqrs-lite/encryption") {
-				return true
-			}
-		}
-	}
-
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-		for _, imp := range gf.AST.Imports {
-			if imp.Path == nil {
-				continue
-			}
-			path := strings.Trim(imp.Path.Value, `"`)
-			if strings.Contains(path, "go-cqrs-lite/encryption") {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 // --- Finding carrier ---
 
 type financialMatch struct {

@@ -12,7 +12,7 @@ import (
 
 // cqrsErrorMethods are CQRS library methods that return errors which should
 // always be wrapped with context for debuggability.
-var cqrsErrorMethods = map[string]bool{
+var cqrsErrorMethods = map[string]bool{ //nolint:gochecknoglobals // static lookup table
 	"Save": true, "Load": true, "LoadFromVersion": true,
 	"Execute": true, "ExecuteCommand": true,
 	"Dispatch": true, "Publish": true, "AppendBatch": true,

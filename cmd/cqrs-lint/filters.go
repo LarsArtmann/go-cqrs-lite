@@ -14,7 +14,7 @@ import (
 // meaningless — the library defines these features, it can't "adopt" them.
 // Auto-suppressing them eliminates the need for 181+ manual inline
 // suppressions across the library's own source.
-var consumerOnlyRules = map[string]bool{
+var consumerOnlyRules = map[string]bool{ //nolint:gochecknoglobals // static lookup table
 	"A001": true, // manual-command-interface
 	"A008": true, // parallel-type-system
 	"A020": true, // custom-event-bus

@@ -115,7 +115,7 @@ type signingGuardSite struct {
 // --- Enable-field collection ---
 
 // enableNamePatterns matches struct field names that gate signing/verification.
-var enableNamePatterns = []string{
+var enableNamePatterns = []string{ //nolint:gochecknoglobals // static lookup table
 	"enabled", "sign", "signing", "verify", "verification", "signature",
 }
 
