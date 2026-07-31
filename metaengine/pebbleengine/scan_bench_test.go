@@ -117,3 +117,41 @@ func BenchmarkPebbleScanRawValues_SortIndex(b *testing.B) {
 		})
 	}
 }
+
+// BenchmarkPebbleScanRawValues_CursorPagination100K benchmarks cursor-based
+// pagination at 100K items. Measures the cost of fetching page 2 (items 11-20)
+// given a cursor from page 1.
+func BenchmarkPebbleScanRawValues_CursorPagination100K(b *testing.B) {
+	ctx := context.Background()
+	eng, err := pebbleengine.NewPebbleEngine("")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer eng.Close()
+
+	lp := eng.(metaengine.LayoutPlanner)
+	_ = lp.ApplyLayout("items", []string{"score"}, nil)
+
+	mb := eng.(metaengine.MapBackend)
+
+	const n = 100_000
+
+	for i := range n {
+		_ = mb.MapSet(ctx, "items", fmt.Sprintf("k%d", i), map[string]any{
+			"score": float64(i),
+		})
+	}
+
+	rsr := eng.(metaengine.RawScanReader)
+	sortSpec := &metaengine.SortSpec{Column: "score", Desc: false}
+
+	lastScore := float64(9) // score of the 10th item (0-indexed)
+
+	b.ResetTimer()
+
+	for range b.N {
+		_, _ = rsr.ScanRawValues(ctx, "items",
+			[]metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGt, Value: lastScore}},
+			sortSpec, nil, 10)
+	}
+}

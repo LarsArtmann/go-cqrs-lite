@@ -152,7 +152,9 @@ func newLocalBundle(dbPath string, cfg config) (*Bundle, error) {
 
 	stackOpts := sqlopt.AllOptions(backend)
 	stackOpts = append(stackOpts, stack.WithDatabase(sqlDB))
-	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability)) (events, snapshots, checkpoints) from a
+	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
+
+	// Override: event-sourcing stores (events, snapshots, checkpoints) from a
 	// separate database if configured.
 	if cfg.EventDSN != "" {
 		evtBackend, evtCloser, eErr := openSecondaryBackend(cfg.EventDSN, cfg)
@@ -263,6 +265,7 @@ func newSyncBundle(
 	stackOpts := sqlopt.AllOptions(backend)
 	stackOpts = append(stackOpts, stack.WithDatabase(sqlDB))
 	stackOpts = append(stackOpts, stack.WithBus(cqrswatermill.NewEventBus()))
+	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
 
 	kvStore, err := backend.KVStore()
 	if err != nil {

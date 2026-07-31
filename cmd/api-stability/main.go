@@ -70,6 +70,7 @@ var modules = []string{
 	"stack/duckdb",
 	"stack/pebble",
 	"stack/postgres",
+	"stack/mysql",
 	"stack/turso",
 	"stack/bench",
 	// Tooling + catalog
