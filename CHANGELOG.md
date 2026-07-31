@@ -8,6 +8,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### Pareto plan execution: correctness, tests, docs, release prep
+
+- **scanWithIndex cursor pagination fix** — the Pebble LayoutPlanner's filter
+  index path silently dropped cursor values, returning the same first N items
+  on every page request. Added `paginateIndexedResults` + `processFilterIndex`
+  helpers. Ascending and descending cursor pagination now verified by
+  `TestPebbleLayoutPlanner_FilterIndexCursor{Ascending,Descending}`.
+- **Fuzz test for ScanRawValues** — `FuzzScanRawValues` exercises the filter
+  index path with arbitrary threshold values, including edge cases (0, negative,
+  large numbers). Seeds cover known tricky values.
+- **Pebble LayoutPlanner edge case tests** — empty filter results, concurrent
+  read/write (race-detector clean), key collision (update doesn't duplicate),
+  no-layout full scan with filter+sort.
+- **Scan benchmarks** — filter index, sort index, and full scan paths benchmarked
+  at 100/1K/10K items.
+- **D007/D008/D010/D013 import-alias migration** — consistency rules migrated
+  from variable-name heuristics to `lintutil.QualifierResolvesTo` (alias-aware
+  import path resolution). Rules now work with aliased imports like
+  `import ev "github.com/larsartmann/go-cqrs-lite/event/v4"`.
+- **`memory.New` accepts extra options** — `stack/memory.New(extra ...stack.Option)`
+  allows callers to extend the default wiring (e.g. `stack.WithMetaEngine(store)`).
+- **ADR-0075: ADT test harness extraction** — documents why `adttest` was
+  extracted as an exported sub-package for cross-engine parity testing.
+- **ADR-0076: Pebble raw value readers** — documents the single-pass JSON decode
+  optimization and optional interface design.
+- **Tag `stack/duckdb/v4.0.0`** — created locally (push pending). First release
+  of the DuckDB analytical engine preset.
+- **Enhanced `sweep` app** — now runs `nix fmt` + build check + golangci-lint
+  in one command for post-daemon cleanup.
+- **4 stale status reports annotated** — inline corrections on 05:02, 05:44,
+  22:22, and 23:22 reports with current rule counts (179), API surface (2911),
+  and resolution status.
+- **Per-category rule counts restored** — FEATURES.md, ROADMAP.md, and AGENTS.md
+  updated with verified counts: correctness 36, API 30, boilerplate 28, adoption
+  21, architecture 17, consistency 15, performance 9, security 9, testing 8,
+  version 6.
+
 #### cqrs-lint: quality hardening (171 → 179 rules)
 
 - **4 new architecture rules** (E008–E011) — stack preset bypass detection,

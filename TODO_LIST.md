@@ -10,77 +10,56 @@ and is **never** duplicated here.
 - `[ ]` = Open
 - `[BLOCKED]` = Blocked on upstream dependency or user approval
 - `🔥` = Pareto high impact (top 20% that delivers 80% of value)
-- `🐛` = Known bug
 
 ---
 
-## Metaengine — Open Bugs & Gaps
+## Metaengine — Remaining Work
 
-> The metaengine grew from a prototype to a production-ready multi-engine
-> cost-based storage planner across 6 sessions (2026-07-30 to 2026-07-31).
-> Most items are done and shipped. These remain open.
+> The metaengine is production-ready: 3 engines (memory, SQLite, Pebble),
+> 7-ADT cross-engine parity tests, LayoutPlanner (filter + sort indexes),
+> cursor pagination, SSE delivery, transaction API, ADT test harness.
+> All known bugs are fixed.
 
-- 🐛 `[ ]` **Pebble LayoutPlanner range filter numeric bug** — lexicographic
-  key ordering ≠ numeric ordering for values with different digit counts
-  (e.g., `2` vs `10`). Test passed by accident (used only 2-digit values).
-  Fix: zero-pad numeric keys or use a numeric-aware comparator.
-  _(Source: `docs/status/2026-07-31_14-57_metaengine-pebble-layoutplanner-cqrs-lint-hardening.md` §D5)_
-- 🐛 `[ ]` **Fix `TestSSE_DropOldSemantics` hang** — SSE goroutines
-  (`forwardWithDropOld`) block on channel selects that never drain after
-  `httptest.Server.Close()`. Blocks the full metaengine test suite from
-  completing cleanly. Workaround: use `-run` filters to exclude it.
-  _(Source: `docs/status/2026-07-31_17-19_metaengine-engine-sophistication-complete.md` §D1)_
-- `[ ]` **Pebble LayoutPlanner sort index** — `sortFields` stored but unused
-  for ordering. Requires a separate sort-prefix index structure.
-  _(Source: `docs/status/2026-07-31_14-57_*.md` §B1)_
-- `[ ]` **Add Pebble to metaengine `adt_matrix_test.go`** — currently only
-  memory + SQLite. No triple-parity test exists.
-  _(Source: `docs/status/2026-07-31_17-19_*.md` §G3)_
-- `[ ]` **Fix `scanWithIndex` cursor pagination gap** — the index fast path
-  in `ScanRawValues` doesn't apply cursor pagination.
-  _(Source: `docs/status/2026-07-31_17-19_*.md` §F44)_
+- `[ ]` 🔥 **Pebble StreamScan** — OOM-safe lazy iteration via `iter.Seq2` for
+  large collections. The interface is defined but not implemented on pebbleEngine.
+- `[ ]` **Property-based cross-engine parity** — use `pgregory.net/rapid` to
+  generate random ADT operation sequences and verify all 3 engines agree.
+- `[ ]` **10M-event soak test** — verify memory boundedness at scale (currently 50K).
+- `[ ]` **Postgres engine (`pgengine/`)** — JSONB operators, GIN indexes.
+  Multi-day effort. See ROADMAP.
+- `[ ]` **DuckDB analytical engine (`duckdbengine/`)** — columnar OLAP pushdown.
+  Multi-day effort. See ROADMAP.
+- `[ ]` **`metaengine-gen` code generator** — typed Store methods from query
+  declarations (CLI tool, similar to `cqrs-gen`).
 
 ---
 
-## cqrs-lint — Open Quality Items
+## cqrs-lint — Remaining Work
 
-> The linter has **175 rules across 10 categories**. Most quality gaps from the
-> brutal review are addressed. These remain open.
+> The linter has **179 rules** across 10 categories. Import-alias resolution,
+> suppression tests, and D/E-series migrations are complete.
 
-- `[ ]` 🔥 **50-item improvement backlog** — ~35 items remain open in the
+- `[ ]` 🔥 **~29 open items in the improvement backlog** — see the
   [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
   Includes domain-based severity calibration (L1.5), C017 tracing (L1.9),
   migration paths in findings (L1.16), doc links (L1.17), block-level
   suppression (L1.22), new categories (DOC/OBS/RES/DI, L1.47–L1.50).
-- `[ ]` **Add suppression tests for new rules** — C031-C034, P011-P012,
-  D014-D015, A032, E016-E017, S010, F018-F021 all lack
-  `//cqrs-lint:ignore(RULE)` verification.
-- `[ ]` **Migrate import-alias resolution to remaining E-series rules** —
-  `QualifierToImportPath` + `ImportQualifierMap` helpers exist and E008
-  was migrated as proof of concept. D007/D008/D010/D013 and E009-E015
-  still use variable-name heuristics.
-  _(Source: `docs/status/2026-07-30_23-22_cqrs-lint-hardening-and-verify-gate-repair.md` §F1)_
-- `[ ]` **Run cqrs-lint against real consumer projects** — validate against
-  Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
+- `[ ]` **Run cqrs-lint against real consumer projects** — validate FP rate
+  against Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
+- `[ ]` **cqrs-lint severity + migration paths** — DX improvements (L1.5, L1.16,
+  L1.17). Findings should include fix suggestions and doc links.
 
 ---
 
 ## CI / Daemon / Release
 
-- `[ ]` **Recurring lint-sweep** — the auto-commit daemon occasionally commits
-  unformatted code. Either gate daemon commits behind `nix fmt` or run a
-  scheduled sweep.
-- `[ ]` **CGo-enabled CI job** — add a separate CI job with `CGO_ENABLED=1`
-  for DuckDB tests (stack/duckdb requires CGo).
-- `[ ]` **Investigate `TestRun_Postgres_Recovery` benchkit failure** — may
-  still flake.
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
-- [BLOCKED] **Tag `stack/duckdb/v4`** — the module exists but is untagged.
-  Consumers resolving the latest version get a 404 from the Go proxy. The
-  `govalid-generate` step was patched via SSH redirect in `flake.nix`, but the
-  root cause (no published tag) remains.
+- [BLOCKED] **Push `stack/duckdb/v4.0.0` tag** — tag created locally but not
+  pushed (per safety rules). Consumers get 404 from Go proxy until pushed.
+- `[ ]` **Investigate `TestRun_Postgres_Recovery` benchkit failure** — may
+  still flake under CI.
 
 ---
 
