@@ -3,7 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"io"
+	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -20,9 +22,12 @@ type Option func(*config)
 type config struct {
 	sqlopt.DSNConfig
 
-	durability stack.DurabilityTier
-	listener   storage.NotificationListener // nil → in-memory bus
-	busOpts    []storage.PostgresBusOption  // forwarded when listener != nil
+	durability       stack.DurabilityTier
+	maxOpenConns     int
+	maxIdleConns     int
+	statementTimeout time.Duration
+	listener         storage.NotificationListener // nil → in-memory bus
+	busOpts          []storage.PostgresBusOption  // forwarded when listener != nil
 }
 
 func defaultConfig() config {
@@ -55,6 +60,28 @@ func defaultConfig() config {
 // benchmark tools can compare backends at the same durability level.
 func WithDurability(tier stack.DurabilityTier) Option {
 	return func(c *config) { c.durability = tier }
+}
+
+// WithPoolSize sets the maximum number of open and idle connections in the
+// Postgres connection pool. By default, database/sql uses unlimited open
+// connections and 2 idle connections. For write-heavy CQRS workloads, a
+// smaller pool (e.g. 10-20) reduces contention and memory overhead.
+//
+// Set maxOpen to 0 for unlimited (the database/sql default).
+// Set maxIdle to -1 for no idle limit.
+func WithPoolSize(maxOpen, maxIdle int) Option {
+	return func(c *config) {
+		c.maxOpenConns = maxOpen
+		c.maxIdleConns = maxIdle
+	}
+}
+
+// WithStatementTimeout sets the maximum duration a query can run before
+// Postgres aborts it. Maps to SET statement_timeout = '<d>'. Protects against
+// runaway queries that could block the connection pool. Zero or negative
+// disables the timeout (the Postgres default).
+func WithStatementTimeout(d time.Duration) Option {
+	return func(c *config) { c.statementTimeout = d }
 }
 
 // WithDSN applies shared multi-database DSN options from sqlopt. Use this to
@@ -169,11 +196,28 @@ func openBackend(
 			return sqlopt.OpenDBOrErr("pgx", dsn, "postgres_preset.open_primary")
 		},
 		func(ctx context.Context, sqlDB *sql.DB) error {
+			// Apply pool sizing before any connections are created.
+			if cfg.maxOpenConns > 0 {
+				sqlDB.SetMaxOpenConns(cfg.maxOpenConns)
+			}
+
+			if cfg.maxIdleConns >= 0 && cfg.maxIdleConns != 0 {
+				sqlDB.SetMaxIdleConns(cfg.maxIdleConns)
+			}
+
 			if cfg.durability != "" {
 				if err := storage.PostgresSetSynchronousCommit(ctx, sqlDB,
 					cfg.durability == stack.DurabilityStrict); err != nil {
 					return errorfamily.WrapInfrastructure(err, "postgres_preset.apply_durability",
 						"apply durability tier")
+				}
+			}
+
+			if cfg.statementTimeout > 0 {
+				stmt := fmt.Sprintf("SET statement_timeout = %d", cfg.statementTimeout.Milliseconds())
+				if _, err := sqlDB.ExecContext(ctx, stmt); err != nil {
+					return errorfamily.WrapInfrastructure(err, "postgres_preset.statement_timeout",
+						"set statement timeout")
 				}
 			}
 

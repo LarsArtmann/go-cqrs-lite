@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"testing"
 
+	_ "modernc.org/sqlite" // register sqlite driver
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"

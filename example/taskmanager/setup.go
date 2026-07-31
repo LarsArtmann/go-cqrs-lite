@@ -66,10 +66,13 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 	}
 
-	// ── Metaengine: cost-based query planner (Counter ADT for O(1) status counts) ──
-	// Build the store BEFORE the bundle so it can be registered for lifecycle
-	// management via stack.WithMetaEngine (passed through sqlite.WithStack).
-	meStore, meAdapter, err := setupMetaEngine(logger)
+	// ── Metaengine: cost-based query planner ──
+	// Counter ADT for O(1) status counts + Map ADT for filtered task views.
+	// Built BEFORE the bundle so it can be registered for lifecycle management
+	// via stack.WithMetaEngine (passed through sqlite.WithStack). The SQLite
+	// engine opens a separate connection to the same DSN (separate tables:
+	// meta_map, meta_counter, etc.).
+	meStore, meAdapter, meDB, err := setupMetaEngine(logger, cfg.DatabasePath)
 	if err != nil {
 		return nil, fmt.Errorf("setup: metaengine: %w", err)
 	}
@@ -77,10 +80,14 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	bundle, err := sqlite.New(
 		cfg.DatabasePath,
 		sqlite.WithPragmas(sqlopt.WithOptimizations()),
-		sqlite.WithStack(stack.WithMetaEngine(meStore)),
+		sqlite.WithStack(
+			stack.WithMetaEngine(meStore),
+			stack.WithCloser(meDB),
+		),
 	)
 	if err != nil {
 		//cqrs-lint:ignore(C023) library code or intentional pattern
+		_ = meDB.Close()
 		_ = meStore.Close()
 
 		return nil, fmt.Errorf("setup: sqlite bundle: %w", err)

@@ -1,11 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json/v2"
 	"fmt"
 	"log/slog"
 	"net/http"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -14,28 +16,42 @@ import (
 // Metaengine — the cost-based query planner.
 //
 // This is the STRATEGIC FUTURE of go-cqrs-lite. Instead of the O(N)
-// Materialize.List + Go-side filter in handleListTasks, metaengine maintains
-// a Counter ADT that tracks task counts by lifecycle status — an O(1)
-// aggregate read.
+// Materialize.List + Go-side filter in handleListTasks, metaengine maintains:
+//
+//   - task_counts_by_status: a Counter ADT tracking counts by lifecycle status
+//     (O(1) aggregate read).
+//   - task_views: a Map ADT storing TaskView per task ID, with FilterOnField
+//     for Status enabling SQLite json_extract pushdown (O(logN) filtered scan
+//     instead of O(N) Go-side filter).
 //
 // The planner inspects the declared fold return types, infers the ADT
-// (Counter), evaluates available engines, and assigns this query to the
-// cheapest engine that supports Counter operations. The Plan() output is
-// logged at startup so you can see the optimizer's decision.
-//
-// See: docs/planning/meta-engine-design.md (the vision)
-//      docs/planning/meta-engine-assumptions-and-query-planning.md (the model)
+// (Counter vs Map), evaluates available engines (Memory + SQLite), and assigns
+// each query to the cheapest engine that supports its operations.
 // ──────────────────────────────────────────────────────────────────────────
+
+// eventWithID wraps an event payload with the stream ID (entity key).
+// metaengine fold handlers need the entity ID as the Map key, but the raw
+// event payload does not contain it — it lives in the event's StreamID.
+// The projectionadapter's EventDecoder produces these wrappers.
+type eventWithID[P any] struct {
+	ID      string
+	Payload P
+}
 
 // taskCountsInput is the query input for the aggregate counter read.
 // It has no fields because ReadAggregate returns the entire counter map.
 type taskCountsInput struct{}
 
+// listTasksInput carries the optional status filter for list queries.
+// When Status is empty, the scan returns all non-deleted tasks.
+type listTasksInput struct {
+	Status string `json:"status,omitempty"`
+}
+
 // onTyped wraps metaengine.On and overrides the EventType to match the
 // CQRS event type string (e.g. "task.created") rather than the Go struct
-// name (e.g. "TaskCreatedPayload"). This is necessary because metaengine.On
-// infers event types from reflect.Type.Name(), but the event store uses
-// semantic type strings.
+// name. This is necessary because metaengine.On infers event types from
+// reflect.Type.Name(), but the event store uses semantic type strings.
 func onTyped[E any](eventType string, sample E, handler any) metaengine.Fold {
 	fold := metaengine.On(sample, handler)
 	fold.EventType = eventType
@@ -43,67 +59,237 @@ func onTyped[E any](eventType string, sample E, handler any) metaengine.Fold {
 	return fold
 }
 
-// taskPayloadDecoder converts CQRS event payloads into typed Go structs
-// that the metaengine fold handlers expect. The adapter calls this for each
-// event, then passes the typed value to store.Apply.
-func taskPayloadDecoder(eventType string, payload []byte) (any, error) {
-	switch eventType {
-	case string(evtTaskCreated):
+// taskEventDecoder converts a full CQRS event (including StreamID) into a
+// typed eventWithID[P] value that metaengine fold handlers expect. This is
+// the bridge between the event-sourced world (where the entity ID is the
+// stream ID) and the metaengine world (where the fold handler receives a
+// plain value).
+//
+// The adapter calls this for each event, then passes the typed value to
+// store.Apply, which routes to all registered queries listening to that
+// event type.
+func taskEventDecoder(evt event.Event) (any, error) {
+	id := evt.StreamID().String()
+
+	switch evt.Type() {
+	case evtTaskCreated:
 		var p TaskCreatedPayload
-		if err := json.Unmarshal(payload, &p); err != nil {
-			return nil, fmt.Errorf("metaengine: decode %s: %w", eventType, err)
+		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+			return nil, fmt.Errorf("metaengine: decode %s: %w", evt.Type(), err)
 		}
 
-		return p, nil
+		return eventWithID[TaskCreatedPayload]{ID: id, Payload: p}, nil
 
-	case string(evtTaskStarted), string(evtTaskCompleted), string(evtTaskArchived):
-		return struct{}{}, nil
+	case evtTaskAssigned:
+		var p TaskAssignedPayload
+		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+			return nil, fmt.Errorf("metaengine: decode %s: %w", evt.Type(), err)
+		}
+
+		return eventWithID[TaskAssignedPayload]{ID: id, Payload: p}, nil
+
+	case evtTaskStarted:
+		return eventWithID[TaskStartedPayload]{ID: id}, nil
+
+	case evtTaskCompleted:
+		return eventWithID[TaskCompletedPayload]{ID: id}, nil
+
+	case evtTaskArchived:
+		return eventWithID[TaskArchivedPayload]{ID: id}, nil
+
+	case evtTaskTitleUpdated:
+		var p TaskTitleUpdatedPayload
+		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+			return nil, fmt.Errorf("metaengine: decode %s: %w", evt.Type(), err)
+		}
+
+		return eventWithID[TaskTitleUpdatedPayload]{ID: id, Payload: p}, nil
+
+	case evtTaskPriorityChanged:
+		var p TaskPriorityChangedPayload
+		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+			return nil, fmt.Errorf("metaengine: decode %s: %w", evt.Type(), err)
+		}
+
+		return eventWithID[TaskPriorityChangedPayload]{ID: id, Payload: p}, nil
+
+	case evtTaskDueDateSet:
+		var p TaskDueDateSetPayload
+		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+			return nil, fmt.Errorf("metaengine: decode %s: %w", evt.Type(), err)
+		}
+
+		return eventWithID[TaskDueDateSetPayload]{ID: id, Payload: p}, nil
+
+	case evtTaskBlockedBy:
+		var p TaskBlockedByPayload
+		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+			return nil, fmt.Errorf("metaengine: decode %s: %w", evt.Type(), err)
+		}
+
+		return eventWithID[TaskBlockedByPayload]{ID: id, Payload: p}, nil
+
+	case evtTaskUnblocked:
+		var p TaskUnblockedPayload
+		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+			return nil, fmt.Errorf("metaengine: decode %s: %w", evt.Type(), err)
+		}
+
+		return eventWithID[TaskUnblockedPayload]{ID: id, Payload: p}, nil
+
+	case evtTaskDeleted:
+		return eventWithID[TaskDeletedPayload]{ID: id}, nil
 
 	default:
 		//cqrs-lint:ignore(C025) library code or intentional pattern
 		return nil, fmt.Errorf(
 			"metaengine: no fold for event type %q",
-			eventType,
+			evt.Type(),
 		) //cqrs-lint:ignore(D006) example code, not production error path
 	}
 }
 
-// setupMetaEngine builds a metaengine Store with a Counter query that
-// tracks task counts by lifecycle status, wraps it in a projectionadapter,
-// and returns both the Store (for query reads) and the Adapter (for
-// projectionhost registration).
-func setupMetaEngine(logger *slog.Logger) (*metaengine.Store, *projectionadapter.Adapter, error) {
+// setupMetaEngine builds a metaengine Store with two queries:
+//
+//  1. task_counts_by_status — Counter ADT for O(1) status aggregate reads.
+//  2. task_views — Map ADT with FilterOnField("status") for SQL pushdown
+//     filtered scans, replacing the O(N) Materialize.List + Go-side filter.
+//
+// It opens a SQLite engine from the same DSN (separate connection, separate
+// tables: meta_map, meta_counter, etc.), plus a Memory engine for the planner
+// to choose from. The returned *sql.DB is registered with the bundle for
+// lifecycle cleanup via stack.WithCloser.
+func setupMetaEngine(
+	logger *slog.Logger,
+	dsn string,
+) (*metaengine.Store, *projectionadapter.Adapter, *sql.DB, error) {
+	meDB, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("metaengine: open sqlite: %w", err)
+	}
+
+	meDB.SetMaxOpenConns(1) // SQLite: serialize writes, ensure :memory: visibility.
+
+	sqliteEng, err := metaengine.NewSQLiteEngine(meDB)
+	if err != nil {
+		_ = meDB.Close()
+
+		return nil, nil, nil, fmt.Errorf("metaengine: sqlite engine: %w", err)
+	}
+
 	taskCounts := metaengine.Query[taskCountsInput, map[string]int64](
 		"task_counts_by_status",
 		// Counter folds: each event returns a Delta (map[string]int64) of
 		// counter increments/decrements. The planner infers ADTCounter from
 		// the Delta return type.
-		onTyped(string(evtTaskCreated), TaskCreatedPayload{},
-			func(_ TaskCreatedPayload) metaengine.Delta {
+		onTyped(string(evtTaskCreated), eventWithID[TaskCreatedPayload]{},
+			func(_ eventWithID[TaskCreatedPayload]) metaengine.Delta {
 				return metaengine.Delta{"pending": 1}
 			}),
-		onTyped(string(evtTaskStarted), TaskStartedPayload{},
-			func(_ TaskStartedPayload) metaengine.Delta {
+		onTyped(string(evtTaskStarted), eventWithID[TaskStartedPayload]{},
+			func(_ eventWithID[TaskStartedPayload]) metaengine.Delta {
 				return metaengine.Delta{"active": 1, "pending": -1}
 			}),
-		onTyped(string(evtTaskCompleted), TaskCompletedPayload{},
-			func(_ TaskCompletedPayload) metaengine.Delta {
+		onTyped(string(evtTaskCompleted), eventWithID[TaskCompletedPayload]{},
+			func(_ eventWithID[TaskCompletedPayload]) metaengine.Delta {
 				return metaengine.Delta{"completed": 1, "active": -1}
 			}),
-		onTyped(string(evtTaskArchived), TaskArchivedPayload{},
-			func(_ TaskArchivedPayload) metaengine.Delta {
+		onTyped(string(evtTaskArchived), eventWithID[TaskArchivedPayload]{},
+			func(_ eventWithID[TaskArchivedPayload]) metaengine.Delta {
 				return metaengine.Delta{"archived": 1, "completed": -1}
 			}),
 		// Volume hint: helps the planner estimate cost.
 		metaengine.Volume(10_000),
 	)
 
+	taskViews := metaengine.Query[listTasksInput, TaskView](
+		"task_views",
+		// Map folds: TaskCreated inserts a TaskView keyed by stream ID.
+		// Lifecycle events update the view. TaskDeleted removes it.
+		// FilterOnField enables SQLite json_extract pushdown on the "status"
+		// JSON field, replacing the O(N) Go-side filter in handleListTasks.
+		onTyped(string(evtTaskCreated), eventWithID[TaskCreatedPayload]{},
+			func(e eventWithID[TaskCreatedPayload]) (string, TaskView) {
+				return e.ID, TaskView{
+					ID:          e.ID,
+					Title:       e.Payload.Title,
+					Description: e.Payload.Description,
+					Priority:    e.Payload.Priority,
+					Status:      StatusPending,
+				}
+			}),
+		onTyped(string(evtTaskAssigned), eventWithID[TaskAssignedPayload]{},
+			func(e eventWithID[TaskAssignedPayload], prev TaskView) TaskView {
+				prev.AssigneeID = e.Payload.AssigneeID
+
+				return prev
+			}),
+		onTyped(string(evtTaskStarted), eventWithID[TaskStartedPayload]{},
+			func(_ eventWithID[TaskStartedPayload], prev TaskView) TaskView {
+				prev.Status = StatusActive
+
+				return prev
+			}),
+		onTyped(string(evtTaskCompleted), eventWithID[TaskCompletedPayload]{},
+			func(_ eventWithID[TaskCompletedPayload], prev TaskView) TaskView {
+				prev.Status = StatusCompleted
+
+				return prev
+			}),
+		onTyped(string(evtTaskArchived), eventWithID[TaskArchivedPayload]{},
+			func(_ eventWithID[TaskArchivedPayload], prev TaskView) TaskView {
+				prev.Status = StatusArchived
+
+				return prev
+			}),
+		onTyped(string(evtTaskTitleUpdated), eventWithID[TaskTitleUpdatedPayload]{},
+			func(e eventWithID[TaskTitleUpdatedPayload], prev TaskView) TaskView {
+				prev.Title = e.Payload.Title
+
+				return prev
+			}),
+		onTyped(string(evtTaskPriorityChanged), eventWithID[TaskPriorityChangedPayload]{},
+			func(e eventWithID[TaskPriorityChangedPayload], prev TaskView) TaskView {
+				prev.Priority = e.Payload.Priority
+
+				return prev
+			}),
+		onTyped(string(evtTaskDueDateSet), eventWithID[TaskDueDateSetPayload]{},
+			func(e eventWithID[TaskDueDateSetPayload], prev TaskView) TaskView {
+				if e.Payload.DueDate != nil {
+					prev.DueDate = e.Payload.DueDate.Format("2006-01-02T15:04:05Z")
+				} else {
+					prev.DueDate = ""
+				}
+
+				return prev
+			}),
+		onTyped(string(evtTaskBlockedBy), eventWithID[TaskBlockedByPayload]{},
+			func(e eventWithID[TaskBlockedByPayload], prev TaskView) TaskView {
+				prev.BlockedBy = append(prev.BlockedBy, e.Payload.DependencyID)
+
+				return prev
+			}),
+		onTyped(string(evtTaskUnblocked), eventWithID[TaskUnblockedPayload]{},
+			func(e eventWithID[TaskUnblockedPayload], prev TaskView) TaskView {
+				prev.BlockedBy = removeString(prev.BlockedBy, e.Payload.DependencyID)
+
+				return prev
+			}),
+		onTyped(string(evtTaskDeleted), eventWithID[TaskDeletedPayload]{},
+			metaengine.Remove[TaskView]()),
+		metaengine.FilterOnField[TaskView]("status", metaengine.FilterEq),
+		metaengine.Volume(10_000),
+	)
+
 	store, err := metaengine.Plan(
-		[]metaengine.Engine{metaengine.NewMemoryEngine()},
-		taskCounts,
+		[]metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
+		taskCounts, taskViews,
 	)
 	if err != nil {
-		return nil, nil, fmt.Errorf("metaengine: plan: %w", err)
+		_ = meDB.Close()
+
+		return nil, nil, nil, fmt.Errorf("metaengine: plan: %w", err)
 	}
 
 	// Log the planner's decision so the optimizer's reasoning is visible.
@@ -126,14 +312,15 @@ func setupMetaEngine(logger *slog.Logger) (*metaengine.Store, *projectionadapter
 		}
 	}
 
-	adapter := projectionadapter.New("metaengine-task-counts", store, taskPayloadDecoder)
+	adapter := projectionadapter.New("metaengine-tasks", store, nil,
+		projectionadapter.WithEventDecoder(taskEventDecoder))
 
-	return store, adapter, nil
+	return store, adapter, meDB, nil
 }
 
 // handleGetTaskStats serves GET /api/stats — returns task counts by status
 // from the metaengine Counter projection. This is an O(1) aggregate read,
-// compared to the O(N) Materialize.List + filter in handleListTasks.
+// compared to the O(N) scan that Materialize.List would require.
 func (s *Server) handleGetTaskStats(w http.ResponseWriter, r *http.Request) {
 	if s.MetaEngine == nil {
 		writeError(w, http.StatusServiceUnavailable, "metaengine not configured")

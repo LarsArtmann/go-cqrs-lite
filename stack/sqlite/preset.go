@@ -3,7 +3,9 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"io"
+	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -20,8 +22,10 @@ type config struct {
 	sqlopt.DSNConfig
 	sqlopt.PragmaConfig
 
-	durability     stack.DurabilityTier
-	extraStackOpts []stack.Option
+	durability      stack.DurabilityTier
+	cacheSizeBytes  int64
+	busyTimeout     time.Duration
+	extraStackOpts  []stack.Option
 }
 
 func defaultConfig() config {
@@ -40,6 +44,27 @@ func defaultConfig() config {
 		durability:     stack.DurabilityNormal,
 		extraStackOpts: nil,
 	}
+}
+
+// WithCacheSize sets the SQLite page cache size in bytes. Maps to
+// PRAGMA cache_size=-<KiB>. A larger cache reduces disk I/O for read-heavy
+// workloads. The default (when neither WithCacheSize nor WithOptimizations is
+// used) is SQLite's built-in 2 MB. WithOptimizations sets 64 MB; this option
+// overrides it.
+//
+//	b, _ := sqlite.New(dsn, sqlite.WithCacheSize(128*1024*1024)) // 128 MB
+func WithCacheSize(bytes int64) Option {
+	return func(c *config) { c.cacheSizeBytes = bytes }
+}
+
+// WithBusyTimeout sets the SQLite busy_timeout duration. When a connection
+// encounters a locked database, it waits up to this duration before returning
+// SQLITE_BUSY. The default is 5 seconds. Set via DSN parameter so every pooled
+// connection inherits it.
+//
+//	b, _ := sqlite.New(dsn, sqlite.WithBusyTimeout(10*time.Second))
+func WithBusyTimeout(d time.Duration) Option {
+	return func(c *config) { c.busyTimeout = d }
 }
 
 // WithDurability sets the durability tier for the SQLite backend. This maps
@@ -153,6 +178,14 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 // via db.Exec only apply to the connection that runs them).
 const sqliteBusyTimeoutMs = 5000
 
+func resolveBusyTimeoutMs(cfg config) int {
+	if cfg.busyTimeout > 0 {
+		return int(cfg.busyTimeout.Milliseconds())
+	}
+
+	return sqliteBusyTimeoutMs
+}
+
 func openBackend(
 	dsn string,
 	cfg config,
@@ -160,7 +193,7 @@ func openBackend(
 	return sqlopt.OpenPrimaryBackend( //nolint:wrapcheck // OpenPrimaryBackend wraps all errors
 		func() (*sql.DB, error) {
 			return sqlopt.OpenDBOrErr("sqlite",
-				storage.EnsureSQLiteDSNBusyTimeout(dsn, sqliteBusyTimeoutMs),
+				storage.EnsureSQLiteDSNBusyTimeout(dsn, resolveBusyTimeoutMs(cfg)),
 				"sqlite_preset.open_primary")
 		},
 		func(ctx context.Context, sqlDB *sql.DB) error {
@@ -206,6 +239,16 @@ func openBackend(
 						"sqlite_preset.apply_optimizations",
 						"apply sqlite optimizations",
 					)
+				}
+			}
+
+			// Custom cache size overrides the WithOptimizations default.
+			if cfg.cacheSizeBytes > 0 {
+				kib := cfg.cacheSizeBytes / 1024
+				pragma := fmt.Sprintf("PRAGMA cache_size=-%d", kib)
+				if _, err := sqlDB.ExecContext(ctx, pragma); err != nil {
+					return errorfamily.WrapInfrastructure(err, "sqlite_preset.cache_size",
+						"set cache_size")
 				}
 			}
 
