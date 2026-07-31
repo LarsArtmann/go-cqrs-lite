@@ -68,14 +68,14 @@ this list and recorded in CHANGELOG.
 
 ## Metaengine — Testing Gaps
 
-- [ ] **SQLite PrefetchCache test** — verify auto-population works with SQLite engine.
-- [ ] **PrefetchCache end-to-end pagination test** — multi-page scan using cursor flow.
-- [ ] **SSE multi-subscriber fan-out test** — verify N clients all receive updates.
-- [ ] **Export/Import cross-engine test** — export from Memory, import to SQLite, verify.
-- [ ] **Multi-engine tiering test** — TieredStore fan-out with SQLite + memory.
-- [ ] **SwapEngine data migration test** — verify data survives engine swap via replay.
-- [ ] **MigrateLayout ALTER TABLE test** — verify column addition preserves data.
-- [ ] **WithTTL functional test** — verify entries actually expire.
+- [x] **SQLite PrefetchCache test** — `TestPrefetchCache_SQLiteEndToEnd` in features4_test.go.
+- [x] **PrefetchCache end-to-end pagination test** — `TestPrefetchCache_EndToEndPagination` in features4_test.go.
+- [x] **SSE multi-subscriber fan-out test** — `TestSSE_MultiSubscriberFanOut` in features4_test.go.
+- [x] **Export/Import cross-engine test** — `TestExportImport_CrossEngine` in features4_test.go.
+- [x] **Multi-engine tiering test** — `TestTieredStore_FanOut` in features3_test.go.
+- [x] **SwapEngine data migration test** — `TestStoreSwapEngine` in features3_test.go.
+- [x] **MigrateLayout ALTER TABLE test** — `TestMigrateLayout_EndToEnd` in features3_test.go.
+- [x] **WithTTL functional test** — `TestWithTTL_SetsConfigValue` in features4_test.go.
 
 ---
 

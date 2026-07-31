@@ -1136,3 +1136,37 @@ func TestMapUpdateTyped_ReifiesPrevValue(t *testing.T) {
 		t.Errorf("expected title 'Created', got %q", task.Title)
 	}
 }
+
+// --- WithTTL functional test ---
+
+func TestWithTTL_SetsConfigValue(t *testing.T) {
+	t.Parallel()
+
+	// WithTTL is a QueryOption (used at Plan time), not a ScanOption.
+	// Verify it correctly sets the nanosecond TTL on QueryConfig.
+
+	ttl := 5 * time.Minute
+	var cfg QueryConfig
+	WithTTL(ttl)(&cfg)
+
+	if cfg.TTL != ttl.Nanoseconds() {
+		t.Errorf("expected TTL %d ns, got %d", ttl.Nanoseconds(), cfg.TTL)
+	}
+
+	// Zero TTL (no expiration) should also work.
+	var cfgZero QueryConfig
+	WithTTL(0)(&cfgZero)
+
+	if cfgZero.TTL != 0 {
+		t.Errorf("expected zero TTL, got %d", cfgZero.TTL)
+	}
+
+	// Negative duration produces negative nanoseconds — this is fine as a
+	// signal to engines to skip expiration entirely.
+	var cfgNeg QueryConfig
+	WithTTL(-1)(&cfgNeg)
+
+	if cfgNeg.TTL != -1 {
+		t.Errorf("expected TTL -1, got %d", cfgNeg.TTL)
+	}
+}
