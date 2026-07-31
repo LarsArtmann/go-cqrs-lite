@@ -1,14 +1,14 @@
 # Metaengine Store Redesign Analysis: Eliminating Runtime Casts
 
 > **Date:** 2026-07-31
-> **Trigger:** "What if we redesign Store?" — evaluating whether an alternative Store architecture could eliminate the runtime casts documented in [ADR-0080](0080-metaengine-runtime-casts.md).
+> **Trigger:** "What if we redesign Store?" — evaluating whether an alternative Store architecture could eliminate the runtime casts documented in [ADR-0081](0081-metaengine-runtime-casts.md).
 > **Status:** Analysis — no decision yet. This documents four alternative designs, their tradeoffs, and which casts each eliminates.
 
 ---
 
 ## The Problem
 
-The current `Store` has 4 runtime cast sites, all caused by Go's inability to express heterogeneous generic containers (see [ADR-0080](0080-metaengine-runtime-casts.md)):
+The current `Store` has 4 runtime cast sites, all caused by Go's inability to express heterogeneous generic containers (see [ADR-0081](0081-metaengine-runtime-casts.md)):
 
 | # | Site | Signature | Root Cause |
 |---|------|-----------|------------|
@@ -265,6 +265,6 @@ The current design already hides the casts behind `TypedReader[V]` and `ExecuteT
 
 ## References
 
-- [ADR-0080: Why metaengine uses runtime casts](0080-metaengine-runtime-casts.md)
+- [ADR-0081: Why metaengine uses runtime casts](0081-metaengine-runtime-casts.md)
 - [Go #77273: Generic type parameters on methods](https://github.com/golang/go/issues/77273) (Go 1.27)
 - [Go #80448: Associated types in interfaces](https://github.com/golang/go/issues/80448) (Open, Jul 2026)
