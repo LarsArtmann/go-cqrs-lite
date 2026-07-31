@@ -66,6 +66,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		engines:     engines,
 		queries:     make(map[string]queryRuntime),
 		byInputType: make(map[string]string),
+		queryDecls:  queries,
 	}
 
 	for _, q := range queries {

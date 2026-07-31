@@ -109,7 +109,7 @@ func (p *PlanResult) DotGraph() string {
 	for _, q := range p.Queries {
 		// Engine node
 		b.WriteString(fmt.Sprintf("  %s [label=\"%s\\n(%s)\", shape=cylinder];\n",
-			sanitizeDotID(q.QueryName), q.QueryName, q.AssignedEngine))
+			sanitizeDotID(q.QueryName), q.QueryName, q.EngineName))
 		b.WriteString(fmt.Sprintf("  %s_adt [label=\"%s\", shape=hexagon];\n",
 			sanitizeDotID(q.QueryName), q.ADT))
 		b.WriteString(fmt.Sprintf("  %s -> %s_adt;\n",
@@ -144,7 +144,7 @@ func sanitizeDotID(s string) string {
 // for each query in a PlanResult.
 type CostReport struct {
 	Query          string
-	EstimatedLatus float64 // ns
+	EstimatedLatencyNs float64 // ns
 	ActualLatency  float64 // ns
 	DriftPercent   float64 // (actual - estimated) / estimated * 100
 }
@@ -201,7 +201,7 @@ func (r *CostAccuracyReporter) Report(plan *PlanResult) []CostReport {
 		}
 
 		actualNs := float64(total.Nanoseconds()) / float64(len(measurements))
-		estimatedNs := float64(q.EstimatedLatencyNs)
+		estimatedNs := q.Cost.EstimatedLatencyMs * 1e6
 		drift := 0.0
 		if estimatedNs > 0 {
 			drift = (actualNs - estimatedNs) / estimatedNs * 100
@@ -209,7 +209,7 @@ func (r *CostAccuracyReporter) Report(plan *PlanResult) []CostReport {
 
 		reports = append(reports, CostReport{
 			Query:          q.QueryName,
-			EstimatedLatus: estimatedNs,
+			EstimatedLatencyNs: estimatedNs,
 			ActualLatency:  actualNs,
 			DriftPercent:   drift,
 		})

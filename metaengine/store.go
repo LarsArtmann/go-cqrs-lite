@@ -32,6 +32,8 @@ type Store struct {
 	poisoned     sync.Map // collection name → poison error
 	appliedEvent sync.Map // event ID → struct{} (idempotent Apply dedup)
 	hooks        *Hooks   // observability hooks (nil = no-op)
+	eventLog     *EventLog
+	queryDecls   []any // original query declarations (for Verify)
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -135,6 +137,10 @@ func (s *Store) Close() error {
 // Each query has its own independent projection — the same event updates
 // each matching query's collection separately.
 func (s *Store) Apply(ctx context.Context, eventType string, payload any) error {
+	if s.eventLog != nil {
+		s.eventLog.Record(eventType, payload)
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
