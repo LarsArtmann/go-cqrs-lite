@@ -118,15 +118,17 @@ func (s *Store) SwapEngine(oldName, _ string, newEngine Engine) error {
 // RunMatrix answers "do all engines agree?".
 //
 // When to use each:
+//
 //   - ContractSuite: add a new engine, verify it passes all ADT operations
+//
 //   - adttest.RunMatrix: add a new engine to the parity matrix, verify it
 //     produces the same canonical results as existing engines
 //
-//	func TestMyEngine(t *testing.T) {
-//	    metaengine.ContractSuite(t, func() metaengine.Engine {
-//	        return myEngine.New()
-//	    })
-//	}
+//     func TestMyEngine(t *testing.T) {
+//     metaengine.ContractSuite(t, func() metaengine.Engine {
+//     return myEngine.New()
+//     })
+//     }
 func ContractSuite(t interface {
 	Fatal(args ...any)
 	Errorf(format string, args ...any)

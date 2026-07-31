@@ -72,22 +72,7 @@ func TestHealthCheck_AllEnginesHealthy(t *testing.T) {
 func TestHealthCheck_SQLiteEngine(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-
-	defer db.Close()
-
-	eng, err := NewSQLiteEngine(db)
-	if err != nil {
-		t.Fatalf("NewSQLiteEngine: %v", err)
-	}
-
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
+	store := newSQLiteTestStore(t)
 
 	if err := store.HealthCheck(context.Background()); err != nil {
 		t.Errorf("HealthCheck should return nil for SQLite engine, got: %v", err)
@@ -515,22 +500,7 @@ func TestVerify_DetectsDrift(t *testing.T) {
 func TestSQLiteWatcher_ReceivesValue(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-
-	defer db.Close()
-
-	eng, err := NewSQLiteEngine(db)
-	if err != nil {
-		t.Fatalf("NewSQLiteEngine: %v", err)
-	}
-
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
+	store := newSQLiteTestStore(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -561,22 +531,7 @@ func TestSQLiteWatcher_ReceivesValue(t *testing.T) {
 func TestSQLiteCoalescer_ConcurrentReadsCoalesced(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-
-	defer db.Close()
-
-	eng, err := NewSQLiteEngine(db)
-	if err != nil {
-		t.Fatalf("NewSQLiteEngine: %v", err)
-	}
-
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
+	store := newSQLiteTestStore(t)
 
 	WithReadCoalescer(store, NewReadCoalescer())
 
@@ -859,22 +814,7 @@ func TestPrefetchCache_EndToEndPagination(t *testing.T) {
 func TestPrefetchCache_SQLiteEndToEnd(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", ":memory:")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-
-	defer db.Close()
-
-	eng, err := NewSQLiteEngine(db)
-	if err != nil {
-		t.Fatalf("NewSQLiteEngine: %v", err)
-	}
-
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
+	store := newSQLiteTestStore(t)
 
 	ctx := context.Background()
 	cache := NewPrefetchCache()

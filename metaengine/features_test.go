@@ -31,7 +31,7 @@ func testTaskQuery() QueryDecl[testFindTask, testTask] {
 	)
 }
 
-func newMemoryTestStore(t *testing.T) Store {
+func newMemoryTestStore(t *testing.T) *Store {
 	t.Helper()
 
 	eng := NewMemoryEngine()
@@ -44,7 +44,7 @@ func newMemoryTestStore(t *testing.T) Store {
 	return store
 }
 
-func newSQLiteTestStore(t *testing.T) Store {
+func newSQLiteTestStore(t *testing.T) *Store {
 	t.Helper()
 
 	db, err := sql.Open("sqlite", ":memory:")
@@ -103,11 +103,7 @@ func TestApplyBatch(t *testing.T) {
 func TestCollections(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	collections := store.Collections()
 	if len(collections) != 1 {
@@ -201,11 +197,7 @@ func TestExplain(t *testing.T) {
 func TestIsPoisoned(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	if err := store.IsPoisoned("tasks"); err != nil {
 		t.Errorf("expected nil for healthy collection, got %v", err)

@@ -127,11 +127,7 @@ func BenchmarkLargePayload_Memory(b *testing.B) {
 func TestStoreVerify_EndToEnd(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	log := NewEventLog()
 	WithEventLog(store, log)
@@ -143,7 +139,7 @@ func TestStoreVerify_EndToEnd(t *testing.T) {
 	})
 
 	// Verify should pass — fresh replay matches live
-	err = store.Verify(ctx, []Engine{NewMemoryEngine()})
+	err := store.Verify(ctx, []Engine{NewMemoryEngine()})
 	if err != nil {
 		t.Errorf("Verify should pass: %v", err)
 	}
@@ -288,11 +284,7 @@ func TestReadCoalescer_Concurrent(t *testing.T) {
 func TestCrashRecovery_PanicMidApply(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	ctx := context.Background()
 
@@ -318,11 +310,7 @@ func TestCrashRecovery_PanicMidApply(t *testing.T) {
 func TestPropertyFoldInsert_HoldsInvariants(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	ctx := context.Background()
 
@@ -382,11 +370,7 @@ func TestExplain_FilterIn(t *testing.T) {
 func TestExportImport_AllADTs(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	ctx := context.Background()
 	_ = store.ApplyBatch(ctx, []EventInput{
@@ -407,11 +391,7 @@ func TestExportImport_AllADTs(t *testing.T) {
 // --- P4.2: HTTP/SSE adapter test ---
 
 func TestServeSSE_StreamsWatcherValues(t *testing.T) {
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	watcher := NewWatcher[testTask](store, "tasks")
 	defer watcher.Close()
@@ -482,11 +462,7 @@ func TestServeSSE_StreamsWatcherValues(t *testing.T) {
 func TestInspect_ReturnsCollectionInfo(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	output := store.Inspect()
 
@@ -511,11 +487,7 @@ func TestInspect_ReturnsCollectionInfo(t *testing.T) {
 func TestReadCoalescer_ConcurrentReadsCoalesced(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	rc := NewReadCoalescer()
 	WithReadCoalescer(store, rc)
@@ -562,11 +534,7 @@ func TestReadCoalescer_ConcurrentReadsCoalesced(t *testing.T) {
 // --- P2.2: Watcher receives actual projection values ---
 
 func TestWatcher_ReceivesActualValue(t *testing.T) {
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -577,7 +545,7 @@ func TestWatcher_ReceivesActualValue(t *testing.T) {
 	ch := w.Watch(ctx, nil)
 
 	// Apply an event — the watcher should receive the actual testTask value
-	err = store.Apply(ctx, "task_created", testTask{ID: "t1", Title: "Task 1"})
+	err := store.Apply(ctx, "task_created", testTask{ID: "t1", Title: "Task 1"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -645,11 +613,7 @@ func (ms *mockSpan) End()                               { ms.ended = true }
 func (ms *mockSpan) SetAttribute(key string, value any) { ms.attributes[key] = value }
 
 func TestWithTracing_CreatesSpans(t *testing.T) {
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	tracer := &mockTracer{}
 	WithTracing(store, tracer)

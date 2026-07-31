@@ -51,13 +51,9 @@ func TestINFilter_PushdownPath(t *testing.T) {
 func TestErrNotFound_ExecuteTyped(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
-	_, err = ExecuteTyped[testFindTask, testTask](
+	_, err := ExecuteTyped[testFindTask, testTask](
 		context.Background(),
 		store,
 		testFindTask{ID: "missing"},
@@ -127,11 +123,7 @@ func TestCountPushdown(t *testing.T) {
 func TestORFilter(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	ctx := context.Background()
 	_ = store.ApplyBatch(ctx, []EventInput{
@@ -159,11 +151,7 @@ func TestORFilter(t *testing.T) {
 func TestCompoundSort(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	ctx := context.Background()
 	_ = store.ApplyBatch(ctx, []EventInput{
@@ -197,11 +185,7 @@ func TestCompoundSort(t *testing.T) {
 func TestGroupBy(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	ctx := context.Background()
 	_ = store.ApplyBatch(ctx, []EventInput{
@@ -230,11 +214,7 @@ func TestGroupBy(t *testing.T) {
 func TestSchemaEnforcement(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	// Should not have schema mismatch warnings for correct types
 	for _, diag := range store.Plan().Diagnostics {
@@ -405,11 +385,7 @@ func TestTransactionInterface(t *testing.T) {
 func TestDotGraph(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	graph := store.Plan().DotGraph()
 	if !strings.Contains(graph, "digraph") {
@@ -449,11 +425,7 @@ func TestChecksum(t *testing.T) {
 func TestExportImport(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	ctx := context.Background()
 	_ = store.ApplyBatch(ctx, []EventInput{
@@ -511,11 +483,7 @@ func TestReadCoalescer(t *testing.T) {
 func TestHooks(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng}, testTaskQuery())
-	if err != nil {
-		t.Fatal(err)
-	}
+	store := newMemoryTestStore(t)
 
 	var foldCount, execCount int
 	var foldErr error
