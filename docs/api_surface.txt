@@ -1408,6 +1408,9 @@ metaengine/func WithMetrics
 metaengine/func WithOr
 metaengine/func WithRange
 metaengine/func WithReadCoalescer
+metaengine/func WithSSEHeartbeat
+metaengine/func WithSSEMaxBuffer
+metaengine/func WithSSETimeout
 metaengine/func WithSlowQueryLog
 metaengine/func WithSort
 metaengine/func WithSortColumns
@@ -1419,6 +1422,7 @@ metaengine/interface Closer
 metaengine/interface CounterBackend
 metaengine/interface Engine
 metaengine/interface GraphBackend
+metaengine/interface HealthChecker
 metaengine/interface LayoutPlanner
 metaengine/interface LogBackend
 metaengine/interface MapBackend
@@ -1482,9 +1486,11 @@ metaengine/method GraphNeighbors
 metaengine/method GraphNeighbors
 metaengine/method GroupBy
 metaengine/method HasWarnings
+metaengine/method HealthCheck
 metaengine/method Import
 metaengine/method InTransaction
 metaengine/method Inspect
+metaengine/method InspectJSON
 metaengine/method IsPoisoned
 metaengine/method LatencyBudget
 metaengine/method Len
@@ -1537,6 +1543,7 @@ metaengine/method SetAdd
 metaengine/method SetContains
 metaengine/method SetContains
 metaengine/method Sort
+metaengine/method Stats
 metaengine/method StreamScan
 metaengine/method String
 metaengine/method String
@@ -1584,6 +1591,7 @@ metaengine/projectionadapter/struct Adapter
 metaengine/projectionadapter/type PayloadDecoder
 metaengine/struct Append
 metaengine/struct CollectionInfo
+metaengine/struct CollectionStats
 metaengine/struct CostAccuracyReporter
 metaengine/struct CostEstimate
 metaengine/struct CostReport
@@ -1611,6 +1619,7 @@ metaengine/struct QueryConfig
 metaengine/struct QueryDecl
 metaengine/struct RangeSpec
 metaengine/struct ReadCoalescer
+metaengine/struct SSEConfig
 metaengine/struct ScaleThreshold
 metaengine/struct Skip
 metaengine/struct SortColumn
@@ -1629,12 +1638,19 @@ metaengine/type FilterOp
 metaengine/type FoldKind
 metaengine/type QueryOption
 metaengine/type ReadPattern
+metaengine/type SSEOption
 metaengine/type ScanOption
 metaengine/type StoreHooks
 metaengine/var ErrAmbiguousKey
+metaengine/var ErrDuplicateEvent
+metaengine/var ErrExecuteTypeMismatch
 metaengine/var ErrLayoutConflict
+metaengine/var ErrNoQueryForInputType
 metaengine/var ErrNotFound
+metaengine/var ErrPoisoned
+metaengine/var ErrUnknownFoldKind
 metaengine/var ErrUnsupportedADT
+metaengine/var ErrUnsupportedPattern
 metaengine/var V1StabilizationChecklist
 middleware/const MetadataKeyOTelCorrelationID
 middleware/func AsCommand

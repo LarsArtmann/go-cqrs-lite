@@ -7,6 +7,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -664,5 +665,118 @@ func TestChecksum_VerifyRoundTrip(t *testing.T) {
 	corrupted := []byte(`{"id":"t1","title":"CORRUPTED","status":"open"}`)
 	if VerifyChecksum(corrupted, cs) {
 		t.Error("VerifyChecksum should return false for corrupted data")
+	}
+}
+
+// --- Property-style test: random insert/update/delete sequence ---
+
+func TestProperty_RandomOpsMaintainConsistency(t *testing.T) {
+	t.Parallel()
+
+	eng := NewMemoryEngine()
+
+	// Query with insert, update, and delete folds.
+	updateQuery := Query[testFindTask, testTask](
+		"prop_tasks",
+		OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
+			return e.ID, e
+		}),
+		Fold{
+			EventType:   "task_title_changed",
+			Kind:        FoldUpdate,
+			keyExtractor: func(e testTask) any { return e.ID },
+			updateHandler: func(e testTask, prev testTask) testTask {
+				prev.Title = e.Title
+				return prev
+			},
+		},
+		Fold{
+			EventType: "task_deleted",
+			Kind:      FoldRemove,
+			keyExtractor: func(e testTask) any { return e.ID },
+		},
+	)
+
+	store, err := Plan([]Engine{eng}, updateQuery)
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	ctx := context.Background()
+	reader := NewReader[testTask](store, "prop_tasks")
+
+	type op struct {
+		kind   string // "create", "update", "delete"
+		taskID string
+		title  string
+	}
+
+	rng := rand.New(rand.NewSource(42))
+
+	const numOps = 200
+	const numTasks = 20
+	expected := make(map[string]string) // taskID → expected title
+
+	for range numOps {
+		taskIdx := rng.Intn(numTasks)
+		id := testTaskID(fmt.Sprintf("task-%d", taskIdx))
+		opType := rng.Intn(3)
+
+		switch opType {
+		case 0: // create
+			title := fmt.Sprintf("Title-%d", rng.Intn(10000))
+			expected[string(id)] = title
+			if err := store.Apply(ctx, "task_created", testTask{ID: id, Title: title}); err != nil {
+				t.Errorf("create %s: %v", id, err)
+			}
+		case 1: // update (only if exists)
+			if _, exists := expected[string(id)]; !exists {
+				continue
+			}
+
+			newTitle := fmt.Sprintf("Updated-%d", rng.Intn(10000))
+			expected[string(id)] = newTitle
+			if err := store.Apply(ctx, "task_title_changed", testTask{ID: id, Title: newTitle}); err != nil {
+				t.Errorf("update %s: %v", id, err)
+			}
+		case 2: // delete (only if exists)
+			if _, exists := expected[string(id)]; !exists {
+				continue
+			}
+
+			delete(expected, string(id))
+			if err := store.Apply(ctx, "task_deleted", testTask{ID: id}); err != nil {
+				t.Errorf("delete %s: %v", id, err)
+			}
+		}
+	}
+
+	// Verify final state matches expectations.
+	for taskID, expectedTitle := range expected {
+		task, found, err := reader.Get(ctx, testTaskID(taskID))
+		if err != nil {
+			t.Errorf("Get %s: %v", taskID, err)
+			continue
+		}
+
+		if !found {
+			t.Errorf("task %s should exist with title %q", taskID, expectedTitle)
+			continue
+		}
+
+		if task.Title != expectedTitle {
+			t.Errorf("task %s: expected title %q, got %q", taskID, expectedTitle, task.Title)
+		}
+	}
+
+	// Verify deleted tasks are gone.
+	for taskIdx := range numTasks {
+		id := fmt.Sprintf("task-%d", taskIdx)
+		if _, exists := expected[id]; !exists {
+			_, found, _ := reader.Get(ctx, testTaskID(id))
+			if found {
+				t.Errorf("task %s should have been deleted", id)
+			}
+		}
 	}
 }
