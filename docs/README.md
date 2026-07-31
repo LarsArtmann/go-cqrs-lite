@@ -39,7 +39,7 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Architecture Decision Records (ADR)
 
-77 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+78 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                        | Title                                                   | Status                   |
 | ---------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
@@ -120,6 +120,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0077](adr/0077-metaengine-graph-reconciliation.md)        | Metaengine GraphBackend vs graph/ module reconciliation | Accepted                 |
 | [0078](adr/0078-metaengine-kv-coexistence.md)              | Metaengine and kv.ViewStore coexistence                 | Accepted                 |
 | [0079](adr/0079-sse-consolidation.md)                      | SSE consolidation — two implementations, two layers     | Accepted                 |
+| [0080](adr/0080-dialect-interface-upsert-methods.md)       | Dialect interface expansion for cross-database upsert   | Accepted                 |
 
 ## API Reference
 
