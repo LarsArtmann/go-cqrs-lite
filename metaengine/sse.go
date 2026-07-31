@@ -202,7 +202,7 @@ func serveSSEPlain[V any](
 			}
 
 			if _, err := fmt.Fprintf(w, "data: %s\n\n", data); err != nil {
-				return err
+				return err //nolint:wrapcheck
 			}
 
 			flusher.Flush()
@@ -212,7 +212,7 @@ func serveSSEPlain[V any](
 
 		case <-heartbeatCh:
 			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil {
-				return err
+				return err //nolint:wrapcheck
 			}
 
 			flusher.Flush()
@@ -244,14 +244,14 @@ func replayMissedEvents[V any](
 
 	replayedSeqs := make(map[uint64]struct{}, len(replayed))
 
-	for _, sv := range replayed {
+	for _, sv := range replayed { //nolint:varnamelen
 		data, err := json.Marshal(sv.Value)
 		if err != nil {
 			continue
 		}
 
-		if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil { //nolint:wrapcheck // SSE write
-			return nil, err
+		if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil {
+			return nil, err //nolint:wrapcheck
 		}
 
 		replayedSeqs[sv.Seq] = struct{}{}
@@ -299,7 +299,7 @@ func serveSSEReplay[V any](
 			select {
 			case <-ctx.Done():
 				return
-			case sv, ok := <-watchCh:
+			case sv, ok := <-watchCh: //nolint:varnamelen
 				if !ok {
 					return
 				}
@@ -348,7 +348,7 @@ func serveSSEReplay[V any](
 		case <-ctx.Done():
 			return nil
 
-		case sv, ok := <-buf:
+		case sv, ok := <-buf: //nolint:varnamelen
 			if !ok {
 				return nil
 			}
@@ -359,7 +359,7 @@ func serveSSEReplay[V any](
 			}
 
 			if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil { //nolint:wrapcheck // SSE write
-				return err
+				return err //nolint:wrapcheck
 			}
 
 			flusher.Flush()
@@ -368,8 +368,8 @@ func serveSSEReplay[V any](
 			return nil
 
 		case <-heartbeatCh:
-			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil { //nolint:wrapcheck // SSE write
-				return err
+			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil {
+				return err //nolint:wrapcheck
 			}
 
 			flusher.Flush()
@@ -387,7 +387,7 @@ func (s *Store) Inspect() string {
 		return "metaengine: no collections registered"
 	}
 
-	var sb strings.Builder
+	var sb strings.Builder //nolint:varnamelen
 
 	fmt.Fprintf(&sb, "metaengine: %d collection(s)\n", len(collections))
 
@@ -405,5 +405,5 @@ func (s *Store) Inspect() string {
 // InspectJSON returns a machine-readable JSON summary of all collections,
 // suitable for API endpoints, monitoring tools, and structured logging.
 func (s *Store) InspectJSON() ([]byte, error) {
-	return json.Marshal(s.Collections())
+	return json.Marshal(s.Collections()) //nolint:wrapcheck
 }

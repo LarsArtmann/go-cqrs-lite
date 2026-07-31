@@ -313,7 +313,7 @@ func (s *Store) InTransaction(ctx context.Context, fn func(context.Context) erro
 	// Find the first transactional engine and delegate to it.
 	for _, eng := range s.engines {
 		if tx, ok := eng.(Transactional); ok {
-			return tx.RunInTx(ctx, fn)
+			return tx.RunInTx(ctx, fn) //nolint:wrapcheck
 		}
 	}
 

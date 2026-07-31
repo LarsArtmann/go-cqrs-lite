@@ -268,10 +268,12 @@ func (w *Watcher[V]) WatchWithSeq(ctx context.Context, key any) <-chan SeqValue[
 func unwrapWatcherValue[V any](val any) (V, bool) {
 	if notif, ok := val.(watcherNotification); ok {
 		v, ok := notif.value.(V)
+
 		return v, ok
 	}
 
 	v, ok := val.(V)
+
 	return v, ok
 }
 
@@ -391,7 +393,7 @@ func MapUpdateTyped[V any](
 	}
 
 	if mu, ok := eng.(MapUpdater); ok {
-		return mu.MapUpdate(ctx, collection, key, func(prev any) any {
+		return mu.MapUpdate(ctx, collection, key, func(prev any) any { //nolint:wrapcheck
 			var prevVal V
 
 			found := prev != nil

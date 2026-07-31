@@ -13,24 +13,24 @@ func (s *Store) Export(ctx context.Context, w io.Writer) error {
 	collections := s.Collections()
 
 	if _, err := fmt.Fprint(w, "{"); err != nil {
-		return err
+		return err //nolint:wrapcheck
 	}
 
 	for i, col := range collections {
 		if i > 0 {
 			if _, err := fmt.Fprint(w, ","); err != nil {
-				return err
+				return err //nolint:wrapcheck
 			}
 		}
 
 		if _, err := fmt.Fprintf(w, "%q:[", col.Name); err != nil {
-			return err
+			return err //nolint:wrapcheck
 		}
 
 		eng, ok := s.collectionEngine(col.Name)
 		if !ok {
 			if _, err := fmt.Fprint(w, "]"); err != nil {
-				return err
+				return err //nolint:wrapcheck
 			}
 
 			continue
@@ -45,7 +45,7 @@ func (s *Store) Export(ctx context.Context, w io.Writer) error {
 			for j, row := range rows {
 				if j > 0 {
 					if _, err := fmt.Fprint(w, ","); err != nil {
-						return err
+						return err //nolint:wrapcheck
 					}
 				}
 
@@ -61,12 +61,12 @@ func (s *Store) Export(ctx context.Context, w io.Writer) error {
 		}
 
 		if _, err := fmt.Fprint(w, "]"); err != nil {
-			return err
+			return err //nolint:wrapcheck
 		}
 	}
 
 	if _, err := fmt.Fprint(w, "}"); err != nil {
-		return err
+		return err //nolint:wrapcheck
 	}
 
 	return nil
@@ -93,7 +93,7 @@ func (s *Store) Import(ctx context.Context, r io.Reader) error {
 			continue // unknown collection, skip
 		}
 
-		mb, ok := eng.(MapBackend)
+		mb, ok := eng.(MapBackend) //nolint:varnamelen
 		if !ok {
 			continue
 		}

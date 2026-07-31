@@ -60,7 +60,7 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 			return zero, false, err
 		}
 
-		rr, ok := result.(readResult)
+		rr, ok := result.(readResult) //nolint:varnamelen
 		if !ok {
 			return zero, false, fmt.Errorf("%w: %T", errCoalescerTypeMismatch, result)
 		}
@@ -74,7 +74,7 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 		return v, true, err
 	}
 
-	rr, err := r.getUncached(ctx, key)
+	rr, err := r.getUncached(ctx, key) //nolint:varnamelen
 	if err != nil {
 		return zero, false, err
 	}
@@ -268,7 +268,7 @@ func (r *TypedReader[V]) scanPushdown(
 
 func (r *TypedReader[V]) scanClosure(
 	ctx context.Context,
-	sb ScanBackend,
+	sb ScanBackend, //nolint:varnamelen
 	cfg scanConfig,
 	fetchLimit int,
 ) ([]V, error) {
@@ -384,7 +384,7 @@ func (r *TypedReader[V]) Exists(ctx context.Context, key any) (bool, error) {
 	}
 
 	if sb, ok := eng.(SetBackend); ok {
-		return sb.SetContains(ctx, r.collection, key)
+		return sb.SetContains(ctx, r.collection, key) //nolint:wrapcheck
 	}
 
 	if mb, ok := eng.(MapBackend); ok {
@@ -426,7 +426,7 @@ func (r *TypedReader[V]) Count(ctx context.Context, opts ...ScanOption) (int, er
 		if ar, ok := eng.(AggregateReader); ok {
 			n, err := ar.Aggregate(ctx, r.collection, AggregateCount, "", filters)
 			if err != nil {
-				return 0, err
+				return 0, err //nolint:wrapcheck
 			}
 
 			return int(n), nil
@@ -492,7 +492,7 @@ func (r *TypedReader[V]) aggregatePushdown(
 	eng, ok := r.store.collectionEngine(r.collection)
 	if ok {
 		if ar, ok := eng.(AggregateReader); ok {
-			return ar.Aggregate(ctx, r.collection, fn, column, filters)
+			return ar.Aggregate(ctx, r.collection, fn, column, filters) //nolint:wrapcheck
 		}
 	}
 

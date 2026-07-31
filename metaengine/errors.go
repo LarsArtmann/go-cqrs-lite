@@ -49,10 +49,10 @@ var (
 	errUnsupportedLogOps      = errors.New("engine does not support Log operations")
 
 	// Verify / consistency errors.
-	errNoEventLog            = errors.New("metaengine.Verify: no event log attached — call WithEventLog first")
-	errNoQueryDecls          = errors.New("metaengine.Verify: no query declarations stored")
+	errNoEventLog              = errors.New("metaengine.Verify: no event log attached — call WithEventLog first")
+	errNoQueryDecls            = errors.New("metaengine.Verify: no query declarations stored")
 	errCollectionCountMismatch = errors.New("metaengine.Verify: collection count mismatch")
-	errVerifyDrift           = errors.New("metaengine.Verify: collection row-count drift")
+	errVerifyDrift             = errors.New("metaengine.Verify: collection row-count drift")
 
 	// SwapEngine error.
 	errSwapEngineNotFound = errors.New("metaengine.SwapEngine: engine not found")

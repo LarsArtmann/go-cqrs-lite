@@ -53,7 +53,7 @@ type txStmtCache struct {
 }
 
 func (c *txStmtCache) exec(ctx context.Context, query string, args ...any) (sql.Result, error) {
-	return c.tx.ExecContext(ctx, query, args...)
+	return c.tx.ExecContext(ctx, query, args...) //nolint:wrapcheck
 }
 
 func (c *txStmtCache) queryRow(ctx context.Context, query string, args ...any) *sql.Row {
@@ -122,7 +122,7 @@ func (e *sqliteEngine) txExec() *txExecutor {
 // instead of calling runTxReadModifyWrite (which starts its own BeginTx).
 func readModifyWriteCached(
 	ctx context.Context,
-	xc dbExecer,
+	xc dbExecer, //nolint:varnamelen
 	getQuery, setQuery, col string,
 	key any,
 	update func(prev any) any,

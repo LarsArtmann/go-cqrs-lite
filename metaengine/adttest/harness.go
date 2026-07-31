@@ -65,7 +65,7 @@ func RunMatrix(t *testing.T, factories []Factory) {
 					t.Parallel()
 
 					eng := factory.Create(t)
-					defer eng.Close()
+					defer func() { _ = eng.Close() }()
 
 					if err := scenario.Setup(ctx, eng); err != nil {
 						t.Fatalf("%s/%s setup: %v", factory.Name, scenario.Name, err)
@@ -118,14 +118,14 @@ func Scenarios() []Scenario {
 			Name:     "Map",
 			Requires: "MapBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				mb := eng.(metaengine.MapBackend)
+				mb := eng.(metaengine.MapBackend) //nolint:varnamelen
 				if err := mb.MapSet(
 					ctx,
 					"users",
 					"u1",
 					map[string]any{"name": "Alice", "age": float64(30)},
 				); err != nil {
-					return err
+					return err //nolint:wrapcheck
 				}
 
 				return mb.MapSet(
@@ -139,7 +139,7 @@ func Scenarios() []Scenario {
 				mb := eng.(metaengine.MapBackend)
 				v, _, err := mb.MapGet(ctx, "users", "u1")
 
-				return v, err
+				return v, err //nolint:wrapcheck
 			},
 			Canonicalize: CanonicalizeAny,
 		},
@@ -152,7 +152,7 @@ func Scenarios() []Scenario {
 				sb := eng.(metaengine.SetBackend)
 				for _, k := range []string{"apple", "banana", "cherry"} {
 					if err := sb.SetAdd(ctx, "fruits", k); err != nil {
-						return err
+						return err //nolint:wrapcheck
 					}
 				}
 
@@ -161,10 +161,10 @@ func Scenarios() []Scenario {
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				sb := eng.(metaengine.SetBackend)
 				results := make(map[string]bool)
-				for _, k := range []string{"apple", "banana", "cherry", "date"} {
+				for _, k := range []string{"apple", "banana", "cherry", "date"} { //nolint:wsl_v5
 					contains, err := sb.SetContains(ctx, "fruits", k)
 					if err != nil {
-						return nil, err
+						return nil, err //nolint:wrapcheck
 					}
 
 					results[k] = contains
@@ -180,8 +180,8 @@ func Scenarios() []Scenario {
 			Name:     "Counter",
 			Requires: "CounterBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				cb := eng.(metaengine.CounterBackend)
-				deltas := []metaengine.Delta{
+				cb := eng.(metaengine.CounterBackend) //nolint:varnamelen
+				deltas := []metaengine.Delta{         //nolint:wsl_v5
 					{"alpha": 1, "beta": 5},
 					{"alpha": 2, "gamma": 3},
 					{"beta": -3, "gamma": 1},
@@ -189,7 +189,7 @@ func Scenarios() []Scenario {
 				}
 				for _, d := range deltas {
 					if err := cb.CounterIncrement(ctx, "counters", d); err != nil {
-						return err
+						return err //nolint:wrapcheck
 					}
 				}
 
@@ -208,15 +208,15 @@ func Scenarios() []Scenario {
 			Name:     "Graph",
 			Requires: "GraphBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				gb := eng.(metaengine.GraphBackend)
-				edges := []metaengine.Edge{
+				gb := eng.(metaengine.GraphBackend) //nolint:varnamelen
+				edges := []metaengine.Edge{         //nolint:wsl_v5
 					{From: "A", To: "B"},
 					{From: "A", To: "C"},
 					{From: "B", To: "D"},
 				}
 				for _, e := range edges {
 					if err := gb.GraphAddEdge(ctx, "graph", e); err != nil {
-						return err
+						return err //nolint:wrapcheck
 					}
 				}
 
@@ -235,8 +235,8 @@ func Scenarios() []Scenario {
 			Name:     "SortedMap",
 			Requires: "ScanBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				mb := eng.(metaengine.MapBackend)
-				items := []struct {
+				mb := eng.(metaengine.MapBackend) //nolint:varnamelen
+				items := []struct {               //nolint:wsl_v5
 					key   string
 					value map[string]any
 				}{
@@ -246,7 +246,7 @@ func Scenarios() []Scenario {
 				}
 				for _, item := range items {
 					if err := mb.MapSet(ctx, "sorted", item.key, item.value); err != nil {
-						return err
+						return err //nolint:wrapcheck
 					}
 				}
 
@@ -269,11 +269,11 @@ func Scenarios() []Scenario {
 						am, _ := a.(map[string]any)
 						bm, _ := b.(map[string]any)
 						ap, _ := am["priority"].(float64)
-						bp, _ := bm["priority"].(float64)
+						bp, _ := bm["priority"].(float64) //nolint:wsl_v5
 						if ap < bp {
 							return -1
 						}
-						if ap > bp {
+						if ap > bp { //nolint:wsl_v5
 							return 1
 						}
 
@@ -293,7 +293,7 @@ func Scenarios() []Scenario {
 				lb := eng.(metaengine.LogBackend)
 				for _, v := range []string{"e1", "e2", "e3", "e4", "e5"} {
 					if err := lb.LogAppend(ctx, "log", v); err != nil {
-						return err
+						return err //nolint:wrapcheck
 					}
 				}
 
@@ -312,8 +312,8 @@ func Scenarios() []Scenario {
 			Name:     "Multimap",
 			Requires: "MultimapBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				mb := eng.(metaengine.MultimapBackend)
-				entries := []struct {
+				mb := eng.(metaengine.MultimapBackend) //nolint:varnamelen
+				entries := []struct {                  //nolint:wsl_v5
 					key   string
 					value string
 				}{
@@ -324,7 +324,7 @@ func Scenarios() []Scenario {
 				}
 				for _, e := range entries {
 					if err := mb.MultiAdd(ctx, "tasks_by_user", e.key, e.value); err != nil {
-						return err
+						return err //nolint:wrapcheck
 					}
 				}
 

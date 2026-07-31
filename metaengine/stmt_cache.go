@@ -74,7 +74,7 @@ func (c *stmtCache) query(ctx context.Context, query string, args ...any) (*sql.
 
 // close closes all cached statements. Called by sqliteEngine.Close.
 func (c *stmtCache) close() {
-	c.m.Range(func(key, val any) bool {
+	c.m.Range(func(_, val any) bool {
 		_ = val.(*sql.Stmt).Close()
 
 		return true

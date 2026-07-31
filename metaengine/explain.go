@@ -22,9 +22,9 @@ type ExplainOptions struct {
 //	    metaengine.WithFilter("status", metaengine.FilterEq, "open"),
 //	)
 func (r *TypedReader[V]) Explain(
-	ctx context.Context,
+	_ context.Context,
 	opts ...ScanOption,
-) (query string, args []any) {
+) (string, []any) {
 	cfg := scanConfig{limit: 100}
 
 	for _, opt := range opts {

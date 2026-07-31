@@ -496,7 +496,7 @@ func (e *sqliteEngine) buildStreamQuery(
 	if plan, ok := e.plans[col]; ok {
 		fmt.Fprintf(&b, "SELECT value FROM %s", quoteIdent(plan.Table))
 
-		args := []any{}
+		args := make([]any, 0, len(filters))
 
 		for i, f := range filters {
 			if i == 0 {
