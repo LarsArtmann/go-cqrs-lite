@@ -21,7 +21,9 @@ import (
 )
 
 func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
-	return []finding.Detector{
+	selfLint := ctx.IsLibrarySelfLint()
+
+	detectors := []finding.Detector{
 		// Correctness
 		correctness.NewC001Detector(ctx),
 		correctness.NewC002Detector(ctx),
@@ -141,7 +143,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		consistency.NewD013Detector(ctx),
 		consistency.NewD014Detector(ctx),
 		consistency.NewD015Detector(ctx),
-		// Architecture
+		// Architecture (E001-E007 always apply — structural issues are real for any code)
 		architecture.NewE001Detector(ctx),
 		architecture.NewE002Detector(ctx),
 		architecture.NewE003Detector(ctx),
@@ -149,16 +151,6 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		architecture.NewE005Detector(ctx),
 		architecture.NewE006Detector(ctx),
 		architecture.NewE007Detector(ctx),
-		architecture.NewE008Detector(ctx),
-		architecture.NewE009Detector(ctx),
-		architecture.NewE010Detector(ctx),
-		architecture.NewE011Detector(ctx),
-		architecture.NewE012Detector(ctx),
-		architecture.NewE013Detector(ctx),
-		architecture.NewE014Detector(ctx),
-		architecture.NewE015Detector(ctx),
-		architecture.NewE016Detector(ctx),
-		architecture.NewE017Detector(ctx),
 		// Security
 		security.NewS001Detector(ctx),
 		security.NewS002Detector(ctx),
@@ -186,29 +178,52 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		testrules.NewT006Detector(ctx),
 		testrules.NewT007Detector(ctx),
 		testrules.NewT008Detector(ctx),
-		// Adoption (Feature Adoption Coaching)
-		adoption.NewF001Detector(ctx),
-		adoption.NewF002Detector(ctx),
-		adoption.NewF003Detector(ctx),
-		adoption.NewF004Detector(ctx),
-		adoption.NewF005Detector(ctx),
-		adoption.NewF006Detector(ctx),
-		adoption.NewF007Detector(ctx),
-		adoption.NewF008Detector(ctx),
-		adoption.NewF009Detector(ctx),
-		adoption.NewF010Detector(ctx),
-		adoption.NewF011Detector(ctx),
-		adoption.NewF012Detector(ctx),
-		adoption.NewF013Detector(ctx),
-		adoption.NewF014Detector(ctx),
-		adoption.NewF015Detector(ctx),
-		adoption.NewF016Detector(ctx),
-		adoption.NewF017Detector(ctx),
-		adoption.NewF018Detector(ctx),
-		adoption.NewF019Detector(ctx),
-		adoption.NewF020Detector(ctx),
-		adoption.NewF021Detector(ctx),
+		// Architecture — graceful shutdown + health check (apply to library too)
+		architecture.NewE016Detector(ctx),
+		architecture.NewE017Detector(ctx),
 	}
+
+	// Consumer-coaching rules — skip when linting the library itself.
+	// The library cannot coach itself to "adopt" its own features, and
+	// consumer-architecture patterns (preset bypass, read-your-writes,
+	// signing defaults) are meaningless in library source.
+	if !selfLint {
+		detectors = append(detectors,
+			// Architecture (consumer-coaching)
+			architecture.NewE008Detector(ctx),
+			architecture.NewE009Detector(ctx),
+			architecture.NewE010Detector(ctx),
+			architecture.NewE011Detector(ctx),
+			architecture.NewE012Detector(ctx),
+			architecture.NewE013Detector(ctx),
+			architecture.NewE014Detector(ctx),
+			architecture.NewE015Detector(ctx),
+			// Adoption (Feature Adoption Coaching)
+			adoption.NewF001Detector(ctx),
+			adoption.NewF002Detector(ctx),
+			adoption.NewF003Detector(ctx),
+			adoption.NewF004Detector(ctx),
+			adoption.NewF005Detector(ctx),
+			adoption.NewF006Detector(ctx),
+			adoption.NewF007Detector(ctx),
+			adoption.NewF008Detector(ctx),
+			adoption.NewF009Detector(ctx),
+			adoption.NewF010Detector(ctx),
+			adoption.NewF011Detector(ctx),
+			adoption.NewF012Detector(ctx),
+			adoption.NewF013Detector(ctx),
+			adoption.NewF014Detector(ctx),
+			adoption.NewF015Detector(ctx),
+			adoption.NewF016Detector(ctx),
+			adoption.NewF017Detector(ctx),
+			adoption.NewF018Detector(ctx),
+			adoption.NewF019Detector(ctx),
+			adoption.NewF020Detector(ctx),
+			adoption.NewF021Detector(ctx),
+		)
+	}
+
+	return detectors
 }
 
 // RegisterCritical returns only Critical/High severity correctness rules (for --fast mode).
