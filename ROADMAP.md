@@ -44,18 +44,28 @@ structs. The Pareto execution plan landed the production maturity chain:
   `projection.Projection` for `projectionhost.Host` (ADR-0062)
 - ✅ **Pebble engine** — `metaengine/pebbleengine` with LSM point reads
   (~7x faster than SQLite on MapGet). Separate module (ADR-0074)
+- ✅ **Pebble LayoutPlanner** — secondary index with O(matches) prefix scan
+  (108x speedup over full scan). Range filters via index bounds
+- ✅ **Raw value readers** — `RawValueReader`/`RawScanReader` skip JSON decode
+  for filter/sort/cursor paths (single-pass decode)
 - ✅ **SQL pushdown** — `FilterOnField`/`SortOnField` push WHERE/ORDER BY/LIMIT
   into SQLite via `json_extract()` (ADR-0072)
 - ✅ **Layout planning** — `LayoutPlan` generates indexed-column DDL from
   declared query fields — 10x speedup on filter+sort (ADR-0073)
 - ✅ **Streaming reads** — `StreamScan(ctx) iter.Seq2` for OOM-safe iteration
+- ✅ **SSE event delivery** — `ServeSSE` with Last-Event-ID reconnection,
+  backpressure, dedup ring, byte-budgeted replay
+- ✅ **PrefetchCache** — cursor-encoded auto-population, thread-safe
+- ✅ **Watcher** — reactive notifications with per-key filtering
+- ✅ **Transaction API** — fully threaded `*sql.Tx` through engine ops
+- ✅ **ADT test harness** — `adttest.RunMatrix` cross-engine parity tests
+  for all 7 ADTs (Map, Set, Counter, Multimap, Log, Graph, Scan)
 - ✅ **Taskmanager integration** — Counter ADT query with `/api/stats` endpoint
 
-**Remaining:** wire layout planning into `Plan()` (auto-generate), JSON tax
-reduction (single-pass decode), generated typed read API (`plan.Users.Get(ctx, id)`),
-unified 7-ADT × 3-engine test matrix. See [TODO_LIST.md](TODO_LIST.md).
+**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Pebble range filter
+numeric bug, SSE test hang, Pebble sort index, triple-parity ADT matrix.
 
-**Long-term engine work (ROADMAP — each is a multi-day new-module effort):**
+**Remaining (long-term, ROADMAP):**
 
 - **Postgres engine** — `metaengine/pgengine/` with native JSONB operators (`->>`, `@>`),
   GIN indexes. ~2-4 days. Depends on JSONB operator research + GIN index design.
@@ -81,7 +91,22 @@ first real run across memory/pebble/sqlite (2026-07-24). DuckDB backend added
 
 ### 3. cqrs-lint → Trustworthy
 
+The linter grew from 65 to 175 rules across 10 categories. Quality has been
+hardened through multiple brutal review passes.
 
+- ✅ **175 rules shipped** across correctness, API, boilerplate, performance,
+  version, consistency, architecture, security, testing, adoption
+- ✅ **Feature profile system** — auto-detects consumer module usage and adapts
+  context-dependent rules
+- ✅ **Self-lint mode** — `IsLibrarySelfLint()` auto-detects and skips 29
+  consumer-coaching rules when linting the go-cqrs-lite source itself
+- ✅ **Quality hardening done** — E010/E011/E013/E014 rewritten with type-aware
+  matching; import-alias resolution built; C030/S006 reviewed; suppression
+  parser fixed
+- **50-item improvement backlog** — ~35 items remain open in the
+  [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md)
+- **Consumer validation needed** — run against real consumer projects to
+  establish trustworthy false-positive rates. See [TODO_LIST.md](TODO_LIST.md).
 
 ### 4. Module Extraction
 

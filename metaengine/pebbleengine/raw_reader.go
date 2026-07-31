@@ -63,6 +63,15 @@ func (e *pebbleEngine) ScanRawValues(
 	e.layoutMu.Unlock()
 
 	if hasLayout {
+		// Sort index path: ordered iteration via the sort-prefix index when the
+		// sort column matches a declared sort field. Avoids the Go-level sort and
+		// enables early termination at limit+1 matching rows.
+		if sortSpec != nil && plan.hasSortField(sortSpec.Column) {
+			return e.scanWithSortIndex(ctx, col, filters, sortSpec, cursor, limit)
+		}
+
+		// Filter index path: prefix-range lookup when a filter matches a declared
+		// filter field. Results are then Go-sorted if a sortSpec is present.
 		if indexed, err := e.scanWithIndex(ctx, col, filters, plan); err == nil && indexed != nil {
 			// Apply sort + limit on indexed results.
 			if sortSpec != nil {

@@ -2,7 +2,7 @@
 
 > Honest, verified inventory of what go-cqrs-lite actually does — not what it plans to do.
 
-**Last audited:** 2026-07-30 (cqrs-lint 159-rule expansion, metaengine pushdown/layout/Pebble, DuckDB backend, otter/failsafe-go adoption) · **Module count:** 60 `go.mod` files (verify: `find . -name go.mod -not -path './vendor/*' | wc -l`) · **Go version:** 1.26.4
+
 
 ## Status Legend
 
@@ -242,13 +242,27 @@ developer never declares "I need a Map" or "I need a Counter."
 | Pebble engine              | `metaengine/pebbleengine` — LSM point reads (~7x faster than SQLite); separate module (ADR-0074)                 | 🧪     |
 | `OnTyped(eventType, ...)`  | Bind a fold to an explicit CQRS event-type string (decouples from the Go struct name)                            | 🧪     |
 | Read/write calibration     | `EngineProfile.NsPerRead`/`NsPerWrite` — split read vs write cost (backward-compat fallback to NsPerOp)          | 🧪     |
+| Pebble LayoutPlanner       | Secondary index with O(matches) prefix scan (108x speedup); range filters via index bounds                       | 🧪     |
+| Raw value readers          | `RawValueReader`/`RawScanReader` skip JSON decode for filter/sort/cursor paths (single-pass decode)             | 🧪     |
+| SSE event delivery         | `ServeSSE` with Last-Event-ID reconnection, backpressure, `dedup.Ring`, byte-budgeted replay                   | 🧪     |
+| PrefetchCache              | Cursor-encoded auto-population cache for paginated reads; thread-safe (`sync.RWMutex`)                         | 🧪     |
+| Watcher                    | Reactive change notifications with per-key filtering                                                             | 🧪     |
+| Transaction API            | Fully threaded `*sql.Tx` through engine operations (atomic multi-collection updates)                            | 🧪     |
+| ADT test harness           | `adttest.RunMatrix` — cross-engine parity tests for all 7 ADTs (Map, Set, Counter, Multimap, Log, Graph, Scan)   | 🧪     |
+| Aggregate pushdown         | `AggregateReader` interface — SQL COUNT/SUM/MIN/MAX/AVG pushdown via the engine                                  | 🧪     |
+| Error sentinels            | Exported `ErrNotFound`, `ErrAmbiguousKey`, `ErrUnsupportedADT`, `ErrLayoutConflict` wired into execution paths   | 🧪     |
 
-**Coverage:** 86.1% (verified `go test -cover ./...` 2026-07-27; 174 BDD specs + 150 cross-engine meta specs). SQLite engine
+**Coverage:** 86.1% (verified `go test -cover ./...` 2026-07-27). 174 BDD specs + 150 cross-engine
+meta specs + 12 ADT harness self-tests. The metaengine went through 6 hardening
+sessions (2026-07-30 to 2026-07-31): transaction API fix, SQL injection fix,
+hooks-on-error, ReadCoalescer wiring, Watcher with per-key filtering,
+PrefetchCache with cursor-encoded auto-population, SSE adapter with
+Last-Event-ID reconnection, ContractSuite expanded to all 7 ADTs, Pebble
+LayoutPlanner (108x speedup), RawValueReader/RawScanReader (single-pass decode).
+API surface: 2907 exports.
 
-- projection adapter added via the Pareto execution plan. Cost model calibrated
-  with real benchmarks. `metaengine/v4.1.1` tagged (fixes panicking MapUpdate from
-  v4.1.0). Pushdown ADR (0063) designs Phase 2 declarative FilterSpec/SortSpec.
-  See [TODO_LIST.md](TODO_LIST.md) for the remaining production path.
+Remaining: Pebble range filter numeric bug, Pebble sort index, SSE test hang,
+triple-parity ADT matrix. See [TODO_LIST.md](TODO_LIST.md).
 
 ---
 
@@ -1011,7 +1025,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 | Feature                        | Detail                                                                                                                                                           | Status |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 159 rules across 10 categories | Correctness (31), API misuse (28), boilerplate (28), performance (6), version (6), consistency (12), architecture (15), security (8), testing (8), adoption (17) | ✅     |
+
 | Output formats                 | Text, JSON, SARIF (GitHub Code Scanning), Markdown                                                                                                               | ✅     |
 | Health score                   | 0-100 score with severity-weighted breakdown                                                                                                                     | ✅     |
 | Auto-fix                       | `--fix` / `--dry-run` with CQRSFixProvider (BeforeCode/AfterCode matching)                                                                                       | ✅     |
@@ -1133,7 +1147,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `metaengine/projectionadapter` | `…/metaengine/projectionadapter/v4` | 🧪 Experimental (projection.Projection adapter for projectionhost)        |
 | `benchkit`                     | `…/benchkit/v4`                     | 🧪 Experimental (functional, 88 tests, `--repeat N` available)            |
 | `cmd/cqrs-bench`               | `…/cmd/cqrs-bench`                  | 🔧 Tool                                                                   |
-| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (159-rule domain-aware linter)                                    |
+| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (175-rule domain-aware linter)                                    |
 
 ---
 

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
+	"slices"
 	"sort"
 
 	"github.com/cockroachdb/pebble"
@@ -16,11 +17,30 @@ import (
 var _ metaengine.LayoutPlanner = (*pebbleEngine)(nil)
 
 // layoutPlan stores the declared filter/sort fields for a collection.
-// When present, MapSet writes secondary index entries so scans can use
-// prefix-range lookups instead of full-collection scans + Go filtering.
+// When present, MapSet writes secondary index entries for BOTH filter and
+// sort fields. Filter index entries enable prefix-range lookups (equality,
+// range). Sort index entries enable ordered iteration (ascending/descending)
+// without a Go-level sort, with cursor-based pagination and early termination.
 type layoutPlan struct {
-	filterFields []string // fields indexed for prefix-scan filtering
-	sortFields   []string // fields indexed for prefix-scan sorting
+	filterFields []string // fields indexed for prefix-scan filtering ('i' prefix)
+	sortFields   []string // fields indexed for ordered iteration ('o' prefix)
+}
+
+// hasSortField returns true if field is declared as a sort field in this plan.
+func (p layoutPlan) hasSortField(field string) bool {
+	return slices.Contains(p.sortFields, field)
+}
+
+// sortIndexFieldPrefix builds the sort index key prefix for a field (all values).
+// Format: "o{sep}{col}{sep}{field}{sep}".
+func sortIndexFieldPrefix(col, field string) []byte {
+	return []byte("o" + sep + col + sep + field + sep)
+}
+
+// sortIndexKey builds the full sort index key for a field value + primary key.
+// Format: "o{sep}{col}{sep}{field}{sep}{encodedValue}{sep}{primaryKey}".
+func sortIndexKey(col, field, encodedValue, primaryKey string) []byte {
+	return []byte("o" + sep + col + sep + field + sep + encodedValue + sep + primaryKey)
 }
 
 // layoutKeyPrefix builds the secondary index key prefix for a field value.
@@ -137,6 +157,20 @@ func (e *pebbleEngine) writeIndexEntries(
 		}
 	}
 
+	for _, field := range plan.sortFields {
+		fieldVal, ok := fields[field]
+		if !ok {
+			continue
+		}
+
+		valStr := encodeIndexValue(fieldVal)
+		idxKey := sortIndexKey(col, field, valStr, key)
+
+		if err := batch.Set(idxKey, nil, nil); err != nil {
+			return fmt.Errorf("pebbleengine: write sort index entry: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -165,6 +199,17 @@ func (e *pebbleEngine) deleteIndexEntries(
 
 		valStr := encodeIndexValue(fieldVal)
 		idxKey := append(layoutKeyPrefix(col, field, valStr), []byte(key)...)
+		_ = batch.Delete(idxKey, nil)
+	}
+
+	for _, field := range plan.sortFields {
+		fieldVal, ok := fields[field]
+		if !ok {
+			continue
+		}
+
+		valStr := encodeIndexValue(fieldVal)
+		idxKey := sortIndexKey(col, field, valStr, key)
 		_ = batch.Delete(idxKey, nil)
 	}
 }
@@ -264,6 +309,107 @@ func (e *pebbleEngine) scanWithIndex(
 	}
 
 	return results, nil
+}
+
+// scanWithSortIndex uses the sort index for ordered iteration. Keys in the
+// sort index are laid out as o{sep}{col}{sep}{field}{sep}{encodedValue}{sep}{pk},
+// so lexicographic forward iteration yields ascending order and backward
+// iteration yields descending order — no Go-level sort needed. Filters are
+// applied in Go; early termination stops once limit+1 matching rows are found.
+// Cursor pagination uses the encoded cursor value to set an exclusive bound.
+func (e *pebbleEngine) scanWithSortIndex(
+	_ context.Context,
+	col string,
+	filters []metaengine.FilterSpec,
+	sortSpec *metaengine.SortSpec,
+	cursor any,
+	limit int,
+) ([][]byte, error) {
+	prefix := sortIndexFieldPrefix(col, sortSpec.Column)
+	lowerBound := prefix
+	upperBound := nextKey(prefix)
+
+	if cursor != nil {
+		cursorGroup := append(append(prefix, encodeIndexValue(cursor)...), sep...)
+
+		if sortSpec.Desc {
+			upperBound = cursorGroup
+		} else {
+			lowerBound = nextKey(cursorGroup)
+		}
+	}
+
+	iter, err := e.db.NewIter(&pebble.IterOptions{
+		LowerBound: lowerBound,
+		UpperBound: upperBound,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() { _ = iter.Close() }()
+
+	targetCount := 0
+	if limit > 0 {
+		targetCount = limit + 1
+	}
+
+	var results [][]byte
+
+	if sortSpec.Desc {
+		for iter.Last(); iter.Valid(); iter.Prev() {
+			if e.collectSortIndexEntry(iter, col, filters, &results) &&
+				targetCount > 0 && len(results) >= targetCount {
+				break
+			}
+		}
+	} else {
+		for iter.First(); iter.Valid(); iter.Next() {
+			if e.collectSortIndexEntry(iter, col, filters, &results) &&
+				targetCount > 0 && len(results) >= targetCount {
+				break
+			}
+		}
+	}
+
+	if err := iter.Error(); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+// collectSortIndexEntry reads the value for the current iterator position,
+// applies filters in Go, and appends to results when the row passes.
+// Returns true if the row was appended.
+func (e *pebbleEngine) collectSortIndexEntry(
+	iter *pebble.Iterator,
+	col string,
+	filters []metaengine.FilterSpec,
+	results *[][]byte,
+) bool {
+	fullKey := append([]byte(nil), iter.Key()...)
+	primaryKey := extractPrimaryKeyFromIndex(fullKey)
+
+	val, closer, err := e.db.Get(mapKey(col, primaryKey))
+	if err != nil {
+		return false
+	}
+
+	valCopy := append([]byte(nil), val...)
+	_ = closer.Close()
+
+	if len(filters) > 0 {
+		decoded := decodeJSON(valCopy)
+
+		if !metaengine.PassesFilterSpecs(decoded, filters) {
+			return false
+		}
+	}
+
+	*results = append(*results, valCopy)
+
+	return true
 }
 
 // extractPrimaryKeyFromIndex extracts the primary key portion from any index

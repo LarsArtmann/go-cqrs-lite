@@ -163,7 +163,49 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 		fp.Snapshot = SnapshotOff
 	}
 
+	// Resolve domain from event/command type names.
+	fp.Domain = detectDomain(ctx)
+
 	return fp
+}
+
+// financialKeywords are event/command type name fragments that indicate a
+// financial domain. When any of these appear, the domain is classified as
+// financial, which escalates security and money-handling rule severities.
+var financialKeywords = []string{
+	"amount", "balance", "payment", "invoice", "salary",
+	"transaction", "transfer", "deposit", "withdraw", "refund",
+	"price", "cost", "fee", "tax", "currency",
+	"bank", "wallet", "ledger", "billing", "payroll",
+}
+
+// detectDomain scans event and command type names for domain-specific
+// keywords. Returns DomainFinancial when financial keywords are found,
+// DomainUnknown otherwise.
+func detectDomain(ctx *AnalysisContext) DomainKind {
+	check := func(name string) bool {
+		lower := strings.ToLower(name)
+		for _, kw := range financialKeywords {
+			if strings.Contains(lower, kw) {
+				return true
+			}
+		}
+		return false
+	}
+
+	for eventType := range ctx.Registry.EventTypesEmitted {
+		if check(eventType) {
+			return DomainFinancial
+		}
+	}
+
+	for cmdType := range ctx.Registry.CommandTypesRegistered {
+		if check(cmdType) {
+			return DomainFinancial
+		}
+	}
+
+	return DomainUnknown
 }
 
 // detectSoftDelete returns true if any emitted event type name contains words

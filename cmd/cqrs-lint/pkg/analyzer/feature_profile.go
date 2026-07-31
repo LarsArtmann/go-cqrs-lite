@@ -26,6 +26,9 @@ type FeatureProfile struct {
 	Tracing TracingKind
 	// Snapshot indicates whether a snapshot store or strategy is configured.
 	Snapshot SnapshotKind
+	// Domain classifies the business domain, enabling severity calibration.
+	// Financial domains escalate security and money-handling rules to error.
+	Domain DomainKind
 }
 
 // StoreKind enumerates the persistence backends go-cqrs-lite supports.
@@ -50,6 +53,19 @@ const (
 	CommandFlowReadOnly CommandFlowKind = "read-only" // no dispatcher at all
 	CommandFlowSync     CommandFlowKind = "sync"      // dispatcher present, batch/sync writes (no Dispatch)
 	CommandFlowCommands CommandFlowKind = "commands"  // Dispatch() calls present
+)
+
+// DomainKind classifies the business domain of a consumer project.
+// Financial domains get stricter severity on security and money rules.
+// The domain is auto-detected from event/command type names but can be
+// overridden via config.
+type DomainKind string
+
+const (
+	DomainUnknown   DomainKind = "unknown"
+	DomainFinancial DomainKind = "financial"
+	DomainInternal  DomainKind = "internal"
+	DomainSecurity  DomainKind = "security"
 )
 
 // TracingKind indicates whether OTel tracing middleware is wired.
@@ -80,6 +96,7 @@ func (fp FeatureProfile) String() string {
 	_, _ = fmt.Fprintf(&b, "soft-delete:   %t\n", fp.HasSoftDelete)
 	_, _ = fmt.Fprintf(&b, "tracing:       %s\n", fp.Tracing)
 	_, _ = fmt.Fprintf(&b, "snapshot:      %s\n", fp.Snapshot)
+	_, _ = fmt.Fprintf(&b, "domain:        %s\n", fp.Domain)
 	return b.String()
 }
 
@@ -93,6 +110,7 @@ type ConfigFeatures struct {
 	SoftDelete  *bool            `json:"soft-delete,omitempty"` //nolint:tagliatelle // CLI config key
 	Tracing     *TracingKind     `json:"tracing,omitempty"`
 	Snapshot    *SnapshotKind    `json:"snapshot,omitempty"`
+	Domain      *DomainKind      `json:"domain,omitempty"`
 }
 
 // ConfigPreset is a named set of feature-flag defaults. Presets are sugar:
@@ -191,6 +209,9 @@ func ResolveFeatureProfile(
 	if merged.Snapshot != nil {
 		result.Snapshot = *merged.Snapshot
 	}
+	if merged.Domain != nil {
+		result.Domain = *merged.Domain
+	}
 
 	return result
 }
@@ -214,6 +235,9 @@ func mergeConfigFeatures(dst *ConfigFeatures, src ConfigFeatures) {
 	}
 	if src.Snapshot != nil {
 		dst.Snapshot = src.Snapshot
+	}
+	if src.Domain != nil {
+		dst.Domain = src.Domain
 	}
 }
 
@@ -240,6 +264,9 @@ func (fp FeatureProfile) ToConfigFeatures() ConfigFeatures {
 	}
 	if fp.Snapshot != "" && fp.Snapshot != SnapshotUnknown {
 		cf.Snapshot = &fp.Snapshot
+	}
+	if fp.Domain != "" && fp.Domain != DomainUnknown {
+		cf.Domain = &fp.Domain
 	}
 	return cf
 }

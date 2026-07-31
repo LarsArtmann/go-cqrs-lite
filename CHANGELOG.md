@@ -8,6 +8,70 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### cqrs-lint: quality hardening (171 → 175 rules)
+
+- **4 new architecture rules** (E008–E011) — stack preset bypass detection,
+  missing HTTP integration, capture without domain validation, excessive
+  adapter layers. Brings total to **175 rules across 10 categories**.
+- **Type-aware rule rewrites** — E010 rewritten with `projectCallsMethodOnType`
+  (go/types receiver matching), E014 rewritten with type-aware projection-host
+  matching. E013 already used type-aware composite literal matching.
+- **Library self-lint mode** — `IsLibrarySelfLint()` auto-detects when linting
+  the go-cqrs-lite source itself and skips 29 consumer-coaching rules (8
+  architecture + 21 adoption). Eliminates need for 181+ manual inline suppressions.
+- **Import-alias resolution** — `QualifierToImportPath` + `ImportQualifierMap`
+  helpers in `lintutil.go`. `projectCallsImportPath` wrapper added to
+  architecture/helpers.go. E008 migrated as proof of concept.
+- **Type-aware F011/F013** — F011 `countSQLExec` now uses type info to verify
+  receiver is `*sql.DB`/`*sql.Tx`/`*sql.Conn`. F013 now detects chi/gin/echo/
+  fiber/gorilla/httprouter web framework imports.
+- **22MB committed binary removed** — `git rm --cached` + `.gitignore` entry.
+- **Suppression tests** for C031-C034, P011-P012, D014-D015, A032, E016-E017, S010.
+- **Flaky benchkit soak tests fixed** — `soakTestScale` with `raceEnabled`
+  build-tag multiplier for `-race`-inflated thresholds.
+
+#### Metaengine: production hardening (6 sessions, 2026-07-30 to 2026-07-31)
+
+- **Transaction API** — fully threaded `*sql.Tx` through engine operations for
+  atomic multi-collection updates. Prior implementation was broken with a
+  weakened test masking the failure.
+- **SQL injection fix** — `quoteIdent` wraps identifiers; `MigrateLayout` no
+  longer accepts raw user input in SQL.
+- **Hooks fire on errors** — `OnApply` hook now receives the error parameter;
+  removed success-only nil guard.
+- **SSE event delivery** — `ServeSSE` with Last-Event-ID reconnection,
+  backpressure via `BlockPublishUntilSubscriberAck`, `dedup.Ring` for
+  replay→live overlap dedup, byte-budgeted replay, subscribe-before-replay
+  ordering. Full rewrite of replay path.
+- **PrefetchCache** — cursor-encoded auto-population cache for paginated reads.
+  Thread-safe via `sync.RWMutex`. `prefetchCursorKey` uses `Cursor.Encode()`.
+- **Watcher** — reactive change notifications with per-key filtering.
+- **ADT test harness** — `metaengine/adttest` package with `RunMatrix` for
+  cross-engine parity testing across all 7 ADTs (Map, Set, Counter, Multimap,
+  Log, Graph, Scan). Reflect-based `backendInterfaces` for automatic
+  capability detection. 12 harness self-tests.
+- **Pebble LayoutPlanner** — secondary index with O(matches) prefix scan
+  (108x speedup over full scan, 6ms→56μs). MapDelete cleans up index entries
+  atomically. MapUpdate reindexes. Range filters (FilterGt/Ge/Lt/Le) use
+  index bounds. Sort index stored but not yet used for ordering.
+- **Raw value readers** — `RawValueReader`/`RawScanReader` interfaces skip
+  JSON decode for filter/sort/cursor paths. `GetRawValue` returns raw bytes.
+  Triple-decode bug fixed (filter + sort + cursor each decoded separately →
+  now single-pass decode). Shared `sortAndPaginate` helper extracted from
+  duplicated code in engine.go + raw_reader.go. `kvPair` struct unifies the
+  key+value+raw representation.
+- **Aggregate pushdown** — `AggregateReader` interface. SQL COUNT/SUM/MIN/MAX/
+  AVG pushdown via the engine. `TypedReader.Count` prefers pushdown, falls
+  back to `Scan + len()`.
+- **Error sentinels wired** — `ErrNotFound` returned from `ExecuteTyped` for
+  nil results. `ErrLayoutConflict` from conflicting column sets in `ApplyLayout`.
+  `IsPoisoned` wired into all read paths.
+- **ContractSuite expanded** — all 7 ADTs tested. Gocyclo reduced from 41 to ~15.
+- **Data race fix** — `sync.Mutex` protecting `results` map in `RunMatrix`
+  parallel subtests.
+- **Exported helpers** — `PassesFilterSpecs`, `ItemFieldByName`, `CompareValues`,
+  `EvalFilterOp` with full godoc.
+
 #### cqrs-lint: Pareto plan execution (159 → 171 rules, +12 new + 3 extensions)
 
 - **12 new detector rules** from the Pareto improvement backlog:
