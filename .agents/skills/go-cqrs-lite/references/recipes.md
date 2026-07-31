@@ -643,3 +643,47 @@ page2, cursor2, _ := reader.ScanPage(ctx,
 Both `WithCursor(raw)` and `WithCursorString(encoded)` produce identical
 PrefetchCache keys because the cache normalizes through `Cursor.Encode()`.
 The `PrefetchCache` is thread-safe (RWMutex).
+
+## Metaengine + Stack Bundle Integration
+
+Wire a cost-based query planner into the Bundle lifecycle with one option.
+
+```go
+// 1. Declare your query (Counter ADT for O(1) status counts)
+type StatusCounts struct{}
+
+store, _ := metaengine.Plan(
+    []metaengine.Engine{metaengine.NewMemoryEngine()},
+    metaengine.Query[StatusCounts, map[string]int64](
+        "task_counts",
+        metaengine.On(TaskCreated{}, func(e TaskCreated) metaengine.Delta {
+            return metaengine.Delta{e.Status: +1}
+        }),
+        metaengine.On(TaskCompleted{}, func(e TaskCompleted) metaengine.Delta {
+            return metaengine.Delta{"active": -1, "completed": +1}
+        }),
+    ),
+)
+
+// 2. Register with the Bundle (lifecycle managed automatically)
+bundle, _ := sqlite.New(dsn,
+    sqlite.WithStack(stack.WithMetaEngine(store)),
+)
+defer bundle.Close() // closes the metaengine Store too
+
+// 3. Query at runtime
+counts, _ := metaengine.ExecuteTyped[StatusCounts, map[string]int64](
+    ctx, bundle.MetaEngine(), StatusCounts{},
+)
+
+// 4. For projection lifecycle (checkpoint, retry, DLQ), wrap in adapter
+adapter := projectionadapter.New("task_counts", store, payloadDecoder)
+host.Register(adapter)
+```
+
+Key points:
+- `WithMetaEngine(store)` registers the Store for `Bundle.Close()` — no manual cleanup
+- `bundle.MetaEngine()` returns the Store for runtime queries
+- benchkit auto-discovers via `MetaEngine() != nil` (unless `Config.SkipMetaEngine`)
+- The consumer calls `metaengine.Plan()` themselves (typed generics can't flow through `any`)
+- `sqlite.WithStack()` is the passthrough for additional `stack.Option`s on any SQL preset

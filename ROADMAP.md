@@ -181,3 +181,41 @@ All four consumer experience gaps shipped via the Pareto execution plan:
   files). The tag remains only because Go 1.26 hasn't graduated json/v2 from
   experimental. Remove when Go stabilizes it (expected Go 1.27+).
 - **Turso MVCC concurrent-write support** — blocked on upstream experimental MVCC.
+
+---
+
+## Metaengine Integration — Deferred Items
+
+The following metaengine integration items were intentionally deferred during
+the first-class integration sprint (2026-07-31). Each has clear rationale.
+
+### Catalog Bridge for Metaengine Queries (DEFERRED — YAGNI)
+
+A `metaengine/catalogbridge/` module that feeds metaengine query collection
+schemas into the catalog for OpenAPI/AsyncAPI documentation. No consumer needs
+this yet — the catalog is consumer-side registration. Build it when a consumer
+asks for it. Risk of doing it now: creates an unused module that rots.
+
+### Stack HTTP/gRPC Server Convenience (DEFERRED — Coupling)
+
+One-call options like `stack.WithHTTPServer()` or `stack.WithGRPCServer()` that
+wire an SSEBroker or gRPC server to the Bundle. The manual wiring is ~5 lines.
+Adding options couples stack/ to `net/http` and `google.golang.org/grpc` — the
+stack package currently has zero transport deps. `sqlite.WithStack()` covers
+the passthrough use case without coupling.
+
+### SSE Code Consolidation (DEFERRED — Different Semantics)
+
+Extracting a shared `sse` helper package from `metaengine/sse.go` and
+`transport/http/sse.go`. The two implementations serve different layers:
+`metaengine/sse.go` watches a Store collection for mutations (collection-watch
++ replay), while `transport/http/sse.go` bridges an `event.Bus` to HTTP clients
+(bus-to-client). Merging risks a leaky abstraction. Cross-reference comments
+were added to both files instead.
+
+### Pebble Engine StreamingScan (DEFERRED — Separate Sprint)
+
+Implementing the `StreamingScan` interface (OOM-safe `iter.Seq2`) in the Pebble
+engine, matching SQLite's implementation. This is real engineering work (Pebble
+iterator wrapping, lazy decode, error handling), not integration. Belongs in a
+separate metaengine-focused sprint.

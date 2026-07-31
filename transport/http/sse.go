@@ -24,6 +24,12 @@ func (c SSEClientID) IsZero() bool { return c == "" }
 type SSEBrokerOption func(*SSEBroker)
 
 // SSEBroker bridges an event bus to Server-Sent Events HTTP clients.
+//
+// This SSE implementation bridges an event.Bus to HTTP clients
+// (bus-to-client). For collection-watch SSE (watching a metaengine Store
+// collection for mutations with journal replay), see metaengine.ServeSSE.
+// The two implementations serve different layers and are intentionally
+// separate.
 type SSEBroker struct {
 	mu               sync.RWMutex
 	clients          map[SSEClientID]chan event.Event

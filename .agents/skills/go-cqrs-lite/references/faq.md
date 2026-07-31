@@ -180,3 +180,20 @@ backward-compatible aliases, but the canonical paths are:
 | `storage/view.*`               | `storage/view.*` (unchanged)                            | View internals          |
 
 **If your old code compiles, it still works.** The aliases are permanent.
+
+### "How do I integrate metaengine with my stack?"
+
+Use `stack.WithMetaEngine(store)` to register a metaengine Store with the Bundle.
+The Bundle manages its lifecycle (Close), and benchkit auto-discovers it.
+
+```go
+store, _ := metaengine.Plan(engines, queries...)
+bundle, _ := sqlite.New(dsn, sqlite.WithStack(stack.WithMetaEngine(store)))
+// bundle.MetaEngine() returns the store for runtime queries
+// bundle.Close() closes the store automatically
+```
+
+For projection lifecycle (checkpoint, retry, DLQ), wrap the store in
+`projectionadapter.New(name, store, decoder)` and register with the projection host.
+The consumer calls `metaengine.Plan()` themselves because typed generics
+can't flow through `any` constraints.

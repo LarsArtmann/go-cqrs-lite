@@ -742,6 +742,25 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   repo, _ := decider.NewRepository(store, nil, decider)
 //   // Events are persisted but NOT published — for pure ES without a bus
 
+// Metaengine integration with stack.Bundle (ADR-0061+)
+//   // 1. Build the metaengine Store (typed generics — consumer calls Plan)
+//   store, _ := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()},
+//       metaengine.Query[CountInput, map[string]int64]("counts",
+//           metaengine.On(ItemCreated{}, func(e ItemCreated) metaengine.Delta {
+//               return metaengine.Delta{e.Status: +1}
+//           }),
+//       ),
+//   )
+//   // 2. Register with the Bundle for lifecycle management
+//   bundle, _ := sqlite.New(dsn, sqlite.WithStack(stack.WithMetaEngine(store)))
+//   // 3. Access via the Bundle
+//   counts, _ := metaengine.ExecuteTyped[CountInput, map[string]int64](
+//       ctx, bundle.MetaEngine(), CountInput{})
+//   // 4. For projection lifecycle, wrap in projectionadapter (separate module)
+//   adapter := projectionadapter.New("counts", store, payloadDecoder)
+//   host.Register(adapter)
+//   // Bundle.Close() now closes the metaengine Store automatically
+
 // DuckDB preset — embedded analytical (OLAP) engine (CGo required)
 //   b, _ := duckdb.New("analytics.db")     // persistent file
 //   defer b.Close()

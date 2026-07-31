@@ -20,9 +20,12 @@ func metaEngineFactory(t *testing.T) Factory {
 			[]metaengine.Engine{eng},
 			metaengine.Query[meBenchCounterInput, map[string]int64](
 				"bench_counter",
-				metaengine.On(meBenchIncrementEvent{}, func(e meBenchIncrementEvent) metaengine.Delta {
-					return metaengine.Delta{e.Status: +1}
-				}),
+				metaengine.On(
+					meBenchIncrementEvent{},
+					func(e meBenchIncrementEvent) metaengine.Delta {
+						return metaengine.Delta{e.Status: +1}
+					},
+				),
 			),
 		)
 		if err != nil {

@@ -259,11 +259,17 @@ func (s *ProjectionScenario) ThenError() {
 //	        },
 //	        Result{"count": 5},
 //	    )
-func (s *ProjectionScenario) ThenQueryResult(queryFn func() (any, error), expected any) *ProjectionScenario {
+func (s *ProjectionScenario) ThenQueryResult(
+	queryFn func() (any, error),
+	expected any,
+) *ProjectionScenario {
 	s.t.Helper()
 
 	if len(s.errs) > 0 {
-		s.t.Fatalf("ThenQueryResult: cannot assert query result — projection had %d errors", len(s.errs))
+		s.t.Fatalf(
+			"ThenQueryResult: cannot assert query result — projection had %d errors",
+			len(s.errs),
+		)
 	}
 
 	result, err := queryFn()
