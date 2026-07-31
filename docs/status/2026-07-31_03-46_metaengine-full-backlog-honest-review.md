@@ -23,6 +23,15 @@ This session attempted to implement all 42 remaining metaengine TODO items. The 
 
 > **The TODO_LIST.md currently claims 68/68 items complete. This is FALSE.**
 > Approximately 24 items are scaffolded stubs or documentation-only, not working implementations.
+>
+> **Update 2026-07-31 (commits `ea684c50`–`30e03b3f`):** The false TODO_LIST.md marks
+> were corrected in the 05:02 session. The Transaction API was fixed (fully threaded
+> `*sql.Tx`). SQL injection was fixed (`quoteIdent`). Hooks now fire on errors.
+> ReadCoalescer, PrefetchCache, and Watcher were all wired into their read/write paths
+> by subsequent sessions (04:17–05:44). The SSE adapter shipped with backpressure and
+> Last-Event-ID reconnection (07:06–17:20). The ContractSuite was expanded to all 7 ADTs.
+> Remaining open items (Postgres engine, DuckDB engine, metaengine-gen, 10M soak, chaos
+> testing) were moved to ROADMAP. Full resolution in the table below.
 
 ---
 
