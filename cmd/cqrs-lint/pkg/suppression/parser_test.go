@@ -147,3 +147,44 @@ func fold() {
 		t.Fatal("finding should be suppressed by file-based comment")
 	}
 }
+
+func TestSuppression_WorksForAllNewRuleIDs(t *testing.T) {
+	t.Parallel()
+
+	// New rules that need suppression verification.
+	newRuleIDs := []string{
+		"C031", "C032", "C033", "C034",
+		"P011", "P012",
+		"D014", "D015",
+		"A032",
+		"E016", "E017",
+		"S010",
+		"F018", "F019", "F020", "F021",
+	}
+
+	for _, ruleID := range newRuleIDs {
+		t.Run(ruleID, func(t *testing.T) {
+			t.Parallel()
+
+			filter := suppression.NewSuppressionFilter()
+
+			f, _ := finding.NewBuilder(
+				finding.RuleName(ruleID), "cqrs-lint", "test finding",
+				finding.SeverityWarning, finding.Pos("test.go", 5, 1),
+			).
+				WithSnippet("//cqrs-lint:ignore(" + ruleID + ") intentional\noffending_line()").
+				Build()
+
+			out, err := filter.Transform(context.TODO(), []finding.Finding{f})
+			if err != nil {
+				t.Fatalf("Transform() error: %v", err)
+			}
+			if len(out) != 1 {
+				t.Fatalf("got %d findings, want 1", len(out))
+			}
+			if out[0].Suppression == nil {
+				t.Errorf("%s should be suppressible via //cqrs-lint:ignore(%s)", ruleID, ruleID)
+			}
+		})
+	}
+}

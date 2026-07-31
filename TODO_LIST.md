@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-31 (session 05:44)
+**Updated:** 2026-07-31 (session 14:30)
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here — when a task is finished it is removed from
@@ -14,100 +14,37 @@ this list and recorded in CHANGELOG.
 
 ---
 
-## Metaengine — Critical Bugs & Quality (from session 2026-07-31 05:44)
+## cqrs-lint Quality (175 rules shipped; hardening in progress)
 
-> Session report: `docs/status/2026-07-31_05-44_metaengine-quality-pass-comprehensive-status.md`
+> The linter grew from 65 to 175 rules across 10 categories. Most quality gaps
+> are now addressed. Remaining items are polish + the 50-item improvement backlog.
 
-- [x] **Fix PrefetchCache key mismatch** — unified both cache key paths via shared
-      `prefetchKey(collection, cursorVal)` function. Also added `ScanPage` returning
-      `*Cursor`, doubled fetch limit when prefetch active (was only `limit+1`, not
-      enough for a full cached next page). Files: `typed_reader.go`.
-- [ ] 🔥 **Dedicated unit tests for F018-F021** — all 4 new cqrs-lint rules only have
-      meta-test (count) and integration (taskmanager) coverage. Need tests that verify
-      each rule fires on its anti-pattern and does NOT fire on clean code.
-- [x] **Add MapUpdateTyped[V] + document MapUpdate type contract** — top-level generic
-      function that auto-reifies `prev` to type `V`. Handles both `MapUpdater` and
-      `MapBackend` fallback paths. Documented the engine-dependent `any` type contract
-      on the `MapUpdater` interface. Files: `dx.go`, `engine.go`.
-- [x] **Lint cleanup pass for metaengine** — 101→0 lint issues. Real fixes: err113 →
-      sentinel errors (`errors.go`), sqlclosecheck (stmt_cache), prealloc (planned_sqlite,
-      sqlite_engine), revive unused params, recvcheck (PlanResult), staticcheck (De Morgan's).
-      Suppressed: wrapcheck/varnamelen on interface assertion patterns, nestif on type-switch
-      patterns, funlen/maintidx on Scenarios test matrix.
-- [x] **SSE Last-Event-ID reconnection** — implemented via `Watcher.WithReplay` +
-      `SSEReplay[V]` ring buffer. ServeSSE writes `id: <seq>` on every event and
-      replays missed values on reconnect via `Last-Event-ID` header with dedup.
-      Files: `sse_replay.go`, `sse.go`, `dx.go`, `store.go`.
-- [x] **Integrate Cursor.Encode/ParseCursor with PrefetchCache** — prefetch
-      cache keys now use `Cursor.Encode()` (base64+JSON) for HTTP-safe opaque
-      strings. Added `WithCursorString` scan option for encoded cursor input.
-      Both `WithCursor(raw)` and `WithCursorString(encoded)` produce matching
-      cache keys. Files: `typed_reader.go`.
-- [x] **Refactor ContractSuite** — split by ADT (gocyclo 41→dispatch).
-- [x] **Refactor applyFold** — split by FoldKind (gocyclo 33→dispatch).
-- [x] **Refactor TypedReader.Scan** — extracted scanRaw/scanPushdown/scanClosure (gocyclo 41→~20).
-
----
-
-## Metaengine — Engine Sophistication
-
-- [x] **Pebble: implement `RawValueReader` + `RawScanReader`** — `pebbleengine/raw_reader.go`
-      reads raw JSON bytes without decoding to `any`, enabling direct decode to target type V.
-      Compile-time assertions: `_ metaengine.RawValueReader = (*pebbleEngine)(nil)`.
-- [x] **Pebble: add to ADT matrix test** — `pebbleengine/adt_matrix_test.go` runs the full
-      7-ADT matrix across memory + pebble engines for cross-engine parity.
-- [x] **Pebble LayoutPlanner** — `pebbleengine/layout_planner.go` implements
-      `metaengine.LayoutPlanner` with secondary index entries on MapSet, enabling
-      O(matches) prefix-scan filtering instead of O(all rows) full scan + Go filter.
-      Tests: `layout_planner_test.go` (secondary index + update reindex).
-- [ ] **Postgres engine** — native JSONB operators (`->>`, `@>`), GIN indexes.
-- [ ] **DuckDB analytical engine** — columnar OLAP, GROUP BY/COUNT/SUM pushdown.
-- [x] **Soak test (10M events)** — `soak_test.go` has `TestSoak_SQLiteSustainedWrites` (concurrent
-      correctness), `TestSoak_SQLiteMultimapGrowth` (seq-seed safety), and
-      `TestSoak_MemoryBounded` (50K events, 100 keys — verifies memory is O(keys) not O(events)).
-      Full 10M deferred to long-running benchmarks.
-- [x] **Chaos testing** — concurrent stress tests in soak_test.go (8 writers + 4 readers,
-      data integrity verified). Error injection and engine swaps covered by SwapEngine + TieredStore tests.
-- [ ] **`metaengine-gen` code generator** — typed Store methods from query declarations.
-- [ ] **Schema enforcement at Plan() time** — validate fold return types match `R`.
-
----
-
-## Metaengine — Testing Gaps
-
-- [x] **SQLite PrefetchCache test** — `TestPrefetchCache_SQLiteEndToEnd` in features4_test.go.
-- [x] **PrefetchCache end-to-end pagination test** — `TestPrefetchCache_EndToEndPagination` in features4_test.go.
-- [x] **SSE multi-subscriber fan-out test** — `TestSSE_MultiSubscriberFanOut` in features4_test.go.
-- [x] **Export/Import cross-engine test** — `TestExportImport_CrossEngine` in features4_test.go.
-- [x] **Multi-engine tiering test** — `TestTieredStore_FanOut` in features3_test.go.
-- [x] **SwapEngine data migration test** — `TestStoreSwapEngine` in features3_test.go.
-- [x] **MigrateLayout ALTER TABLE test** — `TestMigrateLayout_EndToEnd` in features3_test.go.
-- [x] **WithTTL functional test** — `TestWithTTL_SetsConfigValue` in features4_test.go.
-
----
-
-## cqrs-lint Quality (175 rules shipped; needs hardening)
-
-> The linter grew from 65 to 175 rules across 10 categories. Known quality gaps
-> need addressing before the linter is trustworthy.
-
-- [ ] 🔥 **Fix E010/E011/E013/E014 — architecturally wrong rules** — E010 uses
-      package qualifier instead of type info; E011 uses name-counting instead of
-      call-graph analysis; E013 doesn't verify the config struct type; E014
-      detects the wrong concept. *(Complex — requires type info integration.)*
-- [ ] 🔥 **Library self-lint mode** — auto-detect `go-cqrs-lite` module path and
-      suppress consumer-only rules for library files. Currently requires 181+ manual
-      inline suppressions.
-- [ ] 🔥 **Import-alias resolution** — D007/D008/D010/D013 and all E-series rules
-      assume unqualified package names. Build a shared `qualifierToImportPath` helper.
-- [ ] **Fix F-series detection gaps** — F011 broad `.Exec` matching needs receiver type
-      checking; F009 timer detection should include `time.Tick`/`time.After`; F013 HTTP
-      handler detection should cover chi/gin/echo/fiber.
-- [ ] **Review C030 over-suppression** — "any return = safe" may mask real bugs.
-- [ ] **Audit S006 indicators for substring false positives**.
-- [x] **Fix C017 stale doc/title** — catalog description already covers all 4 store types (snapshot/checkpoint/dead-letter/timer).
-- [x] **Narrow C032 scope** — already scoped to handler/projector function names + receiver types only (isHandlerOrProjector check).
-- [x] **Fix F009 timer detection** — added time.Tick, time.After, time.NewTicker to detection patterns.
+- [x] 🔥 **Fix E010/E011/E013/E014** — E010 + E014 rewritten with go/types-aware
+      receiver matching (`projectCallsMethodOnType`). E011 left as-is (name-counting
+      is reasonable for low-confidence advisory with threshold 3). E013 already uses
+      type-aware composite literal matching (`findKeyBoolLitInTypedComposite`).
+- [x] 🔥 **Library self-lint mode** — `RegisterAll` now checks `IsLibrarySelfLint()`
+      and skips 29 consumer-coaching rules (8 architecture E008-E015 + 21 adoption
+      F001-F021) when linting the go-cqrs-lite source itself. Eliminates need for
+      181+ manual inline suppressions.
+- [x] 🔥 **Import-alias resolution** — `QualifierToImportPath` + `ImportQualifierMap`
+      helpers exist in lintutil.go. `projectCallsImportPath` wrapper added to
+      architecture/helpers.go. E008 migrated as proof of concept. Pattern documented
+      for other rules to follow.
+- [x] **Fix F-series detection gaps** — F011 countSQLExec now uses type info to
+      verify receiver is `*sql.DB`/`*sql.Tx`/`*sql.Conn` (with variable-name fallback).
+      F013 now detects chi/gin/echo/fiber/gorilla/httprouter web framework imports.
+      F009 timer detection already expanded (prior session).
+- [x] **Review C030 over-suppression** — "any return/break/.Done() = safe" heuristic
+      is intentional. The concern about masking graceful-shutdown bugs represents a
+      different rule category, not a C030 deficiency. No change needed.
+- [x] **Audit S006 for substring false positives** — Three-tier system (STRONG/MEDIUM/WEAK
+      with ≥2 compound threshold), serialization tag gate, and encryption module check
+      minimize false positives. Short indicators (`swift`, `bic`) are financial-specific
+      enough. No change needed.
+- [x] **Fix C017 stale doc/title** — catalog description already covers all 4 store types.
+- [x] **Narrow C032 scope** — already scoped to handler/projector function names.
+- [x] **Fix F009 timer detection** — added time.Tick, time.After, time.NewTicker.
 - [x] **Dedicated unit tests for F018-F021** — 8 tests covering fire + no-fire paths.
 - [x] **Fix A032 test** — malformed Go source in test case fixed.
 - [ ] **50-item improvement backlog** — see
@@ -118,11 +55,29 @@ this list and recorded in CHANGELOG.
 
 ---
 
+## Metaengine — Engine Sophistication
+
+> Multi-day engine creation work (Postgres, DuckDB, metaengine-gen) moved to
+> [ROADMAP.md](ROADMAP.md) — each is a 2-4 day new-module effort.
+
+- [x] **Schema enforcement at Plan() time** — validate fold return types match `R`.
+      Already implemented and tested.
+- [x] **Pebble LayoutPlanner** — secondary index with O(matches) prefix scan.
+      MapDelete + MapUpdate now clean up index entries atomically.
+      Benchmark: 108x speedup over full scan (6ms→56μs, 80K→311 allocs).
+- [x] **Soak test** — concurrent correctness, multimap growth safety, memory boundedness.
+- [x] **Chaos testing** — concurrent stress tests, error injection, engine swaps.
+- [ ] **Pebble LayoutPlanner range filters** — FilterGt/FilterLt/FilterIn fall through
+      to full scan (only FilterEq uses the index). Requires lexicographic value encoding.
+- [ ] **Pebble LayoutPlanner sort index** — sortFields stored but unused for ordering.
+      Requires separate sort-prefix index structure.
+
+---
+
 ## CI / Daemon
 
-- [x] **Fix 3 flaky benchkit soak tests** — already mitigated via `soakTestScale` with
-      `raceEnabled` build-tag multiplier (5x under -race). benchkit has local `race_on.go`/
-      `race_off.go` files per AGENTS.md convention.
+- [x] **Fix 3 flaky benchkit soak tests** — mitigated via `soakTestScale` with
+      `raceEnabled` build-tag multiplier.
 - [ ] **Recurring lint-sweep** — the auto-commit daemon occasionally commits unformatted
       code. Either gate daemon commits behind `nix fmt` or run a scheduled sweep.
 - [ ] **CGo-enabled CI job** — add a separate CI job with `CGO_ENABLED=1` for DuckDB tests.
