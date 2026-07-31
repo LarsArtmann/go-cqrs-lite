@@ -330,6 +330,7 @@ func performanceRules() []RuleInfo { //nolint:dupl // catalog pattern
 			Confidence:  "medium",
 			Description: "SQLite store without WAL mode — prone to 'database is locked' errors under concurrent access",
 			AutoFix:     false,
+			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#p012",
 		},
 		{
 			ID:          "P013",
@@ -687,6 +688,7 @@ func architectureRules() []RuleInfo {
 			Confidence:  "medium",
 			Description: "Server-mode project without HealthCheck — Kubernetes probes need it",
 			AutoFix:     false,
+			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#e016",
 		},
 		{
 			ID:          "E017",
@@ -696,6 +698,7 @@ func architectureRules() []RuleInfo {
 			Confidence:  "medium",
 			Description: "signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM",
 			AutoFix:     false,
+			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#e017",
 		},
 	}
 }
@@ -719,6 +722,7 @@ func securityRules() []RuleInfo {
 			Confidence:  "medium",
 			Description: "PII event payloads without encryption middleware",
 			AutoFix:     false,
+			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#s002",
 		},
 		{
 			ID:          "S003",
@@ -782,6 +786,7 @@ func securityRules() []RuleInfo {
 			Confidence:  "medium",
 			Description: "Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext",
 			AutoFix:     false,
+			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#s010",
 		},
 	}
 }

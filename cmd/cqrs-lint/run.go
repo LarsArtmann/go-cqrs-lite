@@ -232,6 +232,9 @@ func filterFindings(
 	// Escalate security/money rule severities for financial domains.
 	allFindings = applyDomainBias(allFindings, actx.FeatureProfile.Domain)
 
+	// Enrich findings with doc URLs from the catalog.
+	allFindings = enrichWithDocURLs(allFindings)
+
 	unsuppressed, suppressed = filterSuppressed(allFindings)
 	suppressed = append(suppressed, librarySuppressed...)
 

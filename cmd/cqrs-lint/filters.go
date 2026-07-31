@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-finding/pipeline"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules"
 )
 
 // consumerOnlyRules are rules that coach CONSUMERS of go-cqrs-lite to adopt
@@ -217,6 +218,26 @@ func applyDomainBias(
 	}
 
 	return result
+}
+
+// enrichWithDocURLs adds DocURL metadata from the catalog to each finding.
+// This powers the doc-links feature (L1.17) so SARIF/JSON output includes
+// clickable links to rule documentation.
+func enrichWithDocURLs(findings []finding.Finding) []finding.Finding {
+	for i := range findings {
+		rule, ok := rules.LookupRule(string(findings[i].Rule))
+		if !ok || rule.DocURL == "" {
+			continue
+		}
+
+		if findings[i].Metadata == nil {
+			findings[i].Metadata = make(map[string]string)
+		}
+
+		findings[i].Metadata["cqrs-lint.doc-url"] = rule.DocURL
+	}
+
+	return findings
 }
 
 func parseSeverity(s string) finding.Severity {

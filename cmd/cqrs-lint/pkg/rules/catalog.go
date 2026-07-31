@@ -14,6 +14,9 @@ type RuleInfo struct {
 	Confidence  string
 	Description string
 	AutoFix     bool
+	// DocURL is an optional link to detailed documentation for this rule.
+	// When set, findings include it in Metadata for SARIF/JSON output.
+	DocURL string
 }
 
 // allRulesCache memoizes the full rule catalog so AllRules is only built once.
@@ -41,6 +44,26 @@ func AllRules() []RuleInfo {
 	return allRulesCache()
 }
 
+// ruleLookupCache memoizes a rule-ID → RuleInfo map for LookupRule.
+//
+//nolint:gochecknoglobals // intentional memoized cache
+var ruleLookupCache = sync.OnceValue(func() map[string]RuleInfo {
+	m := make(map[string]RuleInfo, 180)
+
+	for _, r := range allRulesCache() {
+		m[r.ID] = r
+	}
+
+	return m
+})
+
+// LookupRule returns the catalog entry for the given rule ID (e.g., "C001").
+// The boolean is false if the rule is not in the catalog.
+func LookupRule(id string) (RuleInfo, bool) {
+	r, ok := ruleLookupCache()[id]
+	return r, ok
+}
+
 func correctnessRules() []RuleInfo {
 	return []RuleInfo{
 		{
@@ -51,6 +74,7 @@ func correctnessRules() []RuleInfo {
 			Confidence:  "high",
 			Description: "Transaction wrapper returns nil instead of tx.Commit()",
 			AutoFix:     true,
+			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c001",
 		},
 		{
 			ID:          "C002",
@@ -114,6 +138,7 @@ func correctnessRules() []RuleInfo {
 			Confidence:  "medium",
 			Description: "float64 field with monetary name — use decimal or cents",
 			AutoFix:     false,
+			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c008",
 		},
 		{
 			ID:          "C009",
@@ -132,6 +157,7 @@ func correctnessRules() []RuleInfo {
 			Confidence:  "high",
 			Description: "Error from decode/unmarshal discarded in fold",
 			AutoFix:     false,
+			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c010",
 		},
 		{
 			ID:          "C011",
@@ -159,6 +185,7 @@ func correctnessRules() []RuleInfo {
 			Confidence:  "medium",
 			Description: "time.Time field in event payload loses timezone via CBOR epoch encoding",
 			AutoFix:     false,
+			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/docs/TIMEZONE_HANDLING.md",
 		},
 		{
 			ID:          "C014",
@@ -195,6 +222,7 @@ func correctnessRules() []RuleInfo {
 			Confidence:  "high",
 			Description: "In-memory snapshot/checkpoint/dead-letter/timer store with persistent event store — lost on restart",
 			AutoFix:     false,
+			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c017",
 		},
 		{
 			ID:          "C018",
