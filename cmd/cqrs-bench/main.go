@@ -59,6 +59,7 @@ Backends:
   sqlite    SQLite database (pure-Go, no CGo)
   pebble    PebbleDB LSM-tree store
   postgres  PostgreSQL database (requires --dsn)
+  turso     Turso embedded database (libSQL/SQLite fork)
 
 Profiles:
   dev         100 streams x 5 events     (500 events, 1 goroutine)

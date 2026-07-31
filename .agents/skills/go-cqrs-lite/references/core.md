@@ -94,7 +94,7 @@ with projection + read model.
 | Multi-table projection (composite keys, junctions)    | `storage.RelationalProjection`                                                  | readmodels §2.3 |
 | Dispatch type-safe queries                            | `query`                                                                         | readmodels §2.3 |
 | List all streams + their status                       | `listing`                                                                       | advanced §6.3   |
-| Persist to PostgreSQL / SQLite                        | `storage`                                                                       | recipes §2.2    |
+| Persist to PostgreSQL / SQLite / MySQL                | `storage`                                                                       | recipes §2.2    |
 | Persist to embedded PebbleDB                          | `storage/pebble`                                                                | recipes §2.2    |
 | Offline-first sync via Turso Database                 | `storage/turso`                                                                 | advanced §6.5   |
 | Generic key-value abstraction                         | `kv`                                                                            | advanced §6.6   |
@@ -114,7 +114,7 @@ with projection + read model.
 | Verify doc code references compile                    | `cmd/doc-check`                                                                 | modules §5      |
 | In-memory command bus (typed pub/sub)                 | `command` (`NewMemoryBus`)                                                      | recipes §2.1    |
 | In-memory implementations for tests/dev               | `memory`                                                                        | recipes §2.1    |
-| One-call infrastructure wiring (Bundle presets)       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/turso` | recipes §2.0    |
+| One-call infrastructure wiring (Bundle presets)       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/mysql`, `stack/turso` | recipes §2.0    |
 | Typed read-model store over KV backend                | `kv.TypedStore`                                                                 | recipes §2.0    |
 | Cache decorator for read models                       | `kv.Cache`                                                                      | recipes §2.0    |
 | Run projections with crash-restart + checkpoint + DLQ | `projectionhost`                                                                | advanced §6.9   |

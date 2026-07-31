@@ -17,6 +17,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/turso/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
@@ -60,6 +61,13 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 		cleanup  func()
 	)
 
+	// Parse durability once, before any factory closure runs. This ensures
+	// invalid input fails at CLI startup, not mid-benchmark.
+	tier, tierSet, dErr := parseDurability(durability)
+	if dErr != nil {
+		fatalf("%v", dErr)
+	}
+
 	switch backend {
 	case "memory", "mem":
 		return func() (*stack.Bundle, error) { return memory.New() }, "", nil
@@ -80,7 +88,7 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 
 		return func() (*stack.Bundle, error) {
 			opts := []sqlite.Option{}
-			if tier, ok := parseDurability(durability); ok {
+			if tierSet {
 				opts = append(opts, sqlite.WithDurability(tier))
 			}
 
@@ -98,7 +106,7 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 
 		return func() (*stack.Bundle, error) {
 			opts := []pebble.Option{}
-			if tier, ok := parseDurability(durability); ok {
+			if tierSet {
 				opts = append(opts, pebble.WithDurability(tier))
 			}
 
@@ -119,12 +127,36 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 
 		return func() (*stack.Bundle, error) {
 			opts := []postgres.Option{}
-			if tier, ok := parseDurability(durability); ok {
+			if tierSet {
 				opts = append(opts, postgres.WithDurability(tier))
 			}
 
 			return postgres.New(dsn, opts...)
 		}, "", nil
+
+	case "turso":
+		dbDir := dir
+		if dbDir == "" {
+			dbDir = mkTempDir()
+			cleanup = func() { _ = os.RemoveAll(dbDir) }
+		}
+
+		diskPath = dbDir
+		dbPath := filepath.Join(dbDir, "bench.db")
+
+		return func() (*stack.Bundle, error) {
+			opts := []turso.Option{}
+			if tierSet {
+				opts = append(opts, turso.WithDurability(tier))
+			}
+
+			b, err := turso.New(dbPath, opts...)
+			if err != nil {
+				return nil, err
+			}
+
+			return b.Bundle, nil
+		}, diskPath, cleanup
 
 	case "duckdb", "duck":
 		return duckdbFactory(dsn, dir)
@@ -139,20 +171,19 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 	}
 }
 
-func parseDurability(s string) (stack.DurabilityTier, bool) {
+func parseDurability(s string) (stack.DurabilityTier, bool, error) {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "strict":
-		return stack.DurabilityStrict, true
+		return stack.DurabilityStrict, true, nil
 	case "normal":
-		return stack.DurabilityNormal, true
+		return stack.DurabilityNormal, true, nil
 	case "relaxed":
-		return stack.DurabilityRelaxed, true
+		return stack.DurabilityRelaxed, true, nil
 	case "":
-		return stack.DurabilityNormal, false
+		return stack.DurabilityNormal, false, nil
 	default:
-		fatalf("unknown durability tier: %s (use strict, normal, or relaxed)", s)
-
-		return "", false
+		return "", false, fmt.Errorf(
+			"unknown durability tier: %s (use strict, normal, or relaxed)", s)
 	}
 }
 

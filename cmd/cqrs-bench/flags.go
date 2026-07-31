@@ -47,7 +47,7 @@ func registerBenchFlags(fs *flag.FlagSet) benchFlags {
 		backend: fs.String(
 			"backend",
 			"memory",
-			"Backend: memory, sqlite, pebble, postgres, duckdb",
+			"Backend: memory, sqlite, pebble, postgres, duckdb, turso",
 		),
 		dsn:         fs.String("dsn", "", "Database connection string (sqlite, postgres, duckdb)"),
 		dir:         fs.String("dir", "", "Database directory (pebble, duckdb)"),
