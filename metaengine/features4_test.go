@@ -218,9 +218,7 @@ func TestSSE_DropOldSemantics(t *testing.T) {
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, srv.URL, nil)
 
 	resp, err := http.DefaultClient.Do(req)
-	if err != nil && !errors.Is(err, context.Canceled) {
-		// Server might close on timeout, which is fine.
-	}
+	_ = err // server may close on timeout, which is fine
 
 	if resp != nil {
 		defer resp.Body.Close()
