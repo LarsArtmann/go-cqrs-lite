@@ -129,21 +129,21 @@ func execPlannedSet(
 	valueJSON := encodeValue(value)
 	extracted := extractFields(value, plan.Columns)
 
-	colNames := []string{"key", "value"}
+	quotedColNames := []string{quoteIdent("key"), quoteIdent("value")}
 	args := []any{encodeKey(key), valueJSON}
 
 	for _, c := range plan.Columns {
-		colNames = append(colNames, c.Name)
+		quotedColNames = append(quotedColNames, quoteIdent(c.Name))
 		args = append(args, extracted[c.Name])
 	}
 
-	placeholder := strings.Repeat("?,", len(colNames))
+	placeholder := strings.Repeat("?,", len(quotedColNames))
 	placeholder = "(" + placeholder[:len(placeholder)-1] + ")"
 
-		query := fmt.Sprintf(
-			"INSERT OR REPLACE INTO %s (%s) VALUES %s",
-			quoteIdent(plan.Table), strings.Join(quotedColNames, ", "), placeholder,
-		)
+	query := fmt.Sprintf(
+		"INSERT OR REPLACE INTO %s (%s) VALUES %s",
+		quoteIdent(plan.Table), strings.Join(quotedColNames, ", "), placeholder,
+	)
 
 	_, err := exec.ExecContext(ctx, query, args...)
 

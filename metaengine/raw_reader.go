@@ -31,7 +31,7 @@ func (e *sqliteEngine) GetRawValue(ctx context.Context, col string, key any) ([]
 
 	if plan, ok := e.plans[col]; ok {
 		err = e.xc().queryRow(ctx,
-			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
+			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", quoteIdent(plan.Table)),
 			encodeKey(key)).Scan(&valStr)
 	} else {
 		err = e.xc().queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
@@ -138,7 +138,7 @@ func scanRawPlanned(
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT value FROM %s", plan.Table)
+	fmt.Fprintf(&b, "SELECT value FROM %s", quoteIdent(plan.Table))
 
 	whereStarted := false
 
