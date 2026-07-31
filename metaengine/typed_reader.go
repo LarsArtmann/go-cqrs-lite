@@ -137,7 +137,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 
 	// PrefetchCache: serve from cache when a cursor key matches.
 	if r.prefetch != nil && cfg.cursor != nil {
-		cacheKey := prefetchKey(r.collection, cfg.cursor)
+		cacheKey := prefetchCursorKey(r.collection, cfg.cursor)
 		if cached := r.prefetch.Get(cacheKey); cached != nil {
 			result := make([]V, 0, len(cached))
 
@@ -214,7 +214,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 
 func (r *TypedReader[V]) scanRaw(ctx context.Context, rsr RawScanReader, cfg scanConfig, fetchLimit int) ([]V, error) {
 	rawRows, err := rsr.ScanRawValues(
-		ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, fetchLimit,
+		ctx, r.collection, cfg.filters, cfg.sort, rawCursorValue(cfg.cursor), fetchLimit,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
@@ -241,7 +241,7 @@ func (r *TypedReader[V]) scanPushdown(
 	fetchLimit int,
 ) ([]V, error) {
 	rows, err := pushdown.PushdownMapScan(
-		ctx, r.collection, cfg.filters, cfg.sort, cfg.cursor, fetchLimit,
+		ctx, r.collection, cfg.filters, cfg.sort, rawCursorValue(cfg.cursor), fetchLimit,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
@@ -265,7 +265,7 @@ func (r *TypedReader[V]) scanClosure(ctx context.Context, sb ScanBackend, cfg sc
 	filterFn := buildClosureFilter(cfg)
 	sortFn := buildClosureSort(cfg)
 
-	rows, err := sb.MapScan(ctx, r.collection, filterFn, sortFn, cfg.cursor, fetchLimit)
+	rows, err := sb.MapScan(ctx, r.collection, filterFn, sortFn, rawCursorValue(cfg.cursor), fetchLimit)
 	if err != nil {
 		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 	}
@@ -691,15 +691,33 @@ func WithLimit(n int) ScanOption {
 }
 
 // WithCursor sets the keyset pagination cursor (the last sort key from the
-// previous page).
+// previous page). Pass cursor.Value from a previous ScanPage result, or use
+// WithCursorString to pass an encoded cursor string.
 func WithCursor(v any) ScanOption {
 	return func(c *scanConfig) { c.cursor = v }
+}
+
+// WithCursorString sets the keyset pagination cursor from an encoded cursor
+// string produced by [Cursor.Encode]. This is the HTTP-safe counterpart to
+// [WithCursor]: callers receive an opaque cursor string from ScanPage, pass
+// it back via WithCursorString, and the PrefetchCache lookup matches because
+// both trimAndCache and the cache check normalize through Cursor.Encode.
+func WithCursorString(s string) ScanOption {
+	return func(c *scanConfig) {
+		cursor, err := ParseCursor(s)
+		if err != nil || cursor == nil {
+			return
+		}
+
+		c.cursor = cursor
+	}
 }
 
 // ScanPage performs a scan and returns both the results and the next-page
 // cursor for keyset pagination. The cursor is derived from the sort field of
 // the last returned item. Pass it back via WithCursor(cursor.Value) on the
-// next call, or use cursor.Encode() for an HTTP-safe opaque string.
+// next call, or use WithCursorString(cursor.Encode()) for an HTTP-safe
+// opaque cursor string that round-trips through the PrefetchCache.
 //
 // When a PrefetchCache is attached, ScanPage auto-populates it: extra rows
 // beyond the limit are cached so the next page request is served from cache
@@ -733,7 +751,7 @@ func (r *TypedReader[V]) ScanPage(ctx context.Context, opts ...ScanOption) ([]V,
 func (r *TypedReader[V]) trimAndCache(result []V, cfg scanConfig) []V {
 	if r.prefetch != nil && cfg.limit > 0 && len(result) > cfg.limit {
 		cursorVal := extractCursorValue(result[cfg.limit-1], cfg)
-		nextKey := prefetchKey(r.collection, cursorVal)
+		nextKey := prefetchCursorKey(r.collection, cursorVal)
 		extra := make([]any, len(result)-cfg.limit)
 
 		for i, v := range result[cfg.limit:] {
@@ -761,11 +779,41 @@ func extractCursorValue[V any](item V, cfg scanConfig) any {
 	return item
 }
 
-// prefetchKey builds the PrefetchCache lookup key from a collection name and
-// cursor value. Both trimAndCache (cache write) and the prefetch check in Scan
-// (cache read) use this function, ensuring the key formats always match.
-func prefetchKey(collection string, cursorVal any) string {
-	return fmt.Sprintf("%s:%v", collection, cursorVal)
+// rawCursorValue extracts the raw cursor value from cfg.cursor, unwrapping
+// a *Cursor (from WithCursorString) to its Value field for engine consumption.
+func rawCursorValue(cursor any) any {
+	if c, ok := cursor.(*Cursor); ok {
+		return c.Value
+	}
+
+	return cursor
+}
+
+// prefetchCursorKey builds the PrefetchCache lookup key from a collection name
+// and cursor value. The cursor is normalized to a *Cursor and encoded via
+// [Cursor.Encode], producing an opaque base64 string that is HTTP-safe and
+// deterministic regardless of whether the caller passed a raw value
+// (WithCursor) or an encoded string (WithCursorString). Both trimAndCache
+// (cache write) and the prefetch check in Scan (cache read) use this function,
+// ensuring the key formats always match.
+func prefetchCursorKey(collection string, cursorVal any) string {
+	var c *Cursor
+
+	switch v := cursorVal.(type) {
+	case *Cursor:
+		c = v
+	case Cursor:
+		c = &v
+	default:
+		c = &Cursor{Value: cursorVal}
+	}
+
+	encoded, err := c.Encode()
+	if err != nil || encoded == "" {
+		return fmt.Sprintf("%s:%v", collection, cursorVal)
+	}
+
+	return collection + ":" + encoded
 }
 
 // trimToLimit trims the result to the limit (engines return limit+1 rows for

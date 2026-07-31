@@ -96,17 +96,15 @@ func (s *Store) SwapEngine(oldName, newName string, newEngine Engine) error {
 	return nil
 }
 
-// --- P6-1: Pebble Engine Raw Readers (interface contract) ---
+// --- P6-1: Pebble Engine Raw Readers (implemented) ---
 //
-// Pebble engine implementations should implement RawValueReader and
-// RawScanReader to get the same JSON tax reduction as SQLite. The interfaces
-// are already defined in engine.go — this file documents the contract.
-//
-// To add raw readers to the Pebble engine:
-// 1. Store values as raw JSON bytes (not decoded to any)
-// 2. Implement GetRawValue(ctx, col, key) ([]byte, bool, error)
-// 3. Implement ScanRawValues(ctx, col, filters, sort, cursor, limit) ([][]byte, error)
-// The ExecuteTyped path automatically prefers these interfaces.
+// The Pebble engine (metaengine/pebbleengine) implements RawValueReader and
+// RawScanReader, eliminating the JSON tax for point lookups and filtered scans.
+// GetRawValue returns raw JSON bytes from the LSM (1 JSON op instead of 2).
+// ScanRawValues applies filters/sort in Go (Pebble has no SQL engine) but
+// returns raw bytes so the caller decodes directly to the target type V,
+// skipping the reify-from-map reflection step. The ExecuteTyped and
+// TypedReader paths automatically prefer these interfaces.
 
 // --- P4-2: Cross-Engine Contract Suite ---
 
