@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"fmt"
 	"hash/fnv"
 	"time"
 )
@@ -84,7 +85,8 @@ func (e *sqliteEngine) MigrateLayout(collection string, newPlan LayoutPlan) erro
 
 	for _, newCol := range newPlan.Columns {
 		if !existingCols[newCol.Name] {
-			ddl := "ALTER TABLE " + newPlan.Table + " ADD COLUMN " + newCol.Name + " " + newCol.Type
+			ddl := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s",
+				quoteIdent(newPlan.Table), quoteIdent(newCol.Name), newCol.Type)
 			if _, err := e.db.ExecContext(ctx, ddl); err != nil {
 				return err //nolint:wrapcheck
 			}

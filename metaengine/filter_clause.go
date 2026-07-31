@@ -64,7 +64,7 @@ func appendPlannedFilter(b *strings.Builder, args *[]any, f FilterSpec, started 
 			*args = append(*args, v)
 		}
 
-		fmt.Fprintf(b, "%s IN (%s)", f.Column, strings.Join(placeholders, ","))
+		fmt.Fprintf(b, "%s IN (%s)", quoteIdent(f.Column), strings.Join(placeholders, ","))
 	} else {
 		if !*started {
 			b.WriteString(" WHERE ")
@@ -74,7 +74,7 @@ func appendPlannedFilter(b *strings.Builder, args *[]any, f FilterSpec, started 
 			b.WriteString(" AND ")
 		}
 
-		fmt.Fprintf(b, "%s %s ?", f.Column, string(f.Op))
+		fmt.Fprintf(b, "%s %s ?", quoteIdent(f.Column), string(f.Op))
 		*args = append(*args, f.Value)
 	}
 }

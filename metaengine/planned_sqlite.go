@@ -140,10 +140,10 @@ func execPlannedSet(
 	placeholder := strings.Repeat("?,", len(colNames))
 	placeholder = "(" + placeholder[:len(placeholder)-1] + ")"
 
-	query := fmt.Sprintf(
-		"INSERT OR REPLACE INTO %s (%s) VALUES %s",
-		plan.Table, strings.Join(colNames, ", "), placeholder,
-	)
+		query := fmt.Sprintf(
+			"INSERT OR REPLACE INTO %s (%s) VALUES %s",
+			quoteIdent(plan.Table), strings.Join(quotedColNames, ", "), placeholder,
+		)
 
 	_, err := exec.ExecContext(ctx, query, args...)
 
@@ -158,7 +158,7 @@ func (e *sqliteEngine) mapGetPlanned(
 	var valStr string
 
 	err := e.xd().QueryRowContext(ctx,
-		fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
+		fmt.Sprintf("SELECT value FROM %s WHERE key = ?", quoteIdent(plan.Table)),
 		encodeKey(key)).Scan(&valStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -187,7 +187,7 @@ func (e *sqliteEngine) mapUpdatePlanned(
 		var valStr string
 
 		err := xd.QueryRowContext(ctx,
-			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
+			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", quoteIdent(plan.Table)),
 			encodeKey(key)).Scan(&valStr)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err //nolint:wrapcheck // passthrough
@@ -208,7 +208,7 @@ func (e *sqliteEngine) mapUpdatePlanned(
 		func(ctx context.Context, tx *sql.Tx) (any, error) {
 			var valStr string
 			if err := tx.QueryRowContext(ctx,
-				fmt.Sprintf("SELECT value FROM %s WHERE key = ?", plan.Table),
+				fmt.Sprintf("SELECT value FROM %s WHERE key = ?", quoteIdent(plan.Table)),
 				encodeKey(key)).Scan(&valStr); err != nil {
 				return nil, err //nolint:wrapcheck // ErrNoRows handled by caller
 			}
@@ -265,7 +265,7 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT value FROM %s", plan.Table)
+	fmt.Fprintf(&b, "SELECT value FROM %s", quoteIdent(plan.Table))
 
 	whereStarted := false
 
@@ -287,13 +287,13 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 			op = "<"
 		}
 
-		fmt.Fprintf(&b, "%s %s ?", sort.Column, op)
+		fmt.Fprintf(&b, "%s %s ?", quoteIdent(sort.Column), op)
 
 		args = append(args, cursor)
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", sort.Column)
+		fmt.Fprintf(&b, " ORDER BY %s", quoteIdent(sort.Column))
 
 		if sort.Desc {
 			b.WriteString(" DESC")

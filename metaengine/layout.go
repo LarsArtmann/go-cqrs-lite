@@ -101,23 +101,34 @@ func (p LayoutPlan) ColumnNames() []string {
 func (p LayoutPlan) DDL() string {
 	var b strings.Builder
 
-	fmt.Fprintf(&b, "CREATE TABLE IF NOT EXISTS %s (\n", p.Table)
+	fmt.Fprintf(&b, "CREATE TABLE IF NOT EXISTS %s (\n", quoteIdent(p.Table))
 	b.WriteString("  key TEXT PRIMARY KEY,\n")
 	b.WriteString("  value TEXT NOT NULL")
 
 	for _, c := range p.Columns {
-		fmt.Fprintf(&b, ",\n  %s %s", c.Name, c.Type)
+		fmt.Fprintf(&b, ",\n  %s %s", quoteIdent(c.Name), c.Type)
 	}
 
 	b.WriteString("\n);")
 
 	for _, idx := range p.Indexes {
-		colList := strings.Join(idx.Columns, ", ")
+		quotedCols := make([]string, len(idx.Columns))
+		for i, col := range idx.Columns {
+			quotedCols[i] = quoteIdent(col)
+		}
+		colList := strings.Join(quotedCols, ", ")
 		fmt.Fprintf(&b, "\nCREATE INDEX IF NOT EXISTS %s ON %s(%s);",
-			idx.Name, p.Table, colList)
+			quoteIdent(idx.Name), quoteIdent(p.Table), colList)
 	}
 
 	return b.String()
+}
+
+// quoteIdent wraps a SQL identifier in double quotes, escaping any embedded
+// double quotes by doubling them (SQL standard). This prevents SQL injection
+// through user-declared field names used as column/table identifiers.
+func quoteIdent(name string) string {
+	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
 }
 
 // sanitize makes a collection name safe for use as a SQL identifier.

@@ -424,9 +424,11 @@ func (e *sqliteEngine) PushdownMapScan(
 }
 
 // jsonPath converts a field name to a JSON path for json_extract.
-// E.g. "status" → "$.status".
+// E.g. "status" → "$.status". Single quotes are escaped to prevent
+// breaking out of the SQL string literal that wraps the path.
 func jsonPath(field string) string {
-	return "$." + field
+	escaped := strings.ReplaceAll(field, "'", "''")
+	return "$." + escaped
 }
 
 // --- StreamingScan ---
