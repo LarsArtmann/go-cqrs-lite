@@ -88,6 +88,17 @@ type Result struct {
 	CacheHitLatency           LatencyStats `json:"cacheHitLatency"`
 	SnapshotCorrectnessErrors int          `json:"snapshotCorrectnessErrors,omitempty"`
 
+	// Metaengine metrics — planner overhead with a counter workload (M17).
+	// MetaEngineApplyLatency: per-event Apply latency through the cost-based
+	//   planner (fold dispatch + engine write).
+	// MetaEngineQueryLatency: ExecuteTyped read latency (engine point read +
+	//   result materialization).
+	// MetaEngineApplyThroughput: events/sec sustained during the Apply burst.
+	// Zero-valued when Config.SkipMetaEngine is true or the bundle has no metaengine.
+	MetaEngineApplyLatency    LatencyStats `json:"metaEngineApplyLatency"`
+	MetaEngineQueryLatency    LatencyStats `json:"metaEngineQueryLatency"`
+	MetaEngineApplyThroughput float64      `json:"metaEngineApplyThroughput,omitempty"`
+
 	// Recovery metrics (zero-valued when Config.Recovery is false).
 	// RecoveryTime measures the wall-clock time to close the store,
 	// reopen it via the factory, and load all streams — simulating

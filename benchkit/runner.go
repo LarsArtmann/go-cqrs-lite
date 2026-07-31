@@ -173,6 +173,12 @@ func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
 		}
 	}
 
+	if !r.config.SkipMetaEngine {
+		if err := r.metaEnginePhase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.metaengine_phase", "metaengine phase")
+		}
+	}
+
 	r.durabilityPhase()
 
 	if !r.config.ReplayOnly && !r.config.SkipRawSink {

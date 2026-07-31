@@ -10,7 +10,7 @@ import (
 
 type meTestKey string
 
-type meTestEvent struct {
+type itemCreated struct {
 	ID    meTestKey
 	Title string
 }
@@ -23,7 +23,7 @@ type meTestResult struct {
 func meQueryDecl() metaengine.QueryDecl[meTestKey, meTestResult] {
 	return metaengine.Query[meTestKey, meTestResult](
 		"me_test_items",
-		metaengine.OnTyped("item_created", meTestEvent{}, func(e meTestEvent) (meTestKey, meTestResult) {
+		metaengine.On(itemCreated{}, func(e itemCreated) (meTestKey, meTestResult) {
 			return e.ID, meTestResult{ID: e.ID, Title: e.Title}
 		}),
 	)

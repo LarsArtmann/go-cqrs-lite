@@ -125,6 +125,12 @@ type Config struct {
 	// when the bundle's EventSink does not implement event.Store.
 	SkipSnapshot bool
 
+	// SkipMetaEngine skips the metaengine phase (M17). The metaengine phase
+	// benchmarks the cost-based storage planner's Apply throughput and
+	// ExecuteTyped read latency with a counter workload. Skipped automatically
+	// when the bundle has no metaengine (MetaEngine() returns nil).
+	SkipMetaEngine bool
+
 	// SkipRawSink skips the raw prebuilt-event sink phase that isolates
 	// EventSink.Save throughput from event generation/encoding overhead.
 	// When false (default), the runner pre-builds all events, then times
