@@ -87,7 +87,7 @@ this list and recorded in CHANGELOG.
 - [ ] 🔥 **Fix E010/E011/E013/E014 — architecturally wrong rules** — E010 uses
       package qualifier instead of type info; E011 uses name-counting instead of
       call-graph analysis; E013 doesn't verify the config struct type; E014
-      detects the wrong concept.
+      detects the wrong concept. *(Complex — requires type info integration.)*
 - [ ] 🔥 **Library self-lint mode** — auto-detect `go-cqrs-lite` module path and
       suppress consumer-only rules for library files. Currently requires 181+ manual
       inline suppressions.
@@ -98,8 +98,11 @@ this list and recorded in CHANGELOG.
       handler detection should cover chi/gin/echo/fiber.
 - [ ] **Review C030 over-suppression** — "any return = safe" may mask real bugs.
 - [ ] **Audit S006 indicators for substring false positives**.
-- [ ] **Fix C017 stale doc/title** — detects 4 store types but titled "snapshot only".
-- [ ] **Narrow C032 scope** — fires on ALL ctx functions, should be handler/projector only.
+- [x] **Fix C017 stale doc/title** — catalog description already covers all 4 store types (snapshot/checkpoint/dead-letter/timer).
+- [x] **Narrow C032 scope** — already scoped to handler/projector function names + receiver types only (isHandlerOrProjector check).
+- [x] **Fix F009 timer detection** — added time.Tick, time.After, time.NewTicker to detection patterns.
+- [x] **Dedicated unit tests for F018-F021** — 8 tests covering fire + no-fire paths.
+- [x] **Fix A032 test** — malformed Go source in test case fixed.
 - [ ] **50-item improvement backlog** — see
       `docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md`.
       ~35 items remain open.

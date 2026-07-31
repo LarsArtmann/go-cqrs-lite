@@ -88,12 +88,12 @@ func hasPIIInEventPayloads(ctx *analyzer.AnalysisContext) (token.Position, bool)
 // rules (deadlines, expirations, timeouts) by scanning for time.AfterFunc,
 // time.NewTimer, or function names containing deadline/expire/timeout/schedule.
 func hasTimeBasedPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	if pos, ok := firstCallPos(ctx, "time", "AfterFunc"); ok {
-		return pos, true
-	}
+	timeFns := []string{"AfterFunc", "NewTimer", "Tick", "After", "NewTicker"}
 
-	if pos, ok := firstCallPos(ctx, "time", "NewTimer"); ok {
-		return pos, true
+	for _, fn := range timeFns {
+		if pos, ok := firstCallPos(ctx, "time", fn); ok {
+			return pos, true
+		}
 	}
 
 	for _, prefix := range []string{"Expire", "Timeout", "Deadline", "Schedule", "Cancel"} {
