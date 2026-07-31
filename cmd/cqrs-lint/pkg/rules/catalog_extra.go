@@ -1000,5 +1000,23 @@ func adoptionRules() []RuleInfo {
 			Description: "Bus subscriptions without dedup module — duplicate event delivery not handled at stream boundaries",
 			AutoFix:     false,
 		},
+		{
+			ID:          "F018",
+			Name:        "metaengine-filteron-pushdown",
+			Category:    "adoption",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "metaengine.FilterOn (closure-based) prevents SQL pushdown — use FilterOnField for WHERE-clause pushdown",
+			AutoFix:     false,
+		},
+		{
+			ID:          "F019",
+			Name:        "metaengine-missing-volume-hint",
+			Category:    "adoption",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "metaengine queries lack Volume hint — cost-based planner cannot optimize engine selection",
+			AutoFix:     false,
+		},
 	}
 }
