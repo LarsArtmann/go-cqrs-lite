@@ -781,3 +781,273 @@ func TestProperty_RandomOpsMaintainConsistency(t *testing.T) {
 		}
 	}
 }
+
+// --- PrefetchCache end-to-end pagination tests ---
+
+func TestPrefetchCache_EndToEndPagination(t *testing.T) {
+	t.Parallel()
+
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	ctx := context.Background()
+	cache := NewPrefetchCache()
+	reader := NewReader[testTask](store, "tasks").WithPrefetch(cache)
+
+	// Insert 10 tasks with distinct titles.
+	for i := range 10 {
+		_ = store.Apply(ctx, "task_created", testTask{
+			ID:    testTaskID(fmt.Sprintf("t%d", i)),
+			Title: fmt.Sprintf("Task-%02d", i),
+		})
+	}
+
+	// Page 1: limit 3, no cursor.
+	page1, cursor1, err := reader.ScanPage(ctx, WithSort("Title", false), WithLimit(3))
+	if err != nil {
+		t.Fatalf("ScanPage page1: %v", err)
+	}
+
+	if len(page1) != 3 {
+		t.Fatalf("expected 3 items on page1, got %d", len(page1))
+	}
+
+	if cursor1 == nil {
+		t.Fatal("expected non-nil cursor after page1 (more pages exist)")
+	}
+
+	// Page 2: use cursor from page1 — should be served from PrefetchCache.
+	page2, cursor2, err := reader.ScanPage(ctx, WithSort("Title", false), WithLimit(3), WithCursor(cursor1.Value))
+	if err != nil {
+		t.Fatalf("ScanPage page2: %v", err)
+	}
+
+	if len(page2) != 3 {
+		t.Fatalf("expected 3 items on page2, got %d", len(page2))
+	}
+
+	if cursor2 == nil {
+		t.Fatal("expected non-nil cursor after page2 (more pages exist)")
+	}
+
+	// Verify no overlap between pages.
+	seen := make(map[testTaskID]bool)
+	for _, item := range page1 {
+		seen[item.ID] = true
+	}
+
+	for _, item := range page2 {
+		if seen[item.ID] {
+			t.Errorf("item %s appeared on both pages", item.ID)
+		}
+	}
+}
+
+func TestPrefetchCache_SQLiteEndToEnd(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+
+	defer db.Close()
+
+	eng, err := NewSQLiteEngine(db)
+	if err != nil {
+		t.Fatalf("NewSQLiteEngine: %v", err)
+	}
+
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	ctx := context.Background()
+	cache := NewPrefetchCache()
+	reader := NewReader[testTask](store, "tasks").WithPrefetch(cache)
+
+	for i := range 10 {
+		_ = store.Apply(ctx, "task_created", testTask{
+			ID:    testTaskID(fmt.Sprintf("t%d", i)),
+			Title: fmt.Sprintf("Task-%02d", i),
+		})
+	}
+
+	page1, cursor1, err := reader.ScanPage(ctx, WithSort("Title", false), WithLimit(3))
+	if err != nil {
+		t.Fatalf("ScanPage page1: %v", err)
+	}
+
+	if len(page1) != 3 {
+		t.Fatalf("expected 3 items on page1, got %d", len(page1))
+	}
+
+	if cursor1 == nil {
+		t.Fatal("expected non-nil cursor after page1")
+	}
+
+	// Page 2 from cache (or engine fallback).
+	page2, _, err := reader.ScanPage(ctx, WithSort("Title", false), WithLimit(3), WithCursor(cursor1.Value))
+	if err != nil {
+		t.Fatalf("ScanPage page2: %v", err)
+	}
+
+	if len(page2) != 3 {
+		t.Fatalf("expected 3 items on page2, got %d", len(page2))
+	}
+}
+
+// --- SSE multi-subscriber fan-out test ---
+
+func TestSSE_MultiSubscriberFanOut(t *testing.T) {
+	t.Parallel()
+
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	watcher := NewWatcher[testTask](store, "tasks")
+	defer watcher.Close()
+
+	// Start 3 SSE servers sharing the same watcher.
+	servers := make([]*httptest.Server, 3)
+
+	for i := range 3 {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_ = ServeSSE(w, r, watcher, WithSSETimeout(2*time.Second))
+		}))
+		servers[i] = srv
+	}
+
+	defer func() {
+		for _, srv := range servers {
+			srv.Close()
+		}
+	}()
+
+	// Connect 3 clients.
+	type sseResult struct {
+		events []string
+		err    error
+	}
+
+	results := make([]sseResult, 3)
+	var wg sync.WaitGroup
+
+	wg.Add(3)
+
+	for i := range 3 {
+		go func(idx int) {
+			defer wg.Done()
+
+			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, servers[idx].URL, nil)
+
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				results[idx].err = err
+				return
+			}
+
+			defer resp.Body.Close()
+
+			buf := make([]byte, 4096)
+			for {
+				n, err := resp.Body.Read(buf)
+				if n > 0 {
+					results[idx].events = append(results[idx].events, string(buf[:n]))
+				}
+
+				if err != nil {
+					return
+				}
+			}
+		}(i)
+	}
+
+	// Give clients time to connect.
+	time.Sleep(100 * time.Millisecond)
+
+	// Apply an event that should reach all subscribers.
+	_ = store.Apply(ctx, "task_created", testTask{ID: "fanout-1", Title: "FanOut"})
+
+	cancel()
+	wg.Wait()
+
+	// At least one subscriber should have received data.
+	received := 0
+
+	for _, r := range results {
+		if len(r.events) > 0 {
+			received++
+		}
+	}
+
+	if received == 0 {
+		t.Error("expected at least one subscriber to receive events")
+	}
+}
+
+// --- Export/Import cross-engine test ---
+
+func TestExportImport_CrossEngine(t *testing.T) {
+	t.Parallel()
+
+	// Export from Memory.
+	memEng := NewMemoryEngine()
+	memStore, err := Plan([]Engine{memEng}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan memory: %v", err)
+	}
+
+	ctx := context.Background()
+	_ = memStore.ApplyBatch(ctx, []EventInput{
+		{Type: "task_created", Payload: testTask{ID: "x1", Title: "Cross", Status: "open"}},
+		{Type: "task_created", Payload: testTask{ID: "x2", Title: "Engine", Status: "done"}},
+	})
+
+	var buf bytes.Buffer
+	if err := memStore.Export(ctx, &buf); err != nil {
+		t.Fatalf("Export: %v", err)
+	}
+
+	// Import to SQLite.
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+
+	defer db.Close()
+
+	sqlEng, err := NewSQLiteEngine(db)
+	if err != nil {
+		t.Fatalf("NewSQLiteEngine: %v", err)
+	}
+
+	sqlStore, err := Plan([]Engine{sqlEng}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan sqlite: %v", err)
+	}
+
+	if err := sqlStore.Import(ctx, &buf); err != nil {
+		t.Fatalf("Import: %v", err)
+	}
+
+	reader := NewReader[testTask](sqlStore, "tasks")
+	results, err := reader.Scan(ctx)
+	if err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Fatalf("expected 2 tasks after cross-engine import, got %d", len(results))
+	}
+}
