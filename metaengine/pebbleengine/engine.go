@@ -54,11 +54,13 @@ const PebbleNsPerRead = 708.0
 const PebbleNsPerWrite = 1785.0
 
 type pebbleEngine struct {
-	db     *pebble.DB
-	ownsDB bool
-	mu     sync.Mutex // guards counter/multimap/log seq operations
-	logSeq sync.Map   // collection → *atomic.Int64 (log sequence counter)
-	mmSeq  sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
+	db       *pebble.DB
+	ownsDB   bool
+	mu       sync.Mutex // guards counter/multimap/log seq operations
+	logSeq   sync.Map   // collection → *atomic.Int64 (log sequence counter)
+	mmSeq    sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
+	layoutMu sync.Mutex
+	layouts  map[string]layoutPlan // collection → layout plan (secondary indexes)
 }
 
 // NewPebbleEngine creates a Pebble-backed metaengine engine. If dir is empty,
@@ -214,7 +216,40 @@ var (
 // --- MapBackend ---
 
 func (e *pebbleEngine) MapSet(_ context.Context, col string, key any, value any) error {
-	return e.db.Set(mapKey(col, encodeKeyStr(key)), encodeJSON(value), pebble.Sync)
+	keyStr := encodeKeyStr(key)
+	valueJSON := encodeJSON(value)
+
+	// Write secondary index entries if a layout plan exists.
+	e.layoutMu.Lock()
+	plan, hasLayout := e.layouts[col]
+	e.layoutMu.Unlock()
+
+	if hasLayout {
+		batch, err := e.db.NewBatch()
+		if err != nil {
+			return fmt.Errorf("pebbleengine: MapSet batch: %w", err)
+		}
+
+		defer func() { _ = batch.Close() }()
+
+		// Delete old index entries if the key already exists.
+		if oldVal, closer, err := e.db.Get(mapKey(col, keyStr)); err == nil {
+			e.deleteIndexEntries(batch, col, keyStr, oldVal, plan)
+			_ = closer.Close() //nolint:errcheck // pebble closer
+		}
+
+		if err := batch.Set(mapKey(col, keyStr), valueJSON, nil); err != nil {
+			return fmt.Errorf("pebbleengine: MapSet: %w", err)
+		}
+
+		if err := e.writeIndexEntries(batch, col, keyStr, valueJSON, plan); err != nil {
+			return err
+		}
+
+		return batch.Commit(pebble.Sync)
+	}
+
+	return e.db.Set(mapKey(col, keyStr), valueJSON, pebble.Sync)
 }
 
 func (e *pebbleEngine) MapGet(_ context.Context, col string, key any) (any, bool, error) {

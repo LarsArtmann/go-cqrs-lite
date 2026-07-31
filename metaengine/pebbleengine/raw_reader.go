@@ -46,13 +46,29 @@ func (e *pebbleEngine) GetRawValue(_ context.Context, col string, key any) ([]by
 // engine), but the returned bytes allow the caller to decode directly to the
 // target type V, avoiding the reify-from-map reflection step.
 func (e *pebbleEngine) ScanRawValues(
-	_ context.Context,
+	ctx context.Context,
 	col string,
 	filters []metaengine.FilterSpec,
 	sortSpec *metaengine.SortSpec,
 	cursor any,
 	limit int,
 ) ([][]byte, error) {
+	// Fast path: use secondary index if a layout plan exists and filters match.
+	e.layoutMu.Lock()
+	plan, hasLayout := e.layouts[col]
+	e.layoutMu.Unlock()
+
+	if hasLayout {
+		if indexed, err := e.scanWithIndex(ctx, col, filters, plan); err == nil && indexed != nil {
+			// Apply sort + limit on indexed results.
+			if sortSpec != nil {
+				sortIndexedResults(indexed, sortSpec.Column, sortSpec.Desc)
+			}
+
+			return applyLimit(indexed, limit), nil
+		}
+	}
+
 	prefix := collectionPrefix(col)
 	upperBound := nextKey(prefix)
 
