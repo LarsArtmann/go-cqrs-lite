@@ -52,6 +52,7 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 
 	if r.store.coalescer != nil {
 		coalesceKey := r.collection + ":" + fmt.Sprint(key)
+
 		result, err := r.store.coalescer.Do(coalesceKey, func() (any, error) {
 			return r.getUncached(ctx, key)
 		})

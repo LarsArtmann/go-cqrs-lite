@@ -104,12 +104,13 @@ var _ projection.Projection = (*Adapter)(nil)
 // The event types are auto-derived from the store's planned queries.
 func RegisterWithHost(
 	host interface {
-		Register(projection.Projection) error
+		Register(p projection.Projection) error
 	},
 	name string,
 	store *metaengine.Store,
 	decoder PayloadDecoder,
 ) error {
 	adapter := New(name, store, decoder)
+
 	return host.Register(adapter)
 }

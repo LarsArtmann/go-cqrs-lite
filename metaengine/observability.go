@@ -253,6 +253,7 @@ func WithTracing(store *Store, tracer Tracer) {
 			if err != nil {
 				span.SetAttribute("error", err.Error())
 			}
+
 			span.End()
 
 			_ = ctx
@@ -268,6 +269,7 @@ func WithTracing(store *Store, tracer Tracer) {
 			if err != nil {
 				span.SetAttribute("error", err.Error())
 			}
+
 			span.End()
 		},
 	}
