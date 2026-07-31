@@ -176,6 +176,47 @@ func filterFPSuspects(findings []finding.Finding) []finding.Finding {
 	return result
 }
 
+// financialEscalatedRules are rules whose severity is escalated to Error when
+// the project domain is financial. Security and money-handling bugs in
+// financial systems are always errors, never warnings.
+var financialEscalatedRules = map[string]bool{ //nolint:gochecknoglobals // static lookup table
+	"S001": true, // hardcoded-secret
+	"S002": true, // signing-disabled
+	"S003": true, // encryption-disabled
+	"S005": true, // hmac-secret-too-short
+	"S006": true, // encryption-key-too-short
+	"S007": true, // insecure-random
+	"S008": true, // missing-event-signing
+	"S009": true, // missing-event-encryption
+	"S010": true, // encryption-signing-mismatch
+	"C008": true, // money-as-float64
+}
+
+// applyDomainBias escalates finding severities based on the project domain.
+// Financial domains escalate security and money-handling rules to Error so
+// they cannot be filtered out by --min-severity=warning.
+func applyDomainBias(
+	findings []finding.Finding,
+	domain analyzer.DomainKind,
+) []finding.Finding {
+	if domain != analyzer.DomainFinancial {
+		return findings
+	}
+
+	result := make([]finding.Finding, len(findings))
+	for i, f := range findings {
+		if financialEscalatedRules[string(f.Rule)] && !f.Severity.AtLeast(finding.SeverityError) {
+			f.Severity = finding.SeverityError
+			if f.Message != "" {
+				f.Message += " [escalated: financial domain]"
+			}
+		}
+		result[i] = f
+	}
+
+	return result
+}
+
 func parseSeverity(s string) finding.Severity {
 	switch strings.ToLower(s) {
 	case "critical":
