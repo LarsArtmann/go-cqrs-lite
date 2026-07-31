@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/architecture"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 )
 
 func TestE016_DetectsMissingHealthCheck(t *testing.T) {

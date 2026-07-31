@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/boilerplate"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 )
 
 // --- B002: Manual repository wiring ---

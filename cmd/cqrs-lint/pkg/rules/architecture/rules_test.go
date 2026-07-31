@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/architecture"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 )
 
 func TestE004_DetectsUncatalogedEvent(t *testing.T) {

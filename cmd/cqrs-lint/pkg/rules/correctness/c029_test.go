@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 )
 
 func TestC029_DetectsNilKeyExtractor(t *testing.T) {

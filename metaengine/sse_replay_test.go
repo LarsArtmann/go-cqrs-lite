@@ -2,12 +2,16 @@ package metaengine
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
+
+	_ "modernc.org/sqlite"
 )
 
 // --- SSEReplay unit tests ---
@@ -657,5 +661,194 @@ func TestWithCursorString_InvalidString(t *testing.T) {
 
 	if len(page) != 1 {
 		t.Fatalf("expected 1 item, got %d", len(page))
+	}
+}
+
+// --- PrefetchCache concurrent access test ---
+
+func TestPrefetchCache_ConcurrentAccess(t *testing.T) {
+	t.Parallel()
+
+	cache := NewPrefetchCache()
+
+	var wg sync.WaitGroup
+
+	// Writers: hammer Put from multiple goroutines.
+	for range 8 {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			for i := range 500 {
+				cache.Put(fmt.Sprintf("key-%d", i%20), []any{fmt.Sprintf("val-%d", i)})
+			}
+		}()
+	}
+
+	// Readers: hammer Get concurrently.
+	for range 4 {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			for i := range 1000 {
+				_ = cache.Get(fmt.Sprintf("key-%d", i%20))
+			}
+		}()
+	}
+
+	// Clearer: periodically wipes the cache.
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		for range 100 {
+			cache.Clear()
+		}
+	}()
+
+	wg.Wait()
+
+	// Final state should be usable.
+	cache.Put("final", []any{"done"})
+
+	if v := cache.Get("final"); v == nil {
+		t.Error("expected cache hit after concurrent writes")
+	}
+}
+
+// --- SQLite engine SSE replay test ---
+
+func TestSSE_LastEventID_Reconnect_SQLite(t *testing.T) {
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer db.Close()
+
+	eng, err := NewSQLiteEngine(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	watcher := NewWatcher[testTask](store, "tasks")
+	watcher.WithReplay(100)
+	defer watcher.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+		_ = ServeSSE(w, r, watcher, WithSSETimeout(5*time.Second))
+	})
+
+	srv := &http.Server{Handler: mux}
+	defer srv.Close()
+
+	ln, _ := net.Listen("tcp", "127.0.0.1:0")
+	srv.Addr = ln.Addr().String()
+	go srv.Serve(ln)
+
+	time.Sleep(100 * time.Millisecond)
+
+	// Phase 1: Connect and receive events.
+	conn1, err := net.Dial("tcp", srv.Addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer conn1.Close()
+
+	_, _ = conn1.Write([]byte("GET /events HTTP/1.0\r\nHost: localhost\r\n\r\n"))
+	time.Sleep(200 * time.Millisecond)
+
+	_ = store.Apply(ctx, "task_created", testTask{ID: "sc1", Title: "SQLite Reconnect 1"})
+	_ = store.Apply(ctx, "task_created", testTask{ID: "sc2", Title: "SQLite Reconnect 2"})
+
+	var data1 string
+
+	deadline := time.Now().Add(5 * time.Second)
+	rbuf := make([]byte, 8192)
+
+	for time.Now().Before(deadline) {
+		conn1.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
+		n, err := conn1.Read(rbuf)
+		if err != nil {
+			break
+		}
+
+		data1 += string(rbuf[:n])
+
+		if strings.Contains(data1, "SQLite Reconnect 2") {
+			break
+		}
+	}
+
+	if !strings.Contains(data1, "id: 1") {
+		t.Errorf("expected 'id: 1' in SSE output, got: %s", data1)
+	}
+
+	if !strings.Contains(data1, "id: 2") {
+		t.Errorf("expected 'id: 2' in SSE output, got: %s", data1)
+	}
+
+	// Phase 2: Reconnect with Last-Event-ID: 2.
+	conn1.Close()
+	time.Sleep(100 * time.Millisecond)
+
+	_ = store.Apply(ctx, "task_created", testTask{ID: "sc3", Title: "SQLite Reconnect 3"})
+	_ = store.Apply(ctx, "task_created", testTask{ID: "sc4", Title: "SQLite Reconnect 4"})
+
+	time.Sleep(100 * time.Millisecond)
+
+	conn2, err := net.Dial("tcp", srv.Addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer conn2.Close()
+
+	_, _ = conn2.Write(
+		[]byte("GET /events HTTP/1.0\r\nHost: localhost\r\nLast-Event-ID: 2\r\n\r\n"),
+	)
+
+	var data2 string
+
+	deadline2 := time.Now().Add(5 * time.Second)
+
+	for time.Now().Before(deadline2) {
+		conn2.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
+		n, err := conn2.Read(rbuf)
+		if err != nil {
+			break
+		}
+
+		data2 += string(rbuf[:n])
+
+		if strings.Contains(data2, "SQLite Reconnect 3") && strings.Contains(data2, "SQLite Reconnect 4") {
+			break
+		}
+	}
+
+	if !strings.Contains(data2, "id: 3") {
+		t.Errorf("expected 'id: 3' in replayed output, got: %s", data2)
+	}
+
+	if !strings.Contains(data2, "id: 4") {
+		t.Errorf("expected 'id: 4' in replayed output, got: %s", data2)
+	}
+
+	if strings.Contains(data2, "SQLite Reconnect 1") {
+		t.Errorf("replay should not include event 1 (before Last-Event-ID)")
 	}
 }

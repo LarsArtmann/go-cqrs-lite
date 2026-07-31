@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/api"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 )
 
 func TestA032_DetectsStringID(t *testing.T) {

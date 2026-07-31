@@ -322,7 +322,9 @@ func (w *Watcher[V]) Close() {
 
 // PrefetchCache caches scan results beyond the requested limit for the next
 // page request. Eliminates the limit+1 round-trip pattern.
+// Thread-safe: safe for concurrent use from multiple goroutines.
 type PrefetchCache struct {
+	mu    sync.RWMutex
 	pages map[string][]any // cursor key → cached rows
 }
 
@@ -333,16 +335,25 @@ func NewPrefetchCache() *PrefetchCache {
 
 // Get returns cached rows for a cursor key, or nil if not cached.
 func (c *PrefetchCache) Get(key string) []any {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	return c.pages[key]
 }
 
 // Put stores rows for a cursor key.
 func (c *PrefetchCache) Put(key string, rows []any) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	c.pages[key] = rows
 }
 
 // Clear removes all cached pages.
 func (c *PrefetchCache) Clear() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	c.pages = make(map[string][]any)
 }
 

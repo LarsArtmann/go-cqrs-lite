@@ -24,6 +24,7 @@ require (
 	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.24.1 // indirect

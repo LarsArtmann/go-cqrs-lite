@@ -129,12 +129,12 @@ func ServeSSE[V any](
 // serveSSEPlain is the non-reconnection path: no id field, no dedup.
 func serveSSEPlain[V any](
 	w http.ResponseWriter,
-	_ *http.Request,
+	r *http.Request,
 	flusher http.Flusher,
 	watcher *Watcher[V],
 	cfg SSEConfig,
 ) error {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	buf := make(chan V, cfg.MaxBuffer)
 	watchCh := watcher.Watch(ctx, nil)
@@ -163,7 +163,7 @@ func serveSSEReplay[V any](
 	replay *SSEReplay[V],
 	cfg SSEConfig,
 ) error {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	// Phase 0: Subscribe FIRST to buffer live events arriving during replay.
 	buf := make(chan SeqValue[V], cfg.MaxBuffer)
