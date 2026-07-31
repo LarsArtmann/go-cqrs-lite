@@ -293,6 +293,7 @@ func setupMetaEngine(
 		onTyped(string(evtTaskDeleted), eventWithID[TaskDeletedPayload]{},
 			metaengine.Remove[TaskView]()),
 		metaengine.FilterOnField[TaskView]("status", metaengine.FilterEq),
+		metaengine.SortOnField[TaskView]("priority", true), // default DESC
 		metaengine.Volume(10_000),
 	)
 

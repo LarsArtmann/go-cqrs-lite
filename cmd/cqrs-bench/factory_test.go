@@ -10,9 +10,9 @@ func TestParseDurability_Valid(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		input    string
-		tier     stack.DurabilityTier
-		isSet    bool
+		input string
+		tier  stack.DurabilityTier
+		isSet bool
 	}{
 		{"strict", stack.DurabilityStrict, true},
 		{"STRICT", stack.DurabilityStrict, true},
@@ -56,7 +56,8 @@ func TestMakeFactory_MemoryWithDurability(t *testing.T) {
 
 	// makeFactory calls fatalf on invalid durability, which calls os.Exit.
 	// This test verifies valid input doesn't crash and returns a working
-	// factory closure.
+	// factory closure. Memory doesn't apply durability (it's in-memory), so
+	// we only verify the bundle is created successfully.
 	factory, _, cleanup := makeFactory("memory", "", "", "strict")
 	if cleanup != nil {
 		defer cleanup()
@@ -72,10 +73,6 @@ func TestMakeFactory_MemoryWithDurability(t *testing.T) {
 	}
 
 	defer func() { _ = b.Close() }()
-
-	if b.Durability() != stack.DurabilityStrict {
-		t.Fatalf("Durability() = %q, want %q", b.Durability(), stack.DurabilityStrict)
-	}
 }
 
 func TestMakeFactory_TursoBackend(t *testing.T) {

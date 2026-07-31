@@ -15,7 +15,8 @@ func querySynchronous(t *testing.T, db *sql.DB) int {
 
 	var level int
 
-	if err := db.QueryRowContext(context.Background(), "PRAGMA synchronous").Scan(&level); err != nil {
+	if err := db.QueryRowContext(context.Background(), "PRAGMA synchronous").
+		Scan(&level); err != nil {
 		t.Fatalf("query synchronous: %v", err)
 	}
 

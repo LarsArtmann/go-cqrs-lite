@@ -183,7 +183,8 @@ func parseDurability(s string) (stack.DurabilityTier, bool, error) {
 		return stack.DurabilityNormal, false, nil
 	default:
 		return "", false, fmt.Errorf(
-			"unknown durability tier: %s (use strict, normal, or relaxed)", s)
+			"unknown durability tier: %s (use strict, normal, or relaxed)", s,
+		)
 	}
 }
 

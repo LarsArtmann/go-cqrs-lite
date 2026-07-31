@@ -81,6 +81,9 @@ func (s *Server) handleListTasks(w http.ResponseWriter, r *http.Request) {
 		opts = append(opts, metaengine.WithFilter("status", metaengine.FilterEq, statusFilter))
 	}
 
+	// Default sort: priority DESC (highest-priority tasks first).
+	opts = append(opts, metaengine.WithSort("priority", true))
+
 	tasks, err := s.TaskReader.Scan(r.Context(), opts...)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "list tasks: "+err.Error())

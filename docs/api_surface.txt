@@ -2346,6 +2346,8 @@ storage/func AutoMapperWithTombstone
 storage/func ConfigureSQLitePool
 storage/func ConfigureTursoPool
 storage/func DuckDBInitSchema
+storage/func EnsurePostgresStatementTimeout
+storage/func EnsurePostgresSynchronousCommit
 storage/func EnsureSQLiteDSNBusyTimeout
 storage/func MySQLInitSchema
 storage/func NewAggregateProjection

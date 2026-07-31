@@ -203,12 +203,14 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 func applyDSNSettings(dsn string, cfg config) string {
 	if cfg.durability != "" {
 		dsn = storage.EnsurePostgresSynchronousCommit(
-			dsn, cfg.durability == stack.DurabilityStrict)
+			dsn, cfg.durability == stack.DurabilityStrict,
+		)
 	}
 
 	if cfg.statementTimeout > 0 {
 		dsn = storage.EnsurePostgresStatementTimeout(
-			dsn, cfg.statementTimeout.Milliseconds())
+			dsn, cfg.statementTimeout.Milliseconds(),
+		)
 	}
 
 	return dsn
@@ -222,7 +224,11 @@ func openBackend(
 ) (*sql.DB, *storage.SQLBackend, error) {
 	return sqlopt.OpenPrimaryBackend( //nolint:wrapcheck // OpenPrimaryBackend wraps all errors
 		func() (*sql.DB, error) {
-			return sqlopt.OpenDBOrErr("pgx", applyDSNSettings(dsn, cfg), "postgres_preset.open_primary")
+			return sqlopt.OpenDBOrErr(
+				"pgx",
+				applyDSNSettings(dsn, cfg),
+				"postgres_preset.open_primary",
+			)
 		},
 		func(ctx context.Context, sqlDB *sql.DB) error {
 			// Apply pool sizing before any connections are created.

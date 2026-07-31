@@ -108,7 +108,8 @@ func TestNew_WithDurability_Relaxed(t *testing.T) {
 func TestNew_WithDurability_PoolWide(t *testing.T) {
 	dsn := postgresDSN(t)
 
-	b, err := postgres.New(dsn,
+	b, err := postgres.New(
+		dsn,
 		postgres.WithDurability(stack.DurabilityStrict),
 		postgres.WithPoolSize(5, 5),
 	)
@@ -125,7 +126,12 @@ func TestNew_WithDurability_PoolWide(t *testing.T) {
 	// If the DSN-level parameter works, every connection reports "on".
 	for i := range 10 {
 		if val := showSynchronousCommit(t, db); val != "on" {
-			t.Fatalf("iteration %d: synchronous_commit = %q, want %q (pool-scoping bug)", i, val, "on")
+			t.Fatalf(
+				"iteration %d: synchronous_commit = %q, want %q (pool-scoping bug)",
+				i,
+				val,
+				"on",
+			)
 		}
 	}
 }
