@@ -331,6 +331,15 @@ func performanceRules() []RuleInfo { //nolint:dupl // catalog pattern
 			Description: "SQLite store without WAL mode — prone to 'database is locked' errors under concurrent access",
 			AutoFix:     false,
 		},
+		{
+			ID:          "P013",
+			Name:        "missing-sqlite-busy-timeout",
+			Category:    "performance",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "SQLite store without busy_timeout — 'database is locked' errors under concurrent access",
+			AutoFix:     false,
+		},
 	}
 }
 

@@ -102,7 +102,7 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSet:       metaengine.ComplexityO1,
 			metaengine.ADTCounter:   metaengine.ComplexityON, // CounterGet = prefix scan
 			metaengine.ADTGraph:     metaengine.ComplexityON, // BFS via prefix scan
-			metaengine.ADTSortedMap: metaengine.ComplexityON, // no secondary index
+			metaengine.ADTSortedMap: metaengine.ComplexityON, // O(limit) with sort index, O(N) fallback
 			metaengine.ADTLog:       metaengine.ComplexityOLogN,
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 		},
