@@ -1579,6 +1579,7 @@ metaengine/pebbleengine/const PebbleNsPerRead
 metaengine/pebbleengine/const PebbleNsPerWrite
 metaengine/pebbleengine/func NewPebbleEngine
 metaengine/pebbleengine/func NewPebbleEngineFromDB
+metaengine/pebbleengine/method ApplyLayout
 metaengine/pebbleengine/method Close
 metaengine/pebbleengine/method CounterGet
 metaengine/pebbleengine/method CounterIncrement
