@@ -121,6 +121,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0078](adr/0078-metaengine-kv-coexistence.md)              | Metaengine and kv.ViewStore coexistence                 | Accepted                 |
 | [0079](adr/0079-sse-consolidation.md)                      | SSE consolidation — two implementations, two layers     | Accepted                 |
 | [0080](adr/0080-dialect-interface-upsert-methods.md)       | Dialect interface expansion for cross-database upsert   | Accepted                 |
+| [0081](adr/0081-metaengine-runtime-casts.md)               | Why Metaengine Uses Runtime Casts                       | Accepted                 |
 
 ## API Reference
 
