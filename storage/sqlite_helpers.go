@@ -242,7 +242,7 @@ func MySQLInitSchema(ctx context.Context, db *sql.DB) error {
 func splitMySQLDDL(schema string) []string {
 	var stmts []string
 
-	for _, stmt := range strings.Split(schema, ";\n") {
+	for stmt := range strings.SplitSeq(schema, ";\n") {
 		stmt = strings.TrimSpace(stmt)
 		if stmt == "" {
 			continue
