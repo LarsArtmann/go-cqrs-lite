@@ -688,3 +688,85 @@ Key points:
 - benchkit auto-discovers via `MetaEngine() != nil` (unless `Config.SkipMetaEngine`)
 - The consumer calls `metaengine.Plan()` themselves (typed generics can't flow through `any`)
 - `sqlite.WithStack()` is the passthrough for additional `stack.Option`s on any SQL preset
+
+### Filtered Scan with Metaengine (Map + FilterOnField + SQLite Pushdown)
+
+For read models that need filtered/sorted scans, declare a Map query with
+`FilterOnField` and `SortOnField`. The planner pushes these to SQLite's
+`json_extract()` WHERE/ORDER BY for O(logN) scans instead of O(N) Go-side
+filtering (50x faster at 10K rows).
+
+```go
+type listInput struct{ Status string }
+type itemView struct {
+    ID       string `json:"id"`
+    Status   string `json:"status"`
+    Priority int    `json:"priority"`
+}
+
+query := metaengine.Query[listInput, itemView]("items",
+    metaengine.On(createdEvt{}, func(e createdEvt) (string, itemView) {
+        return e.ID, itemView{ID: e.ID, Status: "open", Priority: e.Priority}
+    }),
+    metaengine.On(deletedEvt{}, metaengine.Remove[itemView]()),
+    metaengine.FilterOnField[itemView]("status", metaengine.FilterEq),
+    metaengine.SortOnField[itemView]("priority", true),
+)
+
+store, _ := metaengine.Plan(
+    []metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
+    query,
+)
+reader := metaengine.NewReader[itemView](store, "items")
+
+// Filtered scan (SQLite pushdown):
+active, _ := reader.Scan(ctx,
+    metaengine.WithFilter("status", metaengine.FilterEq, "active"),
+    metaengine.WithSort("priority", true),
+    metaengine.WithLimit(50))
+
+// Point lookup:
+item, found, _ := reader.Get(ctx, "item-123")
+```
+
+### Bridging Stream IDs to Map Keys (eventWithID Wrapper)
+
+Map fold handlers need the entity ID as the key, but the event payload doesn't
+contain it — it lives in the event's StreamID. Use `EventDecoder` to wrap the
+typed payload with the stream ID:
+
+```go
+type eventWithID[P any] struct {
+    ID      string
+    Payload P
+}
+
+func myDecoder(evt event.Event) (any, error) {
+    id := evt.StreamID().String()
+    switch evt.Type() {
+    case "created":
+        var p createdPayload
+        _ = json.Unmarshal(evt.Payload(), &p)
+        return eventWithID[createdPayload]{ID: id, Payload: p}, nil
+    default:
+        return nil, fmt.Errorf("no fold for %q", evt.Type())
+    }
+}
+
+adapter := projectionadapter.New("items", store, nil,
+    projectionadapter.WithEventDecoder(myDecoder))
+```
+
+### Multi-Engine Distribution (Counter to Memory, Map to SQLite)
+
+The planner inspects query shapes and assigns each to the cheapest supporting
+engine. Counters (O(1) reads) go to Memory; filtered Maps go to SQLite
+(pushdown scans):
+
+```go
+store, _ := metaengine.Plan(
+    []metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
+    counterQuery, // Counter → Memory
+    mapQuery,     // Map + FilterOnField → SQLite
+)
+```
