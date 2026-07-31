@@ -15,7 +15,7 @@ import (
 // openSecondaryDB opens and configures a secondary Postgres database (for
 // events, queries, or views when multi-DB mode is enabled).
 func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
-	sqlDB, err := sql.Open("pgx", dsn)
+	sqlDB, err := sql.Open("pgx", applyDSNSettings(dsn, cfg))
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "postgres.open_secondary",
 			fmt.Sprintf("open %q", dsn))

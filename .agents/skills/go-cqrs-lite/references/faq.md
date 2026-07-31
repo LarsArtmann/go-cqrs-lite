@@ -74,6 +74,19 @@ backend, _ := storage.NewSQLBackend(db, sql.PostgresDialect{})
 backend, _ := storage.NewSQLBackend(db)
 ```
 
+### "MySQL: `parseTime=true` is required"
+
+**Cause:** Without `parseTime=true` in the DSN, `DATETIME` columns are returned as
+`[]byte` instead of `time.Time`, breaking event timestamps:
+
+```go
+// Wrong — timestamps will be []byte
+b, _ := mysql.New("root:pass@tcp(localhost:3306)/myapp")
+
+// Correct — add parseTime=true
+b, _ := mysql.New("root:pass@tcp(localhost:3306)/myapp?parseTime=true")
+```
+
 ### "catalog.NewRegistry needs arguments"
 
 **Cause:** It requires a title and version:

@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"io"
 	"time"
 
@@ -53,8 +52,8 @@ func defaultConfig() config {
 //   - [stack.DurabilityRelaxed] → synchronous_commit=off (same as Normal for
 //     Postgres)
 //
-// The setting is applied as a session-level SET command. For pool-wide effect
-// with MaxOpenConns > 1, set synchronous_commit in the DSN or via ALTER DATABASE.
+// The setting is injected into the connection DSN so every pooled connection
+// inherits it — not just the connection that first opens the database.
 //
 // The chosen tier is recorded on the Bundle via [stack.WithDurability] so
 // benchmark tools can compare backends at the same durability level.
@@ -77,9 +76,9 @@ func WithPoolSize(maxOpen, maxIdle int) Option {
 }
 
 // WithStatementTimeout sets the maximum duration a query can run before
-// Postgres aborts it. Maps to SET statement_timeout = '<d>'. Protects against
-// runaway queries that could block the connection pool. Zero or negative
-// disables the timeout (the Postgres default).
+// Postgres aborts it. Injected into the connection DSN (statement_timeout=<ms>)
+// so every pooled connection inherits it. Zero or negative disables the
+// timeout (the Postgres default).
 func WithStatementTimeout(d time.Duration) Option {
 	return func(c *config) { c.statementTimeout = d }
 }
@@ -196,6 +195,25 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	return bundle, nil
 }
 
+// applyDSNSettings injects durability and statement_timeout into the DSN so
+// every pooled connection inherits them. Session-level SET commands only apply
+// to one connection — with MaxOpenConns > 1, new connections would silently
+// revert to server defaults. pgx applies DSN-level GUCs on every new
+// connection, making this pool-safe.
+func applyDSNSettings(dsn string, cfg config) string {
+	if cfg.durability != "" {
+		dsn = storage.EnsurePostgresSynchronousCommit(
+			dsn, cfg.durability == stack.DurabilityStrict)
+	}
+
+	if cfg.statementTimeout > 0 {
+		dsn = storage.EnsurePostgresStatementTimeout(
+			dsn, cfg.statementTimeout.Milliseconds())
+	}
+
+	return dsn
+}
+
 // openBackend opens the database, applies schema, and returns both the *sql.DB
 // (for lifecycle) and the SQLBackend (for store access).
 func openBackend(
@@ -204,7 +222,7 @@ func openBackend(
 ) (*sql.DB, *storage.SQLBackend, error) {
 	return sqlopt.OpenPrimaryBackend( //nolint:wrapcheck // OpenPrimaryBackend wraps all errors
 		func() (*sql.DB, error) {
-			return sqlopt.OpenDBOrErr("pgx", dsn, "postgres_preset.open_primary")
+			return sqlopt.OpenDBOrErr("pgx", applyDSNSettings(dsn, cfg), "postgres_preset.open_primary")
 		},
 		func(ctx context.Context, sqlDB *sql.DB) error {
 			// Apply pool sizing before any connections are created.
@@ -216,24 +234,9 @@ func openBackend(
 				sqlDB.SetMaxIdleConns(cfg.maxIdleConns)
 			}
 
-			if cfg.durability != "" {
-				if err := storage.PostgresSetSynchronousCommit(ctx, sqlDB,
-					cfg.durability == stack.DurabilityStrict); err != nil {
-					return errorfamily.WrapInfrastructure(err, "postgres_preset.apply_durability",
-						"apply durability tier")
-				}
-			}
-
-			if cfg.statementTimeout > 0 {
-				stmt := fmt.Sprintf(
-					"SET statement_timeout = %d",
-					cfg.statementTimeout.Milliseconds(),
-				)
-				if _, err := sqlDB.ExecContext(ctx, stmt); err != nil {
-					return errorfamily.WrapInfrastructure(err, "postgres_preset.statement_timeout",
-						"set statement timeout")
-				}
-			}
+			// Durability and statement_timeout are injected at the DSN level
+			// (see applyDSNSettings) so every pooled connection inherits them.
+			// Session-level SET only applies to one connection.
 
 			if !cfg.AutoMigrate {
 				return nil

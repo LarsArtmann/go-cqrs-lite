@@ -121,6 +121,10 @@ to [TODO_LIST.md](TODO_LIST.md) when actively worked:
 - ✅ **DuckDB analytical backend** — shipped as `stack/duckdb` preset +
   `DuckDBDialect` in `storage/sql/`. CGo isolated (ADR-0071). Columnar OLAP
   queries alongside the transactional store.
+- ✅ **MySQL/MariaDB backend** — shipped as `stack/mysql` preset +
+  `MySQLDialect` in `storage/sql/`. `Dialect` interface expanded with 4 upsert/
+  quoting methods (ADR-0080). Pure-Go driver (`go-sql-driver/mysql`), no CGo.
+  Full `idempotency/sqlstore` support with MySQL `IF()` conditional TTL.
 - ✅ **NATS transport design** — `docs/planning/nats-transport-design.md`
   documents JetStream stream config, durable consumers, and CatchUpSubscriber
   integration via the existing `watermill/` bridge (no native `transport/nats/`

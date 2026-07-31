@@ -767,7 +767,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 ## SQL & Key-Value Event Stores ✅ FULLY_FUNCTIONAL
 
-### SQL Stores (PostgreSQL / SQLite)
+### SQL Stores (PostgreSQL / SQLite / MySQL)
 
 > `import "github.com/larsartmann/go-cqrs-lite/storage/v4"`
 
@@ -775,6 +775,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | PostgreSQL event store     | `NewSQLEventStore(db)` implements `event.Store`                                                                                              | ✅     |
 | SQLite event store         | `NewSQLiteEventStore(db)` — `?` placeholders, `BLOB`/`TEXT` DDL                                                                              | ✅     |
+| MySQL/MariaDB event store  | `NewMySQLBackend(db)` — `LONGBLOB`/`JSON` DDL, `ON DUPLICATE KEY UPDATE` upsert                                                              | ✅     |
 | Custom dialect             | `NewSQLEventStoreWithDialect(db, d)` — pluggable SQL backend                                                                                 | ✅     |
 | Schema DDL                 | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso                                                                                     | ✅     |
 | Per-table DDL              | `SnapshotSchema`, `CheckpointSchema` + SQLite variants                                                                                       | ✅     |
@@ -795,7 +796,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | RelationalProjection.Reset | `Reset(ctx)` implements `projectionhost.Resettable` — wipes all tables for zero-based replay                                                 | ✅     |
 | SQLStreamReader            | `listing.StreamReader` implementation reading from projection tables                                                                         | ✅     |
 | DB helpers                 | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅     |
-| Dialect abstraction        | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods                                          | ✅     |
+| Dialect abstraction        | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods, 4 upsert/quoting methods (ADR-0080)    | ✅     |
 | SQL sub-package            | `storage/sql` — `DBHandle`, `OwnedDBHandle`, generic `LoadWithSpan[T]`, `QueryRows[T]`, `ScanSlice[T]`, `ReconstructEvent`                   | ✅     |
 | Eventstore sub-package     | `storage/eventstore` — `SQLEventStore`, `SQLSnapshotStore`, `SQLCheckpointStore` (re-exported via aliases in `storage/`)                     | ✅     |
 | Readmodel sub-package      | `storage/readmodel` — `SQLKVStore` (re-exported via aliases in `storage/`)                                                                   | ✅     |

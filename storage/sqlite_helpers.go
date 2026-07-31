@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -150,6 +151,54 @@ func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
 	return execDDL(ctx, db, []string{sqlpkg.PostgresSchemaEmbed()})
 }
 
+// EnsurePostgresSynchronousCommit appends synchronous_commit=<on|off> to the
+// DSN so every connection the pool creates inherits the setting. SET
+// synchronous_commit only applies to the session that runs it; with
+// MaxOpenConns > 1, new connections inherit the server default (on). pgx
+// accepts GUCs as query parameters in the connection string, applying them on
+// every new connection — this is the pool-safe equivalent of the session-level
+// [PostgresSetSynchronousCommit].
+func EnsurePostgresSynchronousCommit(dsn string, on bool) string {
+	if strings.Contains(dsn, "synchronous_commit") {
+		return dsn
+	}
+
+	level := "off"
+	if on {
+		level = "on"
+	}
+
+	return appendPostgresDSNParam(dsn, "synchronous_commit", level)
+}
+
+// EnsurePostgresStatementTimeout appends statement_timeout=<ms> to the DSN so
+// every pooled connection inherits the timeout. Like synchronous_commit, SET
+// statement_timeout is session-scoped — DSN-level injection is required for
+// pool-wide effect.
+func EnsurePostgresStatementTimeout(dsn string, ms int64) string {
+	if ms <= 0 || strings.Contains(dsn, "statement_timeout") {
+		return dsn
+	}
+
+	return appendPostgresDSNParam(dsn, "statement_timeout", strconv.FormatInt(ms, 10))
+}
+
+// appendPostgresDSNParam appends a key=value parameter to a Postgres DSN,
+// handling both URL format (postgres://...?params) and keyword=value format
+// (host=localhost dbname=db params).
+func appendPostgresDSNParam(dsn, key, value string) string {
+	if strings.Contains(dsn, "://") {
+		sep := "?"
+		if strings.Contains(dsn, "?") {
+			sep = "&"
+		}
+
+		return fmt.Sprintf("%s%s%s=%s", dsn, sep, key, value)
+	}
+
+	return fmt.Sprintf("%s %s=%s", dsn, key, value)
+}
+
 // PostgresSetSynchronousCommit sets the synchronous_commit GUC for the
 // current session. With on (true), every COMMIT fsyncs the WAL to disk before
 // returning — maximum durability but high write latency. With off (false),
@@ -157,11 +206,10 @@ func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
 // wal_writer — up to ~200x faster at the cost of a small window of lost
 // transactions on OS crash.
 //
-// Note: this setting is session-scoped. With a connection pool (MaxOpenConns >
-// 1), new connections created by the pool will NOT inherit this setting. For
-// pool-wide effect, set it in the DSN via the options parameter or use
-// ALTER DATABASE. This function is sufficient for single-writer benchmark
-// scenarios and for pools where MaxOpenConns is 1.
+// Deprecated: This function is session-scoped — with MaxOpenConns > 1, new
+// pool connections do NOT inherit the setting. Use
+// [EnsurePostgresSynchronousCommit] to inject the setting at the DSN level for
+// pool-wide effect.
 func PostgresSetSynchronousCommit(ctx context.Context, db *sql.DB, on bool) error {
 	level := "off"
 	if on {
