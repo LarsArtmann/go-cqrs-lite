@@ -19,6 +19,7 @@ package adttest
 import (
 	"context"
 	"encoding/json/v2"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -45,9 +46,26 @@ type Scenario struct {
 	Canonicalize func(any) string
 }
 
+// backendInterfaces maps Scenario.Requires names to their reflect.Type for
+// automatic capability skipping. When an engine does not implement the
+// required backend interface, RunMatrix skips that subtest instead of
+// panicking on a failed type assertion inside Setup/Read.
+var backendInterfaces = map[string]reflect.Type{
+	"MapBackend":      reflect.TypeOf((*metaengine.MapBackend)(nil)).Elem(),
+	"SetBackend":      reflect.TypeOf((*metaengine.SetBackend)(nil)).Elem(),
+	"CounterBackend":  reflect.TypeOf((*metaengine.CounterBackend)(nil)).Elem(),
+	"GraphBackend":    reflect.TypeOf((*metaengine.GraphBackend)(nil)).Elem(),
+	"ScanBackend":     reflect.TypeOf((*metaengine.ScanBackend)(nil)).Elem(),
+	"LogBackend":      reflect.TypeOf((*metaengine.LogBackend)(nil)).Elem(),
+	"MultimapBackend": reflect.TypeOf((*metaengine.MultimapBackend)(nil)).Elem(),
+}
+
 // RunMatrix runs all ADT scenarios across all engine factories and asserts
 // cross-engine parity. Each scenario runs in a subtest; each engine runs
-// in a nested subtest. Cross-engine parity is checked in a cleanup hook.
+// in a nested subtest. Engines that do not implement a scenario's required
+// backend interface (Scenario.Requires) are skipped automatically. If
+// Factory.Supports is non-nil, it is called as an additional capability gate.
+// Cross-engine parity is checked in a cleanup hook.
 func RunMatrix(t *testing.T, factories []Factory) {
 	t.Helper()
 
@@ -66,6 +84,22 @@ func RunMatrix(t *testing.T, factories []Factory) {
 
 					eng := factory.Create(t)
 					defer func() { _ = eng.Close() }()
+
+					// Auto-skip if the engine doesn't implement the required backend.
+					if iface, ok := backendInterfaces[scenario.Requires]; ok {
+						if !reflect.TypeOf(eng).Implements(iface) {
+							t.Skipf("%s does not implement %s", factory.Name, scenario.Requires)
+
+							return
+						}
+					}
+
+					// Additional custom capability gate.
+					if factory.Supports != nil && !factory.Supports(eng) {
+						t.Skipf("%s skipped by Factory.Supports", factory.Name)
+
+						return
+					}
 
 					if err := scenario.Setup(ctx, eng); err != nil {
 						t.Fatalf("%s/%s setup: %v", factory.Name, scenario.Name, err)
@@ -109,9 +143,6 @@ func RunMatrix(t *testing.T, factories []Factory) {
 // via its backend interface (not the Store/Execute path — that's covered by
 // the cross_engine_meta_test.go Ginkgo suite).
 func Scenarios() []Scenario { //nolint:funlen,maintidx // 7-ADT test matrix
-	ctx := context.Background()
-	_ = ctx
-
 	return []Scenario{
 		// --- Map ADT: MapSet + MapGet ---
 		{

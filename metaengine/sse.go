@@ -141,15 +141,20 @@ func serveSSEPlain[V any](
 
 	go forwardWithDropOld(ctx, watchCh, buf, nil)
 
-	return sseMainLoop(ctx, w, flusher, buf, cfg, func(w http.ResponseWriter, val V) error {
-		data, err := json.Marshal(val)
-		if err != nil {
-			return nil // skip unmarshalable values
-		}
+	return sseMainLoop(ctx, w, flusher, buf, cfg, writePlainSSEEvent[V])
+}
 
-		_, err = fmt.Fprintf(w, "data: %s\n\n", data)
-		return err //nolint:wrapcheck
-	})
+// writePlainSSEEvent marshals val as JSON and writes a plain SSE data event.
+// Marshal failures are silently skipped to keep the stream alive.
+func writePlainSSEEvent[V any](w http.ResponseWriter, val V) error {
+	data, err := json.Marshal(val)
+	if err != nil {
+		return nil //nolint:nilerr // skip unmarshalable, keep stream alive
+	}
+
+	_, err = fmt.Fprintf(w, "data: %s\n\n", data)
+
+	return err //nolint:wrapcheck
 }
 
 // serveSSEReplay is the reconnection path: subscribes first (to buffer live
@@ -184,15 +189,20 @@ func serveSSEReplay[V any](
 		return sv.Seq == 0 || !dedupRing.Has(strconv.FormatUint(sv.Seq, 10))
 	})
 
-	return sseMainLoop(ctx, w, flusher, buf, cfg, func(w http.ResponseWriter, sv SeqValue[V]) error {
-		data, err := json.Marshal(sv.Value)
-		if err != nil {
-			return nil // skip unmarshalable values
-		}
+	return sseMainLoop(ctx, w, flusher, buf, cfg, writeReplaySSEEvent[V])
+}
 
-		_, err = fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data)
-		return err //nolint:wrapcheck
-	})
+// writeReplaySSEEvent marshals item.Value as JSON and writes an SSE event
+// with the sequence number as the id field. Marshal failures are skipped.
+func writeReplaySSEEvent[V any](w http.ResponseWriter, item SeqValue[V]) error {
+	data, err := json.Marshal(item.Value)
+	if err != nil {
+		return nil //nolint:nilerr // skip unmarshalable, keep stream alive
+	}
+
+	_, err = fmt.Fprintf(w, "id: %d\ndata: %s\n\n", item.Seq, data)
+
+	return err //nolint:wrapcheck
 }
 
 // replayMissedEvents writes events from the journal that the client missed
@@ -325,7 +335,7 @@ func sseMainLoop[T any](
 			}
 
 			if err := writeEvent(w, val); err != nil {
-				return err //nolint:wrapcheck
+				return err
 			}
 
 			flusher.Flush()

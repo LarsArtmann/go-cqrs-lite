@@ -341,3 +341,248 @@ func TestPebbleScanRawValuesLimitZero(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(raw).To(HaveLen(7))
 }
+
+func TestPebbleScanRawValuesFilterIn(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
+
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+	rsr := eng.(metaengine.RawScanReader)
+
+	statuses := []string{"open", "pending", "done", "archived"}
+	for i, s := range statuses {
+		g.Expect(mb.MapSet(ctx, "multi", s, map[string]any{"status": s, "idx": float64(i)})).
+			To(Succeed())
+	}
+
+	filters := []metaengine.FilterSpec{
+		{Column: "status", Op: metaengine.FilterIn, Value: []any{"open", "done"}},
+	}
+	raw, err := rsr.ScanRawValues(ctx, "multi", filters, nil, nil, 0)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(raw).To(HaveLen(2))
+
+	matched := make(map[string]bool)
+	for _, b := range raw {
+		var v map[string]any
+		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
+		matched[v["status"].(string)] = true
+	}
+
+	g.Expect(matched).To(HaveKey("open"))
+	g.Expect(matched).To(HaveKey("done"))
+}
+
+func TestPebbleScanRawValuesFilterNe(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
+
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+	rsr := eng.(metaengine.RawScanReader)
+
+	for _, s := range []string{"open", "open", "done", "open"} {
+		g.Expect(mb.MapSet(ctx, "ne", s+strconv.Itoa(int(time.Now().UnixNano())),
+			map[string]any{"status": s})). //nolint:wsl_v5
+			To(Succeed())
+	}
+
+	filters := []metaengine.FilterSpec{
+		{Column: "status", Op: metaengine.FilterNe, Value: "open"},
+	}
+	raw, err := rsr.ScanRawValues(ctx, "ne", filters, nil, nil, 0)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(raw).To(HaveLen(1))
+
+	var v map[string]any
+	g.Expect(json.Unmarshal(raw[0], &v)).To(Succeed())
+	g.Expect(v["status"]).To(Equal("done"))
+}
+
+func TestPebbleScanRawValuesFilterRange(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
+
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+	rsr := eng.(metaengine.RawScanReader)
+
+	priorities := []float64{1, 3, 5, 7, 9}
+	for i, p := range priorities {
+		g.Expect(mb.MapSet(ctx, "range", i, map[string]any{"priority": p})).
+			To(Succeed())
+	}
+
+	tests := []struct {
+		op       metaengine.FilterOp
+		value    float64
+		expected int
+	}{
+		{metaengine.FilterLt, 5, 2},
+		{metaengine.FilterLe, 5, 3},
+		{metaengine.FilterGt, 5, 2},
+		{metaengine.FilterGe, 5, 3},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%v_%v", tt.op, tt.value), func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			filters := []metaengine.FilterSpec{
+				{Column: "priority", Op: tt.op, Value: tt.value},
+			}
+			raw, err := rsr.ScanRawValues(ctx, "range", filters, nil, nil, 0)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(raw).To(HaveLen(tt.expected))
+		})
+	}
+}
+
+func TestPebbleScanRawValuesCursorDesc(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
+
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+	rsr := eng.(metaengine.RawScanReader)
+
+	for i := range 10 {
+		g.Expect(mb.MapSet(ctx, "desc", i, map[string]any{"id": float64(i)})).
+			To(Succeed())
+	}
+
+	// Descending sort: [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+	// Cursor = 7 → next page starts after 7 in desc order: [6, 5, 4, ...]
+	sortSpec := &metaengine.SortSpec{Column: "id", Desc: true}
+	raw, err := rsr.ScanRawValues(ctx, "desc", nil, sortSpec, float64(7), 3)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(raw).To(HaveLen(4)) // 3+1 overflow
+
+	ids := make([]float64, 0, 4)
+	for _, b := range raw {
+		var v map[string]any
+		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
+		ids = append(ids, v["id"].(float64))
+	}
+
+	g.Expect(ids).To(Equal([]float64{6, 5, 4, 3}))
+}
+
+func TestPebbleScanRawValuesEmptyCollection(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
+
+	rsr := eng.(metaengine.RawScanReader)
+
+	raw, err := rsr.ScanRawValues(context.Background(), "nonexistent", nil, nil, nil, 0)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(raw).To(BeEmpty())
+}
+
+func TestPebbleScanRawValuesAllFilteredOut(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
+
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+	rsr := eng.(metaengine.RawScanReader)
+
+	for i := range 5 {
+		g.Expect(mb.MapSet(ctx, "filtered", i, map[string]any{"status": "open"})).
+			To(Succeed())
+	}
+
+	filters := []metaengine.FilterSpec{
+		{Column: "status", Op: metaengine.FilterEq, Value: "nonexistent"},
+	}
+	raw, err := rsr.ScanRawValues(ctx, "filtered", filters, nil, nil, 0)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(raw).To(BeEmpty())
+}
+
+func TestPebbleScanRawValuesLimitOne(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
+
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+	rsr := eng.(metaengine.RawScanReader)
+
+	for i := range 10 {
+		g.Expect(mb.MapSet(ctx, "one", i, map[string]any{"id": float64(i)})).
+			To(Succeed())
+	}
+
+	raw, err := rsr.ScanRawValues(ctx, "one", nil, nil, nil, 1)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(raw).To(HaveLen(2)) // 1+1 overflow
+}
+
+func TestPebbleScanRawValuesFilterAndSortCombined(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
+
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+	rsr := eng.(metaengine.RawScanReader)
+
+	items := []struct {
+		key      string
+		category string
+		score    float64
+	}{
+		{"a", "x", 30},
+		{"b", "y", 10},
+		{"c", "x", 20},
+		{"d", "y", 50},
+		{"e", "x", 40},
+	}
+	for _, item := range items {
+		g.Expect(mb.MapSet(ctx, "combo", item.key,
+			map[string]any{"category": item.category, "score": item.score})).
+			To(Succeed())
+	}
+
+	filters := []metaengine.FilterSpec{
+		{Column: "category", Op: metaengine.FilterEq, Value: "x"},
+	}
+	sortSpec := &metaengine.SortSpec{Column: "score", Desc: true}
+	raw, err := rsr.ScanRawValues(ctx, "combo", filters, sortSpec, nil, 0)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(raw).To(HaveLen(3))
+
+	scores := make([]float64, 0, 3)
+	for _, b := range raw {
+		var v map[string]any
+		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
+		g.Expect(v["category"]).To(Equal("x"))
+		scores = append(scores, v["score"].(float64))
+	}
+
+	g.Expect(scores).To(Equal([]float64{40, 30, 20}))
+}

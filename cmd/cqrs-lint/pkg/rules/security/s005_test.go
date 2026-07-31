@@ -4,27 +4,21 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/security"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/security"
 )
 
-// --- S005: Signing available but disabled ---
-
-func TestS005_NoCrashOnEmptyInput(t *testing.T) {
+func TestS005(t *testing.T) {
 	t.Parallel()
 
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go": `package main`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
-	ruletest.AssertRule(t, findings, "S005", 0)
-}
-
-func TestS005_DetectsSigningGuardedByDefaultFalseFlag(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"config.go": `package main
+	tests := []struct {
+		name      string
+		filename  string
+		source    string
+		wantCount int
+	}{
+		{"NoCrashOnEmptyInput", "main.go", `package main`, 0},
+		{"DetectsSigningGuardedByDefaultFalseFlag", "config.go", `package main
 
 import "github.com/larsartmann/go-cqrs-lite/signing/v4"
 
@@ -38,17 +32,8 @@ func setupSigning(cfg SignerConfig, key []byte) {
 		_ = signer
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
-	ruletest.AssertRule(t, findings, "S005", 1)
-}
-
-func TestS005_DetectsSigningMiddlewareGuarded(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"server.go": `package main
+`, 1},
+		{"DetectsSigningMiddlewareGuarded", "server.go", `package main
 
 import "github.com/larsartmann/go-cqrs-lite/signing/v4"
 
@@ -61,17 +46,8 @@ func wireSigning(cfg Config, signer signing.Signer, bus EventBus) {
 		bus.UsePublish(signing.SignMiddleware(signer))
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
-	ruletest.AssertRule(t, findings, "S005", 1)
-}
-
-func TestS005_SuppressedWhenSigningNotImported(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"config.go": `package main
+`, 1},
+		{"SuppressedWhenSigningNotImported", "config.go", `package main
 
 type Config struct {
 	SigningEnabled bool
@@ -82,17 +58,8 @@ func setup(cfg Config) {
 		doSomething()
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
-	ruletest.AssertRule(t, findings, "S005", 0)
-}
-
-func TestS005_SuppressedWhenSigningUsedUnconditionally(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"server.go": `package main
+`, 0},
+		{"SuppressedWhenSigningUsedUnconditionally", "server.go", `package main
 
 import "github.com/larsartmann/go-cqrs-lite/signing/v4"
 
@@ -106,17 +73,8 @@ func setup(cfg Config, signer signing.Signer, bus EventBus) {
 	}
 	bus.UsePublish(signing.SignMiddleware(signer))
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
-	ruletest.AssertRule(t, findings, "S005", 0)
-}
-
-func TestS005_SuppressedWhenFlagExplicitlyTrue(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"server.go": `package main
+`, 0},
+		{"SuppressedWhenFlagExplicitlyTrue", "server.go", `package main
 
 import "github.com/larsartmann/go-cqrs-lite/signing/v4"
 
@@ -133,17 +91,8 @@ func setup(cfg Config, signer signing.Signer, bus EventBus) {
 		bus.UsePublish(signing.SignMiddleware(signer))
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
-	ruletest.AssertRule(t, findings, "S005", 0)
-}
-
-func TestS005_NoFindingWhenSigningBehindErrorCheck(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"server.go": `package main
+`, 0},
+		{"NoFindingWhenSigningBehindErrorCheck", "server.go", `package main
 
 import "github.com/larsartmann/go-cqrs-lite/signing/v4"
 
@@ -154,17 +103,8 @@ func setup(key []byte, bus EventBus) {
 	}
 	bus.UsePublish(signing.SignMiddleware(signer))
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
-	ruletest.AssertRule(t, findings, "S005", 0)
-}
-
-func TestS005_NoFindingWhenNoSigningCalls(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"server.go": `package main
+`, 0},
+		{"NoFindingWhenNoSigningCalls", "server.go", `package main
 
 import "github.com/larsartmann/go-cqrs-lite/signing/v4"
 
@@ -177,17 +117,8 @@ func setup(cfg Config) {
 		println("signing would go here")
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
-	ruletest.AssertRule(t, findings, "S005", 0)
-}
-
-func TestS005_DetectsVerifyMiddlewareGuarded(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"server.go": `package main
+`, 0},
+		{"DetectsVerifyMiddlewareGuarded", "server.go", `package main
 
 import "github.com/larsartmann/go-cqrs-lite/signing/v4"
 
@@ -200,17 +131,8 @@ func setup(cfg Config, verifier signing.Verifier, bus EventBus) {
 		bus.Use(signing.VerifyMiddleware(verifier))
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
-	ruletest.AssertRule(t, findings, "S005", 1)
-}
-
-func TestS005_NoFindingForNonEnableBoolField(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"server.go": `package main
+`, 1},
+		{"NoFindingForNonEnableBoolField", "server.go", `package main
 
 import "github.com/larsartmann/go-cqrs-lite/signing/v4"
 
@@ -223,8 +145,18 @@ func setup(cfg Config, signer signing.Signer, bus EventBus) {
 		bus.UsePublish(signing.SignMiddleware(signer))
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
-	ruletest.AssertRule(t, findings, "S005", 0)
+`, 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := analyzer.BuildContextFromSource(t, map[string]string{
+				tt.filename: tt.source,
+			})
+			findings := ruletest.RunDetector(t, security.NewS005Detector(ctx))
+			ruletest.AssertRule(t, findings, "S005", tt.wantCount)
+		})
+	}
 }

@@ -4,15 +4,19 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
 )
 
-func TestC030_DetectsInfiniteLoopWithoutCancel(t *testing.T) {
+func TestC030(t *testing.T) {
 	t.Parallel()
 
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"worker.go": `package main
+	tests := []struct {
+		name      string
+		source    string
+		wantCount int
+	}{
+		{"DetectsInfiniteLoopWithoutCancel", `package main
 
 import "context"
 
@@ -21,17 +25,8 @@ func worker(ctx context.Context) {
 		doWork()
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
-	ruletest.AssertRule(t, findings, "C030", 1)
-}
-
-func TestC030_NoFindingWhenCtxDoneInSelect(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"worker.go": `package main
+`, 1},
+		{"NoFindingWhenCtxDoneInSelect", `package main
 
 import "context"
 
@@ -45,34 +40,16 @@ func worker(ctx context.Context) {
 		}
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
-	ruletest.AssertRule(t, findings, "C030", 0)
-}
-
-func TestC030_NoFindingForBoundedLoop(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"worker.go": `package main
+`, 0},
+		{"NoFindingForBoundedLoop", `package main
 
 func worker() {
 	for i := 0; i < 10; i++ {
 		doWork()
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
-	ruletest.AssertRule(t, findings, "C030", 0)
-}
-
-func TestC030_NoFindingWhenDoneOnNonCtxReceiver(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"worker.go": `package main
+`, 0},
+		{"NoFindingWhenDoneOnNonCtxReceiver", `package main
 
 import "net/http"
 
@@ -84,17 +61,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
-	ruletest.AssertRule(t, findings, "C030", 0)
-}
-
-func TestC030_NoFindingWhenCtxErrCheck(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"worker.go": `package main
+`, 0},
+		{"NoFindingWhenCtxErrCheck", `package main
 
 import "context"
 
@@ -106,17 +74,8 @@ func poll(ctx context.Context) {
 		doWork()
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
-	ruletest.AssertRule(t, findings, "C030", 0)
-}
-
-func TestC030_NoFindingWhenLoopHasBreak(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"worker.go": `package main
+`, 0},
+		{"NoFindingWhenLoopHasBreak", `package main
 
 func reconstruct(parent map[int]int, end int) []int {
 	var path []int
@@ -128,17 +87,8 @@ func reconstruct(parent map[int]int, end int) []int {
 	}
 	return path
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
-	ruletest.AssertRule(t, findings, "C030", 0)
-}
-
-func TestC030_NoFindingWhenCustomStopChannel(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"worker.go": `package main
+`, 0},
+		{"NoFindingWhenCustomStopChannel", `package main
 
 import "time"
 
@@ -154,17 +104,8 @@ func sampler(stop <-chan struct{}) {
 		}
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
-	ruletest.AssertRule(t, findings, "C030", 0)
-}
-
-func TestC030_StillFlagsLoopWithOnlyReturnInGoroutine(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"worker.go": `package main
+`, 0},
+		{"StillFlagsLoopWithOnlyReturnInGoroutine", `package main
 
 func worker() {
 	for {
@@ -174,8 +115,18 @@ func worker() {
 		doWork()
 	}
 }
-`,
-	})
-	findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
-	ruletest.AssertRule(t, findings, "C030", 1)
+`, 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := analyzer.BuildContextFromSource(t, map[string]string{
+				"worker.go": tt.source,
+			})
+			findings := ruletest.RunDetector(t, correctness.NewC030Detector(ctx))
+			ruletest.AssertRule(t, findings, "C030", tt.wantCount)
+		})
+	}
 }
