@@ -17,12 +17,13 @@ import (
 // pays only a single pointer check.
 type Hooks struct {
 	// OnFold is called after each fold operation with the collection name,
-	// event type, fold kind, and duration. Use for debug logging.
-	OnFold func(collection, eventType string, kind FoldKind, d time.Duration)
+	// event type, fold kind, duration, and any error (nil on success).
+	// Use for debug logging, error tracking, and metrics.
+	OnFold func(collection, eventType string, kind FoldKind, d time.Duration, err error)
 
 	// OnExecute is called after each Execute/ExecuteCtx call with the
-	// collection name, read pattern, and duration. Use for slow query logging.
-	OnExecute func(collection string, pattern ReadPattern, d time.Duration)
+	// collection name, read pattern, duration, and any error (nil on success).
+	OnExecute func(collection string, pattern ReadPattern, d time.Duration, err error)
 
 	// SlowQueryThreshold, when > 0, causes OnExecute to be invoked only
 	// for queries exceeding this threshold. When 0, all queries invoke it.
@@ -54,7 +55,7 @@ func WithHooks(store *Store, hooks Hooks) {
 func WithDebug(store *Store, logger *log.Logger) {
 	WithHooks(store, Hooks{
 		Logger: logger,
-		OnFold: func(collection, eventType string, kind FoldKind, d time.Duration) {
+		OnFold: func(collection, eventType string, kind FoldKind, d time.Duration, err error) {
 			logger.Printf("[metaengine] %s: %s → %s (%v)", collection, eventType, kind, d)
 		},
 	})
@@ -65,7 +66,7 @@ func WithDebug(store *Store, logger *log.Logger) {
 func WithSlowQueryLog(store *Store, threshold time.Duration, logger *log.Logger) {
 	WithHooks(store, Hooks{
 		SlowQueryThreshold: threshold,
-		OnExecute: func(col string, pattern ReadPattern, d time.Duration) {
+		OnExecute: func(col string, pattern ReadPattern, d time.Duration, err error) {
 			logger.Printf("[metaengine] slow query %s (%s): %v", col, pattern, d)
 		},
 	})
@@ -75,8 +76,8 @@ func WithSlowQueryLog(store *Store, threshold time.Duration, logger *log.Logger)
 
 // MetricsRecorder collects runtime metrics from the Store.
 type MetricsRecorder interface {
-	RecordApply(collection, eventType string, kind FoldKind, d time.Duration)
-	RecordExecute(collection string, pattern ReadPattern, d time.Duration, resultCount int)
+	RecordApply(collection, eventType string, kind FoldKind, d time.Duration, err error)
+	RecordExecute(collection string, pattern ReadPattern, d time.Duration, resultCount int, err error)
 }
 
 // WithMetrics wraps the Store's hooks to forward events to a MetricsRecorder.

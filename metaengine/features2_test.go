@@ -513,11 +513,13 @@ func TestHooks(t *testing.T) {
 	}
 
 	var foldCount, execCount int
+	var foldErr error
 	WithHooks(store, Hooks{
-		OnFold: func(col, evt string, kind FoldKind, d time.Duration) {
+		OnFold: func(col, evt string, kind FoldKind, d time.Duration, err error) {
 			foldCount++
+			foldErr = err
 		},
-		OnExecute: func(col string, pattern ReadPattern, d time.Duration) {
+		OnExecute: func(col string, pattern ReadPattern, d time.Duration, err error) {
 			execCount++
 		},
 	})
@@ -527,6 +529,10 @@ func TestHooks(t *testing.T) {
 
 	if foldCount != 1 {
 		t.Errorf("expected 1 fold hook call, got %d", foldCount)
+	}
+
+	if foldErr != nil {
+		t.Errorf("expected nil fold error on success, got %v", foldErr)
 	}
 
 	_, _ = ExecuteTyped[testFindTask, testTask](ctx, store, testFindTask{ID: "t1"})

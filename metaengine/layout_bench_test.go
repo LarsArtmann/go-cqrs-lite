@@ -254,16 +254,16 @@ func TestLayoutPlanner_GeneratesCorrectDDL(t *testing.T) {
 	ddl := plan.DDL()
 
 	// Should have one table.
-	if !contains(ddl, "CREATE TABLE IF NOT EXISTS meta_planned_users") {
+	if !contains(ddl, `CREATE TABLE IF NOT EXISTS "meta_planned_users"`) {
 		t.Errorf("DDL missing CREATE TABLE: %s", ddl)
 	}
 
 	// Should have both columns.
-	if !contains(ddl, "Status TEXT") {
+	if !contains(ddl, `"Status" TEXT`) {
 		t.Errorf("DDL missing Status column: %s", ddl)
 	}
 
-	if !contains(ddl, "Priority INTEGER") {
+	if !contains(ddl, `"Priority" INTEGER`) {
 		t.Errorf("DDL missing Priority column: %s", ddl)
 	}
 

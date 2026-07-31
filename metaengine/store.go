@@ -232,8 +232,8 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 	start := time.Now()
 
 	defer func() {
-		if s.hooks != nil && s.hooks.OnFold != nil && err == nil {
-			s.hooks.OnFold(q.name, fold.EventType, fold.Kind, time.Since(start))
+		if s.hooks != nil && s.hooks.OnFold != nil {
+			s.hooks.OnFold(q.name, fold.EventType, fold.Kind, time.Since(start), err)
 		}
 	}()
 

@@ -49,7 +49,7 @@ func (s *Store) executeQuery(
 	if s.hooks != nil && s.hooks.OnExecute != nil {
 		elapsed := time.Since(start)
 		if s.hooks.SlowQueryThreshold == 0 || elapsed >= s.hooks.SlowQueryThreshold {
-			s.hooks.OnExecute(q.name, q.readPattern, elapsed)
+			s.hooks.OnExecute(q.name, q.readPattern, elapsed, err)
 		}
 	}
 
