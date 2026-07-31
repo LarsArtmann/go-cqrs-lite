@@ -51,7 +51,7 @@ type Scenario struct {
 // automatic capability skipping. When an engine does not implement the
 // required backend interface, RunMatrix skips that subtest instead of
 // panicking on a failed type assertion inside Setup/Read.
-var backendInterfaces = map[string]reflect.Type{
+var backendInterfaces = map[string]reflect.Type{ //nolint:gochecknoglobals // immutable lookup table
 	"MapBackend":      reflect.TypeFor[metaengine.MapBackend](),
 	"SetBackend":      reflect.TypeFor[metaengine.SetBackend](),
 	"CounterBackend":  reflect.TypeFor[metaengine.CounterBackend](),
@@ -147,7 +147,7 @@ func RunMatrix(t *testing.T, factories []Factory) {
 // Scenarios returns the 7-ADT test matrix. Each scenario exercises one ADT
 // via its backend interface (not the Store/Execute path — that's covered by
 // the cross_engine_meta_test.go Ginkgo suite).
-func Scenarios() []Scenario { //nolint:funlen,maintidx // 7-ADT test matrix
+func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 	return []Scenario{
 		// --- Map ADT: MapSet + MapGet ---
 		{
