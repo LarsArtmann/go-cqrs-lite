@@ -1367,11 +1367,15 @@ metaengine/func BuildLayoutPlan
 metaengine/func BuildLayoutPlanFromType
 metaengine/func CalibrateEngine
 metaengine/func Checksum
+metaengine/func CompareValues
 metaengine/func ContractSuite
+metaengine/func EvalFilterOp
 metaengine/func EventTypeName
 metaengine/func ExecuteTyped
 metaengine/func FilterOn
 metaengine/func FilterOnField
+metaengine/func ItemFieldByName
+metaengine/func MapUpdateTyped
 metaengine/func New
 metaengine/func NewCostAccuracyReporter
 metaengine/func NewEventLog
@@ -1381,11 +1385,13 @@ metaengine/func NewPrefetchCache
 metaengine/func NewReadCoalescer
 metaengine/func NewReader
 metaengine/func NewSQLiteEngine
+metaengine/func NewSSEReplay
 metaengine/func NewTieredStore
 metaengine/func NewWatcher
 metaengine/func On
 metaengine/func OnTyped
 metaengine/func ParseCursor
+metaengine/func PassesFilterSpecs
 metaengine/func Plan
 metaengine/func Query
 metaengine/func Remove
@@ -1396,6 +1402,7 @@ metaengine/func SortOnField
 metaengine/func VerifyChecksum
 metaengine/func Volume
 metaengine/func WithCursor
+metaengine/func WithCursorString
 metaengine/func WithDebug
 metaengine/func WithDryRun
 metaengine/func WithEventLog
@@ -1410,6 +1417,7 @@ metaengine/func WithRange
 metaengine/func WithReadCoalescer
 metaengine/func WithSSEHeartbeat
 metaengine/func WithSSEMaxBuffer
+metaengine/func WithSSEReplayLimit
 metaengine/func WithSSETimeout
 metaengine/func WithSlowQueryLog
 metaengine/func WithSort
@@ -1493,6 +1501,7 @@ metaengine/method Inspect
 metaengine/method InspectJSON
 metaengine/method IsPoisoned
 metaengine/method LatencyBudget
+metaengine/method LatestSeq
 metaengine/method Len
 metaengine/method LogAppend
 metaengine/method LogAppend
@@ -1533,10 +1542,13 @@ metaengine/method QueryResultType
 metaengine/method ReadNsPerOp
 metaengine/method Record
 metaengine/method Record
+metaengine/method Replay
+metaengine/method Replay
 metaengine/method Report
 metaengine/method Report
 metaengine/method RunInTx
 metaengine/method Scan
+metaengine/method ScanPage
 metaengine/method ScanRawValues
 metaengine/method SetAdd
 metaengine/method SetAdd
@@ -1557,7 +1569,9 @@ metaengine/method SwapEngine
 metaengine/method Verify
 metaengine/method Volume
 metaengine/method Watch
+metaengine/method WatchWithSeq
 metaengine/method WithPrefetch
+metaengine/method WithReplay
 metaengine/method WithinBudget
 metaengine/method WriteNsPerOp
 metaengine/pebbleengine/const PebbleNsPerOp
@@ -1568,6 +1582,7 @@ metaengine/pebbleengine/func NewPebbleEngineFromDB
 metaengine/pebbleengine/method Close
 metaengine/pebbleengine/method CounterGet
 metaengine/pebbleengine/method CounterIncrement
+metaengine/pebbleengine/method GetRawValue
 metaengine/pebbleengine/method GraphAddEdge
 metaengine/pebbleengine/method GraphNeighbors
 metaengine/pebbleengine/method LogAppend
@@ -1580,6 +1595,7 @@ metaengine/pebbleengine/method MapUpdate
 metaengine/pebbleengine/method MultiAdd
 metaengine/pebbleengine/method MultiGet
 metaengine/pebbleengine/method Profile
+metaengine/pebbleengine/method ScanRawValues
 metaengine/pebbleengine/method SetAdd
 metaengine/pebbleengine/method SetContains
 metaengine/projectionadapter/func New
@@ -1620,7 +1636,9 @@ metaengine/struct QueryDecl
 metaengine/struct RangeSpec
 metaengine/struct ReadCoalescer
 metaengine/struct SSEConfig
+metaengine/struct SSEReplay
 metaengine/struct ScaleThreshold
+metaengine/struct SeqValue
 metaengine/struct Skip
 metaengine/struct SortColumn
 metaengine/struct SortSpec

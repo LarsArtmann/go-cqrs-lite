@@ -4,4 +4,4 @@ go 1.26.5
 
 require github.com/larsartmann/go-error-family v0.10.0
 
-require pgregory.net/rapid v1.1.0
+require pgregory.net/rapid v1.3.0
