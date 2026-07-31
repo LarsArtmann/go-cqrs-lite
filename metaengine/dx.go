@@ -141,15 +141,44 @@ type watcherEntry struct {
 // Watcher provides reactive read notifications. When a value changes, all
 // subscribers are notified.
 type Watcher[V any] struct {
-	mu      sync.Mutex
-	store   *Store
-	coll    string
+	mu     sync.Mutex
+	store  *Store
+	coll   string
 	entries []*watcherEntry
+	replay *SSEReplay[V] // optional replay journal (nil = no reconnection)
 }
 
 // NewWatcher creates a watcher for a collection.
 func NewWatcher[V any](store *Store, collection string) *Watcher[V] {
 	return &Watcher[V]{store: store, coll: collection}
+}
+
+// WithReplay attaches an SSEReplay journal to the watcher, enabling
+// Last-Event-ID reconnection for ServeSSE. The journal records recent value
+// changes with monotonic sequence numbers. When a client reconnects with the
+// Last-Event-ID header, ServeSSE replays missed values from the journal before
+// switching to live streaming.
+//
+// Returns the replay journal so the caller can inspect it (e.g., LatestSeq).
+// The journal is cleaned up when Close is called.
+func (w *Watcher[V]) WithReplay(capacity int) *SSEReplay[V] {
+	r := NewSSEReplay[V](capacity)
+
+	w.mu.Lock()
+	w.replay = r
+	w.mu.Unlock()
+
+	w.store.registerReplay(w.coll, &replayShim[V]{replay: r})
+
+	return r
+}
+
+// Replay returns the replay journal, or nil if WithReplay was not called.
+func (w *Watcher[V]) Replay() *SSEReplay[V] {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	return w.replay
 }
 
 // Watch returns a channel that receives updated values. The optional key

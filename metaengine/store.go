@@ -36,7 +36,8 @@ type Store struct {
 	queryDecls   []any          // original query declarations (for Verify)
 	coalescer    *ReadCoalescer // optional read coalescer (nil = disabled)
 	watcherMu    sync.Mutex
-	watchers     map[string][]*watcherEntry // collection → watcher entries
+	watchers     map[string][]*watcherEntry  // collection → watcher entries
+	replays      map[string]replayRecorder   // collection → replay recorder (nil = no replay)
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -149,6 +150,31 @@ func (s *Store) registerWatcher(collection string, entry *watcherEntry) {
 	s.watchers[collection] = append(s.watchers[collection], entry)
 }
 
+// registerReplay attaches a replay recorder to a collection so that
+// notifyWatchers records each value change with a monotonic sequence number.
+// Called by Watcher.WithReplay. Thread-safe.
+func (s *Store) registerReplay(collection string, recorder replayRecorder) {
+	s.watcherMu.Lock()
+	defer s.watcherMu.Unlock()
+
+	if s.replays == nil {
+		s.replays = make(map[string]replayRecorder)
+	}
+
+	s.replays[collection] = recorder
+}
+
+// unregisterReplay removes the replay recorder for a collection.
+// Called by Watcher.Close. Thread-safe.
+func (s *Store) unregisterReplay(collection string) {
+	s.watcherMu.Lock()
+	defer s.watcherMu.Unlock()
+
+	if s.replays != nil {
+		delete(s.replays, collection)
+	}
+}
+
 // keysMatch compares two keys for watcher filtering. Uses reflect.DeepEqual
 // for correctness across types (strings, ints, branded IDs).
 func keysMatch(a, b any) bool {
@@ -159,10 +185,21 @@ func keysMatch(a, b any) bool {
 // match the given key. A watcher with a nil key receives all notifications;
 // a watcher with a non-nil key receives only notifications for that key.
 // Non-blocking: if a watcher's channel is full, the notification is dropped.
+//
+// When a replay recorder is registered for the collection, the value is
+// recorded with a monotonic sequence number and sent as a watcherNotification
+// wrapper so WatchWithSeq can recover the seq. The Watch adapter unwraps
+// watcherNotification transparently, so existing Watch callers are unaffected.
 func (s *Store) notifyWatchers(collection string, key any, value any) {
 	s.watcherMu.Lock()
 	entries := s.watchers[collection]
+	recorder := s.replays[collection]
 	s.watcherMu.Unlock()
+
+	var notif watcherNotification
+	if recorder != nil {
+		notif = watcherNotification{seq: recorder.recordValue(value), value: value}
+	}
 
 	for _, entry := range entries {
 		if entry.closed {
@@ -175,9 +212,16 @@ func (s *Store) notifyWatchers(collection string, key any, value any) {
 			continue
 		}
 
-		select {
-		case entry.ch <- value:
-		default: // drop if consumer is slow
+		if recorder != nil {
+			select {
+			case entry.ch <- notif:
+			default: // drop if consumer is slow
+			}
+		} else {
+			select {
+			case entry.ch <- value:
+			default: // drop if consumer is slow
+			}
 		}
 	}
 }
