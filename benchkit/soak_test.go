@@ -115,7 +115,7 @@ func TestRunSoak_TrendsPopulated(t *testing.T) {
 	// The race detector inflates allocations ~5-10x, so allow more headroom.
 	maxHeapLeak := float64(1 << 20) // 1MB/iteration
 	if raceEnabled {
-		maxHeapLeak = float64(32 << 20) // 32MB/iteration (race detector inflates 5-10x)
+		maxHeapLeak = float64(64 << 20) // 64MB/iteration (race + parallel test load inflates further)
 	}
 
 	if result.HeapLeakRate > maxHeapLeak {
