@@ -2031,6 +2031,7 @@ scenario/method Then
 scenario/method ThenError
 scenario/method ThenError
 scenario/method ThenNoError
+scenario/method ThenQueryResult
 scenario/method ThenState
 scenario/method When
 scenario/struct DeciderScenario
@@ -2208,6 +2209,7 @@ stack/func WithEventSink
 stack/func WithEventSource
 stack/func WithEventStore
 stack/func WithJournal
+stack/func WithMetaEngine
 stack/func WithPublisher
 stack/func WithQuerySink
 stack/func WithQuerySource
@@ -2238,6 +2240,7 @@ stack/method Handle
 stack/method HandlerFunc
 stack/method HealthCheck
 stack/method List
+stack/method MetaEngine
 stack/method Name
 stack/method RunProjections
 stack/method View
@@ -2277,6 +2280,7 @@ stack/sqlite/func New
 stack/sqlite/func SQLViewModel
 stack/sqlite/func WithDSN
 stack/sqlite/func WithPragmas
+stack/sqlite/func WithStack
 stack/sqlite/type Option
 stack/sqlite/var ErrNoDatabase
 stack/struct Bundle
