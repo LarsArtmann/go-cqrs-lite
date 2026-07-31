@@ -358,7 +358,9 @@ func serveSSEReplay[V any](
 				continue
 			}
 
-			if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil { //nolint:wrapcheck // SSE write
+			if _, err := fmt.Fprintf( //nolint:wrapcheck // SSE write
+				w, "id: %d\ndata: %s\n\n", sv.Seq, data,
+			); err != nil {
 				return err //nolint:wrapcheck
 			}
 

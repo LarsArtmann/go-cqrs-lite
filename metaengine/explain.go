@@ -22,7 +22,7 @@ type ExplainOptions struct {
 //	    metaengine.WithFilter("status", metaengine.FilterEq, "open"),
 //	)
 func (r *TypedReader[V]) Explain(
-	_ context.Context,
+	ctx context.Context,
 	opts ...ScanOption,
 ) (string, []any) {
 	cfg := scanConfig{limit: 100}
@@ -47,7 +47,7 @@ func (r *TypedReader[V]) Explain(
 
 // explainScan generates the SQL that would execute for a scan on sqliteEngine.
 func (e *sqliteEngine) explainScan(
-	ctx context.Context,
+	_ context.Context,
 	col string,
 	cfg scanConfig,
 ) (string, []any) {
