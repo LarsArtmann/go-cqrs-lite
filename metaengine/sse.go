@@ -13,6 +13,12 @@ import (
 )
 
 // SSEConfig configures Server-Sent Events streaming behavior.
+//
+// This SSE implementation watches a metaengine Store collection for changes
+// (collection-watch + replay from journal). For event-bus-to-client SSE
+// (bridging an event.Bus to HTTP clients), see transport/http.SSEBroker.
+// The two implementations serve different layers and are intentionally
+// separate — see ADR discussion on SSE consolidation.
 type SSEConfig struct {
 	// Timeout is the maximum duration the SSE stream stays open.
 	// Zero means no timeout (stream until client disconnects).

@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
@@ -13,19 +14,19 @@ import (
 
 type integCounterInput struct{}
 
-type integItemCreated struct {
+type IntegItemCreated struct {
 	Status string
 }
 
-type integItemCompleted struct{}
+type IntegItemCompleted struct{}
 
 func integCounterQuery() metaengine.QueryDecl[integCounterInput, map[string]int64] {
 	return metaengine.Query[integCounterInput, map[string]int64](
 		"integ_task_counts",
-		metaengine.On(integItemCreated{}, func(e integItemCreated) metaengine.Delta {
+		metaengine.On(IntegItemCreated{}, func(e IntegItemCreated) metaengine.Delta {
 			return metaengine.Delta{e.Status: +1}
 		}),
-		metaengine.On(integItemCompleted{}, func(e integItemCompleted) metaengine.Delta {
+		metaengine.On(IntegItemCompleted{}, func(e IntegItemCompleted) metaengine.Delta {
 			return metaengine.Delta{"active": -1, "completed": +1}
 		}),
 	)
@@ -34,13 +35,13 @@ func integCounterQuery() metaengine.QueryDecl[integCounterInput, map[string]int6
 func integPayloadDecoder(eventType string, payload []byte) (any, error) {
 	switch eventType {
 	case "IntegItemCreated":
-		var p integItemCreated
+		var p IntegItemCreated
 		if err := json.Unmarshal(payload, &p); err != nil {
 			return nil, err
 		}
 		return p, nil
 	case "IntegItemCompleted":
-		return integItemCompleted{}, nil
+		return IntegItemCompleted{}, nil
 	default:
 		return nil, nil
 	}
@@ -61,15 +62,14 @@ func TestMetaEngine_CounterPipeline(t *testing.T) {
 
 	adapter := projectionadapter.New("integ-counter", store, integPayloadDecoder)
 
-	// Create events: 2 pending, 1 active, then complete 1 active → {pending:2, active:0, completed:1}
 	events := []struct {
 		eventType string
 		payload   any
 	}{
-		{"IntegItemCreated", integItemCreated{Status: "pending"}},
-		{"IntegItemCreated", integItemCreated{Status: "pending"}},
-		{"IntegItemCreated", integItemCreated{Status: "active"}},
-		{"IntegItemCompleted", integItemCompleted{}},
+		{"IntegItemCreated", IntegItemCreated{Status: "pending"}},
+		{"IntegItemCreated", IntegItemCreated{Status: "pending"}},
+		{"IntegItemCreated", IntegItemCreated{Status: "active"}},
+		{"IntegItemCompleted", IntegItemCompleted{}},
 	}
 
 	for _, e := range events {
@@ -79,6 +79,7 @@ func TestMetaEngine_CounterPipeline(t *testing.T) {
 			"TestStream",
 			event.Version(1),
 			e.payload,
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			t.Fatalf("event.New %s: %v", e.eventType, err)
@@ -109,27 +110,31 @@ func TestMetaEngine_CounterPipeline(t *testing.T) {
 	}
 }
 
+type integItemKey string
+
+type integFindItem struct {
+	ID integItemKey
+}
+
+type IntegItemEvent struct {
+	ID    integItemKey
+	Title string
+}
+
+type integItemResult struct {
+	ID    integItemKey
+	Title string
+}
+
 func TestMetaEngine_MapPipeline(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 
-	type mapKey string
-
-	type itemEvt struct {
-		ID    mapKey
-		Title string
-	}
-
-	type itemResult struct {
-		ID    mapKey
-		Title string
-	}
-
-	queryDecl := metaengine.Query[mapKey, itemResult](
+	queryDecl := metaengine.Query[integFindItem, integItemResult](
 		"integ_items",
-		metaengine.On(itemEvt{}, func(e itemEvt) (mapKey, itemResult) {
-			return e.ID, itemResult{ID: e.ID, Title: e.Title}
+		metaengine.On(IntegItemEvent{}, func(e IntegItemEvent) (integItemKey, integItemResult) {
+			return e.ID, integItemResult{ID: e.ID, Title: e.Title}
 		}),
 	)
 
@@ -142,7 +147,7 @@ func TestMetaEngine_MapPipeline(t *testing.T) {
 	defer store.Close()
 
 	decoder := func(eventType string, payload []byte) (any, error) {
-		var p itemEvt
+		var p IntegItemEvent
 		if err := json.Unmarshal(payload, &p); err != nil {
 			return nil, err
 		}
@@ -151,7 +156,7 @@ func TestMetaEngine_MapPipeline(t *testing.T) {
 
 	adapter := projectionadapter.New("integ-map", store, decoder)
 
-	items := []itemEvt{
+	items := []IntegItemEvent{
 		{ID: "a", Title: "Alpha"},
 		{ID: "b", Title: "Beta"},
 		{ID: "c", Title: "Gamma"},
@@ -159,11 +164,12 @@ func TestMetaEngine_MapPipeline(t *testing.T) {
 
 	for _, item := range items {
 		evt, err := event.New(
-			event.Type("ItemEvt"),
+			event.Type("IntegItemEvent"),
 			id.NewStreamID(),
 			"TestStream",
 			event.Version(1),
 			item,
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			t.Fatalf("event.New: %v", err)
@@ -175,7 +181,9 @@ func TestMetaEngine_MapPipeline(t *testing.T) {
 	}
 
 	for _, expected := range items {
-		result, err := metaengine.ExecuteTyped[mapKey, itemResult](ctx, store, expected.ID)
+		result, err := metaengine.ExecuteTyped[integFindItem, integItemResult](
+			ctx, store, integFindItem{ID: expected.ID},
+		)
 		if err != nil {
 			t.Fatalf("ExecuteTyped %s: %v", expected.ID, err)
 		}
