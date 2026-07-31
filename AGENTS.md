@@ -730,6 +730,37 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //       ),
 //   )
 //
+// Durability tiers (unified vocabulary across all SQL + Pebble presets)
+//   bundle, _ := sqlite.New(dsn, sqlite.WithDurability(stack.DurabilityStrict))
+//   bundle, _ := pebble.New(dir, pebble.WithDurability(stack.DurabilityRelaxed))
+//   bundle, _ := postgres.New(dsn, postgres.WithDurability(stack.DurabilityNormal))
+//   // Strict:  fsync per commit (SQLite synchronous=FULL, Postgres sync_commit=on)
+//   // Normal:  safe against app crash (SQLite synchronous=NORMAL, Postgres sync_commit=off)
+//   // Relaxed: data loss possible on crash (SQLite synchronous=OFF, Pebble DisableWAL=true)
+//   // Default: DurabilityNormal for every preset
+//   tier := bundle.Durability()  // introspect via Bundle accessor
+//
+// Backend capabilities (machine-checkable tradeoff matrix)
+//   caps := bundle.Capabilities()
+//   caps.Persistent  // data survives restart
+//   caps.Embedded    // in-process (no server)
+//   caps.Distributed // cross-process pub/sub
+//   caps.OLAP        // columnar/analytical optimized
+//   caps.CGoRequired // needs C compiler
+//   caps.SyncEnabled // remote sync support (Turso)
+//
+// SQLite granular options (beyond WithPragmas)
+//   bundle, _ := sqlite.New(dsn,
+//       sqlite.WithCacheSize(128*1024*1024),  // 128 MB page cache
+//       sqlite.WithBusyTimeout(10*time.Second),
+//   )
+//
+// Postgres pool + timeout tuning
+//   bundle, _ := postgres.New(dsn,
+//       postgres.WithPoolSize(20, 5),               // maxOpen, maxIdle
+//       postgres.WithStatementTimeout(30*time.Second),
+//   )
+//
 // Multi-DB Postgres preset (same API, separate databases on same server)
 //   bundle, _ := postgres.New(primaryDSN,
 //       postgres.WithDSN(
