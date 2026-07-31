@@ -26,32 +26,35 @@ func (s *Store) Stats(ctx context.Context) ([]CollectionStats, error) {
 		stats := CollectionStats{
 			Name:       name,
 			EngineName: q.engine.Profile().Name,
-		}
-
-		// Try AggregateReader (SQL COUNT pushdown).
-		if ar, ok := q.engine.(AggregateReader); ok {
-			n, err := ar.Aggregate(ctx, name, AggregateCount, "", nil)
-			if err == nil {
-				stats.RowCount = int64(n)
-			} else {
-				stats.RowCount = -1
-			}
-		} else if sb, ok := q.engine.(ScanBackend); ok {
-			// Closure-based count via full scan.
-			rows, err := sb.MapScan(ctx, name, nil, nil, nil, 0)
-			if err == nil {
-				stats.RowCount = int64(len(rows))
-			} else {
-				stats.RowCount = -1
-			}
-		} else {
-			stats.RowCount = -1
+			RowCount:   countEngineRows(ctx, name, q.engine),
 		}
 
 		result = append(result, stats)
 	}
 
 	return result, nil
+}
+
+// countEngineRows returns the row count for a collection, or -1 if counting
+// is not supported by the engine.
+func countEngineRows(ctx context.Context, name string, eng Engine) int64 {
+	if ar, ok := eng.(AggregateReader); ok {
+		n, err := ar.Aggregate(ctx, name, AggregateCount, "", nil)
+		if err == nil {
+			return int64(n)
+		}
+
+		return -1
+	}
+
+	if sb, ok := eng.(ScanBackend); ok {
+		rows, err := sb.MapScan(ctx, name, nil, nil, nil, 0)
+		if err == nil {
+			return int64(len(rows))
+		}
+	}
+
+	return -1
 }
 
 // HealthCheck verifies that all engines are responsive. Engines that implement
