@@ -238,10 +238,7 @@ type TTLConfig struct {
 // are expired. This is a declarative hint — actual expiration requires
 // engine support (SQLite: background sweeper, Memory: lazy eviction).
 func WithTTL(d time.Duration) QueryOption {
-	_ = d // Stored as metadata for future engine support
-
 	return func(c *QueryConfig) {
-		// TTL is stored in the config metadata for engines that support it.
-		// Currently a no-op hint; actual enforcement is engine-specific.
+		c.TTL = d.Nanoseconds()
 	}
 }

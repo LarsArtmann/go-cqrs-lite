@@ -3,7 +3,6 @@ package metaengine
 import (
 	"context"
 	"fmt"
-	"sync"
 )
 
 // --- P6-6: Multi-Engine Tiering ---

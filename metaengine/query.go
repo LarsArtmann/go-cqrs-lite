@@ -12,6 +12,7 @@ type QueryOption func(*QueryConfig)
 type QueryConfig struct {
 	Volume          int64
 	LatencyBudgetMs int64
+	TTL             int64 // nanoseconds; 0 = no TTL
 	filterAccessors []filterAccessor
 	sortAccessor    sortAccessor
 }
