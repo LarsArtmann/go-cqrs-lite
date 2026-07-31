@@ -155,6 +155,12 @@ func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
 		}
 	}
 
+	if !r.config.SkipMixed && !r.config.ReplayOnly {
+		if err := r.mixedWorkloadPhase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.mixed_workload", "mixed workload phase")
+		}
+	}
+
 	if !r.config.ReplayOnly && !r.config.SkipJourney {
 		if err := r.journeyPhase(runCtx); err != nil {
 			return errorfamily.WrapTransient(err, "benchkit.journey_phase", "journey phase")

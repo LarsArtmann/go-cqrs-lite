@@ -106,7 +106,7 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 	writeErr := runConcurrent(ctx, mixedStreams, r.concurrency,
 		func(ctx context.Context, idx int) error {
 			ref := mixedRefs[idx]
-			version := uint64(0)
+			var version event.Version
 
 			remaining := profile.EventsPerStream / profile.BatchSize
 			if remaining < 1 {
@@ -133,7 +133,7 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 
 				writeColl.Record(time.Since(start))
 				writeOps.Add(int64(len(events)))
-				version += uint64(len(events))
+				version = version.Add(uint(len(events)))
 			}
 
 			return nil

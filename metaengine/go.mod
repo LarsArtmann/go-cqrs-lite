@@ -7,6 +7,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 	modernc.org/sqlite v1.55.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (
@@ -37,5 +38,4 @@ require (
 	modernc.org/libc v1.74.4 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	pgregory.net/rapid v1.3.0 // indirect
 )

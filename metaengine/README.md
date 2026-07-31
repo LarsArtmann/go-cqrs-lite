@@ -238,3 +238,119 @@ This avoids a double-decode (the adapter would otherwise unmarshal to `any`,
 then `Apply` would need to re-inspect the type). The `projectionadapter`
 package is the canonical consumer; direct callers should use `Apply` with a
 typed value unless they are bridging from a raw-payload source.
+
+## Typed Reads — TypedReader and QueryBuilder
+
+`TypedReader[V]` provides typed point-lookup (`Get`) and filtered scan (`Scan`)
+without constructing a query input struct. `QueryBuilder[V]` adds a fluent,
+chainable API on top:
+
+```go
+reader := metaengine.NewReader[TaskView](store, "task_views")
+
+// Point lookup by key.
+view, found, err := reader.Get(ctx, taskID)
+
+// Filtered scan with options.
+tasks, err := reader.Scan(ctx,
+    metaengine.WithFilter("status", metaengine.FilterEq, "active"),
+    metaengine.WithSort("priority", true),
+    metaengine.WithLimit(50),
+)
+
+// Fluent builder — same result, reads top-to-bottom.
+tasks, err := metaengine.NewQueryBuilder(reader).
+    Where("status", metaengine.FilterEq, "active").
+    SortBy("priority", true).
+    Limit(50).
+    Execute(ctx)
+```
+
+Available scan options: `WithFilter`, `WithRange`, `WithIn`, `WithOr`,
+`WithSort`, `WithSortColumns`, `WithLimit`, `WithCursor`.
+
+## Declarative Filter/Sort Pushdown (FilterOnField / SortOnField)
+
+`FilterOn` and `SortOn` use typed closures (in-Go evaluation). For SQL-aware
+engines (SQLite, Pebble), use `FilterOnField` and `SortOnField` instead — they
+produce declarative specs that the engine pushes down to `json_extract()`
+WHERE/ORDER BY clauses, achieving O(logN) instead of O(N):
+
+```go
+listTasks := metaengine.Query[ListTasks, TaskView]("task_views",
+    metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, TaskView) { ... }),
+    metaengine.On(TaskCompleted{}, func(e TaskCompleted, prev TaskView) TaskView { ... }),
+    metaengine.On(TaskDeleted{}, metaengine.Remove[TaskView]()),
+    metaengine.FilterOnField[TaskView]("status", metaengine.FilterEq),
+    metaengine.SortOnField[TaskView]("priority", true),
+)
+```
+
+The planner sees the FilterOnField spec and assigns the query to the SQLite
+engine (O(logN) pushdown) over Memory (O(N) closure scan).
+
+## Watcher — Reactive Reads
+
+`Watcher[V]` provides push notifications when a collection's values change.
+Subscribe to all keys or a specific key:
+
+```go
+watcher := metaengine.NewWatcher[TaskView](store, "task_views")
+ch := watcher.Watch(ctx, taskID)  // key-specific
+// ch := watcher.Watch(ctx, nil)  // all keys
+
+for v := range ch {
+    fmt.Printf("task changed: %+v\n", v)
+}
+```
+
+## ServeSSE — HTTP Streaming of Query Results
+
+`ServeSSE` streams collection mutations to HTTP clients via Server-Sent Events.
+This is the read-model push layer — clients see materialized query changes,
+not raw domain events:
+
+```go
+watcher := metaengine.NewWatcher[TaskView](store, "task_views")
+http.HandleFunc("/tasks/stream", metaengine.ServeSSE(watcher))
+```
+
+For raw domain event streaming (bus-to-client), use
+`transport/http.SSEBroker` instead. See
+[ADR-0079](../docs/adr/0079-sse-consolidation.md) for the rationale.
+
+## Optional Engine Interfaces
+
+Engines implement whichever ADT backends they support (`MapBackend`,
+`SetBackend`, `CounterBackend`, `GraphBackend`, `MultimapBackend`,
+`LogBackend`). Additionally, engines can implement these optional capability
+interfaces for optimized read paths:
+
+| Interface          | Method                          | Benefit                              |
+| ------------------ | ------------------------------- | ------------------------------------ |
+| `PushdownScan`     | `PushdownMapScan`               | SQL WHERE/ORDER BY/LIMIT pushdown    |
+| `RawValueReader`   | `GetRawValue`                   | Single-pass JSON decode on Get       |
+| `RawScanReader`    | `ScanRawValues`                 | Single-pass JSON decode per scan row |
+| `MapUpdater`       | `MapUpdate`                     | Atomic read-modify-write             |
+| `Transactional`    | `RunInTx`                       | Cross-collection transactional writes|
+
+The SQLite engine implements all of these. The Memory engine implements
+`MapUpdater` but not the pushdown/raw interfaces (it returns decoded Go
+values directly).
+
+## Projection Adapter with EventDecoder
+
+The `projectionadapter` package wraps a Store as a `projection.Projection`
+for registration with `projectionhost.Host`. For Map ADT queries that need
+the entity ID (stream ID) as the projection key, use `WithEventDecoder`:
+
+```go
+adapter := projectionadapter.New("tasks", store, nil,
+    projectionadapter.WithEventDecoder(func(evt event.Event) (any, error) {
+        return eventWithID{
+            ID:      evt.StreamID().String(),
+            Payload: decodePayload(evt),
+        }, nil
+    }))
+host.Register(adapter)
+```
