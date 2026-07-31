@@ -5,6 +5,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
+	"net/http"
 	"sync"
 	"testing"
 	"time"
@@ -393,6 +395,108 @@ func TestExportImport_AllADTs(t *testing.T) {
 }
 
 // Helper: contains is already defined in layout_bench_test.go
+
+// --- P4.2: HTTP/SSE adapter test ---
+
+func TestServeSSE_StreamsWatcherValues(t *testing.T) {
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	watcher := NewWatcher[testTask](store, "tasks")
+	defer watcher.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+		_ = ServeSSE(w, r, watcher)
+	})
+
+	srv := &http.Server{Handler: mux}
+	defer srv.Close()
+
+	ln, _ := net.Listen("tcp", "127.0.0.1:0")
+	srv.Addr = ln.Addr().String()
+	go srv.Serve(ln)
+
+	time.Sleep(100 * time.Millisecond)
+
+	// Connect as HTTP client and send GET request
+	conn, err := net.Dial("tcp", srv.Addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+
+	// Send HTTP GET to trigger SSE handler
+	_, _ = conn.Write([]byte("GET /events HTTP/1.0\r\nHost: localhost\r\n\r\n"))
+
+	// Wait for the handler to start and register the watcher subscription
+	time.Sleep(200 * time.Millisecond)
+
+	// Apply an event to trigger watcher notification
+	_ = store.Apply(ctx, "task_created", testTask{ID: "sse-1", Title: "SSE Test"})
+
+	// Read SSE response in a loop until we get data event
+	var fullData string
+	deadline := time.Now().Add(5 * time.Second)
+	buf := make([]byte, 8192)
+
+	for time.Now().Before(deadline) {
+		conn.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
+		n, err := conn.Read(buf)
+		if err != nil {
+			break // timeout or closed
+		}
+
+		fullData += string(buf[:n])
+
+		if contains(fullData, "data:") && contains(fullData, "SSE Test") {
+			break
+		}
+	}
+
+	if !contains(fullData, "data:") {
+		t.Errorf("SSE: expected 'data:' prefix, got: %s", fullData)
+	}
+
+	if !contains(fullData, "SSE Test") {
+		t.Errorf("SSE: expected 'SSE Test' in data, got: %s", fullData)
+	}
+}
+
+// --- P4.4: Inspect output test ---
+
+func TestInspect_ReturnsCollectionInfo(t *testing.T) {
+	t.Parallel()
+
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	output := store.Inspect()
+
+	if !contains(output, "tasks") {
+		t.Errorf("Inspect: expected 'tasks' in output, got: %s", output)
+	}
+
+	if !contains(output, "metaengine:") {
+		t.Errorf("Inspect: expected 'metaengine:' header, got: %s", output)
+	}
+
+	// Test empty store
+	emptyStore := &Store{}
+	emptyOutput := emptyStore.Inspect()
+	if !contains(emptyOutput, "no collections") {
+		t.Errorf("Inspect empty: expected 'no collections', got: %s", emptyOutput)
+	}
+}
 
 // --- P2.1: ReadCoalescer integration ---
 

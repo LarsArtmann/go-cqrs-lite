@@ -1390,6 +1390,7 @@ metaengine/func Plan
 metaengine/func Query
 metaengine/func Remove
 metaengine/func SQLiteEngineProfile
+metaengine/func ServeSSE
 metaengine/func SortOn
 metaengine/func SortOnField
 metaengine/func VerifyChecksum
@@ -1483,6 +1484,7 @@ metaengine/method GroupBy
 metaengine/method HasWarnings
 metaengine/method Import
 metaengine/method InTransaction
+metaengine/method Inspect
 metaengine/method IsPoisoned
 metaengine/method LatencyBudget
 metaengine/method Len

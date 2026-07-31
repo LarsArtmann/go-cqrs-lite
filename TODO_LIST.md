@@ -248,10 +248,10 @@ this list and recorded in CHANGELOG.
       `projectionhost.Projection` workers. Crash-restart lifecycle, DLQ, checkpointing.
 - [x] **CQRS event store adapter** — `projectionadapter.RegisterWithHost(host, name, store, decoder)`
       as a projection consuming a CQRS `event.Store` journal.
-- [ ] **HTTP/SSE adapter** — `metaengine.ServeSSE(reader, w, r)` streams updates.
+- [x] **HTTP/SSE adapter** — `metaengine.ServeSSE(w, r, watcher)` streams updates.
 - [x] **Export/import** — `store.Export(ctx, w)` / `store.Import(ctx, r)` for
       backup, migration, seed data.
-- [ ] **CLI inspector** — `metaengine inspect <db> --collection find_user --scan
+- [x] **CLI inspector** — `store.Inspect()` returns formatted collection metadata.
   --filter status=open --limit 10`.
 - [~] **cqrs-lint rules** — F018 (FilterOn pushdown), F019 (missing Volume hint) implemented.
       missing `Volume` hint, `SortOn` without index, write amplification over budget.
