@@ -68,7 +68,6 @@ func TestStress_100KEvents(t *testing.T) {
 		}
 
 		// 1/3 should be closed (i%3 == 0).
-		expectedClosed := N/3 + 1 // includes index 0
 		if len(closedItems) != expectedClosed {
 			t.Errorf("closed items = %d, want %d", len(closedItems), expectedClosed)
 		}

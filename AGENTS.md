@@ -792,6 +792,45 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   host.Register(adapter)
 //   // Bundle.Close() now closes the metaengine Store automatically
 
+// Metaengine EventDecoder + eventWithID (recommended for Map ADT queries)
+//   // The EventDecoder gives fold handlers full event context (StreamID, Version).
+//   // Wrap the typed payload with the stream ID so Map folds can key by entity:
+//   type eventWithID[P any] struct { ID string; Payload P }
+//   func myDecoder(evt event.Event) (any, error) {
+//       id := evt.StreamID().String()
+//       switch evt.Type() {
+//       case "item.created":
+//           var p ItemCreated
+//           json.Unmarshal(evt.Payload(), &p)
+//           return eventWithID[ItemCreated]{ID: id, Payload: p}, nil
+//       ...
+//       }
+//   }
+//   adapter := projectionadapter.New("items", store, nil,
+//       projectionadapter.WithEventDecoder(myDecoder))
+
+// Metaengine FilterOnField + SortOnField (SQLite json_extract pushdown)
+//   // Declare at query time — planner pushes filter/sort to SQLite WHERE/ORDER BY.
+//   // 50x faster than Memory engine O(N) scan at 10K rows.
+//   q := metaengine.Query[ListInput, ItemView]("items",
+//       metaengine.On(CreatedEvent{}, func(e CreatedEvent) (string, ItemView) { ... }),
+//       metaengine.FilterOnField[ItemView]("status", metaengine.FilterEq),
+//       metaengine.SortOnField[ItemView]("priority", true), // DESC
+//   )
+
+// Metaengine TypedReader (typed Scan/Get without ExecuteTyped)
+//   reader := metaengine.NewReader[ItemView](store, "items")
+//   items, _ := reader.Scan(ctx,
+//       metaengine.WithFilter("status", metaengine.FilterEq, "active"),
+//       metaengine.WithSort("priority", true),
+//       metaengine.WithLimit(50))
+//   item, found, _ := reader.Get(ctx, "item-123")
+
+// Metaengine QueryBuilder (fluent API on top of TypedReader)
+//   qb := metaengine.NewQueryBuilder[ItemView](reader)
+//   results, _ := qb.Where("status", metaengine.FilterEq, "active").
+//       OrderBy("priority", true).Limit(50).Execute(ctx)
+
 // DuckDB preset — embedded analytical (OLAP) engine (CGo required)
 //   b, _ := duckdb.New("analytics.db")     // persistent file
 //   defer b.Close()

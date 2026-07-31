@@ -354,3 +354,52 @@ adapter := projectionadapter.New("tasks", store, nil,
     }))
 host.Register(adapter)
 ```
+
+## TieredStore (Read Replicas)
+
+`TieredStore` wraps a primary Store with optional replica Stores. Writes
+(`Apply`/`ApplyBatch`) fan out to all stores; reads use the primary exclusively.
+
+Use for read-scale-out or warm-standby scenarios:
+
+```go
+primary, _ := metaengine.Plan([]metaengine.Engine{sqliteEng}, query)
+replica, _ := metaengine.Plan([]metaengine.Engine{memEng}, query)
+tiered := metaengine.NewTieredStore(primary, replica)
+
+// Writes go to both stores:
+_ = tiered.Apply(ctx, "task.created", payload)
+
+// Reads use the primary:
+reader := metaengine.NewReader[TaskView](primary, "tasks")
+```
+
+## SwapEngine (Live Engine Migration)
+
+`SwapEngine` replaces an engine at runtime. All queries assigned to the old
+engine are reassigned to the new one. The old engine is NOT closed (caller
+manages lifecycle).
+
+Use for zero-downtime engine upgrades (e.g., swap Memory for SQLite after
+warmup):
+
+```go
+// After warming up a SQLite engine with historical data:
+err := store.SwapEngine("memory", "sqlite", sqliteEng)
+// All queries previously on "memory" now route to "sqlite"
+```
+
+## QueryBuilder (Fluent API)
+
+`QueryBuilder` provides a fluent builder on top of `TypedReader`:
+
+```go
+reader := metaengine.NewReader[TaskView](store, "tasks")
+qb := metaengine.NewQueryBuilder[TaskView](reader)
+
+results, _ := qb.
+    Where("status", metaengine.FilterEq, "active").
+    OrderBy("priority", true).
+    Limit(50).
+    Execute(ctx)
+```

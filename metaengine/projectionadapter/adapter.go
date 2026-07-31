@@ -16,10 +16,10 @@ import (
 //
 // If nil, the adapter decodes the payload as map[string]any (generic JSON).
 //
-// Limitation: PayloadDecoder only receives the raw payload bytes — it cannot
-// access event metadata (StreamID, Version, etc.). For Map ADT queries that
-// need the entity ID (stream ID) as the projection key, use EventDecoder via
-// WithEventDecoder instead.
+// PayloadDecoder is sufficient for Counter and Set queries that don't need
+// the entity ID. For Map ADT queries (where the entity ID is the projection
+// key), use EventDecoder via WithEventDecoder instead — it is the recommended
+// decoder for all query types because it provides full event context.
 type PayloadDecoder func(eventType string, payload []byte) (any, error)
 
 // EventDecoder converts a full event into a typed value that the metaengine
@@ -27,7 +27,8 @@ type PayloadDecoder func(eventType string, payload []byte) (any, error)
 // StreamID, metadata, and version — needed for Map ADT queries where the
 // entity ID (stream ID) is the projection key.
 //
-// When set via WithEventDecoder, it takes precedence over the PayloadDecoder
+// This is the RECOMMENDED decoder for all metaengine queries. Use it via
+// WithEventDecoder. When set, it takes precedence over the PayloadDecoder
 // passed to New.
 type EventDecoder func(evt event.Event) (any, error)
 

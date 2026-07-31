@@ -44,6 +44,7 @@ func TestMain(m *testing.M) {
 		tcmysql.WithDatabase("cqrs_test"),
 		tcmysql.WithUsername("cqrs"),
 		tcmysql.WithPassword("cqrs"),
+		testcontainers.WithEnv(map[string]string{"MYSQL_ROOT_PASSWORD": "rootpass"}),
 	)
 	if err != nil {
 		os.Exit(m.Run())
@@ -57,6 +58,18 @@ func TestMain(m *testing.M) {
 
 	containerDSN = ensureParseTime(dsn)
 	adminDB, _ = sql.Open("mysql", containerDSN)
+
+	// Grant the cqrs user global CREATE/DROP DATABASE privilege (needed for
+	// per-test database isolation in mysqlDSN and multidb tests).
+	rootDSN := strings.Replace(containerDSN, "cqrs:cqrs@", "root:rootpass@", 1)
+	rootDB, _ := sql.Open("mysql", replaceDBInMySQLDSN(rootDSN, "mysql"))
+	if rootDB != nil {
+		if _, err := rootDB.Exec("GRANT ALL PRIVILEGES ON *.* TO 'cqrs'@'%'"); err != nil {
+			fmt.Fprintf(os.Stderr, "WARN: GRANT failed: %v\n", err)
+		}
+
+		_ = rootDB.Close()
+	}
 
 	code := m.Run()
 
