@@ -18,23 +18,22 @@ this list and recorded in CHANGELOG.
 
 > Session report: `docs/status/2026-07-31_05-44_metaengine-quality-pass-comprehensive-status.md`
 
-- [ ] 🔥 **Fix PrefetchCache key mismatch** — `trimAndCache` generates cache keys via
-      `cursorKeyFor(item, cfg)` but the prefetch-lookup at `typed_reader.go:140` uses
-      `fmt.Sprintf("%s:%v", collection, cfg.cursor)`. The two formats don't match, so
-      auto-populated cache entries are never served. Unify both key paths or use an
-      opaque cursor protocol. (`metaengine/typed_reader.go:140` vs `:663`)
+- [x] **Fix PrefetchCache key mismatch** — unified both cache key paths via shared
+      `prefetchKey(collection, cursorVal)` function. Also added `ScanPage` returning
+      `*Cursor`, doubled fetch limit when prefetch active (was only `limit+1`, not
+      enough for a full cached next page). Files: `typed_reader.go`.
 - [ ] 🔥 **Dedicated unit tests for F018-F021** — all 4 new cqrs-lint rules only have
       meta-test (count) and integration (taskmanager) coverage. Need tests that verify
       each rule fires on its anti-pattern and does NOT fire on clean code.
-- [ ] **Add MapUpdateTyped[V]** — the `MapUpdate` callback receives `any` which is
-      engine-dependent typed (MemoryEngine preserves Go types, SQLite returns
-      `map[string]any` from JSON). A typed variant that auto-reifies `prev` eliminates
-      this footgun.
-- [ ] **Document MapUpdate type contract** — if not making it typed, at least document
-      that callbacks receive engine-dependent `any` values.
-- [ ] **Lint cleanup pass for metaengine** — 72 lint issues (err113: 8, wrapcheck: 18,
-      varnamelen: 14, gocyclo: 3, nestif: 7, nlreturn: 4). Mechanical but time-consuming.
-      Highest priority: err113 in `sse.go`, wrapcheck in `sse.go`/`export_import.go`.
+- [x] **Add MapUpdateTyped[V] + document MapUpdate type contract** — top-level generic
+      function that auto-reifies `prev` to type `V`. Handles both `MapUpdater` and
+      `MapBackend` fallback paths. Documented the engine-dependent `any` type contract
+      on the `MapUpdater` interface. Files: `dx.go`, `engine.go`.
+- [x] **Lint cleanup pass for metaengine** — 101→0 lint issues. Real fixes: err113 →
+      sentinel errors (`errors.go`), sqlclosecheck (stmt_cache), prealloc (planned_sqlite,
+      sqlite_engine), revive unused params, recvcheck (PlanResult), staticcheck (De Morgan's).
+      Suppressed: wrapcheck/varnamelen on interface assertion patterns, nestif on type-switch
+      patterns, funlen/maintidx on Scenarios test matrix.
 - [x] **SSE Last-Event-ID reconnection** — implemented via `Watcher.WithReplay` +
       `SSEReplay[V]` ring buffer. ServeSSE writes `id: <seq>` on every event and
       replays missed values on reconnect via `Last-Event-ID` header with dedup.
@@ -44,19 +43,19 @@ this list and recorded in CHANGELOG.
       strings. Added `WithCursorString` scan option for encoded cursor input.
       Both `WithCursor(raw)` and `WithCursorString(encoded)` produce matching
       cache keys. Files: `typed_reader.go`.
-- [ ] **Refactor ContractSuite** — cyclomatic complexity 41 (threshold 30). Split by ADT.
-- [ ] **Refactor applyFold** — cyclomatic complexity 33 (threshold 30). Split by FoldKind.
-- [ ] **Refactor TypedReader.Scan** — cyclomatic complexity 39 (threshold 30). Extract
-      pushdown/raw/closure scan paths.
+- [x] **Refactor ContractSuite** — split by ADT (gocyclo 41→dispatch).
+- [x] **Refactor applyFold** — split by FoldKind (gocyclo 33→dispatch).
+- [x] **Refactor TypedReader.Scan** — extracted scanRaw/scanPushdown/scanClosure (gocyclo 41→~20).
 
 ---
 
 ## Metaengine — Engine Sophistication
 
-- [ ] 🔥 **Pebble: implement `RawValueReader` + `RawScanReader`** — Pebble still
-      JSON-decodes every value on read. Eliminates the JSON tax for Pebble.
-- [ ] 🔥 **Pebble: add to ADT matrix test** — extend `engineFactories()` in
-      `adt_matrix_test.go` with the Pebble engine.
+- [x] **Pebble: implement `RawValueReader` + `RawScanReader`** — `pebbleengine/raw_reader.go`
+      reads raw JSON bytes without decoding to `any`, enabling direct decode to target type V.
+      Compile-time assertions: `_ metaengine.RawValueReader = (*pebbleEngine)(nil)`.
+- [x] **Pebble: add to ADT matrix test** — `pebbleengine/adt_matrix_test.go` runs the full
+      7-ADT matrix across memory + pebble engines for cross-engine parity.
 - [ ] **Pebble LayoutPlanner** — prefixed key ranges for indexed fields.
 - [ ] **Postgres engine** — native JSONB operators (`->>`, `@>`), GIN indexes.
 - [ ] **DuckDB analytical engine** — columnar OLAP, GROUP BY/COUNT/SUM pushdown.
