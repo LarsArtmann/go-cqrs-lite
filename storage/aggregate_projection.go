@@ -67,11 +67,20 @@ func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
 		}
 		_, err := p.db.ExecContext(
 			ctx,
-			fmt.Sprintf(`INSERT INTO %s
+			fmt.Sprintf(
+				`INSERT INTO %s
 				(aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
 				VALUES (%s, %s, %s, 1, %s, 0) %s`,
-				p.table.name, p1, p2, p3, p4,
-				p.dialect.OnConflictDoUpdate([]string{"aggregate_type", "aggregate_id"}, setExprs)), //nolint:goconst // SQL col
+				p.table.name,
+				p1,
+				p2,
+				p3,
+				p4,
+				p.dialect.OnConflictDoUpdate(
+					[]string{"aggregate_type", "aggregate_id"},
+					setExprs,
+				),
+			), //nolint:goconst // SQL col
 			evt.StreamType(),
 			evt.StreamID().String(),
 			evt.Version().Int(),
