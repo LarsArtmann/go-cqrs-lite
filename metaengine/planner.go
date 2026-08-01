@@ -18,6 +18,7 @@ const DefaultWriteAmplificationBudget = 3
 type planConfig struct {
 	writeAmplificationBudget int
 	dryRun                   bool
+	stats                    map[string]WorkloadStats
 }
 
 type planOption func(*planConfig)
@@ -34,6 +35,16 @@ func WithWriteAmplificationBudget(n int) planOption {
 // inspecting what the planner would do before committing.
 func WithDryRun() planOption {
 	return func(c *planConfig) { c.dryRun = true }
+}
+
+// WithWorkloadStats provides observed workload statistics to the planner.
+// When present, the planner emits materialize-vs-replay recommendations
+// as INFO/WARN diagnostics.
+//
+// The map is keyed by query name. Queries without stats entries are
+// skipped during materialization analysis.
+func WithWorkloadStats(stats map[string]WorkloadStats) planOption {
+	return func(c *planConfig) { c.stats = stats }
 }
 
 // Plan creates a storage plan from available engines and declared queries.
@@ -84,72 +95,17 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 			return nil, fmt.Errorf("metaengine.Plan: %w", err)
 		}
 
-		// Schema enforcement: validate that fold value types match the
-		// declared result type. Mismatches would surface at runtime as
-		// decode errors; catching them at Plan time gives early feedback.
-		if resultType := meta.QueryResultType(); resultType != nil {
-			for _, fold := range meta.QueryFolds() {
-				if fold.valueType != nil && fold.valueType != resultType {
-					plan.Diagnostics = append(plan.Diagnostics, Diagnostic{
-						Level: DiagLevelWarn,
-						Query: runtime.name,
-						Message: fmt.Sprintf(
-							"fold for %s returns %s but query result type is %s — "+
-								"runtime decode may fail",
-							fold.EventType,
-							fold.valueType.String(),
-							resultType.String(),
-						),
-					})
-				}
-			}
-		}
-
-		// Auto-apply layout planning: if the assigned engine supports layout
-		// planning (LayoutPlanner) and the query declares filter/sort fields
-		// via FilterOnField/SortOnField, generate and apply a LayoutPlan
-		// automatically. This eliminates the need for manual
-		// NewPlannedSQLiteEngine setup (ADR-0073 consequence).
-		if lp, ok := runtime.engine.(LayoutPlanner); ok { //nolint:nestif,varnamelen // type-switch + field extraction
-			filterFields, sortFields, err := extractDeclarativeFields(meta.QueryConfig())
-			if err != nil {
-				return nil, fmt.Errorf("metaengine.Plan: %w", err)
-			}
-
-			if len(filterFields) > 0 || len(sortFields) > 0 {
-				layoutPlan := BuildLayoutPlan(runtime.name, filterFields, sortFields)
-
-				plan.LayoutPlans = append(plan.LayoutPlans, layoutPlan)
-
-				plan.Diagnostics = append(plan.Diagnostics, Diagnostic{
-					Level: DiagLevelInfo,
-					Query: runtime.name,
-					Message: fmt.Sprintf(
-						"auto-planned table %s with columns %v",
-						layoutPlan.Table, layoutPlan.ColumnNames(),
-					),
-				})
-
-				if !cfg.dryRun {
-					if err := lp.ApplyLayout(runtime.name, filterFields, sortFields); err != nil {
-						return nil, fmt.Errorf(
-							"metaengine.Plan: auto-layout for %q: %w",
-							runtime.name,
-							err,
-						)
-					}
-				}
-			}
-		}
-
 		store.queries[runtime.name] = runtime
 		store.byInputType[runtime.inputTypeName] = runtime.name
 
 		plan.Queries = append(plan.Queries, assignment)
 	}
 
-	plan.Diagnostics = append(plan.Diagnostics,
-		checkWriteAmplification(store.queries, cfg.writeAmplificationBudget)...)
+	pipeline := NewRulePipeline(defaultRules(cfg)...)
+	if err := pipeline.Apply(plan, PlanContext{Store: store, Config: cfg}); err != nil {
+		return nil, fmt.Errorf("metaengine.Plan: %w", err)
+	}
+
 	store.plan = plan
 
 	return store, nil

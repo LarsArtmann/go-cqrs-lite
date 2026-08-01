@@ -49,11 +49,18 @@ func (p *RulePipeline) Apply(result *PlanResult, ctx PlanContext) error {
 
 // defaultRules returns the standard set of planning rules that Plan() applies.
 // Order matters: schema enforcement first (fast reject), then layout (may
-// create DDL), then write amplification (needs all queries assigned).
+// create DDL), then write amplification (needs all queries assigned), then
+// materialize-vs-replay (needs stats, runs last as an advisory diagnostic).
 func defaultRules(cfg planConfig) []PlanRule {
-	return []PlanRule{
+	rules := []PlanRule{
 		&schemaRule{},
 		&layoutRule{dryRun: cfg.dryRun},
 		&writeAmpRule{budget: cfg.writeAmplificationBudget},
 	}
+
+	if len(cfg.stats) > 0 {
+		rules = append(rules, &materializeRule{stats: cfg.stats})
+	}
+
+	return rules
 }
