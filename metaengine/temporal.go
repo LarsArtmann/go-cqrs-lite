@@ -58,10 +58,10 @@ func (s *Store) ExecuteAsOf(
 		return nil, fmt.Errorf("%w: %q", errNoQueryForInputType, collection)
 	}
 
-	vs, ok := q.engine.(VersionedStorage)
+	vs, ok := q.QueryEngine().(VersionedStorage)
 	if !ok {
 		return nil, fmt.Errorf("%w: engine %s does not support versioned reads",
-			ErrUnsupportedADT, q.engine.Profile().Name)
+			ErrUnsupportedADT, q.QueryEngine().Profile().Name)
 	}
 
 	val, err := vs.MapGetAsOf(ctx, collection, key, t)

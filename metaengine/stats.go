@@ -25,8 +25,8 @@ func (s *Store) Stats(ctx context.Context) ([]CollectionStats, error) {
 	for name, q := range s.queries {
 		stats := CollectionStats{
 			Name:       name,
-			EngineName: q.engine.Profile().Name,
-			RowCount:   countEngineRows(ctx, name, q.engine),
+			EngineName: q.QueryEngine().Profile().Name,
+			RowCount:   countEngineRows(ctx, name, q.QueryEngine()),
 		}
 
 		result = append(result, stats)
