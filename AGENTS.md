@@ -74,6 +74,7 @@ go-cqrs-lite/
 │                        # **StorageLayout + cost matrix**: Layout{Row,Columnar,LSM,KV}, (ADT × Layout)→Complexity, EngineProfile.Layouts, RuleTrace, SerializablePlan (JSON serialize/diff/pin).
 │   └── pebbleengine/   # Pebble-backed metaengine Engine (LSM point reads, 7x faster than SQLite on MapGet). MapBackend, ScanBackend, SetBackend, CounterBackend, GraphBackend, MultimapBackend, LogBackend. **RawValueReader + RawScanReader** (eliminates JSON decode tax on point lookups and filtered scans). Separate module (cockroachdb/pebble dep)
 │   └── duckdbengine/   # DuckDB-backed metaengine Engine (columnar OLAP, CGo). MapBackend + CounterBackend. Vectorized GROUP BY gives O(1) Counter reads. Separate module (duckdb-go dep, CGo required)
+│   └── pgengine/       # Postgres-backed metaengine Engine (JSONB + B-tree). MapBackend + CounterBackend. JSONB columns for efficient JSON storage. Pure Go (pgx driver, no CGo)
 │   └── adttest/       # Exported ADT test harness: RunMatrix, Scenarios, canonicalize helpers — imported by engine modules for cross-engine parity
 │   └── projectionadapter/ # Projection adapter: wraps metaengine Store as projection.Projection ([ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md))
 ├── idempotency/         # Dedup store: Store, MemoryStore, ErrDuplicate (dedup for at-least-once delivery; extraction planned — [ADR-0065](docs/adr/0065-extract-idempotency-module.md)) — ZERO module deps beyond go-error-family

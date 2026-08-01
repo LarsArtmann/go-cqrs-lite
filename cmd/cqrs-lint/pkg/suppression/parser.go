@@ -15,6 +15,12 @@ import (
 // commentPrefix is the inline suppression comment prefix.
 const commentPrefix = "//cqrs-lint:ignore"
 
+// blockStartPrefix is the block suppression start comment prefix.
+const blockStartPrefix = "//cqrs-lint:ignore-start"
+
+// blockEndPrefix is the block suppression end comment prefix.
+const blockEndPrefix = "//cqrs-lint:ignore-end"
+
 // lineCache caches file contents to avoid re-reading for multiple findings.
 type lineCache struct {
 	mu    sync.Mutex
@@ -87,6 +93,10 @@ func NewSuppressionFilter() pipeline.FindingTransformer {
 			for _, f := range findings {
 				matched := checkSuppressionInFile(cache, f)
 				if !matched {
+					matched = checkBlockSuppressionInFile(cache, f)
+				}
+
+				if !matched {
 					matched = checkSuppressionInSnippet(f)
 				}
 
@@ -147,6 +157,87 @@ func checkSuppressionInSnippet(f finding.Finding) bool {
 	_, ok := suppressedRules[string(f.Rule)]
 
 	return ok
+}
+
+// checkBlockSuppressionInFile scans backward from the finding's line to
+// determine if it falls inside a //cqrs-lint:ignore-start / ignore-end block.
+// If the block start specifies rule IDs (e.g. ignore-start(A001)), only
+// those rules are suppressed. If no IDs are specified, all rules are suppressed.
+func checkBlockSuppressionInFile(cache *lineCache, f finding.Finding) bool {
+	filePath := string(f.Position.File)
+	if filePath == "" {
+		return false
+	}
+
+	lines := cache.getLines(filePath)
+	if lines == nil {
+		return false
+	}
+
+	ruleID := string(f.Rule)
+	line := f.Position.Line // 1-based
+
+	if line < 1 || line > len(lines) {
+		return false
+	}
+
+	// Scan backward from the finding's line to find the nearest block start
+	// or end. If we find a start first, we're inside a block. If we find an
+	// end first (or run out of lines), we're not.
+	for i := line; i >= 1; i-- {
+		text := strings.TrimSpace(lines[i-1])
+		// Normalize: accept "//cqrs-lint:ignore-start" and "// cqrs-lint:ignore-start"
+		text = strings.TrimPrefix(text, "// ")
+
+		if strings.HasPrefix(text, blockEndPrefix) {
+			return false // outside a block
+		}
+
+		if strings.HasPrefix(text, blockStartPrefix) {
+			suppressedRules := parseBlockStart(text)
+			if len(suppressedRules) == 0 {
+				return true // suppresses all rules
+			}
+
+			_, ok := suppressedRules[ruleID]
+			return ok
+		}
+	}
+
+	return false
+}
+
+// parseBlockStart extracts the rule IDs from a block-start comment.
+// Returns nil if no rule IDs are specified (suppresses all).
+// Returns a map of rule IDs if specific rules are listed.
+func parseBlockStart(text string) map[string]struct{} {
+	rest := strings.TrimPrefix(text, blockStartPrefix)
+	rest = strings.TrimSpace(rest)
+
+	if !strings.HasPrefix(rest, "(") {
+		return nil // no rule IDs = suppress all
+	}
+
+	end := strings.Index(rest, ")")
+	if end <= 0 {
+		return nil
+	}
+
+	rawIDs := rest[1:end]
+	result := make(map[string]struct{})
+
+	for id := range strings.SplitSeq(rawIDs, ",") {
+		id = strings.TrimSpace(id)
+		if id != "" {
+			result[id] = struct{}{}
+		}
+	}
+
+	if len(result) == 0 {
+		return nil
+	}
+
+	return result
 }
 
 // ParseSuppressions extracts suppressed rule IDs from comment text.
