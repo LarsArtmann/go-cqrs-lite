@@ -26,8 +26,8 @@ func (c recorderConfig) validate() error {
 		return fmt.Errorf("flightrecorder: MinAge must be positive, got %s", c.minAge)
 	}
 
-	if c.maxBytes <= 0 {
-		return fmt.Errorf("flightrecorder: MaxBytes must be positive, got %d", c.maxBytes)
+	if c.maxBytes == 0 {
+		return fmt.Errorf("flightrecorder: MaxBytes must be positive")
 	}
 
 	return nil

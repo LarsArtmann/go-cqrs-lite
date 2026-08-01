@@ -21,6 +21,7 @@ use (
 	./example/getting-started
 	./example/readme-quickstart
 	./example/taskmanager
+	./flightrecorder
 	./graph
 	./id
 	./idempotency
