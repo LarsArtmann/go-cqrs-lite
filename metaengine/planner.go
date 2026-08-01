@@ -3,6 +3,7 @@ package metaengine
 import (
 	"fmt"
 	"sort"
+	"time"
 )
 
 type rankedEngine struct {
@@ -78,6 +79,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		queries:     make(map[string]queryRuntime),
 		byInputType: make(map[string]string),
 		queryDecls:  queries,
+		startTime:   time.Now(),
 	}
 
 	for _, q := range queries {

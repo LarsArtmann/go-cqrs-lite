@@ -3,6 +3,7 @@ package metaengine
 import (
 	"fmt"
 	"math"
+	"time"
 )
 
 // WorkloadStats holds observed or estimated workload statistics for a
@@ -54,6 +55,27 @@ func MaterializeCost(stats WorkloadStats) float64 {
 // (materialized projections offer better read latency).
 func ShouldMaterialize(stats WorkloadStats) bool {
 	return shouldMaterialize(stats)
+}
+
+// ObservedWorkloadStats returns observed workload statistics derived from
+// the Store's internal counters. WriteRatePerSec is computed from the total
+// Apply() calls divided by uptime. ReadRatePerSec is computed from the total
+// ExecuteCtx/ExecuteTyped calls divided by uptime. AvgStreamLength is left
+// as 0 (requires domain knowledge the Store doesn't have).
+//
+// This is a convenience for consumers who want to feed stats back into
+// Plan via WithWorkloadStats. For more accurate stats, track per-collection
+// rates externally (e.g., from projectionhost processed counts).
+func (s *Store) ObservedWorkloadStats() WorkloadStats {
+	uptime := time.Since(s.startTime).Seconds()
+	if uptime < 1 {
+		uptime = 1
+	}
+
+	return WorkloadStats{
+		WriteRatePerSec: float64(s.writeCount.Load()) / uptime,
+		ReadRatePerSec:  float64(s.readCount.Load()) / uptime,
+	}
 }
 
 // replayCost estimates the cost of replaying a stream to answer a query.

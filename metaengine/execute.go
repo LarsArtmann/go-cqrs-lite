@@ -13,6 +13,8 @@ func (s *Store) Execute(input any) (any, error) {
 }
 
 func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
+	s.readCount.Add(1)
+
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("metaengine.ExecuteCtx: %w", ctx.Err())

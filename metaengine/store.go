@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -36,6 +37,9 @@ type Store struct {
 	eventLog     *EventLog
 	queryDecls   []any          // original query declarations (for Verify)
 	coalescer    *ReadCoalescer // optional read coalescer (nil = disabled)
+	writeCount   atomic.Int64   // total events applied (for WorkloadStats)
+	readCount    atomic.Int64   // total queries executed (for WorkloadStats)
+	startTime    time.Time      // when the store was created (for rate calculation)
 	watcherMu    sync.Mutex
 	watchers     map[string][]*watcherEntry // collection → watcher entries
 	replays      map[string]replayRecorder  // collection → replay recorder (nil = no replay)
@@ -231,6 +235,8 @@ func (s *Store) notifyWatchers(collection string, key any, value any) {
 // Each query has its own independent projection — the same event updates
 // each matching query's collection separately.
 func (s *Store) Apply(ctx context.Context, eventType string, payload any) error {
+	s.writeCount.Add(1)
+
 	if s.eventLog != nil {
 		s.eventLog.Record(eventType, payload)
 	}
