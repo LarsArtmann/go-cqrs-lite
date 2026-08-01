@@ -2011,8 +2011,12 @@ func TestPrintSweep(t *testing.T) {
 		t.Error("PrintSweep output missing 'Workers Sweep' header")
 	}
 
-	if !strings.Contains(output, "Write ops/s") {
-		t.Error("PrintSweep output missing 'Write ops/s' column")
+	if !strings.Contains(output, "WriteP50") {
+		t.Error("PrintSweep output missing 'WriteP50' column")
+	}
+
+	if !strings.Contains(output, "GCMaxPau") {
+		t.Error("PrintSweep output missing 'GCMaxPau' column")
 	}
 }
 

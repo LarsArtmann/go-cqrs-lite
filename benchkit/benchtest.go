@@ -64,4 +64,38 @@ func RunSuite(b *testing.B, config Config, factory Factory) {
 	if result.RecoveryTime > 0 {
 		b.ReportMetric(float64(result.RecoveryTime.Nanoseconds()), "ns/recovery")
 	}
+
+	// Evidence-grade metrics — surface GC pressure, allocation cost, and tail risk
+	if result.GCCount > 0 {
+		b.ReportMetric(float64(result.GCCount), "gc-cycles")
+		b.ReportMetric(float64(result.GCMaxPause.Nanoseconds()), "ns/gc-max-pause")
+		b.ReportMetric(result.GCPercent, "gc-percent")
+	}
+
+	if result.AllocsPerOp > 0 {
+		b.ReportMetric(result.AllocsPerOp, "allocs/op")
+		b.ReportMetric(result.BytesPerOp, "B/op")
+	}
+
+	if result.TailRatio > 0 {
+		b.ReportMetric(result.TailRatio, "tail-ratio")
+	}
+
+	if result.ColdReadLatency.Count > 0 {
+		b.ReportMetric(float64(result.ColdReadLatency.P99.Nanoseconds()), "ns/cold-read-p99")
+	}
+
+	if result.Disk.WriteAmplification > 0 {
+		b.ReportMetric(result.Disk.WriteAmplification, "write-amp")
+	}
+
+	if result.IntegrityErrors > 0 {
+		b.ReportMetric(float64(result.IntegrityErrors), "integrity-errors")
+	}
+
+	if result.MetaEngineApplyLatency.Count > 0 {
+		b.ReportMetric(float64(result.MetaEngineScanLatency.P99.Nanoseconds()), "ns/me-scan-p99")
+		b.ReportMetric(float64(result.MetaEnginePointReadLatency.P99.Nanoseconds()), "ns/me-point-p99")
+		b.ReportMetric(result.MetaEngineApplyConcurrent, "me-events/sec-concurrent")
+	}
 }

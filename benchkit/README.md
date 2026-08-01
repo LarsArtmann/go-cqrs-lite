@@ -41,10 +41,11 @@ Output:
 ```
 Backend Comparison
 ================================================================================
-Backend       Write P50    Write P99     Load P50     Load P99    Heap MB    Disk MB
-------------------------------------------------------------------------------------
-memory            160ns        3.1µs        100ns       16.3µs     1.2 MB        0 B
-sqlite           42.8µs      143.3µs       32.6µs      260.8µs     2.5 MB        0 B
+Backend       WriteP50    WriteP99     LoadP50     LoadP99    ColdP50  GCMaxPau  WrtAmp  CoV%   Heap    Disk
+--------------------------------------------------------------------------------------------
+memory            160ns        3.1µs       100ns      16.3µs     120ns    175µs      -   3.3%  1.2MB      0B
+sqlite           42.8µs      143.3µs      32.6µs     260.8µs    32.6µs    210µs      -   8.3%  2.5MB      0B
+pebble           10.9µs      110.0µs      59.8µs      80.0µs    58.8µs   1.17ms  10.15x  3.2%  3.8MB   1.2MB
 ```
 
 ## CLI

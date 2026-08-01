@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
@@ -95,7 +96,9 @@ func TestPrintSweep_HandlesMixedFailedAndSuccess(t *testing.T) {
 	t.Parallel()
 	results := []SweepResult{
 		{Parameter: "workers", Value: 1, Result: &Result{Error: "boom"}},
-		{Parameter: "workers", Value: 2, Result: &Result{WriteThroughput: 1234.5}},
+		{Parameter: "workers", Value: 2, Result: &Result{
+			WriteLatency: LatencyStats{P50: 42 * time.Microsecond, P99: 100 * time.Microsecond},
+		}},
 	}
 	var buf bytes.Buffer
 	PrintSweep(&buf, results) // must not panic
@@ -104,10 +107,10 @@ func TestPrintSweep_HandlesMixedFailedAndSuccess(t *testing.T) {
 	if !strings.Contains(out, "FAILED") {
 		t.Fatalf("output missing FAILED row:\n%s", out)
 	}
-	// formatFloat renders 1234.5 as "1.2K"; the success row must appear (not be
-	// swallowed by the FAILED branch).
-	if !strings.Contains(out, "1.2K") {
-		t.Fatalf("output missing successful row throughput:\n%s", out)
+	// The success row must appear (not swallowed by the FAILED branch).
+	// roundDuration(42µs) renders as "42µs".
+	if !strings.Contains(out, "42µs") {
+		t.Fatalf("output missing successful row latency:\n%s", out)
 	}
 }
 

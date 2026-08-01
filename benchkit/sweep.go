@@ -120,7 +120,7 @@ func StreamLengthSweep(
 		})
 }
 
-// PrintSweep writes a scaling-sweep comparison table.
+// PrintSweep writes a scaling-sweep comparison table with evidence-grade columns.
 func PrintSweep(w io.Writer, results []SweepResult) {
 	if len(results) == 0 {
 		return
@@ -129,11 +129,11 @@ func PrintSweep(w io.Writer, results []SweepResult) {
 	param := results[0].Parameter
 
 	fmt.Fprintf(w, "\n%s Sweep\n", titleCase(param))
-	fmt.Fprintln(w, strings.Repeat("=", 80))
+	fmt.Fprintln(w, strings.Repeat("=", 100))
 
 	header := fmt.Sprintf(
-		"%-12s %12s %14s %14s %10s %10s",
-		param, "Write ops/s", "RawSink ops/s", "Load P50", "Heap MB", "Disk MB",
+		"%-10s %10s %10s %10s %10s %10s %8s %8s",
+		param, "WriteP50", "WriteP99", "LoadP50", "GCMaxPau", "Allocs/op", "WrtAmp", "Heap",
 	)
 	fmt.Fprintln(w, header)
 	fmt.Fprintln(w, strings.Repeat("-", len(header)))
@@ -141,25 +141,37 @@ func PrintSweep(w io.Writer, results []SweepResult) {
 	for _, sweepResult := range results {
 		r := sweepResult.Result
 		if r == nil {
-			fmt.Fprintf(w, "%-12d %s\n", sweepResult.Value, "FAILED: no result")
+			fmt.Fprintf(w, "%-10d %s\n", sweepResult.Value, "FAILED: no result")
 
 			continue
 		}
 
 		if r.Error != "" {
-			fmt.Fprintf(w, "%-12d %s\n", sweepResult.Value, "FAILED: "+truncate(r.Error, 50))
+			fmt.Fprintf(w, "%-10d %s\n", sweepResult.Value, "FAILED: "+truncate(r.Error, 50))
 
 			continue
 		}
 
+		wrtAmp := "-"
+		if r.Disk.WriteAmplification > 0 {
+			wrtAmp = fmt.Sprintf("%.1fx", r.Disk.WriteAmplification)
+		}
+
+		allocsOp := "-"
+		if r.AllocsPerOp > 0 {
+			allocsOp = formatFloat(r.AllocsPerOp)
+		}
+
 		fmt.Fprintf(
-			w, "%-12d %12s %14s %14s %10s %10s\n",
+			w, "%-10d %10s %10s %10s %10s %10s %8s %8s\n",
 			sweepResult.Value,
-			formatFloat(r.WriteThroughput),
-			formatFloatOrDash(r.RawSinkThroughput),
+			roundDuration(r.WriteLatency.P50),
+			roundDuration(r.WriteLatency.P99),
 			roundDuration(r.LoadLatency.P50),
+			dashIfZero(r.GCMaxPause),
+			allocsOp,
+			wrtAmp,
 			formatBytes(r.Memory.After),
-			formatBytes(uint64(r.Disk.DatabaseBytes)),
 		)
 	}
 
