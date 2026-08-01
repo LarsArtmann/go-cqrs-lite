@@ -100,7 +100,10 @@ func (m *memoryEngine) MapSet(_ context.Context, col string, key any, value any)
 	defer m.mu.Unlock()
 
 	m.getMapLocked(col)[key] = value
-	m.recordVersion(col, fmt.Sprint(key), value)
+
+	if m.versions != nil { // opt-in versioning
+		m.recordVersion(col, fmt.Sprint(key), value)
+	}
 
 	return nil
 }
@@ -124,7 +127,10 @@ func (m *memoryEngine) MapDelete(_ context.Context, col string, key any) error {
 	defer m.mu.Unlock()
 
 	delete(m.getMapLocked(col), key)
-	m.recordVersion(col, fmt.Sprint(key), nil) // nil = tombstone for version chain
+
+	if m.versions != nil { // opt-in versioning
+		m.recordVersion(col, fmt.Sprint(key), nil)
+	}
 
 	return nil
 }

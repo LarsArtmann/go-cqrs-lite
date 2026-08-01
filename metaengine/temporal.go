@@ -39,36 +39,6 @@ type AsOfSignal struct {
 	Timestamp time.Time
 }
 
-// supportsVersionedReads checks whether any of the given engines implement
-// VersionedStorage. Used by the planner to emit a diagnostic when a query
-// appears to need temporal reads but no versioned engine is available.
-func supportsVersionedReads(engines []Engine) bool { //nolint:unused // used by versionedReadRule
-	for _, eng := range engines {
-		if _, ok := eng.(VersionedStorage); ok {
-			return true
-		}
-	}
-
-	return false
-}
-
-// versionedReadRule checks if queries declare temporal read patterns and
-// emits a diagnostic when no VersionedStorage engine is available.
-type versionedReadRule struct{} //nolint:unused // planned for future planner integration
-
-func (*versionedReadRule) Name() string { return "versioned-read-check" } //nolint:unused
-
-func (*versionedReadRule) Apply(result *PlanResult, ctx PlanContext) error { //nolint:unused
-	if supportsVersionedReads(ctx.Store.engines) {
-		return nil
-	}
-
-	// Check if any query has a volume hint suggesting temporal reads
-	// (future: detect AsOf fields in query input types via reflection)
-	// For now, this rule is a no-op unless we detect temporal patterns
-	return nil
-}
-
 // ExecuteAsOf performs a temporal (as-of) point lookup on a collection.
 // It finds the engine assigned to the collection and, if it implements
 // VersionedStorage, delegates to MapGetAsOf.
