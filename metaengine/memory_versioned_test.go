@@ -250,11 +250,7 @@ func TestStore_ExecuteAsOf_Integration(t *testing.T) {
 		Query[FindUser, UserView](
 			"users",
 			On(UserCreated{}, func(e UserCreated) (UserID, UserView) {
-				return e.ID, UserView{
-					ID:    e.ID,
-					Name:  e.Name,
-					Email: e.Email,
-				} //nolint:staticcheck // intentional field mapping
+				return e.ID, UserView(e)
 			}),
 			On(UserUpdated{}, func(e UserUpdated, prev UserView) UserView {
 				prev.Name = e.Name
