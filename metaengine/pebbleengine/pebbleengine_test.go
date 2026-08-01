@@ -211,7 +211,7 @@ func TestPebbleMapScan(t *testing.T) {
 	// No filter — all 10 items.
 	results, err := sb.MapScan(ctx, "items", nil, nil, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(results).To(HaveLen(10))
+	g.Expect(results.Items).To(HaveLen(10))
 
 	// With filter — only matching items.
 	filterFn := func(item any) bool {
@@ -227,7 +227,7 @@ func TestPebbleMapScan(t *testing.T) {
 
 	results, err = sb.MapScan(ctx, "items", filterFn, nil, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(results).To(HaveLen(5))
+	g.Expect(results.Items).To(HaveLen(5))
 }
 
 func TestPebbleProfile(t *testing.T) {

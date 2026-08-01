@@ -68,7 +68,7 @@ func TestPebbleGetRawValueNotFound(t *testing.T) {
 	raw, found, err := rvr.GetRawValue(context.Background(), "users", "missing")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(found).To(BeFalse())
-	g.Expect(raw).To(BeNil())
+	g.Expect(raw.Items).To(BeNil())
 }
 
 func TestPebbleScanRawValuesNoFilter(t *testing.T) {
@@ -81,9 +81,9 @@ func TestPebbleScanRawValuesNoFilter(t *testing.T) {
 
 	raw, err := rsr.ScanRawValues(ctx, "items", nil, nil, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(5))
+	g.Expect(raw.Items).To(HaveLen(5))
 
-	for _, b := range raw {
+	for _, b := range raw.Items {
 		var v map[string]any
 		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
 		g.Expect(v["status"]).To(Equal("open"))
@@ -114,9 +114,9 @@ func TestPebbleScanRawValuesWithFilter(t *testing.T) {
 	}
 	raw, err := rsr.ScanRawValues(ctx, "tasks", filters, nil, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(3))
+	g.Expect(raw.Items).To(HaveLen(3))
 
-	for _, b := range raw {
+	for _, b := range raw.Items {
 		var v map[string]any
 		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
 		g.Expect(v["status"]).To(Equal("open"))
@@ -145,10 +145,10 @@ func testSortedScan(t *testing.T, desc bool, expected []float64) {
 	sortSpec := &metaengine.SortSpec{Column: "priority", Desc: desc}
 	raw, err := rsr.ScanRawValues(ctx, "sorted", nil, sortSpec, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(3))
+	g.Expect(raw.Items).To(HaveLen(3))
 
 	priorities := make([]float64, 0, 3)
-	for _, b := range raw {
+	for _, b := range raw.Items {
 		var v map[string]any
 		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
 		p, ok := v["priority"].(float64)
@@ -180,10 +180,10 @@ func TestPebbleScanRawValuesWithCursor(t *testing.T) {
 	// First page: first 3 items.
 	raw, err := rsr.ScanRawValues(ctx, "paged", nil, sortSpec, nil, 3)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(4)) // 3+1 overflow
+	g.Expect(raw.Items).To(HaveLen(4)) // 3+1 overflow
 
 	var lastID float64
-	for _, b := range raw[:3] {
+	for _, b := range raw.Items[:3] {
 		var v map[string]any
 		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
 		lastID = v["id"].(float64)
@@ -194,12 +194,12 @@ func TestPebbleScanRawValuesWithCursor(t *testing.T) {
 	// Second page: cursor = lastID (2).
 	raw2, err := rsr.ScanRawValues(ctx, "paged", nil, sortSpec, lastID, 3)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw2).To(HaveLen(4)) // items 3,4,5,6 (3+1 overflow)
+	g.Expect(raw2.Items).To(HaveLen(4)) // items 3,4,5,6 (3+1 overflow)
 
 	var firstIDPage2 float64
 	var v map[string]any
 
-	g.Expect(json.Unmarshal(raw2[0], &v)).To(Succeed())
+	g.Expect(json.Unmarshal(raw2.Items[0], &v)).To(Succeed())
 	firstIDPage2 = v["id"].(float64)
 	g.Expect(firstIDPage2).To(Equal(float64(3)))
 }
@@ -230,10 +230,10 @@ func TestPebbleScanRawValuesWithFilterAndSort(t *testing.T) {
 	sortSpec := &metaengine.SortSpec{Column: "priority", Desc: false}
 	raw, err := rsr.ScanRawValues(ctx, "combined", filters, sortSpec, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(3))
+	g.Expect(raw.Items).To(HaveLen(3))
 
 	priorities := make([]float64, 0, 3)
-	for _, b := range raw {
+	for _, b := range raw.Items {
 		var v map[string]any
 		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
 		g.Expect(v["status"]).To(Equal("open"))
@@ -308,7 +308,7 @@ func TestPebbleScanRawValuesLimitZero(t *testing.T) {
 
 	raw, err := rsr.ScanRawValues(ctx, "nolimit", nil, nil, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(7))
+	g.Expect(raw.Items).To(HaveLen(7))
 }
 
 func TestPebbleScanRawValuesFilterIn(t *testing.T) {
@@ -325,10 +325,10 @@ func TestPebbleScanRawValuesFilterIn(t *testing.T) {
 	}
 	raw, err := rsr.ScanRawValues(ctx, "multi", filters, nil, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(2))
+	g.Expect(raw.Items).To(HaveLen(2))
 
 	matched := make(map[string]bool)
-	for _, b := range raw {
+	for _, b := range raw.Items {
 		var v map[string]any
 		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
 		matched[v["status"].(string)] = true
@@ -353,10 +353,10 @@ func TestPebbleScanRawValuesFilterNe(t *testing.T) {
 	}
 	raw, err := rsr.ScanRawValues(ctx, "ne", filters, nil, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(1))
+	g.Expect(raw.Items).To(HaveLen(1))
 
 	var v map[string]any
-	g.Expect(json.Unmarshal(raw[0], &v)).To(Succeed())
+	g.Expect(json.Unmarshal(raw.Items[0], &v)).To(Succeed())
 	g.Expect(v["status"]).To(Equal("done"))
 }
 
@@ -389,7 +389,7 @@ func TestPebbleScanRawValuesFilterRange(t *testing.T) {
 			}
 			raw, err := rsr.ScanRawValues(ctx, "range", filters, nil, nil, 0)
 			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(raw).To(HaveLen(tt.expected))
+			g.Expect(raw.Items).To(HaveLen(tt.expected))
 		})
 	}
 }
@@ -407,10 +407,10 @@ func TestPebbleScanRawValuesCursorDesc(t *testing.T) {
 	sortSpec := &metaengine.SortSpec{Column: "id", Desc: true}
 	raw, err := rsr.ScanRawValues(ctx, "desc", nil, sortSpec, float64(7), 3)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(4)) // 3+1 overflow
+	g.Expect(raw.Items).To(HaveLen(4)) // 3+1 overflow
 
 	ids := make([]float64, 0, 4)
-	for _, b := range raw {
+	for _, b := range raw.Items {
 		var v map[string]any
 		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
 		ids = append(ids, v["id"].(float64))
@@ -430,7 +430,7 @@ func TestPebbleScanRawValuesEmptyCollection(t *testing.T) {
 
 	raw, err := rsr.ScanRawValues(context.Background(), "nonexistent", nil, nil, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(BeEmpty())
+	g.Expect(raw.Items).To(BeEmpty())
 }
 
 func TestPebbleScanRawValuesAllFilteredOut(t *testing.T) {
@@ -446,7 +446,7 @@ func TestPebbleScanRawValuesAllFilteredOut(t *testing.T) {
 	}
 	raw, err := rsr.ScanRawValues(ctx, "filtered", filters, nil, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(BeEmpty())
+	g.Expect(raw.Items).To(BeEmpty())
 }
 
 func TestPebbleScanRawValuesLimitOne(t *testing.T) {
@@ -459,7 +459,7 @@ func TestPebbleScanRawValuesLimitOne(t *testing.T) {
 
 	raw, err := rsr.ScanRawValues(ctx, "one", nil, nil, nil, 1)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(2)) // 1+1 overflow
+	g.Expect(raw.Items).To(HaveLen(2)) // 1+1 overflow
 }
 
 func TestPebbleScanRawValuesFilterAndSortCombined(t *testing.T) {
@@ -488,10 +488,10 @@ func TestPebbleScanRawValuesFilterAndSortCombined(t *testing.T) {
 	sortSpec := &metaengine.SortSpec{Column: "score", Desc: true}
 	raw, err := rsr.ScanRawValues(ctx, "combo", filters, sortSpec, nil, 0)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw).To(HaveLen(3))
+	g.Expect(raw.Items).To(HaveLen(3))
 
 	scores := make([]float64, 0, 3)
-	for _, b := range raw {
+	for _, b := range raw.Items {
 		var v map[string]any
 		g.Expect(json.Unmarshal(b, &v)).To(Succeed())
 		g.Expect(v["category"]).To(Equal("x"))

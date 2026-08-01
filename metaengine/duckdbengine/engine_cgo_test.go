@@ -233,8 +233,8 @@ func TestDuckDBEngine_ScanBackend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 5 {
-		t.Fatalf("no filter: expected 5 results, got %d", len(results))
+	if len(results.Items) != 5 {
+		t.Fatalf("no filter: expected 5 results, got %d", len(results.Items))
 	}
 
 	// Test 2: Filter by category=fruit — should return 2.
@@ -252,8 +252,8 @@ func TestDuckDBEngine_ScanBackend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("filter fruit: expected 2 results, got %d", len(results))
+	if len(results.Items) != 2 {
+		t.Fatalf("filter fruit: expected 2 results, got %d", len(results.Items))
 	}
 
 	// Test 3: Sort by price descending, limit 3.
@@ -278,11 +278,11 @@ func TestDuckDBEngine_ScanBackend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 4 {
-		t.Fatalf("limit 3: expected 4 (limit+1 for has-more), got %d", len(results))
+	if len(results.Items) != 4 {
+		t.Fatalf("limit 3: expected 4 (limit+1 for has-more), got %d", len(results.Items))
 	}
 
-	first, _ := results[0].(map[string]any)
+	first, _ := results.Items[0].(map[string]any)
 	if first["Name"] != "donut" {
 		t.Errorf("sorted desc: first item = %v, want donut", first["Name"])
 	}
@@ -293,7 +293,7 @@ func TestDuckDBEngine_ScanBackend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 3 {
-		t.Fatalf("pagination: expected 3 (limit+1 for has-more), got %d", len(results))
+	if len(results.Items) != 3 {
+		t.Fatalf("pagination: expected 3 (limit+1 for has-more), got %d", len(results.Items))
 	}
 }

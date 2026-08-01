@@ -134,7 +134,7 @@ func BenchmarkPebbleScanRawValues(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
-		for _, r := range raw {
+		for _, r := range raw.Items {
 			var u benchUser
 			if err := json.Unmarshal(r, &u); err != nil {
 				b.Fatal(err)
@@ -159,7 +159,7 @@ func BenchmarkPebbleScanRawValuesFiltered(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
-		for _, r := range raw {
+		for _, r := range raw.Items {
 			var u benchUser
 			if err := json.Unmarshal(r, &u); err != nil {
 				b.Fatal(err)

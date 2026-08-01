@@ -55,7 +55,7 @@ func FuzzScanRawValues(f *testing.F) {
 			t.Fatalf("ScanRawValues: %v", err)
 		}
 
-		for _, raw := range results {
+		for _, raw := range results.Items {
 			var decoded map[string]any
 			if err := json.Unmarshal(raw, &decoded); err != nil {
 				t.Errorf("unmarshal result: %v", err)

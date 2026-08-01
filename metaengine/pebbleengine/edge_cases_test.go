@@ -40,7 +40,7 @@ func TestPebbleLayoutPlanner_EmptyFilterResults(t *testing.T) {
 		nil, nil, 0,
 	)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(results).To(gomega.BeEmpty())
+	gomega.NewWithT(t).Expect(results.Items).To(gomega.BeEmpty())
 }
 
 // TestPebbleLayoutPlanner_ConcurrentReadWrite verifies that concurrent writes
@@ -98,7 +98,7 @@ func TestPebbleLayoutPlanner_ConcurrentReadWrite(t *testing.T) {
 
 	results, err := rsr.ScanRawValues(ctx, "items", nil, nil, nil, 0)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(writers * itemsPerWriter))
+	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(writers * itemsPerWriter))
 }
 
 // TestPebbleLayoutPlanner_KeyCollision verifies that writing the same key
@@ -130,10 +130,10 @@ func TestPebbleLayoutPlanner_KeyCollision(t *testing.T) {
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
 	gomega.NewWithT(t).
 		Expect(results).
-		To(gomega.HaveLen(1), "key collision: expected 1 result, got %d", len(results))
+		To(gomega.HaveLen(1), "key collision: expected 1 result, got %d", len(results.Items))
 
 	var decoded map[string]any
-	gomega.NewWithT(t).Expect(json.Unmarshal(results[0], &decoded)).To(gomega.Succeed())
+	gomega.NewWithT(t).Expect(json.Unmarshal(results.Items[0], &decoded)).To(gomega.Succeed())
 	gomega.NewWithT(t).
 		Expect(decoded["score"]).
 		To(gomega.Equal(float64(50)), "expected last write to win")
@@ -168,8 +168,8 @@ func TestPebbleLayoutPlanner_NoLayoutFullScan(t *testing.T) {
 		sortSpec, nil, 0,
 	)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(results).To(gomega.HaveLen(3))
+	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(3))
 
-	scores := extractField[float64](t, results, "score")
+	scores := extractField[float64](t, results.Items, "score")
 	gomega.NewWithT(t).Expect(scores).To(gomega.Equal([]float64{50, 40, 30}))
 }

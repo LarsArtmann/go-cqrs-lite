@@ -47,8 +47,8 @@ func BenchmarkLayoutPlanner_FullScan(b *testing.B) {
 			b.Fatal(err)
 		}
 
-		if len(results) != 100 {
-			b.Fatalf("expected 100 results, got %d", len(results))
+		if len(results.Items) != 100 {
+			b.Fatalf("expected 100 results, got %d", len(results.Items))
 		}
 	}
 }
@@ -104,8 +104,8 @@ func BenchmarkLayoutPlanner_SortIndexVsGoSort(b *testing.B) {
 					b.Fatal(err)
 				}
 
-				if len(results) != bm.limit+1 {
-					b.Fatalf("expected %d results, got %d", bm.limit+1, len(results))
+				if len(results.Items) != bm.limit+1 {
+					b.Fatalf("expected %d results, got %d", bm.limit+1, len(results.Items))
 				}
 			}
 		})
@@ -154,8 +154,8 @@ func BenchmarkLayoutPlanner_IndexedScan(b *testing.B) {
 			b.Fatal(err)
 		}
 
-		if len(results) != 100 {
-			b.Fatalf("expected 100 results, got %d", len(results))
+		if len(results.Items) != 100 {
+			b.Fatalf("expected 100 results, got %d", len(results.Items))
 		}
 	}
 }

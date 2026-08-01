@@ -68,8 +68,8 @@ func TestDuckDBEngine_PushdownFilter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("filter fruit: expected 2, got %d", len(results))
+	if len(results.Items) != 2 {
+		t.Fatalf("filter fruit: expected 2, got %d", len(results.Items))
 	}
 }
 
@@ -97,11 +97,11 @@ func TestDuckDBEngine_PushdownSort(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 4 {
-		t.Fatalf("sort desc limit 3: expected 4 (limit+1 for has-more), got %d", len(results))
+	if len(results.Items) != 4 {
+		t.Fatalf("sort desc limit 3: expected 4 (limit+1 for has-more), got %d", len(results.Items))
 	}
 
-	first := results[0].(map[string]any)
+	first := results.Items[0].(map[string]any)
 	if first["Name"] != "donut" {
 		t.Errorf("desc: first = %v, want donut (price 2.00)", first["Name"])
 	}
@@ -132,11 +132,11 @@ func TestDuckDBEngine_PushdownFilterSortLimit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("filter+sort+limit: expected 2, got %d", len(results))
+	if len(results.Items) != 2 {
+		t.Fatalf("filter+sort+limit: expected 2, got %d", len(results.Items))
 	}
 
-	first := results[0].(map[string]any)
+	first := results.Items[0].(map[string]any)
 	if first["Name"] != "carrot" {
 		t.Errorf("asc: first = %v, want carrot (price 0.99)", first["Name"])
 	}
@@ -166,11 +166,11 @@ func TestDuckDBEngine_PushdownCursor(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 3 {
-		t.Fatalf("cursor pagination: expected 3 (limit+1 for has-more), got %d", len(results))
+	if len(results.Items) != 3 {
+		t.Fatalf("cursor pagination: expected 3 (limit+1 for has-more), got %d", len(results.Items))
 	}
 
-	first := results[0].(map[string]any)
+	first := results.Items[0].(map[string]any)
 	if first["Name"] != "apple" {
 		t.Errorf("cursor: first = %v, want apple (price 1.50)", first["Name"])
 	}
@@ -204,7 +204,7 @@ func TestDuckDBEngine_PushdownFilterIn(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 3 {
-		t.Fatalf("filter IN: expected 3, got %d", len(results))
+	if len(results.Items) != 3 {
+		t.Fatalf("filter IN: expected 3, got %d", len(results.Items))
 	}
 }

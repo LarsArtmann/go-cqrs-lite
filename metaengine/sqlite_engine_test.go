@@ -250,10 +250,9 @@ var _ = Describe("SQLiteEngine", func() {
 
 			results, err := sb.MapScan(ctx, "products", nil, sortFunc, nil, 2)
 			Expect(err).NotTo(HaveOccurred())
-			// MapScan returns limit+1 items to signal HasMore when there are more.
-			Expect(results).To(HaveLen(3))
+			Expect(results.Items).To(HaveLen(2))
 			// First result should be "Apple" (alphabetically first).
-			Expect(results[0].(map[string]any)["name"]).To(Equal("Apple"))
+			Expect(results.Items[0].(map[string]any)["name"]).To(Equal("Apple"))
 		})
 	})
 })
