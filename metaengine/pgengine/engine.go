@@ -254,4 +254,5 @@ var (
 	_ metaengine.Engine         = (*pgEngine)(nil)
 	_ metaengine.MapBackend     = (*pgEngine)(nil)
 	_ metaengine.CounterBackend = (*pgEngine)(nil)
+	_ metaengine.ScanBackend    = (*pgEngine)(nil)
 )

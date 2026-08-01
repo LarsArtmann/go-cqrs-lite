@@ -36,7 +36,7 @@ func (s *Store) Export(ctx context.Context, w io.Writer) error {
 			continue
 		}
 
-		if sb, ok := eng.(ScanBackend); ok { //nolint:nestif // type-switch + scan logic
+		if sb, ok := eng.(ScanBackend); ok {
 			rows, err := sb.MapScan(ctx, col.Name, nil, nil, nil, 0)
 			if err != nil {
 				return fmt.Errorf("export %s: %w", col.Name, err)
