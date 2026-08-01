@@ -287,7 +287,7 @@ func (e *sqliteEngine) MapScan(
 	}
 
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return ScanResult{}, err //nolint:wrapcheck // passthrough
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -303,7 +303,7 @@ func (e *sqliteEngine) MapScan(
 		var valStr string
 
 		if err := rows.Scan(&valStr); err != nil {
-			return nil, err //nolint:wrapcheck // passthrough
+			return ScanResult{}, err //nolint:wrapcheck // passthrough
 		}
 
 		val := decodeJSONValue(valStr)
@@ -316,7 +316,7 @@ func (e *sqliteEngine) MapScan(
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return ScanResult{}, err //nolint:wrapcheck // passthrough
 	}
 
 	sort.Slice(pairs, func(i, j int) bool {

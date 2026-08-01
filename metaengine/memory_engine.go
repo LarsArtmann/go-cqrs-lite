@@ -184,7 +184,7 @@ func (m *memoryEngine) MapScan(
 
 	store := m.data.maps[col]
 	if store == nil {
-		return nil, nil
+		return ScanResult{}, nil
 	}
 
 	// Collect ALL matching (key, value) pairs before sorting.
