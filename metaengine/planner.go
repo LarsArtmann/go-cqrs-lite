@@ -148,7 +148,8 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		plan.Queries = append(plan.Queries, assignment)
 	}
 
-	plan.Diagnostics = checkWriteAmplification(store.queries, cfg.writeAmplificationBudget)
+	plan.Diagnostics = append(plan.Diagnostics,
+		checkWriteAmplification(store.queries, cfg.writeAmplificationBudget)...)
 	store.plan = plan
 
 	return store, nil

@@ -153,6 +153,9 @@ var _ = Describe("Cost model", func() {
 				Expect(hasDiagnostic(
 					assignment.Diagnostics, metaengine.DiagLevelWarn, "exceeds optimal range",
 				)).To(BeTrue(), "expected scale threshold warning among: %v", assignment.Diagnostics)
+				Expect(hasDiagnostic(
+					assignment.Diagnostics, metaengine.DiagLevelWarn, "disk-backed engine",
+				)).To(BeTrue(), "expected disk-backed engine suggestion among: %v", assignment.Diagnostics)
 			})
 		})
 
@@ -208,6 +211,9 @@ var _ = Describe("Write amplification budget", func() {
 
 			plan := store.Plan()
 			Expect(plan.Diagnostics.HasWarnings()).To(BeTrue())
+			Expect(hasDiagnostic(
+				plan.Diagnostics, metaengine.DiagLevelWarn, "write amplification",
+			)).To(BeTrue(), "expected write amplification warning among: %v", plan.Diagnostics)
 		})
 	})
 

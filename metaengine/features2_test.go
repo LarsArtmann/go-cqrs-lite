@@ -211,16 +211,60 @@ func TestGroupBy(t *testing.T) {
 
 // --- P1-6: Schema enforcement ---
 
-func TestSchemaEnforcement(t *testing.T) {
+func TestSchemaEnforcement_NoMismatchForCorrectTypes(t *testing.T) {
 	t.Parallel()
 
 	store := newMemoryTestStore(t)
 
 	// Should not have schema mismatch warnings for correct types
 	for _, diag := range store.Plan().Diagnostics {
-		if strings.Contains(diag.Message, "fold returns") &&
-			strings.Contains(diag.Message, "but query result type is") {
+		if strings.Contains(diag.Message, "fold for") &&
+			strings.Contains(diag.Message, "result type is") {
 			t.Errorf("unexpected schema mismatch: %s", diag.Message)
+		}
+	}
+}
+
+// testWrongResult is a deliberately different type from testTask to trigger
+// the schema mismatch diagnostic.
+type testWrongResult struct {
+	UnexpectedField int
+}
+
+func TestSchemaEnforcement_DetectsTypeMismatch(t *testing.T) {
+	t.Parallel()
+
+	// Fold returns testTask but query declares testWrongResult as result type.
+	q := Query[testFindTask, testWrongResult](
+		"schema_mismatch_test",
+		OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
+			return e.ID, e
+		}),
+	)
+
+	store, err := Plan([]Engine{NewMemoryEngine()}, q)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	found := false
+	for _, diag := range store.Plan().Diagnostics {
+		if diag.Level == DiagLevelWarn &&
+			strings.Contains(diag.Message, "fold for") &&
+			strings.Contains(diag.Message, "testTask") &&
+			strings.Contains(diag.Message, "testWrongResult") {
+			found = true
+
+			break
+		}
+	}
+
+	if !found {
+		t.Errorf("expected schema mismatch warning but none found among %d diagnostics",
+			len(store.Plan().Diagnostics))
+		for _, d := range store.Plan().Diagnostics {
+			t.Logf("  %s", d)
 		}
 	}
 }
