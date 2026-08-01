@@ -69,19 +69,30 @@ func PrintReport(w io.Writer, r *Result) {
 	fmt.Fprintf(w, "Duration: %s\n\n", roundDuration(r.Duration))
 
 	if r.Environment.GoVersion != "" {
-		fmt.Fprintf(w, "Env: %s | %s/%s | CPU=%d GOMAXPROCS=%d workers=%d\n\n",
+		cpuInfo := fmt.Sprintf("CPU=%d", r.Environment.NumCPU)
+		if r.Environment.CPUModel != "" {
+			cpuInfo = r.Environment.CPUModel
+		}
+
+		fmt.Fprintf(w, "Env: %s | %s/%s | %s GOMAXPROCS=%d workers=%d\n\n",
 			r.Environment.GoVersion, r.Environment.GOOS, r.Environment.GOARCH,
-			r.Environment.NumCPU, r.Environment.GOMAXPROCS, r.Workers)
+			cpuInfo, r.Environment.GOMAXPROCS, r.Workers)
 	}
 
 	if r.RepeatCount > 1 {
+		reliability := "RELIABLE"
+		if !r.RepeatIsReliable {
+			reliability = "NOISY — increase Repeat for trustworthy comparison"
+		}
+
 		fmt.Fprintf(
 			w,
-			"Repeat:  median of %d runs (min: %s/s, max: %s/s)\n\n",
-			r.RepeatCount,
-			formatFloat(r.RepeatMin),
-			formatFloat(r.RepeatMax),
+			"Repeat:  median of %d runs | CoV=%.1f%% | %s\n",
+			r.RepeatCount, r.RepeatCoV*100, reliability,
 		)
+		fmt.Fprintf(w, "         min: %s/s, max: %s/s, stddev: %s/s\n\n",
+			formatFloat(r.RepeatMin), formatFloat(r.RepeatMax),
+			formatFloat(r.RepeatStdDev))
 	}
 
 	printLatencySection(
@@ -97,6 +108,10 @@ func PrintReport(w io.Writer, r *Result) {
 		r.WriteThroughput,
 	)
 	printLatencySection(w, "Read Performance:", r.LoadLatency, 0)
+
+	if r.ColdReadLatency.Count > 0 {
+		printLatencyLine(w, "  Cold (1st pass):", r.ColdReadLatency)
+	}
 
 	if r.ReadAllTime > 0 {
 		fmt.Fprintf(w, "  ReadAll:  %s\n", roundDuration(r.ReadAllTime))
@@ -172,12 +187,30 @@ func PrintReport(w io.Writer, r *Result) {
 	fmt.Fprintf(w, "  Delta: %s\n", formatBytes(r.Memory.Delta))
 	fmt.Fprintf(w, "  CPU:   %s\n", formatCPUDuration(r.CPU.Delta))
 
+	if r.GCCount > 0 {
+		fmt.Fprintf(w, "  GC:    %d cycles, max pause %s, total %s\n",
+			r.GCCount, roundDuration(r.GCMaxPause), roundDuration(r.GCTotalPause))
+	}
+
+	if r.AllocCount > 0 {
+		fmt.Fprintf(w, "  Allocs: %s (%s)\n",
+			formatInt(int(r.AllocCount)), formatBytes(r.AllocBytes))
+	}
+
 	if r.Disk.DatabaseBytes > 0 {
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "Storage:")
 		fmt.Fprintf(w, "  Database: %s\n", formatBytes(uint64(r.Disk.DatabaseBytes)))
 		fmt.Fprintf(w, "  Events:   %s\n", formatBytes(uint64(r.Disk.EventBytes)))
 		fmt.Fprintf(w, "  Overhead: %.1f%%\n", r.Disk.OverheadPct)
+
+		if r.Disk.WriteAmplification > 0 {
+			fmt.Fprintf(w, "  Write amp: %.2fx\n", r.Disk.WriteAmplification)
+		}
+	}
+
+	if r.IntegrityErrors > 0 {
+		fmt.Fprintf(w, "\n⚠ CORRUPTION: %d integrity errors detected!\n", r.IntegrityErrors)
 	}
 }
 

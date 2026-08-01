@@ -20,19 +20,19 @@ const (
 
 // runner executes a benchmark in phases against a single backend.
 type runner struct {
-	config            Config
-	factory           Factory
-	gen               *Generator
-	codec             codec.Codec
-	codecName         string
-	bundle            *stack.Bundle
-	aggIDs            []id.StreamID
-	refs              []id.StreamRef
-	concurrency       int
-	result            Result
-	sampler           *resourceSampler
-	startCPU          uint64
-	baselineMemStats  runtime.MemStats
+	config           Config
+	factory          Factory
+	gen              *Generator
+	codec            codec.Codec
+	codecName        string
+	bundle           *stack.Bundle
+	aggIDs           []id.StreamID
+	refs             []id.StreamRef
+	concurrency      int
+	result           Result
+	sampler          *resourceSampler
+	startCPU         uint64
+	baselineMemStats runtime.MemStats
 }
 
 func newRunner(config Config, factory Factory) *runner {

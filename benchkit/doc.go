@@ -67,6 +67,34 @@
 //     load (EveryNEvents), and state-cache hit/miss (M16).
 //     SnapshotCorrectnessErrors counts state/version mismatches.
 //
+//   - ColdReadLatency — first read-pass latency (OS page cache cold).
+//     LoadLatency aggregates all passes (cold + warm). On SQLite/Pebble,
+//     ColdReadLatency P50 may be 10x higher than warm LoadLatency P50.
+//
+//   - GCCount / GCMaxPause / GCTotalPause / GCMeanPause — garbage collection
+//     pause metrics. GC pauses are the dominant cause of P99 latency spikes.
+//     These reveal whether tail latency originates from the backend or Go's GC.
+//
+//   - AllocCount / AllocBytes — total heap allocations during the benchmark.
+//     High alloc rates correlate with GC pressure and latency variance.
+//
+//   - IntegrityErrors — count of events that failed read-back verification.
+//     Zero means all written events round-trip correctly. Non-zero indicates
+//     silent data corruption — a fast backend with integrity errors is worse
+//     than a slow one without.
+//
+//   - Disk.WriteAmplification — ratio of on-disk bytes to logical event bytes.
+//     1.0 = zero overhead; 3.0 = 3x write amplification. The key metric for
+//     comparing storage efficiency across backends (LSM vs row-store vs columnar).
+//
+//   - RepeatStdDev / RepeatCoV / RepeatIsReliable — statistical reliability
+//     of repeat-run results. CoV < 10% means results are trustworthy for
+//     cross-backend comparison. When RepeatIsReliable=false, increase Repeat.
+//
+//   - Environment.CPUModel / Environment.TotalRAMBytes — machine metadata
+//     for honest cross-machine comparisons. Different CPUs and RAM amounts
+//     produce dramatically different latency numbers.
+//
 // Every Result includes Environment metadata (GoVersion, NumCPU, GOMAXPROCS,
 // GOOS, GOARCH) and the actual Workers count so comparisons across machines
 // and configurations are honest.

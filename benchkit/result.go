@@ -46,10 +46,10 @@ type Result struct {
 	// LoadLatency aggregates ALL read passes. ColdReadLatency isolates
 	// the first pass (OS page cache miss → disk I/O). On SQLite/Pebble,
 	// ColdReadLatency P50 may be 10x higher than the warm LoadLatency P50.
-	LoadLatency   LatencyStats  `json:"loadLatency"`
-	ColdReadLatency LatencyStats `json:"coldReadLatency"`
-	ReadAllTime   time.Duration `json:"readAllTime"`
-	ReadFromTime  time.Duration `json:"readFromTime"`
+	LoadLatency     LatencyStats  `json:"loadLatency"`
+	ColdReadLatency LatencyStats  `json:"coldReadLatency"`
+	ReadAllTime     time.Duration `json:"readAllTime"`
+	ReadFromTime    time.Duration `json:"readFromTime"`
 
 	// Read model metrics (raw kv.Store Set/Get)
 	ReadModelGet LatencyStats `json:"readModelGet"`
