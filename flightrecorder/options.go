@@ -24,11 +24,11 @@ func defaultConfig() recorderConfig {
 
 func (c recorderConfig) validate() error {
 	if c.minAge <= 0 {
-		return fmt.Errorf("flightrecorder: MinAge must be positive, got %s", c.minAge)
+		return fmt.Errorf("flightrecorder: MinAge must be positive, got %s", c.minAge) //nolint:err113 // dynamic validation msg
 	}
 
 	if c.maxBytes == 0 {
-		return errors.New("flightrecorder: MaxBytes must be positive")
+		return errors.New("flightrecorder: MaxBytes must be positive") //nolint:err113 // sentinel-like validation
 	}
 
 	return nil
@@ -70,7 +70,7 @@ func WithWriter(w io.Writer) Option {
 // For streaming to an existing io.Writer, use [WithWriter] instead.
 func WithFile(path string) Option {
 	return func(c *recorderConfig) {
-		c.writer = &lazyFile{path: path}
+		c.writer = &lazyFile{path: path} //nolint:exhaustruct // f is lazily opened
 	}
 }
 
@@ -91,7 +91,7 @@ func (lf *lazyFile) Write(p []byte) (int, error) {
 		lf.f = f
 	}
 
-	return lf.f.Write(p)
+	return lf.f.Write(p) //nolint:wrapcheck // direct delegation
 }
 
 func (lf *lazyFile) Close() error {
@@ -99,10 +99,10 @@ func (lf *lazyFile) Close() error {
 		return nil
 	}
 
-	return lf.f.Close()
+	return lf.f.Close() //nolint:wrapcheck // direct delegation
 }
 
 // openFile creates or truncates the file at path.
 func openFile(path string) (*os.File, error) {
-	return os.Create(path)
+	return os.Create(path) //nolint:gosec // path from user config, not untrusted input
 }

@@ -53,7 +53,7 @@ func New(opts ...Option) (*Recorder, error) {
 		return nil, err
 	}
 
-	return &Recorder{
+	return &Recorder{ //nolint:exhaustruct // mu and once are zero-value
 		fr: trace.NewFlightRecorder(trace.FlightRecorderConfig{
 			MinAge:   cfg.minAge,
 			MaxBytes: cfg.maxBytes,
@@ -71,7 +71,7 @@ func (r *Recorder) Start() error {
 
 	if err := r.fr.Start(); err != nil {
 		if err.Error() == "flight recorder already enabled" {
-			return fmt.Errorf("%w: %v", ErrAlreadyEnabled, err)
+			return fmt.Errorf("%w: %w", ErrAlreadyEnabled, err) //nolint:wrapcheck // stdlib string error
 		}
 
 		return fmt.Errorf("flightrecorder: starting recorder: %w", err)
@@ -132,7 +132,7 @@ func (r *Recorder) Enabled() bool {
 func (r *Recorder) Snapshot(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
-		return ctx.Err()
+		return ctx.Err() //nolint:wrapcheck // standard ctx propagation
 	default:
 	}
 
@@ -153,7 +153,7 @@ func (r *Recorder) Snapshot(ctx context.Context) error {
 func (r *Recorder) SnapshotToFile(ctx context.Context, path string) error {
 	select {
 	case <-ctx.Done():
-		return ctx.Err()
+		return ctx.Err() //nolint:wrapcheck // standard ctx propagation
 	default:
 	}
 
