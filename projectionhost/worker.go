@@ -96,9 +96,9 @@ func (w *worker) recordMetric(fn func(MetricsRecorder)) {
 
 // captureFlightRecorder triggers a flight recorder snapshot on terminal
 // worker failure. No-op when no flight recorder is configured.
-func (w *worker) captureFlightRecorder(failedErr error) {
-	fr := w.opts.flightRecorder
-	if fr == nil {
+func (w *worker) captureFlightRecorder(ctx context.Context, failedErr error) {
+	recorder := w.opts.flightRecorder
+	if recorder == nil {
 		return
 	}
 
@@ -107,7 +107,7 @@ func (w *worker) captureFlightRecorder(failedErr error) {
 		trigger = flightrecorder.OnAlways()
 	}
 
-	tc := flightrecorder.TriggerContext{
+	tc := flightrecorder.TriggerContext{ //nolint:exhaustruct // Duration N/A for projection failures
 		Kind: "projection",
 		Type: w.name,
 		Err:  failedErr,
@@ -117,7 +117,7 @@ func (w *worker) captureFlightRecorder(failedErr error) {
 		return
 	}
 
-	if snapErr := fr.Snapshot(context.Background()); snapErr != nil {
+	if snapErr := recorder.Snapshot(ctx); snapErr != nil {
 		w.logger.Warn("flight recorder snapshot failed on projection failure",
 			"projection", w.name, "error", snapErr)
 	}
@@ -156,7 +156,7 @@ func (w *worker) run(ctx context.Context) {
 
 		restartCount := int(w.restarts.Add(1))
 		if w.opts.maxRestarts >= 0 && restartCount > w.opts.maxRestarts {
-			w.captureFlightRecorder(err)
+			w.captureFlightRecorder(ctx, err)
 
 			w.setStatus(WorkerFailed)
 			w.recordMetric(func(m MetricsRecorder) {

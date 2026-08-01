@@ -71,7 +71,7 @@ func (r *Recorder) Start() error {
 
 	if err := r.fr.Start(); err != nil {
 		if err.Error() == "flight recorder already enabled" {
-			return fmt.Errorf("%w: %w", ErrAlreadyEnabled, err) //nolint:wrapcheck // stdlib string error
+			return fmt.Errorf("%w: %w", ErrAlreadyEnabled, err)
 		}
 
 		return fmt.Errorf("flightrecorder: starting recorder: %w", err)

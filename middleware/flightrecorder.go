@@ -25,7 +25,7 @@ func NewFlightRecorder[M any](
 	cfg := applyOptions(opts)
 
 	return func(next Handler[M]) Handler[M] {
-		return func(ctx context.Context, msg M) (err error) {
+		return func(ctx context.Context, msg M) (err error) { //nolint:nonamedreturns // needed for deferred trigger
 			start := time.Now()
 
 			err = next(ctx, msg)

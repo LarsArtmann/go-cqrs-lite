@@ -305,11 +305,15 @@ func (q QueryDecl[Q, R]) QueryIsPaginated() bool        { return q.IsPaginated }
 func (q QueryDecl[Q, R]) QueryInputTypeName() string    { return q.InputTypeName }
 func (q QueryDecl[Q, R]) QueryConfig() QueryConfig      { return q.Config }
 
-func (q QueryDecl[Q, R]) QueryEngine() Engine             { return q.engine }
-func (q QueryDecl[Q, R]) QueryComplexity() Complexity     { return q.complexity }
+func (q QueryDecl[Q, R]) QueryEngine() Engine              { return q.engine }
+func (q QueryDecl[Q, R]) QueryComplexity() Complexity      { return q.complexity }
 func (q QueryDecl[Q, R]) QueryFoldByEvent() map[string]int { return q.foldByEvent }
 
-func (q *QueryDecl[Q, R]) assignPlan(engine Engine, complexity Complexity, foldByEvent map[string]int) {
+func (q *QueryDecl[Q, R]) assignPlan(
+	engine Engine,
+	complexity Complexity,
+	foldByEvent map[string]int,
+) {
 	q.engine = engine
 	q.complexity = complexity
 	q.foldByEvent = foldByEvent

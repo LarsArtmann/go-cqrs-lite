@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+// Sentinel validation errors.
+var (
+	errMinAgeMustBePositive   = errors.New("flightrecorder: MinAge must be positive")
+	errMaxBytesMustBePositive = errors.New("flightrecorder: MaxBytes must be positive")
+)
+
 type recorderConfig struct {
 	minAge   time.Duration
 	maxBytes uint64
@@ -24,11 +30,11 @@ func defaultConfig() recorderConfig {
 
 func (c recorderConfig) validate() error {
 	if c.minAge <= 0 {
-		return fmt.Errorf("flightrecorder: MinAge must be positive, got %s", c.minAge) //nolint:err113 // dynamic validation msg
+		return fmt.Errorf("%w: got %s", errMinAgeMustBePositive, c.minAge)
 	}
 
 	if c.maxBytes == 0 {
-		return errors.New("flightrecorder: MaxBytes must be positive") //nolint:err113 // sentinel-like validation
+		return errMaxBytesMustBePositive
 	}
 
 	return nil
@@ -104,5 +110,10 @@ func (lf *lazyFile) Close() error {
 
 // openFile creates or truncates the file at path.
 func openFile(path string) (*os.File, error) {
-	return os.Create(path) //nolint:gosec // path from user config, not untrusted input
+	f, err := os.Create(path) //nolint:gosec // path from user config
+	if err != nil {
+		return nil, fmt.Errorf("flightrecorder: creating file %s: %w", path, err)
+	}
+
+	return f, nil
 }

@@ -108,6 +108,8 @@ type DecideFunc[State any] func(state State, currentVersion event.Version) ([]ev
 // If decide returns an error, no events are saved or published.
 // If store.Save succeeds but bus.Publish fails, events are persisted but not
 // published — the caller can retry publishing via the bus directly.
+//
+//nolint:nonamedreturns // execErr needed for deferred flight recorder trigger
 func (r *Repository[State]) Execute(
 	ctx context.Context,
 	streamID id.StreamID,
