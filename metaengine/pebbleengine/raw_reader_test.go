@@ -180,7 +180,7 @@ func TestPebbleScanRawValuesWithCursor(t *testing.T) {
 	// First page: first 3 items.
 	raw, err := rsr.ScanRawValues(ctx, "paged", nil, sortSpec, nil, 3)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw.Items).To(HaveLen(4)) // 3+1 overflow
+	g.Expect(raw.Items).To(HaveLen(3))
 
 	var lastID float64
 	for _, b := range raw.Items[:3] {
@@ -194,7 +194,7 @@ func TestPebbleScanRawValuesWithCursor(t *testing.T) {
 	// Second page: cursor = lastID (2).
 	raw2, err := rsr.ScanRawValues(ctx, "paged", nil, sortSpec, lastID, 3)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw2.Items).To(HaveLen(4)) // items 3,4,5,6 (3+1 overflow)
+	g.Expect(raw2.Items).To(HaveLen(3))
 
 	var firstIDPage2 float64
 	var v map[string]any
@@ -407,7 +407,7 @@ func TestPebbleScanRawValuesCursorDesc(t *testing.T) {
 	sortSpec := &metaengine.SortSpec{Column: "id", Desc: true}
 	raw, err := rsr.ScanRawValues(ctx, "desc", nil, sortSpec, float64(7), 3)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw.Items).To(HaveLen(4)) // 3+1 overflow
+	g.Expect(raw.Items).To(HaveLen(3))
 
 	ids := make([]float64, 0, 4)
 	for _, b := range raw.Items {
@@ -416,7 +416,7 @@ func TestPebbleScanRawValuesCursorDesc(t *testing.T) {
 		ids = append(ids, v["id"].(float64))
 	}
 
-	g.Expect(ids).To(Equal([]float64{6, 5, 4, 3}))
+	g.Expect(ids).To(Equal([]float64{6, 5, 4}))
 }
 
 func TestPebbleScanRawValuesEmptyCollection(t *testing.T) {
@@ -459,7 +459,7 @@ func TestPebbleScanRawValuesLimitOne(t *testing.T) {
 
 	raw, err := rsr.ScanRawValues(ctx, "one", nil, nil, nil, 1)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(raw.Items).To(HaveLen(2)) // 1+1 overflow
+	g.Expect(raw.Items).To(HaveLen(1))
 }
 
 func TestPebbleScanRawValuesFilterAndSortCombined(t *testing.T) {

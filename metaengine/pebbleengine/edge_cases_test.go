@@ -129,7 +129,7 @@ func TestPebbleLayoutPlanner_KeyCollision(t *testing.T) {
 	results, err := rsr.ScanRawValues(ctx, "items", nil, nil, nil, 0)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
 	gomega.NewWithT(t).
-		Expect(results).
+		Expect(results.Items).
 		To(gomega.HaveLen(1), "key collision: expected 1 result, got %d", len(results.Items))
 
 	var decoded map[string]any

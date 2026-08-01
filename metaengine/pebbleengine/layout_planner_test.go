@@ -618,7 +618,7 @@ func TestPebbleLayoutPlanner_SortIndexFilterAndSort(t *testing.T) {
 
 	results, err := rsr.ScanRawValues(ctx, "items", filters, sortSpec, nil, 0)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(2))
+	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(3))
 
 	priorities := extractField[float64](t, results.Items, "priority")
 	gomega.NewWithT(t).Expect(priorities).To(gomega.Equal([]float64{1, 2, 3}))
@@ -735,7 +735,7 @@ func TestPebbleLayoutPlanner_SortIndexEarlyTermination(t *testing.T) {
 	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(5))
 
 	scores := extractField[float64](t, results.Items, "score")
-	gomega.NewWithT(t).Expect(scores).To(gomega.Equal([]float64{0, 1, 2, 3, 4, 5}))
+	gomega.NewWithT(t).Expect(scores).To(gomega.Equal([]float64{0, 1, 2, 3, 4}))
 }
 
 func TestPebbleLayoutPlanner_FilterIndexCursorAscending(t *testing.T) {
@@ -844,7 +844,7 @@ func TestPebbleLayoutPlanner_SortIndexStringValues(t *testing.T) {
 
 	results, err := rsr.ScanRawValues(ctx, "users", nil, sortSpec, nil, 0)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(2))
+	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(3))
 
 	names := extractField[string](t, results.Items, "name")
 	gomega.NewWithT(t).Expect(names).To(gomega.Equal([]string{"Alice", "Bob", "Charlie"}))
