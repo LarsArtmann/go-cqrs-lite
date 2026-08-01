@@ -102,12 +102,12 @@ func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 
 func countRows(ctx context.Context, eng Engine, collection string) int {
 	if sb, ok := eng.(ScanBackend); ok {
-		rows, err := sb.MapScan(ctx, collection, nil, nil, nil, 0)
+		result, err := sb.MapScan(ctx, collection, nil, nil, nil, 0)
 		if err != nil {
 			return -1
 		}
 
-		return len(rows)
+		return len(result.Items)
 	}
 
 	return -1

@@ -37,12 +37,12 @@ func (s *Store) Export(ctx context.Context, w io.Writer) error {
 		}
 
 		if sb, ok := eng.(ScanBackend); ok {
-			rows, err := sb.MapScan(ctx, col.Name, nil, nil, nil, 0)
+			result, err := sb.MapScan(ctx, col.Name, nil, nil, nil, 0)
 			if err != nil {
 				return fmt.Errorf("export %s: %w", col.Name, err)
 			}
 
-			for j, row := range rows {
+			for j, row := range result.Items {
 				if j > 0 {
 					if _, err := fmt.Fprint(w, ","); err != nil {
 						return err //nolint:wrapcheck

@@ -48,9 +48,9 @@ func countEngineRows(ctx context.Context, name string, eng Engine) int64 {
 	}
 
 	if sb, ok := eng.(ScanBackend); ok {
-		rows, err := sb.MapScan(ctx, name, nil, nil, nil, 0)
+		result, err := sb.MapScan(ctx, name, nil, nil, nil, 0)
 		if err == nil {
-			return int64(len(rows))
+			return int64(len(result.Items))
 		}
 	}
 

@@ -551,13 +551,13 @@ func CanonicalizeNeighbors(v any) string {
 
 // CanonicalizeScanResults canonicalizes scan results for cross-engine comparison.
 func CanonicalizeScanResults(v any) string {
-	results, ok := v.([]any)
+	result, ok := v.(metaengine.ScanResult)
 	if !ok {
 		return CanonicalizeAny(v)
 	}
 
 	var b strings.Builder
-	for _, r := range results {
+	for _, r := range result.Items {
 		b.WriteString(CanonicalizeAny(r))
 		b.WriteString(";")
 	}

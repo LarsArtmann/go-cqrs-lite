@@ -218,16 +218,16 @@ func (r *TypedReader[V]) scanRaw(
 	cfg scanConfig,
 	fetchLimit int,
 ) ([]V, error) {
-	rawRows, err := rsr.ScanRawValues(
+	rawResult, err := rsr.ScanRawValues(
 		ctx, r.collection, cfg.filters, cfg.sort, rawCursorValue(cfg.cursor), fetchLimit,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 	}
 
-	result := make([]V, 0, len(rawRows))
+	result := make([]V, 0, len(rawResult.Items))
 
-	for _, raw := range rawRows {
+	for _, raw := range rawResult.Items {
 		v, err := reify[V](jsonValue(raw))
 		if err != nil {
 			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
@@ -245,16 +245,16 @@ func (r *TypedReader[V]) scanPushdown(
 	cfg scanConfig,
 	fetchLimit int,
 ) ([]V, error) {
-	rows, err := pushdown.PushdownMapScan(
+	scanResult, err := pushdown.PushdownMapScan(
 		ctx, r.collection, cfg.filters, cfg.sort, rawCursorValue(cfg.cursor), fetchLimit,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 	}
 
-	result := make([]V, 0, len(rows))
+	result := make([]V, 0, len(scanResult.Items))
 
-	for _, row := range rows {
+	for _, row := range scanResult.Items {
 		v, err := reify[V](row)
 		if err != nil {
 			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
@@ -275,7 +275,7 @@ func (r *TypedReader[V]) scanClosure(
 	filterFn := buildClosureFilter(cfg)
 	sortFn := buildClosureSort(cfg)
 
-	rows, err := sb.MapScan(
+	scanResult, err := sb.MapScan(
 		ctx,
 		r.collection,
 		filterFn,
@@ -287,9 +287,9 @@ func (r *TypedReader[V]) scanClosure(
 		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 	}
 
-	result := make([]V, 0, len(rows))
+	result := make([]V, 0, len(scanResult.Items))
 
-	for _, row := range rows {
+	for _, row := range scanResult.Items {
 		v, err := reify[V](row)
 		if err != nil {
 			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)

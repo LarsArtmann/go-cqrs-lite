@@ -352,13 +352,13 @@ func contractScan(t interface {
 		return
 	}
 
-	results, err := sb.MapScan(ctx, "csscan", nil, nil, nil, 0)
+	result, err := sb.MapScan(ctx, "csscan", nil, nil, nil, 0)
 	if err != nil {
 		t.Errorf("ContractSuite Scan: %v", err)
 	}
 
-	if len(results) != 2 {
-		t.Errorf("ContractSuite Scan: expected 2 results, got %d", len(results))
+	if len(result.Items) != 2 {
+		t.Errorf("ContractSuite Scan: expected 2 results, got %d", len(result.Items))
 	}
 }
 

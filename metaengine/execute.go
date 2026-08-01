@@ -209,17 +209,17 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 			sortSpec = q.config.sortAccessor.spec
 		}
 
-		rawRows, err := rsr.ScanRawValues(ctx, q.name, specs, sortSpec, cursorVal, limit)
+		rawResult, err := rsr.ScanRawValues(ctx, q.name, specs, sortSpec, cursorVal, limit)
 		if err != nil {
 			return nil, fmt.Errorf("raw scan %s: %w", q.name, err)
 		}
 
-		result := make([]any, len(rawRows))
-		for i, raw := range rawRows {
-			result[i] = jsonValue(raw)
+		items := make([]any, len(rawResult.Items))
+		for i, raw := range rawResult.Items {
+			items[i] = jsonValue(raw)
 		}
 
-		return result, nil
+		return ScanResult{Items: items, HasMore: rawResult.HasMore}, nil
 	}
 
 	// Fast path: if the engine supports pushdown AND all filter/sort accessors
@@ -259,12 +259,12 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	}
 
 	if sb, ok := q.engine.(ScanBackend); ok {
-		rows, err := sb.MapScan(ctx, q.name, filterFn, sortFunc, cursorVal, limit)
+		result, err := sb.MapScan(ctx, q.name, filterFn, sortFunc, cursorVal, limit)
 		if err != nil {
 			return nil, fmt.Errorf("map scan %s: %w", q.name, err)
 		}
 
-		return rows, nil
+		return result, nil
 	}
 
 	return nil, unsupportedEngine(errUnsupportedScanReads, q.engine.Profile().Name)
@@ -505,10 +505,14 @@ func ExecuteTyped[Q any, R any](
 	}
 
 	if isCollectionResult[R]() {
-		limit := extractLimitFromInput(input)
 		sortFn := store.sortKeyFn(qualifiedTypeName(input))
 
-		return reconstructCollection[R](raw, limit, sortFn), nil
+		result, ok := raw.(ScanResult)
+		if !ok {
+			return zero, fmt.Errorf("%w: expected ScanResult, got %T", errExecuteTypeMismatch, raw)
+		}
+
+		return reconstructCollection[R](result, sortFn), nil
 	}
 
 	result, ok := raw.(R)

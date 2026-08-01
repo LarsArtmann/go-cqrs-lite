@@ -59,7 +59,7 @@ func isCollectionResult[R any]() bool {
 
 // reconstructCollection builds a typed collection result from []any returned
 // by the engine. It fills in the slice field and optionally the cursor field.
-func reconstructCollection[R any](raw any, limit int, sortKeyFn func(any) any) R {
+func reconstructCollection[R any](result ScanResult, sortKeyFn func(any) any) R {
 	var zero R
 
 	t := reflect.TypeOf(zero)
@@ -69,15 +69,7 @@ func reconstructCollection[R any](raw any, limit int, sortKeyFn func(any) any) R
 		return zero
 	}
 
-	items, ok := raw.([]any)
-	if !ok {
-		return zero
-	}
-
-	hasMore := limit > 0 && len(items) > limit
-	if hasMore {
-		items = items[:limit]
-	}
+	items := result.Items
 
 	slice := reflect.MakeSlice(reflect.SliceOf(info.itemsElemType), 0, len(items))
 
@@ -88,8 +80,6 @@ func reconstructCollection[R any](raw any, limit int, sortKeyFn func(any) any) R
 			continue
 		}
 
-		// Fast path: jsonValue carries raw JSON bytes from a SQL engine —
-		// decode directly to the element type (1 JSON op instead of 2).
 		if jv, ok := item.(jsonValue); ok {
 			elem := reflect.New(info.itemsElemType)
 
@@ -106,26 +96,24 @@ func reconstructCollection[R any](raw any, limit int, sortKeyFn func(any) any) R
 		if val.Type().ConvertibleTo(info.itemsElemType) {
 			slice = reflect.Append(slice, val.Convert(info.itemsElemType))
 		} else {
-			// SQL engines decode struct rows as map[string]any; reify to the
-			// typed element or the collection result would be silently empty.
 			slice = reflect.Append(slice, reifyReflect(item, info.itemsElemType))
 		}
 
 		lastItem = item
 	}
 
-	result := reflect.New(t).Elem()
-	result.Field(info.itemsFieldIdx).Set(slice)
+	result2 := reflect.New(t).Elem()
+	result2.Field(info.itemsFieldIdx).Set(slice)
 
-	if hasMore && info.cursorFieldIdx >= 0 && lastItem != nil {
+	if result.HasMore && info.cursorFieldIdx >= 0 && lastItem != nil {
 		cursorVal := lastItem
 		if sortKeyFn != nil {
 			cursorVal = sortKeyFn(lastItem)
 		}
 
 		cursor := &Cursor{Value: cursorVal}
-		result.Field(info.cursorFieldIdx).Set(reflect.ValueOf(cursor))
+		result2.Field(info.cursorFieldIdx).Set(reflect.ValueOf(cursor))
 	}
 
-	return result.Interface().(R)
+	return result2.Interface().(R)
 }
