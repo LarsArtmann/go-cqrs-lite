@@ -332,10 +332,18 @@ func classifySingleReturn[E any](
 ) Fold {
 	switch outType {
 	case reflect.TypeFor[Embedding]():
-		return &vectorFold{eventType: eventType, sample: sample, invoke: reflectCall1[Embedding](hv)}
+		return &vectorFold{
+			eventType: eventType,
+			sample:    sample,
+			invoke:    reflectCall1[Embedding](hv),
+		}
 
 	case reflect.TypeFor[IndexedText]():
-		return &searchFold{eventType: eventType, sample: sample, invoke: reflectCall1[IndexedText](hv)}
+		return &searchFold{
+			eventType: eventType,
+			sample:    sample,
+			invoke:    reflectCall1[IndexedText](hv),
+		}
 
 	case reflect.TypeFor[Point]():
 		return &spatialFold{eventType: eventType, sample: sample, invoke: reflectCall1[Point](hv)}
@@ -350,7 +358,11 @@ func classifySingleReturn[E any](
 		return &skipFold{eventType: eventType, sample: sample}
 
 	case reflect.TypeFor[MultiEntry]():
-		return &multiInsertFold{eventType: eventType, sample: sample, invoke: reflectCall1[MultiEntry](hv)}
+		return &multiInsertFold{
+			eventType: eventType,
+			sample:    sample,
+			invoke:    reflectCall1[MultiEntry](hv),
+		}
 
 	case reflect.TypeFor[Append]():
 		return &appendFold{eventType: eventType, sample: sample, invoke: reflectCall1[Append](hv)}

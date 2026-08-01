@@ -631,21 +631,12 @@ func TestProperty_RandomOpsMaintainConsistency(t *testing.T) {
 		OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
 			return e.ID, e
 		}),
-		Fold{
-			EventType:    "task_title_changed",
-			Kind:         FoldUpdate,
-			keyExtractor: func(e testTask) any { return e.ID },
-			updateHandler: func(e testTask, prev testTask) testTask {
-				prev.Title = e.Title
+		OnTyped("task_title_changed", testTask{}, func(e testTask, prev testTask) testTask {
+			prev.Title = e.Title
 
-				return prev
-			},
-		},
-		Fold{
-			EventType:    "task_deleted",
-			Kind:         FoldRemove,
-			keyExtractor: func(e testTask) any { return e.ID },
-		},
+			return prev
+		}),
+		OnTyped("task_deleted", testTask{}, Remove[testTask]()),
 	)
 
 	store, err := Plan([]Engine{eng}, updateQuery)

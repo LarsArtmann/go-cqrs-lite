@@ -375,7 +375,12 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 	}
 }
 
-func (s *Store) applyFoldInsert(ctx context.Context, q queryRuntime, fold *insertFold, payload any) error {
+func (s *Store) applyFoldInsert(
+	ctx context.Context,
+	q queryRuntime,
+	fold *insertFold,
+	payload any,
+) error {
 	key, value := fold.invoke(payload)
 	col := q.name
 
@@ -392,7 +397,12 @@ func (s *Store) applyFoldInsert(ctx context.Context, q queryRuntime, fold *inser
 	return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
 }
 
-func (s *Store) applyFoldUpdate(ctx context.Context, q queryRuntime, fold *updateFold, payload any) error {
+func (s *Store) applyFoldUpdate(
+	ctx context.Context,
+	q queryRuntime,
+	fold *updateFold,
+	payload any,
+) error {
 	key := fold.keyExtractor(payload)
 	col := q.name
 
@@ -437,7 +447,12 @@ func (s *Store) applyFoldUpdate(ctx context.Context, q queryRuntime, fold *updat
 	return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
 }
 
-func (s *Store) applyFoldRemove(ctx context.Context, q queryRuntime, fold *removeFold, payload any) error {
+func (s *Store) applyFoldRemove(
+	ctx context.Context,
+	q queryRuntime,
+	fold *removeFold,
+	payload any,
+) error {
 	key := fold.keyExtractor(payload)
 	col := q.name
 
@@ -454,7 +469,12 @@ func (s *Store) applyFoldRemove(ctx context.Context, q queryRuntime, fold *remov
 	return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
 }
 
-func (s *Store) applyFoldCount(ctx context.Context, q queryRuntime, fold *countFold, payload any) error {
+func (s *Store) applyFoldCount(
+	ctx context.Context,
+	q queryRuntime,
+	fold *countFold,
+	payload any,
+) error {
 	col := q.name
 	delta := fold.invoke(payload)
 
@@ -469,7 +489,12 @@ func (s *Store) applyFoldCount(ctx context.Context, q queryRuntime, fold *countF
 	return unsupportedEngine(errUnsupportedCounterOps, q.engine.Profile().Name)
 }
 
-func (s *Store) applyFoldEdge(ctx context.Context, q queryRuntime, fold *edgeFold, payload any) error {
+func (s *Store) applyFoldEdge(
+	ctx context.Context,
+	q queryRuntime,
+	fold *edgeFold,
+	payload any,
+) error {
 	col := q.name
 	edge := fold.invoke(payload)
 
@@ -484,7 +509,12 @@ func (s *Store) applyFoldEdge(ctx context.Context, q queryRuntime, fold *edgeFol
 	return unsupportedEngine(errUnsupportedGraphOps, q.engine.Profile().Name)
 }
 
-func (s *Store) applyFoldSet(ctx context.Context, q queryRuntime, fold *setFold, payload any) error {
+func (s *Store) applyFoldSet(
+	ctx context.Context,
+	q queryRuntime,
+	fold *setFold,
+	payload any,
+) error {
 	col := q.name
 	key := fold.invoke(payload)
 
@@ -519,7 +549,12 @@ func (s *Store) applyFoldMultiInsert(
 	return unsupportedEngine(errUnsupportedMultimapOps, q.engine.Profile().Name)
 }
 
-func (s *Store) applyFoldAppend(ctx context.Context, q queryRuntime, fold *appendFold, payload any) error {
+func (s *Store) applyFoldAppend(
+	ctx context.Context,
+	q queryRuntime,
+	fold *appendFold,
+	payload any,
+) error {
 	col := q.name
 	app := fold.invoke(payload)
 
@@ -534,7 +569,12 @@ func (s *Store) applyFoldAppend(ctx context.Context, q queryRuntime, fold *appen
 	return unsupportedEngine(errUnsupportedLogOps, q.engine.Profile().Name)
 }
 
-func (s *Store) applyFoldVector(ctx context.Context, q queryRuntime, fold *vectorFold, payload any) error {
+func (s *Store) applyFoldVector(
+	ctx context.Context,
+	q queryRuntime,
+	fold *vectorFold,
+	payload any,
+) error {
 	col := q.name
 	emb := fold.invoke(payload)
 
@@ -549,7 +589,12 @@ func (s *Store) applyFoldVector(ctx context.Context, q queryRuntime, fold *vecto
 	return unsupportedEngine(errUnsupportedVectorOps, q.engine.Profile().Name)
 }
 
-func (s *Store) applyFoldSearch(ctx context.Context, q queryRuntime, fold *searchFold, payload any) error {
+func (s *Store) applyFoldSearch(
+	ctx context.Context,
+	q queryRuntime,
+	fold *searchFold,
+	payload any,
+) error {
 	col := q.name
 	doc := fold.invoke(payload)
 

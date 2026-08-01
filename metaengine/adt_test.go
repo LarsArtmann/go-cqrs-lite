@@ -165,13 +165,13 @@ var _ = Describe("On classification for new ADTs", func() {
 		fold := metaengine.On(event{}, func(e event) metaengine.MultiEntry {
 			return metaengine.MultiEntry{Key: e.ID, Value: e.Val}
 		})
-		Expect(fold.Kind).To(Equal(metaengine.FoldMultiInsert))
+		Expect(fold.Kind()).To(Equal(metaengine.FoldMultiInsert))
 	})
 
 	It("classifies Append return as FoldAppend", func() {
 		fold := metaengine.On(event{}, func(e event) metaengine.Append {
 			return metaengine.Append{Value: e}
 		})
-		Expect(fold.Kind).To(Equal(metaengine.FoldAppend))
+		Expect(fold.Kind()).To(Equal(metaengine.FoldAppend))
 	})
 })

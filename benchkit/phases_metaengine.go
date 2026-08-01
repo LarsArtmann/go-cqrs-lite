@@ -122,7 +122,7 @@ func (r *runner) metaEngineCounterWorkload(ctx context.Context) error {
 
 	if len(counts) == 0 {
 		return fmt.Errorf(
-			"metaengine counter correctness check: ExecuteTyped returned empty map" +
+			"metaengine counter correctness check: ExecuteTyped returned empty map"+
 				" after %d Apply calls — event type strings may not match fold registrations",
 			sampleCount,
 		)

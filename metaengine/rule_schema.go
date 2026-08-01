@@ -36,8 +36,8 @@ func (*schemaRule) Apply(result *PlanResult, ctx PlanContext) error {
 
 			if vt != nil && vt != rt.resultType {
 				result.Diagnostics = append(result.Diagnostics, Diagnostic{
-					Level:   DiagLevelWarn,
-					Query:   rt.name,
+					Level: DiagLevelWarn,
+					Query: rt.name,
 					Message: fmt.Sprintf(
 						"fold for %s returns %s but query result type is %s — "+
 							"runtime decode may fail",

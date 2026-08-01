@@ -26,7 +26,7 @@ var _ = Describe("On constructor", func() {
 		"classifying handler signatures into fold kinds",
 		func(handler any, expectedKind metaengine.FoldKind) {
 			fold := metaengine.On(sample, handler)
-			Expect(fold.Kind).To(Equal(expectedKind))
+			Expect(fold.Kind()).To(Equal(expectedKind))
 		},
 		Entry("insert: func(e) (K, V)",
 			func(e event) (string, result) { return e.ID, result{Name: e.Name} },
@@ -60,14 +60,14 @@ var _ = Describe("On constructor", func() {
 			fold := metaengine.On(sample, func(e event) (string, result) {
 				return e.ID, result{Name: e.Name}
 			})
-			Expect(fold.EventType).To(Equal("event"))
+			Expect(fold.EventType()).To(Equal("event"))
 		})
 
 		It("unwraps pointer samples to get the struct name", func() {
 			fold := metaengine.On(&sample, func(e event) (string, result) {
 				return e.ID, result{Name: e.Name}
 			})
-			Expect(fold.EventType).To(Equal("event"))
+			Expect(fold.EventType()).To(Equal("event"))
 		})
 	})
 
@@ -105,13 +105,13 @@ var _ = Describe("Remove sentinel", func() {
 
 	It("records the value type for projection matching", func() {
 		fold := metaengine.On(struct{ ID string }{}, metaengine.Remove[value]())
-		Expect(fold.Kind).To(Equal(metaengine.FoldRemove))
+		Expect(fold.Kind()).To(Equal(metaengine.FoldRemove))
 	})
 
 	It("works with different value types in the same query", func() {
 		type other struct{ Count int }
 		fold := metaengine.On(struct{ ID string }{}, metaengine.Remove[other]())
-		Expect(fold.Kind).To(Equal(metaengine.FoldRemove))
+		Expect(fold.Kind()).To(Equal(metaengine.FoldRemove))
 	})
 })
 
@@ -121,7 +121,7 @@ var _ = Describe("Skip sentinel", func() {
 			struct{ ID string }{},
 			func(e struct{ ID string }) metaengine.Skip { return metaengine.Skip{} },
 		)
-		Expect(fold.Kind).To(Equal(metaengine.FoldSkip))
+		Expect(fold.Kind()).To(Equal(metaengine.FoldSkip))
 	})
 })
 

@@ -75,6 +75,11 @@
 //     (TypedReader.Get). MetaEngineApplyConcurrent: concurrent write
 //     throughput (contention test). MetaEngineScanResults: items returned by
 //     scan (correctness check).
+//     MetaEngineSQLiteScanLatency / MetaEngineSQLitePointReadLatency /
+//     MetaEngineSQLiteApplyThroughput — same Map ADT workload run against the
+//     SQLite engine (NewSQLiteEngine). Gives a direct Memory-vs-SQLite
+//     comparison: Memory shows planner overhead with zero I/O, SQLite shows
+//     the cost of SQL execution + json_extract pushdown.
 //
 //   - ColdReadLatency — first read-pass latency (OS page cache cold).
 //     LoadLatency aggregates all passes (cold + warm). On SQLite/Pebble,
@@ -95,6 +100,9 @@
 //
 //   - TailRatio — LoadLatency.P99 / LoadLatency.P50. A ratio >3 means tail
 //     latency is unpredictable: P50 looks fine but P99 users see 3x worse.
+//
+//   - WriteTailRatio — WriteLatency.P99 / WriteLatency.P50. Same concept as
+//     TailRatio but for the write path. High ratios matter for ingestion pipelines.
 //
 //   - IntegrityErrors — count of events that failed read-back verification.
 //     Zero means all written events round-trip correctly. Non-zero indicates
@@ -133,8 +141,11 @@
 // The result reports HeapGrowthBytes, HeapLeakRate (bytes/iteration),
 // ThroughputDriftPct, WriteP99DriftPct, and per-phase P99 drift metrics
 // (JourneyP99DriftPct, QueryHitP99DriftPct, CacheHitP99DriftPct — zero when
-// the corresponding phase is skipped). Use a small profile (ProfileDev)
-// for fast iterations and more data points. CLI: `cqrs-bench run --soak 5m`.
+// the corresponding phase is skipped). GCMaxPauseDriftPct tracks GC pause
+// degradation across iterations (positive = worsening GC behavior).
+// AllocGrowthPct tracks allocation growth (positive = allocation leak).
+// Use a small profile (ProfileDev) for fast iterations and more data points.
+// CLI: `cqrs-bench run --soak 5m`.
 //
 // # Build tag requirement
 //

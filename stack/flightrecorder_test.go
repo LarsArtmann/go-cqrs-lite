@@ -31,7 +31,9 @@ func TestWithFlightRecorder(t *testing.T) {
 	}
 
 	if bundle.FlightRecorder() != recorder {
-		t.Fatal("FlightRecorder() returned a different pointer than what was passed to WithFlightRecorder")
+		t.Fatal(
+			"FlightRecorder() returned a different pointer than what was passed to WithFlightRecorder",
+		)
 	}
 
 	if err := bundle.Close(); err != nil {

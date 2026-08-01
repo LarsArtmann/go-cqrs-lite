@@ -18,7 +18,9 @@ const (
 // ErrAlreadyEnabled is returned by [Recorder.Start] when another flight
 // recorder is already active in this process. Go's runtime/trace allows
 // only one active [runtime/trace.FlightRecorder] at a time.
-var ErrAlreadyEnabled = errors.New("flightrecorder: another flight recorder is already active in this process")
+var ErrAlreadyEnabled = errors.New(
+	"flightrecorder: another flight recorder is already active in this process",
+)
 
 // Recorder wraps [runtime/trace.FlightRecorder] with safe lifecycle
 // management, configurable snapshot sinks, and once-semantics to prevent

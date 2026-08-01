@@ -15,7 +15,7 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Backend Comparison")
-	fmt.Fprintln(w, strings.Repeat("=", 120))
+	fmt.Fprintln(w, strings.Repeat("=", 130))
 
 	header := fmt.Sprintf(
 		"%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %10s %10s",

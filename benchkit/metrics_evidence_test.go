@@ -257,8 +257,12 @@ func TestResult_DerivedMetrics(t *testing.T) {
 	if expected > 0 {
 		ratio := float64(result.AllocCount) / expected
 		if ratio < 0.99 || ratio > 1.01 {
-			t.Errorf("AllocsPerOp cross-check: AllocCount=%d, AllocsPerOp*TotalEvents=%.0f (ratio=%.3f)",
-				result.AllocCount, expected, ratio)
+			t.Errorf(
+				"AllocsPerOp cross-check: AllocCount=%d, AllocsPerOp*TotalEvents=%.0f (ratio=%.3f)",
+				result.AllocCount,
+				expected,
+				ratio,
+			)
 		}
 	}
 }
