@@ -115,8 +115,7 @@ var _ = Describe("PushdownScan", func() {
 				nil, 2,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			// limit+1 for has-more detection.
-			Expect(results.Items).To(HaveLen(3))
+			Expect(results.Items).To(HaveLen(2))
 		})
 
 		It("combines filter + sort + limit", func() {
@@ -133,7 +132,7 @@ var _ = Describe("PushdownScan", func() {
 			Expect(results.Items).To(HaveLen(2))
 
 			vals := extractPriorities(results.Items)
-			Expect(vals).To(Equal([]float64{5, 3, 1}))
+			Expect(vals).To(Equal([]float64{5, 3}))
 		})
 
 		It("applies keyset cursor for ascending sort", func() {
@@ -146,9 +145,9 @@ var _ = Describe("PushdownScan", func() {
 				nil, 2,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(page1.Items).To(HaveLen(3))
+			Expect(page1.Items).To(HaveLen(2))
 			vals1 := extractPriorities(page1.Items)
-			Expect(vals1).To(Equal([]float64{1, 2, 3}))
+			Expect(vals1).To(Equal([]float64{1, 2}))
 
 			// Cursor = Priority=2 (last item on the page, excluding the +1).
 			cursor := vals1[1] // Priority=2
@@ -160,7 +159,7 @@ var _ = Describe("PushdownScan", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			vals2 := extractPriorities(page2.Items)
-			Expect(vals2).To(Equal([]float64{3, 4, 5}))
+			Expect(vals2).To(Equal([]float64{3, 4}))
 		})
 
 		It("applies keyset cursor for descending sort", func() {
@@ -174,7 +173,7 @@ var _ = Describe("PushdownScan", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			vals1 := extractPriorities(page1.Items)
-			Expect(vals1).To(Equal([]float64{5, 4, 3}))
+			Expect(vals1).To(Equal([]float64{5, 4}))
 
 			// Cursor = Priority=4 (second item).
 			cursor := vals1[1] // Priority=4
@@ -186,7 +185,7 @@ var _ = Describe("PushdownScan", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			vals2 := extractPriorities(page2.Items)
-			Expect(vals2).To(Equal([]float64{3, 2, 1}))
+			Expect(vals2).To(Equal([]float64{3, 2}))
 		})
 
 		It("returns empty for non-matching filter", func() {

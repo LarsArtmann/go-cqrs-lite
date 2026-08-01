@@ -510,6 +510,10 @@ func ExecuteTyped[Q any, R any](
 		if result, ok := raw.(ScanResult); ok {
 			return reconstructCollection[R](result, sortFn), nil
 		}
+
+		if items, ok := raw.([]any); ok {
+			return reconstructCollection[R](ScanResult{Items: items}, sortFn), nil
+		}
 	}
 
 	result, ok := raw.(R)
