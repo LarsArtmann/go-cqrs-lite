@@ -99,7 +99,7 @@ func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
 			(aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
 			VALUES (%s, %s, %s, 1, %s, %s) %s`,
 			p.table.name, p1, p2, p3, p4, p5,
-			p.dialect.OnConflictDoUpdate([]string{"aggregate_type", "aggregate_id"}, setExprs)), //nolint:goconst // SQL col
+			p.dialect.OnConflictDoUpdate([]string{"aggregate_type", "aggregate_id"}, setExprs)),
 		evt.StreamType(),
 		evt.StreamID().String(),
 		evt.Version().Int(),
