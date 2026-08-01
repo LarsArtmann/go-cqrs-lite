@@ -1387,6 +1387,7 @@ metaengine/duckdbengine/method CounterGet
 metaengine/duckdbengine/method CounterIncrement
 metaengine/duckdbengine/method MapDelete
 metaengine/duckdbengine/method MapGet
+metaengine/duckdbengine/method MapScan
 metaengine/duckdbengine/method MapSet
 metaengine/duckdbengine/method Profile
 metaengine/func BuildLayoutPlan
@@ -1407,6 +1408,7 @@ metaengine/func MaterializeCost
 metaengine/func NewCostAccuracyReporter
 metaengine/func NewEventLog
 metaengine/func NewMemoryEngine
+metaengine/func NewMemoryEngineWithVersioning
 metaengine/func NewMemorySearchIndex
 metaengine/func NewMemorySpatialIndex
 metaengine/func NewMemoryVectorIndex
@@ -1499,7 +1501,6 @@ metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
-metaengine/method Apply
 metaengine/method ApplyBatch
 metaengine/method ApplyBatch
 metaengine/method ApplyEncoded
@@ -1583,7 +1584,6 @@ metaengine/method MultiAdd
 metaengine/method MultiAdd
 metaengine/method MultiGet
 metaengine/method MultiGet
-metaengine/method Name
 metaengine/method Name
 metaengine/method Name
 metaengine/method Name
@@ -1688,6 +1688,7 @@ metaengine/pgengine/method CounterGet
 metaengine/pgengine/method CounterIncrement
 metaengine/pgengine/method MapDelete
 metaengine/pgengine/method MapGet
+metaengine/pgengine/method MapScan
 metaengine/pgengine/method MapSet
 metaengine/pgengine/method Profile
 metaengine/projectionadapter/func New
