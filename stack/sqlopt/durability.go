@@ -3,6 +3,7 @@ package sqlopt
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
@@ -20,6 +21,8 @@ func SQLiteSynchronousLevel(tier stack.DurabilityTier) string {
 		return "FULL"
 	case stack.DurabilityRelaxed:
 		return "OFF"
+	case stack.DurabilityNormal:
+		return "NORMAL"
 	default:
 		return "NORMAL"
 	}
@@ -34,5 +37,5 @@ func ApplySQLiteDurability(ctx context.Context, db *sql.DB, tier stack.Durabilit
 		return nil // NORMAL is already set by SQLiteEnableWAL
 	}
 
-	return storage.SQLiteSetSynchronous(ctx, db, SQLiteSynchronousLevel(tier))
+	return fmt.Errorf("set sqlite synchronous: %w", storage.SQLiteSetSynchronous(ctx, db, SQLiteSynchronousLevel(tier)))
 }

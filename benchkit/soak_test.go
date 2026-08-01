@@ -121,7 +121,10 @@ func TestRunSoak_TrendsPopulated(t *testing.T) {
 	}
 
 	if result.Iterations < 5 {
-		t.Logf("only %d iterations completed — skipping heap leak assertion (unreliable with few samples)", result.Iterations)
+		t.Logf(
+			"only %d iterations completed — skipping heap leak assertion (unreliable with few samples)",
+			result.Iterations,
+		)
 	} else if result.HeapLeakRate > maxHeapLeak {
 		t.Errorf(
 			"HeapLeakRate = %.0f bytes/iter over %d iterations, expected < %.0f",

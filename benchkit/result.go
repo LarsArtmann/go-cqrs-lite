@@ -110,7 +110,7 @@ type Result struct {
 	// store. WriteLatency is measured under read contention; ReadLatency is
 	// measured under write contention. Zero-valued when Config.SkipMixed is
 	// true or the bundle lacks EventSink + EventSource.
-	MixedWorkload MixedResult `json:"mixedWorkload,omitempty"`
+	MixedWorkload MixedResult `json:"mixedWorkload,omitempty"` //nolint:modernize // omitzero needs go1.27
 
 	// Resource metrics
 	Memory ResourceStats `json:"memory"`

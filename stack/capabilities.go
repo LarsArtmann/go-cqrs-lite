@@ -41,12 +41,6 @@ type Capabilities struct {
 	SyncEnabled bool
 }
 
-// capabilities is the default (zero-value) Capabilities. Presets override
-// fields via [WithCapabilities].
-var defaultCapabilities = Capabilities{
-	DurabilityRange: []DurabilityTier{DurabilityNormal},
-}
-
 // WithCapabilities sets the [Capabilities] metadata on the Bundle. Presets
 // call this during construction to declare their backend's properties.
 // Consumers typically do not call this directly — the preset they choose

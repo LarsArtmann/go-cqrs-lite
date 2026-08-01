@@ -109,7 +109,7 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 
 			for range remaining {
 				if ctx.Err() != nil {
-					return nil
+					return nil //nolint:nilerr // ctx cancel is normal exit
 				}
 
 				events, err := r.createBatch(mixedStreamIDs[idx], version, profile.BatchSize)
