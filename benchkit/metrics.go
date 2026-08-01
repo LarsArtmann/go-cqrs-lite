@@ -214,6 +214,7 @@ func computeGCMetrics(baseline, final runtime.MemStats) gcMetricsResult {
 	for i := range uint32(gcCount) {
 		idx := (final.NumGC - 1 - i) % 256
 		p := final.PauseNs[idx]
+
 		if p > maxPauseNs {
 			maxPauseNs = p
 		}

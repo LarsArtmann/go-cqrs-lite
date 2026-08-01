@@ -255,6 +255,8 @@ func extractDeclarativeFields(
 }
 
 // queryMeta is the planner-facing interface.
+//
+//nolint:interfacebloat // every method is required for planning + execution
 type queryMeta interface {
 	QueryName() string
 	QueryADT() ADT

@@ -45,7 +45,7 @@ type Fold interface {
 // The closure captures the reflect.Value once at construction time;
 // the hot path calls the closure without per-event reflect.ValueOf(handler).
 
-// insertFold: func(E) (K, V) → MapSet(collection, K, V)
+// insertFold: func(E) (K, V) → MapSet(collection, K, V).
 type insertFold struct {
 	eventType string
 	sample    any
@@ -59,7 +59,7 @@ func (f *insertFold) EventType() string { return f.eventType }
 func (f *insertFold) EventSample() any  { return f.sample }
 func (f *insertFold) Kind() FoldKind    { return FoldInsert }
 
-// updateFold: func(E, prev V) V → MapUpdate
+// updateFold: func(E, prev V) V → MapUpdate.
 type updateFold struct {
 	eventType    string
 	sample       any
@@ -73,7 +73,7 @@ func (f *updateFold) EventType() string { return f.eventType }
 func (f *updateFold) EventSample() any  { return f.sample }
 func (f *updateFold) Kind() FoldKind    { return FoldUpdate }
 
-// removeFold: key extraction from event → MapDelete
+// removeFold: key extraction from event → MapDelete.
 type removeFold struct {
 	eventType    string
 	sample       any
@@ -86,7 +86,7 @@ func (f *removeFold) EventType() string { return f.eventType }
 func (f *removeFold) EventSample() any  { return f.sample }
 func (f *removeFold) Kind() FoldKind    { return FoldRemove }
 
-// countFold: func(E) Delta → CounterIncrement
+// countFold: func(E) Delta → CounterIncrement.
 type countFold struct {
 	eventType string
 	sample    any
@@ -98,7 +98,7 @@ func (f *countFold) EventType() string { return f.eventType }
 func (f *countFold) EventSample() any  { return f.sample }
 func (f *countFold) Kind() FoldKind    { return FoldCount }
 
-// edgeFold: func(E) Edge → GraphAddEdge
+// edgeFold: func(E) Edge → GraphAddEdge.
 type edgeFold struct {
 	eventType string
 	sample    any
@@ -110,7 +110,7 @@ func (f *edgeFold) EventType() string { return f.eventType }
 func (f *edgeFold) EventSample() any  { return f.sample }
 func (f *edgeFold) Kind() FoldKind    { return FoldEdge }
 
-// setFold: func(E) K → SetAdd
+// setFold: func(E) K → SetAdd.
 type setFold struct {
 	eventType string
 	sample    any
@@ -123,7 +123,7 @@ func (f *setFold) EventType() string { return f.eventType }
 func (f *setFold) EventSample() any  { return f.sample }
 func (f *setFold) Kind() FoldKind    { return FoldSet }
 
-// multiInsertFold: func(E) MultiEntry → MultiAdd
+// multiInsertFold: func(E) MultiEntry → MultiAdd.
 type multiInsertFold struct {
 	eventType string
 	sample    any
@@ -135,7 +135,7 @@ func (f *multiInsertFold) EventType() string { return f.eventType }
 func (f *multiInsertFold) EventSample() any  { return f.sample }
 func (f *multiInsertFold) Kind() FoldKind    { return FoldMultiInsert }
 
-// appendFold: func(E) Append → LogAppend
+// appendFold: func(E) Append → LogAppend.
 type appendFold struct {
 	eventType string
 	sample    any
@@ -147,7 +147,7 @@ func (f *appendFold) EventType() string { return f.eventType }
 func (f *appendFold) EventSample() any  { return f.sample }
 func (f *appendFold) Kind() FoldKind    { return FoldAppend }
 
-// vectorFold: func(E) Embedding → VectorInsert
+// vectorFold: func(E) Embedding → VectorInsert.
 type vectorFold struct {
 	eventType string
 	sample    any
@@ -159,7 +159,7 @@ func (f *vectorFold) EventType() string { return f.eventType }
 func (f *vectorFold) EventSample() any  { return f.sample }
 func (f *vectorFold) Kind() FoldKind    { return FoldVector }
 
-// searchFold: func(E) IndexedText → SearchInsert
+// searchFold: func(E) IndexedText → SearchInsert.
 type searchFold struct {
 	eventType string
 	sample    any
@@ -171,7 +171,7 @@ func (f *searchFold) EventType() string { return f.eventType }
 func (f *searchFold) EventSample() any  { return f.sample }
 func (f *searchFold) Kind() FoldKind    { return FoldSearch }
 
-// spatialFold: func(E) Point → SpatialInsert
+// spatialFold: func(E) Point → SpatialInsert.
 type spatialFold struct {
 	eventType string
 	sample    any
@@ -183,7 +183,7 @@ func (f *spatialFold) EventType() string { return f.eventType }
 func (f *spatialFold) EventSample() any  { return f.sample }
 func (f *spatialFold) Kind() FoldKind    { return FoldSpatial }
 
-// skipFold: func(E) Skip → no-op
+// skipFold: func(E) Skip → no-op.
 type skipFold struct {
 	eventType string
 	sample    any

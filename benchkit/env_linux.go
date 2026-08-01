@@ -15,7 +15,7 @@ func detectCPUModel() string {
 		return ""
 	}
 
-	for _, line := range strings.Split(string(data), "\n") {
+	for line := range strings.SplitSeq(string(data), "\n") {
 		if strings.HasPrefix(line, "model name") {
 			parts := strings.SplitN(line, ":", 2)
 			if len(parts) == 2 {
@@ -35,18 +35,22 @@ func detectTotalRAM() uint64 {
 		return 0
 	}
 
-	for _, line := range strings.Split(string(data), "\n") {
+	for line := range strings.SplitSeq(string(data), "\n") {
 		if strings.HasPrefix(line, "MemTotal:") {
 			parts := strings.Fields(line)
+
 			if len(parts) >= 2 {
-				var kb uint64
+				var kilobytes uint64
+
 				for _, c := range parts[1] {
 					if c < '0' || c > '9' {
 						return 0
 					}
-					kb = kb*10 + uint64(c-'0')
+
+					kilobytes = kilobytes*10 + uint64(c-'0')
 				}
-				return kb * 1024
+
+				return kilobytes * 1024
 			}
 		}
 	}

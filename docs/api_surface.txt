@@ -61,6 +61,7 @@ benchkit/type Factory
 benchkit/var ErrFactoryFailed
 benchkit/var ErrIncompleteBundle
 benchkit/var ErrInvalidConfig
+benchkit/var ErrMEEvent
 benchkit/var ErrNilBundle
 benchkit/var ErrWarmupFailed
 benchkit/var ProfileAnalytical

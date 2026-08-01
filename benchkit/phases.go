@@ -181,6 +181,7 @@ func (r *runner) verifyIntegrity(ctx context.Context) {
 		}
 
 		ref := r.refs[i]
+
 		events, err := r.bundle.EventSource.Load(ctx, ref)
 		if err != nil {
 			r.result.IntegrityErrors++
