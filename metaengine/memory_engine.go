@@ -44,8 +44,19 @@ func NewMemoryEngine() Engine {
 		vectorIdx:  NewMemoryVectorIndex(),
 		searchIdx:  NewMemorySearchIndex(),
 		spatialIdx: NewMemorySpatialIndex(),
-		versions:   make(map[string]map[string]*versionChain),
+		versions:   nil, // opt-in: use NewMemoryEngineWithVersioning for temporal queries
 	}
+}
+
+// NewMemoryEngineWithVersioning creates a Memory engine that tracks version
+// chains for temporal (as-of) queries. Use this when you need MapGetAsOf /
+// MapExistsAsOf. The version chain grows with every write, so this has a
+// memory cost proportional to total write count.
+func NewMemoryEngineWithVersioning() Engine {
+	eng := NewMemoryEngine().(*memoryEngine)
+	eng.versions = make(map[string]map[string]*versionChain)
+
+	return eng
 }
 
 func (m *memoryEngine) Profile() EngineProfile {

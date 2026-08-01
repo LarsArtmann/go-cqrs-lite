@@ -10,7 +10,7 @@ import (
 func TestMemoryEngine_VersionedStorage(t *testing.T) {
 	t.Parallel()
 
-	eng := NewMemoryEngine()
+	eng := NewMemoryEngineWithVersioning()
 	defer eng.Close()
 
 	ctx := context.Background()

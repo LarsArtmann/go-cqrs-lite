@@ -628,14 +628,11 @@ linters:
           - goconst
           - exhaustive
           - varnamelen
-          - revive
-          - wrapcheck
           - wsl_v5
           - nonamedreturns
           - nlreturn
           - tagliatelle
           - funlen
-          - nolintlint
       - path: metaengine/duckdbengine/
         linters:
           - wrapcheck

@@ -565,22 +565,24 @@ func CanonicalizeScanResults(v any) string {
 	return b.String()
 }
 
-// CanonicalizeVector canonicalizes vector search results by ID list.
-// Distances may vary slightly between engines due to float arithmetic,
-// so we compare IDs in result order (nearest-first).
+// CanonicalizeVector canonicalizes vector search results by sorted ID list.
+// Distances may vary slightly between engines due to float arithmetic, and
+// ties (equal distances) may be returned in different order by different
+// engines, so we sort IDs for order-independent comparison.
 func CanonicalizeVector(v any) string {
 	results, ok := v.([]metaengine.VectorResult)
 	if !ok {
 		return CanonicalizeAny(v)
 	}
 
-	var b strings.Builder
+	strs := make([]string, 0, len(results))
 	for _, r := range results {
-		b.WriteString(r.ID)
-		b.WriteString(",")
+		strs = append(strs, r.ID)
 	}
 
-	return b.String()
+	sort.Strings(strs)
+
+	return strings.Join(strs, ",")
 }
 
 // CanonicalizeSearch canonicalizes full-text search results by ID list.
