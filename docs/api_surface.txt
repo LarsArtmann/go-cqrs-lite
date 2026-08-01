@@ -1355,6 +1355,10 @@ metaengine/const FoldRemove
 metaengine/const FoldSet
 metaengine/const FoldSkip
 metaengine/const FoldUpdate
+metaengine/const LayoutColumnar
+metaengine/const LayoutKV
+metaengine/const LayoutLSM
+metaengine/const LayoutRow
 metaengine/const MemoryNsPerOp
 metaengine/const ReadAggregate
 metaengine/const ReadFilteredScan
@@ -1371,6 +1375,7 @@ metaengine/func CalibrateEngine
 metaengine/func Checksum
 metaengine/func CompareValues
 metaengine/func ContractSuite
+metaengine/func DeserializePlan
 metaengine/func EvalFilterOp
 metaengine/func EventTypeName
 metaengine/func ExecuteTyped
@@ -1378,6 +1383,7 @@ metaengine/func FilterOn
 metaengine/func FilterOnField
 metaengine/func ItemFieldByName
 metaengine/func MapUpdateTyped
+metaengine/func MaterializeCost
 metaengine/func NewCostAccuracyReporter
 metaengine/func NewEventLog
 metaengine/func NewMemoryEngine
@@ -1386,6 +1392,7 @@ metaengine/func NewPrefetchCache
 metaengine/func NewQueryBuilder
 metaengine/func NewReadCoalescer
 metaengine/func NewReader
+metaengine/func NewRulePipeline
 metaengine/func NewSQLiteEngine
 metaengine/func NewSSEReplay
 metaengine/func NewTieredStore
@@ -1397,8 +1404,12 @@ metaengine/func PassesFilterSpecs
 metaengine/func Plan
 metaengine/func Query
 metaengine/func Remove
+metaengine/func ReplayCost
 metaengine/func SQLiteEngineProfile
+metaengine/func Serialize
+metaengine/func SerializeToJSON
 metaengine/func ServeSSE
+metaengine/func ShouldMaterialize
 metaengine/func SortOn
 metaengine/func SortOnField
 metaengine/func VerifyChecksum
@@ -1426,6 +1437,7 @@ metaengine/func WithSort
 metaengine/func WithSortColumns
 metaengine/func WithTTL
 metaengine/func WithTracing
+metaengine/func WithWorkloadStats
 metaengine/func WithWriteAmplificationBudget
 metaengine/interface AggregateReader
 metaengine/interface Closer
@@ -1439,6 +1451,7 @@ metaengine/interface MapBackend
 metaengine/interface MapUpdater
 metaengine/interface MetricsRecorder
 metaengine/interface MultimapBackend
+metaengine/interface PlanRule
 metaengine/interface PushdownScan
 metaengine/interface RawScanReader
 metaengine/interface RawValueReader
@@ -1449,6 +1462,11 @@ metaengine/interface StreamingScan
 metaengine/interface Tracer
 metaengine/interface Transactional
 metaengine/method Aggregate
+metaengine/method Apply
+metaengine/method Apply
+metaengine/method Apply
+metaengine/method Apply
+metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
 metaengine/method ApplyBatch
@@ -1520,6 +1538,7 @@ metaengine/method MapSet
 metaengine/method MapSet
 metaengine/method MapUpdate
 metaengine/method MapUpdate
+metaengine/method MarshalJSON
 metaengine/method Max
 metaengine/method MigrateLayout
 metaengine/method Min
@@ -1527,6 +1546,11 @@ metaengine/method MultiAdd
 metaengine/method MultiAdd
 metaengine/method MultiGet
 metaengine/method MultiGet
+metaengine/method Name
+metaengine/method Name
+metaengine/method Name
+metaengine/method Name
+metaengine/method ObservedWorkloadStats
 metaengine/method Plan
 metaengine/method Primary
 metaengine/method Profile
@@ -1638,6 +1662,7 @@ metaengine/struct InSpec
 metaengine/struct LayoutPlan
 metaengine/struct LayoutVersion
 metaengine/struct MultiEntry
+metaengine/struct PlanContext
 metaengine/struct PlanResult
 metaengine/struct PlannedColumn
 metaengine/struct PlannedIndex
@@ -1648,10 +1673,16 @@ metaengine/struct QueryConfig
 metaengine/struct QueryDecl
 metaengine/struct RangeSpec
 metaengine/struct ReadCoalescer
+metaengine/struct RulePipeline
+metaengine/struct RuleTraceEntry
 metaengine/struct SSEConfig
 metaengine/struct SSEReplay
 metaengine/struct ScaleThreshold
 metaengine/struct SeqValue
+metaengine/struct SerializableLayout
+metaengine/struct SerializablePlan
+metaengine/struct SerializableQuery
+metaengine/struct SerializableRule
 metaengine/struct Skip
 metaengine/struct SortColumn
 metaengine/struct SortSpec
@@ -1660,6 +1691,7 @@ metaengine/struct TTLConfig
 metaengine/struct TieredStore
 metaengine/struct TypedReader
 metaengine/struct Watcher
+metaengine/struct WorkloadStats
 metaengine/type ADT
 metaengine/type AggregateFn
 metaengine/type Complexity
@@ -1671,6 +1703,7 @@ metaengine/type QueryOption
 metaengine/type ReadPattern
 metaengine/type SSEOption
 metaengine/type ScanOption
+metaengine/type StorageLayout
 metaengine/type StoreHooks
 metaengine/var ErrAmbiguousKey
 metaengine/var ErrDuplicateEvent

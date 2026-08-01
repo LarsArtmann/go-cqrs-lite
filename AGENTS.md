@@ -69,6 +69,9 @@ go-cqrs-lite/
 │                        # **Cursor-encoded prefetch**: WithCursorString(s) parses Cursor.Encode() (base64+JSON); both WithCursor(raw)
 │                        #   and WithCursorString(encoded) produce matching PrefetchCache keys (thread-safe via RWMutex).
 │                        # TypedReader[V], RawValueReader/RawScanReader. Sentinels: ErrNotFound, ErrAmbiguousKey, ErrUnsupportedADT, ErrLayoutConflict.
+│                        # **Planner rule pipeline** (ADR-pending): PlanRule interface, RulePipeline, composable rules. 4 extracted: schemaRule, layoutRule, writeAmpRule. Planner.go dissolved from 279→226 lines.
+│                        # **Materialize-vs-replay** (ES-specific killer feature): WithWorkloadStats, ReplayCost/MaterializeCost/ShouldMaterialize, materializeRule. Advisory INFO/WARN diagnostics.
+│                        # **StorageLayout + cost matrix**: Layout{Row,Columnar,LSM,KV}, (ADT × Layout)→Complexity, EngineProfile.Layouts, RuleTrace, SerializablePlan (JSON serialize/diff/pin).
 │   └── pebbleengine/   # Pebble-backed metaengine Engine (LSM point reads, 7x faster than SQLite on MapGet). MapBackend, ScanBackend, SetBackend, CounterBackend, GraphBackend, MultimapBackend, LogBackend. **RawValueReader + RawScanReader** (eliminates JSON decode tax on point lookups and filtered scans). Separate module (cockroachdb/pebble dep)
 │   └── adttest/       # Exported ADT test harness: RunMatrix, Scenarios, canonicalize helpers — imported by engine modules for cross-engine parity
 │   └── projectionadapter/ # Projection adapter: wraps metaengine Store as projection.Projection ([ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md))
