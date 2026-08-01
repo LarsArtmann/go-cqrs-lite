@@ -184,9 +184,9 @@ func TestChaos_EngineSwap(t *testing.T) {
 		t.Error("expected results after engine swap")
 	}
 
-	// Verify the count matches expected (2/3 of 100 have "open" status)
-	expected := 100 - (100 / 3) // ~67 items with status=open (not i%3==0)
-	if len(results) != expected {
-		t.Errorf("result count after swap: got %d, want %d", len(results), expected)
+	// Verify the count matches expected (items with i%3!=0 have "open" status)
+	// i%3==0 occurs ceil(100/3)=34 times → open = 100-34 = 66
+	if len(results) != 66 {
+		t.Errorf("result count after swap: got %d, want %d", len(results), 66)
 	}
 }
