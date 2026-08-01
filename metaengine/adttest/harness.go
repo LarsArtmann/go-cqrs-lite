@@ -1,6 +1,7 @@
-// Package adttest provides a parameterized test harness that exercises all 7
-// ADTs (Map, Set, Counter, Graph, SortedMap, Log, Multimap) across every
-// available engine implementation, verifying behavioral parity.
+// Package adttest provides a parameterized test harness that exercises all 10
+// ADTs (Map, Set, Counter, Graph, SortedMap, Log, Multimap, Vector, Search,
+// Spatial) across every available engine implementation, verifying behavioral
+// parity.
 //
 // Usage from any engine module's tests:
 //
@@ -59,6 +60,9 @@ var backendInterfaces = map[string]reflect.Type{ //nolint:gochecknoglobals // im
 	"ScanBackend":     reflect.TypeFor[metaengine.ScanBackend](),
 	"LogBackend":      reflect.TypeFor[metaengine.LogBackend](),
 	"MultimapBackend": reflect.TypeFor[metaengine.MultimapBackend](),
+	"VectorBackend":   reflect.TypeFor[metaengine.VectorBackend](),
+	"SearchBackend":   reflect.TypeFor[metaengine.SearchBackend](),
+	"SpatialBackend":  reflect.TypeFor[metaengine.SpatialBackend](),
 }
 
 // RunMatrix runs all ADT scenarios across all engine factories and asserts
@@ -144,7 +148,7 @@ func RunMatrix(t *testing.T, factories []Factory) {
 	}
 }
 
-// Scenarios returns the 7-ADT test matrix. Each scenario exercises one ADT
+// Scenarios returns the 10-ADT test matrix. Each scenario exercises one ADT
 // via its backend interface (not the Store/Execute path — that's covered by
 // the cross_engine_meta_test.go Ginkgo suite).
 func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
@@ -373,6 +377,87 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			},
 			Canonicalize: CanonicalizeAny,
 		},
+
+		// --- Vector ADT: VectorInsert + VectorSearch ---
+		{
+			Name:     "Vector",
+			Requires: "VectorBackend",
+			Setup: func(ctx context.Context, eng metaengine.Engine) error {
+				vb := eng.(metaengine.VectorBackend)
+				embeddings := []metaengine.Embedding{
+					{ID: "v1", Values: []float32{1.0, 0.0, 0.0}},
+					{ID: "v2", Values: []float32{0.9, 0.1, 0.0}},
+					{ID: "v3", Values: []float32{0.0, 1.0, 0.0}},
+				}
+				for _, emb := range embeddings {
+					if err := vb.VectorInsert(ctx, "vectors", emb); err != nil {
+						return err //nolint:wrapcheck
+					}
+				}
+
+				return nil
+			},
+			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
+				vb := eng.(metaengine.VectorBackend)
+
+				return vb.VectorSearch(ctx, "vectors", []float32{1.0, 0.0, 0.0}, 2, "cosine")
+			},
+			Canonicalize: CanonicalizeVector,
+		},
+
+		// --- Search ADT: SearchInsert + SearchQuery ---
+		{
+			Name:     "Search",
+			Requires: "SearchBackend",
+			Setup: func(ctx context.Context, eng metaengine.Engine) error {
+				sb := eng.(metaengine.SearchBackend)
+				docs := []metaengine.IndexedText{
+					{ID: "d1", Content: "the quick brown fox"},
+					{ID: "d2", Content: "the lazy brown dog"},
+					{ID: "d3", Content: "quick thinking saves time"},
+				}
+				for _, doc := range docs {
+					if err := sb.SearchInsert(ctx, "docs", doc); err != nil {
+						return err //nolint:wrapcheck
+					}
+				}
+
+				return nil
+			},
+			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
+				sb := eng.(metaengine.SearchBackend)
+
+				return sb.SearchQuery(ctx, "docs", "quick", 5)
+			},
+			Canonicalize: CanonicalizeSearch,
+		},
+
+		// --- Spatial ADT: SpatialInsert + SpatialRange ---
+		{
+			Name:     "Spatial",
+			Requires: "SpatialBackend",
+			Setup: func(ctx context.Context, eng metaengine.Engine) error {
+				sp := eng.(metaengine.SpatialBackend)
+				points := []metaengine.Point{
+					{ID: "p1", X: 13.4050, Y: 52.5200}, // Berlin
+					{ID: "p2", X: 13.4100, Y: 52.5150}, // Near Berlin
+					{ID: "p3", X: 2.3522, Y: 48.8566},  // Paris (far)
+				}
+				for _, pt := range points {
+					if err := sp.SpatialInsert(ctx, "places", pt); err != nil {
+						return err //nolint:wrapcheck
+					}
+				}
+
+				return nil
+			},
+			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
+				sp := eng.(metaengine.SpatialBackend)
+
+				return sp.SpatialRange(ctx, "places", 13.4050, 52.5200, 10000, 5)
+			},
+			Canonicalize: CanonicalizeSpatial,
+		},
 	}
 }
 
@@ -478,6 +563,61 @@ func CanonicalizeScanResults(v any) string {
 	}
 
 	return b.String()
+}
+
+// CanonicalizeVector canonicalizes vector search results by ID list.
+// Distances may vary slightly between engines due to float arithmetic,
+// so we compare IDs in result order (nearest-first).
+func CanonicalizeVector(v any) string {
+	results, ok := v.([]metaengine.VectorResult)
+	if !ok {
+		return CanonicalizeAny(v)
+	}
+
+	var b strings.Builder
+	for _, r := range results {
+		b.WriteString(r.ID)
+		b.WriteString(",")
+	}
+
+	return b.String()
+}
+
+// CanonicalizeSearch canonicalizes full-text search results by ID list.
+// Scores may vary between engines (TF-IDF vs BM25), so we compare IDs only.
+func CanonicalizeSearch(v any) string {
+	results, ok := v.([]metaengine.SearchResult)
+	if !ok {
+		return CanonicalizeAny(v)
+	}
+
+	strs := make([]string, 0, len(results))
+	for _, r := range results {
+		strs = append(strs, r.ID)
+	}
+
+	sort.Strings(strs)
+
+	return strings.Join(strs, ",")
+}
+
+// CanonicalizeSpatial canonicalizes spatial range results by ID list.
+// Distances may vary slightly between engines, so we compare IDs (sorted,
+// since different engines may return points at similar distances in different order).
+func CanonicalizeSpatial(v any) string {
+	results, ok := v.([]metaengine.SpatialResult)
+	if !ok {
+		return CanonicalizeAny(v)
+	}
+
+	strs := make([]string, 0, len(results))
+	for _, r := range results {
+		strs = append(strs, r.ID)
+	}
+
+	sort.Strings(strs)
+
+	return strings.Join(strs, ",")
 }
 
 func mustJSON(v any) string {
