@@ -61,10 +61,12 @@ numeric bug, SSE test hang, Pebble sort index, triple-parity ADT matrix.
 
 **Remaining (long-term, ROADMAP):**
 
-- **Postgres engine** — `metaengine/pgengine/` with native JSONB operators (`->>`, `@>`),
-  GIN indexes. ~2-4 days. Depends on JSONB operator research + GIN index design.
+- **Postgres engine** — `metaengine/pgengine/` with native JSONB operators (`->>'field'`),
+  expression indexes (partial B-tree on JSONB paths). PushdownScan + LayoutPlanner
+  shipped. Remaining: GIN containment indexes (`@>` operator) for JSONB path queries.
 - **DuckDB analytical engine** — `metaengine/duckdbengine/` with columnar OLAP pushdown
-  (GROUP BY/COUNT/SUM). ~2-4 days. Depends on DuckDB columnar API research.
+  (json_extract WHERE/ORDER BY). PushdownScan shipped. Remaining: vectorized GROUP BY
+  pushdown for CounterGet (currently row-by-row scan), columnar scan optimization.
 - **`metaengine-gen` code generator** — `cmd/metaengine-gen` for typed Store methods
   from query declarations. ~2-3 days. Go AST parsing + template generation.
 
