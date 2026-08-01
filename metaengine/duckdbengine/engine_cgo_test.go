@@ -187,3 +187,113 @@ func TestDuckDBEngine_MetaenginePlan(t *testing.T) {
 		t.Errorf("books count: got %d, want 8", result["books"])
 	}
 }
+
+func TestDuckDBEngine_ScanBackend(t *testing.T) {
+	t.Parallel()
+
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
+
+	ctx := context.Background()
+
+	sb, ok := eng.(metaengine.ScanBackend)
+	if !ok {
+		t.Fatal("engine does not implement ScanBackend")
+	}
+
+	type Item struct {
+		Name     string
+		Category string
+		Price    float64
+	}
+
+	items := []Item{
+		{Name: "apple", Category: "fruit", Price: 1.50},
+		{Name: "banana", Category: "fruit", Price: 0.75},
+		{Name: "carrot", Category: "veg", Price: 0.99},
+		{Name: "donut", Category: "snack", Price: 2.00},
+		{Name: "eggplant", Category: "veg", Price: 1.25},
+	}
+
+	mb := eng.(metaengine.MapBackend)
+
+	for _, item := range items {
+		if err := mb.MapSet(ctx, "products", item.Name, item); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Test 1: No filter, no sort — should return all 5.
+	results, err := sb.MapScan(ctx, "products", nil, nil, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(results) != 5 {
+		t.Fatalf("no filter: expected 5 results, got %d", len(results))
+	}
+
+	// Test 2: Filter by category=fruit — should return 2.
+	filterFn := func(item any) bool {
+		m, ok := item.(map[string]any)
+		if !ok {
+			return false
+		}
+
+		return m["Category"] == "fruit"
+	}
+
+	results, err = sb.MapScan(ctx, "products", filterFn, nil, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(results) != 2 {
+		t.Fatalf("filter fruit: expected 2 results, got %d", len(results))
+	}
+
+	// Test 3: Sort by price descending, limit 3.
+	priceSort := func(a, b any) int {
+		am, _ := a.(map[string]any)
+		bm, _ := b.(map[string]any)
+		pa, _ := am["Price"].(float64)
+		pb, _ := bm["Price"].(float64)
+
+		switch {
+		case pa < pb:
+			return 1 // descending
+		case pa > pb:
+			return -1
+		default:
+			return 0
+		}
+	}
+
+	results, err = sb.MapScan(ctx, "products", nil, priceSort, nil, 3)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(results) != 3 {
+		t.Fatalf("limit 3: expected 3 results, got %d", len(results))
+	}
+
+	first, _ := results[0].(map[string]any)
+	if first["Name"] != "donut" {
+		t.Errorf("sorted desc: first item = %v, want donut", first["Name"])
+	}
+
+	// Test 4: Keyset pagination — cursor = donut (price 2.00), limit 2.
+	results, err = sb.MapScan(ctx, "products", nil, priceSort, map[string]any{"Price": 2.0}, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(results) != 2 {
+		t.Fatalf("pagination: expected 2 results, got %d", len(results))
+	}
+}

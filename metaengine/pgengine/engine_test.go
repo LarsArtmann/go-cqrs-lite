@@ -2,7 +2,6 @@ package pgengine_test
 
 import (
 	"context"
-	"sort"
 	"testing"
 
 	pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
@@ -336,6 +335,4 @@ func TestPostgresEngine_ScanBackend(t *testing.T) {
 	if len(results) != 2 {
 		t.Fatalf("pagination: expected 2 results, got %d", len(results))
 	}
-
-	_ = sort.Ints // keep sort import alive for potential future assertions
 }

@@ -19,6 +19,8 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // register the pgx database/sql driver
@@ -201,17 +203,34 @@ func (e *pgEngine) CounterIncrement(
 	col string,
 	deltas metaengine.Delta,
 ) error {
-	for key, delta := range deltas {
-		_, err := e.db.ExecContext(
-			ctx,
-			`INSERT INTO meta_counter (collection, key, value)
-			 VALUES ($1, $2, $3)
+	if len(deltas) == 0 {
+		return nil
+	}
+
+	keys := make([]string, 0, len(deltas))
+	for key := range deltas {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys) // deterministic placeholder ordering
+
+	placeholders := make([]string, len(keys))
+	args := make([]any, 0, len(keys)*3)
+
+	for i, key := range keys {
+		base := i*3 + 1
+		placeholders[i] = fmt.Sprintf("($%d, $%d, $%d)", base, base+1, base+2)
+		args = append(args, col, key, deltas[key])
+	}
+
+	query := fmt.Sprintf(
+		`INSERT INTO meta_counter (collection, key, value) VALUES %s
 			 ON CONFLICT (collection, key) DO UPDATE SET value = meta_counter.value + excluded.value`,
-			col, key, delta,
-		)
-		if err != nil {
-			return fmt.Errorf("pgengine.CounterIncrement: %w", err)
-		}
+		strings.Join(placeholders, ", "),
+	)
+
+	if _, err := e.db.ExecContext(ctx, query, args...); err != nil {
+		return fmt.Errorf("pgengine.CounterIncrement: %w", err)
 	}
 
 	return nil
