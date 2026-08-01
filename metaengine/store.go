@@ -20,6 +20,7 @@ type queryRuntime struct {
 	readPattern   ReadPattern
 	config        QueryConfig
 	keyType       reflect.Type
+	resultType    reflect.Type
 	inputTypeName string
 }
 

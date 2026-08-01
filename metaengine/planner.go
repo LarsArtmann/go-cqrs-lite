@@ -218,6 +218,7 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 		readPattern:   meta.QueryReadPattern(),
 		config:        meta.QueryConfig(),
 		keyType:       meta.QueryKeyType(),
+		resultType:    meta.QueryResultType(),
 		inputTypeName: meta.QueryInputTypeName(),
 	}
 

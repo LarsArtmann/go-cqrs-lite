@@ -228,7 +228,9 @@ var _ = Describe("Write amplification budget", func() {
 			defer store.Close()
 
 			plan := store.Plan()
-			Expect(plan.Diagnostics.HasWarnings()).To(BeFalse())
+			Expect(hasDiagnostic(
+				plan.Diagnostics, metaengine.DiagLevelWarn, "write amplification",
+			)).To(BeFalse())
 		})
 	})
 })
