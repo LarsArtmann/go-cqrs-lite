@@ -10,18 +10,19 @@ import (
 // Engines implement SpatialBackend to support spatial proximity queries.
 const ADTSpatial ADT = "spatial"
 
-// Point is a 2D geographic or geometric coordinate. For geographic data,
-// X = longitude, Y = latitude. For geometric data, X and Y are Cartesian.
+// Point is a 2D geographic coordinate for spatial proximity queries.
+// X = longitude, Y = latitude. The Memory engine uses haversine great-circle
+// distance (meters). Future engines may support Cartesian/euclidean mode.
 type Point struct {
 	ID string
-	X  float64 // longitude or Cartesian X
-	Y  float64 // latitude or Cartesian Y
+	X  float64 // longitude
+	Y  float64 // latitude
 }
 
 // SpatialResult is a single match in a spatial range query.
 type SpatialResult struct {
 	ID       string
-	Distance float64 // meters (haversine) or units (euclidean)
+	Distance float64 // meters (haversine great-circle distance)
 }
 
 // SpatialBackend is an optional engine capability for spatial proximity

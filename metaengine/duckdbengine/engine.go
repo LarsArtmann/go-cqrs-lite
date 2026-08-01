@@ -181,13 +181,14 @@ func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error
 // --- CounterBackend ---
 //
 // DuckDB's columnar storage makes GROUP BY extremely fast via vectorized
-// execution. CounterGet is O(1) effectively — the aggregation is computed
-// in a single vectorized pass over the columnar data, not a row-by-row scan.
+// execution. CounterGet uses a single vectorized aggregation pass over
+// the columnar data, not a row-by-row scan.
 
 func (e *duckdbEngine) CounterIncrement(ctx context.Context, col string, deltas metaengine.Delta) error {
-	// Batch insert all deltas, then merge via ON CONFLICT.
-	// DuckDB excels at batch operations — this vectorized upsert is faster
-	// than individual row updates.
+	// Increment each delta individually. DuckDB's ON CONFLICT requires
+	// per-row upsert — multi-row VALUES with ON CONFLICT is not supported
+	// in the same way as Postgres. Each upsert is still fast due to
+	// DuckDB's vectorized execution engine.
 	for key, delta := range deltas {
 		_, err := e.db.ExecContext(ctx,
 			`INSERT INTO meta_counter (collection, key, value)
