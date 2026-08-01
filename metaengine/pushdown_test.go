@@ -71,7 +71,7 @@ var _ = Describe("PushdownScan", func() {
 				nil, nil, 0,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(results).To(HaveLen(3))
+			Expect(results.Items).To(HaveLen(3))
 		})
 
 		It("sorts with ORDER BY json_extract", func() {
@@ -84,10 +84,10 @@ var _ = Describe("PushdownScan", func() {
 				nil, 0,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(results).To(HaveLen(5))
+			Expect(results.Items).To(HaveLen(5))
 
 			// Verify ascending order by Priority.
-			vals := extractPriorities(results)
+			vals := extractPriorities(results.Items)
 			Expect(vals).To(Equal([]float64{1, 2, 3, 4, 5}))
 		})
 
@@ -100,9 +100,9 @@ var _ = Describe("PushdownScan", func() {
 				nil, 0,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(results).To(HaveLen(5))
+			Expect(results.Items).To(HaveLen(5))
 
-			vals := extractPriorities(results)
+			vals := extractPriorities(results.Items)
 			Expect(vals).To(Equal([]float64{5, 4, 3, 2, 1}))
 		})
 
@@ -116,7 +116,7 @@ var _ = Describe("PushdownScan", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			// limit+1 for has-more detection.
-			Expect(results).To(HaveLen(3))
+			Expect(results.Items).To(HaveLen(3))
 		})
 
 		It("combines filter + sort + limit", func() {
@@ -130,9 +130,9 @@ var _ = Describe("PushdownScan", func() {
 				nil, 2,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(results).To(HaveLen(3)) // limit+1
+			Expect(results.Items).To(HaveLen(3)) // limit+1
 
-			vals := extractPriorities(results)
+			vals := extractPriorities(results.Items)
 			Expect(vals).To(Equal([]float64{5, 3, 1}))
 		})
 
@@ -146,8 +146,8 @@ var _ = Describe("PushdownScan", func() {
 				nil, 2,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(page1).To(HaveLen(3))
-			vals1 := extractPriorities(page1)
+			Expect(page1.Items).To(HaveLen(3))
+			vals1 := extractPriorities(page1.Items)
 			Expect(vals1).To(Equal([]float64{1, 2, 3}))
 
 			// Cursor = Priority=2 (last item on the page, excluding the +1).
@@ -159,7 +159,7 @@ var _ = Describe("PushdownScan", func() {
 				cursor, 2,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			vals2 := extractPriorities(page2)
+			vals2 := extractPriorities(page2.Items)
 			Expect(vals2).To(Equal([]float64{3, 4, 5}))
 		})
 
@@ -173,7 +173,7 @@ var _ = Describe("PushdownScan", func() {
 				nil, 2,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			vals1 := extractPriorities(page1)
+			vals1 := extractPriorities(page1.Items)
 			Expect(vals1).To(Equal([]float64{5, 4, 3}))
 
 			// Cursor = Priority=4 (second item).
@@ -185,7 +185,7 @@ var _ = Describe("PushdownScan", func() {
 				cursor, 2,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			vals2 := extractPriorities(page2)
+			vals2 := extractPriorities(page2.Items)
 			Expect(vals2).To(Equal([]float64{3, 2, 1}))
 		})
 
@@ -199,7 +199,7 @@ var _ = Describe("PushdownScan", func() {
 				nil, nil, 0,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(results).To(BeEmpty())
+			Expect(results.Items).To(BeEmpty())
 		})
 
 		It("supports inequality operators", func() {
@@ -213,8 +213,8 @@ var _ = Describe("PushdownScan", func() {
 				nil, 0,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(results).To(HaveLen(3))
-			vals := extractPriorities(results)
+			Expect(results.Items).To(HaveLen(3))
+			vals := extractPriorities(results.Items)
 			Expect(vals).To(Equal([]float64{3, 4, 5}))
 		})
 	})

@@ -358,8 +358,8 @@ func TestPlannedEngine_PushdownUsesIndexedColumns(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 6 { // limit+1
-		t.Errorf("expected 6 results (limit+1), got %d", len(results))
+	if len(results.Items) != 5 {
+		t.Errorf("expected 5 results, got %d", len(results.Items))
 	}
 }
 

@@ -67,8 +67,8 @@ func TestPushdownSQL_JSONExtractReachesDB(t *testing.T) {
 		t.Fatalf("PushdownMapScan: %v", err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("expected 2 open tasks via json_extract, got %d", len(results))
+	if len(results.Items) != 2 {
+		t.Fatalf("expected 2 open tasks via json_extract, got %d", len(results.Items))
 	}
 
 	// Proof the filter is json_extract-based: meta_map has NO Status column, so a
@@ -156,8 +156,8 @@ func TestPlannedEngine_FallbackToMetaMap(t *testing.T) {
 		t.Fatalf("planned PushdownMapScan tasks: %v", err)
 	}
 
-	if len(plannedResults) != 1 {
-		t.Fatalf("planned tasks: expected 1, got %d", len(plannedResults))
+	if len(plannedResults.Items) != 1 {
+		t.Fatalf("planned tasks: expected 1, got %d", len(plannedResults.Items))
 	}
 
 	// Fallback path: "notes" has no plan → standard engine → json_extract on value.
@@ -168,10 +168,10 @@ func TestPlannedEngine_FallbackToMetaMap(t *testing.T) {
 		t.Fatalf("fallback PushdownMapScan notes: %v", err)
 	}
 
-	if len(fallbackResults) != 1 {
+	if len(fallbackResults.Items) != 1 {
 		t.Fatalf(
 			"fallback notes: expected 1 via meta_map json_extract, got %d",
-			len(fallbackResults),
+			len(fallbackResults.Items),
 		)
 	}
 
@@ -266,8 +266,8 @@ func TestPlannedEngine_Stress100K(t *testing.T) {
 		t.Fatalf("PushdownMapScan beta: %v", err)
 	}
 
-	if len(betas) != total/2 {
-		t.Fatalf("beta count: got %d, want %d", len(betas), total/2)
+	if len(betas.Items) != total/2 {
+		t.Fatalf("beta count: got %d, want %d", len(betas.Items), total/2)
 	}
 
 	// Sorted, limited page: first 10 betas by seq descending → seq 99998, 99996, ...
@@ -279,8 +279,8 @@ func TestPlannedEngine_Stress100K(t *testing.T) {
 		t.Fatalf("PushdownMapScan page: %v", err)
 	}
 
-	if len(page) != 11 { // limit+1 for has-more
-		t.Fatalf("page size: got %d, want 11 (limit+1)", len(page))
+	if len(page.Items) != 11 { // limit+1 for has-more
+		t.Fatalf("page size: got %d, want 11 (limit+1)", len(page.Items))
 	}
 }
 
@@ -378,24 +378,24 @@ func TestCursorPagination_ParityAcrossEngines(t *testing.T) {
 			}
 
 			// MapScan returns limit+1 to signal has-more.
-			if len(page1) != pageSize+1 {
-				t.Fatalf("page1 len: got %d, want %d", len(page1), pageSize+1)
+			if len(page1.Items) != pageSize+1 {
+				t.Fatalf("page1 len: got %d, want %d", len(page1.Items), pageSize+1)
 			}
 
 			// Cursor = the last item OF the page (exclude the +1 lookahead).
-			cursor := page1[pageSize-1].(map[string]any)["N"]
+			cursor := page1.Items[pageSize-1].(map[string]any)["N"]
 
 			page2, err := sb.MapScan(ctx, "items", nil, sortFn, cursor, pageSize)
 			if err != nil {
 				t.Fatalf("MapScan page2: %v", err)
 			}
 
-			if len(page2) != pageSize+1 {
-				t.Fatalf("page2 len: got %d, want %d", len(page2), pageSize+1)
+			if len(page2.Items) != pageSize+1 {
+				t.Fatalf("page2 len: got %d, want %d", len(page2.Items), pageSize+1)
 			}
 
 			// page2 must start strictly after the cursor (N=pageSize-1 → first N=pageSize).
-			firstN := page2[0].(map[string]any)["N"].(float64)
+			firstN := page2.Items[0].(map[string]any)["N"].(float64)
 			if firstN != float64(pageSize) {
 				t.Fatalf("page2 first N: got %v, want %d", firstN, pageSize)
 			}
