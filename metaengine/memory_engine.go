@@ -15,6 +15,7 @@ type memoryEngine struct {
 	vectorIdx  *MemoryVectorIndex
 	searchIdx  *MemorySearchIndex
 	spatialIdx *MemorySpatialIndex
+	versions   map[string]map[string]*versionChain // collection → key → chain
 }
 
 type memData struct {
@@ -43,6 +44,7 @@ func NewMemoryEngine() Engine {
 		vectorIdx:  NewMemoryVectorIndex(),
 		searchIdx:  NewMemorySearchIndex(),
 		spatialIdx: NewMemorySpatialIndex(),
+		versions:   make(map[string]map[string]*versionChain),
 	}
 }
 
@@ -98,6 +100,7 @@ func (m *memoryEngine) MapSet(_ context.Context, col string, key any, value any)
 	defer m.mu.Unlock()
 
 	m.getMapLocked(col)[key] = value
+	m.recordVersion(col, fmt.Sprint(key), value)
 
 	return nil
 }
@@ -121,6 +124,7 @@ func (m *memoryEngine) MapDelete(_ context.Context, col string, key any) error {
 	defer m.mu.Unlock()
 
 	delete(m.getMapLocked(col), key)
+	m.recordVersion(col, fmt.Sprint(key), nil) // nil = tombstone for version chain
 
 	return nil
 }
