@@ -2,6 +2,7 @@ package flightrecorder
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"runtime/trace"
@@ -14,11 +15,19 @@ const (
 	defaultMaxBytes uint64 = 10 << 20 // 10 MiB — ~1s of trace data for a busy service
 )
 
+// ErrAlreadyEnabled is returned by [Recorder.Start] when another flight
+// recorder is already active in this process. Go's runtime/trace allows
+// only one active [runtime/trace.FlightRecorder] at a time.
+var ErrAlreadyEnabled = errors.New("flightrecorder: another flight recorder is already active in this process")
+
 // Recorder wraps [runtime/trace.FlightRecorder] with safe lifecycle
 // management, configurable snapshot sinks, and once-semantics to prevent
 // snapshot races.
 //
 // A Recorder is safe for concurrent use by multiple goroutines.
+//
+// Only one flight recorder may be active per process. Calling [Recorder.Start]
+// when another recorder is already running returns [ErrAlreadyEnabled].
 type Recorder struct {
 	fr     *trace.FlightRecorder
 	writer io.Writer // destination for trace snapshots
@@ -51,13 +60,22 @@ func New(opts ...Option) (*Recorder, error) {
 	}, nil
 }
 
-// Start begins buffering execution traces in memory.
-// Returns an error if the recorder is already started.
+// Start begins buffering execution trace in memory.
+// Returns [ErrAlreadyEnabled] if another flight recorder is already active
+// in this process.
 func (r *Recorder) Start() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	return r.fr.Start()
+	if err := r.fr.Start(); err != nil {
+		if err.Error() == "flight recorder already enabled" {
+			return fmt.Errorf("%w: %v", ErrAlreadyEnabled, err)
+		}
+
+		return fmt.Errorf("flightrecorder: starting recorder: %w", err)
+	}
+
+	return nil
 }
 
 // Stop stops recording and releases the in-memory trace buffer.
@@ -68,6 +86,24 @@ func (r *Recorder) Stop() {
 	defer r.mu.Unlock()
 
 	r.fr.Stop()
+}
+
+// Close stops the recorder and closes any underlying resources (e.g.,
+// a file opened via [WithFile]). It is safe to call Close multiple times.
+//
+// Recorder implements [io.Closer] so it can participate in shutdown
+// ordering alongside other closable resources.
+func (r *Recorder) Close() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.fr.Stop()
+
+	if lf, ok := r.writer.(*lazyFile); ok {
+		_ = lf.Close()
+	}
+
+	return nil
 }
 
 // Enabled reports whether the recorder is actively buffering traces.
@@ -83,25 +119,25 @@ func (r *Recorder) Enabled() bool {
 // to prevent snapshot races when multiple goroutines detect a problem
 // simultaneously. Call [Recorder.Reset] to allow subsequent captures.
 //
-// The snapshot is taken atomically: either the full buffer is written
-// or an error is returned. If the recorder is not enabled or has already
-// been snapshotted, Snapshot is a no-op and returns nil.
+// The context is checked for cancellation before the snapshot begins.
+// If the context is already cancelled, Snapshot returns the context
+// error immediately without writing. Note: [runtime/trace.FlightRecorder.WriteTo]
+// does not accept a context, so cancellation cannot abort a write
+// already in progress.
+//
+// If the recorder is not enabled or has already been snapshotted,
+// Snapshot is a no-op and returns nil.
 func (r *Recorder) Snapshot(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	var snapErr error
 
 	r.once.Do(func() {
-		r.mu.Lock()
-		defer r.mu.Unlock()
-
-		if !r.fr.Enabled() {
-			return
-		}
-
-		if r.writer == nil {
-			return
-		}
-
-		_, snapErr = r.fr.WriteTo(r.writer)
+		snapErr = r.captureLocked()
 	})
 
 	return snapErr
@@ -110,28 +146,19 @@ func (r *Recorder) Snapshot(ctx context.Context) error {
 // SnapshotToFile is a convenience that writes the trace to a file.
 // It creates the file, writes the snapshot, and closes the file.
 // Once-semantics apply as with [Recorder.Snapshot].
-func (r *Recorder) SnapshotToFile(path string) error {
+//
+// The context is checked for cancellation before the snapshot begins.
+func (r *Recorder) SnapshotToFile(ctx context.Context, path string) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	var err error
 
 	r.once.Do(func() {
-		r.mu.Lock()
-		defer r.mu.Unlock()
-
-		if !r.fr.Enabled() {
-			return
-		}
-
-		f, openErr := openFile(path)
-		if openErr != nil {
-			err = fmt.Errorf("flightrecorder: opening snapshot file %s: %w", path, openErr)
-
-			return
-		}
-		defer func() { _ = f.Close() }()
-
-		if _, writeErr := r.fr.WriteTo(f); writeErr != nil {
-			err = fmt.Errorf("flightrecorder: writing snapshot to %s: %w", path, writeErr)
-		}
+		err = r.captureToFileLocked(path)
 	})
 
 	return err
@@ -169,10 +196,43 @@ func (r *Recorder) Reset() {
 	r.once = sync.Once{}
 }
 
-// Writer returns the configured snapshot writer, or nil if none was set.
-func (r *Recorder) Writer() io.Writer {
+// captureLocked writes the buffered trace to the configured writer.
+// Caller must NOT hold r.mu — this method acquires it internally.
+// The once.Do ensures only the first caller reaches captureLocked.
+func (r *Recorder) captureLocked() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	return r.writer
+	if !r.fr.Enabled() || r.writer == nil {
+		return nil
+	}
+
+	if _, err := r.fr.WriteTo(r.writer); err != nil {
+		return fmt.Errorf("flightrecorder: writing snapshot: %w", err)
+	}
+
+	return nil
+}
+
+// captureToFileLocked writes the buffered trace to a file at path.
+// Same once.Do + lock pattern as captureLocked but with a fresh file.
+func (r *Recorder) captureToFileLocked(path string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if !r.fr.Enabled() {
+		return nil
+	}
+
+	f, err := openFile(path)
+	if err != nil {
+		return fmt.Errorf("flightrecorder: opening snapshot file %s: %w", path, err)
+	}
+	defer func() { _ = f.Close() }()
+
+	if _, err := r.fr.WriteTo(f); err != nil {
+		return fmt.Errorf("flightrecorder: writing snapshot to %s: %w", path, err)
+	}
+
+	return nil
 }

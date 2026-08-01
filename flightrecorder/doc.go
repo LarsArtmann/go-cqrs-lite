@@ -10,6 +10,14 @@
 // integration (Command/Event/Query dispatch triggers), use
 // [github.com/larsartmann/go-cqrs-lite/middleware/v4].
 //
+// # Process-global constraint
+//
+// Go's runtime/trace allows only ONE active FlightRecorder per process.
+// Calling [Recorder.Start] when another recorder is already running returns
+// [ErrAlreadyEnabled]. Do not create multiple Recorder instances and call
+// Start on all of them — design your application around a single recorder
+// (typically created at startup, shared across middleware and host hooks).
+//
 // # Quick start
 //
 //	recorder, _ := flightrecorder.New(
@@ -17,8 +25,10 @@
 //	    flightrecorder.WithMaxBytes(1<<20), // 1 MiB
 //	    flightrecorder.WithWriter(os.Stdout),
 //	)
-//	recorder.Start()
-//	defer recorder.Stop()
+//	if err := recorder.Start(); err != nil {
+//	    log.Fatal(err)
+//	}
+//	defer recorder.Close() // Close stops recording AND closes any file writers
 //
 //	// Later, when something goes wrong:
 //	recorder.Snapshot(context.Background())

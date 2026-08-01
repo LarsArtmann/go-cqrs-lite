@@ -3,6 +3,7 @@ package flightrecorder_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"sync"
@@ -233,7 +234,7 @@ func TestRecorder_SnapshotToFile(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := r.SnapshotToFile(path); err != nil {
+	if err := r.SnapshotToFile(context.Background(), path); err != nil {
 		t.Fatalf("SnapshotToFile() error: %v", err)
 	}
 
@@ -406,5 +407,116 @@ func TestRecorder_ConcurrentSnapshots(t *testing.T) {
 
 	if buf.Len() == 0 {
 		t.Fatal("expected at least one successful snapshot")
+	}
+}
+
+func TestRecorder_ErrAlreadyEnabled(t *testing.T) {
+	recorderMu.Lock()
+	defer recorderMu.Unlock()
+
+	r1, _ := flightrecorder.New()
+	r2, _ := flightrecorder.New()
+
+	if err := r1.Start(); err != nil {
+		t.Fatalf("first Start() error: %v", err)
+	}
+	t.Cleanup(r1.Stop)
+
+	err := r2.Start()
+	if !errors.Is(err, flightrecorder.ErrAlreadyEnabled) {
+		t.Fatalf("expected ErrAlreadyEnabled from second Start(), got: %v", err)
+	}
+}
+
+func TestRecorder_Close(t *testing.T) {
+	recorderMu.Lock()
+	defer recorderMu.Unlock()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "close_test.trace")
+
+	r, _ := flightrecorder.New(
+		flightrecorder.WithMinAge(50*time.Millisecond),
+		flightrecorder.WithMaxBytes(1<<20),
+		flightrecorder.WithFile(path),
+	)
+
+	if err := r.Start(); err != nil {
+		t.Fatalf("Start() error: %v", err)
+	}
+
+	if !r.Enabled() {
+		t.Fatal("recorder should be enabled after Start")
+	}
+
+	if err := r.Close(); err != nil {
+		t.Fatalf("Close() error: %v", err)
+	}
+
+	if r.Enabled() {
+		t.Fatal("recorder should not be enabled after Close")
+	}
+
+	// Close should be idempotent.
+	if err := r.Close(); err != nil {
+		t.Fatalf("second Close() error: %v", err)
+	}
+}
+
+func TestRecorder_SnapshotCancelledContext(t *testing.T) {
+	recorderMu.Lock()
+	defer recorderMu.Unlock()
+
+	var buf bytes.Buffer
+
+	r, _ := flightrecorder.New(
+		flightrecorder.WithMinAge(50*time.Millisecond),
+		flightrecorder.WithMaxBytes(1<<20),
+		flightrecorder.WithWriter(&buf),
+	)
+
+	r.Start()
+	t.Cleanup(r.Stop)
+
+	time.Sleep(100 * time.Millisecond)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	if err := r.Snapshot(ctx); err == nil {
+		t.Fatal("expected error from cancelled context")
+	}
+
+	if buf.Len() != 0 {
+		t.Fatal("expected no data when context is cancelled before snapshot")
+	}
+}
+
+func TestRecorder_SnapshotToFileCancelledContext(t *testing.T) {
+	recorderMu.Lock()
+	defer recorderMu.Unlock()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "cancelled.trace")
+
+	r, _ := flightrecorder.New(
+		flightrecorder.WithMinAge(50*time.Millisecond),
+		flightrecorder.WithMaxBytes(1<<20),
+	)
+
+	r.Start()
+	t.Cleanup(r.Stop)
+
+	time.Sleep(100 * time.Millisecond)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	if err := r.SnapshotToFile(ctx, path); err == nil {
+		t.Fatal("expected error from cancelled context")
+	}
+
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		t.Fatalf("expected file NOT to be created with cancelled context, got err: %v", err)
 	}
 }
