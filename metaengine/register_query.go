@@ -32,17 +32,17 @@ func (s *Store) RegisterQuery(query any) error {
 		return fmt.Errorf("%w: %q", errDuplicateQuery, name)
 	}
 
-	runtime, assignment, err := planQuery(meta, s.engines)
+	assignment, err := planQuery(meta, s.engines)
 	if err != nil {
 		return fmt.Errorf("metaengine.RegisterQuery: %w", err)
 	}
 
-	if err := s.applyAutoLayoutForQuery(meta, runtime); err != nil {
+	if err := s.applyAutoLayoutForQuery(meta); err != nil {
 		return err
 	}
 
-	s.queries[runtime.name] = runtime
-	s.byInputType[runtime.inputTypeName] = runtime.name
+	s.queries[meta.QueryName()] = meta
+	s.byInputType[meta.QueryInputTypeName()] = meta.QueryName()
 
 	if s.plan != nil {
 		s.plan.Queries = append(s.plan.Queries, assignment)
@@ -53,8 +53,8 @@ func (s *Store) RegisterQuery(query any) error {
 
 // applyAutoLayoutForQuery generates and applies a LayoutPlan for declarative
 // FilterOnField/SortOnField queries when the assigned engine supports it.
-func (s *Store) applyAutoLayoutForQuery(meta queryMeta, runtime queryRuntime) error {
-	layoutPlanner, ok := runtime.engine.(LayoutPlanner)
+func (s *Store) applyAutoLayoutForQuery(meta queryMeta) error {
+	layoutPlanner, ok := meta.QueryEngine().(LayoutPlanner)
 	if !ok {
 		return nil
 	}
@@ -68,16 +68,16 @@ func (s *Store) applyAutoLayoutForQuery(meta queryMeta, runtime queryRuntime) er
 		return nil
 	}
 
-	layoutPlan := BuildLayoutPlan(runtime.name, filterFields, sortFields)
+	layoutPlan := BuildLayoutPlan(meta.QueryName(), filterFields, sortFields)
 
 	if s.plan != nil {
 		s.plan.LayoutPlans = append(s.plan.LayoutPlans, layoutPlan)
 	}
 
-	if err := layoutPlanner.ApplyLayout(runtime.name, filterFields, sortFields); err != nil {
+	if err := layoutPlanner.ApplyLayout(meta.QueryName(), filterFields, sortFields); err != nil {
 		return fmt.Errorf(
 			"metaengine.RegisterQuery: auto-layout for %q: %w",
-			runtime.name, err,
+			meta.QueryName(), err,
 		)
 	}
 
