@@ -16,7 +16,12 @@ func TestMemoryEngine_VersionedStorage(t *testing.T) {
 	mb := eng.(MapBackend)
 
 	// Write v1
-	if err := mb.MapSet(ctx, "users", "u1", map[string]any{"name": "Alice", "v": float64(1)}); err != nil {
+	if err := mb.MapSet(
+		ctx,
+		"users",
+		"u1",
+		map[string]any{"name": "Alice", "v": float64(1)},
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -24,7 +29,12 @@ func TestMemoryEngine_VersionedStorage(t *testing.T) {
 	time.Sleep(1 * time.Millisecond)
 
 	// Write v2
-	if err := mb.MapSet(ctx, "users", "u1", map[string]any{"name": "Alice", "v": float64(2)}); err != nil {
+	if err := mb.MapSet(
+		ctx,
+		"users",
+		"u1",
+		map[string]any{"name": "Alice", "v": float64(2)},
+	); err != nil {
 		t.Fatal(err)
 	}
 

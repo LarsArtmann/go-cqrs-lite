@@ -40,7 +40,10 @@ func TestMaterializeVsReplay_HighReadLowWrite_RecommendsMaterialize(t *testing.T
 		}
 	}
 	if !found {
-		t.Errorf("expected materialize recommendation, got diagnostics: %v", store.Plan().Diagnostics)
+		t.Errorf(
+			"expected materialize recommendation, got diagnostics: %v",
+			store.Plan().Diagnostics,
+		)
 	}
 }
 
@@ -130,8 +133,8 @@ func TestMaterializeVsReplay_FormulaCorrectness(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name           string
-		stats          metaengine.WorkloadStats
+		name            string
+		stats           metaengine.WorkloadStats
 		wantMaterialize bool
 	}{
 		{

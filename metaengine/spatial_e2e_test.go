@@ -42,9 +42,9 @@ func TestSpatialFoldPipeline_EndToEnd(t *testing.T) {
 	// Berlin area: Brandenburg Gate ~52.5163, 13.3777
 	// Places near Brandenburg Gate
 	places := []PlaceLocated{
-		{ID: "bg", Lat: 52.5163, Lon: 13.3777},   // Brandenburg Gate
+		{ID: "bg", Lat: 52.5163, Lon: 13.3777},        // Brandenburg Gate
 		{ID: "reichstag", Lat: 52.5186, Lon: 13.3762}, // ~250m away
-		{ID: "alex", Lat: 52.5219, Lon: 13.4132},  // Alexanderplatz ~2.5km
+		{ID: "alex", Lat: 52.5219, Lon: 13.4132},      // Alexanderplatz ~2.5km
 		{ID: "tempelhof", Lat: 52.4734, Lon: 13.4042}, // ~5km
 	}
 

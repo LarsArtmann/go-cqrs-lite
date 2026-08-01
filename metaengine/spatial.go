@@ -35,7 +35,12 @@ type SpatialBackend interface {
 	// SpatialRange returns points within radius distance of (x, y).
 	// Uses haversine distance for geographic coordinates (lat/long).
 	// Results are sorted by distance (nearest first).
-	SpatialRange(ctx context.Context, collection string, x, y, radius float64, limit int) ([]SpatialResult, error)
+	SpatialRange(
+		ctx context.Context,
+		collection string,
+		x, y, radius float64,
+		limit int,
+	) ([]SpatialResult, error)
 }
 
 // --- Memory implementation (brute-force) ---
@@ -59,7 +64,12 @@ func (m *MemorySpatialIndex) Insert(ctx context.Context, collection string, pt P
 }
 
 // Range returns points within the given radius of (x, y), sorted by distance.
-func (m *MemorySpatialIndex) Range(ctx context.Context, collection string, x, y, radius float64, limit int) ([]SpatialResult, error) {
+func (m *MemorySpatialIndex) Range(
+	ctx context.Context,
+	collection string,
+	x, y, radius float64,
+	limit int,
+) ([]SpatialResult, error) {
 	return m.rangeQuery(x, y, radius, limit), nil
 }
 

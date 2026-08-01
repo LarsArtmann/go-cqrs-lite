@@ -564,7 +564,12 @@ func (s *Store) applyFoldSearch(ctx context.Context, q queryRuntime, fold Fold, 
 	return unsupportedEngine(errUnsupportedSearchOps, q.engine.Profile().Name)
 }
 
-func (s *Store) applyFoldSpatial(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+func (s *Store) applyFoldSpatial(
+	ctx context.Context,
+	q queryRuntime,
+	fold Fold,
+	payload any,
+) error {
 	col := q.name
 	pt := fold.callSpatial(payload)
 

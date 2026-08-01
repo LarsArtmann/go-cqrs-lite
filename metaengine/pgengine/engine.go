@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"sync"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	_ "github.com/jackc/pgx/v5/stdlib" // register the pgx database/sql driver
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // PG_NsPerOp is the calibrated per-write cost.
@@ -137,7 +137,8 @@ func (e *pgEngine) MapSet(ctx context.Context, col string, key any, value any) e
 		return fmt.Errorf("pgengine.MapSet: marshal: %w", err)
 	}
 
-	_, err = e.db.ExecContext(ctx,
+	_, err = e.db.ExecContext(
+		ctx,
 		`INSERT INTO meta_map (collection, key, value)
 		 VALUES ($1, $2, $3::jsonb)
 		 ON CONFLICT (collection, key) DO UPDATE SET value = excluded.value`,
@@ -153,7 +154,8 @@ func (e *pgEngine) MapSet(ctx context.Context, col string, key any, value any) e
 func (e *pgEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
 	var raw []byte
 
-	err := e.db.QueryRowContext(ctx,
+	err := e.db.QueryRowContext(
+		ctx,
 		`SELECT value::text FROM meta_map WHERE collection = $1 AND key = $2`,
 		col, fmt.Sprint(key),
 	).Scan(&raw)
@@ -174,7 +176,8 @@ func (e *pgEngine) MapGet(ctx context.Context, col string, key any) (any, bool, 
 }
 
 func (e *pgEngine) MapDelete(ctx context.Context, col string, key any) error {
-	_, err := e.db.ExecContext(ctx,
+	_, err := e.db.ExecContext(
+		ctx,
 		`DELETE FROM meta_map WHERE collection = $1 AND key = $2`,
 		col, fmt.Sprint(key),
 	)
@@ -187,9 +190,14 @@ func (e *pgEngine) MapDelete(ctx context.Context, col string, key any) error {
 
 // --- CounterBackend ---
 
-func (e *pgEngine) CounterIncrement(ctx context.Context, col string, deltas metaengine.Delta) error {
+func (e *pgEngine) CounterIncrement(
+	ctx context.Context,
+	col string,
+	deltas metaengine.Delta,
+) error {
 	for key, delta := range deltas {
-		_, err := e.db.ExecContext(ctx,
+		_, err := e.db.ExecContext(
+			ctx,
 			`INSERT INTO meta_counter (collection, key, value)
 			 VALUES ($1, $2, $3)
 			 ON CONFLICT (collection, key) DO UPDATE SET value = meta_counter.value + excluded.value`,
@@ -204,7 +212,8 @@ func (e *pgEngine) CounterIncrement(ctx context.Context, col string, deltas meta
 }
 
 func (e *pgEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.db.QueryContext(ctx,
+	rows, err := e.db.QueryContext(
+		ctx,
 		`SELECT key, value FROM meta_counter WHERE collection = $1`,
 		col,
 	)

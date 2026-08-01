@@ -1565,8 +1565,10 @@ metaengine/method LogTail
 metaengine/method LogTail
 metaengine/method MapDelete
 metaengine/method MapDelete
+metaengine/method MapExistsAsOf
 metaengine/method MapGet
 metaengine/method MapGet
+metaengine/method MapGetAsOf
 metaengine/method MapScan
 metaengine/method MapScan
 metaengine/method MapSet

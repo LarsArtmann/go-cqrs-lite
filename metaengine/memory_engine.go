@@ -235,7 +235,13 @@ func (m *memoryEngine) VectorInsert(ctx context.Context, col string, emb Embeddi
 	return m.vectorIdx.Insert(ctx, col, emb)
 }
 
-func (m *memoryEngine) VectorSearch(ctx context.Context, col string, query []float32, k int, metric string) ([]VectorResult, error) {
+func (m *memoryEngine) VectorSearch(
+	ctx context.Context,
+	col string,
+	query []float32,
+	k int,
+	metric string,
+) ([]VectorResult, error) {
 	return m.vectorIdx.Search(ctx, col, query, k, metric)
 }
 
@@ -245,7 +251,11 @@ func (m *memoryEngine) SearchInsert(ctx context.Context, col string, doc Indexed
 	return m.searchIdx.Insert(ctx, col, doc)
 }
 
-func (m *memoryEngine) SearchQuery(ctx context.Context, col, query string, limit int) ([]SearchResult, error) {
+func (m *memoryEngine) SearchQuery(
+	ctx context.Context,
+	col, query string,
+	limit int,
+) ([]SearchResult, error) {
 	return m.searchIdx.Query(ctx, col, query, limit)
 }
 
@@ -255,6 +265,11 @@ func (m *memoryEngine) SpatialInsert(ctx context.Context, col string, pt Point) 
 	return m.spatialIdx.Insert(ctx, col, pt)
 }
 
-func (m *memoryEngine) SpatialRange(ctx context.Context, col string, x, y, radius float64, limit int) ([]SpatialResult, error) {
+func (m *memoryEngine) SpatialRange(
+	ctx context.Context,
+	col string,
+	x, y, radius float64,
+	limit int,
+) ([]SpatialResult, error) {
 	return m.spatialIdx.Range(ctx, col, x, y, radius, limit)
 }

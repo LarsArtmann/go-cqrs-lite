@@ -75,7 +75,7 @@ go-cqrs-lite/
 │   └── pebbleengine/   # Pebble-backed metaengine Engine (LSM point reads, 7x faster than SQLite on MapGet). MapBackend, ScanBackend, SetBackend, CounterBackend, GraphBackend, MultimapBackend, LogBackend. **RawValueReader + RawScanReader** (eliminates JSON decode tax on point lookups and filtered scans). Separate module (cockroachdb/pebble dep)
 │   └── duckdbengine/   # DuckDB-backed metaengine Engine (columnar OLAP, CGo). MapBackend + CounterBackend. Vectorized GROUP BY gives O(1) Counter reads. Separate module (duckdb-go dep, CGo required)
 │   └── pgengine/       # Postgres-backed metaengine Engine (JSONB + B-tree). MapBackend + CounterBackend. JSONB columns for efficient JSON storage. Pure Go (pgx driver, no CGo)
-│   └── adttest/       # Exported ADT test harness: RunMatrix, Scenarios, canonicalize helpers — imported by engine modules for cross-engine parity
+│   └── adttest/       # Exported ADT test harness: RunMatrix (10 ADTs), Scenarios, canonicalize helpers — imported by engine modules for cross-engine parity
 │   └── projectionadapter/ # Projection adapter: wraps metaengine Store as projection.Projection ([ADR-0062](docs/adr/0062-metaengine-dependency-boundary.md))
 ├── idempotency/         # Dedup store: Store, MemoryStore, ErrDuplicate (dedup for at-least-once delivery; extraction planned — [ADR-0065](docs/adr/0065-extract-idempotency-module.md)) — ZERO module deps beyond go-error-family
 │   └── kvstore/        # KVStore, KVBackend (KV-backed idempotency — optional subpackage, pulls kv/). Record uses SetIfAbsent: no-op on an existing key, TTL NOT extended, matching MemoryStore + sqlstore + the documented Store contract
@@ -844,6 +844,58 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // DuckDB excels at analytical queries, GROUP BY aggregations, columnar scans.
 //   // CGo required: statically links C++ engine (~30-50MB binary).
 //   // Isolated in stack/duckdb module — consumers who don't import it never need CGo.
+
+// Metaengine planner pipeline (composable PlanRule chain — ADR-0075)
+//   // The planner runs a sequence of PlanRule implementations. Each rule can
+//   // inspect the query declaration, engine profiles, and statistics, then
+//   // modify the PlanResult (assign engine, emit diagnostics, apply layout).
+//   //
+//   // Default rules (in order):
+//   //   1. EnforceSchemaCompatibility — fold valueType must match result type
+//   //   2. AutoLayout — detect LayoutPlanner engines, generate DDL
+//   //   3. DetectWriteAmplification — warn if fold produces >1 write per event
+//   //   4. CheckScaleThreshold — warn if estimated N exceeds engine capacity
+//   //   5. VersionedReadCheck — warn if temporal query needs VersionedStorage
+//   //
+//   // Custom rules can be added via Plan() options (future API).
+//   report := store.Explain(ctx)
+//   // report shows: assigned engine per query, rule diagnostics, cost estimate
+
+// Metaengine materialize-vs-replay (THE ES-specific killer feature)
+//   // The planner can recommend whether to materialize a projection (store
+//   // the result) or replay events on each read. The cost formula:
+//   //
+//   //   replay_cost(q)      = read_rate × avg_stream_length × fold_cost_per_event
+//   //   materialize_cost(q) = write_rate × fold_cost_per_event + read_rate × query_cost
+//   //
+//   // Materialize when: materialize_cost < replay_cost
+//   //
+//   // This is advisory (INFO/WARN diagnostic in PlanResult), not a hard override.
+//   // Feed statistics via WithStats() for automatic recommendations:
+//   store, _ := metaengine.Plan(engines, queries,
+//       metaengine.WithStats(metaengine.Stats{
+//           WriteRate:      10,  // events/sec
+//           ReadRate:       100, // queries/sec
+//           AvgStreamLength: 50, // events per stream
+//       }))
+
+// Metaengine new ADTs: Vector, Search, Spatial (ADR-0076)
+//   // Three new ADTs extend the planner beyond CRUD:
+//   //
+//   //   ADTVector  → VectorBackend  (k-NN similarity search, cosine/euclidean/dot)
+//   //   ADTSearch  → SearchBackend  (full-text search, TF-IDF inverted index)
+//   //   ADTSpatial → SpatialBackend (geo range queries, haversine distance)
+//   //
+//   // Classification priority: Vector → Search → Spatial → Graph → Counter → ...
+//   // Each has a typed execute helper: VectorExecuteTyped, SearchExecuteTyped, SpatialExecuteTyped
+//   //
+//   // Currently only Memory engine implements these backends (brute-force).
+//   // Future: DuckDB VSS extension (vector), Postgres tsvector (search), PostGIS (spatial).
+
+// Metaengine temporal queries (VersionedStorage — Memory engine only)
+//   // The Memory engine tracks version chains for point-in-time reads:
+//   val, err := store.ExecuteAsOf(ctx, "users", "u1", timestamp)
+//   // Returns the value as it existed at that time, or metaengine.ErrNotFound
 
 // Pebble backup + graceful shutdown (production operations)
 //   b, _ := pebble.New("/var/lib/myapp/pebble")

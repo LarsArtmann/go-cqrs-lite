@@ -170,7 +170,16 @@ func deriveKeys(folds []Fold) error {
 			}
 
 			folds[i].keyExtractor = extractor
-		case FoldInsert, FoldCount, FoldEdge, FoldSet, FoldSkip, FoldMultiInsert, FoldAppend, FoldVector, FoldSearch, FoldSpatial:
+		case FoldInsert,
+			FoldCount,
+			FoldEdge,
+			FoldSet,
+			FoldSkip,
+			FoldMultiInsert,
+			FoldAppend,
+			FoldVector,
+			FoldSearch,
+			FoldSpatial:
 			// Only update/remove folds need a derived key extractor.
 		}
 	}

@@ -37,7 +37,13 @@ type VectorBackend interface {
 
 	// VectorSearch returns the k nearest neighbors of the query vector
 	// using the given distance metric (cosine, euclidean, dot).
-	VectorSearch(ctx context.Context, collection string, query []float32, k int, metric string) ([]VectorResult, error)
+	VectorSearch(
+		ctx context.Context,
+		collection string,
+		query []float32,
+		k int,
+		metric string,
+	) ([]VectorResult, error)
 }
 
 // IndexedText is a text document with an ID and content. The fold input
@@ -89,7 +95,13 @@ func (m *MemoryVectorIndex) Insert(ctx context.Context, collection string, emb E
 }
 
 // Search returns the k nearest neighbors of the query vector.
-func (m *MemoryVectorIndex) Search(ctx context.Context, collection string, query []float32, k int, metric string) ([]VectorResult, error) {
+func (m *MemoryVectorIndex) Search(
+	ctx context.Context,
+	collection string,
+	query []float32,
+	k int,
+	metric string,
+) ([]VectorResult, error) {
 	return m.search(query, k, metric), nil
 }
 
@@ -195,7 +207,11 @@ func (m *MemorySearchIndex) Insert(ctx context.Context, collection string, doc I
 }
 
 // Query returns documents matching the full-text query.
-func (m *MemorySearchIndex) Query(ctx context.Context, collection, query string, limit int) ([]SearchResult, error) {
+func (m *MemorySearchIndex) Query(
+	ctx context.Context,
+	collection, query string,
+	limit int,
+) ([]SearchResult, error) {
 	return m.query(query, limit), nil
 }
 

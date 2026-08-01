@@ -92,9 +92,9 @@ func (e *duckdbEngine) init() error {
 // Profile returns the cost profile for this DuckDB engine.
 func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 	return metaengine.EngineProfile{
-		Name:       "duckdb",
-		NsPerOp:    DuckDBNsPerOp,
-		NsPerRead:  DuckDBNsPerRead,
+		Name:      "duckdb",
+		NsPerOp:   DuckDBNsPerOp,
+		NsPerRead: DuckDBNsPerRead,
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,
 			metaengine.ADTCounter:   metaengine.ComplexityO1,
@@ -130,7 +130,8 @@ func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value an
 		return fmt.Errorf("duckdbengine.MapSet: marshal value: %w", err)
 	}
 
-	_, err = e.db.ExecContext(ctx,
+	_, err = e.db.ExecContext(
+		ctx,
 		`INSERT INTO meta_map (collection, key, value)
 		 VALUES ($1, $2, $3)
 		 ON CONFLICT (collection, key) DO UPDATE SET value = excluded.value`,
@@ -146,7 +147,8 @@ func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value an
 func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
 	var raw string
 
-	err := e.db.QueryRowContext(ctx,
+	err := e.db.QueryRowContext(
+		ctx,
 		`SELECT value FROM meta_map WHERE collection = $1 AND key = $2`,
 		col, fmt.Sprint(key),
 	).Scan(&raw)
@@ -167,7 +169,8 @@ func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 }
 
 func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error {
-	_, err := e.db.ExecContext(ctx,
+	_, err := e.db.ExecContext(
+		ctx,
 		`DELETE FROM meta_map WHERE collection = $1 AND key = $2`,
 		col, fmt.Sprint(key),
 	)
@@ -184,13 +187,18 @@ func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error
 // execution. CounterGet uses a single vectorized aggregation pass over
 // the columnar data, not a row-by-row scan.
 
-func (e *duckdbEngine) CounterIncrement(ctx context.Context, col string, deltas metaengine.Delta) error {
+func (e *duckdbEngine) CounterIncrement(
+	ctx context.Context,
+	col string,
+	deltas metaengine.Delta,
+) error {
 	// Increment each delta individually. DuckDB's ON CONFLICT requires
 	// per-row upsert — multi-row VALUES with ON CONFLICT is not supported
 	// in the same way as Postgres. Each upsert is still fast due to
 	// DuckDB's vectorized execution engine.
 	for key, delta := range deltas {
-		_, err := e.db.ExecContext(ctx,
+		_, err := e.db.ExecContext(
+			ctx,
 			`INSERT INTO meta_counter (collection, key, value)
 			 VALUES ($1, $2, $3)
 			 ON CONFLICT (collection, key) DO UPDATE SET value = meta_counter.value + excluded.value`,
@@ -205,7 +213,8 @@ func (e *duckdbEngine) CounterIncrement(ctx context.Context, col string, deltas 
 }
 
 func (e *duckdbEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.db.QueryContext(ctx,
+	rows, err := e.db.QueryContext(
+		ctx,
 		`SELECT key, value FROM meta_counter WHERE collection = $1`,
 		col,
 	)

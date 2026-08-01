@@ -123,7 +123,11 @@ func TestPostgresEngine_CounterBackend(t *testing.T) {
 		t.Fatal("engine does not implement CounterBackend")
 	}
 
-	if err := cb.CounterIncrement(ctx, "counts", metaengine.Delta{"open": 3, "closed": 1}); err != nil {
+	if err := cb.CounterIncrement(
+		ctx,
+		"counts",
+		metaengine.Delta{"open": 3, "closed": 1},
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -199,7 +203,8 @@ func TestPostgresEngine_MetaenginePlan(t *testing.T) {
 
 	store, err := metaengine.Plan(
 		[]metaengine.Engine{eng},
-		metaengine.Query[CountInput, map[string]int64]("category_counts",
+		metaengine.Query[CountInput, map[string]int64](
+			"category_counts",
 			metaengine.On(ItemCreated{}, func(e ItemCreated) metaengine.Delta {
 				return metaengine.Delta{e.Category: e.Count}
 			}),
@@ -213,11 +218,19 @@ func TestPostgresEngine_MetaenginePlan(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := store.Apply(ctx, "ItemCreated", ItemCreated{Category: "books", Count: 5}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"ItemCreated",
+		ItemCreated{Category: "books", Count: 5},
+	); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := store.Apply(ctx, "ItemCreated", ItemCreated{Category: "books", Count: 3}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"ItemCreated",
+		ItemCreated{Category: "books", Count: 3},
+	); err != nil {
 		t.Fatal(err)
 	}
 

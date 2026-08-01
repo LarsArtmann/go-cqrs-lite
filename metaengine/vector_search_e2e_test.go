@@ -50,15 +50,27 @@ func TestVectorFoldPipeline_EndToEnd(t *testing.T) {
 	ctx := context.Background()
 
 	// Apply events to build the vector index
-	if err := store.Apply(ctx, "DocEmbedded", DocEmbedded{ID: "a", Values: []float32{1, 0, 0}}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"DocEmbedded",
+		DocEmbedded{ID: "a", Values: []float32{1, 0, 0}},
+	); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := store.Apply(ctx, "DocEmbedded", DocEmbedded{ID: "b", Values: []float32{0, 1, 0}}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"DocEmbedded",
+		DocEmbedded{ID: "b", Values: []float32{0, 1, 0}},
+	); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := store.Apply(ctx, "DocEmbedded", DocEmbedded{ID: "c", Values: []float32{1, 1, 0}}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"DocEmbedded",
+		DocEmbedded{ID: "c", Values: []float32{1, 1, 0}},
+	); err != nil {
 		t.Fatal(err)
 	}
 

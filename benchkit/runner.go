@@ -139,17 +139,47 @@ func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
 	}{
 		{r.config.ReplayOnly, "benchkit.write_phase", "write phase", r.writePhase},
 		{r.config.SkipReads, "benchkit.read_phase", "read phase", r.readPhase},
-		{r.config.SkipReadModels, "benchkit.read_model_phase", "read model phase", r.readModelPhase},
-		{r.config.SkipProjections, "benchkit.projection_phase", "projection phase", r.projectionPhase},
+		{
+			r.config.SkipReadModels,
+			"benchkit.read_model_phase",
+			"read model phase",
+			r.readModelPhase,
+		},
+		{
+			r.config.SkipProjections,
+			"benchkit.projection_phase",
+			"projection phase",
+			r.projectionPhase,
+		},
 		{
 			r.config.SkipMixed || r.config.ReplayOnly, "benchkit.mixed_workload",
 			"mixed workload phase", r.mixedWorkloadPhase,
 		},
-		{r.config.ReplayOnly || r.config.SkipJourney, "benchkit.journey_phase", "journey phase", r.journeyPhase},
+		{
+			r.config.ReplayOnly || r.config.SkipJourney,
+			"benchkit.journey_phase",
+			"journey phase",
+			r.journeyPhase,
+		},
 		{r.config.SkipQuery, "benchkit.query_phase", "query phase", r.queryPhase},
-		{r.config.ReplayOnly || r.config.SkipSnapshot, "benchkit.snapshot_phase", "snapshot phase", r.snapshotPhase},
-		{r.config.SkipMetaEngine, "benchkit.metaengine_phase", "metaengine phase", r.metaEnginePhase},
-		{r.config.ReplayOnly || r.config.SkipRawSink, "benchkit.raw_sink_phase", "raw sink phase", r.rawSinkPhase},
+		{
+			r.config.ReplayOnly || r.config.SkipSnapshot,
+			"benchkit.snapshot_phase",
+			"snapshot phase",
+			r.snapshotPhase,
+		},
+		{
+			r.config.SkipMetaEngine,
+			"benchkit.metaengine_phase",
+			"metaengine phase",
+			r.metaEnginePhase,
+		},
+		{
+			r.config.ReplayOnly || r.config.SkipRawSink,
+			"benchkit.raw_sink_phase",
+			"raw sink phase",
+			r.rawSinkPhase,
+		},
 	}
 
 	for _, s := range steps {

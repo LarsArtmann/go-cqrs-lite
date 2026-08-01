@@ -16,10 +16,10 @@ import (
 //   - Pin: lock a plan decision to prevent drift across restarts
 //   - Debug: inspect serialized plan offline to understand planner behavior
 type SerializablePlan struct {
-	Engines []string              `json:"engines"`
-	Queries []SerializableQuery   `json:"queries"`
-	Rules   []SerializableRule    `json:"rules,omitempty"`
-	Layouts []SerializableLayout  `json:"layouts,omitempty"`
+	Engines []string             `json:"engines"`
+	Queries []SerializableQuery  `json:"queries"`
+	Rules   []SerializableRule   `json:"rules,omitempty"`
+	Layouts []SerializableLayout `json:"layouts,omitempty"`
 }
 
 // SerializableQuery is the serializable form of a QueryAssignment.

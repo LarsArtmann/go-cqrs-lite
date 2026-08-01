@@ -80,10 +80,10 @@ type PlanResult struct {
 
 // RuleTraceEntry records a single rule's decision during planning.
 type RuleTraceEntry struct {
-	Rule    string // rule name (e.g., "schema-enforcement")
-	Query   string // query name (or "*" for global rules)
-	Reason  string // brief human-readable explanation
-	Layout  StorageLayout
+	Rule   string // rule name (e.g., "schema-enforcement")
+	Query  string // query name (or "*" for global rules)
+	Reason string // brief human-readable explanation
+	Layout StorageLayout
 }
 
 func (p PlanResult) Report() string {

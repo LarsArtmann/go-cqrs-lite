@@ -17,17 +17,17 @@ const (
 type ReadPattern string
 
 const (
-	ReadPointLookup  ReadPattern = "point_lookup"
-	ReadMembership   ReadPattern = "membership"
-	ReadFilteredScan ReadPattern = "filtered_scan"
-	ReadAggregate    ReadPattern = "aggregate"
-	ReadTraversal    ReadPattern = "traversal"
-	ReadScan         ReadPattern = "scan"
-	ReadMultiLookup  ReadPattern = "multi_lookup"
-	ReadLogTail      ReadPattern = "log_tail"
-	ReadVectorSearch ReadPattern = "vector_search"
+	ReadPointLookup    ReadPattern = "point_lookup"
+	ReadMembership     ReadPattern = "membership"
+	ReadFilteredScan   ReadPattern = "filtered_scan"
+	ReadAggregate      ReadPattern = "aggregate"
+	ReadTraversal      ReadPattern = "traversal"
+	ReadScan           ReadPattern = "scan"
+	ReadMultiLookup    ReadPattern = "multi_lookup"
+	ReadLogTail        ReadPattern = "log_tail"
+	ReadVectorSearch   ReadPattern = "vector_search"
 	ReadFullTextSearch ReadPattern = "full_text_search"
-	ReadSpatialRange  ReadPattern = "spatial_range"
+	ReadSpatialRange   ReadPattern = "spatial_range"
 )
 
 // Delta is a counter update: key to delta.
