@@ -67,6 +67,15 @@
 //     load (EveryNEvents), and state-cache hit/miss (M16).
 //     SnapshotCorrectnessErrors counts state/version mismatches.
 //
+//   - MetaEngineApplyLatency / MetaEngineQueryLatency /
+//     MetaEngineApplyThroughput — Counter ADT workload: planner write
+//     overhead + ExecuteTyped read latency + sustained write throughput.
+//     MetaEngineScanLatency: filtered collection scan (TypedReader.Scan with
+//     WHERE clause). MetaEnginePointReadLatency: single-item point lookup
+//     (TypedReader.Get). MetaEngineApplyConcurrent: concurrent write
+//     throughput (contention test). MetaEngineScanResults: items returned by
+//     scan (correctness check).
+//
 //   - ColdReadLatency — first read-pass latency (OS page cache cold).
 //     LoadLatency aggregates all passes (cold + warm). On SQLite/Pebble,
 //     ColdReadLatency P50 may be 10x higher than warm LoadLatency P50.
@@ -77,6 +86,15 @@
 //
 //   - AllocCount / AllocBytes — total heap allocations during the benchmark.
 //     High alloc rates correlate with GC pressure and latency variance.
+//
+//   - AllocsPerOp / BytesPerOp — derived per-event allocation rates. Eliminates
+//     manual division: directly comparable across profiles and backends.
+//
+//   - GCPercent — percentage of wall-clock time spent in GC pauses. >5% means
+//     GC is a significant performance factor.
+//
+//   - TailRatio — LoadLatency.P99 / LoadLatency.P50. A ratio >3 means tail
+//     latency is unpredictable: P50 looks fine but P99 users see 3x worse.
 //
 //   - IntegrityErrors — count of events that failed read-back verification.
 //     Zero means all written events round-trip correctly. Non-zero indicates

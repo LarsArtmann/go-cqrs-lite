@@ -133,6 +133,16 @@ func TestRunSoak_TrendsPopulated(t *testing.T) {
 			maxHeapLeak,
 		)
 	}
+
+	// Verify GC and allocation fields are populated on samples.
+	// The memory backend allocates during each iteration, so AllocBytes
+	// should be non-zero. GCMaxPause may be zero if no GC ran in a
+	// short iteration.
+	for i, s := range result.Samples {
+		if s.AllocBytes == 0 {
+			t.Errorf("sample %d AllocBytes = 0, expected positive (memory backend allocates)", i)
+		}
+	}
 }
 
 func TestRunSoak_ProgressReport(t *testing.T) {
@@ -321,6 +331,14 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 
 		if got.CacheHitP99 != want.CacheHitP99 {
 			t.Errorf("sample %d CacheHitP99: got %s, want %s", i, got.CacheHitP99, want.CacheHitP99)
+		}
+
+		if got.GCMaxPause != want.GCMaxPause {
+			t.Errorf("sample %d GCMaxPause: got %s, want %s", i, got.GCMaxPause, want.GCMaxPause)
+		}
+
+		if got.AllocBytes != want.AllocBytes {
+			t.Errorf("sample %d AllocBytes: got %d, want %d", i, got.AllocBytes, want.AllocBytes)
 		}
 	}
 }
