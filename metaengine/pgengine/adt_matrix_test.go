@@ -16,8 +16,6 @@ import (
 func TestPostgresADTMatrix(t *testing.T) {
 	t.Parallel()
 
-	dsn := pgDSN(t)
-
 	adttest.RunMatrix(t, []adttest.Factory{
 		{
 			Name:   "memory",
@@ -28,7 +26,7 @@ func TestPostgresADTMatrix(t *testing.T) {
 			Create: func(t *testing.T) metaengine.Engine {
 				t.Helper()
 
-				eng, err := pgengine.New(dsn)
+				eng, err := pgengine.New(pgDSN(t))
 				if err != nil {
 					t.Skipf("Postgres not available: %v", err)
 				}

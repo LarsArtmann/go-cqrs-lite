@@ -1,9 +1,13 @@
 // Package pgengine provides a Postgres-backed metaengine Engine.
 //
-// Postgres is a mature relational database with JSONB support and GIN indexes.
-// This engine implements MapBackend and CounterBackend with Postgres-specific
-// optimizations: JSONB columns for efficient JSON storage, UPSERT via
-// ON CONFLICT, and native GROUP BY for counter aggregation.
+// Postgres is a mature relational database with JSONB support. This engine
+// implements MapBackend, CounterBackend, and ScanBackend with Postgres-specific
+// storage: JSONB columns for efficient JSON storage, UPSERT via ON CONFLICT,
+// and native GROUP BY for counter aggregation.
+//
+// PushdownScan pushes filter/sort into Postgres WHERE/ORDER BY using JSONB
+// operators (value->>'field'), avoiding full-table scans. LayoutPlanner
+// creates expression indexes on those JSONB paths for B-tree performance.
 //
 // Pure Go (no CGo): uses the pgx driver via database/sql.
 //

@@ -188,9 +188,9 @@ func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error
 
 // --- CounterBackend ---
 //
-// DuckDB's columnar storage makes GROUP BY extremely fast via vectorized
-// execution. CounterGet uses a single vectorized aggregation pass over
-// the columnar data, not a row-by-row scan.
+// CounterGet retrieves all counter values for a collection via a single
+// SELECT pass. DuckDB's columnar storage makes this efficient for
+// analytical workloads.
 
 func (e *duckdbEngine) CounterIncrement(
 	ctx context.Context,

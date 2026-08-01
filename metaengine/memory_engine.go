@@ -161,7 +161,12 @@ func (m *memoryEngine) MapUpdate(
 	store := m.getMapLocked(col)
 	prev := store[key]
 
-	store[key] = update(prev)
+	newVal := update(prev)
+	store[key] = newVal
+
+	if m.versions != nil { // opt-in versioning
+		m.recordVersion(col, fmt.Sprint(key), newVal)
+	}
 
 	return nil
 }

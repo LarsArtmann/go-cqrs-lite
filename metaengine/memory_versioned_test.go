@@ -211,3 +211,132 @@ func TestMemoryEngine_VersionedStorage_Property(t *testing.T) {
 		}
 	})
 }
+
+// TestStore_ExecuteAsOf_Integration verifies the full Plan → Apply → ExecuteAsOf
+// pipeline for a Map ADT query with versioning enabled.
+func TestStore_ExecuteAsOf_Integration(t *testing.T) {
+	t.Parallel()
+
+	eng := NewMemoryEngineWithVersioning()
+	defer eng.Close()
+
+	type UserID string
+
+	type UserCreated struct {
+		ID    UserID
+		Name  string
+		Email string
+	}
+
+	type UserUpdated struct {
+		ID   UserID
+		Name string
+	}
+
+	type UserDeleted struct {
+		ID UserID
+	}
+
+	type FindUser struct{ ID UserID }
+
+	type UserView struct {
+		ID    UserID
+		Name  string
+		Email string
+	}
+
+	store, err := Plan(
+		[]Engine{eng},
+		Query[FindUser, UserView](
+			"users",
+			On(UserCreated{}, func(e UserCreated) (UserID, UserView) {
+				return e.ID, UserView{ID: e.ID, Name: e.Name, Email: e.Email}
+			}),
+			On(UserUpdated{}, func(e UserUpdated, prev UserView) UserView {
+				prev.Name = e.Name
+				return prev
+			}),
+			On(UserDeleted{}, Remove[UserView]()),
+		),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer store.Close()
+
+	ctx := context.Background()
+
+	// Create user
+	if err := store.Apply(ctx, "UserCreated", UserCreated{
+		ID: "u1", Name: "Alice", Email: "alice@example.com",
+	}); err != nil {
+		t.Fatalf("Apply UserCreated: %v", err)
+	}
+
+	t1 := time.Now()
+	time.Sleep(2 * time.Millisecond)
+
+	// Update name
+	if err := store.Apply(ctx, "UserUpdated", UserUpdated{
+		ID: "u1", Name: "Alice Smith",
+	}); err != nil {
+		t.Fatalf("Apply UserUpdated: %v", err)
+	}
+
+	t2 := time.Now()
+	time.Sleep(2 * time.Millisecond)
+
+	// Delete user
+	if err := store.Apply(ctx, "UserDeleted", UserDeleted{ID: "u1"}); err != nil {
+		t.Fatalf("Apply UserDeleted: %v", err)
+	}
+
+	t3 := time.Now()
+
+	// AsOf t1 → original name "Alice"
+	val, err := store.ExecuteAsOf(ctx, "users", "u1", t1)
+	if err != nil {
+		t.Fatalf("ExecuteAsOf(t1): %v", err)
+	}
+
+	view, ok := val.(UserView)
+	if !ok {
+		t.Fatalf("ExecuteAsOf(t1): expected UserView, got %T", val)
+	}
+
+	if view.Name != "Alice" {
+		t.Errorf("ExecuteAsOf(t1): name = %q, want %q", view.Name, "Alice")
+	}
+
+	if view.Email != "alice@example.com" {
+		t.Errorf("ExecuteAsOf(t1): email = %q, want %q", view.Email, "alice@example.com")
+	}
+
+	// AsOf t2 → updated name "Alice Smith"
+	val, err = store.ExecuteAsOf(ctx, "users", "u1", t2)
+	if err != nil {
+		t.Fatalf("ExecuteAsOf(t2): %v", err)
+	}
+
+	view, ok = val.(UserView)
+	if !ok {
+		t.Fatalf("ExecuteAsOf(t2): expected UserView, got %T", val)
+	}
+
+	if view.Name != "Alice Smith" {
+		t.Errorf("ExecuteAsOf(t2): name = %q, want %q", view.Name, "Alice Smith")
+	}
+
+	// AsOf t3 → ErrNotFound (deleted)
+	_, err = store.ExecuteAsOf(ctx, "users", "u1", t3)
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("ExecuteAsOf(t3): err = %v, want ErrNotFound", err)
+	}
+
+	// AsOf before creation → ErrNotFound
+	_, err = store.ExecuteAsOf(ctx, "users", "u1", t1.Add(-time.Hour))
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("ExecuteAsOf(before): err = %v, want ErrNotFound", err)
+	}
+}
