@@ -97,7 +97,7 @@ func TestDuckDBEngine_PushdownSort(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results.Items) != 2 {
+	if len(results.Items) != 3 {
 		t.Fatalf("sort desc limit 3: expected 3, got %d", len(results.Items))
 	}
 
@@ -204,7 +204,7 @@ func TestDuckDBEngine_PushdownFilterIn(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results.Items) != 2 {
+	if len(results.Items) != 3 {
 		t.Fatalf("filter IN: expected 3, got %d", len(results.Items))
 	}
 }

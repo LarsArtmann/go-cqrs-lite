@@ -531,7 +531,7 @@ func TestPebbleLayoutPlanner_SortIndexCursorAscending(t *testing.T) {
 	// First page: items 0..2 + overflow.
 	page1, err := rsr.ScanRawValues(ctx, "paged", nil, sortSpec, nil, 3)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(page1.Items).To(gomega.HaveLen(4))
+	gomega.NewWithT(t).Expect(page1.Items).To(gomega.HaveLen(3))
 
 	ids1 := extractField[float64](t, page1.Items, "id")
 	gomega.NewWithT(t).Expect(ids1).To(gomega.Equal([]float64{0, 1, 2, 3}))
@@ -539,7 +539,7 @@ func TestPebbleLayoutPlanner_SortIndexCursorAscending(t *testing.T) {
 	// Second page: cursor=2, skip items <= 2.
 	page2, err := rsr.ScanRawValues(ctx, "paged", nil, sortSpec, float64(2), 3)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(page2.Items).To(gomega.HaveLen(4))
+	gomega.NewWithT(t).Expect(page2.Items).To(gomega.HaveLen(3))
 
 	ids2 := extractField[float64](t, page2.Items, "id")
 	gomega.NewWithT(t).Expect(ids2).To(gomega.Equal([]float64{3, 4, 5, 6}))
@@ -618,7 +618,7 @@ func TestPebbleLayoutPlanner_SortIndexFilterAndSort(t *testing.T) {
 
 	results, err := rsr.ScanRawValues(ctx, "items", filters, sortSpec, nil, 0)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(3))
+	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(2))
 
 	priorities := extractField[float64](t, results.Items, "priority")
 	gomega.NewWithT(t).Expect(priorities).To(gomega.Equal([]float64{1, 2, 3}))
@@ -732,7 +732,7 @@ func TestPebbleLayoutPlanner_SortIndexEarlyTermination(t *testing.T) {
 	// limit=5 → 5+1=6 results (overflow detection).
 	results, err := rsr.ScanRawValues(ctx, "items", nil, sortSpec, nil, 5)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(6))
+	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(5))
 
 	scores := extractField[float64](t, results.Items, "score")
 	gomega.NewWithT(t).Expect(scores).To(gomega.Equal([]float64{0, 1, 2, 3, 4, 5}))
@@ -814,7 +814,7 @@ func TestPebbleLayoutPlanner_FilterIndexCursorDescending(t *testing.T) {
 	// Descending: cursor=50, skip items >= 50 → [40, 30, 20].
 	results, err := rsr.ScanRawValues(ctx, "items", filter, sortSpec, float64(50), 2)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(3))
+	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(2))
 
 	scores := extractField[float64](t, results.Items, "score")
 	gomega.NewWithT(t).Expect(scores).To(gomega.Equal([]float64{40, 30, 20}))
@@ -844,7 +844,7 @@ func TestPebbleLayoutPlanner_SortIndexStringValues(t *testing.T) {
 
 	results, err := rsr.ScanRawValues(ctx, "users", nil, sortSpec, nil, 0)
 	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(3))
+	gomega.NewWithT(t).Expect(results.Items).To(gomega.HaveLen(2))
 
 	names := extractField[string](t, results.Items, "name")
 	gomega.NewWithT(t).Expect(names).To(gomega.Equal([]string{"Alice", "Bob", "Charlie"}))
