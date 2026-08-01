@@ -47,6 +47,12 @@ type SoakSample struct {
 	JourneyP99  time.Duration `json:"journeyP99,omitempty"`  // journey round-trip
 	QueryHitP99 time.Duration `json:"queryHitP99,omitempty"` // query dispatch hit
 	CacheHitP99 time.Duration `json:"cacheHitP99,omitempty"` // cache hit (decider)
+
+	// GC and allocation pressure per iteration. GCMaxPause growing across
+	// iterations signals degrading GC behavior under sustained load.
+	// AllocBytesPerIter = total bytes allocated / iteration count.
+	GCMaxPause       time.Duration `json:"gcMaxPause,omitempty"`
+	AllocBytes       uint64        `json:"allocBytes,omitempty"`
 }
 
 // SoakResult holds the outcome of a soak test, including per-iteration samples
@@ -84,6 +90,16 @@ type SoakResult struct {
 	// CacheHitP99DriftPct is the percentage change in cache hit P99 from the
 	// first sample to the last. Zero when the snapshot phase is skipped.
 	CacheHitP99DriftPct float64 `json:"cacheHitP99DriftPct,omitempty"`
+
+	// GCMaxPauseDriftPct is the percentage change in GC max pause from the
+	// first sample to the last. Positive values indicate GC degradation —
+	// the backend is generating more garbage over time, causing longer
+	// stop-the-world pauses.
+	GCMaxPauseDriftPct float64 `json:"gcMaxPauseDriftPct,omitempty"`
+
+	// AllocGrowthPct is the percentage change in allocation bytes from the
+	// first sample to the last. Positive values signal an allocation leak.
+	AllocGrowthPct float64 `json:"allocGrowthPct,omitempty"`
 
 	Config SoakConfig `json:"config"`
 }
@@ -152,6 +168,8 @@ func RunSoak(ctx context.Context, config SoakConfig, factory Factory) (*SoakResu
 			JourneyP99:  res.JourneyLatency.P99,
 			QueryHitP99: res.QueryHitLatency.P99,
 			CacheHitP99: res.CacheHitLatency.P99,
+			GCMaxPause:  res.GCMaxPause,
+			AllocBytes:  res.AllocBytes,
 		}
 
 		result.Samples = append(result.Samples, sample)
@@ -223,6 +241,16 @@ func computeSoakTrends(r *SoakResult) {
 		r.CacheHitP99DriftPct = float64(last.CacheHitP99-first.CacheHitP99) /
 			float64(first.CacheHitP99) * 100
 	}
+
+	if first.GCMaxPause > 0 && last.GCMaxPause > 0 {
+		r.GCMaxPauseDriftPct = float64(last.GCMaxPause-first.GCMaxPause) /
+			float64(first.GCMaxPause) * 100
+	}
+
+	if first.AllocBytes > 0 && last.AllocBytes > 0 {
+		r.AllocGrowthPct = float64(last.AllocBytes-first.AllocBytes) /
+			float64(first.AllocBytes) * 100
+	}
 }
 
 // PrintSoakReport writes a human-readable soak test report.
@@ -264,6 +292,18 @@ func PrintSoakReport(w io.Writer, r *SoakResult) {
 		fmt.Fprintf(w, "Cache P99:  %s → %s (%+.1f%%)\n",
 			roundDuration(first.CacheHitP99), roundDuration(last.CacheHitP99),
 			r.CacheHitP99DriftPct)
+	}
+
+	if first.GCMaxPause > 0 && last.GCMaxPause > 0 {
+		fmt.Fprintf(w, "GC Pause:   %s → %s (%+.1f%%)\n",
+			roundDuration(first.GCMaxPause), roundDuration(last.GCMaxPause),
+			r.GCMaxPauseDriftPct)
+	}
+
+	if first.AllocBytes > 0 && last.AllocBytes > 0 {
+		fmt.Fprintf(w, "Allocs:     %s → %s (%+.1f%%)\n",
+			formatBytes(first.AllocBytes), formatBytes(last.AllocBytes),
+			r.AllocGrowthPct)
 	}
 
 	fmt.Fprintf(w, "Heap:       %s → %s (growth: %s, %s/iter)\n",
