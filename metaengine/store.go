@@ -364,6 +364,10 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 		return s.applyFoldMultiInsert(ctx, q, fold, payload)
 	case FoldAppend:
 		return s.applyFoldAppend(ctx, q, fold, payload)
+	case FoldVector:
+		return s.applyFoldVector(ctx, q, fold, payload)
+	case FoldSearch:
+		return s.applyFoldSearch(ctx, q, fold, payload)
 	default:
 		return fmt.Errorf("%w: %s", errUnknownFoldKind, fold.Kind)
 	}
@@ -526,4 +530,34 @@ func (s *Store) applyFoldAppend(ctx context.Context, q queryRuntime, fold Fold, 
 	}
 
 	return unsupportedEngine(errUnsupportedLogOps, q.engine.Profile().Name)
+}
+
+func (s *Store) applyFoldVector(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+	col := q.name
+	emb := fold.callVector(payload)
+
+	if vb, ok := q.engine.(VectorBackend); ok {
+		if err := vb.VectorInsert(ctx, col, emb); err != nil {
+			return fmt.Errorf("vector insert %s: %w", col, err)
+		}
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedVectorOps, q.engine.Profile().Name)
+}
+
+func (s *Store) applyFoldSearch(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+	col := q.name
+	doc := fold.callSearch(payload)
+
+	if sb, ok := q.engine.(SearchBackend); ok {
+		if err := sb.SearchInsert(ctx, col, doc); err != nil {
+			return fmt.Errorf("search insert %s: %w", col, err)
+		}
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedSearchOps, q.engine.Profile().Name)
 }

@@ -171,6 +171,12 @@ func (s *Store) executeQueryInner(
 	case ReadScan:
 		return s.executeFilteredScan(ctx, q, input)
 
+	case ReadVectorSearch:
+		return s.executeVectorSearch(ctx, q, input)
+
+	case ReadFullTextSearch:
+		return s.executeFullTextSearch(ctx, q, input)
+
 	default:
 		return nil, fmt.Errorf("%w: %s", errUnsupportedPattern, q.readPattern)
 	}
@@ -259,6 +265,36 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	}
 
 	return nil, unsupportedEngine(errUnsupportedScanReads, q.engine.Profile().Name)
+}
+
+func (s *Store) executeVectorSearch(ctx context.Context, q queryRuntime, input any) (any, error) {
+	queryVec, metric, k := extractVectorQuery(input)
+
+	if vb, ok := q.engine.(VectorBackend); ok {
+		results, err := vb.VectorSearch(ctx, q.name, queryVec, k, metric)
+		if err != nil {
+			return nil, fmt.Errorf("vector search %s: %w", q.name, err)
+		}
+
+		return results, nil
+	}
+
+	return nil, unsupportedEngine(errUnsupportedVectorReads, q.engine.Profile().Name)
+}
+
+func (s *Store) executeFullTextSearch(ctx context.Context, q queryRuntime, input any) (any, error) {
+	queryText, limit := extractSearchQuery(input)
+
+	if sb, ok := q.engine.(SearchBackend); ok {
+		results, err := sb.SearchQuery(ctx, q.name, queryText, limit)
+		if err != nil {
+			return nil, fmt.Errorf("search query %s: %w", q.name, err)
+		}
+
+		return results, nil
+	}
+
+	return nil, unsupportedEngine(errUnsupportedSearchReads, q.engine.Profile().Name)
 }
 
 // canPushdown returns true when all declared filter/sort accessors carry

@@ -18,6 +18,8 @@ const (
 	FoldSkip        FoldKind = "skip"
 	FoldMultiInsert FoldKind = "multi_insert"
 	FoldAppend      FoldKind = "append"
+	FoldVector      FoldKind = "vector"
+	FoldSearch      FoldKind = "search"
 )
 
 // Fold is a single event-to-projection mapping.
@@ -40,6 +42,8 @@ type Fold struct {
 
 	multiInsertHandler any // func(e E) MultiEntry
 	appendHandler      any // func(e E) Append
+	vectorHandler      any // func(e E) Embedding
+	searchHandler      any // func(e E) IndexedText
 }
 
 func EventTypeName(sample any) string {
@@ -154,8 +158,24 @@ func classifySingleReturn[E any](
 	skipType := reflect.TypeFor[Skip]()
 	multiEntryType := reflect.TypeFor[MultiEntry]()
 	appendType := reflect.TypeFor[Append]()
+	embeddingType := reflect.TypeFor[Embedding]()
+	indexedTextType := reflect.TypeFor[IndexedText]()
 
 	switch outType {
+	case embeddingType:
+		return Fold{
+			EventType:     eventType,
+			EventSample:   sample,
+			Kind:          FoldVector,
+			vectorHandler: handler,
+		}
+	case indexedTextType:
+		return Fold{
+			EventType:     eventType,
+			EventSample:   sample,
+			Kind:          FoldSearch,
+			searchHandler: handler,
+		}
 	case deltaType:
 		return Fold{
 			EventType:    eventType,

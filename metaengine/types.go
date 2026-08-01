@@ -25,6 +25,8 @@ const (
 	ReadScan         ReadPattern = "scan"
 	ReadMultiLookup  ReadPattern = "multi_lookup"
 	ReadLogTail      ReadPattern = "log_tail"
+	ReadVectorSearch ReadPattern = "vector_search"
+	ReadFullTextSearch ReadPattern = "full_text_search"
 )
 
 // Delta is a counter update: key to delta.

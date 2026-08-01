@@ -49,6 +49,11 @@ var (
 	errUnsupportedMultimapOps = errors.New("engine does not support Multimap operations")
 	errUnsupportedLogOps      = errors.New("engine does not support Log operations")
 
+	errUnsupportedVectorReads = errors.New("engine does not support Vector reads")
+	errUnsupportedSearchReads = errors.New("engine does not support Search reads")
+	errUnsupportedVectorOps   = errors.New("engine does not support Vector operations")
+	errUnsupportedSearchOps   = errors.New("engine does not support Search operations")
+
 	// Verify / consistency errors.
 	errNoEventLog = errors.New(
 		"metaengine.Verify: no event log attached — call WithEventLog first",

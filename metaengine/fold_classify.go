@@ -68,10 +68,22 @@ func (f *Fold) callAppend(event any) Append {
 	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(Append)
 }
 
+func (f *Fold) callVector(event any) Embedding {
+	fn := reflect.ValueOf(f.vectorHandler)
+
+	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(Embedding)
+}
+
+func (f *Fold) callSearch(event any) IndexedText {
+	fn := reflect.ValueOf(f.searchHandler)
+
+	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(IndexedText)
+}
+
 // ── ADT classification ──
 
 func classifyADT(folds []Fold) (ADT, error) {
-	hasInsert, hasSet, hasCount, hasEdge, hasMulti, hasAppend := false, false, false, false, false, false
+	hasInsert, hasSet, hasCount, hasEdge, hasMulti, hasAppend, hasVector, hasSearch := false, false, false, false, false, false, false, false
 
 	for _, f := range folds {
 		switch f.Kind {
@@ -87,12 +99,20 @@ func classifyADT(folds []Fold) (ADT, error) {
 			hasMulti = true
 		case FoldAppend:
 			hasAppend = true
+		case FoldVector:
+			hasVector = true
+		case FoldSearch:
+			hasSearch = true
 		case FoldSkip:
 			// Skips do not influence ADT selection.
 		}
 	}
 
 	switch {
+	case hasVector:
+		return ADTVector, nil
+	case hasSearch:
+		return ADTSearch, nil
 	case hasEdge:
 		return ADTGraph, nil
 	case hasCount:
@@ -140,7 +160,7 @@ func deriveKeys(folds []Fold) error {
 			}
 
 			folds[i].keyExtractor = extractor
-		case FoldInsert, FoldCount, FoldEdge, FoldSet, FoldSkip, FoldMultiInsert, FoldAppend:
+		case FoldInsert, FoldCount, FoldEdge, FoldSet, FoldSkip, FoldMultiInsert, FoldAppend, FoldVector, FoldSearch:
 			// Only update/remove folds need a derived key extractor.
 		}
 	}
