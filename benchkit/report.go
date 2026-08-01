@@ -113,6 +113,10 @@ func PrintReport(w io.Writer, r *Result) {
 		printLatencyLine(w, "  Cold (1st pass):", r.ColdReadLatency)
 	}
 
+	if r.TailRatio > 0 {
+		fmt.Fprintf(w, "  Tail ratio: %.1fx (P99/P50)\n", r.TailRatio)
+	}
+
 	if r.ReadAllTime > 0 {
 		fmt.Fprintf(w, "  ReadAll:  %s\n", roundDuration(r.ReadAllTime))
 	}
@@ -188,13 +192,14 @@ func PrintReport(w io.Writer, r *Result) {
 	fmt.Fprintf(w, "  CPU:   %s\n", formatCPUDuration(r.CPU.Delta))
 
 	if r.GCCount > 0 {
-		fmt.Fprintf(w, "  GC:    %d cycles, max pause %s, total %s\n",
-			r.GCCount, roundDuration(r.GCMaxPause), roundDuration(r.GCTotalPause))
+		fmt.Fprintf(w, "  GC:    %d cycles, max pause %s, total %s (%.1f%% of duration)\n",
+			r.GCCount, roundDuration(r.GCMaxPause), roundDuration(r.GCTotalPause), r.GCPercent)
 	}
 
 	if r.AllocCount > 0 {
-		fmt.Fprintf(w, "  Allocs: %s (%s)\n",
-			formatInt(int(r.AllocCount)), formatBytes(r.AllocBytes))
+		fmt.Fprintf(w, "  Allocs: %s (%s) | %.1f allocs/op, %s/op\n",
+			formatInt(int(r.AllocCount)), formatBytes(r.AllocBytes),
+			r.AllocsPerOp, formatBytes(uint64(r.BytesPerOp)))
 	}
 
 	if r.Disk.DatabaseBytes > 0 {

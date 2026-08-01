@@ -3,6 +3,7 @@ package decider
 import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
@@ -68,5 +69,30 @@ func WithLoadCoalescing[State any](enabled bool) RepositoryOption[State] {
 func WithStateCache[State any](cache StateCache[State]) RepositoryOption[State] {
 	return func(r *Repository[State]) {
 		r.stateCache = cache
+	}
+}
+
+// WithFlightRecorder captures a trace snapshot when an Execute call
+// triggers the condition (e.g., slow load/save, command rejection, store
+// error). The snapshot is captured asynchronously to avoid blocking the
+// request path.
+//
+// If trigger is nil, [flightrecorder.OnError] is used (capture on any
+// Execute error). Use [flightrecorder.OnLatency] or
+// [flightrecorder.OnErrorOrLatency] for latency-based diagnosis:
+//
+//	repo, _ := decider.NewRepository(store, bus, d,
+//	    decider.WithFlightRecorder[MyState](recorder,
+//	        flightrecorder.OnErrorOrLatency(200*time.Millisecond)))
+//
+// The recorder must be started separately. Only one flight recorder may
+// be active per process.
+func WithFlightRecorder[State any](
+	recorder *flightrecorder.Recorder,
+	trigger flightrecorder.TriggerFunc,
+) RepositoryOption[State] {
+	return func(r *Repository[State]) {
+		r.flightRecorder = recorder
+		r.flightRecorderTrigger = trigger
 	}
 }

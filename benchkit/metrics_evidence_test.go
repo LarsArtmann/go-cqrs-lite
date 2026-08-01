@@ -203,6 +203,10 @@ func TestResult_JSONIncludesNewFields(t *testing.T) {
 		"gcMeanPause",
 		"allocCount",
 		"allocBytes",
+		"allocsPerOp",
+		"bytesPerOp",
+		"gcPercent",
+		"tailRatio",
 		"writeAmplification",
 		"cpuModel",
 	}
@@ -217,5 +221,44 @@ func TestResult_JSONIncludesNewFields(t *testing.T) {
 	// should appear if there were errors). For memory backend it should be 0.
 	if result.IntegrityErrors != 0 {
 		t.Errorf("IntegrityErrors = %d, want 0", result.IntegrityErrors)
+	}
+}
+
+// TestResult_DerivedMetrics verifies that derived rate metrics
+// (AllocsPerOp, BytesPerOp, GCPercent, TailRatio) are computed from raw data.
+func TestResult_DerivedMetrics(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 256,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if result.AllocsPerOp <= 0 {
+		t.Errorf("AllocsPerOp = %.2f, want > 0", result.AllocsPerOp)
+	}
+
+	if result.BytesPerOp <= 0 {
+		t.Errorf("BytesPerOp = %.2f, want > 0", result.BytesPerOp)
+	}
+
+	// GCPercent can be 0 if duration is 0, but for a real run it should be >= 0.
+	if result.GCPercent < 0 {
+		t.Errorf("GCPercent = %.2f, want >= 0", result.GCPercent)
+	}
+
+	// TailRatio = P99/P50. For a real workload, P99 >= P50 so ratio >= 1.
+	if result.TailRatio < 1.0 {
+		t.Errorf("TailRatio = %.2f, want >= 1.0 (P99 should be >= P50)", result.TailRatio)
+	}
+
+	// Cross-check: AllocsPerOp * TotalEvents should ≈ AllocCount.
+	expected := result.AllocsPerOp * float64(result.TotalEvents)
+	if expected > 0 {
+		ratio := float64(result.AllocCount) / expected
+		if ratio < 0.99 || ratio > 1.01 {
+			t.Errorf("AllocsPerOp cross-check: AllocCount=%d, AllocsPerOp*TotalEvents=%.0f (ratio=%.3f)",
+				result.AllocCount, expected, ratio)
+		}
 	}
 }

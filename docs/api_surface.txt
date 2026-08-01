@@ -2037,6 +2037,7 @@ projectionhost/func RegisterAndWait
 projectionhost/func WithBackoff
 projectionhost/func WithBatchSize
 projectionhost/func WithDeadLetterStore
+projectionhost/func WithFlightRecorder
 projectionhost/func WithLogger
 projectionhost/func WithMaxRestarts
 projectionhost/func WithMetrics

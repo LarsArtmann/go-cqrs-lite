@@ -50,8 +50,8 @@ type SoakSample struct {
 	// GC and allocation pressure per iteration. GCMaxPause growing across
 	// iterations signals degrading GC behavior under sustained load.
 	// AllocBytesPerIter = total bytes allocated / iteration count.
-	GCMaxPause       time.Duration `json:"gcMaxPause,omitempty"`
-	AllocBytes       uint64        `json:"allocBytes,omitempty"`
+	GCMaxPause time.Duration `json:"gcMaxPause,omitempty"`
+	AllocBytes uint64        `json:"allocBytes,omitempty"`
 }
 
 // SoakResult holds the outcome of a soak test, including per-iteration samples

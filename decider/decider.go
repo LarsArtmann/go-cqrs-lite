@@ -3,12 +3,14 @@ package decider
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 	"golang.org/x/sync/singleflight"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
@@ -34,16 +36,18 @@ type Decider[State any] struct {
 // without requiring the consumer to implement mutable state
 // management.
 type Repository[State any] struct {
-	store            event.Store
-	publisher        event.Publisher
-	snapshotStore    snapshot.SnapshotStore
-	codec            codec.Codec
-	snapshotStrategy snapshot.SnapshotStrategy
-	enricher         event.ContextEnricher
-	decider          Decider[State]
-	loadGroup        singleflight.Group
-	loadCoalescing   bool
-	stateCache       StateCache[State]
+	store               event.Store
+	publisher           event.Publisher
+	snapshotStore       snapshot.SnapshotStore
+	codec               codec.Codec
+	snapshotStrategy    snapshot.SnapshotStrategy
+	enricher            event.ContextEnricher
+	decider             Decider[State]
+	loadGroup           singleflight.Group
+	loadCoalescing      bool
+	stateCache          StateCache[State]
+	flightRecorder      *flightrecorder.Recorder
+	flightRecorderTrigger flightrecorder.TriggerFunc
 }
 
 // NewRepository creates a decider-backed repository.
@@ -109,8 +113,10 @@ func (r *Repository[State]) Execute(
 	streamID id.StreamID,
 	streamType id.StreamType,
 	decide DecideFunc[State],
-) error {
+) (execErr error) {
 	ref := id.NewStreamRef(streamType, streamID)
+
+	start := time.Now()
 
 	ctx, span := cqrsotel.StartSpan(
 		ctx, tracer(), "decider.execute",
@@ -118,6 +124,10 @@ func (r *Repository[State]) Execute(
 		cqrsotel.WithAttributes(cqrsotel.StreamAttrs(streamType, streamID)...),
 	)
 	defer span.End()
+
+	defer func() {
+		r.maybeCaptureFlightRecorder(ctx, ref, streamType, execErr, time.Since(start))
+	}()
 
 	state, currentVersion, err := r.Load(ctx, streamID, streamType)
 	if err != nil {
