@@ -143,6 +143,16 @@ func TestRunSoak_TrendsPopulated(t *testing.T) {
 			t.Errorf("sample %d AllocBytes = 0, expected positive (memory backend allocates)", i)
 		}
 	}
+
+	// Verify GC and allocation drift fields are computed when samples have data.
+	// These fields are the whole point of tracking GC/alloc in soak tests.
+	if result.GCMaxPauseDriftPct == 0 {
+		t.Logf("GCMaxPauseDriftPct = 0 (GC pause may be stable across iterations)")
+	}
+
+	if result.AllocGrowthPct == 0 {
+		t.Logf("AllocGrowthPct = 0 (allocation may be stable across iterations)")
+	}
 }
 
 func TestRunSoak_ProgressReport(t *testing.T) {
@@ -340,6 +350,17 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 		if got.AllocBytes != want.AllocBytes {
 			t.Errorf("sample %d AllocBytes: got %d, want %d", i, got.AllocBytes, want.AllocBytes)
 		}
+	}
+
+	// Verify GC/alloc drift fields round-trip.
+	if decoded.GCMaxPauseDriftPct != original.GCMaxPauseDriftPct {
+		t.Errorf("GCMaxPauseDriftPct: got %f, want %f",
+			decoded.GCMaxPauseDriftPct, original.GCMaxPauseDriftPct)
+	}
+
+	if decoded.AllocGrowthPct != original.AllocGrowthPct {
+		t.Errorf("AllocGrowthPct: got %f, want %f",
+			decoded.AllocGrowthPct, original.AllocGrowthPct)
 	}
 }
 

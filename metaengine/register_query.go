@@ -18,7 +18,7 @@ import (
 // Returns an error if the query name is already registered or if no engine
 // supports the query's ADT.
 func (s *Store) RegisterQuery(query any) error {
-	meta, ok := query.(queryMeta)
+	meta, ok := asQueryMeta(query)
 	if !ok {
 		return fmt.Errorf("%w: %T", errNotQueryMeta, query)
 	}

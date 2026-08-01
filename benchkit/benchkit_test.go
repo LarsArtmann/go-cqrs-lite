@@ -1905,6 +1905,8 @@ func TestPrintComparison_EvidenceColumns(t *testing.T) {
 		"LoadP99",
 		"ColdP50",
 		"GCMaxPau",
+		"TailR",
+		"A/op",
 		"WrtAmp",
 		"CoV%",
 	}
