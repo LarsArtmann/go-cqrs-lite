@@ -42,7 +42,7 @@ func BenchmarkMixedWorkload_ReadsDuringWrites(b *testing.B) {
 			}()
 
 			// Reader goroutine(s)
-			for r := range max(1, b.N*int(100-writeRatio)/max(writeRatio, 1)/100) {
+			for r := range max(1, b.N*(100-writeRatio)/max(writeRatio, 1)/100) {
 				wg.Add(1)
 
 				go func(_ int) {

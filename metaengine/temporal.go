@@ -42,7 +42,7 @@ type AsOfSignal struct {
 // supportsVersionedReads checks whether any of the given engines implement
 // VersionedStorage. Used by the planner to emit a diagnostic when a query
 // appears to need temporal reads but no versioned engine is available.
-func supportsVersionedReads(engines []Engine) bool {
+func supportsVersionedReads(engines []Engine) bool { //nolint:unused // used by versionedReadRule
 	for _, eng := range engines {
 		if _, ok := eng.(VersionedStorage); ok {
 			return true
@@ -54,9 +54,9 @@ func supportsVersionedReads(engines []Engine) bool {
 
 // versionedReadRule checks if queries declare temporal read patterns and
 // emits a diagnostic when no VersionedStorage engine is available.
-type versionedReadRule struct{}
+type versionedReadRule struct{} //nolint:unused // planned for future planner integration
 
-func (*versionedReadRule) Name() string { return "versioned-read-check" }
+func (*versionedReadRule) Name() string { return "versioned-read-check" } //nolint:unused
 
 func (*versionedReadRule) Apply(result *PlanResult, ctx PlanContext) error {
 	if supportsVersionedReads(ctx.Store.engines) {

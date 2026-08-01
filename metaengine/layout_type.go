@@ -34,7 +34,7 @@ const (
 //     a column in O(1) via native SUM/COUNT
 //   - (Counter, Row) → O(N) because a row engine must scan all rows
 //   - (Map, KV) → O(1) because KV stores are hash-based point lookups
-func layoutComplexity(adt ADT, layout StorageLayout) Complexity {
+func layoutComplexity(adt ADT, layout StorageLayout) Complexity { //nolint:unused // planned for future cost matrix integration
 	switch adt {
 	case ADTMap:
 		switch layout {
