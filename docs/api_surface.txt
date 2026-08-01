@@ -532,6 +532,7 @@ decider/func NewTypedRepository
 decider/func StrictApply
 decider/func WithCodec
 decider/func WithEnricher
+decider/func WithFlightRecorder
 decider/func WithLoadCoalescing
 decider/func WithPollInterval
 decider/func WithSnapshotStore

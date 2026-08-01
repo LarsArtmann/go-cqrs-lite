@@ -92,16 +92,28 @@ type Result struct {
 	CacheHitLatency           LatencyStats `json:"cacheHitLatency"`
 	SnapshotCorrectnessErrors int          `json:"snapshotCorrectnessErrors,omitempty"`
 
-	// Metaengine metrics — planner overhead with a counter workload (M17).
+	// Metaengine metrics — planner overhead with counter + map workloads (M17).
 	// MetaEngineApplyLatency: per-event Apply latency through the cost-based
-	//   planner (fold dispatch + engine write).
+	//   planner (fold dispatch + engine write). Counter ADT.
 	// MetaEngineQueryLatency: ExecuteTyped read latency (engine point read +
-	//   result materialization).
+	//   result materialization). Counter ADT.
 	// MetaEngineApplyThroughput: events/sec sustained during the Apply burst.
+	// MetaEngineScanLatency: TypedReader.Scan latency with filter — the primary
+	//   collection read path. Shows O(N) scan cost at the configured scale.
+	// MetaEnginePointReadLatency: TypedReader.Get latency — single-item point
+	//   lookup through the planner. Different code path from ExecuteTyped.
+	// MetaEngineApplyConcurrent: concurrent Apply throughput (events/sec with
+	//   Config.Concurrency goroutines). Lower than single-threaded throughput
+	//   indicates lock contention in the engine.
+	// MetaEngineScanResults: items returned by the scan (correctness check).
 	// Zero-valued when Config.SkipMetaEngine is true or the bundle has no metaengine.
-	MetaEngineApplyLatency    LatencyStats `json:"metaEngineApplyLatency"`
-	MetaEngineQueryLatency    LatencyStats `json:"metaEngineQueryLatency"`
-	MetaEngineApplyThroughput float64      `json:"metaEngineApplyThroughput,omitempty"`
+	MetaEngineApplyLatency     LatencyStats `json:"metaEngineApplyLatency"`
+	MetaEngineQueryLatency     LatencyStats `json:"metaEngineQueryLatency"`
+	MetaEngineApplyThroughput  float64      `json:"metaEngineApplyThroughput,omitempty"`
+	MetaEngineScanLatency      LatencyStats `json:"metaEngineScanLatency"`
+	MetaEnginePointReadLatency LatencyStats `json:"metaEnginePointReadLatency"`
+	MetaEngineApplyConcurrent  float64      `json:"metaEngineApplyConcurrent,omitempty"`
+	MetaEngineScanResults      int          `json:"metaEngineScanResults,omitempty"`
 
 	// Recovery metrics (zero-valued when Config.Recovery is false).
 	// RecoveryTime measures the wall-clock time to close the store,
