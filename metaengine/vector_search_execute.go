@@ -146,3 +146,75 @@ func SearchExecuteTyped[Q any](
 
 	return results, nil
 }
+
+// extractSpatialQuery reads the center coordinates, radius, and limit from a
+// query input struct by field name:
+//   - X or Lon or Longitude (float64) — center longitude
+//   - Y or Lat or Latitude (float64) — center latitude
+//   - Radius (float64) — search radius in meters
+//   - Limit (int) — maximum results (default 10)
+func extractSpatialQuery(input any) (x, y, radius float64, limit int) {
+	v := reflect.ValueOf(input)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return 0, 0, 0, 10
+	}
+
+	t := v.Type()
+
+	for i := range t.NumField() {
+		field := t.Field(i)
+		name := field.Name
+
+		switch {
+		case (name == "X" || name == "Lon" || name == "Longitude") && field.Type.Kind() == reflect.Float64:
+			x = v.Field(i).Float()
+
+		case (name == "Y" || name == "Lat" || name == "Latitude") && field.Type.Kind() == reflect.Float64:
+			y = v.Field(i).Float()
+
+		case name == "Radius" && field.Type.Kind() == reflect.Float64:
+			radius = v.Field(i).Float()
+
+		case name == "Limit" && field.Type.Kind() == reflect.Int:
+			limit = int(v.Field(i).Int())
+		}
+	}
+
+	if limit <= 0 {
+		limit = 10
+	}
+
+	return x, y, radius, limit
+}
+
+// SpatialExecuteTyped is the type-safe wrapper for spatial range queries.
+//
+// Usage:
+//
+//	results, err := metaengine.SpatialExecuteTyped[NearbySearch](
+//	    ctx, store, NearbySearch{Lat: 52.5, Lon: 13.4, Radius: 1000, Limit: 10})
+func SpatialExecuteTyped[Q any](
+	ctx context.Context,
+	store *Store,
+	input Q,
+) ([]SpatialResult, error) {
+	raw, err := store.ExecuteCtx(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	if raw == nil {
+		return nil, ErrNotFound
+	}
+
+	results, ok := raw.([]SpatialResult)
+	if !ok {
+		return nil, errExecuteTypeMismatch
+	}
+
+	return results, nil
+}

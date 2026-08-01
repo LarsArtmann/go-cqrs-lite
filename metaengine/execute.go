@@ -177,6 +177,9 @@ func (s *Store) executeQueryInner(
 	case ReadFullTextSearch:
 		return s.executeFullTextSearch(ctx, q, input)
 
+	case ReadSpatialRange:
+		return s.executeSpatialRange(ctx, q, input)
+
 	default:
 		return nil, fmt.Errorf("%w: %s", errUnsupportedPattern, q.readPattern)
 	}
@@ -295,6 +298,21 @@ func (s *Store) executeFullTextSearch(ctx context.Context, q queryRuntime, input
 	}
 
 	return nil, unsupportedEngine(errUnsupportedSearchReads, q.engine.Profile().Name)
+}
+
+func (s *Store) executeSpatialRange(ctx context.Context, q queryRuntime, input any) (any, error) {
+	x, y, radius, limit := extractSpatialQuery(input)
+
+	if sb, ok := q.engine.(SpatialBackend); ok {
+		results, err := sb.SpatialRange(ctx, q.name, x, y, radius, limit)
+		if err != nil {
+			return nil, fmt.Errorf("spatial range %s: %w", q.name, err)
+		}
+
+		return results, nil
+	}
+
+	return nil, unsupportedEngine(errUnsupportedSpatialReads, q.engine.Profile().Name)
 }
 
 // canPushdown returns true when all declared filter/sort accessors carry

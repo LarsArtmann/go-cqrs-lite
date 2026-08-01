@@ -203,6 +203,8 @@ func (q *QueryDecl[Q, R]) infer() {
 		q.ReadPattern = ReadVectorSearch
 	case q.ADT == ADTSearch:
 		q.ReadPattern = ReadFullTextSearch
+	case q.ADT == ADTSpatial:
+		q.ReadPattern = ReadSpatialRange
 	// Map and Set can be overridden by pagination/filters into filtered scans.
 	case q.IsPaginated || len(q.Config.filterAccessors) > 0:
 		q.ReadPattern = ReadFilteredScan
@@ -273,7 +275,7 @@ func (q QueryDecl[Q, R]) QueryKeyType() reflect.Type {
 		switch f.Kind {
 		case FoldInsert, FoldSet:
 			return f.keyType
-		case FoldUpdate, FoldRemove, FoldCount, FoldEdge, FoldSkip, FoldMultiInsert, FoldAppend, FoldVector, FoldSearch:
+		case FoldUpdate, FoldRemove, FoldCount, FoldEdge, FoldSkip, FoldMultiInsert, FoldAppend, FoldVector, FoldSearch, FoldSpatial:
 			// These folds do not declare a value-typed key; only insert/set do.
 		}
 	}

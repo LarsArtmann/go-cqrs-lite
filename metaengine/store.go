@@ -368,6 +368,8 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 		return s.applyFoldVector(ctx, q, fold, payload)
 	case FoldSearch:
 		return s.applyFoldSearch(ctx, q, fold, payload)
+	case FoldSpatial:
+		return s.applyFoldSpatial(ctx, q, fold, payload)
 	default:
 		return fmt.Errorf("%w: %s", errUnknownFoldKind, fold.Kind)
 	}
@@ -560,4 +562,19 @@ func (s *Store) applyFoldSearch(ctx context.Context, q queryRuntime, fold Fold, 
 	}
 
 	return unsupportedEngine(errUnsupportedSearchOps, q.engine.Profile().Name)
+}
+
+func (s *Store) applyFoldSpatial(ctx context.Context, q queryRuntime, fold Fold, payload any) error {
+	col := q.name
+	pt := fold.callSpatial(payload)
+
+	if sb, ok := q.engine.(SpatialBackend); ok {
+		if err := sb.SpatialInsert(ctx, col, pt); err != nil {
+			return fmt.Errorf("spatial insert %s: %w", col, err)
+		}
+
+		return nil
+	}
+
+	return unsupportedEngine(errUnsupportedSpatialOps, q.engine.Profile().Name)
 }

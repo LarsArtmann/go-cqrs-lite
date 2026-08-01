@@ -258,6 +258,7 @@ var (
 	_ LogBackend      = (*memoryEngine)(nil)
 	_ VectorBackend   = (*memoryEngine)(nil)
 	_ SearchBackend   = (*memoryEngine)(nil)
+	_ SpatialBackend  = (*memoryEngine)(nil)
 )
 
 // SQLiteEngineProfile returns the cost profile for a SQLite engine.

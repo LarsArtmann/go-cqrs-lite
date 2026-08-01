@@ -14,6 +14,7 @@ type memoryEngine struct {
 	data       *memData
 	vectorIdx  *MemoryVectorIndex
 	searchIdx  *MemorySearchIndex
+	spatialIdx *MemorySpatialIndex
 }
 
 type memData struct {
@@ -39,8 +40,9 @@ func NewMemoryEngine() Engine {
 			multimaps: make(map[string]map[any][]any),
 			logs:      make(map[string][]any),
 		},
-		vectorIdx: NewMemoryVectorIndex(),
-		searchIdx: NewMemorySearchIndex(),
+		vectorIdx:  NewMemoryVectorIndex(),
+		searchIdx:  NewMemorySearchIndex(),
+		spatialIdx: NewMemorySpatialIndex(),
 	}
 }
 
@@ -58,6 +60,7 @@ func (m *memoryEngine) Profile() EngineProfile {
 			ADTMultimap:  ComplexityO1,
 			ADTVector:    ComplexityON,
 			ADTSearch:    ComplexityON,
+			ADTSpatial:   ComplexityON,
 		},
 	}
 }
@@ -240,4 +243,14 @@ func (m *memoryEngine) SearchInsert(ctx context.Context, col string, doc Indexed
 
 func (m *memoryEngine) SearchQuery(ctx context.Context, col, query string, limit int) ([]SearchResult, error) {
 	return m.searchIdx.Query(ctx, col, query, limit)
+}
+
+// --- SpatialBackend ---
+
+func (m *memoryEngine) SpatialInsert(ctx context.Context, col string, pt Point) error {
+	return m.spatialIdx.Insert(ctx, col, pt)
+}
+
+func (m *memoryEngine) SpatialRange(ctx context.Context, col string, x, y, radius float64, limit int) ([]SpatialResult, error) {
+	return m.spatialIdx.Range(ctx, col, x, y, radius, limit)
 }

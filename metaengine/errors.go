@@ -54,6 +54,9 @@ var (
 	errUnsupportedVectorOps   = errors.New("engine does not support Vector operations")
 	errUnsupportedSearchOps   = errors.New("engine does not support Search operations")
 
+	errUnsupportedSpatialReads = errors.New("engine does not support Spatial reads")
+	errUnsupportedSpatialOps   = errors.New("engine does not support Spatial operations")
+
 	// Verify / consistency errors.
 	errNoEventLog = errors.New(
 		"metaengine.Verify: no event log attached — call WithEventLog first",
