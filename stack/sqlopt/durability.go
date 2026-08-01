@@ -37,5 +37,9 @@ func ApplySQLiteDurability(ctx context.Context, db *sql.DB, tier stack.Durabilit
 		return nil // NORMAL is already set by SQLiteEnableWAL
 	}
 
-	return fmt.Errorf("set sqlite synchronous: %w", storage.SQLiteSetSynchronous(ctx, db, SQLiteSynchronousLevel(tier)))
+	if err := storage.SQLiteSetSynchronous(ctx, db, SQLiteSynchronousLevel(tier)); err != nil {
+		return fmt.Errorf("set sqlite synchronous: %w", err)
+	}
+
+	return nil
 }

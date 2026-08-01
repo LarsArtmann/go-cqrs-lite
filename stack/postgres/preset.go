@@ -183,8 +183,6 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		Embedded:    false,
 		SyncEnabled: false,
 	}))
-		},
-	}))
 
 	if busCleanup != nil {
 		stackOpts = append(stackOpts, stack.WithCloser(busCleanup))
