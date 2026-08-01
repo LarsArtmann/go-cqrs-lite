@@ -123,6 +123,12 @@ The authoritative module index with README links lives in the **[project README]
 | [0080](adr/0080-dialect-interface-upsert-methods.md)       | Dialect interface expansion for cross-database upsert   | Accepted                 |
 | [0081](adr/0081-metaengine-runtime-casts.md)               | Why Metaengine Uses Runtime Casts                       | Accepted                 |
 | [0082](adr/0082-metaengine-store-redesign-analysis.md)     | Metaengine Store Redesign Analysis (eliminate casts)    | Analysis                 |
+| [0083](adr/0083-metaengine-planner-rule-pipeline.md)       | Metaengine planner rule pipeline (composable PlanRule)  | Accepted                 |
+| [0084](adr/0084-metaengine-layered-architecture.md)        | Metaengine layered architecture (StorageLayout, costs)  | Accepted                 |
+| [0085](adr/0085-metaengine-new-adts.md)                    | Metaengine new ADTs (Vector, Search, Spatial)           | Accepted                 |
+| [0086](adr/0086-metaengine-duckdb-engine.md)               | DuckDB metaengine engine (columnar OLAP, CGo)           | Accepted                 |
+| [0087](adr/0087-metaengine-postgres-engine.md)             | Postgres metaengine engine (JSONB + B-tree)             | Accepted                 |
+| [0088](adr/0088-block-level-suppression.md)                | Block-level suppression for cqrs-lint                   | Accepted                 |
 
 ## API Reference
 

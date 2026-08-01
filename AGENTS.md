@@ -845,7 +845,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // CGo required: statically links C++ engine (~30-50MB binary).
 //   // Isolated in stack/duckdb module — consumers who don't import it never need CGo.
 
-// Metaengine planner pipeline (composable PlanRule chain — ADR-0075)
+// Metaengine planner pipeline (composable PlanRule chain — ADR-0083)
 //   // The planner runs a sequence of PlanRule implementations. Each rule can
 //   // inspect the query declaration, engine profiles, and statistics, then
 //   // modify the PlanResult (assign engine, emit diagnostics, apply layout).
@@ -879,7 +879,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //           AvgStreamLength: 50, // events per stream
 //       }))
 
-// Metaengine new ADTs: Vector, Search, Spatial (ADR-0076)
+// Metaengine new ADTs: Vector, Search, Spatial (ADR-0085)
 //   // Three new ADTs extend the planner beyond CRUD:
 //   //
 //   //   ADTVector  → VectorBackend  (k-NN similarity search, cosine/euclidean/dot)

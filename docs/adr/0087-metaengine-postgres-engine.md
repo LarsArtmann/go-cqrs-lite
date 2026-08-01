@@ -1,8 +1,8 @@
-# ADR-0078: Postgres Metaengine Engine
+# ADR-0087: Postgres Metaengine Engine
 
 **Date:** 2026-08-01
 **Status:** Accepted
-**Depends on:** ADR-0061 (metaengine-sqlite-engine), ADR-0075 (cost matrix)
+**Depends on:** ADR-0061 (metaengine-sqlite-engine), ADR-0084 (cost matrix)
 
 ## Context
 

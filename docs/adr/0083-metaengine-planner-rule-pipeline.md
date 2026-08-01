@@ -1,4 +1,4 @@
-# ADR-0074: Metaengine Planner Rule Pipeline
+# ADR-0083: Metaengine Planner Rule Pipeline
 
 **Date:** 2026-08-01
 **Status:** ACCEPTED

@@ -1,9 +1,9 @@
-# ADR-0076: Metaengine New ADTs (Vector, Search, Spatial)
+# ADR-0085: Metaengine New ADTs (Vector, Search, Spatial)
 
 **Date:** 2026-08-01
 **Status:** Accepted
 **Supersedes:** N/A
-**Related:** [ADR-0075](0075-metaengine-layered-architecture.md) (layered architecture), [ADR-0062](0062-metaengine-dependency-boundary.md)
+**Related:** [ADR-0084](0084-metaengine-layered-architecture.md) (layered architecture), [ADR-0062](0062-metaengine-dependency-boundary.md)
 
 ## Context
 

@@ -1,4 +1,4 @@
-# ADR-0079: Block-Level Suppression for cqrs-lint
+# ADR-0088: Block-Level Suppression for cqrs-lint
 
 **Date:** 2026-08-01
 **Status:** Accepted

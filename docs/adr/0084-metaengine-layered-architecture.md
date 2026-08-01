@@ -1,11 +1,11 @@
-# ADR-0075: Metaengine Layered Architecture (StorageLayout, Cost Matrix, Materialize-vs-Replay)
+# ADR-0084: Metaengine Layered Architecture (StorageLayout, Cost Matrix, Materialize-vs-Replay)
 
 **Date:** 2026-08-01
 **Status:** ACCEPTED
 
 ## Context
 
-After the rule pipeline extraction (ADR-0074), the planner could support
+After the rule pipeline extraction (ADR-0083), the planner could support
 new capabilities as composable rules. The plan identified three
 high-value additions:
 

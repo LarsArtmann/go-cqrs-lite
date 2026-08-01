@@ -1,9 +1,9 @@
-# ADR-0077: DuckDB Metaengine Engine
+# ADR-0086: DuckDB Metaengine Engine
 
 **Date:** 2026-08-01
 **Status:** Accepted
 **Supersedes:** N/A
-**Related:** [ADR-0076](0076-metaengine-new-adts.md) (new ADTs), [ADR-0062](0062-metaengine-dependency-boundary.md) (dependency boundary), [ADR-0075](0075-metaengine-layered-architecture.md) (layered architecture)
+**Related:** [ADR-0085](0085-metaengine-new-adts.md) (new ADTs), [ADR-0062](0062-metaengine-dependency-boundary.md) (dependency boundary), [ADR-0084](0084-metaengine-layered-architecture.md) (layered architecture)
 
 ## Context
 
@@ -12,7 +12,7 @@ The metaengine has two existing engine implementations:
 2. **PebbleEngine** — LSM point reads, separate module (cockroachdb/pebble dep).
 3. **SQLiteEngine** — in core module, row-oriented, `json_extract` pushdown.
 
-DuckDB is an embedded columnar (OLAP) database that excels at analytical workloads. It uses vectorized execution for GROUP BY aggregations, making Counter reads O(1) effectively. The layered architecture (ADR-0075) declares `LayoutColumnar` as a storage layout, and the cost matrix shows `(Counter, Columnar) → O(1)`. Without a DuckDB engine, this cost matrix entry has no backing implementation.
+DuckDB is an embedded columnar (OLAP) database that excels at analytical workloads. It uses vectorized execution for GROUP BY aggregations, making Counter reads O(1) effectively. The layered architecture (ADR-0084) declares `LayoutColumnar` as a storage layout, and the cost matrix shows `(Counter, Columnar) → O(1)`. Without a DuckDB engine, this cost matrix entry has no backing implementation.
 
 ## Decision
 
@@ -40,7 +40,7 @@ The write cost is higher than SQLite (7,000 ns) because DuckDB's columnar flush 
 
 ### Storage layout declarations
 
-The engine declares `LayoutColumnar` for Map, Counter, and SortedMap ADTs in its `EngineProfile.Layouts` map. This is the first engine to use the `LayoutColumnar` layout, validating the cost matrix infrastructure from ADR-0075.
+The engine declares `LayoutColumnar` for Map, Counter, and SortedMap ADTs in its `EngineProfile.Layouts` map. This is the first engine to use the `LayoutColumnar` layout, validating the cost matrix infrastructure from ADR-0084.
 
 ### CGo isolation
 
@@ -54,7 +54,7 @@ Following the pattern from `stack/duckdb`:
 
 ### Positive
 
-- **Proves the columnar pushdown pattern** — the first engine to declare `LayoutColumnar`, validating that the cost matrix from ADR-0075 works with real engines
+- **Proves the columnar pushdown pattern** — the first engine to declare `LayoutColumnar`, validating that the cost matrix from ADR-0084 works with real engines
 - **Counter reads are O(1)** — DuckDB's vectorized GROUP BY makes aggregate reads extremely fast, validating the cost matrix entry `(Counter, Columnar) → O(1)`
 - **CGo is isolated** — the module is separate; non-importers never pay the CGo cost
 - **Follows the pebbleengine pattern exactly** — same module structure, same replace directive for the local metaengine dep
