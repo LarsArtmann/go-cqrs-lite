@@ -1056,6 +1056,7 @@ flightrecorder/func WithMaxBytes
 flightrecorder/func WithMinAge
 flightrecorder/func WithWriter
 flightrecorder/method Close
+flightrecorder/method Close
 flightrecorder/method Enabled
 flightrecorder/method Reset
 flightrecorder/method Snapshot
@@ -1064,11 +1065,11 @@ flightrecorder/method SnapshotToFile
 flightrecorder/method Start
 flightrecorder/method Stop
 flightrecorder/method Write
-flightrecorder/method Writer
 flightrecorder/struct Recorder
 flightrecorder/struct TriggerContext
 flightrecorder/type Option
 flightrecorder/type TriggerFunc
+flightrecorder/var ErrAlreadyEnabled
 graph/func NewGraphProjection
 graph/func NewMemoryDriver
 graph/func WithDriverSchema
