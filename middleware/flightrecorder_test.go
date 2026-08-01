@@ -16,6 +16,26 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
+// safeBuffer is a mutex-protected bytes.Buffer for concurrent read/write in tests.
+type safeBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (sb *safeBuffer) Write(p []byte) (int, error) {
+	sb.mu.Lock()
+	defer sb.mu.Unlock()
+
+	return sb.buf.Write(p)
+}
+
+func (sb *safeBuffer) Len() int {
+	sb.mu.Lock()
+	defer sb.mu.Unlock()
+
+	return sb.buf.Len()
+}
+
 // frRecorderMu serializes flight recorder tests because Go's runtime/trace
 // allows only ONE active flight recorder per process.
 var frRecorderMu sync.Mutex
@@ -45,7 +65,7 @@ func TestFlightRecorder_NilTrigger(t *testing.T) {
 	frRecorderMu.Lock()
 	defer frRecorderMu.Unlock()
 
-	var buf bytes.Buffer
+	var buf safeBuffer
 
 	r, _ := flightrecorder.New(
 		flightrecorder.WithMinAge(50*time.Millisecond),
@@ -73,7 +93,7 @@ func TestCommandFlightRecorder_LatencyTrigger(t *testing.T) {
 	frRecorderMu.Lock()
 	defer frRecorderMu.Unlock()
 
-	var buf bytes.Buffer
+	var buf safeBuffer
 
 	r, _ := flightrecorder.New(
 		flightrecorder.WithMinAge(50*time.Millisecond),
@@ -110,7 +130,7 @@ func TestCommandFlightRecorder_FastOperationNoSnapshot(t *testing.T) {
 	frRecorderMu.Lock()
 	defer frRecorderMu.Unlock()
 
-	var buf bytes.Buffer
+	var buf safeBuffer
 
 	r, _ := flightrecorder.New(
 		flightrecorder.WithMinAge(50*time.Millisecond),
@@ -140,7 +160,7 @@ func TestCommandFlightRecorder_ErrorTrigger(t *testing.T) {
 	frRecorderMu.Lock()
 	defer frRecorderMu.Unlock()
 
-	var buf bytes.Buffer
+	var buf safeBuffer
 
 	r, _ := flightrecorder.New(
 		flightrecorder.WithMinAge(50*time.Millisecond),
@@ -193,7 +213,7 @@ func TestEventFlightRecorder_ErrorTrigger(t *testing.T) {
 	frRecorderMu.Lock()
 	defer frRecorderMu.Unlock()
 
-	var buf bytes.Buffer
+	var buf safeBuffer
 
 	r, _ := flightrecorder.New(
 		flightrecorder.WithMinAge(50*time.Millisecond),
@@ -230,7 +250,7 @@ func TestQueryFlightRecorder_LatencyTrigger(t *testing.T) {
 	frRecorderMu.Lock()
 	defer frRecorderMu.Unlock()
 
-	var buf bytes.Buffer
+	var buf safeBuffer
 
 	r, _ := flightrecorder.New(
 		flightrecorder.WithMinAge(50*time.Millisecond),
@@ -267,7 +287,7 @@ func TestFlightRecorder_SnapshotOnce(t *testing.T) {
 	frRecorderMu.Lock()
 	defer frRecorderMu.Unlock()
 
-	var buf bytes.Buffer
+	var buf safeBuffer
 
 	r, _ := flightrecorder.New(
 		flightrecorder.WithMinAge(50*time.Millisecond),
