@@ -1323,8 +1323,10 @@ metaengine/const ADTGraph
 metaengine/const ADTLog
 metaengine/const ADTMap
 metaengine/const ADTMultimap
+metaengine/const ADTSearch
 metaengine/const ADTSet
 metaengine/const ADTSortedMap
+metaengine/const ADTVector
 metaengine/const AggregateAvg
 metaengine/const AggregateCount
 metaengine/const AggregateMax
@@ -1387,6 +1389,8 @@ metaengine/func MaterializeCost
 metaengine/func NewCostAccuracyReporter
 metaengine/func NewEventLog
 metaengine/func NewMemoryEngine
+metaengine/func NewMemorySearchIndex
+metaengine/func NewMemoryVectorIndex
 metaengine/func NewPlannedSQLiteEngine
 metaengine/func NewPrefetchCache
 metaengine/func NewQueryBuilder
@@ -1456,12 +1460,16 @@ metaengine/interface PushdownScan
 metaengine/interface RawScanReader
 metaengine/interface RawValueReader
 metaengine/interface ScanBackend
+metaengine/interface SearchBackend
 metaengine/interface SetBackend
 metaengine/interface Span
 metaengine/interface StreamingScan
 metaengine/interface Tracer
 metaengine/interface Transactional
+metaengine/interface VectorBackend
+metaengine/interface VersionedStorage
 metaengine/method Aggregate
+metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
@@ -1499,6 +1507,7 @@ metaengine/method EventTypes
 metaengine/method Events
 metaengine/method Execute
 metaengine/method Execute
+metaengine/method ExecuteAsOf
 metaengine/method ExecuteCtx
 metaengine/method Exists
 metaengine/method Explain
@@ -1518,6 +1527,8 @@ metaengine/method HasWarnings
 metaengine/method HealthCheck
 metaengine/method Import
 metaengine/method InTransaction
+metaengine/method Insert
+metaengine/method Insert
 metaengine/method Inspect
 metaengine/method InspectJSON
 metaengine/method IsPoisoned
@@ -1550,6 +1561,7 @@ metaengine/method Name
 metaengine/method Name
 metaengine/method Name
 metaengine/method Name
+metaengine/method Name
 metaengine/method ObservedWorkloadStats
 metaengine/method Plan
 metaengine/method Primary
@@ -1557,6 +1569,7 @@ metaengine/method Profile
 metaengine/method Profile
 metaengine/method PushdownMapScan
 metaengine/method Put
+metaengine/method Query
 metaengine/method QueryADT
 metaengine/method QueryConfig
 metaengine/method QueryFolds
@@ -1578,6 +1591,7 @@ metaengine/method RunInTx
 metaengine/method Scan
 metaengine/method ScanPage
 metaengine/method ScanRawValues
+metaengine/method Search
 metaengine/method SetAdd
 metaengine/method SetAdd
 metaengine/method SetContains
@@ -1643,6 +1657,7 @@ metaengine/projectionadapter/type AdapterOption
 metaengine/projectionadapter/type EventDecoder
 metaengine/projectionadapter/type PayloadDecoder
 metaengine/struct Append
+metaengine/struct AsOfSignal
 metaengine/struct CollectionInfo
 metaengine/struct CollectionStats
 metaengine/struct CostAccuracyReporter
@@ -1651,6 +1666,7 @@ metaengine/struct CostReport
 metaengine/struct Cursor
 metaengine/struct Diagnostic
 metaengine/struct Edge
+metaengine/struct Embedding
 metaengine/struct EngineProfile
 metaengine/struct EventInput
 metaengine/struct EventLog
@@ -1659,8 +1675,11 @@ metaengine/struct FilterSpec
 metaengine/struct Fold
 metaengine/struct Hooks
 metaengine/struct InSpec
+metaengine/struct IndexedText
 metaengine/struct LayoutPlan
 metaengine/struct LayoutVersion
+metaengine/struct MemorySearchIndex
+metaengine/struct MemoryVectorIndex
 metaengine/struct MultiEntry
 metaengine/struct PlanContext
 metaengine/struct PlanResult
@@ -1678,6 +1697,7 @@ metaengine/struct RuleTraceEntry
 metaengine/struct SSEConfig
 metaengine/struct SSEReplay
 metaengine/struct ScaleThreshold
+metaengine/struct SearchResult
 metaengine/struct SeqValue
 metaengine/struct SerializableLayout
 metaengine/struct SerializablePlan
@@ -1690,6 +1710,7 @@ metaengine/struct Store
 metaengine/struct TTLConfig
 metaengine/struct TieredStore
 metaengine/struct TypedReader
+metaengine/struct VectorResult
 metaengine/struct Watcher
 metaengine/struct WorkloadStats
 metaengine/type ADT
