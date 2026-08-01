@@ -21,16 +21,21 @@ func TestDuckDBEngine_MapBackend(t *testing.T) {
 
 	ctx := context.Background()
 
+	mb, ok := eng.(metaengine.MapBackend)
+	if !ok {
+		t.Fatal("engine does not implement MapBackend")
+	}
+
 	type Task struct {
 		ID    string
 		Title string
 	}
 
-	if err := eng.MapSet(ctx, "tasks", "t1", Task{ID: "t1", Title: "Buy milk"}); err != nil {
+	if err := mb.MapSet(ctx, "tasks", "t1", Task{ID: "t1", Title: "Buy milk"}); err != nil {
 		t.Fatal(err)
 	}
 
-	val, found, err := eng.MapGet(ctx, "tasks", "t1")
+	val, found, err := mb.MapGet(ctx, "tasks", "t1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,15 +65,20 @@ func TestDuckDBEngine_CounterBackend(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := eng.CounterIncrement(ctx, "counts", metaengine.Delta{"open": 3, "closed": 1}); err != nil {
+	cb, ok := eng.(metaengine.CounterBackend)
+	if !ok {
+		t.Fatal("engine does not implement CounterBackend")
+	}
+
+	if err := cb.CounterIncrement(ctx, "counts", metaengine.Delta{"open": 3, "closed": 1}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := eng.CounterIncrement(ctx, "counts", metaengine.Delta{"open": 2}); err != nil {
+	if err := cb.CounterIncrement(ctx, "counts", metaengine.Delta{"open": 2}); err != nil {
 		t.Fatal(err)
 	}
 
-	result, err := eng.CounterGet(ctx, "counts")
+	result, err := cb.CounterGet(ctx, "counts")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,13 +141,10 @@ func TestDuckDBEngine_MetaenginePlan(t *testing.T) {
 	}
 
 	type CountInput struct{}
-	type CountResult struct {
-		Counts map[string]int64
-	}
 
 	store, err := metaengine.Plan(
 		[]metaengine.Engine{eng},
-		metaengine.Query[CountInput, CountResult]("category_counts",
+		metaengine.Query[CountInput, map[string]int64]("category_counts",
 			metaengine.On(ItemCreated{}, func(e ItemCreated) metaengine.Delta {
 				return metaengine.Delta{e.Category: e.Count}
 			}),
@@ -158,12 +165,12 @@ func TestDuckDBEngine_MetaenginePlan(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := metaengine.ExecuteTyped[CountInput, CountResult](ctx, store, CountInput{})
+	result, err := metaengine.ExecuteTyped[CountInput, map[string]int64](ctx, store, CountInput{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if result.Counts["books"] != 8 {
-		t.Errorf("books count: got %d, want 8", result.Counts["books"])
+	if result["books"] != 8 {
+		t.Errorf("books count: got %d, want 8", result["books"])
 	}
 }
