@@ -60,6 +60,7 @@
 | `projection`           | `projection/v4`           | `Projection`, `NewProjection`. Consumer-side projection interface extracted from `event/`.                                                                                                                                                          |
 | `projectionhost`       | `projectionhost/v4`       | `Host`, `WorkerState`, `DeadLetterStore`, `SQLiteDeadLetterStore`, `DeadLetterStoreAdmin` (Count/ListPaged/PurgeBefore), `MemoryDeadLetterStore`, `RegisterAndWait`, `ReplayDeadLetters`. Managed lifecycle: crash-restart, checkpoint, poison DLQ. |
 | `scenario`             | `scenario/v4`             | Fluent BDD: `Given/When/Then`, `ThenError`, `ThenState`, `GivenProjection/ThenNoError`. Test deciders + projections.                                                                                                                                |
+| `flightrecorder`       | `flightrecorder/v4`       | `Recorder`, `TriggerFunc`, `OnLatency`/`OnError`/`OnErrorOrLatency`. Zero-dep Go 1.25 `runtime/trace.FlightRecorder` wrapper. CQRS triggers in `middleware/`. Integrates with `decider`, `projectionhost`, `stack`. |
 
 ### Tooling (Layer 6)
 

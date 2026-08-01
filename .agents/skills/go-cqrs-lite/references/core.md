@@ -128,6 +128,7 @@ with projection + read model.
 | Stream events to browsers via SSE                     | `transport/http` (`SSEBroker`)                                                  | advanced §6.15  |
 | Replay events to reconnecting clients (catch-up)      | `transport/http` (Last-Event-ID) or `watermill` (`CatchUpSubscriber`)           | advanced §6.15  |
 | Pull-based event backfill (REST endpoint)             | `transport/http` (`BackfillHandler`)                                            | advanced §6.15  |
+| Capture execution trace on slow/error operations      | `flightrecorder` + `middleware`                                                 | recipes §2.17   |
 
 > **§2 (recipes), §5 (module reference), §6 (advanced patterns)** live in the on-demand `references/` files. This is the progressive-disclosure design — this file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
 

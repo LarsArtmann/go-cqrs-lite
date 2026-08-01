@@ -90,7 +90,7 @@ func (r *runner) metaEngineCounterWorkload(ctx context.Context) error {
 
 		start := time.Now()
 
-		if err := store.Apply(ctx, "MeBenchIncrementEvent",
+		if err := store.Apply(ctx, "meBenchIncrementEvent",
 			meBenchIncrementEvent{Status: status}); err != nil {
 			return err
 		}

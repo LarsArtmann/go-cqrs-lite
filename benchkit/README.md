@@ -112,17 +112,26 @@ See [ADR-0060](../docs/adr/0060-benchkit-design-decisions.md) for design rationa
 
 - **Write latency**: P50/P75/P90/P95/P99/P100/Mean around `EventSink.Save()`
 - **Read latency**: P50-P100 around `EventSource.Load()`
+- **Cold-read latency**: first read pass isolated (OS page cache miss → disk I/O)
 - **Journal scans**: `ReadAll()` and `ReadFrom()` wall time (multi-pass when `Profile.JournalScans > 1`)
 - **Read model**: kv.Store `Set()` and `Get()` latency percentiles
 - **Projection**: lag, events processed — uses a real kv.Store-backed counting projection (Get+Set per event)
 - **Journey** (`JourneyLatency`): end-to-end publish→projection→query round trip (one event to a fresh stream + synchronous projection + typed query dispatch). Reports projection and query legs separately.
 - **Query dispatch**: `query.Dispatcher` overhead for hit (registered handler), miss (unregistered type), and paginated result paths
 - **Snapshot/cache**: decider Load under cold replay (full fold), snapshot load (`EveryNEvents`), and state-cache hit/miss — with correctness assertions across strategies
+- **Metaengine** (M17): Counter ADT Apply+ExecuteTyped + Map ADT Apply+Scan+PointRead+ConcurrentApply — measures planner overhead, collection scan cost, and write contention
 - **Recovery**: close+reopen+reload time and recovered events (when `Config.Recovery` is set)
 - **Throughput**: events/sec sustained during write phase
+- **Statistical reliability**: coefficient of variation (CoV), standard deviation, `RepeatIsReliable` flag (CoV < 10% = trustworthy). Use `Repeat > 1` to enable.
+- **GC pauses**: cycle count, max/mean/total pause duration — reveals whether tail latency is caused by the backend or by Go's GC
+- **Allocations**: total alloc count + bytes — correlates with GC pressure
+- **Derived rates**: AllocsPerOp, BytesPerOp, GCPercent (time spent in GC), TailRatio (P99/P50)
+- **Write amplification**: `DatabaseBytes / EventBytes` ratio — reveals LSM amplification
+- **Data integrity**: post-write read-back verification of 20 sampled streams (count, payload decode, version sequence). Zero errors = trustworthy data.
 - **Memory**: peak heap allocation via runtime.MemStats
 - **Storage**: on-disk database size (when DiskPath configured)
 - **CPU**: process user+sys time via `syscall.Getrusage` (Unix), stub on non-Unix
+- **Environment**: Go version, OS/arch, CPU model (`/proc/cpuinfo` on Linux), GOMAXPROCS
 
 ## Testing.B integration
 

@@ -645,6 +645,65 @@ Both `WithCursor(raw)` and `WithCursorString(encoded)` produce identical
 PrefetchCache keys because the cache normalizes through `Cursor.Encode()`.
 The `PrefetchCache` is thread-safe (RWMutex).
 
+### 2.17 Flight Recorder — Capture Trace on Slow/Error (flightrecorder + middleware)
+
+Buffer the last few seconds of execution trace in memory. When an operation
+crosses a latency threshold or errors, snapshot the trace for offline analysis
+with `go tool trace`.
+
+```go
+import (
+    flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
+    "github.com/larsartmann/go-cqrs-lite/middleware/v4"
+)
+
+// 1. Create and start the recorder (only 1 active per process).
+recorder, _ := flightrecorder.New(
+    flightrecorder.WithMinAge(10*time.Second),  // buffer window
+    flightrecorder.WithMaxBytes(10<<20),        // 10 MiB
+    flightrecorder.WithFile("debug.trace"),     // snapshot destination
+)
+recorder.Start()
+defer recorder.Close() // stops recording + closes file
+
+// 2. Wire triggers into middleware (snapshot when cmd >100ms OR errors).
+cmdDisp.Use(middleware.CommandFlightRecorder(recorder,
+    flightrecorder.OnErrorOrLatency(100*time.Millisecond)))
+bus.Use(middleware.EventFlightRecorder(recorder,
+    flightrecorder.OnError()))
+qryDisp.Use(middleware.QueryFlightRecorder(recorder,
+    flightrecorder.OnLatency(500*time.Millisecond)))
+
+// 3. Also wire into decider and projection host:
+// repo, _ := decider.NewRepository(store, bus, d,
+//     decider.WithFlightRecorder[MyState](recorder,
+//         flightrecorder.OnErrorOrLatency(200*time.Millisecond)))
+// host, _ := projectionhost.New(journal, cpStore,
+//     projectionhost.WithFlightRecorder(recorder, flightrecorder.OnAlways()))
+
+// 4. Analyze: go tool trace debug.trace
+// Once-semantics: first trigger captures, rest are no-ops (call Reset() for multiple)
+```
+
+**Trigger options:**
+
+| Trigger | Fires when |
+|---------|-----------|
+| `OnLatency(threshold)` | Duration exceeds threshold |
+| `OnError()` | Operation returned non-nil error |
+| `OnErrorOrLatency(threshold)` | Either of the above (recommended default) |
+| `OnAlways()` | Every operation (testing/baseline) |
+| `OnAny(triggers...)` | Any trigger fires (OR) |
+| `OnAll(triggers...)` | All triggers fire (AND) |
+
+**Stack bundle integration** (lifecycle management + discovery):
+
+```go
+bundle, _ := sqlite.New(dsn, stack.WithFlightRecorder(recorder))
+defer bundle.Close() // stops recorder automatically
+// Access for trigger wiring: bundle.FlightRecorder()
+```
+
 ## Metaengine + Stack Bundle Integration
 
 Wire a cost-based query planner into the Bundle lifecycle with one option.

@@ -569,3 +569,39 @@ These are the failure modes we see most often. Read them before reaching for an 
 - **Using `deriver` for orchestration that needs compensation.** Derivers are deterministic event→command functions — great for fan-out (welcome email + CRM sync from `user.created`). They are NOT a replacement for a saga that must compensate on failure. If you need rollback semantics, model it as its own event-sourced stream.
 - **Forgetting that `graph` projections don't tombstone-mark.** The `listing/` tombstone-aware status model (advanced §6.3) works on the relational/KV tier. Graph projections need their own deletion handling in the projection handler — a soft-deleted stream won't auto-prune its edges.
 - **Treating `projectionhost` DeadLetterStore as permanent storage.** The in-memory DLQ is for crash-restart durability within a process. For multi-instance durability, back it with a SQL dead-letter store. Poison messages replay automatically on host restart unless explicitly acked.
+
+### 6.17 Flight Recorder — Execution Trace Capture (flightrecorder)
+
+Go 1.25's `runtime/trace.FlightRecorder` buffers the last few seconds of
+execution trace in memory. When a problem is detected, snapshot the trace
+window for offline analysis with `go tool trace`.
+
+**Core module** (zero-dep, stdlib only):
+
+```go
+recorder, _ := flightrecorder.New(
+    flightrecorder.WithMinAge(10*time.Second),
+    flightrecorder.WithFile("crash.trace"),
+)
+recorder.Start()
+defer recorder.Close()
+```
+
+**Integration points** — every CQRS layer has a flight recorder hook:
+
+| Layer | Option | Trigger fires on |
+|-------|--------|-----------------|
+| Command middleware | `middleware.CommandFlightRecorder` | Per-dispatch latency/error |
+| Event middleware | `middleware.EventFlightRecorder` | Per-handler latency/error |
+| Query middleware | `middleware.QueryFlightRecorder` | Per-query latency/error |
+| Decider | `decider.WithFlightRecorder[State]` | Execute latency/error |
+| Projection host | `projectionhost.WithFlightRecorder` | Terminal worker failure |
+| Stack bundle | `stack.WithFlightRecorder` | Lifecycle management + discovery |
+
+**Key constraints:**
+- Only 1 active recorder per process (`ErrAlreadyEnabled` on double `Start()`)
+- Once-semantics: first trigger captures, rest are no-ops (call `Reset()` for multiple)
+- Snapshot context is checked pre-write (not during — `WriteTo` doesn't accept ctx)
+- `Recorder` implements `io.Closer` — participates in `stack.Bundle.Close()` shutdown ordering
+
+See [ADR-0089](../../../../docs/adr/0089-flight-recorder.md) for design rationale.

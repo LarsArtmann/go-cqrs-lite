@@ -667,15 +667,24 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //       flightrecorder.WithFile("slow.trace"),
 //   )
 //   recorder.Start()
-//   defer recorder.Stop()
+//   defer recorder.Close() // Close stops recording AND closes file writers
 //   // Capture when any command exceeds 100ms OR errors:
 //   cmdDisp.Use(middleware.CommandFlightRecorder(recorder,
 //       flightrecorder.OnErrorOrLatency(100*time.Millisecond)))
 //   // Same for events and queries:
 //   bus.Use(middleware.EventFlightRecorder(recorder, flightrecorder.OnError()))
 //   qryDisp.Use(middleware.QueryFlightRecorder(recorder, flightrecorder.OnLatency(500*time.Millisecond)))
+//   // Decider integration (captures on slow/error Execute calls):
+//   repo, _ := decider.NewRepository(store, bus, d,
+//       decider.WithFlightRecorder[MyState](recorder, flightrecorder.OnErrorOrLatency(200*time.Millisecond)))
+//   // Projection host integration (captures on terminal worker failure):
+//   host, _ := projectionhost.New(journal, cpStore,
+//       projectionhost.WithFlightRecorder(recorder, flightrecorder.OnAlways()))
+//   // Stack bundle integration (lifecycle management + discovery):
+//   bundle, _ := sqlite.New(dsn, stack.WithFlightRecorder(recorder))
 //   // Analyze: go tool trace slow.trace
 //   // Once-semantics: first trigger captures, rest are no-ops (call Reset() for multiple)
+//   // Only 1 active recorder per process (ErrAlreadyEnabled on double Start)
 
 // Idempotency middleware (dedup for at-least-once delivery, all 3 CQRS message types)
 //   store := idempotency.NewMemoryStore(5 * time.Minute)

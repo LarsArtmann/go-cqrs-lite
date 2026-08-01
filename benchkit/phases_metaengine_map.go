@@ -82,7 +82,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 		status := statuses[i%len(statuses)]
 		priority := i % 100
 
-		if err := store.Apply(ctx, "MeBenchItemCreated", meBenchItemCreated{
+		if err := store.Apply(ctx, "meBenchItemCreated", meBenchItemCreated{
 			ID:       id,
 			Status:   status,
 			Priority: priority,
@@ -177,7 +177,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 		func(_ context.Context, idx int) error {
 			status := statuses[idx%len(statuses)]
 
-			return store.Apply(ctx, "MeBenchItemCreated", meBenchItemCreated{
+			return store.Apply(ctx, "meBenchItemCreated", meBenchItemCreated{
 				ID:       fmt.Sprintf("conc-%06d", idx),
 				Status:   status,
 				Priority: idx % 100,
