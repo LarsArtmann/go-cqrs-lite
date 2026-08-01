@@ -273,7 +273,7 @@ func (q QueryDecl[Q, R]) QueryKeyType() reflect.Type {
 		switch f.Kind {
 		case FoldInsert, FoldSet:
 			return f.keyType
-		case FoldUpdate, FoldRemove, FoldCount, FoldEdge, FoldSkip, FoldMultiInsert, FoldAppend:
+		case FoldUpdate, FoldRemove, FoldCount, FoldEdge, FoldSkip, FoldMultiInsert, FoldAppend, FoldVector, FoldSearch:
 			// These folds do not declare a value-typed key; only insert/set do.
 		}
 	}

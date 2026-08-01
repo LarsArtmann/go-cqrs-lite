@@ -20,6 +20,7 @@ const (
 	FoldAppend      FoldKind = "append"
 	FoldVector      FoldKind = "vector"
 	FoldSearch      FoldKind = "search"
+	FoldSpatial     FoldKind = "spatial"
 )
 
 // Fold is a single event-to-projection mapping.
@@ -44,6 +45,7 @@ type Fold struct {
 	appendHandler      any // func(e E) Append
 	vectorHandler      any // func(e E) Embedding
 	searchHandler      any // func(e E) IndexedText
+	spatialHandler     any // func(e E) Point
 }
 
 func EventTypeName(sample any) string {
@@ -160,6 +162,7 @@ func classifySingleReturn[E any](
 	appendType := reflect.TypeFor[Append]()
 	embeddingType := reflect.TypeFor[Embedding]()
 	indexedTextType := reflect.TypeFor[IndexedText]()
+	pointType := reflect.TypeFor[Point]()
 
 	switch outType {
 	case embeddingType:
@@ -175,6 +178,13 @@ func classifySingleReturn[E any](
 			EventSample:   sample,
 			Kind:          FoldSearch,
 			searchHandler: handler,
+		}
+	case pointType:
+		return Fold{
+			EventType:      eventType,
+			EventSample:    sample,
+			Kind:           FoldSpatial,
+			spatialHandler: handler,
 		}
 	case deltaType:
 		return Fold{

@@ -1,6 +1,9 @@
 package metaengine
 
-import "reflect"
+import (
+	"context"
+	"reflect"
+)
 
 // extractVectorQuery reads the query vector, metric, and k from a query input
 // struct by field name. Recognized field names:

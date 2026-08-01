@@ -256,6 +256,8 @@ var (
 	_ GraphBackend    = (*memoryEngine)(nil)
 	_ MultimapBackend = (*memoryEngine)(nil)
 	_ LogBackend      = (*memoryEngine)(nil)
+	_ VectorBackend   = (*memoryEngine)(nil)
+	_ SearchBackend   = (*memoryEngine)(nil)
 )
 
 // SQLiteEngineProfile returns the cost profile for a SQLite engine.

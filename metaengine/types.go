@@ -27,6 +27,7 @@ const (
 	ReadLogTail      ReadPattern = "log_tail"
 	ReadVectorSearch ReadPattern = "vector_search"
 	ReadFullTextSearch ReadPattern = "full_text_search"
+	ReadSpatialRange  ReadPattern = "spatial_range"
 )
 
 // Delta is a counter update: key to delta.

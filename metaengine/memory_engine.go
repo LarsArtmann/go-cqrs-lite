@@ -10,8 +10,10 @@ import (
 
 // memoryEngine implements all ADT backends for testing and development.
 type memoryEngine struct {
-	mu   sync.RWMutex
-	data *memData
+	mu         sync.RWMutex
+	data       *memData
+	vectorIdx  *MemoryVectorIndex
+	searchIdx  *MemorySearchIndex
 }
 
 type memData struct {
@@ -37,6 +39,8 @@ func NewMemoryEngine() Engine {
 			multimaps: make(map[string]map[any][]any),
 			logs:      make(map[string][]any),
 		},
+		vectorIdx: NewMemoryVectorIndex(),
+		searchIdx: NewMemorySearchIndex(),
 	}
 }
 
@@ -52,6 +56,8 @@ func (m *memoryEngine) Profile() EngineProfile {
 			ADTSortedMap: ComplexityON,
 			ADTLog:       ComplexityON,
 			ADTMultimap:  ComplexityO1,
+			ADTVector:    ComplexityON,
+			ADTSearch:    ComplexityON,
 		},
 	}
 }
@@ -214,4 +220,24 @@ func (m *memoryEngine) MapScan(
 	}
 
 	return results, nil
+}
+
+// --- VectorBackend ---
+
+func (m *memoryEngine) VectorInsert(ctx context.Context, col string, emb Embedding) error {
+	return m.vectorIdx.Insert(ctx, col, emb)
+}
+
+func (m *memoryEngine) VectorSearch(ctx context.Context, col string, query []float32, k int, metric string) ([]VectorResult, error) {
+	return m.vectorIdx.Search(ctx, col, query, k, metric)
+}
+
+// --- SearchBackend ---
+
+func (m *memoryEngine) SearchInsert(ctx context.Context, col string, doc IndexedText) error {
+	return m.searchIdx.Insert(ctx, col, doc)
+}
+
+func (m *memoryEngine) SearchQuery(ctx context.Context, col, query string, limit int) ([]SearchResult, error) {
+	return m.searchIdx.Query(ctx, col, query, limit)
 }
