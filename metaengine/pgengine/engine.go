@@ -17,11 +17,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"sync"
 
-	_ "github.com/jackc/pgx/v5/stdlib" // register the pgx database/sql driver
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+
+	_ "github.com/jackc/pgx/v5/stdlib" // register the pgx database/sql driver
 )
 
 // PG_NsPerOp is the calibrated per-write cost.
@@ -51,7 +53,7 @@ func New(dsn string) (metaengine.Engine, error) {
 	eng := &pgEngine{db: db}
 
 	if err := eng.init(); err != nil {
-		db.Close()
+		_ = db.Close()
 
 		return nil, err
 	}
@@ -88,7 +90,7 @@ func (e *pgEngine) init() error {
 	}
 
 	for _, ddl := range ddls {
-		if _, err := e.db.Exec(ddl); err != nil {
+		if _, err := e.db.ExecContext(context.Background(), ddl); err != nil {
 			return fmt.Errorf("pgengine.init: %w", err)
 		}
 	}
@@ -126,7 +128,11 @@ func (e *pgEngine) Close() error {
 
 	e.done = true
 
-	return e.db.Close()
+	if err := e.db.Close(); err != nil {
+		return fmt.Errorf("Close: %w", err)
+	}
+
+	return nil
 }
 
 // --- MapBackend ---
@@ -160,7 +166,7 @@ func (e *pgEngine) MapGet(ctx context.Context, col string, key any) (any, bool, 
 		col, fmt.Sprint(key),
 	).Scan(&raw)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil
 		}
 
@@ -220,12 +226,13 @@ func (e *pgEngine) CounterGet(ctx context.Context, col string) (map[string]int64
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.CounterGet: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	result := make(map[string]int64)
 
 	for rows.Next() {
 		var key string
+
 		var val int64
 
 		if err := rows.Scan(&key, &val); err != nil {
@@ -235,7 +242,11 @@ func (e *pgEngine) CounterGet(ctx context.Context, col string) (map[string]int64
 		result[key] = val
 	}
 
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		return result, fmt.Errorf("CounterGet: %w", err)
+	}
+
+	return result, nil
 }
 
 // Compile-time assertions.

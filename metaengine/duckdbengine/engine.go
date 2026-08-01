@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -44,7 +45,7 @@ func New(dsn string) (metaengine.Engine, error) {
 	eng := &duckdbEngine{db: db}
 
 	if err := eng.init(); err != nil {
-		db.Close()
+		_ = db.Close()
 
 		return nil, err
 	}
@@ -81,7 +82,7 @@ func (e *duckdbEngine) init() error {
 	}
 
 	for _, ddl := range ddls {
-		if _, err := e.db.Exec(ddl); err != nil {
+		if _, err := e.db.ExecContext(context.Background(), ddl); err != nil {
 			return fmt.Errorf("duckdbengine.init: %w", err)
 		}
 	}
@@ -119,7 +120,11 @@ func (e *duckdbEngine) Close() error {
 
 	e.took = true
 
-	return e.db.Close()
+	if err := e.db.Close(); err != nil {
+		return fmt.Errorf("Close: %w", err)
+	}
+
+	return nil
 }
 
 // --- MapBackend ---
@@ -153,7 +158,7 @@ func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 		col, fmt.Sprint(key),
 	).Scan(&raw)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil
 		}
 
@@ -221,12 +226,13 @@ func (e *duckdbEngine) CounterGet(ctx context.Context, col string) (map[string]i
 	if err != nil {
 		return nil, fmt.Errorf("duckdbengine.CounterGet: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	result := make(map[string]int64)
 
 	for rows.Next() {
 		var key string
+
 		var val int64
 
 		if err := rows.Scan(&key, &val); err != nil {
@@ -236,7 +242,11 @@ func (e *duckdbEngine) CounterGet(ctx context.Context, col string) (map[string]i
 		result[key] = val
 	}
 
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		return result, fmt.Errorf("CounterGet: %w", err)
+	}
+
+	return result, nil
 }
 
 // Compile-time assertions that duckdbEngine implements the interfaces.

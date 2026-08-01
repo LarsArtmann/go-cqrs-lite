@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 )
@@ -82,7 +83,7 @@ func TestMemoryEngine_VersionedStorage(t *testing.T) {
 
 	// AsOf t3 → should return ErrNotFound (deleted)
 	_, err = vs.MapGetAsOf(ctx, "users", "u1", t3)
-	if err != ErrNotFound {
+	if !errors.Is(err, ErrNotFound) {
 		t.Errorf("MapGetAsOf(t3): err = %v, want ErrNotFound", err)
 	}
 
