@@ -2,6 +2,7 @@ package benchkit
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -103,6 +104,24 @@ func (r *runner) metaEngineCounterWorkload(ctx context.Context) error {
 
 	if applyElapsed > 0 {
 		r.result.MetaEngineApplyThroughput = float64(applyColl.Stats().Count) / applyElapsed
+	}
+
+	// Correctness check: verify the counter has non-zero data. This catches
+	// the class of bug where event type strings don't match fold registrations
+	// (metaengine silently skips non-matching types, making Apply a no-op).
+	counts, err := metaengine.ExecuteTyped[meBenchCounterInput, map[string]int64](
+		ctx, store, meBenchCounterInput{},
+	)
+	if err != nil {
+		return fmt.Errorf("metaengine counter correctness check: %w", err)
+	}
+
+	if len(counts) == 0 {
+		return fmt.Errorf(
+			"metaengine counter correctness check: ExecuteTyped returned empty map" +
+				" after %d Apply calls — event type strings may not match fold registrations",
+			sampleCount,
+		)
 	}
 
 	// ExecuteTyped read latency

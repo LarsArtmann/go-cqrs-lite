@@ -272,19 +272,12 @@ func (q QueryDecl[Q, R]) QueryConfig() QueryConfig      { return q.Config }
 
 func (q QueryDecl[Q, R]) QueryKeyType() reflect.Type {
 	for _, f := range q.Folds {
-		switch f.Kind {
-		case FoldInsert, FoldSet:
-			return f.keyType
-		case FoldUpdate,
-			FoldRemove,
-			FoldCount,
-			FoldEdge,
-			FoldSkip,
-			FoldMultiInsert,
-			FoldAppend,
-			FoldVector,
-			FoldSearch,
-			FoldSpatial:
+		switch fold := f.(type) {
+		case *insertFold:
+			return fold.keyType
+		case *setFold:
+			return fold.keyType
+		default:
 			// These folds do not declare a value-typed key; only insert/set do.
 		}
 	}

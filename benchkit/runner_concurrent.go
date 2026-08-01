@@ -74,6 +74,11 @@ func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
 		r.result.TailRatio = float64(r.result.LoadLatency.P99) /
 			float64(r.result.LoadLatency.P50)
 	}
+
+	if r.result.WriteLatency.P50 > 0 {
+		r.result.WriteTailRatio = float64(r.result.WriteLatency.P99) /
+			float64(r.result.WriteLatency.P50)
+	}
 }
 
 // runConcurrent runs op for each index in [0, total) using at most

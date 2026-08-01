@@ -5,113 +5,32 @@ import (
 	"reflect"
 )
 
-// call helpers (used by Store.applyFold)
-
-func (f *Fold) callInsert(event any) (any, any) {
-	fn := reflect.ValueOf(f.insertHandler)
-	results := fn.Call([]reflect.Value{reflect.ValueOf(event)})
-
-	return results[0].Interface(), results[1].Interface()
-}
-
-func (f *Fold) callUpdate(event any, prev any) any {
-	fn := reflect.ValueOf(f.updateHandler)
-	prevType := fn.Type().In(1)
-
-	args := []reflect.Value{reflect.ValueOf(event)}
-	if prev != nil {
-		args = append(args, reifyReflect(prev, prevType))
-	} else {
-		args = append(args, reflect.Zero(prevType))
-	}
-
-	return fn.Call(args)[0].Interface()
-}
-
-func (f *Fold) callKey(event any) any {
-	if f.keyExtractor == nil {
-		return nil
-	}
-
-	fn := reflect.ValueOf(f.keyExtractor)
-
-	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface()
-}
-
-func (f *Fold) callCount(event any) Delta {
-	fn := reflect.ValueOf(f.countHandler)
-
-	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(Delta)
-}
-
-func (f *Fold) callEdge(event any) Edge {
-	fn := reflect.ValueOf(f.edgeHandler)
-
-	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(Edge)
-}
-
-func (f *Fold) callSet(event any) any {
-	fn := reflect.ValueOf(f.setHandler)
-
-	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface()
-}
-
-func (f *Fold) callMultiInsert(event any) MultiEntry {
-	fn := reflect.ValueOf(f.multiInsertHandler)
-
-	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(MultiEntry)
-}
-
-func (f *Fold) callAppend(event any) Append {
-	fn := reflect.ValueOf(f.appendHandler)
-
-	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(Append)
-}
-
-func (f *Fold) callVector(event any) Embedding {
-	fn := reflect.ValueOf(f.vectorHandler)
-
-	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(Embedding)
-}
-
-func (f *Fold) callSearch(event any) IndexedText {
-	fn := reflect.ValueOf(f.searchHandler)
-
-	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(IndexedText)
-}
-
-func (f *Fold) callSpatial(event any) Point {
-	fn := reflect.ValueOf(f.spatialHandler)
-
-	return fn.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(Point)
-}
-
 // ── ADT classification ──
 
 func classifyADT(folds []Fold) (ADT, error) {
 	hasInsert, hasSet, hasCount, hasEdge, hasMulti, hasAppend, hasVector, hasSearch, hasSpatial := false, false, false, false, false, false, false, false, false
 
 	for _, f := range folds {
-		switch f.Kind {
-		case FoldInsert, FoldUpdate, FoldRemove:
+		switch f.(type) {
+		case *insertFold, *updateFold, *removeFold:
 			hasInsert = true
-		case FoldSet:
+		case *setFold:
 			hasSet = true
-		case FoldCount:
+		case *countFold:
 			hasCount = true
-		case FoldEdge:
+		case *edgeFold:
 			hasEdge = true
-		case FoldMultiInsert:
+		case *multiInsertFold:
 			hasMulti = true
-		case FoldAppend:
+		case *appendFold:
 			hasAppend = true
-		case FoldVector:
+		case *vectorFold:
 			hasVector = true
-		case FoldSearch:
+		case *searchFold:
 			hasSearch = true
-		case FoldSpatial:
+		case *spatialFold:
 			hasSpatial = true
-		case FoldSkip:
+		case *skipFold:
 			// Skips do not influence ADT selection.
 		}
 	}
@@ -146,8 +65,8 @@ func deriveKeys(folds []Fold) error {
 	var keyType reflect.Type
 
 	for _, f := range folds {
-		if f.Kind == FoldInsert {
-			keyType = f.keyType
+		if ins, ok := f.(*insertFold); ok {
+			keyType = ins.keyType
 
 			break
 		}
@@ -157,30 +76,31 @@ func deriveKeys(folds []Fold) error {
 		return nil
 	}
 
-	for i := range folds {
-		switch folds[i].Kind {
-		case FoldUpdate, FoldRemove:
-			if folds[i].keyExtractor != nil {
+	for _, f := range folds {
+		switch fold := f.(type) {
+		case *updateFold:
+			if fold.keyExtractor != nil {
 				continue
 			}
 
-			extractor, err := buildKeyExtractor(folds[i].EventSample, keyType)
+			extractor, err := buildKeyExtractor(fold.EventSample(), keyType)
 			if err != nil {
-				return fmt.Errorf("fold for %s: %w", folds[i].EventType, err)
+				return fmt.Errorf("fold for %s: %w", fold.EventType(), err)
 			}
 
-			folds[i].keyExtractor = extractor
-		case FoldInsert,
-			FoldCount,
-			FoldEdge,
-			FoldSet,
-			FoldSkip,
-			FoldMultiInsert,
-			FoldAppend,
-			FoldVector,
-			FoldSearch,
-			FoldSpatial:
-			// Only update/remove folds need a derived key extractor.
+			fold.keyExtractor = extractor
+
+		case *removeFold:
+			if fold.keyExtractor != nil {
+				continue
+			}
+
+			extractor, err := buildKeyExtractor(fold.EventSample(), keyType)
+			if err != nil {
+				return fmt.Errorf("fold for %s: %w", fold.EventType(), err)
+			}
+
+			fold.keyExtractor = extractor
 		}
 	}
 

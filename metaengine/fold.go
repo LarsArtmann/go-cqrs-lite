@@ -6,6 +6,8 @@ import (
 )
 
 // FoldKind classifies what a fold function does to the projection.
+// Retained for diagnostics (hooks, logging); dispatch uses a type switch
+// on the sealed Fold interface, not this string.
 type FoldKind string
 
 const (
@@ -23,30 +25,176 @@ const (
 	FoldSpatial     FoldKind = "spatial"
 )
 
-// Fold is a single event-to-projection mapping.
-// The Kind field tells the planner which ADT operation this fold performs.
+// Fold is a sealed interface representing a single event-to-projection mapping.
+// Each concrete implementation carries exactly one typed handler — there are
+// no nil slots to accidentally invoke, eliminating the nil-panic class entirely.
+//
+// The concrete types (insertFold, updateFold, etc.) are unexported, making the
+// union sealed: only the On/OnTyped constructors can create Fold values.
+//
 // Fold structs are created by the On constructor and should not be built by hand.
-type Fold struct {
-	EventType   string
-	EventSample any
-	Kind        FoldKind
+type Fold interface {
+	fold() // sealed — unexported method prevents external implementations
+	EventType() string
+	EventSample() any
+	Kind() FoldKind
+}
 
+// ── Concrete fold types ──
+// Each type stores exactly its own typed handler as a pre-bound closure.
+// The closure captures the reflect.Value once at construction time;
+// the hot path calls the closure without per-event reflect.ValueOf(handler).
+
+// insertFold: func(E) (K, V) → MapSet(collection, K, V)
+type insertFold struct {
+	eventType string
+	sample    any
 	keyType   reflect.Type
 	valueType reflect.Type
-
-	insertHandler any // func(e E) (K, V)
-	updateHandler any // func(e E, prev V) V
-	keyExtractor  any // func(event any) any
-	countHandler  any // func(e E) Delta
-	edgeHandler   any // func(e E) Edge
-	setHandler    any // func(e E) K
-
-	multiInsertHandler any // func(e E) MultiEntry
-	appendHandler      any // func(e E) Append
-	vectorHandler      any // func(e E) Embedding
-	searchHandler      any // func(e E) IndexedText
-	spatialHandler     any // func(e E) Point
+	invoke    func(event any) (key, val any)
 }
+
+func (f *insertFold) fold()             {}
+func (f *insertFold) EventType() string { return f.eventType }
+func (f *insertFold) EventSample() any  { return f.sample }
+func (f *insertFold) Kind() FoldKind    { return FoldInsert }
+
+// updateFold: func(E, prev V) V → MapUpdate
+type updateFold struct {
+	eventType    string
+	sample       any
+	valueType    reflect.Type
+	invoke       func(event, prev any) any
+	keyExtractor func(event any) any
+}
+
+func (f *updateFold) fold()             {}
+func (f *updateFold) EventType() string { return f.eventType }
+func (f *updateFold) EventSample() any  { return f.sample }
+func (f *updateFold) Kind() FoldKind    { return FoldUpdate }
+
+// removeFold: key extraction from event → MapDelete
+type removeFold struct {
+	eventType    string
+	sample       any
+	valueType    reflect.Type
+	keyExtractor func(event any) any
+}
+
+func (f *removeFold) fold()             {}
+func (f *removeFold) EventType() string { return f.eventType }
+func (f *removeFold) EventSample() any  { return f.sample }
+func (f *removeFold) Kind() FoldKind    { return FoldRemove }
+
+// countFold: func(E) Delta → CounterIncrement
+type countFold struct {
+	eventType string
+	sample    any
+	invoke    func(event any) Delta
+}
+
+func (f *countFold) fold()             {}
+func (f *countFold) EventType() string { return f.eventType }
+func (f *countFold) EventSample() any  { return f.sample }
+func (f *countFold) Kind() FoldKind    { return FoldCount }
+
+// edgeFold: func(E) Edge → GraphAddEdge
+type edgeFold struct {
+	eventType string
+	sample    any
+	invoke    func(event any) Edge
+}
+
+func (f *edgeFold) fold()             {}
+func (f *edgeFold) EventType() string { return f.eventType }
+func (f *edgeFold) EventSample() any  { return f.sample }
+func (f *edgeFold) Kind() FoldKind    { return FoldEdge }
+
+// setFold: func(E) K → SetAdd
+type setFold struct {
+	eventType string
+	sample    any
+	keyType   reflect.Type
+	invoke    func(event any) any
+}
+
+func (f *setFold) fold()             {}
+func (f *setFold) EventType() string { return f.eventType }
+func (f *setFold) EventSample() any  { return f.sample }
+func (f *setFold) Kind() FoldKind    { return FoldSet }
+
+// multiInsertFold: func(E) MultiEntry → MultiAdd
+type multiInsertFold struct {
+	eventType string
+	sample    any
+	invoke    func(event any) MultiEntry
+}
+
+func (f *multiInsertFold) fold()             {}
+func (f *multiInsertFold) EventType() string { return f.eventType }
+func (f *multiInsertFold) EventSample() any  { return f.sample }
+func (f *multiInsertFold) Kind() FoldKind    { return FoldMultiInsert }
+
+// appendFold: func(E) Append → LogAppend
+type appendFold struct {
+	eventType string
+	sample    any
+	invoke    func(event any) Append
+}
+
+func (f *appendFold) fold()             {}
+func (f *appendFold) EventType() string { return f.eventType }
+func (f *appendFold) EventSample() any  { return f.sample }
+func (f *appendFold) Kind() FoldKind    { return FoldAppend }
+
+// vectorFold: func(E) Embedding → VectorInsert
+type vectorFold struct {
+	eventType string
+	sample    any
+	invoke    func(event any) Embedding
+}
+
+func (f *vectorFold) fold()             {}
+func (f *vectorFold) EventType() string { return f.eventType }
+func (f *vectorFold) EventSample() any  { return f.sample }
+func (f *vectorFold) Kind() FoldKind    { return FoldVector }
+
+// searchFold: func(E) IndexedText → SearchInsert
+type searchFold struct {
+	eventType string
+	sample    any
+	invoke    func(event any) IndexedText
+}
+
+func (f *searchFold) fold()             {}
+func (f *searchFold) EventType() string { return f.eventType }
+func (f *searchFold) EventSample() any  { return f.sample }
+func (f *searchFold) Kind() FoldKind    { return FoldSearch }
+
+// spatialFold: func(E) Point → SpatialInsert
+type spatialFold struct {
+	eventType string
+	sample    any
+	invoke    func(event any) Point
+}
+
+func (f *spatialFold) fold()             {}
+func (f *spatialFold) EventType() string { return f.eventType }
+func (f *spatialFold) EventSample() any  { return f.sample }
+func (f *spatialFold) Kind() FoldKind    { return FoldSpatial }
+
+// skipFold: func(E) Skip → no-op
+type skipFold struct {
+	eventType string
+	sample    any
+}
+
+func (f *skipFold) fold()             {}
+func (f *skipFold) EventType() string { return f.eventType }
+func (f *skipFold) EventSample() any  { return f.sample }
+func (f *skipFold) Kind() FoldKind    { return FoldSkip }
+
+// ── Helpers ──
 
 func EventTypeName(sample any) string {
 	t := reflect.TypeOf(sample)
@@ -93,13 +241,22 @@ func OnTyped[E any](eventType string, sample E, handler any) Fold {
 	return onFold(eventType, sample, handler)
 }
 
+// reflectCall1 creates a pre-bound closure that calls a single-param,
+// single-return reflect.Value and type-asserts the result to T.
+// The reflect.Value is captured once at construction time; the hot path
+// does not call reflect.ValueOf(handler) per event.
+func reflectCall1[T any](hv reflect.Value) func(any) T {
+	return func(event any) T {
+		return hv.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface().(T)
+	}
+}
+
 func onFold[E any](eventType string, sample E, handler any) Fold {
 	if rs, ok := handler.(removeSignal); ok {
-		return Fold{
-			EventType:   eventType,
-			EventSample: sample,
-			Kind:        FoldRemove,
-			valueType:   rs.valueType,
+		return &removeFold{
+			eventType: eventType,
+			sample:    sample,
+			valueType: rs.valueType,
 		}
 	}
 
@@ -115,31 +272,49 @@ func onFold[E any](eventType string, sample E, handler any) Fold {
 		panic(err.Error())
 	}
 
+	hv := reflect.ValueOf(handler)
 	numIn := handlerType.NumIn()
 	numOut := handlerType.NumOut()
 
 	switch {
 	case numIn == 1 && numOut == 2:
-		return Fold{
-			EventType:     eventType,
-			EventSample:   sample,
-			Kind:          FoldInsert,
-			keyType:       handlerType.Out(0),
-			valueType:     handlerType.Out(1),
-			insertHandler: handler,
+		invoke := func(event any) (any, any) {
+			results := hv.Call([]reflect.Value{reflect.ValueOf(event)})
+
+			return results[0].Interface(), results[1].Interface()
+		}
+
+		return &insertFold{
+			eventType: eventType,
+			sample:    sample,
+			keyType:   handlerType.Out(0),
+			valueType: handlerType.Out(1),
+			invoke:    invoke,
 		}
 
 	case numIn == 2 && numOut == 1:
-		return Fold{
-			EventType:     eventType,
-			EventSample:   sample,
-			Kind:          FoldUpdate,
-			valueType:     handlerType.Out(0),
-			updateHandler: handler,
+		invoke := func(event, prev any) any {
+			args := []reflect.Value{reflect.ValueOf(event)}
+			prevType := hv.Type().In(1)
+
+			if prev != nil {
+				args = append(args, reifyReflect(prev, prevType))
+			} else {
+				args = append(args, reflect.Zero(prevType))
+			}
+
+			return hv.Call(args)[0].Interface()
+		}
+
+		return &updateFold{
+			eventType: eventType,
+			sample:    sample,
+			valueType: handlerType.Out(0),
+			invoke:    invoke,
 		}
 
 	case numIn == 1 && numOut == 1:
-		return classifySingleReturn(sample, eventType, handlerType.Out(0), handler)
+		return classifySingleReturn(sample, eventType, handlerType.Out(0), hv)
 
 	default:
 		panic(fmt.Sprintf(
@@ -153,80 +328,41 @@ func classifySingleReturn[E any](
 	sample E,
 	eventType string,
 	outType reflect.Type,
-	handler any,
+	hv reflect.Value,
 ) Fold {
-	deltaType := reflect.TypeFor[Delta]()
-	edgeType := reflect.TypeFor[Edge]()
-	skipType := reflect.TypeFor[Skip]()
-	multiEntryType := reflect.TypeFor[MultiEntry]()
-	appendType := reflect.TypeFor[Append]()
-	embeddingType := reflect.TypeFor[Embedding]()
-	indexedTextType := reflect.TypeFor[IndexedText]()
-	pointType := reflect.TypeFor[Point]()
-
 	switch outType {
-	case embeddingType:
-		return Fold{
-			EventType:     eventType,
-			EventSample:   sample,
-			Kind:          FoldVector,
-			vectorHandler: handler,
-		}
-	case indexedTextType:
-		return Fold{
-			EventType:     eventType,
-			EventSample:   sample,
-			Kind:          FoldSearch,
-			searchHandler: handler,
-		}
-	case pointType:
-		return Fold{
-			EventType:      eventType,
-			EventSample:    sample,
-			Kind:           FoldSpatial,
-			spatialHandler: handler,
-		}
-	case deltaType:
-		return Fold{
-			EventType:    eventType,
-			EventSample:  sample,
-			Kind:         FoldCount,
-			countHandler: handler,
-		}
-	case edgeType:
-		return Fold{
-			EventType:   eventType,
-			EventSample: sample,
-			Kind:        FoldEdge,
-			edgeHandler: handler,
-		}
-	case skipType:
-		return Fold{
-			EventType:   eventType,
-			EventSample: sample,
-			Kind:        FoldSkip,
-		}
-	case multiEntryType:
-		return Fold{
-			EventType:          eventType,
-			EventSample:        sample,
-			Kind:               FoldMultiInsert,
-			multiInsertHandler: handler,
-		}
-	case appendType:
-		return Fold{
-			EventType:     eventType,
-			EventSample:   sample,
-			Kind:          FoldAppend,
-			appendHandler: handler,
-		}
+	case reflect.TypeFor[Embedding]():
+		return &vectorFold{eventType: eventType, sample: sample, invoke: reflectCall1[Embedding](hv)}
+
+	case reflect.TypeFor[IndexedText]():
+		return &searchFold{eventType: eventType, sample: sample, invoke: reflectCall1[IndexedText](hv)}
+
+	case reflect.TypeFor[Point]():
+		return &spatialFold{eventType: eventType, sample: sample, invoke: reflectCall1[Point](hv)}
+
+	case reflect.TypeFor[Delta]():
+		return &countFold{eventType: eventType, sample: sample, invoke: reflectCall1[Delta](hv)}
+
+	case reflect.TypeFor[Edge]():
+		return &edgeFold{eventType: eventType, sample: sample, invoke: reflectCall1[Edge](hv)}
+
+	case reflect.TypeFor[Skip]():
+		return &skipFold{eventType: eventType, sample: sample}
+
+	case reflect.TypeFor[MultiEntry]():
+		return &multiInsertFold{eventType: eventType, sample: sample, invoke: reflectCall1[MultiEntry](hv)}
+
+	case reflect.TypeFor[Append]():
+		return &appendFold{eventType: eventType, sample: sample, invoke: reflectCall1[Append](hv)}
+
 	default:
-		return Fold{
-			EventType:   eventType,
-			EventSample: sample,
-			Kind:        FoldSet,
-			keyType:     outType,
-			setHandler:  handler,
+		return &setFold{
+			eventType: eventType,
+			sample:    sample,
+			keyType:   outType,
+			invoke: func(event any) any {
+				return hv.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface()
+			},
 		}
 	}
 }

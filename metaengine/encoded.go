@@ -39,7 +39,7 @@ func (s *Store) ApplyEncoded(ctx context.Context, eventType string, payload []by
 
 		fold := q.folds[foldIdx]
 
-		decoded, err := decodeFromSample(fold.EventSample, payload)
+		decoded, err := decodeFromSample(fold.EventSample(), payload)
 		if err != nil {
 			return fmt.Errorf("query %q decode %s: %w", q.name, eventType, err)
 		}

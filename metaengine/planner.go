@@ -120,8 +120,8 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 
 	foldByEvent := make(map[string]int, len(folds))
 	for i, f := range folds {
-		if f.Kind != FoldSkip {
-			foldByEvent[f.EventType] = i
+		if f.Kind() != FoldSkip {
+			foldByEvent[f.EventType()] = i
 		}
 	}
 

@@ -205,6 +205,21 @@ type Result struct {
 	// experience 3x+ worse at the 99th percentile.
 	TailRatio float64 `json:"tailRatio,omitempty"`
 
+	// WriteTailRatio is WriteLatency.P99 / WriteLatency.P50. Same concept as
+	// TailRatio but for the write path. High write tail ratios matter for
+	// ingestion-sensitive workloads where a single slow write stalls the
+	// pipeline.
+	WriteTailRatio float64 `json:"writeTailRatio,omitempty"`
+
+	// Metaengine SQLite comparison — the same Map ADT workload run against
+	// the SQLite engine (NewSQLiteEngine). This gives a direct Memory vs
+	// SQLite comparison: Memory shows the planner+fold overhead with zero
+	// I/O, SQLite shows the cost of SQL query execution + JSON extraction.
+	// Zero-valued when Config.SkipMetaEngine is true.
+	MetaEngineSQLiteApplyThroughput  float64      `json:"metaEngineSQLiteApplyThroughput,omitempty"`
+	MetaEngineSQLiteScanLatency      LatencyStats `json:"metaEngineSQLiteScanLatency"`
+	MetaEngineSQLitePointReadLatency LatencyStats `json:"metaEngineSQLitePointReadLatency"`
+
 	// Error captures a non-fatal error that prevented a phase from completing
 	// (e.g. backend doesn't support SeekableJournal). The run still succeeds;
 	// the affected metrics are zero-valued.

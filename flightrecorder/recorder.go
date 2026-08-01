@@ -137,7 +137,7 @@ func (r *Recorder) Snapshot(ctx context.Context) error {
 	var snapErr error
 
 	r.once.Do(func() {
-		snapErr = r.captureLocked()
+		snapErr = r.capture()
 	})
 
 	return snapErr
@@ -158,7 +158,7 @@ func (r *Recorder) SnapshotToFile(ctx context.Context, path string) error {
 	var err error
 
 	r.once.Do(func() {
-		err = r.captureToFileLocked(path)
+		err = r.captureToFile(path)
 	})
 
 	return err
@@ -196,10 +196,9 @@ func (r *Recorder) Reset() {
 	r.once = sync.Once{}
 }
 
-// captureLocked writes the buffered trace to the configured writer.
-// Caller must NOT hold r.mu — this method acquires it internally.
-// The once.Do ensures only the first caller reaches captureLocked.
-func (r *Recorder) captureLocked() error {
+// capture writes the buffered trace to the configured writer.
+// The once.Do ensures only the first caller reaches capture.
+func (r *Recorder) capture() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -214,9 +213,9 @@ func (r *Recorder) captureLocked() error {
 	return nil
 }
 
-// captureToFileLocked writes the buffered trace to a file at path.
-// Same once.Do + lock pattern as captureLocked but with a fresh file.
-func (r *Recorder) captureToFileLocked(path string) error {
+// captureToFile writes the buffered trace to a file at path.
+// Same once.Do + lock pattern as capture but with a fresh file.
+func (r *Recorder) captureToFile(path string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
