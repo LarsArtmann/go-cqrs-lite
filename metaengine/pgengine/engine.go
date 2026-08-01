@@ -42,9 +42,11 @@ const PG_NsPerRead = 5000.0
 
 // pgEngine implements metaengine.Engine with Postgres as the backend.
 type pgEngine struct {
-	db   *sql.DB
-	mu   sync.Mutex
-	done bool
+	db            *sql.DB
+	mu            sync.Mutex
+	done          bool
+	layoutMu      sync.Mutex
+	appliedLayouts map[string]bool
 }
 
 // New creates a Postgres-backed metaengine Engine from a DSN.
@@ -278,4 +280,6 @@ var (
 	_ metaengine.MapBackend     = (*pgEngine)(nil)
 	_ metaengine.CounterBackend = (*pgEngine)(nil)
 	_ metaengine.ScanBackend    = (*pgEngine)(nil)
+	_ metaengine.PushdownScan   = (*pgEngine)(nil)
+	_ metaengine.LayoutPlanner  = (*pgEngine)(nil)
 )

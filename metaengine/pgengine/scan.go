@@ -10,7 +10,8 @@ import (
 
 // MapScan implements ScanBackend for Postgres. It SELECTs all rows for the
 // collection, decodes JSONB values, then applies filter/sort/limit in Go.
-// Future enhancement: push filter to Postgres WHERE clause via jsonb operators.
+// For declarative filter/sort via FilterOnField/SortOnField, the executor
+// prefers PushdownMapScan (see pushdown.go) which pushes these into SQL.
 func (e *pgEngine) MapScan(
 	ctx context.Context,
 	collection string,
