@@ -86,8 +86,12 @@ func (e *pgEngine) MapScan(
 		pairs = filtered
 	}
 
-	if limit > 0 && limit < len(pairs) {
-		pairs = pairs[:limit]
+	truncLimit := 0
+	if limit > 0 {
+		truncLimit = limit + 1
+	}
+	if truncLimit > 0 && len(pairs) > truncLimit {
+		pairs = pairs[:truncLimit]
 	}
 
 	result := make([]any, len(pairs))

@@ -278,8 +278,8 @@ func TestDuckDBEngine_ScanBackend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 3 {
-		t.Fatalf("limit 3: expected 3 results, got %d", len(results))
+	if len(results) != 4 {
+		t.Fatalf("limit 3: expected 4 (limit+1 for has-more), got %d", len(results))
 	}
 
 	first, _ := results[0].(map[string]any)
