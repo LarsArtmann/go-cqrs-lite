@@ -36,17 +36,17 @@ type Decider[State any] struct {
 // without requiring the consumer to implement mutable state
 // management.
 type Repository[State any] struct {
-	store               event.Store
-	publisher           event.Publisher
-	snapshotStore       snapshot.SnapshotStore
-	codec               codec.Codec
-	snapshotStrategy    snapshot.SnapshotStrategy
-	enricher            event.ContextEnricher
-	decider             Decider[State]
-	loadGroup           singleflight.Group
-	loadCoalescing      bool
-	stateCache          StateCache[State]
-	flightRecorder      *flightrecorder.Recorder
+	store                 event.Store
+	publisher             event.Publisher
+	snapshotStore         snapshot.SnapshotStore
+	codec                 codec.Codec
+	snapshotStrategy      snapshot.SnapshotStrategy
+	enricher              event.ContextEnricher
+	decider               Decider[State]
+	loadGroup             singleflight.Group
+	loadCoalescing        bool
+	stateCache            StateCache[State]
+	flightRecorder        *flightrecorder.Recorder
 	flightRecorderTrigger flightrecorder.TriggerFunc
 }
 

@@ -7,19 +7,40 @@ A flight recorder buffers the last few seconds of execution trace in memory. Whe
 ## Quick Start
 
 ```go
-import flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
+import (
+    "context"
+    "time"
+
+    flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
+)
 
 recorder, _ := flightrecorder.New(
     flightrecorder.WithMinAge(10*time.Second),
     flightrecorder.WithMaxBytes(1<<20), // 1 MiB
     flightrecorder.WithFile("snapshot.trace"),
 )
-recorder.Start()
-defer recorder.Stop()
+if err := recorder.Start(); err != nil {
+    if errors.Is(err, flightrecorder.ErrAlreadyEnabled) {
+        // Another recorder is already active in this process.
+        log.Fatal(err)
+    }
+    log.Fatal(err)
+}
+defer recorder.Close() // stops recording + closes the file
 
 // Later, when something goes wrong:
 recorder.Snapshot(context.Background())
 ```
+
+## Lifecycle
+
+| Method | Purpose |
+|--------|---------|
+| `Start()` | Begins buffering. Returns `ErrAlreadyEnabled` if another recorder is active. |
+| `Close()` | Stops recording + closes file writer. Implements `io.Closer`. Safe to call multiple times. |
+| `Stop()` | Stops recording only (does not close file). Use `Close()` for normal shutdown. |
+
+> **Process-global constraint:** Go's `runtime/trace` allows only ONE active flight recorder per process. If two recorders call `Start()`, the second gets `ErrAlreadyEnabled`.
 
 ## CQRS Middleware Integration
 
@@ -34,7 +55,7 @@ recorder, _ := flightrecorder.New(
     flightrecorder.WithFile("slow.trace"),
 )
 recorder.Start()
-defer recorder.Stop()
+defer recorder.Close()
 
 // Capture when any command exceeds 100ms OR errors:
 cmdDisp.Use(middleware.CommandFlightRecorder(recorder,
@@ -46,6 +67,17 @@ bus.Use(middleware.EventFlightRecorder(recorder,
 qryDisp.Use(middleware.QueryFlightRecorder(recorder,
     flightrecorder.OnLatency(500*time.Millisecond)))
 ```
+
+## Snapshot Methods
+
+| Method | Description |
+|--------|-------------|
+| `Snapshot(ctx)` | Writes trace to the configured writer (or file). Checks `ctx.Done()` before writing. |
+| `SnapshotToFile(ctx, path)` | Writes trace to a specific file path. |
+| `SnapshotIf(ctx, tc, trigger)` | Evaluates trigger; captures if it returns true. |
+| `Reset()` | Re-arms the once-latch for another capture. |
+
+Once-semantics: by default only the **first** successful `Snapshot`/`SnapshotToFile` wins. Call `Reset()` to allow subsequent captures.
 
 ## Triggers
 
@@ -69,4 +101,4 @@ go tool trace snapshot.trace
 - **Zero dependencies** — stdlib only (`runtime/trace`, `sync`, `time`, `context`, `io`, `os`)
 - **Once-semantics** — by default, only the first snapshot succeeds (prevents races when multiple goroutines detect a problem simultaneously). Call `Reset()` for multiple captures.
 - **Async capture** — the middleware snapshots in a goroutine to avoid blocking the request path
-- **Process-global** — Go's `runtime/trace` allows only ONE active flight recorder per process
+- **Process-global** — Go's `runtime/trace` allows only ONE active flight recorder per process. `Start()` returns `ErrAlreadyEnabled` if another is already running.

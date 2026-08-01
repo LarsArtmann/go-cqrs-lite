@@ -117,6 +117,10 @@ func PrintReport(w io.Writer, r *Result) {
 		fmt.Fprintf(w, "  Tail ratio: %.1fx (P99/P50)\n", r.TailRatio)
 	}
 
+	if r.WriteTailRatio > 0 {
+		fmt.Fprintf(w, "  Write tail: %.1fx (P99/P50)\n", r.WriteTailRatio)
+	}
+
 	if r.ReadAllTime > 0 {
 		fmt.Fprintf(w, "  ReadAll:  %s\n", roundDuration(r.ReadAllTime))
 	}
@@ -192,6 +196,14 @@ func PrintReport(w io.Writer, r *Result) {
 
 		if r.MetaEngineScanResults > 0 {
 			fmt.Fprintf(w, "  Scan results: %d items (status=active)\n", r.MetaEngineScanResults)
+		}
+
+		if r.MetaEngineSQLiteScanLatency.Count > 0 {
+			fmt.Fprintln(w, "  --- SQLite engine ---")
+			printLatencyLine(w, "  Scan (filtered):", r.MetaEngineSQLiteScanLatency)
+			printLatencyLine(w, "  Point read:", r.MetaEngineSQLitePointReadLatency)
+			fmt.Fprintf(w, "  Apply throughput: %s/s\n",
+				formatFloat(r.MetaEngineSQLiteApplyThroughput))
 		}
 
 		fmt.Fprintln(w)

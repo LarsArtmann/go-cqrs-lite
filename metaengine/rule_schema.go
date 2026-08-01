@@ -1,6 +1,9 @@
 package metaengine
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+)
 
 // schemaRule validates that fold value types match the declared query result
 // type. Mismatches would surface at runtime as decode errors; catching them

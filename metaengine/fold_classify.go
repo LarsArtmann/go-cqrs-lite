@@ -88,7 +88,7 @@ func deriveKeys(folds []Fold) error {
 				return fmt.Errorf("fold for %s: %w", fold.EventType(), err)
 			}
 
-			fold.keyExtractor = extractor
+			fold.keyExtractor = extractor.(func(event any) any)
 
 		case *removeFold:
 			if fold.keyExtractor != nil {
@@ -100,7 +100,7 @@ func deriveKeys(folds []Fold) error {
 				return fmt.Errorf("fold for %s: %w", fold.EventType(), err)
 			}
 
-			fold.keyExtractor = extractor
+			fold.keyExtractor = extractor.(func(event any) any)
 		}
 	}
 

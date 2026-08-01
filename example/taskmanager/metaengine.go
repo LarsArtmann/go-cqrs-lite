@@ -48,15 +48,11 @@ type listTasksInput struct {
 	Status string `json:"status,omitempty"`
 }
 
-// onTyped wraps metaengine.On and overrides the EventType to match the
-// CQRS event type string (e.g. "task.created") rather than the Go struct
-// name. This is necessary because metaengine.On infers event types from
-// reflect.Type.Name(), but the event store uses semantic type strings.
+// onTyped wraps metaengine.OnTyped and binds the fold to the CQRS event type
+// string (e.g. "task.created") rather than the Go struct name. This is
+// necessary because the event store uses semantic type strings.
 func onTyped[E any](eventType string, sample E, handler any) metaengine.Fold {
-	fold := metaengine.On(sample, handler)
-	fold.EventType = eventType
-
-	return fold
+	return metaengine.OnTyped[E](eventType, sample, handler)
 }
 
 // taskEventDecoder converts a full CQRS event (including StreamID) into a

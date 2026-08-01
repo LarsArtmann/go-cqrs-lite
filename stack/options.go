@@ -332,23 +332,3 @@ func WithEventCodec(c codec.Codec) Option {
 		}
 	}
 }
-
-// WithDiskSize registers a function that reports the on-disk database size in
-// bytes. Disk-backed presets (e.g. Pebble) use this to provide precise disk
-// metrics without filesystem walks. When unset, [Bundle.DiskSize] returns -1,
-// signaling callers (like benchkit) to fall back to filesystem measurement.
-func WithDiskSize(fn func() int64) Option {
-	return func(b *Bundle) { b.diskSizeFn = fn }
-}
-
-// DiskSize returns the on-disk database size in bytes, or -1 if no disk-size
-// reporter is registered. Backends that can report precise disk usage
-// (e.g. Pebble via pebble.DB.DiskUsage) register this at construction time
-// via [WithDiskSize].
-func (b *Bundle) DiskSize() int64 {
-	if b.diskSizeFn == nil {
-		return -1
-	}
-
-	return b.diskSizeFn()
-}

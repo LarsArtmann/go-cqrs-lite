@@ -62,7 +62,8 @@ func TestRepository_FlightRecorder_CapturesOnError(t *testing.T) {
 		Apply:   applyCounter,
 	}
 
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithFlightRecorder[counterState](recorder,
 			flightrecorder.OnError()),
 	)
@@ -112,7 +113,8 @@ func TestRepository_FlightRecorder_NoCaptureOnSuccess(t *testing.T) {
 		Apply:   applyCounter,
 	}
 
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithFlightRecorder[counterState](recorder,
 			flightrecorder.OnError()),
 	)
@@ -144,7 +146,8 @@ func TestRepository_FlightRecorder_NilRecorder(t *testing.T) {
 		Apply:   applyCounter,
 	}
 
-	repo, err := decider.NewRepository(store, bus, d,
+	repo, err := decider.NewRepository(
+		store, bus, d,
 		decider.WithFlightRecorder[counterState](nil, nil),
 	)
 	if err != nil {

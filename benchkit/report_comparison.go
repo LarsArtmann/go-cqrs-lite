@@ -18,7 +18,7 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 	fmt.Fprintln(w, strings.Repeat("=", 120))
 
 	header := fmt.Sprintf(
-		"%-10s %10s %10s %10s %10s %10s %10s %8s %8s %10s %10s",
+		"%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %10s %10s",
 		"Backend",
 		"WriteP50",
 		"WriteP99",
@@ -26,6 +26,8 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 		"LoadP99",
 		"ColdP50",
 		"GCMaxPau",
+		"TailR",
+		"A/op",
 		"WrtAmp",
 		"CoV%",
 		"Heap",
@@ -83,8 +85,18 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 		gcStr = "-"
 	}
 
+	tailStr := "-"
+	if r.TailRatio > 0 {
+		tailStr = fmt.Sprintf("%.1fx", r.TailRatio)
+	}
+
+	allocStr := "-"
+	if r.AllocsPerOp > 0 {
+		allocStr = fmt.Sprintf("%.0f", r.AllocsPerOp)
+	}
+
 	fmt.Fprintf(
-		w, "%-10s %10s %10s %10s %10s %10s %10s %8s %8s %10s %10s\n",
+		w, "%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %10s %10s\n",
 		name,
 		roundDuration(r.WriteLatency.P50),
 		roundDuration(r.WriteLatency.P99),
@@ -92,6 +104,8 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 		roundDuration(r.LoadLatency.P99),
 		roundDuration(r.ColdReadLatency.P50),
 		gcStr,
+		tailStr,
+		allocStr,
 		wrtAmpStr,
 		covStr,
 		formatBytes(r.Memory.After),

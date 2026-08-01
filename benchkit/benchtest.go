@@ -81,6 +81,10 @@ func RunSuite(b *testing.B, config Config, factory Factory) {
 		b.ReportMetric(result.TailRatio, "tail-ratio")
 	}
 
+	if result.WriteTailRatio > 0 {
+		b.ReportMetric(result.WriteTailRatio, "write-tail-ratio")
+	}
+
 	if result.ColdReadLatency.Count > 0 {
 		b.ReportMetric(float64(result.ColdReadLatency.P99.Nanoseconds()), "ns/cold-read-p99")
 	}
@@ -97,5 +101,11 @@ func RunSuite(b *testing.B, config Config, factory Factory) {
 		b.ReportMetric(float64(result.MetaEngineScanLatency.P99.Nanoseconds()), "ns/me-scan-p99")
 		b.ReportMetric(float64(result.MetaEnginePointReadLatency.P99.Nanoseconds()), "ns/me-point-p99")
 		b.ReportMetric(result.MetaEngineApplyConcurrent, "me-events/sec-concurrent")
+
+		if result.MetaEngineSQLiteScanLatency.Count > 0 {
+			b.ReportMetric(float64(result.MetaEngineSQLiteScanLatency.P99.Nanoseconds()), "ns/me-sqlite-scan-p99")
+			b.ReportMetric(float64(result.MetaEngineSQLitePointReadLatency.P99.Nanoseconds()), "ns/me-sqlite-point-p99")
+			b.ReportMetric(result.MetaEngineSQLiteApplyThroughput, "me-sqlite-events/sec")
+		}
 	}
 }

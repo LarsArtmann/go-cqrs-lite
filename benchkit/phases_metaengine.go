@@ -55,7 +55,11 @@ func (r *runner) metaEnginePhase(ctx context.Context) error {
 		return err
 	}
 
-	return r.metaEngineMapWorkload(ctx)
+	if err := r.metaEngineMapWorkload(ctx); err != nil {
+		return err
+	}
+
+	return r.metaEngineSQLiteWorkload(ctx)
 }
 
 // metaEngineCounterWorkload measures planner write overhead with a simple

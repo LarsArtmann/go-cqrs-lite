@@ -393,13 +393,9 @@ func TestCrashRecovery_PanicPoisonsCollection(t *testing.T) {
 	// Query with a fold that panics.
 	panicQuery := Query[testFindTask, testTask](
 		"panic_tasks",
-		Fold{
-			EventType: "panic_event",
-			Kind:      FoldInsert,
-			insertHandler: func(e testTask) (testTaskID, testTask) {
-				panic("intentional crash")
-			},
-		},
+		OnTyped("panic_event", testTask{}, func(e testTask) (testTaskID, testTask) {
+			panic("intentional crash")
+		}),
 	)
 
 	store, err := Plan([]Engine{eng}, panicQuery)
