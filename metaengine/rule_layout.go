@@ -38,6 +38,20 @@ func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 
 		result.LayoutPlans = append(result.LayoutPlans, layoutPlan)
 
+		layout := LayoutRow
+		if rt.engine.Profile().Layouts != nil {
+			if l, ok := rt.engine.Profile().Layouts[rt.adt]; ok {
+				layout = l
+			}
+		}
+
+		result.RuleTrace = append(result.RuleTrace, RuleTraceEntry{
+			Rule:   r.Name(),
+			Query:  rt.name,
+			Reason: fmt.Sprintf("columns %v", layoutPlan.ColumnNames()),
+			Layout: layout,
+		})
+
 		result.Diagnostics = append(result.Diagnostics, Diagnostic{
 			Level: DiagLevelInfo,
 			Query: rt.name,

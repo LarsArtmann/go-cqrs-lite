@@ -71,6 +71,19 @@ type PlanResult struct {
 	// used FilterOnField/SortOnField with a LayoutPlanner engine.
 	// Populated during Plan(); empty when no auto-layout was applied.
 	LayoutPlans []LayoutPlan
+	// RuleTrace records which rules fired during planning and a brief reason.
+	// Each rule that enriches the PlanResult appends an entry. This makes
+	// EXPLAIN output debuggable — consumers can see WHY the planner made
+	// each decision, not just WHAT it decided.
+	RuleTrace []RuleTraceEntry
+}
+
+// RuleTraceEntry records a single rule's decision during planning.
+type RuleTraceEntry struct {
+	Rule    string // rule name (e.g., "schema-enforcement")
+	Query   string // query name (or "*" for global rules)
+	Reason  string // brief human-readable explanation
+	Layout  StorageLayout
 }
 
 func (p PlanResult) Report() string {
@@ -92,6 +105,19 @@ func (p PlanResult) Report() string {
 
 		for _, d := range p.Diagnostics {
 			fmt.Fprintf(&b, "  %s\n", d)
+		}
+	}
+
+	if len(p.RuleTrace) > 0 {
+		b.WriteString("\n--- Rule Trace ---\n")
+
+		for _, rt := range p.RuleTrace {
+			layout := ""
+			if rt.Layout != "" {
+				layout = fmt.Sprintf(" [layout=%s]", rt.Layout)
+			}
+
+			fmt.Fprintf(&b, "  %s: %s — %s%s\n", rt.Rule, rt.Query, rt.Reason, layout)
 		}
 	}
 

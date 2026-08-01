@@ -13,6 +13,13 @@ type EngineProfile struct {
 	Name     string
 	Supports map[ADT]Complexity
 
+	// Layouts declares the physical storage layout this engine uses for
+	// each ADT. When present, the planner uses the cost matrix
+	// (ADT × StorageLayout) → Complexity to reason about WHY one engine
+	// beats another. When absent, the planner falls back to the Supports
+	// map for complexity (backward compatibility).
+	Layouts map[ADT]StorageLayout
+
 	// NsPerOp is the calibrated nanoseconds-per-operation cost for this
 	// engine. Used by the cost estimator to compute latency estimates.
 	// Zero means use the legacy default (100ns).
