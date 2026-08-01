@@ -1741,12 +1741,14 @@ metaengine/struct QueryBuilder
 metaengine/struct QueryConfig
 metaengine/struct QueryDecl
 metaengine/struct RangeSpec
+metaengine/struct RawScanResult
 metaengine/struct ReadCoalescer
 metaengine/struct RulePipeline
 metaengine/struct RuleTraceEntry
 metaengine/struct SSEConfig
 metaengine/struct SSEReplay
 metaengine/struct ScaleThreshold
+metaengine/struct ScanResult
 metaengine/struct SearchResult
 metaengine/struct SeqValue
 metaengine/struct SerializableLayout
