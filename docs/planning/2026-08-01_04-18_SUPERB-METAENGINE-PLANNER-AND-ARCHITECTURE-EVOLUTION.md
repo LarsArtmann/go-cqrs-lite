@@ -1,7 +1,7 @@
 # SUPERB Metaengine Planner & Architecture Evolution — Unified Execution Plan
 
 > **Date:** 2026-08-01 04:18
-> **Status:** PLANNING — awaiting execution
+> **Status:** EXECUTED — Tiers 1-3 complete, Tier 4 partially complete (ADTs + temporal shipped; remaining items are polish)
 > **Source:** Synthesis of **14 planning docs** from `docs/planning/2026-07-3*` (cqrs-lint ×4, metaengine ×8, cross-cutting umbrella ×1, MySQL ×1 — see Appendix A for the full inventory and cross-reference)
 > **One-line thesis:** The integration era is over (WithMetaEngine, DurabilityTier, MVP, MySQL, duckdb tag all shipped). The frontier is making the **planner composable** so every future capability (statistics, materialize-vs-replay, new ADTs, new engines) is an additive rule instead of a monolith hack.
 
