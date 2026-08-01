@@ -83,7 +83,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 	}
 
 	for _, q := range queries {
-		meta, ok := q.(queryMeta)
+		meta, ok := asQueryMeta(q)
 		if !ok {
 			return nil, fmt.Errorf("%w: %T", errNotQueryMeta, q)
 		}

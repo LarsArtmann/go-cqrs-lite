@@ -273,6 +273,30 @@ type queryMeta interface {
 	assignPlan(engine Engine, complexity Complexity, foldByEvent map[string]int)
 }
 
+// asQueryMeta adapts a value to queryMeta. Query() returns a value type
+// (QueryDecl), but assignPlan has a pointer receiver, so QueryDecl values
+// don't directly satisfy queryMeta. This helper creates a heap-allocated
+// pointer copy when the value doesn't already implement the interface,
+// keeping the public API (Plan/RegisterQuery accept any) unchanged.
+func asQueryMeta(query any) (queryMeta, bool) {
+	meta, ok := query.(queryMeta)
+	if ok {
+		return meta, true
+	}
+
+	rv := reflect.ValueOf(query)
+	if !rv.IsValid() {
+		return nil, false
+	}
+
+	ptr := reflect.New(rv.Type())
+	ptr.Elem().Set(rv)
+
+	meta, ok = ptr.Interface().(queryMeta)
+
+	return meta, ok
+}
+
 func (q QueryDecl[Q, R]) QueryName() string             { return q.Name }
 func (q QueryDecl[Q, R]) QueryADT() ADT                 { return q.ADT }
 func (q QueryDecl[Q, R]) QueryFolds() []Fold            { return q.Folds }
