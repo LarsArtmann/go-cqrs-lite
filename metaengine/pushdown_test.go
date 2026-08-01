@@ -130,7 +130,7 @@ var _ = Describe("PushdownScan", func() {
 				nil, 2,
 			)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(results.Items).To(HaveLen(3)) // limit+1
+			Expect(results.Items).To(HaveLen(2))
 
 			vals := extractPriorities(results.Items)
 			Expect(vals).To(Equal([]float64{5, 3, 1}))

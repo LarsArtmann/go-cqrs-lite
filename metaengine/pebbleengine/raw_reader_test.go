@@ -68,7 +68,7 @@ func TestPebbleGetRawValueNotFound(t *testing.T) {
 	raw, found, err := rvr.GetRawValue(context.Background(), "users", "missing")
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(found).To(BeFalse())
-	g.Expect(raw.Items).To(BeNil())
+	g.Expect(raw).To(BeNil())
 }
 
 func TestPebbleScanRawValuesNoFilter(t *testing.T) {

@@ -507,12 +507,9 @@ func ExecuteTyped[Q any, R any](
 	if isCollectionResult[R]() {
 		sortFn := store.sortKeyFn(qualifiedTypeName(input))
 
-		result, ok := raw.(ScanResult)
-		if !ok {
-			return zero, fmt.Errorf("%w: expected ScanResult, got %T", errExecuteTypeMismatch, raw)
+		if result, ok := raw.(ScanResult); ok {
+			return reconstructCollection[R](result, sortFn), nil
 		}
-
-		return reconstructCollection[R](result, sortFn), nil
 	}
 
 	result, ok := raw.(R)

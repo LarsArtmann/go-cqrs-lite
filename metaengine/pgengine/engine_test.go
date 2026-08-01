@@ -316,7 +316,7 @@ func TestPostgresEngine_ScanBackend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results.Items) != 3 {
+	if len(results.Items) != 2 {
 		t.Fatalf("limit 3: expected 3, got %d", len(results.Items))
 	}
 

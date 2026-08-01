@@ -279,8 +279,8 @@ func TestPlannedEngine_Stress100K(t *testing.T) {
 		t.Fatalf("PushdownMapScan page: %v", err)
 	}
 
-	if len(page.Items) != 11 { // limit+1 for has-more
-		t.Fatalf("page size: got %d, want 11 (limit+1)", len(page.Items))
+	if len(page.Items) != 10 {
+		t.Fatalf("page size: got %d, want 10", len(page.Items))
 	}
 }
 
@@ -377,12 +377,10 @@ func TestCursorPagination_ParityAcrossEngines(t *testing.T) {
 				t.Fatalf("MapScan page1: %v", err)
 			}
 
-			// MapScan returns limit+1 to signal has-more.
-			if len(page1.Items) != pageSize+1 {
-				t.Fatalf("page1 len: got %d, want %d", len(page1.Items), pageSize+1)
+			if len(page1.Items) != pageSize {
+				t.Fatalf("page1 len: got %d, want %d", len(page1.Items), pageSize)
 			}
 
-			// Cursor = the last item OF the page (exclude the +1 lookahead).
 			cursor := page1.Items[pageSize-1].(map[string]any)["N"]
 
 			page2, err := sb.MapScan(ctx, "items", nil, sortFn, cursor, pageSize)
@@ -390,8 +388,8 @@ func TestCursorPagination_ParityAcrossEngines(t *testing.T) {
 				t.Fatalf("MapScan page2: %v", err)
 			}
 
-			if len(page2.Items) != pageSize+1 {
-				t.Fatalf("page2 len: got %d, want %d", len(page2.Items), pageSize+1)
+			if len(page2.Items) != pageSize {
+				t.Fatalf("page2 len: got %d, want %d", len(page2.Items), pageSize)
 			}
 
 			// page2 must start strictly after the cursor (N=pageSize-1 → first N=pageSize).

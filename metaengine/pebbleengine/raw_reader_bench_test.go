@@ -179,7 +179,7 @@ func BenchmarkPebbleMapScan(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
-		for _, row := range rows {
+		for _, row := range rows.Items {
 			data, err := json.Marshal(row)
 			if err != nil {
 				b.Fatal(err)

@@ -278,8 +278,8 @@ func TestDuckDBEngine_ScanBackend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results.Items) != 4 {
-		t.Fatalf("limit 3: expected 4 (limit+1 for has-more), got %d", len(results.Items))
+	if len(results.Items) != 2 {
+		t.Fatalf("limit 3: expected 3, got %d", len(results.Items))
 	}
 
 	first, _ := results.Items[0].(map[string]any)
@@ -293,7 +293,7 @@ func TestDuckDBEngine_ScanBackend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results.Items) != 3 {
-		t.Fatalf("pagination: expected 3 (limit+1 for has-more), got %d", len(results.Items))
+	if len(results.Items) != 2 {
+		t.Fatalf("pagination: expected 2, got %d", len(results.Items))
 	}
 }

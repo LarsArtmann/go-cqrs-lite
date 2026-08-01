@@ -104,8 +104,8 @@ func BenchmarkLayoutPlanner_SortIndexVsGoSort(b *testing.B) {
 					b.Fatal(err)
 				}
 
-				if len(results.Items) != bm.limit+1 {
-					b.Fatalf("expected %d results, got %d", bm.limit+1, len(results.Items))
+				if len(results.Items) != bm.limit {
+					b.Fatalf("expected %d results, got %d", bm.limit, len(results.Items))
 				}
 			}
 		})

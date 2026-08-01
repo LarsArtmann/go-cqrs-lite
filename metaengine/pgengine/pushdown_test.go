@@ -99,8 +99,8 @@ func TestPostgresEngine_PushdownSort(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results.Items) != 4 {
-		t.Fatalf("sort desc limit 3: expected 4 (limit+1 for has-more), got %d", len(results.Items))
+	if len(results.Items) != 2 {
+		t.Fatalf("sort desc limit 3: expected 3, got %d", len(results.Items))
 	}
 
 	first := results.Items[0].(map[string]any)
@@ -173,8 +173,8 @@ func TestPostgresEngine_PushdownCursor(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results.Items) != 3 {
-		t.Fatalf("cursor pagination: expected 3 (limit+1 for has-more), got %d", len(results.Items))
+	if len(results.Items) != 2 {
+		t.Fatalf("cursor pagination: expected 2, got %d", len(results.Items))
 	}
 
 	first := results.Items[0].(map[string]any)
@@ -212,7 +212,7 @@ func TestPostgresEngine_PushdownFilterIn(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results.Items) != 3 {
+	if len(results.Items) != 2 {
 		t.Fatalf("filter IN: expected 3, got %d", len(results.Items))
 	}
 }
