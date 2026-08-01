@@ -1881,7 +1881,7 @@ func checkLatencyRoundTrip(t *testing.T, name string, want, got LatencyStats) {
 	}
 }
 
-func TestPrintComparison_RawSinkColumns(t *testing.T) {
+func TestPrintComparison_EvidenceColumns(t *testing.T) {
 	ctx, cancel := parallelTimeoutCtx(t, 30*time.Second)
 	defer cancel()
 
@@ -1896,12 +1896,23 @@ func TestPrintComparison_RawSinkColumns(t *testing.T) {
 	PrintComparison(&buf, results)
 
 	output := buf.String()
-	if !strings.Contains(output, "Raw P50") {
-		t.Error("PrintComparison output missing 'Raw P50' column header")
+
+	// Verify the new evidence-grade column headers are present.
+	requiredHeaders := []string{
+		"WriteP50",
+		"WriteP99",
+		"LoadP50",
+		"LoadP99",
+		"ColdP50",
+		"GCMaxPau",
+		"WrtAmp",
+		"CoV%",
 	}
 
-	if !strings.Contains(output, "Raw P99") {
-		t.Error("PrintComparison output missing 'Raw P99' column header")
+	for _, h := range requiredHeaders {
+		if !strings.Contains(output, h) {
+			t.Errorf("PrintComparison output missing %q column header", h)
+		}
 	}
 }
 
