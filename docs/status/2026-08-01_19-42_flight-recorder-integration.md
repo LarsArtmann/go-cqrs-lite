@@ -16,62 +16,62 @@ Created a new **`flightrecorder/`** module (Tier 0, zero-dependency) that wraps 
 
 ## a) FULLY DONE
 
-| # | Item | Verification |
-|---|------|-------------|
-| 1 | `flightrecorder/` module created (`go.mod`, zero deps, stdlib only) | `GOWORK=off go build ./...` ✓ |
-| 2 | `Recorder` type: `New`, `Start`, `Stop`, `Enabled`, `Snapshot`, `SnapshotToFile`, `SnapshotIf`, `Reset`, `Writer` | 25 core tests ✓ |
-| 3 | `TriggerFunc` system: `OnLatency`, `OnError`, `OnErrorOrLatency`, `OnAlways`, `OnAny`, `OnAll` | 10 trigger tests ✓ |
-| 4 | Options: `WithMinAge`, `WithMaxBytes`, `WithWriter`, `WithFile` (lazy file creation) | Tested ✓ |
-| 5 | Once-semantics (first `Snapshot` wins; `Reset` for re-arm) | Tested with concurrent goroutines ✓ |
-| 6 | Thread-safety: `sync.Mutex` around `WriteTo` to prevent `Stop`/`Snapshot` races | `-race` clean ✓ |
-| 7 | CQRS middleware: `NewFlightRecorder[M]`, `CommandFlightRecorder`, `EventFlightRecorder`, `QueryFlightRecorder` | 10 middleware tests ✓ |
-| 8 | Middleware preserves original error, captures async (goroutine), logs on snapshot failure | Tested ✓ |
-| 9 | `go.work` updated with `./flightrecorder` | Workspace resolves ✓ |
-| 10 | `middleware/go.mod` updated with replace directive for untagged module | `go build` ✓ |
-| 11 | `cmd/api-stability/main.go` modules list updated | `TestEveryGoModDirIsInModulesList` ✓ |
-| 12 | `docs/api_surface.txt` regenerated (3117 exports, 29 new flightrecorder symbols) | `go run .` ✓ |
-| 13 | `AGENTS.md` updated: Modules list, Monorepo tree, Tier 0 graph, Key Patterns example | Verified ✓ |
-| 14 | `flightrecorder/README.md` with quickstart, trigger table, CQRS middleware example | Written ✓ |
-| 15 | `flightrecorder/doc.go` with package-level usage docs | Written ✓ |
-| 16 | `gofumpt` + `goimports` clean on all new files | Checked ✓ |
-| 17 | `go vet` clean on both modules | Checked ✓ |
+| #   | Item                                                                                                              | Verification                         |
+| --- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| 1   | `flightrecorder/` module created (`go.mod`, zero deps, stdlib only)                                               | `GOWORK=off go build ./...` ✓        |
+| 2   | `Recorder` type: `New`, `Start`, `Stop`, `Enabled`, `Snapshot`, `SnapshotToFile`, `SnapshotIf`, `Reset`, `Writer` | 25 core tests ✓                      |
+| 3   | `TriggerFunc` system: `OnLatency`, `OnError`, `OnErrorOrLatency`, `OnAlways`, `OnAny`, `OnAll`                    | 10 trigger tests ✓                   |
+| 4   | Options: `WithMinAge`, `WithMaxBytes`, `WithWriter`, `WithFile` (lazy file creation)                              | Tested ✓                             |
+| 5   | Once-semantics (first `Snapshot` wins; `Reset` for re-arm)                                                        | Tested with concurrent goroutines ✓  |
+| 6   | Thread-safety: `sync.Mutex` around `WriteTo` to prevent `Stop`/`Snapshot` races                                   | `-race` clean ✓                      |
+| 7   | CQRS middleware: `NewFlightRecorder[M]`, `CommandFlightRecorder`, `EventFlightRecorder`, `QueryFlightRecorder`    | 10 middleware tests ✓                |
+| 8   | Middleware preserves original error, captures async (goroutine), logs on snapshot failure                         | Tested ✓                             |
+| 9   | `go.work` updated with `./flightrecorder`                                                                         | Workspace resolves ✓                 |
+| 10  | `middleware/go.mod` updated with replace directive for untagged module                                            | `go build` ✓                         |
+| 11  | `cmd/api-stability/main.go` modules list updated                                                                  | `TestEveryGoModDirIsInModulesList` ✓ |
+| 12  | `docs/api_surface.txt` regenerated (3117 exports, 29 new flightrecorder symbols)                                  | `go run .` ✓                         |
+| 13  | `AGENTS.md` updated: Modules list, Monorepo tree, Tier 0 graph, Key Patterns example                              | Verified ✓                           |
+| 14  | `flightrecorder/README.md` with quickstart, trigger table, CQRS middleware example                                | Written ✓                            |
+| 15  | `flightrecorder/doc.go` with package-level usage docs                                                             | Written ✓                            |
+| 16  | `gofumpt` + `goimports` clean on all new files                                                                    | Checked ✓                            |
+| 17  | `go vet` clean on both modules                                                                                    | Checked ✓                            |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's missing |
-|---|------|----------------|
-| 1 | **AGENTS.md test command** | `./flightrecorder/...` was supposed to be added to the `go test` command string in the Quick Reference table. The `multiedit` reported "Applied 2 of 3 edits" — this edit **FAILED silently**. The test command string does NOT include `./flightrecorder/...`. |
-| 2 | **middleware/go.sum** | `flightrecorder` entry is missing from `go.sum` (0 matches). `go mod tidy` ran but didn't add it because the workspace `replace` directive resolves it locally. This works in the workspace but **breaks standalone `GOWORK=off` builds** of the middleware module if the local replace isn't present. Not critical (replace is in go.mod), but go.sum should still be tidy. |
-| 3 | **AGENTS.md Dependencies table** | Not updated, but `flightrecorder` has zero production deps (stdlib only), so the table is technically correct without it. Still, it should be documented as "stdlib only" for discoverability. |
+| #   | Item                             | What's missing                                                                                                                                                                                                                                                                                                                                                               |
+| --- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **AGENTS.md test command**       | `./flightrecorder/...` was supposed to be added to the `go test` command string in the Quick Reference table. The `multiedit` reported "Applied 2 of 3 edits" — this edit **FAILED silently**. The test command string does NOT include `./flightrecorder/...`.                                                                                                              |
+| 2   | **middleware/go.sum**            | `flightrecorder` entry is missing from `go.sum` (0 matches). `go mod tidy` ran but didn't add it because the workspace `replace` directive resolves it locally. This works in the workspace but **breaks standalone `GOWORK=off` builds** of the middleware module if the local replace isn't present. Not critical (replace is in go.mod), but go.sum should still be tidy. |
+| 3   | **AGENTS.md Dependencies table** | Not updated, but `flightrecorder` has zero production deps (stdlib only), so the table is technically correct without it. Still, it should be documented as "stdlib only" for discoverability.                                                                                                                                                                               |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Item | Impact |
-|---|------|--------|
-| 1 | **ADR for flight recorder design** | No ADR documenting the design decision (once-semantics, trigger composition, why zero-dep core + middleware integration split). Last ADR is 0088. Should be 0089. |
-| 2 | **SKILL.md + `.agents/skills/go-cqrs-lite/` references** | The AI consumer skill (SKILL.md + references/) has ZERO mentions of flightrecorder. Consumers asking AI agents about diagnostics won't know it exists. Need to add to `references/modules.md`, `references/core.md` (decision matrix), `references/advanced.md` (advanced patterns), `references/recipes.md`. |
-| 3 | **`doc-check` verification** | AGENTS.md says to run `cmd/doc-check` after editing docs to verify Go import paths. Not run. The new AGENTS.md code examples reference `flightrecorder` and `middleware` packages — these need validation. |
-| 4 | **`.golangci.yml` depguard allowlist** | No `.golangci.yml` found in repo (grep returned 0). Not applicable, but should verify the lint config (wherever it lives) doesn't flag the new import. |
-| 5 | **Integration test** | No test showing the end-to-end workflow: start recorder → dispatch slow command → verify `.trace` file → verify it's parseable by `go tool trace` (or at least has valid trace header bytes). |
-| 6 | **`projectionhost` integration** | No hook for projection failures (the `WithOnFailed` callback, DLQ threshold, worker restart) to trigger a flight recorder snapshot. This is a natural fit — projection poison messages are exactly the kind of problem flight recording diagnoses. |
-| 7 | **`stack.Bundle` integration** | No `WithFlightRecorder` option on `stack.Bundle` for one-call setup. Consumer must wire it manually. |
-| 8 | **`cqrs-lint` F-series adoption rule** | No F-series rule coaching users toward flight recording (like the existing rules for tombstone, catalog, OTel, etc.). |
-| 9 | **Example in `example/taskmanager`** | The flagship example doesn't demonstrate flight recording. |
+| #   | Item                                                     | Impact                                                                                                                                                                                                                                                                                                        |
+| --- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **ADR for flight recorder design**                       | No ADR documenting the design decision (once-semantics, trigger composition, why zero-dep core + middleware integration split). Last ADR is 0088. Should be 0089.                                                                                                                                             |
+| 2   | **SKILL.md + `.agents/skills/go-cqrs-lite/` references** | The AI consumer skill (SKILL.md + references/) has ZERO mentions of flightrecorder. Consumers asking AI agents about diagnostics won't know it exists. Need to add to `references/modules.md`, `references/core.md` (decision matrix), `references/advanced.md` (advanced patterns), `references/recipes.md`. |
+| 3   | **`doc-check` verification**                             | AGENTS.md says to run `cmd/doc-check` after editing docs to verify Go import paths. Not run. The new AGENTS.md code examples reference `flightrecorder` and `middleware` packages — these need validation.                                                                                                    |
+| 4   | **`.golangci.yml` depguard allowlist**                   | No `.golangci.yml` found in repo (grep returned 0). Not applicable, but should verify the lint config (wherever it lives) doesn't flag the new import.                                                                                                                                                        |
+| 5   | **Integration test**                                     | No test showing the end-to-end workflow: start recorder → dispatch slow command → verify `.trace` file → verify it's parseable by `go tool trace` (or at least has valid trace header bytes).                                                                                                                 |
+| 6   | **`projectionhost` integration**                         | No hook for projection failures (the `WithOnFailed` callback, DLQ threshold, worker restart) to trigger a flight recorder snapshot. This is a natural fit — projection poison messages are exactly the kind of problem flight recording diagnoses.                                                            |
+| 7   | **`stack.Bundle` integration**                           | No `WithFlightRecorder` option on `stack.Bundle` for one-call setup. Consumer must wire it manually.                                                                                                                                                                                                          |
+| 8   | **`cqrs-lint` F-series adoption rule**                   | No F-series rule coaching users toward flight recording (like the existing rules for tombstone, catalog, OTel, etc.).                                                                                                                                                                                         |
+| 9   | **Example in `example/taskmanager`**                     | The flagship example doesn't demonstrate flight recording.                                                                                                                                                                                                                                                    |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| # | Issue | Severity | Status |
-|---|-------|----------|--------|
-| 1 | **`Snapshot(ctx)` ignores `ctx`** | Medium | The `context.Context` parameter on `Snapshot()` and `SnapshotIf()` is **never used**. It's accepted for future cancellation support but currently does nothing. This is a **lying API** — callers expect context cancellation to abort the snapshot, but it won't. Either implement context-aware cancellation or remove the parameter. The Go blog example doesn't use context at all. |
-| 2 | **`lazyFile.Close()` is unreachable** | Low | The `lazyFile` type has a `Close()` method that is never called by any public API path. `WithFile` creates a `lazyFile` as the writer, but `Recorder` has no lifecycle hook to close it. The file handle leaks until process exit. For a single-snapshot use case this is tolerable, but it's still a resource leak. |
-| 3 | **Initial test attempt had parallel `runtime/trace` conflicts** | Resolved | First test run failed because Go only allows ONE active `runtime/trace.FlightRecorder` per process. Tests were using `t.Parallel()`. Fixed by serializing with `sync.Mutex`, but the **root constraint is not documented** in the package docs. Consumer code that creates two `Recorder` instances and calls `Start()` on both will get a confusing `"flight recorder already enabled"` error. |
-| 4 | **Race condition in first iteration** | Resolved | `Snapshot()` initially called `r.Enabled()` (which acquires `r.mu`) then `r.fr.WriteTo()` (without holding `r.mu`), racing with `Stop()`. Fixed by holding `r.mu` for the entire `WriteTo` call. The fix is correct but the initial design was wrong — should have held the lock from the start. |
+| #   | Issue                                                           | Severity | Status                                                                                                                                                                                                                                                                                                                                                                                          |
+| --- | --------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **`Snapshot(ctx)` ignores `ctx`**                               | Medium   | The `context.Context` parameter on `Snapshot()` and `SnapshotIf()` is **never used**. It's accepted for future cancellation support but currently does nothing. This is a **lying API** — callers expect context cancellation to abort the snapshot, but it won't. Either implement context-aware cancellation or remove the parameter. The Go blog example doesn't use context at all.         |
+| 2   | **`lazyFile.Close()` is unreachable**                           | Low      | The `lazyFile` type has a `Close()` method that is never called by any public API path. `WithFile` creates a `lazyFile` as the writer, but `Recorder` has no lifecycle hook to close it. The file handle leaks until process exit. For a single-snapshot use case this is tolerable, but it's still a resource leak.                                                                            |
+| 3   | **Initial test attempt had parallel `runtime/trace` conflicts** | Resolved | First test run failed because Go only allows ONE active `runtime/trace.FlightRecorder` per process. Tests were using `t.Parallel()`. Fixed by serializing with `sync.Mutex`, but the **root constraint is not documented** in the package docs. Consumer code that creates two `Recorder` instances and calls `Start()` on both will get a confusing `"flight recorder already enabled"` error. |
+| 4   | **Race condition in first iteration**                           | Resolved | `Snapshot()` initially called `r.Enabled()` (which acquires `r.mu`) then `r.fr.WriteTo()` (without holding `r.mu`), racing with `Stop()`. Fixed by holding `r.mu` for the entire `WriteTo` call. The fix is correct but the initial design was wrong — should have held the lock from the start.                                                                                                |
 
 ---
 
@@ -187,6 +187,7 @@ Created a new **`flightrecorder/`** module (Tier 0, zero-dependency) that wraps 
 ### 1. Should `Snapshot` keep the `ctx` parameter?
 
 `runtime/trace.FlightRecorder.WriteTo()` does NOT accept `context.Context`, so I cannot implement real cancellation. The parameter is currently a lie. Options:
+
 - **A)** Remove `ctx` from `Snapshot`/`SnapshotIf` — honest but breaking if I add it back later
 - **B)** Keep `ctx`, document as "reserved for future use when Go's API supports it"
 - **C)** Implement partial cancellation — check `ctx.Done()` before/after `WriteTo` but not during
@@ -196,6 +197,7 @@ I chose B by default, but this is a design decision that affects the public API 
 ### 2. Should flight recorder snapshot files include structured metadata (timestamp, trigger reason, operation type)?
 
 Right now `Snapshot()` just dumps the raw trace bytes. But a consumer debugging a slow command might want to know WHICH command triggered the capture, what the duration was, and what error occurred. Options:
+
 - **A)** Keep it simple — raw trace only (current)
 - **B)** Add `SnapshotWithMetadata(ctx, TriggerContext)` that writes a JSON sidecar file
 - **C)** Wrap the trace in a container format (trace + metadata header)
@@ -205,6 +207,7 @@ This affects the consumer workflow significantly.
 ### 3. How should projection host integration work — automatic or opt-in?
 
 `projectionhost` has multiple failure signals: per-event error (retryable), DLQ threshold exceeded, worker restart, terminal failure. Should flight recording:
+
 - **A)** Fire on ALL errors (could be very noisy with poison messages)
 - **B)** Fire only on terminal failure (`OnFailed` callback — rare, high-signal)
 - **C)** Fire on DLQ threshold (first poison message that exceeds retry budget)
@@ -216,21 +219,21 @@ This determines whether it's a `WithFlightRecorder(recorder, trigger)` option or
 
 ## Files Created/Modified This Session
 
-| File | Action | Lines |
-|------|--------|-------|
-| `flightrecorder/go.mod` | Created | 3 |
-| `flightrecorder/doc.go` | Created | 37 |
-| `flightrecorder/recorder.go` | Created | 178 |
-| `flightrecorder/options.go` | Created | 108 |
-| `flightrecorder/trigger.go` | Created | 108 |
-| `flightrecorder/recorder_test.go` | Created | 410 |
-| `flightrecorder/trigger_test.go` | Created | 189 |
-| `flightrecorder/README.md` | Created | 65 |
-| `middleware/flightrecorder.go` | Created | 103 |
-| `middleware/flightrecorder_test.go` | Created | 352 |
-| `middleware/go.mod` | Modified | +2 lines (require + replace) |
-| `go.work` | Modified | +1 line |
-| `cmd/api-stability/main.go` | Modified | +1 line |
-| `docs/api_surface.txt` | Regenerated | 3117 exports |
-| `AGENTS.md` | Modified | +15 lines (tree, tier, patterns, module list) |
-| **Total** | **16 files** | **~1600 lines** |
+| File                                | Action       | Lines                                         |
+| ----------------------------------- | ------------ | --------------------------------------------- |
+| `flightrecorder/go.mod`             | Created      | 3                                             |
+| `flightrecorder/doc.go`             | Created      | 37                                            |
+| `flightrecorder/recorder.go`        | Created      | 178                                           |
+| `flightrecorder/options.go`         | Created      | 108                                           |
+| `flightrecorder/trigger.go`         | Created      | 108                                           |
+| `flightrecorder/recorder_test.go`   | Created      | 410                                           |
+| `flightrecorder/trigger_test.go`    | Created      | 189                                           |
+| `flightrecorder/README.md`          | Created      | 65                                            |
+| `middleware/flightrecorder.go`      | Created      | 103                                           |
+| `middleware/flightrecorder_test.go` | Created      | 352                                           |
+| `middleware/go.mod`                 | Modified     | +2 lines (require + replace)                  |
+| `go.work`                           | Modified     | +1 line                                       |
+| `cmd/api-stability/main.go`         | Modified     | +1 line                                       |
+| `docs/api_surface.txt`              | Regenerated  | 3117 exports                                  |
+| `AGENTS.md`                         | Modified     | +15 lines (tree, tier, patterns, module list) |
+| **Total**                           | **16 files** | **~1600 lines**                               |

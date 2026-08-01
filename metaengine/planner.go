@@ -79,7 +79,10 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		queries:     make(map[string]queryMeta),
 		byInputType: make(map[string]string),
 		queryDecls:  queries,
-		startTime:   time.Now(),
+		poison:      newPoisonTracker(),
+		idempotency: newIdempotencyTracker(),
+		meter:       newWorkloadMeter(),
+		subs:        newSubscriberHub(),
 	}
 
 	for _, q := range queries {
@@ -109,6 +112,8 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 	}
 
 	store.plan = plan
+	plan.Version = 1
+	plan.ComputedAt = time.Now()
 
 	return store, nil
 }

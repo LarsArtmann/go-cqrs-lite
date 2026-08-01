@@ -40,6 +40,7 @@ manual verification.
 
 Every metaengine benchmark phase now asserts that operations produced
 non-trivial results:
+
 - Counter workload: `ExecuteTyped` must return a non-empty map after Apply
 - Map workload: `TypedReader.Get` must find inserted items
 - SQLite workload: same correctness check against the SQLite engine
@@ -56,7 +57,7 @@ reporting meaningless numbers.
 - **AllocCount / AllocBytes**: Total heap allocations during the benchmark.
   High alloc rates correlate with GC pressure and latency variance.
 - **GCPercent**: Percentage of wall-clock time spent in GC pauses.
-  >5% means GC is a significant performance factor.
+  > 5% means GC is a significant performance factor.
 
 ### 3. Derived Rate Metrics
 
@@ -75,6 +76,7 @@ reporting meaningless numbers.
 
 The Map ADT workload now runs against both Memory and SQLite engines,
 giving a direct comparison:
+
 - Memory: planner + fold overhead with zero I/O
 - SQLite: SQL query execution + json_extract pushdown cost
 

@@ -77,14 +77,14 @@ alongside other closable resources (`stack.Bundle.Close()`, `MultiCloser`).
 
 ### 7. Integration points
 
-| Module          | Option                          | Trigger fires on                     |
-| --------------- | ------------------------------- | ------------------------------------ |
-| `middleware`    | `CommandFlightRecorder`         | Per-dispatch latency/error           |
-| `middleware`    | `EventFlightRecorder`           | Per-handler latency/error            |
-| `middleware`    | `QueryFlightRecorder`           | Per-query latency/error              |
-| `projectionhost`| `WithFlightRecorder`            | Terminal worker failure (WorkerFailed) |
-| `decider`       | `WithFlightRecorder[State]`     | Execute latency/error                |
-| `stack`         | `WithFlightRecorder`            | Lifecycle management + discovery     |
+| Module           | Option                      | Trigger fires on                       |
+| ---------------- | --------------------------- | -------------------------------------- |
+| `middleware`     | `CommandFlightRecorder`     | Per-dispatch latency/error             |
+| `middleware`     | `EventFlightRecorder`       | Per-handler latency/error              |
+| `middleware`     | `QueryFlightRecorder`       | Per-query latency/error                |
+| `projectionhost` | `WithFlightRecorder`        | Terminal worker failure (WorkerFailed) |
+| `decider`        | `WithFlightRecorder[State]` | Execute latency/error                  |
+| `stack`          | `WithFlightRecorder`        | Lifecycle management + discovery       |
 
 The `stack.Bundle` integration registers the recorder for `Close()` lifecycle
 management and exposes it via `FlightRecorder()` accessor. The consumer calls

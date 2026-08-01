@@ -58,19 +58,21 @@
 ### The `[]any` fallback in ExecuteTyped
 
 `ExecuteTyped` now has a two-path type assertion:
+
 ```go
 if result, ok := raw.(ScanResult); ok { ... }
 if items, ok := raw.([]any); ok {
     return reconstructCollection[R](ScanResult{Items: items}, sortFn), nil
 }
 ```
+
 This handles `MultiGet` (which returns `[]any`, not `ScanResult`). It works, but it's a design inconsistency — `MultiGet` should either return `ScanResult` too, or `ExecuteTyped` should handle non-scan collection results differently. The fallback is pragmatic but not clean.
 
 ---
 
 ## C. Not Started
 
-1. **ADR for the ScanResult design** — No Architecture Decision Record documents *why* the `limit+1` convention was replaced with an explicit struct. This is a public API change that future contributors need context on.
+1. **ADR for the ScanResult design** — No Architecture Decision Record documents _why_ the `limit+1` convention was replaced with an explicit struct. This is a public API change that future contributors need context on.
 
 2. **Shared scan test harness** — The ScanBackend test pattern (filter, sort, limit, cursor) is still duplicated between pgengine, duckdbengine, and pebbleengine. A shared `scantest` package (like `adttest`) would eliminate duplication and enforce cross-engine parity for the new `ScanResult` contract.
 
@@ -118,7 +120,7 @@ The pebble `sortAndPaginate` helper (`pebbleengine/sort_paginate.go`) still trun
 
 ### E4: Test count adjustments were manual and error-prone
 
-Every test that asserted `len == limit+1` needed manual correction to `len == limit`. There were ~15 such assertions across 6 files. A better approach would have been to grep for `limit+1` comments and assertions *before* changing the engines, collect them all, and fix them in one batch.
+Every test that asserted `len == limit+1` needed manual correction to `len == limit`. There were ~15 such assertions across 6 files. A better approach would have been to grep for `limit+1` comments and assertions _before_ changing the engines, collect them all, and fix them in one batch.
 
 ---
 
@@ -137,7 +139,7 @@ Every test that asserted `len == limit+1` needed manual correction to `len == li
 11. **Review `LogTail` return type** — `LogBackend.LogTail` returns `[]any`, not `ScanResult`. It goes through the same `ExecuteTyped` path. Same inconsistency as MultiGet.
 12. **Clean up `scanSingleColumn` generic helper** — It returns `[]T` which all scan implementations then wrap into `ScanResult`. The wrapping logic is duplicated.
 13. **Add `HasMore` to `TypedReader.Scan` return** — Currently `TypedReader.Scan` returns `([]V, error)`. With `HasMore` now explicit, the typed reader could expose it.
-14. **Review cursor construction in `reconstructCollection`** — It uses `lastItem` from the full `Items` slice. With `HasMore` explicit, the cursor should be derived from the last item *of the returned page*, not a `limit+1` overflow item. This is now correct but worth a test.
+14. **Review cursor construction in `reconstructCollection`** — It uses `lastItem` from the full `Items` slice. With `HasMore` explicit, the cursor should be derived from the last item _of the returned page_, not a `limit+1` overflow item. This is now correct but worth a test.
 15. **Performance benchmark** — The `ScanResult` struct adds one allocation per scan call (struct on stack vs slice header). Benchmark to confirm no regression on hot paths.
 
 ---

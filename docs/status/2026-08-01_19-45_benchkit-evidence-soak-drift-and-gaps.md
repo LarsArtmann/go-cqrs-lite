@@ -9,64 +9,75 @@
 ## A. FULLY DONE (shipped and tested)
 
 ### 1. Statistical Reliability (RepeatStdDev, RepeatCoV, RepeatIsReliable)
+
 - **What:** Population stddev, coefficient of variation, reliability flag (CoV < 10%)
 - **Files:** `result.go`, `run.go` (new file, extracted from benchkit.go)
 - **Test:** `TestRepeat_StatisticalReliability`
 - **Verified by deep benchmark:** memory 3.3%, pebble 3.2%, sqlite 8.3% — all TRUSTWORTHY
 
 ### 2. GC Pause Metrics (GCCount, GCTotalPause, GCMaxPause, GCMeanPause)
+
 - **What:** `computeGCMetrics` scans `runtime.MemStats.PauseNs[256]` circular buffer
 - **Files:** `metrics.go`, `runner_concurrent.go`, `runner.go`
 - **Test:** `TestResult_GCMetrics`
 - **Verified by deep benchmark:** Pebble has 1.17ms GC max pause (6.7x worse than memory). This was invisible before.
 
 ### 3. Allocation Metrics (AllocCount, AllocBytes)
+
 - **What:** Delta of `Mallocs` and `TotalAlloc` across benchmark
 - **Files:** `runner_concurrent.go`
 - **Test:** `TestResult_AllocationMetrics`
 - **Verified by deep benchmark:** SQLite allocates 8.3M objects (6.4x more than memory)
 
 ### 4. Data Integrity Verification (IntegrityErrors)
+
 - **What:** Reads back 20 sampled streams post-write, verifies count/payload/version
 - **Files:** `phases.go` (`verifyIntegrity`)
 - **Test:** `TestResult_IntegrityErrors`
 - **Verified by deep benchmark:** All 3 backends, 0 errors
 
 ### 5. Write Amplification (Disk.WriteAmplification)
+
 - **What:** `DatabaseBytes / EventBytes` ratio
 - **Files:** `result.go`, `runner_concurrent.go`
 - **Test:** `TestResult_WriteAmplification`
 - **Verified by deep benchmark:** Pebble = 10.15x (expected LSM amplification)
 
 ### 6. Cold/Warm Read Distinction (ColdReadLatency)
+
 - **What:** First read pass captured separately from aggregate LoadLatency
 - **Files:** `phases_read.go`
 - **Test:** `TestResult_ColdReadLatency`
 - **Verified:** At ProfileSmall cold ≈ warm (page cache not exhausted); needs larger profile to diverge
 
 ### 7. Environment Enrichment (CPUModel, TotalRAMBytes)
+
 - **What:** `/proc/cpuinfo` + `/proc/meminfo` on Linux, stubs elsewhere
 - **Files:** `env_linux.go` (new), `env_other.go` (new)
 - **Test:** `TestResult_EnvironmentEnrichment`
 - **Verified:** "AMD RYZEN AI MAX+ 395 w/ Radeon 8060S" detected
 
 ### 8. PrintComparison Updated with Evidence Columns
+
 - **What:** 11-column table: WriteP50/P99, LoadP50/P99, ColdP50, GCMaxPause, WrtAmp, CoV%, Heap, Disk + integrity warnings
 - **Files:** `report_comparison.go` (new file, split from report.go), `report.go`
 - **Test:** `TestPrintComparison_EvidenceColumns` (replaces old `TestPrintComparison_RawSinkColumns`)
 - **Verified by deep benchmark:** Output rendered correctly
 
 ### 9. PrintMarkdown Updated
+
 - **What:** Markdown table with all new columns including integrity checkmarks
 - **Files:** `report_comparison.go`
 - **Verified by deep benchmark:** Output rendered correctly
 
 ### 10. Soak GC + Alloc Drift
+
 - **What:** `SoakSample.GCMaxPause` + `SoakSample.AllocBytes`, `SoakResult.GCMaxPauseDriftPct` + `AllocGrowthPct`
 - **Files:** `soak.go`
 - **Impact:** Soak tests now detect GC degradation under sustained load, not just heap/throughput drift
 
 ### 11. Deep Benchmark Executed (Proof the Metrics Work)
+
 - **What:** Ran `benchkit.Compare` with ProfileSmall (10K events) + Repeat=5 against memory, SQLite, Pebble
 - **Output:** Full comparison table, per-backend detailed reports, markdown table, reliability assessment
 - **Key findings:**
@@ -76,6 +87,7 @@
   - All three: CoV < 10% (trustworthy), 0 integrity errors
 
 ### 12. Documentation + API Surface
+
 - `doc.go` updated with all new metrics documented
 - `ExpectedJSONFields` updated (includes gcCount, allocBytes, coldReadLatency, writeAmplification, etc.)
 - `WriteBenchstat` updated with new metric lines
@@ -87,12 +99,15 @@
 ## B. PARTIALLY DONE
 
 ### 1. Soak GC/Alloc drift — code written but NOT compiled separately
+
 The `soak.go` edits added `GCMaxPause` and `AllocBytes` to `SoakSample`, plus `GCMaxPauseDriftPct` and `AllocGrowthPct` to `SoakResult`, and the drift computation in `computeSoakTrends`. The `PrintSoakReport` was updated to show GC and alloc drift lines. **BUT the full test suite was NOT re-run after the soak.go changes.** The last full `go test` run was before the soak.go edits. The soak test specifically needs verification.
 
 ### 2. cqrs-bench CLI
+
 The CLI module has a pre-existing build break (`storage.SQLiteSetSynchronous` undefined in published `stack/v4` tag). The CLI uses `benchkit.Result` so it picks up the new fields automatically via JSON output, but no new CLI flags were added and the text output wasn't verified end-to-end.
 
 ### 3. Derived rate metrics (AllocsPerOp, BytesPerOp, GCPercent, TailRatio)
+
 The raw data is collected (AllocCount, AllocBytes, GCTotalPause, Duration, P50, P99). The derived rates are NOT computed. These would be single-line additions in `finalizeResult` — the data exists, the computation doesn't.
 
 ---
@@ -100,7 +115,9 @@ The raw data is collected (AllocCount, AllocBytes, GCTotalPause, Duration, P50, 
 ## C. NOT STARTED
 
 ### 1. Metaengine benchmark quality assessment
+
 The user asked "do we benchmark metaengine? If so do we do it well?!?!" I read the current `phases_metaengine.go` and identified the gaps but did NOT act on them. The current metaengine phase:
+
 - Tests only ONE ADT (Counter — a single map increment)
 - Tests only ONE engine (Memory — the trivially-fast baseline)
 - Tests only Apply + ExecuteTyped (no Scan, no PushdownScan, no ScanRawValues)
@@ -113,21 +130,27 @@ The user asked "do we benchmark metaengine? If so do we do it well?!?!" I read t
 This is a **toy benchmark** for the module that the project considers "THE STRATEGIC FUTURE."
 
 ### 2. `-race` verification
+
 Never ran `go test -race ./benchkit/...`. The new `computeGCMetrics` reads `MemStats.PauseNs[256]` (safe — value copy), and `finalizeResult` runs single-threaded (post-phases), but unverified.
 
 ### 3. `nix run .#verify` full gate
+
 Never ran. We know benchkit builds and tests pass, but 62 other modules are unchecked. The cqrs-bench break is pre-existing but would fail the gate.
 
 ### 4. ADR for evidence-metrics design
+
 No ADR written.
 
 ### 5. README update
+
 `benchkit/README.md` "Metrics collected" section still lists the old metric set.
 
 ### 6. RunSuite update
+
 `benchtest.go:RunSuite` does not report the new metrics via `b.ReportMetric`.
 
 ### 7. PrintSweep update
+
 Sweep table still shows old columns only.
 
 ---
@@ -135,27 +158,35 @@ Sweep table still shows old columns only.
 ## D. TOTALLY FUCKED UP / MISTAKES
 
 ### 1. Built up changes, then got interrupted before final verification
+
 The session flow was: add metrics → fix tests → run deep benchmark → user asked for more → started soak changes → user interrupted for status report. The soak.go changes are **unverified by tests**. This is the #1 mistake — I should have run tests immediately after the soak.go edit.
 
 ### 2. Left a missing closing brace in soak.go
+
 Added fields to `SoakSample` struct but forgot to close the struct brace. Compiler caught it. Fixed. Wasted a build cycle.
 
 ### 3. Used string literal "-" for a time.Duration variable
+
 `gcStr` was assigned `"-"` (string) in a context where `roundDuration` returns `time.Duration`. Compiler error. Fixed with `.String()` conversion. Type mismatch that I should have caught.
 
 ### 4. Report.go exceeded 350 lines after adding comparison columns
+
 Had to split `PrintComparison`/`PrintMarkdown`/`WriteComparisonJSON` into `report_comparison.go`. Should have anticipated the size increase.
 
 ### 5. Left dead `coldColl` variable in phases_read.go
+
 Declared but unused. Compiler caught it.
 
 ### 6. Never answered the user's metaengine question
+
 The user explicitly asked: "do we benchmark metaengine? If so do we do it well?!?!" I read the code, identified that the benchmark is superficial, but then got derailed by the status report request. The metaengine benchmark gap analysis was NOT communicated to the user.
 
 ### 7. Deep benchmark runner was throwaway
+
 Wrote `cmd_deep_bench/main.go`, ran the benchmark, then deleted it. The benchmark results are in the status report but not reproducible by anyone else. Should have been a test or committed example.
 
 ### 8. Did not update SoakSample test
+
 The soak test (`soak_test.go`) was NOT updated to verify the new `GCMaxPause` and `AllocBytes` fields are populated.
 
 ---
@@ -261,28 +292,31 @@ The soak test (`soak_test.go`) was NOT updated to verify the new `GCMaxPause` an
 ## G. Questions (I cannot answer these myself)
 
 ### 1. How deep should the metaengine benchmark go?
+
 The current phase tests 1 ADT on 1 engine with 500 samples. A proper benchmark would test all 7+ ADTs across 5 engines (Memory, SQLite, Pebble, Postgres, DuckDB) at 10K+ scale, measuring Apply, Scan, PushdownScan, and layout-planning impact. That's a massive scope increase — potentially a separate `metaengine_bench` module or a major benchkit expansion. **Should this be a full benchkit phase expansion, or a dedicated metaengine benchmarking tool?** The former integrates with the existing comparison/sweep/soak infrastructure; the latter allows metaengine-specific metrics without polluting the general Result struct.
 
 ### 2. Should derived metrics (AllocsPerOp, GCPercent, TailRatio) be computed in Result or only in reports?
+
 Computing them as Result fields means they're serialized to JSON and available programmatically — but they're redundant (derivable from existing fields). Computing them only in report output keeps Result lean but means JSON consumers must recompute. **What's the preference: fat Result with derived fields, or lean Result with report-side computation?**
 
 ### 3. Should the deep benchmark runner be committed or kept throwaway?
+
 I wrote a `cmd_deep_bench/main.go`, ran it, then deleted it. The results are in this status report but not reproducible. Options: (A) commit it as `benchkit/cmd_deep_bench/` — always available but adds maintenance surface; (B) make it a test function `TestDeepBenchmark` — runs in CI but adds 30-60s to the test suite; (C) document the `cqrs-bench compare` CLI invocation in the README — no code, but requires the CLI to build (currently broken). **Which approach?**
 
 ---
 
 ## Verification Status
 
-| Check | Status |
-|-------|--------|
-| `go build -tags "goexperiment.jsonv2" ./benchkit/...` | ✅ GREEN (before soak.go edits) |
-| `go test -tags "goexperiment.jsonv2" ./benchkit/ -count=1` | ✅ GREEN (before soak.go edits) |
-| Soak.go changes verified | ❌ NOT RUN — changes are unverified |
-| `go test -race` | ❌ NEVER RUN |
-| `nix run .#verify` | ❌ NEVER RUN |
-| `stack/bench` compiles | ✅ GREEN (before soak.go edits) |
-| `cmd/cqrs-bench` compiles | ❌ Pre-existing break |
-| File line counts (max 350) | ⚠️ soak.go at 360 lines |
-| Deep benchmark executed | ✅ memory vs sqlite vs pebble, Repeat=5 |
-| API surface golden | ✅ Regenerated (3088 exports) |
-| gofumpt formatting | ⚠️ soak.go changes not formatted |
+| Check                                                      | Status                                  |
+| ---------------------------------------------------------- | --------------------------------------- |
+| `go build -tags "goexperiment.jsonv2" ./benchkit/...`      | ✅ GREEN (before soak.go edits)         |
+| `go test -tags "goexperiment.jsonv2" ./benchkit/ -count=1` | ✅ GREEN (before soak.go edits)         |
+| Soak.go changes verified                                   | ❌ NOT RUN — changes are unverified     |
+| `go test -race`                                            | ❌ NEVER RUN                            |
+| `nix run .#verify`                                         | ❌ NEVER RUN                            |
+| `stack/bench` compiles                                     | ✅ GREEN (before soak.go edits)         |
+| `cmd/cqrs-bench` compiles                                  | ❌ Pre-existing break                   |
+| File line counts (max 350)                                 | ⚠️ soak.go at 360 lines                 |
+| Deep benchmark executed                                    | ✅ memory vs sqlite vs pebble, Repeat=5 |
+| API surface golden                                         | ✅ Regenerated (3088 exports)           |
+| gofumpt formatting                                         | ⚠️ soak.go changes not formatted        |

@@ -9,16 +9,19 @@
 ## A. FULLY DONE (shipped, tested, verified)
 
 ### 1. Soak.go verified and split
+
 - **What:** Ran `go test` after soak.go edits (they were unverified from prior session). All passed. Split `soak.go` (360 lines → 252 lines) by extracting `soak_report.go` (114 lines).
 - **Files:** `benchkit/soak.go` (252 lines), `benchkit/soak_report.go` (new, 114 lines)
 - **Verified:** Full test suite + -race (82s) + verify gate (108s -race pass)
 
 ### 2. -race detector passed clean
+
 - **What:** `go test -race -tags "goexperiment.jsonv2" ./benchkit/ -count=1 -timeout 300s` — PASS (82s)
 - **Context:** The new `computeGCMetrics` reads `MemStats.PauseNs[256]` (value copy, safe), and `finalizeResult` runs single-threaded (post-phases). Confirmed race-free.
 - **Note:** The initial concurrent-apply code in `phases_metaengine_map.go` had a data race (shared `counter` variable). Fixed BEFORE the -race run by using `idx` from `runConcurrent` directly.
 
 ### 3. Derived metrics (AllocsPerOp, BytesPerOp, GCPercent, TailRatio)
+
 - **What:** Four derived rate fields added to `Result`, computed in `finalizeResult`:
   - `AllocsPerOp = AllocCount / TotalEvents` (guard TotalEvents > 0)
   - `BytesPerOp = AllocBytes / TotalEvents`
@@ -29,6 +32,7 @@
 - **Report:** PrintReport now shows `%.1f allocs/op, %s/op`, GC percent, and tail ratio
 
 ### 4. Metaengine benchmark overhaul — Map ADT added
+
 - **What:** Rewrote `phases_metaengine.go` (cleaner structure) and added `phases_metaengine_map.go` (new Map ADT workload). The benchmark now exercises:
   - **Counter ADT**: Apply throughput + ExecuteTyped read latency (existing)
   - **Map ADT** (NEW): Apply (insert N items) + Scan (filtered `WHERE status=active`, `LIMIT 100`) + PointRead (TypedReader.Get round-robin) + ConcurrentApply (N goroutines writing simultaneously)
@@ -41,6 +45,7 @@
 - **Verified:** All metaengine tests pass, verify gate PASS
 
 ### 5. RunSuite (benchtest.go) updated with evidence metrics
+
 - **What:** Added 12 new `b.ReportMetric` calls covering:
   - GC: `gc-cycles`, `ns/gc-max-pause`, `gc-percent`
   - Allocations: `allocs/op`, `B/op`
@@ -51,33 +56,40 @@
 - **File:** `benchkit/benchtest.go` (67 → 101 lines)
 
 ### 6. PrintSweep rewritten with evidence columns
+
 - **What:** Replaced throughput-focused columns (Write ops/s, RawSink ops/s) with evidence-grade columns: WriteP50, WriteP99, LoadP50, GCMaxPause, AllocsPerOp, WrtAmp, Heap
 - **File:** `benchkit/sweep.go` (PrintSweep function)
 - **Tests updated:** `TestPrintSweep` checks for new column headers, `TestPrintSweep_HandlesMixedFailedAndSuccess` updated to use latency data instead of throughput
 
 ### 7. README metrics section expanded
+
 - **What:** Metrics list expanded from 13 to 25 documented metrics. Added: ColdReadLatency, Statistical reliability (CoV), GC pauses, Allocations, Derived rates, Write amplification, Data integrity, Environment enrichment, Metaengine (M17)
 - **Comparison example:** Updated to show the evidence-grade column layout with realistic numbers from the prior deep benchmark
 - **File:** `benchkit/README.md`
 
 ### 8. doc.go updated
+
 - **What:** Added documentation for derived metrics (AllocsPerOp, BytesPerOp, GCPercent, TailRatio) and metaengine scan/point-read/concurrent metrics
 - **File:** `benchkit/doc.go` (130 → 148 lines)
 
 ### 9. Soak test improvements
+
 - **What:** `TestRunSoak_TrendsPopulated` now verifies `AllocBytes > 0` on each sample. `TestWriteSoakJSON_RoundTrip` now verifies `GCMaxPause` and `AllocBytes` round-trip correctly.
 - **File:** `benchkit/soak_test.go`
 
 ### 10. API surface regenerated
+
 - **What:** `cmd/api-stability` golden regenerated to 3122 exports (from 3119). Includes all new Result fields and metaengine metrics.
 - **File:** `docs/api_surface.txt`
 
 ### 11. Pre-existing issues fixed along the way
+
 - **ADR-0089** (flight-recorder) missing from `docs/README.md` ADR index — added
 - **`flightrecorder` module** missing from `flake.nix` testModules — added
 - **`metaengine/soak_test.go` heap threshold** too tight (2MB for 100 keys was flaking at 2.76MB) — relaxed to 5MB
 
 ### 12. Full verify gate PASSED
+
 - **Build:** All 64 modules PASS
 - **Vet:** PASS
 - **Test:** All modules PASS (benchkit 64s, metaengine 6s + 148s -race)
@@ -89,6 +101,7 @@
 ## B. PARTIALLY DONE
 
 ### 1. Metaengine benchmark — Map ADT added but engine coverage still single
+
 - **Done:** Added Map ADT workload with Scan, PointRead, ConcurrentApply. Fixed the event-type bug that made the old benchmark meaningless. Increased sample count 4x.
 - **NOT done:** Still only benchmarks the Memory engine. The benchmark cannot test SQLite/Pebble/DuckDB/Postgres engines because those are separate Go modules (`metaengine/sqlite_engine.go` is in-core, but Pebble/DuckDB/PG are separate). benchkit imports `metaengine/v4` but not the engine submodules. To test multiple engines, either:
   - benchkit would need to import all engine modules (adds deps), OR
@@ -96,14 +109,17 @@
   - A separate `metaengine-bench` tool would be created
 
 ### 2. Derived metrics — computed but not deeply validated
+
 - **Done:** AllocsPerOp, BytesPerOp, GCPercent, TailRatio are computed and tested with basic assertions.
 - **NOT done:** No cross-check that GCPercent is reasonable (< 50% for a healthy workload). No benchmark run to validate the numbers make sense in practice. The prior deep benchmark was NOT re-run with the new metrics.
 
 ### 3. Soak test coverage — added but shallow
+
 - **Done:** Added AllocBytes > 0 assertion and GCMaxPause/AllocBytes JSON round-trip checks.
 - **NOT done:** No assertion on `GCMaxPauseDriftPct` or `AllocGrowthPct` being computed. The drift fields exist in SoakResult but no test verifies they're populated with sensible values.
 
 ### 4. cqrs-bench CLI
+
 - **Not touched.** The CLI has a pre-existing build break (`storage.SQLiteSetSynchronous` undefined in published `stack/v4` tag). The CLI uses `benchkit.Result` so it picks up the new fields via JSON automatically, but the text output doesn't surface any new metrics.
 
 ---
@@ -111,21 +127,27 @@
 ## C. NOT STARTED
 
 ### 1. ADR for evidence-metrics design
+
 - No ADR written documenting the design decisions behind CoV, GC pause tracking, integrity verification, derived rates, and the metaengine benchmark structure.
 
 ### 2. PushdownScan vs ScanBackend comparison
+
 - The Map ADT benchmark uses `TypedReader.Scan` which dispatches through the planner. On the Memory engine, this uses the Go-closure `ScanBackend` path. There's no benchmark comparing this against `PushdownScan` (SQL `WHERE` pushdown) or `RawScanReader` (zero-copy). This would require testing against the SQLite engine.
 
 ### 3. Layout planning impact benchmark
+
 - The Map ADT query declares `FilterOnField("status")` and `SortOnField("priority")`, but on the Memory engine this has no effect (no layout planner). Testing layout planning impact requires the SQLite engine with `NewPlannedSQLiteEngine`.
 
 ### 4. Materialize-vs-replay planner decision benchmark
+
 - Not tested at all. The planner has `WithWorkloadStats`, `ReplayCost`, `MaterializeCost`, `ShouldMaterialize` — none of these are benchmarked.
 
 ### 5. Deep benchmark re-run with new metrics
+
 - The prior session ran a 3-backend comparison (memory/sqlite/pebble) that proved the metrics work. This was NOT re-run with the new derived metrics or the new metaengine workload. No validation that the metaengine Map ADT benchmark produces sensible numbers at scale.
 
 ### 6. WriteLatency TailRatio
+
 - TailRatio is computed for LoadLatency only. WriteLatency P99/P50 ratio could also be valuable — write tail latency matters for ingestion pipelines.
 
 ---
@@ -133,7 +155,9 @@
 ## D. TOTALLY FUCKED UP / MISTAKES
 
 ### 1. Metaengine event-type string mismatch — THE BIG ONE
+
 The original benchmark (from a prior session) used `store.Apply(ctx, "MeBenchIncrementEvent", ...)` with a capital "M". But `metaengine.On(meBenchIncrementEvent{}, ...)` registers the fold under `reflect.TypeOf(sample).Name()` = `"meBenchIncrementEvent"` (lowercase). The planner **silently skips** non-matching event types with no error. This means the ENTIRE prior metaengine benchmark was measuring an EMPTY store:
+
 - Apply was a no-op (no fold matched)
 - ExecuteTyped returned nil/empty results
 - The "apply throughput" numbers were measuring the overhead of a no-op dispatch, not actual Counter increments
@@ -145,7 +169,9 @@ The original benchmark (from a prior session) used `store.Apply(ctx, "MeBenchInc
 **Lesson:** ALWAYS assert that benchmark operations produce non-trivial results. A write benchmark that doesn't verify data was written is theater.
 
 ### 2. Data race in concurrent apply
+
 The first version of `metaEngineMapWorkload`'s concurrent apply section used a shared `counter` variable:
+
 ```go
 counter := 0
 err = runConcurrent(ctx, concurrentCount, concurrency,
@@ -153,24 +179,31 @@ err = runConcurrent(ctx, concurrentCount, concurrency,
         idx := counter  // RACE: multiple goroutines read/write
         counter++
 ```
+
 I caught this myself before running -race (by reading the code), but it should never have been written. `runConcurrent` already provides `idx` as a parameter — I ignored it and reinvented a broken version.
 
 ### 3. Left `io` import in soak.go after extraction
+
 After moving `PrintSoakReport` to `soak_report.go`, I removed `io`, `strings` imports from `soak.go`. But `io` was still needed (for a function signature). Got a compile error. Fixed immediately but wasted a cycle.
 
 ### 4. Did not catch unused `formatFloatOrDash`
+
 After rewriting `PrintSweep` to remove the "RawSink ops/s" column, the helper `formatFloatOrDash` may now be unused. Did not verify. (Actually checked later — it's still used in `PrintComparison`.)
 
 ### 5. README comparison example has fabricated numbers
+
 The README's comparison output example uses numbers from the prior session's deep benchmark, but I didn't re-run the benchmark with the new metrics. The column layout is correct but the specific values are approximate. Not a functional issue, but it's technically unverified.
 
 ### 6. Metaengine benchmark makes test suite slower
+
 Increasing sample count from 500 → 2000 and adding the Map ADT workload (Apply 2000 items + Scan 200 iterations + PointRead 200 iterations + ConcurrentApply 500 items) noticeably increased benchkit test time (54s → 64s in verify gate). The metaengine phase is now the slowest single phase in the test suite. Should have used ProfileDev's stream count (100) rather than the profile's Streams directly, or capped more aggressively.
 
 ### 7. Did not update SoakResult doc.go documentation
+
 The soak drift fields (`GCMaxPauseDriftPct`, `AllocGrowthPct`) are documented in the struct itself but not in `doc.go`'s soak testing section, which still only mentions the old drift metrics.
 
 ### 8. Never answered the original metaengine question thoroughly
+
 The user originally asked "do we benchmark metaengine? If so do we do it well?!?!" — I identified the gaps in a prior session but didn't communicate the answer. This session fixed the benchmark but the user was never given the clear answer: "Before this session, NO — the benchmark was a toy measuring an empty store. Now it's meaningfully testing Counter + Map workloads."
 
 ---

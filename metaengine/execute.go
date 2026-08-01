@@ -13,7 +13,7 @@ func (s *Store) Execute(input any) (any, error) {
 }
 
 func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
-	s.readCount.Add(1)
+	s.meter.IncRead()
 
 	select {
 	case <-ctx.Done():

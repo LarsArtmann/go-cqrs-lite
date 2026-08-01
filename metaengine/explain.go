@@ -217,22 +217,19 @@ func (s *Store) Doctor(ctx context.Context) string {
 		}
 	}
 
-	poisonedCount := 0
+	b.WriteString("\n--- Poisoned ---\n")
 
-	s.poisoned.Range(func(key, value any) bool {
-		if poisonedCount == 0 {
-			b.WriteString("\n--- Poisoned ---\n")
-		}
+	poisonedAny := false
 
-		poisonedCount++
+	s.poison.mu.RLock()
+	for col, err := range s.poison.m {
+		fmt.Fprintf(&b, "  %s: %v\n", col, err)
+		poisonedAny = true
+	}
+	s.poison.mu.RUnlock()
 
-		fmt.Fprintf(&b, "  %s: %v\n", key, value)
-
-		return true
-	})
-
-	if poisonedCount == 0 {
-		b.WriteString("\n--- Poisoned ---\n  none\n")
+	if !poisonedAny {
+		b.WriteString("  none\n")
 	}
 
 	return b.String()

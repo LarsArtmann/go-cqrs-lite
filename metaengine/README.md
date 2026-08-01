@@ -435,3 +435,36 @@ Built-in helpers:
 - `store.ExplainPlan()` — human-readable plan explanation
 - `store.Doctor(ctx)` — runtime diagnostic report (health + stats + poisoned)
 - `reader.Explain(ctx, opts...)` — SQL that would execute for a scan
+
+## Internal Architecture
+
+### Sealed Fold Interface
+
+Fold is a sealed interface — concrete types (`insertFold`, `updateFold`, etc.)
+are unexported, so only `On`/`OnTyped` can create them. This eliminates the
+nil-panic class entirely: each fold carries exactly one typed handler closure,
+not 11 `any`-typed handler fields with a string discriminator. The hot apply
+path dispatches via a type switch with zero per-event `reflect.ValueOf` calls —
+the `reflect.Value` is captured once at construction time.
+
+### Store Composition
+
+Store delegates to four focused collaborators:
+
+- `poisonTracker` — typed collection quarantine
+- `idempotencyTracker` — event dedup
+- `workloadMeter` — read/write counting
+- `subscriberHub` — watcher/replay management
+
+Each is independently testable and nil-safe to disable.
+
+### Enum Validation
+
+All 6 enum families (`ADT`, `ReadPattern`, `FoldKind`, `Complexity`,
+`StorageLayout`, `FilterOp`) have `Valid()` methods backed by registry slices.
+The planner validates at `Plan()` time to catch typos early.
+
+### Plan Versioning
+
+`PlanResult` carries `Version` and `ComputedAt` for drift detection without
+a full re-plan.

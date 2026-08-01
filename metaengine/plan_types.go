@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 )
 
 // Diagnostic levels for plan output.
@@ -76,6 +77,14 @@ type PlanResult struct {
 	// EXPLAIN output debuggable — consumers can see WHY the planner made
 	// each decision, not just WHAT it decided.
 	RuleTrace []RuleTraceEntry
+
+	// Version is the schema version of this plan. Incremented when the plan
+	// is recomputed. Consumers can compare versions to detect drift without
+	// a full re-plan.
+	Version int
+
+	// ComputedAt is the timestamp when this plan was created by Plan().
+	ComputedAt time.Time
 }
 
 // RuleTraceEntry records a single rule's decision during planning.

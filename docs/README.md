@@ -129,8 +129,8 @@ The authoritative module index with README links lives in the **[project README]
 | [0086](adr/0086-metaengine-duckdb-engine.md)               | DuckDB metaengine engine (columnar OLAP, CGo)           | Accepted                 |
 | [0087](adr/0087-metaengine-postgres-engine.md)             | Postgres metaengine engine (JSONB + B-tree)             | Accepted                 |
 | [0088](adr/0088-block-level-suppression.md)                | Block-level suppression for cqrs-lint                   | Accepted                 |
-| [0089](adr/0089-flight-recorder.md)                | Flight Recorder integration                             | Accepted                 |
-| [0090](adr/0090-benchkit-evidence-metrics.md)      | Benchkit evidence-grade metrics                         | Accepted                 |
+| [0089](adr/0089-flight-recorder.md)                        | Flight Recorder integration                             | Accepted                 |
+| [0090](adr/0090-benchkit-evidence-metrics.md)              | Benchkit evidence-grade metrics                         | Accepted                 |
 
 ## API Reference
 

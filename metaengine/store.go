@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"slices"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -17,18 +16,14 @@ type Store struct {
 	queries      map[string]queryMeta
 	byInputType  map[string]string
 	plan         *PlanResult
-	poisoned     sync.Map // collection name → poison error
-	appliedEvent sync.Map // event ID → struct{} (idempotent Apply dedup)
-	hooks        *Hooks   // observability hooks (nil = no-op)
+	poison       *poisonTracker
+	idempotency  *idempotencyTracker
+	meter        *workloadMeter
+	subs         *subscriberHub
+	hooks        *Hooks // observability hooks (nil = no-op)
 	eventLog     *EventLog
 	queryDecls   []any          // original query declarations (for Verify)
 	coalescer    *ReadCoalescer // optional read coalescer (nil = disabled)
-	writeCount   atomic.Int64   // total events applied (for WorkloadStats)
-	readCount    atomic.Int64   // total queries executed (for WorkloadStats)
-	startTime    time.Time      // when the store was created (for rate calculation)
-	watcherMu    sync.Mutex
-	watchers     map[string][]*watcherEntry // collection → watcher entries
-	replays      map[string]replayRecorder  // collection → replay recorder (nil = no replay)
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -83,11 +78,7 @@ func (s *Store) collectionEngine(collection string) (Engine, bool) {
 // panic, or nil if healthy. Once poisoned, a collection refuses reads until
 // the store is recreated (or the poison is cleared via Reset).
 func (s *Store) IsPoisoned(collection string) error {
-	if v, ok := s.poisoned.Load(collection); ok {
-		return v.(error)
-	}
-
-	return nil
+	return s.poison.Check(collection)
 }
 
 // EventTypes returns every event type that at least one registered query
@@ -131,39 +122,20 @@ func (s *Store) Close() error {
 // registerWatcher adds a watcher entry for a collection. Called by
 // Watcher.Watch during setup. Thread-safe.
 func (s *Store) registerWatcher(collection string, entry *watcherEntry) {
-	s.watcherMu.Lock()
-	defer s.watcherMu.Unlock()
-
-	if s.watchers == nil {
-		s.watchers = make(map[string][]*watcherEntry)
-	}
-
-	s.watchers[collection] = append(s.watchers[collection], entry)
+	s.subs.registerWatcher(collection, entry)
 }
 
 // registerReplay attaches a replay recorder to a collection so that
 // notifyWatchers records each value change with a monotonic sequence number.
 // Called by Watcher.WithReplay. Thread-safe.
 func (s *Store) registerReplay(collection string, recorder replayRecorder) {
-	s.watcherMu.Lock()
-	defer s.watcherMu.Unlock()
-
-	if s.replays == nil {
-		s.replays = make(map[string]replayRecorder)
-	}
-
-	s.replays[collection] = recorder
+	s.subs.registerReplay(collection, recorder)
 }
 
 // unregisterReplay removes the replay recorder for a collection.
 // Called by Watcher.Close. Thread-safe.
 func (s *Store) unregisterReplay(collection string) {
-	s.watcherMu.Lock()
-	defer s.watcherMu.Unlock()
-
-	if s.replays != nil {
-		delete(s.replays, collection)
-	}
+	s.subs.unregisterReplay(collection)
 }
 
 // keysMatch compares two keys for watcher filtering. Uses reflect.DeepEqual
@@ -172,56 +144,16 @@ func keysMatch(a, b any) bool {
 	return reflect.DeepEqual(a, b)
 }
 
-// notifyWatchers sends a value update to all watchers of a collection that
-// match the given key. A watcher with a nil key receives all notifications;
-// a watcher with a non-nil key receives only notifications for that key.
-// Non-blocking: if a watcher's channel is full, the notification is dropped.
-//
-// When a replay recorder is registered for the collection, the value is
-// recorded with a monotonic sequence number and sent as a watcherNotification
-// wrapper so WatchWithSeq can recover the seq. The Watch adapter unwraps
-// watcherNotification transparently, so existing Watch callers are unaffected.
+// notifyWatchers delegates to the subscriber hub.
 func (s *Store) notifyWatchers(collection string, key any, value any) {
-	s.watcherMu.Lock()
-	entries := s.watchers[collection]
-	recorder := s.replays[collection]
-	s.watcherMu.Unlock()
-
-	var notif watcherNotification
-	if recorder != nil {
-		notif = watcherNotification{seq: recorder.recordValue(value), value: value}
-	}
-
-	for _, entry := range entries {
-		if entry.closed {
-			continue
-		}
-
-		// Per-key filter: if the watcher subscribed to a specific key,
-		// only forward notifications for that key.
-		if entry.key != nil && !keysMatch(entry.key, key) {
-			continue
-		}
-
-		if recorder != nil {
-			select {
-			case entry.ch <- notif:
-			default: // drop if consumer is slow
-			}
-		} else {
-			select {
-			case entry.ch <- value:
-			default: // drop if consumer is slow
-			}
-		}
-	}
+	s.subs.notify(collection, key, value)
 }
 
 // Apply processes an event through ALL queries that listen to it.
 // Each query has its own independent projection — the same event updates
 // each matching query's collection separately.
 func (s *Store) Apply(ctx context.Context, eventType string, payload any) error {
-	s.writeCount.Add(1)
+	s.meter.IncWrite()
 
 	if s.eventLog != nil {
 		s.eventLog.Record(eventType, payload)
@@ -278,7 +210,7 @@ func (s *Store) ApplyIdempotent(ctx context.Context, eventID, eventType string, 
 		return s.Apply(ctx, eventType, payload)
 	}
 
-	if _, exists := s.appliedEvent.LoadOrStore(eventID, struct{}{}); exists {
+	if s.idempotency.CheckAndRecord(eventID) {
 		return nil // already applied
 	}
 
@@ -326,7 +258,7 @@ func (s *Store) applyFold(ctx context.Context, q queryMeta, fold Fold, payload a
 	defer func() {
 		if r := recover(); r != nil {
 			poisonErr := fmt.Errorf("%w: collection %q, panic: %v", ErrPoisoned, q.QueryName(), r)
-			s.poisoned.Store(q.QueryName(), poisonErr)
+			s.poison.Poison(q.QueryName(), poisonErr)
 			err = poisonErr
 		}
 	}()

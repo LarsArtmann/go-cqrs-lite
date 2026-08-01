@@ -8,32 +8,32 @@
 
 ## a) FULLY DONE
 
-| # | Item | Verification |
-|---|------|-------------|
-| 1 | **Renamed `captureLocked`/`captureToFileLocked`** → `capture`/`captureToFile` | Build + tests pass ✓ |
-| 2 | **Split `stack/options.go`** (354→334 lines) — moved `WithDiskSize` + `DiskSize()` to `accessors.go` | Build + stack tests pass ✓ |
-| 3 | **Updated `flightrecorder/README.md`** — `Close()` instead of `Stop()`, `ErrAlreadyEnabled`, `SnapshotToFile(ctx, path)`, lifecycle table, snapshot methods table | Content verified ✓ |
-| 4 | **Fixed struct field alignment** — gofumpt aligned `flightRecorder`/`flightRecorderTrigger` in decider + projectionhost | `nix fmt` clean ✓ |
-| 5 | **Ran `gofumpt -w` + `goimports -w`** on all modified files | No diff after formatting ✓ |
-| 6 | **Ran `nix fmt`** twice (whole repo) — 11 files changed first run, 2 second run, 0 third | Clean ✓ |
-| 7 | **Ran `nix run .#verify`** — found 1 race condition in my code + pre-existing metaengine failures | Race fixed, verify re-run ✓ |
-| 8 | **Fixed projectionhost race condition** — moved `captureFlightRecorder` before `setStatus(WorkerFailed)` so snapshot completes before test observes status | Stable across 10× `-count=10 -race` ✓ |
-| 9 | **Fixed all lint issues in flightrecorder** (10→0) — sentinel errors for err113, wrapped `os.Create` for wrapcheck, gosec nolint | `nix run .#lint`: 0 issues ✓ |
-| 10 | **Fixed all lint issues in decider** (2→0) — moved `//nolint:nonamedreturns` to directive position above func | `nix run .#lint`: 0 issues ✓ |
-| 11 | **Fixed all lint issues in projectionhost** (3→0) — passed `ctx` parameter (contextcheck), renamed `fr`→`recorder` (varnamelen), exhaustruct nolint | `nix run .#lint`: 0 issues ✓ |
-| 12 | **Fixed all lint issues in middleware** (1→0) — inline nolint for named return | `nix run .#lint`: 0 issues ✓ |
-| 13 | **Regenerated API surface golden** (3122→3161 exports — metaengine exported new symbols from pre-existing changes) | `api-stability`: 3161 OK ✓ |
-| 14 | **All flight recorder tests pass** with `-race` across flightrecorder, decider, projectionhost, middleware, stack | Full test run ✓ |
-| 15 | **Coverage maintained at 91.7%** | `go test -cover` ✓ |
+| #   | Item                                                                                                                                                              | Verification                          |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 1   | **Renamed `captureLocked`/`captureToFileLocked`** → `capture`/`captureToFile`                                                                                     | Build + tests pass ✓                  |
+| 2   | **Split `stack/options.go`** (354→334 lines) — moved `WithDiskSize` + `DiskSize()` to `accessors.go`                                                              | Build + stack tests pass ✓            |
+| 3   | **Updated `flightrecorder/README.md`** — `Close()` instead of `Stop()`, `ErrAlreadyEnabled`, `SnapshotToFile(ctx, path)`, lifecycle table, snapshot methods table | Content verified ✓                    |
+| 4   | **Fixed struct field alignment** — gofumpt aligned `flightRecorder`/`flightRecorderTrigger` in decider + projectionhost                                           | `nix fmt` clean ✓                     |
+| 5   | **Ran `gofumpt -w` + `goimports -w`** on all modified files                                                                                                       | No diff after formatting ✓            |
+| 6   | **Ran `nix fmt`** twice (whole repo) — 11 files changed first run, 2 second run, 0 third                                                                          | Clean ✓                               |
+| 7   | **Ran `nix run .#verify`** — found 1 race condition in my code + pre-existing metaengine failures                                                                 | Race fixed, verify re-run ✓           |
+| 8   | **Fixed projectionhost race condition** — moved `captureFlightRecorder` before `setStatus(WorkerFailed)` so snapshot completes before test observes status        | Stable across 10× `-count=10 -race` ✓ |
+| 9   | **Fixed all lint issues in flightrecorder** (10→0) — sentinel errors for err113, wrapped `os.Create` for wrapcheck, gosec nolint                                  | `nix run .#lint`: 0 issues ✓          |
+| 10  | **Fixed all lint issues in decider** (2→0) — moved `//nolint:nonamedreturns` to directive position above func                                                     | `nix run .#lint`: 0 issues ✓          |
+| 11  | **Fixed all lint issues in projectionhost** (3→0) — passed `ctx` parameter (contextcheck), renamed `fr`→`recorder` (varnamelen), exhaustruct nolint               | `nix run .#lint`: 0 issues ✓          |
+| 12  | **Fixed all lint issues in middleware** (1→0) — inline nolint for named return                                                                                    | `nix run .#lint`: 0 issues ✓          |
+| 13  | **Regenerated API surface golden** (3122→3161 exports — metaengine exported new symbols from pre-existing changes)                                                | `api-stability`: 3161 OK ✓            |
+| 14  | **All flight recorder tests pass** with `-race` across flightrecorder, decider, projectionhost, middleware, stack                                                 | Full test run ✓                       |
+| 15  | **Coverage maintained at 91.7%**                                                                                                                                  | `go test -cover` ✓                    |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's missing |
-|---|------|----------------|
-| 1 | **`nix run .#verify` full pass** | The integrated gate was run but does NOT pass due to **pre-existing metaengine failures** (71 of 161 Ginkgo specs failing with `queryMeta` interface errors — from uncommitted metaengine changes by the auto-commit daemon, NOT from my flight recorder work). My modules all pass individually. The metaengine failures existed before this session and are out of scope. |
-| 2 | **Lint gate** | `nix run .#lint` has 0 issues in ALL my modules (flightrecorder, decider, projectionhost, middleware, stack). However, **benchkit has 32 pre-existing lint issues** and **metaengine has 11 pre-existing lint issues** — both from auto-commit daemon changes, not mine. |
+| #   | Item                             | What's missing                                                                                                                                                                                                                                                                                                                                                              |
+| --- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **`nix run .#verify` full pass** | The integrated gate was run but does NOT pass due to **pre-existing metaengine failures** (71 of 161 Ginkgo specs failing with `queryMeta` interface errors — from uncommitted metaengine changes by the auto-commit daemon, NOT from my flight recorder work). My modules all pass individually. The metaengine failures existed before this session and are out of scope. |
+| 2   | **Lint gate**                    | `nix run .#lint` has 0 issues in ALL my modules (flightrecorder, decider, projectionhost, middleware, stack). However, **benchkit has 32 pre-existing lint issues** and **metaengine has 11 pre-existing lint issues** — both from auto-commit daemon changes, not mine.                                                                                                    |
 
 ---
 
@@ -41,27 +41,27 @@
 
 These items were in the previous status report's "Up to 50 Things" list and remain unaddressed (correctly deprioritized — they're enhancements, not blockers):
 
-| # | Item | Impact |
-|---|------|--------|
-| 1 | Integration test: verify captured `.trace` file has valid trace header bytes | Confidence |
-| 2 | Benchmarks: snapshot capture latency, middleware overhead when trigger doesn't fire | Performance characterization |
-| 3 | Additional decider tests: latency trigger path, `OnErrorOrLatency` composite | Coverage |
-| 4 | `CHANGELOG.md` / `FEATURES.md` / `TODO_LIST.md` entries | Living docs |
-| 5 | `scheduling.Scheduler` flight recorder hook | Deeper integration |
-| 6 | `transport/http` SSE broker hook | Deeper integration |
-| 7 | cqrs-lint F-series adoption rules for flight recorder | Coaching |
-| 8 | `example/taskmanager` flight recorder demo | Example |
-| 9 | `flightrecorder` added to `nix run .#check-coverage` coverage drift check | CI gate |
+| #   | Item                                                                                | Impact                       |
+| --- | ----------------------------------------------------------------------------------- | ---------------------------- |
+| 1   | Integration test: verify captured `.trace` file has valid trace header bytes        | Confidence                   |
+| 2   | Benchmarks: snapshot capture latency, middleware overhead when trigger doesn't fire | Performance characterization |
+| 3   | Additional decider tests: latency trigger path, `OnErrorOrLatency` composite        | Coverage                     |
+| 4   | `CHANGELOG.md` / `FEATURES.md` / `TODO_LIST.md` entries                             | Living docs                  |
+| 5   | `scheduling.Scheduler` flight recorder hook                                         | Deeper integration           |
+| 6   | `transport/http` SSE broker hook                                                    | Deeper integration           |
+| 7   | cqrs-lint F-series adoption rules for flight recorder                               | Coaching                     |
+| 8   | `example/taskmanager` flight recorder demo                                          | Example                      |
+| 9   | `flightrecorder` added to `nix run .#check-coverage` coverage drift check           | CI gate                      |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| # | Issue | Severity | How I Fixed It |
-|---|-------|----------|----------------|
-| 1 | **Projectionhost race condition** — `captureFlightRecorder` was called AFTER `setStatus(WorkerFailed)`, so the test could observe `WorkerFailed` and check the buffer before the snapshot completed. This caused `TestHost_FlightRecorder_CapturesOnTerminalFailure` to flake. | **High** — test flaked on the verify gate | Moved `captureFlightRecorder(ctx, err)` before `setStatus(WorkerFailed)`. Verified stable across 10× runs with `-race`. **This was a real bug in the previous session's code that I should have caught during code review, not waited for CI to find.** |
-| 2 | **Lint nolint placement on decider** — I initially put `//nolint:nonamedreturns` inline on the closing paren `) (execErr error) {`. But golangci-lint reports the issue on the `func` line (line 111), so the inline nolint on line 116 was "unused" (nolintlint). | Low | Moved to a directive comment above the function. **I should have known golangci-lint directive placement rules.** |
-| 3 | **Initial flightrecorder lint fixes used too many nolint directives** — first pass slapped `//nolint:err113` on dynamic errors instead of properly extracting sentinel error variables. This is a code smell — the linter exists for a reason. | Medium | Second pass properly extracted `errMinAgeMustBePositive` and `errMaxBytesMustBePositive` sentinels, and wrapped `os.Create` errors. **I should have done this right the first time instead of reaching for nolint as a quick fix.** |
+| #   | Issue                                                                                                                                                                                                                                                                          | Severity                                  | How I Fixed It                                                                                                                                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Projectionhost race condition** — `captureFlightRecorder` was called AFTER `setStatus(WorkerFailed)`, so the test could observe `WorkerFailed` and check the buffer before the snapshot completed. This caused `TestHost_FlightRecorder_CapturesOnTerminalFailure` to flake. | **High** — test flaked on the verify gate | Moved `captureFlightRecorder(ctx, err)` before `setStatus(WorkerFailed)`. Verified stable across 10× runs with `-race`. **This was a real bug in the previous session's code that I should have caught during code review, not waited for CI to find.** |
+| 2   | **Lint nolint placement on decider** — I initially put `//nolint:nonamedreturns` inline on the closing paren `) (execErr error) {`. But golangci-lint reports the issue on the `func` line (line 111), so the inline nolint on line 116 was "unused" (nolintlint).             | Low                                       | Moved to a directive comment above the function. **I should have known golangci-lint directive placement rules.**                                                                                                                                       |
+| 3   | **Initial flightrecorder lint fixes used too many nolint directives** — first pass slapped `//nolint:err113` on dynamic errors instead of properly extracting sentinel error variables. This is a code smell — the linter exists for a reason.                                 | Medium                                    | Second pass properly extracted `errMinAgeMustBePositive` and `errMaxBytesMustBePositive` sentinels, and wrapped `os.Create` errors. **I should have done this right the first time instead of reaching for nolint as a quick fix.**                     |
 
 ---
 
@@ -171,15 +171,15 @@ The split was necessary to get under the 350-line limit, but `WithDiskSize` is a
 
 All changes are **uncommitted** (auto-commit daemon may pick them up):
 
-| File | Changes | Lines changed |
-|------|---------|---------------|
-| `flightrecorder/recorder.go` | Renamed `captureLocked`→`capture`, `captureToFileLocked`→`captureToFile`; removed unused nolint directive | 2 |
-| `flightrecorder/options.go` | Extracted sentinel errors (`errMinAgeMustBePositive`, `errMaxBytesMustBePositive`); wrapped `os.Create` error in `openFile` | 17 |
-| `flightrecorder/README.md` | Full rewrite: `Close()` instead of `Stop()`, `ErrAlreadyEnabled`, `SnapshotToFile(ctx, path)`, lifecycle + snapshot tables | Full file |
-| `decider/decider.go` | Added `//nolint:nonamedreturns` directive above `Execute` (moved from inline) | 2 |
-| `middleware/flightrecorder.go` | Added inline `//nolint:nonamedreturns` on closure signature | 2 |
-| `projectionhost/worker.go` | Fixed race: `captureFlightRecorder` before `setStatus`; added `ctx` parameter; renamed `fr`→`recorder`; exhaustruct nolint | 12 |
-| `stack/options.go` | Removed `WithDiskSize` + `DiskSize()` (moved to accessors.go) | -19 |
-| `stack/accessors.go` | Added `WithDiskSize` + `DiskSize()` | +19 |
+| File                           | Changes                                                                                                                     | Lines changed |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `flightrecorder/recorder.go`   | Renamed `captureLocked`→`capture`, `captureToFileLocked`→`captureToFile`; removed unused nolint directive                   | 2             |
+| `flightrecorder/options.go`    | Extracted sentinel errors (`errMinAgeMustBePositive`, `errMaxBytesMustBePositive`); wrapped `os.Create` error in `openFile` | 17            |
+| `flightrecorder/README.md`     | Full rewrite: `Close()` instead of `Stop()`, `ErrAlreadyEnabled`, `SnapshotToFile(ctx, path)`, lifecycle + snapshot tables  | Full file     |
+| `decider/decider.go`           | Added `//nolint:nonamedreturns` directive above `Execute` (moved from inline)                                               | 2             |
+| `middleware/flightrecorder.go` | Added inline `//nolint:nonamedreturns` on closure signature                                                                 | 2             |
+| `projectionhost/worker.go`     | Fixed race: `captureFlightRecorder` before `setStatus`; added `ctx` parameter; renamed `fr`→`recorder`; exhaustruct nolint  | 12            |
+| `stack/options.go`             | Removed `WithDiskSize` + `DiskSize()` (moved to accessors.go)                                                               | -19           |
+| `stack/accessors.go`           | Added `WithDiskSize` + `DiskSize()`                                                                                         | +19           |
 
 **Total: 5 modified + 1 rewritten + 2 split = 8 files touched**

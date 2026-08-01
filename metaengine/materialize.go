@@ -3,7 +3,6 @@ package metaengine
 import (
 	"fmt"
 	"math"
-	"time"
 )
 
 // WorkloadStats holds observed or estimated workload statistics for a
@@ -67,15 +66,7 @@ func ShouldMaterialize(stats WorkloadStats) bool {
 // Plan via WithWorkloadStats. For more accurate stats, track per-collection
 // rates externally (e.g., from projectionhost processed counts).
 func (s *Store) ObservedWorkloadStats() WorkloadStats {
-	uptime := time.Since(s.startTime).Seconds()
-	if uptime < 1 {
-		uptime = 1
-	}
-
-	return WorkloadStats{
-		WriteRatePerSec: float64(s.writeCount.Load()) / uptime,
-		ReadRatePerSec:  float64(s.readCount.Load()) / uptime,
-	}
+	return s.meter.Stats()
 }
 
 // replayCost estimates the cost of replaying a stream to answer a query.

@@ -34,11 +34,11 @@ recorder.Snapshot(context.Background())
 
 ## Lifecycle
 
-| Method | Purpose |
-|--------|---------|
-| `Start()` | Begins buffering. Returns `ErrAlreadyEnabled` if another recorder is active. |
+| Method    | Purpose                                                                                    |
+| --------- | ------------------------------------------------------------------------------------------ |
+| `Start()` | Begins buffering. Returns `ErrAlreadyEnabled` if another recorder is active.               |
 | `Close()` | Stops recording + closes file writer. Implements `io.Closer`. Safe to call multiple times. |
-| `Stop()` | Stops recording only (does not close file). Use `Close()` for normal shutdown. |
+| `Stop()`  | Stops recording only (does not close file). Use `Close()` for normal shutdown.             |
 
 > **Process-global constraint:** Go's `runtime/trace` allows only ONE active flight recorder per process. If two recorders call `Start()`, the second gets `ErrAlreadyEnabled`.
 
@@ -70,25 +70,25 @@ qryDisp.Use(middleware.QueryFlightRecorder(recorder,
 
 ## Snapshot Methods
 
-| Method | Description |
-|--------|-------------|
-| `Snapshot(ctx)` | Writes trace to the configured writer (or file). Checks `ctx.Done()` before writing. |
-| `SnapshotToFile(ctx, path)` | Writes trace to a specific file path. |
-| `SnapshotIf(ctx, tc, trigger)` | Evaluates trigger; captures if it returns true. |
-| `Reset()` | Re-arms the once-latch for another capture. |
+| Method                         | Description                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| `Snapshot(ctx)`                | Writes trace to the configured writer (or file). Checks `ctx.Done()` before writing. |
+| `SnapshotToFile(ctx, path)`    | Writes trace to a specific file path.                                                |
+| `SnapshotIf(ctx, tc, trigger)` | Evaluates trigger; captures if it returns true.                                      |
+| `Reset()`                      | Re-arms the once-latch for another capture.                                          |
 
 Once-semantics: by default only the **first** successful `Snapshot`/`SnapshotToFile` wins. Call `Reset()` to allow subsequent captures.
 
 ## Triggers
 
-| Trigger | Fires when |
-|---------|-----------|
-| `OnLatency(threshold)` | Duration > threshold |
-| `OnError()` | Non-nil error |
-| `OnErrorOrLatency(threshold)` | Error OR slow |
-| `OnAlways()` | Every operation (first only, due to once-semantics) |
-| `OnAny(triggers...)` | Any trigger fires |
-| `OnAll(triggers...)` | All triggers fire |
+| Trigger                       | Fires when                                          |
+| ----------------------------- | --------------------------------------------------- |
+| `OnLatency(threshold)`        | Duration > threshold                                |
+| `OnError()`                   | Non-nil error                                       |
+| `OnErrorOrLatency(threshold)` | Error OR slow                                       |
+| `OnAlways()`                  | Every operation (first only, due to once-semantics) |
+| `OnAny(triggers...)`          | Any trigger fires                                   |
+| `OnAll(triggers...)`          | All triggers fire                                   |
 
 ## Analyzing
 

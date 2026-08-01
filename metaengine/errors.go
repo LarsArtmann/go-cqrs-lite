@@ -80,6 +80,23 @@ func unsupportedEngine(base error, engineName string) error {
 	return fmt.Errorf("%w: engine %s", base, engineName)
 }
 
+// ApplyError provides structured context for fold application failures.
+// It wraps the underlying cause with the query name, event type, and fold kind,
+// making debugging easier without grepping log strings.
+type ApplyError struct {
+	Query     string
+	EventType string
+	FoldKind  FoldKind
+	Cause     error
+}
+
+func (e *ApplyError) Error() string {
+	return fmt.Sprintf("query %q fold for %s (%s): %v",
+		e.Query, e.EventType, e.FoldKind, e.Cause)
+}
+
+func (e *ApplyError) Unwrap() error { return e.Cause }
+
 // --- Exported sentinel errors for consumers ---
 //
 // These allow consumers to use errors.Is for type-safe error matching instead
