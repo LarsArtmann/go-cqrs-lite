@@ -23,6 +23,7 @@ var modules = []string{
 	"kv",
 	"dedup",
 	"retry",
+	"flightrecorder",
 	// Layer 1
 	"event",
 	"event/v4/eventtest",

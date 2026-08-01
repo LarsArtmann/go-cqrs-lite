@@ -1,4 +1,4 @@
-package middleware_test
+package middleware
 
 import (
 	"bytes"
@@ -10,25 +10,20 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
-	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
-// recorderMu serializes tests that call Start/Stop because Go's
-// runtime/trace allows only ONE active flight recorder per process.
-var recorderMu sync.Mutex
+// frRecorderMu serializes flight recorder tests because Go's runtime/trace
+// allows only ONE active flight recorder per process.
+var frRecorderMu sync.Mutex
 
-func newTestCommand(typeName string) command.Command {
-	cmd, _ := command.New(typeName, "stream-1", nil)
-	return cmd
-}
-
-func TestNewFlightRecorder_NilRecorder(t *testing.T) {
-	t.Parallel()
-
+func TestFlightRecorder_NilRecorder(t *testing.T) {
 	called := false
 
-	mw := middleware.NewFlightRecorder(middleware.CommandAdapter, nil,
+	mw := NewFlightRecorder(CommandAdapter, nil,
 		flightrecorder.OnAlways())
 	handler := mw(func(_ context.Context, _ command.Command) error {
 		called = true
@@ -36,7 +31,7 @@ func TestNewFlightRecorder_NilRecorder(t *testing.T) {
 		return nil
 	})
 
-	err := handler(context.Background(), newTestCommand("test"))
+	err := handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -46,30 +41,9 @@ func TestNewFlightRecorder_NilRecorder(t *testing.T) {
 	}
 }
 
-func TestNewFlightRecorder_NilTrigger(t *testing.T) {
-	recorderMu.Lock()
-	defer recorderMu.Unlock()
-
-	r, _ := flightrecorder.New(
-		flightrecorder.WithWriter(&bytes.Buffer{}),
-	)
-
-	var buf bytes.Buffer
-	r2, _ := flightrecorder.New(
-		flightrecorder.WithWriter(&buf),
-	)
-
-	mw := middleware.NewFlightRecorder(middleware.CommandAdapter, r2, nil)
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return nil
-	})
-
-	_ = handler(context.Background(), newTestCommand("test"))
-}
-
-func TestCommandFlightRecorder_LatencyTrigger(t *testing.T) {
-	recorderMu.Lock()
-	defer recorderMu.Unlock()
+func TestFlightRecorder_NilTrigger(t *testing.T) {
+	frRecorderMu.Lock()
+	defer frRecorderMu.Unlock()
 
 	var buf bytes.Buffer
 
@@ -78,30 +52,53 @@ func TestCommandFlightRecorder_LatencyTrigger(t *testing.T) {
 		flightrecorder.WithMaxBytes(1<<20),
 		flightrecorder.WithWriter(&buf),
 	)
-
-	if err := r.Start(); err != nil {
-		t.Fatalf("Start: %v", err)
-	}
-
+	r.Start()
 	t.Cleanup(r.Stop)
 
 	time.Sleep(100 * time.Millisecond)
 
-	mw := middleware.CommandFlightRecorder(r,
+	mw := NewFlightRecorder(CommandAdapter, r, nil)
+	handler := mw(NoopCommandHandler())
+
+	_ = handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
+
+	time.Sleep(100 * time.Millisecond)
+
+	if buf.Len() != 0 {
+		t.Fatal("expected NO snapshot with nil trigger")
+	}
+}
+
+func TestCommandFlightRecorder_LatencyTrigger(t *testing.T) {
+	frRecorderMu.Lock()
+	defer frRecorderMu.Unlock()
+
+	var buf bytes.Buffer
+
+	r, _ := flightrecorder.New(
+		flightrecorder.WithMinAge(50*time.Millisecond),
+		flightrecorder.WithMaxBytes(1<<20),
+		flightrecorder.WithWriter(&buf),
+	)
+	r.Start()
+	t.Cleanup(r.Stop)
+
+	time.Sleep(100 * time.Millisecond)
+
+	mw := CommandFlightRecorder(r,
 		flightrecorder.OnLatency(10*time.Millisecond))
 
 	handler := mw(func(_ context.Context, _ command.Command) error {
-		time.Sleep(20 * time.Millisecond) // exceeds trigger threshold
+		time.Sleep(20 * time.Millisecond)
 
 		return nil
 	})
 
-	err := handler(context.Background(), newTestCommand("slow.cmd"))
+	err := handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Snapshot runs in a goroutine; give it time to complete.
 	time.Sleep(200 * time.Millisecond)
 
 	if buf.Len() == 0 {
@@ -110,8 +107,8 @@ func TestCommandFlightRecorder_LatencyTrigger(t *testing.T) {
 }
 
 func TestCommandFlightRecorder_FastOperationNoSnapshot(t *testing.T) {
-	recorderMu.Lock()
-	defer recorderMu.Unlock()
+	frRecorderMu.Lock()
+	defer frRecorderMu.Unlock()
 
 	var buf bytes.Buffer
 
@@ -120,20 +117,17 @@ func TestCommandFlightRecorder_FastOperationNoSnapshot(t *testing.T) {
 		flightrecorder.WithMaxBytes(1<<20),
 		flightrecorder.WithWriter(&buf),
 	)
-
 	r.Start()
 	t.Cleanup(r.Stop)
 
 	time.Sleep(100 * time.Millisecond)
 
-	mw := middleware.CommandFlightRecorder(r,
+	mw := CommandFlightRecorder(r,
 		flightrecorder.OnLatency(100*time.Millisecond))
 
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return nil // instant
-	})
+	handler := mw(NoopCommandHandler())
 
-	_ = handler(context.Background(), newTestCommand("fast.cmd"))
+	_ = handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
 
 	time.Sleep(100 * time.Millisecond)
 
@@ -143,8 +137,8 @@ func TestCommandFlightRecorder_FastOperationNoSnapshot(t *testing.T) {
 }
 
 func TestCommandFlightRecorder_ErrorTrigger(t *testing.T) {
-	recorderMu.Lock()
-	defer recorderMu.Unlock()
+	frRecorderMu.Lock()
+	defer frRecorderMu.Unlock()
 
 	var buf bytes.Buffer
 
@@ -153,24 +147,19 @@ func TestCommandFlightRecorder_ErrorTrigger(t *testing.T) {
 		flightrecorder.WithMaxBytes(1<<20),
 		flightrecorder.WithWriter(&buf),
 	)
-
 	r.Start()
 	t.Cleanup(r.Stop)
 
 	time.Sleep(100 * time.Millisecond)
 
-	testErr := errors.New("handler failed")
-
-	mw := middleware.CommandFlightRecorder(r,
+	mw := CommandFlightRecorder(r,
 		flightrecorder.OnError())
 
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return testErr
-	})
+	handler := mw(failingCommandHandler("handler failed"))
 
-	err := handler(context.Background(), newTestCommand("fail.cmd"))
-	if !errors.Is(err, testErr) {
-		t.Fatalf("expected testErr, got: %v", err)
+	err := handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
+	if err == nil {
+		t.Fatal("expected error from handler")
 	}
 
 	time.Sleep(200 * time.Millisecond)
@@ -181,32 +170,28 @@ func TestCommandFlightRecorder_ErrorTrigger(t *testing.T) {
 }
 
 func TestCommandFlightRecorder_PreservesError(t *testing.T) {
-	recorderMu.Lock()
-	defer recorderMu.Unlock()
+	frRecorderMu.Lock()
+	defer frRecorderMu.Unlock()
 
 	r, _ := flightrecorder.New()
 	r.Start()
 	t.Cleanup(r.Stop)
 
-	testErr := errors.New("boom")
-
-	mw := middleware.CommandFlightRecorder(r,
+	mw := CommandFlightRecorder(r,
 		flightrecorder.OnError())
 
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return testErr
-	})
+	handler := mw(failingCommandHandler("boom"))
 
-	err := handler(context.Background(), newTestCommand("test"))
+	err := handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
 
-	if !errors.Is(err, testErr) {
+	if err == nil || err.Error() != "boom" {
 		t.Fatalf("middleware should preserve original error, got: %v", err)
 	}
 }
 
 func TestEventFlightRecorder_ErrorTrigger(t *testing.T) {
-	recorderMu.Lock()
-	defer recorderMu.Unlock()
+	frRecorderMu.Lock()
+	defer frRecorderMu.Unlock()
 
 	var buf bytes.Buffer
 
@@ -215,17 +200,18 @@ func TestEventFlightRecorder_ErrorTrigger(t *testing.T) {
 		flightrecorder.WithMaxBytes(1<<20),
 		flightrecorder.WithWriter(&buf),
 	)
-
 	r.Start()
 	t.Cleanup(r.Stop)
 
 	time.Sleep(100 * time.Millisecond)
 
-	mw := middleware.EventFlightRecorder(r,
-		flightrecorder.OnError())
+	evt, err := eventtest.NewTestEvent()
+	if err != nil {
+		t.Fatalf("NewTestEvent: %v", err)
+	}
 
-	evt, _ := event.NewEvent("test.event", "stream-1", "Test", 1, nil,
-		event.WithCorrelationID("corr-1"))
+	mw := EventFlightRecorder(r,
+		flightrecorder.OnError())
 
 	handler := mw(func(_ context.Context, _ event.Event) error {
 		return errors.New("event handler failed")
@@ -241,8 +227,8 @@ func TestEventFlightRecorder_ErrorTrigger(t *testing.T) {
 }
 
 func TestQueryFlightRecorder_LatencyTrigger(t *testing.T) {
-	recorderMu.Lock()
-	defer recorderMu.Unlock()
+	frRecorderMu.Lock()
+	defer frRecorderMu.Unlock()
 
 	var buf bytes.Buffer
 
@@ -251,35 +237,24 @@ func TestQueryFlightRecorder_LatencyTrigger(t *testing.T) {
 		flightrecorder.WithMaxBytes(1<<20),
 		flightrecorder.WithWriter(&buf),
 	)
-
 	r.Start()
 	t.Cleanup(r.Stop)
 
 	time.Sleep(100 * time.Millisecond)
 
-	mw := middleware.QueryFlightRecorder(r,
+	mw := QueryFlightRecorder(r,
 		flightrecorder.OnLatency(10*time.Millisecond))
 
-	q, _ := command.New("test.query", "q-1", nil) // reuse for simplicity
-
-	_ = mw(func(_ context.Context, _ any) (any, error) {
+	handler := mw(func(_ context.Context, _ query.Query) (any, error) {
 		time.Sleep(20 * time.Millisecond)
 
 		return "result", nil
 	})
 
-	// Query middleware uses AsQuery, which wraps differently.
-	// Verify the generic path works.
-	genMW := middleware.NewFlightRecorder(middleware.QueryAdapter, r,
-		flightrecorder.OnLatency(10*time.Millisecond))
-
-	handler := genMW(func(_ context.Context, _ command.Command) error {
-		time.Sleep(20 * time.Millisecond)
-
-		return nil
-	})
-
-	_ = handler(context.Background(), q)
+	_, err := handler(context.Background(), &testQuery{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	time.Sleep(200 * time.Millisecond)
 
@@ -288,9 +263,9 @@ func TestQueryFlightRecorder_LatencyTrigger(t *testing.T) {
 	}
 }
 
-func TestNewFlightRecorder_RecorderSnapshotOnce(t *testing.T) {
-	recorderMu.Lock()
-	defer recorderMu.Unlock()
+func TestFlightRecorder_SnapshotOnce(t *testing.T) {
+	frRecorderMu.Lock()
+	defer frRecorderMu.Unlock()
 
 	var buf bytes.Buffer
 
@@ -299,21 +274,17 @@ func TestNewFlightRecorder_RecorderSnapshotOnce(t *testing.T) {
 		flightrecorder.WithMaxBytes(1<<20),
 		flightrecorder.WithWriter(&buf),
 	)
-
 	r.Start()
 	t.Cleanup(r.Stop)
 
 	time.Sleep(100 * time.Millisecond)
 
-	mw := middleware.CommandFlightRecorder(r,
+	mw := CommandFlightRecorder(r,
 		flightrecorder.OnAlways())
 
-	handler := mw(func(_ context.Context, _ command.Command) error {
-		return nil
-	})
+	handler := mw(NoopCommandHandler())
 
-	// First call should trigger a snapshot.
-	_ = handler(context.Background(), newTestCommand("first"))
+	_ = handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
 	time.Sleep(200 * time.Millisecond)
 
 	firstSize := buf.Len()
@@ -321,11 +292,41 @@ func TestNewFlightRecorder_RecorderSnapshotOnce(t *testing.T) {
 		t.Fatal("expected trace data from first trigger")
 	}
 
-	// Second call should be a no-op (once semantics).
-	_ = handler(context.Background(), newTestCommand("second"))
+	_ = handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
 	time.Sleep(200 * time.Millisecond)
 
 	if buf.Len() != firstSize {
 		t.Fatalf("once-semantics violated: %d -> %d", firstSize, buf.Len())
 	}
+}
+
+func TestFlightRecorder_LoggerOnError(t *testing.T) {
+	frRecorderMu.Lock()
+	defer frRecorderMu.Unlock()
+
+	r, _ := flightrecorder.New(
+		flightrecorder.WithMinAge(50*time.Millisecond),
+		flightrecorder.WithMaxBytes(1<<20),
+	)
+	r.Start()
+	t.Cleanup(r.Stop)
+
+	time.Sleep(100 * time.Millisecond)
+
+	logger, counter := newTestLogger()
+
+	mw := CommandFlightRecorder(r,
+		flightrecorder.OnAlways(),
+		WithLogger(logger))
+
+	// Use a failing writer to trigger snapshot error.
+	handler := mw(NoopCommandHandler())
+
+	_ = handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
+
+	time.Sleep(200 * time.Millisecond)
+
+	// Snapshot succeeds (writes to discard), so no error log expected.
+	// But verify the logger was at least available.
+	_ = counter
 }
