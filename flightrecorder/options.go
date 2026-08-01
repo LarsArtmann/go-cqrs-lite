@@ -1,6 +1,7 @@
 package flightrecorder
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -27,7 +28,7 @@ func (c recorderConfig) validate() error {
 	}
 
 	if c.maxBytes == 0 {
-		return fmt.Errorf("flightrecorder: MaxBytes must be positive")
+		return errors.New("flightrecorder: MaxBytes must be positive")
 	}
 
 	return nil

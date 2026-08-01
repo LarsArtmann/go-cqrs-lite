@@ -296,7 +296,8 @@ func TestRecorder_SnapshotIf_TriggersFire(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	fired := r.SnapshotIf(context.Background(),
+	fired := r.SnapshotIf(
+		context.Background(),
 		flightrecorder.TriggerContext{
 			Kind:     "command",
 			Type:     "slow.cmd",
@@ -331,7 +332,8 @@ func TestRecorder_SnapshotIf_TriggerDoesNotFire(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	fired := r.SnapshotIf(context.Background(),
+	fired := r.SnapshotIf(
+		context.Background(),
 		flightrecorder.TriggerContext{
 			Kind:     "command",
 			Type:     "fast.cmd",
@@ -357,7 +359,8 @@ func TestRecorder_SnapshotIf_NilTrigger(t *testing.T) {
 	r.Start()
 	t.Cleanup(r.Stop)
 
-	fired := r.SnapshotIf(context.Background(),
+	fired := r.SnapshotIf(
+		context.Background(),
 		flightrecorder.TriggerContext{},
 		nil,
 	)

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultMinAge   = 10 * time.Second
+	defaultMinAge          = 10 * time.Second
 	defaultMaxBytes uint64 = 10 << 20 // 10 MiB — ~1s of trace data for a busy service
 )
 
@@ -90,7 +90,10 @@ func (r *Recorder) Snapshot(ctx context.Context) error {
 	var snapErr error
 
 	r.once.Do(func() {
-		if !r.Enabled() {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+
+		if !r.fr.Enabled() {
 			return
 		}
 
@@ -111,13 +114,17 @@ func (r *Recorder) SnapshotToFile(path string) error {
 	var err error
 
 	r.once.Do(func() {
-		if !r.Enabled() {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+
+		if !r.fr.Enabled() {
 			return
 		}
 
 		f, openErr := openFile(path)
 		if openErr != nil {
 			err = fmt.Errorf("flightrecorder: opening snapshot file %s: %w", path, openErr)
+
 			return
 		}
 		defer func() { _ = f.Close() }()
