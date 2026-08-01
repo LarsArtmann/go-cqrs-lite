@@ -35,7 +35,11 @@ func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
 			float64(r.result.Disk.DatabaseBytes) * 100
 
 		if r.result.Disk.EventBytes > 0 {
-			r.result.Disk.WriteAmplification = float64(r.result.Disk.DatabaseBytes) / float64(r.result.Disk.EventBytes)
+			r.result.Disk.WriteAmplification = float64(
+				r.result.Disk.DatabaseBytes,
+			) / float64(
+				r.result.Disk.EventBytes,
+			)
 		}
 	}
 

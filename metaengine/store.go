@@ -11,19 +11,19 @@ import (
 )
 
 type Store struct {
-	mu           sync.RWMutex
-	engines      []Engine
-	queries      map[string]queryMeta
-	byInputType  map[string]string
-	plan         *PlanResult
-	poison       *poisonTracker
-	idempotency  *idempotencyTracker
-	meter        *workloadMeter
-	subs         *subscriberHub
-	hooks        *Hooks // observability hooks (nil = no-op)
-	eventLog     *EventLog
-	queryDecls   []any          // original query declarations (for Verify)
-	coalescer    *ReadCoalescer // optional read coalescer (nil = disabled)
+	mu          sync.RWMutex
+	engines     []Engine
+	queries     map[string]queryMeta
+	byInputType map[string]string
+	plan        *PlanResult
+	poison      *poisonTracker
+	idempotency *idempotencyTracker
+	meter       *workloadMeter
+	subs        *subscriberHub
+	hooks       *Hooks // observability hooks (nil = no-op)
+	eventLog    *EventLog
+	queryDecls  []any          // original query declarations (for Verify)
+	coalescer   *ReadCoalescer // optional read coalescer (nil = disabled)
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }

@@ -4,6 +4,8 @@ package metaengine
 // Each enum family gets a Valid() method and a package-level registry slice.
 // The planner calls Valid() at Plan() time to catch typos early.
 
+import "slices"
+
 // AllADTs returns every registered ADT value.
 func AllADTs() []ADT {
 	return []ADT{
@@ -13,13 +15,7 @@ func AllADTs() []ADT {
 }
 
 func (a ADT) Valid() bool {
-	for _, v := range AllADTs() {
-		if a == v {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(AllADTs(), a)
 }
 
 // AllReadPatterns returns every registered ReadPattern value.
@@ -32,13 +28,7 @@ func AllReadPatterns() []ReadPattern {
 }
 
 func (r ReadPattern) Valid() bool {
-	for _, v := range AllReadPatterns() {
-		if r == v {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(AllReadPatterns(), r)
 }
 
 // AllFoldKinds returns every registered FoldKind value.
@@ -51,13 +41,7 @@ func AllFoldKinds() []FoldKind {
 }
 
 func (k FoldKind) Valid() bool {
-	for _, v := range AllFoldKinds() {
-		if k == v {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(AllFoldKinds(), k)
 }
 
 // AllComplexities returns every registered Complexity value.
@@ -69,13 +53,7 @@ func AllComplexities() []Complexity {
 }
 
 func (c Complexity) Valid() bool {
-	for _, v := range AllComplexities() {
-		if c == v {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(AllComplexities(), c)
 }
 
 // AllStorageLayouts returns every registered StorageLayout value.
@@ -86,13 +64,7 @@ func AllStorageLayouts() []StorageLayout {
 }
 
 func (l StorageLayout) Valid() bool {
-	for _, v := range AllStorageLayouts() {
-		if l == v {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(AllStorageLayouts(), l)
 }
 
 // AllFilterOps returns every registered FilterOp value.
@@ -103,11 +75,5 @@ func AllFilterOps() []FilterOp {
 }
 
 func (o FilterOp) Valid() bool {
-	for _, v := range AllFilterOps() {
-		if o == v {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(AllFilterOps(), o)
 }
