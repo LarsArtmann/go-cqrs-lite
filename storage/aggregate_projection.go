@@ -11,6 +11,12 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
+// SQL column names used in ON CONFLICT clauses across multiple functions.
+const (
+	aggregateTypeCol = "aggregate_type"
+	aggregateIDCol   = "aggregate_id"
+)
+
 type StreamProjection struct {
 	db      *sql.DB
 	dialect sqlpkg.Dialect
@@ -77,10 +83,10 @@ func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
 				p3,
 				p4,
 				p.dialect.OnConflictDoUpdate(
-					[]string{"aggregate_type", "aggregate_id"},
+					[]string{aggregateTypeCol, aggregateIDCol},
 					setExprs,
 				),
-			), //nolint:goconst // SQL col
+			),
 			evt.StreamType(),
 			evt.StreamID().String(),
 			evt.Version().Int(),
@@ -108,7 +114,7 @@ func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
 			(aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
 			VALUES (%s, %s, %s, 1, %s, %s) %s`,
 			p.table.name, p1, p2, p3, p4, p5,
-			p.dialect.OnConflictDoUpdate([]string{"aggregate_type", "aggregate_id"}, setExprs)),
+			p.dialect.OnConflictDoUpdate([]string{aggregateTypeCol, aggregateIDCol}, setExprs)),
 		evt.StreamType(),
 		evt.StreamID().String(),
 		evt.Version().Int(),
