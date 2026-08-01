@@ -1390,6 +1390,7 @@ metaengine/duckdbengine/method MapGet
 metaengine/duckdbengine/method MapScan
 metaengine/duckdbengine/method MapSet
 metaengine/duckdbengine/method Profile
+metaengine/duckdbengine/method PushdownMapScan
 metaengine/func BuildLayoutPlan
 metaengine/func BuildLayoutPlanFromType
 metaengine/func CalibrateEngine
@@ -1683,6 +1684,7 @@ metaengine/pgengine/const PG_NsPerOp
 metaengine/pgengine/const PG_NsPerRead
 metaengine/pgengine/func New
 metaengine/pgengine/func NewFromDB
+metaengine/pgengine/method ApplyLayout
 metaengine/pgengine/method Close
 metaengine/pgengine/method CounterGet
 metaengine/pgengine/method CounterIncrement
@@ -1691,6 +1693,7 @@ metaengine/pgengine/method MapGet
 metaengine/pgengine/method MapScan
 metaengine/pgengine/method MapSet
 metaengine/pgengine/method Profile
+metaengine/pgengine/method PushdownMapScan
 metaengine/projectionadapter/func New
 metaengine/projectionadapter/func RegisterWithHost
 metaengine/projectionadapter/func WithEventDecoder

@@ -10,7 +10,8 @@ import (
 
 // MapScan implements ScanBackend for DuckDB. It SELECTs all rows for the
 // collection, decodes JSON values, then applies filter/sort/limit in Go.
-// Future enhancement: push filter to DuckDB's WHERE clause via json_extract.
+// For declarative filter/sort via FilterOnField/SortOnField, the executor
+// prefers PushdownMapScan (see pushdown.go) which pushes these into SQL.
 func (e *duckdbEngine) MapScan(
 	ctx context.Context,
 	collection string,

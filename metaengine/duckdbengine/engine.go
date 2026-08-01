@@ -255,4 +255,5 @@ var (
 	_ metaengine.MapBackend     = (*duckdbEngine)(nil)
 	_ metaengine.CounterBackend = (*duckdbEngine)(nil)
 	_ metaengine.ScanBackend    = (*duckdbEngine)(nil)
+	_ metaengine.PushdownScan   = (*duckdbEngine)(nil)
 )
