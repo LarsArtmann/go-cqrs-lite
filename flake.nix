@@ -217,6 +217,8 @@
             "metaengine"
             "metaengine/pebbleengine"
             "metaengine/projectionadapter"
+            "metaengine/duckdbengine"
+            "metaengine/pgengine"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
