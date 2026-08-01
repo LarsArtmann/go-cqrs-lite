@@ -158,7 +158,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			Name:     "Map",
 			Requires: "MapBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				mb := eng.(metaengine.MapBackend) //nolint:varnamelen
+				mb := eng.(metaengine.MapBackend)
 				if err := mb.MapSet(
 					ctx,
 					"users",
@@ -201,7 +201,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				sb := eng.(metaengine.SetBackend)
 				results := make(map[string]bool)
-				for _, k := range []string{"apple", "banana", "cherry", "date"} { //nolint:wsl_v5
+				for _, k := range []string{"apple", "banana", "cherry", "date"} {
 					contains, err := sb.SetContains(ctx, "fruits", k)
 					if err != nil {
 						return nil, err //nolint:wrapcheck
@@ -220,8 +220,8 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			Name:     "Counter",
 			Requires: "CounterBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				cb := eng.(metaengine.CounterBackend) //nolint:varnamelen
-				deltas := []metaengine.Delta{         //nolint:wsl_v5
+				cb := eng.(metaengine.CounterBackend)
+				deltas := []metaengine.Delta{        
 					{"alpha": 1, "beta": 5},
 					{"alpha": 2, "gamma": 3},
 					{"beta": -3, "gamma": 1},
@@ -248,8 +248,8 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			Name:     "Graph",
 			Requires: "GraphBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				gb := eng.(metaengine.GraphBackend) //nolint:varnamelen
-				edges := []metaengine.Edge{         //nolint:wsl_v5
+				gb := eng.(metaengine.GraphBackend)
+				edges := []metaengine.Edge{        
 					{From: "A", To: "B"},
 					{From: "A", To: "C"},
 					{From: "B", To: "D"},
@@ -275,8 +275,8 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			Name:     "SortedMap",
 			Requires: "ScanBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				mb := eng.(metaengine.MapBackend) //nolint:varnamelen
-				items := []struct {               //nolint:wsl_v5
+				mb := eng.(metaengine.MapBackend)
+				items := []struct {              
 					key   string
 					value map[string]any
 				}{
@@ -309,11 +309,11 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 						am, _ := a.(map[string]any)
 						bm, _ := b.(map[string]any)
 						ap, _ := am["priority"].(float64)
-						bp, _ := bm["priority"].(float64) //nolint:wsl_v5
+						bp, _ := bm["priority"].(float64)
 						if ap < bp {
 							return -1
 						}
-						if ap > bp { //nolint:wsl_v5
+						if ap > bp {
 							return 1
 						}
 
@@ -352,8 +352,8 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			Name:     "Multimap",
 			Requires: "MultimapBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				mb := eng.(metaengine.MultimapBackend) //nolint:varnamelen
-				entries := []struct {                  //nolint:wsl_v5
+				mb := eng.(metaengine.MultimapBackend)
+				entries := []struct {                 
 					key   string
 					value string
 				}{

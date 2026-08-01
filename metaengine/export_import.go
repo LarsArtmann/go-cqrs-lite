@@ -93,7 +93,7 @@ func (s *Store) Import(ctx context.Context, r io.Reader) error {
 			continue // unknown collection, skip
 		}
 
-		mb, ok := eng.(MapBackend) //nolint:varnamelen
+		mb, ok := eng.(MapBackend)
 		if !ok {
 			continue
 		}

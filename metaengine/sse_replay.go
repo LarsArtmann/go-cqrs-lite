@@ -61,7 +61,7 @@ func (r *SSEReplay[V]) record(value V) uint64 {
 
 	r.mu.Lock()
 	r.entries[r.head] = seqEntry[V]{seq: seq, value: value}
-	r.head = (r.head + 1) % r.cap //nolint:wsl_v5
+	r.head = (r.head + 1) % r.cap
 	if r.count < r.cap {
 		r.count++
 	}
@@ -89,7 +89,7 @@ func (r *SSEReplay[V]) Replay(afterSeq uint64) []SeqValue[V] {
 
 	for i := range r.count {
 		idx := (start + i) % r.cap
-		entry := r.entries[idx] //nolint:wsl_v5
+		entry := r.entries[idx]
 		if entry.seq > afterSeq {
 			result = append(result, SeqValue[V]{Seq: entry.seq, Value: entry.value})
 		}

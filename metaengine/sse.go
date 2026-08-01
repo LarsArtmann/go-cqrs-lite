@@ -239,7 +239,7 @@ func replayMissedEvents[V any](
 
 	ring := dedup.NewRing(dedup.DefaultCapacity)
 
-	for _, sv := range replayed { //nolint:varnamelen
+	for _, sv := range replayed {
 		data, err := json.Marshal(sv.Value)
 		if err != nil {
 			continue
@@ -370,7 +370,7 @@ func (s *Store) Inspect() string {
 		return "metaengine: no collections registered"
 	}
 
-	var sb strings.Builder //nolint:varnamelen
+	var sb strings.Builder
 
 	fmt.Fprintf(&sb, "metaengine: %d collection(s)\n", len(collections))
 

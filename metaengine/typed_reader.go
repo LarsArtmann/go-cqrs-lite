@@ -60,7 +60,7 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 			return zero, false, err
 		}
 
-		rr, ok := result.(readResult) //nolint:varnamelen
+		rr, ok := result.(readResult)
 		if !ok {
 			return zero, false, fmt.Errorf("%w: %T", errCoalescerTypeMismatch, result)
 		}
@@ -74,7 +74,7 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 		return v, true, err
 	}
 
-	rr, err := r.getUncached(ctx, key) //nolint:varnamelen
+	rr, err := r.getUncached(ctx, key)
 	if err != nil {
 		return zero, false, err
 	}
@@ -268,7 +268,7 @@ func (r *TypedReader[V]) scanPushdown(
 
 func (r *TypedReader[V]) scanClosure(
 	ctx context.Context,
-	sb ScanBackend, //nolint:varnamelen
+	sb ScanBackend,
 	cfg scanConfig,
 	fetchLimit int,
 ) ([]V, error) {

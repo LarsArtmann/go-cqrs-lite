@@ -122,7 +122,7 @@ func (e *sqliteEngine) txExec() *txExecutor {
 // instead of calling runTxReadModifyWrite (which starts its own BeginTx).
 func readModifyWriteCached(
 	ctx context.Context,
-	xc dbExecer, //nolint:varnamelen
+	xc dbExecer,
 	getQuery, setQuery, col string,
 	key any,
 	update func(prev any) any,

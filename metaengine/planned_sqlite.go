@@ -66,9 +66,9 @@ func (e *sqliteEngine) ApplyLayout(collection string, filterFields, sortFields [
 // plansColumnCompatible returns true when two plans have the same set of
 // column names (order-independent). Used to detect layout conflicts.
 func plansColumnCompatible(a, b LayoutPlan) bool {
-	ac := a.ColumnNames() //nolint:varnamelen
+	ac := a.ColumnNames()
 
-	bc := b.ColumnNames() //nolint:varnamelen
+	bc := b.ColumnNames()
 	if len(ac) != len(bc) {
 		return false
 	}
@@ -184,7 +184,7 @@ func (e *sqliteEngine) mapUpdatePlanned(
 ) error {
 	// Inside outer tx: reuse it (SQLite doesn't support nested BEGIN).
 	if e.txExec() != nil {
-		xd := e.xd() //nolint:varnamelen
+		xd := e.xd()
 
 		var valStr string
 
@@ -291,7 +291,7 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 	}
 
 	// Reflect fast path for structs — avoids JSON marshal/unmarshal cycle.
-	rv := reflect.ValueOf(value) //nolint:varnamelen
+	rv := reflect.ValueOf(value)
 
 	if rv.IsValid() && rv.Kind() == reflect.Struct {
 		rt := rv.Type()

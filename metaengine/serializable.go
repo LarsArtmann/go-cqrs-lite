@@ -89,7 +89,12 @@ func Serialize(result *PlanResult, engines []Engine) *SerializablePlan {
 func (sp *SerializablePlan) MarshalJSON() ([]byte, error) {
 	type alias SerializablePlan
 
-	return json.Marshal((*alias)(sp))
+	data, err := json.Marshal((*alias)(sp))
+	if err != nil {
+		return nil, fmt.Errorf("serializable.MarshalJSON: %w", err)
+	}
+
+	return data, nil
 }
 
 // SerializeToJSON is a convenience that serializes a PlanResult directly to JSON.

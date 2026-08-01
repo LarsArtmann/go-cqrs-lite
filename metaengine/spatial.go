@@ -58,7 +58,7 @@ func NewMemorySpatialIndex() *MemorySpatialIndex {
 }
 
 // Insert adds a point to the spatial index.
-func (m *MemorySpatialIndex) Insert(ctx context.Context, collection string, pt Point) error {
+func (m *MemorySpatialIndex) Insert(_ context.Context, _ string, pt Point) error {
 	m.points[pt.ID] = pt
 	return nil
 }

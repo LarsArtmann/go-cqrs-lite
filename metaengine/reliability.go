@@ -23,7 +23,7 @@ func CalibrateEngine(eng Engine, iterations int) {
 
 	profile := eng.Profile()
 
-	if mb, ok := eng.(MapBackend); ok { //nolint:varnamelen
+	if mb, ok := eng.(MapBackend); ok {
 		ctx := context.Background()
 
 		start := time.Now()

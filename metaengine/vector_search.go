@@ -88,7 +88,7 @@ func NewMemoryVectorIndex() *MemoryVectorIndex {
 }
 
 // Insert adds an embedding to the index.
-func (m *MemoryVectorIndex) Insert(ctx context.Context, collection string, emb Embedding) error {
+func (m *MemoryVectorIndex) Insert(_ context.Context, _ string, emb Embedding) error {
 	m.embeddings[emb.ID] = emb.Values
 
 	return nil
@@ -200,7 +200,7 @@ func NewMemorySearchIndex() *MemorySearchIndex {
 }
 
 // Insert adds a document to the search index.
-func (m *MemorySearchIndex) Insert(ctx context.Context, collection string, doc IndexedText) error {
+func (m *MemorySearchIndex) Insert(_ context.Context, _ string, doc IndexedText) error {
 	m.docs[doc.ID] = doc.Content
 
 	return nil

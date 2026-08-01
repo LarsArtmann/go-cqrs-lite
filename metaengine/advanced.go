@@ -162,7 +162,7 @@ func contractMap(t interface {
 	Errorf(format string, args ...any)
 }, eng Engine, ctx context.Context,
 ) {
-	mb, ok := eng.(MapBackend) //nolint:varnamelen
+	mb, ok := eng.(MapBackend)
 	if !ok {
 		return
 	}
@@ -190,7 +190,7 @@ func contractMap(t interface {
 
 func contractMapUpdate(t interface {
 	Errorf(format string, args ...any)
-}, eng Engine, mb MapBackend, ctx context.Context, //nolint:varnamelen
+}, eng Engine, mb MapBackend, ctx context.Context,
 ) {
 	mu, ok := eng.(MapUpdater)
 	if !ok {
@@ -219,7 +219,7 @@ func contractSet(t interface {
 	Errorf(format string, args ...any)
 }, eng Engine, ctx context.Context,
 ) {
-	sb, ok := eng.(SetBackend) //nolint:varnamelen
+	sb, ok := eng.(SetBackend)
 	if !ok {
 		return
 	}
@@ -243,7 +243,7 @@ func contractCounter(t interface {
 	Errorf(format string, args ...any)
 }, eng Engine, ctx context.Context,
 ) {
-	cb, ok := eng.(CounterBackend) //nolint:varnamelen
+	cb, ok := eng.(CounterBackend)
 	if !ok {
 		return
 	}
@@ -270,7 +270,7 @@ func contractMultimap(t interface {
 	Errorf(format string, args ...any)
 }, eng Engine, ctx context.Context,
 ) {
-	mb, ok := eng.(MultimapBackend) //nolint:varnamelen
+	mb, ok := eng.(MultimapBackend)
 	if !ok {
 		return
 	}
@@ -297,7 +297,7 @@ func contractLog(t interface {
 	Errorf(format string, args ...any)
 }, eng Engine, ctx context.Context,
 ) {
-	lb, ok := eng.(LogBackend) //nolint:varnamelen
+	lb, ok := eng.(LogBackend)
 	if !ok {
 		return
 	}
@@ -324,7 +324,7 @@ func contractGraph(t interface {
 	Errorf(format string, args ...any)
 }, eng Engine, ctx context.Context,
 ) {
-	gb, ok := eng.(GraphBackend) //nolint:varnamelen
+	gb, ok := eng.(GraphBackend)
 	if !ok {
 		return
 	}

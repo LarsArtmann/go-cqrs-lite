@@ -109,7 +109,7 @@ type materializeRule struct {
 
 func (*materializeRule) Name() string { return "materialize-vs-replay" }
 
-func (r *materializeRule) Apply(result *PlanResult, ctx PlanContext) error {
+func (r *materializeRule) Apply(result *PlanResult, _ PlanContext) error {
 	if len(r.stats) == 0 {
 		return nil
 	}
