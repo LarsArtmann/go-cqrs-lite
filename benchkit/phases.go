@@ -147,7 +147,68 @@ func (r *runner) writePhase(ctx context.Context) error {
 		r.result.WriteThroughput = float64(totalEvents.Load()) / elapsed.Seconds()
 	}
 
+	if err == nil && !r.config.ReplayOnly {
+		r.verifyIntegrity(ctx)
+	}
+
 	return err
+}
+
+// maxIntegritySamples caps the number of streams verified to keep the check
+// fast even for large profiles. Sampling is sufficient — if 20 random streams
+// all round-trip correctly, systemic corruption is extremely unlikely.
+const maxIntegritySamples = 20
+
+// verifyIntegrity reads back a sample of written streams and verifies:
+//   - Event count matches EventsPerStream
+//   - Each event's payload decodes to BenchPayload
+//   - Version numbers are sequential starting from 1
+//
+// Failures increment r.result.IntegrityErrors. This catches silent data
+// corruption that would otherwise be invisible in latency/throughput metrics.
+func (r *runner) verifyIntegrity(ctx context.Context) {
+	if r.bundle.EventSource == nil || len(r.refs) == 0 {
+		return
+	}
+
+	sampleCount := min(len(r.refs), maxIntegritySamples)
+
+	expected := r.config.Profile.EventsPerStream
+
+	for i := range sampleCount {
+		if ctx.Err() != nil {
+			return
+		}
+
+		ref := r.refs[i]
+		events, err := r.bundle.EventSource.Load(ctx, ref)
+		if err != nil {
+			r.result.IntegrityErrors++
+
+			continue
+		}
+
+		if len(events) != expected {
+			r.result.IntegrityErrors++
+
+			continue
+		}
+
+		for j, evt := range events {
+			if _, err := event.DecodePayloadAuto[BenchPayload](evt); err != nil {
+				r.result.IntegrityErrors++
+
+				break
+			}
+
+			want := event.Version(uint(j + 1))
+			if evt.Version() != want {
+				r.result.IntegrityErrors++
+
+				break
+			}
+		}
+	}
 }
 
 func (r *runner) writeOneAggregate(

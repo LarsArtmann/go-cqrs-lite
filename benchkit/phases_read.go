@@ -11,6 +11,11 @@ import (
 // readPhase loads all streams concurrently, then runs journal scans.
 // The number of read passes scales with Profile.ReadRatio so that read-heavy
 // profiles perform more reads than write-heavy ones.
+//
+// The first pass is recorded separately as ColdReadLatency — it captures
+// disk I/O latency when the OS page cache is cold. Subsequent passes hit
+// the page cache and represent warm latency. LoadLatency aggregates ALL
+// passes (cold + warm).
 func (r *runner) readPhase(ctx context.Context) error {
 	if ctx.Err() != nil {
 		return nil //nolint:nilerr // ctx done; graceful skip
@@ -22,6 +27,8 @@ func (r *runner) readPhase(ctx context.Context) error {
 	readPasses := readPassesFor(profile.ReadRatio)
 
 	for pass := 0; pass < readPasses && ctx.Err() == nil; pass++ {
+		passColl := NewLatencyCollector(0)
+
 		err := runConcurrent(
 			ctx, profile.Streams, r.concurrency,
 			func(ctx context.Context, aggIdx int) error {
@@ -33,11 +40,19 @@ func (r *runner) readPhase(ctx context.Context) error {
 					return err
 				}
 
-				coll.Record(time.Since(start))
+				elapsed := time.Since(start)
+				coll.Record(elapsed)
+				passColl.Record(elapsed)
 
 				return nil
 			},
 		)
+
+		// Capture first pass as cold-read latency.
+		if pass == 0 {
+			r.result.ColdReadLatency = passColl.Stats()
+		}
+
 		if err != nil {
 			r.result.LoadLatency = coll.Stats()
 

@@ -261,11 +261,13 @@ func (r *runner) setup(ctx context.Context) error {
 	r.result.Timestamp = time.Now()
 	r.result.SchemaVersion = SchemaVersion
 	r.result.Environment = Environment{
-		GoVersion:  runtime.Version(),
-		NumCPU:     runtime.NumCPU(),
-		GOMAXPROCS: runtime.GOMAXPROCS(0),
-		GOOS:       runtime.GOOS,
-		GOARCH:     runtime.GOARCH,
+		GoVersion:     runtime.Version(),
+		NumCPU:        runtime.NumCPU(),
+		GOMAXPROCS:    runtime.GOMAXPROCS(0),
+		GOOS:          runtime.GOOS,
+		GOARCH:        runtime.GOARCH,
+		CPUModel:      detectCPUModel(),
+		TotalRAMBytes: detectTotalRAM(),
 	}
 	r.result.Workers = r.concurrency
 	r.result.Streams = profile.Streams
