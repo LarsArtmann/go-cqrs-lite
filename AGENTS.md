@@ -871,8 +871,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // Materialize when: materialize_cost < replay_cost
 //   //
 //   // This is advisory (INFO/WARN diagnostic in PlanResult), not a hard override.
-//   // Feed statistics via WithStats() for automatic recommendations (future API):
-//   //   store, _ := metaengine.Plan(engines, queries /*, metaengine.WithStats(stats)*/)
+//   // Future: a WithStats option will feed write/read rates for automatic recommendations.
 
 // Metaengine new ADTs: Vector, Search, Spatial (ADR-0085)
 //   // Three new ADTs extend the planner beyond CRUD:
