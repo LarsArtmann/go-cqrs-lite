@@ -178,7 +178,7 @@ func (m *memoryEngine) MapScan(
 	sortFunc func(a, b any) int,
 	cursor any,
 	limit int,
-) ([]any, error) {
+) (ScanResult, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -233,14 +233,9 @@ func (m *memoryEngine) MapScan(
 		pairs = filtered
 	}
 
-	// Truncate to limit+1 — the extra item signals HasMore to reconstructCollection.
-	truncLimit := 0
-	if limit > 0 {
-		truncLimit = limit + 1
-	}
-
-	if truncLimit > 0 && len(pairs) > truncLimit {
-		pairs = pairs[:truncLimit]
+	hasMore := limit > 0 && len(pairs) > limit
+	if hasMore {
+		pairs = pairs[:limit]
 	}
 
 	results := make([]any, len(pairs))
@@ -248,7 +243,7 @@ func (m *memoryEngine) MapScan(
 		results[i] = p.value
 	}
 
-	return results, nil
+	return ScanResult{Items: results, HasMore: hasMore}, nil
 }
 
 // --- VectorBackend ---

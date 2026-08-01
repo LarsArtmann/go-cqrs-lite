@@ -95,10 +95,28 @@ type MapUpdater interface {
 	MapUpdate(ctx context.Context, collection string, key any, update func(prev any) any) error
 }
 
+// ScanResult holds the outcome of a collection scan, including pagination
+// metadata. Items contains at most limit rows (never limit+1). HasMore is true
+// when additional rows exist beyond Items, signalling that the caller should
+// offer a cursor for the next page.
+type ScanResult struct {
+	Items   []any
+	HasMore bool
+}
+
+// RawScanResult is the raw-bytes variant of ScanResult for ScanRawValues.
+type RawScanResult struct {
+	Items   [][]byte
+	HasMore bool
+}
+
 // ScanBackend handles filtered+sorted scans for collection queries.
 // Engines that cannot push filtering to the database (e.g. Pebble KV) implement
 // this interface to receive a combined filter function and sort comparator
 // that are applied in Go. filterFn is nil when no filters are declared.
+//
+// The returned ScanResult.Items is trimmed to at most limit rows. When more
+// rows exist, ScanResult.HasMore is true.
 type ScanBackend interface {
 	MapScan(
 		ctx context.Context,
@@ -107,7 +125,7 @@ type ScanBackend interface {
 		sortFunc func(a, b any) int,
 		cursor any,
 		limit int,
-	) ([]any, error)
+	) (ScanResult, error)
 }
 
 // FilterOp is a comparison operator for declarative filter specs.
@@ -155,7 +173,7 @@ type PushdownScan interface {
 		sort *SortSpec,
 		cursor any,
 		limit int,
-	) ([]any, error)
+	) (ScanResult, error)
 }
 
 // StreamingScan is an optional capability for engines that support streaming
@@ -204,7 +222,7 @@ type RawScanReader interface {
 		sort *SortSpec,
 		cursor any,
 		limit int,
-	) ([][]byte, error)
+	) (RawScanResult, error)
 }
 
 type SetBackend interface {

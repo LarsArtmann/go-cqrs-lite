@@ -273,7 +273,7 @@ func (e *sqliteEngine) MapScan(
 	sortFunc func(a, b any) int,
 	cursor any,
 	limit int,
-) ([]any, error) {
+) (ScanResult, error) {
 	// Planned collections store rows in a dedicated table; MapScan (the
 	// closure-based fallback) must read from it, not meta_map.
 	var rows *sql.Rows
@@ -343,13 +343,9 @@ func (e *sqliteEngine) MapScan(
 		pairs = filtered
 	}
 
-	truncLimit := 0
-	if limit > 0 {
-		truncLimit = limit + 1
-	}
-
-	if truncLimit > 0 && len(pairs) > truncLimit {
-		pairs = pairs[:truncLimit]
+	hasMore := limit > 0 && len(pairs) > limit
+	if hasMore {
+		pairs = pairs[:limit]
 	}
 
 	results := make([]any, len(pairs))
@@ -357,7 +353,7 @@ func (e *sqliteEngine) MapScan(
 		results[i] = p.value
 	}
 
-	return results, nil
+	return ScanResult{Items: results, HasMore: hasMore}, nil
 }
 
 // --- PushdownScan ---
@@ -374,7 +370,7 @@ func (e *sqliteEngine) PushdownMapScan(
 	sort *SortSpec,
 	cursor any,
 	limit int,
-) ([]any, error) {
+) (ScanResult, error) {
 	if plan, ok := e.plans[col]; ok {
 		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
 	}
@@ -421,14 +417,24 @@ func (e *sqliteEngine) PushdownMapScan(
 		}
 	}
 
-	// Push limit (with +1 for has-more detection).
+	// Fetch limit+1 to detect has-more.
 	if limit > 0 {
 		b.WriteString(` LIMIT ?`)
 
 		args = append(args, limit+1)
 	}
 
-	return scanJSONValues(ctx, e.xd(), b.String(), args...)
+	rows, err := scanJSONValues(ctx, e.xd(), b.String(), args...)
+	if err != nil {
+		return ScanResult{}, err
+	}
+
+	hasMore := limit > 0 && len(rows) > limit
+	if hasMore {
+		rows = rows[:limit]
+	}
+
+	return ScanResult{Items: rows, HasMore: hasMore}, nil
 }
 
 // jsonPath converts a field name to a JSON path for json_extract.

@@ -332,7 +332,7 @@ func TestPostgresEngine_ScanBackend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(results) != 2 {
-		t.Fatalf("pagination: expected 2 results, got %d", len(results))
+	if len(results) != 3 {
+		t.Fatalf("pagination: expected 3 (limit+1 for has-more), got %d", len(results))
 	}
 }
