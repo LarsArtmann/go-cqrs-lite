@@ -2,6 +2,7 @@ package benchkit
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,6 +12,18 @@ import (
 // maxMetaEngineSamples caps Apply and query samples so the phase stays fast
 // while still being large enough to reveal O(N) scan costs.
 const maxMetaEngineSamples = 2000
+
+// Sentinel errors for metaengine correctness checks.
+var (
+	errMEEmptyCounter = errors.New(
+		"metaengine counter: ExecuteTyped returned empty map after Apply",
+	)
+	errMEPointMiss = errors.New("metaengine point read: item not found")
+)
+
+// ErrMEEvent indicates a metaengine event-type mismatch (fold registrations
+// don't match Apply event type strings).
+var ErrMEEvent = errors.New("metaengine: event type strings may not match fold registrations")
 
 // ── Counter ADT types (existing workload, measures planner overhead) ──
 
@@ -44,7 +57,7 @@ func meBenchCounterQuery() metaengine.QueryDecl[meBenchCounterInput, map[string]
 // no metaengine registered (bundle.MetaEngine() returns nil).
 func (r *runner) metaEnginePhase(ctx context.Context) error {
 	if ctx.Err() != nil {
-		return nil
+		return nil //nolint:nilerr // cancelled context means skip phase, not fail
 	}
 
 	if r.bundle.MetaEngine() == nil {
@@ -121,11 +134,8 @@ func (r *runner) metaEngineCounterWorkload(ctx context.Context) error {
 	}
 
 	if len(counts) == 0 {
-		return fmt.Errorf(
-			"metaengine counter correctness check: ExecuteTyped returned empty map"+
-				" after %d Apply calls — event type strings may not match fold registrations",
-			sampleCount,
-		)
+		return fmt.Errorf("%w after %d Apply calls: %w",
+			errMEEmptyCounter, sampleCount, ErrMEEvent)
 	}
 
 	// ExecuteTyped read latency
@@ -141,6 +151,7 @@ func (r *runner) metaEngineCounterWorkload(ctx context.Context) error {
 		_, err := metaengine.ExecuteTyped[meBenchCounterInput, map[string]int64](
 			ctx, store, meBenchCounterInput{},
 		)
+
 		queryColl.Record(time.Since(start))
 
 		if err != nil {

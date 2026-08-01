@@ -212,11 +212,3 @@ func titleCase(s string) string {
 
 	return strings.ToUpper(s[:1]) + s[1:]
 }
-
-func formatFloatOrDash(v float64) string {
-	if v == 0 {
-		return "-"
-	}
-
-	return formatFloat(v)
-}

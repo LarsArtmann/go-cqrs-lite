@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	_ "modernc.org/sqlite"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	_ "modernc.org/sqlite" // register pure-Go SQLite driver
 )
 
 // metaEngineSQLiteWorkload runs the same Map ADT workload as
@@ -34,7 +35,7 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 	db.SetMaxOpenConns(1) // SQLite serializes writes
 	defer db.Close()
 
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewSQLiteEngine(db) //nolint:contextcheck // no ctx param
 	if err != nil {
 		return fmt.Errorf("metaengine sqlite: create engine: %w", err)
 	}
@@ -48,9 +49,7 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 
 	// Use fewer samples for SQLite — it's ~10x slower than memory.
 	sqliteSamples := min(r.config.Profile.Streams, maxMetaEngineSamples/4)
-	if sqliteSamples < 10 {
-		sqliteSamples = 10
-	}
+	sqliteSamples = max(sqliteSamples, 10)
 
 	statuses := []string{"active", "pending", "closed", "archived"}
 
@@ -86,19 +85,13 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 	}
 
 	if !found {
-		return fmt.Errorf(
-			"metaengine sqlite correctness check: item %q not found after Apply —"+
-				" event type strings may not match fold registrations",
-			itemIDs[0],
-		)
+		return fmt.Errorf("%w: item %q: %w", errMEPointMiss, itemIDs[0], ErrMEEvent)
 	}
 
 	// ── Scan: filtered collection read ──
 	scanColl := NewLatencyCollector(0)
 	scanCount := min(sqliteSamples/4, 50)
-	if scanCount < 1 {
-		scanCount = 1
-	}
+	scanCount = max(scanCount, 1)
 
 	for range scanCount {
 		if ctx.Err() != nil {
@@ -112,6 +105,7 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 			metaengine.WithFilter("status", metaengine.FilterEq, "active"),
 			metaengine.WithLimit(100),
 		)
+
 		scanColl.Record(time.Since(start))
 
 		if scanErr != nil {
@@ -124,9 +118,7 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 	// ── PointRead: single-item lookup ──
 	pointColl := NewLatencyCollector(0)
 	pointCount := min(sqliteSamples/4, 50)
-	if pointCount < 1 {
-		pointCount = 1
-	}
+	pointCount = max(pointCount, 1)
 
 	for i := range pointCount {
 		if ctx.Err() != nil {
@@ -138,6 +130,7 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 		start := time.Now()
 
 		_, _, getErr := reader.Get(ctx, id)
+
 		pointColl.Record(time.Since(start))
 
 		if getErr != nil {

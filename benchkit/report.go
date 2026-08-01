@@ -186,27 +186,7 @@ func PrintReport(w io.Writer, r *Result) {
 	}
 
 	if r.MetaEngineApplyLatency.Count > 0 {
-		fmt.Fprintln(w, "Metaengine:")
-		printLatencyLine(w, "  Apply:", r.MetaEngineApplyLatency)
-		fmt.Fprintf(w, "  Apply throughput: %s/s (single), %s/s (concurrent)\n",
-			formatFloat(r.MetaEngineApplyThroughput), formatFloat(r.MetaEngineApplyConcurrent))
-		printLatencyLine(w, "  Query (ExecuteTyped):", r.MetaEngineQueryLatency)
-		printLatencyLine(w, "  Scan (filtered):", r.MetaEngineScanLatency)
-		printLatencyLine(w, "  Point read:", r.MetaEnginePointReadLatency)
-
-		if r.MetaEngineScanResults > 0 {
-			fmt.Fprintf(w, "  Scan results: %d items (status=active)\n", r.MetaEngineScanResults)
-		}
-
-		if r.MetaEngineSQLiteScanLatency.Count > 0 {
-			fmt.Fprintln(w, "  --- SQLite engine ---")
-			printLatencyLine(w, "  Scan (filtered):", r.MetaEngineSQLiteScanLatency)
-			printLatencyLine(w, "  Point read:", r.MetaEngineSQLitePointReadLatency)
-			fmt.Fprintf(w, "  Apply throughput: %s/s\n",
-				formatFloat(r.MetaEngineSQLiteApplyThroughput))
-		}
-
-		fmt.Fprintln(w)
+		printMetaEngineSection(w, r)
 	}
 
 	if r.RecoveryTime > 0 {
@@ -214,6 +194,38 @@ func PrintReport(w io.Writer, r *Result) {
 			roundDuration(r.RecoveryTime), formatInt(r.RecoveredEvents))
 	}
 
+	printResourcesSection(w, r)
+
+	if r.IntegrityErrors > 0 {
+		fmt.Fprintf(w, "\n⚠ CORRUPTION: %d integrity errors detected!\n", r.IntegrityErrors)
+	}
+}
+
+func printMetaEngineSection(w io.Writer, r *Result) {
+	fmt.Fprintln(w, "Metaengine:")
+	printLatencyLine(w, "  Apply:", r.MetaEngineApplyLatency)
+	fmt.Fprintf(w, "  Apply throughput: %s/s (single), %s/s (concurrent)\n",
+		formatFloat(r.MetaEngineApplyThroughput), formatFloat(r.MetaEngineApplyConcurrent))
+	printLatencyLine(w, "  Query (ExecuteTyped):", r.MetaEngineQueryLatency)
+	printLatencyLine(w, "  Scan (filtered):", r.MetaEngineScanLatency)
+	printLatencyLine(w, "  Point read:", r.MetaEnginePointReadLatency)
+
+	if r.MetaEngineScanResults > 0 {
+		fmt.Fprintf(w, "  Scan results: %d items (status=active)\n", r.MetaEngineScanResults)
+	}
+
+	if r.MetaEngineSQLiteScanLatency.Count > 0 {
+		fmt.Fprintln(w, "  --- SQLite engine ---")
+		printLatencyLine(w, "  Scan (filtered):", r.MetaEngineSQLiteScanLatency)
+		printLatencyLine(w, "  Point read:", r.MetaEngineSQLitePointReadLatency)
+		fmt.Fprintf(w, "  Apply throughput: %s/s\n",
+			formatFloat(r.MetaEngineSQLiteApplyThroughput))
+	}
+
+	fmt.Fprintln(w)
+}
+
+func printResourcesSection(w io.Writer, r *Result) {
 	fmt.Fprintln(w, "Resources:")
 	fmt.Fprintf(w, "  Heap:  %s peak\n", formatBytes(r.Memory.After))
 	fmt.Fprintf(w, "  Delta: %s\n", formatBytes(r.Memory.Delta))
@@ -240,10 +252,6 @@ func PrintReport(w io.Writer, r *Result) {
 		if r.Disk.WriteAmplification > 0 {
 			fmt.Fprintf(w, "  Write amp: %.2fx\n", r.Disk.WriteAmplification)
 		}
-	}
-
-	if r.IntegrityErrors > 0 {
-		fmt.Fprintf(w, "\n⚠ CORRUPTION: %d integrity errors detected!\n", r.IntegrityErrors)
 	}
 }
 

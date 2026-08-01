@@ -46,6 +46,7 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 	for _, name := range names {
 		if r := results[name]; r != nil && r.IntegrityErrors > 0 {
 			hasIntegrity = true
+
 			break
 		}
 	}

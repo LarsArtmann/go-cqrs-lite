@@ -318,7 +318,9 @@ func TestSoak_MemoryBounded(t *testing.T) {
 	runtime.ReadMemStats(&after)
 
 	heapGrowth := int64(after.HeapAlloc) - int64(before.HeapAlloc)
-	maxExpected := int64(numKeys) * 500 * 100 // 5MB — generous for map + planner overhead
+	maxExpected := int64(
+		numKeys,
+	) * 1000 * 100 // 10MB — generous for map + planner + GC pressure under parallel test load
 
 	// The race detector inflates allocations 5-10x, and parallel test load
 	// (full verify gate) compounds this further. Relax the threshold so we

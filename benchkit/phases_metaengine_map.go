@@ -31,11 +31,7 @@ func meBenchMapQuery() metaengine.QueryDecl[struct{}, map[string]meBenchItem] {
 	return metaengine.Query[struct{}, map[string]meBenchItem](
 		"bench_items",
 		metaengine.On(meBenchItemCreated{}, func(e meBenchItemCreated) (string, meBenchItem) {
-			return e.ID, meBenchItem{
-				ID:       e.ID,
-				Status:   e.Status,
-				Priority: e.Priority,
-			}
+			return e.ID, meBenchItem(e)
 		}),
 		metaengine.FilterOnField[meBenchItem]("status", metaengine.FilterEq),
 		metaengine.SortOnField[meBenchItem]("priority", true),
@@ -95,10 +91,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 	reader := metaengine.NewReader[meBenchItem](store, "bench_items")
 	scanColl := NewLatencyCollector(0)
 	scanCount := min(sampleCount/4, 200) // cap scan iterations
-
-	if scanCount < 1 {
-		scanCount = 1
-	}
+	scanCount = max(scanCount, 1)
 
 	for range scanCount {
 		if ctx.Err() != nil {
@@ -112,6 +105,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 			metaengine.WithFilter("status", metaengine.FilterEq, "active"),
 			metaengine.WithLimit(100),
 		)
+
 		scanColl.Record(time.Since(start))
 
 		if scanErr != nil {
@@ -129,10 +123,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 	// ── PointRead: single-item lookup via TypedReader.Get ──
 	pointColl := NewLatencyCollector(0)
 	pointCount := min(sampleCount/4, 200)
-
-	if pointCount < 1 {
-		pointCount = 1
-	}
+	pointCount = max(pointCount, 1)
 
 	for i := range pointCount {
 		if ctx.Err() != nil {
@@ -145,6 +136,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 		start := time.Now()
 
 		_, found, getErr := reader.Get(ctx, id)
+
 		pointColl.Record(time.Since(start))
 
 		if getErr != nil {
@@ -152,7 +144,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 		}
 
 		if !found {
-			return fmt.Errorf("metaengine point read: item %q not found", id)
+			return fmt.Errorf("%w: item %q: %w", errMEPointMiss, id, ErrMEEvent)
 		}
 	}
 
@@ -160,13 +152,8 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 
 	// ── Concurrent Apply: contention test ──
 	concurrency := r.concurrency
-	if concurrency < 2 {
-		concurrency = 2
-	}
-
-	if concurrency > 8 {
-		concurrency = 8 // cap to avoid overwhelming the benchmark
-	}
+	concurrency = max(concurrency, 2)
+	concurrency = min(concurrency, 8) // cap to avoid overwhelming the benchmark
 
 	concurrentCount := min(sampleCount, 500)
 
