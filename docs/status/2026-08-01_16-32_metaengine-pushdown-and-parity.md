@@ -74,6 +74,7 @@ Nothing catastrophic. But several things worth calling out honestly:
 ## F. Next 50 Things to Get Done
 
 ### Metaengine Engines (pgengine + duckdbengine)
+
 1. Add `RunPushdownMatrix` to adttest — shared pushdown parity test across engines
 2. Add `FilterContains` / `FilterExists` operators to FilterSpec for JSONB `@>`/`?` support
 3. Implement GIN indexes in pgengine for `@>` containment queries
@@ -101,6 +102,7 @@ Nothing catastrophic. But several things worth calling out honestly:
 25. Add compound index support to LayoutPlanner (multi-column indexes)
 
 ### Metaengine Core
+
 26. Implement 10M-event soak test for memory engine (verify O(keys) memory bound)
 27. Add `FilterNull` / `FilterNotNull` operators (Postgres `IS NULL` / `IS NOT NULL`)
 28. Add `FilterBetween` operator (Postgres `BETWEEN`, DuckDB `BETWEEN`)
@@ -108,12 +110,14 @@ Nothing catastrophic. But several things worth calling out honestly:
 30. Consider a `PlannedTable` abstraction shared across SQL engines (SQLite, PG, DuckDB share the same pattern)
 
 ### Soak/Scale Tests
+
 31. Add 1M-event soak test for pgengine (JSONB pushdown at scale)
 32. Add 1M-event soak test for duckdbengine (columnar scan at scale)
 33. Add memory-bounded scan test for pgengine (verify no unbounded growth during scan)
 34. Add memory-bounded scan test for duckdbengine
 
 ### Documentation
+
 35. Add ADR for pgengine PushdownScan + LayoutPlanner design decisions
 36. Add ADR for duckdbengine PushdownScan design decisions
 37. Document the JSONB operator choice (`->` vs `->>`) and why type preservation matters
@@ -121,6 +125,7 @@ Nothing catastrophic. But several things worth calling out honestly:
 39. Add code examples to AGENTS.md showing FilterOnField + pgengine/duckdbengine usage
 
 ### cqrs-lint Remaining Work
+
 40. Address ~29 open items in cqrs-lint improvement backlog (Pareto plan)
 41. Run cqrs-lint against real consumer projects (Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync)
 42. Add migration paths to cqrs-lint findings (L1.16)
@@ -128,11 +133,13 @@ Nothing catastrophic. But several things worth calling out honestly:
 44. Add domain-based severity calibration to cqrs-lint (L1.5)
 
 ### metaengine-gen
+
 45. Design CLI interface for `metaengine-gen` (typed Store methods from query declarations)
 46. Implement AST parsing of query declarations
 47. Generate typed Scan/Get methods from FilterOnField/SortOnField declarations
 
 ### Cross-cutting
+
 48. Add `nix run .#check-layers` to verify dependency budgets for new pgengine/duckdbengine imports
 49. Run `nix run .#verify` to get the full CI gate result (build + vet + test + race + lint + doc-check)
 50. Tag new versions of pgengine/v4 and duckdbengine/v4 (PushdownScan + LayoutPlanner are new exported API)

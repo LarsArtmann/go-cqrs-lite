@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4
 go 1.26.5
 
 require (
-	github.com/jackc/pgx/v5 v5.9.2
+	github.com/jackc/pgx/v5 v5.10.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0
 	github.com/testcontainers/testcontainers-go v0.43.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0

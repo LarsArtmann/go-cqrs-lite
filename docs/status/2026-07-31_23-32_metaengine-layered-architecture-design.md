@@ -16,7 +16,7 @@
 
 2. **User said:** "We should have layers — KV vs Relational vs Graph vs … — but also layers for how DBs actually store data (DDIA), and then SMARTLY combine them for backends!"
    - I recognized this as DDIA Chapter 2 (Data Models) × Chapter 3 (Storage & Retrieval) axis separation.
-   - I articulated: today's `metaengine.Engine` bundles both axes into one type; separating them makes the planner reason about *why* one engine wins, not just opaque `NsPerOp` numbers.
+   - I articulated: today's `metaengine.Engine` bundles both axes into one type; separating them makes the planner reason about _why_ one engine wins, not just opaque `NsPerOp` numbers.
 
 3. **User added:** "Google Cloud BigTable natively supports 'time' as a special field — we could support projections at any time more natively, or make it null if the end-user saves on data cost."
    - I recognized temporality as a **storage-engine capability** (not a data model), with retention as the cost knob.
@@ -35,18 +35,18 @@
 
 ### The Design Doc Itself (`meta-engine-layered-architecture.md`)
 
-| Section | Content | Status |
-| --- | --- | --- |
-| §1 — The Thesis | DDIA Ch2 × Ch3 axis separation; why today's `Engine` bundles them; "two axes + one cross-cutting capability" (not "four dimensions" — that was intellectually dishonest in v1) | ✅ Complete |
-| §2 — The Universal Cost Matrix | Single canonical ADT × StorageLayout matrix (rows: 10 ADTs, columns: 8 storage engines); write-cost table; scale thresholds | ✅ Complete |
-| §3 — Temporality | BigTable cell-versioning model; versioned fold mechanics (event timestamp → cell timestamp); retention vs query correctness interaction; DataFusion TemporalAnchor complementarity | ✅ Complete |
-| §4 — The Missing Three | Vector/Search/Spatial interface sketches WITH honest "what makes this hard" design challenges (distance metrics, hybrid search, query DSL, analyzer chains, query shapes) | ✅ Complete |
-| §5 — Hybrid Engines | Multi-layout engines (PostgreSQL = B+Tree + Inverted + R-Tree + HNSW via extensions); `Layouts map[ADT]StorageLayout` replaces single `Layout` field | ✅ Complete |
-| §6 — Event Store | Event store IS an append-only log; the layered model applies to the write side too | ✅ Complete |
-| §7 — Before/After Examples | Three concrete consumer examples: Vector search (impossible → possible), Temporal query (O(N) → O(1)), EXPLAIN output changing when ClickHouse added | ✅ Complete |
-| §8 — Migration Path | Five steps with actual code diffs on real `engine.go` files (Memory, SQLite, Pebble `Profile()` methods) | ✅ Complete |
-| §9 — Brutal Honesty | "Zero behavior change for current 3 engines," "matrix must be correct," "interfaces are hard design work" | ✅ Complete |
-| §10 — Canon Relationships | Cross-references to all 5 sibling docs with exact relationship descriptions | ✅ Complete |
+| Section                        | Content                                                                                                                                                                            | Status      |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| §1 — The Thesis                | DDIA Ch2 × Ch3 axis separation; why today's `Engine` bundles them; "two axes + one cross-cutting capability" (not "four dimensions" — that was intellectually dishonest in v1)     | ✅ Complete |
+| §2 — The Universal Cost Matrix | Single canonical ADT × StorageLayout matrix (rows: 10 ADTs, columns: 8 storage engines); write-cost table; scale thresholds                                                        | ✅ Complete |
+| §3 — Temporality               | BigTable cell-versioning model; versioned fold mechanics (event timestamp → cell timestamp); retention vs query correctness interaction; DataFusion TemporalAnchor complementarity | ✅ Complete |
+| §4 — The Missing Three         | Vector/Search/Spatial interface sketches WITH honest "what makes this hard" design challenges (distance metrics, hybrid search, query DSL, analyzer chains, query shapes)          | ✅ Complete |
+| §5 — Hybrid Engines            | Multi-layout engines (PostgreSQL = B+Tree + Inverted + R-Tree + HNSW via extensions); `Layouts map[ADT]StorageLayout` replaces single `Layout` field                               | ✅ Complete |
+| §6 — Event Store               | Event store IS an append-only log; the layered model applies to the write side too                                                                                                 | ✅ Complete |
+| §7 — Before/After Examples     | Three concrete consumer examples: Vector search (impossible → possible), Temporal query (O(N) → O(1)), EXPLAIN output changing when ClickHouse added                               | ✅ Complete |
+| §8 — Migration Path            | Five steps with actual code diffs on real `engine.go` files (Memory, SQLite, Pebble `Profile()` methods)                                                                           | ✅ Complete |
+| §9 — Brutal Honesty            | "Zero behavior change for current 3 engines," "matrix must be correct," "interfaces are hard design work"                                                                          | ✅ Complete |
+| §10 — Canon Relationships      | Cross-references to all 5 sibling docs with exact relationship descriptions                                                                                                        | ✅ Complete |
 
 ### Research Completed
 
@@ -62,17 +62,17 @@
 
 ### v2 Improvements Over v1 (Self-Review Fixes)
 
-| v1 Problem | v2 Fix |
-| --- | --- |
-| Claimed "four dimensions" (intellectually dishonest — retention is a knob on temporality, not an axis) | Corrected to "two axes + one cross-cutting capability" |
-| Cost matrix printed 3 times (§4, §8, §11 as Go code) | One canonical matrix (§2), referenced by all other sections |
-| Zero consumer code examples | Three concrete before/after examples with full Go code |
-| Interface sketches ignored real complexity | Each Missing Three has explicit "what makes this hard" design decisions |
-| Hybrid engines completely unaddressed | New §5 — PostgreSQL serves 4 ADTs from 4 layouts; `Layouts map[ADT]StorageLayout` |
-| Event store not discussed | New §6 — event store as append-only log, layered model applies to write side |
-| Temporal mechanics glossed over | New subsections: versioned fold mechanics, retention vs query correctness |
-| Migration was prose only | Actual code diffs on real `Profile()` methods |
-| Didn't state what DOESN'T change | New §9 — "zero behavior change for current 3 engines" |
+| v1 Problem                                                                                             | v2 Fix                                                                            |
+| ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| Claimed "four dimensions" (intellectually dishonest — retention is a knob on temporality, not an axis) | Corrected to "two axes + one cross-cutting capability"                            |
+| Cost matrix printed 3 times (§4, §8, §11 as Go code)                                                   | One canonical matrix (§2), referenced by all other sections                       |
+| Zero consumer code examples                                                                            | Three concrete before/after examples with full Go code                            |
+| Interface sketches ignored real complexity                                                             | Each Missing Three has explicit "what makes this hard" design decisions           |
+| Hybrid engines completely unaddressed                                                                  | New §5 — PostgreSQL serves 4 ADTs from 4 layouts; `Layouts map[ADT]StorageLayout` |
+| Event store not discussed                                                                              | New §6 — event store as append-only log, layered model applies to write side      |
+| Temporal mechanics glossed over                                                                        | New subsections: versioned fold mechanics, retention vs query correctness         |
+| Migration was prose only                                                                               | Actual code diffs on real `Profile()` methods                                     |
+| Didn't state what DOESN'T change                                                                       | New §9 — "zero behavior change for current 3 engines"                             |
 
 ---
 
@@ -129,6 +129,7 @@ to TODO_LIST.md.
 
 The 5 sibling canon docs were NOT updated to cross-reference the new layered
 architecture doc. They don't yet point to it. Specifically:
+
 - `meta-engine-design.md` should note "see also: layered-architecture for the axis separation refinement"
 - `datafusion-lessons-for-metaengine.md` should note "see also: layered-architecture for the storage-engine axis"
 

@@ -4,14 +4,14 @@
 
 ## TL;DR Decision Matrix
 
-| If your projection needs... | Use |
-|---|---|
-| Single key CRUD (get/set/delete one document) | **Keep `kv.ViewStore`** — simpler API, fewer deps |
-| Filtered queries (WHERE, ORDER BY, LIMIT) | **metaengine** with `ScanBackend` or `FilterOnField` |
-| Counter aggregations (count by status) | **metaengine** with `ADTCounter` |
-| Multi-ADT (docs + counters + graph in one store) | **metaengine** — one engine, multiple ADTs |
-| Vector/search/spatial queries | **metaengine** — the only option |
-| SQL-backed views with WHERE/ORDER BY | **`storage.SQLViewStore`** (existing, no migration needed) |
+| If your projection needs...                      | Use                                                        |
+| ------------------------------------------------ | ---------------------------------------------------------- |
+| Single key CRUD (get/set/delete one document)    | **Keep `kv.ViewStore`** — simpler API, fewer deps          |
+| Filtered queries (WHERE, ORDER BY, LIMIT)        | **metaengine** with `ScanBackend` or `FilterOnField`       |
+| Counter aggregations (count by status)           | **metaengine** with `ADTCounter`                           |
+| Multi-ADT (docs + counters + graph in one store) | **metaengine** — one engine, multiple ADTs                 |
+| Vector/search/spatial queries                    | **metaengine** — the only option                           |
+| SQL-backed views with WHERE/ORDER BY             | **`storage.SQLViewStore`** (existing, no migration needed) |
 
 ## Why Migrate?
 

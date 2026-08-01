@@ -13,12 +13,12 @@ This is the **existential type problem** — `∃I,V. Query[I,V]` — which Go d
 
 ## The 4 Cast Sites (All Same Root Cause)
 
-| Site | Signature | Why `any` |
-|------|-----------|-----------|
-| `Plan` | `args ...any` | Heterogeneous `Query[I1,V1]`, `Query[I2,V2]` in one call |
-| `Apply` | `payload any` | One event type fans out to folds expecting **different** payload types |
-| `Execute` | returns `any` | Return type depends on **which** query was dispatched |
-| `reify[V]` | `row any → V` | Engine stores values as `any`/`[]byte`; reader reifies |
+| Site       | Signature     | Why `any`                                                              |
+| ---------- | ------------- | ---------------------------------------------------------------------- |
+| `Plan`     | `args ...any` | Heterogeneous `Query[I1,V1]`, `Query[I2,V2]` in one call               |
+| `Apply`    | `payload any` | One event type fans out to folds expecting **different** payload types |
+| `Execute`  | returns `any` | Return type depends on **which** query was dispatched                  |
+| `reify[V]` | `row any → V` | Engine stores values as `any`/`[]byte`; reader reifies                 |
 
 Every cast traces back to the same constraint: **Store is a heterogeneous container of generic queries, and Go can't type that.**
 
@@ -62,7 +62,7 @@ func (s *Store) Get[I, V any](input I) (V, error) { ... }  // legal in 1.27
 
 But **interface methods still can't have type parameters**. A generic concrete method does not satisfy any interface. So `Engine` can't declare `MapScan[V any]()`, which is exactly what we'd need to eliminate the `any` return from engine backends.
 
-The release notes confirm: *"methods of interfaces may not declare type parameters nor can interface methods be implemented by generic methods."*
+The release notes confirm: _"methods of interfaces may not declare type parameters nor can interface methods be implemented by generic methods."_
 
 ### Associated Types — Closest to What We Need, But Far Away
 
@@ -82,17 +82,17 @@ This would let `Query` declare an associated `Input` and `Result` type, and Stor
 
 And critically: the proposal **explicitly excludes** existential types (storing heterogeneous `Container` values in one slice). That's the exact feature metaengine needs.
 
-> *"Allowing plain `var g Graph` would hide both the implementation and the types needed to call its methods. Supporting that requires existential types, which are outside this proposal."*
+> _"Allowing plain `var g Graph` would hide both the implementation and the types needed to call its methods. Supporting that requires existential types, which are outside this proposal."_
 
 ### Feature Matrix
 
-| Feature | Go 1.27? | Solves our casts? |
-|---------|----------|-------------------|
-| Generic concrete methods | **Yes** | Partially — removes casts on `Store.Get[I,V]`, but not inside Engine/Apply |
-| Generic interface methods | No (explicitly out of scope) | Would solve Engine-level casts |
-| Associated types | No (proposal filed Jul 2026) | Would solve Query erasure |
-| Existential types | No (explicitly excluded) | Would solve heterogeneous Store |
-| Heterogeneous containers | No proposal at all | Would solve the fundamental problem |
+| Feature                   | Go 1.27?                     | Solves our casts?                                                          |
+| ------------------------- | ---------------------------- | -------------------------------------------------------------------------- |
+| Generic concrete methods  | **Yes**                      | Partially — removes casts on `Store.Get[I,V]`, but not inside Engine/Apply |
+| Generic interface methods | No (explicitly out of scope) | Would solve Engine-level casts                                             |
+| Associated types          | No (proposal filed Jul 2026) | Would solve Query erasure                                                  |
+| Existential types         | No (explicitly excluded)     | Would solve heterogeneous Store                                            |
+| Heterogeneous containers  | No proposal at all           | Would solve the fundamental problem                                        |
 
 ### Looking Further Ahead
 

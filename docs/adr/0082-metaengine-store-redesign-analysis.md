@@ -10,12 +10,12 @@
 
 The current `Store` has 4 runtime cast sites, all caused by Go's inability to express heterogeneous generic containers (see [ADR-0081](0081-metaengine-runtime-casts.md)):
 
-| # | Site | Signature | Root Cause |
-|---|------|-----------|------------|
-| 1 | `Plan` | `args ...any` | Heterogeneous `Query[I1,V1]`, `Query[I2,V2]` in one call |
-| 2 | `Apply` | `payload any` | One event type fans out to folds expecting different payload types |
-| 3 | `Execute` | returns `any` | Return type depends on which query was dispatched |
-| 4 | `reify[V]` | `row any → V` | Engine stores values as `any`/`[]byte`; reader reifies |
+| #   | Site       | Signature     | Root Cause                                                         |
+| --- | ---------- | ------------- | ------------------------------------------------------------------ |
+| 1   | `Plan`     | `args ...any` | Heterogeneous `Query[I1,V1]`, `Query[I2,V2]` in one call           |
+| 2   | `Apply`    | `payload any` | One event type fans out to folds expecting different payload types |
+| 3   | `Execute`  | returns `any` | Return type depends on which query was dispatched                  |
+| 4   | `reify[V]` | `row any → V` | Engine stores values as `any`/`[]byte`; reader reifies             |
 
 The question: **can a Store redesign eliminate some or all of these casts?**
 
@@ -42,12 +42,12 @@ counterStore.Apply(ctx, "task.created", payload)            // payload is any
 
 ### Cast Analysis
 
-| Cast | Eliminated? | Why |
-|------|-------------|-----|
-| 1 (Plan `...any`) | **Yes** | No heterogeneous args — each store takes one typed query |
-| 2 (Apply `any`) | **No** | Each query still handles multiple event types with different payload types |
-| 3 (Execute → `any`) | **Yes** | Return type is `V`, known at compile time |
-| 4 (reify `any→V`) | **Yes** | Engine output is typed `V` from the start |
+| Cast                | Eliminated? | Why                                                                        |
+| ------------------- | ----------- | -------------------------------------------------------------------------- |
+| 1 (Plan `...any`)   | **Yes**     | No heterogeneous args — each store takes one typed query                   |
+| 2 (Apply `any`)     | **No**      | Each query still handles multiple event types with different payload types |
+| 3 (Execute → `any`) | **Yes**     | Return type is `V`, known at compile time                                  |
+| 4 (reify `any→V`)   | **Yes**     | Engine output is typed `V` from the start                                  |
 
 **Eliminates 3 of 4 casts. Keeps cast #2 (Apply).**
 
@@ -57,14 +57,14 @@ Each query handles multiple event types (`TaskCreated`, `TaskCompleted`, ...) wi
 
 ### Tradeoffs
 
-| Aspect | Current `Store` | `TypedStore[I,V]` |
-|--------|----------------|-------------------|
-| Consumer creates | 1 Store, 1 Plan call | N TypedStores, N PlanOne calls |
-| Central plan diagnostics | Yes (cross-query write amplification) | Lost — no cross-query view |
-| Multi-engine distribution | Planner sees all queries together | Each store plans independently |
-| Read-side type safety | Via `TypedReader[V]` wrapper | Built-in |
-| Write-side type safety | `any` payload | `any` payload (same problem) |
-| Projection adapter | One adapter wraps one Store | One adapter per TypedStore, or a multi-store adapter |
+| Aspect                    | Current `Store`                       | `TypedStore[I,V]`                                    |
+| ------------------------- | ------------------------------------- | ---------------------------------------------------- |
+| Consumer creates          | 1 Store, 1 Plan call                  | N TypedStores, N PlanOne calls                       |
+| Central plan diagnostics  | Yes (cross-query write amplification) | Lost — no cross-query view                           |
+| Multi-engine distribution | Planner sees all queries together     | Each store plans independently                       |
+| Read-side type safety     | Via `TypedReader[V]` wrapper          | Built-in                                             |
+| Write-side type safety    | `any` payload                         | `any` payload (same problem)                         |
+| Projection adapter        | One adapter wraps one Store           | One adapter per TypedStore, or a multi-store adapter |
 
 ### Verdict
 
@@ -99,12 +99,12 @@ host.Apply(ctx, "task.created", evt)  // fully typed
 
 ### Cast Analysis
 
-| Cast | Eliminated? | Why |
-|------|-------------|-----|
-| 1 (Plan `...any`) | **Yes** | All projections share type `E` — homogeneous slice |
-| 2 (Apply `any`) | **Yes** | Apply takes `E`, not `any` |
-| 3 (Execute → `any`) | **Yes** | Each projection has its own typed result |
-| 4 (reify `any→V`) | **Yes** | Values are typed from the start |
+| Cast                | Eliminated? | Why                                                |
+| ------------------- | ----------- | -------------------------------------------------- |
+| 1 (Plan `...any`)   | **Yes**     | All projections share type `E` — homogeneous slice |
+| 2 (Apply `any`)     | **Yes**     | Apply takes `E`, not `any`                         |
+| 3 (Execute → `any`) | **Yes**     | Each projection has its own typed result           |
+| 4 (reify `any→V`)   | **Yes**     | Values are typed from the start                    |
 
 **Eliminates ALL 4 casts.**
 
@@ -181,6 +181,7 @@ func (s *TaskViewsStore) Get(ctx context.Context, id string) (TaskView, bool, er
 ### What the Generated Code Eliminates
 
 The generator would produce:
+
 1. A typed `Apply` method per event type (no `any` payload)
 2. A typed `Get`/`Scan` returning `V` (no `any` result)
 3. A typed constructor that validates query shapes at compile time (no `queryMeta` interface)
@@ -211,12 +212,12 @@ items, _ := reader.Scan(ctx, ...)           // returns []TaskView
 
 ### Cast Analysis
 
-| Cast | Eliminated? | Why |
-|------|-------------|-----|
-| 1 (Plan `...any`) | **No** | Store still accepts heterogeneous queries |
-| 2 (Apply `any`) | **No** | Write layer stays erased |
+| Cast                | Eliminated?             | Why                                                    |
+| ------------------- | ----------------------- | ------------------------------------------------------ |
+| 1 (Plan `...any`)   | **No**                  | Store still accepts heterogeneous queries              |
+| 2 (Apply `any`)     | **No**                  | Write layer stays erased                               |
 | 3 (Execute → `any`) | **Yes** (for consumers) | `TypedReader[V]` and `ExecuteTyped[I,V]` hide the cast |
-| 4 (reify `any→V`) | **Yes** (for consumers) | `TypedReader[V]` handles reification internally |
+| 4 (reify `any→V`)   | **Yes** (for consumers) | `TypedReader[V]` handles reification internally        |
 
 **Consumer-visible casts: 0. Internal casts: 2 (at the Store/Engine boundary).**
 
@@ -241,13 +242,13 @@ This is the current design, formalized. The consumer-facing API is already fully
 
 ## Comparison Matrix
 
-| Design | Casts Eliminated | Consumer DX | Build Complexity | Verdict |
-|--------|-----------------|-------------|------------------|---------|
-| **Current (Store + `any`)** | 0 (baseline) | Best — one Store, one Plan, typed readers | None | **Status quo** |
-| **A: TypedStore[I,V]** | 3 of 4 (read side) | N stores, fragmented API | None | Marginal — reader wrapper already covers this |
-| **B: Sum-Type Projection[E]** | All 4 | Worse — switch statements in every fold | None | DX degradation not worth it |
-| **C: Codegen** | All 4 | Best types, generated boilerplate | High — requires generator | Future option via `cmd/cqrs-gen` |
-| **D: Hybrid (current, formalized)** | Consumer: all. Internal: 2. | Best — typed readers, erased writes | None | **This is already the design** |
+| Design                              | Casts Eliminated            | Consumer DX                               | Build Complexity          | Verdict                                       |
+| ----------------------------------- | --------------------------- | ----------------------------------------- | ------------------------- | --------------------------------------------- |
+| **Current (Store + `any`)**         | 0 (baseline)                | Best — one Store, one Plan, typed readers | None                      | **Status quo**                                |
+| **A: TypedStore[I,V]**              | 3 of 4 (read side)          | N stores, fragmented API                  | None                      | Marginal — reader wrapper already covers this |
+| **B: Sum-Type Projection[E]**       | All 4                       | Worse — switch statements in every fold   | None                      | DX degradation not worth it                   |
+| **C: Codegen**                      | All 4                       | Best types, generated boilerplate         | High — requires generator | Future option via `cmd/cqrs-gen`              |
+| **D: Hybrid (current, formalized)** | Consumer: all. Internal: 2. | Best — typed readers, erased writes       | None                      | **This is already the design**                |
 
 ---
 
@@ -256,6 +257,7 @@ This is the current design, formalized. The consumer-facing API is already fully
 The current design already hides the casts behind `TypedReader[V]` and `ExecuteTyped[I,V]`. **Consumer code never touches `any`.** The casts are internal implementation details at the exact boundary where Go's type system gives up.
 
 **The only cast that truly matters is #2 (Apply).** That's the event fan-out — one decoded event routed to folds with different signatures. No redesign eliminates this without either:
+
 - A sum type (worse DX — Alternative B)
 - Codegen (build complexity — Alternative C)
 

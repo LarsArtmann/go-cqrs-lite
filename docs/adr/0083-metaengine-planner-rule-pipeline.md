@@ -34,12 +34,12 @@ layout plans) but do NOT override engine selection.
 
 ### Extracted Rules
 
-| Rule | File | Decision |
-|------|------|----------|
-| `schemaRule` | `rule_schema.go` | Fold value type ≠ result type → WARN |
-| `layoutRule` | `rule_layout.go` | LayoutPlanner + FilterOnField/SortOnField → auto DDL |
-| `writeAmpRule` | `rule_writeamp.go` | Event updating >3 projections → WARN |
-| `materializeRule` | `materialize.go` | Workload stats → materialize-vs-replay INFO/WARN |
+| Rule              | File               | Decision                                             |
+| ----------------- | ------------------ | ---------------------------------------------------- |
+| `schemaRule`      | `rule_schema.go`   | Fold value type ≠ result type → WARN                 |
+| `layoutRule`      | `rule_layout.go`   | LayoutPlanner + FilterOnField/SortOnField → auto DDL |
+| `writeAmpRule`    | `rule_writeamp.go` | Event updating >3 projections → WARN                 |
+| `materializeRule` | `materialize.go`   | Workload stats → materialize-vs-replay INFO/WARN     |
 
 ### Bug Found During Extraction
 

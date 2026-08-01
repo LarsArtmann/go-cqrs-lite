@@ -47,6 +47,7 @@ Added `StorageLayout` constants: `LayoutRow`, `LayoutColumnar`, `LayoutLSM`,
 
 Built universal cost matrix `(ADT × StorageLayout) → Complexity` in
 `layout_type.go:layoutComplexity()`. Example:
+
 - `(Counter, Columnar)` → O(1) via native aggregation
 - `(Counter, Row)` → O(N) via full scan
 - `(Map, KV)` → O(1) via hash lookup

@@ -40,6 +40,7 @@ The stale suppression detector (`DetectStaleSuppressions`) now also scans for bl
 ### Pipeline Integration
 
 Block suppression runs after inline suppression in the filter pipeline:
+
 1. Check inline `//cqrs-lint:ignore(RULE)` (existing)
 2. Check block `//cqrs-lint:ignore-start` (new)
 3. Snippet-based fallback (existing)

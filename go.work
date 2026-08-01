@@ -31,8 +31,8 @@ use (
 	./listing
 	./metadata
 	./metaengine
-	./metaengine/pebbleengine
 	./metaengine/duckdbengine
+	./metaengine/pebbleengine
 	./metaengine/pgengine
 	./metaengine/projectionadapter
 	./middleware

@@ -8,32 +8,32 @@
 
 ## a) FULLY DONE (shipped, tested, verified this session)
 
-| # | Task | What was done | Evidence |
-|---|------|---------------|----------|
-| 1 | **MySQL testcontainer privilege fix** | Replaced fragile root DSN string-replacement hack with `ctr.Exec` running `GRANT ALL PRIVILEGES` inside the container via unix socket. Root cause discovered: `tcmysql.WithDefaultCredentials()` sets `MYSQL_ROOT_PASSWORD` to the same value as `MYSQL_PASSWORD`, so the root password was `"cqrs"` not `"rootpass"`. | `stack/mysql/testcontainer_test.go` — all tests pass reliably, 3 consecutive runs |
-| 2 | **MySQL multi-statement DDL fix** | `MySQLInitSchema` now splits the embedded schema into individual `CREATE TABLE` statements via `splitMySQLDDL()`. The MySQL driver does not support multi-statement execution without `multiStatements=true` (a SQL injection risk). This was the second root cause of test failures — the GRANT was fixed but the CREATE TABLE still failed with syntax errors. | `storage/sqlite_helpers.go` — `splitMySQLDDL` using `strings.SplitSeq`, tested via contract suite |
-| 3 | **godot lint fix** | Added missing period to comment in `multidb_test.go:52` | Lint clean for `stack/mysql` |
-| 4 | **`nix fmt`** | Ran full `nix fmt` (treefmt) on the entire repo — reformatted 2 files (line wrapping in test files) | `git diff` shows formatting-only changes |
-| 5 | **StoreMySQL detection test** | `TestDetectFeatures_MySQLStore` in `feature_profile_test.go` — proves cqrs-lint detects `stack/mysql` import as `StoreMySQL` | Passes standalone |
-| 6 | **MySQL idempotency query unit test** | `TestMySQLQueries_SQLSyntax` with 7 subtests verifying MySQL-specific SQL syntax: `ON DUPLICATE KEY UPDATE` no-op, `IF()` conditional update, backtick quoting for reserved word `key`, placeholder count (3 for checkAndRecord), all queries use `?` not `$N` | `idempotency/sqlstore/mysql_queries_test.go` — passes |
-| 7 | **CHANGELOG.md** | Added comprehensive MySQL/MariaDB entry to `[Unreleased]` section covering: stack preset, dialect upsert methods, error classifier, multi-statement DDL, testcontainer pattern, idempotency store, cqrs-lint detection, documentation | CHANGELOG.md `[Unreleased]` section |
-| 8 | **Flaky SSE test fix** | `TestSSE_MultiSubscriberFanOut` in metaengine was failing under load — timing-based test with 200ms sleeps insufficient. Increased to 500ms for both connect and propagate phases. Passed 3x with `-count=3`. | `metaengine/features4_test.go:932-939` |
-| 9 | **ADR numbering collision** | The auto-commit daemon committed a duplicate `0080-metaengine-runtime-casts.md` while I was working on `0080-dialect-interface-upsert-methods.md`. Renumbered the daemon's ADR to `0081` via `git mv` and added it to the `docs/README.md` index. | ADR index check passes (79 ADRs indexed) |
-| 10 | **`strings.SplitSeq` modernization** | Linter flagged `strings.Split` → `strings.SplitSeq` in `splitMySQLDDL`. Fixed immediately. | Storage lint issue count dropped from 3→2 (remaining 2 are pre-existing goconst) |
+| #   | Task                                  | What was done                                                                                                                                                                                                                                                                                                                                                    | Evidence                                                                                          |
+| --- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1   | **MySQL testcontainer privilege fix** | Replaced fragile root DSN string-replacement hack with `ctr.Exec` running `GRANT ALL PRIVILEGES` inside the container via unix socket. Root cause discovered: `tcmysql.WithDefaultCredentials()` sets `MYSQL_ROOT_PASSWORD` to the same value as `MYSQL_PASSWORD`, so the root password was `"cqrs"` not `"rootpass"`.                                           | `stack/mysql/testcontainer_test.go` — all tests pass reliably, 3 consecutive runs                 |
+| 2   | **MySQL multi-statement DDL fix**     | `MySQLInitSchema` now splits the embedded schema into individual `CREATE TABLE` statements via `splitMySQLDDL()`. The MySQL driver does not support multi-statement execution without `multiStatements=true` (a SQL injection risk). This was the second root cause of test failures — the GRANT was fixed but the CREATE TABLE still failed with syntax errors. | `storage/sqlite_helpers.go` — `splitMySQLDDL` using `strings.SplitSeq`, tested via contract suite |
+| 3   | **godot lint fix**                    | Added missing period to comment in `multidb_test.go:52`                                                                                                                                                                                                                                                                                                          | Lint clean for `stack/mysql`                                                                      |
+| 4   | **`nix fmt`**                         | Ran full `nix fmt` (treefmt) on the entire repo — reformatted 2 files (line wrapping in test files)                                                                                                                                                                                                                                                              | `git diff` shows formatting-only changes                                                          |
+| 5   | **StoreMySQL detection test**         | `TestDetectFeatures_MySQLStore` in `feature_profile_test.go` — proves cqrs-lint detects `stack/mysql` import as `StoreMySQL`                                                                                                                                                                                                                                     | Passes standalone                                                                                 |
+| 6   | **MySQL idempotency query unit test** | `TestMySQLQueries_SQLSyntax` with 7 subtests verifying MySQL-specific SQL syntax: `ON DUPLICATE KEY UPDATE` no-op, `IF()` conditional update, backtick quoting for reserved word `key`, placeholder count (3 for checkAndRecord), all queries use `?` not `$N`                                                                                                   | `idempotency/sqlstore/mysql_queries_test.go` — passes                                             |
+| 7   | **CHANGELOG.md**                      | Added comprehensive MySQL/MariaDB entry to `[Unreleased]` section covering: stack preset, dialect upsert methods, error classifier, multi-statement DDL, testcontainer pattern, idempotency store, cqrs-lint detection, documentation                                                                                                                            | CHANGELOG.md `[Unreleased]` section                                                               |
+| 8   | **Flaky SSE test fix**                | `TestSSE_MultiSubscriberFanOut` in metaengine was failing under load — timing-based test with 200ms sleeps insufficient. Increased to 500ms for both connect and propagate phases. Passed 3x with `-count=3`.                                                                                                                                                    | `metaengine/features4_test.go:932-939`                                                            |
+| 9   | **ADR numbering collision**           | The auto-commit daemon committed a duplicate `0080-metaengine-runtime-casts.md` while I was working on `0080-dialect-interface-upsert-methods.md`. Renumbered the daemon's ADR to `0081` via `git mv` and added it to the `docs/README.md` index.                                                                                                                | ADR index check passes (79 ADRs indexed)                                                          |
+| 10  | **`strings.SplitSeq` modernization**  | Linter flagged `strings.Split` → `strings.SplitSeq` in `splitMySQLDDL`. Fixed immediately.                                                                                                                                                                                                                                                                       | Storage lint issue count dropped from 3→2 (remaining 2 are pre-existing goconst)                  |
 
 ### Verification results (final verify gate run)
 
-| Gate | Result | Notes |
-|------|--------|-------|
-| Build | PASS | `go build -tags "goexperiment.jsonv2" ./...` |
-| Vet | PASS | All modules |
-| Test | PASS | All 90+ modules including `stack/mysql/v4` (80s with real container) |
-| Race | PASS | All modules including `stack/mysql/v4` (66s with real container) |
-| API Stability | PASS | 2980 exports |
-| Doc Check | PASS | All Go import paths valid |
-| Doc Assertions | PASS | CHANGELOG, module count, ADR index, error family |
-| Lint (MySQL code) | **0 issues** | `stack/mysql`, `idempotency/sqlstore` — clean |
-| Lint (pre-existing) | RED | 12 issues across 5 modules — ALL in daemon-committed code, zero in MySQL |
+| Gate                | Result       | Notes                                                                    |
+| ------------------- | ------------ | ------------------------------------------------------------------------ |
+| Build               | PASS         | `go build -tags "goexperiment.jsonv2" ./...`                             |
+| Vet                 | PASS         | All modules                                                              |
+| Test                | PASS         | All 90+ modules including `stack/mysql/v4` (80s with real container)     |
+| Race                | PASS         | All modules including `stack/mysql/v4` (66s with real container)         |
+| API Stability       | PASS         | 2980 exports                                                             |
+| Doc Check           | PASS         | All Go import paths valid                                                |
+| Doc Assertions      | PASS         | CHANGELOG, module count, ADR index, error family                         |
+| Lint (MySQL code)   | **0 issues** | `stack/mysql`, `idempotency/sqlstore` — clean                            |
+| Lint (pre-existing) | RED          | 12 issues across 5 modules — ALL in daemon-committed code, zero in MySQL |
 
 ---
 
@@ -43,20 +43,20 @@
 
 The lint step of `nix run .#verify` exits with code 1. However, **every single lint issue is in pre-existing code committed by the auto-commit daemon**, not in any MySQL file I touched. The specific pre-existing issues:
 
-| Module | File | Issue | Who introduced |
-|--------|------|-------|----------------|
-| `storage` | `aggregate_projection.go:74` | goconst: `aggregate_id` 4 occurrences | Pre-existing |
-| `storage` | `sql/dialect.go:99` | goconst: `ON CONFLICT DO NOTHING` 3 occurrences | Pre-existing |
-| `stack` | `sqlopt/durability.go:18` | exhaustive: missing `DurabilityNormal` case | Daemon commit `4ccc4acb` |
-| `stack` | `capabilities.go:46` | unused: `defaultCapabilities` | Daemon commit |
-| `stack` | `sqlopt/durability.go:37` | wrapcheck: `SQLiteSetSynchronous` | Daemon commit `4ccc4acb` |
-| `stack/memory` | `preset.go:45` | exhaustruct: missing Capabilities fields | Pre-existing |
-| `stack/sqlite` | `preset.go:32,159` | exhaustruct + mnd | Pre-existing |
-| `stack/duckdb` | `preset.go:125` | exhaustruct | Pre-existing |
-| `stack/postgres` | `preset.go:33,169` | exhaustruct | Pre-existing |
-| `benchkit` | `runner.go:133` | gocognit 37 (>35) | Daemon commit |
-| `benchkit` | `result.go:113` | modernize: omitzero | Daemon commit |
-| `benchkit` | `phases_mixed.go:112` | nilerr | Daemon commit |
+| Module           | File                         | Issue                                           | Who introduced           |
+| ---------------- | ---------------------------- | ----------------------------------------------- | ------------------------ |
+| `storage`        | `aggregate_projection.go:74` | goconst: `aggregate_id` 4 occurrences           | Pre-existing             |
+| `storage`        | `sql/dialect.go:99`          | goconst: `ON CONFLICT DO NOTHING` 3 occurrences | Pre-existing             |
+| `stack`          | `sqlopt/durability.go:18`    | exhaustive: missing `DurabilityNormal` case     | Daemon commit `4ccc4acb` |
+| `stack`          | `capabilities.go:46`         | unused: `defaultCapabilities`                   | Daemon commit            |
+| `stack`          | `sqlopt/durability.go:37`    | wrapcheck: `SQLiteSetSynchronous`               | Daemon commit `4ccc4acb` |
+| `stack/memory`   | `preset.go:45`               | exhaustruct: missing Capabilities fields        | Pre-existing             |
+| `stack/sqlite`   | `preset.go:32,159`           | exhaustruct + mnd                               | Pre-existing             |
+| `stack/duckdb`   | `preset.go:125`              | exhaustruct                                     | Pre-existing             |
+| `stack/postgres` | `preset.go:33,169`           | exhaustruct                                     | Pre-existing             |
+| `benchkit`       | `runner.go:133`              | gocognit 37 (>35)                               | Daemon commit            |
+| `benchkit`       | `result.go:113`              | modernize: omitzero                             | Daemon commit            |
+| `benchkit`       | `phases_mixed.go:112`        | nilerr                                          | Daemon commit            |
 
 **These are NOT my bugs.** I did not introduce them, and fixing them is out of scope for the MySQL task. But they prevent `nix run .#verify` from reaching full GREEN.
 
@@ -64,13 +64,13 @@ The lint step of `nix run .#verify` exits with code 1. However, **every single l
 
 ## c) NOT STARTED
 
-| # | Task | Why |
-|---|------|-----|
-| 1 | **Release tags** — `stack/mysql/v4.0.0`, verify `storage` and `idempotency/sqlstore` tags are current | Not started — needs explicit user decision on version numbers and whether the API is stable enough |
-| 2 | **MySQL integration test in `idempotency/sqlstore`** — test `NewMySQLStore` + `CheckAndRecord` against a live MySQL instance | Wrote unit test for SQL syntax instead — a live integration test would need a testcontainer in the `idempotency/sqlstore` module, which currently has no testcontainer dependency |
-| 3 | **`cmd/cqrs-bench/factory.go`** — add MySQL as a benchmark backend | Not in the critical path |
-| 4 | **`stack/bench`** — add MySQL to benchmark comparison suite | Not in the critical path |
-| 5 | **AGENTS.md update** — document the testcontainer MySQL privilege pattern | Should be done once the pattern is confirmed stable across multiple sessions |
+| #   | Task                                                                                                                         | Why                                                                                                                                                                               |
+| --- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Release tags** — `stack/mysql/v4.0.0`, verify `storage` and `idempotency/sqlstore` tags are current                        | Not started — needs explicit user decision on version numbers and whether the API is stable enough                                                                                |
+| 2   | **MySQL integration test in `idempotency/sqlstore`** — test `NewMySQLStore` + `CheckAndRecord` against a live MySQL instance | Wrote unit test for SQL syntax instead — a live integration test would need a testcontainer in the `idempotency/sqlstore` module, which currently has no testcontainer dependency |
+| 3   | **`cmd/cqrs-bench/factory.go`** — add MySQL as a benchmark backend                                                           | Not in the critical path                                                                                                                                                          |
+| 4   | **`stack/bench`** — add MySQL to benchmark comparison suite                                                                  | Not in the critical path                                                                                                                                                          |
+| 5   | **AGENTS.md update** — document the testcontainer MySQL privilege pattern                                                    | Should be done once the pattern is confirmed stable across multiple sessions                                                                                                      |
 
 ---
 

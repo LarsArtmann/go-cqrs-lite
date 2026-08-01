@@ -8,6 +8,7 @@
 ## Context
 
 The metaengine has two existing engine implementations:
+
 1. **MemoryEngine** — in-process, brute-force, O(N) scans. In the core module.
 2. **PebbleEngine** — LSM point reads, separate module (cockroachdb/pebble dep).
 3. **SQLiteEngine** — in core module, row-oriented, `json_extract` pushdown.
@@ -45,6 +46,7 @@ The engine declares `LayoutColumnar` for Map, Counter, and SortedMap ADTs in its
 ### CGo isolation
 
 Following the pattern from `stack/duckdb`:
+
 - `drivers.go` has `//go:build cgo` — blank imports the DuckDB driver
 - `engine.go` has no build tag — uses `database/sql` (pure Go)
 - Tests have `//go:build cgo` — skip when CGo is disabled

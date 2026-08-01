@@ -24,10 +24,10 @@ Create `metaengine/pgengine/` as a separate Go module (like `pebbleengine/` and 
 
 ### Cost Model
 
-| Metric | Value | Rationale |
-|--------|-------|-----------|
-| `NsPerOp` | 12,000 | INSERT with JSONB encode + WAL fsync + network round-trip |
-| `NsPerRead` | 5,000 | Indexed SELECT + JSONB decode + buffer cache hit |
+| Metric      | Value  | Rationale                                                 |
+| ----------- | ------ | --------------------------------------------------------- |
+| `NsPerOp`   | 12,000 | INSERT with JSONB encode + WAL fsync + network round-trip |
+| `NsPerRead` | 5,000  | Indexed SELECT + JSONB decode + buffer cache hit          |
 
 Postgres is slower than Memory (500 ns/op) and SQLite (in-process) due to network round-trips and WAL fsync, but offers concurrent readers, ACID durability, and crash recovery.
 
