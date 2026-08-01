@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // MapScan implements ScanBackend for DuckDB. It SELECTs all rows for the
@@ -44,12 +46,12 @@ func (e *duckdbEngine) MapScan(
 		var raw string
 
 		if err := rows.Scan(&key, &raw); err != nil {
-			return nil, fmt.Errorf("duckdbengine.MapScan: scan: %w", err)
+			return metaengine.ScanResult{}, fmt.Errorf("duckdbengine.MapScan: scan: %w", err)
 		}
 
 		var val any
 		if err := json.Unmarshal([]byte(raw), &val); err != nil {
-			return nil, fmt.Errorf("duckdbengine.MapScan: unmarshal: %w", err)
+			return metaengine.ScanResult{}, fmt.Errorf("duckdbengine.MapScan: unmarshal: %w", err)
 		}
 
 		if filterFn != nil && !filterFn(val) {
@@ -60,7 +62,7 @@ func (e *duckdbEngine) MapScan(
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("duckdbengine.MapScan: %w", err)
+		return metaengine.ScanResult{}, fmt.Errorf("duckdbengine.MapScan: %w", err)
 	}
 
 	// Sort with deterministic tiebreaker (same pattern as Memory engine).

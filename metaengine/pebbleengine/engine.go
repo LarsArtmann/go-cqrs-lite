@@ -367,7 +367,7 @@ func (e *pebbleEngine) MapScan(
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, err
+		return metaengine.ScanResult{}, err
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -388,7 +388,7 @@ func (e *pebbleEngine) MapScan(
 	}
 
 	if err := iter.Error(); err != nil {
-		return nil, err
+		return metaengine.ScanResult{}, err
 	}
 
 	pairs = sortAndPaginate(pairs, sortFunc, cursor, limit)

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // MapScan implements ScanBackend for Postgres. It SELECTs all rows for the
@@ -26,7 +28,7 @@ func (e *pgEngine) MapScan(
 		collection,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("pgengine.MapScan: %w", err)
+		return metaengine.ScanResult{}, fmt.Errorf("pgengine.MapScan: %w", err)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -44,12 +46,12 @@ func (e *pgEngine) MapScan(
 		var raw []byte
 
 		if err := rows.Scan(&key, &raw); err != nil {
-			return nil, fmt.Errorf("pgengine.MapScan: scan: %w", err)
+			return metaengine.ScanResult{}, fmt.Errorf("pgengine.MapScan: scan: %w", err)
 		}
 
 		var val any
 		if err := json.Unmarshal(raw, &val); err != nil {
-			return nil, fmt.Errorf("pgengine.MapScan: unmarshal: %w", err)
+			return metaengine.ScanResult{}, fmt.Errorf("pgengine.MapScan: unmarshal: %w", err)
 		}
 
 		if filterFn != nil && !filterFn(val) {
@@ -60,7 +62,7 @@ func (e *pgEngine) MapScan(
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("pgengine.MapScan: %w", err)
+		return metaengine.ScanResult{}, fmt.Errorf("pgengine.MapScan: %w", err)
 	}
 
 	if sortFunc != nil {
