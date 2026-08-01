@@ -65,8 +65,8 @@ func (m *MemorySpatialIndex) Insert(_ context.Context, _ string, pt Point) error
 
 // Range returns points within the given radius of (x, y), sorted by distance.
 func (m *MemorySpatialIndex) Range(
-	ctx context.Context,
-	collection string,
+	_ context.Context,
+	_ string,
 	x, y, radius float64,
 	limit int,
 ) ([]SpatialResult, error) {

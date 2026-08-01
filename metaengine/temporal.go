@@ -64,5 +64,10 @@ func (s *Store) ExecuteAsOf(
 			ErrUnsupportedADT, q.engine.Profile().Name)
 	}
 
-	return vs.MapGetAsOf(ctx, collection, key, t)
+	val, err := vs.MapGetAsOf(ctx, collection, key, t)
+	if err != nil {
+		return nil, fmt.Errorf("ExecuteAsOf: %w", err)
+	}
+
+	return val, nil
 }

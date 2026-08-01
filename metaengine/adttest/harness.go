@@ -221,7 +221,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			Requires: "CounterBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
 				cb := eng.(metaengine.CounterBackend)
-				deltas := []metaengine.Delta{        
+				deltas := []metaengine.Delta{
 					{"alpha": 1, "beta": 5},
 					{"alpha": 2, "gamma": 3},
 					{"beta": -3, "gamma": 1},
@@ -249,7 +249,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			Requires: "GraphBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
 				gb := eng.(metaengine.GraphBackend)
-				edges := []metaengine.Edge{        
+				edges := []metaengine.Edge{
 					{From: "A", To: "B"},
 					{From: "A", To: "C"},
 					{From: "B", To: "D"},
@@ -276,7 +276,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			Requires: "ScanBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
 				mb := eng.(metaengine.MapBackend)
-				items := []struct {              
+				items := []struct {
 					key   string
 					value map[string]any
 				}{
@@ -353,7 +353,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 			Requires: "MultimapBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
 				mb := eng.(metaengine.MultimapBackend)
-				entries := []struct {                 
+				entries := []struct {
 					key   string
 					value string
 				}{

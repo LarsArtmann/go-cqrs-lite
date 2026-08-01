@@ -96,8 +96,8 @@ func (m *MemoryVectorIndex) Insert(_ context.Context, _ string, emb Embedding) e
 
 // Search returns the k nearest neighbors of the query vector.
 func (m *MemoryVectorIndex) Search(
-	ctx context.Context,
-	collection string,
+	_ context.Context,
+	_ string,
 	query []float32,
 	k int,
 	metric string,
@@ -208,8 +208,8 @@ func (m *MemorySearchIndex) Insert(_ context.Context, _ string, doc IndexedText)
 
 // Query returns documents matching the full-text query.
 func (m *MemorySearchIndex) Query(
-	ctx context.Context,
-	collection, query string,
+	_ context.Context,
+	_, query string,
 	limit int,
 ) ([]SearchResult, error) {
 	return m.query(query, limit), nil
