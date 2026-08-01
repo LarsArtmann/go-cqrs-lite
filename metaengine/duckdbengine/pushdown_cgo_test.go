@@ -197,7 +197,7 @@ func TestDuckDBEngine_PushdownFilterIn(t *testing.T) {
 	results, err := ps.PushdownMapScan(ctx, "push_in",
 		[]metaengine.FilterSpec{{
 			Column: "Category", Op: metaengine.FilterIn,
-			Value:  []any{"fruit", "snack"},
+			Value: []any{"fruit", "snack"},
 		}},
 		nil, nil, 0)
 	if err != nil {

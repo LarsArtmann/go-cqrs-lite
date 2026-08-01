@@ -33,7 +33,6 @@ func (e *duckdbEngine) PushdownMapScan(
 ) ([]any, error) {
 	var b strings.Builder
 	args := []any{collection}
-	ph := 2 // $1 = collection
 
 	b.WriteString(`SELECT value FROM meta_map WHERE collection = $1`)
 
@@ -49,8 +48,7 @@ func (e *duckdbEngine) PushdownMapScan(
 			placeholders := make([]string, len(values))
 			for i, v := range values {
 				jb, _ := json.Marshal(v)
-				placeholders[i] = fmt.Sprintf("$%d::json", ph)
-				ph++
+				placeholders[i] = fmt.Sprintf("$%d::json", len(args)+1)
 				args = append(args, string(jb))
 			}
 
@@ -59,8 +57,7 @@ func (e *duckdbEngine) PushdownMapScan(
 		} else {
 			jb, _ := json.Marshal(f.Value)
 			fmt.Fprintf(&b, ` AND json_extract(value, '%s') %s $%d::json`,
-				path, string(f.Op), ph)
-			ph++
+				path, string(f.Op), len(args)+1)
 			args = append(args, string(jb))
 		}
 	}
@@ -74,8 +71,7 @@ func (e *duckdbEngine) PushdownMapScan(
 
 		jb, _ := json.Marshal(cursor)
 		fmt.Fprintf(&b, ` AND json_extract(value, '%s') %s $%d::json`,
-			path, op, ph)
-		ph++
+			path, op, len(args)+1)
 		args = append(args, string(jb))
 	}
 
@@ -102,7 +98,12 @@ func jsonPath(field string) string {
 }
 
 // scanDuckDBJSONValues executes the query and decodes each row's JSON value.
-func scanDuckDBJSONValues(ctx context.Context, db *sql.DB, query string, args ...any) ([]any, error) {
+func scanDuckDBJSONValues(
+	ctx context.Context,
+	db *sql.DB,
+	query string,
+	args ...any,
+) ([]any, error) {
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("duckdbengine scan: %w", err)

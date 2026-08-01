@@ -42,10 +42,10 @@ const PG_NsPerRead = 5000.0
 
 // pgEngine implements metaengine.Engine with Postgres as the backend.
 type pgEngine struct {
-	db            *sql.DB
-	mu            sync.Mutex
-	done          bool
-	layoutMu      sync.Mutex
+	db             *sql.DB
+	mu             sync.Mutex
+	done           bool
+	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
 }
 

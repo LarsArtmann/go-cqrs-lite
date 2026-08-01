@@ -129,7 +129,7 @@ func TestMemoryEngine_VersionedStorage_Property(t *testing.T) {
 			state map[string]int64 // key → value (absent = deleted/not-set)
 		}
 
-		var timeline []stateSnapshot
+		timeline := make([]stateSnapshot, 0, 25)
 
 		current := map[string]int64{}
 
@@ -250,7 +250,11 @@ func TestStore_ExecuteAsOf_Integration(t *testing.T) {
 		Query[FindUser, UserView](
 			"users",
 			On(UserCreated{}, func(e UserCreated) (UserID, UserView) {
-				return e.ID, UserView{ID: e.ID, Name: e.Name, Email: e.Email}
+				return e.ID, UserView{
+					ID:    e.ID,
+					Name:  e.Name,
+					Email: e.Email,
+				} //nolint:staticcheck // intentional field mapping
 			}),
 			On(UserUpdated{}, func(e UserUpdated, prev UserView) UserView {
 				prev.Name = e.Name

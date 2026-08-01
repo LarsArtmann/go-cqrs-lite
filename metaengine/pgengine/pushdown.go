@@ -31,7 +31,6 @@ func (e *pgEngine) PushdownMapScan(
 ) ([]any, error) {
 	var b strings.Builder
 	args := []any{collection}
-	ph := 2 // $1 = collection
 
 	b.WriteString(`SELECT value::text FROM meta_map WHERE collection = $1`)
 
@@ -45,8 +44,7 @@ func (e *pgEngine) PushdownMapScan(
 			placeholders := make([]string, len(values))
 			for i, v := range values {
 				jb, _ := json.Marshal(v)
-				placeholders[i] = fmt.Sprintf("$%d::jsonb", ph)
-				ph++
+				placeholders[i] = fmt.Sprintf("$%d::jsonb", len(args)+1)
 				args = append(args, string(jb))
 			}
 
@@ -55,8 +53,7 @@ func (e *pgEngine) PushdownMapScan(
 		} else {
 			jb, _ := json.Marshal(f.Value)
 			fmt.Fprintf(&b, ` AND value->'%s' %s $%d::jsonb`,
-				escapeJSONKey(f.Column), string(f.Op), ph)
-			ph++
+				escapeJSONKey(f.Column), string(f.Op), len(args)+1)
 			args = append(args, string(jb))
 		}
 	}
@@ -69,8 +66,7 @@ func (e *pgEngine) PushdownMapScan(
 
 		jb, _ := json.Marshal(cursor)
 		fmt.Fprintf(&b, ` AND value->'%s' %s $%d::jsonb`,
-			escapeJSONKey(sort.Column), op, ph)
-		ph++
+			escapeJSONKey(sort.Column), op, len(args)+1)
 		args = append(args, string(jb))
 	}
 
@@ -174,7 +170,7 @@ func scanPGJSONValues(ctx context.Context, db *sql.DB, query string, args ...any
 }
 
 // escapeJSONKey escapes single quotes in a JSONB key literal for use inside
-// value->'key'. Postgres uses '' to escape a single quote inside a string.
+// value->'key'. Postgres uses ” to escape a single quote inside a string.
 func escapeJSONKey(key string) string {
 	return strings.ReplaceAll(key, "'", "''")
 }
