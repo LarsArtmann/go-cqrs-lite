@@ -20,18 +20,19 @@ const (
 
 // runner executes a benchmark in phases against a single backend.
 type runner struct {
-	config      Config
-	factory     Factory
-	gen         *Generator
-	codec       codec.Codec
-	codecName   string
-	bundle      *stack.Bundle
-	aggIDs      []id.StreamID
-	refs        []id.StreamRef
-	concurrency int
-	result      Result
-	sampler     *resourceSampler
-	startCPU    uint64
+	config            Config
+	factory           Factory
+	gen               *Generator
+	codec             codec.Codec
+	codecName         string
+	bundle            *stack.Bundle
+	aggIDs            []id.StreamID
+	refs              []id.StreamRef
+	concurrency       int
+	result            Result
+	sampler           *resourceSampler
+	startCPU          uint64
+	baselineMemStats  runtime.MemStats
 }
 
 func newRunner(config Config, factory Factory) *runner {
@@ -90,6 +91,7 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 	defer r.teardown()
 
 	r.startCPU = cpuTime()
+	runtime.ReadMemStats(&r.baselineMemStats)
 
 	if r.config.Warmup > 0 {
 		warmupEvents, err := r.warmup(ctx)

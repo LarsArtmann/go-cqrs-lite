@@ -188,3 +188,46 @@ func (rs *resourceSampler) stopAndSnapshot() (peak uint64, baseline memSnapshot)
 func cpuTime() uint64 {
 	return cpuTimeProc()
 }
+
+// gcMetrics computes GC pause statistics between two runtime.MemStats snapshots.
+// Returns count, total pause, max pause, and mean pause for all GC cycles
+// that occurred between the baseline and final snapshots.
+type gcMetricsResult struct {
+	Count      int
+	TotalPause time.Duration
+	MaxPause   time.Duration
+	MeanPause  time.Duration
+}
+
+func computeGCMetrics(baseline, final runtime.MemStats) gcMetricsResult {
+	gcCount := int(final.NumGC - baseline.NumGC)
+	if gcCount <= 0 {
+		return gcMetricsResult{}
+	}
+
+	totalPauseNs := final.PauseTotalNs - baseline.PauseTotalNs
+
+	// Scan the PauseNs circular buffer for entries between baseline.NumGC
+	// and final.NumGC. The buffer has 256 entries indexed by (NumGC-1-i) % 256.
+	var maxPauseNs uint64
+
+	for i := range uint32(gcCount) {
+		idx := (final.NumGC - 1 - i) % 256
+		p := final.PauseNs[idx]
+		if p > maxPauseNs {
+			maxPauseNs = p
+		}
+	}
+
+	meanPauseNs := uint64(0)
+	if gcCount > 0 {
+		meanPauseNs = totalPauseNs / uint64(gcCount)
+	}
+
+	return gcMetricsResult{
+		Count:      gcCount,
+		TotalPause: time.Duration(totalPauseNs),
+		MaxPause:   time.Duration(maxPauseNs),
+		MeanPause:  time.Duration(meanPauseNs),
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
+	"math"
 	"sort"
 	"time"
 
@@ -38,6 +39,16 @@ type Environment struct {
 	GOMAXPROCS int    `json:"gomaxprocs"`
 	GOOS       string `json:"goos"`
 	GOARCH     string `json:"goarch"`
+
+	// CPUModel is the CPU model string (e.g. "AMD Ryzen 9 7950X").
+	// Empty when unavailable. Different CPU models produce dramatically
+	// different latency numbers — this field makes cross-machine
+	// comparisons honest.
+	CPUModel string `json:"cpuModel,omitempty"`
+
+	// TotalRAMBytes is the total system RAM in bytes. Empty/zero when
+	// unavailable. RAM affects page-cache behavior and thus read latency.
+	TotalRAMBytes uint64 `json:"totalRamBytes,omitempty"`
 }
 
 // Config defines a benchmark run.
@@ -271,7 +282,7 @@ func Run(ctx context.Context, config Config, factory Factory) (*Result, error) {
 }
 
 // runRepeated executes the benchmark N times, returning the median result
-// annotated with min/max throughput spread.
+// annotated with min/max throughput spread and statistical reliability metrics.
 func runRepeated(ctx context.Context, config Config, factory Factory) (*Result, error) {
 	single := config
 	single.Repeat = 0
@@ -302,10 +313,39 @@ func runRepeated(ctx context.Context, config Config, factory Factory) (*Result, 
 		samples[i] = r.WriteThroughput
 	}
 
+	// Compute statistical reliability: mean, stddev, coefficient of variation.
+	// CoV is the key metric: CoV < 0.10 means results are trustworthy.
+	var sum float64
+
+	for _, s := range samples {
+		sum += s
+	}
+
+	mean := sum / float64(len(samples))
+
+	var sqDiffSum float64
+
+	for _, s := range samples {
+		diff := s - mean
+		sqDiffSum += diff * diff
+	}
+
+	stdDev := math.Sqrt(sqDiffSum / float64(len(samples)))
+
+	var cov float64
+
+	if mean > 0 {
+		cov = stdDev / mean
+	}
+
 	median.RepeatCount = config.Repeat
 	median.RepeatMin = samples[0]
 	median.RepeatMax = samples[len(samples)-1]
 	median.RepeatSamples = samples
+	median.RepeatMean = mean
+	median.RepeatStdDev = stdDev
+	median.RepeatCoV = cov
+	median.RepeatIsReliable = cov < 0.10
 
 	return median, nil
 }

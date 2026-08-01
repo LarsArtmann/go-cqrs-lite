@@ -2,6 +2,7 @@ package benchkit
 
 import (
 	"context"
+	"runtime"
 	"sync"
 )
 
@@ -32,6 +33,30 @@ func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
 		r.result.Disk.OverheadBytes = r.result.Disk.DatabaseBytes - r.result.Disk.EventBytes
 		r.result.Disk.OverheadPct = float64(r.result.Disk.OverheadBytes) /
 			float64(r.result.Disk.DatabaseBytes) * 100
+
+		if r.result.Disk.EventBytes > 0 {
+			r.result.Disk.WriteAmplification =
+				float64(r.result.Disk.DatabaseBytes) / float64(r.result.Disk.EventBytes)
+		}
+	}
+
+	// GC pause metrics — capture final MemStats and compute deltas from baseline.
+	var finalStats runtime.MemStats
+	runtime.ReadMemStats(&finalStats)
+
+	gc := computeGCMetrics(r.baselineMemStats, finalStats)
+	r.result.GCCount = gc.Count
+	r.result.GCTotalPause = gc.TotalPause
+	r.result.GCMaxPause = gc.MaxPause
+	r.result.GCMeanPause = gc.MeanPause
+
+	// Allocation deltas — total heap allocations during the benchmark.
+	if finalStats.Mallocs >= r.baselineMemStats.Mallocs {
+		r.result.AllocCount = finalStats.Mallocs - r.baselineMemStats.Mallocs
+	}
+
+	if finalStats.TotalAlloc >= r.baselineMemStats.TotalAlloc {
+		r.result.AllocBytes = finalStats.TotalAlloc - r.baselineMemStats.TotalAlloc
 	}
 }
 

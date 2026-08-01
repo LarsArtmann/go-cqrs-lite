@@ -43,9 +43,13 @@ type Result struct {
 	WriteThroughput float64      `json:"writeThroughput"`
 
 	// Read metrics
-	LoadLatency  LatencyStats  `json:"loadLatency"`
-	ReadAllTime  time.Duration `json:"readAllTime"`
-	ReadFromTime time.Duration `json:"readFromTime"`
+	// LoadLatency aggregates ALL read passes. ColdReadLatency isolates
+	// the first pass (OS page cache miss → disk I/O). On SQLite/Pebble,
+	// ColdReadLatency P50 may be 10x higher than the warm LoadLatency P50.
+	LoadLatency   LatencyStats  `json:"loadLatency"`
+	ColdReadLatency LatencyStats `json:"coldReadLatency"`
+	ReadAllTime   time.Duration `json:"readAllTime"`
+	ReadFromTime  time.Duration `json:"readFromTime"`
 
 	// Read model metrics (raw kv.Store Set/Get)
 	ReadModelGet LatencyStats `json:"readModelGet"`
@@ -127,6 +131,48 @@ type Result struct {
 	RepeatMax     float64   `json:"repeatMax,omitempty"`
 	RepeatSamples []float64 `json:"repeatSamples,omitempty"`
 
+	// RepeatMean is the arithmetic mean of throughput across repeat runs.
+	RepeatMean float64 `json:"repeatMean,omitempty"`
+
+	// RepeatStdDev is the population standard deviation of throughput samples.
+	// Measures how spread out the runs are. Lower is better.
+	RepeatStdDev float64 `json:"repeatStdDev,omitempty"`
+
+	// RepeatCoV is the coefficient of variation (StdDev / Mean) as a fraction.
+	// The key reliability indicator:
+	//   CoV < 0.05  — results are trustworthy (<5% noise)
+	//   CoV 0.05–0.15 — usable but verify individual metrics
+	//   CoV > 0.15  — too noisy for reliable comparison; increase Repeat
+	RepeatCoV float64 `json:"repeatCoV,omitempty"`
+
+	// RepeatIsReliable is true when CoV < 0.10 (10%). When false, do NOT
+	// trust the median for cross-backend comparison — increase Repeat.
+	RepeatIsReliable bool `json:"repeatIsReliable,omitempty"`
+
+	// GC pause metrics — garbage collection behavior during the benchmark.
+	// GC pauses are the dominant cause of P99 latency spikes. These metrics
+	// reveal whether tail latency is caused by the backend or by Go's GC.
+	// GCCount is the number of GC cycles during the benchmark.
+	// GCTotalPause is the cumulative stop-the-world pause time.
+	// GCMaxPause is the longest single GC pause observed.
+	// GCMeanPause is the average pause per GC cycle.
+	GCCount      int           `json:"gcCount"`
+	GCTotalPause time.Duration `json:"gcTotalPause"`
+	GCMaxPause   time.Duration `json:"gcMaxPause"`
+	GCMeanPause  time.Duration `json:"gcMeanPause"`
+
+	// Allocation metrics — total heap allocations during the benchmark.
+	// High alloc rates correlate with GC pressure and latency variance.
+	// AllocCount is the cumulative number of heap allocations.
+	// AllocBytes is the cumulative bytes allocated.
+	AllocCount uint64 `json:"allocCount"`
+	AllocBytes uint64 `json:"allocBytes"`
+
+	// IntegrityErrors is the count of events that failed read-back
+	// verification after the write phase. Zero means all written events
+	// were read back correctly. Non-zero indicates data corruption.
+	IntegrityErrors int `json:"integrityErrors,omitempty"`
+
 	// Error captures a non-fatal error that prevented a phase from completing
 	// (e.g. backend doesn't support SeekableJournal). The run still succeeds;
 	// the affected metrics are zero-valued.
@@ -158,6 +204,13 @@ type DiskStats struct {
 	EventBytes    int64   `json:"eventBytes"`
 	OverheadBytes int64   `json:"overheadBytes"`
 	OverheadPct   float64 `json:"overheadPct"`
+
+	// WriteAmplification is the ratio of on-disk bytes to logical event
+	// bytes (DatabaseBytes / EventBytes). A ratio of 1.0 means zero
+	// storage overhead; 3.0 means the backend writes 3x the logical data.
+	// This is THE key metric for comparing storage efficiency across
+	// backends — an LSM-tree may write 10x while a row-store writes 2x.
+	WriteAmplification float64 `json:"writeAmplification"`
 }
 
 // MixedResult holds concurrent read + write metrics from the mixed workload
