@@ -770,3 +770,165 @@ store, _ := metaengine.Plan(
     mapQuery,     // Map + FilterOnField → SQLite
 )
 ```
+
+### Vector ADT — Semantic Search (k-NN)
+
+Fold events carrying embeddings into a vector index, then query by similarity:
+
+```go
+type DocEmbedded struct {
+    ID     string
+    Values []float32
+}
+type SemanticSearchInput struct {
+    Query []float32
+    K     int
+}
+
+store, _ := metaengine.Plan(
+    []metaengine.Engine{metaengine.NewMemoryEngine()},
+    metaengine.Query[SemanticSearchInput, []metaengine.VectorResult]("embeddings",
+        metaengine.On(DocEmbedded{}, func(e DocEmbedded) metaengine.Embedding {
+            return metaengine.Embedding{ID: e.ID, Values: e.Values}
+        }),
+    ),
+)
+
+store.Apply(ctx, "DocEmbedded", DocEmbedded{ID: "d1", Values: []float32{0.1, 0.9, 0.3}})
+
+results, _ := metaengine.VectorExecuteTyped[SemanticSearchInput](ctx, store, SemanticSearchInput{
+    Query: []float32{0.1, 0.9, 0.3},
+    K:     5,
+})
+// results[0].ID = "d1", results[0].Distance = 0.0
+```
+
+### Search ADT — Full-Text Search
+
+Fold events carrying text into an inverted index, then query by relevance:
+
+```go
+type DocIndexed struct {
+    ID      string
+    Content string
+}
+type FullTextSearchInput struct {
+    Query string
+    Limit int
+}
+
+store, _ := metaengine.Plan(
+    []metaengine.Engine{metaengine.NewMemoryEngine()},
+    metaengine.Query[FullTextSearchInput, []metaengine.SearchResult]("docs",
+        metaengine.On(DocIndexed{}, func(e DocIndexed) metaengine.IndexedText {
+            return metaengine.IndexedText{ID: e.ID, Content: e.Content}
+        }),
+    ),
+)
+
+store.Apply(ctx, "DocIndexed", DocIndexed{ID: "d1", Content: "the quick brown fox"})
+
+results, _ := metaengine.SearchExecuteTyped[FullTextSearchInput](ctx, store, FullTextSearchInput{
+    Query: "quick fox",
+    Limit: 10,
+})
+// results[0].ID = "d1", results[0].Score = TF-IDF relevance
+```
+
+### Spatial ADT — Geo Proximity Search
+
+Fold events carrying coordinates into a spatial index, then query by radius:
+
+```go
+type PlaceLocated struct {
+    ID string
+    X  float64 // longitude
+    Y  float64 // latitude
+}
+type NearbySearchInput struct {
+    X      float64
+    Y      float64
+    Radius float64 // meters
+    Limit  int
+}
+
+store, _ := metaengine.Plan(
+    []metaengine.Engine{metaengine.NewMemoryEngine()},
+    metaengine.Query[NearbySearchInput, []metaengine.SpatialResult]("places",
+        metaengine.On(PlaceLocated{}, func(e PlaceLocated) metaengine.Point {
+            return metaengine.Point{ID: e.ID, X: e.X, Y: e.Y}
+        }),
+    ),
+)
+
+store.Apply(ctx, "PlaceLocated", PlaceLocated{ID: "brandenburg-gate", X: 13.3777, Y: 52.5163})
+
+results, _ := metaengine.SpatialExecuteTyped[NearbySearchInput](ctx, store, NearbySearchInput{
+    X: 13.4050, Y: 52.5200, // Berlin center
+    Radius: 5000,             // 5km
+    Limit:  20,
+})
+// Uses haversine great-circle distance (meters)
+```
+
+### Temporal Queries — Point-in-Time Reads
+
+The Memory engine implements `VersionedStorage` for as-of queries:
+
+```go
+store, _ := metaengine.Plan(
+    []metaengine.Engine{metaengine.NewMemoryEngine()},
+    // ... your queries ...
+)
+
+// Later, query the value as it existed at a past timestamp:
+val, err := store.ExecuteAsOf(ctx, "users", "u1", someTimestamp)
+if err == metaengine.ErrNotFound {
+    // key did not exist at that time
+}
+```
+
+### DuckDB Engine — Columnar Analytics
+
+For analytical workloads (GROUP BY, aggregations on large datasets):
+
+```go
+import duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
+
+eng, _ := duckdbengine.New("analytics.db") // or "" for in-memory
+defer eng.Close()
+
+store, _ := metaengine.Plan(
+    []metaengine.Engine{eng},
+    // Counter queries benefit from DuckDB's vectorized GROUP BY
+    metaengine.Query[CountInput, map[string]int64]("category_counts",
+        metaengine.On(ItemCreated{}, func(e ItemCreated) metaengine.Delta {
+            return metaengine.Delta{e.Category: e.Count}
+        }),
+    ),
+)
+// Requires CGo (DuckDB C++ runtime, statically linked)
+```
+
+### Postgres Engine — Production Durability
+
+For production workloads needing ACID durability and concurrent readers:
+
+```go
+import pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
+
+eng, _ := pgengine.New("postgres://user:pass@host:5432/db?sslmode=disable")
+defer eng.Close()
+
+// JSONB columns for efficient JSON storage, GIN indexes for future query pushdown
+store, _ := metaengine.Plan(
+    []metaengine.Engine{eng},
+    // Map and Counter queries with ON CONFLICT upserts
+    metaengine.Query[GetInput, TodoView]("todos",
+        metaengine.On(TodoCreated{}, func(e TodoCreated) (string, TodoView) {
+            return e.ID, TodoView{ID: e.ID, Title: e.Title}
+        }),
+    ),
+)
+// Pure Go (pgx/v5 driver, no CGo)
+```
