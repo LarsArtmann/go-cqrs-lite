@@ -58,7 +58,7 @@ type versionedReadRule struct{} //nolint:unused // planned for future planner in
 
 func (*versionedReadRule) Name() string { return "versioned-read-check" } //nolint:unused
 
-func (*versionedReadRule) Apply(result *PlanResult, ctx PlanContext) error {
+func (*versionedReadRule) Apply(result *PlanResult, ctx PlanContext) error { //nolint:unused
 	if supportsVersionedReads(ctx.Store.engines) {
 		return nil
 	}

@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"sync"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-
 	_ "github.com/jackc/pgx/v5/stdlib" // register the pgx database/sql driver
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // PG_NsPerOp is the calibrated per-write cost.

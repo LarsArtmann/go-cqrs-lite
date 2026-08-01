@@ -635,6 +635,7 @@ linters:
           - nlreturn
           - tagliatelle
           - funlen
+          - nolintlint
       - path: metaengine/duckdbengine/
         linters:
           - wrapcheck
