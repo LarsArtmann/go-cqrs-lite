@@ -11,24 +11,10 @@ import (
 	"time"
 )
 
-type queryRuntime struct {
-	name          string
-	adt           ADT
-	engine        Engine
-	complexity    Complexity
-	folds         []Fold
-	foldByEvent   map[string]int
-	readPattern   ReadPattern
-	config        QueryConfig
-	keyType       reflect.Type
-	resultType    reflect.Type
-	inputTypeName string
-}
-
 type Store struct {
 	mu           sync.RWMutex
 	engines      []Engine
-	queries      map[string]queryRuntime
+	queries      map[string]queryMeta
 	byInputType  map[string]string
 	plan         *PlanResult
 	poisoned     sync.Map // collection name → poison error
@@ -67,11 +53,11 @@ func (s *Store) Collections() []CollectionInfo {
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
 		result = append(result, CollectionInfo{
-			Name:        q.name,
-			ADT:         q.adt,
-			ReadPattern: q.readPattern,
-			EngineName:  q.engine.Profile().Name,
-			Complexity:  q.complexity,
+			Name:        q.QueryName(),
+			ADT:         q.QueryADT(),
+			ReadPattern: q.QueryReadPattern(),
+			EngineName:  q.QueryEngine().Profile().Name,
+			Complexity:  q.QueryComplexity(),
 		})
 	}
 
@@ -90,7 +76,7 @@ func (s *Store) collectionEngine(collection string) (Engine, bool) {
 		return nil, false
 	}
 
-	return q.engine, true
+	return q.QueryEngine(), true
 }
 
 // IsPoisoned returns the poison error if the collection was poisoned by a fold
@@ -116,7 +102,7 @@ func (s *Store) EventTypes() []string {
 	seen := make(map[string]struct{})
 
 	for _, q := range s.queries {
-		for et := range q.foldByEvent {
+		for et := range q.QueryFoldByEvent() {
 			seen[et] = struct{}{}
 		}
 	}
@@ -247,14 +233,14 @@ func (s *Store) Apply(ctx context.Context, eventType string, payload any) error 
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
 
-		foldIdx, ok := q.foldByEvent[eventType]
+		foldIdx, ok := q.QueryFoldByEvent()[eventType]
 		if !ok {
 			continue
 		}
 
-		fold := q.folds[foldIdx]
+		fold := q.QueryFolds()[foldIdx]
 		if err := s.applyFold(ctx, q, fold, payload); err != nil {
-			return fmt.Errorf("query %q fold for %s: %w", q.name, eventType, err)
+			return fmt.Errorf("query %q fold for %s: %w", q.QueryName(), eventType, err)
 		}
 	}
 
@@ -328,19 +314,19 @@ func (s *Store) InTransaction(ctx context.Context, fn func(context.Context) erro
 	return fn(ctx)
 }
 
-func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payload any) (err error) {
+func (s *Store) applyFold(ctx context.Context, q queryMeta, fold Fold, payload any) (err error) {
 	start := time.Now()
 
 	defer func() {
 		if s.hooks != nil && s.hooks.OnFold != nil {
-			s.hooks.OnFold(q.name, fold.EventType(), fold.Kind(), time.Since(start), err)
+			s.hooks.OnFold(q.QueryName(), fold.EventType(), fold.Kind(), time.Since(start), err)
 		}
 	}()
 
 	defer func() {
 		if r := recover(); r != nil {
-			poisonErr := fmt.Errorf("%w: collection %q, panic: %v", ErrPoisoned, q.name, r)
-			s.poisoned.Store(q.name, poisonErr)
+			poisonErr := fmt.Errorf("%w: collection %q, panic: %v", ErrPoisoned, q.QueryName(), r)
+			s.poisoned.Store(q.QueryName(), poisonErr)
 			err = poisonErr
 		}
 	}()
@@ -377,14 +363,14 @@ func (s *Store) applyFold(ctx context.Context, q queryRuntime, fold Fold, payloa
 
 func (s *Store) applyFoldInsert(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *insertFold,
 	payload any,
 ) error {
 	key, value := fold.invoke(payload)
-	col := q.name
+	col := q.QueryName()
 
-	if mb, ok := q.engine.(MapBackend); ok {
+	if mb, ok := q.QueryEngine().(MapBackend); ok {
 		if err := mb.MapSet(ctx, col, key, value); err != nil {
 			return fmt.Errorf("map set %s: %w", col, err)
 		}
@@ -394,19 +380,19 @@ func (s *Store) applyFoldInsert(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedMapOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldUpdate(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *updateFold,
 	payload any,
 ) error {
 	key := fold.keyExtractor(payload)
-	col := q.name
+	col := q.QueryName()
 
-	if mu, ok := q.engine.(MapUpdater); ok {
+	if mu, ok := q.QueryEngine().(MapUpdater); ok {
 		var updatedVal any
 
 		if err := mu.MapUpdate(ctx, col, key, func(prev any) any {
@@ -422,7 +408,7 @@ func (s *Store) applyFoldUpdate(
 		return nil
 	}
 
-	if mapBackend, ok := q.engine.(MapBackend); ok {
+	if mapBackend, ok := q.QueryEngine().(MapBackend); ok {
 		prev, exists, err := mapBackend.MapGet(ctx, col, key)
 		if err != nil {
 			return fmt.Errorf("map get %s: %w", col, err)
@@ -444,19 +430,19 @@ func (s *Store) applyFoldUpdate(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedMapOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldRemove(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *removeFold,
 	payload any,
 ) error {
 	key := fold.keyExtractor(payload)
-	col := q.name
+	col := q.QueryName()
 
-	if mb, ok := q.engine.(MapBackend); ok {
+	if mb, ok := q.QueryEngine().(MapBackend); ok {
 		if err := mb.MapDelete(ctx, col, key); err != nil {
 			return fmt.Errorf("map delete %s: %w", col, err)
 		}
@@ -466,19 +452,19 @@ func (s *Store) applyFoldRemove(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedMapOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedMapOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldCount(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *countFold,
 	payload any,
 ) error {
-	col := q.name
+	col := q.QueryName()
 	delta := fold.invoke(payload)
 
-	if cb, ok := q.engine.(CounterBackend); ok {
+	if cb, ok := q.QueryEngine().(CounterBackend); ok {
 		if err := cb.CounterIncrement(ctx, col, delta); err != nil {
 			return fmt.Errorf("counter increment %s: %w", col, err)
 		}
@@ -486,19 +472,19 @@ func (s *Store) applyFoldCount(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedCounterOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedCounterOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldEdge(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *edgeFold,
 	payload any,
 ) error {
-	col := q.name
+	col := q.QueryName()
 	edge := fold.invoke(payload)
 
-	if gb, ok := q.engine.(GraphBackend); ok {
+	if gb, ok := q.QueryEngine().(GraphBackend); ok {
 		if err := gb.GraphAddEdge(ctx, col, edge); err != nil {
 			return fmt.Errorf("graph add edge %s: %w", col, err)
 		}
@@ -506,19 +492,19 @@ func (s *Store) applyFoldEdge(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedGraphOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedGraphOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldSet(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *setFold,
 	payload any,
 ) error {
-	col := q.name
+	col := q.QueryName()
 	key := fold.invoke(payload)
 
-	if sb, ok := q.engine.(SetBackend); ok {
+	if sb, ok := q.QueryEngine().(SetBackend); ok {
 		if err := sb.SetAdd(ctx, col, key); err != nil {
 			return fmt.Errorf("set add %s: %w", col, err)
 		}
@@ -526,19 +512,19 @@ func (s *Store) applyFoldSet(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedSetOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedSetOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldMultiInsert(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *multiInsertFold,
 	payload any,
 ) error {
-	col := q.name
+	col := q.QueryName()
 	entry := fold.invoke(payload)
 
-	if mb, ok := q.engine.(MultimapBackend); ok {
+	if mb, ok := q.QueryEngine().(MultimapBackend); ok {
 		if err := mb.MultiAdd(ctx, col, entry.Key, entry.Value); err != nil {
 			return fmt.Errorf("multi add %s: %w", col, err)
 		}
@@ -546,19 +532,19 @@ func (s *Store) applyFoldMultiInsert(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedMultimapOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedMultimapOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldAppend(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *appendFold,
 	payload any,
 ) error {
-	col := q.name
+	col := q.QueryName()
 	app := fold.invoke(payload)
 
-	if lb, ok := q.engine.(LogBackend); ok {
+	if lb, ok := q.QueryEngine().(LogBackend); ok {
 		if err := lb.LogAppend(ctx, col, app.Value); err != nil {
 			return fmt.Errorf("log append %s: %w", col, err)
 		}
@@ -566,19 +552,19 @@ func (s *Store) applyFoldAppend(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedLogOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedLogOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldVector(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *vectorFold,
 	payload any,
 ) error {
-	col := q.name
+	col := q.QueryName()
 	emb := fold.invoke(payload)
 
-	if vb, ok := q.engine.(VectorBackend); ok {
+	if vb, ok := q.QueryEngine().(VectorBackend); ok {
 		if err := vb.VectorInsert(ctx, col, emb); err != nil {
 			return fmt.Errorf("vector insert %s: %w", col, err)
 		}
@@ -586,19 +572,19 @@ func (s *Store) applyFoldVector(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedVectorOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedVectorOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldSearch(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *searchFold,
 	payload any,
 ) error {
-	col := q.name
+	col := q.QueryName()
 	doc := fold.invoke(payload)
 
-	if sb, ok := q.engine.(SearchBackend); ok {
+	if sb, ok := q.QueryEngine().(SearchBackend); ok {
 		if err := sb.SearchInsert(ctx, col, doc); err != nil {
 			return fmt.Errorf("search insert %s: %w", col, err)
 		}
@@ -606,19 +592,19 @@ func (s *Store) applyFoldSearch(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedSearchOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedSearchOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldSpatial(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	fold *spatialFold,
 	payload any,
 ) error {
-	col := q.name
+	col := q.QueryName()
 	pt := fold.invoke(payload)
 
-	if sb, ok := q.engine.(SpatialBackend); ok {
+	if sb, ok := q.QueryEngine().(SpatialBackend); ok {
 		if err := sb.SpatialInsert(ctx, col, pt); err != nil {
 			return fmt.Errorf("spatial insert %s: %w", col, err)
 		}
@@ -626,5 +612,5 @@ func (s *Store) applyFoldSpatial(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedSpatialOps, q.engine.Profile().Name)
+	return unsupportedEngine(errUnsupportedSpatialOps, q.QueryEngine().Profile().Name)
 }

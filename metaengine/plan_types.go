@@ -124,12 +124,12 @@ func (p PlanResult) Report() string {
 	return b.String()
 }
 
-func checkWriteAmplification(queries map[string]queryRuntime, budget int) Diagnostics {
+func checkWriteAmplification(queries map[string]queryMeta, budget int) Diagnostics {
 	eventCount := make(map[string]int)
 
 	for _, q := range queries {
 		seen := make(map[string]bool)
-		for eventType := range q.foldByEvent {
+		for eventType := range q.QueryFoldByEvent() {
 			if !seen[eventType] {
 				seen[eventType] = true
 				eventCount[eventType]++

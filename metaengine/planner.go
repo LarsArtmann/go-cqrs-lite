@@ -76,7 +76,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 	plan := &PlanResult{}
 	store := &Store{
 		engines:     engines,
-		queries:     make(map[string]queryRuntime),
+		queries:     make(map[string]queryMeta),
 		byInputType: make(map[string]string),
 		queryDecls:  queries,
 		startTime:   time.Now(),
@@ -92,13 +92,13 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 			return nil, fmt.Errorf("%w: %q", errDuplicateQuery, meta.QueryName())
 		}
 
-		runtime, assignment, err := planQuery(meta, engines)
+		assignment, err := planQuery(meta, engines)
 		if err != nil {
 			return nil, fmt.Errorf("metaengine.Plan: %w", err)
 		}
 
-		store.queries[runtime.name] = runtime
-		store.byInputType[runtime.inputTypeName] = runtime.name
+		store.queries[meta.QueryName()] = meta
+		store.byInputType[meta.QueryInputTypeName()] = meta.QueryName()
 
 		plan.Queries = append(plan.Queries, assignment)
 	}
@@ -113,7 +113,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 	return store, nil
 }
 
-func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment, error) {
+func planQuery(meta queryMeta, engines []Engine) (QueryAssignment, error) {
 	folds := meta.QueryFolds()
 	adt := meta.QueryADT()
 	cfg := meta.QueryConfig()
@@ -147,7 +147,7 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 	}
 
 	if len(ranked) == 0 {
-		return queryRuntime{}, assignment, fmt.Errorf("query %q requires ADT %s but %w",
+		return QueryAssignment{}, fmt.Errorf("query %q requires ADT %s but %w",
 			meta.QueryName(), adt, errADTNotSupported)
 	}
 
@@ -166,21 +166,9 @@ func planQuery(meta queryMeta, engines []Engine) (queryRuntime, QueryAssignment,
 
 	assignment.Diagnostics = planDiagnostics(meta, best, cfg)
 
-	runtime := queryRuntime{
-		name:          meta.QueryName(),
-		adt:           adt,
-		engine:        best.engine,
-		complexity:    best.complexity,
-		folds:         folds,
-		foldByEvent:   foldByEvent,
-		readPattern:   meta.QueryReadPattern(),
-		config:        meta.QueryConfig(),
-		keyType:       meta.QueryKeyType(),
-		resultType:    meta.QueryResultType(),
-		inputTypeName: meta.QueryInputTypeName(),
-	}
+	meta.assignPlan(best.engine, best.complexity, foldByEvent)
 
-	return runtime, assignment, nil
+	return assignment, nil
 }
 
 func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagnostic {

@@ -87,8 +87,8 @@ func (s *Store) SwapEngine(oldName, _ string, newEngine Engine) error {
 
 	// Reassign queries
 	for name, q := range s.queries {
-		if q.engine.Profile().Name == oldName {
-			q.engine = newEngine
+		if q.QueryEngine().Profile().Name == oldName {
+			q.QueryEngine() = newEngine
 			s.queries[name] = q
 		}
 	}

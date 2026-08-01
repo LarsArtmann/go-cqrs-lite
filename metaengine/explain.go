@@ -162,8 +162,8 @@ func (s *Store) ExplainPlan() string {
 
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
-		fmt.Fprintf(&b, "  %s: %s via %s (%s)", name, q.adt,
-			q.engine.Profile().Name, q.complexity)
+		fmt.Fprintf(&b, "  %s: %s via %s (%s)", name, q.QueryADT(),
+			q.QueryEngine().Profile().Name, q.QueryComplexity())
 
 		if s.plan != nil {
 			for _, qa := range s.plan.Queries {

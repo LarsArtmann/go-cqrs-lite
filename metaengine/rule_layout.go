@@ -20,12 +20,12 @@ func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 			continue
 		}
 
-		lp, ok := rt.engine.(LayoutPlanner)
+		lp, ok := rt.QueryEngine().(LayoutPlanner)
 		if !ok {
 			continue
 		}
 
-		filterFields, sortFields, err := extractDeclarativeFields(rt.config)
+		filterFields, sortFields, err := extractDeclarativeFields(rt.QueryConfig())
 		if err != nil {
 			return fmt.Errorf("auto-layout for %q: %w", rt.name, err)
 		}
@@ -39,8 +39,8 @@ func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 		result.LayoutPlans = append(result.LayoutPlans, layoutPlan)
 
 		layout := LayoutRow
-		if rt.engine.Profile().Layouts != nil {
-			if l, ok := rt.engine.Profile().Layouts[rt.adt]; ok {
+		if rt.QueryEngine().Profile().Layouts != nil {
+			if l, ok := rt.QueryEngine().Profile().Layouts[rt.adt]; ok {
 				layout = l
 			}
 		}

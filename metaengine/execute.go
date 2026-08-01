@@ -38,10 +38,10 @@ func (s *Store) ExecuteCtx(ctx context.Context, input any) (any, error) {
 
 func (s *Store) executeQuery(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	input any,
 ) (any, error) {
-	if err := s.IsPoisoned(q.name); err != nil {
+	if err := s.IsPoisoned(q.QueryName()); err != nil {
 		return nil, err
 	}
 
@@ -51,7 +51,7 @@ func (s *Store) executeQuery(
 	if s.hooks != nil && s.hooks.OnExecute != nil {
 		elapsed := time.Since(start)
 		if s.hooks.SlowQueryThreshold == 0 || elapsed >= s.hooks.SlowQueryThreshold {
-			s.hooks.OnExecute(q.name, q.readPattern, elapsed, err)
+			s.hooks.OnExecute(q.QueryName(), q.QueryReadPattern(), elapsed, err)
 		}
 	}
 
@@ -60,18 +60,18 @@ func (s *Store) executeQuery(
 
 func (s *Store) executeQueryInner(
 	ctx context.Context,
-	q queryRuntime,
+	q queryMeta,
 	input any,
 ) (any, error) {
-	switch q.readPattern {
+	switch q.QueryReadPattern() {
 	case ReadPointLookup:
-		key := extractKeyValueByType(input, q.keyType)
+		key := extractKeyValueByType(input, q.QueryKeyType())
 
 		// Fast path: raw JSON bytes → direct decode to R (1 JSON op instead of 3).
-		if rvr, ok := q.engine.(RawValueReader); ok {
-			raw, found, err := rvr.GetRawValue(ctx, q.name, key)
+		if rvr, ok := q.QueryEngine().(RawValueReader); ok {
+			raw, found, err := rvr.GetRawValue(ctx, q.QueryName(), key)
 			if err != nil {
-				return nil, fmt.Errorf("raw get %s: %w", q.name, err)
+				return nil, fmt.Errorf("raw get %s: %w", q.QueryName(), err)
 			}
 
 			if !found {
@@ -81,10 +81,10 @@ func (s *Store) executeQueryInner(
 			return jsonValue(raw), nil
 		}
 
-		if mb, ok := q.engine.(MapBackend); ok {
-			val, found, err := mb.MapGet(ctx, q.name, key)
+		if mb, ok := q.QueryEngine().(MapBackend); ok {
+			val, found, err := mb.MapGet(ctx, q.QueryName(), key)
 			if err != nil {
-				return nil, fmt.Errorf("map get %s: %w", q.name, err)
+				return nil, fmt.Errorf("map get %s: %w", q.QueryName(), err)
 			}
 
 			if !found {
@@ -94,79 +94,79 @@ func (s *Store) executeQueryInner(
 			return val, nil
 		}
 
-		return nil, unsupportedEngine(errUnsupportedMapReads, q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedMapReads, q.QueryEngine().Profile().Name)
 
 	case ReadMembership:
-		key := extractKeyValueByType(input, q.keyType)
-		if sb, ok := q.engine.(SetBackend); ok {
-			contained, err := sb.SetContains(ctx, q.name, key)
+		key := extractKeyValueByType(input, q.QueryKeyType())
+		if sb, ok := q.QueryEngine().(SetBackend); ok {
+			contained, err := sb.SetContains(ctx, q.QueryName(), key)
 			if err != nil {
-				return false, fmt.Errorf("set contains %s: %w", q.name, err)
+				return false, fmt.Errorf("set contains %s: %w", q.QueryName(), err)
 			}
 
 			return contained, nil
 		}
 
-		return nil, unsupportedEngine(errUnsupportedSetReads, q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedSetReads, q.QueryEngine().Profile().Name)
 
 	case ReadFilteredScan:
 		return s.executeFilteredScan(ctx, q, input)
 
 	case ReadAggregate:
-		if cb, ok := q.engine.(CounterBackend); ok {
-			counts, err := cb.CounterGet(ctx, q.name)
+		if cb, ok := q.QueryEngine().(CounterBackend); ok {
+			counts, err := cb.CounterGet(ctx, q.QueryName())
 			if err != nil {
-				return nil, fmt.Errorf("counter get %s: %w", q.name, err)
+				return nil, fmt.Errorf("counter get %s: %w", q.QueryName(), err)
 			}
 
 			return counts, nil
 		}
 
-		return nil, unsupportedEngine(errUnsupportedCounterReads, q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedCounterReads, q.QueryEngine().Profile().Name)
 
 	case ReadTraversal:
-		node := extractKeyValueByType(input, q.keyType)
+		node := extractKeyValueByType(input, q.QueryKeyType())
 		if node == nil {
 			node = extractFirstDomainField(input)
 		}
 
 		depth := extractDepthFromInput(input)
-		if gb, ok := q.engine.(GraphBackend); ok {
-			neighbors, err := gb.GraphNeighbors(ctx, q.name, node, depth)
+		if gb, ok := q.QueryEngine().(GraphBackend); ok {
+			neighbors, err := gb.GraphNeighbors(ctx, q.QueryName(), node, depth)
 			if err != nil {
-				return nil, fmt.Errorf("graph neighbors %s: %w", q.name, err)
+				return nil, fmt.Errorf("graph neighbors %s: %w", q.QueryName(), err)
 			}
 
 			return neighbors, nil
 		}
 
-		return nil, unsupportedEngine(errUnsupportedGraphReads, q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedGraphReads, q.QueryEngine().Profile().Name)
 
 	case ReadMultiLookup:
 		key := extractFirstDomainField(input)
-		if mb, ok := q.engine.(MultimapBackend); ok {
-			values, err := mb.MultiGet(ctx, q.name, key)
+		if mb, ok := q.QueryEngine().(MultimapBackend); ok {
+			values, err := mb.MultiGet(ctx, q.QueryName(), key)
 			if err != nil {
-				return nil, fmt.Errorf("multi get %s: %w", q.name, err)
+				return nil, fmt.Errorf("multi get %s: %w", q.QueryName(), err)
 			}
 
 			return values, nil
 		}
 
-		return nil, unsupportedEngine(errUnsupportedMultiReads, q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedMultiReads, q.QueryEngine().Profile().Name)
 
 	case ReadLogTail:
 		limit := extractLimitFromInput(input)
-		if lb, ok := q.engine.(LogBackend); ok {
-			entries, err := lb.LogTail(ctx, q.name, limit)
+		if lb, ok := q.QueryEngine().(LogBackend); ok {
+			entries, err := lb.LogTail(ctx, q.QueryName(), limit)
 			if err != nil {
-				return nil, fmt.Errorf("log tail %s: %w", q.name, err)
+				return nil, fmt.Errorf("log tail %s: %w", q.QueryName(), err)
 			}
 
 			return entries, nil
 		}
 
-		return nil, unsupportedEngine(errUnsupportedLogReads, q.engine.Profile().Name)
+		return nil, unsupportedEngine(errUnsupportedLogReads, q.QueryEngine().Profile().Name)
 
 	case ReadScan:
 		return s.executeFilteredScan(ctx, q, input)
@@ -181,11 +181,11 @@ func (s *Store) executeQueryInner(
 		return s.executeSpatialRange(ctx, q, input)
 
 	default:
-		return nil, fmt.Errorf("%w: %s", errUnsupportedPattern, q.readPattern)
+		return nil, fmt.Errorf("%w: %s", errUnsupportedPattern, q.QueryReadPattern())
 	}
 }
 
-func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input any) (any, error) {
+func (s *Store) executeFilteredScan(ctx context.Context, q queryMeta, input any) (any, error) {
 	limit := extractLimitFromInput(input)
 	if limit == 0 {
 		limit = 100
@@ -201,17 +201,17 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	// Fastest path: raw JSON bytes per row → direct decode to element type
 	// (1 JSON op per row instead of 3). Preferred when the engine supports it
 	// and all filter/sort accessors are declarative (pushdown-eligible).
-	if rsr, ok := q.engine.(RawScanReader); ok && canPushdown(q.config) {
-		specs := buildFilterSpecs(q.config, input)
+	if rsr, ok := q.QueryEngine().(RawScanReader); ok && canPushdown(q.QueryConfig()) {
+		specs := buildFilterSpecs(q.QueryConfig(), input)
 
 		var sortSpec *SortSpec
-		if q.config.sortAccessor.spec != nil {
-			sortSpec = q.config.sortAccessor.spec
+		if q.QueryConfig().sortAccessor.spec != nil {
+			sortSpec = q.QueryConfig().sortAccessor.spec
 		}
 
-		rawResult, err := rsr.ScanRawValues(ctx, q.name, specs, sortSpec, cursorVal, limit)
+		rawResult, err := rsr.ScanRawValues(ctx, q.QueryName(), specs, sortSpec, cursorVal, limit)
 		if err != nil {
-			return nil, fmt.Errorf("raw scan %s: %w", q.name, err)
+			return nil, fmt.Errorf("raw scan %s: %w", q.QueryName(), err)
 		}
 
 		items := make([]any, len(rawResult.Items))
@@ -225,17 +225,17 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	// Fast path: if the engine supports pushdown AND all filter/sort accessors
 	// have declarative specs (FilterOnField/SortOnField), push WHERE/ORDER BY/
 	// LIMIT into SQL instead of loading all rows into Go.
-	if pushdown, ok := q.engine.(PushdownScan); ok && canPushdown(q.config) {
-		specs := buildFilterSpecs(q.config, input)
+	if pushdown, ok := q.QueryEngine().(PushdownScan); ok && canPushdown(q.QueryConfig()) {
+		specs := buildFilterSpecs(q.QueryConfig(), input)
 
 		var sortSpec *SortSpec
-		if q.config.sortAccessor.spec != nil {
-			sortSpec = q.config.sortAccessor.spec
+		if q.QueryConfig().sortAccessor.spec != nil {
+			sortSpec = q.QueryConfig().sortAccessor.spec
 		}
 
-		rows, err := pushdown.PushdownMapScan(ctx, q.name, specs, sortSpec, cursorVal, limit)
+		rows, err := pushdown.PushdownMapScan(ctx, q.QueryName(), specs, sortSpec, cursorVal, limit)
 		if err != nil {
-			return nil, fmt.Errorf("pushdown map scan %s: %w", q.name, err)
+			return nil, fmt.Errorf("pushdown map scan %s: %w", q.QueryName(), err)
 		}
 
 		return rows, nil
@@ -252,67 +252,67 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryRuntime, input a
 	}
 
 	var sortFunc func(a, b any) int
-	if q.config.sortAccessor.closure != nil {
-		sortFunc = buildSortFunc(q.config.sortAccessor.closure)
+	if q.QueryConfig().sortAccessor.closure != nil {
+		sortFunc = buildSortFunc(q.QueryConfig().sortAccessor.closure)
 	} else {
 		sortFunc = nil
 	}
 
-	if sb, ok := q.engine.(ScanBackend); ok {
-		result, err := sb.MapScan(ctx, q.name, filterFn, sortFunc, cursorVal, limit)
+	if sb, ok := q.QueryEngine().(ScanBackend); ok {
+		result, err := sb.MapScan(ctx, q.QueryName(), filterFn, sortFunc, cursorVal, limit)
 		if err != nil {
-			return nil, fmt.Errorf("map scan %s: %w", q.name, err)
+			return nil, fmt.Errorf("map scan %s: %w", q.QueryName(), err)
 		}
 
 		return result, nil
 	}
 
-	return nil, unsupportedEngine(errUnsupportedScanReads, q.engine.Profile().Name)
+	return nil, unsupportedEngine(errUnsupportedScanReads, q.QueryEngine().Profile().Name)
 }
 
-func (s *Store) executeVectorSearch(ctx context.Context, q queryRuntime, input any) (any, error) {
+func (s *Store) executeVectorSearch(ctx context.Context, q queryMeta, input any) (any, error) {
 	queryVec, metric, k := extractVectorQuery(input)
 
-	if vb, ok := q.engine.(VectorBackend); ok {
-		results, err := vb.VectorSearch(ctx, q.name, queryVec, k, metric)
+	if vb, ok := q.QueryEngine().(VectorBackend); ok {
+		results, err := vb.VectorSearch(ctx, q.QueryName(), queryVec, k, metric)
 		if err != nil {
-			return nil, fmt.Errorf("vector search %s: %w", q.name, err)
+			return nil, fmt.Errorf("vector search %s: %w", q.QueryName(), err)
 		}
 
 		return results, nil
 	}
 
-	return nil, unsupportedEngine(errUnsupportedVectorReads, q.engine.Profile().Name)
+	return nil, unsupportedEngine(errUnsupportedVectorReads, q.QueryEngine().Profile().Name)
 }
 
-func (s *Store) executeFullTextSearch(ctx context.Context, q queryRuntime, input any) (any, error) {
+func (s *Store) executeFullTextSearch(ctx context.Context, q queryMeta, input any) (any, error) {
 	queryText, limit := extractSearchQuery(input)
 
-	if sb, ok := q.engine.(SearchBackend); ok {
-		results, err := sb.SearchQuery(ctx, q.name, queryText, limit)
+	if sb, ok := q.QueryEngine().(SearchBackend); ok {
+		results, err := sb.SearchQuery(ctx, q.QueryName(), queryText, limit)
 		if err != nil {
-			return nil, fmt.Errorf("search query %s: %w", q.name, err)
+			return nil, fmt.Errorf("search query %s: %w", q.QueryName(), err)
 		}
 
 		return results, nil
 	}
 
-	return nil, unsupportedEngine(errUnsupportedSearchReads, q.engine.Profile().Name)
+	return nil, unsupportedEngine(errUnsupportedSearchReads, q.QueryEngine().Profile().Name)
 }
 
-func (s *Store) executeSpatialRange(ctx context.Context, q queryRuntime, input any) (any, error) {
+func (s *Store) executeSpatialRange(ctx context.Context, q queryMeta, input any) (any, error) {
 	x, y, radius, limit := extractSpatialQuery(input)
 
-	if sb, ok := q.engine.(SpatialBackend); ok {
-		results, err := sb.SpatialRange(ctx, q.name, x, y, radius, limit)
+	if sb, ok := q.QueryEngine().(SpatialBackend); ok {
+		results, err := sb.SpatialRange(ctx, q.QueryName(), x, y, radius, limit)
 		if err != nil {
-			return nil, fmt.Errorf("spatial range %s: %w", q.name, err)
+			return nil, fmt.Errorf("spatial range %s: %w", q.QueryName(), err)
 		}
 
 		return results, nil
 	}
 
-	return nil, unsupportedEngine(errUnsupportedSpatialReads, q.engine.Profile().Name)
+	return nil, unsupportedEngine(errUnsupportedSpatialReads, q.QueryEngine().Profile().Name)
 }
 
 // canPushdown returns true when all declared filter/sort accessors carry
@@ -364,14 +364,14 @@ func buildFilterSpecs(cfg QueryConfig, input any) []FilterSpec {
 // buildFilterPredicates creates runtime filter predicates from typed closures
 // declared via FilterOn. Each closure extracts a comparable value from a result
 // item. The matching filter value is extracted from the query input by type.
-func buildFilterPredicates(q queryRuntime, input any) []filterPredicate {
-	if len(q.config.filterAccessors) == 0 {
+func buildFilterPredicates(q queryMeta, input any) []filterPredicate {
+	if len(q.QueryConfig().filterAccessors) == 0 {
 		return nil
 	}
 
 	var predicates []filterPredicate
 
-	for _, acc := range q.config.filterAccessors {
+	for _, acc := range q.QueryConfig().filterAccessors {
 		// Declarative filters (FilterOnField) carry a spec but no closure. They
 		// must still be honored in the closure-fallback path, otherwise mixing a
 		// declarative filter with a closure sort silently drops the filter. The
@@ -469,11 +469,11 @@ func (s *Store) sortKeyFn(inputType string) func(any) any {
 	}
 
 	q := s.queries[queryName]
-	if q.config.sortAccessor.closure == nil {
+	if q.QueryConfig().sortAccessor.closure == nil {
 		return nil
 	}
 
-	closureVal := reflect.ValueOf(q.config.sortAccessor.closure)
+	closureVal := reflect.ValueOf(q.QueryConfig().sortAccessor.closure)
 	paramType := closureVal.Type().In(0)
 
 	return func(item any) any {

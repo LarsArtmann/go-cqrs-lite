@@ -122,6 +122,11 @@ type QueryDecl[Q any, R any] struct {
 
 	querySample  Q
 	resultSample R
+
+	// Runtime-assigned by planQuery — eliminates the queryRuntime twin.
+	engine      Engine
+	complexity  Complexity
+	foldByEvent map[string]int
 }
 
 // Query declares a query with its folds and options as variadic arguments.
@@ -260,6 +265,12 @@ type queryMeta interface {
 	QueryConfig() QueryConfig
 	QueryKeyType() reflect.Type
 	QueryResultType() reflect.Type
+
+	// Runtime-assigned by planQuery.
+	QueryEngine() Engine
+	QueryComplexity() Complexity
+	QueryFoldByEvent() map[string]int
+	assignPlan(engine Engine, complexity Complexity, foldByEvent map[string]int)
 }
 
 func (q QueryDecl[Q, R]) QueryName() string             { return q.Name }
@@ -269,6 +280,16 @@ func (q QueryDecl[Q, R]) QueryReadPattern() ReadPattern { return q.ReadPattern }
 func (q QueryDecl[Q, R]) QueryIsPaginated() bool        { return q.IsPaginated }
 func (q QueryDecl[Q, R]) QueryInputTypeName() string    { return q.InputTypeName }
 func (q QueryDecl[Q, R]) QueryConfig() QueryConfig      { return q.Config }
+
+func (q QueryDecl[Q, R]) QueryEngine() Engine             { return q.engine }
+func (q QueryDecl[Q, R]) QueryComplexity() Complexity     { return q.complexity }
+func (q QueryDecl[Q, R]) QueryFoldByEvent() map[string]int { return q.foldByEvent }
+
+func (q *QueryDecl[Q, R]) assignPlan(engine Engine, complexity Complexity, foldByEvent map[string]int) {
+	q.engine = engine
+	q.complexity = complexity
+	q.foldByEvent = foldByEvent
+}
 
 func (q QueryDecl[Q, R]) QueryKeyType() reflect.Type {
 	for _, f := range q.Folds {

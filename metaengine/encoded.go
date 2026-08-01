@@ -32,20 +32,20 @@ func (s *Store) ApplyEncoded(ctx context.Context, eventType string, payload []by
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
 
-		foldIdx, ok := q.foldByEvent[eventType]
+		foldIdx, ok := q.QueryFoldByEvent()[eventType]
 		if !ok {
 			continue
 		}
 
-		fold := q.folds[foldIdx]
+		fold := q.QueryFolds()[foldIdx]
 
 		decoded, err := decodeFromSample(fold.EventSample(), payload)
 		if err != nil {
-			return fmt.Errorf("query %q decode %s: %w", q.name, eventType, err)
+			return fmt.Errorf("query %q decode %s: %w", q.QueryName(), eventType, err)
 		}
 
 		if err := s.applyFold(ctx, q, fold, decoded); err != nil {
-			return fmt.Errorf("query %q fold for %s: %w", q.name, eventType, err)
+			return fmt.Errorf("query %q fold for %s: %w", q.QueryName(), eventType, err)
 		}
 	}
 

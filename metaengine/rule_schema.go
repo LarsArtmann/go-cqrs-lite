@@ -19,11 +19,11 @@ func (*schemaRule) Apply(result *PlanResult, ctx PlanContext) error {
 			continue
 		}
 
-		if rt.resultType == nil {
+		if rt.QueryResultType() == nil {
 			continue
 		}
 
-		for _, fold := range rt.folds {
+		for _, fold := range rt.QueryFolds() {
 			var vt reflect.Type
 			switch f := fold.(type) {
 			case *insertFold:
@@ -34,16 +34,16 @@ func (*schemaRule) Apply(result *PlanResult, ctx PlanContext) error {
 				vt = f.valueType
 			}
 
-			if vt != nil && vt != rt.resultType {
+			if vt != nil && vt != rt.QueryResultType() {
 				result.Diagnostics = append(result.Diagnostics, Diagnostic{
 					Level: DiagLevelWarn,
-					Query: rt.name,
+					Query: rt.QueryName(),
 					Message: fmt.Sprintf(
 						"fold for %s returns %s but query result type is %s — "+
 							"runtime decode may fail",
 						fold.EventType(),
 						vt.String(),
-						rt.resultType.String(),
+						rt.QueryResultType().String(),
 					),
 				})
 			}
