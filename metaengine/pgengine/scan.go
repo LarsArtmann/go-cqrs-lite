@@ -19,7 +19,7 @@ func (e *pgEngine) MapScan(
 	sortFunc func(a, b any) int,
 	cursor any,
 	limit int,
-) ([]any, error) {
+) (metaengine.ScanResult, error) {
 	rows, err := e.db.QueryContext(
 		ctx,
 		`SELECT key, value::text FROM meta_map WHERE collection = $1`,
@@ -86,12 +86,9 @@ func (e *pgEngine) MapScan(
 		pairs = filtered
 	}
 
-	truncLimit := 0
-	if limit > 0 {
-		truncLimit = limit + 1
-	}
-	if truncLimit > 0 && len(pairs) > truncLimit {
-		pairs = pairs[:truncLimit]
+	hasMore := limit > 0 && len(pairs) > limit
+	if hasMore {
+		pairs = pairs[:limit]
 	}
 
 	result := make([]any, len(pairs))
@@ -99,5 +96,5 @@ func (e *pgEngine) MapScan(
 		result[i] = p.value
 	}
 
-	return result, nil
+	return metaengine.ScanResult{Items: result, HasMore: hasMore}, nil
 }

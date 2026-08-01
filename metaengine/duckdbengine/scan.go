@@ -19,14 +19,14 @@ func (e *duckdbEngine) MapScan(
 	sortFunc func(a, b any) int,
 	cursor any,
 	limit int,
-) ([]any, error) {
+) (metaengine.ScanResult, error) {
 	rows, err := e.db.QueryContext(
 		ctx,
 		`SELECT key, value FROM meta_map WHERE collection = $1`,
 		collection,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("duckdbengine.MapScan: %w", err)
+		return metaengine.ScanResult{}, fmt.Errorf("duckdbengine.MapScan: %w", err)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -88,12 +88,9 @@ func (e *duckdbEngine) MapScan(
 		pairs = filtered
 	}
 
-	truncLimit := 0
-	if limit > 0 {
-		truncLimit = limit + 1
-	}
-	if truncLimit > 0 && len(pairs) > truncLimit {
-		pairs = pairs[:truncLimit]
+	hasMore := limit > 0 && len(pairs) > limit
+	if hasMore {
+		pairs = pairs[:limit]
 	}
 
 	result := make([]any, len(pairs))
@@ -101,5 +98,5 @@ func (e *duckdbEngine) MapScan(
 		result[i] = p.value
 	}
 
-	return result, nil
+	return metaengine.ScanResult{Items: result, HasMore: hasMore}, nil
 }

@@ -3,6 +3,8 @@ package pebbleengine
 import (
 	"bytes"
 	"sort"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // kvPair pairs a Pebble key with its decoded value for sorting. The raw field
@@ -59,6 +61,15 @@ func sortAndPaginate(pairs []kvPair, sortFn func(a, b any) int, cursor any, limi
 	}
 
 	return pairs
+}
+
+func trimRaw(results [][]byte, limit int) metaengine.RawScanResult {
+	hasMore := limit > 0 && len(results) > limit
+	if hasMore {
+		results = results[:limit]
+	}
+
+	return metaengine.RawScanResult{Items: results, HasMore: hasMore}
 }
 
 // extractOrDirect returns the named column from a map item, or the value itself

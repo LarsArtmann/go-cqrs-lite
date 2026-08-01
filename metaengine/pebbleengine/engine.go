@@ -357,7 +357,7 @@ func (e *pebbleEngine) MapScan(
 	sortFunc func(a, b any) int,
 	cursor any,
 	limit int,
-) ([]any, error) {
+) (metaengine.ScanResult, error) {
 	prefix := collectionPrefix(col)
 
 	upperBound := nextKey(prefix)
@@ -393,12 +393,17 @@ func (e *pebbleEngine) MapScan(
 
 	pairs = sortAndPaginate(pairs, sortFunc, cursor, limit)
 
+	hasMore := limit > 0 && len(pairs) > limit
+	if hasMore {
+		pairs = pairs[:limit]
+	}
+
 	results := make([]any, len(pairs))
 	for i, p := range pairs {
 		results[i] = p.value
 	}
 
-	return results, nil
+	return metaengine.ScanResult{Items: results, HasMore: hasMore}, nil
 }
 
 // --- SetBackend ---

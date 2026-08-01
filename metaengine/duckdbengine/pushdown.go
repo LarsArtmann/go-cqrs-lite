@@ -30,7 +30,7 @@ func (e *duckdbEngine) PushdownMapScan(
 	sort *metaengine.SortSpec,
 	cursor any,
 	limit int,
-) ([]any, error) {
+) (metaengine.ScanResult, error) {
 	var b strings.Builder
 	args := []any{collection}
 
@@ -87,7 +87,17 @@ func (e *duckdbEngine) PushdownMapScan(
 		fmt.Fprintf(&b, ` LIMIT %d`, limit+1)
 	}
 
-	return scanDuckDBJSONValues(ctx, e.db, b.String(), args...)
+	rows, err := scanDuckDBJSONValues(ctx, e.db, b.String(), args...)
+	if err != nil {
+		return metaengine.ScanResult{}, err
+	}
+
+	hasMore := limit > 0 && len(rows) > limit
+	if hasMore {
+		rows = rows[:limit]
+	}
+
+	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
 }
 
 // jsonPath converts a field name to a DuckDB JSON path.

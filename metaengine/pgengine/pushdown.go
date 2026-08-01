@@ -28,7 +28,7 @@ func (e *pgEngine) PushdownMapScan(
 	sort *metaengine.SortSpec,
 	cursor any,
 	limit int,
-) ([]any, error) {
+) (metaengine.ScanResult, error) {
 	var b strings.Builder
 	args := []any{collection}
 
@@ -81,7 +81,17 @@ func (e *pgEngine) PushdownMapScan(
 		fmt.Fprintf(&b, ` LIMIT %d`, limit+1)
 	}
 
-	return scanPGJSONValues(ctx, e.db, b.String(), args...)
+	rows, err := scanPGJSONValues(ctx, e.db, b.String(), args...)
+	if err != nil {
+		return metaengine.ScanResult{}, err
+	}
+
+	hasMore := limit > 0 && len(rows) > limit
+	if hasMore {
+		rows = rows[:limit]
+	}
+
+	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
 }
 
 // ApplyLayout implements metaengine.LayoutPlanner. It creates partial

@@ -60,12 +60,27 @@ func (e *sqliteEngine) ScanRawValues(
 	sort *SortSpec,
 	cursor any,
 	limit int,
-) ([][]byte, error) {
+) (RawScanResult, error) {
+	var rows [][]byte
+
+	var err error
+
 	if plan, ok := e.plans[col]; ok {
-		return scanRawPlanned(ctx, e.xd(), plan, filters, sort, cursor, limit)
+		rows, err = scanRawPlanned(ctx, e.xd(), plan, filters, sort, cursor, limit)
+	} else {
+		rows, err = scanRawStandard(ctx, e.xd(), col, filters, sort, cursor, limit)
 	}
 
-	return scanRawStandard(ctx, e.xd(), col, filters, sort, cursor, limit)
+	if err != nil {
+		return RawScanResult{}, err
+	}
+
+	hasMore := limit > 0 && len(rows) > limit
+	if hasMore {
+		rows = rows[:limit]
+	}
+
+	return RawScanResult{Items: rows, HasMore: hasMore}, nil
 }
 
 func scanRawStandard(

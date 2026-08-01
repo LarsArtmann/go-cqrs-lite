@@ -262,10 +262,20 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 	sort *SortSpec,
 	cursor any,
 	limit int,
-) ([]any, error) {
+) (ScanResult, error) {
 	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
 
-	return scanJSONValues(ctx, e.xd(), query, args...)
+	rows, err := scanJSONValues(ctx, e.xd(), query, args...)
+	if err != nil {
+		return ScanResult{}, err
+	}
+
+	hasMore := limit > 0 && len(rows) > limit
+	if hasMore {
+		rows = rows[:limit]
+	}
+
+	return ScanResult{Items: rows, HasMore: hasMore}, nil
 }
 
 // extractFields pulls field values from a Go value (struct or map) for the

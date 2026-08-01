@@ -56,19 +56,23 @@ func (e *pebbleEngine) ScanRawValues(
 	sortSpec *metaengine.SortSpec,
 	cursor any,
 	limit int,
-) ([][]byte, error) {
-	// Fast path: use secondary index if a layout plan exists and filters match.
+) (metaengine.RawScanResult, error) {
 	e.layoutMu.Lock()
 	plan, hasLayout := e.layouts[col]
 	e.layoutMu.Unlock()
 
 	if hasLayout {
 		if sortSpec != nil && plan.hasSortField(sortSpec.Column) {
-			return e.scanWithSortIndex(ctx, col, filters, sortSpec, cursor, limit)
+			rows, err := e.scanWithSortIndex(ctx, col, filters, sortSpec, cursor, limit)
+			if err != nil {
+				return metaengine.RawScanResult{}, err
+			}
+
+			return trimRaw(rows, limit), nil
 		}
 
 		if indexed, err := e.scanWithIndex(ctx, col, filters, plan); err == nil && indexed != nil {
-			return processFilterIndex(indexed, sortSpec, cursor, limit), nil
+			return trimRaw(processFilterIndex(indexed, sortSpec, cursor, limit), limit), nil
 		}
 	}
 
@@ -80,7 +84,7 @@ func (e *pebbleEngine) ScanRawValues(
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, err
+		return metaengine.RawScanResult{}, err
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -103,13 +107,9 @@ func (e *pebbleEngine) ScanRawValues(
 	}
 
 	if err := iter.Error(); err != nil {
-		return nil, err
+		return metaengine.RawScanResult{}, err
 	}
 
-	// Build sort comparator from SortSpec. Direction (Desc) is encoded into
-	// the comparator so the keyset pagination in sortAndPaginate handles both
-	// ascending and descending correctly. extractOrDirect lets the same
-	// comparator handle item-vs-item sort and item-vs-cursor pagination.
 	var sortFn func(a, b any) int
 
 	if sortSpec != nil {
@@ -128,10 +128,15 @@ func (e *pebbleEngine) ScanRawValues(
 
 	pairs = sortAndPaginate(pairs, sortFn, cursor, limit)
 
+	hasMore := limit > 0 && len(pairs) > limit
+	if hasMore {
+		pairs = pairs[:limit]
+	}
+
 	results := make([][]byte, len(pairs))
 	for i, p := range pairs {
 		results[i] = p.raw
 	}
 
-	return results, nil
+	return metaengine.RawScanResult{Items: results, HasMore: hasMore}, nil
 }
