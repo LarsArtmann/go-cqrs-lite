@@ -131,67 +131,35 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 // runCtx is the (possibly deadline-limited) context for measured phases.
 // parentCtx is the unbounded context for the recovery phase.
 func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
-	if !r.config.ReplayOnly {
-		if err := r.writePhase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.write_phase", "write phase")
-		}
+	steps := []struct {
+		skip  bool
+		code  string
+		msg   string
+		phase func(context.Context) error
+	}{
+		{r.config.ReplayOnly, "benchkit.write_phase", "write phase", r.writePhase},
+		{r.config.SkipReads, "benchkit.read_phase", "read phase", r.readPhase},
+		{r.config.SkipReadModels, "benchkit.read_model_phase", "read model phase", r.readModelPhase},
+		{r.config.SkipProjections, "benchkit.projection_phase", "projection phase", r.projectionPhase},
+		{r.config.SkipMixed || r.config.ReplayOnly, "benchkit.mixed_workload", "mixed workload phase", r.mixedWorkloadPhase},
+		{r.config.ReplayOnly || r.config.SkipJourney, "benchkit.journey_phase", "journey phase", r.journeyPhase},
+		{r.config.SkipQuery, "benchkit.query_phase", "query phase", r.queryPhase},
+		{r.config.ReplayOnly || r.config.SkipSnapshot, "benchkit.snapshot_phase", "snapshot phase", r.snapshotPhase},
+		{r.config.SkipMetaEngine, "benchkit.metaengine_phase", "metaengine phase", r.metaEnginePhase},
+		{r.config.ReplayOnly || r.config.SkipRawSink, "benchkit.raw_sink_phase", "raw sink phase", r.rawSinkPhase},
 	}
 
-	if !r.config.SkipReads {
-		if err := r.readPhase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.read_phase", "read phase")
+	for _, s := range steps {
+		if s.skip {
+			continue
 		}
-	}
 
-	if !r.config.SkipReadModels {
-		if err := r.readModelPhase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.read_model_phase", "read model phase")
-		}
-	}
-
-	if !r.config.SkipProjections {
-		if err := r.projectionPhase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.projection_phase", "projection phase")
-		}
-	}
-
-	if !r.config.SkipMixed && !r.config.ReplayOnly {
-		if err := r.mixedWorkloadPhase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.mixed_workload", "mixed workload phase")
-		}
-	}
-
-	if !r.config.ReplayOnly && !r.config.SkipJourney {
-		if err := r.journeyPhase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.journey_phase", "journey phase")
-		}
-	}
-
-	if !r.config.SkipQuery {
-		if err := r.queryPhase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.query_phase", "query phase")
-		}
-	}
-
-	if !r.config.ReplayOnly && !r.config.SkipSnapshot {
-		if err := r.snapshotPhase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.snapshot_phase", "snapshot phase")
-		}
-	}
-
-	if !r.config.SkipMetaEngine {
-		if err := r.metaEnginePhase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.metaengine_phase", "metaengine phase")
+		if err := s.phase(runCtx); err != nil {
+			return errorfamily.WrapTransient(err, s.code, s.msg)
 		}
 	}
 
 	r.durabilityPhase()
-
-	if !r.config.ReplayOnly && !r.config.SkipRawSink {
-		if err := r.rawSinkPhase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.raw_sink_phase", "raw sink phase")
-		}
-	}
 
 	if r.config.Recovery {
 		if err := r.recoveryPhase(parentCtx); err != nil {

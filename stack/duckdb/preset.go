@@ -125,10 +125,12 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	stackOpts = append(stackOpts, stack.WithCapabilities(stack.Capabilities{
 		Backend:         "duckdb",
 		Persistent:      dsn != "",
-		Embedded:        true,
+		Distributed:     false,
+		DurabilityRange: []stack.DurabilityTier{stack.DurabilityNormal},
 		OLAP:            true,
 		CGoRequired:     true,
-		DurabilityRange: []stack.DurabilityTier{stack.DurabilityNormal},
+		Embedded:        true,
+		SyncEnabled:     false,
 	}))
 
 	bundle, err := sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "duckdb", cfg.ViewDSN,

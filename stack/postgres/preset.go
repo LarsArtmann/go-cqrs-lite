@@ -37,9 +37,12 @@ func defaultConfig() config {
 			QueryDSN:    "",
 			ViewDSN:     "",
 		},
-		durability: stack.DurabilityNormal,
-		listener:   nil,
-		busOpts:    nil,
+		durability:       stack.DurabilityNormal,
+		maxOpenConns:     0,
+		maxIdleConns:     0,
+		statementTimeout: 0,
+		listener:         nil,
+		busOpts:          nil,
 	}
 }
 
@@ -169,12 +172,17 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	stackOpts = append(stackOpts, stack.WithCapabilities(stack.Capabilities{
 		Backend:     "postgres",
 		Persistent:  true,
-		Embedded:    false,
 		Distributed: cfg.listener != nil,
 		DurabilityRange: []stack.DurabilityTier{
 			stack.DurabilityStrict,
 			stack.DurabilityNormal,
 			stack.DurabilityRelaxed,
+		},
+		OLAP:        false,
+		CGoRequired: false,
+		Embedded:    false,
+		SyncEnabled: false,
+	}))
 		},
 	}))
 

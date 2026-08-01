@@ -18,6 +18,8 @@ import (
 // Option configures the SQLite preset.
 type Option func(*config)
 
+const bytesPerKiB = 1024
+
 type config struct {
 	sqlopt.DSNConfig
 	sqlopt.PragmaConfig
@@ -42,6 +44,8 @@ func defaultConfig() config {
 			ViewDSN:     "",
 		},
 		durability:     stack.DurabilityNormal,
+		cacheSizeBytes: 0,
+		busyTimeout:    0,
 		extraStackOpts: nil,
 	}
 }
@@ -157,14 +161,18 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	// Record the durability tier on the Bundle for introspection.
 	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
 	stackOpts = append(stackOpts, stack.WithCapabilities(stack.Capabilities{
-		Backend:    "sqlite",
-		Persistent: true,
-		Embedded:   true,
+		Backend:     "sqlite",
+		Persistent:  true,
+		Distributed: false,
 		DurabilityRange: []stack.DurabilityTier{
 			stack.DurabilityStrict,
 			stack.DurabilityNormal,
 			stack.DurabilityRelaxed,
 		},
+		OLAP:        false,
+		CGoRequired: false,
+		Embedded:    true,
+		SyncEnabled: false,
 	}))
 
 	// Extra consumer-provided stack.Options (e.g. stack.WithMetaEngine).
@@ -254,7 +262,7 @@ func openBackend(
 
 			// Custom cache size overrides the WithOptimizations default.
 			if cfg.cacheSizeBytes > 0 {
-				kib := cfg.cacheSizeBytes / 1024
+				kib := cfg.cacheSizeBytes / bytesPerKiB
 
 				pragma := fmt.Sprintf("PRAGMA cache_size=-%d", kib)
 				if _, err := sqlDB.ExecContext(ctx, pragma); err != nil {

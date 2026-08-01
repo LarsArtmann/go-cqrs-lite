@@ -96,7 +96,7 @@ func (PostgresDialect) ParseTime(src any) (time.Time, error) {
 func (PostgresDialect) ExcludedRef(col string) string { return "excluded." + col }
 
 func (PostgresDialect) OnConflictDoNothing(_ string) string {
-	return "ON CONFLICT DO NOTHING"
+	return "ON CONFLICT DO NOTHING" //nolint:goconst // SQL literal
 }
 
 func (PostgresDialect) OnConflictDoUpdate(conflictCols []string, setExprs []string) string {
