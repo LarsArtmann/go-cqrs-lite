@@ -181,6 +181,22 @@ func PrintReport(w io.Writer, r *Result) {
 		fmt.Fprintln(w)
 	}
 
+	if r.MetaEngineApplyLatency.Count > 0 {
+		fmt.Fprintln(w, "Metaengine:")
+		printLatencyLine(w, "  Apply:", r.MetaEngineApplyLatency)
+		fmt.Fprintf(w, "  Apply throughput: %s/s (single), %s/s (concurrent)\n",
+			formatFloat(r.MetaEngineApplyThroughput), formatFloat(r.MetaEngineApplyConcurrent))
+		printLatencyLine(w, "  Query (ExecuteTyped):", r.MetaEngineQueryLatency)
+		printLatencyLine(w, "  Scan (filtered):", r.MetaEngineScanLatency)
+		printLatencyLine(w, "  Point read:", r.MetaEnginePointReadLatency)
+
+		if r.MetaEngineScanResults > 0 {
+			fmt.Fprintf(w, "  Scan results: %d items (status=active)\n", r.MetaEngineScanResults)
+		}
+
+		fmt.Fprintln(w)
+	}
+
 	if r.RecoveryTime > 0 {
 		fmt.Fprintf(w, "Recovery: %s (%s events recovered)\n\n",
 			roundDuration(r.RecoveryTime), formatInt(r.RecoveredEvents))

@@ -107,7 +107,8 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 
 		start := time.Now()
 
-		results, scanErr := reader.Scan(ctx,
+		results, scanErr := reader.Scan(
+			ctx,
 			metaengine.WithFilter("status", metaengine.FilterEq, "active"),
 			metaengine.WithLimit(100),
 		)
@@ -158,7 +159,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 	r.result.MetaEnginePointReadLatency = pointColl.Stats()
 
 	// ── Concurrent Apply: contention test ──
-	concurrency := r.workers
+	concurrency := r.concurrency
 	if concurrency < 2 {
 		concurrency = 2
 	}
@@ -168,15 +169,12 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 	}
 
 	concurrentCount := min(sampleCount, 500)
-	counter := 0
 
 	concurrentStart := time.Now()
 
-	err = runConcurrent(ctx, concurrentCount, concurrency,
-		func(_ context.Context, _ int) error {
-			idx := counter
-			counter++
-
+	err = runConcurrent(
+		ctx, concurrentCount, concurrency,
+		func(_ context.Context, idx int) error {
 			status := statuses[idx%len(statuses)]
 
 			return store.Apply(ctx, "MeBenchItemCreated", meBenchItemCreated{
@@ -186,7 +184,6 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 			})
 		},
 	)
-
 	if err != nil {
 		return fmt.Errorf("metaengine concurrent apply: %w", err)
 	}

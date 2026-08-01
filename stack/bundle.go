@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -108,6 +109,13 @@ type Bundle struct {
 	capabilities Capabilities
 
 	closers []io.Closer
+
+	// flightRecorder holds an optional [flightrecorder.Recorder] for lifecycle
+	// management and discovery. Set via [WithFlightRecorder]. The consumer
+	// must call Start on the recorder separately (it can fail with
+	// ErrAlreadyEnabled if another recorder is already active).
+	// Bundle.Close calls recorder.Close (stops recording + closes file writers).
+	flightRecorder *flightrecorder.Recorder
 
 	// shutdownDeps declares ordering constraints for Close(). Each edge says
 	// "before must close before after". Close() topologically sorts based on
@@ -266,6 +274,17 @@ func (b *Bundle) EventCodec() codec.Codec {
 // is set), measuring Apply throughput and ExecuteTyped read latency.
 func (b *Bundle) MetaEngine() *metaengine.Store {
 	return b.metaEngine
+}
+
+// FlightRecorder returns the flight recorder registered via
+// [WithFlightRecorder], or nil if none was set. Use the recorder to wire
+// triggers into middleware, decider, or projection host:
+//
+//	recorder := bundle.FlightRecorder()
+//	cmdDisp.Use(middleware.CommandFlightRecorder(recorder,
+//	    flightrecorder.OnErrorOrLatency(100*time.Millisecond)))
+func (b *Bundle) FlightRecorder() *flightrecorder.Recorder {
+	return b.flightRecorder
 }
 
 // Drainer stops accepting new work and finishes in-flight work, bounded by

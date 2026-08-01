@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -233,6 +234,26 @@ func WithMetaEngine(store *metaengine.Store) Option {
 	return func(b *Bundle) {
 		b.metaEngine = store
 		b.registerCloser(store)
+	}
+}
+
+// WithFlightRecorder registers a [flightrecorder.Recorder] for lifecycle
+// management and discovery. Bundle.Close calls recorder.Close (stops
+// recording + closes any file writer). Access the recorder via
+// [Bundle.FlightRecorder] to wire triggers into middleware, decider, or
+// projection host.
+//
+// The consumer must call recorder.Start separately (it can fail with
+// [flightrecorder.ErrAlreadyEnabled] if another recorder is already active):
+//
+//	recorder, _ := flightrecorder.New(flightrecorder.WithFile("crash.trace"))
+//	recorder.Start()
+//	bundle, _ := sqlite.New(dsn, stack.WithFlightRecorder(recorder))
+//	defer bundle.Close() // stops the recorder
+func WithFlightRecorder(recorder *flightrecorder.Recorder) Option {
+	return func(b *Bundle) {
+		b.flightRecorder = recorder
+		b.registerCloser(recorder)
 	}
 }
 

@@ -2364,6 +2364,7 @@ stack/func WithEventCodec
 stack/func WithEventSink
 stack/func WithEventSource
 stack/func WithEventStore
+stack/func WithFlightRecorder
 stack/func WithJournal
 stack/func WithMetaEngine
 stack/func WithPublisher
@@ -2393,6 +2394,7 @@ stack/method Error
 stack/method EventCodec
 stack/method EventStore
 stack/method EventTypes
+stack/method FlightRecorder
 stack/method GracefulClose
 stack/method Handle
 stack/method HandlerFunc
