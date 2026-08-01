@@ -156,6 +156,8 @@ func (w *worker) run(ctx context.Context) {
 
 		restartCount := int(w.restarts.Add(1))
 		if w.opts.maxRestarts >= 0 && restartCount > w.opts.maxRestarts {
+			w.captureFlightRecorder(err)
+
 			w.setStatus(WorkerFailed)
 			w.recordMetric(func(m MetricsRecorder) {
 				m.WorkerFailed(w.name)
@@ -164,8 +166,6 @@ func (w *worker) run(ctx context.Context) {
 			if w.opts.onFailed != nil {
 				w.opts.onFailed(w.name, err.Error())
 			}
-
-			w.captureFlightRecorder(err)
 
 			w.logger.Error("projection worker exhausted restart budget",
 				"projection", w.name, "restarts", restartCount, "error", err)
