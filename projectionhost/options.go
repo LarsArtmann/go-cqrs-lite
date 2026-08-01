@@ -27,17 +27,19 @@ const (
 )
 
 type hostOptions struct {
-	maxRestarts     int
-	backoffInitial  time.Duration
-	backoffMax      time.Duration
-	batchSize       int
-	dlq             DeadLetterStore
-	dlqThreshold    int
-	logger          *slog.Logger
-	metrics         MetricsRecorder
-	subscriber      event.Subscriber
-	shutdownTimeout time.Duration
-	onFailed        func(projectionName, lastError string)
+	maxRestarts           int
+	backoffInitial        time.Duration
+	backoffMax            time.Duration
+	batchSize             int
+	dlq                   DeadLetterStore
+	dlqThreshold          int
+	logger                *slog.Logger
+	metrics               MetricsRecorder
+	subscriber            event.Subscriber
+	shutdownTimeout       time.Duration
+	onFailed              func(projectionName, lastError string)
+	flightRecorder        *flightrecorder.Recorder
+	flightRecorderTrigger flightrecorder.TriggerFunc
 }
 
 func defaultOptions() hostOptions {
@@ -130,4 +132,25 @@ func WithShutdownTimeout(d time.Duration) HostOption {
 // goroutine from within the callback.
 func WithOnFailed(fn func(projectionName, lastError string)) HostOption {
 	return func(o *hostOptions) { o.onFailed = fn }
+}
+
+// WithFlightRecorder captures a trace snapshot when a projection worker
+// exhausts its restart budget and transitions to WorkerFailed. The trigger
+// is evaluated with a [flightrecorder.TriggerContext] describing the failure
+// (Kind: "projection", Type: projection name, Err: terminal error).
+//
+// If trigger is nil, [flightrecorder.OnAlways] is used (capture on every
+// terminal failure). Terminal failures are rare and high-signal — the right
+// default for diagnosing poison-message crashes.
+//
+// The recorder must be started separately (typically at application startup).
+// The snapshot is captured synchronously from the worker goroutine.
+func WithFlightRecorder(
+	recorder *flightrecorder.Recorder,
+	trigger flightrecorder.TriggerFunc,
+) HostOption {
+	return func(o *hostOptions) {
+		o.flightRecorder = recorder
+		o.flightRecorderTrigger = trigger
+	}
 }

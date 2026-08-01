@@ -173,6 +173,26 @@ type Result struct {
 	// were read back correctly. Non-zero indicates data corruption.
 	IntegrityErrors int `json:"integrityErrors,omitempty"`
 
+	// Derived metrics — computed from raw metrics for easy comparison.
+	// These are the decision-grade rates that eliminate manual division.
+
+	// AllocsPerOp is the average heap allocations per event written.
+	// Directly predicts GC pressure: higher allocs → more frequent GC.
+	AllocsPerOp float64 `json:"allocsPerOp,omitempty"`
+
+	// BytesPerOp is the average bytes allocated per event written.
+	// Measures per-event allocation footprint (payload + encoding overhead).
+	BytesPerOp float64 `json:"bytesPerOp,omitempty"`
+
+	// GCPercent is the percentage of wall-clock time spent in GC pauses.
+	// GCPercent > 5 means GC is a significant performance factor.
+	GCPercent float64 `json:"gcPercent,omitempty"`
+
+	// TailRatio is LoadLatency.P99 / LoadLatency.P50. A ratio > 3 means
+	// tail latency is unpredictable — the P50 looks good but real users
+	// experience 3x+ worse at the 99th percentile.
+	TailRatio float64 `json:"tailRatio,omitempty"`
+
 	// Error captures a non-fatal error that prevented a phase from completing
 	// (e.g. backend doesn't support SeekableJournal). The run still succeeds;
 	// the affected metrics are zero-valued.

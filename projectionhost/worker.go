@@ -14,6 +14,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )
@@ -93,6 +94,35 @@ func (w *worker) recordMetric(fn func(MetricsRecorder)) {
 	}
 }
 
+// captureFlightRecorder triggers a flight recorder snapshot on terminal
+// worker failure. No-op when no flight recorder is configured.
+func (w *worker) captureFlightRecorder(failedErr error) {
+	fr := w.opts.flightRecorder
+	if fr == nil {
+		return
+	}
+
+	trigger := w.opts.flightRecorderTrigger
+	if trigger == nil {
+		trigger = flightrecorder.OnAlways()
+	}
+
+	tc := flightrecorder.TriggerContext{
+		Kind: "projection",
+		Type: w.name,
+		Err:  failedErr,
+	}
+
+	if !trigger(tc) {
+		return
+	}
+
+	if snapErr := fr.Snapshot(context.Background()); snapErr != nil {
+		w.logger.Warn("flight recorder snapshot failed on projection failure",
+			"projection", w.name, "error", snapErr)
+	}
+}
+
 func (w *worker) run(ctx context.Context) {
 	defer close(w.done)
 	defer func() {
@@ -134,6 +164,8 @@ func (w *worker) run(ctx context.Context) {
 			if w.opts.onFailed != nil {
 				w.opts.onFailed(w.name, err.Error())
 			}
+
+			w.captureFlightRecorder(err)
 
 			w.logger.Error("projection worker exhausted restart budget",
 				"projection", w.name, "restarts", restartCount, "error", err)

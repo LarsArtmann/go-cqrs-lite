@@ -58,6 +58,22 @@ func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
 	if finalStats.TotalAlloc >= r.baselineMemStats.TotalAlloc {
 		r.result.AllocBytes = finalStats.TotalAlloc - r.baselineMemStats.TotalAlloc
 	}
+
+	// Derived metrics — decision-grade rates computed from raw measurements.
+	if r.result.TotalEvents > 0 {
+		r.result.AllocsPerOp = float64(r.result.AllocCount) / float64(r.result.TotalEvents)
+		r.result.BytesPerOp = float64(r.result.AllocBytes) / float64(r.result.TotalEvents)
+	}
+
+	if r.result.Duration > 0 {
+		r.result.GCPercent = float64(r.result.GCTotalPause) /
+			float64(r.result.Duration) * 100
+	}
+
+	if r.result.LoadLatency.P50 > 0 {
+		r.result.TailRatio = float64(r.result.LoadLatency.P99) /
+			float64(r.result.LoadLatency.P50)
+	}
 }
 
 // runConcurrent runs op for each index in [0, total) using at most

@@ -51,6 +51,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0
@@ -60,3 +61,5 @@ require (
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.10.0
 )
+
+replace github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 => ../flightrecorder
