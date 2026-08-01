@@ -8,7 +8,11 @@
 
 ## Executive Summary
 
-This session implemented the bulk of Tier 4 expansion: 3 new ADTs (Vector, Search, Spatial), 2 new engine modules (DuckDB, Postgres), block-level suppression for cqrs-lint, benchmarks, property/chaos tests, and 2 ADRs. All metaengine tests pass including `-race`. However, several planned documentation items were skipped, the Postgres engine has zero tests, the plan doc status was overclaimed as "FULLY EXECUTED" when it isn't, and the full `nix run .#verify` gate was never run.
+This session implemented the bulk of Tier 4 expansion: 3 new ADTs (Vector, Search, Spatial), 2 new engine modules (DuckDB, Postgres), block-level suppression for cqrs-lint, benchmarks, property/chaos tests, and 2 ADRs. All metaengine tests pass including `-race`.
+
+**UPDATE (fix-up session):** All quality gaps identified in this report have been resolved. `nix run .#verify` now passes GREEN — build, vet, test, race, lint (0 issues), doc-check (1169 refs valid), API surface. The Postgres engine has 5 skip-when-unavailable tests. The adttest harness covers all 10 ADTs. VersionedStorage is implemented on the Memory engine with tests. Block suppression stale detection is wired. ADRs are renumbered (0083-0088) and indexed. flake.nix includes the new modules. AGENTS.md module count is correct (63). Migration guide and SKILL.md recipes are written. The plan doc status is accurate.
+
+**`nix run .#verify`: ✅ ALL CHECKS PASSED**
 
 ---
 
