@@ -189,8 +189,8 @@ func (q *QueryDecl[Q, R]) infer() {
 	hasInputFields := len(nonMetaFields(q.querySample)) > 0
 
 	switch {
-	// ADT-specific read patterns take priority — Counter, Graph, Multimap, Log
-	// have fixed access patterns regardless of input struct fields.
+	// ADT-specific read patterns take priority — Counter, Graph, Multimap, Log,
+	// Vector, Search have fixed access patterns regardless of input struct fields.
 	case q.ADT == ADTCounter:
 		q.ReadPattern = ReadAggregate
 	case q.ADT == ADTGraph:
@@ -199,6 +199,10 @@ func (q *QueryDecl[Q, R]) infer() {
 		q.ReadPattern = ReadMultiLookup
 	case q.ADT == ADTLog:
 		q.ReadPattern = ReadLogTail
+	case q.ADT == ADTVector:
+		q.ReadPattern = ReadVectorSearch
+	case q.ADT == ADTSearch:
+		q.ReadPattern = ReadFullTextSearch
 	// Map and Set can be overridden by pagination/filters into filtered scans.
 	case q.IsPaginated || len(q.Config.filterAccessors) > 0:
 		q.ReadPattern = ReadFilteredScan
