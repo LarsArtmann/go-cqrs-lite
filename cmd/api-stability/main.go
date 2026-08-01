@@ -47,6 +47,7 @@ var modules = []string{
 	"metaengine",
 	"metaengine/pebbleengine",
 	"metaengine/duckdbengine",
+	"metaengine/pgengine",
 	"metaengine/projectionadapter",
 	// Layer 4
 	"storage/memory",

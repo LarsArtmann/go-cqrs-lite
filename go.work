@@ -33,6 +33,7 @@ use (
 	./metaengine
 	./metaengine/pebbleengine
 	./metaengine/duckdbengine
+	./metaengine/pgengine
 	./metaengine/projectionadapter
 	./middleware
 	./otel
