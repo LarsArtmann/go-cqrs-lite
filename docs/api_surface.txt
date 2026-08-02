@@ -1620,6 +1620,7 @@ metaengine/method HealthCheck
 metaengine/method Import
 metaengine/method InTransaction
 metaengine/method IncRead
+metaengine/method IncReificationFailure
 metaengine/method IncWrite
 metaengine/method Insert
 metaengine/method Insert
@@ -1697,6 +1698,7 @@ metaengine/method ReadNsPerOp
 metaengine/method Record
 metaengine/method Record
 metaengine/method RegisterQuery
+metaengine/method ReificationFailures
 metaengine/method Replay
 metaengine/method Replay
 metaengine/method Report
