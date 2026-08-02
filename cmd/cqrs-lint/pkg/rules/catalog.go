@@ -670,5 +670,14 @@ func apiRules() []RuleInfo {
 			Description: "Struct field named *ID with type string/int — use id.Of[T] branded ID for type safety",
 			AutoFix:     false,
 		},
+		{
+			ID:          "A033",
+			Name:        "branded-id-string-roundtrip",
+			Category:    "api",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "id.Parse[T](x.String()) — pointless branded-ID roundtrip that discards the typed value and re-runs validation",
+			AutoFix:     false,
+		},
 	}
 }
