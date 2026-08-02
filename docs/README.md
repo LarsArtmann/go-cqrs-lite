@@ -39,7 +39,7 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Architecture Decision Records (ADR)
 
-78 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+89 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                        | Title                                                   | Status                   |
 | ---------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
@@ -131,6 +131,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0088](adr/0088-block-level-suppression.md)                | Block-level suppression for cqrs-lint                   | Accepted                 |
 | [0089](adr/0089-flight-recorder.md)                        | Flight Recorder integration                             | Accepted                 |
 | [0090](adr/0090-benchkit-evidence-metrics.md)              | Benchkit evidence-grade metrics                         | Accepted                 |
+| [0091](adr/0091-sse-consolidation-decision.md)              | SSE consolidation decision                              | Accepted                 |
 
 ## API Reference
 

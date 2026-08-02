@@ -220,6 +220,74 @@ func lookupFieldType(fields map[string]reflect.Type, name string) (reflect.Type,
 	return nil, false
 }
 
+// BuildColumnarLayoutPlan creates a LayoutPlan that stores every exported field
+// of the result type as a native SQL column. This is the "columnar-native"
+// layout: the engine stores the value's fields directly as typed columns instead
+// of a JSON blob, enabling vectorized scans and aggregations on columnar engines
+// such as DuckDB. The key and value columns are still present so MapGet can
+// reconstruct the original value without a full-column scan.
+//
+// Field names respect json tags (same as the engine's extractFields). When the
+// result type is not a struct the plan contains only key and value columns.
+func BuildColumnarLayoutPlan(collection string, resultType reflect.Type) LayoutPlan {
+	table := "meta_planned_" + sanitize(collection)
+
+	seen := make(map[string]bool)
+	var columns []PlannedColumn
+
+	if resultType.Kind() == reflect.Pointer {
+		resultType = resultType.Elem()
+	}
+
+	if resultType.Kind() == reflect.Struct {
+		for f := range resultType.Fields() {
+			if !f.IsExported() {
+				continue
+			}
+
+			name := layoutJSONFieldName(f)
+			if name == "" || seen[name] {
+				continue
+			}
+			seen[name] = true
+
+			columns = append(columns, PlannedColumn{Name: name, Type: sqlTypeOf(f.Type)})
+		}
+	}
+
+	// Sort columns alphabetically for deterministic DDL.
+	sort.Slice(columns, func(i, j int) bool {
+		return columns[i].Name < columns[j].Name
+	})
+
+	indexes := make([]PlannedIndex, 0, len(columns))
+	for _, c := range columns {
+		indexes = append(indexes, PlannedIndex{
+			Name:    fmt.Sprintf("idx_%s_%s", table, c.Name),
+			Columns: []string{c.Name},
+		})
+	}
+
+	return LayoutPlan{
+		Collection: collection,
+		Table:      table,
+		Columns:    columns,
+		Indexes:    indexes,
+	}
+}
+
+// layoutJSONFieldName returns the JSON field name for a struct field, respecting
+// json tags. Falls back to the Go field name when no tag is present.
+func layoutJSONFieldName(f reflect.StructField) string {
+	if tag := f.Tag.Get("json"); tag != "" {
+		if name, _, _ := strings.Cut(tag, ","); name != "" {
+			return name
+		}
+	}
+
+	return f.Name
+}
+
 func sqlTypeOf(t reflect.Type) string {
 	if t.Kind() == reflect.Pointer {
 		t = t.Elem()

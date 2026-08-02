@@ -203,6 +203,16 @@ type LayoutPlanner interface {
 	ApplyLayout(collection string, filterFields, sortFields []string) error
 }
 
+// LayoutPlanApplier is an optional extension of LayoutPlanner. Engines that
+// implement this interface receive the fully-built LayoutPlan (including
+// reflection-derived column types from the result type) instead of rebuilding
+// it from field names. This enables accurate native types for columnar layouts
+// (e.g. DuckDB/INTEGER vs REAL) and all-fields extraction via WithColumnarLayout.
+type LayoutPlanApplier interface {
+	LayoutPlanner
+	ApplyLayoutPlan(plan LayoutPlan) error
+}
+
 // RawValueReader is an optional capability: engines that can read a value's raw
 // JSON bytes without decoding to any. ExecuteTyped prefers this path for point
 // lookups, avoiding the double-decode tax (any → reify → R becomes raw → R,

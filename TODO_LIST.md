@@ -1,7 +1,7 @@
 # TODO List
 
 **Updated:** 2026-08-02
-**Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
+**Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
 
@@ -13,105 +13,101 @@ and is **never** duplicated here.
 
 ---
 
-## Metaengine — Open Work
+## Metaengine
 
-> The metaengine is production-ready: **5 engines** (memory, SQLite, Pebble,
-> DuckDB, Postgres), 10 ADTs (7 original + Vector/Search/Spatial), rule pipeline,
-> materialize-vs-replay cost model, StorageLayout + cost matrix, SerializablePlan,
-> VersionedStorage (temporal), StreamScan, ScanResult explicit HasMore, SSE
-> delivery, Watcher, PrefetchCache, TypedReader, QueryBuilder, property-based
-> cross-engine parity testing, Pebble sort index (1,233x speedup), Fold sealed
-> interface. All known bugs are fixed. See CHANGELOG `[Unreleased]` for full
-> detail.
+> 5 engines (Memory, SQLite, Pebble, DuckDB, Postgres), 10 ADTs, pushdown +
+> layout planning, rule pipeline, materialize-vs-replay, VersionedStorage,
+> streaming, and watcher/SSE delivery are shipped. Remaining work is
+> verification, typed APIs, and advanced indexing.
 
-- [x] ~~**Wire dead code from data model refactor**~~ — **DONE** (2026-08-02).
-      `ApplyError` now wraps all fold errors in `applyFold` (structured context:
-      query, event type, fold kind). `Valid()` methods are called at `Plan()` time
-      for ADT, ReadPattern, and each FoldKind. `NsPerRead`/`NsPerWrite` were
-      already wired.
-- [x] ~~**Exhaustiveness guard test**~~ — **DONE** (2026-08-02). Compile-time
-      test ensuring all Fold concrete types are handled in `applyFold` type switch
-      (prevents silent fallthrough when a new fold type is added).
-- [x] ~~**10M-event soak test**~~ — **DONE** (2026-08-02). `TestSoak_MemoryBounded_10M`
-      in `metaengine/soak_10m_test.go`: 10M events into 1000 keys → 0.1 MB heap growth,
-      flat growth curve. Verifies O(keys) bound, correctness of accumulated totals,
-      and no sustained segment growth. Skips in `-short` mode and with `SOAK_SKIP_10M=1`.
-- `[ ]` **`metaengine-gen` code generator** — typed Store methods from query
-  declarations (CLI tool, similar to `cqrs-gen`). Go AST parsing + template
-  generation.
-- `[ ]` **Generic `ScanResult[T]`** — replace `[]any` with generic typed slice
-  (currently `ScanResult{Items []any}`). Breaking API change; needs major
-  version bump.
-- `[ ]` **Boundary keys-type validation** — enforce that map keys passed to
-  engines match the declared key type at the Store boundary (not just at fold
-  time).
-- `[ ]` **Watcher typed channel** — `Watcher[V]` sends `any`, not typed `V`.
-  SQLite engine type assertion can silently fail.
-- [x] ~~**DuckDB LayoutPlanner**~~ — **DONE** (2026-08-02). DuckDB engine now
-      implements `LayoutPlanner` via dedicated planned tables with extracted columns
-      and ART indexes (same pattern as SQLite). `ApplyLayout` creates a per-collection
-      table; `MapSet`/`MapGet`/`MapDelete`/`PushdownMapScan` dispatch to the planned
-      table with direct column references instead of `json_extract`, enabling
-      DuckDB's zone maps to prune data blocks. 8 tests in `layout_planner_cgo_test.go`.
-- `[ ]` **Postgres GIN containment indexes** — `@>` operator for JSONB path
-  queries. Currently only expression indexes (B-tree on JSONB paths).
-- `[ ]` **DuckDB columnar-native storage** — DuckDB stores JSON as VARCHAR;
-  columnar scans not leveraged. Vectorized GROUP BY for CounterGet would use
-  DuckDB's native columnar engine.
-- [x] ~~**SSE consolidation**~~ — **DONE** (2026-08-02). ADR-0091 documents
-      the intentional split between `metaengine.ServeSSE` (read-model push) and
-      `transport/http.SSEBroker` (event stream push). Different layers, different
-      replay strategies, different module boundaries — merging would violate
-      the metaengine zero-dependency principle.
-- `[ ]` **Vector/Search/Spatial backends** — currently Memory-only (brute-force).
-  Future: DuckDB VSS extension (vector), Postgres tsvector (search), PostGIS
-  (spatial). See ROADMAP.
+- [ ] 🔥 **Run full `nix run .#verify` gate** — confirm whole-project green after
+  the 2026-08-02 watcher reification, DuckDB LayoutPlanner, and 10M soak test
+  changes. Multiple recent sessions skipped the project-wide gate and declared
+  module-level green only. Evidence: `docs/status/2026-08-02_19-47_10M-soak-test.md`,
+  `docs/status/2026-08-02_19-47_DuckDB-LayoutPlanner.md`,
+  `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`,
+  `docs/status/2026-08-02_17-37_docs-health-and-update-old-docs-brutal-status.md`.
+
+- [ ] 🔥 **10M soak test verification & hardening**
+  - Add a 100K-event fast smoke variant that runs even when `SOAK_SKIP_10M=1`
+    (`metaengine/soak_10m_test.go`).
+  - Document `SOAK_SKIP_10M` in `AGENTS.md` / `CONTRIBUTING.md`.
+  - Add `runtime.MemStats.TotalAlloc` delta measurement in addition to heap.
+  - Run `TestSoak_MemoryBounded_10M` 3× with `-race` and record variance.
+  - Evidence: `docs/status/2026-08-02_19-47_10M-soak-test.md`.
+
+- [ ] **Watcher typed-channel design** — `Watcher[V]` still exposes `chan any`,
+  which forces engine-specific reification in `metaengine/dx.go:163`. The
+  SQLite silent-drop bug is fixed via `reifyWatcherValue`, but a typed channel
+  design would eliminate the runtime type assertion entirely. Evidence:
+  `metaengine/dx.go:163`, `metaengine/watcher_typesafe_test.go:252`.
+
+- [ ] **Cross-engine watcher regression tests** — add explicit delete/value
+  notification tests for DuckDB, Postgres, and Pebble engines. Memory and SQLite
+  are covered; the remaining engines share the same `reify` fallback path but
+  have no dedicated regressions. Evidence:
+  `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
+
+- [ ] **SSE + SQLite Last-Event-ID reconnect test** — verify `ServeSSE` replay
+  works end-to-end with the SQLite-backed `WatchWithSeq` path after the watcher
+  reification fix. Evidence: `metaengine/sse_replay.go:128`,
+  `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
+
+- [ ] **Boundary keys-type validation at Store boundary** — `query.keyType` is
+  enforced during fold registration (`metaengine/fold_classify.go:86`) but not
+  when a caller passes a key directly to `Store.Execute`/`ExecuteTyped`. Add a
+  boundary check that returns `ErrKeyTypeMismatch`. Evidence:
+  `metaengine/execute.go`, `docs/planning/2026-08-01_19-40_metaengine-data-model-refactor.md:271`.
+
+- [ ] **Postgres GIN containment indexes** — add `@>` operator support for JSONB
+  path queries; currently only B-tree expression indexes are implemented.
+  Evidence: `metaengine/pgengine/pushdown.go`, `metaengine/pgengine/engine.go`.
+
+- [ ] **DuckDB LayoutPlanner follow-ups**
+  - Add `explainScan` for planned and standard DuckDB paths (`metaengine/sqlite_engine.go`
+    has it; DuckDB returns placeholder).
+  - Fix `inferColumnType` float truncation (float-named fields map to `INTEGER`,
+    silently truncating values such as `2.0` / `1.50`). Evidence:
+    `docs/status/2026-08-02_19-47_DuckDB-LayoutPlanner.md`.
+  - Centralize planned-table helpers (`extractFields`, `jsonFieldName`,
+    `quoteIdent`, `plansColumnCompatible`) that are currently duplicated between
+    `metaengine/planned_sqlite.go` and `metaengine/duckdbengine/layout_planner.go`.
+  - Document the no-backfill semantics of `ApplyLayout` (existing rows in
+    `meta_map` remain invisible to planned-table queries).
+  - Add a DuckDB layout benchmark.
+  - Add `adttest` matrix coverage for the `LayoutPlanner` capability.
+  - Evidence: `docs/status/2026-08-02_19-47_DuckDB-LayoutPlanner.md`.
+
+- [ ] **Document `metaengine` watcher delete semantics** — delete notifications
+  now deliver the zero value of `V` after the reification fix; this contract change
+  should be documented in `metaengine/README.md` or `metaengine/COOKBOOK.md`.
+  Evidence: `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
+
+- [ ] **Add CHANGELOG entry for watcher reification fix** — the fix is in
+  `metaengine/dx.go` and `metaengine/sse_replay.go` but is not recorded in
+  `CHANGELOG.md`.
+
+> Long-term metaengine work (`generic ScanResult[T]`, `metaengine-gen` code
+> generator, Vector/Search/Spatial engine backends, DuckDB columnar-native storage)
+> lives in [ROADMAP.md](ROADMAP.md).
 
 ---
 
-## cqrs-lint — Open Work
+## cqrs-lint
 
-> The linter has **181 rules** across 10 categories. Import-alias resolution,
-> block-level suppression, self-lint mode, and D/E-series migrations are complete.
-> Recently added: A033 (branded-ID string roundtrip), C037 (snapshot/event codec
-> mismatch), block-level suppression (ADR-0088).
->
-> **Round-2 consumer feedback processed (2026-08-02):** B022 bug fixed,
-> P012/P013 cross-file blindness fixed, config-level rule disabling +
-> `--exclude-rules` shipped, suppression parser accepts Go-idiomatic `// cqrs-lint:`,
-> S006 over-broad `"total"` keyword removed, C036 shared-backend detection added,
-> unknown-rule-ID stale suppression detection, `init --preset`, `--help`
-> suppression docs. See the
-> [round-2 review](docs/feedback/reviewed/2026-08-02_cqrs-lint-round-2-review.md).
+> 181 rules across 10 categories. Config-level disabling, block-level suppression,
+> A033/C037, import-alias resolution, and self-lint mode are shipped. Remaining
+> work is validation and finishing the Pareto backlog.
 
-- `[x]` ~~**Config-level rule disabling**~~ — **DONE** (2026-08-02). Added
-  `"rules": {"disable": [...]}` in `.cqrs-lint.json` + `--exclude-rules` CLI flag.
-- `[ ]` 🔥 **Run cqrs-lint against real consumer projects** — validate FP rate
-  against Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync. Consumer
-  feedback round 2 (bank-sync + browser-history) processed; see
-  [review](docs/feedback/reviewed/2026-08-02_cqrs-lint-round-2-review.md).
-- `[x]` ~~**Fix B022 bug**~~ — **DONE** (2026-08-02). Suggestion text corrected to
-  `event.CommandCausalityEnricher`; `WithEnricher(event.CommandCausalityEnricher)`
-  now correctly exempted.
-- `[x]` ~~**Fix P012/P013 cross-file blindness**~~ — **DONE** (2026-08-02). Only
-  files with direct `sql.Open("sqlite",...)` are flagged; constructor wrappers
-  (`sqlite.New`, `NewSQLiteBackend`) are excluded.
-- [x] ~~**C037 scope expansion**~~ — **DONE** (2026-08-02). Now covers all 4
-      typed stores: snapshot, command, query, and kv (via `WithTypedCodec`).
-- `[ ]` **F009/F015/F017 feature-profile gating** — fire on CLI projects where
-  modules are deliberately not used (missing feature-profile check). Requires
-  adding `HasAsyncBus` to the feature profile.
-- [x] ~~**`--fix` support for D007**~~ — **DONE** (2026-08-02). D007 now emits
-      per-call-site findings with `FixStrategyDirect`. `--fix` replaces
-      `event.NewEvent(` with `event.New(` via the existing `CQRSFixProvider`.
-      Multiple occurrences handled via pipeline iteration (MaxIterations=5).
-- `[ ]` **Domain-based severity calibration (L1.5)** — makes all rules smarter
-  via domain context (financial aggregates get stricter rules). Strategic item;
-  deferred since 2026-07-30.
-- `[ ]` **~14 remaining backlog items** — see the
+- [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate false-positive
+  rates against Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
+  This is the single highest-value non-coding task for cqrs-lint trustworthiness.
+  Evidence: `docs/status/2026-08-02_16-29_cqrs-lint-rules-and-metaengine-verification.md:162`.
+
+- [ ] **~14 remaining backlog items** — see the
   [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
-  Open: L1.18 (config inheritance), L1.29 (event-type string typo detection),
-  L1.30–L1.33 (deep pattern detection), L1.47–L1.51 (new categories DOC/OBS/RES/DI).
+  Highest impact: L1.29 event-type string typo detection, L1.30–L1.33 deep pattern
+  detection, L1.18 config inheritance, L1.47–L1.51 new rule categories (DOC/OBS/RES/DI).
 
 ---
 
@@ -123,21 +119,15 @@ and is **never** duplicated here.
 - [BLOCKED] **Push `stack/duckdb/v4.0.0`, `metaengine/pgengine/v4.0.0`,
   `metaengine/duckdbengine/v4.0.0` tags** — all three tags created locally but
   not pushed (per safety rules). Consumers get 404 from Go proxy until pushed.
-- [x] ~~**MySQL testcontainer privilege fix**~~ — **DONE** (2026-08-02).
-      Replaced fragile `ctr.Exec` GRANT with Go-side `database/sql` root connection
-  - retry loop (`waitForMySQLReady`). go-sql-driver/mysql v1.10+ supports
-    caching_sha2_password, eliminating the auth issue.
-- [x] ~~**Investigate `TestRun_Postgres_Recovery` benchkit failure**~~ —
-      **DONE** (2026-08-02). Investigation: the test is well-designed (per-test
-      database isolation, 90s timeout, skips without Docker). The flake is a CI
-      resource issue (Docker testcontainer startup, parallel contention), not a
-      code bug. No code fix needed.
-- [x] ~~**Investigate `TestProperty_SQLiteTTLExpiry` flake**~~ — **DONE**
-      (2026-08-02). Root cause: (1) `newTestStore(t)` registered cleanup on `t`
-      not `rt`, accumulating hundreds of open SQLite connections across rapid
-      iterations; (2) 50ms TTL + 100ms sleep was too tight under -race. Fixed:
-      per-iteration store creation/cleanup via `defer`, generous 200ms TTL +
-      500ms sleep. Stale rapid failure files cleaned.
+
+---
+
+## Docs & Project Health
+
+- [ ] **Fix FEATURES.md module matrix error** — `stack/contracttest` and
+  `stack/sqlopt` are listed as independent modules but they are sub-packages of
+  `stack/` with no `go.mod`. Only 9 stack presets have their own `go.mod`.
+  Evidence: `docs/status/2026-08-02_17-37_docs-health-and-update-old-docs-brutal-status.md`.
 
 ---
 

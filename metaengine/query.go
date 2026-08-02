@@ -15,6 +15,7 @@ type QueryConfig struct {
 	TTL             int64 // nanoseconds; 0 = no TTL
 	filterAccessors []filterAccessor
 	sortAccessor    sortAccessor
+	columnarLayout  bool
 }
 
 // Volume sets the expected query volume (events/sec) for cost estimation.
@@ -25,6 +26,20 @@ func Volume(n int64) QueryOption {
 // WithLatencyBudget sets the target latency budget for engine selection.
 func WithLatencyBudget(ms int64) QueryOption {
 	return func(c *QueryConfig) { c.LatencyBudgetMs = ms }
+}
+
+// WithColumnarLayout requests a fully columnar physical layout for this query.
+// When the assigned engine supports LayoutPlanner/LayoutPlanApplier, the
+// planner extracts ALL exported fields of the result type R into native SQL
+// columns (not only the filtered/sorted fields). This lets columnar engines
+// such as DuckDB run vectorized scans, GROUP BY, and aggregations directly on
+// native column values instead of decoding JSON blobs.
+//
+// The layout is applied automatically during Plan() or RegisterQuery(). The
+// engine must implement LayoutPlanner; accurate SQL types require
+// LayoutPlanApplier (currently implemented by DuckDB and SQLite).
+func WithColumnarLayout[R any]() QueryOption {
+	return func(c *QueryConfig) { c.columnarLayout = true }
 }
 
 // filterAccessor stores a typed closure that extracts a filterable field value
