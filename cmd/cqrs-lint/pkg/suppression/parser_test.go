@@ -252,12 +252,12 @@ func TestSuppression_WorksForAllNewRuleIDs(t *testing.T) {
 
 	// New rules that need suppression verification.
 	newRuleIDs := []string{
-		"C031", "C032", "C033", "C034", "C035", "C036", "C037",
+		"C031", "C032", "C033", "C034", "C035", "C036", "C037", "C038", "C039",
 		"P011", "P012", "P013",
-		"D014", "D015", "D016",
+		"D014", "D015", "D016", "D017",
 		"A032", "A033",
 		"E016", "E017",
-		"S010",
+		"S010", "S011",
 		"F018", "F019", "F020", "F021",
 	}
 
