@@ -15,17 +15,16 @@ and is **never** duplicated here.
 
 ## Metaengine — Remaining Work
 
-> The metaengine is production-ready: 3 engines (memory, SQLite, Pebble),
-> 7-ADT cross-engine parity tests, LayoutPlanner (filter + sort indexes),
-> cursor pagination, SSE delivery, transaction API, ADT test harness,
-> StreamScan (lazy iter.Seq2), ScanCount, property-based parity testing.
-> All known bugs are fixed (including goroutine leak in Watch).
+> The metaengine is production-ready: **5 engines** (memory, SQLite, Pebble,
+> DuckDB, Postgres), 7-ADT cross-engine parity tests, LayoutPlanner
+> (filter + sort indexes), cursor pagination, SSE delivery, transaction API,
+> ADT test harness, StreamScan (lazy iter.Seq2), ScanCount, property-based
+> parity testing. All known bugs are fixed (including goroutine leak in Watch).
+> pgengine and duckdbengine are shipped (PushdownScan + LayoutPlanner); see
+> ROADMAP for their remaining sub-tasks (GIN containment indexes, vectorized
+> GROUP BY).
 
 - `[ ]` **10M-event soak test** — verify memory boundedness at scale (currently 50K).
-- `[ ]` **Postgres engine (`pgengine/`)** — JSONB operators, GIN indexes.
-  Multi-day effort. See ROADMAP.
-- `[ ]` **DuckDB analytical engine (`duckdbengine/`)** — columnar OLAP pushdown.
-  Multi-day effort. See ROADMAP.
 - `[ ]` **`metaengine-gen` code generator** — typed Store methods from query
   declarations (CLI tool, similar to `cqrs-gen`).
 
@@ -33,18 +32,21 @@ and is **never** duplicated here.
 
 ## cqrs-lint — Remaining Work
 
-> The linter has **179 rules** across 10 categories. Import-alias resolution,
-> suppression tests, and D/E-series migrations are complete.
+> The linter has **181 rules** across 10 categories. Import-alias resolution,
+> suppression tests, and D/E-series migrations are complete. C017 tracing
+> (L1.9), migration paths in findings (L1.16), and doc links (L1.17) are done.
+> Recently added: A033 (branded-ID string roundtrip), C037 (snapshot/event
+> codec mismatch).
 
-- `[ ]` 🔥 **~29 open items in the improvement backlog** — see the
+- `[ ]` 🔥 **~17 open items in the improvement backlog** — see the
   [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
-  Includes domain-based severity calibration (L1.5), C017 tracing (L1.9),
-  migration paths in findings (L1.16), doc links (L1.17), block-level
-  suppression (L1.22), new categories (DOC/OBS/RES/DI, L1.47–L1.50).
+  Top open items: domain-based severity calibration (L1.5), block-level
+  suppression (L1.22), new categories (DOC/OBS/RES/DI, L1.47–L1.50),
+  event-type string typo detection (L1.29).
 - `[ ]` **Run cqrs-lint against real consumer projects** — validate FP rate
   against Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
-- `[ ]` **cqrs-lint severity + migration paths** — DX improvements (L1.5, L1.16,
-  L1.17). Findings should include fix suggestions and doc links.
+- `[ ]` **cqrs-lint domain-based severity** — (L1.5) makes all rules smarter
+  via domain context (financial aggregates get stricter rules).
 
 ---
 
