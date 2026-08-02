@@ -12,19 +12,19 @@ Resumed from a prior session that implemented the DuckDB columnar-native storage
 
 ### Changes Made (11 tasks, all completed)
 
-| # | Category | File | Change |
-|---|----------|------|--------|
-| 1 | Correctness | `metaengine/layout.go:296` | `sqlTypeOf`: split `float32→REAL`, `float64→DOUBLE`. Both previously mapped to REAL (32-bit), truncating Go's `float64`. |
-| 2 | Correctness | `metaengine/duckdbengine/layout_planner.go:392` | `coerceForColumn`: added `DOUBLE`/`FLOAT`/`FLOAT4`/`FLOAT8` cases. |
-| 3 | Correctness | `metaengine/layout.go:249` | `BuildColumnarLayoutPlan`: skip fields named `key`/`value` (case-insensitive) to prevent DDL column collision. |
-| 4 | API cleanup | `metaengine/query.go:42` | `WithColumnarLayout`: removed decorative `[R any]` generic. `R` was unused. |
-| 5 | Test | `metaengine/duckdbengine/layout_planner_cgo_test.go` | Updated 3 tests to use realistic decimal values (1.99, 0.75, 0.99, 2.49). |
-| 6 | Test | `metaengine/duckdbengine/layout_planner_cgo_test.go` | Added `TestDuckDBEngine_ColumnarDoublePrecision` — Pi roundtrip proves DOUBLE precision. |
-| 7 | Docs | `docs/adr/0092-duckdb-columnar-native-storage.md` | Full ADR (context, decision, consequences, alternatives). |
-| 8 | Docs | `AGENTS.md` | Added columnar-native feature comment + updated duckdbengine description. |
-| 9 | Docs | `TODO_LIST.md` | Marked `coerceForColumn` sub-item as resolved. |
-| 10 | Docs | `docs/README.md` | Indexed ADR-0092. |
-| 11 | Verify | Full repo | `nix run .#verify` GREEN across all 80+ modules. |
+| #   | Category    | File                                                 | Change                                                                                                                   |
+| --- | ----------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Correctness | `metaengine/layout.go:296`                           | `sqlTypeOf`: split `float32→REAL`, `float64→DOUBLE`. Both previously mapped to REAL (32-bit), truncating Go's `float64`. |
+| 2   | Correctness | `metaengine/duckdbengine/layout_planner.go:392`      | `coerceForColumn`: added `DOUBLE`/`FLOAT`/`FLOAT4`/`FLOAT8` cases.                                                       |
+| 3   | Correctness | `metaengine/layout.go:249`                           | `BuildColumnarLayoutPlan`: skip fields named `key`/`value` (case-insensitive) to prevent DDL column collision.           |
+| 4   | API cleanup | `metaengine/query.go:42`                             | `WithColumnarLayout`: removed decorative `[R any]` generic. `R` was unused.                                              |
+| 5   | Test        | `metaengine/duckdbengine/layout_planner_cgo_test.go` | Updated 3 tests to use realistic decimal values (1.99, 0.75, 0.99, 2.49).                                                |
+| 6   | Test        | `metaengine/duckdbengine/layout_planner_cgo_test.go` | Added `TestDuckDBEngine_ColumnarDoublePrecision` — Pi roundtrip proves DOUBLE precision.                                 |
+| 7   | Docs        | `docs/adr/0092-duckdb-columnar-native-storage.md`    | Full ADR (context, decision, consequences, alternatives).                                                                |
+| 8   | Docs        | `AGENTS.md`                                          | Added columnar-native feature comment + updated duckdbengine description.                                                |
+| 9   | Docs        | `TODO_LIST.md`                                       | Marked `coerceForColumn` sub-item as resolved.                                                                           |
+| 10  | Docs        | `docs/README.md`                                     | Indexed ADR-0092.                                                                                                        |
+| 11  | Verify      | Full repo                                            | `nix run .#verify` GREEN across all 80+ modules.                                                                         |
 
 ---
 
@@ -72,12 +72,14 @@ Resumed from a prior session that implemented the DuckDB columnar-native storage
 ## E) WHAT WE SHOULD IMPROVE
 
 ### Process
+
 1. **Stop shipping known bugs.** The prior session documented 3 bugs in its own status report and shipped them anyway. "Functionally complete" should mean "correct," not "compiles and tests pass with workarounds."
 2. **Test with realistic data from day one.** Power-of-2-safe floats are a red flag. If tests need special values to pass, the implementation is wrong.
 3. **Test field names that real users would use.** `Value`, `Data`, `Type`, `ID` — these are extremely common Go struct field names. None were tested.
 4. **The prior session's status report had a section literally called "TOTALLY FUCKED UP" listing the REAL precision issue** — and it still took a new session to fix it. When you identify a correctness bug, fix it immediately, don't document it for later.
 
 ### Architecture
+
 5. **The two-dispatch-path design (`LayoutPlanApplier` vs `LayoutPlanner`) is defensible but creates a silent degradation path.** On SQLite, `WithColumnarLayout` silently falls back to name heuristics. This should either be documented loudly or SQLite should implement `LayoutPlanApplier`.
 6. **`sqlTypeOf` is shared between all engines.** The REAL→DOUBLE fix benefits all engines, but only DuckDB currently uses the reflection-derived types via `LayoutPlanApplier`. SQLite/Postgres get the old name heuristic.
 7. **No integration test through `projectionadapter` or `stack/duckdb`.** The columnar feature is tested only at the engine level, not through the full projection lifecycle.
@@ -87,6 +89,7 @@ Resumed from a prior session that implemented the DuckDB columnar-native storage
 ## F) Up to 50 Things We Should Get Done Next
 
 ### High Priority (correctness & completeness)
+
 1. Implement `LayoutPlanApplier` on `sqliteEngine` so `WithColumnarLayout` produces accurate column types on SQLite too.
 2. Implement `LayoutPlanApplier` on `pgEngine` for the same reason.
 3. Add schema evolution support (`ALTER TABLE ADD COLUMN`) when result type changes between `Plan()` calls.
@@ -101,6 +104,7 @@ Resumed from a prior session that implemented the DuckDB columnar-native storage
 12. Test `WithColumnarLayout` dispatch on Pebble engine (graceful no-op).
 
 ### Medium Priority (documentation & DX)
+
 13. Add `WithColumnarLayout` recipe to `metaengine/COOKBOOK.md`.
 14. Add `WithColumnarLayout` to `metaengine/README.md` feature list.
 15. Update `CHANGELOG.md [Unreleased]` with REAL→DOUBLE fix + generic removal.
@@ -111,6 +115,7 @@ Resumed from a prior session that implemented the DuckDB columnar-native storage
 20. Centralize planned-table helpers (`extractFields`, `jsonFieldName`, `quoteIdent`, `plansColumnCompatible`) duplicated between `planned_sqlite.go` and `duckdbengine/layout_planner.go`.
 
 ### Lower Priority (polish & exploration)
+
 21. Add `WithColumnarLayout` auto-detection for Counter/Aggregate read patterns on DuckDB.
 22. Explore columnar compression (DuckDB native) for large planned tables.
 23. Add `LayoutPlan` JSON serialization for plan persistence across restarts.
