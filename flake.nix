@@ -367,6 +367,8 @@
             ldflags = [
               "-s"
               "-w"
+              "-X main.commitHash=${builtins.substring 0 7 (self.rev or self.dirtyRev or "dev")}"
+              "-X main.buildDate=${self.lastModifiedDate or "unknown"}"
             ];
 
             env = {

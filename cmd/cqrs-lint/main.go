@@ -17,6 +17,13 @@ import (
 
 const version = "0.3.0"
 
+// commitHash and buildDate are injected via -ldflags at build time (Nix flake,
+// CI). When empty (local `go build`), the version output omits them.
+var (
+	commitHash string
+	buildDate  string
+)
+
 // errFindingsWithErrors signals that error-severity findings were found.
 // Returned from run() so cmdguard sets a non-zero exit code.
 var errFindingsWithErrors = errors.New("findings with error severity")

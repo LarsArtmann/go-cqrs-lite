@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 )
@@ -50,12 +51,32 @@ func setupVersionCommand(cli *cmdguard.CLI[AppConfig]) error {
 		"version",
 		cmdguard.NoFlags{},
 		func(_ context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
-			fmt.Printf("cqrs-lint %s\n", version)
-
+			fmt.Println(versionString())
 			return nil
 		},
 		cmdguard.WithShort("Print version"),
 		cmdguard.WithNoArgs(),
 	)
 	return registerCommand(cli, "version", cmd, err)
+}
+
+// versionString returns the full version string, including commit hash and
+// build date when they were injected via ldflags. Local `go build` runs
+// produce a bare "cqrs-lint X.Y.Z"; Nix builds include provenance.
+func versionString() string {
+	var parts []string
+
+	if commitHash != "" {
+		parts = append(parts, "commit: "+commitHash)
+	}
+
+	if buildDate != "" {
+		parts = append(parts, "built: "+buildDate)
+	}
+
+	if len(parts) == 0 {
+		return fmt.Sprintf("cqrs-lint %s", version)
+	}
+
+	return fmt.Sprintf("cqrs-lint %s (%s)", version, strings.Join(parts, ", "))
 }
