@@ -15,7 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
-const version = "0.2.2"
+const version = "0.3.0"
 
 // errFindingsWithErrors signals that error-severity findings were found.
 // Returned from run() so cmdguard sets a non-zero exit code.

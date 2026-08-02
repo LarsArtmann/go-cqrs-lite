@@ -140,9 +140,21 @@ func checkSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 	ruleID := string(f.Rule)
 	line := f.Position.Line // 1-based
 
-	// Check the finding's own line and the line above.
-	for _, checkLine := range []int{line, line - 1} {
-		if checkLine < 1 || checkLine > len(lines) {
+	// Check the finding's own line.
+	if line >= 1 && line <= len(lines) {
+		suppressedRules := ParseSuppressions(lines[line-1])
+		if _, ok := suppressedRules[ruleID]; ok {
+			return true
+		}
+	}
+
+	// Check the line above, skipping blank lines. A blank line is never
+	// meaningful content — the suppression intent is clearly directed at
+	// the next declaration. Without this skip, a blank line between a
+	// suppression comment and the finding silently breaks suppression.
+	for checkLine := line - 1; checkLine >= 1; checkLine-- {
+		text := strings.TrimSpace(lines[checkLine-1])
+		if text == "" {
 			continue
 		}
 
@@ -150,6 +162,8 @@ func checkSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 		if _, ok := suppressedRules[ruleID]; ok {
 			return true
 		}
+
+		break // first non-blank line above — stop scanning
 	}
 
 	return false

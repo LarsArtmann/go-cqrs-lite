@@ -162,15 +162,100 @@ func fold() {
 	}
 }
 
+func TestSuppression_SkipsBlankLinesWhenScanningUpward(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	filePath := tmpDir + "/example.go"
+
+	// The suppression is on line 5, then a blank line, then the finding on line 7.
+	// Before the fix, the blank line broke suppression scanning.
+	content := `package main
+
+import "time"
+
+//cqrs-lint:ignore(C007) domain clock
+
+func fold() {
+	now := time.Now()
+	_ = now
+}
+`
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	filter := suppression.NewSuppressionFilter()
+
+	f, _ := finding.NewBuilder(
+		"C007", "cqrs-lint", "time.Now in decider",
+		finding.SeverityWarning, finding.Pos(finding.FilePath(filePath), 7, 1),
+	).Build()
+
+	out, err := filter.Transform(context.TODO(), []finding.Finding{f})
+	if err != nil {
+		t.Fatalf("Transform() error: %v", err)
+	}
+	if len(out) != 1 {
+		t.Fatalf("got %d findings, want 1", len(out))
+	}
+	if out[0].Suppression == nil {
+		t.Fatal("finding should be suppressed despite blank line between comment and finding")
+	}
+}
+
+func TestSuppression_DoesNotSkipNonBlankLines(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	filePath := tmpDir + "/example.go"
+
+	// The suppression is on line 5 for C007, but line 6 is a non-blank line
+	// with a different comment. The finding on line 7 should NOT be suppressed
+	// because the scan stops at the first non-blank line above.
+	content := `package main
+
+import "time"
+
+//cqrs-lint:ignore(C007) domain clock
+// some other comment
+func fold() {
+	now := time.Now()
+	_ = now
+}
+`
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	filter := suppression.NewSuppressionFilter()
+
+	f, _ := finding.NewBuilder(
+		"C007", "cqrs-lint", "time.Now in decider",
+		finding.SeverityWarning, finding.Pos(finding.FilePath(filePath), 7, 1),
+	).Build()
+
+	out, err := filter.Transform(context.TODO(), []finding.Finding{f})
+	if err != nil {
+		t.Fatalf("Transform() error: %v", err)
+	}
+	if len(out) != 1 {
+		t.Fatalf("got %d findings, want 1", len(out))
+	}
+	if out[0].Suppression != nil {
+		t.Fatal("finding should NOT be suppressed — non-blank line between comment and finding breaks the scan")
+	}
+}
+
 func TestSuppression_WorksForAllNewRuleIDs(t *testing.T) {
 	t.Parallel()
 
 	// New rules that need suppression verification.
 	newRuleIDs := []string{
-		"C031", "C032", "C033", "C034",
-		"P011", "P012",
-		"D014", "D015",
-		"A032",
+		"C031", "C032", "C033", "C034", "C035", "C036", "C037",
+		"P011", "P012", "P013",
+		"D014", "D015", "D016",
+		"A032", "A033",
 		"E016", "E017",
 		"S010",
 		"F018", "F019", "F020", "F021",
