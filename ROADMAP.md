@@ -87,10 +87,18 @@ production maturity chain is complete:
 - ✅ **Property-based cross-engine parity** — `pgregory.net/rapid` generates
   random operation sequences, verifies Memory and SQLite agree
 - ✅ **Postgres testcontainer tests** — first real-DB tests for pgengine
+- ✅ **Dead code wiring** — branded unit types (`NsPerRead`, `NsPerWrite`,
+  `ByteSize`) have `Valid()` called in `planQuery()`. `ApplyError` wraps fold
+  failures in `applyFold()`
+- ✅ **Exhaustiveness guard** — `TestApplyFoldExhaustiveness` count check +
+  mirror switch catches unhandled fold types at test time
+- ✅ **DuckDB LayoutPlanner** — columnar layout planning with type coercion
+  and aggregation via `LayoutPlanApplier`
+- ✅ **Reification failure tracking** — `IncReificationFailure()` /
+  `ReificationFailures()` surfaces type mismatches between planned and stored
+  types
 
-**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** wire dead code from
-data model refactor (branded units, ApplyError, Valid()), exhaustiveness guard
-test, generic `ScanResult[T]`, DuckDB LayoutPlanner, Postgres GIN indexes,
+**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN indexes,
 SSE consolidation ADR.
 
 **Remaining (long-term, ROADMAP):**

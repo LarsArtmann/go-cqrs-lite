@@ -474,9 +474,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Enum validation** — all 6 enum families (`ADT`, `StorageLayout`,
   `FilterOp`, `CursorKind`, `EngineKind`, `SortDirection`) have `Valid()` +
   registries. `AllStorageLayouts()`, `AllADTs()` helpers.
-- **Branded unit types** — `NsPerRead`, `NsPerWrite`, `ByteSize` defined (not
-  yet wired).
-- **`ApplyError`** — structured error type for fold failures (not yet wired).
+- **Branded unit types** — `NsPerRead`, `NsPerWrite`, `ByteSize` defined and
+  wired into `planQuery()` via `Valid()` checks.
+- **`ApplyError`** — structured error type for fold failures, wired into
+  `applyFold()` via deferred wrapping.
 - **README "Internal Architecture" section** added.
 
 #### Metaengine: pgengine + duckdbengine PushdownScan
@@ -575,6 +576,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **ADR-0088** — Block-level suppression
 - **ADR-0089** — Flight recorder
 - **ADR-0090** — Benchkit evidence-grade metrics
+
+#### Metaengine: DuckDB LayoutPlanner, dead code wiring, reification tracking
+
+- **DuckDB LayoutPlanner** — `LayoutPlanApplier` interface + `WithColumnarLayout`
+  query option. Reflection-derived column planning, type coercion
+  (`coerceForColumn`), and aggregation support. Columnar view table enables
+  server-side WHERE/ORDER BY on DuckDB.
+- **Dead code wiring** — branded unit types (`NsPerRead`, `NsPerWrite`,
+  `ByteSize`) have `Valid()` called in `planQuery()`. `ApplyError` wraps fold
+  failures in `applyFold()` via deferred error wrapping.
+- **Exhaustiveness guard** — `TestApplyFoldExhaustiveness` verifies all 12 fold
+  types are handled: count check against `AllFoldKinds()` + mirror type switch
+  with `default: t.Fatalf` catches unhandled new fold types.
+- **Reification failure tracking** — `workloadMeter.IncReificationFailure()` /
+  `ReificationFailures()` surface type mismatches between planned value type and
+  engine stored shape. Non-zero values indicate an engine or planning bug.
+- **gocritic fix** — single-case type switch in `duckdbengine/layout_planner.go`
+  rewritten to `if v, ok := value.(string)` idiom.
+
+#### cqrs-lint: C037 expansion, D007 auto-fix, config presets
+
+- **C037 scope expansion** — now detects codec mismatches across all typed
+  stores: snapshot, command, query, and kv (previously snapshot/event only).
+  Tests cover each store type independently.
+- **D007 `--fix` support** — auto-fix transforms `event.NewEvent(` →
+  `event.New(` at call sites where both constructors are used inconsistently.
+  Uses `go-finding` builder-based `FixStrategyDirect` with before/after code.
+- **Config presets** — `init --preset` generates `.cqrs-lint.json` from named
+  presets: `local-cli`, `library`, `server`, `full-stack`. Each tailors the
+  feature profile and disabled rules for a common project type.
+- **MySQL testcontainer retry** — `waitForMySQLReady` deadline-bounded polling
+  (500ms interval, 10s timeout) replaces fragile host-side DSN manipulation.
 
 ### Fixed
 

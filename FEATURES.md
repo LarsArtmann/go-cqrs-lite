@@ -222,7 +222,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | MemoryEngine                | In-memory backend implementing all backend interfaces including Vector/Search/Spatial                           | 🧪     |
 | SQLite engine               | `SQLiteEngine` wrapping `storage/view.SQLViewStore` — first production backend (ADR-0061)                       | 🧪     |
 | Pebble engine               | `metaengine/pebbleengine` — LSM point reads (~7x faster than SQLite); separate module (ADR-0074)                | 🧪     |
-| DuckDB engine               | `metaengine/duckdbengine` — MapBackend, CounterBackend, PushdownScan; CGo required (ADR-0086)                   | 🧪     |
+| DuckDB engine               | `metaengine/duckdbengine` — MapBackend, CounterBackend, PushdownScan, LayoutPlanner (columnar); CGo required (ADR-0086)  | 🧪     |
 | Postgres engine             | `metaengine/pgengine` — MapBackend, CounterBackend, ScanBackend, PushdownScan (JSONB), LayoutPlanner (ADR-0087) | 🧪     |
 | Planner                     | Cost-based optimizer: assigns engines to queries, produces `PlanResult` with diagnostics                        | 🧪     |
 | Rule pipeline               | `PlanRule` interface + `RulePipeline`. 4 composable rules: schemaRule, layoutRule, writeAmpRule (ADR-0083)      | 🧪     |
@@ -265,6 +265,11 @@ developer never declares "I need a Map" or "I need a Counter."
 | Vector ADT                  | k-NN similarity search (cosine/euclidean/dot). Memory-only (brute-force). ADR-0085                              | 🧪     |
 | Search ADT                  | Full-text search (TF-IDF inverted index). Memory-only (brute-force). ADR-0085                                   | 🧪     |
 | Spatial ADT                 | Geo range queries (haversine distance). Memory-only (brute-force). ADR-0085                                     | 🧪     |
+| DuckDB LayoutPlanner        | Columnar layout planning: `LayoutPlanApplier` with reflection-derived columns, type coercion, aggregation (ADR-0086) | 🧪     |
+| Dead code wiring            | Branded unit types (`NsPerRead`, `NsPerWrite`, `ByteSize`) have `Valid()` called in `planQuery()`. `ApplyError` wraps fold failures in `applyFold` | 🧪     |
+| Exhaustiveness guard        | `TestApplyFoldExhaustiveness` — count check + mirror switch catches unhandled fold types at test time            | 🧪     |
+| Reification failure tracking| `IncReificationFailure()` / `ReificationFailures()` on workloadMeter — surfaces type mismatches between planned and stored types | 🧪     |
+| Columnar layout query option| `WithColumnarLayout` query option enables column-native storage planning for analytical workloads                 | 🧪     |
 
 **Coverage:** 86.1% (verified `go test -cover ./...` 2026-07-27). 174 BDD specs + 150 cross-engine
 meta specs + 12 ADT harness self-tests. The metaengine went through 10+ hardening
@@ -277,10 +282,9 @@ RawValueReader/RawScanReader (single-pass decode), rule pipeline extraction,
 materialize-vs-replay cost model, StorageLayout + cost matrix, SerializablePlan,
 VersionedStorage temporal queries, Fold sealed interface refactor, 5-engine
 cross-engine parity, Vector/Search/Spatial ADTs, pgengine + duckdbengine.
-API surface: 3162 exports.
+API surface: 3194 exports.
 
-Remaining: wire dead code from data model refactor (branded units, ApplyError),
-DuckDB LayoutPlanner, Postgres GIN indexes, SSE consolidation ADR, Vector/
+Remaining: Postgres GIN indexes, SSE consolidation ADR, Vector/
 Search/Spatial engine backends. See [TODO_LIST.md](TODO_LIST.md).
 
 ---
@@ -1088,13 +1092,13 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 | Output formats | Text, JSON, SARIF (GitHub Code Scanning), Markdown | ✅ |
 | Health score | 0-100 score with severity-weighted breakdown | ✅ |
-| Auto-fix | `--fix` / `--dry-run` with CQRSFixProvider (BeforeCode/AfterCode matching) | ✅ |
+| Auto-fix | `--fix` / `--dry-run` with CQRSFixProvider (BeforeCode/AfterCode matching). D007: `event.NewEvent` → `event.New` | ✅     |
 | Suppression comments | `//cqrs-lint:ignore(rule-id) reason` (space after `//` supported, comma-separated IDs supported) | ✅ |
 | Block-level suppression | `//cqrs-lint:ignore-start` / `//cqrs-lint:ignore-end` for range suppression (ADR-0088) | ✅ |
 | Stale suppression detection | `DetectStaleSuppressions` flags suppression comments where no finding fires | ✅ |
 | CLI features | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`, `--min-confidence` | ✅ |
-| Config file | `.cqrs-lint.json` via cmdguard; presets (local-cli, production, library, read-only) | ✅ |
-| Config presets | `local-cli`, `production`, `library`, `read-only` — sugar over feature flags | ✅ |
+| Config file | `.cqrs-lint.json` via cmdguard; presets (local-cli, library, server, full-stack) | ✅     |
+| Config presets | `local-cli`, `library`, `server`, `full-stack` — sugar over feature flags | ✅     |
 | Feature profile system | Auto-detects which go-cqrs-lite modules a consumer uses (store, command-flow, server, soft-delete, tracing, snapshot) and adapts rules | ✅ |
 | Self-lint mode | `IsLibrarySelfLint()` auto-skips 29 consumer-coaching rules when linting the library source | ✅ |
 | Import-alias resolution | `QualifierToImportPath` + `ImportQualifierMap` — rules work with aliased imports | ✅ |
@@ -1106,7 +1110,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | E-series architecture | 17 rules (E001–E017) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
 | 181 total rules | Correctness (36), API (31), boilerplate (28), adoption (21), architecture (17), consistency (16), performance (9), security (9), testing (8), version (6) | ✅ |
 | A033 branded-ID roundtrip | Flags code that converts branded `id.Of[T]` to `string` and back (breaks type safety) | ✅ |
-| C037 codec mismatch | Detects snapshot/event codec mismatches (CBOR events + JSON snapshots = deserialization failure) | ✅ |
+| C037 codec mismatch | Detects codec mismatches across all typed stores: snapshot, command, query, kv (CBOR events + JSON snapshots = deserialization failure) | ✅     |
 
 ---
 
