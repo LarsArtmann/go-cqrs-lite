@@ -20,22 +20,22 @@
 
 ### taskmanager breakdown (40 issues → 0)
 
-| Linter             | Count | Fix applied                                                                 |
-| ------------------ | ----- | --------------------------------------------------------------------------- |
-| `depguard`         | 4     | Added `go-must` to global depguard allow list                               |
-| `err113`           | 1     | Extracted sentinel `errNoFoldForEventType`                                  |
+| Linter             | Count | Fix applied                                                                   |
+| ------------------ | ----- | ----------------------------------------------------------------------------- |
+| `depguard`         | 4     | Added `go-must` to global depguard allow list                                 |
+| `err113`           | 1     | Extracted sentinel `errNoFoldForEventType`                                    |
 | `exhaustive`       | 1     | Reverted cargo-cult cases; `//nolint:exhaustive` with default (see section h) |
-| `gochecknoglobals` | 1     | `//nolint` on `TaskDecider`                                                 |
-| `gochecknoinits`   | 1     | `//nolint` on `init()` in codec_init.go                                     |
-| `goconst`          | 4     | Used `string(Status*)` constants + `jsonKeyStatus`/`jsonKeyUpdated`         |
-| `godoclint`        | 3     | Added doc comments starting with symbol names                               |
-| `ireturn`          | 3     | `//nolint:ireturn` on factory functions                                     |
-| `mnd`              | 11    | Extracted named constants (`snapshotInterval`, `projectionBatchSize`, etc.) |
-| `nilnil`           | 1     | Changed `return nil, nil` → `return nil, fmt.Errorf(...)`                   |
-| `noctx`            | 1     | `meDB.Exec` → `meDB.ExecContext`                                            |
-| `unparam`          | 2     | Removed always-nil error returns from `Start()`/`StartHTTP()`               |
-| `unused`           | 5     | Removed dead code (query type consts, `contextKey`, `loggingMiddleware`)    |
-| `varnamelen`       | 2     | Renamed `bc`→`baseCmd`, `dd`→`dueDate`                                      |
+| `gochecknoglobals` | 1     | `//nolint` on `TaskDecider`                                                   |
+| `gochecknoinits`   | 1     | `//nolint` on `init()` in codec_init.go                                       |
+| `goconst`          | 4     | Used `string(Status*)` constants + `jsonKeyStatus`/`jsonKeyUpdated`           |
+| `godoclint`        | 3     | Added doc comments starting with symbol names                                 |
+| `ireturn`          | 3     | `//nolint:ireturn` on factory functions                                       |
+| `mnd`              | 11    | Extracted named constants (`snapshotInterval`, `projectionBatchSize`, etc.)   |
+| `nilnil`           | 1     | Changed `return nil, nil` → `return nil, fmt.Errorf(...)`                     |
+| `noctx`            | 1     | `meDB.Exec` → `meDB.ExecContext`                                              |
+| `unparam`          | 2     | Removed always-nil error returns from `Start()`/`StartHTTP()`                 |
+| `unused`           | 5     | Removed dead code (query type consts, `contextKey`, `loggingMiddleware`)      |
+| `varnamelen`       | 2     | Renamed `bc`→`baseCmd`, `dd`→`dueDate`                                        |
 
 ### Verification
 
@@ -230,12 +230,12 @@ All 4 self-identified mistakes reviewed against the actual codebase contracts. O
 
 ### Verdicts
 
-| Mistake | Verdict | Action | Reasoning |
-| ------- | ------- | ------ | --------- |
-| #2 (nil-nil in projection.go) | **CORRECT — kept** | No change | Researched `Materialize.handleEvent` (stack/materialize.go:185-212): `OnUpdate` is ONLY called when `Store.Get` succeeds — `existing` is always non-nil. The old `(nil, nil)` would call `Store.Set(ctx, key, nil)` = silent data corruption. Error return for an impossible state is strictly safer. DLQ concern is moot: this code path cannot be reached under normal operation. |
-| #1 (Start/StartHTTP void return) | **IMPROVED — better docs** | Added doc comments explaining async error handling via logger | Void return is honest: `ProjHost.Start(ctx)` blocks, so the error is always async in the goroutine. `unparam` correctly identified the always-nil error. The doc comments now explain WHY there's no error return and HOW errors are surfaced (logger). |
-| #3 (go-must in global depguard) | **CORRECT — kept** | No change | The depguard allow-list is a GLOBAL policy list of ALL allowed imports across the 64-module monorepo. Every other dependency (pgx, duckdb, pebble, etc.) is listed globally regardless of which modules use them. The CI portability concern about the local `replace` is pre-existing and unrelated to the lint cleanup. |
-| #4 (exhaustive switch cargo-cult) | **FIXED — reverted** | Reverted to clean 2-case + default with `//nolint:exhaustive` | The 4 extra cases (Transient, Corruption, Infrastructure, Orchestration) were identical to the existing default. Listing them added noise without adding correctness. The `//nolint:exhaustive` directive with a justification comment is cleaner than cargo-cult enumeration. |
+| Mistake                           | Verdict                    | Action                                                        | Reasoning                                                                                                                                                                                                                                                                                                                                                                           |
+| --------------------------------- | -------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #2 (nil-nil in projection.go)     | **CORRECT — kept**         | No change                                                     | Researched `Materialize.handleEvent` (stack/materialize.go:185-212): `OnUpdate` is ONLY called when `Store.Get` succeeds — `existing` is always non-nil. The old `(nil, nil)` would call `Store.Set(ctx, key, nil)` = silent data corruption. Error return for an impossible state is strictly safer. DLQ concern is moot: this code path cannot be reached under normal operation. |
+| #1 (Start/StartHTTP void return)  | **IMPROVED — better docs** | Added doc comments explaining async error handling via logger | Void return is honest: `ProjHost.Start(ctx)` blocks, so the error is always async in the goroutine. `unparam` correctly identified the always-nil error. The doc comments now explain WHY there's no error return and HOW errors are surfaced (logger).                                                                                                                             |
+| #3 (go-must in global depguard)   | **CORRECT — kept**         | No change                                                     | The depguard allow-list is a GLOBAL policy list of ALL allowed imports across the 64-module monorepo. Every other dependency (pgx, duckdb, pebble, etc.) is listed globally regardless of which modules use them. The CI portability concern about the local `replace` is pre-existing and unrelated to the lint cleanup.                                                           |
+| #4 (exhaustive switch cargo-cult) | **FIXED — reverted**       | Reverted to clean 2-case + default with `//nolint:exhaustive` | The 4 extra cases (Transient, Corruption, Infrastructure, Orchestration) were identical to the existing default. Listing them added noise without adding correctness. The `//nolint:exhaustive` directive with a justification comment is cleaner than cargo-cult enumeration.                                                                                                      |
 
 ### Answers to section g questions
 

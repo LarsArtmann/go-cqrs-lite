@@ -1,7 +1,10 @@
 # Metaengine First-Class Integration — Master Plan
 
 > **Date:** 2026-07-31 17:34
-> **Status:** PLANNING — not yet executed
+> **Status:** ~~PLANNING — not yet executed~~ **EXECUTED** — see
+> [`docs/status/2026-07-31_18-45_metaengine-first-class-integration-execution.md`](../status/2026-07-31_18-45_metaengine-first-class-integration-execution.md)
+> (all 8 tasks completed: WithMetaEngine, benchkit phase, taskmanager refactor,
+> ThenQueryResult, integration test, docs).
 > **Goal:** Make metaengine a first-class citizen of the stack composition layer, measured by benchkit, testable via scenario, and proven via integration tests + example refactoring.
 
 ---

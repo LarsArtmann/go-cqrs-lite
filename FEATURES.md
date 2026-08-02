@@ -209,58 +209,78 @@ and engine assignments from two primitives: **Events** (mutations) and
 **Queries** (read intent). The fold return type IS the ADT declaration — the
 developer never declares "I need a Map" or "I need a Counter."
 
-| Feature                    | Detail                                                                                                           | Status |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------ |
-| Unified `On[E]()` fold     | Reflection-based handler classification: 7 patterns (insert, update, set, count, edge, remove, skip)             | 🧪     |
-| ADT inference              | Map, Set, Counter, Graph, SortedMap, Multimap, Log — derived from fold return type                               | 🧪     |
-| Typed FilterOn / SortOn    | `FilterOn(func(r R) T { ... })` — typed closures, no field name strings                                          | 🧪     |
-| Pagination from input      | Detected from domain input struct fields (`Limit int`, `After *Cursor`)                                          | 🧪     |
-| Cursor serialization       | Base64-encoded URL-safe cursors for HTTP transport                                                               | 🧪     |
-| Cost model                 | `CostEstimate` with Volume-based estimation, `LatencyBudget` enforcement, scale threshold tables                 | 🧪     |
-| Write amplification budget | Tracks events exceeding write amplification limit                                                                | 🧪     |
-| MemoryEngine               | In-memory backend implementing all 9 backend interfaces (Map, MapUpdater, Scan, Set, Counter, Graph, etc.)       | 🧪     |
-| Planner                    | Cost-based optimizer: assigns engines to queries, produces `PlanResult` with diagnostics                         | 🧪     |
-| Store                      | `Plan(engines, queries...)` returns `*Store` for Apply/Execute; `ApplyEncoded` for JSON payloads                 | 🧪     |
-| Collection results         | Reconstructs typed result collections by field shape from scan output                                            | 🧪     |
-| Context.Context            | All backend interfaces accept `context.Context`                                                                  | 🧪     |
-| Compile-time assertions    | Interface conformance verified at compile time for all 9 backends                                                | 🧪     |
-| Zero dependencies          | Core `metaengine/v4` has zero production deps; adapter module is separate                                        | 🧪     |
-| SQLite engine              | `SQLiteEngine` wrapping `storage/view.SQLViewStore` — first production backend (ADR-0061)                        | 🧪     |
-| Projection adapter         | `metaengine/projectionadapter` implements `projection.Projection` for `projectionhost.Host` (ADR-0062)           | 🧪     |
-| Cost calibration           | `EngineProfile.NsPerOp` — per-engine calibrated cost (Memory=500ns, SQLite=7000ns) replaces arbitrary 100        | 🧪     |
-| Store.EventTypes()         | Returns sorted unique event types from registered queries — enables adapter event routing                        | 🧪     |
-| `ExecuteTyped[Q,R]`        | Cross-engine JSON reification: a query runs on any engine, results reified via JSON round-trip (ADR-0066)        | 🧪     |
-| Tx-atomic MapUpdate        | SQLite `MapUpdate` wraps read-modify-write in one tx — no lost updates across concurrent calls (ADR-0067)        | 🧪     |
-| Multimap seq-seed          | Lazy `sync.Once` seeding from `MAX(seq)` on first use — safe restart without sequence collisions (ADR-0068)      | 🧪     |
-| Fold-classify              | `classifyFold` inspects fold return types to assign ADT patterns — shared across engines for consistency         | 🧪     |
-| Cross-engine meta-test     | 150 specs run identical Apply → ExecuteTyped sequences on Memory + SQLite, asserting identical typed results     | 🧪     |
-| End-to-end verification    | Signature + ciphertext verification integrated across Memory and SQLite engines                                  | 🧪     |
-| SQL pushdown               | `PushdownScan` + `FilterOnField`/`SortOnField` push WHERE/ORDER BY/LIMIT into SQLite via json_extract (ADR-0072) | 🧪     |
-| Layout planning            | `LayoutPlan`/`BuildLayoutPlanFromType[R]` generate indexed-column DDL for declared query fields (ADR-0073)       | 🧪     |
-| Pebble engine              | `metaengine/pebbleengine` — LSM point reads (~7x faster than SQLite); separate module (ADR-0074)                 | 🧪     |
-| `OnTyped(eventType, ...)`  | Bind a fold to an explicit CQRS event-type string (decouples from the Go struct name)                            | 🧪     |
-| Read/write calibration     | `EngineProfile.NsPerRead`/`NsPerWrite` — split read vs write cost (backward-compat fallback to NsPerOp)          | 🧪     |
-| Pebble LayoutPlanner       | Secondary index with O(matches) prefix scan (108x speedup); range filters via index bounds                       | 🧪     |
-| Raw value readers          | `RawValueReader`/`RawScanReader` skip JSON decode for filter/sort/cursor paths (single-pass decode)              | 🧪     |
-| SSE event delivery         | `ServeSSE` with Last-Event-ID reconnection, backpressure, `dedup.Ring`, byte-budgeted replay                     | 🧪     |
-| PrefetchCache              | Cursor-encoded auto-population cache for paginated reads; thread-safe (`sync.RWMutex`)                           | 🧪     |
-| Watcher                    | Reactive change notifications with per-key filtering                                                             | 🧪     |
-| Transaction API            | Fully threaded `*sql.Tx` through engine operations (atomic multi-collection updates)                             | 🧪     |
-| ADT test harness           | `adttest.RunMatrix` — cross-engine parity tests for all 7 ADTs (Map, Set, Counter, Multimap, Log, Graph, Scan)   | 🧪     |
-| Aggregate pushdown         | `AggregateReader` interface — SQL COUNT/SUM/MIN/MAX/AVG pushdown via the engine                                  | 🧪     |
-| Error sentinels            | Exported `ErrNotFound`, `ErrAmbiguousKey`, `ErrUnsupportedADT`, `ErrLayoutConflict` wired into execution paths   | 🧪     |
+| Feature                     | Detail                                                                                                          | Status |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------- | ------ |
+| Fold sealed interface       | 12 concrete unexported fold types replace 11-field `any` god-struct. Zero nil-panic risk (ADR-0081)             | 🧪     |
+| Unified `On[E]()` fold      | Reflection-based handler classification: 12 fold types (insert, update, set, count, edge, remove, skip, etc.)   | 🧪     |
+| ADT inference               | 10 ADTs: Map, Set, Counter, Graph, SortedMap, Multimap, Log, Scan, Vector, Search, Spatial (ADR-0085)           | 🧪     |
+| Typed FilterOn / SortOn     | `FilterOn(func(r R) T { ... })` — typed closures, no field name strings                                         | 🧪     |
+| Pagination from input       | Detected from domain input struct fields (`Limit int`, `After *Cursor`)                                         | 🧪     |
+| Cursor serialization        | Base64-encoded URL-safe cursors for HTTP transport                                                              | 🧪     |
+| Cost model                  | `CostEstimate` with Volume-based estimation, `LatencyBudget` enforcement, scale threshold tables                | 🧪     |
+| Write amplification budget  | Tracks events exceeding write amplification limit                                                               | 🧪     |
+| MemoryEngine                | In-memory backend implementing all backend interfaces including Vector/Search/Spatial                           | 🧪     |
+| SQLite engine               | `SQLiteEngine` wrapping `storage/view.SQLViewStore` — first production backend (ADR-0061)                       | 🧪     |
+| Pebble engine               | `metaengine/pebbleengine` — LSM point reads (~7x faster than SQLite); separate module (ADR-0074)                | 🧪     |
+| DuckDB engine               | `metaengine/duckdbengine` — MapBackend, CounterBackend, PushdownScan; CGo required (ADR-0086)                   | 🧪     |
+| Postgres engine             | `metaengine/pgengine` — MapBackend, CounterBackend, ScanBackend, PushdownScan (JSONB), LayoutPlanner (ADR-0087) | 🧪     |
+| Planner                     | Cost-based optimizer: assigns engines to queries, produces `PlanResult` with diagnostics                        | 🧪     |
+| Rule pipeline               | `PlanRule` interface + `RulePipeline`. 4 composable rules: schemaRule, layoutRule, writeAmpRule (ADR-0083)      | 🧪     |
+| Materialize-vs-replay       | `ReplayCost`/`MaterializeCost`/`ShouldMaterialize` — ES-specific cost formula for projection decisions          | 🧪     |
+| StorageLayout + cost matrix | `Layout{Row, Columnar, LSM, KV}`, `(ADT × Layout) → Complexity` mapping, `EngineProfile.Layouts`, `RuleTrace`   | 🧪     |
+| SerializablePlan            | JSON-serializable `PlanResult` for diff/pin/round-trip testing                                                  | 🧪     |
+| VersionedStorage            | Temporal queries (`ExecuteAsOf`) on Memory engine. Version chains + binary search                               | 🧪     |
+| Store                       | `Plan(engines, queries...)` returns `*Store` for Apply/Execute; `ApplyEncoded` for JSON payloads                | 🧪     |
+| Collection results          | Reconstructs typed result collections by field shape from scan output                                           | 🧪     |
+| ScanResult explicit HasMore | `ScanResult{Items []any; HasMore bool}` — explicit contract across all 5 engines                                | 🧪     |
+| Context.Context             | All backend interfaces accept `context.Context`                                                                 | 🧪     |
+| Compile-time assertions     | Interface conformance verified at compile time for all backends                                                 | 🧪     |
+| Zero dependencies           | Core `metaengine/v4` has zero production deps; adapter module is separate                                       | 🧪     |
+| Projection adapter          | `metaengine/projectionadapter` implements `projection.Projection` for `projectionhost.Host` (ADR-0062)          | 🧪     |
+| Cost calibration            | `EngineProfile.NsPerRead`/`NsPerWrite` — split read vs write cost (Memory=500ns, SQLite=7000ns)                 | 🧪     |
+| Store.EventTypes()          | Returns sorted unique event types from registered queries — enables adapter event routing                       | 🧪     |
+| `ExecuteTyped[Q,R]`         | Cross-engine JSON reification: a query runs on any engine, results reified via JSON round-trip (ADR-0066)       | 🧪     |
+| Tx-atomic MapUpdate         | SQLite `MapUpdate` wraps read-modify-write in one tx — no lost updates across concurrent calls (ADR-0067)       | 🧪     |
+| Multimap seq-seed           | Lazy `sync.Once` seeding from `MAX(seq)` on first use — safe restart without sequence collisions (ADR-0068)     | 🧪     |
+| Fold-classify               | `classifyFold` inspects fold return types to assign ADT patterns — shared across engines for consistency        | 🧪     |
+| Cross-engine meta-test      | 150 specs run identical Apply → ExecuteTyped sequences on Memory + SQLite, asserting identical typed results    | 🧪     |
+| End-to-end verification     | Signature + ciphertext verification integrated across Memory and SQLite engines                                 | 🧪     |
+| SQL pushdown                | `PushdownScan` + `FilterOnField`/`SortOnField` push WHERE/ORDER BY/LIMIT into SQL (SQLite/Pg/DuckDB)            | 🧪     |
+| Layout planning             | `LayoutPlan`/`BuildLayoutPlanFromType[R]` generate indexed-column DDL for declared query fields (ADR-0073)      | 🧪     |
+| Pebble LayoutPlanner        | Secondary index with O(matches) prefix scan (108x speedup). Range filters via index bounds                      | 🧪     |
+| Pebble sort index           | `'o'` prefix key structure for sort fields. 1,233x speedup (8,145µs → 6.6µs)                                    | 🧪     |
+| Raw value readers           | `RawValueReader`/`RawScanReader` skip JSON decode for filter/sort/cursor paths (single-pass decode)             | 🧪     |
+| SSE event delivery          | `ServeSSE` with Last-Event-ID reconnection, backpressure, `dedup.Ring`, byte-budgeted replay                    | 🧪     |
+| PrefetchCache               | Cursor-encoded auto-population cache for paginated reads; thread-safe (`sync.RWMutex`)                          | 🧪     |
+| Watcher                     | Reactive change notifications with per-key filtering                                                            | 🧪     |
+| Transaction API             | Fully threaded `*sql.Tx` through engine operations (atomic multi-collection updates)                            | 🧪     |
+| ADT test harness            | `adttest.RunMatrix` — cross-engine parity tests for all 10 ADTs. Reflect-based capability auto-detect           | 🧪     |
+| Property-based parity       | `pgregory.net/rapid` generates random op sequences, verifies Memory and SQLite agree on every operation         | 🧪     |
+| Aggregate pushdown          | `AggregateReader` interface — SQL COUNT/SUM/MIN/MAX/AVG pushdown via the engine                                 | 🧪     |
+| Error sentinels             | Exported `ErrNotFound`, `ErrAmbiguousKey`, `ErrUnsupportedADT`, `ErrLayoutConflict` wired into execution paths  | 🧪     |
+| `OnTyped(eventType, ...)`   | Bind a fold to an explicit CQRS event-type string (decouples from the Go struct name)                           | 🧪     |
+| Enum validation             | All 6 enum families (ADT, StorageLayout, FilterOp, CursorKind, etc.) have `Valid()` + registries                | 🧪     |
+| Store composition           | Store decomposed from 17→13 fields: `poisonTracker`, `idempotencyTracker`, `workloadMeter`, `subscriberHub`     | 🧪     |
+| Vector ADT                  | k-NN similarity search (cosine/euclidean/dot). Memory-only (brute-force). ADR-0085                              | 🧪     |
+| Search ADT                  | Full-text search (TF-IDF inverted index). Memory-only (brute-force). ADR-0085                                   | 🧪     |
+| Spatial ADT                 | Geo range queries (haversine distance). Memory-only (brute-force). ADR-0085                                     | 🧪     |
 
 **Coverage:** 86.1% (verified `go test -cover ./...` 2026-07-27). 174 BDD specs + 150 cross-engine
-meta specs + 12 ADT harness self-tests. The metaengine went through 6 hardening
-sessions (2026-07-30 to 2026-07-31): transaction API fix, SQL injection fix,
+meta specs + 12 ADT harness self-tests. The metaengine went through 10+ hardening
+sessions (2026-07-30 to 2026-08-02): transaction API fix, SQL injection fix,
 hooks-on-error, ReadCoalescer wiring, Watcher with per-key filtering,
 PrefetchCache with cursor-encoded auto-population, SSE adapter with
-Last-Event-ID reconnection, ContractSuite expanded to all 7 ADTs, Pebble
-LayoutPlanner (108x speedup), RawValueReader/RawScanReader (single-pass decode).
-API surface: 2907 exports.
+Last-Event-ID reconnection, ContractSuite expanded to all 10 ADTs, Pebble
+LayoutPlanner (108x speedup), Pebble sort index (1,233x speedup),
+RawValueReader/RawScanReader (single-pass decode), rule pipeline extraction,
+materialize-vs-replay cost model, StorageLayout + cost matrix, SerializablePlan,
+VersionedStorage temporal queries, Fold sealed interface refactor, 5-engine
+cross-engine parity, Vector/Search/Spatial ADTs, pgengine + duckdbengine.
+API surface: 3162 exports.
 
-Remaining: Pebble range filter numeric bug, Pebble sort index, SSE test hang,
-triple-parity ADT matrix. See [TODO_LIST.md](TODO_LIST.md).
+Remaining: wire dead code from data model refactor (branded units, ApplyError),
+DuckDB LayoutPlanner, Postgres GIN indexes, SSE consolidation ADR, Vector/
+Search/Spatial engine backends. See [TODO_LIST.md](TODO_LIST.md).
 
 ---
 
@@ -272,45 +292,58 @@ Factory-driven benchmarking suite for measuring CQRS performance across
 backends, deployment sizes, and workload profiles. Mirrors the contracttest
 pattern: same workload, any backend, structured metrics report.
 
-| Feature               | Detail                                                                                                         | Status |
-| --------------------- | -------------------------------------------------------------------------------------------------------------- | ------ |
-| Core types            | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`, `Environment`                     | 🧪     |
-| LatencyCollector      | Sorted-slice + reservoir sampling (10K cap), thread-safe                                                       | 🧪     |
-| Resource sampling     | Peak heap via 100ms polling goroutine, baseline/after deltas                                                   | 🧪     |
-| Synthetic generator   | Seeded PCG, deterministic, configurable payload size, codec-aware padding                                      | 🧪     |
-| Mixed payload sizes   | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing                                      | 🧪     |
-| 7 named profiles      | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                                                       | 🧪     |
-| 9-phase runner        | setup → warmup → write → read → readmodel → projection → durability → rawsink → teardown                       | 🧪     |
-| Raw sink phase        | Pre-built events timed against `EventSink.Save` only — isolates pure backend write capacity                    | 🧪     |
-| Environment metadata  | `GoVersion`, `NumCPU`, `GOMAXPROCS`, `GOOS`, `GOARCH` recorded in every `Result`                               | 🧪     |
-| Schema versioning     | `Result.SchemaVersion` for JSON schema stability tracking                                                      | 🧪     |
-| Median fix            | `runRepeated` sorts results by throughput before picking median (was insertion-order bug)                      | 🧪     |
-| Concurrent workers    | Channel-based, cancel-on-error, WaitGroup                                                                      | 🧪     |
-| `Run()` API           | Single-backend benchmark, returns `*Result`                                                                    | 🧪     |
-| `Compare()` API       | Multi-backend comparison, handles factory failures gracefully                                                  | 🧪     |
-| DiskSizer             | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset                                   | 🧪     |
-| CPU measurement       | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution                                          | 🧪     |
-| Projection phase      | Polls until all events processed, reports lag + events                                                         | 🧪     |
-| Reports               | Text, JSON (v2), Markdown, benchstat, manifest — latency percentiles, throughput, memory, disk, env            | 🧪     |
-| Scaling sweeps        | `WorkerSweep`, `BatchSizeSweep`, `StreamLengthSweep`, `GOMAXPROCSSweep` — systematic parameter exploration     | 🧪     |
-| benchstat output      | `WriteBenchstat` — benchstat-compatible lines for statistical comparison                                       | 🧪     |
-| Suite manifest        | `WriteManifest` — config + environment + result as JSON for reproducibility                                    | 🧪     |
-| JSON schema check     | `ExpectedJSONFields` + `VerifyJSONFields` — guards against silent schema changes                               | 🧪     |
-| ReadRatio             | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                                              | 🧪     |
-| Durability phase      | `Config.Recovery` — close bundle, reopen via factory, reload streams (`RecoveryTime`, `RecoveredEvents`)       | 🧪     |
-| Replay phase          | `Config.ReplayOnly` — skip writes, discover streams from journal, benchmark reads + projections                | 🧪     |
-| `benchtest.RunSuite`  | `RunSuite(b, config, factory)` wraps benchkit into Go `testing.B` (`b.ReportMetric`); wired into `stack/bench` | 🧪     |
-| Analytical profile    | `ProfileAnalytical` (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans`                        | 🧪     |
-| Postgres backend      | `postgres` backend in `cqrs-bench`; benchkit tests skip without `POSTGRES_TEST_DSN`                            | 🧪     |
-| kv projection handler | Projection phase exercises a real `kv.Store` (Get+Set per event); atomic counter fallback                      | 🧪     |
+| Feature                 | Detail                                                                                                         | Status |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------- | ------ |
+| Core types              | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`, `Environment`                     | 🧪     |
+| LatencyCollector        | Sorted-slice + reservoir sampling (10K cap), thread-safe                                                       | 🧪     |
+| Resource sampling       | Peak heap via 100ms polling goroutine, baseline/after deltas                                                   | 🧪     |
+| Synthetic generator     | Seeded PCG, deterministic, configurable payload size, codec-aware padding                                      | 🧪     |
+| Mixed payload sizes     | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing                                      | 🧪     |
+| 7 named profiles        | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                                                       | 🧪     |
+| 9-phase runner          | setup → warmup → write → read → readmodel → projection → durability → rawsink → teardown                       | 🧪     |
+| Raw sink phase          | Pre-built events timed against `EventSink.Save` only — isolates pure backend write capacity                    | 🧪     |
+| Environment metadata    | `GoVersion`, `NumCPU`, `GOMAXPROCS`, `GOOS`, `GOARCH` recorded in every `Result`                               | 🧪     |
+| Schema versioning       | `Result.SchemaVersion` for JSON schema stability tracking                                                      | 🧪     |
+| Median fix              | `runRepeated` sorts results by throughput before picking median (was insertion-order bug)                      | 🧪     |
+| Concurrent workers      | Channel-based, cancel-on-error, WaitGroup                                                                      | 🧪     |
+| `Run()` API             | Single-backend benchmark, returns `*Result`                                                                    | 🧪     |
+| `Compare()` API         | Multi-backend comparison, handles factory failures gracefully                                                  | 🧪     |
+| DiskSizer               | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset                                   | 🧪     |
+| CPU measurement         | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution                                          | 🧪     |
+| Projection phase        | Polls until all events processed, reports lag + events                                                         | 🧪     |
+| Reports                 | Text, JSON (v2), Markdown, benchstat, manifest — latency percentiles, throughput, memory, disk, env            | 🧪     |
+| Scaling sweeps          | `WorkerSweep`, `BatchSizeSweep`, `StreamLengthSweep`, `GOMAXPROCSSweep` — systematic parameter exploration     | 🧪     |
+| benchstat output        | `WriteBenchstat` — benchstat-compatible lines for statistical comparison                                       | 🧪     |
+| Suite manifest          | `WriteManifest` — config + environment + result as JSON for reproducibility                                    | 🧪     |
+| JSON schema check       | `ExpectedJSONFields` + `VerifyJSONFields` — guards against silent schema changes                               | 🧪     |
+| ReadRatio               | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                                              | 🧪     |
+| Durability phase        | `Config.Recovery` — close bundle, reopen via factory, reload streams (`RecoveryTime`, `RecoveredEvents`)       | 🧪     |
+| Replay phase            | `Config.ReplayOnly` — skip writes, discover streams from journal, benchmark reads + projections                | 🧪     |
+| `benchtest.RunSuite`    | `RunSuite(b, config, factory)` wraps benchkit into Go `testing.B` (`b.ReportMetric`); wired into `stack/bench` | 🧪     |
+| Analytical profile      | `ProfileAnalytical` (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans`                        | 🧪     |
+| Postgres backend        | `postgres` backend in `cqrs-bench`; benchkit tests skip without `POSTGRES_TEST_DSN`                            | 🧪     |
+| kv projection handler   | Projection phase exercises a real `kv.Store` (Get+Set per event); atomic counter fallback                      | 🧪     |
+| Statistical reliability | `RepeatStdDev`/`RepeatCoV`/`RepeatMean`/`RepeatIsReliable` — cross-run variance (ADR-0090)                     | 🧪     |
+| GC pause metrics        | `GCMaxPause` — maximum GC pause during benchmark run                                                           | 🧪     |
+| Allocation metrics      | `AllocsPerOp`, `BytesPerOp` — derived per-operation allocation tracking                                        | 🧪     |
+| Data integrity          | `IntegrityErrors` — verifies event round-trip after benchmark run                                              | 🧪     |
+| Write amplification     | `Disk.WriteAmplification` — ratio of bytes written to logical payload size                                     | 🧪     |
+| Cold/warm read          | `ColdReadLatency` — first-read latency (no cache) vs steady-state                                              | 🧪     |
+| Tail ratio              | `TailRatio` (P99/P50) — latency distribution tail metric                                                       | 🧪     |
+| Environment enrichment  | `CPUModel`, `TotalRAMBytes` — hardware metadata for reproducibility                                            | 🧪     |
+| Soak test drift         | `SoakResult.GCMaxPauseDriftPct`, `AllocGrowthPct` — memory boundedness over sustained load                     | 🧪     |
+| Metaengine benchmark    | Memory + SQLite engines. Counter + Map ADTs. Correctness assertions prevent empty-store silent failure         | 🧪     |
+| Mixed workload          | `BenchmarkMixedWorkload_ReadsDuringWrites` — concurrent read/write contention profiling                        | 🧪     |
 
 **Coverage:** 88 benchkit + 12 CLI test functions (`-race`). Includes raw sink phase,
 scaling sweeps, benchstat output, suite manifest, schema verification, environment
 metadata, schema versioning, durability/recovery, replay, `benchtest.RunSuite`,
-analytical profile, Postgres backend, and median selection tests. Run-to-run
-variance is ~20-25% on the memory backend (use `--repeat N` for median reporting).
-See [benchmark results](docs/status/2026-07-24_17-54_benchmark-first-real-run.md)
-and [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.md).
+analytical profile, Postgres backend, median selection tests, evidence-grade
+metrics (GC pause, write amplification, tail ratio, allocation tracking), soak
+test drift, metaengine benchmark (Memory + SQLite), and mixed workload phase.
+Run-to-run variance is ~20-25% on the memory backend (use `--repeat N` for median reporting).
+See [backend comparison](docs/benchmarks/2026-07-31_backend-comparison.md)
+and [evidence metrics ADR](docs/adr/0090-benchkit-evidence-metrics.md).
 
 ### cqrs-bench CLI 🔧
 
@@ -330,6 +363,33 @@ and [scaling report](docs/status/2026-07-24_19-30_event-size-scaling-benchmark.m
 | Raw sink  | `--skip-raw-sink` — skip prebuilt-event Save-only phase                    | 🔧     |
 | Profiling | `--cpuprofile file` and `--memprofile file` — pprof output                 | 🔧     |
 | Version   | `--version` via `runtime/debug.ReadBuildInfo()`                            | 🔧     |
+
+---
+
+## Flight Recorder 🧪 EXPERIMENTAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"`
+
+Go 1.25 `runtime/trace` capture on slow/error/always triggers. Zero-dependency
+module (stdlib only). One active recorder per process (ADR-0089).
+
+| Feature             | Detail                                                                                          | Status |
+| ------------------- | ----------------------------------------------------------------------------------------------- | ------ |
+| `Recorder`          | `New`/`Start`/`Stop`/`Enabled`/`Snapshot`/`SnapshotToFile`/`SnapshotIf`/`Reset`. Once-semantics | 🧪     |
+| Trigger functions   | `OnLatency(d)`, `OnError()`, `OnErrorOrLatency(d)`, `OnAlways()`, `OnAny(...)`, `OnAll(...)`    | 🧪     |
+| Options             | `WithMinAge`, `WithMaxBytes`, `WithWriter`, `WithFile`                                          | 🧪     |
+| Thread-safe         | `sync.Mutex` — safe for concurrent trigger checks                                               | 🧪     |
+| `io.Closer`         | `Recorder.Close()` stops recording AND closes file writers                                      | 🧪     |
+| `ErrAlreadyEnabled` | Only 1 active recorder per process (double `Start` returns error)                               | 🧪     |
+| Command middleware  | `middleware.CommandFlightRecorder(recorder, trigger)` — captures on slow/error dispatch         | 🧪     |
+| Event middleware    | `middleware.EventFlightRecorder(recorder, trigger)` — captures on slow/error publish            | 🧪     |
+| Query middleware    | `middleware.QueryFlightRecorder(recorder, trigger)` — captures on slow/error dispatch           | 🧪     |
+| Decider integration | `decider.WithFlightRecorder[State](recorder, trigger)` — captures on slow/error Execute         | 🧪     |
+| Projection host     | `projectionhost.WithFlightRecorder(recorder, trigger)` — captures on terminal worker failure    | 🧪     |
+| Stack bundle        | `stack.WithFlightRecorder(recorder)` — lifecycle management + discovery via Bundle              | 🧪     |
+
+**Coverage:** 92.5%. 35 tests, `-race` clean. Analyze with `go tool trace`.
+API surface: 29 symbols.
 
 ---
 
@@ -1029,16 +1089,23 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Health score | 0-100 score with severity-weighted breakdown | ✅ |
 | Auto-fix | `--fix` / `--dry-run` with CQRSFixProvider (BeforeCode/AfterCode matching) | ✅ |
 | Suppression comments | `//cqrs-lint:ignore(rule-id) reason` (space after `//` supported, comma-separated IDs supported) | ✅ |
+| Block-level suppression | `//cqrs-lint:ignore-start` / `//cqrs-lint:ignore-end` for range suppression (ADR-0088) | ✅ |
+| Stale suppression detection | `DetectStaleSuppressions` flags suppression comments where no finding fires | ✅ |
 | CLI features | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`, `--min-confidence` | ✅ |
 | Config file | `.cqrs-lint.json` via cmdguard; presets (local-cli, production, library, read-only) | ✅ |
 | Config presets | `local-cli`, `production`, `library`, `read-only` — sugar over feature flags | ✅ |
 | Feature profile system | Auto-detects which go-cqrs-lite modules a consumer uses (store, command-flow, server, soft-delete, tracing, snapshot) and adapts rules | ✅ |
+| Self-lint mode | `IsLibrarySelfLint()` auto-skips 29 consumer-coaching rules when linting the library source | ✅ |
+| Import-alias resolution | `QualifierToImportPath` + `ImportQualifierMap` — rules work with aliased imports | ✅ |
 | Monorepo support | Multi-module scanning via go.mod discovery | ✅ |
 | Source snippets | Most detectors emit source-line context for SARIF/IDE integration | ✅ |
 | `doctor` subcommand | Prints the detected feature profile for the target project | ✅ |
 | F-series adoption coaching | 21 rules (F001–F021) that proactively coach consumers toward unused features | ✅ |
 | T-series testing quality | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse | ✅ |
 | E-series architecture | 17 rules (E001–E017) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
+| 181 total rules | Correctness (36), API (31), boilerplate (28), adoption (21), architecture (17), consistency (16), performance (9), security (9), testing (8), version (6) | ✅ |
+| A033 branded-ID roundtrip | Flags code that converts branded `id.Of[T]` to `string` and back (breaks type safety) | ✅ |
+| C037 codec mismatch | Detects snapshot/event codec mismatches (CBOR events + JSON snapshots = deserialization failure) | ✅ |
 
 ---
 
@@ -1084,7 +1151,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 60 independently importable modules in `go.work` (60 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 64 independently importable modules in `go.work` (64 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                         | Import Path                         | Maturity                                                                                                                                                                      |
 | ------------------------------ | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1128,7 +1195,10 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `stack/postgres`               | `…/stack/postgres/v4`               | ⚠️ Partial (0% test coverage locally — skips without `POSTGRES_TEST_DSN`)                                                                                                     |
 | `stack/turso`                  | `…/stack/turso/v4`                  | ✅ Production                                                                                                                                                                 |
 | `stack/duckdb`                 | `…/stack/duckdb/v4`                 | ✅ Production (analytical OLAP, CGo required — ADR-0071)                                                                                                                      |
+| `stack/mysql`                  | `…/stack/mysql/v4`                  | ⚠️ Partial (testcontainer privilege fix fragile; MySQL 8.0 contract tests pass, MariaDB untested)                                                                             |
 | `stack/bench`                  | `…/stack/bench/v4`                  | 🧪 Benchmarks                                                                                                                                                                 |
+| `stack/contracttest`           | `…/stack/contracttest/v4`           | 🧪 Test suite (RunSuite for cross-backend contract verification)                                                                                                              |
+| `stack/sqlopt`                 | `…/stack/sqlopt/v4`                 | ✅ Production (shared SQL options: durability tiers, multi-DB topology)                                                                                                       |
 | `deriver`                      | `…/deriver/v4`                      | ✅ Production                                                                                                                                                                 |
 | `graph`                        | `…/graph/v4`                        | ✅ Production                                                                                                                                                                 |
 | `idempotency`                  | `…/idempotency/v4`                  | ✅ Production                                                                                                                                                                 |
@@ -1142,11 +1212,16 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `example/taskmanager`          | `…/example/taskmanager`             | 💡 Demo                                                                                                                                                                       |
 | `example/getting-started`      | `…/example/getting-started`         | 💡 Demo                                                                                                                                                                       |
 | `example/readme-quickstart`    | `…/example/readme-quickstart`       | 💡 Demo                                                                                                                                                                       |
-| `metaengine`                   | `…/metaengine/v4`                   | 🧪 Experimental (SQLite engine + cost calibration + projection adapter)                                                                                                       |
+| `metaengine`                   | `…/metaengine/v4`                   | 🧪 Experimental (5 engines, 10 ADTs, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan)                                                                   |
 | `metaengine/projectionadapter` | `…/metaengine/projectionadapter/v4` | 🧪 Experimental (projection.Projection adapter for projectionhost)                                                                                                            |
+| `metaengine/pebbleengine`      | `…/metaengine/pebbleengine/v4`      | 🧪 Experimental (Pebble LSM engine: MapBackend, ScanBackend, LayoutPlanner, sort index)                                                                                       |
+| `metaengine/duckdbengine`      | `…/metaengine/duckdbengine/v4`      | 🧪 Experimental (DuckDB columnar engine: MapBackend, CounterBackend, PushdownScan. CGo)                                                                                       |
+| `metaengine/pgengine`          | `…/metaengine/pgengine/v4`          | 🧪 Experimental (Postgres engine: MapBackend, CounterBackend, ScanBackend, PushdownScan, LayoutPlanner. Pure Go)                                                              |
+| `metaengine/adttest`           | `…/metaengine/adttest/v4`           | 🧪 Test harness (RunMatrix cross-engine parity for 10 ADTs)                                                                                                                   |
+| `flightrecorder`               | `…/flightrecorder/v4`               | 🧪 Experimental (Go 1.25 runtime/trace capture. Zero-dep. ADR-0089)                                                                                                           |
 | `benchkit`                     | `…/benchkit/v4`                     | 🧪 Experimental (functional, 88 tests, `--repeat N` available)                                                                                                                |
 | `cmd/cqrs-bench`               | `…/cmd/cqrs-bench`                  | 🔧 Tool                                                                                                                                                                       |
-| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (179-rule domain-aware linter: correctness 36, API 30, boilerplate 28, adoption 21, architecture 17, consistency 15, performance 9, security 9, testing 8, version 6) |
+| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (181-rule domain-aware linter: correctness 36, API 31, boilerplate 28, adoption 21, architecture 17, consistency 16, performance 9, security 9, testing 8, version 6) |
 
 ---
 
@@ -1154,7 +1229,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                                                                                                                                 |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lint posture           | `nix run .#lint` passes with 0 issues across all modules. `nix run .#verify` is GREEN: build + vet + test + race + lint + api-stability (2676 exports, with `TestEveryGoModDirIsInModulesList` meta-test) + doc-check. |
+| Lint posture           | `nix run .#lint` passes with 0 issues across all modules. `nix run .#verify` is GREEN: build + vet + test + race + lint + api-stability (3162 exports, with `TestEveryGoModDirIsInModulesList` meta-test) + doc-check. |
 | Race-free              | `go test -race` passes across all modules                                                                                                                                                                              |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                                                         |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                                                     |

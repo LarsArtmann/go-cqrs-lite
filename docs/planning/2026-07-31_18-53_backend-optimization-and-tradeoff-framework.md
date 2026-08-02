@@ -1,7 +1,12 @@
 # Backend Tradeoff Vocabulary, Optimization & Honest Benchmarks
 
 > **Date:** 2026-07-31
-> **Status:** PLANNING — awaiting execution
+> **Status:** ~~PLANNING — awaiting execution~~ **EXECUTED** — see
+> [`docs/status/2026-07-31_19-58_backend-tradeoff-framework-execution-status.md`](../status/2026-07-31_19-58_backend-tradeoff-framework-execution-status.md)
+> (18 of 29 tasks) +
+> [`docs/status/2026-07-31_20-32_backend-tradeoff-bugfixes-and-verification.md`](../status/2026-07-31_20-32_backend-tradeoff-bugfixes-and-verification.md)
+> (5 critical fixes, verify GREEN). Remaining: P10 Turso indexing, P19 warm/cold
+> split, P23–P28 DuckDB options/benchmarks/metaengine CostEstimate.
 > **Theme:** Make backend performance honest, comparable, and optimizable through a unified tradeoff framework.
 
 ## Context
