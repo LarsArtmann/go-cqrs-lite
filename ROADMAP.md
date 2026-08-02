@@ -4,7 +4,10 @@
 
 ---
 
-**v4.2.0 tagged** (2026-07-27) — 53 modules tagged and pushed. The workspace now
+**v4.2.0 tagged** (2026-07-27) — 53 modules tagged and pushed. Significant
+post-v4.2.0 work is unreleased (flight recorder, metaengine Tier 4, benchkit
+evidence metrics, backend tradeoff framework, MySQL/MariaDB support). See
+CHANGELOG `[Unreleased]`.
 
 ---
 
@@ -12,7 +15,7 @@
 
 | Version | Date | Highlights |
 | ------- | ---- | ---------- |
-
+| [Unreleased] | — | Flight recorder (ADR-0089), metaengine Tier 4 (Vector/Search/Spatial ADTs, DuckDB+Postgres engines, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan, VersionedStorage, data model refactor), benchkit evidence-grade metrics (ADR-0090), backend tradeoff framework (DurabilityTier, Capabilities), MySQL/MariaDB support (ADR-0080), Pebble sort index (1,233x speedup), cqrs-lint 179→181 rules (A033, C037, block-level suppression), verify gate repair |
 | v4.2.0 | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family) |
 | v4.1.0 | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058) |
 | v4.0.4 | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs |
@@ -27,9 +30,9 @@
 
 ### 1. Metaengine → Production
 
-The metaengine prototype proves the Event-Query Model works: fold return types
-infer ADTs, typed closures avoid strings, pagination is detected from input
-structs. The Pareto execution plan landed the production maturity chain:
+The metaengine proves the Event-Query Model works: fold return types infer ADTs,
+typed closures avoid strings, pagination is detected from input structs. The
+production maturity chain is complete:
 
 - ✅ **Real SQLite engine** — `SQLiteEngine` wrapping `SQLViewStore` (ADR-0061)
 - ✅ **Cost model calibration** — `EngineProfile.NsPerOp` with benchmark-driven
@@ -39,47 +42,92 @@ structs. The Pareto execution plan landed the production maturity chain:
 - ✅ **Pebble engine** — `metaengine/pebbleengine` with LSM point reads
   (~7x faster than SQLite on MapGet). Separate module (ADR-0074)
 - ✅ **Pebble LayoutPlanner** — secondary index with O(matches) prefix scan
-  (108x speedup over full scan). Range filters via index bounds
+  (108x speedup over full scan). Range filters via index bounds.
+  Sort index (1,233x speedup via `'o'` prefix key structure)
 - ✅ **Raw value readers** — `RawValueReader`/`RawScanReader` skip JSON decode
   for filter/sort/cursor paths (single-pass decode)
 - ✅ **SQL pushdown** — `FilterOnField`/`SortOnField` push WHERE/ORDER BY/LIMIT
-  into SQLite via `json_extract()` (ADR-0072)
+  into SQLite via `json_extract()` (ADR-0072). pgengine via JSONB `->>`,
+  duckdbengine via `json_extract()`
 - ✅ **Layout planning** — `LayoutPlan` generates indexed-column DDL from
-  declared query fields — 10x speedup on filter+sort (ADR-0073)
+  declared query fields — 10x speedup on filter+sort (ADR-0073). pgengine
+  expression indexes on JSONB paths
 - ✅ **Streaming reads** — `StreamScan(ctx) iter.Seq2` for OOM-safe iteration
+  (Memory + SQLite + Pebble)
 - ✅ **SSE event delivery** — `ServeSSE` with Last-Event-ID reconnection,
   backpressure, dedup ring, byte-budgeted replay
 - ✅ **PrefetchCache** — cursor-encoded auto-population, thread-safe
 - ✅ **Watcher** — reactive notifications with per-key filtering
 - ✅ **Transaction API** — fully threaded `*sql.Tx` through engine ops
 - ✅ **ADT test harness** — `adttest.RunMatrix` cross-engine parity tests
-  for all 7 ADTs (Map, Set, Counter, Multimap, Log, Graph, Scan)
+  for all 10 ADTs (Map, Set, Counter, Multimap, Log, Graph, SortedMap, Scan,
+  Vector, Search, Spatial)
 - ✅ **Taskmanager integration** — Counter ADT query with `/api/stats` endpoint
+- ✅ **DuckDB engine** — `metaengine/duckdbengine` with MapBackend,
+  CounterBackend, PushdownScan. Separate module (ADR-0086)
+- ✅ **Postgres engine** — `metaengine/pgengine` with MapBackend, CounterBackend,
+  ScanBackend, PushdownScan (JSONB operators), LayoutPlanner (expression
+  indexes). Pure Go (pgx). Separate module (ADR-0087)
+- ✅ **Vector/Search/Spatial ADTs** (ADR-0085) — k-NN similarity (cosine/
+  euclidean/dot), full-text search (TF-IDF inverted index), geo range queries
+  (haversine). Memory-only (brute-force); future backends below
+- ✅ **Rule pipeline** — `PlanRule` interface + `RulePipeline`. Composable rules
+  extracted from monolithic `planner.go` (279→226 lines). 4 rules: schemaRule,
+  layoutRule, writeAmpRule (ADR-0083)
+- ✅ **Materialize-vs-replay** — `ReplayCost`/`MaterializeCost`/
+  `ShouldMaterialize`. Advisory INFO/WARN diagnostics when materialization is
+  cheaper than replay. The ES-specific killer feature
+- ✅ **StorageLayout + cost matrix** — `Layout{Row, Columnar, LSM, KV}`,
+  `(ADT × Layout) → Complexity` mapping, `EngineProfile.Layouts`, `RuleTrace`
+- ✅ **SerializablePlan** — JSON-serializable `PlanResult` for diff/pin/round-trip
+- ✅ **VersionedStorage** — temporal queries (`ExecuteAsOf`) on Memory engine
+- ✅ **Fold sealed interface** — 12 concrete unexported fold types replace the
+  11-field `any` god-struct. Zero nil-panic risk
+- ✅ **ScanResult explicit HasMore** — across all 5 engines and 3 scan interfaces
+- ✅ **Property-based cross-engine parity** — `pgregory.net/rapid` generates
+  random operation sequences, verifies Memory and SQLite agree
+- ✅ **Postgres testcontainer tests** — first real-DB tests for pgengine
 
-**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Pebble range filter
-numeric bug, SSE test hang, Pebble sort index, triple-parity ADT matrix.
+**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** wire dead code from
+data model refactor (branded units, ApplyError, Valid()), exhaustiveness guard
+test, generic `ScanResult[T]`, DuckDB LayoutPlanner, Postgres GIN indexes,
+SSE consolidation ADR.
 
 **Remaining (long-term, ROADMAP):**
 
-- **Postgres engine** — `metaengine/pgengine/` with native JSONB operators (`->>'field'`),
-  expression indexes (partial B-tree on JSONB paths). PushdownScan + LayoutPlanner
-  shipped. Remaining: GIN containment indexes (`@>` operator) for JSONB path queries.
-- **DuckDB analytical engine** — `metaengine/duckdbengine/` with columnar OLAP pushdown
-  (json_extract WHERE/ORDER BY). PushdownScan shipped. Remaining: vectorized GROUP BY
-  pushdown for CounterGet (currently row-by-row scan), columnar scan optimization.
-- **`metaengine-gen` code generator** — `cmd/metaengine-gen` for typed Store methods
-  from query declarations. ~2-3 days. Go AST parsing + template generation.
+- **Vector/Search/Spatial engine backends** — currently Memory-only (brute-force).
+  DuckDB VSS extension (vector similarity), Postgres tsvector (full-text search),
+  PostGIS (spatial). Each is a separate engine module with its own deps.
+- **DuckDB columnar-native storage** — DuckDB stores JSON as VARCHAR; columnar
+  scans not leveraged. Vectorized GROUP BY for CounterGet would use DuckDB's
+  native columnar engine.
+- **Postgres GIN containment indexes** — `@>` operator for JSONB path queries.
+  Currently only expression indexes (B-tree on JSONB paths).
+- **`metaengine-gen` code generator** — `cmd/metaengine-gen` for typed Store
+  methods from query declarations. Go AST parsing + template generation.
 
-### 2. Benchkit → Released
+### 2. Benchkit → Evidence-Grade
 
-The benchmarking toolkit is functionally complete. The full evidence plan shipped:
-durability/recovery, production replay, `benchtest.RunSuite`, analytical profile,
-Postgres backend, scaling sweeps, benchstat/manifest output, profiling, and a
-first real run across memory/pebble/sqlite (2026-07-24). DuckDB backend added
-(2026-07-29).
+The benchmarking toolkit is functionally complete and evidence-grade. The full
+evidence plan shipped: durability/recovery, production replay,
+`benchtest.RunSuite`, analytical profile, Postgres backend, scaling sweeps,
+benchstat/manifest output, profiling, and a first real run across
+memory/pebble/sqlite (2026-07-24). DuckDB backend added (2026-07-29).
+Evidence-grade metrics added (2026-08-01, ADR-0090).
 
 - ✅ **Tagged `benchkit/v4.2.0`** (tagged + pushed 2026-07-27)
 - ✅ **DuckDB backend** — benchmarkable via `--backend duckdb` (CGo-isolated)
+- ✅ **Evidence-grade metrics** (ADR-0090) — statistical reliability
+  (`RepeatCoV`, `RepeatIsReliable`), GC pause (`GCMaxPause`), allocation
+  (`AllocsPerOp`, `BytesPerOp`), data integrity (`IntegrityErrors`), write
+  amplification (`Disk.WriteAmplification`), cold/warm read distinction,
+  tail ratio (P99/P50), environment enrichment (`CPUModel`, `TotalRAMBytes`)
+- ✅ **Soak test drift** — `GCMaxPauseDriftPct`, `AllocGrowthPct` for memory
+  boundedness verification
+- ✅ **Metaengine benchmark** — Memory + SQLite engines, Counter + Map ADTs.
+  Counter workload correctness assertions (previous event-type mismatch bug
+  silently measured empty stores)
+- ✅ **5-backend comparison** — `docs/benchmarks/2026-07-31_backend-comparison.md`
 - **Run-to-run variance** — ~20-25% on the memory backend. `--repeat N`
   (median-of-N) mitigates it; real-world regression tracking is the next step.
 - **Real-world validation** — the first run verified plumbing and plausibility;
@@ -87,11 +135,11 @@ first real run across memory/pebble/sqlite (2026-07-24). DuckDB backend added
 
 ### 3. cqrs-lint → Trustworthy
 
-The linter grew from 65 to 179 rules across 10 categories. Quality has been
+The linter grew from 65 to 181 rules across 10 categories. Quality has been
 hardened through multiple brutal review passes.
 
-- ✅ **179 rules shipped** across correctness (36), API (30), boilerplate (28),
-  adoption (21), architecture (17), consistency (15), performance (9),
+- ✅ **181 rules shipped** across correctness (36), API (31), boilerplate (28),
+  adoption (21), architecture (17), consistency (16), performance (9),
   security (9), testing (8), version (6)
 - ✅ **Feature profile system** — auto-detects consumer module usage and adapts
   context-dependent rules
@@ -99,8 +147,11 @@ hardened through multiple brutal review passes.
   consumer-coaching rules when linting the go-cqrs-lite source itself
 - ✅ **Quality hardening done** — E010/E011/E013/E014 rewritten with type-aware
   matching; import-alias resolution built; C030/S006 reviewed; suppression
-  parser fixed
-- **50-item improvement backlog** — ~35 items remain open in the
+  parser fixed; block-level suppression (ADR-0088)
+- ✅ **Consumer feedback received** — bank-sync v0.2.2 review surfaced P0 bugs
+  (B022 wrong function name, P012/P013 cross-file blindness) and feature gaps
+  (config-level rule disabling, `--exclude-rules` CLI flag)
+- **~14 remaining backlog items** — see the
   [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md)
 - **Consumer validation needed** — run against real consumer projects to
   establish trustworthy false-positive rates. See [TODO_LIST.md](TODO_LIST.md).
@@ -114,6 +165,8 @@ Two modules are zero-CQRS-coupling candidates for standalone repos (see
   coupling). Execution requires creating the standalone repo.
 - ✅ **Extract `idempotency/` → `go-idempotency`** — ADR-0065 written (553 LOC
   across 3 modules). Execution requires creating the repo.
+- ✅ **Extract `flightrecorder/` → standalone** — zero-dep module (stdlib only).
+  Natural standalone candidate once API stabilizes.
 
 ### 5. Storage & Transport Expansion (design-doc-backed)
 
@@ -127,6 +180,10 @@ to [TODO_LIST.md](TODO_LIST.md) when actively worked:
   `MySQLDialect` in `storage/sql/`. `Dialect` interface expanded with 4 upsert/
   quoting methods (ADR-0080). Pure-Go driver (`go-sql-driver/mysql`), no CGo.
   Full `idempotency/sqlstore` support with MySQL `IF()` conditional TTL.
+- ✅ **Backend tradeoff framework** — `DurabilityTier` (Strict/Normal/Relaxed)
+  translated to per-backend pragmas. `Capabilities` machine-checkable matrix.
+  Mixed workload benchmark phase. `BACKEND_TRADEOFFS.md` guide.
+  5-backend comparison benchmark.
 - ✅ **NATS transport design** — `docs/planning/nats-transport-design.md`
   documents JetStream stream config, durable consumers, and CatchUpSubscriber
   integration via the existing `watermill/` bridge (no native `transport/nats/`
@@ -142,11 +199,25 @@ All four consumer experience gaps shipped via the Pareto execution plan:
 - ✅ **Read-your-writes WaitForVersion** — `decider.WaitForVersion`
 - ✅ **Bounded staleness CheckStaleness** — `projectionhost.CheckStaleness`
 
+### 7. Observability — Flight Recorder
+
+Go 1.25 `runtime/trace` capture on slow/error/always triggers (ADR-0089):
+
+- ✅ **Zero-dep `flightrecorder/` module** — `Recorder`, `TriggerFunc` system,
+  configurable options
+- ✅ **CQRS middleware** — `CommandFlightRecorder`, `EventFlightRecorder`,
+  `QueryFlightRecorder`
+- ✅ **Decider/projectionhost/stack integration** — `WithFlightRecorder` options
+  across all lifecycle-managed components
+- **Deeper integrations (not started)** — `scheduling.Scheduler` hook,
+  `transport/http` SSE hook, `metaengine` Store hook, example/taskmanager demo,
+  trace file validity integration test.
+
 ---
 
 ## Raw Ideas (No Design Yet)
 
-> _Triage 2026-07-30: 10 items reviewed. None stale, none ready to drop._
+> _Triage 2026-08-02: 12 items reviewed. None stale, none ready to drop._
 
 - Event stream compaction / log truncation strategies
 - Multi-tenant event store (schema-per-tenant)
@@ -160,6 +231,11 @@ All four consumer experience gaps shipped via the Pareto execution plan:
 - SSE fan-out transform memoization — `CBORToJSONTransform` runs once per client
   (208µs for 100 clients, 3400 allocs/op). Memoization keyed by event ID could
   save ~99% of transform cost under high fan-out.
+- Auto-denormalization in metaengine — planner detects that two queries share
+  a common prefix and recommends a denormalized projection to avoid fan-out
+  joins at read time.
+- Metaengine plugin registry — third-party engine backends registered at
+  runtime without recompiling (operator YAML config for engine selection).
 
 > Items with design docs graduate to a Theme above, then to [TODO_LIST.md](TODO_LIST.md)
 > when actively worked.
@@ -193,8 +269,8 @@ All four consumer experience gaps shipped via the Pareto execution plan:
 
 ## Metaengine Integration — Deferred Items
 
-The following metaengine integration items were intentionally deferred during
-the first-class integration sprint (2026-07-31). Each has clear rationale.
+The following metaengine integration items were intentionally deferred. Each
+has clear rationale.
 
 ### Catalog Bridge for Metaengine Queries (DEFERRED — YAGNI)
 
@@ -216,14 +292,7 @@ the passthrough use case without coupling.
 Extracting a shared `sse` helper package from `metaengine/sse.go` and
 `transport/http/sse.go`. The two implementations serve different layers:
 `metaengine/sse.go` watches a Store collection for mutations (collection-watch
-
-- replay), while `transport/http/sse.go` bridges an `event.Bus` to HTTP clients
-  (bus-to-client). Merging risks a leaky abstraction. Cross-reference comments
-  were added to both files instead.
-
-### Pebble Engine StreamingScan (DEFERRED — Separate Sprint)
-
-Implementing the `StreamingScan` interface (OOM-safe `iter.Seq2`) in the Pebble
-engine, matching SQLite's implementation. This is real engineering work (Pebble
-iterator wrapping, lazy decode, error handling), not integration. Belongs in a
-separate metaengine-focused sprint.
++ replay), while `transport/http/sse.go` bridges an `event.Bus` to HTTP clients
+(bus-to-client). Merging risks a leaky abstraction. Cross-reference comments
+were added to both files instead. An ADR documenting the intentional split is
+still needed — see TODO_LIST.

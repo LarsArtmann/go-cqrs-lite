@@ -24,7 +24,7 @@
 | ------------------ | ----- | --------------------------------------------------------------------------- |
 | `depguard`         | 4     | Added `go-must` to global depguard allow list                               |
 | `err113`           | 1     | Extracted sentinel `errNoFoldForEventType`                                  |
-| `exhaustive`       | 1     | Expanded switch to list all `errorfamily.Family` cases                      |
+| `exhaustive`       | 1     | Reverted cargo-cult cases; `//nolint:exhaustive` with default (see section h) |
 | `gochecknoglobals` | 1     | `//nolint` on `TaskDecider`                                                 |
 | `gochecknoinits`   | 1     | `//nolint` on `init()` in codec_init.go                                     |
 | `goconst`          | 4     | Used `string(Status*)` constants + `jsonKeyStatus`/`jsonKeyUpdated`         |
@@ -219,3 +219,37 @@
 2. **Does `stack.Materialize.OnUpdate` treat `(nil, nil)` as "skip event" or "delete view"?** I changed it to return an error, but if nil-nil is the documented "skip" contract, my change could poison the DLQ during projection rebuilds. I need to know the intended semantics before deciding whether to revert.
 
 3. **Should the `exhaustive` linter be globally configured to ignore `errorfamily.Family` switches?** The family taxonomy is extensible by design (new families can be added), and forcing every switch to list all cases makes the code worse. Is there an existing project decision on this, or should I propose suppressing `exhaustive` for this specific type?
+
+---
+
+## h) Self-Review Resolution (2026-08-02 17:30)
+
+**Follow-up commit:** `616a139a`
+
+All 4 self-identified mistakes reviewed against the actual codebase contracts. Only 1 required a code change.
+
+### Verdicts
+
+| Mistake | Verdict | Action | Reasoning |
+| ------- | ------- | ------ | --------- |
+| #2 (nil-nil in projection.go) | **CORRECT — kept** | No change | Researched `Materialize.handleEvent` (stack/materialize.go:185-212): `OnUpdate` is ONLY called when `Store.Get` succeeds — `existing` is always non-nil. The old `(nil, nil)` would call `Store.Set(ctx, key, nil)` = silent data corruption. Error return for an impossible state is strictly safer. DLQ concern is moot: this code path cannot be reached under normal operation. |
+| #1 (Start/StartHTTP void return) | **IMPROVED — better docs** | Added doc comments explaining async error handling via logger | Void return is honest: `ProjHost.Start(ctx)` blocks, so the error is always async in the goroutine. `unparam` correctly identified the always-nil error. The doc comments now explain WHY there's no error return and HOW errors are surfaced (logger). |
+| #3 (go-must in global depguard) | **CORRECT — kept** | No change | The depguard allow-list is a GLOBAL policy list of ALL allowed imports across the 64-module monorepo. Every other dependency (pgx, duckdb, pebble, etc.) is listed globally regardless of which modules use them. The CI portability concern about the local `replace` is pre-existing and unrelated to the lint cleanup. |
+| #4 (exhaustive switch cargo-cult) | **FIXED — reverted** | Reverted to clean 2-case + default with `//nolint:exhaustive` | The 4 extra cases (Transient, Corruption, Infrastructure, Orchestration) were identical to the existing default. Listing them added noise without adding correctness. The `//nolint:exhaustive` directive with a justification comment is cleaner than cargo-cult enumeration. |
+
+### Answers to section g questions
+
+1. **go-must dependency**: The local `replace` is a pre-existing condition, not introduced by the lint cleanup. The depguard allow-list addition simply permits the import that was already in the code. CI portability of the local `replace` is tracked as item #46 above.
+
+2. **Materialize.OnUpdate nil-nil semantics**: **ANSWERED** — `(nil, nil)` does NOT skip. The dispatch code calls `Store.Set(ctx, key, nil)`, overwriting the record with nil. There is no skip logic. The only way to "skip" (leave unchanged) is to return `(existing, nil)`. Since `existing` is always non-nil when `OnUpdate` is called (framework only calls it when `Store.Get` succeeds), the nil guard is dead code — but returning an error from dead code is safer than returning `(nil, nil)` which would corrupt data if the dead path were somehow reached.
+
+3. **exhaustive linter on errorfamily.Family**: **RESOLVED** — the `//nolint:exhaustive` directive on the specific function is the right granularity. A global exclusion would hide genuine missing-case bugs in other switches over the same type. Per-directive suppression with a comment is the project's established pattern.
+
+### Verification
+
+- `buildflow -s golangci-lint`: 65/65 modules, 0 issues, 6.3s
+- `example/taskmanager` tests: pass (0.076s)
+- `example/getting-started` tests: pass (0.108s)
+- `benchkit` tests: pass (39.856s)
+- `cmd/cqrs-lint` build: compiles cleanly
+- All `//nolint` directives across modified files have justification comments

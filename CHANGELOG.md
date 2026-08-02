@@ -364,6 +364,218 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   footgun documented, otter/failsafe-go adoption noted, `snaps.Clean` convention
   documented.
 
+#### Flight recorder module (ADR-0089)
+
+- **`flightrecorder/` module** — zero-dependency Go 1.25 `runtime/trace`
+  wrapper. `Recorder` type with `New`/`Start`/`Stop`/`Enabled`/`Snapshot`/
+  `SnapshotToFile`/`SnapshotIf`/`Reset`. Once-semantics (first trigger captures,
+  rest no-ops). Thread-safe (`sync.Mutex`). Process-global (one active recorder
+  per process; `ErrAlreadyEnabled` on double Start).
+- **Trigger functions** — `OnLatency(d)`, `OnError()`, `OnErrorOrLatency(d)`,
+  `OnAlways()`, `OnAny(...)`, `OnAll(...)`. Composable predicates.
+- **Options** — `WithMinAge`, `WithMaxBytes`, `WithWriter`, `WithFile`.
+  Configurable for slow/error/always capture.
+- **CQRS middleware** — `CommandFlightRecorder`, `EventFlightRecorder`,
+  `QueryFlightRecorder` in `middleware/`. Triggered on slow/error dispatch.
+- **Decider integration** — `decider.WithFlightRecorder[State]` — captures on
+  slow/error `Execute` calls.
+- **Projection host integration** — `projectionhost.WithFlightRecorder` —
+  captures on terminal worker failure.
+- **Stack bundle integration** — `stack.WithFlightRecorder` — lifecycle
+  management + discovery via `Bundle`.
+- **Coverage:** 92.5%. 35 tests, `-race` clean. `io.Closer` on `Recorder` (fixes
+  file handle leak). `ctx` pre-check in `Snapshot`/`SnapshotToFile`.
+- **API surface:** 29 new symbols (3117→3161).
+
+#### Benchkit evidence-grade metrics (ADR-0090)
+
+- **7 new metric families** — statistical reliability (`RepeatStdDev`,
+  `RepeatCoV`, `RepeatMean`, `RepeatIsReliable`), GC pause metrics
+  (`GCMaxPause`), allocation metrics (`AllocsPerOp`, `BytesPerOp`), data
+  integrity verification (`IntegrityErrors`), write amplification
+  (`Disk.WriteAmplification`), cold/warm read distinction
+  (`ColdReadLatency`), environment enrichment (`CPUModel`, `TotalRAMBytes`).
+- **Derived rate metrics** — `GCPercent`, `TailRatio` (P99/P50 ratio)
+  computed in `finalizeResult`.
+- **Soak test drift** — `SoakSample.GCMaxPause`, `AllocBytes`;
+  `SoakResult.GCMaxPauseDriftPct`, `AllocGrowthPct`. Memory-boundedness
+  verification for sustained load.
+- **Counter workload correctness** — `ErrMEEmptyCounter`, `ErrMEPointMiss`,
+  `ErrMEEvent` sentinels. Benchmarks now assert non-empty counters (previous
+  event-type mismatch bug silently measured empty stores).
+- **Metaengine SQLite benchmark phase** — `phases_metaengine_sqlite.go`.
+  Memory-vs-SQLite comparison with `MetaEngineSQLiteApplyThroughput`,
+  `MetaEngineSQLiteScanLatency`, `MetaEngineSQLitePointReadLatency`.
+- **PrintComparison expanded** — 11→13 columns (+TailR, +A/op).
+- **API surface:** updated to 3162 exports.
+
+#### Metaengine: Tier 4 expansion — new ADTs, engines, planner evolution
+
+- **3 new ADTs** (ADR-0085) — `ADTVector` (k-NN similarity search,
+  cosine/euclidean/dot), `ADTSearch` (full-text search, TF-IDF inverted index),
+  `ADTSpatial` (geo range queries, haversine distance). Classification priority:
+  Vector → Search → Spatial → Graph → Counter → Map → Set → Multimap → Log →
+  SortedMap → Scan. Currently Memory-only (brute-force); future: DuckDB VSS,
+  Postgres tsvector, PostGIS.
+- **DuckDB metaengine engine** (`metaengine/duckdbengine/`) — MapBackend,
+  CounterBackend, `LayoutColumnar`, `PushdownScan` (json_extract filter/sort
+  pushdown). CGo required, separate module (ADR-0086).
+- **Postgres metaengine engine** (`metaengine/pgengine/`) — MapBackend,
+  CounterBackend, ScanBackend, `PushdownScan` (JSONB `->>` operator filter/sort
+  pushdown), `LayoutPlanner` (expression indexes on JSONB paths). Pure Go (pgx
+  driver, no CGo) (ADR-0087).
+- **`ScanResult{Items []any; HasMore bool}`** — explicit `HasMore` contract
+  across all 3 scan interfaces and all 5 engine implementations. Engines
+  return at most `limit` rows; `HasMore` signals existence of more.
+- **`RawScanResult{Items [][]byte; HasMore bool}`** — raw-bytes variant.
+- **Postgres testcontainer tests** — `pgengine/testcontainer_test.go`. Shared
+  `postgres:16-alpine`, per-test isolation. First time pgengine tested against
+  real Postgres. ScanBackend tests (no filter, filter, sort+limit, keyset
+  pagination). Batch `CounterIncrement` (N Exec → 1 multi-row
+  INSERT...VALUES...ON CONFLICT).
+- **DuckDB ScanBackend tests** — 4 sub-cases verified with CGo.
+- **5 engines, cross-engine parity** — Memory, SQLite, Pebble, DuckDB,
+  Postgres. `adttest.RunMatrix` extended to 10 ADTs (Vector, Search, Spatial
+  added). Auto-skip for unsupported backends via reflect-based interface
+  checking.
+
+#### Metaengine: planner rule pipeline + materialize-vs-replay (ADR-0083)
+
+- **`PlanRule` interface + `RulePipeline`** — composable planning rules.
+  `planner.go` dissolved from 279→226 lines. 4 extracted rules: `schemaRule`,
+  `layoutRule`, `writeAmpRule`. Rules applied sequentially after engine
+  assignment.
+- **Statistics + materialize-vs-replay** — `WithWorkloadStats`,
+  `ReplayCost(stats)`, `MaterializeCost(stats)`, `ShouldMaterialize(stats)`.
+  The ES-specific killer feature: advisory INFO/WARN diagnostic in `PlanResult`
+  when materialization is cheaper than replay. Cost formula:
+  `replay = read_rate × stream_length × fold_cost`;
+  `materialize = write_rate × fold_cost + read_rate × query_cost`.
+- **`StorageLayout` + cost matrix** — `Layout{Row, Columnar, LSM, KV}`,
+  `(ADT × Layout) → Complexity` mapping, `EngineProfile.Layouts`,
+  `RuleTrace`. Engines declare their physical layout; planner matches ADT
+  requirements to engine capabilities.
+- **`SerializablePlan`** — JSON-serializable `PlanResult` for diff/pin/round-trip
+  testing. `Serialize(result, engines)` + `Deserialize`.
+- **`VersionedStorage`** — temporal queries (`ExecuteAsOf`) on Memory engine.
+  Version chains + binary search for point-in-time reads. Property-based test
+  (100 rapid iterations, reference model).
+- **`workloadMeter` / `poisonTracker` / `idempotencyTracker` / `subscriberHub`**
+  — Store god-object decomposed into focused collaborators (17→13 fields).
+
+#### Metaengine: data model refactor (Fold sealed interface)
+
+- **`Fold` sealed interface** — 12 concrete unexported fold types replace the
+  11-field `any` god-struct. Zero nil-panic risk (`reflect.Value` captured once
+  at construction). `applyFold` dispatch is a type switch (zero
+  `reflect.ValueOf` per event). 11 `callXxx` reflect helpers deleted.
+- **`queryRuntime` deleted** — merged into `QueryDecl[Q,R]` with 3 unexported
+  runtime fields. `queryMeta` interface gained `assignPlan()`/`setEngine()`.
+- **Enum validation** — all 6 enum families (`ADT`, `StorageLayout`,
+  `FilterOp`, `CursorKind`, `EngineKind`, `SortDirection`) have `Valid()` +
+  registries. `AllStorageLayouts()`, `AllADTs()` helpers.
+- **Branded unit types** — `NsPerRead`, `NsPerWrite`, `ByteSize` defined (not
+  yet wired).
+- **`ApplyError`** — structured error type for fold failures (not yet wired).
+- **README "Internal Architecture" section** added.
+
+#### Metaengine: pgengine + duckdbengine PushdownScan
+
+- **pgengine PushdownScan** — `FilterOnField`/`SortOnField` push
+  WHERE/ORDER BY/LIMIT into Postgres via JSONB `->>` operators. Partial
+  expression indexes (`LayoutPlanner`) for indexed JSONB paths.
+- **duckdbengine PushdownScan** — `json_extract()` filter/sort pushdown for
+  DuckDB. JSON stored as VARCHAR (columnar optimizations not yet leveraged).
+- **Documentation overclaim fixes** — pgengine/duckdbengine doc.go and scan.go
+  comments corrected to match actual capabilities.
+
+#### Backend tradeoff framework
+
+- **`DurabilityTier`** — unified vocabulary: `DurabilityStrict` (fsync per
+  commit), `DurabilityNormal` (safe against app crash), `DurabilityRelaxed`
+  (data loss possible on crash). Translated to per-backend pragmas:
+  SQLite `synchronous`, Postgres `synchronous_commit`, Pebble `DisableWAL`.
+  Default: `DurabilityNormal`.
+- **`Capabilities`** — machine-checkable tradeoff matrix:
+  `Persistent`, `Embedded`, `Distributed`, `OLAP`, `CGoRequired`, `SyncEnabled`.
+  Every stack preset implements `Capabilities()`.
+- **Mixed workload benchmark** — `BenchmarkMixedWorkload_ReadsDuringWrites`
+  phase. Concurrent reads + writes for realistic contention profiling.
+- **Backend options** — `sqlite.WithCacheSize`, `sqlite.WithBusyTimeout`,
+  `postgres.WithPoolSize`, `postgres.WithStatementTimeout`.
+- **`BACKEND_TRADEOFFS.md`** — 228-line guide documenting per-backend
+  tradeoffs (durability, performance, embeddability).
+- **5-backend benchmark** — `docs/benchmarks/2026-07-31_backend-comparison.md`.
+  Pebble: 100K/s writes (7x SQLite, 50x DuckDB). Postgres: 137µs P50 reads,
+  387x speedup with `synchronous_commit=off`. DuckDB: OLAP not OLTP.
+
+#### cqrs-lint: A033 + C037 (179 → 181 rules)
+
+- **A033** — branded-ID string roundtrip detection. Flags code that converts a
+  branded `id.Of[T]` to `string` and back, which breaks compile-time type
+  safety. 4 tests.
+- **C037** — snapshot/event codec mismatch. Detects when a snapshot store and
+  event store use different codecs (e.g., CBOR events + JSON snapshots), which
+  causes deserialization failures on load. 5 tests.
+- **Self-lint clean** — both rules fire 0 findings on the linter's own code.
+
+#### cqrs-lint: block-level suppression (ADR-0088)
+
+- **`//cqrs-lint:ignore-start` / `//cqrs-lint:ignore-end`** — suppress findings
+  across a range of lines instead of per-line. Pairs with existing
+  `//cqrs-lint:ignore <rule-id>` single-line suppression.
+- **Stale block detection** — `DetectStaleSuppressions` flags
+  `ignore-start`/`ignore-end` pairs where no finding fires between them
+  (the code was fixed but the suppression wasn't removed).
+- 5 tests covering start/end pairing, stale detection, nested blocks.
+
+#### Pebble sort index (1,233x speedup)
+
+- **Sort index implementation** — `'o'` prefix key structure for sort fields.
+  `writeIndexEntries`/`deleteIndexEntries` maintain the index atomically.
+  `scanWithSortIndex` iterates in sort order with cursor pagination and early
+  termination. 9 tests, race-detector clean.
+- **Benchmark:** 8,145µs → 6.6µs (1,233x speedup) for sorted scans.
+- **Numeric range filter fix** — `encodeIndexValue` with sign-offset to uint64
+  domain + `%020d` zero-pad ensures lexicographic ordering matches numeric
+  ordering for ALL integers (negative, mixed-digit, max/min int64).
+
+#### Verify gate repair: Stale GREEN → actual GREEN
+
+- **Soak test stabilization** — `race_on.go`/`race_off.go` build-tag constants
+  for `-race`-inflated thresholds (10x under race detector). Verified 3x with
+  `-count=3 -race`. Benchkit soak test skip heap leak assertion when <5 iterations.
+- **15 pre-existing lint issues fixed** across 6 modules (stack/sqlopt
+  exhaustive+wrapcheck, stack/memory exhaustruct, stack/sqlite exhaustruct+mnd,
+  stack/duckdb exhaustruct, storage goconst, storage/sql goconst, benchkit
+  gocognit+nilerr+modernize).
+- **ADR numbering collision resolved** — two files numbered 0081; renamed
+  store-redesign to 0082. Cross-references updated.
+- **First clean verify gate** — EXIT:0, 0 test failures, 0 lint issues, 56
+  modules, 1105 doc-check refs, API stability passed.
+
+#### MySQL polish session 2
+
+- **Testcontainer privilege fix** — `ctr.Exec` for root GRANT instead of
+  host-side DSN string replacement. Reliable, no `caching_sha2_password` issues.
+- **Multi-statement DDL fix** — `splitMySQLDDL()` via `strings.SplitSeq` avoids
+  `multiStatements=true` DSN (SQL-injection risk).
+- **CHANGELOG entry** for MySQL/MariaDB support.
+
+#### Documentation: ADRs 0080–0090
+
+- **ADR-0080** — Dialect interface upsert methods (MySQL support)
+- **ADR-0081** — Metaengine runtime casts
+- **ADR-0082** — Metaengine store redesign analysis
+- **ADR-0083** — Metaengine planner rule pipeline
+- **ADR-0084** — Metaengine layered architecture
+- **ADR-0085** — Metaengine new ADTs (Vector/Search/Spatial)
+- **ADR-0086** — Metaengine DuckDB engine
+- **ADR-0087** — Metaengine Postgres engine
+- **ADR-0088** — Block-level suppression
+- **ADR-0089** — Flight recorder
+- **ADR-0090** — Benchkit evidence-grade metrics
+
 ## [v4.2.0] — 2026-07-27
 
 ### Added

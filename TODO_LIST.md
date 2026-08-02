@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-07-31
+**Updated:** 2026-08-02
 **Scope:** Short- and mid-term actionable tasks only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -13,52 +13,102 @@ and is **never** duplicated here.
 
 ---
 
-## Metaengine — Remaining Work
+## Metaengine — Open Work
 
 > The metaengine is production-ready: **5 engines** (memory, SQLite, Pebble,
-> DuckDB, Postgres), 7-ADT cross-engine parity tests, LayoutPlanner
-> (filter + sort indexes), cursor pagination, SSE delivery, transaction API,
-> ADT test harness, StreamScan (lazy iter.Seq2), ScanCount, property-based
-> parity testing. All known bugs are fixed (including goroutine leak in Watch).
-> pgengine and duckdbengine are shipped (PushdownScan + LayoutPlanner); see
-> ROADMAP for their remaining sub-tasks (GIN containment indexes, vectorized
-> GROUP BY).
+> DuckDB, Postgres), 10 ADTs (7 original + Vector/Search/Spatial), rule pipeline,
+> materialize-vs-replay cost model, StorageLayout + cost matrix, SerializablePlan,
+> VersionedStorage (temporal), StreamScan, ScanResult explicit HasMore, SSE
+> delivery, Watcher, PrefetchCache, TypedReader, QueryBuilder, property-based
+> cross-engine parity testing, Pebble sort index (1,233x speedup), Fold sealed
+> interface. All known bugs are fixed. See CHANGELOG `[Unreleased]` for full
+> detail.
 
-- `[ ]` **10M-event soak test** — verify memory boundedness at scale (currently 50K).
+- `[ ]` 🔥 **Wire dead code from data model refactor** — branded unit types
+  (`NsPerRead`, `NsPerWrite`, `ByteSize`), `ApplyError`, `Valid()` calls at
+  `Plan()` time are defined but NOT wired. They are currently dead code.
+- `[ ]` 🔥 **Exhaustiveness guard test** — compile-time test ensuring all Fold
+  concrete types are handled in `applyFold` type switch (prevents silent
+  fallthrough when a new fold type is added).
+- `[ ]` **10M-event soak test** — verify memory boundedness at scale (currently
+  50K events; stretch goal is 10M).
 - `[ ]` **`metaengine-gen` code generator** — typed Store methods from query
-  declarations (CLI tool, similar to `cqrs-gen`).
+  declarations (CLI tool, similar to `cqrs-gen`). Go AST parsing + template
+  generation.
+- `[ ]` **Generic `ScanResult[T]`** — replace `[]any` with generic typed slice
+  (currently `ScanResult{Items []any}`). Breaking API change; needs major
+  version bump.
+- `[ ]` **Boundary keys-type validation** — enforce that map keys passed to
+  engines match the declared key type at the Store boundary (not just at fold
+  time).
+- `[ ]` **Watcher typed channel** — `Watcher[V]` sends `any`, not typed `V`.
+  SQLite engine type assertion can silently fail.
+- `[ ]` **DuckDB LayoutPlanner** — DuckDB engine has no layout planner (JSON
+  stored as VARCHAR; no expression indexes).
+- `[ ]` **Postgres GIN containment indexes** — `@>` operator for JSONB path
+  queries. Currently only expression indexes (B-tree on JSONB paths).
+- `[ ]` **DuckDB columnar-native storage** — DuckDB stores JSON as VARCHAR;
+  columnar scans not leveraged. Vectorized GROUP BY for CounterGet would use
+  DuckDB's native columnar engine.
+- `[ ]` **SSE consolidation** — `metaengine.ServeSSE` overlaps
+  `transport/http.SSEBroker`. ADR needed: consolidate, or document the
+  intentional split.
+- `[ ]` **Vector/Search/Spatial backends** — currently Memory-only (brute-force).
+  Future: DuckDB VSS extension (vector), Postgres tsvector (search), PostGIS
+  (spatial). See ROADMAP.
 
 ---
 
-## cqrs-lint — Remaining Work
+## cqrs-lint — Open Work
 
 > The linter has **181 rules** across 10 categories. Import-alias resolution,
-> suppression tests, and D/E-series migrations are complete. C017 tracing
-> (L1.9), migration paths in findings (L1.16), and doc links (L1.17) are done.
-> Recently added: A033 (branded-ID string roundtrip), C037 (snapshot/event
-> codec mismatch).
+> block-level suppression, self-lint mode, and D/E-series migrations are complete.
+> Recently added: A033 (branded-ID string roundtrip), C037 (snapshot/event codec
+> mismatch), block-level suppression (ADR-0088).
 
-- `[ ]` 🔥 **~17 open items in the improvement backlog** — see the
+- `[ ]` 🔥 **Config-level rule disabling** — no `disabled-rules` key in
+  `.cqrs-lint.json`. Consumers must use inline `//cqrs-lint:ignore` comments
+  everywhere. Add config-level disable + `--exclude-rules` CLI flag.
+- `[ ]` 🔥 **Run cqrs-lint against real consumer projects** — validate FP rate
+  against Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync. Consumer
+  feedback (bank-sync) already surfaced P0 bugs (B022 wrong function name,
+  P012/P013 cross-file blindness).
+- `[ ]` **Fix B022 bug** — suggests `decider.CommandCausalityEnricher` which
+  does NOT exist. Should be `event.CommandCausalityEnricher`.
+- `[ ]` **Fix P012/P013 cross-file blindness** — per-file `ast.Inspect` cannot
+  see SQLite PRAGMAs in a different file, producing 4 unsuppressable false
+  positives on every project wrapping SQLite in a storage package.
+- `[ ]` **C037 scope expansion** — only covers snapshot store (1 of 5 typed
+  stores). Missing: kv, command, query, stack.Materialize.
+- `[ ]` **F009/F015/F017 feature-profile gating** — fire on CLI projects where
+  modules are deliberately not used (missing feature-profile check).
+- `[ ]` **`--fix` support for D007** — mechanical `event.NewEvent` → `event.New`
+  migration could be auto-fixed.
+- `[ ]` **Domain-based severity calibration (L1.5)** — makes all rules smarter
+  via domain context (financial aggregates get stricter rules). Strategic item;
+  deferred since 2026-07-30.
+- `[ ]` **~14 remaining backlog items** — see the
   [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
-  Top open items: domain-based severity calibration (L1.5), block-level
-  suppression (L1.22), new categories (DOC/OBS/RES/DI, L1.47–L1.50),
-  event-type string typo detection (L1.29).
-- `[ ]` **Run cqrs-lint against real consumer projects** — validate FP rate
-  against Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
-- `[ ]` **cqrs-lint domain-based severity** — (L1.5) makes all rules smarter
-  via domain context (financial aggregates get stricter rules).
+  Open: L1.18 (config inheritance), L1.29 (event-type string typo detection),
+  L1.30–L1.33 (deep pattern detection), L1.47–L1.51 (new categories DOC/OBS/RES/DI).
 
 ---
 
-## CI / Daemon / Release
+## CI / Release / Infrastructure
 
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
 - [BLOCKED] **Push `stack/duckdb/v4.0.0` tag** — tag created locally but not
   pushed (per safety rules). Consumers get 404 from Go proxy until pushed.
+- [BLOCKED] **Tag `metaengine/pgengine/v4.0.0` + `metaengine/duckdbengine/v4.0.0`**
+  — both modules shipped but untagged. Consumers cannot resolve them.
+- `[ ]` **MySQL testcontainer privilege fix** — root password auth
+  intermittently fails. Testcontainer GRANT pattern is fragile.
 - `[ ]` **Investigate `TestRun_Postgres_Recovery` benchkit failure** — may
   still flake under CI.
+- `[ ]` **Investigate `TestProperty_SQLiteTTLExpiry` flake** — pre-existing
+  property test failure in `idempotency/sqlstore`.
 
 ---
 
@@ -93,6 +143,8 @@ and is **never** duplicated here.
   (over-engineering).
 - **Split `event/` module** — 27 importers, real cohesion. Decided in v4.
 - **Extract metaengine as standalone project** — → ROADMAP.
+- **`FluentBuilder` in metaengine** — deleted (ghost code, broken doc example).
+  See ADR-0077.
 
 ---
 
