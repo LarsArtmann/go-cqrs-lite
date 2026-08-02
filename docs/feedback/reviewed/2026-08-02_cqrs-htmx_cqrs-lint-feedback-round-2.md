@@ -300,3 +300,13 @@ Even with the stale binary, the stale-suppression detector caught 18 misplaced s
 | 6 | Field-level suppression undocumented | LOW | ❌ Undocumented | ❌ Undocumented | Add to --help / docs |
 
 Fixes 1 and 2 are the priority. They would eliminate all 16 remaining findings and make the gofmt-dirty workaround unnecessary.
+
+---
+
+## Resolution Appendix (2026-08-02)
+
+| # | Issue | Resolution |
+|---|-------|------------|
+| 2 | Version constant not bumped | **FIXED.** Bumped `const version` from `0.2.2` to `0.3.0` in `main.go:18`. |
+| 5 | Blank line breaks suppression | **FIXED.** `checkSuppressionInFile` now skips blank lines when scanning upward from the finding. A suppression comment separated from the finding by blank lines now works correctly. Tests: `TestSuppression_SkipsBlankLinesWhenScanningUpward`, `TestSuppression_DoesNotSkipNonBlankLines`. |
+| 6 | Field-level suppression undocumented | Documented in the CLI `--help` long text (`rootCmd.Long`) which shows both inline and block suppression patterns. |
