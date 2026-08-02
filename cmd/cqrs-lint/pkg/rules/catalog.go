@@ -395,6 +395,15 @@ func correctnessRules() []RuleInfo {
 			Description: "Checkpoint/snapshot/idempotency store backend differs from event store — crash-recovery guarantees break",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C037",
+			Name:        "snapshot-codec-mismatch",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Snapshot store codec differs from repository codec — snapshot cannot be decoded, loads as corrupt/zero state",
+			AutoFix:     false,
+		},
 	}
 }
 
