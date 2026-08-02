@@ -15,13 +15,13 @@ import (
 // The Padding field ensures the encoded payload matches the target byte size
 // as closely as possible (within a few bytes for any codec).
 type BenchPayload struct {
-	ID   string `cbor:"1,keyasint"           json:"id"`
-	Name string `cbor:"2,keyasint"           json:"name"`
+	ID   string `cbor:"1,keyasint" json:"id"`
+	Name string `cbor:"2,keyasint" json:"name"`
 	//cqrs-lint:ignore(C008) library code or intentional pattern
-	Value    float64           `cbor:"3,keyasint"           json:"value"`
-	Items    int               `cbor:"4,keyasint"           json:"items"`
-	Tags     []string          `cbor:"5,keyasint"           json:"tags"`
-	Metadata map[string]string `cbor:"6,keyasint"           json:"metadata"`
+	Value    float64           `cbor:"3,keyasint" json:"value"`
+	Items    int               `cbor:"4,keyasint" json:"items"`
+	Tags     []string          `cbor:"5,keyasint" json:"tags"`
+	Metadata map[string]string `cbor:"6,keyasint" json:"metadata"`
 	Padding  string            `cbor:"7,keyasint,omitempty" json:"_padding,omitempty"`
 }
 

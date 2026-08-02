@@ -67,7 +67,15 @@ type CounterView struct {
 	Value int `json:"value"`
 }
 
+const projectionSettleDelay = 100 * time.Millisecond
+
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	ctx := context.Background()
 
 	// ── Deployer: choose infrastructure ──────────────────────────────
@@ -78,7 +86,7 @@ func main() {
 		stack.WithCheckpointStore(memory.NewMemoryCheckpointStore()),
 	)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer func() { _ = bundle.Close() }()
 
@@ -87,15 +95,17 @@ func main() {
 		Initial: CounterState{},
 		Apply:   applyCounter,
 	})
+
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// ── Consumer: materialized view (read model) ─────────────────────
 	mat, err := stack.NewMaterialize[CounterView, id.StreamID](bundle, nil,
 		func(evt event.Event) (id.StreamID, error) { return evt.StreamID(), nil })
+
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	mat.OnCreate = func(_ context.Context, evt event.Event) (*CounterView, error) {
@@ -107,13 +117,13 @@ func main() {
 		return &CounterView{Value: p.Amount}, nil
 	}
 
-	mat.OnUpdate = func(_ context.Context, evt event.Event, ex *CounterView) (*CounterView, error) {
+	mat.OnUpdate = func(_ context.Context, evt event.Event, existing *CounterView) (*CounterView, error) {
 		p, err := event.DecodePayloadAuto[IncrementedPayload](evt)
 		if err != nil {
 			return nil, fmt.Errorf("decode incremented: %w", err)
 		}
 
-		return &CounterView{Value: ex.Value + p.Amount}, nil
+		return &CounterView{Value: existing.Value + p.Amount}, nil
 	}
 
 	// ── Consumer: projection (ordered replay + live delivery) ────────
@@ -126,7 +136,7 @@ func main() {
 
 	for _, amt := range []int{5, 3, 2} {
 		if err := repo.Execute(ctx, counterID, streamType, increment(counterID, amt)); err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 
@@ -144,11 +154,11 @@ func main() {
 	}()
 
 	// ── Query the materialized view ──────────────────────────────────
-	time.Sleep(100 * time.Millisecond) // wait for projection
+	time.Sleep(projectionSettleDelay) // wait for projection
 
 	view, err := mat.View(ctx, counterID)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	fmt.Printf("Counter %s: value=%d (expected 10)\n", counterID, view.Value)
@@ -158,4 +168,6 @@ func main() {
 	//   bundle, err := pebble.New("./data")
 	//   bundle, err := postgres.New(dsn)
 	// The domain code above doesn't change.
+
+	return nil
 }
