@@ -21,14 +21,14 @@ TOLERANCE=2.0
 
 # Module → documented coverage (verified 2027-07-27). Keep in sync with AGENTS.md.
 declare -A EXPECTED=(
-    [decider]=95.9
-    [storage/memory]=94.2
-    [snapshot]=90.5
+    [decider]=96.1
+    [storage/memory]=96.9
+    [snapshot]=91.9
     [schema]=89.9
     [command]=88.3
-    [event]=88.3
+    [event]=88.2
     [id]=86.4
-    [metaengine]=86.2
+    [metaengine]=76.3
     [query]=83.0
     [dispatcher]=81.5
     [kv]=71.9

@@ -271,7 +271,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | Reification failure tracking| `IncReificationFailure()` / `ReificationFailures()` on workloadMeter — surfaces type mismatches between planned and stored types | 🧪     |
 | Columnar layout query option| `WithColumnarLayout` query option enables column-native storage planning for analytical workloads                 | 🧪     |
 
-**Coverage:** 86.1% (verified `go test -cover ./...` 2026-07-27). 174 BDD specs + 150 cross-engine
+**Coverage:** 76.3% (verified `go test -cover ./...` 2026-08-02). 174 BDD specs + 150 cross-engine
 meta specs + 12 ADT harness self-tests. The metaengine went through 10+ hardening
 sessions (2026-07-30 to 2026-08-02): transaction API fix, SQL injection fix,
 hooks-on-error, ReadCoalescer wiring, Watcher with per-key filtering,
