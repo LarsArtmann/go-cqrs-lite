@@ -687,14 +687,14 @@ qryDisp.Use(middleware.QueryFlightRecorder(recorder,
 
 **Trigger options:**
 
-| Trigger | Fires when |
-|---------|-----------|
-| `OnLatency(threshold)` | Duration exceeds threshold |
-| `OnError()` | Operation returned non-nil error |
+| Trigger                       | Fires when                                |
+| ----------------------------- | ----------------------------------------- |
+| `OnLatency(threshold)`        | Duration exceeds threshold                |
+| `OnError()`                   | Operation returned non-nil error          |
 | `OnErrorOrLatency(threshold)` | Either of the above (recommended default) |
-| `OnAlways()` | Every operation (testing/baseline) |
-| `OnAny(triggers...)` | Any trigger fires (OR) |
-| `OnAll(triggers...)` | All triggers fire (AND) |
+| `OnAlways()`                  | Every operation (testing/baseline)        |
+| `OnAny(triggers...)`          | Any trigger fires (OR)                    |
+| `OnAll(triggers...)`          | All triggers fire (AND)                   |
 
 **Stack bundle integration** (lifecycle management + discovery):
 
@@ -742,6 +742,7 @@ host.Register(adapter)
 ```
 
 Key points:
+
 - `WithMetaEngine(store)` registers the Store for `Bundle.Close()` — no manual cleanup
 - `bundle.MetaEngine()` returns the Store for runtime queries
 - benchkit auto-discovers via `MetaEngine() != nil` (unless `Config.SkipMetaEngine`)

@@ -831,7 +831,10 @@
           </div>
           <div class="hero-badge">Brutal Self-Review</div>
           <h1>Metaengine Raw Reader Sophistication</h1>
-          <p class="hero-subtitle">Honest assessment of the Pebble RawValueReader / RawScanReader implementation and the ADT test harness extraction.</p>
+          <p class="hero-subtitle">
+            Honest assessment of the Pebble RawValueReader / RawScanReader implementation and the
+            ADT test harness extraction.
+          </p>
         </div>
 
         <nav class="toc">
@@ -846,7 +849,12 @@
         </nav>
 
         <h2 id="summary"><span class="num">00</span>Summary</h2>
-        <p>This review covers the work implementing Pebble RawValueReader + RawScanReader and extracting the ADT test matrix into a shared harness (<code>adttest</code>). The previous session shipped working code but left four issues ranging from a performance-undermining triple-decode bug to dead code in the test harness.</p>
+        <p>
+          This review covers the work implementing Pebble RawValueReader + RawScanReader and
+          extracting the ADT test matrix into a shared harness (<code>adttest</code>). The previous
+          session shipped working code but left four issues ranging from a performance-undermining
+          triple-decode bug to dead code in the test harness.
+        </p>
         <div class="stat-grid">
           <div class="stat-card stat-bad">
             <div class="stat-value">4</div>
@@ -872,10 +880,20 @@
           <span class="severity severity-critical">Fixed</span>
           <h3>Triple-decode in ScanRawValues</h3>
           <div class="where">metaengine/pebbleengine/raw_reader.go:80,100-101,124-125</div>
-          <p>The raw reader was supposed to eliminate the JSON tax by returning raw bytes for direct decode. But <code>ScanRawValues</code> was decoding each value to <code>any</code> <strong>three times</strong>: once for filter evaluation, once for sort comparison, and once for cursor comparison. On a scan of 100 items with filter+sort+cursor, that's 300 JSON decodes instead of 100. This directly undermined the entire performance optimization that was the point of the raw reader.</p>
+          <p>
+            The raw reader was supposed to eliminate the JSON tax by returning raw bytes for direct
+            decode. But <code>ScanRawValues</code> was decoding each value to <code>any</code>
+            <strong>three times</strong>: once for filter evaluation, once for sort comparison, and
+            once for cursor comparison. On a scan of 100 items with filter+sort+cursor, that's 300
+            JSON decodes instead of 100. This directly undermined the entire performance
+            optimization that was the point of the raw reader.
+          </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Decode once per value, store the decoded <code>any</code> alongside the raw bytes in a shared <code>kvPair</code> struct. All three phases (filter, sort, cursor) use the pre-decoded value. Raw bytes are returned to the caller. Net: 1 decode per value instead of 3.
+            Decode once per value, store the decoded <code>any</code> alongside the raw bytes in a
+            shared <code>kvPair</code> struct. All three phases (filter, sort, cursor) use the
+            pre-decoded value. Raw bytes are returned to the caller. Net: 1 decode per value instead
+            of 3.
           </div>
         </div>
 
@@ -883,10 +901,21 @@
           <span class="severity severity-important">Fixed</span>
           <h3>Sort+paginate split brain (MapScan vs ScanRawValues)</h3>
           <div class="where">pebbleengine/engine.go:392-424 vs raw_reader.go:97-157</div>
-          <p><code>MapScan</code> and <code>ScanRawValues</code> had structurally identical sort + keyset cursor + limit logic but implemented it independently. A bug fix in one would not propagate to the other. The cursor semantics differed subtly: <code>MapScan</code> encoded direction in the user's sort function; <code>ScanRawValues</code> used the <code>SortSpec.Desc</code> flag explicitly.</p>
+          <p>
+            <code>MapScan</code> and <code>ScanRawValues</code> had structurally identical sort +
+            keyset cursor + limit logic but implemented it independently. A bug fix in one would not
+            propagate to the other. The cursor semantics differed subtly:
+            <code>MapScan</code> encoded direction in the user's sort function;
+            <code>ScanRawValues</code> used the <code>SortSpec.Desc</code> flag explicitly.
+          </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Extracted <code>sortAndPaginate()</code> into <code>sort_paginate.go</code>. Both paths now call the same function. <code>ScanRawValues</code> builds a comparator from <code>SortSpec</code> that encodes direction internally (matching <code>MapScan</code>'s approach). The <code>extractOrDirect()</code> helper lets one comparator handle both item-vs-item sort and item-vs-cursor pagination. Zero behavioral change, single source of truth.
+            Extracted <code>sortAndPaginate()</code> into <code>sort_paginate.go</code>. Both paths
+            now call the same function. <code>ScanRawValues</code> builds a comparator from
+            <code>SortSpec</code> that encodes direction internally (matching <code>MapScan</code>'s
+            approach). The <code>extractOrDirect()</code> helper lets one comparator handle both
+            item-vs-item sort and item-vs-cursor pagination. Zero behavioral change, single source
+            of truth.
           </div>
         </div>
 
@@ -894,7 +923,11 @@
           <span class="severity severity-nice">Fixed</span>
           <h3>Dead code: <code>ctx</code> in <code>adttest.Scenarios()</code></h3>
           <div class="where">metaengine/adttest/harness.go:112-113</div>
-          <p>A context was created and immediately discarded with <code>_ = ctx</code>. Dead code that confused readers: it looked like scenarios needed their own context, but <code>RunMatrix</code> provides one.</p>
+          <p>
+            A context was created and immediately discarded with <code>_ = ctx</code>. Dead code
+            that confused readers: it looked like scenarios needed their own context, but
+            <code>RunMatrix</code> provides one.
+          </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
             Removed the dead lines. Scenarios receive <code>ctx</code> from <code>RunMatrix</code>.
@@ -905,10 +938,20 @@
           <span class="severity severity-nice">Fixed</span>
           <h3>Dead API: <code>Factory.Supports</code> unchecked + no <code>Requires</code> skip</h3>
           <div class="where">metaengine/adttest/harness.go:34</div>
-          <p><code>Factory.Supports</code> was declared but never called in <code>RunMatrix</code>. Worse, <code>Scenario.Requires</code> (the backend interface name) was documentation-only. An engine that doesn't implement a backend would panic on the type assertion inside <code>Setup</code>, rather than being gracefully skipped.</p>
+          <p>
+            <code>Factory.Supports</code> was declared but never called in <code>RunMatrix</code>.
+            Worse, <code>Scenario.Requires</code> (the backend interface name) was
+            documentation-only. An engine that doesn't implement a backend would panic on the type
+            assertion inside <code>Setup</code>, rather than being gracefully skipped.
+          </p>
           <div class="callout callout-solution">
             <strong>Fix</strong>
-            Added a <code>backendInterfaces</code> reflect.Type map. <code>RunMatrix</code> now checks <code>reflect.TypeOf(eng).Implements(iface)</code> before each scenario and calls <code>t.Skip()</code> if unsupported. Also wired up <code>Factory.Supports</code> as an additional custom capability gate. Verified with <code>TestRunMatrix_UnsupportedEngineSkips</code>: mock engine with zero backends is cleanly skipped for all 7 ADTs.
+            Added a <code>backendInterfaces</code> reflect.Type map. <code>RunMatrix</code> now
+            checks <code>reflect.TypeOf(eng).Implements(iface)</code> before each scenario and calls
+            <code>t.Skip()</code> if unsupported. Also wired up <code>Factory.Supports</code> as an
+            additional custom capability gate. Verified with
+            <code>TestRunMatrix_UnsupportedEngineSkips</code>: mock engine with zero backends is
+            cleanly skipped for all 7 ADTs.
           </div>
         </div>
 
@@ -918,28 +961,44 @@
             <div class="check">+</div>
             <div class="text">
               <strong>Raw reader design is sound</strong>
-              <span>The RawValueReader / RawScanReader optional capability interfaces with runtime type assertion are the right pattern. The TypedReader path automatically prefers them with zero API change for consumers.</span>
+              <span
+                >The RawValueReader / RawScanReader optional capability interfaces with runtime type
+                assertion are the right pattern. The TypedReader path automatically prefers them
+                with zero API change for consumers.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Exported helpers avoid logic duplication</strong>
-              <span>PassesFilterSpecs, ItemFieldByName, CompareValues, EvalFilterOp are thin wrappers over internal helpers. Non-SQL engines get the same filter/sort logic as the core without reimplementing it.</span>
+              <span
+                >PassesFilterSpecs, ItemFieldByName, CompareValues, EvalFilterOp are thin wrappers
+                over internal helpers. Non-SQL engines get the same filter/sort logic as the core
+                without reimplementing it.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>ADT test harness extraction enables cross-engine parity</strong>
-              <span>adttest.RunMatrix with canonicalization + cross-engine divergence detection is genuinely useful. Adding a new engine to the parity matrix is now a 5-line change.</span>
+              <span
+                >adttest.RunMatrix with canonicalization + cross-engine divergence detection is
+                genuinely useful. Adding a new engine to the parity matrix is now a 5-line
+                change.</span
+              >
             </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
             <div class="text">
               <strong>Test coverage after this session is comprehensive</strong>
-              <span>All 7 FilterOp variants tested, cursor+desc pagination verified, edge cases (empty, all-filtered, limit=1) covered, harness self-tests added with 12 tests including auto-skip verification.</span>
+              <span
+                >All 7 FilterOp variants tested, cursor+desc pagination verified, edge cases (empty,
+                all-filtered, limit=1) covered, harness self-tests added with 12 tests including
+                auto-skip verification.</span
+              >
             </div>
           </div>
         </div>
@@ -950,49 +1009,72 @@
           <div class="migration-num">1</div>
           <div class="migration-content">
             <h4>Fix triple-decode in ScanRawValues</h4>
-            <p>Decode each value once, store in kvPair alongside raw bytes. Eliminates 2 of 3 JSON decodes per value on filter+sort+cursor paths.</p>
+            <p>
+              Decode each value once, store in kvPair alongside raw bytes. Eliminates 2 of 3 JSON
+              decodes per value on filter+sort+cursor paths.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">2</div>
           <div class="migration-content">
             <h4>Extract shared sortAndPaginate helper</h4>
-            <p>Single function in sort_paginate.go used by both MapScan and ScanRawValues. Eliminates split-brain sort+cursor+limit duplication.</p>
+            <p>
+              Single function in sort_paginate.go used by both MapScan and ScanRawValues. Eliminates
+              split-brain sort+cursor+limit duplication.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">3</div>
           <div class="migration-content">
             <h4>Remove dead ctx + wire up Supports/Requires</h4>
-            <p>Dead context removed. Factory.Supports wired in. Scenario.Requires checked via reflect with graceful t.Skip().</p>
+            <p>
+              Dead context removed. Factory.Supports wired in. Scenario.Requires checked via reflect
+              with graceful t.Skip().
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">4</div>
           <div class="migration-content">
             <h4>Add comprehensive filter/sort/cursor/edge tests</h4>
-            <p>FilterIn, FilterNe, FilterLt/Le/Gt/Ge (table-driven), cursor+desc, empty collection, all-filtered-out, limit=1, filter+sort combined. 8 new test functions, 4 sub-tests.</p>
+            <p>
+              FilterIn, FilterNe, FilterLt/Le/Gt/Ge (table-driven), cursor+desc, empty collection,
+              all-filtered-out, limit=1, filter+sort combined. 8 new test functions, 4 sub-tests.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">5</div>
           <div class="migration-content">
             <h4>Add adttest harness self-tests</h4>
-            <p>12 tests covering RunMatrix (zero/single/unsupported factories), CanonicalizeAny (nil/string/map/slice), Canonicalize fallbacks, Scenarios completeness, backendInterfaces map.</p>
+            <p>
+              12 tests covering RunMatrix (zero/single/unsupported factories), CanonicalizeAny
+              (nil/string/map/slice), Canonicalize fallbacks, Scenarios completeness,
+              backendInterfaces map.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">6</div>
           <div class="migration-content">
             <h4>Documentation: godoc, ContractSuite vs RunMatrix, V1StabilizationChecklist</h4>
-            <p>Expanded exported helper godoc with usage patterns. Added ContractSuite vs RunMatrix distinction (single-engine correctness vs cross-engine parity). Updated V1StabilizationChecklist to note SQLite + Pebble implement raw readers.</p>
+            <p>
+              Expanded exported helper godoc with usage patterns. Added ContractSuite vs RunMatrix
+              distinction (single-engine correctness vs cross-engine parity). Updated
+              V1StabilizationChecklist to note SQLite + Pebble implement raw readers.
+            </p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">7</div>
           <div class="migration-content">
             <h4>Add filter-path benchmark</h4>
-            <p>BenchmarkPebbleScanRawValuesFiltered exercises the filter+sort+limit path for regression detection.</p>
+            <p>
+              BenchmarkPebbleScanRawValuesFiltered exercises the filter+sort+limit path for
+              regression detection.
+            </p>
           </div>
         </div>
 
@@ -1000,21 +1082,42 @@
 
         <div class="card card-problem">
           <h4>SSE test hang: TestSSE_DropOldSemantics</h4>
-          <p><code>TestSSE_DropOldSemantics</code> hangs indefinitely (10min timeout). The SSE goroutines (<code>forwardWithDropOld</code>) block on channel selects and never drain. <code>httptest.Server.Close()</code> blocks waiting for active connections. This is <strong>pre-existing</strong> and unrelated to the raw reader work, but it blocks running the full metaengine test suite (<code>go test ./...</code>). All 160 Ginkgo specs pass; the hang is in a separate <code>*testing.T</code> test. Must be fixed before v1 tag.</p>
+          <p>
+            <code>TestSSE_DropOldSemantics</code> hangs indefinitely (10min timeout). The SSE
+            goroutines (<code>forwardWithDropOld</code>) block on channel selects and never drain.
+            <code>httptest.Server.Close()</code> blocks waiting for active connections. This is
+            <strong>pre-existing</strong> and unrelated to the raw reader work, but it blocks
+            running the full metaengine test suite (<code>go test ./...</code>). All 160 Ginkgo
+            specs pass; the hang is in a separate <code>*testing.T</code> test. Must be fixed before
+            v1 tag.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>adttest module structure is an open question</h4>
-          <p><code>adttest</code> lives at <code>metaengine/adttest/</code> sharing the parent <code>go.mod</code>. This differs from the <code>kv/viewstoretest</code> pattern (separate <code>go.mod</code>). Trade-off: simpler import, but external consumers can't use the harness without pulling in metaengine's test dependencies (gomega, etc.). Decision deferred.</p>
+          <p>
+            <code>adttest</code> lives at <code>metaengine/adttest/</code> sharing the parent
+            <code>go.mod</code>. This differs from the <code>kv/viewstoretest</code> pattern
+            (separate <code>go.mod</code>). Trade-off: simpler import, but external consumers can't
+            use the harness without pulling in metaengine's test dependencies (gomega, etc.).
+            Decision deferred.
+          </p>
         </div>
 
         <div class="card card-warning">
           <h4>StreamScan and LayoutPlanner not implemented by Pebble</h4>
-          <p>The Pebble engine does not implement <code>StreamScan</code> (O(1) streaming iteration) or <code>LayoutPlanner</code> (deployment-time DDL from query patterns). These are Phase 5 and Phase 3 features respectively. The <code>scanWithIndex</code> fast path in <code>ScanRawValues</code> partially addresses layout planning but is not the full interface. No urgency, but documented for completeness.</p>
+          <p>
+            The Pebble engine does not implement <code>StreamScan</code> (O(1) streaming iteration)
+            or <code>LayoutPlanner</code> (deployment-time DDL from query patterns). These are Phase
+            5 and Phase 3 features respectively. The <code>scanWithIndex</code> fast path in
+            <code>ScanRawValues</code> partially addresses layout planning but is not the full
+            interface. No urgency, but documented for completeness.
+          </p>
         </div>
 
         <footer class="footer">
-          Generated 2026-07-31 &middot; All claims verified against source code and test runs in this session
+          Generated 2026-07-31 &middot; All claims verified against source code and test runs in
+          this session
         </footer>
       </main>
     </div>

@@ -589,16 +589,17 @@ defer recorder.Close()
 
 **Integration points** — every CQRS layer has a flight recorder hook:
 
-| Layer | Option | Trigger fires on |
-|-------|--------|-----------------|
-| Command middleware | `middleware.CommandFlightRecorder` | Per-dispatch latency/error |
-| Event middleware | `middleware.EventFlightRecorder` | Per-handler latency/error |
-| Query middleware | `middleware.QueryFlightRecorder` | Per-query latency/error |
-| Decider | `decider.WithFlightRecorder[State]` | Execute latency/error |
-| Projection host | `projectionhost.WithFlightRecorder` | Terminal worker failure |
-| Stack bundle | `stack.WithFlightRecorder` | Lifecycle management + discovery |
+| Layer              | Option                              | Trigger fires on                 |
+| ------------------ | ----------------------------------- | -------------------------------- |
+| Command middleware | `middleware.CommandFlightRecorder`  | Per-dispatch latency/error       |
+| Event middleware   | `middleware.EventFlightRecorder`    | Per-handler latency/error        |
+| Query middleware   | `middleware.QueryFlightRecorder`    | Per-query latency/error          |
+| Decider            | `decider.WithFlightRecorder[State]` | Execute latency/error            |
+| Projection host    | `projectionhost.WithFlightRecorder` | Terminal worker failure          |
+| Stack bundle       | `stack.WithFlightRecorder`          | Lifecycle management + discovery |
 
 **Key constraints:**
+
 - Only 1 active recorder per process (`ErrAlreadyEnabled` on double `Start()`)
 - Once-semantics: first trigger captures, rest are no-ops (call `Reset()` for multiple)
 - Snapshot context is checked pre-write (not during — `WriteTo` doesn't accept ctx)

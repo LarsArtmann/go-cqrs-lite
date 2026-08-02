@@ -41,14 +41,26 @@
         --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
 
         --radius: 0px;
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
 
-      * { box-sizing: border-box; margin: 0; padding: 0; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-      html { scroll-behavior: smooth; }
+      html {
+        scroll-behavior: smooth;
+      }
 
       body {
         background: var(--surface);
@@ -91,14 +103,20 @@
         text-decoration: none;
         font-size: 14px;
         border-left: 2px solid transparent;
-        transition: color .15s, border-color .15s, background .15s;
+        transition:
+          color 0.15s,
+          border-color 0.15s,
+          background 0.15s;
       }
       .sidebar nav a:hover {
         color: var(--text);
         border-left-color: var(--accent);
         background: var(--rose-glow);
       }
-      .sidebar nav a.sub { padding-left: 24px; font-size: 13px; }
+      .sidebar nav a.sub {
+        padding-left: 24px;
+        font-size: 13px;
+      }
 
       .main {
         padding: 0 48px 120px;
@@ -148,7 +166,10 @@
       }
 
       /* Sections */
-      section { margin-bottom: 72px; scroll-margin-top: 24px; }
+      section {
+        margin-bottom: 72px;
+        scroll-margin-top: 24px;
+      }
       h2 {
         font-size: 28px;
         font-weight: 800;
@@ -176,12 +197,28 @@
         margin: 28px 0 10px;
         letter-spacing: -0.01em;
       }
-      p { margin-bottom: 14px; color: var(--text); }
-      p.muted, .muted { color: var(--text-muted); }
-      ul, ol { margin: 0 0 16px 22px; }
-      li { margin-bottom: 6px; }
-      li > p { margin-bottom: 6px; }
-      strong { color: var(--text); font-weight: 700; }
+      p {
+        margin-bottom: 14px;
+        color: var(--text);
+      }
+      p.muted,
+      .muted {
+        color: var(--text-muted);
+      }
+      ul,
+      ol {
+        margin: 0 0 16px 22px;
+      }
+      li {
+        margin-bottom: 6px;
+      }
+      li > p {
+        margin-bottom: 6px;
+      }
+      strong {
+        color: var(--text);
+        font-weight: 700;
+      }
       code {
         font-family: var(--font-mono);
         font-size: 0.88em;
@@ -189,7 +226,9 @@
         padding: 1px 6px;
         border: 1px solid var(--border);
       }
-      a { color: var(--solution); }
+      a {
+        color: var(--solution);
+      }
 
       /* Stat grid */
       .stat-grid {
@@ -204,9 +243,15 @@
         padding: 22px;
         border-top: 3px solid var(--border-strong);
       }
-      .stat-card.stat-good { border-top-color: var(--solution); }
-      .stat-card.stat-warn { border-top-color: var(--warning); }
-      .stat-card.stat-bad { border-top-color: var(--problem); }
+      .stat-card.stat-good {
+        border-top-color: var(--solution);
+      }
+      .stat-card.stat-warn {
+        border-top-color: var(--warning);
+      }
+      .stat-card.stat-bad {
+        border-top-color: var(--problem);
+      }
       .stat-value {
         font-size: 38px;
         font-weight: 900;
@@ -214,9 +259,15 @@
         letter-spacing: -0.02em;
         line-height: 1;
       }
-      .stat-card.stat-good .stat-value { color: var(--solution); }
-      .stat-card.stat-warn .stat-value { color: var(--warning); }
-      .stat-card.stat-bad .stat-value { color: var(--problem); }
+      .stat-card.stat-good .stat-value {
+        color: var(--solution);
+      }
+      .stat-card.stat-warn .stat-value {
+        color: var(--warning);
+      }
+      .stat-card.stat-bad .stat-value {
+        color: var(--problem);
+      }
       .stat-label {
         font-size: 12px;
         text-transform: uppercase;
@@ -233,9 +284,15 @@
         padding: 26px;
         margin-bottom: 18px;
       }
-      .card-problem { border-left-color: var(--problem); }
-      .card-solution { border-left-color: var(--solution); }
-      .card-warning { border-left-color: var(--warning); }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
 
       .card-head {
         display: flex;
@@ -244,7 +301,9 @@
         flex-wrap: wrap;
         margin-bottom: 14px;
       }
-      .card-head h3 { margin: 0; }
+      .card-head h3 {
+        margin: 0;
+      }
 
       .badge {
         font-size: 11px;
@@ -254,11 +313,21 @@
         padding: 4px 10px;
         border: 1px solid currentColor;
       }
-      .badge-critical { color: var(--problem); }
-      .badge-high { color: var(--warning); }
-      .badge-medium { color: var(--accent); }
-      .badge-low { color: var(--text-faint); }
-      .badge-fixed { color: var(--solution); }
+      .badge-critical {
+        color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-faint);
+      }
+      .badge-fixed {
+        color: var(--solution);
+      }
 
       .where {
         font-family: var(--font-mono);
@@ -273,9 +342,16 @@
         border: 1px solid var(--border);
         background: var(--surface-sunken);
       }
-      .callout-solution { border-left: 3px solid var(--solution); }
-      .callout-warning { border-left: 3px solid var(--warning); }
-      .callout strong { display: inline-block; margin-bottom: 4px; }
+      .callout-solution {
+        border-left: 3px solid var(--solution);
+      }
+      .callout-warning {
+        border-left: 3px solid var(--warning);
+      }
+      .callout strong {
+        display: inline-block;
+        margin-bottom: 4px;
+      }
 
       /* Code blocks */
       pre {
@@ -288,21 +364,48 @@
         line-height: 1.55;
         margin: 16px 0;
       }
-      pre code { background: none; border: none; padding: 0; font-size: inherit; }
+      pre code {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: inherit;
+      }
 
-      .tok-keyword { color: #c678dd; }
-      .tok-type { color: #e5c07b; }
-      .tok-string { color: #98c379; }
-      .tok-comment { color: #5c6370; font-style: italic; }
-      .tok-func { color: #61afef; }
-      .tok-number { color: #d19a66; }
-      .tok-generic { color: #e06c75; }
-      .tok-builtin { color: #56b6c2; }
-      .tok-punct { color: #abb2bf; }
-      .tok-attr { color: #d19a66; }
+      .tok-keyword {
+        color: #c678dd;
+      }
+      .tok-type {
+        color: #e5c07b;
+      }
+      .tok-string {
+        color: #98c379;
+      }
+      .tok-comment {
+        color: #5c6370;
+        font-style: italic;
+      }
+      .tok-func {
+        color: #61afef;
+      }
+      .tok-number {
+        color: #d19a66;
+      }
+      .tok-generic {
+        color: #e06c75;
+      }
+      .tok-builtin {
+        color: #56b6c2;
+      }
+      .tok-punct {
+        color: #abb2bf;
+      }
+      .tok-attr {
+        color: #d19a66;
+      }
 
       /* Comparison */
-      .compare-header, .compare-row {
+      .compare-header,
+      .compare-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 16px;
@@ -317,11 +420,23 @@
         font-weight: 800;
         padding: 6px 14px;
       }
-      .compare-header .compare-before { color: var(--problem); border-bottom: 2px solid var(--problem); }
-      .compare-header .compare-after { color: var(--solution); border-bottom: 2px solid var(--solution); }
-      .compare-row { margin-bottom: 18px; }
-      .compare-row > div { min-width: 0; }
-      .compare-row pre { margin: 0; }
+      .compare-header .compare-before {
+        color: var(--problem);
+        border-bottom: 2px solid var(--problem);
+      }
+      .compare-header .compare-after {
+        color: var(--solution);
+        border-bottom: 2px solid var(--solution);
+      }
+      .compare-row {
+        margin-bottom: 18px;
+      }
+      .compare-row > div {
+        min-width: 0;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
 
       /* Migration steps */
       .migration-step {
@@ -342,8 +457,13 @@
         justify-content: center;
         font-variant-numeric: tabular-nums;
       }
-      .migration-content h4 { font-size: 16px; margin-bottom: 6px; }
-      .migration-content { padding-top: 4px; }
+      .migration-content h4 {
+        font-size: 16px;
+        margin-bottom: 6px;
+      }
+      .migration-content {
+        padding-top: 4px;
+      }
 
       /* Tables */
       table {
@@ -352,7 +472,8 @@
         margin: 16px 0;
         font-size: 14px;
       }
-      th, td {
+      th,
+      td {
         text-align: left;
         padding: 10px 14px;
         border-bottom: 1px solid var(--border);
@@ -365,10 +486,14 @@
         color: var(--text-faint);
         font-weight: 700;
       }
-      td code { font-size: 0.85em; }
+      td code {
+        font-size: 0.85em;
+      }
 
       /* Strengths */
-      .strengths { margin: 20px 0; }
+      .strengths {
+        margin: 20px 0;
+      }
       .strength {
         display: grid;
         grid-template-columns: 32px 1fr;
@@ -381,8 +506,14 @@
         color: var(--solution);
         line-height: 1;
       }
-      .strength .text strong { display: block; margin-bottom: 2px; }
-      .strength .text span { color: var(--text-muted); font-size: 14px; }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 2px;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 14px;
+      }
 
       /* Vision bullets */
       .vision-grid {
@@ -396,8 +527,16 @@
         border-top: 2px solid var(--solution);
         padding: 20px;
       }
-      .vision-item h4 { font-size: 15px; margin-bottom: 6px; color: var(--solution); }
-      .vision-item p { font-size: 14px; color: var(--text-muted); margin: 0; }
+      .vision-item h4 {
+        font-size: 15px;
+        margin-bottom: 6px;
+        color: var(--solution);
+      }
+      .vision-item p {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin: 0;
+      }
 
       .footer {
         border-top: 1px solid var(--border);
@@ -407,7 +546,14 @@
         text-align: center;
       }
 
-      .pill { display: inline-block; padding: 1px 8px; font-size: 12px; border: 1px solid var(--border-strong); color: var(--text-muted); margin-right: 6px; }
+      .pill {
+        display: inline-block;
+        padding: 1px 8px;
+        font-size: 12px;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+        margin-right: 6px;
+      }
 
       blockquote {
         border-left: 3px solid var(--accent);
@@ -419,10 +565,19 @@
       }
 
       @media (max-width: 1024px) {
-        .layout { grid-template-columns: 1fr; }
-        .sidebar { display: none; }
-        .main { padding: 0 24px 80px; }
-        .compare-header, .compare-row { grid-template-columns: 1fr; }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          display: none;
+        }
+        .main {
+          padding: 0 24px 80px;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -472,70 +627,126 @@
           <h2><span class="num">01</span>Current State</h2>
           <p class="section-lede">
             metaengine is a <strong>reflection-driven inference library</strong>: it derives
-            projections, indexes, and engine assignments from two primitives &mdash; <em>Events</em>
-            (mutations) and <em>Queries</em> (read intent). The core domain concepts are: Event,
-            Query, Fold (event&rarr;projection mapping), ADT (inferred data structure), Engine
-            (storage backend + cost profile), Store (runtime), Plan (optimizer output), Layout
-            (physical storage), Cursor (pagination), Cost (estimate).
+            projections, indexes, and engine assignments from two primitives &mdash;
+            <em>Events</em> (mutations) and <em>Queries</em> (read intent). The core domain concepts
+            are: Event, Query, Fold (event&rarr;projection mapping), ADT (inferred data structure),
+            Engine (storage backend + cost profile), Store (runtime), Plan (optimizer output),
+            Layout (physical storage), Cursor (pagination), Cost (estimate).
           </p>
 
           <div class="stat-grid">
-            <div class="stat-card"><div class="stat-value">71</div><div class="stat-label">Source files</div></div>
-            <div class="stat-card"><div class="stat-value">11</div><div class="stat-label">Fold handler fields</div></div>
-            <div class="stat-card"><div class="stat-value">17</div><div class="stat-label">Store fields</div></div>
-            <div class="stat-card stat-bad"><div class="stat-value">2</div><div class="stat-label">Critical issues</div></div>
-            <div class="stat-card stat-warn"><div class="stat-value">3</div><div class="stat-label">High issues</div></div>
-            <div class="stat-card stat-warn"><div class="stat-value">6</div><div class="stat-label">Medium issues</div></div>
-            <div class="stat-card"><div class="stat-value">2</div><div class="stat-label">Low issues</div></div>
-            <div class="stat-card stat-good"><div class="stat-value">5</div><div class="stat-label">Genuine strengths</div></div>
+            <div class="stat-card">
+              <div class="stat-value">71</div>
+              <div class="stat-label">Source files</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">11</div>
+              <div class="stat-label">Fold handler fields</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">17</div>
+              <div class="stat-label">Store fields</div>
+            </div>
+            <div class="stat-card stat-bad">
+              <div class="stat-value">2</div>
+              <div class="stat-label">Critical issues</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">3</div>
+              <div class="stat-label">High issues</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">6</div>
+              <div class="stat-label">Medium issues</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">2</div>
+              <div class="stat-label">Low issues</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">5</div>
+              <div class="stat-label">Genuine strengths</div>
+            </div>
           </div>
 
           <blockquote>
-            <strong>Honesty note.</strong> metaengine is a <em>library</em> whose entire purpose is to
-            infer types at runtime from user-supplied generic declarations. Some <code>any</code> is
-            <strong>inherent</strong> to the design &mdash; you cannot statically know the consumer's
-            event types. This review distinguishes <em>inherent</em> erasure (defensible) from
-            <em>fixable</em> erasure (the Fold god-struct, split-brain twins, god-object Store).
+            <strong>Honesty note.</strong> metaengine is a <em>library</em> whose entire purpose is
+            to infer types at runtime from user-supplied generic declarations. Some
+            <code>any</code> is <strong>inherent</strong> to the design &mdash; you cannot
+            statically know the consumer's event types. This review distinguishes
+            <em>inherent</em> erasure (defensible) from <em>fixable</em> erasure (the Fold
+            god-struct, split-brain twins, god-object Store).
           </blockquote>
         </section>
 
         <section id="strengths">
           <h2><span class="num">&#9670;</span>What Already Works</h2>
-          <p class="section-lede">Credit where it is due. Five modeling decisions are genuinely superb and must be preserved by any redesign.</p>
+          <p class="section-lede">
+            Credit where it is due. Five modeling decisions are genuinely superb and must be
+            preserved by any redesign.
+          </p>
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Fold-return-type-IS-the-ADT inference</strong>
-                <span>The developer never declares "I need a Map." The handler's Go signature (<code>func(e) (K, V)</code> &rarr; Map, <code>func(e) Delta</code> &rarr; Counter) IS the declaration. This is inspired API design &mdash; the type system does the talking.</span>
+                <span
+                  >The developer never declares "I need a Map." The handler's Go signature (<code
+                    >func(e) (K, V)</code
+                  >
+                  &rarr; Map, <code>func(e) Delta</code> &rarr; Counter) IS the declaration. This is
+                  inspired API design &mdash; the type system does the talking.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>ISP-respecting per-ADT backend interfaces</strong>
-                <span>Engines implement only what they support: <code>MapBackend</code>, <code>SetBackend</code>, <code>CounterBackend</code>, <code>GraphBackend</code>, etc. The apply path type-asserts the right interface and returns a clean "unsupported" error. No fat <code>StorageEngine</code> with stubbed methods.</span>
+                <span
+                  >Engines implement only what they support: <code>MapBackend</code>,
+                  <code>SetBackend</code>, <code>CounterBackend</code>, <code>GraphBackend</code>,
+                  etc. The apply path type-asserts the right interface and returns a clean
+                  "unsupported" error. No fat <code>StorageEngine</code> with stubbed methods.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Enum families ARE distinct named types</strong>
-                <span><code>ADT</code>, <code>ReadPattern</code>, <code>FoldKind</code>, <code>Complexity</code>, <code>StorageLayout</code>, <code>FilterOp</code> are each <code>type X string</code> &mdash; not bare <code>string</code>. Cross-concept confusion (passing a <code>ReadPattern</code> where an <code>ADT</code> is expected) is a compile error. This is correct; the gap is validation/exhaustiveness, not branding.</span>
+                <span
+                  ><code>ADT</code>, <code>ReadPattern</code>, <code>FoldKind</code>,
+                  <code>Complexity</code>, <code>StorageLayout</code>, <code>FilterOp</code> are
+                  each <code>type X string</code> &mdash; not bare <code>string</code>.
+                  Cross-concept confusion (passing a <code>ReadPattern</code> where an
+                  <code>ADT</code> is expected) is a compile error. This is correct; the gap is
+                  validation/exhaustiveness, not branding.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Composable rule pipeline for planning</strong>
-                <span><code>PlanRule</code> interface + <code>RulePipeline</code> apply rules sequentially after engine assignment. Rules enrich the <code>PlanResult</code> (diagnostics, layouts) without overriding selection. Extensible by composition, not inheritance &mdash; textbook correct.</span>
+                <span
+                  ><code>PlanRule</code> interface + <code>RulePipeline</code> apply rules
+                  sequentially after engine assignment. Rules enrich the
+                  <code>PlanResult</code> (diagnostics, layouts) without overriding selection.
+                  Extensible by composition, not inheritance &mdash; textbook correct.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Cost model is honest about its limits</strong>
-                <span>The <code>cost.go</code> file opens with an explicit "HONESTY NOTE: rough first-order model, not a calibrated query optimizer." Constants cite their calibration benchmark and date. This intellectual honesty is rare and valuable.</span>
+                <span
+                  >The <code>cost.go</code> file opens with an explicit "HONESTY NOTE: rough
+                  first-order model, not a calibrated query optimizer." Constants cite their
+                  calibration benchmark and date. This intellectual honesty is rare and
+                  valuable.</span
+                >
               </div>
             </div>
           </div>
@@ -544,8 +755,8 @@
         <section id="problems">
           <h2><span class="num">02</span>Problem Catalog</h2>
           <p class="section-lede">
-            Brutal honesty, graded by severity and mapped to the 12 canonical data-model anti-patterns
-            (P1&ndash;P12). Every claim is verified against source.
+            Brutal honesty, graded by severity and mapped to the 12 canonical data-model
+            anti-patterns (P1&ndash;P12). Every claim is verified against source.
           </p>
 
           <!-- C1 -->
@@ -553,29 +764,37 @@
             <div class="card-head">
               <span class="badge badge-critical">Critical</span>
               <span class="pill">P2 + P5</span>
-              <h3>C1 &middot; The <code>Fold</code> god-struct: 11 mutually-exclusive <code>any</code> handlers</h3>
+              <h3>
+                C1 &middot; The <code>Fold</code> god-struct: 11 mutually-exclusive
+                <code>any</code> handlers
+              </h3>
             </div>
-            <div class="where">fold.go &middot; fold_classify.go &middot; store.go (applyFold dispatch)</div>
+            <div class="where">
+              fold.go &middot; fold_classify.go &middot; store.go (applyFold dispatch)
+            </div>
             <p>
-              <code>Fold</code> is a single struct with <strong>11 <code>any</code>-typed handler fields</strong>
-              (<code>insertHandler</code>, <code>updateHandler</code>, <code>keyExtractor</code>,
-              <code>countHandler</code>, <code>edgeHandler</code>, <code>setHandler</code>,
-              <code>multiInsertHandler</code>, <code>appendHandler</code>, <code>vectorHandler</code>,
-              <code>searchHandler</code>, <code>spatialHandler</code>) plus 2 <code>reflect.Type</code>
-              metadata fields, gated by a <code>Kind FoldKind</code> string discriminator.
+              <code>Fold</code> is a single struct with
+              <strong>11 <code>any</code>-typed handler fields</strong> (<code>insertHandler</code>,
+              <code>updateHandler</code>, <code>keyExtractor</code>, <code>countHandler</code>,
+              <code>edgeHandler</code>, <code>setHandler</code>, <code>multiInsertHandler</code>,
+              <code>appendHandler</code>, <code>vectorHandler</code>, <code>searchHandler</code>,
+              <code>spatialHandler</code>) plus 2 <code>reflect.Type</code> metadata fields, gated
+              by a <code>Kind FoldKind</code> string discriminator.
             </p>
             <p>
               At any moment, <strong>only one</strong> handler is set; the other ten are nil. The
               invariant "only the handler matching <code>Kind</code> is non-nil" is enforced
-              <strong>solely by constructor discipline</strong> in <code>onFold()</code>. Nothing in the
-              type system prevents <code>Fold{Kind: FoldInsert, countHandler: someFn}</code> &mdash; a
-              struct that would nil-panic on the first <code>applyFold</code>.
+              <strong>solely by constructor discipline</strong> in <code>onFold()</code>. Nothing in
+              the type system prevents
+              <code>Fold{Kind: FoldInsert, countHandler: someFn}</code> &mdash; a struct that would
+              nil-panic on the first <code>applyFold</code>.
             </p>
             <p>
               Worse: every <code>callXxx()</code> helper in <code>fold_classify.go</code> does
               <code>reflect.ValueOf(f.xxxHandler)</code> with <strong>no nil guard</strong>. If the
-              invariant ever breaks, you get a nil <code>reflect.Value</code> panic deep in the apply
-              path &mdash; the most hostile possible failure mode for an event-sourcing library.
+              invariant ever breaks, you get a nil <code>reflect.Value</code> panic deep in the
+              apply path &mdash; the most hostile possible failure mode for an event-sourcing
+              library.
             </p>
             <pre><code><span class="tok-comment">// THE PROBLEM: one struct, 11 nil slots, 1 live slot, string-gated dispatch</span>
 <span class="tok-keyword">type</span> <span class="tok-func">Fold</span> <span class="tok-keyword">struct</span> <span class="tok-punct">{</span>
@@ -599,10 +818,10 @@
     <span class="tok-attr">spatialHandler</span>     <span class="tok-keyword">any</span> <span class="tok-comment">// 10 of these 11 are ALWAYS nil</span>
 <span class="tok-punct">}</span></code></pre>
             <div class="callout callout-solution">
-              <strong>Fix: sealed interface union.</strong> Each fold kind becomes a distinct concrete
-              type implementing a sealed <code>Fold</code> interface. The handler lives <em>inside</em>
-              the concrete type, typed. A type switch in <code>apply</code> replaces the string switch.
-              See the Redesigned Model (section 06).
+              <strong>Fix: sealed interface union.</strong> Each fold kind becomes a distinct
+              concrete type implementing a sealed <code>Fold</code> interface. The handler lives
+              <em>inside</em> the concrete type, typed. A type switch in <code>apply</code> replaces
+              the string switch. See the Redesigned Model (section 06).
             </div>
           </div>
 
@@ -611,9 +830,14 @@
             <div class="card-head">
               <span class="badge badge-critical">Critical</span>
               <span class="pill">P4</span>
-              <h3>C2 &middot; The engine layer is universally <code>any</code> &mdash; type erasure at the boundary</h3>
+              <h3>
+                C2 &middot; The engine layer is universally <code>any</code> &mdash; type erasure at
+                the boundary
+              </h3>
             </div>
-            <div class="where">engine.go &middot; store.go &middot; execute.go &middot; typed_reader.go</div>
+            <div class="where">
+              engine.go &middot; store.go &middot; execute.go &middot; typed_reader.go
+            </div>
             <p>
               Generics are captured beautifully at the <code>Query[Q, R]</code> declaration boundary
               &mdash; then <strong>immediately erased to <code>any</code></strong> the moment data
@@ -627,22 +851,24 @@
 <span class="tok-keyword">type</span> <span class="tok-func">ScanResult</span> <span class="tok-keyword">struct</span> <span class="tok-punct">{</span> <span class="tok-attr">Items</span> []<span class="tok-keyword">any</span>; <span class="tok-attr">HasMore</span> <span class="tok-type">bool</span> <span class="tok-punct">}</span>
 <span class="tok-keyword">func</span> (s *<span class="tok-func">Store</span>) <span class="tok-func">Execute</span>(input <span class="tok-keyword">any</span>) (<span class="tok-keyword">any</span>, <span class="tok-type">error</span>)</code></pre>
             <p>
-              The codebase itself names the consequence: the "<strong>double-decode tax</strong>" &mdash;
-              <code>any</code> &rarr; <code>reify</code> &rarr; <code>R</code> requires 3 JSON operations
-              where 1 would suffice (hence the <code>RawValueReader</code> optimization bolted on top).
-              And <code>reifyReflect</code> reconstitutes <code>map[string]any</code> back to typed
+              The codebase itself names the consequence: the "<strong>double-decode tax</strong>"
+              &mdash; <code>any</code> &rarr; <code>reify</code> &rarr; <code>R</code> requires 3
+              JSON operations where 1 would suffice (hence the
+              <code>RawValueReader</code> optimization bolted on top). And
+              <code>reifyReflect</code> reconstitutes <code>map[string]any</code> back to typed
               structs via reflection at <em>every</em> read.
             </p>
             <p>
-              Nothing prevents <code>MapSet(col, UserID("u1"), OrderID("o9"))</code> &mdash; passing an
-              <code>OrderID</code> where a <code>FindUserResult</code> value belongs. The type system
-              offers <strong>zero</strong> protection here.
+              Nothing prevents <code>MapSet(col, UserID("u1"), OrderID("o9"))</code> &mdash; passing
+              an <code>OrderID</code> where a <code>FindUserResult</code> value belongs. The type
+              system offers <strong>zero</strong> protection here.
             </p>
             <div class="callout callout-warning">
-              <strong>Nuance.</strong> Some erasure is <em>inherent</em>: you cannot statically know the
-              consumer's event/result types, so the engine layer storing <code>any</code> is defensible.
-              But the <em>call site</em> (Store boundary) <strong>can</strong> validate key types against
-              the declared <code>keyType reflect.Type</code> before dispatch &mdash; it just doesn't.
+              <strong>Nuance.</strong> Some erasure is <em>inherent</em>: you cannot statically know
+              the consumer's event/result types, so the engine layer storing <code>any</code> is
+              defensible. But the <em>call site</em> (Store boundary) <strong>can</strong> validate
+              key types against the declared <code>keyType reflect.Type</code> before dispatch
+              &mdash; it just doesn't.
             </div>
           </div>
 
@@ -653,17 +879,32 @@
               <span class="pill">P1</span>
               <h3>H1 &middot; String enums lack validation and exhaustiveness</h3>
             </div>
-            <div class="where">types.go &middot; fold.go &middot; engine.go &middot; cost.go &middot; layout_type.go</div>
+            <div class="where">
+              types.go &middot; fold.go &middot; engine.go &middot; cost.go &middot; layout_type.go
+            </div>
             <p>
               Six enum families (<code>ADT</code>, <code>ReadPattern</code>, <code>FoldKind</code>,
-              <code>Complexity</code>, <code>StorageLayout</code>, <code>FilterOp</code>) are correctly
-              distinct named types &mdash; so this is NOT bare-stringly-typed (that would be critical).
-              The gaps are softer but real:
+              <code>Complexity</code>, <code>StorageLayout</code>, <code>FilterOp</code>) are
+              correctly distinct named types &mdash; so this is NOT bare-stringly-typed (that would
+              be critical). The gaps are softer but real:
             </p>
             <ul>
-              <li><strong>No <code>Valid()</code> method.</strong> <code>ADT("banana")</code> compiles and silently falls through every switch to a <code>default</code> that returns a generic <code>ComplexityON</code>.</li>
-              <li><strong>No exhaustiveness.</strong> Add <code>ADTHyperloglog</code> and <em>no</em> switch breaks at compile time. Every <code>switch adt</code> silently mishandles the new variant.</li>
-              <li><strong>No central registry.</strong> <code>layoutComplexity</code>, <code>classifyADT</code>, <code>complexityRank</code>, <code>scaleThresholds</code> each independently enumerate ADT/Complexity variants &mdash; adding a variant means hunting 4+ files.</li>
+              <li>
+                <strong>No <code>Valid()</code> method.</strong> <code>ADT("banana")</code> compiles
+                and silently falls through every switch to a <code>default</code> that returns a
+                generic <code>ComplexityON</code>.
+              </li>
+              <li>
+                <strong>No exhaustiveness.</strong> Add <code>ADTHyperloglog</code> and
+                <em>no</em> switch breaks at compile time. Every <code>switch adt</code> silently
+                mishandles the new variant.
+              </li>
+              <li>
+                <strong>No central registry.</strong> <code>layoutComplexity</code>,
+                <code>classifyADT</code>, <code>complexityRank</code>,
+                <code>scaleThresholds</code> each independently enumerate ADT/Complexity variants
+                &mdash; adding a variant means hunting 4+ files.
+              </li>
             </ul>
           </div>
 
@@ -672,22 +913,26 @@
             <div class="card-head">
               <span class="badge badge-high">High</span>
               <span class="pill">P6 + split-brain</span>
-              <h3>H2 &middot; <code>queryRuntime</code>: a type-erased twin of <code>QueryDecl[Q,R]</code></h3>
+              <h3>
+                H2 &middot; <code>queryRuntime</code>: a type-erased twin of
+                <code>QueryDecl[Q,R]</code>
+              </h3>
             </div>
             <div class="where">store.go &middot; query.go &middot; planner.go</div>
             <p>
               Two structs represent the same domain concept ("a declared query"):
-              <code>QueryDecl[Q,R]</code> (generic, public, 8 fields) and <code>queryRuntime</code>
-              (unexported, type-erased, 11 fields). <code>planQuery()</code> hand-copies nearly every
-              field from one to the other via a struct literal with no constructor.
+              <code>QueryDecl[Q,R]</code> (generic, public, 8 fields) and
+              <code>queryRuntime</code> (unexported, type-erased, 11 fields).
+              <code>planQuery()</code> hand-copies nearly every field from one to the other via a
+              struct literal with no constructor.
             </p>
             <p>
-              This is a classic <strong>split brain</strong>: two sources of truth with hand-maintained
-              mapping. Add a field to <code>QueryDecl</code> and you must remember to add it to
-              <code>queryRuntime</code> AND copy it in <code>planQuery()</code> &mdash; or it silently
-              defaults to zero. The <code>queryMeta</code> interface (9 methods) exists solely to bridge
-              them, exposing <code>QueryDecl</code>'s full internals to the planner (an ISP violation:
-              each decision site uses 2&ndash;3 of the 9 methods).
+              This is a classic <strong>split brain</strong>: two sources of truth with
+              hand-maintained mapping. Add a field to <code>QueryDecl</code> and you must remember
+              to add it to <code>queryRuntime</code> AND copy it in <code>planQuery()</code> &mdash;
+              or it silently defaults to zero. The <code>queryMeta</code> interface (9 methods)
+              exists solely to bridge them, exposing <code>QueryDecl</code>'s full internals to the
+              planner (an ISP violation: each decision site uses 2&ndash;3 of the 9 methods).
             </p>
           </div>
 
@@ -699,22 +944,60 @@
               <h3>H3 &middot; <code>Store</code> god-object &mdash; 17 fields mixing 9 concerns</h3>
             </div>
             <div class="where">store.go</div>
-            <p>The <code>Store</code> struct is a god object fusing nine orthogonal concerns into one type:</p>
+            <p>
+              The <code>Store</code> struct is a god object fusing nine orthogonal concerns into one
+              type:
+            </p>
             <table>
-              <thead><tr><th>Field(s)</th><th>Concern</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Field(s)</th>
+                  <th>Concern</th>
+                </tr>
+              </thead>
               <tbody>
-                <tr><td><code>engines, queries, byInputType, plan</code></td><td>Query registry + planning</td></tr>
-                <tr><td><code>poisoned</code></td><td>Error quarantine (fold-panic poisoning)</td></tr>
-                <tr><td><code>appliedEvent</code></td><td>Idempotency dedup</td></tr>
-                <tr><td><code>hooks</code></td><td>Observability</td></tr>
-                <tr><td><code>eventLog, queryDecls</code></td><td>Audit / consistency verification</td></tr>
-                <tr><td><code>coalescer</code></td><td>Read coalescing cache</td></tr>
-                <tr><td><code>writeCount, readCount, startTime</code></td><td>Workload metering</td></tr>
-                <tr><td><code>watcherMu, watchers</code></td><td>Reactive subscriptions</td></tr>
-                <tr><td><code>replays</code></td><td>SSE replay journals</td></tr>
+                <tr>
+                  <td><code>engines, queries, byInputType, plan</code></td>
+                  <td>Query registry + planning</td>
+                </tr>
+                <tr>
+                  <td><code>poisoned</code></td>
+                  <td>Error quarantine (fold-panic poisoning)</td>
+                </tr>
+                <tr>
+                  <td><code>appliedEvent</code></td>
+                  <td>Idempotency dedup</td>
+                </tr>
+                <tr>
+                  <td><code>hooks</code></td>
+                  <td>Observability</td>
+                </tr>
+                <tr>
+                  <td><code>eventLog, queryDecls</code></td>
+                  <td>Audit / consistency verification</td>
+                </tr>
+                <tr>
+                  <td><code>coalescer</code></td>
+                  <td>Read coalescing cache</td>
+                </tr>
+                <tr>
+                  <td><code>writeCount, readCount, startTime</code></td>
+                  <td>Workload metering</td>
+                </tr>
+                <tr>
+                  <td><code>watcherMu, watchers</code></td>
+                  <td>Reactive subscriptions</td>
+                </tr>
+                <tr>
+                  <td><code>replays</code></td>
+                  <td>SSE replay journals</td>
+                </tr>
               </tbody>
             </table>
-            <p>Each is a separable collaborator. The god-object makes the Store hard to test in isolation and means every method carries the weight of all 9 concerns.</p>
+            <p>
+              Each is a separable collaborator. The god-object makes the Store hard to test in
+              isolation and means every method carries the weight of all 9 concerns.
+            </p>
           </div>
 
           <!-- M1 -->
@@ -725,7 +1008,12 @@
               <h3>M1 &middot; Domain value structs use <code>any</code> for their payload</h3>
             </div>
             <div class="where">types.go &middot; spatial.go &middot; vector_search.go</div>
-            <p><code>Edge{From any, To any}</code>, <code>MultiEntry{Key any, Value any}</code>, <code>Append{Value any}</code>. <code>Edge{From: "u1", To: 42}</code> compiles cleanly even though From/To should be the same <code>NodeID</code> type. The type system cannot enforce graph-edge consistency.</p>
+            <p>
+              <code>Edge{From any, To any}</code>, <code>MultiEntry{Key any, Value any}</code>,
+              <code>Append{Value any}</code>. <code>Edge{From: "u1", To: 42}</code> compiles cleanly
+              even though From/To should be the same <code>NodeID</code> type. The type system
+              cannot enforce graph-edge consistency.
+            </p>
           </div>
 
           <!-- M2 -->
@@ -733,10 +1021,18 @@
             <div class="card-head">
               <span class="badge badge-medium">Medium</span>
               <span class="pill">P3</span>
-              <h3>M2 &middot; <code>Delta</code> is a raw <code>map[string]int64</code> alias &mdash; nil-unsafe, no constructor</h3>
+              <h3>
+                M2 &middot; <code>Delta</code> is a raw <code>map[string]int64</code> alias &mdash;
+                nil-unsafe, no constructor
+              </h3>
             </div>
             <div class="where">types.go</div>
-            <p><code>type Delta map[string]int64</code>. The zero value is a nil map &mdash; useless but compiles. Nothing prevents malformed keys (<code>Delta{"": 0}</code>). A struct wrapper with a constructor and an <code>Add(key, n)</code> method would make the nil state unrepresentable.</p>
+            <p>
+              <code>type Delta map[string]int64</code>. The zero value is a nil map &mdash; useless
+              but compiles. Nothing prevents malformed keys (<code>Delta{"": 0}</code>). A struct
+              wrapper with a constructor and an <code>Add(key, n)</code> method would make the nil
+              state unrepresentable.
+            </p>
           </div>
 
           <!-- M3 -->
@@ -744,10 +1040,19 @@
             <div class="card-head">
               <span class="badge badge-medium">Medium</span>
               <span class="pill">P7</span>
-              <h3>M3 &middot; <code>CostEstimate</code> / <code>WorkloadStats</code>: raw numbers, units only in field names</h3>
+              <h3>
+                M3 &middot; <code>CostEstimate</code> / <code>WorkloadStats</code>: raw numbers,
+                units only in field names
+              </h3>
             </div>
             <div class="where">cost.go &middot; materialize.go</div>
-            <p><code>EstimatedLatencyMs float64</code>, <code>NsPerOp float64</code>, <code>WriteRatePerSec float64</code>, <code>Volume int64</code>. Units live in the field name, not the type. A branded <code>type Nanoseconds float64</code> or a <code>type Latency time.Duration</code> would prevent <code>cost.NsPerOp</code> being silently added to <code>cost.EstimatedLatencyMs</code>.</p>
+            <p>
+              <code>EstimatedLatencyMs float64</code>, <code>NsPerOp float64</code>,
+              <code>WriteRatePerSec float64</code>, <code>Volume int64</code>. Units live in the
+              field name, not the type. A branded <code>type Nanoseconds float64</code> or a
+              <code>type Latency time.Duration</code> would prevent <code>cost.NsPerOp</code> being
+              silently added to <code>cost.EstimatedLatencyMs</code>.
+            </p>
           </div>
 
           <!-- M4 -->
@@ -755,10 +1060,18 @@
             <div class="card-head">
               <span class="badge badge-medium">Medium</span>
               <span class="pill">P11</span>
-              <h3>M4 &middot; <code>ScanResult</code> / <code>RawScanResult</code>: parallel structs, missing generic</h3>
+              <h3>
+                M4 &middot; <code>ScanResult</code> / <code>RawScanResult</code>: parallel structs,
+                missing generic
+              </h3>
             </div>
             <div class="where">engine.go</div>
-            <p><code>ScanResult{Items []any; HasMore bool}</code> and <code>RawScanResult{Items [][]byte; HasMore bool}</code> differ only in element type. A <code>ScanResult[T any]</code> generic eliminates the duplication and the <code>HasMore</code> field-sync drift risk.</p>
+            <p>
+              <code>ScanResult{Items []any; HasMore bool}</code> and
+              <code>RawScanResult{Items [][]byte; HasMore bool}</code> differ only in element type.
+              A <code>ScanResult[T any]</code> generic eliminates the duplication and the
+              <code>HasMore</code> field-sync drift risk.
+            </p>
           </div>
 
           <!-- M5 -->
@@ -766,10 +1079,18 @@
             <div class="card-head">
               <span class="badge badge-medium">Medium</span>
               <span class="pill">P2</span>
-              <h3>M5 &middot; <code>Cursor.Value any</code> &mdash; opaque cursor, no kind discrimination</h3>
+              <h3>
+                M5 &middot; <code>Cursor.Value any</code> &mdash; opaque cursor, no kind
+                discrimination
+              </h3>
             </div>
             <div class="where">types.go &middot; cursor.go</div>
-            <p>A point-lookup cursor and a sorted-scan cursor carry different value shapes but share one type. <code>Cursor.Value</code> is <code>any</code>, serialized to JSON opaquely. A cursor that knows whether it is a keyset boundary vs. a single-key marker would make pagination bugs representable as type errors.</p>
+            <p>
+              A point-lookup cursor and a sorted-scan cursor carry different value shapes but share
+              one type. <code>Cursor.Value</code> is <code>any</code>, serialized to JSON opaquely.
+              A cursor that knows whether it is a keyset boundary vs. a single-key marker would make
+              pagination bugs representable as type errors.
+            </p>
           </div>
 
           <!-- M6 -->
@@ -780,7 +1101,13 @@
               <h3>M6 &middot; No versioning/provenance on <code>PlanResult</code></h3>
             </div>
             <div class="where">plan_types.go &middot; serializable.go</div>
-            <p>The plan is recomputed on every <code>Plan()</code> call. There is no <code>Version</code>, no <code>ComputedAt</code>, no way to detect that a running store's plan has drifted from a freshly recomputed plan without a full re-plan + manual diff. <code>SerializablePlan</code> is hand-maintained as a parallel JSON shape &mdash; another drift surface.</p>
+            <p>
+              The plan is recomputed on every <code>Plan()</code> call. There is no
+              <code>Version</code>, no <code>ComputedAt</code>, no way to detect that a running
+              store's plan has drifted from a freshly recomputed plan without a full re-plan +
+              manual diff. <code>SerializablePlan</code> is hand-maintained as a parallel JSON shape
+              &mdash; another drift surface.
+            </p>
           </div>
 
           <!-- L1 -->
@@ -791,7 +1118,13 @@
               <h3>L1 &middot; Errors are sentinel strings, not structured types</h3>
             </div>
             <div class="where">errors.go</div>
-            <p>~30 sentinel <code>errors.New</code> values + <code>fmt.Errorf("%w", sentinel)</code> wrapping. Consumers use <code>errors.Is</code>. This is idiomatic Go and acceptable, but rich context (which query, which fold, which key) is lost in string interpolation rather than a structured <code>ApplyError{Query, EventType, Fold, Cause}</code>.</p>
+            <p>
+              ~30 sentinel <code>errors.New</code> values +
+              <code>fmt.Errorf("%w", sentinel)</code> wrapping. Consumers use
+              <code>errors.Is</code>. This is idiomatic Go and acceptable, but rich context (which
+              query, which fold, which key) is lost in string interpolation rather than a structured
+              <code>ApplyError{Query, EventType, Fold, Cause}</code>.
+            </p>
           </div>
 
           <!-- L2 -->
@@ -799,65 +1132,134 @@
             <div class="card-head">
               <span class="badge badge-low">Low</span>
               <span class="pill">P11</span>
-              <h3>L2 &middot; <code>Watcher[V]</code>, <code>SSEReplay[V]</code> are well-generic, but <code>watcherEntry</code> leaks <code>any</code></h3>
+              <h3>
+                L2 &middot; <code>Watcher[V]</code>, <code>SSEReplay[V]</code> are well-generic, but
+                <code>watcherEntry</code> leaks <code>any</code>
+              </h3>
             </div>
             <div class="where">dx.go</div>
-            <p>The public <code>Watcher[V]</code> and <code>SSEReplay[V]</code> are correctly generic. But the internal <code>watcherEntry.ch chan any</code> and the <code>watcherNotification{seq, value any}</code> wrapper re-erase to <code>any</code> and rely on <code>unwrapWatcherValue[V]</code> type-assertions. Functional, but a missed opportunity for a typed notification channel.</p>
+            <p>
+              The public <code>Watcher[V]</code> and <code>SSEReplay[V]</code> are correctly
+              generic. But the internal <code>watcherEntry.ch chan any</code> and the
+              <code>watcherNotification{seq, value any}</code> wrapper re-erase to
+              <code>any</code> and rely on <code>unwrapWatcherValue[V]</code> type-assertions.
+              Functional, but a missed opportunity for a typed notification channel.
+            </p>
           </div>
         </section>
 
         <section id="reflection">
           <h2><span class="num">03</span>Reflection: Root Causes</h2>
-          <p class="section-lede">Stepping back. Are these 13 symptoms separate issues, or a few systemic ones?</p>
+          <p class="section-lede">
+            Stepping back. Are these 13 symptoms separate issues, or a few systemic ones?
+          </p>
 
           <h3>Root cause A: "one struct to rule them all" reflex</h3>
-          <p>The <code>Fold</code> god-struct (C1), the <code>Store</code> god-object (H3), and the <code>ScanResult</code> duplication (M4) all share one root: the impulse to model a polymorphic concept as a single struct with optional fields rather than as an interface union with concrete variants. Go gives us sealed unions for exactly this; they were not used.</p>
+          <p>
+            The <code>Fold</code> god-struct (C1), the <code>Store</code> god-object (H3), and the
+            <code>ScanResult</code> duplication (M4) all share one root: the impulse to model a
+            polymorphic concept as a single struct with optional fields rather than as an interface
+            union with concrete variants. Go gives us sealed unions for exactly this; they were not
+            used.
+          </p>
 
           <h3>Root cause B: generic boundary, erased interior</h3>
-          <p>C2, M1, M2, M5 all stem from capturing generics at the public boundary (<code>Query[Q,R]</code>, <code>Watcher[V]</code>) then erasing to <code>any</code> one layer deeper. The inference design is <em>inherently</em> reflective &mdash; but the erasure happens earlier and more broadly than necessary. Key-type validation (C2) and typed notification channels (L2) are fixable without abandoning inference.</p>
+          <p>
+            C2, M1, M2, M5 all stem from capturing generics at the public boundary
+            (<code>Query[Q,R]</code>, <code>Watcher[V]</code>) then erasing to <code>any</code> one
+            layer deeper. The inference design is <em>inherently</em> reflective &mdash; but the
+            erasure happens earlier and more broadly than necessary. Key-type validation (C2) and
+            typed notification channels (L2) are fixable without abandoning inference.
+          </p>
 
           <h3>Root cause C: twin types for the generic&harr;erased bridge</h3>
-          <p>H2 (queryRuntime) and M6 (SerializablePlan) are the same disease: when a generic type must cross into an erased context, the codebase duplicates the type rather than embedding or projecting. The hand-maintained field copy in <code>planQuery()</code> and the hand-maintained JSON projection in <code>Serialize()</code> are both drift surfaces.</p>
+          <p>
+            H2 (queryRuntime) and M6 (SerializablePlan) are the same disease: when a generic type
+            must cross into an erased context, the codebase duplicates the type rather than
+            embedding or projecting. The hand-maintained field copy in <code>planQuery()</code> and
+            the hand-maintained JSON projection in <code>Serialize()</code> are both drift surfaces.
+          </p>
 
           <h3>The three core entities</h3>
-          <p>Everything revolves around <strong>Event</strong>, <strong>Query</strong>, and <strong>Fold</strong>. The ADT is <em>derived</em> from Fold (do not model it as a first-class input). Engine and Store are infrastructure. The redesign focuses all energy on making Fold a sealed union and Query a single source of truth.</p>
+          <p>
+            Everything revolves around <strong>Event</strong>, <strong>Query</strong>, and
+            <strong>Fold</strong>. The ADT is <em>derived</em> from Fold (do not model it as a
+            first-class input). Engine and Store are infrastructure. The redesign focuses all energy
+            on making Fold a sealed union and Query a single source of truth.
+          </p>
 
           <h3>The invariants that must ALWAYS hold</h3>
           <ul>
-            <li>A <code>Fold</code> is exactly one kind; its handler matches its kind &mdash; <strong>currently unenforceable, fixable</strong>.</li>
-            <li>A <code>Query</code>'s fold value types match its declared result type <code>R</code> &mdash; currently a runtime WARN in <code>schemaRule</code>, could be a compile-time invariant.</li>
-            <li>An event applied to a query updates exactly that query's projection &mdash; <strong>holds, well-modeled</strong>.</li>
-            <li>A poisoned collection refuses reads until reset &mdash; <strong>holds</strong>, but poison state is an untyped <code>sync.Map</code> of <code>any</code>.</li>
+            <li>
+              A <code>Fold</code> is exactly one kind; its handler matches its kind &mdash;
+              <strong>currently unenforceable, fixable</strong>.
+            </li>
+            <li>
+              A <code>Query</code>'s fold value types match its declared result type
+              <code>R</code> &mdash; currently a runtime WARN in <code>schemaRule</code>, could be a
+              compile-time invariant.
+            </li>
+            <li>
+              An event applied to a query updates exactly that query's projection &mdash;
+              <strong>holds, well-modeled</strong>.
+            </li>
+            <li>
+              A poisoned collection refuses reads until reset &mdash; <strong>holds</strong>, but
+              poison state is an untyped <code>sync.Map</code> of <code>any</code>.
+            </li>
           </ul>
         </section>
 
         <section id="vision">
           <h2><span class="num">04</span>The Vision</h2>
-          <p class="section-lede">What a superb metaengine data model looks like &mdash; six properties, each making an invalid state unrepresentable.</p>
+          <p class="section-lede">
+            What a superb metaengine data model looks like &mdash; six properties, each making an
+            invalid state unrepresentable.
+          </p>
           <div class="vision-grid">
             <div class="vision-item">
               <h4>1. Fold is a sealed union</h4>
-              <p>Each fold kind is a distinct concrete type. The handler lives inside it, typed. No nil handler slots, no string discriminator, no reflect-without-nil-guard. A type switch dispatches <code>apply</code>.</p>
+              <p>
+                Each fold kind is a distinct concrete type. The handler lives inside it, typed. No
+                nil handler slots, no string discriminator, no reflect-without-nil-guard. A type
+                switch dispatches <code>apply</code>.
+              </p>
             </div>
             <div class="vision-item">
               <h4>2. One query, one representation</h4>
-              <p><code>QueryDecl[Q,R]</code> is the single source of truth. The erased runtime view is a <em>projection</em> (interface or embedded view), not a hand-copied twin. No drift.</p>
+              <p>
+                <code>QueryDecl[Q,R]</code> is the single source of truth. The erased runtime view
+                is a <em>projection</em> (interface or embedded view), not a hand-copied twin. No
+                drift.
+              </p>
             </div>
             <div class="vision-item">
               <h4>3. Store is a composition of collaborators</h4>
-              <p>Poison tracker, idempotency tracker, watcher registry, workload meter, audit log are injected collaborators &mdash; each testable alone, each nil-safe to disable.</p>
+              <p>
+                Poison tracker, idempotency tracker, watcher registry, workload meter, audit log are
+                injected collaborators &mdash; each testable alone, each nil-safe to disable.
+              </p>
             </div>
             <div class="vision-item">
               <h4>4. Enums are validated and centrally registered</h4>
-              <p>Each enum family has <code>Valid()</code>, a <code>parse()</code>, and a registry that switch-sites consult. Adding a variant touches one file, not four.</p>
+              <p>
+                Each enum family has <code>Valid()</code>, a <code>parse()</code>, and a registry
+                that switch-sites consult. Adding a variant touches one file, not four.
+              </p>
             </div>
             <div class="vision-item">
               <h4>5. Units are branded, not field-name-encoded</h4>
-              <p><code>Nanoseconds</code>, <code>RatePerSecond</code>, <code>ItemCount</code> branded types prevent unit-mismatch arithmetic in the cost model.</p>
+              <p>
+                <code>Nanoseconds</code>, <code>RatePerSecond</code>, <code>ItemCount</code> branded
+                types prevent unit-mismatch arithmetic in the cost model.
+              </p>
             </div>
             <div class="vision-item">
               <h4>6. Inference preserved, erasure minimized</h4>
-              <p>The fold-return-type-IS-the-ADT elegance is untouched. Erasure happens only where truly inherent (engine storage of consumer values), never one layer early.</p>
+              <p>
+                The fold-return-type-IS-the-ADT elegance is untouched. Erasure happens only where
+                truly inherent (engine storage of consumer values), never one layer early.
+              </p>
             </div>
           </div>
         </section>
@@ -1016,7 +1418,9 @@
 
         <section id="composition">
           <h2><span class="num">06</span>Before / After</h2>
-          <p class="section-lede">The fold dispatch path, side by side. Same behavior, radically different safety.</p>
+          <p class="section-lede">
+            The fold dispatch path, side by side. Same behavior, radically different safety.
+          </p>
 
           <div class="compare-header">
             <div class="compare-before">Before &middot; string switch + reflect, no nil guard</div>
@@ -1079,23 +1483,47 @@
 
         <section id="validation">
           <h2><span class="num">07</span>Validation Layer</h2>
-          <p class="section-lede">How the redesigned model makes invalid states unrepresentable &mdash; four concrete guarantees.</p>
+          <p class="section-lede">
+            How the redesigned model makes invalid states unrepresentable &mdash; four concrete
+            guarantees.
+          </p>
 
           <div class="card card-solution">
             <h3>Guarantee 1: A Fold can never have a nil handler</h3>
-            <p>The handler is a required field of each concrete fold type, set by the constructor <code>On()</code>. There is no <code>Fold{}</code> zero value that compiles into the pipeline &mdash; the zero value of <code>insertFold</code> has a nil <code>invoke</code>, but it can only be created by bypassing <code>On()</code> (unexported fields). The apply path's type switch never sees a half-built fold.</p>
+            <p>
+              The handler is a required field of each concrete fold type, set by the constructor
+              <code>On()</code>. There is no <code>Fold{}</code> zero value that compiles into the
+              pipeline &mdash; the zero value of <code>insertFold</code> has a nil
+              <code>invoke</code>, but it can only be created by bypassing
+              <code>On()</code> (unexported fields). The apply path's type switch never sees a
+              half-built fold.
+            </p>
           </div>
           <div class="card card-solution">
             <h3>Guarantee 2: Kind/handler consistency is structural, not conventional</h3>
-            <p>In the old model, <code>Kind == FoldInsert &harr; insertHandler != nil</code> was an undocumented convention. In the new model, "this is an insert fold" and "this has an insert handler" are the <em>same fact</em> &mdash; encoded by being the concrete type <code>insertFold</code>. You cannot express the inconsistent state.</p>
+            <p>
+              In the old model, <code>Kind == FoldInsert &harr; insertHandler != nil</code> was an
+              undocumented convention. In the new model, "this is an insert fold" and "this has an
+              insert handler" are the <em>same fact</em> &mdash; encoded by being the concrete type
+              <code>insertFold</code>. You cannot express the inconsistent state.
+            </p>
           </div>
           <div class="card card-solution">
             <h3>Guarantee 3: Enum values are checkable at boundaries</h3>
-            <p><code>adt.Valid()</code> lets <code>Plan()</code> reject <code>ADT("banana")</code> at the boundary with a clear error, rather than letting it fall through to a generic O(N) default. The registry makes "did I handle every ADT?" a grep over one slice.</p>
+            <p>
+              <code>adt.Valid()</code> lets <code>Plan()</code> reject <code>ADT("banana")</code> at
+              the boundary with a clear error, rather than letting it fall through to a generic O(N)
+              default. The registry makes "did I handle every ADT?" a grep over one slice.
+            </p>
           </div>
           <div class="card card-solution">
             <h3>Guarantee 4: Units cannot be silently mixed</h3>
-            <p><code>Nanoseconds + RatePerSecond</code> is a compile error. The cost model's arithmetic (<code>ops * nsPerOp / 1e6</code>) becomes <code>ops * float64(nsPerOp)</code> with an explicit, reviewable conversion &mdash; not an implicit same-type addition of two conceptually-different floats.</p>
+            <p>
+              <code>Nanoseconds + RatePerSecond</code> is a compile error. The cost model's
+              arithmetic (<code>ops * nsPerOp / 1e6</code>) becomes
+              <code>ops * float64(nsPerOp)</code> with an explicit, reviewable conversion &mdash;
+              not an implicit same-type addition of two conceptually-different floats.
+            </p>
           </div>
         </section>
 
@@ -1104,42 +1532,103 @@
           <p class="section-lede">Why each design choice, with the rejected alternative.</p>
 
           <table>
-            <thead><tr><th>Decision</th><th>Rationale</th><th>Rejected alternative</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Decision</th>
+                <th>Rationale</th>
+                <th>Rejected alternative</th>
+              </tr>
+            </thead>
             <tbody>
               <tr>
                 <td>Sealed interface union for Fold (not a struct with a kind enum)</td>
-                <td>Kills the 11 nil slots + the string discriminator. Type switch gives per-variant typing. Compiler flags missing cases.</td>
-                <td><strong>Tagged struct with <code>kind int</code> + one <code>handler any</code>.</strong> Rejected: still one optional field, still needs a runtime assertion, just moves the problem.</td>
+                <td>
+                  Kills the 11 nil slots + the string discriminator. Type switch gives per-variant
+                  typing. Compiler flags missing cases.
+                </td>
+                <td>
+                  <strong
+                    >Tagged struct with <code>kind int</code> + one
+                    <code>handler any</code>.</strong
+                  >
+                  Rejected: still one optional field, still needs a runtime assertion, just moves
+                  the problem.
+                </td>
               </tr>
               <tr>
                 <td>Pre-bound <code>invoke</code> closure (not per-call reflection)</td>
-                <td>Captures E,K,V once at <code>On()</code> time. Zero <code>reflect.ValueOf</code> on the hot path. Preserves the inference elegance (handler signature still determines the ADT).</td>
-                <td><strong>Keep reflect calls, add nil guards.</strong> Rejected: treats the symptom (panic) not the cause (erasure + reflection on every event).</td>
+                <td>
+                  Captures E,K,V once at <code>On()</code> time. Zero
+                  <code>reflect.ValueOf</code> on the hot path. Preserves the inference elegance
+                  (handler signature still determines the ADT).
+                </td>
+                <td>
+                  <strong>Keep reflect calls, add nil guards.</strong> Rejected: treats the symptom
+                  (panic) not the cause (erasure + reflection on every event).
+                </td>
               </tr>
               <tr>
                 <td>Keep engine layer as <code>any</code> (do not genericize backends)</td>
-                <td>Consumer types are unknowable to a library. <code>MapBackend</code> must store arbitrary values. This erasure is <em>inherent</em>.</td>
-                <td><strong>Generic <code>MapBackend[K,V]</code>.</strong> Rejected: engines serve many collections with different K,V; a generic backend per collection is an explosion of type params with no static benefit.</td>
+                <td>
+                  Consumer types are unknowable to a library. <code>MapBackend</code> must store
+                  arbitrary values. This erasure is <em>inherent</em>.
+                </td>
+                <td>
+                  <strong>Generic <code>MapBackend[K,V]</code>.</strong> Rejected: engines serve
+                  many collections with different K,V; a generic backend per collection is an
+                  explosion of type params with no static benefit.
+                </td>
               </tr>
               <tr>
-                <td>Single <code>QueryDecl[Q,R]</code> with assigned fields (not a twin runtime)</td>
-                <td>One source of truth. The planner reads via a narrow 4-method interface. No field-copy drift.</td>
-                <td><strong>Keep <code>queryRuntime</code>, add a constructor.</strong> Rejected: constructor reduces panic risk but the split brain and 9-method interface remain.</td>
+                <td>
+                  Single <code>QueryDecl[Q,R]</code> with assigned fields (not a twin runtime)
+                </td>
+                <td>
+                  One source of truth. The planner reads via a narrow 4-method interface. No
+                  field-copy drift.
+                </td>
+                <td>
+                  <strong>Keep <code>queryRuntime</code>, add a constructor.</strong> Rejected:
+                  constructor reduces panic risk but the split brain and 9-method interface remain.
+                </td>
               </tr>
               <tr>
                 <td>Store holds injected collaborators (not 17 inline fields)</td>
-                <td>Each concern (poison, dedup, meter, subs) is testable alone and nil-safe to disable. Store methods shrink.</td>
-                <td><strong>Embed all trackers as anonymous fields.</strong> Rejected: promotes 17 fields into Store's namespace anyway; doesn't solve testability.</td>
+                <td>
+                  Each concern (poison, dedup, meter, subs) is testable alone and nil-safe to
+                  disable. Store methods shrink.
+                </td>
+                <td>
+                  <strong>Embed all trackers as anonymous fields.</strong> Rejected: promotes 17
+                  fields into Store's namespace anyway; doesn't solve testability.
+                </td>
               </tr>
               <tr>
                 <td>Branded unit types (<code>Nanoseconds</code>, not <code>float64</code>)</td>
-                <td>Compile-time unit safety in the cost model. Cheap (type alias, zero overhead).</td>
-                <td><strong><code>time.Duration</code> everywhere.</strong> Rejected: <code>Duration</code> is int64-nanoseconds; the cost model needs sub-nanosecond float precision for <code>NsPerOp</code>.</td>
+                <td>
+                  Compile-time unit safety in the cost model. Cheap (type alias, zero overhead).
+                </td>
+                <td>
+                  <strong><code>time.Duration</code> everywhere.</strong> Rejected:
+                  <code>Duration</code> is int64-nanoseconds; the cost model needs sub-nanosecond
+                  float precision for <code>NsPerOp</code>.
+                </td>
               </tr>
               <tr>
-                <td>Enums stay <code>string</code>-backed with <code>Valid()</code> (not <code>iota int</code>)</td>
-                <td>Strings serialize directly (SerializablePlan, diagnostics output). <code>iota</code> would need a <code>String()</code> + a separate wire format. The distinct named types already prevent cross-enum confusion.</td>
-                <td><strong>Migrate to <code>iota</code> for exhaustiveness.</strong> Rejected: loses zero-effort JSON serialization; the real gap (validation/registry) is fixable on string backing.</td>
+                <td>
+                  Enums stay <code>string</code>-backed with <code>Valid()</code> (not
+                  <code>iota int</code>)
+                </td>
+                <td>
+                  Strings serialize directly (SerializablePlan, diagnostics output).
+                  <code>iota</code> would need a <code>String()</code> + a separate wire format. The
+                  distinct named types already prevent cross-enum confusion.
+                </td>
+                <td>
+                  <strong>Migrate to <code>iota</code> for exhaustiveness.</strong> Rejected: loses
+                  zero-effort JSON serialization; the real gap (validation/registry) is fixable on
+                  string backing.
+                </td>
               </tr>
             </tbody>
           </table>
@@ -1151,66 +1640,133 @@
 
           <div class="card card-warning">
             <h3>Do NOT genericize the engine backends</h3>
-            <p>It is tempting to write <code>MapBackend[K, V any]</code> to "fix" C2. Resist it. An engine serves collections with <em>different</em> K,V types; a generic backend forces either type-erasure at storage (back to <code>any</code>) or a separate engine instance per collection (absurd). The erasure at the engine layer is inherent &mdash; fix the <em>boundary</em> (key validation in Store), not the engine.</p>
+            <p>
+              It is tempting to write <code>MapBackend[K, V any]</code> to "fix" C2. Resist it. An
+              engine serves collections with <em>different</em> K,V types; a generic backend forces
+              either type-erasure at storage (back to <code>any</code>) or a separate engine
+              instance per collection (absurd). The erasure at the engine layer is inherent &mdash;
+              fix the <em>boundary</em> (key validation in Store), not the engine.
+            </p>
           </div>
           <div class="card card-warning">
             <h3>Do NOT make Fold an open interface</h3>
-            <p>The sealed <code>fold()</code> method is what keeps the union closed. If consumers could implement <code>Fold</code> themselves, the apply type switch would need a real <code>default</code> arm and exhaustiveness is lost. Keep <code>fold()</code> unexported &mdash; only <code>On()</code>/<code>OnTyped()</code> construct folds.</p>
+            <p>
+              The sealed <code>fold()</code> method is what keeps the union closed. If consumers
+              could implement <code>Fold</code> themselves, the apply type switch would need a real
+              <code>default</code> arm and exhaustiveness is lost. Keep
+              <code>fold()</code> unexported &mdash; only <code>On()</code>/<code>OnTyped()</code>
+              construct folds.
+            </p>
           </div>
           <div class="card card-warning">
             <h3>Do NOT remove reflection entirely</h3>
-            <p>The fold-return-type-IS-the-ADT inference <em>depends</em> on reflection (<code>classifySingleReturn</code> inspects the handler's return type). Reflection for <em>inference at declaration time</em> is fine and fast (runs once). Reflection on the <em>hot apply path</em> (per event) is what the redesign eliminates. Don't conflate the two.</p>
+            <p>
+              The fold-return-type-IS-the-ADT inference <em>depends</em> on reflection (<code
+                >classifySingleReturn</code
+              >
+              inspects the handler's return type). Reflection for
+              <em>inference at declaration time</em> is fine and fast (runs once). Reflection on the
+              <em>hot apply path</em> (per event) is what the redesign eliminates. Don't conflate
+              the two.
+            </p>
           </div>
           <div class="card card-warning">
             <h3>Do NOT brand every string</h3>
-            <p>Collection names, event-type strings, and SQL column names are <em>consumer-defined identifiers</em>, not domain concepts. Branding them (<code>type CollectionName string</code>) adds ceremony with no safety &mdash; the consumer passes arbitrary strings either way. Brand where the type system adds real protection (units, IDs, enums), not where it just adds friction.</p>
+            <p>
+              Collection names, event-type strings, and SQL column names are
+              <em>consumer-defined identifiers</em>, not domain concepts. Branding them (<code
+                >type CollectionName string</code
+              >) adds ceremony with no safety &mdash; the consumer passes arbitrary strings either
+              way. Brand where the type system adds real protection (units, IDs, enums), not where
+              it just adds friction.
+            </p>
           </div>
         </section>
 
         <section id="migration">
           <h2><span class="num">10</span>Migration Roadmap</h2>
-          <p class="section-lede">Incremental, each step independently shippable and testable. Pareto-ranked: C1 first (highest impact, kills a panic class).</p>
+          <p class="section-lede">
+            Incremental, each step independently shippable and testable. Pareto-ranked: C1 first
+            (highest impact, kills a panic class).
+          </p>
 
           <div class="migration-step">
             <div class="migration-num">1</div>
             <div class="migration-content">
               <h4>Introduce the <code>Fold</code> interface + concrete types (C1)</h4>
-              <p>Add <code>type Fold interface { fold(); EventType() string; EventSample() any }</code> and the concrete <code>insertFold</code>, <code>updateFold</code>, etc. Have <code>On()</code> return the new concrete types. Keep the old <code>Fold</code> struct temporarily as an internal adapter that satisfies the new interface. Update <code>applyFold</code> to a type switch. <strong>This is the single highest-value change</strong> &mdash; it eliminates the nil-panic class and the 11 reflect calls on the hot path.</p>
+              <p>
+                Add
+                <code>type Fold interface { fold(); EventType() string; EventSample() any }</code>
+                and the concrete <code>insertFold</code>, <code>updateFold</code>, etc. Have
+                <code>On()</code> return the new concrete types. Keep the old
+                <code>Fold</code> struct temporarily as an internal adapter that satisfies the new
+                interface. Update <code>applyFold</code> to a type switch.
+                <strong>This is the single highest-value change</strong> &mdash; it eliminates the
+                nil-panic class and the 11 reflect calls on the hot path.
+              </p>
             </div>
           </div>
           <div class="migration-step">
             <div class="migration-num">2</div>
             <div class="migration-content">
               <h4>Collapse <code>queryRuntime</code> into <code>QueryDecl</code> (H2)</h4>
-              <p>Add assigned fields (<code>engine</code>, <code>complexity</code>, <code>foldByEvent</code>) to <code>QueryDecl[Q,R]</code>. Replace <code>queryRuntime</code> with <code>*QueryDecl</code> (type-erased via the new <code>plannerQuery</code> interface). Delete the field-copy in <code>planQuery()</code>. Delete the 9-method <code>queryMeta</code>.</p>
+              <p>
+                Add assigned fields (<code>engine</code>, <code>complexity</code>,
+                <code>foldByEvent</code>) to <code>QueryDecl[Q,R]</code>. Replace
+                <code>queryRuntime</code> with <code>*QueryDecl</code> (type-erased via the new
+                <code>plannerQuery</code> interface). Delete the field-copy in
+                <code>planQuery()</code>. Delete the 9-method <code>queryMeta</code>.
+              </p>
             </div>
           </div>
           <div class="migration-step">
             <div class="migration-num">3</div>
             <div class="migration-content">
               <h4>Extract Store collaborators (H3)</h4>
-              <p>Pull <code>poisonTracker</code>, <code>idempotencyTracker</code>, <code>workloadMeter</code>, <code>subscriberHub</code> out of Store into injected structs. Each gets its own test file. Store's field count drops from 17 to ~9. Do this one collaborator at a time to keep diffs reviewable.</p>
+              <p>
+                Pull <code>poisonTracker</code>, <code>idempotencyTracker</code>,
+                <code>workloadMeter</code>, <code>subscriberHub</code> out of Store into injected
+                structs. Each gets its own test file. Store's field count drops from 17 to ~9. Do
+                this one collaborator at a time to keep diffs reviewable.
+              </p>
             </div>
           </div>
           <div class="migration-step">
             <div class="migration-num">4</div>
             <div class="migration-content">
               <h4>Add enum validation + registries (H1)</h4>
-              <p>Add <code>Valid()</code> to each enum family. Add a package-level registry slice per family. Add a <code>TestEnumExhaustiveness</code> test that asserts every switch in the package handles every registered value (grep-driven, like the project's existing guard tests). Call <code>Valid()</code> at <code>Plan()</code> entry.</p>
+              <p>
+                Add <code>Valid()</code> to each enum family. Add a package-level registry slice per
+                family. Add a <code>TestEnumExhaustiveness</code> test that asserts every switch in
+                the package handles every registered value (grep-driven, like the project's existing
+                guard tests). Call <code>Valid()</code> at <code>Plan()</code> entry.
+              </p>
             </div>
           </div>
           <div class="migration-step">
             <div class="migration-num">5</div>
             <div class="migration-content">
               <h4>Generic <code>ScanResult[T]</code> + branded units (M3, M4)</h4>
-              <p>Parameterize <code>ScanResult</code>; alias <code>ScanResult[any]</code>/<code>ScanResult[[]byte]</code> at call sites. Introduce <code>Nanoseconds</code>, <code>RatePerSecond</code>, <code>ItemCount</code> branded types in the cost model. Low-risk, mechanical, but run the calibration benchmarks after to confirm no perf regression.</p>
+              <p>
+                Parameterize <code>ScanResult</code>; alias <code>ScanResult[any]</code>/<code
+                  >ScanResult[[]byte]</code
+                >
+                at call sites. Introduce <code>Nanoseconds</code>, <code>RatePerSecond</code>,
+                <code>ItemCount</code> branded types in the cost model. Low-risk, mechanical, but
+                run the calibration benchmarks after to confirm no perf regression.
+              </p>
             </div>
           </div>
           <div class="migration-step">
             <div class="migration-num">6</div>
             <div class="migration-content">
               <h4>Boundary key-type validation (C2, the fixable half)</h4>
-              <p>In <code>Execute</code>/<code>ExecuteTyped</code>, validate the extracted key's <code>reflect.Type</code> against <code>query.keyType</code> before dispatch. Returns a clear <code>ErrKeyTypeMismatch</code> instead of a silent wrong-collection read. Does not touch the engine layer (which stays <code>any</code>).</p>
+              <p>
+                In <code>Execute</code>/<code>ExecuteTyped</code>, validate the extracted key's
+                <code>reflect.Type</code> against <code>query.keyType</code> before dispatch.
+                Returns a clear <code>ErrKeyTypeMismatch</code> instead of a silent wrong-collection
+                read. Does not touch the engine layer (which stays <code>any</code>).
+              </p>
             </div>
           </div>
         </section>
@@ -1218,22 +1774,28 @@
         <section id="conclusion">
           <h2><span class="num">11</span>Conclusion</h2>
           <p class="section-lede">
-            metaengine's <em>idea</em> is superb: derive the storage plan from the relationship between
-            events and queries, letting the fold return type be the declaration. Its <em>execution</em>
-            of that idea carries one critical debt &mdash; the <code>Fold</code> god-struct &mdash; that
-            a sealed interface union dissolves cleanly, plus a tractable set of high/medium issues around
-            twin types, a god-object Store, and unvalidated enums.
+            metaengine's <em>idea</em> is superb: derive the storage plan from the relationship
+            between events and queries, letting the fold return type be the declaration. Its
+            <em>execution</em> of that idea carries one critical debt &mdash; the
+            <code>Fold</code> god-struct &mdash; that a sealed interface union dissolves cleanly,
+            plus a tractable set of high/medium issues around twin types, a god-object Store, and
+            unvalidated enums.
           </p>
           <blockquote>
-            The fold-return-type-IS-the-ADT inference is the soul of this library. The sealed union is
-            how that soul survives contact with the type system. Make the fold kind a concrete type, not
-            a string on a struct full of nil &mdash; and the impossible states stop being representable.
+            The fold-return-type-IS-the-ADT inference is the soul of this library. The sealed union
+            is how that soul survives contact with the type system. Make the fold kind a concrete
+            type, not a string on a struct full of nil &mdash; and the impossible states stop being
+            representable.
           </blockquote>
-          <p class="muted">Generated 2026-08-01 &middot; Data model review of <code>go-cqrs-lite/metaengine/v4</code> &middot; 71 source files reviewed.</p>
+          <p class="muted">
+            Generated 2026-08-01 &middot; Data model review of
+            <code>go-cqrs-lite/metaengine/v4</code> &middot; 71 source files reviewed.
+          </p>
         </section>
 
         <footer class="footer">
-          metaengine data model review &middot; Bauhaus dark &middot; self-contained, zero dependencies
+          metaengine data model review &middot; Bauhaus dark &middot; self-contained, zero
+          dependencies
         </footer>
       </main>
     </div>

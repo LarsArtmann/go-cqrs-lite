@@ -82,53 +82,53 @@ with projection + read model.
 
 ## 1. Module Decision Matrix — "I want to…"
 
-| If you want to…                                       | Use                                                                             | See recipe      |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------- | --------------- |
-| Create/store/load events                              | `event`                                                                         | recipes §2.1    |
-| Dispatch type-safe commands                           | `command`                                                                       | recipes §2.1    |
-| Run an event-sourced stream                           | `decider`                                                                       | recipes §2.1    |
-| Generate unique, type-safe IDs                        | `id`                                                                            | recipes §2.1    |
-| Typed event metadata (tracing, custom data)           | `metadata`                                                                      | —               |
-| Encode payloads as JSON/CBOR                          | `codec`                                                                         | recipes §2.1    |
-| Build a read model from events                        | `stack.Materialize` + `kv.ViewStore` (see tier table below)                     | readmodels §2.3 |
-| Multi-table projection (composite keys, junctions)    | `storage.RelationalProjection`                                                  | readmodels §2.3 |
-| Dispatch type-safe queries                            | `query`                                                                         | readmodels §2.3 |
-| List all streams + their status                       | `listing`                                                                       | advanced §6.3   |
-| Persist to PostgreSQL / SQLite / MySQL                | `storage`                                                                       | recipes §2.2    |
-| Persist to embedded PebbleDB                          | `storage/pebble`                                                                | recipes §2.2    |
-| Offline-first sync via Turso Database                 | `storage/turso`                                                                 | advanced §6.5   |
-| Generic key-value abstraction                         | `kv`                                                                            | advanced §6.6   |
-| Snapshot streams for speed                            | `snapshot`                                                                      | recipes §2.4    |
-| Evolve event schemas over time                        | `schema`                                                                        | recipes §2.5    |
-| Upcast events during projection replay                | `schema` (`VersionedSeekableJournal`)                                           | advanced §6.9   |
-| Make event streams tamper-proof                       | `signing`                                                                       | recipes §2.6    |
-| Encrypt confidential payloads                         | `encryption`                                                                    | recipes §2.7    |
-| Add logging/retry/recovery/circuit-breaker            | `middleware`                                                                    | recipes §2.8    |
-| Deduplicate commands on retry (idempotency)           | `idempotency` + `middleware`                                                    | recipes §2.8    |
-| Add OpenTelemetry tracing/metrics                     | `otel` + `middleware`                                                           | recipes §2.8    |
-| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs   | `catalog`                                                                       | recipes §2.9    |
-| Soft-delete streams without data loss                 | `event` (tombstone metadata)                                                    | advanced §6.1   |
-| Generate typed handler boilerplate                    | `cmd/cqrs-gen`                                                                  | advanced §6.7   |
-| Publish events to Watermill router                    | `watermill`                                                                     | advanced §6.4   |
-| Dispatch commands/queries over gRPC                   | `transport/grpc`                                                                | advanced §6.8   |
-| Verify doc code references compile                    | `cmd/doc-check`                                                                 | modules §5      |
-| In-memory command bus (typed pub/sub)                 | `command` (`NewMemoryBus`)                                                      | recipes §2.1    |
-| In-memory implementations for tests/dev               | `memory`                                                                        | recipes §2.1    |
+| If you want to…                                       | Use                                                                                            | See recipe      |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------- |
+| Create/store/load events                              | `event`                                                                                        | recipes §2.1    |
+| Dispatch type-safe commands                           | `command`                                                                                      | recipes §2.1    |
+| Run an event-sourced stream                           | `decider`                                                                                      | recipes §2.1    |
+| Generate unique, type-safe IDs                        | `id`                                                                                           | recipes §2.1    |
+| Typed event metadata (tracing, custom data)           | `metadata`                                                                                     | —               |
+| Encode payloads as JSON/CBOR                          | `codec`                                                                                        | recipes §2.1    |
+| Build a read model from events                        | `stack.Materialize` + `kv.ViewStore` (see tier table below)                                    | readmodels §2.3 |
+| Multi-table projection (composite keys, junctions)    | `storage.RelationalProjection`                                                                 | readmodels §2.3 |
+| Dispatch type-safe queries                            | `query`                                                                                        | readmodels §2.3 |
+| List all streams + their status                       | `listing`                                                                                      | advanced §6.3   |
+| Persist to PostgreSQL / SQLite / MySQL                | `storage`                                                                                      | recipes §2.2    |
+| Persist to embedded PebbleDB                          | `storage/pebble`                                                                               | recipes §2.2    |
+| Offline-first sync via Turso Database                 | `storage/turso`                                                                                | advanced §6.5   |
+| Generic key-value abstraction                         | `kv`                                                                                           | advanced §6.6   |
+| Snapshot streams for speed                            | `snapshot`                                                                                     | recipes §2.4    |
+| Evolve event schemas over time                        | `schema`                                                                                       | recipes §2.5    |
+| Upcast events during projection replay                | `schema` (`VersionedSeekableJournal`)                                                          | advanced §6.9   |
+| Make event streams tamper-proof                       | `signing`                                                                                      | recipes §2.6    |
+| Encrypt confidential payloads                         | `encryption`                                                                                   | recipes §2.7    |
+| Add logging/retry/recovery/circuit-breaker            | `middleware`                                                                                   | recipes §2.8    |
+| Deduplicate commands on retry (idempotency)           | `idempotency` + `middleware`                                                                   | recipes §2.8    |
+| Add OpenTelemetry tracing/metrics                     | `otel` + `middleware`                                                                          | recipes §2.8    |
+| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs   | `catalog`                                                                                      | recipes §2.9    |
+| Soft-delete streams without data loss                 | `event` (tombstone metadata)                                                                   | advanced §6.1   |
+| Generate typed handler boilerplate                    | `cmd/cqrs-gen`                                                                                 | advanced §6.7   |
+| Publish events to Watermill router                    | `watermill`                                                                                    | advanced §6.4   |
+| Dispatch commands/queries over gRPC                   | `transport/grpc`                                                                               | advanced §6.8   |
+| Verify doc code references compile                    | `cmd/doc-check`                                                                                | modules §5      |
+| In-memory command bus (typed pub/sub)                 | `command` (`NewMemoryBus`)                                                                     | recipes §2.1    |
+| In-memory implementations for tests/dev               | `memory`                                                                                       | recipes §2.1    |
 | One-call infrastructure wiring (Bundle presets)       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/mysql`, `stack/turso` | recipes §2.0    |
-| Typed read-model store over KV backend                | `kv.TypedStore`                                                                 | recipes §2.0    |
-| Cache decorator for read models                       | `kv.Cache`                                                                      | recipes §2.0    |
-| Run projections with crash-restart + checkpoint + DLQ | `projectionhost`                                                                | advanced §6.9   |
-| Test deciders/projections with Given/When/Then        | `scenario`                                                                      | advanced §6.10  |
-| Schedule delayed commands / durable deadlines         | `scheduling`                                                                    | advanced §6.11  |
-| Dead-letter failed dispatches (retry exhaustion)      | `middleware` (DLQ)                                                              | recipes §2.8    |
-| Cost-based query planner (7 ADTs, O(1) aggregates)    | `metaengine` + `stack.WithMetaEngine`                                           | recipes §2.10   |
-| Derive commands reactively from events                | `deriver`                                                                       | advanced §6.12  |
-| Build graph/traversal read models (nodes + edges)     | `graph`                                                                         | advanced §6.13  |
-| Expose CQRS metrics via Prometheus `/metrics`         | `prometheus`                                                                    | advanced §6.14  |
-| Stream events to browsers via SSE                     | `transport/http` (`SSEBroker`)                                                  | advanced §6.15  |
-| Replay events to reconnecting clients (catch-up)      | `transport/http` (Last-Event-ID) or `watermill` (`CatchUpSubscriber`)           | advanced §6.15  |
-| Pull-based event backfill (REST endpoint)             | `transport/http` (`BackfillHandler`)                                            | advanced §6.15  |
-| Capture execution trace on slow/error operations      | `flightrecorder` + `middleware`                                                 | recipes §2.17   |
+| Typed read-model store over KV backend                | `kv.TypedStore`                                                                                | recipes §2.0    |
+| Cache decorator for read models                       | `kv.Cache`                                                                                     | recipes §2.0    |
+| Run projections with crash-restart + checkpoint + DLQ | `projectionhost`                                                                               | advanced §6.9   |
+| Test deciders/projections with Given/When/Then        | `scenario`                                                                                     | advanced §6.10  |
+| Schedule delayed commands / durable deadlines         | `scheduling`                                                                                   | advanced §6.11  |
+| Dead-letter failed dispatches (retry exhaustion)      | `middleware` (DLQ)                                                                             | recipes §2.8    |
+| Cost-based query planner (7 ADTs, O(1) aggregates)    | `metaengine` + `stack.WithMetaEngine`                                                          | recipes §2.10   |
+| Derive commands reactively from events                | `deriver`                                                                                      | advanced §6.12  |
+| Build graph/traversal read models (nodes + edges)     | `graph`                                                                                        | advanced §6.13  |
+| Expose CQRS metrics via Prometheus `/metrics`         | `prometheus`                                                                                   | advanced §6.14  |
+| Stream events to browsers via SSE                     | `transport/http` (`SSEBroker`)                                                                 | advanced §6.15  |
+| Replay events to reconnecting clients (catch-up)      | `transport/http` (Last-Event-ID) or `watermill` (`CatchUpSubscriber`)                          | advanced §6.15  |
+| Pull-based event backfill (REST endpoint)             | `transport/http` (`BackfillHandler`)                                                           | advanced §6.15  |
+| Capture execution trace on slow/error operations      | `flightrecorder` + `middleware`                                                                | recipes §2.17   |
 
 > **§2 (recipes), §5 (module reference), §6 (advanced patterns)** live in the on-demand `references/` files. This is the progressive-disclosure design — this file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
 
