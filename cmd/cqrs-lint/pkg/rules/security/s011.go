@@ -19,21 +19,21 @@ import (
 //
 //nolint:gochecknoglobals // read-only denylist
 var piiFieldNames = map[string]bool{
-	"email":      true,
-	"password":   true,
-	"passwd":     true,
-	"secret":     true,
-	"ssn":        true,
-	"creditcard": true,
-	"cardnumber": true,
-	"cvv":        true,
-	"phone":      true,
-	"address":    true,
-	"zipcode":    true,
-	"firstname":  true,
-	"lastname":   true,
-	"fullname":   true,
-	"birthdate":  true,
+	"email":       true,
+	"password":    true,
+	"passwd":      true,
+	"secret":      true,
+	"ssn":         true,
+	"creditcard":  true,
+	"cardnumber":  true,
+	"cvv":         true,
+	"phone":       true,
+	"address":     true,
+	"zipcode":     true,
+	"firstname":   true,
+	"lastname":    true,
+	"fullname":    true,
+	"birthdate":   true,
 	"dateofbirth": true,
 }
 
@@ -105,7 +105,7 @@ func NewS011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 										WithConfidence(finding.ConfidenceMedium).
 										WithFixStrategy(finding.FixStrategySuggest).
 										WithSuggestion(
-											"Add encryption.EncryptMiddleware to the event bus, or remove PII "+
+											"Add encryption.EncryptMiddleware to the event bus, or remove PII " +
 												"from event payloads (store it in a separate encrypted read model)",
 										).
 										WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

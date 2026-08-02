@@ -75,8 +75,8 @@ func NewD017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithConfidence(finding.ConfidenceHigh).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion(
-								"Use errorfamily.NewRejection(code, msg) for business rule violations, "+
-									"errorfamily.NewConflict(code, msg) for state conflicts, or "+
+								"Use errorfamily.NewRejection(code, msg) for business rule violations, " +
+									"errorfamily.NewConflict(code, msg) for state conflicts, or " +
 									"errorfamily.WrapTransient(err, code, msg) for retryable failures",
 							).
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

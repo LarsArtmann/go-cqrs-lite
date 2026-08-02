@@ -82,7 +82,7 @@ func NewC039Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							WithConfidence(finding.ConfidenceMedium).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion(
-								"Use sync.WaitGroup, errgroup.Group, or pass a cancellable context "+
+								"Use sync.WaitGroup, errgroup.Group, or pass a cancellable context " +
 									"to manage the goroutine lifecycle",
 							).
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
