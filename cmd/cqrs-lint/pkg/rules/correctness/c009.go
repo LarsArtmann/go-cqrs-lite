@@ -77,15 +77,38 @@ func NewC009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// isMustFunc returns true if the function name follows the Must/must convention
-// (e.g., MustParseUserID, mustCommand, mustCompile), indicating that panics are
-// intentional — the function is a programming-error guard. Both exported
-// ("Must*") and unexported ("must*") forms are recognized.
+// isMustFunc returns true if the function follows a panic-safe convention:
+//
+//   - Must*/must* (e.g., MustParseUserID, mustCommand) — the standard Go
+//     "panic on programming error" convention, like regexp.MustCompile.
+//   - New* returning a pointer (e.g., NewCollectCommand) — constructor
+//     panics on invalid arguments are a widely used Go idiom. The pointer
+//     return constraint narrows to constructors and avoids factory functions
+//     that return (value, error).
 func isMustFunc(fn *ast.FuncDecl) bool {
 	if fn.Name == nil {
 		return false
 	}
 
 	name := fn.Name.Name
-	return (strings.HasPrefix(name, "must") || strings.HasPrefix(name, "Must")) && len(name) > 4
+
+	if (strings.HasPrefix(name, "must") || strings.HasPrefix(name, "Must")) && len(name) > 4 {
+		return true
+	}
+
+	if strings.HasPrefix(name, "New") && len(name) > 3 && returnsPointer(fn) {
+		return true
+	}
+
+	return false
+}
+
+// returnsPointer reports whether the function's first result is a pointer type.
+func returnsPointer(fn *ast.FuncDecl) bool {
+	if fn.Type == nil || fn.Type.Results == nil || len(fn.Type.Results.List) == 0 {
+		return false
+	}
+
+	_, ok := fn.Type.Results.List[0].Type.(*ast.StarExpr)
+	return ok
 }

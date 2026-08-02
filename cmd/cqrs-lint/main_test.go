@@ -174,6 +174,28 @@ func TestVersionConstant(t *testing.T) {
 	}
 }
 
+func TestVersionStringLocal(t *testing.T) {
+	// Without ldflags injection, commitHash and buildDate are empty.
+	s := versionString()
+	if !strings.HasPrefix(s, "cqrs-lint ") {
+		t.Errorf("versionString() = %q, want prefix %q", s, "cqrs-lint ")
+	}
+	if strings.Contains(s, "commit:") {
+		t.Errorf("local build should not contain commit: %q", s)
+	}
+}
+
+func TestVersionStringWithCommit(t *testing.T) {
+	old := commitHash
+	commitHash = "abc1234"
+	defer func() { commitHash = old }()
+
+	s := versionString()
+	if !strings.Contains(s, "commit: abc1234") {
+		t.Errorf("versionString() with commit = %q, want to contain %q", s, "commit: abc1234")
+	}
+}
+
 func TestFilterSuppressed(t *testing.T) {
 	t.Parallel()
 

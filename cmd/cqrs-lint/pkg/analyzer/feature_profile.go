@@ -32,6 +32,11 @@ type FeatureProfile struct {
 	// HasAsyncBus is true when a distributed event bus (Watermill-backed)
 	// is wired. In-memory buses don't need dedup; distributed buses do.
 	HasAsyncBus bool
+	// HasTransport is true when a CQRS transport layer (transport/http,
+	// transport/grpc, or an external cqrs-htmx module) is wired. When true,
+	// adoption rules that suggest adopting a transport module are suppressed —
+	// the project already has one.
+	HasTransport bool
 }
 
 // StoreKind enumerates the persistence backends go-cqrs-lite supports.
@@ -101,6 +106,7 @@ func (fp FeatureProfile) String() string {
 	_, _ = fmt.Fprintf(&b, "tracing:       %s\n", fp.Tracing)
 	_, _ = fmt.Fprintf(&b, "snapshot:      %s\n", fp.Snapshot)
 	_, _ = fmt.Fprintf(&b, "domain:        %s\n", fp.Domain)
+	_, _ = fmt.Fprintf(&b, "transport:     %t\n", fp.HasTransport)
 	return b.String()
 }
 

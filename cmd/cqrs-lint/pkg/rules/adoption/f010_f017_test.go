@@ -97,6 +97,27 @@ func main() {
 	ruletest.AssertRule(t, findings, "F013", 1)
 }
 
+func TestF013_NoFindingWhenTransportPresent(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "net/http"
+
+func main() {
+	http.HandleFunc("/api", handler)
+	http.ListenAndServe(":8080", nil)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	ctx.FeatureProfile.HasTransport = true
+
+	findings := ruletest.RunDetector(t, adoption.NewF013Detector(ctx))
+	ruletest.AssertRule(t, findings, "F013", 0)
+}
+
 func TestF014_TypedStoreWithoutCache(t *testing.T) {
 	t.Parallel()
 

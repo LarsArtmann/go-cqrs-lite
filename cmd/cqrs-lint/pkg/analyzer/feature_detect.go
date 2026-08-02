@@ -70,6 +70,11 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 			if strings.Contains(path, "go-cqrs-lite/watermill") {
 				fp.HasAsyncBus = true
 			}
+
+			if strings.Contains(path, "go-cqrs-lite/transport") ||
+				strings.Contains(path, "cqrs-htmx") {
+				fp.HasTransport = true
+			}
 		}
 	}
 

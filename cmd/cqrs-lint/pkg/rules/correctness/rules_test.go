@@ -324,6 +324,39 @@ func MustParseUserID(s string) UserID {
 	ruletest.AssertRule(t, findings, "C009", 0)
 }
 
+// C009 should skip New* constructors that return a pointer — panics in
+// constructors are a standard Go idiom for invalid arguments.
+func TestC009_NoFindingInNewConstructor(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"commands.go": `package main
+
+func NewCollectCommand(cmdType string) *Command {
+	if cmdType == "" {
+		panic("cmdType must not be empty")
+	}
+	return &Command{Type: cmdType}
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC009Detector(ctx))
+	ruletest.AssertRule(t, findings, "C009", 0)
+}
+
+// C009 must NOT skip New* functions that return a non-pointer (e.g. a value
+// or an interface) — those are not constructors in the panic-safe sense.
+func TestC009_StillFiresForNewNonPointer(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+func NewConfig() Config {
+	panic("not implemented")
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC009Detector(ctx))
+	ruletest.AssertRule(t, findings, "C009", 1)
+}
+
 // --- C008: float64 for money ---
 
 func TestC008_DetectsFloat64ForMoney(t *testing.T) {
