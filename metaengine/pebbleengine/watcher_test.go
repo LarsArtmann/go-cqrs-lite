@@ -11,11 +11,15 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// watcherTaskID is a distinct key type so Remove[V]() can unambiguously
+// identify the key field in the event struct.
+type watcherTaskID string
+
 // watcherTask is a local value type for cross-engine watcher regression tests.
 // It mirrors metaengine's internal testTask but is defined in the engine package
 // so the watcher pipeline can be exercised without importing test internals.
 type watcherTask struct {
-	ID     string
+	ID     watcherTaskID
 	Title  string
 	Status string
 }
@@ -33,7 +37,7 @@ func TestPebbleWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 
 	q := metaengine.Query[watcherTask, watcherTask](
 		"pebble_watcher_tasks",
-		metaengine.OnTyped("task_created", watcherTask{}, func(e watcherTask) (string, watcherTask) {
+		metaengine.OnTyped("task_created", watcherTask{}, func(e watcherTask) (watcherTaskID, watcherTask) {
 			return e.ID, e
 		}),
 		metaengine.OnTyped("task_deleted", watcherTask{}, metaengine.Remove[watcherTask]()),
@@ -50,16 +54,16 @@ func TestPebbleWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 
 	ch := watcher.Watch(ctx, nil)
 
-	g.Expect(store.Apply(ctx, "task_created", watcherTask{ID: "pt-1", Title: "Pebble Task"})).To(gomega.Succeed())
+	g.Expect(store.Apply(ctx, "task_created", watcherTask{ID: watcherTaskID("pt-1"), Title: "Pebble Task"})).To(gomega.Succeed())
 
 	select {
 	case val := <-ch:
-		g.Expect(val.ID).To(gomega.Equal("pt-1"))
+		g.Expect(val.ID).To(gomega.Equal(watcherTaskID("pt-1")))
 	case <-time.After(2 * time.Second):
 		t.Fatal("timeout waiting for Pebble insert watcher notification")
 	}
 
-	g.Expect(store.Apply(ctx, "task_deleted", watcherTask{ID: "pt-1"})).To(gomega.Succeed())
+	g.Expect(store.Apply(ctx, "task_deleted", watcherTask{ID: watcherTaskID("pt-1")})).To(gomega.Succeed())
 
 	select {
 	case val := <-ch:
@@ -81,7 +85,7 @@ func TestPebbleWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 
 	q := metaengine.Query[watcherTask, watcherTask](
 		"pebble_replay_tasks",
-		metaengine.OnTyped("task_created", watcherTask{}, func(e watcherTask) (string, watcherTask) {
+		metaengine.OnTyped("task_created", watcherTask{}, func(e watcherTask) (watcherTaskID, watcherTask) {
 			return e.ID, e
 		}),
 	)
@@ -98,11 +102,11 @@ func TestPebbleWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 
 	seqCh := watcher.WatchWithSeq(ctx, nil)
 
-	g.Expect(store.Apply(ctx, "task_created", watcherTask{ID: "prt-1", Title: "Replay Task"})).To(gomega.Succeed())
+	g.Expect(store.Apply(ctx, "task_created", watcherTask{ID: watcherTaskID("prt-1"), Title: "Replay Task"})).To(gomega.Succeed())
 
 	select {
 	case sv := <-seqCh:
-		g.Expect(sv.Value.ID).To(gomega.Equal("prt-1"))
+		g.Expect(sv.Value.ID).To(gomega.Equal(watcherTaskID("prt-1")))
 		g.Expect(sv.Seq).NotTo(gomega.BeZero(), "replay seq must be recorded, not silently dropped")
 	case <-time.After(2 * time.Second):
 		t.Fatal("timeout waiting for Pebble watcher seq notification")
@@ -110,5 +114,5 @@ func TestPebbleWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 
 	entries := replay.Replay(0)
 	g.Expect(entries).To(gomega.HaveLen(1))
-	g.Expect(entries[0].Value.ID).To(gomega.Equal("prt-1"))
+	g.Expect(entries[0].Value.ID).To(gomega.Equal(watcherTaskID("prt-1")))
 }

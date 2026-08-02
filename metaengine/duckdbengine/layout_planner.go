@@ -91,7 +91,7 @@ func (e *duckdbEngine) mapSetPlanned(
 	for i, c := range plan.Columns {
 		quotedCols = append(quotedCols, quoteIdent(c.Name))
 		placeholders = append(placeholders, fmt.Sprintf("$%d", i+3))
-		args = append(args, extracted[c.Name])
+		args = append(args, coerceForColumn(extracted[c.Name], c))
 	}
 
 	setCols := make([]string, 0, 1+len(plan.Columns))
@@ -378,6 +378,93 @@ func plansColumnCompatible(a, b metaengine.LayoutPlan) bool {
 	}
 
 	return true
+}
+
+// coerceForColumn converts a Go value to a type compatible with the planned
+// column's SQL type. JSON decoding turns all numbers into float64, so this
+// maps them back to INTEGER/REAL when the plan declares those types.
+func coerceForColumn(value any, column metaengine.PlannedColumn) any {
+	if value == nil {
+		return nil
+	}
+
+	upper := strings.ToUpper(column.Type)
+	if upper == "INTEGER" {
+		switch v := value.(type) {
+		case int:
+			return int64(v)
+		case int8:
+			return int64(v)
+		case int16:
+			return int64(v)
+		case int32:
+			return int64(v)
+		case int64:
+			return v
+		case uint:
+			return int64(v)
+		case uint8:
+			return int64(v)
+		case uint16:
+			return int64(v)
+		case uint32:
+			return int64(v)
+		case uint64:
+			return int64(v)
+		case float64:
+			return int64(v)
+		case float32:
+			return int64(v)
+		case bool:
+			if v {
+				return int64(1)
+			}
+			return int64(0)
+		case string:
+			if n, err := strconv.ParseInt(v, 10, 64); err == nil {
+				return n
+			}
+		}
+	}
+
+	if upper == "REAL" {
+		switch v := value.(type) {
+		case int:
+			return float64(v)
+		case int8:
+			return float64(v)
+		case int16:
+			return float64(v)
+		case int32:
+			return float64(v)
+		case int64:
+			return float64(v)
+		case uint:
+			return float64(v)
+		case uint8:
+			return float64(v)
+		case uint16:
+			return float64(v)
+		case uint32:
+			return float64(v)
+		case uint64:
+			return float64(v)
+		case float64:
+			return v
+		case float32:
+			return float64(v)
+		case string:
+			if n, err := strconv.ParseFloat(v, 64); err == nil {
+				return n
+			}
+		}
+	}
+
+	if upper == "TEXT" {
+		return fmt.Sprint(value)
+	}
+
+	return value
 }
 
 // quoteIdent wraps a SQL identifier in double quotes, escaping any embedded

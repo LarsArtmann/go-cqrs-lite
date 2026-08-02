@@ -4,6 +4,9 @@ package duckdbengine_test
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"reflect"
 	"testing"
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
@@ -419,3 +422,273 @@ func TestDuckDBEngine_LayoutMetaenginePlan(t *testing.T) {
 		t.Errorf("books count: got %d, want 2", result["books"])
 	}
 }
+
+func TestDuckDBEngine_ApplyLayoutPlan(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("duckdb", "")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer db.Close()
+
+	eng, err := duckdbengine.NewFromDB(db)
+	if err != nil {
+		t.Skipf("DuckDB engine not available: %v", err)
+	}
+	defer eng.Close()
+
+	lpa, ok := eng.(metaengine.LayoutPlanApplier)
+	if !ok {
+		t.Fatal("engine does not implement LayoutPlanApplier")
+	}
+
+	type ProductView struct {
+		Name     string
+		Category string
+		Price    float64
+		Quantity int
+	}
+
+	plan := metaengine.BuildColumnarLayoutPlan("products", reflect.TypeOf(ProductView{}))
+	if err := lpa.ApplyLayoutPlan(plan); err != nil {
+		t.Fatalf("ApplyLayoutPlan: %v", err)
+	}
+
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+
+	if err := mb.MapSet(ctx, "products", "p1", ProductView{
+		Name: "apple", Category: "fruit", Price: 1.50, Quantity: 10,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify all columns were extracted with native types.
+	var name, category string
+	var price float64
+	var quantity int64
+
+	err = db.QueryRowContext(ctx,
+		`SELECT Name, Category, Price, Quantity FROM meta_planned_products WHERE key = 'p1'`).Scan(&name, &category, &price, &quantity)
+	if err != nil {
+		t.Fatalf("query columnar table: %v", err)
+	}
+
+	if name != "apple" || category != "fruit" || price != 1.50 || quantity != 10 {
+		t.Errorf("columnar row: got %q %q %v %d, want apple fruit 1.50 10", name, category, price, quantity)
+	}
+}
+
+func TestDuckDBEngine_ColumnarLayoutWithPlan(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("duckdb", "")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer db.Close()
+
+	eng, err := duckdbengine.NewFromDB(db)
+	if err != nil {
+		t.Skipf("DuckDB engine not available: %v", err)
+	}
+	defer eng.Close()
+
+	type ProductCreated struct {
+		ID       string
+		Name     string
+		Category string
+		Price    float64
+		Quantity int
+	}
+
+	type ProductView struct {
+		Name     string
+		Category string
+		Price    float64
+		Quantity int
+	}
+
+	type ProductInput struct{}
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{eng},
+		metaengine.Query[ProductInput, ProductView](
+			"products",
+			metaengine.On(ProductCreated{}, func(e ProductCreated) (string, ProductView) {
+				return e.ID, ProductView{
+					Name:     e.Name,
+					Category: e.Category,
+					Price:    e.Price,
+					Quantity: e.Quantity,
+				}
+			}),
+			metaengine.WithColumnarLayout[ProductView](),
+		),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	ctx := context.Background()
+
+	if err := store.Apply(ctx, "ProductCreated", ProductCreated{
+		ID: "p1", Name: "apple", Category: "fruit", Price: 1.50, Quantity: 10,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Apply(ctx, "ProductCreated", ProductCreated{
+		ID: "p2", Name: "banana", Category: "fruit", Price: 0.75, Quantity: 20,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Apply(ctx, "ProductCreated", ProductCreated{
+		ID: "p3", Name: "carrot", Category: "veg", Price: 0.99, Quantity: 15,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify the columnar table has all extracted fields.
+	var count int
+	err = db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM meta_planned_products WHERE key IN ('p1', 'p2', 'p3')`).Scan(&count)
+	if err != nil {
+		t.Fatalf("count columnar rows: %v", err)
+	}
+	if count != 3 {
+		t.Errorf("columnar row count: got %d, want 3", count)
+	}
+
+	// Verify accurate native types: Price is REAL, Quantity is INTEGER.
+	var price float64
+	var quantity int64
+	err = db.QueryRowContext(ctx,
+		`SELECT Price, Quantity FROM meta_planned_products WHERE key = 'p1'`).Scan(&price, &quantity)
+	if err != nil {
+		t.Fatalf("query types: %v", err)
+	}
+	if price != 1.50 || quantity != 10 {
+		t.Errorf("p1 types: got price=%v quantity=%d, want 1.50 10", price, quantity)
+	}
+}
+
+func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("duckdb", "")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer db.Close()
+
+	eng, err := duckdbengine.NewFromDB(db)
+	if err != nil {
+		t.Skipf("DuckDB engine not available: %v", err)
+	}
+	defer eng.Close()
+
+	type ProductCreated struct {
+		ID       string
+		Name     string
+		Category string
+		Price    float64
+		Quantity int
+	}
+
+	type ProductView struct {
+		Name     string
+		Category string
+		Price    float64
+		Quantity int
+	}
+
+	type ProductInput struct{}
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{eng},
+		metaengine.Query[ProductInput, ProductView](
+			"products_agg",
+			metaengine.On(ProductCreated{}, func(e ProductCreated) (string, ProductView) {
+				return e.ID, ProductView{
+					Name:     e.Name,
+					Category: e.Category,
+					Price:    e.Price,
+					Quantity: e.Quantity,
+				}
+			}),
+			metaengine.WithColumnarLayout[ProductView](),
+		),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	ctx := context.Background()
+
+	items := []ProductCreated{
+		{ID: "p1", Name: "apple", Category: "fruit", Price: 1.50, Quantity: 10},
+		{ID: "p2", Name: "banana", Category: "fruit", Price: 0.75, Quantity: 20},
+		{ID: "p3", Name: "carrot", Category: "veg", Price: 0.99, Quantity: 15},
+		{ID: "p4", Name: "donut", Category: "snack", Price: 2.00, Quantity: 5},
+	}
+	for _, item := range items {
+		if err := store.Apply(ctx, "ProductCreated", item); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Run a vectorized GROUP BY directly on the columnar table. This is the
+	// killer feature of columnar-native storage: DuckDB aggregates native
+	// columns without decoding JSON blobs.
+	rows, err := db.QueryContext(ctx,
+		`SELECT Category, COUNT(*), SUM(Price), AVG(Quantity) FROM meta_planned_products_agg GROUP BY Category ORDER BY Category`)
+	if err != nil {
+		t.Fatalf("aggregation query: %v", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	results := make(map[string]struct{ count int; sumPrice float64; avgQuantity float64 })
+	for rows.Next() {
+		var category string
+		var count int
+		var sumPrice float64
+		var avgQuantity float64
+		if err := rows.Scan(&category, &count, &sumPrice, &avgQuantity); err != nil {
+			t.Fatal(err)
+		}
+		results[category] = struct{ count int; sumPrice float64; avgQuantity float64 }{
+			count: count, sumPrice: sumPrice, avgQuantity: avgQuantity,
+		}
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatal(err)
+	}
+
+	fruit, ok := results["fruit"]
+	if !ok {
+		t.Fatal("missing fruit aggregation")
+	}
+	if fruit.count != 2 || fruit.sumPrice != 2.25 || fruit.avgQuantity != 15.0 {
+		t.Errorf("fruit aggregation: got %+v, want count=2 sumPrice=2.25 avgQuantity=15", fruit)
+	}
+
+	veg, ok := results["veg"]
+	if !ok {
+		t.Fatal("missing veg aggregation")
+	}
+	if veg.count != 1 || veg.sumPrice != 0.99 || veg.avgQuantity != 15.0 {
+		t.Errorf("veg aggregation: got %+v, want count=1 sumPrice=0.99 avgQuantity=15", veg)
+	}
+
+	snack, ok := results["snack"]
+	if !ok {
+		t.Fatal("missing snack aggregation")
+	}
+	if snack.count != 1 || snack.sumPrice != 2.00 || snack.avgQuantity != 5.0 {
+		t.Errorf("snack aggregation: got %+v, want count=1 sumPrice=2.00 avgQuantity=5", snack)
+	}
+}
+
