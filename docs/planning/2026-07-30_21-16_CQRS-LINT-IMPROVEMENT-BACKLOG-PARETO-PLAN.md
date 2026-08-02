@@ -168,20 +168,20 @@ See Level 1 and Level 2 tables below.
 
 ### Phase 6: Deep Pattern Detection
 
-| #     | Task                                                                | Items | Pareto    | Impact                     | Effort | Dependencies | Status |
-| ----- | ------------------------------------------------------------------- | ----- | --------- | -------------------------- | ------ | ------------ | ------ |
-| L1.29 | Implement event type string typo detection (cross-ref fold vs emit) | 135   | **[P80]** | Medium (silent event drop) | 90 min | None         | ✅ DONE (C038)   |
-| L1.30 | Implement orphaned event types detection (extend E006 for adapters) | 136   | **[P80]** | Low-medium                 | 90 min | None         | Open   |
-| L1.31 | Implement orphaned commands detection (extend E005 for HTTP layer)  | 137   | **[P80]** | Low-medium                 | 60 min | None         | Open   |
-| L1.32 | Extend D006: stricter error family detection in domain files        | 138   | **[P80]** | Medium (consistency)       | 60 min | None         | ✅ DONE (D017)   |
-| L1.33 | Implement goroutine leak in event handler detection                 | 141   | **[P80]** | Medium (resource leak)     | 60 min | None         | ✅ DONE (C039)   |
+| #     | Task                                                                | Items | Pareto    | Impact                     | Effort | Dependencies | Status         |
+| ----- | ------------------------------------------------------------------- | ----- | --------- | -------------------------- | ------ | ------------ | -------------- |
+| L1.29 | Implement event type string typo detection (cross-ref fold vs emit) | 135   | **[P80]** | Medium (silent event drop) | 90 min | None         | ✅ DONE (C038) |
+| L1.30 | Implement orphaned event types detection (extend E006 for adapters) | 136   | **[P80]** | Low-medium                 | 90 min | None         | Open           |
+| L1.31 | Implement orphaned commands detection (extend E005 for HTTP layer)  | 137   | **[P80]** | Low-medium                 | 60 min | None         | Open           |
+| L1.32 | Extend D006: stricter error family detection in domain files        | 138   | **[P80]** | Medium (consistency)       | 60 min | None         | ✅ DONE (D017) |
+| L1.33 | Implement goroutine leak in event handler detection                 | 141   | **[P80]** | Medium (resource leak)     | 60 min | None         | ✅ DONE (C039) |
 
 ### Phase 7: Domain & Data Model Rules
 
 | #     | Task                                                         | Items | Pareto    | Impact                | Effort | Dependencies | Status                     |
 | ----- | ------------------------------------------------------------ | ----- | --------- | --------------------- | ------ | ------------ | -------------------------- |
 | L1.34 | Extend C013: timestamp without timezone in projections       | 151   | **[P80]** | Medium (timezone bug) | 45 min | None         | ✅ DONE (projection views) |
-| L1.35 | Implement PII in event payloads without encryption/redaction | 152   | **[P80]** | Medium (compliance)   | 90 min | None         | ✅ DONE (S011)                       |
+| L1.35 | Implement PII in event payloads without encryption/redaction | 152   | **[P80]** | Medium (compliance)   | 90 min | None         | ✅ DONE (S011)             |
 | L1.36 | Implement event payload struct size limit (>20 fields)       | 153   | **[P80]** | Low (maintainability) | 45 min | None         | ✅ DONE (D016)             |
 | L1.37 | Implement string IDs instead of branded IDs                  | 176   | **[P80]** | Medium (type safety)  | 45 min | None         | ✅ DONE (A032)             |
 | L1.38 | Implement event payload without json tags                    | 177   | **[P80]** | Low (convention)      | 30 min | None         | ✅ DONE (D014)             |

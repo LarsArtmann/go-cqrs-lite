@@ -19,11 +19,13 @@ The session started with a question: "How could this project benefit from [Iroh]
 ## a) FULLY DONE
 
 ### Design document
+
 - **File:** `docs/planning/meta-engine-eventual-consistency-and-iroh.md` (committed in `31f26b8c`)
 - Covers: the "all read models are eventual" insight, visibility vs consistency, CALM theorem connection, Iroh backend mapping, PN-Counter killer feature, Level 1 (standalone engine) vs Level 2 (replication wrapper), materialize-vs-replay cost model update, CGo/Rust bridging options
 - **Caveat:** The document uses the `Visibility` naming that was subsequently rejected. It needs updating to the final `Replication` model once we settle the naming.
 
 ### Iroh + metaengine fit analysis
+
 - Identified that iroh-docs maps onto 5 of 10 ADT backends (Map, Set, Counter, Multimap, Log)
 - Identified that the Counter ADT (PN-Counter) is Iroh's killer feature — conflict-free distributed counting without coordination
 - Identified two integration levels: standalone engine (limited) vs replication wrapper (strategic, recommended)
@@ -34,18 +36,22 @@ The session started with a question: "How could this project benefit from [Iroh]
 ## b) PARTIALLY DONE
 
 ### Core EngineProfile changes
+
 - **Committed in `31f26b8c`** to `metaengine/engine.go`: Added `Visibility VisibilityModel` and `TypicalLag time.Duration` fields
 - **PROBLEM:** The naming is wrong. Through discussion, we evolved from `Visibility` → `Replication` + `NetworkRTT` + `ReplicationLag`. The committed code uses the rejected naming.
 
 ### QueryConfig changes
+
 - **Committed in `31f26b8c`** to `metaengine/query.go`: Added `visibility VisibilityModel` field
 - **PROBLEM:** This field should NOT EXIST AT ALL. Through discussion, we determined that replication topology is an engine property, not a query property. Queries declare what to compute, not where data lives. This was a fundamental design error.
 
 ### Cost estimator changes
+
 - **Committed in `31f26b8c`** to `metaengine/cost.go`: Added `estimateCostWithLag` function
 - **PARTIALLY VALID:** The concept of lag as an additive cost component is correct. But the implementation conflates replication lag and network RTT into one "lag" value, which are orthogonal (lag scales with replication mode; RTT is a fixed per-query overhead).
 
 ### New file: visibility.go
+
 - **Committed in `31f26b8c`** to `metaengine/visibility.go`: Defines `VisibilityModel`, `VisibilityLocal`, `VisibilityGlobal`, `EffectiveVisibility()`, `EffectiveTypicalLag()`
 - **PROBLEM:** The entire file uses the rejected naming and concept. Needs to be rewritten as `replication.go` with the correct model.
 
@@ -72,11 +78,12 @@ The session started with a question: "How could this project benefit from [Iroh]
 **What happened:** I proposed `VisibilityModel` with `VisibilityLocal` / `VisibilityGlobal` as the central dimension. Through four rounds of questioning, this was progressively dismantled:
 
 1. **"VisibilityGlobal is a bad name"** — Correct. "Global" is vague.
-2. **"Is Visibility the right prefix, and why?"** — This forced me to research what "visibility" actually means in distributed systems. It's a *temporal* concept (MVCC visibility, visibility lag), but I was using it for a *spatial/topological* question (does data cross process boundaries?). The conflation was wrong.
+2. **"Is Visibility the right prefix, and why?"** — This forced me to research what "visibility" actually means in distributed systems. It's a _temporal_ concept (MVCC visibility, visibility lag), but I was using it for a _spatial/topological_ question (does data cross process boundaries?). The conflation was wrong.
 3. **"Does this query need network access and how far away is it?"** — This exposed that I was conflating TWO orthogonal dimensions into one: (a) replication topology and (b) network latency. These scale differently: replication lag affects staleness; network RTT is a fixed per-query cost overhead.
 4. **"WithReplicationMode(ReplicationLeaderless) — why is this on a query?"** — This exposed the biggest design error. I put a routing concern on the query declaration. But replication is an engine property. Queries don't know or care about topology. The `visibility` field on `QueryConfig` was fundamentally wrong.
 
 **The correct model we arrived at (not yet implemented):**
+
 ```go
 type Replication string
 const (
@@ -212,6 +219,7 @@ The auto-commit daemon committed the wrong/half-baked code as commit `31f26b8c` 
 ### Q1: Should the committed `31f26b8c` be reverted/rebased, or should we write a follow-up commit that replaces the code?
 
 The auto-commit daemon committed the half-baked `Visibility` model as `31f26b8c`. Options:
+
 - **(a)** Leave it and write a corrective commit (history preserves the mistake, but no force-push needed)
 - **(b)** Rebase/revert it (cleaner history, but requires rewriting a daemon commit)
 
@@ -220,6 +228,7 @@ The project rules say "NEVER git reset" and "NEVER revert changes you didn't aut
 ### Q2: Should NetworkRTT be on EngineProfile (fixed per-engine) or on the Store/connection (variable per deployment)?
 
 A Pebble engine is in-process (RTT=0), but a shared Postgres might be on localhost (RTT=0.1ms) or across the country (RTT=50ms). The same engine binary has wildly different RTT depending on deployment. Should `NetworkRTT` be:
+
 - **(a)** A field on `EngineProfile` set at construction time (consumer calibrates it)
 - **(b)** A field on the `Store` or passed as a planner option
 - **(c)** Auto-calibrated (like the existing `Calibrate()` method in `reliability.go`)

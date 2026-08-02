@@ -30,10 +30,6 @@
   services.xserver.enable = false;
 
   # Port forwarding is set via QEMU_NET_OPTS in scripts/vm-mysql.sh.
-  virtualisation = {
-    memorySize = 1024;
-    diskSize = 4096;
-  };
 
   system.stateVersion = "25.05";
 }

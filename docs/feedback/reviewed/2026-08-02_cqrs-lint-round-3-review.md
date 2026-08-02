@@ -18,24 +18,24 @@
 
 The feedback is **genuinely valuable** but has a critical blind spot: **all three consumers ran v0.2.2, not current source HEAD**. The cqrs-htmx feedback explicitly documents this ("stale binary problem"), but crush-daily and Standup-Killer report issues that are already fixed in source as if they were still open.
 
-| Claim | Valid? | Notes |
-|-------|--------|-------|
-| B022 suggests `decider.CommandCausalityEnricher` (wrong package) | **Already fixed** | Source says `event.CommandCausalityEnricher` since commit `b4554cdc` |
-| `wrapsCanonicalEnricher` can't handle qualified names | **Already fixed** | Uses `SelectorFromExpr` + `sel.Sel.Name` since `b4554cdc` |
-| Version constant not bumped | **Already fixed** | Bumped to `0.3.0` |
-| gofmt/space conflict | **Already fixed** | `normalizeCommentPrefix()` since `b4554cdc` |
-| One-suppression-per-line | **Already fixed** | Comma-separated since `f192106a` |
-| Blank line breaks suppression | **Already fixed** | Blank-line skip since `ef2ddf69` (today) |
-| C036 cascade on shared `*sql.DB` | **Already mitigated** | `collectEventStoreBackends()` since `6f357233` |
-| Config-based rule disabling | **Already implemented** | `rules.disable` since round-2 review |
-| `--exclude-rules` CLI flag | **Already implemented** | Since round-2 review |
-| Feature profile says `store: custom` for SQLite | **Valid — NOW FIXED** | Root cause: import-based detection only |
-| B013/B022 contradiction | **Valid — NOW FIXED** | B013 didn't recognize `CommandCausalityEnricher` |
-| E007 can't trace runtime/generic registration | **Valid (known limitation)** | NOW mitigated: severity lowered to Info |
-| Combined-directive stale suppression | **Valid — NOW FIXED** | Was checking each rule independently |
-| Health score clamped to 0 with no raw display | **Valid — NOW FIXED** | Added `RawScore` field |
-| `cqrs-gen` doesn't exist | **WRONG** | Tool exists at `cmd/cqrs-gen/` with README and tests |
-| F-level rules pollute health score | **Valid (design)** | Deferred — `--preset local-cli` is the workaround |
+| Claim                                                            | Valid?                       | Notes                                                                |
+| ---------------------------------------------------------------- | ---------------------------- | -------------------------------------------------------------------- |
+| B022 suggests `decider.CommandCausalityEnricher` (wrong package) | **Already fixed**            | Source says `event.CommandCausalityEnricher` since commit `b4554cdc` |
+| `wrapsCanonicalEnricher` can't handle qualified names            | **Already fixed**            | Uses `SelectorFromExpr` + `sel.Sel.Name` since `b4554cdc`            |
+| Version constant not bumped                                      | **Already fixed**            | Bumped to `0.3.0`                                                    |
+| gofmt/space conflict                                             | **Already fixed**            | `normalizeCommentPrefix()` since `b4554cdc`                          |
+| One-suppression-per-line                                         | **Already fixed**            | Comma-separated since `f192106a`                                     |
+| Blank line breaks suppression                                    | **Already fixed**            | Blank-line skip since `ef2ddf69` (today)                             |
+| C036 cascade on shared `*sql.DB`                                 | **Already mitigated**        | `collectEventStoreBackends()` since `6f357233`                       |
+| Config-based rule disabling                                      | **Already implemented**      | `rules.disable` since round-2 review                                 |
+| `--exclude-rules` CLI flag                                       | **Already implemented**      | Since round-2 review                                                 |
+| Feature profile says `store: custom` for SQLite                  | **Valid — NOW FIXED**        | Root cause: import-based detection only                              |
+| B013/B022 contradiction                                          | **Valid — NOW FIXED**        | B013 didn't recognize `CommandCausalityEnricher`                     |
+| E007 can't trace runtime/generic registration                    | **Valid (known limitation)** | NOW mitigated: severity lowered to Info                              |
+| Combined-directive stale suppression                             | **Valid — NOW FIXED**        | Was checking each rule independently                                 |
+| Health score clamped to 0 with no raw display                    | **Valid — NOW FIXED**        | Added `RawScore` field                                               |
+| `cqrs-gen` doesn't exist                                         | **WRONG**                    | Tool exists at `cmd/cqrs-gen/` with README and tests                 |
+| F-level rules pollute health score                               | **Valid (design)**           | Deferred — `--preset local-cli` is the workaround                    |
 
 ### Side B — Does the codebase address the feedback?
 
@@ -95,22 +95,22 @@ Added `RawScore` field to `HealthScore` holding the unclamped score. When the sc
 
 ## Deferred Items (not actionable in source)
 
-| Item | Reason |
-|------|--------|
-| **Publish Nix binary** | The cqrs-htmx feedback's #1 request. All fixes are in source but the published v0.2.2 binary is stale. Requires `nix build` + publish to Nix channel. Not a code change. |
-| **F-level rules in health score** | Design observation from Standup-Killer. F-rules (adoption coaching) deduct from score, creating pressure to suppress. `--preset local-cli` disables F-series for CLI tools. A dedicated `--adoption` flag could separate coaching from correctness, but this is a UX redesign. |
-| **E007 inter-procedural analysis** | Recognizing `Register(dispatcher, ...)` patterns or tracing through generic helpers would require cross-function/cross-file call graph analysis. Significant analyzer investment for limited gain now that severity is Info. |
-| **D005 version detection** | Per-module versioning means there is no single "the version" to compare against. The detector's comparison logic would need to understand multi-module workspaces. |
+| Item                               | Reason                                                                                                                                                                                                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Publish Nix binary**             | The cqrs-htmx feedback's #1 request. All fixes are in source but the published v0.2.2 binary is stale. Requires `nix build` + publish to Nix channel. Not a code change.                                                                                                       |
+| **F-level rules in health score**  | Design observation from Standup-Killer. F-rules (adoption coaching) deduct from score, creating pressure to suppress. `--preset local-cli` disables F-series for CLI tools. A dedicated `--adoption` flag could separate coaching from correctness, but this is a UX redesign. |
+| **E007 inter-procedural analysis** | Recognizing `Register(dispatcher, ...)` patterns or tracing through generic helpers would require cross-function/cross-file call graph analysis. Significant analyzer investment for limited gain now that severity is Info.                                                   |
+| **D005 version detection**         | Per-module versioning means there is no single "the version" to compare against. The detector's comparison logic would need to understand multi-module workspaces.                                                                                                             |
 
 ---
 
 ## Feedback Errors (consumer-side)
 
-| Claim | Reality |
-|-------|---------|
-| Standup-Killer: "cqrs-gen doesn't appear to exist" | `cmd/cqrs-gen/` exists with `main.go`, `README.md`, and `main_test.go`. The tool generates typed constructors from struct tags. |
-| crush-daily: "B022 suggests decider.CommandCausalityEnricher" | Already fixed in source — suggestion says `event.CommandCausalityEnricher` since commit `b4554cdc`. |
-| All three: E007 false positives | Known static-analysis limitation, not a detector bug. Cannot trace through runtime/generic registration without inter-procedural analysis. |
+| Claim                                                         | Reality                                                                                                                                    |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Standup-Killer: "cqrs-gen doesn't appear to exist"            | `cmd/cqrs-gen/` exists with `main.go`, `README.md`, and `main_test.go`. The tool generates typed constructors from struct tags.            |
+| crush-daily: "B022 suggests decider.CommandCausalityEnricher" | Already fixed in source — suggestion says `event.CommandCausalityEnricher` since commit `b4554cdc`.                                        |
+| All three: E007 false positives                               | Known static-analysis limitation, not a detector bug. Cannot trace through runtime/generic registration without inter-procedural analysis. |
 
 ---
 

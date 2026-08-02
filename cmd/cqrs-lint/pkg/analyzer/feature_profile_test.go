@@ -493,7 +493,10 @@ func setup(db *sql.DB) {
 
 	fp := DetectFeatures(ctx)
 	if fp.Store != StoreSQLite {
-		t.Errorf("storage.NewSQLiteEventStore should refine StoreCustom→StoreSQLite, got %s", fp.Store)
+		t.Errorf(
+			"storage.NewSQLiteEventStore should refine StoreCustom→StoreSQLite, got %s",
+			fp.Store,
+		)
 	}
 }
 

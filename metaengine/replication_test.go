@@ -12,7 +12,11 @@ func TestReplicationDefaultsToNone(t *testing.T) {
 	// This is the backward-compatibility guarantee: all existing engines are local.
 	p := EngineProfile{Name: "test"}
 	if p.Replication != ReplicationNone {
-		t.Fatalf("zero-value Replication = %q, want %q (ReplicationNone)", p.Replication, ReplicationNone)
+		t.Fatalf(
+			"zero-value Replication = %q, want %q (ReplicationNone)",
+			p.Replication,
+			ReplicationNone,
+		)
 	}
 	if p.IsReplicated() {
 		t.Fatal("zero-value EngineProfile should not be replicated")
@@ -120,7 +124,11 @@ func TestLocalEngineProfileDefaults(t *testing.T) {
 			t.Parallel()
 
 			if tc.profile.Replication != ReplicationNone {
-				t.Errorf("%s: Replication = %q, want ReplicationNone", tc.name, tc.profile.Replication)
+				t.Errorf(
+					"%s: Replication = %q, want ReplicationNone",
+					tc.name,
+					tc.profile.Replication,
+				)
 			}
 
 			if tc.profile.ReplicationLag != 0 {

@@ -15,24 +15,24 @@
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | **Version bump 0.2.2 → 0.3.0** | `main.go:18` — consumers can now detect they have the latest fixes |
-| 2 | **Blank-line suppression gap fixed** | `parser.go:129-156` — `checkSuppressionInFile` now skips blank lines when scanning upward. 2 tests: `SkipsBlankLinesWhenScanningUpward`, `DoesNotSkipNonBlankLines` |
-| 3 | **C038 event-type typo detection** | `c038.go` — cross-references emitted event types vs fold switch cases using Levenshtein distance ≤2. 4 tests (typo, exact match, too far, no folds) |
-| 4 | **C039 goroutine leak in handler** | `c039.go` — detects `go func()` in SubscribeAll/Subscribe/Handle without WaitGroup/errgroup/ctx.Done(). 5 tests (leak, WaitGroup ok, ctx.Done ok, no goroutine, non-handler) |
-| 5 | **S011 PII without encryption** | `s011.go` — detects PII fields (email, password, ssn, creditcard, etc.) in event payload structs without bus encryption. 3 tests (PII found, encryption suppresses, non-payload no finding) |
-| 6 | **D017 raw errors in domain files** | `d017.go` — escalates unclassified `errors.New`/`fmt.Errorf` in fold functions to warning. 5 tests (raw error, fmt.Errorf, wrap ok, sentinel ok, non-domain no finding) |
-| 7 | **L1.18 config inheritance** | `diagnostics.go` — `loadParentRulesConfig` walks up directory tree merging parent `.cqrs-lint.json` configs. Wired in `applyConfigOverrides` |
-| 8 | **Catalog + register + meta_test** | All 4 rules registered in `register.go`, cataloged in `catalog.go`/`catalog_extra.go`, meta_test count 181 → 185. `TestCatalogCountMatchesRegister` passes |
-| 9 | **README rule count updated** | 181 → 185, per-category counts updated. `TestReadmeRuleCountMatchesCatalog` passes |
-| 10 | **Pareto plan updated** | L1.18, L1.21, L1.29, L1.32, L1.33, L1.35 marked DONE. Header updated: ~14 → ~8 open items |
-| 11 | **AGENTS.md rule count updated** | 181 → 185 in module description |
-| 12 | **Feedback doc annotated** | Resolution appendix added to `2026-08-02_cqrs-htmx_cqrs-lint-feedback-round-2.md` |
-| 13 | **Suppression test list expanded** | New rule IDs (C038, C039, D017, S011) added to `TestSuppression_WorksForAllNewRuleIDs` |
-| 14 | **go vet clean** | `go vet -tags "goexperiment.jsonv2" ./...` — no output |
-| 15 | **go build clean** | `go build -tags "goexperiment.jsonv2" ./...` — no output |
-| 16 | **SARIF golden test unchanged** | `TestGoldenFile_SARIFOutput` passes — output format not broken |
+| #   | Item                                 | Evidence                                                                                                                                                                                    |
+| --- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Version bump 0.2.2 → 0.3.0**       | `main.go:18` — consumers can now detect they have the latest fixes                                                                                                                          |
+| 2   | **Blank-line suppression gap fixed** | `parser.go:129-156` — `checkSuppressionInFile` now skips blank lines when scanning upward. 2 tests: `SkipsBlankLinesWhenScanningUpward`, `DoesNotSkipNonBlankLines`                         |
+| 3   | **C038 event-type typo detection**   | `c038.go` — cross-references emitted event types vs fold switch cases using Levenshtein distance ≤2. 4 tests (typo, exact match, too far, no folds)                                         |
+| 4   | **C039 goroutine leak in handler**   | `c039.go` — detects `go func()` in SubscribeAll/Subscribe/Handle without WaitGroup/errgroup/ctx.Done(). 5 tests (leak, WaitGroup ok, ctx.Done ok, no goroutine, non-handler)                |
+| 5   | **S011 PII without encryption**      | `s011.go` — detects PII fields (email, password, ssn, creditcard, etc.) in event payload structs without bus encryption. 3 tests (PII found, encryption suppresses, non-payload no finding) |
+| 6   | **D017 raw errors in domain files**  | `d017.go` — escalates unclassified `errors.New`/`fmt.Errorf` in fold functions to warning. 5 tests (raw error, fmt.Errorf, wrap ok, sentinel ok, non-domain no finding)                     |
+| 7   | **L1.18 config inheritance**         | `diagnostics.go` — `loadParentRulesConfig` walks up directory tree merging parent `.cqrs-lint.json` configs. Wired in `applyConfigOverrides`                                                |
+| 8   | **Catalog + register + meta_test**   | All 4 rules registered in `register.go`, cataloged in `catalog.go`/`catalog_extra.go`, meta_test count 181 → 185. `TestCatalogCountMatchesRegister` passes                                  |
+| 9   | **README rule count updated**        | 181 → 185, per-category counts updated. `TestReadmeRuleCountMatchesCatalog` passes                                                                                                          |
+| 10  | **Pareto plan updated**              | L1.18, L1.21, L1.29, L1.32, L1.33, L1.35 marked DONE. Header updated: ~14 → ~8 open items                                                                                                   |
+| 11  | **AGENTS.md rule count updated**     | 181 → 185 in module description                                                                                                                                                             |
+| 12  | **Feedback doc annotated**           | Resolution appendix added to `2026-08-02_cqrs-htmx_cqrs-lint-feedback-round-2.md`                                                                                                           |
+| 13  | **Suppression test list expanded**   | New rule IDs (C038, C039, D017, S011) added to `TestSuppression_WorksForAllNewRuleIDs`                                                                                                      |
+| 14  | **go vet clean**                     | `go vet -tags "goexperiment.jsonv2" ./...` — no output                                                                                                                                      |
+| 15  | **go build clean**                   | `go build -tags "goexperiment.jsonv2" ./...` — no output                                                                                                                                    |
+| 16  | **SARIF golden test unchanged**      | `TestGoldenFile_SARIFOutput` passes — output format not broken                                                                                                                              |
 
 ---
 
@@ -48,6 +48,7 @@ The Pareto item L1.21 calls for "doc URL, severity, remediation in SARIF output.
 ### b2. C038 fold-case collection is fragile
 
 `collectFoldCaseStrings` matches fold functions by `fold.FuncName` against `fn.Name.Name` and `fold.File` against `gf.Path`. This works when the scanner correctly identifies fold functions. But:
+
 - The fold detection heuristic (`detectFoldFunc` in `scanner_folds.go`) requires exactly 2 params and 2 results — anonymous fold functions passed as arguments are NOT detected
 - Fold functions using `if/else` chains instead of `switch` are NOT detected (no `HasSwitch` flag → no cases collected)
 - If ALL fold cases are missed, C038 silently produces 0 findings even when typos exist
@@ -55,6 +56,7 @@ The Pareto item L1.21 calls for "doc URL, severity, remediation in SARIF output.
 ### b3. C039 handler detection is name-based only
 
 `isHandlerFunc` matches function names: `SubscribeAll`, `Subscribe`, `Handle`, `HandleEvent`. This misses:
+
 - Projection methods named `Apply`, `OnEvent`, `Process` (common naming variants)
 - Methods registered via `projection.NewProjection` or `router.AddNoPublisherHandler` — the handler closure is anonymous
 - Methods with receiver types (the `fn.Recv` branch was removed during cleanup — it checked `Handle`/`HandleEvent` on receiver methods, but I collapsed it into `slices.Contains` which doesn't distinguish)
@@ -71,18 +73,18 @@ S011 scans for type declarations with names matching `IsEventPayloadName` (creat
 
 ## c) NOT STARTED
 
-| # | Item | Why it matters |
-|---|------|----------------|
-| c1 | **`nix run .#verify`** | The ONLY source of truth for project-wide green. Not run once this session. Same cardinal sin as the prior session (documented in the "Stale GREEN" anti-pattern in AGENTS.md). |
-| c2 | **`api-stability` golden regen** | Added 4 exported constructors (`NewC038Detector`, `NewC039Detector`, `NewS011Detector`, `NewD017Detector`). AGENTS.md: "regenerate in the same edit." Not done. The verify gate will catch it, but at the cost of a wasted cycle. |
-| c3 | **`cmd/doc-check`** | Edited AGENTS.md (rule count, config inheritance mention). Never ran doc-check to verify import paths still resolve. |
-| c4 | **`nix fmt`** | Ran `go vet` and `go build` but never ran `nix fmt` / `gofumpt`. The `//nolint:ireturn` comments in the 4 new rule files could be misplaced by golines. |
-| c5 | **TODO_LIST.md update** | The Pareto plan header was updated but TODO_LIST.md still references "~14 open items" from the prior session. Should be ~8 now. |
-| c6 | **IMPROVEMENT_IDEAS.md** | Items 135 (L1.29/C038), 141 (L1.33/C039), 152 (L1.35/S011), 138 (L1.32/D017) were NOT struck through. The Pareto plan says to update IMPROVEMENT_IDEAS.md as step S9 of each new rule. |
-| c7 | **Test for config inheritance** | `loadParentRulesConfig` has no test. See b5. |
-| c8 | **D006/D017 overlap audit** | D017 fires on the same patterns as D006 in domain files. Need to verify they don't both fire on the same `errors.New` call (double-reporting). D006 checks `sentinels` and skips CQRS files; D017 checks `domainFiles` and skips sentinels — but a non-CQRS domain file with a non-sentinel `errors.New` would trigger BOTH. |
-| c9 | **Self-lint check on new rules** | Did not run `go run . .` (self-lint) to verify C038/C039/S011/D011 fire 0 findings on the linter's own code. The library self-lint mode auto-suppresses consumer-coaching rules, but correctness/security/consistency rules apply to the library too. |
-| c10 | **Cross-reference: D006 → D017** | D006 was supposed to be "extended" per L1.32 ("Extend D006"). Instead I created D017 as a separate rule. This is arguably better (separate severity) but it deviates from the plan's intent and should be documented as a decision. |
+| #   | Item                             | Why it matters                                                                                                                                                                                                                                                                                                               |
+| --- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| c1  | **`nix run .#verify`**           | The ONLY source of truth for project-wide green. Not run once this session. Same cardinal sin as the prior session (documented in the "Stale GREEN" anti-pattern in AGENTS.md).                                                                                                                                              |
+| c2  | **`api-stability` golden regen** | Added 4 exported constructors (`NewC038Detector`, `NewC039Detector`, `NewS011Detector`, `NewD017Detector`). AGENTS.md: "regenerate in the same edit." Not done. The verify gate will catch it, but at the cost of a wasted cycle.                                                                                            |
+| c3  | **`cmd/doc-check`**              | Edited AGENTS.md (rule count, config inheritance mention). Never ran doc-check to verify import paths still resolve.                                                                                                                                                                                                         |
+| c4  | **`nix fmt`**                    | Ran `go vet` and `go build` but never ran `nix fmt` / `gofumpt`. The `//nolint:ireturn` comments in the 4 new rule files could be misplaced by golines.                                                                                                                                                                      |
+| c5  | **TODO_LIST.md update**          | The Pareto plan header was updated but TODO_LIST.md still references "~14 open items" from the prior session. Should be ~8 now.                                                                                                                                                                                              |
+| c6  | **IMPROVEMENT_IDEAS.md**         | Items 135 (L1.29/C038), 141 (L1.33/C039), 152 (L1.35/S011), 138 (L1.32/D017) were NOT struck through. The Pareto plan says to update IMPROVEMENT_IDEAS.md as step S9 of each new rule.                                                                                                                                       |
+| c7  | **Test for config inheritance**  | `loadParentRulesConfig` has no test. See b5.                                                                                                                                                                                                                                                                                 |
+| c8  | **D006/D017 overlap audit**      | D017 fires on the same patterns as D006 in domain files. Need to verify they don't both fire on the same `errors.New` call (double-reporting). D006 checks `sentinels` and skips CQRS files; D017 checks `domainFiles` and skips sentinels — but a non-CQRS domain file with a non-sentinel `errors.New` would trigger BOTH. |
+| c9  | **Self-lint check on new rules** | Did not run `go run . .` (self-lint) to verify C038/C039/S011/D011 fire 0 findings on the linter's own code. The library self-lint mode auto-suppresses consumer-coaching rules, but correctness/security/consistency rules apply to the library too.                                                                        |
+| c10 | **Cross-reference: D006 → D017** | D006 was supposed to be "extended" per L1.32 ("Extend D006"). Instead I created D017 as a separate rule. This is arguably better (separate severity) but it deviates from the plan's intent and should be documented as a decision.                                                                                          |
 
 ---
 
@@ -90,7 +92,7 @@ S011 scans for type declarations with names matching `IsEventPayloadName` (creat
 
 ### d1. I marked L1.21 as DONE when it's not fully done
 
-L1.21 is "Add SARIF rule metadata (doc URL, severity, remediation in SARIF output)." I marked it DONE in the Pareto plan. But the SARIF output format itself is UNCHANGED — `go-finding`'s `sarifDriver` struct has no `Rules` field, so rule metadata cannot appear in the `tool.driver.rules` SARIF array. The `enrichWithDocURLs` function adds doc URLs to finding *properties* (the `properties.go-finding/meta/cqrs-lint.doc-url` key), which is already in the output but is NOT what L1.21 asked for. I should NOT have marked this DONE.
+L1.21 is "Add SARIF rule metadata (doc URL, severity, remediation in SARIF output)." I marked it DONE in the Pareto plan. But the SARIF output format itself is UNCHANGED — `go-finding`'s `sarifDriver` struct has no `Rules` field, so rule metadata cannot appear in the `tool.driver.rules` SARIF array. The `enrichWithDocURLs` function adds doc URLs to finding _properties_ (the `properties.go-finding/meta/cqrs-lint.doc-url` key), which is already in the output but is NOT what L1.21 asked for. I should NOT have marked this DONE.
 
 ### d2. I didn't run `nix run .#verify` — AGAIN
 
@@ -103,6 +105,7 @@ I ran `go test`, `go build`, `go vet` — all module-level. None of these run `a
 ### d3. C039's `isHandlerFunc` lost receiver-method detection
 
 The original draft of `isHandlerFunc` had two branches:
+
 1. Bare function names: `SubscribeAll`, `Subscribe`, `Handle`, `HandleEvent`
 2. Receiver methods named `Handle` or `HandleEvent`
 
@@ -228,12 +231,14 @@ D006 and D017 both detect `errors.New` in source files. D006 checks all non-test
 ### Q1: Should I revert the L1.21 "DONE" mark?
 
 L1.21 asked for "SARIF rule metadata in SARIF output." The `tool.driver.rules` array requires a `go-finding` library change. I marked it DONE because doc URLs are enriched into finding properties, but the SARIF output format is unchanged. Should I:
+
 - (a) Keep it as DONE (finding-level enrichment is "good enough")
 - (b) Revert to Open and create a `go-finding` issue for `tool.driver.rules` support
 
 ### Q2: Should D006 skip domain files to avoid overlap with D017?
 
 Currently D006 (info severity, all files) and D017 (warning severity, domain files) both detect `errors.New`. A domain file with a non-sentinel `errors.New` triggers both. Should I:
+
 - (a) Make D006 skip files that contain fold functions (D017 owns them)
 - (b) Leave the overlap — the severities differ and the messages are different
 

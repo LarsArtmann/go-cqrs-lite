@@ -94,7 +94,10 @@ func TestDetectStaleSuppressions_CombinedDirectivePartialMatch(t *testing.T) {
 
 	stale := suppression.DetectStaleSuppressions([]string{src}, findings)
 	if len(stale) != 0 {
-		t.Fatalf("got %d stale, want 0 (combined directive has at least one matching rule)", len(stale))
+		t.Fatalf(
+			"got %d stale, want 0 (combined directive has at least one matching rule)",
+			len(stale),
+		)
 	}
 }
 

@@ -291,7 +291,10 @@ func printSummary(
 			fmt.Fprintln(os.Stderr, "Library self-lint mode: consumer-only rules auto-suppressed")
 		}
 		if cfg.Adoption {
-			fmt.Fprintln(os.Stderr, "Adoption mode: F-series findings visible but excluded from health score")
+			fmt.Fprintln(
+				os.Stderr,
+				"Adoption mode: F-series findings visible but excluded from health score",
+			)
 		}
 		if suppressedCount > 0 {
 			fmt.Fprintf(os.Stderr, "%d finding(s) suppressed by inline comments\n", suppressedCount)

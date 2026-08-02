@@ -61,7 +61,12 @@ const defaultNsPerOp = 100.0
 // nsPerOp is the calibrated per-operation cost for the engine being evaluated.
 // networkRTT is the fixed per-query network overhead (0 for in-process engines).
 // It is additive: total_latency = (ops × nsPerOp / 1e6) + networkRTT.
-func estimateCost(complexity Complexity, volume int64, nsPerOp float64, networkRTT time.Duration) CostEstimate {
+func estimateCost(
+	complexity Complexity,
+	volume int64,
+	nsPerOp float64,
+	networkRTT time.Duration,
+) CostEstimate {
 	effectiveVolume := volume
 	if effectiveVolume <= 0 {
 		effectiveVolume = 1000
@@ -92,7 +97,7 @@ func estimateCost(complexity Complexity, volume int64, nsPerOp float64, networkR
 		nsPerOp = defaultNsPerOp
 	}
 
-	latencyMs := (ops * nsPerOp) / 1e6 + float64(networkRTT.Microseconds()) / 1e3
+	latencyMs := (ops*nsPerOp)/1e6 + float64(networkRTT.Microseconds())/1e3
 
 	return CostEstimate{
 		Complexity:         complexity,

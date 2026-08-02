@@ -28,13 +28,13 @@ The most painful was a B013→B022 contradiction where fixing one rule
 immediately triggered a worse one, creating a lose-lose situation where the only
 option was suppression.
 
-| Category | Count | Action taken |
-|----------|-------|--------------|
-| **Valid findings — fixed in source** | 7 rules | StateCache, SnapshotStrategy, event.Instant, StrictApply, graceful shutdown, version refs, corruption errors |
+| Category                                    | Count   | Action taken                                                                                                   |
+| ------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
+| **Valid findings — fixed in source**        | 7 rules | StateCache, SnapshotStrategy, event.Instant, StrictApply, graceful shutdown, version refs, corruption errors   |
 | **Valid findings — suppressed (justified)** | 4 rules | C015 (func() Close), D012 (intentional fmt.Print), B004 (manual constructors preferred), C036 (shared *sql.DB) |
-| **False positives (detector limitations)** | 3 rules | E007 (generic registration), C036 (backend heuristic), B013/B022 (contradiction) |
-| **Adoption suggestions (suppressed)** | 7 rules | A005, E007, E009, E017, F005, F006, F012, F015, F017, B013 |
-| **Stale suppression warnings** | 2 | Self-corrected via linter warning |
+| **False positives (detector limitations)**  | 3 rules | E007 (generic registration), C036 (backend heuristic), B013/B022 (contradiction)                               |
+| **Adoption suggestions (suppressed)**       | 7 rules | A005, E007, E009, E017, F005, F006, F012, F015, F017, B013                                                     |
+| **Stale suppression warnings**              | 2       | Self-corrected via linter warning                                                                              |
 
 ---
 
@@ -303,6 +303,7 @@ slightly different detector behavior.
 #### Fix suggestion
 
 Either:
+
 1. Allow combined directives where at least one rule fires (suppress stale
    warnings for the others)
 2. Make the stale warning smarter: "rule F012 does not fire here but fires at
@@ -408,6 +409,7 @@ nil. This is a real correctness improvement.
 ### The stale suppression warning feature is excellent
 
 After my sed-based directive placement chaos, the linter correctly warned:
+
 ```
 warning: stale suppression at events.go:42 — rule F006 does not fire here; safe to remove
 ```
@@ -435,16 +437,16 @@ project. Very helpful for understanding why certain rules fire.
 
 ## Part 4: Final Assessment
 
-| Aspect | Rating | Notes |
-|--------|--------|-------|
-| **Correctness findings (A/C/E rules)** | Excellent | C013, A017, B025, C003, C023 all caught real bugs |
-| **Architecture findings (B rules)** | Good | B005 StrictApply was valuable; B004/B013 need work |
-| **Adoption suggestions (F rules)** | Fair | Coaching is valid but feels like noise in the score |
-| **Suppression system** | Good | Well-designed; blank-line fragility is the main issue |
-| **Health score** | Excellent | Best feature; gamification drives real improvement |
-| **False positive rate** | Moderate | E007 (generic helpers) and C036 (shared DB) are the main offenders |
-| **Documentation** | Fair | Directive format not documented; had to learn by trial and error |
-| **Overall experience** | **Very positive** | Took the project from broken to excellent in 2 sessions |
+| Aspect                                 | Rating            | Notes                                                              |
+| -------------------------------------- | ----------------- | ------------------------------------------------------------------ |
+| **Correctness findings (A/C/E rules)** | Excellent         | C013, A017, B025, C003, C023 all caught real bugs                  |
+| **Architecture findings (B rules)**    | Good              | B005 StrictApply was valuable; B004/B013 need work                 |
+| **Adoption suggestions (F rules)**     | Fair              | Coaching is valid but feels like noise in the score                |
+| **Suppression system**                 | Good              | Well-designed; blank-line fragility is the main issue              |
+| **Health score**                       | Excellent         | Best feature; gamification drives real improvement                 |
+| **False positive rate**                | Moderate          | E007 (generic helpers) and C036 (shared DB) are the main offenders |
+| **Documentation**                      | Fair              | Directive format not documented; had to learn by trial and error   |
+| **Overall experience**                 | **Very positive** | Took the project from broken to excellent in 2 sessions            |
 
 **Would I recommend cqrs-lint to other go-cqrs-lite consumers?** Yes,
 absolutely. The real bugs it caught (timezone corruption, missing state cache,

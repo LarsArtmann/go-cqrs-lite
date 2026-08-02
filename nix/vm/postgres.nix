@@ -33,12 +33,7 @@
   services.xserver.enable = false;
 
   # Port forwarding is set via QEMU_NET_OPTS in scripts/vm-pg.sh, not here.
-  # The qemu-vm module (loaded by system.build.vm) provides:
-  #   virtualisation.memorySize, virtualisation.diskSize
-  virtualisation = {
-    memorySize = 1024;
-    diskSize = 4096;
-  };
+  # Memory/disk size are configured via the runNixOSTest nodes config.
 
   system.stateVersion = "25.05";
 }

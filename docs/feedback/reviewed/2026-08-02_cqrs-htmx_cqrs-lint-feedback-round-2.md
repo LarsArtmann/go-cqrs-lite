@@ -29,14 +29,14 @@ Two full audit sessions were spent fighting two issues that are **already fixed 
 
 cqrs-lint is distributed via Nix. The installed binary was built from commit `d6be91ca` ("sync go.mod and update vendorHash after lockfile refresh"). This is the commit immediately BEFORE `b4554cdc` ("correct false positives and accept Go-idiomatic comment style"), which landed 19 cqrs-lint commits ago.
 
-| Feature | Source (HEAD) | Installed binary (v0.2.2) |
-|---------|---------------|---------------------------|
-| `// cqrs-lint:ignore` (space after `//`) | ✅ Accepted via `normalizeCommentPrefix()` | ❌ Silently ignored |
-| `//cqrs-lint:ignore(E004,E006)` (comma-separated) | ✅ Parsed via `strings.SplitSeq(rawIDs, ",")` | ❌ Silently ignored |
-| `--exclude-rules` CLI flag | ✅ Available | ❌ Not available |
-| Config `rules.disable` | ✅ Available | ❌ Not available |
-| `cqrs-lint init --preset` | ✅ Available | ❌ Not available |
-| Unknown-rule-ID stale detection | ✅ Available | ❌ Not available |
+| Feature                                           | Source (HEAD)                                 | Installed binary (v0.2.2) |
+| ------------------------------------------------- | --------------------------------------------- | ------------------------- |
+| `// cqrs-lint:ignore` (space after `//`)          | ✅ Accepted via `normalizeCommentPrefix()`    | ❌ Silently ignored       |
+| `//cqrs-lint:ignore(E004,E006)` (comma-separated) | ✅ Parsed via `strings.SplitSeq(rawIDs, ",")` | ❌ Silently ignored       |
+| `--exclude-rules` CLI flag                        | ✅ Available                                  | ❌ Not available          |
+| Config `rules.disable`                            | ✅ Available                                  | ❌ Not available          |
+| `cqrs-lint init --preset`                         | ✅ Available                                  | ❌ Not available          |
+| Unknown-rule-ID stale detection                   | ✅ Available                                  | ❌ Not available          |
 
 ### Impact
 
@@ -88,12 +88,12 @@ Each of these files has `//cqrs-lint:ignore(RULE)` at column 1, immediately befo
 
 **16 remaining non-suppressed findings**, all caused by multiple rules firing on the same code line:
 
-| Location | Rules firing | Already suppressed | Can't suppress |
-|----------|-------------|-------------------|----------------|
-| `dashboardui/config.go:2` | E009, F002, F011, F015, E014 | E014 | E009, F002, F011, F015 |
-| `examples/dashboard-demo/main.go` (4×) | E004, E006, B027, D013 | E006 (or B027 via constants) | E004, D013 |
-| `usermgmt/stack_repositories.go` (4×) | B025, A017, E008 | A017 | B025, E008 |
-| `examples/dashboard-demo/main.go:237` | S003, C028 | C028 | S003 |
+| Location                               | Rules firing                 | Already suppressed           | Can't suppress         |
+| -------------------------------------- | ---------------------------- | ---------------------------- | ---------------------- |
+| `dashboardui/config.go:2`              | E009, F002, F011, F015, E014 | E014                         | E009, F002, F011, F015 |
+| `examples/dashboard-demo/main.go` (4×) | E004, E006, B027, D013       | E006 (or B027 via constants) | E004, D013             |
+| `usermgmt/stack_repositories.go` (4×)  | B025, A017, E008             | A017                         | B025, E008             |
+| `examples/dashboard-demo/main.go:237`  | S003, C028                   | C028                         | S003                   |
 
 **With source fix:** Each line would use `//cqrs-lint:ignore(E004,E006,D013)` or `//cqrs-lint:ignore(B025,A017,E008)`. All 16 findings would be suppressed. Zero remaining.
 
@@ -140,6 +140,7 @@ Session 1 left 18 stale-suppression warnings. All were caused by incorrect place
 cqrs-lint v0.2.2 checks exactly two lines for suppressions: the finding's own line and the line immediately above. This is documented but has subtle implications that caused significant confusion:
 
 **Tab-indented comments inside struct bodies do work** for field-level findings:
+
 ```go
 type UserReadModel struct {
     readModelCore[*UserReadModel]
@@ -149,6 +150,7 @@ type UserReadModel struct {
 ```
 
 **Tab-indented comments before the struct declaration do NOT work:**
+
 ```go
     //cqrs-lint:ignore(P011) ← this does NOT work (indented, before a different line)
 type UserReadModel struct {
@@ -161,6 +163,7 @@ The difference is that the first case has the comment on the line immediately ab
 ### The blank-line gap
 
 Adding a blank line between the suppression and the finding breaks suppression:
+
 ```go
 //cqrs-lint:ignore(C035) reason
 
@@ -178,6 +181,7 @@ cqrs-lint v0.2.2 does not skip blank lines when looking for the "line above." Th
 ### Fix 1 (critical): Publish the round-2 fixes to Nix
 
 The fixes for `normalizeCommentPrefix()` and comma-separated suppressions exist in source since commit `b4554cdc` (2026-08-02 17:41). They need to be published as a Nix binary so consumers get them. This single action would:
+
 - Eliminate the gofmt conflict for all consumers
 - Eliminate the one-suppression-per-line limitation
 - Make the 16 remaining cqrs-htmx findings suppressable
@@ -242,26 +246,26 @@ Consumers can then compare against `git log` to determine if they have the lates
 
 ### Time spent on stale-binary-caused issues
 
-| Activity | Time wasted | Cause |
-|----------|------------|-------|
-| Discovering gofmt adds spaces to suppression comments | ~15 min | Stale binary (source already fixes this) |
-| Attempting blank-line workaround | ~10 min | Stale binary (blank lines don't help in either version) |
-| Reverting blank-line workaround | ~5 min | Same |
-| Documenting the "gofmt conflict" in AGENTS.md | ~10 min | Stale binary (conflict doesn't exist in source) |
-| Trying to suppress E004 alongside E006 | ~10 min | Stale binary (source supports comma-separated) |
-| Writing this feedback | ~10 min | Stale binary |
-| **Total** | **~60 min** | |
+| Activity                                              | Time wasted | Cause                                                   |
+| ----------------------------------------------------- | ----------- | ------------------------------------------------------- |
+| Discovering gofmt adds spaces to suppression comments | ~15 min     | Stale binary (source already fixes this)                |
+| Attempting blank-line workaround                      | ~10 min     | Stale binary (blank lines don't help in either version) |
+| Reverting blank-line workaround                       | ~5 min      | Same                                                    |
+| Documenting the "gofmt conflict" in AGENTS.md         | ~10 min     | Stale binary (conflict doesn't exist in source)         |
+| Trying to suppress E004 alongside E006                | ~10 min     | Stale binary (source supports comma-separated)          |
+| Writing this feedback                                 | ~10 min     | Stale binary                                            |
+| **Total**                                             | **~60 min** |                                                         |
 
 ### Findings that would be eliminated by updating the binary
 
-| Category | Count | Eliminated by |
-|----------|-------|---------------|
-| gofmt-dirty files (gofmt conflict) | 7 files | `normalizeCommentPrefix()` |
-| E004 + D013 in dashboard-demo | 5 | Comma-separated `//cqrs-lint:ignore(E004,E006,D013)` |
-| B025 + E008 in stack_repositories | 5 | Comma-separated `//cqrs-lint:ignore(B025,A017,E008)` |
-| S003 in dashboard-demo | 1 | Comma-separated `//cqrs-lint:ignore(S003,C028)` |
-| E009/F002/F011/F015 in dashboardui | 4 | Comma-separated at `package` line |
-| **Total** | **16 findings + 7 gofmt-dirty files** | |
+| Category                           | Count                                 | Eliminated by                                        |
+| ---------------------------------- | ------------------------------------- | ---------------------------------------------------- |
+| gofmt-dirty files (gofmt conflict) | 7 files                               | `normalizeCommentPrefix()`                           |
+| E004 + D013 in dashboard-demo      | 5                                     | Comma-separated `//cqrs-lint:ignore(E004,E006,D013)` |
+| B025 + E008 in stack_repositories  | 5                                     | Comma-separated `//cqrs-lint:ignore(B025,A017,E008)` |
+| S003 in dashboard-demo             | 1                                     | Comma-separated `//cqrs-lint:ignore(S003,C028)`      |
+| E009/F002/F011/F015 in dashboardui | 4                                     | Comma-separated at `package` line                    |
+| **Total**                          | **16 findings + 7 gofmt-dirty files** |                                                      |
 
 ---
 
@@ -270,6 +274,7 @@ Consumers can then compare against `git log` to determine if they have the lates
 ### The fixes in source are excellent
 
 The round-2 fixes in source are exactly right:
+
 - `normalizeCommentPrefix()` is simple, targeted, and solves the real problem (gofmt compatibility)
 - Comma-separated rule support is the correct UX for multi-rule lines
 - `--exclude-rules` and config `rules.disable` give consumers proper control
@@ -290,14 +295,14 @@ Even with the stale binary, the stale-suppression detector caught 18 misplaced s
 
 ## Summary Table
 
-| # | Issue | Severity | Status in source | Status in installed binary | Fix |
-|---|-------|----------|-----------------|---------------------------|-----|
-| 1 | Stale Nix binary missing round-2 fixes | HIGH | ✅ Fixed (b4554cdc) | ❌ Not fixed | Publish new Nix binary |
-| 2 | Version constant not bumped | MED | ❌ Still 0.2.2 | ❌ 0.2.2 | Bump to 0.3.0 |
-| 3 | gofmt/space conflict | HIGH | ✅ Fixed (normalizeCommentPrefix) | ❌ Active problem | Resolved by Fix 1 |
-| 4 | One-suppression-per-line | HIGH | ✅ Fixed (comma-separated) | ❌ Active problem | Resolved by Fix 1 |
-| 5 | Blank line breaks suppression | LOW | ❌ Same behavior | ❌ Same behavior | Skip blanks in upward scan |
-| 6 | Field-level suppression undocumented | LOW | ❌ Undocumented | ❌ Undocumented | Add to --help / docs |
+| #   | Issue                                  | Severity | Status in source                  | Status in installed binary | Fix                        |
+| --- | -------------------------------------- | -------- | --------------------------------- | -------------------------- | -------------------------- |
+| 1   | Stale Nix binary missing round-2 fixes | HIGH     | ✅ Fixed (b4554cdc)               | ❌ Not fixed               | Publish new Nix binary     |
+| 2   | Version constant not bumped            | MED      | ❌ Still 0.2.2                    | ❌ 0.2.2                   | Bump to 0.3.0              |
+| 3   | gofmt/space conflict                   | HIGH     | ✅ Fixed (normalizeCommentPrefix) | ❌ Active problem          | Resolved by Fix 1          |
+| 4   | One-suppression-per-line               | HIGH     | ✅ Fixed (comma-separated)        | ❌ Active problem          | Resolved by Fix 1          |
+| 5   | Blank line breaks suppression          | LOW      | ❌ Same behavior                  | ❌ Same behavior           | Skip blanks in upward scan |
+| 6   | Field-level suppression undocumented   | LOW      | ❌ Undocumented                   | ❌ Undocumented            | Add to --help / docs       |
 
 Fixes 1 and 2 are the priority. They would eliminate all 16 remaining findings and make the gofmt-dirty workaround unnecessary.
 
@@ -305,8 +310,8 @@ Fixes 1 and 2 are the priority. They would eliminate all 16 remaining findings a
 
 ## Resolution Appendix (2026-08-02)
 
-| # | Issue | Resolution |
-|---|-------|------------|
-| 2 | Version constant not bumped | **FIXED.** Bumped `const version` from `0.2.2` to `0.3.0` in `main.go:18`. |
-| 5 | Blank line breaks suppression | **FIXED.** `checkSuppressionInFile` now skips blank lines when scanning upward from the finding. A suppression comment separated from the finding by blank lines now works correctly. Tests: `TestSuppression_SkipsBlankLinesWhenScanningUpward`, `TestSuppression_DoesNotSkipNonBlankLines`. |
-| 6 | Field-level suppression undocumented | Documented in the CLI `--help` long text (`rootCmd.Long`) which shows both inline and block suppression patterns. |
+| #   | Issue                                | Resolution                                                                                                                                                                                                                                                                                    |
+| --- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2   | Version constant not bumped          | **FIXED.** Bumped `const version` from `0.2.2` to `0.3.0` in `main.go:18`.                                                                                                                                                                                                                    |
+| 5   | Blank line breaks suppression        | **FIXED.** `checkSuppressionInFile` now skips blank lines when scanning upward from the finding. A suppression comment separated from the finding by blank lines now works correctly. Tests: `TestSuppression_SkipsBlankLinesWhenScanningUpward`, `TestSuppression_DoesNotSkipNonBlankLines`. |
+| 6   | Field-level suppression undocumented | Documented in the CLI `--help` long text (`rootCmd.Long`) which shows both inline and block suppression patterns.                                                                                                                                                                             |

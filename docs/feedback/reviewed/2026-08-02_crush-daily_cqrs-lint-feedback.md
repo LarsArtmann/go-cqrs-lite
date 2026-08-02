@@ -13,11 +13,11 @@ cqrs-lint v0.2.2 runs cleanly, is fast (554ms for 27 files), and the feature-pro
 
 The findings break down into three categories:
 
-| Category | Count | Assessment |
-|----------|-------|------------|
-| **False positives** (detector logic gap) | 13 | C036 (6), E007 (6), B022 (1) |
-| **Consciously accepted** (project-specific decision) | 15 | C008 (13), S006 (2) |
-| **Actionable / correctly flagged** | 12 | C009 (1), C016 (1), C034 (1), E016 (1), F005 (1), F013 (1), F017 (1), B005 (1), B010 (1), B017 (1), A005 (1), B022 (1 — the finding is valid even though the suggestion text is wrong) |
+| Category                                             | Count | Assessment                                                                                                                                                                             |
+| ---------------------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **False positives** (detector logic gap)             | 13    | C036 (6), E007 (6), B022 (1)                                                                                                                                                           |
+| **Consciously accepted** (project-specific decision) | 15    | C008 (13), S006 (2)                                                                                                                                                                    |
+| **Actionable / correctly flagged**                   | 12    | C009 (1), C016 (1), C034 (1), E016 (1), F005 (1), F013 (1), F017 (1), B005 (1), B010 (1), B017 (1), A005 (1), B022 (1 — the finding is valid even though the suggestion text is wrong) |
 
 ---
 
@@ -54,6 +54,7 @@ All 6 are false positives. The snapshot store, event store, schema init, WAL, an
 The feature-profile detector does not recognize `storage.NewSQLiteEventStore(db)` as a library-provided SQLite store. It likely scans for a direct `sql.Open` call or a constructor pattern it knows, and classifies anything else as "custom."
 
 The storage module's public API surface includes:
+
 - `storage.OpenSQLite(path)` — opens the DB
 - `storage.NewSQLiteEventStore(db)` — creates the event store
 - `storage.NewSQLiteSnapshotStore(db)` — creates the snapshot store
@@ -164,6 +165,7 @@ These findings are **correctly detected** but consciously accepted for this proj
 ### C008 — float64 for monetary values (13 findings)
 
 crush-daily uses `float64` for `CostUSD` fields throughout. These are API-reported cost estimates from LLM providers (OpenAI, Anthropic, etc.), not financial transactions. The precision requirements are "roughly how much did we spend" — float64 is appropriate. Changing to `decimal` or `int64` cents would:
+
 - Break serialized event payloads (breaking schema change)
 - Add a dependency for no practical benefit
 - Require migration of all stored events
@@ -253,17 +255,17 @@ Only one detection error (`store: custom`), but it cascades into 6 C036 false po
 
 Priority-ordered by impact on this project:
 
-| Priority | Improvement | Impact | Effort |
-|----------|------------|--------|--------|
-| **P0** | Recognize `storage.NewSQLiteEventStore` as sqlite-backed store | Eliminates 6 C036 false positives + fixes feature profile | Low |
-| **P1** | Config-level rule disabling (`"disabled-rules": [...]` in `.cqrs-lint.json`) | Eliminates E007 (6), C008 (13), S006 (2) from output | Medium |
-| **P1** | Fix B022 suggestion text: `decider` → `event` | Stops sending users to wrong package | Trivial |
-| **P2** | Recognize `Register(dispatcher, ...)` pattern for runtime registration | Eliminates E007 (6) at the detector level | Medium |
-| **P2** | Recognize `cqrshtmx.New`/`MustNew` as a transport layer | Eliminates F013 | Low |
-| **P3** | Feature-profile gating for F017 (sync bus → no dedup needed) | Eliminates F017 | Medium |
-| **P3** | C009 must-pattern recognition (New* constructor → panic OK) | Eliminates C009 | Medium |
-| **P3** | C016 exemption for shutdown-timeout context.Background() | Eliminates C016 | Medium |
-| **P4** | C008 opt-out for non-financial float64 (e.g. cost estimates) | Eliminates 13 C008 findings | Low (config) |
+| Priority | Improvement                                                                  | Impact                                                    | Effort       |
+| -------- | ---------------------------------------------------------------------------- | --------------------------------------------------------- | ------------ |
+| **P0**   | Recognize `storage.NewSQLiteEventStore` as sqlite-backed store               | Eliminates 6 C036 false positives + fixes feature profile | Low          |
+| **P1**   | Config-level rule disabling (`"disabled-rules": [...]` in `.cqrs-lint.json`) | Eliminates E007 (6), C008 (13), S006 (2) from output      | Medium       |
+| **P1**   | Fix B022 suggestion text: `decider` → `event`                                | Stops sending users to wrong package                      | Trivial      |
+| **P2**   | Recognize `Register(dispatcher, ...)` pattern for runtime registration       | Eliminates E007 (6) at the detector level                 | Medium       |
+| **P2**   | Recognize `cqrshtmx.New`/`MustNew` as a transport layer                      | Eliminates F013                                           | Low          |
+| **P3**   | Feature-profile gating for F017 (sync bus → no dedup needed)                 | Eliminates F017                                           | Medium       |
+| **P3**   | C009 must-pattern recognition (New* constructor → panic OK)                  | Eliminates C009                                           | Medium       |
+| **P3**   | C016 exemption for shutdown-timeout context.Background()                     | Eliminates C016                                           | Medium       |
+| **P4**   | C008 opt-out for non-financial float64 (e.g. cost estimates)                 | Eliminates 13 C008 findings                               | Low (config) |
 
 ---
 

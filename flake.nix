@@ -270,14 +270,16 @@
           pgServiceTest = pkgs.testers.runNixOSTest {
             name = "postgres-service-health";
 
-            nodes.machine = {
-              config,
-              pkgs,
-              ...
-            }: {
-              imports = [ ./nix/vm/postgres.nix ];
-              environment.systemPackages = [ pkgs.postgresql_16 ];
-            };
+            nodes.machine =
+              {
+                config,
+                pkgs,
+                ...
+              }:
+              {
+                imports = [ ./nix/vm/postgres.nix ];
+                environment.systemPackages = [ pkgs.postgresql_16 ];
+              };
 
             testScript = ''
               machine.start()
@@ -325,13 +327,15 @@
           mysqlServiceTest = pkgs.testers.runNixOSTest {
             name = "mysql-service-health";
 
-            nodes.machine = {
-              config,
-              pkgs,
-              ...
-            }: {
-              imports = [ ./nix/vm/mysql.nix ];
-            };
+            nodes.machine =
+              {
+                config,
+                pkgs,
+                ...
+              }:
+              {
+                imports = [ ./nix/vm/mysql.nix ];
+              };
 
             testScript = ''
               machine.start()
@@ -498,7 +502,8 @@
           checks = {
             build = config.packages.default;
             format = config.treefmt.build.check self;
-          } // lib.optionalAttrs pkgs.stdenv.isLinux {
+          }
+          // lib.optionalAttrs pkgs.stdenv.isLinux {
             # NixOS VM tests — hermetic, cached by Nix.
             # Run via: nix flake check (Linux) or nix build .#checks.x86_64-linux.postgres-vm
             postgres-vm = pgServiceTest;
@@ -831,42 +836,60 @@
             # Docker or testcontainers. Works on Linux AND macOS with Nix.
             # Usage: nix run .#integration-pg
             #        nix run .#integration-pg -- -run TestPostgresEventStore
-            integration-pg = mkApp "integration-pg" [
-              goPkg pkgs.gcc pkgs.postgresql
-            ] ''
-              export CGO_ENABLED=1
-              export GOEXPERIMENT=jsonv2
-              bash "$PWD/scripts/ephemeral-pg.sh" "$@"
-            '';
+            integration-pg =
+              mkApp "integration-pg"
+                [
+                  goPkg
+                  pkgs.gcc
+                  pkgs.postgresql
+                ]
+                ''
+                  export CGO_ENABLED=1
+                  export GOEXPERIMENT=jsonv2
+                  bash "$PWD/scripts/ephemeral-pg.sh" "$@"
+                '';
 
-            integration-mysql = mkApp "integration-mysql" [
-              goPkg pkgs.gcc pkgs.mariadb
-            ] ''
-              export CGO_ENABLED=1
-              export GOEXPERIMENT=jsonv2
-              bash "$PWD/scripts/ephemeral-mysql.sh" "$@"
-            '';
+            integration-mysql =
+              mkApp "integration-mysql"
+                [
+                  goPkg
+                  pkgs.gcc
+                  pkgs.mariadb
+                ]
+                ''
+                  export CGO_ENABLED=1
+                  export GOEXPERIMENT=jsonv2
+                  bash "$PWD/scripts/ephemeral-mysql.sh" "$@"
+                '';
 
             # NixOS VM integration tests — boot a QEMU VM with the database
             # service, run Go integration tests inside. Hermetic and cached
             # by Nix. Requires x86_64-linux + KVM for speed.
             # Usage: nix run .#integration-pg-vm
             #        nix run .#integration-mysql-vm
-            integration-pg-vm = mkApp "integration-pg-vm" [
-              goPkg pkgs.gcc
-            ] ''
-              export CGO_ENABLED=1
-              export GOEXPERIMENT=jsonv2
-              bash "$PWD/scripts/vm-pg.sh" "$@"
-            '';
+            integration-pg-vm =
+              mkApp "integration-pg-vm"
+                [
+                  goPkg
+                  pkgs.gcc
+                ]
+                ''
+                  export CGO_ENABLED=1
+                  export GOEXPERIMENT=jsonv2
+                  bash "$PWD/scripts/vm-pg.sh" "$@"
+                '';
 
-            integration-mysql-vm = mkApp "integration-mysql-vm" [
-              goPkg pkgs.gcc
-            ] ''
-              export CGO_ENABLED=1
-              export GOEXPERIMENT=jsonv2
-              bash "$PWD/scripts/vm-mysql.sh" "$@"
-            '';
+            integration-mysql-vm =
+              mkApp "integration-mysql-vm"
+                [
+                  goPkg
+                  pkgs.gcc
+                ]
+                ''
+                  export CGO_ENABLED=1
+                  export GOEXPERIMENT=jsonv2
+                  bash "$PWD/scripts/vm-mysql.sh" "$@"
+                '';
 
             verify =
               mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]

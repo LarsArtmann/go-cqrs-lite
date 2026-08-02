@@ -26,16 +26,16 @@ catch.
 
 However, after remediation, the remaining 23 findings break down as **7 false
 positives** (30%) and **16 legitimate declines** (out of scope for a single-process
-CLI tool). The false-positive rate for the *residual* findings is concerning
+CLI tool). The false-positive rate for the _residual_ findings is concerning
 because it inflates the deduction and depresses the score below where it
 rationally should be.
 
-| Category | Count | Action taken |
-|----------|-------|-------------|
-| **Valid findings (fixed in session 1)** | 34 | All fixed — A001, C003, C007, C023, C025, C028, C033, P001/B019, A029, B021/B005, B025, B023, D013, D005, V006 |
-| **False positives (remaining)** | 7 | Reported below with root-cause analysis — C036(×4), B022, E009, E016 |
-| **Legitimate declines (remaining)** | 16 | Out of scope for single-process CLI — documented below |
-| **Linter bugs found** | 2 | `init` config generation broken; `B022` suggests nonexistent API |
+| Category                                | Count | Action taken                                                                                                   |
+| --------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------- |
+| **Valid findings (fixed in session 1)** | 34    | All fixed — A001, C003, C007, C023, C025, C028, C033, P001/B019, A029, B021/B005, B025, B023, D013, D005, V006 |
+| **False positives (remaining)**         | 7     | Reported below with root-cause analysis — C036(×4), B022, E009, E016                                           |
+| **Legitimate declines (remaining)**     | 16    | Out of scope for single-process CLI — documented below                                                         |
+| **Linter bugs found**                   | 2     | `init` config generation broken; `B022` suggests nonexistent API                                               |
 
 **Health score: 78/100 (Good).** The -22 deduction includes -12 from false
 positives alone. With false positives excluded, the score would be ~90/100.
@@ -49,6 +49,7 @@ linter's core value proposition: catching CQRS/event-sourcing anti-patterns that
 no standard Go linter detects.
 
 ### C003 — Fold silently ignores unknown events
+
 **Verdict: Critical. Fixed.**
 
 The fold function had a `default: return state, nil` that silently dropped
@@ -57,27 +58,32 @@ which now returns an error on unknown types. This prevented a class of silent
 data-loss bugs.
 
 ### B021/B005 — Fold not wrapped in `StrictApply`
+
 **Verdict: Correct. Fixed.**
 
 Related to C003 — the `StrictApply` wrapper was missing entirely.
 
 ### B023 — Command dispatcher has no middleware
+
 **Verdict: Correct. Fixed.**
 
 Added `middleware.CommandRecovery()` and `middleware.CommandLogging(slog.Default())`.
 
 ### B025 — Repository missing state cache
+
 **Verdict: Correct. Fixed.**
 
 Added `decider.WithStateCache[TimesheetState](decider.NewStateCache[TimesheetState](256))`.
 
 ### C028 — Discarded `RegisterTyped` errors (10 sites)
+
 **Verdict: Correct. Fixed.**
 
 All 10 `command.RegisterTyped` and `query.RegisterTyped` calls had their errors
 discarded. Now checked and wrapped with context.
 
 ### C007 — `time.Now()` inside decider (3 sites)
+
 **Verdict: Correct. Fixed.**
 
 Decider functions must be deterministic for replay. Injected `now time.Time`
@@ -85,22 +91,26 @@ parameter into `DecideSubmitTimesheet`, `DecideApproveTimesheet`,
 `DecideRejectTimesheet`. Handlers pass `time.Now()`; tests pass fixed time.
 
 ### P001/B019 — O(N²) `repo.Load` in `SubscribeAll` projection
+
 **Verdict: Correct. Fixed.**
 
 Read model gained `ApplyEvent(evt, initial)` for O(1) incremental folding.
 
 ### A029 — `UsePublish` stub returning nil
+
 **Verdict: Correct. Fixed.**
 
 `SyncBus.UsePublish` and `SyncBus.Use` were no-ops. Now store and apply
 middleware correctly.
 
 ### D013 — Events missing `WithSchemaVersion`
+
 **Verdict: Correct. Fixed.**
 
 `createEvent` now passes `event.WithSchemaVersion(1)`.
 
 ### V006 — Mixed module versions
+
 **Verdict: Correct. Fixed.**
 
 `storage/v4` was at v4.4.0 while all other modules were at v4.2.0. Aligned to
@@ -118,6 +128,7 @@ explanation for why the linter's heuristic fails.
 **Verdict: False positive. Largest score impact.**
 
 **Files:** `internal/domain/persistence.go` — 4 call sites:
+
 - `storage.OpenSQLiteInMemory()`
 - `storage.SQLiteInitSchema(ctx, database)`
 - `storage.OpenSQLite(dbPath)`
@@ -145,6 +156,7 @@ function in the `go-cqrs-lite/storage` module. If it does, C036 should not fire.
 **File:** `internal/domain/cqrs.go:56`
 
 The linter says:
+
 > Replace the custom enricher with `decider.CommandCausalityEnricher`
 
 The code uses `event.CommandCausalityEnricher` (from the `event` module). There
@@ -169,6 +181,7 @@ correct enricher and suppress the finding.
 **File:** `internal/domain/commands.go:1` (package-level)
 
 The linter says:
+
 > Project has command and query dispatchers but no HTTP/gRPC transport layer
 
 The project has a full HTTP API server at `internal/server/` using
@@ -193,6 +206,7 @@ transport is handled externally.
 `internal/server/server.go`
 
 The linter says:
+
 > Add `bundle.HealthCheck(ctx)` to your `/healthz` or `/readyz` endpoint
 
 The server registers `GET /health` via `cfg.app.HealthHandler()` at
@@ -213,20 +227,20 @@ or detect `cqrshtmx.HealthHandler` usage.
 These findings are technically correct but intentionally declined because they
 are out of scope for a single-process CLI tool with optional local HTTP server.
 
-| Rule | Count | Deduction | Reason for decline |
-|------|-------|-----------|-------------------|
-| B004 | 4 | -4 | Commands hand-written by design. `cqrs-gen` adds build complexity for 8 commands. |
-| A005 | 1 | -2 | Manual O(1) incremental projection is better than `projectionhost.Host` for single-process. No checkpoint journal needed — events are in-memory. |
-| A016 | 1 | -1 | No idempotency needed for synchronous single-process dispatch. No retries, no at-least-once delivery. |
-| A020 | 1 | -2 | No exported memory bus in go-cqrs-lite v4.2.0. `SyncBus` is intentional and well-tested. |
-| B001 | 1 | -1 | `createEvent` wraps errors with `WrapCorruption` (data integrity class). `event.Single` uses `WrapRejection` (validation class). The project's error classification is correct — event creation failure is a corruption issue, not a validation rejection. |
-| F003 | 1 | -1 | OpenTelemetry tracing out of scope for CLI tool. |
-| F004 | 1 | -1 | Prometheus metrics out of scope for CLI tool. |
-| F005 | 1 | -1 | No schema evolution yet. Single schema version (1). Upcasters premature. |
-| F006 | 1 | -1 | Event payload encryption out of scope for local-only SQLite store. PII flag on `PersonEmail` field is a false alarm — the email is a business field, not a secret. |
-| F007 | 1 | -1 | Same as A016. No at-least-once delivery in single-process synchronous mode. |
-| F013 | 1 | -1 | `transport/http` module not needed. HTTP exists via `cqrs-htmx` which provides SSE delivery and REST handlers. |
-| B014 | 1 | -1 | OTel bundle out of scope for CLI tool. |
+| Rule | Count | Deduction | Reason for decline                                                                                                                                                                                                                                         |
+| ---- | ----- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B004 | 4     | -4        | Commands hand-written by design. `cqrs-gen` adds build complexity for 8 commands.                                                                                                                                                                          |
+| A005 | 1     | -2        | Manual O(1) incremental projection is better than `projectionhost.Host` for single-process. No checkpoint journal needed — events are in-memory.                                                                                                           |
+| A016 | 1     | -1        | No idempotency needed for synchronous single-process dispatch. No retries, no at-least-once delivery.                                                                                                                                                      |
+| A020 | 1     | -2        | No exported memory bus in go-cqrs-lite v4.2.0. `SyncBus` is intentional and well-tested.                                                                                                                                                                   |
+| B001 | 1     | -1        | `createEvent` wraps errors with `WrapCorruption` (data integrity class). `event.Single` uses `WrapRejection` (validation class). The project's error classification is correct — event creation failure is a corruption issue, not a validation rejection. |
+| F003 | 1     | -1        | OpenTelemetry tracing out of scope for CLI tool.                                                                                                                                                                                                           |
+| F004 | 1     | -1        | Prometheus metrics out of scope for CLI tool.                                                                                                                                                                                                              |
+| F005 | 1     | -1        | No schema evolution yet. Single schema version (1). Upcasters premature.                                                                                                                                                                                   |
+| F006 | 1     | -1        | Event payload encryption out of scope for local-only SQLite store. PII flag on `PersonEmail` field is a false alarm — the email is a business field, not a secret.                                                                                         |
+| F007 | 1     | -1        | Same as A016. No at-least-once delivery in single-process synchronous mode.                                                                                                                                                                                |
+| F013 | 1     | -1        | `transport/http` module not needed. HTTP exists via `cqrs-htmx` which provides SSE delivery and REST handlers.                                                                                                                                             |
+| B014 | 1     | -1        | OTel bundle out of scope for CLI tool.                                                                                                                                                                                                                     |
 
 **Total legitimate deduction: -17.** These are real architectural decisions,
 not oversights. A config mechanism to mark them as "intentional" without
@@ -241,6 +255,7 @@ suppression comments would improve the developer experience.
 **Severity: Showstopper for new users.**
 
 **Reproduction:**
+
 ```bash
 mkdir /tmp/test && cd /tmp/test
 cqrs-lint init
@@ -296,7 +311,7 @@ in source code. For architectural decisions that span an entire project (e.g.,
 
 ```json
 {
-  "exclude": "F003,F004,B014"
+	"exclude": "F003,F004,B014"
 }
 ```
 
@@ -304,10 +319,10 @@ Or per-rule with reason:
 
 ```json
 {
-  "suppress": [
-    {"rule": "F003", "reason": "CLI tool — no distributed tracing needed"},
-    {"rule": "A020", "reason": "SyncBus is intentional — no memory bus in v4.2.0"}
-  ]
+	"suppress": [
+		{ "rule": "F003", "reason": "CLI tool — no distributed tracing needed" },
+		{ "rule": "A020", "reason": "SyncBus is intentional — no memory bus in v4.2.0" }
+	]
 }
 ```
 
@@ -373,15 +388,15 @@ deduction), but the directionality is correct.
 
 ## Summary Assessment
 
-| Dimension | Rating | Notes |
-|-----------|--------|-------|
-| **Value delivered** | ★★★★☆ | Drove 34 real fixes across the codebase |
-| **False-positive rate (residual)** | ★★☆☆☆ | 7 of 23 remaining findings are false positives (30%) |
-| **False-positive rate (initial)** | ★★★★☆ | Most of the original 57 findings were valid |
-| **Suggestion accuracy** | ★★☆☆☆ | B022 suggests a nonexistent function; C036 misidentifies library functions |
-| **Config ergonomics** | ★☆☆☆☆ | `init` is broken; exclusion is comment-only |
-| **Health score** | ★★★★☆ | Excellent concept, slightly inflated by false positives |
-| **Documentation** | ★★★☆☆ | Suggestions are actionable when correct, but no inline docs for config format |
+| Dimension                          | Rating | Notes                                                                         |
+| ---------------------------------- | ------ | ----------------------------------------------------------------------------- |
+| **Value delivered**                | ★★★★☆  | Drove 34 real fixes across the codebase                                       |
+| **False-positive rate (residual)** | ★★☆☆☆  | 7 of 23 remaining findings are false positives (30%)                          |
+| **False-positive rate (initial)**  | ★★★★☆  | Most of the original 57 findings were valid                                   |
+| **Suggestion accuracy**            | ★★☆☆☆  | B022 suggests a nonexistent function; C036 misidentifies library functions    |
+| **Config ergonomics**              | ★☆☆☆☆  | `init` is broken; exclusion is comment-only                                   |
+| **Health score**                   | ★★★★☆  | Excellent concept, slightly inflated by false positives                       |
+| **Documentation**                  | ★★★☆☆  | Suggestions are actionable when correct, but no inline docs for config format |
 
 **Net recommendation:** Keep using cqrs-lint — the value outweighs the noise.
 But fix `init`, fix B022, and add config-based suppression. Those three changes

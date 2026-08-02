@@ -51,13 +51,13 @@ The planner should not model consistency as a binary dimension (`strong | eventu
 
 The initial design proposed a `Visibility` dimension (`VisibilityLocal` / `VisibilityGlobal`). Through analysis, this was proven wrong — "visibility" conflates three orthogonal concerns into one name. The correct model uses three separate properties, each grounded in DDIA:
 
-| Property | DDIA concept | What it captures | Type | Scales with volume? | Planner use |
-|---|---|---|---|---|---|
-| `Replication` | Ch5: Replication modes | How data propagates across nodes | Enum | N/A | Diagnostics / future routing |
-| `ReplicationLag` | Ch5: Replication lag | How stale local data may be | `time.Duration` | No | Diagnostics / freshness |
-| `NetworkRTT` | Ch1: RTT | How far a read must travel | `time.Duration` | **No (additive fixed)** | Cost estimation |
+| Property         | DDIA concept           | What it captures                 | Type            | Scales with volume?     | Planner use                  |
+| ---------------- | ---------------------- | -------------------------------- | --------------- | ----------------------- | ---------------------------- |
+| `Replication`    | Ch5: Replication modes | How data propagates across nodes | Enum            | N/A                     | Diagnostics / future routing |
+| `ReplicationLag` | Ch5: Replication lag   | How stale local data may be      | `time.Duration` | No                      | Diagnostics / freshness      |
+| `NetworkRTT`     | Ch1: RTT               | How far a read must travel       | `time.Duration` | **No (additive fixed)** | Cost estimation              |
 
-**Key principle:** Replication is an **engine property only**. Queries declare *what* to compute (folds, ADTs, read patterns). Engines declare *how* data is stored (layout, cost, replication). The query API (`QueryConfig`) has **zero** new fields.
+**Key principle:** Replication is an **engine property only**. Queries declare _what_ to compute (folds, ADTs, read patterns). Engines declare _how_ data is stored (layout, cost, replication). The query API (`QueryConfig`) has **zero** new fields.
 
 ### EngineProfile changes
 
@@ -120,23 +120,23 @@ The [CALM theorem](https://link.springer.com/chapter/10.1007/978-3-642-04243-6_2
 
 The metaengine ADTs are already monotonic by construction:
 
-| ADT | Fold operations | Monotonic? | CRDT equivalent |
-|---|---|---|---|
-| Map | `FoldInsert`, `FoldUpdate` | Yes (LWW by timestamp) | LWW-Map |
-| Set | `FoldSet` | Yes (add-only) | OR-Set (G-Set if no remove) |
-| Counter | `FoldCount` (+/-) | Yes (per-author) | PN-Counter |
-| Multimap | `FoldMultiInsert` | Yes (add per key) | OR-Set per key |
-| Log | `FoldAppend` | Yes (append per author) | Per-author append-only |
+| ADT      | Fold operations            | Monotonic?              | CRDT equivalent             |
+| -------- | -------------------------- | ----------------------- | --------------------------- |
+| Map      | `FoldInsert`, `FoldUpdate` | Yes (LWW by timestamp)  | LWW-Map                     |
+| Set      | `FoldSet`                  | Yes (add-only)          | OR-Set (G-Set if no remove) |
+| Counter  | `FoldCount` (+/-)          | Yes (per-author)        | PN-Counter                  |
+| Multimap | `FoldMultiInsert`          | Yes (add per key)       | OR-Set per key              |
+| Log      | `FoldAppend`               | Yes (append per author) | Per-author append-only      |
 
 ### Non-monotonic operations
 
 The non-monotonic operations are the exceptions, and they are already the operations that CRDTs handle specially:
 
-| Operation | Monotonic? | CRDT behavior |
-|---|---|---|
-| `MapUpdate` (atomic RMW) | No | Local only — not a CRDT operation; does not replicate |
-| `MapDelete` | Conditional | Tombstone (safe, replicates) vs physical delete (unsafe, local only) |
-| `FoldRemove` (Set) | No | Tombstone-based OR-Set (safe if tombstones are tracked) |
+| Operation                | Monotonic?  | CRDT behavior                                                        |
+| ------------------------ | ----------- | -------------------------------------------------------------------- |
+| `MapUpdate` (atomic RMW) | No          | Local only — not a CRDT operation; does not replicate                |
+| `MapDelete`              | Conditional | Tombstone (safe, replicates) vs physical delete (unsafe, local only) |
+| `FoldRemove` (Set)       | No          | Tombstone-based OR-Set (safe if tombstones are tracked)              |
 
 **This means the fold operations are already CRDT-safe for 5 of 7 ADTs.** The all-eventual model is not a redesign — it is an acknowledgment of what the system already is.
 
@@ -148,7 +148,7 @@ The all-eventual model reveals what the architecture has been quietly saying:
 
 The planner's job is not to guarantee consistency — it is to pick the cheapest cache that has the data scope the caller needs. Local caches (Memory, SQLite, Pebble, DuckDB) are fast but process-local. Global caches (Iroh) are slower but cross-node. The caller decides what scope they need; the planner finds the cheapest option.
 
-Since folds are monotonic (CRDT-safe), coordination-free convergence is guaranteed by the CALM theorem. The planner does not need to reason about consistency because monotonicity *proves* eventual consistency. It only needs to reason about cost and visibility.
+Since folds are monotonic (CRDT-safe), coordination-free convergence is guaranteed by the CALM theorem. The planner does not need to reason about consistency because monotonicity _proves_ eventual consistency. It only needs to reason about cost and visibility.
 
 ---
 
@@ -168,23 +168,23 @@ Since folds are monotonic (CRDT-safe), coordination-free convergence is guarante
 
 `iroh-docs` maps onto 5 of the 10 metaengine ADT backends:
 
-| Backend | iroh-docs implementation | CRDT type |
-|---|---|---|
-| `MapBackend` | `doc.Set(key, hash)` / `doc.Get(key)` then resolve blob | LWW-Map (last-writer-wins by timestamp) |
-| `SetBackend` | `doc.Set(key, empty)` / `doc.Get(key) != nil` | OR-Set (observed-remove) |
-| `CounterBackend` | Each author keeps own increment count; `Get` sums across authors | **PN-Counter** (conflict-free) |
-| `MultimapBackend` | `doc.Set(prefix+key+seq, value)` / prefix range scan | OR-Set per key |
-| `LogBackend` | `doc.Set(author+seq, value)` / reverse range scan | Per-author append-only |
+| Backend           | iroh-docs implementation                                         | CRDT type                               |
+| ----------------- | ---------------------------------------------------------------- | --------------------------------------- |
+| `MapBackend`      | `doc.Set(key, hash)` / `doc.Get(key)` then resolve blob          | LWW-Map (last-writer-wins by timestamp) |
+| `SetBackend`      | `doc.Set(key, empty)` / `doc.Get(key) != nil`                    | OR-Set (observed-remove)                |
+| `CounterBackend`  | Each author keeps own increment count; `Get` sums across authors | **PN-Counter** (conflict-free)          |
+| `MultimapBackend` | `doc.Set(prefix+key+seq, value)` / prefix range scan             | OR-Set per key                          |
+| `LogBackend`      | `doc.Set(author+seq, value)` / reverse range scan                | Per-author append-only                  |
 
 What it **cannot** serve:
 
-| Backend | Why not |
-|---|---|
-| `PushdownScan` / `ScanBackend` | No server-side filtering — all filtering is client-side after fetch. O(N) always. |
-| `GraphBackend` | No graph operations |
-| `VectorBackend` / `SearchBackend` / `SpatialBackend` | No similarity/text/geo search |
-| `LayoutPlanner` / `LayoutPlanApplier` | No DDL, no indexes |
-| `MapUpdater` (atomic RMW) | CRDT does not support atomic read-modify-write — the "read" may be stale |
+| Backend                                              | Why not                                                                           |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `PushdownScan` / `ScanBackend`                       | No server-side filtering — all filtering is client-side after fetch. O(N) always. |
+| `GraphBackend`                                       | No graph operations                                                               |
+| `VectorBackend` / `SearchBackend` / `SpatialBackend` | No similarity/text/geo search                                                     |
+| `LayoutPlanner` / `LayoutPlanApplier`                | No DDL, no indexes                                                                |
+| `MapUpdater` (atomic RMW)                            | CRDT does not support atomic read-modify-write — the "read" may be stale          |
 
 This is fine — Pebble also does not implement Vector/Search/Spatial. The planner routes by capability.
 
@@ -192,12 +192,12 @@ This is fine — Pebble also does not implement Vector/Search/Spatial. The plann
 
 All current `CounterBackend` implementations are single-writer:
 
-| Engine | Implementation | Limitation |
-|---|---|---|
-| SQLite | `ON CONFLICT DO UPDATE SET value = value + excluded.value` | Serialized via SQL transaction |
-| Pebble | `Get` + `Merge` (8-byte big-endian) | Atomic via LSM merge, but single-process |
-| DuckDB | Columnar aggregation (recompute sum each read) | No incremental writes |
-| Memory | `map[key] += delta` under mutex | Single-process |
+| Engine | Implementation                                             | Limitation                               |
+| ------ | ---------------------------------------------------------- | ---------------------------------------- |
+| SQLite | `ON CONFLICT DO UPDATE SET value = value + excluded.value` | Serialized via SQL transaction           |
+| Pebble | `Get` + `Merge` (8-byte big-endian)                        | Atomic via LSM merge, but single-process |
+| DuckDB | Columnar aggregation (recompute sum each read)             | No incremental writes                    |
+| Memory | `map[key] += delta` under mutex                            | Single-process                           |
 
 All assume **one process increments the counter**. Concurrent multi-process increments require external coordination (distributed lock, consensus round).
 
@@ -266,15 +266,15 @@ Read path:   Engine.MapGet() → local read (always fast, always local)
 
 ### Operation CRDT safety matrix
 
-| Operation | CRDT-safe? | Replication behavior |
-|---|---|---|
-| `MapSet` | Yes (LWW) | Replicates with timestamp |
-| `SetAdd` | Yes (OR-Set) | Replicates |
-| `CounterIncrement` | Yes (PN-Counter) | Replicates as per-author increment |
-| `MultiAdd` | Yes (OR-Set per key) | Replicates |
-| `LogAppend` | Yes (append per author) | Replicates |
-| `MapUpdate` (RMW) | **No** | Local only — not a CRDT operation |
-| `MapDelete` | **Conditional** | Tombstone (safe) vs physical delete (unsafe) |
+| Operation          | CRDT-safe?              | Replication behavior                         |
+| ------------------ | ----------------------- | -------------------------------------------- |
+| `MapSet`           | Yes (LWW)               | Replicates with timestamp                    |
+| `SetAdd`           | Yes (OR-Set)            | Replicates                                   |
+| `CounterIncrement` | Yes (PN-Counter)        | Replicates as per-author increment           |
+| `MultiAdd`         | Yes (OR-Set per key)    | Replicates                                   |
+| `LogAppend`        | Yes (append per author) | Replicates                                   |
+| `MapUpdate` (RMW)  | **No**                  | Local only — not a CRDT operation            |
+| `MapDelete`        | **Conditional**         | Tombstone (safe) vs physical delete (unsafe) |
 
 ---
 
@@ -282,14 +282,14 @@ Read path:   Engine.MapGet() → local read (always fast, always local)
 
 The combination — metaengine cost-based planning + Iroh CRDT convergence — gives the system capabilities no other Go CQRS library has:
 
-| Capability | Current (local engines only) | With Iroh |
-|---|---|---|
-| Distributed counters | Requires external coordination | PN-Counter: conflict-free, instant |
-| Offline read models | Impossible (server must be reachable) | Local copy on every device, converge on reconnect |
-| Geo-distributed reads | Single-origin latency | Local read everywhere, CRDT sync in background |
-| Multi-writer projections | Single-writer upsert | CRDT merge (LWW-Map, OR-Set) |
-| Edge/IoT projections | Requires broker + connectivity | Direct P2P sync, works behind NAT |
-| Collaborative read models | Not supported | Multiple devices writing, converging automatically |
+| Capability                | Current (local engines only)          | With Iroh                                          |
+| ------------------------- | ------------------------------------- | -------------------------------------------------- |
+| Distributed counters      | Requires external coordination        | PN-Counter: conflict-free, instant                 |
+| Offline read models       | Impossible (server must be reachable) | Local copy on every device, converge on reconnect  |
+| Geo-distributed reads     | Single-origin latency                 | Local read everywhere, CRDT sync in background     |
+| Multi-writer projections  | Single-writer upsert                  | CRDT merge (LWW-Map, OR-Set)                       |
+| Edge/IoT projections      | Requires broker + connectivity        | Direct P2P sync, works behind NAT                  |
+| Collaborative read models | Not supported                         | Multiple devices writing, converging automatically |
 
 ---
 
@@ -297,11 +297,11 @@ The combination — metaengine cost-based planning + Iroh CRDT convergence — g
 
 There is no official Go SDK. Three paths:
 
-| Approach | Effort | Precedent in this repo |
-|---|---|---|
-| **CGo FFI** over Iroh's C bindings | High | `stack/duckdb` already does this for DuckDB's C++ engine — same isolation pattern (separate module, `//go:build cgo`, static link) |
-| **Sidecar process** (Iroh node + local gRPC/Unix socket) | Medium | None directly, but clean separation |
-| **Pure-Go reimplementation** of Iroh's QUIC+gossip protocols | Very high | Not recommended — defeats the purpose |
+| Approach                                                     | Effort    | Precedent in this repo                                                                                                             |
+| ------------------------------------------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **CGo FFI** over Iroh's C bindings                           | High      | `stack/duckdb` already does this for DuckDB's C++ engine — same isolation pattern (separate module, `//go:build cgo`, static link) |
+| **Sidecar process** (Iroh node + local gRPC/Unix socket)     | Medium    | None directly, but clean separation                                                                                                |
+| **Pure-Go reimplementation** of Iroh's QUIC+gossip protocols | Very high | Not recommended — defeats the purpose                                                                                              |
 
 The CGo path is the most consistent with existing architecture: isolate in `transport/iroh/` (or `metaengine/irohengine/`) with its own `go.mod` so consumers who do not import it never need CGo — exactly the `stack/duckdb` precedent.
 
@@ -323,6 +323,7 @@ distributed_materialize_cost(q) = write_rate × fold_cost + sync_cost + read_rat
 ```
 
 Where `sync_cost` depends on peer count, bandwidth, and reconciliation efficiency. This wins when:
+
 - Multiple geographies need low-latency reads (no single-origin bottleneck)
 - Devices go offline frequently (edge/mobile/IoT)
 - Per-node write volume is low but aggregate read volume is high
@@ -335,26 +336,26 @@ Same cost comparison, one more row. No new dimension.
 
 ### Changes for the replication model (DONE — without Iroh)
 
-| Component | Change | Status |
-|---|---|---|
-| `EngineProfile` | Add `Replication` + `ReplicationLag` + `NetworkRTT` fields | Done |
-| All existing engines | Zero-value defaults (`ReplicationNone`, lag=0, RTT=0) — no code changes | Done |
-| `QueryConfig` | **No changes** — replication is engine-only | N/A |
-| Cost estimator | `NetworkRTT` added as additive latency | Done |
-| Planner | Pass `profile.NetworkRTT` to cost estimator | Done |
-| Tests | 6 tests pinning the model (zero-value defaults, RTT additive, no volume scaling) | Done |
-| `adttest.RunMatrix` | Unchanged | N/A |
+| Component            | Change                                                                           | Status |
+| -------------------- | -------------------------------------------------------------------------------- | ------ |
+| `EngineProfile`      | Add `Replication` + `ReplicationLag` + `NetworkRTT` fields                       | Done   |
+| All existing engines | Zero-value defaults (`ReplicationNone`, lag=0, RTT=0) — no code changes          | Done   |
+| `QueryConfig`        | **No changes** — replication is engine-only                                      | N/A    |
+| Cost estimator       | `NetworkRTT` added as additive latency                                           | Done   |
+| Planner              | Pass `profile.NetworkRTT` to cost estimator                                      | Done   |
+| Tests                | 6 tests pinning the model (zero-value defaults, RTT additive, no volume scaling) | Done   |
+| `adttest.RunMatrix`  | Unchanged                                                                        | N/A    |
 
 **Fully backward compatible.** No existing behavior changes. All new fields default to zero.
 
 ### Changes required for Iroh integration (future work)
 
-| Component | Change | Effort |
-|---|---|---|
-| `metaengine/irohengine/` (new module) | CGo FFI over Iroh C bindings, implement MapBackend + SetBackend + CounterBackend + MultimapBackend + LogBackend | High |
-| `adttest.RunMatrix` | Add irohengine factory — passes 5 supported ADT scenarios | Small |
-| Iroh EngineProfile | `Replication: ReplicationLeaderless`, `ReplicationLag: 5s`, `NetworkRTT: ~50ms` | Trivial |
-| Level 2 replication wrapper | `iroh.Replicated(engine, ...)` — intercepts writes, syncs via iroh-docs | High |
+| Component                             | Change                                                                                                          | Effort  |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------- |
+| `metaengine/irohengine/` (new module) | CGo FFI over Iroh C bindings, implement MapBackend + SetBackend + CounterBackend + MultimapBackend + LogBackend | High    |
+| `adttest.RunMatrix`                   | Add irohengine factory — passes 5 supported ADT scenarios                                                       | Small   |
+| Iroh EngineProfile                    | `Replication: ReplicationLeaderless`, `ReplicationLag: 5s`, `NetworkRTT: ~50ms`                                 | Trivial |
+| Level 2 replication wrapper           | `iroh.Replicated(engine, ...)` — intercepts writes, syncs via iroh-docs                                         | High    |
 
 ### Recommendation
 

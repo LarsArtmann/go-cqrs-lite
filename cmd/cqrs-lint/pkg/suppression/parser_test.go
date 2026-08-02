@@ -243,7 +243,9 @@ func fold() {
 		t.Fatalf("got %d findings, want 1", len(out))
 	}
 	if out[0].Suppression != nil {
-		t.Fatal("finding should NOT be suppressed — non-blank line between comment and finding breaks the scan")
+		t.Fatal(
+			"finding should NOT be suppressed — non-blank line between comment and finding breaks the scan",
+		)
 	}
 }
 

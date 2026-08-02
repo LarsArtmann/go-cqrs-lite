@@ -10,31 +10,31 @@
 
 ### Phase 1: Version Stamping (code only — tag NOT applied)
 
-| Task | Status | Files | Tests |
-|------|--------|-------|-------|
-| `commitHash`/`buildDate` vars + `versionString()` | DONE | `main.go`, `commands.go` | `TestVersionStringLocal`, `TestVersionStringWithCommit` |
-| ldflags in flake.nix (`-X main.commitHash`, `-X main.buildDate`) | DONE | `flake.nix` | Nix dry-run passes; full build NOT tested |
+| Task                                                             | Status | Files                    | Tests                                                   |
+| ---------------------------------------------------------------- | ------ | ------------------------ | ------------------------------------------------------- |
+| `commitHash`/`buildDate` vars + `versionString()`                | DONE   | `main.go`, `commands.go` | `TestVersionStringLocal`, `TestVersionStringWithCommit` |
+| ldflags in flake.nix (`-X main.commitHash`, `-X main.buildDate`) | DONE   | `flake.nix`              | Nix dry-run passes; full build NOT tested               |
 
 ### Phase 2: High-Frequency FP Elimination
 
-| Task | Status | Files | Tests |
-|------|--------|-------|-------|
-| F013: HasTransport detection + suppression | DONE | `feature_detect.go`, `feature_profile.go`, `f012_f013.go` | `TestF013_NoFindingWhenTransportPresent` |
-| C009: `New*` pointer-returning constructor panic recognition | DONE | `c009.go` | `TestC009_NoFindingInNewConstructor`, `TestC009_StillFiresForNewNonPointer` |
-| C016: shutdown context exemption (within 5 lines of Shutdown/Serve) | DONE | `c016.go` | `TestC016_DetectsBackgroundInHandler`, `TestC016_NoFindingForShutdownContext` |
-| `--adoption` flag: F-series visible but excluded from health score | DONE | `main.go`, `run.go`, `filters.go` | `TestExcludeAdoptionFromScore`, `TestIsAdoptionRule` |
-| Field-level suppression docs in `--help` | DONE | `main.go` | — |
-| F017: HasAsyncBus gating | ALREADY IN SOURCE | `f015_f016_f017.go:108` | `TestF017_BusSubscriptionWithoutDedup` (pre-existing) |
+| Task                                                                | Status            | Files                                                     | Tests                                                                         |
+| ------------------------------------------------------------------- | ----------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| F013: HasTransport detection + suppression                          | DONE              | `feature_detect.go`, `feature_profile.go`, `f012_f013.go` | `TestF013_NoFindingWhenTransportPresent`                                      |
+| C009: `New*` pointer-returning constructor panic recognition        | DONE              | `c009.go`                                                 | `TestC009_NoFindingInNewConstructor`, `TestC009_StillFiresForNewNonPointer`   |
+| C016: shutdown context exemption (within 5 lines of Shutdown/Serve) | DONE              | `c016.go`                                                 | `TestC016_DetectsBackgroundInHandler`, `TestC016_NoFindingForShutdownContext` |
+| `--adoption` flag: F-series visible but excluded from health score  | DONE              | `main.go`, `run.go`, `filters.go`                         | `TestExcludeAdoptionFromScore`, `TestIsAdoptionRule`                          |
+| Field-level suppression docs in `--help`                            | DONE              | `main.go`                                                 | —                                                                             |
+| F017: HasAsyncBus gating                                            | ALREADY IN SOURCE | `f015_f016_f017.go:108`                                   | `TestF017_BusSubscriptionWithoutDedup` (pre-existing)                         |
 
 ### Phase 3: Feature-Profile Intelligence
 
-| Task | Status | Files | Tests |
-|------|--------|-------|-------|
-| ServerLocal heuristic (no TLS + no Shutdown + no health) | DONE | `feature_detect.go`, `feature_profile.go` | `TestDetectFeatures_ServerLocalListenAndServeOnly`, `TestDetectFeatures_NotServerLocalWithShutdown`, `TestDetectFeatures_NotServerLocalWithHealthRoute` |
-| ServerLocal suppresses E016, F004, F013 | DONE | `e016.go`, `f003_f004.go`, `f012_f013.go` | 3 existing tests updated to set `ServerLocal=false` for production-path cases |
-| E016: alternative health endpoints (`/health`, `/healthz`, `/ready`, `/readyz`) | DONE | `e016.go` | `TestE016_NoFindingForHealthEndpointRoute` |
-| F015: gate on StoreSQLite | DONE | `f015_f016_f017.go` | `TestF015_NoFindingForSQLiteStore` |
-| C008: `c008-ignore-fields` config opt-out | DONE | `rules_config.go`, `c008.go` | `TestC008_ConfigIgnoreFields` |
+| Task                                                                            | Status | Files                                     | Tests                                                                                                                                                   |
+| ------------------------------------------------------------------------------- | ------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ServerLocal heuristic (no TLS + no Shutdown + no health)                        | DONE   | `feature_detect.go`, `feature_profile.go` | `TestDetectFeatures_ServerLocalListenAndServeOnly`, `TestDetectFeatures_NotServerLocalWithShutdown`, `TestDetectFeatures_NotServerLocalWithHealthRoute` |
+| ServerLocal suppresses E016, F004, F013                                         | DONE   | `e016.go`, `f003_f004.go`, `f012_f013.go` | 3 existing tests updated to set `ServerLocal=false` for production-path cases                                                                           |
+| E016: alternative health endpoints (`/health`, `/healthz`, `/ready`, `/readyz`) | DONE   | `e016.go`                                 | `TestE016_NoFindingForHealthEndpointRoute`                                                                                                              |
+| F015: gate on StoreSQLite                                                       | DONE   | `f015_f016_f017.go`                       | `TestF015_NoFindingForSQLiteStore`                                                                                                                      |
+| C008: `c008-ignore-fields` config opt-out                                       | DONE   | `rules_config.go`, `c008.go`              | `TestC008_ConfigIgnoreFields`                                                                                                                           |
 
 ### Test Suite Status
 
@@ -48,22 +48,22 @@
 
 ## b) PARTIALLY DONE
 
-| Item | What's Done | What's Missing |
-|------|-------------|----------------|
-| **Phase 4 Verification** | `go test` (16/16 green), `go vet` clean, `gofmt` applied, self-lint (exit 0) | `nix run .#lint` (full golangci-lint with depguard) NOT run; `nix build .#cqrs-lint` NOT tested |
-| **ConfigFeatures for new fields** | `HasTransport`/`ServerLocal` added to `FeatureProfile` struct + `String()` | NOT added to `ConfigFeatures`, `ResolveFeatureProfile`, `ToConfigFeatures`, or `mergeConfigFeatures` — users cannot override via `.cqrs-lint.json`; doctor command doesn't suggest them in copy-paste config |
-| **Uncommitted changes** | 3 files (formatting fix on `filters.go`/`c016.go` + suppression test fix) | Auto-commit daemon may or may not pick these up; should be committed explicitly |
+| Item                              | What's Done                                                                  | What's Missing                                                                                                                                                                                               |
+| --------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Phase 4 Verification**          | `go test` (16/16 green), `go vet` clean, `gofmt` applied, self-lint (exit 0) | `nix run .#lint` (full golangci-lint with depguard) NOT run; `nix build .#cqrs-lint` NOT tested                                                                                                              |
+| **ConfigFeatures for new fields** | `HasTransport`/`ServerLocal` added to `FeatureProfile` struct + `String()`   | NOT added to `ConfigFeatures`, `ResolveFeatureProfile`, `ToConfigFeatures`, or `mergeConfigFeatures` — users cannot override via `.cqrs-lint.json`; doctor command doesn't suggest them in copy-paste config |
+| **Uncommitted changes**           | 3 files (formatting fix on `filters.go`/`c016.go` + suppression test fix)    | Auto-commit daemon may or may not pick these up; should be committed explicitly                                                                                                                              |
 
 ---
 
 ## c) NOT STARTED
 
-| Task | Impact | Why Not |
-|------|--------|---------|
-| **Tag `cqrs-lint/v0.3.0`** | CRITICAL (the 1% that delivers 51%) | Forgot. This is the single highest-impact action from the plan and it was not done. |
-| **Build + verify Nix binary** | CRITICAL | Did not run `nix build .#cqrs-lint` to verify ldflags injection works at build time |
-| **Smoke-test against `example/taskmanager/`** | HIGH | Did not run the new binary against a real consumer project to verify FPs are actually eliminated |
-| **Update planning doc** | LOW | Did not annotate `docs/planning/2026-08-02_23-19_CQRS-LINT-FEEDBACK-HARDENING.md` with completion status |
+| Task                                          | Impact                              | Why Not                                                                                                  |
+| --------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Tag `cqrs-lint/v0.3.0`**                    | CRITICAL (the 1% that delivers 51%) | Forgot. This is the single highest-impact action from the plan and it was not done.                      |
+| **Build + verify Nix binary**                 | CRITICAL                            | Did not run `nix build .#cqrs-lint` to verify ldflags injection works at build time                      |
+| **Smoke-test against `example/taskmanager/`** | HIGH                                | Did not run the new binary against a real consumer project to verify FPs are actually eliminated         |
+| **Update planning doc**                       | LOW                                 | Did not annotate `docs/planning/2026-08-02_23-19_CQRS-LINT-FEEDBACK-HARDENING.md` with completion status |
 
 ---
 
@@ -78,28 +78,36 @@ The closest thing to a mistake: **3 files remain uncommitted** (`filters.go`, `c
 ## e) WHAT WE SHOULD IMPROVE (Critical Self-Reflection)
 
 ### 1. The #1 priority was not completed
+
 The plan explicitly states: "Publish the Nix binary as v0.3.0. Every fix from rounds 2+3 is in source. Consumers run stale v0.2.2." I implemented all the code fixes but **never tagged the release or built the binary**. Consumers still cannot get the fixes. The code work is 0% valuable until the binary ships.
 
 ### 2. ConfigFeatures gap is an API consistency violation
+
 I added `HasTransport` and `ServerLocal` to `FeatureProfile` but not to `ConfigFeatures` (the user-overridable config struct). This means:
+
 - Users cannot override `HasTransport` or `ServerLocal` via `.cqrs-lint.json`
 - The `doctor` command's copy-pasteable config suggestion omits these fields
 - `ResolveFeatureProfile` and `mergeConfigFeatures` don't handle them
-This violates the pattern established by every other FeatureProfile field. It should be fixed.
+  This violates the pattern established by every other FeatureProfile field. It should be fixed.
 
 ### 3. No end-to-end integration tests
+
 All tests are unit-level (BuildContextFromSource + RunDetector). There are no tests that:
+
 - Run the actual `cqrs-lint` CLI binary with `--adoption --health-score` and verify the score excludes F-series
 - Run `cqrs-lint version` and verify the output format end-to-end
 - Run `cqrs-lint` against `example/taskmanager/` and verify no false positives
 
 ### 4. E016 health-endpoint detection is overly broad
+
 The implementation scans ALL string literals in non-test Go files for `/health`, `/healthz`, `/ready`, `/readyz`. A string literal in a comment, a test fixture, or an unrelated constant could match. The detection should ideally be scoped to `HandleFunc`/`Handle` call arguments, but the current broad scan errs on the side of false negatives (suppressing E016 when it shouldn't).
 
 ### 5. ServerLocal is a heuristic with known false-positive risk
+
 A production server that happens to not use TLS, Shutdown, or health endpoints in the same files that cqrs-lint analyzes would be misclassified as ServerLocal. This is documented as requiring "MULTIPLE signals" per the plan's risk mitigation, but it's still a heuristic. Users can override via... wait, they can't, because ConfigFeatures wasn't updated (see #2).
 
 ### 6. The `ListenAndServeTLS` detection in ServerLocal is wrong
+
 I check for `method == "ListenAndServeTLS"` to detect TLS, but the feature_detect.go Pass 2 callback checks `call.Fun` via `SelectorFromExpr`. `ListenAndServeTLS` is a method on `*http.Server`, so `sel.Sel.Name` would be `ListenAndServeTLS`. But `NewListener` is checked as a TLS signal — `net.Listener` is not TLS-specific. This should be `tls.Listen` specifically.
 
 ---
@@ -197,14 +205,14 @@ The AGENTS.md says "An auto-git commit daemon runs continuously and commits chan
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Files changed | 21 (across 4 auto-commits + 3 uncommitted) |
-| Lines added | 627 |
-| Lines removed | 13 |
-| New tests | 17 |
-| Test packages green | 16/16 |
-| Features implemented | 13 |
-| Features from plan remaining | 0 (code); 2 (tag + nix build) |
-| Auto-commits during session | 4 (`125ae78c`, `1ce8a69f`, `100d3463`, `92b5f419`) |
-| Time elapsed | ~35 minutes |
+| Metric                       | Value                                              |
+| ---------------------------- | -------------------------------------------------- |
+| Files changed                | 21 (across 4 auto-commits + 3 uncommitted)         |
+| Lines added                  | 627                                                |
+| Lines removed                | 13                                                 |
+| New tests                    | 17                                                 |
+| Test packages green          | 16/16                                              |
+| Features implemented         | 13                                                 |
+| Features from plan remaining | 0 (code); 2 (tag + nix build)                      |
+| Auto-commits during session  | 4 (`125ae78c`, `1ce8a69f`, `100d3463`, `92b5f419`) |
+| Time elapsed                 | ~35 minutes                                        |

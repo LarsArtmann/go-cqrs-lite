@@ -20,7 +20,7 @@ cleanup() {
     if [ -f "$PGDATA/postmaster.pid" ]; then
         pg_ctl -D "$PGDATA" -m fast stop -w 2>/dev/null || true
     fi
-    rm -rf "$PGDATA"
+    rm -rf "$PGDATA" "${SOCKDIR:-}"
 }
 trap cleanup EXIT INT TERM
 
@@ -33,9 +33,13 @@ fi
 echo "==> Initializing ephemeral PostgreSQL (port $PG_PORT, data $PGDATA)"
 initdb -D "$PGDATA" -A trust --no-locale --username=cqrs 2>&1 | tail -3
 
+# NixOS puts /run/postgresql as the default socket dir, which requires root.
+# Override to a temp directory.
+SOCKDIR=$(mktemp -d /tmp/cqrs-pg-socks-XXXXXX)
+
 echo "==> Starting PostgreSQL"
 pg_ctl -D "$PGDATA" \
-    -o "-c listen_addresses='127.0.0.1' -c port=$PG_PORT -c log_min_messages=WARNING" \
+    -o "-c listen_addresses='127.0.0.1' -c port=$PG_PORT -c log_min_messages=WARNING -c unix_socket_directories='$SOCKDIR'" \
     -l "$PGDATA/pg.log" start -w
 
 # Create the test database
@@ -47,21 +51,34 @@ export DATABASE_URL="$POSTGRES_TEST_DSN"
 echo "==> PostgreSQL ready: $POSTGRES_TEST_DSN"
 
 # Determine what to run
-if [ $# -gt 0 ]; then
-    # If args start with "go", assume the caller wants to run go directly
-    if [ "$1" = "go" ]; then
-        shift
-        echo "==> Running: go $*"
-        go "$@"
-    elif [[ "$1" == ./...* ]] || [[ "$1" == ./* ]]; then
-        # Package paths passed directly
-        echo "==> Running: go test -tags=integration $*"
-        go test -tags "integration goexperiment.jsonv2" "$@" -count=1 -v
-    else
-        # Assume it's a test pattern or flag
-        echo "==> Running integration tests: $*"
-        go test -tags "integration goexperiment.jsonv2" ./storage/... ./stack/postgres/... ./metaengine/pgengine/... ./benchkit/... -count=1 -v -run "$*"
+if [ $# -gt 0 ] && [ "$1" = "go" ]; then
+    shift
+    echo "==> Running: go $*"
+    go "$@"
+else
+    # Default: run all (or filtered) Postgres integration tests per-module.
+    # Per-module GOWORK=off is required because the multi-module workspace
+    # doesn't resolve integration build tags correctly in workspace mode.
+    EXTRA_ARGS="$*"
+    FAILED=0
+
+    for mod in storage stack/postgres metaengine/pgengine benchkit; do
+        echo ""
+        echo "--- $mod ---"
+        (
+            cd "$mod"
+            CGO_ENABLED=1 GOWORK=off \
+            go test -tags "integration goexperiment.jsonv2" ./... \
+                -count=1 -v $EXTRA_ARGS 2>&1
+        ) || FAILED=1
+    done
+
+    if [ "$FAILED" -ne 0 ]; then
+        echo ""
+        echo "❌ Some integration tests failed"
+        exit 1
     fi
+fi
 else
     # Default: run all Postgres integration tests across all modules
     echo "==> Running all PostgreSQL integration tests"

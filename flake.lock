@@ -125,11 +125,11 @@
     "go-nix-helpers": {
       "flake": false,
       "locked": {
-        "lastModified": 1784927198,
-        "narHash": "sha256-TF/8f6z9xKBpAPj+/CkThvr2Xt1ddUNydeGqHei9S+k=",
+        "lastModified": 1785711355,
+        "narHash": "sha256-lBlDqg2b/6vtQnQSW/a0yOwq7PQpFCJybAGQJ5P0cgE=",
         "owner": "LarsArtmann",
         "repo": "go-nix-helpers",
-        "rev": "7e7e0bfa2f250abecdba2fbb42b57e3f08e8b9e5",
+        "rev": "1f11fe1c72221ef2233d82d2968e8c86d7894b0c",
         "type": "github"
       },
       "original": {
