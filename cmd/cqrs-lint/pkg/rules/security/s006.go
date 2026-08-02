@@ -23,8 +23,11 @@ import (
 //     identifiers. Fire alone at High confidence.
 //   - MEDIUM (salary, invoice, payment, …) — financial-domain nouns that
 //     imply monetary data. Fire at Medium confidence.
-//   - WEAK (amount, price, total, …) — generic monetary lexemes. Require
+//   - WEAK (amount, price, balance, …) — generic monetary lexemes. Require
 //     ≥2 distinct WEAK indicators (compound threshold) to fire at Low.
+//     "total" is intentionally excluded: it matches far more non-financial
+//     fields (TotalVisits, TotalCount, TotalDuration, …) than financial ones.
+//     "subtotal" remains because it is unambiguously financial.
 //
 // All tiers require serialization evidence — a struct must have at least one
 // field tagged json/cbor/db/gorm/sql to qualify. In-memory calculation structs

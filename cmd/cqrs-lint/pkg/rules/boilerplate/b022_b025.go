@@ -12,7 +12,7 @@ import (
 
 // B022: Manual correlation enricher instead of CommandCausalityEnricher.
 // Detects custom enricher functions passed to decider.NewRepository that are
-// not decider.CommandCausalityEnricher. Custom enrichers miss the typed
+// not event.CommandCausalityEnricher. Custom enrichers miss the typed
 // command causality metadata that CommandCausalityEnricher provides.
 //
 //nolint:ireturn // factory returns public interface
@@ -77,19 +77,26 @@ func NewB022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							continue
 						}
 
+						// WithEnricher(event.CommandCausalityEnricher) wraps the
+						// canonical enricher — not a custom one. Inspect its
+						// arguments to avoid flagging the recommended pattern.
+						if argName == "WithEnricher" && wrapsCanonicalEnricher(argCall) {
+							continue
+						}
+
 						pos := ctx.Fset.Position(argCall.Pos())
 
 						f, err := finding.NewBuilder(
 							"B022", toolName,
 							"Custom enricher ("+argName+") passed to decider.NewRepository — "+
-								"use decider.CommandCausalityEnricher for typed command causality",
+								"use event.CommandCausalityEnricher for typed command causality",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
 							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceMedium).
 							WithFixStrategy(finding.FixStrategySuggest).
-							WithSuggestion("Replace the custom enricher with decider.CommandCausalityEnricher — " +
+							WithSuggestion("Replace the custom enricher with event.CommandCausalityEnricher — " +
 								"it stamps metadata.command.type and metadata.command.id on every event").
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
@@ -105,6 +112,24 @@ func NewB022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// wrapsCanonicalEnricher returns true when a WithEnricher call receives
+// event.CommandCausalityEnricher (or WithCommandCausality) directly as one
+// of its arguments, meaning the enricher is NOT custom.
+func wrapsCanonicalEnricher(call *ast.CallExpr) bool {
+	for _, arg := range call.Args {
+		sel, ok := analyzer.SelectorFromExpr(arg)
+		if !ok {
+			continue
+		}
+
+		if sel.Sel.Name == "CommandCausalityEnricher" || sel.Sel.Name == "WithCommandCausality" {
+			return true
+		}
+	}
+
+	return false
 }
 
 func containsEnricher(s string) bool {

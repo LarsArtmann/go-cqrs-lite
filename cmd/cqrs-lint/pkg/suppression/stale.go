@@ -130,6 +130,8 @@ func detectStaleBlocks(
 	for lineIdx, line := range lines {
 		lineNum := lineIdx + 1
 
+		line = normalizeCommentPrefix(line)
+
 		if strings.Contains(line, blockStartPrefix) {
 			rules := parseBlockStart(line)
 			openBlocks = append(openBlocks, block{

@@ -68,6 +68,14 @@ func (c *lineCache) getLines(path string) []string {
 	return lines
 }
 
+// normalizeCommentPrefix converts the Go-idiomatic "// cqrs-lint:..." (space
+// after //) into the canonical "//cqrs-lint:..." form so both comment styles
+// are recognized. gofmt does not normalize the space after //, so consumers
+// naturally write "// cqrs-lint:ignore(C007)" — this must work.
+func normalizeCommentPrefix(line string) string {
+	return strings.Replace(line, "// cqrs-lint:", "//cqrs-lint:", 1)
+}
+
 // NewSuppressionFilter creates a FindingTransformer that marks findings
 // suppressed by inline //cqrs-lint:ignore(rule-id) comments.
 //
@@ -187,7 +195,7 @@ func checkBlockSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 	for i := line; i >= 1; i-- {
 		text := strings.TrimSpace(lines[i-1])
 		// Normalize: accept "//cqrs-lint:ignore-start" and "// cqrs-lint:ignore-start"
-		text = strings.TrimPrefix(text, "// ")
+		text = normalizeCommentPrefix(text)
 
 		if strings.HasPrefix(text, blockEndPrefix) {
 			return false // outside a block
@@ -248,8 +256,8 @@ func ParseSuppressions(commentText string) map[string]string {
 	lines := strings.SplitSeq(commentText, "\n")
 	for line := range lines {
 		line = strings.TrimSpace(line)
-		// Accept both "//cqrs-lint:ignore" and "// cqrs-lint:ignore".
-		line = strings.TrimPrefix(line, "// ")
+		// Normalize: accept both "//cqrs-lint:ignore" and "// cqrs-lint:ignore".
+		line = normalizeCommentPrefix(line)
 		if !strings.HasPrefix(line, commentPrefix) {
 			continue
 		}
