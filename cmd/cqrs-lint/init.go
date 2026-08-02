@@ -88,7 +88,7 @@ func setupInitCommand(cli *cmdguard.CLI[AppConfig]) error {
 			preset := strings.TrimSpace(flags.Preset)
 			content, ok := presetConfigs[preset]
 			if !ok {
-				return fmt.Errorf(
+				return fmt.Errorf( //nolint:err113 // preset name is dynamic
 					"unknown preset %q (available: local-cli, library, server, full-stack)",
 					preset,
 				)
