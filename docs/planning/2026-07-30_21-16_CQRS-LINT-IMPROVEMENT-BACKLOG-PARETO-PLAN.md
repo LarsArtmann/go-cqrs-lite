@@ -10,6 +10,14 @@
 > E010/E011/E013/E014 were rewritten with type-aware matching (hardening session),
 > closing the "architecturally wrong" quality gap. C030/S006 were reviewed and found
 > correct (no change needed). ~29 items remain open; the linter now has 175 rules.
+>
+> **Update 2026-08-02:** The linter now has **181 rules** (A033 branded-ID
+> roundtrip + C037 codec mismatch added). Block-level suppression (ADR-0088)
+> shipped, closing L1.22. L1.9 (C017 tracing), L1.16 (migration paths), L1.17
+> (doc links), L1.39 (A033), and L1.42 (C033) are also done. **~14 items remain
+> open** — see [TODO_LIST.md](../../../TODO_LIST.md) for the current shortlist.
+> Top open: L1.5 (domain severity), L1.29 (event-type typo detection),
+> L1.47–L1.51 (new categories DOC/OBS/RES/DI).
 
 ---
 
