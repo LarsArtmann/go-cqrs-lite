@@ -256,6 +256,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | Transaction API             | Fully threaded `*sql.Tx` through engine operations (atomic multi-collection updates)                            | 🧪     |
 | ADT test harness            | `adttest.RunMatrix` — cross-engine parity tests for all 10 ADTs. Reflect-based capability auto-detect           | 🧪     |
 | Property-based parity       | `pgregory.net/rapid` generates random op sequences, verifies Memory and SQLite agree on every operation         | 🧪     |
+| 10M memory soak             | `TestSoak_MemoryBounded_10M` — 10M events into 1000 keys → 0.1 MB heap growth, flat growth curve, O(keys) bound | 🧪     |
 | Aggregate pushdown          | `AggregateReader` interface — SQL COUNT/SUM/MIN/MAX/AVG pushdown via the engine                                 | 🧪     |
 | Error sentinels             | Exported `ErrNotFound`, `ErrAmbiguousKey`, `ErrUnsupportedADT`, `ErrLayoutConflict` wired into execution paths  | 🧪     |
 | `OnTyped(eventType, ...)`   | Bind a fold to an explicit CQRS event-type string (decouples from the Go struct name)                           | 🧪     |

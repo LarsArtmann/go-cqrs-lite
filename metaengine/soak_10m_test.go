@@ -67,7 +67,7 @@ func TestSoak_MemoryBounded_10M(t *testing.T) {
 
 	const (
 		numEvents   = 10_000_000
-		numKeys     = 1_000      // 10K updates per key — memory bounded by numKeys
+		numKeys     = 1_000     // 10K updates per key — memory bounded by numKeys
 		sampleEvery = 2_000_000 // sample heap every 2M events
 	)
 
