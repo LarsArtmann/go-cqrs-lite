@@ -467,3 +467,32 @@ func setup() {
 		t.Errorf("stack/mysql import should detect StoreMySQL, got %s", fp.Store)
 	}
 }
+
+func TestDetectFeatures_StorageNewSQLiteEventStore(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup(db *sql.DB) {
+	store, _ := storage.NewSQLiteEventStore(db)
+	_ = store
+}
+`,
+	})
+	ctx.Packages = []*packages.Package{
+		{
+			PkgPath: "example.com/app",
+			Imports: map[string]*packages.Package{
+				"github.com/larsartmann/go-cqrs-lite/storage/v4": {
+					PkgPath: "github.com/larsartmann/go-cqrs-lite/storage/v4",
+				},
+			},
+		},
+	}
+
+	fp := DetectFeatures(ctx)
+	if fp.Store != StoreSQLite {
+		t.Errorf("storage.NewSQLiteEventStore should refine StoreCustom→StoreSQLite, got %s", fp.Store)
+	}
+}

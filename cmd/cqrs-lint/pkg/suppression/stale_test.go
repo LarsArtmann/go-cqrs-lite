@@ -79,6 +79,42 @@ func TestDetectStaleSuppressions_MatchesOnSameLine(t *testing.T) {
 	}
 }
 
+func TestDetectStaleSuppressions_CombinedDirectivePartialMatch(t *testing.T) {
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "example.go")
+	_ = os.WriteFile(
+		src,
+		[]byte("package main\n\n//cqrs-lint:ignore(A001,B002)\ntype Foo struct{}\n"),
+		0o644,
+	)
+
+	findings := []finding.Finding{
+		{Rule: "A001", Position: finding.Position{File: finding.FilePath(src), Line: 4}},
+	}
+
+	stale := suppression.DetectStaleSuppressions([]string{src}, findings)
+	if len(stale) != 0 {
+		t.Fatalf("got %d stale, want 0 (combined directive has at least one matching rule)", len(stale))
+	}
+}
+
+func TestDetectStaleSuppressions_CombinedDirectiveNoMatch(t *testing.T) {
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "example.go")
+	_ = os.WriteFile(
+		src,
+		[]byte("package main\n\n//cqrs-lint:ignore(A001,B002)\ntype Foo struct{}\n"),
+		0o644,
+	)
+
+	findings := []finding.Finding{}
+
+	stale := suppression.DetectStaleSuppressions([]string{src}, findings)
+	if len(stale) != 2 {
+		t.Fatalf("got %d stale, want 2 (no rule in the combined directive matches)", len(stale))
+	}
+}
+
 func TestDetectStaleBlocks_StaleBlock(t *testing.T) {
 	t.Parallel()
 

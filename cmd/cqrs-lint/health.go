@@ -20,6 +20,11 @@ type HealthScore struct {
 	Score     int
 	Grade     string
 	Breakdown map[string]int
+	// RawScore is the unclamped score (may be negative). When Score is 0
+	// because deductions exceed 100, RawScore shows how far below zero the
+	// project actually is — e.g., "0/100 (clamped from -43)" motivates the
+	// user by showing that even a few fixes would move the needle.
+	RawScore int
 	// InfoCapped is true when the raw Info deductions exceeded the cap and were
 	// truncated. Exposed for --verbose transparency.
 	InfoCapped bool
@@ -109,7 +114,8 @@ func ComputeHealthScoreWithCap(findings []finding.Finding, infoCap int) HealthSc
 	}
 
 	total := totalCritical + totalError + totalWarning + totalInfo
-	score := max(100-int(math.Round(total)), 0)
+	rawScore := 100 - int(math.Round(total))
+	score := max(rawScore, 0)
 
 	// Round the breakdown once from accumulated floats for consistency.
 	breakdown := make(map[string]int, len(rawBreakdown))
@@ -130,6 +136,7 @@ func ComputeHealthScoreWithCap(findings []finding.Finding, infoCap int) HealthSc
 
 	hs := HealthScore{
 		Score:          score,
+		RawScore:       rawScore,
 		Grade:          grade,
 		Breakdown:      breakdown,
 		InfoCapApplied: infoCap,

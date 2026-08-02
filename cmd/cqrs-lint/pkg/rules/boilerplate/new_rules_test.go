@@ -366,6 +366,21 @@ func setup() {
 	ruletest.AssertRule(t, findings, "B013", 1)
 }
 
+func TestB013_NoFindingForCommandCausalityEnricher(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"repo.go": `package main
+
+func setup() {
+	repo := decider.NewRepository(store, bus, d,
+		decider.WithEnricher(event.CommandCausalityEnricher))
+	_ = repo
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB013Detector(ctx))
+	ruletest.AssertRule(t, findings, "B013", 0)
+}
+
 // --- B014: Missing OTel middleware ---
 
 func TestB014_NoFindingWithoutMiddleware(t *testing.T) {

@@ -95,9 +95,24 @@ func detectStaleInline(
 
 		lineNum := lineIdx + 1
 
+		// For combined directives (//cqrs-lint:ignore(A,B,C)), suppress the
+		// stale warning for individual rules when at least one rule in the
+		// directive DOES fire at this location. Combined directives are often
+		// applied uniformly across parallel code paths (e.g., SQLite vs
+		// in-memory implementations) where different detectors fire in each.
+		// Reporting the non-firing rules as stale is noise — the directive is
+		// still useful because at least one rule matches.
+		anyMatched := false
+		for rule := range suppressions {
+			if matched[suppressionLocation{path, lineNum, rule}] {
+				anyMatched = true
+				break
+			}
+		}
+
 		for rule, reason := range suppressions {
 			loc := suppressionLocation{path, lineNum, rule}
-			if !matched[loc] {
+			if !matched[loc] && !anyMatched {
 				stale = append(stale, StaleSuppression{
 					File:   path,
 					Line:   lineNum,

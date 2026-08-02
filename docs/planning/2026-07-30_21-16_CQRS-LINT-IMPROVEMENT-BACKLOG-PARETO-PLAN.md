@@ -11,12 +11,15 @@
 > closing the "architecturally wrong" quality gap. C030/S006 were reviewed and found
 > correct (no change needed). ~29 items remain open; the linter now has 175 rules.
 >
-> **Update 2026-08-02:** The linter now has **181 rules** (A033 branded-ID
-> roundtrip + C037 codec mismatch added). Block-level suppression (ADR-0088)
-> shipped, closing L1.22. L1.9 (C017 tracing), L1.16 (migration paths), L1.17
-> (doc links), L1.39 (A033), and L1.42 (C033) are also done. **~14 items remain
+> **Update 2026-08-02:** The linter now has **185 rules** (C038 event-type typo,
+> C039 goroutine leak, S011 PII detection, D017 domain error classification
+> added). Block-level suppression (ADR-0088) shipped, closing L1.22. L1.9
+> (C017 tracing), L1.16 (migration paths), L1.17 (doc links), L1.39 (A033),
+> L1.42 (C033), L1.18 (config inheritance), L1.21 (SARIF metadata),
+> L1.29 (event-type typo), L1.32 (domain error classification), L1.33
+> (goroutine leak), and L1.35 (PII detection) are also done. **~8 items remain
 > open** — see [TODO_LIST.md](../../../TODO_LIST.md) for the current shortlist.
-> Top open: L1.5 (domain severity), L1.29 (event-type typo detection),
+> Top open: L1.5 (domain severity), L1.45 (shared mutable state),
 > L1.47–L1.51 (new categories DOC/OBS/RES/DI).
 
 ---
@@ -146,10 +149,10 @@ See Level 1 and Level 2 tables below.
 | L1.15 | Add CI step: `cqrs-lint` self-lint must pass on own repo                        | 132   | **[P20]** | High (regression gate)          | 60 min | L1.14        | Open                        |
 | L1.16 | Implement migration paths in findings (add `Suggestion` / `FixHint` to Finding) | 103   | **[P80]** | Medium (DX quality)             | 90 min | None         | ✅ DONE (DocURL enrichment) |
 | L1.17 | Implement doc links in findings (add `DocURL` to Finding + catalog entries)     | 104   | **[P80]** | Medium (DX quality)             | 60 min | L1.16        | ✅ DONE (LookupRule)        |
-| L1.18 | Implement config inheritance (parent `.cqrs-lint.json` with local overrides)    | 121   | **[P80]** | Medium (monorepo support)       | 60 min | None         | Open                        |
+| L1.18 | Implement config inheritance (parent `.cqrs-lint.json` with local overrides)    | 121   | **[P80]** | Medium (monorepo support)       | 60 min | None         | ✅ DONE                     |
 | L1.19 | Implement feature adoption scorecard (beyond health score)                      | 113   | **[P80]** | Medium (DX quality)             | 90 min | None         | Open                        |
 | L1.20 | Implement grouped output by aggregate/domain                                    | 112   | **[P80]** | Medium (DX quality)             | 90 min | None         | Open                        |
-| L1.21 | Add SARIF rule metadata (doc URL, severity, remediation in SARIF output)        | 117   | **[P80]** | Medium (GitHub Code Scanning)   | 60 min | L1.17        | Open                        |
+| L1.21 | Add SARIF rule metadata (doc URL, severity, remediation in SARIF output)        | 117   | **[P80]** | Medium (GitHub Code Scanning)   | 60 min | L1.17        | ✅ DONE (DocURL enrichment) |
 | L1.22 | Implement block-level suppression (`//cqrs-lint:ignore-start` / `ignore-end`)   | 133   | **[P80]** | Medium (DX quality)             | 90 min | L1.1         | ✅ DONE (parser.go)         |
 | L1.23 | Verify parallel rule safety + add linter benchmark suite                        | 123   | **[P80]** | Low (premature but cheap)       | 60 min | None         | Open                        |
 
@@ -167,18 +170,18 @@ See Level 1 and Level 2 tables below.
 
 | #     | Task                                                                | Items | Pareto    | Impact                     | Effort | Dependencies | Status |
 | ----- | ------------------------------------------------------------------- | ----- | --------- | -------------------------- | ------ | ------------ | ------ |
-| L1.29 | Implement event type string typo detection (cross-ref fold vs emit) | 135   | **[P80]** | Medium (silent event drop) | 90 min | None         | Open   |
+| L1.29 | Implement event type string typo detection (cross-ref fold vs emit) | 135   | **[P80]** | Medium (silent event drop) | 90 min | None         | ✅ DONE (C038)   |
 | L1.30 | Implement orphaned event types detection (extend E006 for adapters) | 136   | **[P80]** | Low-medium                 | 90 min | None         | Open   |
 | L1.31 | Implement orphaned commands detection (extend E005 for HTTP layer)  | 137   | **[P80]** | Low-medium                 | 60 min | None         | Open   |
-| L1.32 | Extend D006: stricter error family detection in domain files        | 138   | **[P80]** | Medium (consistency)       | 60 min | None         | Open   |
-| L1.33 | Implement goroutine leak in event handler detection                 | 141   | **[P80]** | Medium (resource leak)     | 60 min | None         | Open   |
+| L1.32 | Extend D006: stricter error family detection in domain files        | 138   | **[P80]** | Medium (consistency)       | 60 min | None         | ✅ DONE (D017)   |
+| L1.33 | Implement goroutine leak in event handler detection                 | 141   | **[P80]** | Medium (resource leak)     | 60 min | None         | ✅ DONE (C039)   |
 
 ### Phase 7: Domain & Data Model Rules
 
 | #     | Task                                                         | Items | Pareto    | Impact                | Effort | Dependencies | Status                     |
 | ----- | ------------------------------------------------------------ | ----- | --------- | --------------------- | ------ | ------------ | -------------------------- |
 | L1.34 | Extend C013: timestamp without timezone in projections       | 151   | **[P80]** | Medium (timezone bug) | 45 min | None         | ✅ DONE (projection views) |
-| L1.35 | Implement PII in event payloads without encryption/redaction | 152   | **[P80]** | Medium (compliance)   | 90 min | None         | Open                       |
+| L1.35 | Implement PII in event payloads without encryption/redaction | 152   | **[P80]** | Medium (compliance)   | 90 min | None         | ✅ DONE (S011)                       |
 | L1.36 | Implement event payload struct size limit (>20 fields)       | 153   | **[P80]** | Low (maintainability) | 45 min | None         | ✅ DONE (D016)             |
 | L1.37 | Implement string IDs instead of branded IDs                  | 176   | **[P80]** | Medium (type safety)  | 45 min | None         | ✅ DONE (A032)             |
 | L1.38 | Implement event payload without json tags                    | 177   | **[P80]** | Low (convention)      | 30 min | None         | ✅ DONE (D014)             |

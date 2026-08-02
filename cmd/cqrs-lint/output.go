@@ -100,14 +100,19 @@ func renderRulesTable(colorMode output.ColorMode) (string, error) {
 }
 
 func renderHealthScore(hs HealthScore, colorMode output.ColorMode) string {
+	scoreLabel := fmt.Sprintf("%d/100", hs.Score)
+	if hs.Score == 0 && hs.RawScore < 0 {
+		scoreLabel = fmt.Sprintf("%d/100 (clamped from %d)", hs.Score, hs.RawScore)
+	}
+
 	data := output.NewTableBuilder().
 		SetHeaders("Score", "Grade").
-		AddRow(fmt.Sprintf("%d/100", hs.Score), hs.Grade).
+		AddRow(scoreLabel, hs.Grade).
 		Build()
 
 	scoreTable, err := table.Render(data, table.WithColorMode(colorMode))
 	if err != nil {
-		return fmt.Sprintf("Score: %d/100 (%s)\n", hs.Score, hs.Grade)
+		return fmt.Sprintf("Score: %s (%s)\n", scoreLabel, hs.Grade)
 	}
 
 	if len(hs.Breakdown) == 0 {

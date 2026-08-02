@@ -131,12 +131,12 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					f, err := finding.NewBuilder(
 						"E007", toolName,
 						fmt.Sprintf("Query type %q has no registered handler — dispatching it will fail", ts.Name.Name),
-						finding.SeverityWarning,
+						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
 						WithCategory(finding.CategoryStructure).
 						WithConfidence(finding.ConfidenceLow).
-						WithSuggestion("Register the query via query.RegisterTyped or dispatcher.RegisterTyped").
+						WithSuggestion("Register the query via query.RegisterTyped or dispatcher.RegisterTyped, or suppress if registration is runtime/generic (E007 cannot trace through helpers)").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
