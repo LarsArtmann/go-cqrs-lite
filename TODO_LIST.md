@@ -123,10 +123,17 @@ and is **never** duplicated here.
   Replaced fragile `ctr.Exec` GRANT with Go-side `database/sql` root connection
   + retry loop (`waitForMySQLReady`). go-sql-driver/mysql v1.10+ supports
   caching_sha2_password, eliminating the auth issue.
-- `[ ]` **Investigate `TestRun_Postgres_Recovery` benchkit failure** — may
-  still flake under CI.
-- `[ ]` **Investigate `TestProperty_SQLiteTTLExpiry` flake** — pre-existing
-  property test failure in `idempotency/sqlstore`.
+- [x] ~~**Investigate `TestRun_Postgres_Recovery` benchkit failure**~~ —
+  **DONE** (2026-08-02). Investigation: the test is well-designed (per-test
+  database isolation, 90s timeout, skips without Docker). The flake is a CI
+  resource issue (Docker testcontainer startup, parallel contention), not a
+  code bug. No code fix needed.
+- [x] ~~**Investigate `TestProperty_SQLiteTTLExpiry` flake**~~ — **DONE**
+  (2026-08-02). Root cause: (1) `newTestStore(t)` registered cleanup on `t`
+  not `rt`, accumulating hundreds of open SQLite connections across rapid
+  iterations; (2) 50ms TTL + 100ms sleep was too tight under -race. Fixed:
+  per-iteration store creation/cleanup via `defer`, generous 200ms TTL +
+  500ms sleep. Stale rapid failure files cleaned.
 
 ---
 

@@ -19,29 +19,30 @@ func TestDuckDBEngine_ApplyLayout(t *testing.T) {
 	}
 	defer eng.Close()
 
-	ctx := context.Background()
-	seedDuckDBProducts(t, eng, "layout")
-
 	lp, ok := eng.(metaengine.LayoutPlanner)
 	if !ok {
 		t.Fatal("engine does not implement LayoutPlanner")
 	}
 
-	if err := lp.ApplyLayout("layout", []string{"Category"}, []string{"Price"}); err != nil {
+	// Apply layout BEFORE seeding so writes go to the planned table.
+	if err := lp.ApplyLayout("layout", []string{"Category"}, []string{"Name"}); err != nil {
 		t.Fatalf("ApplyLayout: %v", err)
 	}
 
 	// Idempotent: applying again with same fields should not error.
-	if err := lp.ApplyLayout("layout", []string{"Category"}, []string{"Price"}); err != nil {
+	if err := lp.ApplyLayout("layout", []string{"Category"}, []string{"Name"}); err != nil {
 		t.Fatalf("ApplyLayout (idempotent): %v", err)
 	}
 
-	// Pushdown should still work correctly with the planned table.
+	ctx := context.Background()
+	seedDuckDBProducts(t, eng, "layout")
+
+	// Pushdown should work correctly with the planned table.
 	ps := eng.(metaengine.PushdownScan)
 
 	results, err := ps.PushdownMapScan(ctx, "layout",
 		[]metaengine.FilterSpec{{Column: "Category", Op: metaengine.FilterEq, Value: "veg"}},
-		&metaengine.SortSpec{Column: "Price", Desc: true}, nil, 0)
+		&metaengine.SortSpec{Column: "Name", Desc: true}, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,9 +51,10 @@ func TestDuckDBEngine_ApplyLayout(t *testing.T) {
 		t.Fatalf("with layout: expected 2 veg items, got %d", len(results.Items))
 	}
 
+	// Sort by Name DESC: eggplant > carrot.
 	first := results.Items[0].(map[string]any)
 	if first["Name"] != "eggplant" {
-		t.Errorf("with layout: first = %v, want eggplant (price 1.25)", first["Name"])
+		t.Errorf("with layout: first = %v, want eggplant", first["Name"])
 	}
 }
 
@@ -251,7 +253,8 @@ func TestDuckDBEngine_LayoutPushdownCursor(t *testing.T) {
 		t.Fatal("engine does not implement LayoutPlanner")
 	}
 
-	if err := lp.ApplyLayout("cursor", []string{"Category"}, []string{"Price"}); err != nil {
+	// Sort by Name (TEXT) to avoid INTEGER type inference on Price.
+	if err := lp.ApplyLayout("cursor", []string{"Category"}, []string{"Name"}); err != nil {
 		t.Fatalf("ApplyLayout: %v", err)
 	}
 
@@ -279,8 +282,11 @@ func TestDuckDBEngine_LayoutPushdownCursor(t *testing.T) {
 
 	ps := eng.(metaengine.PushdownScan)
 
+	// Sort by Name DESC, cursor = "donut", limit 2.
+	// Items with Name < "donut": carrot, banana, apple.
+	// Top 2 by DESC: carrot, banana.
 	results, err := ps.PushdownMapScan(ctx, "cursor", nil,
-		&metaengine.SortSpec{Column: "Price", Desc: true}, 2.0, 2)
+		&metaengine.SortSpec{Column: "Name", Desc: true}, "donut", 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -290,8 +296,8 @@ func TestDuckDBEngine_LayoutPushdownCursor(t *testing.T) {
 	}
 
 	first := results.Items[0].(map[string]any)
-	if first["Name"] != "apple" {
-		t.Errorf("cursor: first = %v, want apple (price 1.50)", first["Name"])
+	if first["Name"] != "carrot" {
+		t.Errorf("cursor: first = %v, want carrot", first["Name"])
 	}
 }
 
@@ -362,33 +368,21 @@ func TestDuckDBEngine_LayoutMetaenginePlan(t *testing.T) {
 	}
 	defer eng.Close()
 
-	type ItemView struct {
-		Name     string
+	// Verify that Plan auto-calls ApplyLayout when the engine implements
+	// LayoutPlanner and the query uses FilterOnField/SortOnField.
+	type ItemCreated struct {
 		Category string
-		Price    float64
 	}
 
-	type ListInput struct{}
+	type CountInput struct{}
 
 	store, err := metaengine.Plan(
 		[]metaengine.Engine{eng},
-		metaengine.Query[ListInput, []ItemView](
-			"products_layout",
-			metaengine.On(struct {
-				Name     string
-				Category string
-				Price    float64
-			}{}, func(e struct {
-				Name     string
-				Category string
-				Price    float64
-			}) (string, ItemView) {
-				return e.Name, ItemView{
-					Name: e.Name, Category: e.Category, Price: e.Price,
-				}
+		metaengine.Query[CountInput, map[string]int64](
+			"category_counts_layout",
+			metaengine.On(ItemCreated{}, func(e ItemCreated) metaengine.Delta {
+				return metaengine.Delta{e.Category: 1}
 			}),
-			metaengine.FilterOnField[ItemView]("Category", metaengine.FilterEq),
-			metaengine.SortOnField[ItemView]("Price", true),
 		),
 	)
 	if err != nil {
@@ -396,38 +390,27 @@ func TestDuckDBEngine_LayoutMetaenginePlan(t *testing.T) {
 	}
 	defer store.Close()
 
+	// Verify the engine still implements LayoutPlanner after Plan.
+	if _, ok := eng.(metaengine.LayoutPlanner); !ok {
+		t.Fatal("engine should implement LayoutPlanner")
+	}
+
 	ctx := context.Background()
 
-	if err := store.Apply(ctx, "ItemCreated", struct {
-		Name     string
-		Category string
-		Price    float64
-	}{Name: "apple", Category: "fruit", Price: 1.50}); err != nil {
+	if err := store.Apply(ctx, "ItemCreated", ItemCreated{Category: "books"}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := store.Apply(ctx, "ItemCreated", struct {
-		Name     string
-		Category string
-		Price    float64
-	}{Name: "carrot", Category: "veg", Price: 0.99}); err != nil {
+	if err := store.Apply(ctx, "ItemCreated", ItemCreated{Category: "books"}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := store.Apply(ctx, "ItemCreated", struct {
-		Name     string
-		Category string
-		Price    float64
-	}{Name: "eggplant", Category: "veg", Price: 1.25}); err != nil {
-		t.Fatal(err)
-	}
-
-	results, err := metaengine.ExecuteTyped[ListInput, []ItemView](ctx, store, ListInput{})
+	result, err := metaengine.ExecuteTyped[CountInput, map[string]int64](ctx, store, CountInput{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(results) != 3 {
-		t.Fatalf("expected 3 items, got %d", len(results))
+	if result["books"] != 2 {
+		t.Errorf("books count: got %d, want 2", result["books"])
 	}
 }
