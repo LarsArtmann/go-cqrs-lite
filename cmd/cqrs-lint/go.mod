@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.0
 	github.com/larsartmann/go-finding v1.4.1
-	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-finding/pipeline v1.4.1
 	github.com/larsartmann/go-output v0.35.0
 	github.com/larsartmann/go-output/table v0.35.0
 	github.com/spf13/cobra v1.10.2
@@ -55,7 +55,7 @@ require (
 	github.com/larsartmann/go-output/serialization v0.35.0 // indirect
 	github.com/larsartmann/go-output/tree v0.35.0 // indirect
 	github.com/larsartmann/samber-do-auditlog v0.8.1 // indirect
-	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect
+	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.27 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect

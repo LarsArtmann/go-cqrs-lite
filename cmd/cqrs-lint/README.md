@@ -155,7 +155,7 @@ Explicit `features` flags always override preset values.
 | A027 | repeated-withcodec                          | Info     | event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec |
 | A030 | incomplete-snapshot-config                  | Error    | WithSnapshotStrategy without WithSnapshotStore — ErrIncompleteSnapshotConfig        |
 | A032 | string-id-instead-of-branded                | Warning  | Struct field named *ID with type string/int — use id.Of[T] branded ID               |
-| A033 | branded-id-string-roundtrip                 | Warning  | id.Parse[T](x.String()) — pointless branded-ID roundtrip, discards typed value       |
+| A033 | branded-id-string-roundtrip                 | Warning  | id.Parse[T](<x.String()>) — pointless branded-ID roundtrip, discards typed value    |
 
 ## Boilerplate Rules
 

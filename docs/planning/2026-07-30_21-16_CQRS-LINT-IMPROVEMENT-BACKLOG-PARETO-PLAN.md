@@ -174,7 +174,7 @@ See Level 1 and Level 2 tables below.
 | L1.36 | Implement event payload struct size limit (>20 fields)       | 153   | **[P80]** | Low (maintainability) | 45 min | None         | ✅ DONE (D016)             |
 | L1.37 | Implement string IDs instead of branded IDs                  | 176   | **[P80]** | Medium (type safety)  | 45 min | None         | ✅ DONE (A032)             |
 | L1.38 | Implement event payload without json tags                    | 177   | **[P80]** | Low (convention)      | 30 min | None         | ✅ DONE (D014)             |
-| L1.39 | Implement branded ID misuse detection                        | 175   | **[P80]** | Low (hard to detect)  | 90 min | None         | ✅ DONE (A033 roundtrip)    |
+| L1.39 | Implement branded ID misuse detection                        | 175   | **[P80]** | Low (hard to detect)  | 90 min | None         | ✅ DONE (A033 roundtrip)   |
 | L1.40 | Extend C013: embedded `time.Time` in payloads                | 178   | **[P80]** | Low (timezone)        | 45 min | None         | ✅ DONE (verified)         |
 | L1.41 | Implement nullable pointer fields in event payloads          | 179   | **[P80]** | Low (nil-deref)       | 45 min | None         | ✅ DONE (D015)             |
 

@@ -55,7 +55,10 @@ func NewC037Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					if name, ok := codecFromSnapshotStore(call); ok {
-						snaps = append(snaps, snapshotSite{name: name, pos: ctx.Fset.Position(call.Pos())})
+						snaps = append(
+							snaps,
+							snapshotSite{name: name, pos: ctx.Fset.Position(call.Pos())},
+						)
 					}
 
 					return true
