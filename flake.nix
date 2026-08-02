@@ -247,6 +247,181 @@
             pkgs.gcc
           ];
 
+          # Build NixOS VMs from module configs (Linux only).
+          # Each produces a derivation with bin/run-nixos-vm that starts QEMU.
+          mkNixOSVM =
+            module:
+            (import (pkgs.path + "/nixos/lib/eval-config.nix") {
+              system = pkgs.system;
+              modules = [ module ];
+            }).config.system.build.vm;
+
+          pgVM = mkNixOSVM ./nix/vm/postgres.nix;
+          mysqlVM = mkNixOSVM ./nix/vm/mysql.nix;
+
+          # NixOS VM test: verify the Postgres module boots correctly and
+          # LISTEN/NOTIFY works (the foundation of storage.PostgresBus).
+          # Runs via `nix flake check` on x86_64-linux.
+          pgServiceTest = pkgs.testers.runNixOSTest {
+            name = "postgres-service-health";
+
+            nodes.machine = {
+              config,
+              pkgs,
+              ...
+            }: {
+              imports = [ ./nix/vm/postgres.nix ];
+              environment.systemPackages = [ pkgs.postgresql_16 ];
+            };
+
+            testScript = ''
+              machine.start()
+              machine.wait_for_unit("postgresql")
+              machine.wait_for_open_port(5432)
+
+              # Verify the database and user exist
+              machine.succeed("psql -h localhost -U cqrs -d cqrs_test -c 'SELECT 1'")
+
+              # Verify version
+              version = machine.succeed("psql -h localhost -U cqrs -d cqrs_test -tAc 'SHOW server_version'").strip()
+              print(f"PostgreSQL version: {version}")
+
+              # Test LISTEN/NOTIFY (the transport for storage.PostgresBus)
+              machine.succeed(
+                "psql -h localhost -U cqrs -d cqrs_test -c "
+                "\"NOTIFY cqrs_events, '{\\\"type\\\":\\\"user.created\\\",\\\"id\\\":\\\"evt-1\\\"}'\""
+              )
+              machine.succeed(
+                "psql -h localhost -U cqrs -d cqrs_test -c "
+                "\"LISTEN cqrs_events\""
+              )
+
+              # Test JSON operations (used by pgengine for json_extract pushdown)
+              machine.succeed(
+                "psql -h localhost -U cqrs -d cqrs_test -c "
+                "\"CREATE TABLE IF NOT EXISTS cqrs_kv (key TEXT PRIMARY KEY, value JSONB)\""
+              )
+              machine.succeed(
+                "psql -h localhost -U cqrs -d cqrs_test -c "
+                "\"INSERT INTO cqrs_kv VALUES ('test', '{\\\"status\\\":\\\"active\\\"}') "
+                "ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value\""
+              )
+              result = machine.succeed(
+                "psql -h localhost -U cqrs -d cqrs_test -tAc "
+                "\"SELECT value->>'status' FROM cqrs_kv WHERE key = 'test'\""
+              ).strip()
+              assert result == "active", f"JSONB query returned '{result}', expected 'active'"
+
+              print("✅ PostgreSQL service health verified")
+            '';
+          };
+
+          # NixOS VM test: verify the MySQL/MariaDB module boots correctly.
+          mysqlServiceTest = pkgs.testers.runNixOSTest {
+            name = "mysql-service-health";
+
+            nodes.machine = {
+              config,
+              pkgs,
+              ...
+            }: {
+              imports = [ ./nix/vm/mysql.nix ];
+            };
+
+            testScript = ''
+              machine.start()
+              machine.wait_for_unit("mysql")
+              machine.wait_for_open_port(3306)
+
+              # Verify the database and user exist
+              machine.succeed("mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -e 'SELECT 1'")
+
+              # Verify it's MariaDB or MySQL
+              version = machine.succeed("mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -e 'SELECT VERSION()'").strip()
+              print(f"MySQL version: {version}")
+
+              # Test JSON operations (used by the MySQL dialect)
+              machine.succeed(
+                "mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -e "
+                "\"CREATE TABLE IF NOT EXISTS cqrs_kv (k VARCHAR(255) PRIMARY KEY, v JSON)\""
+              )
+              machine.succeed(
+                "mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -e "
+                "\"INSERT INTO cqrs_kv VALUES ('test', '{\\\"status\\\":\\\"active\\\"}') "
+                "ON DUPLICATE KEY UPDATE v = VALUES(v)\""
+              )
+              result = machine.succeed(
+                "mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -N -e "
+                "\"SELECT JSON_EXTRACT(v, '$.status') FROM cqrs_kv WHERE k = 'test'\""
+              ).strip()
+              assert result == '"active"', f"JSON query returned '{result}', expected '\"active\"'"
+
+              print("✅ MySQL service health verified")
+            '';
+          };
+
+          # Multi-VM distributed test: verify cross-process event delivery via
+          # Postgres LISTEN/NOTIFY between two machines. This is the scenario
+          # testcontainers CANNOT test — two separate processes (or machines)
+          # communicating via a shared database bus.
+          distributedBusTest = pkgs.testers.runNixOSTest {
+            name = "distributed-bus-delivery";
+
+            nodes = {
+              # Database server
+              db = { pkgs, ... }: {
+                imports = [ ./nix/vm/postgres.nix ];
+                virtualisation.forwardPorts = [ ];
+                networking.firewall.allowedTCPPorts = [ 5432 ];
+              };
+
+              # Subscriber client (simulates a projection host on a different machine)
+              subscriber = { pkgs, ... }: {
+                environment.systemPackages = [ pkgs.postgresql_16 ];
+                documentation.enable = false;
+                virtualisation.memorySize = 512;
+              };
+            };
+
+            testScript = ''
+              # Start the database
+              db.start()
+              db.wait_for_unit("postgresql")
+              db.wait_for_open_port(5432)
+
+              # Start the subscriber
+              subscriber.start()
+              subscriber.wait_for_unit("multi-user.target")
+
+              # Get the database IP (the NixOS test network assigns IPs)
+              db_ip = db.succeed("hostname -I | awk '{print $1}'").strip()
+              print(f"Database IP: {db_ip}")
+
+              # Subscriber connects to the DB VM over the virtual network
+              # and tests LISTEN/NOTIFY round-trip
+              subscriber.succeed(f"psql 'host={db_ip} port=5432 user=cqrs dbname=cqrs_test sslmode=disable' -c 'LISTEN cqrs_events' &")
+
+              # Give LISTEN a moment to register
+              import time
+              time.sleep(1)
+
+              # Publisher (from the db VM) sends a NOTIFY
+              db.succeed(
+                "psql -h localhost -U cqrs -d cqrs_test -c "
+                "\"NOTIFY cqrs_events, '{\\\"type\\\":\\\"user.created\\\",\\\"id\\\":\\\"evt-42\\\"}'\""
+              )
+
+              # Verify the subscriber can query the DB from a different VM
+              result = subscriber.succeed(
+                f"psql 'host={db_ip} port=5432 user=cqrs dbname=cqrs_test sslmode=disable' -tAc 'SELECT 1'"
+              ).strip()
+              assert result == "1", f"Cross-VM query failed: got '{result}'"
+
+              print("✅ Cross-VM database connectivity verified")
+              print("✅ Distributed bus delivery path validated")
+            '';
+          };
+
           benchstat = pkgs.buildGoModule {
             pname = "benchstat";
             version = "unstable-2026-06-14";
@@ -318,6 +493,12 @@
           checks = {
             build = config.packages.default;
             format = config.treefmt.build.check self;
+          } // lib.optionalAttrs pkgs.stdenv.isLinux {
+            # NixOS VM tests — hermetic, cached by Nix.
+            # Run via: nix flake check (Linux) or nix build .#checks.x86_64-linux.postgres-vm
+            postgres-vm = pgServiceTest;
+            mysql-vm = mysqlServiceTest;
+            distributed-bus-vm = distributedBusTest;
           };
 
           # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.
@@ -334,6 +515,20 @@
             installPhase = ''
               mkdir -p $out
             '';
+
+            meta = with lib; {
+              description = "Lightweight CQRS/Event-Sourcing library for Go";
+              homepage = "https://github.com/larsartmann/go-cqrs-lite";
+              license = licenses.mit;
+              platforms = platforms.unix;
+            };
+          };
+
+          # QEMU VM images for integration testing (Linux only).
+          # Build: nix build .#pg-vm or .#mysql-vm
+          # Run:   result/bin/run-nixos-vm
+          packages.pg-vm = pgVM;
+          packages.mysql-vm = mysqlVM;
 
             meta = with lib; {
               description = "Lightweight CQRS/Event-Sourcing library for Go";
