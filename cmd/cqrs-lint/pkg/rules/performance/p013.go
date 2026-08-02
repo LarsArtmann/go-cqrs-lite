@@ -28,7 +28,14 @@ func NewP013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				usesSQLite := false
+				// Only flag files that DIRECTLY open a SQLite connection.
+				// See P012 for the full rationale on why constructor calls
+				// (sqlite.New, NewSQLiteBackend, ...) are excluded.
+				usesSQLite := directlyOpensSQLite(gf.AST)
+				if !usesSQLite {
+					continue
+				}
+
 				hasBusyTimeout := false
 
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
@@ -38,13 +45,6 @@ func NewP013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					callStr := analyzer.ExprString(call.Fun)
-
-					if strings.Contains(callStr, "NewSQLiteBackend") ||
-						strings.Contains(callStr, "sqlite.New") ||
-						strings.Contains(callStr, "modernc.org/sqlite") ||
-						strings.Contains(callStr, "sqlite3") {
-						usesSQLite = true
-					}
 
 					// SQLiteEnableWAL sets both WAL and busy_timeout.
 					if strings.Contains(callStr, "SQLiteEnableWAL") ||
@@ -56,7 +56,7 @@ func NewP013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					return true
 				})
 
-				if usesSQLite && !hasBusyTimeout {
+				if !hasBusyTimeout {
 					pos := ctx.Fset.Position(gf.AST.Pos())
 
 					f, err := finding.NewBuilder(

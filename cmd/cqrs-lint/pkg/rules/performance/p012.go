@@ -27,7 +27,16 @@ func NewP012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				usesSQLite := false
+				// Only flag files that DIRECTLY open a SQLite connection via
+				// sql.Open. Constructor calls (sqlite.New, NewSQLiteBackend,
+				// NewSQLiteEventStore, ...) are NOT flagged because they either
+				// apply WAL internally (stack preset) or receive an already-opened
+				// *sql.DB (PRAGMA responsibility is in the caller file).
+				usesSQLite := directlyOpensSQLite(gf.AST)
+				if !usesSQLite {
+					continue
+				}
+
 				hasWAL := false
 
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
@@ -38,13 +47,6 @@ func NewP012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					callStr := analyzer.ExprString(call.Fun)
 
-					if strings.Contains(callStr, "NewSQLiteBackend") ||
-						strings.Contains(callStr, "sqlite.New") ||
-						strings.Contains(callStr, "modernc.org/sqlite") ||
-						strings.Contains(callStr, "sqlite3") {
-						usesSQLite = true
-					}
-
 					if strings.Contains(callStr, "SQLiteEnableWAL") ||
 						strings.Contains(callStr, "PRAGMA journal_mode") {
 						hasWAL = true
@@ -53,7 +55,7 @@ func NewP012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					return true
 				})
 
-				if usesSQLite && !hasWAL {
+				if !hasWAL {
 					pos := ctx.Fset.Position(gf.AST.Pos())
 
 					f, err := finding.NewBuilder(

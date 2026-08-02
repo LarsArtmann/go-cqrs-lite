@@ -56,6 +56,51 @@ func filterLibrarySelfLint(
 	return active, librarySuppressed
 }
 
+// buildDisabledRuleSet merges config-declared disabled rules ("rules": {"disable"})
+// with the --exclude-rules CLI flag into a single lookup set. Both sources are
+// uppercased and trimmed for case-insensitive rule-ID matching.
+func buildDisabledRuleSet(cfg *AppConfig, actx *analyzer.AnalysisContext) map[string]bool {
+	disabled := actx.RulesConfig.DisabledSet()
+
+	if cfg.ExcludeRules == "" {
+		return disabled
+	}
+
+	if disabled == nil {
+		disabled = make(map[string]bool)
+	}
+
+	for _, r := range strings.Split(cfg.ExcludeRules, ",") {
+		id := strings.ToUpper(strings.TrimSpace(r))
+		if id != "" {
+			disabled[id] = true
+		}
+	}
+
+	return disabled
+}
+
+// filterByDisabledRules drops findings whose rule ID is in the disabled set.
+// Disabled rules come from two sources: the config file ("rules": {"disable": [...]})
+// and the CLI flag (--exclude-rules). Both are merged into a single set.
+// Disabled findings are dropped entirely — they do not appear in output, do
+// not count toward the health score, and do not trigger stale-suppression
+// warnings (unlike inline-suppressed findings which are retained for auditing).
+func filterByDisabledRules(findings []finding.Finding, disabled map[string]bool) []finding.Finding {
+	if len(disabled) == 0 {
+		return findings
+	}
+
+	result := make([]finding.Finding, 0, len(findings))
+	for _, f := range findings {
+		if !disabled[string(f.Rule)] {
+			result = append(result, f)
+		}
+	}
+
+	return result
+}
+
 func collectFindings(result *pipeline.PipelineResult) []finding.Finding {
 	var all []finding.Finding
 	for _, iter := range result.Iterations {

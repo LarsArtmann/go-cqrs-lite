@@ -34,6 +34,15 @@ func NewC036Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
+			// Collect the actual backends used by event store constructors
+			// across all files. This catches the common pattern where the
+			// feature profile classifies the store as "custom" (no stack
+			// bundle) but the event store IS a recognized backend (e.g.
+			// NewSQLiteEventStore → "sqlite"). When a secondary store uses
+			// the same backend as the event store constructor, there is no
+			// mismatch and we skip the finding.
+			eventStoreBackends := collectEventStoreBackends(ctx)
+
 			var findings []finding.Finding
 
 			for _, gf := range ctx.GoFiles {
@@ -57,6 +66,14 @@ func NewC036Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					storeBackend := detectBackend(pkg, fnName)
 					if storeBackend == "" || storeBackend == string(eventBackend) {
+						return true
+					}
+
+					// Skip when the store's backend matches an actual event
+					// store constructor's detected backend — they share the
+					// same underlying engine even if the feature profile
+					// classified the store as "custom".
+					if eventStoreBackends[storeBackend] {
 						return true
 					}
 

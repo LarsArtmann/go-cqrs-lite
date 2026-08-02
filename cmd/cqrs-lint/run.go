@@ -225,6 +225,12 @@ func filterFindings(
 		allFindings = filterByExcludedPaths(allFindings, strings.Split(cfg.Exclude, ","))
 	}
 
+	// Drop findings from rules disabled via config ("rules": {"disable": [...]})
+	// or the --exclude-rules CLI flag. Disabled rules are removed entirely —
+	// they do not appear in output, health score, or stale-suppression checks.
+	disabled := buildDisabledRuleSet(cfg, actx)
+	allFindings = filterByDisabledRules(allFindings, disabled)
+
 	// Auto-suppress consumer-only rules when linting the library itself.
 	var librarySuppressed []finding.Finding
 	allFindings, librarySuppressed = filterLibrarySelfLint(allFindings, actx.IsLibrarySelfLint())

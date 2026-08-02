@@ -34,6 +34,7 @@ type AppConfig struct {
 	FastMode       bool   `default:"false" flag:"fast"            help:"Critical correctness rules only"`
 	HealthScore    bool   `default:"false" flag:"health-score"    help:"Print only the health score"`
 	Categories     string `default:""      flag:"only"            help:"Filter by category or rule IDs"`
+	ExcludeRules   string `default:""      flag:"exclude-rules"   help:"Exclude rule IDs (comma-separated)"`
 	Exclude        string `default:""      flag:"exclude"         help:"Exclude paths (comma-separated)"`
 	Color          string `default:"auto"  flag:"color"           help:"Colored output: auto,always,never"`
 	Verbose        bool   `default:"false" flag:"verbose"         help:"Verbose output"`
@@ -47,7 +48,7 @@ type AppConfig struct {
 	Features analyzer.ConfigFeatures `json:"features,omitempty"` //nolint:modernize // config compatibility
 	// Preset is a named set of feature-flag defaults (sugar over Features).
 	// Explicit Features flags always override preset values.
-	Preset analyzer.ConfigPreset `json:"preset,omitempty"   default:""`
+	Preset analyzer.ConfigPreset `default:"" json:"preset,omitempty"`
 	// Rules carries rule-specific overrides (e.g. external-API struct prefixes
 	// for D002). See analyzer.RulesConfig docs for each field.
 	Rules analyzer.RulesConfig `json:"rules,omitempty"` //nolint:modernize // config compatibility

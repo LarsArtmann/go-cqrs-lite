@@ -16,6 +16,18 @@ import (
 // so detectors behave exactly as before — this is the contract
 // BuildContextFromSource relies on for rule unit tests.
 type RulesConfig struct {
+	// Disable lists rule IDs to suppress project-wide. A disabled rule never
+	// fires, so its findings neither appear in the output nor count toward the
+	// health score. Use this for rules that are known false positives in the
+	// project's architecture (e.g. P012/P013 when WAL is applied in a shared
+	// storage package the linter cannot trace across files). For one-off
+	// cases prefer inline //cqrs-lint:ignore(RULE) comments.
+	//
+	// Example:
+	//
+	//	{"rules": {"disable": ["P012", "P013"]}}
+	Disable []string `json:"disable,omitempty"`
+
 	// ExternalAPIStructPrefixes lists struct-name prefixes whose JSON tags
 	// mirror an external API (Discord, Stripe, GitHub, ...) and must NOT count
 	// toward D002's mixed-casing check. Example: ["Discord", "Stripe"] marks
@@ -32,11 +44,27 @@ type RulesConfig struct {
 	ExternalAPIStructPrefixes []string `json:"external-api-struct-prefixes,omitempty"` //nolint:tagliatelle // CLI config key
 }
 
+// DisabledSet returns the set of disabled rule IDs as a map for O(1) lookup.
+// Returns nil when no rules are disabled.
+func (rc *RulesConfig) DisabledSet() map[string]bool {
+	if rc == nil || len(rc.Disable) == 0 {
+		return nil
+	}
+
+	result := make(map[string]bool, len(rc.Disable))
+	for _, r := range rc.Disable {
+		result[r] = true
+	}
+
+	return result
+}
+
 // knownRulesConfigKeys is the set of valid keys under "rules" in
 // .cqrs-lint.json. Any other key is a likely typo and is reported by Validate.
 //
 //nolint:gochecknoglobals // read-only lookup table
 var knownRulesConfigKeys = map[string]bool{
+	"disable":                      true,
 	"external-api-struct-prefixes": true,
 }
 
@@ -57,6 +85,22 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 	if rc == nil {
 		return
 	}
+
+	// Normalize disable list: trim, uppercase rule IDs, drop empties, deduplicate.
+	seenDisable := make(map[string]bool)
+	cleanedDisable := rc.Disable[:0]
+
+	for _, r := range rc.Disable {
+		id := strings.ToUpper(strings.TrimSpace(r))
+		if id == "" || seenDisable[id] {
+			continue
+		}
+
+		seenDisable[id] = true
+		cleanedDisable = append(cleanedDisable, id)
+	}
+
+	rc.Disable = cleanedDisable
 
 	// Normalize prefix list: trim, drop empties, deduplicate (order-preserving).
 	seen := make(map[string]bool)
@@ -81,7 +125,7 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 				if !knownRulesConfigKeys[key] {
 					_, _ = fmt.Fprintf(
 						w,
-						"warning: unknown rules config key %q (known: external-api-struct-prefixes)\n",
+						"warning: unknown rules config key %q (known: disable, external-api-struct-prefixes)\n",
 						key,
 					)
 				}

@@ -181,7 +181,7 @@ var mediumFinancial = []string{ //nolint:gochecknoglobals // static lookup table
 }
 
 var weakFinancial = []string{ //nolint:gochecknoglobals // static lookup table
-	"amount", "price", "total", "balance",
+	"amount", "price", "balance",
 	"cost", "fee", "tax", "subtotal",
 	"discount", "currency", "monetary",
 }
