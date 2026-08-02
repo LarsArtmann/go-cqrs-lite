@@ -20,16 +20,6 @@ and is **never** duplicated here.
 > streaming, and watcher/SSE delivery are shipped. Remaining work is
 > verification, typed APIs, and advanced indexing.
 
-- [ ] 🔥 **Run full `nix run .#verify` gate** — confirm whole-project green after
-  the 2026-08-02 watcher reification, DuckDB LayoutPlanner, columnar layout, and
-  10M soak test changes. `nix run .#verify-fast` was run (2026-08-02); lint issues
-  were fixed by the auto-commit daemon (err113 sentinels, wrapcheck wrapping,
-  gocyclo/ineffassign). The full `#verify` gate (non-short, includes 10M soak)
-  has not yet been run since these changes landed. Evidence:
-  `docs/status/2026-08-02_19-47_10M-soak-test.md`,
-  `docs/status/2026-08-02_19-47_DuckDB-LayoutPlanner.md`,
-  `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
-
 - [ ] 🔥 **10M soak test verification & hardening**
   - Add a 100K-event fast smoke variant that runs even when `SOAK_SKIP_10M=1`
     (`metaengine/soak_10m_test.go`).
