@@ -135,15 +135,6 @@ and is **never** duplicated here.
 
 ---
 
-## Docs & Project Health
-
-- [ ] **Fix FEATURES.md module matrix error** — `stack/contracttest` and
-  `stack/sqlopt` are listed as independent modules but they are sub-packages of
-  `stack/` with no `go.mod`. Only 9 stack presets have their own `go.mod`.
-  Evidence: `docs/status/2026-08-02_17-37_docs-health-and-update-old-docs-brutal-status.md`.
-
----
-
 ## Declined / Rejected (do not re-litigate)
 
 > Kept here so decisions are not re-litigated. Full rationale in the linked

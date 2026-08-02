@@ -433,8 +433,7 @@ func coerceInteger(value any) any {
 // coerceReal maps a Go value to float64. It handles numeric strings and all
 // signed/unsigned integer and float widths via reflection.
 func coerceReal(value any) any {
-	switch v := value.(type) {
-	case string:
+	if v, ok := value.(string); ok {
 		if n, err := strconv.ParseFloat(v, 64); err == nil {
 			return n
 		}
