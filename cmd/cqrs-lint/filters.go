@@ -206,7 +206,8 @@ func isAdoptionRule(ruleID string) bool {
 		ruleID[1] >= '0' && ruleID[1] <= '9'
 }
 
-func filterByExcludedPaths(findings []finding.Finding, patterns []string) []finding.Finding {	if len(patterns) == 0 {
+func filterByExcludedPaths(findings []finding.Finding, patterns []string) []finding.Finding {
+	if len(patterns) == 0 {
 		return findings
 	}
 

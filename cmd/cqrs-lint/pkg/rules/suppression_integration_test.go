@@ -153,6 +153,7 @@ func runServer() {
 	srv := &http.Server{Addr: ":8080"}
 	//cqrs-lint:ignore(E016) no health check needed
 	_ = srv.ListenAndServe()
+	srv.Shutdown(nil)
 }
 `},
 		},

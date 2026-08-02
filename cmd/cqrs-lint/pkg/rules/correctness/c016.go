@@ -161,11 +161,11 @@ func isContextType(expr ast.Expr) bool {
 // startup call. When context.Background() appears near one, it's the
 // graceful-shutdown timeout idiom, not a detached handler context.
 var serverLifecycleMethods = map[string]bool{ //nolint:gochecknoglobals // static lookup
-	"Shutdown":         true,
-	"ListenAndServe":   true,
+	"Shutdown":          true,
+	"ListenAndServe":    true,
 	"ListenAndServeTLS": true,
-	"Serve":            true,
-	"Close":            true,
+	"Serve":             true,
+	"Close":             true,
 }
 
 // collectServerLifecycleLines returns the line numbers of server-lifecycle
