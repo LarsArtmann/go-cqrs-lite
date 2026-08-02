@@ -54,10 +54,10 @@ func (t *idempotencyTracker) CheckAndRecord(eventID string) bool {
 // workloadMeter tracks read/write counts and diagnostic counters for workload
 // statistics and operational health.
 type workloadMeter struct {
-	writeCount           atomic.Int64
-	readCount            atomic.Int64
-	reificationFailures  atomic.Int64
-	startTime            time.Time
+	writeCount          atomic.Int64
+	readCount           atomic.Int64
+	reificationFailures atomic.Int64
+	startTime           time.Time
 }
 
 func newWorkloadMeter() *workloadMeter {

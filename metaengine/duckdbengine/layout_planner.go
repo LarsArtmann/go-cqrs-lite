@@ -218,12 +218,7 @@ func buildPlannedSelectQuery(
 				continue
 			}
 
-			if !whereStarted {
-				b.WriteString(" WHERE ")
-				whereStarted = true
-			} else {
-				b.WriteString(" AND ")
-			}
+			writeWhereOrAnd(&b, &whereStarted)
 
 			placeholders := make([]string, len(values))
 			for i, v := range values {
@@ -234,12 +229,7 @@ func buildPlannedSelectQuery(
 
 			fmt.Fprintf(&b, "%s IN (%s)", quoteIdent(f.Column), strings.Join(placeholders, ", "))
 		} else {
-			if !whereStarted {
-				b.WriteString(" WHERE ")
-				whereStarted = true
-			} else {
-				b.WriteString(" AND ")
-			}
+			writeWhereOrAnd(&b, &whereStarted)
 
 			fmt.Fprintf(&b, "%s %s $%d", quoteIdent(f.Column), string(f.Op), argIdx)
 			args = append(args, f.Value)
@@ -248,12 +238,7 @@ func buildPlannedSelectQuery(
 	}
 
 	if sort != nil && cursor != nil {
-		if !whereStarted {
-			b.WriteString(" WHERE ")
-			whereStarted = true
-		} else {
-			b.WriteString(" AND ")
-		}
+		writeWhereOrAnd(&b, &whereStarted)
 
 		op := ">"
 		if sort.Desc {
@@ -278,6 +263,19 @@ func buildPlannedSelectQuery(
 	}
 
 	return b.String(), args
+}
+
+// writeWhereOrAnd appends " WHERE " on the first call and " AND " on later
+// calls, updating the flag so subsequent calls use AND.
+func writeWhereOrAnd(b *strings.Builder, whereStarted *bool) {
+	if !*whereStarted {
+		b.WriteString(" WHERE ")
+		*whereStarted = true
+
+		return
+	}
+
+	b.WriteString(" AND ")
 }
 
 // extractFields pulls field values from a Go value for the planned columns.

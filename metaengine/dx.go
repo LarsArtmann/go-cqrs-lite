@@ -154,9 +154,9 @@ func (w *Watcher[V]) WatchWithSeq(ctx context.Context, key any) <-chan SeqValue[
 	}()
 
 	return ch
-	}
+}
 
-	// reifyWatcherValue converts a notification channel value to type V.
+// reifyWatcherValue converts a notification channel value to type V.
 // It handles three cases:
 //
 //  1. Fast path: the value is already V (MemoryEngine, fold-produced structs).

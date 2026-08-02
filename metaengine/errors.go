@@ -24,6 +24,11 @@ var (
 	errInvalidEventType = errors.New("handler first param must be")
 	errEmptyField       = errors.New("declarative field has empty column name")
 
+	// Plan-time validation errors for query metadata.
+	errInvalidADT         = errors.New("query has invalid ADT")
+	errInvalidReadPattern = errors.New("query has invalid ReadPattern")
+	errInvalidFoldKind    = errors.New("query fold has invalid FoldKind")
+
 	// Dispatch-time errors.
 	errNoQueryForInputType = errors.New("no query declared for input type")
 	errUnsupportedPattern  = errors.New("unsupported read pattern")
