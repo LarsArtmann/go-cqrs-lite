@@ -42,6 +42,17 @@ type RulesConfig struct {
 	// on the struct's doc comment; it suppresses the same rule without needing
 	// config. Both mechanisms stack: a struct is excluded if either matches.
 	ExternalAPIStructPrefixes []string `json:"external-api-struct-prefixes,omitempty"` //nolint:tagliatelle // CLI config key
+
+	// IgnoreFloatFields lists field names to exclude from C008 (float64-for-
+	// money). Use for fields that are intentionally float64 — cost estimates,
+	// performance metrics, observability counters — where the monetary name
+	// pattern (amount, price, cost) matches but the value is not exact money.
+	// Matching is case-insensitive.
+	//
+	// Example:
+	//
+	//	{"rules": {"c008-ignore-fields": ["CostEstimate", "PriceIndex"]}}
+	IgnoreFloatFields []string `json:"c008-ignore-fields,omitempty"` //nolint:tagliatelle // CLI config key
 }
 
 // DisabledSet returns the set of disabled rule IDs as a map for O(1) lookup.
@@ -66,6 +77,7 @@ func (rc *RulesConfig) DisabledSet() map[string]bool {
 var knownRulesConfigKeys = map[string]bool{
 	"disable":                      true,
 	"external-api-struct-prefixes": true,
+	"c008-ignore-fields":           true,
 }
 
 // Validate checks the rules config for common misconfigurations and writes
@@ -117,6 +129,19 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 
 	rc.ExternalAPIStructPrefixes = cleaned
 
+	// Normalize ignore-float-fields: trim, lowercase, drop empties, deduplicate.
+	seenIgnore := make(map[string]bool)
+	cleanedIgnore := rc.IgnoreFloatFields[:0]
+	for _, f := range rc.IgnoreFloatFields {
+		trimmed := strings.ToLower(strings.TrimSpace(f))
+		if trimmed == "" || seenIgnore[trimmed] {
+			continue
+		}
+		seenIgnore[trimmed] = true
+		cleanedIgnore = append(cleanedIgnore, trimmed)
+	}
+	rc.IgnoreFloatFields = cleanedIgnore
+
 	// Check for unknown keys in the raw JSON (catches typos).
 	if len(rawRulesJSON) > 0 {
 		var raw map[string]any
@@ -125,7 +150,7 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 				if !knownRulesConfigKeys[key] {
 					_, _ = fmt.Fprintf(
 						w,
-						"warning: unknown rules config key %q (known: disable, external-api-struct-prefixes)\n",
+						"warning: unknown rules config key %q (known: disable, external-api-struct-prefixes, c008-ignore-fields)\n",
 						key,
 					)
 				}

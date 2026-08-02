@@ -496,3 +496,69 @@ func setup(db *sql.DB) {
 		t.Errorf("storage.NewSQLiteEventStore should refine StoreCustom→StoreSQLite, got %s", fp.Store)
 	}
 }
+
+func TestDetectFeatures_ServerLocalListenAndServeOnly(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	http.ListenAndServe(":8080", nil)
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Fatal("ListenAndServe should detect HasServer")
+	}
+	if !fp.ServerLocal {
+		t.Error("ListenAndServe without TLS/Shutdown/health should detect ServerLocal")
+	}
+}
+
+func TestDetectFeatures_NotServerLocalWithShutdown(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	srv := &http.Server{}
+	srv.ListenAndServe()
+	srv.Shutdown(nil)
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Fatal("ListenAndServe should detect HasServer")
+	}
+	if fp.ServerLocal {
+		t.Error("Server with Shutdown should NOT be Server-local")
+	}
+}
+
+func TestDetectFeatures_NotServerLocalWithHealthRoute(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	http.HandleFunc("/healthz", handler)
+	http.ListenAndServe(":8080", nil)
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Fatal("ListenAndServe should detect HasServer")
+	}
+	if fp.ServerLocal {
+		t.Error("Server with /healthz route should NOT be server-local")
+	}
+}

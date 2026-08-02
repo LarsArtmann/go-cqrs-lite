@@ -596,3 +596,22 @@ func shutdown(ctx context.Context, srv *Server) {
 	findings := ruletest.RunDetector(t, correctness.NewC016Detector(ctx))
 	ruletest.AssertRule(t, findings, "C016", 0)
 }
+
+// --- C008: config opt-out ---
+
+func TestC008_ConfigIgnoreFields(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+type Estimate struct {
+	CostUSD  float64
+	Amount   float64
+}
+`,
+	})
+	ctx.RulesConfig.IgnoreFloatFields = []string{"costusd"}
+
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	// CostUSD is ignored via config; Amount still fires.
+	ruletest.AssertRule(t, findings, "C008", 1)
+}

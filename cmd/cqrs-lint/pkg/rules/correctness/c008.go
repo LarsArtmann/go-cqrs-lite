@@ -145,6 +145,12 @@ func scanMoneyFields(
 		for _, name := range field.Names {
 			lowerName := strings.ToLower(name.Name)
 
+			// Config opt-out: fields listed in c008-ignore-fields are
+			// intentionally float64 (cost estimates, metrics, etc.).
+			if matchesAny(lowerName, ctx.RulesConfig.IgnoreFloatFields) {
+				continue
+			}
+
 			strong := matchesAny(lowerName, strongMoneyFields)
 			weak := matchesAny(lowerName, weakMoneyFields)
 			if !strong && !weak {
