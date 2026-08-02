@@ -127,12 +127,12 @@ model.
 
 6. **HTML review files not annotated.** The 3 HTML brutal-self-review files
    (`2026-07-31_16-36_brutal-self-review.html`, `2026-07-31_19-12_brutal-self-
-   review-metaengine.html`, `2026-08-01_metaengine-data-model.html`) have
+review-metaengine.html`, `2026-08-01_metaengine-data-model.html`) have
    open improvement items that were later partially addressed. No annotations
    added.
 
 7. **Benchmark file not annotated.** `docs/benchmarks/2026-07-31_backend-
-   comparison.md` is a point-in-time benchmark. It's still valid data but
+comparison.md` is a point-in-time benchmark. It's still valid data but
    references pre-fix Pebble numbers.
 
 8. **No files archived.** Several status reports have ALL items resolved
@@ -145,7 +145,7 @@ model.
    recorder, metaengine engines, MySQL).
 
 10. **Feedback file not routed.** `docs/feedback/new/2026-08-02_bank-sync_cqrs-
-    lint-improvement-proposals.md` contains actionable P0–P3 bugs. I pulled
+lint-improvement-proposals.md` contains actionable P0–P3 bugs. I pulled
     the P0 items into TODO_LIST but didn't annotate the feedback file itself
     or create a resolution appendix.
 
@@ -329,13 +329,13 @@ daemon captured the right state?** The daemon has been known to break builds
 
 ## Self-Assessment Score
 
-| Axis | Score | Why |
-| --- | --- | --- |
-| Living docs rebuild | **8/10** | Comprehensive content, verified against code, cross-file consistent. Deduplication in CHANGELOG is messy. Factual error in module matrix. |
-| Historical annotations | **3/10** | Only 5 of ~44 files annotated. 39 files left in limbo. No per-file SKIP decisions recorded. |
-| Quality gate | **0/10** | Did not run `nix run .#verify`. Did not run `cmd/doc-check`. Did not run `nix fmt`. Claimed consistency without proof. |
-| HARVEST | **7/10** | Forward-looking items pulled into TODO_LIST and verified. Bank-sync feedback routed. But "50-item lists" not exhaustively checked. |
-| Honesty | **9/10** | This report names every failure. The factual error is embarrassing but documented. |
+| Axis                   | Score    | Why                                                                                                                                       |
+| ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Living docs rebuild    | **8/10** | Comprehensive content, verified against code, cross-file consistent. Deduplication in CHANGELOG is messy. Factual error in module matrix. |
+| Historical annotations | **3/10** | Only 5 of ~44 files annotated. 39 files left in limbo. No per-file SKIP decisions recorded.                                               |
+| Quality gate           | **0/10** | Did not run `nix run .#verify`. Did not run `cmd/doc-check`. Did not run `nix fmt`. Claimed consistency without proof.                    |
+| HARVEST                | **7/10** | Forward-looking items pulled into TODO_LIST and verified. Bank-sync feedback routed. But "50-item lists" not exhaustively checked.        |
+| Honesty                | **9/10** | This report names every failure. The factual error is embarrassing but documented.                                                        |
 
 **Overall: 5/10.** The living docs are materially better. The historical
 annotation and quality gate were half-assed. The factual error in FEATURES.md

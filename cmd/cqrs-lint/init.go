@@ -88,7 +88,10 @@ func setupInitCommand(cli *cmdguard.CLI[AppConfig]) error {
 			preset := strings.TrimSpace(flags.Preset)
 			content, ok := presetConfigs[preset]
 			if !ok {
-				return fmt.Errorf("unknown preset %q (available: local-cli, library, server, full-stack)", preset)
+				return fmt.Errorf(
+					"unknown preset %q (available: local-cli, library, server, full-stack)",
+					preset,
+				)
 			}
 
 			if err := os.WriteFile(".cqrs-lint.json", []byte(content), 0o644); err != nil {

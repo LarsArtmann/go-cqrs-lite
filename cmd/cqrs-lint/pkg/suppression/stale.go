@@ -204,7 +204,9 @@ func FormatStaleWarning(s StaleSuppression) string {
 	if s.Reason == "unknown rule" {
 		return fmt.Sprintf(
 			"warning: suppression at %s:%d references unknown rule %s — possible typo or stale rule ID",
-			filepath.Base(s.File), s.Line, s.Rule,
+			filepath.Base(s.File),
+			s.Line,
+			s.Rule,
 		)
 	}
 

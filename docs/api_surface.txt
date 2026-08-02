@@ -1419,6 +1419,12 @@ metaengine/duckdbengine/method MapScan
 metaengine/duckdbengine/method MapSet
 metaengine/duckdbengine/method Profile
 metaengine/duckdbengine/method PushdownMapScan
+metaengine/func AllADTs
+metaengine/func AllComplexities
+metaengine/func AllFilterOps
+metaengine/func AllFoldKinds
+metaengine/func AllReadPatterns
+metaengine/func AllStorageLayouts
 metaengine/func BuildLayoutPlan
 metaengine/func BuildLayoutPlanFromType
 metaengine/func CalibrateEngine
@@ -1537,6 +1543,8 @@ metaengine/method ApplyEncoded
 metaengine/method ApplyIdempotent
 metaengine/method ApplyLayout
 metaengine/method Avg
+metaengine/method Check
+metaengine/method CheckAndRecord
 metaengine/method Clear
 metaengine/method Clear
 metaengine/method Close
@@ -1557,6 +1565,7 @@ metaengine/method Do
 metaengine/method Doctor
 metaengine/method DotGraph
 metaengine/method Encode
+metaengine/method Error
 metaengine/method EventSample
 metaengine/method EventSample
 metaengine/method EventSample
@@ -1605,6 +1614,8 @@ metaengine/method HasWarnings
 metaengine/method HealthCheck
 metaengine/method Import
 metaengine/method InTransaction
+metaengine/method IncRead
+metaengine/method IncWrite
 metaengine/method Insert
 metaengine/method Insert
 metaengine/method Insert
@@ -1645,6 +1656,7 @@ metaengine/method MapUpdate
 metaengine/method MarshalJSON
 metaengine/method Max
 metaengine/method MigrateLayout
+metaengine/method Milliseconds
 metaengine/method Min
 metaengine/method MultiAdd
 metaengine/method MultiAdd
@@ -1656,6 +1668,7 @@ metaengine/method Name
 metaengine/method Name
 metaengine/method ObservedWorkloadStats
 metaengine/method Plan
+metaengine/method Poison
 metaengine/method Primary
 metaengine/method Profile
 metaengine/method Profile
@@ -1698,6 +1711,7 @@ metaengine/method SortBy
 metaengine/method SpatialInsert
 metaengine/method SpatialRange
 metaengine/method Stats
+metaengine/method Stats
 metaengine/method StreamScan
 metaengine/method String
 metaengine/method String
@@ -1708,6 +1722,13 @@ metaengine/method String
 metaengine/method Sum
 metaengine/method SupportsADT
 metaengine/method SwapEngine
+metaengine/method Unwrap
+metaengine/method Valid
+metaengine/method Valid
+metaengine/method Valid
+metaengine/method Valid
+metaengine/method Valid
+metaengine/method Valid
 metaengine/method VectorInsert
 metaengine/method VectorSearch
 metaengine/method Verify
@@ -1773,6 +1794,7 @@ metaengine/projectionadapter/type AdapterOption
 metaengine/projectionadapter/type EventDecoder
 metaengine/projectionadapter/type PayloadDecoder
 metaengine/struct Append
+metaengine/struct ApplyError
 metaengine/struct AsOfSignal
 metaengine/struct CollectionInfo
 metaengine/struct CollectionStats
@@ -1840,7 +1862,10 @@ metaengine/type Delta
 metaengine/type Diagnostics
 metaengine/type FilterOp
 metaengine/type FoldKind
+metaengine/type ItemCount
+metaengine/type Nanoseconds
 metaengine/type QueryOption
+metaengine/type RatePerSecond
 metaengine/type ReadPattern
 metaengine/type SSEOption
 metaengine/type ScanOption

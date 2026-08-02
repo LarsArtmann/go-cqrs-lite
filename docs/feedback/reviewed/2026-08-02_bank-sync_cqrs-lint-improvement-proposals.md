@@ -8,8 +8,8 @@
 > cross-file blindness) are tracked in TODO_LIST.md "cqrs-lint — Open Work".
 > Config-level rule disabling and `--exclude-rules` CLI flag are the top
 > cqrs-lint priority. This file is the canonical consumer feedback record.
-**Date:** 2026-08-02
-**Previous feedback:** [2026-07-17_bank-sync_cqrs-lint-feedback.md](../2026-07-17_bank-sync_cqrs-lint-feedback.md) (v0.1.0)
+> **Date:** 2026-08-02
+> **Previous feedback:** [2026-07-17_bank-sync_cqrs-lint-feedback.md](../2026-07-17_bank-sync_cqrs-lint-feedback.md) (v0.1.0)
 
 ---
 
