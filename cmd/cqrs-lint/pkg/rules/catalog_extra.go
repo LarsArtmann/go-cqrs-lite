@@ -457,7 +457,7 @@ func consistencyRules() []RuleInfo {
 			Severity:    "info",
 			Confidence:  "medium",
 			Description: "Project uses both event.New and event.NewEvent — standardize on event.New",
-			AutoFix:     false,
+			AutoFix:     true,
 		},
 		{
 			ID:          "D008",

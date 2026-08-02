@@ -52,9 +52,11 @@ and is **never** duplicated here.
 - `[ ]` **DuckDB columnar-native storage** — DuckDB stores JSON as VARCHAR;
   columnar scans not leveraged. Vectorized GROUP BY for CounterGet would use
   DuckDB's native columnar engine.
-- `[ ]` **SSE consolidation** — `metaengine.ServeSSE` overlaps
-  `transport/http.SSEBroker`. ADR needed: consolidate, or document the
-  intentional split.
+- [x] ~~**SSE consolidation**~~ — **DONE** (2026-08-02). ADR-0091 documents
+  the intentional split between `metaengine.ServeSSE` (read-model push) and
+  `transport/http.SSEBroker` (event stream push). Different layers, different
+  replay strategies, different module boundaries — merging would violate
+  the metaengine zero-dependency principle.
 - `[ ]` **Vector/Search/Spatial backends** — currently Memory-only (brute-force).
   Future: DuckDB VSS extension (vector), Postgres tsvector (search), PostGIS
   (spatial). See ROADMAP.

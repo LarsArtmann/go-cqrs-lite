@@ -17,15 +17,22 @@ import (
 // on event.New (the shorter alias) reduces cognitive load and prevents the
 // split-brain pattern where different files use different constructors.
 //
+// When both APIs are used, emits one finding per event.NewEvent call site,
+// each auto-fixable (--fix replaces event.NewEvent( with event.New().
+//
 //nolint:ireturn // factory returns public interface
 func NewD007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"D007-inconsistent-event-creation-api",
 		func(_ context.Context) ([]finding.Finding, error) {
 			hasNew := false
-			hasNewEvent := false
-			firstFile := ""
-			firstLine := 0
+
+			type newEventSite struct {
+				file   string
+				line   int
+				pos   finding.Position
+			}
+			var sites []newEventSite
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -46,46 +53,44 @@ func NewD007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					switch name {
 					case "New":
 						hasNew = true
-						if firstFile == "" {
-							pos := ctx.Fset.Position(call.Pos())
-							firstFile = pos.Filename
-							firstLine = pos.Line
-						}
 					case "NewEvent":
-						hasNewEvent = true
-						if firstFile == "" {
-							pos := ctx.Fset.Position(call.Pos())
-							firstFile = pos.Filename
-							firstLine = pos.Line
-						}
+						pos := ctx.Fset.Position(call.Pos())
+						sites = append(sites, newEventSite{
+							file: pos.Filename,
+							line: pos.Line,
+							pos:  finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+						})
 					}
 
 					return true
 				})
 			}
 
-			if !hasNew || !hasNewEvent {
+			if !hasNew || len(sites) == 0 {
 				return nil, nil
 			}
 
-			pos := anchorPos(ctx, firstFile, firstLine)
+			var findings []finding.Finding
 
-			f, err := finding.NewBuilder(
-				"D007", toolName,
-				"Project uses both event.New and event.NewEvent — standardize on event.New",
-				finding.SeverityInfo,
-				pos,
-			).
-				WithCategory(finding.CategoryStyle).
-				WithConfidence(finding.ConfidenceMedium).
-				WithSuggestion("Replace all event.NewEvent calls with event.New — they are aliases").
-				WithSnippet(ctx.SourceLine(firstFile, firstLine)).
-				Build()
-			if err != nil {
-				return nil, nil //nolint:nilerr // best-effort: drop malformed finding
+			for _, s := range sites {
+				f, err := finding.NewBuilder(
+					"D007", toolName,
+					"Project uses both event.New and event.NewEvent — standardize on event.New",
+					finding.SeverityInfo,
+					s.pos,
+				).
+					WithCategory(finding.CategoryStyle).
+					WithConfidence(finding.ConfidenceMedium).
+					WithFixStrategy(finding.FixStrategyDirect).
+					WithBeforeCode("event.NewEvent(").
+					WithAfterCode("event.New(").
+					WithSuggestion("Replace event.NewEvent with event.New — they are aliases").
+					WithSnippet(ctx.SourceLine(s.file, s.line)).
+					Build()
+				lintutil.AppendBuild(&findings, f, err)
 			}
 
-			return []finding.Finding{f}, nil
+			return findings, nil
 		},
 	)
 }
