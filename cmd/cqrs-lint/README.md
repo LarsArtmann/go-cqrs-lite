@@ -92,7 +92,7 @@ Explicit `features` flags always override preset values.
 
 ## Rule Count
 
-**179 rules** across 10 categories: correctness (36), API misuse (30), boilerplate (28), consistency (16), architecture (17), security (9), performance (10), version (6), testing (8), adoption (21).
+**180 rules** across 10 categories: correctness (36), API misuse (31), boilerplate (28), consistency (16), architecture (17), security (9), performance (10), version (6), testing (8), adoption (21).
 
 ## Correctness Rules (bugs)
 
@@ -154,6 +154,8 @@ Explicit `features` flags always override preset values.
 | A019 | vendored-cqrs                               | Warning  | Vendored copy of go-cqrs-lite detected                                              |
 | A027 | repeated-withcodec                          | Info     | event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec |
 | A030 | incomplete-snapshot-config                  | Error    | WithSnapshotStrategy without WithSnapshotStore — ErrIncompleteSnapshotConfig        |
+| A032 | string-id-instead-of-branded                | Warning  | Struct field named *ID with type string/int — use id.Of[T] branded ID               |
+| A033 | branded-id-string-roundtrip                 | Warning  | id.Parse[T](x.String()) — pointless branded-ID roundtrip, discards typed value       |
 
 ## Boilerplate Rules
 
