@@ -520,20 +520,6 @@
               description = "Lightweight CQRS/Event-Sourcing library for Go";
               homepage = "https://github.com/larsartmann/go-cqrs-lite";
               license = licenses.mit;
-              platforms = platforms.unix;
-            };
-          };
-
-          # QEMU VM images for integration testing (Linux only).
-          # Build: nix build .#pg-vm or .#mysql-vm
-          # Run:   result/bin/run-nixos-vm
-          packages.pg-vm = pgVM;
-          packages.mysql-vm = mysqlVM;
-
-            meta = with lib; {
-              description = "Lightweight CQRS/Event-Sourcing library for Go";
-              homepage = "https://github.com/larsartmann/go-cqrs-lite";
-              license = licenses.mit;
               maintainers = [
                 {
                   name = "Lars Artmann";
@@ -543,6 +529,12 @@
               platforms = platforms.unix;
             };
           };
+
+          # QEMU VM images for integration testing (Linux only).
+          # Build: nix build .#pg-vm or .#mysql-vm
+          # Run:   result/bin/run-nixos-vm
+          packages.pg-vm = pgVM;
+          packages.mysql-vm = mysqlVM;
 
           # Domain-aware linter for go-cqrs-lite consumers.
           # Built from cmd/cqrs-lint/ which has its own go.mod (standalone module).

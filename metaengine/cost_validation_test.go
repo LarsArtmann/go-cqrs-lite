@@ -49,8 +49,8 @@ func TestCostModel_RankingMatchesActual(t *testing.T) {
 	}
 
 	// Predicted costs.
-	memPred := estimateCost(ComplexityO1, volume, MemoryNsPerOp)
-	sqlPred := estimateCost(ComplexityOLogN, volume, SQLiteNsPerOp)
+	memPred := estimateCost(ComplexityO1, volume, MemoryNsPerOp, 0)
+	sqlPred := estimateCost(ComplexityOLogN, volume, SQLiteNsPerOp, 0)
 
 	// Actual latencies.
 	memActualNs := avgNs(500, func() {

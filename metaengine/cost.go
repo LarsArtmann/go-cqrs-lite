@@ -59,15 +59,9 @@ const defaultNsPerOp = 100.0
 // The volume represents the expected number of items in the projection.
 // If volume is zero or negative, a default of 1000 is assumed.
 // nsPerOp is the calibrated per-operation cost for the engine being evaluated.
-func estimateCost(complexity Complexity, volume int64, nsPerOp float64) CostEstimate {
-	return estimateCostWithLag(complexity, volume, nsPerOp, 0)
-}
-
-// estimateCostWithLag is like estimateCost but adds lag (replication delay) to
-// the estimated latency. For local engines, lag is typically sub-millisecond.
-// For global engines (e.g. Iroh), lag may be seconds. This lets the planner
-// naturally prefer local engines when both are eligible.
-func estimateCostWithLag(complexity Complexity, volume int64, nsPerOp float64, lag time.Duration) CostEstimate {
+// networkRTT is the fixed per-query network overhead (0 for in-process engines).
+// It is additive: total_latency = (ops × nsPerOp / 1e6) + networkRTT.
+func estimateCost(complexity Complexity, volume int64, nsPerOp float64, networkRTT time.Duration) CostEstimate {
 	effectiveVolume := volume
 	if effectiveVolume <= 0 {
 		effectiveVolume = 1000
@@ -98,7 +92,7 @@ func estimateCostWithLag(complexity Complexity, volume int64, nsPerOp float64, l
 		nsPerOp = defaultNsPerOp
 	}
 
-	latencyMs := (ops * nsPerOp) / 1e6
+	latencyMs := (ops * nsPerOp) / 1e6 + float64(networkRTT.Microseconds()) / 1e3
 
 	return CostEstimate{
 		Complexity:         complexity,

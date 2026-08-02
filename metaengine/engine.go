@@ -36,18 +36,24 @@ type EngineProfile struct {
 	// updates, folds). When zero, the planner falls back to NsPerOp.
 	NsPerWrite float64
 
-	// Visibility declares whether this engine's data is visible only to the
-	// local process (VisibilityLocal) or to all processes (VisibilityGlobal).
-	// All current engines are local. Future distributed engines (e.g. Iroh)
-	// will be global. When unset (zero value), defaults to VisibilityLocal.
-	Visibility VisibilityModel
+	// Replication declares how this engine's data propagates across process
+	// boundaries (DDIA Ch5). ReplicationNone (zero value) means single-node:
+	// data stays in this process. All current engines are ReplicationNone.
+	// Future distributed engines (e.g. Iroh) will declare their replication mode.
+	Replication Replication
 
-	// TypicalLag is the expected delay between a write and it being readable.
-	// Local engines: ~projection processing time (microseconds to milliseconds).
-	// Global engines: ~replication convergence time (milliseconds to seconds).
-	// Used by the cost estimator as an additive latency component, NOT for
-	// gating engine selection. When zero, defaults to DefaultTypicalLag.
-	TypicalLag time.Duration
+	// ReplicationLag is the expected delay between a write on one node and it
+	// being visible on another (DDIA Ch5: "replication lag"). Zero for local
+	// and primary engines. Used for diagnostics, NOT for latency estimation —
+	// staleness is a freshness property, not a performance cost.
+	ReplicationLag time.Duration
+
+	// NetworkRTT is the typical round-trip time to reach this engine's data
+	// (DDIA Ch1). Zero for in-process engines (Memory, SQLite, Pebble, DuckDB).
+	// Non-zero for any engine accessed over a network. Used by the cost
+	// estimator as an additive fixed latency component — it does NOT scale
+	// with query volume.
+	NetworkRTT time.Duration
 }
 
 // ReadNsPerOp returns the calibrated per-read-operation cost, falling back to
