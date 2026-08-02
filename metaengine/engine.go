@@ -6,6 +6,7 @@ import (
 	"iter"
 	"sort"
 	"strings"
+	"time"
 )
 
 // EngineProfile describes what an engine can do and at what cost.
@@ -34,6 +35,19 @@ type EngineProfile struct {
 	// NsPerWrite is the calibrated nanoseconds-per-WRITE-operation (inserts,
 	// updates, folds). When zero, the planner falls back to NsPerOp.
 	NsPerWrite float64
+
+	// Visibility declares whether this engine's data is visible only to the
+	// local process (VisibilityLocal) or to all processes (VisibilityGlobal).
+	// All current engines are local. Future distributed engines (e.g. Iroh)
+	// will be global. When unset (zero value), defaults to VisibilityLocal.
+	Visibility VisibilityModel
+
+	// TypicalLag is the expected delay between a write and it being readable.
+	// Local engines: ~projection processing time (microseconds to milliseconds).
+	// Global engines: ~replication convergence time (milliseconds to seconds).
+	// Used by the cost estimator as an additive latency component, NOT for
+	// gating engine selection. When zero, defaults to DefaultTypicalLag.
+	TypicalLag time.Duration
 }
 
 // ReadNsPerOp returns the calibrated per-read-operation cost, falling back to

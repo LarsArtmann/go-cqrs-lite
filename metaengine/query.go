@@ -16,6 +16,7 @@ type QueryConfig struct {
 	filterAccessors []filterAccessor
 	sortAccessor    sortAccessor
 	columnarLayout  bool
+	visibility      VisibilityModel
 }
 
 // Volume sets the expected query volume (events/sec) for cost estimation.
