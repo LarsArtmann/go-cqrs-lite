@@ -75,7 +75,7 @@ func versionString() string {
 	}
 
 	if len(parts) == 0 {
-		return fmt.Sprintf("cqrs-lint %s", version)
+		return "cqrs-lint " + version
 	}
 
 	return fmt.Sprintf("cqrs-lint %s (%s)", version, strings.Join(parts, ", "))

@@ -33,7 +33,7 @@ type AppConfig struct {
 	cmdguard.Config
 
 	Path           string `default:"."     flag:"path"            help:"Path to lint"`
-	Format         string `default:"text"  flag:"format"          help:"Output format"                                                   short:"o"`
+	Format         string `default:"text"  flag:"format"          help:"Output format"                                                      short:"o"`
 	MinSeverity    string `default:"info"  flag:"min-severity"    help:"Minimum severity"`
 	MinConfidence  string `default:"low"   flag:"min-confidence"  help:"Minimum confidence"`
 	Fix            bool   `default:"false" flag:"fix"             help:"Apply auto-fixes"`
@@ -45,7 +45,7 @@ type AppConfig struct {
 	Exclude        string `default:""      flag:"exclude"         help:"Exclude paths (comma-separated)"`
 	Color          string `default:"auto"  flag:"color"           help:"Colored output: auto,always,never"`
 	Verbose        bool   `default:"false" flag:"verbose"         help:"Verbose output"`
-	Quiet          bool   `default:"false" flag:"quiet"           help:"Suppress non-finding output"                                     short:"q"`
+	Quiet          bool   `default:"false" flag:"quiet"           help:"Suppress non-finding output"                                        short:"q"`
 	FPSuspects     bool   `default:"false" flag:"fp-suspects"     help:"Show only low-confidence findings (likely false positives)"`
 	ShowSuppressed bool   `default:"false" flag:"show-suppressed" help:"Show suppressed findings with their suppression reason"`
 	StrictLoad     bool   `default:"false" flag:"strict-load"     help:"Exit non-zero if any packages failed to load (partial analysis)"`
