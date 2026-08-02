@@ -81,10 +81,6 @@ and is **never** duplicated here.
   should be documented in `metaengine/README.md` or `metaengine/COOKBOOK.md`.
   Evidence: `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
 
-- [ ] **Add CHANGELOG entry for watcher reification fix** — the fix is in
-  `metaengine/dx.go` and `metaengine/sse_replay.go` but is not recorded in
-  `CHANGELOG.md`.
-
 > Long-term metaengine work (`generic ScanResult[T]`, `metaengine-gen` code
 > generator, Vector/Search/Spatial engine backends, DuckDB columnar-native storage)
 > lives in [ROADMAP.md](ROADMAP.md).
