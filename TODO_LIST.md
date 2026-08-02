@@ -24,12 +24,14 @@ and is **never** duplicated here.
 > interface. All known bugs are fixed. See CHANGELOG `[Unreleased]` for full
 > detail.
 
-- `[ ]` 🔥 **Wire dead code from data model refactor** — branded unit types
-  (`NsPerRead`, `NsPerWrite`, `ByteSize`), `ApplyError`, `Valid()` calls at
-  `Plan()` time are defined but NOT wired. They are currently dead code.
-- `[ ]` 🔥 **Exhaustiveness guard test** — compile-time test ensuring all Fold
-  concrete types are handled in `applyFold` type switch (prevents silent
-  fallthrough when a new fold type is added).
+- [x] ~~**Wire dead code from data model refactor**~~ — **DONE** (2026-08-02).
+  `ApplyError` now wraps all fold errors in `applyFold` (structured context:
+  query, event type, fold kind). `Valid()` methods are called at `Plan()` time
+  for ADT, ReadPattern, and each FoldKind. `NsPerRead`/`NsPerWrite` were
+  already wired.
+- [x] ~~**Exhaustiveness guard test**~~ — **DONE** (2026-08-02). Compile-time
+  test ensuring all Fold concrete types are handled in `applyFold` type switch
+  (prevents silent fallthrough when a new fold type is added).
 - `[ ]` **10M-event soak test** — verify memory boundedness at scale (currently
   50K events; stretch goal is 10M).
 - `[ ]` **`metaengine-gen` code generator** — typed Store methods from query
