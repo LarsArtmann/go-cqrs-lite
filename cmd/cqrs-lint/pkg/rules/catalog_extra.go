@@ -540,6 +540,15 @@ func consistencyRules() []RuleInfo {
 			Description: "Event payload struct with >20 fields — hard to evolve and serialize",
 			AutoFix:     false,
 		},
+		{
+			ID:          "D017",
+			Name:        "raw-errors-in-domain",
+			Category:    "consistency",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Unclassified errors.New/fmt.Errorf in domain decider files — business rule violations must use errorfamily taxonomy",
+			AutoFix:     false,
+		},
 	}
 }
 
@@ -787,6 +796,15 @@ func securityRules() []RuleInfo {
 			Description: "Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext",
 			AutoFix:     false,
 			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#s010",
+		},
+		{
+			ID:          "S011",
+			Name:        "pii-without-encryption",
+			Category:    "security",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "PII field in event payload without bus encryption middleware — data persisted in cleartext to event store",
+			AutoFix:     false,
 		},
 	}
 }

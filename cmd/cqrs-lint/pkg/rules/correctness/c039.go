@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"slices"
 
 	"github.com/larsartmann/go-finding"
 
@@ -109,21 +110,7 @@ func isHandlerFunc(fn *ast.FuncDecl) bool {
 
 	name := fn.Name.Name
 
-	for _, pattern := range []string{"SubscribeAll", "Subscribe", "Handle", "HandleEvent"} {
-		if name == pattern {
-			return true
-		}
-	}
-
-	if fn.Recv != nil && fn.Recv.List != nil {
-		for _, pattern := range []string{"Handle", "HandleEvent"} {
-			if name == pattern {
-				return true
-			}
-		}
-	}
-
-	return false
+	return slices.Contains([]string{"SubscribeAll", "Subscribe", "Handle", "HandleEvent"}, name)
 }
 
 // funcContainsWaitGroup checks if the function body references sync.WaitGroup.

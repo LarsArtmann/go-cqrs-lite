@@ -404,6 +404,24 @@ func correctnessRules() []RuleInfo {
 			Description: "Typed store (snapshot, command, query, or kv) codec differs from repository codec — store cannot be decoded, loads as corrupt/zero state",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C038",
+			Name:        "event-type-typo",
+			Category:    "correctness",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "Emitted event type string is a likely typo of a fold case label — event silently dropped during replay",
+			AutoFix:     false,
+		},
+		{
+			ID:          "C039",
+			Name:        "goroutine-leak-in-handler",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Unmanaged goroutine inside event/command handler — resource leak and ordering violation",
+			AutoFix:     false,
+		},
 	}
 }
 

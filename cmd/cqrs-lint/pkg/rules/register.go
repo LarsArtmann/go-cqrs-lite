@@ -146,6 +146,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		consistency.NewD014Detector(ctx),
 		consistency.NewD015Detector(ctx),
 		consistency.NewD016Detector(ctx),
+		consistency.NewD017Detector(ctx),
 		// Architecture (E001-E007 always apply — structural issues are real for any code)
 		architecture.NewE001Detector(ctx),
 		architecture.NewE002Detector(ctx),
@@ -164,6 +165,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		security.NewS008Detector(ctx),
 		security.NewS009Detector(ctx),
 		security.NewS010Detector(ctx),
+		security.NewS011Detector(ctx),
 		// Correctness (new)
 		correctness.NewC028Detector(ctx),
 		correctness.NewC029Detector(ctx),
@@ -175,6 +177,8 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		correctness.NewC035Detector(ctx),
 		correctness.NewC036Detector(ctx),
 		correctness.NewC037Detector(ctx),
+		correctness.NewC038Detector(ctx),
+		correctness.NewC039Detector(ctx),
 		// Testing
 		testrules.NewT001Detector(ctx),
 		testrules.NewT002Detector(ctx),

@@ -71,7 +71,7 @@ func NewD017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryConsistency).
+							WithCategory(finding.CategoryStyle).
 							WithConfidence(finding.ConfidenceHigh).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion(
