@@ -127,6 +127,7 @@ func main() {
 }
 `,
 	})
+	ctx.FeatureProfile.ServerLocal = false // simulate production server
 
 	findings := ruletest.RunDetector(t, adoption.NewF004Detector(ctx))
 	ruletest.AssertRule(t, findings, "F004", 1)

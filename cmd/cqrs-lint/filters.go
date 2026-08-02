@@ -176,8 +176,37 @@ func filterSuppressed(findings []finding.Finding) (active, suppressed []finding.
 	return active, suppressed
 }
 
-func filterByExcludedPaths(findings []finding.Finding, patterns []string) []finding.Finding {
-	if len(patterns) == 0 {
+// excludeAdoptionFromScore returns a copy of findings with F-series (adoption)
+// findings marked as suppressed so they don't count toward the health score.
+// The original slice is unchanged — the findings remain visible in the output
+// because the caller passes the unmodified `unsuppressed` to the output layer.
+// This is the --adoption flag's score-exclusion mechanism.
+func excludeAdoptionFromScore(findings []finding.Finding) []finding.Finding {
+	result := make([]finding.Finding, len(findings))
+	copy(result, findings)
+
+	for i := range result {
+		if isAdoptionRule(string(result[i].Rule)) && result[i].Suppression == nil {
+			result[i].Suppression = &finding.Suppression{
+				Kind:   finding.SuppressionInConfig,
+				Rule:   result[i].Rule,
+				Reason: "adoption flag: F-series excluded from health score",
+			}
+		}
+	}
+
+	return result
+}
+
+// isAdoptionRule reports whether a rule ID belongs to the F-series (adoption
+// coaching rules). These rules suggest adopting go-cqrs-lite modules; under
+// --adoption they remain visible but don't penalize the score.
+func isAdoptionRule(ruleID string) bool {
+	return len(ruleID) >= 2 && ruleID[0] == 'F' &&
+		ruleID[1] >= '0' && ruleID[1] <= '9'
+}
+
+func filterByExcludedPaths(findings []finding.Finding, patterns []string) []finding.Finding {	if len(patterns) == 0 {
 		return findings
 	}
 

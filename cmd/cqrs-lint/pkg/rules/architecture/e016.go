@@ -23,6 +23,11 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
+			// CLI tools with embedded dashboards don't need Kubernetes probes.
+			if ctx.FeatureProfile.ServerLocal {
+				return nil, nil
+			}
+
 			hasBundle := false
 			hasServer := false
 			hasHealthCheck := false
@@ -68,6 +73,22 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					return true
 				})
+
+				// Recognize health endpoint route registrations via string literals:
+				// mux.HandleFunc("/healthz", ...) or healthPath := "/ready".
+				// These exact path strings are almost certainly health probes.
+				ast.Inspect(gf.AST, func(n ast.Node) bool {
+					lit, ok := n.(*ast.BasicLit)
+					if !ok || lit.Kind != token.STRING {
+						return true
+					}
+
+					if isHealthEndpoint(strings.Trim(lit.Value, `"`)) {
+						hasHealthCheck = true
+					}
+
+					return true
+				})
 			}
 
 			if (hasBundle || hasServer) && !hasHealthCheck {
@@ -89,4 +110,20 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// healthEndpoints are URL paths that signal a health/readiness probe.
+// When any of these appears as a string literal in non-test code, the
+// project has a health endpoint and E016 should not fire.
+//
+//nolint:gochecknoglobals // read-only lookup set
+var healthEndpoints = map[string]bool{
+	"/health":  true,
+	"/healthz": true,
+	"/ready":   true,
+	"/readyz":  true,
+}
+
+func isHealthEndpoint(path string) bool {
+	return healthEndpoints[path]
 }

@@ -557,3 +557,42 @@ func writeNoCommit(ctx context.Context, db DB) error {
 	findings := ruletest.RunDetector(t, correctness.NewC001Detector(ctx))
 	ruletest.AssertRule(t, findings, "C001", 1)
 }
+
+// --- C016: context.Background() in handler ---
+
+func TestC016_DetectsBackgroundInHandler(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+import (
+	"context"
+)
+
+func handle(ctx context.Context) {
+	doStuff(context.Background())
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC016Detector(ctx))
+	ruletest.AssertRule(t, findings, "C016", 1)
+}
+
+func TestC016_NoFindingForShutdownContext(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"server.go": `package main
+
+import (
+	"context"
+	"time"
+)
+
+func shutdown(ctx context.Context, srv *Server) {
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	srv.Shutdown(shutdownCtx)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC016Detector(ctx))
+	ruletest.AssertRule(t, findings, "C016", 0)
+}

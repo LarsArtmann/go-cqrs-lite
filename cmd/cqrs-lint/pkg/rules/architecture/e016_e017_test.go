@@ -22,6 +22,8 @@ func runServer() {
 }
 `,
 	})
+	ctx.FeatureProfile.ServerLocal = false // simulate production server
+
 	findings := ruletest.RunDetector(t, architecture.NewE016Detector(ctx))
 	ruletest.AssertRule(t, findings, "E016", 1)
 }
@@ -56,6 +58,25 @@ func TestE016_NoFindingForNonServerProject(t *testing.T) {
 
 func main() {
 	println("hello")
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE016Detector(ctx))
+	ruletest.AssertRule(t, findings, "E016", 0)
+}
+
+func TestE016_NoFindingForHealthEndpointRoute(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"server.go": `package main
+
+import "net/http"
+
+func runServer() {
+	http.HandleFunc("/healthz", healthHandler)
+	srv := &http.Server{Addr: ":8080"}
+	_ = srv.ListenAndServe()
 }
 `,
 	})

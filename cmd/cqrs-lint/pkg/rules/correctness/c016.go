@@ -39,6 +39,11 @@ func NewC016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
+					// Collect line numbers of server-lifecycle calls (Shutdown,
+					// ListenAndServe, Serve) so we can exempt the
+					// context.WithTimeout(context.Background(), ...) shutdown idiom.
+					lifecycleLines := collectServerLifecycleLines(ctx, fnDecl)
+
 					// Walk the function body for context.Background()/TODO() calls.
 					if fnDecl.Body == nil {
 						return true
@@ -71,6 +76,16 @@ func NewC016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 
 						pos := ctx.Fset.Position(call.Pos())
+
+						// Exempt the graceful-shutdown idiom:
+						//   ctx, cancel := context.WithTimeout(context.Background(), timeout)
+						//   server.Shutdown(ctx)
+						// If a server-lifecycle call is within 5 lines, this
+						// Background() is the shutdown timeout root — not a
+						// detached handler context.
+						if nearServerLifecycle(pos.Line, lifecycleLines) {
+							return true
+						}
 
 						f, err := finding.NewBuilder(
 							"C016",
@@ -137,6 +152,71 @@ func isContextType(expr ast.Expr) bool {
 
 	if ell, ok := expr.(*ast.Ellipsis); ok {
 		return isContextType(ell.Elt)
+	}
+
+	return false
+}
+
+// serverLifecycleMethods are method names that signal a server shutdown or
+// startup call. When context.Background() appears near one, it's the
+// graceful-shutdown timeout idiom, not a detached handler context.
+var serverLifecycleMethods = map[string]bool{ //nolint:gochecknoglobals // static lookup
+	"Shutdown":         true,
+	"ListenAndServe":   true,
+	"ListenAndServeTLS": true,
+	"Serve":            true,
+	"Close":            true,
+}
+
+// collectServerLifecycleLines returns the line numbers of server-lifecycle
+// method calls (Shutdown, ListenAndServe, Serve, Close) within the function
+// body. Used to exempt the context.WithTimeout(context.Background(), ...)
+// shutdown idiom from C016.
+func collectServerLifecycleLines(ctx *analyzer.AnalysisContext, fn *ast.FuncDecl) map[int]bool {
+	lines := make(map[int]bool)
+
+	if fn.Body == nil {
+		return lines
+	}
+
+	ast.Inspect(fn.Body, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		sel, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+
+		if serverLifecycleMethods[sel.Sel.Name] {
+			pos := ctx.Fset.Position(call.Pos())
+			lines[pos.Line] = true
+		}
+
+		return true
+	})
+
+	return lines
+}
+
+// nearServerLifecycle reports whether line is within 5 lines of any
+// server-lifecycle call. This proximity window covers the typical
+// shutdown pattern where context.Background() and server.Shutdown()
+// are separated by a defer cancel() or a few lines of error handling.
+const shutdownProximityLines = 5
+
+func nearServerLifecycle(line int, lifecycleLines map[int]bool) bool {
+	for l := range lifecycleLines {
+		diff := line - l
+		if diff < 0 {
+			diff = -diff
+		}
+
+		if diff <= shutdownProximityLines {
+			return true
+		}
 	}
 
 	return false

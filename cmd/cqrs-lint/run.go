@@ -68,11 +68,15 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	}
 
 	if cfg.HealthScore {
+		scoreFindings := unsuppressed
+		if cfg.Adoption {
+			scoreFindings = excludeAdoptionFromScore(unsuppressed)
+		}
 		infoCap := cfg.Health.InfoCap
 		if infoCap == 0 {
 			infoCap = defaultInfoDeductionCap
 		}
-		hs := ComputeHealthScoreWithCap(unsuppressed, infoCap)
+		hs := ComputeHealthScoreWithCap(scoreFindings, infoCap)
 		fmt.Print(renderHealthScore(hs, parseColorMode(cfg.Color)))
 	}
 
@@ -285,6 +289,9 @@ func printSummary(
 		)
 		if actx.IsLibrarySelfLint() {
 			fmt.Fprintln(os.Stderr, "Library self-lint mode: consumer-only rules auto-suppressed")
+		}
+		if cfg.Adoption {
+			fmt.Fprintln(os.Stderr, "Adoption mode: F-series findings visible but excluded from health score")
 		}
 		if suppressedCount > 0 {
 			fmt.Fprintf(os.Stderr, "%d finding(s) suppressed by inline comments\n", suppressedCount)

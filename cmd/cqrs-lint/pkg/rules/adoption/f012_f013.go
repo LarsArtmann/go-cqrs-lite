@@ -67,6 +67,11 @@ func NewF013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
+			// CLI tools with embedded dashboards don't need transport modules.
+			if ctx.FeatureProfile.ServerLocal {
+				return nil, nil
+			}
+
 			// The project already has a transport layer (transport/http,
 			// transport/grpc, or an external module like cqrs-htmx). F013
 			// suggests adopting a transport module — no point if one is present.

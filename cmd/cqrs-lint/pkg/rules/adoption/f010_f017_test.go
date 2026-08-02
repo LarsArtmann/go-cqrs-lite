@@ -92,6 +92,7 @@ func main() {
 }
 `,
 	})
+	ctx.FeatureProfile.ServerLocal = false // simulate production server
 
 	findings := ruletest.RunDetector(t, adoption.NewF013Detector(ctx))
 	ruletest.AssertRule(t, findings, "F013", 1)
@@ -170,6 +171,28 @@ func _() {
 
 	findings := ruletest.RunDetector(t, adoption.NewF015Detector(ctx))
 	ruletest.AssertRule(t, findings, "F015", 1)
+}
+
+func TestF015_NoFindingForSQLiteStore(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func _() {
+	query.RegisterTyped(d, t1, h1)
+	query.RegisterTyped(d, t2, h2)
+	query.RegisterTyped(d, t3, h3)
+	query.RegisterTyped(d, t4, h4)
+	query.RegisterTyped(d, t5, h5)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	ctx.FeatureProfile.Store = analyzer.StoreSQLite
+
+	findings := ruletest.RunDetector(t, adoption.NewF015Detector(ctx))
+	ruletest.AssertRule(t, findings, "F015", 0)
 }
 
 func TestF016_ManyAggregatesWithoutListing(t *testing.T) {

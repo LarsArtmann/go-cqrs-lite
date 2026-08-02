@@ -37,6 +37,11 @@ type FeatureProfile struct {
 	// adoption rules that suggest adopting a transport module are suppressed —
 	// the project already has one.
 	HasTransport bool
+	// ServerLocal is true when HasServer is detected but the server lacks
+	// production signals (no TLS, no graceful Shutdown, no health endpoint).
+	// This classifies CLI tools with embedded dashboards correctly, suppressing
+	// server-only rules (health checks, Prometheus, transport suggestions).
+	ServerLocal bool
 }
 
 // StoreKind enumerates the persistence backends go-cqrs-lite supports.
@@ -107,6 +112,7 @@ func (fp FeatureProfile) String() string {
 	_, _ = fmt.Fprintf(&b, "snapshot:      %s\n", fp.Snapshot)
 	_, _ = fmt.Fprintf(&b, "domain:        %s\n", fp.Domain)
 	_, _ = fmt.Fprintf(&b, "transport:     %t\n", fp.HasTransport)
+	_, _ = fmt.Fprintf(&b, "server-local:  %t\n", fp.ServerLocal)
 	return b.String()
 }
 

@@ -196,6 +196,61 @@ func TestVersionStringWithCommit(t *testing.T) {
 	}
 }
 
+func TestExcludeAdoptionFromScore(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{Rule: "C007", Severity: finding.SeverityWarning},
+		{Rule: "F013", Severity: finding.SeverityInfo},
+		{Rule: "F017", Severity: finding.SeverityInfo},
+		{Rule: "E016", Severity: finding.SeverityWarning},
+	}
+
+	filtered := excludeAdoptionFromScore(findings)
+
+	// Original must be unchanged.
+	for i := range findings {
+		if findings[i].Suppression != nil {
+			t.Errorf("original finding %s was mutated", findings[i].Rule)
+		}
+	}
+
+	// Filtered copy: F-series suppressed, others not.
+	suppressed := 0
+	for _, f := range filtered {
+		if f.Suppression != nil {
+			suppressed++
+			if string(f.Rule) != "F013" && string(f.Rule) != "F017" {
+				t.Errorf("unexpected suppressed rule: %s", f.Rule)
+			}
+		}
+	}
+	if suppressed != 2 {
+		t.Errorf("expected 2 F-series suppressed, got %d", suppressed)
+	}
+}
+
+func TestIsAdoptionRule(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		rule string
+		want bool
+	}{
+		{"F001", true},
+		{"F021", true},
+		{"C007", false},
+		{"E016", false},
+		{"P012", false},
+		{"", false},
+	}
+	for _, tc := range cases {
+		if got := isAdoptionRule(tc.rule); got != tc.want {
+			t.Errorf("isAdoptionRule(%q) = %v, want %v", tc.rule, got, tc.want)
+		}
+	}
+}
+
 func TestFilterSuppressed(t *testing.T) {
 	t.Parallel()
 

@@ -49,6 +49,7 @@ type AppConfig struct {
 	FPSuspects     bool   `default:"false" flag:"fp-suspects"     help:"Show only low-confidence findings (likely false positives)"`
 	ShowSuppressed bool   `default:"false" flag:"show-suppressed" help:"Show suppressed findings with their suppression reason"`
 	StrictLoad     bool   `default:"false" flag:"strict-load"     help:"Exit non-zero if any packages failed to load (partial analysis)"`
+	Adoption       bool   `default:"false" flag:"adoption"        help:"Show F-series adoption coaching but exclude them from health score"`
 
 	// Features declares which go-cqrs-lite modules the consumer uses.
 	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.
@@ -112,8 +113,11 @@ func main() {
 		"    ...code...\n" +
 		"    //cqrs-lint:ignore-end\n\n" +
 		"  Both //cqrs-lint: and // cqrs-lint: (with space) are accepted.\n" +
+		"  Place inline suppressions on the line above the code or at end of line.\n" +
+		"  Struct-field-level: place the comment directly above the field.\n\n" +
 		"  Disable rules project-wide via config: {\"rules\": {\"disable\": [\"P012\"]}}\n" +
-		"  or the --exclude-rules flag.\n"
+		"  or the --exclude-rules flag.\n" +
+		"  Rule-specific config: {\"rules\": {\"external-api-struct-prefixes\": [\"Discord\"]}}.\n"
 	rootCmd.Args = cobra.MaximumNArgs(1)
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		cfg := cli.Config()

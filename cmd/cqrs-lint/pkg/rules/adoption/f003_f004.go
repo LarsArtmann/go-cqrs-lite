@@ -56,6 +56,11 @@ func NewF004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
+			// CLI tools with embedded dashboards don't need Prometheus.
+			if ctx.FeatureProfile.ServerLocal {
+				return nil, nil
+			}
+
 			if importsPath(ctx, "go-cqrs-lite/prometheus") ||
 				importsPath(ctx, "prometheus/client_golang") {
 				return nil, nil

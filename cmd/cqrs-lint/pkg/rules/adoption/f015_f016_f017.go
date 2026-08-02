@@ -24,6 +24,13 @@ func NewF015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
+			// Metaengine is overkill for local SQLite — the query planner
+			// shines for distributed/complex query patterns, not single-file
+			// embedded databases.
+			if ctx.FeatureProfile.Store == analyzer.StoreSQLite {
+				return nil, nil
+			}
+
 			if importsPath(ctx, "go-cqrs-lite/metaengine") {
 				return nil, nil
 			}

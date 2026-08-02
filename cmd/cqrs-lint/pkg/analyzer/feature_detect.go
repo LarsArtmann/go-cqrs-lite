@@ -23,6 +23,9 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 	hasOTelImport := false
 	hasSnapshotImport := false
 	hasSnapshotUsage := false
+	hasTLS := false
+	hasShutdown := false
+	hasHealthRoute := false
 
 	// Pass 1: import-based detection (store, tracing, snapshot presence).
 	// Skip packages with errors — their import metadata may be unreliable.
@@ -158,8 +161,41 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 				}
 			}
 
+			// ServerLocal signals: detect production server indicators so
+			// we can classify embedded-dashboards (ListenAndServe without
+			// TLS/Shutdown/health) as ServerLocal.
+			if method == "ListenAndServeTLS" || method == "NewListener" {
+				hasTLS = true
+			}
+			if method == "Shutdown" || method == "GracefulClose" {
+				hasShutdown = true
+			}
+
 			return true
 		})
+
+		// Scan for health endpoint string literals (production signal).
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			lit, ok := n.(*ast.BasicLit)
+			if !ok {
+				return true
+			}
+
+			val := strings.Trim(lit.Value, `"`)
+			switch val {
+			case "/health", "/healthz", "/ready", "/readyz", "/livez":
+				hasHealthRoute = true
+			}
+
+			return true
+		})
+	}
+
+	// Resolve ServerLocal: HasServer without ANY production signals (TLS,
+	// graceful Shutdown, or health endpoint) means this is a CLI tool with an
+	// embedded dashboard, not a deployed service. Suppress server-only rules.
+	if fp.HasServer && !hasTLS && !hasShutdown && !hasHealthRoute {
+		fp.ServerLocal = true
 	}
 
 	// Resolve command-flow from dispatcher/dispatch signals.
