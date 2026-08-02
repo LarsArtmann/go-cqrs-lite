@@ -113,8 +113,10 @@ and is **never** duplicated here.
 - [BLOCKED] **Push `stack/duckdb/v4.0.0`, `metaengine/pgengine/v4.0.0`,
   `metaengine/duckdbengine/v4.0.0` tags** — all three tags created locally but
   not pushed (per safety rules). Consumers get 404 from Go proxy until pushed.
-- `[ ]` **MySQL testcontainer privilege fix** — root password auth
-  intermittently fails. Testcontainer GRANT pattern is fragile.
+- [x] ~~**MySQL testcontainer privilege fix**~~ — **DONE** (2026-08-02).
+  Replaced fragile `ctr.Exec` GRANT with Go-side `database/sql` root connection
+  + retry loop (`waitForMySQLReady`). go-sql-driver/mysql v1.10+ supports
+  caching_sha2_password, eliminating the auth issue.
 - `[ ]` **Investigate `TestRun_Postgres_Recovery` benchkit failure** — may
   still flake under CI.
 - `[ ]` **Investigate `TestProperty_SQLiteTTLExpiry` flake** — pre-existing

@@ -10,6 +10,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql" // register MySQL driver for CREATE DATABASE
 	"github.com/testcontainers/testcontainers-go"
@@ -58,27 +59,34 @@ func TestMain(m *testing.M) {
 	containerDSN = ensureParseTime(dsn)
 
 	// Grant the cqrs user global CREATE/DROP DATABASE privilege (needed for
-	// per-test database isolation in mysqlDSN and multidb tests). We use
-	// ctr.Exec to run the GRANT inside the container via the unix socket,
-	// avoiding caching_sha2_password auth issues with host-side root connections.
-	// The tcmysql module's WithDefaultCredentials sets MYSQL_ROOT_PASSWORD to
-	// the same value as MYSQL_PASSWORD, so the root password is "cqrs".
-	grantSQL := "GRANT ALL PRIVILEGES ON *.* TO 'cqrs'@'%' WITH GRANT OPTION"
-	exitCode, _, execErr := ctr.Exec(ctx, []string{
-		"mysql", "-uroot", "-pcqrs", "-e", grantSQL,
-	})
-	if execErr != nil || exitCode != 0 {
-		fmt.Fprintf(
-			os.Stderr,
-			"WARN: GRANT failed (exit %d): %v — tests will skip\n",
-			exitCode,
-			execErr,
-		)
+	// per-test database isolation in mysqlDSN and multidb tests). WithDefaultCredentials
+	// (called automatically by tcmysql.Run) sets MYSQL_ROOT_PASSWORD to the same
+	// value as MYSQL_PASSWORD, so the root password is "cqrs".
+	//
+	// We connect via Go's database/sql as root (go-sql-driver/mysql v1.10+
+	// supports caching_sha2_password) with a retry loop, because MySQL may not
+	// accept connections immediately after the wait-strategy log appears.
+	rootDSN := replaceUserInMySQLDSN(containerDSN, "root")
+	rootDB, err := waitForMySQLReady(rootDSN, 10*time.Second)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "WARN: root connection failed: %v — tests will skip\n", err)
 		containerDSN = ""
 		_ = testcontainers.TerminateContainer(ctr)
 		os.Exit(m.Run())
 	}
 
+	if _, err := rootDB.ExecContext(
+		ctx,
+		"GRANT ALL PRIVILEGES ON *.* TO 'cqrs'@'%' WITH GRANT OPTION",
+	); err != nil {
+		fmt.Fprintf(os.Stderr, "WARN: GRANT failed: %v — tests will skip\n", err)
+		_ = rootDB.Close()
+		containerDSN = ""
+		_ = testcontainers.TerminateContainer(ctr)
+		os.Exit(m.Run())
+	}
+
+	_ = rootDB.Close()
 	adminDB, _ = sql.Open("mysql", containerDSN)
 
 	code := m.Run()
@@ -162,4 +170,50 @@ func ensureParseTime(dsn string) string {
 	}
 
 	return dsn + "?parseTime=true"
+}
+
+// replaceUserInMySQLDSN swaps the username in a go-sql-driver/mysql DSN:
+// user:pass@tcp(host:port)/db?params → newUser:pass@tcp(host:port)/db?params
+func replaceUserInMySQLDSN(dsn, newUser string) string {
+	atIdx := strings.Index(dsn, "@")
+	if atIdx < 0 {
+		return dsn
+	}
+
+	colonIdx := strings.Index(dsn, ":")
+	if colonIdx < 0 || colonIdx >= atIdx {
+		return dsn
+	}
+
+	return newUser + dsn[colonIdx:]
+}
+
+// waitForMySQLReady retries connecting to MySQL until it succeeds or timeout.
+func waitForMySQLReady(dsn string, timeout time.Duration) (*sql.DB, error) {
+	deadline := time.Now().Add(timeout)
+	var lastErr error
+
+	for time.Now().Before(deadline) {
+		db, err := sql.Open("mysql", dsn)
+		if err != nil {
+			lastErr = err
+			time.Sleep(500 * time.Millisecond)
+			continue
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		err = db.PingContext(ctx)
+		cancel()
+
+		if err != nil {
+			_ = db.Close()
+			lastErr = err
+			time.Sleep(500 * time.Millisecond)
+			continue
+		}
+
+		return db, nil
+	}
+
+	return nil, fmt.Errorf("mysql not ready after %s: %w", timeout, lastErr)
 }
