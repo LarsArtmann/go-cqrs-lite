@@ -60,15 +60,15 @@ When set, the planner calls `BuildColumnarLayoutPlan` which reflects on the
 result type `R` and extracts **every exported field** into a native SQL
 column with an accurate type:
 
-| Go type          | SQL type |
-| ---------------- | -------- |
-| int, int8..int64 | INTEGER  |
-| uint, uint8..uint64 | INTEGER |
-| float32          | REAL     |
-| float64          | DOUBLE   |
-| bool             | INTEGER  |
-| string           | TEXT     |
-| everything else  | TEXT     |
+| Go type             | SQL type |
+| ------------------- | -------- |
+| int, int8..int64    | INTEGER  |
+| uint, uint8..uint64 | INTEGER  |
+| float32             | REAL     |
+| float64             | DOUBLE   |
+| bool                | INTEGER  |
+| string              | TEXT     |
+| everything else     | TEXT     |
 
 Fields named "key" or "value" (case-insensitive) are skipped to avoid
 collisions with the base table's primary key and JSON blob columns.
