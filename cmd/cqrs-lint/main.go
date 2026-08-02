@@ -15,7 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
-const version = "0.3.0"
+const version = "4.3.0"
 
 // commitHash and buildDate are injected via -ldflags at build time (Nix flake,
 // CI). When empty (local `go build`), the version output omits them.
