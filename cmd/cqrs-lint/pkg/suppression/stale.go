@@ -201,8 +201,66 @@ func detectStaleBlocks(
 
 // FormatStaleWarning renders a stale suppression as a user-facing warning.
 func FormatStaleWarning(s StaleSuppression) string {
+	if s.Reason == "unknown rule" {
+		return fmt.Sprintf(
+			"warning: suppression at %s:%d references unknown rule %s — possible typo or stale rule ID",
+			filepath.Base(s.File), s.Line, s.Rule,
+		)
+	}
+
 	return fmt.Sprintf(
 		"warning: stale suppression at %s:%d — rule %s does not fire here; safe to remove",
 		filepath.Base(s.File), s.Line, s.Rule,
 	)
+}
+
+// DetectUnknownRuleSuppressions scans Go files for //cqrs-lint:ignore(XYZ)
+// comments where XYZ is not a registered rule ID. These are likely typos
+// (e.g. PO12 with letter O instead of zero) or stale references to rules that
+// were renamed/removed. knownRuleIDs is the set of all currently-registered
+// rule IDs (from rules.AllRules or rules.LookupRule).
+func DetectUnknownRuleSuppressions(
+	goFiles []string,
+	knownRuleIDs map[string]bool,
+) []StaleSuppression {
+	if len(knownRuleIDs) == 0 {
+		return nil
+	}
+
+	var unknown []StaleSuppression
+
+	for _, path := range goFiles {
+		if !strings.HasSuffix(path, ".go") {
+			continue
+		}
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+
+		lines := strings.Split(string(data), "\n")
+
+		for lineIdx, line := range lines {
+			suppressions := ParseSuppressions(line)
+			if len(suppressions) == 0 {
+				continue
+			}
+
+			lineNum := lineIdx + 1
+
+			for rule := range suppressions {
+				if !knownRuleIDs[rule] {
+					unknown = append(unknown, StaleSuppression{
+						File:   path,
+						Line:   lineNum,
+						Rule:   rule,
+						Reason: "unknown rule",
+					})
+				}
+			}
+		}
+	}
+
+	return unknown
 }

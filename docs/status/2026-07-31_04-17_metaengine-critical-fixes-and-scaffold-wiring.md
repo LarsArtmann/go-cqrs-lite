@@ -11,6 +11,13 @@
 
 This session fixed **all 5 critical issues** from the honest review (Transaction API broken, SQL injection, Hooks success-only, weakened tests, dead code) and began wiring scaffolded stubs. Phase 1 (critical fixes) is fully verified — all tests pass. Phase 2 (scaffold wiring) is partially complete with TieredStore fully rewritten and Watcher/ReadCoalescer wired. The TODO_LIST.md has not yet been corrected.
 
+> **Update (2026-08-02):** Phase 2 was completed in subsequent sessions
+> (05:02 wired ReadCoalescer into read path, Watcher fixed to send values,
+> PrefetchCache wired, OTel tested). TODO_LIST.md was corrected (05:02 A9).
+> Most "NOT STARTED" items (Postgres engine, DuckDB engine, HTTP/SSE adapter,
+> cqrs-lint rules, Pebble raw readers) were later implemented. The metaengine
+> now has 5 engines and 10 ADTs. See CHANGELOG `[Unreleased]`.
+
 ---
 
 ## a) Fully Done (this session)

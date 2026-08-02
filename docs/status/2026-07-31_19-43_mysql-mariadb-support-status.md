@@ -4,6 +4,13 @@
 **Session goal:** Add MySQL and/or MariaDB support to go-cqrs-lite
 **Outcome:** Core implementation COMPLETE. Integration/wiring GAPS remain.
 
+> **Update (2026-08-01):** Most wiring gaps were resolved in session 2
+> (`2026-08-01_02-35_mysql-polish-session2-complete.md`): flake.nix updated,
+> depguard allow list updated, stale doc comment fixed, `nix fmt` run,
+> `nix run .#verify` GREEN. Remaining: MySQL testcontainer privilege fix is
+> fragile (intermittent root auth failure), CI workflow has no MySQL service
+> container, MariaDB untested. See TODO_LIST.md.
+
 ---
 
 ## a) FULLY DONE (Working & Verified)

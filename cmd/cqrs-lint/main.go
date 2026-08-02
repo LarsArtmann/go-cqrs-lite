@@ -90,7 +90,23 @@ func main() {
 		"Usage:\n" +
 		"  cqrs-lint [path] [flags]     Lint Go project for CQRS anti-patterns (default)\n" +
 		"  cqrs-lint rules              List all available rules\n" +
-		"  cqrs-lint version            Print version\n"
+		"  cqrs-lint version            Print version\n\n" +
+		"SUPPRESSIONS:\n\n" +
+		"  Inline (single rule):\n" +
+		"    //cqrs-lint:ignore(C007) reason text\n\n" +
+		"  Inline (multiple rules):\n" +
+		"    //cqrs-lint:ignore(C007,A001) reason text\n\n" +
+		"  Block:\n" +
+		"    //cqrs-lint:ignore-start\n" +
+		"    ...code...\n" +
+		"    //cqrs-lint:ignore-end\n\n" +
+		"  Block (specific rules):\n" +
+		"    //cqrs-lint:ignore-start(C007,A001)\n" +
+		"    ...code...\n" +
+		"    //cqrs-lint:ignore-end\n\n" +
+		"  Both //cqrs-lint: and // cqrs-lint: (with space) are accepted.\n" +
+		"  Disable rules project-wide via config: {\"rules\": {\"disable\": [\"P012\"]}}\n" +
+		"  or the --exclude-rules flag.\n"
 	rootCmd.Args = cobra.MaximumNArgs(1)
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		cfg := cli.Config()

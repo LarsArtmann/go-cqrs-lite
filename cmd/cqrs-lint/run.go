@@ -291,6 +291,17 @@ func printSummary(
 			fmt.Fprintln(os.Stderr, suppression.FormatStaleWarning(s))
 		}
 
+		// Detect suppressions that reference unknown (typo'd or removed) rule IDs.
+		knownRuleIDs := make(map[string]bool, 200)
+		for _, r := range rules.AllRules() {
+			knownRuleIDs[r.ID] = true
+		}
+
+		unknown := suppression.DetectUnknownRuleSuppressions(goFilePaths, knownRuleIDs)
+		for _, s := range unknown {
+			fmt.Fprintln(os.Stderr, suppression.FormatStaleWarning(s))
+		}
+
 		if cfg.FPSuspects {
 			fmt.Fprintf(os.Stderr,
 				"Showing %d low-confidence finding(s) — likely false positives.\n"+

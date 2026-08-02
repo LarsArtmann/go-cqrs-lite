@@ -4,6 +4,13 @@
 **Session goal:** Execute the ENTIRE 42-item TODO_LIST — fix all critical bugs, refactor all complex functions, clean up all lint issues, implement all features, write all tests. Continue until everything works.
 **Verdict:** **PARTIALLY DONE.** 3 of 42 items completed (the 3 highest-priority critical bugs + refactors). The remaining 39 items were not started. Build and all 110 metaengine tests pass. Lint issues INCREASED from 66→101 due to the refactoring creating new functions that trigger wrapcheck/varnamelen/nestif on extracted helpers.
 
+> **Update (2026-08-02):** The 39 remaining items were resolved across ~10
+> subsequent sessions (Jul 31–Aug 2). Lint was cleaned to 0 issues. The
+> metaengine now has 5 engines, 10 ADTs, rule pipeline, materialize-vs-replay,
+> Fold sealed interface, and 3162 API exports. See CHANGELOG `[Unreleased]`
+> for the full shipped work, and TODO_LIST.md for the few genuinely remaining
+> open items.
+
 ---
 
 ## A) FULLY DONE (shipped, tested, verified)
