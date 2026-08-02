@@ -65,23 +65,32 @@ and is **never** duplicated here.
 > block-level suppression, self-lint mode, and D/E-series migrations are complete.
 > Recently added: A033 (branded-ID string roundtrip), C037 (snapshot/event codec
 > mismatch), block-level suppression (ADR-0088).
+>
+> **Round-2 consumer feedback processed (2026-08-02):** B022 bug fixed,
+> P012/P013 cross-file blindness fixed, config-level rule disabling +
+> `--exclude-rules` shipped, suppression parser accepts Go-idiomatic `// cqrs-lint:`,
+> S006 over-broad `"total"` keyword removed, C036 shared-backend detection added,
+> unknown-rule-ID stale suppression detection, `init --preset`, `--help`
+> suppression docs. See the
+> [round-2 review](docs/feedback/reviewed/2026-08-02_cqrs-lint-round-2-review.md).
 
-- `[ ]` 🔥 **Config-level rule disabling** — no `disabled-rules` key in
-  `.cqrs-lint.json`. Consumers must use inline `//cqrs-lint:ignore` comments
-  everywhere. Add config-level disable + `--exclude-rules` CLI flag.
+- `[x]` ~~**Config-level rule disabling**~~ — **DONE** (2026-08-02). Added
+  `"rules": {"disable": [...]}` in `.cqrs-lint.json` + `--exclude-rules` CLI flag.
 - `[ ]` 🔥 **Run cqrs-lint against real consumer projects** — validate FP rate
   against Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync. Consumer
-  feedback (bank-sync) already surfaced P0 bugs (B022 wrong function name,
-  P012/P013 cross-file blindness).
-- `[ ]` **Fix B022 bug** — suggests `decider.CommandCausalityEnricher` which
-  does NOT exist. Should be `event.CommandCausalityEnricher`.
-- `[ ]` **Fix P012/P013 cross-file blindness** — per-file `ast.Inspect` cannot
-  see SQLite PRAGMAs in a different file, producing 4 unsuppressable false
-  positives on every project wrapping SQLite in a storage package.
+  feedback round 2 (bank-sync + browser-history) processed; see
+  [review](docs/feedback/reviewed/2026-08-02_cqrs-lint-round-2-review.md).
+- `[x]` ~~**Fix B022 bug**~~ — **DONE** (2026-08-02). Suggestion text corrected to
+  `event.CommandCausalityEnricher`; `WithEnricher(event.CommandCausalityEnricher)`
+  now correctly exempted.
+- `[x]` ~~**Fix P012/P013 cross-file blindness**~~ — **DONE** (2026-08-02). Only
+  files with direct `sql.Open("sqlite",...)` are flagged; constructor wrappers
+  (`sqlite.New`, `NewSQLiteBackend`) are excluded.
 - `[ ]` **C037 scope expansion** — only covers snapshot store (1 of 5 typed
   stores). Missing: kv, command, query, stack.Materialize.
 - `[ ]` **F009/F015/F017 feature-profile gating** — fire on CLI projects where
-  modules are deliberately not used (missing feature-profile check).
+  modules are deliberately not used (missing feature-profile check). Requires
+  adding `HasAsyncBus` to the feature profile.
 - `[ ]` **`--fix` support for D007** — mechanical `event.NewEvent` → `event.New`
   migration could be auto-fixed.
 - `[ ]` **Domain-based severity calibration (L1.5)** — makes all rules smarter
