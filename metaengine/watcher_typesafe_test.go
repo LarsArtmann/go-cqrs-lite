@@ -323,3 +323,30 @@ func TestReifyWatcherValue_IncompatibleTypeReturnsFalse(t *testing.T) {
 		t.Errorf("expected zero testTask on failure, got %+v", v)
 	}
 }
+
+// TestReifyWatcherValue_JSONValueFastPath verifies that a jsonValue wrapper
+// (raw JSON bytes from a SQL engine) is decoded directly to V without an
+// intermediate map[string]any round-trip. This pins the fast-path inside
+// reify[R] that watcher notifications rely on.
+func TestReifyWatcherValue_JSONValueFastPath(t *testing.T) {
+	t.Parallel()
+
+	jv := jsonValue(`{"ID":"jv-1","Title":"JSON Value","Status":"active"}`)
+
+	v, ok := reifyWatcherValue[testTask](jv)
+	if !ok {
+		t.Fatal("expected ok=true for jsonValue input (fast-path decode)")
+	}
+
+	if v.ID != "jv-1" {
+		t.Errorf("expected ID 'jv-1', got %s", v.ID)
+	}
+
+	if v.Title != "JSON Value" {
+		t.Errorf("expected Title 'JSON Value', got %s", v.Title)
+	}
+
+	if v.Status != "active" {
+		t.Errorf("expected Status 'active', got %s", v.Status)
+	}
+}

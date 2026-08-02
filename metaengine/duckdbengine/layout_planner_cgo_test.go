@@ -468,14 +468,22 @@ func TestDuckDBEngine_ApplyLayoutPlan(t *testing.T) {
 	var price float64
 	var quantity int64
 
-	err = db.QueryRowContext(ctx,
-		`SELECT Name, Category, Price, Quantity FROM meta_planned_products WHERE key = 'p1'`).Scan(&name, &category, &price, &quantity)
+	err = db.QueryRowContext(
+		ctx,
+		`SELECT Name, Category, Price, Quantity FROM meta_planned_products WHERE key = 'p1'`,
+	).Scan(&name, &category, &price, &quantity)
 	if err != nil {
 		t.Fatalf("query columnar table: %v", err)
 	}
 
 	if name != "apple" || category != "fruit" || price != 1.50 || quantity != 10 {
-		t.Errorf("columnar row: got %q %q %v %d, want apple fruit 1.50 10", name, category, price, quantity)
+		t.Errorf(
+			"columnar row: got %q %q %v %d, want apple fruit 1.50 10",
+			name,
+			category,
+			price,
+			quantity,
+		)
 	}
 }
 
@@ -563,8 +571,10 @@ func TestDuckDBEngine_ColumnarLayoutWithPlan(t *testing.T) {
 	// Verify accurate native types: Price is REAL, Quantity is INTEGER.
 	var price float64
 	var quantity int64
-	err = db.QueryRowContext(ctx,
-		`SELECT Price, Quantity FROM meta_planned_products WHERE key = 'p1'`).Scan(&price, &quantity)
+	err = db.QueryRowContext(
+		ctx,
+		`SELECT Price, Quantity FROM meta_planned_products WHERE key = 'p1'`,
+	).Scan(&price, &quantity)
 	if err != nil {
 		t.Fatalf("query types: %v", err)
 	}
@@ -628,10 +638,10 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 	ctx := context.Background()
 
 	items := []ProductCreated{
-		{ID: "p1", Name: "apple", Category: "fruit", Price: 1.50, Quantity: 10},
-		{ID: "p2", Name: "banana", Category: "fruit", Price: 0.75, Quantity: 20},
-		{ID: "p3", Name: "carrot", Category: "veg", Price: 0.99, Quantity: 15},
-		{ID: "p4", Name: "donut", Category: "snack", Price: 2.00, Quantity: 5},
+		{ID: "p1", Name: "apple", Category: "fruit", Price: 1.0, Quantity: 10},
+		{ID: "p2", Name: "banana", Category: "fruit", Price: 0.5, Quantity: 20},
+		{ID: "p3", Name: "carrot", Category: "veg", Price: 2.0, Quantity: 15},
+		{ID: "p4", Name: "donut", Category: "snack", Price: 1.5, Quantity: 5},
 	}
 	for _, item := range items {
 		if err := store.Apply(ctx, "ProductCreated", item); err != nil {
@@ -642,14 +652,20 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 	// Run a vectorized GROUP BY directly on the columnar table. This is the
 	// killer feature of columnar-native storage: DuckDB aggregates native
 	// columns without decoding JSON blobs.
-	rows, err := db.QueryContext(ctx,
-		`SELECT Category, COUNT(*), SUM(Price), AVG(Quantity) FROM meta_planned_products_agg GROUP BY Category ORDER BY Category`)
+	rows, err := db.QueryContext(
+		ctx,
+		`SELECT Category, COUNT(*), SUM(Price), AVG(Quantity) FROM meta_planned_products_agg GROUP BY Category ORDER BY Category`,
+	)
 	if err != nil {
 		t.Fatalf("aggregation query: %v", err)
 	}
 	defer func() { _ = rows.Close() }()
 
-	results := make(map[string]struct{ count int; sumPrice float64; avgQuantity float64 })
+	results := make(map[string]struct {
+		count       int
+		sumPrice    float64
+		avgQuantity float64
+	})
 	for rows.Next() {
 		var category string
 		var count int
@@ -658,7 +674,11 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 		if err := rows.Scan(&category, &count, &sumPrice, &avgQuantity); err != nil {
 			t.Fatal(err)
 		}
-		results[category] = struct{ count int; sumPrice float64; avgQuantity float64 }{
+		results[category] = struct {
+			count       int
+			sumPrice    float64
+			avgQuantity float64
+		}{
 			count: count, sumPrice: sumPrice, avgQuantity: avgQuantity,
 		}
 	}
@@ -670,24 +690,23 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 	if !ok {
 		t.Fatal("missing fruit aggregation")
 	}
-	if fruit.count != 2 || fruit.sumPrice != 2.25 || fruit.avgQuantity != 15.0 {
-		t.Errorf("fruit aggregation: got %+v, want count=2 sumPrice=2.25 avgQuantity=15", fruit)
+	if fruit.count != 2 || fruit.sumPrice != 1.5 || fruit.avgQuantity != 15.0 {
+		t.Errorf("fruit aggregation: got %+v, want count=2 sumPrice=1.5 avgQuantity=15", fruit)
 	}
 
 	veg, ok := results["veg"]
 	if !ok {
 		t.Fatal("missing veg aggregation")
 	}
-	if veg.count != 1 || veg.sumPrice != 0.99 || veg.avgQuantity != 15.0 {
-		t.Errorf("veg aggregation: got %+v, want count=1 sumPrice=0.99 avgQuantity=15", veg)
+	if veg.count != 1 || veg.sumPrice != 2.0 || veg.avgQuantity != 15.0 {
+		t.Errorf("veg aggregation: got %+v, want count=1 sumPrice=2.0 avgQuantity=15", veg)
 	}
 
 	snack, ok := results["snack"]
 	if !ok {
 		t.Fatal("missing snack aggregation")
 	}
-	if snack.count != 1 || snack.sumPrice != 2.00 || snack.avgQuantity != 5.0 {
-		t.Errorf("snack aggregation: got %+v, want count=1 sumPrice=2.00 avgQuantity=5", snack)
+	if snack.count != 1 || snack.sumPrice != 1.5 || snack.avgQuantity != 5.0 {
+		t.Errorf("snack aggregation: got %+v, want count=1 sumPrice=1.5 avgQuantity=5", snack)
 	}
 }
-

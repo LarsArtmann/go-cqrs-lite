@@ -267,7 +267,7 @@ func (e *duckdbEngine) CounterGet(ctx context.Context, col string) (map[string]i
 var (
 	_ metaengine.Engine            = (*duckdbEngine)(nil)
 	_ metaengine.MapBackend        = (*duckdbEngine)(nil)
-	_ metaengine.CounterBackend     = (*duckdbEngine)(nil)
+	_ metaengine.CounterBackend    = (*duckdbEngine)(nil)
 	_ metaengine.ScanBackend       = (*duckdbEngine)(nil)
 	_ metaengine.PushdownScan      = (*duckdbEngine)(nil)
 	_ metaengine.LayoutPlanner     = (*duckdbEngine)(nil)
