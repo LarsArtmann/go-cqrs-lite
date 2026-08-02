@@ -249,6 +249,19 @@ func (s *Store) InTransaction(ctx context.Context, fn func(context.Context) erro
 func (s *Store) applyFold(ctx context.Context, q queryMeta, fold Fold, payload any) (err error) {
 	start := time.Now()
 
+	// Wrap errors with structured context for debugging. Registered first so
+	// it runs last (LIFO) — hooks and panic recovery see the raw error.
+	defer func() {
+		if err != nil {
+			err = &ApplyError{
+				Query:     q.QueryName(),
+				EventType: fold.EventType(),
+				FoldKind:  fold.Kind(),
+				Cause:     err,
+			}
+		}
+	}()
+
 	defer func() {
 		if s.hooks != nil && s.hooks.OnFold != nil {
 			s.hooks.OnFold(q.QueryName(), fold.EventType(), fold.Kind(), time.Since(start), err)
