@@ -52,11 +52,10 @@ and is **never** duplicated here.
 - [ ] **DuckDB LayoutPlanner follow-ups**
   - Add `explainScan` for planned and standard DuckDB paths (`metaengine/sqlite_engine.go`
     has it; DuckDB returns placeholder).
-  - Verify the `coerceForColumn` fix resolves float truncation for planned columns
-    (`coerceForColumn` was added by the daemon and lint passes clean; confirm
-    `INTEGER` / `REAL` columns do not silently truncate values such as `2.0` /
-    `1.50` with a regression test). Evidence:
-    `docs/status/2026-08-02_19-47_DuckDB-LayoutPlanner.md`.
+  - ~~Verify the `coerceForColumn` fix resolves float truncation for planned columns~~
+    DONE: `sqlTypeOf` now maps float64→DOUBLE (not REAL), `coerceForColumn` handles DOUBLE/REAL/FLOAT.
+    Regression tests: `TestDuckDBEngine_ColumnarDoublePrecision`, `TestDuckDBEngine_ColumnarAggregation`
+    ([ADR-0092](docs/adr/0092-duckdb-columnar-native-storage.md)).
   - Centralize planned-table helpers (`extractFields`, `jsonFieldName`,
     `quoteIdent`, `plansColumnCompatible`) that are currently duplicated between
     `metaengine/planned_sqlite.go` and `metaengine/duckdbengine/layout_planner.go`.

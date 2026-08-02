@@ -132,6 +132,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0089](adr/0089-flight-recorder.md)                        | Flight Recorder integration                             | Accepted                 |
 | [0090](adr/0090-benchkit-evidence-metrics.md)              | Benchkit evidence-grade metrics                         | Accepted                 |
 | [0091](adr/0091-sse-consolidation-decision.md)             | SSE consolidation decision                              | Accepted                 |
+| [0092](adr/0092-duckdb-columnar-native-storage.md)         | DuckDB columnar-native storage via LayoutPlanApplier    | Accepted                 |
 
 ## API Reference
 

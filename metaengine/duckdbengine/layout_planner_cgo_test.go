@@ -750,7 +750,8 @@ func TestDuckDBEngine_ColumnarDoublePrecision(t *testing.T) {
 	}
 
 	var got float64
-	err = db.QueryRowContext(ctx,
+	err = db.QueryRowContext(
+		ctx,
 		`SELECT Pi FROM meta_planned_precision WHERE key = 'pi'`,
 	).Scan(&got)
 	if err != nil {
