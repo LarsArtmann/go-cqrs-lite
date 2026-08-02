@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	jsonKeyStatus      = "status"
-	jsonKeyUpdated     = "updated"
-	maxPathSegments    = 2
+	jsonKeyStatus   = "status"
+	jsonKeyUpdated  = "updated"
+	maxPathSegments = 2
 )
 
 // routes builds the HTTP mux with all task management endpoints.

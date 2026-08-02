@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -9,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
-var errViewMissingForUpdate = fmt.Errorf("projection: view does not exist for update")
+var errViewMissingForUpdate = errors.New("projection: view does not exist for update")
 
 // ──────────────────────────────────────────────────────────────────────────
 // Read Model — the materialised view that projections build from events.

@@ -197,7 +197,7 @@ func setupMetaEngine(
 		// Counter ADT for O(1) status aggregate reads. Kept alongside the Map
 		// query because O(1) counter reads are cheaper than O(N) scan+count
 		// from task_views — the right pattern for dashboard/stats endpoints.
-			onTyped(string(evtTaskCreated), eventWithID[TaskCreatedPayload]{},
+		onTyped(string(evtTaskCreated), eventWithID[TaskCreatedPayload]{},
 			func(_ eventWithID[TaskCreatedPayload]) metaengine.Delta {
 				return metaengine.Delta{string(StatusPending): 1}
 			}),
@@ -205,11 +205,11 @@ func setupMetaEngine(
 			func(_ eventWithID[TaskStartedPayload]) metaengine.Delta {
 				return metaengine.Delta{string(StatusActive): 1, string(StatusPending): -1}
 			}),
-			onTyped(string(evtTaskCompleted), eventWithID[TaskCompletedPayload]{},
+		onTyped(string(evtTaskCompleted), eventWithID[TaskCompletedPayload]{},
 			func(_ eventWithID[TaskCompletedPayload]) metaengine.Delta {
 				return metaengine.Delta{string(StatusCompleted): 1, string(StatusActive): -1}
 			}),
-			onTyped(string(evtTaskArchived), eventWithID[TaskArchivedPayload]{},
+		onTyped(string(evtTaskArchived), eventWithID[TaskArchivedPayload]{},
 			func(_ eventWithID[TaskArchivedPayload]) metaengine.Delta {
 				return metaengine.Delta{string(StatusArchived): 1, string(StatusCompleted): -1}
 			}),

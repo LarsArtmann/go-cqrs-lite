@@ -35,7 +35,7 @@ const (
 
 // CreateTaskCmd carries the payload for creating a new task.
 //
-//cqrs-lint:ignore(B004) library code or intentional pattern
+// cqrs-lint:ignore(B004) library code or intentional pattern
 type CreateTaskCmd struct {
 	*command.BasicCommand
 
@@ -83,7 +83,7 @@ type AddBlockerCmd struct {
 
 // GetTaskQuery is the query to fetch a single task by ID.
 //
-//cqrs-lint:ignore(E007) library code or intentional pattern
+// cqrs-lint:ignore(E007) library code or intentional pattern
 type GetTaskQuery struct {
 	*query.BasicQuery
 }
@@ -94,7 +94,7 @@ type GetTaskResult struct {
 
 // ListTasksQuery filters tasks by status.
 //
-//cqrs-lint:ignore(E007) library code or intentional pattern
+// cqrs-lint:ignore(E007) library code or intentional pattern
 type ListTasksQuery struct {
 	*query.BasicQuery
 

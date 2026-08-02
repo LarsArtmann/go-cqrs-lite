@@ -95,7 +95,6 @@ func run() error {
 		Initial: CounterState{},
 		Apply:   applyCounter,
 	})
-
 	if err != nil {
 		return err
 	}
@@ -103,7 +102,6 @@ func run() error {
 	// ── Consumer: materialized view (read model) ─────────────────────
 	mat, err := stack.NewMaterialize[CounterView, id.StreamID](bundle, nil,
 		func(evt event.Event) (id.StreamID, error) { return evt.StreamID(), nil })
-
 	if err != nil {
 		return err
 	}

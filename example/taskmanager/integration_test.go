@@ -378,9 +378,7 @@ func newTestServer(t *testing.T) *Server {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	if err := srv.Start(ctx); err != nil {
-		t.Fatalf("start server: %v", err)
-	}
+	srv.Start(ctx)
 
 	// Give projection a moment to start
 	time.Sleep(50 * time.Millisecond)

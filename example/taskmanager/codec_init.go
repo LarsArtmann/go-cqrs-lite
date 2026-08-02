@@ -8,6 +8,8 @@ import (
 // Use JSON encoding for events so payloads are human-readable in the database
 // and SSE stream. The library default is CBOR (compact), but for a learning
 // example JSON is more approachable. Set once at init to avoid data races.
+//
+//nolint:gochecknoinits // intentional: must run before any event.New call
 func init() {
 	event.DefaultCodec = codec.JSONCodec{}
 }
