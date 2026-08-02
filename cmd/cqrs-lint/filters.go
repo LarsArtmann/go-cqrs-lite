@@ -70,7 +70,7 @@ func buildDisabledRuleSet(cfg *AppConfig, actx *analyzer.AnalysisContext) map[st
 		disabled = make(map[string]bool)
 	}
 
-	for _, r := range strings.Split(cfg.ExcludeRules, ",") {
+	for r := range strings.SplitSeq(cfg.ExcludeRules, ",") {
 		id := strings.ToUpper(strings.TrimSpace(r))
 		if id != "" {
 			disabled[id] = true
