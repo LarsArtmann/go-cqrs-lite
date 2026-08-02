@@ -29,7 +29,7 @@ func TestBuildLayoutPlanFromType_InfersColumnTypes(t *testing.T) {
 	cases := map[string]string{
 		"status":   "TEXT",    // string
 		"priority": "INTEGER", // int
-		"score":    "REAL",    // float64
+		"score":    "DOUBLE",  // float64
 		"name":     "TEXT",    // string
 	}
 

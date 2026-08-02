@@ -376,4 +376,9 @@ func TestWorkloadMeter_ReificationFailures(t *testing.T) {
 		t.Errorf("expected zero read/write rates, got write=%f read=%f",
 			stats.WriteRatePerSec, stats.ReadRatePerSec)
 	}
+
+	// The counter surfaces through WorkloadStats for consumer health checks.
+	if stats.ReificationFailures != 2 {
+		t.Fatalf("expected Stats().ReificationFailures=2, got %d", stats.ReificationFailures)
+	}
 }

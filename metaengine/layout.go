@@ -249,6 +249,12 @@ func BuildColumnarLayoutPlan(collection string, resultType reflect.Type) LayoutP
 			if name == "" || seen[name] {
 				continue
 			}
+			// Skip fields that collide with the base table columns (key, value).
+			// DuckDB and SQLite are case-insensitive on unquoted identifiers,
+			// so "Value" would collide with "value" and produce a DDL error.
+			if lname := strings.ToLower(name); lname == "key" || lname == "value" {
+				continue
+			}
 			seen[name] = true
 
 			columns = append(columns, PlannedColumn{Name: name, Type: sqlTypeOf(f.Type)})

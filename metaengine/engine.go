@@ -207,7 +207,7 @@ type LayoutPlanner interface {
 // implement this interface receive the fully-built LayoutPlan (including
 // reflection-derived column types from the result type) instead of rebuilding
 // it from field names. This enables accurate native types for columnar layouts
-// (e.g. DuckDB/INTEGER vs REAL) and all-fields extraction via WithColumnarLayout.
+// (e.g. DuckDB/INTEGER vs DOUBLE) and all-fields extraction via WithColumnarLayout.
 type LayoutPlanApplier interface {
 	LayoutPlanner
 	ApplyLayoutPlan(plan LayoutPlan) error

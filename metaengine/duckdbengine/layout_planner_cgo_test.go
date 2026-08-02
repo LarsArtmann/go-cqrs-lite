@@ -531,7 +531,7 @@ func TestDuckDBEngine_ColumnarLayoutWithPlan(t *testing.T) {
 					Quantity: e.Quantity,
 				}
 			}),
-			metaengine.WithColumnarLayout[ProductView](),
+			metaengine.WithColumnarLayout(),
 		),
 	)
 	if err != nil {
@@ -542,7 +542,7 @@ func TestDuckDBEngine_ColumnarLayoutWithPlan(t *testing.T) {
 	ctx := context.Background()
 
 	if err := store.Apply(ctx, "ProductCreated", ProductCreated{
-		ID: "p1", Name: "apple", Category: "fruit", Price: 1.50, Quantity: 10,
+		ID: "p1", Name: "apple", Category: "fruit", Price: 1.99, Quantity: 10,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -568,7 +568,7 @@ func TestDuckDBEngine_ColumnarLayoutWithPlan(t *testing.T) {
 		t.Errorf("columnar row count: got %d, want 3", count)
 	}
 
-	// Verify accurate native types: Price is REAL, Quantity is INTEGER.
+	// Verify accurate native types: Price is DOUBLE (float64), Quantity is INTEGER.
 	var price float64
 	var quantity int64
 	err = db.QueryRowContext(
@@ -578,8 +578,8 @@ func TestDuckDBEngine_ColumnarLayoutWithPlan(t *testing.T) {
 	if err != nil {
 		t.Fatalf("query types: %v", err)
 	}
-	if price != 1.50 || quantity != 10 {
-		t.Errorf("p1 types: got price=%v quantity=%d, want 1.50 10", price, quantity)
+	if price != 1.99 || quantity != 10 {
+		t.Errorf("p1 types: got price=%v quantity=%d, want 1.99 10", price, quantity)
 	}
 }
 
@@ -627,7 +627,7 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 					Quantity: e.Quantity,
 				}
 			}),
-			metaengine.WithColumnarLayout[ProductView](),
+			metaengine.WithColumnarLayout(),
 		),
 	)
 	if err != nil {
@@ -638,10 +638,10 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 	ctx := context.Background()
 
 	items := []ProductCreated{
-		{ID: "p1", Name: "apple", Category: "fruit", Price: 1.0, Quantity: 10},
-		{ID: "p2", Name: "banana", Category: "fruit", Price: 0.5, Quantity: 20},
-		{ID: "p3", Name: "carrot", Category: "veg", Price: 2.0, Quantity: 15},
-		{ID: "p4", Name: "donut", Category: "snack", Price: 1.5, Quantity: 5},
+		{ID: "p1", Name: "apple", Category: "fruit", Price: 1.99, Quantity: 10},
+		{ID: "p2", Name: "banana", Category: "fruit", Price: 0.75, Quantity: 20},
+		{ID: "p3", Name: "carrot", Category: "veg", Price: 0.99, Quantity: 15},
+		{ID: "p4", Name: "donut", Category: "snack", Price: 2.49, Quantity: 5},
 	}
 	for _, item := range items {
 		if err := store.Apply(ctx, "ProductCreated", item); err != nil {
@@ -690,23 +690,74 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 	if !ok {
 		t.Fatal("missing fruit aggregation")
 	}
-	if fruit.count != 2 || fruit.sumPrice != 1.5 || fruit.avgQuantity != 15.0 {
-		t.Errorf("fruit aggregation: got %+v, want count=2 sumPrice=1.5 avgQuantity=15", fruit)
+	wantFruitSumPrice := 1.99 + 0.75 // == 2.74; realistic decimals prove DOUBLE precision
+	if fruit.count != 2 || fruit.sumPrice != wantFruitSumPrice || fruit.avgQuantity != 15.0 {
+		t.Errorf("fruit aggregation: got %+v, want count=2 sumPrice=%v avgQuantity=15",
+			fruit, wantFruitSumPrice)
 	}
 
 	veg, ok := results["veg"]
 	if !ok {
 		t.Fatal("missing veg aggregation")
 	}
-	if veg.count != 1 || veg.sumPrice != 2.0 || veg.avgQuantity != 15.0 {
-		t.Errorf("veg aggregation: got %+v, want count=1 sumPrice=2.0 avgQuantity=15", veg)
+	if veg.count != 1 || veg.sumPrice != 0.99 || veg.avgQuantity != 15.0 {
+		t.Errorf("veg aggregation: got %+v, want count=1 sumPrice=0.99 avgQuantity=15", veg)
 	}
 
 	snack, ok := results["snack"]
 	if !ok {
 		t.Fatal("missing snack aggregation")
 	}
-	if snack.count != 1 || snack.sumPrice != 1.5 || snack.avgQuantity != 5.0 {
-		t.Errorf("snack aggregation: got %+v, want count=1 sumPrice=1.5 avgQuantity=5", snack)
+	if snack.count != 1 || snack.sumPrice != 2.49 || snack.avgQuantity != 5.0 {
+		t.Errorf("snack aggregation: got %+v, want count=1 sumPrice=2.49 avgQuantity=5", snack)
+	}
+}
+
+func TestDuckDBEngine_ColumnarDoublePrecision(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("duckdb", "")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer db.Close()
+
+	eng, err := duckdbengine.NewFromDB(db)
+	if err != nil {
+		t.Skipf("DuckDB engine not available: %v", err)
+	}
+	defer eng.Close()
+
+	// Pi to full float64 precision. REAL (float32) would truncate this to
+	// 3.1415927; DOUBLE (float64) preserves 3.141592653589793 exactly.
+	const pi = 3.141592653589793
+
+	type PrecisionView struct {
+		Pi float64
+	}
+
+	plan := metaengine.BuildColumnarLayoutPlan("precision", reflect.TypeOf(PrecisionView{}))
+	lpa := eng.(metaengine.LayoutPlanApplier)
+	if err := lpa.ApplyLayoutPlan(plan); err != nil {
+		t.Fatalf("ApplyLayoutPlan: %v", err)
+	}
+
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+
+	if err := mb.MapSet(ctx, "precision", "pi", PrecisionView{Pi: pi}); err != nil {
+		t.Fatal(err)
+	}
+
+	var got float64
+	err = db.QueryRowContext(ctx,
+		`SELECT Pi FROM meta_planned_precision WHERE key = 'pi'`,
+	).Scan(&got)
+	if err != nil {
+		t.Fatalf("query precision: %v", err)
+	}
+
+	if got != pi {
+		t.Errorf("DOUBLE precision lost: got %v, want %v", got, pi)
 	}
 }

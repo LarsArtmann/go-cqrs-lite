@@ -25,6 +25,13 @@ type WorkloadStats struct {
 	// Used to estimate replay cost: replaying a stream of N events
 	// costs N * fold_cost.
 	AvgStreamLength float64
+
+	// ReificationFailures counts watcher values that could not be reified
+	// to the declared type V. This is a health diagnostic, NOT a planning
+	// input — the materialize-vs-replay planner ignores it. Non-zero values
+	// indicate an engine bug or a mismatch between the planned value type
+	// and the engine's stored shape.
+	ReificationFailures int64
 }
 
 // foldCostPerEvent is a normalized cost unit for folding one event.

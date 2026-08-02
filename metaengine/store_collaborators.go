@@ -83,7 +83,8 @@ func (m *workloadMeter) Stats() WorkloadStats {
 	}
 
 	return WorkloadStats{
-		WriteRatePerSec: float64(m.writeCount.Load()) / uptime,
-		ReadRatePerSec:  float64(m.readCount.Load()) / uptime,
+		WriteRatePerSec:     float64(m.writeCount.Load()) / uptime,
+		ReadRatePerSec:      float64(m.readCount.Load()) / uptime,
+		ReificationFailures: m.reificationFailures.Load(),
 	}
 }
