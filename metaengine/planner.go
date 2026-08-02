@@ -124,7 +124,12 @@ func planQuery(meta queryMeta, engines []Engine) (QueryAssignment, error) {
 	cfg := meta.QueryConfig()
 
 	if !adt.Valid() {
-		return QueryAssignment{}, fmt.Errorf("%w: %q has ADT %q", errInvalidADT, meta.QueryName(), adt)
+		return QueryAssignment{}, fmt.Errorf(
+			"%w: %q has ADT %q",
+			errInvalidADT,
+			meta.QueryName(),
+			adt,
+		)
 	}
 	if rp := meta.QueryReadPattern(); !rp.Valid() {
 		return QueryAssignment{}, fmt.Errorf(
@@ -134,7 +139,11 @@ func planQuery(meta queryMeta, engines []Engine) (QueryAssignment, error) {
 	for i, f := range folds {
 		if !f.Kind().Valid() {
 			return QueryAssignment{}, fmt.Errorf(
-				"%w: %q fold[%d] has FoldKind %q", errInvalidFoldKind, meta.QueryName(), i, f.Kind(),
+				"%w: %q fold[%d] has FoldKind %q",
+				errInvalidFoldKind,
+				meta.QueryName(),
+				i,
+				f.Kind(),
 			)
 		}
 	}
