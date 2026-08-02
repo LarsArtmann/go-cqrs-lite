@@ -32,15 +32,13 @@ func mustEvt(typ event.Type, streamID id.StreamID, payload any) event.Event {
 
 // errMatch constructs an error with the same code+family as the decider would
 // return, enabling errors.Is matching in ThenError.
+//nolint:exhaustive // default covers all remaining families via Newf
 func errMatch(family errorfamily.Family, code string) error {
 	switch family {
 	case errorfamily.Rejection:
 		return errorfamily.NewRejection(code, "")
 	case errorfamily.Conflict:
 		return errorfamily.NewConflict(code, "")
-	case errorfamily.Transient, errorfamily.Corruption,
-		errorfamily.Infrastructure, errorfamily.Orchestration:
-		return errorfamily.Newf(family, code, "")
 	default:
 		return errorfamily.Newf(family, code, "")
 	}

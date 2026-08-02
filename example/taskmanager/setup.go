@@ -222,7 +222,10 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	return srv, nil
 }
 
-// Start launches the ProjectionHost (replay + live tailing with DLQ).
+// Start launches the ProjectionHost (replay + live tailing with DLQ) in a
+// background goroutine. Processing errors are logged via the configured logger
+// rather than returned, because ProjHost.Start blocks until shutdown.
+//
 // Call StartHTTP separately for the HTTP API (not needed in tests).
 func (s *Server) Start(ctx context.Context) {
 	go func() {
@@ -232,7 +235,9 @@ func (s *Server) Start(ctx context.Context) {
 	}()
 }
 
-// StartHTTP launches the HTTP API server. Call after Start.
+// StartHTTP launches the HTTP API server in a background goroutine.
+// Listener errors (other than graceful shutdown) are logged via the
+// configured logger. Call after Start.
 func (s *Server) StartHTTP(addr string) {
 	s.httpServer = &http.Server{
 		Addr:              addr,
