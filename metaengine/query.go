@@ -35,10 +35,11 @@ func WithLatencyBudget(ms int64) QueryOption {
 // such as DuckDB run vectorized scans, GROUP BY, and aggregations directly on
 // native column values instead of decoding JSON blobs.
 //
-// The layout is applied automatically during Plan() or RegisterQuery(). The
-// engine must implement LayoutPlanner; accurate SQL types require
-// LayoutPlanApplier (currently implemented by DuckDB and SQLite).
-func WithColumnarLayout[R any]() QueryOption {
+// The result type R is already known from the Query[Q, R] declaration — the
+// planner reflects on it during Plan(). The layout is applied automatically
+// during Plan() or RegisterQuery(). The engine must implement LayoutPlanner;
+// accurate SQL types require LayoutPlanApplier (currently implemented by DuckDB).
+func WithColumnarLayout() QueryOption {
 	return func(c *QueryConfig) { c.columnarLayout = true }
 }
 
