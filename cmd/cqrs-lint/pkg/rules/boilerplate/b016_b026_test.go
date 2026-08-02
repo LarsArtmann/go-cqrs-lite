@@ -233,6 +233,43 @@ func setup() {
 	ruletest.AssertRule(t, findings, "B022", 0)
 }
 
+func TestB022_NoFindingForWithEnricherWrappingCanonical(t *testing.T) {
+	t.Parallel()
+
+	// This is the exact pattern consumers use: WithEnricher(event.CommandCausalityEnricher).
+	// B022 must NOT fire — it is the canonical enricher, not a custom one.
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	repo, _ := decider.NewRepository(store, bus, d,
+		decider.WithEnricher(event.CommandCausalityEnricher))
+	_ = repo
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB022Detector(ctx))
+	ruletest.AssertRule(t, findings, "B022", 0)
+}
+
+func TestB022_DetectsCustomEnricherInWithEnricher(t *testing.T) {
+	t.Parallel()
+
+	// WithEnricher wrapping a truly custom enricher function should still fire.
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func setup() {
+	repo, _ := decider.NewRepository(store, bus, d,
+		decider.WithEnricher(customCorrelationEnricher))
+	_ = repo
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB022Detector(ctx))
+	ruletest.AssertRule(t, findings, "B022", 1)
+}
+
 func TestB025_DetectsMissingStateCache(t *testing.T) {
 	t.Parallel()
 

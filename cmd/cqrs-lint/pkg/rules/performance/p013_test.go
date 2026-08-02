@@ -14,9 +14,11 @@ func TestP013_DetectsMissingBusyTimeout(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"db.go": `package main
 
+import "database/sql"
+
 func setup() {
-	backend, _ := storage.NewSQLiteBackend(db)
-	_ = backend
+	db, _ := sql.Open("sqlite", "test.db")
+	_ = db
 }
 `,
 	})
@@ -30,10 +32,12 @@ func TestP013_NoFindingWhenWALEnabled(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"db.go": `package main
 
+import "database/sql"
+
 func setup() {
+	db, _ := sql.Open("sqlite", "test.db")
 	_ = storage.SQLiteEnableWAL(ctx, db)
-	backend, _ := storage.NewSQLiteBackend(db)
-	_ = backend
+	_ = db
 }
 `,
 	})

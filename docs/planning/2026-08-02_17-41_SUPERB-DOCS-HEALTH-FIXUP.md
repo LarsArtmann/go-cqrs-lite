@@ -199,10 +199,16 @@ graph TD
 
 ## Success Criteria
 
-- [ ] `stack/contracttest`/`stack/sqlopt` removed from module matrix (they're sub-packages)
-- [ ] `nix run .#verify` passes (or verify-fast)
-- [ ] `cmd/doc-check` passes on all edited markdown files
-- [ ] CHANGELOG `[Unreleased]` has no duplicate sections
+- [x] `stack/contracttest`/`stack/sqlopt` removed from module matrix (they're sub-packages)
+- [ ] `nix run .#verify` passes — **BLOCKED**: pre-existing daemon build break in `cmd/cqrs-lint` (needs `go mod tidy`). Doc-specific checks all pass.
+- [x] `cmd/doc-check` passes on all edited markdown files (1191 references valid)
+- [x] CHANGELOG `[Unreleased]` verified — no duplicate sections (chronologically distinct work phases)
+- [ ] Archive fully-resolved reports — **SKIPPED**: reports have 50-item next-steps lists with open items. Archival requires ALL items resolved per update-old-docs skill.
+- [x] 5 high-impact stale reports annotated with specific update banners
+- [x] SKILL.md references current (pgengine, duckdbengine, stack/mysql, 10 ADTs)
+- [x] No Verschlimmbessern — every annotation passes the "so what?" test, no mass-stamping
+- [x] Remaining unannotated files are EXPLICITLY skipped (honest snapshots, already-bannered, or low-value)
+- [x] Committed and pushed (`44fb8fc2`)
 - [ ] 3–5 fully-resolved status reports archived to `docs/status/archived/`
 - [ ] 8+ high-impact stale reports annotated with inline corrections
 - [ ] SKILL.md references current (flight recorder, metaengine engines, MySQL)

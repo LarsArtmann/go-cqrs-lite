@@ -3,6 +3,11 @@
 **Consumer:** [bank-sync](https://github.com/LarsArtmann/bank-sync) — CLI tool that syncs bank transactions (Wise API + Qonto CSV) into SQLite via event sourcing
 **Version used:** go-cqrs-lite v4.2.0 (event, decider, storage, middleware, watermill, scenario, schema, snapshot, codec, command, query, catalog, otel, retry, encryption, id)
 **lint version:** `cqrs-lint v0.2.2`
+
+> **Routing (2026-08-02):** P0 items (B022 wrong function name, P012/P013
+> cross-file blindness) are tracked in TODO_LIST.md "cqrs-lint — Open Work".
+> Config-level rule disabling and `--exclude-rules` CLI flag are the top
+> cqrs-lint priority. This file is the canonical consumer feedback record.
 **Date:** 2026-08-02
 **Previous feedback:** [2026-07-17_bank-sync_cqrs-lint-feedback.md](../2026-07-17_bank-sync_cqrs-lint-feedback.md) (v0.1.0)
 

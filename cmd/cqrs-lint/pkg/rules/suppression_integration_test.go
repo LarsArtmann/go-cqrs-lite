@@ -106,8 +106,8 @@ package main
 import "database/sql"
 
 func setup() {
-	backend, _ := storage.NewSQLiteBackend(db)
-	_ = backend
+	db, _ := sql.Open("sqlite", "test.db")
+	_ = db
 }
 `},
 		},

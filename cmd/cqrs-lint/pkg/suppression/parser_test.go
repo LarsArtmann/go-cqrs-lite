@@ -42,6 +42,20 @@ func TestParseSuppressions_CommaSeparated(t *testing.T) {
 	}
 }
 
+func TestParseSuppressions_SpaceAfterSlashes(t *testing.T) {
+	// The Go-idiomatic comment style has a space after //: "// cqrs-lint:ignore(C007)".
+	// gofmt does not normalize this, so both variants must work.
+	suppressions := suppression.ParseSuppressions(
+		"// cqrs-lint:ignore(C007) wall-clock is domain logic",
+	)
+	if len(suppressions) != 1 {
+		t.Fatalf("got %d suppressions, want 1", len(suppressions))
+	}
+	if _, ok := suppressions["C007"]; !ok {
+		t.Error("C007 not found in space-variant suppression")
+	}
+}
+
 func TestNewSuppressionFilter_MarksSuppressedFindings(t *testing.T) {
 	filter := suppression.NewSuppressionFilter()
 
