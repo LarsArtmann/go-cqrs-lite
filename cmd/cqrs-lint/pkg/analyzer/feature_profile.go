@@ -127,6 +127,8 @@ type ConfigFeatures struct {
 	Tracing     *TracingKind     `json:"tracing,omitempty"`
 	Snapshot    *SnapshotKind    `json:"snapshot,omitempty"`
 	Domain      *DomainKind      `json:"domain,omitempty"`
+	Transport   *bool            `json:"transport,omitempty"`
+	ServerLocal *bool            `json:"server-local,omitempty"` //nolint:tagliatelle // CLI config key
 }
 
 // ConfigPreset is a named set of feature-flag defaults. Presets are sugar:
@@ -228,6 +230,12 @@ func ResolveFeatureProfile(
 	if merged.Domain != nil {
 		result.Domain = *merged.Domain
 	}
+	if merged.Transport != nil {
+		result.HasTransport = *merged.Transport
+	}
+	if merged.ServerLocal != nil {
+		result.ServerLocal = *merged.ServerLocal
+	}
 
 	return result
 }
@@ -254,6 +262,12 @@ func mergeConfigFeatures(dst *ConfigFeatures, src ConfigFeatures) {
 	}
 	if src.Domain != nil {
 		dst.Domain = src.Domain
+	}
+	if src.Transport != nil {
+		dst.Transport = src.Transport
+	}
+	if src.ServerLocal != nil {
+		dst.ServerLocal = src.ServerLocal
 	}
 }
 
@@ -283,6 +297,12 @@ func (fp FeatureProfile) ToConfigFeatures() ConfigFeatures {
 	}
 	if fp.Domain != "" && fp.Domain != DomainUnknown {
 		cf.Domain = &fp.Domain
+	}
+	if fp.HasTransport {
+		cf.Transport = &fp.HasTransport
+	}
+	if fp.ServerLocal {
+		cf.ServerLocal = &fp.ServerLocal
 	}
 	return cf
 }

@@ -164,8 +164,13 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 			// ServerLocal signals: detect production server indicators so
 			// we can classify embedded-dashboards (ListenAndServe without
 			// TLS/Shutdown/health) as ServerLocal.
-			if method == "ListenAndServeTLS" || method == "NewListener" {
+			if method == "ListenAndServeTLS" {
 				hasTLS = true
+			}
+			if method == "NewListener" || method == "Listen" {
+				if strings.Contains(SelectorPackage(sel), "tls") {
+					hasTLS = true
+				}
 			}
 			if method == "Shutdown" || method == "GracefulClose" {
 				hasShutdown = true
