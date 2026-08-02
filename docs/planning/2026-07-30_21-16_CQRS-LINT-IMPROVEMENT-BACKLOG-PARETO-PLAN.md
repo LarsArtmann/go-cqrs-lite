@@ -142,7 +142,7 @@ See Level 1 and Level 2 tables below.
 | L1.19 | Implement feature adoption scorecard (beyond health score)                      | 113   | **[P80]** | Medium (DX quality)             | 90 min | None         | Open                        |
 | L1.20 | Implement grouped output by aggregate/domain                                    | 112   | **[P80]** | Medium (DX quality)             | 90 min | None         | Open                        |
 | L1.21 | Add SARIF rule metadata (doc URL, severity, remediation in SARIF output)        | 117   | **[P80]** | Medium (GitHub Code Scanning)   | 60 min | L1.17        | Open                        |
-| L1.22 | Implement block-level suppression (`//cqrs-lint:ignore-start` / `ignore-end`)   | 133   | **[P80]** | Medium (DX quality)             | 90 min | L1.1         | Open                        |
+| L1.22 | Implement block-level suppression (`//cqrs-lint:ignore-start` / `ignore-end`)   | 133   | **[P80]** | Medium (DX quality)             | 90 min | L1.1         | ✅ DONE (parser.go)         |
 | L1.23 | Verify parallel rule safety + add linter benchmark suite                        | 123   | **[P80]** | Low (premature but cheap)       | 60 min | None         | Open                        |
 
 ### Phase 5: Cross-Module & Integration Rules
@@ -151,7 +151,7 @@ See Level 1 and Level 2 tables below.
 | ----- | ------------------------------------------------------------------- | ----- | --------- | ----------------------------- | ------ | ------------ | -------------- |
 | L1.24 | Implement checkpoint/event store backend mismatch (C036)            | 144   | **[P80]** | Medium (replay correctness)   | 45 min | None         | ✅ DONE (C036) |
 | L1.25 | Implement idempotency/event store backend mismatch (C036)           | 145   | **[P80]** | Medium (dedup correctness)    | 45 min | None         | ✅ DONE (C036) |
-| L1.26 | Implement snapshot/event codec mismatch                             | 143   | **[P80]** | Low (rare)                    | 60 min | None         | Open           |
+| L1.26 | Implement snapshot/event codec mismatch                             | 143   | **[P80]** | Low (rare)                    | 60 min | None         | ✅ DONE (C037) |
 | L1.27 | Implement missing WAL mode for SQLite detection                     | 166   | **[P80]** | Medium (SQLite best practice) | 45 min | None         | ✅ DONE (P012) |
 | L1.28 | Implement missing busy_timeout for SQLite detection (NEW rule P013) | 167   | **[P80]** | Medium (SQLite best practice) | 45 min | None         | ✅ DONE (P013) |
 
@@ -174,7 +174,7 @@ See Level 1 and Level 2 tables below.
 | L1.36 | Implement event payload struct size limit (>20 fields)       | 153   | **[P80]** | Low (maintainability) | 45 min | None         | ✅ DONE (D016)             |
 | L1.37 | Implement string IDs instead of branded IDs                  | 176   | **[P80]** | Medium (type safety)  | 45 min | None         | ✅ DONE (A032)             |
 | L1.38 | Implement event payload without json tags                    | 177   | **[P80]** | Low (convention)      | 30 min | None         | ✅ DONE (D014)             |
-| L1.39 | Implement branded ID misuse detection                        | 175   | **[P80]** | Low (hard to detect)  | 90 min | None         | Open                       |
+| L1.39 | Implement branded ID misuse detection                        | 175   | **[P80]** | Low (hard to detect)  | 90 min | None         | ✅ DONE (A033 roundtrip)    |
 | L1.40 | Extend C013: embedded `time.Time` in payloads                | 178   | **[P80]** | Low (timezone)        | 45 min | None         | ✅ DONE (verified)         |
 | L1.41 | Implement nullable pointer fields in event payloads          | 179   | **[P80]** | Low (nil-deref)       | 45 min | None         | ✅ DONE (D015)             |
 

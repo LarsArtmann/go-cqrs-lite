@@ -406,7 +406,7 @@
 
 142. ~~**Detect encryption/signing mismatch** — If the event bus has encryption middleware but the event store doesn't (or vice versa), events are stored in cleartext but transmitted encrypted (or vice versa). Cross-check bus middleware vs store wrapper.~~ **done** — S010 detects bus encryption/signing without store wrapper
 
-143. **Detect snapshot codec / event codec mismatch** — If events use CBOR but snapshots use JSON (or vice versa), there's an inconsistency that could cause decode failures on recovery. Detect: `codec.CBORCodec{}` for events but `codec.JSONCodec{}` for snapshots.
+143. ~~**Detect snapshot codec / event codec mismatch** — If events use CBOR but snapshots use JSON (or vice versa), there's an inconsistency that could cause decode failures on recovery. Detect: `codec.CBORCodec{}` for events but `codec.JSONCodec{}` for snapshots.~~ **done** — C037 detects `snapshot.NewTypedStore` codec vs `decider.WithCodec` codec mismatch
 
 144. **Detect checkpoint store / event store backend mismatch** — SQLite event store with memory checkpoint store means checkpoints are lost on restart, causing full projection replay every time.
 
@@ -486,7 +486,7 @@
 
 ### Data model rules
 
-175. **Detect branded ID misuse** — Using `id.StreamID` where `id.UserID` is intended (or vice versa). Type-safe branded IDs prevent mixing aggregate types.
+175. ~~**Detect branded ID misuse** — Using `id.StreamID` where `id.UserID` is intended (or vice versa). Type-safe branded IDs prevent mixing aggregate types.~~ **done** — A033 detects the pointless roundtrip `id.Parse[T](x.String())` that defeats type safety (the most common concrete misuse)
 
 176. ~~**Detect string IDs instead of branded IDs** — Plain `string` or `int` used as IDs instead of `id.Of[T]`. Detect: struct fields named `*ID` or `*Id` with type `string`.~~ **done** — A032 detects string/int fields named *ID/*Id in files importing go-cqrs-lite/id
 
