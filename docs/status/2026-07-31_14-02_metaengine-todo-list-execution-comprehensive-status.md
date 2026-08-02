@@ -4,6 +4,12 @@
 **Session goal:** Execute the ENTIRE TODO_LIST — fix all critical bugs, refactor all complex functions, clean up all lint, implement all features, write all tests, fix all CI issues.
 **Verdict:** **MOSTLY DONE.** 27 of 42 TODO items completed (real work) or verified as already-done. 6 items deferred to ROADMAP (multi-day new-module efforts). 6 items remain open (complex linter rule rewrites). Build GREEN, 0 lint issues, all tests pass.
 
+> **Update (2026-08-02):** The 6 open linter items (E010/E011/E013/E014
+> rewrites, library self-lint mode, import-alias resolution) were resolved in
+> the 14:57 and 17:58 sessions. The 6 deferred items (Postgres engine, DuckDB
+> engine, etc.) were implemented in the Tier 4 session (Aug 1). The metaengine
+> now has 5 engines and 10 ADTs. See CHANGELOG `[Unreleased]`.
+
 ---
 
 ## A) FULLY DONE (shipped, tested, verified this session)
