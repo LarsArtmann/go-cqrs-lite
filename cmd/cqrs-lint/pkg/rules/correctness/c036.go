@@ -121,6 +121,51 @@ func NewC036Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
+// collectEventStoreBackends scans all Go files for event store constructor
+// calls (e.g., NewSQLiteEventStore, NewPostgresEventStore) and returns a set
+// of their detected backends. This allows C036 to compare secondary stores
+// against the ACTUAL event store backend rather than the feature profile's
+// classification (which may say "custom" when the event store is really
+// SQLite-backed via NewSQLiteEventStore).
+func collectEventStoreBackends(ctx *analyzer.AnalysisContext) map[string]bool {
+	backends := make(map[string]bool)
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+
+			sel, ok := analyzer.SelectorFromExpr(call.Fun)
+			if !ok {
+				return true
+			}
+
+			fnName := sel.Sel.Name
+			pkg := analyzer.SelectorPackage(sel)
+
+			// Only event store constructors (name contains "EventStore").
+			if !strings.Contains(fnName, "EventStore") {
+				return true
+			}
+
+			backend := detectBackend(pkg, fnName)
+			if backend != "" {
+				backends[backend] = true
+			}
+
+			return true
+		})
+	}
+
+	return backends
+}
+
 // detectBackend returns the backend type ("sqlite", "pebble", "postgres",
 // "turso") for a store constructor call, or "" if not a store constructor.
 func detectBackend(pkg, fnName string) string {
