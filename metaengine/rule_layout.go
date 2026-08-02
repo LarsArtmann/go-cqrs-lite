@@ -1,12 +1,14 @@
 package metaengine
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // layoutRule auto-applies layout planning. If the assigned engine supports
 // layout planning (LayoutPlanner) and the query declares filter/sort fields
-// via FilterOnField/SortOnField, it generates and applies a LayoutPlan
-// automatically. This eliminates the need for manual NewPlannedSQLiteEngine
-// setup (ADR-0073 consequence).
+// via FilterOnField/SortOnField, or requests WithColumnarLayout, it generates
+// and applies a LayoutPlan automatically. This eliminates the need for manual
+// NewPlannedSQLiteEngine setup (ADR-0073 consequence).
 type layoutRule struct {
 	dryRun bool
 }
@@ -20,8 +22,9 @@ func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 			continue
 		}
 
-		lp, ok := rt.QueryEngine().(LayoutPlanner)
-		if !ok {
+		_, hasPlanner := rt.QueryEngine().(LayoutPlanner)
+		_, hasPlanApplier := rt.QueryEngine().(LayoutPlanApplier)
+		if !hasPlanner && !hasPlanApplier {
 			continue
 		}
 
@@ -30,11 +33,17 @@ func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 			return fmt.Errorf("auto-layout for %q: %w", rt.QueryName(), err)
 		}
 
-		if len(filterFields) == 0 && len(sortFields) == 0 {
-			continue
+		layoutPlan := BuildLayoutPlan(rt.QueryName(), filterFields, sortFields)
+		if rt.QueryConfig().columnarLayout {
+			resultType := rt.QueryResultType()
+			if resultType != nil && isStructOrPointerToStruct(resultType) {
+				layoutPlan = BuildColumnarLayoutPlan(rt.QueryName(), resultType)
+			}
 		}
 
-		layoutPlan := BuildLayoutPlan(rt.QueryName(), filterFields, sortFields)
+		if len(layoutPlan.Columns) == 0 && len(filterFields) == 0 && len(sortFields) == 0 {
+			continue
+		}
 
 		result.LayoutPlans = append(result.LayoutPlans, layoutPlan)
 
@@ -45,10 +54,15 @@ func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 			}
 		}
 
+		reason := fmt.Sprintf("columns %v", layoutPlan.ColumnNames())
+		if rt.QueryConfig().columnarLayout {
+			reason = fmt.Sprintf("columnar-native columns %v", layoutPlan.ColumnNames())
+		}
+
 		result.RuleTrace = append(result.RuleTrace, RuleTraceEntry{
 			Rule:   r.Name(),
 			Query:  rt.QueryName(),
-			Reason: fmt.Sprintf("columns %v", layoutPlan.ColumnNames()),
+			Reason: reason,
 			Layout: layout,
 		})
 
@@ -62,7 +76,7 @@ func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 		})
 
 		if !r.dryRun {
-			if err := lp.ApplyLayout(rt.QueryName(), filterFields, sortFields); err != nil {
+			if err := applyLayoutPlan(rt, layoutPlan, filterFields, sortFields); err != nil {
 				return fmt.Errorf("auto-layout for %q: %w", rt.QueryName(), err)
 			}
 		}

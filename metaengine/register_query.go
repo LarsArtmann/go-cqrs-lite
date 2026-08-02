@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"fmt"
+	"reflect"
 )
 
 // RegisterQuery adds a query to the Store at runtime, after Plan().
@@ -52,29 +53,31 @@ func (s *Store) RegisterQuery(query any) error {
 }
 
 // applyAutoLayoutForQuery generates and applies a LayoutPlan for declarative
-// FilterOnField/SortOnField queries when the assigned engine supports it.
+// FilterOnField/SortOnField queries, and for queries using WithColumnarLayout,
+// when the assigned engine supports it.
 func (s *Store) applyAutoLayoutForQuery(meta queryMeta) error {
-	layoutPlanner, ok := meta.QueryEngine().(LayoutPlanner)
-	if !ok {
-		return nil
-	}
-
 	filterFields, sortFields, err := extractDeclarativeFields(meta.QueryConfig())
 	if err != nil {
 		return fmt.Errorf("metaengine.RegisterQuery: %w", err)
 	}
 
-	if len(filterFields) == 0 && len(sortFields) == 0 {
-		return nil
+	layoutPlan := BuildLayoutPlan(meta.QueryName(), filterFields, sortFields)
+	if meta.QueryConfig().columnarLayout {
+		rt := meta.QueryResultType()
+		if rt != nil && isStructOrPointerToStruct(rt) {
+			layoutPlan = BuildColumnarLayoutPlan(meta.QueryName(), rt)
+		}
 	}
 
-	layoutPlan := BuildLayoutPlan(meta.QueryName(), filterFields, sortFields)
+	if len(layoutPlan.Columns) == 0 && len(filterFields) == 0 && len(sortFields) == 0 {
+		return nil
+	}
 
 	if s.plan != nil {
 		s.plan.LayoutPlans = append(s.plan.LayoutPlans, layoutPlan)
 	}
 
-	if err := layoutPlanner.ApplyLayout(meta.QueryName(), filterFields, sortFields); err != nil {
+	if err := applyLayoutPlan(meta, layoutPlan, filterFields, sortFields); err != nil {
 		return fmt.Errorf(
 			"metaengine.RegisterQuery: auto-layout for %q: %w",
 			meta.QueryName(), err,
@@ -82,4 +85,38 @@ func (s *Store) applyAutoLayoutForQuery(meta queryMeta) error {
 	}
 
 	return nil
+}
+
+// isStructOrPointerToStruct reports whether t is a struct type or a pointer to one.
+func isStructOrPointerToStruct(t reflect.Type) bool {
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	return t.Kind() == reflect.Struct
+}
+
+// applyLayoutPlan dispatches a LayoutPlan to the engine. It prefers
+// LayoutPlanApplier so the engine receives reflection-derived column types;
+// otherwise it falls back to LayoutPlanner with field names.
+func applyLayoutPlan(
+	meta queryMeta,
+	plan LayoutPlan,
+	filterFields, sortFields []string,
+) error {
+	if lpa, ok := meta.QueryEngine().(LayoutPlanApplier); ok {
+		return lpa.ApplyLayoutPlan(plan)
+	}
+
+	lp, ok := meta.QueryEngine().(LayoutPlanner)
+	if !ok {
+		return nil
+	}
+
+	fields := filterFields
+	if meta.QueryConfig().columnarLayout {
+		fields = plan.ColumnNames()
+	}
+
+	return lp.ApplyLayout(meta.QueryName(), fields, sortFields)
 }

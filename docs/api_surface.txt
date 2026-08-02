@@ -1410,6 +1410,8 @@ metaengine/duckdbengine/const DuckDBNsPerOp
 metaengine/duckdbengine/const DuckDBNsPerRead
 metaengine/duckdbengine/func New
 metaengine/duckdbengine/func NewFromDB
+metaengine/duckdbengine/method ApplyLayout
+metaengine/duckdbengine/method ApplyLayoutPlan
 metaengine/duckdbengine/method Close
 metaengine/duckdbengine/method CounterGet
 metaengine/duckdbengine/method CounterIncrement
@@ -1425,6 +1427,7 @@ metaengine/func AllFilterOps
 metaengine/func AllFoldKinds
 metaengine/func AllReadPatterns
 metaengine/func AllStorageLayouts
+metaengine/func BuildColumnarLayoutPlan
 metaengine/func BuildLayoutPlan
 metaengine/func BuildLayoutPlanFromType
 metaengine/func CalibrateEngine
@@ -1477,6 +1480,7 @@ metaengine/func SpatialExecuteTyped
 metaengine/func VectorExecuteTyped
 metaengine/func VerifyChecksum
 metaengine/func Volume
+metaengine/func WithColumnarLayout
 metaengine/func WithCursor
 metaengine/func WithCursorString
 metaengine/func WithDebug
@@ -1509,6 +1513,7 @@ metaengine/interface Engine
 metaengine/interface Fold
 metaengine/interface GraphBackend
 metaengine/interface HealthChecker
+metaengine/interface LayoutPlanApplier
 metaengine/interface LayoutPlanner
 metaengine/interface LogBackend
 metaengine/interface MapBackend

@@ -271,6 +271,7 @@ func _() {
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 
 	findings := ruletest.RunDetector(t, adoption.NewF009Detector(ctx))
 	ruletest.AssertRule(t, findings, "F009", 1)

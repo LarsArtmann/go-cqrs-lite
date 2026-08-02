@@ -145,6 +145,7 @@ func _() {
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 
 	findings := ruletest.RunDetector(t, adoption.NewF015Detector(ctx))
 	ruletest.AssertRule(t, findings, "F015", 1)
@@ -181,6 +182,7 @@ func _() {
 }
 `,
 	})
+	ctx.FeatureProfile.HasAsyncBus = true
 
 	findings := ruletest.RunDetector(t, adoption.NewF017Detector(ctx))
 	ruletest.AssertRule(t, findings, "F017", 1)

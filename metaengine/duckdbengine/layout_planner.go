@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -23,6 +24,16 @@ import (
 // columns) instead of meta_map, and PushdownMapScan queries the planned
 // table with direct column references instead of json_extract.
 func (e *duckdbEngine) ApplyLayout(collection string, filterFields, sortFields []string) error {
+	plan := metaengine.BuildLayoutPlan(collection, filterFields, sortFields)
+
+	return e.ApplyLayoutPlan(plan)
+}
+
+// ApplyLayoutPlan implements metaengine.LayoutPlanApplier. It creates the
+// planned table from a fully-built LayoutPlan with reflection-derived column
+// types. This is the path used by WithColumnarLayout, where every exported
+// field of the result type becomes a native column.
+func (e *duckdbEngine) ApplyLayoutPlan(plan metaengine.LayoutPlan) error {
 	e.layoutMu.Lock()
 	defer e.layoutMu.Unlock()
 
@@ -30,28 +41,25 @@ func (e *duckdbEngine) ApplyLayout(collection string, filterFields, sortFields [
 		e.plans = make(map[string]metaengine.LayoutPlan)
 	}
 
-	if existing, exists := e.plans[collection]; exists {
-		newPlan := metaengine.BuildLayoutPlan(collection, filterFields, sortFields)
-		if !plansColumnCompatible(existing, newPlan) {
+	if existing, exists := e.plans[plan.Collection]; exists {
+		if !plansColumnCompatible(existing, plan) {
 			return fmt.Errorf(
 				"%w: collection %q already has columns %v, requested %v",
 				metaengine.ErrLayoutConflict,
-				collection,
+				plan.Collection,
 				existing.ColumnNames(),
-				newPlan.ColumnNames(),
+				plan.ColumnNames(),
 			)
 		}
 
 		return nil
 	}
 
-	plan := metaengine.BuildLayoutPlan(collection, filterFields, sortFields)
-
 	if _, err := e.db.ExecContext(context.Background(), plan.DDL()); err != nil {
-		return fmt.Errorf("duckdbengine.ApplyLayout: create table %s: %w", plan.Table, err)
+		return fmt.Errorf("duckdbengine.ApplyLayoutPlan: create table %s: %w", plan.Table, err)
 	}
 
-	e.plans[collection] = plan
+	e.plans[plan.Collection] = plan
 
 	return nil
 }
