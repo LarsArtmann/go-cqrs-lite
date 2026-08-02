@@ -108,3 +108,97 @@ func setup(store Store, bus Bus) {
 	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
 	ruletest.AssertRule(t, findings, "C037", 0)
 }
+
+func TestC037_CommandStoreCodecMismatch(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"all.go": `package main
+
+func setup(store Store, bus Bus) {
+	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
+		decider.WithCodec[State](codec.JSONCodec{}))
+	_, _ = command.NewTypedCommandStore[Cmd](store, codec.CBORCodec{})
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
+	ruletest.AssertRule(t, findings, "C037", 1)
+}
+
+func TestC037_QueryStoreCodecMismatch(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"all.go": `package main
+
+func setup(store Store, bus Bus) {
+	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
+		decider.WithCodec[State](codec.JSONCodec{}))
+	_, _ = query.NewTypedQueryStore[Q](store, codec.CBORCodec{})
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
+	ruletest.AssertRule(t, findings, "C037", 1)
+}
+
+func TestC037_KVStoreCodecMismatch(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"all.go": `package main
+
+func setup(backend Store, bus Bus) {
+	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
+		decider.WithCodec[State](codec.JSONCodec{}))
+	_ = kv.NewTypedStore[View, string](backend, kv.WithTypedCodec[View, string](codec.CBORCodec{}))
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
+	ruletest.AssertRule(t, findings, "C037", 1)
+}
+
+func TestC037_AllStoresSameCodecNoFinding(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"all.go": `package main
+
+func setup(store Store, bus Bus) {
+	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
+		decider.WithCodec[State](codec.CBORCodec{}))
+	_, _ = snapshot.NewTypedStore[State, string](store, codec.CBORCodec{})
+	_, _ = command.NewTypedCommandStore[Cmd](store, codec.CBORCodec{})
+	_, _ = query.NewTypedQueryStore[Q](store, codec.CBORCodec{})
+	_ = kv.NewTypedStore[View, string](store, kv.WithTypedCodec[View, string](codec.CBORCodec{}))
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
+	ruletest.AssertRule(t, findings, "C037", 0)
+}
+
+func TestC037_MultipleMismatches(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"all.go": `package main
+
+func setup(store Store, bus Bus) {
+	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
+		decider.WithCodec[State](codec.JSONCodec{}))
+	_, _ = snapshot.NewTypedStore[State, string](store, codec.CBORCodec{})
+	_, _ = command.NewTypedCommandStore[Cmd](store, codec.CBORCodec{})
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
+	ruletest.AssertRule(t, findings, "C037", 2)
+}

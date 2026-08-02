@@ -88,8 +88,8 @@ and is **never** duplicated here.
 - `[x]` ~~**Fix P012/P013 cross-file blindness**~~ — **DONE** (2026-08-02). Only
   files with direct `sql.Open("sqlite",...)` are flagged; constructor wrappers
   (`sqlite.New`, `NewSQLiteBackend`) are excluded.
-- `[ ]` **C037 scope expansion** — only covers snapshot store (1 of 5 typed
-  stores). Missing: kv, command, query, stack.Materialize.
+- [x] ~~**C037 scope expansion**~~ — **DONE** (2026-08-02). Now covers all 4
+  typed stores: snapshot, command, query, and kv (via `WithTypedCodec`).
 - `[ ]` **F009/F015/F017 feature-profile gating** — fire on CLI projects where
   modules are deliberately not used (missing feature-profile check). Requires
   adding `HasAsyncBus` to the feature profile.

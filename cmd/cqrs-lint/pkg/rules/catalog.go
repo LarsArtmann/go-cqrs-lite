@@ -397,11 +397,11 @@ func correctnessRules() []RuleInfo {
 		},
 		{
 			ID:          "C037",
-			Name:        "snapshot-codec-mismatch",
+			Name:        "typed-store-codec-mismatch",
 			Category:    "correctness",
 			Severity:    "warning",
 			Confidence:  "high",
-			Description: "Snapshot store codec differs from repository codec — snapshot cannot be decoded, loads as corrupt/zero state",
+			Description: "Typed store (snapshot, command, query, or kv) codec differs from repository codec — store cannot be decoded, loads as corrupt/zero state",
 			AutoFix:     false,
 		},
 	}

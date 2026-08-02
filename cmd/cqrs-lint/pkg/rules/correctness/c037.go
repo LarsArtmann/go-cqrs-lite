@@ -13,30 +13,32 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
-// C037: Snapshot/event codec mismatch.
+// C037: Typed store codec mismatch.
 //
-// Detects a snapshot store configured with a different codec than the
-// repository/event store. A snapshot serialized with CBOR cannot be decoded by
-// a repository using JSON (or vice versa): the snapshot either fails to load or
-// silently deserializes into a zero/corrupt state, defeating the snapshot
-// optimization and potentially producing wrong aggregate state.
+// Detects a typed store (snapshot, command, query, or kv) configured with a
+// different codec than the repository/event store. A store serialized with
+// CBOR cannot be decoded by a repository using JSON (or vice versa): the data
+// either fails to load or silently deserializes into a zero/corrupt state.
 //
 // Patterns tracked:
 //   - Repository codec:  decider.WithCodec(codec.XXXCodec{})
 //   - Snapshot codec:    snapshot.NewTypedStore(store, codec.XXXCodec{})
+//   - Command codec:     command.NewTypedCommandStore(store, codec.XXXCodec{})
+//   - Query codec:       query.NewTypedQueryStore(store, codec.XXXCodec{})
+//   - KV store codec:    kv.WithTypedCodec(codec.XXXCodec{})  (passed to kv.NewTypedStore)
 //
-// Events are self-describing (each carries its encoding stamp), but snapshots
-// and typed stores are blind — the codec must match exactly between write and
-// read, which is why this mismatch is a correctness bug rather than a style note.
+// Events are self-describing (each carries its encoding stamp), but typed
+// stores are blind — the codec must match exactly between write and read,
+// which is why this mismatch is a correctness bug rather than a style note.
 //
 //nolint:ireturn // factory returns public interface
 func NewC037Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
-		"C037-snapshot-codec-mismatch",
+		"C037-typed-store-codec-mismatch",
 		func(_ context.Context) ([]finding.Finding, error) {
 			var (
 				repoCodec string
-				snaps     []snapshotSite
+				sites    []codecSite
 			)
 
 			for _, gf := range ctx.GoFiles {
@@ -54,24 +56,25 @@ func NewC037Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						repoCodec = name
 					}
 
-					if name, ok := codecFromSnapshotStore(call); ok {
-						snaps = append(
-							snaps,
-							snapshotSite{name: name, pos: ctx.Fset.Position(call.Pos())},
-						)
+					if desc, name, ok := codecFromTypedStore(call); ok {
+						sites = append(sites, codecSite{
+							storeDesc: desc,
+							name:      name,
+							pos:       ctx.Fset.Position(call.Pos()),
+						})
 					}
 
 					return true
 				})
 			}
 
-			if repoCodec == "" || len(snaps) == 0 {
+			if repoCodec == "" || len(sites) == 0 {
 				return nil, nil
 			}
 
 			var findings []finding.Finding
 
-			for _, s := range snaps {
+			for _, s := range sites {
 				if s.name == "" || s.name == repoCodec {
 					continue
 				}
@@ -79,9 +82,9 @@ func NewC037Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				f, err := finding.NewBuilder(
 					"C037", toolName,
 					fmt.Sprintf(
-						"Snapshot store uses %s codec but repository uses %s — "+
-							"snapshot cannot be decoded, loads as corrupt/zero state",
-						s.name, repoCodec,
+						"%s uses %s codec but repository uses %s — "+
+							"store cannot be decoded, loads as corrupt/zero state",
+						s.storeDesc, s.name, repoCodec,
 					),
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(s.pos.Filename), s.pos.Line, s.pos.Column),
@@ -90,7 +93,7 @@ func NewC037Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithConfidence(finding.ConfidenceHigh).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion(fmt.Sprintf(
-						"Pass the same codec to snapshot.NewTypedStore: use %s to match the repository",
+						"Use %s to match the repository codec",
 						repoCodec,
 					)).
 					WithSnippet(ctx.SourceLine(s.pos.Filename, s.pos.Line)).
@@ -103,9 +106,10 @@ func NewC037Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-type snapshotSite struct {
-	name string
-	pos  token.Position
+type codecSite struct {
+	storeDesc string
+	name      string
+	pos       token.Position
 }
 
 // codecFromWithCodec extracts the codec type name from a decider.WithCodec(...)
@@ -127,28 +131,54 @@ func codecFromWithCodec(call *ast.CallExpr) (string, bool) {
 	return codecTypeName(call.Args[0])
 }
 
-// codecFromSnapshotStore extracts the codec type name from
-// snapshot.NewTypedStore(store, codec). The codec is the second positional arg.
-func codecFromSnapshotStore(call *ast.CallExpr) (string, bool) {
+// codecFromTypedStore extracts the codec type name and a human-readable store
+// description from any typed store constructor that accepts a codec. Supports:
+//   - snapshot.NewTypedStore(store, codec)       — 2nd positional arg
+//   - command.NewTypedCommandStore(store, codec) — 2nd positional arg
+//   - query.NewTypedQueryStore(store, codec)     — 2nd positional arg
+//   - kv.WithTypedCodec(codec)                   — 1st arg (option for kv.NewTypedStore)
+func codecFromTypedStore(call *ast.CallExpr) (storeDesc, codecName string, ok bool) {
 	sel, ok := unwrapIndex(call.Fun).(*ast.SelectorExpr)
 	if !ok {
-		return "", false
-	}
-
-	if sel.Sel.Name != "NewTypedStore" {
-		return "", false
+		return "", "", false
 	}
 
 	pkg, ok := sel.X.(*ast.Ident)
-	if !ok || pkg.Name != "snapshot" {
-		return "", false
+	if !ok {
+		return "", "", false
 	}
 
-	if len(call.Args) < 2 {
-		return "", false
+	switch {
+	case pkg.Name == "snapshot" && sel.Sel.Name == "NewTypedStore":
+		if len(call.Args) < 2 {
+			return "", "", false
+		}
+		name, ok := codecTypeName(call.Args[1])
+		return "Snapshot store", name, ok
+
+	case pkg.Name == "command" && sel.Sel.Name == "NewTypedCommandStore":
+		if len(call.Args) < 2 {
+			return "", "", false
+		}
+		name, ok := codecTypeName(call.Args[1])
+		return "Command store", name, ok
+
+	case pkg.Name == "query" && sel.Sel.Name == "NewTypedQueryStore":
+		if len(call.Args) < 2 {
+			return "", "", false
+		}
+		name, ok := codecTypeName(call.Args[1])
+		return "Query store", name, ok
+
+	case pkg.Name == "kv" && sel.Sel.Name == "WithTypedCodec":
+		if len(call.Args) == 0 {
+			return "", "", false
+		}
+		name, ok := codecTypeName(call.Args[0])
+		return "KV store", name, ok
 	}
 
-	return codecTypeName(call.Args[1])
+	return "", "", false
 }
 
 // unwrapIndex strips a single type-argument bracket from a generic call Fun,
