@@ -25,17 +25,17 @@ and is **never** duplicated here.
 > detail.
 
 - [x] ~~**Wire dead code from data model refactor**~~ — **DONE** (2026-08-02).
-  `ApplyError` now wraps all fold errors in `applyFold` (structured context:
-  query, event type, fold kind). `Valid()` methods are called at `Plan()` time
-  for ADT, ReadPattern, and each FoldKind. `NsPerRead`/`NsPerWrite` were
-  already wired.
+      `ApplyError` now wraps all fold errors in `applyFold` (structured context:
+      query, event type, fold kind). `Valid()` methods are called at `Plan()` time
+      for ADT, ReadPattern, and each FoldKind. `NsPerRead`/`NsPerWrite` were
+      already wired.
 - [x] ~~**Exhaustiveness guard test**~~ — **DONE** (2026-08-02). Compile-time
-  test ensuring all Fold concrete types are handled in `applyFold` type switch
-  (prevents silent fallthrough when a new fold type is added).
+      test ensuring all Fold concrete types are handled in `applyFold` type switch
+      (prevents silent fallthrough when a new fold type is added).
 - [x] ~~**10M-event soak test**~~ — **DONE** (2026-08-02). `TestSoak_MemoryBounded_10M`
-  in `metaengine/soak_10m_test.go`: 10M events into 1000 keys → 0.1 MB heap growth,
-  flat growth curve. Verifies O(keys) bound, correctness of accumulated totals,
-  and no sustained segment growth. Skips in `-short` mode and with `SOAK_SKIP_10M=1`.
+      in `metaengine/soak_10m_test.go`: 10M events into 1000 keys → 0.1 MB heap growth,
+      flat growth curve. Verifies O(keys) bound, correctness of accumulated totals,
+      and no sustained segment growth. Skips in `-short` mode and with `SOAK_SKIP_10M=1`.
 - `[ ]` **`metaengine-gen` code generator** — typed Store methods from query
   declarations (CLI tool, similar to `cqrs-gen`). Go AST parsing + template
   generation.
@@ -48,21 +48,21 @@ and is **never** duplicated here.
 - `[ ]` **Watcher typed channel** — `Watcher[V]` sends `any`, not typed `V`.
   SQLite engine type assertion can silently fail.
 - [x] ~~**DuckDB LayoutPlanner**~~ — **DONE** (2026-08-02). DuckDB engine now
-  implements `LayoutPlanner` via dedicated planned tables with extracted columns
-  and ART indexes (same pattern as SQLite). `ApplyLayout` creates a per-collection
-  table; `MapSet`/`MapGet`/`MapDelete`/`PushdownMapScan` dispatch to the planned
-  table with direct column references instead of `json_extract`, enabling
-  DuckDB's zone maps to prune data blocks. 8 tests in `layout_planner_cgo_test.go`.
+      implements `LayoutPlanner` via dedicated planned tables with extracted columns
+      and ART indexes (same pattern as SQLite). `ApplyLayout` creates a per-collection
+      table; `MapSet`/`MapGet`/`MapDelete`/`PushdownMapScan` dispatch to the planned
+      table with direct column references instead of `json_extract`, enabling
+      DuckDB's zone maps to prune data blocks. 8 tests in `layout_planner_cgo_test.go`.
 - `[ ]` **Postgres GIN containment indexes** — `@>` operator for JSONB path
   queries. Currently only expression indexes (B-tree on JSONB paths).
 - `[ ]` **DuckDB columnar-native storage** — DuckDB stores JSON as VARCHAR;
   columnar scans not leveraged. Vectorized GROUP BY for CounterGet would use
   DuckDB's native columnar engine.
 - [x] ~~**SSE consolidation**~~ — **DONE** (2026-08-02). ADR-0091 documents
-  the intentional split between `metaengine.ServeSSE` (read-model push) and
-  `transport/http.SSEBroker` (event stream push). Different layers, different
-  replay strategies, different module boundaries — merging would violate
-  the metaengine zero-dependency principle.
+      the intentional split between `metaengine.ServeSSE` (read-model push) and
+      `transport/http.SSEBroker` (event stream push). Different layers, different
+      replay strategies, different module boundaries — merging would violate
+      the metaengine zero-dependency principle.
 - `[ ]` **Vector/Search/Spatial backends** — currently Memory-only (brute-force).
   Future: DuckDB VSS extension (vector), Postgres tsvector (search), PostGIS
   (spatial). See ROADMAP.
@@ -97,14 +97,14 @@ and is **never** duplicated here.
   files with direct `sql.Open("sqlite",...)` are flagged; constructor wrappers
   (`sqlite.New`, `NewSQLiteBackend`) are excluded.
 - [x] ~~**C037 scope expansion**~~ — **DONE** (2026-08-02). Now covers all 4
-  typed stores: snapshot, command, query, and kv (via `WithTypedCodec`).
+      typed stores: snapshot, command, query, and kv (via `WithTypedCodec`).
 - `[ ]` **F009/F015/F017 feature-profile gating** — fire on CLI projects where
   modules are deliberately not used (missing feature-profile check). Requires
   adding `HasAsyncBus` to the feature profile.
 - [x] ~~**`--fix` support for D007**~~ — **DONE** (2026-08-02). D007 now emits
-  per-call-site findings with `FixStrategyDirect`. `--fix` replaces
-  `event.NewEvent(` with `event.New(` via the existing `CQRSFixProvider`.
-  Multiple occurrences handled via pipeline iteration (MaxIterations=5).
+      per-call-site findings with `FixStrategyDirect`. `--fix` replaces
+      `event.NewEvent(` with `event.New(` via the existing `CQRSFixProvider`.
+      Multiple occurrences handled via pipeline iteration (MaxIterations=5).
 - `[ ]` **Domain-based severity calibration (L1.5)** — makes all rules smarter
   via domain context (financial aggregates get stricter rules). Strategic item;
   deferred since 2026-07-30.
@@ -124,20 +124,20 @@ and is **never** duplicated here.
   `metaengine/duckdbengine/v4.0.0` tags** — all three tags created locally but
   not pushed (per safety rules). Consumers get 404 from Go proxy until pushed.
 - [x] ~~**MySQL testcontainer privilege fix**~~ — **DONE** (2026-08-02).
-  Replaced fragile `ctr.Exec` GRANT with Go-side `database/sql` root connection
-  + retry loop (`waitForMySQLReady`). go-sql-driver/mysql v1.10+ supports
-  caching_sha2_password, eliminating the auth issue.
+      Replaced fragile `ctr.Exec` GRANT with Go-side `database/sql` root connection
+  - retry loop (`waitForMySQLReady`). go-sql-driver/mysql v1.10+ supports
+    caching_sha2_password, eliminating the auth issue.
 - [x] ~~**Investigate `TestRun_Postgres_Recovery` benchkit failure**~~ —
-  **DONE** (2026-08-02). Investigation: the test is well-designed (per-test
-  database isolation, 90s timeout, skips without Docker). The flake is a CI
-  resource issue (Docker testcontainer startup, parallel contention), not a
-  code bug. No code fix needed.
+      **DONE** (2026-08-02). Investigation: the test is well-designed (per-test
+      database isolation, 90s timeout, skips without Docker). The flake is a CI
+      resource issue (Docker testcontainer startup, parallel contention), not a
+      code bug. No code fix needed.
 - [x] ~~**Investigate `TestProperty_SQLiteTTLExpiry` flake**~~ — **DONE**
-  (2026-08-02). Root cause: (1) `newTestStore(t)` registered cleanup on `t`
-  not `rt`, accumulating hundreds of open SQLite connections across rapid
-  iterations; (2) 50ms TTL + 100ms sleep was too tight under -race. Fixed:
-  per-iteration store creation/cleanup via `defer`, generous 200ms TTL +
-  500ms sleep. Stale rapid failure files cleaned.
+      (2026-08-02). Root cause: (1) `newTestStore(t)` registered cleanup on `t`
+      not `rt`, accumulating hundreds of open SQLite connections across rapid
+      iterations; (2) 50ms TTL + 100ms sleep was too tight under -race. Fixed:
+      per-iteration store creation/cleanup via `defer`, generous 200ms TTL +
+      500ms sleep. Stale rapid failure files cleaned.
 
 ---
 

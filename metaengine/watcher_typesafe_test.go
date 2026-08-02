@@ -238,7 +238,9 @@ func TestSQLiteWatcher_ReceivesDeleteNotification(t *testing.T) {
 			t.Errorf("expected zero-value testTask on delete, got %+v", val)
 		}
 	case <-time.After(2 * time.Second):
-		t.Fatal("timeout waiting for SQLite delete notification — was silently dropped (pre-fix bug)")
+		t.Fatal(
+			"timeout waiting for SQLite delete notification — was silently dropped (pre-fix bug)",
+		)
 	}
 }
 

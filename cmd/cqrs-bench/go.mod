@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260802155053-44fb8fc2a8d8
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260802161517-e31a0a4618f0
 	github.com/larsartmann/go-error-family v0.10.0
 )
 

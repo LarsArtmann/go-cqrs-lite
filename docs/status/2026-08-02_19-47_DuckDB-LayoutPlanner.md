@@ -9,6 +9,7 @@
 ## a) FULLY DONE
 
 ### DuckDB LayoutPlanner (the assigned task)
+
 - **Goal:** Give DuckDB the same auto-layout capability SQLite and Postgres already had, so queries using `FilterOnField`/`SortOnField` create optimized storage instead of full `json_extract()` scans.
 - **Approach chosen:** Dedicated planned tables with extracted columns + ART indexes, mirroring the SQLite `NewPlannedSQLiteEngine` pattern. DuckDB does not support expression indexes on JSON paths, so partial indexes (Postgres style) were not possible.
 - **Files implemented/added:**
@@ -22,6 +23,7 @@
   - `AGENTS.md` — `duckdbengine/` module description now includes `LayoutPlanner`.
 
 ### Verification (module-level)
+
 - `GOWORK=off go build -tags "goexperiment.jsonv2 cgo" ./...` — PASS inside `metaengine/duckdbengine`.
 - `GOWORK=off go test -tags "goexperiment.jsonv2 cgo" -count=1 -v ./...` — PASS (all DuckDB engine tests, including the 8 new layout tests).
 - `GOWORK=off go test -tags "goexperiment.jsonv2 cgo" -count=1 -race ./...` — PASS.
@@ -30,6 +32,7 @@
 - Workspace build `go build -tags "goexperiment.jsonv2 cgo" ./...` from repo root — PASS.
 
 ### Design quality
+
 - Followed existing patterns: SQLite planned-table DDL, Postgres idempotency model, Pebble `plans` map dispatch.
 - Used DuckDB `$N` placeholders in planned queries instead of SQLite `?`.
 - Used DuckDB `ON CONFLICT (...) DO UPDATE SET ...` instead of SQLite `INSERT OR REPLACE`.
@@ -41,14 +44,17 @@
 ## b) PARTIALLY DONE
 
 ### Full verify gate
+
 - Only ran module-level build/test/vet for `metaengine/duckdbengine`.
 - Did **not** run `nix run .#verify` or the full per-module test matrix. The user asked for a status report right now, so this is a deliberate checkpoint.
 
 ### Cross-engine parity test integration
+
 - New tests are in `duckdbengine_test` package and cover the core layout paths.
 - Did not add new `adttest` scenarios for layout; `adttest.RunMatrix` is unchanged. The layout tests are engine-specific because layout is a per-engine optional capability.
 
 ### Code duplication audit
+
 - `extractFields` and `jsonFieldName` are intentionally duplicated from `metaengine/planned_sqlite.go` because they are unexported helpers in the core module. DuckDB cannot import them without exporting them.
 - `quoteIdent` and `plansColumnCompatible` are also duplicated. This is acceptable for a separate module, but could be centralized later if more engines adopt the planned-table pattern.
 
@@ -93,6 +99,7 @@ Nothing catastrophic in this session. Honest list of mistakes and near-misses:
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Immediate (this week)
+
 1. Run `nix run .#verify` on the current tree and fix anything broken.
 2. Run `cmd/api-stability` golden regen for `duckdbengine`.
 3. Run `cmd/doc-check` on `AGENTS.md` and skill references.
@@ -105,6 +112,7 @@ Nothing catastrophic in this session. Honest list of mistakes and near-misses:
 10. Add `adttest` matrix coverage for `LayoutPlanner` capability.
 
 ### Metaengine hardening (next 2-4 weeks)
+
 11. Implement DuckDB columnar-native storage (decompose values into typed columns, not just side columns).
 12. Implement Postgres GIN containment indexes (`@>`) for JSONB path queries.
 13. Implement Vector/Search/Spatial backends for DuckDB (VSS extension, fts, etc.).
@@ -117,6 +125,7 @@ Nothing catastrophic in this session. Honest list of mistakes and near-misses:
 20. Add materialize-vs-replay cost evidence metrics for DuckDB.
 
 ### cqrs-lint / tooling (next 2-4 weeks)
+
 21. Finish the `cqrs-lint` rules and feature profiles touched in `264a4cc5`.
 22. Add `cqrs-lint doctor` tests for DuckDB LayoutPlanner adoption rule.
 23. Add `--fix` support for remaining consistency rules.
@@ -124,6 +133,7 @@ Nothing catastrophic in this session. Honest list of mistakes and near-misses:
 25. Add SARIF output validation tests.
 
 ### Testing / quality (next 2-4 weeks)
+
 26. Add property-based tests for DuckDB layout conflict detection.
 27. Add race tests for concurrent `ApplyLayout` + `MapSet`.
 28. Add a soak test for planned DuckDB tables (10M events or 1M keys).
@@ -134,6 +144,7 @@ Nothing catastrophic in this session. Honest list of mistakes and near-misses:
 33. Add tests for `MapDelete` on planned tables after layout conflict.
 
 ### Documentation / DX (next 2-4 weeks)
+
 34. Write an ADR for DuckDB LayoutPlanner design (ADR-00xx).
 35. Update `SKILL.md` references with DuckDB layout examples.
 36. Add a `recipes.md` snippet showing `metaengine.Plan` with DuckDB + `FilterOnField`/`SortOnField`.
@@ -142,6 +153,7 @@ Nothing catastrophic in this session. Honest list of mistakes and near-misses:
 39. Add a comparison table: SQLite planned table vs DuckDB planned table vs Postgres expression indexes.
 
 ### Architecture / debt (next 1-3 months)
+
 40. Re-evaluate whether DuckDB should use JSONB-like typed columns instead of VARCHAR for the `value` column.
 41. Re-evaluate whether `meta_map` should be one table per collection by default in DuckDB (its columnar engine prefers narrow tables).
 42. Standardize the `ON CONFLICT` syntax across SQLite, DuckDB, and Postgres helpers.
@@ -187,4 +199,4 @@ $ go build -tags "goexperiment.jsonv2 cgo" ./...
 
 ---
 
-*Report generated by Crush. Next recommended action: run `nix run .#verify` or answer the 3 questions above.*
+_Report generated by Crush. Next recommended action: run `nix run .#verify` or answer the 3 questions above._

@@ -23,27 +23,27 @@ not be merged.**
 
 ### Layer Comparison
 
-| Aspect                  | `metaengine.ServeSSE`             | `transport/http.SSEBroker`        |
-| ----------------------- | --------------------------------- | --------------------------------- |
-| **Data source**         | `Watcher[V]` (collection updates) | `event.Bus` (domain event stream) |
-| **Payload**            | Typed value `V` (JSON-encoded)    | Raw `event.Event` payload bytes   |
-| **Replay source**       | In-memory ring buffer (`SSEReplay`) | `event.SeekableJournal`          |
-| **Replay key**          | Sequence number (`uint64`)        | Event ID (`Last-Event-ID`)        |
-| **Dedup mechanism**     | Seq-number ring                   | `dedup.Ring` (event IDs)          |
-| **Module dependency**   | `metaengine` (Tier 0)             | `transport/http` (Tier 4)        |
-| **Event filtering**     | No (collection is already scoped) | Yes (`WithEventFilter`)           |
-| **Payload transform**  | No (values are already JSON)      | Yes (`WithPayloadTransform`)     |
-| **Byte budget**         | No                                | Yes (`WithReplayByteBudget`)      |
-| **REST backfill**       | No                                | Yes (`BackfillHandler`)           |
-| **Graceful shutdown**   | No                                | Yes (`CloseWithGrace`)            |
-| **OTel spans**          | No                                | Yes (fanout + replay)             |
-| **Target consumer**     | Browser `EventSource` (read model)| Browser or service (event stream)|
+| Aspect                | `metaengine.ServeSSE`               | `transport/http.SSEBroker`        |
+| --------------------- | ----------------------------------- | --------------------------------- |
+| **Data source**       | `Watcher[V]` (collection updates)   | `event.Bus` (domain event stream) |
+| **Payload**           | Typed value `V` (JSON-encoded)      | Raw `event.Event` payload bytes   |
+| **Replay source**     | In-memory ring buffer (`SSEReplay`) | `event.SeekableJournal`           |
+| **Replay key**        | Sequence number (`uint64`)          | Event ID (`Last-Event-ID`)        |
+| **Dedup mechanism**   | Seq-number ring                     | `dedup.Ring` (event IDs)          |
+| **Module dependency** | `metaengine` (Tier 0)               | `transport/http` (Tier 4)         |
+| **Event filtering**   | No (collection is already scoped)   | Yes (`WithEventFilter`)           |
+| **Payload transform** | No (values are already JSON)        | Yes (`WithPayloadTransform`)      |
+| **Byte budget**       | No                                  | Yes (`WithReplayByteBudget`)      |
+| **REST backfill**     | No                                  | Yes (`BackfillHandler`)           |
+| **Graceful shutdown** | No                                  | Yes (`CloseWithGrace`)            |
+| **OTel spans**        | No                                  | Yes (fanout + replay)             |
+| **Target consumer**   | Browser `EventSource` (read model)  | Browser or service (event stream) |
 
 ### Rationale
 
 1. **Different abstraction levels.** `ServeSSE` operates at the read-model
-   layer — it pushes the *result* of a projection (e.g., "user count is 42").
-   `SSEBroker` operates at the event-sourcing layer — it pushes the *events*
+   layer — it pushes the _result_ of a projection (e.g., "user count is 42").
+   `SSEBroker` operates at the event-sourcing layer — it pushes the _events_
    that produce those results (e.g., "user.created"). Merging them would
    collapse two distinct architectural layers into one.
 

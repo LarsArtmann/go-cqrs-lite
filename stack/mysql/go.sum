@@ -136,6 +136,8 @@ github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260802152202-1aaff192ae9
 github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260802152202-1aaff192ae96/go.mod h1:xsnpQgvF/msafxVhIDJQHRn81UHtNheeq2wnKu7N2Jk=
 github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260802155053-44fb8fc2a8d8 h1:K9n2J8bf0C/7n6PaiV0KfXiq8Q+EC4UHv7eNaT2zR30=
 github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260802155053-44fb8fc2a8d8/go.mod h1:xsnpQgvF/msafxVhIDJQHRn81UHtNheeq2wnKu7N2Jk=
+github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260802161517-e31a0a4618f0 h1:MN1M+PSuywLIo0hsS+9i6CA2bRBEtzENpGe2ZvLIudg=
+github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260802161517-e31a0a4618f0/go.mod h1:xsnpQgvF/msafxVhIDJQHRn81UHtNheeq2wnKu7N2Jk=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0 h1:IfflVEKfoLckinbpJl1AZhGOs2OisO6lt2UYXVUTsB4=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0/go.mod h1:PuyvXJMSamLDrCPGLo4Z0cVmao4ZzrfoEK9ho+X60C4=
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 h1:StpxUb5rmvjvpCjeMTe/CLy9bj9zH6sLS+d62/eLZXE=
