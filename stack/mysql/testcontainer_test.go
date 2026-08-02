@@ -198,6 +198,7 @@ func waitForMySQLReady(dsn string, timeout time.Duration) (*sql.DB, error) {
 		if err != nil {
 			lastErr = err
 			time.Sleep(500 * time.Millisecond)
+
 			continue
 		}
 
@@ -209,6 +210,7 @@ func waitForMySQLReady(dsn string, timeout time.Duration) (*sql.DB, error) {
 			_ = db.Close()
 			lastErr = err
 			time.Sleep(500 * time.Millisecond)
+
 			continue
 		}
 
