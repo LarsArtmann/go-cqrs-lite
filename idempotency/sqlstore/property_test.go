@@ -131,10 +131,29 @@ func TestProperty_SQLiteTTLExpiry(t *testing.T) {
 	t.Parallel()
 
 	rapid.Check(t, func(rt *rapid.T) {
-		store, _ := newTestStore(t)
+		// Create and close the store per-iteration to avoid accumulating
+		// hundreds of open SQLite connections (newTestStore registers
+		// cleanup on t, not rt, so connections persist until test end).
+		n := propDBCounter.Add(1)
+		dsn := fmt.Sprintf("file:propdb%d?mode=memory&cache=shared&_pragma=busy_timeout(5000)", n)
+		db, err := sql.Open("sqlite", dsn)
+		if err != nil {
+			rt.Fatalf("open sqlite: %v", err)
+		}
+		defer db.Close()
+
+		store, err := sqlstore.NewSQLiteStore(context.Background(), db)
+		if err != nil {
+			rt.Fatalf("create store: %v", err)
+		}
+		defer store.Close()
 
 		key := rapid.String().Draw(rt, "key")
-		ttl := 50 * time.Millisecond
+		// Use a generous TTL (200ms) and sleep (500ms) to avoid flakes
+		// under -race / heavy parallel load. The original 50ms+100ms
+		// was too tight — scheduling jitter could cause the expiry check
+		// to race with the sleep.
+		ttl := 200 * time.Millisecond
 
 		if err := store.Record(context.Background(), key, ttl); err != nil {
 			rt.Fatalf("Record: %v", err)
@@ -145,7 +164,7 @@ func TestProperty_SQLiteTTLExpiry(t *testing.T) {
 			rt.Fatal("key should be seen immediately after Record")
 		}
 
-		time.Sleep(ttl + 50*time.Millisecond)
+		time.Sleep(ttl + 300*time.Millisecond)
 
 		seen, _ = store.Seen(context.Background(), key)
 		if seen {

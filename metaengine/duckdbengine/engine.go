@@ -23,9 +23,11 @@ const DuckDBNsPerRead = 3000.0
 
 // duckdbEngine implements metaengine.Engine with DuckDB as the backend.
 type duckdbEngine struct {
-	db   *sql.DB
-	mu   sync.Mutex
-	took bool // closed flag
+	db        *sql.DB
+	mu        sync.Mutex
+	took      bool // closed flag
+	plans     map[string]metaengine.LayoutPlan
+	layoutMu  sync.Mutex
 }
 
 // New creates a DuckDB-backed metaengine Engine.
@@ -130,6 +132,10 @@ func (e *duckdbEngine) Close() error {
 // --- MapBackend ---
 
 func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value any) error {
+	if plan, ok := e.plans[col]; ok {
+		return e.mapSetPlanned(ctx, plan, key, value)
+	}
+
 	data, err := json.Marshal(value)
 	if err != nil {
 		return fmt.Errorf("duckdbengine.MapSet: marshal value: %w", err)
@@ -150,6 +156,10 @@ func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value an
 }
 
 func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
+	if plan, ok := e.plans[col]; ok {
+		return e.mapGetPlanned(ctx, plan, key)
+	}
+
 	var raw string
 
 	err := e.db.QueryRowContext(
@@ -174,6 +184,10 @@ func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 }
 
 func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error {
+	if plan, ok := e.plans[col]; ok {
+		return e.mapDeletePlanned(ctx, plan, key)
+	}
+
 	_, err := e.db.ExecContext(
 		ctx,
 		`DELETE FROM meta_map WHERE collection = $1 AND key = $2`,
@@ -256,4 +270,5 @@ var (
 	_ metaengine.CounterBackend = (*duckdbEngine)(nil)
 	_ metaengine.ScanBackend    = (*duckdbEngine)(nil)
 	_ metaengine.PushdownScan   = (*duckdbEngine)(nil)
+	_ metaengine.LayoutPlanner  = (*duckdbEngine)(nil)
 )

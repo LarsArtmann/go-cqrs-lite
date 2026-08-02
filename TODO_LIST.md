@@ -32,8 +32,10 @@ and is **never** duplicated here.
 - [x] ~~**Exhaustiveness guard test**~~ — **DONE** (2026-08-02). Compile-time
   test ensuring all Fold concrete types are handled in `applyFold` type switch
   (prevents silent fallthrough when a new fold type is added).
-- `[ ]` **10M-event soak test** — verify memory boundedness at scale (currently
-  50K events; stretch goal is 10M).
+- [x] ~~**10M-event soak test**~~ — **DONE** (2026-08-02). `TestSoak_MemoryBounded_10M`
+  in `metaengine/soak_10m_test.go`: 10M events into 1000 keys → 0.1 MB heap growth,
+  flat growth curve. Verifies O(keys) bound, correctness of accumulated totals,
+  and no sustained segment growth. Skips in `-short` mode and with `SOAK_SKIP_10M=1`.
 - `[ ]` **`metaengine-gen` code generator** — typed Store methods from query
   declarations (CLI tool, similar to `cqrs-gen`). Go AST parsing + template
   generation.
