@@ -284,8 +284,7 @@ VersionedStorage temporal queries, Fold sealed interface refactor, 5-engine
 cross-engine parity, Vector/Search/Spatial ADTs, pgengine + duckdbengine.
 API surface: 3194 exports.
 
-Remaining: Postgres GIN indexes, SSE consolidation ADR, Vector/
-Search/Spatial engine backends. See [TODO_LIST.md](TODO_LIST.md).
+Remaining: Postgres GIN indexes, Vector/Search/Spatial engine backends. See [TODO_LIST.md](TODO_LIST.md).
 
 ---
 

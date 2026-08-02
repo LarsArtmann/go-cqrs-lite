@@ -98,8 +98,7 @@ production maturity chain is complete:
   `ReificationFailures()` surfaces type mismatches between planned and stored
   types
 
-**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN indexes,
-SSE consolidation ADR.
+**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN indexes.
 
 **Remaining (long-term, ROADMAP):**
 

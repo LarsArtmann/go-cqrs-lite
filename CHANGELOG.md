@@ -576,6 +576,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **ADR-0088** — Block-level suppression
 - **ADR-0089** — Flight recorder
 - **ADR-0090** — Benchkit evidence-grade metrics
+- **ADR-0091** — SSE consolidation decision (keep `metaengine.ServeSSE` and
+  `transport/http.SSEBroker` separate — they serve different layers)
 
 #### Metaengine: DuckDB LayoutPlanner, dead code wiring, reification tracking
 
@@ -594,6 +596,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   engine stored shape. Non-zero values indicate an engine or planning bug.
 - **gocritic fix** — single-case type switch in `duckdbengine/layout_planner.go`
   rewritten to `if v, ok := value.(string)` idiom.
+- **10M memory soak test** — `TestSoak_MemoryBounded_10M` verifies O(keys) heap
+  bound: 10M events into 1000 keys → 0.1 MB heap growth, flat growth curve.
+  Skippable via `SOAK_SKIP_10M=1`.
 
 #### cqrs-lint: C037 expansion, D007 auto-fix, config presets
 
