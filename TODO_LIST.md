@@ -47,8 +47,12 @@ and is **never** duplicated here.
   time).
 - `[ ]` **Watcher typed channel** — `Watcher[V]` sends `any`, not typed `V`.
   SQLite engine type assertion can silently fail.
-- `[ ]` **DuckDB LayoutPlanner** — DuckDB engine has no layout planner (JSON
-  stored as VARCHAR; no expression indexes).
+- [x] ~~**DuckDB LayoutPlanner**~~ — **DONE** (2026-08-02). DuckDB engine now
+  implements `LayoutPlanner` via dedicated planned tables with extracted columns
+  and ART indexes (same pattern as SQLite). `ApplyLayout` creates a per-collection
+  table; `MapSet`/`MapGet`/`MapDelete`/`PushdownMapScan` dispatch to the planned
+  table with direct column references instead of `json_extract`, enabling
+  DuckDB's zone maps to prune data blocks. 8 tests in `layout_planner_cgo_test.go`.
 - `[ ]` **Postgres GIN containment indexes** — `@>` operator for JSONB path
   queries. Currently only expression indexes (B-tree on JSONB paths).
 - `[ ]` **DuckDB columnar-native storage** — DuckDB stores JSON as VARCHAR;

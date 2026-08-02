@@ -29,6 +29,9 @@ type FeatureProfile struct {
 	// Domain classifies the business domain, enabling severity calibration.
 	// Financial domains escalate security and money-handling rules to error.
 	Domain DomainKind
+	// HasAsyncBus is true when a distributed event bus (Watermill-backed)
+	// is wired. In-memory buses don't need dedup; distributed buses do.
+	HasAsyncBus bool
 }
 
 // StoreKind enumerates the persistence backends go-cqrs-lite supports.

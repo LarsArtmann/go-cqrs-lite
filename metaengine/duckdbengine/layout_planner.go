@@ -33,8 +33,13 @@ func (e *duckdbEngine) ApplyLayout(collection string, filterFields, sortFields [
 	if existing, exists := e.plans[collection]; exists {
 		newPlan := metaengine.BuildLayoutPlan(collection, filterFields, sortFields)
 		if !plansColumnCompatible(existing, newPlan) {
-			return fmt.Errorf("%w: collection %q already has columns %v, requested %v",
-				metaengine.ErrLayoutConflict, collection, existing.ColumnNames(), newPlan.ColumnNames())
+			return fmt.Errorf(
+				"%w: collection %q already has columns %v, requested %v",
+				metaengine.ErrLayoutConflict,
+				collection,
+				existing.ColumnNames(),
+				newPlan.ColumnNames(),
+			)
 		}
 
 		return nil
@@ -82,10 +87,16 @@ func (e *duckdbEngine) mapSetPlanned(
 	}
 
 	setCols := make([]string, 0, 1+len(plan.Columns))
-	setCols = append(setCols, fmt.Sprintf("%s = excluded.%s", quoteIdent("value"), quoteIdent("value")))
+	setCols = append(
+		setCols,
+		fmt.Sprintf("%s = excluded.%s", quoteIdent("value"), quoteIdent("value")),
+	)
 
 	for _, c := range plan.Columns {
-		setCols = append(setCols, fmt.Sprintf("%s = excluded.%s", quoteIdent(c.Name), quoteIdent(c.Name)))
+		setCols = append(
+			setCols,
+			fmt.Sprintf("%s = excluded.%s", quoteIdent(c.Name), quoteIdent(c.Name)),
+		)
 	}
 
 	query := fmt.Sprintf(
@@ -111,7 +122,8 @@ func (e *duckdbEngine) mapGetPlanned(
 ) (any, bool, error) {
 	var raw string
 
-	err := e.db.QueryRowContext(ctx,
+	err := e.db.QueryRowContext(
+		ctx,
 		fmt.Sprintf("SELECT value FROM %s WHERE key = $1", quoteIdent(plan.Table)),
 		fmt.Sprint(key),
 	).Scan(&raw)
@@ -136,7 +148,8 @@ func (e *duckdbEngine) mapDeletePlanned(
 	plan metaengine.LayoutPlan,
 	key any,
 ) error {
-	_, err := e.db.ExecContext(ctx,
+	_, err := e.db.ExecContext(
+		ctx,
 		fmt.Sprintf("DELETE FROM %s WHERE key = $1", quoteIdent(plan.Table)),
 		fmt.Sprint(key),
 	)

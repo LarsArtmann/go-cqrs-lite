@@ -23,18 +23,21 @@ func TestApplyFoldExhaustiveness(t *testing.T) {
 	type event struct{ ID string }
 
 	folds := []Fold{
-		On(event{}, func(e event) (string, int) { return e.ID, 1 }),           // insertFold
-		On(event{}, func(e event, prev int) int { return prev + 1 }),           // updateFold
-		On(event{}, Remove[int]()),                                             // removeFold
-		On(event{}, func(e event) Delta { return Delta{e.ID: 1} }),             // countFold
-		On(event{}, func(e event) Edge { return Edge{From: e.ID, To: "x"} }),   // edgeFold
-		On(event{}, func(e event) string { return e.ID }),                      // setFold (default in classifySingleReturn)
-		On(event{}, func(e event) Skip { return Skip{} }),                      // skipFold
-		On(event{}, func(e event) MultiEntry { return MultiEntry{Key: e.ID} }), // multiInsertFold
-		On(event{}, func(e event) Append { return Append{Value: e.ID} }),       // appendFold
-		On(event{}, func(e event) Embedding { return Embedding{ID: e.ID} }),    // vectorFold
-		On(event{}, func(e event) IndexedText { return IndexedText{ID: e.ID} }),// searchFold
-		On(event{}, func(e event) Point { return Point{ID: e.ID, X: 1, Y: 2} }),      // spatialFold
+		On(event{}, func(e event) (string, int) { return e.ID, 1 }),          // insertFold
+		On(event{}, func(e event, prev int) int { return prev + 1 }),         // updateFold
+		On(event{}, Remove[int]()),                                           // removeFold
+		On(event{}, func(e event) Delta { return Delta{e.ID: 1} }),           // countFold
+		On(event{}, func(e event) Edge { return Edge{From: e.ID, To: "x"} }), // edgeFold
+		On(
+			event{},
+			func(e event) string { return e.ID },
+		), // setFold (default in classifySingleReturn)
+		On(event{}, func(e event) Skip { return Skip{} }),                       // skipFold
+		On(event{}, func(e event) MultiEntry { return MultiEntry{Key: e.ID} }),  // multiInsertFold
+		On(event{}, func(e event) Append { return Append{Value: e.ID} }),        // appendFold
+		On(event{}, func(e event) Embedding { return Embedding{ID: e.ID} }),     // vectorFold
+		On(event{}, func(e event) IndexedText { return IndexedText{ID: e.ID} }), // searchFold
+		On(event{}, func(e event) Point { return Point{ID: e.ID, X: 1, Y: 2} }), // spatialFold
 	}
 
 	if len(folds) != len(AllFoldKinds()) {
@@ -89,8 +92,10 @@ func TestApplyFoldWrapsErrorWithApplyError(t *testing.T) {
 	type event struct{ ID string }
 
 	eng := NewMemoryEngine()
-	store, err := Plan([]Engine{eng},
-		Query[event, map[string]int]("test_exhaustiveness",
+	store, err := Plan(
+		[]Engine{eng},
+		Query[event, map[string]int](
+			"test_exhaustiveness",
 			On(event{}, func(e event) (string, int) { return e.ID, 1 }),
 		),
 	)

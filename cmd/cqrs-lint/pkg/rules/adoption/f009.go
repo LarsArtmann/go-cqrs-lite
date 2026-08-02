@@ -18,6 +18,13 @@ func NewF009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F009-no-scheduling-module",
 		func(_ context.Context) ([]finding.Finding, error) {
+			// Only relevant for server or command-dispatch projects — CLI
+			// tools with simple timers don't need durable scheduling.
+			if !ctx.FeatureProfile.HasServer &&
+				ctx.FeatureProfile.CommandFlow != analyzer.CommandFlowCommands {
+				return nil, nil
+			}
+
 			if importsPath(ctx, "go-cqrs-lite/scheduling") {
 				return nil, nil
 			}

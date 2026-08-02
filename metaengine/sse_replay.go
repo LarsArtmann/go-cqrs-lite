@@ -125,7 +125,7 @@ type replayShim[V any] struct {
 }
 
 func (s *replayShim[V]) recordValue(value any) uint64 {
-	v, ok := value.(V)
+	v, ok := reifyWatcherValue[V](value)
 	if !ok {
 		return 0
 	}

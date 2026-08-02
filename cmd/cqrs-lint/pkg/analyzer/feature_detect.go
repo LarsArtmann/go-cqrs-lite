@@ -66,6 +66,10 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 			if strings.Contains(path, "go-cqrs-lite/snapshot") {
 				hasSnapshotImport = true
 			}
+
+			if strings.Contains(path, "go-cqrs-lite/watermill") {
+				fp.HasAsyncBus = true
+			}
 		}
 	}
 

@@ -28,9 +28,9 @@ func NewD007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			hasNew := false
 
 			type newEventSite struct {
-				file   string
-				line   int
-				pos   finding.Position
+				file string
+				line int
+				pos  finding.Position
 			}
 			var sites []newEventSite
 

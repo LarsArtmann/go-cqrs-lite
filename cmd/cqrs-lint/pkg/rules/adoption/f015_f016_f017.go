@@ -18,6 +18,12 @@ func NewF015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F015-no-metaengine",
 		func(_ context.Context) ([]finding.Finding, error) {
+			// Only relevant for server projects — CLI tools with a few queries
+			// don't benefit from cost-based storage planning.
+			if !ctx.FeatureProfile.HasServer {
+				return nil, nil
+			}
+
 			if importsPath(ctx, "go-cqrs-lite/metaengine") {
 				return nil, nil
 			}
@@ -97,6 +103,12 @@ func NewF017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F017-no-dedup-module",
 		func(_ context.Context) ([]finding.Finding, error) {
+			// Only relevant for projects with a distributed/async event bus —
+			// in-memory buses don't have at-least-once delivery issues.
+			if !ctx.FeatureProfile.HasAsyncBus {
+				return nil, nil
+			}
+
 			if importsPath(ctx, "go-cqrs-lite/dedup") {
 				return nil, nil
 			}

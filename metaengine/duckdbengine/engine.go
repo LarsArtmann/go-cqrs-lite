@@ -23,11 +23,11 @@ const DuckDBNsPerRead = 3000.0
 
 // duckdbEngine implements metaengine.Engine with DuckDB as the backend.
 type duckdbEngine struct {
-	db        *sql.DB
-	mu        sync.Mutex
-	took      bool // closed flag
-	plans     map[string]metaengine.LayoutPlan
-	layoutMu  sync.Mutex
+	db       *sql.DB
+	mu       sync.Mutex
+	took     bool // closed flag
+	plans    map[string]metaengine.LayoutPlan
+	layoutMu sync.Mutex
 }
 
 // New creates a DuckDB-backed metaengine Engine.

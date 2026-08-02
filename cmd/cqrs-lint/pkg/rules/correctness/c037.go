@@ -38,7 +38,7 @@ func NewC037Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var (
 				repoCodec string
-				sites    []codecSite
+				sites     []codecSite
 			)
 
 			for _, gf := range ctx.GoFiles {

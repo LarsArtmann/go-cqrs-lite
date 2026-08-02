@@ -148,18 +148,47 @@ func (w *Watcher[V]) WatchWithSeq(ctx context.Context, key any) <-chan SeqValue[
 	return ch
 }
 
+// reifyWatcherValue converts a notification channel value to type V.
+// It handles three cases:
+//
+//  1. Fast path: the value is already V (MemoryEngine, fold-produced structs).
+//  2. Nil: the value is nil (delete/remove operations) — returns the zero
+//     value of V so consumers receive deletion notifications instead of
+//     having them silently dropped.
+//  3. Reify fallback: the value is map[string]any or another engine-specific
+//     type (SQLite JSON decode) — JSON round-trips to V via reify[V].
+//
+// Returns (zero, false) only when the value is non-nil and reify fails
+// (genuinely incompatible types — should not happen in normal operation).
+func reifyWatcherValue[V any](val any) (V, bool) {
+	var zero V
+
+	if val == nil {
+		return zero, true
+	}
+
+	// Fast path: already the right type (common case — fold returns typed V).
+	if v, ok := val.(V); ok {
+		return v, true
+	}
+
+	// Fallback: reify via JSON round-trip (handles map[string]any from SQLite).
+	r, err := reify[V](val)
+	if err != nil {
+		return zero, false
+	}
+
+	return r, true
+}
+
 // unwrapWatcherValue extracts V from a notification (raw value or
 // watcherNotification wrapper). Returns (zeroV, false) on type mismatch.
 func unwrapWatcherValue[V any](val any) (V, bool) {
 	if notif, ok := val.(watcherNotification); ok {
-		v, ok := notif.value.(V)
-
-		return v, ok
+		return reifyWatcherValue[V](notif.value)
 	}
 
-	v, ok := val.(V)
-
-	return v, ok
+	return reifyWatcherValue[V](val)
 }
 
 // unwrapWatcherSeqValue extracts SeqValue[V] from a notification (raw value
@@ -169,7 +198,7 @@ func unwrapWatcherSeqValue[V any](val any) (SeqValue[V], bool) {
 	var zero SeqValue[V]
 
 	if notif, ok := val.(watcherNotification); ok {
-		v, ok := notif.value.(V)
+		v, ok := reifyWatcherValue[V](notif.value)
 		if !ok {
 			return zero, false
 		}
@@ -177,7 +206,7 @@ func unwrapWatcherSeqValue[V any](val any) (SeqValue[V], bool) {
 		return SeqValue[V]{Seq: notif.seq, Value: v}, true
 	}
 
-	v, ok := val.(V)
+	v, ok := reifyWatcherValue[V](val)
 	if !ok {
 		return zero, false
 	}

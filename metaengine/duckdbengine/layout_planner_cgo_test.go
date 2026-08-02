@@ -111,7 +111,12 @@ func TestDuckDBEngine_LayoutMapSetGet(t *testing.T) {
 		Price    float64
 	}
 
-	if err := mb.MapSet(ctx, "maptest", "apple", Item{Name: "apple", Category: "fruit", Price: 1.50}); err != nil {
+	if err := mb.MapSet(
+		ctx,
+		"maptest",
+		"apple",
+		Item{Name: "apple", Category: "fruit", Price: 1.50},
+	); err != nil {
 		t.Fatal(err)
 	}
 
