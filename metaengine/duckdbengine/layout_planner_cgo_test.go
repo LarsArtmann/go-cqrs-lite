@@ -5,7 +5,6 @@ package duckdbengine_test
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"reflect"
 	"testing"
 
