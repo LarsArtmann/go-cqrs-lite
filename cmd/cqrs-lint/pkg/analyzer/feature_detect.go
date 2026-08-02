@@ -133,6 +133,26 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 				}
 			}
 
+			// Store-backend refinement: when the feature profile classified the
+			// store as "custom" (no stack bundle), inspect constructor calls to
+			// determine the ACTUAL backend. storage.NewSQLiteEventStore,
+			// storage.NewSQLiteSnapshotStore, etc. are library-provided SQLite
+			// stores — recognizing them prevents C036 cascades and produces an
+			// accurate `doctor` profile.
+			if fp.Store == StoreCustom {
+				pkgName := SelectorPackage(sel)
+				if pkgName == "storage" {
+					switch {
+					case strings.Contains(method, "SQLite"):
+						fp.Store = StoreSQLite
+					case strings.Contains(method, "Postgres"):
+						fp.Store = StorePostgres
+					case strings.Contains(method, "Pebble"):
+						fp.Store = StorePebble
+					}
+				}
+			}
+
 			return true
 		})
 	}

@@ -150,6 +150,21 @@ func NewB013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						hasCausality = true
 					}
 
+					// WithEnricher(event.CommandCausalityEnricher) is the
+					// canonical way to wire command causality into a repository.
+					// B013 must recognize it, otherwise the consumer is stuck:
+					// B013 fires without the enricher, and B022 fires (on stale
+					// binaries) when they add it. Recognizing the enricher here
+					// breaks the contradiction.
+					if sel.Sel.Name == "WithEnricher" {
+						for _, enricherArg := range call.Args {
+							argSel, ok := analyzer.SelectorFromExpr(enricherArg)
+							if ok && argSel.Sel.Name == "CommandCausalityEnricher" {
+								hasCausality = true
+							}
+						}
+					}
+
 					if sel.Sel.Name == "NewRepository" {
 						hasRepository = true
 						p := ctx.Fset.Position(call.Pos())

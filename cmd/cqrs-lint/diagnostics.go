@@ -59,6 +59,53 @@ func loadRawRulesJSON() []byte {
 	return nil
 }
 
+// loadParentRulesConfig walks up the directory tree from lintPath looking for
+// .cqrs-lint.json files. Parent config is merged into the local config:
+//   - rules.disable: union (both parent and local disables apply)
+//   - rules.external-api-struct-prefixes: union (both sets apply)
+//
+// This implements config inheritance (L1.18) for monorepo support: a root
+// .cqrs-lint.json can disable rules globally, and submodules add their own
+// overrides on top.
+//
+// The immediate parent's config is NOT loaded (cmdguard already loaded it).
+// Only ancestors beyond the current directory are consulted.
+func loadParentRulesConfig(lintPath string) analyzer.RulesConfig {
+	absPath, err := filepath.Abs(lintPath)
+	if err != nil {
+		return analyzer.RulesConfig{}
+	}
+
+	var merged analyzer.RulesConfig
+
+	dir := filepath.Dir(absPath)
+	for {
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break // reached filesystem root
+		}
+
+		configPath := filepath.Join(parent, ".cqrs-lint.json")
+		data, err := os.ReadFile(configPath)
+		if err == nil {
+			var top struct {
+				Rules analyzer.RulesConfig `json:"rules"`
+			}
+			if json.Unmarshal(data, &top) == nil {
+				merged.Disable = append(merged.Disable, top.Rules.Disable...)
+				merged.ExternalAPIStructPrefixes = append(
+					merged.ExternalAPIStructPrefixes,
+					top.Rules.ExternalAPIStructPrefixes...,
+				)
+			}
+		}
+
+		dir = parent
+	}
+
+	return merged
+}
+
 func printDetectorTimings(w io.Writer, snap pipeline.MetricsSnapshot) {
 	if len(snap.DetectorTimes) == 0 {
 		return

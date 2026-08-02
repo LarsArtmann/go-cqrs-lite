@@ -91,6 +91,15 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 
 	rawRules := loadRawRulesJSON()
 	cfg.Rules.Validate(os.Stderr, rawRules)
+
+	// Merge parent .cqrs-lint.json configs (config inheritance / monorepo support).
+	parentRules := loadParentRulesConfig(cfg.Path)
+	cfg.Rules.Disable = append(cfg.Rules.Disable, parentRules.Disable...)
+	cfg.Rules.ExternalAPIStructPrefixes = append(
+		cfg.Rules.ExternalAPIStructPrefixes,
+		parentRules.ExternalAPIStructPrefixes...,
+	)
+
 	actx.RulesConfig = cfg.Rules
 }
 
