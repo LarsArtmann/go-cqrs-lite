@@ -1,7 +1,7 @@
 # Metaengine: Eventual Consistency Model and Iroh Integration
 
-> **Status:** Design exploration — not yet implemented.
-> **Date:** 2026-08-02
+> **Status:** Design exploration — EngineProfile fields implemented (commit pending), Iroh integration not yet started.
+> **Date:** 2026-08-02 (updated 2026-08-03: replaced Visibility model with DDIA-canonical Replication + NetworkRTT + ReplicationLag)
 > **Related:** [meta-engine-design.md](meta-engine-design.md), [meta-engine-assumptions-and-query-planning.md](meta-engine-assumptions-and-query-planning.md), [ADR-0084](../adr/0084-metaengine-layered-architecture.md)
 
 ---
@@ -9,9 +9,9 @@
 ## TL;DR
 
 1. CQRS read models are **already eventually consistent** — the projection host has measurable lag (`LagDuration()`, `LagPerProjection()`). The only strong operation is the event store's optimistic-concurrency append.
-2. Modeling "everything is eventual" lets the planner **drop consistency as a dimension** and replace it with **visibility** (local vs global) — a more honest and useful axis.
-3. This reframing is the natural entry point for **[Iroh](https://github.com/n0-computer/iroh)** integration — Iroh's `iroh-docs` CRDT key-value store becomes a `VisibilityGlobal` engine whose monotonic fold operations converge without coordination.
-4. The change is **backward compatible**: all existing engines default to `VisibilityLocal`, all existing queries default to local visibility, no existing behavior changes.
+2. Modeling "everything is eventual" lets the planner **drop consistency as a dimension** and replace it with three DDIA-canonical engine properties: **Replication** (Ch5: how data propagates), **ReplicationLag** (Ch5: how stale), and **NetworkRTT** (Ch1: how far away). These are **engine properties only** — queries declare what to compute, not where data lives.
+3. This reframing is the natural entry point for **[Iroh](https://github.com/n0-computer/iroh)** integration — Iroh's `iroh-docs` CRDT key-value store becomes a `ReplicationLeaderless` engine whose monotonic fold operations converge without coordination.
+4. The change is **backward compatible**: all existing engines default to `ReplicationNone` (zero value), zero lag, zero RTT. No existing behavior changes.
 
 ---
 
@@ -39,102 +39,76 @@ The single strongly-consistent operation in the entire CQRS architecture is the 
 
 The planner should not model consistency as a binary dimension (`strong | eventual`). It should model what actually differs between engines:
 
-- **Visibility scope** — does this engine see writes from other nodes?
-- **Typical lag** — how stale are reads, typically?
+- **Replication** — does this engine replicate data across nodes? (DDIA Ch5)
+- **Replication lag** — how stale might reads be? (DDIA Ch5)
+- **Network RTT** — how far away is the data? (DDIA Ch1)
 
 ---
 
-## Part 2: The Visibility Model
+## Part 2: The Replication Model
 
-### Replacing consistency with visibility
+### Replacing consistency with three DDIA-canonical properties
 
-| Dimension | Old model (proposed then rejected) | Visibility model |
-|---|---|---|
-| Consistency | Binary: strong vs eventual — planner gates on it | **Eliminated** — all engines are eventual |
-| Visibility | Not modeled | **New** — local vs global: does this engine see writes from other nodes? |
-| Lag | Not modeled (assumed zero for "strong" engines) | **Engine property** — typical delay between write and read visibility |
-| Cost | Latency-based | Unchanged — latency-based |
+The initial design proposed a `Visibility` dimension (`VisibilityLocal` / `VisibilityGlobal`). Through analysis, this was proven wrong — "visibility" conflates three orthogonal concerns into one name. The correct model uses three separate properties, each grounded in DDIA:
+
+| Property | DDIA concept | What it captures | Type | Scales with volume? | Planner use |
+|---|---|---|---|---|---|
+| `Replication` | Ch5: Replication modes | How data propagates across nodes | Enum | N/A | Diagnostics / future routing |
+| `ReplicationLag` | Ch5: Replication lag | How stale local data may be | `time.Duration` | No | Diagnostics / freshness |
+| `NetworkRTT` | Ch1: RTT | How far a read must travel | `time.Duration` | **No (additive fixed)** | Cost estimation |
+
+**Key principle:** Replication is an **engine property only**. Queries declare *what* to compute (folds, ADTs, read patterns). Engines declare *how* data is stored (layout, cost, replication). The query API (`QueryConfig`) has **zero** new fields.
 
 ### EngineProfile changes
 
 ```go
-type VisibilityModel string
+type Replication string
 
 const (
-    VisibilityLocal  VisibilityModel = "local"  // Memory, SQLite, Pebble, DuckDB
-    VisibilityGlobal VisibilityModel = "global"  // Iroh (iroh-docs), future distributed engines
+    ReplicationNone         Replication = ""               // zero value = single-node
+    ReplicationSingleLeader Replication = "single-leader"  // Postgres streaming
+    ReplicationMultiLeader  Replication = "multi-leader"   // CockroachDB, Spanner
+    ReplicationLeaderless   Replication = "leaderless"     // Iroh CRDT, Dynamo
 )
 
 type EngineProfile struct {
     // ...existing fields (Name, Supports, Layouts, NsPerOp, NsPerRead, NsPerWrite)...
 
-    // Visibility declares whether this engine sees writes from other processes.
-    // Local:  this engine only sees writes from this process.
-    // Global: this engine sees writes from all processes (eventually, via CRDT).
-    Visibility VisibilityModel
+    // Replication declares how this engine's data propagates across processes (DDIA Ch5).
+    // ReplicationNone (zero value) means single-node. All current engines are ReplicationNone.
+    Replication Replication
 
-    // TypicalLag: expected delay between a write and it being readable.
-    // Local engines: ~projection processing time (microseconds to ms).
-    // Global engines: ~CRDT sync time (ms to seconds).
-    // Used for cost estimation, NOT for gating.
-    TypicalLag time.Duration
+    // ReplicationLag is expected delay between a write on one node and it being
+    // visible on another (DDIA Ch5). Zero for local/primary engines.
+    ReplicationLag time.Duration
+
+    // NetworkRTT is the round-trip time to reach this engine's data (DDIA Ch1).
+    // Zero for in-process engines. Additive in cost estimation — does NOT scale with volume.
+    NetworkRTT time.Duration
 }
 ```
 
 ### Planner routing
 
-The planner gains one new filter and one cost adjustment. No consistency gate.
+The planner routes by cost, naturally preferring local engines. `NetworkRTT` is an additive fixed cost — it doesn't multiply with query volume:
 
-**Visibility filter:**
-
-```go
-func visibilityRule(meta queryMeta, engines []Engine) []Engine {
-    if meta.visibility == VisibilityGlobal {
-        // Query needs cross-node data — only global engines qualify
-        var eligible []Engine
-        for _, eng := range engines {
-            if eng.Profile().Visibility == VisibilityGlobal {
-                eligible = append(eligible, eng)
-            }
-        }
-        return eligible
-    }
-    // Local queries: all engines eligible (local engines are cheaper)
-    return engines
-}
+```
+total_latency = (ops × nsPerRead / 1e6) + NetworkRTT
 ```
 
-**Cost estimator (lag added to latency):**
+A remote engine with 50ms RTT loses to a local engine with ~0ms RTT on every query, because RTT is constant regardless of whether the query touches 1 row or 10,000. This is why RTT must be separate from `NsPerRead` — if RTT were baked into the per-op cost, scan estimates would be wildly inflated (10,000 × 50ms = 500s instead of 30ms + 50ms).
+
+`ReplicationLag` is NOT part of latency estimation. Staleness is a freshness property, not a performance cost. It surfaces in diagnostics when non-zero.
+
+### Query declaration (unchanged)
 
 ```go
-func estimateCost(complexity Complexity, volume int64, nsPerOp float64, lag time.Duration) CostEstimate {
-    ops := opsForComplexity(complexity, volume)
-    latencyMs := float64(ops)*nsPerOp/1e6 + float64(lag.Milliseconds())
-    return CostEstimate{
-        Complexity:          complexity,
-        Volume:              volume,
-        EstimatedOps:        ops,
-        EstimatedLatencyMs:  latencyMs,
-    }
-}
-```
-
-A global engine with 5s lag loses to a local engine with ~0ms lag on every single-node query. The planner naturally prefers local. Only queries that explicitly opt into global visibility become candidates for global engine routing.
-
-### Query declaration
-
-```go
-// Default: local visibility (backward compatible — all current behavior)
+// Queries declare WHAT to compute, not WHERE data lives.
+// No replication/visibility options on queries — that's an engine concern.
 metaengine.Query[Input, Result]("orders", folds...)
-
-// Explicit: needs cross-node data (distributed counter, multi-device read model)
-metaengine.Query[Input, Result]("order_counts",
-    metaengine.On(OrderCreated{}, func(e OrderCreated) metaengine.Delta { ... }),
-    metaengine.WithVisibility(metaengine.VisibilityGlobal),
-)
 ```
 
-Default is `VisibilityLocal`. Every existing query keeps working unchanged.
+If a consumer needs freshness guarantees, they check at read time — same pattern as `host.LagDuration()` today.
 
 ---
 
@@ -242,8 +216,9 @@ EngineProfile{
     Name:       "iroh",
     NsPerRead:  50_000,   // pessimistic: remote RTT (~50ms)
     NsPerWrite: 5_000,    // local write + sync overhead
-    Visibility: VisibilityGlobal,
-    TypicalLag: 5 * time.Second,
+    Replication:    ReplicationLeaderless,
+    ReplicationLag: 5 * time.Second,
+    NetworkRTT:     50 * time.Millisecond,   // P2P relay RTT
     Supports: map[ADT]Complexity{
         ADTMap:      ComplexityO1,
         ADTSet:      ComplexityO1,
@@ -358,32 +333,32 @@ Same cost comparison, one more row. No new dimension.
 
 ## Part 8: Implementation Scope
 
-### Changes required for the visibility model (without Iroh)
+### Changes for the replication model (DONE — without Iroh)
 
-| Component | Change | Effort |
+| Component | Change | Status |
 |---|---|---|
-| `EngineProfile` | Add `Visibility` + `TypicalLag` fields | Small |
-| All existing engines | Set `Visibility: VisibilityLocal`, `TypicalLag: ~1ms` | Trivial (4 profile constructors) |
-| `Query` declaration | Add `WithVisibility()` option, default `VisibilityLocal` | Small |
-| Planner | Add `visibilityRule` to the rule pipeline | Small |
-| Cost estimator | Add `lag` to latency calculation | Trivial |
-| `adttest.RunMatrix` | Unchanged | None |
-| Existing queries/tests | Unchanged — default visibility is local | None |
+| `EngineProfile` | Add `Replication` + `ReplicationLag` + `NetworkRTT` fields | Done |
+| All existing engines | Zero-value defaults (`ReplicationNone`, lag=0, RTT=0) — no code changes | Done |
+| `QueryConfig` | **No changes** — replication is engine-only | N/A |
+| Cost estimator | `NetworkRTT` added as additive latency | Done |
+| Planner | Pass `profile.NetworkRTT` to cost estimator | Done |
+| Tests | 6 tests pinning the model (zero-value defaults, RTT additive, no volume scaling) | Done |
+| `adttest.RunMatrix` | Unchanged | N/A |
 
-**Fully backward compatible.** No existing behavior changes. The visibility dimension is opt-in.
+**Fully backward compatible.** No existing behavior changes. All new fields default to zero.
 
-### Changes required for Iroh integration (on top of visibility model)
+### Changes required for Iroh integration (future work)
 
 | Component | Change | Effort |
 |---|---|---|
 | `metaengine/irohengine/` (new module) | CGo FFI over Iroh C bindings, implement MapBackend + SetBackend + CounterBackend + MultimapBackend + LogBackend | High |
 | `adttest.RunMatrix` | Add irohengine factory — passes 5 supported ADT scenarios | Small |
-| Iroh EngineProfile | `Visibility: VisibilityGlobal`, `TypicalLag: 5s` | Trivial |
+| Iroh EngineProfile | `Replication: ReplicationLeaderless`, `ReplicationLag: 5s`, `NetworkRTT: ~50ms` | Trivial |
 | Level 2 replication wrapper | `iroh.Replicated(engine, ...)` — intercepts writes, syncs via iroh-docs | High |
 
 ### Recommendation
 
-**Ship the visibility model first** (Part 2), without Iroh. It is a small, backward-compatible improvement that makes the planner more honest and prepares the architecture for any future distributed engine. Then prototype Level 2 (replication wrapper) as a proof-of-concept.
+**Replication model is shipped.** Next step: prototype Level 2 (replication wrapper) as a proof-of-concept.
 
 The hybrid approach is likely the sweet spot: `iroh.Replicated(pebbleEngine)` for Map/Set/Multimap/Log (local engine performance + CRDT convergence), but `irohengine` directly for Counter (where the PN-Counter semantic IS the implementation).
 

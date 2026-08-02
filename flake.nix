@@ -252,8 +252,13 @@
           mkNixOSVM =
             module:
             (import (pkgs.path + "/nixos/lib/eval-config.nix") {
-              system = pkgs.system;
-              modules = [ module ];
+              system = null; # set via nixpkgs.hostPlatform module instead
+              modules = [
+                {
+                  nixpkgs.hostPlatform = pkgs.stdenv.hostPlatform.system;
+                }
+                module
+              ];
             }).config.system.build.vm;
 
           pgVM = mkNixOSVM ./nix/vm/postgres.nix;

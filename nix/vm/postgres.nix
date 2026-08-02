@@ -32,18 +32,12 @@
   documentation.enable = false;
   services.xserver.enable = false;
 
+  # Port forwarding is set via QEMU_NET_OPTS in scripts/vm-pg.sh, not here.
+  # The qemu-vm module (loaded by system.build.vm) provides:
+  #   virtualisation.memorySize, virtualisation.diskSize
   virtualisation = {
     memorySize = 1024;
     diskSize = 4096;
-    # Forward port 5432 to the host via QEMU user-mode networking.
-    # Scripts override via QEMU_NET_OPTS; this is the default.
-    forwardPorts = [
-      {
-        from = "host";
-        guest.port = 5432;
-        host.port = 55432;
-      }
-    ];
   };
 
   system.stateVersion = "25.05";
