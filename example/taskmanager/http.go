@@ -16,6 +16,12 @@ import (
 	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
 )
 
+const (
+	jsonKeyStatus      = "status"
+	jsonKeyUpdated     = "updated"
+	maxPathSegments    = 2
+)
+
 // routes builds the HTTP mux with all task management endpoints.
 func (s *Server) routes() *http.ServeMux {
 	mux := http.NewServeMux()
@@ -37,7 +43,7 @@ func (s *Server) routes() *http.ServeMux {
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	writeJSON(w, http.StatusOK, map[string]string{jsonKeyStatus: "ok"})
 }
 
 func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +107,7 @@ func (s *Server) handleListTasks(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/api/tasks/")
-	parts := strings.SplitN(path, "/", 2)
+	parts := strings.SplitN(path, "/", maxPathSegments)
 	taskIDStr := parts[0]
 
 	taskID, err := id.ParseStreamID(taskIDStr)
@@ -258,7 +264,7 @@ func (s *Server) handlePatchTask(w http.ResponseWriter, r *http.Request, taskID 
 	}
 
 	if body.DueDate != "" {
-		dd, err := time.Parse(time.RFC3339, body.DueDate)
+		dueDate, err := time.Parse(time.RFC3339, body.DueDate)
 		if err != nil {
 			writeError(w, http.StatusBadRequest, "invalid dueDate (use RFC3339)")
 
@@ -266,7 +272,7 @@ func (s *Server) handlePatchTask(w http.ResponseWriter, r *http.Request, taskID 
 		}
 
 		if err := s.CmdDisp.Dispatch(r.Context(), SetDueDateCmd{
-			BasicCommand: gomust.Must(command.New(cmdSetDueDate, taskID)), DueDate: &dd,
+			BasicCommand: gomust.Must(command.New(cmdSetDueDate, taskID)), DueDate: &dueDate,
 		}); err != nil {
 			writeCQRSError(w, err)
 
@@ -274,7 +280,7 @@ func (s *Server) handlePatchTask(w http.ResponseWriter, r *http.Request, taskID 
 		}
 	}
 
-	writeJSON(w, http.StatusOK, map[string]string{"status": "updated"})
+	writeJSON(w, http.StatusOK, map[string]string{jsonKeyStatus: jsonKeyUpdated})
 }
 
 func (s *Server) dispatchSimple(
@@ -289,7 +295,7 @@ func (s *Server) dispatchSimple(
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	writeJSON(w, http.StatusOK, map[string]string{jsonKeyStatus: "ok"})
 }
 
 // ── Error mapping ──────────────────────────────────────────────────────────
@@ -319,27 +325,4 @@ func decodeJSON(r *http.Request, dst any) error {
 	defer func() { _ = r.Body.Close() }()
 
 	return json.UnmarshalDecode(dec, dst, json.RejectUnknownMembers(true))
-}
-
-// contextKey is an unexported type for context keys in this package.
-type contextKey string
-
-const ctxKeyRequestID contextKey = "requestID"
-
-// loggingMiddleware adds structured logging to every request.
-func loggingMiddleware(logger interface{ Info(string, ...any) }, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-
-		next.ServeHTTP(w, r)
-		logger.Info(
-			"request",
-			"method",
-			r.Method,
-			"path",
-			r.URL.Path,
-			"duration",
-			time.Since(start),
-		)
-	})
 }

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -48,9 +50,15 @@ type listTasksInput struct {
 	Status string `json:"status,omitempty"`
 }
 
+var errNoFoldForEventType = errors.New("metaengine: no fold for event type")
+
+const estimatedTaskVolume = 10_000
+
 // onTyped wraps metaengine.OnTyped and binds the fold to the CQRS event type
 // string (e.g. "task.created") rather than the Go struct name. This is
 // necessary because the event store uses semantic type strings.
+//
+//nolint:ireturn // factory returning metaengine.Fold interface for query declaration
 func onTyped[E any](eventType string, sample E, handler any) metaengine.Fold {
 	return metaengine.OnTyped[E](eventType, sample, handler)
 }
@@ -138,10 +146,7 @@ func taskEventDecoder(evt event.Event) (any, error) {
 
 	default:
 		//cqrs-lint:ignore(C025) library code or intentional pattern
-		return nil, fmt.Errorf(
-			"metaengine: no fold for event type %q",
-			evt.Type(),
-		) //cqrs-lint:ignore(D006) example code, not production error path
+		return nil, fmt.Errorf("%w: %q", errNoFoldForEventType, evt.Type())
 	}
 }
 
@@ -173,7 +178,7 @@ func setupMetaEngine(
 		"PRAGMA journal_mode=WAL",
 		"PRAGMA busy_timeout=5000",
 	} {
-		if _, err := meDB.Exec(pragma); err != nil {
+		if _, err := meDB.ExecContext(context.Background(), pragma); err != nil {
 			_ = meDB.Close()
 
 			return nil, nil, nil, fmt.Errorf("metaengine: %s: %w", pragma, err)
@@ -192,24 +197,24 @@ func setupMetaEngine(
 		// Counter ADT for O(1) status aggregate reads. Kept alongside the Map
 		// query because O(1) counter reads are cheaper than O(N) scan+count
 		// from task_views — the right pattern for dashboard/stats endpoints.
-		onTyped(string(evtTaskCreated), eventWithID[TaskCreatedPayload]{},
+			onTyped(string(evtTaskCreated), eventWithID[TaskCreatedPayload]{},
 			func(_ eventWithID[TaskCreatedPayload]) metaengine.Delta {
-				return metaengine.Delta{"pending": 1}
+				return metaengine.Delta{string(StatusPending): 1}
 			}),
 		onTyped(string(evtTaskStarted), eventWithID[TaskStartedPayload]{},
 			func(_ eventWithID[TaskStartedPayload]) metaengine.Delta {
-				return metaengine.Delta{"active": 1, "pending": -1}
+				return metaengine.Delta{string(StatusActive): 1, string(StatusPending): -1}
 			}),
-		onTyped(string(evtTaskCompleted), eventWithID[TaskCompletedPayload]{},
+			onTyped(string(evtTaskCompleted), eventWithID[TaskCompletedPayload]{},
 			func(_ eventWithID[TaskCompletedPayload]) metaengine.Delta {
-				return metaengine.Delta{"completed": 1, "active": -1}
+				return metaengine.Delta{string(StatusCompleted): 1, string(StatusActive): -1}
 			}),
-		onTyped(string(evtTaskArchived), eventWithID[TaskArchivedPayload]{},
+			onTyped(string(evtTaskArchived), eventWithID[TaskArchivedPayload]{},
 			func(_ eventWithID[TaskArchivedPayload]) metaengine.Delta {
-				return metaengine.Delta{"archived": 1, "completed": -1}
+				return metaengine.Delta{string(StatusArchived): 1, string(StatusCompleted): -1}
 			}),
 		// Volume hint: helps the planner estimate cost.
-		metaengine.Volume(10_000),
+		metaengine.Volume(estimatedTaskVolume),
 	)
 
 	taskViews := metaengine.Query[listTasksInput, TaskView](
@@ -290,7 +295,7 @@ func setupMetaEngine(
 			metaengine.Remove[TaskView]()),
 		metaengine.FilterOnField[TaskView]("status", metaengine.FilterEq),
 		metaengine.SortOnField[TaskView]("priority", true), // default DESC
-		metaengine.Volume(10_000),
+		metaengine.Volume(estimatedTaskVolume),
 	)
 
 	store, err := metaengine.Plan(
@@ -349,15 +354,19 @@ func (s *Server) handleGetTaskStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Ensure all statuses are present even if zero (no events for that status yet).
+	pending := string(StatusPending)
+	active := string(StatusActive)
+	completed := string(StatusCompleted)
+	archived := string(StatusArchived)
 	result := map[string]int64{
-		"pending":   counts["pending"],
-		"active":    counts["active"],
-		"completed": counts["completed"],
-		"archived":  counts["archived"],
+		pending:   counts[pending],
+		active:    counts[active],
+		completed: counts[completed],
+		archived:  counts[archived],
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"counts": result,
-		"total":  result["pending"] + result["active"] + result["completed"] + result["archived"],
+		"total":  result[pending] + result[active] + result[completed] + result[archived],
 	})
 }

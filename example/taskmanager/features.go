@@ -26,6 +26,11 @@ import (
 // these concerns — they're applied at the composition boundary.
 // ──────────────────────────────────────────────────────────────────────────
 
+const (
+	idempotencyTTL = 10 * time.Minute
+	hmacKeyBytes   = 32
+)
+
 // setupFeatures wires production-grade middleware and event security.
 func setupFeatures(s *Server) error {
 	// ── Idempotency: deduplicate commands by ID ─────────────────────
@@ -59,7 +64,7 @@ func setupFeatures(s *Server) error {
 		middleware.CommandRecovery(),
 		middleware.CommandLogging(s.Logger),
 		middleware.CommandRetry(middleware.DefaultRetryConfig()),
-		middleware.CommandIdempotency(s.idemStore, 10*time.Minute, nil),
+		middleware.CommandIdempotency(s.idemStore, idempotencyTTL, nil),
 	)
 	s.CmdDisp.Use(otelBundle.Command()...)
 
@@ -87,8 +92,10 @@ func setupFeatures(s *Server) error {
 
 // newDemoSigner creates an HMAC-SHA256 signer-verifier with a random key.
 // In production, load the key from a secret manager (vault, KMS, etc.).
+//
+//nolint:ireturn // factory returning interface for signing abstraction
 func newDemoSigner() signing.SignerVerifier {
-	key := make([]byte, 32)
+	key := make([]byte, hmacKeyBytes)
 	if _, err := rand.Read(key); err != nil {
 		//cqrs-lint:ignore(C009) library code or intentional pattern
 		panic("failed to generate signing key: " + err.Error())

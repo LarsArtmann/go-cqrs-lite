@@ -28,6 +28,15 @@ import (
 	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
 )
 
+const (
+	snapshotInterval     = 10
+	projectionBatchSize  = 100
+	deadLetterMaxRetries = 3
+	httpReadHeaderSecs   = 5
+	shutdownTimeoutSecs  = 30
+	projectionSettleMs   = 100
+)
+
 // Server is the composition root — all wired components live here.
 type Server struct {
 	Bundle       *stack.Bundle
@@ -101,7 +110,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	// ── Repository with snapshot strategy (every 10 events) ──────────
 	// Snapshots accelerate aggregate loading by folding from the last
 	// snapshot instead of the full event history.
-	snapStrategy, err := snapshot.EveryNEvents(10)
+	snapStrategy, err := snapshot.EveryNEvents(snapshotInterval)
 	if err != nil {
 		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = bundle.Close()
@@ -142,8 +151,8 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	projHost, err := projectionhost.New(
 		bundle.SeekableJournal,
 		bundle.CheckpointStore,
-		projectionhost.WithBatchSize(100),
-		projectionhost.WithDeadLetterStore(dlq, 3),
+		projectionhost.WithBatchSize(projectionBatchSize),
+		projectionhost.WithDeadLetterStore(dlq, deadLetterMaxRetries),
 		projectionhost.WithMaxRestarts(-1),
 		projectionhost.WithLogger(logger),
 		projectionhost.WithSubscriber(bundle.Subscriber),
@@ -215,22 +224,20 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 
 // Start launches the ProjectionHost (replay + live tailing with DLQ).
 // Call StartHTTP separately for the HTTP API (not needed in tests).
-func (s *Server) Start(ctx context.Context) error {
+func (s *Server) Start(ctx context.Context) {
 	go func() {
 		if err := s.ProjHost.Start(ctx); err != nil {
 			s.Logger.Error("projection host", "error", err)
 		}
 	}()
-
-	return nil
 }
 
 // StartHTTP launches the HTTP API server. Call after Start.
-func (s *Server) StartHTTP(addr string) error {
+func (s *Server) StartHTTP(addr string) {
 	s.httpServer = &http.Server{
 		Addr:              addr,
 		Handler:           s.routes(),
-		ReadHeaderTimeout: 5 * time.Second,
+		ReadHeaderTimeout: httpReadHeaderSecs * time.Second,
 	}
 
 	go func() {
@@ -241,13 +248,11 @@ func (s *Server) StartHTTP(addr string) error {
 			s.Logger.Error("HTTP server", "error", err)
 		}
 	}()
-
-	return nil
 }
 
 // Stop gracefully drains all components.
 func (s *Server) Stop() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeoutSecs*time.Second)
 	defer cancel()
 
 	if s.ProjHost != nil {
@@ -310,16 +315,11 @@ func Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err := srv.Start(ctx); err != nil {
-		return err
-	}
-
-	if err := srv.StartHTTP(":8080"); err != nil {
-		return err
-	}
+	srv.Start(ctx)
+	srv.StartHTTP(":8080")
 
 	// Give projection a moment to replay, then seed
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(projectionSettleMs * time.Millisecond)
 	srv.SeedDemo(ctx)
 
 	// Wait for shutdown signal

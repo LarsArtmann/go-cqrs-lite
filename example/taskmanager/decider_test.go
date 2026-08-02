@@ -38,6 +38,9 @@ func errMatch(family errorfamily.Family, code string) error {
 		return errorfamily.NewRejection(code, "")
 	case errorfamily.Conflict:
 		return errorfamily.NewConflict(code, "")
+	case errorfamily.Transient, errorfamily.Corruption,
+		errorfamily.Infrastructure, errorfamily.Orchestration:
+		return errorfamily.Newf(family, code, "")
 	default:
 		return errorfamily.Newf(family, code, "")
 	}

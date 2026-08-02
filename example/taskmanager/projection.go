@@ -9,6 +9,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
+var errViewMissingForUpdate = fmt.Errorf("projection: view does not exist for update")
+
 // ──────────────────────────────────────────────────────────────────────────
 // Read Model — the materialised view that projections build from events.
 //
@@ -58,7 +60,7 @@ func configureProjection(mat *stack.Materialize[TaskView, id.StreamID]) {
 
 	mat.OnUpdate = func(_ context.Context, evt event.Event, existing *TaskView) (*TaskView, error) {
 		if existing == nil {
-			return nil, nil
+			return nil, fmt.Errorf("%w: %s", errViewMissingForUpdate, evt.StreamID())
 		}
 
 		updated := *existing

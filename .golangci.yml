@@ -149,6 +149,7 @@ linters:
             - go.opentelemetry.io/otel
             - github.com/cockroachdb/pebble
             - github.com/larsartmann/go-error-family
+            - github.com/larsartmann/go-must
             - modernc.org/sqlite
             - turso.tech/database/tursogo
             - github.com/ThreeDotsLabs/watermill

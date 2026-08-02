@@ -115,6 +115,8 @@ func applyTask(state TaskState, evt event.Event) (TaskState, error) {
 }
 
 // TaskDecider is the decider definition for the Repository.
+//
+//nolint:gochecknoglobals // example app: decider is a static definition
 var TaskDecider = decider.Decider[TaskState]{
 	Initial: TaskState{},
 	Apply:   applyTask,
