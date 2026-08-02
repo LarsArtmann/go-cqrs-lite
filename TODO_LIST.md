@@ -95,8 +95,10 @@ and is **never** duplicated here.
 - `[ ]` **F009/F015/F017 feature-profile gating** — fire on CLI projects where
   modules are deliberately not used (missing feature-profile check). Requires
   adding `HasAsyncBus` to the feature profile.
-- `[ ]` **`--fix` support for D007** — mechanical `event.NewEvent` → `event.New`
-  migration could be auto-fixed.
+- [x] ~~**`--fix` support for D007**~~ — **DONE** (2026-08-02). D007 now emits
+  per-call-site findings with `FixStrategyDirect`. `--fix` replaces
+  `event.NewEvent(` with `event.New(` via the existing `CQRSFixProvider`.
+  Multiple occurrences handled via pipeline iteration (MaxIterations=5).
 - `[ ]` **Domain-based severity calibration (L1.5)** — makes all rules smarter
   via domain context (financial aggregates get stricter rules). Strategic item;
   deferred since 2026-07-30.

@@ -57,6 +57,26 @@ func doSomething() {}
 	ruletest.AssertRule(t, findings, "D007", 0)
 }
 
+func TestD007_MultipleNewEventCallsEmitPerSiteFindings(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"a.go": `package main
+
+func makeA() {
+	_ = event.New("a", sid, "A", 1, payload{})
+}
+`,
+		"b.go": `package main
+
+func makeB() {
+	_ = event.NewEvent("b", sid, "B", 1, payload{})
+	_ = event.NewEvent("c", sid, "C", 1, payload{})
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, consistency.NewD007Detector(ctx))
+	ruletest.AssertRule(t, findings, "D007", 2)
+}
+
 // --- D008: Inconsistent codec usage ---
 
 func TestD008_DetectsMixedCodecUsage(t *testing.T) {
