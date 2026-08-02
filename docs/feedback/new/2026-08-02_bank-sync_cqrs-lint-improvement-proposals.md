@@ -14,14 +14,14 @@ First: **the v0.1.0 → v0.2.0 improvements were excellent.** The generic-call d
 
 This document focuses on what's **still broken, missing, or could be significantly better** in v0.2.2. It is organized by impact: correctness bugs first, then missing features, then quality-of-life improvements.
 
-| Category | Count | Impact |
-| --- | --- | --- |
-| **Wrong suggestion text** (B022) | 1 | High — sends users to a non-existent function |
-| **Cross-file detection blindness** (P012/P013) | 4 | High — unsuppressable false positives on every file that opens SQLite |
-| **No config-level rule disabling** | 1 feature | Medium — forces inline comments everywhere |
-| **F-series missing feature-profile gating** (F009, F015, F017) | 3 | Medium — fires on projects where modules are deliberately not used |
-| **Missing auto-fix for D007** | 1 | Medium — mechanical migration is perfect for `--fix` |
-| **Quality-of-life gaps** | 6 | Low — documentation, presets, stale detection |
+| Category                                                       | Count     | Impact                                                                |
+| -------------------------------------------------------------- | --------- | --------------------------------------------------------------------- |
+| **Wrong suggestion text** (B022)                               | 1         | High — sends users to a non-existent function                         |
+| **Cross-file detection blindness** (P012/P013)                 | 4         | High — unsuppressable false positives on every file that opens SQLite |
+| **No config-level rule disabling**                             | 1 feature | Medium — forces inline comments everywhere                            |
+| **F-series missing feature-profile gating** (F009, F015, F017) | 3         | Medium — fires on projects where modules are deliberately not used    |
+| **Missing auto-fix for D007**                                  | 1         | Medium — mechanical migration is perfect for `--fix`                  |
+| **Quality-of-life gaps**                                       | 6         | Low — documentation, presets, stale detection                         |
 
 ---
 
@@ -215,12 +215,12 @@ Without config-level disabling, I'm forced to add inline comments to every file,
 
 ```json
 {
-  "disabled-rules": ["P012", "P013"],
-  "disabled-rules-reason": "WAL + busy_timeout are applied in internal/storage/sqlite/storage.go via PRAGMA",
-  "rule-overrides": {
-    "E003": { "severity": "info" },
-    "F009": { "enabled": false, "reason": "TickerScheduler is intentional (see ADR)" }
-  }
+	"disabled-rules": ["P012", "P013"],
+	"disabled-rules-reason": "WAL + busy_timeout are applied in internal/storage/sqlite/storage.go via PRAGMA",
+	"rule-overrides": {
+		"E003": { "severity": "info" },
+		"F009": { "enabled": false, "reason": "TickerScheduler is intentional (see ADR)" }
+	}
 }
 ```
 
@@ -228,10 +228,10 @@ Or simpler:
 
 ```json
 {
-  "rules": {
-    "disable": ["P012", "P013", "F009", "F015", "F017"],
-    "external-api-struct-prefixes": ["..."]
-  }
+	"rules": {
+		"disable": ["P012", "P013", "F009", "F015", "F017"],
+		"external-api-struct-prefixes": ["..."]
+	}
 }
 ```
 
@@ -255,13 +255,13 @@ This mirrors `--only` but is exclusive instead of inclusive. Useful for CI where
 
 The feature-profile system is excellent for F004 (Prometheus) and F013 (transport) — both check `ctx.FeatureProfile.HasServer` and return `nil, nil` when the project has no server. But three adoption rules have **no feature-profile awareness**:
 
-| Rule | What it checks | Feature gate? | Fires on CLI? |
-| --- | --- | --- | --- |
-| F004 (Prometheus) | Server-mode without metrics | `HasServer` | No |
-| F009 (scheduling) | Timers without scheduling module | **None** | **Yes** |
-| F013 (transport) | Manual HTTP without transport module | `HasServer` | No |
-| F015 (metaengine) | 10 queries without metaengine | **None** | **Yes** |
-| F017 (dedup) | Bus subscriptions without dedup module | **None** | **Yes** |
+| Rule              | What it checks                         | Feature gate? | Fires on CLI? |
+| ----------------- | -------------------------------------- | ------------- | ------------- |
+| F004 (Prometheus) | Server-mode without metrics            | `HasServer`   | No            |
+| F009 (scheduling) | Timers without scheduling module       | **None**      | **Yes**       |
+| F013 (transport)  | Manual HTTP without transport module   | `HasServer`   | No            |
+| F015 (metaengine) | 10 queries without metaengine          | **None**      | **Yes**       |
+| F017 (dedup)      | Bus subscriptions without dedup module | **None**      | **Yes**       |
 
 #### Why these should be gated
 
@@ -302,8 +302,8 @@ This would require adding `HasAsyncBus` to the feature profile (detected by chec
 
 D007 correctly identified that the project uses both `event.New` and `event.NewEvent`. The migration is:
 
-| Old | New |
-| --- | --- |
+| Old                                                            | New                                                                                           |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `event.NewEvent(type, streamID, streamType, version, payload)` | `event.New(type, streamID, streamType, version, payload, event.WithCodec(codec.JSONCodec{}))` |
 
 This is a 1:1 text replacement (adding the `WithCodec` option for raw-byte payloads). It took me ~30 minutes to migrate 10 call sites across 7 files manually. `--fix` could do this in seconds.
@@ -421,9 +421,9 @@ Alternatively, let the user override in config:
 
 ```json
 {
-  "features": {
-    "server": "local"  // "local" = local dev server, "production" = real server
-  }
+	"features": {
+		"server": "local" // "local" = local dev server, "production" = real server
+	}
 }
 ```
 
@@ -433,18 +433,18 @@ Alternatively, let the user override in config:
 
 To balance the criticism, these v0.2.x improvements were genuinely valuable:
 
-| Improvement | Impact |
-| --- | --- |
-| **Generic call detection** (`unwrapSelector`) | Fixed A017 and all detectors that scan generic API calls — was the #1 false positive source |
-| **Closure handler tracing** (`*ast.FuncLit` params) | Fixed E005/E007 — was the #2 false positive source (19 findings eliminated) |
-| **Feature-profile system** | Eliminated F004/F013 for non-server projects — major noise reduction |
-| **Context-aware heuristics** (A012, A015, A016, S002) | Each now checks domain context before firing — much smarter |
-| **Upcaster context detection** | A014/C005 no longer fire inside `schema.NewUpcaster` closures |
-| **Stale suppression detection** | Caught a dead A016 suppression comment — very useful |
-| **Health score** | Gives a single-number quality signal — great for CI gates |
-| **`doctor` command** | Auto-detects feature profile and emits copy-pasteable JSON — excellent DX |
-| **Block suppression** (`ignore-start`/`ignore-end`) | Clean alternative to per-line comments for multi-line findings |
-| **D002 external-API prefixes** | Lets consumers suppress false positives from external API structs |
+| Improvement                                           | Impact                                                                                      |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **Generic call detection** (`unwrapSelector`)         | Fixed A017 and all detectors that scan generic API calls — was the #1 false positive source |
+| **Closure handler tracing** (`*ast.FuncLit` params)   | Fixed E005/E007 — was the #2 false positive source (19 findings eliminated)                 |
+| **Feature-profile system**                            | Eliminated F004/F013 for non-server projects — major noise reduction                        |
+| **Context-aware heuristics** (A012, A015, A016, S002) | Each now checks domain context before firing — much smarter                                 |
+| **Upcaster context detection**                        | A014/C005 no longer fire inside `schema.NewUpcaster` closures                               |
+| **Stale suppression detection**                       | Caught a dead A016 suppression comment — very useful                                        |
+| **Health score**                                      | Gives a single-number quality signal — great for CI gates                                   |
+| **`doctor` command**                                  | Auto-detects feature profile and emits copy-pasteable JSON — excellent DX                   |
+| **Block suppression** (`ignore-start`/`ignore-end`)   | Clean alternative to per-line comments for multi-line findings                              |
+| **D002 external-API prefixes**                        | Lets consumers suppress false positives from external API structs                           |
 
 The linter has gone from "39% signal-to-noise" (v0.1.0) to roughly "70% signal-to-noise" (v0.2.2). With the fixes proposed here (especially config-level rule disabling and cross-file SQLite detection), it would reach ~90%.
 
@@ -452,19 +452,19 @@ The linter has gone from "39% signal-to-noise" (v0.1.0) to roughly "70% signal-t
 
 ## Part 5: Prioritized Fix List
 
-| Priority | Issue | Type | Effort | Impact |
-| --- | --- | --- | --- | --- |
-| **P0** | B022 suggests non-existent `decider.CommandCausalityEnricher` | Bug (wrong text) | Trivial (text fix) | High — stops misleading users |
-| **P0** | P012/P013 cross-file blindness | Bug (per-file detection) | Medium (cross-file tracking or wrapper-aware heuristic) | High — 4 unsuppressable false positives per project |
-| **P1** | Config-level rule disabling (`"disable": [...]`) | Missing feature | Low (config parsing + filter in run.go) | High — eliminates need for scattered inline comments |
-| **P1** | `--exclude-rules` CLI flag | Missing feature | Low (mirror `--only` logic) | Medium — CI-friendly |
-| **P1** | F009/F015/F017 feature-profile gating | Enhancement | Medium (add `HasAsyncBus` to profile, gate each rule) | Medium — 3 fewer findings on CLI projects |
-| **P2** | D007 auto-fix support | Enhancement | Medium (fix provider for event.NewEvent → event.New) | Medium — saves 30 min per migration |
-| **P2** | Stale suppression: detect unknown rule IDs | Enhancement | Low (collect ignore IDs, check against registry) | Low — catches typos |
-| **P2** | `--help` suppression syntax docs | Docs | Trivial | Low — discoverability |
-| **P3** | `cqrs-lint init --preset` | Enhancement | Low (template configs) | Low — convenience |
-| **P3** | `--health-score` breakdown | Enhancement | Low (format already-computed data) | Low — UX polish |
-| **P3** | `server` detection too aggressive | Enhancement | Medium (confidence heuristic or `ServerLocal` value) | Medium — better feature profile accuracy |
+| Priority | Issue                                                         | Type                     | Effort                                                  | Impact                                               |
+| -------- | ------------------------------------------------------------- | ------------------------ | ------------------------------------------------------- | ---------------------------------------------------- |
+| **P0**   | B022 suggests non-existent `decider.CommandCausalityEnricher` | Bug (wrong text)         | Trivial (text fix)                                      | High — stops misleading users                        |
+| **P0**   | P012/P013 cross-file blindness                                | Bug (per-file detection) | Medium (cross-file tracking or wrapper-aware heuristic) | High — 4 unsuppressable false positives per project  |
+| **P1**   | Config-level rule disabling (`"disable": [...]`)              | Missing feature          | Low (config parsing + filter in run.go)                 | High — eliminates need for scattered inline comments |
+| **P1**   | `--exclude-rules` CLI flag                                    | Missing feature          | Low (mirror `--only` logic)                             | Medium — CI-friendly                                 |
+| **P1**   | F009/F015/F017 feature-profile gating                         | Enhancement              | Medium (add `HasAsyncBus` to profile, gate each rule)   | Medium — 3 fewer findings on CLI projects            |
+| **P2**   | D007 auto-fix support                                         | Enhancement              | Medium (fix provider for event.NewEvent → event.New)    | Medium — saves 30 min per migration                  |
+| **P2**   | Stale suppression: detect unknown rule IDs                    | Enhancement              | Low (collect ignore IDs, check against registry)        | Low — catches typos                                  |
+| **P2**   | `--help` suppression syntax docs                              | Docs                     | Trivial                                                 | Low — discoverability                                |
+| **P3**   | `cqrs-lint init --preset`                                     | Enhancement              | Low (template configs)                                  | Low — convenience                                    |
+| **P3**   | `--health-score` breakdown                                    | Enhancement              | Low (format already-computed data)                      | Low — UX polish                                      |
+| **P3**   | `server` detection too aggressive                             | Enhancement              | Medium (confidence heuristic or `ServerLocal` value)    | Medium — better feature profile accuracy             |
 
 ---
 
